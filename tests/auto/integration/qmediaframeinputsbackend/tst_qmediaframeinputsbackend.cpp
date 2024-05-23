@@ -1,241 +1,143 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/QtTest>
+#include "capturesessionfixture.h"
+#include "tst_qmediaframeinputsbackend.h"
 
+#include "mediainfo.h"
+#include <QtTest/QtTest>
 #include <qvideoframeinput.h>
 #include <qaudiobufferinput.h>
-#include <qmediacapturesession.h>
 #include <qsignalspy.h>
 #include <qmediarecorder.h>
 #include <qmediaplayer.h>
-#include <qaudiooutput.h>
 #include <../shared/testvideosink.h>
 #include <../shared/mediabackendutils.h>
 
-QT_USE_NAMESPACE
-
-using VideoFrameModifier = std::function<void(QVideoFrame &, int index)>;
-
-struct FrameRateSetter
-{
-    void operator()(QVideoFrame &frame, int) const { frame.setStreamFrameRate(frameRate); }
-
-    qreal frameRate = 0.;
-};
-
-struct TimeStampsSetter
-{
-    void operator()(QVideoFrame &frame, int index) const
-    {
-        frame.setStartTime(static_cast<qint64>((index + 1) * 1000000 / frameRate));
-        frame.setEndTime(static_cast<qint64>((index + 2) * 1000000 / frameRate));
-    }
-
-    qreal frameRate = 0.;
-};
-
-class tst_QMediaFrameInputsBackend : public QObject
-{
-    Q_OBJECT
-
-private slots:
-    void initTestCase();
-
-    void mediaRecorderWritesAudio_whenAudioFramesInputSends_data();
-    void mediaRecorderWritesAudio_whenAudioFramesInputSends();
-
-    void mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames_data();
-    void mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames();
-
-    void mediaRecorderStopsRecording_whenInputsReportedEndOfsteream_data();
-    void mediaRecorderStopsRecording_whenInputsReportedEndOfsteream();
-};
+QT_BEGIN_NAMESPACE
 
 void tst_QMediaFrameInputsBackend::initTestCase()
 {
     QSKIP_GSTREAMER("Not implemented in the gstreamer backend");
-
-    qRegisterMetaType<VideoFrameModifier>();
 }
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInputSends_data()
 {
-    QTest::addColumn<int>("buffersNumber");
+    QTest::addColumn<int>("bufferCount");
     QTest::addColumn<QAudioFormat::SampleFormat>("sampleFormat");
     QTest::addColumn<QAudioFormat::ChannelConfig>("channelConfig");
     QTest::addColumn<int>("sampleRate");
-    QTest::addColumn<int>("duration");
+    QTest::addColumn<milliseconds>("duration");
 
 #ifndef Q_OS_WINDOWS // sample rate 8000 is not supported. TODO: investigate.
-    QTest::addRow("buffersNumber: 20; sampleFormat: Int16; channelConfig: Mono; sampleRate: 8000; duration: 1000")
-            << 20 << QAudioFormat::Int16 << QAudioFormat::ChannelConfigMono << 8000 << 1000;
+    QTest::addRow("bufferCount: 20; sampleFormat: Int16; channelConfig: Mono; sampleRate: 8000; "
+                  "duration: 1000")
+            << 20 << QAudioFormat::Int16 << QAudioFormat::ChannelConfigMono << 8000 << 1000ms;
 #endif
-    QTest::addRow("buffersNumber: 30; sampleFormat: Int32; channelConfig: Stereo; sampleRate: 12000; duration: 2000")
-            << 30 << QAudioFormat::Int32 << QAudioFormat::ChannelConfigStereo << 12000 << 2000;
+    QTest::addRow("bufferCount: 30; sampleFormat: Int32; channelConfig: Stereo; sampleRate: "
+                  "12000; duration: 2000")
+            << 30 << QAudioFormat::Int32 << QAudioFormat::ChannelConfigStereo << 12000 << 2000ms;
 
     // TODO: investigate fails of channels configuration
-    //   QTest::addRow("buffersNumber: 10; sampleFormat: UInt8; channelConfig: 2Dot1; sampleRate: 40000; duration: 1500")
+    //   QTest::addRow("bufferCount: 10; sampleFormat: UInt8; channelConfig: 2Dot1; sampleRate:
+    //   40000; duration: 1500")
     //           << 10 << QAudioFormat::UInt8 << QAudioFormat::ChannelConfig2Dot1 << 40000 << 1500;
-    //   QTest::addRow("buffersNumber: 10; sampleFormat: Float; channelConfig: 3Dot0; sampleRate: 50000; duration: 2500")
+    //   QTest::addRow("bufferCount: 10; sampleFormat: Float; channelConfig: 3Dot0; sampleRate:
+    //   50000; duration: 2500")
     //           << 40 << QAudioFormat::Float << QAudioFormat::ChannelConfig3Dot0 << 50000 << 2500;
 }
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInputSends()
 {
-    QFETCH(const int, buffersNumber);
+    QFETCH(const int, bufferCount);
     QFETCH(const QAudioFormat::SampleFormat, sampleFormat);
     QFETCH(const QAudioFormat::ChannelConfig, channelConfig);
     QFETCH(const int, sampleRate);
-    QFETCH(const int, duration);
+    QFETCH(const milliseconds, duration);
 
-    QAudioBufferInput audioInput;
-    QMediaCaptureSession session;
-    QMediaRecorder recorder;
-
-    session.setRecorder(&recorder);
-    session.setAudioBufferInput(&audioInput);
+    CaptureSessionFixture f{ StreamType::Audio, AutoStop::EmitEmpty };
+    f.connectPullMode();
 
     QAudioFormat format;
     format.setSampleFormat(sampleFormat);
     format.setSampleRate(sampleRate);
     format.setChannelConfig(channelConfig);
 
-    int audioBufferIndex = 0;
-    auto onReadyToSendAudioBuffer = [&]() {
-        QCOMPARE_LE(audioBufferIndex, buffersNumber);
+    f.m_audioGenerator.setFormat(format);
+    f.m_audioGenerator.setBufferCount(bufferCount);
+    f.m_audioGenerator.setDuration(duration);
 
-        QByteArray data(format.bytesForDuration(duration * 1000 / buffersNumber), '\0');
-        QAudioBuffer buffer(data, format);
-        audioInput.sendAudioBuffer(buffer);
+    f.m_recorder.record();
 
-        ++audioBufferIndex;
+    QVERIFY(f.waitForRecorderStopped(60s));
 
-        if (audioBufferIndex == buffersNumber)
-            recorder.stop();
-    };
+    auto info = MediaInfo::create(f.m_recorder.actualLocation());
 
-    connect(&audioInput, &QAudioBufferInput::readyToSendAudioBuffer, this,
-            onReadyToSendAudioBuffer);
-
-    recorder.record();
-    QCOMPARE(recorder.recorderState(), QMediaRecorder::RecordingState);
-
-    const QString fileLocation = recorder.actualLocation().toLocalFile();
-    QScopeGuard fileDeleteGuard([&]() { QFile::remove(fileLocation); });
-
-    QVERIFY(QFile::exists(fileLocation));
-
-    QTRY_COMPARE(recorder.recorderState(), QMediaRecorder::StoppedState);
-    QCOMPARE(recorder.errorString(), u"");
-    QCOMPARE(recorder.error(), QMediaRecorder::NoError);
-
-    QAudioOutput audioOutput;
-    QMediaPlayer player;
-    player.setSource(fileLocation);
-    player.setAudioOutput(&audioOutput);
-
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
-
-    QVERIFY(player.hasAudio());
-    QCOMPARE_GE(player.duration(), duration - 50);
-    QCOMPARE_LE(player.duration(), duration + 50);
+    QVERIFY(info->m_hasAudio);
+    QCOMPARE_GE(info->m_duration, duration - 50ms);
+    QCOMPARE_LE(info->m_duration, duration + 50ms);
 }
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames_data()
 {
     QTest::addColumn<int>("framesNumber");
-    QTest::addColumn<qreal>("frameRate");
+    QTest::addColumn<milliseconds>("frameDuration");
     QTest::addColumn<QSize>("resolution");
-    QTest::addColumn<VideoFrameModifier>("videoFrameModifier");
+    QTest::addColumn<bool>("setTimeStamp");
 
     QTest::addRow("framesNumber: 5; frameRate: 2; resolution: 50x80; with time stamps")
-            << 5 << 2. << QSize(50, 80) << VideoFrameModifier(TimeStampsSetter{ 2. });
+            << 5 << 500ms << QSize(50, 80) << true;
     QTest::addRow("framesNumber: 20; frameRate: 1; resolution: 200x100; with time stamps")
-            << 20 << 1. << QSize(200, 100) << VideoFrameModifier(TimeStampsSetter{ 1. });
+            << 20 << 1000ms << QSize(200, 100) << true;
 
     QTest::addRow("framesNumber: 20; frameRate: 30; resolution: 200x100; with frame rate")
-            << 20 << 4. << QSize(200, 100) << VideoFrameModifier(FrameRateSetter{ 4. });
+            << 20 << 250ms << QSize(200, 100) << false;
     QTest::addRow("framesNumber: 60; frameRate: 4; resolution: 200x100; with frame rate")
-            << 60 << 30. << QSize(200, 100) << VideoFrameModifier(TimeStampsSetter{ 30. });
+            << 60 << 24ms << QSize(200, 100) << false;
 }
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames()
 {
     QFETCH(const int, framesNumber);
-    QFETCH(const qreal, frameRate);
+    QFETCH(const milliseconds, frameDuration);
     QFETCH(const QSize, resolution);
-    QFETCH(const VideoFrameModifier, videoFrameModifier);
+    QFETCH(const bool, setTimeStamp);
 
-    QVideoFrameInput videoInput;
-    QMediaCaptureSession session;
-    QMediaRecorder recorder;
-    recorder.setQuality(QMediaRecorder::VeryHighQuality);
+    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
+    f.connectPullMode();
+    f.m_videoGenerator.setFrameCount(framesNumber);
+    f.m_videoGenerator.setSize(resolution);
 
-    session.setRecorder(&recorder);
-    session.setVideoFrameInput(&videoInput);
+    const double frameRate = 1e6 / duration_cast<microseconds>(frameDuration).count();
+    if (setTimeStamp)
+        f.m_videoGenerator.setPeriod(frameDuration);
+    else
+        f.m_videoGenerator.setFrameRate(frameRate);
 
-    QList<QColor> colors = { Qt::red, Qt::green, Qt::blue, Qt::black, Qt::white };
+    f.m_recorder.record();
 
-    int frameIndex = 0;
-    auto onReadyToSendVideoFrame = [&]() {
-        QCOMPARE_LE(frameIndex, framesNumber);
+    QVERIFY(f.waitForRecorderStopped(60s));
 
-        QImage image(resolution, QImage::Format_ARGB32);
-        image.fill(colors[frameIndex % colors.size()]);
-        QVideoFrame frame(std::move(image));
-        videoFrameModifier(frame, frameIndex);
-        videoInput.sendVideoFrame(std::move(frame));
+    auto info = MediaInfo::create(f.m_recorder.actualLocation());
 
-        ++frameIndex;
-
-        if (frameIndex == framesNumber)
-            recorder.stop();
-    };
-
-    connect(&videoInput, &QVideoFrameInput::readyToSendVideoFrame, this, onReadyToSendVideoFrame);
-
-    recorder.record();
-    QCOMPARE(recorder.recorderState(), QMediaRecorder::RecordingState);
-
-    const QString fileLocation = recorder.actualLocation().toLocalFile();
-    QScopeGuard fileDeleteGuard([&]() { QFile::remove(fileLocation); });
-
-    QTRY_COMPARE(recorder.recorderState(), QMediaRecorder::StoppedState);
-    QCOMPARE(frameIndex, framesNumber);
-
-    QVERIFY(QFile::exists(fileLocation));
-
-    TestVideoSink sink;
-    QMediaPlayer player;
-    player.setSource(fileLocation);
-    player.setVideoSink(&sink);
-
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
-
-    const qreal actualFrameRate = player.metaData().value(QMediaMetaData::VideoFrameRate).toReal();
+    const qreal actualFrameRate = info->m_frameRate;
     // TODO: investigate the frame rate difference
     QCOMPARE_GE(actualFrameRate, frameRate);
     QCOMPARE_LE(actualFrameRate, qMax(frameRate * 1.07, frameRate + 0.7));
 
     // TODO: fix it, the duration should be framesNumber * 1000 / frameRate.
     // The first frame seems to be dropped by FFmpeg
-    QCOMPARE_GE(player.duration(), static_cast<qint64>((framesNumber - 1) * 1000 / frameRate));
-    QCOMPARE_LE(player.duration(), static_cast<qint64>(framesNumber * 1000 / frameRate));
+    QCOMPARE_GE(info->m_duration, frameDuration * (framesNumber - 1));
+    QCOMPARE_LE(info->m_duration, frameDuration * framesNumber);
 
-    QCOMPARE(player.metaData().value(QMediaMetaData::Resolution), resolution);
-
-    player.setPlaybackRate(50); // let's speed it up
-    player.play();
-
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QCOMPARE(info->m_size, resolution);
 
     // The first frame seems to be dropped by FFmpeg; Fix it!
-    QCOMPARE_GE(sink.m_totalFrames, framesNumber - 1);
-    QCOMPARE_LE(sink.m_totalFrames, framesNumber + 1);
+    QCOMPARE_GE(info->m_frameCount, framesNumber - 1);
+    QCOMPARE_LE(info->m_frameCount, framesNumber + 1);
 }
 
-void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReportedEndOfsteream_data()
+void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReportedEndOfStream_data()
 {
     QTest::addColumn<bool>("audioStopsFirst");
 
@@ -243,90 +145,155 @@ void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReporte
     QTest::addRow("video stops first") << true;
 }
 
-void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReportedEndOfsteream()
+void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReportedEndOfStream()
 {
     QFETCH(const bool, audioStopsFirst);
 
-    QVideoFrameInput videoInput;
-    QAudioBufferInput audioInput;
-    QMediaCaptureSession session;
-    QMediaRecorder recorder;
+    CaptureSessionFixture f{ StreamType::AudioAndVideo, AutoStop::No };
+    f.m_recorder.setAutoStop(true);
+    f.connectPullMode();
 
-    recorder.setAutoStop(true);
+    f.m_audioGenerator.setBufferCount(30);
+    f.m_videoGenerator.setFrameCount(30);
 
-    session.setRecorder(&recorder);
-    session.setVideoFrameInput(&videoInput);
-    session.setAudioBufferInput(&audioInput);
+    QSignalSpy audioDone{ &f.m_audioGenerator, &AudioGenerator::done };
+    QSignalSpy videoDone{ &f.m_videoGenerator, &VideoGenerator::done };
 
-    int videoFrameIndex = 0;
-    auto onReadyToSendVideoFrame = [&]() {
-        if (videoFrameIndex == 30)
-            return;
+    f.m_recorder.record();
 
-        QImage image(QSize(200, 100), QImage::Format_ARGB32);
-        image.fill(Qt::blue);
-        QVideoFrame frame(std::move(image));
-        frame.setStreamFrameRate(30);
-        videoInput.sendVideoFrame(std::move(frame));
+    audioDone.wait();
+    videoDone.wait();
 
-        ++videoFrameIndex;
-    };
+    if (audioStopsFirst) {
+        f.m_audioInput.sendAudioBuffer({});
+        QVERIFY(!f.waitForRecorderStopped(300ms)); // Should not stop until both streams stopped
+        f.m_videoInput.sendVideoFrame({});
+    } else {
+        f.m_videoInput.sendVideoFrame({});
+        QVERIFY(!f.waitForRecorderStopped(300ms)); // Should not stop until both streams stopped
+        f.m_audioInput.sendAudioBuffer({});
+    }
 
-    int audioBufferIndex = 0;
-    auto onReadyToSendAudioBuffer = [&]() {
-        if (audioBufferIndex == 30)
-            return;
-
-        QAudioFormat format;
-        format.setSampleFormat(QAudioFormat::UInt8);
-        format.setSampleRate(8000);
-        format.setChannelConfig(QAudioFormat::ChannelConfigMono);
-        QByteArray data(format.bytesForDuration(1000000 / 30), '\0');
-        QAudioBuffer buffer(data, format);
-        audioInput.sendAudioBuffer(buffer);
-
-        ++audioBufferIndex;
-    };
-
-    connect(&videoInput, &QVideoFrameInput::readyToSendVideoFrame, this, onReadyToSendVideoFrame);
-    connect(&audioInput, &QAudioBufferInput::readyToSendAudioBuffer, this,
-            onReadyToSendAudioBuffer);
-
-    recorder.record();
-
-    QCOMPARE(recorder.recorderState(), QMediaRecorder::RecordingState);
-
-    const QString fileLocation = recorder.actualLocation().toLocalFile();
-    QScopeGuard fileDeleteGuard([&]() { QFile::remove(fileLocation); });
-
-    QTRY_COMPARE(audioBufferIndex, 30);
-    QTRY_COMPARE(videoFrameIndex, 30);
-
-    auto sendEndOfStream = [&](bool isAudio) {
-        return isAudio ? audioInput.sendAudioBuffer({}) : videoInput.sendVideoFrame({});
-    };
-
-    QVERIFY(sendEndOfStream(audioStopsFirst));
-
-    // wait a bit to give the recaorder a chance to fail if smth went wrong
-    QTest::qWait(300);
-    QCOMPARE_NE(recorder.recorderState(), QMediaRecorder::StoppedState);
-
-    QVERIFY(sendEndOfStream(!audioStopsFirst));
-    QTRY_COMPARE(recorder.recorderState(), QMediaRecorder::StoppedState);
+    QVERIFY(f.waitForRecorderStopped(60s));
 
     // check if the file has been written
 
-    TestVideoSink sink;
-    QMediaPlayer player;
-    player.setSource(fileLocation);
-    player.setVideoSink(&sink);
+    const std::optional<MediaInfo> mediaInfo = MediaInfo::create(f.m_recorder.actualLocation());
 
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
-    QVERIFY(player.hasAudio());
-    QVERIFY(player.hasVideo());
+    QVERIFY(mediaInfo);
+    QVERIFY(mediaInfo->m_hasVideo);
+    QVERIFY(mediaInfo->m_hasAudio);
 }
+
+void tst_QMediaFrameInputsBackend::readyToSend_isEmitted_whenRecordingStarts_data()
+{
+    QTest::addColumn<StreamType>("streamType");
+    QTest::addRow("audio") << StreamType::Audio;
+    QTest::addRow("video") << StreamType::Video;
+    QTest::addRow("audioAndVideo") << StreamType::AudioAndVideo;
+}
+
+void tst_QMediaFrameInputsBackend::readyToSend_isEmitted_whenRecordingStarts()
+{
+    QFETCH(StreamType, streamType);
+
+    CaptureSessionFixture f{ streamType, AutoStop::No };
+
+    f.m_recorder.record();
+
+    if (f.hasAudio())
+        QTRY_COMPARE_EQ(f.readyToSendAudioBuffer.size(), 1);
+
+    if (f.hasVideo())
+        QTRY_COMPARE_EQ(f.readyToSendVideoFrame.size(), 1);
+}
+
+void tst_QMediaFrameInputsBackend::readyToSendVideoFrame_isEmitted_whenSendVideoFrameIsCalled()
+{
+    CaptureSessionFixture f{ StreamType::Video, AutoStop::No };
+
+    f.m_recorder.record();
+    QVERIFY(f.readyToSendVideoFrame.wait());
+
+    f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame());
+    QVERIFY(f.readyToSendVideoFrame.wait());
+
+    f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame());
+    QVERIFY(f.readyToSendVideoFrame.wait());
+}
+
+void tst_QMediaFrameInputsBackend::readyToSendAudioBuffer_isEmitted_whenSendAudioBufferIsCalled()
+{
+    CaptureSessionFixture f{ StreamType::Audio, AutoStop::No };
+
+    f.m_recorder.record();
+    QVERIFY(f.readyToSendAudioBuffer.wait());
+
+    f.m_audioInput.sendAudioBuffer(f.m_audioGenerator.createAudioBuffer());
+    QVERIFY(f.readyToSendAudioBuffer.wait());
+
+    f.m_audioInput.sendAudioBuffer(f.m_audioGenerator.createAudioBuffer());
+    QVERIFY(f.readyToSendAudioBuffer.wait());
+}
+
+void tst_QMediaFrameInputsBackend::readyToSendVideoFrame_isEmittedRepeatedly_whenPullModeIsEnabled()
+{
+    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
+    f.connectPullMode();
+
+    constexpr int expectedSignalCount = 4;
+    f.m_videoGenerator.setFrameCount(expectedSignalCount - 1);
+
+    f.m_recorder.record();
+
+    f.waitForRecorderStopped(60s);
+
+    QCOMPARE_GE(f.readyToSendVideoFrame.size(), expectedSignalCount - 1);
+    QCOMPARE_LE(f.readyToSendVideoFrame.size(), expectedSignalCount + 1);
+}
+
+void tst_QMediaFrameInputsBackend::
+        readyToSendAudioBuffer_isEmittedRepeatedly_whenPullModeIsEnabled()
+{
+    CaptureSessionFixture f{ StreamType::Audio, AutoStop::EmitEmpty };
+    f.connectPullMode();
+
+    constexpr int expectedSignalCount = 4;
+    f.m_audioGenerator.setBufferCount(expectedSignalCount - 1);
+
+    f.m_recorder.record();
+
+    f.waitForRecorderStopped(60s);
+
+    QCOMPARE_GE(f.readyToSendAudioBuffer.size(), expectedSignalCount - 1);
+    QCOMPARE_LE(f.readyToSendAudioBuffer.size(), expectedSignalCount + 1);
+}
+
+void tst_QMediaFrameInputsBackend::
+        readyToSendAudioBufferAndVideoFrame_isEmittedRepeatedly_whenPullModeIsEnabled()
+{
+    CaptureSessionFixture f{ StreamType::AudioAndVideo, AutoStop::EmitEmpty };
+    f.connectPullMode();
+
+    constexpr int expectedSignalCount = 4;
+    f.m_audioGenerator.setBufferCount(expectedSignalCount - 1);
+    f.m_videoGenerator.setFrameCount(expectedSignalCount - 1);
+
+    f.m_recorder.record();
+
+    f.waitForRecorderStopped(60s);
+
+    QCOMPARE_GE(f.readyToSendAudioBuffer.size(), expectedSignalCount - 1);
+    QCOMPARE_LE(f.readyToSendAudioBuffer.size(), expectedSignalCount + 1);
+
+    QCOMPARE_GE(f.readyToSendVideoFrame.size(), expectedSignalCount - 1);
+    QCOMPARE_LE(f.readyToSendVideoFrame.size(), expectedSignalCount + 1);
+}
+
+QT_END_NAMESPACE
+
+QT_USE_NAMESPACE
 
 QTEST_MAIN(tst_QMediaFrameInputsBackend)
 
-#include "tst_qmediaframeinputsbackend.moc"
+#include "moc_tst_qmediaframeinputsbackend.cpp"

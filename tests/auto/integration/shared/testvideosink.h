@@ -8,6 +8,7 @@
 #include <qvideoframe.h>
 #include <qelapsedtimer.h>
 #include <qsignalspy.h>
+#include <chrono>
 
 QT_BEGIN_NAMESPACE
 
@@ -42,6 +43,10 @@ private Q_SLOTS:
 
         if (m_storeFrames)
             m_frameList.append(frame);
+
+        if (frame.isValid())
+            m_frameTimes.emplace_back(std::chrono::microseconds(frame.startTime()));
+
         ++m_totalFrames;
     }
 
@@ -52,6 +57,8 @@ public:
     QList<QVideoFrame> m_frameList;
     int m_totalFrames = 0; // used instead of the list when frames are not stored
     QElapsedTimer m_elapsedTimer;
+    using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
+    std::vector<TimePoint> m_frameTimes;
 
 private:
     bool m_storeFrames;
