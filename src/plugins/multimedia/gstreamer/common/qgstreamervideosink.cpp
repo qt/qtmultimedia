@@ -62,20 +62,14 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     if (!preprocessOverride.isEmpty()) {
         qCDebug(qLcGstVideoSink) << "requesting conversion element from environment: "
                                  << preprocessOverride;
-        factory = QGstElementFactoryHandle{
-            gst_element_factory_find(preprocessOverride.constData()),
-        };
+        factory = QGstElement::findFactory(preprocessOverride);
     }
 
     if (!factory)
-        factory = QGstElementFactoryHandle{
-            gst_element_factory_find("imxvideoconvert_g2d"),
-        };
+        factory = QGstElement::findFactory("imxvideoconvert_g2d");
 
     if (!factory)
-        factory = QGstElementFactoryHandle{
-            gst_element_factory_find("nvvidconv"),
-        };
+        factory = QGstElement::findFactory("nvvidconv");
 
     if (factory) {
         qCDebug(qLcGstVideoSink) << "instantiating conversion element: "
