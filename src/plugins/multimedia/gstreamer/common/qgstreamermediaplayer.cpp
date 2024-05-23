@@ -756,9 +756,7 @@ void QGstreamerMediaPlayer::uridecodebinElementAddedCallback(GstElement * /*urid
     qCDebug(qLcMediaPlayer) << "New element added to uridecodebin:" << c.name();
 
     static const GType decodeBinType = [] {
-        QGstElementFactoryHandle factory = QGstElementFactoryHandle{
-            gst_element_factory_find("decodebin"),
-        };
+        QGstElementFactoryHandle factory = QGstElement::findFactory("decodebin");
         return gst_element_factory_get_element_type(factory.get());
     }();
 
@@ -817,16 +815,12 @@ void QGstreamerMediaPlayer::unknownTypeCallback(GstElement *decodebin, GstPad *p
 static bool isQueue(const QGstElement &element)
 {
     static const GType queueType = [] {
-        QGstElementFactoryHandle factory = QGstElementFactoryHandle{
-            gst_element_factory_find("queue"),
-        };
+        QGstElementFactoryHandle factory = QGstElement::findFactory("queue");
         return gst_element_factory_get_element_type(factory.get());
     }();
 
     static const GType multiQueueType = [] {
-        QGstElementFactoryHandle factory = QGstElementFactoryHandle{
-            gst_element_factory_find("multiqueue"),
-        };
+        QGstElementFactoryHandle factory = QGstElement::findFactory("multiqueue");
         return gst_element_factory_get_element_type(factory.get());
     }();
 

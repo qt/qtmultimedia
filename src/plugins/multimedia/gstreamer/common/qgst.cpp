@@ -937,6 +937,19 @@ QGstElement QGstElement::createFromPipelineDescription(const QByteArray &str)
     return createFromPipelineDescription(str.constData());
 }
 
+QGstElementFactoryHandle QGstElement::findFactory(const char *name)
+{
+    return QGstElementFactoryHandle{
+        gst_element_factory_find(name),
+        QGstElementFactoryHandle::HasRef,
+    };
+}
+
+QGstElementFactoryHandle QGstElement::findFactory(const QByteArray &name)
+{
+    return findFactory(name.constData());
+}
+
 QGstPad QGstElement::staticPad(const char *name) const
 {
     return QGstPad(gst_element_get_static_pad(element(), name), HasRef);
