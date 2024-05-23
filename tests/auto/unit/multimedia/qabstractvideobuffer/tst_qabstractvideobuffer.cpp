@@ -5,12 +5,6 @@
 
 #include <private/qabstractvideobuffer_p.h>
 
-// Adds an enum, and the stringized version
-#define ADD_ENUM_TEST(x) \
-    QTest::newRow(#x) \
-        << QVideoFrame::x \
-    << QString(QLatin1String(#x));
-
 class tst_QAbstractVideoBuffer : public QObject
 {
     Q_OBJECT
@@ -37,7 +31,7 @@ class QtTestVideoBuffer : public QHwVideoBuffer
 public:
     QtTestVideoBuffer(QVideoFrame::HandleType type) : QHwVideoBuffer(type) { }
 
-    MapData map(QVideoFrame::MapMode) override { return {}; }
+    MapData map(QtVideo::MapMode) override { return {}; }
     void unmap() override {}
 };
 
@@ -70,8 +64,8 @@ void tst_QAbstractVideoBuffer::handleType_data()
     QTest::addColumn<QVideoFrame::HandleType>("type");
     QTest::addColumn<QString>("stringized");
 
-    ADD_ENUM_TEST(NoHandle);
-    ADD_ENUM_TEST(RhiTextureHandle);
+    QTest::newRow("NoHandle") << QVideoFrame::NoHandle << QStringLiteral("NoHandle");
+    QTest::newRow("RhiTextureHandle") << QVideoFrame::RhiTextureHandle << QStringLiteral("RhiTextureHandle");
 }
 
 void tst_QAbstractVideoBuffer::handleType()
@@ -96,18 +90,18 @@ void tst_QAbstractVideoBuffer::handle()
 
 void tst_QAbstractVideoBuffer::mapModeDebug_data()
 {
-    QTest::addColumn<QVideoFrame::MapMode>("mapMode");
+    QTest::addColumn<QtVideo::MapMode>("mapMode");
     QTest::addColumn<QString>("stringized");
 
-    ADD_ENUM_TEST(NotMapped);
-    ADD_ENUM_TEST(ReadOnly);
-    ADD_ENUM_TEST(WriteOnly);
-    ADD_ENUM_TEST(ReadWrite);
+    QTest::newRow("NotMapped") << QtVideo::MapMode::NotMapped << QStringLiteral("NotMapped");
+    QTest::newRow("ReadOnly") << QtVideo::MapMode::ReadOnly << QStringLiteral("ReadOnly");
+    QTest::newRow("WriteOnly") << QtVideo::MapMode::WriteOnly << QStringLiteral("WriteOnly");
+    QTest::newRow("ReadWrite") << QtVideo::MapMode::ReadWrite << QStringLiteral("ReadWrite");
 }
 
 void tst_QAbstractVideoBuffer::mapModeDebug()
 {
-    QFETCH(QVideoFrame::MapMode, mapMode);
+    QFETCH(QtVideo::MapMode, mapMode);
     QFETCH(QString, stringized);
 
     QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());

@@ -53,27 +53,6 @@ QT_BEGIN_NAMESPACE
     \sa handleType()
 */
 
-/*!
-    \enum QVideoFrame::MapMode
-
-    Enumerates how a video buffer's data is mapped to system memory.
-
-    \value NotMapped
-    The video buffer is not mapped to memory.
-    \value ReadOnly
-    The mapped memory is populated with data from the video buffer when mapped,
-    but the content of the mapped memory may be discarded when unmapped.
-    \value WriteOnly
-    The mapped memory is uninitialized when mapped, but the possibly modified
-    content will be used to populate the video buffer when unmapped.
-    \value ReadWrite
-    The mapped memory is populated with data from the video
-    buffer, and the video buffer is repopulated with the content of the mapped
-    memory when it is unmapped.
-
-    \sa mapMode(), map()
-*/
-
 // must be out-of-line to ensure correct working of dynamic_cast when QHwVideoBuffer is created in tests
 QAbstractVideoBuffer::~QAbstractVideoBuffer() = default;
 
@@ -89,9 +68,9 @@ QHwVideoBuffer::~QHwVideoBuffer() = default;
     Independently maps the planes of a video buffer to memory.
 
     The map \a mode indicates whether the contents of the mapped memory should be read from and/or
-    written to the buffer.  If the map mode includes the \c QVideoFrame::ReadOnly flag the
+    written to the buffer.  If the map mode includes the \c QtVideo::MapMode::ReadOnly flag the
     mapped memory will be populated with the content of the buffer when initially mapped.  If the map
-    mode includes the \c QVideoFrame::WriteOnly flag the content of the possibly modified
+    mode includes the \c QtVideo::MapMode::WriteOnly flag the content of the possibly modified
     mapped memory will be written back to the buffer when unmapped.
 
     When access to the data is no longer needed be sure to call the unmap() function to release the
@@ -117,7 +96,7 @@ QHwVideoBuffer::~QHwVideoBuffer() = default;
 
     Releases the memory mapped by the map() function.
 
-    If the \l {QVideoFrame::MapMode}{MapMode} included the \c QVideoFrame::WriteOnly
+    If the \l {QtVideo::MapMode}{MapMode} included the \c QtVideo::MapMode::WriteOnly
     flag this will write the current content of the mapped memory back to the video frame.
 
     \sa map()
@@ -136,9 +115,9 @@ QHwVideoBuffer::~QHwVideoBuffer() = default;
     Maps the contents of a video buffer to memory.
 
     The map \a mode indicates whether the contents of the mapped memory should be read from and/or
-    written to the buffer.  If the map mode includes the \c QVideoFrame::ReadOnly flag the
+    written to the buffer.  If the map mode includes the \c QtVideo::MapMode::ReadOnly flag the
     mapped memory will be populated with the content of the buffer when initially mapped.  If the map
-    mode includes the \c QVideoFrame::WriteOnly flag the content of the possibly modified
+    mode includes the \c QtVideo::MapMode::WriteOnly flag the content of the possibly modified
     mapped memory will be written back to the buffer when unmapped.
 
     When access to the data is no longer needed be sure to call the unmap() function to release the
@@ -148,20 +127,20 @@ QHwVideoBuffer::~QHwVideoBuffer() = default;
     plane will be returned in \a bytesPerLine, and a pointer to the plane data will be returned in
     \a data.  The accumulative size of the mapped data is returned in \a numBytes.
 
-    \sa QAbstractVideoBuffer::map(), QAbstractVideoBuffer::unmap(), QVideoFrame::mapMode()
+    \sa QAbstractVideoBuffer::map(), QAbstractVideoBuffer::unmap(), QtVideo::MapMode()
 */
 
 #ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug dbg, QVideoFrame::MapMode mode)
+QDebug operator<<(QDebug dbg, QtVideo::MapMode mode)
 {
     QDebugStateSaver saver(dbg);
     dbg.nospace();
     switch (mode) {
-    case QVideoFrame::ReadOnly:
+    case QtVideo::MapMode::ReadOnly:
         return dbg << "ReadOnly";
-    case QVideoFrame::ReadWrite:
+    case QtVideo::MapMode::ReadWrite:
         return dbg << "ReadWrite";
-    case QVideoFrame::WriteOnly:
+    case QtVideo::MapMode::WriteOnly:
         return dbg << "WriteOnly";
     default:
         return dbg << "NotMapped";

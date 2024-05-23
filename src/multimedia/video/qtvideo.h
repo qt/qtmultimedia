@@ -16,6 +16,36 @@ Q_NAMESPACE_EXPORT(Q_MULTIMEDIA_EXPORT)
 
 enum class Rotation { None = 0, Clockwise90 = 90, Clockwise180 = 180, Clockwise270 = 270 };
 Q_ENUM_NS(Rotation)
+
+enum class MapMode
+{
+    NotMapped = 0x00,
+    ReadOnly  = 0x01,
+    WriteOnly = 0x02,
+    ReadWrite = ReadOnly | WriteOnly
+};
+Q_ENUM_NS(MapMode)
+
+inline constexpr MapMode operator & (MapMode lhs, MapMode rhs)
+{
+    return MapMode(qToUnderlying(lhs) & qToUnderlying(rhs));
+}
+
+inline constexpr MapMode operator | (MapMode lhs, MapMode rhs)
+{
+    return MapMode(qToUnderlying(lhs) | qToUnderlying(rhs));
+}
+
+inline constexpr MapMode &operator &= (MapMode &lhs, MapMode rhs)
+{
+    return (lhs = lhs & rhs);
+}
+
+inline constexpr MapMode &operator |= (MapMode &lhs, MapMode rhs)
+{
+    return (lhs = lhs | rhs);
+}
+
 }
 
 QT_END_NAMESPACE

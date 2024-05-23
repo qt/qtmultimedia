@@ -74,7 +74,7 @@ public:
 
     void unmap() override {}
 
-    MapData map(QVideoFrame::MapMode /*mode*/) override
+    MapData map(QtVideo::MapMode /*mode*/) override
     {
         return {};
     }
@@ -99,9 +99,9 @@ class QnxRasterBuffer : public QAbstractVideoBuffer
 public:
     QnxRasterBuffer(QQnxWindowGrabber *windowGrabber) { m_windowGrabber = windowGrabber; }
 
-    MapData map(QVideoFrame::MapMode mode) override
+    MapData map(QtVideo::MapMode mode) override
     {
-        if (mode != QVideoFrame::ReadOnly)
+        if (mode != QtVideo::MapMode::ReadOnly)
             return {};
 
         if (buffer.data) {

@@ -25,12 +25,12 @@ public:
     QMemoryVideoBuffer(QByteArray data, int bytesPerLine);
     ~QMemoryVideoBuffer() override;
 
-    MapData map(QVideoFrame::MapMode mode) override;
+    MapData map(QtVideo::MapMode mode) override;
     void unmap() override;
 
 private:
     int m_bytesPerLine = 0;
-    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
+    QtVideo::MapMode m_mapMode = QtVideo::MapMode::NotMapped;
     QByteArray m_data;
 };
 

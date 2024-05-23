@@ -25,14 +25,14 @@ class Q_MULTIMEDIA_EXPORT QImageVideoBuffer : public QAbstractVideoBuffer
 public:
     QImageVideoBuffer(QImage image);
 
-    MapData map(QVideoFrame::MapMode mode) override;
+    MapData map(QtVideo::MapMode mode) override;
 
     void unmap() override;
 
     QImage underlyingImage() const;
 
 private:
-    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
+    QtVideo::MapMode m_mapMode = QtVideo::MapMode::NotMapped;
     QImage m_image;
 };
 

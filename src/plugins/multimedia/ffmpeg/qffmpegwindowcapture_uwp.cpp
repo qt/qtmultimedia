@@ -86,12 +86,12 @@ public:
 
     ~QUwpTextureVideoBuffer() override { QUwpTextureVideoBuffer::unmap(); }
 
-    MapData map(QVideoFrame::MapMode mode) override
+    MapData map(QtVideo::MapMode mode) override
     {
-        if (m_mapMode != QVideoFrame::NotMapped)
+        if (m_mapMode != QtVideo::MapMode::NotMapped)
             return {};
 
-        if (mode == QVideoFrame::ReadOnly) {
+        if (mode == QtVideo::MapMode::ReadOnly) {
             DXGI_MAPPED_RECT rect = {};
             HRESULT hr = m_surface->Map(&rect, DXGI_MAP_READ);
             if (SUCCEEDED(hr)) {
@@ -104,7 +104,7 @@ public:
                 md.data[0] = rect.pBits;
                 md.size[0] = rect.Pitch * desc.Height;
 
-                m_mapMode = QVideoFrame::ReadOnly;
+                m_mapMode = QtVideo::MapMode::ReadOnly;
 
                 return md;
             } else {
@@ -118,18 +118,18 @@ public:
 
     void unmap() override
     {
-        if (m_mapMode == QVideoFrame::NotMapped)
+        if (m_mapMode == QtVideo::MapMode::NotMapped)
             return;
 
         const HRESULT hr = m_surface->Unmap();
         if (FAILED(hr))
             qCDebug(qLcWindowCaptureUwp) << "Failed to unmap surface" << errorString(hr);
 
-        m_mapMode = QVideoFrame::NotMapped;
+        m_mapMode = QtVideo::MapMode::NotMapped;
     }
 
 private:
-    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
+    QtVideo::MapMode m_mapMode = QtVideo::MapMode::NotMapped;
     com_ptr<IDXGISurface> m_surface;
 };
 

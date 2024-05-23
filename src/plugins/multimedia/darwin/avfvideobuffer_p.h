@@ -37,7 +37,7 @@ public:
     AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buffer);
     ~AVFVideoBuffer();
 
-    MapData map(QVideoFrame::MapMode mode);
+    MapData map(QtVideo::MapMode mode);
     void unmap();
 
     virtual quint64 textureHandle(QRhi *, int plane) const;
@@ -56,7 +56,7 @@ private:
 #endif
 
     CVImageBufferRef m_buffer = nullptr;
-    QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
+    QtVideo::MapMode m_mode = QtVideo::MapMode::NotMapped;
     QVideoFrameFormat m_format;
 };
 

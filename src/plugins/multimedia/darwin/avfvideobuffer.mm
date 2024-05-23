@@ -44,12 +44,12 @@ AVFVideoBuffer::~AVFVideoBuffer()
     CVPixelBufferRelease(m_buffer);
 }
 
-AVFVideoBuffer::MapData AVFVideoBuffer::map(QVideoFrame::MapMode mode)
+AVFVideoBuffer::MapData AVFVideoBuffer::map(QtVideo::MapMode mode)
 {
     MapData mapData;
 
-    if (m_mode == QVideoFrame::NotMapped) {
-        CVPixelBufferLockBaseAddress(m_buffer, mode == QVideoFrame::ReadOnly
+    if (m_mode == QtVideo::MapMode::NotMapped) {
+        CVPixelBufferLockBaseAddress(m_buffer, mode == QtVideo::MapMode::ReadOnly
                                                            ? kCVPixelBufferLock_ReadOnly
                                                            : 0);
         m_mode = mode;
@@ -79,11 +79,11 @@ AVFVideoBuffer::MapData AVFVideoBuffer::map(QVideoFrame::MapMode mode)
 
 void AVFVideoBuffer::unmap()
 {
-    if (m_mode != QVideoFrame::NotMapped) {
-        CVPixelBufferUnlockBaseAddress(m_buffer, m_mode == QVideoFrame::ReadOnly
+    if (m_mode != QtVideo::MapMode::NotMapped) {
+        CVPixelBufferUnlockBaseAddress(m_buffer, m_mode == QtVideo::MapMode::ReadOnly
                                                                ? kCVPixelBufferLock_ReadOnly
                                                                : 0);
-        m_mode = QVideoFrame::NotMapped;
+        m_mode = QtVideo::MapMode::NotMapped;
     }
 }
 

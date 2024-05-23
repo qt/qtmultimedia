@@ -34,19 +34,19 @@ public:
         : QHwVideoBuffer(type, rhi),
           m_device(device),
           m_sample(sample),
-          m_mapMode(QVideoFrame::NotMapped)
+          m_mapMode(QtVideo::MapMode::NotMapped)
     {
     }
 
     ~IMFSampleVideoBuffer() override
     {
-        if (m_memSurface && m_mapMode != QVideoFrame::NotMapped)
+        if (m_memSurface && m_mapMode != QtVideo::MapMode::NotMapped)
             m_memSurface->UnlockRect();
     }
 
-    MapData map(QVideoFrame::MapMode mode) override
+    MapData map(QtVideo::MapMode mode) override
     {
-        if (!m_sample || m_mapMode != QVideoFrame::NotMapped || mode != QVideoFrame::ReadOnly)
+        if (!m_sample || m_mapMode != QtVideo::MapMode::NotMapped || mode != QtVideo::MapMode::ReadOnly)
             return {};
 
         D3DSURFACE_DESC desc;
@@ -78,7 +78,7 @@ public:
         }
 
         D3DLOCKED_RECT rect;
-        if (FAILED(m_memSurface->LockRect(&rect, NULL, mode == QVideoFrame::ReadOnly ? D3DLOCK_READONLY : 0)))
+        if (FAILED(m_memSurface->LockRect(&rect, NULL, mode == QtVideo::MapMode::ReadOnly ? D3DLOCK_READONLY : 0)))
             return {};
 
         m_mapMode = mode;
@@ -93,10 +93,10 @@ public:
 
     void unmap() override
     {
-        if (m_mapMode == QVideoFrame::NotMapped)
+        if (m_mapMode == QtVideo::MapMode::NotMapped)
             return;
 
-        m_mapMode = QVideoFrame::NotMapped;
+        m_mapMode = QtVideo::MapMode::NotMapped;
         if (m_memSurface)
             m_memSurface->UnlockRect();
     }
@@ -107,7 +107,7 @@ protected:
 
 private:
     ComPtr<IDirect3DSurface9> m_memSurface;
-    QVideoFrame::MapMode m_mapMode;
+    QtVideo::MapMode m_mapMode;
 };
 
 class QVideoFrameD3D11Textures: public QVideoFrameTextures

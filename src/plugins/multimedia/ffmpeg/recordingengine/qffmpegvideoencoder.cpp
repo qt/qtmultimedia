@@ -152,7 +152,7 @@ void VideoEncoder::processOne()
     }
 
     if (!avFrame) {
-        frame.map(QVideoFrame::ReadOnly);
+        frame.map(QtVideo::MapMode::ReadOnly);
         auto size = frame.size();
         avFrame = makeAVFrame();
         avFrame->format = m_frameEncoder->sourceFormat();

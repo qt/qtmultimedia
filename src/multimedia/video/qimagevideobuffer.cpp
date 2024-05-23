@@ -53,11 +53,11 @@ QImage fixImage(QImage image)
 
 QImageVideoBuffer::QImageVideoBuffer(QImage image) : m_image(fixImage(std::move(image))) { }
 
-QAbstractVideoBuffer::MapData QImageVideoBuffer::map(QVideoFrame::MapMode mode)
+QAbstractVideoBuffer::MapData QImageVideoBuffer::map(QtVideo::MapMode mode)
 {
     MapData mapData;
-    if (m_mapMode == QVideoFrame::NotMapped && !m_image.isNull()
-        && mode != QVideoFrame::NotMapped) {
+    if (m_mapMode == QtVideo::MapMode::NotMapped && !m_image.isNull()
+        && mode != QtVideo::MapMode::NotMapped) {
         m_mapMode = mode;
 
         mapData.nPlanes = 1;
@@ -71,7 +71,7 @@ QAbstractVideoBuffer::MapData QImageVideoBuffer::map(QVideoFrame::MapMode mode)
 
 void QImageVideoBuffer::unmap()
 {
-    m_mapMode = QVideoFrame::NotMapped;
+    m_mapMode = QtVideo::MapMode::NotMapped;
 }
 
 QImage QImageVideoBuffer::underlyingImage() const

@@ -254,7 +254,7 @@ static bool updateTextures(QRhi *rhi,
 static QImage convertJPEG(const QVideoFrame &frame, QtVideo::Rotation rotation, bool mirrorX, bool mirrorY)
 {
     QVideoFrame varFrame = frame;
-    if (!varFrame.map(QVideoFrame::ReadOnly)) {
+    if (!varFrame.map(QtVideo::MapMode::ReadOnly)) {
         qCDebug(qLcVideoFrameConverter) << Q_FUNC_INFO << ": frame mapping failed";
         return {};
     }
@@ -273,7 +273,7 @@ static QImage convertCPU(const QVideoFrame &frame, QtVideo::Rotation rotation, b
         return {};
     } else {
         QVideoFrame varFrame = frame;
-        if (!varFrame.map(QVideoFrame::ReadOnly)) {
+        if (!varFrame.map(QtVideo::MapMode::ReadOnly)) {
             qCDebug(qLcVideoFrameConverter) << Q_FUNC_INFO << ": frame mapping failed";
             return {};
         }
@@ -432,7 +432,7 @@ QImage videoFramePlaneAsImage(QVideoFrame &frame, int plane, QImage::Format targ
     if (plane >= frame.planeCount())
         return {};
 
-    if (!frame.map(QVideoFrame::ReadOnly)) {
+    if (!frame.map(QtVideo::MapMode::ReadOnly)) {
         qWarning() << "Cannot map a video frame in ReadOnly mode!";
         return {};
     }

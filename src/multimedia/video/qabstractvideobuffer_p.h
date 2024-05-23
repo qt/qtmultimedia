@@ -50,7 +50,7 @@ public:
     };
 
     virtual ~QAbstractVideoBuffer();
-    virtual MapData map(QVideoFrame::MapMode mode) = 0;
+    virtual MapData map(QtVideo::MapMode mode) = 0;
     virtual void unmap() = 0;
 };
 
@@ -75,7 +75,7 @@ protected:
 };
 
 #ifndef QT_NO_DEBUG_STREAM
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::MapMode);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QtVideo::MapMode);
 #endif
 
 QT_END_NAMESPACE
