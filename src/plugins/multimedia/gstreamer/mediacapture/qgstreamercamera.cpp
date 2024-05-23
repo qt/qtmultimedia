@@ -22,36 +22,35 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QPlatformCamera *> QGstreamerCamera::create(QCamera *camera)
 {
-    QGstElement videotestsrc = QGstElement::createFromFactory("videotestsrc");
-    if (!videotestsrc)
-        return errorMessageCannotFindElement("videotestsrc");
+    static const auto error = qGstErrorMessageIfElementsNotAvailable(
+            "videotestsrc", "capsfilter", "videoconvert", "videoscale", "identity");
+    if (error)
+        return *error;
 
-    QGstElement capsFilter = QGstElement::createFromFactory("capsfilter", "videoCapsFilter");
-    if (!capsFilter)
-        return errorMessageCannotFindElement("capsfilter");
-
-    QGstElement videoconvert = QGstElement::createFromFactory("videoconvert", "videoConvert");
-    if (!videoconvert)
-        return errorMessageCannotFindElement("videoconvert");
-
-    QGstElement videoscale = QGstElement::createFromFactory("videoscale", "videoScale");
-    if (!videoscale)
-        return errorMessageCannotFindElement("videoscale");
-
-    return new QGstreamerCamera(videotestsrc, capsFilter, videoconvert, videoscale, camera);
+    return new QGstreamerCamera(camera);
 }
 
-QGstreamerCamera::QGstreamerCamera(QGstElement videotestsrc, QGstElement capsFilter,
-                                   QGstElement videoconvert, QGstElement videoscale,
-                                   QCamera *camera)
+QGstreamerCamera::QGstreamerCamera(QCamera *camera)
     : QGstreamerCameraBase(camera),
-      gstCamera(std::move(videotestsrc)),
-      gstCapsFilter(std::move(capsFilter)),
-      gstVideoConvert(std::move(videoconvert)),
-      gstVideoScale(std::move(videoscale))
+      gstCameraBin{
+          QGstBin::create("camerabin"),
+      },
+      gstCamera{
+          QGstElement::createFromFactory("videotestsrc"),
+      },
+      gstCapsFilter{
+          QGstElement::createFromFactory("capsfilter", "videoCapsFilter"),
+      },
+      gstDecode{
+          QGstElement::createFromFactory("identity"),
+      },
+      gstVideoConvert{
+          QGstElement::createFromFactory("videoconvert", "videoConvert"),
+      },
+      gstVideoScale{
+          QGstElement::createFromFactory("videoscale", "videoScale"),
+      }
 {
-    gstDecode = QGstElement::createFromFactory("identity");
-    gstCameraBin = QGstBin::create("camerabin");
     gstCameraBin.add(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert, gstVideoScale);
     qLinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert, gstVideoScale);
     gstCameraBin.addGhostPad(gstVideoScale, "src");

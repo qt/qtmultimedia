@@ -21,24 +21,23 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QPlatformAudioInput *> QGstreamerAudioInput::create(QAudioInput *parent)
 {
-    QGstElement autoaudiosrc = QGstElement::createFromFactory("autoaudiosrc", "autoaudiosrc");
-    if (!autoaudiosrc)
-        return errorMessageCannotFindElement("autoaudiosrc");
+    static const auto error = qGstErrorMessageIfElementsNotAvailable("autoaudiosrc", "volume");
+    if (error)
+        return *error;
 
-    QGstElement volume = QGstElement::createFromFactory("volume", "volume");
-    if (!volume)
-        return errorMessageCannotFindElement("volume");
-
-    return new QGstreamerAudioInput(autoaudiosrc, volume, parent);
+    return new QGstreamerAudioInput(parent);
 }
 
-QGstreamerAudioInput::QGstreamerAudioInput(QGstElement autoaudiosrc, QGstElement volume,
-                                           QAudioInput *parent)
+QGstreamerAudioInput::QGstreamerAudioInput(QAudioInput *parent)
     : QObject(parent),
       QPlatformAudioInput(parent),
       gstAudioInput(QGstBin::create("audioInput")),
-      audioSrc(std::move(autoaudiosrc)),
-      audioVolume(std::move(volume))
+      audioSrc{
+          QGstElement::createFromFactory("autoaudiosrc", "autoaudiosrc"),
+      },
+      audioVolume{
+          QGstElement::createFromFactory("volume", "volume"),
+      }
 {
     gstAudioInput.add(audioSrc, audioVolume);
     qLinkGstElements(audioSrc, audioVolume);

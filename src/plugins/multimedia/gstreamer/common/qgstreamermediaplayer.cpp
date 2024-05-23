@@ -96,35 +96,26 @@ QMaybe<QPlatformMediaPlayer *> QGstreamerMediaPlayer::create(QMediaPlayer *paren
     if (!videoOutput)
         return videoOutput.error();
 
-    QGstElement videoInputSelector =
-            QGstElement::createFromFactory("input-selector", "videoInputSelector");
-    if (!videoInputSelector)
-        return errorMessageCannotFindElement("input-selector");
+    static const auto error =
+            qGstErrorMessageIfElementsNotAvailable("input-selector", "decodebin", "uridecodebin");
+    if (error)
+        return *error;
 
-    QGstElement audioInputSelector =
-            QGstElement::createFromFactory("input-selector", "audioInputSelector");
-    if (!audioInputSelector)
-        return errorMessageCannotFindElement("input-selector");
-
-    QGstElement subTitleInputSelector =
-            QGstElement::createFromFactory("input-selector", "subTitleInputSelector");
-    if (!subTitleInputSelector)
-        return errorMessageCannotFindElement("input-selector");
-
-    return new QGstreamerMediaPlayer(videoOutput.value(), videoInputSelector, audioInputSelector,
-                                     subTitleInputSelector, parent);
+    return new QGstreamerMediaPlayer(videoOutput.value(), parent);
 }
 
 QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
-                                             QGstElement videoInputSelector,
-                                             QGstElement audioInputSelector,
-                                             QGstElement subTitleInputSelector,
                                              QMediaPlayer *parent)
     : QObject(parent),
       QPlatformMediaPlayer(parent),
-      trackSelectors{ { { VideoStream, videoInputSelector },
-                        { AudioStream, audioInputSelector },
-                        { SubtitleStream, subTitleInputSelector } } },
+      trackSelectors{ {
+              { VideoStream,
+                QGstElement::createFromFactory("input-selector", "videoInputSelector") },
+              { AudioStream,
+                QGstElement::createFromFactory("input-selector", "audioInputSelector") },
+              { SubtitleStream,
+                QGstElement::createFromFactory("input-selector", "subTitleInputSelector") },
+      } },
       playerPipeline(QGstPipeline::create("playerPipeline")),
       gstVideoOutput(videoOutput)
 {
@@ -898,7 +889,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         src = m_appSrc->element();
         decoder = QGstElement::createFromFactory("decodebin", "decoder");
         if (!decoder) {
-            error(QMediaPlayer::ResourceError, errorMessageCannotFindElement("decodebin"));
+            error(QMediaPlayer::ResourceError, qGstErrorMessageCannotFindElement("decodebin"));
             return;
         }
         decoder.set("post-stream-topology", true);
@@ -918,7 +909,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         // use uridecodebin
         decoder = QGstElement::createFromFactory("uridecodebin", "decoder");
         if (!decoder) {
-            error(QMediaPlayer::ResourceError, errorMessageCannotFindElement("uridecodebin"));
+            error(QMediaPlayer::ResourceError, qGstErrorMessageCannotFindElement("uridecodebin"));
             return;
         }
         playerPipeline.add(decoder);

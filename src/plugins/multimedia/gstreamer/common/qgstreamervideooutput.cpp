@@ -26,31 +26,32 @@ QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
     } else {
         videoConvert = QGstElement::createFromFactory("videoconvert", "videoConvert");
         if (!videoConvert)
-            return errorMessageCannotFindElement("videoconvert");
+            return qGstErrorMessageCannotFindElement("videoconvert");
 
         videoScale = QGstElement::createFromFactory("videoscale", "videoScale");
         if (!videoScale)
-            return errorMessageCannotFindElement("videoscale");
+            return qGstErrorMessageCannotFindElement("videoscale");
     }
 
-    QGstElement videoSink = QGstElement::createFromFactory("fakesink", "fakeVideoSink");
-    if (!videoSink)
-        return errorMessageCannotFindElement("fakesink");
-    videoSink.set("sync", true);
+    if (!QGstElement::findFactory("fakesink"))
+        return qGstErrorMessageCannotFindElement("fakesink");
 
-    return new QGstreamerVideoOutput(videoConvert, videoScale, videoSink, parent);
+    return new QGstreamerVideoOutput(videoConvert, videoScale, parent);
 }
 
 QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement scale,
-                                             QGstElement sink, QObject *parent)
+                                             QObject *parent)
     : QObject(parent),
       gstVideoOutput(QGstBin::create("videoOutput")),
+      videoQueue{
+          QGstElement::createFromFactory("queue", "videoQueue"),
+      },
       videoConvert(std::move(convert)),
       videoScale(std::move(scale)),
-      videoSink(std::move(sink))
+      videoSink{
+          QGstElement::createFromFactory("fakesink", "fakeVideoSink"),
+      }
 {
-    videoQueue = QGstElement::createFromFactory("queue", "videoQueue");
-
     videoSink.set("sync", true);
     videoSink.set("async", false); // no asynchronous state changes
 

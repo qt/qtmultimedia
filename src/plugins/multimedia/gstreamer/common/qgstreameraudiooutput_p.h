@@ -41,8 +41,7 @@ public:
     QGstElement gstElement() const { return gstAudioOutput; }
 
 private:
-    QGstreamerAudioOutput(QGstElement audioconvert, QGstElement audioresample, QGstElement volume,
-                          QGstElement autoaudiosink, QAudioOutput *parent);
+    explicit QGstreamerAudioOutput(QAudioOutput *parent);
 
     QGstElement createGstElement();
 

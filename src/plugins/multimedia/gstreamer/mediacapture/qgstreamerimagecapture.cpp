@@ -78,33 +78,39 @@ ThreadPoolSingleton s_threadPoolSingleton;
 
 QMaybe<QPlatformImageCapture *> QGstreamerImageCapture::create(QImageCapture *parent)
 {
-    QGstElement videoconvert =
-            QGstElement::createFromFactory("videoconvert", "imageCaptureConvert");
-    if (!videoconvert)
-        return errorMessageCannotFindElement("videoconvert");
+    static const auto error = qGstErrorMessageIfElementsNotAvailable(
+            "queue", "capsfilter", "videoconvert", "jpegenc", "jifmux", "fakesink");
+    if (error)
+        return *error;
 
-    QGstElement jpegenc = QGstElement::createFromFactory("jpegenc", "jpegEncoder");
-    if (!jpegenc)
-        return errorMessageCannotFindElement("jpegenc");
-
-    QGstElement jifmux = QGstElement::createFromFactory("jifmux", "jpegMuxer");
-    if (!jifmux)
-        return errorMessageCannotFindElement("jifmux");
-
-    return new QGstreamerImageCapture(videoconvert, jpegenc, jifmux, parent);
+    return new QGstreamerImageCapture(parent);
 }
 
-QGstreamerImageCapture::QGstreamerImageCapture(QGstElement videoconvert, QGstElement jpegenc,
-                                               QGstElement jifmux, QImageCapture *parent)
+QGstreamerImageCapture::QGstreamerImageCapture(QImageCapture *parent)
     : QPlatformImageCapture(parent),
       QGstreamerBufferProbe(ProbeBuffers),
-      videoConvert(std::move(videoconvert)),
-      encoder(std::move(jpegenc)),
-      muxer(std::move(jifmux))
+      bin{
+          QGstBin::create("imageCaptureBin"),
+      },
+      queue{
+          QGstElement::createFromFactory("queue", "imageCaptureQueue"),
+      },
+      filter{
+          QGstElement::createFromFactory("capsfilter", "filter"),
+      },
+      videoConvert{
+          QGstElement::createFromFactory("videoconvert", "imageCaptureConvert"),
+      },
+      encoder{
+          QGstElement::createFromFactory("jpegenc", "jpegEncoder"),
+      },
+      muxer{
+          QGstElement::createFromFactory("jifmux", "jpegMuxer"),
+      },
+      sink{
+          QGstElement::createFromFactory("fakesink", "imageCaptureSink"),
+      }
 {
-    bin = QGstBin::create("imageCaptureBin");
-
-    queue = QGstElement::createFromFactory("queue", "imageCaptureQueue");
     // configures the queue to be fast, lightweight and non blocking
     queue.set("leaky", 2 /*downstream*/);
     queue.set("silent", true);
@@ -112,8 +118,6 @@ QGstreamerImageCapture::QGstreamerImageCapture(QGstElement videoconvert, QGstEle
     queue.set("max-size-bytes", uint(0));
     queue.set("max-size-time", quint64(0));
 
-    sink = QGstElement::createFromFactory("fakesink", "imageCaptureSink");
-    filter = QGstElement::createFromFactory("capsfilter", "filter");
     // imageCaptureSink do not wait for a preroll buffer when going READY -> PAUSED
     // as no buffer will arrive until capture() is called
     sink.set("async", false);
