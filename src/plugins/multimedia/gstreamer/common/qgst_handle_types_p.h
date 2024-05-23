@@ -238,7 +238,7 @@ struct QGstMiniObjectHandleHelper
 
 using QGstClockHandle = QGstImpl::QGstHandleHelper<GstClock>::UniqueHandle;
 using QGstElementHandle = QGstImpl::QGstHandleHelper<GstElement>::UniqueHandle;
-using QGstElementFactoryHandle = QGstImpl::QGstHandleHelper<GstElementFactory>::UniqueHandle;
+using QGstElementFactoryHandle = QGstImpl::QGstHandleHelper<GstElementFactory>::SharedHandle;
 using QGstDeviceHandle = QGstImpl::QGstHandleHelper<GstDevice>::SharedHandle;
 using QGstDeviceMonitorHandle = QGstImpl::QGstHandleHelper<GstDeviceMonitor>::UniqueHandle;
 using QGstBusHandle = QGstImpl::QGstHandleHelper<GstBus>::UniqueHandle;

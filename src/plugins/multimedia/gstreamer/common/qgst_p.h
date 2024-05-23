@@ -570,6 +570,9 @@ public:
     static QGstElement createFromPipelineDescription(const char *);
     static QGstElement createFromPipelineDescription(const QByteArray &);
 
+    static QGstElementFactoryHandle findFactory(const char *);
+    static QGstElementFactoryHandle findFactory(const QByteArray &name);
+
     QGstPad staticPad(const char *name) const;
     QGstPad src() const;
     QGstPad sink() const;
