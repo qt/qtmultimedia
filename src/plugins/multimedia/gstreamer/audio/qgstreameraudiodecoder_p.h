@@ -68,7 +68,7 @@ private slots:
     void updateDuration();
 
 private:
-    QGstreamerAudioDecoder(QGstPipeline playbin, QGstElement audioconvert, QAudioDecoder *parent);
+    explicit QGstreamerAudioDecoder(QAudioDecoder *parent);
 
 #if QT_CONFIG(gstreamer_app)
     static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);

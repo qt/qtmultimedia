@@ -57,8 +57,7 @@ public Q_SLOTS:
     void onCameraChanged();
 
 private:
-    QGstreamerImageCapture(QGstElement videoconvert, QGstElement jpegenc, QGstElement jifmux,
-                           QImageCapture *parent);
+    QGstreamerImageCapture(QImageCapture *parent);
 
     void setResolution(const QSize &resolution);
     int doCapture(const QString &fileName);

@@ -1293,4 +1293,10 @@ GstFlowReturn QGstAppSrc::pushBuffer(GstBuffer *buffer)
 
 #endif
 
+QString qGstErrorMessageCannotFindElement(std::string_view element)
+{
+    return QStringLiteral("Could not find the %1 GStreamer element")
+            .arg(QLatin1StringView(element));
+}
+
 QT_END_NAMESPACE

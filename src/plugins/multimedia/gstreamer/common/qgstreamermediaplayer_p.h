@@ -83,9 +83,7 @@ public:
     bool processSyncMessage(const QGstreamerMessage& message) override;
 
 private:
-    QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput, QGstElement videoInputSelector,
-                          QGstElement audioInputSelector, QGstElement subTitleInputSelector,
-                          QMediaPlayer *parent);
+    QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput, QMediaPlayer *parent);
 
     struct TrackSelector
     {

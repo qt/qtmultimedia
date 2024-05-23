@@ -70,8 +70,7 @@ public:
     void setColorTemperature(int temperature) override;
 
 private:
-    QGstreamerCamera(QGstElement videotestsrc, QGstElement capsFilter, QGstElement videoconvert,
-                     QGstElement videoscale, QCamera *camera);
+    QGstreamerCamera(QCamera *camera);
 
     void updateCameraProperties();
 

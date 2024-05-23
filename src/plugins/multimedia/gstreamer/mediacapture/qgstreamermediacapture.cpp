@@ -30,6 +30,10 @@ QMaybe<QPlatformMediaCaptureSession *> QGstreamerMediaCapture::create()
     if (!videoOutput)
         return videoOutput.error();
 
+    static const auto error = qGstErrorMessageIfElementsNotAvailable("tee", "capsfilter");
+    if (error)
+        return *error;
+
     return new QGstreamerMediaCapture(videoOutput.value());
 }
 
