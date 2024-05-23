@@ -44,8 +44,6 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
           QGstBin::create("videoSinkBin"),
       }
 {
-    sinkBin = QGstBin::create("videoSinkBin");
-
     // This is a hack for some iMX and NVidia platforms. These require the use of a special video
     // conversion element in the pipeline before the video sink, as they unfortunately
     // output some proprietary format from the decoder even though it's sometimes marked as

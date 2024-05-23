@@ -818,10 +818,19 @@ inline GstClockTime qGstClockTimeFromChrono(std::chrono::nanoseconds ns)
     return ns.count();
 }
 
-inline QString errorMessageCannotFindElement(std::string_view element)
+QString qGstErrorMessageCannotFindElement(std::string_view element);
+
+template <typename Arg, typename... Args>
+std::optional<QString> qGstErrorMessageIfElementsNotAvailable(const Arg &arg, Args... args)
 {
-    return QStringLiteral("Could not find the %1 GStreamer element")
-            .arg(QLatin1StringView(element));
+    QGstElementFactoryHandle factory = QGstElement::findFactory(arg);
+    if (!factory)
+        return qGstErrorMessageCannotFindElement(arg);
+
+    if constexpr (sizeof...(args) != 0)
+        return qGstErrorMessageIfElementsNotAvailable(args...);
+    else
+        return std::nullopt;
 }
 
 QT_END_NAMESPACE

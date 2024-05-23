@@ -40,23 +40,22 @@ typedef enum {
 
 QMaybe<QPlatformAudioDecoder *> QGstreamerAudioDecoder::create(QAudioDecoder *parent)
 {
-    QGstElement audioconvert = QGstElement::createFromFactory("audioconvert", "audioconvert");
-    if (!audioconvert)
-        return errorMessageCannotFindElement("audioconvert");
+    static const auto error = qGstErrorMessageIfElementsNotAvailable("audioconvert", "playbin");
+    if (error)
+        return *error;
 
-    QGstPipeline playbin = QGstPipeline::adopt(
-            GST_PIPELINE_CAST(QGstElement::createFromFactory("playbin", "playbin").element()));
-    if (!playbin)
-        return errorMessageCannotFindElement("playbin");
-
-    return new QGstreamerAudioDecoder(playbin, audioconvert, parent);
+    return new QGstreamerAudioDecoder(parent);
 }
 
-QGstreamerAudioDecoder::QGstreamerAudioDecoder(QGstPipeline playbin, QGstElement audioconvert,
-                                               QAudioDecoder *parent)
+QGstreamerAudioDecoder::QGstreamerAudioDecoder(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent),
-      m_playbin(std::move(playbin)),
-      m_audioConvert(std::move(audioconvert))
+      m_playbin{
+          QGstPipeline::adopt(GST_PIPELINE_CAST(
+                  QGstElement::createFromFactory("playbin", "playbin").element())),
+      },
+      m_audioConvert{
+          QGstElement::createFromFactory("audioconvert", "audioconvert"),
+      }
 {
     // Sort out messages
     m_playbin.installMessageFilter(this);

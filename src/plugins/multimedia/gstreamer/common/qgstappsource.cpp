@@ -16,7 +16,7 @@ QMaybe<QGstAppSource *> QGstAppSource::create(QObject *parent)
 {
     QGstAppSrc appsrc = QGstAppSrc::create("appsrc");
     if (!appsrc)
-        return errorMessageCannotFindElement("appsrc");
+        return qGstErrorMessageCannotFindElement("appsrc");
 
     return new QGstAppSource(appsrc, parent);
 }

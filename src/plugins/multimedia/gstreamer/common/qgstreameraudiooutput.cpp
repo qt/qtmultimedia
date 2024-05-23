@@ -16,37 +16,34 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QPlatformAudioOutput *> QGstreamerAudioOutput::create(QAudioOutput *parent)
 {
-    QGstElement audioconvert = QGstElement::createFromFactory("audioconvert", "audioConvert");
-    if (!audioconvert)
-        return errorMessageCannotFindElement("audioconvert");
+    static const auto error = qGstErrorMessageIfElementsNotAvailable(
+            "audioconvert", "audioresample", "volume", "autoaudiosink");
+    if (error)
+        return *error;
 
-    QGstElement audioresample = QGstElement::createFromFactory("audioresample", "audioResample");
-    if (!audioresample)
-        return errorMessageCannotFindElement("audioresample");
-
-    QGstElement volume = QGstElement::createFromFactory("volume", "volume");
-    if (!volume)
-        return errorMessageCannotFindElement("volume");
-
-    QGstElement autoaudiosink = QGstElement::createFromFactory("autoaudiosink", "autoAudioSink");
-    if (!autoaudiosink)
-        return errorMessageCannotFindElement("autoaudiosink");
-
-    return new QGstreamerAudioOutput(audioconvert, audioresample, volume, autoaudiosink, parent);
+    return new QGstreamerAudioOutput(parent);
 }
 
-QGstreamerAudioOutput::QGstreamerAudioOutput(QGstElement audioconvert, QGstElement audioresample,
-                                             QGstElement volume, QGstElement autoaudiosink,
-                                             QAudioOutput *parent)
+QGstreamerAudioOutput::QGstreamerAudioOutput(QAudioOutput *parent)
     : QObject(parent),
       QPlatformAudioOutput(parent),
       gstAudioOutput(QGstBin::create("audioOutput")),
-      audioConvert(std::move(audioconvert)),
-      audioResample(std::move(audioresample)),
-      audioVolume(std::move(volume)),
-      audioSink(std::move(autoaudiosink))
+      audioQueue{
+          QGstElement::createFromFactory("queue", "audioQueue"),
+      },
+      audioConvert{
+          QGstElement::createFromFactory("audioconvert", "audioConvert"),
+      },
+      audioResample{
+          QGstElement::createFromFactory("audioresample", "audioResample"),
+      },
+      audioVolume{
+          QGstElement::createFromFactory("volume", "volume"),
+      },
+      audioSink{
+          QGstElement::createFromFactory("autoaudiosink", "autoAudioSink"),
+      }
 {
-    audioQueue = QGstElement::createFromFactory("queue", "audioQueue");
     gstAudioOutput.add(audioQueue, audioConvert, audioResample, audioVolume, audioSink);
     qLinkGstElements(audioQueue, audioConvert, audioResample, audioVolume, audioSink);
 
