@@ -5,6 +5,7 @@
 #include "avfdisplaylink_p.h"
 #include <avfvideobuffer_p.h>
 #include "qavfhelpers_p.h"
+#include "private/qvideoframe_p.h"
 
 #include <QtMultimedia/qvideoframeformat.h>
 
@@ -148,11 +149,12 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     CVPixelBufferRef pixelBuffer = copyPixelBufferFromLayer(width, height);
     if (!pixelBuffer)
         return;
-    AVFVideoBuffer *buffer = new AVFVideoBuffer(this, pixelBuffer);
-//    qDebug() << "Got pixelbuffer with format" << fmt << Qt::hex << CVPixelBufferGetPixelFormatType(pixelBuffer);
+    auto buffer = std::make_unique<AVFVideoBuffer>(this, pixelBuffer);
+    //    qDebug() << "Got pixelbuffer with format" << fmt << Qt::hex <<
+    //    CVPixelBufferGetPixelFormatType(pixelBuffer);
     CVPixelBufferRelease(pixelBuffer);
 
-    frame = QVideoFrame(buffer, buffer->videoFormat());
+    frame = QVideoFramePrivate::createFrame(std::move(buffer), buffer->videoFormat());
     frame.setRotation(m_rotation);
     frame.setMirrored(m_mirrored);
     m_sink->setVideoFrame(frame);

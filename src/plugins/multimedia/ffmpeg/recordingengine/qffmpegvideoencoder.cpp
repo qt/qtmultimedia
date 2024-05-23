@@ -6,6 +6,7 @@
 #include "qffmpegrecordingengine_p.h"
 #include "qffmpegvideoframeencoder_p.h"
 #include "qffmpegrecordingengineutils_p.h"
+#include "private/qvideoframe_p.h"
 #include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
@@ -143,7 +144,7 @@ void VideoEncoder::processOne()
 
     AVFrameUPtr avFrame;
 
-    auto *videoBuffer = dynamic_cast<QFFmpegVideoBuffer *>(frame.videoBuffer());
+    auto *videoBuffer = dynamic_cast<QFFmpegVideoBuffer *>(QVideoFramePrivate::hwBuffer(frame));
     if (videoBuffer) {
         // ffmpeg video buffer, let's use the native AVFrame stored in there
         auto *hwFrame = videoBuffer->getHWFrame();

@@ -9,6 +9,7 @@
 #include <private/qhwvideobuffer_p.h>
 #include <private/qvideoframeconverter_p.h>
 #include <private/qplatformvideosink_p.h>
+#include <private/qvideoframe_p.h>
 #include <qvideosink.h>
 #include <qopenglcontext.h>
 #include <qopenglfunctions.h>
@@ -105,8 +106,9 @@ QAbstractVideoBuffer::MapData AndroidTextureVideoBuffer::map(QtVideo::MapMode mo
 
     if (m_mapMode == QtVideo::MapMode::NotMapped && mode == QtVideo::MapMode::ReadOnly) {
         m_mapMode = QtVideo::MapMode::ReadOnly;
-        m_image = qImageFromVideoFrame(QVideoFrame(new ImageFromVideoFrameHelper(*this),
-                                                   QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888)));
+        m_image = qImageFromVideoFrame(QVideoFramePrivate::createFrame(
+                std::make_unique<ImageFromVideoFrameHelper>(*this),
+                QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888)));
         mapData.nPlanes = 1;
         mapData.bytesPerLine[0] = m_image.bytesPerLine();
         mapData.size[0] = static_cast<int>(m_image.sizeInBytes());

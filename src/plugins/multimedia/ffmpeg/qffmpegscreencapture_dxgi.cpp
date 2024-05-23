@@ -6,6 +6,7 @@
 #include <private/qabstractvideobuffer_p.h>
 #include <private/qmultimediautils_p.h>
 #include <private/qwindowsmultimediautils_p.h>
+#include <private/qvideoframe_p.h>
 #include <qtgui/qscreen_platform.h>
 #include "qvideoframe.h"
 
@@ -401,7 +402,7 @@ public:
             if (bufSize != m_format.frameSize())
                 m_format.setFrameSize(bufSize);
 
-            frame = { buffer.release(), format() };
+            frame = QVideoFramePrivate::createFrame(std::move(buffer), format());
         }
 
         return frame;

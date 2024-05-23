@@ -8,6 +8,7 @@
 #include <qmediadevices.h>
 #include <qaudiodevice.h>
 #include <private/qmemoryvideobuffer_p.h>
+#include <private/qvideoframe_p.h>
 #include <private/qwindowsmfdefs_p.h>
 #include <private/qcomptr_p.h>
 #include <QtCore/qdebug.h>
@@ -955,9 +956,11 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
 
                     if (SUCCEEDED(mediaBuffer->Lock(&buffer, nullptr, &bufLen))) {
                         auto bytes = QByteArray(reinterpret_cast<char*>(buffer), bufLen);
+                        QVideoFrameFormat format(QSize(m_frameWidth, m_frameHeight), m_pixelFormat);
 
-                        QVideoFrame frame(new QMemoryVideoBuffer(bytes, m_stride),
-                                          QVideoFrameFormat(QSize(m_frameWidth, m_frameHeight), m_pixelFormat));
+                        QVideoFrame frame = QVideoFramePrivate::createFrame(
+                                std::make_unique<QMemoryVideoBuffer>(std::move(bytes), m_stride),
+                                std::move(format));
 
                         // WMF uses 100-nanosecond units, Qt uses microseconds
                         frame.setStartTime(llTimestamp * 0.1);

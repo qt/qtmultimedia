@@ -12,6 +12,7 @@
 #include <qmediadevices.h>
 
 #include <private/qmediastoragelocation_p.h>
+#include <private/qvideoframe_p.h>
 
 #include <camera/camera_api.h>
 #include <camera/camera_3a.h>
@@ -402,16 +403,14 @@ void QQnxPlatformCamera::onFrameAvailable()
     if (!m_videoSink)
         return;
 
-    std::unique_ptr<QQnxCameraFrameBuffer> currentFrame = m_qnxCamera->takeCurrentFrame();
+    std::unique_ptr<QQnxCameraFrameBuffer> currentFrameBuffer = m_qnxCamera->takeCurrentFrame();
 
-    if (!currentFrame)
+    if (!currentFrameBuffer)
         return;
 
-    const QVideoFrame actualFrame(currentFrame.get(),
-            QVideoFrameFormat(currentFrame->size(), currentFrame->pixelFormat()));
-
-    currentFrame.release(); // QVideoFrame has taken ownership of the internal
-                            // buffer
+    QVideoFrameFormat format(currentFrameBuffer->size(), currentFrameBuffer->pixelFormat());
+    const QVideoFrame actualFrame =
+            QVideoFramePrivate::createFrame(std::move(currentFrameBuffer), std::move(format));
 
     m_videoSink->setVideoFrame(actualFrame);
 

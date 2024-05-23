@@ -8,6 +8,8 @@
 #include "qandroidmultimediautils_p.h"
 #include "qandroidglobal_p.h"
 
+#include <private/qvideoframe_p.h>
+
 #include <qhash.h>
 #include <qstringlist.h>
 #include <qdebug.h>
@@ -145,9 +147,12 @@ static void notifyNewPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data,
     QByteArray bytes(arrayLength, Qt::Uninitialized);
     env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
 
-    QVideoFrame frame(new QMemoryVideoBuffer(bytes, bpl),
-                      QVideoFrameFormat(QSize(width, height),
-                                          qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat(format))));
+    QVideoFrameFormat frameFormat(
+            QSize(width, height),
+            qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat(format)));
+
+    QVideoFrame frame = QVideoFramePrivate::createFrame(
+            std::make_unique<QMemoryVideoBuffer>(std::move(bytes), bpl), std::move(frameFormat));
 
     Q_EMIT (*it)->newPreviewFrame(frame);
 }
@@ -1730,9 +1735,12 @@ void AndroidCameraPrivate::fetchLastPreviewFrame()
     const int format = m_cameraListener.callMethod<jint>("previewFormat");
     const int bpl = m_cameraListener.callMethod<jint>("previewBytesPerLine");
 
-    QVideoFrame frame(new QMemoryVideoBuffer(bytes, bpl),
-                      QVideoFrameFormat(QSize(width, height),
-                                          qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat(format))));
+    QVideoFrameFormat frameFormat(
+            QSize(width, height),
+            qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat(format)));
+
+    QVideoFrame frame = QVideoFramePrivate::createFrame(
+            std::make_unique<QMemoryVideoBuffer>(std::move(bytes), bpl), std::move(frameFormat));
 
     emit lastPreviewFrameFetched(frame);
 }

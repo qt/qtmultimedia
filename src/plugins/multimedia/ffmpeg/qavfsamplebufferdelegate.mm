@@ -8,6 +8,7 @@
 #include "qffmpeghwaccel_p.h"
 #include "qavfhelpers_p.h"
 #include "qffmpegvideobuffer_p.h"
+#include "private/qvideoframe_p.h"
 
 #undef AVMediaType
 
@@ -146,7 +147,8 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
 
     avFrame->pts = delegate.startTime - *delegate.baseTime;
 
-    return QVideoFrame(new QFFmpegVideoBuffer(std::move(avFrame)), format);
+    return QVideoFramePrivate::createFrame(std::make_unique<QFFmpegVideoBuffer>(std::move(avFrame)),
+                                           format);
 }
 
 - (instancetype)initWithFrameHandler:(std::function<void(const QVideoFrame &)>)handler
@@ -199,7 +201,8 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
 
     auto frame = createHwVideoFrame(*self, imageBuffer, format);
     if (!frame.isValid())
-        frame = QVideoFrame(new CVImageVideoBuffer(imageBuffer), format);
+        frame = QVideoFramePrivate::createFrame(std::make_unique<CVImageVideoBuffer>(imageBuffer),
+                                                std::move(format));
 
     frame.setStartTime(startTime - *baseTime);
     frame.setEndTime(frameTime - *baseTime);

@@ -11,6 +11,7 @@
 #include "private/qmediastoragelocation_p.h"
 #include <private/qplatformimagecapture_p.h>
 #include <private/qmemoryvideobuffer_p.h>
+#include <private/qvideoframe_p.h>
 
 #include <QtCore/qurl.h>
 #include <QtCore/qfile.h>
@@ -118,8 +119,10 @@ int AVFImageCapture::doCapture(const QString &actualFileName)
                 QBuffer data(&jpgData);
                 QImageReader reader(&data, "JPEG");
                 QSize size = reader.size();
-                QVideoFrame frame(new QMemoryVideoBuffer(QByteArray(jpgData.constData(), jpgData.size()), -1),
-                                  QVideoFrameFormat(size, QVideoFrameFormat::Format_Jpeg));
+                auto buffer = std::make_unique<QMemoryVideoBuffer>(
+                        QByteArray(jpgData.constData(), jpgData.size()), -1);
+                QVideoFrame frame = QVideoFramePrivate::createFrame(
+                        std::move(buffer), QVideoFrameFormat(size, QVideoFrameFormat::Format_Jpeg));
                 QMetaObject::invokeMethod(this, "imageAvailable", Qt::QueuedConnection,
                                           Q_ARG(int, request.captureId),
                                           Q_ARG(QVideoFrame, frame));

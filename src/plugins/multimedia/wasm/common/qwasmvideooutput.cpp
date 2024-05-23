@@ -17,6 +17,7 @@
 #include <private/qplatformvideosink_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qvideotexturehelper_p.h>
+#include <private/qvideoframe_p.h>
 #include <private/qstdweb_p.h>
 #include <QTimer>
 
@@ -862,9 +863,10 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
 
     auto *textureDescription = QVideoTextureHelper::textureDescription(frameFormat.pixelFormat());
 
-    QVideoFrame vFrame(
-            new QMemoryVideoBuffer(frameBytes,
-                                   textureDescription->strideForWidth(frameFormat.frameWidth())),
+    QVideoFrame vFrame = QVideoFramePrivate::createFrame(
+            std::make_unique<QMemoryVideoBuffer>(
+                    std::move(frameBytes),
+                    textureDescription->strideForWidth(frameFormat.frameWidth())),
             frameFormat);
     QWasmVideoOutput *wasmVideoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
 
@@ -924,10 +926,12 @@ void QWasmVideoOutput::videoFrameCallback(emscripten::val now, emscripten::val m
 
         auto *textureDescription = QVideoTextureHelper::textureDescription(frameFormat.pixelFormat());
 
-        QVideoFrame vFrame(
-                new QMemoryVideoBuffer(frameBytes,
-                                       textureDescription->strideForWidth(frameFormat.frameWidth())),
-                frameFormat);
+        auto buffer = std::make_unique<QMemoryVideoBuffer>(
+                std::move(frameBytes),
+                textureDescription->strideForWidth(frameFormat.frameWidth()));
+
+        QVideoFrame vFrame =
+                QVideoFramePrivate::createFrame(std::move(buffer), std::move(frameFormat));
 
         if (!wasmVideoOutput) {
             qCDebug(qWasmMediaVideoOutput) << "ERROR:"

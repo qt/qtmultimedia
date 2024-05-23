@@ -68,6 +68,8 @@ QVideoFrame::QVideoFrame()
 {
 }
 
+#if QT_DEPRECATED_SINCE(6, 8)
+
 /*!
     \internal
     Constructs a video frame from a \a buffer with the given pixel \a format and \a size in pixels.
@@ -86,6 +88,8 @@ QAbstractVideoBuffer *QVideoFrame::videoBuffer() const
 {
     return d ? d->videoBuffer.get() : nullptr;
 }
+
+#endif
 
 /*!
     Constructs a video frame of the given pixel \a format.
@@ -147,8 +151,7 @@ QVideoFrame::QVideoFrame(const QImage &image)
 
     Q_ASSERT(format.isValid());
 
-    d = new QVideoFramePrivate{ std::move(format) };
-    d->videoBuffer = std::move(buffer);
+    d = new QVideoFramePrivate{ std::move(format), std::move(buffer) };
 }
 
 /*!

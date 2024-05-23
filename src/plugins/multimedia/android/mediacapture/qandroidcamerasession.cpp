@@ -21,6 +21,7 @@
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qcameradevice_p.h>
 #include <private/qmediastoragelocation_p.h>
+#include <private/qvideoframe_p.h>
 #include <QImageWriter>
 
 QT_BEGIN_NAMESPACE
@@ -734,7 +735,9 @@ void QAndroidCameraSession::processCapturedImage(int id, const QByteArray &bytes
 void QAndroidCameraSession::processCapturedImageToBuffer(int id, const QByteArray &bytes,
                               QVideoFrameFormat::PixelFormat format, QSize size, int bytesPerLine)
 {
-    QVideoFrame frame(new QMemoryVideoBuffer(bytes, bytesPerLine), QVideoFrameFormat(size, format));
+    QVideoFrame frame = QVideoFramePrivate::createFrame(
+            std::make_unique<QMemoryVideoBuffer>(bytes, bytesPerLine),
+            QVideoFrameFormat(size, format));
     emit imageAvailable(id, frame);
 }
 

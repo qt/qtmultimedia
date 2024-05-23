@@ -6,6 +6,7 @@
 #include "evrhelpers_p.h"
 
 #include <private/qhwvideobuffer_p.h>
+#include <private/qvideoframe_p.h>
 #include <qvideoframe.h>
 #include <QDebug>
 #include <qthread.h>
@@ -663,22 +664,23 @@ QVideoFrame D3DPresentEngine::makeVideoFrame(const ComPtr<IMFSample> &sample)
         if (p.first == sample.Get())
             sharedHandle = p.second;
 
-    QAbstractVideoBuffer *vb = nullptr;
+    std::unique_ptr<IMFSampleVideoBuffer> vb;
     QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
     if (m_useTextureRendering && sharedHandle && rhi) {
         if (rhi->backend() == QRhi::D3D11) {
-            vb = new D3D11TextureVideoBuffer(m_device, sample, sharedHandle, rhi);
+            vb = std::make_unique<D3D11TextureVideoBuffer>(m_device, sample, sharedHandle, rhi);
 #if QT_CONFIG(opengl)
         } else if (rhi->backend() == QRhi::OpenGLES2) {
-            vb = new OpenGlVideoBuffer(m_device, sample, m_wglNvDxInterop, sharedHandle, rhi);
+            vb = std::make_unique<OpenGlVideoBuffer>(m_device, sample, m_wglNvDxInterop,
+                                                     sharedHandle, rhi);
 #endif
         }
     }
 
     if (!vb)
-        vb = new IMFSampleVideoBuffer(m_device, sample, rhi);
+        vb = std::make_unique<IMFSampleVideoBuffer>(m_device, sample, rhi);
 
-    QVideoFrame frame(vb, m_surfaceFormat);
+    QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(vb), m_surfaceFormat);
 
     // WMF uses 100-nanosecond units, Qt uses microseconds
     LONGLONG startTime = 0;

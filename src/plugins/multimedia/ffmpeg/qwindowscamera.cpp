@@ -8,6 +8,7 @@
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qwindowsmfdefs_p.h>
 #include <private/qwindowsmultimediautils_p.h>
+#include <private/qvideoframe_p.h>
 #include <private/qcomobject_p.h>
 
 #include <mfapi.h>
@@ -198,7 +199,10 @@ public:
                 BYTE *buffer = nullptr;
                 if (SUCCEEDED(mediaBuffer->Lock(&buffer, nullptr, &bufLen))) {
                     QByteArray bytes(reinterpret_cast<char*>(buffer), qsizetype(bufLen));
-                    QVideoFrame frame(new QMemoryVideoBuffer(bytes, m_videoFrameStride), m_frameFormat);
+                    auto buffer = std::make_unique<QMemoryVideoBuffer>(std::move(bytes),
+                                                                       m_videoFrameStride);
+                    QVideoFrame frame =
+                            QVideoFramePrivate::createFrame(std::move(buffer), m_frameFormat);
 
                     // WMF uses 100-nanosecond units, Qt uses microseconds
                     frame.setStartTime(timestamp / 10);

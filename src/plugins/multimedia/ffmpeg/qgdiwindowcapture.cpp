@@ -7,6 +7,7 @@
 #include "qffmpegsurfacecapturegrabber_p.h"
 #include "private/qcapturablewindow_p.h"
 #include "private/qmemoryvideobuffer_p.h"
+#include "private/qvideoframe_p.h"
 
 #include <qt_windows.h>
 #include <QtCore/qloggingcategory.h>
@@ -155,7 +156,8 @@ private:
             return {};
         }
 
-        return QVideoFrame(new QMemoryVideoBuffer(array, bytesPerLine), m_format);
+        return QVideoFramePrivate::createFrame(
+                std::make_unique<QMemoryVideoBuffer>(std::move(array), bytesPerLine), m_format);
     }
 
 private:

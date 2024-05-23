@@ -27,11 +27,23 @@ class QVideoFramePrivate : public QSharedData
 public:
     QVideoFramePrivate() = default;
 
-    QVideoFramePrivate(QVideoFrameFormat format,
-                       std::unique_ptr<QAbstractVideoBuffer> buffer = nullptr)
+    template <typename Buffer>
+    static QVideoFrame createFrame(std::unique_ptr<Buffer> buffer, QVideoFrameFormat format)
+    {
+        QVideoFrame result;
+        result.d.reset(new QVideoFramePrivate(std::move(format), std::move(buffer)));
+        return result;
+    }
+
+    template <typename Buffer = QAbstractVideoBuffer>
+    QVideoFramePrivate(QVideoFrameFormat format, std::unique_ptr<Buffer> buffer = nullptr)
         : format{ std::move(format) }, videoBuffer{ std::move(buffer) }
     {
-        hwVideoBuffer = dynamic_cast<QHwVideoBuffer *>(videoBuffer.get());
+        if constexpr (std::is_base_of_v<QHwVideoBuffer, Buffer>)
+            hwVideoBuffer = static_cast<QHwVideoBuffer *>(videoBuffer.get());
+        else if constexpr (std::is_same_v<QAbstractVideoBuffer, Buffer>)
+            hwVideoBuffer = dynamic_cast<QHwVideoBuffer *>(videoBuffer.get());
+        // else hwVideoBuffer == nullptr
     }
 
     static QVideoFramePrivate *handle(QVideoFrame &frame) { return frame.d.get(); };

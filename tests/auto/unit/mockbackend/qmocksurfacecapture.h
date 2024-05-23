@@ -5,6 +5,7 @@
 #define QMOCKSURFACECAPTURE_H
 
 #include "private/qplatformsurfacecapture_p.h"
+#include "private/qvideoframe_p.h"
 
 #include "qmockvideobuffer.h"
 #include "qthread.h"
@@ -25,10 +26,11 @@ class QMockSurfaceCapture : public QPlatformSurfaceCapture
 
                 image.fill(i % 2 ? Qt::red : Qt::blue);
 
-                QVideoFrame frame(new QMockVideoBuffer(image),
-                                  QVideoFrameFormat(m_capture.m_imageSize,
-                                                    QVideoFrameFormat::pixelFormatFromImageFormat(
-                                                            m_capture.m_imageFormat)));
+                QVideoFrame frame = QVideoFramePrivate::createFrame(
+                        std::make_unique<QMockVideoBuffer>(image),
+                        QVideoFrameFormat(m_capture.m_imageSize,
+                                          QVideoFrameFormat::pixelFormatFromImageFormat(
+                                                  m_capture.m_imageFormat)));
 
                 emit m_capture.newVideoFrame(frame);
             }

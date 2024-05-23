@@ -4,6 +4,7 @@
 #include "qffmpegwindowcapture_uwp_p.h"
 #include "qffmpegsurfacecapturegrabber_p.h"
 #include <private/qabstractvideobuffer_p.h>
+#include <private/qvideoframe_p.h>
 
 #include <unknwn.h>
 #include <winrt/base.h>
@@ -351,7 +352,8 @@ protected:
 
             m_format.setFrameSize(size);
 
-            return QVideoFrame(new QUwpTextureVideoBuffer(std::move(texture)), m_format);
+            return QVideoFramePrivate::createFrame(
+                    std::make_unique<QUwpTextureVideoBuffer>(std::move(texture)), m_format);
 
         } catch (const winrt::hresult_error &err) {
 

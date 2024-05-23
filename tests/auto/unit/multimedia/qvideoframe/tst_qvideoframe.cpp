@@ -366,7 +366,7 @@ void tst_QVideoFrame::createInvalid()
 
     QVERIFY(!frame.isValid());
     QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
-    QCOMPARE(frame.videoBuffer(), nullptr);
+    QCOMPARE(QVideoFramePrivate::buffer(frame), nullptr);
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
@@ -397,7 +397,9 @@ void tst_QVideoFrame::createFromBuffer()
     QFETCH(QSize, size);
     QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
 
-    QVideoFrame frame(new QtTestDummyVideoBuffer(handleType), QVideoFrameFormat(size, pixelFormat));
+    QVideoFrame frame =
+            QVideoFramePrivate::createFrame(std::make_unique<QtTestDummyVideoBuffer>(handleType),
+                                            QVideoFrameFormat(size, pixelFormat));
 
     QVERIFY(frame.isValid());
     QCOMPARE(frame.handleType(), handleType);
@@ -451,7 +453,9 @@ void tst_QVideoFrame::createNull()
 
     // Null buffer (shouldn't crash)
     {
-        QVideoFrame frame(nullptr, QVideoFrameFormat(QSize(1024,768), QVideoFrameFormat::Format_ARGB8888));
+        QVideoFrame frame = QVideoFramePrivate::createFrame(
+                std::unique_ptr<QHwVideoBuffer>(),
+                QVideoFrameFormat(QSize(1024, 768), QVideoFrameFormat::Format_ARGB8888));
         QVERIFY(!frame.isValid());
         QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
         QCOMPARE(frame.pixelFormat(), QVideoFrameFormat::Format_ARGB8888);
@@ -476,7 +480,9 @@ void tst_QVideoFrame::destructor()
     QPointer<QtTestDummyVideoBuffer> buffer = new QtTestDummyVideoBuffer;
 
     {
-        QVideoFrame frame(buffer, QVideoFrameFormat(QSize(4, 1), QVideoFrameFormat::Format_ARGB8888));
+        QVideoFrame frame = QVideoFramePrivate::createFrame(
+                std::unique_ptr<QHwVideoBuffer>(buffer),
+                QVideoFrameFormat(QSize(4, 1), QVideoFrameFormat::Format_ARGB8888));
     }
 
     QVERIFY(buffer.isNull());
@@ -533,7 +539,8 @@ void tst_QVideoFrame::copy()
     QPointer<QtTestDummyVideoBuffer> buffer = new QtTestDummyVideoBuffer(handleType);
 
     {
-        QVideoFrame frame(buffer, QVideoFrameFormat(size, pixelFormat));
+        QVideoFrame frame = QVideoFramePrivate::createFrame(std::unique_ptr<QHwVideoBuffer>(buffer),
+                                                            QVideoFrameFormat(size, pixelFormat));
         frame.setStartTime(startTime);
         frame.setEndTime(endTime);
 
@@ -623,7 +630,8 @@ void tst_QVideoFrame::assign()
 
     QVideoFrame frame;
     {
-        QVideoFrame otherFrame(buffer, QVideoFrameFormat(size, pixelFormat));
+        QVideoFrame otherFrame = QVideoFramePrivate::createFrame(
+                std::unique_ptr<QHwVideoBuffer>(buffer), QVideoFrameFormat(size, pixelFormat));
         otherFrame.setStartTime(startTime);
         otherFrame.setEndTime(endTime);
 
@@ -762,7 +770,7 @@ void tst_QVideoFrame::mapPlanes_data()
 
     static uchar bufferData[1024];
 
-    QtTestVideoBuffer *planarBuffer = new QtTestVideoBuffer;
+    auto planarBuffer = std::make_unique<QtTestVideoBuffer>();
     planarBuffer->m_data[0] = bufferData;
     planarBuffer->m_data[1] = bufferData + 512;
     planarBuffer->m_data[2] = bufferData + 765;
@@ -772,10 +780,10 @@ void tst_QVideoFrame::mapPlanes_data()
     planarBuffer->m_planeCount = 3;
     planarBuffer->m_numBytes = sizeof(bufferData);
 
-    QTest::newRow("Planar")
-        << QVideoFrame(planarBuffer, QVideoFrameFormat(QSize(64, 64), QVideoFrameFormat::Format_YUV420P))
-        << (QList<int>() << 64 << 36 << 36)
-        << (QList<int>() << 512 << 765);
+    QTest::newRow("Planar") << QVideoFramePrivate::createFrame(
+            std::move(planarBuffer),
+            QVideoFrameFormat(QSize(64, 64), QVideoFrameFormat::Format_YUV420P))
+                            << (QList<int>() << 64 << 36 << 36) << (QList<int>() << 512 << 765);
     QTest::newRow("Format_YUV420P")
         << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_YUV420P))
         << (QList<int>() << 64 << 32 << 32)
@@ -1213,8 +1221,9 @@ void tst_QVideoFrame::image()
 void tst_QVideoFrame::emptyData()
 {
     QByteArray data(nullptr, 0);
-    QVideoFrame f(new QMemoryVideoBuffer(data, 600),
-                  QVideoFrameFormat(QSize(800, 600), QVideoFrameFormat::Format_ARGB8888));
+    QVideoFrame f = QVideoFramePrivate::createFrame(
+            std::make_unique<QMemoryVideoBuffer>(data, 600),
+            QVideoFrameFormat(QSize(800, 600), QVideoFrameFormat::Format_ARGB8888));
     QVERIFY(!f.map(QtVideo::MapMode::ReadOnly));
 }
 

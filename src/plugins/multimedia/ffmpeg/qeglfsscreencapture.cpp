@@ -7,6 +7,7 @@
 #include "qguiapplication.h"
 #include "qopenglvideobuffer_p.h"
 #include "private/qimagevideobuffer_p.h"
+#include "private/qvideoframe_p.h"
 
 #include <QtOpenGL/private/qopenglcompositor_p.h>
 #include <QtOpenGL/private/qopenglframebufferobject_p.h>
@@ -93,7 +94,8 @@ protected:
             m_format.setStreamFrameRate(frameRate());
         }
 
-        return QVideoFrame(new QImageVideoBuffer(std::move(image)), m_format);
+        return QVideoFramePrivate::createFrame(
+                std::make_unique<QImageVideoBuffer>(std::move(image)), m_format);
     }
 
 private:

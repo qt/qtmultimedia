@@ -5,6 +5,7 @@
 #include "private/qcapturablewindow_p.h"
 #include "qffmpegsurfacecapturegrabber_p.h"
 #include "private/qabstractvideobuffer_p.h"
+#include "private/qvideoframe_p.h"
 
 #include "qscreen.h"
 #include "qguiapplication.h"
@@ -131,7 +132,8 @@ protected:
                                  QVideoFrameFormat::Format_BGRA8888);
         format.setStreamFrameRate(frameRate());
 
-        return QVideoFrame(new QCGImageVideoBuffer(imageRef), format);
+        return QVideoFramePrivate::createFrame(std::make_unique<QCGImageVideoBuffer>(imageRef),
+                                               std::move(format));
     }
 
     void onNewFrame(QVideoFrame frame)

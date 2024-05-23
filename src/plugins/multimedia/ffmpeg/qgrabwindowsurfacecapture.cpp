@@ -8,6 +8,7 @@
 
 #include "private/qimagevideobuffer_p.h"
 #include "private/qcapturablewindow_p.h"
+#include "private/qvideoframe_p.h"
 
 #include "qscreen.h"
 #include "qmutex.h"
@@ -145,7 +146,7 @@ private:
             return {};
         }
 
-        return QVideoFrame(buffer.release(), format);
+        return QVideoFramePrivate::createFrame(std::move(buffer), std::move(format));
     }
 
 private:

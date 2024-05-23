@@ -3,6 +3,7 @@
 
 #include "private/qabstractvideobuffer_p.h"
 #include "private/qcameradevice_p.h"
+#include "private/qvideoframe_p.h"
 #include "avfcamerarenderer_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcameraservice_p.h"
@@ -63,14 +64,13 @@ QT_USE_NAMESPACE
     // avfmediaassetwriter).
 
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
-    AVFVideoBuffer *buffer = new AVFVideoBuffer(m_renderer, imageBuffer);
+    auto buffer = std::make_unique<AVFVideoBuffer>(m_renderer, imageBuffer);
     auto format = buffer->videoFormat();
     if (!format.isValid()) {
-        delete buffer;
         return;
     }
 
-    QVideoFrame frame(buffer, format);
+    QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(buffer), format);
     m_renderer->syncHandleViewfinderFrame(frame);
 }
 

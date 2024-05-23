@@ -8,6 +8,7 @@
 #include "qsgvivantevideomaterialshader.h"
 #include "qsgvivantevideonode.h"
 #include "private/qsgvideotexture_p.h"
+#include "private/qvideoframe_p.h"
 
 #include <QOpenGLContext>
 #include <QThread>
@@ -191,7 +192,7 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
 
                 GLuint physical = ~0U;
 #if GST_CHECK_VERSION(1,14,0)
-                auto buffer = reinterpret_cast<QGstVideoBuffer *>(vF.buffer());
+                auto buffer = reinterpret_cast<QGstVideoBuffer *>(QVideoFramePrivate::buffer(vF));
                 auto mem = gst_buffer_peek_memory(buffer->buffer(), 0);
                 auto phys_addr = gst_is_phys_memory(mem) ? gst_phys_memory_get_phys_addr(mem) : 0;
                 if (phys_addr)

@@ -8,6 +8,7 @@
 #include "qqnxwindowgrabber_p.h"
 
 #include <private/qhwvideobuffer_p.h>
+#include <private/qvideoframe_p.h>
 
 #include <QtCore/qabstracteventdispatcher.h>
 #include <QtCore/qcoreapplication.h>
@@ -508,12 +509,13 @@ void QQnxMediaPlayer::updateScene(const QSize &size)
     if (!m_platformVideoSink)
         return;
 
-    auto *buffer = m_windowGrabber->isEglImageSupported()
-        ? static_cast<QAbstractVideoBuffer*>(new QnxTextureBuffer(m_windowGrabber))
-        : static_cast<QAbstractVideoBuffer*>(new QnxRasterBuffer(m_windowGrabber));
+    QVideoFrameFormat format(size, QVideoFrameFormat::Format_BGRX8888);
 
-    const QVideoFrame actualFrame(buffer,
-            QVideoFrameFormat(size, QVideoFrameFormat::Format_BGRX8888));
+    const QVideoFrame actualFrame = m_windowGrabber->isEglImageSupported()
+            ? QVideoFramePrivate::createFrame(std::make_unique<QnxTextureBuffer>(m_windowGrabber),
+                                              std::move(format))
+            : QVideoFramePrivate::createFrame(std::make_unique<QnxRasterBuffer>(m_windowGrabber),
+                                              std::move(format));
 
     m_platformVideoSink->setVideoFrame(actualFrame);
 }

@@ -9,6 +9,7 @@
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qhwvideobuffer_p.h>
 #include <private/qmultimediautils_p.h>
+#include <private/qvideoframe_p.h>
 #include <qpa/qplatformintegration.h>
 
 QT_BEGIN_NAMESPACE
@@ -210,8 +211,9 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
 
     // We render a 1x1 black pixel when we don't have a video
     if (!m_currentFrame.isValid())
-        m_currentFrame = QVideoFrame(new QMemoryVideoBuffer(QByteArray{4, 0}, 4),
-                                     QVideoFrameFormat(QSize(1,1), QVideoFrameFormat::Format_RGBA8888));
+        m_currentFrame = QVideoFramePrivate::createFrame(
+                std::make_unique<QMemoryVideoBuffer>(QByteArray{ 4, 0 }, 4),
+                QVideoFrameFormat(QSize(1, 1), QVideoFrameFormat::Format_RGBA8888));
 
     m_frameTextures = QVideoTextureHelper::createTextures(m_currentFrame, m_rhi.get(), rub, std::move(m_frameTextures));
     if (!m_frameTextures)

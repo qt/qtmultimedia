@@ -9,6 +9,7 @@
 #include "private/qvideoframeconverter_p.h"
 #include "private/qplatformmediaintegration_p.h"
 #include "private/qimagevideobuffer_p.h"
+#include "private/qvideoframe_p.h"
 #include <QtGui/QColorSpace>
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
@@ -169,7 +170,7 @@ QVideoFrame createTestFrame(const TestParams &params, const QImage &image)
         image.size(), QVideoFrameFormat::pixelFormatFromImageFormat(image.format())
     };
 
-    QVideoFrame source{ buffer.release(), imageFormat };
+    QVideoFrame source = QVideoFramePrivate::createFrame(std::move(buffer), imageFormat);
     return QPlatformMediaIntegration::instance()->convertVideoFrame(source, format);
 }
 

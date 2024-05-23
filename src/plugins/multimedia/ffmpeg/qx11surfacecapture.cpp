@@ -15,6 +15,7 @@
 #include "private/qcapturablewindow_p.h"
 #include "private/qmemoryvideobuffer_p.h"
 #include "private/qvideoframeconversionhelper_p.h"
+#include "private/qvideoframe_p.h"
 
 #include <X11/Xlib.h>
 #include <sys/shm.h>
@@ -276,8 +277,8 @@ protected:
         qCopyPixelsWithAlphaMask(pixelDst, pixelSrc, pixelCount, m_format.pixelFormat(),
                                        xImageAlphaVaries);
 
-        auto buffer = new QMemoryVideoBuffer(data, m_xImage->bytes_per_line);
-        return QVideoFrame(buffer, m_format);
+        auto buffer = std::make_unique<QMemoryVideoBuffer>(data, m_xImage->bytes_per_line);
+        return QVideoFramePrivate::createFrame(std::move(buffer), m_format);
     }
 
 private:

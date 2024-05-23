@@ -142,9 +142,13 @@ public:
 
     void paint(QPainter *painter, const QRectF &rect, const PaintOptions &options);
 
+#if QT_DEPRECATED_SINCE(6, 8)
+    QT_DEPRECATED_VERSION_X_6_8("The constructor is internal and deprecated")
     QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &format);
 
+    QT_DEPRECATED_VERSION_X_6_8("The method is internal and deprecated")
     QAbstractVideoBuffer *videoBuffer() const;
+#endif
 private:
     friend class QVideoFramePrivate;
     QExplicitlySharedDataPointer<QVideoFramePrivate> d;

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include <qffmpegvideosink_p.h>
 #include <qffmpegvideobuffer_p.h>
+#include <private/qvideoframe_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -21,7 +22,7 @@ void QFFmpegVideoSink::setRhi(QRhi *rhi)
 
 void QFFmpegVideoSink::setVideoFrame(const QVideoFrame &frame)
 {
-    auto *buffer = dynamic_cast<QFFmpegVideoBuffer *>(frame.videoBuffer());
+    auto *buffer = dynamic_cast<QFFmpegVideoBuffer *>(QVideoFramePrivate::hwBuffer(frame));
     if (buffer)
         buffer->setTextureConverter(textureConverter);
 

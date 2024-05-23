@@ -20,6 +20,8 @@
 #include <common/qgst_debug_p.h>
 #include <common/qgstutils_p.h>
 
+#include <private/qvideoframe_p.h>
+
 #include <gst/video/video.h>
 #include <gst/video/gstvideometa.h>
 
@@ -195,10 +197,9 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
             return;
         }
 
-        QGstVideoBuffer *videoBuffer = new QGstVideoBuffer{
-            state.buffer, m_videoInfo, m_sink, state.format, state.memoryFormat,
-        };
-        QVideoFrame frame(videoBuffer, state.format);
+        auto videoBuffer = std::make_unique<QGstVideoBuffer>(state.buffer, m_videoInfo, m_sink,
+                                                             state.format, state.memoryFormat);
+        QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(videoBuffer), state.format);
         QGstUtils::setFrameTimeStampsFromBuffer(&frame, state.buffer.get());
         frame.setMirrored(state.mirrored);
         frame.setRotation(state.rotationAngle);
