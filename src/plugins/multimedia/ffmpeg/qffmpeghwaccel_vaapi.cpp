@@ -184,7 +184,7 @@ VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
     }
     const QString platform = QGuiApplication::platformName();
     QPlatformNativeInterface *pni = QGuiApplication::platformNativeInterface();
-    eglDisplay = pni->nativeResourceForIntegration("egldisplay");
+    eglDisplay = pni->nativeResourceForIntegration(QByteArrayLiteral("egldisplay"));
     qCDebug(qLHWAccelVAAPI) << "     platform is" << platform << eglDisplay;
 
     if (!eglDisplay) {

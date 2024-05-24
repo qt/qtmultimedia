@@ -202,6 +202,8 @@ void QGstreamerVideoSink::unrefGstContexts()
 
 void QGstreamerVideoSink::updateGstContexts()
 {
+    using namespace Qt::Literals;
+
     unrefGstContexts();
 
 #if QT_CONFIG(gstreamer_gl)
@@ -214,12 +216,12 @@ void QGstreamerVideoSink::updateGstContexts()
 
     const QString platform = QGuiApplication::platformName();
     QPlatformNativeInterface *pni = QGuiApplication::platformNativeInterface();
-    m_eglDisplay = pni->nativeResourceForIntegration("egldisplay");
+    m_eglDisplay = pni->nativeResourceForIntegration("egldisplay"_ba);
 //    qDebug() << "platform is" << platform << m_eglDisplay;
 
     QGstGLDisplayHandle gstGlDisplay;
 
-    const char *contextName = "eglcontext";
+    QByteArray contextName = "eglcontext"_ba;
     GstGLPlatform glPlatform = GST_GL_PLATFORM_EGL;
     // use the egl display if we have one
     if (m_eglDisplay) {
@@ -229,12 +231,12 @@ void QGstreamerVideoSink::updateGstContexts()
         m_eglImageTargetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
 #endif
     } else {
-        auto display = pni->nativeResourceForIntegration("display");
+        auto display = pni->nativeResourceForIntegration("display"_ba);
 
         if (display) {
 #if GST_GL_HAVE_WINDOW_X11 && __has_include("X11/Xlib-xcb.h")
             if (platform == QLatin1String("xcb")) {
-                contextName = "glxcontext";
+                contextName = "glxcontext"_ba;
                 glPlatform = GST_GL_PLATFORM_GLX;
 
                 gstGlDisplay.reset(GST_GL_DISPLAY_CAST(
