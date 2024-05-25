@@ -7,7 +7,7 @@
 #include "qqnxmediaeventthread_p.h"
 #include "qqnxwindowgrabber_p.h"
 
-#include <private/qabstractvideobuffer_p.h>
+#include <private/qhwvideobuffer_p.h>
 
 #include <QtCore/qabstracteventdispatcher.h>
 #include <QtCore/qcoreapplication.h>

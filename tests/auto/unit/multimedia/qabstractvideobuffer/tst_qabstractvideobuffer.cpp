@@ -3,7 +3,7 @@
 
 #include <QtTest/QtTest>
 
-#include <private/qabstractvideobuffer_p.h>
+#include <private/qhwvideobuffer_p.h>
 
 class tst_QAbstractVideoBuffer : public QObject
 {

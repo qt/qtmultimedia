@@ -6,7 +6,7 @@
 
 #include <rhi/qrhi.h>
 #include <QtGui/private/qopenglextensions_p.h>
-#include <private/qabstractvideobuffer_p.h>
+#include <private/qhwvideobuffer_p.h>
 #include <private/qvideoframeconverter_p.h>
 #include <private/qplatformvideosink_p.h>
 #include <qvideosink.h>

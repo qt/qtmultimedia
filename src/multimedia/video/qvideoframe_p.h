@@ -16,7 +16,7 @@
 //
 
 #include "qvideoframe.h"
-#include "qabstractvideobuffer_p.h"
+#include "qhwvideobuffer_p.h"
 
 #include <qmutex.h>
 

@@ -7,6 +7,7 @@
 #include <qvideoframeformat.h>
 #include "QtTest/qtestcase.h"
 #include "private/qmemoryvideobuffer_p.h"
+#include "private/qhwvideobuffer_p.h"
 #include "private/qvideoframe_p.h"
 #include <QtGui/QImage>
 #include <QtCore/QPointer>

@@ -15,9 +15,7 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qabstractvideobuffer_p.h>
-#include <qvideoframe.h>
+#include <private/qhwvideobuffer_p.h>
 #include <QtCore/qvariant.h>
 
 #include "qffmpeg_p.h"

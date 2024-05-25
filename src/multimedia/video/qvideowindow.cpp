@@ -7,6 +7,7 @@
 #include <qpainter.h>
 #include <private/qguiapplication_p.h>
 #include <private/qmemoryvideobuffer_p.h>
+#include <private/qhwvideobuffer_p.h>
 #include <private/qmultimediautils_p.h>
 #include <qpa/qplatformintegration.h>
 

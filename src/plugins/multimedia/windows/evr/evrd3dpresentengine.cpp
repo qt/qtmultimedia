@@ -5,7 +5,7 @@
 
 #include "evrhelpers_p.h"
 
-#include <private/qabstractvideobuffer_p.h>
+#include <private/qhwvideobuffer_p.h>
 #include <qvideoframe.h>
 #include <QDebug>
 #include <qthread.h>

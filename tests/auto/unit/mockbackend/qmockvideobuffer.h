@@ -5,7 +5,7 @@
 #define QMOCKVIDEOBUFFER_H
 
 #include "qimage.h"
-#include "private/qabstractvideobuffer_p.h"
+#include "private/qhwvideobuffer_p.h"
 
 class QMockVideoBuffer : public QHwVideoBuffer
 {

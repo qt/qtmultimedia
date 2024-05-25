@@ -56,13 +56,6 @@ QT_BEGIN_NAMESPACE
 // must be out-of-line to ensure correct working of dynamic_cast when QHwVideoBuffer is created in tests
 QAbstractVideoBuffer::~QAbstractVideoBuffer() = default;
 
-QHwVideoBuffer::QHwVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi) : m_type(type), m_rhi(rhi)
-{
-}
-
-// must be out-of-line to ensure correct working of dynamic_cast when QHwVideoBuffer is created in tests
-QHwVideoBuffer::~QHwVideoBuffer() = default;
-
 /*! \fn uchar *QAbstractVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
 
     Independently maps the planes of a video buffer to memory.
