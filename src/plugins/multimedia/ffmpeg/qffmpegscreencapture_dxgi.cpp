@@ -135,6 +135,8 @@ public:
         m_mapMode = QtVideo::MapMode::NotMapped;
     }
 
+    QVideoFrameFormat format() const override { return {}; }
+
     QSize getSize() const
     {
         if (!m_texture)

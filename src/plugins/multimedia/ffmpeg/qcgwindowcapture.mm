@@ -65,6 +65,8 @@ public:
 
     void unmap() override { m_mapMode = QtVideo::MapMode::NotMapped; }
 
+    QVideoFrameFormat format() const override { return {}; }
+
 private:
     QtVideo::MapMode m_mapMode = QtVideo::MapMode::NotMapped;
     CFDataRef m_data;

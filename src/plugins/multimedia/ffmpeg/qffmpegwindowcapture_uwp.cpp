@@ -128,6 +128,8 @@ public:
         m_mapMode = QtVideo::MapMode::NotMapped;
     }
 
+    QVideoFrameFormat format() const override { return {}; }
+
 private:
     QtVideo::MapMode m_mapMode = QtVideo::MapMode::NotMapped;
     com_ptr<IDXGISurface> m_surface;

@@ -77,6 +77,8 @@ public:
         }
     }
 
+    QVideoFrameFormat format() const override { return {}; }
+
 private:
     CVImageBufferRef m_buffer;
     QtVideo::MapMode m_mode = QtVideo::MapMode::NotMapped;

@@ -124,6 +124,8 @@ public:
         buffer = {};
     }
 
+    QVideoFrameFormat format() const override { return {}; }
+
 private:
     QQnxWindowGrabber *m_windowGrabber;
     QQnxWindowGrabber::BufferView buffer;

@@ -52,6 +52,7 @@ public:
     virtual ~QAbstractVideoBuffer();
     virtual MapData map(QtVideo::MapMode mode) = 0;
     virtual void unmap() = 0;
+    virtual QVideoFrameFormat format() const = 0;
 };
 
 class Q_MULTIMEDIA_EXPORT QHwVideoBuffer : public QAbstractVideoBuffer
@@ -63,6 +64,8 @@ public:
 
     QVideoFrame::HandleType handleType() const { return m_type; }
     QRhi *rhi() const { return m_rhi; }
+
+    QVideoFrameFormat format() const override { return {}; }
 
     virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) { return {}; }
     virtual quint64 textureHandle(QRhi *, int /*plane*/) const { return 0; }

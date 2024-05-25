@@ -29,6 +29,8 @@ public:
 
     void unmap() override;
 
+    QVideoFrameFormat format() const override { return {}; }
+
     QImage underlyingImage() const;
 
 private:
