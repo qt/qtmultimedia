@@ -3,12 +3,6 @@
 
 #include "qabstractvideobuffer_p.h"
 
-#include <qvariant.h>
-#include <rhi/qrhi.h>
-
-#include <QDebug>
-
-
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -122,23 +116,5 @@ QAbstractVideoBuffer::~QAbstractVideoBuffer() = default;
 
     \sa QAbstractVideoBuffer::map(), QAbstractVideoBuffer::unmap(), QtVideo::MapMode()
 */
-
-#ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug dbg, QtVideo::MapMode mode)
-{
-    QDebugStateSaver saver(dbg);
-    dbg.nospace();
-    switch (mode) {
-    case QtVideo::MapMode::ReadOnly:
-        return dbg << "ReadOnly";
-    case QtVideo::MapMode::ReadWrite:
-        return dbg << "ReadWrite";
-    case QtVideo::MapMode::WriteOnly:
-        return dbg << "WriteOnly";
-    default:
-        return dbg << "NotMapped";
-    }
-}
-#endif
 
 QT_END_NAMESPACE

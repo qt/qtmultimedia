@@ -48,6 +48,10 @@ inline constexpr MapMode &operator |= (MapMode &lhs, MapMode rhs)
 
 }
 
+#ifndef QT_NO_DEBUG_STREAM
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QtVideo::MapMode);
+#endif
+
 QT_END_NAMESPACE
 
 #endif // QTVIDEO_H
