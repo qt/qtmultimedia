@@ -58,10 +58,9 @@ static bool checkForVideoFrame()
     return (!videoFrame.isNull() && !videoFrame.isUndefined());
 }
 
-Q_GLOBAL_STATIC_WITH_ARGS(bool, m_hasVideoFrame, (checkForVideoFrame()))
-
 QWasmVideoOutput::QWasmVideoOutput(QObject *parent) : QObject{ parent }
 {
+    m_hasVideoFrame = checkForVideoFrame();
 }
 
 void QWasmVideoOutput::setVideoSize(const QSize &newSize)

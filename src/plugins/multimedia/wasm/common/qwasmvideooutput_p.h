@@ -81,6 +81,7 @@ public:
     emscripten::val getDeviceCapabilities();
     bool setDeviceSetting(const std::string &key, emscripten::val value);
     bool isCameraReady() { return m_cameraIsReady; }
+    bool m_hasVideoFrame = false;
 
     static void videoFrameCallback(emscripten::val now, emscripten::val metadata);
     void videoFrameTimerCallback();
