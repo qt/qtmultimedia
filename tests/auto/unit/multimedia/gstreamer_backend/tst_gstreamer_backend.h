@@ -34,6 +34,9 @@ private slots:
 
     void QGstPad_inferTypeFromName();
 
+    void qDebug_GstPadDirection();
+    void qDebug_GstStreamStatusType();
+
 private:
     QGstreamerIntegration integration;
 };

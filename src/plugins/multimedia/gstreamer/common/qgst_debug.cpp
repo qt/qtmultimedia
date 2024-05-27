@@ -55,6 +55,11 @@ QDebug operator<<(QDebug dbg, const QGstStreamHandle &handle)
     return dbg << handle.get();
 }
 
+QDebug operator<<(QDebug dbg, const QGstTagListHandle &handle)
+{
+    return dbg << handle.get();
+}
+
 QDebug operator<<(QDebug dbg, const QGstElement &element)
 {
     return dbg << element.element();
@@ -222,6 +227,14 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
         break;
     }
 
+    case GST_MESSAGE_TAG: {
+        QGstTagListHandle tagList;
+        gst_message_parse_tag(const_cast<GstMessage *>(msg), &tagList);
+
+        dbg << ", Tags: " << tagList;
+        break;
+    }
+
     case GST_MESSAGE_QOS: {
         gboolean live;
         guint64 running_time;
@@ -266,6 +279,14 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
         gst_message_parse_streams_selected(const_cast<GstMessage *>(msg), &collection);
 
         dbg << ", " << collection;
+        break;
+    }
+
+    case GST_MESSAGE_STREAM_STATUS: {
+        GstStreamStatusType streamStatus;
+        gst_message_parse_stream_status(const_cast<GstMessage *>(msg), &streamStatus, nullptr);
+
+        dbg << ", Stream Status: " << streamStatus;
         break;
     }
 
@@ -325,8 +346,23 @@ QDebug operator<<(QDebug dbg, const GstStream *cstream)
 
     dbg << "GstStream { ";
     dbg << "Type: " << gst_stream_type_get_name(gst_stream_get_stream_type(stream));
-    dbg << ", Tags: " << gst_stream_get_tags(stream);
-    dbg << ", Caps: " << gst_stream_get_caps(stream);
+
+    QGstTagListHandle tagList{
+        gst_stream_get_tags(stream),
+        QGstTagListHandle::HasRef,
+    };
+
+    if (tagList)
+        dbg << ", Tags: " << tagList;
+
+    QGstCaps caps{
+        gst_stream_get_caps(stream),
+        QGstCaps::HasRef,
+    };
+
+    if (caps)
+        dbg << ", Caps: " << caps;
+
     dbg << "}";
 
     return dbg;
@@ -352,18 +388,39 @@ QDebug operator<<(QDebug dbg, GstMessageType type)
     return dbg << gst_message_type_get_name(type);
 }
 
+#define ADD_ENUM_SWITCH(value) \
+    case value:                \
+        return dbg << #value;  \
+        static_assert(true, "enforce semicolon")
+
 QDebug operator<<(QDebug dbg, GstPadDirection direction)
 {
     switch (direction) {
-    case GST_PAD_UNKNOWN:
-        return dbg << "GST_PAD_UNKNOWN";
-    case GST_PAD_SRC:
-        return dbg << "GST_PAD_SRC";
-    case GST_PAD_SINK:
-        return dbg << "GST_PAD_SINK";
+        ADD_ENUM_SWITCH(GST_PAD_UNKNOWN);
+        ADD_ENUM_SWITCH(GST_PAD_SRC);
+        ADD_ENUM_SWITCH(GST_PAD_SINK);
+    default:
+        Q_UNREACHABLE_RETURN(dbg);
+    }
+}
+
+QDebug operator<<(QDebug dbg, GstStreamStatusType type)
+{
+    switch (type) {
+        ADD_ENUM_SWITCH(GST_STREAM_STATUS_TYPE_CREATE);
+        ADD_ENUM_SWITCH(GST_STREAM_STATUS_TYPE_ENTER);
+        ADD_ENUM_SWITCH(GST_STREAM_STATUS_TYPE_LEAVE);
+        ADD_ENUM_SWITCH(GST_STREAM_STATUS_TYPE_DESTROY);
+        ADD_ENUM_SWITCH(GST_STREAM_STATUS_TYPE_START);
+        ADD_ENUM_SWITCH(GST_STREAM_STATUS_TYPE_PAUSE);
+        ADD_ENUM_SWITCH(GST_STREAM_STATUS_TYPE_STOP);
+    default:
+        Q_UNREACHABLE_RETURN(dbg);
     }
     return dbg;
 }
+
+#undef ADD_ENUM_SWITCH
 
 QDebug operator<<(QDebug dbg, const GValue *value)
 {
