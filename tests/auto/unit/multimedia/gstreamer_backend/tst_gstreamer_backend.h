@@ -28,6 +28,9 @@ private slots:
     void metadata_taglistToMetaData_extractsOrientation_data();
     void metadata_taglistToMetaData_extractsDuration();
 
+    void metadata_capsToMetaData();
+    void metadata_capsToMetaData_data();
+
     void QGstBin_createFromPipelineDescription();
     void QGstElement_createFromPipelineDescription();
     void QGstElement_createFromPipelineDescription_multipleElementsCreatesBin();

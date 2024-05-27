@@ -4,6 +4,7 @@
 #include "tst_gstreamer_backend.h"
 
 #include <QtTest/QtTest>
+#include <QtMultimedia/qmediaformat.h>
 
 #include <QtQGstreamerMediaPlugin/private/qgst_handle_types_p.h>
 #include <QtQGstreamerMediaPlugin/private/qgst_p.h>
@@ -16,6 +17,25 @@ QT_USE_NAMESPACE
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 
 using namespace Qt::Literals;
+
+namespace {
+
+template <typename... Pairs>
+QMediaMetaData makeQMediaMetaData(Pairs &&...pairs)
+{
+    QMediaMetaData metadata;
+
+    auto addKeyValuePair = [&](auto &&pair) {
+        metadata.insert(pair.first, pair.second);
+        return;
+    };
+
+    (addKeyValuePair(pairs), ...);
+
+    return metadata;
+}
+
+} // namespace
 
 QGstTagListHandle tst_GStreamer::parseTagList(const char *str)
 {
@@ -106,9 +126,54 @@ void tst_GStreamer::metadata_taglistToMetaData_extractsDuration()
     QGstTagListHandle tagList = parseTagList(
             R"__(taglist, video-codec=(string)"On2\ VP9",  container-specific-track-id=(string)1, extended-comment=(string){ "ALPHA_MODE\=1", "HANDLER_NAME\=Apple\ Video\ Media\ Handler", "VENDOR_ID\=appl", "TIMECODE\=00:00:00:00", "DURATION\=00:00:00.400000000" }, encoder=(string)"Lavc59.37.100\ libvpx-vp9")__");
 
-    QMediaMetaData parsed = taglistToMetaData(tagList.get());
+    QMediaMetaData parsed = taglistToMetaData(tagList);
 
     QCOMPARE(parsed[QMediaMetaData::Duration].value<int>(), 400);
+}
+
+void tst_GStreamer::metadata_capsToMetaData()
+{
+    QFETCH(QByteArray, capsString);
+    QFETCH(QMediaMetaData, expectedMetadata);
+
+    QGstCaps caps{
+        gst_caps_from_string(capsString.constData()),
+        QGstCaps::HasRef,
+    };
+
+    QMediaMetaData md = capsToMetaData(caps);
+
+    QCOMPARE(md, expectedMetadata);
+}
+
+void tst_GStreamer::metadata_capsToMetaData_data()
+{
+    using Key = QMediaMetaData::Key;
+    using KVPair = std::pair<QMediaMetaData::Key, QVariant>;
+
+    auto makeKVPair = [](Key key, auto value) {
+        return KVPair{
+            key,
+            QVariant::fromValue(value),
+        };
+    };
+
+    QTest::addColumn<QByteArray>("capsString");
+    QTest::addColumn<QMediaMetaData>("expectedMetadata");
+
+    QTest::newRow("container") << R"(video/quicktime, variant=(string)iso)"_ba
+                               << makeQMediaMetaData(makeKVPair(Key::FileFormat,
+                                                                QMediaFormat::FileFormat::MPEG4));
+
+    QTest::newRow("video")
+            << R"(video/x-h264, stream-format=(string)avc, alignment=(string)au, level=(string)3.1, profile=(string)main, codec_data=(buffer)014d401fffe10017674d401fda014016ec0440000003004000000c83c60ca801000468ef3c80, width=(int)1280, height=(int)720, framerate=(fraction)25/1, pixel-aspect-ratio=(fraction)1/1)"_ba
+            << makeQMediaMetaData(makeKVPair(Key::VideoCodec, QMediaFormat::VideoCodec::H264),
+                                  makeKVPair(Key::VideoFrameRate, 25),
+                                  makeKVPair(Key::Resolution, QSize(1280, 720)));
+
+    QTest::newRow("audio")
+            << R"(audio/mpeg, mpegversion=(int)4, framed=(boolean)true, stream-format=(string)raw, level=(string)4, base-profile=(string)lc, profile=(string)lc, codec_data=(buffer)11b0, rate=(int)48000, channels=(int)6)"_ba
+            << makeQMediaMetaData(makeKVPair(Key::AudioCodec, QMediaFormat::AudioCodec::AAC));
 }
 
 void tst_GStreamer::QGstBin_createFromPipelineDescription()

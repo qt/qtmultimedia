@@ -13,6 +13,7 @@
 #include <gst/gstversion.h>
 #include <common/qgst_handle_types_p.h>
 #include <common/qgstutils_p.h>
+#include <qgstreamerformatinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -350,17 +351,18 @@ void addTagToMetaData(const GstTagList *list, const gchar *tag, void *userdata)
 
 } // namespace
 
-QMediaMetaData taglistToMetaData(const GstTagList *tagList)
+QMediaMetaData taglistToMetaData(const QGstTagListHandle &handle)
 {
     QMediaMetaData m;
-    if (tagList)
-        gst_tag_list_foreach(tagList, reinterpret_cast<GstTagForeachFunc>(&addTagToMetaData), &m);
+    extendMetaDataFromTagList(m, handle);
     return m;
 }
 
-QMediaMetaData taglistToMetaData(const QGstTagListHandle &handle)
+void extendMetaDataFromTagList(QMediaMetaData &metadata, const QGstTagListHandle &handle)
 {
-    return taglistToMetaData(handle.get());
+    if (handle)
+        gst_tag_list_foreach(handle.get(), reinterpret_cast<GstTagForeachFunc>(&addTagToMetaData),
+                             &metadata);
 }
 
 static void applyMetaDataToTagSetter(const QMediaMetaData &metadata, GstTagSetter *element)
@@ -443,6 +445,45 @@ void applyMetaDataToTagSetter(const QMediaMetaData &metadata, const QGstBin &bin
     }
 
     gst_iterator_free(elements);
+}
+
+void extendMetaDataFromCaps(QMediaMetaData &metadata, const QGstCaps &caps)
+{
+    QGstStructureView structure = caps.at(0);
+
+    QMediaFormat::FileFormat fileFormat = QGstreamerFormatInfo::fileFormatForCaps(structure);
+    if (fileFormat != QMediaFormat::FileFormat::UnspecifiedFormat) {
+        // Container caps
+        metadata.insert(QMediaMetaData::FileFormat, fileFormat);
+        return;
+    }
+
+    QMediaFormat::AudioCodec audioCodec = QGstreamerFormatInfo::audioCodecForCaps(structure);
+    if (audioCodec != QMediaFormat::AudioCodec::Unspecified) {
+        // Audio stream caps
+        metadata.insert(QMediaMetaData::AudioCodec, QVariant::fromValue(audioCodec));
+        return;
+    }
+
+    QMediaFormat::VideoCodec videoCodec = QGstreamerFormatInfo::videoCodecForCaps(structure);
+    if (videoCodec != QMediaFormat::VideoCodec::Unspecified) {
+        // Video stream caps
+        metadata.insert(QMediaMetaData::VideoCodec, QVariant::fromValue(videoCodec));
+        std::optional<float> framerate = structure["framerate"].getFraction();
+        if (framerate)
+            metadata.insert(QMediaMetaData::VideoFrameRate, *framerate);
+
+        QSize resolution = structure.resolution();
+        if (resolution.isValid())
+            metadata.insert(QMediaMetaData::Resolution, resolution);
+    }
+}
+
+QMediaMetaData capsToMetaData(const QGstCaps &caps)
+{
+    QMediaMetaData metadata;
+    extendMetaDataFromCaps(metadata, caps);
+    return metadata;
 }
 
 QT_END_NAMESPACE

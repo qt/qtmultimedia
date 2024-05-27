@@ -354,11 +354,10 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         gst_message_parse_tag(gm, &tagList);
 
         qCDebug(qLcMediaPlayer) << "    Got tags: " << tagList.get();
-        auto metaData = taglistToMetaData(tagList);
-        auto keys = metaData.keys();
-        for (auto k : metaData.keys())
-            m_metaData.insert(k, metaData.value(k));
-        if (!keys.isEmpty())
+
+        QMediaMetaData originalMetaData = m_metaData;
+        extendMetaDataFromTagList(m_metaData, tagList);
+        if (originalMetaData != m_metaData)
             emit metaDataChanged();
 
         if (gstVideoOutput) {
@@ -1012,18 +1011,14 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     QGstStructureView topologyView{ topology };
 
     QGstCaps caps = topologyView.caps();
-    QGstStructureView structure = caps.at(0);
-    auto fileFormat = QGstreamerFormatInfo::fileFormatForCaps(structure);
-    qCDebug(qLcMediaPlayer) << caps << fileFormat;
-    m_metaData.insert(QMediaMetaData::FileFormat, QVariant::fromValue(fileFormat));
+    extendMetaDataFromCaps(m_metaData, caps);
+
     m_metaData.insert(QMediaMetaData::Duration, duration());
     m_metaData.insert(QMediaMetaData::Url, m_url);
+
     QGstTagListHandle tagList = QGstStructureView{ topology }.tags();
-    if (tagList) {
-        const auto metaData = taglistToMetaData(tagList);
-        for (auto k : metaData.keys())
-            m_metaData.insert(k, metaData.value(k));
-    }
+    if (tagList)
+        extendMetaDataFromTagList(m_metaData, tagList);
 
     QGstStructureView demux = endOfChain(topologyView);
     QGValue next = demux["next"];
@@ -1038,23 +1033,12 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     for (int i = 0; i < size; ++i) {
         auto val = next.at(i);
         caps = val.toStructure().caps();
-        structure = caps.at(0);
-        if (structure.name().startsWith("audio/")) {
-            auto codec = QGstreamerFormatInfo::audioCodecForCaps(structure);
-            m_metaData.insert(QMediaMetaData::AudioCodec, QVariant::fromValue(codec));
-            qCDebug(qLcMediaPlayer) << "    audio" << caps << (int)codec;
-        } else if (structure.name().startsWith("video/")) {
-            auto codec = QGstreamerFormatInfo::videoCodecForCaps(structure);
-            m_metaData.insert(QMediaMetaData::VideoCodec, QVariant::fromValue(codec));
-            qCDebug(qLcMediaPlayer) << "    video" << caps << (int)codec;
-            auto framerate = structure["framerate"].getFraction();
-            if (framerate)
-                m_metaData.insert(QMediaMetaData::VideoFrameRate, *framerate);
 
-            QSize resolution = structure.resolution();
-            if (resolution.isValid())
-                m_metaData.insert(QMediaMetaData::Resolution, resolution);
+        extendMetaDataFromCaps(m_metaData, caps);
 
+        QGstStructureView structure = caps.at(0);
+
+        if (structure.name().startsWith("video/")) {
             QSize nativeSize = structure.nativeSize();
             gstVideoOutput->setNativeSize(nativeSize);
         }
