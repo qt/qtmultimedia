@@ -10,12 +10,13 @@ QT_BEGIN_NAMESPACE
 
 QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructureView structure)
 {
+    using namespace std::string_view_literals;
     const char *name = structure.name().data();
 
-    if (!name || strncmp(name, "audio/", 6))
+    if (!name || (strncmp(name, "audio/", 6) != 0))
         return QMediaFormat::AudioCodec::Unspecified;
     name += 6;
-    if (!strcmp(name, "mpeg")) {
+    if (name == "mpeg"sv) {
         auto version = structure["mpegversion"].toInt();
         if (version == 1) {
             auto layer = structure["layer"];
@@ -24,91 +25,120 @@ QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructureVi
         }
         if (version == 4)
             return QMediaFormat::AudioCodec::AAC;
-    } else if (!strcmp(name, "x-ac3")) {
-        return QMediaFormat::AudioCodec::AC3;
-    } else if (!strcmp(name, "x-eac3")) {
-        return QMediaFormat::AudioCodec::EAC3;
-    } else if (!strcmp(name, "x-flac")) {
-        return QMediaFormat::AudioCodec::FLAC;
-    } else if (!strcmp(name, "x-alac")) {
-        return QMediaFormat::AudioCodec::ALAC;
-    } else if (!strcmp(name, "x-true-hd")) {
-        return QMediaFormat::AudioCodec::DolbyTrueHD;
-    } else if (!strcmp(name, "x-vorbis")) {
-        return QMediaFormat::AudioCodec::Vorbis;
-    } else if (!strcmp(name, "x-opus")) {
-        return QMediaFormat::AudioCodec::Opus;
-    } else if (!strcmp(name, "x-wav")) {
-        return QMediaFormat::AudioCodec::Wave;
-    } else if (!strcmp(name, "x-wma")) {
-        return QMediaFormat::AudioCodec::WMA;
+        return QMediaFormat::AudioCodec::Unspecified;
     }
+    if (name == "x-ac3"sv)
+        return QMediaFormat::AudioCodec::AC3;
+
+    if (name == "x-eac3"sv)
+        return QMediaFormat::AudioCodec::EAC3;
+
+    if (name == "x-flac"sv)
+        return QMediaFormat::AudioCodec::FLAC;
+
+    if (name == "x-alac"sv)
+        return QMediaFormat::AudioCodec::ALAC;
+
+    if (name == "x-true-hd"sv)
+        return QMediaFormat::AudioCodec::DolbyTrueHD;
+
+    if (name == "x-vorbis"sv)
+        return QMediaFormat::AudioCodec::Vorbis;
+
+    if (name == "x-opus"sv)
+        return QMediaFormat::AudioCodec::Opus;
+
+    if (name == "x-wav"sv)
+        return QMediaFormat::AudioCodec::Wave;
+
+    if (name == "x-wma"sv)
+        return QMediaFormat::AudioCodec::WMA;
+
     return QMediaFormat::AudioCodec::Unspecified;
 }
 
 QMediaFormat::VideoCodec QGstreamerFormatInfo::videoCodecForCaps(QGstStructureView structure)
 {
+    using namespace std::string_view_literals;
     const char *name = structure.name().data();
 
-    if (!name || strncmp(name, "video/", 6))
+    if (!name || (strncmp(name, "video/", 6) != 0))
         return QMediaFormat::VideoCodec::Unspecified;
     name += 6;
 
-    if (!strcmp(name, "mpeg")) {
+    if (name == "mpeg"sv) {
         auto version = structure["mpegversion"].toInt();
         if (version == 1)
             return QMediaFormat::VideoCodec::MPEG1;
-        else if (version == 2)
+        if (version == 2)
             return QMediaFormat::VideoCodec::MPEG2;
-        else if (version == 4)
+        if (version == 4)
             return QMediaFormat::VideoCodec::MPEG4;
-    } else if (!strcmp(name, "x-h264")) {
+        return QMediaFormat::VideoCodec::Unspecified;
+    }
+    if (name == "x-h264"sv)
         return QMediaFormat::VideoCodec::H264;
+
 #if GST_CHECK_VERSION(1, 17, 0) // x265enc seems to be broken on 1.16 at least
-    } else if (!strcmp(name, "x-h265")) {
+    if (name == "x-h265"sv)
         return QMediaFormat::VideoCodec::H265;
 #endif
-    } else if (!strcmp(name, "x-vp8")) {
+
+    if (name == "x-vp8"sv)
         return QMediaFormat::VideoCodec::VP8;
-    } else if (!strcmp(name, "x-vp9")) {
+
+    if (name == "x-vp9"sv)
         return QMediaFormat::VideoCodec::VP9;
-    } else if (!strcmp(name, "x-av1")) {
+
+    if (name == "x-av1"sv)
         return QMediaFormat::VideoCodec::AV1;
-    } else if (!strcmp(name, "x-theora")) {
+
+    if (name == "x-theora"sv)
         return QMediaFormat::VideoCodec::Theora;
-    } else if (!strcmp(name, "x-jpeg")) {
+
+    if (name == "x-jpeg"sv)
         return QMediaFormat::VideoCodec::MotionJPEG;
-    } else if (!strcmp(name, "x-wmv")) {
+
+    if (name == "x-wmv"sv)
         return QMediaFormat::VideoCodec::WMV;
-    }
+
     return QMediaFormat::VideoCodec::Unspecified;
 }
 
 QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructureView structure)
 {
+    using namespace std::string_view_literals;
     const char *name = structure.name().data();
 
-    if (!strcmp(name, "video/x-ms-asf")) {
+    if (name == "video/x-ms-asf"sv)
         return QMediaFormat::FileFormat::WMV;
-    } else if (!strcmp(name, "video/x-msvideo")) {
+
+    if (name == "video/x-msvideo"sv)
         return QMediaFormat::FileFormat::AVI;
-    } else if (!strcmp(name, "video/x-matroska")) {
+
+    if (name == "video/x-matroska"sv)
         return QMediaFormat::FileFormat::Matroska;
-    } else if (!strcmp(name, "video/quicktime")) {
-        auto variant = structure["variant"].toString();
+
+    if (name == "video/quicktime"sv) {
+        const char *variant = structure["variant"].toString();
         if (!variant)
             return QMediaFormat::FileFormat::QuickTime;
-        else if (!strcmp(variant, "iso"))
+        if (variant == "iso"sv)
             return QMediaFormat::FileFormat::MPEG4;
-    } else if (!strcmp(name, "video/ogg")) {
+    }
+    if (name == "video/ogg"sv)
         return QMediaFormat::FileFormat::Ogg;
-    } else if (!strcmp(name, "video/webm")) {
+
+    if (name == "video/webm"sv)
         return QMediaFormat::FileFormat::WebM;
-    } else if (!strcmp(name, "audio/x-m4a")) {
+
+    if (name == "audio/x-m4a"sv)
         return QMediaFormat::FileFormat::Mpeg4Audio;
-    } else if (!strcmp(name, "audio/x-wav")) {
+
+    if (name == "audio/x-wav"sv)
         return QMediaFormat::FileFormat::Wave;
-    } else if (!strcmp(name, "audio/mpeg")) {
+
+    if (name == "audio/mpeg"sv) {
         auto mpegversion = structure["mpegversion"].toInt();
         if (mpegversion == 1) {
             auto layer = structure["layer"];
@@ -116,23 +146,28 @@ QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructureVi
                 return QMediaFormat::FileFormat::MP3;
         }
     }
+
     return QMediaFormat::UnspecifiedFormat;
 }
 
 
 QImageCapture::FileFormat QGstreamerFormatInfo::imageFormatForCaps(QGstStructureView structure)
 {
+    using namespace std::string_view_literals;
     const char *name = structure.name().data();
 
-    if (!strcmp(name, "image/jpeg")) {
+    if (name == "image/jpeg"sv)
         return QImageCapture::JPEG;
-    } else if (!strcmp(name, "image/png")) {
+
+    if (name == "image/png"sv)
         return QImageCapture::PNG;
-    } else if (!strcmp(name, "image/webp")) {
+
+    if (name == "image/webp"sv)
         return QImageCapture::WebP;
-    } else if (!strcmp(name, "image/tiff")) {
+
+    if (name == "image/tiff"sv)
         return QImageCapture::Tiff;
-    }
+
     return QImageCapture::UnspecifiedFormat;
 }
 

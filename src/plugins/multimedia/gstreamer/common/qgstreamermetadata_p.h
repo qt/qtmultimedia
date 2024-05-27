@@ -21,8 +21,11 @@
 
 QT_BEGIN_NAMESPACE
 
-QMediaMetaData taglistToMetaData(const GstTagList *);
 QMediaMetaData taglistToMetaData(const QGstTagListHandle &);
+void extendMetaDataFromTagList(QMediaMetaData &, const QGstTagListHandle &);
+
+QMediaMetaData capsToMetaData(const QGstCaps &);
+void extendMetaDataFromCaps(QMediaMetaData &, const QGstCaps &);
 
 void applyMetaDataToTagSetter(const QMediaMetaData &metadata, const QGstBin &);
 void applyMetaDataToTagSetter(const QMediaMetaData &metadata, const QGstElement &);
