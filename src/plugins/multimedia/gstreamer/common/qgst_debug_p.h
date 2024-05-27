@@ -33,6 +33,7 @@ QDebug operator<<(QDebug, const QUniqueGErrorHandle &);
 QDebug operator<<(QDebug, const QUniqueGStringHandle &);
 QDebug operator<<(QDebug, const QGstStreamCollectionHandle &);
 QDebug operator<<(QDebug, const QGstStreamHandle &);
+QDebug operator<<(QDebug, const QGstTagListHandle &);
 
 QDebug operator<<(QDebug, const GstCaps *);
 QDebug operator<<(QDebug, const GstVideoInfo *);
@@ -54,6 +55,7 @@ QDebug operator<<(QDebug, GstStateChange);
 QDebug operator<<(QDebug, GstStateChangeReturn);
 QDebug operator<<(QDebug, GstMessageType);
 QDebug operator<<(QDebug, GstPadDirection);
+QDebug operator<<(QDebug, GstStreamStatusType);
 
 QDebug operator<<(QDebug, const GValue *);
 QDebug operator<<(QDebug, const GError *);
