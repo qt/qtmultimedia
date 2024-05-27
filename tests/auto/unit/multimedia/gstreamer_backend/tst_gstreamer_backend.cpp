@@ -7,6 +7,7 @@
 
 #include <QtQGstreamerMediaPlugin/private/qgst_handle_types_p.h>
 #include <QtQGstreamerMediaPlugin/private/qgst_p.h>
+#include <QtQGstreamerMediaPlugin/private/qgst_debug_p.h>
 #include <QtQGstreamerMediaPlugin/private/qgstpipeline_p.h>
 #include <QtQGstreamerMediaPlugin/private/qgstreamermetadata_p.h>
 
@@ -170,6 +171,42 @@ void tst_GStreamer::QGstPad_inferTypeFromName()
             == QPlatformMediaPlayer::SubtitleStream);
     QVERIFY(makePad("src_0", GST_PAD_SRC).inferTrackTypeFromName() == std::nullopt);
     QVERIFY(makePad("text", GST_PAD_SRC).inferTrackTypeFromName() == std::nullopt);
+}
+
+void tst_GStreamer::qDebug_GstPadDirection()
+{
+    auto validate = [](GstPadDirection direction, QString expectedString) {
+        QString str;
+        QDebug dbg(&str);
+
+        dbg << direction;
+
+        QCOMPARE_EQ(str, expectedString);
+    };
+
+    validate(GST_PAD_UNKNOWN, u"GST_PAD_UNKNOWN "_s);
+    validate(GST_PAD_SRC, u"GST_PAD_SRC "_s);
+    validate(GST_PAD_SINK, u"GST_PAD_SINK "_s);
+}
+
+void tst_GStreamer::qDebug_GstStreamStatusType()
+{
+    auto validate = [](GstStreamStatusType type, QString expectedString) {
+        QString str;
+        QDebug dbg(&str);
+
+        dbg << type;
+
+        QCOMPARE_EQ(str, expectedString);
+    };
+
+    validate(GST_STREAM_STATUS_TYPE_CREATE, u"GST_STREAM_STATUS_TYPE_CREATE "_s);
+    validate(GST_STREAM_STATUS_TYPE_ENTER, u"GST_STREAM_STATUS_TYPE_ENTER "_s);
+    validate(GST_STREAM_STATUS_TYPE_LEAVE, u"GST_STREAM_STATUS_TYPE_LEAVE "_s);
+    validate(GST_STREAM_STATUS_TYPE_DESTROY, u"GST_STREAM_STATUS_TYPE_DESTROY "_s);
+    validate(GST_STREAM_STATUS_TYPE_START, u"GST_STREAM_STATUS_TYPE_START "_s);
+    validate(GST_STREAM_STATUS_TYPE_PAUSE, u"GST_STREAM_STATUS_TYPE_PAUSE "_s);
+    validate(GST_STREAM_STATUS_TYPE_STOP, u"GST_STREAM_STATUS_TYPE_STOP "_s);
 }
 
 QTEST_GUILESS_MAIN(tst_GStreamer)
