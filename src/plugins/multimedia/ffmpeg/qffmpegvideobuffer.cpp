@@ -160,13 +160,13 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QtVideo::MapMode mode)
 
     MapData mapData;
     auto *desc = QVideoTextureHelper::textureDescription(pixelFormat());
-    mapData.nPlanes = desc->nplanes;
-    for (int i = 0; i < mapData.nPlanes; ++i) {
+    mapData.planeCount = desc->nplanes;
+    for (int i = 0; i < mapData.planeCount; ++i) {
         Q_ASSERT(m_swFrame->linesize[i] >= 0);
 
         mapData.data[i] = m_swFrame->data[i];
         mapData.bytesPerLine[i] = m_swFrame->linesize[i];
-        mapData.size[i] = mapData.bytesPerLine[i]*desc->heightForPlane(m_swFrame->height, i);
+        mapData.dataSize[i] = mapData.bytesPerLine[i]*desc->heightForPlane(m_swFrame->height, i);
     }
 
     if ((mode & QtVideo::MapMode::WriteOnly) != QtVideo::MapMode::NotMapped && m_hwFrame) {

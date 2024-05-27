@@ -256,15 +256,15 @@ public:
         m_mapMode = mode;
         MapData mapData;
         int nBytes = m_numBytes;
-        mapData.nPlanes = m_planeCount;
+        mapData.planeCount = m_planeCount;
         for (int i = 0; i < m_planeCount; ++i) {
             mapData.data[i] = m_data[i];
             mapData.bytesPerLine[i] = m_bytesPerLine[i];
             if (i) {
-                mapData.size[i-1] = m_data[i] - m_data[i-1];
-                nBytes -= mapData.size[i-1];
+                mapData.dataSize[i-1] = m_data[i] - m_data[i-1];
+                nBytes -= mapData.dataSize[i-1];
             }
-            mapData.size[i] = nBytes;
+            mapData.dataSize[i] = nBytes;
         }
         return mapData;
     }

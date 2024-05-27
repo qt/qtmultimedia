@@ -384,16 +384,16 @@ bool QVideoFrame::map(QtVideo::MapMode mode)
 
     Q_ASSERT(d->mapData.data[0] == nullptr);
     Q_ASSERT(d->mapData.bytesPerLine[0] == 0);
-    Q_ASSERT(d->mapData.nPlanes == 0);
-    Q_ASSERT(d->mapData.size[0] == 0);
+    Q_ASSERT(d->mapData.planeCount == 0);
+    Q_ASSERT(d->mapData.dataSize[0] == 0);
 
     d->mapData = d->videoBuffer->map(mode);
-    if (d->mapData.nPlanes == 0)
+    if (d->mapData.planeCount == 0)
         return false;
 
     d->mapMode = mode;
 
-    if (d->mapData.nPlanes == 1) {
+    if (d->mapData.planeCount == 1) {
         auto pixelFmt = d->format.pixelFormat();
         // If the plane count is 1 derive the additional planes for planar formats.
         switch (pixelFmt) {
@@ -431,16 +431,16 @@ bool QVideoFrame::map(QtVideo::MapMode mode)
             const int height = this->height();
             const int yStride = d->mapData.bytesPerLine[0];
             const int uvHeight = pixelFmt == QVideoFrameFormat::Format_YUV422P ? height : height / 2;
-            const int uvStride = (d->mapData.size[0] - (yStride * height)) / uvHeight / 2;
+            const int uvStride = (d->mapData.dataSize[0] - (yStride * height)) / uvHeight / 2;
 
             // Three planes, the second and third vertically (and horizontally for other than Format_YUV422P formats) subsampled.
-            d->mapData.nPlanes = 3;
+            d->mapData.planeCount = 3;
             d->mapData.bytesPerLine[2] = d->mapData.bytesPerLine[1] = uvStride;
-            d->mapData.size[0] = yStride * height;
-            d->mapData.size[1] = uvStride * uvHeight;
-            d->mapData.size[2] = uvStride * uvHeight;
-            d->mapData.data[1] = d->mapData.data[0] + d->mapData.size[0];
-            d->mapData.data[2] = d->mapData.data[1] + d->mapData.size[1];
+            d->mapData.dataSize[0] = yStride * height;
+            d->mapData.dataSize[1] = uvStride * uvHeight;
+            d->mapData.dataSize[2] = uvStride * uvHeight;
+            d->mapData.data[1] = d->mapData.data[0] + d->mapData.dataSize[0];
+            d->mapData.data[2] = d->mapData.data[1] + d->mapData.dataSize[1];
             break;
         }
         case QVideoFrameFormat::Format_NV12:
@@ -450,25 +450,25 @@ bool QVideoFrame::map(QtVideo::MapMode mode)
         case QVideoFrameFormat::Format_P010:
         case QVideoFrameFormat::Format_P016: {
             // Semi planar, Full resolution Y plane with interleaved subsampled U and V planes.
-            d->mapData.nPlanes = 2;
+            d->mapData.planeCount = 2;
             d->mapData.bytesPerLine[1] = d->mapData.bytesPerLine[0];
-            int size = d->mapData.size[0];
-            d->mapData.size[0] = (d->mapData.bytesPerLine[0] * height());
-            d->mapData.size[1] = size - d->mapData.size[0];
-            d->mapData.data[1] = d->mapData.data[0] + d->mapData.size[0];
+            int size = d->mapData.dataSize[0];
+            d->mapData.dataSize[0] = (d->mapData.bytesPerLine[0] * height());
+            d->mapData.dataSize[1] = size - d->mapData.dataSize[0];
+            d->mapData.data[1] = d->mapData.data[0] + d->mapData.dataSize[0];
             break;
         }
         case QVideoFrameFormat::Format_IMC1:
         case QVideoFrameFormat::Format_IMC3: {
             // Three planes, the second and third vertically and horizontally subsumpled,
             // but with lines padded to the width of the first plane.
-            d->mapData.nPlanes = 3;
+            d->mapData.planeCount = 3;
             d->mapData.bytesPerLine[2] = d->mapData.bytesPerLine[1] = d->mapData.bytesPerLine[0];
-            d->mapData.size[0] = (d->mapData.bytesPerLine[0] * height());
-            d->mapData.size[1] = (d->mapData.bytesPerLine[0] * height() / 2);
-            d->mapData.size[2] = (d->mapData.bytesPerLine[0] * height() / 2);
-            d->mapData.data[1] = d->mapData.data[0] + d->mapData.size[0];
-            d->mapData.data[2] = d->mapData.data[1] + d->mapData.size[1];
+            d->mapData.dataSize[0] = (d->mapData.bytesPerLine[0] * height());
+            d->mapData.dataSize[1] = (d->mapData.bytesPerLine[0] * height() / 2);
+            d->mapData.dataSize[2] = (d->mapData.bytesPerLine[0] * height() / 2);
+            d->mapData.data[1] = d->mapData.data[0] + d->mapData.dataSize[0];
+            d->mapData.data[2] = d->mapData.data[1] + d->mapData.dataSize[1];
             break;
         }
         }
@@ -594,7 +594,7 @@ int QVideoFrame::bytesPerLine(int plane) const
 {
     if (!d)
         return 0;
-    return plane >= 0 && plane < d->mapData.nPlanes ? d->mapData.bytesPerLine[plane] : 0;
+    return plane >= 0 && plane < d->mapData.planeCount ? d->mapData.bytesPerLine[plane] : 0;
 }
 
 /*!
@@ -613,7 +613,7 @@ uchar *QVideoFrame::bits(int plane)
 {
     if (!d)
         return nullptr;
-    return plane >= 0 && plane < d->mapData.nPlanes ? d->mapData.data[plane] : nullptr;
+    return plane >= 0 && plane < d->mapData.planeCount ? d->mapData.data[plane] : nullptr;
 }
 
 /*!
@@ -631,7 +631,7 @@ const uchar *QVideoFrame::bits(int plane) const
 {
     if (!d)
         return nullptr;
-    return plane >= 0 && plane < d->mapData.nPlanes ?  d->mapData.data[plane] : nullptr;
+    return plane >= 0 && plane < d->mapData.planeCount ?  d->mapData.data[plane] : nullptr;
 }
 
 /*!
@@ -645,7 +645,7 @@ int QVideoFrame::mappedBytes(int plane) const
 {
     if (!d)
         return 0;
-    return plane >= 0 && plane < d->mapData.nPlanes ? d->mapData.size[plane] : 0;
+    return plane >= 0 && plane < d->mapData.planeCount ? d->mapData.dataSize[plane] : 0;
 }
 
 /*!

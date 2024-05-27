@@ -105,7 +105,7 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_nv12_t &frame,
 {
 
     return {
-        .nPlanes = 2,
+        .planeCount = 2,
         .bytesPerLine = {
             toInt(frame.stride),
             toInt(frame.uv_stride)
@@ -114,7 +114,7 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_nv12_t &frame,
             baseAddress,
             baseAddress + frame.uv_offset
         },
-        .size = {
+        .dataSize = {
             toInt(frame.stride * frame.height),
             toInt(frame.uv_stride * frame.height / 2)
         }
@@ -125,14 +125,14 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_rgb8888_t &frame
         unsigned char *baseAddress)
 {
     return {
-        .nPlanes = 1,
+        .planeCount = 1,
         .bytesPerLine = {
             toInt(frame.stride)
         },
         .data = {
             baseAddress
         },
-        .size = {
+        .dataSize = {
             toInt(frame.stride * frame.height),
         }
     };
@@ -142,14 +142,14 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_gray8_t &frame,
         unsigned char *baseAddress)
 {
     return {
-        .nPlanes = 1,
+        .planeCount = 1,
         .bytesPerLine = {
             toInt(frame.stride)
         },
         .data = {
             baseAddress
         },
-        .size = {
+        .dataSize = {
             toInt(frame.stride * frame.height)
         }
     };
@@ -159,14 +159,14 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_cbycry_t &frame,
         unsigned char *baseAddress)
 {
     return {
-        .nPlanes = 1,
+        .planeCount = 1,
         .bytesPerLine = {
             toInt(frame.stride)
         },
         .data = {
             baseAddress
         },
-        .size = {
+        .dataSize = {
             toInt(frame.bufsize),
         }
     };
@@ -176,7 +176,7 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_ycbcr420p_t &fra
         unsigned char *baseAddress)
 {
     return {
-        .nPlanes = 3,
+        .planeCount = 3,
         .bytesPerLine = {
             toInt(frame.y_stride),
             frame.cb_stride,
@@ -187,7 +187,7 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_ycbcr420p_t &fra
             baseAddress + frame.cb_offset,
             baseAddress + frame.cr_offset,
         },
-        .size = {
+        .dataSize = {
             toInt(frame.y_stride * frame.height),
             toInt(frame.cb_stride * frame.height / 2),
             toInt(frame.cr_stride * frame.height / 2)
@@ -199,14 +199,14 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_ycbycr_t &frame,
         unsigned char *baseAddress)
 {
     return {
-        .nPlanes = 1,
+        .planeCount = 1,
         .bytesPerLine = {
             toInt(frame.stride)
         },
         .data = {
             baseAddress
         },
-        .size = {
+        .dataSize = {
             toInt(frame.stride * frame.height)
         }
     };

@@ -47,22 +47,22 @@ public:
             m_mode = mode;
         }
 
-        mapData.nPlanes = CVPixelBufferGetPlaneCount(m_buffer);
-        Q_ASSERT(mapData.nPlanes <= 3);
+        mapData.planeCount = CVPixelBufferGetPlaneCount(m_buffer);
+        Q_ASSERT(mapData.planeCount <= 3);
 
-        if (!mapData.nPlanes) {
+        if (!mapData.planeCount) {
             // single plane
             mapData.bytesPerLine[0] = CVPixelBufferGetBytesPerRow(m_buffer);
             mapData.data[0] = static_cast<uchar *>(CVPixelBufferGetBaseAddress(m_buffer));
-            mapData.size[0] = CVPixelBufferGetDataSize(m_buffer);
-            mapData.nPlanes = mapData.data[0] ? 1 : 0;
+            mapData.dataSize[0] = CVPixelBufferGetDataSize(m_buffer);
+            mapData.planeCount = mapData.data[0] ? 1 : 0;
             return mapData;
         }
 
         // For a bi-planar or tri-planar format we have to set the parameters correctly:
-        for (int i = 0; i < mapData.nPlanes; ++i) {
+        for (int i = 0; i < mapData.planeCount; ++i) {
             mapData.bytesPerLine[i] = CVPixelBufferGetBytesPerRowOfPlane(m_buffer, i);
-            mapData.size[i] = mapData.bytesPerLine[i] * CVPixelBufferGetHeightOfPlane(m_buffer, i);
+            mapData.dataSize[i] = mapData.bytesPerLine[i] * CVPixelBufferGetHeightOfPlane(m_buffer, i);
             mapData.data[i] = static_cast<uchar *>(CVPixelBufferGetBaseAddressOfPlane(m_buffer, i));
         }
 

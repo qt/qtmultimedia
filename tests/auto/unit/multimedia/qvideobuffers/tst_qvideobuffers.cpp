@@ -103,13 +103,13 @@ void tst_QVideoBuffers::map_changesMappedStateAndReturnsProperMappings_whenBuffe
 
     auto mappedData = buffer->map(mapMode);
 
-    QCOMPARE(mappedData.nPlanes, 1);
+    QCOMPARE(mappedData.planeCount, 1);
     QVERIFY(mappedData.data[0]);
-    QCOMPARE(mappedData.size[0], 80);
+    QCOMPARE(mappedData.dataSize[0], 80);
     QCOMPARE(mappedData.bytesPerLine[0], 20);
 
     const auto data = reinterpret_cast<const char*>(mappedData.data[0]);
-    QCOMPARE(QByteArray(data, mappedData.size[0]), m_byteArray);
+    QCOMPARE(QByteArray(data, mappedData.dataSize[0]), m_byteArray);
 }
 
 void tst_QVideoBuffers::map_doesNothing_whenBufferIsMapped_data()
@@ -124,7 +124,7 @@ void tst_QVideoBuffers::map_doesNothing_whenBufferIsMapped()
 
     buffer->map(mapMode);
     auto mappedData = buffer->map(QtVideo::MapMode::ReadOnly);
-    QCOMPARE(mappedData.nPlanes, 0);
+    QCOMPARE(mappedData.planeCount, 0);
 }
 
 void tst_QVideoBuffers::mapMemoryBufferWithReadOnly_doesntDetachArray()
@@ -132,7 +132,7 @@ void tst_QVideoBuffers::mapMemoryBufferWithReadOnly_doesntDetachArray()
     auto buffer = createMemoryBuffer();
 
     auto mappedData = buffer->map(QtVideo::MapMode::ReadOnly);
-    QCOMPARE(mappedData.nPlanes, 1);
+    QCOMPARE(mappedData.planeCount, 1);
     QCOMPARE(mappedData.data[0], reinterpret_cast<const uchar *>(m_byteArray.constData()));
 }
 
@@ -152,10 +152,10 @@ void tst_QVideoBuffers::unmap_resetsMappedState_whenBufferIsMapped()
 
     // Check buffer is valid and it's possible to map again
     auto mappedData = buffer->map(QtVideo::MapMode::ReadOnly);
-    QCOMPARE(mappedData.nPlanes, 1);
+    QCOMPARE(mappedData.planeCount, 1);
 
     const auto data = reinterpret_cast<const char*>(mappedData.data[0]);
-    QCOMPARE(QByteArray(data, mappedData.size[0]), m_byteArray);
+    QCOMPARE(QByteArray(data, mappedData.dataSize[0]), m_byteArray);
 }
 
 void tst_QVideoBuffers::imageBuffer_fixesInputImage_data()

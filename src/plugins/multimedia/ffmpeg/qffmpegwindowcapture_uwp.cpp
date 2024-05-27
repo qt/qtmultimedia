@@ -100,10 +100,10 @@ public:
                 hr = m_surface->GetDesc(&desc);
 
                 MapData md = {};
-                md.nPlanes = 1;
+                md.planeCount = 1;
                 md.bytesPerLine[0] = rect.Pitch;
                 md.data[0] = rect.pBits;
-                md.size[0] = rect.Pitch * desc.Height;
+                md.dataSize[0] = rect.Pitch * desc.Height;
 
                 m_mapMode = QtVideo::MapMode::ReadOnly;
 

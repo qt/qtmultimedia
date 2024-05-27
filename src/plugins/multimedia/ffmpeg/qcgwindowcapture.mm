@@ -55,10 +55,10 @@ public:
         if (m_mapMode == QtVideo::MapMode::NotMapped) {
             m_mapMode = mode;
 
-            mapData.nPlanes = 1;
+            mapData.planeCount = 1;
             mapData.bytesPerLine[0] = static_cast<int>(m_bytesPerLine);
             mapData.data[0] = (uchar *)CFDataGetBytePtr(m_data);
-            mapData.size[0] = static_cast<int>(CFDataGetLength(m_data));
+            mapData.dataSize[0] = static_cast<int>(CFDataGetLength(m_data));
         }
 
         return mapData;

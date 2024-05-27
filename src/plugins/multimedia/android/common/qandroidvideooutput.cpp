@@ -109,9 +109,9 @@ QAbstractVideoBuffer::MapData AndroidTextureVideoBuffer::map(QtVideo::MapMode mo
         m_image = qImageFromVideoFrame(QVideoFramePrivate::createFrame(
                 std::make_unique<ImageFromVideoFrameHelper>(*this),
                 QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888)));
-        mapData.nPlanes = 1;
+        mapData.planeCount = 1;
         mapData.bytesPerLine[0] = m_image.bytesPerLine();
-        mapData.size[0] = static_cast<int>(m_image.sizeInBytes());
+        mapData.dataSize[0] = static_cast<int>(m_image.sizeInBytes());
         mapData.data[0] = m_image.bits();
     }
 

@@ -26,10 +26,10 @@ class Q_MULTIMEDIA_EXPORT QAbstractVideoBuffer
 public:
     struct MapData
     {
-        int nPlanes = 0;
+        int planeCount = 0;
         int bytesPerLine[4] = {};
         uchar *data[4] = {};
-        int size[4] = {};
+        int dataSize[4] = {};
     };
 
     virtual ~QAbstractVideoBuffer();

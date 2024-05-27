@@ -113,10 +113,10 @@ public:
         buffer = m_windowGrabber->getNextBuffer();
 
         return {
-            .nPlanes = 1,
+            .planeCount = 1,
             .bytesPerLine = { buffer.stride },
             .data = { buffer.data },
-            .size = { buffer.width * buffer.height * buffer.pixelSize }
+            .dataSize = { buffer.width * buffer.height * buffer.pixelSize }
         };
     }
 

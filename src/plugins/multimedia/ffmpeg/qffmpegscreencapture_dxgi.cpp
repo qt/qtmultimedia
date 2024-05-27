@@ -113,10 +113,10 @@ public:
             }
 
             m_mapMode = mode;
-            mapData.nPlanes = 1;
+            mapData.planeCount = 1;
             mapData.bytesPerLine[0] = int(resource.RowPitch);
             mapData.data[0] = reinterpret_cast<uchar*>(resource.pData);
-            mapData.size[0] = m_size.height() * int(resource.RowPitch);
+            mapData.dataSize[0] = m_size.height() * int(resource.RowPitch);
         }
 
         return mapData;
