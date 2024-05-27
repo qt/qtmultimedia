@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "qabstractvideobuffer_p.h"
+#include "qabstractvideobuffer.h"
 #include "qvideoframe.h"
 
 #include <QtGui/qmatrix4x4.h>

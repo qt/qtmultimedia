@@ -13,7 +13,6 @@
 #include "qwasmvideooutput_p.h"
 
 #include <qvideosink.h>
-#include <private/qabstractvideobuffer_p.h>
 #include <private/qplatformvideosink_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qvideotexturehelper_p.h>

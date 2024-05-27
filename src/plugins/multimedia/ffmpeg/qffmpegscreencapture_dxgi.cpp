@@ -3,7 +3,7 @@
 
 #include "qffmpegscreencapture_dxgi_p.h"
 #include "qffmpegsurfacecapturegrabber_p.h"
-#include <private/qabstractvideobuffer_p.h>
+#include "qabstractvideobuffer.h"
 #include <private/qmultimediautils_p.h>
 #include <private/qwindowsmultimediautils_p.h>
 #include <private/qvideoframe_p.h>

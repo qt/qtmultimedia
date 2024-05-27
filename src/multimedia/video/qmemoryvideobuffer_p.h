@@ -4,7 +4,7 @@
 #ifndef QMEMORYVIDEOBUFFER_P_H
 #define QMEMORYVIDEOBUFFER_P_H
 
-#include <private/qabstractvideobuffer_p.h>
+#include "qabstractvideobuffer.h"
 
 //
 //  W A R N I N G

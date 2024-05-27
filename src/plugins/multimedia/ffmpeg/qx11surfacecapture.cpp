@@ -11,7 +11,6 @@
 #include <qguiapplication.h>
 #include <qloggingcategory.h>
 
-#include "private/qabstractvideobuffer_p.h"
 #include "private/qcapturablewindow_p.h"
 #include "private/qmemoryvideobuffer_p.h"
 #include "private/qvideoframeconversionhelper_p.h"

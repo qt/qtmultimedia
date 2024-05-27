@@ -1,7 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "private/qabstractvideobuffer_p.h"
+#include "qabstractvideobuffer.h"
 #include "private/qcameradevice_p.h"
 #include "private/qvideoframe_p.h"
 #include "avfcamerarenderer_p.h"
@@ -21,8 +21,6 @@
 #ifdef Q_OS_IOS
 #include <QtGui/qopengl.h>
 #endif
-
-#include <private/qabstractvideobuffer_p.h>
 
 #include <QtMultimedia/qvideoframeformat.h>
 

@@ -1,10 +1,11 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
+#include "qabstractvideobuffer.h"
+
 #include "qcgwindowcapture_p.h"
 #include "private/qcapturablewindow_p.h"
 #include "qffmpegsurfacecapturegrabber_p.h"
-#include "private/qabstractvideobuffer_p.h"
 #include "private/qvideoframe_p.h"
 
 #include "qscreen.h"

@@ -3,7 +3,7 @@
 
 #include "qffmpegwindowcapture_uwp_p.h"
 #include "qffmpegsurfacecapturegrabber_p.h"
-#include <private/qabstractvideobuffer_p.h>
+#include "qabstractvideobuffer.h"
 #include <private/qvideoframe_p.h>
 
 #include <unknwn.h>

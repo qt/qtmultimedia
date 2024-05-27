@@ -58,6 +58,23 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
 
     \note Since video frames can be expensive to copy, QVideoFrame is explicitly shared, so any
     change made to a video frame will also apply to any copies.
+
+    \sa QAbstractVideoBuffer, QVideoFrameFormat, QtVideo::MapMode
+*/
+
+/*!
+    \enum QVideoFrame::HandleType
+
+    Identifies the type of a video buffers handle.
+
+    \value NoHandle
+    The buffer has no handle, its data can only be accessed by mapping the buffer.
+    \value RhiTextureHandle
+    The handle of the buffer is defined by The Qt Rendering Hardware Interface
+    (RHI). RHI is Qt's internal graphics abstraction for 3D APIs, such as
+    OpenGL, Vulkan, Metal, and Direct 3D.
+
+    \sa handleType()
 */
 
 
@@ -154,6 +171,47 @@ QVideoFrame::QVideoFrame(const QImage &image)
     Q_ASSERT(format.isValid());
 
     d = new QVideoFramePrivate{ std::move(format), std::move(buffer) };
+}
+
+/*!
+    Constructs a QVideoFrame from a \l QAbstractVideoBuffer.
+
+    \since 6.8
+
+    The specified \a videoBuffer refers to an instance a reimplemented
+    \l QAbstractVideoBuffer. The instance is expected to contain a preallocated custom
+    video buffer and must implement \l QAbstractVideoBuffer::format,
+    \l QAbstractVideoBuffer::map, and \l QAbstractVideoBuffer::unmap for GPU content.
+
+    If \a videoBuffer is null or gets an invalid \l QVideoFrameFormat,
+    the constructors creates an invalid video frame.
+
+    The created frame will hold ownership of the specified video buffer for its lifetime.
+    Considering that QVideoFrame is implemented via a shared private object,
+    the specified video buffer will be destroyed upon destruction of the last copy
+    of the created video frame.
+
+    Note, if a video frame has been passed to \l QMediaRecorder or a rendering pipeline,
+    the lifetime of the frame is undefined, and the media recorder can destroy it
+    in a different thread.
+
+    QVideoFrame will contain own instance of QVideoFrameFormat.
+    Upon invoking \l setStreamFrameRate, \l setMirrored, or \l setRotation,
+    the inner format can be modified, and \l surfaceFormat will return
+    a detached instance.
+
+    \sa QAbstractVideoBuffer, QVideoFrameFormat
+*/
+QVideoFrame::QVideoFrame(std::unique_ptr<QAbstractVideoBuffer> videoBuffer)
+{
+    if (!videoBuffer)
+        return;
+
+    QVideoFrameFormat format = videoBuffer->format();
+    if (!format.isValid())
+        return;
+
+    d = new QVideoFramePrivate{ std::move(format), std::move(videoBuffer) };
 }
 
 /*!

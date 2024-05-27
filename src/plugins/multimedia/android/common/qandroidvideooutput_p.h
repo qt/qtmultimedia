@@ -18,7 +18,7 @@
 #include <qsize.h>
 #include <qmutex.h>
 #include <qreadwritelock.h>
-#include <private/qabstractvideobuffer_p.h>
+#include <qabstractvideobuffer.h>
 #include <qmatrix4x4.h>
 #include <qoffscreensurface.h>
 #include <rhi/qrhi.h>

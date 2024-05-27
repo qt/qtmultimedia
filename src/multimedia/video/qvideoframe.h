@@ -58,6 +58,7 @@ public:
     QVideoFrame();
     QVideoFrame(const QVideoFrameFormat &format);
     explicit QVideoFrame(const QImage &image);
+    explicit QVideoFrame(std::unique_ptr<QAbstractVideoBuffer> videoBuffer);
     QVideoFrame(const QVideoFrame &other);
     ~QVideoFrame();
 

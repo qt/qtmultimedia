@@ -16,7 +16,8 @@
 
 #include "qffmpeg_p.h"
 #include "qvideoframeformat.h"
-#include <private/qabstractvideobuffer_p.h>
+#include "qabstractvideobuffer.h"
+
 #include <qshareddata.h>
 #include <memory>
 #include <functional>

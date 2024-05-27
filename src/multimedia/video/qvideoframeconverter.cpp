@@ -6,6 +6,7 @@
 #include "qvideoframeformat.h"
 #include "qvideoframe_p.h"
 #include "qmultimediautils_p.h"
+#include "qabstractvideobuffer.h"
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qsize.h>
@@ -16,7 +17,6 @@
 #include <QtGui/qoffscreensurface.h>
 #include <qpa/qplatformintegration.h>
 #include <private/qvideotexturehelper_p.h>
-#include <private/qabstractvideobuffer_p.h>
 #include <private/qguiapplication_p.h>
 #include <rhi/qrhi.h>
 
