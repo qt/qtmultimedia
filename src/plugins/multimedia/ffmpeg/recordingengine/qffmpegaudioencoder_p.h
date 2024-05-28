@@ -39,6 +39,14 @@ private:
     bool hasData() const override;
     void processOne() override;
 
+    void handleAudioData(const uchar *data, int &samplesOffset, int samplesCount);
+
+    void ensurePendingFrame(int availableSamplesCount);
+
+    void writeDataToPendingFrame(const uchar *data, int &samplesOffset, int samplesCount);
+
+    void sendPendingFrameToAVCodec();
+
 private:
     std::queue<QAudioBuffer> m_audioBufferQueue;
 
@@ -55,6 +63,10 @@ private:
     qint64 m_samplesWritten = 0;
     const AVCodec *m_avCodec = nullptr;
     QMediaEncoderSettings m_settings;
+
+    AVFrameUPtr m_avFrame;
+    int m_avFrameSamplesOffset = 0;
+    std::vector<uint8_t *> m_avFramePlanesData;
 };
 
 

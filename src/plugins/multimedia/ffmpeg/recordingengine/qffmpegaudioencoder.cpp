@@ -82,7 +82,8 @@ void AudioEncoder::open()
     applyAudioEncoderOptions(m_settings, m_avCodec->name, m_codecContext.get(), opts);
     applyExperimentalCodecOptions(m_avCodec, opts);
 
-    int res = avcodec_open2(m_codecContext.get(), m_avCodec, opts);
+    const int res = avcodec_open2(m_codecContext.get(), m_avCodec, opts);
+
     qCDebug(qLcFFmpegAudioEncoder) << "audio codec opened" << res;
     qCDebug(qLcFFmpegAudioEncoder) << "audio codec params: fmt=" << m_codecContext->sample_fmt
                               << "rate=" << m_codecContext->sample_rate;
@@ -134,6 +135,14 @@ void AudioEncoder::cleanup()
 {
     while (!m_audioBufferQueue.empty())
         processOne();
+
+    if (m_avFrameSamplesOffset) {
+        // the size of the last frame can be less than m_codecContext->frame_size
+
+        retrievePackets();
+        sendPendingFrameToAVCodec();
+    }
+
     while (avcodec_send_frame(m_codecContext.get(), nullptr) == AVERROR(EAGAIN))
         retrievePackets();
     retrievePackets();
@@ -172,55 +181,21 @@ void AudioEncoder::processOne()
     QAudioBuffer buffer = takeBuffer();
     Q_ASSERT(buffer.isValid());
 
+    //    qCDebug(qLcFFmpegEncoder) << "new audio buffer" << buffer.byteCount() << buffer.format()
+    //    << buffer.frameCount() << codec->frame_size;
+
     if (buffer.format() != m_format) {
         m_format = buffer.format();
         updateResampler();
     }
 
-    //    qCDebug(qLcFFmpegEncoder) << "new audio buffer" << buffer.byteCount() << buffer.format()
-    //    << buffer.frameCount() << codec->frame_size;
-    retrievePackets();
+    int samplesOffset = 0;
+    const int bufferSamplesCount = static_cast<int>(buffer.frameCount());
 
-    auto frame = makeAVFrame();
-    frame->format = m_codecContext->sample_fmt;
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-    frame->channel_layout = m_codecContext->channel_layout;
-    frame->channels = m_codecContext->channels;
-#else
-    frame->ch_layout = m_codecContext->ch_layout;
-#endif
-    frame->sample_rate = m_codecContext->sample_rate;
-    frame->nb_samples = buffer.frameCount();
-    if (frame->nb_samples)
-        av_frame_get_buffer(frame.get(), 0);
+    while (samplesOffset < bufferSamplesCount)
+        handleAudioData(buffer.constData<uint8_t>(), samplesOffset, bufferSamplesCount);
 
-    if (m_resampler) {
-        const uint8_t *data = buffer.constData<uint8_t>();
-        swr_convert(m_resampler.get(), frame->extended_data, frame->nb_samples, &data,
-                    frame->nb_samples);
-    } else {
-        memcpy(frame->buf[0]->data, buffer.constData<uint8_t>(), buffer.byteCount());
-    }
-
-    const auto &timeBase = m_stream->time_base;
-    const auto pts = timeBase.den && timeBase.num
-            ? timeBase.den * m_samplesWritten / (m_codecContext->sample_rate * timeBase.num)
-            : m_samplesWritten;
-    setAVFrameTime(*frame, pts, timeBase);
-    m_samplesWritten += buffer.frameCount();
-
-    qint64 time = m_format.durationForFrames(m_samplesWritten);
-    m_recordingEngine.newTimeStamp(time / 1000);
-
-    //    qCDebug(qLcFFmpegEncoder) << "sending audio frame" << buffer.byteCount() << frame->pts <<
-    //    ((double)buffer.frameCount()/frame->sample_rate);
-
-    int ret = avcodec_send_frame(m_codecContext.get(), frame.get());
-    if (ret < 0) {
-        char errStr[1024];
-        av_strerror(ret, errStr, 1024);
-        //        qCDebug(qLcFFmpegEncoder) << "error sending frame" << ret << errStr;
-    }
+    Q_ASSERT(samplesOffset == bufferSamplesCount);
 }
 
 bool AudioEncoder::checkIfCanPushFrame() const
@@ -245,6 +220,118 @@ void AudioEncoder::updateResampler()
 
     qCDebug(qLcFFmpegAudioEncoder)
             << "Resampler updated. Input format:" << m_format << "Resampler:" << m_resampler.get();
+}
+
+void AudioEncoder::ensurePendingFrame(int availableSamplesCount)
+{
+    Q_ASSERT(availableSamplesCount >= 0);
+
+    if (m_avFrame)
+        return;
+
+    m_avFrame = makeAVFrame();
+
+    m_avFrame->format = m_codecContext->sample_fmt;
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+    m_avFrame->channel_layout = m_codecContext->channel_layout;
+    m_avFrame->channels = m_codecContext->channels;
+#else
+    m_avFrame->ch_layout = m_codecContext->ch_layout;
+#endif
+    m_avFrame->sample_rate = m_codecContext->sample_rate;
+
+    const bool isFixedFrameSize = !(m_avCodec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
+            && m_codecContext->frame_size;
+    m_avFrame->nb_samples = isFixedFrameSize ? m_codecContext->frame_size : availableSamplesCount;
+    if (m_avFrame->nb_samples)
+        av_frame_get_buffer(m_avFrame.get(), 0);
+
+    const auto &timeBase = m_stream->time_base;
+    const auto pts = timeBase.den && timeBase.num
+            ? timeBase.den * m_samplesWritten / (m_codecContext->sample_rate * timeBase.num)
+            : m_samplesWritten;
+    setAVFrameTime(*m_avFrame, pts, timeBase);
+}
+
+void AudioEncoder::writeDataToPendingFrame(const uchar *data, int &samplesOffset, int samplesCount)
+{
+    Q_ASSERT(m_avFrame);
+    Q_ASSERT(m_avFrameSamplesOffset <= m_avFrame->nb_samples);
+
+    const int bytesPerSample = av_get_bytes_per_sample(m_codecContext->sample_fmt);
+    const bool isPlanar = av_sample_fmt_is_planar(m_codecContext->sample_fmt);
+
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+    const int channelsCount = m_codecContext->channels;
+#else
+    const int channelsCount = m_codecContext->ch_layout.nb_channels;
+#endif
+
+    const int audioDataOffset = isPlanar ? bytesPerSample * m_avFrameSamplesOffset
+                                         : bytesPerSample * m_avFrameSamplesOffset * channelsCount;
+
+    const int planesCount = isPlanar ? channelsCount : 1;
+    m_avFramePlanesData.resize(planesCount);
+    for (int plane = 0; plane < planesCount; ++plane)
+        m_avFramePlanesData[plane] = m_avFrame->extended_data[plane] + audioDataOffset;
+
+    const int samplesToRead =
+            std::min(m_avFrame->nb_samples - m_avFrameSamplesOffset, samplesCount - samplesOffset);
+
+    data += m_format.bytesForFrames(samplesOffset);
+
+    if (m_resampler) {
+        m_avFrameSamplesOffset += swr_convert(m_resampler.get(), m_avFramePlanesData.data(),
+                                              samplesToRead, &data, samplesToRead);
+    } else {
+        Q_ASSERT(planesCount == 1);
+        m_avFrameSamplesOffset += samplesToRead;
+        memcpy(m_avFramePlanesData[0], data, m_format.bytesForFrames(samplesToRead));
+    }
+
+    samplesOffset += samplesToRead;
+}
+
+void AudioEncoder::sendPendingFrameToAVCodec()
+{
+    Q_ASSERT(m_avFrame);
+    Q_ASSERT(m_avFrameSamplesOffset <= m_avFrame->nb_samples);
+
+    m_avFrame->nb_samples = m_avFrameSamplesOffset;
+
+    m_samplesWritten += m_avFrameSamplesOffset;
+
+    const qint64 time = m_format.durationForFrames(m_samplesWritten);
+    m_recordingEngine.newTimeStamp(time / 1000);
+
+    // qCDebug(qLcFFmpegEncoder) << "sending audio frame" << buffer.byteCount() << frame->pts <<
+    //   ((double)buffer.frameCount()/frame->sample_rate);
+
+    int ret = avcodec_send_frame(m_codecContext.get(), m_avFrame.get());
+    if (ret < 0) {
+        char errStr[AV_ERROR_MAX_STRING_SIZE];
+        av_strerror(ret, errStr, AV_ERROR_MAX_STRING_SIZE);
+        qCDebug(qLcFFmpegAudioEncoder) << "error sending frame" << ret << errStr;
+    }
+
+    m_avFrame = nullptr;
+    m_avFrameSamplesOffset = 0;
+    std::fill(m_avFramePlanesData.begin(), m_avFramePlanesData.end(), nullptr);
+}
+
+void AudioEncoder::handleAudioData(const uchar *data, int &samplesOffset, int samplesCount)
+{
+    ensurePendingFrame(samplesCount - samplesOffset);
+
+    writeDataToPendingFrame(data, samplesOffset, samplesCount);
+
+    // The frame is not ready yet
+    if (m_avFrameSamplesOffset < m_avFrame->nb_samples)
+        return;
+
+    retrievePackets();
+
+    sendPendingFrameToAVCodec();
 }
 
 } // namespace QFFmpeg

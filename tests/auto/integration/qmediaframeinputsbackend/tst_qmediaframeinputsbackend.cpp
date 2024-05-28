@@ -4,10 +4,12 @@
 #include <QtTest/QtTest>
 
 #include <qvideoframeinput.h>
+#include <qaudiobufferinput.h>
 #include <qmediacapturesession.h>
 #include <qsignalspy.h>
 #include <qmediarecorder.h>
 #include <qmediaplayer.h>
+#include <qaudiooutput.h>
 #include <../shared/testvideosink.h>
 
 QT_USE_NAMESPACE
@@ -39,6 +41,9 @@ class tst_QMediaFrameInputsBackend : public QObject
 private slots:
     void initTestCase();
 
+    void mediaRecorderWritesAudio_whenAudioFramesInputSends_data();
+    void mediaRecorderWritesAudio_whenAudioFramesInputSends();
+
     void mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames_data();
     void mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames();
 };
@@ -46,6 +51,89 @@ private slots:
 void tst_QMediaFrameInputsBackend::initTestCase()
 {
     qRegisterMetaType<VideoFrameModifier>();
+}
+
+void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInputSends_data()
+{
+    QTest::addColumn<int>("buffersNumber");
+    QTest::addColumn<QAudioFormat::SampleFormat>("sampleFormat");
+    QTest::addColumn<QAudioFormat::ChannelConfig>("channelConfig");
+    QTest::addColumn<int>("sampleRate");
+    QTest::addColumn<int>("duration");
+
+#ifndef Q_OS_WINDOWS // sample rate 8000 is not supported. TODO: investigate.
+    QTest::addRow("buffersNumber: 20; sampleFormat: Int16; channelConfig: Mono; sampleRate: 8000; duration: 1000")
+            << 20 << QAudioFormat::Int16 << QAudioFormat::ChannelConfigMono << 8000 << 1000;
+#endif
+    QTest::addRow("buffersNumber: 30; sampleFormat: Int32; channelConfig: Stereo; sampleRate: 12000; duration: 2000")
+            << 30 << QAudioFormat::Int32 << QAudioFormat::ChannelConfigStereo << 12000 << 2000;
+
+    // TODO: investigate fails of channels configuration
+    //   QTest::addRow("buffersNumber: 10; sampleFormat: UInt8; channelConfig: 2Dot1; sampleRate: 40000; duration: 1500")
+    //           << 10 << QAudioFormat::UInt8 << QAudioFormat::ChannelConfig2Dot1 << 40000 << 1500;
+    //   QTest::addRow("buffersNumber: 10; sampleFormat: Float; channelConfig: 3Dot0; sampleRate: 50000; duration: 2500")
+    //           << 40 << QAudioFormat::Float << QAudioFormat::ChannelConfig3Dot0 << 50000 << 2500;
+}
+
+void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInputSends()
+{
+    QFETCH(const int, buffersNumber);
+    QFETCH(const QAudioFormat::SampleFormat, sampleFormat);
+    QFETCH(const QAudioFormat::ChannelConfig, channelConfig);
+    QFETCH(const int, sampleRate);
+    QFETCH(const int, duration);
+
+    QAudioBufferInput audioInput;
+    QMediaCaptureSession session;
+    QMediaRecorder recorder;
+
+    session.setRecorder(&recorder);
+    session.setAudioBufferInput(&audioInput);
+
+    QAudioFormat format;
+    format.setSampleFormat(sampleFormat);
+    format.setSampleRate(sampleRate);
+    format.setChannelConfig(channelConfig);
+
+    int audioBufferIndex = 0;
+    auto onReadyToSendAudioBuffer = [&]() {
+        QCOMPARE_LE(audioBufferIndex, buffersNumber);
+
+        QByteArray data(format.bytesForDuration(duration * 1000 / buffersNumber), '\0');
+        QAudioBuffer buffer(data, format);
+        audioInput.sendAudioBuffer(buffer);
+
+        ++audioBufferIndex;
+
+        if (audioBufferIndex == buffersNumber)
+            recorder.stop();
+    };
+
+    connect(&audioInput, &QAudioBufferInput::readyToSendAudioBuffer, this,
+            onReadyToSendAudioBuffer);
+
+    recorder.record();
+    QCOMPARE(recorder.recorderState(), QMediaRecorder::RecordingState);
+
+    const QString fileLocation = recorder.actualLocation().toLocalFile();
+    QScopeGuard fileDeleteGuard([&]() { QFile::remove(fileLocation); });
+
+    QVERIFY(QFile::exists(fileLocation));
+
+    QTRY_COMPARE(recorder.recorderState(), QMediaRecorder::StoppedState);
+    QCOMPARE(recorder.errorString(), u"");
+    QCOMPARE(recorder.error(), QMediaRecorder::NoError);
+
+    QAudioOutput audioOutput;
+    QMediaPlayer player;
+    player.setSource(fileLocation);
+    player.setAudioOutput(&audioOutput);
+
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+
+    QVERIFY(player.hasAudio());
+    QCOMPARE_GE(player.duration(), duration - 50);
+    QCOMPARE_LE(player.duration(), duration + 50);
 }
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames_data()
