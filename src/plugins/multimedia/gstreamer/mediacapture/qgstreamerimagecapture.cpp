@@ -3,10 +3,11 @@
 
 #include "qgstreamerimagecapture_p.h"
 
-#include <QtMultimedia/private/qplatformcamera_p.h>
-#include <QtMultimedia/private/qplatformimagecapture_p.h>
 #include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/private/qmediastoragelocation_p.h>
+#include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qstandardpaths.h>
@@ -276,11 +277,10 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
         }
 
         auto *sink = m_session->gstreamerVideoSink();
-        auto *gstBuffer = new QGstVideoBuffer{
-            std::move(bufferHandle), previewInfo, sink, fmt, memoryFormat,
-        };
-        QVideoFrame frame(gstBuffer, fmt);
+        auto gstBuffer = std::make_unique<QGstVideoBuffer>(std::move(bufferHandle), previewInfo,
+                                                           sink, fmt, memoryFormat);
 
+        QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(gstBuffer), fmt);
         QImage img = frame.toImage();
         if (img.isNull()) {
             qDebug() << "received a null image";
