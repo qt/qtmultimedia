@@ -367,11 +367,13 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         break;
     }
     case GST_MESSAGE_DURATION_CHANGED: {
-        std::chrono::milliseconds d = playerPipeline.durationInMs();
-        qCDebug(qLcMediaPlayer) << "    duration changed message" << d;
-        if (d != m_duration) {
-            m_duration = d;
-            emit durationChanged(m_duration);
+        if (!prerolling) {
+            std::chrono::milliseconds d = playerPipeline.durationInMs();
+            qCDebug(qLcMediaPlayer) << "    duration changed message" << d;
+            if (d != m_duration) {
+                m_duration = d;
+                emit durationChanged(m_duration);
+            }
         }
         return false;
     }
@@ -439,7 +441,10 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                     emit durationChanged(d);
                 }
 
+                m_metaData.insert(QMediaMetaData::Duration, duration());
+                m_metaData.insert(QMediaMetaData::Url, m_url);
                 parseStreamsAndMetadata();
+                emit metaDataChanged();
 
                 emit tracksChanged();
                 mediaStatusChanged(QMediaPlayer::LoadedMedia);
@@ -1013,9 +1018,6 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     QGstCaps caps = topologyView.caps();
     extendMetaDataFromCaps(m_metaData, caps);
 
-    m_metaData.insert(QMediaMetaData::Duration, duration());
-    m_metaData.insert(QMediaMetaData::Url, m_url);
-
     QGstTagListHandle tagList = QGstStructureView{ topology }.tags();
     if (tagList)
         extendMetaDataFromTagList(m_metaData, tagList);
@@ -1054,7 +1056,6 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     }
 
     qCDebug(qLcMediaPlayer) << "============== end parse topology ============";
-    emit metaDataChanged();
     playerPipeline.dumpGraph("playback");
 }
 
