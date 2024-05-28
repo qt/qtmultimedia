@@ -50,8 +50,12 @@ bool VideoEncoder::isValid() const
 
 void VideoEncoder::addFrame(const QVideoFrame &frame)
 {
-    if (!frame.isValid()) // TODO: report endOfStream
+    if (!frame.isValid()) {
+        setEndOfSourceStream(true);
         return;
+    }
+
+    setEndOfSourceStream(false);
 
     {
         auto guard = lockLoopData();

@@ -82,6 +82,8 @@ AudioEncoder *RecordingEngine::createAudioEncoder(const QAudioFormat &format)
 
     auto audioEncoder = new AudioEncoder(*this, format, m_settings);
     m_audioEncoders.push_back(audioEncoder);
+    connect(audioEncoder, &EncoderThread::endOfSourceStream, this,
+            &RecordingEngine::handleSourceEndOfStream);
 
     return audioEncoder;
 }
@@ -120,6 +122,9 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
 
     auto videoEncoder = veUPtr.release();
     m_videoEncoders.append(videoEncoder);
+
+    connect(videoEncoder, &EncoderThread::endOfSourceStream, this,
+            &RecordingEngine::handleSourceEndOfStream);
 
     // set the frame before connecting to avoid potential races
     if (firstFrame.isValid())
@@ -232,6 +237,19 @@ void RecordingEngine::newTimeStamp(qint64 time)
         m_timeRecorded = time;
         emit durationChanged(time);
     }
+}
+
+bool RecordingEngine::isEndOfSourceStreams() const
+{
+    auto isAtEnd = [](EncoderThread *encoder) { return encoder->isEndOfSourceStream(); };
+    return std::all_of(m_videoEncoders.cbegin(), m_videoEncoders.cend(), isAtEnd)
+            && std::all_of(m_audioEncoders.cbegin(), m_audioEncoders.cend(), isAtEnd);
+}
+
+void RecordingEngine::handleSourceEndOfStream()
+{
+    if (isEndOfSourceStreams())
+        emit endOfSourceStreams();
 }
 
 template <typename F, typename... Args>

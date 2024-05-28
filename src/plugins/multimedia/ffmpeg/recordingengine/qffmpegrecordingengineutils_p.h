@@ -50,12 +50,23 @@ void connectEncoderToSource(Encoder *encoder, Source *source)
     Q_ASSERT(!encoder->source());
     encoder->setSource(source);
 
-    if constexpr (std::is_same_v<Source, QPlatformVideoSource>)
+    if constexpr (std::is_same_v<Source, QPlatformVideoSource>) {
         QObject::connect(source, &Source::newVideoFrame, encoder, &Encoder::addFrame,
                          Qt::DirectConnection);
-    else
+
+        QObject::connect(source, &Source::activeChanged, encoder, [=]() {
+            if (!source->isActive())
+                encoder->setEndOfSourceStream(true);
+        });
+    } else {
         QObject::connect(source, &Source::newAudioBuffer, encoder, &Encoder::addBuffer,
                          Qt::DirectConnection);
+    }
+
+    // TODO:
+    // QObject::connect(source, &Source::disconnectedFromSession, encoder, [=]() {
+    //        encoder->setSourceEndOfStream(true);
+    // });
 
     setEncoderUpdateConnection(source, encoder);
     setEncoderInterface(source, encoder);

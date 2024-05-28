@@ -93,8 +93,12 @@ void AudioEncoder::open()
 
 void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
 {
-    if (!buffer.isValid()) // TODO: report endOfStream
+    if (!buffer.isValid()) {
+        setEndOfSourceStream(true);
         return;
+    }
+
+    setEndOfSourceStream(false);
 
     {
         const std::chrono::microseconds bufferDuration(buffer.duration());

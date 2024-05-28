@@ -46,6 +46,9 @@ private slots:
 
     void mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames_data();
     void mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames();
+
+    void mediaRecorderStopsRecording_whenInputsReportedEndOfsteream_data();
+    void mediaRecorderStopsRecording_whenInputsReportedEndOfsteream();
 };
 
 void tst_QMediaFrameInputsBackend::initTestCase()
@@ -227,6 +230,98 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInput
     // The first frame seems to be dropped by FFmpeg; Fix it!
     QCOMPARE_GE(sink.m_totalFrames, framesNumber - 1);
     QCOMPARE_LE(sink.m_totalFrames, framesNumber + 1);
+}
+
+void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReportedEndOfsteream_data()
+{
+    QTest::addColumn<bool>("audioStopsFirst");
+
+    QTest::addRow("audio stops first") << true;
+    QTest::addRow("video stops first") << true;
+}
+
+void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReportedEndOfsteream()
+{
+    QFETCH(const bool, audioStopsFirst);
+
+    QVideoFrameInput videoInput;
+    QAudioBufferInput audioInput;
+    QMediaCaptureSession session;
+    QMediaRecorder recorder;
+
+    recorder.setAutoStop(true);
+
+    session.setRecorder(&recorder);
+    session.setVideoFrameInput(&videoInput);
+    session.setAudioBufferInput(&audioInput);
+
+    int videoFrameIndex = 0;
+    auto onReadyToSendVideoFrame = [&]() {
+        if (videoFrameIndex == 30)
+            return;
+
+        QImage image(QSize(200, 100), QImage::Format_ARGB32);
+        image.fill(Qt::blue);
+        QVideoFrame frame(std::move(image));
+        frame.setStreamFrameRate(30);
+        videoInput.sendVideoFrame(std::move(frame));
+
+        ++videoFrameIndex;
+    };
+
+    int audioBufferIndex = 0;
+    auto onReadyToSendAudioBuffer = [&]() {
+        if (audioBufferIndex == 30)
+            return;
+
+        QAudioFormat format;
+        format.setSampleFormat(QAudioFormat::UInt8);
+        format.setSampleRate(8000);
+        format.setChannelConfig(QAudioFormat::ChannelConfigMono);
+        QByteArray data(format.bytesForDuration(1000000 / 30), '\0');
+        QAudioBuffer buffer(data, format);
+        audioInput.sendAudioBuffer(buffer);
+
+        ++audioBufferIndex;
+    };
+
+    connect(&videoInput, &QVideoFrameInput::readyToSendVideoFrame, this, onReadyToSendVideoFrame);
+    connect(&audioInput, &QAudioBufferInput::readyToSendAudioBuffer, this,
+            onReadyToSendAudioBuffer);
+
+    recorder.record();
+
+    QCOMPARE(recorder.recorderState(), QMediaRecorder::RecordingState);
+
+    const QString fileLocation = recorder.actualLocation().toLocalFile();
+    QScopeGuard fileDeleteGuard([&]() { QFile::remove(fileLocation); });
+
+    QTRY_COMPARE(audioBufferIndex, 30);
+    QTRY_COMPARE(videoFrameIndex, 30);
+
+    auto sendEndOfStream = [&](bool isAudio) {
+        return isAudio ? audioInput.sendAudioBuffer({}) : videoInput.sendVideoFrame({});
+    };
+
+    QVERIFY(sendEndOfStream(audioStopsFirst));
+
+    // wait a bit to give the recaorder a chance to fail if smth went wrong
+    QTest::qWait(300);
+    QCOMPARE_NE(recorder.recorderState(), QMediaRecorder::StoppedState);
+
+    QVERIFY(sendEndOfStream(!audioStopsFirst));
+    QTRY_COMPARE(recorder.recorderState(), QMediaRecorder::StoppedState);
+
+    // check if the file has been written
+
+    TestVideoSink sink;
+    QMediaPlayer player;
+    player.setSource(fileLocation);
+    player.setVideoSink(&sink);
+
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QVERIFY(player.hasAudio());
+    QVERIFY(player.hasVideo());
 }
 
 QTEST_MAIN(tst_QMediaFrameInputsBackend)

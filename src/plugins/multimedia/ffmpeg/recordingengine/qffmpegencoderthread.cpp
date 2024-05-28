@@ -17,6 +17,13 @@ void EncoderThread::setPaused(bool paused)
     m_paused = paused;
 }
 
+void EncoderThread::setEndOfSourceStream(bool isEnd)
+{
+    m_endOfSourceStream = isEnd;
+    if (isEnd)
+        emit endOfSourceStream();
+}
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

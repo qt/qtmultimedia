@@ -56,6 +56,8 @@ public:
     AVFormatContext *avFormatContext() { return m_formatContext->avFormatContext(); }
     Muxer *getMuxer() { return m_muxer; }
 
+    bool isEndOfSourceStreams() const;
+
 public Q_SLOTS:
     void newTimeStamp(qint64 time);
 
@@ -64,6 +66,7 @@ Q_SIGNALS:
     void sessionError(QMediaRecorder::Error code, const QString &description);
     void streamInitializationError(QMediaRecorder::Error code, const QString &description);
     void finalizationDone();
+    void endOfSourceStreams();
 
 private:
     class EncodingFinalizer : public QThread
@@ -83,6 +86,7 @@ private:
     AudioEncoder *createAudioEncoder(const QAudioFormat &format);
 
     void addVideoSource(QPlatformVideoSource *source, const QVideoFrame &firstFrame);
+    void handleSourceEndOfStream();
 
     void start();
 

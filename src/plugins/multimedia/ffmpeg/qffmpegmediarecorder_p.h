@@ -52,6 +52,7 @@ private Q_SLOTS:
     void newDuration(qint64 d) { durationChanged(d); }
     void finalizationDone();
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
+    void handleEndOfSourceStream();
 
 private:
     using RecordingEngine = QFFmpeg::RecordingEngine;

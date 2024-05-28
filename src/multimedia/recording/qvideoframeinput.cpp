@@ -106,6 +106,11 @@ QVideoFrameInput::~QVideoFrameInput()
     a media recorder, the media recorder is not started or its queue is full.
     The signal \l readyToSendVideoFrame will be sent as soon as
     the destination is able to handle a new frame.
+
+    Sending of an empty video frame is treated by \l QMediaRecorder
+    as an end of the input stream. QMediaRecorder stops the recording
+    automatically if \l QMediaRecorder::autoStop is \c true and
+    all the inputs have reported the end of the stream.
 */
 bool QVideoFrameInput::sendVideoFrame(const QVideoFrame &frame)
 {

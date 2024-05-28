@@ -577,6 +577,42 @@ void QMediaRecorder::addMetaData(const QMediaMetaData &metaData)
         data.insert(k, metaData.value(k));
     setMetaData(data);
 }
+
+/*!
+    \property QMediaRecorder::autoStop
+
+    This property controls whether the media recorder stops automatically when
+    all media inputs have reported the end of the stream or have been deactivated.
+
+    The end of the stream is reported by sending an empty media frame,
+    which you can send explicitly via \l QVideoFrameInput or \l QAudioBufferInput.
+
+    Video inputs, specificly, \l QCamera, \l QScreenCapture and \l QWindowCapture,
+    can be deactivated via the function \c setActive.
+
+    Defaults to \c false.
+
+    \sa QCamera, QScreenCapture, QWindowCapture
+*/
+
+bool QMediaRecorder::autoStop() const
+{
+    Q_D(const QMediaRecorder);
+
+    return d->autoStop;
+}
+
+void QMediaRecorder::setAutoStop(bool autoStop)
+{
+    Q_D(QMediaRecorder);
+
+    if (d->autoStop == autoStop)
+        return;
+
+    d->autoStop = autoStop;
+    emit autoStopChanged();
+}
+
 /*!
     \qmlsignal QtMultimedia::MediaRecorder::metaDataChanged()
 

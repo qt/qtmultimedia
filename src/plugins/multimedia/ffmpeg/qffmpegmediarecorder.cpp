@@ -36,6 +36,12 @@ void QFFmpegMediaRecorder::handleSessionError(QMediaRecorder::Error code, const 
     stop();
 }
 
+void QFFmpegMediaRecorder::handleEndOfSourceStream()
+{
+    if (mediaRecorder()->autoStop())
+        stop();
+}
+
 void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
 {
     if (!m_session || state() != QMediaRecorder::StoppedState)
@@ -86,6 +92,8 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
             &QFFmpegMediaRecorder::finalizationDone);
     connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::sessionError, this,
             &QFFmpegMediaRecorder::handleSessionError);
+    connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::endOfSourceStreams, this,
+            &QFFmpegMediaRecorder::handleEndOfSourceStream);
 
     auto handleStreamInitializationError = [this](QMediaRecorder::Error code,
                                                   const QString &description) {

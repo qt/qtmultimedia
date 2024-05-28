@@ -28,6 +28,10 @@ public:
 
     bool canPushFrame() const override { return m_canPushFrame.load(std::memory_order_relaxed); }
 
+    void setEndOfSourceStream(bool isEnd);
+
+    bool isEndOfSourceStream() const { return m_endOfSourceStream; }
+
 protected:
     void updateCanPushFrame();
 
@@ -45,9 +49,11 @@ protected:
 
 Q_SIGNALS:
     void canPushFrameChanged();
+    void endOfSourceStream();
 
 protected:
     bool m_paused = false;
+    bool m_endOfSourceStream = false;
     std::atomic_bool m_canPushFrame = false;
     RecordingEngine &m_recordingEngine;
     QPointer<QObject> m_source;
