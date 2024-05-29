@@ -101,21 +101,23 @@ void AudioRenderer::onDeviceChanged()
 Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
 {
     if (frame.isValid())
-        updateOutput(frame.codec());
+        updateOutputs(frame.codec());
 
-    // TODO: replace m_bufferedData.isValid() with more reliable criteria of checking
-    // a not repeated frame.
-    if (m_bufferOutput && !m_bufferedData.isValid()) {
-        Q_ASSERT(m_bufferOutputResampler);
+    // push to sink first in order not to waste time on resampling
+    // for QAudioBufferOutput
+    const RenderingResult result = pushFrameToOutput(frame);
 
-        if (frame.isValid()) {
-            QAudioBuffer buffer = m_resampler->resample(frame.avFrame());
-            emit m_bufferOutput->audioBufferReceived(buffer);
-        } else if (!m_drained) {
-            emit m_bufferOutput->audioBufferReceived({});
-        }
-    }
+    if (m_lastFramePushDone)
+        pushFrameToBufferOutput(frame);
+    // else // skip pushing the same data to QAudioBufferOutput
 
+    m_lastFramePushDone = result.done;
+
+    return result;
+}
+
+AudioRenderer::RenderingResult AudioRenderer::pushFrameToOutput(const Frame &frame)
+{
     if (!m_ioDevice || !m_resampler)
         return {};
 
@@ -162,6 +164,22 @@ Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
     }
 
     return {};
+}
+
+void AudioRenderer::pushFrameToBufferOutput(const Frame &frame)
+{
+    if (!m_bufferOutput)
+        return;
+
+    Q_ASSERT(m_bufferOutputResampler);
+
+    if (frame.isValid()) {
+        // TODO: get buffer from m_bufferedData if resample formats are equal
+        QAudioBuffer buffer = m_resampler->resample(frame.avFrame());
+        emit m_bufferOutput->audioBufferReceived(buffer);
+    } else {
+        emit m_bufferOutput->audioBufferReceived({});
+    }
 }
 
 void AudioRenderer::onPlaybackRateChanged()
@@ -224,15 +242,15 @@ void AudioRenderer::freeOutput()
 
     m_bufferedData = {};
     m_deviceChanged = false;
+    m_sinkFormat = {};
     m_timings = {};
     m_bufferLoadingInfo = {};
 }
 
-void AudioRenderer::updateOutput(const Codec *codec)
+void AudioRenderer::updateOutputs(const Codec *codec)
 {
     if (m_deviceChanged) {
         freeOutput();
-        m_sinkFormat = {};
         m_resampler.reset();
     }
 

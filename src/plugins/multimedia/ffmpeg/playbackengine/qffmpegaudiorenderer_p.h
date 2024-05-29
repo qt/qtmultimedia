@@ -76,6 +76,10 @@ protected:
 
     RenderingResult renderInternal(Frame frame) override;
 
+    RenderingResult pushFrameToOutput(const Frame &frame);
+
+    void pushFrameToBufferOutput(const Frame &frame);
+
     void onPlaybackRateChanged() override;
 
     int timerInterval() const override;
@@ -84,7 +88,7 @@ protected:
 
     void freeOutput();
 
-    void updateOutput(const Codec *codec);
+    void updateOutputs(const Codec *codec);
 
     void initResempler(const Codec *codec);
 
@@ -112,6 +116,8 @@ private:
 
     BufferedDataWithOffset m_bufferedData;
     QIODevice *m_ioDevice = nullptr;
+
+    bool m_lastFramePushDone = true;
 
     bool m_deviceChanged = false;
     bool m_bufferOutputChanged = false;
