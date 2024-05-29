@@ -21,6 +21,7 @@
 QT_BEGIN_NAMESPACE
 
 class QAudioOutput;
+class QAudioBufferOutput;
 class QAudioSink;
 class QFFmpegResampler;
 
@@ -30,9 +31,11 @@ class AudioRenderer : public Renderer
 {
     Q_OBJECT
 public:
-    AudioRenderer(const TimeController &tc, QAudioOutput *output);
+    AudioRenderer(const TimeController &tc, QAudioOutput *output, QAudioBufferOutput *bufferOutput);
 
     void setOutput(QAudioOutput *output);
+
+    void setOutput(QAudioBufferOutput *bufferOutput);
 
     ~AudioRenderer() override;
 
@@ -99,18 +102,21 @@ protected:
 
 private:
     QPointer<QAudioOutput> m_output;
+    QPointer<QAudioBufferOutput> m_bufferOutput;
     std::unique_ptr<QAudioSink> m_sink;
     AudioTimings m_timings;
     BufferLoadingInfo m_bufferLoadingInfo;
     std::unique_ptr<QFFmpegResampler> m_resampler;
-    QAudioFormat m_format;
+    std::unique_ptr<QFFmpegResampler> m_bufferOutputResampler;
+    QAudioFormat m_sinkFormat;
 
     BufferedDataWithOffset m_bufferedData;
     QIODevice *m_ioDevice = nullptr;
 
     bool m_deviceChanged = false;
+    bool m_bufferOutputChanged = false;
     bool m_drained = false;
-    bool m_firstFrame = true;
+    bool m_firstFrameToSink = true;
 };
 
 } // namespace QFFmpeg

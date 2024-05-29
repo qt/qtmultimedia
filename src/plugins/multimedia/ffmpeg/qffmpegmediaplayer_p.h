@@ -61,6 +61,8 @@ public:
 
     void setAudioOutput(QPlatformAudioOutput *) override;
 
+    void setAudioBufferOutput(QAudioBufferOutput *) override;
+
     QMediaMetaData metaData() const override;
 
     void setVideoSink(QVideoSink *sink) override;
@@ -98,6 +100,7 @@ private:
 
     std::unique_ptr<PlaybackEngine> m_playbackEngine;
     QPlatformAudioOutput *m_audioOutput = nullptr;
+    QPointer<QAudioBufferOutput> m_audioBufferOutput;
     QPointer<QVideoSink> m_videoSink;
 
     QUrl m_url;

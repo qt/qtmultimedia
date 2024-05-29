@@ -65,6 +65,8 @@ public:
 
     virtual void setAudioOutput(QPlatformAudioOutput *) {}
 
+    virtual void setAudioBufferOutput(QAudioBufferOutput *) { }
+
     virtual QMediaMetaData metaData() const { return {}; }
 
     virtual void setVideoSink(QVideoSink * /*sink*/) = 0;

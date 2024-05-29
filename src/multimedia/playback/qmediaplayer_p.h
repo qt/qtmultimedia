@@ -19,6 +19,7 @@
 #include "qmediametadata.h"
 #include "qvideosink.h"
 #include "qaudiooutput.h"
+#include "qaudiobufferoutput.h"
 #include <private/qplatformmediaplayer_p.h>
 #include <private/qerrorinfo_p.h>
 
@@ -48,6 +49,7 @@ public:
     QMediaPlayerPrivate() = default;
     QPlatformMediaPlayer *control = nullptr;
 
+    QPointer<QAudioBufferOutput> audioBufferOutput;
     QPointer<QAudioOutput> audioOutput;
     QPointer<QVideoSink> videoSink;
     QPointer<QObject> videoOutput;

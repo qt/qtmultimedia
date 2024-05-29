@@ -17,6 +17,7 @@ class QAudioOutput;
 class QAudioDevice;
 class QMediaMetaData;
 class QMediaTimeRange;
+class QAudioBufferOutput;
 
 class QMediaPlayerPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
@@ -106,6 +107,9 @@ public:
     void setActiveVideoTrack(int index);
     void setActiveSubtitleTrack(int index);
 
+    void setAudioBufferOutput(QAudioBufferOutput *output);
+    QAudioBufferOutput *audioBufferOutput() const;
+
     void setAudioOutput(QAudioOutput *output);
     QAudioOutput *audioOutput() const;
 
@@ -177,6 +181,7 @@ Q_SIGNALS:
     void metaDataChanged();
     void videoOutputChanged();
     void audioOutputChanged();
+    void audioBufferOutputChanged();
 
     void tracksChanged();
     void activeTracksChanged();

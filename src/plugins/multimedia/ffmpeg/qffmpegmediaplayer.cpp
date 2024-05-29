@@ -5,6 +5,7 @@
 #include "private/qplatformaudiooutput_p.h"
 #include "qvideosink.h"
 #include "qaudiooutput.h"
+#include "qaudiobufferoutput.h"
 
 #include "qffmpegplaybackengine_p.h"
 #include <qiodevice.h>
@@ -246,8 +247,10 @@ void QFFmpegMediaPlayer::setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaData
 
     m_playbackEngine->setMedia(std::move(*mediaDataHolder.value()));
 
+    m_playbackEngine->setAudioBufferOutput(m_audioBufferOutput);
     m_playbackEngine->setAudioSink(m_audioOutput);
     m_playbackEngine->setVideoSink(m_videoSink);
+
     m_playbackEngine->setLoops(loops());
     m_playbackEngine->setPlaybackRate(m_playbackRate);
 
@@ -341,12 +344,15 @@ void QFFmpegMediaPlayer::stop()
 
 void QFFmpegMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
 {
-    if (m_audioOutput == output)
-        return;
-
     m_audioOutput = output;
     if (m_playbackEngine)
         m_playbackEngine->setAudioSink(output);
+}
+
+void QFFmpegMediaPlayer::setAudioBufferOutput(QAudioBufferOutput *output) {
+    m_audioBufferOutput = output;
+    if (m_playbackEngine)
+        m_playbackEngine->setAudioBufferOutput(output);
 }
 
 QMediaMetaData QFFmpegMediaPlayer::metaData() const
@@ -356,9 +362,6 @@ QMediaMetaData QFFmpegMediaPlayer::metaData() const
 
 void QFFmpegMediaPlayer::setVideoSink(QVideoSink *sink)
 {
-    if (m_videoSink == sink)
-        return;
-
     m_videoSink = sink;
     if (m_playbackEngine)
         m_playbackEngine->setVideoSink(sink);

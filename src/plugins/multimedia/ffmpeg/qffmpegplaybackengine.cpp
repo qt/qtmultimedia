@@ -6,6 +6,7 @@
 #include "qaudiooutput.h"
 #include "private/qplatformaudiooutput_p.h"
 #include "private/qplatformvideosink_p.h"
+#include "private/qaudiobufferoutput_p.h"
 #include "qiodevice.h"
 #include "playbackengine/qffmpegdemuxer_p.h"
 #include "playbackengine/qffmpegstreamdecoder_p.h"
@@ -200,8 +201,8 @@ PlaybackEngine::createRenderer(QPlatformMediaPlayer::TrackType trackType)
                 ? createPlaybackEngineObject<VideoRenderer>(m_timeController, m_videoSink, m_media.rotation())
                 : RendererPtr{ {}, {} };
     case QPlatformMediaPlayer::AudioStream:
-        return m_audioOutput
-                ? createPlaybackEngineObject<AudioRenderer>(m_timeController, m_audioOutput)
+        return m_audioOutput || m_audioBufferOutput
+                ? createPlaybackEngineObject<AudioRenderer>(m_timeController, m_audioOutput, m_audioBufferOutput)
                 : RendererPtr{ {}, {} };
     case QPlatformMediaPlayer::SubtitleStream:
         return m_videoSink
@@ -486,7 +487,7 @@ void PlaybackEngine::setAudioSink(QPlatformAudioOutput *output) {
 
 void PlaybackEngine::setAudioSink(QAudioOutput *output)
 {
-    auto prev = std::exchange(m_audioOutput, output);
+    QAudioOutput *prev = std::exchange(m_audioOutput, output);
     if (prev == output)
         return;
 
@@ -496,6 +497,14 @@ void PlaybackEngine::setAudioSink(QAudioOutput *output)
         // might need some improvements
         forceUpdate();
     }
+}
+
+void PlaybackEngine::setAudioBufferOutput(QAudioBufferOutput *output)
+{
+    QAudioBufferOutput *prev = std::exchange(m_audioBufferOutput, output);
+    if (prev == output)
+        return;
+    updateActiveAudioOutput(output);
 }
 
 qint64 PlaybackEngine::currentPosition(bool topPos) const {
@@ -572,7 +581,10 @@ void PlaybackEngine::finilizeTime(qint64 pos)
 
 void PlaybackEngine::finalizeOutputs()
 {
-    updateActiveAudioOutput(nullptr);
+    if (m_audioBufferOutput)
+        updateActiveAudioOutput(static_cast<QAudioBufferOutput *>(nullptr));
+    if (m_audioOutput)
+        updateActiveAudioOutput(static_cast<QAudioOutput *>(nullptr));
     updateActiveVideoOutput(nullptr, true);
 }
 
@@ -582,7 +594,8 @@ bool PlaybackEngine::hasRenderer(quint64 id) const
                        [id](auto &renderer) { return renderer && renderer->id() == id; });
 }
 
-void PlaybackEngine::updateActiveAudioOutput(QAudioOutput *output)
+template <typename AudioOutput>
+void PlaybackEngine::updateActiveAudioOutput(AudioOutput *output)
 {
     if (auto renderer =
                 qobject_cast<AudioRenderer *>(m_renderers[QPlatformMediaPlayer::AudioStream].get()))

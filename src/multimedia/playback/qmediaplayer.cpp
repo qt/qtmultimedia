@@ -5,6 +5,7 @@
 
 #include <private/qmultimediautils_p.h>
 #include <private/qplatformmediaintegration_p.h>
+#include <private/qaudiobufferoutput_p.h>
 #include <qvideosink.h>
 #include <qaudiooutput.h>
 
@@ -646,6 +647,51 @@ void QMediaPlayer::setSourceDevice(QIODevice *device, const QUrl &sourceUrl)
 
     d->setMedia(d->source, device);
     emit sourceChanged(d->source);
+}
+
+/*!
+    Sets an audio buffer \a output to the media player.
+
+    If \l QAudioBufferOutput is specified and the media source
+    contains an audio stream, the media player, it will emit
+    the signal \l{QAudioBufferOutput::audioBufferReceived} with
+    audio buffers containing decoded audio data. At the end of
+    the audio stream, \c QMediaPlayer emits an empty \l QAudioBuffer.
+
+    \c QMediaPlayer emits outputs frames at the same time as it
+    pushes the matching data to the audio output if it's specified.
+    However, the sound can be played with a small delay due to
+    audio bufferization.
+*/
+void QMediaPlayer::setAudioBufferOutput(QAudioBufferOutput *output)
+{
+    Q_D(QMediaPlayer);
+
+    QAudioBufferOutput *oldOutput = d->audioBufferOutput;
+    if (oldOutput == output)
+        return;
+
+    d->audioBufferOutput = output;
+
+    if (output) {
+        auto oldPlayer = QAudioBufferOutputPrivate::exchangeMediaPlayer(*oldOutput, this);
+        if (oldPlayer)
+            oldPlayer->setAudioBufferOutput(nullptr);
+    }
+
+    if (d->control)
+        d->control->setAudioBufferOutput(output);
+
+    emit audioBufferOutputChanged();
+}
+
+/*!
+    Get \l QAudioBufferOutput that has been set to the media player.
+*/
+QAudioBufferOutput *QMediaPlayer::audioBufferOutput() const
+{
+    Q_D(const QMediaPlayer);
+    return d->audioBufferOutput;
 }
 
 /*!
