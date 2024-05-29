@@ -722,12 +722,31 @@ int QGstreamerCamera::getV4L2Parameter(quint32 id) const
 QGstreamerCustomCamera::QGstreamerCustomCamera(QCamera *camera)
     : QGstreamerCameraBase{
           camera,
+      },
+      m_userProvidedGstElement{
+          false,
+      }
+{
+}
+
+QGstreamerCustomCamera::QGstreamerCustomCamera(QCamera *camera, QGstElement element)
+    : QGstreamerCameraBase{
+          camera,
+      },
+      gstCamera{
+          std::move(element),
+      },
+      m_userProvidedGstElement{
+          true,
       }
 {
 }
 
 void QGstreamerCustomCamera::setCamera(const QCameraDevice &device)
 {
+    if (m_userProvidedGstElement)
+        return;
+
     gstCamera = QGstBin::createFromPipelineDescription(device.id(), /*name=*/nullptr,
                                                        /* ghostUnlinkedPads=*/true);
 }
