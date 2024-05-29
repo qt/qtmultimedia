@@ -75,12 +75,17 @@ void QFFmpegMediaPlayer::updatePosition()
 
 void QFFmpegMediaPlayer::endOfStream()
 {
-    // start update timer and report end position anyway
+    // stop update timer and report end position anyway
     m_positionUpdateTimer.stop();
+    QPointer currentPlaybackEngine(m_playbackEngine.get());
     positionChanged(duration());
 
-    stateChanged(QMediaPlayer::StoppedState);
-    mediaStatusChanged(QMediaPlayer::EndOfMedia);
+    // skip changing state and mediaStatus if playbackEngine has been recreated,
+    // e.g. if new media has been loaded as a response to positionChanged signal
+    if (currentPlaybackEngine)
+        stateChanged(QMediaPlayer::StoppedState);
+    if (currentPlaybackEngine)
+        mediaStatusChanged(QMediaPlayer::EndOfMedia);
 }
 
 void QFFmpegMediaPlayer::onLoopChanged()
