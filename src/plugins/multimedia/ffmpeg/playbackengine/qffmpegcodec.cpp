@@ -80,7 +80,7 @@ QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext,
 
     int ret = avcodec_parameters_to_context(context.get(), stream->codecpar);
     if (ret < 0)
-        return { "Failed to set FFmpeg codec parameters" };
+        return QStringLiteral("Failed to set FFmpeg codec parameters: %1").arg(err2str(ret));
 
     // ### This still gives errors about wrong HW formats (as we accept all of them)
     // But it would be good to get so we can filter out pixel format we don't support natively
@@ -95,7 +95,7 @@ QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext,
     ret = avcodec_open2(context.get(), decoder, opts);
 
     if (ret < 0)
-        return QString("Failed to open FFmpeg codec context: %1").arg(err2str(ret));
+        return QStringLiteral("Failed to open FFmpeg codec context: %1").arg(err2str(ret));
 
     return Codec(new Data(std::move(context), stream, formatContext, std::move(hwAccel)));
 }
