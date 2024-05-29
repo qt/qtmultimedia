@@ -2,9 +2,6 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 package org.qtproject.qt.android.multimedia;
 
-import org.qtproject.qt.android.multimedia.QtVideoDeviceManager;
-import org.qtproject.qt.android.multimedia.QtExifDataHandler;
-
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -20,15 +17,11 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.media.Image;
 import android.media.ImageReader;
-import android.graphics.ImageFormat;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Range;
 import android.view.Surface;
-import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
-import android.media.MediaFormat;
 import java.lang.Thread;
 import java.util.ArrayList;
 import java.util.List;

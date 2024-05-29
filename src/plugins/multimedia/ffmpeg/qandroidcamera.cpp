@@ -26,7 +26,6 @@
 
 extern "C" {
 #include "libavutil/hwcontext.h"
-#include "libavutil/pixfmt.h"
 }
 
 QT_BEGIN_NAMESPACE
