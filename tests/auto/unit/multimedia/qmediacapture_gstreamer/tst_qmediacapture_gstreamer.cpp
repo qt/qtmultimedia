@@ -40,6 +40,7 @@ private slots:
 
     void makeCustomGStreamerCamera_fromPipelineDescription();
     void makeCustomGStreamerCamera_fromPipelineDescription_multipleItems();
+    void makeCustomGStreamerCamera_fromPipelineDescription_userProvidedGstElement();
 
 private:
     std::unique_ptr<QMediaCaptureSession> session;
@@ -157,7 +158,8 @@ void tst_QMediaCaptureGStreamer::
 void tst_QMediaCaptureGStreamer::makeCustomGStreamerCamera_fromPipelineDescription()
 {
     auto pipelineString = "videotestsrc name=mySrc"_ba;
-    QCamera *cam = gstInterface()->makeCustomGStreamerCamera(pipelineString, session.get());
+    QCamera *cam =
+            gstInterface()->makeCustomGStreamerCamera(pipelineString, /*parent=*/session.get());
 
     session->setCamera(cam);
     cam->start();
@@ -171,7 +173,8 @@ void tst_QMediaCaptureGStreamer::makeCustomGStreamerCamera_fromPipelineDescripti
 void tst_QMediaCaptureGStreamer::makeCustomGStreamerCamera_fromPipelineDescription_multipleItems()
 {
     auto pipelineString = "videotestsrc name=mySrc  ! gamma gamma=2.0 name=myFilter"_ba;
-    QCamera *cam = gstInterface()->makeCustomGStreamerCamera(pipelineString, session.get());
+    QCamera *cam =
+            gstInterface()->makeCustomGStreamerCamera(pipelineString, /*parent=*/session.get());
 
     session->setCamera(cam);
     cam->start();
@@ -181,6 +184,27 @@ void tst_QMediaCaptureGStreamer::makeCustomGStreamerCamera_fromPipelineDescripti
     QVERIFY(pipeline.findByName("mySrc"));
     QVERIFY(pipeline.findByName("myFilter"));
     dumpGraph("makeCustomGStreamerCamera_fromPipelineDescription_multipleItems");
+}
+
+void tst_QMediaCaptureGStreamer::
+        makeCustomGStreamerCamera_fromPipelineDescription_userProvidedGstElement()
+{
+    QGstElement element = QGstElement::createFromPipelineDescription("videotestsrc");
+    gst_element_set_name(element.element(), "mySrc");
+
+    QCamera *cam =
+            gstInterface()->makeCustomGStreamerCamera(element.element(), /*parent=*/session.get());
+
+    session->setCamera(cam);
+    cam->start();
+
+    QGstPipeline pipeline = getPipeline();
+    QTEST_ASSERT(pipeline);
+    QCOMPARE(pipeline.findByName("mySrc"), element);
+    dumpGraph("makeCustomGStreamerCamera_fromPipelineDescription_userProvidedGstElement");
+
+    element.set("foreground-color", 0xff0000);
+    dumpGraph("makeCustomGStreamerCamera_fromPipelineDescription_userProvidedGstElement2");
 }
 
 QTEST_GUILESS_MAIN(tst_QMediaCaptureGStreamer)

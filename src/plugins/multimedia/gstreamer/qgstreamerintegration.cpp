@@ -23,6 +23,7 @@
 QT_BEGIN_NAMESPACE
 
 static thread_local bool inCustomCameraConstruction = false;
+static thread_local QGstElement pendingCameraElement{};
 
 QGStreamerPlatformSpecificInterfaceImplementation::
         ~QGStreamerPlatformSpecificInterfaceImplementation() = default;
@@ -49,6 +50,28 @@ QCamera *QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStreamerC
     inCustomCameraConstruction = true;
     auto guard = qScopeGuard([] {
         inCustomCameraConstruction = false;
+    });
+
+    return new QCamera(device, parent);
+}
+
+QCamera *
+QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStreamerCamera(GstElement *element,
+                                                                             QObject *parent)
+{
+    QCameraDevicePrivate *info = new QCameraDevicePrivate;
+    info->id = "Custom Camera from GstElement";
+    QCameraDevice device = info->create();
+
+    pendingCameraElement = QGstElement{
+        element,
+        QGstElement::NeedsRef,
+    };
+
+    inCustomCameraConstruction = true;
+    auto guard = qScopeGuard([] {
+        inCustomCameraConstruction = false;
+        Q_ASSERT(!pendingCameraElement);
     });
 
     return new QCamera(device, parent);
@@ -171,10 +194,13 @@ QMaybe<QPlatformMediaPlayer *> QGstreamerIntegration::createPlayer(QMediaPlayer 
 
 QMaybe<QPlatformCamera *> QGstreamerIntegration::createCamera(QCamera *camera)
 {
-    if (inCustomCameraConstruction)
-        return new QGstreamerCustomCamera(camera);
-    else
-        return QGstreamerCamera::create(camera);
+    if (inCustomCameraConstruction) {
+        QGstElement element = std::exchange(pendingCameraElement, {});
+        return element ? new QGstreamerCustomCamera{ camera, std::move(element) }
+                       : new QGstreamerCustomCamera{ camera };
+    }
+
+    return QGstreamerCamera::create(camera);
 }
 
 QMaybe<QPlatformMediaRecorder *> QGstreamerIntegration::createRecorder(QMediaRecorder *recorder)

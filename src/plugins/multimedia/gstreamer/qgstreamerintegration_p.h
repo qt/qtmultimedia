@@ -34,6 +34,8 @@ public:
     QCamera *makeCustomGStreamerCamera(const QByteArray &gstreamerPipeline,
                                        QObject *parent) override;
 
+    QCamera *makeCustomGStreamerCamera(GstElement *, QObject *parent) override;
+
     GstPipeline *gstPipeline(QMediaPlayer *) override;
     GstPipeline *gstPipeline(QMediaCaptureSession *) override;
 };

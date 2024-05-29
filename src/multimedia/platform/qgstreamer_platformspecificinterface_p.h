@@ -17,6 +17,7 @@
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 typedef struct _GstPipeline GstPipeline; // NOLINT (bugprone-reserved-identifier)
+typedef struct _GstElement GstElement; // NOLINT (bugprone-reserved-identifier)
 
 QT_BEGIN_NAMESPACE
 
@@ -32,6 +33,9 @@ public:
     virtual QAudioDevice makeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline) = 0;
     virtual QCamera *makeCustomGStreamerCamera(const QByteArray &gstreamerPipeline,
                                                QObject *parent) = 0;
+
+    // Note: ownership of GstElement is not transferred
+    virtual QCamera *makeCustomGStreamerCamera(GstElement *, QObject *parent) = 0;
 
     virtual GstPipeline *gstPipeline(QMediaPlayer *) = 0;
     virtual GstPipeline *gstPipeline(QMediaCaptureSession *) = 0;
