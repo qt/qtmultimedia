@@ -26,7 +26,6 @@
 
 extern "C" {
 #include "libavutil/hwcontext.h"
-#include "libavutil/pixfmt.h"
 }
 
 Q_DECLARE_JNI_CLASS(QtCamera2, "org/qtproject/qt/android/multimedia/QtCamera2");
