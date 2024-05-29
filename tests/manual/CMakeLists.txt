@@ -8,6 +8,7 @@ add_subdirectory(wasm)
 
 if(QT_FEATURE_gstreamer)
     add_subdirectory(gstreamer-custom-camera)
+    add_subdirectory(gstreamer-custom-camera-rtp)
 endif()
 
 if(TARGET Qt::Quick)
