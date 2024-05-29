@@ -23,13 +23,42 @@ QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext)
     if (!stream)
         return { "Invalid stream" };
 
+    if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+        auto hwCodec = create(stream, formatContext, Hw);
+        if (hwCodec)
+            return hwCodec;
+
+        qCWarning(qLcPlaybackEngineCodec) << hwCodec.error();
+    }
+
+    auto codec = create(stream, formatContext, Sw);
+    if (!codec)
+        qCWarning(qLcPlaybackEngineCodec) << codec.error();
+
+    return codec;
+}
+
+AVRational Codec::pixelAspectRatio(AVFrame *frame) const
+{
+    // does the same as av_guess_sample_aspect_ratio, but more efficient
+    return d->pixelAspectRatio.num && d->pixelAspectRatio.den ? d->pixelAspectRatio
+                                                              : frame->sample_aspect_ratio;
+}
+
+QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext,
+                            VideoCodecCreationPolicy videoCodecPolicy)
+{
+    Q_ASSERT(stream);
+
+    if (videoCodecPolicy == Hw && stream->codecpar->codec_type != AVMEDIA_TYPE_VIDEO)
+        Q_ASSERT(!"Codec::create has been called with Hw policy on a non-video stream");
+
     const AVCodec *decoder = nullptr;
     std::unique_ptr<QFFmpeg::HWAccel> hwAccel;
 
-    if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+    if (videoCodecPolicy == Hw)
         std::tie(decoder, hwAccel) = HWAccel::findDecoderWithHwAccel(stream->codecpar->codec_id);
-
-    if (!decoder)
+    else
         decoder = QFFmpeg::findAVDecoder(stream->codecpar->codec_id);
 
     if (!decoder)
@@ -64,17 +93,11 @@ QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext)
     applyExperimentalCodecOptions(decoder, opts);
 
     ret = avcodec_open2(context.get(), decoder, opts);
+
     if (ret < 0)
-        return QString("Failed to open FFmpeg codec context " + err2str(ret));
+        return QString("Failed to open FFmpeg codec context: %1").arg(err2str(ret));
 
     return Codec(new Data(std::move(context), stream, formatContext, std::move(hwAccel)));
-}
-
-AVRational Codec::pixelAspectRatio(AVFrame *frame) const
-{
-    // does the same as av_guess_sample_aspect_ratio, but more efficient
-    return d->pixelAspectRatio.num && d->pixelAspectRatio.den ? d->pixelAspectRatio
-                                                              : frame->sample_aspect_ratio;
 }
 
 QT_END_NAMESPACE
