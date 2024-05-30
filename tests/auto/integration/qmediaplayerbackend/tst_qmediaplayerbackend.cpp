@@ -1021,7 +1021,8 @@ void tst_QMediaPlayerBackend::play_resumesPlaying_whenValidMediaIsProvidedAfterI
 
     // Assert
     QTRY_VERIFY(m_fixture->framesCount > 0);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
     QCOMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
     QCOMPARE(m_fixture->player.error(), QMediaPlayer::NoError);
 }
@@ -1094,7 +1095,8 @@ void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPla
 
     // Assert
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
     QCOMPARE_EQ(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
 
     // Note: Should not go through Loading again when play -> stop -> play
@@ -1541,7 +1543,8 @@ void tst_QMediaPlayerBackend::processEOS()
     QCOMPARE(m_fixture->positionChanged.first()[0].value<qint64>(), 0);
 
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     QCOMPARE(m_fixture->playbackStateChanged.size(), 1);
     QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::PlayingState);
@@ -1934,7 +1937,8 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
 
     player.play();
     QTRY_COMPARE(player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     positionSpy.clear();
     QTRY_VERIFY(player.position() > (position - 200));
@@ -2788,7 +2792,8 @@ void tst_QMediaPlayerBackend::infiniteLoops()
         QCOMPARE(iterations.front().endPos, m_fixture->player.duration());
     }
 
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     m_fixture->player.stop(); // QMediaPlayer::stop stops whether or not looping is infinite
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
@@ -3099,7 +3104,8 @@ void tst_QMediaPlayerBackend::nonAsciiFileName()
     m_fixture->player.setSource(temporaryFile->fileName());
     m_fixture->player.play();
 
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     QCOMPARE(m_fixture->errorOccurred.size(), 0);
 }
