@@ -32,6 +32,11 @@ inline bool isWindowsPlatform()
     return QPlatformMediaIntegration::instance()->name() == "windows";
 }
 
+inline bool isCI()
+{
+    return qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci";
+}
+
 #define QSKIP_GSTREAMER(message) \
   do {                           \
     if (isGStreamerPlatform())   \

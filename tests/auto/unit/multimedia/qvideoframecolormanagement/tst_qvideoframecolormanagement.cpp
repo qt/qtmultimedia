@@ -12,6 +12,8 @@
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
 
+#include "../../../integration/shared/mediabackendutils.h"
+
 QT_USE_NAMESPACE
 
 namespace {
@@ -380,6 +382,11 @@ class tst_qvideoframecolormanagement : public QObject
 {
     Q_OBJECT
 private slots:
+    void initTestCase()
+    {
+        if (!isFFMPEGPlatform())
+            QSKIP("This test requires the ffmpeg backend to create test frames");
+    }
 
     void toImage_savesWithCorrectColors_data()
     {
