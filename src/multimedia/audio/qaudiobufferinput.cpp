@@ -123,7 +123,7 @@ QAudioBufferInput::~QAudioBufferInput()
     which can happen if the instance is not assigned to
     \l QMediaCaptureSession, the session doesn't have a media recorder,
     the media recorder is not started or its queue is full.
-    The signal \l readyToSendAudiobuffer will be sent as soon as
+    The \l readyToSendAudioBuffer() signal will be emitted as soon as
     the destination is able to handle a new audio buffer.
 
     Sending of an empty audio buffer is treated by \l QMediaRecorder
