@@ -128,9 +128,10 @@ qt_convert_to_capture_device_format(AVCaptureDevice *captureDevice,
         if (cvFormatValidator && !cvFormatValidator(cvPixFormat))
             continue;
 
+        const float epsilon = 0.001f;
         for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
-            if (frameRateRange.minFrameRate >= cameraFormatPrivate->minFrameRate
-                && frameRateRange.maxFrameRate <= cameraFormatPrivate->maxFrameRate
+            if (frameRateRange.minFrameRate >= cameraFormatPrivate->minFrameRate - epsilon
+                && frameRateRange.maxFrameRate <= cameraFormatPrivate->maxFrameRate + epsilon
                 && newFormatMaxFrameRate < frameRateRange.maxFrameRate) {
                 newFormat = format;
                 newFormatMaxFrameRate = frameRateRange.maxFrameRate;
