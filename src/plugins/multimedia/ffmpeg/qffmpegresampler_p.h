@@ -29,7 +29,8 @@ class QFFmpegResampler : public QPlatformAudioResampler
 {
 public:
     QFFmpegResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat);
-    QFFmpegResampler(const QFFmpeg::Codec* codec, const QAudioFormat &outputFormat);
+    QFFmpegResampler(const QFFmpeg::Codec *codec, const QAudioFormat &outputFormat,
+                     qint64 startTime = 0);
 
     ~QFFmpegResampler() override;
 
@@ -49,6 +50,7 @@ private:
 private:
     QAudioFormat m_inputFormat;
     QAudioFormat m_outputFormat;
+    qint64 m_startTime = 0;
     QFFmpeg::SwrContextUPtr m_resampler;
     qint64 m_samplesProcessed = 0;
     qint64 m_endCompensationSample = std::numeric_limits<qint64>::min();

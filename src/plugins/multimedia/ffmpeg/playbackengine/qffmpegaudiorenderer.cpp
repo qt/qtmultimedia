@@ -57,6 +57,19 @@ qreal sampleRateFactor() {
 
     return result;
 }
+
+QAudioFormat audioFormatFromFrame(const Frame &frame)
+{
+    return QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(
+            frame.codec()->stream()->codecpar);
+}
+
+std::unique_ptr<QFFmpegResampler> createResampler(const Frame &frame,
+                                                  const QAudioFormat &outputFormat)
+{
+    return std::make_unique<QFFmpegResampler>(frame.codec(), outputFormat, frame.pts());
+}
+
 } // namespace
 
 AudioRenderer::AudioRenderer(const TimeController &tc, QAudioOutput *output,
@@ -101,7 +114,7 @@ void AudioRenderer::onDeviceChanged()
 Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
 {
     if (frame.isValid())
-        updateOutputs(frame.codec());
+        updateOutputs(frame);
 
     // push to sink first in order not to waste time on resampling
     // for QAudioBufferOutput
@@ -206,26 +219,14 @@ void AudioRenderer::onPauseChanged()
     Renderer::onPauseChanged();
 }
 
-void AudioRenderer::initResempler(const Codec *codec)
+void AudioRenderer::initResempler(const Frame &frame)
 {
     // We recreate resampler whenever format is changed
-
-    /*    AVSampleFormat requiredFormat =
-    QFFmpegMediaFormatInfo::avSampleFormat(m_format.sampleFormat());
-
-    #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-        qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat
-                                  << codec->stream()->codecpar->channels;
-    #else
-        qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat
-                                  << codec->stream()->codecpar->ch_layout.nb_channels;
-    #endif
-    */
 
     auto resamplerFormat = m_sinkFormat;
     resamplerFormat.setSampleRate(
             qRound(m_sinkFormat.sampleRate() / playbackRate() * sampleRateFactor()));
-    m_resampler = std::make_unique<QFFmpegResampler>(codec, resamplerFormat);
+    m_resampler = createResampler(frame, resamplerFormat);
 }
 
 void AudioRenderer::freeOutput()
@@ -247,7 +248,7 @@ void AudioRenderer::freeOutput()
     m_bufferLoadingInfo = {};
 }
 
-void AudioRenderer::updateOutputs(const Codec *codec)
+void AudioRenderer::updateOutputs(const Frame &frame)
 {
     if (m_deviceChanged) {
         freeOutput();
@@ -263,9 +264,8 @@ void AudioRenderer::updateOutputs(const Codec *codec)
         if (!m_bufferOutputResampler) {
             QAudioFormat outputFormat = m_bufferOutput->format();
             if (!outputFormat.isValid())
-                outputFormat = QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(
-                        codec->stream()->codecpar);
-            m_bufferOutputResampler = std::make_unique<QFFmpegResampler>(codec, outputFormat);
+                outputFormat = audioFormatFromFrame(frame);
+            m_bufferOutputResampler = createResampler(frame, outputFormat);
         }
     }
 
@@ -273,8 +273,7 @@ void AudioRenderer::updateOutputs(const Codec *codec)
         return;
 
     if (!m_sinkFormat.isValid()) {
-        m_sinkFormat =
-                QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(codec->stream()->codecpar);
+        m_sinkFormat = audioFormatFromFrame(frame);
         m_sinkFormat.setChannelConfig(m_output->device().channelConfiguration());
     }
 
@@ -298,9 +297,8 @@ void AudioRenderer::updateOutputs(const Codec *codec)
                  && m_timings.maxSoundDelay < m_timings.actualBufferDuration);
     }
 
-    if (!m_resampler) {
-        initResempler(codec);
-    }
+    if (!m_resampler)
+        initResempler(frame);
 }
 
 void AudioRenderer::updateSynchronization(const SynchronizationStamp &stamp, const Frame &frame)

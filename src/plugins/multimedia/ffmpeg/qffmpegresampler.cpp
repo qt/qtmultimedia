@@ -21,8 +21,9 @@ QFFmpegResampler::QFFmpegResampler(const QAudioFormat &inputFormat, const QAudio
             createResampleContext(AVAudioFormat(m_inputFormat), AVAudioFormat(m_outputFormat));
 }
 
-QFFmpegResampler::QFFmpegResampler(const Codec* codec, const QAudioFormat &outputFormat)
-    : m_outputFormat(outputFormat)
+QFFmpegResampler::QFFmpegResampler(const Codec *codec, const QAudioFormat &outputFormat,
+                                   qint64 startTime)
+    : m_outputFormat(outputFormat), m_startTime(startTime)
 {
     Q_ASSERT(codec);
 
@@ -64,7 +65,7 @@ QAudioBuffer QFFmpegResampler::resample(const uint8_t **inputData, int inputSamp
 
     samples.resize(m_outputFormat.bytesForFrames(outSamples));
 
-    qint64 startTime = m_outputFormat.durationForFrames(m_samplesProcessed);
+    const qint64 startTime = m_outputFormat.durationForFrames(m_samplesProcessed) + m_startTime;
     m_samplesProcessed += outSamples;
 
     qCDebug(qLcResampler) << "    new frame" << startTime << "in_samples" << inputSamplesCount

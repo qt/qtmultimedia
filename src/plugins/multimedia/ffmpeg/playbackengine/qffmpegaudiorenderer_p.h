@@ -88,9 +88,9 @@ protected:
 
     void freeOutput();
 
-    void updateOutputs(const Codec *codec);
+    void updateOutputs(const Frame &frame);
 
-    void initResempler(const Codec *codec);
+    void initResempler(const Frame &frame);
 
     void onDeviceChanged();
 
