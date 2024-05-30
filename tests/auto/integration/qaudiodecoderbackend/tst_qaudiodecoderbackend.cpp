@@ -277,6 +277,8 @@ void tst_QAudioDecoderBackend::stopOnBufferReady()
 
 void tst_QAudioDecoderBackend::restartOnBufferReady()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: failures on gstreamer");
+
     CHECK_SELECTED_URL(m_wavFile);
 
     QAudioDecoder decoder;
@@ -424,11 +426,18 @@ void tst_QAudioDecoderBackend::fileTest()
         QTRY_COMPARE(d.bufferAvailable(), true);
     }
 
+    auto durationToMs = [](uint64_t dur) {
+        if (isGStreamerPlatform())
+            return std::round(dur / 1000.0);
+        else
+            return dur / 1000.0;
+    };
+
     while (d.bufferAvailable()) {
         buffer = d.read();
         QVERIFY(buffer.isValid());
         QTRY_VERIFY(!positionSpy.isEmpty());
-        QCOMPARE(positionSpy.takeLast().at(0).toLongLong(), qint64(duration / 1000));
+        QCOMPARE(positionSpy.takeLast().at(0).toLongLong(), qint64(durationToMs(duration)));
 
         duration += buffer.duration();
         sampleCount += buffer.sampleCount();
@@ -516,8 +525,8 @@ void tst_QAudioDecoderBackend::fileTest()
         buffer = d.read();
         QVERIFY(buffer.isValid());
         QTRY_VERIFY(!positionSpy.isEmpty());
-        QCOMPARE(positionSpy.takeLast().at(0).toLongLong(), qlonglong(duration / 1000));
-        QCOMPARE_LT(d.position() - (duration / 1000), 20u);
+        QCOMPARE(positionSpy.takeLast().at(0).toLongLong(), qlonglong(durationToMs(duration)));
+        QCOMPARE_LT(d.position() - durationToMs(duration), 20u);
 
         duration += buffer.duration();
         sampleCount += buffer.sampleCount();

@@ -11,6 +11,7 @@ qt_internal_add_test(tst_qmediaframeinputsbackend
         ../shared/testvideosink.h
     LIBRARIES
         Qt::Multimedia
+        Qt::MultimediaPrivate
         Qt::Gui
         Qt::Widgets
 )

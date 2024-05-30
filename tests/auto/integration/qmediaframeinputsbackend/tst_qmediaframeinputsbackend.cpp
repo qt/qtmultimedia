@@ -11,6 +11,7 @@
 #include <qmediaplayer.h>
 #include <qaudiooutput.h>
 #include <../shared/testvideosink.h>
+#include <../shared/mediabackendutils.h>
 
 QT_USE_NAMESPACE
 
@@ -53,6 +54,8 @@ private slots:
 
 void tst_QMediaFrameInputsBackend::initTestCase()
 {
+    QSKIP_GSTREAMER("Not implemented in the gstreamer backend");
+
     qRegisterMetaType<VideoFrameModifier>();
 }
 
