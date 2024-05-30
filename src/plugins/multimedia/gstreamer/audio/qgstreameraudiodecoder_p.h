@@ -99,8 +99,8 @@ private:
 
     int m_buffersAvailable = 0;
 
-    static constexpr auto invalidDuration = std::chrono::milliseconds::max();
-    static constexpr auto invalidPosition = std::chrono::milliseconds::max();
+    static constexpr auto invalidDuration = std::chrono::milliseconds{ -1 };
+    static constexpr auto invalidPosition = std::chrono::milliseconds{ -1 };
     std::chrono::milliseconds m_position{ invalidPosition };
     std::chrono::milliseconds m_duration{ invalidDuration };
 
