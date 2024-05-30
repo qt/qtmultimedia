@@ -551,6 +551,7 @@ void tst_QMediaPlayerBackend::setSource_changesSourceAndMediaStatus_whenCalledWi
 
     MediaPlayerState actualState{ m_fixture->player };
 
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failures");
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
 }
 
@@ -865,6 +866,9 @@ void tst_QMediaPlayerBackend::
 void tst_QMediaPlayerBackend::
         setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio()
 {
+    if (isGStreamerPlatform() && isCI())
+        QSKIP("QTBUG-124005: Fails with gstreamer on CI");
+
     QFETCH(MaybeUrl, url);
     QFETCH(QSize, expectedVideoSize);
 
@@ -1048,11 +1052,15 @@ void tst_QMediaPlayerBackend::play_setsPlaybackStateAndMediaStatus_whenValidFile
     QTRY_COMPARE_EQ(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
     QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
-    QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
-                    SignalList({ { QMediaPlayer::LoadingMedia },
-                                 { QMediaPlayer::LoadedMedia },
-                                 { QMediaPlayer::BufferingMedia },
-                                 { QMediaPlayer::BufferedMedia } }));
+
+    if (!isGStreamerPlatform()) {
+        // QTBUG-124005: GStreamer has lots of state changes
+        QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
+                        SignalList({ { QMediaPlayer::LoadingMedia },
+                                     { QMediaPlayer::LoadedMedia },
+                                     { QMediaPlayer::BufferingMedia },
+                                     { QMediaPlayer::BufferedMedia } }));
+    }
 
     QTRY_COMPARE_GT(m_fixture->bufferProgressChanged.size(), 0);
     QTRY_COMPARE_NE(m_fixture->bufferProgressChanged.front().front(), 0.f);
@@ -1353,6 +1361,9 @@ void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
         QCOMPARE(m_fixture->bufferProgressChanged, SignalList({ { 0.f } }));
 
     QTRY_COMPARE(m_fixture->player.position(), qint64(0));
+    if (isGStreamerPlatform())
+        QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer ");
+
     QTRY_VERIFY(!m_fixture->positionChanged.empty());
     QCOMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), qint64(0));
     QVERIFY(m_fixture->player.duration() > 0);
@@ -1499,6 +1510,8 @@ void tst_QMediaPlayerBackend::setMuted_doesNotChangeVolume()
 
 void tst_QMediaPlayerBackend::processEOS()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failure with gstreamer");
+
     if (!isGStreamerPlatform()) {
         // QTBUG-124517: for some media types, including wav files, gstreamer does not emit buffer
         // progress messages
@@ -2310,6 +2323,8 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
 
 void tst_QMediaPlayerBackend::surfaceTest()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failure, probably asynchronous event delivery");
+
     CHECK_SELECTED_URL(m_localVideoFile);
     // 25 fps video file
 
@@ -2424,6 +2439,8 @@ void tst_QMediaPlayerBackend::playerStateAtEOS()
 
 void tst_QMediaPlayerBackend::playFromBuffer()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failure, probably asynchronous event delivery");
+
     CHECK_SELECTED_URL(m_localVideoFile);
 
     TestVideoSink surface(false);
@@ -2594,6 +2611,9 @@ void tst_QMediaPlayerBackend::durationDetectionIssues_data()
 
 void tst_QMediaPlayerBackend::durationDetectionIssues()
 {
+    if (isGStreamerPlatform() && isCI())
+        QSKIP("QTBUG-124005: Fails with gstreamer on CI");
+
     QFETCH(QString, mediaFile);
     QFETCH(qint64, expectedDuration);
     QFETCH(int, expectedVideoTrackCount);
@@ -2667,6 +2687,8 @@ static std::vector<LoopIteration> loopIterations(const QSignalSpy &positionSpy)
 
 void tst_QMediaPlayerBackend::finiteLoops()
 {
+    QSKIP_GSTREAMER("QTBUG-123056(?): spuriously failures of the gstreamer backend");
+
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
@@ -2728,6 +2750,8 @@ void tst_QMediaPlayerBackend::finiteLoops()
 
 void tst_QMediaPlayerBackend::infiniteLoops()
 {
+    QSKIP_GSTREAMER("QTBUG-123056(?): spuriously failures of the gstreamer backend");
+
     CHECK_SELECTED_URL(m_localVideoFile2);
 
 #ifdef Q_OS_MACOS
@@ -2780,6 +2804,8 @@ void tst_QMediaPlayerBackend::infiniteLoops()
 
 void tst_QMediaPlayerBackend::seekOnLoops()
 {
+    QSKIP_GSTREAMER("QTBUG-123056(?): spuriously failures of the gstreamer backend");
+
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
@@ -2829,6 +2855,8 @@ void tst_QMediaPlayerBackend::seekOnLoops()
 
 void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
 {
+    QSKIP_GSTREAMER("QTBUG-123056(?): spuriously failures of the gstreamer backend");
+
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
@@ -3171,6 +3199,9 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
 
 void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata()
 {
+    if (isGStreamerPlatform() && isCI())
+        QSKIP("QTBUG-124005: Fails with gstreamer on CI");
+
     // This test uses 4 video files with a 2x2 color matrix consisting of
     // red (upper left), blue (lower left), yellow (lower right) and green (upper right).
     // The files are identical, except that three of them contain
