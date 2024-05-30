@@ -36,7 +36,7 @@ public:
     int numberPlanes() const { return m_numberPlanes; }
     Plane plane(int index) const
     {
-        if (index < 0 || index > numberPlanes())
+        if (index < 0 || index >= numberPlanes())
             return {};
 
         return m_planes[index];
