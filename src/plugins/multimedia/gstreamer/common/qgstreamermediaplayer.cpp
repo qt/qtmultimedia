@@ -173,6 +173,16 @@ void QGstreamerMediaPlayer::updatePositionFromPipeline()
     positionChanged(round<milliseconds>(pipelinePosition()));
 }
 
+void QGstreamerMediaPlayer::updateDurationFromPipeline()
+{
+    std::chrono::milliseconds d = playerPipeline.durationInMs();
+    qCDebug(qLcMediaPlayer) << "updateDurationFromPipeline" << d;
+    if (d != m_duration) {
+        m_duration = d;
+        emit durationChanged(m_duration);
+    }
+}
+
 qint64 QGstreamerMediaPlayer::duration() const
 {
     return m_duration.count();
@@ -367,18 +377,13 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         break;
     }
     case GST_MESSAGE_DURATION_CHANGED: {
-        if (!prerolling) {
-            std::chrono::milliseconds d = playerPipeline.durationInMs();
-            qCDebug(qLcMediaPlayer) << "    duration changed message" << d;
-            if (d != m_duration) {
-                m_duration = d;
-                emit durationChanged(m_duration);
-            }
-        }
+        if (!prerolling)
+            updateDurationFromPipeline();
+
         return false;
     }
     case GST_MESSAGE_EOS: {
-        positionChanged(playerPipeline.durationInMs());
+        positionChanged(m_duration);
         if (doLoop()) {
             setPosition(0);
             break;
@@ -430,16 +435,10 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         case GST_STATE_PAUSED: {
             if (prerolling) {
                 qCDebug(qLcMediaPlayer) << "Preroll done, setting status to Loaded";
-                prerolling = false;
-                GST_DEBUG_BIN_TO_DOT_FILE(playerPipeline.bin(), GST_DEBUG_GRAPH_SHOW_ALL,
-                                          "playerPipeline");
+                playerPipeline.dumpGraph("playerPipelinePrerollDone");
 
-                std::chrono::milliseconds d = playerPipeline.durationInMs();
-                if (d != m_duration) {
-                    m_duration = d;
-                    qCDebug(qLcMediaPlayer) << "    duration changed" << d;
-                    emit durationChanged(d);
-                }
+                prerolling = false;
+                updateDurationFromPipeline();
 
                 m_metaData.insert(QMediaMetaData::Duration, duration());
                 m_metaData.insert(QMediaMetaData::Url, m_url);
