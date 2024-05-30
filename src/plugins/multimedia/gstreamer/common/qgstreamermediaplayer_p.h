@@ -132,6 +132,7 @@ private:
 
     std::chrono::nanoseconds pipelinePosition() const;
     void updatePositionFromPipeline();
+    void updateDurationFromPipeline();
     void updateBufferProgress(float);
 
     std::array<TrackSelector, NTrackTypes> trackSelectors;
