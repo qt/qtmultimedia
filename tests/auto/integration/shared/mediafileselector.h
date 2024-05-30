@@ -107,10 +107,19 @@ private:
         player.play();
 
         const auto waitingFinished = QTest::qWaitFor([&]() {
-            const auto status = player.mediaStatus();
-            return status == QMediaPlayer::BufferedMedia || status == QMediaPlayer::EndOfMedia
-                    || status == QMediaPlayer::InvalidMedia
-                    || player.error() != QMediaPlayer::NoError;
+            if (player.error() != QMediaPlayer::NoError)
+                return true;
+
+            switch (player.mediaStatus()) {
+            case QMediaPlayer::BufferingMedia:
+            case QMediaPlayer::BufferedMedia:
+            case QMediaPlayer::EndOfMedia:
+            case QMediaPlayer::InvalidMedia:
+                return true;
+
+            default:
+                return false;
+            }
         });
 
         auto enumValueToString = [](auto enumValue) {
