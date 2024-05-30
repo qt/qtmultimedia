@@ -62,7 +62,10 @@ QAbstractVideoBuffer::MapData QImageVideoBuffer::map(QtVideo::MapMode mode)
 
         mapData.planeCount = 1;
         mapData.bytesPerLine[0] = m_image.bytesPerLine();
-        mapData.data[0] = m_image.bits();
+        if (mode == QtVideo::MapMode::ReadOnly)
+            mapData.data[0] = const_cast<uint8_t *>(m_image.constBits());
+        else
+            mapData.data[0] = m_image.bits();
         mapData.dataSize[0] = m_image.sizeInBytes();
     }
 

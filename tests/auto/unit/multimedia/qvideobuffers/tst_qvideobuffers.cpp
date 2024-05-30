@@ -28,7 +28,8 @@ private slots:
     void map_doesNothing_whenBufferIsMapped_data();
     void map_doesNothing_whenBufferIsMapped();
 
-    void mapMemoryBufferWithReadOnly_doesntDetachArray();
+    void mapMemoryOrImageBuffer_detachesDataDependingOnMode_data();
+    void mapMemoryOrImageBuffer_detachesDataDependingOnMode();
 
     void unmap_resetsMappedState_whenBufferIsMapped_data();
     void unmap_resetsMappedState_whenBufferIsMapped();
@@ -57,13 +58,22 @@ private:
     {
         QTest::addColumn<BufferPtr>("buffer");
         QTest::addColumn<QtVideo::MapMode>("mapMode");
+        QTest::addColumn<const uint8_t *>("sourcePointer");
 
         for (auto mode : modes) {
-            QTest::newRow(QStringLiteral("ImageBuffer, %1").arg(mapModeToString(mode)).toUtf8().constData())
-                    << createImageBuffer() << mode;
-            QTest::newRow(QStringLiteral("MemoryBuffer, %1").arg(mapModeToString(mode)).toUtf8().constData())
-                    << createMemoryBuffer() << mode;
+            QTest::newRow(QStringLiteral("ImageBuffer, %1").arg(mapModeToString(mode)).toLocal8Bit().constData())
+                    << createImageBuffer() << mode << m_image.constBits();
+            QTest::newRow(QStringLiteral("MemoryBuffer, %1").arg(mapModeToString(mode)).toLocal8Bit().constData())
+                    << createMemoryBuffer() << mode << reinterpret_cast<const uint8_t *>(m_byteArray.constData());
         }
+    }
+
+    void generateMapModes(const MapModes &modes = validMapModes) const
+    {
+        QTest::addColumn<QtVideo::MapMode>("mapMode");
+
+        for (auto mode : modes)
+            QTest::newRow(mapModeToString(mode).toLocal8Bit().constData()) << mode;
     }
 
     BufferPtr createImageBuffer() const
@@ -127,13 +137,23 @@ void tst_QVideoBuffers::map_doesNothing_whenBufferIsMapped()
     QCOMPARE(mappedData.planeCount, 0);
 }
 
-void tst_QVideoBuffers::mapMemoryBufferWithReadOnly_doesntDetachArray()
+void tst_QVideoBuffers::mapMemoryOrImageBuffer_detachesDataDependingOnMode_data()
 {
-    auto buffer = createMemoryBuffer();
+    generateImageAndMemoryBuffersWithAllModes();
+}
 
-    auto mappedData = buffer->map(QtVideo::MapMode::ReadOnly);
+void tst_QVideoBuffers::mapMemoryOrImageBuffer_detachesDataDependingOnMode()
+{
+    QFETCH(BufferPtr, buffer);
+    QFETCH(QtVideo::MapMode, mapMode);
+    QFETCH(const uint8_t *, sourcePointer);
+
+    auto mappedData = buffer->map(mapMode);
     QCOMPARE(mappedData.planeCount, 1);
-    QCOMPARE(mappedData.data[0], reinterpret_cast<const uchar *>(m_byteArray.constData()));
+
+    const bool isDetached = mappedData.data[0] != sourcePointer;
+    const bool isWriteMode = (mapMode & QtVideo::MapMode::WriteOnly) == QtVideo::MapMode::WriteOnly;
+    QCOMPARE(isDetached, isWriteMode);
 }
 
 void tst_QVideoBuffers::unmap_resetsMappedState_whenBufferIsMapped_data()
