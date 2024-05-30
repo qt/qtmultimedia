@@ -73,7 +73,7 @@ private:
     \brief The QVideoFrameInput class is used for providing custom video frames
     to \l QMediaRecorder or a video output through \l QMediaCaptureSession.
 
-    \sa QMediaRecorder, QMediaCaptureSession, QVideoSink, QVideoOutput
+    \sa QMediaRecorder, QMediaCaptureSession, QVideoSink
 */
 
 /*!

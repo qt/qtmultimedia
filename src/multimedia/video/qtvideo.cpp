@@ -45,7 +45,7 @@ QT_BEGIN_NAMESPACE
     buffer, and the video buffer is repopulated with the content of the mapped
     memory when it is unmapped.
 
-    \sa mapMode(), map()
+    \sa QVideoFrame::mapMode(), map()
 */
 
 #ifndef QT_NO_DEBUG_STREAM
