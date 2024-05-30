@@ -112,17 +112,19 @@ QVideoFrame::QVideoFrame(const QVideoFrameFormat &format)
 }
 
 /*!
-    Constructs a QVideoFrame from a QImage. The QImage pixels are copied
-    into the QVideoFrame's memory buffer. The resulting frame has the
-    same size as the QImage, but the number of bytes per line may
-    differ.
+    Constructs a QVideoFrame from a QImage.
     \since 6.8
 
     If the QImage::Format matches one of the formats in
-    QVideoFrameFormat::PixelFormat, the QVideoFrame will use that format
-    without any pixel format conversion. Otherwise, the image is first
-    converted to a supported (A)RGB format using QImage::convertedTo()
-    with the Qt::AutoColor flag. This may incur a performance penalty.
+    QVideoFrameFormat::PixelFormat, the QVideoFrame will hold an instance of
+    the \a image and use that format without any pixel format conversion.
+    In this case, pixel data will be copied only if you call \l{QVideoFrame::map}
+    with \c WriteOnly flag while keeping the original image.
+
+    Otherwise, if the QImage::Format matches none of video formats,
+    the image is first converted to a supported (A)RGB format using
+    QImage::convertedTo() with the Qt::AutoColor flag.
+    This may incur a performance penalty.
 
     If QImage::isNull() evaluates to true for the input QImage, the
     QVideoFrame will be invalid and QVideoFrameFormat::isValid() will
