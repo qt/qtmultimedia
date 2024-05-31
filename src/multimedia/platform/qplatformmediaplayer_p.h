@@ -72,7 +72,7 @@ public:
     virtual void setVideoSink(QVideoSink * /*sink*/) = 0;
 
     // media streams
-    enum TrackType { VideoStream, AudioStream, SubtitleStream, NTrackTypes };
+    enum TrackType : uint8_t { VideoStream, AudioStream, SubtitleStream, NTrackTypes };
 
     virtual int trackCount(TrackType) { return 0; };
     virtual QMediaMetaData trackMetaData(TrackType /*type*/, int /*streamNumber*/) { return QMediaMetaData(); }
@@ -120,7 +120,7 @@ public:
     bool doLoop() {
         return isSeekable() && (m_loops < 0 || ++m_currentLoop < m_loops);
     }
-    int loops() { return m_loops; }
+    int loops() const { return m_loops; }
     virtual void setLoops(int loops)
     {
         if (m_loops == loops)

@@ -1708,21 +1708,21 @@ void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int i
 
 int MFPlayerSession::activeTrack(QPlatformMediaPlayer::TrackType type)
 {
-    if (type < 0 || type >= QPlatformMediaPlayer::NTrackTypes)
+    if (type >= QPlatformMediaPlayer::NTrackTypes)
         return -1;
     return m_trackInfo[type].currentIndex;
 }
 
 int MFPlayerSession::trackCount(QPlatformMediaPlayer::TrackType type)
 {
-    if (type < 0 || type >= QPlatformMediaPlayer::NTrackTypes)
+    if (type >= QPlatformMediaPlayer::NTrackTypes)
         return -1;
     return m_trackInfo[type].metaData.count();
 }
 
 QMediaMetaData MFPlayerSession::trackMetaData(QPlatformMediaPlayer::TrackType type, int trackNumber)
 {
-    if (type < 0 || type >= QPlatformMediaPlayer::NTrackTypes)
+    if (type >= QPlatformMediaPlayer::NTrackTypes)
         return {};
 
     if (trackNumber < 0 || trackNumber >= m_trackInfo[type].metaData.count())
