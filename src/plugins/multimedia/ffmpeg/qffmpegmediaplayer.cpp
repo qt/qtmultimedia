@@ -152,7 +152,7 @@ void QFFmpegMediaPlayer::setPlaybackRate(qreal rate)
     if (m_playbackEngine)
         m_playbackEngine->setPlaybackRate(effectiveRate);
 
-    emit playbackRateChanged(effectiveRate);
+    playbackRateChanged(effectiveRate);
 }
 
 QUrl QFFmpegMediaPlayer::media() const

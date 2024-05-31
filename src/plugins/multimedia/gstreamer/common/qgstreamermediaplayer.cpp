@@ -179,7 +179,7 @@ void QGstreamerMediaPlayer::updateDurationFromPipeline()
     qCDebug(qLcMediaPlayer) << "updateDurationFromPipeline" << d;
     if (d != m_duration) {
         m_duration = d;
-        emit durationChanged(m_duration);
+        durationChanged(m_duration);
     }
 }
 
@@ -263,7 +263,7 @@ void QGstreamerMediaPlayer::play()
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the playing state.";
 
     positionUpdateTimer.start(100);
-    emit stateChanged(QMediaPlayer::PlayingState);
+    stateChanged(QMediaPlayer::PlayingState);
 }
 
 void QGstreamerMediaPlayer::pause()
@@ -286,7 +286,7 @@ void QGstreamerMediaPlayer::pause()
     } else {
         updatePositionFromPipeline();
     }
-    emit stateChanged(QMediaPlayer::PausedState);
+    stateChanged(QMediaPlayer::PausedState);
 
     if (m_bufferProgress > 0 || !canTrackProgress())
         mediaStatusChanged(QMediaPlayer::BufferedMedia);
@@ -326,7 +326,7 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
         playerPipeline.setPosition(0ms);
         positionChanged(0ms);
     }
-    emit stateChanged(QMediaPlayer::StoppedState);
+    stateChanged(QMediaPlayer::StoppedState);
     if (eos)
         mediaStatusChanged(QMediaPlayer::EndOfMedia);
     else
@@ -368,7 +368,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         QMediaMetaData originalMetaData = m_metaData;
         extendMetaDataFromTagList(m_metaData, tagList);
         if (originalMetaData != m_metaData)
-            emit metaDataChanged();
+            metaDataChanged();
 
         if (gstVideoOutput) {
             QVariant rotation = m_metaData.value(QMediaMetaData::Orientation);
@@ -443,9 +443,9 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                 m_metaData.insert(QMediaMetaData::Duration, duration());
                 m_metaData.insert(QMediaMetaData::Url, m_url);
                 parseStreamsAndMetadata();
-                emit metaDataChanged();
+                metaDataChanged();
 
-                emit tracksChanged();
+                tracksChanged();
                 mediaStatusChanged(QMediaPlayer::LoadedMedia);
 
                 if (!playerPipeline.inStoppedState()) {
@@ -525,7 +525,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
             std::chrono::milliseconds position{
                 (*p) / 1000000,
             };
-            emit positionChanged(position);
+            positionChanged(position);
         }
         break;
     }
@@ -619,17 +619,17 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
         if (streamType == VideoStream) {
             connectOutput(ts);
             ts.setActiveInputPad(sinkPad);
-            emit videoAvailableChanged(true);
+            videoAvailableChanged(true);
         }
         else if (streamType == AudioStream) {
             connectOutput(ts);
             ts.setActiveInputPad(sinkPad);
-            emit audioAvailableChanged(true);
+            audioAvailableChanged(true);
         }
     }
 
     if (!prerolling)
-        emit tracksChanged();
+        tracksChanged();
 
     decoderOutputMap.emplace(pad, sinkPad);
 }
@@ -1025,7 +1025,7 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     QGValue next = demux["next"];
     if (!next.isList()) {
         qCDebug(qLcMediaPlayer) << "    no additional streams";
-        emit metaDataChanged();
+        metaDataChanged();
         return;
     }
 

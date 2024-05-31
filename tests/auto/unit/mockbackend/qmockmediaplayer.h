@@ -44,11 +44,15 @@ public:
     }
 
     qint64 duration() const override { return _duration; }
-    void setDuration(qint64 duration) { emit durationChanged(_duration = duration); }
+    void setDuration(qint64 duration) { durationChanged(_duration = duration); }
 
     qint64 position() const override { return _position; }
 
-    void setPosition(qint64 position) override { if (position != _position) emit positionChanged(_position = position); }
+    void setPosition(qint64 position) override
+    {
+        if (position != _position)
+            positionChanged(_position = position);
+    }
 
     float bufferProgress() const override { return _bufferProgress; }
     void setBufferStatus(float status)
@@ -63,13 +67,17 @@ public:
     bool isVideoAvailable() const override { return _videoAvailable; }
 
     bool isSeekable() const override { return _isSeekable; }
-    void setSeekable(bool seekable) { emit seekableChanged(_isSeekable = seekable); }
+    void setSeekable(bool seekable) { seekableChanged(_isSeekable = seekable); }
 
     QMediaTimeRange availablePlaybackRanges() const override { return QMediaTimeRange(_seekRange.first, _seekRange.second); }
     void setSeekRange(qint64 minimum, qint64 maximum) { _seekRange = qMakePair(minimum, maximum); }
 
     qreal playbackRate() const override { return _playbackRate; }
-    void setPlaybackRate(qreal rate) override { if (rate != _playbackRate) emit playbackRateChanged(_playbackRate = rate); }
+    void setPlaybackRate(qreal rate) override
+    {
+        if (rate != _playbackRate)
+            playbackRateChanged(_playbackRate = rate);
+    }
 
     QUrl media() const override { return _media; }
     void setMedia(const QUrl &content, QIODevice *stream) override
@@ -92,10 +100,7 @@ public:
 
     void setAudioOutput(QPlatformAudioOutput *output) override { m_audioOutput = output; }
 
-    void emitError(QMediaPlayer::Error err, const QString &errorString)
-    {
-        emit error(err, errorString);
-    }
+    void emitError(QMediaPlayer::Error err, const QString &errorString) { error(err, errorString); }
 
     void setState(QMediaPlayer::PlaybackState state)
     {
@@ -119,8 +124,16 @@ public:
     void setIsValid(bool isValid) { _isValid = isValid; }
     void setMedia(QUrl media) { _media = media; }
     void setVideoAvailable(bool videoAvailable) { _videoAvailable = videoAvailable; }
-    void setError(QMediaPlayer::Error err) { _error = err; emit error(_error, _errorString); }
-    void setErrorString(QString errorString) { _errorString = errorString; emit error(_error, _errorString); }
+    void setError(QMediaPlayer::Error err)
+    {
+        _error = err;
+        error(_error, _errorString);
+    }
+    void setErrorString(QString errorString)
+    {
+        _errorString = errorString;
+        error(_error, _errorString);
+    }
 
     void reset()
     {
