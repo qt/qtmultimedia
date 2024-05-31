@@ -37,7 +37,7 @@ public:
     virtual void setMetaData(const QMediaMetaData &m) override
     {
         m_metaData = m;
-        emit metaDataChanged();
+        metaDataChanged();
     }
     virtual QMediaMetaData metaData() const override { return m_metaData; }
 
@@ -49,30 +49,30 @@ public:
         m_state = QMediaRecorder::RecordingState;
         m_settings = settings;
         m_position=1;
-        emit stateChanged(m_state);
-        emit durationChanged(m_position);
+        stateChanged(m_state);
+        durationChanged(m_position);
 
         QUrl actualLocation = outputLocation().isEmpty() ? QUrl::fromLocalFile("default_name.mp4") : outputLocation();
-        emit actualLocationChanged(actualLocation);
+        actualLocationChanged(actualLocation);
     }
 
     void pause() override
     {
         m_state = QMediaRecorder::PausedState;
-        emit stateChanged(m_state);
+        stateChanged(m_state);
     }
 
     void resume() override
     {
         m_state = QMediaRecorder::RecordingState;
-        emit stateChanged(m_state);
+        stateChanged(m_state);
     }
 
     void stop() override
     {
         m_position=0;
         m_state = QMediaRecorder::StoppedState;
-        emit stateChanged(m_state);
+        stateChanged(m_state);
     }
 
     void reset()
@@ -80,8 +80,8 @@ public:
         m_state = QMediaRecorder::StoppedState;
         m_settings = QMediaEncoderSettings();
         m_position = 0;
-        emit stateChanged(m_state);
-        emit durationChanged(m_position);
+        stateChanged(m_state);
+        durationChanged(m_position);
         clearActualLocation();
     }
 

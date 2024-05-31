@@ -422,7 +422,7 @@ void QGstreamerImageCapture::saveBufferToImage(GstBuffer *buffer)
         f.close();
 
         QMetaObject::invokeMethod(this, [this, imageData = std::move(imageData)]() mutable {
-            imageSaved(imageData.id, imageData.filename);
+            emit imageSaved(imageData.id, imageData.filename);
         });
     });
 
