@@ -231,7 +231,7 @@ qt_internal_extend_target(BundledResonanceAudio CONDITION (${CMAKE_SYSTEM_PROCES
 )
 
 # Use fallback mode if SSE is not available
-qt_internal_extend_target(BundledResonanceAudio CONDITION (${CMAKE_SYSTEM_PROCESSOR} MATCHES "i[3-6]86$")
+qt_internal_extend_target(BundledResonanceAudio CONDITION (${CMAKE_SYSTEM_PROCESSOR} MATCHES "i[3-6]86(-AT386)?$")
     COMPILE_OPTIONS
         -DPFFFT_SIMD_DISABLE
 )
