@@ -175,10 +175,13 @@ void QGstreamerMediaPlayer::updatePositionFromPipeline()
 
 void QGstreamerMediaPlayer::updateDurationFromPipeline()
 {
-    std::chrono::milliseconds d = playerPipeline.durationInMs();
-    qCDebug(qLcMediaPlayer) << "updateDurationFromPipeline" << d;
-    if (d != m_duration) {
-        m_duration = d;
+    std::optional<std::chrono::milliseconds> duration = playerPipeline.durationInMs();
+    if (!duration)
+        duration = std::chrono::milliseconds{ -1 };
+
+    if (duration != m_duration) {
+        qCDebug(qLcMediaPlayer) << "updateDurationFromPipeline" << *duration;
+        m_duration = *duration;
         durationChanged(m_duration);
     }
 }
