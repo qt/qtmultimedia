@@ -34,7 +34,7 @@ public:
     QRhi *rhi() const { return m_rhi; }
 
     QGstElement gstSink();
-    QGstElement subtitleSink() const { return gstSubtitleSink; }
+    QGstElement subtitleSink() const { return m_gstSubtitleSink; }
 
     void setPipeline(QGstPipeline pipeline);
     bool inStoppedState() const;
@@ -54,13 +54,13 @@ private:
     void unrefGstContexts();
     void updateGstContexts();
 
-    QGstPipeline gstPipeline;
-    QGstBin sinkBin;
-    QGstElement gstPreprocess;
-    QGstElement gstCapsFilter;
-    QGstElement gstVideoSink;
-    QGstElement gstQtSink;
-    QGstElement gstSubtitleSink;
+    QGstPipeline m_pipeline;
+    QGstBin m_sinkBin;
+    QGstElement m_gstPreprocess;
+    QGstElement m_gstCapsFilter;
+    QGstElement m_gstVideoSink;
+    QGstElement m_gstQtSink;
+    QGstElement m_gstSubtitleSink;
 
     QRhi *m_rhi = nullptr;
 
