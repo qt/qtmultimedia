@@ -158,6 +158,7 @@ private slots:
     void playerStateAtEOS();
     void playFromBuffer();
     void audioVideoAvailable();
+    void audioVideoAvailable_updatedOnNewMedia();
     void isSeekable();
     void positionAfterSeek();
     void pause_rendersVideoAtCorrectResolution_data();
@@ -2509,6 +2510,46 @@ void tst_QMediaPlayerBackend::audioVideoAvailable()
     QTRY_VERIFY(!player.hasAudio());
     QCOMPARE(hasVideoSpy.size(), 2);
     QCOMPARE(hasAudioSpy.size(), 2);
+}
+
+void tst_QMediaPlayerBackend::audioVideoAvailable_updatedOnNewMedia()
+{
+    CHECK_SELECTED_URL(m_localVideoFile);
+    CHECK_SELECTED_URL(m_localWavFile);
+
+    TestVideoSink surface(false);
+    QAudioOutput output;
+    QMediaPlayer player;
+    QSignalSpy hasVideoSpy(&player, &QMediaPlayer::hasVideoChanged);
+    QSignalSpy hasAudioSpy(&player, &QMediaPlayer::hasAudioChanged);
+    player.setVideoOutput(&surface);
+    player.setAudioOutput(&output);
+    player.setSource(*m_localVideoFile);
+    QTRY_VERIFY(player.hasVideo());
+    QTRY_VERIFY(player.hasAudio());
+    QCOMPARE(hasVideoSpy.size(), 1);
+    QCOMPARE(hasAudioSpy.size(), 1);
+
+    hasVideoSpy.clear();
+    hasAudioSpy.clear();
+
+    player.setSource(*m_localWavFile);
+
+    auto expectedHasVideoSignals = SignalList{
+        { false },
+    };
+    QTRY_COMPARE(hasVideoSpy, expectedHasVideoSignals);
+
+    if (isGStreamerPlatform()) {
+        // GStreamer unsets hasAudio/hasVideo on new URIs
+        auto expectedHasAudioSignals = SignalList{
+            { false },
+            { true },
+        };
+        QTRY_COMPARE(hasAudioSpy, expectedHasAudioSignals);
+    } else {
+        QCOMPARE(hasAudioSpy.size(), 0);
+    }
 }
 
 void tst_QMediaPlayerBackend::isSeekable()
