@@ -38,11 +38,11 @@ public:
     ~QGstreamerVideoOutput();
 
     void setVideoSink(QVideoSink *sink);
-    QGstreamerVideoSink *gstreamerVideoSink() const { return m_videoSink; }
+    QGstreamerVideoSink *gstreamerVideoSink() const { return m_platformVideoSink; }
 
     void setPipeline(const QGstPipeline &pipeline);
 
-    QGstElement gstElement() const { return gstVideoOutput; }
+    QGstElement gstElement() const { return m_outputBin; }
     void linkSubtitleStream(QGstElement subtitleSrc);
     void unlinkSubtitleStream();
 
@@ -58,22 +58,22 @@ private:
     void doLinkSubtitleStream();
     void updateNativeSize();
 
-    QPointer<QGstreamerVideoSink> m_videoSink;
+    QPointer<QGstreamerVideoSink> m_platformVideoSink;
 
     // Gst elements
-    QGstPipeline gstPipeline;
+    QGstPipeline m_pipeline;
 
-    QGstBin gstVideoOutput;
-    QGstElement videoQueue;
-    QGstElement videoConvert;
-    QGstElement videoScale;
-    QGstElement videoSink;
+    QGstBin m_outputBin;
+    QGstElement m_videoQueue;
+    QGstElement m_videoConvert;
+    QGstElement m_videoScale;
+    QGstElement m_videoSink;
 
-    QGstElement subtitleSrc;
-    QGstElement subtitleSink;
+    QGstElement m_subtitleSrc;
+    QGstElement m_subtitleSink;
 
-    QSize nativeSize;
-    QtVideo::Rotation rotation{};
+    QSize m_nativeSize;
+    QtVideo::Rotation m_rotation{};
 };
 
 QT_END_NAMESPACE
