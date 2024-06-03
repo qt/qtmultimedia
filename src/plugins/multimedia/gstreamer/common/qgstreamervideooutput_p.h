@@ -53,7 +53,7 @@ public:
     void setRotation(QtVideo::Rotation);
 
 private:
-    QGstreamerVideoOutput(QGstElement videoConvert, QGstElement videoScale, QObject *parent);
+    explicit QGstreamerVideoOutput(QObject *parent);
 
     void doLinkSubtitleStream();
     void updateNativeSize();
@@ -65,8 +65,7 @@ private:
 
     QGstBin m_outputBin;
     QGstElement m_videoQueue;
-    QGstElement m_videoConvert;
-    QGstElement m_videoScale;
+    QGstElement m_videoConvertScale;
     QGstElement m_videoSink;
 
     QGstElement m_subtitleSrc;
