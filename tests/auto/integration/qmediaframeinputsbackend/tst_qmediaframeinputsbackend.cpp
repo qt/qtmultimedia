@@ -108,7 +108,7 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInput
     f.m_videoGenerator.setFrameCount(framesNumber);
     f.m_videoGenerator.setSize(resolution);
 
-    const double frameRate = 1e6 / duration_cast<microseconds>(frameDuration).count();
+    const qreal frameRate = 1e6 / duration_cast<microseconds>(frameDuration).count();
     if (setTimeStamp)
         f.m_videoGenerator.setPeriod(frameDuration);
     else
@@ -120,21 +120,29 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInput
 
     auto info = MediaInfo::create(f.m_recorder.actualLocation());
 
-    const qreal actualFrameRate = info->m_frameRate;
-    // TODO: investigate the frame rate difference
-    QCOMPARE_GE(actualFrameRate, frameRate);
-    QCOMPARE_LE(actualFrameRate, qMax(frameRate * 1.07, frameRate + 0.7));
+    QCOMPARE_LT(info->m_frameRate, frameRate * 1.001);
+    QCOMPARE_GT(info->m_frameRate, frameRate * 0.999);
 
-    // TODO: fix it, the duration should be framesNumber * 1000 / frameRate.
-    // The first frame seems to be dropped by FFmpeg
-    QCOMPARE_GE(info->m_duration, frameDuration * (framesNumber - 1));
-    QCOMPARE_LE(info->m_duration, frameDuration * framesNumber);
+    QCOMPARE_LT(info->m_duration, frameDuration * framesNumber * 1.001);
+    QCOMPARE_GE(info->m_duration, frameDuration * framesNumber * 0.999);
 
     QCOMPARE(info->m_size, resolution);
+    QCOMPARE_EQ(info->m_frameCount, framesNumber);
+}
 
-    // The first frame seems to be dropped by FFmpeg; Fix it!
-    QCOMPARE_GE(info->m_frameCount, framesNumber - 1);
-    QCOMPARE_LE(info->m_frameCount, framesNumber + 1);
+void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withSingleFrame()
+{
+    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
+    f.connectPullMode();
+    f.m_videoGenerator.setFrameCount(1);
+    f.m_videoGenerator.setSize({ 640, 480 });
+    f.m_videoGenerator.setPeriod(1s);
+    f.m_recorder.record();
+    QVERIFY(f.waitForRecorderStopped(60s));
+    auto info = MediaInfo::create(f.m_recorder.actualLocation());
+
+    QCOMPARE_EQ(info->m_frameCount, 1);
+    QCOMPARE_EQ(info->m_duration, 1s);
 }
 
 void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReportedEndOfStream_data()
@@ -248,8 +256,7 @@ void tst_QMediaFrameInputsBackend::readyToSendVideoFrame_isEmittedRepeatedly_whe
 
     f.waitForRecorderStopped(60s);
 
-    QCOMPARE_GE(f.readyToSendVideoFrame.size(), expectedSignalCount - 1);
-    QCOMPARE_LE(f.readyToSendVideoFrame.size(), expectedSignalCount + 1);
+    QCOMPARE_EQ(f.readyToSendVideoFrame.size(), expectedSignalCount);
 }
 
 void tst_QMediaFrameInputsBackend::
@@ -265,8 +272,7 @@ void tst_QMediaFrameInputsBackend::
 
     f.waitForRecorderStopped(60s);
 
-    QCOMPARE_GE(f.readyToSendAudioBuffer.size(), expectedSignalCount - 1);
-    QCOMPARE_LE(f.readyToSendAudioBuffer.size(), expectedSignalCount + 1);
+    QCOMPARE_EQ(f.readyToSendAudioBuffer.size(), expectedSignalCount);
 }
 
 void tst_QMediaFrameInputsBackend::
@@ -283,11 +289,8 @@ void tst_QMediaFrameInputsBackend::
 
     f.waitForRecorderStopped(60s);
 
-    QCOMPARE_GE(f.readyToSendAudioBuffer.size(), expectedSignalCount - 1);
-    QCOMPARE_LE(f.readyToSendAudioBuffer.size(), expectedSignalCount + 1);
-
-    QCOMPARE_GE(f.readyToSendVideoFrame.size(), expectedSignalCount - 1);
-    QCOMPARE_LE(f.readyToSendVideoFrame.size(), expectedSignalCount + 1);
+    QCOMPARE_EQ(f.readyToSendAudioBuffer.size(), expectedSignalCount);
+    QCOMPARE_EQ(f.readyToSendVideoFrame.size(), expectedSignalCount);
 }
 
 QT_END_NAMESPACE
