@@ -104,9 +104,6 @@ public:
     std::chrono::nanoseconds position() const;
     std::chrono::milliseconds positionInMs() const;
 
-    std::chrono::nanoseconds duration() const;
-    std::chrono::milliseconds durationInMs() const;
-
 private:
     void seek(std::chrono::nanoseconds pos, double rate);
     void seek(std::chrono::nanoseconds pos);

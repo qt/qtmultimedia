@@ -597,6 +597,11 @@ public:
     void sendEvent(GstEvent *event) const;
     void sendEos() const;
 
+    std::optional<std::chrono::nanoseconds> duration() const;
+    std::optional<std::chrono::milliseconds> durationInMs() const;
+    std::optional<std::chrono::nanoseconds> position() const;
+    std::optional<std::chrono::milliseconds> positionInMs() const;
+
     template <auto Member, typename T>
     QGObjectHandlerConnection onPadAdded(T *instance)
     {
@@ -647,6 +652,10 @@ public:
     QGstElement getParent() const;
     QGstPipeline getPipeline() const;
     void dumpPipelineGraph(const char *filename) const;
+
+private:
+    QGstQueryHandle &positionQuery() const;
+    mutable QGstQueryHandle m_positionQuery;
 };
 
 template <typename... Ts>

@@ -387,10 +387,13 @@ void QGstPipeline::setPosition(std::chrono::nanoseconds pos)
 
 std::chrono::nanoseconds QGstPipeline::position() const
 {
-    gint64 pos;
     QGstPipelinePrivate *d = getPrivate();
-    if (gst_element_query_position(element(), GST_FORMAT_TIME, &pos))
-        d->m_position = std::chrono::nanoseconds{ pos };
+    std::optional<std::chrono::nanoseconds> pos = QGstElement::position();
+    if (pos)
+        d->m_position = *pos;
+    else
+        qDebug() << "QGstPipeline: failed to query position, using previous position";
+
     return d->m_position;
 }
 
@@ -398,20 +401,6 @@ std::chrono::milliseconds QGstPipeline::positionInMs() const
 {
     using namespace std::chrono;
     return round<milliseconds>(position());
-}
-
-std::chrono::nanoseconds QGstPipeline::duration() const
-{
-    gint64 d;
-    if (!gst_element_query_duration(element(), GST_FORMAT_TIME, &d))
-        return {};
-    return std::chrono::nanoseconds{ d };
-}
-
-std::chrono::milliseconds QGstPipeline::durationInMs() const
-{
-    using namespace std::chrono;
-    return round<milliseconds>(duration());
 }
 
 QGstPipelinePrivate *QGstPipeline::getPrivate() const

@@ -499,10 +499,12 @@ void QGstreamerAudioDecoder::removeAppSink()
 
 void QGstreamerAudioDecoder::updateDuration()
 {
-    std::chrono::milliseconds duration = m_playbin.durationInMs();
+    std::optional<std::chrono::milliseconds> duration = m_playbin.durationInMs();
+    if (!duration)
+        duration = invalidDuration;
 
     if (m_duration != duration) {
-        m_duration = duration;
+        m_duration = *duration;
         durationChanged(m_duration.count());
     }
 
