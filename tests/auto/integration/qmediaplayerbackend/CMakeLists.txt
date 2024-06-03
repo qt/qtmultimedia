@@ -42,11 +42,3 @@ qt_internal_add_resource(tst_qmediaplayerbackend "testdata"
         ${testdata_resource_files}
         "LazyLoad.qml"
 )
-
-## Scopes:
-#####################################################################
-
-qt_internal_extend_target(tst_qmediaplayerbackend CONDITION boot2qt
-    DEFINES
-        SKIP_OGV_TEST
-)
