@@ -312,6 +312,24 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
     return avcodec_send_frame(m_codecContext.get(), frame.get());
 }
 
+qint64 VideoFrameEncoder::estimateDuration(const AVPacket &packet, bool isFirstPacket)
+{
+    qint64 duration = 0; // In stream units, multiply by time_base to get seconds
+
+    if (isFirstPacket) {
+        // First packet - Estimate duration from frame rate. Duration must
+        // be set for single-frame videos, otherwise they won't open in
+        // media player.
+        const AVRational frameDuration = av_inv_q(m_codecContext->framerate);
+        duration = av_rescale_q(1, frameDuration, m_stream->time_base);
+    } else {
+        // Duration is calculated from actual packet times. TODO: Handle discontinuities
+        duration = packet.pts - m_lastPacketTime;
+    }
+
+    return duration;
+}
+
 AVPacketUPtr VideoFrameEncoder::retrievePacket()
 {
     if (!m_codecContext)
@@ -331,6 +349,14 @@ AVPacketUPtr VideoFrameEncoder::retrievePacket()
                 << "got a packet" << packet->pts << packet->dts << (ts ? *ts : 0);
 
         packet->stream_index = m_stream->id;
+
+        if (packet->duration == 0) {
+            const bool firstFrame = m_lastPacketTime == AV_NOPTS_VALUE;
+            packet->duration = estimateDuration(*packet, firstFrame);
+        }
+
+        m_lastPacketTime = packet->pts;
+
         return packet;
     };
 
