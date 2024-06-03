@@ -14,40 +14,47 @@ static Q_LOGGING_CATEGORY(qLcMediaVideoOutput, "qt.multimedia.videooutput")
 
 QT_BEGIN_NAMESPACE
 
-QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
+static QGstElement makeVideoConvertScale(const char *name)
 {
-    QGstElement videoConvert;
-    QGstElement videoScale;
-
     QGstElementFactoryHandle factory = QGstElement::findFactory("videoconvertscale");
+    if (factory) // videoconvertscale is only available in gstreamer 1.20
+        return QGstElement::createFromFactory(factory, name);
 
-    if (factory) { // videoconvertscale is only available in gstreamer 1.20
-        videoConvert = QGstElement::createFromFactory(factory, "videoConvertScale");
-    } else {
-        videoConvert = QGstElement::createFromFactory("videoconvert", "videoConvert");
-        if (!videoConvert)
-            return qGstErrorMessageCannotFindElement("videoconvert");
-
-        videoScale = QGstElement::createFromFactory("videoscale", "videoScale");
-        if (!videoScale)
-            return qGstErrorMessageCannotFindElement("videoscale");
-    }
-
-    if (!QGstElement::findFactory("fakesink"))
-        return qGstErrorMessageCannotFindElement("fakesink");
-
-    return new QGstreamerVideoOutput(videoConvert, videoScale, parent);
+    return QGstBin::createFromPipelineDescription("videoconvert ! videoscale", name,
+                                                  /*ghostUnlinkedPads=*/true);
 }
 
-QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement scale,
-                                             QObject *parent)
+QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
+{
+    QGstElementFactoryHandle factory = QGstElement::findFactory("videoconvertscale");
+
+    static std::optional<QString> elementCheck = []() -> std::optional<QString> {
+        std::optional<QString> error = qGstErrorMessageIfElementsNotAvailable("fakesink", "queue");
+        if (error)
+            return error;
+
+        QGstElementFactoryHandle factory = QGstElement::findFactory("videoconvertscale");
+        if (factory)
+            return std::nullopt;
+
+        return qGstErrorMessageIfElementsNotAvailable("videoconvert", "videoscale");
+    }();
+
+    if (elementCheck)
+        return *elementCheck;
+
+    return new QGstreamerVideoOutput(parent);
+}
+
+QGstreamerVideoOutput::QGstreamerVideoOutput(QObject *parent)
     : QObject(parent),
       m_outputBin(QGstBin::create("videoOutput")),
       m_videoQueue{
           QGstElement::createFromFactory("queue", "videoQueue"),
       },
-      m_videoConvert(std::move(convert)),
-      m_videoScale(std::move(scale)),
+      m_videoConvertScale{
+          makeVideoConvertScale("videoConvertScale"),
+      },
       m_videoSink{
           QGstElement::createFromFactory("fakesink", "fakeVideoSink"),
       }
@@ -55,13 +62,8 @@ QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement sc
     m_videoSink.set("sync", true);
     m_videoSink.set("async", false); // no asynchronous state changes
 
-    if (m_videoScale) {
-        m_outputBin.add(m_videoQueue, m_videoConvert, m_videoScale, m_videoSink);
-        qLinkGstElements(m_videoQueue, m_videoConvert, m_videoScale, m_videoSink);
-    } else {
-        m_outputBin.add(m_videoQueue, m_videoConvert, m_videoSink);
-        qLinkGstElements(m_videoQueue, m_videoConvert, m_videoSink);
-    }
+    m_outputBin.add(m_videoQueue, m_videoConvertScale, m_videoSink);
+    qLinkGstElements(m_videoQueue, m_videoConvertScale, m_videoSink);
 
     m_outputBin.addGhostPad(m_videoQueue, "sink");
 }
@@ -106,10 +108,7 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         m_videoSink = gstSink;
         m_outputBin.add(m_videoSink);
 
-        if (m_videoScale)
-            qLinkGstElements(m_videoScale, m_videoSink);
-        else
-            qLinkGstElements(m_videoConvert, m_videoSink);
+        qLinkGstElements(m_videoConvertScale, m_videoSink);
 
         GstEvent *event = gst_event_new_reconfigure();
         gst_element_send_event(m_videoSink.element(), event);
