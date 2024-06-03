@@ -204,6 +204,17 @@ private slots:
     void swapAudioDevice_doesNotStopPlayback();
 
     void play_readsSubtitle();
+    void multiTrack_validateMetadata();
+    void play_readsSubtitle_fromMultiTrack();
+    void play_readsSubtitle_fromMultiTrack_data();
+
+    void setActiveSubtitleTrack_switchesSubtitles();
+    void setActiveSubtitleTrack_switchesSubtitles_data();
+
+    void setActiveVideoTrack_switchesVideoTrack();
+
+    void disablingAllTracks_doesNotStopPlayback();
+    void disablingAllTracks_beforeTracksChanged_doesNotStopPlayback();
 
 private:
     QUrl selectVideoFile(const QStringList &mediaCandidates);
@@ -235,6 +246,8 @@ private:
     MaybeUrl m_colorMatrix270degClockwiseVideo = QUnexpect{};
     MaybeUrl m_15sVideo = QUnexpect{};
     MaybeUrl m_subtitleVideo = QUnexpect{};
+    MaybeUrl m_multitrackVideo = QUnexpect{};
+    MaybeUrl m_multitrackSubtitleStartsAtZeroVideo = QUnexpect{};
 
     MediaFileSelector m_mediaSelector;
 
@@ -368,6 +381,9 @@ void tst_QMediaPlayerBackend::initTestCase()
 
     m_15sVideo = m_mediaSelector.select("qrc:/testdata/15s.mkv");
     m_subtitleVideo = m_mediaSelector.select("qrc:/testdata/subtitletest.mkv");
+    m_multitrackVideo = m_mediaSelector.select("qrc:/testdata/multitrack.mkv");
+    m_multitrackSubtitleStartsAtZeroVideo =
+            m_mediaSelector.select("qrc:/testdata/multitrack-subtitle-start-at-zero.mkv");
 
     detectVlcCommand();
 }
@@ -941,6 +957,7 @@ void tst_QMediaPlayerBackend::setSource_updatesTrackProperties_data()
     QTest::addRow("uncompressed audio file") << m_localWavFile << 0 << 1 << 0;
     QTest::addRow("compressed audio file") << m_localCompressedSoundFile << 0 << 1 << 0;
     QTest::addRow("video with subtitle") << m_subtitleVideo << 1 << 1 << 1;
+    QTest::addRow("video with multiple streams") << m_multitrackVideo << 2 << 2 << 2;
 }
 
 void tst_QMediaPlayerBackend::setSource_updatesTrackProperties()
@@ -973,6 +990,7 @@ void tst_QMediaPlayerBackend::setSource_emitsTracksChanged_data()
     QTest::addRow("uncompressed audio file") << m_localWavFile << 0 << 1 << 0;
     QTest::addRow("compressed audio file") << m_localCompressedSoundFile << 0 << 1 << 0;
     QTest::addRow("video with subtitle") << m_subtitleVideo << 1 << 1 << 1;
+    QTest::addRow("video with multiple streams") << m_multitrackVideo << 2 << 2 << 2;
 }
 
 void tst_QMediaPlayerBackend::setSource_emitsTracksChanged()
@@ -3816,6 +3834,269 @@ void tst_QMediaPlayerBackend::play_readsSubtitle()
     QTRY_COMPARE(subtitleSink.subtitles, expectedSubtitleList);
 }
 
+void tst_QMediaPlayerBackend::multiTrack_validateMetadata()
+{
+    CHECK_SELECTED_URL(m_multitrackVideo);
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSource(*m_multitrackVideo);
+
+    QTRY_COMPARE(player.videoTracks().size(), 2);
+    QTRY_COMPARE(player.audioTracks().size(), 2);
+    QTRY_COMPARE(player.subtitleTracks().size(), 2);
+
+    QSKIP_GSTREAMER("GStreamer does not provide correct track order");
+
+    QCOMPARE(player.videoTracks()[0][QMediaMetaData::Title], u"One"_s);
+    QCOMPARE(player.videoTracks()[1][QMediaMetaData::Title], u"Two"_s);
+
+    QCOMPARE(player.audioTracks()[0][QMediaMetaData::Language], QLocale::Language::English);
+    QCOMPARE(player.audioTracks()[1][QMediaMetaData::Language], QLocale::Language::Spanish);
+    QCOMPARE(player.subtitleTracks()[0][QMediaMetaData::Language], QLocale::Language::English);
+    QCOMPARE(player.subtitleTracks()[1][QMediaMetaData::Language], QLocale::Language::Spanish);
+}
+
+void tst_QMediaPlayerBackend::play_readsSubtitle_fromMultiTrack()
+{
+    using namespace std::chrono_literals;
+    CHECK_SELECTED_URL(m_multitrackVideo);
+
+    QFETCH(int, track);
+    QFETCH(const QStringList, expectedSubtitles);
+
+    QVideoSink &sink = m_fixture->surface;
+    QMediaPlayer &player = m_fixture->player;
+
+    TestSubtitleSink subtitleSink;
+    QObject::connect(&sink, &QVideoSink::subtitleTextChanged, &subtitleSink,
+                     &TestSubtitleSink::addSubtitle);
+
+    player.setSource(*m_multitrackVideo);
+
+    QTRY_COMPARE(player.subtitleTracks().size(), 2);
+
+    if (track != -1) {
+        if (isGStreamerPlatform())
+            QCOMPARE(player.subtitleTracks()[0].value(QMediaMetaData::Duration), 4000);
+        if (isFFMPEGPlatform())
+            QCOMPARE(player.subtitleTracks()[0].value(QMediaMetaData::Duration), 15046);
+    }
+
+    if (isGStreamerPlatform()) {
+        bool swapTracks =
+                player.subtitleTracks()[0][QMediaMetaData::Language] == QLocale::Language::Spanish;
+
+        if (swapTracks && track == 1)
+            track = 0;
+        if (swapTracks && track == 0)
+            track = 1;
+    }
+
+    player.setActiveSubtitleTrack(track);
+    if (!isGStreamerPlatform())
+        player.setPlaybackRate(5.f);
+    player.play();
+
+    if (expectedSubtitles.isEmpty())
+        QTRY_COMPARE_GT(player.position(), 2000);
+
+    QTRY_COMPARE(subtitleSink.subtitles, expectedSubtitles);
+}
+
+void tst_QMediaPlayerBackend::play_readsSubtitle_fromMultiTrack_data()
+{
+    QSKIP_GSTREAMER("GStreamer does not provide consistent track order");
+
+    QTest::addColumn<int>("track");
+    QTest::addColumn<QStringList>("expectedSubtitles");
+
+    QTest::addRow("track 0") << 0
+                             << QStringList{
+                                    u"1s track 1"_s,
+                                    u""_s,
+                                    u"3s track 1"_s,
+                                    u""_s,
+                                };
+    QTest::addRow("track 1") << 1
+                             << QStringList{
+                                    u"1s track 2"_s,
+                                    u""_s,
+                                    u"3s track 2"_s,
+                                    u""_s,
+                                };
+
+    QTest::addRow("no subtitles") << -1 << QStringList{};
+}
+
+void tst_QMediaPlayerBackend::setActiveSubtitleTrack_switchesSubtitles()
+{
+    QVideoSink &sink = m_fixture->surface;
+    QMediaPlayer &player = m_fixture->player;
+
+    QFETCH(const QUrl, media);
+    QFETCH(const int, positionToSwapTrack);
+    QFETCH(const QLatin1String, testMode);
+    QFETCH(const QStringList, expectedSubtitles);
+
+    TestSubtitleSink subtitleSink;
+    QObject::connect(&sink, &QVideoSink::subtitleTextChanged, &subtitleSink,
+                     &TestSubtitleSink::addSubtitle);
+
+    player.setSource(media);
+
+    QTRY_COMPARE(player.subtitleTracks().size(), 2);
+
+    int track0 = 0;
+    int track1 = 1;
+    if (isGStreamerPlatform()) {
+        bool swapTracks =
+                player.subtitleTracks()[0][QMediaMetaData::Language] == QLocale::Language::Spanish;
+
+        if (swapTracks) {
+            track1 = 0;
+            track0 = 1;
+        }
+    }
+
+    player.setActiveSubtitleTrack(track0);
+
+    player.play();
+    QTRY_COMPARE_GT(player.position(), positionToSwapTrack);
+
+    if (testMode == "setWhilePaused"_L1) {
+        player.pause();
+        player.setActiveSubtitleTrack(track1);
+        player.play();
+    } else if (testMode == "setWhilePlaying"_L1) {
+        player.setActiveSubtitleTrack(track1);
+    } else {
+        QFAIL("should not reach");
+    }
+
+    QTRY_COMPARE(subtitleSink.subtitles, expectedSubtitles);
+}
+
+void tst_QMediaPlayerBackend::setActiveSubtitleTrack_switchesSubtitles_data()
+{
+    QSKIP_GSTREAMER("GStreamer does not provide consistent track order");
+
+    QTest::addColumn<QUrl>("media");
+    QTest::addColumn<QLatin1String>("testMode");
+    QTest::addColumn<int>("positionToSwapTrack");
+    QTest::addColumn<QStringList>("expectedSubtitles");
+
+    QTest::addRow("while paused") << *m_multitrackVideo << "setWhilePaused"_L1 << 2100
+                                  << QStringList{
+                                         u"1s track 1"_s,
+                                         u""_s,
+                                         u"3s track 2"_s,
+                                         u""_s,
+                                     };
+    QTest::addRow("while playing") << *m_multitrackVideo << "setWhilePlaying"_L1 << 2100
+                                   << QStringList{
+                                          u"1s track 1"_s,
+                                          u""_s,
+                                          u"3s track 2"_s,
+                                          u""_s,
+                                      };
+
+    QTest::addRow("while paused, subtitles start at zero")
+            << *m_multitrackSubtitleStartsAtZeroVideo << "setWhilePaused"_L1 << 1100
+            << QStringList{
+                   u"0s track 1"_s,
+                   u""_s,
+                   u"2s track 2"_s,
+                   u""_s,
+               };
+    QTest::addRow("while playing, subtitles start at zero")
+            << *m_multitrackSubtitleStartsAtZeroVideo << "setWhilePlaying"_L1 << 1100
+            << QStringList{
+                   u"0s track 1"_s,
+                   u""_s,
+                   u"2s track 2"_s,
+                   u""_s,
+               };
+}
+
+void tst_QMediaPlayerBackend::setActiveVideoTrack_switchesVideoTrack()
+{
+    using namespace std::chrono_literals;
+    QSKIP_GSTREAMER("GStreamer does not provide consistent track order");
+
+    TestVideoSink &sink = m_fixture->surface;
+    sink.setStoreFrames();
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSource(*m_multitrackVideo);
+
+    QTRY_COMPARE(player.videoTracks().size(), 2);
+
+    int track0 = 0;
+    int track1 = 1;
+    if (isGStreamerPlatform()) {
+        bool swapTracks = player.subtitleTracks()[0][QMediaMetaData::Title] != u"One"_s;
+
+        if (swapTracks) {
+            track0 = 1;
+            track1 = 0;
+        }
+    }
+
+    player.setActiveVideoTrack(track0);
+    player.play();
+
+    sink.waitForFrame();
+
+    QTest::qWait(500ms);
+    sink.waitForFrame();
+    QCOMPARE(sink.m_frameList.back().toImage().pixel(10, 10), QColor(0xff, 0x80, 0x7f).rgb());
+
+    player.setActiveVideoTrack(track1);
+
+    QTest::qWait(500ms);
+    sink.waitForFrame();
+    QCOMPARE(sink.m_frameList.back().toImage().pixel(10, 10), QColor(0x80, 0x80, 0xff).rgb());
+}
+
+void tst_QMediaPlayerBackend::disablingAllTracks_doesNotStopPlayback()
+{
+    QSKIP_GSTREAMER("position does not advance in GStreamer");
+
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSource(*m_multitrackVideo);
+
+    // CAVEAT: we cannot set active tracks before tracksChanged is emitted
+    QTRY_COMPARE(player.videoTracks().size(), 2);
+
+    player.setActiveVideoTrack(-1);
+    player.setActiveAudioTrack(-1);
+
+    player.play();
+    QTRY_VERIFY(player.position() > 1000);
+
+    QCOMPARE(m_fixture->surface.m_totalFrames, 0);
+}
+
+void tst_QMediaPlayerBackend::disablingAllTracks_beforeTracksChanged_doesNotStopPlayback()
+{
+    QSKIP_GSTREAMER("position does not advance in GStreamer");
+    QSKIP_FFMPEG("setActiveXXXTrack(-1) only works after tracksChanged");
+
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSource(*m_multitrackVideo);
+
+    player.setActiveVideoTrack(-1);
+    player.setActiveAudioTrack(-1);
+
+    player.play();
+    QTRY_VERIFY(player.position() > 1000);
+
+    QCOMPARE(m_fixture->surface.m_totalFrames, 0);
+}
+
 QTEST_MAIN(tst_QMediaPlayerBackend)
+
 #include "tst_qmediaplayerbackend.moc"
 
