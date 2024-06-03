@@ -189,6 +189,11 @@ private slots:
     void play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata_data();
     void play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata();
 
+    void setVideoOutput_doesNotStopPlayback_data();
+    void setVideoOutput_doesNotStopPlayback();
+    void setAudioOutput_doesNotStopPlayback_data();
+    void setAudioOutput_doesNotStopPlayback();
+
 private:
     QUrl selectVideoFile(const QStringList &mediaCandidates);
 
@@ -218,6 +223,7 @@ private:
     MaybeUrl m_colorMatrix180degClockwiseVideo = QUnexpect{};
     MaybeUrl m_colorMatrix270degClockwiseVideo = QUnexpect{};
     MaybeUrl m_hdrVideo = QUnexpect{};
+    MaybeUrl m_15sVideo = QUnexpect{};
 
     MediaFileSelector m_mediaSelector;
 
@@ -350,6 +356,7 @@ void tst_QMediaPlayerBackend::initTestCase()
             m_mediaSelector.select("qrc:/testdata/color_matrix_270_deg_clockwise.mp4");
 
     m_hdrVideo = m_mediaSelector.select("qrc:/testdata/h264_avc1_yuv420p10le_tv_bt2020.mov");
+    m_15sVideo = m_mediaSelector.select("qrc:/testdata/15s.mkv");
 
     detectVlcCommand();
 }
@@ -3418,6 +3425,113 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
 
     // Compare videoSize of the output video sink with the expected value after getting a frame
     QCOMPARE(m_fixture->surface.videoSize(), videoSize);
+}
+
+void tst_QMediaPlayerBackend::setVideoOutput_doesNotStopPlayback()
+{
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_15sVideo);
+
+    QFETCH(QMediaPlayer::PlaybackState, playbackState);
+
+    TestVideoSink surface(false);
+    QAudioOutput audioOut;
+
+    QMediaPlayer player;
+    player.setAudioOutput(&audioOut);
+    player.setSource(*m_15sVideo);
+
+    switch (playbackState) {
+    case QMediaPlayer::StoppedState:
+        break;
+    case QMediaPlayer::PausedState:
+        QSKIP_FFMPEG("QTBUG-126014: Test failure with the ffmpeg backend");
+        player.pause();
+        break;
+    case QMediaPlayer::PlayingState:
+        QSKIP_FFMPEG("QTBUG-126014: Test failure with the ffmpeg backend");
+        player.play();
+        break;
+    }
+
+    // set video output
+    QTest::qWait(1s);
+    player.setVideoOutput(&surface);
+
+    if (playbackState == QMediaPlayer::PlayingState) {
+        QVideoFrame frame = surface.waitForFrame();
+        QCOMPARE(frame.size(), QSize(20, 20));
+    }
+
+    // unset video output
+    QTest::qWait(1s);
+    player.setVideoOutput(nullptr);
+
+    // wait for play until end
+    if (playbackState != QMediaPlayer::PlayingState)
+        player.play();
+
+    player.setPlaybackRate(5);
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+}
+
+void tst_QMediaPlayerBackend::setVideoOutput_doesNotStopPlayback_data()
+{
+    QTest::addColumn<QMediaPlayer::PlaybackState>("playbackState");
+    QTest::newRow("StoppedState") << QMediaPlayer::StoppedState;
+    QTest::newRow("PausedState") << QMediaPlayer::PausedState;
+    QTest::newRow("PlayingState") << QMediaPlayer::PlayingState;
+}
+
+void tst_QMediaPlayerBackend::setAudioOutput_doesNotStopPlayback()
+{
+    QSKIP_FFMPEG("QTBUG-126014: Test failure with the ffmpeg backend");
+
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_15sVideo);
+    QFETCH(QMediaPlayer::PlaybackState, playbackState);
+
+    TestVideoSink surface(false);
+    QAudioOutput audioOut;
+
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    player.setSource(*m_15sVideo);
+
+    switch (playbackState) {
+    case QMediaPlayer::StoppedState:
+        break;
+    case QMediaPlayer::PausedState:
+        player.pause();
+        break;
+    case QMediaPlayer::PlayingState:
+        player.play();
+        break;
+    }
+
+    // set audio output
+    QTest::qWait(1s);
+    player.setAudioOutput(&audioOut);
+
+    // unset audio output
+    QTest::qWait(1s);
+    player.setAudioOutput(nullptr);
+
+    // wait for play until end
+    if (playbackState != QMediaPlayer::PlayingState)
+        player.play();
+    player.setPlaybackRate(5);
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+}
+
+void tst_QMediaPlayerBackend::setAudioOutput_doesNotStopPlayback_data()
+{
+    QTest::addColumn<QMediaPlayer::PlaybackState>("playbackState");
+    QTest::newRow("StoppedState") << QMediaPlayer::StoppedState;
+    QTest::newRow("PausedState") << QMediaPlayer::PausedState;
+    QTest::newRow("PlayingState") << QMediaPlayer::PlayingState;
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)
