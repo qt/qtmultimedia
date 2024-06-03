@@ -40,7 +40,7 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     : QPlatformVideoSink{
           parent,
       },
-      sinkBin{
+      m_sinkBin{
           QGstBin::create("videoSinkBin"),
       }
 {
@@ -60,13 +60,13 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
         qCDebug(qLcGstVideoSink) << "requesting conversion element from environment:"
                                  << preprocessOverride;
 
-        gstPreprocess = QGstBin::createFromPipelineDescription(preprocessOverride, nullptr,
-                                                               /*ghostUnlinkedPads=*/true);
-        if (!gstPreprocess)
+        m_gstPreprocess = QGstBin::createFromPipelineDescription(preprocessOverride, nullptr,
+                                                                 /*ghostUnlinkedPads=*/true);
+        if (!m_gstPreprocess)
             qCWarning(qLcGstVideoSink) << "Cannot create conversion element:" << preprocessOverride;
     }
 
-    if (!gstPreprocess) {
+    if (!m_gstPreprocess) {
         // This is a hack for some iMX and NVidia platforms. These require the use of a special
         // video conversion element in the pipeline before the video sink, as they unfortunately
         // output some proprietary format from the decoder even though it's sometimes marked as
@@ -87,7 +87,7 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
                     << "instantiating conversion element:"
                     << g_type_name(gst_element_factory_get_element_type(factory.get()));
 
-            gstPreprocess = QGstElement::createFromFactory(factory, "preprocess");
+            m_gstPreprocess = QGstElement::createFromFactory(factory, "preprocess");
         }
     }
 
@@ -100,27 +100,28 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
         // pixel-aspect-ratio handling
         //
         // compare: https://gitlab.freedesktop.org/gstreamer/gstreamer/-/merge_requests/6242
-        gstCapsFilter =
+        m_gstCapsFilter =
                 QGstElement::createFromFactory("identity", "nullPixelAspectRatioCapsFilter");
     } else {
-        gstCapsFilter = QGstElement::createFromFactory("capsfilter", "pixelAspectRatioCapsFilter");
+        m_gstCapsFilter =
+                QGstElement::createFromFactory("capsfilter", "pixelAspectRatioCapsFilter");
         QGstCaps capsFilterCaps{
             gst_caps_new_simple("video/x-raw", "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1, NULL),
             QGstCaps::HasRef,
         };
-        g_object_set(gstCapsFilter.element(), "caps", capsFilterCaps.caps(), NULL);
+        g_object_set(m_gstCapsFilter.element(), "caps", capsFilterCaps.caps(), NULL);
     }
 
-    if (gstPreprocess) {
-        sinkBin.add(gstPreprocess, gstCapsFilter);
-        qLinkGstElements(gstPreprocess, gstCapsFilter);
-        sinkBin.addGhostPad(gstPreprocess, "sink");
+    if (m_gstPreprocess) {
+        m_sinkBin.add(m_gstPreprocess, m_gstCapsFilter);
+        qLinkGstElements(m_gstPreprocess, m_gstCapsFilter);
+        m_sinkBin.addGhostPad(m_gstPreprocess, "sink");
     } else {
-        sinkBin.add(gstCapsFilter);
-        sinkBin.addGhostPad(gstCapsFilter, "sink");
+        m_sinkBin.add(m_gstCapsFilter);
+        m_sinkBin.addGhostPad(m_gstCapsFilter, "sink");
     }
 
-    gstSubtitleSink =
+    m_gstSubtitleSink =
             QGstElement(GST_ELEMENT(QGstSubtitleSink::createSink(this)), QGstElement::NeedsRef);
 }
 
@@ -136,19 +137,19 @@ QGstreamerVideoSink::~QGstreamerVideoSink()
 QGstElement QGstreamerVideoSink::gstSink()
 {
     updateSinkElement();
-    return sinkBin;
+    return m_sinkBin;
 }
 
 void QGstreamerVideoSink::setPipeline(QGstPipeline pipeline)
 {
-    gstPipeline = std::move(pipeline);
+    m_pipeline = std::move(pipeline);
 }
 
 bool QGstreamerVideoSink::inStoppedState() const
 {
-    if (gstPipeline.isNull())
+    if (m_pipeline.isNull())
         return true;
-    return gstPipeline.inStoppedState();
+    return m_pipeline.inStoppedState();
 }
 
 void QGstreamerVideoSink::setRhi(QRhi *rhi)
@@ -160,7 +161,7 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
 
     m_rhi = rhi;
     updateGstContexts();
-    if (!gstQtSink.isNull()) {
+    if (!m_gstQtSink.isNull()) {
         // force creation of a new sink with proper caps
         createQtSink();
         updateSinkElement();
@@ -169,36 +170,37 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
 
 void QGstreamerVideoSink::createQtSink()
 {
-    if (gstQtSink)
-        gstQtSink.setStateSync(GST_STATE_NULL);
+    if (m_gstQtSink)
+        m_gstQtSink.setStateSync(GST_STATE_NULL);
 
-    gstQtSink = QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(this)),
-                            QGstElement::NeedsRef);
+    m_gstQtSink =
+            QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(this)),
+                        QGstElement::NeedsRef);
 }
 
 void QGstreamerVideoSink::updateSinkElement()
 {
     QGstElement newSink;
-    if (gstQtSink.isNull())
+    if (m_gstQtSink.isNull())
         createQtSink();
-    newSink = gstQtSink;
+    newSink = m_gstQtSink;
 
-    if (newSink == gstVideoSink)
+    if (newSink == m_gstVideoSink)
         return;
 
-    gstPipeline.modifyPipelineWhileNotRunning([&] {
-        if (!gstVideoSink.isNull())
-            sinkBin.stopAndRemoveElements(gstVideoSink);
+    m_pipeline.modifyPipelineWhileNotRunning([&] {
+        if (!m_gstVideoSink.isNull())
+            m_sinkBin.stopAndRemoveElements(m_gstVideoSink);
 
         newSink.set("async", false); // no asynchronous state changes
 
-        gstVideoSink = newSink;
-        sinkBin.add(gstVideoSink);
-        qLinkGstElements(gstCapsFilter, gstVideoSink);
-        gstVideoSink.setState(GST_STATE_PAUSED);
+        m_gstVideoSink = newSink;
+        m_sinkBin.add(m_gstVideoSink);
+        qLinkGstElements(m_gstCapsFilter, m_gstVideoSink);
+        m_gstVideoSink.setState(GST_STATE_PAUSED);
     });
 
-    gstPipeline.dumpGraph("updateVideoSink");
+    m_pipeline.dumpGraph("updateVideoSink");
 }
 
 void QGstreamerVideoSink::unrefGstContexts()
@@ -302,8 +304,8 @@ void QGstreamerVideoSink::updateGstContexts()
     gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, displayContext.get(), nullptr);
     displayContext.close();
 
-    if (!gstPipeline.isNull())
-        gst_element_set_context(gstPipeline.element(), m_gstGlLocalContext.get());
+    if (m_pipeline)
+        gst_element_set_context(m_pipeline.element(), m_gstGlLocalContext.get());
 #endif // #if QT_CONFIG(gstreamer_gl)
 }
 
