@@ -1060,6 +1060,48 @@ void QGstElement::sendEos() const
     sendEvent(gst_event_new_eos());
 }
 
+std::optional<std::chrono::nanoseconds> QGstElement::duration() const
+{
+    gint64 d;
+    if (!gst_element_query_duration(element(), GST_FORMAT_TIME, &d)) {
+        qDebug() << "QGstElement: failed to query duration";
+        return std::nullopt;
+    }
+    return std::chrono::nanoseconds{ d };
+}
+
+std::optional<std::chrono::milliseconds> QGstElement::durationInMs() const
+{
+    using namespace std::chrono;
+    auto dur = duration();
+    if (dur)
+        return round<milliseconds>(*dur);
+    return std::nullopt;
+}
+
+std::optional<std::chrono::nanoseconds> QGstElement::position() const
+{
+    QGstQueryHandle &query = positionQuery();
+
+    gint64 pos;
+    if (gst_element_query(element(), query.get())) {
+        gst_query_parse_position(query.get(), nullptr, &pos);
+        return std::chrono::nanoseconds{ pos };
+    }
+
+    qDebug() << "QGstElement: failed to query position";
+    return std::nullopt;
+}
+
+std::optional<std::chrono::milliseconds> QGstElement::positionInMs() const
+{
+    using namespace std::chrono;
+    auto pos = position();
+    if (pos)
+        return round<milliseconds>(*pos);
+    return std::nullopt;
+}
+
 GstClockTime QGstElement::baseTime() const
 {
     return gst_element_get_base_time(element());
@@ -1108,6 +1150,17 @@ void QGstElement::dumpPipelineGraph(const char *filename) const
         if (pipeline)
             pipeline.dumpGraph(filename);
     }
+}
+
+QGstQueryHandle &QGstElement::positionQuery() const
+{
+    if (Q_UNLIKELY(!m_positionQuery))
+        m_positionQuery = QGstQueryHandle{
+            gst_query_new_position(GST_FORMAT_TIME),
+            QGstQueryHandle::HasRef,
+        };
+
+    return m_positionQuery;
 }
 
 // QGstBin

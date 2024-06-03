@@ -225,7 +225,8 @@ struct QGstMiniObjectHandleHelper
 
         static Type ref(Type handle) noexcept
         {
-            gst_mini_object_ref(GST_MINI_OBJECT_CAST(handle));
+            if (GST_MINI_OBJECT_CAST(handle))
+                gst_mini_object_ref(GST_MINI_OBJECT_CAST(handle));
             return handle;
         }
     };
