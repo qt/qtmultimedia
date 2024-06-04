@@ -32,12 +32,3 @@ qt_internal_add_resource(tst_qsoundeffect "resources"
     FILES
         ${resources_resource_files}
 )
-
-
-## Scopes:
-#####################################################################
-
-qt_internal_extend_target(tst_qsoundeffect CONDITION UNIX AND NOT APPLE AND NOT QT_FEATURE_pulseaudio
-    DEFINES
-        QT_MULTIMEDIA_QMEDIAPLAYER
-)
