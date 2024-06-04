@@ -421,8 +421,7 @@ void QSoundEffect::setSource(const QUrl &url)
             disconnect(d->m_sample.get(), &QSample::error, d, &QSoundEffectPrivate::decoderError);
             disconnect(d->m_sample.get(), &QSample::ready, d, &QSoundEffectPrivate::sampleReady);
         }
-        d->m_sample->release();
-        d->m_sample = nullptr;
+        d->m_sample.reset();
     }
 
     if (d->m_audioSink) {
