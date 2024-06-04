@@ -198,6 +198,8 @@ private slots:
     void swapAudioDevice_doesNotStopPlayback_data();
     void swapAudioDevice_doesNotStopPlayback();
 
+    void play_readsSubtitle();
+
 private:
     QUrl selectVideoFile(const QStringList &mediaCandidates);
 
@@ -228,6 +230,7 @@ private:
     MaybeUrl m_colorMatrix270degClockwiseVideo = QUnexpect{};
     MaybeUrl m_hdrVideo = QUnexpect{};
     MaybeUrl m_15sVideo = QUnexpect{};
+    MaybeUrl m_subtitleVideo = QUnexpect{};
 
     MediaFileSelector m_mediaSelector;
 
@@ -361,6 +364,7 @@ void tst_QMediaPlayerBackend::initTestCase()
 
     m_hdrVideo = m_mediaSelector.select("qrc:/testdata/h264_avc1_yuv420p10le_tv_bt2020.mov");
     m_15sVideo = m_mediaSelector.select("qrc:/testdata/15s.mkv");
+    m_subtitleVideo = m_mediaSelector.select("qrc:/testdata/subtitletest.mkv");
 
     detectVlcCommand();
 }
@@ -880,6 +884,7 @@ void tst_QMediaPlayerBackend::setSource_updatesTrackProperties_data()
     QTest::addRow("video file without audio") << m_colorMatrixVideo << 1 << 0 << 0;
     QTest::addRow("uncompressed audio file") << m_localWavFile << 0 << 1 << 0;
     QTest::addRow("compressed audio file") << m_localCompressedSoundFile << 0 << 1 << 0;
+    QTest::addRow("video with subtitle") << m_subtitleVideo << 1 << 1 << 1;
 }
 
 void tst_QMediaPlayerBackend::setSource_updatesTrackProperties()
@@ -911,6 +916,7 @@ void tst_QMediaPlayerBackend::setSource_emitsTracksChanged_data()
     QTest::addRow("video file without audio") << m_colorMatrixVideo << 1 << 0 << 0;
     QTest::addRow("uncompressed audio file") << m_localWavFile << 0 << 1 << 0;
     QTest::addRow("compressed audio file") << m_localCompressedSoundFile << 0 << 1 << 0;
+    QTest::addRow("video with subtitle") << m_subtitleVideo << 1 << 1 << 1;
 }
 
 void tst_QMediaPlayerBackend::setSource_emitsTracksChanged()
@@ -3591,6 +3597,39 @@ void tst_QMediaPlayerBackend::swapAudioDevice_doesNotStopPlayback_data()
     QTest::newRow("StoppedState") << QMediaPlayer::StoppedState;
     QTest::newRow("PausedState") << QMediaPlayer::PausedState;
     QTest::newRow("PlayingState") << QMediaPlayer::PlayingState;
+}
+
+void tst_QMediaPlayerBackend::play_readsSubtitle()
+{
+    using namespace std::chrono_literals;
+    CHECK_SELECTED_URL(m_subtitleVideo);
+
+    QVideoSink &sink = m_fixture->surface;
+    QMediaPlayer &player = m_fixture->player;
+
+    TestSubtitleSink subtitleSink;
+    QObject::connect(&sink, &QVideoSink::subtitleTextChanged, &subtitleSink,
+                     &TestSubtitleSink::addSubtitle);
+
+    player.setSource(*m_subtitleVideo);
+    QTRY_COMPARE(player.subtitleTracks().size(), 1);
+    QCOMPARE_EQ(player.subtitleTracks()[0].value(QMediaMetaData::Duration), 3000);
+
+    player.setActiveSubtitleTrack(0);
+
+    if (!isGStreamerPlatform()) // FIXME: spurious deadlocks
+        player.setPlaybackRate(5.f);
+
+    player.play();
+
+    QStringList expectedSubtitleList = {
+        u"Hello"_s,
+        u""_s,
+        u"World"_s,
+        u""_s,
+    };
+
+    QTRY_COMPARE(subtitleSink.subtitles, expectedSubtitleList);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)

@@ -76,4 +76,20 @@ public:
 // Helper to create an object that is comparable to a QSignalSpy
 using SignalList = QList<QList<QVariant>>;
 
+struct TestSubtitleSink : QObject
+{
+    Q_OBJECT
+
+public Q_SLOTS:
+    void addSubtitle(QString string)
+    {
+        QMetaObject::invokeMethod(this, [this, string = std::move(string)]() mutable {
+            subtitles.append(std::move(string));
+        });
+    }
+
+public:
+    QStringList subtitles;
+};
+
 #endif // FIXTURE_H
