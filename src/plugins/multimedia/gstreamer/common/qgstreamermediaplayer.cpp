@@ -355,6 +355,21 @@ void QGstreamerMediaPlayer::detectPipelineIsSeekable()
     seekableChanged(canSeek);
 }
 
+QGstElement QGstreamerMediaPlayer::getSinkElementForTrackType(TrackType trackType)
+{
+    switch (trackType) {
+    case AudioStream:
+        return gstAudioOutput ? gstAudioOutput->gstElement() : QGstElement{};
+    case VideoStream:
+        return gstVideoOutput ? gstVideoOutput->gstElement() : QGstElement{};
+    case SubtitleStream:
+        return gstVideoOutput ? gstVideoOutput->gstSubtitleElement() : QGstElement{};
+        break;
+    default:
+        Q_UNREACHABLE_RETURN(QGstElement{});
+    }
+}
+
 bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 {
     qCDebug(qLcMediaPlayer) << "received bus message:" << message;
@@ -684,23 +699,8 @@ void QGstreamerMediaPlayer::connectOutput(TrackSelector &ts)
     if (ts.isConnected)
         return;
 
-    QGstElement e;
-    switch (ts.type) {
-    case AudioStream:
-        e = gstAudioOutput ? gstAudioOutput->gstElement() : QGstElement{};
-        break;
-    case VideoStream:
-        e = gstVideoOutput ? gstVideoOutput->gstElement() : QGstElement{};
-        break;
-    case SubtitleStream:
-        if (gstVideoOutput)
-            gstVideoOutput->linkSubtitleStream(ts.selector);
-        break;
-    default:
-        return;
-    }
-
-    if (!e.isNull()) {
+    QGstElement e = getSinkElementForTrackType(ts.type);
+    if (e) {
         qCDebug(qLcMediaPlayer) << "connecting output for track type" << ts.type;
         playerPipeline.add(e);
         qLinkGstElements(ts.selector, e);
@@ -715,23 +715,8 @@ void QGstreamerMediaPlayer::removeOutput(TrackSelector &ts)
     if (!ts.isConnected)
         return;
 
-    QGstElement e;
-    switch (ts.type) {
-    case AudioStream:
-        e = gstAudioOutput ? gstAudioOutput->gstElement() : QGstElement{};
-        break;
-    case VideoStream:
-        e = gstVideoOutput ? gstVideoOutput->gstElement() : QGstElement{};
-        break;
-    case SubtitleStream:
-        if (gstVideoOutput)
-            gstVideoOutput->unlinkSubtitleStream();
-        break;
-    default:
-        break;
-    }
-
-    if (!e.isNull()) {
+    QGstElement e = getSinkElementForTrackType(ts.type);
+    if (e) {
         qCDebug(qLcMediaPlayer) << "removing output for track type" << ts.type;
         playerPipeline.stopAndRemoveElements(e);
     }
