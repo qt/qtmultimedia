@@ -30,15 +30,10 @@ qt_internal_add_test(tst_qmediaplayerbackend
         Qt::Qml
         Qt::Quick
         Qt::QuickPrivate
-    TESTDATA ${testdata_resource_files}
-    INCLUDE_DIRECTORIES
-        ../shared/
-)
-
-qt_internal_add_resource(tst_qmediaplayerbackend "testdata"
-    PREFIX
-        "/"
-    FILES
+    BUILTIN_TESTDATA
+    TESTDATA
         ${testdata_resource_files}
         "LazyLoad.qml"
+    INCLUDE_DIRECTORIES
+        ../shared/
 )

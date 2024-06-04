@@ -13,12 +13,6 @@ qt_internal_add_test(tst_qvideoframecolormanagement
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
+    BUILTIN_TESTDATA
     TESTDATA ${testdata_resource_files}
-)
-
-qt_internal_add_resource(tst_qvideoframecolormanagement "testdata"
-    PREFIX
-        "/"
-    FILES
-        ${testdata_resource_files}
 )
