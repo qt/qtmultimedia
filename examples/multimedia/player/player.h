@@ -8,6 +8,7 @@
 
 #include <QMediaMetaData>
 #include <QMediaPlayer>
+#include <QMediaDevices>
 #include <QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -69,6 +70,9 @@ private:
     void setStatusInfo(const QString &info);
     void handleCursor(QMediaPlayer::MediaStatus status);
     void updateDurationInfo(qint64 currentInfo);
+
+    void updateAudioDevices();
+
     QString trackName(const QMediaMetaData &metaData, int index);
 
     QMediaPlayer *m_player = nullptr;
@@ -91,6 +95,8 @@ private:
     QString m_trackInfo;
     QString m_statusInfo;
     qint64 m_duration;
+
+    QMediaDevices m_mediaDevices;
 
     QWidget *m_metaDataFields[QMediaMetaData::NumMetaData] = {};
     QLabel *m_metaDataLabels[QMediaMetaData::NumMetaData] = {};

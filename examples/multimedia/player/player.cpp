@@ -121,12 +121,16 @@ Player::Player(QWidget *parent) : QWidget(parent)
 
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     m_audioOutputCombo = new QComboBox(this);
-    m_audioOutputCombo->addItem(QStringLiteral("Default"), QVariant::fromValue(QAudioDevice()));
-    for (auto &deviceInfo : QMediaDevices::audioOutputs())
-        m_audioOutputCombo->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+    controlLayout->addWidget(m_audioOutputCombo);
+
+    updateAudioDevices();
+
     connect(m_audioOutputCombo, QOverload<int>::of(&QComboBox::activated), this,
             &Player::audioOutputChanged);
-    controlLayout->addWidget(m_audioOutputCombo);
+
+    QObject::connect(&m_mediaDevices, &QMediaDevices::audioOutputsChanged, this, [this] {
+        updateAudioDevices();
+    });
 #endif
 
     layout->addLayout(controlLayout);
@@ -516,6 +520,15 @@ void Player::updateDurationInfo(qint64 currentInfo)
         tStr = currentTime.toString(format) + " / " + totalTime.toString(format);
     }
     m_labelDuration->setText(tStr);
+}
+
+void Player::updateAudioDevices()
+{
+    m_audioOutputCombo->clear();
+
+    m_audioOutputCombo->addItem(QStringLiteral("Default"), QVariant::fromValue(QAudioDevice()));
+    for (auto &deviceInfo : QMediaDevices::audioOutputs())
+        m_audioOutputCombo->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
 }
 
 void Player::audioOutputChanged(int index)
