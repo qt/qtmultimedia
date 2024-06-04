@@ -3,34 +3,32 @@
 
 #include <common/qgstreamervideosink_p.h>
 #include <common/qgstvideorenderersink_p.h>
-#include <common/qgstsubtitlesink_p.h>
 #include <common/qgst_debug_p.h>
 #include <common/qgstutils_p.h>
 #include <rhi/qrhi.h>
 
-#if QT_CONFIG(gstreamer_gl)
-#include <QGuiApplication>
-#include <QtGui/qopenglcontext.h>
-#include <QWindow>
-#include <qpa/qplatformnativeinterface.h>
-#include <gst/gl/gstglconfig.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
 
-#if GST_GL_HAVE_WINDOW_X11 && __has_include("X11/Xlib-xcb.h")
+#if QT_CONFIG(gstreamer_gl)
+#  include <QtGui/QGuiApplication>
+#  include <QtGui/qopenglcontext.h>
+#  include <QtGui/QWindow>
+#  include <QtGui/qpa/qplatformnativeinterface.h>
+#  include <gst/gl/gstglconfig.h>
+
+#  if GST_GL_HAVE_WINDOW_X11 && __has_include("X11/Xlib-xcb.h")
 #    include <gst/gl/x11/gstgldisplay_x11.h>
-#endif
-#if GST_GL_HAVE_PLATFORM_EGL
+#  endif
+#  if GST_GL_HAVE_PLATFORM_EGL
 #    include <gst/gl/egl/gstgldisplay_egl.h>
 #    include <EGL/egl.h>
 #    include <EGL/eglext.h>
-#endif
-#if GST_GL_HAVE_WINDOW_WAYLAND && __has_include("wayland-client.h")
+#  endif
+#  if GST_GL_HAVE_WINDOW_WAYLAND && __has_include("wayland-client.h")
 #    include <gst/gl/wayland/gstgldisplay_wayland.h>
-#endif
+#  endif
 #endif // #if QT_CONFIG(gstreamer_gl)
-
-#include <QtCore/qdebug.h>
-
-#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -120,9 +118,6 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
         m_sinkBin.add(m_gstCapsFilter);
         m_sinkBin.addGhostPad(m_gstCapsFilter, "sink");
     }
-
-    m_gstSubtitleSink =
-            QGstElement(GST_ELEMENT(QGstSubtitleSink::createSink(this)), QGstElement::NeedsRef);
 }
 
 QGstreamerVideoSink::~QGstreamerVideoSink()

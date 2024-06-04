@@ -34,7 +34,6 @@ public:
     QRhi *rhi() const { return m_rhi; }
 
     QGstElement gstSink();
-    QGstElement subtitleSink() const { return m_gstSubtitleSink; }
 
     void setPipeline(QGstPipeline pipeline);
     bool inStoppedState() const;
@@ -60,7 +59,6 @@ private:
     QGstElement m_gstCapsFilter;
     QGstElement m_gstVideoSink;
     QGstElement m_gstQtSink;
-    QGstElement m_gstSubtitleSink;
 
     QRhi *m_rhi = nullptr;
 
