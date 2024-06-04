@@ -66,7 +66,7 @@ class QtMultimediaUtils
 
     static int getDeviceOrientation()
     {
-        return m_orientationListener.deviceOrientation;
+        return OrientationListener.deviceOrientation;
     }
 
     static String getDefaultMediaDirectory(int type)
