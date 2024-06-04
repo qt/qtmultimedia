@@ -1,55 +1,62 @@
 // Copyright (C) 2021 The Qt Company
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QDebug>
-#include <QThread>
-#include <QEvent>
-
-#include "qgstreamervideosink_p.h"
 #include "qgstsubtitlesink_p.h"
+#include "qgst_debug_p.h"
+
+#include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
-static GstBaseSinkClass *gst_sink_parent_class;
-static thread_local QGstreamerVideoSink *gst_current_sink;
+namespace {
+GstBaseSinkClass *gst_sink_parent_class;
+thread_local QAbstractSubtitleObserver *gst_current_observer;
+
+class QGstSubtitleSinkClass
+{
+public:
+    GstBaseSinkClass parent_class;
+};
+
+} // namespace
 
 #define ST_SINK(s) QGstSubtitleSink *sink(reinterpret_cast<QGstSubtitleSink *>(s))
 
-QGstSubtitleSink *QGstSubtitleSink::createSink(QGstreamerVideoSink *sink)
+QGstElement QGstSubtitleSink::createSink(QAbstractSubtitleObserver *observer)
 {
-    gst_current_sink = sink;
+    gst_current_observer = observer;
 
     QGstSubtitleSink *gstSink = reinterpret_cast<QGstSubtitleSink *>(
             g_object_new(QGstSubtitleSink::get_type(), nullptr));
     g_object_set(gstSink, "async", false, nullptr);
 
-    return gstSink;
+    return QGstElement{
+        qGstCheckedCast<GstElement>(gstSink),
+        QGstElement::NeedsRef,
+    };
 }
 
 GType QGstSubtitleSink::get_type()
 {
-    static const GTypeInfo info =
+    // clang-format off
+    static constexpr GTypeInfo info =
     {
-        sizeof(QGstSubtitleSinkClass),                    // class_size
-        base_init,                                         // base_init
-        nullptr,                                           // base_finalize
-        class_init,                                        // class_init
-        nullptr,                                           // class_finalize
-        nullptr,                                           // class_data
-        sizeof(QGstSubtitleSink),                         // instance_size
-        0,                                                 // n_preallocs
-        instance_init,                                     // instance_init
-        nullptr                                                  // value_table
+        sizeof(QGstSubtitleSinkClass), // class_size
+        base_init,                     // base_init
+        nullptr,                       // base_finalize
+        class_init,                    // class_init
+        nullptr,                       // class_finalize
+        nullptr,                       // class_data
+        sizeof(QGstSubtitleSink),      // instance_size
+        0,                             // n_preallocs
+        instance_init,                 // instance_init
+        nullptr                        // value_table
     };
+    // clang-format on
 
     static const GType type = []() {
         const auto result = g_type_register_static(
                 GST_TYPE_BASE_SINK, "QGstSubtitleSink", &info, GTypeFlags(0));
-
-        // Register the sink type to be used in custom piplines.
-        // When surface is ready the sink can be used.
-        gst_element_register(nullptr, "qtsubtitlesink", GST_RANK_PRIMARY, result);
-
         return result;
     }();
 
@@ -83,21 +90,20 @@ void QGstSubtitleSink::class_init(gpointer g_class, gpointer class_data)
 
 void QGstSubtitleSink::base_init(gpointer g_class)
 {
-    static GstStaticPadTemplate sink_pad_template = GST_STATIC_PAD_TEMPLATE(
-            "sink", GST_PAD_SINK, GST_PAD_ALWAYS, GST_STATIC_CAPS("ANY"));
+    static GstStaticPadTemplate sink_pad_template =
+            GST_STATIC_PAD_TEMPLATE("sink", GST_PAD_SINK, GST_PAD_ALWAYS, GST_STATIC_CAPS("ANY"));
 
     gst_element_class_add_pad_template(
             GST_ELEMENT_CLASS(g_class), gst_static_pad_template_get(&sink_pad_template));
 }
 
-void QGstSubtitleSink::instance_init(GTypeInstance *instance, gpointer g_class)
+void QGstSubtitleSink::instance_init(GTypeInstance *instance, gpointer /*g_class*/)
 {
-    Q_UNUSED(g_class);
     ST_SINK(instance);
 
-    Q_ASSERT(gst_current_sink);
-    sink->sink = gst_current_sink;
-    gst_current_sink = nullptr;
+    Q_ASSERT(gst_current_observer);
+    sink->observer = gst_current_observer;
+    gst_current_observer = nullptr;
 }
 
 void QGstSubtitleSink::finalize(GObject *object)
@@ -132,8 +138,8 @@ GstFlowReturn QGstSubtitleSink::wait_event(GstBaseSink *base, GstEvent *event)
     GstFlowReturn retval = gst_sink_parent_class->wait_event(base, event);
     ST_SINK(base);
     if (event->type == GST_EVENT_GAP) {
-//        qDebug() << "gap, clearing subtitle";
-        sink->sink->setSubtitleText(QString());
+        // qDebug() << "gap, clearing subtitle";
+        sink->observer->updateSubtitle(QString());
     }
     return retval;
 }
@@ -148,7 +154,7 @@ GstFlowReturn QGstSubtitleSink::render(GstBaseSink *base, GstBuffer *buffer)
         subtitle = QString::fromUtf8(reinterpret_cast<const char *>(info.data));
     gst_memory_unmap(mem, &info);
 //    qDebug() << "render" << buffer << subtitle;
-    sink->sink->setSubtitleText(subtitle);
+    sink->observer->updateSubtitle(subtitle);
     return GST_FLOW_OK;
 }
 
