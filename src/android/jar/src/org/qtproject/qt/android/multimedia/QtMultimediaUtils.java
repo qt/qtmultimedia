@@ -125,24 +125,25 @@ public class QtMultimediaUtils
         return codecs;
     }
 
-public static String getMimeType(Context context, String url)
-{
-    Uri parsedUri = Uri.parse(url);
-    String type = null;
+    public static String getMimeType(Context context, String url)
+    {
+        Uri parsedUri = Uri.parse(url);
+        String type = null;
 
-    try {
-        String scheme = parsedUri.getScheme();
-        if (scheme != null && scheme.contains("content")) {
-            ContentResolver cR = context.getContentResolver();
-            type = cR.getType(parsedUri);
-        } else {
-            String extension = MimeTypeMap.getFileExtensionFromUrl(url);
-            if (extension != null)
+        try {
+            String scheme = parsedUri.getScheme();
+            if (scheme != null && scheme.contains("content")) {
+                ContentResolver cR = context.getContentResolver();
+                type = cR.getType(parsedUri);
+            } else {
+                String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+                if (extension != null)
                 type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-       }
-    } catch (Exception e) {
-        Log.e(QtTAG, "getMimeType(): " + e.toString());
+            }
+        } catch (Exception e) {
+            Log.e(QtTAG, "getMimeType(): " + e.toString());
+        }
+        return type;
     }
-    return type;
 }
-}
+
