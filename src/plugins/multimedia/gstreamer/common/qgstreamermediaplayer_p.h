@@ -135,6 +135,8 @@ private:
     void updateDurationFromPipeline();
     void updateBufferProgress(float);
 
+    QGstElement getSinkElementForTrackType(TrackType);
+
     std::array<TrackSelector, NTrackTypes> trackSelectors;
     TrackSelector &trackSelector(TrackType type);
 

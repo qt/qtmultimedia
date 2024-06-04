@@ -17,24 +17,25 @@
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
-#include <QtCore/qlist.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qqueue.h>
-#include <QtCore/qpointer.h>
-#include <QtCore/qwaitcondition.h>
+#include <QtCore/qstring.h>
 #include <common/qgst_p.h>
 #include <gst/base/gstbasesink.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoSink;
+class QAbstractSubtitleObserver
+{
+public:
+    virtual ~QAbstractSubtitleObserver() = default;
+    virtual void updateSubtitle(QString) = 0;
+};
 
 class QGstSubtitleSink
 {
 public:
     GstBaseSink parent{};
 
-    static QGstSubtitleSink *createSink(QGstreamerVideoSink *sink);
+    static QGstElement createSink(QAbstractSubtitleObserver *observer);
 
 private:
     static GType get_type();
@@ -55,14 +56,7 @@ private:
     static GstFlowReturn render(GstBaseSink *sink, GstBuffer *buffer);
 
 private:
-    QGstreamerVideoSink *sink = nullptr;
-};
-
-
-class QGstSubtitleSinkClass
-{
-public:
-    GstBaseSinkClass parent_class;
+    QAbstractSubtitleObserver *observer = nullptr;
 };
 
 QT_END_NAMESPACE
