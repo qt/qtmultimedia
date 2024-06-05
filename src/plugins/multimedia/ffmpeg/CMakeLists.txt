@@ -97,6 +97,14 @@ if (LINUX OR ANDROID)
     qt_internal_multimedia_add_ffmpeg_stubs()
 endif()
 
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_pipewire
+    SOURCES
+        qpipewirecapture.cpp qpipewirecapture_p.h
+        qpipewirecapturehelper.cpp qpipewirecapturehelper_p.h
+    LIBRARIES
+        Qt::DBus
+        PipeWire::PipeWire
+)
 
 if (QT_FEATURE_vaapi)
     qt_internal_extend_target(QFFmpegMediaPlugin

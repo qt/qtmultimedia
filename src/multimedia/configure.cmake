@@ -35,6 +35,7 @@ qt_find_package(EGL PROVIDED_TARGETS EGL::EGL)
 
 
 qt_find_package(FFmpeg OPTIONAL_COMPONENTS AVCODEC AVFORMAT AVUTIL SWRESAMPLE SWSCALE PROVIDED_TARGETS FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::swresample FFmpeg::swscale MODULE_NAME multimedia QMAKE_LIB ffmpeg)
+qt_find_package(PipeWire PROVIDED_TARGETS PipeWire::PipeWire MODULE_NAME multimedia QMAKE_LIB pipewire)
 qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VAAPI MODULE_NAME multimedia QMAKE_LIB vaapi)
 
 #### Tests
@@ -87,6 +88,11 @@ qt_feature("ffmpeg" PRIVATE
     ENABLE INPUT_ffmpeg STREQUAL 'yes'
     DISABLE INPUT_ffmpeg STREQUAL 'no'
     CONDITION FFmpeg_FOUND AND (APPLE OR WIN32 OR ANDROID OR QNX OR QT_FEATURE_pulseaudio)
+)
+qt_feature("pipewire" PRIVATE
+    LABEL "PipeWire"
+    ENABLE INPUT_pipewire STREQUAL 'yes'
+    CONDITION QT_FEATURE_dbus AND TARGET PipeWire::PipeWire
 )
 qt_feature("alsa" PUBLIC PRIVATE
     LABEL "ALSA (experimental)"
@@ -202,6 +208,9 @@ qt_configure_end_summary_section()
 qt_configure_add_summary_section(NAME "Plugin")
 qt_configure_add_summary_entry(ARGS "gstreamer_1_0")
 qt_configure_add_summary_entry(ARGS "ffmpeg")
+qt_configure_add_summary_section(NAME "FFmpeg plugin features")
+qt_configure_add_summary_entry(ARGS "pipewire")
+qt_configure_end_summary_section()
 qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "avfoundation")
 qt_configure_add_summary_entry(ARGS "wmf")
