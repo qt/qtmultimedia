@@ -6,6 +6,7 @@
 #include "qffmpegencoderoptions_p.h"
 #include "qffmpegvideoencoderutils_p.h"
 #include <qloggingcategory.h>
+#include <QtMultimedia/private/qmaybe_p.h>
 
 extern "C" {
 #include "libavutil/display.h"
@@ -236,82 +237,149 @@ const AVRational &VideoFrameEncoder::getTimeBase() const
     return m_stream->time_base;
 }
 
-int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
+namespace {
+struct FrameConverter
 {
-    if (!m_codecContext) {
-        qWarning() << "codec context is not initialized!";
-        return AVERROR(EINVAL);
-    }
+    FrameConverter(AVFrameUPtr inputFrame) : m_inputFrame{ std::move(inputFrame) } { }
 
-    if (!frame)
-        return avcodec_send_frame(m_codecContext.get(), frame.get());
+    int downloadFromHw()
+    {
+        AVFrameUPtr cpuFrame = makeAVFrame();
 
-    if (!updateSourceFormatAndSize(frame.get()))
-        return AVERROR(EINVAL);
-
-    int64_t pts = 0;
-    AVRational timeBase = {};
-    getAVFrameTime(*frame, pts, timeBase);
-
-    if (m_downloadFromHW) {
-        auto f = makeAVFrame();
-
-        int err = av_hwframe_transfer_data(f.get(), frame.get(), 0);
+        int err = av_hwframe_transfer_data(cpuFrame.get(), currentFrame(), 0);
         if (err < 0) {
-            qCDebug(qLcVideoFrameEncoder) << "Error transferring frame data to surface." << err2str(err);
+            qCDebug(qLcVideoFrameEncoder)
+                    << "Error transferring frame data to surface." << err2str(err);
             return err;
         }
 
-        frame = std::move(f);
+        setFrame(std::move(cpuFrame));
+        return 0;
     }
 
-    if (m_converter) {
-        auto f = makeAVFrame();
+    void convert(SwsContext *converter, AVPixelFormat format, const QSize &size)
+    {
+        AVFrameUPtr scaledFrame = makeAVFrame();
 
-        f->format = m_targetSWFormat;
-        f->width = m_settings.videoResolution().width();
-        f->height = m_settings.videoResolution().height();
+        scaledFrame->format = format;
+        scaledFrame->width = size.width();
+        scaledFrame->height = size.height();
 
-        av_frame_get_buffer(f.get(), 0);
-        const auto scaledHeight = sws_scale(m_converter.get(), frame->data, frame->linesize, 0,
-                                            frame->height, f->data, f->linesize);
+        av_frame_get_buffer(scaledFrame.get(), 0);
+        const auto scaledHeight =
+                sws_scale(converter, currentFrame()->data, currentFrame()->linesize, 0, currentFrame()->height,
+                          scaledFrame->data, scaledFrame->linesize);
 
-        if (scaledHeight != f->height)
-            qCWarning(qLcVideoFrameEncoder) << "Scaled height" << scaledHeight << "!=" << f->height;
+        if (scaledHeight != scaledFrame->height)
+            qCWarning(qLcVideoFrameEncoder)
+                    << "Scaled height" << scaledHeight << "!=" << scaledFrame->height;
 
-        frame = std::move(f);
+        setFrame(std::move(scaledFrame));
     }
 
-    if (m_uploadToHW) {
-        auto *hwFramesContext = m_accel->hwFramesContextAsBuffer();
+    int uploadToHw(HWAccel *accel)
+    {
+        auto *hwFramesContext = accel->hwFramesContextAsBuffer();
         Q_ASSERT(hwFramesContext);
-        auto f = makeAVFrame();
-
-        if (!f)
+        AVFrameUPtr hwFrame = makeAVFrame();
+        if (!hwFrame)
             return AVERROR(ENOMEM);
-        int err = av_hwframe_get_buffer(hwFramesContext, f.get(), 0);
+
+        int err = av_hwframe_get_buffer(hwFramesContext, hwFrame.get(), 0);
         if (err < 0) {
             qCDebug(qLcVideoFrameEncoder) << "Error getting HW buffer" << err2str(err);
             return err;
         } else {
             qCDebug(qLcVideoFrameEncoder) << "got HW buffer";
         }
-        if (!f->hw_frames_ctx) {
+        if (!hwFrame->hw_frames_ctx) {
             qCDebug(qLcVideoFrameEncoder) << "no hw frames context";
             return AVERROR(ENOMEM);
         }
-        err = av_hwframe_transfer_data(f.get(), frame.get(), 0);
+        err = av_hwframe_transfer_data(hwFrame.get(), currentFrame(), 0);
         if (err < 0) {
-            qCDebug(qLcVideoFrameEncoder) << "Error transferring frame data to surface." << err2str(err);
+            qCDebug(qLcVideoFrameEncoder)
+                    << "Error transferring frame data to surface." << err2str(err);
             return err;
         }
-        frame = std::move(f);
+
+        setFrame(std::move(hwFrame));
+
+        return 0;
     }
 
+    QMaybe<AVFrameUPtr, int> takeResultFrame()
+    {
+        // Ensure that object is reset to empty state
+        AVFrameUPtr converted = std::move(m_convertedFrame);
+        AVFrameUPtr input = std::move(m_inputFrame);
+
+        if (!converted)
+            return input;
+
+        // Copy metadata except size and format from input frame
+        const int status = av_frame_copy_props(converted.get(), input.get());
+        if (status != 0)
+            return status;
+
+        return converted;
+    }
+
+private:
+    void setFrame(AVFrameUPtr frame) { m_convertedFrame = std::move(frame); }
+
+    AVFrame *currentFrame() const
+    {
+        if (m_convertedFrame)
+            return m_convertedFrame.get();
+        return m_inputFrame.get();
+    }
+
+    AVFrameUPtr m_inputFrame;
+    AVFrameUPtr m_convertedFrame;
+};
+}
+
+int VideoFrameEncoder::sendFrame(AVFrameUPtr inputFrame)
+{
+    if (!m_codecContext) {
+        qWarning() << "codec context is not initialized!";
+        return AVERROR(EINVAL);
+    }
+
+    if (!inputFrame)
+        return avcodec_send_frame(m_codecContext.get(), nullptr); // Flush
+
+    if (!updateSourceFormatAndSize(inputFrame.get()))
+        return AVERROR(EINVAL);
+
+    FrameConverter converter{ std::move(inputFrame) };
+
+    if (m_downloadFromHW) {
+        const int status = converter.downloadFromHw();
+        if (status != 0)
+            return status;
+    }
+
+    if (m_converter)
+        converter.convert(m_converter.get(), m_targetSWFormat, m_settings.videoResolution());
+
+    if (m_uploadToHW) {
+        const int status = converter.uploadToHw(m_accel.get());
+        if (status != 0)
+            return status;
+    }
+
+    const QMaybe<AVFrameUPtr, int> resultFrame = converter.takeResultFrame();
+    if (!resultFrame)
+        return resultFrame.error();
+
+    AVRational timeBase{};
+    int64_t pts{};
+    getAVFrameTime(*resultFrame.value(), pts, timeBase);
     qCDebug(qLcVideoFrameEncoder) << "sending frame" << pts << "*" << timeBase;
 
-    setAVFrameTime(*frame, pts, timeBase);
-    return avcodec_send_frame(m_codecContext.get(), frame.get());
+    return avcodec_send_frame(m_codecContext.get(), resultFrame.value().get());
 }
 
 qint64 VideoFrameEncoder::estimateDuration(const AVPacket &packet, bool isFirstPacket)
