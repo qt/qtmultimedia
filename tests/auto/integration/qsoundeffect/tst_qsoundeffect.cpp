@@ -374,8 +374,14 @@ void tst_QSoundEffect::testSupportedMimeTypes()
 
 void tst_QSoundEffect::testCorruptFile()
 {
+    using namespace Qt::Literals;
+    auto expectedMessagePattern =
+            QRegularExpression(uR"(^QSoundEffect\(qaudio\): Error decoding source .*$)"_s);
+
     for (int i = 0; i < 10; i++) {
         QSignalSpy statusSpy(sound, &QSoundEffect::statusChanged);
+        QTest::ignoreMessage(QtMsgType::QtWarningMsg, expectedMessagePattern);
+
         sound->setSource(urlCorrupted);
         QVERIFY(!sound->isPlaying());
         QVERIFY(sound->status() == QSoundEffect::Loading || sound->status() == QSoundEffect::Error);
