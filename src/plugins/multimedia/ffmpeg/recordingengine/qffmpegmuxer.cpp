@@ -9,7 +9,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-static Q_LOGGING_CATEGORY(qLcFFmpegMuxer, "qt.multimedia.ffmpeg.muxer");
+Q_STATIC_LOGGING_CATEGORY(qLcFFmpegMuxer, "qt.multimedia.ffmpeg.muxer");
 
 Muxer::Muxer(RecordingEngine *encoder) : m_encoder(encoder)
 {

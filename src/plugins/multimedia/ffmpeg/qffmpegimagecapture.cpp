@@ -20,7 +20,7 @@ QT_BEGIN_NAMESPACE
 // Probably, might be increased. To be investigated and tested on Android implementation
 static constexpr int MaxPendingImagesCount = 1;
 
-static Q_LOGGING_CATEGORY(qLcImageCapture, "qt.multimedia.imageCapture")
+Q_STATIC_LOGGING_CATEGORY(qLcImageCapture, "qt.multimedia.imageCapture")
 
 QFFmpegImageCapture::QFFmpegImageCapture(QImageCapture *parent)
   : QPlatformImageCapture(parent)

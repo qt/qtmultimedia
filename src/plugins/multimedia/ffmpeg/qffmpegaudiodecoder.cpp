@@ -9,7 +9,7 @@
 
 #include <qloggingcategory.h>
 
-static Q_LOGGING_CATEGORY(qLcAudioDecoder, "qt.multimedia.ffmpeg.audioDecoder")
+Q_STATIC_LOGGING_CATEGORY(qLcAudioDecoder, "qt.multimedia.ffmpeg.audioDecoder")
 
 QT_BEGIN_NAMESPACE
 

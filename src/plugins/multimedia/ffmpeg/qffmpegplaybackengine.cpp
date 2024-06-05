@@ -20,7 +20,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-static Q_LOGGING_CATEGORY(qLcPlaybackEngine, "qt.multimedia.ffmpeg.playbackengine");
+Q_STATIC_LOGGING_CATEGORY(qLcPlaybackEngine, "qt.multimedia.ffmpeg.playbackengine");
 
 // The helper is needed since on some compilers std::unique_ptr
 // doesn't have a default constructor in the case of sizeof(CustomDeleter) > 0

@@ -26,7 +26,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcX11SurfaceCapture, "qt.multimedia.ffmpeg.qx11surfacecapture");
+Q_STATIC_LOGGING_CATEGORY(qLcX11SurfaceCapture, "qt.multimedia.ffmpeg.qx11surfacecapture");
 
 namespace {
 

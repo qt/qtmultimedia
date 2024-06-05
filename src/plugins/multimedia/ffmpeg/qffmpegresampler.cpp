@@ -5,7 +5,7 @@
 #include "qffmpegmediaformatinfo_p.h"
 #include <qloggingcategory.h>
 
-static Q_LOGGING_CATEGORY(qLcResampler, "qt.multimedia.ffmpeg.resampler")
+Q_STATIC_LOGGING_CATEGORY(qLcResampler, "qt.multimedia.ffmpeg.resampler")
 
 QT_BEGIN_NAMESPACE
 

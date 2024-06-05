@@ -15,7 +15,7 @@
 #include <qdebug.h>
 #include <qloggingcategory.h>
 
-static Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.ffmpeg.encoder");
+Q_STATIC_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.ffmpeg.encoder");
 
 QT_BEGIN_NAMESPACE
 

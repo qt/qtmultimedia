@@ -12,7 +12,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcMetaData, "qt.multimedia.ffmpeg.metadata")
+Q_STATIC_LOGGING_CATEGORY(qLcMetaData, "qt.multimedia.ffmpeg.metadata")
 
 namespace  {
 

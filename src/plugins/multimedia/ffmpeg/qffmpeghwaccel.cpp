@@ -34,7 +34,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLHWAccel, "qt.multimedia.ffmpeg.hwaccel");
+Q_STATIC_LOGGING_CATEGORY(qLHWAccel, "qt.multimedia.ffmpeg.hwaccel");
 extern bool thread_local FFmpegLogsEnabledInThread;
 
 namespace QFFmpeg {

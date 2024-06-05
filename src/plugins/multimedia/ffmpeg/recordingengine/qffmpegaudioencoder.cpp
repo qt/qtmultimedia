@@ -14,7 +14,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-static Q_LOGGING_CATEGORY(qLcFFmpegAudioEncoder, "qt.multimedia.ffmpeg.audioencoder");
+Q_STATIC_LOGGING_CATEGORY(qLcFFmpegAudioEncoder, "qt.multimedia.ffmpeg.audioencoder");
 
 AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, const QAudioFormat &sourceFormat,
                            const QMediaEncoderSettings &settings)

@@ -13,7 +13,7 @@
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformaudioresampler_p.h>
 
-static Q_LOGGING_CATEGORY(qLcSoundEffect, "qt.multimedia.soundeffect")
+Q_STATIC_LOGGING_CATEGORY(qLcSoundEffect, "qt.multimedia.soundeffect")
 
 QT_BEGIN_NAMESPACE
 

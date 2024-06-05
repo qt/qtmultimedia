@@ -17,7 +17,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
+Q_STATIC_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
 
 namespace {
 

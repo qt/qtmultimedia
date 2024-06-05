@@ -17,7 +17,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcV4L2CameraDevices, "qt.multimedia.ffmpeg.v4l2cameradevices");
+Q_STATIC_LOGGING_CATEGORY(qLcV4L2CameraDevices, "qt.multimedia.ffmpeg.v4l2cameradevices");
 
 static bool areCamerasEqual(QList<QCameraDevice> a, QList<QCameraDevice> b)
 {

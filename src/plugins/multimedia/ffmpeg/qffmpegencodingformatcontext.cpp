@@ -11,7 +11,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-static Q_LOGGING_CATEGORY(qLcEncodingFormatContext, "qt.multimedia.ffmpeg.encodingformatcontext");
+Q_STATIC_LOGGING_CATEGORY(qLcEncodingFormatContext, "qt.multimedia.ffmpeg.encodingformatcontext");
 
 namespace {
 // In the example https://ffmpeg.org/doxygen/trunk/avio_read_callback_8c-example.html,

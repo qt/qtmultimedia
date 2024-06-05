@@ -36,7 +36,7 @@ Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
 Q_DECLARE_JNI_CLASS(String, "java/lang/String");
 #endif
 
-static Q_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
+Q_STATIC_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
 
 namespace QFFmpeg {
 

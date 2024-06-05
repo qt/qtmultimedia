@@ -14,7 +14,7 @@ static constexpr qint64 MaxBufferedSize = 32 * 1024 * 1024;
 
 namespace QFFmpeg {
 
-static Q_LOGGING_CATEGORY(qLcDemuxer, "qt.multimedia.ffmpeg.demuxer");
+Q_STATIC_LOGGING_CATEGORY(qLcDemuxer, "qt.multimedia.ffmpeg.demuxer");
 
 static qint64 streamTimeToUs(const AVStream *stream, qint64 time)
 {

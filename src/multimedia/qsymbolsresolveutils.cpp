@@ -9,7 +9,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcSymbolsResolver, "qt.multimedia.symbolsresolver");
+Q_STATIC_LOGGING_CATEGORY(qLcSymbolsResolver, "qt.multimedia.symbolsresolver");
 
 bool SymbolsResolver::isLazyLoadEnabled()
 {
