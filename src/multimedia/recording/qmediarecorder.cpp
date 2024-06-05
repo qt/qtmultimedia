@@ -610,6 +610,7 @@ void QMediaRecorder::setAutoStop(bool autoStop)
         return;
 
     d->autoStop = autoStop;
+    d->control->updateAutoStop();
     emit autoStopChanged();
 }
 

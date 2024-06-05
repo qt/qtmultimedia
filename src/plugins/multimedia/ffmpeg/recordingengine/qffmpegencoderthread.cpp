@@ -17,11 +17,20 @@ void EncoderThread::setPaused(bool paused)
     m_paused = paused;
 }
 
-void EncoderThread::setEndOfSourceStream(bool isEnd)
+void EncoderThread::setAutoStop(bool autoStop)
 {
-    m_endOfSourceStream = isEnd;
-    if (isEnd)
-        emit endOfSourceStream();
+    auto guard = lockLoopData();
+    m_autoStop = autoStop;
+}
+
+void EncoderThread::setEndOfSourceStream()
+{
+    {
+        auto guard = lockLoopData();
+        m_endOfSourceStream = true;
+    }
+
+    emit endOfSourceStream();
 }
 
 } // namespace QFFmpeg

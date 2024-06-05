@@ -51,14 +51,14 @@ bool VideoEncoder::isValid() const
 void VideoEncoder::addFrame(const QVideoFrame &frame)
 {
     if (!frame.isValid()) {
-        setEndOfSourceStream(true);
+        setEndOfSourceStream();
         return;
     }
 
-    setEndOfSourceStream(false);
-
     {
         auto guard = lockLoopData();
+
+        resetEndOfSourceStream();
 
         if (m_paused) {
             m_shouldAdjustTimeBaseForNextFrame = true;

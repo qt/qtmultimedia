@@ -36,12 +36,6 @@ void QFFmpegMediaRecorder::handleSessionError(QMediaRecorder::Error code, const 
     stop();
 }
 
-void QFFmpegMediaRecorder::handleEndOfSourceStream()
-{
-    if (mediaRecorder()->autoStop())
-        stop();
-}
-
 void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
 {
     if (!m_session || state() != QMediaRecorder::StoppedState)
@@ -86,14 +80,15 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
 
     m_recordingEngine.reset(new RecordingEngine(settings, std::move(formatContext)));
     m_recordingEngine->setMetaData(m_metaData);
+
     connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::durationChanged, this,
             &QFFmpegMediaRecorder::newDuration);
     connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::finalizationDone, this,
             &QFFmpegMediaRecorder::finalizationDone);
     connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::sessionError, this,
             &QFFmpegMediaRecorder::handleSessionError);
-    connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::endOfSourceStreams, this,
-            &QFFmpegMediaRecorder::handleEndOfSourceStream);
+
+    updateAutoStop();
 
     auto handleStreamInitializationError = [this](QMediaRecorder::Error code,
                                                   const QString &description) {
@@ -174,6 +169,22 @@ void QFFmpegMediaRecorder::setCaptureSession(QFFmpegMediaCaptureSession *session
     m_session = captureSession;
     if (!m_session)
         return;
+}
+
+void QFFmpegMediaRecorder::updateAutoStop()
+{
+    const bool autoStop = mediaRecorder()->autoStop();
+    if (!m_recordingEngine || m_recordingEngine->autoStop() == autoStop)
+        return;
+
+    if (autoStop)
+        connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::autoStopped, this,
+                &QFFmpegMediaRecorder::stop);
+    else
+        disconnect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::autoStopped, this,
+                   &QFFmpegMediaRecorder::stop);
+
+    m_recordingEngine->setAutoStop(autoStop);
 }
 
 void QFFmpegMediaRecorder::RecordingEngineDeleter::operator()(

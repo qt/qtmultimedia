@@ -52,6 +52,10 @@ public:
 
     void setPaused(bool p);
 
+    void setAutoStop(bool autoStop);
+
+    bool autoStop() const { return m_autoStop; }
+
     void setMetaData(const QMediaMetaData &metaData);
     AVFormatContext *avFormatContext() { return m_formatContext->avFormatContext(); }
     Muxer *getMuxer() { return m_muxer; }
@@ -66,7 +70,7 @@ Q_SIGNALS:
     void sessionError(QMediaRecorder::Error code, const QString &description);
     void streamInitializationError(QMediaRecorder::Error code, const QString &description);
     void finalizationDone();
-    void endOfSourceStreams();
+    void autoStopped();
 
 private:
     class EncodingFinalizer : public QThread
@@ -107,6 +111,7 @@ private:
     qint64 m_timeRecorded = 0;
 
     bool m_isHeaderWritten = false;
+    bool m_autoStop = false;
 };
 
 }

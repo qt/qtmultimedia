@@ -130,6 +130,8 @@ public:
     QIODevice *outputDevice() const { return m_outputDevice; }
     void setOutputDevice(QIODevice *device) { m_outputDevice = device; }
 
+    virtual void updateAutoStop() { }
+
 protected:
     explicit QPlatformMediaRecorder(QMediaRecorder *parent);
 
