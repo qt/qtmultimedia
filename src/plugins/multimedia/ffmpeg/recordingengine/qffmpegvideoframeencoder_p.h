@@ -54,7 +54,7 @@ public:
 
     const AVRational &getTimeBase() const;
 
-    int sendFrame(AVFrameUPtr frame);
+    int sendFrame(AVFrameUPtr inputFrame);
     AVPacketUPtr retrievePacket();
 
     const QMediaEncoderSettings &settings() { return m_settings; }
