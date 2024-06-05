@@ -306,6 +306,9 @@ uint32_t QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFo
 
 QSize QAVFCamera::adjustedResolution() const
 {
+#ifdef Q_OS_MACOS
+    return m_cameraFormat.resolution();
+#else
     // Check, that we have matching dimesnions.
     QSize resolution = m_cameraFormat.resolution();
     AVCaptureConnection *connection = [m_videoDataOutput connectionWithMediaType:AVMediaTypeVideo];
@@ -321,6 +324,7 @@ QSize QAVFCamera::adjustedResolution() const
         resolution.transpose();
 
     return resolution;
+#endif // Q_OS_MACOS
 }
 
 void QAVFCamera::syncHandleFrame(const QVideoFrame &frame)
