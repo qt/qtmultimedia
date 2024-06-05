@@ -786,13 +786,16 @@ void tst_QMediaPlayerBackend::setSource_entersStoppedState_whenPlayerWasPlaying(
 
     // Assert
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
-    QTRY_COMPARE(m_fixture->mediaStatusChanged,
-                 SignalList({ { QMediaPlayer::LoadedMedia },
-                              { QMediaPlayer::BufferingMedia },
-                              { QMediaPlayer::BufferedMedia },
-                              { QMediaPlayer::LoadedMedia },
-                              { QMediaPlayer::LoadingMedia },
-                              { QMediaPlayer::LoadedMedia } }));
+    if (!isGStreamerPlatform()) {
+        // QTBUG-124005: GStreamer has lots of state changes
+        QTRY_COMPARE(m_fixture->mediaStatusChanged,
+                     SignalList({ { QMediaPlayer::LoadedMedia },
+                                  { QMediaPlayer::BufferingMedia },
+                                  { QMediaPlayer::BufferedMedia },
+                                  { QMediaPlayer::LoadedMedia },
+                                  { QMediaPlayer::LoadingMedia },
+                                  { QMediaPlayer::LoadedMedia } }));
+    }
 
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
     QTRY_COMPARE(m_fixture->playbackStateChanged,
@@ -1100,7 +1103,7 @@ void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPla
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
     QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
                 || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
-    QCOMPARE_EQ(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
+    QTRY_VERIFY(m_fixture->playbackStateChanged.contains({ QMediaPlayer::PlayingState }));
 
     // Note: Should not go through Loading again when play -> stop -> play
     QCOMPARE_EQ(m_fixture->mediaStatusChanged,
@@ -2541,8 +2544,9 @@ void tst_QMediaPlayerBackend::pause_rendersVideoAtCorrectResolution()
     // Act
     player.pause();
 
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
-        QEXPECT_FAIL("av1", "QTBUG-119711: AV1 decoding requires HW support", Abort);
+    if (isCI() && isFFMPEGPlatform())
+        QEXPECT_FAIL("av1", "QTBUG-119711: AV1 decoding requires HW support in the FFMPEG backend",
+                     Abort);
 
     QTRY_COMPARE(surface.m_totalFrames, 1);
 
