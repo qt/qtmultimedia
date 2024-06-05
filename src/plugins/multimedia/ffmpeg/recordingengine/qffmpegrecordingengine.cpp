@@ -84,6 +84,8 @@ AudioEncoder *RecordingEngine::createAudioEncoder(const QAudioFormat &format)
     m_audioEncoders.push_back(audioEncoder);
     connect(audioEncoder, &EncoderThread::endOfSourceStream, this,
             &RecordingEngine::handleSourceEndOfStream);
+    if (m_autoStop)
+        audioEncoder->setAutoStop(true);
 
     return audioEncoder;
 }
@@ -122,6 +124,8 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
 
     auto videoEncoder = veUPtr.release();
     m_videoEncoders.append(videoEncoder);
+    if (m_autoStop)
+        videoEncoder->setAutoStop(true);
 
     connect(videoEncoder, &EncoderThread::endOfSourceStream, this,
             &RecordingEngine::handleSourceEndOfStream);
@@ -225,6 +229,13 @@ void RecordingEngine::setPaused(bool paused)
     forEachEncoder(&EncoderThread::setPaused, paused);
 }
 
+void RecordingEngine::setAutoStop(bool autoStop)
+{
+    m_autoStop = autoStop;
+    forEachEncoder(&EncoderThread::setAutoStop, autoStop);
+    handleSourceEndOfStream();
+}
+
 void RecordingEngine::setMetaData(const QMediaMetaData &metaData)
 {
     m_metaData = metaData;
@@ -248,8 +259,8 @@ bool RecordingEngine::isEndOfSourceStreams() const
 
 void RecordingEngine::handleSourceEndOfStream()
 {
-    if (isEndOfSourceStreams())
-        emit endOfSourceStreams();
+    if (m_autoStop && isEndOfSourceStreams())
+        emit autoStopped();
 }
 
 template <typename F, typename... Args>

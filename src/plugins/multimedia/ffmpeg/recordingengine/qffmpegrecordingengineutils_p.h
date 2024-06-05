@@ -56,7 +56,7 @@ void connectEncoderToSource(Encoder *encoder, Source *source)
 
         QObject::connect(source, &Source::activeChanged, encoder, [=]() {
             if (!source->isActive())
-                encoder->setEndOfSourceStream(true);
+                encoder->setEndOfSourceStream();
         });
     } else {
         QObject::connect(source, &Source::newAudioBuffer, encoder, &Encoder::addBuffer,
@@ -65,7 +65,7 @@ void connectEncoderToSource(Encoder *encoder, Source *source)
 
     // TODO:
     // QObject::connect(source, &Source::disconnectedFromSession, encoder, [=]() {
-    //        encoder->setSourceEndOfStream(true);
+    //        encoder->setSourceEndOfStream();
     // });
 
     setEncoderUpdateConnection(source, encoder);

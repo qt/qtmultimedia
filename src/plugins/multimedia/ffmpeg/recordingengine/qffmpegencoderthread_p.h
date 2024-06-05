@@ -22,13 +22,15 @@ public:
 
     void setPaused(bool paused);
 
+    void setAutoStop(bool autoStop);
+
     void setSource(QObject *source) { m_source = source; }
 
     QObject *source() const { return m_source; }
 
     bool canPushFrame() const override { return m_canPushFrame.load(std::memory_order_relaxed); }
 
-    void setEndOfSourceStream(bool isEnd);
+    void setEndOfSourceStream();
 
     bool isEndOfSourceStream() const { return m_endOfSourceStream; }
 
@@ -37,10 +39,13 @@ protected:
 
     virtual bool checkIfCanPushFrame() const = 0;
 
+    void resetEndOfSourceStream() { m_endOfSourceStream = false; }
+
     auto lockLoopData()
     {
         return QScopeGuard([this, locker = ConsumerThread::lockLoopData()]() mutable {
-            const bool canPush = !m_paused && checkIfCanPushFrame();
+            const bool autoStopActivated = m_endOfSourceStream && m_autoStop;
+            const bool canPush = !autoStopActivated && !m_paused && checkIfCanPushFrame();
             locker.unlock();
             if (m_canPushFrame.exchange(canPush, std::memory_order_relaxed) != canPush)
                 emit canPushFrameChanged();
@@ -54,6 +59,7 @@ Q_SIGNALS:
 protected:
     bool m_paused = false;
     bool m_endOfSourceStream = false;
+    bool m_autoStop = false;
     std::atomic_bool m_canPushFrame = false;
     RecordingEngine &m_recordingEngine;
     QPointer<QObject> m_source;
