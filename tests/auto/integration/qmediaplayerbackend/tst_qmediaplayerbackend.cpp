@@ -102,6 +102,10 @@ private slots:
     void setSource_loadsCorrectTracks_whenLoadingMediaInSequence();
     void setSource_remainsInStoppedState_whenPlayerWasStopped();
     void setSource_entersStoppedState_whenPlayerWasPlaying();
+    void setSource_updatesTrackProperties_data();
+    void setSource_updatesTrackProperties();
+    void setSource_emitsTracksChanged_data();
+    void setSource_emitsTracksChanged();
 
     void setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio_data();
     void setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio();
@@ -800,6 +804,71 @@ void tst_QMediaPlayerBackend::setSource_entersStoppedState_whenPlayerWasPlaying(
                 && m_fixture->positionChanged.last()[0].value<qint64>() == 0);
 
     QCOMPARE(m_fixture->player.position(), 0);
+}
+
+void tst_QMediaPlayerBackend::setSource_updatesTrackProperties_data()
+{
+    QTest::addColumn<MaybeUrl>("url");
+    QTest::addColumn<int>("numberOfVideoTracks");
+    QTest::addColumn<int>("numberOfAudioTracks");
+    QTest::addColumn<int>("numberOfSubtitleTracks");
+
+    QTest::addRow("video file with audio") << m_localVideoFile3ColorsWithSound << 1 << 1 << 0;
+    QTest::addRow("video file without audio") << m_colorMatrixVideo << 1 << 0 << 0;
+    QTest::addRow("uncompressed audio file") << m_localWavFile << 0 << 1 << 0;
+    QTest::addRow("compressed audio file") << m_localCompressedSoundFile << 0 << 1 << 0;
+}
+
+void tst_QMediaPlayerBackend::setSource_updatesTrackProperties()
+{
+    QFETCH(MaybeUrl, url);
+    QFETCH(int, numberOfVideoTracks);
+    QFETCH(int, numberOfAudioTracks);
+    QFETCH(int, numberOfSubtitleTracks);
+
+    QMediaPlayer &player = m_fixture->player;
+
+    CHECK_SELECTED_URL(url);
+
+    player.setSource(*url);
+
+    QTRY_COMPARE(player.videoTracks().size(), numberOfVideoTracks);
+    QTRY_COMPARE(player.audioTracks().size(), numberOfAudioTracks);
+    QTRY_COMPARE(player.subtitleTracks().size(), numberOfSubtitleTracks);
+}
+
+void tst_QMediaPlayerBackend::setSource_emitsTracksChanged_data()
+{
+    QTest::addColumn<MaybeUrl>("url");
+    QTest::addColumn<int>("numberOfVideoTracks");
+    QTest::addColumn<int>("numberOfAudioTracks");
+    QTest::addColumn<int>("numberOfSubtitleTracks");
+
+    QTest::addRow("video file with audio") << m_localVideoFile3ColorsWithSound << 1 << 1 << 0;
+    QTest::addRow("video file without audio") << m_colorMatrixVideo << 1 << 0 << 0;
+    QTest::addRow("uncompressed audio file") << m_localWavFile << 0 << 1 << 0;
+    QTest::addRow("compressed audio file") << m_localCompressedSoundFile << 0 << 1 << 0;
+}
+
+void tst_QMediaPlayerBackend::setSource_emitsTracksChanged()
+{
+    QFETCH(MaybeUrl, url);
+    QFETCH(int, numberOfVideoTracks);
+    QFETCH(int, numberOfAudioTracks);
+    QFETCH(int, numberOfSubtitleTracks);
+
+    QMediaPlayer &player = m_fixture->player;
+
+    CHECK_SELECTED_URL(url);
+
+    QSignalSpy tracksChanged(&player, &QMediaPlayer::tracksChanged);
+    player.setSource(*url);
+
+    QVERIFY(tracksChanged.wait());
+
+    QCOMPARE(player.videoTracks().size(), numberOfVideoTracks);
+    QCOMPARE(player.audioTracks().size(), numberOfAudioTracks);
+    QCOMPARE(player.subtitleTracks().size(), numberOfSubtitleTracks);
 }
 
 void tst_QMediaPlayerBackend::
