@@ -10,9 +10,11 @@
 #include "server.h"
 #include <qmediametadata.h>
 #include <qaudiobuffer.h>
+#include <qaudiodevice.h>
 #include <qvideosink.h>
 #include <qvideoframe.h>
 #include <qaudiooutput.h>
+#include <qmediadevices.h>
 #if QT_CONFIG(process)
 #include <qprocess.h>
 #endif
@@ -196,6 +198,8 @@ private slots:
     void setVideoOutput_doesNotStopPlayback();
     void setAudioOutput_doesNotStopPlayback_data();
     void setAudioOutput_doesNotStopPlayback();
+    void swapAudioDevice_doesNotStopPlayback_data();
+    void swapAudioDevice_doesNotStopPlayback();
 
 private:
     QUrl selectVideoFile(const QStringList &mediaCandidates);
@@ -3640,6 +3644,61 @@ void tst_QMediaPlayerBackend::setAudioOutput_doesNotStopPlayback()
 }
 
 void tst_QMediaPlayerBackend::setAudioOutput_doesNotStopPlayback_data()
+{
+    QTest::addColumn<QMediaPlayer::PlaybackState>("playbackState");
+    QTest::newRow("StoppedState") << QMediaPlayer::StoppedState;
+    QTest::newRow("PausedState") << QMediaPlayer::PausedState;
+    QTest::newRow("PlayingState") << QMediaPlayer::PlayingState;
+}
+
+void tst_QMediaPlayerBackend::swapAudioDevice_doesNotStopPlayback()
+{
+    using namespace std::chrono_literals;
+
+    const QList<QAudioDevice> outputDevices = QMediaDevices::audioOutputs();
+
+    if (outputDevices.size() < 2)
+        QSKIP("swapAudioDevice_doesNotStopPlayback requires two audio output devices");
+
+    CHECK_SELECTED_URL(m_15sVideo);
+    QFETCH(QMediaPlayer::PlaybackState, playbackState);
+
+    TestVideoSink surface(false);
+    QAudioOutput audioOut;
+
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    player.setAudioOutput(&audioOut);
+    player.setSource(*m_15sVideo);
+    switch (playbackState) {
+    case QMediaPlayer::StoppedState:
+        break;
+    case QMediaPlayer::PausedState:
+        player.pause();
+        break;
+    case QMediaPlayer::PlayingState:
+        player.play();
+        break;
+    }
+
+    // swap output device
+    QTest::qWait(1s);
+    audioOut.setDevice(outputDevices[0]);
+
+    QTest::qWait(1s);
+    audioOut.setDevice(outputDevices[1]);
+
+    QTest::qWait(1s);
+    audioOut.setDevice(outputDevices[0]);
+
+    // wait for play until end
+    if (playbackState != QMediaPlayer::PlayingState)
+        player.play();
+    player.setPlaybackRate(5);
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+}
+
+void tst_QMediaPlayerBackend::swapAudioDevice_doesNotStopPlayback_data()
 {
     QTest::addColumn<QMediaPlayer::PlaybackState>("playbackState");
     QTest::newRow("StoppedState") << QMediaPlayer::StoppedState;
