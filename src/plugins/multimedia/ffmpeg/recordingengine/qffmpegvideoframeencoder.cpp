@@ -19,34 +19,29 @@ namespace QFFmpeg {
 
 std::unique_ptr<VideoFrameEncoder>
 VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
-                          const QSize &sourceSize,
-                          QtVideo::Rotation sourceRotation,
-                          qreal sourceFrameRate,
-                          AVPixelFormat sourceFormat,
-                          AVPixelFormat sourceSWFormat,
-                          AVFormatContext *formatContext)
+                          const SourceParams &sourceParams, AVFormatContext *formatContext)
 {
-    Q_ASSERT(isSwPixelFormat(sourceSWFormat));
-    Q_ASSERT(isHwPixelFormat(sourceFormat) || sourceSWFormat == sourceFormat);
+    Q_ASSERT(isSwPixelFormat(sourceParams.swFormat));
+    Q_ASSERT(isHwPixelFormat(sourceParams.format) || sourceParams.swFormat == sourceParams.format);
 
     std::unique_ptr<VideoFrameEncoder> result(new VideoFrameEncoder);
 
     result->m_settings = encoderSettings;
-    result->m_sourceSize = sourceSize;
-    result->m_sourceFormat = sourceFormat;
-    result->m_sourceRotation = sourceRotation;
+    result->m_sourceSize = sourceParams.size;
+    result->m_sourceFormat = sourceParams.format;
 
     // Temporary: check isSwPixelFormat because of android issue (QTBUG-116836)
-    result->m_sourceSWFormat = isSwPixelFormat(sourceFormat) ? sourceFormat : sourceSWFormat;
+    result->m_sourceSWFormat =
+            isSwPixelFormat(sourceParams.format) ? sourceParams.format : sourceParams.swFormat;
 
     if (!result->m_settings.videoResolution().isValid())
-        result->m_settings.setVideoResolution(sourceSize);
+        result->m_settings.setVideoResolution(sourceParams.size);
 
     if (result->m_settings.videoFrameRate() <= 0.)
-        result->m_settings.setVideoFrameRate(sourceFrameRate);
+        result->m_settings.setVideoFrameRate(sourceParams.frameRate);
 
     if (!result->initCodec() || !result->initTargetFormats()
-        || !result->initCodecContext(formatContext)) {
+        || !result->initCodecContext(sourceParams, formatContext)) {
         return nullptr;
     }
 
@@ -143,7 +138,8 @@ bool VideoFrameEncoder::initTargetFormats()
 
 VideoFrameEncoder::~VideoFrameEncoder() = default;
 
-bool QFFmpeg::VideoFrameEncoder::initCodecContext(AVFormatContext *formatContext)
+bool VideoFrameEncoder::initCodecContext(const SourceParams &sourceParams,
+                                         AVFormatContext *formatContext)
 {
     m_stream = avformat_new_stream(formatContext, nullptr);
     m_stream->id = formatContext->nb_streams - 1;
@@ -162,13 +158,16 @@ bool QFFmpeg::VideoFrameEncoder::initCodecContext(AVFormatContext *formatContext
     m_stream->codecpar->width = resolution.width();
     m_stream->codecpar->height = resolution.height();
     m_stream->codecpar->sample_aspect_ratio = AVRational{ 1, 1 };
+    m_stream->codecpar->color_trc = sourceParams.colorTransfer;
+    m_stream->codecpar->color_space = sourceParams.colorSpace;
+    m_stream->codecpar->color_range = sourceParams.colorRange;
 
-    if (m_sourceRotation != QtVideo::Rotation::None) {
+    if (sourceParams.rotation != QtVideo::Rotation::None) {
         constexpr auto displayMatrixSize = sizeof(int32_t) * 9;
         AVPacketSideData sideData = { reinterpret_cast<uint8_t *>(av_malloc(displayMatrixSize)),
                                       displayMatrixSize, AV_PKT_DATA_DISPLAYMATRIX };
         av_display_rotation_set(reinterpret_cast<int32_t *>(sideData.data),
-                                static_cast<double>(m_sourceRotation));
+                                static_cast<double>(sourceParams.rotation));
         addStreamSideData(m_stream, sideData);
     }
 

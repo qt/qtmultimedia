@@ -26,12 +26,19 @@ namespace QFFmpeg {
 class VideoFrameEncoder
 {
 public:
+    struct SourceParams
+    {
+        QSize size;
+        AVPixelFormat format = AV_PIX_FMT_NONE;
+        AVPixelFormat swFormat = AV_PIX_FMT_NONE;
+        QtVideo::Rotation rotation = QtVideo::Rotation::None;
+        qreal frameRate = 0.;
+        AVColorTransferCharacteristic colorTransfer = AVCOL_TRC_UNSPECIFIED;
+        AVColorSpace colorSpace = AVCOL_SPC_UNSPECIFIED;
+        AVColorRange colorRange = AVCOL_RANGE_UNSPECIFIED;
+    };
     static std::unique_ptr<VideoFrameEncoder> create(const QMediaEncoderSettings &encoderSettings,
-                                                     const QSize &sourceSize,
-                                                     QtVideo::Rotation sourceRotation,
-                                                     qreal sourceFrameRate,
-                                                     AVPixelFormat sourceFormat,
-                                                     AVPixelFormat sourceSWFormat,
+                                                     const SourceParams &sourceParams,
                                                      AVFormatContext *formatContext);
 
     ~VideoFrameEncoder();
@@ -61,14 +68,13 @@ private:
 
     bool initTargetFormats();
 
-    bool initCodecContext(AVFormatContext *formatContext);
+    bool initCodecContext(const SourceParams &sourceParams, AVFormatContext *formatContext);
 
     qint64 estimateDuration(const AVPacket &packet, bool isFirstPacket);
 
 private:
     QMediaEncoderSettings m_settings;
     QSize m_sourceSize;
-    QtVideo::Rotation m_sourceRotation = QtVideo::Rotation::None;
 
     std::unique_ptr<HWAccel> m_accel;
     const AVCodec *m_codec = nullptr;

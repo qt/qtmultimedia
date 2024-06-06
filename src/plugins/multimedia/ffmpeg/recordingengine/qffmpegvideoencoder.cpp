@@ -21,10 +21,8 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
 {
     setObjectName(QLatin1String("VideoEncoder"));
 
-    AVPixelFormat swFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
-    AVPixelFormat ffmpegPixelFormat =
-            hwFormat && *hwFormat != AV_PIX_FMT_NONE ? *hwFormat : swFormat;
-    auto frameRate = format.streamFrameRate();
+    const AVPixelFormat swFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
+    qreal frameRate = format.streamFrameRate();
     if (frameRate <= 0.) {
         qWarning() << "Invalid frameRate" << frameRate << "; Using the default instead";
 
@@ -32,13 +30,18 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
         frameRate = 30.;
     }
 
-    m_frameEncoder = VideoFrameEncoder::create(settings,
-                                               format.frameSize(),
-                                               format.rotation(),
-                                               frameRate,
-                                               ffmpegPixelFormat,
-                                               swFormat,
-                                               recordingEngine.avFormatContext());
+    VideoFrameEncoder::SourceParams sourceParams;
+    sourceParams.size = format.frameSize();
+    sourceParams.format = hwFormat && *hwFormat != AV_PIX_FMT_NONE ? *hwFormat : swFormat;
+    sourceParams.swFormat = swFormat;
+    sourceParams.rotation = format.rotation();
+    sourceParams.frameRate = frameRate;
+    sourceParams.colorTransfer = QFFmpeg::toAvColorTransfer(format.colorTransfer());
+    sourceParams.colorSpace = QFFmpeg::toAvColorSpace(format.colorSpace());
+    sourceParams.colorRange = QFFmpeg::toAvColorRange(format.colorRange());
+
+    m_frameEncoder =
+            VideoFrameEncoder::create(settings, sourceParams, recordingEngine.avFormatContext());
 }
 
 VideoEncoder::~VideoEncoder() = default;
@@ -168,6 +171,15 @@ void VideoEncoder::processOne()
             avFrame->data[i] = const_cast<uint8_t *>(frame.bits(i));
             avFrame->linesize[i] = frame.bytesPerLine(i);
         }
+
+        // TODO: investigate if we need to set color params to AVFrame.
+        //       Setting only codec carameters might be sufficient.
+        //       What happens if frame color params are set and not equal codec prms?
+        //
+        // QVideoFrameFormat format = frame.surfaceFormat();
+        // avFrame->color_trc = QFFmpeg::toAvColorTransfer(format.colorTransfer());
+        // avFrame->colorspace = QFFmpeg::toAvColorSpace(format.colorSpace());
+        // avFrame->color_range = QFFmpeg::toAvColorRange(format.colorRange());
 
         QImage img;
         if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
