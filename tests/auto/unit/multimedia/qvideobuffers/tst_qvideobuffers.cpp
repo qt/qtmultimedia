@@ -22,11 +22,11 @@ public slots:
     void initTestCase();
 
 private slots:
-    void map_changesMappedStateAndReturnsProperMappings_whenBufferIsNotMapped_data();
-    void map_changesMappedStateAndReturnsProperMappings_whenBufferIsNotMapped();
+    void map_returnsProperMappings_whenBufferIsNotMapped_data();
+    void map_returnsProperMappings_whenBufferIsNotMapped();
 
-    void map_doesNothing_whenBufferIsMapped_data();
-    void map_doesNothing_whenBufferIsMapped();
+    void map_returnsProperMappings_whenBufferIsMapped_data();
+    void map_returnsProperMappings_whenBufferIsMapped();
 
     void mapMemoryOrImageBuffer_detachesDataDependingOnMode_data();
     void mapMemoryOrImageBuffer_detachesDataDependingOnMode();
@@ -101,12 +101,12 @@ void tst_QVideoBuffers::initTestCase()
     m_byteArray.assign(m_image.constBits(), m_image.constBits() + m_image.sizeInBytes());
 }
 
-void tst_QVideoBuffers::map_changesMappedStateAndReturnsProperMappings_whenBufferIsNotMapped_data()
+void tst_QVideoBuffers::map_returnsProperMappings_whenBufferIsNotMapped_data()
 {
     generateImageAndMemoryBuffersWithAllModes();
 }
 
-void tst_QVideoBuffers::map_changesMappedStateAndReturnsProperMappings_whenBufferIsNotMapped()
+void tst_QVideoBuffers::map_returnsProperMappings_whenBufferIsNotMapped()
 {
     QFETCH(BufferPtr, buffer);
     QFETCH(QtVideo::MapMode, mapMode);
@@ -122,19 +122,23 @@ void tst_QVideoBuffers::map_changesMappedStateAndReturnsProperMappings_whenBuffe
     QCOMPARE(QByteArray(data, mappedData.dataSize[0]), m_byteArray);
 }
 
-void tst_QVideoBuffers::map_doesNothing_whenBufferIsMapped_data()
+void tst_QVideoBuffers::map_returnsProperMappings_whenBufferIsMapped_data()
 {
     generateImageAndMemoryBuffersWithAllModes();
 }
 
-void tst_QVideoBuffers::map_doesNothing_whenBufferIsMapped()
+void tst_QVideoBuffers::map_returnsProperMappings_whenBufferIsMapped()
 {
     QFETCH(BufferPtr, buffer);
     QFETCH(QtVideo::MapMode, mapMode);
 
-    buffer->map(mapMode);
-    auto mappedData = buffer->map(QtVideo::MapMode::ReadOnly);
-    QCOMPARE(mappedData.planeCount, 0);
+    auto mappedData1 = buffer->map(mapMode);
+    auto mappedData2 = buffer->map(mapMode);
+
+    QCOMPARE(mappedData1.planeCount, mappedData2.planeCount);
+    QCOMPARE(mappedData1.data[0], mappedData2.data[0]);
+    QCOMPARE(mappedData1.dataSize[0], mappedData2.dataSize[0]);
+    QCOMPARE(mappedData1.bytesPerLine[0], mappedData2.bytesPerLine[0]);
 }
 
 void tst_QVideoBuffers::mapMemoryOrImageBuffer_detachesDataDependingOnMode_data()

@@ -50,27 +50,21 @@ public:
 
     ~QCGImageVideoBuffer() override { CFRelease(m_data); }
 
-    MapData map(QtVideo::MapMode mode) override
+    MapData map(QtVideo::MapMode /*mode*/) override
     {
         MapData mapData;
-        if (m_mapMode == QtVideo::MapMode::NotMapped) {
-            m_mapMode = mode;
 
-            mapData.planeCount = 1;
-            mapData.bytesPerLine[0] = static_cast<int>(m_bytesPerLine);
-            mapData.data[0] = (uchar *)CFDataGetBytePtr(m_data);
-            mapData.dataSize[0] = static_cast<int>(CFDataGetLength(m_data));
-        }
+        mapData.planeCount = 1;
+        mapData.bytesPerLine[0] = static_cast<int>(m_bytesPerLine);
+        mapData.data[0] = (uchar *)CFDataGetBytePtr(m_data);
+        mapData.dataSize[0] = static_cast<int>(CFDataGetLength(m_data));
 
         return mapData;
     }
 
-    void unmap() override { m_mapMode = QtVideo::MapMode::NotMapped; }
-
     QVideoFrameFormat format() const override { return {}; }
 
 private:
-    QtVideo::MapMode m_mapMode = QtVideo::MapMode::NotMapped;
     CFDataRef m_data;
     size_t m_bytesPerLine = 0;
 };
