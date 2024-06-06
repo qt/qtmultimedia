@@ -33,7 +33,7 @@ public:
 
     ~CVImageVideoBuffer()
     {
-        CVImageVideoBuffer::unmap();
+        Q_ASSERT(m_mode == QtVideo::MapMode::NotMapped);
         CVPixelBufferRelease(m_buffer);
     }
 

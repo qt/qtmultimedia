@@ -76,7 +76,7 @@ QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &in
 
 QGstVideoBuffer::~QGstVideoBuffer()
 {
-    unmap();
+    Q_ASSERT(m_mode == QtVideo::MapMode::NotMapped);
 }
 
 QAbstractVideoBuffer::MapData QGstVideoBuffer::map(QtVideo::MapMode mode)

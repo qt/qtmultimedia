@@ -30,7 +30,7 @@ AVFVideoBuffer::AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buf
 
 AVFVideoBuffer::~AVFVideoBuffer()
 {
-    AVFVideoBuffer::unmap();
+    Q_ASSERT(m_mode == QtVideo::MapMode::NotMapped);
     for (int i = 0; i < 3; ++i)
         if (cvMetalTexture[i])
             CFRelease(cvMetalTexture[i]);

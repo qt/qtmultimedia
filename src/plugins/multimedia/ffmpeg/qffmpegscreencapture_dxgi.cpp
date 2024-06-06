@@ -75,10 +75,7 @@ public:
         : m_device(device), m_texture(texture), m_ctxMutex(mutex), m_size(size)
     {}
 
-    ~QD3D11TextureVideoBuffer()
-    {
-        QD3D11TextureVideoBuffer::unmap();
-    }
+    ~QD3D11TextureVideoBuffer() { Q_ASSERT(m_mapMode == QtVideo::MapMode::NotMapped); }
 
     MapData map(QtVideo::MapMode mode) override
     {

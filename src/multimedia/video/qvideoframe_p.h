@@ -27,6 +27,12 @@ class QVideoFramePrivate : public QSharedData
 public:
     QVideoFramePrivate() = default;
 
+    ~QVideoFramePrivate()
+    {
+        if (videoBuffer && mapMode != QtVideo::MapMode::NotMapped)
+            videoBuffer->unmap();
+    }
+
     template <typename Buffer>
     static QVideoFrame createFrame(std::unique_ptr<Buffer> buffer, QVideoFrameFormat format)
     {
