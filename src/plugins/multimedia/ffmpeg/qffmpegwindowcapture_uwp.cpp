@@ -85,7 +85,7 @@ class QUwpTextureVideoBuffer : public QAbstractVideoBuffer
 public:
     QUwpTextureVideoBuffer(com_ptr<IDXGISurface> &&surface) : m_surface(surface) { }
 
-    ~QUwpTextureVideoBuffer() override { QUwpTextureVideoBuffer::unmap(); }
+    ~QUwpTextureVideoBuffer() override { Q_ASSERT(m_mapMode == QtVideo::MapMode::NotMapped); }
 
     MapData map(QtVideo::MapMode mode) override
     {

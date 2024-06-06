@@ -197,7 +197,8 @@ private slots:
     void createFromBuffer();
     void createFromImage_data();
     void createNull();
-    void destructor();
+    void destructor_deletesVideoBuffer();
+    void destructorOfPrivateData_unmapsAndDeletesVideoBuffer_whenNoMoreFramesCopies();
     void copy_data();
     void copy();
     void assign_data();
@@ -234,26 +235,17 @@ private slots:
     void constructor_copiesImageData_whenCalledWithRGBFormats();
 };
 
-class QtTestDummyVideoBuffer : public QObject, public QHwVideoBuffer
+class QtTestVideoBuffer : public QObject, public QHwVideoBuffer
 {
     Q_OBJECT
 public:
-    QtTestDummyVideoBuffer() : QHwVideoBuffer(QVideoFrame::NoHandle) { }
-    explicit QtTestDummyVideoBuffer(QVideoFrame::HandleType type) : QHwVideoBuffer(type) { }
-
-    MapData map(QtVideo::MapMode) override { return {}; }
-    void unmap() override {}
-};
-
-class QtTestVideoBuffer : public QHwVideoBuffer
-{
-public:
     QtTestVideoBuffer() : QHwVideoBuffer(QVideoFrame::NoHandle) { }
     explicit QtTestVideoBuffer(QVideoFrame::HandleType type) : QHwVideoBuffer(type) { }
+    ~QtTestVideoBuffer() override { QTEST_ASSERT(!m_mapObject); }
 
-    MapData map(QtVideo::MapMode mode) override
+    MapData map(QtVideo::MapMode) override
     {
-        m_mapMode = mode;
+        m_mapObject = std::make_unique<QObject>();
         MapData mapData;
         int nBytes = m_numBytes;
         mapData.planeCount = m_planeCount;
@@ -268,13 +260,14 @@ public:
         }
         return mapData;
     }
-    void unmap() override { m_mapMode = QtVideo::MapMode::NotMapped; }
+
+    void unmap() override { m_mapObject.reset(); }
 
     uchar *m_data[4];
     int m_bytesPerLine[4];
-    int m_planeCount = 0;
+    int m_planeCount = 1;
     int m_numBytes;
-    QtVideo::MapMode m_mapMode = QtVideo::MapMode::NotMapped;
+    std::unique_ptr<QObject> m_mapObject;
 };
 
 tst_QVideoFrame::tst_QVideoFrame()
@@ -397,9 +390,8 @@ void tst_QVideoFrame::createFromBuffer()
     QFETCH(QSize, size);
     QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
 
-    QVideoFrame frame =
-            QVideoFramePrivate::createFrame(std::make_unique<QtTestDummyVideoBuffer>(handleType),
-                                            QVideoFrameFormat(size, pixelFormat));
+    QVideoFrame frame = QVideoFramePrivate::createFrame(
+            std::make_unique<QtTestVideoBuffer>(handleType), QVideoFrameFormat(size, pixelFormat));
 
     QVERIFY(frame.isValid());
     QCOMPARE(frame.handleType(), handleType);
@@ -475,9 +467,9 @@ void tst_QVideoFrame::createNull()
     }
 }
 
-void tst_QVideoFrame::destructor()
+void tst_QVideoFrame::destructor_deletesVideoBuffer()
 {
-    QPointer<QtTestDummyVideoBuffer> buffer = new QtTestDummyVideoBuffer;
+    QPointer buffer(new QtTestVideoBuffer);
 
     {
         QVideoFrame frame = QVideoFramePrivate::createFrame(
@@ -486,6 +478,42 @@ void tst_QVideoFrame::destructor()
     }
 
     QVERIFY(buffer.isNull());
+}
+
+void tst_QVideoFrame::destructorOfPrivateData_unmapsAndDeletesVideoBuffer_whenNoMoreFramesCopies()
+{
+    uchar bufferData[16] = {
+        0,
+    };
+
+    QPointer buffer(new QtTestVideoBuffer);
+    buffer->m_data[0] = bufferData;
+    buffer->m_bytesPerLine[0] = 16;
+    buffer->m_planeCount = 1;
+    buffer->m_numBytes = sizeof(bufferData);
+
+    QVideoFrame frame1 = QVideoFramePrivate::createFrame(
+            std::unique_ptr<QHwVideoBuffer>(buffer),
+            QVideoFrameFormat(QSize(4, 1), QVideoFrameFormat::Format_ARGB8888));
+
+    frame1.map(QtVideo::MapMode::ReadOnly);
+
+    QVERIFY(buffer);
+    QPointer mapObject(buffer->m_mapObject.get());
+
+    QVideoFrame frame2 = frame1;
+
+    frame1 = {};
+
+    // check if the buffer and the map object are still alive
+    QVERIFY(mapObject);
+    QVERIFY(buffer);
+
+    frame2 = {};
+
+    // check if the buffer and the map object have been deleted
+    QVERIFY(!mapObject);
+    QVERIFY(!buffer);
 }
 
 void tst_QVideoFrame::copy_data()
@@ -536,7 +564,7 @@ void tst_QVideoFrame::copy()
     QFETCH(qint64, startTime);
     QFETCH(qint64, endTime);
 
-    QPointer<QtTestDummyVideoBuffer> buffer = new QtTestDummyVideoBuffer(handleType);
+    QPointer<QtTestVideoBuffer> buffer = new QtTestVideoBuffer(handleType);
 
     {
         QVideoFrame frame = QVideoFramePrivate::createFrame(std::unique_ptr<QHwVideoBuffer>(buffer),
@@ -626,7 +654,7 @@ void tst_QVideoFrame::assign()
     QFETCH(qint64, startTime);
     QFETCH(qint64, endTime);
 
-    QPointer<QtTestDummyVideoBuffer> buffer = new QtTestDummyVideoBuffer(handleType);
+    QPointer<QtTestVideoBuffer> buffer = new QtTestVideoBuffer(handleType);
 
     QVideoFrame frame;
     {
