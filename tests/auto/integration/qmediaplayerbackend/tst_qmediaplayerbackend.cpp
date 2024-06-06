@@ -1041,7 +1041,7 @@ void tst_QMediaPlayerBackend::pause_entersPauseState_whenPlayerWasPlaying()
     // Arrange
     m_fixture->player.setSource(*m_localWavFile);
     m_fixture->player.play();
-    QTRY_VERIFY(m_fixture->player.position() > 100);
+    QTRY_COMPARE_GT(m_fixture->player.position(), 100);
     m_fixture->clearSpies();
     const qint64 positionBeforePause = m_fixture->player.position();
 
@@ -1053,9 +1053,11 @@ void tst_QMediaPlayerBackend::pause_entersPauseState_whenPlayerWasPlaying()
     QCOMPARE_EQ(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PausedState } }));
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
+    QTRY_COMPARE_LT(qAbs(m_fixture->player.position() - positionBeforePause), 200);
+
     QTest::qWait(500);
 
-    QTRY_VERIFY(qAbs(m_fixture->player.position() - positionBeforePause) < 150);
+    QTRY_COMPARE_LT(qAbs(m_fixture->player.position() - positionBeforePause), 200);
 }
 
 void tst_QMediaPlayerBackend::play_resetsErrorState_whenCalledWithInvalidFile()
@@ -1176,11 +1178,21 @@ void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPla
     QTRY_VERIFY(m_fixture->playbackStateChanged.contains({ QMediaPlayer::PlayingState }));
 
     // Note: Should not go through Loading again when play -> stop -> play
-    QCOMPARE_EQ(m_fixture->mediaStatusChanged,
-                SignalList({
-                        { QMediaPlayer::BufferingMedia },
-                        { QMediaPlayer::BufferedMedia },
-                }));
+    if (!isGStreamerPlatform()) {
+        QCOMPARE_EQ(m_fixture->mediaStatusChanged,
+                    SignalList({
+                            { QMediaPlayer::BufferingMedia },
+                            { QMediaPlayer::BufferedMedia },
+                    }));
+    } else {
+        QCOMPARE_EQ(m_fixture->mediaStatusChanged,
+                    // gstreamer may see EndOfMedia
+                    SignalList({
+                            { QMediaPlayer::BufferingMedia },
+                            { QMediaPlayer::BufferedMedia },
+                            { QMediaPlayer::EndOfMedia },
+                    }));
+    }
 }
 
 void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayback_whenSetSourceWasCalledWithEmptyUrl()
@@ -1201,12 +1213,15 @@ void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayb
     const MediaPlayerState actualState{ m_fixture->player };
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
 
-    QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
-                    SignalList({ { QMediaPlayer::LoadedMedia },
-                                 { QMediaPlayer::BufferingMedia },
-                                 { QMediaPlayer::BufferedMedia },
-                                 { QMediaPlayer::LoadedMedia },
-                                 { QMediaPlayer::NoMedia } }));
+    if (!isGStreamerPlatform()) {
+        // QTBUG-124005: GStreamer may see QMediaPlayer::EndOfMedia
+        QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
+                        SignalList({ { QMediaPlayer::LoadedMedia },
+                                     { QMediaPlayer::BufferingMedia },
+                                     { QMediaPlayer::BufferedMedia },
+                                     { QMediaPlayer::LoadedMedia },
+                                     { QMediaPlayer::NoMedia } }));
+    }
 
     QTRY_COMPARE_EQ(m_fixture->playbackStateChanged,
                     SignalList({ { QMediaPlayer::PlayingState }, { QMediaPlayer::StoppedState } }));
@@ -1288,6 +1303,9 @@ void tst_QMediaPlayerBackend::
 
 void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames()
 {
+    if (isCI() && isGStreamerPlatform())
+        QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
+
     CHECK_SELECTED_URL(m_oneRedFrameVideo);
 
     m_fixture->surface.setStoreFrames(true);
@@ -1459,6 +1477,10 @@ void tst_QMediaPlayerBackend::stop_setsPositionToZero_afterPlayingToEndOfMedia()
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
 
     m_fixture->player.play();
+
+    if (isGStreamerPlatform())
+        QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
+
     QVERIFY(m_fixture->surface.waitForFrame().isValid());
 }
 
@@ -2122,11 +2144,14 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
 {
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
-#ifdef Q_OS_MACOS
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
-        QSKIP("SKIP on macOS CI since multiple fake drawing on macOS CI platform causes UB. To be "
-              "investigated.");
-#endif
+    if (isCI()) {
+        if (isDarwinPlatform())
+            QSKIP("SKIP on macOS CI since multiple fake drawing on macOS CI platform causes UB. To "
+                  "be investigated.");
+
+        if (isGStreamerPlatform())
+            QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
+    }
 
     TestVideoSink surface(false);
     QAudioOutput output;

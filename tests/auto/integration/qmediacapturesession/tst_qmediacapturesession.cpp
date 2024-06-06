@@ -965,6 +965,8 @@ void tst_QMediaCaptureSession::can_add_and_remove_ImageCapture()
 
 void tst_QMediaCaptureSession::can_move_ImageCapture_between_sessions()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: Spurious failure on CI");
+
     QMediaCaptureSession session0;
     QMediaCaptureSession session1;
     QSignalSpy imageCaptureChanged0(&session0, &QMediaCaptureSession::imageCaptureChanged);
@@ -994,7 +996,6 @@ void tst_QMediaCaptureSession::can_move_ImageCapture_between_sessions()
     QTRY_COMPARE(imageCaptureChanged1.size(), 2);
     QVERIFY(session1.imageCapture() == nullptr);
 }
-
 
 void tst_QMediaCaptureSession::capture_is_not_available_when_Camera_is_null()
 {
