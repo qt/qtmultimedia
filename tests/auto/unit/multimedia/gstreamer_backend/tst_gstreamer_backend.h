@@ -27,6 +27,8 @@ private slots:
     void metadata_taglistToMetaData_extractsOrientation();
     void metadata_taglistToMetaData_extractsOrientation_data();
     void metadata_taglistToMetaData_extractsDuration();
+    void metadata_taglistToMetaData_extractsLanguage();
+    void metadata_taglistToMetaData_extractsLanguage_data();
 
     void metadata_capsToMetaData();
     void metadata_capsToMetaData_data();
