@@ -84,29 +84,7 @@ void QFFmpegVideoBuffer::setTextureConverter(const QFFmpeg::TextureConverter &co
 
 QVideoFrameFormat::ColorSpace QFFmpegVideoBuffer::colorSpace() const
 {
-    switch (m_frame->colorspace) {
-    default:
-    case AVCOL_SPC_UNSPECIFIED:
-    case AVCOL_SPC_RESERVED:
-    case AVCOL_SPC_FCC:
-    case AVCOL_SPC_SMPTE240M:
-    case AVCOL_SPC_YCGCO:
-    case AVCOL_SPC_SMPTE2085:
-    case AVCOL_SPC_CHROMA_DERIVED_NCL:
-    case AVCOL_SPC_CHROMA_DERIVED_CL:
-    case AVCOL_SPC_ICTCP: // BT.2100 ICtCp
-        return QVideoFrameFormat::ColorSpace_Undefined;
-    case AVCOL_SPC_RGB:
-        return QVideoFrameFormat::ColorSpace_AdobeRgb;
-    case AVCOL_SPC_BT709:
-        return QVideoFrameFormat::ColorSpace_BT709;
-    case AVCOL_SPC_BT470BG: // BT601
-    case AVCOL_SPC_SMPTE170M: // Also BT601
-        return QVideoFrameFormat::ColorSpace_BT601;
-    case AVCOL_SPC_BT2020_NCL: // Non constant luminence
-    case AVCOL_SPC_BT2020_CL: // Constant luminence
-        return QVideoFrameFormat::ColorSpace_BT2020;
-    }
+    return QFFmpeg::fromAvColorSpace(m_frame->colorspace);
 }
 
 QVideoFrameFormat::ColorTransfer QFFmpegVideoBuffer::colorTransfer() const
@@ -116,14 +94,7 @@ QVideoFrameFormat::ColorTransfer QFFmpegVideoBuffer::colorTransfer() const
 
 QVideoFrameFormat::ColorRange QFFmpegVideoBuffer::colorRange() const
 {
-    switch (m_frame->color_range) {
-    case AVCOL_RANGE_MPEG:
-        return QVideoFrameFormat::ColorRange_Video;
-    case AVCOL_RANGE_JPEG:
-        return QVideoFrameFormat::ColorRange_Full;
-    default:
-        return QVideoFrameFormat::ColorRange_Unknown;
-    }
+    return QFFmpeg::fromAvColorRange(m_frame->color_range);
 }
 
 float QFFmpegVideoBuffer::maxNits()

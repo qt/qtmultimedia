@@ -620,6 +620,95 @@ QVideoFrameFormat::ColorTransfer fromAvColorTransfer(AVColorTransferCharacterist
     return QVideoFrameFormat::ColorTransfer_Unknown;
 }
 
+AVColorTransferCharacteristic toAvColorTransfer(QVideoFrameFormat::ColorTransfer colorTrc)
+{
+    switch (colorTrc) {
+    case QVideoFrameFormat::ColorTransfer_BT709:
+        return AVCOL_TRC_BT709;
+    case QVideoFrameFormat::ColorTransfer_BT601:
+        return AVCOL_TRC_BT709; // which one is the best?
+    case QVideoFrameFormat::ColorTransfer_Linear:
+        return AVCOL_TRC_SMPTE2084;
+    case QVideoFrameFormat::ColorTransfer_Gamma22:
+        return AVCOL_TRC_GAMMA22;
+    case QVideoFrameFormat::ColorTransfer_Gamma28:
+        return AVCOL_TRC_GAMMA28;
+    case QVideoFrameFormat::ColorTransfer_ST2084:
+        return AVCOL_TRC_SMPTE2084;
+    case QVideoFrameFormat::ColorTransfer_STD_B67:
+        return AVCOL_TRC_ARIB_STD_B67;
+    default:
+        return AVCOL_TRC_UNSPECIFIED;
+    }
+}
+
+QVideoFrameFormat::ColorSpace fromAvColorSpace(AVColorSpace colorSpace)
+{
+    switch (colorSpace) {
+    default:
+    case AVCOL_SPC_UNSPECIFIED:
+    case AVCOL_SPC_RESERVED:
+    case AVCOL_SPC_FCC:
+    case AVCOL_SPC_SMPTE240M:
+    case AVCOL_SPC_YCGCO:
+    case AVCOL_SPC_SMPTE2085:
+    case AVCOL_SPC_CHROMA_DERIVED_NCL:
+    case AVCOL_SPC_CHROMA_DERIVED_CL:
+    case AVCOL_SPC_ICTCP: // BT.2100 ICtCp
+        return QVideoFrameFormat::ColorSpace_Undefined;
+    case AVCOL_SPC_RGB:
+        return QVideoFrameFormat::ColorSpace_AdobeRgb;
+    case AVCOL_SPC_BT709:
+        return QVideoFrameFormat::ColorSpace_BT709;
+    case AVCOL_SPC_BT470BG: // BT601
+    case AVCOL_SPC_SMPTE170M: // Also BT601
+        return QVideoFrameFormat::ColorSpace_BT601;
+    case AVCOL_SPC_BT2020_NCL: // Non constant luminence
+    case AVCOL_SPC_BT2020_CL: // Constant luminence
+        return QVideoFrameFormat::ColorSpace_BT2020;
+    }
+}
+
+AVColorSpace toAvColorSpace(QVideoFrameFormat::ColorSpace colorSpace)
+{
+    switch (colorSpace) {
+    case QVideoFrameFormat::ColorSpace_BT601:
+        return AVCOL_SPC_BT470BG;
+    case QVideoFrameFormat::ColorSpace_BT709:
+        return AVCOL_SPC_BT709;
+    case QVideoFrameFormat::ColorSpace_AdobeRgb:
+        return AVCOL_SPC_RGB;
+    case QVideoFrameFormat::ColorSpace_BT2020:
+        return AVCOL_SPC_BT2020_CL;
+    default:
+        return AVCOL_SPC_UNSPECIFIED;
+    }
+}
+
+QVideoFrameFormat::ColorRange fromAvColorRange(AVColorRange colorRange)
+{
+    switch (colorRange) {
+    case AVCOL_RANGE_MPEG:
+        return QVideoFrameFormat::ColorRange_Video;
+    case AVCOL_RANGE_JPEG:
+        return QVideoFrameFormat::ColorRange_Full;
+    default:
+        return QVideoFrameFormat::ColorRange_Unknown;
+    }
+}
+
+AVColorRange toAvColorRange(QVideoFrameFormat::ColorRange colorRange)
+{
+    switch (colorRange) {
+    case QVideoFrameFormat::ColorRange_Video:
+        return AVCOL_RANGE_MPEG;
+    case QVideoFrameFormat::ColorRange_Full:
+        return AVCOL_RANGE_JPEG;
+    default:
+        return AVCOL_RANGE_UNSPECIFIED;
+    }
+}
+
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t cvFormat)
 {

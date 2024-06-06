@@ -265,6 +265,16 @@ SwrContextUPtr createResampleContext(const AVAudioFormat &inputFormat,
 
 QVideoFrameFormat::ColorTransfer fromAvColorTransfer(AVColorTransferCharacteristic colorTrc);
 
+AVColorTransferCharacteristic toAvColorTransfer(QVideoFrameFormat::ColorTransfer colorTrc);
+
+QVideoFrameFormat::ColorSpace fromAvColorSpace(AVColorSpace colorSpace);
+
+AVColorSpace toAvColorSpace(QVideoFrameFormat::ColorSpace colorSpace);
+
+QVideoFrameFormat::ColorRange fromAvColorRange(AVColorRange colorRange);
+
+AVColorRange toAvColorRange(QVideoFrameFormat::ColorRange colorRange);
+
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t format);
 
