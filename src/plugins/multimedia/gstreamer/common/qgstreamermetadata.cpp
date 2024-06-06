@@ -304,7 +304,7 @@ void addTagToMetaData(const GstTagList *list, const gchar *tag, void *userdata)
         case QMediaMetaData::Language: {
             metadata.insert(key,
                             QVariant::fromValue(QLocale::codeToLanguage(
-                                    QString::fromUtf8(str_value), QLocale::ISO639Part2)));
+                                    QString::fromUtf8(str_value), QLocale::AnyLanguageCode)));
             break;
         }
         case QMediaMetaData::Orientation: {
