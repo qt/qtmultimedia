@@ -32,6 +32,8 @@ public:
         AVPixelFormat format = AV_PIX_FMT_NONE;
         AVPixelFormat swFormat = AV_PIX_FMT_NONE;
         QtVideo::Rotation rotation = QtVideo::Rotation::None;
+        bool xMirrored = false;
+        bool yMirrored = false;
         qreal frameRate = 0.;
         AVColorTransferCharacteristic colorTransfer = AVCOL_TRC_UNSPECIFIED;
         AVColorSpace colorSpace = AVCOL_SPC_UNSPECIFIED;

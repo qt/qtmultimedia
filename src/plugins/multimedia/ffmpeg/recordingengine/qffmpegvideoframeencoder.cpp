@@ -162,12 +162,15 @@ bool VideoFrameEncoder::initCodecContext(const SourceParams &sourceParams,
     m_stream->codecpar->color_space = sourceParams.colorSpace;
     m_stream->codecpar->color_range = sourceParams.colorRange;
 
-    if (sourceParams.rotation != QtVideo::Rotation::None) {
+    if (sourceParams.rotation != QtVideo::Rotation::None || sourceParams.xMirrored
+        || sourceParams.yMirrored) {
         constexpr auto displayMatrixSize = sizeof(int32_t) * 9;
         AVPacketSideData sideData = { reinterpret_cast<uint8_t *>(av_malloc(displayMatrixSize)),
                                       displayMatrixSize, AV_PKT_DATA_DISPLAYMATRIX };
-        av_display_rotation_set(reinterpret_cast<int32_t *>(sideData.data),
-                                static_cast<double>(sourceParams.rotation));
+        int32_t *matrix = reinterpret_cast<int32_t *>(sideData.data);
+        av_display_rotation_set(matrix, static_cast<double>(sourceParams.rotation));
+        av_display_matrix_flip(matrix, sourceParams.xMirrored, sourceParams.yMirrored);
+
         addStreamSideData(m_stream, sideData);
     }
 

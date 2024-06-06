@@ -35,6 +35,8 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
     sourceParams.format = hwFormat && *hwFormat != AV_PIX_FMT_NONE ? *hwFormat : swFormat;
     sourceParams.swFormat = swFormat;
     sourceParams.rotation = format.rotation();
+    sourceParams.xMirrored = format.isMirrored();
+    sourceParams.yMirrored = format.scanLineDirection() == QVideoFrameFormat::BottomToTop;
     sourceParams.frameRate = frameRate;
     sourceParams.colorTransfer = QFFmpeg::toAvColorTransfer(format.colorTransfer());
     sourceParams.colorSpace = QFFmpeg::toAvColorSpace(format.colorSpace());
