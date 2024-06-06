@@ -27,14 +27,11 @@ public:
 
     MapData map(QtVideo::MapMode mode) override;
 
-    void unmap() override;
-
     QVideoFrameFormat format() const override { return {}; }
 
     QImage underlyingImage() const;
 
 private:
-    QtVideo::MapMode m_mapMode = QtVideo::MapMode::NotMapped;
     QImage m_image;
 };
 

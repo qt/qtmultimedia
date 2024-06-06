@@ -56,10 +56,8 @@ QImageVideoBuffer::QImageVideoBuffer(QImage image) : m_image(fixImage(std::move(
 QAbstractVideoBuffer::MapData QImageVideoBuffer::map(QtVideo::MapMode mode)
 {
     MapData mapData;
-    if (m_mapMode == QtVideo::MapMode::NotMapped && !m_image.isNull()
-        && mode != QtVideo::MapMode::NotMapped) {
-        m_mapMode = mode;
 
+    if (!m_image.isNull()) {
         mapData.planeCount = 1;
         mapData.bytesPerLine[0] = m_image.bytesPerLine();
         if (mode == QtVideo::MapMode::ReadOnly)
@@ -70,11 +68,6 @@ QAbstractVideoBuffer::MapData QImageVideoBuffer::map(QtVideo::MapMode mode)
     }
 
     return mapData;
-}
-
-void QImageVideoBuffer::unmap()
-{
-    m_mapMode = QtVideo::MapMode::NotMapped;
 }
 
 QImage QImageVideoBuffer::underlyingImage() const
