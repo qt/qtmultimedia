@@ -127,8 +127,38 @@ void tst_GStreamer::metadata_taglistToMetaData_extractsDuration()
             R"__(taglist, video-codec=(string)"On2\ VP9",  container-specific-track-id=(string)1, extended-comment=(string){ "ALPHA_MODE\=1", "HANDLER_NAME\=Apple\ Video\ Media\ Handler", "VENDOR_ID\=appl", "TIMECODE\=00:00:00:00", "DURATION\=00:00:00.400000000" }, encoder=(string)"Lavc59.37.100\ libvpx-vp9")__");
 
     QMediaMetaData parsed = taglistToMetaData(tagList);
-
     QCOMPARE(parsed[QMediaMetaData::Duration].value<int>(), 400);
+}
+
+void tst_GStreamer::metadata_taglistToMetaData_extractsLanguage()
+{
+    QFETCH(QByteArray, tagListString);
+    QFETCH(QLocale::Language, language);
+
+    QGstTagListHandle tagList = parseTagList(tagListString);
+    QVERIFY(tagList);
+
+    QMediaMetaData parsed = taglistToMetaData(tagList);
+    QCOMPARE(parsed[QMediaMetaData::Language].value<QLocale::Language>(), language);
+}
+
+void tst_GStreamer::metadata_taglistToMetaData_extractsLanguage_data()
+{
+    QTest::addColumn<QByteArray>("tagListString");
+    QTest::addColumn<QLocale::Language>("language");
+
+    QTest::newRow("english, en")
+            << R"__(taglist, container-format=(string)Matroska, audio-codec=(string)"MPEG-4\ AAC", language-code=(string)en, container-specific-track-id=(string)5, encoder=(string)Lavf60.16.100, extended-comment=(string)"DURATION\=00:00:05.055000000")__"_ba
+            << QLocale::Language::English;
+    QTest::newRow("spanish, es")
+            << R"__(taglist, container-format=(string)Matroska, audio-codec=(string)"MPEG-4\ AAC", language-code=(string)es, container-specific-track-id=(string)5, encoder=(string)Lavf60.16.100, extended-comment=(string)"DURATION\=00:00:05.055000000")__"_ba
+            << QLocale::Language::Spanish;
+    QTest::newRow("english, eng")
+            << R"__(taglist, container-format=(string)Matroska, audio-codec=(string)"MPEG-4\ AAC", language-code=(string)eng, container-specific-track-id=(string)5, encoder=(string)Lavf60.16.100, extended-comment=(string)"DURATION\=00:00:05.055000000")__"_ba
+            << QLocale::Language::English;
+    QTest::newRow("spanish, spa")
+            << R"__(taglist, container-format=(string)Matroska, audio-codec=(string)"MPEG-4\ AAC", language-code=(string)spa, container-specific-track-id=(string)5, encoder=(string)Lavf60.16.100, extended-comment=(string)"DURATION\=00:00:05.055000000")__"_ba
+            << QLocale::Language::Spanish;
 }
 
 void tst_GStreamer::metadata_capsToMetaData()
