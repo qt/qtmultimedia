@@ -304,9 +304,9 @@ void QGstPipeline::seek(std::chrono::nanoseconds pos, double rate)
     // setting position needs a loaded media file that's seekable
 
     bool success = (rate > 0)
-            ? gst_element_seek(element(), d->m_rate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
+            ? gst_element_seek(element(), rate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
                                GST_SEEK_TYPE_SET, pos.count(), GST_SEEK_TYPE_END, 0)
-            : gst_element_seek(element(), d->m_rate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
+            : gst_element_seek(element(), rate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
                                GST_SEEK_TYPE_SET, 0, GST_SEEK_TYPE_SET, pos.count());
 
     if (!success) {
@@ -343,12 +343,17 @@ void QGstPipeline::applyPlaybackRate(bool instantRateChange)
 {
     QGstPipelinePrivate *d = getPrivate();
 
-    bool success = gst_element_seek(element(), d->m_rate, GST_FORMAT_UNDEFINED,
-                                    instantRateChange ? rateChangeSeekFlags : GST_SEEK_FLAG_FLUSH,
-                                    GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE, GST_SEEK_TYPE_NONE,
-                                    GST_CLOCK_TIME_NONE);
-    if (!success)
-        qDebug() << "setPlaybackRate: gst_element_seek failed";
+    // do not GST_SEEK_FLAG_FLUSH with GST_SEEK_TYPE_NONE
+    // https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/3604
+    if (instantRateChange && GST_CHECK_VERSION(1, 18, 0)) {
+        bool success = gst_element_seek(
+                element(), d->m_rate, GST_FORMAT_UNDEFINED, rateChangeSeekFlags, GST_SEEK_TYPE_NONE,
+                GST_CLOCK_TIME_NONE, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
+        if (!success)
+            qDebug() << "setPlaybackRate: gst_element_seek failed";
+    } else {
+        seek(position(), d->m_rate);
+    }
 }
 
 void QGstPipeline::setPosition(std::chrono::nanoseconds pos)
