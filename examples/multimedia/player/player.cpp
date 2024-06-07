@@ -108,7 +108,10 @@ Player::Player(QWidget *parent) : QWidget(parent)
     connect(controls, &PlayerControls::changeRate, m_player, &QMediaPlayer::setPlaybackRate);
     connect(controls, &PlayerControls::stop, m_videoWidget, QOverload<>::of(&QVideoWidget::update));
 
-    connect(m_player, &QMediaPlayer::playbackStateChanged, controls, &PlayerControls::setState);
+    connect(m_player, &QMediaPlayer::playbackStateChanged, controls,
+            [controls](QMediaPlayer::PlaybackState arg) {
+        controls->setState(arg);
+    });
     connect(m_audioOutput, &QAudioOutput::volumeChanged, controls, &PlayerControls::setVolume);
     connect(m_audioOutput, &QAudioOutput::mutedChanged, controls, &PlayerControls::setMuted);
 
