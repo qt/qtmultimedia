@@ -123,6 +123,8 @@ private slots:
     void pause_entersPauseState_whenPlayerWasPlaying();
     void pause_initializesExpectedDefaultState();
     void pause_initializesExpectedDefaultState_data();
+    void pause_doesNotAdvancePosition();
+    void pause_playback_resumesFromPausedPosition();
 
     void play_resetsErrorState_whenCalledWithInvalidFile();
     void play_resumesPlaying_whenValidMediaIsProvidedAfterInvalidMedia();
@@ -1221,6 +1223,51 @@ void tst_QMediaPlayerBackend::pause_initializesExpectedDefaultState_data()
     QTest::addRow("with video file") << m_localVideoFile << true << true;
     QTest::addRow("with av1 file") << m_av1File << true << false;
     QTest::addRow("with compressed sound file") << m_localCompressedSoundFile << false << true;
+}
+
+void tst_QMediaPlayerBackend::pause_doesNotAdvancePosition()
+{
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    QMediaPlayer &player = m_fixture->player;
+    player.setSource(*m_localVideoFile);
+
+    player.pause();
+
+    QTest::qWait(1s);
+
+    QTRY_COMPARE_EQ(player.position(), 0);
+}
+
+void tst_QMediaPlayerBackend::pause_playback_resumesFromPausedPosition()
+{
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    QMediaPlayer &player = m_fixture->player;
+    player.setSource(*m_localVideoFile);
+
+    player.play();
+
+    QTRY_COMPARE_GT(player.position(), 100);
+
+    player.pause();
+
+    qint64 pausePos = player.position();
+    QTest::qWait(1s);
+
+    QCOMPARE_EQ(player.position(), pausePos);
+
+    player.play();
+
+    // Make sure the media player does not make up for the lost time
+    m_fixture->positionChanged.wait();
+    m_fixture->positionChanged.wait();
+
+    QCOMPARE_LT(player.position(), pausePos + 500);
 }
 
 void tst_QMediaPlayerBackend::play_resetsErrorState_whenCalledWithInvalidFile()
