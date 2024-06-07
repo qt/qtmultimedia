@@ -18,9 +18,9 @@ public:
         return sendMediaFrame([&]() { emit m_platfromVideoFrameInput->newVideoFrame(frame); });
     }
 
-    void initialize()
+    void initialize(QVideoFrameFormat format = {})
     {
-        m_platfromVideoFrameInput = std::make_unique<QPlatformVideoFrameInput>();
+        m_platfromVideoFrameInput = std::make_unique<QPlatformVideoFrameInput>(std::move(format));
         addUpdateSignal(m_platfromVideoFrameInput.get(), &QPlatformVideoFrameInput::encoderUpdated);
     }
 
@@ -79,11 +79,26 @@ private:
 /*!
     Constructs a new QVideoFrameInput object with \a parent.
 */
-QVideoFrameInput::QVideoFrameInput(QObject *parent)
+QVideoFrameInput::QVideoFrameInput(QObject *parent) : QVideoFrameInput({}, parent) { }
+
+/*!
+    Constructs a new QVideoFrameInput object with video frame \a format and \a parent.
+
+    The specified \a format will work as a hint for the initialization of the matching
+    video encoder upon invoking \l QMediaRecorder::record().
+    If the format is not specified or not valid, the video encoder will be initialized
+    upon sending the first frame.
+    Sending of video frames with another pixel format and size after initialization
+    of the matching video encoder might cause a performance penalty during recording.
+
+    We recommend specifying the format if you know in advance what kind of frames you're
+    going to send.
+*/
+QVideoFrameInput::QVideoFrameInput(const QVideoFrameFormat &format, QObject *parent)
     : QObject(*new QVideoFrameInputPrivate(this), parent)
 {
     Q_D(QVideoFrameInput);
-    d->initialize();
+    d->initialize(format);
 }
 
 /*!
@@ -116,6 +131,16 @@ bool QVideoFrameInput::sendVideoFrame(const QVideoFrame &frame)
 {
     Q_D(QVideoFrameInput);
     return d->sendVideoFrame(frame);
+}
+
+/*!
+    Returns the video frame format that was specified
+    upon construction of the video frame input.
+*/
+QVideoFrameFormat QVideoFrameInput::format() const
+{
+    Q_D(const QVideoFrameInput);
+    return d->platfromVideoFrameInput()->frameFormat();
 }
 
 /*!

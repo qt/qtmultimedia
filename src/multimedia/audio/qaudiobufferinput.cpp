@@ -19,9 +19,9 @@ public:
                 [&]() { emit m_platfromAudioBufferInput->newAudioBuffer(audioBuffer); });
     }
 
-    void initialize()
+    void initialize(const QAudioFormat &format = {})
     {
-        m_platfromAudioBufferInput = std::make_unique<QPlatformAudioBufferInput>();
+        m_platfromAudioBufferInput = std::make_unique<QPlatformAudioBufferInput>(format);
         addUpdateSignal(m_platfromAudioBufferInput.get(),
                         &QPlatformAudioBufferInput::encoderUpdated);
     }
@@ -86,11 +86,24 @@ private:
 /*!
     Constructs a new QAudioBufferInput object with \a parent.
 */
-QAudioBufferInput::QAudioBufferInput(QObject *parent)
+QAudioBufferInput::QAudioBufferInput(QObject *parent) : QAudioBufferInput({}, parent) { }
+
+/*!
+    Constructs a new QAudioBufferInput object with audio \a format and \a parent.
+
+    The specified \a format will work as a hint for the initialization of the matching
+    audio encoder upon invoking \l QMediaRecorder::record().
+    If the format is not specified or not valid, the audio encoder will be initialized
+    upon sending the first audio buffer.
+
+    We recommend specifying the format if you know in advance what kind of audio buffers
+    you're going to send.
+*/
+QAudioBufferInput::QAudioBufferInput(const QAudioFormat &format, QObject *parent)
     : QObject(*new QAudioBufferInputPrivate(this), parent)
 {
     Q_D(QAudioBufferInput);
-    d->initialize();
+    d->initialize(format);
 }
 
 /*!
@@ -122,6 +135,15 @@ bool QAudioBufferInput::sendAudioBuffer(const QAudioBuffer &audioBuffer)
 {
     Q_D(QAudioBufferInput);
     return d->sendAudioBuffer(audioBuffer);
+}
+
+/*!
+    Returns the audio format that was specified upon construction of the audio buffer input.
+*/
+QAudioFormat QAudioBufferInput::format() const
+{
+    Q_D(const QAudioBufferInput);
+    return d->platfromAudioBufferInput()->audioFormat();
 }
 
 /*!

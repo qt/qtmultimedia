@@ -20,9 +20,13 @@ class Q_MULTIMEDIA_EXPORT QAudioBufferInput : public QObject
 public:
     explicit QAudioBufferInput(QObject *parent = nullptr);
 
+    explicit QAudioBufferInput(const QAudioFormat &format, QObject *parent = nullptr);
+
     ~QAudioBufferInput() override;
 
     bool sendAudioBuffer(const QAudioBuffer &audioBuffer);
+
+    QAudioFormat format() const;
 
     QMediaCaptureSession *captureSession() const;
 

@@ -33,7 +33,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioBufferInput : public QPlatformAudioBuffe
 {
     Q_OBJECT
 public:
-    QPlatformAudioBufferInput(QAudioFormat format = {}) : m_format(std::move(format)) { }
+    QPlatformAudioBufferInput(const QAudioFormat &format = {}) : m_format(format) { }
 
     const QAudioFormat &audioFormat() const { return m_format; }
 

@@ -20,9 +20,13 @@ class Q_MULTIMEDIA_EXPORT QVideoFrameInput : public QObject
 public:
     explicit QVideoFrameInput(QObject *parent = nullptr);
 
+    explicit QVideoFrameInput(const QVideoFrameFormat &format, QObject *parent = nullptr);
+
     ~QVideoFrameInput() override;
 
     bool sendVideoFrame(const QVideoFrame &frame);
+
+    QVideoFrameFormat format() const;
 
     QMediaCaptureSession *captureSession() const;
 
