@@ -248,10 +248,11 @@ void QGstreamerMediaPlayer::setPosition(std::chrono::milliseconds pos)
 
 void QGstreamerMediaPlayer::play()
 {
-    if (state() == QMediaPlayer::PlayingState || m_url.isEmpty())
+    QMediaPlayer::PlaybackState currentState = state();
+    if (currentState == QMediaPlayer::PlayingState || m_url.isEmpty())
         return;
 
-    if (state() != QMediaPlayer::PausedState)
+    if (currentState != QMediaPlayer::PausedState)
         resetCurrentLoop();
 
     playerPipeline.setInStoppedState(false);
@@ -268,10 +269,12 @@ void QGstreamerMediaPlayer::play()
         playerPipeline.flush();
         m_requiresSeekOnPlay = false;
     } else {
-        // we get an assertion failure during instant playback rate changes
-        // https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/3545
-        constexpr bool performInstantRateChange = false;
-        playerPipeline.applyPlaybackRate(/*instantRateChange=*/performInstantRateChange);
+        if (currentState == QMediaPlayer::StoppedState) {
+            // we get an assertion failure during instant playback rate changes
+            // https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/3545
+            constexpr bool performInstantRateChange = false;
+            playerPipeline.applyPlaybackRate(/*instantRateChange=*/performInstantRateChange);
+        }
     }
     if (ret == GST_STATE_CHANGE_FAILURE)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the playing state.";
