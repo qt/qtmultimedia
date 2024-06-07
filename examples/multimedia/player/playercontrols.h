@@ -26,7 +26,7 @@ public:
     qreal playbackRate() const;
 
 public slots:
-    void setState(QMediaPlayer::PlaybackState state);
+    void setState(QMediaPlayer::PlaybackState state, bool force = false);
     void setVolume(float volume);
     void setMuted(bool muted);
     void setPlaybackRate(float rate);
@@ -43,6 +43,7 @@ signals:
 
 private slots:
     void playClicked();
+    void pauseClicked();
     void muteClicked();
     void updateRate();
     void onVolumeSliderValueChanged();
@@ -51,6 +52,7 @@ private:
     QMediaPlayer::PlaybackState m_playerState = QMediaPlayer::StoppedState;
     bool m_playerMuted = false;
     QAbstractButton *m_playButton = nullptr;
+    QAbstractButton *m_pauseButton = nullptr;
     QAbstractButton *m_stopButton = nullptr;
     QAbstractButton *m_nextButton = nullptr;
     QAbstractButton *m_previousButton = nullptr;
