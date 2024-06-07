@@ -140,7 +140,7 @@ int QDarwinAudioSinkBuffer::available() const
 void QDarwinAudioSinkBuffer::reset()
 {
     m_buffer->reset();
-    m_device = 0;
+    m_device = nullptr;
     m_deviceError = false;
 }
 
@@ -616,7 +616,7 @@ bool QDarwinAudioSink::open()
 void QDarwinAudioSink::close()
 {
     if (m_audioUnit != 0) {
-        AudioOutputUnitStop(m_audioUnit);
+        audioDeviceStop();
         AudioUnitUninitialize(m_audioUnit);
         AudioComponentInstanceDispose(m_audioUnit);
     }
@@ -626,32 +626,61 @@ void QDarwinAudioSink::close()
 
 void QDarwinAudioSink::audioThreadStart()
 {
-    QMutexLocker lock(&m_mutex);
     startTimers();
-    m_audioThreadState.storeRelaxed(Running);
-    AudioOutputUnitStart(m_audioUnit);
+    audioDeviceStart();
 }
 
 void QDarwinAudioSink::audioThreadStop()
 {
-    QMutexLocker lock(&m_mutex);
     stopTimers();
-    if (m_audioThreadState.testAndSetAcquire(Running, Stopped))
-        m_threadFinished.wait(&m_mutex, 500);
+
+    // It's common practice to call AudioOutputUnitStop
+    // from the thread where the audio output was started,
+    // so we don't have to rely on the stops inside renderCallback.
+    audioDeviceStop();
 }
 
 void QDarwinAudioSink::audioThreadDrain()
 {
-    QMutexLocker lock(&m_mutex);
     stopTimers();
-    if (m_audioThreadState.testAndSetAcquire(Running, Draining))
-        m_threadFinished.wait(&m_mutex, 500);
+
+    QMutexLocker lock(&m_mutex);
+
+    if (m_audioThreadState.testAndSetAcquire(Running, Draining)) {
+        constexpr int MaxDrainWaitingTime = 500;
+
+        m_threadFinished.wait(&m_mutex, MaxDrainWaitingTime);
+
+        if (m_audioThreadState.fetchAndStoreRelaxed(Stopped) != Stopped) {
+            qWarning() << "Couldn't wait for draining; force stop";
+
+            AudioOutputUnitStop(m_audioUnit);
+        }
+    }
+}
+
+void QDarwinAudioSink::audioDeviceStart()
+{
+    QMutexLocker lock(&m_mutex);
+
+    const auto state = m_audioThreadState.loadAcquire();
+    if (state == Stopped) {
+        m_audioThreadState.storeRelaxed(Running);
+        AudioOutputUnitStart(m_audioUnit);
+    } else {
+        qWarning() << "Unexpected state on audio device start:" << state;
+    }
 }
 
 void QDarwinAudioSink::audioDeviceStop()
 {
-    AudioOutputUnitStop(m_audioUnit);
-    m_audioThreadState.storeRelaxed(Stopped);
+    {
+        QMutexLocker lock(&m_mutex);
+
+        AudioOutputUnitStop(m_audioUnit);
+        m_audioThreadState.storeRelaxed(Stopped);
+    }
+
     m_threadFinished.wakeOne();
 }
 
@@ -660,10 +689,11 @@ void QDarwinAudioSink::audioDeviceIdle()
     if (m_stateCode != QAudio::ActiveState)
         return;
 
-    audioDeviceStop();
-
     m_errorCode = QAudio::UnderrunError;
     m_stateCode = QAudio::IdleState;
+
+    audioDeviceStop();
+
     QMetaObject::invokeMethod(this, "deviceStopped", Qt::QueuedConnection);
 }
 
@@ -672,10 +702,11 @@ void QDarwinAudioSink::audioDeviceError()
     if (m_stateCode != QAudio::ActiveState)
         return;
 
-    audioDeviceStop();
-
     m_errorCode = QAudio::IOError;
     m_stateCode = QAudio::StoppedState;
+
+    audioDeviceStop();
+
     QMetaObject::invokeMethod(this, "deviceStopped", Qt::QueuedConnection);
 }
 

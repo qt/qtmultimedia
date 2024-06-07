@@ -110,7 +110,6 @@ private:
     bool m_continuousVideoFocusSupported = false;
     bool m_focusPointSupported = false;
 
-    float m_maximumZoom;
     QList<int> m_zoomRatios;
 
     QList<QCamera::ExposureMode> m_supportedExposureModes;

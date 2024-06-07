@@ -218,20 +218,7 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
     qDebug() << Q_FUNC_INFO << "isPlayable: " << [asset isPlayable];
 #endif
     if (!asset.playable)
-    {
-        //Generate an error describing the failure.
-        NSString *localizedDescription = NSLocalizedString(@"Item cannot be played", @"Item cannot be played description");
-        NSString *localizedFailureReason = NSLocalizedString(@"The assets tracks were loaded, but could not be made playable.", @"Item cannot be played failure reason");
-        NSDictionary *errorDict = [NSDictionary dictionaryWithObjectsAndKeys:
-                localizedDescription, NSLocalizedDescriptionKey,
-                localizedFailureReason, NSLocalizedFailureReasonErrorKey,
-                nil];
-        NSError *assetCannotBePlayedError = [NSError errorWithDomain:@"StitchedStreamPlayer" code:0 userInfo:errorDict];
-
-        [self assetFailedToPrepareForPlayback:assetCannotBePlayedError];
-
-        return;
-    }
+        qWarning() << "Asset reported to be not playable. Playback of this asset may not be possible.";
 
     //At this point we're ready to set up for playback of the asset.
     //Stop observing our prior AVPlayerItem, if we have one.
@@ -243,6 +230,20 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 
     //Create a new instance of AVPlayerItem from the now successfully loaded AVAsset.
     m_playerItem = [AVPlayerItem playerItemWithAsset:asset];
+    if (!m_playerItem) {
+        qWarning() << "Failed to create player item";
+        //Generate an error describing the failure.
+        NSString *localizedDescription = NSLocalizedString(@"Item cannot be played", @"Item cannot be played description");
+        NSString *localizedFailureReason = NSLocalizedString(@"The assets tracks were loaded, but couldn't create player item.", @"Item cannot be played failure reason");
+        NSDictionary *errorDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                localizedDescription, NSLocalizedDescriptionKey,
+                localizedFailureReason, NSLocalizedFailureReasonErrorKey,
+                nil];
+        NSError *assetCannotBePlayedError = [NSError errorWithDomain:@"StitchedStreamPlayer" code:0 userInfo:errorDict];
+
+        [self assetFailedToPrepareForPlayback:assetCannotBePlayedError];
+        return;
+    }
 
     //Observe the player item "status" key to determine when it is ready to play.
     [m_playerItem addObserver:self

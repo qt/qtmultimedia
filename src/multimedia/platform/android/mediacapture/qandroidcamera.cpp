@@ -233,13 +233,11 @@ void QAndroidCamera::onCameraOpened()
     if (m_cameraSession->camera()->isZoomSupported()) {
         m_zoomRatios = m_cameraSession->camera()->getZoomRatios();
         qreal maxZoom = m_zoomRatios.last() / qreal(100);
-        if (m_maximumZoom != maxZoom) {
-            m_maximumZoom = maxZoom;
-        }
+        maximumZoomFactorChanged(maxZoom);
         zoomTo(1, -1);
     } else {
         m_zoomRatios.clear();
-        m_maximumZoom = 1.0;
+        maximumZoomFactorChanged(1.0);
     }
 
     m_minExposureCompensationIndex = m_cameraSession->camera()->getMinExposureCompensation();

@@ -53,7 +53,6 @@ MFStream::MFStream(QIODevice *stream, bool ownStream)
     //to make sure invocations on stream
     //are happened in the same thread of stream object
     this->moveToThread(stream->thread());
-    connect(stream, SIGNAL(readyRead()), this, SLOT(handleReadyRead()));
 }
 
 MFStream::~MFStream()
@@ -285,12 +284,6 @@ void MFStream::doRead()
         m_currentReadResult->SetStatus(hr);
         MFInvokeCallback(m_currentReadResult);
     }
-}
-
-
-void MFStream::handleReadyRead()
-{
-    doRead();
 }
 
 void MFStream::customEvent(QEvent *event)

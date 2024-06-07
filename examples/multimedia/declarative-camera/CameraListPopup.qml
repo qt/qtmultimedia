@@ -97,6 +97,7 @@ Popup {
                 onClicked: {
                     view.currentIndex = index
                     cameraListPopup.currentValue = modelData
+                    popup.selected()
                 }
             }
         }
