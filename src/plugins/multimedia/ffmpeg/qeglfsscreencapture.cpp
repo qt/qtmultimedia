@@ -58,7 +58,7 @@ protected:
             m_format.setStreamFrameRate(frameRate());
         }
 
-        return QVideoFrame(videoBuffer.release(), m_format);
+        return QVideoFramePrivate::createFrame(std::move(videoBuffer), m_format);
     }
 
     QVideoFrameFormat m_format;
