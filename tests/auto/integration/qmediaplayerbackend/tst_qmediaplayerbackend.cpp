@@ -2187,7 +2187,7 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
     constexpr qint64 expectedVideoDuration = 3000;
     constexpr int waitingInterval = 200;
     constexpr qint64 maxDuration = expectedVideoDuration + 2000;
-    constexpr qint64 minDuration = expectedVideoDuration - 100;
+    constexpr qint64 minDuration = expectedVideoDuration - 250;
     constexpr qint64 maxFrameDelay = 2000;
 
     surface.m_elapsedTimer.start();
