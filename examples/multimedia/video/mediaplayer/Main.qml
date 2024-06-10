@@ -41,7 +41,7 @@ ApplicationWindow {
 
         Timer {
             id: timer
-            interval: 3000 // milliseconds
+            interval: 1500 // milliseconds
             onTriggered: activityListener.inactiveMouse = true
         }
 

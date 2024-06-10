@@ -27,7 +27,6 @@ Item {
                         || settingsPopup.visible
                         || audioControl.busy
                         || playbackSeekControl.busy
-                        || !playbackController.mediaPlayer.playing
 
     implicitHeight: landscapePlaybackControls ? 168 : 208
 
