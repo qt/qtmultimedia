@@ -79,7 +79,7 @@ public:
 
     Q_INVOKABLE static QString metaDataKeyToString(Key k);
 
-    QT_TECH_PREVIEW_API auto asKeyValueRange() const { return data.asKeyValueRange(); }
+    auto asKeyValueRange() const { return data.asKeyValueRange(); }
 
 protected:
     Q_MULTIMEDIA_EXPORT friend QDebug operator<<(QDebug, const QMediaMetaData &);

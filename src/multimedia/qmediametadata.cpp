@@ -542,7 +542,9 @@ QDebug operator<<(QDebug dbg, const QMediaMetaData &metaData)
 
 /*!
     \fn auto QMediaMetaData::asKeyValueRange() const
-    \internal
+    \since 6.9
+
+    Returns a range object that allows iteration over this hash as key/value pairs.
 */
 
 QT_END_NAMESPACE
