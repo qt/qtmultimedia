@@ -709,6 +709,19 @@ AVColorRange toAvColorRange(QVideoFrameFormat::ColorRange colorRange)
     }
 }
 
+AVHWDeviceContext* avFrameDeviceContext(const AVFrame* frame) {
+    if (!frame)
+        return {};
+    if (!frame->hw_frames_ctx)
+        return {};
+
+    const auto *frameCtx = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data);
+    if (!frameCtx)
+        return {};
+
+    return frameCtx->device_ctx;
+}
+
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t cvFormat)
 {

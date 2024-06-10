@@ -95,6 +95,8 @@ private:
     TextureBridge m_bridge;
 };
 
+AVFrameUPtr copyFromHwPoolD3D11(AVFrameUPtr src);
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

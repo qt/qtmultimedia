@@ -275,6 +275,8 @@ QVideoFrameFormat::ColorRange fromAvColorRange(AVColorRange colorRange);
 
 AVColorRange toAvColorRange(QVideoFrameFormat::ColorRange colorRange);
 
+AVHWDeviceContext *avFrameDeviceContext(const AVFrame *frame);
+
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t format);
 
