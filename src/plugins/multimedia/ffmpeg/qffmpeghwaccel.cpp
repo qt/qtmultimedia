@@ -499,6 +499,15 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
     d->format = fmt;
 }
 
+AVFrameUPtr copyFromHwPool(AVFrameUPtr frame)
+{
+#if QT_CONFIG(wmf)
+    return copyFromHwPoolD3D11(std::move(frame));
+#else
+    return frame;
+#endif
+}
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

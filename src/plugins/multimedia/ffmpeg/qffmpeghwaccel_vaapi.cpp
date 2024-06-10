@@ -217,8 +217,7 @@ TextureSet *VAAPITextureConverter::getTextures(AVFrame *frame)
     if (!frame->hw_frames_ctx)
         return nullptr;
 
-    auto *fCtx = (AVHWFramesContext *)frame->hw_frames_ctx->data;
-    auto *ctx = fCtx->device_ctx;
+    auto *ctx = avFrameDeviceContext(frame);
     if (!ctx)
         return nullptr;
 

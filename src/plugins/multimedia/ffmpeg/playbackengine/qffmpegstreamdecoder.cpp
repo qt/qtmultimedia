@@ -163,6 +163,11 @@ void StreamDecoder::receiveAVFrames()
             break;
         }
 
+
+        // Avoid starvation on FFmpeg decoders with fixed size frame pool
+        if (m_trackType == QPlatformMediaPlayer::VideoStream)
+            avFrame = copyFromHwPool(std::move(avFrame));
+
         onFrameFound({ m_offset, std::move(avFrame), m_codec, 0, id() });
     }
 }

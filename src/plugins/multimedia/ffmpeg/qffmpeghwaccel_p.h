@@ -123,6 +123,8 @@ private:
     HWAccel(AVBufferUPtr hwDeviceContext) : m_hwDeviceContext(std::move(hwDeviceContext)) { }
 };
 
+AVFrameUPtr copyFromHwPool(AVFrameUPtr frame);
+
 }
 
 QT_END_NAMESPACE
