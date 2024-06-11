@@ -12,6 +12,11 @@ inline bool isGStreamerPlatform()
     return QPlatformMediaIntegration::instance()->name() == "gstreamer";
 }
 
+inline bool isQNXPlatform()
+{
+    return QPlatformMediaIntegration::instance()->name() == "qnx";
+}
+
 inline bool isDarwinPlatform()
 {
     return QPlatformMediaIntegration::instance()->name() == "darwin";
