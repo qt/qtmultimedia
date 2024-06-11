@@ -96,12 +96,15 @@ private slots:
     void setSource_emitsMediaStatusChange_whenCalledWithInvalidFile();
     void setSource_doesNotEmitPlaybackStateChange_whenCalledWithInvalidFile();
     void setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidFile();
+    void setSource_initializesExpectedDefaultState();
+    void setSource_initializesExpectedDefaultState_data();
     void setSource_silentlyCancelsPreviousCall_whenServerDoesNotRespond();
     void setSource_changesSourceAndMediaStatus_whenCalledWithValidFile();
     void setSource_updatesExpectedAttributes_whenMediaHasLoaded();
     void setSource_stopsAndEntersErrorState_whenPlayerWasPlaying();
     void setSource_loadsAudioTrack_whenCalledWithValidWavFile();
     void setSource_resetsState_whenCalledWithEmptyUrl();
+    void setSource_resetsState_whenCalledWithEmptyUrl_data();
     void setSource_loadsNewMedia_whenPreviousMediaWasFullyLoaded();
     void setSource_loadsCorrectTracks_whenLoadingMediaInSequence();
     void setSource_remainsInStoppedState_whenPlayerWasStopped();
@@ -118,6 +121,8 @@ private slots:
     void pause_doesNotChangePlayerState_whenInvalidFileLoaded();
     void pause_doesNothing_whenMediaIsNotLoaded();
     void pause_entersPauseState_whenPlayerWasPlaying();
+    void pause_initializesExpectedDefaultState();
+    void pause_initializesExpectedDefaultState_data();
 
     void play_resetsErrorState_whenCalledWithInvalidFile();
     void play_resumesPlaying_whenValidMediaIsProvidedAfterInvalidMedia();
@@ -542,6 +547,44 @@ void tst_QMediaPlayerBackend::setSource_setsSourceMediaStatusAndError_whenCalled
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
 }
 
+void tst_QMediaPlayerBackend::setSource_initializesExpectedDefaultState()
+{
+    QFETCH(MaybeUrl, url);
+    CHECK_SELECTED_URL(url);
+
+    QMediaPlayer &player = m_fixture->player;
+    player.setSource(*url);
+
+    MediaPlayerState expectedState = MediaPlayerState::defaultState();
+    expectedState.source = *url;
+    expectedState.mediaStatus = QMediaPlayer::LoadingMedia;
+
+    if (isGStreamerPlatform()) {
+        // gstreamer initializes the tracks
+        expectedState.audioTracks = std::nullopt;
+        expectedState.videoTracks = std::nullopt;
+        expectedState.activeAudioTrack = std::nullopt;
+        expectedState.activeVideoTrack = std::nullopt;
+        expectedState.hasAudio = std::nullopt;
+        expectedState.hasVideo = std::nullopt;
+
+        expectedState.isSeekable = true;
+    }
+
+    const MediaPlayerState actualState{ m_fixture->player };
+    COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
+}
+
+void tst_QMediaPlayerBackend::setSource_initializesExpectedDefaultState_data()
+{
+    QTest::addColumn<MaybeUrl>("url");
+
+    QTest::addRow("with wave file") << m_localWavFile;
+    QTest::addRow("with video file") << m_localVideoFile;
+    QTest::addRow("with av1 file") << m_av1File;
+    QTest::addRow("with compressed sound file") << m_localCompressedSoundFile;
+}
+
 void tst_QMediaPlayerBackend::setSource_silentlyCancelsPreviousCall_whenServerDoesNotRespond()
 {
 #ifdef QT_FEATURE_network
@@ -691,25 +734,31 @@ void tst_QMediaPlayerBackend::setSource_loadsAudioTrack_whenCalledWithValidWavFi
 
 void tst_QMediaPlayerBackend::setSource_resetsState_whenCalledWithEmptyUrl()
 {
-    CHECK_SELECTED_URL(m_localWavFile);
+    QFETCH(MaybeUrl, url);
+    CHECK_SELECTED_URL(url);
+
+    QMediaPlayer &player = m_fixture->player;
 
     // Load valid media and start playing
-    m_fixture->player.setSource(*m_localWavFile);
+    player.setSource(*url);
 
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
-    QVERIFY(m_fixture->player.position() == 0);
-#ifdef Q_OS_QNX
-    // QNX mm-renderer only updates the duration when 'play' is triggered
-    QVERIFY(m_fixture->player.duration() == 0);
-#else
-    QVERIFY(m_fixture->player.duration() > 0);
-#endif
+    QCOMPARE(player.position(), 0);
 
-    m_fixture->player.play();
+    if (isQNXPlatform())
+        // QNX mm-renderer updates the duration when 'play' is triggered
+        QCOMPARE(player.duration(), 0);
+    else
+        QCOMPARE_GT(player.duration(), 0);
 
-    QTRY_VERIFY(m_fixture->player.position() > 0);
-    QVERIFY(m_fixture->player.duration() > 0);
+    player.play();
+
+    QTRY_COMPARE_GT(player.position(), 0);
+    if (isGStreamerPlatform())
+        QTRY_COMPARE_GT(player.duration(), 0); // duration update is asynchronous
+    else
+        QCOMPARE_GT(player.duration(), 0);
 
     // Set empty URL and verify that state is fully reset to default
     m_fixture->clearSpies();
@@ -719,10 +768,20 @@ void tst_QMediaPlayerBackend::setSource_resetsState_whenCalledWithEmptyUrl()
     QVERIFY(!m_fixture->mediaStatusChanged.isEmpty());
     QVERIFY(!m_fixture->sourceChanged.isEmpty());
 
-    const MediaPlayerState expectedState = MediaPlayerState::defaultState();
-    const MediaPlayerState actualState{ m_fixture->player };
+    MediaPlayerState expectedState = MediaPlayerState::defaultState();
+    if (isGStreamerPlatform()) // QTBUG-124005: no buffer progress update
+        expectedState.bufferProgress = std::nullopt;
+    const MediaPlayerState actualState{ player };
 
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
+}
+
+void tst_QMediaPlayerBackend::setSource_resetsState_whenCalledWithEmptyUrl_data()
+{
+    QTest::addColumn<MaybeUrl>("url");
+
+    QTest::addRow("with wave file") << m_localWavFile;
+    QTest::addRow("with video file") << m_localVideoFile;
 }
 
 void tst_QMediaPlayerBackend::setSource_loadsNewMedia_whenPreviousMediaWasFullyLoaded()
@@ -1099,6 +1158,73 @@ void tst_QMediaPlayerBackend::pause_entersPauseState_whenPlayerWasPlaying()
     QTest::qWait(500);
 
     QTRY_COMPARE_LT(qAbs(m_fixture->player.position() - positionBeforePause), 200);
+}
+
+void tst_QMediaPlayerBackend::pause_initializesExpectedDefaultState()
+{
+    QFETCH(MaybeUrl, url);
+    QFETCH(bool, hasVideo);
+    QFETCH(bool, hasAudio);
+    CHECK_SELECTED_URL(url);
+
+    if (isFFMPEGPlatform() && url->path().contains("Av1"))
+        QSKIP("QTBUG-119711: ffmpeg's binaries on CI do not support av1");
+
+    QMediaPlayer &player = m_fixture->player;
+    player.setSource(*url);
+    player.pause();
+
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::PausedState);
+
+    MediaPlayerState expectedState = MediaPlayerState::defaultState();
+    expectedState.source = *url;
+    expectedState.playbackState = QMediaPlayer::PausedState;
+    expectedState.isSeekable = true;
+
+    expectedState.mediaStatus = std::nullopt;
+    expectedState.duration = std::nullopt;
+    expectedState.bufferProgress = std::nullopt;
+
+    expectedState.audioTracks = std::nullopt;
+    expectedState.videoTracks = std::nullopt;
+    expectedState.metaData = std::nullopt;
+
+    if (hasVideo) {
+        expectedState.activeVideoTrack = 0;
+        expectedState.hasVideo = std::nullopt;
+    }
+
+    if (hasAudio) {
+        expectedState.activeAudioTrack = 0;
+        expectedState.hasAudio = std::nullopt;
+    }
+
+    const MediaPlayerState actualState{ player };
+    COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
+
+    QVERIFY(actualState.mediaStatus == QMediaPlayer::BufferingMedia
+            || actualState.mediaStatus == QMediaPlayer::BufferedMedia);
+
+    if (hasVideo)
+        QCOMPARE(actualState.videoTracks->size(), 1);
+    if (hasAudio)
+        QCOMPARE(actualState.audioTracks->size(), 1);
+
+    QEXPECT_FAIL_GSTREAMER("", "GStreamer doesn't update bufferProgress while paused", Continue);
+
+    QTRY_COMPARE_GT(actualState.bufferProgress, 0);
+}
+
+void tst_QMediaPlayerBackend::pause_initializesExpectedDefaultState_data()
+{
+    QTest::addColumn<MaybeUrl>("url");
+    QTest::addColumn<bool>("hasVideo");
+    QTest::addColumn<bool>("hasAudio");
+
+    QTest::addRow("with wave file") << m_localWavFile << false << true;
+    QTest::addRow("with video file") << m_localVideoFile << true << true;
+    QTest::addRow("with av1 file") << m_av1File << true << false;
+    QTest::addRow("with compressed sound file") << m_localCompressedSoundFile << false << true;
 }
 
 void tst_QMediaPlayerBackend::play_resetsErrorState_whenCalledWithInvalidFile()
