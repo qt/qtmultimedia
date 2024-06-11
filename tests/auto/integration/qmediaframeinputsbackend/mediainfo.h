@@ -29,6 +29,14 @@ struct MediaInfo
         TestVideoSink sink;
         player.setVideoSink(&sink);
 
+        std::vector<std::array<QColor, 4>> colors;
+        QObject::connect(
+                &sink, &TestVideoSink::videoFrameChangedSync, &sink,
+                         [&](const QVideoFrame &frame) { //
+                             if (frame.isValid())
+                                 colors.push_back(sampleQuadrants(frame.toImage()));
+                         });
+
         player.setSource(fileLocation);
 
         // Loop through all frames to be able to count them
@@ -55,7 +63,23 @@ struct MediaInfo
         info.m_frameTimes = sink.m_frameTimes;
         info.m_hasVideo = player.hasVideo();
         info.m_hasAudio = player.hasAudio();
+        info.m_colors = colors;
         return info;
+    }
+
+
+
+    static std::array<QColor, 4> sampleQuadrants(const QImage &image)
+    {
+        const int width = image.width();
+        const int height = image.height();
+        return {
+            image.pixel(width / 4, height / 4),
+            image.pixel(3 * width / 4, height / 4),
+            image.pixel(width / 4, 3 * height / 4),
+            image.pixel(3 * width / 4, 3 * height / 4),
+        };
+
     }
 
     int m_frameCount = 0;
@@ -64,6 +88,7 @@ struct MediaInfo
     milliseconds m_duration;
     bool m_hasVideo = false;
     bool m_hasAudio = false;
+    std::vector<std::array<QColor, 4>> m_colors; // Colors in upper left, upper right, bottom left, and bottom right
 
     std::vector<TestVideoSink::TimePoint> m_frameTimes;
 };

@@ -15,10 +15,17 @@ QT_BEGIN_NAMESPACE
 
 using namespace std::chrono;
 
+enum class ImagePattern
+{
+    SingleColor, // Image filled with a single color
+    ColoredSquares // Colored squares, [red, green; blue, yellow]
+};
+
 class VideoGenerator : public QObject
 {
     Q_OBJECT
 public:
+    void setPattern(ImagePattern pattern);
     void setFrameCount(int count);
     void setSize(QSize size);
     void setFrameRate(double rate);
@@ -35,6 +42,7 @@ public slots:
 
 private:
     QList<QColor> colors = { Qt::red, Qt::green, Qt::blue, Qt::black, Qt::white };
+    ImagePattern m_pattern = ImagePattern::SingleColor;
     QSize m_size{ 640, 480 };
     std::optional<int> m_maxFrameCount;
     int m_frameIndex = 0;

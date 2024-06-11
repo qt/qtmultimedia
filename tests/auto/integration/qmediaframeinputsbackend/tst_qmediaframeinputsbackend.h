@@ -21,7 +21,12 @@ private slots:
     void mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames_data();
     void mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames();
 
+    void mediaRecorderWritesVideo_whenInputFrameShrinksOverTime();
+    void mediaRecorderWritesVideo_whenInputFrameGrowsOverTime();
+
     void mediaRecorderWritesVideo_withSingleFrame();
+
+    void mediaRecorderWritesVideo_withCorrectColors();
 
     void mediaRecorderStopsRecording_whenInputsReportedEndOfStream_data();
     void mediaRecorderStopsRecording_whenInputsReportedEndOfStream();
