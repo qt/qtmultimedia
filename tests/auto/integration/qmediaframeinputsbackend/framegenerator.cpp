@@ -6,6 +6,11 @@
 
 QT_BEGIN_NAMESPACE
 
+void VideoGenerator::setPattern(ImagePattern pattern)
+{
+    m_pattern = pattern;
+}
+
 void VideoGenerator::setFrameCount(int count)
 {
     m_maxFrameCount = count;
@@ -31,10 +36,34 @@ void VideoGenerator::emitEmptyFrameOnStop()
     m_emitEmptyFrameOnStop = true;
 }
 
+static void fillColoredSquares(QImage& image)
+{
+    QList<QColor> colors = { Qt::red, Qt::green, Qt::blue, Qt::yellow };
+    const int width = image.width();
+    const int height = image.height();
+
+    for (int j = 0; j < height; ++j) {
+        for (int i = 0; i < width; ++i) {
+            const int colorX = i < width / 2 ? 0 : 1;
+            const int colorY = j < height / 2 ? 0 : 1;
+            const int colorIndex = colorX + 2 * colorY;
+            image.setPixel(i, j, colors[colorIndex].rgb());
+        }
+    }
+}
+
 QVideoFrame VideoGenerator::createFrame()
 {
     QImage image(m_size, QImage::Format_ARGB32);
-    image.fill(colors[m_frameIndex % colors.size()]);
+    switch (m_pattern) {
+    case ImagePattern::SingleColor:
+        image.fill(colors[m_frameIndex % colors.size()]);
+        break;
+    case ImagePattern::ColoredSquares:
+        fillColoredSquares(image);
+        break;
+    }
+
     QVideoFrame frame(image);
 
     if (m_frameRate)

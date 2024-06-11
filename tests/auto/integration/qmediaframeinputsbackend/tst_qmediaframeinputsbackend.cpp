@@ -130,6 +130,115 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInput
     QCOMPARE_EQ(info->m_frameCount, framesNumber);
 }
 
+struct YUV
+{
+    double Y;
+    double U;
+    double V;
+};
+
+// Poor man's RGB to YUV conversion with BT.709 coefficients
+// from https://en.wikipedia.org/wiki/Y%E2%80%B2UV
+QVector3D RGBToYUV(const QColor &c)
+{
+    const float R = c.redF();
+    const float G = c.greenF();
+    const float B = c.blueF();
+    QVector3D yuv;
+    yuv[0] = 0.2126f * R + 0.7152f * G + 0.0722f * B;
+    yuv[1] = -0.09991f * R - 0.33609f * G + 0.436f * B;
+    yuv[2] = 0.615f * R - 0.55861f * G - 0.05639f * B;
+    return yuv;
+}
+
+// Considers two colors equal if their YUV components are
+// pointing in the same direction and have similar luma (Y)
+bool fuzzyCompare(const QColor &lhs, const QColor& rhs, float tol = 1e-2)
+{
+    const QVector3D lhsYuv = RGBToYUV(lhs);
+    const QVector3D rhsYuv = RGBToYUV(rhs);
+    const float relativeLumaDiff =
+            0.5f * std::abs((lhsYuv[0] - rhsYuv[0]) / (lhsYuv[0] + rhsYuv[0]));
+    const float colorDiff = QVector3D::crossProduct(lhsYuv, rhsYuv).length();
+    return colorDiff < tol && relativeLumaDiff < tol;
+}
+
+void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withCorrectColors()
+{
+    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
+    f.connectPullMode();
+    f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
+    f.m_videoGenerator.setFrameCount(3);
+    f.m_recorder.record();
+    QVERIFY(f.waitForRecorderStopped(60s));
+
+    const auto info = MediaInfo::create(f.m_recorder.actualLocation());
+    QCOMPARE_EQ(info->m_colors.size(), 3);
+
+    std::array<QColor, 4> colors = info->m_colors.front();
+    QVERIFY(fuzzyCompare(colors[0], Qt::red));
+    QVERIFY(fuzzyCompare(colors[1], Qt::green));
+    QVERIFY(fuzzyCompare(colors[2], Qt::blue));
+    QVERIFY(fuzzyCompare(colors[3], Qt::yellow));
+}
+
+void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameShrinksOverTime()
+{
+    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
+    f.m_recorder.record();
+    f.readyToSendVideoFrame.wait();
+
+    constexpr int startSize = 38;
+    int frameCount = 0;
+    for (int i = 0; i < startSize; i += 2) { // TODO crash in sws_scale if subsequent frames are odd-sized QTBUG-126259
+        ++frameCount;
+        const QSize size{ startSize - i, startSize - i };
+        f.m_videoGenerator.setSize(size);
+        f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame());
+        f.readyToSendVideoFrame.wait();
+    }
+
+    f.m_videoInput.sendVideoFrame({});
+
+    QVERIFY(f.waitForRecorderStopped(60s));
+    auto info = MediaInfo::create(f.m_recorder.actualLocation());
+
+    QCOMPARE_EQ(info->m_frameCount, frameCount);
+
+    // All frames should be resized to the size of the first frame
+    QCOMPARE_EQ(info->m_size, QSize(startSize, startSize));
+}
+
+void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameGrowsOverTime()
+{
+    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
+    f.m_recorder.record();
+    f.readyToSendVideoFrame.wait();
+
+    constexpr int startSize = 38;
+    constexpr int maxSize = 256;
+    int frameCount = 0;
+
+    for (int i = 0; i < maxSize - startSize; i += 2) { // TODO crash in sws_scale if subsequent frames are odd-sized QTBUG-126259
+        ++frameCount;
+        const QSize size{ startSize + i, startSize + i };
+        f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
+        f.m_videoGenerator.setSize(size);
+        f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame());
+        f.readyToSendVideoFrame.wait();
+    }
+
+    f.m_videoInput.sendVideoFrame({});
+
+    QVERIFY(f.waitForRecorderStopped(60s));
+    auto info = MediaInfo::create(f.m_recorder.actualLocation());
+
+    QCOMPARE_EQ(info->m_frameCount, frameCount);
+
+    // All frames should be resized to the size of the first frame
+    QCOMPARE_EQ(info->m_size, QSize(startSize, startSize));
+}
+
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withSingleFrame()
 {
     CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
