@@ -1201,13 +1201,13 @@ void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPla
                             { QMediaPlayer::BufferedMedia },
                     }));
     } else {
-        QCOMPARE_EQ(m_fixture->mediaStatusChanged,
-                    // gstreamer may see EndOfMedia
-                    SignalList({
-                            { QMediaPlayer::BufferingMedia },
-                            { QMediaPlayer::BufferedMedia },
-                            { QMediaPlayer::EndOfMedia },
-                    }));
+        QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
+                        // gstreamer may see EndOfMedia
+                        SignalList({
+                                { QMediaPlayer::BufferingMedia },
+                                { QMediaPlayer::BufferedMedia },
+                                { QMediaPlayer::EndOfMedia },
+                        }));
     }
 }
 
