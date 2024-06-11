@@ -44,6 +44,8 @@
 
 QT_BEGIN_NAMESPACE
 
+extern bool isPipewireLoaded();
+
 using namespace Qt::StringLiterals;
 
 static Q_LOGGING_CATEGORY(qLcPipeWireCapture, "qt.multimedia.ffmpeg.pipewirecapture");
@@ -142,6 +144,9 @@ void QPipeWireCaptureHelper::updateError(QPlatformSurfaceCapture::Error error,
 
 bool QPipeWireCapture::isSupported()
 {
+    if (!isPipewireLoaded())
+        return false;
+
     return QPipeWireCaptureHelper::isSupported();
 }
 

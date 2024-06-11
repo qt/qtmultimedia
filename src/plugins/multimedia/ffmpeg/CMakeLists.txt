@@ -97,14 +97,17 @@ if (LINUX OR ANDROID)
     qt_internal_multimedia_add_ffmpeg_stubs()
 endif()
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_pipewire
-    SOURCES
-        qpipewirecapture.cpp qpipewirecapture_p.h
-        qpipewirecapturehelper.cpp qpipewirecapturehelper_p.h
-    LIBRARIES
-        Qt::DBus
-        PipeWire::PipeWire
-)
+if (QT_FEATURE_pipewire)
+    qt_internal_extend_target(QFFmpegMediaPlugin
+        INCLUDE_DIRECTORIES "${PipeWire_INCLUDE_DIRS};${Spa_INCLUDE_DIRS}"
+        SOURCES
+            qpipewirecapture.cpp qpipewirecapture_p.h
+            qpipewirecapturehelper.cpp qpipewirecapturehelper_p.h
+            symbolstubs/qffmpegsymbols-pipewire.cpp
+        LIBRARIES
+            Qt::DBus
+    )
+endif()
 
 if (QT_FEATURE_vaapi)
     qt_internal_extend_target(QFFmpegMediaPlugin
