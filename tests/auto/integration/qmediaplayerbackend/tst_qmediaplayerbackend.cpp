@@ -2303,24 +2303,35 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
 
     QSignalSpy spy(&player, &QMediaPlayer::playbackStateChanged);
 
-    constexpr qint64 expectedVideoDuration = 3000;
-    constexpr int waitingInterval = 200;
-    constexpr qint64 maxDuration = expectedVideoDuration + 2000;
-    constexpr qint64 minDuration = expectedVideoDuration - 250;
-    constexpr qint64 maxFrameDelay = 2000;
+    using namespace std::chrono_literals;
+    using namespace std::chrono;
+
+    constexpr milliseconds expectedVideoDuration = 3000ms;
+    constexpr milliseconds waitingInterval = 200ms;
+    constexpr milliseconds maxDuration = expectedVideoDuration + 2000ms;
+    constexpr milliseconds minDuration = expectedVideoDuration - 100ms;
+    constexpr milliseconds maxFrameDelay = 2000ms;
 
     surface.m_elapsedTimer.start();
 
-    qint64 duration = 0;
+    nanoseconds duration = 0ns;
 
-    for (int i = 0; !spy.wait(waitingInterval); ++i) {
-        duration += waitingInterval * player.playbackRate();
+    auto waitForPlaybackStateChange = [&]() {
+        QElapsedTimer timer;
+        timer.start();
 
+        QScopeGuard addDuration([&]() {
+            duration += duration_cast<nanoseconds>(timer.durationElapsed() * player.playbackRate());
+        });
+        return spy.wait(waitingInterval);
+    };
+
+    for (int i = 0; !waitForPlaybackStateChange(); ++i) {
         player.setPlaybackRate(0.5 * (i % 4 + 1));
 
         QCOMPARE_LE(duration, maxDuration);
 
-        QVERIFY2(surface.m_elapsedTimer.elapsed() < maxFrameDelay,
+        QVERIFY2(surface.m_elapsedTimer.durationElapsed() < maxFrameDelay,
                  "If the delay is more than 2s, we consider the video playing is hanging.");
 
         /* Some debug code for windows. Use the code instead of the check above to debug the bug.
@@ -2334,8 +2345,6 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
             spy.clear();
         }*/
     }
-
-    duration += waitingInterval * player.playbackRate();
 
     QCOMPARE_GT(duration, minDuration);
 
