@@ -76,6 +76,7 @@ class Q_MULTIMEDIA_EXPORT SymbolsResolver
 public:
     using LibraryLoader = std::unique_ptr<QLibrary> (*)();
     static bool isLazyLoadEnabled();
+    bool isLoaded() const { return m_library != nullptr; }
 
     ~SymbolsResolver();
 protected:
@@ -106,7 +107,7 @@ QT_END_NAMESPACE
 #define BEGIN_INIT_FUNCS(...) \
     QT_USE_NAMESPACE \
     namespace { \
-        class SymbolsResolverImpl : SymbolsResolver { \
+        class SymbolsResolverImpl : public SymbolsResolver { \
         public: \
             SymbolsResolverImpl() : SymbolsResolver(__VA_ARGS__) \
             { checkLibrariesLoaded(&symbolsBegin, &symbolsEnd); } \
@@ -172,6 +173,11 @@ QT_END_NAMESPACE
 
 #define DEFINE_FUNC(F, ArgsCount, /*Return value*/...) \
     DEFINE_FUNC_IMPL(F, VARS##ArgsCount, TYPES_WITH_VARS##ArgsCount, RET(F, __VA_ARGS__));
+
+#define DEFINE_IS_LOADED_CHECKER(FuncName) \
+QT_BEGIN_NAMESPACE \
+bool FuncName() { return SymbolsResolverImpl::instance().isLoaded(); } \
+QT_END_NAMESPACE
 
 // clang-format on
 
