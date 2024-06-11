@@ -1016,7 +1016,7 @@ bool QGstElement::setStateSync(GstState state, std::chrono::nanoseconds timeout)
 
     if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL) {
         qWarning() << "Could not change state of" << name() << "to" << state << change;
-        dumpPipelineGraph("setStatSyncFailure");
+        dumpPipelineGraph("setStateSyncFailure");
     }
     return change == GST_STATE_CHANGE_SUCCESS;
 }
