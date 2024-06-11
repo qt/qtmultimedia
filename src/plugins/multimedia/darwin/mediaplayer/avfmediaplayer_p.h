@@ -89,7 +89,7 @@ public Q_SLOTS:
 
     void setVolume(float volume);
     void setMuted(bool muted);
-    void audioOutputChanged();
+    void updateAudioOutputDevice();
 
     void processEOS();
     void processLoadStateChange(QMediaPlayer::PlaybackState newState);
