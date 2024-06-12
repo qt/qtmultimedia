@@ -138,6 +138,8 @@ private slots:
     void playbackRate_returnsOne_byDefault();
     void setPlaybackRate_changesPlaybackRateAndEmitsSignal_data();
     void setPlaybackRate_changesPlaybackRateAndEmitsSignal();
+    void setPlaybackRate_changesPlaybackDuration();
+    void setPlaybackRate_changesPlaybackDuration_data();
 
     void setVolume_changesVolume_whenVolumeIsInRange();
     void setVolume_clampsToRange_whenVolumeIsOutsideRange();
@@ -1583,6 +1585,75 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackRateAndEmitsSignal(
         QVERIFY(m_fixture->playbackRateChanged.empty());
 
     QCOMPARE_EQ(m_fixture->player.playbackRate(), expectedPlaybackRate);
+}
+
+void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackDuration()
+{
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_15sVideo);
+
+    // speeding up a 15s file by 3 should result in a duration of 5s
+    // auto minDuration = 3s;
+    // auto maxDuration = 7s;
+    // auto playbackRate = 3.0;
+
+    // speeding up a 15s file by 5 should result in a duration of 3s
+    auto minDuration = 2s;
+    auto maxDuration = 4s;
+    auto playbackRate = 5.0;
+
+    QFETCH(const QLatin1String, testMode);
+
+    QMediaPlayer &player = m_fixture->player;
+
+    if (testMode == "SetRateBeforeSetSource"_L1)
+        player.setPlaybackRate(playbackRate);
+
+    player.setSource(*m_15sVideo);
+
+    QTRY_COMPARE_EQ(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+
+    auto begin = steady_clock::now();
+
+    if (testMode == "SetRateBeforePlay"_L1) {
+        QSKIP_GSTREAMER("FIXME: SetRateBeforeSetSource is currently broken");
+        player.setPlaybackRate(playbackRate);
+    }
+
+    player.play();
+
+    if (testMode == "SetRateAfterPlay"_L1)
+        player.setPlaybackRate(playbackRate);
+
+    if (testMode == "SetRateAfterPlaybackStarted"_L1) {
+        QTRY_COMPARE_GT(player.position(), 50);
+        player.setPlaybackRate(playbackRate);
+    }
+
+    QCOMPARE(player.playbackRate(), playbackRate);
+
+    QTRY_COMPARE_EQ_WITH_TIMEOUT(player.playbackState(), QMediaPlayer::StoppedState, 20s);
+
+    auto end = steady_clock::now();
+    auto duration = end - begin;
+
+    if (false)
+        qDebug() << round<milliseconds>(duration);
+
+    QCOMPARE_LT(duration, maxDuration);
+    QCOMPARE_GT(duration, minDuration);
+}
+
+void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackDuration_data()
+{
+    QTest::addColumn<QLatin1String>("testMode");
+
+    QTest::addRow("SetRateBeforeSetSource") << "SetRateBeforeSetSource"_L1;
+    QTest::addRow("SetRateBeforePlay") << "SetRateBeforePlay"_L1;
+    QTest::addRow("SetRateAfterPlay") << "SetRateAfterPlay"_L1;
+    QTest::addRow("SetRateAfterPlaybackStarted") << "SetRateAfterPlaybackStarted"_L1;
 }
 
 void tst_QMediaPlayerBackend::setVolume_changesVolume_whenVolumeIsInRange()
