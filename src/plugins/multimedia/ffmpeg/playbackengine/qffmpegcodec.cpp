@@ -28,7 +28,7 @@ QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext)
         if (hwCodec)
             return hwCodec;
 
-        qCWarning(qLcPlaybackEngineCodec) << hwCodec.error();
+        qCInfo(qLcPlaybackEngineCodec) << hwCodec.error();
     }
 
     auto codec = create(stream, formatContext, Sw);
@@ -62,7 +62,7 @@ QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext,
         decoder = QFFmpeg::findAVDecoder(stream->codecpar->codec_id);
 
     if (!decoder)
-        return { "Failed to find a valid FFmpeg decoder" };
+        return { QString("No %1 decoder found").arg(videoCodecPolicy == Hw ? "HW" : "SW") };
 
     qCDebug(qLcPlaybackEngineCodec) << "found decoder" << decoder->name << "for id" << decoder->id;
 
