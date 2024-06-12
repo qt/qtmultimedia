@@ -192,6 +192,10 @@ private:
     QGObjectHandlerScopedConnection elementRemoved;
 
     int decodeBinQueues = 0;
+
+    void mediaStatusChanged(QMediaPlayer::MediaStatus status);
+    static constexpr auto stalledMediaDebouncePeriod = std::chrono::milliseconds{ 500 };
+    QTimer m_stalledMediaNotifier;
 };
 
 QT_END_NAMESPACE

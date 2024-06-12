@@ -791,16 +791,15 @@ void tst_QMediaPlayerBackend::setSource_entersStoppedState_whenPlayerWasPlaying(
 
     // Assert
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
-    if (!isGStreamerPlatform()) {
-        // QTBUG-124005: GStreamer has lots of state changes
-        QTRY_COMPARE(m_fixture->mediaStatusChanged,
-                     SignalList({ { QMediaPlayer::LoadedMedia },
-                                  { QMediaPlayer::BufferingMedia },
-                                  { QMediaPlayer::BufferedMedia },
-                                  { QMediaPlayer::LoadedMedia },
-                                  { QMediaPlayer::LoadingMedia },
-                                  { QMediaPlayer::LoadedMedia } }));
-    }
+    QTRY_COMPARE(m_fixture->mediaStatusChanged,
+                 SignalList({
+                         { QMediaPlayer::LoadedMedia },
+                         { QMediaPlayer::BufferingMedia },
+                         { QMediaPlayer::BufferedMedia },
+                         { QMediaPlayer::LoadedMedia },
+                         { QMediaPlayer::LoadingMedia },
+                         { QMediaPlayer::LoadedMedia },
+                 }));
 
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
     QTRY_COMPARE(m_fixture->playbackStateChanged,
@@ -1128,14 +1127,14 @@ void tst_QMediaPlayerBackend::play_setsPlaybackStateAndMediaStatus_whenValidFile
 
     QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
 
-    if (!isGStreamerPlatform()) {
-        // QTBUG-124005: GStreamer has lots of state changes
-        QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
-                        SignalList({ { QMediaPlayer::LoadingMedia },
-                                     { QMediaPlayer::LoadedMedia },
-                                     { QMediaPlayer::BufferingMedia },
-                                     { QMediaPlayer::BufferedMedia } }));
-    }
+    auto expectedMediaStatus = SignalList{
+        { QMediaPlayer::LoadingMedia },
+        { QMediaPlayer::LoadedMedia },
+        { QMediaPlayer::BufferingMedia },
+        { QMediaPlayer::BufferedMedia },
+    };
+
+    QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged.first(4), expectedMediaStatus);
 
     QTRY_COMPARE_GT(m_fixture->bufferProgressChanged.size(), 0);
     QTRY_COMPARE_NE(m_fixture->bufferProgressChanged.front().front(), 0.f);
@@ -1213,15 +1212,25 @@ void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayb
     const MediaPlayerState actualState{ m_fixture->player };
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
 
-    if (!isGStreamerPlatform()) {
-        // QTBUG-124005: GStreamer may see QMediaPlayer::EndOfMedia
-        QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
-                        SignalList({ { QMediaPlayer::LoadedMedia },
-                                     { QMediaPlayer::BufferingMedia },
-                                     { QMediaPlayer::BufferedMedia },
-                                     { QMediaPlayer::LoadedMedia },
-                                     { QMediaPlayer::NoMedia } }));
-    }
+    QList allowedSignalSequences = {
+        SignalList{
+                { QMediaPlayer::LoadedMedia },
+                { QMediaPlayer::BufferingMedia },
+                { QMediaPlayer::BufferedMedia },
+                { QMediaPlayer::LoadedMedia },
+                { QMediaPlayer::NoMedia },
+        },
+        SignalList{
+                { QMediaPlayer::LoadedMedia },
+                { QMediaPlayer::BufferingMedia },
+                { QMediaPlayer::BufferedMedia },
+                { QMediaPlayer::EndOfMedia }, // EndOfMedia can be reached before setSource({})
+                { QMediaPlayer::LoadedMedia },
+                { QMediaPlayer::NoMedia },
+        },
+    };
+
+    QTRY_VERIFY(allowedSignalSequences.contains(m_fixture->mediaStatusChanged));
 
     QTRY_COMPARE_EQ(m_fixture->playbackStateChanged,
                     SignalList({ { QMediaPlayer::PlayingState }, { QMediaPlayer::StoppedState } }));
@@ -2931,8 +2940,6 @@ void tst_QMediaPlayerBackend::infiniteLoops()
     m_fixture->player.stop(); // QMediaPlayer::stop stops whether or not looping is infinite
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
 
-    if (isGStreamerPlatform())
-        return; // QTBUG-124005: many StalledMedia/BufferingMedia/BufferedMedia signals are emitted
     QCOMPARE(m_fixture->mediaStatusChanged,
              SignalList({ { QMediaPlayer::LoadingMedia },
                           { QMediaPlayer::LoadedMedia },
