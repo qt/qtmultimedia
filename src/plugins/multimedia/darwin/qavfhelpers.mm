@@ -90,10 +90,8 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
         } else if (CFEqual(cSpace, kCVImageBufferYCbCrMatrix_ITU_R_601_4)
                    || CFEqual(cSpace, kCVImageBufferYCbCrMatrix_SMPTE_240M_1995)) {
             colorSpace = QVideoFrameFormat::ColorSpace_BT601;
-        } else if (@available(macOS 10.11, iOS 9.0, *)) {
-            if (CFEqual(cSpace, kCVImageBufferYCbCrMatrix_ITU_R_2020)) {
-                colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
-            }
+        } else if (CFEqual(cSpace, kCVImageBufferYCbCrMatrix_ITU_R_2020)) {
+            colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
         }
     }
 
@@ -122,17 +120,12 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
                 colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma22;
             else if (g < 3.2)
                 colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma28;
-        }
-        if (@available(macOS 10.12, iOS 11.0, *)) {
-            if (CFEqual(cTransfer, kCVImageBufferTransferFunction_ITU_R_2020))
-                colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
-        }
-        if (@available(macOS 10.12, iOS 11.0, *)) {
-            if (CFEqual(cTransfer, kCVImageBufferTransferFunction_ITU_R_2100_HLG)) {
-                colorTransfer = QVideoFrameFormat::ColorTransfer_STD_B67;
-            } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ)) {
-                colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
-            }
+        } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_ITU_R_2020)) {
+            colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
+        } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_ITU_R_2100_HLG)) {
+            colorTransfer = QVideoFrameFormat::ColorTransfer_STD_B67;
+        } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ)) {
+            colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
         }
     }
 
