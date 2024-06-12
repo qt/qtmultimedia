@@ -38,7 +38,7 @@ Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
 
 namespace {
 
-QCameraFormat getDefaultCameraFormat()
+QCameraFormat getDefaultCameraFormat(const QCameraDevice & cameraDevice)
 {
     // default settings
     QCameraFormatPrivate *defaultFormat = new QCameraFormatPrivate{
@@ -47,7 +47,12 @@ QCameraFormat getDefaultCameraFormat()
         .minFrameRate = 12,
         .maxFrameRate = 30,
     };
-    return defaultFormat->create();
+    QCameraFormat format = defaultFormat->create();
+
+    if (!cameraDevice.videoFormats().empty() && !cameraDevice.videoFormats().contains(format))
+        return cameraDevice.videoFormats().first();
+
+    return format;
 }
 
 bool checkCameraPermission()
@@ -87,7 +92,7 @@ QAndroidCamera::QAndroidCamera(QCamera *camera) : QPlatformCamera(camera)
     if (camera) {
         m_cameraDevice = camera->cameraDevice();
         m_cameraFormat = !camera->cameraFormat().isNull() ? camera->cameraFormat()
-                                                          : getDefaultCameraFormat();
+                                                          : getDefaultCameraFormat(m_cameraDevice);
         updateCameraCharacteristics();
     }
 
@@ -118,7 +123,7 @@ void QAndroidCamera::setCamera(const QCameraDevice &camera)
 
     m_cameraDevice = camera;
     updateCameraCharacteristics();
-    m_cameraFormat = getDefaultCameraFormat();
+    m_cameraFormat = getDefaultCameraFormat(camera);
 
     if (active)
         setActive(true);
@@ -251,7 +256,7 @@ void QAndroidCamera::setActive(bool active)
         int height = m_cameraFormat.resolution().height();
 
         if (width < 0 || height < 0) {
-            m_cameraFormat = getDefaultCameraFormat();
+            m_cameraFormat = getDefaultCameraFormat(m_cameraDevice);
             width = m_cameraFormat.resolution().width();
             height = m_cameraFormat.resolution().height();
         }
@@ -321,9 +326,11 @@ void QAndroidCamera::setState(QAndroidCamera::State newState)
 
 bool QAndroidCamera::setCameraFormat(const QCameraFormat &format)
 {
-    const auto chosenFormat = format.isNull() ? getDefaultCameraFormat() : format;
+    const auto chosenFormat = format.isNull() ? getDefaultCameraFormat(m_cameraDevice) : format;
 
-    if (chosenFormat == m_cameraFormat || !m_cameraDevice.videoFormats().contains(chosenFormat))
+    if (chosenFormat == m_cameraFormat)
+        return true;
+    if (!m_cameraDevice.videoFormats().contains(chosenFormat))
         return false;
 
     m_cameraFormat = chosenFormat;
