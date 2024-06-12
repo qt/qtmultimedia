@@ -1102,6 +1102,22 @@ std::optional<std::chrono::milliseconds> QGstElement::positionInMs() const
     return std::nullopt;
 }
 
+std::optional<bool> QGstElement::canSeek() const
+{
+    QGstQueryHandle query{
+        gst_query_new_seeking(GST_FORMAT_TIME),
+        QGstQueryHandle::HasRef,
+    };
+    gboolean canSeek = false;
+    gst_query_parse_seeking(query.get(), nullptr, &canSeek, nullptr, nullptr);
+
+    if (gst_element_query(element(), query.get())) {
+        gst_query_parse_seeking(query.get(), nullptr, &canSeek, nullptr, nullptr);
+        return canSeek;
+    }
+    return std::nullopt;
+}
+
 GstClockTime QGstElement::baseTime() const
 {
     return gst_element_get_base_time(element());

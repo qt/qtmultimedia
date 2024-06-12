@@ -601,6 +601,7 @@ public:
     std::optional<std::chrono::milliseconds> durationInMs() const;
     std::optional<std::chrono::nanoseconds> position() const;
     std::optional<std::chrono::milliseconds> positionInMs() const;
+    std::optional<bool> canSeek() const;
 
     template <auto Member, typename T>
     QGObjectHandlerConnection onPadAdded(T *instance)
