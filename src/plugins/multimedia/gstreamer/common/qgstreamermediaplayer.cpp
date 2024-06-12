@@ -78,6 +78,14 @@ QGstreamerMediaPlayer::TrackSelector &QGstreamerMediaPlayer::trackSelector(Track
     return ts;
 }
 
+void QGstreamerMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
+{
+    if (status != QMediaPlayer::StalledMedia)
+        m_stalledMediaNotifier.stop();
+
+    QPlatformMediaPlayer::mediaStatusChanged(status);
+}
+
 void QGstreamerMediaPlayer::updateBufferProgress(float newProgress)
 {
     if (qFuzzyIsNull(newProgress - m_bufferProgress))
@@ -147,6 +155,11 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
 
     connect(&positionUpdateTimer, &QTimer::timeout, this, [this] {
         updatePositionFromPipeline();
+    });
+
+    m_stalledMediaNotifier.setSingleShot(true);
+    connect(&m_stalledMediaNotifier, &QTimer::timeout, this, [this] {
+        mediaStatusChanged(QMediaPlayer::StalledMedia);
     });
 }
 
@@ -421,9 +434,9 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                 m_initialBufferProgressSent = true;
             }
 
-            if (m_bufferProgress > 0 && progress == 0)
-                mediaStatusChanged(QMediaPlayer::StalledMedia);
-            else if (progress >= 50)
+            if (m_bufferProgress > 0 && progress == 0) {
+                m_stalledMediaNotifier.start(stalledMediaDebouncePeriod);
+            } else if (progress >= 50)
                 // QTBUG-124517: rethink buffering
                 mediaStatusChanged(QMediaPlayer::BufferedMedia);
             else
