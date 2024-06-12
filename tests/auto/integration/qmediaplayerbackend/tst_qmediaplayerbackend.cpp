@@ -138,6 +138,8 @@ private slots:
     void play_startsPlayback_withAndWithoutOutputsConnected();
     void play_startsPlayback_withAndWithoutOutputsConnected_data();
     void play_playsRtpStream_whenSdpFileIsLoaded();
+    void play_succeedsFromSourceDevice();
+    void play_succeedsFromSourceDevice_data();
 
     void stop_entersStoppedState_whenPlayerWasPaused();
     void stop_setsPositionToZero_afterPlayingToEndOfMedia();
@@ -1643,6 +1645,46 @@ void tst_QMediaPlayerBackend::play_playsRtpStream_whenSdpFileIsLoaded()
     m_fixture->player.play();
     QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
 #endif // QT_CONFIG(process)
+}
+
+void tst_QMediaPlayerBackend::play_succeedsFromSourceDevice()
+{
+    QFETCH(const MaybeUrl, mediaUrl);
+    QFETCH(bool, streamOutlivesPlayer);
+
+    CHECK_SELECTED_URL(mediaUrl);
+
+    auto *stream = new QFile(u":"_s + mediaUrl->path());
+
+    QVERIFY(stream->open(QFile::ReadOnly));
+
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSourceDevice(stream);
+
+    player.play();
+    QTRY_COMPARE_GT(player.position(), 100);
+
+    if (streamOutlivesPlayer)
+        stream->setParent(&player);
+    else
+        delete stream;
+}
+
+void tst_QMediaPlayerBackend::play_succeedsFromSourceDevice_data()
+{
+    QTest::addColumn<MaybeUrl>("mediaUrl");
+    QTest::addColumn<bool>("streamOutlivesPlayer");
+
+    QTest::addRow("audio file") << m_localWavFile << true;
+    QTest::addRow("video file") << m_localVideoFile << true;
+
+    // QMediaPlayer crashes when we delete the stream during playback
+    constexpr bool validateStreamDestructionDuringPlayback = false;
+    if constexpr (validateStreamDestructionDuringPlayback) {
+        QTest::addRow("audio file, stream destroyed during playback") << m_localWavFile << false;
+        QTest::addRow("video file, stream destroyed during playback") << m_localVideoFile << false;
+    }
 }
 
 void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()

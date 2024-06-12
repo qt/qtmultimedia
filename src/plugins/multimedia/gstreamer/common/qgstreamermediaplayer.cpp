@@ -170,7 +170,7 @@ QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
 
 std::chrono::nanoseconds QGstreamerMediaPlayer::pipelinePosition() const
 {
-    if (m_url.isEmpty())
+    if (!hasMedia())
         return {};
 
     Q_ASSERT(playerPipeline);
@@ -249,7 +249,7 @@ void QGstreamerMediaPlayer::setPosition(std::chrono::milliseconds pos)
 void QGstreamerMediaPlayer::play()
 {
     QMediaPlayer::PlaybackState currentState = state();
-    if (currentState == QMediaPlayer::PlayingState || m_url.isEmpty())
+    if (currentState == QMediaPlayer::PlayingState || !hasMedia())
         return;
 
     if (currentState != QMediaPlayer::PausedState)
@@ -285,7 +285,7 @@ void QGstreamerMediaPlayer::play()
 
 void QGstreamerMediaPlayer::pause()
 {
-    if (state() == QMediaPlayer::PausedState || m_url.isEmpty()
+    if (state() == QMediaPlayer::PausedState || !hasMedia()
         || m_resourceErrorState != ResourceErrorState::NoError)
         return;
 
@@ -379,6 +379,11 @@ QGstElement QGstreamerMediaPlayer::getSinkElementForTrackType(TrackType trackTyp
     }
 }
 
+bool QGstreamerMediaPlayer::hasMedia() const
+{
+    return !m_url.isEmpty() || m_stream;
+}
+
 bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 {
     qCDebug(qLcMediaPlayer) << "received bus message:" << message;
@@ -467,7 +472,8 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                 updateDurationFromPipeline();
 
                 m_metaData.insert(QMediaMetaData::Duration, duration());
-                m_metaData.insert(QMediaMetaData::Url, m_url);
+                if (!m_url.isEmpty())
+                    m_metaData.insert(QMediaMetaData::Url, m_url);
                 parseStreamsAndMetadata();
                 metaDataChanged();
 
@@ -522,6 +528,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                     error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
                     m_resourceErrorState = ResourceErrorState::ErrorReported;
                     m_url.clear();
+                    m_stream = nullptr;
                 }
             } else {
                 error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
@@ -881,9 +888,6 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         mediaStatusChanged(QMediaPlayer::NoMedia);
         return;
     }
-
-    if (content.isEmpty())
-        return;
 
     if (m_stream) {
         if (!m_appSrc) {
