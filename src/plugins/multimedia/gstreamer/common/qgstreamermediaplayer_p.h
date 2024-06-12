@@ -129,6 +129,7 @@ private:
     void stopOrEOS(bool eos);
     bool canTrackProgress() const { return decodeBinQueues > 0; }
     void detectPipelineIsSeekable();
+    bool hasMedia() const;
 
     std::chrono::nanoseconds pipelinePosition() const;
     void updatePositionFromPipeline();
