@@ -353,19 +353,14 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
 
 void QGstreamerMediaPlayer::detectPipelineIsSeekable()
 {
-    qCDebug(qLcMediaPlayer) << "detectPipelineIsSeekable";
-    QGstQueryHandle query{
-        gst_query_new_seeking(GST_FORMAT_TIME),
-        QGstQueryHandle::HasRef,
-    };
-    gboolean canSeek = false;
-    if (gst_element_query(playerPipeline.element(), query.get())) {
-        gst_query_parse_seeking(query.get(), nullptr, &canSeek, nullptr, nullptr);
-        qCDebug(qLcMediaPlayer) << "    pipeline is seekable:" << canSeek;
+    std::optional<bool> canSeek = playerPipeline.canSeek();
+    if (canSeek) {
+        qCDebug(qLcMediaPlayer) << "detectPipelineIsSeekable: pipeline is seekable:" << *canSeek;
+        seekableChanged(*canSeek);
     } else {
-        qCWarning(qLcMediaPlayer) << "    query for seekable failed.";
+        qCWarning(qLcMediaPlayer) << "detectPipelineIsSeekable: query for seekable failed.";
+        seekableChanged(false);
     }
-    seekableChanged(canSeek);
 }
 
 QGstElement QGstreamerMediaPlayer::getSinkElementForTrackType(TrackType trackType)
@@ -570,7 +565,8 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
     }
 
     case GST_MESSAGE_ASYNC_DONE: {
-        detectPipelineIsSeekable();
+        if (playerPipeline.state() >= GST_STATE_PAUSED)
+            detectPipelineIsSeekable();
         break;
     }
 
