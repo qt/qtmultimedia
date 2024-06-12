@@ -895,8 +895,10 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         metaDataChanged();
     }
 
-    if (content.isEmpty() && !stream)
+    if (content.isEmpty() && !stream) {
         mediaStatusChanged(QMediaPlayer::NoMedia);
+        return;
+    }
 
     if (content.isEmpty())
         return;
