@@ -43,6 +43,9 @@ public:
     QGStreamerCustomAudioDeviceInfo(const QByteArray &gstreamerPipeline, QAudioDevice::Mode mode);
 };
 
+bool isCustomAudioDevice(const QAudioDevicePrivate *device);
+bool isCustomAudioDevice(const QAudioDevice &device);
+
 QAudioDevice qMakeCustomGStreamerAudioInput(const QByteArray &gstreamerPipeline);
 QAudioDevice qMakeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline);
 

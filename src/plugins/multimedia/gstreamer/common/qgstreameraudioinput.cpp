@@ -10,9 +10,40 @@
 #include <audio/qgstreameraudiodevice_p.h>
 #include <common/qgstpipeline_p.h>
 
-static Q_LOGGING_CATEGORY(qLcMediaAudioInput, "qt.multimedia.audioInput")
 
 QT_BEGIN_NAMESPACE
+
+namespace {
+
+Q_LOGGING_CATEGORY(qLcMediaAudioInput, "qt.multimedia.audioinput")
+
+constexpr QLatin1String defaultSrcName = [] {
+    using namespace Qt::Literals;
+
+    if constexpr (QT_CONFIG(pulseaudio))
+        return "pulsesrc"_L1;
+    else if constexpr (QT_CONFIG(alsa))
+        return "alsasrc"_L1;
+    else
+        return "autoaudiosrc"_L1;
+}();
+
+bool hasDeviceProperty(const QGstElement &element)
+{
+    using namespace Qt::Literals;
+    QLatin1String elementType = element.typeName();
+
+    if constexpr (QT_CONFIG(pulseaudio))
+        return elementType == "GstPulseSrc"_L1;
+
+    if constexpr (0 && QT_CONFIG(alsa)) // alsasrc has a "device" property, but it cannot be changed
+                                        // during playback
+        return elementType == "GstAlsaSrc"_L1;
+
+    return false;
+}
+
+} // namespace
 
 QMaybe<QPlatformAudioInput *> QGstreamerAudioInput::create(QAudioInput *parent)
 {
@@ -28,7 +59,7 @@ QGstreamerAudioInput::QGstreamerAudioInput(QAudioInput *parent)
       QPlatformAudioInput(parent),
       m_audioInputBin(QGstBin::create("audioInput")),
       m_audioSrc{
-          QGstElement::createFromFactory("autoaudiosrc", "autoaudiosrc"),
+          QGstElement::createFromFactory(defaultSrcName.constData(), "autoaudiosrc"),
       },
       m_audioVolume{
           QGstElement::createFromFactory("volume", "volume"),
@@ -60,22 +91,15 @@ QGstElement QGstreamerAudioInput::createGstElement()
     }
 
     const QByteArray &id = m_audioDevice.id();
-    if constexpr (QT_CONFIG(pulseaudio)) {
-        QGstElement newSrc = QGstElement::createFromFactory("pulsesrc", "audiosrc");
+    if constexpr (QT_CONFIG(pulseaudio) || QT_CONFIG(alsa)) {
+        QGstElement newSrc = QGstElement::createFromFactory(defaultSrcName.constData(), "audiosrc");
         if (newSrc) {
             newSrc.set("device", id.constData());
             return newSrc;
-        } else {
-            qWarning() << "Cannot create pulsesrc";
         }
-    } else if constexpr (QT_CONFIG(alsa)) {
-        QGstElement newSrc = QGstElement::createFromFactory("alsasrc", "audiosrc");
-        if (newSrc) {
-            newSrc.set("device", id.constData());
-            return newSrc;
-        } else {
-            qWarning() << "Cannot create alsasrc";
-        }
+
+        qWarning() << "Cannot create" << defaultSrcName;
+
     } else {
         auto *deviceInfo = dynamic_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
         if (deviceInfo && deviceInfo->gstDevice) {
@@ -111,6 +135,11 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
         return;
     qCDebug(qLcMediaAudioInput) << "setAudioDevice" << device.description() << device.isNull();
     m_audioDevice = device;
+
+    if (hasDeviceProperty(m_audioSrc) && !isCustomAudioDevice(m_audioDevice)) {
+        m_audioSrc.set("device", m_audioDevice.id().constData());
+        return;
+    }
 
     QGstElement newSrc = createGstElement();
 

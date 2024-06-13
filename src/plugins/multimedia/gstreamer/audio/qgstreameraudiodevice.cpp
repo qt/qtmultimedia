@@ -74,4 +74,14 @@ QAudioDevice qMakeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline
     return deviceInfo.release()->create();
 }
 
+bool isCustomAudioDevice(const QAudioDevicePrivate *device)
+{
+    return dynamic_cast<const QGStreamerCustomAudioDeviceInfo *>(device);
+}
+
+bool isCustomAudioDevice(const QAudioDevice &device)
+{
+    return isCustomAudioDevice(device.handle());
+}
+
 QT_END_NAMESPACE
