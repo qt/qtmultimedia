@@ -150,7 +150,7 @@ private:
     };
 
     bool prerolling = false;
-    bool m_requiresSeekOnPlay = false;
+    bool m_requiresSeekOnPlay = true;
     bool m_initialBufferProgressSent = false;
     ResourceErrorState m_resourceErrorState = ResourceErrorState::NoError;
     float m_rate = 1.f;

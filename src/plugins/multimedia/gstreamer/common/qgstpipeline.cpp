@@ -33,8 +33,6 @@ public:
     bool inStoppedState = true;
     mutable std::chrono::nanoseconds m_position{};
     double m_rate = 1.;
-    bool m_flushOnConfigChanges = false;
-    bool m_pendingFlush = false;
 
     int m_configCounter = 0;
     GstState m_savedState = GST_STATE_NULL;
@@ -199,12 +197,6 @@ void QGstPipeline::setInStoppedState(bool stopped)
     d->inStoppedState = stopped;
 }
 
-void QGstPipeline::setFlushOnConfigChanges(bool flush)
-{
-    QGstPipelinePrivate *d = getPrivate();
-    d->m_flushOnConfigChanges = flush;
-}
-
 void QGstPipeline::installMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
     QGstPipelinePrivate *d = getPrivate();
@@ -231,13 +223,7 @@ void QGstPipeline::removeMessageFilter(QGstreamerBusMessageFilter *filter)
 
 GstStateChangeReturn QGstPipeline::setState(GstState state)
 {
-    QGstPipelinePrivate *d = getPrivate();
-    auto retval = gst_element_set_state(element(), state);
-    if (d->m_pendingFlush) {
-        d->m_pendingFlush = false;
-        flush();
-    }
-    return retval;
+    return gst_element_set_state(element(), state);
 }
 
 void QGstPipeline::processMessages(GstMessageType types)
@@ -299,8 +285,6 @@ void QGstPipeline::endConfig()
     if (d->m_configCounter)
         return;
 
-    if (d->m_flushOnConfigChanges)
-        d->m_pendingFlush = true;
     if (d->m_savedState == GST_STATE_PLAYING)
         setState(GST_STATE_PLAYING);
     d->m_savedState = GST_STATE_NULL;

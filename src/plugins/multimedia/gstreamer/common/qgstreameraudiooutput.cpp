@@ -133,6 +133,10 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
         audioSink.syncStateWithParent();
         qLinkGstElements(audioVolume, audioSink);
     });
+
+    // we need to flush the pipeline, otherwise, the new sink doesn't always reach the new state
+    if (gstAudioOutput.getPipeline())
+        gstAudioOutput.getPipeline().flush();
 }
 
 QT_END_NAMESPACE
