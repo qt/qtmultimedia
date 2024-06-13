@@ -319,7 +319,7 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *sugge
                 return result;
             };
 
-            const auto found = findBestAVFormat(suggestedFormats, scoresGettor);
+            const auto found = findBestAVValue(suggestedFormats, scoresGettor);
 
             if (found.second > formatAndScore.second)
                 formatAndScore = found;

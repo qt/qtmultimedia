@@ -161,6 +161,15 @@ constexpr AVScore DefaultAVScore = 0;
 constexpr AVScore NotSuitableAVScore = std::numeric_limits<AVScore>::min();
 constexpr AVScore MinAVScore = NotSuitableAVScore + 1;
 
+template <typename T>
+inline constexpr auto InvalidAvValue = T{};
+
+template<>
+inline constexpr auto InvalidAvValue<AVSampleFormat> = AV_SAMPLE_FMT_NONE;
+
+template<>
+inline constexpr auto InvalidAvValue<AVPixelFormat> = AV_PIX_FMT_NONE;
+
 const AVCodec *findAVDecoder(AVCodecID codecId,
                              const std::optional<AVHWDeviceType> &deviceType = {},
                              const std::optional<PixelOrSampleFormat> &format = {});
@@ -177,7 +186,7 @@ bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format);
 template<typename Format>
 bool hasAVFormat(const Format *fmts, Format format)
 {
-    return findAVFormat(fmts, [format](Format f) { return f == format; }) != Format(-1);
+    return findAVFormat(fmts, [format](Format f) { return f == format; }) != InvalidAvValue<Format>;
 }
 
 template<typename Format, typename Predicate>
@@ -186,7 +195,7 @@ Format findAVFormat(const Format *fmts, const Predicate &predicate)
     auto scoresGetter = [&predicate](Format fmt) {
         return predicate(fmt) ? BestAVScore : NotSuitableAVScore;
     };
-    return findBestAVFormat(fmts, scoresGetter).first;
+    return findBestAVValue(fmts, scoresGetter).first;
 }
 
 template <typename Predicate>
@@ -218,12 +227,14 @@ AVPixelFormat findAVPixelFormat(const AVCodec *codec, const Predicate &predicate
 }
 
 template <typename Value, typename CalculateScore>
-auto findBestAVValue(const Value *values, const CalculateScore &calculateScore,
-                     Value invalidValue = {})
+auto findBestAVValue(const Value *values, const CalculateScore &calculateScore)
 {
     using Limits = std::numeric_limits<decltype(calculateScore(*values))>;
+
+    const Value invalidValue = InvalidAvValue<Value>;
     std::pair result(invalidValue, Limits::min());
     if (values) {
+
         for (; *values != invalidValue && result.second != Limits::max(); ++values) {
             const auto score = calculateScore(*values);
             if (score > result.second)
@@ -232,15 +243,6 @@ auto findBestAVValue(const Value *values, const CalculateScore &calculateScore,
     }
 
     return result;
-}
-
-template <typename Format, typename CalculateScore>
-std::pair<Format, AVScore> findBestAVFormat(const Format *fmts,
-                                            const CalculateScore &calculateScore)
-{
-    static_assert(std::is_same_v<Format, AVSampleFormat> || std::is_same_v<Format, AVPixelFormat>,
-                  "The input value is not AV format, use findBestAVValue instead.");
-    return findBestAVValue(fmts, calculateScore, Format(-1));
 }
 
 bool isHwPixelFormat(AVPixelFormat format);
