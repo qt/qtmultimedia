@@ -255,14 +255,6 @@ void QGstPipeline::processMessages(GstMessageType types)
     d->processMessage(message);
 }
 
-void QGstPipeline::dumpGraph(const char *fileName)
-{
-    if (isNull())
-        return;
-
-    QGstBin{ bin(), QGstBin::NeedsRef }.dumpGraph(fileName);
-}
-
 void QGstPipeline::beginConfig()
 {
     QGstPipelinePrivate *d = getPrivate();

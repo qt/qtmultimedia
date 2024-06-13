@@ -1254,7 +1254,7 @@ bool QGstBin::syncChildrenState()
     return gst_bin_sync_children_states(bin());
 }
 
-void QGstBin::dumpGraph(const char *fileNamePrefix)
+void QGstBin::dumpGraph(const char *fileNamePrefix) const
 {
     if (isNull())
         return;
