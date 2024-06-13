@@ -136,8 +136,6 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
       playerPipeline(QGstPipeline::create("playerPipeline")),
       gstVideoOutput(videoOutput)
 {
-    playerPipeline.setFlushOnConfigChanges(true);
-
     gstVideoOutput->setParent(this);
     gstVideoOutput->setPipeline(playerPipeline);
 
@@ -265,8 +263,8 @@ void QGstreamerMediaPlayer::play()
     qCDebug(qLcMediaPlayer) << "play().";
     int ret = playerPipeline.setState(GST_STATE_PLAYING);
     if (m_requiresSeekOnPlay) {
-        // Flushing the pipeline is required to get track changes
-        // immediately, when they happen while paused.
+        // Flushing the pipeline is required to get track changes immediately, when they happen
+        // while paused.
         playerPipeline.flush();
         m_requiresSeekOnPlay = false;
     } else {
@@ -447,6 +445,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                 playerPipeline.dumpGraph("playerPipelinePrerollDone");
 
                 prerolling = false;
+
                 updateDurationFromPipeline();
 
                 m_metaData.insert(QMediaMetaData::Duration, duration());
@@ -862,6 +861,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << "setting location to" << content;
 
     prerolling = true;
+    m_requiresSeekOnPlay = true;
     m_resourceErrorState = ResourceErrorState::NoError;
 
     bool ret = playerPipeline.setStateSync(GST_STATE_NULL);
