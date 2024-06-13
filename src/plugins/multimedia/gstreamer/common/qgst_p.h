@@ -741,7 +741,7 @@ public:
 
     bool syncChildrenState();
 
-    void dumpGraph(const char *fileNamePrefix);
+    void dumpGraph(const char *fileNamePrefix) const;
 
     QGstElement findByName(const char *);
 };
