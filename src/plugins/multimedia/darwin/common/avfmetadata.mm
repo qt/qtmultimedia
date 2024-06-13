@@ -267,6 +267,23 @@ QMediaMetaData AVFMetaData::fromAssetTrack(AVAssetTrack *asset)
             Q_UNUSED(mirrored);
             metadata.insert(QMediaMetaData::Orientation, int(angle));
         }
+
+        // add HDR content
+        if (metadata.value(QMediaMetaData::HasHdrContent).isNull()) {
+            auto hasHdrContent = false;
+
+            NSArray *formatDescriptions = [asset formatDescriptions];
+            for (id formatDescription in formatDescriptions) {
+                NSDictionary *extensions = (__bridge NSDictionary *)CMFormatDescriptionGetExtensions((CMFormatDescriptionRef)formatDescription);
+                NSString *transferFunction = extensions[(__bridge NSString *)kCMFormatDescriptionExtension_TransferFunction];
+                if ([transferFunction isEqualToString:(__bridge NSString *)kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ]) {
+                    hasHdrContent = true;
+                    break;
+                }
+            }
+
+            metadata.insert(QMediaMetaData::HasHdrContent, hasHdrContent);
+        }
     }
     return metadata;
 }
