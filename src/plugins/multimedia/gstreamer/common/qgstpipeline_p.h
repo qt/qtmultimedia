@@ -62,8 +62,6 @@ public:
     bool inStoppedState() const;
     void setInStoppedState(bool stopped);
 
-    void setFlushOnConfigChanges(bool flush);
-
     void installMessageFilter(QGstreamerSyncMessageFilter *filter);
     void removeMessageFilter(QGstreamerSyncMessageFilter *filter);
     void installMessageFilter(QGstreamerBusMessageFilter *filter);
