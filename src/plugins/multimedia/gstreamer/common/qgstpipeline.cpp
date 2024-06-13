@@ -21,13 +21,12 @@ static constexpr GstSeekFlags rateChangeSeekFlags =
         GST_SEEK_FLAG_FLUSH;
 #endif
 
-class QGstPipelinePrivate : public QObject
+class QGstPipelinePrivate
 {
 public:
-    int m_ref = 0;
-    guint m_tag = 0;
+    guint m_eventSourceID = 0;
     GstBus *m_bus = nullptr;
-    QTimer *m_intervalTimer = nullptr;
+    std::unique_ptr<QTimer> m_intervalTimer;
     QMutex filterMutex;
     QList<QGstreamerSyncMessageFilter*> syncFilters;
     QList<QGstreamerBusMessageFilter*> busFilters;
@@ -40,11 +39,8 @@ public:
     int m_configCounter = 0;
     GstState m_savedState = GST_STATE_NULL;
 
-    explicit QGstPipelinePrivate(GstBus *bus, QObject *parent = nullptr);
+    explicit QGstPipelinePrivate(GstBus *bus);
     ~QGstPipelinePrivate();
-
-    void ref() { ++ m_ref; }
-    void deref() { if (!--m_ref) delete this; }
 
     void installMessageFilter(QGstreamerSyncMessageFilter *filter);
     void removeMessageFilter(QGstreamerSyncMessageFilter *filter);
@@ -100,17 +96,15 @@ private:
     }
 };
 
-QGstPipelinePrivate::QGstPipelinePrivate(GstBus* bus, QObject* parent)
-  : QObject(parent),
-    m_bus(bus)
+QGstPipelinePrivate::QGstPipelinePrivate(GstBus *bus) : m_bus(bus)
 {
     // glib event loop can be disabled either by env variable or QT_NO_GLIB define, so check the dispacher
     QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
     const bool hasGlib = dispatcher && dispatcher->inherits("QEventDispatcherGlib");
     if (!hasGlib) {
-        m_intervalTimer = new QTimer(this);
+        m_intervalTimer = std::make_unique<QTimer>();
         m_intervalTimer->setInterval(250);
-        QObject::connect(m_intervalTimer, &QTimer::timeout, this, [this] {
+        QObject::connect(m_intervalTimer.get(), &QTimer::timeout, m_intervalTimer.get(), [this] {
             GstMessage *message;
             while ((message = gst_bus_poll(m_bus, GST_MESSAGE_ANY, 0)) != nullptr) {
                 processMessage(message);
@@ -119,7 +113,8 @@ QGstPipelinePrivate::QGstPipelinePrivate(GstBus* bus, QObject* parent)
         });
         m_intervalTimer->start();
     } else {
-        m_tag = gst_bus_add_watch_full(bus, G_PRIORITY_DEFAULT, busCallback, this, nullptr);
+        m_eventSourceID =
+                gst_bus_add_watch_full(bus, G_PRIORITY_DEFAULT, busCallback, this, nullptr);
     }
 
     gst_bus_set_sync_handler(bus, (GstBusSyncHandler)syncGstBusFilter, this, nullptr);
@@ -127,9 +122,9 @@ QGstPipelinePrivate::QGstPipelinePrivate(GstBus* bus, QObject* parent)
 
 QGstPipelinePrivate::~QGstPipelinePrivate()
 {
-    delete m_intervalTimer;
+    m_intervalTimer.reset();
 
-    if (m_tag)
+    if (m_eventSourceID)
         gst_bus_remove_watch(m_bus);
 
     gst_bus_set_sync_handler(m_bus, nullptr, nullptr, nullptr);
