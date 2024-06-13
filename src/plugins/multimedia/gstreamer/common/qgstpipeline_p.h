@@ -75,8 +75,6 @@ public:
 
     void processMessages(GstMessageType = GST_MESSAGE_ANY);
 
-    void dumpGraph(const char *fileName);
-
     template <typename Functor>
     void modifyPipelineWhileNotRunning(Functor &&fn)
     {
