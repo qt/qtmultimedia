@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
     \row \li VideoFrameRate \li The frame rate of the media's video stream. \li qreal
     \row \li VideoBitRate \li The bit rate of the media's video stream in bits per second.  \li int
     \row \li VideoCodec \li The codec of the media's video stream.  \li QMediaFormat::VideoCodec
-    \row \li HasHdrContent \li True if video is intended for HDR display (FFmpeg media backend only). \li bool
+    \row \li HasHdrContent \li True if video is intended for HDR display (FFmpeg and Darwin media backends only). \li bool
 
     \header \li {3,1}
     Music attributes
@@ -282,7 +282,7 @@ QMetaType QMediaMetaData::keyType(Key key)
     \value CoverArtImage Media cover art
     \value Orientation
     \value Resolution
-    \value [since 6.8] HasHdrContent Video may have HDR content (read only, FFmpeg media backend only)
+    \value [since 6.8] HasHdrContent Video may have HDR content (read only, FFmpeg and Darwin media backends only)
 */
 
 /*!

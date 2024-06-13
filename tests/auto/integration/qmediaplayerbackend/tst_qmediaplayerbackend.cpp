@@ -2781,7 +2781,8 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithHasHdrContent_whenMedi
     QFETCH(const MaybeUrl, mediaUrl);
     QFETCH(const bool, hasHdrContent);
 
-    QSKIP_IF_NOT_FFMPEG();
+    if (!isFFMPEGPlatform() && !isDarwinPlatform())
+        QSKIP("This test is only for FFmpeg and Darwin backends");
 
     m_fixture->player.setSource(*mediaUrl);
     QTRY_VERIFY(!m_fixture->metadataChanged.empty());
