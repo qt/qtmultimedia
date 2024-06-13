@@ -16,7 +16,7 @@ AVSampleFormat adjustSampleFormat(const AVSampleFormat *supportedFormats, AVSamp
                                                                 : 0;
     };
 
-    const auto result = findBestAVFormat(supportedFormats, calcScore).first;
+    const auto result = findBestAVValue(supportedFormats, calcScore).first;
     return result == AV_SAMPLE_FMT_NONE ? requested : result;
 }
 

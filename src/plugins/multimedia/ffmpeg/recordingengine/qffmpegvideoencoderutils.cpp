@@ -82,12 +82,12 @@ AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *co
 
     const auto constraints = accel.constraints();
     if (constraints && constraints->valid_sw_formats)
-        return findBestAVFormat(constraints->valid_sw_formats, scoreCalculator).first;
+        return findBestAVValue(constraints->valid_sw_formats, scoreCalculator).first;
 
     // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
     // codec->pix_fmts
     if (codec->pix_fmts)
-        return findBestAVFormat(codec->pix_fmts, scoreCalculator).first;
+        return findBestAVValue(codec->pix_fmts, scoreCalculator).first;
 
     return AV_PIX_FMT_NONE;
 }
@@ -121,7 +121,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
     }
 
     auto swScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
-    return findBestAVFormat(codec->pix_fmts, swScoreCalculator).first;
+    return findBestAVValue(codec->pix_fmts, swScoreCalculator).first;
 }
 
 std::pair<const AVCodec *, std::unique_ptr<HWAccel>> findHwEncoder(AVCodecID codecID,
@@ -154,7 +154,7 @@ const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat)
             // codecs without pix_fmts are suspicious
             return MinAVScore;
 
-        return findBestAVFormat(codec->pix_fmts, formatScoreCalculator).second;
+        return findBestAVValue(codec->pix_fmts, formatScoreCalculator).second;
     });
 }
 
