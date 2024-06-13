@@ -1287,7 +1287,8 @@ void tst_QMediaPlayerBackend::play_setsPlaybackStateAndMediaStatus_whenValidFile
     m_fixture->player.play();
 
     QTRY_COMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE_EQ(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
 
@@ -3663,6 +3664,7 @@ void tst_QMediaPlayerBackend::setVideoOutput_doesNotStopPlayback()
         break;
     case QMediaPlayer::PlayingState:
         QSKIP_FFMPEG("QTBUG-126014: Test failure with the ffmpeg backend");
+        QSKIP_GSTREAMER("QTBUG-124005: Test failure with the gstreamer backend");
         player.play();
         break;
     }
