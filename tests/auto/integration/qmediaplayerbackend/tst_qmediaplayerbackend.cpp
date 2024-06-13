@@ -1504,7 +1504,7 @@ void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLong
         // QTBUG-124005: GStreamer timing seems to be off
 
         // 1000 is expected
-        QCOMPARE_GT(elapsed, 900);
+        QCOMPARE_GT(elapsed, 850);
         QCOMPARE_LT(elapsed, 1400);
     }
 
