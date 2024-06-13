@@ -421,8 +421,6 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         int progress = 0;
         gst_message_parse_buffering(gm, &progress);
 
-        qCDebug(qLcMediaPlayer) << "    buffering message: " << progress;
-
         if (state() != QMediaPlayer::StoppedState && !prerolling) {
             if (!m_initialBufferProgressSent) {
                 mediaStatusChanged(QMediaPlayer::BufferingMedia);
