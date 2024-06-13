@@ -290,6 +290,14 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
         break;
     }
 
+    case GST_MESSAGE_BUFFERING: {
+        int progress = 0;
+        gst_message_parse_buffering(const_cast<GstMessage *>(msg), &progress);
+
+        dbg << ", Buffering: " << progress << "%";
+        break;
+    }
+
     default:
         break;
     }
