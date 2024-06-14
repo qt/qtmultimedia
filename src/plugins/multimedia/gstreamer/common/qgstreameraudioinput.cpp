@@ -1,19 +1,14 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
+#include <common/qgstreameraudioinput_p.h>
+
+#include <QtCore/qloggingcategory.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioinput.h>
 
-#include <QtCore/qloggingcategory.h>
-
 #include <audio/qgstreameraudiodevice_p.h>
-#include <common/qgstreameraudioinput_p.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-#include <utility>
+#include <common/qgstpipeline_p.h>
 
 static Q_LOGGING_CATEGORY(qLcMediaAudioInput, "qt.multimedia.audioInput")
 
@@ -31,18 +26,18 @@ QMaybe<QPlatformAudioInput *> QGstreamerAudioInput::create(QAudioInput *parent)
 QGstreamerAudioInput::QGstreamerAudioInput(QAudioInput *parent)
     : QObject(parent),
       QPlatformAudioInput(parent),
-      gstAudioInput(QGstBin::create("audioInput")),
-      audioSrc{
+      m_audioInputBin(QGstBin::create("audioInput")),
+      m_audioSrc{
           QGstElement::createFromFactory("autoaudiosrc", "autoaudiosrc"),
       },
-      audioVolume{
+      m_audioVolume{
           QGstElement::createFromFactory("volume", "volume"),
       }
 {
-    gstAudioInput.add(audioSrc, audioVolume);
-    qLinkGstElements(audioSrc, audioVolume);
+    m_audioInputBin.add(m_audioSrc, m_audioVolume);
+    qLinkGstElements(m_audioSrc, m_audioVolume);
 
-    gstAudioInput.addGhostPad(audioVolume, "src");
+    m_audioInputBin.addGhostPad(m_audioVolume, "src");
 }
 
 QGstElement QGstreamerAudioInput::createGstElement()
@@ -97,41 +92,36 @@ QGstElement QGstreamerAudioInput::createGstElement()
 
 QGstreamerAudioInput::~QGstreamerAudioInput()
 {
-    gstAudioInput.setStateSync(GST_STATE_NULL);
+    m_audioInputBin.setStateSync(GST_STATE_NULL);
 }
 
 void QGstreamerAudioInput::setVolume(float volume)
 {
-    audioVolume.set("volume", volume);
+    m_audioVolume.set("volume", volume);
 }
 
 void QGstreamerAudioInput::setMuted(bool muted)
 {
-    audioVolume.set("mute", muted);
+    m_audioVolume.set("mute", muted);
 }
 
 void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
 {
     if (device == m_audioDevice)
         return;
-    qCDebug(qLcMediaAudioInput) << "setAudioInput" << device.description() << device.isNull();
+    qCDebug(qLcMediaAudioInput) << "setAudioDevice" << device.description() << device.isNull();
     m_audioDevice = device;
 
     QGstElement newSrc = createGstElement();
 
-    QGstPipeline::modifyPipelineWhileNotRunning(gstAudioInput.getPipeline(), [&] {
-        qUnlinkGstElements(audioSrc, audioVolume);
-        gstAudioInput.stopAndRemoveElements(audioSrc);
-        audioSrc = std::move(newSrc);
-        gstAudioInput.add(audioSrc);
-        qLinkGstElements(audioSrc, audioVolume);
-        audioSrc.syncStateWithParent();
+    QGstPipeline::modifyPipelineWhileNotRunning(m_audioInputBin.getPipeline(), [&] {
+        qUnlinkGstElements(m_audioSrc, m_audioVolume);
+        m_audioInputBin.stopAndRemoveElements(m_audioSrc);
+        m_audioSrc = std::move(newSrc);
+        m_audioInputBin.add(m_audioSrc);
+        qLinkGstElements(m_audioSrc, m_audioVolume);
+        m_audioSrc.syncStateWithParent();
     });
-}
-
-QAudioDevice QGstreamerAudioInput::audioInput() const
-{
-    return m_audioDevice;
 }
 
 QT_END_NAMESPACE

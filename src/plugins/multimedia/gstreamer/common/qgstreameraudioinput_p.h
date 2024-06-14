@@ -16,13 +16,9 @@
 //
 
 #include <QtCore/qobject.h>
-#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtMultimedia/private/qplatformaudioinput_p.h>
-#include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <QtMultimedia/qaudiodevice.h>
 
 #include <common/qgst_p.h>
-#include <common/qgstpipeline_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -34,14 +30,11 @@ public:
     static QMaybe<QPlatformAudioInput *> create(QAudioInput *parent);
     ~QGstreamerAudioInput();
 
-    bool setAudioInput(const QAudioDevice &);
-    QAudioDevice audioInput() const;
-
     void setAudioDevice(const QAudioDevice &) override;
     void setVolume(float) override;
     void setMuted(bool) override;
 
-    QGstElement gstElement() const { return gstAudioInput; }
+    QGstElement gstElement() const { return m_audioInputBin; }
 
 private:
     explicit QGstreamerAudioInput(QAudioInput *parent);
@@ -51,10 +44,10 @@ private:
     QAudioDevice m_audioDevice;
 
     // Gst elements
-    QGstBin gstAudioInput;
+    QGstBin m_audioInputBin;
 
-    QGstElement audioSrc;
-    QGstElement audioVolume;
+    QGstElement m_audioSrc;
+    QGstElement m_audioVolume;
 };
 
 QT_END_NAMESPACE
