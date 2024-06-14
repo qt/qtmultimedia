@@ -27,19 +27,19 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class QtAndroidMediaPlayer
+class QtAndroidMediaPlayer
 {
     // Native callback functions for MediaPlayer
-    native public void onErrorNative(int what, int extra, long id);
-    native public void onBufferingUpdateNative(int percent, long id);
-    native public void onProgressUpdateNative(int progress, long id);
-    native public void onDurationChangedNative(int duration, long id);
-    native public void onInfoNative(int what, int extra, long id);
-    native public void onVideoSizeChangedNative(int width, int height, long id);
-    native public void onStateChangedNative(int state, long id);
+    native void onErrorNative(int what, int extra, long id);
+    native void onBufferingUpdateNative(int percent, long id);
+    native void onProgressUpdateNative(int progress, long id);
+    native void onDurationChangedNative(int duration, long id);
+    native void onInfoNative(int what, int extra, long id);
+    native void onVideoSizeChangedNative(int width, int height, long id);
+    native void onStateChangedNative(int state, long id);
 
-    native public void onTrackInfoChangedNative(long id);
-    native public void onTimedTextChangedNative(String text, int time, long id);
+    native void onTrackInfoChangedNative(long id);
+    native void onTimedTextChangedNative(String text, int time, long id);
 
     private MediaPlayer mMediaPlayer = null;
     private AudioAttributes mAudioAttributes = null;
@@ -67,7 +67,7 @@ public class QtAndroidMediaPlayer
         final static int Error = 0x200;
     }
 
-    public class TrackInfo
+    class TrackInfo
     {
         private int type;
         private String mime, language;
@@ -206,19 +206,20 @@ public class QtAndroidMediaPlayer
 
     private class MediaPlayerTimedTextListener implements MediaPlayer.OnTimedTextListener
     {
-        @Override public void onTimedText(MediaPlayer mp, TimedText text)
+        @Override
+        public void onTimedText(MediaPlayer mp, TimedText text)
         {
             onTimedTextChangedNative(text.getText(), mp.getCurrentPosition(), mID);
         }
     }
 
-    public QtAndroidMediaPlayer(final Context context, final long id)
+    QtAndroidMediaPlayer(final Context context, final long id)
     {
         mID = id;
         mContext = context;
     }
 
-    public MediaPlayer getMediaPlayerHandle()
+    MediaPlayer getMediaPlayerHandle()
     {
         return mMediaPlayer;
     }
@@ -256,7 +257,7 @@ public class QtAndroidMediaPlayer
         mProgressScheduler = Executors.newScheduledThreadPool(1);
     }
 
-    public void startProgressWatcher()
+    void startProgressWatcher()
     {
         // if it was shutdown, request new thread
         if (mProgressScheduler.isTerminated() || mProgressScheduler == null)
@@ -271,13 +272,13 @@ public class QtAndroidMediaPlayer
         }, 10, 100, TimeUnit.MILLISECONDS);
     }
 
-    public void cancelProgressWatcher()
+    void cancelProgressWatcher()
     {
         if (mProgressScheduler != null)
             mProgressScheduler.shutdown();
     }
 
-    public void start()
+    void start()
     {
         if ((mState & (State.Prepared
                        | State.Started
@@ -295,7 +296,7 @@ public class QtAndroidMediaPlayer
         }
     }
 
-    public void pause()
+    void pause()
     {
         if ((mState & (State.Started | State.Paused | State.PlaybackCompleted)) == 0)
             return;
@@ -309,7 +310,7 @@ public class QtAndroidMediaPlayer
     }
 
 
-    public void stop()
+    void stop()
     {
         if ((mState & (State.Prepared
                        | State.Started
@@ -329,7 +330,7 @@ public class QtAndroidMediaPlayer
     }
 
 
-    public void seekTo(final int msec)
+    void seekTo(final int msec)
     {
         if ((mState & (State.Prepared
                        | State.Started
@@ -351,7 +352,7 @@ public class QtAndroidMediaPlayer
         }
     }
 
-    public boolean isPlaying()
+    boolean isPlaying()
     {
         boolean playing = false;
         if ((mState & (State.Idle
@@ -373,7 +374,7 @@ public class QtAndroidMediaPlayer
         return playing;
     }
 
-    public void prepareAsync()
+    void prepareAsync()
     {
         if ((mState & (State.Initialized | State.Stopped)) == 0)
            return;
@@ -386,17 +387,17 @@ public class QtAndroidMediaPlayer
         }
     }
 
-    public void initHeaders()
+    void initHeaders()
     {
         mHeaders = new HashMap<String, String>();
     }
 
-    public void setHeader(final String header, final String value)
+    void setHeader(final String header, final String value)
     {
         mHeaders.put(header, value);
     }
 
-    public void setDataSource(final String path)
+    void setDataSource(final String path)
     {
         if (mState == State.Uninitialized)
             init();
@@ -462,7 +463,7 @@ public class QtAndroidMediaPlayer
         return ((mState & preparedState) != 0);
     }
 
-    public TrackInfo[] getAllTrackInfo()
+    TrackInfo[] getAllTrackInfo()
     {
         if (!isMediaPlayerPrepared()) {
             Log.w(TAG, "Trying to get track info of a media player that is not prepared!");
@@ -511,7 +512,7 @@ public class QtAndroidMediaPlayer
         return mimeType;
     }
 
-    public void selectTrack(int index)
+    void selectTrack(int index)
     {
         if (!isMediaPlayerPrepared()) {
             Log.d(TAG, "Trying to select a track of a media player that is not prepared!");
@@ -525,7 +526,7 @@ public class QtAndroidMediaPlayer
         }
     }
 
-    public void deselectTrack(int index)
+    void deselectTrack(int index)
     {
         if (!isMediaPlayerPrepared()) {
             Log.d(TAG, "Trying to deselect track of a media player that is not prepared!");
@@ -540,7 +541,7 @@ public class QtAndroidMediaPlayer
         }
     }
 
-    public int getSelectedTrack(int type)
+    int getSelectedTrack(int type)
     {
 
         int InvalidTrack = -1;
@@ -571,7 +572,7 @@ public class QtAndroidMediaPlayer
         return InvalidTrack;
     }
 
-   public int getCurrentPosition()
+   int getCurrentPosition()
    {
        int currentPosition = 0;
        if ((mState & (State.Idle
@@ -594,7 +595,7 @@ public class QtAndroidMediaPlayer
    }
 
 
-   public int getDuration()
+   int getDuration()
    {
        int duration = 0;
        if ((mState & (State.Prepared
@@ -614,7 +615,7 @@ public class QtAndroidMediaPlayer
        return duration;
    }
 
-   public void setVolume(int volume)
+   void setVolume(int volume)
    {
        if (volume < 0)
            volume = 0;
@@ -648,12 +649,12 @@ public class QtAndroidMediaPlayer
        }
    }
 
-   public SurfaceHolder display()
+   SurfaceHolder display()
    {
        return mSurfaceHolder;
    }
 
-   public void setDisplay(SurfaceHolder sh)
+   void setDisplay(SurfaceHolder sh)
    {
        mSurfaceHolder = sh;
 
@@ -664,23 +665,23 @@ public class QtAndroidMediaPlayer
    }
 
 
-   public int getVolume()
+   int getVolume()
    {
        return mVolume;
    }
 
-    public void mute(final boolean mute)
+    void mute(final boolean mute)
     {
         mMuted = mute;
         setVolumeHelper(mute ? 0 : mVolume);
     }
 
-    public boolean isMuted()
+    boolean isMuted()
     {
         return mMuted;
     }
 
-    public void reset()
+    void reset()
     {
         if (mState == State.Uninitialized) {
             return;
@@ -691,7 +692,7 @@ public class QtAndroidMediaPlayer
         cancelProgressWatcher();
     }
 
-    public void release()
+    void release()
     {
         if (mMediaPlayer != null) {
             mMediaPlayer.reset();
@@ -703,7 +704,7 @@ public class QtAndroidMediaPlayer
         cancelProgressWatcher();
     }
 
-    public void setAudioAttributes(int type, int usage)
+    void setAudioAttributes(int type, int usage)
     {
         mAudioAttributes = new AudioAttributes.Builder()
             .setUsage(usage)
@@ -725,7 +726,7 @@ public class QtAndroidMediaPlayer
         }
     }
 
-    public boolean setPlaybackRate(float rate)
+    boolean setPlaybackRate(float rate)
     {
         PlaybackParams playbackParams = mMediaPlayer.getPlaybackParams();
         playbackParams.setSpeed(rate);

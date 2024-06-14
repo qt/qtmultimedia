@@ -15,7 +15,7 @@ import android.util.Log;
 import java.lang.Math;
 import java.io.ByteArrayOutputStream;
 
-public class QtCameraListener implements Camera.ShutterCallback,
+class QtCameraListener implements Camera.ShutterCallback,
                                          Camera.PictureCallback,
                                          Camera.AutoFocusCallback,
                                          Camera.PreviewCallback
@@ -40,22 +40,22 @@ public class QtCameraListener implements Camera.ShutterCallback,
         m_cameraId = id;
     }
 
-    public void notifyNewFrames(boolean notify)
+    void notifyNewFrames(boolean notify)
     {
         m_notifyNewFrames = notify;
     }
 
-    public void notifyWhenFrameAvailable(boolean notify)
+    void notifyWhenFrameAvailable(boolean notify)
     {
         m_notifyWhenFrameAvailable = notify;
     }
 
-    public byte[] lastPreviewBuffer()
+    byte[] lastPreviewBuffer()
     {
         return m_lastPreviewBuffer;
     }
 
-    public int previewWidth()
+    int previewWidth()
     {
         if (m_previewSize == null)
             return -1;
@@ -63,7 +63,7 @@ public class QtCameraListener implements Camera.ShutterCallback,
         return m_previewSize.width;
     }
 
-    public int previewHeight()
+    int previewHeight()
     {
         if (m_previewSize == null)
             return -1;
@@ -71,27 +71,27 @@ public class QtCameraListener implements Camera.ShutterCallback,
         return m_previewSize.height;
     }
 
-    public int previewFormat()
+    int previewFormat()
     {
         return m_previewFormat;
     }
 
-    public int previewBytesPerLine()
+    int previewBytesPerLine()
     {
         return m_previewBytesPerLine;
     }
 
-    public void clearPreviewCallback(Camera camera)
+    void clearPreviewCallback(Camera camera)
     {
         camera.setPreviewCallbackWithBuffer(null);
     }
 
-    public void setPhotoRotation(int rotation)
+    void setPhotoRotation(int rotation)
     {
         m_rotation = rotation;
     }
 
-    public void setupPreviewCallback(Camera camera)
+    void setupPreviewCallback(Camera camera)
     {
         // Clear previous callback (also clears added buffers)
         clearPreviewCallback(camera);

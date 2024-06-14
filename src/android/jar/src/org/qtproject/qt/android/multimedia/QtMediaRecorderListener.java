@@ -5,11 +5,11 @@ package org.qtproject.qt.android.multimedia;
 
 import android.media.MediaRecorder;
 
-public class QtMediaRecorderListener implements MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener
+class QtMediaRecorderListener implements MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener
 {
     private long m_id = -1;
 
-    public QtMediaRecorderListener(long id)
+    QtMediaRecorderListener(long id)
     {
         m_id = id;
     }

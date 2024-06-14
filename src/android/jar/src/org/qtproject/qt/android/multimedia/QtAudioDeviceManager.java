@@ -16,7 +16,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-public class QtAudioDeviceManager
+class QtAudioDeviceManager
 {
     private static final String TAG = "QtAudioDeviceManager";
     static private AudioManager m_audioManager = null;
@@ -32,8 +32,8 @@ public class QtAudioDeviceManager
     static private final int m_audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     static private final int m_bufferSize = AudioRecord.getMinBufferSize(m_sampleRate, m_channels, m_audioFormat);
 
-    public static native void onAudioInputDevicesUpdated();
-    public static native void onAudioOutputDevicesUpdated();
+    static native void onAudioInputDevicesUpdated();
+    static native void onAudioOutputDevicesUpdated();
 
     static private void updateDeviceList() {
         onAudioInputDevicesUpdated();
@@ -58,17 +58,17 @@ public class QtAudioDeviceManager
     }
 
 
-    public static void registerAudioHeadsetStateReceiver()
+    static void registerAudioHeadsetStateReceiver()
     {
         m_audioManager.registerAudioDeviceCallback(m_audioDevicesReceiver, handler);
     }
 
-    public static void unregisterAudioHeadsetStateReceiver()
+    static void unregisterAudioHeadsetStateReceiver()
     {
         m_audioManager.unregisterAudioDeviceCallback(m_audioDevicesReceiver);
     }
 
-    static public void setContext(Context context)
+    static void setContext(Context context)
     {
         m_audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
     }
@@ -332,6 +332,7 @@ public class QtAudioDeviceManager
         m_isStreaming = true;
 
         m_streamingThread = new Thread(new Runnable() {
+            @Override
             public void run() {
                 streamSound();
             }

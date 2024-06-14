@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TargetApi(23)
-public class QtCamera2 {
+class QtCamera2 {
 
     CameraDevice mCameraDevice = null;
     QtVideoDeviceManager mVideoDeviceManager = null;
@@ -124,6 +124,7 @@ public class QtCamera2 {
     native void onSessionClosed(String cameraId);
     native void onCaptureSessionFailed(String cameraId, int reason, long frameNumber);
     CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
+        @Override
         public void onCaptureFailed(CameraCaptureSession session,  CaptureRequest request,  CaptureFailure failure) {
             super.onCaptureFailed(session, request, failure);
             onCaptureSessionFailed(mCameraId, failure.getReason(), failure.getFrameNumber());
@@ -189,7 +190,7 @@ public class QtCamera2 {
         }
     };
 
-    public QtCamera2(Context context) {
+    QtCamera2(Context context) {
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         mVideoDeviceManager = new QtVideoDeviceManager(context);
         startBackgroundThread();
@@ -213,7 +214,7 @@ public class QtCamera2 {
     }
 
     @SuppressLint("MissingPermission")
-    public boolean open(String cameraId) {
+    boolean open(String cameraId) {
         try {
             mCameraId = cameraId;
             mCameraManager.openCamera(cameraId,mStateCallback,mBackgroundHandler);
@@ -264,7 +265,7 @@ public class QtCamera2 {
     };
 
 
-    public void prepareCamera(int width, int height, int format, int minFps, int maxFps) {
+    void prepareCamera(int width, int height, int format, int minFps, int maxFps) {
 
         addImageReader(width, height, format);
         setFrameRate(minFps, maxFps);
@@ -295,22 +296,22 @@ public class QtCamera2 {
             mFpsRange = new Range<>(minFrameRate, maxFrameRate);
     }
 
-    public boolean addSurface(Surface surface) {
+    boolean addSurface(Surface surface) {
         if (mTargetSurfaces.contains(surface))
             return true;
 
         return mTargetSurfaces.add(surface);
     }
 
-    public boolean removeSurface(Surface surface) {
+    boolean removeSurface(Surface surface) {
         return  mTargetSurfaces.remove(surface);
     }
 
-    public void clearSurfaces() {
+    void clearSurfaces() {
         mTargetSurfaces.clear();
     }
 
-    public boolean createSession() {
+    boolean createSession() {
         if (mCameraDevice == null)
             return false;
 
@@ -323,7 +324,7 @@ public class QtCamera2 {
         return false;
     }
 
-    public boolean start(int template) {
+    boolean start(int template) {
 
         if (mCameraDevice == null)
             return false;
@@ -364,7 +365,7 @@ public class QtCamera2 {
         }
     }
 
-    public void stopAndClose() {
+    void stopAndClose() {
         synchronized (mStartMutex) {
             try {
                 if (null != mCaptureSession) {
@@ -422,7 +423,7 @@ public class QtCamera2 {
         }
     }
 
-    public void takePhoto() {
+    void takePhoto() {
         try {
             if (mAFMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
@@ -436,7 +437,7 @@ public class QtCamera2 {
         }
     }
 
-    public void saveExifToFile(String path)
+    void saveExifToFile(String path)
     {
         if (mExifDataHandler != null)
             mExifDataHandler.save(path);
@@ -456,7 +457,7 @@ public class QtCamera2 {
                              activePixels.height() - croppedHeight/2);
     }
 
-    public void zoomTo(float factor)
+    void zoomTo(float factor)
     {
         synchronized (mStartMutex) {
             mZoomFactor = factor;
@@ -476,7 +477,7 @@ public class QtCamera2 {
             }
         }
     }
-    public void setFlashMode(String flashMode)
+    void setFlashMode(String flashMode)
     {
         synchronized (mStartMutex) {
 
@@ -506,7 +507,7 @@ public class QtCamera2 {
         return mode ? CameraMetadata.FLASH_MODE_TORCH : CameraMetadata.FLASH_MODE_OFF;
     }
 
-    public void setTorchMode(boolean torchMode)
+    void setTorchMode(boolean torchMode)
     {
         synchronized (mStartMutex) {
             mTorchMode = getTorchModeValue(torchMode);

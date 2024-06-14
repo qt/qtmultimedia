@@ -25,17 +25,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-public class QtVideoDeviceManager {
+class QtVideoDeviceManager {
 
     CameraManager mCameraManager;
     Map<String, CameraCharacteristics> cache;
 
-    public QtVideoDeviceManager(Context context) {
+    QtVideoDeviceManager(Context context) {
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         cache = new WeakHashMap<String, CameraCharacteristics>();
     }
 
-    public CameraCharacteristics getCameraCharacteristics(String cameraId) {
+    CameraCharacteristics getCameraCharacteristics(String cameraId) {
 
         if (cache.containsKey(cameraId))
             return cache.get(cameraId);
@@ -78,10 +78,10 @@ public class QtVideoDeviceManager {
         return codecs.toArray(new String[codecs.size()]);
     }
 
-    static public String[] getHWVideoDecoders() { return getHWVideoCodecs(CODEC.DECODER); }
-    static public String[] getHWVideoEncoders() { return getHWVideoCodecs(CODEC.ENCODER); }
+    static String[] getHWVideoDecoders() { return getHWVideoCodecs(CODEC.DECODER); }
+    static String[] getHWVideoEncoders() { return getHWVideoCodecs(CODEC.ENCODER); }
 
-    public String[] getCameraIdList() {
+    String[] getCameraIdList() {
         try {
             return mCameraManager.getCameraIdList();
         } catch (Exception e) {
@@ -90,21 +90,21 @@ public class QtVideoDeviceManager {
         return null;
     }
 
-    public int getSensorOrientation(String cameraId) {
+    int getSensorOrientation(String cameraId) {
         CameraCharacteristics characteristics =  getCameraCharacteristics(cameraId);
         if (characteristics == null)
             return 0;
         return characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
     }
 
-    public int getLensFacing(String cameraId) {
+    int getLensFacing(String cameraId) {
         CameraCharacteristics characteristics =  getCameraCharacteristics(cameraId);
         if (characteristics == null)
             return 0;
         return characteristics.get(CameraCharacteristics.LENS_FACING);
     }
 
-    public String[] getFpsRange(String cameraId) {
+    String[] getFpsRange(String cameraId) {
 
         CameraCharacteristics characteristics =  getCameraCharacteristics(cameraId);
         if (characteristics == null)
@@ -121,7 +121,7 @@ public class QtVideoDeviceManager {
         return fps;
     }
 
-    public float getMaxZoom(String cameraId) {
+    float getMaxZoom(String cameraId) {
 
         float maxZoom = 1.0f;
         final CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
@@ -130,7 +130,7 @@ public class QtVideoDeviceManager {
         return maxZoom;
     }
 
-    public Rect getActiveArraySize(String cameraId) {
+    Rect getActiveArraySize(String cameraId) {
         Rect activeArraySize = new Rect();
         final CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
         if (characteristics != null)
@@ -139,7 +139,7 @@ public class QtVideoDeviceManager {
     }
 
     static final int maxResolution = 3840*2160; // 4k resolution
-    public String[] getStreamConfigurationsSizes(String cameraId, int imageFormat) {
+    String[] getStreamConfigurationsSizes(String cameraId, int imageFormat) {
 
         CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
         if (characteristics == null)
@@ -160,7 +160,7 @@ public class QtVideoDeviceManager {
         return stream.toArray(new String[0]);
     }
 
-    public int stringToControlAEMode(String mode) {
+    int stringToControlAEMode(String mode) {
         switch (mode) {
             case "off":
                 return CaptureRequest.CONTROL_AE_MODE_ON;
@@ -177,7 +177,7 @@ public class QtVideoDeviceManager {
         }
     }
 
-    public String controlAEModeToString(int mode) {
+    String controlAEModeToString(int mode) {
         switch (mode) {
             case CaptureRequest.CONTROL_AE_MODE_ON:
                 return "off";
@@ -195,7 +195,7 @@ public class QtVideoDeviceManager {
         }
     }
 
-    public int[] getSupportedAfModes(String cameraId) {
+    int[] getSupportedAfModes(String cameraId) {
 
         CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
         if (characteristics == null)
@@ -204,7 +204,7 @@ public class QtVideoDeviceManager {
         return characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
     }
 
-    public String[] getSupportedFlashModes(String cameraId) {
+    String[] getSupportedFlashModes(String cameraId) {
 
         CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
         if (characteristics == null)
@@ -220,7 +220,7 @@ public class QtVideoDeviceManager {
         return supportedFlashModesList.toArray(ret);
     }
 
-    static public boolean isEmulator()
+    static boolean isEmulator()
     {
         return ((Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
             || Build.FINGERPRINT.startsWith("generic")
@@ -237,7 +237,7 @@ public class QtVideoDeviceManager {
             || Build.PRODUCT.contains("simulator"));
     }
 
-    public boolean isTorchModeSupported(String cameraId) {
+    boolean isTorchModeSupported(String cameraId) {
         boolean ret = false;
         final CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
         if (characteristics != null)
