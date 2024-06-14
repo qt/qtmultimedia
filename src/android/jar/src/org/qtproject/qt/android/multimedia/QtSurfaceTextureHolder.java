@@ -8,11 +8,11 @@ import android.view.Surface;
 import android.graphics.Rect;
 import android.graphics.Canvas;
 
-public class QtSurfaceTextureHolder implements SurfaceHolder
+class QtSurfaceTextureHolder implements SurfaceHolder
 {
     private Surface surfaceTexture;
 
-    public QtSurfaceTextureHolder(Surface surface)
+    QtSurfaceTextureHolder(Surface surface)
     {
         surfaceTexture = surface;
     }

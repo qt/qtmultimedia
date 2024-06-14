@@ -5,11 +5,11 @@ package org.qtproject.qt.android.multimedia;
 
 import android.graphics.SurfaceTexture;
 
-public class QtSurfaceTextureListener implements SurfaceTexture.OnFrameAvailableListener
+class QtSurfaceTextureListener implements SurfaceTexture.OnFrameAvailableListener
 {
     private final long m_id;
 
-    public QtSurfaceTextureListener(long id)
+    QtSurfaceTextureListener(long id)
     {
         m_id = id;
     }

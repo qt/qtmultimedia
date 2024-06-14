@@ -5,11 +5,11 @@ package org.qtproject.qt.android.multimedia;
 
 import android.view.SurfaceHolder;
 
-public class QtSurfaceHolderCallback implements SurfaceHolder.Callback
+class QtSurfaceHolderCallback implements SurfaceHolder.Callback
 {
     private long m_id = -1;
 
-    public QtSurfaceHolderCallback(long id)
+    QtSurfaceHolderCallback(long id)
     {
         m_id = id;
     }

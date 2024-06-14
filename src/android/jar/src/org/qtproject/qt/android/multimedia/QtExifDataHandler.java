@@ -9,14 +9,14 @@ import android.util.Log;
 
 import java.io.IOException;
 
-public class QtExifDataHandler {
+class QtExifDataHandler {
 
     private int mFlashFired = 0;
     private long mExposureTime = 0L;
     private float mFocalLength = 0;
     private static String mModel = Build.MANUFACTURER + " " + Build.MODEL;
 
-    public QtExifDataHandler(CaptureResult r)
+    QtExifDataHandler(CaptureResult r)
     {
         Integer flash = r.get(CaptureResult.FLASH_STATE);
         if (flash != null && flash == CaptureResult.FLASH_STATE_FIRED)
@@ -28,7 +28,7 @@ public class QtExifDataHandler {
         mFocalLength = r.get(CaptureResult.LENS_FOCAL_LENGTH);
     }
 
-    public void save(String path)
+    void save(String path)
     {
         ExifInterface exif;
         try {
