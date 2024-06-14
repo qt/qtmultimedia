@@ -16,13 +16,9 @@
 //
 
 #include <QtCore/qobject.h>
-#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtMultimedia/private/qplatformaudiooutput_p.h>
-#include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <QtMultimedia/qaudiodevice.h>
 
 #include <common/qgst_p.h>
-#include <common/qgstpipeline_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -38,24 +34,23 @@ public:
     void setVolume(float) override;
     void setMuted(bool) override;
 
-    QGstElement gstElement() const { return gstAudioOutput; }
+    QGstElement gstElement() const { return m_audioOutputBin; }
 
 private:
     explicit QGstreamerAudioOutput(QAudioOutput *parent);
 
     QGstElement createGstElement();
 
-    QAudioDevice m_audioOutput;
+    QAudioDevice m_audioDevice;
 
     // Gst elements
-    QGstPipeline gstPipeline;
-    QGstBin gstAudioOutput;
+    QGstBin m_audioOutputBin;
 
-    QGstElement audioQueue;
-    QGstElement audioConvert;
-    QGstElement audioResample;
-    QGstElement audioVolume;
-    QGstElement audioSink;
+    QGstElement m_audioQueue;
+    QGstElement m_audioConvert;
+    QGstElement m_audioResample;
+    QGstElement m_audioVolume;
+    QGstElement m_audioSink;
 };
 
 QT_END_NAMESPACE
