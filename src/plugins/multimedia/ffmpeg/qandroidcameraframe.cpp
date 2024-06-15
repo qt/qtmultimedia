@@ -7,14 +7,6 @@
 #include <QtCore/qjnitypes.h>
 #include <QtCore/QLoggingCategory>
 
-Q_DECLARE_JNI_CLASS(AndroidImageFormat, "android/graphics/ImageFormat");
-
-Q_DECLARE_JNI_CLASS(AndroidImage, "android/media/Image")
-Q_DECLARE_JNI_TYPE(AndroidImagePlaneArray, "[Landroid/media/Image$Plane;")
-Q_DECLARE_JNI_CLASS(JavaByteBuffer, "java/nio/ByteBuffer")
-Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
-                    "org/qtproject/qt/android/multimedia/QtVideoDeviceManager");
-
 QT_BEGIN_NAMESPACE
 static Q_LOGGING_CATEGORY(qLCAndroidCameraFrame, "qt.multimedia.ffmpeg.android.camera.frame");
 
