@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qandroidvideodevices_p.h"
+#include "qandroidcameraframe_p.h"
 
 #include <private/qcameradevice_p.h>
 
@@ -9,15 +10,10 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/private/qandroidextras_p.h>
 #include <QtCore/qcoreapplication_platform.h>
-#include <QJniEnvironment>
+#include <QtCore/qjnienvironment.h>
 #include <jni.h>
 
 static Q_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.videoDevices")
-
-Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
-                    "org/qtproject/qt/android/multimedia/QtVideoDeviceManager");
-Q_DECLARE_JNI_TYPE(StringArray, "[Ljava/lang/String;")
-Q_DECLARE_JNI_CLASS(AndroidImageFormat, "android/graphics/ImageFormat");
 
 QCameraFormat createCameraFormat(int width, int height, int fpsMin, int fpsMax)
 {

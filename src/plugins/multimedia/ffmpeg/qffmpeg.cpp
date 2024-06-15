@@ -33,8 +33,11 @@ QT_BEGIN_NAMESPACE
 #ifdef Q_OS_ANDROID
 Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
                     "org/qtproject/qt/android/multimedia/QtVideoDeviceManager");
+
+# ifndef QT_DECLARE_JNI_CLASS_STANDARD_TYPES
 Q_DECLARE_JNI_CLASS(String, "java/lang/String");
-#endif
+# endif
+#endif // Q_OS_ANDROID
 
 Q_STATIC_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
 
@@ -230,6 +233,7 @@ std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecStorag
 {
 #ifdef Q_OS_ANDROID
     using namespace Qt::StringLiterals;
+    using namespace QtJniTypes;
     std::unordered_set<AVCodecID> availabeCodecs;
 
     auto getCodecId = [] (const QString& codecName) {
@@ -242,14 +246,11 @@ std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecStorag
         return AV_CODEC_ID_NONE;
     };
 
-    const QJniObject jniCodecs =
-            QtJniTypes::QtVideoDeviceManager::callStaticMethod<QtJniTypes::String[]>(
+    const QJniArray jniCodecs = QtVideoDeviceManager::callStaticMethod<String[]>(
                     type == ENCODERS ? "getHWVideoEncoders" : "getHWVideoDecoders");
 
-    QJniArray<QtJniTypes::String> arrCodecs(jniCodecs.object<jobjectArray>());
-    for (int i = 0; i < arrCodecs.size(); ++i) {
-        availabeCodecs.insert(getCodecId(arrCodecs.at(i).toString()));
-    }
+    for (const auto &codec : jniCodecs)
+        availabeCodecs.insert(getCodecId(codec.toString()));
     return availabeCodecs;
 #else
     Q_UNUSED(type);
