@@ -329,7 +329,10 @@ bool tst_QMediaPlayerBackend::canCreateRtpStream() const
 void tst_QMediaPlayerBackend::initTestCase()
 {
 #ifdef Q_OS_ANDROID
-     QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
+    // Emulator x86 with API 23 (Android 6) has issue with playing sound
+    // Test should not be run on Emulator with API 23
+    if (QNativeInterface::QAndroidApplication::sdkVersion() <= __ANDROID_API_M__)
+        QSKIP("SKIP initTestCase on API 23");
 #endif
 
     QMediaPlayer player;
@@ -1036,6 +1039,9 @@ void tst_QMediaPlayerBackend::
 void tst_QMediaPlayerBackend::
         setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio()
 {
+#ifdef Q_OS_ANDROID
+    QSKIP("SKIP initTestCase on CI, because of QTBUG-126428");
+#endif
     if (isGStreamerPlatform() && isCI())
         QSKIP("QTBUG-124005: Fails with gstreamer on CI");
 
@@ -1519,6 +1525,9 @@ void tst_QMediaPlayerBackend::
 
 void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames()
 {
+#ifdef Q_OS_ANDROID
+    QSKIP("SKIP initTestCase on CI, because of QTBUG-126428");
+#endif
     if (isCI() && isGStreamerPlatform())
         QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
 
@@ -2998,6 +3007,9 @@ void tst_QMediaPlayerBackend::pause_rendersVideoAtCorrectResolution_data()
 
 void tst_QMediaPlayerBackend::pause_rendersVideoAtCorrectResolution()
 {
+#ifdef Q_OS_ANDROID
+    QSKIP("SKIP initTestCase on CI, because of QTBUG-126428");
+#endif
     QFETCH(const MaybeUrl, mediaFile);
     QFETCH(const int, width);
     QFETCH(const int, height);
@@ -3533,6 +3545,9 @@ void tst_QMediaPlayerBackend::lazyLoadVideo()
 
 void tst_QMediaPlayerBackend::videoSinkSignals()
 {
+#ifdef Q_OS_ANDROID
+    QSKIP("SKIP initTestCase on CI, because of QTBUG-126428");
+#endif
     std::atomic<int> videoFrameCounter = 0;
     std::atomic<int> videoSizeCounter = 0;
 
@@ -3717,6 +3732,9 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
     QVideoFrame videoFrame = m_fixture->surface.waitForFrame();
     QVERIFY(videoFrame.isValid());
     QCOMPARE(QtVideo::Rotation(videoFrame.rotationAngle()), expectedRotationAngle);
+#ifdef Q_OS_ANDROID
+    QSKIP("frame.toImage will return null image because of QTBUG-108446");
+#endif
     QImage image = videoFrame.toImage();
     QVERIFY(!image.isNull());
     QRgb upperLeftColor = image.pixel(5, 5);
