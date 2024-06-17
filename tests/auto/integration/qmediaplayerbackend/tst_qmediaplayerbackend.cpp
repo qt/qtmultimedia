@@ -142,6 +142,7 @@ private slots:
     void play_succeedsFromSourceDevice_data();
 
     void stop_entersStoppedState_whenPlayerWasPaused();
+    void stop_entersStoppedState_whenPlayerWasPaused_data();
     void stop_setsPositionToZero_afterPlayingToEndOfMedia();
 
     void playbackRate_returnsOne_byDefault();
@@ -1689,38 +1690,52 @@ void tst_QMediaPlayerBackend::play_succeedsFromSourceDevice_data()
 
 void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
 {
-    CHECK_SELECTED_URL(m_localWavFile);
+    QFETCH(const MaybeUrl, mediaUrl);
+
+    CHECK_SELECTED_URL(mediaUrl);
+    QMediaPlayer &player = m_fixture->player;
 
     // Arrange
-    m_fixture->player.setSource(*m_localWavFile);
-    m_fixture->player.play();
-    QTRY_VERIFY(m_fixture->player.position() > 100);
-    m_fixture->player.pause();
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    player.setSource(*mediaUrl);
+    player.play();
+    QTRY_COMPARE_GT(player.position(), 100);
+    player.pause();
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
     m_fixture->clearSpies();
 
+    if (!isGStreamerPlatform()) // Gstreamer may see EOS already
+        QCOMPARE_GT(player.position(), 100);
+
     // Act
-    m_fixture->player.stop();
+    player.stop();
 
     // Assert
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
     QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::StoppedState } }));
     // it's allowed to emit statusChanged() signal async
     QTRY_COMPARE(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::LoadedMedia } }));
 
-    if (!isGStreamerPlatform())
+    if (isGStreamerPlatform() && *mediaUrl == *m_localWavFile) {
         // QTBUG-124517: for some media types gstreamer does not emit buffer progress messages
+    } else {
         QCOMPARE(m_fixture->bufferProgressChanged, SignalList({ { 0.f } }));
+    }
 
     QTRY_COMPARE(m_fixture->player.position(), qint64(0));
-    if (isGStreamerPlatform())
-        QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer ");
 
     QTRY_VERIFY(!m_fixture->positionChanged.empty());
     QCOMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), qint64(0));
-    QVERIFY(m_fixture->player.duration() > 0);
+    QVERIFY(player.duration() > 0);
+}
+
+void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused_data()
+{
+    QTest::addColumn<MaybeUrl>("mediaUrl");
+
+    QTest::addRow("audio file") << m_localWavFile;
+    QTest::addRow("video file") << m_localVideoFile;
 }
 
 void tst_QMediaPlayerBackend::stop_setsPositionToZero_afterPlayingToEndOfMedia()
