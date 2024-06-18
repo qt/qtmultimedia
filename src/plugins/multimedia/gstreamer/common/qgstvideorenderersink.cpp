@@ -142,8 +142,8 @@ void QGstVideoRenderer::stop()
 
     QMetaObject::invokeMethod(this, [this] {
         m_currentState.buffer = {};
-        m_sink->setVideoFrame(QVideoFrame{});
-        return;
+        m_currentPipelineFrame = {};
+        updateCurrentVideoFrame(m_currentVideoFrame);
     });
 }
 
@@ -185,17 +185,9 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
     qCDebug(qLcGstVideoRenderer) << "    sending video frame";
 
     QMetaObject::invokeMethod(this, [this, state = std::move(state)]() mutable {
-        if (state == m_currentState) {
+        if (state == m_currentState)
             // same buffer received twice
-            if (!m_sink || !m_sink->inStoppedState())
-                return;
-
-            qCDebug(qLcGstVideoRenderer) << "    showing empty video frame";
-            m_currentVideoFrame = {};
-            m_sink->setVideoFrame(m_currentVideoFrame);
-            m_currentState = {};
             return;
-        }
 
         auto videoBuffer = std::make_unique<QGstVideoBuffer>(state.buffer, m_videoInfo, m_sink,
                                                              state.format, state.memoryFormat);
@@ -203,18 +195,17 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
         QGstUtils::setFrameTimeStampsFromBuffer(&frame, state.buffer.get());
         frame.setMirrored(state.mirrored);
         frame.setRotation(state.rotationAngle);
-        m_currentVideoFrame = std::move(frame);
+
+        m_currentPipelineFrame = std::move(frame);
         m_currentState = std::move(state);
 
-        if (!m_sink)
-            return;
-
-        if (m_sink->inStoppedState()) {
+        if (!m_isActive) {
             qCDebug(qLcGstVideoRenderer) << "    showing empty video frame";
-            m_currentVideoFrame = {};
+            updateCurrentVideoFrame({});
+            return;
         }
 
-        m_sink->setVideoFrame(m_currentVideoFrame);
+        updateCurrentVideoFrame(m_currentPipelineFrame);
     });
 
     return GST_FLOW_OK;
@@ -262,6 +253,25 @@ void QGstVideoRenderer::gstEvent(GstEvent *event)
         qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::gstEvent: unhandled event - " << event;
         return;
     }
+}
+
+void QGstVideoRenderer::setActive(bool isActive)
+{
+    if (isActive == m_isActive)
+        return;
+
+    m_isActive = isActive;
+    if (isActive)
+        updateCurrentVideoFrame(m_currentPipelineFrame);
+    else
+        updateCurrentVideoFrame({});
+}
+
+void QGstVideoRenderer::updateCurrentVideoFrame(QVideoFrame frame)
+{
+    m_currentVideoFrame = std::move(frame);
+    if (m_sink)
+        m_sink->setVideoFrame(m_currentVideoFrame);
 }
 
 void QGstVideoRenderer::gstEventHandleTag(GstEvent *event)
@@ -321,13 +331,16 @@ static thread_local QGstreamerVideoSink *gvrs_current_sink;
 
 #define VO_SINK(s) QGstVideoRendererSink *sink(reinterpret_cast<QGstVideoRendererSink *>(s))
 
-QGstVideoRendererSink *QGstVideoRendererSink::createSink(QGstreamerVideoSink *sink)
+QGstVideoRendererSinkElement QGstVideoRendererSink::createSink(QGstreamerVideoSink *sink)
 {
     setSink(sink);
     QGstVideoRendererSink *gstSink = reinterpret_cast<QGstVideoRendererSink *>(
             g_object_new(QGstVideoRendererSink::get_type(), nullptr));
 
-    return gstSink;
+    return QGstVideoRendererSinkElement{
+        gstSink,
+        QGstElement::NeedsRef,
+    };
 }
 
 void QGstVideoRendererSink::setSink(QGstreamerVideoSink *sink)
@@ -494,6 +507,25 @@ gboolean QGstVideoRendererSink::event(GstBaseSink *base, GstEvent * event)
     VO_SINK(base);
     sink->renderer->gstEvent(event);
     return GST_BASE_SINK_CLASS(gvrs_sink_parent_class)->event(base, event);
+}
+
+QGstVideoRendererSinkElement::QGstVideoRendererSinkElement(QGstVideoRendererSink *element,
+                                                           RefMode mode)
+    : QGstBaseSink{
+          qGstCheckedCast<GstBaseSink>(element),
+          mode,
+      }
+{
+}
+
+void QGstVideoRendererSinkElement::setActive(bool isActive)
+{
+    qGstVideoRendererSink()->renderer->setActive(isActive);
+}
+
+QGstVideoRendererSink *QGstVideoRendererSinkElement::qGstVideoRendererSink() const
+{
+    return reinterpret_cast<QGstVideoRendererSink *>(element());
 }
 
 QT_END_NAMESPACE

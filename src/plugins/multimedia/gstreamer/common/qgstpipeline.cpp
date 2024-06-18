@@ -33,7 +33,6 @@ public:
     QMutex filterMutex;
     QList<QGstreamerSyncMessageFilter*> syncFilters;
     QList<QGstreamerBusMessageFilter*> busFilters;
-    bool inStoppedState = true;
     mutable std::chrono::nanoseconds m_position{};
     double m_rate = 1.;
 
@@ -187,18 +186,6 @@ QGstPipeline::QGstPipeline(GstPipeline *p, RefMode mode) : QGstBin(qGstCheckedCa
 }
 
 QGstPipeline::~QGstPipeline() = default;
-
-bool QGstPipeline::inStoppedState() const
-{
-    QGstPipelinePrivate *d = getPrivate();
-    return d->inStoppedState;
-}
-
-void QGstPipeline::setInStoppedState(bool stopped)
-{
-    QGstPipelinePrivate *d = getPrivate();
-    d->inStoppedState = stopped;
-}
 
 void QGstPipeline::installMessageFilter(QGstreamerSyncMessageFilter *filter)
 {

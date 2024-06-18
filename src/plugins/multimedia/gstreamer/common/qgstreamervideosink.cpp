@@ -125,8 +125,6 @@ QGstreamerVideoSink::~QGstreamerVideoSink()
     emit aboutToBeDestroyed();
 
     unrefGstContexts();
-
-    setPipeline(QGstPipeline());
 }
 
 QGstElement QGstreamerVideoSink::gstSink()
@@ -135,16 +133,14 @@ QGstElement QGstreamerVideoSink::gstSink()
     return m_sinkBin;
 }
 
-void QGstreamerVideoSink::setPipeline(QGstPipeline pipeline)
+void QGstreamerVideoSink::setActive(bool isActive)
 {
-    m_pipeline = std::move(pipeline);
-}
+    if (m_isActive == isActive)
+        return;
+    m_isActive = isActive;
 
-bool QGstreamerVideoSink::inStoppedState() const
-{
-    if (m_pipeline.isNull())
-        return true;
-    return m_pipeline.inStoppedState();
+    if (m_gstQtSink)
+        m_gstQtSink.setActive(isActive);
 }
 
 void QGstreamerVideoSink::setRhi(QRhi *rhi)
@@ -157,9 +153,13 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
     m_rhi = rhi;
     updateGstContexts();
     if (!m_gstQtSink.isNull()) {
-        // force creation of a new sink with proper caps
+        // force creation of a new sink with proper caps.
         createQtSink();
         updateSinkElement();
+
+        QGstPipeline pipeline = m_sinkBin.getPipeline();
+        if (pipeline)
+            pipeline.flush(); // the caps may change, so we need to flush the pipeline.
     }
 }
 
@@ -168,9 +168,9 @@ void QGstreamerVideoSink::createQtSink()
     if (m_gstQtSink)
         m_gstQtSink.setStateSync(GST_STATE_NULL);
 
-    m_gstQtSink =
-            QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(this)),
-                        QGstElement::NeedsRef);
+    m_gstQtSink = QGstVideoRendererSink::createSink(this);
+    if (m_gstQtSink)
+        m_gstQtSink.setActive(m_isActive);
 }
 
 void QGstreamerVideoSink::updateSinkElement()
@@ -178,12 +178,13 @@ void QGstreamerVideoSink::updateSinkElement()
     QGstElement newSink;
     if (m_gstQtSink.isNull())
         createQtSink();
+
     newSink = m_gstQtSink;
 
     if (newSink == m_gstVideoSink)
         return;
 
-    m_pipeline.modifyPipelineWhileNotRunning([&] {
+    QGstPipeline::modifyPipelineWhileNotRunning(m_sinkBin.getPipeline(), [&] {
         if (!m_gstVideoSink.isNull())
             m_sinkBin.stopAndRemoveElements(m_gstVideoSink);
 
@@ -192,10 +193,10 @@ void QGstreamerVideoSink::updateSinkElement()
         m_gstVideoSink = newSink;
         m_sinkBin.add(m_gstVideoSink);
         qLinkGstElements(m_gstCapsFilter, m_gstVideoSink);
-        m_gstVideoSink.setState(GST_STATE_PAUSED);
+        m_gstVideoSink.syncStateWithParent();
     });
 
-    m_pipeline.dumpGraph("updateVideoSink");
+    m_sinkBin.dumpPipelineGraph("updateVideoSink");
 }
 
 void QGstreamerVideoSink::unrefGstContexts()
@@ -299,8 +300,10 @@ void QGstreamerVideoSink::updateGstContexts()
     gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, displayContext.get(), nullptr);
     displayContext.close();
 
-    if (m_pipeline)
-        gst_element_set_context(m_pipeline.element(), m_gstGlLocalContext.get());
+    QGstPipeline pipeline = m_sinkBin.getPipeline();
+
+    if (pipeline)
+        gst_element_set_context(pipeline.element(), m_gstGlLocalContext.get());
 #endif // #if QT_CONFIG(gstreamer_gl)
 }
 

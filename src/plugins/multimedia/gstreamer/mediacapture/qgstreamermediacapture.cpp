@@ -57,7 +57,7 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutpu
     // This is the recording pipeline with only live sources, thus the pipeline
     // will be always in the playing state.
     capturePipeline.setState(GST_STATE_PLAYING);
-    capturePipeline.setInStoppedState(false);
+    gstVideoOutput->setActive(true);
 
     capturePipeline.dumpGraph("initial");
 }
