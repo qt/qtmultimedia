@@ -45,6 +45,8 @@ public:
 
     std::optional<int> ffmpegHWPixelFormat() const override;
 
+    QVideoFrameFormat frameFormat() const override;
+
     static bool registerNativeMethods();
 
     void capture();
@@ -68,7 +70,7 @@ private:
     bool isActivating() const { return m_state != State::Closed; }
 
     void setState(State newState);
-    QtVideo::Rotation rotation();
+    QtVideo::Rotation rotation() const;
     void updateCameraCharacteristics();
     void cleanCameraCharacteristics();
 
