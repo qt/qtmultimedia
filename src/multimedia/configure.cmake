@@ -103,29 +103,20 @@ qt_feature("evr" PUBLIC PRIVATE
     LABEL "evr.h"
     CONDITION WIN32 AND TEST_evr
 )
-qt_feature("gstreamer_1_0" PRIVATE
-    LABEL "GStreamer 1.0"
-    CONDITION GStreamer_FOUND
-)
-qt_feature("gstreamer_app" PRIVATE
-    LABEL "GStreamer App"
-    CONDITION ( QT_FEATURE_gstreamer_1_0 AND GStreamer_App_FOUND )
-)
-qt_feature("gstreamer_photography" PRIVATE
-    LABEL "GStreamer Photography"
-    CONDITION ( QT_FEATURE_gstreamer_1_0 AND GStreamer_Photography_FOUND )
-)
-qt_feature("gstreamer_gl" PRIVATE
-    LABEL "GStreamer OpenGL"
-    CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer_1_0 AND GStreamer_Gl_FOUND AND EGL_FOUND
-)
 qt_feature("gstreamer" PRIVATE
     LABEL "QtMM GStreamer plugin"
-    CONDITION (QT_FEATURE_gstreamer_1_0 AND QT_FEATURE_gstreamer_app)
+    CONDITION GStreamer_FOUND AND GStreamer_App_FOUND
     ENABLE INPUT_gstreamer STREQUAL 'yes'
     DISABLE INPUT_gstreamer STREQUAL 'no'
 )
-
+qt_feature("gstreamer_photography" PRIVATE
+    LABEL "GStreamer Photography"
+    CONDITION QT_FEATURE_gstreamer AND GStreamer_Photography_FOUND
+)
+qt_feature("gstreamer_gl" PRIVATE
+    LABEL "GStreamer OpenGL"
+    CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer AND GStreamer_Gl_FOUND AND EGL_FOUND
+)
 qt_feature("gpu_vivante" PRIVATE
     LABEL "Vivante GPU"
     CONDITION QT_FEATURE_gui AND QT_FEATURE_opengles2 AND TEST_gpu_vivante
