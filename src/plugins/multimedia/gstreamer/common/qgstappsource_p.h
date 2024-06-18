@@ -45,8 +45,8 @@ private Q_SLOTS:
     void streamDestroyed();
 
 private:
-    bool doSeek(qint64);
-    void pushData();
+    bool doSeek(qint64 streamPosition);
+    void pushData(qint64 bytesToRead);
 
     QGstAppSource(QGstAppSrc appsrc, QObject *parent);
 
@@ -65,11 +65,11 @@ private:
 
     QGstAppSrc m_appSrc;
     bool m_sequential = true;
-    GstAppStreamType m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
     qint64 m_offset = 0;
-    qint64 m_maxBytes = 0;
     qint64 bytesReadSoFar = 0;
-    QAtomicInteger<unsigned int> m_dataRequestSize = 0;
+    bool m_dataNeeded = false;
+
+    static constexpr qint64 maxBytes = 64 * 1024;
 };
 
 QT_END_NAMESPACE
