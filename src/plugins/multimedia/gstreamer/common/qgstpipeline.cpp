@@ -1,18 +1,21 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtCore/qmap.h>
-#include <QtCore/qtimer.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qlist.h>
 #include <QtCore/qabstracteventdispatcher.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qmutex.h>
 #include <QtCore/qproperty.h>
+#include <QtCore/qtimer.h>
 
 #include "qgstpipeline_p.h"
 #include "qgstreamermessage_p.h"
 
 QT_BEGIN_NAMESPACE
+
+static Q_LOGGING_CATEGORY(qLcGstPipeline, "qt.multimedia.gstpipeline");
 
 static constexpr GstSeekFlags rateChangeSeekFlags =
 #if GST_CHECK_VERSION(1, 18, 0)
@@ -303,6 +306,8 @@ void QGstPipeline::seek(std::chrono::nanoseconds pos, double rate)
     // always adjust the rate, so it can be set before playback starts
     // setting position needs a loaded media file that's seekable
 
+    qCDebug(qLcGstPipeline) << "QGstPipeline::seek to" << pos << "rate:" << rate;
+
     bool success = (rate > 0)
             ? gst_element_seek(element(), rate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
                                GST_SEEK_TYPE_SET, pos.count(), GST_SEEK_TYPE_END, 0)
@@ -319,6 +324,7 @@ void QGstPipeline::seek(std::chrono::nanoseconds pos, double rate)
 
 void QGstPipeline::seek(std::chrono::nanoseconds pos)
 {
+    qCDebug(qLcGstPipeline) << "QGstPipeline::seek to" << pos;
     seek(pos, getPrivate()->m_rate);
 }
 
@@ -329,6 +335,8 @@ void QGstPipeline::setPlaybackRate(double rate)
         return;
 
     d->m_rate = rate;
+
+    qCDebug(qLcGstPipeline) << "QGstPipeline::setPlaybackRate to" << rate;
 
     applyPlaybackRate(/*instantRateChange =*/true);
 }
@@ -346,6 +354,7 @@ void QGstPipeline::applyPlaybackRate(bool instantRateChange)
     // do not GST_SEEK_FLAG_FLUSH with GST_SEEK_TYPE_NONE
     // https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/3604
     if (instantRateChange && GST_CHECK_VERSION(1, 18, 0)) {
+        qCDebug(qLcGstPipeline) << "QGstPipeline::applyPlaybackRate instantly";
         bool success = gst_element_seek(
                 element(), d->m_rate, GST_FORMAT_UNDEFINED, rateChangeSeekFlags, GST_SEEK_TYPE_NONE,
                 GST_CLOCK_TIME_NONE, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
@@ -365,10 +374,13 @@ std::chrono::nanoseconds QGstPipeline::position() const
 {
     QGstPipelinePrivate *d = getPrivate();
     std::optional<std::chrono::nanoseconds> pos = QGstElement::position();
-    if (pos)
+    if (pos) {
         d->m_position = *pos;
-    else
+        qCDebug(qLcGstPipeline) << "QGstPipeline::position:"
+                                << std::chrono::round<std::chrono::milliseconds>(*pos);
+    } else {
         qDebug() << "QGstPipeline: failed to query position, using previous position";
+    }
 
     return d->m_position;
 }
