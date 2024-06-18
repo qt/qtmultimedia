@@ -1305,8 +1305,6 @@ GstBaseSrc *QGstBaseSrc::baseSrc() const
     return qGstCheckedCast<GstBaseSrc>(element());
 }
 
-#if QT_CONFIG(gstreamer_app)
-
 // QGstAppSink
 
 QGstAppSink::QGstAppSink(GstAppSink *element, RefMode mode)
@@ -1396,8 +1394,6 @@ GstFlowReturn QGstAppSrc::pushBuffer(GstBuffer *buffer)
 {
     return gst_app_src_push_buffer(appSrc(), buffer);
 }
-
-#endif
 
 QString qGstErrorMessageCannotFindElement(std::string_view element)
 {

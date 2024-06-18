@@ -26,6 +26,8 @@
 #include <QtMultimedia/private/qplatformmediaplayer_p.h>
 
 #include <gst/gst.h>
+#include <gst/app/gstappsink.h>
+#include <gst/app/gstappsrc.h>
 #include <gst/video/video-info.h>
 
 #include "qgst_handle_types_p.h"
@@ -38,10 +40,6 @@
 #  undef GST_USE_UNSTABLE_API
 #endif
 
-#if QT_CONFIG(gstreamer_app)
-#  include <gst/app/gstappsink.h>
-#  include <gst/app/gstappsrc.h>
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -111,13 +109,11 @@ QGST_DEFINE_CAST_TRAITS(GstPad, PAD);
 QGST_DEFINE_CAST_TRAITS(GstPipeline, PIPELINE);
 QGST_DEFINE_CAST_TRAITS(GstBaseSink, BASE_SINK);
 QGST_DEFINE_CAST_TRAITS(GstBaseSrc, BASE_SRC);
+QGST_DEFINE_CAST_TRAITS(GstAppSink, APP_SINK);
+QGST_DEFINE_CAST_TRAITS(GstAppSrc, APP_SRC);
 
 QGST_DEFINE_CAST_TRAITS_FOR_INTERFACE(GstTagSetter, TAG_SETTER);
 
-#if QT_CONFIG(gstreamer_app)
-QGST_DEFINE_CAST_TRAITS(GstAppSink, APP_SINK);
-QGST_DEFINE_CAST_TRAITS(GstAppSrc, APP_SRC);
-#endif
 
 template <>
 struct GstObjectTraits<GObject>
@@ -778,7 +774,6 @@ public:
     GstBaseSrc *baseSrc() const;
 };
 
-#if QT_CONFIG(gstreamer_app)
 class QGstAppSink : public QGstBaseSink
 {
 public:
@@ -826,8 +821,6 @@ public:
 
     GstFlowReturn pushBuffer(GstBuffer *); // take ownership
 };
-
-#endif
 
 inline GstClockTime qGstClockTimeFromChrono(std::chrono::nanoseconds ns)
 {

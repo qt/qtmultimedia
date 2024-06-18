@@ -85,12 +85,9 @@ QGstreamerAudioDecoder::~QGstreamerAudioDecoder()
 
     m_playbin.removeMessageFilter(this);
 
-#if QT_CONFIG(gstreamer_app)
     delete m_appSrc;
-#endif
 }
 
-#if QT_CONFIG(gstreamer_app)
 void QGstreamerAudioDecoder::configureAppSrcElement([[maybe_unused]] GObject *object, GObject *orig,
                                                     [[maybe_unused]] GParamSpec *pspec,
                                                     QGstreamerAudioDecoder *self)
@@ -109,7 +106,6 @@ void QGstreamerAudioDecoder::configureAppSrcElement([[maybe_unused]] GObject *ob
     });
     qAppSrc->setup(self->mDevice);
 }
-#endif
 
 bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
 {
