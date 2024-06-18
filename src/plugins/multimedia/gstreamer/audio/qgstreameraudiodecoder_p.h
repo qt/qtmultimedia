@@ -23,12 +23,9 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
 
-#include <common/qgstpipeline_p.h>
 #include <common/qgst_p.h>
-
-#if QT_CONFIG(gstreamer_app)
-#  include <common/qgstappsource_p.h>
-#endif
+#include <common/qgstappsource_p.h>
+#include <common/qgstpipeline_p.h>
 
 #include <gst/app/gstappsink.h>
 
@@ -70,13 +67,11 @@ private slots:
 private:
     explicit QGstreamerAudioDecoder(QAudioDecoder *parent);
 
-#if QT_CONFIG(gstreamer_app)
     static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);
     GstFlowReturn newSample(GstAppSink *sink);
 
     static void configureAppSrcElement(GObject *, GObject *, GParamSpec *,
                                        QGstreamerAudioDecoder *_this);
-#endif
 
     void setAudioFlags(bool wantNativeAudio);
     void addAppSink();
