@@ -46,6 +46,8 @@ public:
     QGstElement gstElement() const { return m_outputBin; }
     QGstElement gstSubtitleElement() const { return m_subtitleSink; }
 
+    void setActive(bool);
+
     void setIsPreview();
     void flushSubtitles();
 
@@ -76,6 +78,7 @@ private:
     QMetaObject::Connection m_subtitleConnection;
     QString m_lastSubtitleString;
 
+    bool m_isActive{ false };
     QSize m_nativeSize;
     QtVideo::Rotation m_rotation{};
 };

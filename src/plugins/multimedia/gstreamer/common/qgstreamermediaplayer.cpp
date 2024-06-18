@@ -255,7 +255,7 @@ void QGstreamerMediaPlayer::play()
     if (currentState != QMediaPlayer::PausedState)
         resetCurrentLoop();
 
-    playerPipeline.setInStoppedState(false);
+    gstVideoOutput->setActive(true);
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
         playerPipeline.setPosition({});
         positionChanged(0);
@@ -290,10 +290,8 @@ void QGstreamerMediaPlayer::pause()
         return;
 
     positionUpdateTimer.stop();
-    if (playerPipeline.inStoppedState()) {
-        playerPipeline.setInStoppedState(false);
-        playerPipeline.flush();
-    }
+
+    gstVideoOutput->setActive(true);
     int ret = playerPipeline.setStateSync(GST_STATE_PAUSED);
     if (ret == GST_STATE_CHANGE_FAILURE)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
@@ -335,7 +333,7 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
     using namespace std::chrono_literals;
 
     positionUpdateTimer.stop();
-    playerPipeline.setInStoppedState(true);
+    gstVideoOutput->setActive(false);
     bool ret = playerPipeline.setStateSync(GST_STATE_PAUSED);
     if (!ret)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the stopped state.";
@@ -480,7 +478,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                 tracksChanged();
                 mediaStatusChanged(QMediaPlayer::LoadedMedia);
 
-                if (!playerPipeline.inStoppedState()) {
+                if (state() == QMediaPlayer::PlayingState) {
                     Q_ASSERT(!m_initialBufferProgressSent);
 
                     bool immediatelySendBuffered = !canTrackProgress() || m_bufferProgress > 0;
@@ -870,7 +868,6 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     disconnectDecoderHandlers();
     removeAllOutputs();
     seekableChanged(false);
-    Q_ASSERT(playerPipeline.inStoppedState());
 
     if (m_duration != 0ms) {
         m_duration = 0ms;
