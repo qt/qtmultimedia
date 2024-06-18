@@ -93,10 +93,14 @@ void tst_QAbstractVideoBuffer::mapModeDebug_data()
     QTest::addColumn<QtVideo::MapMode>("mapMode");
     QTest::addColumn<QString>("stringized");
 
-    QTest::newRow("NotMapped") << QtVideo::MapMode::NotMapped << QStringLiteral("NotMapped");
-    QTest::newRow("ReadOnly") << QtVideo::MapMode::ReadOnly << QStringLiteral("ReadOnly");
-    QTest::newRow("WriteOnly") << QtVideo::MapMode::WriteOnly << QStringLiteral("WriteOnly");
-    QTest::newRow("ReadWrite") << QtVideo::MapMode::ReadWrite << QStringLiteral("ReadWrite");
+    QTest::newRow("NotMapped") << QtVideo::MapMode::NotMapped
+                               << QStringLiteral("QtVideo::MapMode::NotMapped");
+    QTest::newRow("ReadOnly") << QtVideo::MapMode::ReadOnly
+                              << QStringLiteral("QtVideo::MapMode::ReadOnly");
+    QTest::newRow("WriteOnly") << QtVideo::MapMode::WriteOnly
+                               << QStringLiteral("QtVideo::MapMode::WriteOnly");
+    QTest::newRow("ReadWrite") << QtVideo::MapMode::ReadWrite
+                               << QStringLiteral("QtVideo::MapMode::ReadWrite");
 }
 
 void tst_QAbstractVideoBuffer::mapModeDebug()

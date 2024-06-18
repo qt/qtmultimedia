@@ -3,8 +3,6 @@
 
 #include "qtvideo.h"
 
-#include <QtCore/qdebug.h>
-
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -47,24 +45,6 @@ QT_BEGIN_NAMESPACE
 
     \sa mapMode(), map()
 */
-
-#ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug dbg, QtVideo::MapMode mode)
-{
-    QDebugStateSaver saver(dbg);
-    dbg.nospace();
-    switch (mode) {
-    case QtVideo::MapMode::ReadOnly:
-        return dbg << "ReadOnly";
-    case QtVideo::MapMode::ReadWrite:
-        return dbg << "ReadWrite";
-    case QtVideo::MapMode::WriteOnly:
-        return dbg << "WriteOnly";
-    default:
-        return dbg << "NotMapped";
-    }
-}
-#endif
 
 QT_END_NAMESPACE
 
