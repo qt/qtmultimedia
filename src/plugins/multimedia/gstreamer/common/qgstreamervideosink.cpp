@@ -11,21 +11,22 @@
 #include <QtCore/qloggingcategory.h>
 
 #if QT_CONFIG(gstreamer_gl)
-#  include <QtGui/QGuiApplication>
+#  include <QtGui/qguiapplication.h>
 #  include <QtGui/qopenglcontext.h>
-#  include <QtGui/QWindow>
+#  include <QtGui/qwindow.h>
 #  include <QtGui/qpa/qplatformnativeinterface.h>
 #  include <gst/gl/gstglconfig.h>
+#  include <gst/gl/gstgldisplay.h>
 
-#  if GST_GL_HAVE_WINDOW_X11 && __has_include("X11/Xlib-xcb.h")
+#  if QT_CONFIG(gstreamer_gl_x11)
 #    include <gst/gl/x11/gstgldisplay_x11.h>
 #  endif
-#  if GST_GL_HAVE_PLATFORM_EGL
+#  if QT_CONFIG(gstreamer_gl_egl)
 #    include <gst/gl/egl/gstgldisplay_egl.h>
 #    include <EGL/egl.h>
 #    include <EGL/eglext.h>
 #  endif
-#  if GST_GL_HAVE_WINDOW_WAYLAND && __has_include("wayland-client.h")
+#  if QT_CONFIG(gstreamer_gl_wayland)
 #    include <gst/gl/wayland/gstgldisplay_wayland.h>
 #  endif
 #endif // #if QT_CONFIG(gstreamer_gl)
@@ -232,16 +233,16 @@ void QGstreamerVideoSink::updateGstContexts()
     GstGLPlatform glPlatform = GST_GL_PLATFORM_EGL;
     // use the egl display if we have one
     if (m_eglDisplay) {
-#if GST_GL_HAVE_PLATFORM_EGL
+#  if QT_CONFIG(gstreamer_gl_egl)
         gstGlDisplay.reset(
                 GST_GL_DISPLAY_CAST(gst_gl_display_egl_new_with_egl_display(m_eglDisplay)));
         m_eglImageTargetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
-#endif
+#  endif
     } else {
         auto display = pni->nativeResourceForIntegration("display"_ba);
 
         if (display) {
-#if GST_GL_HAVE_WINDOW_X11 && __has_include("X11/Xlib-xcb.h")
+#  if QT_CONFIG(gstreamer_gl_x11)
             if (platform == QLatin1String("xcb")) {
                 contextName = "glxcontext"_ba;
                 glPlatform = GST_GL_PLATFORM_GLX;
@@ -249,8 +250,8 @@ void QGstreamerVideoSink::updateGstContexts()
                 gstGlDisplay.reset(GST_GL_DISPLAY_CAST(
                         gst_gl_display_x11_new_with_display(reinterpret_cast<Display *>(display))));
             }
-#endif
-#if GST_GL_HAVE_WINDOW_WAYLAND && __has_include("wayland-client.h")
+#  endif
+#  if QT_CONFIG(gstreamer_gl_wayland)
             if (platform.startsWith(QLatin1String("wayland"))) {
                 Q_ASSERT(!gstGlDisplay);
                 gstGlDisplay.reset(GST_GL_DISPLAY_CAST(gst_gl_display_wayland_new_with_display(
