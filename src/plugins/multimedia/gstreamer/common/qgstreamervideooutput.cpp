@@ -84,12 +84,9 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
     if (gstVideoSink == m_platformVideoSink)
         return;
 
-    if (m_platformVideoSink)
-        m_platformVideoSink->setPipeline({});
-
     m_platformVideoSink = gstVideoSink;
     if (m_platformVideoSink) {
-        m_platformVideoSink->setPipeline(m_pipeline);
+        m_platformVideoSink->setActive(m_isActive);
         if (m_nativeSize.isValid())
             m_platformVideoSink->setNativeSize(m_nativeSize);
     }
@@ -137,8 +134,16 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 void QGstreamerVideoOutput::setPipeline(const QGstPipeline &pipeline)
 {
     m_pipeline = pipeline;
+}
+
+void QGstreamerVideoOutput::setActive(bool isActive)
+{
+    if (m_isActive == isActive)
+        return;
+
+    m_isActive = isActive;
     if (m_platformVideoSink)
-        m_platformVideoSink->setPipeline(m_pipeline);
+        m_platformVideoSink->setActive(isActive);
 }
 
 void QGstreamerVideoOutput::updateNativeSize()

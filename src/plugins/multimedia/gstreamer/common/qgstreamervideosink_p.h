@@ -18,6 +18,7 @@
 #include <QtMultimedia/qvideosink.h>
 #include <QtMultimedia/private/qplatformvideosink_p.h>
 
+#include <common/qgstvideorenderersink_p.h>
 #include <common/qgstpipeline_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -35,13 +36,12 @@ public:
 
     QGstElement gstSink();
 
-    void setPipeline(QGstPipeline pipeline);
-    bool inStoppedState() const;
-
     GstContext *gstGlDisplayContext() const { return m_gstGlDisplayContext.get(); }
     GstContext *gstGlLocalContext() const { return m_gstGlLocalContext.get(); }
     Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
     QFunctionPointer eglImageTargetTexture2D() const { return m_eglImageTargetTexture2D; }
+
+    void setActive(bool);
 
 Q_SIGNALS:
     void aboutToBeDestroyed();
@@ -53,14 +53,14 @@ private:
     void unrefGstContexts();
     void updateGstContexts();
 
-    QGstPipeline m_pipeline;
     QGstBin m_sinkBin;
     QGstElement m_gstPreprocess;
     QGstElement m_gstCapsFilter;
     QGstElement m_gstVideoSink;
-    QGstElement m_gstQtSink;
+    QGstVideoRendererSinkElement m_gstQtSink;
 
     QRhi *m_rhi = nullptr;
+    bool m_isActive = true;
 
     Qt::HANDLE m_eglDisplay = nullptr;
     QFunctionPointer m_eglImageTargetTexture2D = nullptr;
