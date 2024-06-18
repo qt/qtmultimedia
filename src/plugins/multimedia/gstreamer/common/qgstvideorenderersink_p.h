@@ -51,7 +51,11 @@ public:
     bool query(GstQuery *);
     void gstEvent(GstEvent *);
 
+    void setActive(bool);
+
 private:
+    void updateCurrentVideoFrame(QVideoFrame);
+
     void notify();
     static QGstCaps createSurfaceCaps(QGstreamerVideoSink *);
 
@@ -71,7 +75,9 @@ private:
     QtVideo::Rotation m_frameRotationAngle = QtVideo::Rotation::None;
 
     // --- only accessed from qt thread
+    QVideoFrame m_currentPipelineFrame;
     QVideoFrame m_currentVideoFrame;
+    bool m_isActive{ false };
 
     struct RenderBufferState
     {
@@ -91,15 +97,18 @@ private:
     RenderBufferState m_currentState;
 };
 
+class QGstVideoRendererSinkElement;
+
 class QGstVideoRendererSink
 {
 public:
     GstVideoSink parent{};
 
-    static QGstVideoRendererSink *createSink(QGstreamerVideoSink *surface);
-    static void setSink(QGstreamerVideoSink *surface);
+    static QGstVideoRendererSinkElement createSink(QGstreamerVideoSink *surface);
 
 private:
+    static void setSink(QGstreamerVideoSink *surface);
+
     static GType get_type();
     static void class_init(gpointer g_class, gpointer class_data);
     static void base_init(gpointer g_class);
@@ -120,17 +129,34 @@ private:
 
     static GstFlowReturn show_frame(GstVideoSink *sink, GstBuffer *buffer);
     static gboolean query(GstBaseSink *element, GstQuery *query);
-    static gboolean event(GstBaseSink *element, GstEvent * event);
+    static gboolean event(GstBaseSink *element, GstEvent *event);
 
-private:
+    friend class QGstVideoRendererSinkElement;
+
     QGstVideoRenderer *renderer = nullptr;
 };
-
 
 class QGstVideoRendererSinkClass
 {
 public:
     GstVideoSinkClass parent_class;
+};
+
+class QGstVideoRendererSinkElement : public QGstBaseSink
+{
+public:
+    using QGstBaseSink::QGstBaseSink;
+
+    explicit QGstVideoRendererSinkElement(QGstVideoRendererSink *, RefMode);
+
+    QGstVideoRendererSinkElement(const QGstVideoRendererSinkElement &) = default;
+    QGstVideoRendererSinkElement(QGstVideoRendererSinkElement &&) noexcept = default;
+    QGstVideoRendererSinkElement &operator=(const QGstVideoRendererSinkElement &) = default;
+    QGstVideoRendererSinkElement &operator=(QGstVideoRendererSinkElement &&) noexcept = default;
+
+    void setActive(bool);
+
+    QGstVideoRendererSink *qGstVideoRendererSink() const;
 };
 
 QT_END_NAMESPACE
