@@ -134,6 +134,13 @@ std::optional<int> QAndroidCamera::ffmpegHWPixelFormat() const
     return QFFmpegVideoBuffer::toAVPixelFormat(m_androidFramePixelFormat);
 }
 
+QVideoFrameFormat QAndroidCamera::frameFormat() const
+{
+    QVideoFrameFormat result = QPlatformCamera::frameFormat();
+    result.setRotation(rotation());
+    return result;
+}
+
 static void deleteFrame(void *opaque, uint8_t *data)
 {
     Q_UNUSED(data);
@@ -209,7 +216,7 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     lastTimestamp = timestamp;
 }
 
-QtVideo::Rotation QAndroidCamera::rotation()
+QtVideo::Rotation QAndroidCamera::rotation() const
 {
     auto screen = QGuiApplication::primaryScreen();
     auto screenOrientation = screen->orientation();
