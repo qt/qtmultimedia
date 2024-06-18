@@ -32,8 +32,8 @@
 #endif // #if QT_CONFIG(gstreamer_gl)
 
 // DMA support
-#if QT_CONFIG(linux_dmabuf)
-#include <gst/allocators/gstdmabuf.h>
+#if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+#  include <gst/allocators/gstdmabuf.h>
 #endif
 
 static Q_LOGGING_CATEGORY(qLcGstVideoRenderer, "qt.multimedia.gstvideorenderer")
@@ -84,7 +84,7 @@ QGstCaps QGstVideoRenderer::createSurfaceCaps([[maybe_unused]] QGstreamerVideoSi
     QRhi *rhi = sink->rhi();
     if (rhi && rhi->backend() == QRhi::OpenGLES2) {
         caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_GL_MEMORY);
-#if QT_CONFIG(linux_dmabuf)
+#  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
         if (sink->eglDisplay() && sink->eglImageTargetTexture2D()) {
             // We currently do not handle planar DMA buffers, as it's somewhat unclear how to
             // convert the planar EGLImage into something we can use from OpenGL
@@ -105,7 +105,7 @@ QGstCaps QGstVideoRenderer::createSurfaceCaps([[maybe_unused]] QGstreamerVideoSi
                 ;
             caps.addPixelFormats(singlePlaneFormats, GST_CAPS_FEATURE_MEMORY_DMABUF);
         }
-#endif
+#  endif
     }
 #endif
     caps.addPixelFormats(formats);

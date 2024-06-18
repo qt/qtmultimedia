@@ -56,12 +56,11 @@ qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstr
 qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstreamer_gl
     PUBLIC_LIBRARIES
         GStreamer::Gl
-    LIBRARIES
-        EGL::EGL
 )
 qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstreamer_gl_egl
     LIBRARIES
         GStreamer::GlEgl
+        EGL::EGL
 )
 qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstreamer_gl_wayland
     LIBRARIES

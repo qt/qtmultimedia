@@ -24,10 +24,12 @@
 #  include <gst/gl/gstglmemory.h>
 #  include <gst/gl/gstglsyncmeta.h>
 
-#  include <EGL/egl.h>
-#  include <EGL/eglext.h>
+#  if QT_CONFIG(gstreamer_gl_egl)
+#    include <EGL/egl.h>
+#    include <EGL/eglext.h>
+#  endif
 
-#  if QT_CONFIG(linux_dmabuf)
+#  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
 #    include <gst/allocators/gstdmabuf.h>
 #  endif
 #endif
@@ -64,14 +66,15 @@ QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &in
       m_videoInfo(info),
       m_buffer(std::move(buffer))
 {
+#if QT_CONFIG(gstreamer_gl_egl)
     if (sink) {
         eglDisplay =  sink->eglDisplay();
         eglImageTargetTexture2D = sink->eglImageTargetTexture2D();
     }
-
-#if !QT_CONFIG(gstreamer_gl)
-    Q_UNUSED(memoryFormat);
 #endif
+    Q_UNUSED(memoryFormat);
+    Q_UNUSED(eglDisplay);
+    Q_UNUSED(eglImageTargetTexture2D);
 }
 
 QGstVideoBuffer::~QGstVideoBuffer()
@@ -123,7 +126,7 @@ void QGstVideoBuffer::unmap()
     m_mode = QtVideo::MapMode::NotMapped;
 }
 
-#if QT_CONFIG(gstreamer_gl) && QT_CONFIG(linux_dmabuf)
+#if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
 static int
 fourccFromVideoInfo(const GstVideoInfo * info, int plane)
 {
@@ -287,7 +290,7 @@ static GlTextures mapFromGlTexture(const QGstBufferHandle &bufferHandle, GstVide
     return textures;
 }
 
-#if GST_GL_HAVE_PLATFORM_EGL && QT_CONFIG(linux_dmabuf)
+#  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
 static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHandle,
                                    GstVideoFrame &frame, GstVideoInfo &videoInfo,
                                    Qt::HANDLE eglDisplay, QFunctionPointer eglImageTargetTexture2D)
@@ -377,7 +380,7 @@ std::unique_ptr<QVideoFrameTextures> QGstVideoBuffer::mapTextures(QRhi *rhi)
     if (memoryFormat == QGstCaps::GLTexture)
         textures = mapFromGlTexture(m_buffer, m_frame, m_videoInfo);
 
-#  if GST_GL_HAVE_PLATFORM_EGL && QT_CONFIG(linux_dmabuf)
+#  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
     else if (memoryFormat == QGstCaps::DMABuf)
         textures = mapFromDmaBuffer(m_rhi, m_buffer, m_frame, m_videoInfo, eglDisplay,
                                     eglImageTargetTexture2D);
