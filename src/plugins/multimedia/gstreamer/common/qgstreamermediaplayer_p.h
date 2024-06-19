@@ -153,7 +153,7 @@ private:
     };
 
     bool prerolling = false;
-    bool m_requiresSeekOnPlay = true;
+    std::optional<std::chrono::nanoseconds> m_seekPositionOnPlay;
     bool m_initialBufferProgressSent = false;
     ResourceErrorState m_resourceErrorState = ResourceErrorState::NoError;
     float m_rate = 1.f;
