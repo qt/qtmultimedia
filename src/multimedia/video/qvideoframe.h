@@ -25,6 +25,7 @@ QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QVideoFramePrivate, Q_MULTIMEDI
 
 class Q_MULTIMEDIA_EXPORT QVideoFrame
 {
+    Q_GADGET
 public:
 
     enum HandleType
