@@ -41,7 +41,9 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
     Q_PROPERTY(QObject *videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
     Q_PROPERTY(QAudioOutput *audioOutput READ audioOutput WRITE setAudioOutput NOTIFY
                        audioOutputChanged)
-
+    Q_REVISION(6, 8)
+    Q_PROPERTY(QAudioBufferOutput *audioBufferOutput READ audioBufferOutput WRITE
+                       setAudioBufferOutput NOTIFY audioBufferOutputChanged)
     Q_PROPERTY(QList<QMediaMetaData> audioTracks READ audioTracks NOTIFY tracksChanged)
     Q_PROPERTY(QList<QMediaMetaData> videoTracks READ videoTracks NOTIFY tracksChanged)
     Q_PROPERTY(QList<QMediaMetaData> subtitleTracks READ subtitleTracks NOTIFY tracksChanged)
@@ -181,7 +183,7 @@ Q_SIGNALS:
     void metaDataChanged();
     void videoOutputChanged();
     void audioOutputChanged();
-    void audioBufferOutputChanged();
+    Q_REVISION(6, 8) void audioBufferOutputChanged();
 
     void tracksChanged();
     void activeTracksChanged();

@@ -650,6 +650,21 @@ void QMediaPlayer::setSourceDevice(QIODevice *device, const QUrl &sourceUrl)
 }
 
 /*!
+    \qmlproperty QAudioBufferOutput QtMultimedia::MediaPlayer::audioBufferOutput
+    \since 6.8
+
+    This property holds the target audio buffer output.
+
+    Normal usage of MediaPlayer from QML should not require using this property.
+
+    \sa QMediaPlayer::audioBufferOutput()
+*/
+
+/*!
+    \property QMediaPlayer::audioBufferOutput
+    \since 6.8
+    \brief The output audio buffer used by the media player.
+
     Sets an audio buffer \a output to the media player.
 
     If \l QAudioBufferOutput is specified and the media source
@@ -685,9 +700,6 @@ void QMediaPlayer::setAudioBufferOutput(QAudioBufferOutput *output)
     emit audioBufferOutputChanged();
 }
 
-/*!
-    Get \l QAudioBufferOutput that has been set to the media player.
-*/
 QAudioBufferOutput *QMediaPlayer::audioBufferOutput() const
 {
     Q_D(const QMediaPlayer);
