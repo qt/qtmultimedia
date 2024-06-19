@@ -262,12 +262,10 @@ void QGstreamerMediaPlayer::play()
     }
 
     qCDebug(qLcMediaPlayer) << "play().";
-    int ret = playerPipeline.setState(GST_STATE_PLAYING);
-    if (m_requiresSeekOnPlay) {
-        // Flushing the pipeline is required to get track changes immediately, when they happen
-        // while paused.
-        playerPipeline.flush();
-        m_requiresSeekOnPlay = false;
+    int ret = playerPipeline.setStateSync(GST_STATE_PLAYING);
+    if (m_seekPositionOnPlay) {
+        playerPipeline.setPosition(*m_seekPositionOnPlay);
+        m_seekPositionOnPlay = std::nullopt;
     } else {
         if (currentState == QMediaPlayer::StoppedState) {
             // we get an assertion failure during instant playback rate changes
@@ -285,6 +283,8 @@ void QGstreamerMediaPlayer::play()
 
 void QGstreamerMediaPlayer::pause()
 {
+    using namespace std::chrono_literals;
+
     if (state() == QMediaPlayer::PausedState || !hasMedia()
         || m_resourceErrorState != ResourceErrorState::NoError)
         return;
@@ -295,8 +295,8 @@ void QGstreamerMediaPlayer::pause()
     int ret = playerPipeline.setStateSync(GST_STATE_PAUSED);
     if (ret == GST_STATE_CHANGE_FAILURE)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
-    if (mediaStatus() == QMediaPlayer::EndOfMedia) {
-        playerPipeline.setPosition({});
+    if (mediaStatus() == QMediaPlayer::EndOfMedia || state() == QMediaPlayer::StoppedState) {
+        m_seekPositionOnPlay = 0ms;
         positionChanged(0);
     } else {
         updatePositionFromPipeline();
@@ -338,7 +338,7 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
     if (!ret)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the stopped state.";
     if (!eos) {
-        playerPipeline.setPosition(0ms);
+        m_seekPositionOnPlay = 0ms;
         positionChanged(0ms);
     }
     stateChanged(QMediaPlayer::StoppedState);
@@ -854,7 +854,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << "setting location to" << content;
 
     prerolling = true;
-    m_requiresSeekOnPlay = true;
+    m_seekPositionOnPlay = std::nullopt;
     m_resourceErrorState = ResourceErrorState::NoError;
 
     bool ret = playerPipeline.setStateSync(GST_STATE_NULL);
@@ -961,7 +961,6 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     }
 
     playerPipeline.setPosition(0ms);
-    positionChanged(0ms);
 }
 
 void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
@@ -1106,7 +1105,7 @@ void QGstreamerMediaPlayer::setActiveTrack(TrackType type, int index)
     if (playerPipeline.state() == GST_STATE_PLAYING)
         playerPipeline.flush();
     else
-        m_requiresSeekOnPlay = true;
+        m_seekPositionOnPlay = std::chrono::milliseconds{ position() };
 }
 
 QT_END_NAMESPACE
