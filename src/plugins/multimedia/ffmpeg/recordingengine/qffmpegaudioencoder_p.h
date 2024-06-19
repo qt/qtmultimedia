@@ -28,13 +28,11 @@ protected:
     bool checkIfCanPushFrame() const override;
 
 private:
-    void open();
-
     QAudioBuffer takeBuffer();
     void retrievePackets();
     void updateResampler();
 
-    void init() override;
+    bool init() override;
     void cleanup() override;
     bool hasData() const override;
     void processOne() override;
@@ -61,7 +59,6 @@ private:
 
     SwrContextUPtr m_resampler;
     qint64 m_samplesWritten = 0;
-    const AVCodec *m_avCodec = nullptr;
     QMediaEncoderSettings m_settings;
 
     AVFrameUPtr m_avFrame;

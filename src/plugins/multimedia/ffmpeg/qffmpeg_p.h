@@ -170,6 +170,14 @@ inline constexpr auto InvalidAvValue<AVSampleFormat> = AV_SAMPLE_FMT_NONE;
 template<>
 inline constexpr auto InvalidAvValue<AVPixelFormat> = AV_PIX_FMT_NONE;
 
+bool findAndOpenDecoder(AVCodecID codecId,
+                        const std::function<AVScore(const AVCodec *)> &scoresGetter,
+                        const std::function<bool(const AVCodec *)> &codecOpener);
+
+bool findAndOpenEncoder(AVCodecID codecId,
+                        const std::function<AVScore(const AVCodec *)> &scoresGetter,
+                        const std::function<bool(const AVCodec *)> &codecOpener);
+
 const AVCodec *findAVDecoder(AVCodecID codecId,
                              const std::optional<AVHWDeviceType> &deviceType = {},
                              const std::optional<PixelOrSampleFormat> &format = {});

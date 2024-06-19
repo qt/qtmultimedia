@@ -11,6 +11,12 @@ EncoderThread::EncoderThread(RecordingEngine &recordingEngine) : m_recordingEngi
 {
 }
 
+void EncoderThread::stopAndDelete()
+{
+    m_encodingStartSemaphore.release();
+    ConsumerThread::stopAndDelete();
+}
+
 void EncoderThread::setPaused(bool paused)
 {
     auto guard = lockLoopData();
@@ -31,6 +37,20 @@ void EncoderThread::setEndOfSourceStream()
     }
 
     emit endOfSourceStream();
+}
+
+void EncoderThread::startEncoding()
+{
+    m_encodingStarted = true;
+    m_encodingStartSemaphore.release();
+}
+
+bool EncoderThread::init()
+{
+    m_initialized = true;
+    emit initialized();
+    m_encodingStartSemaphore.acquire();
+    return true;
 }
 
 } // namespace QFFmpeg

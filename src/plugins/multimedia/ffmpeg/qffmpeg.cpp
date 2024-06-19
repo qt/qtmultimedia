@@ -64,7 +64,7 @@ struct CodecsComparator
                 || (a->id == b->id && isAVCodecExperimental(a) < isAVCodecExperimental(b));
     }
 
-    bool operator()(const AVCodec *a, AVCodecID id) const { return a->id < id; }
+    bool operator()(const AVCodec *codec, AVCodecID id) const { return codec->id < id; }
 };
 
 template<typename FlagNames>
@@ -349,6 +349,34 @@ const char *preferredHwCodecNameSuffix(bool isEncoder, AVHWDeviceType deviceType
     }
 }
 
+template <typename CodecScoreGetter, typename CodecOpener>
+bool findAndOpenCodec(CodecStorageType codecsType, AVCodecID codecId,
+                      const CodecScoreGetter &scoreGetter, const CodecOpener &opener)
+{
+    Q_ASSERT(opener);
+    const auto &storage = codecsStorage(codecsType);
+    auto it = std::lower_bound(storage.begin(), storage.end(), codecId, CodecsComparator{});
+
+    using CodecToScore = std::pair<const AVCodec *, AVScore>;
+    std::vector<CodecToScore> codecsToScores;
+
+    for (; it != storage.end() && (*it)->id == codecId; ++it) {
+        const AVScore score = scoreGetter ? scoreGetter(*it) : DefaultAVScore;
+        if (score != NotSuitableAVScore)
+            codecsToScores.emplace_back(*it, score);
+    }
+
+    if (scoreGetter) {
+        std::stable_sort(
+                codecsToScores.begin(), codecsToScores.end(),
+                [](const CodecToScore &a, const CodecToScore &b) { return a.second > b.second; });
+    }
+
+    auto open = [&opener](const CodecToScore &codecToScore) { return opener(codecToScore.first); };
+
+    return std::any_of(codecsToScores.begin(), codecsToScores.end(), open);
+}
+
 template<typename CodecScoreGetter>
 const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
                            const CodecScoreGetter &scoreGetter)
@@ -442,6 +470,20 @@ const AVCodec *findAVEncoder(AVCodecID codecId,
                              const std::function<AVScore(const AVCodec *)> &scoresGetter)
 {
     return findAVCodec(ENCODERS, codecId, scoresGetter);
+}
+
+bool findAndOpenDecoder(AVCodecID codecId,
+                        const std::function<AVScore(const AVCodec *)> &scoresGetter,
+                        const std::function<bool(const AVCodec *)> &codecOpener)
+{
+    return findAndOpenCodec(DECODERS, codecId, scoresGetter, codecOpener);
+}
+
+bool findAndOpenEncoder(AVCodecID codecId,
+                        const std::function<AVScore(const AVCodec *)> &scoresGetter,
+                        const std::function<bool(const AVCodec *)> &codecOpener)
+{
+    return findAndOpenCodec(ENCODERS, codecId, scoresGetter, codecOpener);
 }
 
 bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format)

@@ -40,14 +40,14 @@ public:
     /*!
         Stops the thread and deletes this object
      */
-    void stopAndDelete();
+    virtual void stopAndDelete();
 
 protected:
 
     /*!
         Called on this thread when thread starts
      */
-    virtual void init() = 0;
+    virtual bool init() = 0;
 
     /*!
         Called on this thread before thread exits

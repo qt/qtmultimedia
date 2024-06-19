@@ -91,11 +91,15 @@ private:
 
     void addVideoSource(QPlatformVideoSource *source, const QVideoFrame &firstFrame);
     void handleSourceEndOfStream();
+    void handleEncoderInitialization();
 
     void start();
 
     template <typename F, typename... Args>
     void forEachEncoder(F &&f, Args &&...args);
+
+    template <typename F>
+    bool allOfEncoders(F &&f) const;
 
 private:
     QMediaEncoderSettings m_settings;
@@ -112,6 +116,7 @@ private:
 
     bool m_isHeaderWritten = false;
     bool m_autoStop = false;
+    qsizetype m_initializedEncodersCount = 0;
 };
 
 }

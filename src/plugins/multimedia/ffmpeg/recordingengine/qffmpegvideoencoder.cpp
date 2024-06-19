@@ -100,15 +100,19 @@ void VideoEncoder::retrievePackets()
         m_recordingEngine.getMuxer()->addPacket(std::move(packet));
 }
 
-void VideoEncoder::init()
+bool VideoEncoder::init()
 {
     Q_ASSERT(isValid());
 
     qCDebug(qLcFFmpegVideoEncoder) << "VideoEncoder::init started video device thread.";
-    bool ok = m_frameEncoder->open();
-    if (!ok)
+    const bool ok = m_frameEncoder->open();
+    if (!ok) {
         emit m_recordingEngine.sessionError(QMediaRecorder::ResourceError,
                                             "Could not initialize encoder");
+        return false;
+    }
+
+    return EncoderThread::init();
 }
 
 void VideoEncoder::cleanup()
@@ -224,7 +228,7 @@ void VideoEncoder::processOne()
 
 bool VideoEncoder::checkIfCanPushFrame() const
 {
-    if (isRunning())
+    if (m_encodingStarted)
         return m_videoFrameQueue.size() < m_maxQueueSize;
     if (!isFinished())
         return m_videoFrameQueue.empty();

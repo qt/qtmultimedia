@@ -33,9 +33,10 @@ AVPacketUPtr Muxer::takePacket()
     return dequeueIfPossible(m_packetQueue);
 }
 
-void Muxer::init()
+bool Muxer::init()
 {
     qCDebug(qLcFFmpegMuxer) << "Muxer::init started thread.";
+    return true;
 }
 
 void Muxer::cleanup()

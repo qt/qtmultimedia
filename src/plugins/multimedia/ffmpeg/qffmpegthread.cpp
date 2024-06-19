@@ -26,7 +26,8 @@ void ConsumerThread::dataReady()
 
 void ConsumerThread::run()
 {
-    init();
+    if (!init())
+        return;
 
     while (true) {
 

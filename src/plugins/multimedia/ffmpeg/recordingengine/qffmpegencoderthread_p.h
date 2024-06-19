@@ -5,6 +5,7 @@
 
 #include "qffmpegthread_p.h"
 #include "qpointer.h"
+#include "qsemaphore.h"
 
 #include "private/qmediainputencoderinterface_p.h"
 
@@ -34,7 +35,15 @@ public:
 
     bool isEndOfSourceStream() const { return m_endOfSourceStream; }
 
+    void startEncoding();
+
+    bool isInitialized() const { return m_initialized; }
+
+    void stopAndDelete() override;
+
 protected:
+    bool init() override;
+
     void updateCanPushFrame();
 
     virtual bool checkIfCanPushFrame() const = 0;
@@ -55,14 +64,18 @@ protected:
 Q_SIGNALS:
     void canPushFrameChanged();
     void endOfSourceStream();
+    void initialized();
 
 protected:
     bool m_paused = false;
     bool m_endOfSourceStream = false;
     bool m_autoStop = false;
+    bool m_initialized = false;
+    bool m_encodingStarted = false;
     std::atomic_bool m_canPushFrame = false;
     RecordingEngine &m_recordingEngine;
     QPointer<QObject> m_source;
+    QSemaphore m_encodingStartSemaphore;
 };
 
 } // namespace QFFmpeg
