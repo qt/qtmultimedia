@@ -53,12 +53,23 @@ qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstr
     PUBLIC_LIBRARIES
         GStreamer::Photography
 )
-
 qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstreamer_gl
     PUBLIC_LIBRARIES
         GStreamer::Gl
     LIBRARIES
         EGL::EGL
+)
+qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstreamer_gl_egl
+    LIBRARIES
+        GStreamer::GlEgl
+)
+qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstreamer_gl_wayland
+    LIBRARIES
+        GStreamer::GlWayland
+)
+qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstreamer_gl_x11
+    LIBRARIES
+        GStreamer::GlX11
 )
 
 qt_internal_add_plugin(QGstreamerMediaPlugin

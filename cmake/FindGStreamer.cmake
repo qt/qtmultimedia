@@ -15,11 +15,17 @@
 #  If target GStreamer::GStreamer exists, the following targets may be defined:
 #
 #   ``GStreamer::App``
-#       If the gstapp-1.0 library is available and target GStreamer::GStreamer exists
+#       If the gstapp-1.0 library is available and its dependencies exist
 #   ``GStreamer::Photography``
-#       If the gstphotography-1.0 library is available and target GStreamer::GStreamer exists
+#       If the gstphotography-1.0 library is available and its dependencies exist
 #   ``GStreamer::Gl``
-#       If the gstgl-1.0 library is available and target GStreamer::GStreamer exists
+#       If the gstgl-1.0 library is available and its dependencies exist
+#   ``GStreamer::GlEgl``
+#       If the gstreamer-gl-egl-1.0 library is available and its dependencies exist
+#   ``GStreamer::GlWayland``
+#       If the gstreamer-gl-wayland-1.0 library is available and its dependencies exist
+#   ``GStreamer::GlX11``
+#       If the gstreamer-gl-x11-1.0 library is available and its dependencies exist
 #
 
 include(CMakeFindDependencyMacro)
@@ -34,6 +40,13 @@ function(find_gstreamer_component component)
     set(library ${ARGS_LIBRARY})
 
     set(target GStreamer::${component})
+
+    foreach(dependency IN LISTS ARGS_DEPENDENCIES)
+        if (NOT TARGET ${dependency})
+            set(GStreamer_${component}_FOUND FALSE PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
 
     if(NOT TARGET ${target})
         string(TOUPPER ${component} upper)
@@ -134,6 +147,30 @@ if(Gl IN_LIST GStreamer_FIND_COMPONENTS)
         HEADER gst/gl/gl.h
         LIBRARY gstgl-1.0
         DEPENDENCIES GStreamer::Core)
+endif()
+
+if(GlEgl IN_LIST GStreamer_FIND_COMPONENTS)
+    find_gstreamer_component(GlEgl
+        PC_NAME gstreamer-gl-egl-1.0
+        HEADER gst/gl/egl/gstgldisplay_egl.h
+        LIBRARY gstgl-1.0
+        DEPENDENCIES GStreamer::Video GStreamer::Base GStreamer::Core GStreamer::Gl EGL::EGL )
+endif()
+
+if(GlX11 IN_LIST GStreamer_FIND_COMPONENTS)
+    find_gstreamer_component(GlX11
+        PC_NAME gstreamer-gl-x11-1.0
+        HEADER gst/gl/x11/gstgldisplay_x11.h
+        LIBRARY gstgl-1.0
+        DEPENDENCIES GStreamer::Video GStreamer::Base GStreamer::Core GStreamer::Gl XCB::XCB )
+endif()
+
+if(GlWayland IN_LIST GStreamer_FIND_COMPONENTS)
+    find_gstreamer_component(GlWayland
+        PC_NAME gstreamer-gl-wayland-1.0
+        HEADER gst/gl/wayland/gstgldisplay_wayland.h
+        LIBRARY gstgl-1.0
+        DEPENDENCIES GStreamer::Video GStreamer::Base GStreamer::Core GStreamer::Gl Wayland::Client )
 endif()
 
 # Create target GStreamer::GStreamer
