@@ -166,6 +166,14 @@ QGstPipeline QGstPipeline::create(const char *name)
     return adopt(pipeline);
 }
 
+QGstPipeline QGstPipeline::createFromFactory(const char *factory, const char *name)
+{
+    QGstElement playbin3 = QGstElement::createFromFactory(factory, name);
+    GstPipeline *pipeline = qGstCheckedCast<GstPipeline>(playbin3.element());
+
+    return QGstPipeline::adopt(pipeline);
+}
+
 QGstPipeline QGstPipeline::adopt(GstPipeline *pipeline)
 {
     QGstPipelinePrivate *d = new QGstPipelinePrivate(gst_pipeline_get_bus(pipeline));
