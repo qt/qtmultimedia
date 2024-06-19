@@ -50,8 +50,7 @@ QMaybe<QPlatformAudioDecoder *> QGstreamerAudioDecoder::create(QAudioDecoder *pa
 QGstreamerAudioDecoder::QGstreamerAudioDecoder(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent),
       m_playbin{
-          QGstPipeline::adopt(GST_PIPELINE_CAST(
-                  QGstElement::createFromFactory("playbin", "playbin").element())),
+          QGstPipeline::createFromFactory("playbin", "playbin"),
       },
       m_audioConvert{
           QGstElement::createFromFactory("audioconvert", "audioconvert"),
