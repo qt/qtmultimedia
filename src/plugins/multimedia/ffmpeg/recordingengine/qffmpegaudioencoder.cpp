@@ -16,6 +16,59 @@ namespace QFFmpeg {
 
 static Q_LOGGING_CATEGORY(qLcFFmpegAudioEncoder, "qt.multimedia.ffmpeg.audioencoder");
 
+namespace {
+void setupStreamParameters(AVStream *stream, const AVCodec *codec,
+                           const AVAudioFormat &requestedAudioFormat)
+{
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+    stream->codecpar->channel_layout =
+            adjustChannelLayout(codec->channel_layouts, requestedAudioFormat.channelLayoutMask);
+    stream->codecpar->channels = qPopulationCount(stream->codecpar->channel_layout);
+#else
+    stream->codecpar->ch_layout =
+            adjustChannelLayout(codec->ch_layouts, requestedAudioFormat.channelLayout);
+#endif
+    const auto sampleRate =
+            adjustSampleRate(codec->supported_samplerates, requestedAudioFormat.sampleRate);
+
+    stream->codecpar->sample_rate = sampleRate;
+    stream->codecpar->frame_size = 1024;
+    stream->codecpar->format =
+            adjustSampleFormat(codec->sample_fmts, requestedAudioFormat.sampleFormat);
+
+    stream->time_base = AVRational{ 1, sampleRate };
+
+    qCDebug(qLcFFmpegAudioEncoder)
+            << "set stream time_base" << stream->time_base.num << "/" << stream->time_base.den;
+}
+
+bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
+                      const QMediaEncoderSettings &settings)
+{
+    Q_ASSERT(codecContext);
+    codecContext->time_base = stream->time_base;
+
+    avcodec_parameters_to_context(codecContext, stream->codecpar);
+
+    AVDictionaryHolder opts;
+    applyAudioEncoderOptions(settings, codecContext->codec->name, codecContext, opts);
+    applyExperimentalCodecOptions(codecContext->codec, opts);
+
+    const int res = avcodec_open2(codecContext, codecContext->codec, opts);
+
+    qCDebug(qLcFFmpegAudioEncoder) << "audio codec open result:" << res;
+
+    if (res != 0)
+        return false;
+
+    qCDebug(qLcFFmpegAudioEncoder) << "audio codec params: fmt=" << codecContext->sample_fmt
+                                   << "rate=" << codecContext->sample_rate;
+
+    return true;
+}
+
+} // namespace
+
 AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, const QAudioFormat &sourceFormat,
                            const QMediaEncoderSettings &settings)
     : EncoderThread(recordingEngine), m_format(sourceFormat), m_settings(settings)
@@ -23,72 +76,16 @@ AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, const QAudioFormat 
     setObjectName(QLatin1String("AudioEncoder"));
     qCDebug(qLcFFmpegAudioEncoder) << "AudioEncoder" << settings.audioCodec();
 
-    auto codecID = QFFmpegMediaFormatInfo::codecIdForAudioCodec(settings.audioCodec());
+    const AVCodecID codecID = QFFmpegMediaFormatInfo::codecIdForAudioCodec(settings.audioCodec());
     Q_ASSERT(avformat_query_codec(recordingEngine.avFormatContext()->oformat, codecID,
                                   FF_COMPLIANCE_NORMAL));
 
-    const AVAudioFormat requestedAudioFormat(m_format);
-
-    m_avCodec = QFFmpeg::findAVEncoder(codecID, {}, requestedAudioFormat.sampleFormat);
-
-    if (!m_avCodec)
-        m_avCodec = QFFmpeg::findAVEncoder(codecID);
-
-    qCDebug(qLcFFmpegAudioEncoder) << "found audio codec" << m_avCodec->name;
-
-    Q_ASSERT(m_avCodec);
+    Q_ASSERT(QFFmpeg::findAVEncoder(codecID));
 
     m_stream = avformat_new_stream(recordingEngine.avFormatContext(), nullptr);
     m_stream->id = recordingEngine.avFormatContext()->nb_streams - 1;
     m_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
     m_stream->codecpar->codec_id = codecID;
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-    m_stream->codecpar->channel_layout =
-            adjustChannelLayout(m_avCodec->channel_layouts, requestedAudioFormat.channelLayoutMask);
-    m_stream->codecpar->channels = qPopulationCount(m_stream->codecpar->channel_layout);
-#else
-    m_stream->codecpar->ch_layout =
-            adjustChannelLayout(m_avCodec->ch_layouts, requestedAudioFormat.channelLayout);
-#endif
-    const auto sampleRate =
-            adjustSampleRate(m_avCodec->supported_samplerates, requestedAudioFormat.sampleRate);
-
-    m_stream->codecpar->sample_rate = sampleRate;
-    m_stream->codecpar->frame_size = 1024;
-    m_stream->codecpar->format =
-            adjustSampleFormat(m_avCodec->sample_fmts, requestedAudioFormat.sampleFormat);
-
-    m_stream->time_base = AVRational{ 1, sampleRate };
-
-    qCDebug(qLcFFmpegAudioEncoder) << "set stream time_base" << m_stream->time_base.num << "/"
-                              << m_stream->time_base.den;
-}
-
-void AudioEncoder::open()
-{
-    m_codecContext.reset(avcodec_alloc_context3(m_avCodec));
-
-    if (m_stream->time_base.num != 1 || m_stream->time_base.den != m_format.sampleRate()) {
-        qCDebug(qLcFFmpegAudioEncoder) << "Most likely, av_format_write_header changed time base from"
-                                  << 1 << "/" << m_format.sampleRate() << "to"
-                                  << m_stream->time_base;
-    }
-
-    m_codecContext->time_base = m_stream->time_base;
-
-    avcodec_parameters_to_context(m_codecContext.get(), m_stream->codecpar);
-
-    AVDictionaryHolder opts;
-    applyAudioEncoderOptions(m_settings, m_avCodec->name, m_codecContext.get(), opts);
-    applyExperimentalCodecOptions(m_avCodec, opts);
-
-    const int res = avcodec_open2(m_codecContext.get(), m_avCodec, opts);
-
-    qCDebug(qLcFFmpegAudioEncoder) << "audio codec opened" << res;
-    qCDebug(qLcFFmpegAudioEncoder) << "audio codec params: fmt=" << m_codecContext->sample_fmt
-                              << "rate=" << m_codecContext->sample_rate;
-
-    updateResampler();
 }
 
 void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
@@ -124,15 +121,52 @@ QAudioBuffer AudioEncoder::takeBuffer()
     return result;
 }
 
-void AudioEncoder::init()
+bool AudioEncoder::init()
 {
-    open();
+    const AVAudioFormat requestedAudioFormat(m_format);
+
+    QFFmpeg::findAndOpenEncoder(
+            m_stream->codecpar->codec_id,
+            [&](const AVCodec *codec) {
+                AVScore result = DefaultAVScore;
+
+                // Attempt to find no-conversion format
+                if (auto fmts = codec->sample_fmts)
+                    result += hasAVFormat(fmts, requestedAudioFormat.sampleFormat) ? 1 : -1;
+
+                // TODO: apply +1 / -1 for sample rates and channel layout
+
+                return result;
+            },
+            [&](const AVCodec *codec) {
+                AVCodecContextUPtr codecContext(avcodec_alloc_context3(codec));
+                if (!codecContext)
+                    return false;
+
+                setupStreamParameters(m_stream, codecContext->codec, requestedAudioFormat);
+                if (!openCodecContext(codecContext.get(), m_stream, m_settings))
+                    return false;
+
+                m_codecContext = std::move(codecContext);
+                return true;
+            });
+
+    if (!m_codecContext) {
+        qCWarning(qLcFFmpegAudioEncoder) << "Unable to open any audio codec";
+        emit m_recordingEngine.sessionError(QMediaRecorder::FormatError,
+                                            QStringLiteral("Cannot open any audio codec"));
+        return false;
+    }
+
+    qCDebug(qLcFFmpegAudioEncoder) << "found audio codec" << m_codecContext->codec->name;
+
+    updateResampler();
 
     // TODO: try to address this dependency here.
     if (auto input = qobject_cast<QFFmpegAudioInput *>(source()))
         input->setFrameSize(m_codecContext->frame_size);
 
-    qCDebug(qLcFFmpegAudioEncoder) << "AudioEncoder::init started audio device thread.";
+    return EncoderThread::init();
 }
 
 void AudioEncoder::cleanup()
@@ -204,7 +238,7 @@ void AudioEncoder::processOne()
 
 bool AudioEncoder::checkIfCanPushFrame() const
 {
-    if (isRunning())
+    if (m_encodingStarted)
         return m_audioBufferQueue.size() <= 1 || m_queueDuration < m_maxQueueDuration;
     if (!isFinished())
         return m_audioBufferQueue.empty();
@@ -244,7 +278,8 @@ void AudioEncoder::ensurePendingFrame(int availableSamplesCount)
 #endif
     m_avFrame->sample_rate = m_codecContext->sample_rate;
 
-    const bool isFixedFrameSize = !(m_avCodec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
+    const bool isFixedFrameSize =
+            !(m_codecContext->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
             && m_codecContext->frame_size;
     m_avFrame->nb_samples = isFixedFrameSize ? m_codecContext->frame_size : availableSamplesCount;
     if (m_avFrame->nb_samples)

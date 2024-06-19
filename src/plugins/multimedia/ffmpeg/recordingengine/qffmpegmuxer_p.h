@@ -23,7 +23,7 @@ public:
 private:
     AVPacketUPtr takePacket();
 
-    void init() override;
+    bool init() override;
     void cleanup() override;
     bool hasData() const override;
     void processOne() override;

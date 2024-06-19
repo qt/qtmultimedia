@@ -81,9 +81,12 @@ AudioEncoder *RecordingEngine::createAudioEncoder(const QAudioFormat &format)
     Q_ASSERT(format.isValid());
 
     auto audioEncoder = new AudioEncoder(*this, format, m_settings);
+
     m_audioEncoders.push_back(audioEncoder);
     connect(audioEncoder, &EncoderThread::endOfSourceStream, this,
             &RecordingEngine::handleSourceEndOfStream);
+    connect(audioEncoder, &EncoderThread::initialized, this,
+            &RecordingEngine::handleEncoderInitialization, Qt::SingleShotConnection);
     if (m_autoStop)
         audioEncoder->setAutoStop(true);
 
@@ -130,6 +133,9 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
     connect(videoEncoder, &EncoderThread::endOfSourceStream, this,
             &RecordingEngine::handleSourceEndOfStream);
 
+    connect(videoEncoder, &EncoderThread::initialized, this,
+            &RecordingEngine::handleEncoderInitialization, Qt::SingleShotConnection);
+
     // set the frame before connecting to avoid potential races
     if (firstFrame.isValid())
         videoEncoder->addFrame(firstFrame);
@@ -150,25 +156,7 @@ void RecordingEngine::start()
 
     qCDebug(qLcFFmpegEncoder) << "RecordingEngine::start!";
 
-    avFormatContext()->metadata = QFFmpegMetaData::toAVMetaData(m_metaData);
-
-    Q_ASSERT(!m_isHeaderWritten);
-
-    int res = avformat_write_header(avFormatContext(), nullptr);
-    if (res < 0) {
-        qWarning() << "could not write header, error:" << res << err2str(res);
-        emit sessionError(QMediaRecorder::ResourceError,
-                          QLatin1StringView("Cannot start writing the stream"));
-        return;
-    }
-
-    m_isHeaderWritten = true;
-
-    qCDebug(qLcFFmpegEncoder) << "stream header is successfully written";
-
-    m_muxer->start();
-
-    forEachEncoder([](QThread *thread) { thread->start(); });
+    forEachEncoder([](EncoderThread *encoder) { encoder->start(); });
 }
 
 void RecordingEngine::initialize(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
@@ -252,15 +240,45 @@ void RecordingEngine::newTimeStamp(qint64 time)
 
 bool RecordingEngine::isEndOfSourceStreams() const
 {
-    auto isAtEnd = [](EncoderThread *encoder) { return encoder->isEndOfSourceStream(); };
-    return std::all_of(m_videoEncoders.cbegin(), m_videoEncoders.cend(), isAtEnd)
-            && std::all_of(m_audioEncoders.cbegin(), m_audioEncoders.cend(), isAtEnd);
+    return allOfEncoders(&EncoderThread::isEndOfSourceStream);
 }
 
 void RecordingEngine::handleSourceEndOfStream()
 {
     if (m_autoStop && isEndOfSourceStreams())
         emit autoStopped();
+}
+
+void RecordingEngine::handleEncoderInitialization()
+{
+    ++m_initializedEncodersCount;
+
+    Q_ASSERT(m_initializedEncodersCount <= m_videoEncoders.size() + m_audioEncoders.size());
+
+    if (m_initializedEncodersCount < m_videoEncoders.size() + m_audioEncoders.size())
+        return;
+
+    Q_ASSERT(allOfEncoders(&EncoderThread::isInitialized));
+    Q_ASSERT(!m_isHeaderWritten);
+
+    qCDebug(qLcFFmpegEncoder) << "Encoders initialized; writing a header";
+
+    avFormatContext()->metadata = QFFmpegMetaData::toAVMetaData(m_metaData);
+
+    const int res = avformat_write_header(avFormatContext(), nullptr);
+    if (res < 0) {
+        qWarning() << "could not write header, error:" << res << err2str(res);
+        emit sessionError(QMediaRecorder::ResourceError,
+                          QLatin1StringView("Cannot start writing the stream"));
+        return;
+    }
+
+    m_isHeaderWritten = true;
+
+    qCDebug(qLcFFmpegEncoder) << "stream header is successfully written";
+
+    m_muxer->start();
+    forEachEncoder(&EncoderThread::startEncoding);
 }
 
 template <typename F, typename... Args>
@@ -270,6 +288,15 @@ void RecordingEngine::forEachEncoder(F &&f, Args &&...args)
         std::invoke(f, audioEncoder, args...);
     for (VideoEncoder *videoEncoder : m_videoEncoders)
         std::invoke(f, videoEncoder, args...);
+}
+
+template <typename F>
+bool RecordingEngine::allOfEncoders(F &&f) const
+{
+    auto predicate = [&f](const EncoderThread *encoder) { return std::invoke(f, encoder); };
+
+    return std::all_of(m_audioEncoders.cbegin(), m_audioEncoders.cend(), predicate)
+            && std::all_of(m_videoEncoders.cbegin(), m_videoEncoders.cend(), predicate);
 }
 }
 
