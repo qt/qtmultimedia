@@ -26,6 +26,7 @@ QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QVideoFrameFormatPrivate, Q_MUL
 
 class Q_MULTIMEDIA_EXPORT QVideoFrameFormat
 {
+    Q_GADGET
 public:
     enum PixelFormat
     {
@@ -66,6 +67,7 @@ public:
 
         Format_YUV420P10
     };
+    Q_ENUM(PixelFormat)
 #ifndef Q_QDOC
     static constexpr int NPixelFormats = Format_YUV420P10 + 1;
 #endif

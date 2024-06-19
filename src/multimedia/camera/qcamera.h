@@ -131,6 +131,7 @@ public:
         FocusDistance = 0x20
     };
     Q_DECLARE_FLAGS(Features, Feature)
+    Q_FLAG(Features)
 
     explicit QCamera(QObject *parent = nullptr);
     explicit QCamera(const QCameraDevice& cameraDevice, QObject *parent = nullptr);
