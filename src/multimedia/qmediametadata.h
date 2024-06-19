@@ -59,7 +59,7 @@ public:
         Orientation,
         Resolution,
 
-        HasHdrContent
+        HasHdrContent,
     };
     Q_ENUM(Key)
 
