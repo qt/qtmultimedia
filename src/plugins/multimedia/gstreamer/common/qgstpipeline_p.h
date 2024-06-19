@@ -50,9 +50,8 @@ public:
     QGstPipeline(GstPipeline *, RefMode mode);
     ~QGstPipeline();
 
-    // installs QGstPipelinePrivate as "pipeline-private" gobject property
+    static QGstPipeline createFromFactory(const char *factory, const char *name);
     static QGstPipeline create(const char *name);
-    static QGstPipeline adopt(GstPipeline *);
 
     void installMessageFilter(QGstreamerSyncMessageFilter *filter);
     void removeMessageFilter(QGstreamerSyncMessageFilter *filter);
@@ -93,6 +92,9 @@ public:
     std::chrono::milliseconds positionInMs() const;
 
 private:
+    // installs QGstPipelinePrivate as "pipeline-private" gobject property
+    static QGstPipeline adopt(GstPipeline *);
+
     void seek(std::chrono::nanoseconds pos, double rate);
     void seek(std::chrono::nanoseconds pos);
 
