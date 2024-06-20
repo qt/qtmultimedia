@@ -23,7 +23,7 @@
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/private/qaudiodevice_p.h>
 
-#include <QtQGstreamerMediaPlugin/private/qgst_handle_types_p.h>
+#include <QtQGstreamerMediaPluginImpl/private/qgst_handle_types_p.h>
 
 #include <gst/gst.h>
 

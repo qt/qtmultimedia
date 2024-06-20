@@ -12,7 +12,7 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/gstreamer-custom-camera-rtp")
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets QGstreamerMediaPluginPrivate)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets QGstreamerMediaPluginImplPrivate)
 
 qt_add_executable( gstreamer-custom-camera-rtp WIN32 MACOSX_BUNDLE
     gstreamer-custom-camera-rtp.cpp
@@ -25,7 +25,7 @@ target_link_libraries( gstreamer-custom-camera-rtp PUBLIC
     Qt::MultimediaPrivate
     Qt::MultimediaWidgets
 
-    Qt::QGstreamerMediaPluginPrivate
+    Qt::QGstreamerMediaPluginImplPrivate
 )
 
 install(TARGETS gstreamer-custom-camera-rtp
