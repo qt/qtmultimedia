@@ -334,15 +334,15 @@ QDebug operator<<(QDebug dbg, const GstPadTemplate *padTemplate)
 
 QDebug operator<<(QDebug dbg, const GstStreamCollection *streamCollection)
 {
-    GstStreamCollection *collection = const_cast<GstStreamCollection *>(streamCollection);
-    guint size = gst_stream_collection_get_size(collection);
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
 
+    GstStreamCollection *collection = const_cast<GstStreamCollection *>(streamCollection);
     dbg << "Stream Collection: {";
-    for (guint index = 0; index != size; ++index) {
-        dbg << gst_stream_collection_get_stream(collection, index);
-        if (index + 1 != size)
-            dbg << ", ";
-    }
+
+    qForeachStreamInCollection(collection, [&](GstStream *stream) {
+        dbg << stream << ", ";
+    });
 
     dbg << "}";
     return dbg;
@@ -352,26 +352,10 @@ QDebug operator<<(QDebug dbg, const GstStream *cstream)
 {
     GstStream *stream = const_cast<GstStream *>(cstream);
 
-    dbg << "GstStream { ";
-    dbg << "Type: " << gst_stream_type_get_name(gst_stream_get_stream_type(stream));
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
 
-    QGstTagListHandle tagList{
-        gst_stream_get_tags(stream),
-        QGstTagListHandle::HasRef,
-    };
-
-    if (tagList)
-        dbg << ", Tags: " << tagList;
-
-    QGstCaps caps{
-        gst_stream_get_caps(stream),
-        QGstCaps::HasRef,
-    };
-
-    if (caps)
-        dbg << ", Caps: " << caps;
-
-    dbg << "}";
+    dbg << gst_stream_get_stream_id(stream) << " (" << gst_stream_get_stream_type(stream) << ")";
 
     return dbg;
 }
@@ -429,6 +413,12 @@ QDebug operator<<(QDebug dbg, GstStreamStatusType type)
 }
 
 #undef ADD_ENUM_SWITCH
+
+QDebug operator<<(QDebug dbg, GstStreamType streamType)
+{
+    dbg << gst_stream_type_get_name(streamType);
+    return dbg;
+}
 
 QDebug operator<<(QDebug dbg, const GValue *value)
 {
