@@ -7,8 +7,8 @@
 #include <QtWidgets/QApplication>
 #include <QtCore/QCommandLineParser>
 
-#include <QtQGstreamerMediaPlugin/private/qgst_p.h>
-#include <QtQGstreamerMediaPlugin/private/qgstpipeline_p.h>
+#include <QtQGstreamerMediaPluginImpl/private/qgst_p.h>
+#include <QtQGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
 
 using namespace std::chrono_literals;
 using namespace Qt::Literals;

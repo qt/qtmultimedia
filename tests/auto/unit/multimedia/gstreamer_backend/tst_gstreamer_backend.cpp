@@ -6,11 +6,11 @@
 #include <QtTest/QtTest>
 #include <QtMultimedia/qmediaformat.h>
 
-#include <QtQGstreamerMediaPlugin/private/qgst_handle_types_p.h>
-#include <QtQGstreamerMediaPlugin/private/qgst_p.h>
-#include <QtQGstreamerMediaPlugin/private/qgst_debug_p.h>
-#include <QtQGstreamerMediaPlugin/private/qgstpipeline_p.h>
-#include <QtQGstreamerMediaPlugin/private/qgstreamermetadata_p.h>
+#include <QtQGstreamerMediaPluginImpl/private/qgst_handle_types_p.h>
+#include <QtQGstreamerMediaPluginImpl/private/qgst_p.h>
+#include <QtQGstreamerMediaPluginImpl/private/qgst_debug_p.h>
+#include <QtQGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
+#include <QtQGstreamerMediaPluginImpl/private/qgstreamermetadata_p.h>
 
 QT_USE_NAMESPACE
 
