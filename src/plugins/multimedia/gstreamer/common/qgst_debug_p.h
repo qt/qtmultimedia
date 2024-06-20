@@ -56,6 +56,7 @@ QDebug operator<<(QDebug, GstStateChangeReturn);
 QDebug operator<<(QDebug, GstMessageType);
 QDebug operator<<(QDebug, GstPadDirection);
 QDebug operator<<(QDebug, GstStreamStatusType);
+QDebug operator<<(QDebug, GstStreamType);
 
 QDebug operator<<(QDebug, const GValue *);
 QDebug operator<<(QDebug, const GError *);

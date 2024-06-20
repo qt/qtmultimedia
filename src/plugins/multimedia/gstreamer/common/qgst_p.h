@@ -842,6 +842,20 @@ std::optional<QString> qGstErrorMessageIfElementsNotAvailable(const Arg &arg, Ar
         return std::nullopt;
 }
 
+template <typename Functor>
+void qForeachStreamInCollection(GstStreamCollection *collection, Functor &&f)
+{
+    guint size = gst_stream_collection_get_size(collection);
+    for (guint index = 0; index != size; ++index)
+        f(gst_stream_collection_get_stream(collection, index));
+}
+
+template <typename Functor>
+void qForeachStreamInCollection(const QGstStreamCollectionHandle &collection, Functor &&f)
+{
+    qForeachStreamInCollection(collection.get(), std::forward<Functor>(f));
+}
+
 QT_END_NAMESPACE
 
 #endif
