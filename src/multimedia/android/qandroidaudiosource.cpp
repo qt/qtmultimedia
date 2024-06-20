@@ -15,7 +15,7 @@
 #include <QtCore/qpermissions.h>
 #endif
 
-static Q_LOGGING_CATEGORY(qLcAndroidAudioSource, "qt.multimedia.android.audiosource")
+Q_STATIC_LOGGING_CATEGORY(qLcAndroidAudioSource, "qt.multimedia.android.audiosource")
 
 QT_BEGIN_NAMESPACE
 

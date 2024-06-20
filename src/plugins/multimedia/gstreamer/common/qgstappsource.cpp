@@ -8,7 +8,7 @@
 
 #include <common/qgstutils_p.h>
 
-static Q_LOGGING_CATEGORY(qLcAppSrc, "qt.multimedia.appsrc")
+Q_STATIC_LOGGING_CATEGORY(qLcAppSrc, "qt.multimedia.appsrc");
 
 QT_BEGIN_NAMESPACE
 

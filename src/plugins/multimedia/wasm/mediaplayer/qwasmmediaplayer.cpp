@@ -14,7 +14,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(lcMediaPlayer, "qt.multimedia.wasm.mediaplayer");
+Q_STATIC_LOGGING_CATEGORY(lcMediaPlayer, "qt.multimedia.wasm.mediaplayer");
 
 QWasmMediaPlayer::QWasmMediaPlayer(QMediaPlayer *parent)
     : QPlatformMediaPlayer(parent),

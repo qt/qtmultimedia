@@ -13,7 +13,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(lcMediaPlayer, "qt.multimedia.mediaplayer.android")
+Q_STATIC_LOGGING_CATEGORY(lcMediaPlayer, "qt.multimedia.mediaplayer.android");
 
 class StateChangeNotifier
 {

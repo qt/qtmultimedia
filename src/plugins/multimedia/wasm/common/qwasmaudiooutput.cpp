@@ -15,7 +15,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qWasmMediaAudioOutput, "qt.multimedia.wasm.audiooutput")
+Q_STATIC_LOGGING_CATEGORY(qWasmMediaAudioOutput, "qt.multimedia.wasm.audiooutput");
 
 QWasmAudioOutput::QWasmAudioOutput(QAudioOutput *parent)
     : QPlatformAudioOutput(parent)

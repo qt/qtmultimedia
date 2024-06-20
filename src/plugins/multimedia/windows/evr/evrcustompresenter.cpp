@@ -26,7 +26,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcEvrCustomPresenter, "qt.multimedia.evrcustompresenter")
+Q_STATIC_LOGGING_CATEGORY(qLcEvrCustomPresenter, "qt.multimedia.evrcustompresenter");
 
 const static MFRatio g_DefaultFrameRate = { 30, 1 };
 static const DWORD SCHEDULER_TIMEOUT = 5000;

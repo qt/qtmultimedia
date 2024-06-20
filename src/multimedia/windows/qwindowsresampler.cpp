@@ -15,7 +15,7 @@ QT_BEGIN_NAMESPACE
 QUuid qIID_IMFTransform(0xbf94c121, 0x5b05, 0x4e6f, 0x80,0x00, 0xba,0x59,0x89,0x61,0x41,0x4d);
 QUuid qCLSID_CResamplerMediaObject("f447b69e-1884-4a7e-8055-346f74d6edb3");
 
-static Q_LOGGING_CATEGORY(qLcAudioResampler, "qt.multimedia.audioresampler")
+Q_STATIC_LOGGING_CATEGORY(qLcAudioResampler, "qt.multimedia.audioresampler");
 
 QWindowsResampler::QWindowsResampler()
 {

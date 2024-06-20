@@ -10,7 +10,7 @@
 
 #include <QtCore/qloggingcategory.h>
 
-static Q_LOGGING_CATEGORY(qLcMediaAudioOutput, "qt.multimedia.audiooutput")
+Q_STATIC_LOGGING_CATEGORY(qLcMediaAudioOutput, "qt.multimedia.audiooutput");
 
 QT_BEGIN_NAMESPACE
 

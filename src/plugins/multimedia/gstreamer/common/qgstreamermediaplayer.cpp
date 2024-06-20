@@ -30,7 +30,7 @@
 #  include <gst/gl/gl.h>
 #endif
 
-static Q_LOGGING_CATEGORY(qLcMediaPlayer, "qt.multimedia.player")
+Q_STATIC_LOGGING_CATEGORY(qLcMediaPlayer, "qt.multimedia.player");
 
 QT_BEGIN_NAMESPACE
 

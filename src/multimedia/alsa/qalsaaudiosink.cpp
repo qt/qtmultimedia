@@ -21,7 +21,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(lcAlsaOutput, "qt.multimedia.alsa.output")
+Q_STATIC_LOGGING_CATEGORY(lcAlsaOutput, "qt.multimedia.alsa.output");
 //#define DEBUG_AUDIO 1
 
 QAlsaAudioSink::QAlsaAudioSink(const QByteArray &device, QObject *parent)

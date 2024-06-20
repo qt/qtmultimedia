@@ -12,7 +12,7 @@
 #include <qt_windows.h>
 #include <QtCore/qloggingcategory.h>
 
-static Q_LOGGING_CATEGORY(qLcGdiWindowCapture, "qt.multimedia.ffmpeg.gdiwindowcapture");
+Q_STATIC_LOGGING_CATEGORY(qLcGdiWindowCapture, "qt.multimedia.ffmpeg.gdiwindowcapture");
 
 QT_BEGIN_NAMESPACE
 

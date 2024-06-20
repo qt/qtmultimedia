@@ -13,7 +13,7 @@
 #include <QtCore/qjnienvironment.h>
 #include <jni.h>
 
-static Q_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.videoDevices")
+Q_STATIC_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.videoDevices");
 
 QCameraFormat createCameraFormat(int width, int height, int fpsMin, int fpsMax)
 {

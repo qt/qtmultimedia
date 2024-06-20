@@ -20,7 +20,7 @@
 #endif
 
 #if defined(Q_OS_MACOS)
-static Q_LOGGING_CATEGORY(qLcDarwinMediaDevices, "qt.multimedia.darwin.mediaDevices")
+Q_STATIC_LOGGING_CATEGORY(qLcDarwinMediaDevices, "qt.multimedia.darwin.mediaDevices");
 #endif
 
 QT_BEGIN_NAMESPACE

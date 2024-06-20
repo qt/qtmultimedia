@@ -15,7 +15,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcGstPipeline, "qt.multimedia.gstpipeline");
+Q_STATIC_LOGGING_CATEGORY(qLcGstPipeline, "qt.multimedia.gstpipeline");
 
 static constexpr GstSeekFlags rateChangeSeekFlags =
 #if GST_CHECK_VERSION(1, 18, 0)

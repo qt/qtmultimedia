@@ -10,7 +10,7 @@
 #include <common/qgstreamervideosink_p.h>
 #include <common/qgstsubtitlesink_p.h>
 
-static Q_LOGGING_CATEGORY(qLcMediaVideoOutput, "qt.multimedia.videooutput")
+Q_STATIC_LOGGING_CATEGORY(qLcMediaVideoOutput, "qt.multimedia.videooutput");
 
 QT_BEGIN_NAMESPACE
 

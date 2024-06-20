@@ -8,7 +8,7 @@
 #include <QtCore/QLoggingCategory>
 
 QT_BEGIN_NAMESPACE
-static Q_LOGGING_CATEGORY(qLCAndroidCameraFrame, "qt.multimedia.ffmpeg.android.camera.frame");
+Q_STATIC_LOGGING_CATEGORY(qLCAndroidCameraFrame, "qt.multimedia.ffmpeg.android.camera.frame");
 
 namespace {
 bool isWorkaroundForEmulatorNeeded() {

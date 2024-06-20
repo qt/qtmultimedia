@@ -19,7 +19,7 @@ QT_BEGIN_NAMESPACE
 
 static const char tempFile[] = "encoded.wav";
 constexpr int dequeueTimeout = 5000;
-static Q_LOGGING_CATEGORY(adLogger, "QAndroidAudioDecoder")
+Q_STATIC_LOGGING_CATEGORY(adLogger, "QAndroidAudioDecoder");
 
 Decoder::Decoder()
     : m_format(AMediaFormat_new())

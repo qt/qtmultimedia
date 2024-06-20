@@ -29,7 +29,7 @@ extern "C" {
 }
 
 QT_BEGIN_NAMESPACE
-static Q_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera");
+Q_STATIC_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera");
 
 typedef QMap<QString, QAndroidCamera *> QAndroidCameraMap;
 Q_GLOBAL_STATIC(QAndroidCameraMap, g_qcameras)

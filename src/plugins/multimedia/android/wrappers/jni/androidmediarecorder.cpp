@@ -15,7 +15,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(lcMediaRecorder, "qt.multimedia.mediarecorder.android")
+Q_STATIC_LOGGING_CATEGORY(lcMediaRecorder, "qt.multimedia.mediarecorder.android");
 
 typedef QMap<QString, QJniObject> CamcorderProfiles;
 Q_GLOBAL_STATIC(CamcorderProfiles, g_camcorderProfiles)

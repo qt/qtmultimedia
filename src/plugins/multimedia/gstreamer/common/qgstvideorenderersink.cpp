@@ -36,7 +36,7 @@
 #include <gst/allocators/gstdmabuf.h>
 #endif
 
-static Q_LOGGING_CATEGORY(qLcGstVideoRenderer, "qt.multimedia.gstvideorenderer")
+Q_STATIC_LOGGING_CATEGORY(qLcGstVideoRenderer, "qt.multimedia.gstvideorenderer");
 
 QT_BEGIN_NAMESPACE
 

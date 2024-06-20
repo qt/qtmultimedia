@@ -14,7 +14,7 @@
 
 QT_USE_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcAVFAudioDecoder, "qt.multimedia.darwin.AVFAudioDecoder")
+Q_STATIC_LOGGING_CATEGORY(qLcAVFAudioDecoder, "qt.multimedia.darwin.AVFAudioDecoder");
 constexpr static int MAX_BUFFERS_IN_QUEUE = 5;
 
 QAudioBuffer handleNextSampleBuffer(CMSampleBufferRef sampleBuffer)
