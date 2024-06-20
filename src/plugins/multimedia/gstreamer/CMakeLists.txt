@@ -3,7 +3,7 @@
 
 qt_find_package(EGL)
 
-qt_internal_add_module(QGstreamerMediaPluginPrivate
+qt_internal_add_module(QGstreamerMediaPluginImplPrivate
     STATIC
     INTERNAL_MODULE
     SOURCES
@@ -49,12 +49,12 @@ qt_internal_add_module(QGstreamerMediaPluginPrivate
         GStreamer::App
 )
 
-qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstreamer_photography
+qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_photography
     PUBLIC_LIBRARIES
         GStreamer::Photography
 )
 
-qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstreamer_gl
+qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_gl
     PUBLIC_LIBRARIES
         GStreamer::Gl
     LIBRARIES
@@ -68,6 +68,6 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
         qgstreamerplugin.cpp
         gstreamer.json
     LIBRARIES
-        Qt::QGstreamerMediaPluginPrivate
+        Qt::QGstreamerMediaPluginImplPrivate
         Qt::MultimediaPrivate
 )

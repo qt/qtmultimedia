@@ -14,7 +14,7 @@ qt_internal_add_test(tst_qmediaplayer_gstreamer
         ../../../shared
     LIBRARIES
         Qt::MultimediaPrivate
-        Qt::QGstreamerMediaPluginPrivate
+        Qt::QGstreamerMediaPluginImplPrivate
 )
 
 

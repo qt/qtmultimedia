@@ -6,8 +6,8 @@
 
 #include <QtTest/QtTest>
 
-#include <QtQGstreamerMediaPlugin/private/qgstreamerintegration_p.h>
-#include <QtQGstreamerMediaPlugin/private/qgst_handle_types_p.h>
+#include <QtQGstreamerMediaPluginImpl/private/qgstreamerintegration_p.h>
+#include <QtQGstreamerMediaPluginImpl/private/qgst_handle_types_p.h>
 
 QT_USE_NAMESPACE
 
