@@ -7,7 +7,7 @@
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qstandardpaths.h>
 #include <QtMultimedia/qmediaplayer.h>
-#include <QtQGstreamerMediaPlugin/private/qgstpipeline_p.h>
+#include <QtQGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
 #include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
 
 #include <memory>
