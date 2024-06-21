@@ -121,13 +121,25 @@ class QtVideoDeviceManager {
         return fps;
     }
 
-    float getMaxZoom(String cameraId) {
+    float[] getZoomRange(String cameraId) {
 
-        float maxZoom = 1.0f;
+        float[] zoomRange = { 1.0f, 1.0f };
         final CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
-        if (characteristics != null)
-            maxZoom = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
-        return maxZoom;
+        if (characteristics == null)
+            return zoomRange;
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            final Range<Float> range = characteristics.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
+            if (range != null) {
+                zoomRange[0] = range.getLower();
+                zoomRange[1] = range.getUpper();
+            }
+        }
+
+        if (zoomRange[1] == 1.0f)
+            zoomRange[1] = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+
+        return zoomRange;
     }
 
     Rect getActiveArraySize(String cameraId) {
