@@ -349,7 +349,7 @@ public class QtCamera2 {
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, mAFMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
                 if (mZoomFactor != 1.0f)
-                    mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, getScalerCropRegion());
+                    updateZoom(mPreviewRequestBuilder);
                 if (mFpsRange != null)
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange);
                 mPreviewRequest = mPreviewRequestBuilder.build();
@@ -391,7 +391,7 @@ public class QtCamera2 {
             captureBuilder.addTarget(mCapturedPhotoReader.getSurface());
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, mFlashMode);
             if (mZoomFactor != 1.0f)
-                captureBuilder.set(CaptureRequest.SCALER_CROP_REGION, getScalerCropRegion());
+                updateZoom(captureBuilder);
 
             CameraCaptureSession.CaptureCallback captureCallback
                         = new CameraCaptureSession.CaptureCallback() {
@@ -456,6 +456,15 @@ public class QtCamera2 {
                              activePixels.height() - croppedHeight/2);
     }
 
+    private void updateZoom(CaptureRequest.Builder requBuilder)
+    {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) {
+            requBuilder.set(CaptureRequest.SCALER_CROP_REGION, getScalerCropRegion());
+        } else {
+            requBuilder.set(CaptureRequest.CONTROL_ZOOM_RATIO, mZoomFactor);
+        }
+    }
+
     public void zoomTo(float factor)
     {
         synchronized (mStartMutex) {
@@ -466,7 +475,7 @@ public class QtCamera2 {
                 return;
             }
 
-            mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, getScalerCropRegion());
+            updateZoom(mPreviewRequestBuilder);
             mPreviewRequest = mPreviewRequestBuilder.build();
 
             try {
