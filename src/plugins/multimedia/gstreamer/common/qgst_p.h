@@ -858,4 +858,18 @@ void qForeachStreamInCollection(const QGstStreamCollectionHandle &collection, Fu
 
 QT_END_NAMESPACE
 
+namespace std {
+
+template <>
+struct hash<QT_PREPEND_NAMESPACE(QGstElement)>
+{
+    using argument_type = QT_PREPEND_NAMESPACE(QGstElement);
+    using result_type = size_t;
+    result_type operator()(const argument_type &e) const noexcept
+    {
+        return std::hash<void *>{}(e.element());
+    }
+};
+} // namespace std
+
 #endif

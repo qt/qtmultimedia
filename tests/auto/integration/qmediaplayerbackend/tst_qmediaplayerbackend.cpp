@@ -1723,11 +1723,7 @@ void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
     // it's allowed to emit statusChanged() signal async
     QTRY_COMPARE(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::LoadedMedia } }));
 
-    if (isGStreamerPlatform() && *mediaUrl == *m_localWavFile) {
-        // QTBUG-124517: for some media types gstreamer does not emit buffer progress messages
-    } else {
-        QCOMPARE(m_fixture->bufferProgressChanged, SignalList({ { 0.f } }));
-    }
+    QCOMPARE(m_fixture->bufferProgressChanged, SignalList({ { 0.f } }));
 
     QTRY_COMPARE(m_fixture->player.position(), qint64(0));
 
@@ -1960,15 +1956,8 @@ void tst_QMediaPlayerBackend::processEOS()
 {
     QSKIP_GSTREAMER("QTBUG-124005: spurious failure with gstreamer");
 
-    if (!isGStreamerPlatform()) {
-        // QTBUG-124517: for some media types, including wav files, gstreamer does not emit buffer
-        // progress messages
-        CHECK_SELECTED_URL(m_localWavFile);
-        m_fixture->player.setSource(*m_localWavFile);
-    } else {
-        CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
-        m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
-    }
+    CHECK_SELECTED_URL(m_localWavFile);
+    m_fixture->player.setSource(*m_localWavFile);
 
     m_fixture->player.play();
     m_fixture->player.setPosition(900);
