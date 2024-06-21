@@ -366,9 +366,17 @@ void QAndroidCamera::updateCameraCharacteristics()
         return;
     }
 
-    const float maxZoom = deviceManager.callMethod<jfloat>(
-                "getMaxZoom", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
+    float maxZoom = 1.0;
+    float minZoom = 1.0;
+    const auto zoomRange = deviceManager.callMethod<jfloat[]>(
+                "getZoomRange", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
+    if (zoomRange.isValid() && zoomRange.size() == 2) {
+        minZoom = zoomRange[0];
+        maxZoom = zoomRange[1];
+    }
+
     maximumZoomFactorChanged(maxZoom);
+    minimumZoomFactorChanged(minZoom);
     if (maxZoom < zoomFactor()) {
         zoomTo(1.0, -1.0);
     }
