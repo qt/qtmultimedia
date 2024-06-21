@@ -7,9 +7,10 @@ Item {
     id : zoomControl
     property real currentZoom : 1
     property real maximumZoom : 1
+    property real minimumZoom : 1
     signal zoomTo(real target)
 
-    visible: zoomControl.maximumZoom > 1
+    visible: zoomControl.maximumZoom > zoomControl.minimumZoom
 
     MouseArea {
         id : mouseArea
@@ -26,7 +27,7 @@ Item {
         onPositionChanged: {
             if (pressed) {
                 var target = initialZoom * Math.pow(5, (initialPos-mouseY)/zoomControl.height);
-                target = Math.max(1, Math.min(target, zoomControl.maximumZoom))
+                target = Math.max(zoomControl.minimumZoom, Math.min(target, zoomControl.maximumZoom))
                 zoomControl.zoomTo(target)
             }
         }
@@ -53,7 +54,7 @@ Item {
         Rectangle {
             id: groove
             x : 0
-            y : parent.height * (1.0 - (zoomControl.currentZoom-1.0) / (zoomControl.maximumZoom-1.0))
+            y : parent.height * (1.0 - (zoomControl.currentZoom-zoomControl.minimumZoom) / (zoomControl.maximumZoom-zoomControl.minimumZoom))
             width: parent.width
             height: parent.height - y
             smooth: true
