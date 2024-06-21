@@ -368,9 +368,22 @@ void QAndroidCamera::updateCameraCharacteristics()
         return;
     }
 
-    const float maxZoom = deviceManager.callMethod<jfloat>(
-                "getMaxZoom", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
+    QJniEnvironment jniEnv;
+    float maxZoom = 1.0;
+    float minZoom = 1.0;
+    QJniObject zoomRangeObj = deviceManager.callMethod<jfloatArray>(
+                "getZoomRange", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
+    jfloatArray zoomRange = zoomRangeObj.object<jfloatArray>();
+
+    if (jniEnv->GetArrayLength(zoomRange) == 2) {
+        jfloat jfloatZoomRange[2];
+        jniEnv->GetFloatArrayRegion(zoomRange, 0, 2, jfloatZoomRange);
+        minZoom = jfloatZoomRange[0];
+        maxZoom = jfloatZoomRange[1];
+    }
+
     maximumZoomFactorChanged(maxZoom);
+    minimumZoomFactorChanged(minZoom);
     if (maxZoom < zoomFactor()) {
         zoomTo(1.0, -1.0);
     }
@@ -383,7 +396,6 @@ void QAndroidCamera::updateCameraCharacteristics()
     QJniObject flashModesObj = deviceManager.callMethod<QtJniTypes::StringArray>(
             "getSupportedFlashModes",
             QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
-    QJniEnvironment jniEnv;
     jobjectArray flashModes = flashModesObj.object<jobjectArray>();
     int size = jniEnv->GetArrayLength(flashModes);
     for (int i = 0; i < size; ++i) {
