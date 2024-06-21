@@ -99,6 +99,7 @@ FocusScope {
 
         currentZoom: captureControls.captureSession.camera.zoomFactor
         maximumZoom: captureControls.captureSession.camera.maximumZoomFactor
+        minimumZoom: captureControls.captureSession.camera.minimumZoomFactor
         onZoomTo: (target) => captureControls.captureSession.camera.zoomFactor = target
     }
 
