@@ -111,15 +111,15 @@ private:
     void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
     void disconnectDecoderHandlers();
     static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child,
-                                                 QGstreamerMediaPlayer *that);
+                                                 QGstreamerMediaPlayer *);
     static void sourceSetupCallback(GstElement *uridecodebin, GstElement *source,
-                                    QGstreamerMediaPlayer *that);
+                                    QGstreamerMediaPlayer *);
     static void unknownTypeCallback(GstElement *decodebin, GstPad *pad, GstCaps *caps,
-                                    QGstreamerMediaPlayer *self);
+                                    QGstreamerMediaPlayer *);
     static void decodebinElementAddedCallback(GstBin *decodebin, GstBin *sub_bin,
-                                              GstElement *element, QGstreamerMediaPlayer *self);
+                                              GstElement *element, QGstreamerMediaPlayer *);
     static void decodebinElementRemovedCallback(GstBin *decodebin, GstBin *sub_bin,
-                                                GstElement *element, QGstreamerMediaPlayer *self);
+                                                GstElement *element, QGstreamerMediaPlayer *);
 
     void parseStreamsAndMetadata();
     void connectOutput(TrackSelector &ts);
@@ -161,8 +161,6 @@ private:
     std::chrono::milliseconds m_duration{};
     QTimer positionUpdateTimer;
 
-    QGstAppSource *m_appSrc = nullptr;
-
     QUniqueGstStructureHandle topology;
 
     // Gst elements
@@ -194,11 +192,18 @@ private:
     QGObjectHandlerScopedConnection elementAdded;
     QGObjectHandlerScopedConnection elementRemoved;
 
+    // AppSrc elements
+    QSet<QGstElement> appSourceElements;
+    void unrefAppSrc(QGstElement &);
+
     int decodeBinQueues = 0;
 
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);
     static constexpr auto stalledMediaDebouncePeriod = std::chrono::milliseconds{ 500 };
     QTimer m_stalledMediaNotifier;
+
+    static void configureAppSrcElement(GObject *, GObject *, GParamSpec *,
+                                       QGstreamerMediaPlayer *self);
 };
 
 QT_END_NAMESPACE

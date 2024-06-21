@@ -78,6 +78,20 @@ QGstreamerMediaPlayer::TrackSelector &QGstreamerMediaPlayer::trackSelector(Track
     return ts;
 }
 
+void QGstreamerMediaPlayer::unrefAppSrc(QGstElement &element)
+{
+    using namespace Qt::Literals;
+
+    Q_ASSERT(element.typeName() == "GstAppSrc"_L1);
+
+    QGstAppSource *object;
+    g_object_get(element.element(), "qgst-app-source", &object, nullptr);
+
+    object->setExternalAppSrc({});
+
+    appSourceElements.remove(element);
+}
+
 void QGstreamerMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
     if (status != QMediaPlayer::StalledMedia)
@@ -166,6 +180,12 @@ QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
     playerPipeline.removeMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
     playerPipeline.removeMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(this));
     playerPipeline.setStateSync(GST_STATE_NULL);
+
+    // explicitly remove all app sources: to prevent circular references
+    while (!appSourceElements.empty()) {
+        QGstElement element = *appSourceElements.begin();
+        playerPipeline.remove(element);
+    }
 }
 
 std::chrono::nanoseconds QGstreamerMediaPlayer::pipelinePosition() const
@@ -752,8 +772,10 @@ void QGstreamerMediaPlayer::removeDynamicPipelineElements()
 
 void QGstreamerMediaPlayer::uridecodebinElementAddedCallback(GstElement * /*uridecodebin*/,
                                                              GstElement *child,
-                                                             QGstreamerMediaPlayer *)
+                                                             QGstreamerMediaPlayer *self)
 {
+    Q_ASSERT(self->thread()->isCurrentThread());
+
     QGstElement c(child, QGstElement::NeedsRef);
     qCDebug(qLcMediaPlayer) << "New element added to uridecodebin:" << c.name();
 
@@ -768,14 +790,41 @@ void QGstreamerMediaPlayer::uridecodebinElementAddedCallback(GstElement * /*urid
     }
 }
 
-void QGstreamerMediaPlayer::sourceSetupCallback(GstElement *uridecodebin, GstElement *source, QGstreamerMediaPlayer *that)
+void QGstreamerMediaPlayer::sourceSetupCallback(GstElement *uridecodebin, GstElement *source,
+                                                QGstreamerMediaPlayer *self)
 {
+    Q_ASSERT(self->thread()->isCurrentThread());
+
     Q_UNUSED(uridecodebin)
-    Q_UNUSED(that)
+    Q_UNUSED(self)
 
-    qCDebug(qLcMediaPlayer) << "Setting up source:" << g_type_name_from_instance((GTypeInstance*)source);
+    const gchar *typeName = g_type_name_from_instance((GTypeInstance *)source);
+    qCDebug(qLcMediaPlayer) << "Setting up source:" << typeName;
 
-    if (std::string_view("GstRTSPSrc") == g_type_name_from_instance((GTypeInstance *)source)) {
+    if (typeName == std::string_view("GstAppSrc")) {
+        QMaybe<QGstAppSource *> appSource = QGstAppSource::create(nullptr);
+        Q_ASSERT(appSource);
+
+        g_object_set_data_full(qGstCheckedCast<GObject>(source), "qgst-app-source",
+                               appSource.value(), [](gpointer ptr) {
+            delete reinterpret_cast<QGstAppSource *>(ptr);
+            return;
+        });
+
+        QGstAppSrc appSrcInPipeline{
+            qGstSafeCast<GstAppSrc>(source),
+            QGstAppSrc::NeedsRef,
+        };
+
+        // caveat: we create a circular reference between GstAppSrc and QGstAppSrc, so we need to
+        // ensure to setExternalAppSrc({}) when the GstAppSrc is removed from the pipeline or the
+        // QGstreamerMediaPlayer is destroyed.
+        appSource.value()->setExternalAppSrc(appSrcInPipeline);
+        appSource.value()->setup(self->m_stream);
+        return;
+    }
+
+    if (typeName == std::string_view("GstRTSPSrc")) {
         QGstElement s(source, QGstElement::NeedsRef);
         int latency{40};
         bool ok{false};
@@ -833,7 +882,11 @@ void QGstreamerMediaPlayer::decodebinElementAddedCallback(GstBin * /*decodebin*/
                                                           GstBin * /*sub_bin*/, GstElement *child,
                                                           QGstreamerMediaPlayer *self)
 {
+    // gstreamer thread!
+
     QGstElement c(child, QGstElement::NeedsRef);
+    qCDebug(qLcMediaPlayer) << "decodebinElementAddedCallback:" << c.name() << c.typeName();
+
     if (isQueue(c))
         self->decodeBinQueues += 1;
 }
@@ -842,9 +895,17 @@ void QGstreamerMediaPlayer::decodebinElementRemovedCallback(GstBin * /*decodebin
                                                             GstBin * /*sub_bin*/, GstElement *child,
                                                             QGstreamerMediaPlayer *self)
 {
+    Q_ASSERT(self->thread()->isCurrentThread());
+
+    using namespace Qt::Literals;
     QGstElement c(child, QGstElement::NeedsRef);
+    qCDebug(qLcMediaPlayer) << "decodebinElementRemovedCallback:" << c.name() << c.typeName();
+
     if (isQueue(c))
         self->decodeBinQueues -= 1;
+
+    if (c.typeName() == "GstAppSrc"_L1)
+        self->unrefAppSrc(c); // we need to remove the back-reference to avoid circular references
 }
 
 void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
@@ -886,72 +947,48 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         return;
     }
 
-    if (m_stream) {
-        if (!m_appSrc) {
-            auto maybeAppSrc = QGstAppSource::create(this);
-            if (maybeAppSrc) {
-                m_appSrc = maybeAppSrc.value();
-            } else {
-                error(QMediaPlayer::ResourceError, maybeAppSrc.error());
-                return;
-            }
-        }
-        src = m_appSrc->element();
-        decoder = QGstElement::createFromFactory("decodebin", "decoder");
-        if (!decoder) {
-            error(QMediaPlayer::ResourceError, qGstErrorMessageCannotFindElement("decodebin"));
-            return;
-        }
-        decoder.set("post-stream-topology", true);
-        decoder.set("use-buffering", true);
-        unknownType = decoder.connect("unknown-type", GCallback(unknownTypeCallback), this);
-        elementAdded = decoder.connect("deep-element-added",
-                                       GCallback(decodebinElementAddedCallback), this);
-        elementRemoved = decoder.connect("deep-element-removed",
-                                         GCallback(decodebinElementAddedCallback), this);
-
-        playerPipeline.add(src, decoder);
-        qLinkGstElements(src, decoder);
-
-        m_appSrc->setup(m_stream);
-        seekableChanged(!stream->isSequential());
-    } else {
-        // use uridecodebin
-        decoder = QGstElement::createFromFactory("uridecodebin", "decoder");
-        if (!decoder) {
-            error(QMediaPlayer::ResourceError, qGstErrorMessageCannotFindElement("uridecodebin"));
-            return;
-        }
-        playerPipeline.add(decoder);
-
-        constexpr bool hasPostStreamTopology = GST_CHECK_VERSION(1, 22, 0);
-        if constexpr (hasPostStreamTopology) {
-            decoder.set("post-stream-topology", true);
-        } else {
-            // can't set post-stream-topology to true, as uridecodebin doesn't have the property.
-            // Use a hack
-            uridecodebinElementAdded = decoder.connect(
-                    "element-added", GCallback(uridecodebinElementAddedCallback), this);
-        }
-
-        sourceSetup = decoder.connect("source-setup", GCallback(sourceSetupCallback), this);
-        unknownType = decoder.connect("unknown-type", GCallback(unknownTypeCallback), this);
-
-        decoder.set("uri", content.toEncoded().constData());
-        decoder.set("use-buffering", true);
-
-        constexpr int mb = 1024 * 1024;
-        decoder.set("ring-buffer-max-size", 2 * mb);
-
-        updateBufferProgress(0.f);
-
-        elementAdded = decoder.connect("deep-element-added",
-                                       GCallback(decodebinElementAddedCallback), this);
-        elementRemoved = decoder.connect("deep-element-removed",
-                                         GCallback(decodebinElementAddedCallback), this);
+    decoder = QGstElement::createFromFactory("uridecodebin", "decoder");
+    if (!decoder) {
+        error(QMediaPlayer::ResourceError, qGstErrorMessageCannotFindElement("uridecodebin"));
+        return;
     }
+
+    playerPipeline.add(decoder);
+
+    constexpr bool hasPostStreamTopology = GST_CHECK_VERSION(1, 22, 0);
+    if constexpr (hasPostStreamTopology) {
+        decoder.set("post-stream-topology", true);
+    } else {
+        // can't set post-stream-topology to true, as uridecodebin doesn't have the property.
+        // Use a hack
+        uridecodebinElementAdded =
+                decoder.connect("element-added", GCallback(uridecodebinElementAddedCallback), this);
+    }
+
+    sourceSetup = decoder.connect("source-setup", GCallback(sourceSetupCallback), this);
+    unknownType = decoder.connect("unknown-type", GCallback(unknownTypeCallback), this);
+
+    decoder.set("use-buffering", true);
+
+    constexpr int mb = 1024 * 1024;
+    decoder.set("ring-buffer-max-size", 2 * mb);
+
+    updateBufferProgress(0.f);
+
+    elementAdded =
+            decoder.connect("deep-element-added", GCallback(decodebinElementAddedCallback), this);
+    elementRemoved =
+            decoder.connect("deep-element-removed", GCallback(decodebinElementAddedCallback), this);
+
     padAdded = decoder.onPadAdded<&QGstreamerMediaPlayer::decoderPadAdded>(this);
     padRemoved = decoder.onPadRemoved<&QGstreamerMediaPlayer::decoderPadRemoved>(this);
+
+    if (m_stream) {
+        decoder.set("uri", "appsrc://");
+        seekableChanged(!m_stream->isSequential());
+    } else {
+        decoder.set("uri", content.toEncoded().constData());
+    }
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
     if (!playerPipeline.setStateSync(GST_STATE_PAUSED)) {
