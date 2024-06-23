@@ -368,9 +368,9 @@ QGstElement QGstreamerMediaPlayer::getSinkElementForTrackType(TrackType trackTyp
     case AudioStream:
         return gstAudioOutput ? gstAudioOutput->gstElement() : QGstElement{};
     case VideoStream:
-        return gstVideoOutput ? gstVideoOutput->gstElement() : QGstElement{};
+        return gstVideoOutput->gstElement();
     case SubtitleStream:
-        return gstVideoOutput ? gstVideoOutput->gstSubtitleElement() : QGstElement{};
+        return gstVideoOutput->gstSubtitleElement();
         break;
     default:
         Q_UNREACHABLE_RETURN(QGstElement{});
@@ -400,10 +400,8 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         if (originalMetaData != m_metaData)
             metaDataChanged();
 
-        if (gstVideoOutput) {
-            QVariant rotation = m_metaData.value(QMediaMetaData::Orientation);
-            gstVideoOutput->setRotation(rotation.value<QtVideo::Rotation>());
-        }
+        QVariant rotation = m_metaData.value(QMediaMetaData::Orientation);
+        gstVideoOutput->setRotation(rotation.value<QtVideo::Rotation>());
         break;
     }
     case GST_MESSAGE_DURATION_CHANGED: {
@@ -593,7 +591,7 @@ bool QGstreamerMediaPlayer::processSyncMessage(const QGstreamerMessage &message)
     gst_message_parse_context_type (message.message(), &type);
     if (strcmp(type, GST_GL_DISPLAY_CONTEXT_TYPE))
         return false;
-    if (!gstVideoOutput || !gstVideoOutput->gstreamerVideoSink())
+    if (!gstVideoOutput->gstreamerVideoSink())
         return false;
     auto *context = gstVideoOutput->gstreamerVideoSink()->gstGlDisplayContext();
     if (!context)
