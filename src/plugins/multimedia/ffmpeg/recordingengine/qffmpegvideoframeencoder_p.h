@@ -94,7 +94,7 @@ private:
     QSize m_sourceSize;
     QSize m_targetSize;
 
-    std::unique_ptr<HWAccel> m_accel;
+    HWAccelUPtr m_accel;
     const AVCodec *m_codec = nullptr;
 
     qint64 m_lastPacketTime = AV_NOPTS_VALUE;

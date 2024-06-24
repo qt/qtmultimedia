@@ -27,9 +27,7 @@ AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *co
 AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
                                const AVCodec *codec, const HWAccel *accel);
 
-std::pair<const AVCodec *, std::unique_ptr<HWAccel>> findHwEncoder(AVCodecID codecID,
-                                                                   const QSize &sourceSize);
-
+std::pair<const AVCodec *, HWAccelUPtr> findHwEncoder(AVCodecID codecID, const QSize &sourceSize);
 
 AVScore findSWFormatScores(const AVCodec* codec, AVPixelFormat sourceSWFormat);
 

@@ -206,8 +206,8 @@ static std::vector<AVHWDeviceType> deviceTypes(const char *envVarName)
     return result;
 }
 
-template<typename CodecFinder>
-std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
+template <typename CodecFinder>
+std::pair<const AVCodec *, HWAccelUPtr>
 findCodecWithHwAccel(AVCodecID id, const std::vector<AVHWDeviceType> &deviceTypes,
                      CodecFinder codecFinder,
                      const std::function<bool(const HWAccel &)> &hwAccelPredicate)
@@ -348,10 +348,10 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *sugge
 
 HWAccel::~HWAccel() = default;
 
-std::unique_ptr<HWAccel> HWAccel::create(AVHWDeviceType deviceType)
+HWAccelUPtr HWAccel::create(AVHWDeviceType deviceType)
 {
     if (auto ctx = loadHWContext(deviceType))
-        return std::unique_ptr<HWAccel>(new HWAccel(std::move(ctx)));
+        return HWAccelUPtr(new HWAccel(std::move(ctx)));
     else
         return {};
 }
@@ -410,16 +410,18 @@ bool HWAccel::matchesSizeContraints(QSize size) const
             && size.height() <= constraints->max_height;
 }
 
-std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
-HWAccel::findEncoderWithHwAccel(AVCodecID id, const std::function<bool(const HWAccel &)>& hwAccelPredicate)
+std::pair<const AVCodec *, HWAccelUPtr>
+HWAccel::findEncoderWithHwAccel(AVCodecID id,
+                                const std::function<bool(const HWAccel &)> &hwAccelPredicate)
 {
     auto finder = qOverload<AVCodecID, const std::optional<AVHWDeviceType> &,
                             const std::optional<PixelOrSampleFormat> &>(&QFFmpeg::findAVEncoder);
     return findCodecWithHwAccel(id, encodingDeviceTypes(), finder, hwAccelPredicate);
 }
 
-std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
-HWAccel::findDecoderWithHwAccel(AVCodecID id, const std::function<bool(const HWAccel &)>& hwAccelPredicate)
+std::pair<const AVCodec *, HWAccelUPtr>
+HWAccel::findDecoderWithHwAccel(AVCodecID id,
+                                const std::function<bool(const HWAccel &)> &hwAccelPredicate)
 {
     return findCodecWithHwAccel(id, decodingDeviceTypes(), &QFFmpeg::findAVDecoder,
                                 hwAccelPredicate);
