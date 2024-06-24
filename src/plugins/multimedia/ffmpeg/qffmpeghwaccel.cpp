@@ -398,6 +398,18 @@ const AVHWFramesConstraints *HWAccel::constraints() const
     return m_constraints.get();
 }
 
+bool HWAccel::matchesSizeContraints(QSize size) const
+{
+    const auto constraints = this->constraints();
+    if (!constraints)
+        return true;
+
+    return size.width() >= constraints->min_width
+            && size.height() >= constraints->min_height
+            && size.width() <= constraints->max_width
+            && size.height() <= constraints->max_height;
+}
+
 std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
 HWAccel::findEncoderWithHwAccel(AVCodecID id, const std::function<bool(const HWAccel &)>& hwAccelPredicate)
 {
