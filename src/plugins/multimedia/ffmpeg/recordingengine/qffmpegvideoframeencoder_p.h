@@ -23,6 +23,9 @@ class QMediaEncoderSettings;
 
 namespace QFFmpeg {
 
+class VideoFrameEncoder;
+using VideoFrameEncoderUPtr = std::unique_ptr<VideoFrameEncoder>;
+
 class VideoFrameEncoder
 {
 public:
@@ -39,9 +42,9 @@ public:
         AVColorSpace colorSpace = AVCOL_SPC_UNSPECIFIED;
         AVColorRange colorRange = AVCOL_RANGE_UNSPECIFIED;
     };
-    static std::unique_ptr<VideoFrameEncoder> create(const QMediaEncoderSettings &encoderSettings,
-                                                     const SourceParams &sourceParams,
-                                                     AVFormatContext *formatContext);
+    static VideoFrameEncoderUPtr create(const QMediaEncoderSettings &encoderSettings,
+                                        const SourceParams &sourceParams,
+                                        AVFormatContext *formatContext);
 
     ~VideoFrameEncoder();
 
@@ -60,7 +63,8 @@ public:
     const QMediaEncoderSettings &settings() { return m_settings; }
 
 private:
-    VideoFrameEncoder(AVStream *stream, const SourceParams &sourceParams,
+    VideoFrameEncoder(AVStream *stream, const AVCodec *codec, HWAccelUPtr hwAccel,
+                      const SourceParams &sourceParams,
                       const QMediaEncoderSettings &encoderSettings);
 
     static AVStream *createStream(const SourceParams &sourceParams, AVFormatContext *formatContext);
@@ -69,9 +73,9 @@ private:
 
     void updateConversions();
 
-    bool initAndOpen();
-
-    bool initCodec();
+    static VideoFrameEncoderUPtr create(AVStream *stream, const AVCodec *codec, HWAccelUPtr hwAccel,
+                                        const SourceParams &sourceParams,
+                                        const QMediaEncoderSettings &encoderSettings);
 
     void initTargetSize();
 
@@ -90,12 +94,11 @@ private:
 private:
     QMediaEncoderSettings m_settings;
     AVStream *m_stream = nullptr;
+    const AVCodec *m_codec = nullptr;
+    HWAccelUPtr m_accel;
 
     QSize m_sourceSize;
     QSize m_targetSize;
-
-    HWAccelUPtr m_accel;
-    const AVCodec *m_codec = nullptr;
 
     qint64 m_lastPacketTime = AV_NOPTS_VALUE;
     AVCodecContextUPtr m_codecContext;

@@ -54,7 +54,7 @@ private:
     std::queue<FrameInfo> m_videoFrameQueue;
     const size_t m_maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)
 
-    std::unique_ptr<VideoFrameEncoder> m_frameEncoder;
+    VideoFrameEncoderUPtr m_frameEncoder;
     qint64 m_baseTime = 0;
     bool m_shouldAdjustTimeBaseForNextFrame = true;
     qint64 m_lastFrameTime = 0;

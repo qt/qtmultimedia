@@ -18,9 +18,24 @@ static Q_LOGGING_CATEGORY(qLcVideoFrameEncoder, "qt.multimedia.ffmpeg.videoencod
 
 namespace QFFmpeg {
 
-std::unique_ptr<VideoFrameEncoder>
-VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
-                          const SourceParams &sourceParams, AVFormatContext *formatContext)
+namespace {
+AVPixelFormat swFormat(const VideoFrameEncoder::SourceParams &params)
+{
+    // Temporary: check isSwPixelFormat because of android issue (QTBUG-116836)
+    return isSwPixelFormat(params.format) ? params.format : params.swFormat;
+}
+
+AVCodecID avCodecID(const QMediaEncoderSettings &settings)
+{
+    const QMediaFormat::VideoCodec qVideoCodec = settings.videoCodec();
+    return QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
+}
+
+} // namespace
+
+VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
+                                                const SourceParams &sourceParams,
+                                                AVFormatContext *formatContext)
 {
     Q_ASSERT(isSwPixelFormat(sourceParams.swFormat));
     Q_ASSERT(isHwPixelFormat(sourceParams.format) || sourceParams.swFormat == sourceParams.format);
@@ -30,26 +45,47 @@ VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
     if (!stream)
         return nullptr;
 
-    std::unique_ptr<VideoFrameEncoder> result(
-            new VideoFrameEncoder(stream, sourceParams, encoderSettings));
+    const AVCodecID codecID = avCodecID(encoderSettings);
+    const QSize desiredTargetSize = encoderSettings.videoResolution();
 
-    if (!result->initAndOpen())
-        return nullptr;
+    VideoFrameEncoderUPtr result;
+
+    {
+        auto [codec, hwAccel] = findHwEncoder(
+                codecID, desiredTargetSize.isValid() ? desiredTargetSize : sourceParams.size);
+
+        if (codec)
+            result = create(stream, codec, std::move(hwAccel), sourceParams, encoderSettings);
+
+        if (result)
+            qCDebug(qLcVideoFrameEncoder)
+                    << "found hw encoder" << codec->name << "for id" << codec->id;
+    }
+
+    if (!result) {
+        const AVCodec *codec = findSwEncoder(codecID, swFormat(sourceParams));
+        if (codec)
+            result = create(stream, codec, nullptr, sourceParams, encoderSettings);
+
+        if (result)
+            qCDebug(qLcVideoFrameEncoder)
+                    << "found sw encoder" << codec->name << "for id" << codec->id;
+    }
 
     return result;
 }
 
-VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const SourceParams &sourceParams,
+VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const AVCodec *codec, HWAccelUPtr hwAccel,
+                                     const SourceParams &sourceParams,
                                      const QMediaEncoderSettings &encoderSettings)
     : m_settings(encoderSettings),
       m_stream(stream),
+      m_codec(codec),
+      m_accel(std::move(hwAccel)),
       m_sourceSize(sourceParams.size),
-      m_sourceFormat(sourceParams.format)
+      m_sourceFormat(sourceParams.format),
+      m_sourceSWFormat(swFormat(sourceParams))
 {
-    // Temporary: check isSwPixelFormat because of android issue (QTBUG-116836)
-    m_sourceSWFormat =
-            isSwPixelFormat(sourceParams.format) ? sourceParams.format : sourceParams.swFormat;
-
     if (!m_settings.videoResolution().isValid())
         m_settings.setVideoResolution(sourceParams.size);
 
@@ -87,50 +123,30 @@ AVStream *VideoFrameEncoder::createStream(const SourceParams &sourceParams,
     return stream;
 }
 
-bool VideoFrameEncoder::initAndOpen()
+VideoFrameEncoderUPtr VideoFrameEncoder::create(AVStream *stream, const AVCodec *codec,
+                                                HWAccelUPtr hwAccel,
+                                                const SourceParams &sourceParams,
+                                                const QMediaEncoderSettings &encoderSettings)
 {
-    if (!initCodec())
-        return false;
+    VideoFrameEncoderUPtr frameEncoder(new VideoFrameEncoder(stream, codec, std::move(hwAccel),
+                                                             sourceParams, encoderSettings));
+    frameEncoder->initTargetSize();
 
-    initTargetSize();
+    frameEncoder->initCodecFrameRate();
 
-    initCodecFrameRate();
+    if (!frameEncoder->initTargetFormats())
+        return nullptr;
 
-    if (!initTargetFormats())
-        return false;
+    frameEncoder->initStream();
 
-    initStream();
+    if (!frameEncoder->initCodecContext())
+        return nullptr;
 
-    if (!initCodecContext())
-        return false;
+    if (!frameEncoder->open())
+        return nullptr;
 
-    if (!open())
-        return false;
-
-    updateConversions();
-
-    return true;
-}
-
-bool VideoFrameEncoder::initCodec()
-{
-    const auto qVideoCodec = m_settings.videoCodec();
-    const auto codecID = QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
-    const QSize desiredTargetSize = m_settings.videoResolution();
-
-    std::tie(m_codec, m_accel) =
-            findHwEncoder(codecID, desiredTargetSize.isValid() ? desiredTargetSize : m_sourceSize);
-
-    if (!m_codec)
-        m_codec = findSwEncoder(codecID, m_sourceSWFormat);
-
-    if (!m_codec) {
-        qWarning() << "Could not find encoder for codecId" << codecID;
-        return false;
-    }
-
-    qCDebug(qLcVideoFrameEncoder) << "found encoder" << m_codec->name << "for id" << m_codec->id;
-    return true;
+    frameEncoder->updateConversions();
+    return frameEncoder;
 }
 
 void VideoFrameEncoder::initTargetSize()
