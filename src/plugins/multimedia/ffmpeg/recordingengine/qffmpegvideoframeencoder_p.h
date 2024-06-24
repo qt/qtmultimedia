@@ -62,7 +62,8 @@ public:
     const QMediaEncoderSettings &settings() { return m_settings; }
 
 private:
-    VideoFrameEncoder() = default;
+    VideoFrameEncoder(const SourceParams &sourceParams,
+                      const QMediaEncoderSettings &encoderSettings);
 
     bool updateSourceFormatAndSize(const AVFrame *frame);
 
