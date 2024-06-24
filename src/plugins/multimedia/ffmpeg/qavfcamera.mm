@@ -230,7 +230,7 @@ void QAVFCamera::updateCameraFormat()
 
     const AVPixelFormat avPixelFormat = av_map_videotoolbox_format_to_pixfmt(cvPixelFormat);
 
-    std::unique_ptr<HWAccel> hwAccel;
+    HWAccelUPtr hwAccel;
 
     if (avPixelFormat == AV_PIX_FMT_NONE) {
         qCWarning(qLcCamera) << "Videotoolbox doesn't support cvPixelFormat:" << cvPixelFormat

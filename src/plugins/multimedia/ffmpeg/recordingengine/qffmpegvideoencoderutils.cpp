@@ -124,8 +124,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
     return findBestAVValue(codec->pix_fmts, swScoreCalculator).first;
 }
 
-std::pair<const AVCodec *, std::unique_ptr<HWAccel>> findHwEncoder(AVCodecID codecID,
-                                                                   const QSize &resolution)
+std::pair<const AVCodec *, HWAccelUPtr> findHwEncoder(AVCodecID codecID, const QSize &resolution)
 {
     auto matchesSizeConstraints = [&resolution](const HWAccel &accel) {
         return accel.matchesSizeContraints(resolution);

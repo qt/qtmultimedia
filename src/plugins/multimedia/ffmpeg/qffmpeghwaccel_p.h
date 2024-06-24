@@ -82,6 +82,9 @@ private:
     QExplicitlySharedDataPointer<Data> d;
 };
 
+class HWAccel;
+using HWAccelUPtr = std::unique_ptr<HWAccel>;
+
 class HWAccel
 {
     AVBufferUPtr m_hwDeviceContext;
@@ -93,15 +96,15 @@ class HWAccel
 public:
     ~HWAccel();
 
-    static std::unique_ptr<HWAccel> create(AVHWDeviceType deviceType);
+    static HWAccelUPtr create(AVHWDeviceType deviceType);
 
-    static std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
+    static std::pair<const AVCodec *, HWAccelUPtr>
     findEncoderWithHwAccel(AVCodecID id,
-                           const std::function<bool(const HWAccel &)>& hwAccelPredicate = nullptr);
+                           const std::function<bool(const HWAccel &)> &hwAccelPredicate = nullptr);
 
-    static std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
+    static std::pair<const AVCodec *, HWAccelUPtr>
     findDecoderWithHwAccel(AVCodecID id,
-                           const std::function<bool(const HWAccel &)>& hwAccelPredicate = nullptr);
+                           const std::function<bool(const HWAccel &)> &hwAccelPredicate = nullptr);
 
     AVHWDeviceType deviceType() const;
 
