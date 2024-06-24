@@ -23,20 +23,8 @@
 QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
-
-class QGstreamerSyncMessageFilter {
-public:
-    //returns true if message was processed and should be dropped, false otherwise
-    virtual bool processSyncMessage(const QGstreamerMessage &message) = 0;
-};
-
-
-class QGstreamerBusMessageFilter {
-public:
-    //returns true if message was processed and should be dropped, false otherwise
-    virtual bool processBusMessage(const QGstreamerMessage &message) = 0;
-};
-
+class QGstreamerSyncMessageFilter;
+class QGstreamerBusMessageFilter;
 class QGstPipelinePrivate;
 
 class QGstPipeline : public QGstBin

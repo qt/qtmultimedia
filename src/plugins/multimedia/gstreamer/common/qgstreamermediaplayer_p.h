@@ -15,15 +15,17 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+
 #include <QtCore/qstack.h>
-#include <private/qplatformmediaplayer_p.h>
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qmultimediautils_p.h>
-#include <qurl.h>
+#include <QtCore/qurl.h>
+#include <QtCore/qtimer.h>
+
+#include <common/qgst_bus_p.h>
 #include <common/qgst_p.h>
 #include <common/qgstpipeline_p.h>
-
-#include <QtCore/qtimer.h>
 
 #include <array>
 

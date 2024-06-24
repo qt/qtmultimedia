@@ -21,10 +21,12 @@
 #include <vector>
 
 #include <common/qgst_handle_types_p.h>
+#include <common/qgst_bus_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoDevices : public QPlatformVideoDevices
+class QGstreamerVideoDevices final : public QPlatformVideoDevices,
+                                     private QGstreamerBusMessageFilter
 {
 public:
     explicit QGstreamerVideoDevices(QPlatformMediaIntegration *integration);
@@ -37,6 +39,8 @@ public:
     void removeDevice(QGstDeviceHandle);
 
 private:
+    bool processBusMessage(const QGstreamerMessage &message) override;
+
     struct QGstRecordDevice
     {
         QGstDeviceHandle gstDevice;
@@ -47,6 +51,7 @@ private:
     std::vector<QGstRecordDevice> m_videoSources;
 
     QGstDeviceMonitorHandle m_deviceMonitor;
+    QGstBus m_bus;
 };
 
 QT_END_NAMESPACE

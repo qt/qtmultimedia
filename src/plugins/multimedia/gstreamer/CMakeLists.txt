@@ -11,6 +11,7 @@ qt_internal_add_module(QGstreamerMediaPluginImplPrivate
         audio/qgstreameraudiodecoder.cpp audio/qgstreameraudiodecoder_p.h
         common/qglist_helper_p.h
         common/qgst.cpp common/qgst_p.h
+        common/qgst_bus.cpp common/qgst_bus_p.h
         common/qgst_debug.cpp common/qgst_debug_p.h
         common/qgst_handle_types_p.h
         common/qgstappsource.cpp common/qgstappsource_p.h

@@ -18,6 +18,7 @@
 
 #include <mediacapture/qgstreamermediacapture_p.h>
 #include <common/qgstreamermetadata_p.h>
+#include <common/qgst_bus_p.h>
 
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <QtCore/qurl.h>

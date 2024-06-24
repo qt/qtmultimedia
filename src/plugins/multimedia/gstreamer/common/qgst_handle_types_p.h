@@ -242,7 +242,7 @@ using QGstElementHandle = QGstImpl::QGstHandleHelper<GstElement>::UniqueHandle;
 using QGstElementFactoryHandle = QGstImpl::QGstHandleHelper<GstElementFactory>::SharedHandle;
 using QGstDeviceHandle = QGstImpl::QGstHandleHelper<GstDevice>::SharedHandle;
 using QGstDeviceMonitorHandle = QGstImpl::QGstHandleHelper<GstDeviceMonitor>::UniqueHandle;
-using QGstBusHandle = QGstImpl::QGstHandleHelper<GstBus>::UniqueHandle;
+using QGstBusHandle = QGstImpl::QGstHandleHelper<GstBus>::SharedHandle;
 using QGstStreamCollectionHandle = QGstImpl::QGstHandleHelper<GstStreamCollection>::SharedHandle;
 using QGstStreamHandle = QGstImpl::QGstHandleHelper<GstStream>::SharedHandle;
 
