@@ -149,6 +149,7 @@ bool VideoFrameEncoder::initCodecContext(const SourceParams &sourceParams,
     m_stream->codecpar->codec_id = m_codec->id;
 
     // Apples HEVC decoders don't like the hev1 tag ffmpeg uses by default, use hvc1 as the more commonly accepted tag
+
     if (m_codec->id == AV_CODEC_ID_HEVC)
         m_stream->codecpar->codec_tag = MKTAG('h', 'v', 'c', '1');
 
@@ -162,6 +163,9 @@ bool VideoFrameEncoder::initCodecContext(const SourceParams &sourceParams,
     m_stream->codecpar->color_trc = sourceParams.colorTransfer;
     m_stream->codecpar->color_space = sourceParams.colorSpace;
     m_stream->codecpar->color_range = sourceParams.colorRange;
+#if QT_CODEC_PARAMETERS_HAVE_FRAMERATE
+    m_stream->codecpar->framerate = m_codecFrameRate;
+#endif
 
     if (sourceParams.rotation != QtVideo::Rotation::None || sourceParams.xMirrored
         || sourceParams.yMirrored) {
@@ -184,15 +188,14 @@ bool VideoFrameEncoder::initCodecContext(const SourceParams &sourceParams,
         return false;
     }
 
+    // copies format, size, color params, framerate
     avcodec_parameters_to_context(m_codecContext.get(), m_stream->codecpar);
+#if !QT_CODEC_PARAMETERS_HAVE_FRAMERATE
+    m_codecContext->framerate = m_codecFrameRate;
+#endif
     m_codecContext->time_base = m_stream->time_base;
     qCDebug(qLcVideoFrameEncoder) << "codecContext time base" << m_codecContext->time_base.num
                                   << m_codecContext->time_base.den;
-
-    m_codecContext->framerate = m_codecFrameRate;
-    m_codecContext->pix_fmt = m_targetFormat;
-    m_codecContext->width = resolution.width();
-    m_codecContext->height = resolution.height();
 
     if (m_accel) {
         auto deviceContext = m_accel->hwDeviceContextAsBuffer();
