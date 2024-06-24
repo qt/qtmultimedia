@@ -25,17 +25,24 @@ VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
     Q_ASSERT(isSwPixelFormat(sourceParams.swFormat));
     Q_ASSERT(isHwPixelFormat(sourceParams.format) || sourceParams.swFormat == sourceParams.format);
 
-    std::unique_ptr<VideoFrameEncoder> result(new VideoFrameEncoder(sourceParams, encoderSettings));
+    AVStream *stream = createStream(sourceParams, formatContext);
 
-    if (!result->initAndOpen(sourceParams, formatContext))
+    if (!stream)
+        return nullptr;
+
+    std::unique_ptr<VideoFrameEncoder> result(
+            new VideoFrameEncoder(stream, sourceParams, encoderSettings));
+
+    if (!result->initAndOpen())
         return nullptr;
 
     return result;
 }
 
-VideoFrameEncoder::VideoFrameEncoder(const SourceParams &sourceParams,
+VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const SourceParams &sourceParams,
                                      const QMediaEncoderSettings &encoderSettings)
     : m_settings(encoderSettings),
+      m_stream(stream),
       m_sourceSize(sourceParams.size),
       m_sourceFormat(sourceParams.format)
 {
@@ -50,8 +57,37 @@ VideoFrameEncoder::VideoFrameEncoder(const SourceParams &sourceParams,
         m_settings.setVideoFrameRate(sourceParams.frameRate);
 }
 
-bool VideoFrameEncoder::initAndOpen(const SourceParams &sourceParams,
-                                    AVFormatContext *formatContext)
+AVStream *VideoFrameEncoder::createStream(const SourceParams &sourceParams,
+                                          AVFormatContext *formatContext)
+{
+    AVStream *stream = avformat_new_stream(formatContext, nullptr);
+
+    if (!stream)
+        return stream;
+
+    stream->id = formatContext->nb_streams - 1;
+    stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+
+    stream->codecpar->color_trc = sourceParams.colorTransfer;
+    stream->codecpar->color_space = sourceParams.colorSpace;
+    stream->codecpar->color_range = sourceParams.colorRange;
+
+    if (sourceParams.rotation != QtVideo::Rotation::None || sourceParams.xMirrored
+        || sourceParams.yMirrored) {
+        constexpr auto displayMatrixSize = sizeof(int32_t) * 9;
+        AVPacketSideData sideData = { reinterpret_cast<uint8_t *>(av_malloc(displayMatrixSize)),
+                                      displayMatrixSize, AV_PKT_DATA_DISPLAYMATRIX };
+        int32_t *matrix = reinterpret_cast<int32_t *>(sideData.data);
+        av_display_rotation_set(matrix, static_cast<double>(sourceParams.rotation));
+        av_display_matrix_flip(matrix, sourceParams.xMirrored, sourceParams.yMirrored);
+
+        addStreamSideData(stream, sideData);
+    }
+
+    return stream;
+}
+
+bool VideoFrameEncoder::initAndOpen()
 {
     if (!initCodec())
         return false;
@@ -63,7 +99,9 @@ bool VideoFrameEncoder::initAndOpen(const SourceParams &sourceParams,
     if (!initTargetFormats())
         return false;
 
-    if (!initCodecContext(sourceParams, formatContext))
+    initStream();
+
+    if (!initCodecContext())
         return false;
 
     if (!open())
@@ -156,47 +194,36 @@ bool VideoFrameEncoder::initTargetFormats()
 
 VideoFrameEncoder::~VideoFrameEncoder() = default;
 
-bool VideoFrameEncoder::initCodecContext(const SourceParams &sourceParams,
-                                         AVFormatContext *formatContext)
+void VideoFrameEncoder::initStream()
 {
-    m_stream = avformat_new_stream(formatContext, nullptr);
-    m_stream->id = formatContext->nb_streams - 1;
-    //qCDebug(qLcVideoFrameEncoder) << "Video stream: index" << d->stream->id;
-    m_stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+    Q_ASSERT(m_codec);
+
     m_stream->codecpar->codec_id = m_codec->id;
 
-    // Apples HEVC decoders don't like the hev1 tag ffmpeg uses by default, use hvc1 as the more commonly accepted tag
-
+    // Apples HEVC decoders don't like the hev1 tag ffmpeg uses by default, use hvc1 as the more
+    // commonly accepted tag
     if (m_codec->id == AV_CODEC_ID_HEVC)
         m_stream->codecpar->codec_tag = MKTAG('h', 'v', 'c', '1');
+    else
+        m_stream->codecpar->codec_tag = 0;
 
     // ### Fix hardcoded values
     m_stream->codecpar->format = m_targetFormat;
     m_stream->codecpar->width = m_targetSize.width();
     m_stream->codecpar->height = m_targetSize.height();
     m_stream->codecpar->sample_aspect_ratio = AVRational{ 1, 1 };
-    m_stream->codecpar->color_trc = sourceParams.colorTransfer;
-    m_stream->codecpar->color_space = sourceParams.colorSpace;
-    m_stream->codecpar->color_range = sourceParams.colorRange;
 #if QT_CODEC_PARAMETERS_HAVE_FRAMERATE
     m_stream->codecpar->framerate = m_codecFrameRate;
 #endif
 
-    if (sourceParams.rotation != QtVideo::Rotation::None || sourceParams.xMirrored
-        || sourceParams.yMirrored) {
-        constexpr auto displayMatrixSize = sizeof(int32_t) * 9;
-        AVPacketSideData sideData = { reinterpret_cast<uint8_t *>(av_malloc(displayMatrixSize)),
-                                      displayMatrixSize, AV_PKT_DATA_DISPLAYMATRIX };
-        int32_t *matrix = reinterpret_cast<int32_t *>(sideData.data);
-        av_display_rotation_set(matrix, static_cast<double>(sourceParams.rotation));
-        av_display_matrix_flip(matrix, sourceParams.xMirrored, sourceParams.yMirrored);
-
-        addStreamSideData(m_stream, sideData);
-    }
-
-    Q_ASSERT(m_codec);
-
     m_stream->time_base = adjustFrameTimeBase(m_codec->supported_framerates, m_codecFrameRate);
+}
+
+bool VideoFrameEncoder::initCodecContext()
+{
+    Q_ASSERT(m_codec);
+    Q_ASSERT(m_stream->codecpar->codec_id);
+
     m_codecContext.reset(avcodec_alloc_context3(m_codec));
     if (!m_codecContext) {
         qWarning() << "Could not allocate codec context";

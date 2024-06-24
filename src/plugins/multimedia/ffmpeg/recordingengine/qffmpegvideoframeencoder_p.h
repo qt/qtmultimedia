@@ -60,14 +60,16 @@ public:
     const QMediaEncoderSettings &settings() { return m_settings; }
 
 private:
-    VideoFrameEncoder(const SourceParams &sourceParams,
+    VideoFrameEncoder(AVStream *stream, const SourceParams &sourceParams,
                       const QMediaEncoderSettings &encoderSettings);
+
+    static AVStream *createStream(const SourceParams &sourceParams, AVFormatContext *formatContext);
 
     bool updateSourceFormatAndSize(const AVFrame *frame);
 
     void updateConversions();
 
-    bool initAndOpen(const SourceParams &sourceParams, AVFormatContext *formatContext);
+    bool initAndOpen();
 
     bool initCodec();
 
@@ -77,7 +79,9 @@ private:
 
     bool initTargetFormats();
 
-    bool initCodecContext(const SourceParams &sourceParams, AVFormatContext *formatContext);
+    void initStream();
+
+    bool initCodecContext();
 
     bool open();
 
@@ -85,12 +89,14 @@ private:
 
 private:
     QMediaEncoderSettings m_settings;
+    AVStream *m_stream = nullptr;
+
     QSize m_sourceSize;
     QSize m_targetSize;
 
     std::unique_ptr<HWAccel> m_accel;
     const AVCodec *m_codec = nullptr;
-    AVStream *m_stream = nullptr;
+
     qint64 m_lastPacketTime = AV_NOPTS_VALUE;
     AVCodecContextUPtr m_codecContext;
     std::unique_ptr<SwsContext, decltype(&sws_freeContext)> m_converter = { nullptr,
