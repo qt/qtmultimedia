@@ -128,14 +128,7 @@ std::pair<const AVCodec *, std::unique_ptr<HWAccel>> findHwEncoder(AVCodecID cod
                                                                    const QSize &resolution)
 {
     auto matchesSizeConstraints = [&resolution](const HWAccel &accel) {
-        const auto constraints = accel.constraints();
-        if (!constraints)
-            return true;
-
-        return resolution.width() >= constraints->min_width
-                && resolution.height() >= constraints->min_height
-                && resolution.width() <= constraints->max_width
-                && resolution.height() <= constraints->max_height;
+        return accel.matchesSizeContraints(resolution);
     };
 
     // 1st - attempt to find hw accelerated encoder
@@ -145,16 +138,20 @@ std::pair<const AVCodec *, std::unique_ptr<HWAccel>> findHwEncoder(AVCodecID cod
     return result;
 }
 
+AVScore findSWFormatScores(const AVCodec* codec, AVPixelFormat sourceSWFormat)
+{
+    if (!codec->pix_fmts)
+        // codecs without pix_fmts are suspicious
+        return MinAVScore;
+
+    auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
+    return findBestAVValue(codec->pix_fmts, formatScoreCalculator).second;
+}
+
 const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat)
 {
-    auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
-
-    return findAVEncoder(codecID, [&formatScoreCalculator](const AVCodec *codec) {
-        if (!codec->pix_fmts)
-            // codecs without pix_fmts are suspicious
-            return MinAVScore;
-
-        return findBestAVValue(codec->pix_fmts, formatScoreCalculator).second;
+    return findAVEncoder(codecID, [sourceSWFormat](const AVCodec *codec) {
+        return findSWFormatScores(codec, sourceSWFormat);
     });
 }
 
