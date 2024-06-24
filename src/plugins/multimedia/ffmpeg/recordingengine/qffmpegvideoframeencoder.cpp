@@ -25,21 +25,7 @@ VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
     Q_ASSERT(isSwPixelFormat(sourceParams.swFormat));
     Q_ASSERT(isHwPixelFormat(sourceParams.format) || sourceParams.swFormat == sourceParams.format);
 
-    std::unique_ptr<VideoFrameEncoder> result(new VideoFrameEncoder);
-
-    result->m_settings = encoderSettings;
-    result->m_sourceSize = sourceParams.size;
-    result->m_sourceFormat = sourceParams.format;
-
-    // Temporary: check isSwPixelFormat because of android issue (QTBUG-116836)
-    result->m_sourceSWFormat =
-            isSwPixelFormat(sourceParams.format) ? sourceParams.format : sourceParams.swFormat;
-
-    if (!result->m_settings.videoResolution().isValid())
-        result->m_settings.setVideoResolution(sourceParams.size);
-
-    if (result->m_settings.videoFrameRate() <= 0.)
-        result->m_settings.setVideoFrameRate(sourceParams.frameRate);
+    std::unique_ptr<VideoFrameEncoder> result(new VideoFrameEncoder(sourceParams, encoderSettings));
 
     if (!result->initCodec())
         return nullptr;
@@ -64,6 +50,23 @@ VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
     result->updateConversions();
 
     return result;
+}
+
+VideoFrameEncoder::VideoFrameEncoder(const SourceParams &sourceParams,
+                                     const QMediaEncoderSettings &encoderSettings)
+    : m_settings(encoderSettings),
+      m_sourceSize(sourceParams.size),
+      m_sourceFormat(sourceParams.format)
+{
+    // Temporary: check isSwPixelFormat because of android issue (QTBUG-116836)
+    m_sourceSWFormat =
+            isSwPixelFormat(sourceParams.format) ? sourceParams.format : sourceParams.swFormat;
+
+    if (!m_settings.videoResolution().isValid())
+        m_settings.setVideoResolution(sourceParams.size);
+
+    if (m_settings.videoFrameRate() <= 0.)
+        m_settings.setVideoFrameRate(sourceParams.frameRate);
 }
 
 bool VideoFrameEncoder::initCodec()
