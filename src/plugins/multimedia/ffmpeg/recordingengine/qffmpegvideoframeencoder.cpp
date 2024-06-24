@@ -27,27 +27,8 @@ VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
 
     std::unique_ptr<VideoFrameEncoder> result(new VideoFrameEncoder(sourceParams, encoderSettings));
 
-    if (!result->initCodec())
+    if (!result->initAndOpen(sourceParams, formatContext))
         return nullptr;
-
-    result->initTargetSize();
-
-    result->initCodecFrameRate();
-
-    if (!result->initTargetFormats())
-        return nullptr;
-
-    if (!result->initCodecContext(sourceParams, formatContext))
-        return nullptr;
-
-    // TODO: make VideoFrameEncoder::private and do openning here
-    // if (!open()) {
-    //    m_error = QMediaRecorder::FormatError;
-    //    m_errorStr = QLatin1StringView("Cannot open codec");
-    //    return;
-    // }
-
-    result->updateConversions();
 
     return result;
 }
@@ -67,6 +48,30 @@ VideoFrameEncoder::VideoFrameEncoder(const SourceParams &sourceParams,
 
     if (m_settings.videoFrameRate() <= 0.)
         m_settings.setVideoFrameRate(sourceParams.frameRate);
+}
+
+bool VideoFrameEncoder::initAndOpen(const SourceParams &sourceParams,
+                                    AVFormatContext *formatContext)
+{
+    if (!initCodec())
+        return false;
+
+    initTargetSize();
+
+    initCodecFrameRate();
+
+    if (!initTargetFormats())
+        return false;
+
+    if (!initCodecContext(sourceParams, formatContext))
+        return false;
+
+    if (!open())
+        return false;
+
+    updateConversions();
+
+    return true;
 }
 
 bool VideoFrameEncoder::initCodec()
@@ -221,16 +226,14 @@ bool VideoFrameEncoder::initCodecContext(const SourceParams &sourceParams,
 
 bool VideoFrameEncoder::open()
 {
-    if (!m_codecContext)
-        return false;
+    Q_ASSERT(m_codecContext);
 
     AVDictionaryHolder opts;
     applyVideoEncoderOptions(m_settings, m_codec->name, m_codecContext.get(), opts);
     applyExperimentalCodecOptions(m_codec, opts);
 
-    int res = avcodec_open2(m_codecContext.get(), m_codec, opts);
+    const int res = avcodec_open2(m_codecContext.get(), m_codec, opts);
     if (res < 0) {
-        m_codecContext.reset();
         qWarning() << "Couldn't open codec for writing" << err2str(res);
         return false;
     }

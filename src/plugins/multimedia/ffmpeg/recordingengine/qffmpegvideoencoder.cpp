@@ -17,7 +17,7 @@ Q_STATIC_LOGGING_CATEGORY(qLcFFmpegVideoEncoder, "qt.multimedia.ffmpeg.videoenco
 
 VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoderSettings &settings,
                            const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat)
-    : EncoderThread(recordingEngine)
+    : EncoderThread(recordingEngine), m_settings(settings)
 {
     setObjectName(QLatin1String("VideoEncoder"));
 
@@ -30,27 +30,23 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
         frameRate = 30.;
     }
 
-    VideoFrameEncoder::SourceParams sourceParams;
-    sourceParams.size = format.frameSize();
-    sourceParams.format = hwFormat && *hwFormat != AV_PIX_FMT_NONE ? *hwFormat : swFormat;
-    sourceParams.swFormat = swFormat;
-    sourceParams.rotation = format.rotation();
-    sourceParams.xMirrored = format.isMirrored();
-    sourceParams.yMirrored = format.scanLineDirection() == QVideoFrameFormat::BottomToTop;
-    sourceParams.frameRate = frameRate;
-    sourceParams.colorTransfer = QFFmpeg::toAvColorTransfer(format.colorTransfer());
-    sourceParams.colorSpace = QFFmpeg::toAvColorSpace(format.colorSpace());
-    sourceParams.colorRange = QFFmpeg::toAvColorRange(format.colorRange());
-
-    m_frameEncoder =
-            VideoFrameEncoder::create(settings, sourceParams, recordingEngine.avFormatContext());
+    m_sourceParams.size = format.frameSize();
+    m_sourceParams.format = hwFormat && *hwFormat != AV_PIX_FMT_NONE ? *hwFormat : swFormat;
+    m_sourceParams.swFormat = swFormat;
+    m_sourceParams.rotation = format.rotation();
+    m_sourceParams.xMirrored = format.isMirrored();
+    m_sourceParams.yMirrored = format.scanLineDirection() == QVideoFrameFormat::BottomToTop;
+    m_sourceParams.frameRate = frameRate;
+    m_sourceParams.colorTransfer = QFFmpeg::toAvColorTransfer(format.colorTransfer());
+    m_sourceParams.colorSpace = QFFmpeg::toAvColorSpace(format.colorSpace());
+    m_sourceParams.colorRange = QFFmpeg::toAvColorRange(format.colorRange());
 }
 
 VideoEncoder::~VideoEncoder() = default;
 
 bool VideoEncoder::isValid() const
 {
-    return m_frameEncoder != nullptr;
+    return true;
 }
 
 void VideoEncoder::addFrame(const QVideoFrame &frame)
@@ -94,19 +90,18 @@ VideoEncoder::FrameInfo VideoEncoder::takeFrame()
 
 void VideoEncoder::retrievePackets()
 {
-    if (!m_frameEncoder)
-        return;
+    Q_ASSERT(m_frameEncoder);
     while (auto packet = m_frameEncoder->retrievePacket())
         m_recordingEngine.getMuxer()->addPacket(std::move(packet));
 }
 
 bool VideoEncoder::init()
 {
-    Q_ASSERT(isValid());
+    m_frameEncoder = VideoFrameEncoder::create(m_settings, m_sourceParams,
+                                               m_recordingEngine.avFormatContext());
 
     qCDebug(qLcFFmpegVideoEncoder) << "VideoEncoder::init started video device thread.";
-    const bool ok = m_frameEncoder->open();
-    if (!ok) {
+    if (!m_frameEncoder) {
         emit m_recordingEngine.sessionError(QMediaRecorder::ResourceError,
                                             "Could not initialize encoder");
         return false;
@@ -117,13 +112,14 @@ bool VideoEncoder::init()
 
 void VideoEncoder::cleanup()
 {
+    Q_ASSERT(m_frameEncoder);
+
     while (!m_videoFrameQueue.empty())
         processOne();
-    if (m_frameEncoder) {
-        while (m_frameEncoder->sendFrame(nullptr) == AVERROR(EAGAIN))
-            retrievePackets();
+
+    while (m_frameEncoder->sendFrame(nullptr) == AVERROR(EAGAIN))
         retrievePackets();
-    }
+    retrievePackets();
 }
 
 bool VideoEncoder::hasData() const

@@ -45,8 +45,6 @@ public:
 
     ~VideoFrameEncoder();
 
-    bool open();
-
     AVPixelFormat sourceFormat() const { return m_sourceFormat; }
     AVPixelFormat targetFormat() const { return m_targetFormat; }
 
@@ -69,6 +67,8 @@ private:
 
     void updateConversions();
 
+    bool initAndOpen(const SourceParams &sourceParams, AVFormatContext *formatContext);
+
     bool initCodec();
 
     void initTargetSize();
@@ -78,6 +78,8 @@ private:
     bool initTargetFormats();
 
     bool initCodecContext(const SourceParams &sourceParams, AVFormatContext *formatContext);
+
+    bool open();
 
     qint64 estimateDuration(const AVPacket &packet, bool isFirstPacket);
 

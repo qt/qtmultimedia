@@ -5,6 +5,7 @@
 
 #include "qffmpegencoderthread_p.h"
 #include "qffmpeg_p.h"
+#include "qffmpegvideoframeencoder_p.h"
 #include <qvideoframe.h>
 #include <queue>
 
@@ -48,6 +49,8 @@ private:
     std::pair<qint64, qint64> frameTimeStamps(const QVideoFrame &frame) const;
 
 private:
+    QMediaEncoderSettings m_settings;
+    VideoFrameEncoder::SourceParams m_sourceParams;
     std::queue<FrameInfo> m_videoFrameQueue;
     const size_t m_maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)
 
