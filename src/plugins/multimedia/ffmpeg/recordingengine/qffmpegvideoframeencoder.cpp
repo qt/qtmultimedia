@@ -41,10 +41,18 @@ VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
     if (result->m_settings.videoFrameRate() <= 0.)
         result->m_settings.setVideoFrameRate(sourceParams.frameRate);
 
-    if (!result->initCodec() || !result->initTargetFormats()
-        || !result->initCodecContext(sourceParams, formatContext)) {
+    if (!result->initCodec())
         return nullptr;
-    }
+
+    result->initTargetSize();
+
+    result->initCodecFrameRate();
+
+    if (!result->initTargetFormats())
+        return nullptr;
+
+    if (!result->initCodecContext(sourceParams, formatContext))
+        return nullptr;
 
     // TODO: make VideoFrameEncoder::private and do openning here
     // if (!open()) {
@@ -62,9 +70,10 @@ bool VideoFrameEncoder::initCodec()
 {
     const auto qVideoCodec = m_settings.videoCodec();
     const auto codecID = QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
-    const auto resolution = m_settings.videoResolution();
+    const QSize desiredTargetSize = m_settings.videoResolution();
 
-    std::tie(m_codec, m_accel) = findHwEncoder(codecID, resolution);
+    std::tie(m_codec, m_accel) =
+            findHwEncoder(codecID, desiredTargetSize.isValid() ? desiredTargetSize : m_sourceSize);
 
     if (!m_codec)
         m_codec = findSwEncoder(codecID, m_sourceSWFormat);
@@ -75,36 +84,36 @@ bool VideoFrameEncoder::initCodec()
     }
 
     qCDebug(qLcVideoFrameEncoder) << "found encoder" << m_codec->name << "for id" << m_codec->id;
+    return true;
+}
+
+void VideoFrameEncoder::initTargetSize()
+{
+    m_targetSize = m_settings.videoResolution();
+    m_targetSize = adjustVideoResolution(m_codec, m_settings.videoResolution());
 
 #ifdef Q_OS_WINDOWS
     // TODO: investigate, there might be more encoders not supporting odd resolution
     if (strcmp(m_codec->name, "h264_mf") == 0) {
         auto makeEven = [](int size) { return size & ~1; };
-        const QSize fixedResolution(makeEven(resolution.width()), makeEven(resolution.height()));
-        if (fixedResolution != resolution) {
+        const QSize fixedSize(makeEven(m_targetSize.width()), makeEven(m_targetSize.height()));
+        if (fixedSize != m_targetSize) {
             qCDebug(qLcVideoFrameEncoder) << "Fix odd video resolution for codec" << m_codec->name
-                                          << ":" << resolution << "->" << fixedResolution;
-            m_settings.setVideoResolution(fixedResolution);
+                                          << ":" << m_targetSize << "->" << fixedSize;
+            m_targetSize = fixedSize;
         }
     }
 #endif
+}
 
-    auto fixedResolution = adjustVideoResolution(m_codec, m_settings.videoResolution());
-    if (resolution != fixedResolution) {
-        qCDebug(qLcVideoFrameEncoder) << "Fix odd video resolution for codec" << m_codec->name
-                                      << ":" << resolution << "->" << fixedResolution;
-
-        m_settings.setVideoResolution(fixedResolution);
-    }
-
+void VideoFrameEncoder::initCodecFrameRate()
+{
     if (m_codec->supported_framerates && qLcVideoFrameEncoder().isEnabled(QtDebugMsg))
         for (auto rate = m_codec->supported_framerates; rate->num && rate->den; ++rate)
             qCDebug(qLcVideoFrameEncoder) << "supported frame rate:" << *rate;
 
     m_codecFrameRate = adjustFrameRate(m_codec->supported_framerates, m_settings.videoFrameRate());
     qCDebug(qLcVideoFrameEncoder) << "Adjusted frame rate:" << m_codecFrameRate;
-
-    return true;
 }
 
 bool VideoFrameEncoder::initTargetFormats()
@@ -127,7 +136,7 @@ bool VideoFrameEncoder::initTargetFormats()
             return false;
         }
 
-        m_accel->createFramesContext(m_targetSWFormat, m_settings.videoResolution());
+        m_accel->createFramesContext(m_targetSWFormat, m_targetSize);
         if (!m_accel->hwFramesContextAsBuffer())
             return false;
     } else {
@@ -153,12 +162,10 @@ bool VideoFrameEncoder::initCodecContext(const SourceParams &sourceParams,
     if (m_codec->id == AV_CODEC_ID_HEVC)
         m_stream->codecpar->codec_tag = MKTAG('h', 'v', 'c', '1');
 
-    const auto resolution = m_settings.videoResolution();
-
     // ### Fix hardcoded values
     m_stream->codecpar->format = m_targetFormat;
-    m_stream->codecpar->width = resolution.width();
-    m_stream->codecpar->height = resolution.height();
+    m_stream->codecpar->width = m_targetSize.width();
+    m_stream->codecpar->height = m_targetSize.height();
     m_stream->codecpar->sample_aspect_ratio = AVRational{ 1, 1 };
     m_stream->codecpar->color_trc = sourceParams.colorTransfer;
     m_stream->codecpar->color_space = sourceParams.colorSpace;
@@ -227,6 +234,11 @@ bool VideoFrameEncoder::open()
     qCDebug(qLcVideoFrameEncoder) << "video codec opened" << res << "time base"
                                   << m_codecContext->time_base;
     return true;
+}
+
+qreal VideoFrameEncoder::codecFrameRate() const
+{
+    return m_codecFrameRate.den ? qreal(m_codecFrameRate.num) / m_codecFrameRate.den : 0.;
 }
 
 qint64 VideoFrameEncoder::getPts(qint64 us) const
@@ -365,7 +377,7 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr inputFrame)
     }
 
     if (m_converter)
-        converter.convert(m_converter.get(), m_targetSWFormat, m_settings.videoResolution());
+        converter.convert(m_converter.get(), m_targetSWFormat, m_targetSize);
 
     if (m_uploadToHW) {
         const int status = converter.uploadToHw(m_accel.get());
@@ -506,7 +518,7 @@ bool VideoFrameEncoder::updateSourceFormatAndSize(const AVFrame *frame)
 
 void VideoFrameEncoder::updateConversions()
 {
-    const bool needToScale = m_sourceSize != m_settings.videoResolution();
+    const bool needToScale = m_sourceSize != m_targetSize;
     const bool zeroCopy = m_sourceFormat == m_targetFormat && !needToScale;
 
     m_converter.reset();
@@ -524,15 +536,14 @@ void VideoFrameEncoder::updateConversions()
     m_uploadToHW = m_targetFormat != m_targetSWFormat;
 
     if (m_sourceSWFormat != m_targetSWFormat || needToScale) {
-        const auto targetSize = m_settings.videoResolution();
         qCDebug(qLcVideoFrameEncoder)
                 << "video source and encoder use different formats:" << m_sourceSWFormat
-                << m_targetSWFormat << "or sizes:" << m_sourceSize << targetSize;
+                << m_targetSWFormat << "or sizes:" << m_sourceSize << m_targetSize;
 
         m_converter.reset(sws_getContext(m_sourceSize.width(), m_sourceSize.height(),
-                                         m_sourceSWFormat, targetSize.width(), targetSize.height(),
-                                         m_targetSWFormat, SWS_FAST_BILINEAR, nullptr, nullptr,
-                                         nullptr));
+                                         m_sourceSWFormat, m_targetSize.width(),
+                                         m_targetSize.height(), m_targetSWFormat, SWS_FAST_BILINEAR,
+                                         nullptr, nullptr, nullptr));
     }
 
     qCDebug(qLcVideoFrameEncoder) << "VideoFrameEncoder conversions initialized:"
