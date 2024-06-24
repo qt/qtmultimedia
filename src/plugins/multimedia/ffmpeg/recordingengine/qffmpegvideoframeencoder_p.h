@@ -50,6 +50,8 @@ public:
     AVPixelFormat sourceFormat() const { return m_sourceFormat; }
     AVPixelFormat targetFormat() const { return m_targetFormat; }
 
+    qreal codecFrameRate() const;
+
     qint64 getPts(qint64 ms) const;
 
     const AVRational &getTimeBase() const;
@@ -68,6 +70,10 @@ private:
 
     bool initCodec();
 
+    void initTargetSize();
+
+    void initCodecFrameRate();
+
     bool initTargetFormats();
 
     bool initCodecContext(const SourceParams &sourceParams, AVFormatContext *formatContext);
@@ -77,6 +83,7 @@ private:
 private:
     QMediaEncoderSettings m_settings;
     QSize m_sourceSize;
+    QSize m_targetSize;
 
     std::unique_ptr<HWAccel> m_accel;
     const AVCodec *m_codec = nullptr;
