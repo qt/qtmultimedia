@@ -1,17 +1,10 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtCore/qabstracteventdispatcher.h>
-#include <QtCore/qcoreapplication.h>
-#include <QtCore/qlist.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/qmap.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qproperty.h>
-#include <QtCore/qtimer.h>
 
 #include "qgstpipeline_p.h"
-#include "qgstreamermessage_p.h"
+#include "qgst_bus_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -24,141 +17,26 @@ static constexpr GstSeekFlags rateChangeSeekFlags =
         GST_SEEK_FLAG_FLUSH;
 #endif
 
-class QGstPipelinePrivate
+class QGstPipelinePrivate : public QGstBus
 {
 public:
-    guint m_eventSourceID = 0;
-    GstBus *m_bus = nullptr;
-    std::unique_ptr<QTimer> m_intervalTimer;
-    QMutex filterMutex;
-    QList<QGstreamerSyncMessageFilter*> syncFilters;
-    QList<QGstreamerBusMessageFilter*> busFilters;
     mutable std::chrono::nanoseconds m_position{};
-    double m_rate = 1.;
 
+    double m_rate = 1.;
     int m_configCounter = 0;
     GstState m_savedState = GST_STATE_NULL;
 
-    explicit QGstPipelinePrivate(GstBus *bus);
-    ~QGstPipelinePrivate();
-
-    void installMessageFilter(QGstreamerSyncMessageFilter *filter);
-    void removeMessageFilter(QGstreamerSyncMessageFilter *filter);
-    void installMessageFilter(QGstreamerBusMessageFilter *filter);
-    void removeMessageFilter(QGstreamerBusMessageFilter *filter);
-
-    void processMessage(const QGstreamerMessage &msg)
-    {
-        for (QGstreamerBusMessageFilter *filter : std::as_const(busFilters)) {
-            if (filter->processBusMessage(msg))
-                break;
-        }
-    }
-
-private:
-    static GstBusSyncReply syncGstBusFilter(GstBus *bus, GstMessage *message,
-                                            QGstPipelinePrivate *d)
-    {
-        if (!message)
-            return GST_BUS_PASS;
-
-        Q_UNUSED(bus);
-        QMutexLocker lock(&d->filterMutex);
-
-        for (QGstreamerSyncMessageFilter *filter : std::as_const(d->syncFilters)) {
-            if (filter->processSyncMessage(
-                        QGstreamerMessage{ message, QGstreamerMessage::NeedsRef })) {
-                gst_message_unref(message);
-                return GST_BUS_DROP;
-            }
-        }
-
-        return GST_BUS_PASS;
-    }
-
-    void processMessage(GstMessage *message)
-    {
-        if (!message)
-            return;
-
-        QGstreamerMessage msg{
-            message,
-            QGstreamerMessage::NeedsRef,
-        };
-
-        processMessage(msg);
-    }
-
-    static gboolean busCallback(GstBus *, GstMessage *message, gpointer data)
-    {
-        static_cast<QGstPipelinePrivate *>(data)->processMessage(message);
-        return TRUE;
-    }
+    explicit QGstPipelinePrivate(QGstBusHandle);
 };
 
-QGstPipelinePrivate::QGstPipelinePrivate(GstBus *bus) : m_bus(bus)
+QGstPipelinePrivate::QGstPipelinePrivate(QGstBusHandle bus)
+    : QGstBus{
+          std::move(bus),
+      }
 {
-    // glib event loop can be disabled either by env variable or QT_NO_GLIB define, so check the dispacher
-    QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
-    const bool hasGlib = dispatcher && dispatcher->inherits("QEventDispatcherGlib");
-    if (!hasGlib) {
-        m_intervalTimer = std::make_unique<QTimer>();
-        m_intervalTimer->setInterval(250);
-        QObject::connect(m_intervalTimer.get(), &QTimer::timeout, m_intervalTimer.get(), [this] {
-            GstMessage *message;
-            while ((message = gst_bus_poll(m_bus, GST_MESSAGE_ANY, 0)) != nullptr) {
-                processMessage(message);
-                gst_message_unref(message);
-            }
-        });
-        m_intervalTimer->start();
-    } else {
-        m_eventSourceID =
-                gst_bus_add_watch_full(bus, G_PRIORITY_DEFAULT, busCallback, this, nullptr);
-    }
-
-    gst_bus_set_sync_handler(bus, (GstBusSyncHandler)syncGstBusFilter, this, nullptr);
 }
 
-QGstPipelinePrivate::~QGstPipelinePrivate()
-{
-    m_intervalTimer.reset();
-
-    if (m_eventSourceID)
-        gst_bus_remove_watch(m_bus);
-
-    gst_bus_set_sync_handler(m_bus, nullptr, nullptr, nullptr);
-    gst_object_unref(GST_OBJECT(m_bus));
-}
-
-void QGstPipelinePrivate::installMessageFilter(QGstreamerSyncMessageFilter *filter)
-{
-    if (filter) {
-        QMutexLocker lock(&filterMutex);
-        if (!syncFilters.contains(filter))
-            syncFilters.append(filter);
-    }
-}
-
-void QGstPipelinePrivate::removeMessageFilter(QGstreamerSyncMessageFilter *filter)
-{
-    if (filter) {
-        QMutexLocker lock(&filterMutex);
-        syncFilters.removeAll(filter);
-    }
-}
-
-void QGstPipelinePrivate::installMessageFilter(QGstreamerBusMessageFilter *filter)
-{
-    if (filter && !busFilters.contains(filter))
-        busFilters.append(filter);
-}
-
-void QGstPipelinePrivate::removeMessageFilter(QGstreamerBusMessageFilter *filter)
-{
-    if (filter)
-        busFilters.removeAll(filter);
-}
+// QGstPipeline
 
 QGstPipeline QGstPipeline::create(const char *name)
 {
@@ -176,7 +54,11 @@ QGstPipeline QGstPipeline::createFromFactory(const char *factory, const char *na
 
 QGstPipeline QGstPipeline::adopt(GstPipeline *pipeline)
 {
-    QGstPipelinePrivate *d = new QGstPipelinePrivate(gst_pipeline_get_bus(pipeline));
+    QGstBusHandle bus{
+        gst_pipeline_get_bus(pipeline),
+        QGstBusHandle::HasRef,
+    };
+    QGstPipelinePrivate *d = new QGstPipelinePrivate(std::move(bus));
     g_object_set_data_full(qGstCheckedCast<GObject>(pipeline), "pipeline-private", d,
                            [](gpointer ptr) {
                                delete reinterpret_cast<QGstPipelinePrivate *>(ptr);
@@ -227,11 +109,7 @@ GstStateChangeReturn QGstPipeline::setState(GstState state)
 void QGstPipeline::processMessages(GstMessageType types)
 {
     QGstPipelinePrivate *d = getPrivate();
-    QGstreamerMessage message{
-        gst_bus_pop_filtered(d->m_bus, types),
-        QGstreamerMessage::HasRef,
-    };
-    d->processMessage(message);
+    d->processPendingMessage(types, std::chrono::nanoseconds{ 0 });
 }
 
 void QGstPipeline::beginConfig()

@@ -11,39 +11,21 @@
 
 QT_BEGIN_NAMESPACE
 
-static gboolean deviceMonitorCallback(GstBus *, GstMessage *message, gpointer m)
-{
-    auto *manager = static_cast<QGstreamerVideoDevices *>(m);
-    QGstDeviceHandle device;
-
-    switch (GST_MESSAGE_TYPE(message)) {
-    case GST_MESSAGE_DEVICE_ADDED:
-        gst_message_parse_device_added(message, &device);
-        manager->addDevice(std::move(device));
-        break;
-    case GST_MESSAGE_DEVICE_REMOVED:
-        gst_message_parse_device_removed(message, &device);
-        manager->removeDevice(std::move(device));
-        break;
-    default:
-        break;
-    }
-
-    return G_SOURCE_CONTINUE;
-}
-
 QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration),
       m_deviceMonitor{
           gst_device_monitor_new(),
+      },
+      m_bus{
+          QGstBusHandle{
+                  gst_device_monitor_get_bus(m_deviceMonitor.get()),
+                  QGstBusHandle::HasRef,
+          },
       }
 {
     gst_device_monitor_add_filter(m_deviceMonitor.get(), "Video/Source", nullptr);
 
-    QGstBusHandle bus{
-        gst_device_monitor_get_bus(m_deviceMonitor.get()),
-    };
-    gst_bus_add_watch(bus.get(), deviceMonitorCallback, this);
+    m_bus.installMessageFilter(this);
     gst_device_monitor_start(m_deviceMonitor.get());
 
     GList *devices = gst_device_monitor_get_devices(m_deviceMonitor.get());
@@ -146,6 +128,26 @@ void QGstreamerVideoDevices::removeDevice(QGstDeviceHandle device)
         m_videoSources.erase(it);
         emit videoInputsChanged();
     }
+}
+
+bool QGstreamerVideoDevices::processBusMessage(const QGstreamerMessage &message)
+{
+    QGstDeviceHandle device;
+
+    switch (message.type()) {
+    case GST_MESSAGE_DEVICE_ADDED:
+        gst_message_parse_device_added(message.message(), &device);
+        addDevice(std::move(device));
+        break;
+    case GST_MESSAGE_DEVICE_REMOVED:
+        gst_message_parse_device_removed(message.message(), &device);
+        removeDevice(std::move(device));
+        break;
+    default:
+        break;
+    }
+
+    return false;
 }
 
 GstDevice *QGstreamerVideoDevices::videoDevice(const QByteArray &id) const
