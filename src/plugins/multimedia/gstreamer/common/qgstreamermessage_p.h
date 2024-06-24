@@ -16,7 +16,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <common/qgst_p.h>
+#include "qgst_p.h"
 
 QT_BEGIN_NAMESPACE
 

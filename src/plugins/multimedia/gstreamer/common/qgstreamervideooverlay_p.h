@@ -15,10 +15,11 @@
 // We mean it.
 //
 
-#include <common/qgstpipeline_p.h>
+#include <QtGui/qwindowdefs.h>
+
 #include <common/qgstreamerbufferprobe_p.h>
 #include <common/qgst_p.h>
-#include <QtGui/qwindowdefs.h>
+#include <common/qgst_bus_p.h>
 
 QT_BEGIN_NAMESPACE
 class QGstreamerVideoSink;
