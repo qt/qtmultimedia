@@ -128,6 +128,9 @@ void QWindowsAudioSource::deviceStateChange(QAudio::State state, QAudio::Error e
 
 QByteArray QWindowsAudioSource::readCaptureClientBuffer()
 {
+    if (m_deviceState == QAudio::StoppedState)
+        return {};
+
     UINT32 actualFrames = 0;
     BYTE *data = nullptr;
     DWORD flags = 0;
@@ -200,7 +203,8 @@ void QWindowsAudioSource::pullCaptureClient()
         }
     }
 
-    schedulePull();
+    if (m_deviceState != QAudio::StoppedState)
+        schedulePull();
 }
 
 void QWindowsAudioSource::start(QIODevice* device)
