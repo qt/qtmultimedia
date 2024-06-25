@@ -207,10 +207,6 @@ private:
     QGObjectHandlerScopedConnection elementAdded;
     QGObjectHandlerScopedConnection elementRemoved;
 
-    // AppSrc elements
-    QSet<QGstElement> appSourceElements;
-    void unrefAppSrc(QGstElement &);
-
     int decodeBinQueues = 0;
 
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);

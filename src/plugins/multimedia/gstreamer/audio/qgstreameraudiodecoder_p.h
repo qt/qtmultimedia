@@ -25,7 +25,6 @@
 
 #include <common/qgst_p.h>
 #include <common/qgst_bus_p.h>
-#include <common/qgstappsource_p.h>
 #include <common/qgstpipeline_p.h>
 
 #include <gst/app/gstappsink.h>
@@ -87,7 +86,6 @@ private:
     QGstBin m_outputBin;
     QGstElement m_audioConvert;
     QGstAppSink m_appSink;
-    QGstAppSource *m_appSrc = nullptr;
 
     QUrl mSource;
     QIODevice *mDevice = nullptr;
