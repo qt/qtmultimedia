@@ -213,7 +213,7 @@ findCodecWithHwAccel(AVCodecID id, const std::vector<AVHWDeviceType> &deviceType
                      const std::function<bool(const HWAccel &)> &hwAccelPredicate)
 {
     for (auto type : deviceTypes) {
-        const auto codec = codecFinder(id, type, {});
+        const auto codec = codecFinder(id, pixelFormatForHwDevice(type));
 
         if (!codec)
             continue;
@@ -414,8 +414,8 @@ std::pair<const AVCodec *, HWAccelUPtr>
 HWAccel::findEncoderWithHwAccel(AVCodecID id,
                                 const std::function<bool(const HWAccel &)> &hwAccelPredicate)
 {
-    auto finder = qOverload<AVCodecID, const std::optional<AVHWDeviceType> &,
-                            const std::optional<PixelOrSampleFormat> &>(&QFFmpeg::findAVEncoder);
+    auto finder = qOverload<AVCodecID, const std::optional<PixelOrSampleFormat> &>(
+            &QFFmpeg::findAVEncoder);
     return findCodecWithHwAccel(id, encodingDeviceTypes(), finder, hwAccelPredicate);
 }
 

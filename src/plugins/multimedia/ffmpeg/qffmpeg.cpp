@@ -326,29 +326,6 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
     return storages[codecsType];
 }
 
-const char *preferredHwCodecNameSuffix(bool isEncoder, AVHWDeviceType deviceType)
-{
-    switch (deviceType) {
-    case AV_HWDEVICE_TYPE_VAAPI:
-        return "_vaapi";
-    case AV_HWDEVICE_TYPE_MEDIACODEC:
-        return "_mediacodec";
-    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
-        return "_videotoolbox";
-    case AV_HWDEVICE_TYPE_D3D11VA:
-    case AV_HWDEVICE_TYPE_DXVA2:
-#if QT_FFMPEG_HAS_D3D12VA
-    case AV_HWDEVICE_TYPE_D3D12VA:
-#endif
-        return "_mf";
-    case AV_HWDEVICE_TYPE_CUDA:
-    case AV_HWDEVICE_TYPE_VDPAU:
-        return isEncoder ? "_nvenc" : "_cuvid";
-    default:
-        return nullptr;
-    }
-}
-
 template <typename CodecScoreGetter, typename CodecOpener>
 bool findAndOpenCodec(CodecStorageType codecsType, AVCodecID codecId,
                       const CodecScoreGetter &scoreGetter, const CodecOpener &opener)
@@ -399,71 +376,27 @@ const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
     return result;
 }
 
-AVScore hwCodecNameScores(const AVCodec *codec, AVHWDeviceType deviceType)
-{
-    if (auto suffix = preferredHwCodecNameSuffix(av_codec_is_encoder(codec), deviceType)) {
-        const auto substr = strstr(codec->name, suffix);
-        if (substr && !substr[strlen(suffix)])
-            return BestAVScore;
-
-        return DefaultAVScore;
-    }
-
-    return BestAVScore;
-}
-
 const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
-                           const std::optional<AVHWDeviceType> &deviceType,
                            const std::optional<PixelOrSampleFormat> &format)
 {
-    // TODO: remove deviceType and use only isAVFormatSupported to check the format
-
     return findAVCodec(codecsType, codecId, [&](const AVCodec *codec) {
         if (format && !isAVFormatSupported(codec, *format))
             return NotSuitableAVScore;
 
-        if (!deviceType)
-            return BestAVScore; // find any codec with the id
-
-        if (*deviceType == AV_HWDEVICE_TYPE_NONE
-            && findAVFormat(codec->pix_fmts, &isSwPixelFormat) != AV_PIX_FMT_NONE)
-            return BestAVScore;
-
-        if (*deviceType != AV_HWDEVICE_TYPE_NONE) {
-            for (int index = 0; auto config = avcodec_get_hw_config(codec, index); ++index) {
-                if (config->device_type != deviceType)
-                    continue;
-
-                if (format && config->pix_fmt != AV_PIX_FMT_NONE && config->pix_fmt != *format)
-                    continue;
-
-                return hwCodecNameScores(codec, *deviceType);
-            }
-
-            // The situation happens mostly with encoders
-            // Probably, it's ffmpeg bug: avcodec_get_hw_config returns null even though
-            // hw acceleration is supported
-            // To be removed: only isAVFormatSupported should be used.
-            if (hasAVFormat(codec->pix_fmts, pixelFormatForHwDevice(*deviceType)))
-                return hwCodecNameScores(codec, *deviceType);
-        }
-
-        return NotSuitableAVScore;
+        return BestAVScore;
     });
 }
 
 } // namespace
 
-const AVCodec *findAVDecoder(AVCodecID codecId, const std::optional<AVHWDeviceType> &deviceType,
-                             const std::optional<PixelOrSampleFormat> &format)
+const AVCodec *findAVDecoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format)
 {
-    return findAVCodec(DECODERS, codecId, deviceType, format);
+    return findAVCodec(DECODERS, codecId, format);
 }
 
-const AVCodec *findAVEncoder(AVCodecID codecId, const std::optional<AVHWDeviceType> &deviceType,
-                             const std::optional<PixelOrSampleFormat> &format)
+const AVCodec *findAVEncoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format)
 {
-    return findAVCodec(ENCODERS, codecId, deviceType, format);
+    return findAVCodec(ENCODERS, codecId, format);
 }
 
 const AVCodec *findAVEncoder(AVCodecID codecId,

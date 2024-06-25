@@ -179,11 +179,9 @@ bool findAndOpenEncoder(AVCodecID codecId,
                         const std::function<bool(const AVCodec *)> &codecOpener);
 
 const AVCodec *findAVDecoder(AVCodecID codecId,
-                             const std::optional<AVHWDeviceType> &deviceType = {},
                              const std::optional<PixelOrSampleFormat> &format = {});
 
 const AVCodec *findAVEncoder(AVCodecID codecId,
-                             const std::optional<AVHWDeviceType> &deviceType = {},
                              const std::optional<PixelOrSampleFormat> &format = {});
 
 const AVCodec *findAVEncoder(AVCodecID codecId,
