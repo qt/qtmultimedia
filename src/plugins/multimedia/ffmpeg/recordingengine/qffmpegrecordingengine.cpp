@@ -118,14 +118,7 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
                               << "frameRate=" << frameFormat.streamFrameRate()
                               << "ffmpegHWPixelFormat=" << (hwPixelFormat ? *hwPixelFormat : AV_PIX_FMT_NONE);
 
-    auto veUPtr = std::make_unique<VideoEncoder>(*this, m_settings, frameFormat, hwPixelFormat);
-    if (!veUPtr->isValid()) {
-        emit streamInitializationError(QMediaRecorder::FormatError,
-                                       QLatin1StringView("Cannot initialize encoder"));
-        return;
-    }
-
-    auto videoEncoder = veUPtr.release();
+    auto videoEncoder = new VideoEncoder(*this, m_settings, frameFormat, hwPixelFormat);
     m_videoEncoders.append(videoEncoder);
     if (m_autoStop)
         videoEncoder->setAutoStop(true);

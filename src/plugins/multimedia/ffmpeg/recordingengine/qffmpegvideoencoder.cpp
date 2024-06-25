@@ -53,11 +53,6 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
 
 VideoEncoder::~VideoEncoder() = default;
 
-bool VideoEncoder::isValid() const
-{
-    return true;
-}
-
 void VideoEncoder::addFrame(const QVideoFrame &frame)
 {
     if (!frame.isValid()) {
@@ -149,14 +144,13 @@ static void freeQVideoFrame(void *opaque, uint8_t *)
 
 void VideoEncoder::processOne()
 {
+    Q_ASSERT(m_frameEncoder);
+
     retrievePackets();
 
     FrameInfo frameInfo = takeFrame();
     QVideoFrame &frame = frameInfo.frame;
     Q_ASSERT(frame.isValid());
-
-    if (!isValid())
-        return;
 
     //    qCDebug(qLcFFmpegEncoder) << "new video buffer" << frame.startTime();
 

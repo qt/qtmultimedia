@@ -24,8 +24,6 @@ public:
                  const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat);
     ~VideoEncoder() override;
 
-    bool isValid() const;
-
     void addFrame(const QVideoFrame &frame);
 
 protected:
