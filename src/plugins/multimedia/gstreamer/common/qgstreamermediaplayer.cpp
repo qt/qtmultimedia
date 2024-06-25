@@ -406,204 +406,256 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 {
     qCDebug(qLcMediaPlayer) << "received bus message:" << message;
 
-    GstMessage* gm = message.message();
     switch (message.type()) {
-    case GST_MESSAGE_TAG: {
-        // #### This isn't ideal. We shouldn't catch stream specific tags here, rather the global ones
-        QGstTagListHandle tagList;
-        gst_message_parse_tag(gm, &tagList);
+    case GST_MESSAGE_TAG:
+        // #### This isn't ideal. We shouldn't catch stream specific tags here, rather the global
+        // ones
+        return processBusMessageTags(message);
 
-        qCDebug(qLcMediaPlayer) << "    Got tags: " << tagList.get();
+    case GST_MESSAGE_DURATION_CHANGED:
+        return processBusMessageDurationChanged(message);
 
-        QMediaMetaData originalMetaData = m_metaData;
-        extendMetaDataFromTagList(m_metaData, tagList);
-        if (originalMetaData != m_metaData)
-            metaDataChanged();
+    case GST_MESSAGE_EOS:
+        return processBusMessageEOS(message);
 
-        QVariant rotation = m_metaData.value(QMediaMetaData::Orientation);
-        gstVideoOutput->setRotation(rotation.value<QtVideo::Rotation>());
-        break;
-    }
-    case GST_MESSAGE_DURATION_CHANGED: {
-        if (!prerolling)
-            updateDurationFromPipeline();
+    case GST_MESSAGE_BUFFERING:
+        return processBusMessageBuffering(message);
 
-        return false;
-    }
-    case GST_MESSAGE_EOS: {
-        positionChanged(m_duration);
-        if (doLoop()) {
-            setPosition(0);
-            break;
-        }
-        stopOrEOS(true);
-        break;
-    }
-    case GST_MESSAGE_BUFFERING: {
-        int progress = 0;
-        gst_message_parse_buffering(gm, &progress);
+    case GST_MESSAGE_STATE_CHANGED:
+        return processBusMessageStateChanged(message);
 
-        if (state() != QMediaPlayer::StoppedState && !prerolling) {
-            if (!m_initialBufferProgressSent) {
-                mediaStatusChanged(QMediaPlayer::BufferingMedia);
-                m_initialBufferProgressSent = true;
-            }
-
-            if (m_bufferProgress > 0 && progress == 0) {
-                m_stalledMediaNotifier.start(stalledMediaDebouncePeriod);
-            } else if (progress >= 50)
-                // QTBUG-124517: rethink buffering
-                mediaStatusChanged(QMediaPlayer::BufferedMedia);
-            else
-                mediaStatusChanged(QMediaPlayer::BufferingMedia);
-        }
-
-        updateBufferProgress(progress * 0.01);
-        break;
-    }
-    case GST_MESSAGE_STATE_CHANGED: {
-        if (message.source() != playerPipeline)
-            return false;
-
-        GstState    oldState;
-        GstState    newState;
-        GstState    pending;
-
-        gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
-        qCDebug(qLcMediaPlayer) << "    state changed message from"
-                                << QCompactGstMessageAdaptor(message);
-
-        switch (newState) {
-        case GST_STATE_VOID_PENDING:
-        case GST_STATE_NULL:
-        case GST_STATE_READY:
-            break;
-        case GST_STATE_PAUSED: {
-            if (prerolling) {
-                qCDebug(qLcMediaPlayer) << "Preroll done, setting status to Loaded";
-                playerPipeline.dumpGraph("playerPipelinePrerollDone");
-
-                prerolling = false;
-
-                updateDurationFromPipeline();
-
-                m_metaData.insert(QMediaMetaData::Duration, duration());
-                if (!m_url.isEmpty())
-                    m_metaData.insert(QMediaMetaData::Url, m_url);
-                parseStreamsAndMetadata();
-                metaDataChanged();
-
-                tracksChanged();
-                mediaStatusChanged(QMediaPlayer::LoadedMedia);
-
-                if (state() == QMediaPlayer::PlayingState) {
-                    Q_ASSERT(!m_initialBufferProgressSent);
-
-                    bool immediatelySendBuffered = !canTrackProgress() || m_bufferProgress > 0;
-                    mediaStatusChanged(QMediaPlayer::BufferingMedia);
-                    m_initialBufferProgressSent = true;
-                    if (immediatelySendBuffered)
-                        mediaStatusChanged(QMediaPlayer::BufferedMedia);
-                }
-            }
-
-            break;
-        }
-        case GST_STATE_PLAYING: {
-            if (!m_initialBufferProgressSent) {
-                bool immediatelySendBuffered = !canTrackProgress() || m_bufferProgress > 0;
-                mediaStatusChanged(QMediaPlayer::BufferingMedia);
-                m_initialBufferProgressSent = true;
-                if (immediatelySendBuffered)
-                    mediaStatusChanged(QMediaPlayer::BufferedMedia);
-            }
-            break;
-        }
-        }
-        break;
-    }
-    case GST_MESSAGE_ERROR: {
-        qCDebug(qLcMediaPlayer) << "    error" << QCompactGstMessageAdaptor(message);
-
-        QUniqueGErrorHandle err;
-        QUniqueGStringHandle debug;
-        gst_message_parse_error(gm, &err, &debug);
-        GQuark errorDomain = err.get()->domain;
-        gint errorCode = err.get()->code;
-
-        if (errorDomain == GST_STREAM_ERROR) {
-            if (errorCode == GST_STREAM_ERROR_CODEC_NOT_FOUND)
-                error(QMediaPlayer::FormatError, tr("Cannot play stream of type: <unknown>"));
-            else {
-                error(QMediaPlayer::FormatError, QString::fromUtf8(err.get()->message));
-            }
-        } else if (errorDomain == GST_RESOURCE_ERROR) {
-            if (errorCode == GST_RESOURCE_ERROR_NOT_FOUND) {
-                if (m_resourceErrorState != ResourceErrorState::ErrorReported) {
-                    // gstreamer seems to deliver multiple GST_RESOURCE_ERROR_NOT_FOUND events
-                    error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
-                    m_resourceErrorState = ResourceErrorState::ErrorReported;
-                    m_url.clear();
-                    m_stream = nullptr;
-                }
-            } else {
-                error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
-            }
-        } else {
-            playerPipeline.dumpGraph("error");
-        }
-        mediaStatusChanged(QMediaPlayer::InvalidMedia);
-        break;
-    }
+    case GST_MESSAGE_ERROR:
+        return processBusMessageError(message);
 
     case GST_MESSAGE_WARNING:
-        qCWarning(qLcMediaPlayer) << "Warning:" << QCompactGstMessageAdaptor(message);
-        playerPipeline.dumpGraph("warning");
-        break;
+        return processBusMessageWarning(message);
 
     case GST_MESSAGE_INFO:
-        if (qLcMediaPlayer().isDebugEnabled())
-            qCDebug(qLcMediaPlayer) << "Info:" << QCompactGstMessageAdaptor(message);
-        break;
+        return processBusMessageInfo(message);
 
-    case GST_MESSAGE_SEGMENT_START: {
-        qCDebug(qLcMediaPlayer) << "    segment start message, updating position";
-        QGstStructureView structure(gst_message_get_structure(gm));
-        auto p = structure["position"].toInt64();
-        if (p) {
-            std::chrono::milliseconds position{
-                (*p) / 1000000,
-            };
-            positionChanged(position);
-        }
-        break;
-    }
-    case GST_MESSAGE_ELEMENT: {
-        QGstStructureView structure(gst_message_get_structure(gm));
-        auto type = structure.name();
-        if (type == "stream-topology")
-            topology = structure.clone();
+    case GST_MESSAGE_SEGMENT_START:
+        return processBusMessageSegmentStart(message);
 
-        break;
-    }
+    case GST_MESSAGE_ELEMENT:
+        return processBusMessageElement(message);
 
-    case GST_MESSAGE_ASYNC_DONE: {
-        if (playerPipeline.state() >= GST_STATE_PAUSED)
-            detectPipelineIsSeekable();
-        break;
-    }
+    case GST_MESSAGE_ASYNC_DONE:
+        return processBusMessageAsyncDone(message);
 
     default:
 //        qCDebug(qLcMediaPlayer) << "    default message handler, doing nothing";
-
         break;
     }
 
     return false;
 }
 
+bool QGstreamerMediaPlayer::processBusMessageTags(const QGstreamerMessage &message)
+{
+    QGstTagListHandle tagList;
+    gst_message_parse_tag(message.message(), &tagList);
+
+    qCDebug(qLcMediaPlayer) << "    Got tags: " << tagList.get();
+
+    QMediaMetaData originalMetaData = m_metaData;
+    extendMetaDataFromTagList(m_metaData, tagList);
+    if (originalMetaData != m_metaData)
+        metaDataChanged();
+
+    QVariant rotation = m_metaData.value(QMediaMetaData::Orientation);
+    gstVideoOutput->setRotation(rotation.value<QtVideo::Rotation>());
+    return false;
+}
+
+bool QGstreamerMediaPlayer::processBusMessageDurationChanged(const QGstreamerMessage &)
+{
+    if (!prerolling)
+        updateDurationFromPipeline();
+    return false;
+}
+
+bool QGstreamerMediaPlayer::processBusMessageBuffering(const QGstreamerMessage &message)
+{
+    int progress = 0;
+    gst_message_parse_buffering(message.message(), &progress);
+
+    if (state() != QMediaPlayer::StoppedState && !prerolling) {
+        if (!m_initialBufferProgressSent) {
+            mediaStatusChanged(QMediaPlayer::BufferingMedia);
+            m_initialBufferProgressSent = true;
+        }
+
+        if (m_bufferProgress > 0 && progress == 0) {
+            m_stalledMediaNotifier.start(stalledMediaDebouncePeriod);
+        } else if (progress >= 50)
+            // QTBUG-124517: rethink buffering
+            mediaStatusChanged(QMediaPlayer::BufferedMedia);
+        else
+            mediaStatusChanged(QMediaPlayer::BufferingMedia);
+    }
+
+    updateBufferProgress(progress * 0.01);
+    return false;
+}
+
+bool QGstreamerMediaPlayer::processBusMessageEOS(const QGstreamerMessage &)
+{
+    positionChanged(m_duration);
+    if (doLoop()) {
+        setPosition(0);
+        return false;
+    }
+    stopOrEOS(true);
+    return false;
+}
+
+bool QGstreamerMediaPlayer::processBusMessageStateChanged(const QGstreamerMessage &message)
+{
+    if (message.source() != playerPipeline)
+        return false;
+
+    GstState oldState;
+    GstState newState;
+    GstState pending;
+
+    gst_message_parse_state_changed(message.message(), &oldState, &newState, &pending);
+    qCDebug(qLcMediaPlayer) << "    state changed message from"
+                            << QCompactGstMessageAdaptor(message);
+
+    switch (newState) {
+    case GST_STATE_VOID_PENDING:
+    case GST_STATE_NULL:
+    case GST_STATE_READY:
+        break;
+    case GST_STATE_PAUSED: {
+        if (prerolling) {
+            qCDebug(qLcMediaPlayer) << "Preroll done, setting status to Loaded";
+            playerPipeline.dumpGraph("playerPipelinePrerollDone");
+
+            prerolling = false;
+
+            updateDurationFromPipeline();
+
+            m_metaData.insert(QMediaMetaData::Duration, duration());
+            if (!m_url.isEmpty())
+                m_metaData.insert(QMediaMetaData::Url, m_url);
+            parseStreamsAndMetadata();
+            metaDataChanged();
+
+            tracksChanged();
+            mediaStatusChanged(QMediaPlayer::LoadedMedia);
+
+            if (state() == QMediaPlayer::PlayingState) {
+                Q_ASSERT(!m_initialBufferProgressSent);
+
+                bool immediatelySendBuffered = !canTrackProgress() || m_bufferProgress > 0;
+                mediaStatusChanged(QMediaPlayer::BufferingMedia);
+                m_initialBufferProgressSent = true;
+                if (immediatelySendBuffered)
+                    mediaStatusChanged(QMediaPlayer::BufferedMedia);
+            }
+        }
+
+        break;
+    }
+    case GST_STATE_PLAYING: {
+        if (!m_initialBufferProgressSent) {
+            bool immediatelySendBuffered = !canTrackProgress() || m_bufferProgress > 0;
+            mediaStatusChanged(QMediaPlayer::BufferingMedia);
+            m_initialBufferProgressSent = true;
+            if (immediatelySendBuffered)
+                mediaStatusChanged(QMediaPlayer::BufferedMedia);
+        }
+        break;
+    }
+    }
+    return false;
+}
+
+bool QGstreamerMediaPlayer::processBusMessageError(const QGstreamerMessage &message)
+{
+    qCDebug(qLcMediaPlayer) << "    error" << QCompactGstMessageAdaptor(message);
+
+    QUniqueGErrorHandle err;
+    QUniqueGStringHandle debug;
+    gst_message_parse_error(message.message(), &err, &debug);
+    GQuark errorDomain = err.get()->domain;
+    gint errorCode = err.get()->code;
+
+    if (errorDomain == GST_STREAM_ERROR) {
+        if (errorCode == GST_STREAM_ERROR_CODEC_NOT_FOUND)
+            error(QMediaPlayer::FormatError, tr("Cannot play stream of type: <unknown>"));
+        else {
+            error(QMediaPlayer::FormatError, QString::fromUtf8(err.get()->message));
+        }
+    } else if (errorDomain == GST_RESOURCE_ERROR) {
+        if (errorCode == GST_RESOURCE_ERROR_NOT_FOUND) {
+            if (m_resourceErrorState != ResourceErrorState::ErrorReported) {
+                // gstreamer seems to deliver multiple GST_RESOURCE_ERROR_NOT_FOUND events
+                error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
+                m_resourceErrorState = ResourceErrorState::ErrorReported;
+                m_url.clear();
+                m_stream = nullptr;
+            }
+        } else {
+            error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
+        }
+    } else {
+        playerPipeline.dumpGraph("error");
+    }
+    mediaStatusChanged(QMediaPlayer::InvalidMedia);
+    return false;
+}
+
+bool QGstreamerMediaPlayer::processBusMessageWarning(const QGstreamerMessage &message)
+{
+    qCWarning(qLcMediaPlayer) << "Warning:" << QCompactGstMessageAdaptor(message);
+    playerPipeline.dumpGraph("warning");
+    return false;
+}
+
+bool QGstreamerMediaPlayer::processBusMessageInfo(const QGstreamerMessage &message)
+{
+    if (qLcMediaPlayer().isDebugEnabled())
+        qCDebug(qLcMediaPlayer) << "Info:" << QCompactGstMessageAdaptor(message);
+    return false;
+}
+
+bool QGstreamerMediaPlayer::processBusMessageSegmentStart(const QGstreamerMessage &message)
+{
+    qCDebug(qLcMediaPlayer) << "    segment start message, updating position";
+    QGstStructureView structure(gst_message_get_structure(message.message()));
+    auto p = structure["position"].toInt64();
+    if (p) {
+        std::chrono::milliseconds position{
+            (*p) / 1000000,
+        };
+        positionChanged(position);
+    }
+    return false;
+}
+
+bool QGstreamerMediaPlayer::processBusMessageElement(const QGstreamerMessage &message)
+{
+    QGstStructureView structure(gst_message_get_structure(message.message()));
+    auto type = structure.name();
+    if (type == "stream-topology")
+        topology = structure.clone();
+    return false;
+}
+
+bool QGstreamerMediaPlayer::processBusMessageAsyncDone(const QGstreamerMessage &)
+{
+    if (playerPipeline.state() >= GST_STATE_PAUSED)
+        detectPipelineIsSeekable();
+
+    return false;
+}
+
 bool QGstreamerMediaPlayer::processSyncMessage(const QGstreamerMessage &message)
 {
+    // GStreamer thread!
+
 #if QT_CONFIG(gstreamer_gl)
     if (message.type() != GST_MESSAGE_NEED_CONTEXT)
         return false;

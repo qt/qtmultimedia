@@ -81,9 +81,6 @@ public:
 
     const QGstPipeline &pipeline() const;
 
-    bool processBusMessage(const QGstreamerMessage& message) override;
-    bool processSyncMessage(const QGstreamerMessage& message) override;
-
 private:
     QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput, QMediaPlayer *parent);
 
@@ -184,6 +181,22 @@ private:
     };
 
     std::map<QGstPad, QGstPad, QGstPadLess> decoderOutputMap;
+
+    // Message handler
+    bool processBusMessage(const QGstreamerMessage &message) override;
+    bool processBusMessageTags(const QGstreamerMessage &);
+    bool processBusMessageDurationChanged(const QGstreamerMessage &);
+    bool processBusMessageEOS(const QGstreamerMessage &);
+    bool processBusMessageBuffering(const QGstreamerMessage &);
+    bool processBusMessageStateChanged(const QGstreamerMessage &);
+    bool processBusMessageError(const QGstreamerMessage &);
+    bool processBusMessageWarning(const QGstreamerMessage &);
+    bool processBusMessageInfo(const QGstreamerMessage &);
+    bool processBusMessageSegmentStart(const QGstreamerMessage &);
+    bool processBusMessageElement(const QGstreamerMessage &);
+    bool processBusMessageAsyncDone(const QGstreamerMessage &);
+
+    bool processSyncMessage(const QGstreamerMessage &message) override;
 
     // decoder connections
     QGObjectHandlerScopedConnection padAdded;
