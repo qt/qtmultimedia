@@ -59,6 +59,8 @@ private slots:
     void volume_data(){generate_audiofile_testrows();}
     void volume();
 
+    void stop_finishesPushMode_whenInvokedUponReadyReadSignal();
+
 private:
     using FilePtr = QSharedPointer<QFile>;
 
@@ -810,6 +812,37 @@ void tst_QAudioSource::volume()
     QTRY_VERIFY(qRound(audioInput.volume()*10.0f) == 10);
 
     audioInput.setVolume(volume);
+}
+
+void tst_QAudioSource::stop_finishesPushMode_whenInvokedUponReadyReadSignal()
+{
+    const auto defaultAudioInputDevice = QMediaDevices::defaultAudioInput();
+
+    QAudioFormat audioFormat;
+    audioFormat.setSampleFormat(QAudioFormat::Int16);
+    audioFormat.setSampleRate(qBound(defaultAudioInputDevice.minimumSampleRate(), 48000,
+                                     defaultAudioInputDevice.maximumSampleRate()));
+    audioFormat.setChannelCount(qBound(defaultAudioInputDevice.minimumChannelCount(), 2,
+                                       defaultAudioInputDevice.maximumChannelCount()));
+
+    const auto isFormatSupported = defaultAudioInputDevice.isFormatSupported(audioFormat);
+    QCOMPARE(isFormatSupported, true);
+
+    QAudioSource audioInput(audioFormat, this);
+
+    const auto audioInputDevice = audioInput.start();
+
+    auto isReadyReadReceived = false;
+    connect(audioInputDevice, &QIODevice::readyRead, this, [&]() {
+        audioInput.stop();
+        isReadyReadReceived = true;
+    });
+
+    const auto awaitedValue = QTest::qWaitFor([&] { return isReadyReadReceived; });
+    QVERIFY2(awaitedValue, "didn't receive readyRead signal");
+
+    QVERIFY2((audioInput.state() == QAudio::StoppedState),
+             "didn't transitions to StoppedState after close()");
 }
 
 QTEST_MAIN(tst_QAudioSource)
