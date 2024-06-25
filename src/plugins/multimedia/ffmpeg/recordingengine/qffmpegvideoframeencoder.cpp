@@ -92,6 +92,8 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
     if (result)
         qCDebug(qLcVideoFrameEncoder) << "found" << (result->m_accel ? "hw" : "sw") << "encoder"
                                       << result->m_codec->name << "for id" << result->m_codec->id;
+    else
+        qCWarning(qLcVideoFrameEncoder) << "No valid video codecs found";
 
     return result;
 }
@@ -292,7 +294,8 @@ bool VideoFrameEncoder::open()
 
     const int res = avcodec_open2(m_codecContext.get(), m_codec, opts);
     if (res < 0) {
-        qWarning() << "Couldn't open codec for writing" << err2str(res);
+        qCWarning(qLcVideoFrameEncoder)
+                << "Couldn't open video encoder" << m_codec->name << "; result:" << err2str(res);
         return false;
     }
     qCDebug(qLcVideoFrameEncoder) << "video codec opened" << res << "time base"

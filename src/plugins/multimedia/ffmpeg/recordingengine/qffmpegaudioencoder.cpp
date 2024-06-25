@@ -56,10 +56,11 @@ bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
 
     const int res = avcodec_open2(codecContext, codecContext->codec, opts);
 
-    qCDebug(qLcFFmpegAudioEncoder) << "audio codec open result:" << res;
-
-    if (res != 0)
+    if (res != 0) {
+        qCWarning(qLcFFmpegAudioEncoder) << "Cannot open audio codec" << codecContext->codec->name
+                                         << "; result:" << err2str(res);
         return false;
+    }
 
     qCDebug(qLcFFmpegAudioEncoder) << "audio codec params: fmt=" << codecContext->sample_fmt
                                    << "rate=" << codecContext->sample_rate;
