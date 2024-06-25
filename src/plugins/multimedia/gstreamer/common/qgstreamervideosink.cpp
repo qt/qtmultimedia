@@ -194,6 +194,9 @@ void QGstreamerVideoSink::updateSinkElement()
         m_gstVideoSink = newSink;
         m_sinkBin.add(m_gstVideoSink);
         qLinkGstElements(m_gstCapsFilter, m_gstVideoSink);
+
+        GstEvent *event = gst_event_new_reconfigure();
+        gst_element_send_event(m_gstVideoSink.element(), event);
         m_gstVideoSink.syncStateWithParent();
     });
 
