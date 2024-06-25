@@ -45,32 +45,61 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
     if (!stream)
         return nullptr;
 
-    const AVCodecID codecID = avCodecID(encoderSettings);
-    const QSize desiredTargetSize = encoderSettings.videoResolution();
-
     VideoFrameEncoderUPtr result;
 
     {
-        auto [codec, hwAccel] = findHwEncoder(
-                codecID, desiredTargetSize.isValid() ? desiredTargetSize : sourceParams.size);
+        const auto &deviceTypes = HWAccel::encodingDeviceTypes();
 
-        if (codec)
-            result = create(stream, codec, std::move(hwAccel), sourceParams, encoderSettings);
+        auto findDeviceType = [&](const AVCodec *codec) {
+            AVPixelFormat pixelFormat = findAVPixelFormat(codec, &isHwPixelFormat);
+            if (pixelFormat == AV_PIX_FMT_NONE)
+                return deviceTypes.end();
 
-        if (result)
-            qCDebug(qLcVideoFrameEncoder)
-                    << "found hw encoder" << codec->name << "for id" << codec->id;
+            return std::find_if(deviceTypes.begin(), deviceTypes.end(),
+                                [pixelFormat](AVHWDeviceType deviceType) {
+                                    return pixelFormatForHwDevice(deviceType) == pixelFormat;
+                                });
+        };
+
+        findAndOpenEncoder(
+                avCodecID(encoderSettings),
+                [&](const AVCodec *codec) {
+                    const auto found = findDeviceType(codec);
+                    if (found == deviceTypes.end())
+                        return NotSuitableAVScore;
+
+                    return DefaultAVScore - static_cast<AVScore>(found - deviceTypes.begin());
+                },
+                [&](const AVCodec *codec) {
+                    HWAccelUPtr hwAccel = HWAccel::create(*findDeviceType(codec));
+                    if (!hwAccel)
+                        return false;
+                    const QSize size = encoderSettings.videoResolution().isValid()
+                            ? encoderSettings.videoResolution()
+                            : sourceParams.size;
+                    if (!hwAccel->matchesSizeContraints(size))
+                        return false;
+                    result = create(stream, codec, std::move(hwAccel), sourceParams,
+                                    encoderSettings);
+                    return result != nullptr;
+                });
     }
 
     if (!result) {
-        const AVCodec *codec = findSwEncoder(codecID, swFormat(sourceParams));
-        if (codec)
-            result = create(stream, codec, nullptr, sourceParams, encoderSettings);
-
-        if (result)
-            qCDebug(qLcVideoFrameEncoder)
-                    << "found sw encoder" << codec->name << "for id" << codec->id;
+        findAndOpenEncoder(
+                avCodecID(encoderSettings),
+                [&](const AVCodec *codec) {
+                    return findSWFormatScores(codec, swFormat(sourceParams));
+                },
+                [&](const AVCodec *codec) {
+                    result = create(stream, codec, nullptr, sourceParams, encoderSettings);
+                    return result != nullptr;
+                });
     }
+
+    if (result)
+        qCDebug(qLcVideoFrameEncoder) << "found" << (result->m_accel ? "hw" : "sw") << "encoder"
+                                      << result->m_codec->name << "for id" << result->m_codec->id;
 
     return result;
 }
