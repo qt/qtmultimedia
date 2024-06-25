@@ -15,16 +15,10 @@
 #include <qgstreamerformatinfo_p.h>
 
 #include <QtMultimedia/qaudiodevice.h>
-#include <QtCore/qdir.h>
-#include <QtCore/qsocketnotifier.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/private/quniquehandle_p.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 #if QT_CONFIG(gstreamer_gl)
 #  include <gst/gl/gl.h>
