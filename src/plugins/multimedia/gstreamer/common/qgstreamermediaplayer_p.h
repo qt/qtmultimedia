@@ -19,7 +19,6 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 
-#include <QtCore/qstack.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qtimer.h>
 
@@ -31,9 +30,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QNetworkAccessManager;
 class QGstreamerMessage;
-class QGstAppSource;
 class QGstreamerAudioOutput;
 class QGstreamerVideoOutput;
 
