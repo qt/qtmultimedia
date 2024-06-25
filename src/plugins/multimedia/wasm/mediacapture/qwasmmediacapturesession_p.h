@@ -20,6 +20,10 @@
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include "qwasmmediarecorder_p.h"
+#include "qwasmvideooutput_p.h"
+
+#include "private/qcapturablewindow_p.h"
+
 #include <QScopedPointer>
 #include <QtCore/qloggingcategory.h>
 #include <common/qwasmvideooutput_p.h>
@@ -33,12 +37,19 @@ class QWasmCamera;
 
 class QWasmMediaCaptureSession : public QPlatformMediaCaptureSession
 {
+
 public:
     explicit QWasmMediaCaptureSession();
     ~QWasmMediaCaptureSession() override;
 
     QPlatformCamera *camera() override;
     void setCamera(QPlatformCamera *camera) override;
+
+    QPlatformSurfaceCapture *screenCapture() override;
+    void setScreenCapture(QPlatformSurfaceCapture *) override;
+
+    QPlatformSurfaceCapture *windowCapture() override;
+    void setWindowCapture(QPlatformSurfaceCapture *) override;
 
     QPlatformImageCapture *imageCapture() override;
     void setImageCapture(QPlatformImageCapture *imageCapture) override;
@@ -54,18 +65,26 @@ public:
     bool hasAudio();
     QVideoSink *videoSink() { return m_wasmSink; }
     void setReadyForCapture(bool ready);
+    void setVideoSource(std::string surfacetype);
 
 private:
     QWasmMediaRecorder *m_mediaRecorder = nullptr;
 
-    QScopedPointer <QWasmCamera> m_camera;
-
+    QWasmCamera *m_camera = nullptr;
     QWasmImageCapture *m_imageCapture = nullptr;
+    QPlatformSurfaceCapture *m_windowCapture = nullptr;
+    QPlatformSurfaceCapture *m_screenCapture = nullptr;
 
     QPlatformAudioInput *m_audioInput = nullptr;
     QPlatformAudioOutput *m_audioOutput = nullptr;
+    std::unique_ptr<QWasmVideoOutput> m_videoOutput;
+
     bool m_needsAudio = false;
     QVideoSink *m_wasmSink = nullptr;
+
+    emscripten::val m_mediaCaptureStream;
+    std::string m_displaySurface;
+    QList<QCapturableWindow> m_capuredWindows;
 };
 
 QT_END_NAMESPACE

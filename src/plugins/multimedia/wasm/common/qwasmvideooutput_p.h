@@ -38,7 +38,7 @@ class QWasmVideoOutput : public QObject
     Q_OBJECT
 public:
     using MediaStatus = QMediaPlayer::MediaStatus;
-    enum WasmVideoMode { VideoOutput, Camera };
+    enum WasmVideoMode { VideoDisplay, Camera, SurfaceCapture };
     Q_ENUM(WasmVideoMode)
 
     explicit QWasmVideoOutput(QObject *parent = nullptr);
@@ -97,6 +97,10 @@ public:
 
     std::string m_videoSurfaceId;
 
+    static QVideoFrameFormat::PixelFormat fromJsPixelFormat(std::string videoFormat);
+
+    void removeCurrentVideoElement();
+
 Q_SIGNALS:
     void readyChanged(bool);
     void bufferingChanged(qint32 percent);
@@ -114,7 +118,6 @@ private:
     void videoComputeFrame(void *context);
     void getDeviceSettings();
 
-    static QVideoFrameFormat::PixelFormat fromJsPixelFormat(std::string videoFormat);
 
     emscripten::val m_video = emscripten::val::undefined();
     emscripten::val m_videoElementSource = emscripten::val::undefined();
@@ -133,7 +136,7 @@ private:
 
     emscripten::val m_offscreenContext = emscripten::val::undefined();
     QSize m_pendingVideoSize;
-    QWasmVideoOutput::WasmVideoMode m_currentVideoMode = QWasmVideoOutput::VideoOutput;
+    QWasmVideoOutput::WasmVideoMode m_currentVideoMode = QWasmVideoOutput::VideoDisplay;
     QMediaPlayer::MediaStatus m_currentMediaStatus;
     qreal m_currentBufferedValue;
 

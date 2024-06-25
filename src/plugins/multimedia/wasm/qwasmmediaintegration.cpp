@@ -22,6 +22,9 @@
 #include "mediacapture/qwasmcamera_p.h"
 #include "mediacapture/qwasmmediacapturesession_p.h"
 #include "mediacapture/qwasmimagecapture_p.h"
+#include "mediacapture/qwasmscreencapture_p.h"
+#include "mediacapture/qwasmwindowcapture_p.h"
+#include "mediacapture/qwasmcapturablewindows_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -97,6 +100,26 @@ QMaybe<QPlatformImageCapture *>
 QWasmMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return new QWasmImageCapture(imageCapture);
+}
+
+QList<QCameraDevice> QWasmMediaIntegration::videoInputs()
+{
+    return videoDevices()->videoInputs();
+}
+
+QPlatformSurfaceCapture *QWasmMediaIntegration::createScreenCapture(QScreenCapture *screenCapture)
+{
+    return new QWasmScreenCapture(screenCapture);
+}
+
+QPlatformSurfaceCapture *QWasmMediaIntegration::createWindowCapture(QWindowCapture *windowCapture)
+{
+    return new QWasmWindowCapture(windowCapture);
+}
+
+QPlatformCapturableWindows *QWasmMediaIntegration::createCapturableWindows()
+{
+    return new QWasmCapturableWindows();
 }
 
 QT_END_NAMESPACE

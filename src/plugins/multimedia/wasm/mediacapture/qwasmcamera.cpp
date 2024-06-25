@@ -61,6 +61,8 @@ bool QWasmCamera::isActive() const
 
 void QWasmCamera::setActive(bool active)
 {
+    if (m_cameraActive == active)
+        return;
     if (!m_CaptureSession) {
         updateError(QCamera::CameraError, QStringLiteral("video surface error"));
         m_shouldBeActive = true;
@@ -86,7 +88,8 @@ void QWasmCamera::setActive(bool active)
     m_cameraActive = active;
     m_shouldBeActive = false;
 
-    updateCameraFeatures();
+    if (active)
+        updateCameraFeatures();
     emit activeChanged(active);
     if (m_CaptureSession->imageCapture()) {
          if (active) {

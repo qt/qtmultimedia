@@ -11,6 +11,7 @@
 #include <private/qstdweb_p.h>
 #include <QtCore/QIODevice>
 #include <QFile>
+#include <QDir>
 #include <QTimer>
 #include <QDebug>
 
@@ -169,6 +170,11 @@ void QWasmMediaRecorder::startAudioRecording()
     startStream();
 }
 
+void QWasmMediaRecorder::initMediaSettings()
+{
+
+    m_hasMediaSettings = true;
+}
 void QWasmMediaRecorder::setStream(emscripten::val stream)
 {
     emscripten::val emMediaSettings = emscripten::val::object();
@@ -415,7 +421,9 @@ void QWasmMediaRecorder::audioDataAvailable(emscripten::val blob, double timeCod
 // constraints are suggestions, as not all hardware supports all settings
 void QWasmMediaRecorder::setTrackContraints(QMediaEncoderSettings &settings, emscripten::val stream)
 {
-    qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << settings.audioSampleRate();
+    qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO
+    << settings.audioSampleRate()
+    << settings.videoResolution();
 
     if (stream.isUndefined() || stream.isNull()) {
         qCDebug(qWasmMediaRecorder)<< Q_FUNC_INFO << "could not find MediaStream";
@@ -431,6 +439,7 @@ void QWasmMediaRecorder::setTrackContraints(QMediaEncoderSettings &settings, ems
 
     emscripten::val videoParams = emscripten::val::object();
     emscripten::val constraints = emscripten::val::object();
+    videoParams.set("resizeMode",std::string("crop-and-scale"));
 
     if (hasCamera()) {
         if (settings.videoFrameRate() > 0)
@@ -464,21 +473,22 @@ void QWasmMediaRecorder::setTrackContraints(QMediaEncoderSettings &settings, ems
         if (videoTracks["length"].as<int>() > 0) {
             // try to apply the video options
             qstdweb::Promise::make(videoTracks[0], QStringLiteral("applyConstraints"),
-            { .thenFunc =
-                        [this](emscripten::val result) {
-                    Q_UNUSED(result)
-                    startStream();
-                },
-                        .catchFunc =
-                        [this](emscripten::val theError) {
-                    qWarning() << "setting video params failed error";
-                    qCDebug(qWasmMediaRecorder)
-                            << theError["code"].as<int>()
-                            << QString::fromStdString(theError["message"].as<std::string>());
-                    updateError(QMediaRecorder::ResourceError,
-                                QString::fromStdString(theError["message"].as<std::string>()));
-                } },
-            constraints);
+                                   { .thenFunc =
+                                       [this](emscripten::val result) {
+                                           Q_UNUSED(result)
+                                           startStream();
+                                       },
+                                       .catchFunc =
+                                       [this](emscripten::val theError) {
+                                           qCDebug(qWasmMediaRecorder)
+                                           << theError["code"].as<int>()
+                                           << QString::fromStdString(theError["message"].as<std::string>());
+                                           updateError(QMediaRecorder::ResourceError,
+                                                       QString::fromStdString(theError["message"].as<std::string>()));
+                                       },
+                                       .finallyFunc = []() {},
+                                   },
+                                   constraints);
         }
     }
 }
@@ -506,9 +516,16 @@ void QWasmMediaRecorder::startStream()
 void QWasmMediaRecorder::setUpFileSink()
 {
     QString m_targetFileName = outputLocation().toLocalFile();
-    QString suffix = m_mediaSettings.preferredSuffix();
+
+    QString suffix = m_mediaSettings.mimeType().preferredSuffix();
+    // what if no mimeType yet?
+
+    if (!m_mediaSettings.mimeType().isValid()) {
+        qWarning() << "mimetype not valid, using m4v";
+        suffix = QStringLiteral(".m4v");
+    }
     if (m_targetFileName.isEmpty()) {
-        m_targetFileName = u"/home/web_user/tmp."_s + suffix;
+        m_targetFileName =  QDir::homePath() + u"/tmp."_s + suffix;
         QPlatformMediaRecorder::setOutputLocation(m_targetFileName);
     }
 

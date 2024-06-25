@@ -81,6 +81,9 @@ private:
     bool m_isRecording = false;
     QScopedPointer <QElapsedTimer> m_durationTimer;
 
+    void initMediaSettings();
+    bool m_hasMediaSettings = false;
+
 private Q_SLOTS:
 };
 

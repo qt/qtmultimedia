@@ -34,7 +34,7 @@ QWasmMediaPlayer::~QWasmMediaPlayer()
 
 void QWasmMediaPlayer::initVideo()
 {
-    m_videoOutput->setVideoMode(QWasmVideoOutput::VideoOutput);
+    m_videoOutput->setVideoMode(QWasmVideoOutput::VideoDisplay);
     QUuid videoElementId = QUuid::createUuid();
     qCDebug(lcMediaPlayer) << Q_FUNC_INFO << "videoElementId"<< videoElementId << this;
 

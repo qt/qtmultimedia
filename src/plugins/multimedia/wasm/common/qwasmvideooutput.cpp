@@ -70,7 +70,7 @@ void QWasmVideoOutput::start()
         return;
     }
     switch (m_currentVideoMode) {
-    case QWasmVideoOutput::VideoOutput: {
+    case QWasmVideoOutput::VideoDisplay: {
         emscripten::val sourceObj = m_video["src"];
         if ((sourceObj.isUndefined() || sourceObj.isNull()) && !m_source.isEmpty()) {
             m_video.set("src", m_source);
@@ -78,6 +78,7 @@ void QWasmVideoOutput::start()
         if (!isReady())
             m_video.call<void>("load");
     } break;
+    case QWasmVideoOutput::SurfaceCapture:
     case QWasmVideoOutput::Camera: {
         if (!m_cameraIsReady) {
             m_shouldBeStarted = true;
@@ -104,13 +105,8 @@ void QWasmVideoOutput::start()
             }
             emscripten::val videoSettings = videoTracks[0].call<emscripten::val>("getSettings");
             if (!videoSettings.isNull() || !videoSettings.isUndefined()) {
-                // double fRate = videoSettings["frameRate"].as<double>(); TODO
                 const int width = videoSettings["width"].as<int>();
                 const int height = videoSettings["height"].as<int>();
-
-                qCDebug(qWasmMediaVideoOutput)
-                     << "width" << width << "height" << height;
-
                 updateVideoElementGeometry(QRect(0, 0, width, height));
             }
         }
@@ -121,12 +117,11 @@ void QWasmVideoOutput::start()
     m_toBePaused = false;
     m_video.call<void>("play");
 
-    if (m_currentVideoMode == QWasmVideoOutput::Camera) {
-        if (m_currentMediaStatus == MediaStatus::LoadedMedia) {
+    if (m_currentVideoMode == QWasmVideoOutput::Camera
+        || m_currentVideoMode == QWasmVideoOutput::SurfaceCapture) {
             emit readyChanged(true);
             if (m_hasVideoFrame)
                 videoFrameTimerCallback();
-       }
     }
 }
 
@@ -140,11 +135,20 @@ void QWasmVideoOutput::stop()
         return;
     }
     m_shouldStop = true;
-    if (m_toBePaused) {
+    if (!m_toBePaused) {
         // we are stopped , need to reset
-        m_toBePaused = false;
-        m_video.set("srcObject", emscripten::val::null());
-        m_video.call<void>("load");
+        m_video.call<void>("pause");
+        emscripten::val stream = m_video["srcObject"];
+        if (!stream.isNull() && !stream.isUndefined() && !stream["getTracks"].isUndefined()) {
+            emscripten::val tracks = stream.call<emscripten::val>("getTracks");
+            if (!tracks.isUndefined() && tracks["length"].as<int>() > 0) {
+                for (int i = 0; i < tracks["length"].as<int>(); i++) {
+                    tracks[i].call<void>("stop");
+                }
+            }
+        }
+         m_video.set("srcObject", emscripten::val::null());
+         m_video.call<void>("load");
     } else {
         m_video.call<void>("pause");
     }
@@ -265,7 +269,8 @@ void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
                     << "getUserMedia fail"
                     << QString::fromStdString(error["name"].as<std::string>())
                     << QString::fromStdString(error["message"].as<std::string>());
-        }
+        },
+        .finallyFunc = [] {}
     };
 
     emscripten::val constraints = emscripten::val::object();
@@ -276,6 +281,7 @@ void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
     emscripten::val exactDeviceId = emscripten::val::object();
     exactDeviceId.set("exact", id);
     videoContraints.set("deviceId", exactDeviceId);
+    videoContraints.set("resizeMode", std::string("crop-and-scale"));
     constraints.set("video", videoContraints);
 
     // we do it this way as this prompts user for mic/camera permissions
@@ -389,7 +395,7 @@ void QWasmVideoOutput::createVideoElement(const std::string &id)
     emscripten::val oldVideo = document.call<emscripten::val>("getElementById", id);
 
     // need to remove stale element
-    if (!oldVideo.isNull())
+    if (!oldVideo.isUndefined() && !oldVideo.isNull())
         oldVideo.call<void>("remove");
 
     m_videoSurfaceId = id;
@@ -466,6 +472,12 @@ void QWasmVideoOutput::createOffscreenElement(const QSize &offscreenSize)
     }
     std::string offscreenId = m_videoSurfaceId + "_offscreenOutputSurface";
     m_offscreen.set("id", offscreenId.c_str());
+}
+
+void QWasmVideoOutput::removeCurrentVideoElement()
+{
+    if (!m_video.isUndefined() && !m_video.isNull())
+        m_video.call<void>("remove");
 }
 
 void QWasmVideoOutput::doElementCallbacks()
@@ -749,14 +761,13 @@ void QWasmVideoOutput::doElementCallbacks()
 
 void QWasmVideoOutput::updateVideoElementGeometry(const QRect &windowGeometry)
 {
-    qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << windowGeometry;
     QRect m_videoElementSource(windowGeometry.topLeft(), windowGeometry.size());
 
     emscripten::val style = m_video["style"];
     style.set("left", QStringLiteral("%1px").arg(m_videoElementSource.left()).toStdString());
     style.set("top", QStringLiteral("%1px").arg(m_videoElementSource.top()).toStdString());
-    style.set("width", QStringLiteral("%1px").arg(m_videoElementSource.width()).toStdString());
-    style.set("height", QStringLiteral("%1px").arg(m_videoElementSource.height()).toStdString());
+    m_video.set("width", m_videoElementSource.width());
+    m_video.set("height", m_videoElementSource.height());
     style.set("z-index", "999");
 
     if (!m_hasVideoFrame) {
@@ -850,7 +861,7 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
     QVideoFrame vFrame = QVideoFramePrivate::createFrame(
             std::make_unique<QMemoryVideoBuffer>(
                     std::move(frameBytes),
-                    textureDescription->strideForWidth(frameFormat.frameWidth())),
+                    textureDescription->strideForWidth(frameFormat.frameWidth())), // width of line with padding
             frameFormat);
     QWasmVideoOutput *wasmVideoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
 
@@ -870,12 +881,19 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
     emscripten::val oneVideoFrame = val::global("VideoFrame").new_(videoElement);
 
     if (oneVideoFrame.isNull() || oneVideoFrame.isUndefined()) {
-         qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO
+        qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO
                                        << "ERROR" << "failed to construct VideoFrame";
         return;
     }
-    emscripten::val frameBytesAllocationSize = oneVideoFrame.call<emscripten::val>("allocationSize");
 
+    emscripten::val options = emscripten::val::object();
+    emscripten::val rectOptions = emscripten::val::object();
+
+    rectOptions.set("width",oneVideoFrame["displayWidth"].as<int>());
+    rectOptions.set("height", oneVideoFrame["displayHeight"].as<int>());
+    options.set("rect", rectOptions);
+
+    emscripten::val frameBytesAllocationSize = oneVideoFrame.call<emscripten::val>("allocationSize", options);
     emscripten::val frameBuffer =
             emscripten::val::global("Uint8Array").new_(frameBytesAllocationSize);
     QWasmVideoOutput *wasmVideoOutput =
@@ -894,7 +912,6 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
         const QSize frameSize(oneVideoFrame["displayWidth"].as<int>(),
                               oneVideoFrame["displayHeight"].as<int>());
 
-
         QByteArray frameBytes = QByteArray::fromEcmaUint8Array(frameBuffer);
 
         QVideoFrameFormat::PixelFormat pixelFormat = fromJsPixelFormat(oneVideoFrame["format"].as<std::string>());
@@ -904,11 +921,9 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
         }
         QVideoFrameFormat frameFormat = QVideoFrameFormat(frameSize, pixelFormat);
 
-        auto *textureDescription = QVideoTextureHelper::textureDescription(frameFormat.pixelFormat());
-
         auto buffer = std::make_unique<QMemoryVideoBuffer>(
                 std::move(frameBytes),
-                textureDescription->strideForWidth(frameFormat.frameWidth()));
+                oneVideoFrame["codedWidth"].as<int>());
 
         QVideoFrame vFrame =
                 QVideoFramePrivate::createFrame(std::move(buffer), std::move(frameFormat));
@@ -966,19 +981,18 @@ void QWasmVideoOutput::videoFrameTimerCallback()
         return true;
     };
 
-    if (!m_shouldStop && (m_video["className"].as<std::string>() == "Camera" && m_cameraIsReady)
+    if ((!m_shouldStop && m_video["className"].as<std::string>() == "Camera" && m_cameraIsReady)
         || isReady())
         emscripten_request_animation_frame_loop(frame, this);
     // about 60 fps
 }
-
 
 QVideoFrameFormat::PixelFormat QWasmVideoOutput::fromJsPixelFormat(std::string videoFormat)
 {
     if (videoFormat == "I420")
         return QVideoFrameFormat::Format_YUV420P;
     // no equivalent pixel format
-    //   else if (videoFormat == "I420A")
+    //   else if (videoFormat == "I420A") // AYUV ?
     else if (videoFormat == "I422")
         return QVideoFrameFormat::Format_YUV422P;
     // no equivalent pixel format
@@ -987,8 +1001,6 @@ QVideoFrameFormat::PixelFormat QWasmVideoOutput::fromJsPixelFormat(std::string v
         return QVideoFrameFormat::Format_NV12;
     else if (videoFormat == "RGBA")
         return QVideoFrameFormat::Format_RGBA8888;
-    else if (videoFormat == "I420")
-        return QVideoFrameFormat::Format_YUV420P;
     else if (videoFormat == "RGBX")
         return QVideoFrameFormat::Format_RGBX8888;
     else if (videoFormat == "BGRA")
@@ -998,7 +1010,6 @@ QVideoFrameFormat::PixelFormat QWasmVideoOutput::fromJsPixelFormat(std::string v
 
     return QVideoFrameFormat::Format_Invalid;
 }
-
 
 emscripten::val QWasmVideoOutput::getDeviceCapabilities()
 {

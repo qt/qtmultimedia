@@ -39,9 +39,14 @@ public:
     QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *recorder) override;
     QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *imageCapture) override;
 
+    QList<QCameraDevice> videoInputs();
+    QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *screenCapture) override;
+    QPlatformSurfaceCapture *createWindowCapture(QWindowCapture *windowCapture) override;
+
 protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;
     QPlatformVideoDevices *createVideoDevices() override;
+    QPlatformCapturableWindows *createCapturableWindows() override;
 };
 
 QT_END_NAMESPACE
