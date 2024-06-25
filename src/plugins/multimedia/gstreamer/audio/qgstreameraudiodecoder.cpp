@@ -4,8 +4,9 @@
 
 #include <audio/qgstreameraudiodecoder_p.h>
 
-#include <common/qgstreamermessage_p.h>
 #include <common/qgst_debug_p.h>
+#include <common/qgstappsource_p.h>
+#include <common/qgstreamermessage_p.h>
 #include <common/qgstutils_p.h>
 
 #include <gst/gstvalue.h>
@@ -83,27 +84,25 @@ QGstreamerAudioDecoder::~QGstreamerAudioDecoder()
     stop();
 
     m_playbin.removeMessageFilter(this);
-
-    delete m_appSrc;
 }
 
 void QGstreamerAudioDecoder::configureAppSrcElement([[maybe_unused]] GObject *object, GObject *orig,
                                                     [[maybe_unused]] GParamSpec *pspec,
                                                     QGstreamerAudioDecoder *self)
 {
-    // In case we switch from appsrc to not
-    if (!self->m_appSrc)
-        return;
-
     QGstElementHandle appsrc;
     g_object_get(orig, "source", &appsrc, NULL);
 
-    auto *qAppSrc = self->m_appSrc;
-    qAppSrc->setExternalAppSrc(QGstAppSrc{
-            qGstSafeCast<GstAppSrc>(appsrc.get()),
-            QGstAppSrc::NeedsRef, // CHECK: can we `release()`?
-    });
-    qAppSrc->setup(self->mDevice);
+    GstAppSrc *gstAppSrc = qGstSafeCast<GstAppSrc>(appsrc.release());
+
+    // NOLINTBEGIN(clang-analyzer-cplusplus.NewDeleteLeaks)
+    // GstAppSrc takes ownership of QGstAppSource
+
+    QGstAppSource *appSource = new QGstAppSource(gstAppSrc, self->mDevice);
+    Q_ASSERT(appSource);
+    return;
+
+    // NOLINTEND(clang-analyzer-cplusplus.NewDeleteLeaks)
 }
 
 bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
@@ -244,8 +243,6 @@ void QGstreamerAudioDecoder::setSource(const QUrl &fileName)
 {
     stop();
     mDevice = nullptr;
-    delete m_appSrc;
-    m_appSrc = nullptr;
 
     bool isSignalRequired = (mSource != fileName);
     mSource = fileName;
@@ -279,16 +276,6 @@ void QGstreamerAudioDecoder::start()
         if (!mDevice->isOpen() || !mDevice->isReadable()) {
             processInvalidMedia(QAudioDecoder::ResourceError, QLatin1String("Unable to read from specified device"));
             return;
-        }
-
-        if (!m_appSrc) {
-            auto maybeAppSrc = QGstAppSource::create(this);
-            if (maybeAppSrc) {
-                m_appSrc = maybeAppSrc.value();
-            } else {
-                processInvalidMedia(QAudioDecoder::ResourceError, maybeAppSrc.error());
-                return;
-            }
         }
 
         m_playbin.set("uri", "appsrc://");

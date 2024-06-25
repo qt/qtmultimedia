@@ -78,20 +78,6 @@ QGstreamerMediaPlayer::TrackSelector &QGstreamerMediaPlayer::trackSelector(Track
     return ts;
 }
 
-void QGstreamerMediaPlayer::unrefAppSrc(QGstElement &element)
-{
-    using namespace Qt::Literals;
-
-    Q_ASSERT(element.typeName() == "GstAppSrc"_L1);
-
-    QGstAppSource *object;
-    g_object_get(element.element(), "qgst-app-source", &object, nullptr);
-
-    object->setExternalAppSrc({});
-
-    appSourceElements.remove(element);
-}
-
 void QGstreamerMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
     if (status != QMediaPlayer::StalledMedia)
@@ -180,12 +166,6 @@ QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
     playerPipeline.removeMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
     playerPipeline.removeMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(this));
     playerPipeline.setStateSync(GST_STATE_NULL);
-
-    // explicitly remove all app sources: to prevent circular references
-    while (!appSourceElements.empty()) {
-        QGstElement element = *appSourceElements.begin();
-        playerPipeline.remove(element);
-    }
 }
 
 std::chrono::nanoseconds QGstreamerMediaPlayer::pipelinePosition() const
@@ -863,26 +843,15 @@ void QGstreamerMediaPlayer::sourceSetupCallback(GstElement *uridecodebin, GstEle
     qCDebug(qLcMediaPlayer) << "Setting up source:" << typeName;
 
     if (typeName == std::string_view("GstAppSrc")) {
-        QMaybe<QGstAppSource *> appSource = QGstAppSource::create(nullptr);
+        // NOLINTBEGIN(clang-analyzer-cplusplus.NewDeleteLeaks)
+        // GstAppSrc takes ownership of QGstAppSource
+
+        QGstAppSource *appSource =
+                new QGstAppSource(qGstSafeCast<GstAppSrc>(source), self->m_stream);
         Q_ASSERT(appSource);
-
-        g_object_set_data_full(qGstCheckedCast<GObject>(source), "qgst-app-source",
-                               appSource.value(), [](gpointer ptr) {
-            delete reinterpret_cast<QGstAppSource *>(ptr);
-            return;
-        });
-
-        QGstAppSrc appSrcInPipeline{
-            qGstSafeCast<GstAppSrc>(source),
-            QGstAppSrc::NeedsRef,
-        };
-
-        // caveat: we create a circular reference between GstAppSrc and QGstAppSrc, so we need to
-        // ensure to setExternalAppSrc({}) when the GstAppSrc is removed from the pipeline or the
-        // QGstreamerMediaPlayer is destroyed.
-        appSource.value()->setExternalAppSrc(appSrcInPipeline);
-        appSource.value()->setup(self->m_stream);
         return;
+
+        // NOLINTEND(clang-analyzer-cplusplus.NewDeleteLeaks)
     }
 
     if (typeName == std::string_view("GstRTSPSrc")) {
@@ -964,9 +933,6 @@ void QGstreamerMediaPlayer::decodebinElementRemovedCallback(GstBin * /*decodebin
 
     if (isQueue(c))
         self->decodeBinQueues -= 1;
-
-    if (c.typeName() == "GstAppSrc"_L1)
-        self->unrefAppSrc(c); // we need to remove the back-reference to avoid circular references
 }
 
 void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
@@ -1038,8 +1004,8 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
     elementAdded =
             decoder.connect("deep-element-added", GCallback(decodebinElementAddedCallback), this);
-    elementRemoved =
-            decoder.connect("deep-element-removed", GCallback(decodebinElementAddedCallback), this);
+    elementRemoved = decoder.connect("deep-element-removed",
+                                     GCallback(decodebinElementRemovedCallback), this);
 
     padAdded = decoder.onPadAdded<&QGstreamerMediaPlayer::decoderPadAdded>(this);
     padRemoved = decoder.onPadRemoved<&QGstreamerMediaPlayer::decoderPadRemoved>(this);
