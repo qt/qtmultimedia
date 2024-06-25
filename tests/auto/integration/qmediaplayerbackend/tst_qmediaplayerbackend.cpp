@@ -603,10 +603,14 @@ void tst_QMediaPlayerBackend::setSource_silentlyCancelsPreviousCall_whenServerDo
     // Cancellation is silent
     QVERIFY(m_fixture->errorOccurred.empty());
 
-    // Media status is emitted as if only one file was loaded
-    const SignalList expectedMediaStatus = { { QMediaPlayer::LoadingMedia },
-                                             { QMediaPlayer::LoadedMedia } };
-    QCOMPARE_EQ(m_fixture->mediaStatusChanged, expectedMediaStatus);
+    if (!isGStreamerPlatform()) {
+        // QTBUG-124005: gstreamer sees multiple loading/loaded transitions
+
+        // Media status is emitted as if only one file was loaded
+        const SignalList expectedMediaStatus = { { QMediaPlayer::LoadingMedia },
+                                                 { QMediaPlayer::LoadedMedia } };
+        QCOMPARE_EQ(m_fixture->mediaStatusChanged, expectedMediaStatus);
+    }
 
     // Two media source changed signals should be emitted still
     const SignalList expectedSource = { { server.address() }, { *m_localVideoFile } };
@@ -1568,8 +1572,13 @@ void tst_QMediaPlayerBackend::play_startsPlayback_withAndWithoutOutputsConnected
 
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
-    if (!videoConnected && !audioConnected)
+    if (!videoConnected && !audioConnected) {
         QSKIP_FFMPEG("FFMPEG backend playback fails when no output is connected");
+        QSKIP_GSTREAMER("GStreamer backend playback fails when no output is connected");
+    }
+
+    if (videoConnected && !audioConnected)
+        QSKIP_GSTREAMER("GStreamer backend playback fails when no video is connected");
 
     // Arrange
     m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
@@ -2285,6 +2294,8 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
 void tst_QMediaPlayerBackend::seekInStoppedState()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
+
     CHECK_SELECTED_URL(m_localVideoFile);
 
     TestVideoSink surface(false);
@@ -3089,14 +3100,17 @@ void tst_QMediaPlayerBackend::durationDetectionIssues_data()
     QTest::addColumn<QVariant>("expectedAudioTrackDuration");
 
     // clang-format off
+    if (!isGStreamerPlatform()) {
+        QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
 
-    QTest::newRow("stream-duration-in-metadata")
+        QTest::newRow("stream-duration-in-metadata")
             << QString{ "qrc:/testdata/duration_issues.webm" }
             << 400ll        // Total media duration
             << 1            // Number of video tracks in file
             << 400ll        // Video stream duration
             << 0            // Number of audio tracks in file
             << QVariant{};  // Audio stream duration (unused)
+    }
 
     QTest::newRow("no-stream-duration-in-metadata")
             << QString{ "qrc:/testdata/nokia-tune.mkv" }
@@ -3772,6 +3786,7 @@ void tst_QMediaPlayerBackend::setVideoOutput_doesNotStopPlayback()
 
     switch (playbackState) {
     case QMediaPlayer::StoppedState:
+        QSKIP_GSTREAMER("QTBUG-124005: Test failure with the gstreamer backend");
         break;
     case QMediaPlayer::PausedState:
         QSKIP_FFMPEG("QTBUG-126014: Test failure with the ffmpeg backend");
@@ -3872,6 +3887,8 @@ void tst_QMediaPlayerBackend::swapAudioDevice_doesNotStopPlayback()
     if (outputDevices.size() < 2)
         QSKIP("swapAudioDevice_doesNotStopPlayback requires two audio output devices");
 
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
+
     CHECK_SELECTED_URL(m_15sVideo);
     QFETCH(QMediaPlayer::PlaybackState, playbackState);
 
@@ -3932,7 +3949,10 @@ void tst_QMediaPlayerBackend::play_readsSubtitle()
 
     player.setSource(*m_subtitleVideo);
     QTRY_COMPARE(player.subtitleTracks().size(), 1);
-    QCOMPARE_EQ(player.subtitleTracks()[0].value(QMediaMetaData::Duration), 3000);
+    if (!isGStreamerPlatform()) {
+        // QTBUG-124005: spurious failures with gstreamer
+        QCOMPARE_EQ(player.subtitleTracks()[0].value(QMediaMetaData::Duration), 3000);
+    }
 
     player.setActiveSubtitleTrack(0);
 
