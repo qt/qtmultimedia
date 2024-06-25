@@ -32,7 +32,10 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
 
     m_sourceParams.size = format.frameSize();
     m_sourceParams.format = hwFormat && *hwFormat != AV_PIX_FMT_NONE ? *hwFormat : swFormat;
-    m_sourceParams.swFormat = swFormat;
+    // Temporary: check isSwPixelFormat because of android issue (QTBUG-116836)
+    // TODO: assign swFormat.
+    m_sourceParams.swFormat =
+            isSwPixelFormat(m_sourceParams.format) ? m_sourceParams.format : swFormat;
     m_sourceParams.rotation = format.rotation();
     m_sourceParams.xMirrored = format.isMirrored();
     m_sourceParams.yMirrored = format.scanLineDirection() == QVideoFrameFormat::BottomToTop;
@@ -40,6 +43,12 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
     m_sourceParams.colorTransfer = QFFmpeg::toAvColorTransfer(format.colorTransfer());
     m_sourceParams.colorSpace = QFFmpeg::toAvColorSpace(format.colorSpace());
     m_sourceParams.colorRange = QFFmpeg::toAvColorRange(format.colorRange());
+
+    if (!m_settings.videoResolution().isValid())
+        m_settings.setVideoResolution(m_sourceParams.size);
+
+    if (m_settings.videoFrameRate() <= 0.)
+        m_settings.setVideoFrameRate(m_sourceParams.frameRate);
 }
 
 VideoEncoder::~VideoEncoder() = default;
@@ -245,7 +254,7 @@ std::pair<qint64, qint64> VideoEncoder::frameTimeStamps(const QVideoFrame &frame
     if (endTime == -1) {
         qreal frameRate = frame.streamFrameRate();
         if (frameRate <= 0.)
-            frameRate = m_frameEncoder->settings().videoFrameRate();
+            frameRate = m_settings.videoFrameRate();
 
         Q_ASSERT(frameRate > 0.f);
         endTime = startTime + static_cast<qint64>(std::round(VideoFrameTimeBase / frameRate));

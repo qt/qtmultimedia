@@ -19,11 +19,6 @@ Q_STATIC_LOGGING_CATEGORY(qLcVideoFrameEncoder, "qt.multimedia.ffmpeg.videoencod
 namespace QFFmpeg {
 
 namespace {
-AVPixelFormat swFormat(const VideoFrameEncoder::SourceParams &params)
-{
-    // Temporary: check isSwPixelFormat because of android issue (QTBUG-116836)
-    return isSwPixelFormat(params.format) ? params.format : params.swFormat;
-}
 
 AVCodecID avCodecID(const QMediaEncoderSettings &settings)
 {
@@ -74,10 +69,7 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
                     HWAccelUPtr hwAccel = HWAccel::create(*findDeviceType(codec));
                     if (!hwAccel)
                         return false;
-                    const QSize size = encoderSettings.videoResolution().isValid()
-                            ? encoderSettings.videoResolution()
-                            : sourceParams.size;
-                    if (!hwAccel->matchesSizeContraints(size))
+                    if (!hwAccel->matchesSizeContraints(encoderSettings.videoResolution()))
                         return false;
                     result = create(stream, codec, std::move(hwAccel), sourceParams,
                                     encoderSettings);
@@ -89,7 +81,7 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
         findAndOpenEncoder(
                 avCodecID(encoderSettings),
                 [&](const AVCodec *codec) {
-                    return findSWFormatScores(codec, swFormat(sourceParams));
+                    return findSWFormatScores(codec, sourceParams.swFormat);
                 },
                 [&](const AVCodec *codec) {
                     result = create(stream, codec, nullptr, sourceParams, encoderSettings);
@@ -113,13 +105,8 @@ VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const AVCodec *codec, HWA
       m_accel(std::move(hwAccel)),
       m_sourceSize(sourceParams.size),
       m_sourceFormat(sourceParams.format),
-      m_sourceSWFormat(swFormat(sourceParams))
+      m_sourceSWFormat(sourceParams.swFormat)
 {
-    if (!m_settings.videoResolution().isValid())
-        m_settings.setVideoResolution(sourceParams.size);
-
-    if (m_settings.videoFrameRate() <= 0.)
-        m_settings.setVideoFrameRate(sourceParams.frameRate);
 }
 
 AVStream *VideoFrameEncoder::createStream(const SourceParams &sourceParams,
@@ -180,7 +167,6 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(AVStream *stream, const AVCodec 
 
 void VideoFrameEncoder::initTargetSize()
 {
-    m_targetSize = m_settings.videoResolution();
     m_targetSize = adjustVideoResolution(m_codec, m_settings.videoResolution());
 
 #ifdef Q_OS_WINDOWS

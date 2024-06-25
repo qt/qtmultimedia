@@ -60,8 +60,6 @@ public:
     int sendFrame(AVFrameUPtr inputFrame);
     AVPacketUPtr retrievePacket();
 
-    const QMediaEncoderSettings &settings() { return m_settings; }
-
 private:
     VideoFrameEncoder(AVStream *stream, const AVCodec *codec, HWAccelUPtr hwAccel,
                       const SourceParams &sourceParams,
