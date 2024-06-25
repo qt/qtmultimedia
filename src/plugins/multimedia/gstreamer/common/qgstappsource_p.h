@@ -15,10 +15,8 @@
 // We mean it.
 //
 
-
 #include <QtCore/qobject.h>
 #include <QtCore/qiodevice.h>
-#include <QtCore/qatomic.h>
 #include <QtCore/qmutex.h>
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
@@ -32,23 +30,19 @@ class QGstAppSource : public QObject
 {
     Q_OBJECT
 public:
-    static QMaybe<QGstAppSource *> create(QObject *parent = nullptr);
+    explicit QGstAppSource(GstAppSrc *owner, QIODevice *, qint64 offset = 0);
     ~QGstAppSource();
 
-    bool setup(QIODevice *stream = nullptr, qint64 offset = 0);
-
-    void setExternalAppSrc(QGstAppSrc);
-    QGstElement element() const;
 
 private Q_SLOTS:
     void onDataReady();
     void streamDestroyed();
 
 private:
+    bool setup(QIODevice *stream = nullptr, qint64 offset = 0);
+
     bool doSeek(qint64 streamPosition);
     void pushData(qint64 bytesToRead);
-
-    QGstAppSource(QGstAppSrc appsrc, QObject *parent);
 
     bool setStream(QIODevice *, qint64 offset);
     bool isStreamValid() const;
@@ -63,7 +57,7 @@ private:
 
     QIODevice *m_stream = nullptr;
 
-    QGstAppSrc m_appSrc;
+    GstAppSrc *m_owningAppSrc = nullptr; // QGstAppSource is owned by this GstAppSrc.
     bool m_sequential = true;
     qint64 m_offset = 0;
     qint64 bytesReadSoFar = 0;
