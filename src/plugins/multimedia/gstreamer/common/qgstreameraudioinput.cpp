@@ -28,7 +28,7 @@ constexpr QLatin1String defaultSrcName = [] {
         return "autoaudiosrc"_L1;
 }();
 
-bool hasDeviceProperty(const QGstElement &element)
+bool srcHasDeviceProperty(const QGstElement &element)
 {
     using namespace Qt::Literals;
     QLatin1String elementType = element.typeName();
@@ -136,7 +136,7 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
     qCDebug(qLcMediaAudioInput) << "setAudioDevice" << device.description() << device.isNull();
     m_audioDevice = device;
 
-    if (hasDeviceProperty(m_audioSrc) && !isCustomAudioDevice(m_audioDevice)) {
+    if (srcHasDeviceProperty(m_audioSrc) && !isCustomAudioDevice(m_audioDevice)) {
         m_audioSrc.set("device", m_audioDevice.id().constData());
         return;
     }
