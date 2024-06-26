@@ -85,18 +85,15 @@ private:
     {
         TrackSelector(TrackType, QGstElement selector);
         QGstPad createInputPad();
-        void removeInputPad(QGstPad pad);
+        void removeInputPad(const QGstPad &pad);
         void removeAllInputPads();
         QGstPad inputPad(int index);
-        int activeInputIndex() const { return isConnected ? tracks.indexOf(activeInputPad()) : -1; }
-        QGstPad activeInputPad() const
-        {
-            return isConnected ? QGstPad{ selector.getGstObject("active-pad") } : QGstPad{};
-        }
-        void setActiveInputPad(QGstPad input) { selector.set("active-pad", input); }
-        int trackCount() const { return tracks.count(); }
+        int activeInputIndex() const;
+        QGstPad activeInputPad() const;
+        void setActiveInputPad(const QGstPad &input);
+        int trackCount() const;
 
-        QGstElement selector;
+        QGstElement inputSelector;
         TrackType type;
         QList<QGstPad> tracks;
         bool isConnected = false;
@@ -106,6 +103,7 @@ private:
     void decoderPadAdded(const QGstElement &src, const QGstPad &pad);
     void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
     void disconnectDecoderHandlers();
+
     static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child,
                                                  QGstreamerMediaPlayer *);
     static void sourceSetupCallback(GstElement *uridecodebin, GstElement *source,
@@ -118,10 +116,11 @@ private:
                                                 GstElement *element, QGstreamerMediaPlayer *);
 
     void parseStreamsAndMetadata();
-    void connectOutput(TrackSelector &ts);
-    void removeOutput(TrackSelector &ts);
-    void removeDynamicPipelineElements();
-    void removeAllOutputs();
+    void connectTrackSelectorToOutput(TrackSelector &);
+    void disconnectTrackSelectorFromOutput(TrackSelector &);
+    void disconnectAllTrackSelectors();
+    void setActivePad(TrackSelector &, const QGstPad &pad);
+
     void stopOrEOS(bool eos);
     bool canTrackProgress() const { return decodeBinQueues > 0; }
     void detectPipelineIsSeekable();
@@ -161,7 +160,6 @@ private:
 
     // Gst elements
     QGstPipeline playerPipeline;
-    QGstElement src;
     QGstElement decoder;
 
     QGstreamerAudioOutput *gstAudioOutput = nullptr;
