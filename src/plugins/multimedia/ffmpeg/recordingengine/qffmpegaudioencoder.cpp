@@ -8,6 +8,7 @@
 #include "qffmpegmuxer_p.h"
 #include "qffmpegrecordingengine_p.h"
 #include "qffmpegmediaformatinfo_p.h"
+#include "qffmpegcodecstorage_p.h"
 #include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
@@ -126,7 +127,7 @@ bool AudioEncoder::init()
 {
     const AVAudioFormat requestedAudioFormat(m_format);
 
-    QFFmpeg::findAndOpenEncoder(
+    QFFmpeg::findAndOpenAVEncoder(
             m_stream->codecpar->codec_id,
             [&](const AVCodec *codec) {
                 AVScore result = DefaultAVScore;

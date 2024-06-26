@@ -3,6 +3,7 @@
 
 #include "playbackengine/qffmpegcodec_p.h"
 #include "qloggingcategory.h"
+#include "qffmpegcodecstorage_p.h"
 
 QT_BEGIN_NAMESPACE
 

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegvideoencoderutils_p.h"
+#include "qffmpegcodecstorage_p.h"
 #include "private/qmultimediautils_p.h"
 
 extern "C" {
