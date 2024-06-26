@@ -19,6 +19,7 @@
 #    include "qffmpeghwaccel_mediacodec_p.h"
 #endif
 #include "qffmpeg_p.h"
+#include "qffmpegcodecstorage_p.h"
 #include "qffmpegvideobuffer_p.h"
 #include "qscopedvaluerollback.h"
 #include "QtCore/qfile.h"

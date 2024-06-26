@@ -154,13 +154,6 @@ using AVHWFramesConstraintsUPtr = std::unique_ptr<
 
 using SwrContextUPtr = std::unique_ptr<SwrContext, AVDeleter<decltype(&swr_free), &swr_free>>;
 
-using PixelOrSampleFormat = int;
-using AVScore = int;
-constexpr AVScore BestAVScore = std::numeric_limits<AVScore>::max();
-constexpr AVScore DefaultAVScore = 0;
-constexpr AVScore NotSuitableAVScore = std::numeric_limits<AVScore>::min();
-constexpr AVScore MinAVScore = NotSuitableAVScore + 1;
-
 template <typename T>
 inline constexpr auto InvalidAvValue = T{};
 
@@ -169,23 +162,6 @@ inline constexpr auto InvalidAvValue<AVSampleFormat> = AV_SAMPLE_FMT_NONE;
 
 template<>
 inline constexpr auto InvalidAvValue<AVPixelFormat> = AV_PIX_FMT_NONE;
-
-bool findAndOpenDecoder(AVCodecID codecId,
-                        const std::function<AVScore(const AVCodec *)> &scoresGetter,
-                        const std::function<bool(const AVCodec *)> &codecOpener);
-
-bool findAndOpenEncoder(AVCodecID codecId,
-                        const std::function<AVScore(const AVCodec *)> &scoresGetter,
-                        const std::function<bool(const AVCodec *)> &codecOpener);
-
-const AVCodec *findAVDecoder(AVCodecID codecId,
-                             const std::optional<PixelOrSampleFormat> &format = {});
-
-const AVCodec *findAVEncoder(AVCodecID codecId,
-                             const std::optional<PixelOrSampleFormat> &format = {});
-
-const AVCodec *findAVEncoder(AVCodecID codecId,
-                             const std::function<AVScore(const AVCodec *)> &scoresGetter);
 
 bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format);
 

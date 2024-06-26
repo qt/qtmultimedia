@@ -17,6 +17,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
     SOURCES
         qffmpeg.cpp qffmpeg_p.h
         qffmpegdefs_p.h
+        qffmpegcodecstorage.cpp qffmpegcodecstorage_p.h
         qffmpegioutils.cpp qffmpegioutils_p.h
         qffmpegavaudioformat.cpp qffmpegavaudioformat_p.h
         qffmpegaudiodecoder.cpp qffmpegaudiodecoder_p.h

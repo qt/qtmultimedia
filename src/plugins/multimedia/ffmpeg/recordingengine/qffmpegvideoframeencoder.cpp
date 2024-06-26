@@ -5,6 +5,7 @@
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegencoderoptions_p.h"
 #include "qffmpegvideoencoderutils_p.h"
+#include "qffmpegcodecstorage_p.h"
 #include <qloggingcategory.h>
 #include <QtMultimedia/private/qmaybe_p.h>
 
@@ -56,7 +57,7 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
                                 });
         };
 
-        findAndOpenEncoder(
+        findAndOpenAVEncoder(
                 avCodecID(encoderSettings),
                 [&](const AVCodec *codec) {
                     const auto found = findDeviceType(codec);
@@ -78,7 +79,7 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
     }
 
     if (!result) {
-        findAndOpenEncoder(
+        findAndOpenAVEncoder(
                 avCodecID(encoderSettings),
                 [&](const AVCodec *codec) {
                     return findSWFormatScores(codec, sourceParams.swFormat);
