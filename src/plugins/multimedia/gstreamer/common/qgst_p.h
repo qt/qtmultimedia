@@ -397,6 +397,25 @@ public:
     void set(const char *property, double d);
     void set(const char *property, const QGstObject &o);
     void set(const char *property, const QGstCaps &c);
+    void set(const char *property, void *object, GDestroyNotify destroyFunction);
+
+    template <typename Object>
+    void set(const char *property, Object *object, GDestroyNotify destroyFunction)
+    {
+        set(property, static_cast<void *>(object), destroyFunction);
+    }
+
+    template <typename Object>
+    void set(const char *property, std::unique_ptr<Object> object)
+    {
+        set(property, static_cast<void *>(object.release()), qDeleteFromVoidPointer<Object>);
+    }
+
+    template <typename T>
+    static void qDeleteFromVoidPointer(void *ptr)
+    {
+        delete reinterpret_cast<T *>(ptr);
+    }
 
     QGString getString(const char *property) const;
     QGstStructureView getStructure(const char *property) const;
@@ -407,7 +426,15 @@ public:
     qint64 getInt64(const char *property) const;
     float getFloat(const char *property) const;
     double getDouble(const char *property) const;
-    QGstObject getObject(const char *property) const;
+    QGstObject getGstObject(const char *property) const;
+    void *getObject(const char *property) const;
+
+    template <typename T>
+    T *getObject(const char *property) const
+    {
+        void *rawObject = getObject(property);
+        return reinterpret_cast<T *>(rawObject);
+    }
 
     QGObjectHandlerConnection connect(const char *name, GCallback callback, gpointer userData);
     void disconnect(gulong handlerId);

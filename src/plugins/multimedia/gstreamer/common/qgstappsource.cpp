@@ -15,11 +15,12 @@ QGstAppSource::QGstAppSource(GstAppSrc *owner, QIODevice *stream, qint64 offset)
 {
     Q_ASSERT(owner);
 
-    g_object_set_data_full(qGstCheckedCast<GObject>(owner), "qgst-app-source", this,
-                           [](gpointer ptr) {
-        delete reinterpret_cast<QGstAppSource *>(ptr);
-        return;
-    });
+    QGstAppSrc ownerObject{
+        m_owningAppSrc,
+        QGstAppSrc::NeedsRef,
+    };
+
+    ownerObject.set("qgst-app-src", this, QGstObject::qDeleteFromVoidPointer<QGstAppSource>);
 
     setup(stream, offset);
 }

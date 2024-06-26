@@ -596,6 +596,11 @@ void QGstObject::set(const char *property, const QGstCaps &c)
     g_object_set(get(), property, c.caps(), nullptr);
 }
 
+void QGstObject::set(const char *property, void *object, GDestroyNotify destroyFunction)
+{
+    g_object_set_data_full(qGstCheckedCast<GObject>(get()), property, object, destroyFunction);
+}
+
 QGString QGstObject::getString(const char *property) const
 {
     char *s = nullptr;
@@ -659,11 +664,16 @@ double QGstObject::getDouble(const char *property) const
     return d;
 }
 
-QGstObject QGstObject::getObject(const char *property) const
+QGstObject QGstObject::getGstObject(const char *property) const
 {
     GstObject *o = nullptr;
     g_object_get(get(), property, &o, nullptr);
     return QGstObject(o, HasRef);
+}
+
+void *QGstObject::getObject(const char *property) const
+{
+    return g_object_get_data(qGstCheckedCast<GObject>(get()), property);
 }
 
 QGObjectHandlerConnection QGstObject::connect(const char *name, GCallback callback,
