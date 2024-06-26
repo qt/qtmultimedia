@@ -54,21 +54,20 @@ QGstPipeline QGstPipeline::createFromFactory(const char *factory, const char *na
 
 QGstPipeline QGstPipeline::adopt(GstPipeline *pipeline)
 {
+    QGstPipeline wrappedObject{
+        pipeline,
+        QGstPipeline::NeedsRef,
+    };
+
     QGstBusHandle bus{
         gst_pipeline_get_bus(pipeline),
         QGstBusHandle::HasRef,
     };
-    QGstPipelinePrivate *d = new QGstPipelinePrivate(std::move(bus));
-    g_object_set_data_full(qGstCheckedCast<GObject>(pipeline), "pipeline-private", d,
-                           [](gpointer ptr) {
-                               delete reinterpret_cast<QGstPipelinePrivate *>(ptr);
-                               return;
-                           });
 
-    return QGstPipeline{
-        pipeline,
-        QGstPipeline::NeedsRef,
-    };
+    auto d = std::make_unique<QGstPipelinePrivate>(std::move(bus));
+    wrappedObject.set("pipeline-private", std::move(d));
+
+    return wrappedObject;
 }
 
 QGstPipeline::QGstPipeline(GstPipeline *p, RefMode mode) : QGstBin(qGstCheckedCast<GstBin>(p), mode)
@@ -266,10 +265,9 @@ std::chrono::milliseconds QGstPipeline::positionInMs() const
 
 QGstPipelinePrivate *QGstPipeline::getPrivate() const
 {
-    gpointer p = g_object_get_data(qGstCheckedCast<GObject>(object()), "pipeline-private");
-    auto *d = reinterpret_cast<QGstPipelinePrivate *>(p);
-    Q_ASSERT(d);
-    return d;
+    QGstPipelinePrivate *ret = getObject<QGstPipelinePrivate>("pipeline-private");
+    Q_ASSERT(ret);
+    return ret;
 }
 
 QT_END_NAMESPACE
