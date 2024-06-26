@@ -29,7 +29,7 @@ static Q_LOGGING_CATEGORY(qLcMediaPlayer, "qt.multimedia.player")
 QT_BEGIN_NAMESPACE
 
 QGstreamerMediaPlayer::TrackSelector::TrackSelector(TrackType type, QGstElement selector)
-    : selector(selector), type(type)
+    : inputSelector(selector), type(type)
 {
     selector.set("sync-streams", true);
     selector.set("sync-mode", 1 /*clock*/);
@@ -40,7 +40,7 @@ QGstreamerMediaPlayer::TrackSelector::TrackSelector(TrackType type, QGstElement 
 
 QGstPad QGstreamerMediaPlayer::TrackSelector::createInputPad()
 {
-    auto pad = selector.getRequestPad("sink_%u");
+    auto pad = inputSelector.getRequestPad("sink_%u");
     tracks.append(pad);
     return pad;
 }
@@ -48,13 +48,13 @@ QGstPad QGstreamerMediaPlayer::TrackSelector::createInputPad()
 void QGstreamerMediaPlayer::TrackSelector::removeAllInputPads()
 {
     for (auto &pad : tracks)
-        selector.releaseRequestPad(pad);
+        inputSelector.releaseRequestPad(pad);
     tracks.clear();
 }
 
-void QGstreamerMediaPlayer::TrackSelector::removeInputPad(QGstPad pad)
+void QGstreamerMediaPlayer::TrackSelector::removeInputPad(const QGstPad &pad)
 {
-    selector.releaseRequestPad(pad);
+    inputSelector.releaseRequestPad(pad);
     tracks.removeOne(pad);
 }
 
@@ -63,6 +63,26 @@ QGstPad QGstreamerMediaPlayer::TrackSelector::inputPad(int index)
     if (index >= 0 && index < tracks.count())
         return tracks[index];
     return {};
+}
+
+int QGstreamerMediaPlayer::TrackSelector::activeInputIndex() const
+{
+    return isConnected ? tracks.indexOf(activeInputPad()) : -1;
+}
+
+QGstPad QGstreamerMediaPlayer::TrackSelector::activeInputPad() const
+{
+    return isConnected ? QGstPad{ inputSelector.getGstObject("active-pad") } : QGstPad{};
+}
+
+void QGstreamerMediaPlayer::TrackSelector::setActiveInputPad(const QGstPad &input)
+{
+    inputSelector.set("active-pad", input);
+}
+
+int QGstreamerMediaPlayer::TrackSelector::trackCount() const
+{
+    return tracks.count();
 }
 
 QGstreamerMediaPlayer::TrackSelector &QGstreamerMediaPlayer::trackSelector(TrackType type)
@@ -134,7 +154,7 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
     gstVideoOutput->setPipeline(playerPipeline);
 
     for (auto &ts : trackSelectors)
-        playerPipeline.add(ts.selector);
+        playerPipeline.add(ts.inputSelector);
 
     playerPipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
     playerPipeline.installMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(this));
@@ -702,13 +722,11 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
 
     if (ts.trackCount() == 1) {
         if (streamType == VideoStream) {
-            connectOutput(ts);
-            ts.setActiveInputPad(sinkPad);
+            setActivePad(ts, sinkPad);
             videoAvailableChanged(true);
         }
         else if (streamType == AudioStream) {
-            connectOutput(ts);
-            ts.setActiveInputPad(sinkPad);
+            setActivePad(ts, sinkPad);
             audioAvailableChanged(true);
         }
     }
@@ -732,15 +750,18 @@ void QGstreamerMediaPlayer::decoderPadRemoved(const QGstElement &src, const QGst
     QGstPad track = it->second;
 
     auto ts = std::find_if(std::begin(trackSelectors), std::end(trackSelectors),
-                           [&](TrackSelector &ts){ return ts.selector == track.parent(); });
+                           [&](TrackSelector &ts) {
+        return ts.inputSelector == track.parent();
+    });
     if (ts == std::end(trackSelectors))
         return;
 
-    qCDebug(qLcMediaPlayer) << "   was linked to pad" << track.name() << "from" << ts->selector.name();
+    qCDebug(qLcMediaPlayer) << "   was linked to pad" << track.name() << "from"
+                            << ts->inputSelector.name();
     ts->removeInputPad(track);
 
     if (ts->trackCount() == 0) {
-        removeOutput(*ts);
+        disconnectTrackSelectorFromOutput(*ts);
         if (ts->type == AudioStream)
             audioAvailableChanged(false);
         else if (ts->type == VideoStream)
@@ -751,17 +772,17 @@ void QGstreamerMediaPlayer::decoderPadRemoved(const QGstElement &src, const QGst
         tracksChanged();
 }
 
-void QGstreamerMediaPlayer::removeAllOutputs()
+void QGstreamerMediaPlayer::disconnectAllTrackSelectors()
 {
     for (auto &ts : trackSelectors) {
-        removeOutput(ts);
+        disconnectTrackSelectorFromOutput(ts);
         ts.removeAllInputPads();
     }
     audioAvailableChanged(false);
     videoAvailableChanged(false);
 }
 
-void QGstreamerMediaPlayer::connectOutput(TrackSelector &ts)
+void QGstreamerMediaPlayer::connectTrackSelectorToOutput(TrackSelector &ts)
 {
     if (ts.isConnected)
         return;
@@ -770,14 +791,14 @@ void QGstreamerMediaPlayer::connectOutput(TrackSelector &ts)
     if (e) {
         qCDebug(qLcMediaPlayer) << "connecting output for track type" << ts.type;
         playerPipeline.add(e);
-        qLinkGstElements(ts.selector, e);
+        qLinkGstElements(ts.inputSelector, e);
         e.syncStateWithParent();
     }
 
     ts.isConnected = true;
 }
 
-void QGstreamerMediaPlayer::removeOutput(TrackSelector &ts)
+void QGstreamerMediaPlayer::disconnectTrackSelectorFromOutput(TrackSelector &ts)
 {
     if (!ts.isConnected)
         return;
@@ -789,18 +810,6 @@ void QGstreamerMediaPlayer::removeOutput(TrackSelector &ts)
     }
 
     ts.isConnected = false;
-}
-
-void QGstreamerMediaPlayer::removeDynamicPipelineElements()
-{
-    for (QGstElement *element : { &src, &decoder }) {
-        if (element->isNull())
-            continue;
-
-        element->setStateSync(GstState::GST_STATE_NULL);
-        playerPipeline.remove(*element);
-        *element = QGstElement{};
-    }
 }
 
 void QGstreamerMediaPlayer::uridecodebinElementAddedCallback(GstElement * /*uridecodebin*/,
@@ -938,9 +947,13 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     m_url = content;
     m_stream = stream;
 
-    removeDynamicPipelineElements();
+    if (decoder) {
+        playerPipeline.stopAndRemoveElements(decoder);
+        decoder = QGstElement{};
+    }
+
     disconnectDecoderHandlers();
-    removeAllOutputs();
+    disconnectAllTrackSelectors();
     seekableChanged(false);
 
     if (m_duration != 0ms) {
@@ -1022,11 +1035,11 @@ void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
 
     playerPipeline.modifyPipelineWhileNotRunning([&] {
         if (gstAudioOutput)
-            removeOutput(ts);
+            disconnectTrackSelectorFromOutput(ts);
 
         gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
         if (gstAudioOutput)
-            connectOutput(ts);
+            connectTrackSelectorToOutput(ts);
     });
 }
 
@@ -1130,8 +1143,8 @@ int QGstreamerMediaPlayer::activeTrack(TrackType type)
 
 void QGstreamerMediaPlayer::setActiveTrack(TrackType type, int index)
 {
-    auto &ts = trackSelector(type);
-    auto track = ts.inputPad(index);
+    TrackSelector &ts = trackSelector(type);
+    QGstPad track = ts.inputPad(index);
     if (track.isNull() && index != -1) {
         qCWarning(qLcMediaPlayer) << "Attempt to set an incorrect index" << index
                                   << "for the track type" << type;
@@ -1142,12 +1155,17 @@ void QGstreamerMediaPlayer::setActiveTrack(TrackType type, int index)
     if (type == QPlatformMediaPlayer::SubtitleStream)
         gstVideoOutput->flushSubtitles();
 
+    setActivePad(ts, track);
+}
+
+void QGstreamerMediaPlayer::setActivePad(TrackSelector &ts, const QGstPad &pad)
+{
     playerPipeline.modifyPipelineWhileNotRunning([&] {
-        if (track.isNull()) {
-            removeOutput(ts);
+        if (pad) {
+            ts.setActiveInputPad(pad);
+            connectTrackSelectorToOutput(ts);
         } else {
-            ts.setActiveInputPad(track);
-            connectOutput(ts);
+            disconnectTrackSelectorFromOutput(ts);
         }
     });
 
