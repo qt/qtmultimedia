@@ -3951,6 +3951,8 @@ void tst_QMediaPlayerBackend::play_readsSubtitle()
 
     player.play();
 
+    QSKIP_GSTREAMER("QTBUG-124005: gstreamer sometimes reports more than 4 subtitle events");
+
     QStringList expectedSubtitleList = {
         u"Hello"_s,
         u""_s,
