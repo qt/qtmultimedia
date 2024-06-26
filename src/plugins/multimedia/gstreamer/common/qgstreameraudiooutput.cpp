@@ -28,7 +28,7 @@ constexpr QLatin1String defaultSinkName = [] {
         return "autoaudiosink"_L1;
 }();
 
-bool hasDeviceProperty(const QGstElement &element)
+bool sinkHasDeviceProperty(const QGstElement &element)
 {
     using namespace Qt::Literals;
     QLatin1String elementType = element.typeName();
@@ -146,7 +146,7 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &device)
 
     m_audioDevice = device;
 
-    if (hasDeviceProperty(m_audioSink) && !isCustomAudioDevice(m_audioDevice)) {
+    if (sinkHasDeviceProperty(m_audioSink) && !isCustomAudioDevice(m_audioDevice)) {
         m_audioSink.set("device", m_audioDevice.id().constData());
         return;
     }
