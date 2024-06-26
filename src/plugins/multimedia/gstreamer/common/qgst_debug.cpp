@@ -298,6 +298,29 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
         break;
     }
 
+    case GST_MESSAGE_SEGMENT_START: {
+        gint64 pos;
+        GstFormat fmt{};
+        gst_message_parse_segment_start(const_cast<GstMessage *>(msg), &fmt, &pos);
+
+        switch (fmt) {
+        case GST_FORMAT_TIME: {
+            dbg << ", Position: " << std::chrono::nanoseconds{ pos };
+            break;
+        }
+        case GST_FORMAT_BYTES: {
+            dbg << ", Position: " << pos << "Bytes";
+            break;
+        }
+        default: {
+            dbg << ", Position: " << pos;
+            break;
+        }
+        }
+
+        break;
+    }
+
     default:
         break;
     }

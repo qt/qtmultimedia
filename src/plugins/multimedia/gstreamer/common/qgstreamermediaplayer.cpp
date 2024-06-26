@@ -623,15 +623,24 @@ bool QGstreamerMediaPlayer::processBusMessageInfo(const QGstreamerMessage &messa
 
 bool QGstreamerMediaPlayer::processBusMessageSegmentStart(const QGstreamerMessage &message)
 {
-    qCDebug(qLcMediaPlayer) << "    segment start message, updating position";
-    QGstStructureView structure(gst_message_get_structure(message.message()));
-    auto p = structure["position"].toInt64();
-    if (p) {
-        std::chrono::milliseconds position{
-            (*p) / 1000000,
-        };
-        positionChanged(position);
+    using namespace std::chrono;
+    gint64 pos;
+    GstFormat fmt{};
+    gst_message_parse_segment_start(message.message(), &fmt, &pos);
+
+    switch (fmt) {
+    case GST_FORMAT_TIME: {
+        auto posNs = std::chrono::nanoseconds{ pos };
+        qCDebug(qLcMediaPlayer) << "    segment start message, updating position" << posNs;
+        positionChanged(round<milliseconds>(posNs));
+        break;
     }
+    default: {
+        qWarning() << "GST_MESSAGE_SEGMENT_START with unknown format" << fmt << pos;
+        break;
+    }
+    }
+
     return false;
 }
 
