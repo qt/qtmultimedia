@@ -177,6 +177,12 @@ QIODevice* QAudioSink::start()
 
     Sets error() to QtAudio::NoError, state() to QtAudio::StoppedState and
     emit stateChanged() signal.
+
+    \note On Linux, and Darwin, this operation synchronously drains the
+    underlying audio buffer, which may cause delays accordingly to the
+    buffer payload. To reset all the buffers immediately, use the method
+    \l reset instead.
+    \sa reset()
 */
 void QAudioSink::stop()
 {
