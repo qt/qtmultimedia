@@ -95,14 +95,15 @@ void QGstreamerAudioDecoder::configureAppSrcElement([[maybe_unused]] GObject *ob
 
     GstAppSrc *gstAppSrc = qGstSafeCast<GstAppSrc>(appsrc.release());
 
-    // NOLINTBEGIN(clang-analyzer-cplusplus.NewDeleteLeaks)
-    // GstAppSrc takes ownership of QGstAppSource
+    if (gstAppSrc) {
+        // NOLINTBEGIN(clang-analyzer-cplusplus.NewDeleteLeaks)
+        // GstAppSrc takes ownership of QGstAppSource
 
-    QGstAppSource *appSource = new QGstAppSource(gstAppSrc, self->mDevice);
-    Q_ASSERT(appSource);
+        QGstAppSource *appSource = new QGstAppSource(gstAppSrc, self->mDevice);
+        Q_ASSERT(appSource);
+        // NOLINTEND(clang-analyzer-cplusplus.NewDeleteLeaks)
+    }
     return;
-
-    // NOLINTEND(clang-analyzer-cplusplus.NewDeleteLeaks)
 }
 
 bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
