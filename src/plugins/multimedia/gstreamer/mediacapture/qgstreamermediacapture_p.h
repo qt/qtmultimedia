@@ -18,10 +18,9 @@
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
+#include <common/qgst_bus_p.h>
 #include <common/qgst_p.h>
 #include <common/qgstpipeline_p.h>
-
-#include <qtimer.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -33,7 +32,7 @@ class QGstreamerAudioOutput;
 class QGstreamerVideoOutput;
 class QGstreamerVideoSink;
 
-class QGstreamerMediaCapture final : public QPlatformMediaCaptureSession
+class QGstreamerMediaCapture final : public QPlatformMediaCaptureSession, QGstreamerBusMessageFilter
 {
     Q_OBJECT
 
@@ -64,6 +63,8 @@ public:
     QGstreamerVideoSink *gstreamerVideoSink() const;
 
 private:
+    bool processBusMessage(const QGstreamerMessage &) override;
+
     void setCameraActive(bool activate);
 
     explicit QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutput);
