@@ -9,6 +9,7 @@
 #include <common/qgstreameraudioinput_p.h>
 #include <common/qgstreameraudiooutput_p.h>
 #include <common/qgstreamervideooutput_p.h>
+#include <common/qgst_debug_p.h>
 
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/private/quniquehandle_p.h>
@@ -44,6 +45,8 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutpu
     gstVideoOutput->setIsPreview();
     gstVideoOutput->setPipeline(capturePipeline);
 
+    capturePipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
+
     // Use system clock to drive all elements in the pipeline. Otherwise,
     // the clock is sourced from the elements (e.g. from an audio source).
     // Since the elements are added and removed dynamically the clock would
@@ -67,6 +70,7 @@ QGstreamerMediaCapture::~QGstreamerMediaCapture()
     setMediaRecorder(nullptr);
     setImageCapture(nullptr);
     setCamera(nullptr);
+    capturePipeline.removeMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
     capturePipeline.setStateSync(GST_STATE_NULL);
 }
 
@@ -319,6 +323,27 @@ void QGstreamerMediaCapture::setAudioOutput(QPlatformAudioOutput *output)
 QGstreamerVideoSink *QGstreamerMediaCapture::gstreamerVideoSink() const
 {
     return gstVideoOutput ? gstVideoOutput->gstreamerVideoSink() : nullptr;
+}
+
+bool QGstreamerMediaCapture::processBusMessage(const QGstreamerMessage &msg)
+{
+    switch (msg.type()) {
+    case GST_MESSAGE_ERROR: {
+        QUniqueGErrorHandle error;
+        QUniqueGStringHandle message;
+        gst_message_parse_error(msg.message(), &error, &message);
+
+        qWarning() << "QGstreamerMediaCapture: received error from gstreamer" << error << message;
+        capturePipeline.dumpGraph("captureError");
+
+        break;
+    }
+
+    default:
+        break;
+    }
+
+    return false;
 }
 
 QT_END_NAMESPACE
