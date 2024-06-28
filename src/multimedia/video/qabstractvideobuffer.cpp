@@ -125,6 +125,7 @@ QAbstractVideoBuffer::~QAbstractVideoBuffer() = default;
 
     \sa map()
 */
+void QAbstractVideoBuffer::unmap() { }
 
 /*!
     \fn QAbstractVideoBuffer::format() const

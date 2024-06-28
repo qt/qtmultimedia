@@ -23,7 +23,7 @@ public:
 
     virtual ~QAbstractVideoBuffer();
     virtual MapData map(QtVideo::MapMode mode) = 0;
-    virtual void unmap() { }
+    virtual void unmap();
     virtual QVideoFrameFormat format() const = 0;
 };
 
