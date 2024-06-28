@@ -12,6 +12,8 @@
 #include <QtQGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
 #include <QtQGstreamerMediaPluginImpl/private/qgstreamermetadata_p.h>
 
+#include <set>
+
 QT_USE_NAMESPACE
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
@@ -35,6 +37,13 @@ QMediaMetaData makeQMediaMetaData(Pairs &&...pairs)
     return metadata;
 }
 
+QGString makeQGString(std::string_view str)
+{
+    char *s = (char *)g_malloc(str.size() + 1);
+    snprintf(s, str.size() + 1, "%s", str.data());
+    return QGString{ s };
+};
+
 } // namespace
 
 QGstTagListHandle tst_GStreamer::parseTagList(const char *str)
@@ -49,6 +58,25 @@ QGstTagListHandle tst_GStreamer::parseTagList(const char *str)
 QGstTagListHandle tst_GStreamer::parseTagList(const QByteArray &ba)
 {
     return parseTagList(ba.constData());
+}
+
+void tst_GStreamer::QGString_conversions()
+{
+    QGString str = makeQGString("yada");
+
+    QCOMPARE(str.toQString(), u"yada"_s);
+    QCOMPARE(str.asStringView(), "yada"_L1);
+    QCOMPARE(str.asByteArrayView(), "yada"_ba);
+}
+
+void tst_GStreamer::QGString_transparentCompare()
+{
+    QGString str = makeQGString("yada");
+
+    std::set<QByteArray, std::less<>> set;
+    set.emplace(str);
+
+    QVERIFY(set.find(str) != set.end());
 }
 
 void tst_GStreamer::qGstCasts_withElement()
