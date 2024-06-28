@@ -19,6 +19,9 @@ class tst_GStreamer : public QObject
     QGstTagListHandle parseTagList(const QByteArray &);
 
 private slots:
+    void QGString_conversions();
+    void QGString_transparentCompare();
+
     void qGstCasts_withElement();
     void qGstCasts_withBin();
     void qGstCasts_withPipeline();
