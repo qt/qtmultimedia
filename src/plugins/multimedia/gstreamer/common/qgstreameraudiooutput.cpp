@@ -74,6 +74,8 @@ QGstreamerAudioOutput::QGstreamerAudioOutput(QAudioOutput *parent)
           QGstElement::createFromFactory(defaultSinkName.constData(), "audiosink"),
       }
 {
+    m_audioSink.set("async", false); // no async state changes
+
     m_audioOutputBin.add(m_audioQueue, m_audioConvert, m_audioResample, m_audioVolume, m_audioSink);
     qLinkGstElements(m_audioQueue, m_audioConvert, m_audioResample, m_audioVolume, m_audioSink);
 
@@ -152,6 +154,7 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &device)
     }
 
     QGstElement newSink = createGstElement();
+    newSink.set("async", false); // no async state changes
 
     QGstPipeline::modifyPipelineWhileNotRunning(m_audioOutputBin.getPipeline(), [&] {
         qUnlinkGstElements(m_audioVolume, m_audioSink);
