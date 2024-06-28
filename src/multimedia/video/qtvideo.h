@@ -7,6 +7,7 @@
 #include <QtMultimedia/qtmultimediaexports.h>
 #include <QtCore/qobjectdefs.h>
 #include <QtCore/qtconfigmacros.h>
+#include <QtCore/qtypes.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -22,7 +23,7 @@ enum class Rotation {
 };
 Q_ENUM_NS(Rotation)
 
-enum class MapMode {
+enum class MapMode : quint8 {
     NotMapped = 0x00,
     ReadOnly = 0x01,
     WriteOnly = 0x02,
