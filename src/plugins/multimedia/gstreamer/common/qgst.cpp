@@ -786,6 +786,13 @@ QGstTagListHandle QGstPad::tags() const
     return tagList;
 }
 
+QGString QGstPad::streamId() const
+{
+    return QGString{
+        gst_pad_get_stream_id(pad()),
+    };
+}
+
 std::optional<QPlatformMediaPlayer::TrackType> QGstPad::inferTrackTypeFromName() const
 {
     using namespace Qt::Literals;

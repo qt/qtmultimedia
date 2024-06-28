@@ -33,6 +33,9 @@
 #include "qgst_handle_types_p.h"
 
 #include <type_traits>
+#ifdef __cpp_lib_three_way_comparison
+#  include <compare>
+#endif
 
 #if QT_CONFIG(gstreamer_photography)
 #  define GST_USE_UNSTABLE_API
@@ -183,7 +186,66 @@ struct QGString : QUniqueGStringHandle
     using QUniqueGStringHandle::QUniqueGStringHandle;
 
     QLatin1StringView asStringView() const { return QLatin1StringView{ get() }; }
+    QByteArrayView asByteArrayView() const { return QByteArrayView{ get() }; }
     QString toQString() const { return QString::fromUtf8(get()); }
+
+#ifdef __cpp_lib_three_way_comparison
+    // clang-format off
+    friend auto operator<=>(const QGString &lhs, const QGString &rhs)
+    {
+        return lhs.asStringView() <=> rhs.asStringView();
+    }
+    friend auto operator<=>(const QGString &lhs, const QLatin1StringView rhs)
+    {
+        return lhs.asStringView() <=> rhs;
+    }
+    friend auto operator<=>(const QGString &lhs, const QByteArrayView rhs)
+    {
+        return lhs.asByteArrayView() <=> rhs;
+    }
+    friend auto operator<=>(const QLatin1StringView lhs, const QGString &rhs)
+    {
+        return lhs <=> rhs.asStringView();
+    }
+    friend auto operator<=>(const QByteArrayView lhs, const QGString &rhs)
+    {
+        return lhs <=> rhs.asByteArrayView();
+    }
+    // clang-format on
+#else
+    // remove once we're on c++20
+    bool operator==(const QGString &str) const { return asStringView() == str.asStringView(); }
+    bool operator==(const QLatin1StringView str) const { return asStringView() == str; }
+    bool operator==(const QByteArrayView str) const { return asByteArrayView() == str; }
+
+    bool operator!=(const QGString &str) const { return asStringView() != str.asStringView(); }
+    bool operator!=(const QLatin1StringView str) const { return asStringView() != str; }
+    bool operator!=(const QByteArrayView str) const { return asByteArrayView() != str; }
+
+    friend bool operator<(const QGString &lhs, const QGString &rhs)
+    {
+        return lhs.asStringView() < rhs.asStringView();
+    }
+    friend bool operator<(const QGString &lhs, const QLatin1StringView rhs)
+    {
+        return lhs.asStringView() < rhs;
+    }
+    friend bool operator<(const QGString &lhs, const QByteArrayView rhs)
+    {
+        return lhs.asByteArrayView() < rhs;
+    }
+    friend bool operator<(const QLatin1StringView lhs, const QGString &rhs)
+    {
+        return lhs < rhs.asStringView();
+    }
+    friend bool operator<(const QByteArrayView lhs, const QGString &rhs)
+    {
+        return lhs < rhs.asByteArrayView();
+    }
+#endif
+
+    explicit operator QByteArrayView() const { return asByteArrayView(); }
+    explicit operator QByteArray() const { return QByteArray{ asByteArrayView() }; }
 };
 
 class QGValue
@@ -504,6 +566,7 @@ public:
     QGstCaps queryCaps() const;
 
     QGstTagListHandle tags() const;
+    QGString streamId() const;
 
     std::optional<QPlatformMediaPlayer::TrackType>
     inferTrackTypeFromName() const; // for decodebin3 etc
