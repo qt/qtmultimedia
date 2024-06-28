@@ -5,7 +5,6 @@
 #define QVIDEOFRAMEINPUT_H
 
 #include <QtMultimedia/qtmultimediaexports.h>
-#include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
@@ -13,6 +12,8 @@ QT_BEGIN_NAMESPACE
 class QPlatformVideoFrameInput;
 class QVideoFrameInputPrivate;
 class QMediaCaptureSession;
+class QVideoFrame;
+class QVideoFrameFormat;
 
 class Q_MULTIMEDIA_EXPORT QVideoFrameInput : public QObject
 {

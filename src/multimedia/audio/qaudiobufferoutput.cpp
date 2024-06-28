@@ -3,6 +3,7 @@
 
 #include "qaudiobufferoutput_p.h"
 #include "qmediaplayer.h"
+#include "qaudiobuffer.h"
 
 QT_BEGIN_NAMESPACE
 

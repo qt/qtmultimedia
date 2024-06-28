@@ -5,11 +5,12 @@
 #define QAUDIOBUFFEROUTPUT_H
 
 #include <QtMultimedia/qtmultimediaexports.h>
-#include <QtMultimedia/qaudiobuffer.h>
 #include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 
+class QAudioFormat;
+class QAudioBuffer;
 class QAudioBufferOutputPrivate;
 
 class Q_MULTIMEDIA_EXPORT QAudioBufferOutput : public QObject
