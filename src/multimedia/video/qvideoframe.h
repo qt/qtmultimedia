@@ -92,7 +92,7 @@ public:
 
     bool map(QtVideo::MapMode mode);
 #if QT_DEPRECATED_SINCE(6, 8)
-    QT_DEPRECATED_VERSION_X_6_7("Use QVideoFrame::map(QtVideo::MapMode) instead")
+    QT_DEPRECATED_VERSION_X_6_8("Use QVideoFrame::map(QtVideo::MapMode) instead")
     bool map(QVideoFrame::MapMode mode);
 #endif
     void unmap();
