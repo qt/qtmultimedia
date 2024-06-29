@@ -228,7 +228,7 @@ QMediaTimeRange QGstreamerMediaPlayer::availablePlaybackRanges() const
 
 qreal QGstreamerMediaPlayer::playbackRate() const
 {
-    return playerPipeline.playbackRate();
+    return m_rate;
 }
 
 void QGstreamerMediaPlayer::setPlaybackRate(qreal rate)
@@ -238,7 +238,20 @@ void QGstreamerMediaPlayer::setPlaybackRate(qreal rate)
 
     m_rate = rate;
 
-    playerPipeline.setPlaybackRate(rate);
+    // workaround for workaround for
+    // https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/3545
+    playerPipeline.waitForAsyncStateChangeComplete();
+    if (playerPipeline.state() < GST_STATE_PLAYING)
+        m_pendingRate = m_rate;
+    else {
+
+        // another workaround for workaround for
+        // https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/3545
+        // waiting until we can query position and duration before we set the playback rate.
+
+        playerPipeline.queryPositionAndDuration();
+        playerPipeline.setPlaybackRate(m_rate);
+    }
     playbackRateChanged(rate);
 }
 
@@ -275,21 +288,21 @@ void QGstreamerMediaPlayer::play()
         positionChanged(0);
     }
 
-    qCDebug(qLcMediaPlayer) << "play().";
-    int ret = playerPipeline.setStateSync(GST_STATE_PLAYING);
-    if (m_seekPositionOnPlay) {
-        playerPipeline.setPosition(*m_seekPositionOnPlay);
-        m_seekPositionOnPlay = std::nullopt;
-    } else {
-        if (currentState == QMediaPlayer::StoppedState) {
-            // we get an assertion failure during instant playback rate changes
-            // https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/3545
-            constexpr bool performInstantRateChange = false;
-            playerPipeline.applyPlaybackRate(/*instantRateChange=*/performInstantRateChange);
-        }
-    }
-    if (ret == GST_STATE_CHANGE_FAILURE)
+    qCDebug(qLcMediaPlayer) << "play()";
+    bool success = playerPipeline.setStateSync(GST_STATE_PLAYING);
+    if (!success) {
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the playing state.";
+        return;
+    }
+
+    // workaround for workaround for
+    // https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/3545
+    if (m_pendingRate) {
+        playerPipeline.setPlaybackRate(*m_pendingRate, /*forceFlushingSeek=*/true);
+        m_pendingRate = std::nullopt;
+    } else {
+        playerPipeline.flush();
+    }
 
     positionUpdateTimer.start(100);
     stateChanged(QMediaPlayer::PlayingState);
@@ -310,7 +323,7 @@ void QGstreamerMediaPlayer::pause()
     if (ret == GST_STATE_CHANGE_FAILURE)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
     if (mediaStatus() == QMediaPlayer::EndOfMedia || state() == QMediaPlayer::StoppedState) {
-        m_seekPositionOnPlay = 0ms;
+        playerPipeline.setPosition(0ms);
         positionChanged(0);
     } else {
         updatePositionFromPipeline();
@@ -352,7 +365,7 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
     if (!ret)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the stopped state.";
     if (!eos) {
-        m_seekPositionOnPlay = 0ms;
+        playerPipeline.setPosition(0ms);
         positionChanged(0ms);
     }
     stateChanged(QMediaPlayer::StoppedState);
@@ -937,7 +950,6 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << "setting location to" << content;
 
     prerolling = true;
-    m_seekPositionOnPlay = std::nullopt;
     m_resourceErrorState = ResourceErrorState::NoError;
 
     bool ret = playerPipeline.setStateSync(GST_STATE_NULL);
@@ -1022,8 +1034,6 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         // Note: no further error handling: errors will be delivered via a GstMessage
         return;
     }
-
-    playerPipeline.setPosition(0ms);
 }
 
 void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
@@ -1051,6 +1061,9 @@ QMediaMetaData QGstreamerMediaPlayer::metaData() const
 void QGstreamerMediaPlayer::setVideoSink(QVideoSink *sink)
 {
     gstVideoOutput->setVideoSink(sink);
+
+    if (state() != QMediaPlayer::StoppedState)
+        playerPipeline.flush(); // ensure that we send video frame to the new sink
 }
 
 static QGstStructureView endOfChain(const QGstStructureView &s)
@@ -1172,8 +1185,6 @@ void QGstreamerMediaPlayer::setActivePad(TrackSelector &ts, const QGstPad &pad)
     // seek to force an immediate change of the stream
     if (playerPipeline.state() == GST_STATE_PLAYING)
         playerPipeline.flush();
-    else
-        m_seekPositionOnPlay = std::chrono::milliseconds{ position() };
 }
 
 QT_END_NAMESPACE

@@ -71,9 +71,9 @@ public:
 
     void flush();
 
-    void setPlaybackRate(double rate);
+    void setPlaybackRate(double rate, bool forceFlushingSeek = false);
     double playbackRate() const;
-    void applyPlaybackRate(bool instantRateChange);
+    void applyPlaybackRate(bool forceFlushingSeek = false);
 
     void setPosition(std::chrono::nanoseconds pos);
     std::chrono::nanoseconds position() const;

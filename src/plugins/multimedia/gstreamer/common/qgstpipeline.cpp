@@ -174,6 +174,16 @@ void QGstPipeline::seek(std::chrono::nanoseconds pos, double rate)
 {
     using namespace std::chrono_literals;
 
+    // CAVEAT: we need to ensure that no async operation is currently in-flight, i.e
+    // gst_element_get_state does not return GST_STATE_CHANGE_ASYNC.
+    // Apparently this can happen when (a) the pipeline is changed due to new sinks being added or
+    // the like and (b) during pending seeks.
+    bool asyncChangeSuccess = waitForAsyncStateChangeComplete();
+    if (!asyncChangeSuccess) {
+        qWarning() << "QGstPipeline::seek: async pipeline change in progress. Seeking impossible";
+        return;
+    }
+
     QGstPipelinePrivate *d = getPrivate();
     // always adjust the rate, so it can be set before playback starts
     // setting position needs a loaded media file that's seekable
@@ -200,7 +210,7 @@ void QGstPipeline::seek(std::chrono::nanoseconds pos)
     seek(pos, getPrivate()->m_rate);
 }
 
-void QGstPipeline::setPlaybackRate(double rate)
+void QGstPipeline::setPlaybackRate(double rate, bool forceFlushingSeek)
 {
     QGstPipelinePrivate *d = getPrivate();
     if (rate == d->m_rate)
@@ -210,7 +220,7 @@ void QGstPipeline::setPlaybackRate(double rate)
 
     qCDebug(qLcGstPipeline) << "QGstPipeline::setPlaybackRate to" << rate;
 
-    applyPlaybackRate(/*instantRateChange =*/true);
+    applyPlaybackRate(forceFlushingSeek);
 }
 
 double QGstPipeline::playbackRate() const
@@ -219,13 +229,20 @@ double QGstPipeline::playbackRate() const
     return d->m_rate;
 }
 
-void QGstPipeline::applyPlaybackRate(bool instantRateChange)
+void QGstPipeline::applyPlaybackRate(bool forceFlushingSeek)
 {
     QGstPipelinePrivate *d = getPrivate();
 
     // do not GST_SEEK_FLAG_FLUSH with GST_SEEK_TYPE_NONE
     // https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/3604
-    if (instantRateChange && GST_CHECK_VERSION(1, 18, 0)) {
+    if (!forceFlushingSeek && GST_CHECK_VERSION(1, 18, 0)) {
+        bool asyncChangeSuccess = waitForAsyncStateChangeComplete();
+        if (!asyncChangeSuccess) {
+            qWarning()
+                    << "QGstPipeline::seek: async pipeline change in progress. Seeking impossible";
+            return;
+        }
+
         qCDebug(qLcGstPipeline) << "QGstPipeline::applyPlaybackRate instantly";
         bool success = gst_element_seek(
                 element(), d->m_rate, GST_FORMAT_UNDEFINED, rateChangeSeekFlags, GST_SEEK_TYPE_NONE,

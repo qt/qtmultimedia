@@ -613,6 +613,9 @@ public:
     bool setStateSync(GstState state, std::chrono::nanoseconds timeout = std::chrono::seconds(1));
     bool syncStateWithParent();
     bool finishStateChange(std::chrono::nanoseconds timeout = std::chrono::seconds(5));
+    bool hasAsyncStateChange(std::chrono::nanoseconds timeout = std::chrono::seconds(0)) const;
+    bool waitForAsyncStateChangeComplete(
+            std::chrono::nanoseconds timeout = std::chrono::seconds(5)) const;
 
     void lockState(bool locked);
     bool isStateLocked() const;

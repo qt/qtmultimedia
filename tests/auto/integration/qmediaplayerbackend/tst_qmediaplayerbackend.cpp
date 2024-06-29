@@ -1833,10 +1833,8 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackDuration()
 
     auto begin = steady_clock::now();
 
-    if (testMode == "SetRateBeforePlay"_L1) {
-        QSKIP_GSTREAMER("FIXME: SetRateBeforeSetSource is currently broken");
+    if (testMode == "SetRateBeforePlay"_L1)
         player.setPlaybackRate(playbackRate);
-    }
 
     player.play();
 
@@ -3748,7 +3746,6 @@ void tst_QMediaPlayerBackend::setVideoOutput_doesNotStopPlayback()
 
     switch (playbackState) {
     case QMediaPlayer::StoppedState:
-        QSKIP_GSTREAMER("QTBUG-124005: Test failure with the gstreamer backend");
         break;
     case QMediaPlayer::PausedState:
         QSKIP_FFMPEG("QTBUG-126014: Test failure with the ffmpeg backend");
