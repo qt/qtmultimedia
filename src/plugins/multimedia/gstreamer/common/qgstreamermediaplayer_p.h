@@ -189,7 +189,8 @@ private:
     bool processBusMessageElement(const QGstreamerMessage &);
     bool processBusMessageAsyncDone(const QGstreamerMessage &);
 
-    bool processSyncMessage(const QGstreamerMessage &message) override;
+    bool processSyncMessage(const QGstreamerMessage &) override;
+    bool processSyncMessageNeedsContext(const QGstreamerMessage &);
 
     // decoder connections
     QGObjectHandlerScopedConnection padAdded;
