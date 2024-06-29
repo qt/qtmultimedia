@@ -10,6 +10,7 @@
 #include <QtMultimedia/qcameradevice.h>
 
 #include <array>
+#include <thread>
 
 QT_BEGIN_NAMESPACE
 
@@ -1055,6 +1056,27 @@ bool QGstElement::finishStateChange(std::chrono::nanoseconds timeout)
         dumpPipelineGraph("finishStateChangeFailure");
     }
     return change == GST_STATE_CHANGE_SUCCESS;
+}
+
+bool QGstElement::hasAsyncStateChange(std::chrono::nanoseconds timeout) const
+{
+    GstState state;
+    GstStateChangeReturn change =
+            gst_element_get_state(element(), &state, nullptr, timeout.count());
+    return change == GST_STATE_CHANGE_ASYNC;
+}
+
+bool QGstElement::waitForAsyncStateChangeComplete(std::chrono::nanoseconds timeout) const
+{
+    using namespace std::chrono_literals;
+    for (;;) {
+        if (!hasAsyncStateChange())
+            return true;
+        timeout -= 10ms;
+        if (timeout < 0ms)
+            return false;
+        std::this_thread::sleep_for(10ms);
+    }
 }
 
 void QGstElement::lockState(bool locked)
