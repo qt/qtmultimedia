@@ -380,7 +380,9 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 {
     Q_ASSERT(thread()->isCurrentThread());
 
-    qCDebug(qLcMediaPlayer) << "received bus message:" << message;
+    constexpr bool traceBusMessages = true;
+    if (traceBusMessages)
+        qCDebug(qLcMediaPlayer) << "received bus message:" << message;
 
     switch (message.type()) {
     case GST_MESSAGE_TAG:
@@ -641,25 +643,43 @@ bool QGstreamerMediaPlayer::processSyncMessage(const QGstreamerMessage &message)
 {
     // GStreamer thread!
 
+    constexpr bool traceSyncMessages = false;
+    if (traceSyncMessages)
+        qCDebug(qLcMediaPlayer) << "received sync message:" << message;
+
+    switch (message.type()) {
+    case GST_MESSAGE_NEED_CONTEXT:
+        return processSyncMessageNeedsContext(message);
+
+    default:
+        return false;
+    }
+}
+
+bool QGstreamerMediaPlayer::processSyncMessageNeedsContext(
+        [[maybe_unused]] const QGstreamerMessage &message)
+{
+    // GStreamer thread!
+
 #if QT_CONFIG(gstreamer_gl)
-    if (message.type() != GST_MESSAGE_NEED_CONTEXT)
-        return false;
     const gchar *type = nullptr;
-    gst_message_parse_context_type (message.message(), &type);
-    if (strcmp(type, GST_GL_DISPLAY_CONTEXT_TYPE))
+    gst_message_parse_context_type(message.message(), &type);
+    if (type != std::string_view{ GST_GL_DISPLAY_CONTEXT_TYPE })
         return false;
-    if (!gstVideoOutput->gstreamerVideoSink())
+
+    // CHECK: accessing gstVideoOutput from the gstreamer thread does not look thread safe
+    QGstreamerVideoSink *sink = gstVideoOutput->gstreamerVideoSink();
+    if (!sink)
         return false;
-    auto *context = gstVideoOutput->gstreamerVideoSink()->gstGlDisplayContext();
+    auto *context = sink->gstGlDisplayContext();
     if (!context)
         return false;
-    gst_element_set_context(GST_ELEMENT(GST_MESSAGE_SRC(message.message())), context);
+
+    gst_element_set_context(GST_ELEMENT(message.source().object()), context);
     playerPipeline.dumpGraph("need_context");
     return true;
-#else
-    Q_UNUSED(message);
-    return false;
 #endif
+    return false;
 }
 
 QUrl QGstreamerMediaPlayer::media() const
