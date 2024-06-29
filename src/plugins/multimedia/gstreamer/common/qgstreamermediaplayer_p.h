@@ -149,10 +149,10 @@ private:
     };
 
     bool prerolling = false;
-    std::optional<std::chrono::nanoseconds> m_seekPositionOnPlay;
     bool m_initialBufferProgressSent = false;
     ResourceErrorState m_resourceErrorState = ResourceErrorState::NoError;
     float m_rate = 1.f;
+    std::optional<float> m_pendingRate;
     float m_bufferProgress = 0.f;
     std::chrono::milliseconds m_duration{};
     QTimer positionUpdateTimer;
@@ -166,8 +166,6 @@ private:
 
     QGstreamerAudioOutput *gstAudioOutput = nullptr;
     QGstreamerVideoOutput *gstVideoOutput = nullptr;
-
-    //    QGstElement streamSynchronizer;
 
     struct QGstPadLess
     {
