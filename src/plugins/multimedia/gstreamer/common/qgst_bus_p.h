@@ -55,8 +55,8 @@ public:
     void installMessageFilter(QGstreamerBusMessageFilter *);
     void removeMessageFilter(QGstreamerBusMessageFilter *);
 
-    bool processPendingMessage(GstMessageType type = GST_MESSAGE_ANY,
-                               std::optional<std::chrono::nanoseconds> timeout = {});
+    bool processNextPendingMessage(GstMessageType type = GST_MESSAGE_ANY,
+                                   std::optional<std::chrono::nanoseconds> timeout = {});
 
 private:
     void processAllPendingMessages();
