@@ -1214,7 +1214,7 @@ void tst_QMediaPlayerBackend::pause_initializesExpectedDefaultState()
     if (hasAudio)
         QCOMPARE(actualState.audioTracks->size(), 1);
 
-    QEXPECT_FAIL_GSTREAMER("", "GStreamer doesn't update bufferProgress while paused", Continue);
+    QSKIP_GSTREAMER("GStreamer doesn't update bufferProgress while paused");
 
     QTRY_COMPARE_GT(actualState.bufferProgress, 0);
 }
@@ -2496,10 +2496,10 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
         if (isDarwinPlatform())
             QSKIP("SKIP on macOS CI since multiple fake drawing on macOS CI platform causes UB. To "
                   "be investigated.");
-
-        if (isGStreamerPlatform())
-            QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
     }
+
+    QSKIP_GSTREAMER(
+            "playback rate changes are flushing the pipeline, so this test is not representative");
 
     TestVideoSink surface(false);
     QAudioOutput output;
