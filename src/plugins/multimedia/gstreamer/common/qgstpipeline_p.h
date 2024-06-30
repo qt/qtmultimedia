@@ -29,6 +29,8 @@ class QGstPipelinePrivate;
 
 class QGstPipeline : public QGstBin
 {
+    static constexpr auto defaultQueryTimeout = std::chrono::seconds{ 5 };
+
 public:
     constexpr QGstPipeline() = default;
     QGstPipeline(const QGstPipeline &) = default;
@@ -50,7 +52,9 @@ public:
 
     GstPipeline *pipeline() const { return GST_PIPELINE_CAST(get()); }
 
-    void processMessages(GstMessageType = GST_MESSAGE_ANY);
+    bool processNextPendingMessage(GstMessageType = GST_MESSAGE_ANY,
+                                   std::chrono::nanoseconds timeout = {});
+    bool processNextPendingMessage(std::chrono::nanoseconds timeout);
 
     template <typename Functor>
     void modifyPipelineWhileNotRunning(Functor &&fn)
@@ -78,6 +82,15 @@ public:
     void setPosition(std::chrono::nanoseconds pos);
     std::chrono::nanoseconds position() const;
     std::chrono::milliseconds positionInMs() const;
+
+    void setPositionAndRate(std::chrono::nanoseconds pos, double rate);
+
+    std::optional<std::chrono::nanoseconds>
+    queryPosition(std::chrono::nanoseconds timeout = defaultQueryTimeout) const;
+    std::optional<std::chrono::nanoseconds>
+    queryDuration(std::chrono::nanoseconds timeout = defaultQueryTimeout) const;
+    std::optional<std::pair<std::chrono::nanoseconds, std::chrono::nanoseconds>>
+    queryPositionAndDuration(std::chrono::nanoseconds timeout = defaultQueryTimeout) const;
 
 private:
     // installs QGstPipelinePrivate as "pipeline-private" gobject property

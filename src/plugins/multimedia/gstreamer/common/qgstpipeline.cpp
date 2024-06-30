@@ -6,6 +6,8 @@
 #include "qgstpipeline_p.h"
 #include "qgst_bus_p.h"
 
+#include <thread>
+
 QT_BEGIN_NAMESPACE
 
 static Q_LOGGING_CATEGORY(qLcGstPipeline, "qt.multimedia.gstpipeline");
@@ -105,10 +107,16 @@ GstStateChangeReturn QGstPipeline::setState(GstState state)
     return gst_element_set_state(element(), state);
 }
 
-void QGstPipeline::processMessages(GstMessageType types)
+bool QGstPipeline::processNextPendingMessage(GstMessageType types, std::chrono::nanoseconds timeout)
 {
     QGstPipelinePrivate *d = getPrivate();
-    d->processPendingMessage(types, std::chrono::nanoseconds{ 0 });
+    d->processNextPendingMessage(types, std::chrono::nanoseconds{ 0 });
+    return d->processNextPendingMessage(types, timeout);
+}
+
+bool QGstPipeline::processNextPendingMessage(std::chrono::nanoseconds timeout)
+{
+    return processNextPendingMessage(GST_MESSAGE_ANY, timeout);
 }
 
 void QGstPipeline::beginConfig()
@@ -278,6 +286,80 @@ std::chrono::milliseconds QGstPipeline::positionInMs() const
 {
     using namespace std::chrono;
     return round<milliseconds>(position());
+}
+
+void QGstPipeline::setPositionAndRate(std::chrono::nanoseconds pos, double rate)
+{
+    seek(pos, rate);
+}
+
+std::optional<std::chrono::nanoseconds>
+QGstPipeline::queryPosition(std::chrono::nanoseconds timeout) const
+{
+    using namespace std::chrono_literals;
+    using namespace std::chrono;
+
+    std::chrono::nanoseconds totalSleepTime{};
+
+    for (;;) {
+        std::optional<nanoseconds> dur = QGstElement::duration();
+        if (dur)
+            return dur;
+
+        if (totalSleepTime >= timeout)
+            return std::nullopt;
+        std::this_thread::sleep_for(20ms);
+        totalSleepTime += 20ms;
+    }
+}
+
+std::optional<std::chrono::nanoseconds>
+QGstPipeline::queryDuration(std::chrono::nanoseconds timeout) const
+{
+    using namespace std::chrono_literals;
+    using namespace std::chrono;
+
+    std::chrono::nanoseconds totalSleepTime{};
+
+    for (;;) {
+        std::optional<nanoseconds> dur = QGstElement::duration();
+        if (dur)
+            return dur;
+
+        if (totalSleepTime >= timeout)
+            return std::nullopt;
+
+        std::this_thread::sleep_for(20ms);
+        totalSleepTime += 20ms;
+    }
+}
+
+std::optional<std::pair<std::chrono::nanoseconds, std::chrono::nanoseconds>>
+QGstPipeline::queryPositionAndDuration(std::chrono::nanoseconds timeout) const
+{
+    using namespace std::chrono_literals;
+    using namespace std::chrono;
+
+    std::chrono::nanoseconds totalSleepTime{};
+
+    std::optional<nanoseconds> dur;
+    std::optional<nanoseconds> pos;
+
+    for (;;) {
+        if (!dur)
+            dur = QGstElement::duration();
+        if (!pos)
+            pos = QGstElement::position();
+
+        if (dur && pos)
+            return std::pair{ *dur, *pos };
+
+        if (totalSleepTime >= timeout)
+            return std::nullopt;
+
+        std::this_thread::sleep_for(20ms);
+        totalSleepTime += 20ms;
+    }
 }
 
 QGstPipelinePrivate *QGstPipeline::getPrivate() const

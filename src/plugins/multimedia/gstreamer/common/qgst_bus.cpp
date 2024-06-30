@@ -76,7 +76,7 @@ void QGstBus::removeMessageFilter(QGstreamerBusMessageFilter *filter)
     busFilters.removeAll(filter);
 }
 
-bool QGstBus::processPendingMessage(GstMessageType type,
+bool QGstBus::processNextPendingMessage(GstMessageType type,
                                     std::optional<std::chrono::nanoseconds> timeout)
 {
     GstClockTime gstTimeout = [&]() -> GstClockTime {
@@ -103,7 +103,7 @@ bool QGstBus::processPendingMessage(GstMessageType type,
 void QGstBus::processAllPendingMessages()
 {
     for (;;) {
-        bool messageHandled = processPendingMessage(GST_MESSAGE_ANY, std::chrono::nanoseconds{ 0 });
+        bool messageHandled = processNextPendingMessage(GST_MESSAGE_ANY, std::chrono::nanoseconds{ 0 });
 
         if (!messageHandled)
             return;

@@ -329,7 +329,11 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
 
 QDebug operator<<(QDebug dbg, const GstTagList *tagList)
 {
-    dbg << QGString{ gst_tag_list_to_string(tagList) };
+    if (tagList)
+        dbg << QGString{ gst_tag_list_to_string(tagList) };
+    else
+        dbg << "NULL";
+
     return dbg;
 }
 
