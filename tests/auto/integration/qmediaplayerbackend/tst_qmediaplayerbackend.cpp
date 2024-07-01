@@ -4208,13 +4208,13 @@ void tst_QMediaPlayerBackend::setActiveVideoTrack_switchesVideoTrack()
 
     QTest::qWait(500ms);
     sink.waitForFrame();
-    QCOMPARE(sink.m_frameList.back().toImage().pixel(10, 10), QColor(0xff, 0x80, 0x7f).rgb());
+    QCOMPARE(QColor{ sink.m_frameList.back().toImage().pixel(10, 10) }, QColor(0xff, 0x80, 0x7f));
 
     player.setActiveVideoTrack(track1);
 
     QTest::qWait(500ms);
     sink.waitForFrame();
-    QCOMPARE(sink.m_frameList.back().toImage().pixel(10, 10), QColor(0x80, 0x80, 0xff).rgb());
+    QCOMPARE(QColor{ sink.m_frameList.back().toImage().pixel(10, 10) }, QColor(0x80, 0x80, 0xff));
 }
 
 void tst_QMediaPlayerBackend::disablingAllTracks_doesNotStopPlayback()
