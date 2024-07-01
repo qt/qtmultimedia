@@ -175,13 +175,6 @@ struct QCameraFormatForeign
     QML_NAMED_ELEMENT(cameraFormat)
 };
 
-struct QVideoSinkForeign
-{
-    Q_GADGET
-    QML_FOREIGN(QVideoSink)
-    QML_NAMED_ELEMENT(VideoSink)
-};
-
 struct QCapturableWindowForeign
 {
     Q_GADGET
