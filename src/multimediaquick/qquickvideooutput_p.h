@@ -25,6 +25,7 @@
 #include <private/qtmultimediaquickglobal_p.h>
 #include <qvideoframe.h>
 #include <qvideoframeformat.h>
+#include <qvideosink.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -32,6 +33,21 @@ class QQuickVideoBackend;
 class QVideoOutputOrientationHandler;
 class QVideoSink;
 class QSGVideoNode;
+
+class QQuickVideoSink : public QVideoSink
+{
+    Q_OBJECT
+    QML_NAMED_ELEMENT(VideoSink)
+public:
+    QQuickVideoSink(QObject *parent = nullptr) : QVideoSink(parent)
+    {
+        connect(this, &QVideoSink::videoFrameChanged, this, &QQuickVideoSink::videoFrameChanged,
+                Qt::DirectConnection);
+    }
+
+Q_SIGNALS:
+    void videoFrameChanged();
+};
 
 class Q_MULTIMEDIAQUICK_EXPORT QQuickVideoOutput : public QQuickItem
 {
