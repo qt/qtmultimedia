@@ -70,6 +70,18 @@ QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext,
     if (!context)
         return { "Failed to allocate a FFmpeg codec context" };
 
+    // Use HW decoding even if the codec level doesn't match the reported capabilities
+    // of the hardware. FFmpeg documentation recommendeds setting this flag by default.
+    context->hwaccel_flags |= AV_HWACCEL_FLAG_IGNORE_LEVEL;
+
+    static const bool allowProfileMismatch = static_cast<bool>(
+            qEnvironmentVariableIntValue("QT_FFMPEG_HW_ALLOW_PROFILE_MISMATCH"));
+    if (allowProfileMismatch) {
+        // Use HW decoding even if the codec profile doesn't match the reported capabilities
+        // of the hardware.
+        context->hwaccel_flags |= AV_HWACCEL_FLAG_ALLOW_PROFILE_MISMATCH;
+    }
+
     if (hwAccel)
         context->hw_device_ctx = av_buffer_ref(hwAccel->hwDeviceContextAsBuffer());
 
