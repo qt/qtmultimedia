@@ -9,20 +9,5 @@ instructions:
     - !include "{{qt/qtbase}}/coin_module_build_template_v2.yaml"
 
   Test:
-    - type: Group
-      enable_if:
-        condition: or
-        conditions:
-          - condition: property
-            property: id
-            contains_value: macos-12-arm
-          - condition: property
-            property: id
-            contains_value: macos-13-arm
-      instructions:
-        - type: EnvironmentVariable
-          variableName: COIN_CTEST_IGNORE_EXIT_CODE
-          variableValue: "1"
-
     - !include "{{qt/qtmultimedia}}/run_ffmpeg_backend_tests.yaml"
     - !include "{{qt/qtbase}}/coin_module_test_docs.yaml"
