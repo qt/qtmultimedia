@@ -8,7 +8,6 @@
 #include <QtMultimedia/qmediacapturesession.h>
 #include <private/qfactoryloader_p.h>
 #include <QtCore/qloggingcategory.h>
-#include <qvideosink.h>
 #include <QtQuick/QQuickWindow>
 #include <private/qquickwindow_p.h>
 #include <private/qmultimediautils_p.h>
@@ -104,7 +103,7 @@ QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
 {
     setFlag(ItemHasContents, true);
 
-    m_sink = new QVideoSink(this);
+    m_sink = new QQuickVideoSink(this);
     qRegisterMetaType<QVideoFrameFormat>();
     connect(m_sink, &QVideoSink::videoFrameChanged, this,
             [this](const QVideoFrame &frame) {
