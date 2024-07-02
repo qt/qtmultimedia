@@ -118,7 +118,9 @@ QList<QAudioDevice> QOpenSLESEngine::availableDevices(QAudioDevice::Mode mode)
           jobjectArray devsArray = static_cast<jobjectArray>(devs.object());
           const jint size = env->GetArrayLength(devsArray);
           for (int i = 0; i < size; ++i) {
-              QString val = QJniObject(env->GetObjectArrayElement(devsArray, i)).toString();
+              auto devElement = env->GetObjectArrayElement(devsArray, i);
+              QString val = QJniObject(devElement).toString();
+              env->DeleteLocalRef(devElement);
               int pos = val.indexOf(QStringLiteral(":"));
               devices << (new QOpenSLESDeviceInfo(
                               val.left(pos).toUtf8(), val.mid(pos+1), mode))->create();
