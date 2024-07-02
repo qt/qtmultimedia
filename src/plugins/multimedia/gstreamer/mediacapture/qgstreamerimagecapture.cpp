@@ -23,7 +23,8 @@
 QT_BEGIN_NAMESPACE
 
 namespace {
-Q_LOGGING_CATEGORY(qLcImageCaptureGst, "qt.multimedia.imageCapture")
+
+Q_STATIC_LOGGING_CATEGORY(qLcImageCaptureGst, "qt.multimedia.imageCapture")
 
 struct ThreadPoolSingleton
 {

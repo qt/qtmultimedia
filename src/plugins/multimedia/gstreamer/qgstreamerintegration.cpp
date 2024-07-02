@@ -99,7 +99,7 @@ QGStreamerPlatformSpecificInterfaceImplementation::gstPipeline(QMediaCaptureSess
     return gstreamerCapture ? gstreamerCapture->pipeline().pipeline() : nullptr;
 }
 
-Q_LOGGING_CATEGORY(lcGstreamer, "qt.multimedia.gstreamer")
+Q_STATIC_LOGGING_CATEGORY(lcGstreamer, "qt.multimedia.gstreamer")
 
 namespace {
 

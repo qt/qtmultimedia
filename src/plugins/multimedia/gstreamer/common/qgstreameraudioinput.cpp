@@ -15,7 +15,7 @@ QT_BEGIN_NAMESPACE
 
 namespace {
 
-Q_LOGGING_CATEGORY(qLcMediaAudioInput, "qt.multimedia.audioinput")
+Q_STATIC_LOGGING_CATEGORY(qLcMediaAudioInput, "qt.multimedia.audioinput")
 
 constexpr QLatin1String defaultSrcName = [] {
     using namespace Qt::Literals;
