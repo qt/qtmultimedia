@@ -210,7 +210,9 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
         UInt32 size = 0;
         if (format.isValid()) {
             auto layout = CoreAudioUtils::toAudioChannelLayout(format, &size);
-            [settings setObject:[NSData dataWithBytes:layout.get() length:sizeof(AudioChannelLayout)] forKey:AVChannelLayoutKey];
+            UInt32 layoutSize = offsetof(AudioChannelLayout, mChannelDescriptions)
+                    + layout->mNumberChannelDescriptions * sizeof(AudioChannelDescription);
+            [settings setObject:[NSData dataWithBytes:layout.get() length:layoutSize] forKey:AVChannelLayoutKey];
         } else {
             // finally default to setting channel count to 1
             [settings setObject:[NSNumber numberWithInt:1] forKey:AVNumberOfChannelsKey];
