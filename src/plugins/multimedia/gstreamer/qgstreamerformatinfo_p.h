@@ -36,7 +36,9 @@ public:
     static QMediaFormat::FileFormat fileFormatForCaps(QGstStructureView structure);
     static QImageCapture::FileFormat imageFormatForCaps(QGstStructureView structure);
 
-    QList<CodecMap> getMuxerList(bool demuxer, QList<QMediaFormat::AudioCodec> audioCodecs, QList<QMediaFormat::VideoCodec> videoCodecs);
+private:
+    QList<CodecMap> getCodecMaps(QMediaFormat::ConversionMode conversionMode, QList<QMediaFormat::AudioCodec> audioCodecs,
+                                 QList<QMediaFormat::VideoCodec> videoCodecs);
 };
 
 QT_END_NAMESPACE
