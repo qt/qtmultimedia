@@ -44,7 +44,7 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject
     Q_PROPERTY(int audioBitRate READ audioBitRate WRITE setAudioBitRate NOTIFY audioBitRateChanged)
     Q_PROPERTY(int audioChannelCount READ audioChannelCount WRITE setAudioChannelCount NOTIFY audioChannelCountChanged)
     Q_PROPERTY(int audioSampleRate READ audioSampleRate WRITE setAudioSampleRate NOTIFY audioSampleRateChanged)
-    Q_PROPERTY(bool autoStop READ autoStop WRITE setAutoStop NOTIFY autoStopChanged)
+    Q_PROPERTY(bool autoStop READ autoStop WRITE setAutoStop NOTIFY autoStopChanged REVISION(6, 8))
 public:
     enum Quality
     {
@@ -166,7 +166,7 @@ Q_SIGNALS:
     void audioBitRateChanged();
     void audioChannelCountChanged();
     void audioSampleRateChanged();
-    void autoStopChanged();
+    Q_REVISION(6, 8) void autoStopChanged();
 
 private:
     QMediaRecorderPrivate *d_ptr;
