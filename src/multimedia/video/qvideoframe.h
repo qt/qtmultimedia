@@ -34,6 +34,7 @@ public:
         RhiTextureHandle
     };
 
+#if QT_DEPRECATED_SINCE(6, 8)
     enum MapMode
     {
         NotMapped Q_DECL_ENUMERATOR_DEPRECATED_X("Use QtVideo::MapMode::NotMapped instead")
@@ -45,6 +46,7 @@ public:
         ReadWrite Q_DECL_ENUMERATOR_DEPRECATED_X("Use QtVideo::MapMode::ReadWrite instead")
             = static_cast<int>(QtVideo::MapMode::ReadWrite)
     };
+#endif
 
 #if QT_DEPRECATED_SINCE(6, 7)
     enum RotationAngle
