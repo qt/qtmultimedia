@@ -205,17 +205,22 @@ static QPair<QList<QMediaFormat::AudioCodec>, QList<QMediaFormat::VideoCodec>> g
     return {audio, video};
 }
 
-
-QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool demuxer,
-                                                                        QList<QMediaFormat::AudioCodec> supportedAudioCodecs,
-                                                                        QList<QMediaFormat::VideoCodec> supportedVideoCodecs)
+QList<QGstreamerFormatInfo::CodecMap>
+QGstreamerFormatInfo::getCodecMaps(QMediaFormat::ConversionMode conversionMode,
+                                   QList<QMediaFormat::AudioCodec> supportedAudioCodecs,
+                                   QList<QMediaFormat::VideoCodec> supportedVideoCodecs)
 {
-    QList<QGstreamerFormatInfo::CodecMap> muxers;
+    QList<QGstreamerFormatInfo::CodecMap> maps;
 
-    GstPadDirection padDirection = demuxer ? GST_PAD_SINK : GST_PAD_SRC;
+    GstPadDirection dataPadDirection =
+            (conversionMode == QMediaFormat::Decode) ? GST_PAD_SINK : GST_PAD_SRC;
 
+    auto encodableFactoryTypes =
+            (GST_ELEMENT_FACTORY_TYPE_MUXER | GST_ELEMENT_FACTORY_TYPE_PAYLOADER
+             | GST_ELEMENT_FACTORY_TYPE_ENCRYPTOR | GST_ELEMENT_FACTORY_TYPE_ENCODER);
     GList *elementList = gst_element_factory_list_get_elements(
-            demuxer ? GST_ELEMENT_FACTORY_TYPE_DEMUXER : GST_ELEMENT_FACTORY_TYPE_MUXER,
+            (conversionMode == QMediaFormat::Decode) ? GST_ELEMENT_FACTORY_TYPE_DECODABLE
+                                                     : encodableFactoryTypes,
             GST_RANK_MARGINAL);
 
     for (GstElementFactory *factory :
@@ -226,7 +231,10 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
              QGstUtils::GListRangeAdaptor<GstStaticPadTemplate *>(
                      gst_element_factory_get_static_pad_templates(factory))) {
 
-            if (padTemplate->direction == padDirection) {
+            // Check pads on data side for file formats, except for parsers check source side
+            if (padTemplate->direction == dataPadDirection
+                || (gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_PARSER)
+                    && padTemplate->direction == GST_PAD_SRC)) {
                 auto caps = QGstCaps(gst_static_caps_get(&padTemplate->static_caps), QGstCaps::HasRef);
 
                 for (int i = 0; i < caps.size(); i++) {
@@ -237,6 +245,7 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
                 }
             }
         }
+
         if (fileFormats.isEmpty())
             continue;
 
@@ -248,7 +257,7 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
                      gst_element_factory_get_static_pad_templates(factory))) {
 
             // check the other side for supported inputs/outputs
-            if (padTemplate->direction != padDirection) {
+            if (padTemplate->direction != dataPadDirection) {
                 auto caps = QGstCaps(gst_static_caps_get(&padTemplate->static_caps), QGstCaps::HasRef);
 
                 bool acceptsRawAudio = false;
@@ -283,19 +292,19 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
         }
         if (!audioCodecs.isEmpty() || !videoCodecs.isEmpty()) {
             for (auto f : std::as_const(fileFormats)) {
-                muxers.append({f, audioCodecs, videoCodecs});
+                maps.append({f, audioCodecs, videoCodecs});
                 if (f == QMediaFormat::MPEG4 && !fileFormats.contains(QMediaFormat::Mpeg4Audio)) {
-                    muxers.append({QMediaFormat::Mpeg4Audio, audioCodecs, {}});
+                    maps.append({QMediaFormat::Mpeg4Audio, audioCodecs, {}});
                     if (audioCodecs.contains(QMediaFormat::AudioCodec::AAC))
-                        muxers.append({QMediaFormat::AAC, { QMediaFormat::AudioCodec::AAC }, {}});
+                        maps.append({QMediaFormat::AAC, { QMediaFormat::AudioCodec::AAC }, {}});
                 } else if (f == QMediaFormat::WMV && !fileFormats.contains(QMediaFormat::WMA)) {
-                    muxers.append({QMediaFormat::WMA, audioCodecs, {}});
+                    maps.append({QMediaFormat::WMA, audioCodecs, {}});
                 }
             }
         }
     }
     gst_plugin_feature_list_free(elementList);
-    return muxers;
+    return maps;
 }
 
 static QList<QImageCapture::FileFormat> getImageFormatList()
@@ -362,10 +371,10 @@ static void dumpMuxers(const QList<QPlatformMediaFormatInfo::CodecMap> &muxerLis
 QGstreamerFormatInfo::QGstreamerFormatInfo()
 {
     auto codecs = getCodecsList(/*decode = */ true);
-    decoders = getMuxerList(true, codecs.first, codecs.second);
+    decoders = getCodecMaps(QMediaFormat::Decode, codecs.first, codecs.second);
 
     codecs = getCodecsList(/*decode = */ false);
-    encoders = getMuxerList(/* demuxer = */false, codecs.first, codecs.second);
+    encoders = getCodecMaps(QMediaFormat::Encode, codecs.first, codecs.second);
 //    dumpAudioCodecs(codecs.first);
 //    dumpVideoCodecs(codecs.second);
 //    dumpMuxers(encoders);
