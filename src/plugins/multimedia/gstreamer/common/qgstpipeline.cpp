@@ -290,6 +290,8 @@ std::chrono::milliseconds QGstPipeline::positionInMs() const
 
 void QGstPipeline::setPositionAndRate(std::chrono::nanoseconds pos, double rate)
 {
+    QGstPipelinePrivate *d = getPrivate();
+    d->m_rate = rate;
     seek(pos, rate);
 }
 
