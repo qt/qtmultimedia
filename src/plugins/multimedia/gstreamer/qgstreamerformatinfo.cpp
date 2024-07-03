@@ -147,6 +147,15 @@ QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructureVi
         }
     }
 
+    if (name == "audio/aac"sv)
+        return QMediaFormat::FileFormat::AAC;
+
+    if (name == "audio/x-ms-wma"sv)
+        return QMediaFormat::FileFormat::WMA;
+
+    if (name == "audio/x-flac"sv)
+        return QMediaFormat::FileFormat::FLAC;
+
     return QMediaFormat::UnspecifiedFormat;
 }
 
