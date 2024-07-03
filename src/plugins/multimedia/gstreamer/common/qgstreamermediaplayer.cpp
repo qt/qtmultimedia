@@ -322,7 +322,7 @@ void QGstreamerMediaPlayer::pause()
     int ret = playerPipeline.setStateSync(GST_STATE_PAUSED);
     if (ret == GST_STATE_CHANGE_FAILURE)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
-    if (mediaStatus() == QMediaPlayer::EndOfMedia || state() == QMediaPlayer::StoppedState) {
+    if (mediaStatus() == QMediaPlayer::EndOfMedia) {
         playerPipeline.setPosition(0ms);
         positionChanged(0);
     } else {
@@ -1054,6 +1054,8 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         // Note: no further error handling: errors will be delivered via a GstMessage
         return;
     }
+
+    playerPipeline.setPosition(0ms);
 }
 
 void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
