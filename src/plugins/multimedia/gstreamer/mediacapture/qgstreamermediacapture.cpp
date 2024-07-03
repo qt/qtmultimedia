@@ -152,7 +152,8 @@ void QGstreamerMediaCapture::setImageCapture(QPlatformImageCapture *imageCapture
 
     capturePipeline.modifyPipelineWhileNotRunning([&] {
         if (m_imageCapture) {
-            qUnlinkGstElements(gstVideoTee, m_imageCapture->gstElement());
+            if (gstVideoTee)
+                qUnlinkGstElements(gstVideoTee, m_imageCapture->gstElement());
             capturePipeline.stopAndRemoveElements(m_imageCapture->gstElement());
             imageCaptureSink = {};
             m_imageCapture->setCaptureSession(nullptr);
@@ -233,13 +234,15 @@ void QGstreamerMediaCapture::unlinkEncoder()
 {
     capturePipeline.modifyPipelineWhileNotRunning([&] {
         if (encoderVideoCapsFilter) {
-            qUnlinkGstElements(gstVideoTee, encoderVideoCapsFilter);
+            if (gstVideoTee)
+                qUnlinkGstElements(gstVideoTee, encoderVideoCapsFilter);
             capturePipeline.stopAndRemoveElements(encoderVideoCapsFilter);
             encoderVideoCapsFilter = {};
         }
 
         if (encoderAudioCapsFilter) {
-            qUnlinkGstElements(gstAudioTee, encoderAudioCapsFilter);
+            if (gstAudioTee)
+                qUnlinkGstElements(gstAudioTee, encoderAudioCapsFilter);
             capturePipeline.stopAndRemoveElements(encoderAudioCapsFilter);
             encoderAudioCapsFilter = {};
         }
