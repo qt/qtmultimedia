@@ -207,6 +207,7 @@ private slots:
 
     void setVideoOutput_doesNotStopPlayback_data();
     void setVideoOutput_doesNotStopPlayback();
+    void setVideoOutput_whilePaused_updatesNewSink();
     void setAudioOutput_doesNotStopPlayback_data();
     void setAudioOutput_doesNotStopPlayback();
     void swapAudioDevice_doesNotStopPlayback_data();
@@ -3885,6 +3886,55 @@ void tst_QMediaPlayerBackend::setVideoOutput_doesNotStopPlayback_data()
     QTest::newRow("StoppedState") << QMediaPlayer::StoppedState;
     QTest::newRow("PausedState") << QMediaPlayer::PausedState;
     QTest::newRow("PlayingState") << QMediaPlayer::PlayingState;
+}
+
+void tst_QMediaPlayerBackend::setVideoOutput_whilePaused_updatesNewSink()
+{
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_15sVideo);
+
+    TestVideoSink surface1(/*storeFrames=*/false);
+    TestVideoSink surface2(/*storeFrames=*/false);
+
+    QAudioOutput audioOut;
+
+    QMediaPlayer player;
+    player.setAudioOutput(&audioOut);
+    player.setVideoOutput(&surface1);
+    player.setSource(*m_15sVideo);
+
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    player.play();
+    QTRY_VERIFY(player.position() > 100);
+
+#ifndef Q_OS_ANDROID // fails with android/ffmpeg
+    QCOMPARE(surface1.videoFrame().toImage().pixelColor(10, 10), QColorConstants::White);
+#endif
+
+    player.pause();
+
+    QTest::qWait(100ms); // pause() may be asynchronous
+
+    player.setVideoOutput(&surface2);
+
+    QSKIP_FFMPEG("QTBUG-127031");
+
+    if (isGStreamerPlatform())
+        // new frame is delivered asynchronously
+        QTRY_COMPARE_EQ(surface2.m_totalFrames, 1);
+    else
+        QCOMPARE_EQ(surface2.m_totalFrames, 1);
+
+#ifndef Q_OS_ANDROID // fails with android/ffmpeg
+    QCOMPARE(surface2.videoFrame().toImage().pixelColor(10, 10), QColorConstants::White);
+#endif
+
+    if (isFFMPEGPlatform())
+        QCOMPARE(surface1.videoFrame(), surface2.videoFrame());
+    else if (isGStreamerPlatform())
+        // timestamps differ, so we only compare pixels
+        QCOMPARE(surface1.videoFrame().toImage(), surface2.videoFrame().toImage());
 }
 
 void tst_QMediaPlayerBackend::setAudioOutput_doesNotStopPlayback()
