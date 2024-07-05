@@ -233,6 +233,14 @@ private slots:
     void disablingAllTracks_doesNotStopPlayback();
     void disablingAllTracks_beforeTracksChanged_doesNotStopPlayback();
 
+    void makeStressTestCases();
+    void stressTest_setupAndTeardown();
+    void stressTest_setupAndTeardown_data();
+    void stressTest_setupAndTeardown_keepAudioOutput();
+    void stressTest_setupAndTeardown_keepAudioOutput_data();
+    void stressTest_setupAndTeardown_keepVideoOutput();
+    void stressTest_setupAndTeardown_keepVideoOutput_data();
+
 private:
     QUrl selectVideoFile(const QStringList &mediaCandidates);
 
@@ -4480,6 +4488,110 @@ void tst_QMediaPlayerBackend::disablingAllTracks_beforeTracksChanged_doesNotStop
     QTRY_VERIFY(player.position() > 1000);
 
     QCOMPARE(m_fixture->surface.m_totalFrames, 0);
+}
+
+void tst_QMediaPlayerBackend::makeStressTestCases()
+{
+    QTest::addColumn<MaybeUrl>("media");
+    QTest::addColumn<bool>("play");
+
+    QTest::newRow("no media") << MaybeUrl{ unexpect } << false;
+    QTest::newRow("audio, not playing") << m_localWavFile << false;
+    QTest::newRow("audio, playing") << m_localWavFile << true;
+    QTest::newRow("video, not playing") << m_localVideoFile << false;
+    QTest::newRow("video, playing") << m_localVideoFile << true;
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown()
+{
+    QFETCH(MaybeUrl, media);
+    QFETCH(bool, play);
+    QRandomGenerator rng;
+
+    for (int i = 0; i < 50; i++) {
+        QMediaPlayer player;
+        QAudioOutput output;
+        TestVideoSink videoSink;
+
+        player.setAudioOutput(&output);
+        player.setVideoOutput(&videoSink);
+
+        if (media) {
+            player.setSource(*media);
+            if (play) {
+                player.play();
+                QTRY_VERIFY(player.position() > 10);
+            }
+        }
+        QTest::qWait(rng.bounded(200));
+    }
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown_data()
+{
+    makeStressTestCases();
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown_keepAudioOutput()
+{
+    QFETCH(MaybeUrl, media);
+    QFETCH(bool, play);
+    QRandomGenerator rng;
+
+    QAudioOutput output;
+
+    for (int i = 0; i < 50; i++) {
+        QMediaPlayer player;
+        TestVideoSink videoSink;
+
+        player.setAudioOutput(&output);
+        player.setVideoOutput(&videoSink);
+
+        if (media) {
+            player.setSource(*media);
+            if (play) {
+                player.play();
+                QTRY_VERIFY(player.position() > 10);
+            }
+        }
+        QTest::qWait(rng.bounded(200));
+    }
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown_keepAudioOutput_data()
+{
+    makeStressTestCases();
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown_keepVideoOutput()
+{
+    QFETCH(MaybeUrl, media);
+    QFETCH(bool, play);
+    QRandomGenerator rng;
+
+    TestVideoSink videoSink;
+
+    for (int i = 0; i < 50; i++) {
+        QMediaPlayer player;
+        QAudioOutput output;
+
+        player.setAudioOutput(&output);
+        player.setVideoOutput(&videoSink);
+
+        if (media) {
+            player.setSource(*media);
+            if (play) {
+                player.play();
+                QTRY_VERIFY(player.position() > 10);
+            }
+        }
+        QTest::qWait(rng.bounded(200));
+    }
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown_keepVideoOutput_data()
+{
+    makeStressTestCases();
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)
