@@ -212,13 +212,13 @@
     \section3 Native backends
     These are:
     \list
-        \li gstreamer on Linux
+        \li GStreamer on Linux
         \li AVFoundation on macOS and iOS
         \li WMF Windows
         \li MediaCodec framework on Android
     \endlist
 
-    \note These are still available but with \b limited support. The gstreamer
+    \note These are still available but with \b limited support. The GStreamer
     backend is only available on Linux.
     \note MediaCodec on Android is deprecated as of Qt 6.8 and will be removed
     in Qt 7.0.
@@ -226,9 +226,11 @@
     \section2 Backend support
     Maintainers will strive to fix critical issues with the native backends but
     don't guarantee fixing minor issues and won't implement new features for the
-    native backends. Furthermore, even some major issues with the gstreamer
-    backend (on Linux) won't be fixed since gstreamer is difficult to debug and
-    is further complicated as it is dependent on Linux distributions.
+    native backends.
+
+    The GStreamer backend has some private APIs to allow more fine-grained control.
+    However, there are known bugs in the GStreamer backend. More details can be found
+    in \l{Qt Multimedia GStreamer Backend}{GStreamer}.
 
     We aim to align the behavior on all the platforms, especially, with the
     FFmpeg backend. Despite this fact we still have platform-dependent issues
