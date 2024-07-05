@@ -1,0 +1,75 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-gstreamer.html
+\title Qt Multimedia GStreamer backend
+\brief Platform notes for the GStreamer backend
+
+This page covers the limitations of the GStreamer backend of Qt Multimedia.
+
+\section1 Limitations and Known Issues
+
+GStreamer is not bundled with Qt, but it is typically deployed with the Linux distribution.
+
+\list
+\li Certain bugs may be due to the GStreamer version being used. We recommend to use the latest
+  GStreamer bug fix release on your platform.
+\li Certain bugs may also be related to the libraries used by GStreamer, like libpulseaudio. There
+is currently at least one bug that breaks QMediaPlayer's seek functionality due to a bug in the
+  interaction between QGStreamer and Pulseaudio (QTBUG-112014, QTBUG-124372)
+\li Seeking, playback rates, loop, switching sinks have known bugs.
+\endlist
+
+\section1 Customization points
+
+Qt Multimedia provides certain customization points to allow access to the underlying GStreamer
+pipeline. These customization points are considered private APIs and may be subject to change. The
+entry point is \c{class QGStreamerPlatformSpecificInterface}.
+
+\section2 Raw pipeline access
+
+The \c{GstPipeline} underlying the \l{QMediaPlayer} and \l{QMediaCaptureSession} can be accessed.
+
+\warning This is an unsafe API, as the pipeline is still managed by the Qt implementation. Great
+care is required when using this API.
+
+\code
+#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
+
+[...]
+QMediaMediaPlayer player;
+GstPipeline *pipeline = QGStreamerPlatformSpecificInterface::instance()->gstPipeline(&player);
+[...]
+QMediaCaptureSession session;
+GstPipeline *pipeline = QGSreamerPlatformSpecificInterface::instance()->gstPipeline(&session);
+\endcode
+
+\section2 Custom GStreamer elements as sinks and sources
+
+It is possible to create GStreamer elements from a GStreamer pipeline decription and wrap them
+inside a \c{QCamera} or \c{QAudioDevice}:
+
+\code
+#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
+
+[...]
+QByteArray pipelineString = "videotestsrc is-live=true ! gamma gamma=2.0";
+
+QMediaCaptureSession session;
+session.setVideoSink(wid.videoSink());
+
+QCamera *cam = QGStreamerPlatformSpecificInterface::instance()->makeCustomGStreamerCamera(
+         pipelineString, &session);
+session.setCamera(cam);
+\endcode
+
+\section1 Architectural Considerations.
+
+Qt Multimedia is not a general purpose streaming framework and not necessarily the architecturally
+best way to use GStreamer with Qt. Developers, who need a high degree of control over the GStreamer
+pipeline, but only want to show the video output Qt, may want to consider using GStreamer's
+\l{https://gstreamer.freedesktop.org/documentation/qml6/index.html}{qml6glsink}.
+
+
+ */
