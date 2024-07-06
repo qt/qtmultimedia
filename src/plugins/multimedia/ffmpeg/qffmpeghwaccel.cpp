@@ -304,7 +304,7 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *sugge
             auto scoresGettor = [&](AVPixelFormat format) {
                 // check in supported codec->pix_fmts;
                 // no reason to use findAVPixelFormat as we're already in the hw_config loop
-                if (shouldCheckCodecFormats && !hasAVFormat(codecContext->codec->pix_fmts, format))
+                if (shouldCheckCodecFormats && !hasAVValue(codecContext->codec->pix_fmts, format))
                     return NotSuitableAVScore;
 
                 if (!shouldCheckCodecFormats && config->pix_fmt != format)
@@ -335,7 +335,7 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *sugge
     }
 
     // prefer video formats we can handle directly
-    const auto noConversionFormat = findAVFormat(suggestedFormats, &isNoConversionFormat);
+    const auto noConversionFormat = findAVValue(suggestedFormats, &isNoConversionFormat);
     if (noConversionFormat != AV_PIX_FMT_NONE) {
         qCDebug(qLHWAccel) << "Selected format with no conversion" << noConversionFormat;
         return noConversionFormat;

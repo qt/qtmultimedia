@@ -106,7 +106,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
             return findTargetSWFormat(sourceSWFormat, codec, *accel);
 
         const auto constraints = accel->constraints();
-        if (constraints && hasAVFormat(constraints->valid_hw_formats, hwFormat))
+        if (constraints && hasAVValue(constraints->valid_hw_formats, hwFormat))
             return hwFormat;
 
         // Some codecs, don't expose constraints,
