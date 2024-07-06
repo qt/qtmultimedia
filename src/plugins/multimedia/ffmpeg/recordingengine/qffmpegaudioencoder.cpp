@@ -258,11 +258,14 @@ void AudioEncoder::updateResampler()
     const AVAudioFormat requestedAudioFormat(m_format);
     const AVAudioFormat codecAudioFormat(m_codecContext.get());
 
-    if (requestedAudioFormat != codecAudioFormat)
+    if (requestedAudioFormat != codecAudioFormat) {
         m_resampler = createResampleContext(requestedAudioFormat, codecAudioFormat);
-
-    qCDebug(qLcFFmpegAudioEncoder)
-            << "Resampler updated. Input format:" << m_format << "Resampler:" << m_resampler.get();
+        qCDebug(qLcFFmpegAudioEncoder) << "Created resampler with audio formats conversion\n"
+                                       << requestedAudioFormat << "->" << codecAudioFormat;
+    } else {
+        qCDebug(qLcFFmpegAudioEncoder) << "Resampler is not needed due to no-conversion format\n"
+                                       << requestedAudioFormat;
+    }
 }
 
 void AudioEncoder::ensurePendingFrame(int availableSamplesCount)
