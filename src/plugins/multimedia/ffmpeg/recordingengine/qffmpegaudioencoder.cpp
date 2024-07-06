@@ -139,7 +139,16 @@ bool AudioEncoder::init()
                 if (auto fmts = codec->sample_fmts)
                     result += hasAVValue(fmts, requestedAudioFormat.sampleFormat) ? 1 : -1;
 
-                // TODO: apply +1 / -1 for sample rates and channel layout
+                if (auto rates = codec->supported_samplerates)
+                    result += hasAVValue(rates, requestedAudioFormat.sampleRate) ? 1 : -1;
+
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+                if (auto layouts = codec->channel_layouts)
+                    result += hasAVValue(layouts, requestedAudioFormat.channelLayoutMask) ? 1 : -1;
+#else
+                if (auto layouts = codec->ch_layouts)
+                    result += hasAVValue(layouts, requestedAudioFormat.channelLayout) ? 1 : -1;
+#endif
 
                 return result;
             },
