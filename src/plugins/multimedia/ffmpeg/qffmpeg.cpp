@@ -720,4 +720,22 @@ QDebug operator<<(QDebug dbg, const AVRational &value)
     return dbg;
 }
 
+#if !QT_FFMPEG_OLD_CHANNEL_LAYOUT
+QDebug operator<<(QDebug dbg, const AVChannelLayout &layout)
+{
+    dbg << '[';
+    dbg << "nb_channels:" << layout.nb_channels;
+    dbg << ", order:" << layout.order;
+
+    if (layout.order == AV_CHANNEL_ORDER_NATIVE || layout.order == AV_CHANNEL_ORDER_AMBISONIC)
+        dbg << ", mask:" << Qt::bin << layout.u.mask << Qt::dec;
+    else if (layout.order == AV_CHANNEL_ORDER_CUSTOM && layout.u.map)
+        dbg << ", id: " << layout.u.map->id;
+
+    dbg << ']';
+
+    return dbg;
+}
+#endif
+
 QT_END_NAMESPACE

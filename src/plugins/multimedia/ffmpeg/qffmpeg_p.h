@@ -295,6 +295,10 @@ std::string cvFormatToString(uint32_t format);
 
 QDebug operator<<(QDebug, const AVRational &);
 
+#if !QT_FFMPEG_OLD_CHANNEL_LAYOUT
+QDebug operator<<(QDebug, const AVChannelLayout &);
+#endif
+
 QT_END_NAMESPACE
 
 #endif

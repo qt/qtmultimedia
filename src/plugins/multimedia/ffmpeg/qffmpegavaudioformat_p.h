@@ -61,6 +61,8 @@ inline bool operator!=(const AVAudioFormat &lhs, const AVAudioFormat &rhs)
     return !(lhs == rhs);
 }
 
+QDebug operator<<(QDebug, const AVAudioFormat &);
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

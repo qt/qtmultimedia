@@ -73,6 +73,22 @@ bool operator==(const AVAudioFormat &lhs, const AVAudioFormat &rhs)
             ;
 }
 
+QDebug operator<<(QDebug dbg, const AVAudioFormat &format)
+{
+    dbg << '[';
+    const char *sampleFormatName = av_get_sample_fmt_name(format.sampleFormat);
+    dbg << "sample format:" << (sampleFormatName ? sampleFormatName : "unknown");
+    dbg << ", sample rate:" << format.sampleRate;
+
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+    dbg << "channel layout:" << Qt::bin << format.channelLayoutMask << Qt::dec;
+#else
+    dbg << ", channel layout:" << format.channelLayout;
+#endif
+    dbg << ']';
+    return dbg;
+}
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE
