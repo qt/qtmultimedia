@@ -11,9 +11,19 @@ namespace QFFmpeg {
 AVSampleFormat adjustSampleFormat(const AVSampleFormat *supportedFormats, AVSampleFormat requested)
 {
     auto calcScore = [requested](AVSampleFormat format) {
-        return format == requested                              ? BestAVScore
-                : format == av_get_planar_sample_fmt(requested) ? BestAVScore - 1
-                                                                : 0;
+        if (format == requested)
+            return BestAVScore;
+        if (format == av_get_planar_sample_fmt(requested))
+            return BestAVScore - 1;
+
+        const int bps = av_get_bytes_per_sample(format);
+        const int bpsRequested = av_get_bytes_per_sample(requested);
+        // choose the closest one with higher bps
+        if (bps >= bpsRequested)
+            return DefaultAVScore - (bps - bpsRequested);
+
+        // choose the closest one with lower bps, considering a priority penalty
+        return DefaultAVScore - (bpsRequested - bps) - 1000000;
     };
 
     const auto result = findBestAVFormat(supportedFormats, calcScore).first;
@@ -23,9 +33,15 @@ AVSampleFormat adjustSampleFormat(const AVSampleFormat *supportedFormats, AVSamp
 int adjustSampleRate(const int *supportedRates, int requested)
 {
     auto calcScore = [requested](int rate) {
-        return requested == rate    ? BestAVScore
-                : requested <= rate ? rate - requested
-                                    : requested - rate - 1000000;
+        if (requested == rate)
+            return BestAVScore;
+
+        // choose the closest one with higher rate
+        if (rate >= requested)
+            return DefaultAVScore - (rate - requested);
+
+        // choose the closest one with lower rate, considering a priority penalty
+        return DefaultAVScore - (requested - rate) - 1000000;
     };
 
     const auto result = findBestAVValue(supportedRates, calcScore).first;
@@ -35,9 +51,11 @@ int adjustSampleRate(const int *supportedRates, int requested)
 static AVScore calculateScoreByChannelsCount(int supportedChannelsNumber,
                                              int requestedChannelsNumber)
 {
+    // choose the closest one with higher channels number
     if (supportedChannelsNumber >= requestedChannelsNumber)
         return requestedChannelsNumber - supportedChannelsNumber;
 
+    // choose the closest one with lower channels number, considering a priority penalty
     return supportedChannelsNumber - requestedChannelsNumber - 10000;
 }
 
