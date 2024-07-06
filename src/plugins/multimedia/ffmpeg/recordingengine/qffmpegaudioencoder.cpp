@@ -50,14 +50,17 @@ bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
 
     avcodec_parameters_to_context(codecContext, stream->codecpar);
 
-    AVDictionaryHolder opts;
-    applyAudioEncoderOptions(settings, codecContext->codec->name, codecContext, opts);
-    applyExperimentalCodecOptions(codecContext->codec, opts);
+    // if avcodec_open2 fails, it may clean codecContext->codec
+    const AVCodec *codec = codecContext->codec;
 
-    const int res = avcodec_open2(codecContext, codecContext->codec, opts);
+    AVDictionaryHolder opts;
+    applyAudioEncoderOptions(settings, codec->name, codecContext, opts);
+    applyExperimentalCodecOptions(codec, opts);
+
+    const int res = avcodec_open2(codecContext, codec, opts);
 
     if (res != 0) {
-        qCWarning(qLcFFmpegAudioEncoder) << "Cannot open audio codec" << codecContext->codec->name
+        qCWarning(qLcFFmpegAudioEncoder) << "Cannot open audio codec" << codec->name
                                          << "; result:" << err2str(res);
         return false;
     }
