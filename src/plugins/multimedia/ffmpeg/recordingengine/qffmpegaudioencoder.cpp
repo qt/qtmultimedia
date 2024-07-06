@@ -322,14 +322,17 @@ void AudioEncoder::writeDataToPendingFrame(const uchar *data, int &samplesOffset
     for (int plane = 0; plane < planesCount; ++plane)
         m_avFramePlanesData[plane] = m_avFrame->extended_data[plane] + audioDataOffset;
 
-    const int samplesToRead =
-            std::min(m_avFrame->nb_samples - m_avFrameSamplesOffset, samplesCount - samplesOffset);
+    const int samplesToWrite = m_avFrame->nb_samples - m_avFrameSamplesOffset;
+    int samplesToRead = (samplesToWrite * m_format.sampleRate() + m_codecContext->sample_rate / 2)
+            / m_codecContext->sample_rate;
+    // the lower bound is need to get round infinite loops in corner cases
+    samplesToRead = qBound(1, samplesToRead, samplesCount - samplesOffset);
 
     data += m_format.bytesForFrames(samplesOffset);
 
     if (m_resampler) {
         m_avFrameSamplesOffset += swr_convert(m_resampler.get(), m_avFramePlanesData.data(),
-                                              samplesToRead, &data, samplesToRead);
+                                              samplesToWrite, &data, samplesToRead);
     } else {
         Q_ASSERT(planesCount == 1);
         m_avFrameSamplesOffset += samplesToRead;
@@ -348,7 +351,8 @@ void AudioEncoder::sendPendingFrameToAVCodec()
 
     m_samplesWritten += m_avFrameSamplesOffset;
 
-    const qint64 time = m_format.durationForFrames(m_samplesWritten);
+    const qint64 time = m_format.durationForFrames(m_samplesWritten * m_format.sampleRate()
+                                                   / m_codecContext->sample_rate);
     m_recordingEngine.newTimeStamp(time / 1000);
 
     // qCDebug(qLcFFmpegEncoder) << "sending audio frame" << buffer.byteCount() << frame->pts <<
