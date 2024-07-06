@@ -29,7 +29,7 @@ bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format)
     }
 
     if (codec->type == AVMEDIA_TYPE_AUDIO)
-        return hasAVFormat(codec->sample_fmts, AVSampleFormat(format));
+        return hasAVValue(codec->sample_fmts, AVSampleFormat(format));
 
     return false;
 }

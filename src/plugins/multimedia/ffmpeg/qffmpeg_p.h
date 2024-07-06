@@ -165,17 +165,17 @@ inline constexpr auto InvalidAvValue<AVPixelFormat> = AV_PIX_FMT_NONE;
 
 bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format);
 
-template<typename Format>
-bool hasAVFormat(const Format *fmts, Format format)
+template <typename Format>
+bool hasAVValue(const Format *fmts, Format format)
 {
-    return findAVFormat(fmts, [format](Format f) { return f == format; }) != InvalidAvValue<Format>;
+    return findAVValue(fmts, [format](Format f) { return f == format; }) != InvalidAvValue<Format>;
 }
 
-template<typename Format, typename Predicate>
-Format findAVFormat(const Format *fmts, const Predicate &predicate)
+template <typename AVValue, typename Predicate>
+AVValue findAVValue(const AVValue *fmts, const Predicate &predicate)
 {
-    auto scoresGetter = [&predicate](Format fmt) {
-        return predicate(fmt) ? BestAVScore : NotSuitableAVScore;
+    auto scoresGetter = [&predicate](AVValue value) {
+        return predicate(value) ? BestAVScore : NotSuitableAVScore;
     };
     return findBestAVValue(fmts, scoresGetter).first;
 }
@@ -194,7 +194,7 @@ const AVCodecHWConfig *findHwConfig(const AVCodec *codec, const Predicate &predi
 template <typename Predicate>
 AVPixelFormat findAVPixelFormat(const AVCodec *codec, const Predicate &predicate)
 {
-    const AVPixelFormat format = findAVFormat(codec->pix_fmts, predicate);
+    const AVPixelFormat format = findAVValue(codec->pix_fmts, predicate);
     if (format != AV_PIX_FMT_NONE)
         return format;
 

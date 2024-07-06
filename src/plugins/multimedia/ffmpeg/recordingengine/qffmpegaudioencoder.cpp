@@ -137,7 +137,7 @@ bool AudioEncoder::init()
 
                 // Attempt to find no-conversion format
                 if (auto fmts = codec->sample_fmts)
-                    result += hasAVFormat(fmts, requestedAudioFormat.sampleFormat) ? 1 : -1;
+                    result += hasAVValue(fmts, requestedAudioFormat.sampleFormat) ? 1 : -1;
 
                 // TODO: apply +1 / -1 for sample rates and channel layout
 
