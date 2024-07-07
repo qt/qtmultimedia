@@ -688,7 +688,7 @@ void QMediaPlayer::setAudioBufferOutput(QAudioBufferOutput *output)
 
     d->audioBufferOutput = output;
 
-    if (output) {
+    if (oldOutput) {
         auto oldPlayer = QAudioBufferOutputPrivate::exchangeMediaPlayer(*oldOutput, this);
         if (oldPlayer)
             oldPlayer->setAudioBufferOutput(nullptr);

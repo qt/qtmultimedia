@@ -188,7 +188,7 @@ void AudioRenderer::pushFrameToBufferOutput(const Frame &frame)
 
     if (frame.isValid()) {
         // TODO: get buffer from m_bufferedData if resample formats are equal
-        QAudioBuffer buffer = m_resampler->resample(frame.avFrame());
+        QAudioBuffer buffer = m_bufferOutputResampler->resample(frame.avFrame());
         emit m_bufferOutput->audioBufferReceived(buffer);
     } else {
         emit m_bufferOutput->audioBufferReceived({});
