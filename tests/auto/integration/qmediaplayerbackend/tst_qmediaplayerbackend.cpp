@@ -39,12 +39,14 @@
 
 #include <array>
 
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
+
 QT_USE_NAMESPACE
 
 using namespace Qt::Literals;
 
 namespace {
-static qreal colorDifference(QRgb first, QRgb second)
+qreal colorDifference(QRgb first, QRgb second)
 {
     const auto diffVector = QVector3D(qRed(first), qGreen(first), qBlue(first))
             - QVector3D(qRed(second), qGreen(second), qBlue(second));
@@ -66,7 +68,7 @@ auto findSimilarColorIndex(const Colors &colors, QRgb color)
     return std::distance(std::begin(colors),
                          findSimilarColor(std::begin(colors), std::end(colors), color));
 }
-}
+} // namespace
 
 /*
  This is the backend conformance test.
