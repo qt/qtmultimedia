@@ -7,6 +7,7 @@
 #include <QtCore/QSharedPointer>
 #include <QtCore/QScopedPointer>
 
+#include "../shared/audiogenerationutils.h"
 #include <qaudiosink.h>
 #include <qaudiodevice.h>
 #include <qaudioformat.h>
@@ -62,7 +63,6 @@ private:
     using FilePtr = QSharedPointer<QFile>;
 
     static QString formatToFileName(const QAudioFormat &format);
-    void createSineWaveData(const QAudioFormat &format, qint64 length, int sampleRate = 440);
     static QString dumpStateSignalSpy(const QSignalSpy &stateSignalSpy);
 
     static qint64 wavDataSize(QIODevice &input);
@@ -78,9 +78,6 @@ private:
     QList<QAudioFormat> testFormats;
     QList<FilePtr> audioFiles;
     QScopedPointer<QTemporaryDir> m_temporaryDir;
-
-    QScopedPointer<QByteArray> m_byteArray;
-    QScopedPointer<QBuffer> m_buffer;
 };
 
 QString tst_QAudioSink::formatToFileName(const QAudioFormat &format)
@@ -89,55 +86,6 @@ QString tst_QAudioSink::formatToFileName(const QAudioFormat &format)
             .arg(format.sampleRate())
             .arg(format.bytesPerSample())
             .arg(format.channelCount());
-}
-
-void tst_QAudioSink::createSineWaveData(const QAudioFormat &format, qint64 length, int sampleRate)
-{
-    const int channelBytes = format.bytesPerSample();
-    const int sampleBytes = format.bytesPerFrame();
-
-    Q_ASSERT(length % sampleBytes == 0);
-    Q_UNUSED(sampleBytes); // suppress warning in release builds
-
-    m_byteArray.reset(new QByteArray(length, 0));
-    unsigned char *ptr = reinterpret_cast<unsigned char *>(m_byteArray->data());
-    int sampleIndex = 0;
-
-    while (length) {
-        const qreal x = qSin(2 * M_PI * sampleRate * qreal(sampleIndex % format.sampleRate()) / format.sampleRate());
-        for (int i = 0; i < format.channelCount(); ++i) {
-            switch (format.sampleFormat()) {
-            case QAudioFormat::UInt8: {
-                const quint8 value = static_cast<quint8>((1.0 + x) / 2 * 255);
-                *reinterpret_cast<quint8 *>(ptr) = value;
-                break;
-            }
-            case QAudioFormat::Int16: {
-                qint16 value = static_cast<qint16>(x * 32767);
-                *reinterpret_cast<qint16 *>(ptr) = value;
-                break;
-            }
-            case QAudioFormat::Int32: {
-                quint32 value = static_cast<quint32>(x) * std::numeric_limits<qint32>::max();
-                *reinterpret_cast<qint32 *>(ptr) = value;
-                break;
-            }
-            case QAudioFormat::Float:
-                *reinterpret_cast<float *>(ptr) = x;
-                break;
-            case QAudioFormat::Unknown:
-            case QAudioFormat::NSampleFormats:
-                break;
-            }
-
-            ptr += channelBytes;
-            length -= channelBytes;
-        }
-        ++sampleIndex;
-    }
-
-    m_buffer.reset(new QBuffer(m_byteArray.data(), this));
-    Q_ASSERT(m_buffer->open(QIODevice::ReadOnly));
 }
 
 QString tst_QAudioSink::dumpStateSignalSpy(const QSignalSpy& stateSignalSpy) {
@@ -271,16 +219,15 @@ void tst_QAudioSink::initTestCase()
 
     const QString temporaryAudioPath = m_temporaryDir->path() + slash;
     for (const QAudioFormat &format : std::as_const(testFormats)) {
-        qint64 len = format.sampleRate()*format.bytesPerFrame(); // 1 second
-        createSineWaveData(format, len);
-        // Write generate sine wave data to file
+        QByteArray data = createSineWaveData(format, std::chrono::seconds(1));
+
         const QString fileName = temporaryAudioPath + QStringLiteral("generated")
                                  + formatToFileName(format) + QStringLiteral(".wav");
         FilePtr file(new QFile(fileName));
         QVERIFY2(file->open(QIODevice::WriteOnly), qPrintable(file->errorString()));
         QWaveDecoder waveDecoder(file.data(), format);
         if (waveDecoder.open(QIODevice::WriteOnly)) {
-            waveDecoder.write(m_byteArray->data(), len);
+            waveDecoder.write(data);
             waveDecoder.close();
         }
         file->close();

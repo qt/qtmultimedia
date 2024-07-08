@@ -11,10 +11,138 @@
 #include <qsignalspy.h>
 #include <qmediarecorder.h>
 #include <qmediaplayer.h>
+#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformaudioresampler_p.h>
 #include <../shared/testvideosink.h>
 #include <../shared/mediabackendutils.h>
+#include <../shared/audiogenerationutils.h>
 
 QT_BEGIN_NAMESPACE
+
+namespace {
+struct AudioComparisonResult
+{
+    struct ChannelInfo
+    {
+        qreal normalizedCrossCorrelation = 0;
+        qreal maxDeviation = 0;
+        qreal avgDeviation = 0;
+    };
+
+    size_t actualSampleCount = 0;
+    size_t expectedSampleCount = 0;
+    size_t actualSamplesOffset = 0;
+    std::vector<ChannelInfo> channelsInfo;
+
+    bool check() const
+    {
+        return std::all_of(channelsInfo.begin(), channelsInfo.end(), [](const ChannelInfo &info) {
+            return info.normalizedCrossCorrelation > 0.96;
+        });
+    }
+
+    QString toString() const
+    {
+        QString result;
+        QTextStream stream(&result);
+        stream << "AudioComparisonResult:";
+        stream << "\n\tactualSampleCount: " << actualSampleCount;
+        stream << "\n\texpectedSampleCount: " << expectedSampleCount;
+        stream << "\n\tactualSamplesOffset: " << actualSamplesOffset;
+        int channel = 0;
+        for (auto &chInfo : channelsInfo) {
+            stream << "\n\tchannel: " << channel++;
+            stream << "\n\t\tnormalizedCrossCorrelation: " << chInfo.normalizedCrossCorrelation;
+            stream << "\n\t\tmaxDeviation: " << chInfo.maxDeviation;
+            stream << "\n\t\tavgDeviation: " << chInfo.avgDeviation;
+        }
+        stream.flush();
+        return result;
+    }
+};
+
+AudioComparisonResult::ChannelInfo compareChannelAudioData(const float *lhs, const float *rhs,
+                                                           quint32 samplesCount, int channel,
+                                                           int channelsCount)
+{
+    AudioComparisonResult::ChannelInfo result;
+
+    qreal crossCorrelation = 0.;
+    qreal lhsStandardDeviation = 0.;
+    qreal rhsStandardDeviation = 0.;
+
+    qreal deviationsSum = 0.;
+
+    size_t i = channel;
+    for (quint32 sample = 0; sample < samplesCount; ++sample, i += channelsCount) {
+        crossCorrelation += lhs[i] * rhs[i];
+        lhsStandardDeviation += lhs[i] * lhs[i];
+        rhsStandardDeviation += rhs[i] * rhs[i];
+
+        const qreal deviation = qAbs(lhs[i] - rhs[i]);
+        deviationsSum += deviation;
+        result.maxDeviation = qMax(result.maxDeviation, deviation);
+    }
+
+    lhsStandardDeviation = sqrt(lhsStandardDeviation);
+    rhsStandardDeviation = sqrt(rhsStandardDeviation);
+
+    result.normalizedCrossCorrelation =
+            crossCorrelation / (lhsStandardDeviation * rhsStandardDeviation);
+    result.avgDeviation = deviationsSum / samplesCount;
+
+    return result;
+}
+
+AudioComparisonResult compareAudioData(QSpan<const float> actual, QSpan<const float> expected,
+                                       int channelsCount)
+{
+    AudioComparisonResult result;
+    result.actualSampleCount = actual.size() / channelsCount;
+    result.expectedSampleCount = expected.size() / channelsCount;
+
+    // can be calculated
+    result.actualSamplesOffset = 0;
+
+    const auto samplesCount =
+            qMin(result.actualSampleCount - result.actualSamplesOffset, result.expectedSampleCount);
+
+    for (int channel = 0; channel < channelsCount; ++channel)
+        result.channelsInfo.push_back(
+                compareChannelAudioData(actual.data() + result.actualSamplesOffset * channelsCount,
+                                        expected.data(), samplesCount, channel, channelsCount));
+    return result;
+}
+
+QAudioBuffer convertAudioBuffer(QAudioBuffer buffer, const QAudioFormat &format)
+{
+    if (format == buffer.format())
+        return buffer;
+
+    auto resampler =
+            QPlatformMediaIntegration::instance()->createAudioResampler(buffer.format(), format);
+    if (!resampler)
+        return {};
+    return resampler.value()->resample(buffer.constData<char>(), buffer.byteCount());
+}
+
+QSpan<const float> toFloatSpan(const QAudioBuffer &buffer)
+{
+    return QSpan(buffer.constData<const float>(), buffer.byteCount() / sizeof(float));
+}
+
+AudioComparisonResult compareAudioData(QAudioBuffer actual, QAudioBuffer expected)
+{
+    QAudioFormat format = actual.format();
+    format.setSampleFormat(QAudioFormat::Float);
+
+    actual = convertAudioBuffer(std::move(actual), format);
+    expected = convertAudioBuffer(std::move(expected), format);
+
+    return compareAudioData(toFloatSpan(actual), toFloatSpan(expected), format.channelCount());
+}
+
+} // namespace
 
 void tst_QMediaFrameInputsBackend::initTestCase()
 {
@@ -34,9 +162,14 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInput
                   "duration: 1000")
             << 20 << QAudioFormat::Int16 << QAudioFormat::ChannelConfigMono << 8000 << 1000ms;
 #endif
+
     QTest::addRow("bufferCount: 30; sampleFormat: Int32; channelConfig: Stereo; sampleRate: "
                   "12000; duration: 2000")
             << 30 << QAudioFormat::Int32 << QAudioFormat::ChannelConfigStereo << 12000 << 2000ms;
+
+    QTest::addRow("bufferCount: 30; sampleFormat: Int16; channelConfig: Mono; sampleRate: "
+                  "40000; duration: 2000")
+            << 30 << QAudioFormat::Int16 << QAudioFormat::ChannelConfigMono << 40000 << 2000ms;
 
     // TODO: investigate fails of channels configuration
     //   QTest::addRow("bufferCount: 10; sampleFormat: UInt8; channelConfig: 2Dot1; sampleRate:
@@ -76,6 +209,25 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInput
     QVERIFY(info->m_hasAudio);
     QCOMPARE_GE(info->m_duration, duration - 50ms);
     QCOMPARE_LE(info->m_duration, duration + 50ms);
+
+    QVERIFY(info->m_audioBuffer.isValid());
+
+    microseconds audioDataDuration(
+            info->m_audioBuffer.format().durationForBytes(info->m_audioBuffer.byteCount()));
+
+    // TODO: investigate inaccuracies
+    QCOMPARE_GT(audioDataDuration, duration - 50ms);
+    QCOMPARE_LT(audioDataDuration, duration + 150ms);
+
+    QByteArray sentAudioData = createSineWaveData(format, duration);
+
+    const AudioComparisonResult comparisonResult =
+            compareAudioData(info->m_audioBuffer, QAudioBuffer(sentAudioData, format));
+
+    if (format.channelCount() != 1)
+        QSKIP("Temporary skip checking audio comparison for channels count > 1");
+
+    QVERIFY2(comparisonResult.check(), comparisonResult.toString().toLatin1().constData());
 }
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames_data()
@@ -181,6 +333,16 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withCorrectColors()
     QVERIFY(fuzzyCompare(colors[2], Qt::blue));
     QVERIFY(fuzzyCompare(colors[3], Qt::yellow));
 }
+
+void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_withCorrectData_data()
+{
+    QTest::addColumn<QAudioFormat::SampleFormat>("sampleFormat");
+    QTest::addColumn<QAudioFormat::ChannelConfig>("channelConfig");
+    QTest::addColumn<int>("sampleRate");
+    QTest::addColumn<milliseconds>("duration");
+}
+
+void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_withCorrectData() { }
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameShrinksOverTime()
 {

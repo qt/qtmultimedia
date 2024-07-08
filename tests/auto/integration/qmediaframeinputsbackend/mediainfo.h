@@ -8,6 +8,8 @@
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediametadata.h>
 #include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qaudiobufferoutput.h>
+#include <QtMultimedia/qaudiobuffer.h>
 #include "../shared/testvideosink.h"
 #include <chrono>
 
@@ -23,18 +25,31 @@ struct MediaInfo
         QMediaPlayer player;
         const QSignalSpy mediaStatusChanged{ &player, &QMediaPlayer::mediaStatusChanged };
 
-        QAudioOutput audioOutput;
-        player.setAudioOutput(&audioOutput);
+        QAudioBufferOutput audioOutput;
+        player.setAudioBufferOutput(&audioOutput);
 
         TestVideoSink sink;
         player.setVideoSink(&sink);
 
         std::vector<std::array<QColor, 4>> colors;
-        QObject::connect(
-                &sink, &TestVideoSink::videoFrameChangedSync, &sink,
-                         [&](const QVideoFrame &frame) { //
+        QObject::connect(&sink, &TestVideoSink::videoFrameChangedSync, &sink,
+                         [&](const QVideoFrame &frame) {
                              if (frame.isValid())
                                  colors.push_back(sampleQuadrants(frame.toImage()));
+                         });
+
+        QByteArray audioData;
+        QAudioFormat audioFormat;
+        QObject::connect(&audioOutput, &QAudioBufferOutput::audioBufferReceived, &audioOutput,
+                         [&](const QAudioBuffer &buffer) {
+                             if (!buffer.isValid())
+                                 return;
+                             if (!audioFormat.isValid())
+                                 audioFormat = buffer.format();
+                             else
+                                 QTEST_ASSERT(audioFormat == buffer.format());
+
+                             audioData.append(buffer.data<const char>(), buffer.byteCount());
                          });
 
         player.setSource(fileLocation);
@@ -63,7 +78,8 @@ struct MediaInfo
         info.m_frameTimes = sink.m_frameTimes;
         info.m_hasVideo = player.hasVideo();
         info.m_hasAudio = player.hasAudio();
-        info.m_colors = colors;
+        info.m_colors = std::move(colors);
+        info.m_audioBuffer = QAudioBuffer(audioData, audioFormat);
         return info;
     }
 
@@ -89,6 +105,7 @@ struct MediaInfo
     bool m_hasVideo = false;
     bool m_hasAudio = false;
     std::vector<std::array<QColor, 4>> m_colors; // Colors in upper left, upper right, bottom left, and bottom right
+    QAudioBuffer m_audioBuffer;
 
     std::vector<TestVideoSink::TimePoint> m_frameTimes;
 };

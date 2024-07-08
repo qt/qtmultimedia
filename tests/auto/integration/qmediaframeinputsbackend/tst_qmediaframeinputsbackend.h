@@ -28,6 +28,9 @@ private slots:
 
     void mediaRecorderWritesVideo_withCorrectColors();
 
+    void mediaRecorderWritesAudio_withCorrectData_data();
+    void mediaRecorderWritesAudio_withCorrectData();
+
     void mediaRecorderStopsRecording_whenInputsReportedEndOfStream_data();
     void mediaRecorderStopsRecording_whenInputsReportedEndOfStream();
 
