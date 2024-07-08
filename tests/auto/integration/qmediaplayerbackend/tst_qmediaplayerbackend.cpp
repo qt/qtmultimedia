@@ -3108,6 +3108,21 @@ void tst_QMediaPlayerBackend::position()
     QTest::qWait(200);
     QVERIFY(player.position() > 450);
     QVERIFY(player.position() < 550);
+
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+
+    // colors.mp4 is 25fps
+    // ffmpeg will round down the start time of the frame fo 480ms, while gstreamer will set a
+    // reduced frame time
+    const QVideoFrame &lastFrame = surface.m_frameList.back();
+    if (isGStreamerPlatform()) {
+        QCOMPARE_EQ(microseconds(lastFrame.startTime()), 500ms);
+        QCOMPARE_EQ(microseconds(lastFrame.endTime()), 520ms);
+    } else {
+        QCOMPARE_EQ(microseconds(lastFrame.startTime()), 480ms);
+        QCOMPARE_EQ(microseconds(lastFrame.endTime()), 520ms);
+    }
 }
 
 void tst_QMediaPlayerBackend::durationDetectionIssues_data()
