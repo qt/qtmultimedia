@@ -59,6 +59,7 @@ public:
     void setFormat(const QAudioFormat &format);
     void setBufferCount(int count);
     void setDuration(microseconds duration);
+    void setFrequency(qreal frequency);
     void emitEmptyBufferOnStop();
     QAudioBuffer createAudioBuffer();
 
@@ -70,11 +71,13 @@ public slots:
     void nextBuffer();
 
 private:
-    std::optional<int> m_maxBufferCount;
+    int m_maxBufferCount = 1;
     microseconds m_duration = 1s;
     int m_bufferIndex = 0;
     QAudioFormat m_format;
     bool m_emitEmptyBufferOnStop = false;
+    qreal m_frequency = 500.;
+    qint32 m_sampleIndex = 0;
 };
 
 QT_END_NAMESPACE

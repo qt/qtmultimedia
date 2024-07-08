@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include "framegenerator.h"
+#include "../shared/audiogenerationutils.h"
 #include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
@@ -105,12 +106,17 @@ void AudioGenerator::setFormat(const QAudioFormat &format)
 
 void AudioGenerator::setBufferCount(int count)
 {
-    m_maxBufferCount = count;
+    m_maxBufferCount = std::max(count, 1);
 }
 
 void AudioGenerator::setDuration(microseconds duration)
 {
     m_duration = duration;
+}
+
+void AudioGenerator::setFrequency(qreal frequency)
+{
+    m_frequency = frequency;
 }
 
 void AudioGenerator::emitEmptyBufferOnStop()
@@ -120,12 +126,12 @@ void AudioGenerator::emitEmptyBufferOnStop()
 
 QAudioBuffer AudioGenerator::createAudioBuffer()
 {
-    const microseconds bufferDuration = m_duration / m_maxBufferCount.value_or(1);
-    const qint32 byteCount = m_format.bytesForDuration(bufferDuration.count());
-    const QByteArray data(byteCount, '\0');
-
-    QAudioBuffer buffer(data, m_format);
-    return buffer;
+    const microseconds bufferDuration = m_duration * (m_bufferIndex + 1) / m_maxBufferCount
+            - m_duration * m_bufferIndex / m_maxBufferCount;
+    QByteArray data = createSineWaveData(m_format, bufferDuration, m_sampleIndex, m_frequency);
+    Q_ASSERT(m_format.bytesPerSample());
+    m_sampleIndex += data.size() / m_format.bytesPerSample();
+    return QAudioBuffer(data, m_format);
 }
 
 void AudioGenerator::nextBuffer()
