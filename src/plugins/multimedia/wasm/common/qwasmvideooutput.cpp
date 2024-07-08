@@ -225,11 +225,12 @@ void QWasmVideoOutput::setSource(const QUrl &url)
 {
     qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << url;
 
+    m_source = url.toString();
+
     if (m_video.isUndefined() || m_video.isNull()) {
         return;
     }
 
-    m_source = url.toString();
     if (url.isEmpty()) {
         stop();
         return;
