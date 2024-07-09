@@ -36,6 +36,8 @@ private slots:
     void metadata_capsToMetaData();
     void metadata_capsToMetaData_data();
 
+    void parseRotationTag_returnsCorrectResults();
+
     void QGstBin_createFromPipelineDescription();
     void QGstElement_createFromPipelineDescription();
     void QGstElement_createFromPipelineDescription_multipleElementsCreatesBin();

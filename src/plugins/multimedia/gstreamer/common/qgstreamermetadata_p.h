@@ -30,6 +30,18 @@ void extendMetaDataFromCaps(QMediaMetaData &, const QGstCaps &);
 void applyMetaDataToTagSetter(const QMediaMetaData &metadata, const QGstBin &);
 void applyMetaDataToTagSetter(const QMediaMetaData &metadata, const QGstElement &);
 
+struct RotationResult
+{
+    QtVideo::Rotation rotation;
+    bool flip;
+
+    bool operator==(const RotationResult &rhs) const
+    {
+        return std::tie(rotation, flip) == std::tie(rhs.rotation, rhs.flip);
+    }
+};
+RotationResult parseRotationTag(std::string_view);
+
 QT_END_NAMESPACE
 
 #endif // QGSTREAMERMETADATA_H

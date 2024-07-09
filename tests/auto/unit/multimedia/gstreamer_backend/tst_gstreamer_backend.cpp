@@ -234,6 +234,26 @@ void tst_GStreamer::metadata_capsToMetaData_data()
             << makeQMediaMetaData(makeKVPair(Key::AudioCodec, QMediaFormat::AudioCodec::AAC));
 }
 
+void tst_GStreamer::parseRotationTag_returnsCorrectResults()
+{
+    QCOMPARE_EQ(parseRotationTag("rotate-0"), (RotationResult{ QtVideo::Rotation::None, false }));
+    QCOMPARE_EQ(parseRotationTag("rotate-90"),
+                (RotationResult{ QtVideo::Rotation::Clockwise90, false }));
+    QCOMPARE_EQ(parseRotationTag("rotate-180"),
+                (RotationResult{ QtVideo::Rotation::Clockwise180, false }));
+    QCOMPARE_EQ(parseRotationTag("rotate-270"),
+                (RotationResult{ QtVideo::Rotation::Clockwise270, false }));
+
+    QCOMPARE_EQ(parseRotationTag("flip-rotate-0"),
+                (RotationResult{ QtVideo::Rotation::Clockwise180, true }));
+    QCOMPARE_EQ(parseRotationTag("flip-rotate-90"),
+                (RotationResult{ QtVideo::Rotation::Clockwise270, true }));
+    QCOMPARE_EQ(parseRotationTag("flip-rotate-180"),
+                (RotationResult{ QtVideo::Rotation::None, true }));
+    QCOMPARE_EQ(parseRotationTag("flip-rotate-270"),
+                (RotationResult{ QtVideo::Rotation::Clockwise90, true }));
+}
+
 void tst_GStreamer::QGstBin_createFromPipelineDescription()
 {
     QGstBin bin = QGstBin::createFromPipelineDescription("identity name=foo ! identity name=bar");
