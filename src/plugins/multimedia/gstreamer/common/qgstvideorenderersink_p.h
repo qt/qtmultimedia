@@ -18,25 +18,77 @@
 #include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtCore/qcoreevent.h>
+#include <QtCore/qlist.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qpointer.h>
+#include <QtCore/qqueue.h>
+#include <QtCore/qwaitcondition.h>
 
 #include <gst/video/gstvideosink.h>
 #include <gst/video/video.h>
 
-#include <QtCore/qlist.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qqueue.h>
-#include <QtCore/qpointer.h>
-#include <QtCore/qwaitcondition.h>
-#include <qvideoframeformat.h>
-#include <qvideoframe.h>
 #include <common/qgstvideobuffer_p.h>
 #include <common/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
 
+namespace QGstUtils {
+
+template <typename T>
+class QConcurrentQueue
+{
+public:
+    qsizetype enqueue(T value)
+    {
+        QMutexLocker locker(&mutex);
+        queue.append(std::move(value));
+        return queue.size();
+    }
+
+    std::optional<T> dequeue()
+    {
+        QMutexLocker locker(&mutex);
+        if (queue.isEmpty())
+            return std::nullopt;
+
+        return queue.takeFirst();
+    }
+
+    void clear()
+    {
+        QMutexLocker locker(&mutex);
+        queue.clear();
+    }
+
+private:
+    QMutex mutex;
+    QList<T> queue;
+};
+
+} // namespace QGstUtils
+
 class QGstVideoRenderer : public QObject
 {
+    struct RenderBufferState
+    {
+        QGstBufferHandle buffer;
+        QVideoFrameFormat format;
+        QGstCaps::MemoryFormat memoryFormat;
+        bool mirrored;
+        QtVideo::Rotation rotationAngle;
+
+        bool operator==(const RenderBufferState &rhs) const
+        {
+            return std::tie(buffer, format, memoryFormat, mirrored, rotationAngle)
+                    == std::tie(rhs.buffer, rhs.format, rhs.memoryFormat, rhs.mirrored,
+                                rhs.rotationAngle);
+        }
+    };
+
+    static constexpr QEvent::Type renderFramesEvent = static_cast<QEvent::Type>(QEvent::User + 100);
+    static constexpr QEvent::Type stopEvent = static_cast<QEvent::Type>(QEvent::User + 101);
+
 public:
     explicit QGstVideoRenderer(QGstreamerVideoSink *);
     ~QGstVideoRenderer();
@@ -59,8 +111,13 @@ private:
     void notify();
     static QGstCaps createSurfaceCaps(QGstreamerVideoSink *);
 
+    void customEvent(QEvent *) override;
+    void handleNewBuffer(RenderBufferState);
+
     void gstEventHandleTag(GstEvent *);
     void gstEventHandleEOS(GstEvent *);
+    void gstEventHandleFlushStart(GstEvent *);
+    void gstEventHandleFlushStop(GstEvent *);
 
     QMutex m_sinkMutex;
     QGstreamerVideoSink *m_sink = nullptr; // written only from qt thread. so only readers on
@@ -79,22 +136,9 @@ private:
     QVideoFrame m_currentVideoFrame;
     bool m_isActive{ false };
 
-    struct RenderBufferState
-    {
-        QGstBufferHandle buffer;
-        QVideoFrameFormat format;
-        QGstCaps::MemoryFormat memoryFormat;
-        bool mirrored;
-        QtVideo::Rotation rotationAngle;
-
-        bool operator==(const RenderBufferState &rhs) const
-        {
-            return std::tie(buffer, format, memoryFormat, mirrored, rotationAngle)
-                    == std::tie(rhs.buffer, rhs.format, rhs.memoryFormat, rhs.mirrored,
-                                rhs.rotationAngle);
-        }
-    };
     RenderBufferState m_currentState;
+    QGstUtils::QConcurrentQueue<RenderBufferState> m_bufferQueue;
+    bool m_flushing{ false };
 };
 
 class QGstVideoRendererSinkElement;
