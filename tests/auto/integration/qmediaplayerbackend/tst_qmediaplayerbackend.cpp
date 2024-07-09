@@ -162,6 +162,7 @@ private slots:
 
     void processEOS();
     void deleteLaterAtEOS();
+    void playToEOS_finishesWithEmptyFrame();
 
     void volumeAcrossFiles_data();
     void volumeAcrossFiles();
@@ -2128,6 +2129,44 @@ void tst_QMediaPlayerBackend::deleteLaterAtEOS()
     // Verify that the player was destroyed within the event loop.
     // This check will fail without the fix for QTBUG-24927.
     QVERIFY(player.isNull());
+}
+
+void tst_QMediaPlayerBackend::playToEOS_finishesWithEmptyFrame()
+{
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
+    QVector<bool> frameValidState;
+    TestVideoSink surface(false);
+    QObject::connect(&surface, &QVideoSink::videoFrameChanged, &surface,
+                     [&](const QVideoFrame &frame) {
+        frameValidState.append(frame.isValid());
+    });
+
+    QMediaPlayer player;
+    player.setVideoSink(&surface);
+    player.setSource(*m_localVideoFile3ColorsWithSound);
+    player.play();
+
+    // play to end
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QTRY_VERIFY(!frameValidState.isEmpty());
+
+    // ensure that we end with an empty frame
+    QTRY_VERIFY(!frameValidState.back());
+
+    // while all earlier frames are valid
+    frameValidState.pop_back();
+    QVERIFY(std::all_of(frameValidState.begin(), frameValidState.end(), q20::identity{}));
+
+    constexpr int framesInMedia = 77;
+    constexpr int expectedMaxFrameCount = framesInMedia + 1;
+    constexpr bool strictFrameCountValidation = false;
+    if constexpr (strictFrameCountValidation) {
+        QCOMPARE_EQ(surface.m_totalFrames, expectedMaxFrameCount);
+    } else {
+        // the backend may drop frames, so there's no reasonable lower limit
+        QCOMPARE_LE(surface.m_totalFrames, expectedMaxFrameCount);
+    }
 }
 
 void tst_QMediaPlayerBackend::volumeAcrossFiles_data()
