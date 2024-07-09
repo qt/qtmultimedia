@@ -673,10 +673,31 @@ void QMediaPlayer::setSourceDevice(QIODevice *device, const QUrl &sourceUrl)
     audio buffers containing decoded audio data. At the end of
     the audio stream, \c QMediaPlayer emits an empty \l QAudioBuffer.
 
-    \c QMediaPlayer emits outputs frames at the same time as it
+    \c QMediaPlayer emits outputs audio buffers at the same time as it
     pushes the matching data to the audio output if it's specified.
     However, the sound can be played with a small delay due to
     audio bufferization.
+
+    The format of emitted audio buffers is taken from the
+    specified \a output or from the matching audio stream
+    if the \a output returns an invalid format. Emitted
+    audio data is not scaled depending on the current playback rate.
+
+    Potential use cases of utilizing \c QAudioBufferOutput
+    with \c QMediaPlayer might be:
+    \list
+    \li Audio visualization. If the playback rate of the media player
+    is not \c 1, you may scale the output image dimensions,
+    or image update interval according to the requirements
+    of the visualizer.
+    \li Any AI sound processing, e.g. voice recognition.
+    \li Sending the data to external audio output.
+    Playback rate changing, synchronization with video, and manual
+    flushing on stoping and seeking should be considered.
+    We don't recommend using the audio buffer output
+    for this purpose unless you have a strong reason for this.
+    \endlist
+
 */
 void QMediaPlayer::setAudioBufferOutput(QAudioBufferOutput *output)
 {
