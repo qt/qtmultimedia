@@ -70,6 +70,26 @@ QCamera *cam = QGStreamerPlatformSpecificInterface::instance()->makeCustomGStrea
 session.setCamera(cam);
 \endcode
 
+\section2 QMediaPlayer: custom sources
+
+The \c{QMediaPlayer} accepts a GStreamer pipeline decription as source URI:
+
+\code
+QMediaPlayer player;
+player.setSource(u"gstreamer-pipeline: videotestsrc name=testsrc"_s);
+\endcode
+
+This will try to compile the pipeline description to use as source in the QMediaPlayer and will be
+automatically connected to the sinks of the QMediaPlayer.
+
+\warning Hic sunt dracones! Custom pipelines are an experimental feature: the custom pipelines do
+not map well to QMediaPlayer APIs, most notably the media status, metadata APIs, and transport state.
+Most calls will directly map to the GStreamer pipeline, which can lead to undefined behavior
+depending on the pipeline. In most cases, the \c{gstreamer-pipeline:} may not be the right choice
+for application code: for arbitrary video sources, the \c{QMediaCaptureSession} with a custom camera
+(see above) is the preferred choice. For arbitrarily complex pipelines that only want to draw into a
+Qt/QML GUI, GStreamer's \c{qml6glsink} (see below) may be a more robust choice.
+
 \section1 Architectural Considerations.
 
 Qt Multimedia is not a general purpose streaming framework and not necessarily the architecturally
