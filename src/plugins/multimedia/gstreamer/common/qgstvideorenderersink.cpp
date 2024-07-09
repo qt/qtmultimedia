@@ -15,10 +15,11 @@
 #include <QtCore/qthread.h>
 #include <QtGui/qevent.h>
 
-#include <common/qgstvideobuffer_p.h>
-#include <common/qgstreamervideosink_p.h>
 #include <common/qgst_debug_p.h>
+#include <common/qgstreamermetadata_p.h>
+#include <common/qgstreamervideosink_p.h>
 #include <common/qgstutils_p.h>
+#include <common/qgstvideobuffer_p.h>
 
 #include <private/qvideoframe_p.h>
 
@@ -285,40 +286,10 @@ void QGstVideoRenderer::gstEventHandleTag(GstEvent *event)
     if (!gst_tag_list_get_string(taglist, GST_TAG_IMAGE_ORIENTATION, &value))
         return;
 
-    constexpr const char rotate[] = "rotate-";
-    constexpr const char flipRotate[] = "flip-rotate-";
-    constexpr size_t rotateLen = sizeof(rotate) - 1;
-    constexpr size_t flipRotateLen = sizeof(flipRotate) - 1;
+    RotationResult parsed = parseRotationTag(value.get());
 
-    bool mirrored = false;
-    int rotationAngle = 0;
-
-    if (!strncmp(rotate, value.get(), rotateLen)) {
-        rotationAngle = atoi(value.get() + rotateLen);
-    } else if (!strncmp(flipRotate, value.get(), flipRotateLen)) {
-        // To flip by horizontal axis is the same as to mirror by vertical axis
-        // and rotate by 180 degrees.
-        mirrored = true;
-        rotationAngle = (180 + atoi(value.get() + flipRotateLen)) % 360;
-    }
-
-    m_frameMirrored = mirrored;
-    switch (rotationAngle) {
-    case 0:
-        m_frameRotationAngle = QtVideo::Rotation::None;
-        break;
-    case 90:
-        m_frameRotationAngle = QtVideo::Rotation::Clockwise90;
-        break;
-    case 180:
-        m_frameRotationAngle = QtVideo::Rotation::Clockwise180;
-        break;
-    case 270:
-        m_frameRotationAngle = QtVideo::Rotation::Clockwise270;
-        break;
-    default:
-        m_frameRotationAngle = QtVideo::Rotation::None;
-    }
+    m_frameRotationAngle = parsed.rotation;
+    m_frameMirrored = parsed.flip;
 }
 
 void QGstVideoRenderer::gstEventHandleEOS(GstEvent *)
