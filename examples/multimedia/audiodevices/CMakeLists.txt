@@ -22,8 +22,9 @@ qt_add_executable(audiodevices
 )
 
 set_target_properties(audiodevices PROPERTIES
-    WIN32_EXECUTABLE TRUE
-    MACOSX_BUNDLE TRUE
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
 
 target_include_directories(audiodevices PUBLIC
