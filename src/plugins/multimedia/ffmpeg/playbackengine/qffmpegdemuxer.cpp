@@ -30,6 +30,18 @@ static qint64 packetEndPos(const AVStream *stream, const Packet &packet)
             + streamTimeToUs(stream, packet.avPacket()->pts + packet.avPacket()->duration);
 }
 
+static bool isPacketWithinStreamDuration(const AVFormatContext *context, const Packet &packet)
+{
+    const qint64 streamDuration = context->streams[packet.avPacket()->stream_index]->duration;
+    if (streamDuration <= 0 || context->duration_estimation_method != AVFMT_DURATION_FROM_STREAM)
+        return true; // Stream duration shouldn't or doesn't need to be compared to pts
+
+    return packet.avPacket()->pts <= streamDuration;
+
+    // TODO: If there is a packet that starts before the canonical end of the stream but has a
+    // malformed duration, rework doNextStep to check for eof after that packet.
+}
+
 Demuxer::Demuxer(AVFormatContext *context, const PositionWithOffset &posWithOffset,
                  const StreamIndexes &streamIndexes, int loops)
     : m_context(context), m_posWithOffset(posWithOffset), m_loops(loops)
@@ -54,7 +66,8 @@ void Demuxer::doNextStep()
     ensureSeeked();
 
     Packet packet(m_posWithOffset.offset, AVPacketUPtr{ av_packet_alloc() }, id());
-    if (av_read_frame(m_context, packet.avPacket()) < 0) {
+    if (av_read_frame(m_context, packet.avPacket()) < 0
+        || !isPacketWithinStreamDuration(m_context, packet)) {
         ++m_posWithOffset.offset.index;
 
         const auto loops = m_loops.loadAcquire();
