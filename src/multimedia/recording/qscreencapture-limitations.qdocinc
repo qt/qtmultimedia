@@ -7,8 +7,12 @@
     On Qt 6.5.2 and above, the following limitations apply to using \1ScreenCapture:
     \list
         \li It is only supported with the FFmpeg backend.
-        \li It is unsupported on Linux with Wayland compositor, due to Wayland
-            protocol restrictions and limitations.
+        \li On Linux systems using the Wayland compositor, the screen capture implementation
+            is experimental and comes with the following limitation.
+            Due to restrictions of the Wayland protocol, it's impossible to set and get
+            the target screen via the API of the \c QScreenCapture class. Instead, the OS will
+            show a screen selection wizard upon invoking \c QScreenCapture::setActive(true).
+            This limitation might change in the future.
         \li It is not supported on mobile operating systems, except on Android.
             There, you might run into performance issues as the class is currently
             implemented via QScreen::grabWindow, which is not optimal for the use case.
