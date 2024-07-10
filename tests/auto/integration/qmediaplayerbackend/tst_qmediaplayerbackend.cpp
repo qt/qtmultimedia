@@ -234,6 +234,9 @@ private slots:
     void disablingAllTracks_doesNotStopPlayback();
     void disablingAllTracks_beforeTracksChanged_doesNotStopPlayback();
 
+    void play_finishes_whenPlayingFileWithPacketsAfterStreamEnd_data();
+    void play_finishes_whenPlayingFileWithPacketsAfterStreamEnd();
+
     void makeStressTestCases();
     void stressTest_setupAndTeardown();
     void stressTest_setupAndTeardown_data();
@@ -275,6 +278,7 @@ private:
     MaybeUrl m_subtitleVideo = QUnexpect{};
     MaybeUrl m_multitrackVideo = QUnexpect{};
     MaybeUrl m_multitrackSubtitleStartsAtZeroVideo = QUnexpect{};
+    MaybeUrl m_oggEndingWithInvalidTiming = QUnexpect{};
 
     MediaFileSelector m_mediaSelector;
 
@@ -409,6 +413,7 @@ void tst_QMediaPlayerBackend::initTestCase()
     m_multitrackVideo = m_mediaSelector.select("qrc:/testdata/multitrack.mkv");
     m_multitrackSubtitleStartsAtZeroVideo =
             m_mediaSelector.select("qrc:/testdata/multitrack-subtitle-start-at-zero.mkv");
+    m_oggEndingWithInvalidTiming = m_mediaSelector.select("qrc:/testdata/corrupt_end.ogg");
 
     detectVlcCommand();
 }
@@ -4529,6 +4534,36 @@ void tst_QMediaPlayerBackend::disablingAllTracks_beforeTracksChanged_doesNotStop
     QTRY_COMPARE_GT(player.position(), 1000);
 
     QCOMPARE(m_fixture->surface.m_totalFrames, 0);
+}
+
+void tst_QMediaPlayerBackend::play_finishes_whenPlayingFileWithPacketsAfterStreamEnd_data()
+{
+    QTest::addColumn<int>("loops");
+    QTest::addColumn<qreal>("rate");
+
+    QTest::newRow("Played once") << 1 << 1.0;
+    QTest::newRow("Played thrice") << 3 << 3.0;
+}
+
+void tst_QMediaPlayerBackend::play_finishes_whenPlayingFileWithPacketsAfterStreamEnd()
+{
+    CHECK_SELECTED_URL(m_oggEndingWithInvalidTiming);
+
+    QFETCH(int, loops);
+    QFETCH(qreal, rate);
+
+    // Arrange
+    m_fixture->player.setSource(*m_oggEndingWithInvalidTiming);
+    m_fixture->player.setLoops(loops);
+    m_fixture->player.setPlaybackRate(rate);
+
+    // Act
+    m_fixture->player.play();
+    QTRY_VERIFY(m_fixture->player.isPlaying());
+
+    // Assert
+    QTRY_COMPARE_WITH_TIMEOUT(m_fixture->player.playbackState(), QMediaPlayer::StoppedState, 15'000);
+    QCOMPARE(loopIterations(m_fixture->positionChanged).size(), loops);
 }
 
 void tst_QMediaPlayerBackend::makeStressTestCases()
