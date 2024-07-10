@@ -143,8 +143,6 @@ void QGstVideoRenderer::handleNewBuffer(RenderBufferState state)
                                                          state.format, state.memoryFormat);
     QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(videoBuffer), state.format);
     QGstUtils::setFrameTimeStampsFromBuffer(&frame, state.buffer.get());
-    frame.setMirrored(state.mirrored);
-    frame.setRotation(state.rotationAngle);
 
     m_currentPipelineFrame = std::move(frame);
     m_currentState = std::move(state);
@@ -167,17 +165,16 @@ bool QGstVideoRenderer::start(const QGstCaps& caps)
 {
     qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::start" << caps;
 
-    {
-        m_frameRotationAngle = QtVideo::Rotation::None;
-        auto optionalFormatAndVideoInfo = caps.formatAndVideoInfo();
-        if (optionalFormatAndVideoInfo) {
-            std::tie(m_format, m_videoInfo) = std::move(*optionalFormatAndVideoInfo);
-        } else {
-            m_format = {};
-            m_videoInfo = {};
-        }
-        m_memoryFormat = caps.memoryFormat();
+    auto optionalFormatAndVideoInfo = caps.formatAndVideoInfo();
+    if (optionalFormatAndVideoInfo) {
+        std::tie(m_format, m_videoInfo) = std::move(*optionalFormatAndVideoInfo);
+    } else {
+        m_format = {};
+        m_videoInfo = {};
     }
+    m_memoryFormat = caps.memoryFormat();
+
+    // NOTE: m_format will not be fully populated until GST_EVENT_TAG is processed
 
     return true;
 }
@@ -227,8 +224,6 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
         .buffer = QGstBufferHandle{ buffer, QGstBufferHandle::NeedsRef },
         .format = m_format,
         .memoryFormat = m_memoryFormat,
-        .mirrored = m_frameMirrored,
-        .rotationAngle = m_frameRotationAngle,
     };
 
     qCDebug(qLcGstVideoRenderer) << "    sending video frame";
@@ -314,14 +309,16 @@ void QGstVideoRenderer::gstEventHandleTag(GstEvent *event)
     if (!taglist)
         return;
 
+    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::gstEventHandleTag:" << taglist;
+
     QGString value;
     if (!gst_tag_list_get_string(taglist, GST_TAG_IMAGE_ORIENTATION, &value))
         return;
 
     RotationResult parsed = parseRotationTag(value.get());
 
-    m_frameRotationAngle = parsed.rotation;
-    m_frameMirrored = parsed.flip;
+    m_format.setMirrored(parsed.flip);
+    m_format.setRotation(parsed.rotation);
 }
 
 void QGstVideoRenderer::gstEventHandleEOS(GstEvent *)
