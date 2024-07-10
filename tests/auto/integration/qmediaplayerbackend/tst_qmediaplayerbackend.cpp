@@ -949,7 +949,7 @@ void tst_QMediaPlayerBackend::setSource_emitsError_whenSdpFileIsLoaded()
     });
 
     m_fixture->player.setSource(sdpUrl);
-    QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
+    QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::FormatError);
 #endif // QT_CONFIG(process)
 }
 
