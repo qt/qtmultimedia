@@ -194,7 +194,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const std::shared_ptr<ICancel
         auto code = QMediaPlayer::ResourceError;
         if (ret == AVERROR(EACCES))
             code = QMediaPlayer::AccessDeniedError;
-        else if (ret == AVERROR(EINVAL))
+        else if (ret == AVERROR(EINVAL) || ret == AVERROR_INVALIDDATA)
             code = QMediaPlayer::FormatError;
 
         return MediaDataHolder::ContextError{ code, QMediaPlayer::tr("Could not open file") };
