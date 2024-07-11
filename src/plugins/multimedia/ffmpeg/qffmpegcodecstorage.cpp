@@ -30,11 +30,7 @@ QT_BEGIN_NAMESPACE
 
 #ifdef Q_OS_ANDROID
 Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
-                    "org/qtproject/qt/android/multimedia/QtVideoDeviceManager");
-
-#  ifndef QT_DECLARE_JNI_CLASS_STANDARD_TYPES
-Q_DECLARE_JNI_CLASS(String, "java/lang/String");
-#  endif
+                    "org/qtproject/qt/android/multimedia/QtVideoDeviceManager")
 #endif // Q_OS_ANDROID
 
 static Q_LOGGING_CATEGORY(qLcCodecStorage, "qt.multimedia.ffmpeg.codecstorage");
