@@ -198,7 +198,7 @@ private slots:
     void seekOnLoops();
     void changeLoopsOnTheFly();
     void seekAfterLoopReset();
-    void changeVideoOutputNoFramesLost();
+
     void cleanSinkAndNoMoreFramesAfterStop();
     void lazyLoadVideo();
     void videoSinkSignals();
@@ -210,6 +210,8 @@ private slots:
     void setVideoOutput_doesNotStopPlayback_data();
     void setVideoOutput_doesNotStopPlayback();
     void setVideoOutput_whilePaused_updatesNewSink();
+    void setVideoOutput_whilePlaying_doesNotDropFrames();
+
     void setAudioOutput_doesNotStopPlayback_data();
     void setAudioOutput_doesNotStopPlayback();
     void swapAudioDevice_doesNotStopPlayback_data();
@@ -3535,7 +3537,7 @@ void tst_QMediaPlayerBackend::seekAfterLoopReset()
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
 }
 
-void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
+void tst_QMediaPlayerBackend::setVideoOutput_whilePlaying_doesNotDropFrames()
 {
     QSKIP_GSTREAMER("QTBUG-124005: gstreamer will lose frames, possibly due to buffering");
 
@@ -3555,7 +3557,7 @@ void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
     player.setVideoOutput(&sinks[0]);
     player.setSource(*m_localVideoFile3ColorsWithSound);
     player.play();
-    QTRY_VERIFY(!player.isPlaying());
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
     player.setPlaybackRate(4);
     player.setVideoOutput(&sinks[1]);
@@ -3569,14 +3571,16 @@ void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
     player.setVideoOutput(&sinks[3]);
     const int savedFrameNumber2 = framesCount[2];
 
-    QTRY_VERIFY(!player.isPlaying());
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
     // check if no frames sent to old sinks
     QCOMPARE(framesCount[1], savedFrameNumber1);
     QCOMPARE(framesCount[2], savedFrameNumber2);
 
+    constexpr int videoOutputChanges = 2; // video frame goes from the previous sink.
+
     // no frames lost
-    QCOMPARE(framesCount[1] + framesCount[2] + framesCount[3], framesCount[0]);
+    QCOMPARE(framesCount[1] + framesCount[2] + framesCount[3], framesCount[0] + videoOutputChanges);
 }
 
 void tst_QMediaPlayerBackend::cleanSinkAndNoMoreFramesAfterStop()
@@ -3879,11 +3883,9 @@ void tst_QMediaPlayerBackend::setVideoOutput_doesNotStopPlayback()
     case QMediaPlayer::StoppedState:
         break;
     case QMediaPlayer::PausedState:
-        QSKIP_FFMPEG("QTBUG-126014: Test failure with the ffmpeg backend");
         player.pause();
         break;
     case QMediaPlayer::PlayingState:
-        QSKIP_FFMPEG("QTBUG-126014: Test failure with the ffmpeg backend");
         QSKIP_GSTREAMER("QTBUG-124005: Test failure with the gstreamer backend");
         player.play();
         break;
@@ -3948,13 +3950,8 @@ void tst_QMediaPlayerBackend::setVideoOutput_whilePaused_updatesNewSink()
 
     player.setVideoOutput(&surface2);
 
-    QSKIP_FFMPEG("QTBUG-127031");
-
-    if (isGStreamerPlatform())
-        // new frame is delivered asynchronously
-        QTRY_COMPARE_EQ(surface2.m_totalFrames, 1);
-    else
-        QCOMPARE_EQ(surface2.m_totalFrames, 1);
+    // new frame is delivered asynchronously
+    QTRY_COMPARE_EQ(surface2.m_totalFrames, 1);
 
 #ifndef Q_OS_ANDROID // fails with android/ffmpeg
     QCOMPARE(surface2.videoFrame().toImage().pixelColor(10, 10), QColorConstants::White);
