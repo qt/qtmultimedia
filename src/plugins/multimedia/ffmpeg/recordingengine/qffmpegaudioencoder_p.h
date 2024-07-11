@@ -30,7 +30,7 @@ protected:
 private:
     QAudioBuffer takeBuffer();
     void retrievePackets();
-    void updateResampler();
+    bool updateResampler(const QAudioFormat &sourceFormat);
 
     bool init() override;
     void cleanup() override;
@@ -55,7 +55,7 @@ private:
 
     AVStream *m_stream = nullptr;
     AVCodecContextUPtr m_codecContext;
-    QAudioFormat m_format;
+    QAudioFormat m_sourceFormat;
 
     SwrContextUPtr m_resampler;
     qint64 m_samplesWritten = 0;
