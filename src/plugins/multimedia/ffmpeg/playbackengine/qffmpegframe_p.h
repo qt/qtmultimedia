@@ -41,6 +41,9 @@ struct Frame
             else
                 pts = codec.toUs(frame->best_effort_timestamp);
 
+            if (frame->sample_rate && codec.context()->codec_type == AVMEDIA_TYPE_AUDIO)
+                duration = qint64(1000000) * frame->nb_samples / frame->sample_rate;
+
             if (auto frameDuration = getAVFrameDuration(*frame)) {
                 duration = codec.toUs(frameDuration);
             } else {
