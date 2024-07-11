@@ -76,7 +76,7 @@ bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
 
 AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, const QAudioFormat &sourceFormat,
                            const QMediaEncoderSettings &settings)
-    : EncoderThread(recordingEngine), m_format(sourceFormat), m_settings(settings)
+    : EncoderThread(recordingEngine), m_sourceFormat(sourceFormat), m_settings(settings)
 {
     setObjectName(QLatin1String("AudioEncoder"));
     qCDebug(qLcFFmpegAudioEncoder) << "AudioEncoder" << settings.audioCodec();
@@ -128,7 +128,7 @@ QAudioBuffer AudioEncoder::takeBuffer()
 
 bool AudioEncoder::init()
 {
-    const AVAudioFormat requestedAudioFormat(m_format);
+    const AVAudioFormat requestedAudioFormat(m_sourceFormat);
 
     QFFmpeg::findAndOpenAVEncoder(
             m_stream->codecpar->codec_id,
@@ -174,7 +174,7 @@ bool AudioEncoder::init()
 
     qCDebug(qLcFFmpegAudioEncoder) << "found audio codec" << m_codecContext->codec->name;
 
-    updateResampler();
+    updateResampler(m_sourceFormat);
 
     // TODO: try to address this dependency here.
     if (auto input = qobject_cast<QFFmpegAudioInput *>(source()))
@@ -236,10 +236,8 @@ void AudioEncoder::processOne()
     //    qCDebug(qLcFFmpegEncoder) << "new audio buffer" << buffer.byteCount() << buffer.format()
     //    << buffer.frameCount() << codec->frame_size;
 
-    if (buffer.format() != m_format) {
-        m_format = buffer.format();
-        updateResampler();
-    }
+    if (buffer.format() != m_sourceFormat && !updateResampler(buffer.format()))
+        return;
 
     int samplesOffset = 0;
     const int bufferSamplesCount = static_cast<int>(buffer.frameCount());
@@ -260,21 +258,33 @@ bool AudioEncoder::checkIfCanPushFrame() const
     return false;
 }
 
-void AudioEncoder::updateResampler()
+bool AudioEncoder::updateResampler(const QAudioFormat &sourceFormat)
 {
     m_resampler.reset();
 
-    const AVAudioFormat requestedAudioFormat(m_format);
+    const AVAudioFormat requestedAudioFormat(sourceFormat);
     const AVAudioFormat codecAudioFormat(m_codecContext.get());
 
     if (requestedAudioFormat != codecAudioFormat) {
         m_resampler = createResampleContext(requestedAudioFormat, codecAudioFormat);
+        if (!swr_is_initialized(m_resampler.get())) {
+            m_sourceFormat = {};
+            qCWarning(qLcFFmpegAudioEncoder) << "Cannot initialize resampler for audio encoder";
+            emit m_recordingEngine.sessionError(
+                    QMediaRecorder::FormatError,
+                    QStringLiteral("Cannot initialize resampler for audio encoder"));
+            return false;
+        }
         qCDebug(qLcFFmpegAudioEncoder) << "Created resampler with audio formats conversion\n"
                                        << requestedAudioFormat << "->" << codecAudioFormat;
     } else {
         qCDebug(qLcFFmpegAudioEncoder) << "Resampler is not needed due to no-conversion format\n"
                                        << requestedAudioFormat;
     }
+
+    m_sourceFormat = sourceFormat;
+
+    return true;
 }
 
 void AudioEncoder::ensurePendingFrame(int availableSamplesCount)
@@ -332,12 +342,13 @@ void AudioEncoder::writeDataToPendingFrame(const uchar *data, int &samplesOffset
         m_avFramePlanesData[plane] = m_avFrame->extended_data[plane] + audioDataOffset;
 
     const int samplesToWrite = m_avFrame->nb_samples - m_avFrameSamplesOffset;
-    int samplesToRead = (samplesToWrite * m_format.sampleRate() + m_codecContext->sample_rate / 2)
+    int samplesToRead =
+            (samplesToWrite * m_sourceFormat.sampleRate() + m_codecContext->sample_rate / 2)
             / m_codecContext->sample_rate;
     // the lower bound is need to get round infinite loops in corner cases
     samplesToRead = qBound(1, samplesToRead, samplesCount - samplesOffset);
 
-    data += m_format.bytesForFrames(samplesOffset);
+    data += m_sourceFormat.bytesForFrames(samplesOffset);
 
     if (m_resampler) {
         m_avFrameSamplesOffset += swr_convert(m_resampler.get(), m_avFramePlanesData.data(),
@@ -345,7 +356,7 @@ void AudioEncoder::writeDataToPendingFrame(const uchar *data, int &samplesOffset
     } else {
         Q_ASSERT(planesCount == 1);
         m_avFrameSamplesOffset += samplesToRead;
-        memcpy(m_avFramePlanesData[0], data, m_format.bytesForFrames(samplesToRead));
+        memcpy(m_avFramePlanesData[0], data, m_sourceFormat.bytesForFrames(samplesToRead));
     }
 
     samplesOffset += samplesToRead;
@@ -360,8 +371,8 @@ void AudioEncoder::sendPendingFrameToAVCodec()
 
     m_samplesWritten += m_avFrameSamplesOffset;
 
-    const qint64 time = m_format.durationForFrames(m_samplesWritten * m_format.sampleRate()
-                                                   / m_codecContext->sample_rate);
+    const qint64 time = m_sourceFormat.durationForFrames(
+            m_samplesWritten * m_sourceFormat.sampleRate() / m_codecContext->sample_rate);
     m_recordingEngine.newTimeStamp(time / 1000);
 
     // qCDebug(qLcFFmpegEncoder) << "sending audio frame" << buffer.byteCount() << frame->pts <<
