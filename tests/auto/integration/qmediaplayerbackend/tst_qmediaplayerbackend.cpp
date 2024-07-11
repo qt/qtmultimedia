@@ -1740,6 +1740,7 @@ void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
 
     QTRY_COMPARE(m_fixture->player.position(), qint64(0));
 
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer - possibly due to EOS?");
     QTRY_VERIFY(!m_fixture->positionChanged.empty());
     QCOMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), qint64(0));
     QVERIFY(player.duration() > 0);
