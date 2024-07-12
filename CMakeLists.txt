@@ -55,6 +55,7 @@ set(QT_BUILD_EXTRA_IDE_FILE_PATTERNS
     src/multimedia/doc/src/qtmultimedia-index.qdoc
     src/multimedia/doc/src/qtmultimedia-qml-types.qdoc
     src/multimedia/doc/src/videooverview.qdoc
+    src/multimedia/doc/src/advanced-ffmpeg-configuration.qdoc
     src/multimedia/doc/src/examples/video-qml-paint-rate.qdocinc
     src/multimedia/doc/src/images/Zoom.gif
     src/multimedia/doc/src/images/annotatedurl.png

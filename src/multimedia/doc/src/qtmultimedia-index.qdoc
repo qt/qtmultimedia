@@ -193,6 +193,10 @@
     The version shipped with Qt binary packages is \b{FFmpeg 7.0} and is tested
     by the maintainers.
 
+    Some FFmpeg functionality is configurable via
+    \l {advanced-ffmpeg-configuration}{environment varibles} which are
+    part of the private Qt Multimedia API.
+
     \note On the Windows and macOS platforms, Qt's FFmpeg media backend
     uses dynamic linking to the FFmpeg libraries. Windows and macOS
     applications must therefore bundle FFmpeg binaries in their
