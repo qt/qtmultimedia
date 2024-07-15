@@ -4494,6 +4494,10 @@ void tst_QMediaPlayerBackend::makeStressTestCases()
 
 void tst_QMediaPlayerBackend::stressTest_setupAndTeardown()
 {
+#ifdef Q_OS_MACOS
+    QSKIP_FFMPEG("QTBUG-127137: Crashes on CI");
+#endif
+
     QFETCH(MaybeUrl, media);
     QFETCH(bool, play);
     QRandomGenerator rng;
