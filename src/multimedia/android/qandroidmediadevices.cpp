@@ -95,6 +95,9 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     if (vm->GetEnv(&uenv.venv, JNI_VERSION_1_6) != JNI_OK)
         return JNI_ERR;
 
+    const auto context = QNativeInterface::QAndroidApplication::context();
+    QtJniTypes::QtAudioDeviceManager::callStaticMethod<void>("setContext", context);
+
     const JNINativeMethod methods[] = {
         { "onAudioInputDevicesUpdated", "()V", (void *)onAudioInputDevicesUpdated },
         { "onAudioOutputDevicesUpdated", "()V", (void *)onAudioOutputDevicesUpdated }
