@@ -8,9 +8,6 @@
 #include "qvideoframeformat.h"
 
 using BufferPtr = std::shared_ptr<QAbstractVideoBuffer>;
-using MapModes = std::vector<QVideoFrame::MapMode>;
-
-static const MapModes validMapModes = { QVideoFrame::ReadOnly, QVideoFrame::WriteOnly, QVideoFrame::ReadWrite };
 
 class tst_QVideoBuffers : public QObject
 {
@@ -38,42 +35,23 @@ private slots:
     void imageBuffer_fixesInputImage();
 
 private:
-    QString mapModeToString(QVideoFrame::MapMode mapMode) const
-    {
-        switch (mapMode) {
-            case QVideoFrame::NotMapped:
-                return QLatin1String("NotMapped");
-            case QVideoFrame::ReadOnly:
-                return QLatin1String("ReadOnly");
-            case QVideoFrame::WriteOnly:
-                return QLatin1String("WriteOnly");
-            case QVideoFrame::ReadWrite:
-                return QLatin1String("ReadWrite");
-            default:
-                return QLatin1String("Unknown");
-        }
-    }
-
-    void generateImageAndMemoryBuffersWithAllModes(const MapModes& modes = validMapModes) const
+    void generateImageAndMemoryBuffersWithAllModes() const
     {
         QTest::addColumn<BufferPtr>("buffer");
         QTest::addColumn<QVideoFrame::MapMode>("mapMode");
         QTest::addColumn<const uint8_t *>("sourcePointer");
 
-        for (auto mode : modes) {
-            QTest::newRow(QStringLiteral("ImageBuffer, %1").arg(mapModeToString(mode)).toLocal8Bit().constData())
+        static QMetaEnum modeEnum = QMetaEnum::fromType<QVideoFrame::MapMode>();
+        Q_ASSERT(modeEnum.isValid());
+        for (int i = 0; i < modeEnum.keyCount(); ++i) {
+            const QVideoFrame::MapMode mode = QVideoFrame::MapMode(modeEnum.value(i));
+            if (mode == QVideoFrame::NotMapped)
+                continue;
+            QTest::newRow(QStringLiteral("ImageBuffer, %1").arg(modeEnum.key(i)).toLocal8Bit().constData())
                     << createImageBuffer() << mode << m_image.constBits();
-            QTest::newRow(QStringLiteral("MemoryBuffer, %1").arg(mapModeToString(mode)).toLocal8Bit().constData())
+            QTest::newRow(QStringLiteral("MemoryBuffer, %1").arg(modeEnum.key(i)).toLocal8Bit().constData())
                     << createMemoryBuffer() << mode << reinterpret_cast<const uint8_t *>(m_byteArray.constData());
         }
-    }
-
-    void generateMapModes(const MapModes &modes = validMapModes) const
-    {
-        QTest::addColumn<QVideoFrame::MapMode>("mapMode");
-
-        for (auto mode : modes)
-            QTest::newRow(mapModeToString(mode).toLocal8Bit().constData()) << mode;
     }
 
     BufferPtr createImageBuffer() const

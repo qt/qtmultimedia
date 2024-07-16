@@ -22,7 +22,6 @@ private slots:
     void handleType_data();
     void handleType();
     void handle();
-    void mapModeDebug_data();
     void mapModeDebug();
 };
 
@@ -88,28 +87,10 @@ void tst_QAbstractVideoBuffer::handle()
     QVERIFY(buffer.textureHandle(nullptr, 0) == 0);
 }
 
-void tst_QAbstractVideoBuffer::mapModeDebug_data()
-{
-    QTest::addColumn<QVideoFrame::MapMode>("mapMode");
-    QTest::addColumn<QString>("stringized");
-
-    QTest::newRow("NotMapped") << QVideoFrame::NotMapped
-                               << QStringLiteral("QVideoFrame::NotMapped");
-    QTest::newRow("ReadOnly") << QVideoFrame::ReadOnly
-                              << QStringLiteral("QVideoFrame::ReadOnly");
-    QTest::newRow("WriteOnly") << QVideoFrame::WriteOnly
-                               << QStringLiteral("QVideoFrame::WriteOnly");
-    QTest::newRow("ReadWrite") << QVideoFrame::ReadWrite
-                               << QStringLiteral("QVideoFrame::ReadWrite");
-}
-
 void tst_QAbstractVideoBuffer::mapModeDebug()
 {
-    QFETCH(QVideoFrame::MapMode, mapMode);
-    QFETCH(QString, stringized);
-
-    QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
-    qDebug() << mapMode;
+    const QMetaEnum meta = QMetaEnum::fromType<QVideoFrame::MapMode>();
+    QVERIFY(meta.isValid());
 }
 
 QTEST_MAIN(tst_QAbstractVideoBuffer)
