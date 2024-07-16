@@ -62,7 +62,7 @@ QOpenGLVideoBuffer::QOpenGLVideoBuffer(std::unique_ptr<QOpenGLFramebufferObject>
 
 QOpenGLVideoBuffer::~QOpenGLVideoBuffer() { }
 
-QAbstractVideoBuffer::MapData QOpenGLVideoBuffer::map(QtVideo::MapMode mode)
+QAbstractVideoBuffer::MapData QOpenGLVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     return ensureImageBuffer().map(mode);
 }

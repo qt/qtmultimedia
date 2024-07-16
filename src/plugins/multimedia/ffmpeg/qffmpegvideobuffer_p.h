@@ -31,7 +31,7 @@ public:
     QFFmpegVideoBuffer(AVFrameUPtr frame, AVRational pixelAspectRatio = { 1, 1 });
     ~QFFmpegVideoBuffer() override;
 
-    MapData map(QtVideo::MapMode mode) override;
+    MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
     virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) override;
@@ -62,7 +62,7 @@ private:
     AVFrameUPtr m_swFrame;
     QSize m_size;
     QFFmpeg::TextureConverter m_textureConverter;
-    QtVideo::MapMode m_mode = QtVideo::MapMode::NotMapped;
+    QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
     std::unique_ptr<QFFmpeg::TextureSet> m_textures;
 };
 

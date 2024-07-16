@@ -28,7 +28,7 @@ public:
     QOpenGLVideoBuffer(std::unique_ptr<QOpenGLFramebufferObject> fbo);
     ~QOpenGLVideoBuffer();
 
-    MapData map(QtVideo::MapMode mode) override;
+    MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
     quint64 textureHandle(QRhi *, int plane) const override;
 

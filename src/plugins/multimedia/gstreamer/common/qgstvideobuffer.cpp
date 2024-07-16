@@ -79,17 +79,16 @@ QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &in
 
 QGstVideoBuffer::~QGstVideoBuffer()
 {
-    Q_ASSERT(m_mode == QtVideo::MapMode::NotMapped);
+    Q_ASSERT(m_mode == QVideoFrame::NotMapped);
 }
 
-QAbstractVideoBuffer::MapData QGstVideoBuffer::map(QtVideo::MapMode mode)
+QAbstractVideoBuffer::MapData QGstVideoBuffer::map(QVideoFrame::MapMode mode)
 {
-    const GstMapFlags flags = GstMapFlags(
-                  ((mode & QtVideo::MapMode::ReadOnly ) == QtVideo::MapMode::NotMapped ? 0 : GST_MAP_READ)
-                | ((mode & QtVideo::MapMode::WriteOnly) == QtVideo::MapMode::NotMapped ? 0 : GST_MAP_WRITE));
+    const GstMapFlags flags = GstMapFlags(((mode & QVideoFrame::ReadOnly) ? GST_MAP_READ : 0)
+                | ((mode & QVideoFrame::WriteOnly) ? GST_MAP_WRITE : 0));
 
     MapData mapData;
-    if (mode == QtVideo::MapMode::NotMapped || m_mode != QtVideo::MapMode::NotMapped)
+    if (mode == QVideoFrame::NotMapped || m_mode != QVideoFrame::NotMapped)
         return mapData;
 
     if (m_videoInfo.finfo->n_planes == 0) {         // Encoded
@@ -117,13 +116,13 @@ QAbstractVideoBuffer::MapData QGstVideoBuffer::map(QtVideo::MapMode mode)
 
 void QGstVideoBuffer::unmap()
 {
-    if (m_mode != QtVideo::MapMode::NotMapped) {
+    if (m_mode != QVideoFrame::NotMapped) {
         if (m_videoInfo.finfo->n_planes == 0)
             gst_buffer_unmap(m_buffer.get(), &m_frame.map[0]);
         else
             gst_video_frame_unmap(&m_frame);
     }
-    m_mode = QtVideo::MapMode::NotMapped;
+    m_mode = QVideoFrame::NotMapped;
 }
 
 #if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)

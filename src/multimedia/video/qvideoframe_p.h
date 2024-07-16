@@ -29,7 +29,7 @@ public:
 
     ~QVideoFramePrivate()
     {
-        if (videoBuffer && mapMode != QtVideo::MapMode::NotMapped)
+        if (videoBuffer && mapMode != QVideoFrame::NotMapped)
             videoBuffer->unmap();
     }
 
@@ -74,7 +74,7 @@ public:
     qint64 startTime = -1;
     qint64 endTime = -1;
     QAbstractVideoBuffer::MapData mapData;
-    QtVideo::MapMode mapMode = QtVideo::MapMode::NotMapped;
+    QVideoFrame::MapMode mapMode = QVideoFrame::NotMapped;
     QVideoFrameFormat format;
     std::unique_ptr<QAbstractVideoBuffer> videoBuffer;
     QHwVideoBuffer *hwVideoBuffer = nullptr;

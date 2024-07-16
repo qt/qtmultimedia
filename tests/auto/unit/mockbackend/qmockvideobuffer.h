@@ -12,11 +12,11 @@ class QMockVideoBuffer : public QHwVideoBuffer
 public:
     QMockVideoBuffer(QImage image) : QHwVideoBuffer(QVideoFrame::NoHandle), m_image(image) { }
 
-    MapData map(QtVideo::MapMode mode) override
+    MapData map(QVideoFrame::MapMode mode) override
     {
         MapData mapData;
-        if (m_mapMode == QtVideo::MapMode::NotMapped && !m_image.isNull()
-            && mode != QtVideo::MapMode::NotMapped) {
+        if (m_mapMode == QVideoFrame::NotMapped && !m_image.isNull()
+            && mode != QVideoFrame::NotMapped) {
             m_mapMode = mode;
 
             mapData.planeCount = 1;
@@ -28,10 +28,10 @@ public:
         return mapData;
     }
 
-    void unmap() override { m_mapMode = QtVideo::MapMode::NotMapped; }
+    void unmap() override { m_mapMode = QVideoFrame::NotMapped; }
 
 private:
-    QtVideo::MapMode m_mapMode = QtVideo::MapMode::NotMapped;
+    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
     QImage m_image;
 };
 

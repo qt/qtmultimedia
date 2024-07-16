@@ -50,7 +50,7 @@ public:
 
     ~QCGImageVideoBuffer() override { CFRelease(m_data); }
 
-    MapData map(QtVideo::MapMode /*mode*/) override
+    MapData map(QVideoFrame::MapMode /*mode*/) override
     {
         MapData mapData;
 

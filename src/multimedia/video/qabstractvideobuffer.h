@@ -5,6 +5,7 @@
 #define QABSTRACTVIDEOBUFFER_H
 
 #include <QtMultimedia/qtmultimediaexports.h>
+#include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/qtvideo.h>
 
@@ -22,7 +23,7 @@ public:
     };
 
     virtual ~QAbstractVideoBuffer();
-    virtual MapData map(QtVideo::MapMode mode) = 0;
+    virtual MapData map(QVideoFrame::MapMode mode) = 0;
     virtual void unmap();
     virtual QVideoFrameFormat format() const = 0;
 };

@@ -22,7 +22,7 @@ QT_BEGIN_NAMESPACE
     function, which returns a structure containing information about plane layout of the current
     video data.
 
-    \sa QVideoFrame, QVideoFrameFormat, QtVideo::MapMode
+    \sa QVideoFrame, QVideoFrameFormat, QVideoFrame::MapMode
 */
 
 /*!
@@ -89,7 +89,7 @@ QT_BEGIN_NAMESPACE
 */
 QAbstractVideoBuffer::~QAbstractVideoBuffer() = default;
 
-/*! \fn QAbstractVideoBuffer::MapData QAbstractVideoBuffer::map(QtVideo::MapMode mode)
+/*! \fn QAbstractVideoBuffer::MapData QAbstractVideoBuffer::map(QVideoFrame::MapMode mode)
 
     Maps the planes of a video buffer to memory.
 
@@ -99,9 +99,10 @@ QAbstractVideoBuffer::~QAbstractVideoBuffer() = default;
     just returns the plane layout of the preallocated underlying data.
 
     The map \a mode indicates whether the contents of the mapped memory should be read from and/or
-    written to the buffer. If the map mode includes the \c QtVideo::MapMode::WriteOnly flag,
-    the content of the possibly modified mapped memory is expected to be written back
-    to the buffer when unmapped.
+    written to the buffer.  If the map mode includes the \c QVideoFrame::ReadOnly flag the
+    mapped memory will be populated with the content of the buffer when initially mapped.  If the map
+    mode includes the \c QVideoFrame::WriteOnly flag the content of the possibly modified
+    mapped memory will be written back to the buffer when unmapped.
 
     When access to the data is no longer needed, the \l unmap function is called
     to release the mapped memory and possibly update the buffer contents.
@@ -117,7 +118,7 @@ QAbstractVideoBuffer::~QAbstractVideoBuffer() = default;
 
     Releases the memory mapped by the map() function.
 
-    If the \l {QtVideo::MapMode}{MapMode} included the \c QtVideo::MapMode::WriteOnly
+    If the \l {QVideoFrame::MapMode}{MapMode} included the \c QVideoFrame::WriteOnly
     flag this will write the current content of the mapped memory back to the video frame.
 
     For CPU video buffers, the function may be not overridden.

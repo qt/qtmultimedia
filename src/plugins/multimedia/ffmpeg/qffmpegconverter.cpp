@@ -179,14 +179,14 @@ bool setColorSpaceDetails(SwsContext *context,
 
 bool convert(SwsContext *context, QVideoFrame &src, int srcHeight, QVideoFrame &dst)
 {
-    if (!src.map(QtVideo::MapMode::ReadOnly))
+    if (!src.map(QVideoFrame::ReadOnly))
         return false;
 
     QScopeGuard unmapSrc{[&] {
         src.unmap();
     }};
 
-    if (!dst.map(QtVideo::MapMode::WriteOnly))
+    if (!dst.map(QVideoFrame::WriteOnly))
         return false;
 
     QScopeGuard unmapDst{[&] {

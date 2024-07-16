@@ -75,12 +75,12 @@ public:
         : m_device(device), m_texture(texture), m_ctxMutex(mutex), m_size(size)
     {}
 
-    ~QD3D11TextureVideoBuffer() { Q_ASSERT(m_mapMode == QtVideo::MapMode::NotMapped); }
+    ~QD3D11TextureVideoBuffer() { Q_ASSERT(m_mapMode == QVideoFrame::NotMapped); }
 
-    MapData map(QtVideo::MapMode mode) override
+    MapData map(QVideoFrame::MapMode mode) override
     {
         MapData mapData;
-        if (!m_ctx && mode == QtVideo::MapMode::ReadOnly) {
+        if (!m_ctx && mode == QVideoFrame::ReadOnly) {
             D3D11_TEXTURE2D_DESC texDesc = {};
             m_texture->GetDesc(&texDesc);
             texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
@@ -121,7 +121,7 @@ public:
 
     void unmap() override
     {
-        if (m_mapMode == QtVideo::MapMode::NotMapped)
+        if (m_mapMode == QVideoFrame::NotMapped)
             return;
         if (m_ctx) {
             m_ctxMutex->lock();
@@ -130,7 +130,7 @@ public:
             m_ctx.Reset();
         }
         m_cpuTexture.Reset();
-        m_mapMode = QtVideo::MapMode::NotMapped;
+        m_mapMode = QVideoFrame::NotMapped;
     }
 
     QVideoFrameFormat format() const override { return {}; }
@@ -153,7 +153,7 @@ private:
     ComPtr<ID3D11DeviceContext> m_ctx;
     std::shared_ptr<QMutex> m_ctxMutex;
     QSize m_size;
-    QtVideo::MapMode m_mapMode = QtVideo::MapMode::NotMapped;
+    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
 };
 
 namespace {

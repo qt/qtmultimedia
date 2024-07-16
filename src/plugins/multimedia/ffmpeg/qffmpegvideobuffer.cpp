@@ -113,7 +113,7 @@ float QFFmpegVideoBuffer::maxNits()
     return maxNits;
 }
 
-QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QtVideo::MapMode mode)
+QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     if (!m_swFrame) {
         Q_ASSERT(m_hwFrame && m_hwFrame->hw_frames_ctx);
@@ -140,7 +140,7 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QtVideo::MapMode mode)
         mapData.dataSize[i] = mapData.bytesPerLine[i]*desc->heightForPlane(m_swFrame->height, i);
     }
 
-    if ((mode & QtVideo::MapMode::WriteOnly) != QtVideo::MapMode::NotMapped && m_hwFrame) {
+    if ((mode & QVideoFrame::WriteOnly) != 0 && m_hwFrame) {
         m_type = QVideoFrame::NoHandle;
         m_hwFrame.reset();
         if (m_textures) {
@@ -159,7 +159,7 @@ void QFFmpegVideoBuffer::unmap()
 {
     // nothing to do here for SW buffers.
     // Set NotMapped mode to ensure map/unmap/mapMode consisteny.
-    m_mode = QtVideo::MapMode::NotMapped;
+    m_mode = QVideoFrame::NotMapped;
 }
 
 std::unique_ptr<QVideoFrameTextures> QFFmpegVideoBuffer::mapTextures(QRhi *)

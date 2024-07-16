@@ -30,7 +30,7 @@ QMemoryVideoBuffer::~QMemoryVideoBuffer() = default;
 /*!
     \reimp
 */
-QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(QtVideo::MapMode mode)
+QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     MapData mapData;
 
@@ -39,7 +39,7 @@ QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(QtVideo::MapMode mode)
         mapData.bytesPerLine[0] = m_bytesPerLine;
         // avoid detaching and extra copying in case the underlyingByteArray is
         // being held by textures or anything else.
-        if (mode == QtVideo::MapMode::ReadOnly)
+        if (mode == QVideoFrame::ReadOnly)
             mapData.data[0] = reinterpret_cast<uchar *>(const_cast<char *>(m_data.constData()));
         else
             mapData.data[0] = reinterpret_cast<uchar *>(m_data.data());
