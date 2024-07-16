@@ -1,0 +1,23 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtmultimedia-toc.html
+    \title Qt Multimedia module topics
+
+    The following list has links to all the individual topics (HTML files)
+    in the Qt Multimedia module.
+
+    \list
+    \li \l {Multimedia Overview}
+    \li \l {Audio Overview}
+    \li \l {Video Overview}
+    \li \l {Camera Overview}
+    \li \l {Qt Multimedia Widgets}
+    \li \l {Qt Multimedia on macOS and iOS}{Platform Notes - macOS and iOS}
+    \li \l {Qt Multimedia on WebAssembly}{Platform Notes - WebAssembly}
+    \li \l {Building Qt Multimedia from sources}{Building from sources}
+    \li \l {Changes to Qt Multimedia}{Upgrading from Qt 5}
+    \endlist
+
+*/

@@ -23,8 +23,7 @@ qhp.QtSpatialAudio.namespace = org.qt-project.qtspatialaudio.$QT_VERSION_TAG
 qhp.QtSpatialAudio.indexTitle = Qt Spatial Audio
 qhp.QtSpatialAudio.virtualFolder  = qtspatialaudio
 
-# For listing child nodes in Qt Creator or Assistant.
-qhp.QtSpatialAudio.subprojects = classes qmltypes examples
+qhp.QtSpatialAudio.subprojects = overview examples classes qmltypes
 
 qhp.QtSpatialAudio.subprojects.classes.title = Qt Spatial Audio Classes
 qhp.QtSpatialAudio.subprojects.classes.indexTitle = Qt Spatial Audio C++ Classes
@@ -38,8 +37,12 @@ qhp.QtSpatialAudio.subprojects.qmltypes.sortPages = true
 
 qhp.QtSpatialAudio.subprojects.examples.title = Examples
 qhp.QtSpatialAudio.subprojects.examples.indexTitle = Qt Spatial Audio Examples
-qhp.QtSpatialAudio.subprojects.examples.selectors = doc:example
+qhp.QtSpatialAudio.subprojects.examples.selectors = example
 qhp.QtSpatialAudio.subprojects.examples.sortPages = true
+
+qhp.QtSpatialAudio.subprojects.overview.title = Overview
+qhp.QtSpatialAudio.subprojects.overview.indexTitle = Spatial Audio Overview
+qhp.QtSpatialAudio.subprojects.overview.selectors = group:none
 
 exampledirs += ../../../examples/spatialaudio \
                snippets

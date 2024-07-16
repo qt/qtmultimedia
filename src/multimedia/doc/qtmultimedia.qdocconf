@@ -23,8 +23,7 @@ qhp.QtMultimedia.namespace = org.qt-project.qtmultimedia.$QT_VERSION_TAG
 qhp.QtMultimedia.indexTitle = Qt Multimedia
 qhp.QtMultimedia.virtualFolder  = qtmultimedia
 
-# For listing child nodes in Qt Creator or Assistant.
-qhp.QtMultimedia.subprojects = classes widgetclasses qmltypes examples
+qhp.QtMultimedia.subprojects = manual examples classes widgetclasses qmltypes
 
 qhp.QtMultimedia.subprojects.classes.title = Qt Multimedia Classes and Namespaces
 qhp.QtMultimedia.subprojects.classes.indexTitle = Qt Multimedia C++ Classes
@@ -43,8 +42,12 @@ qhp.QtMultimedia.subprojects.qmltypes.sortPages = true
 
 qhp.QtMultimedia.subprojects.examples.title = Examples
 qhp.QtMultimedia.subprojects.examples.indexTitle = Qt Multimedia Examples
-qhp.QtMultimedia.subprojects.examples.selectors = doc:example
+qhp.QtMultimedia.subprojects.examples.selectors = example
 qhp.QtMultimedia.subprojects.examples.sortPages = true
+
+qhp.QtMultimedia.subprojects.manual.title = Qt Multimedia
+qhp.QtMultimedia.subprojects.manual.indexTitle = Qt Multimedia module topics
+qhp.QtMultimedia.subprojects.manual.type = manual
 
 exampledirs += ../../../examples/multimedia \
                ../../../examples/multimediawidgets \
@@ -69,6 +72,9 @@ ignoresince = 6.3
 navigation.landingpage = "Qt Multimedia"
 navigation.cppclassespage = "Qt Multimedia C++ Classes"
 navigation.qmltypespage = "Qt Multimedia QML Types"
+# Autogenerate navigation linking based on "Qt Multimedia module topics":
+navigation.toctitles = "Qt Multimedia module topics"
+navigation.toctitles.inclusive = false
 
 # Highlighted examples in Graphics & Multimedia category
 manifestmeta.highlighted.names = \
