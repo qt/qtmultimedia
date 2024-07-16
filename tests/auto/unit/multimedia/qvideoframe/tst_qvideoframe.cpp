@@ -159,20 +159,19 @@ QSet s_pixelFormats{ QVideoFrameFormat::Format_ARGB8888,
 
 bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
 {
+    switch (pixelFormat) {
 #ifdef Q_OS_ANDROID
     // TODO: QTBUG-125238
-    switch (pixelFormat) {
     case QVideoFrameFormat::Format_Y16:
     case QVideoFrameFormat::Format_P010:
     case QVideoFrameFormat::Format_P016:
     case QVideoFrameFormat::Format_YUV420P10:
         return false;
-    default:
-        return true;
-    }
-#else
-    return true;
 #endif
+    default:
+        break;
+    }
+    return true;
 }
 
 class tst_QVideoFrame : public QObject
