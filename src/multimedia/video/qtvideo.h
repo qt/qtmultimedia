@@ -23,34 +23,6 @@ enum class Rotation {
 };
 Q_ENUM_NS(Rotation)
 
-enum class MapMode : quint8 {
-    NotMapped = 0x00,
-    ReadOnly = 0x01,
-    WriteOnly = 0x02,
-    ReadWrite = ReadOnly | WriteOnly,
-};
-Q_ENUM_NS(MapMode)
-
-constexpr MapMode operator&(MapMode lhs, MapMode rhs)
-{
-    return MapMode(qToUnderlying(lhs) & qToUnderlying(rhs));
-}
-
-constexpr MapMode operator|(MapMode lhs, MapMode rhs)
-{
-    return MapMode(qToUnderlying(lhs) | qToUnderlying(rhs));
-}
-
-constexpr MapMode &operator&=(MapMode &lhs, MapMode rhs)
-{
-    return (lhs = lhs & rhs);
-}
-
-constexpr MapMode &operator|=(MapMode &lhs, MapMode rhs)
-{
-    return (lhs = lhs | rhs);
-}
-
 } // namespace QtVideo
 
 QT_END_NAMESPACE

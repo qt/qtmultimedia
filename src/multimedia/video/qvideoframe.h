@@ -34,19 +34,14 @@ public:
         RhiTextureHandle
     };
 
-#if QT_DEPRECATED_SINCE(6, 8)
     enum MapMode
     {
-        NotMapped Q_DECL_ENUMERATOR_DEPRECATED_X("Use QtVideo::MapMode::NotMapped instead")
-            = static_cast<int>(QtVideo::MapMode::NotMapped),
-        ReadOnly Q_DECL_ENUMERATOR_DEPRECATED_X("Use QtVideo::MapMode::ReadOnly instead")
-            = static_cast<int>(QtVideo::MapMode::ReadOnly),
-        WriteOnly Q_DECL_ENUMERATOR_DEPRECATED_X("Use QtVideo::MapMode::WriteOnly instead")
-            = static_cast<int>(QtVideo::MapMode::WriteOnly),
-        ReadWrite Q_DECL_ENUMERATOR_DEPRECATED_X("Use QtVideo::MapMode::ReadWrite instead")
-            = static_cast<int>(QtVideo::MapMode::ReadWrite)
+        NotMapped = 0x00,
+        ReadOnly  = 0x01,
+        WriteOnly = 0x02,
+        ReadWrite = ReadOnly | WriteOnly
     };
-#endif
+    Q_ENUM(MapMode)
 
 #if QT_DEPRECATED_SINCE(6, 7)
     enum RotationAngle
@@ -92,11 +87,7 @@ public:
 
     QVideoFrame::MapMode mapMode() const;
 
-    bool map(QtVideo::MapMode mode);
-#if QT_DEPRECATED_SINCE(6, 8)
-    QT_DEPRECATED_VERSION_X_6_8("Use QVideoFrame::map(QtVideo::MapMode) instead")
     bool map(QVideoFrame::MapMode mode);
-#endif
     void unmap();
 
     int bytesPerLine(int plane) const;

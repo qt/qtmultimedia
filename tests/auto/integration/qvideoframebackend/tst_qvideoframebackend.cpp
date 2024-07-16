@@ -113,22 +113,22 @@ void tst_QVideoFrameBackend::testMediaFilesAreSupported()
 void tst_QVideoFrameBackend::toImage_retainsThePreviousMappedState_data()
 {
     QTest::addColumn<FrameCreator>("frameCreator");
-    QTest::addColumn<QtVideo::MapMode>("initialMapMode");
+    QTest::addColumn<QVideoFrame::MapMode>("initialMapMode");
 
     // clang-format off
     QTest::addRow("defaulFrame.notMapped") << &tst_QVideoFrameBackend::createDefaultFrame
-                                           << QtVideo::MapMode::NotMapped;
+                                           << QVideoFrame::NotMapped;
     QTest::addRow("defaulFrame.readOnly") << &tst_QVideoFrameBackend::createDefaultFrame
-                                          << QtVideo::MapMode::ReadOnly;
+                                          << QVideoFrame::ReadOnly;
 
     addMediaPlayerFrameTestData([]()
     {
         QTest::addRow("mediaPlayerFrame.notMapped")
                 << &tst_QVideoFrameBackend::createMediaPlayerFrame
-                << QtVideo::MapMode::NotMapped;
+                << QVideoFrame::NotMapped;
         QTest::addRow("mediaPlayerFrame.readOnly")
                 << &tst_QVideoFrameBackend::createMediaPlayerFrame
-                << QtVideo::MapMode::ReadOnly;
+                << QVideoFrame::ReadOnly;
     });
 
     // clang-format on
@@ -137,41 +137,41 @@ void tst_QVideoFrameBackend::toImage_retainsThePreviousMappedState_data()
 void tst_QVideoFrameBackend::toImage_retainsThePreviousMappedState()
 {
     QFETCH(const FrameCreator, frameCreator);
-    QFETCH(const QtVideo::MapMode, initialMapMode);
-    const bool initiallyMapped = initialMapMode != QtVideo::MapMode::NotMapped;
+    QFETCH(const QVideoFrame::MapMode, initialMapMode);
+    const bool initiallyMapped = initialMapMode != QVideoFrame::NotMapped;
 
     QVideoFrame frame = std::invoke(frameCreator, this);
     QVERIFY(frame.isValid());
 
     frame.map(initialMapMode);
-    QCOMPARE(static_cast<QtVideo::MapMode>(frame.mapMode()), initialMapMode);
+    QCOMPARE(frame.mapMode(), initialMapMode);
 
     QImage image = frame.toImage();
     QVERIFY(!image.isNull());
 
-    QCOMPARE(static_cast<QtVideo::MapMode>(frame.mapMode()), initialMapMode);
+    QCOMPARE(frame.mapMode(), initialMapMode);
     QCOMPARE(frame.isMapped(), initiallyMapped);
 }
 
 void tst_QVideoFrameBackend::toImage_rendersUpdatedFrame_afterMappingInWriteModeAndModifying_data()
 {
     QTest::addColumn<FrameCreator>("frameCreator");
-    QTest::addColumn<QtVideo::MapMode>("mapMode");
+    QTest::addColumn<QVideoFrame::MapMode>("mapMode");
 
     // clang-format off
     QTest::addRow("defaulFrame.writeOnly") << &tst_QVideoFrameBackend::createDefaultFrame
-                                           << QtVideo::MapMode::WriteOnly;
+                                           << QVideoFrame::WriteOnly;
     QTest::addRow("defaulFrame.readWrite") << &tst_QVideoFrameBackend::createDefaultFrame
-                                           << QtVideo::MapMode::ReadWrite;
+                                           << QVideoFrame::ReadWrite;
 
     addMediaPlayerFrameTestData([]()
     {
         QTest::addRow("mediaPlayerFrame.writeOnly")
                 << &tst_QVideoFrameBackend::createMediaPlayerFrame
-                << QtVideo::MapMode::WriteOnly;
+                << QVideoFrame::WriteOnly;
         QTest::addRow("mediaPlayerFrame.readWrite")
                 << &tst_QVideoFrameBackend::createMediaPlayerFrame
-                << QtVideo::MapMode::ReadWrite;
+                << QVideoFrame::ReadWrite;
     });
     // clang-format on
 }
@@ -179,7 +179,7 @@ void tst_QVideoFrameBackend::toImage_rendersUpdatedFrame_afterMappingInWriteMode
 void tst_QVideoFrameBackend::toImage_rendersUpdatedFrame_afterMappingInWriteModeAndModifying()
 {
     QFETCH(const FrameCreator, frameCreator);
-    QFETCH(const QtVideo::MapMode, mapMode);
+    QFETCH(const QVideoFrame::MapMode, mapMode);
 
     // Arrange
 

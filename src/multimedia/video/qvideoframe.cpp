@@ -59,7 +59,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
     \note Since video frames can be expensive to copy, QVideoFrame is explicitly shared, so any
     change made to a video frame will also apply to any copies.
 
-    \sa QAbstractVideoBuffer, QVideoFrameFormat, QtVideo::MapMode
+    \sa QAbstractVideoBuffer, QVideoFrameFormat, QVideoFrame::MapMode
 */
 
 /*!
@@ -334,25 +334,25 @@ int QVideoFrame::height() const
 /*!
     Identifies if a video frame's contents are currently mapped to system memory.
 
-    This is a convenience function which checks that the \l {QtVideo::MapMode}{MapMode}
-    of the frame is not equal to QtVideo::MapMode::NotMapped.
+    This is a convenience function which checks that the \l {QVideoFrame::MapMode}{MapMode}
+    of the frame is not equal to QVideoFrame::NotMapped.
 
     Returns true if the contents of the video frame are mapped to system memory, and false
     otherwise.
 
-    \sa mapMode(), QtVideo::MapMode
+    \sa mapMode(), QVideoFrame::MapMode
 */
 
 bool QVideoFrame::isMapped() const
 {
-    return d && d->mapMode != QtVideo::MapMode::NotMapped;
+    return d && d->mapMode != QVideoFrame::NotMapped;
 }
 
 /*!
     Identifies if the mapped contents of a video frame will be persisted when the frame is unmapped.
 
-    This is a convenience function which checks if the \l {QtVideo::MapMode}{MapMode}
-    contains the QtVideo::MapMode::WriteOnly flag.
+    This is a convenience function which checks if the \l {QVideoFrame::MapMode}{MapMode}
+    contains the QVideoFrame::WriteOnly flag.
 
     Returns true if the video frame will be updated when unmapped, and false otherwise.
 
@@ -360,37 +360,58 @@ bool QVideoFrame::isMapped() const
     Depending on the buffer implementation the changes may be persisted, or worse alter a shared
     buffer.
 
-    \sa mapMode(), QtVideo::MapMode
+    \sa mapMode(), QVideoFrame::MapMode
 */
 bool QVideoFrame::isWritable() const
 {
-    return d && (d->mapMode & QtVideo::MapMode::WriteOnly) != QtVideo::MapMode::NotMapped;
+    return d && (d->mapMode & QVideoFrame::WriteOnly);
 }
 
 /*!
     Identifies if the mapped contents of a video frame were read from the frame when it was mapped.
 
-    This is a convenience function which checks if the \l {QtVideo::MapMode}{MapMode}
-    contains the QtVideo::MapMode::WriteOnly flag.
+    This is a convenience function which checks if the \l {QVideoFrame::MapMode}{MapMode}
+    contains the QVideoFrame::WriteOnly flag.
 
     Returns true if the contents of the mapped memory were read from the video frame, and false
     otherwise.
 
-    \sa mapMode(), QtVideo::MapMode
+    \sa mapMode(), QVideoFrame::MapMode
 */
 bool QVideoFrame::isReadable() const
 {
-    return d && (d->mapMode & QtVideo::MapMode::ReadOnly) != QtVideo::MapMode::NotMapped;
+    return d && (d->mapMode & QVideoFrame::ReadOnly);
 }
+
+/*!
+    \enum QVideoFrame::MapMode
+
+    Enumerates how a video buffer's data is mapped to system memory.
+
+    \value NotMapped
+    The video buffer is not mapped to memory.
+    \value ReadOnly
+    The mapped memory is populated with data from the video buffer when mapped,
+    but the content of the mapped memory may be discarded when unmapped.
+    \value WriteOnly
+    The mapped memory is uninitialized when mapped, but the possibly modified
+    content will be used to populate the video buffer when unmapped.
+    \value ReadWrite
+    The mapped memory is populated with data from the video
+    buffer, and the video buffer is repopulated with the content of the mapped
+    memory when it is unmapped.
+
+    \sa mapMode(), map()
+*/
 
 /*!
     Returns the mode a video frame was mapped to system memory in.
 
-    \sa map(), QtVideo::MapMode
+    \sa map(), QVideoFrame::MapMode
 */
 QVideoFrame::MapMode QVideoFrame::mapMode() const
 {
-    return static_cast<QVideoFrame::MapMode>(d ? d->mapMode : QtVideo::MapMode::NotMapped);
+    return d ? d->mapMode : QVideoFrame::NotMapped;
 }
 
 /*!
@@ -401,9 +422,9 @@ QVideoFrame::MapMode QVideoFrame::mapMode() const
     copying the contents around, so avoid mapping and unmapping unless required.
 
     The map \a mode indicates whether the contents of the mapped memory should be read from and/or
-    written to the frame.  If the map mode includes the \c QtVideo::MapMode::ReadOnly flag the
+    written to the frame.  If the map mode includes the \c QVideoFrame::ReadOnly flag the
     mapped memory will be populated with the content of the video frame when initially mapped.  If the map
-    mode includes the \c QtVideo::MapMode::WriteOnly flag the content of the possibly modified
+    mode includes the \c QVideoFrame::WriteOnly flag the content of the possibly modified
     mapped memory will be written back to the frame when unmapped.
 
     While mapped the contents of a video frame can be accessed directly through the pointer returned
@@ -423,18 +444,18 @@ QVideoFrame::MapMode QVideoFrame::mapMode() const
 
     \sa unmap(), mapMode(), bits()
 */
-bool QVideoFrame::map(QtVideo::MapMode mode)
+bool QVideoFrame::map(QVideoFrame::MapMode mode)
 {
     if (!d || !d->videoBuffer)
         return false;
 
     QMutexLocker lock(&d->mapMutex);
-    if (mode == QtVideo::MapMode::NotMapped)
+    if (mode == QVideoFrame::NotMapped)
         return false;
 
     if (d->mappedCount > 0) {
         //it's allowed to map the video frame multiple times in read only mode
-        if (d->mapMode == QtVideo::MapMode::ReadOnly && mode == QtVideo::MapMode::ReadOnly) {
+        if (d->mapMode == QVideoFrame::ReadOnly && mode == QVideoFrame::ReadOnly) {
             d->mappedCount++;
             return true;
         }
@@ -539,7 +560,7 @@ bool QVideoFrame::map(QtVideo::MapMode mode)
     // unlock mapMutex to avoid potential deadlock imageMutex <--> mapMutex
     lock.unlock();
 
-    if ((mode & QtVideo::MapMode::WriteOnly) != QtVideo::MapMode::NotMapped) {
+    if ((mode & QVideoFrame::WriteOnly) != 0) {
         QMutexLocker lock(&d->imageMutex);
         d->image = {};
     }
@@ -547,73 +568,10 @@ bool QVideoFrame::map(QtVideo::MapMode mode)
     return true;
 }
 
-#if QT_DEPRECATED_SINCE(6, 8)
-
-/*!
-    \deprecated [6.8] Use \c QtVideo::MapMode instead. The values of this enum
-                are consistent with values of \c QtVideo::MapMode.
-    \enum QVideoFrame::MapMode
-
-    Enumerates how a video buffer's data is mapped to system memory.
-
-    \value NotMapped
-    The video buffer is not mapped to memory.
-    \value ReadOnly
-    The mapped memory is populated with data from the video buffer when mapped,
-    but the content of the mapped memory may be discarded when unmapped.
-    \value WriteOnly
-    The mapped memory is uninitialized when mapped, but the possibly modified
-    content will be used to populate the video buffer when unmapped.
-    \value ReadWrite
-    The mapped memory is populated with data from the video
-    buffer, and the video buffer is repopulated with the content of the mapped
-    memory when it is unmapped.
-
-    \sa mapMode(), map()
-*/
-
-/*!
-    \deprecated [6.8] Use \c QVideoFrame::map(Qt::Video::MapMode) instead.
-    Maps the contents of a video frame to system (CPU addressable) memory.
-
-    In some cases the video frame data might be stored in video memory or otherwise inaccessible
-    memory, so it is necessary to map a frame before accessing the pixel data.  This may involve
-    copying the contents around, so avoid mapping and unmapping unless required.
-
-    The map \a mode indicates whether the contents of the mapped memory should be read from and/or
-    written to the frame.  If the map mode includes the \c QVideoFrame::ReadOnly flag the
-    mapped memory will be populated with the content of the video frame when initially mapped. If the map
-    mode includes the \c QVideoFrame::WriteOnly flag the content of the possibly modified
-    mapped memory will be written back to the frame when unmapped.
-
-    While mapped the contents of a video frame can be accessed directly through the pointer returned
-    by the bits() function.
-
-    When access to the data is no longer needed, be sure to call the unmap() function to release the
-    mapped memory and possibly update the video frame contents.
-
-    If the video frame has been mapped in read only mode, it is permissible to map it
-    multiple times in read only mode (and unmap it a corresponding number of times). In all
-    other cases it is necessary to unmap the frame first before mapping a second time.
-
-    \note Writing to memory that is mapped as read-only is undefined, and may result in changes
-    to shared data or crashes.
-
-    Returns true if the frame was mapped to memory in the given \a mode and false otherwise.
-
-    \sa unmap(), mapMode(), bits()
-*/
-bool QVideoFrame::map(QVideoFrame::MapMode mode)
-{
-    return map(static_cast<QtVideo::MapMode>(mode));
-}
-
-#endif
-
 /*!
     Releases the memory mapped by the map() function.
 
-    If the \l {QtVideo::MapMode}{MapMode} included the QtVideo::MapMode::WriteOnly
+    If the \l {QVideoFrame::MapMode}{MapMode} included the QVideoFrame::WriteOnly
     flag this will persist the current content of the mapped memory to the video frame.
 
     unmap() should not be called if map() function failed.
@@ -636,7 +594,7 @@ void QVideoFrame::unmap()
 
     if (d->mappedCount == 0) {
         d->mapData = {};
-        d->mapMode = QtVideo::MapMode::NotMapped;
+        d->mapMode = QVideoFrame::NotMapped;
         d->videoBuffer->unmap();
     }
 }
@@ -938,7 +896,7 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
         }
     }
 
-    if (map(QtVideo::MapMode::ReadOnly)) {
+    if (map(QVideoFrame::ReadOnly)) {
         const QTransform oldTransform = painter->transform();
         QTransform transform = oldTransform;
         transform.translate(targetRect.center().x() - size.width()/2,

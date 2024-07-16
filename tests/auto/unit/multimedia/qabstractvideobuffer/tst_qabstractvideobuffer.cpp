@@ -31,7 +31,7 @@ class QtTestVideoBuffer : public QHwVideoBuffer
 public:
     QtTestVideoBuffer(QVideoFrame::HandleType type) : QHwVideoBuffer(type) { }
 
-    MapData map(QtVideo::MapMode) override { return {}; }
+    MapData map(QVideoFrame::MapMode) override { return {}; }
     void unmap() override {}
 };
 
@@ -90,22 +90,22 @@ void tst_QAbstractVideoBuffer::handle()
 
 void tst_QAbstractVideoBuffer::mapModeDebug_data()
 {
-    QTest::addColumn<QtVideo::MapMode>("mapMode");
+    QTest::addColumn<QVideoFrame::MapMode>("mapMode");
     QTest::addColumn<QString>("stringized");
 
-    QTest::newRow("NotMapped") << QtVideo::MapMode::NotMapped
-                               << QStringLiteral("QtVideo::MapMode::NotMapped");
-    QTest::newRow("ReadOnly") << QtVideo::MapMode::ReadOnly
-                              << QStringLiteral("QtVideo::MapMode::ReadOnly");
-    QTest::newRow("WriteOnly") << QtVideo::MapMode::WriteOnly
-                               << QStringLiteral("QtVideo::MapMode::WriteOnly");
-    QTest::newRow("ReadWrite") << QtVideo::MapMode::ReadWrite
-                               << QStringLiteral("QtVideo::MapMode::ReadWrite");
+    QTest::newRow("NotMapped") << QVideoFrame::NotMapped
+                               << QStringLiteral("QVideoFrame::NotMapped");
+    QTest::newRow("ReadOnly") << QVideoFrame::ReadOnly
+                              << QStringLiteral("QVideoFrame::ReadOnly");
+    QTest::newRow("WriteOnly") << QVideoFrame::WriteOnly
+                               << QStringLiteral("QVideoFrame::WriteOnly");
+    QTest::newRow("ReadWrite") << QVideoFrame::ReadWrite
+                               << QStringLiteral("QVideoFrame::ReadWrite");
 }
 
 void tst_QAbstractVideoBuffer::mapModeDebug()
 {
-    QFETCH(QtVideo::MapMode, mapMode);
+    QFETCH(QVideoFrame::MapMode, mapMode);
     QFETCH(QString, stringized);
 
     QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());

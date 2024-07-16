@@ -8,9 +8,9 @@
 #include "qvideoframeformat.h"
 
 using BufferPtr = std::shared_ptr<QAbstractVideoBuffer>;
-using MapModes = std::vector<QtVideo::MapMode>;
+using MapModes = std::vector<QVideoFrame::MapMode>;
 
-static const MapModes validMapModes = { QtVideo::MapMode::ReadOnly, QtVideo::MapMode::WriteOnly, QtVideo::MapMode::ReadWrite };
+static const MapModes validMapModes = { QVideoFrame::ReadOnly, QVideoFrame::WriteOnly, QVideoFrame::ReadWrite };
 
 class tst_QVideoBuffers : public QObject
 {
@@ -38,16 +38,16 @@ private slots:
     void imageBuffer_fixesInputImage();
 
 private:
-    QString mapModeToString(QtVideo::MapMode mapMode) const
+    QString mapModeToString(QVideoFrame::MapMode mapMode) const
     {
         switch (mapMode) {
-            case QtVideo::MapMode::NotMapped:
+            case QVideoFrame::NotMapped:
                 return QLatin1String("NotMapped");
-            case QtVideo::MapMode::ReadOnly:
+            case QVideoFrame::ReadOnly:
                 return QLatin1String("ReadOnly");
-            case QtVideo::MapMode::WriteOnly:
+            case QVideoFrame::WriteOnly:
                 return QLatin1String("WriteOnly");
-            case QtVideo::MapMode::ReadWrite:
+            case QVideoFrame::ReadWrite:
                 return QLatin1String("ReadWrite");
             default:
                 return QLatin1String("Unknown");
@@ -57,7 +57,7 @@ private:
     void generateImageAndMemoryBuffersWithAllModes(const MapModes& modes = validMapModes) const
     {
         QTest::addColumn<BufferPtr>("buffer");
-        QTest::addColumn<QtVideo::MapMode>("mapMode");
+        QTest::addColumn<QVideoFrame::MapMode>("mapMode");
         QTest::addColumn<const uint8_t *>("sourcePointer");
 
         for (auto mode : modes) {
@@ -70,7 +70,7 @@ private:
 
     void generateMapModes(const MapModes &modes = validMapModes) const
     {
-        QTest::addColumn<QtVideo::MapMode>("mapMode");
+        QTest::addColumn<QVideoFrame::MapMode>("mapMode");
 
         for (auto mode : modes)
             QTest::newRow(mapModeToString(mode).toLocal8Bit().constData()) << mode;
@@ -109,7 +109,7 @@ void tst_QVideoBuffers::map_returnsProperMappings_whenBufferIsNotMapped_data()
 void tst_QVideoBuffers::map_returnsProperMappings_whenBufferIsNotMapped()
 {
     QFETCH(BufferPtr, buffer);
-    QFETCH(QtVideo::MapMode, mapMode);
+    QFETCH(QVideoFrame::MapMode, mapMode);
 
     auto mappedData = buffer->map(mapMode);
 
@@ -130,7 +130,7 @@ void tst_QVideoBuffers::map_returnsProperMappings_whenBufferIsMapped_data()
 void tst_QVideoBuffers::map_returnsProperMappings_whenBufferIsMapped()
 {
     QFETCH(BufferPtr, buffer);
-    QFETCH(QtVideo::MapMode, mapMode);
+    QFETCH(QVideoFrame::MapMode, mapMode);
 
     auto mappedData1 = buffer->map(mapMode);
     auto mappedData2 = buffer->map(mapMode);
@@ -149,14 +149,14 @@ void tst_QVideoBuffers::mapMemoryOrImageBuffer_detachesDataDependingOnMode_data(
 void tst_QVideoBuffers::mapMemoryOrImageBuffer_detachesDataDependingOnMode()
 {
     QFETCH(BufferPtr, buffer);
-    QFETCH(QtVideo::MapMode, mapMode);
+    QFETCH(QVideoFrame::MapMode, mapMode);
     QFETCH(const uint8_t *, sourcePointer);
 
     auto mappedData = buffer->map(mapMode);
     QCOMPARE(mappedData.planeCount, 1);
 
     const bool isDetached = mappedData.data[0] != sourcePointer;
-    const bool isWriteMode = (mapMode & QtVideo::MapMode::WriteOnly) == QtVideo::MapMode::WriteOnly;
+    const bool isWriteMode = (mapMode & QVideoFrame::WriteOnly) == QVideoFrame::WriteOnly;
     QCOMPARE(isDetached, isWriteMode);
 }
 
@@ -168,14 +168,14 @@ void tst_QVideoBuffers::unmap_resetsMappedState_whenBufferIsMapped_data()
 void tst_QVideoBuffers::unmap_resetsMappedState_whenBufferIsMapped()
 {
     QFETCH(BufferPtr, buffer);
-    QFETCH(QtVideo::MapMode, mapMode);
+    QFETCH(QVideoFrame::MapMode, mapMode);
 
     buffer->map(mapMode);
 
     buffer->unmap();
 
     // Check buffer is valid and it's possible to map again
-    auto mappedData = buffer->map(QtVideo::MapMode::ReadOnly);
+    auto mappedData = buffer->map(QVideoFrame::ReadOnly);
     QCOMPARE(mappedData.planeCount, 1);
 
     const auto data = reinterpret_cast<const char*>(mappedData.data[0]);

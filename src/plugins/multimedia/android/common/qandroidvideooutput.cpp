@@ -62,12 +62,12 @@ public:
           m_tex(std::move(tex))
     {}
 
-    MapData map(QtVideo::MapMode mode) override;
+    MapData map(QVideoFrame::MapMode mode) override;
 
     void unmap() override
     {
         m_image = {};
-        m_mapMode = QtVideo::MapMode::NotMapped;
+        m_mapMode = QVideoFrame::NotMapped;
     }
 
     std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *rhi) override
@@ -79,7 +79,7 @@ private:
     QSize m_size;
     std::unique_ptr<QRhiTexture> m_tex;
     QImage m_image;
-    QtVideo::MapMode m_mapMode = QtVideo::MapMode::NotMapped;
+    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
 };
 
 class ImageFromVideoFrameHelper : public QHwVideoBuffer
@@ -93,19 +93,19 @@ public:
         return m_atvb.mapTextures(rhi);
     }
 
-    MapData map(QtVideo::MapMode) override { return {}; }
+    MapData map(QVideoFrame::MapMode) override { return {}; }
     void unmap() override {}
 
 private:
     AndroidTextureVideoBuffer &m_atvb;
 };
 
-QAbstractVideoBuffer::MapData AndroidTextureVideoBuffer::map(QtVideo::MapMode mode)
+QAbstractVideoBuffer::MapData AndroidTextureVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     QAbstractVideoBuffer::MapData mapData;
 
-    if (m_mapMode == QtVideo::MapMode::NotMapped && mode == QtVideo::MapMode::ReadOnly) {
-        m_mapMode = QtVideo::MapMode::ReadOnly;
+    if (m_mapMode == QVideoFrame::NotMapped && mode == QVideoFrame::ReadOnly) {
+        m_mapMode = QVideoFrame::ReadOnly;
         m_image = qImageFromVideoFrame(QVideoFramePrivate::createFrame(
                 std::make_unique<ImageFromVideoFrameHelper>(*this),
                 QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888)));

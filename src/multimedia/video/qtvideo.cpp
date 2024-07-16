@@ -25,27 +25,6 @@ QT_BEGIN_NAMESPACE
     \value Clockwise270 The frame should be rotated clockwise by 270 degrees
 */
 
-/*!
-    \enum QtVideo::MapMode
-
-    Enumerates how a video buffer's data is mapped to system memory.
-
-    \value NotMapped
-    The video buffer is not mapped to memory.
-    \value ReadOnly
-    The mapped memory is populated with data from the video buffer when mapped,
-    but the content of the mapped memory may be discarded when unmapped.
-    \value WriteOnly
-    The mapped memory is uninitialized when mapped, but the possibly modified
-    content will be used to populate the video buffer when unmapped.
-    \value ReadWrite
-    The mapped memory is populated with data from the video
-    buffer, and the video buffer is repopulated with the content of the mapped
-    memory when it is unmapped.
-
-    \sa QVideoFrame::mapMode(), map()
-*/
-
 QT_END_NAMESPACE
 
 #include "moc_qtvideo.cpp"

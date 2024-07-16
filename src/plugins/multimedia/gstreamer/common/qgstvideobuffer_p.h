@@ -33,7 +33,7 @@ public:
                     const QVideoFrameFormat &frameFormat, QGstCaps::MemoryFormat format);
     ~QGstVideoBuffer();
 
-    MapData map(QtVideo::MapMode mode) override;
+    MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
     std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) override;
@@ -45,7 +45,7 @@ private:
     mutable GstVideoInfo m_videoInfo;
     mutable GstVideoFrame m_frame{};
     const QGstBufferHandle m_buffer;
-    QtVideo::MapMode m_mode = QtVideo::MapMode::NotMapped;
+    QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
     Qt::HANDLE eglDisplay = nullptr;
     QFunctionPointer eglImageTargetTexture2D = nullptr;
 };

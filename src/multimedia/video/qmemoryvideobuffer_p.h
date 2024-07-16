@@ -25,7 +25,7 @@ public:
     QMemoryVideoBuffer(QByteArray data, int bytesPerLine);
     ~QMemoryVideoBuffer() override;
 
-    MapData map(QtVideo::MapMode mode) override;
+    MapData map(QVideoFrame::MapMode mode) override;
 
     QVideoFrameFormat format() const override { return {}; }
 

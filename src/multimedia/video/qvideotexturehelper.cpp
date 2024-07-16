@@ -718,7 +718,7 @@ static std::unique_ptr<QVideoFrameTextures> createTexturesFromMemory(QVideoFrame
     if (oldArray)
         textures = oldArray->takeTextures();
 
-    if (!frame.map(QtVideo::MapMode::ReadOnly)) {
+    if (!frame.map(QVideoFrame::ReadOnly)) {
         qWarning() << "Cannot map a video frame in ReadOnly mode!";
         return {};
     }

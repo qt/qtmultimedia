@@ -30,7 +30,7 @@ AVFVideoBuffer::AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buf
 
 AVFVideoBuffer::~AVFVideoBuffer()
 {
-    Q_ASSERT(m_mode == QtVideo::MapMode::NotMapped);
+    Q_ASSERT(m_mode == QVideoFrame::NotMapped);
     for (int i = 0; i < 3; ++i)
         if (cvMetalTexture[i])
             CFRelease(cvMetalTexture[i]);
@@ -44,12 +44,12 @@ AVFVideoBuffer::~AVFVideoBuffer()
     CVPixelBufferRelease(m_buffer);
 }
 
-AVFVideoBuffer::MapData AVFVideoBuffer::map(QtVideo::MapMode mode)
+AVFVideoBuffer::MapData AVFVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     MapData mapData;
 
-    if (m_mode == QtVideo::MapMode::NotMapped) {
-        CVPixelBufferLockBaseAddress(m_buffer, mode == QtVideo::MapMode::ReadOnly
+    if (m_mode == QVideoFrame::NotMapped) {
+        CVPixelBufferLockBaseAddress(m_buffer, mode == QVideoFrame::ReadOnly
                                                            ? kCVPixelBufferLock_ReadOnly
                                                            : 0);
         m_mode = mode;
@@ -79,11 +79,11 @@ AVFVideoBuffer::MapData AVFVideoBuffer::map(QtVideo::MapMode mode)
 
 void AVFVideoBuffer::unmap()
 {
-    if (m_mode != QtVideo::MapMode::NotMapped) {
-        CVPixelBufferUnlockBaseAddress(m_buffer, m_mode == QtVideo::MapMode::ReadOnly
+    if (m_mode != QVideoFrame::NotMapped) {
+        CVPixelBufferUnlockBaseAddress(m_buffer, m_mode == QVideoFrame::ReadOnly
                                                                ? kCVPixelBufferLock_ReadOnly
                                                                : 0);
-        m_mode = QtVideo::MapMode::NotMapped;
+        m_mode = QVideoFrame::NotMapped;
     }
 }
 

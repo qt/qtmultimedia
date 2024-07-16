@@ -266,7 +266,7 @@ void tst_QQuickVideoOutput::paintSurface()
     videoOutput->setSize(QSize(2, 2));
 
     QVideoFrame frame(QVideoFrameFormat(QSize(4, 4), QVideoFrameFormat::Format_ARGB8888));
-    frame.map(QtVideo::MapMode::ReadWrite);
+    frame.map(QVideoFrame::ReadWrite);
     QCOMPARE(frame.mappedBytes(0), 64);
     memcpy(frame.bits(0), rgb32ImageData, 64);
     frame.unmap();

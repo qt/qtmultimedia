@@ -143,7 +143,7 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
         clearTextures();
     }
 
-    if (vF.map(QtVideo::MapMode::ReadOnly)) {
+    if (vF.map(QVideoFrame::ReadOnly)) {
 
         if (mMappable) {
             if (!mBitsToTextureMap.contains(vF.bits())) {
