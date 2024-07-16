@@ -63,7 +63,6 @@ qt_internal_add_module(Multimedia
         platform/qplatformaudiobufferinput.cpp platform/qplatformaudiobufferinput_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h
         qmediadevices.cpp qmediadevices.h
-        qmediaenumdebug.h
         qmediaformat.cpp  qmediaformat.h
         qmediametadata.cpp qmediametadata.h
         qmediastoragelocation.cpp qmediastoragelocation_p.h

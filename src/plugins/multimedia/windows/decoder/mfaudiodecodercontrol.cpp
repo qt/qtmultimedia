@@ -8,6 +8,8 @@
 #include "mfaudiodecodercontrol_p.h"
 #include <private/qwindowsaudioutils_p.h>
 
+#include <QtCore/qdebug.h>
+
 QT_BEGIN_NAMESPACE
 
 MFAudioDecoderControl::MFAudioDecoderControl(QAudioDecoder *parent)

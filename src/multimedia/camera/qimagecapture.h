@@ -7,8 +7,6 @@
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qvideoframe.h>
 
-#include <QtMultimedia/qmediaenumdebug.h>
-
 QT_BEGIN_NAMESPACE
 
 class QSize;
@@ -128,8 +126,6 @@ private:
 };
 
 QT_END_NAMESPACE
-
-Q_MEDIA_ENUM_DEBUG(QImageCapture, Error)
 
 #endif
 

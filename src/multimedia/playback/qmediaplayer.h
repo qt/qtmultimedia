@@ -7,7 +7,6 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qurl.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmediaenumdebug.h>
 #include <QtMultimedia/qtaudio.h>
 
 QT_BEGIN_NAMESPACE
@@ -198,9 +197,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-Q_MEDIA_ENUM_DEBUG(QMediaPlayer, PlaybackState)
-Q_MEDIA_ENUM_DEBUG(QMediaPlayer, MediaStatus)
-Q_MEDIA_ENUM_DEBUG(QMediaPlayer, Error)
 
 #endif  // QMEDIAPLAYER_H

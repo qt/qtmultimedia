@@ -7,7 +7,6 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qsize.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmediaenumdebug.h>
 #include <QtMultimedia/qmediametadata.h>
 
 #include <QtCore/qpair.h>
@@ -177,8 +176,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-Q_MEDIA_ENUM_DEBUG(QMediaRecorder, RecorderState)
-Q_MEDIA_ENUM_DEBUG(QMediaRecorder, Error)
 
 #endif  // QMediaRecorder_H
