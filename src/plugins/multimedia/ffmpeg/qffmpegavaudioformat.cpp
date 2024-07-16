@@ -5,6 +5,8 @@
 #include "qaudioformat.h"
 #include "qffmpegmediaformatinfo_p.h"
 
+#include <QtCore/qdebug.h>
+
 extern "C" {
 #include <libavutil/opt.h>
 }

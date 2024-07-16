@@ -4,6 +4,8 @@
 #include "avfcamerasession_p.h"
 #include "avfaudiopreviewdelegate_p.h"
 
+#include <QtCore/qdebug.h>
+
 QT_USE_NAMESPACE
 
 @implementation AVFAudioPreviewDelegate

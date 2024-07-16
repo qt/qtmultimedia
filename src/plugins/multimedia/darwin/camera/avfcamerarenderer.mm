@@ -22,6 +22,7 @@
 #include <QtGui/qopengl.h>
 #endif
 
+#include <QtCore/qmetaobject.h>
 #include <QtMultimedia/qvideoframeformat.h>
 
 QT_USE_NAMESPACE

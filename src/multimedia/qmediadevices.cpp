@@ -5,6 +5,8 @@
 #include "private/qplatformmediaintegration_p.h"
 #include "private/qplatformmediadevices_p.h"
 
+#include <QtCore/qmetaobject.h>
+
 #include <qaudiodevice.h>
 #include <qcameradevice.h>
 

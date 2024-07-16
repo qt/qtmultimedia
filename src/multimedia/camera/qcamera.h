@@ -14,8 +14,6 @@
 
 #include <QtMultimedia/qcameradevice.h>
 
-#include <QtMultimedia/qmediaenumdebug.h>
-
 QT_BEGIN_NAMESPACE
 
 
@@ -268,7 +266,5 @@ private:
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::Features)
 
 QT_END_NAMESPACE
-
-Q_MEDIA_ENUM_DEBUG(QCamera, Error)
 
 #endif  // QCAMERA_H
