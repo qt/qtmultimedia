@@ -1061,9 +1061,6 @@ void tst_QMediaPlayerBackend::
 void tst_QMediaPlayerBackend::
         setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio()
 {
-#ifdef Q_OS_ANDROID
-    QSKIP("SKIP initTestCase on CI, because of QTBUG-126428");
-#endif
     if (isGStreamerPlatform() && isCI())
         QSKIP("QTBUG-124005: Fails with gstreamer on CI");
 
@@ -1552,9 +1549,6 @@ void tst_QMediaPlayerBackend::
 
 void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames()
 {
-#ifdef Q_OS_ANDROID
-    QSKIP("SKIP initTestCase on CI, because of QTBUG-126428");
-#endif
     if (isCI() && isGStreamerPlatform())
         QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
 
@@ -3185,9 +3179,6 @@ void tst_QMediaPlayerBackend::pause_rendersVideoAtCorrectResolution_data()
 
 void tst_QMediaPlayerBackend::pause_rendersVideoAtCorrectResolution()
 {
-#ifdef Q_OS_ANDROID
-    QSKIP("SKIP initTestCase on CI, because of QTBUG-126428");
-#endif
     QFETCH(const MaybeUrl, mediaFile);
     QFETCH(const int, width);
     QFETCH(const int, height);
@@ -3203,8 +3194,10 @@ void tst_QMediaPlayerBackend::pause_rendersVideoAtCorrectResolution()
 
     // Act
     player.pause();
-
+#ifndef Q_OS_ANDROID
+    // isCI() does not work on Android (variable is set on host instead of device where tests are run)
     if (isCI() && isFFMPEGPlatform())
+#endif
         QEXPECT_FAIL("av1", "QTBUG-119711: AV1 decoding requires HW support in the FFMPEG backend",
                      Abort);
 
@@ -3754,9 +3747,6 @@ void tst_QMediaPlayerBackend::lazyLoadVideo()
 
 void tst_QMediaPlayerBackend::videoSinkSignals()
 {
-#ifdef Q_OS_ANDROID
-    QSKIP("SKIP initTestCase on CI, because of QTBUG-126428");
-#endif
     std::atomic<int> videoFrameCounter = 0;
     std::atomic<int> videoSizeCounter = 0;
 

@@ -140,7 +140,7 @@ void StreamDecoder::decodeMedia(Packet packet)
     }
 
     if (sendPacketResult == 0)
-        receiveAVFrames();
+        receiveAVFrames(!packet.isValid());
 }
 
 int StreamDecoder::sendAVPacket(Packet packet)
@@ -148,15 +148,29 @@ int StreamDecoder::sendAVPacket(Packet packet)
     return avcodec_send_packet(m_codec.context(), packet.isValid() ? packet.avPacket() : nullptr);
 }
 
-void StreamDecoder::receiveAVFrames()
+void StreamDecoder::receiveAVFrames(bool flushPacket)
 {
     while (true) {
         auto avFrame = makeAVFrame();
 
         const auto receiveFrameResult = avcodec_receive_frame(m_codec.context(), avFrame.get());
 
-        if (receiveFrameResult == AVERROR_EOF || receiveFrameResult == AVERROR(EAGAIN))
+        if (receiveFrameResult == AVERROR_EOF || receiveFrameResult == AVERROR(EAGAIN)) {
+            if (flushPacket && receiveFrameResult == AVERROR(EAGAIN)) {
+            // The documentation says that in the EAGAIN state output is not available. The new
+            // input must be sent. It does not say that this state can also be returned for
+            // Android MediaCodec when the ff_AMediaCodec_dequeueOutputBuffer call times out.
+            // The flush packet means it is the end of the stream. No more packets are available,
+            // so getting EAGAIN is unexpected here. At this point, the EAGAIN status was probably
+            // caused by a timeout in the ffmpeg implementation, not by too few packets. That is
+            // why there will be another try of calling avcodec_receive_frame
+                qWarning() << "Unexpected FFmpeg behavior: EAGAIN state for avcodec_receive_frame "
+                           << "at end of the stream";
+                flushPacket = false;
+                continue;
+            }
             break;
+        }
 
         if (receiveFrameResult < 0) {
             emit error(QMediaPlayer::FormatError, err2str(receiveFrameResult));
