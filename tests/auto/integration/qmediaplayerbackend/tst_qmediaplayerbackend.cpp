@@ -172,6 +172,7 @@ private slots:
     void seekPauseSeek();
     void seekInStoppedState();
     void subsequentPlayback();
+    void subsequentPlayback_playsForExpectedDuration();
     void surfaceTest();
     void metadata();
     void metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail_data();
@@ -2579,6 +2580,34 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
     player.pause();
     QCOMPARE(player.playbackState(), QMediaPlayer::PausedState);
     QCOMPARE_GT(player.position(), 1000);
+}
+
+void tst_QMediaPlayerBackend::subsequentPlayback_playsForExpectedDuration()
+{
+    QSKIP_GSTREAMER("QTBUG-127346: subsequent playback finishes almost immediately");
+
+    CHECK_SELECTED_URL(m_localCompressedSoundFile);
+
+    QMediaPlayer &player = m_fixture->player;
+    player.setSource(*m_localCompressedSoundFile);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    player.setPosition(5000);
+    player.play();
+
+    QVERIFY(player.position() >= 5000);
+
+    QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::EndOfMedia, 10s);
+
+    QElapsedTimer timer;
+    timer.start();
+
+    // playback should take 7 seconds
+    player.play();
+    QCOMPARE_NE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::EndOfMedia, 15s);
+    std::chrono::nanoseconds duration = timer.durationElapsed();
+    QCOMPARE_GE(duration, std::chrono::milliseconds(player.duration()));
+    QCOMPARE_LT(duration, std::chrono::seconds(12));
 }
 
 void tst_QMediaPlayerBackend::multipleMediaPlayback()

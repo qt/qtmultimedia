@@ -286,6 +286,7 @@ void QGstreamerMediaPlayer::play()
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
         playerPipeline.setPosition({});
         positionChanged(0);
+        mediaStatusChanged(QMediaPlayer::LoadedMedia);
     }
 
     qCDebug(qLcMediaPlayer) << "play()";
