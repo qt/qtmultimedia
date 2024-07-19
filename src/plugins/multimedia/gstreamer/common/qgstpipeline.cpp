@@ -110,7 +110,6 @@ GstStateChangeReturn QGstPipeline::setState(GstState state)
 bool QGstPipeline::processNextPendingMessage(GstMessageType types, std::chrono::nanoseconds timeout)
 {
     QGstPipelinePrivate *d = getPrivate();
-    d->processNextPendingMessage(types, std::chrono::nanoseconds{ 0 });
     return d->processNextPendingMessage(types, timeout);
 }
 
