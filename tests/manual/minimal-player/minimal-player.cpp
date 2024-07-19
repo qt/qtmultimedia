@@ -42,7 +42,7 @@ int mainToggleWidgets(QString filename)
     return QApplication::exec();
 }
 
-int mainSimple(QString filename, bool loop)
+int mainSimple(const QString &filename, bool loop)
 {
     QMediaPlayer player;
     QVideoWidget widget1;
@@ -60,6 +60,28 @@ int mainSimple(QString filename, bool loop)
     return QApplication::exec();
 }
 
+int mainPlayAfterEndOfMedia(const QString &filename)
+{
+    QMediaPlayer player;
+    QVideoWidget widget1;
+    QAudioOutput audioOutput;
+    player.setVideoOutput(&widget1);
+    player.setAudioOutput(&audioOutput);
+    player.setSource(filename);
+
+    widget1.show();
+
+    player.play();
+
+    QObject::connect(&player, &QMediaPlayer::mediaStatusChanged, &player,
+                     [&](QMediaPlayer::MediaStatus status) {
+        if (status == QMediaPlayer::MediaStatus::EndOfMedia)
+            player.play();
+    });
+
+    return QApplication::exec();
+}
+
 int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
@@ -70,8 +92,16 @@ int main(int argc, char **argv)
     parser.addVersionOption();
     parser.addPositionalArgument("media", "File to play");
 
-    QCommandLineOption toggleWidgetsOption{ "toggle-widgets", "Toggle between widgets." };
+    QCommandLineOption toggleWidgetsOption{
+        "toggle-widgets",
+        "Toggle between widgets.",
+    };
     parser.addOption(toggleWidgetsOption);
+    QCommandLineOption playAfterEndOfMediaOption{
+        "play-after-end-of-media",
+        "Play after end of media.",
+    };
+    parser.addOption(playAfterEndOfMediaOption);
 
     QCommandLineOption loopOption{ "loop", "Loop." };
     parser.addOption(loopOption);
@@ -87,6 +117,9 @@ int main(int argc, char **argv)
 
     if (parser.isSet(toggleWidgetsOption))
         return mainToggleWidgets(filename);
+
+    if (parser.isSet(playAfterEndOfMediaOption))
+        return mainPlayAfterEndOfMedia(filename);
 
     bool loop = parser.isSet(loopOption);
 
