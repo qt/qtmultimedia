@@ -17,14 +17,14 @@ for channel in 1 2; do
         endian="big"
         endian_extn="be"
     fi
-    for samplebits in 8 16 32; do
-        for samplerate in 44100 8000; do
+    for samplerate in 44100 8000; do
+        for samplebits in 8 16 24 32; do
             if [ $samplebits -ne 8 ]; then
-                sox -n --endian "${endian}" -c ${channel} -b ${samplebits} -r ${samplerate} isawav_${channel}_${samplebits}_${samplerate}_${endian_extn}.wav synth 0.25 sine 300-3300
+                sox -n --endian "${endian}" -c ${channel} -b ${samplebits} -r ${samplerate} isawav_${channel}_${samplebits}_${samplerate}_${endian_extn}.wav synth 0.25 sine 220
             else
-                sox -n -c ${channel} -b ${samplebits} -r ${samplerate} isawav_${channel}_${samplebits}_${samplerate}.wav synth 0.25 sine 300-3300
+                sox -n -c ${channel} -b ${samplebits} -r ${samplerate} isawav_${channel}_${samplebits}_${samplerate}.wav synth 0.25 sine 220
             fi
         done
-     done
+        sox -n --endian "${endian}" -c ${channel} -e float -b 32 -r ${samplerate} isawav_${channel}_f32_${samplerate}_${endian_extn}.wav synth 0.25 sine 220
+    done
 done
-
