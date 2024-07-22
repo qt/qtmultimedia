@@ -426,7 +426,7 @@ bool QWaveDecoder::enoughDataAvailable()
     if (qstrncmp(descriptor.id, "RIFF", 4) == 0)
         descriptor.size = qFromLittleEndian<quint32>(descriptor.size);
 
-    if (device->bytesAvailable() < qint64(sizeof(chunk) + descriptor.size))
+    if (device->bytesAvailable() < qint64(sizeof(chunk)) + descriptor.size)
         return false;
 
     return true;
