@@ -318,7 +318,8 @@ void QWaveDecoder::handleData()
     if (state == QWaveDecoder::WaitingForFormatState) {
         if (findChunk("fmt ")) {
             chunk descriptor;
-            peekChunk(&descriptor);
+            const bool peekSuccess = peekChunk(&descriptor);
+            Q_ASSERT(peekSuccess);
 
             quint32 rawChunkSize = descriptor.size + sizeof(chunk);
             if (device->bytesAvailable() < qint64(rawChunkSize))
