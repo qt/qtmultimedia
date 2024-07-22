@@ -16,6 +16,8 @@ list(APPEND test_data ${test_data_glob})
 qt_internal_add_test(tst_qwavedecoder
     SOURCES
         tst_qwavedecoder.cpp
+        ../../../shared/qsinewavevalidator.h
+        data/gendata.sh
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
