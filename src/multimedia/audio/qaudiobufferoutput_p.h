@@ -26,7 +26,7 @@ class QMediaPlayer;
 class QAudioBufferOutputPrivate : public QObjectPrivate
 {
 public:
-    QAudioBufferOutputPrivate(const QAudioFormat &format = {}) : format(std::move(format)) { }
+    explicit QAudioBufferOutputPrivate(const QAudioFormat &format = {}) : format(format) { }
 
     static QMediaPlayer *exchangeMediaPlayer(QAudioBufferOutput &output, QMediaPlayer *player)
     {
