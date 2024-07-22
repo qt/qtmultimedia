@@ -10,29 +10,6 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace  {
-
-void bswap2(char *data, qsizetype count) noexcept
-{
-    for (qsizetype i = 0; i < count; ++i) {
-        qSwap(data[0], data[1]);
-        ++count;
-        data += 2;
-    }
-}
-
-void bswap4(char *data, qsizetype count) noexcept
-{
-    for (qsizetype i = 0; i < count; ++i) {
-        qSwap(data[0], data[3]);
-        qSwap(data[1], data[2]);
-        ++count;
-        data += 4;
-    }
-}
-
-}
-
 QWaveDecoder::QWaveDecoder(QIODevice *device, QObject *parent)
     : QIODevice(parent),
       device(device)
@@ -178,10 +155,10 @@ qint64 QWaveDecoder::readData(char *data, qint64 maxlen)
     nSamples = read / bytesPerSample;
     switch (bytesPerSample) {
     case 2:
-        bswap2(data, nSamples);
+        qbswap<2>(data, nSamples, data);
         break;
     case 4:
-        bswap4(data, nSamples);
+        qbswap<4>(data, nSamples, data);
         break;
     default:
         Q_UNREACHABLE();
