@@ -66,6 +66,10 @@ QSize qRotatedFrameSize(const QVideoFrame &frame)
 QUrl qMediaFromUserInput(QUrl url)
 {
     using namespace Qt::Literals;
+    // Checking whether scheme is empty only works on non-Windows platforms since QUrl treats
+    // drive letters in absolute paths as a scheme, e.g. QUrl that is created using
+    // "C:/Media/Video.mp4" as argument will have "C" as a scheme. The solution is to create QUrl
+    // using QUrl::fromLocalFile.
     if (url.scheme().isEmpty() || url.scheme() == "file"_L1)
         url = QUrl::fromUserInput(url.toString(), QDir::currentPath(), QUrl::AssumeLocalFile);
     return url;
