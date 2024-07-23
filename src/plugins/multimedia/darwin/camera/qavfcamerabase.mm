@@ -627,16 +627,19 @@ void QAVFCameraBase::zoomTo(float factor, float rate)
     factor = qBound(captureDevice.minAvailableVideoZoomFactor, factor,
                     captureDevice.activeFormat.videoMaxZoomFactor);
 
-    const AVFConfigurationLock lock(captureDevice);
-    if (!lock) {
-        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock for configuration";
-        return;
-    }
+    {
+        const AVFConfigurationLock lock(captureDevice);
+        if (!lock) {
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock for configuration";
+            return;
+        }
 
-   if (rate <= 0)
-        captureDevice.videoZoomFactor = factor;
-   else
-       [captureDevice rampToVideoZoomFactor:factor withRate:rate];
+        if (rate <= 0)
+            captureDevice.videoZoomFactor = factor;
+        else
+            [captureDevice rampToVideoZoomFactor:factor withRate:rate];
+    }
+    zoomFactorChanged(factor);
 #endif
 }
 
