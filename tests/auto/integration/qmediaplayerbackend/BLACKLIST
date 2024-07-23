@@ -47,3 +47,4 @@ redhatenterpriselinuxworkstation-6.6
 
 [playlistObject]
 sles-15.4 # QTBUG-112930
+opensuse-leap-15.4 # QTBUG-112930
