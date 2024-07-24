@@ -543,6 +543,10 @@ void QWasmVideoOutput::doElementCallbacks()
         qCDebug(qWasmMediaVideoOutput) << "loaded data";
 
         emit stateChanged(QWasmMediaPlayer::Prepared);
+        if (m_isSeekable != isVideoSeekable()) {
+            m_isSeekable = isVideoSeekable();
+            emit seekableChanged(m_isSeekable);
+        }
     };
     m_loadedDataEvent.reset(new qstdweb::EventCallback(m_video, "loadeddata", loadedDataCallback));
 
@@ -609,6 +613,10 @@ void QWasmVideoOutput::doElementCallbacks()
 
         if (m_currentMediaStatus == QMediaPlayer::EndOfMedia)
             return;
+        if (m_isSeekable != isVideoSeekable()) {
+            m_isSeekable = isVideoSeekable();
+            emit seekableChanged(m_isSeekable);
+        }
         if (!m_isSeeking && !m_shouldStop) {
             emscripten::val timeRanges = m_video["buffered"];
             if ((!timeRanges.isNull() || !timeRanges.isUndefined())

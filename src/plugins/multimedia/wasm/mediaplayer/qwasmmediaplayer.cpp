@@ -59,6 +59,8 @@ void QWasmMediaPlayer::initVideo()
             &QWasmMediaPlayer::onMediaStatusChanged);
     connect(m_videoOutput, &QWasmVideoOutput::metaDataLoaded, this,
             &QWasmMediaPlayer::videoMetaDataChanged);
+    connect(m_videoOutput, &QWasmVideoOutput::seekableChanged, this,
+            &QWasmMediaPlayer::seekableMediaChanged);
 
     setVideoAvailable(true);
 }
@@ -468,6 +470,11 @@ void QWasmMediaPlayer::onMediaStatusChanged(QMediaPlayer::MediaStatus status)
 void QWasmMediaPlayer::videoMetaDataChanged()
 {
     metaDataChanged();
+}
+
+void QWasmMediaPlayer::seekableMediaChanged(bool seekable)
+{
+    seekableChanged(seekable);
 }
 
 QT_END_NAMESPACE
