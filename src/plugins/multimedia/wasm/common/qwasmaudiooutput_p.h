@@ -63,6 +63,7 @@ Q_SIGNALS:
     void statusChanged(QMediaPlayer::MediaStatus status);
     void sizeChange(qint32 width, qint32 height);
     void metaDataLoaded();
+    void seekableChanged(bool seekable);
 
 private:
     void doElementCallbacks();

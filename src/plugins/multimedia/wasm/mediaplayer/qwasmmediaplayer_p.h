@@ -83,6 +83,7 @@ private Q_SLOTS:
     void setPositionChanged(qint64 position);
     void setDurationChanged(qint64 duration);
     void videoMetaDataChanged();
+    void seekableMediaChanged(bool seekable);
 
     void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
 
