@@ -41,13 +41,6 @@ function(find_gstreamer_component component)
 
     set(target GStreamer::${component})
 
-    foreach(dependency IN LISTS ARGS_DEPENDENCIES)
-        if (NOT TARGET ${dependency})
-            set(GStreamer_${component}_FOUND FALSE PARENT_SCOPE)
-            return()
-        endif()
-    endforeach()
-
     if(NOT TARGET ${target})
         string(TOUPPER ${component} upper)
         pkg_check_modules(PC_GSTREAMER_${upper} IMPORTED_TARGET ${pkgconfig_name} )
@@ -55,6 +48,13 @@ function(find_gstreamer_component component)
             add_library(GStreamer::${component} INTERFACE IMPORTED)
             target_link_libraries(GStreamer::${component} INTERFACE PkgConfig::PC_GSTREAMER_${upper})
         else()
+            foreach(dependency IN LISTS ARGS_DEPENDENCIES)
+                if (NOT TARGET ${dependency})
+                    set(GStreamer_${component}_FOUND FALSE PARENT_SCOPE)
+                    return()
+                endif()
+            endforeach()
+
             find_path(GStreamer_${component}_INCLUDE_DIR
                 NAMES ${header}
                 PATH_SUFFIXES gstreamer-1.0
