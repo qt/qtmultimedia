@@ -100,6 +100,7 @@ Q_SIGNALS:
     void statusChanged(QMediaPlayer::MediaStatus status);
     void sizeChange(qint32 width, qint32 height);
     void metaDataLoaded();
+    void seekableChanged(bool seekable);
 
 private:
     void checkNetworkState();
@@ -121,6 +122,7 @@ private:
     bool m_hasAudio = false;
     bool m_cameraIsReady = false;
     bool m_shouldBeStarted = false;
+    bool m_isSeekable = false;
 
     emscripten::val m_offscreenContext = emscripten::val::undefined();
     QSize m_pendingVideoSize;
