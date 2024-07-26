@@ -6,9 +6,9 @@
         "Description": "FFmpeg is a collection of libraries and tools to process multimedia content such as audio, video, subtitles, and related metadata.",
         "QtUsage": "The FFmpeg media backend uses the \\l {https://ffmpeg.org}{FFmpeg framework}. FFmpeg is licensed under LGPLv2.1 or later versions of the licenses. Note that, while FFmpeg also features some optional components available under GPL or LGPLv3, the binaries that ship with Qt in the online installer do not contain these components. See the \\l {https://ffmpeg.org/legal.html}{FFmpeg licensing page} for further details.",
         "Homepage": "https://ffmpeg.org/",
-        "DownloadLocation": "https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n7.0.zip",
+        "DownloadLocation": "https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n7.0.1.tar.gz",
         "SecurityCritical": true,
-        "Version": "n7.0",
+        "Version": "n7.0.1",
         "LicenseId": "LGPL-2.1-or-later AND BSD-3-Clause AND BSD-2-Clause AND BSD-Source-Code AND ISC AND MIT AND MPL-2.0",
         "License": "GNU Lesser General Public License v2.1 or later and BSD 3-Clause \"New\" or \"Revised\" License and BSD 2-Clause \"Simplified\" License and BSD Source Code Attribution and ISC License and MIT License and Mozilla Public License 2.0",
         "Copyright": "Copyright (c) 2000-2023 the FFmpeg developers"
