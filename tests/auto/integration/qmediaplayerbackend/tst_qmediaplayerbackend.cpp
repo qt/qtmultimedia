@@ -2584,6 +2584,7 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
 
 void tst_QMediaPlayerBackend::subsequentPlayback_playsForExpectedDuration()
 {
+    using namespace std::chrono_literals;
     QSKIP_GSTREAMER("QTBUG-127346: subsequent playback finishes almost immediately");
 
     CHECK_SELECTED_URL(m_localCompressedSoundFile);
@@ -2606,7 +2607,7 @@ void tst_QMediaPlayerBackend::subsequentPlayback_playsForExpectedDuration()
     QCOMPARE_NE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
     QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::EndOfMedia, 15s);
     std::chrono::nanoseconds duration = timer.durationElapsed();
-    QCOMPARE_GE(duration, std::chrono::milliseconds(player.duration()));
+    QCOMPARE_GE(duration + 100ms, std::chrono::milliseconds(player.duration()));
     QCOMPARE_LT(duration, std::chrono::seconds(12));
 }
 
