@@ -17,6 +17,7 @@ private slots:
     void testEnoughCapacity();
     void testNotEnoughCapacity();
     void testInvalidFile();
+    void testIncompatibleFile();
 
 private:
 
@@ -143,6 +144,25 @@ void tst_QSampleCache::testInvalidFile()
     sample->release();
 
     QVERIFY(!cache.isCached(QUrl::fromLocalFile("invalid")));
+}
+
+void tst_QSampleCache::testIncompatibleFile()
+{
+    QSampleCache cache;
+    cache.setCapacity(10024);
+
+    // Load a sample that is known to fail and verify that
+    // it remains in the cache with an error status.
+    const QUrl corruptedWavUrl = QUrl::fromLocalFile(QFINDTESTDATA("testdata/corrupted.wav"));
+    for (int i = 0; i < 3; ++i) {
+        QSample* sample = cache.requestSample(corruptedWavUrl);
+        QVERIFY(sample);
+        QTRY_VERIFY(!cache.isLoading());
+        QCOMPARE(sample->state(), QSample::Error);
+        sample->release();
+
+        QVERIFY(cache.isCached(corruptedWavUrl));
+    }
 }
 
 QTEST_MAIN(tst_QSampleCache)
