@@ -151,6 +151,10 @@ QSample* QSampleCache::requestSample(const QUrl& url)
 #endif
     } else {
         sample = *it;
+        if (sample->state() == QSample::Error && needsThreadStart) {
+            m_loadingThread.wait();
+            m_loadingThread.start();
+        }
     }
 
     sample->addRef();
