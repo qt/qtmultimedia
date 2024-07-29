@@ -77,10 +77,15 @@ private:
     void addAppSink();
     void removeAppSink();
 
-    bool handlePlaybinMessage(const QGstreamerMessage &);
-
     void processInvalidMedia(QAudioDecoder::Error errorCode, const QString &errorString);
     static std::chrono::nanoseconds getPositionFromBuffer(GstBuffer *buffer);
+
+    bool processBusMessageError(const QGstreamerMessage &);
+    bool processBusMessageDuration(const QGstreamerMessage &);
+    bool processBusMessageWarning(const QGstreamerMessage &);
+    bool processBusMessageInfo(const QGstreamerMessage &);
+    bool processBusMessageEOS(const QGstreamerMessage &);
+    bool processBusMessageStateChanged(const QGstreamerMessage &);
 
     QGstPipeline m_playbin;
     QGstBin m_outputBin;
