@@ -268,5 +268,13 @@ if (QT_DEPLOY_FFMPEG AND FFMPEG_SHARED_LIBRARIES AND (BUILD_SHARED_LIBS OR UIKIT
     qt_internal_multimedia_copy_or_install_ffmpeg()
 endif()
 
-qt_internal_extend_target(QFFmpegMediaPlugin LIBRARIES ${ffmpeg_libs})
+if(BUILD_SHARED_LIBS)
+    qt_internal_extend_target(QFFmpegMediaPlugin LIBRARIES ${ffmpeg_libs})
+else()
+    foreach(ffmpeg_lib IN LISTS ffmpeg_libs)
+        qt_internal_add_target_include_dirs(QFFmpegMediaPlugin ${ffmpeg_lib})
+        target_include_directories(QFFmpegMediaPlugin PRIVATE
+            "$<TARGET_PROPERTY:${ffmpeg_lib},INTERFACE_COMPILE_DEFINITIONS>")
+    endforeach()
+endif()
 
