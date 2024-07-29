@@ -86,6 +86,7 @@ private:
     bool processBusMessageInfo(const QGstreamerMessage &);
     bool processBusMessageEOS(const QGstreamerMessage &);
     bool processBusMessageStateChanged(const QGstreamerMessage &);
+    bool processBusMessageStreamsSelected(const QGstreamerMessage &);
 
     QGstPipeline m_playbin;
     QGstBin m_outputBin;
