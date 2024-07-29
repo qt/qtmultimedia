@@ -946,8 +946,6 @@ void tst_QAudioDecoderBackend::deviceTest()
 
 void tst_QAudioDecoderBackend::play_emitsFormatError_whenMediaHasNoAudioTrack()
 {
-    QSKIP_GSTREAMER("QTBUG-124206: gstreamer does not emit errors");
-
     QAudioDecoder decoder;
 
     QSignalSpy errors{ &decoder, qOverload<QAudioDecoder::Error>(&QAudioDecoder::error) };
