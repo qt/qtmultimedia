@@ -51,7 +51,7 @@ QMaybe<QPlatformAudioDecoder *> QGstreamerAudioDecoder::create(QAudioDecoder *pa
 QGstreamerAudioDecoder::QGstreamerAudioDecoder(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent),
       m_playbin{
-          QGstPipeline::createFromFactory("playbin", "playbin"),
+          QGstPipeline::createFromFactory("playbin3", "playbin"),
       },
       m_audioConvert{
           QGstElement::createFromFactory("audioconvert", "audioconvert"),
@@ -128,6 +128,9 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
 
     case GST_MESSAGE_STATE_CHANGED:
         return processBusMessageStateChanged(message);
+
+    case GST_MESSAGE_STREAMS_SELECTED:
+        return processBusMessageStreamsSelected(message);
 
     default:
         return false;
@@ -243,6 +246,26 @@ bool QGstreamerAudioDecoder::processBusMessageStateChanged(const QGstreamerMessa
     }
 
     setIsDecoding(isDecoding);
+    return false;
+}
+
+bool QGstreamerAudioDecoder::processBusMessageStreamsSelected(const QGstreamerMessage &message)
+{
+    using namespace Qt::StringLiterals;
+
+    QGstStreamCollectionHandle collection;
+    gst_message_parse_streams_selected(const_cast<GstMessage *>(message.message()), &collection);
+
+    bool hasAudio = false;
+    qForeachStreamInCollection(collection, [&](GstStream *stream) {
+        GstStreamType type = gst_stream_get_stream_type(stream);
+        if (type == GstStreamType::GST_STREAM_TYPE_AUDIO)
+            hasAudio = true;
+    });
+
+    if (!hasAudio)
+        processInvalidMedia(QAudioDecoder::FormatError, u"No audio track in media"_s);
+
     return false;
 }
 
