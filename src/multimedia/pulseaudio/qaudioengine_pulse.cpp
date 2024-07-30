@@ -425,9 +425,13 @@ void QPulseAudioEngine::release()
         return;
 
     if (m_context) {
+        lock();
+
         pa_context_disconnect(m_context);
         pa_context_unref(m_context);
         m_context = nullptr;
+
+        unlock();
     }
 
     if (m_mainLoop) {
