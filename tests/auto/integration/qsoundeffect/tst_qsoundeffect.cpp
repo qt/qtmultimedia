@@ -234,6 +234,7 @@ void tst_QSoundEffect::testPlaying()
 
     //invalid source
     sound->setSource(QUrl((QLatin1String("invalid source"))));
+    QTest::ignoreMessage(QtMsgType::QtWarningMsg, QRegularExpression(".*Error decoding source.*"));
     QTestEventLoop::instance().enterLoop(1);
     sound->play();
     QTestEventLoop::instance().enterLoop(1);
@@ -262,6 +263,7 @@ void tst_QSoundEffect::testStatus()
     sound->setLoopCount(QSoundEffect::Infinite);
 
     sound->setSource(QUrl(QLatin1String("invalid source")));
+    QTest::ignoreMessage(QtMsgType::QtWarningMsg, QRegularExpression(".*Error decoding source.*"));
     QTestEventLoop::instance().enterLoop(1);
     QCOMPARE(sound->status(), QSoundEffect::Error);
 }
