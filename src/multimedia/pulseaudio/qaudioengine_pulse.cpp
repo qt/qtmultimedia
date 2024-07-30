@@ -314,6 +314,8 @@ void QPulseAudioEngine::prepare()
         return;
     }
 
+    pa_threaded_mainloop_set_name(m_mainLoop, "QPulseAudioEngi"); // thread names are limited to 15 chars on linux
+
     if (pa_threaded_mainloop_start(m_mainLoop) != 0) {
         qWarning() << "PulseAudioService: unable to start pulseaudio mainloop";
         pa_threaded_mainloop_free(m_mainLoop);
