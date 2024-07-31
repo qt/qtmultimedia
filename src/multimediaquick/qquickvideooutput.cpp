@@ -453,12 +453,6 @@ void QQuickVideoOutput::updateGeometry()
         m_sourceTextureRect.setTop(m_sourceTextureRect.bottom());
         m_sourceTextureRect.setBottom(top);
     }
-
-    if (m_videoFormat.isMirrored()) {
-        qreal left = m_sourceTextureRect.left();
-        m_sourceTextureRect.setLeft(m_sourceTextureRect.right());
-        m_sourceTextureRect.setRight(left);
-    }
 }
 
 QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
