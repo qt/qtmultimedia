@@ -137,6 +137,7 @@ QVideoFrameFormat QAndroidCamera::frameFormat() const
 {
     QVideoFrameFormat result = QPlatformCamera::frameFormat();
     result.setRotation(rotation());
+    result.setMirrored(m_cameraDevice.position() == QCameraDevice::Position::FrontFace);
     return result;
 }
 
