@@ -611,7 +611,13 @@ static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame,
         QImage image;
 
         // calling QVideoFrame::toImage is not accurate. To be fixed.
-        image = frame.toImage();
+        // frame transformation will be considered later
+        if (!frame.mirrored() && frame.rotation() == QtVideo::Rotation::None
+            && frame.surfaceFormat().scanLineDirection() == QVideoFrameFormat::TopToBottom)
+            image = frame.toImage(); // use the frame cache
+        else
+            image = qImageFromVideoFrame(frame);
+
         image.convertTo(QImage::Format_ARGB32);
         subresDesc.setImage(image);
 
