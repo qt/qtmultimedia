@@ -9,6 +9,11 @@
 #include <common/qgstutils_p.h>
 #include <common/qglist_helper_p.h>
 
+#if QT_CONFIG(linux_v4l)
+#  include <linux/videodev2.h>
+#  include <errno.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integration)
@@ -104,6 +109,32 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
 void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
 {
     Q_ASSERT(gst_device_has_classes(device.get(), "Video/Source"));
+
+#if QT_CONFIG(linux_v4l)
+    QUniqueGstStructureHandle structureHandle{
+        gst_device_get_properties(device.get()),
+    };
+
+    const auto *p = QGstStructureView(structureHandle.get())["device.path"].toString();
+    if (p) {
+        QFileDescriptorHandle fd{
+            qt_safe_open(p, O_RDONLY),
+        };
+        int index;
+        if (::ioctl(fd.get(), VIDIOC_G_INPUT, &index) < 0) {
+            switch (errno) {
+            case ENOTTY: // no video inputs
+            case EINVAL: // ioctl is not supported. E.g. the Broadcom Image Signal Processor
+                         // available on Raspberry Pi
+                return;
+
+            default:
+                qWarning() << "ioctl failed: VIDIOC_G_INPUT" << qt_error_string(errno) << p;
+                return;
+            }
+        }
+    }
+#endif
 
     auto it = std::find_if(m_videoSources.begin(), m_videoSources.end(),
                            [&](const QGstRecordDevice &a) { return a.gstDevice == device; });
