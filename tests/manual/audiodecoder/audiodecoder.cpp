@@ -3,9 +3,8 @@
 
 #include "audiodecoder.h"
 
-#include <QFile>
-
-#include <stdio.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qdebug.h>
 
 AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete, const QString &targetFileName)
     : m_cout(stdout, QIODevice::WriteOnly), m_targetFilename(targetFileName)
