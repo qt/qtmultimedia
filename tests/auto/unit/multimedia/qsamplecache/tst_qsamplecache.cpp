@@ -96,6 +96,7 @@ void tst_QSampleCache::testEnoughCapacity()
 
 void tst_QSampleCache::testNotEnoughCapacity()
 {
+    using namespace Qt::Literals;
     QSampleCache cache;
 
     QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
@@ -108,6 +109,8 @@ void tst_QSampleCache::testNotEnoughCapacity()
 
     QVERIFY(!cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
 
+    QTest::ignoreMessage(QtMsgType::QtWarningMsg,
+                         QRegularExpression("QSampleCache: usage .* out of limit .*"));
     sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
     QVERIFY(cache.isLoading());
@@ -117,7 +120,10 @@ void tst_QSampleCache::testNotEnoughCapacity()
     QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
 
     // load another sample to force sample cache to destroy first sample
-    QSample* sampleOther = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test2.wav")));
+    QTest::ignoreMessage(QtMsgType::QtWarningMsg,
+                         QRegularExpression("QSampleCache: usage .* out of limit .*"));
+    QSample *sampleOther =
+            cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test2.wav")));
     QVERIFY(sampleOther);
     QVERIFY(cache.isLoading());
     QTRY_VERIFY(!cache.isLoading());
