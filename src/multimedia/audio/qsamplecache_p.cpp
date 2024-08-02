@@ -219,7 +219,7 @@ void QSampleCache::refresh(qint64 usageChange)
              << "new usage =" << m_usage;
 
     if (m_usage > m_capacity)
-        qWarning() << "QSampleCache: usage[" << m_usage << " out of limit[" << m_capacity << "]";
+        qWarning() << "QSampleCache: usage" << m_usage << "out of limit" << m_capacity;
 }
 
 // Called in both threads
@@ -247,9 +247,9 @@ void QSample::loadIfNecessary()
     QMutexLocker locker(&m_mutex);
     if (m_state == QSample::Error || m_state == QSample::Creating) {
         m_state = QSample::Loading;
-        QMetaObject::invokeMethod(this, "load", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, &QSample::load, Qt::QueuedConnection);
     } else {
-        qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
+        m_parent->loadingRelease();
     }
 }
 
@@ -377,7 +377,7 @@ void QSample::loadingError(QNetworkReply::NetworkError errorCode)
     qCDebug(qLcSampleCache) << "QSample: loading error" << errorCode;
     cleanup();
     m_state = QSample::Error;
-    qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
+    m_parent->loadingRelease();
     emit error();
 }
 
@@ -391,7 +391,7 @@ void QSample::decoderError()
     qCDebug(qLcSampleCache) << "QSample: decoder error";
     cleanup();
     m_state = QSample::Error;
-    qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
+    m_parent->loadingRelease();
     emit error();
 }
 
@@ -405,7 +405,7 @@ void QSample::onReady()
     qCDebug(qLcSampleCache) << "QSample: load ready format:" << m_audioFormat;
     cleanup();
     m_state = QSample::Ready;
-    qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
+    m_parent->loadingRelease();
     emit ready();
 }
 
