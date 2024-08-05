@@ -407,8 +407,12 @@ static void applyMetaDataToTagSetter(const QMediaMetaData &metadata, GstTagSette
         case QMetaType::Double:
             setTag(tagValue.toDouble());
             break;
-        case QMetaType::QDate:
+
         case QMetaType::QDateTime: {
+            // tagName does not properly disambiguate between GST_TAG_DATE_TIME and
+            // GST_TAG_DATE, as both map to QMediaMetaData::Key::Date. so we set it accordingly to
+            // the QVariant.
+
             QDateTime date = tagValue.toDateTime();
 
             QGstGstDateTimeHandle dateTime{
@@ -418,7 +422,19 @@ static void applyMetaDataToTagSetter(const QMediaMetaData &metadata, GstTagSette
                 QGstGstDateTimeHandle::HasRef,
             };
 
-            setTag(dateTime.get());
+            gst_tag_setter_add_tags(element, GST_TAG_MERGE_REPLACE, GST_TAG_DATE_TIME,
+                                    dateTime.get(), nullptr);
+            break;
+        }
+        case QMetaType::QDate: {
+            QDate date = tagValue.toDate();
+
+            QUniqueGDateHandle dateHandle{
+                g_date_new_dmy(date.day(), GDateMonth(date.month()), date.year()),
+            };
+
+            gst_tag_setter_add_tags(element, GST_TAG_MERGE_REPLACE, GST_TAG_DATE, dateHandle.get(),
+                                    nullptr);
             break;
         }
         default: {
