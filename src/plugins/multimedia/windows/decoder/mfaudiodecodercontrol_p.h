@@ -18,7 +18,6 @@
 #include "mfdecodersourcereader_p.h"
 #include <private/qplatformaudiodecoder_p.h>
 #include <sourceresolver_p.h>
-#include <private/qcomptr_p.h>
 #include <private/qwindowsresampler_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -57,7 +56,7 @@ private Q_SLOTS:
 private:
     void startReadingSource(IMFMediaSource *source);
 
-    ComPtr<MFDecoderSourceReader>  m_decoderSourceReader;
+    std::unique_ptr<MFDecoderSourceReader> m_decoderSourceReader;
     SourceResolver         *m_sourceResolver;
     QWindowsResampler       m_resampler;
     QUrl                    m_source;

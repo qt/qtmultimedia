@@ -8,6 +8,7 @@ qt_internal_add_plugin(QWindowsMediaPlugin
         common/mfmetadata.cpp common/mfmetadata_p.h
         decoder/mfaudiodecodercontrol.cpp decoder/mfaudiodecodercontrol_p.h
         decoder/mfdecodersourcereader.cpp decoder/mfdecodersourcereader_p.h
+        decoder/mfdecodersourcereadercallback.cpp decoder/mfdecodersourcereadercallback_p.h
         evr/evrcustompresenter.cpp evr/evrcustompresenter_p.h
         evr/evrd3dpresentengine.cpp evr/evrd3dpresentengine_p.h
         evr/evrhelpers.cpp evr/evrhelpers_p.h
