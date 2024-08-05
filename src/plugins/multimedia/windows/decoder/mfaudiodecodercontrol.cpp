@@ -89,7 +89,7 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
 {
     Q_ASSERT(source);
 
-    m_decoderSourceReader = makeComObject<MFDecoderSourceReader>();
+    m_decoderSourceReader = std::make_unique<MFDecoderSourceReader>();
     if (!m_decoderSourceReader) {
         error(QAudioDecoder::ResourceError, tr("Could not instantiate MFDecoderSourceReader"));
         return;
@@ -99,7 +99,7 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
     QAudioFormat mediaFormat = QWindowsAudioUtils::mediaTypeToFormat(mediaType.Get());
     if (!mediaFormat.isValid()) {
         error(QAudioDecoder::FormatError, tr("Invalid media format"));
-        m_decoderSourceReader.Reset();
+        m_decoderSourceReader.reset();
         return;
     }
 
@@ -117,8 +117,8 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
         return;
     }
 
-    connect(m_decoderSourceReader.Get(), &MFDecoderSourceReader::finished, this, &MFAudioDecoderControl::handleSourceFinished);
-    connect(m_decoderSourceReader.Get(), &MFDecoderSourceReader::newSample, this, &MFAudioDecoderControl::handleNewSample);
+    connect(m_decoderSourceReader.get(), &MFDecoderSourceReader::finished, this, &MFAudioDecoderControl::handleSourceFinished);
+    connect(m_decoderSourceReader.get(), &MFDecoderSourceReader::newSample, this, &MFAudioDecoderControl::handleNewSample);
 
     setIsDecoding(true);
 
@@ -154,9 +154,9 @@ void MFAudioDecoderControl::stop()
     if (!isDecoding())
         return;
 
-    disconnect(m_decoderSourceReader.Get());
+    disconnect(m_decoderSourceReader.get());
     m_decoderSourceReader->clearSource();
-    m_decoderSourceReader.Reset();
+    m_decoderSourceReader.reset();
 
     if (bufferAvailable()) {
         QAudioBuffer buffer;
