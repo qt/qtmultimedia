@@ -3965,6 +3965,9 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
     QImage image = videoFrame.toImage();
     QVERIFY(!image.isNull());
     QRgb upperLeftColor = image.pixel(5, 5);
+
+    if (!isRhiRenderingSupported())
+        QEXPECT_FAIL("", "QTBUG-127784: Inaccurate color handling when no RHI backend is available", Abort);
     QCOMPARE_LT(colorDifference(upperLeftColor, expectedColor), 0.004);
 
     QSKIP_GSTREAMER("QTBUG-124005: surface.videoSize() not updated with rotation");
@@ -4433,12 +4436,17 @@ void tst_QMediaPlayerBackend::setActiveVideoTrack_switchesVideoTrack()
 
     QTest::qWait(500ms);
     sink.waitForFrame();
+    if (!isRhiRenderingSupported())
+        QEXPECT_FAIL("", "QTBUG-127784: Inaccurate color handling when no RHI backend is available", Abort);
     QCOMPARE(QColor{ sink.m_frameList.back().toImage().pixel(10, 10) }, QColor(0xff, 0x80, 0x7f));
 
     player.setActiveVideoTrack(track1);
 
     QTest::qWait(500ms);
     sink.waitForFrame();
+
+    if (!isRhiRenderingSupported())
+        QEXPECT_FAIL("", "QTBUG-127784: Inaccurate color handling when no RHI backend is available", Abort);
     QCOMPARE(QColor{ sink.m_frameList.back().toImage().pixel(10, 10) }, QColor(0x80, 0x80, 0xff));
 }
 
