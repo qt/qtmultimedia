@@ -902,7 +902,11 @@ void tst_QVideoFrame::qImageFromVideoFrame_doesNotCrash_whenCalledWithEvenAndOdd
 
     for (const QSize &size : sizes) {
         for (const QVideoFrameFormat::PixelFormat pixelFormat : s_pixelFormats) {
-            for (const bool forceCpu : { false, true }) {
+            QList<bool> cpuChoices = { true };
+            if (isRhiRenderingSupported())
+                cpuChoices.push_back(false); // Only run tests on GPU if RHI is supported
+
+            for (const bool forceCpu : cpuChoices) {
 
                 if (pixelFormat == QVideoFrameFormat::Format_YUV420P10 && forceCpu)
                     continue; // TODO: Cpu conversion not implemented

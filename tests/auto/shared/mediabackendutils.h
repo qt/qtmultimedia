@@ -6,6 +6,8 @@
 
 #include <QtTest/qtestcase.h>
 #include <private/qplatformmediaintegration_p.h>
+#include <QtGui/private/qguiapplication_p.h>
+#include <QtGui/qpa/qplatformintegration.h>
 
 inline bool isGStreamerPlatform()
 {
@@ -35,6 +37,12 @@ inline bool isFFMPEGPlatform()
 inline bool isWindowsPlatform()
 {
     return QPlatformMediaIntegration::instance()->name() == "windows";
+}
+
+inline bool isRhiRenderingSupported()
+{
+    return QGuiApplicationPrivate::platformIntegration()->hasCapability(
+            QPlatformIntegration::RhiBasedRendering);
 }
 
 inline bool isCI()

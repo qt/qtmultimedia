@@ -397,7 +397,12 @@ private slots:
             for (const QVideoFrameFormat::PixelFormat pixelFormat : pixelFormats()) {
                 for (const QVideoFrameFormat::ColorSpace colorSpace : colorSpaces()) {
                     for (const QVideoFrameFormat::ColorRange colorRange : colorRanges()) {
-                        for (const bool forceCpu : { false, true }) {
+
+                        QList<bool> cpuChoices = { true };
+                        if (isRhiRenderingSupported())
+                            cpuChoices.push_back(false); // Only run tests on GPU if RHI is supported
+
+                        for (const bool forceCpu : cpuChoices) {
 
                             if (!isSupportedPixelFormat(pixelFormat))
                                 continue;
