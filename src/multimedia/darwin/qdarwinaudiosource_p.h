@@ -14,6 +14,7 @@
 // We mean it.
 //
 
+#include "qaudioringbuffer_p.h"
 #include <private/qaudiosystem_p.h>
 #include <qdarwinaudiodevice_p.h>
 
@@ -82,8 +83,6 @@ public:
                         AudioStreamBasicDescription const& outputFormat,
                         QObject *parent);
 
-    ~QDarwinAudioSourceBuffer();
-
     qreal volume() const;
     void setVolume(qreal v);
 
@@ -126,7 +125,7 @@ private:
     int m_periodTime;
     QIODevice *m_device;
     QTimer *m_flushTimer;
-    CoreAudioRingBuffer *m_buffer;
+    QtPrivate::QAudioRingBuffer<char> m_buffer;
     QCoreAudioBufferList *m_inputBufferList;
     AudioConverterRef m_audioConverter;
     AudioStreamBasicDescription m_inputFormat;

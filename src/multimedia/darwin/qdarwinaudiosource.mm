@@ -152,19 +152,21 @@ bool QCoreAudioPacketFeeder::empty() const
     return m_position == m_totalPackets;
 }
 
-QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(int bufferSize, int maxPeriodSize, const AudioStreamBasicDescription &inputFormat, const AudioStreamBasicDescription &outputFormat, QObject *parent)
-    : QObject(parent)
-    , m_deviceError(false)
-    , m_device(0)
-    , m_audioConverter(0)
-    , m_inputFormat(inputFormat)
-    , m_outputFormat(outputFormat)
-    , m_volume(qreal(1.0f))
+QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(int bufferSize, int maxPeriodSize,
+                                                   const AudioStreamBasicDescription &inputFormat,
+                                                   const AudioStreamBasicDescription &outputFormat,
+                                                   QObject *parent)
+    : QObject(parent),
+      m_deviceError(false),
+      m_device(0),
+      m_buffer(bufferSize),
+      m_audioConverter(0),
+      m_inputFormat(inputFormat),
+      m_outputFormat(outputFormat),
+      m_volume(qreal(1.0f))
 {
     m_maxPeriodSize = maxPeriodSize;
     m_periodTime = m_maxPeriodSize / m_outputFormat.mBytesPerFrame * 1000 / m_outputFormat.mSampleRate;
-
-    m_buffer = new CoreAudioRingBuffer(bufferSize);
 
     m_inputBufferList = new QCoreAudioBufferList(m_inputFormat);
 
@@ -179,11 +181,6 @@ QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(int bufferSize, int maxPeriod
     }
 
     m_qFormat = CoreAudioUtils::toQAudioFormat(inputFormat); // we adjust volume before conversion
-}
-
-QDarwinAudioSourceBuffer::~QDarwinAudioSourceBuffer()
-{
-    delete m_buffer;
 }
 
 qreal QDarwinAudioSourceBuffer::volume() const
@@ -223,55 +220,27 @@ qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnit
     if (m_audioConverter != 0) {
         QCoreAudioPacketFeeder  feeder(m_inputBufferList);
 
-        int     copied = 0;
-        const int available = m_buffer->free();
-
-        while (err == noErr && !feeder.empty()) {
-            CoreAudioRingBuffer::Region region = m_buffer->acquireWriteRegion(available - copied);
-
-            if (region.second == 0)
-                break;
-
-            AudioBufferList     output;
+        int bytesConsumed = m_buffer.consume(m_buffer.free(), [&](QSpan<const char> region) {
+            AudioBufferList output;
             output.mNumberBuffers = 1;
             output.mBuffers[0].mNumberChannels = 1;
-            output.mBuffers[0].mDataByteSize = region.second;
-            output.mBuffers[0].mData = region.first;
+            output.mBuffers[0].mDataByteSize = region.size();
+            output.mBuffers[0].mData = (void *)region.data();
 
-            UInt32  packetSize = region.second / m_outputFormat.mBytesPerPacket;
-            err = AudioConverterFillComplexBuffer(m_audioConverter,
-                                                  converterCallback,
-                                                  &feeder,
-                                                  &packetSize,
-                                                  &output,
-                                                  0);
-            region.second = output.mBuffers[0].mDataByteSize;
-            copied += region.second;
+            UInt32 packetSize = region.size() / m_outputFormat.mBytesPerPacket;
+            err = AudioConverterFillComplexBuffer(m_audioConverter, converterCallback, &feeder,
+                                                  &packetSize, &output, 0);
+        });
 
-            m_buffer->releaseWriteRegion(region);
-        }
-
-        framesRendered += copied / m_outputFormat.mBytesPerFrame;
+        framesRendered += bytesConsumed / m_outputFormat.mBytesPerFrame;
     }
     else {
-        const int available = m_inputBufferList->bufferSize();
-        bool    wecan = true;
-        int     copied = 0;
+        int bytesCopied = m_buffer.write(QSpan<const char>{
+                reinterpret_cast<const char *>(m_inputBufferList->data()),
+                m_inputBufferList->bufferSize(),
+        });
 
-        while (wecan && copied < available) {
-            CoreAudioRingBuffer::Region region = m_buffer->acquireWriteRegion(available - copied);
-
-            if (region.second > 0) {
-                memcpy(region.first, m_inputBufferList->data() + copied, region.second);
-                copied += region.second;
-            }
-            else
-                wecan = false;
-
-            m_buffer->releaseWriteRegion(region);
-        }
-
-        framesRendered = copied / m_outputFormat.mBytesPerFrame;
+        framesRendered = bytesCopied / m_outputFormat.mBytesPerFrame;
     }
 
     if (pullMode && framesRendered > 0)
@@ -282,24 +251,10 @@ qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnit
 
 qint64 QDarwinAudioSourceBuffer::readBytes(char *data, qint64 len)
 {
-    bool    wecan = true;
-    qint64  bytesCopied = 0;
-
-    len -= len % m_maxPeriodSize;
-    while (wecan && bytesCopied < len) {
-        CoreAudioRingBuffer::Region region = m_buffer->acquireReadRegion(len - bytesCopied);
-
-        if (region.second > 0) {
-            memcpy(data + bytesCopied, region.first, region.second);
-            bytesCopied += region.second;
-        }
-        else
-            wecan = false;
-
-        m_buffer->releaseReadRegion(region);
-    }
-
-    return bytesCopied;
+    return m_buffer.consume(len, [&](QSpan<const char> buffer) {
+        memcpy(data, buffer.data(), buffer.size());
+        data += buffer.size();
+    });
 }
 
 void QDarwinAudioSourceBuffer::setFlushDevice(QIODevice *device)
@@ -327,50 +282,34 @@ void QDarwinAudioSourceBuffer::flush(bool all)
     if (m_device == 0)
         return;
 
-    const int used = m_buffer->used();
+    const int used = m_buffer.used();
     const int readSize = all ? used : used - (used % m_maxPeriodSize);
 
     if (readSize > 0) {
-        bool    wecan = true;
-        int     flushed = 0;
-
-        while (!m_deviceError && wecan && flushed < readSize) {
-            CoreAudioRingBuffer::Region region = m_buffer->acquireReadRegion(readSize - flushed);
-
-            if (region.second > 0) {
-                int bytesWritten = m_device->write(region.first, region.second);
-                if (bytesWritten < 0) {
-                    stopFlushTimer();
-                    m_deviceError = true;
-                }
-                else {
-                    region.second = bytesWritten;
-                    flushed += bytesWritten;
-                    wecan = bytesWritten != 0;
-                }
+        m_buffer.consume(readSize, [&](QSpan<const char> buffer) {
+            int bytesWritten = m_device->write(buffer.data(), buffer.size());
+            if (bytesWritten < 0) {
+                stopFlushTimer();
+                m_deviceError = true;
             }
-            else
-                wecan = false;
-
-            m_buffer->releaseReadRegion(region);
-        }
+        });
     }
 }
 
 void QDarwinAudioSourceBuffer::reset()
 {
-    m_buffer->reset();
+    m_buffer.reset();
     m_deviceError = false;
 }
 
 int QDarwinAudioSourceBuffer::available() const
 {
-    return m_buffer->free();
+    return m_buffer.free();
 }
 
 int QDarwinAudioSourceBuffer::used() const
 {
-    return m_buffer->used();
+    return m_buffer.used();
 }
 
 void QDarwinAudioSourceBuffer::flushBuffer()
@@ -619,12 +558,13 @@ bool QDarwinAudioSource::open()
     m_periodSizeBytes = m_internalBufferSize = numberOfFrames * m_streamFormat.mBytesPerFrame;
 
     {
+        // LATER: we probably to derive the ringbuffer size from an absolute latency rather than
+        // tying it to coreaudio
+        int ringbufferSize = m_internalBufferSize * 4;
+
         QMutexLocker lock(m_audioBuffer);
-        m_audioBuffer = new QDarwinAudioSourceBuffer(m_internalBufferSize * CoreAudioRingBuffer::bufferMultiplier,
-                                            m_periodSizeBytes,
-                                            m_deviceFormat,
-                                            m_streamFormat,
-                                            this);
+        m_audioBuffer = new QDarwinAudioSourceBuffer(ringbufferSize, m_periodSizeBytes,
+                                                     m_deviceFormat, m_streamFormat, this);
 
         m_audioBuffer->setVolume(m_volume);
     }
