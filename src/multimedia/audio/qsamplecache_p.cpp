@@ -378,7 +378,7 @@ void QSample::loadingError(QNetworkReply::NetworkError errorCode)
     cleanup();
     m_state = QSample::Error;
     m_parent->loadingRelease();
-    emit error();
+    emit error(this);
 }
 
 // Called in loading thread
@@ -392,7 +392,7 @@ void QSample::decoderError()
     cleanup();
     m_state = QSample::Error;
     m_parent->loadingRelease();
-    emit error();
+    emit error(this);
 }
 
 // Called in loading thread from decoder when sample is done. Locked already.
@@ -406,7 +406,7 @@ void QSample::onReady()
     cleanup();
     m_state = QSample::Ready;
     m_parent->loadingRelease();
-    emit ready();
+    emit ready(this);
 }
 
 // Called in application thread, then moved to loader thread

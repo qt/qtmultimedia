@@ -15,15 +15,16 @@
 // We mean it.
 //
 
+#include <QtCore/qmap.h>
+#include <QtCore/qmutex.h>
 #include <QtCore/qobject.h>
+#include <QtCore/qpointer.h>
+#include <QtCore/qset.h>
 #include <QtCore/qthread.h>
 #include <QtCore/qurl.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qmap.h>
-#include <QtCore/qset.h>
-#include <qaudioformat.h>
-#include <qnetworkreply.h>
-#include <private/qglobal_p.h>
+#include <QtCore/private/qglobal_p.h>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtNetwork/qnetworkreply.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -54,8 +55,8 @@ public:
     void release();
 
 Q_SIGNALS:
-    void error();
-    void ready();
+    void error(QPointer<QSample> self);
+    void ready(QPointer<QSample> self);
 
 protected:
     QSample(const QUrl& url, QSampleCache *parent);

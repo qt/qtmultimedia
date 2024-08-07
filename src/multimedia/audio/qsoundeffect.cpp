@@ -72,8 +72,8 @@ public:
     void setPlaying(bool playing);
 
 public Q_SLOTS:
-    void sampleReady();
-    void decoderError();
+    void sampleReady(QSample *);
+    void decoderError(QSample *);
     void stateChanged(QAudio::State);
 
 public:
@@ -103,8 +103,11 @@ QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &au
     QPlatformMediaIntegration::instance()->mediaDevices()->prepareAudio();
 }
 
-void QSoundEffectPrivate::sampleReady()
+void QSoundEffectPrivate::sampleReady(QSample *sample)
 {
+    if (sample && sample != m_sample.get())
+        return;
+
     if (m_status == QSoundEffect::Error)
         return;
 
@@ -165,8 +168,11 @@ void QSoundEffectPrivate::sampleReady()
     }
 }
 
-void QSoundEffectPrivate::decoderError()
+void QSoundEffectPrivate::decoderError(QSample *sample)
 {
+    if (sample && sample != m_sample.get())
+        return;
+
     qWarning("QSoundEffect(qaudio): Error decoding source %ls", qUtf16Printable(m_url.toString()));
     disconnect(m_sample.get(), &QSample::ready, this, &QSoundEffectPrivate::sampleReady);
     disconnect(m_sample.get(), &QSample::error, this, &QSoundEffectPrivate::decoderError);
@@ -436,10 +442,10 @@ void QSoundEffect::setSource(const QUrl &url)
 
     switch (d->m_sample->state()) {
     case QSample::Ready:
-        d->sampleReady();
+        d->sampleReady(d->m_sample.get());
         break;
     case QSample::Error:
-        d->decoderError();
+        d->decoderError(d->m_sample.get());
         break;
     default:
         break;
