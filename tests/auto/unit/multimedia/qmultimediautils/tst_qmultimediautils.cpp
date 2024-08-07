@@ -108,13 +108,17 @@ void tst_QMultimediaUtils::qMediaFromUserInput_addsFilePrefix_whenCalledWithLoca
     using namespace Qt::Literals;
 
     QCOMPARE(qMediaFromUserInput(QUrl(u"/foo/bar/baz"_s)), QUrl(u"file:///foo/bar/baz"_s));
-    QCOMPARE(qMediaFromUserInput(QUrl::fromLocalFile(u"C:/foo/bar/baz"_s)),
-             QUrl(u"file:///C:/foo/bar/baz"_s));
     QCOMPARE(qMediaFromUserInput(QUrl(u"file:///foo/bar/baz"_s)), QUrl(u"file:///foo/bar/baz"_s));
     QCOMPARE(qMediaFromUserInput(QUrl(u"http://foo/bar/baz"_s)), QUrl(u"http://foo/bar/baz"_s));
 
     QCOMPARE(qMediaFromUserInput(QUrl(u"foo/bar/baz"_s)),
              QUrl::fromLocalFile(QDir::currentPath() + u"/foo/bar/baz"_s));
+
+#ifdef Q_OS_WIN
+    QCOMPARE(qMediaFromUserInput(QUrl(u"C:/foo/bar/baz"_s)), QUrl(u"file:///c:/foo/bar/baz"_s));
+#else
+    QCOMPARE(qMediaFromUserInput(QUrl(u"C:/foo/bar/baz"_s)), QUrl(u"c:/foo/bar/baz"_s));
+#endif
 }
 
 void tst_QMultimediaUtils::
