@@ -40,34 +40,6 @@ private:
     static bool sIsInitialized;
 };
 
-class CoreAudioRingBuffer
-{
-public:
-    typedef QPair<char*, int> Region;
-
-    CoreAudioRingBuffer(int bufferSize);
-    ~CoreAudioRingBuffer();
-
-    Region acquireReadRegion(int size);
-    void releaseReadRegion(Region const& region);
-    Region acquireWriteRegion(int size);
-    void releaseWriteRegion(Region const& region);
-
-    int used() const;
-    int free() const;
-    int size() const;
-
-    void reset();
-
-    static const inline unsigned bufferMultiplier = 4;
-private:
-    int     m_bufferSize;
-    int     m_readPos;
-    int     m_writePos;
-    char*   m_buffer;
-    QAtomicInt  m_bufferUsed;
-};
-
 QT_END_NAMESPACE
 
 #endif // IOSAUDIOUTILS_H
