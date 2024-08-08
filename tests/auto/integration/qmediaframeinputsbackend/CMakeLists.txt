@@ -17,7 +17,6 @@ qt_internal_add_test(tst_qmediaframeinputsbackend
         Qt::Multimedia
         Qt::MultimediaPrivate
         Qt::Gui
-        Qt::Widgets
 )
 
 
