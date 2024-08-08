@@ -37,7 +37,7 @@ Item {
         title: "Please choose a file"
         onAccepted: {
             playbackController.mediaPlayer.stop()
-            playbackController.mediaPlayer.source = fileDialog.currentFile
+            playbackController.mediaPlayer.source = fileDialog.selectedFile
             playbackController.mediaPlayer.play()
         }
     }
