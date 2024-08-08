@@ -33,7 +33,6 @@ class QNetworkAccessManager;
 class QSampleCache;
 class QWaveDecoder;
 
-// Lives in application thread
 class Q_MULTIMEDIA_EXPORT QSample : public QObject
 {
     Q_OBJECT
