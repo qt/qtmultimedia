@@ -32,25 +32,6 @@ using namespace emscripten;
 
 Q_LOGGING_CATEGORY(qWasmMediaVideoOutput, "qt.multimedia.wasm.videooutput")
 
-// TODO unique videosurface ?
-static std::string m_videoSurfaceId;
-
-void qtVideoBeforeUnload(emscripten::val event)
-{
-    Q_UNUSED(event)
-    // large videos will leave the unloading window
-    // in a frozen state, so remove the video element first
-    emscripten::val document = emscripten::val::global("document");
-    emscripten::val videoElement =
-            document.call<emscripten::val>("getElementById", std::string(m_videoSurfaceId));
-    videoElement.call<void>("removeAttribute", emscripten::val("src"));
-    videoElement.call<void>("load");
-}
-
-EMSCRIPTEN_BINDINGS(video_module)
-{
-    emscripten::function("mbeforeUnload", qtVideoBeforeUnload);
-}
 
 static bool checkForVideoFrame()
 {
@@ -140,8 +121,7 @@ void QWasmVideoOutput::start()
 
     if (m_currentVideoMode == QWasmVideoOutput::Camera) {
         if (m_hasVideoFrame) {
-            m_video.call<emscripten::val>("requestVideoFrameCallback",
-                                       emscripten::val::module_property("qtVideoFrameTimerCallback"));
+            videoFrameTimerCallback();
         } else {
             videoFrameTimerCallback();
        }
@@ -399,21 +379,11 @@ bool QWasmVideoOutput::isVideoSeekable()
 
 void QWasmVideoOutput::createVideoElement(const std::string &id)
 {
-    // TODO: there can be more than one element !!
-    qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << id;
+    qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << this << id;
     // Create <video> element and add it to the page body
+
     emscripten::val document = emscripten::val::global("document");
     emscripten::val body = document["body"];
-
-    emscripten::val oldVideo = document.call<emscripten::val>("getElementsByClassName",
-                                                              (m_currentVideoMode == QWasmVideoOutput::Camera
-                                                               ? std::string("Camera")
-                                                               : std::string("Video")));
-
-    // we don't provide alternate tracks
-    // but need to remove stale track
-    if (oldVideo["length"].as<int>() > 0)
-        oldVideo[0].call<void>("remove");
 
     m_videoSurfaceId = id;
     m_video = document.call<emscripten::val>("createElement", std::string("video"));
@@ -425,7 +395,6 @@ void QWasmVideoOutput::createVideoElement(const std::string &id)
     m_video.set("data-qvideocontext",
                 emscripten::val(quintptr(reinterpret_cast<void *>(this))));
 
-    // if video
     m_video.set("preload", "metadata");
 
     // Uncaught DOMException: Failed to execute 'getImageData' on
@@ -631,12 +600,7 @@ void QWasmVideoOutput::doElementCallbacks()
             }
             m_currentMediaStatus = QMediaPlayer::LoadedMedia;
             emit statusChanged(m_currentMediaStatus);
-            if (m_hasVideoFrame) {
-                m_video.call<emscripten::val>("requestVideoFrameCallback",
-                                               emscripten::val::module_property("qtVideoFrameTimerCallback"));
-            } else {
-              videoFrameTimerCallback();
-            }
+            videoFrameTimerCallback();
         } else {
             m_shouldStop = false;
         }
@@ -702,12 +666,7 @@ void QWasmVideoOutput::doElementCallbacks()
         if (m_toBePaused || !m_shouldStop) { // paused
             m_toBePaused = false;
 
-            if (m_hasVideoFrame) {
-                m_video.call<emscripten::val>("requestVideoFrameCallback",
-                                               emscripten::val::module_property("qtVideoFrameTimerCallback"));
-            } else {
-                videoFrameTimerCallback(); // get the ball rolling
-            }
+            videoFrameTimerCallback(); // get the ball rolling
         }
     };
     m_playingChangeEvent.reset(new qstdweb::EventCallback(m_video, "playing", playingCallback));
@@ -766,8 +725,16 @@ void QWasmVideoOutput::doElementCallbacks()
     // we use lower level events here as to avert a crash on activate using the
     // qtdweb see _qt_beforeUnload
     emscripten::val window = emscripten::val::global("window");
-    window.call<void>("addEventListener", std::string("beforeunload"),
-                      emscripten::val::module_property("mbeforeUnload"));
+
+        auto beforeUnloadCallback = [=](emscripten::val event) {
+        Q_UNUSED(event)
+        // large videos will leave the unloading window
+        // in a frozen state, so remove the video element src first
+        m_video.call<void>("removeAttribute", emscripten::val("src"));
+        m_video.call<void>("load");
+    };
+    m_beforeUnloadEvent.reset(new qstdweb::EventCallback(window, "beforeunload", beforeUnloadCallback));
+
 }
 
 void QWasmVideoOutput::updateVideoElementGeometry(const QRect &windowGeometry)
@@ -884,15 +851,14 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
 }
 
 
-void QWasmVideoOutput::videoFrameCallback(emscripten::val now, emscripten::val metadata)
+void QWasmVideoOutput::videoFrameCallback(void *context)
 {
-    Q_UNUSED(now)
-    Q_UNUSED(metadata)
+   QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
 
     emscripten::val videoElement =
             emscripten::val::global("document").
             call<emscripten::val>("getElementById",
-                                  std::string(m_videoSurfaceId));
+                                  videoOutput->m_videoSurfaceId);
 
     emscripten::val oneVideoFrame = val::global("VideoFrame").new_(videoElement);
 
@@ -964,10 +930,6 @@ void QWasmVideoOutput::videoFrameCallback(emscripten::val now, emscripten::val m
     };
 
     qstdweb::Promise::make(oneVideoFrame, "copyTo", std::move(copyToCallback), frameBuffer);
-
-    videoElement.call<emscripten::val>("requestVideoFrameCallback",
-                                       emscripten::val::module_property("qtVideoFrameTimerCallback"));
-
 }
 
 void QWasmVideoOutput::videoFrameTimerCallback()
@@ -978,13 +940,16 @@ void QWasmVideoOutput::videoFrameTimerCallback()
 
         emscripten::val document = emscripten::val::global("document");
         emscripten::val videoElement =
-                document.call<emscripten::val>("getElementById", std::string(m_videoSurfaceId));
+                document.call<emscripten::val>("getElementById", videoOutput->m_videoSurfaceId);
 
         if (videoElement["paused"].as<bool>() || videoElement["ended"].as<bool>())
             return false;
 
-        videoOutput->videoComputeFrame(context);
-
+        if (checkForVideoFrame()) {
+            videoOutput->videoFrameCallback(context);
+        } else {
+            videoOutput->videoComputeFrame(context);
+        }
         return true;
     };
 
@@ -1069,10 +1034,6 @@ bool QWasmVideoOutput::setDeviceSetting(const std::string &key, emscripten::val 
     }
 
     return false;
-}
-
-EMSCRIPTEN_BINDINGS(qtwasmvideooutput) {
-    emscripten::function("qtVideoFrameTimerCallback", &QWasmVideoOutput::videoFrameCallback);
 }
 
 QT_END_NAMESPACE
