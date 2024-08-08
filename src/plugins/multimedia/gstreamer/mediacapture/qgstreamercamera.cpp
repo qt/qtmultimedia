@@ -719,6 +719,8 @@ int QGstreamerCamera::getV4L2Parameter(quint32 id) const
     });
 }
 
+#endif // QT_CONFIG(linux_v4l)
+
 QGstreamerCustomCamera::QGstreamerCustomCamera(QCamera *camera)
     : QGstreamerCameraBase{
           camera,
@@ -765,7 +767,5 @@ void QGstreamerCustomCamera::setActive(bool active)
 
     emit activeChanged(active);
 }
-
-#endif
 
 QT_END_NAMESPACE
