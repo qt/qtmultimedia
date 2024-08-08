@@ -83,12 +83,14 @@ public:
     bool isCameraReady() { return m_cameraIsReady; }
     bool m_hasVideoFrame = false;
 
-    static void videoFrameCallback(emscripten::val now, emscripten::val metadata);
+    void videoFrameCallback(void *context);
     void videoFrameTimerCallback();
     // mediacapturesession has the videosink
     QVideoSink *m_wasmSink = nullptr;
 
     emscripten::val currentVideoElement() { return m_video; }
+
+    std::string m_videoSurfaceId;
 
 Q_SIGNALS:
     void readyChanged(bool);
@@ -149,6 +151,7 @@ private:
     QScopedPointer<qstdweb::EventCallback> m_playingChangeEvent;
     QScopedPointer<qstdweb::EventCallback> m_progressChangeEvent;
     QScopedPointer<qstdweb::EventCallback> m_pauseChangeEvent;
+    QScopedPointer<qstdweb::EventCallback> m_beforeUnloadEvent;
 };
 
 QT_END_NAMESPACE
