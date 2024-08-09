@@ -1,0 +1,19 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-wayland.html
+\title Qt Multimedia on Linux using the Wayland compositor
+\brief Platform notes for Linux using the Wayland compositor
+
+This page covers the availability of Qt Multimedia features on Linux with Wayland compositor.
+
+\section1 Limitations
+
+The screen capture feature on systems using the Wayland compositor relies on
+\l {https://pipewire.org/}{PipeWire} (0.3) and requires that this library is installed.
+Due to restrictions of the Wayland protocol, the current screen can only be selected through
+the wizard displayed by the operation system when \c QScreenCapture instance is activated.
+For additional details, refer to the \l QScreenCapture class documentation.
+
+*/
