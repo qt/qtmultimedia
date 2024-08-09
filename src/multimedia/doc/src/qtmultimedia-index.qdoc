@@ -267,7 +267,7 @@
 
     \section2 Target platform notes
     The following pages list issues for specific target platforms that are not
-    related to the multimedia backed.
+    related to the multimedia backend.
 
     \list
       \li \l{Qt Multimedia on macOS and iOS}{macOS and iOS}
