@@ -183,11 +183,6 @@ struct ImageDiffReport
     QImage DiffImage;            // The difference image (absolute per-channel difference)
 };
 
-double aboveThresholdDiffRatio(const ImageDiffReport &report)
-{
-    return static_cast<double>(report.DiffCountAboveThreshold) / report.PixelCount;
-}
-
 int maxChannelDiff(QRgb lhs, QRgb rhs)
 {
     // clang-format off
