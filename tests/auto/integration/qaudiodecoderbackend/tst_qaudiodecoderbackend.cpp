@@ -470,7 +470,7 @@ void tst_QAudioDecoderBackend::fileTest()
     positionSpy.clear();
 
 #ifdef Q_OS_ANDROID
-    QSKIP("Setting a desired audio format is not yet supported on Android", QTest::SkipSingle);
+    QSKIP("Setting a desired audio format is not yet supported on Android");
 #endif
     // change output audio format
     QAudioFormat format;
@@ -900,7 +900,7 @@ void tst_QAudioDecoderBackend::deviceTest()
     positionSpy.clear();
 
 #ifdef Q_OS_ANDROID
-    QSKIP("Setting a desired audio format is not yet supported on Android", QTest::SkipSingle);
+    QSKIP("Setting a desired audio format is not yet supported on Android");
 #endif
     // Now try changing formats
     QAudioFormat format;
