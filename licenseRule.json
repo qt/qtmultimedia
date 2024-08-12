@@ -10,7 +10,7 @@
                      "Files with other endings can also be build system files"
                      ],
         "file_pattern_ending" : ["CMakeLists.txt", ".cmake", ".pro", ".pri", ".prf",
-                     "configure", "configure.bat", "cmake.in", "plist.in", "CMakeLists.txt.in"],
+                     "configure", "configure.bat", "cmake.in", "plist.in", "CMakeLists.txt.in", ".ver"],
         "location" : {
             "" : {
                 "comment" : "Default",
