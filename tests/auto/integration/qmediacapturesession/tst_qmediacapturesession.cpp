@@ -34,6 +34,8 @@
 
 QT_USE_NAMESPACE
 
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
+
 /*
  This is the backend conformance test.
 
@@ -148,8 +150,10 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown()
         QAudioOutput output;
         QVideoWidget video;
 
-        session.setAudioInput(&input);
-        session.setAudioOutput(&output);
+        if (!input.device().isNull())
+            session.setAudioInput(&input);
+        if (!output.device().isNull())
+            session.setAudioOutput(&output);
         session.setRecorder(&recorder);
         session.setCamera(&camera);
         session.setVideoOutput(&video);
@@ -171,8 +175,10 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_session()
         QAudioOutput output;
         QVideoWidget video;
 
-        session.setAudioInput(&input);
-        session.setAudioOutput(&output);
+        if (!input.device().isNull())
+            session.setAudioInput(&input);
+        if (!output.device().isNull())
+            session.setAudioOutput(&output);
         session.setRecorder(&recorder);
         session.setCamera(&camera);
         session.setVideoOutput(&video);
@@ -194,8 +200,10 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_recorder()
         QAudioOutput output;
         QVideoWidget video;
 
-        session.setAudioInput(&input);
-        session.setAudioOutput(&output);
+        if (!input.device().isNull())
+            session.setAudioInput(&input);
+        if (!output.device().isNull())
+            session.setAudioOutput(&output);
         session.setRecorder(&recorder);
         session.setCamera(&camera);
         session.setVideoOutput(&video);
@@ -217,8 +225,10 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_camera()
         QAudioOutput output;
         QVideoWidget video;
 
-        session.setAudioInput(&input);
-        session.setAudioOutput(&output);
+        if (!input.device().isNull())
+            session.setAudioInput(&input);
+        if (!output.device().isNull())
+            session.setAudioOutput(&output);
         session.setRecorder(&recorder);
         session.setCamera(&camera);
         session.setVideoOutput(&video);
@@ -240,8 +250,10 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_audioinput()
         QAudioOutput output;
         QVideoWidget video;
 
-        session.setAudioInput(&input);
-        session.setAudioOutput(&output);
+        if (!input.device().isNull())
+            session.setAudioInput(&input);
+        if (!output.device().isNull())
+            session.setAudioOutput(&output);
         session.setRecorder(&recorder);
         session.setCamera(&camera);
         session.setVideoOutput(&video);
@@ -263,8 +275,10 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_audiooutput()
         QAudioInput input;
         QVideoWidget video;
 
-        session.setAudioInput(&input);
-        session.setAudioOutput(&output);
+        if (!input.device().isNull())
+            session.setAudioInput(&input);
+        if (!output.device().isNull())
+            session.setAudioOutput(&output);
         session.setRecorder(&recorder);
         session.setCamera(&camera);
         session.setVideoOutput(&video);
@@ -286,8 +300,10 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_video()
         QAudioInput input;
         QAudioOutput output;
 
-        session.setAudioInput(&input);
-        session.setAudioOutput(&output);
+        if (!input.device().isNull())
+            session.setAudioInput(&input);
+        if (!output.device().isNull())
+            session.setAudioOutput(&output);
         session.setRecorder(&recorder);
         session.setCamera(&camera);
         session.setVideoOutput(&video);
