@@ -50,7 +50,7 @@ qt_internal_add_plugin(QAndroidMediaPlugin
 )
 
 set_property(TARGET QAndroidMediaPlugin APPEND PROPERTY QT_ANDROID_BUNDLED_JAR_DEPENDENCIES
-    jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtMultimediaUtils
+    jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar
 )
 set_property(TARGET QAndroidMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
     ${INSTALL_PLUGINSDIR}/multimedia/libplugins_multimedia_androidmediaplugin.so

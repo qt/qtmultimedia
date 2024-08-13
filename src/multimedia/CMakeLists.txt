@@ -180,7 +180,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
 
 if(ANDROID)
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_BUNDLED_JAR_DEPENDENCIES
-        jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtAudioDeviceManager
+        jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar
     )
 endif()
 
