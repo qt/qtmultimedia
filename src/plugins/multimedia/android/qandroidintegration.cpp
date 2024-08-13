@@ -19,6 +19,10 @@
 #include "qandroidaudioinput_p.h"
 #include "qandroidvideosink_p.h"
 #include "qandroidaudiodecoder_p.h"
+
+#include <QCoreApplication>
+#include <QtCore/qjnitypes.h>
+
 #include <QtMultimedia/private/qplatformmediaplugin_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -95,6 +99,8 @@ QMaybe<QPlatformVideoSink *> QAndroidIntegration::createVideoSink(QVideoSink *si
     return new QAndroidVideoSink(sink);
 }
 
+Q_DECLARE_JNI_CLASS(QtMultimediaUtils, "org/qtproject/qt/android/multimedia/QtMultimediaUtils")
+
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 {
     static bool initialized = false;
@@ -113,6 +119,9 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 
     if (vm->GetEnv(&uenv.venv, JNI_VERSION_1_6) != JNI_OK)
         return JNI_ERR;
+
+    const auto context = QNativeInterface::QAndroidApplication::context();
+    QtJniTypes::QtMultimediaUtils::callStaticMethod<void>("setContext", context);
 
     if (!AndroidMediaPlayer::registerNativeMethods()
             || !AndroidCamera::registerNativeMethods()
