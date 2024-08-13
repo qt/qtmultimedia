@@ -26,7 +26,7 @@ public:
         connect(this, &Grabber::errorUpdated, &screenCapture, &QEglfsScreenCapture::updateError);
         // Limit frame rate to 30 fps for performance reasons,
         // to be reviewed at the next optimization round
-        setFrameRate(std::min(screen->refreshRate(), 30.0));
+        setFrameRate(std::min(screen->refreshRate(), qreal(30.0)));
     }
 
     ~Grabber() override { stop(); }
