@@ -47,6 +47,8 @@ private slots:
     void qDebug_GstPadDirection();
     void qDebug_GstStreamStatusType();
 
+    void QGstStructureView_parseCameraFormat();
+
 private:
     QGstreamerIntegration integration;
 };

@@ -78,25 +78,33 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
             devices.append(info->create());
 
         auto caps = QGstCaps(gst_device_get_caps(device.gstDevice.get()), QGstCaps::HasRef);
-        if (!caps.isNull()) {
+        if (caps) {
             QList<QCameraFormat> formats;
             QSet<QSize> photoResolutions;
 
             int size = caps.size();
             for (int i = 0; i < size; ++i) {
                 auto cap = caps.at(i);
-
-                QSize resolution = cap.resolution();
-                if (!resolution.isValid())
-                    continue;
-
                 auto pixelFormat = cap.pixelFormat();
                 auto frameRate = cap.frameRateRange();
 
-                auto *f = new QCameraFormatPrivate{ QSharedData(), pixelFormat, resolution,
-                                                    frameRate.min, frameRate.max };
-                formats << f->create();
-                photoResolutions.insert(resolution);
+                auto addFormatForResolution = [&](QSize resolution) {
+                    auto *f = new QCameraFormatPrivate{
+                        QSharedData(), pixelFormat, resolution, frameRate.min, frameRate.max,
+                    };
+                    formats.append(f->create());
+                    photoResolutions.insert(resolution);
+                };
+
+                std::optional<QGRange<QSize>> resolutionRange = cap.resolutionRange();
+                if (resolutionRange) {
+                    addFormatForResolution(resolutionRange->min);
+                    addFormatForResolution(resolutionRange->max);
+                } else {
+                    QSize resolution = cap.resolution();
+                    if (resolution.isValid())
+                        addFormatForResolution(resolution);
+                }
             }
             info->videoFormats = formats;
             // ### sort resolutions?
