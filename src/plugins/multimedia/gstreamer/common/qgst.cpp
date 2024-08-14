@@ -241,11 +241,11 @@ QVideoFrameFormat::PixelFormat QGstStructureView::pixelFormat() const
 
 QGRange<float> QGstStructureView::frameRateRange() const
 {
-    float minRate = 0.;
-    float maxRate = 0.;
-
     if (!structure)
         return { 0.f, 0.f };
+
+    std::optional<float> minRate;
+    std::optional<float> maxRate;
 
     auto extractFraction = [](const GValue *v) -> float {
         return (float)gst_value_get_fraction_numerator(v)
@@ -253,9 +253,9 @@ QGRange<float> QGstStructureView::frameRateRange() const
     };
     auto extractFrameRate = [&](const GValue *v) {
         auto insert = [&](float min, float max) {
-            if (max > maxRate)
+            if (!maxRate || max > maxRate)
                 maxRate = max;
-            if (min < minRate)
+            if (!minRate || min < minRate)
                 minRate = min;
         };
 
@@ -263,8 +263,8 @@ QGRange<float> QGstStructureView::frameRateRange() const
             float rate = extractFraction(v);
             insert(rate, rate);
         } else if (GST_VALUE_HOLDS_FRACTION_RANGE(v)) {
-            auto *min = gst_value_get_fraction_range_max(v);
-            auto *max = gst_value_get_fraction_range_max(v);
+            const GValue *min = gst_value_get_fraction_range_min(v);
+            const GValue *max = gst_value_get_fraction_range_max(v);
             insert(extractFraction(min), extractFraction(max));
         }
     };
@@ -288,7 +288,39 @@ QGRange<float> QGstStructureView::frameRateRange() const
         }
     }
 
-    return { minRate, maxRate };
+    if (!minRate || !maxRate)
+        return { 0.f, 0.f };
+
+    return {
+        minRate.value_or(*maxRate),
+        maxRate.value_or(*minRate),
+    };
+}
+
+std::optional<QGRange<QSize>> QGstStructureView::resolutionRange() const
+{
+    if (!structure)
+        return std::nullopt;
+
+    const GValue *width = gst_structure_get_value(structure, "width");
+    const GValue *height = gst_structure_get_value(structure, "height");
+
+    if (!width || !height)
+        return std::nullopt;
+
+    for (const GValue *v : { width, height })
+        if (!GST_VALUE_HOLDS_INT_RANGE(v))
+            return std::nullopt;
+
+    int minWidth = gst_value_get_int_range_min(width);
+    int maxWidth = gst_value_get_int_range_max(width);
+    int minHeight = gst_value_get_int_range_min(height);
+    int maxHeight = gst_value_get_int_range_max(height);
+
+    return QGRange<QSize>{
+        QSize(minWidth, minHeight),
+        QSize(maxWidth, maxHeight),
+    };
 }
 
 QGstreamerMessage QGstStructureView::getMessage()
