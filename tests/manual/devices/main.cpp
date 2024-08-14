@@ -107,6 +107,10 @@ static void printVideoDeviceInfo(QTextStream &out, const QCameraDevice &cameraDe
         out.setFieldWidth(30);
         out << "Frame Rate: " << qSetFieldWidth(0) << "Min:" << format.minFrameRate()
             << " Max:" << format.maxFrameRate() << Qt::endl;
+        out.setFieldWidth(30);
+        out << "Format: " << qSetFieldWidth(0)
+            << QVideoFrameFormat::pixelFormatToString(format.pixelFormat()) << Qt::endl;
+        out << Qt::endl;
     }
 
     out << Qt::endl;
