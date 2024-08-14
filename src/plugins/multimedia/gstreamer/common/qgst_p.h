@@ -179,6 +179,15 @@ template <typename T> struct QGRange
 {
     T min;
     T max;
+
+#ifdef __cpp_impl_three_way_comparison
+    auto operator<=> (const QGRange &) const = default;
+#else
+    bool operator==(const QGRange &rhs) const
+    {
+        return std::tie(min, max) == std::tie(rhs.min, rhs.max);
+    }
+#endif
 };
 
 struct QGString : QUniqueGStringHandle
@@ -387,6 +396,7 @@ public:
     QSize resolution() const;
     QVideoFrameFormat::PixelFormat pixelFormat() const;
     QGRange<float> frameRateRange() const;
+    std::optional<QGRange<QSize>> resolutionRange() const;
     QGstreamerMessage getMessage();
     std::optional<Fraction> pixelAspectRatio() const;
     QSize nativeSize() const;
