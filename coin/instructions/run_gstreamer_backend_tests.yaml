@@ -17,4 +17,9 @@ instructions:
   - type: EnvironmentVariable
     variableName: QT_MEDIA_BACKEND
     variableValue: gstreamer
+
+  # QTBUG-127927
+  # - type: EnvironmentVariable
+  #   variableName: G_DEBUG
+  #   variableValue: fatal_criticals
   - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"
