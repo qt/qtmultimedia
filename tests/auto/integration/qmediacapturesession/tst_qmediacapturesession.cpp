@@ -320,8 +320,6 @@ void tst_QMediaCaptureSession::record_video_without_preview()
     if (!camera.isAvailable())
         QSKIP("No video input is available");
 
-    QSKIP_GSTREAMER("QTBUG-127927: Fails on CI (ubuntu 22.04)");
-
     QMediaRecorder recorder;
     QMediaCaptureSession session;
 
