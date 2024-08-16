@@ -146,6 +146,9 @@ AudioComparisonResult compareAudioData(QAudioBuffer actual, QAudioBuffer expecte
 
 void tst_QMediaFrameInputsBackend::initTestCase()
 {
+#if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM_64)
+    QSKIP("This empty init test doesn't crash, but multiple other test crashes on Windows ARM, needs to skip these all. See QTBUG-128162");
+#endif
     QSKIP_GSTREAMER("Not implemented in the gstreamer backend");
 }
 
@@ -182,6 +185,9 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInput
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInputSends()
 {
+#if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM_64)
+    QSKIP("This test crashes on Windows ARM. See QTBUG-128162");
+#endif
     QFETCH(const int, bufferCount);
     QFETCH(const QAudioFormat::SampleFormat, sampleFormat);
     QFETCH(const QAudioFormat::ChannelConfig, channelConfig);
@@ -250,6 +256,9 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInput
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames()
 {
+#if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM_64)
+    QSKIP("This test crashes on Windows ARM. See QTBUG-128162");
+#endif
     QFETCH(const int, framesNumber);
     QFETCH(const milliseconds, frameDuration);
     QFETCH(const QSize, resolution);
@@ -346,6 +355,9 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_withCorrectData() { 
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameShrinksOverTime()
 {
+#if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM_64)
+    QSKIP("This test crashes on Windows ARM. See QTBUG-128162");
+#endif
     CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
     f.m_recorder.record();
     f.readyToSendVideoFrame.wait();
