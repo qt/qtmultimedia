@@ -34,6 +34,8 @@ public:
     the QMediaCaptureSession class where the captured window can be displayed
     in a video preview object or recorded to a file.
 
+    \include qwindowcapture-limitations.qdocinc {content} {Q}
+
     \sa QMediaCaptureSession, QCapturableWindow
 */
 /*!
@@ -49,6 +51,8 @@ public:
     WindowCapture captures a window. It is managed by
     MediaCaptureSession where the captured window can be displayed
     in a video preview object or recorded to a file.
+
+    \include qwindowcapture-limitations.qdocinc {content} {}
 
     \sa CaptureSession, CapturableWindow
 */
