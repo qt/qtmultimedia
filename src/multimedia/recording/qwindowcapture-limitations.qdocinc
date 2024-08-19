@@ -1,0 +1,12 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    //! [content]
+    \section1 Window Capture Limitations
+    The following limitations apply to using \1WindowCapture:
+    \list
+        \li \1WindowCapture is only supported with the FFmpeg backend.
+    \endlist
+    //! [content]
+*/
