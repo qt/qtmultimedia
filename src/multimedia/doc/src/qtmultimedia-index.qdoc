@@ -29,7 +29,7 @@
     \endtable
 
     \section1 Getting started
-    If you are porting from Qt 5 to Qt 6 see \l{Changes to Qt Multimedia}.
+    If you are porting from Qt 5 to Qt 6, see \l{Changes to Qt Multimedia}.
 
     If you are new to Qt Multimedia, the QML types can be
     \l{qtqml import syntax}{imported} into an application using the following
@@ -109,7 +109,7 @@
 
     \section1 C++ classes
 
-    The following table outlines some important C++ classes
+    The following table outlines some important C++ classes.
 
     \table
     \header
@@ -153,7 +153,7 @@
      \li Captures a top-level window.
     \endtable
 
-    For playback QMediaPlayer, QAudioOutput and QVideoOutput contain all the required functionality.
+    QMediaPlayer, QAudioOutput, and QVideoOutput all have the required functionality for playback.
     The other classes are used for capturing audio and video content, where the QMediaCaptureSession is the central
     class managing the whole capture/recording process.
 
@@ -168,27 +168,27 @@
     See \l{Qt Licensing} for further details.
 
     Furthermore, Qt Multimedia in Qt \QtVersion may contain third-party modules
-    under following permissive licenses:
+    under the following permissive licenses:
 
     \generatelist{groupsbymodule attributions-qtmultimedia}
 
     Note that video compression standards, such as the H.264 media compression
     standard, may be covered by patents and can incur royalty fees. This can
     apply to any implementation, also if the implementation is provided as an
-    operating system service, through a third party library, or through any of
-    Qt Multimedia's backends. Such fees are not covered by the Qt licenses.
+    operating system service, through a third-party library, or any of
+    Qt Multimedia's backends. The Qt licenses do not cover such fees.
 
     \section1 Target platform and backend notes
-    We aim to align the behavior on all the platforms but there are some issues
+    We aim to align the behavior on all the platforms, but there are some issues
     to consider.
 
     \section2 Backends
-    On most platforms, there are two different backends that can be used for
+    On most platforms, two different backends can be used for
     Qt Multimedia.
 
     \section3 FFmpeg as the default backend
-    In this release the \l {http://ffmpeg.org}{FFmpeg framework} is set as the
-    default backend on Windows, macOS, Android, and Linux except Yocto distribution.
+    In this release, the \l {http://ffmpeg.org}{FFmpeg framework} is set as the
+    default backend on Windows, macOS, Android, and Linux, except for Yocto distributions.
 
     The version shipped with Qt binary packages is \b{FFmpeg 7.0} and is tested
     by the maintainers.
@@ -199,15 +199,15 @@
 
     \note On the Windows and macOS platforms, Qt's FFmpeg media backend
     uses dynamic linking to the FFmpeg libraries. Windows and macOS
-    applications must therefore bundle FFmpeg binaries in their
-    installer, and make them visible to the application at runtime. On
-    Windows, we recommend to store the FFmpeg dlls in the same directory
-    as the application's executable file, because this guarantees that
+    applications must, therefore, bundle FFmpeg binaries in their
+    installer and make them visible to the application at runtime. On
+    Windows, we recommend storing the FFmpeg dlls in the same directory
+    as the application's executable file because this guarantees that
     the correct build of FFmpeg is being used if multiple versions are
     available on the system. All necessary FFmpeg libraries are shipped
     with the Qt Online Installer and are automatically deployed if the
     windeployqt or macdeployqt tools are used to create the deployment.
-    Applications can also deploy their own build of FFmpeg, as long as
+    Applications can also deploy their own build of FFmpeg as long as
     the FFmpeg major version matches the version used by Qt.
 
     \note See \l{Licenses and Attributions} regarding what components are removed
@@ -236,33 +236,33 @@
     However, there are known bugs in the GStreamer backend. More details can be found
     in \l{Qt Multimedia GStreamer Backend}{GStreamer}.
 
-    We aim to align the behavior on all the platforms, especially, with the
-    FFmpeg backend. Despite this fact we still have platform-dependent issues
+    We aim to align the behavior on all the platforms, especially with the
+    FFmpeg backend. Despite this, we still have platform-dependent issues
     with formats, codecs, advanced camera features, and screen capturing due to
     the Qt Multimedia API relying on target platform APIs. For example, with FFmpeg,
     there are specific problems with hardware acceleration on Linux targets with
     ARM architectures.
 
-    Backend-dependent limitations will be documented and their status maintained
-    in the respective classes.
+    Backend limitations will be documented, and their status will be maintained in the
+    respective classes.
 
     \section2 Changing backends
 
     In the case of issues with the default FFmpeg backend, we suggest testing with a native backend.
     You can switch to native backends by setting the \c{QT_MEDIA_BACKEND} environment variable
-    to \c windows, \c gstreamer (on Linux), \c darwin (on macOS and iOS), or \c android:
+    to \c windows, \c GStreamer (on Linux), \c Darwin (on macOS and iOS), or \c android:
 
     \code
     export QT_MEDIA_BACKEND=darwin
     \endcode
 
-    In order to force assign FFmpeg as the used backend, set the variable to \c ffmpeg:
+    To force assign FFmpeg as the used backend, set the variable to \c ffmpeg:
 
     \code
     export QT_MEDIA_BACKEND=ffmpeg
     \endcode
 
-    On the Qt Multimedia compilation stage the default media backend can be configured
+    On the Qt Multimedia compilation stage, the default media backend can be configured
     via cmake variable \c{QT_DEFAULT_MEDIA_BACKEND}.
 
     \section2 Target platform notes
@@ -277,7 +277,7 @@
 
     \section1 Permissions
 
-    Starting from Qt 6.6, the Qt Multimedia module uses new \l QPermission API
+    Starting from Qt 6.6, the Qt Multimedia module uses the new \l QPermission API
     to handle \l {QCameraPermission}{camera} and
     \l {QMicrophonePermission}{microphone} permissions. This means that Qt
     itself no longer queries for these permissions, so this needs to be done
