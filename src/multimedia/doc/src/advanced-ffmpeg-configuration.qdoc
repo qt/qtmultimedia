@@ -7,68 +7,93 @@
 \brief Lists the FFmpeg media backend's configurable features.
 \ingroup explanations-graphicsandmultimedia
 
-Lists the FFmpeg media backend's configurable features. All the features are a part of
-the private API and can be changed or removed in the future without confirmation.
+This page lists the FFmpeg media backend's configurable features. All the features are a part of
+the private API and can be changed or removed in the future without confirmation. Be aware
+that environment variables are by default inherited by child processes and can have unintended
+consequences.
 
-\section1 Debug the FFmpeg library and the FFmpeg plugin using logs
+\section1 Enable logging from FFmpeg and the Qt FFmpeg media backend
 
 You can configure advanced FFmpeg log output via environment variables.
 
 \list
-    \li \c QT_FFMPEG_DEBUG=1 sets \c AV_LOG_DEBUG log level to the FFmpeg library. The debug log
-        level can give any hint if you assume that the reason for your issue is in
-        the FFmpeg library.
+    \li \c QT_FFMPEG_DEBUG=1 enables extra logging from the FFmpeg library and can help
+        you understand issues that involve the FFmpeg library.
 
     \li \c QT_LOGGING_RULES="*.ffmpeg.*=true" turns on Qt developer logs in the FFmpeg plugin.
         Logging categories in the FFmpeg plugin are usually called "qt.multimedia.ffmpeg.XXX".
-        To see developer logs of the whole Qt Multimedia, set
+        To enable developer logs from all of Qt Multimedia, set
         \c QT_LOGGING_RULES="*.multimedia.*=true"
 
     \li If you set both \c QT_FFMPEG_DEBUG and \c QT_LOGGING_RULES, all available FFmpeg codecs
-        will be printed out upon the first invocation of decoding or encoding functionality,
-        specifically, \l QMediaPlayer, \l QAudioDecoder, or \l QMediaRecorder. This information
-        can help if Qt Multimedia doesn't find a proper FFmpeg decoder or encoder. We recommend
-        attaching the codecs dump to Qt bug reports if you encounter codec-specific issues.
+        will be printed the first time encoding or decoding functionality is used from
+        \l QMediaPlayer, \l QAudioDecoder, or \l QMediaRecorder. This information
+        can help you understand situations where Qt Multimedia doesn't find a proper FFmpeg
+        decoder or encoder. We recommend attaching the codec dump to Qt bug reports if you
+        encounter codec-specific issues.
 \endlist
 
 \section1 Enable experimental FFmpeg codecs
 
-FFmpeg exposes a few codecs, Opus or Vorbis for example, as experimental ones. Experimental
-codecs don't strictly follow the standard and may be unstable. To turn them on,
-set the environment variable \c QT_ENABLE_EXPERIMENTAL_CODECS=1.
+FFmpeg exposes a few codecs, such as Opus or Vorbis, as experimental ones. Experimental
+codecs don't strictly follow the standard and may be unstable. They are disabled by default.
+To enable them, set the environment variable \c QT_ENABLE_EXPERIMENTAL_CODECS=1.
 
-\section1 Setting allowed network protocols
+\section1 Configuring allowed network protocols
 
-For security reasons, the FFmpeg library restricts the list of protocols used by other protocols
-(nested protocols).
-See the \l {https://www.ffmpeg.org/ffmpeg-protocols.html}{FFmpeg protocols documentation} to
-check out the list of available protocols and for further information. You may explicitly define
-the protocols whitelist via the environment variable \c QT_FFMPEG_PROTOCOL_WHITELIST, for
-example:
+For security reasons, the FFmpeg library restricts use of nested protocols, meaning protocols
+used by other protocols; see
+\l {https://www.ffmpeg.org/ffmpeg-protocols.html}{FFmpeg protocols documentation}.
+You may explicitly override the allowed protocols via the environment variable
+\c QT_FFMPEG_PROTOCOL_WHITELIST, for example:
 
 \code
     export QT_FFMPEG_PROTOCOL_WHITELIST=file,crypto,rtp,udp
 \endcode
 
-\warning Note that many nested protocols can cause vulnerabilities as long as you work with
-         untrusted data. Allow only the protocols that comply with your security and business
+\warning Note that nested protocols can introduce security vulnerabilities when used with
+         untrusted data. Only allow protocols that align with your security and business
          requirements.
 
-\section1 Configure hardware acceleration backends
+\section1 Configure hardware acceleration in backends
 
 \list
     \li Explicit decoding and encoding hardware acceleration backends.
 
-        The FFmpeg plugin prioritizes the selection of the hardware acceleration backend for
-        decoding and encoding considering availability, stability, efficiency, and implementation
-        details. If the chosen hardware backend doesn't work as expected, you may try to set
-        a custom priority list or disable all the hardware backends via the environment variables
+        The FFmpeg plugin chooses the hardware acceleration backend for decoding and encoding
+        based on availability, stability, efficiency, and implementation details. If the selected
+        hardware backend doesn't work as expected, you can try setting a custom priority list or
+        disable all the hardware backends via the environment variables
         \c QT_FFMPEG_DECODING_HW_DEVICE_TYPES and \c QT_FFMPEG_ENCODING_HW_DEVICE_TYPES.
-        The list of the hardware backends you can use is: cuda, drm, dxva2, d3d11va, d3d12va,
-        opencl, qsv, vaapi, vdpau, videotoolbox, mediacodec, vulkan. However, available
-        hardware backends depend on the OS, the installed drivers, and the FFmpeg version.
-        Note that some device types, specifically drm, opencl, qsv, vdpau, and vulkan, haven't
-        been tested with Qt Multimedia by the Qt maintainers, so use them at your own risk.
+        The available hardware backends include:
+
+        \list
+            \li cuda
+            \li drm
+            \li dxva2
+            \li d3d11va
+            \li d3d12va,
+            \li opencl
+            \li qsv
+            \li vaapi
+            \li vdpau
+            \li videotoolbox
+            \li mediacodec
+            \li vulkan
+        \endlist
+
+        However, the availability of hardware backends depends on the OS, installed drivers,
+        the FFmpeg version, and configuration. It's important to keep in mind that some device
+        types have not been tested with Qt Multimedia by the Qt maintainers, and may not
+        operate as intended. At the time of writing, these backends include:
+
+        \list
+            \li drm
+            \li opencl
+            \li qsv
+            \li vdpau
+            \li vulkan
+        \endlist
 
     Examples:
 
@@ -85,14 +110,14 @@ example:
 
     \li Hardware textures conversion.
 
-        GPU-based conversion between decoded video frames and rendered video frames significantly
-        reduces CPU usage, so we strive to utilize the feature with as many hardware backends
-        as possible. If you notice any rendering issues, to detect the reason, try to test
-        rendering without the GPU texture conversion. To disable the GPU textures conversion, set
-        the \c QT_DISABLE_HW_TEXTURES_CONVERSION environment variable to \c{1}:
-        \c QT_DISABLE_HW_TEXTURES_CONVERSION=1. With \c VAAPI hardware backend, hardware texture
-        conversion is still not available by default, set \c QT_XCB_GL_INTEGRATION=xcb_egl
-        to turn it on.
+        Utilizing GPU-based conversion for decoded and rendered video frames can significantly
+        reduce CPU usage. We aim to make use of this reature feature with as many hardware backends
+        as possible. If you notice any rendering issues, consider testing the rendering without GPU
+        texture conversion to identify the cause. You can disable GPU texture conversion by using
+        the \c QT_DISABLE_HW_TEXTURES_CONVERSION environment variable:
+        \c QT_DISABLE_HW_TEXTURES_CONVERSION=1. With the \c VAAPI hardware backend, hardware
+        texture conversion is disabled by default. Set \c QT_XCB_GL_INTEGRATION=xcb_egl to
+        enable it.
 
     \li Allow codec profile mismatch.
 
@@ -100,7 +125,7 @@ example:
         ignore the mismatch and allow hardware decoding via
         \c QT_FFMPEG_HW_ALLOW_PROFILE_MISMATCH=1. Setting this option may be helpful, for example,
         when you use the hardware accelerated decoding for baseline profile H.264 with
-        the \c VAAPI hardware backend, because the most of such streams satisfy the constraints
+        the \c VAAPI hardware backend because most of such streams satisfy the constraints
         of the existing H.264 hardware decoder.
 
         \warning If the stream is not supported, the enforced hardware decoding can cause entirely
