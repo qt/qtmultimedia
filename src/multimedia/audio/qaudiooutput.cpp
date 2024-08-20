@@ -9,7 +9,7 @@
 
 /*!
     \qmltype AudioOutput
-    \instantiates QAudioOutput
+    \nativetype QAudioOutput
     \brief An audio output to be used for playback or monitoring of a capture session.
 
     \inqmlmodule QtMultimedia

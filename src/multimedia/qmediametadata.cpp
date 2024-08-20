@@ -145,7 +145,7 @@ QMetaType QMediaMetaData::keyType(Key key)
     \ingroup qmlvaluetypes
     \inqmlmodule QtMultimedia
     \since 6.2
-    //! \instantiates QMediaMetaData
+    //! \nativetype QMediaMetaData
     \brief Provides meta-data for media files.
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml

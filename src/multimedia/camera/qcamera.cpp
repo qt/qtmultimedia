@@ -67,7 +67,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype Camera
-    \instantiates QCamera
+    \nativetype QCamera
     \inqmlmodule QtMultimedia
     \brief An interface for camera settings related to focus and zoom.
     \ingroup multimedia_qml

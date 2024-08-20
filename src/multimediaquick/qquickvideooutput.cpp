@@ -41,7 +41,7 @@ inline int qNormalizedOrientation(int o)
 
 /*!
     \qmltype VideoOutput
-    //! \instantiates QQuickVideoOutput
+    //! \nativetype QQuickVideoOutput
     \brief Render video or camera viewfinder.
 
     \ingroup multimedia_qml

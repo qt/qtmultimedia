@@ -26,7 +26,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCapturableWindowPrivate)
 */
 /*!
     \qmlvaluetype CapturableWindow
-    \instantiates QCapturableWindow
+    \nativetype QCapturableWindow
     \brief The CapturableWindow type is used getting basic
     of a window that is available for capturing via WindowCapture.
 
