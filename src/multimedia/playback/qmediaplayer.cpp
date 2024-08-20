@@ -46,7 +46,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype MediaPlayer
-    \instantiates QMediaPlayer
+    \nativetype QMediaPlayer
     \brief Adds media playback to a scene.
 
     \inqmlmodule QtMultimedia

@@ -62,7 +62,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmltype MediaDevices
     \since 6.2
-    \instantiates QMediaDevices
+    \nativetype QMediaDevices
     \brief MediaDevices provides information about available
     multimedia input and output devices.
     \inqmlmodule QtMultimedia

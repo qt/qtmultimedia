@@ -42,7 +42,7 @@ public:
 */
 /*!
     \qmltype ScreenCapture
-    \instantiates QScreenCapture
+    \nativetype QScreenCapture
     \brief This type is used for capturing a screen.
 
     \inqmlmodule QtMultimedia

@@ -67,7 +67,7 @@ void QMediaCaptureSessionPrivate::setVideoSink(QVideoSink *sink)
 /*!
     \qmltype CaptureSession
     \since 6.2
-    \instantiates QMediaCaptureSession
+    \nativetype QMediaCaptureSession
     \brief Allows capturing of audio and video content.
 
     \inqmlmodule QtMultimedia

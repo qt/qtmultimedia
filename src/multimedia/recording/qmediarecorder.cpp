@@ -41,7 +41,7 @@ QT_BEGIN_NAMESPACE
 */
 /*!
     \qmltype MediaRecorder
-    \instantiates QMediaRecorder
+    \nativetype QMediaRecorder
     \brief For encoding and recording media generated in a CaptureSession.
 
     \inqmlmodule QtMultimedia

@@ -7,7 +7,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype PlaylistItem
-    \instantiates QQuickPlaylistItem
+    \nativetype QQuickPlaylistItem
     \since 5.6
 
     \inqmlmodule QtMultimedia
@@ -44,7 +44,7 @@ void QQuickPlaylistItem::setSource(const QUrl &source)
 
 /*!
     \qmltype Playlist
-    \instantiates QQuickPlaylist
+    \nativetype QQuickPlaylist
     \since 5.6
     \brief For specifying a list of media to be played.
     \internal

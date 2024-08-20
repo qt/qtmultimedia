@@ -10,7 +10,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype ImageCapture
-    \instantiates QQuickImageCapture
+    \nativetype QQuickImageCapture
     \brief An interface for capturing camera images.
     \ingroup multimedia_qml
     \inqmlmodule QtMultimedia

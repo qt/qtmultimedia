@@ -11,7 +11,7 @@
 
 /*!
     \qmltype AudioInput
-    \instantiates QAudioInput
+    \nativetype QAudioInput
     \brief An audio input to be used for capturing audio in a capture session.
 
     \inqmlmodule QtMultimedia

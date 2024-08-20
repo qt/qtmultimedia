@@ -300,7 +300,7 @@ void QSoundEffectPrivate::setPlaying(bool playing)
 
 /*!
     \qmltype SoundEffect
-    \instantiates QSoundEffect
+    \nativetype QSoundEffect
     \brief The SoundEffect type provides a way to play sound effects in QML.
 
     \inmodule QtMultimedia

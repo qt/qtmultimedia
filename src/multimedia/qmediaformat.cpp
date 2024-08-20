@@ -25,7 +25,7 @@ QT_BEGIN_NAMESPACE
     \qmlvaluetype mediaFormat
     \ingroup qmlvaluetypes
     \since 6.2
-    //! \instantiates QMediaFormat
+    //! \nativetype QMediaFormat
     \brief MediaFormat describes the format of a media file.
     \inqmlmodule QtMultimedia
     \ingroup multimedia_qml

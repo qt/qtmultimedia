@@ -40,7 +40,7 @@ public:
 */
 /*!
     \qmltype WindowCapture
-    \instantiates QWindowCapture
+    \nativetype QWindowCapture
     \inqmlmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
