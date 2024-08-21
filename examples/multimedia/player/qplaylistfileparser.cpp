@@ -343,6 +343,10 @@ bool QPlaylistFileParserPrivate::processLine(int startIndex, int length)
 void QPlaylistFileParserPrivate::handleData()
 {
     Q_Q(QPlaylistFileParser);
+
+    if (!m_stream)
+        return;
+
     while (m_stream->bytesAvailable() && !m_aborted) {
         int expectedBytes =
                 qMin(READ_LIMIT,
@@ -358,10 +362,6 @@ void QPlaylistFileParserPrivate::handleData()
                         break;
                 }
                 processedBytes = m_scanIndex + 1;
-                if (!m_stream) {
-                    // some error happened, so exit parsing
-                    return;
-                }
             }
             m_scanIndex++;
         }
