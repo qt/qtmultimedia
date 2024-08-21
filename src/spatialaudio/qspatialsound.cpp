@@ -57,10 +57,12 @@ QSpatialSound::~QSpatialSound()
 void QSpatialSound::setPosition(QVector3D pos)
 {
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
+
     pos *= ep->distanceScale;
     d->pos = pos;
-    if (ep)
-        ep->resonanceAudio->api->SetSourcePosition(d->sourceId, pos.x(), pos.y(), pos.z());
+    ep->resonanceAudio->api->SetSourcePosition(d->sourceId, pos.x(), pos.y(), pos.z());
     emit positionChanged();
 }
 
