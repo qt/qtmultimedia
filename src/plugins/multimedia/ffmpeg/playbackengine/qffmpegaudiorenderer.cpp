@@ -391,7 +391,7 @@ microseconds AudioRenderer::bufferLoadingTime(const SynchronizationStamp &syncSt
 
 void AudioRenderer::onAudioSinkStateChanged(QAudio::State state)
 {
-    if (state == QAudio::IdleState && !m_firstFrameToSink)
+    if (state == QAudio::IdleState && !m_firstFrameToSink && !m_deviceChanged)
         scheduleNextStep();
 }
 
