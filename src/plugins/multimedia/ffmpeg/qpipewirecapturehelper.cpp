@@ -380,6 +380,11 @@ void QPipeWireCaptureHelper::openPipeWireRemote()
     m_pipewireFd = reply.value().fileDescriptor();
     bool ok = open(m_pipewireFd);
     qCDebug(qLcPipeWireCapture) << "open(" << m_pipewireFd << ") result=" << ok;
+    if (!ok) {
+        updateError(QPlatformSurfaceCapture::InternalError,
+                    "Failed to open pipewire remote file descriptor"_L1);
+        return;
+    }
 
     m_operationState = OpenPipeWireRemote;
 }
@@ -570,7 +575,8 @@ void QPipeWireCaptureHelper::onRegistryEventGlobal(uint32_t id, uint32_t permiss
     if (!media_class)
         return;
 
-    if (qstrcmp(media_class, "Stream/Output/Video") != 0)
+    if (qstrcmp(media_class, "Stream/Output/Video") != 0
+        && qstrcmp(media_class, "Video/Source") != 0)
         return;
 
     m_hasSource = true;
