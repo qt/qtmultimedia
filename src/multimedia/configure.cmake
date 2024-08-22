@@ -43,7 +43,10 @@ qt_find_package_extend_sbom(
         FFmpeg::swresample
         FFmpeg::swscale
     ATTRIBUTION_FILE_DIR_PATHS
-        ../3rdparty/ffmpeg
+        # Need to pass an absolute path here, otherwise the file will be relative to the root of
+        # the source tree, not the current dir, because system libraries are processed in the
+        # source root directory.
+        ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/ffmpeg
 )
 qt_find_package(PipeWire PROVIDED_TARGETS PipeWire::PipeWire MODULE_NAME multimedia QMAKE_LIB pipewire)
 qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VAAPI MODULE_NAME multimedia QMAKE_LIB vaapi)
