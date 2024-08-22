@@ -17,5 +17,5 @@ qt_internal_add_test(tst_qaudiodecoder
         Qt::Gui
         Qt::Multimedia
         Qt::MultimediaPrivate
-        MockMultimediaPlugin
+        Qt::MockMultimediaPlugin
 )
