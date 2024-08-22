@@ -11,10 +11,31 @@ layout(binding = 1) uniform sampler2D plane1Texture;
 
 void main()
 {
-    int x = int(floor(texCoord.x * ubuf.width));
-    bool rightSubPixel = (x/2*2 != x);
-    float Y = rightSubPixel ? texture(plane1Texture, texCoord).a : texture(plane1Texture, texCoord).g;
-    vec2 UV = texture(plane1Texture, texCoord).rb;
+    // UYVY input texture is half the width of output texture
+    //
+    // |  x |  y |  z |  w |
+    // | U0 | Y0 | V0 | Y1 |
+    //         \         \_________________
+    // RGB      \                          \
+    // Output    \                          \
+    // |  r |  g |  b |  a |      |  r |  g |  b |  a |
+    //       x is even                   x is odd
+
+    // When converting to RGBA, we should sample lumen Y0
+    // when output column is even, and Y1 when output column
+    // is odd
+
+    float colIndex = floor(texCoord.x * ubuf.width);
+    float oddOutputCol = mod(colIndex, 2);
+
+    // dxInput is the pixel width in the half-width input texture
+    vec2 dxInput = 0.5 * vec2(1 /  ubuf.width, 0);
+
+    float oddY = texture(plane1Texture, texCoord - dxInput).w;
+    float evenY = texture(plane1Texture, texCoord + dxInput).y;
+    float Y =  mix(evenY, oddY, oddOutputCol);
+
+    vec2 UV = texture(plane1Texture, texCoord).xz;
     fragColor = ubuf.colorMatrix * vec4(Y, UV, 1.0) * ubuf.opacity;
 
 #ifdef QMM_OUTPUTSURFACE_LINEAR
