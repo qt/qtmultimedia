@@ -133,8 +133,8 @@ AVStream *VideoFrameEncoder::createStream(const SourceParams &sourceParams,
         AVPacketSideData sideData = { reinterpret_cast<uint8_t *>(av_malloc(displayMatrixSize)),
                                       displayMatrixSize, AV_PKT_DATA_DISPLAYMATRIX };
         int32_t *matrix = reinterpret_cast<int32_t *>(sideData.data);
-        av_display_rotation_set(matrix, static_cast<double>(sourceParams.rotation));
         av_display_matrix_flip(matrix, sourceParams.xMirrored, sourceParams.yMirrored);
+        av_display_rotation_set(matrix, static_cast<double>(sourceParams.rotation));
 
         addStreamSideData(stream, sideData);
     }

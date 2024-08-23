@@ -1077,8 +1077,7 @@ void tst_QVideoFrame::qImageFromVideoFrame_doesNotCrash_whenCalledWithEvenAndOdd
 
     const QVideoFrameFormat format{ size, pixelFormat };
     const QVideoFrame frame{ format };
-    const QImage actual = qImageFromVideoFrame(frame, QtVideo::Rotation::None, false, false,
-                                               forceCpuConversion);
+    const QImage actual = qImageFromVideoFrame(frame, forceCpuConversion);
 
     if (supportedOnPlatform)
         QCOMPARE_EQ(actual.isNull(), size.isEmpty());

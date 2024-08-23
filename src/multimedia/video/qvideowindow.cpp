@@ -334,10 +334,9 @@ void QVideoWindowPrivate::render()
         return;
     }
 
-    const int frameRotationIndex = (static_cast<int>(m_currentFrame.rotation()) / 90) % 4;
-    QSize frameSize = m_currentFrame.size();
-    if (frameRotationIndex % 2)
-        frameSize.transpose();
+    const NormalizedFrameTransformation frameTransformation =
+            qNormalizedFrameTransformation(m_currentFrame.surfaceFormat());
+    QSize frameSize = qRotatedFrameSize(m_currentFrame);
     QSize scaled = frameSize.scaled(rect.size(), aspectRatioMode);
     QRect videoRect = QRect(QPoint(0, 0), scaled);
     videoRect.moveCenter(rect.center());
@@ -387,9 +386,9 @@ void QVideoWindowPrivate::render()
     if (m_subtitleDirty || m_subtitleLayout.videoSize != subtitleRect.size())
         updateSubtitle(rub, subtitleRect.size());
 
-    float mirrorFrame = m_currentFrame.mirrored() ? -1.f : 1.f;
-    float xscale = mirrorFrame * float(videoRect.width())/float(rect.width());
-    float yscale = -1.f * float(videoRect.height())/float(rect.height());
+    const float mirrorFrame = frameTransformation.xMirrorredAfterRotation ? -1.f : 1.f;
+    const float xscale = mirrorFrame * float(videoRect.width()) / float(rect.width());
+    const float yscale = -1.f * float(videoRect.height()) / float(rect.height());
 
     QMatrix4x4 transform;
     transform.scale(xscale, yscale);
@@ -426,7 +425,7 @@ void QVideoWindowPrivate::render()
     cb->setViewport({ 0, 0, float(size.width()), float(size.height()) });
     cb->setShaderResources(m_shaderResourceBindings.get());
 
-    quint32 vertexOffset = quint32(sizeof(float)) * 16 * frameRotationIndex;
+    const quint32 vertexOffset = quint32(sizeof(float)) * 16 * frameTransformation.rotationIndex;
     const QRhiCommandBuffer::VertexInput vbufBinding(m_vertexBuf.get(), vertexOffset);
     cb->setVertexInput(0, 1, &vbufBinding);
     cb->draw(4);

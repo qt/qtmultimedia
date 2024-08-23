@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <private/qmultimediautils_p.h>
 #include <qvideoframeformat.h>
+#include <qvideoframe.h>
 
 class tst_QMultimediaUtils : public QObject
 {
@@ -29,6 +30,9 @@ private slots:
     void qGetRequiredSwapChainFormat_returnsHdr_whenMaxLuminanceIsBelowHdrThreshold();
 
     void qShouldUpdateSwapChainFormat_returnsFalse_whenSwapChainIsNullPointer();
+
+    void qNormalizedFrameTransformation_normilizesInputTransformation_data();
+    void qNormalizedFrameTransformation_normilizesInputTransformation();
 };
 
 void tst_QMultimediaUtils::fraction_of_0()
@@ -182,6 +186,263 @@ void tst_QMultimediaUtils::qShouldUpdateSwapChainFormat_returnsFalse_whenSwapCha
 
     // Assert
     QCOMPARE(shouldUpdate, false);
+}
+
+void tst_QMultimediaUtils::qNormalizedFrameTransformation_normilizesInputTransformation_data()
+{
+    QTest::addColumn<QtVideo::Rotation>("frameRotation");
+    QTest::addColumn<bool>("frameMirrored");
+    QTest::addColumn<QVideoFrameFormat::Direction>("frameScanLineDirection");
+    QTest::addColumn<int>("additionalFrameRotation");
+
+    QTest::addColumn<QtVideo::Rotation>("expectedRotation");
+    QTest::addColumn<bool>("expectedXMirrorAfterRotation");
+
+    // clang-format off
+
+    // only mirroring for actual and expected
+    QTest::newRow("None; x flipping") << QtVideo::Rotation::None
+                                      << true
+                                      << QVideoFrameFormat::TopToBottom
+                                      << 0
+                                      << QtVideo::Rotation::None
+                                      << true;
+
+
+    // actual transform:
+    // * x -> y *  -> * y
+    // y        x     x
+    // expected transform:
+    // * x -> x * -> * y
+    // y        y    x
+    QTest::newRow("Clockwise90; x flipping") << QtVideo::Rotation::Clockwise90
+                                             << true
+                                             << QVideoFrameFormat::TopToBottom
+                                             << 0
+                                             << QtVideo::Rotation::Clockwise270
+                                             << true;
+
+
+    // actual transform:
+    // * x -> x *  -> y
+    // y        y     * x
+    // expected transform:
+    // * x ->   y -> y
+    // y      x *    * x
+    QTest::newRow("Clockwise180; x flipping") << QtVideo::Rotation::Clockwise180
+                                              << true
+                                              << QVideoFrameFormat::TopToBottom
+                                              << 0
+                                              << QtVideo::Rotation::Clockwise180
+                                              << true;
+
+    // actual transform:
+    // * x -> x   ->   x
+    // y      * y    y *
+    // expected transform:
+    // * x -> x * ->   x
+    // y        y    y *
+    QTest::newRow("Clockwise270; x flipping") << QtVideo::Rotation::Clockwise270
+                                              << true
+                                              << QVideoFrameFormat::TopToBottom
+                                              << 0
+                                              << QtVideo::Rotation::Clockwise90
+                                              << true;
+
+    // actual transform:
+    // * x -> y
+    // y      * x
+    // expected transform:
+    // * x ->   y -> y
+    // y      x *    * x
+    QTest::newRow("None; y flipping") << QtVideo::Rotation::None
+                                      << false
+                                      << QVideoFrameFormat::BottomToTop
+                                      << 0
+                                      << QtVideo::Rotation::Clockwise180
+                                      << true;
+
+
+    // actual transform:
+    // * x -> y   -> * y
+    // y      * x    x
+    // expected transform:
+    // * x -> y * -> * y
+    // y        x    x
+    QTest::newRow("Clockwise90; y flipping") << QtVideo::Rotation::Clockwise90
+                                             << false
+                                             << QVideoFrameFormat::BottomToTop
+                                             << 0
+                                             << QtVideo::Rotation::Clockwise90
+                                             << true;
+
+
+    // actual transform:
+    // * x -> y   -> x *
+    // y      * x      y
+    // expected transform:
+    // * x -> x *
+    // y        y
+    QTest::newRow("Clockwise180; y flipping") << QtVideo::Rotation::Clockwise180
+                                              << false
+                                              << QVideoFrameFormat::BottomToTop
+                                              << 0
+                                              << QtVideo::Rotation::None
+                                              << true;
+
+    // actual transform:
+    // * x -> y   ->   x
+    // y      * x    y *
+    // expected transform:
+    // * x -> x   ->   x
+    // y      * y    y *
+    QTest::newRow("Clockwise180; y flipping") << QtVideo::Rotation::Clockwise270
+                                              << false
+                                              << QVideoFrameFormat::BottomToTop
+                                              << 0
+                                              << QtVideo::Rotation::Clockwise270
+                                              << true;
+
+    // no transforms
+    QTest::newRow("None; no flippings") << QtVideo::Rotation::None
+                                        << false
+                                        << QVideoFrameFormat::TopToBottom
+                                        << 0
+                                        << QtVideo::Rotation::None
+                                        << false;
+
+    // only rotation 90
+    QTest::newRow("Clockwise90; no flippings") << QtVideo::Rotation::Clockwise90
+                                               << false
+                                               << QVideoFrameFormat::TopToBottom
+                                               << 0
+                                               << QtVideo::Rotation::Clockwise90
+                                               << false;
+
+    // only rotation 180
+    QTest::newRow("Clockwise180; no flippings") << QtVideo::Rotation::Clockwise180
+                                                << false
+                                                << QVideoFrameFormat::TopToBottom
+                                                << 0
+                                                << QtVideo::Rotation::Clockwise180
+                                                << false;
+
+    // only rotation 270
+    QTest::newRow("Clockwise270; no flippings") << QtVideo::Rotation::Clockwise270
+                                                << false
+                                                << QVideoFrameFormat::TopToBottom
+                                                << 0
+                                                << QtVideo::Rotation::Clockwise270
+                                                << false;
+
+    // actual transform:
+    // * x -> x * ->   y
+    // y        y    x *
+    // expected transform:
+    // * x ->   y
+    // y      x *
+    QTest::newRow("None; xy flippings") << QtVideo::Rotation::None
+                                        << true
+                                        << QVideoFrameFormat::BottomToTop
+                                        << 0
+                                        << QtVideo::Rotation::Clockwise180
+                                        << false;
+
+    // actual transform:
+    // * x -> x * ->   y -> x
+    // y        y    x *    * y
+    // expected transform:
+    // * x -> x
+    // y      * y
+    QTest::newRow("Clockwise90; xy flippings") << QtVideo::Rotation::Clockwise90
+                                               << true
+                                               << QVideoFrameFormat::BottomToTop
+                                               << 0
+                                               << QtVideo::Rotation::Clockwise270
+                                               << false;
+
+    // actual transform:
+    // * x -> x * ->   y -> * x
+    // y        y    x *    y
+    // expected transform:
+    // * x
+    // y
+    QTest::newRow("Clockwise180; xy flippings") << QtVideo::Rotation::Clockwise180
+                                                << true
+                                                << QVideoFrameFormat::BottomToTop
+                                                << 0
+                                                << QtVideo::Rotation::None
+                                                << false;
+
+    // actual transform:
+    // * x -> x * ->   y -> x
+    // y        y    x *    * y
+    // expected transform:
+    // * x -> x
+    // y      * y
+    QTest::newRow("Clockwise270; xy flippings") << QtVideo::Rotation::Clockwise270
+                                                << true
+                                                << QVideoFrameFormat::BottomToTop
+                                                << 0
+                                                << QtVideo::Rotation::Clockwise90
+                                                << false;
+
+    // no transforms
+    QTest::newRow("Additional rotation 90") << QtVideo::Rotation::Clockwise180
+                                            << false
+                                            << QVideoFrameFormat::TopToBottom
+                                            << 90
+                                            << QtVideo::Rotation::Clockwise270
+                                            << false;
+
+    QTest::newRow("Additional rotation 180") << QtVideo::Rotation::Clockwise180
+                                             << false
+                                             << QVideoFrameFormat::TopToBottom
+                                             << 180
+                                             << QtVideo::Rotation::None
+                                             << false;
+    QTest::newRow("Additional rotation -3690") << QtVideo::Rotation::Clockwise180
+                                               << false
+                                               << QVideoFrameFormat::TopToBottom
+                                               << -3690
+                                               << QtVideo::Rotation::Clockwise90
+                                               << false;
+    QTest::newRow("Additional rotation -3780") << QtVideo::Rotation::Clockwise180
+                                               << false
+                                               << QVideoFrameFormat::TopToBottom
+                                               << -3780
+                                               << QtVideo::Rotation::None
+                                               << false;
+
+    // clang-format on
+}
+
+void tst_QMultimediaUtils::qNormalizedFrameTransformation_normilizesInputTransformation()
+{
+    // Arrange
+    QFETCH(const QtVideo::Rotation, frameRotation);
+    QFETCH(const bool, frameMirrored);
+    QFETCH(const QVideoFrameFormat::Direction, frameScanLineDirection);
+    QFETCH(const int, additionalFrameRotation);
+
+    QFETCH(const QtVideo::Rotation, expectedRotation);
+    QFETCH(const bool, expectedXMirrorAfterRotation);
+
+    QVideoFrameFormat format(QSize(4, 4), QVideoFrameFormat::Format_ARGB8888);
+    format.setRotation(frameRotation);
+    format.setMirrored(frameMirrored);
+    format.setScanLineDirection(frameScanLineDirection);
+
+    QVideoFrame frame(format);
+
+    // Act
+    const NormalizedFrameTransformation actual =
+            qNormalizedFrameTransformation(frame, additionalFrameRotation);
+
+    // Assert
+    QCOMPARE(actual.rotation, expectedRotation);
+    QCOMPARE(actual.rotationIndex, qToUnderlying(expectedRotation) / 90);
+    QCOMPARE(actual.xMirrorredAfterRotation, expectedXMirrorAfterRotation);
 }
 
 QTEST_MAIN(tst_QMultimediaUtils)
