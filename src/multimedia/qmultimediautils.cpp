@@ -94,4 +94,24 @@ bool qShouldUpdateSwapChainFormat(QRhiSwapChain *swapChain,
             && swapChain->isFormatSupported(requiredSwapChainFormat);
 }
 
+NormalizedFrameTransformation qNormalizedFrameTransformation(const QVideoFrame &frame,
+                                                             int additionalRotaton)
+{
+    const QVideoFrameFormat format = frame.surfaceFormat();
+    int frameRotationIndex = ((qToUnderlying(format.rotation()) + additionalRotaton) / 90) % 4;
+    if (frameRotationIndex < 0)
+        frameRotationIndex += 4;
+
+    bool mirrored = format.isMirrored();
+    if (format.scanLineDirection() == QVideoFrameFormat::BottomToTop) {
+        mirrored = !mirrored;
+        frameRotationIndex = (frameRotationIndex + 2) % 4;
+    }
+
+    if (mirrored && frameRotationIndex % 2 == 1)
+        frameRotationIndex = (frameRotationIndex + 2) % 4;
+
+    return { QtVideo::Rotation(frameRotationIndex * 90), frameRotationIndex, mirrored };
+}
+
 QT_END_NAMESPACE

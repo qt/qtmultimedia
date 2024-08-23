@@ -18,6 +18,7 @@
 #include <QtQuick/qsgnode.h>
 #include <private/qtmultimediaquickglobal_p.h>
 #include "private/qvideotexturehelper_p.h"
+#include "private/qmultimediautils_p.h"
 
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideoframeformat.h>
@@ -50,8 +51,7 @@ private:
     QRectF m_rect;
     QRectF m_textureRect;
     int m_orientation = -1;
-    int m_frameOrientation = -1;
-    bool m_frameMirrored = false;
+    NormalizedFrameTransformation m_frameTransformation;
 
     QVideoFrameFormat m_videoFormat;
     QSGVideoMaterial *m_material = nullptr;

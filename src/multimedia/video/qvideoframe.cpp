@@ -826,10 +826,8 @@ QImage QVideoFrame::toImage() const
 
     QMutexLocker lock(&d->imageMutex);
 
-    if (d->image.isNull()) {
-        const bool mirrorY = surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom;
-        d->image = qImageFromVideoFrame(*this, rotation(), mirrored(), mirrorY);
-    }
+    if (d->image.isNull())
+        d->image = qImageFromVideoFrame(*this);
 
     return d->image;
 }

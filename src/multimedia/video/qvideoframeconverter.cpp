@@ -116,16 +116,13 @@ static QShader vfcGetShader(const QString &name)
     return shader;
 }
 
-static void rasterTransform(QImage &image, QtVideo::Rotation rotation,
-                            bool mirrorX, bool mirrorY)
+static void rasterTransform(QImage &image, NormalizedFrameTransformation transformation)
 {
     QTransform t;
-    if (mirrorX)
-        t.scale(-1.f, 1.f);
-    if (rotation != QtVideo::Rotation::None)
-        t.rotate(float(rotation));
-    if (mirrorY)
-        t.scale(1.f, -1.f);
+    if (transformation.rotation != QtVideo::Rotation::None)
+        t.rotate(qreal(transformation.rotation));
+    if (transformation.xMirrorredAfterRotation)
+        t.scale(-1., 1);
     if (!t.isIdentity())
         image = image.transformed(t);
 }
@@ -251,7 +248,7 @@ static bool updateTextures(QRhi *rhi,
     return true;
 }
 
-static QImage convertJPEG(const QVideoFrame &frame, QtVideo::Rotation rotation, bool mirrorX, bool mirrorY)
+static QImage convertJPEG(const QVideoFrame &frame)
 {
     QVideoFrame varFrame = frame;
     if (!varFrame.map(QVideoFrame::ReadOnly)) {
@@ -261,11 +258,11 @@ static QImage convertJPEG(const QVideoFrame &frame, QtVideo::Rotation rotation, 
     QImage image;
     image.loadFromData(varFrame.bits(0), varFrame.mappedBytes(0), "JPG");
     varFrame.unmap();
-    rasterTransform(image, rotation, mirrorX, mirrorY);
+    rasterTransform(image, qNormalizedFrameTransformation(frame));
     return image;
 }
 
-static QImage convertCPU(const QVideoFrame &frame, QtVideo::Rotation rotation, bool mirrorX, bool mirrorY)
+static QImage convertCPU(const QVideoFrame &frame)
 {
     VideoFrameConvertFunc convert = qConverterForFormat(frame.pixelFormat());
     if (!convert) {
@@ -281,13 +278,12 @@ static QImage convertCPU(const QVideoFrame &frame, QtVideo::Rotation rotation, b
         QImage image = QImage(varFrame.width(), varFrame.height(), format);
         convert(varFrame, image.bits());
         varFrame.unmap();
-        rasterTransform(image, rotation, mirrorX, mirrorY);
+        rasterTransform(image, qNormalizedFrameTransformation(frame));
         return image;
     }
 }
 
-QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation, bool mirrorX,
-                            bool mirrorY, bool forceCpu)
+QImage qImageFromVideoFrame(const QVideoFrame &frame, bool forceCpu)
 {
 #ifdef Q_OS_DARWIN
     QMacAutoReleasePool releasePool;
@@ -309,10 +305,10 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
         return {};
 
     if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg)
-        return convertJPEG(frame, rotation, mirrorX, mirrorY);
+        return convertJPEG(frame);
 
     if (forceCpu) // For test purposes
-        return convertCPU(frame, rotation, mirrorX, mirrorY);
+        return convertCPU(frame);
 
     QRhi *rhi = nullptr;
 
@@ -323,11 +319,11 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
         rhi = initializeRHI(rhi);
 
     if (!rhi || rhi->isRecordingFrame())
-        return convertCPU(frame, rotation, mirrorX, mirrorY);
+        return convertCPU(frame);
 
     // Do conversion using shaders
 
-    const QSize frameSize = qRotatedFrameSize(frame.size(), rotation);
+    const QSize frameSize = qRotatedFrameSize(frame);
 
     vertexBuffer.reset(rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, sizeof(g_quad)));
     vertexBuffer->create();
@@ -344,7 +340,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
     targetTexture.reset(rhi->newTexture(QRhiTexture::RGBA8, frameSize, 1, QRhiTexture::RenderTarget));
     if (!targetTexture->create()) {
         qCDebug(qLcVideoFrameConverter) << "Failed to create target texture. Using CPU conversion.";
-        return convertCPU(frame, rotation, mirrorX, mirrorY);
+        return convertCPU(frame);
     }
 
     renderTarget.reset(rhi->newTextureRenderTarget({ { targetTexture.get() } }));
@@ -356,7 +352,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
     QRhi::FrameOpResult r = rhi->beginOffscreenFrame(&cb);
     if (r != QRhi::FrameOpSuccess) {
         qCDebug(qLcVideoFrameConverter) << "Failed to set up offscreen frame. Using CPU conversion.";
-        return convertCPU(frame, rotation, mirrorX, mirrorY);
+        return convertCPU(frame);
     }
 
     QRhiResourceUpdateBatch *rub = rhi->nextResourceUpdateBatch();
@@ -367,17 +363,19 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
     auto videoFrameTextures = QVideoTextureHelper::createTextures(frameTmp, rhi, rub, {});
     if (!videoFrameTextures) {
         qCDebug(qLcVideoFrameConverter) << "Failed obtain textures. Using CPU conversion.";
-        return convertCPU(frame, rotation, mirrorX, mirrorY);
+        return convertCPU(frame);
     }
 
     if (!updateTextures(rhi, uniformBuffer, textureSampler, shaderResourceBindings,
                         graphicsPipeline, renderPass, frameTmp, videoFrameTextures)) {
         qCDebug(qLcVideoFrameConverter) << "Failed to update textures. Using CPU conversion.";
-        return convertCPU(frame, rotation, mirrorX, mirrorY);
+        return convertCPU(frame);
     }
 
-    float xScale = mirrorX ? -1.0 : 1.0;
-    float yScale = mirrorY ? -1.0 : 1.0;
+    const NormalizedFrameTransformation transformation = qNormalizedFrameTransformation(frame);
+
+    float xScale = transformation.xMirrorredAfterRotation ? -1.0 : 1.0;
+    float yScale = 1.f;
 
     if (rhi->isYUpInFramebuffer())
         yScale = -yScale;
@@ -395,8 +393,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
     cb->setViewport({ 0, 0, float(frameSize.width()), float(frameSize.height()) });
     cb->setShaderResources(shaderResourceBindings.get());
 
-    const int rotationIndex = (qToUnderlying(rotation) / 90) % 4;
-    const quint32 vertexOffset = quint32(sizeof(float)) * 16 * rotationIndex;
+    const quint32 vertexOffset = quint32(sizeof(float)) * 16 * transformation.rotationIndex;
     const QRhiCommandBuffer::VertexInput vbufBinding(vertexBuffer.get(), vertexOffset);
     cb->setVertexInput(0, 1, &vbufBinding);
     cb->draw(4);
@@ -416,7 +413,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
 
     if (!readCompleted) {
         qCDebug(qLcVideoFrameConverter) << "Failed to read back texture. Using CPU conversion.";
-        return convertCPU(frame, rotation, mirrorX, mirrorY);
+        return convertCPU(frame);
     }
 
     QByteArray *imageData = new QByteArray(readResult.data);

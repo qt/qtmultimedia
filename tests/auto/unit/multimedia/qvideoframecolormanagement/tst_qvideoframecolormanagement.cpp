@@ -441,8 +441,7 @@ private slots:
         const QVideoFrame frame = createTestFrame(params, templateImage);
 
         // Act
-        const QImage actual =
-                qImageFromVideoFrame(frame, QtVideo::Rotation::None, false, false, params.forceCpu);
+        const QImage actual = qImageFromVideoFrame(frame, params.forceCpu);
 
         // Assert
         constexpr int diffThreshold = 4;

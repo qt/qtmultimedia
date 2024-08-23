@@ -448,12 +448,6 @@ void QQuickVideoOutput::updateGeometry()
                                          totalHeight, totalWidth);
         }
     }
-
-    if (m_videoFormat.scanLineDirection() == QVideoFrameFormat::BottomToTop) {
-        qreal top = m_sourceTextureRect.top();
-        m_sourceTextureRect.setTop(m_sourceTextureRect.bottom());
-        m_sourceTextureRect.setBottom(top);
-    }
 }
 
 QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
