@@ -751,6 +751,10 @@ void QVideoFrame::setEndTime(qint64 time)
     \deprecated [6.7] Use \c QVideoFrame::setRotation instead.
 
     Sets the \a angle the frame should be rotated clockwise before displaying.
+
+    The \c rotationAngle transformation is applied for the underlying frame content
+    after video frame flip transformations, specifically \l QVideoFrame::mirrored
+    and \l QVideoFrameFormat::scanLineDirection.
 */
 
 /*!
@@ -758,6 +762,10 @@ void QVideoFrame::setEndTime(qint64 time)
     \deprecated [6.7] Use \c QVideoFrame::rotation instead.
 
     Returns the angle the frame should be rotated clockwise before displaying.
+
+    The \c rotationAngle transformation is applied for the underlying frame content
+    after video frame flip transformations, specifically \l QVideoFrame::mirrored
+    and \l QVideoFrameFormat::scanLineDirection.
 */
 
 #endif
@@ -765,6 +773,10 @@ void QVideoFrame::setEndTime(qint64 time)
 
 /*!
     Sets the \a angle the frame should be rotated clockwise before displaying.
+
+    The \c rotation transformation is applied for the underlying frame content
+    after video frame flip transformations, specifically \l QVideoFrame::mirrored
+    and \l QVideoFrameFormat::scanLineDirection.
 */
 void QVideoFrame::setRotation(QtVideo::Rotation angle)
 {
@@ -774,6 +786,10 @@ void QVideoFrame::setRotation(QtVideo::Rotation angle)
 
 /*!
     Returns the angle the frame should be rotated clockwise before displaying.
+
+    The \c rotation transformation is applied for the underlying frame content
+    after video frame flip transformations, specifically \l QVideoFrame::mirrored
+    and \l QVideoFrameFormat::scanLineDirection.
  */
 QtVideo::Rotation QVideoFrame::rotation() const
 {
@@ -783,6 +799,10 @@ QtVideo::Rotation QVideoFrame::rotation() const
 /*!
     Sets the \a mirrored flag for the frame and
     sets the flag to the underlying \l surfaceFormat.
+
+    Video frame flip transformations, specifically the \c mirrored property
+    and \l QVideoFrameFormat::scanLineDirection, are applied for
+    the underlying frame content before applying \l rotation.
 */
 void QVideoFrame::setMirrored(bool mirrored)
 {
@@ -792,6 +812,10 @@ void QVideoFrame::setMirrored(bool mirrored)
 
 /*!
     Returns whether the frame should be mirrored before displaying.
+
+    Video frame flip transformations, specifically the \c mirrored property
+    and \l QVideoFrameFormat::scanLineDirection, are applied for
+    the underlying frame content before applying \l rotation.
 */
 bool QVideoFrame::mirrored() const
 {
