@@ -10,6 +10,8 @@ find_package(Qt6 COMPONENTS ShaderTools)
 qt_internal_add_module(Multimedia
     PLUGIN_TYPES multimedia
     SOURCES
+        audio/qautoresetevent_p.h
+
         audio/qtaudio.cpp audio/qtaudio.h audio/qaudio.h
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h
         audio/qaudiobuffer_support_p.h
@@ -228,6 +230,22 @@ if(ANDROID)
         jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar
     )
 endif()
+
+qt_internal_extend_target(Multimedia CONDITION LINUX OR ANDROID
+    SOURCES
+        audio/qautoresetevent_linux_p.h audio/qautoresetevent_linux.cpp
+)
+
+qt_internal_extend_target(Multimedia CONDITION UNIX
+    SOURCES
+        audio/qautoresetevent_pipe_p.h audio/qautoresetevent_pipe.cpp
+)
+
+qt_internal_extend_target(Multimedia CONDITION WIN32
+    SOURCES
+        audio/qautoresetevent_win32_p.h audio/qautoresetevent_win32.cpp
+)
+
 
 qt_internal_extend_target(Multimedia CONDITION APPLE
     SOURCES
