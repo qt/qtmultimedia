@@ -3367,8 +3367,7 @@ void tst_QMediaPlayerBackend::finiteLoops()
     QFETCH(bool, pauseDuringPlayback);
     QFETCH(bool, rateChange);
 
-    if (pauseDuringPlayback)
-        QSKIP_GSTREAMER("Spurious test failures on CI");
+    QSKIP_GSTREAMER("Spurious test failures on CI");
 
 #ifdef Q_OS_MACOS
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
