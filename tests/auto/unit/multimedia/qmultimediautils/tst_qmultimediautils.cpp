@@ -33,6 +33,9 @@ private slots:
 
     void qNormalizedFrameTransformation_normilizesInputTransformation_data();
     void qNormalizedFrameTransformation_normilizesInputTransformation();
+
+    void qVideoRotationFromDegrees_basicValues_data();
+    void qVideoRotationFromDegrees_basicValues();
 };
 
 void tst_QMultimediaUtils::fraction_of_0()
@@ -351,6 +354,34 @@ void tst_QMultimediaUtils::qNormalizedFrameTransformation_normilizesInputTransfo
     // Assert
     QCOMPARE(actualTransform, expectedTransform);
     QCOMPARE(qToUnderlying(actual.rotation), actual.rotationIndex * 90);
+}
+
+void tst_QMultimediaUtils::qVideoRotationFromDegrees_basicValues_data()
+{
+    QTest::addColumn<int>("inputDegrees");
+    QTest::addColumn<QtVideo::Rotation>("expectedOutput");
+
+    QTest::newRow("0") << 0 << QtVideo::Rotation::None;
+    QTest::newRow("90") << 90 << QtVideo::Rotation::Clockwise90;
+    QTest::newRow("180") << 180 << QtVideo::Rotation::Clockwise180;
+    QTest::newRow("270") << 270 << QtVideo::Rotation::Clockwise270;
+    QTest::newRow("360") << 360 << QtVideo::Rotation::None;
+    QTest::newRow("450") << 450 << QtVideo::Rotation::Clockwise90;
+    QTest::newRow("630") << 630 << QtVideo::Rotation::Clockwise270;
+    QTest::newRow("-90") << -90 << QtVideo::Rotation::Clockwise270;
+    QTest::newRow("-270") << -270 << QtVideo::Rotation::Clockwise90;
+    QTest::newRow("-450") << -450 << QtVideo::Rotation::Clockwise270;
+    QTest::newRow("1") << 1 << QtVideo::Rotation::None;
+}
+
+void tst_QMultimediaUtils::qVideoRotationFromDegrees_basicValues()
+{
+    QFETCH(int, inputDegrees);
+    QFETCH(QtVideo::Rotation, expectedOutput);
+
+    auto actual = qVideoRotationFromDegrees(inputDegrees);
+
+    QCOMPARE(actual, expectedOutput);
 }
 
 QTEST_MAIN(tst_QMultimediaUtils)

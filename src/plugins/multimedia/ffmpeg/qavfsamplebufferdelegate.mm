@@ -113,6 +113,7 @@ static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, const CVPixelBu
 @implementation QAVFSampleBufferDelegate {
 @private
     std::function<void(const QVideoFrame &)> frameHandler;
+    std::function<QAVFSampleBufferTransformation()> transformationProvider;
     AVBufferRef *hwFramesContext;
     std::unique_ptr<QFFmpeg::HWAccel> m_accel;
     qint64 startTime;
@@ -165,6 +166,11 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
     return self;
 }
 
+- (void)setTransformationProvider:(std::function<QAVFSampleBufferTransformation()>)provider
+{
+    transformationProvider = std::move(provider);
+}
+
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
         didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
                fromConnection:(AVCaptureConnection *)connection
@@ -195,6 +201,12 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
                    << CVPixelBufferGetWidth(imageBuffer) << 'x'
                    << CVPixelBufferGetHeight(imageBuffer);
         return;
+    }
+
+    if (transformationProvider) {
+        const QAVFSampleBufferTransformation transform = transformationProvider();
+        format.setRotation(transform.rotation);
+        format.setMirrored(transform.mirrored);
     }
 
     format.setStreamFrameRate(frameRate);
