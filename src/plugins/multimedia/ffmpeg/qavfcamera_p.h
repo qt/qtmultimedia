@@ -33,10 +33,12 @@ Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceInput);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoDataOutput);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
 Q_FORWARD_DECLARE_OBJC_CLASS(QAVFSampleBufferDelegate);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceRotationCoordinator);
 
 QT_BEGIN_NAMESPACE
 
 class QFFmpegVideoSink;
+struct QAVFSampleBufferTransformation;
 
 class QAVFCamera : public QAVFCameraBase
 {
@@ -54,14 +56,12 @@ public:
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
 
-    void syncHandleFrame(const QVideoFrame &frame);
-
-    void deviceOrientationChanged(int angle = -1);
-
     std::optional<int> ffmpegHWPixelFormat() const override;
 
     int cameraPixelFormatScore(QVideoFrameFormat::PixelFormat pixelFmt,
                                QVideoFrameFormat::ColorRange colorRange) const override;
+
+    QVideoFrameFormat frameFormat() const override;
 
 private:
     bool checkCameraPermission();
@@ -70,6 +70,8 @@ private:
     void attachVideoInputDevice();
     uint32_t setPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat, uint32_t inputCvPixFormat);
     QSize adjustedResolution() const;
+    QAVFSampleBufferTransformation surfaceTransform() const;
+    bool isFrontCamera() const;
 
     AVCaptureDevice *device() const;
 
@@ -79,8 +81,10 @@ private:
     AVCaptureVideoDataOutput *m_videoDataOutput = nullptr;
     QAVFSampleBufferDelegate *m_sampleBufferDelegate = nullptr;
     dispatch_queue_t m_delegateQueue;
-    QVideoOutputOrientationHandler m_orientationHandler;
     AVPixelFormat m_hwPixelFormat = AV_PIX_FMT_NONE;
+
+    // Gives us rotational information about the camera-device.
+    AVCaptureDeviceRotationCoordinator *m_rotationCoordinator API_AVAILABLE(macos(14.0), ios(17.0)) = nullptr;
 };
 
 QT_END_NAMESPACE

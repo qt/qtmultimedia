@@ -79,6 +79,9 @@ qNormalizedSurfaceTransformation(const QVideoFrameFormat &format);
 Q_MULTIMEDIA_EXPORT NormalizedVideoTransformation
 qNormalizedFrameTransformation(const QVideoFrame &frame, int additionalRotaton = 0);
 
+Q_MULTIMEDIA_EXPORT QtVideo::Rotation
+qVideoRotationFromDegrees(int clockwiseDegrees);
+
 QT_END_NAMESPACE
 
 #endif // QMULTIMEDIAUTILS_P_H
