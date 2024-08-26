@@ -27,10 +27,6 @@ set_target_properties(audiodevices PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
 
-target_include_directories(audiodevices PUBLIC
-    ../shared
-)
-
 target_link_libraries(audiodevices PUBLIC
     Qt::Core
     Qt::Gui

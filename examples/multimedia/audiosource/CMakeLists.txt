@@ -25,10 +25,6 @@ set_target_properties(audiosource PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
 
-target_include_directories(audiosource PUBLIC
-    ../shared
-)
-
 target_link_libraries(audiosource PUBLIC
     Qt::Core
     Qt::Gui
