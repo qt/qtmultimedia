@@ -6,8 +6,11 @@
 #include "qvideoframeformat.h"
 
 #include <QtCore/qdir.h>
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
+
+static Q_LOGGING_CATEGORY(qLcMultimediaUtils, "qt.multimedia.utils");
 
 Fraction qRealToFraction(qreal value)
 {
@@ -112,6 +115,24 @@ NormalizedFrameTransformation qNormalizedFrameTransformation(const QVideoFrame &
         frameRotationIndex = (frameRotationIndex + 2) % 4;
 
     return { QtVideo::Rotation(frameRotationIndex * 90), frameRotationIndex, mirrored };
+}
+
+// Only accepts inputs divisible by 90.
+// Invalid input returns no rotation.
+QtVideo::Rotation qVideoRotationFromDegrees(int clockwiseDegrees)
+{
+    if (clockwiseDegrees % 90 != 0) {
+        qCWarning(qLcMultimediaUtils) << "qVideoRotationFromAngle(int) received "
+                                         "input not divisible by 90. Input was: "
+                                      << clockwiseDegrees;
+        return QtVideo::Rotation::None;
+    }
+
+    int newDegrees = clockwiseDegrees % 360;
+    // Adjust negative rotations into positive ones.
+    if (newDegrees < 0)
+        newDegrees += 360;
+    return static_cast<QtVideo::Rotation>(newDegrees);
 }
 
 QT_END_NAMESPACE

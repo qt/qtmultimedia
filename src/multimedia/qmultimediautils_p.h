@@ -76,6 +76,9 @@ inline bool operator==(const NormalizedFrameTransformation &lhs,
 Q_MULTIMEDIA_EXPORT NormalizedFrameTransformation
 qNormalizedFrameTransformation(const QVideoFrame &frame, int additionalRotaton = 0);
 
+Q_MULTIMEDIA_EXPORT QtVideo::Rotation
+qVideoRotationFromDegrees(int clockwiseDegrees);
+
 QT_END_NAMESPACE
 
 #endif // QMULTIMEDIAUTILS_P_H

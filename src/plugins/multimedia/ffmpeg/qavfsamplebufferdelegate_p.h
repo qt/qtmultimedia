@@ -20,6 +20,7 @@
 
 #include <qtconfigmacros.h>
 #include <qtypes.h>
+#include <qtvideo.h>
 
 #include <memory>
 #include <functional>
@@ -32,11 +33,28 @@ namespace QFFmpeg {
 class HWAccel;
 }
 
+// Struct for transforming a QVideoFrame constructed by the QAVFSamplerBufferDelegate
+struct QAVFSampleBufferTransformation {
+    QtVideo::Rotation rotation = QtVideo::Rotation::None;
+    bool mirrored = false;
+};
+
 QT_END_NAMESPACE
 
+// This type is used by screencapture and camera-capture.
 @interface QAVFSampleBufferDelegate : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
 
+// These parameters are called during the captureOutput callback.
+//
+// The handler parameter is called at the end, when the QVideoFrame is constructed and configured.
+//
+// The modifier is called to modify the frame before it is finally sent to the handler.
+// This can be used to i.e add metadata to the frame.
 - (instancetype)initWithFrameHandler:(std::function<void(const QVideoFrame &)>)handler;
+
+// Allows the object to update the QVideoFrame metadata based on rotatation and mirroring.
+// This does NOT rotate the pixel buffer.
+- (void)setTransformationProvider:(std::function<QAVFSampleBufferTransformation()>)provider;
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
         didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer

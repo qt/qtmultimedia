@@ -29,8 +29,15 @@ QAVFCamera::QAVFCamera(QCamera *parent)
     : QAVFCameraBase(parent)
 {
     m_captureSession = [[AVCaptureSession alloc] init];
-    m_sampleBufferDelegate = [[QAVFSampleBufferDelegate alloc]
-            initWithFrameHandler:[this](const QVideoFrame &frame) { syncHandleFrame(frame); }];
+
+    auto frameHandler = [this](QVideoFrame frame) {
+        frame.setMirrored(isFrontCamera()); // presentation mirroring
+        emit newVideoFrame(frame);
+    };
+
+    m_sampleBufferDelegate = [[QAVFSampleBufferDelegate alloc] initWithFrameHandler:frameHandler];
+
+    [m_sampleBufferDelegate setTransformationProvider:[this] { return surfaceTransform(); }];
 }
 
 QAVFCamera::~QAVFCamera()
@@ -39,6 +46,11 @@ QAVFCamera::~QAVFCamera()
     [m_videoInput release];
     [m_videoDataOutput release];
     [m_captureSession release];
+
+#if QT_MACOS_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(140000, 17000)
+    if (@available(macOS 14.0, iOS 17.0, *))
+        [m_rotationCoordinator release];
+#endif
 }
 
 bool QAVFCamera::checkCameraPermission()
@@ -72,37 +84,6 @@ void QAVFCamera::updateVideoInput()
         [m_captureSession addOutput:m_videoDataOutput];
     }
     [m_captureSession commitConfiguration];
-    deviceOrientationChanged();
-}
-
-void QAVFCamera::deviceOrientationChanged(int angle)
-{
-    AVCaptureConnection *connection = [m_videoDataOutput connectionWithMediaType:AVMediaTypeVideo];
-    if (connection == nil || !m_videoDataOutput)
-        return;
-
-    if (!connection.supportsVideoOrientation)
-        return;
-
-    if (angle < 0)
-        angle = m_orientationHandler.currentOrientation();
-
-    AVCaptureVideoOrientation orientation = AVCaptureVideoOrientationPortrait;
-    switch (angle) {
-    default:
-        break;
-    case 90:
-        orientation = AVCaptureVideoOrientationLandscapeRight;
-        break;
-    case 180:
-        // this keeps the last orientation, don't do anything
-        return;
-    case 270:
-        orientation = AVCaptureVideoOrientationLandscapeLeft;
-        break;
-    }
-
-    connection.videoOrientation = orientation;
 }
 
 void QAVFCamera::attachVideoInputDevice()
@@ -132,6 +113,19 @@ void QAVFCamera::attachVideoInputDevice()
     } else {
         qWarning() << "Failed to create video device input";
     }
+
+    // Create the rotation-coordinator object for the newly attached
+    // capture-device. Rotation coordinator must be initialized after
+    // video-input is attached.
+#if QT_MACOS_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(140000, 170000)
+    if (@available(macOS 14.0, iOS 17.0, *)) {
+        if (m_rotationCoordinator)
+            [m_rotationCoordinator release];
+        m_rotationCoordinator = [[AVCaptureDeviceRotationCoordinator alloc]
+            initWithDevice:device()
+            previewLayer:nil];
+    }
+#endif
 }
 
 AVCaptureDevice *QAVFCamera::device() const
@@ -327,11 +321,6 @@ QSize QAVFCamera::adjustedResolution() const
 #endif // Q_OS_MACOS
 }
 
-void QAVFCamera::syncHandleFrame(const QVideoFrame &frame)
-{
-    Q_EMIT newVideoFrame(frame);
-}
-
 std::optional<int> QAVFCamera::ffmpegHWPixelFormat() const
 {
     return m_hwPixelFormat == AV_PIX_FMT_NONE ? std::optional<int>{} : m_hwPixelFormat;
@@ -342,6 +331,70 @@ int QAVFCamera::cameraPixelFormatScore(QVideoFrameFormat::PixelFormat pixelForma
 {
     auto cvFormat = QAVFHelpers::toCVPixelFormat(pixelFormat, colorRange);
     return static_cast<int>(isCVFormatSupported(cvFormat));
+}
+
+QVideoFrameFormat QAVFCamera::frameFormat() const
+{
+    QVideoFrameFormat result = QPlatformCamera::frameFormat();
+
+    const QAVFSampleBufferTransformation transform = surfaceTransform();
+    result.setRotation(transform.rotation);
+    result.setMirrored(transform.mirrored);
+
+    return result;
+}
+
+QAVFSampleBufferTransformation QAVFCamera::surfaceTransform() const
+{
+    QAVFSampleBufferTransformation transform;
+
+    // Add the rotation metadata of this AVCaptureDevice.
+    //
+    // In some situations, AVFoundation can set the connection.videoRotationAgngle
+    // implicity and start rotating the pixel buffer before handing it back
+    // to us. In this case we want to account for this during preview and capture.
+    //
+    // This code assumes that m_rotationCoordinator.videoRotationAngleForHorizonLevelCapture
+    // and AVCaptureConnection.videoRotationAngle returns degrees
+    // that are divisible by 90. This has been the case during testing.
+    //
+    // TODO: Some rotations are not valid for preview on some devices (such as
+    // iPhones not being allowed to have an upside-down window). This usage of the
+    // rotation coordinator will still return it as a valid preview rotation, and
+    // might cause bugs on iPhone previews.
+
+    int captureAngle = 0;
+#if QT_MACOS_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(140000, 170000)
+    if (@available(macOS 14.0, iOS 17.0, *)) {
+        if (m_rotationCoordinator)
+            captureAngle = static_cast<int>(std::round(
+                m_rotationCoordinator.videoRotationAngleForHorizonLevelCapture));
+    }
+#endif
+
+    int connectionAngle = 0;
+    const AVCaptureConnection *connection = m_videoDataOutput
+            ? [m_videoDataOutput connectionWithMediaType:AVMediaTypeVideo]
+            : nullptr;
+
+    if (connection) {
+#if QT_MACOS_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(140000, 170000)
+        if (@available(macOS 14.0, iOS 17.0, *))
+            connectionAngle = static_cast<int>(std::round(connection.videoRotationAngle));
+#endif
+
+        transform.mirrored = connection.videoMirrored;
+    }
+
+    transform.rotation = qVideoRotationFromDegrees(captureAngle - connectionAngle);
+
+    return transform;
+}
+
+bool QAVFCamera::isFrontCamera() const
+{
+    AVCaptureDevice *captureDevice = device();
+    return captureDevice && captureDevice.position == AVCaptureDevicePositionFront;
 }
 
 QT_END_NAMESPACE
