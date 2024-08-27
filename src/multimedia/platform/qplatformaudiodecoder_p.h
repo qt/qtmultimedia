@@ -71,6 +71,8 @@ public:
     QAudioDecoder::Error error() const { return m_error; }
     QString errorString() const { return m_errorString; }
 
+    virtual bool canReadQrc() const { return false; }
+
     virtual ~QPlatformAudioDecoder();
 
 protected:

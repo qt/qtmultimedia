@@ -355,6 +355,11 @@ const QGstPipeline &QGstreamerMediaPlayer::pipeline() const
     return playerPipeline;
 }
 
+bool QGstreamerMediaPlayer::canPlayQrc() const
+{
+    return true;
+}
+
 void QGstreamerMediaPlayer::stopOrEOS(bool eos)
 {
     using namespace std::chrono_literals;
@@ -1029,7 +1034,10 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         decoder.set("uri", "appsrc://");
         seekableChanged(!m_stream->isSequential());
     } else {
-        decoder.set("uri", content.toEncoded().constData());
+        QByteArray contentUri = content.toEncoded();
+        decoder.set("uri", contentUri.constData());
+        if (contentUri.startsWith("qrc:"))
+            seekableChanged(true); // qrc resources are seekable
     }
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
