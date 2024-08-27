@@ -78,6 +78,8 @@ public:
 
     const QGstPipeline &pipeline() const;
 
+    bool canPlayQrc() const override;
+
 private:
     QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput, QMediaPlayer *parent);
 

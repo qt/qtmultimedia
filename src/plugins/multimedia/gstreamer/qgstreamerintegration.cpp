@@ -14,6 +14,7 @@
 #include <mediacapture/qgstreamerimagecapture_p.h>
 #include <mediacapture/qgstreamermediacapture_p.h>
 #include <mediacapture/qgstreamermediaencoder_p.h>
+#include <uri_handler/qgstreamer_qrc_handler_p.h>
 
 #include <QtCore/qloggingcategory.h>
 #include <QtMultimedia/private/qmediaplayer_p.h>
@@ -160,6 +161,8 @@ QGstreamerIntegration::QGstreamerIntegration()
         for (const char *name : nvcodecPluginNames)
             rankDownPlugin(reg, name);
     }
+
+    qGstRegisterQRCHandler(nullptr);
 }
 
 QPlatformMediaFormatInfo *QGstreamerIntegration::createFormatInfo()
