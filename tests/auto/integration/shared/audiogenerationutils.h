@@ -5,6 +5,7 @@
 #define AUDIOGENERATIONUTILS_H
 
 #include <QAudioFormat>
+#include <QAudioBuffer>
 #include <chrono>
 #include <limits>
 
@@ -58,6 +59,82 @@ inline QByteArray createSineWaveData(const QAudioFormat &format, std::chrono::mi
 
     return data;
 }
+
+class AudioGenerator : public QObject
+{
+    Q_OBJECT
+public:
+    AudioGenerator()
+    {
+        m_format.setSampleFormat(QAudioFormat::UInt8);
+        m_format.setSampleRate(8000);
+        m_format.setChannelConfig(QAudioFormat::ChannelConfigMono);
+    }
+
+    void setFormat(const QAudioFormat &format)
+    { //
+        m_format = format;
+    }
+
+    void setBufferCount(int count)
+    { //
+        m_maxBufferCount = std::max(count, 1);
+    }
+
+    void setDuration(std::chrono::microseconds duration)
+    { //
+        m_duration = duration;
+    }
+
+    void setFrequency(qreal frequency)
+    { //
+        m_frequency = frequency;
+    }
+
+    void emitEmptyBufferOnStop()
+    { //
+        m_emitEmptyBufferOnStop = true;
+    }
+
+    QAudioBuffer createAudioBuffer()
+    {
+        const std::chrono::microseconds bufferDuration = m_duration * (m_bufferIndex + 1) / m_maxBufferCount
+                - m_duration * m_bufferIndex / m_maxBufferCount;
+        QByteArray data = createSineWaveData(m_format, bufferDuration, m_sampleIndex, m_frequency);
+        Q_ASSERT(m_format.bytesPerSample());
+        m_sampleIndex += data.size() / m_format.bytesPerSample();
+        return QAudioBuffer(data, m_format);
+    }
+
+signals:
+    void done();
+    void audioBufferCreated(const QAudioBuffer &buffer);
+
+public slots:
+    void nextBuffer()
+{
+        if (m_bufferIndex == m_maxBufferCount) {
+            emit done();
+            if (m_emitEmptyBufferOnStop)
+                emit audioBufferCreated({});
+            return;
+        }
+
+        const QAudioBuffer buffer = createAudioBuffer();
+
+        emit audioBufferCreated(buffer);
+        ++m_bufferIndex;
+    }
+
+private:
+    int m_maxBufferCount = 1;
+    std::chrono::microseconds m_duration{ std::chrono::seconds{ 1 } };
+    int m_bufferIndex = 0;
+    QAudioFormat m_format;
+    bool m_emitEmptyBufferOnStop = false;
+    qreal m_frequency = 500.;
+    qint32 m_sampleIndex = 0;
+};
 
 QT_END_NAMESPACE
 
