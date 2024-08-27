@@ -3477,7 +3477,13 @@ void tst_QMediaPlayerBackend::finiteLoops()
     QTRY_COMPARE_WITH_TIMEOUT(m_fixture->player.playbackState(), QMediaPlayer::StoppedState, 15'000);
 
     // Check for expected number of loop iterations and startPos, endPos and posCount per iteration
-    std::vector<LoopIteration> iterations = loopIterations(m_fixture->positionChanged);
+    const std::vector<LoopIteration> iterations = loopIterations(m_fixture->positionChanged);
+
+    // expected loops boundaries:
+    // 0: (0 ... duration]. 0 is not emitted as it's not a change from the start state
+    // 1: [0 ... duration]
+    // 2: [0 ... duration]
+
     QCOMPARE(iterations.size(), 3u);
     QCOMPARE_GT(iterations[0].startPos, 0);
     QCOMPARE(iterations[0].endPos, m_fixture->player.duration());
@@ -3485,11 +3491,19 @@ void tst_QMediaPlayerBackend::finiteLoops()
     QCOMPARE(iterations[1].endPos, m_fixture->player.duration());
     QCOMPARE(iterations[2].startPos, 0);
     QCOMPARE(iterations[2].endPos, m_fixture->player.duration());
-    if (isFFMPEGPlatform()) {
-        QCOMPARE_GT(iterations[0].posCount, 10);
-        QCOMPARE_GT(iterations[1].posCount, 10);
-        QCOMPARE_GT(iterations[2].posCount, 10);
-    }
+
+    // In the FFmpeg backend an approximate interval of position change update is 50ms,
+    // so we estimate to get "duration / 50 / playbackState" intermediate updates and
+    // 2 boundary updates.
+    // Assuming timing inaccuaracies, let's consider the interval = 50 * 2
+    // to address the test flakeness.
+    // For other backends, let's check that we have at lest one intermediate position update.
+    const int expectedIntermediatePositionsCount = isFFMPEGPlatform()
+            ? m_fixture->player.duration() / 100 / m_fixture->player.playbackRate()
+            : 1;
+    QCOMPARE_GE(iterations[0].posCount, expectedIntermediatePositionsCount + 1);
+    QCOMPARE_GE(iterations[1].posCount, expectedIntermediatePositionsCount + 2);
+    QCOMPARE_GE(iterations[2].posCount, expectedIntermediatePositionsCount + 2);
 
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
