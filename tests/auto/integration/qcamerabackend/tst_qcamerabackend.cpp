@@ -55,6 +55,8 @@ private slots:
     void testCameraFormat();
     void testCameraCapture();
     void testCaptureToBuffer();
+    void captureToFile_createsFileWithExpectedExtension_data();
+    void captureToFile_createsFileWithExpectedExtension();
     void testCameraCaptureMetadata();
     void testExposureCompensation();
     void testExposureMode();
@@ -430,6 +432,89 @@ void tst_QCameraBackend::testCaptureToBuffer()
     savedSignal.clear();
 
     QTRY_VERIFY(imageCapture.isReadyForCapture());
+}
+
+void tst_QCameraBackend::captureToFile_createsFileWithExpectedExtension_data()
+{
+    QTest::addColumn<QString>("inputFilename");
+    QTest::addColumn<QImageCapture::FileFormat>("format");
+    QTest::addColumn<QString>("expectedFilename");
+
+    {
+        QTest::addRow("Add file extension to JPEG file without extension")
+                << "file" << QImageCapture::JPEG << "file.jpg";
+        QTest::addRow("Keep extension of JPEG file with extension")
+                << "file.jpeg" << QImageCapture::JPEG << "file.jpeg";
+        QTest::addRow("Keep extension of JPEG file with wrong extension")
+                << "file.png" << QImageCapture::JPEG << "file.png";
+    }
+
+    {
+        QTest::addRow("Add file extension to PNG file without extension")
+                << "file" << QImageCapture::PNG << "file.png";
+        QTest::addRow("Keep extension of PNG file with extension")
+                << "file.apng" << QImageCapture::PNG << "file.apng";
+        QTest::addRow("Keep extension of PNG file with wrong extension")
+                << "file.jpg" << QImageCapture::PNG << "file.jpg";
+    }
+
+    {
+        QTest::addRow("Add file extension to WebP file without extension")
+                << "file" << QImageCapture::WebP << "file.webp";
+        QTest::addRow("Keep extension of WebP file with extension")
+                << "file.web" << QImageCapture::WebP << "file.web";
+        QTest::addRow("Keep extension of WebP file with wrong extension")
+                << "file.png" << QImageCapture::WebP << "file.png";
+    }
+
+    {
+        QTest::addRow("Add file extension to Tiff file without extension")
+                << "file" << QImageCapture::Tiff << "file.tiff";
+        QTest::addRow("Keep extension of Tiff file with extension")
+                << "file.cr2" << QImageCapture::Tiff << "file.cr2";
+        QTest::addRow("Keep extension of Tiff file with wrong extension")
+                << "file.png" << QImageCapture::Tiff << "file.png";
+    }
+}
+
+void tst_QCameraBackend::captureToFile_createsFileWithExpectedExtension()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    QFETCH(const QString, inputFilename);
+    QFETCH(const QImageCapture::FileFormat, format);
+    QFETCH(const QString, expectedFilename);
+
+    QCamera camera;
+    camera.setFlashMode(QCamera::FlashOff);
+
+    QImageCapture imageCapture;
+    imageCapture.setFileFormat(format);
+
+    QMediaCaptureSession session;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
+    QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
+
+    camera.start();
+
+    QTRY_VERIFY(imageCapture.isReadyForCapture());
+
+    QTemporaryDir tempDir;
+    tempDir.setAutoRemove(false);
+    const QString tempFile = tempDir.filePath(inputFilename);
+    imageCapture.captureToFile(tempFile);
+
+    QTRY_VERIFY(!savedSignal.isEmpty());
+
+    const QString imagePath = tempDir.filePath(expectedFilename);
+    QVERIFY(QFile::exists(imagePath));
+
+    QImage image;
+    QVERIFY(image.load(imagePath));
+    QVERIFY(!image.isNull());
 }
 
 void tst_QCameraBackend::testCameraCaptureMetadata()

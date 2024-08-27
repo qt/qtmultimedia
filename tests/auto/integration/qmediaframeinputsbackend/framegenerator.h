@@ -8,6 +8,8 @@
 #include <QtCore/qlist.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qaudiobuffer.h>
+#include "../shared/audiogenerationutils.h"
+
 #include <functional>
 #include <chrono>
 
@@ -53,35 +55,6 @@ private:
     std::optional<QtVideo::Rotation> m_presentationRotation;
     std::optional<bool> m_presentationMirrored;
     bool m_emitEmptyFrameOnStop = false;
-};
-
-class AudioGenerator : public QObject
-{
-    Q_OBJECT
-public:
-    AudioGenerator();
-    void setFormat(const QAudioFormat &format);
-    void setBufferCount(int count);
-    void setDuration(microseconds duration);
-    void setFrequency(qreal frequency);
-    void emitEmptyBufferOnStop();
-    QAudioBuffer createAudioBuffer();
-
-signals:
-    void done();
-    void audioBufferCreated(const QAudioBuffer &buffer);
-
-public slots:
-    void nextBuffer();
-
-private:
-    int m_maxBufferCount = 1;
-    microseconds m_duration = 1s;
-    int m_bufferIndex = 0;
-    QAudioFormat m_format;
-    bool m_emitEmptyBufferOnStop = false;
-    qreal m_frequency = 500.;
-    qint32 m_sampleIndex = 0;
 };
 
 QT_END_NAMESPACE
