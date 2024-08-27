@@ -71,6 +71,8 @@ public:
 
     virtual void setVideoSink(QVideoSink * /*sink*/) = 0;
 
+    virtual bool canPlayQrc() const { return false; }
+
     // media streams
     enum TrackType : uint8_t { VideoStream, AudioStream, SubtitleStream, NTrackTypes };
 

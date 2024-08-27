@@ -129,6 +129,11 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
     }
 }
 
+bool QGstreamerAudioDecoder::canReadQrc() const
+{
+    return true;
+}
+
 bool QGstreamerAudioDecoder::processBusMessageError(const QGstreamerMessage &message)
 {
     qCDebug(qLcGstreamerAudioDecoder) << "    error" << QCompactGstMessageAdaptor(message);

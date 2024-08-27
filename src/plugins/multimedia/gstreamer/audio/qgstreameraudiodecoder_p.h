@@ -61,6 +61,8 @@ public:
     // GStreamerBusMessageFilter interface
     bool processBusMessage(const QGstreamerMessage &message) override;
 
+    bool canReadQrc() const override;
+
 private slots:
     void updateDuration();
 
