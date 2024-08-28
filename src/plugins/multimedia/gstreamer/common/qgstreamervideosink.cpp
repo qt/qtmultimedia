@@ -130,7 +130,13 @@ QGstreamerVideoSink::~QGstreamerVideoSink()
 
 QGstElement QGstreamerVideoSink::gstSink()
 {
-    updateSinkElement();
+    if (!m_gstVideoSink) {
+        if (!m_gstQtSink)
+            createQtSink();
+
+        updateSinkElement(m_gstQtSink);
+    }
+
     return m_sinkBin;
 }
 
@@ -153,48 +159,36 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
 
     m_rhi = rhi;
     updateGstContexts();
-    if (!m_gstQtSink.isNull()) {
+    if (m_gstQtSink) {
+        QGstVideoRendererSinkElement oldSink = std::move(m_gstQtSink);
+
         // force creation of a new sink with proper caps.
         createQtSink();
-        updateSinkElement();
-
-        QGstPipeline pipeline = m_sinkBin.getPipeline();
-        if (pipeline)
-            pipeline.flush(); // the caps may change, so we need to flush the pipeline.
+        updateSinkElement(m_gstQtSink);
     }
 }
 
 void QGstreamerVideoSink::createQtSink()
 {
-    if (m_gstQtSink)
-        m_gstQtSink.setStateSync(GST_STATE_NULL);
+    Q_ASSERT(!m_gstQtSink);
 
     m_gstQtSink = QGstVideoRendererSink::createSink(this);
-    if (m_gstQtSink)
-        m_gstQtSink.setActive(m_isActive);
+    m_gstQtSink.set("async", false); // no asynchronous state changes
+    m_gstQtSink.setActive(m_isActive);
 }
 
-void QGstreamerVideoSink::updateSinkElement()
+void QGstreamerVideoSink::updateSinkElement(QGstVideoRendererSinkElement newSink)
 {
-    QGstElement newSink;
-    if (m_gstQtSink.isNull())
-        createQtSink();
-
-    newSink = m_gstQtSink;
-
     if (newSink == m_gstVideoSink)
         return;
 
-    QGstPipeline::modifyPipelineWhileNotRunning(m_sinkBin.getPipeline(), [&] {
-        if (!m_gstVideoSink.isNull())
+    m_gstCapsFilter.src().modifyPipelineInIdleProbe([&] {
+        if (m_gstVideoSink)
             m_sinkBin.stopAndRemoveElements(m_gstVideoSink);
 
-        newSink.set("async", false); // no asynchronous state changes
-
-        m_gstVideoSink = newSink;
+        m_gstVideoSink = std::move(newSink);
         m_sinkBin.add(m_gstVideoSink);
         qLinkGstElements(m_gstCapsFilter, m_gstVideoSink);
-
         GstEvent *event = gst_event_new_reconfigure();
         gst_element_send_event(m_gstVideoSink.element(), event);
         m_gstVideoSink.syncStateWithParent();

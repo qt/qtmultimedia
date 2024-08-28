@@ -494,7 +494,7 @@ void QGstreamerAudioDecoder::addAppSink()
     static constexpr bool sync = false;
     m_appSink.setSync(sync);
 
-    QGstPipeline::modifyPipelineWhileNotRunning(m_playbin.getPipeline(), [&] {
+    m_audioConvert.src().modifyPipelineInIdleProbe([&] {
         m_outputBin.add(m_appSink);
         qLinkGstElements(m_audioConvert, m_appSink);
     });
@@ -507,10 +507,11 @@ void QGstreamerAudioDecoder::removeAppSink()
 
     qCDebug(qLcGstreamerAudioDecoder) << "QGstreamerAudioDecoder::removeAppSink";
 
-    QGstPipeline::modifyPipelineWhileNotRunning(m_playbin.getPipeline(), [&] {
+    m_audioConvert.src().modifyPipelineInIdleProbe([&] {
         qUnlinkGstElements(m_audioConvert, m_appSink);
         m_outputBin.stopAndRemoveElements(m_appSink);
     });
+
     m_appSink = {};
 }
 

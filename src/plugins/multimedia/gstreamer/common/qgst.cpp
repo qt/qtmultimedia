@@ -886,6 +886,33 @@ bool QGstPad::sendEvent(GstEvent *event)
     return gst_pad_send_event(pad(), event);
 }
 
+void QGstPad::sendFlushStartStop(bool resetTime)
+{
+    GstEvent *flushStart = gst_event_new_flush_start();
+    gboolean ret = sendEvent(flushStart);
+    if (!ret) {
+        qWarning("failed to send flush-start event");
+        return;
+    }
+
+    GstEvent *flushStop = gst_event_new_flush_stop(resetTime);
+    ret = sendEvent(flushStop);
+    if (!ret)
+        qWarning("failed to send flush-stop event");
+}
+
+void QGstPad::sendFlushIfPaused()
+{
+    using namespace std::chrono_literals;
+
+    GstState state = parent().state(1s);
+
+    if (state != GST_STATE_PAUSED)
+        return;
+
+    sendFlushStartStop(/*resetTime=*/true);
+}
+
 // QGstClock
 
 QGstClock::QGstClock(const QGstObject &o)

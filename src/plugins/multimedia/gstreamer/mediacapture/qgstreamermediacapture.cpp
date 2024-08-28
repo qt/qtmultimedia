@@ -43,7 +43,6 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutpu
 {
     gstVideoOutput->setParent(this);
     gstVideoOutput->setIsPreview();
-    gstVideoOutput->setPipeline(capturePipeline);
 
     capturePipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
 

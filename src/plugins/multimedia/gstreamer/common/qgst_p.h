@@ -592,6 +592,7 @@ public:
 
     GstEvent *stickyEvent(GstEventType type);
     bool sendEvent(GstEvent *event);
+    void sendFlushStartStop(bool resetTime);
 
     template<auto Member, typename T>
     void addProbe(T *instance, GstPadProbeType type) {
@@ -637,6 +638,11 @@ public:
 
         gst_pad_add_probe(pad(), GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, callback, instance, nullptr);
     }
+
+    template <typename Functor>
+    void modifyPipelineInIdleProbe(Functor &&f);
+
+    void sendFlushIfPaused();
 };
 
 class QGstClock : public QGstObject
@@ -757,6 +763,35 @@ private:
     QGstQueryHandle &positionQuery() const;
     mutable QGstQueryHandle m_positionQuery;
 };
+
+template <typename Functor>
+void QGstPad::modifyPipelineInIdleProbe(Functor &&f)
+{
+    using namespace std::chrono_literals;
+
+    GstPadDirection direction = gst_pad_get_direction(pad());
+
+    switch (direction) {
+    case GstPadDirection::GST_PAD_SINK: {
+        // modifying a source: we need to flush the sink pad before we can modify downstream
+        // elements
+        sendFlushIfPaused();
+        doInIdleProbe(f);
+        return;
+    }
+    case GstPadDirection::GST_PAD_SRC: {
+        // modifying a sink: we need to use the idle probes iff the pipeline is playing
+        if (parent().state(1s) == GstState::GST_STATE_PLAYING)
+            doInIdleProbe(f);
+        else
+            f();
+        return;
+    }
+
+    default:
+        Q_UNREACHABLE();
+    }
+}
 
 template <typename... Ts>
 std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), void>
