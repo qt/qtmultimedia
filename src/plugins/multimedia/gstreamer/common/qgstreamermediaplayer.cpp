@@ -454,6 +454,9 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
     case GST_MESSAGE_ASYNC_DONE:
         return processBusMessageAsyncDone(message);
 
+    case GST_MESSAGE_LATENCY:
+        return processBusMessageLatency(message);
+
     default:
 //        qCDebug(qLcMediaPlayer) << "    default message handler, doing nothing";
         break;
@@ -670,6 +673,12 @@ bool QGstreamerMediaPlayer::processBusMessageAsyncDone(const QGstreamerMessage &
     if (playerPipeline.state() >= GST_STATE_PAUSED)
         detectPipelineIsSeekable();
 
+    return false;
+}
+
+bool QGstreamerMediaPlayer::processBusMessageLatency(const QGstreamerMessage &)
+{
+    playerPipeline.recalculateLatency();
     return false;
 }
 

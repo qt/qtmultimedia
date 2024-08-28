@@ -334,6 +334,9 @@ bool QGstreamerMediaCapture::processBusMessage(const QGstreamerMessage &msg)
     case GST_MESSAGE_ERROR:
         return processBusMessageError(msg);
 
+    case GST_MESSAGE_LATENCY:
+        return processBusMessageLatency(msg);
+
     default:
         break;
     }
@@ -350,6 +353,12 @@ bool QGstreamerMediaCapture::processBusMessageError(const QGstreamerMessage &msg
     qWarning() << "QGstreamerMediaCapture: received error from gstreamer" << error << message;
     capturePipeline.dumpGraph("captureError");
 
+    return false;
+}
+
+bool QGstreamerMediaCapture::processBusMessageLatency(const QGstreamerMessage &)
+{
+    capturePipeline.recalculateLatency();
     return false;
 }
 
