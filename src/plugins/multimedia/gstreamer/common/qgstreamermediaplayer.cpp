@@ -1083,10 +1083,11 @@ QMediaMetaData QGstreamerMediaPlayer::metaData() const
 
 void QGstreamerMediaPlayer::setVideoSink(QVideoSink *sink)
 {
+    using namespace std::chrono_literals;
     gstVideoOutput->setVideoSink(sink);
 
-    if (state() != QMediaPlayer::StoppedState)
-        playerPipeline.flush(); // ensure that we send video frame to the new sink
+    if (playerPipeline.state(1s) == GstState::GST_STATE_PAUSED)
+        playerPipeline.flush(); // ensure that we send the current video frame to the new sink
 }
 
 static QGstStructureView endOfChain(const QGstStructureView &s)
