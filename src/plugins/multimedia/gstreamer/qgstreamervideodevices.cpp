@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qgstreamervideodevices_p.h"
+
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtCore/qloggingcategory.h>
 
 #include <common/qgst_p.h>
+#include <common/qgst_debug_p.h>
 #include <common/qgstutils_p.h>
 #include <common/qglist_helper_p.h>
 
@@ -15,6 +18,8 @@
 #endif
 
 QT_BEGIN_NAMESPACE
+
+Q_STATIC_LOGGING_CATEGORY(ltVideoDevices, "qt.multimedia.gstreamer.videodevices");
 
 QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration),
@@ -87,6 +92,11 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
                 auto cap = caps.at(i);
                 auto pixelFormat = cap.pixelFormat();
                 auto frameRate = cap.frameRateRange();
+
+                if (pixelFormat == QVideoFrameFormat::PixelFormat::Format_Invalid) {
+                    qCDebug(ltVideoDevices) << "pixel format not supported:" << cap;
+                    continue; // skip pixel formats that we don't support
+                }
 
                 auto addFormatForResolution = [&](QSize resolution) {
                     auto *f = new QCameraFormatPrivate{
