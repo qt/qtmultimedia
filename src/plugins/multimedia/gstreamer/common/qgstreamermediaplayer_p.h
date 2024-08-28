@@ -188,6 +188,7 @@ private:
     bool processBusMessageSegmentStart(const QGstreamerMessage &);
     bool processBusMessageElement(const QGstreamerMessage &);
     bool processBusMessageAsyncDone(const QGstreamerMessage &);
+    bool processBusMessageLatency(const QGstreamerMessage &);
 
     bool processSyncMessage(const QGstreamerMessage &) override;
     bool processSyncMessageNeedsContext(const QGstreamerMessage &);
