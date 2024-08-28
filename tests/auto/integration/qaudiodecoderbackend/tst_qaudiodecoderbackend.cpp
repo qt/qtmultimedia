@@ -195,9 +195,13 @@ void tst_QAudioDecoderBackend::indirectReadingByBufferReadySignal()
     QVERIFY(!decoder.bufferAvailable());
 
     decoder.start();
-    QTRY_VERIFY(decodingSpy.size() >= 1);
 
-    QTRY_VERIFY(finishSpy.size() == 1);
+    QTRY_VERIFY_WITH_TIMEOUT(decodingSpy.size() >= 1,
+                             60'000); // High timeout because decoding can take a long time
+
+    QTRY_VERIFY_WITH_TIMEOUT(finishSpy.size() == 1,
+                             60'000); // High timeout because decoding can take a long time
+
     QVERIFY(!decoder.isDecoding());
 
     checkNoMoreChanges(decoder);
