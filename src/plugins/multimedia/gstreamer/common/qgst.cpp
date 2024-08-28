@@ -1309,6 +1309,11 @@ QGstElement QGstBin::findByName(const char *name)
     };
 }
 
+void QGstBin::recalculateLatency()
+{
+    gst_bin_recalculate_latency(bin());
+}
+
 // QGstBaseSink
 
 QGstBaseSink::QGstBaseSink(GstBaseSink *element, RefMode mode)

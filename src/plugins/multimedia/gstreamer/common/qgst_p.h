@@ -811,6 +811,8 @@ public:
     void dumpGraph(const char *fileNamePrefix) const;
 
     QGstElement findByName(const char *);
+
+    void recalculateLatency();
 };
 
 class QGstBaseSink : public QGstElement
