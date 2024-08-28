@@ -331,20 +331,24 @@ QGstreamerVideoSink *QGstreamerMediaCapture::gstreamerVideoSink() const
 bool QGstreamerMediaCapture::processBusMessage(const QGstreamerMessage &msg)
 {
     switch (msg.type()) {
-    case GST_MESSAGE_ERROR: {
-        QUniqueGErrorHandle error;
-        QUniqueGStringHandle message;
-        gst_message_parse_error(msg.message(), &error, &message);
-
-        qWarning() << "QGstreamerMediaCapture: received error from gstreamer" << error << message;
-        capturePipeline.dumpGraph("captureError");
-
-        break;
-    }
+    case GST_MESSAGE_ERROR:
+        return processBusMessageError(msg);
 
     default:
         break;
     }
+
+    return false;
+}
+
+bool QGstreamerMediaCapture::processBusMessageError(const QGstreamerMessage &msg)
+{
+    QUniqueGErrorHandle error;
+    QUniqueGStringHandle message;
+    gst_message_parse_error(msg.message(), &error, &message);
+
+    qWarning() << "QGstreamerMediaCapture: received error from gstreamer" << error << message;
+    capturePipeline.dumpGraph("captureError");
 
     return false;
 }
