@@ -79,7 +79,10 @@ QGstreamerVideoOutput::~QGstreamerVideoOutput()
 
 void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 {
-    auto *gstVideoSink = sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
+    using namespace std::chrono_literals;
+
+    auto *gstVideoSink =
+            sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
     if (gstVideoSink == m_platformVideoSink)
         return;
 
@@ -111,11 +114,11 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
     if (m_videoSink == videoSink)
         return;
 
-    m_pipeline.modifyPipelineWhileNotRunning([&] {
-        if (!m_videoSink.isNull())
+    m_videoConvertScale.src().modifyPipelineInIdleProbe([&] {
+        if (m_videoSink)
             m_outputBin.stopAndRemoveElements(m_videoSink);
 
-        m_videoSink = videoSink;
+        m_videoSink = std::move(videoSink);
         m_outputBin.add(m_videoSink);
 
         qLinkGstElements(m_videoConvertScale, m_videoSink);
@@ -125,14 +128,8 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         m_videoSink.syncStateWithParent();
     });
 
-    qCDebug(qLcMediaVideoOutput) << "sinkChanged" << videoSink.name();
-
-    m_pipeline.dumpGraph(m_videoSink.name().constData());
-}
-
-void QGstreamerVideoOutput::setPipeline(const QGstPipeline &pipeline)
-{
-    m_pipeline = pipeline;
+    qCDebug(qLcMediaVideoOutput) << "sinkChanged" << m_videoSink.name();
+    m_videoConvertScale.dumpPipelineGraph(m_videoSink.name().constData());
 }
 
 void QGstreamerVideoOutput::setActive(bool isActive)

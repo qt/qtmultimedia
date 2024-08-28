@@ -48,7 +48,7 @@ Q_SIGNALS:
 
 private:
     void createQtSink();
-    void updateSinkElement();
+    void updateSinkElement(QGstVideoRendererSinkElement newSink);
 
     void unrefGstContexts();
     void updateGstContexts();
