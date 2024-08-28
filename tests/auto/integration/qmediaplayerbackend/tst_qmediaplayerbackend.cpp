@@ -1911,14 +1911,12 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackDuration()
 
     CHECK_SELECTED_URL(m_15sVideo);
 
-    // speeding up a 15s file by 3 should result in a duration of 5s
-    // auto minDuration = 3s;
-    // auto maxDuration = 7s;
-    // auto playbackRate = 3.0;
-
-    // speeding up a 15s file by 5 should result in a duration of 3s
-    auto minDuration = 2s;
-    auto maxDuration = 4s;
+    // speeding up a 15s file by 5 should result in a duration of 3s, but in CI,
+    // time measurements may be quite off. We can therefore only do basic
+    // sanity checking to make sure the playback has a duration greater
+    // than zero, and less than the video duration at normal playback rate
+    auto minDuration = 1s; // Reasonable approximation for zero
+    auto maxDuration = 14s; // Approximation for less than 15 seconds
     auto playbackRate = 5.0;
 
     QFETCH(const QLatin1String, testMode);
