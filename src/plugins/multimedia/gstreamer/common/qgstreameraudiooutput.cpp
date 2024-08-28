@@ -152,8 +152,9 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &device)
     }
 
     QGstElement newSink = createGstElement();
+    newSink.set("async", false); // no async state changes
 
-    QGstPipeline::modifyPipelineWhileNotRunning(m_audioOutputBin.getPipeline(), [&] {
+    m_audioVolume.src().modifyPipelineInIdleProbe([&] {
         qUnlinkGstElements(m_audioVolume, m_audioSink);
         m_audioOutputBin.stopAndRemoveElements(m_audioSink);
         m_audioSink = std::move(newSink);
@@ -161,10 +162,6 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &device)
         m_audioSink.syncStateWithParent();
         qLinkGstElements(m_audioVolume, m_audioSink);
     });
-
-    // we need to flush the pipeline, otherwise, the new sink doesn't always reach the new state
-    if (m_audioOutputBin.getPipeline())
-        m_audioOutputBin.getPipeline().flush();
 }
 
 QT_END_NAMESPACE

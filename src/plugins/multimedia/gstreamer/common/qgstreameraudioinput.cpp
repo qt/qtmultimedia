@@ -143,7 +143,7 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
 
     QGstElement newSrc = createGstElement();
 
-    QGstPipeline::modifyPipelineWhileNotRunning(m_audioInputBin.getPipeline(), [&] {
+    m_audioVolume.sink().modifyPipelineInIdleProbe([&] {
         qUnlinkGstElements(m_audioSrc, m_audioVolume);
         m_audioInputBin.stopAndRemoveElements(m_audioSrc);
         m_audioSrc = std::move(newSrc);

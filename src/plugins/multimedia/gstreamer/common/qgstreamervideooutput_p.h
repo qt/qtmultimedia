@@ -20,7 +20,6 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <common/qgst_p.h>
-#include <common/qgstpipeline_p.h>
 #include <common/qgstreamervideosink_p.h>
 #include <common/qgstsubtitlesink_p.h>
 
@@ -38,8 +37,6 @@ public:
 
     void setVideoSink(QVideoSink *sink);
     QGstreamerVideoSink *gstreamerVideoSink() const { return m_platformVideoSink; }
-
-    void setPipeline(const QGstPipeline &pipeline);
 
     QGstElement gstElement() const { return m_outputBin; }
     QGstElement gstSubtitleElement() const { return m_subtitleSink; }
@@ -65,8 +62,6 @@ private:
     QPointer<QGstreamerVideoSink> m_platformVideoSink;
 
     // Gst elements
-    QGstPipeline m_pipeline;
-
     QGstBin m_outputBin;
     QGstElement m_videoQueue;
     QGstElement m_videoConvertScale;

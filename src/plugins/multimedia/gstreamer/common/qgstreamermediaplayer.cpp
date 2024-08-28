@@ -151,7 +151,6 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
       gstVideoOutput(videoOutput)
 {
     gstVideoOutput->setParent(this);
-    gstVideoOutput->setPipeline(playerPipeline);
 
     for (auto &ts : trackSelectors)
         playerPipeline.add(ts.inputSelector);
