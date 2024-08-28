@@ -64,6 +64,7 @@ public:
 
 private:
     bool processBusMessage(const QGstreamerMessage &) override;
+    bool processBusMessageError(const QGstreamerMessage &);
 
     void setCameraActive(bool activate);
 
