@@ -270,7 +270,8 @@ void QMediaRecorder::setOutputLocation(const QUrl &location)
 void QMediaRecorder::setOutputDevice(QIODevice *device)
 {
     Q_D(QMediaRecorder);
-    d->control->setOutputDevice(device);
+    if (d->control)
+        d->control->setOutputDevice(device);
 }
 
 /*!
@@ -281,7 +282,7 @@ void QMediaRecorder::setOutputDevice(QIODevice *device)
 QIODevice *QMediaRecorder::outputDevice() const
 {
     Q_D(const QMediaRecorder);
-    return d->control->outputDevice();
+    return d->control ? d->control->outputDevice() : nullptr;
 }
 
 QUrl QMediaRecorder::actualLocation() const
@@ -641,7 +642,10 @@ void QMediaRecorder::setAutoStop(bool autoStop)
         return;
 
     d->autoStop = autoStop;
-    d->control->updateAutoStop();
+
+    if (d->control)
+        d->control->updateAutoStop();
+
     emit autoStopChanged();
 }
 
