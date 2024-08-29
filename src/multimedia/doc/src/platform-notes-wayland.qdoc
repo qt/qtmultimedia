@@ -10,8 +10,13 @@ This page covers the availability of Qt Multimedia features on Linux with Waylan
 
 \section1 Limitations
 
-The screen capture feature on systems using the Wayland compositor relies on
-\l {https://pipewire.org/}{PipeWire} (0.3) and requires that this library is installed.
+The screen capture feature requires the installation of:
+\list
+    \li The \l {https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.ScreenCast.html}{ScreenCast}
+        service supported via \l {https://flatpak.github.io/xdg-desktop-portal/docs/}{XDG Desktop Portal}.
+    \li {https://pipewire.org/}{PipeWire} (0.3).
+\endlist
+
 Due to restrictions of the Wayland protocol, the current screen can only be selected through
 the wizard displayed by the operation system when \c QScreenCapture instance is activated.
 For additional details, refer to the \l QScreenCapture class documentation.
