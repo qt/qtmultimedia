@@ -4,7 +4,6 @@
 #include <QtMultimedia/qvideosink.h>
 
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/qthread.h>
 
 #include <common/qgstreamervideooutput_p.h>
 #include <common/qgstreamervideosink_p.h>
