@@ -764,11 +764,13 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
 
     if (ts.trackCount() == 1) {
         if (streamType == VideoStream) {
-            setActivePad(ts, sinkPad);
+            ts.setActiveInputPad(sinkPad);
+            connectTrackSelectorToOutput(ts);
             videoAvailableChanged(true);
         }
         else if (streamType == AudioStream) {
-            setActivePad(ts, sinkPad);
+            ts.setActiveInputPad(sinkPad);
+            connectTrackSelectorToOutput(ts);
             audioAvailableChanged(true);
         }
     }
@@ -1205,7 +1207,7 @@ void QGstreamerMediaPlayer::setActiveTrack(TrackType type, int index)
 
 void QGstreamerMediaPlayer::setActivePad(TrackSelector &ts, const QGstPad &pad)
 {
-    playerPipeline.modifyPipelineWhileNotRunning([&] {
+    QGstPad(pad).modifyPipelineInIdleProbe([&] {
         if (pad) {
             ts.setActiveInputPad(pad);
             connectTrackSelectorToOutput(ts);
