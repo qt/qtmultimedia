@@ -26,6 +26,8 @@ if(NOT TARGET Qt::Network)
     return()
 endif()
 
+include(src/multimedia/Qt6MultimediaMacros.cmake)
+
 set(QT_BUILD_EXTRA_IDE_FILE_PATTERNS
     src/multimedia/doc/QtMultimediaDoc
     src/multimedia/doc/qtmultimedia.qdocconf
