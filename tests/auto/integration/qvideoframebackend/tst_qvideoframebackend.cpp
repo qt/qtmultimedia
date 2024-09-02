@@ -220,9 +220,6 @@ void tst_QVideoFrameBackend::toImage_rendersUpdatedFrame_afterMappingInWriteMode
 
 void tst_QVideoFrameBackend::toImage_returnsImage_whenCalledFromSeparateThreadAndWhileRenderingToWindow()
 {
-#if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM_64)
-    QSKIP("This test crashes on Windows ARM. See QTBUG-128161");
-#endif
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci") {
 #ifdef Q_OS_MACOS
         QSKIP("SKIP on macOS because of crash and error \"Failed to create QWindow::MetalSurface. Metal is not supported by any of the GPUs in this system.\"");
