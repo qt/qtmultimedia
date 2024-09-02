@@ -34,8 +34,14 @@ QT_BEGIN_NAMESPACE
 
     \brief The QMediaRecorder class is used for encoding and recording a capture session.
 
-    The QMediaRecorder class is a class for encoding and recording media generated in a
-    QMediaCaptureSession.
+    Use the QMediaRecorder class to encode and record media generated in
+    \l QMediaCaptureSession. You can generate:
+    \list
+        \li Audio. Use \l QAudioInput or \l QAudioBufferInput.
+        \li Video. Use \l QCamera, \l QScreenCapture, \l QWindowCapture, or \l QVideoFrameInput.
+    \endlist
+
+    To record media, connect a generator to a corresponding media capture session.
 
     \snippet multimedia-snippets/media.cpp Media recorder
 */
@@ -49,8 +55,11 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_audio_qml
     \ingroup multimedia_video_qml
 
-    The MediaRecorder element can be used within a CaptureSession to record and encode audio and
-    video captured from a microphone and camera
+    Use the MediaRecorder element within a CaptureSession to encode and record:
+    \list
+        \li Audio captured from an audio interface (like microphone or line input).
+        \li Video captured from camera, screen, or an application window.
+    \endlist
 
     \since 6.2
     The code below shows a simple capture session containing a MediaRecorder using the default
@@ -86,7 +95,7 @@ QT_BEGIN_NAMESPACE
     }
 \endqml
 
-    \sa CaptureSession, Camera, AudioInput, ImageCapture
+    \sa CaptureSession, Camera, ScreenCapture, WindowCapture, AudioInput, ImageCapture
 */
 QMediaRecorderPrivate::QMediaRecorderPrivate()
 {
@@ -101,7 +110,7 @@ QString QMediaRecorderPrivate::msgFailedStartRecording()
 }
 
 /*!
-    Constructs a media recorder which records the media produced by a microphone and camera.
+    Constructs a media recorder.
     The media recorder is a child of \a{parent}.
 */
 
