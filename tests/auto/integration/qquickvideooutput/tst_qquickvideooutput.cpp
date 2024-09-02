@@ -67,10 +67,6 @@ private:
 
 void tst_QQuickVideoOutput::initTestCase()
 {
-#if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM_64)
-    QSKIP("This init test fails on Windows ARM. See QTBUG-128151");
-#endif
-
     // We initialize the mapping vars here
     m_mappingComponent = new QQmlComponent(&m_engine);
     m_mappingComponent->loadUrl(QUrl("qrc:/main.qml"));
