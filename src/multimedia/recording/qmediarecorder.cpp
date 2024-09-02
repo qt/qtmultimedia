@@ -43,6 +43,21 @@ QT_BEGIN_NAMESPACE
 
     To record media, connect a generator to a corresponding media capture session.
 
+    Performance of video encoding and recording is limited by the hardware,
+    the operating system, the installed graphic drivers, and the input video format.
+    If \c QCamera, \c QScreenCapture, or \c QWindowCapture produces video frames
+    faster than \c QMediaRecorder can encode and record them, the recorder
+    may drop some frames. This is likely to occur if the input frame resolution
+    is high, 4K for example, and hardware-accelerated encoding is unavailable.
+    If you generate input video via \c QVideoFrameInput, the method
+    \c QVideoFrameInput::sendVideoFrame will do nothing and return \c false
+    whenever this limitation is reached and the internal frame queue is full.
+    Rely on the signal \c QVideoFrameInput::readyToSendVideoFrame to know
+    when the recorder is ready to receive new frames again.
+    If you cannot change the rate of video frame generation and dropping frames
+    is undesirable, we recommend implementing your own frame queue on top of
+    \c QVideoFrameInput, considering the memory limitations of the hardware.
+
     \snippet multimedia-snippets/media.cpp Media recorder
 */
 /*!
@@ -60,6 +75,13 @@ QT_BEGIN_NAMESPACE
         \li Audio captured from an audio interface (like microphone or line input).
         \li Video captured from camera, screen, or an application window.
     \endlist
+
+    Performance of video encoding and recording is limited by the hardware,
+    the operating system, the installed graphic drivers, and the input video format.
+    If \c Camera, \c ScreenCapture, or \c WindowCapture produces video frames
+    faster than \c MediaRecorder can encode and record them, the recorder
+    may drop some frames. This is likely to occur if the input frame resolution
+    is high, 4K for example, and hardware-accelerated encoding is unavailable.
 
     \since 6.2
     The code below shows a simple capture session containing a MediaRecorder using the default
