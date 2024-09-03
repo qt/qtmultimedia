@@ -15,7 +15,6 @@
 // We mean it.
 //
 
-#include <QtCore/QMutex>
 #include "private/qplatformvideosink_p.h"
 
 Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
@@ -67,8 +66,6 @@ public:
     virtual void setLayer(CALayer *layer);
     virtual void setOutputSettings();
 
-    QMutex *textureCacheMutex() { return &m_textureCacheMutex; }
-
     QRhi *rhi() const { return m_rhi; }
 
     void updateLayerBounds();
@@ -90,7 +87,6 @@ protected:
     QRhi *m_rhi = nullptr;
     CALayer *m_layer = nullptr;
     NSDictionary *m_outputSettings = nullptr;
-    QMutex m_textureCacheMutex;
 };
 
 

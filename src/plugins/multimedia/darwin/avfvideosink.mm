@@ -96,7 +96,6 @@ void AVFVideoSinkInterface::setVideoSink(AVFVideoSink *sink)
 
 void AVFVideoSinkInterface::setRhi(QRhi *rhi)
 {
-    QMutexLocker locker(&m_textureCacheMutex);
     if (m_rhi == rhi)
         return;
     freeTextureCaches();
