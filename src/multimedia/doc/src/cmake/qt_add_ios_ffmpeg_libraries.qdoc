@@ -1,0 +1,48 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qt-add-ios-ffmpeg-libraries.html
+\ingroup cmake-commands-qtmultimedia
+
+\title qt_add_ios_ffmpeg_libraries
+\keyword qt6_add_ios_ffmpeg_libraries
+
+\summary {Auxiliary function which embeds FFmpeg binaries in iOS app bundle.}
+
+\cmakecommandsince 6.8
+\preliminarycmakecommand
+
+\section1 Synopsis
+
+\badcode
+qt_add_ios_ffmpeg_libraries(target)
+\endcode
+
+\versionlessCMakeCommandsNote qt6_add_ios_ffmpeg_libraries()
+
+\section1 Description
+
+ FFmpeg binaries from the online installer must be embedded into the application's
+ bundle. To embed FFmpeg binaries, you can add the \c qt_add_ios_ffmpeg_libraries command
+ to the app's CMakeLists.txt file.
+
+ This command will set several properties for the application target:
+
+ \list
+    \li XCODE_EMBED_FRAMEWORKS, adds the informatioin for XCode (which FFmpeg
+        binaries to embed).
+    \li XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY is set to ON, so that the
+        embedded FFmpeg binaries will be code-signed.
+    \li XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS - to add the location of embedded
+        FFmpeg libraries within the bundle.
+ \endlist
+
+ If code-signing is not required, you can use the \l{QT_NO_FFMPEG_XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY}
+ variable before the command \c{qt_add_ios_ffmpeg_libraries}:
+
+ \badcode
+ set(QT_NO_FFMPEG_XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY ON)
+ \endcode
+*/
+
