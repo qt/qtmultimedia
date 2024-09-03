@@ -26,6 +26,9 @@ AVFVideoBuffer::AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buf
     CVPixelBufferRetain(m_buffer);
     const bool rhiIsOpenGL = sink && sink->rhi() && sink->rhi()->backend() == QRhi::OpenGLES2;
     m_format = QAVFHelpers::videoFormatForImageBuffer(m_buffer, rhiIsOpenGL);
+
+    if (m_rhi && m_rhi->backend() == QRhi::Metal)
+        metalCache = CVMetalTextureCacheRef(CFRetain(sink->cvMetalTextureCache));
 }
 
 AVFVideoBuffer::~AVFVideoBuffer()
@@ -134,14 +137,12 @@ quint64 AVFVideoBuffer::textureHandle(QRhi *, int plane) const
             width = textureDescription->widthForPlane(width, plane);
             height = textureDescription->heightForPlane(height, plane);
 
-            // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
-            QMutexLocker locker(sink->textureCacheMutex());
-            if (!metalCache && sink->cvMetalTextureCache)
-                metalCache = CVMetalTextureCacheRef(CFRetain(sink->cvMetalTextureCache));
             if (!metalCache) {
                 qWarning("cannot create texture, Metal texture cache was released?");
                 return {};
             }
+
+            // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
             auto ret = CVMetalTextureCacheCreateTextureFromImage(
                             kCFAllocatorDefault,
                             metalCache,
