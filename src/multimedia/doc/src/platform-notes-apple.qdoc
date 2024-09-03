@@ -16,4 +16,16 @@ assigned to QMAKE_INFO_PLIST in the project file must contain the keys
 application will abort on startup. See \l{Info.plist} documentation from Apple
 for more information regarding this key.
 
+\section1 Use of FFmpeg libraries on iOS
+
+FFmpeg binaries from the online installer must be embedded into the application's
+bundle. To embed these libraries, you can add the \l{qt6_add_ios_ffmpeg_libraries}{qt6_add_ios_ffmpeg_libraries()}
+command to the app's CMakeLists.txt file:
+
+\code
+   qt_add_ios_ffmpeg_libraries(mytarget)
+\endcode
+
+\sa {qt6_add_ios_ffmpeg_libraries}{qt_add_ios_ffmpeg_libraries()}
+
 */
