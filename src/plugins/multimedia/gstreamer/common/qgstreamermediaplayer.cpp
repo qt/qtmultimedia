@@ -861,15 +861,9 @@ void QGstreamerMediaPlayer::sourceSetupCallback(GstElement *uridecodebin, GstEle
     qCDebug(qLcMediaPlayer) << "Setting up source:" << typeName;
 
     if (typeName == std::string_view("GstAppSrc")) {
-        // NOLINTBEGIN(clang-analyzer-cplusplus.NewDeleteLeaks)
-        // GstAppSrc takes ownership of QGstAppSource
-
-        QGstAppSource *appSource =
-                new QGstAppSource(qGstSafeCast<GstAppSrc>(source), self->m_stream);
-        Q_ASSERT(appSource);
+        QGstAppSource::attachQIODeviceToGstAppSrc(qGstCheckedCast<GstAppSrc>(source),
+                                                  self->m_stream);
         return;
-
-        // NOLINTEND(clang-analyzer-cplusplus.NewDeleteLeaks)
     }
 
     if (typeName == std::string_view("GstRTSPSrc")) {
