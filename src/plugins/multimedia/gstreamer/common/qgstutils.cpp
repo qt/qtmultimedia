@@ -138,4 +138,9 @@ GList *qt_gst_video_sinks()
                                                  GST_RANK_MARGINAL);
 }
 
+QLocale::Language QGstUtils::codeToLanguage(const gchar *lang)
+{
+    return QLocale::codeToLanguage(QString::fromUtf8(lang), QLocale::AnyLanguageCode);
+}
+
 QT_END_NAMESPACE
