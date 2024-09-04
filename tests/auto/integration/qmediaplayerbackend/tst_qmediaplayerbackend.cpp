@@ -117,6 +117,7 @@ private slots:
     void setSource_updatesTrackProperties();
     void setSource_emitsTracksChanged_data();
     void setSource_emitsTracksChanged();
+    void setSource_doesNotCrash_whenCalledWithEmptyUrlWhileLoadingMedia();
 
     void setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio_data();
     void setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio();
@@ -1049,6 +1050,25 @@ void tst_QMediaPlayerBackend::setSource_emitsTracksChanged()
     QCOMPARE(player.videoTracks().size(), numberOfVideoTracks);
     QCOMPARE(player.audioTracks().size(), numberOfAudioTracks);
     QCOMPARE(player.subtitleTracks().size(), numberOfSubtitleTracks);
+}
+
+void tst_QMediaPlayerBackend::setSource_doesNotCrash_whenCalledWithEmptyUrlWhileLoadingMedia()
+{
+    // Added to prevent Q_ASSERT failures in QFFmpegMediaPlayer::setMediaAsync(), like QTBUG-128159
+    using namespace std::chrono_literals;
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    // Act
+    m_fixture->player.setSource(*m_localVideoFile); // Loads media in a separate thread
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::LoadingMedia);
+    m_fixture->player.setSource(QUrl("")); // Cancels loading before the thread returns
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::NoMedia);
+
+    // Assert
+    // At this point, due to a waitForFinished() in setMedia(), the loading thread has
+    // finished its invokeMethod() call to transition back to the calling thread.
+    // qWait() triggers the transition immediately, so 10 ms is sufficient.
+    QTest::qWait(10ms);
 }
 
 void tst_QMediaPlayerBackend::
