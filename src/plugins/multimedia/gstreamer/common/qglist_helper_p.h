@@ -24,10 +24,12 @@ QT_BEGIN_NAMESPACE
 
 namespace QGstUtils {
 
-template <typename ListType>
+template <typename ListType, bool IsConst>
 struct GListIterator
 {
-    explicit GListIterator(const GList *element = nullptr) : element(element) { }
+    using GListType = std::conditional_t<IsConst, const GList *, GList *>;
+
+    explicit GListIterator(GListType element = nullptr) : element(element) { }
 
     const ListType &operator*() const noexcept { return *operator->(); }
     const ListType *operator->() const noexcept
@@ -59,21 +61,28 @@ struct GListIterator
     using reference = value_type &;
     using iterator_category = std::input_iterator_tag;
 
-    const GList *element = nullptr;
+    GListType element = nullptr;
 };
 
-template <typename ListType>
-struct GListRangeAdaptor
+template <typename ListType, bool IsConst>
+struct GListRangeAdaptorImpl
 {
     static_assert(std::is_pointer_v<ListType>);
 
-    explicit GListRangeAdaptor(const GList *list) : head(list) { }
+    using GListType = std::conditional_t<IsConst, const GList *, GList *>;
 
-    auto begin() { return GListIterator<ListType>(head); }
-    auto end() { return GListIterator<ListType>(nullptr); }
+    explicit GListRangeAdaptorImpl(GListType list) : head(list) { }
 
-    const GList *head;
+    auto begin() { return GListIterator<ListType, IsConst>(head); }
+    auto end() { return GListIterator<ListType, IsConst>(nullptr); }
+
+    GListType head;
 };
+
+template <typename ListType>
+using GListRangeAdaptor = GListRangeAdaptorImpl<ListType, false>;
+template <typename ListType>
+using GListConstRangeAdaptor = GListRangeAdaptorImpl<ListType, true>;
 
 } // namespace QGstUtils
 
