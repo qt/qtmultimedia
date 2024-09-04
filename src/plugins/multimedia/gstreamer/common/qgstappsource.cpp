@@ -31,6 +31,17 @@ QGstAppSource::~QGstAppSource()
     qCDebug(qLcAppSrc) << "~QGstAppSrc";
 }
 
+void QGstAppSource::attachQIODeviceToGstAppSrc(GstAppSrc *source, QIODevice *ioDevice)
+{
+    // NOLINTBEGIN(clang-analyzer-cplusplus.NewDeleteLeaks)
+    // GstAppSrc takes ownership of QGstAppSource
+
+    QGstAppSource *appSource = new QGstAppSource(source, ioDevice);
+    Q_ASSERT(appSource);
+
+    // NOLINTEND(clang-analyzer-cplusplus.NewDeleteLeaks)
+}
+
 bool QGstAppSource::setup(QIODevice *stream, qint64 offset)
 {
     QMutexLocker locker(&m_mutex);
