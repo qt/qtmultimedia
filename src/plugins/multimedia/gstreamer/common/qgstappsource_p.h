@@ -33,6 +33,7 @@ public:
     explicit QGstAppSource(GstAppSrc *owner, QIODevice *, qint64 offset = 0);
     ~QGstAppSource();
 
+    static void attachQIODeviceToGstAppSrc(GstAppSrc *, QIODevice *);
 
 private Q_SLOTS:
     void onDataReady();
