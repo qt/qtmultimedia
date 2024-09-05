@@ -242,6 +242,12 @@ qt_configure_add_report_entry(
     CONDITION NOT QT_FEATURE_alsa AND NOT QT_FEATURE_pulseaudio AND NOT QT_FEATURE_mmrenderer AND NOT QT_FEATURE_coreaudio AND NOT QT_FEATURE_wmsdk AND NOT ANDROID AND NOT WASM
 )
 
+qt_configure_add_report_entry(
+    TYPE WARNING
+    MESSAGE "No media backend found"
+    CONDITION LINUX AND NOT (QT_FEATURE_gstreamer OR QT_FEATURE_ffmpeg)
+)
+
 if (TARGET GStreamer::GStreamer)
     qt_config_compile_test(gstreamer_version_check
         LABEL "GStreamer minimum version test"
