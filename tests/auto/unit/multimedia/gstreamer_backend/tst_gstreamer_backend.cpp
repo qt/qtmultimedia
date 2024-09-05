@@ -189,6 +189,32 @@ void tst_GStreamer::metadata_taglistToMetaData_extractsLanguage_data()
             << QLocale::Language::Spanish;
 }
 
+void tst_GStreamer::metadata_taglistToMetaData_extractsDate()
+{
+    QFETCH(QByteArray, tagListString);
+    QFETCH(QDateTime, expectedDate);
+
+    QGstTagListHandle tagList = parseTagList(tagListString);
+    QVERIFY(tagList);
+
+    QMediaMetaData parsed = taglistToMetaData(tagList);
+    QCOMPARE(parsed[QMediaMetaData::Date].value<QDateTime>(), expectedDate);
+}
+
+void tst_GStreamer::metadata_taglistToMetaData_extractsDate_data()
+{
+    QTest::addColumn<QByteArray>("tagListString");
+    QTest::addColumn<QDateTime>("expectedDate");
+
+    QTest::newRow("datetime") << R"__(taglist, datetime=(datetime)2024)__"_ba
+                              << QDateTime(QDate(2024, 0, 0), QTime{});
+    QTest::newRow("date") << R"__(taglist, date=(date)2024-01-01)__"_ba
+                          << QDateTime(QDate(2024, 1, 1), QTime{});
+    QTest::newRow("date and datetime")
+            << R"__(taglist, datetime=(datetime)2024, date=(date)2024-01-01)__"_ba
+            << QDateTime(QDate(2024, 1, 1), QTime{});
+}
+
 void tst_GStreamer::metadata_capsToMetaData()
 {
     QFETCH(QByteArray, capsString);

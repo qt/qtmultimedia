@@ -32,6 +32,8 @@ private slots:
     void metadata_taglistToMetaData_extractsDuration();
     void metadata_taglistToMetaData_extractsLanguage();
     void metadata_taglistToMetaData_extractsLanguage_data();
+    void metadata_taglistToMetaData_extractsDate();
+    void metadata_taglistToMetaData_extractsDate_data();
 
     void metadata_capsToMetaData();
     void metadata_capsToMetaData_data();
