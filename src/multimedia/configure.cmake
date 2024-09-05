@@ -241,3 +241,26 @@ qt_configure_add_report_entry(
     MESSAGE "No backend for low level audio found."
     CONDITION NOT QT_FEATURE_alsa AND NOT QT_FEATURE_pulseaudio AND NOT QT_FEATURE_mmrenderer AND NOT QT_FEATURE_coreaudio AND NOT QT_FEATURE_wmsdk AND NOT ANDROID AND NOT WASM
 )
+
+if (TARGET GStreamer::GStreamer)
+    qt_config_compile_test(gstreamer_version_check
+        LABEL "GStreamer minimum version test"
+        LIBRARIES
+            GStreamer::Core
+        CODE
+    "#include <gst/gstversion.h>
+
+    static_assert(GST_CHECK_VERSION(1, 20, 0), \"Minimum required GStreamer version is 1.20\");
+
+    int main()
+    {
+        return 0;
+    }"
+    )
+
+    qt_configure_add_report_entry(
+        TYPE WARNING
+        MESSAGE "Minimum required GStreamer version is 1.20."
+        CONDITION QT_FEATURE_gstreamer AND NOT TEST_gstreamer_version_check
+    )
+endif()
