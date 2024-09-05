@@ -90,5 +90,8 @@ steps described in \l{Building Qt Sources}.
         installed on your system. Review the config.summary file to
         verify that VAAPI support is enabled under the "Hardware
         acceleration and features" section.
+    \li When configuring Qt Multimedia with the GStreamer backend, GStreamer
+        v1.20 is the minimum requirement. However, we recommend using the
+        latest stable GStreamer upstream release if possible.
 \endlist
 */
