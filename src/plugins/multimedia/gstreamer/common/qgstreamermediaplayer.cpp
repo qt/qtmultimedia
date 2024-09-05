@@ -1207,7 +1207,7 @@ void QGstreamerMediaPlayer::setActiveTrack(TrackType type, int index)
 
 void QGstreamerMediaPlayer::setActivePad(TrackSelector &ts, const QGstPad &pad)
 {
-    QGstPad(pad).modifyPipelineInIdleProbe([&] {
+    playerPipeline.modifyPipelineWhileNotRunning([&] {
         if (pad) {
             ts.setActiveInputPad(pad);
             connectTrackSelectorToOutput(ts);
