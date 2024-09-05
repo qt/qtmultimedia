@@ -177,11 +177,8 @@ const char *keyToTag(QMediaMetaData::Key key)
 
 #undef constexpr_lookup
 
-QDateTime parseDate(const GValue &val)
+QDateTime parseDate(const GDate *date)
 {
-    Q_ASSERT(G_VALUE_TYPE(&val) == G_TYPE_DATE);
-
-    const GDate *date = (const GDate *)g_value_get_boxed(&val);
     if (!g_date_valid(date))
         return {};
 
@@ -191,11 +188,15 @@ QDateTime parseDate(const GValue &val)
     return QDateTime(QDate(year, month, day), QTime());
 }
 
-QDateTime parseDateTime(const GValue &val)
+QDateTime parseDate(const GValue &val)
 {
-    Q_ASSERT(G_VALUE_TYPE(&val) == GST_TYPE_DATE_TIME);
+    Q_ASSERT(G_VALUE_TYPE(&val) == G_TYPE_DATE);
+    const GDate *date = (const GDate *)g_value_get_boxed(&val);
+    return parseDate(date);
+}
 
-    const GstDateTime *dateTime = (const GstDateTime *)g_value_get_boxed(&val);
+QDateTime parseDateTime(const GstDateTime *dateTime)
+{
     int year = gst_date_time_has_year(dateTime) ? gst_date_time_get_year(dateTime) : 0;
     int month = gst_date_time_has_month(dateTime) ? gst_date_time_get_month(dateTime) : 0;
     int day = gst_date_time_has_day(dateTime) ? gst_date_time_get_day(dateTime) : 0;
@@ -214,6 +215,13 @@ QDateTime parseDateTime(const GValue &val)
         QTime(hour, minute, second),
         QTimeZone(tz * 60 * 60),
     };
+}
+
+QDateTime parseDateTime(const GValue &val)
+{
+    Q_ASSERT(G_VALUE_TYPE(&val) == GST_TYPE_DATE_TIME);
+    const GstDateTime *dateTime = (const GstDateTime *)g_value_get_boxed(&val);
+    return parseDateTime(dateTime);
 }
 
 QImage parseImage(const GValue &val)
@@ -298,6 +306,9 @@ void addTagToMetaData(const GstTagList *list, const gchar *tag, void *userdata)
     QMediaMetaData &metadata = *reinterpret_cast<QMediaMetaData *>(userdata);
 
     QMediaMetaData::Key key = tagToKey(tag);
+    if (key == QMediaMetaData::Key::Date)
+        return; // date/datetime are handled on a higher layer
+
     if (key == QMediaMetaData::Key(-1)) {
         if (tag == extendedComment)
             addTagsFromExtendedComment(list, tag, metadata);
@@ -351,7 +362,9 @@ void addTagToMetaData(const GstTagList *list, const gchar *tag, void *userdata)
                 metadata.insert(key, date);
         }
     } else if (type == GST_TYPE_DATE_TIME) {
-        metadata.insert(key, parseDateTime(val));
+        QDateTime date = parseDateTime(val);
+        if (date.isValid())
+            metadata.insert(key, parseDateTime(val));
     } else if (type == GST_TYPE_SAMPLE) {
         QImage image = parseImage(val);
         if (!image.isNull())
@@ -377,9 +390,44 @@ QMediaMetaData taglistToMetaData(const QGstTagListHandle &handle)
 
 void extendMetaDataFromTagList(QMediaMetaData &metadata, const QGstTagListHandle &handle)
 {
-    if (handle)
+    if (handle) {
+        // gstreamer has both GST_TAG_DATE_TIME and GST_TAG_DATE tags.
+        // if both are present, we use GST_TAG_DATE_TIME, else we fall back to GST_TAG_DATE
+
+        auto readDateTime = [&]() -> std::optional<QDateTime> {
+            GstDateTime *dateTimeHandle{};
+            gst_tag_list_get_date_time(handle.get(), GST_TAG_DATE_TIME, &dateTimeHandle);
+            if (dateTimeHandle) {
+                QDateTime ret = parseDateTime(dateTimeHandle);
+                gst_date_time_unref(dateTimeHandle);
+                if (ret.isValid())
+                    return ret;
+            }
+            return std::nullopt;
+        };
+
+        auto readDate = [&]() -> std::optional<QDateTime> {
+            GDate *dateHandle{};
+            gst_tag_list_get_date(handle.get(), GST_TAG_DATE, &dateHandle);
+            if (dateHandle) {
+                QDateTime ret = parseDate(dateHandle);
+                g_date_free(dateHandle);
+                if (ret.isValid())
+                    return ret;
+            }
+            return std::nullopt;
+        };
+
+        std::optional<QDateTime> date = readDateTime();
+        if (!date)
+            date = readDate();
+
+        if (date)
+            metadata.insert(QMediaMetaData::Key::Date, *date);
+
         gst_tag_list_foreach(handle.get(), reinterpret_cast<GstTagForeachFunc>(&addTagToMetaData),
                              &metadata);
+    }
 }
 
 static void applyMetaDataToTagSetter(const QMediaMetaData &metadata, GstTagSetter *element)
