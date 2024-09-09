@@ -298,10 +298,8 @@ void QGstreamerVideoSink::updateGstContexts()
     gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, displayContext.get(), nullptr);
     displayContext.close();
 
-    QGstPipeline pipeline = m_sinkBin.getPipeline();
-
-    if (pipeline)
-        gst_element_set_context(pipeline.element(), m_gstGlLocalContext.get());
+    // Note: after updating the context, we switch the sink and send gst_event_new_reconfigure()
+    // upstream. this will cause the context to be queried again.
 #endif // #if QT_CONFIG(gstreamer_gl)
 }
 
