@@ -107,8 +107,8 @@ ApplicationWindow {
         //! [2]
         //! [4]
         onErrorOccurred: {
-            mediaError.open()
             mediaError.text = mediaPlayer.errorString
+            mediaError.open()
         }
         //! [4]
         onMetaDataChanged: { updateMetadata() }
