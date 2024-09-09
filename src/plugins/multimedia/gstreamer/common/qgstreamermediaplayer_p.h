@@ -191,7 +191,6 @@ private:
     bool processBusMessageLatency(const QGstreamerMessage &);
 
     bool processSyncMessage(const QGstreamerMessage &) override;
-    bool processSyncMessageNeedsContext(const QGstreamerMessage &);
 
     // decoder connections
     QGObjectHandlerScopedConnection padAdded;
