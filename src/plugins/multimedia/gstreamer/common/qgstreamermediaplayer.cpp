@@ -690,38 +690,9 @@ bool QGstreamerMediaPlayer::processSyncMessage(const QGstreamerMessage &message)
         qCDebug(qLcMediaPlayer) << "received sync message:" << message;
 
     switch (message.type()) {
-    case GST_MESSAGE_NEED_CONTEXT:
-        return processSyncMessageNeedsContext(message);
-
     default:
         return false;
     }
-}
-
-bool QGstreamerMediaPlayer::processSyncMessageNeedsContext(
-        [[maybe_unused]] const QGstreamerMessage &message)
-{
-    // GStreamer thread!
-
-#if QT_CONFIG(gstreamer_gl)
-    const gchar *type = nullptr;
-    gst_message_parse_context_type(message.message(), &type);
-    if (type != std::string_view{ GST_GL_DISPLAY_CONTEXT_TYPE })
-        return false;
-
-    // CHECK: accessing gstVideoOutput from the gstreamer thread does not look thread safe
-    QGstreamerVideoSink *sink = gstVideoOutput->gstreamerVideoSink();
-    if (!sink)
-        return false;
-    auto *context = sink->gstGlDisplayContext();
-    if (!context)
-        return false;
-
-    gst_element_set_context(GST_ELEMENT(message.source().object()), context);
-    playerPipeline.dumpGraph("need_context");
-    return true;
-#endif
-    return false;
 }
 
 QUrl QGstreamerMediaPlayer::media() const
