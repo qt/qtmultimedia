@@ -38,9 +38,13 @@ public:
     virtual bool processBusMessage(const QGstreamerMessage &message) = 0;
 };
 
-class QGstBus : public QGstBusHandle
+class QGstBus : private QGstBusHandle
 {
 public:
+    using QGstBusHandle::get;
+    using QGstBusHandle::HasRef;
+    using QGstBusHandle::RefMode;
+
     explicit QGstBus(QGstBusHandle);
     QGstBus(GstBus *, QGstBusHandle::RefMode);
 
@@ -49,6 +53,8 @@ public:
     QGstBus(QGstBus &&) = delete;
     QGstBus &operator=(const QGstBus &) = delete;
     QGstBus &operator=(QGstBus &&) = delete;
+
+    void close();
 
     void installMessageFilter(QGstreamerSyncMessageFilter *);
     void removeMessageFilter(QGstreamerSyncMessageFilter *);
@@ -62,8 +68,6 @@ private:
     void processAllPendingMessages();
 
     static GstBusSyncReply syncGstBusFilter(GstBus *, GstMessage *, QGstBus *);
-
-    QGstBusHandle m_bus;
 
 #ifndef Q_OS_WIN
     QSocketNotifier m_socketNotifier{ QSocketNotifier::Read };
