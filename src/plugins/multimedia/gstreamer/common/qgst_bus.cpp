@@ -5,10 +5,16 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstBus::QGstBus(QGstBusHandle bus) : m_bus(std::move(bus))
+QGstBus::QGstBus(QGstBusHandle bus)
+    : QGstBusHandle{
+          std::move(bus),
+      }
 {
+    if (!get())
+        return;
+
     GPollFD pollFd{};
-    gst_bus_get_pollfd(m_bus.get(), &pollFd);
+    gst_bus_get_pollfd(get(), &pollFd);
     Q_ASSERT(pollFd.fd);
 
 #ifndef Q_OS_WIN
@@ -30,7 +36,7 @@ QGstBus::QGstBus(QGstBusHandle bus) : m_bus(std::move(bus))
     m_socketNotifier.setEnabled(true);
 #endif
 
-    gst_bus_set_sync_handler(m_bus.get(), (GstBusSyncHandler)syncGstBusFilter, this, nullptr);
+    gst_bus_set_sync_handler(get(), (GstBusSyncHandler)syncGstBusFilter, this, nullptr);
 }
 
 QGstBus::QGstBus(GstBus *bus, QGstBusHandle::RefMode refmode)
@@ -45,7 +51,16 @@ QGstBus::QGstBus(GstBus *bus, QGstBusHandle::RefMode refmode)
 
 QGstBus::~QGstBus()
 {
-    gst_bus_set_sync_handler(m_bus.get(), nullptr, nullptr, nullptr);
+    close();
+}
+
+void QGstBus::close()
+{
+    if (!get())
+        return;
+
+    gst_bus_set_sync_handler(get(), nullptr, nullptr, nullptr);
+    QGstBusHandle::close();
 }
 
 void QGstBus::installMessageFilter(QGstreamerSyncMessageFilter *filter)
@@ -79,6 +94,9 @@ void QGstBus::removeMessageFilter(QGstreamerBusMessageFilter *filter)
 bool QGstBus::processNextPendingMessage(GstMessageType type,
                                     std::optional<std::chrono::nanoseconds> timeout)
 {
+    if (!get())
+        return false;
+
     GstClockTime gstTimeout = [&]() -> GstClockTime {
         if (!timeout)
             return GST_CLOCK_TIME_NONE; // block forever
@@ -86,7 +104,7 @@ bool QGstBus::processNextPendingMessage(GstMessageType type,
     }();
 
     QGstreamerMessage message{
-        gst_bus_timed_pop_filtered(m_bus.get(), gstTimeout, type),
+        gst_bus_timed_pop_filtered(get(), gstTimeout, type),
         QGstreamerMessage::HasRef,
     };
     if (!message)
@@ -116,7 +134,7 @@ GstBusSyncReply QGstBus::syncGstBusFilter(GstBus *bus, GstMessage *message, QGst
         return GST_BUS_PASS;
 
     QMutexLocker lock(&self->filterMutex);
-    Q_ASSERT(bus == self->m_bus.get());
+    Q_ASSERT(bus == self->get());
 
     for (QGstreamerSyncMessageFilter *filter : std::as_const(self->syncFilters)) {
         if (filter->processSyncMessage(QGstreamerMessage{ message, QGstreamerMessage::NeedsRef })) {
