@@ -18,6 +18,7 @@ qt_internal_add_test(tst_qmediaplayerbackend
         ../shared/mediafileselector.h
         ../shared/mediabackendutils.h
         ../shared/testvideosink.h
+        ../../shared/qsequentialfileadaptor.h
         mediaplayerstate.h
         fake.h
         fixture.h
@@ -36,4 +37,5 @@ qt_internal_add_test(tst_qmediaplayerbackend
         "LazyLoad.qml"
     INCLUDE_DIRECTORIES
         ../shared/
+        ../../shared/
 )
