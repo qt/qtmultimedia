@@ -4,6 +4,7 @@
 add_subdirectory(audiodecoder)
 add_subdirectory(devices)
 add_subdirectory(mediaformats)
+add_subdirectory(media-metadata)
 add_subdirectory(minimal-audio-recorder)
 add_subdirectory(minimal-player)
 add_subdirectory(wasm)
