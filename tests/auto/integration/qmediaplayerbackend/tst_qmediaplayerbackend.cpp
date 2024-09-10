@@ -34,6 +34,7 @@
 
 #include "mediafileselector.h"
 #include "mediabackendutils.h"
+#include "qsequentialfileadaptor.h"
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
 #include "private/qquickvideooutput_p.h"
 
@@ -179,6 +180,7 @@ private slots:
     void metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail();
     void playerStateAtEOS();
     void playFromBuffer();
+    void playFromSequentialStream();
     void audioVideoAvailable();
     void audioVideoAvailable_updatedOnNewMedia();
     void isSeekable();
@@ -3062,6 +3064,38 @@ void tst_QMediaPlayerBackend::playFromBuffer()
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
     QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QStringLiteral("Expected >= 25, got %1").arg(surface.m_totalFrames)));
+}
+
+void tst_QMediaPlayerBackend::playFromSequentialStream()
+{
+    using namespace std::chrono_literals;
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    QSequentialFileAdaptor file(u":"_s + m_localVideoFile->toEncoded(QUrl::RemoveScheme));
+
+    QSKIP_GSTREAMER("QGstAppSource misbehaves on sequential streams");
+
+    QObject::connect(&player, &QMediaPlayer::errorOccurred, &player, [] {
+        QFAIL("playFromSequentialStream: error occurred");
+    });
+
+    QVERIFY(file.open(QIODevice::ReadOnly));
+
+    player.setSourceDevice(&file, *m_localVideoFile);
+    QCOMPARE(player.isSeekable(), false);
+    player.play();
+    QTRY_COMPARE_GE(player.position(), 1000);
+
+    QSKIP_FFMPEG("QTBUG-128802: media is not seekable, but isSeekable return `true`");
+    QCOMPARE(player.isSeekable(), false);
+
+    player.setPosition(0);
+    QCOMPARE_GE(player.position(), 1000);
+    QTest::qWait(200ms);
+    QTRY_COMPARE_GE(player.position(), 1000);
 }
 
 void tst_QMediaPlayerBackend::audioVideoAvailable()
