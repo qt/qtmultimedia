@@ -72,9 +72,6 @@ private:
     static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);
     GstFlowReturn newSample(GstAppSink *sink);
 
-    static void configureAppSrcElement(GObject *, GObject *, GParamSpec *,
-                                       QGstreamerAudioDecoder *_this);
-
     void setAudioFlags(bool wantNativeAudio);
     void addAppSink();
     void removeAppSink();

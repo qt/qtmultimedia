@@ -3147,8 +3147,6 @@ void tst_QMediaPlayerBackend::playFromSequentialStream()
     player.setVideoOutput(&surface);
     QSequentialFileAdaptor file(u":"_s + m_localVideoFile->toEncoded(QUrl::RemoveScheme));
 
-    QSKIP_GSTREAMER("QGstAppSource misbehaves on sequential streams");
-
     QObject::connect(&player, &QMediaPlayer::errorOccurred, &player, [] {
         QFAIL("playFromSequentialStream: error occurred");
     });
