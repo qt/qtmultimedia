@@ -2049,102 +2049,116 @@ void tst_QMediaPlayerBackend::processEOS()
 {
     QSKIP_GSTREAMER("QTBUG-124005: spurious failure with gstreamer");
 
-    CHECK_SELECTED_URL(m_localWavFile);
-    m_fixture->player.setSource(*m_localWavFile);
+    QMediaPlayer &player = m_fixture->player;
+    QSignalSpy &mediaStatusChanged = m_fixture->mediaStatusChanged;
+    QSignalSpy &playbackStateChanged = m_fixture->playbackStateChanged;
+    QSignalSpy &positionChanged = m_fixture->positionChanged;
+    QSignalSpy &bufferProgressChanged = m_fixture->bufferProgressChanged;
 
-    m_fixture->player.play();
-    m_fixture->player.setPosition(900);
+    CHECK_SELECTED_URL(m_localWavFile);
+    player.setSource(*m_localWavFile);
+
+    player.play();
+    player.setPosition(900);
 
     //wait up to 5 seconds for EOS
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
-    QVERIFY(m_fixture->mediaStatusChanged.size() > 0);
-    QCOMPARE(m_fixture->mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::EndOfMedia);
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
-    QCOMPARE(m_fixture->playbackStateChanged.size(), 2);
-    QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::StoppedState);
+    QVERIFY(mediaStatusChanged.size() > 0);
+    QCOMPARE(mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(),
+             QMediaPlayer::EndOfMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(playbackStateChanged.size(), 2);
+    QCOMPARE(playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(),
+             QMediaPlayer::StoppedState);
 
     //at EOS the position stays at the end of file
-    QCOMPARE(m_fixture->player.position(), m_fixture->player.duration());
-    QTRY_VERIFY(m_fixture->positionChanged.size() > 0);
-    QTRY_COMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), m_fixture->player.duration());
+    QCOMPARE(player.position(), player.duration());
+    QTRY_VERIFY(positionChanged.size() > 0);
+    QTRY_COMPARE(positionChanged.last()[0].value<qint64>(), player.duration());
 
-    m_fixture->playbackStateChanged.clear();
-    m_fixture->mediaStatusChanged.clear();
-    m_fixture->positionChanged.clear();
+    playbackStateChanged.clear();
+    mediaStatusChanged.clear();
+    positionChanged.clear();
 
-    m_fixture->player.play();
+    player.play();
 
     //position is reset to start
-    QTRY_COMPARE_LT(m_fixture->player.position(), 500);
-    QTRY_VERIFY(m_fixture->positionChanged.size() > 0);
-    QCOMPARE(m_fixture->positionChanged.first()[0].value<qint64>(), 0);
+    QTRY_COMPARE_LT(player.position(), 500);
+    QTRY_VERIFY(positionChanged.size() > 0);
+    QCOMPARE(positionChanged.first()[0].value<qint64>(), 0);
 
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
-                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+    QTRY_VERIFY(player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
-    QCOMPARE(m_fixture->playbackStateChanged.size(), 1);
-    QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::PlayingState);
-    QVERIFY(m_fixture->mediaStatusChanged.size() > 0);
-    QCOMPARE(m_fixture->mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::BufferedMedia);
+    QCOMPARE(playbackStateChanged.size(), 1);
+    QCOMPARE(playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(),
+             QMediaPlayer::PlayingState);
+    QVERIFY(mediaStatusChanged.size() > 0);
+    QCOMPARE(mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(),
+             QMediaPlayer::BufferedMedia);
 
-    m_fixture->positionChanged.clear();
-    QTRY_VERIFY(m_fixture->player.position() > 100);
-    QTRY_VERIFY(m_fixture->positionChanged.size() > 0 && m_fixture->positionChanged.last()[0].value<qint64>() > 100);
-    m_fixture->player.setPosition(900);
+    positionChanged.clear();
+    QTRY_VERIFY(player.position() > 100);
+    QTRY_VERIFY(positionChanged.size() > 0 && positionChanged.last()[0].value<qint64>() > 100);
+    player.setPosition(900);
     //wait up to 5 seconds for EOS
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
-    QVERIFY(m_fixture->mediaStatusChanged.size() > 0);
-    QCOMPARE(m_fixture->mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::EndOfMedia);
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
-    QCOMPARE(m_fixture->playbackStateChanged.size(), 2);
-    QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QVERIFY(mediaStatusChanged.size() > 0);
+    QCOMPARE(mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(),
+             QMediaPlayer::EndOfMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(playbackStateChanged.size(), 2);
+    QCOMPARE(playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(),
+             QMediaPlayer::StoppedState);
 
-    QCOMPARE_GT(m_fixture->bufferProgressChanged.size(), 1);
-    QCOMPARE(m_fixture->bufferProgressChanged.back().front(), 0.f);
+    QCOMPARE_GT(bufferProgressChanged.size(), 1);
+    QCOMPARE(bufferProgressChanged.back().front(), 0.f);
 
     // position stays at the end of file
-    QCOMPARE(m_fixture->player.position(), m_fixture->player.duration());
-    QTRY_VERIFY(m_fixture->positionChanged.size() > 0);
-    QTRY_COMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), m_fixture->player.duration());
+    QCOMPARE(player.position(), player.duration());
+    QTRY_VERIFY(positionChanged.size() > 0);
+    QTRY_COMPARE(positionChanged.last()[0].value<qint64>(), player.duration());
 
     //after setPosition EndOfMedia status should be reset to Loaded
-    m_fixture->playbackStateChanged.clear();
-    m_fixture->mediaStatusChanged.clear();
-    m_fixture->player.setPosition(500);
+    playbackStateChanged.clear();
+    mediaStatusChanged.clear();
+    player.setPosition(500);
 
     //this transition can be async, so allow backend to perform it
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
-    QCOMPARE(m_fixture->playbackStateChanged.size(), 0);
-    QTRY_VERIFY(m_fixture->mediaStatusChanged.size() > 0 &&
-        m_fixture->mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>() == QMediaPlayer::LoadedMedia);
+    QCOMPARE(playbackStateChanged.size(), 0);
+    QTRY_VERIFY(mediaStatusChanged.size() > 0
+                && mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>()
+                        == QMediaPlayer::LoadedMedia);
 
-    m_fixture->player.play();
-    m_fixture->player.setPosition(900);
+    player.play();
+    player.setPosition(900);
     //wait up to 5 seconds for EOS
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
-    QCOMPARE(m_fixture->player.position(), m_fixture->player.duration());
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(player.position(), player.duration());
 
-    m_fixture->playbackStateChanged.clear();
-    m_fixture->mediaStatusChanged.clear();
-    m_fixture->positionChanged.clear();
+    playbackStateChanged.clear();
+    mediaStatusChanged.clear();
+    positionChanged.clear();
 
     // pause() should reset position to beginning and status to Buffered
-    m_fixture->player.pause();
+    player.pause();
 
-    QTRY_COMPARE(m_fixture->player.position(), 0);
-    QTRY_VERIFY(m_fixture->positionChanged.size() > 0);
-    QTRY_COMPARE(m_fixture->positionChanged.first()[0].value<qint64>(), 0);
+    QTRY_COMPARE(player.position(), 0);
+    QTRY_VERIFY(positionChanged.size() > 0);
+    QTRY_COMPARE(positionChanged.first()[0].value<qint64>(), 0);
 
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PausedState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::PausedState);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
-    QCOMPARE(m_fixture->playbackStateChanged.size(), 1);
-    QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::PausedState);
-    QVERIFY(m_fixture->mediaStatusChanged.size() > 0);
+    QCOMPARE(playbackStateChanged.size(), 1);
+    QCOMPARE(playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(),
+             QMediaPlayer::PausedState);
+    QVERIFY(mediaStatusChanged.size() > 0);
     QCOMPARE(m_fixture->mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::BufferedMedia);
 }
 
