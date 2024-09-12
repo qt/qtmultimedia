@@ -14,6 +14,7 @@
 #include <mediacapture/qgstreamerimagecapture_p.h>
 #include <mediacapture/qgstreamermediacapturesession_p.h>
 #include <mediacapture/qgstreamermediarecorder_p.h>
+#include <uri_handler/qgstreamer_qiodevice_handler_p.h>
 #include <uri_handler/qgstreamer_qrc_handler_p.h>
 
 #include <QtCore/qloggingcategory.h>
@@ -163,6 +164,7 @@ QGstreamerIntegration::QGstreamerIntegration()
     }
 
     qGstRegisterQRCHandler(nullptr);
+    qGstRegisterQIODeviceHandler(nullptr);
 }
 
 QPlatformMediaFormatInfo *QGstreamerIntegration::createFormatInfo()

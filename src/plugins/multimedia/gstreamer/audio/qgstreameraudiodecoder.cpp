@@ -5,9 +5,9 @@
 #include <audio/qgstreameraudiodecoder_p.h>
 
 #include <common/qgst_debug_p.h>
-#include <common/qgstappsource_p.h>
 #include <common/qgstreamermessage_p.h>
 #include <common/qgstutils_p.h>
+#include <uri_handler/qgstreamer_qiodevice_handler_p.h>
 
 #include <gst/gstvalue.h>
 #include <gst/base/gstbasesrc.h>
@@ -71,9 +71,6 @@ QGstreamerAudioDecoder::QGstreamerAudioDecoder(QAudioDecoder *parent)
 
     g_object_set(m_playbin.object(), "audio-sink", m_outputBin.element(), NULL);
 
-    m_deepNotifySourceConnection = m_playbin.connect(
-            "deep-notify::source", (GCallback)&configureAppSrcElement, (gpointer)this);
-
     // Set volume to 100%
     gdouble volume = 1.0;
     m_playbin.set("volume", volume);
@@ -84,18 +81,6 @@ QGstreamerAudioDecoder::~QGstreamerAudioDecoder()
     stop();
 
     m_playbin.removeMessageFilter(this);
-}
-
-void QGstreamerAudioDecoder::configureAppSrcElement([[maybe_unused]] GObject *object, GObject *orig,
-                                                    [[maybe_unused]] GParamSpec *pspec,
-                                                    QGstreamerAudioDecoder *self)
-{
-    QGstElementHandle appsrc;
-    g_object_get(orig, "source", &appsrc, NULL);
-
-    GstAppSrc *gstAppSrc = qGstSafeCast<GstAppSrc>(appsrc.release());
-    if (gstAppSrc)
-        QGstAppSource::attachQIODeviceToGstAppSrc(gstAppSrc, self->mDevice);
 }
 
 bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
@@ -310,7 +295,8 @@ void QGstreamerAudioDecoder::start()
             return;
         }
 
-        m_playbin.set("uri", "appsrc://");
+        QUrl streamURL = qGstRegisterQIODevice(mDevice);
+        m_playbin.set("uri", streamURL.toEncoded().constData());
     } else {
         return;
     }
