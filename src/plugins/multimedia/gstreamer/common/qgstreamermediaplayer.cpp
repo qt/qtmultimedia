@@ -5,19 +5,20 @@
 
 #include <audio/qgstreameraudiodevice_p.h>
 #include <common/qgst_debug_p.h>
-#include <common/qgstappsource_p.h>
 #include <common/qgstpipeline_p.h>
 #include <common/qgstreameraudiooutput_p.h>
 #include <common/qgstreamermessage_p.h>
 #include <common/qgstreamermetadata_p.h>
 #include <common/qgstreamervideooutput_p.h>
 #include <common/qgstreamervideosink_p.h>
+#include <uri_handler/qgstreamer_qiodevice_handler_p.h>
 #include <qgstreamerformatinfo_p.h>
 
 #include <QtMultimedia/qaudiodevice.h>
-#include <QtCore/qurl.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qiodevice.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qurl.h>
 #include <QtCore/private/quniquehandle_p.h>
 
 #if QT_CONFIG(gstreamer_gl)
@@ -357,7 +358,8 @@ const QGstPipeline &QGstreamerMediaPlayer::pipeline() const
 
 bool QGstreamerMediaPlayer::canPlayQrc() const
 {
-    return true;
+    return false;
+    // return true;
 }
 
 void QGstreamerMediaPlayer::stopOrEOS(bool eos)
@@ -879,12 +881,6 @@ void QGstreamerMediaPlayer::sourceSetupCallback(GstElement *uridecodebin, GstEle
     const gchar *typeName = g_type_name_from_instance((GTypeInstance *)source);
     qCDebug(qLcMediaPlayer) << "Setting up source:" << typeName;
 
-    if (typeName == std::string_view("GstAppSrc")) {
-        QGstAppSource::attachQIODeviceToGstAppSrc(qGstCheckedCast<GstAppSrc>(source),
-                                                  self->m_stream);
-        return;
-    }
-
     if (typeName == std::string_view("GstRTSPSrc")) {
         QGstElement s(source, QGstElement::NeedsRef);
         int latency{40};
@@ -981,6 +977,9 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
     m_url = content;
     m_stream = stream;
+    QUrl streamURL;
+    if (stream)
+        streamURL = qGstRegisterQIODevice(stream);
 
     if (decoder) {
         playerPipeline.stopAndRemoveElements(decoder);
@@ -1044,13 +1043,12 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     padAdded = decoder.onPadAdded<&QGstreamerMediaPlayer::decoderPadAdded>(this);
     padRemoved = decoder.onPadRemoved<&QGstreamerMediaPlayer::decoderPadRemoved>(this);
 
+    QUrl uri = m_stream ? streamURL : content;
+    decoder.set("uri", uri.toEncoded().constData());
     if (m_stream) {
-        decoder.set("uri", "appsrc://");
         seekableChanged(!m_stream->isSequential());
     } else {
-        QByteArray contentUri = content.toEncoded();
-        decoder.set("uri", contentUri.constData());
-        if (contentUri.startsWith("qrc:"))
+        if (content.toEncoded().startsWith("qrc:"))
             seekableChanged(true); // qrc resources are seekable
     }
 
