@@ -769,7 +769,7 @@ void QVideoFrame::setEndTime(qint64 time)
 void QVideoFrame::setRotation(QtVideo::Rotation angle)
 {
     if (d)
-        d->format.setRotation(angle);
+        d->presentationRotation = angle;
 }
 
 /*!
@@ -777,7 +777,7 @@ void QVideoFrame::setRotation(QtVideo::Rotation angle)
  */
 QtVideo::Rotation QVideoFrame::rotation() const
 {
-    return d ? d->format.rotation() : QtVideo::Rotation::None;
+    return d ? d->presentationRotation : QtVideo::Rotation::None;
 }
 
 /*!
@@ -787,7 +787,7 @@ QtVideo::Rotation QVideoFrame::rotation() const
 void QVideoFrame::setMirrored(bool mirrored)
 {
     if (d)
-        d->format.setMirrored(mirrored);
+        d->presentationMirrored = mirrored;
 }
 
 /*!
@@ -795,7 +795,7 @@ void QVideoFrame::setMirrored(bool mirrored)
 */
 bool QVideoFrame::mirrored() const
 {
-    return d && d->format.isMirrored();
+    return d && d->presentationMirrored;
 }
 
 /*!
