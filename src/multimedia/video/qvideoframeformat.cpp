@@ -656,7 +656,13 @@ void QVideoFrameFormat::setColorRange(ColorRange range)
 
 /*!
     Returns \c true if the surface is mirrored around its vertical axis.
-    This is typically needed for video frames coming from a front camera of a mobile device.
+
+    Transformations of \c QVideoFrameFormat, specifically,
+    rotation and mirroring, can be determined by the orientation of
+    the camera sensor, camera settings, or the orientation of
+    the video stream.
+
+    Mirroring is applied after rotation.
 
     \note The mirroring here differs from QImage::mirrored, as a vertically mirrored QImage
     will be mirrored around its x-axis.
@@ -670,8 +676,15 @@ bool QVideoFrameFormat::isMirrored() const
 
 /*!
     Sets if the surface is \a mirrored around its vertical axis.
-    This is typically needed for video frames coming from a front camera of a mobile device.
-    Default value is false.
+
+    Transformations of \c QVideoFrameFormat, specifically,
+    rotation and mirroring, can be determined by the orientation of
+    the camera sensor, camera settings, or the orientation of
+    the video stream.
+
+    Mirroring is applied after rotation.
+
+    Default value is \c false.
 
     \note The mirroring here differs from QImage::mirrored, as a vertically mirrored QImage
     will be mirrored around its x-axis.
@@ -685,7 +698,14 @@ void QVideoFrameFormat::setMirrored(bool mirrored)
 }
 
 /*!
-    Returns the rotation angle the matching video frame should be rotated clockwise before displaying.
+    Returns the angle by which the surface is rotated clockwise.
+
+    Transformations of \c QVideoFrameFormat, specifically,
+    rotation and mirroring, can be determined by the orientation of
+    the camera sensor, camera settings, or the orientation of
+    the video stream.
+
+    Rotation is applied before mirroring.
  */
 QtVideo::Rotation QVideoFrameFormat::rotation() const
 {
@@ -693,12 +713,21 @@ QtVideo::Rotation QVideoFrameFormat::rotation() const
 }
 
 /*!
-    Sets the \a rotation angle the matching video frame should be rotated clockwise before displaying.
+    Sets the \a angle by which the surface is rotated clockwise.
+
+    Transformations of \c QVideoFrameFormat, specifically,
+    rotation and mirroring, can be determined by the orientation of
+    the camera sensor, camera settings, or the orientation of
+    the video stream.
+
+    Rotation is applied before mirroring.
+
+    Default value is \c QtVideo::Rotation::None.
  */
-void QVideoFrameFormat::setRotation(QtVideo::Rotation rotation)
+void QVideoFrameFormat::setRotation(QtVideo::Rotation angle)
 {
     detach();
-    d->rotation = rotation;
+    d->rotation = angle;
 }
 
 /*!

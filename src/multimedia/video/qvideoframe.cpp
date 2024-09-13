@@ -765,6 +765,13 @@ void QVideoFrame::setEndTime(qint64 time)
 
 /*!
     Sets the \a angle the frame should be rotated clockwise before displaying.
+
+    Transformations of \c QVideoFrame, specifically rotation and mirroring,
+    are used only for displaying the video frame and are applied on top
+    of the surface transformation, which is determined by \l QVideoFrameFormat.
+    Rotation is applied before mirroring.
+
+    Default value is \c QtVideo::Rotation::None.
 */
 void QVideoFrame::setRotation(QtVideo::Rotation angle)
 {
@@ -774,6 +781,11 @@ void QVideoFrame::setRotation(QtVideo::Rotation angle)
 
 /*!
     Returns the angle the frame should be rotated clockwise before displaying.
+
+    Transformations of \c QVideoFrame, specifically rotation and mirroring,
+    are used only for displaying the video frame and are applied on top
+    of the surface transformation, which is determined by \l QVideoFrameFormat.
+    Rotation is applied before mirroring.
  */
 QtVideo::Rotation QVideoFrame::rotation() const
 {
@@ -781,8 +793,16 @@ QtVideo::Rotation QVideoFrame::rotation() const
 }
 
 /*!
-    Sets the \a mirrored flag for the frame and
-    sets the flag to the underlying \l surfaceFormat.
+    Sets whether the frame should be \a mirrored around its vertical axis before displaying.
+
+    Transformations of \c QVideoFrame, specifically rotation and mirroring,
+    are used only for displaying the video frame and are applied on top
+    of the surface transformation, which is determined by \l QVideoFrameFormat.
+    Mirroring is applied after rotation.
+
+    Mirroring is typically needed for video frames coming from a front camera of a mobile device.
+
+    Default value is \c false.
 */
 void QVideoFrame::setMirrored(bool mirrored)
 {
@@ -791,7 +811,14 @@ void QVideoFrame::setMirrored(bool mirrored)
 }
 
 /*!
-    Returns whether the frame should be mirrored before displaying.
+    Returns whether the frame should be mirrored around its vertical axis before displaying.
+
+    Transformations of \c QVideoFrame, specifically rotation and mirroring,
+    are used only for displaying the video frame and are applied on top
+    of the surface transformation, which is determined by \l QVideoFrameFormat.
+    Mirroring is applied after rotation.
+
+    Mirroring is typically needed for video frames coming from a front camera of a mobile device.
 */
 bool QVideoFrame::mirrored() const
 {
@@ -816,7 +843,13 @@ qreal QVideoFrame::streamFrameRate() const
 }
 
 /*!
-    Based on the pixel format converts current video frame to image.
+    Converts current video frame to image.
+
+    The consversion is based on the current pixel data and
+    the \l {surface format}{QVideoFrame::surfaceFormat}.
+    Transformations of the frame don't impact the result
+    since they are applied for presentation only.
+
     \since 5.15
 */
 QImage QVideoFrame::toImage() const
