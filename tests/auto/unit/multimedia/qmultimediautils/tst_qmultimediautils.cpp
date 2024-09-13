@@ -279,7 +279,7 @@ static void yMirror(QTransform &transform, bool mirror)
     }
 }
 
-static QTransform makeTransformMatrix(const NormalizedFrameTransformation &transform)
+static QTransform makeTransformMatrix(const NormalizedVideoTransformation &transform)
 {
     QTransform result;
 
@@ -328,7 +328,7 @@ void tst_QMultimediaUtils::qNormalizedFrameTransformation_normilizesInputTransfo
     frame.setMirrored(frameMirrored);
 
     // Act
-    const NormalizedFrameTransformation actual =
+    const NormalizedVideoTransformation actual =
             qNormalizedFrameTransformation(frame, additionalFrameRotation);
 
     const QTransform actualTransform = makeTransformMatrix(actual);
@@ -341,7 +341,7 @@ void tst_QMultimediaUtils::qNormalizedFrameTransformation_normilizesInputTransfo
                    << "actualMirrored:" << actual.xMirrorredAfterRotation;
         for (bool mirrored : { true, false })
             for (int rotationIndex = 0; rotationIndex < 4; ++rotationIndex) {
-                const NormalizedFrameTransformation transform{
+                const NormalizedVideoTransformation transform{
                     QtVideo::Rotation(rotationIndex * 90), rotationIndex, mirrored
                 };
                 const auto matrix = makeTransformMatrix(transform);

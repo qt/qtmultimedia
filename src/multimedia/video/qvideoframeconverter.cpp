@@ -116,7 +116,7 @@ static QShader vfcGetShader(const QString &name)
     return shader;
 }
 
-static void rasterTransform(QImage &image, NormalizedFrameTransformation transformation)
+static void rasterTransform(QImage &image, NormalizedVideoTransformation transformation)
 {
     QTransform t;
     if (transformation.rotation != QtVideo::Rotation::None)
@@ -248,7 +248,7 @@ static bool updateTextures(QRhi *rhi,
     return true;
 }
 
-static QImage convertJPEG(const QVideoFrame &frame, const NormalizedFrameTransformation &transform)
+static QImage convertJPEG(const QVideoFrame &frame, const NormalizedVideoTransformation &transform)
 {
     QVideoFrame varFrame = frame;
     if (!varFrame.map(QVideoFrame::ReadOnly)) {
@@ -262,7 +262,7 @@ static QImage convertJPEG(const QVideoFrame &frame, const NormalizedFrameTransfo
     return image;
 }
 
-static QImage convertCPU(const QVideoFrame &frame, const NormalizedFrameTransformation &transform)
+static QImage convertCPU(const QVideoFrame &frame, const NormalizedVideoTransformation &transform)
 {
     VideoFrameConvertFunc convert = qConverterForFormat(frame.pixelFormat());
     if (!convert) {
@@ -291,7 +291,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, bool forceCpu)
 }
 
 QImage qImageFromVideoFrame(const QVideoFrame &frame,
-                            const NormalizedFrameTransformation &transformation, bool forceCpu)
+                            const NormalizedVideoTransformation &transformation, bool forceCpu)
 {
 #ifdef Q_OS_DARWIN
     QMacAutoReleasePool releasePool;

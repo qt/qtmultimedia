@@ -59,24 +59,24 @@ Q_MULTIMEDIA_EXPORT bool
 qShouldUpdateSwapChainFormat(QRhiSwapChain *swapChain,
                              QRhiSwapChain::Format requiredSwapChainFormat);
 
-struct NormalizedFrameTransformation
+struct NormalizedVideoTransformation
 {
     QtVideo::Rotation rotation = QtVideo::Rotation::None;
     int rotationIndex = 0;
     bool xMirrorredAfterRotation = false;
 };
 
-inline bool operator==(const NormalizedFrameTransformation &lhs,
-                       const NormalizedFrameTransformation &rhs)
+inline bool operator==(const NormalizedVideoTransformation &lhs,
+                       const NormalizedVideoTransformation &rhs)
 {
     return lhs.rotation == rhs.rotation
             && lhs.xMirrorredAfterRotation == rhs.xMirrorredAfterRotation;
 }
 
-Q_MULTIMEDIA_EXPORT NormalizedFrameTransformation
+Q_MULTIMEDIA_EXPORT NormalizedVideoTransformation
 qNormalizedSurfaceTransformation(const QVideoFrameFormat &format);
 
-Q_MULTIMEDIA_EXPORT NormalizedFrameTransformation
+Q_MULTIMEDIA_EXPORT NormalizedVideoTransformation
 qNormalizedFrameTransformation(const QVideoFrame &frame, int additionalRotaton = 0);
 
 Q_MULTIMEDIA_EXPORT QtVideo::Rotation
