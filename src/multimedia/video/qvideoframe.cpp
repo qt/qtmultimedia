@@ -827,7 +827,7 @@ QImage QVideoFrame::toImage() const
     QMutexLocker lock(&d->imageMutex);
 
     if (d->image.isNull())
-        d->image = qImageFromVideoFrame(*this);
+        d->image = qImageFromVideoFrame(*this, qNormalizedSurfaceTransformation(d->format));
 
     return d->image;
 }
