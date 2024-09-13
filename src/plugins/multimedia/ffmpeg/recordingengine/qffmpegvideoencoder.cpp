@@ -7,6 +7,7 @@
 #include "qffmpegvideoframeencoder_p.h"
 #include "qffmpegrecordingengineutils_p.h"
 #include "private/qvideoframe_p.h"
+#include "private/qmultimediautils_p.h"
 #include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
@@ -36,9 +37,7 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
     // TODO: assign swFormat.
     m_sourceParams.swFormat =
             isSwPixelFormat(m_sourceParams.format) ? m_sourceParams.format : swFormat;
-    m_sourceParams.rotation = format.rotation();
-    m_sourceParams.xMirrored = format.isMirrored();
-    m_sourceParams.yMirrored = format.scanLineDirection() == QVideoFrameFormat::BottomToTop;
+    m_sourceParams.transform = qNormalizedSurfaceTransformation(format);
     m_sourceParams.frameRate = frameRate;
     m_sourceParams.colorTransfer = QFFmpeg::toAvColorTransfer(format.colorTransfer());
     m_sourceParams.colorSpace = QFFmpeg::toAvColorSpace(format.colorSpace());

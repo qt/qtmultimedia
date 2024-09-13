@@ -127,14 +127,14 @@ AVStream *VideoFrameEncoder::createStream(const SourceParams &sourceParams,
     stream->codecpar->color_space = sourceParams.colorSpace;
     stream->codecpar->color_range = sourceParams.colorRange;
 
-    if (sourceParams.rotation != QtVideo::Rotation::None || sourceParams.xMirrored
-        || sourceParams.yMirrored) {
+    if (sourceParams.transform.rotation != QtVideo::Rotation::None || sourceParams.transform.xMirrorredAfterRotation) {
         constexpr auto displayMatrixSize = sizeof(int32_t) * 9;
         AVPacketSideData sideData = { reinterpret_cast<uint8_t *>(av_malloc(displayMatrixSize)),
                                       displayMatrixSize, AV_PKT_DATA_DISPLAYMATRIX };
         int32_t *matrix = reinterpret_cast<int32_t *>(sideData.data);
-        av_display_matrix_flip(matrix, sourceParams.xMirrored, sourceParams.yMirrored);
-        av_display_rotation_set(matrix, static_cast<double>(sourceParams.rotation));
+        av_display_rotation_set(matrix, static_cast<double>(sourceParams.transform.rotation));
+        if (sourceParams.transform.xMirrorredAfterRotation)
+            av_display_matrix_flip(matrix, sourceParams.transform.xMirrorredAfterRotation, false);
 
         addStreamSideData(stream, sideData);
     }
