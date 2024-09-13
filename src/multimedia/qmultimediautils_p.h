@@ -74,6 +74,9 @@ inline bool operator==(const NormalizedFrameTransformation &lhs,
 }
 
 Q_MULTIMEDIA_EXPORT NormalizedFrameTransformation
+qNormalizedSurfaceTransformation(const QVideoFrameFormat &format);
+
+Q_MULTIMEDIA_EXPORT NormalizedFrameTransformation
 qNormalizedFrameTransformation(const QVideoFrame &frame, int additionalRotaton = 0);
 
 Q_MULTIMEDIA_EXPORT QtVideo::Rotation
