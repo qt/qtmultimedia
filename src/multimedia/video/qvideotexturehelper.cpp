@@ -6,6 +6,7 @@
 #include "qvideotexturehelper_p.h"
 #include "qvideoframeconverter_p.h"
 #include "qvideoframe_p.h"
+#include "private/qmultimediautils_p.h"
 
 #include <qpainter.h>
 #include <qloggingcategory.h>
@@ -612,11 +613,16 @@ static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame,
 
         // calling QVideoFrame::toImage is not accurate. To be fixed.
         // frame transformation will be considered later
-        if (!frame.mirrored() && frame.rotation() == QtVideo::Rotation::None
-            && frame.surfaceFormat().scanLineDirection() == QVideoFrameFormat::TopToBottom)
-            image = frame.toImage(); // use the frame cache
+        const QVideoFrameFormat surfaceFormat = frame.surfaceFormat();
+
+        const bool hasSurfaceTransform = surfaceFormat.isMirrored()
+                || surfaceFormat.scanLineDirection() == QVideoFrameFormat::BottomToTop
+                || surfaceFormat.rotation() != QtVideo::Rotation::None;
+
+        if (hasSurfaceTransform)
+            image = qImageFromVideoFrame(frame, NormalizedFrameTransformation{});
         else
-            image = qImageFromVideoFrame(frame);
+            image = frame.toImage(); // use the frame cache, no surface transforms applied
 
         image.convertTo(QImage::Format_ARGB32);
         subresDesc.setImage(image);

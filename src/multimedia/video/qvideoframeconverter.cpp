@@ -248,7 +248,7 @@ static bool updateTextures(QRhi *rhi,
     return true;
 }
 
-static QImage convertJPEG(const QVideoFrame &frame)
+static QImage convertJPEG(const QVideoFrame &frame, const NormalizedFrameTransformation &transform)
 {
     QVideoFrame varFrame = frame;
     if (!varFrame.map(QVideoFrame::ReadOnly)) {
@@ -258,11 +258,11 @@ static QImage convertJPEG(const QVideoFrame &frame)
     QImage image;
     image.loadFromData(varFrame.bits(0), varFrame.mappedBytes(0), "JPG");
     varFrame.unmap();
-    rasterTransform(image, qNormalizedFrameTransformation(frame));
+    rasterTransform(image, transform);
     return image;
 }
 
-static QImage convertCPU(const QVideoFrame &frame)
+static QImage convertCPU(const QVideoFrame &frame, const NormalizedFrameTransformation &transform)
 {
     VideoFrameConvertFunc convert = qConverterForFormat(frame.pixelFormat());
     if (!convert) {
@@ -278,12 +278,20 @@ static QImage convertCPU(const QVideoFrame &frame)
         QImage image = QImage(varFrame.width(), varFrame.height(), format);
         convert(varFrame, image.bits());
         varFrame.unmap();
-        rasterTransform(image, qNormalizedFrameTransformation(frame));
+        rasterTransform(image, transform);
         return image;
     }
 }
 
 QImage qImageFromVideoFrame(const QVideoFrame &frame, bool forceCpu)
+{
+    // by default, surface transformation is applied, as full transformation is used for presentation only
+    return qImageFromVideoFrame(frame, qNormalizedSurfaceTransformation(frame.surfaceFormat()),
+                                forceCpu);
+}
+
+QImage qImageFromVideoFrame(const QVideoFrame &frame,
+                            const NormalizedFrameTransformation &transformation, bool forceCpu)
 {
 #ifdef Q_OS_DARWIN
     QMacAutoReleasePool releasePool;
@@ -305,10 +313,10 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, bool forceCpu)
         return {};
 
     if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg)
-        return convertJPEG(frame);
+        return convertJPEG(frame, transformation);
 
     if (forceCpu) // For test purposes
-        return convertCPU(frame);
+        return convertCPU(frame, transformation);
 
     QRhi *rhi = nullptr;
 
@@ -319,7 +327,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, bool forceCpu)
         rhi = initializeRHI(rhi);
 
     if (!rhi || rhi->isRecordingFrame())
-        return convertCPU(frame);
+        return convertCPU(frame, transformation);
 
     // Do conversion using shaders
 
@@ -340,7 +348,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, bool forceCpu)
     targetTexture.reset(rhi->newTexture(QRhiTexture::RGBA8, frameSize, 1, QRhiTexture::RenderTarget));
     if (!targetTexture->create()) {
         qCDebug(qLcVideoFrameConverter) << "Failed to create target texture. Using CPU conversion.";
-        return convertCPU(frame);
+        return convertCPU(frame, transformation);
     }
 
     renderTarget.reset(rhi->newTextureRenderTarget({ { targetTexture.get() } }));
@@ -352,7 +360,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, bool forceCpu)
     QRhi::FrameOpResult r = rhi->beginOffscreenFrame(&cb);
     if (r != QRhi::FrameOpSuccess) {
         qCDebug(qLcVideoFrameConverter) << "Failed to set up offscreen frame. Using CPU conversion.";
-        return convertCPU(frame);
+        return convertCPU(frame, transformation);
     }
 
     QRhiResourceUpdateBatch *rub = rhi->nextResourceUpdateBatch();
@@ -363,16 +371,14 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, bool forceCpu)
     auto videoFrameTextures = QVideoTextureHelper::createTextures(frameTmp, rhi, rub, {});
     if (!videoFrameTextures) {
         qCDebug(qLcVideoFrameConverter) << "Failed obtain textures. Using CPU conversion.";
-        return convertCPU(frame);
+        return convertCPU(frame, transformation);
     }
 
     if (!updateTextures(rhi, uniformBuffer, textureSampler, shaderResourceBindings,
                         graphicsPipeline, renderPass, frameTmp, videoFrameTextures)) {
         qCDebug(qLcVideoFrameConverter) << "Failed to update textures. Using CPU conversion.";
-        return convertCPU(frame);
+        return convertCPU(frame, transformation);
     }
-
-    const NormalizedFrameTransformation transformation = qNormalizedFrameTransformation(frame);
 
     float xScale = transformation.xMirrorredAfterRotation ? -1.0 : 1.0;
     float yScale = 1.f;
@@ -413,7 +419,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, bool forceCpu)
 
     if (!readCompleted) {
         qCDebug(qLcVideoFrameConverter) << "Failed to read back texture. Using CPU conversion.";
-        return convertCPU(frame);
+        return convertCPU(frame, transformation);
     }
 
     QByteArray *imageData = new QByteArray(readResult.data);
