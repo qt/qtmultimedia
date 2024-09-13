@@ -4036,7 +4036,8 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
     QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
     QVideoFrame videoFrame = m_fixture->surface.waitForFrame();
     QVERIFY(videoFrame.isValid());
-    QCOMPARE(videoFrame.rotation(), expectedRotationAngle);
+    QCOMPARE(videoFrame.surfaceFormat().rotation(), expectedRotationAngle);
+    QCOMPARE(videoFrame.rotation(), QtVideo::Rotation::None);
 #ifdef Q_OS_ANDROID
     QSKIP("frame.toImage will return null image because of QTBUG-108446");
 #endif

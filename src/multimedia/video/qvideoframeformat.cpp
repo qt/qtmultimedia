@@ -525,13 +525,6 @@ void QVideoFrameFormat::setViewport(const QRect &viewport)
 
 /*!
     Returns the direction of scan lines.
-
-    Changing of the scan line direction affects vertical flipping
-    of the rendered QVideoFrame's content.
-
-    Video frame flip transformations, specifically \l isMirrored
-    and \c scanLineDirection, are applied for the QVideoFrame's content before
-    applying \l rotation.
 */
 QVideoFrameFormat::Direction QVideoFrameFormat::scanLineDirection() const
 {
@@ -540,13 +533,6 @@ QVideoFrameFormat::Direction QVideoFrameFormat::scanLineDirection() const
 
 /*!
     Sets the \a direction of scan lines.
-
-    Changing of the scan line direction affects vertical flipping
-    of the rendered QVideoFrame's content.
-
-    Video frame flip transformations, specifically the \l isMirrored property
-    and \c scanLineDirection, are applied for the QVideoFrame's content before
-    applying \l rotation.
 */
 void QVideoFrameFormat::setScanLineDirection(Direction direction)
 {
@@ -672,10 +658,6 @@ void QVideoFrameFormat::setColorRange(ColorRange range)
     Returns \c true if the surface is mirrored around its vertical axis.
     This is typically needed for video frames coming from a front camera of a mobile device.
 
-    Video frame flip transformations, specifically the \c isMirrored property
-    and \l scanLineDirection, are applied for the QVideoFrame's content before
-    applying \l rotation.
-
     \note The mirroring here differs from QImage::mirrored, as a vertically mirrored QImage
     will be mirrored around its x-axis.
 
@@ -691,10 +673,6 @@ bool QVideoFrameFormat::isMirrored() const
     This is typically needed for video frames coming from a front camera of a mobile device.
     Default value is false.
 
-    Video frame flip transformations, specifically the \c isMirrored property
-    and \l scanLineDirection, are applied for the QVideoFrame's content before
-    applying \l rotation.
-
     \note The mirroring here differs from QImage::mirrored, as a vertically mirrored QImage
     will be mirrored around its x-axis.
 
@@ -708,10 +686,6 @@ void QVideoFrameFormat::setMirrored(bool mirrored)
 
 /*!
     Returns the rotation angle the matching video frame should be rotated clockwise before displaying.
-
-    The \c rotation transformation is applied for the underlying QVideoFrame's content
-    after flip transformations, specifically \l QVideoFrameFormat::isMirrored
-    and \l QVideoFrameFormat::scanLineDirection.
  */
 QtVideo::Rotation QVideoFrameFormat::rotation() const
 {
@@ -720,10 +694,6 @@ QtVideo::Rotation QVideoFrameFormat::rotation() const
 
 /*!
     Sets the \a rotation angle the matching video frame should be rotated clockwise before displaying.
-
-    The \c rotation transformation is applied for the underlying QVideoFrame's content
-    after flip transformations, specifically \l QVideoFrameFormat::isMirrored
-    and \l QVideoFrameFormat::scanLineDirection.
  */
 void QVideoFrameFormat::setRotation(QtVideo::Rotation rotation)
 {
