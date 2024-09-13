@@ -19,10 +19,10 @@
 
 QT_BEGIN_NAMESPACE
 
-struct NormalizedFrameTransformation;
+struct NormalizedVideoTransformation;
 
 Q_MULTIMEDIA_EXPORT QImage qImageFromVideoFrame(const QVideoFrame &frame,
-                                                const NormalizedFrameTransformation &transformation,
+                                                const NormalizedVideoTransformation &transformation,
                                                 bool forceCpu = false);
 
 Q_MULTIMEDIA_EXPORT QImage qImageFromVideoFrame(const QVideoFrame &frame, bool forceCpu = false);

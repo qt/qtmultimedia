@@ -94,7 +94,7 @@ bool qShouldUpdateSwapChainFormat(QRhiSwapChain *swapChain,
             && swapChain->isFormatSupported(requiredSwapChainFormat);
 }
 
-static void applyRotation(NormalizedFrameTransformation &transform, int degreesClockwise)
+static void applyRotation(NormalizedVideoTransformation &transform, int degreesClockwise)
 {
     if (degreesClockwise) {
         const int rotationIndex = degreesClockwise / 90;
@@ -104,17 +104,17 @@ static void applyRotation(NormalizedFrameTransformation &transform, int degreesC
     }
 }
 
-static void applyRotation(NormalizedFrameTransformation &transform, QtVideo::Rotation rotation)
+static void applyRotation(NormalizedVideoTransformation &transform, QtVideo::Rotation rotation)
 {
     applyRotation(transform, qToUnderlying(rotation));
 }
 
-static void applyXMirror(NormalizedFrameTransformation &transform, bool mirror)
+static void applyXMirror(NormalizedVideoTransformation &transform, bool mirror)
 {
     transform.xMirrorredAfterRotation ^= mirror;
 }
 
-static void applyYMirror(NormalizedFrameTransformation &transform, bool mirror)
+static void applyYMirror(NormalizedVideoTransformation &transform, bool mirror)
 {
     if (mirror) {
         transform.xMirrorredAfterRotation ^= mirror;
@@ -122,7 +122,7 @@ static void applyYMirror(NormalizedFrameTransformation &transform, bool mirror)
     }
 }
 
-static void fixTransformation(NormalizedFrameTransformation &transform)
+static void fixTransformation(NormalizedVideoTransformation &transform)
 {
     transform.rotationIndex %= 4;
     if (transform.rotationIndex < 0)
@@ -130,7 +130,7 @@ static void fixTransformation(NormalizedFrameTransformation &transform)
     transform.rotation = QtVideo::Rotation(transform.rotationIndex * 90);
 }
 
-static void applySurfaceTransformation(NormalizedFrameTransformation &transform,
+static void applySurfaceTransformation(NormalizedVideoTransformation &transform,
                                        const QVideoFrameFormat &format)
 {
     applyYMirror(transform, format.scanLineDirection() == QVideoFrameFormat::BottomToTop);
@@ -138,19 +138,19 @@ static void applySurfaceTransformation(NormalizedFrameTransformation &transform,
     applyXMirror(transform, format.isMirrored());
 }
 
-Q_MULTIMEDIA_EXPORT NormalizedFrameTransformation
+Q_MULTIMEDIA_EXPORT NormalizedVideoTransformation
 qNormalizedSurfaceTransformation(const QVideoFrameFormat &format)
 {
-    NormalizedFrameTransformation result;
+    NormalizedVideoTransformation result;
     applySurfaceTransformation(result, format);
     fixTransformation(result);
     return result;
 }
 
-NormalizedFrameTransformation qNormalizedFrameTransformation(const QVideoFrame &frame,
+NormalizedVideoTransformation qNormalizedFrameTransformation(const QVideoFrame &frame,
                                                              int additionalRotaton)
 {
-    NormalizedFrameTransformation result;
+    NormalizedVideoTransformation result;
     applySurfaceTransformation(result, frame.surfaceFormat());
     applyRotation(result, frame.rotation());
     applyXMirror(result, frame.mirrored());

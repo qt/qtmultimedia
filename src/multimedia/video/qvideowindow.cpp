@@ -334,7 +334,7 @@ void QVideoWindowPrivate::render()
         return;
     }
 
-    const NormalizedFrameTransformation frameTransformation =
+    const NormalizedVideoTransformation frameTransformation =
             qNormalizedFrameTransformation(m_currentFrame.surfaceFormat());
     QSize frameSize = qRotatedFrameSize(m_currentFrame);
     QSize scaled = frameSize.scaled(rect.size(), aspectRatioMode);
