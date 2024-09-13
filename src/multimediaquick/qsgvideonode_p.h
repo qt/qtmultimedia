@@ -51,7 +51,7 @@ private:
     QRectF m_rect;
     QRectF m_textureRect;
     int m_orientation = -1;
-    NormalizedFrameTransformation m_frameTransformation;
+    NormalizedVideoTransformation m_frameTransformation;
 
     QVideoFrameFormat m_videoFormat;
     QSGVideoMaterial *m_material = nullptr;

@@ -35,7 +35,7 @@ public:
         QSize size;
         AVPixelFormat format = AV_PIX_FMT_NONE;
         AVPixelFormat swFormat = AV_PIX_FMT_NONE;
-        NormalizedFrameTransformation transform;
+        NormalizedVideoTransformation transform;
         qreal frameRate = 0.;
         AVColorTransferCharacteristic colorTransfer = AVCOL_TRC_UNSPECIFIED;
         AVColorSpace colorSpace = AVCOL_SPC_UNSPECIFIED;
