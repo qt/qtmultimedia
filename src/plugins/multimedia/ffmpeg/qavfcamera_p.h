@@ -68,7 +68,7 @@ private:
     void updateCameraFormat();
     void updateVideoInput();
     void attachVideoInputDevice();
-    uint32_t setPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat, uint32_t inputCvPixFormat);
+    void setPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat, uint32_t inputCvPixFormat);
     QSize adjustedResolution() const;
     QAVFSampleBufferTransformation surfaceTransform() const;
     bool isFrontCamera() const;
@@ -82,6 +82,7 @@ private:
     QAVFSampleBufferDelegate *m_sampleBufferDelegate = nullptr;
     dispatch_queue_t m_delegateQueue;
     AVPixelFormat m_hwPixelFormat = AV_PIX_FMT_NONE;
+    uint32_t m_cvPixelFormat = 0;
 
     // Gives us rotational information about the camera-device.
     AVCaptureDeviceRotationCoordinator *m_rotationCoordinator API_AVAILABLE(macos(14.0), ios(17.0)) = nullptr;
