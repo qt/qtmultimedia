@@ -222,8 +222,8 @@ private slots:
 
     void emptyData();
 
-    void mirrored_takesValue_fromVideoFrameFormat();
-    void rotation_takesValue_fromVideoFrameFormat();
+    void mirrored_doesntTakeValue_fromVideoFrameFormat();
+    void rotation_doesntTakeValue_fromVideoFrameFormat();
     void streamFrameRate_takesValue_fromVideoFrameFormat();
 
     void constructor_createsInvalidFrame_whenCalledWithNullImage();
@@ -1258,32 +1258,32 @@ void tst_QVideoFrame::emptyData()
     QVERIFY(!f.map(QVideoFrame::ReadOnly));
 }
 
-void tst_QVideoFrame::mirrored_takesValue_fromVideoFrameFormat()
+void tst_QVideoFrame::mirrored_doesntTakeValue_fromVideoFrameFormat()
 {
     QVideoFrameFormat format(QSize(10, 20), QVideoFrameFormat::Format_ARGB8888);
     format.setMirrored(true);
 
     QVideoFrame frame(format);
-    QVERIFY(frame.mirrored());
+    QVERIFY(!frame.mirrored());
 
     frame.setMirrored(false);
     frame.setRotation(QtVideo::Rotation::Clockwise180);
     QVERIFY(!frame.mirrored());
-    QVERIFY(!frame.surfaceFormat().isMirrored());
+    QVERIFY(frame.surfaceFormat().isMirrored());
 }
 
-void tst_QVideoFrame::rotation_takesValue_fromVideoFrameFormat()
+void tst_QVideoFrame::rotation_doesntTakeValue_fromVideoFrameFormat()
 {
     QVideoFrameFormat format(QSize(10, 20), QVideoFrameFormat::Format_ARGB8888);
     format.setRotation(QtVideo::Rotation::Clockwise270);
 
     QVideoFrame frame(format);
-    QCOMPARE(frame.rotation(), QtVideo::Rotation::Clockwise270);
+    QCOMPARE(frame.rotation(), QtVideo::Rotation::None);
 
     frame.setRotation(QtVideo::Rotation::Clockwise180);
 
     QCOMPARE(frame.rotation(), QtVideo::Rotation::Clockwise180);
-    QCOMPARE(frame.surfaceFormat().rotation(), QtVideo::Rotation::Clockwise180);
+    QCOMPARE(frame.surfaceFormat().rotation(), QtVideo::Rotation::Clockwise270);
 }
 
 void tst_QVideoFrame::streamFrameRate_takesValue_fromVideoFrameFormat()

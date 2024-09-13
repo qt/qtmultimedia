@@ -83,7 +83,8 @@ public:
     QString subtitleText;
     QImage image;
     QMutex imageMutex;
-
+    QtVideo::Rotation presentationRotation = QtVideo::Rotation::None;
+    bool presentationMirrored = false;
 private:
     Q_DISABLE_COPY(QVideoFramePrivate)
 };
