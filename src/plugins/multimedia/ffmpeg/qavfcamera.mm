@@ -193,6 +193,7 @@ bool QAVFCamera::setCameraFormat(const QCameraFormat &format)
 void QAVFCamera::updateCameraFormat()
 {
     m_framePixelFormat = QVideoFrameFormat::Format_Invalid;
+    m_cvPixelFormat = CvPixelFormatInvalid;
 
     AVCaptureDevice *captureDevice = device();
     if (!captureDevice)
@@ -204,31 +205,30 @@ void QAVFCamera::updateCameraFormat()
     if (!newFormat)
         newFormat = qt_convert_to_capture_device_format(captureDevice, m_cameraFormat);
 
-    std::uint32_t cvPixelFormat = 0;
     if (newFormat) {
         qt_set_active_format(captureDevice, newFormat, false);
         const auto captureDeviceCVFormat =
                 CMVideoFormatDescriptionGetCodecType(newFormat.formatDescription);
-        cvPixelFormat = setPixelFormat(m_cameraFormat.pixelFormat(), captureDeviceCVFormat);
-        if (captureDeviceCVFormat != cvPixelFormat) {
+        setPixelFormat(m_cameraFormat.pixelFormat(), captureDeviceCVFormat);
+        if (captureDeviceCVFormat != m_cvPixelFormat) {
             qCWarning(qLcCamera) << "Output CV format differs with capture device format!"
-                                 << cvPixelFormat << cvFormatToString(cvPixelFormat) << "vs"
+                                 << m_cvPixelFormat << cvFormatToString(m_cvPixelFormat) << "vs"
                                  << captureDeviceCVFormat
                                  << cvFormatToString(captureDeviceCVFormat);
-
-            m_framePixelFormat = QAVFHelpers::fromCVPixelFormat(cvPixelFormat);
         }
+
+        m_framePixelFormat = QAVFHelpers::fromCVPixelFormat(m_cvPixelFormat);
     } else {
         qWarning() << "Cannot find AVCaptureDeviceFormat; Did you use format from another camera?";
     }
 
-    const AVPixelFormat avPixelFormat = av_map_videotoolbox_format_to_pixfmt(cvPixelFormat);
+    const AVPixelFormat avPixelFormat = av_map_videotoolbox_format_to_pixfmt(m_cvPixelFormat);
 
     HWAccelUPtr hwAccel;
 
     if (avPixelFormat == AV_PIX_FMT_NONE) {
-        qCWarning(qLcCamera) << "Videotoolbox doesn't support cvPixelFormat:" << cvPixelFormat
-                             << cvFormatToString(cvPixelFormat)
+        qCWarning(qLcCamera) << "Videotoolbox doesn't support cvPixelFormat:" << m_cvPixelFormat
+                             << cvFormatToString(m_cvPixelFormat)
                              << "Camera pix format:" << m_cameraFormat.pixelFormat();
     } else {
         hwAccel = HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
@@ -246,9 +246,11 @@ void QAVFCamera::updateCameraFormat()
     [m_sampleBufferDelegate setVideoFormatFrameRate:m_cameraFormat.maxFrameRate()];
 }
 
-uint32_t QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFormat,
-                                    uint32_t inputCvPixFormat)
+void QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFormat,
+                                uint32_t inputCvPixFormat)
 {
+    m_cvPixelFormat = CvPixelFormatInvalid;
+
     auto bestScore = MinAVScore;
     NSNumber *bestFormat = nullptr;
     for (NSNumber *cvPixFmtNumber in m_videoDataOutput.availableVideoCVPixelFormatTypes) {
@@ -283,7 +285,7 @@ uint32_t QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFo
 
     if (!bestFormat) {
         qWarning() << "QCamera::setCameraFormat: availableVideoCVPixelFormatTypes empty";
-        return 0;
+        return;
     }
 
     if (bestScore < DefaultAVScore)
@@ -295,7 +297,7 @@ uint32_t QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFo
     };
     m_videoDataOutput.videoSettings = outputSettings;
 
-    return [bestFormat unsignedIntValue];
+    m_cvPixelFormat = [bestFormat unsignedIntValue];
 }
 
 QSize QAVFCamera::adjustedResolution() const
@@ -340,6 +342,8 @@ QVideoFrameFormat QAVFCamera::frameFormat() const
     const QAVFSampleBufferTransformation transform = surfaceTransform();
     result.setRotation(transform.rotation);
     result.setMirrored(transform.mirrored);
+
+    result.setColorRange(QAVFHelpers::colorRangeForCVPixelFormat(m_cvPixelFormat));
 
     return result;
 }
