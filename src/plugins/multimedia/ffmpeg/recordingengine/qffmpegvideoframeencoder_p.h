@@ -16,6 +16,7 @@
 
 #include "qffmpeghwaccel_p.h"
 #include "private/qplatformmediarecorder_p.h"
+#include "private/qmultimediautils_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -34,9 +35,7 @@ public:
         QSize size;
         AVPixelFormat format = AV_PIX_FMT_NONE;
         AVPixelFormat swFormat = AV_PIX_FMT_NONE;
-        QtVideo::Rotation rotation = QtVideo::Rotation::None;
-        bool xMirrored = false;
-        bool yMirrored = false;
+        NormalizedFrameTransformation transform;
         qreal frameRate = 0.;
         AVColorTransferCharacteristic colorTransfer = AVCOL_TRC_UNSPECIFIED;
         AVColorSpace colorSpace = AVCOL_SPC_UNSPECIFIED;
