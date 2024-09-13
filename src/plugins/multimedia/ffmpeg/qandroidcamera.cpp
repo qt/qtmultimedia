@@ -136,8 +136,8 @@ std::optional<int> QAndroidCamera::ffmpegHWPixelFormat() const
 QVideoFrameFormat QAndroidCamera::frameFormat() const
 {
     QVideoFrameFormat result = QPlatformCamera::frameFormat();
+    // Apply rotation for surface only
     result.setRotation(rotation());
-    result.setMirrored(m_cameraDevice.position() == QCameraDevice::Position::FrontFace);
     return result;
 }
 
@@ -196,13 +196,14 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     avframe->pts = timestamp;
 
     QVideoFrameFormat format(androidFrame->size(), androidFrame->format());
+    format.setRotation(rotation());
 
     QVideoFrame videoFrame(new QFFmpegVideoBuffer(std::move(avframe)), format);
 
     if (lastTimestamp == 0)
         lastTimestamp = timestamp;
 
-    videoFrame.setRotation(rotation());
+    // apply mirroring for presentation only
     videoFrame.setMirrored(m_cameraDevice.position() == QCameraDevice::Position::FrontFace);
 
     videoFrame.setStartTime(lastTimestamp);
