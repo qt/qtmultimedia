@@ -77,6 +77,11 @@ qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_
         GStreamer::GlX11
 )
 
+qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_pulseaudio
+    LIBRARIES
+        WrapPulseAudio::WrapPulseAudio
+)
+
 qt_internal_add_plugin(QGstreamerMediaPlugin
     OUTPUT_NAME gstreamermediaplugin
     PLUGIN_TYPE multimedia

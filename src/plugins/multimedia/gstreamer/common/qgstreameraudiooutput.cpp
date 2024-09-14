@@ -10,6 +10,9 @@
 #include <common/qgstpipeline_p.h>
 #include <audio/qgstreameraudiodevice_p.h>
 
+#if QT_CONFIG(pulseaudio)
+#  include <pulse/version.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -40,6 +43,26 @@ bool sinkHasDeviceProperty(const QGstElement &element)
         return elementType == "GstAlsaSink"_L1;
 
     return false;
+}
+
+void pulseVersionSanityCheck()
+{
+#if QT_CONFIG(pulseaudio)
+    static std::once_flag versionCheckGuard;
+
+    std::call_once(versionCheckGuard, [] {
+        QVersionNumber paVersion = QVersionNumber::fromString(pa_get_library_version());
+        QVersionNumber minVersionWarning(15, 99);
+        QVersionNumber maxVersionWarning(17, 00);
+        if (paVersion >= minVersionWarning && paVersion < maxVersionWarning) {
+            qWarning() << "Pulseaudio v16 detected. It has known issues, that can cause GStreamer "
+                          "to freeze.";
+            // Note: gstreamer requires these two patches to work correctly:
+            // https://gitlab.freedesktop.org/pulseaudio/pulseaudio/-/merge_requests/745
+            // https://gitlab.freedesktop.org/pulseaudio/pulseaudio/-/merge_requests/764
+        }
+    });
+#endif
 }
 
 } // namespace
@@ -78,6 +101,8 @@ QGstreamerAudioOutput::QGstreamerAudioOutput(QAudioOutput *parent)
     qLinkGstElements(m_audioQueue, m_audioConvert, m_audioResample, m_audioVolume, m_audioSink);
 
     m_audioOutputBin.addGhostPad(m_audioQueue, "sink");
+
+    pulseVersionSanityCheck();
 }
 
 QGstElement QGstreamerAudioOutput::createGstElement()

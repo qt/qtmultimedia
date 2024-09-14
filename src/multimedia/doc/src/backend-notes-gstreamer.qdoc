@@ -15,9 +15,15 @@ GStreamer is not bundled with Qt, but it is typically deployed with the Linux di
 \list
 \li Certain bugs may be due to the GStreamer version being used. We recommend to use the latest
   GStreamer bug fix release on your platform.
-\li Certain bugs may also be related to the libraries used by GStreamer, like libpulseaudio. There
-is currently at least one bug that breaks QMediaPlayer's seek functionality due to a bug in the
-  interaction between QGStreamer and Pulseaudio (QTBUG-112014, QTBUG-124372)
+\li Certain bugs may also be related to the libraries used by GStreamer, like Pulseaudio. Most
+ notably Pulseaudio v16 has a known bug that causes the GStreamer pipeline to hang and requires
+  backports of these two patches:
+  \list
+    \li \l{https://gitlab.freedesktop.org/pulseaudio/pulseaudio/-/merge_requests/745}
+    \li \l{https://gitlab.freedesktop.org/pulseaudio/pulseaudio/-/merge_requests/764}
+  \endlist
+  This bug currently affects most mainstream Linux distributions, including Ubuntu 22.04, 23.10 and
+  24.04, Debian 11 and 12, as well as Fedora 39 and 40.
 \li Seeking, playback rates, loop, switching sinks have known bugs.
 \endlist
 
