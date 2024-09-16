@@ -37,7 +37,7 @@ void QPlatformVideoSink::setVideoFrame(const QVideoFrame &frame)
             return;
         m_currentVideoFrame = frame;
         m_currentVideoFrame.setSubtitleText(m_subtitleText);
-        const auto size = qRotatedFrameSize(frame);
+        const QSize size = qRotatedFramePresentationSize(frame);
         if (size != m_nativeSize) {
             m_nativeSize = size;
             sizeChanged = true;
