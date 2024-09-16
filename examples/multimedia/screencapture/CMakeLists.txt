@@ -49,6 +49,8 @@ set_target_properties(screencapture PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
+qt_add_ios_ffmpeg_libraries(screencapture)
+
 install(TARGETS screencapture
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"

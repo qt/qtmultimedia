@@ -33,6 +33,8 @@ qt_add_executable(spectrum
     waveform.cpp waveform.h
 )
 
+qt_add_ios_ffmpeg_libraries(spectrum)
+
 set_target_properties(spectrum PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
