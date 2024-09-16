@@ -25,6 +25,11 @@ inline bool qIsDefaultAspect(int o)
     return (o % 180) == 0;
 }
 
+inline bool qIsDefaultAspect(QtVideo::Rotation rotation)
+{
+    return qIsDefaultAspect(qToUnderlying(rotation));
+}
+
 /*
  * Return the orientation normalized to 0-359
  */
@@ -170,7 +175,7 @@ void QQuickVideoOutput::_q_newFrame(QSize size)
 {
     update();
 
-    size = qRotatedFrameSize(size, m_orientation + m_frameOrientation);
+    size = qRotatedFrameSize(size, m_frameDisplayingRotation);
 
     if (m_nativeSize != size) {
         m_nativeSize = size;
@@ -267,6 +272,11 @@ void QQuickVideoOutput::setOrientation(int orientation)
 
     m_orientation = orientation;
 
+    {
+        QMutexLocker lock(&m_frameMutex);
+        m_frameDisplayingRotation = qNormalizedFrameTransformation(m_frame, m_orientation).rotation;
+    }
+
     if (oldAspect != newAspect) {
         m_nativeSize.transpose();
 
@@ -323,7 +333,7 @@ QRectF QQuickVideoOutput::sourceRect() const
     if (!size.isValid())
         return {};
 
-    if (!qIsDefaultAspect(m_orientation + m_frameOrientation))
+    if (!qIsDefaultAspect(m_frameDisplayingRotation))
         size.transpose();
 
 
@@ -440,7 +450,7 @@ void QQuickVideoOutput::updateGeometry()
         const qreal totalWidth = normalizedViewport.width() * relativeWidth;
         const qreal totalHeight = normalizedViewport.height() * relativeHeight;
 
-        if (qIsDefaultAspect(orientation() + m_frameOrientation)) {
+        if (qIsDefaultAspect(m_frameDisplayingRotation)) {
             m_sourceTextureRect = QRectF(totalOffsetLeft, totalOffsetTop,
                                          totalWidth, totalHeight);
         } else {
@@ -544,7 +554,7 @@ void QQuickVideoOutput::setFrame(const QVideoFrame &frame)
 
     m_videoFormat = frame.surfaceFormat();
     m_frame = frame;
-    m_frameOrientation = static_cast<int>(frame.rotation());
+    m_frameDisplayingRotation = qNormalizedFrameTransformation(frame, m_orientation).rotation;
     m_frameChanged = true;
 }
 
