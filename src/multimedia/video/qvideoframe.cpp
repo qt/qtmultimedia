@@ -866,7 +866,7 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
     }
 
     QRectF targetRect = rect;
-    QSizeF size = qRotatedFrameSize(*this);
+    QSizeF size = qRotatedFramePresentationSize(*this);
 
     size.scale(targetRect.size(), options.aspectRatioMode);
 

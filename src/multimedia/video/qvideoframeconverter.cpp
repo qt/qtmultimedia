@@ -331,7 +331,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame,
 
     // Do conversion using shaders
 
-    const QSize frameSize = qRotatedFrameSize(frame);
+    const QSize frameSize = qRotatedFrameSize(frame.size(), frame.surfaceFormat().rotation());
 
     vertexBuffer.reset(rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, sizeof(g_quad)));
     vertexBuffer->create();

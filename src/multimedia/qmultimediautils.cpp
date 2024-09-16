@@ -61,9 +61,12 @@ QSize qRotatedFrameSize(QSize size, int rotation)
     return rotation % 180 ? size.transposed() : size;
 }
 
-QSize qRotatedFrameSize(const QVideoFrame &frame)
+QSize qRotatedFramePresentationSize(const QVideoFrame &frame)
 {
-    return qRotatedFrameSize(frame.size(), frame.rotation());
+    // For mirrored frames the rotation can be +/- 180 degrees,
+    // but this inaccuracy doesn't impact on the result.
+    const int rotation = qToUnderlying(frame.rotation()) + qToUnderlying(frame.surfaceFormat().rotation());
+    return qRotatedFrameSize(frame.size(), rotation);
 }
 
 QUrl qMediaFromUserInput(QUrl url)
