@@ -900,7 +900,15 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
         transform.translate(targetRect.center().x() - size.width()/2,
                             targetRect.center().y() - size.height()/2);
         painter->setTransform(transform);
-        QImage image = toImage();
+
+        const bool hasPresentationTransformation =
+                d->presentationMirrored || d->presentationRotation != QtVideo::Rotation::None;
+
+        // Use cache for images without presentation transform
+        const QImage image = hasPresentationTransformation
+                ? qImageFromVideoFrame(*this, qNormalizedFrameTransformation(*this))
+                : toImage();
+
         painter->drawImage({{}, size}, image, {{},image.size()});
         painter->setTransform(oldTransform);
 
