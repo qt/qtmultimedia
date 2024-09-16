@@ -336,8 +336,8 @@ void QVideoWindowPrivate::render()
 
     const NormalizedVideoTransformation frameTransformation =
             qNormalizedFrameTransformation(m_currentFrame.surfaceFormat());
-    QSize frameSize = qRotatedFrameSize(m_currentFrame);
-    QSize scaled = frameSize.scaled(rect.size(), aspectRatioMode);
+    const QSize frameSize = qRotatedFramePresentationSize(m_currentFrame);
+    const QSize scaled = frameSize.scaled(rect.size(), aspectRatioMode);
     QRect videoRect = QRect(QPoint(0, 0), scaled);
     videoRect.moveCenter(rect.center());
     QRect subtitleRect = videoRect.intersected(rect);

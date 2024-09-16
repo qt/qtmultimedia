@@ -46,7 +46,7 @@ inline QSize qRotatedFrameSize(QSize size, QtVideo::Rotation rotation)
     return qRotatedFrameSize(size, qToUnderlying(rotation));
 }
 
-Q_MULTIMEDIA_EXPORT QSize qRotatedFrameSize(const QVideoFrame &frame);
+Q_MULTIMEDIA_EXPORT QSize qRotatedFramePresentationSize(const QVideoFrame &frame);
 
 Q_MULTIMEDIA_EXPORT QUrl qMediaFromUserInput(QUrl fileName);
 
