@@ -18,6 +18,8 @@ qt_add_executable(audiopanning
     main.cpp
 )
 
+qt_add_ios_ffmpeg_libraries(audiopanning)
+
 set_target_properties(audiopanning PROPERTIES
     WIN32_EXECUTABLE FALSE
     MACOSX_BUNDLE TRUE

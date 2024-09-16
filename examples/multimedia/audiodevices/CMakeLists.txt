@@ -34,6 +34,8 @@ target_link_libraries(audiodevices PUBLIC
     Qt::Widgets
 )
 
+qt_add_ios_ffmpeg_libraries(audiodevices)
+
 install(TARGETS audiodevices
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"

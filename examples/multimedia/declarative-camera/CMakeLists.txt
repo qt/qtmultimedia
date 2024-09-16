@@ -24,6 +24,8 @@ set_target_properties(declarative-camera PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
 
+qt_add_ios_ffmpeg_libraries(declarative-camera)
+
 target_link_libraries(declarative-camera PUBLIC
     Qt::Core
     Qt::Gui

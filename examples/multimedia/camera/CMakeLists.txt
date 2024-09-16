@@ -52,6 +52,8 @@ endif()
 set_property(TARGET camera APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
              ${CMAKE_CURRENT_SOURCE_DIR}/android)
 
+qt_add_ios_ffmpeg_libraries(camera)
+
 target_link_libraries(camera PUBLIC
     Qt::Core
     Qt::Gui
