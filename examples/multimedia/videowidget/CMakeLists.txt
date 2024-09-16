@@ -24,6 +24,8 @@ set_target_properties(videowidget PROPERTIES
     MACOSX_BUNDLE TRUE
 )
 
+qt_add_ios_ffmpeg_libraries(videowidget)
+
 target_link_libraries(videowidget PUBLIC
     Qt::Core
     Qt::Gui

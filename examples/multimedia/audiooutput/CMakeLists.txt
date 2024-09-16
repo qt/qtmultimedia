@@ -19,6 +19,8 @@ qt_add_executable(audiooutput
     main.cpp
 )
 
+qt_add_ios_ffmpeg_libraries(audiooutput)
+
 set_target_properties(audiooutput PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE

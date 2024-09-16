@@ -21,6 +21,8 @@ qt_add_executable(audiorecorder
     main.cpp
 )
 
+qt_add_ios_ffmpeg_libraries(audiorecorder)
+
 set_target_properties(audiorecorder PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE

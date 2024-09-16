@@ -25,6 +25,8 @@ qt_add_executable(player
     qplaylistfileparser.cpp qplaylistfileparser.h
 )
 
+qt_add_ios_ffmpeg_libraries(player)
+
 set_target_properties(player PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE

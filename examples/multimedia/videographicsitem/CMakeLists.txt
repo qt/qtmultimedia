@@ -32,6 +32,8 @@ target_link_libraries(videographicsitem PUBLIC
     Qt::Widgets
 )
 
+qt_add_ios_ffmpeg_libraries(videographicsitem)
+
 install(TARGETS videographicsitem
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
