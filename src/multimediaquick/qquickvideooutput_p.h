@@ -124,7 +124,7 @@ private:
     QRectF m_lastRect;      // Cache of last rect to avoid recalculating geometry
     QRectF m_contentRect;   // Destination pixel coordinates, unclipped
     int m_orientation = 0;
-    int m_frameOrientation = 0;
+    QtVideo::Rotation m_frameDisplayingRotation = QtVideo::Rotation::None;
     Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
 
     QPointer<QQuickWindow> m_window;
