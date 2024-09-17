@@ -6,7 +6,7 @@ dependencies:
     ref: 763109e3983d625661ad6d4f693b9bad532c578b
     required: false
   ../qtquick3d:
-    ref: a19ddf7e4dbc4252172dda292f800c5566f6a1f1
+    ref: d5d91310c8d2410ac924ec7a85e6df6807693f8c
     required: false
   ../qtshadertools:
     ref: b32ad49b9e4abf9ead10f30e31092790986819c0
