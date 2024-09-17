@@ -571,7 +571,6 @@ void QCamera::setFocusMode(QCamera::FocusMode mode)
     if (!d->control || d->control->focusMode() == mode)
         return;
     d->control->setFocusMode(mode);
-    emit focusModeChanged();
 }
 
 /*!
