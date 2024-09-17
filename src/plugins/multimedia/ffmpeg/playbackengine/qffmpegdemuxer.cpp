@@ -33,8 +33,7 @@ static qint64 packetEndPos(const AVStream *stream, const Packet &packet)
 static bool isPacketWithinStreamDuration(const AVFormatContext *context, const Packet &packet)
 {
     const qint64 streamDuration = context->streams[packet.avPacket()->stream_index]->duration;
-    if (streamDuration <= 0
-        || av_fmt_ctx_get_duration_estimation_method(context) != AVFMT_DURATION_FROM_STREAM)
+    if (streamDuration <= 0 || context->duration_estimation_method != AVFMT_DURATION_FROM_STREAM)
         return true; // Stream duration shouldn't or doesn't need to be compared to pts
 
     return packet.avPacket()->pts <= streamDuration;
