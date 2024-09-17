@@ -7,6 +7,9 @@ enable_if:
       equals_value: macos
     - condition: runtime
       env_var: TARGET_OSVERSION_COIN
+      contains_value: ios_any
+    - condition: runtime
+      env_var: TARGET_OSVERSION_COIN
       contains_value: ubuntu
     - condition: runtime
       env_var: TARGET_OSVERSION_COIN
