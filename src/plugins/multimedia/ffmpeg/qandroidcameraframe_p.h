@@ -28,11 +28,6 @@ Q_DECLARE_JNI_CLASS(AndroidImageFormat, "android/graphics/ImageFormat")
 Q_DECLARE_JNI_CLASS(AndroidImagePlane, "android/media/Image$Plane")
 Q_DECLARE_JNI_CLASS(JavaByteBuffer, "java/nio/ByteBuffer")
 
-namespace QtJniTypes {
-using AndroidImagePlaneArray = QJniArray<AndroidImagePlane>;
-using StringArray = QJniArray<String>;
-}
-
 class QAndroidCameraFrame
 {
 public:

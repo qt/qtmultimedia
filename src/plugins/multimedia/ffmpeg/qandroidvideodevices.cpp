@@ -41,24 +41,17 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoDevices()
         return devices;
     }
 
-    QJniObject cameraIdList = deviceManager.callMethod<QtJniTypes::StringArray>("getCameraIdList");
-
-    QJniEnvironment jniEnv;
-    int numCameras = jniEnv->GetArrayLength(cameraIdList.object<jarray>());
-    if (jniEnv.checkAndClearExceptions())
+    const QJniArray cameraIdList = deviceManager.callMethod<QtJniTypes::String[]>("getCameraIdList");
+    if (!cameraIdList.isValid())
         return devices;
 
-    for (int cameraIndex = 0; cameraIndex < numCameras; cameraIndex++) {
-
-        QJniObject cameraIdObject =
-                jniEnv->GetObjectArrayElement(cameraIdList.object<jobjectArray>(), cameraIndex);
-        if (jniEnv.checkAndClearExceptions())
+    int cameraIndex = 0;
+    for (const auto &cameraId : cameraIdList) {
+        if (!cameraId.isValid())
             continue;
 
-        jstring cameraId = cameraIdObject.object<jstring>();
-
         QCameraDevicePrivate *info = new QCameraDevicePrivate;
-        info->id = cameraIdObject.toString().toUtf8();
+        info->id = cameraId.toString().toUtf8();
 
         info->orientation = deviceManager.callMethod<jint>("getSensorOrientation", cameraId);
 
@@ -79,32 +72,19 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoDevices()
             info->description = QString("Front Camera: %1").arg(cameraIndex);
             break;
         }
+        ++cameraIndex;
 
-        QJniObject fpsRangesObject =
-                deviceManager.callMethod<QtJniTypes::StringArray>("getFpsRange", cameraId);
-        jobjectArray fpsRanges = fpsRangesObject.object<jobjectArray>();
-
-        int numRanges = jniEnv->GetArrayLength(fpsRanges);
-        if (jniEnv.checkAndClearExceptions())
-            continue;
+        const auto fpsRanges = deviceManager.callMethod<QStringList>("getFpsRange", cameraId);
 
         int maxFps = 0, minFps = 0;
-
-        for (int rangeIndex = 0; rangeIndex < numRanges; rangeIndex++) {
-
-            QJniObject rangeString = jniEnv->GetObjectArrayElement(fpsRanges, rangeIndex);
-            if (jniEnv.checkAndClearExceptions())
-                continue;
-
-            QString range = rangeString.toString();
-
+        for (auto range : fpsRanges) {
             range = range.remove("[");
             range = range.remove("]");
 
-            auto split = range.split(",");
+            const auto split = range.split(",");
 
-            int min = split[0].toInt();
-            int max = split[1].toInt();
+            int min = split.at(0).toInt();
+            int max = split.at(1).toInt();
 
             if (max > maxFps) {
                 maxFps = max;
@@ -115,26 +95,17 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoDevices()
         const static int imageFormat =
                 QJniObject::getStaticField<QtJniTypes::AndroidImageFormat, jint>("YUV_420_888");
 
-        QJniObject sizesObject = deviceManager.callMethod<QtJniTypes::StringArray>(
+        const QStringList sizes = deviceManager.callMethod<QStringList>(
                 "getStreamConfigurationsSizes", cameraId, imageFormat);
 
-        jobjectArray streamSizes = sizesObject.object<jobjectArray>();
-        int numSizes = jniEnv->GetArrayLength(streamSizes);
-        if (jniEnv.checkAndClearExceptions())
+        if (sizes.isEmpty())
             continue;
 
-        for (int sizesIndex = 0; sizesIndex < numSizes; sizesIndex++) {
+        for (const auto &sizeString : sizes) {
+            const auto split = sizeString.split("x");
 
-            QJniObject sizeStringObject = jniEnv->GetObjectArrayElement(streamSizes, sizesIndex);
-            if (jniEnv.checkAndClearExceptions())
-                continue;
-
-            QString sizeString = sizeStringObject.toString();
-
-            auto split = sizeString.split("x");
-
-            int width = split[0].toInt();
-            int height = split[1].toInt();
+            int width = split.at(0).toInt();
+            int height = split.at(1).toInt();
 
             info->videoFormats.append(createCameraFormat(width, height, minFps, maxFps));
         }
