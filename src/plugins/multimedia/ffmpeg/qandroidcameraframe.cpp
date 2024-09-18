@@ -25,11 +25,11 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
     if (!frame.isValid())
         return false;
 
-    auto planes = frame.callMethod<QtJniTypes::AndroidImagePlaneArray>("getPlanes");
+    const auto planes = frame.callMethod<QtJniTypes::AndroidImagePlane[]>("getPlanes");
     if (!planes.isValid())
         return false;
 
-    int numberPlanes = jniEnv->GetArrayLength(planes.object<jarray>());
+    const int numberPlanes = planes.size();
     // create and populate temporary array structure
     int pixelStrides[numberPlanes];
     int rowStrides[numberPlanes];
@@ -46,9 +46,9 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
         buffer[index] = nullptr;
     };
 
-    for (int index = 0; index < numberPlanes; index++) {
-        QJniObject plane = jniEnv->GetObjectArrayElement(planes.object<jobjectArray>(), index);
-        if (jniEnv.checkAndClearExceptions() || !plane.isValid()) {
+    for (qsizetype index = 0; index < planes.size(); ++index) {
+        auto plane = planes.at(index);
+        if (!plane.isValid()) {
             resetPlane(index);
             continue;
         }

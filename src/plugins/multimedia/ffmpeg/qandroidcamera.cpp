@@ -388,15 +388,10 @@ void QAndroidCamera::updateCameraCharacteristics()
 
     m_supportedFlashModes.clear();
     m_supportedFlashModes.append(QCamera::FlashOff);
-    QJniObject flashModesObj = deviceManager.callMethod<QtJniTypes::StringArray>(
+    const QStringList flashModes = deviceManager.callMethod<QStringList>(
             "getSupportedFlashModes",
             QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
-    QJniEnvironment jniEnv;
-    jobjectArray flashModes = flashModesObj.object<jobjectArray>();
-    int size = jniEnv->GetArrayLength(flashModes);
-    for (int i = 0; i < size; ++i) {
-        QJniObject flashModeObj = jniEnv->GetObjectArrayElement(flashModes, i);
-        QString flashMode = flashModeObj.toString();
+    for (const auto &flashMode : flashModes) {
         if (flashMode == QLatin1String("auto"))
             m_supportedFlashModes.append(QCamera::FlashAuto);
         else if (flashMode == QLatin1String("on"))
