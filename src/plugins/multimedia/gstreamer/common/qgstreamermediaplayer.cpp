@@ -1069,7 +1069,7 @@ void QGstreamerMediaPlayer::setVideoSink(QVideoSink *sink)
     using namespace std::chrono_literals;
     gstVideoOutput->setVideoSink(sink);
 
-    if (playerPipeline.state(1s) == GstState::GST_STATE_PAUSED)
+    if (sink && playerPipeline.state(1s) == GstState::GST_STATE_PAUSED)
         playerPipeline.flush(); // ensure that we send the current video frame to the new sink
 }
 
