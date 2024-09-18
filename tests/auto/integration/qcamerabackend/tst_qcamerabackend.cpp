@@ -101,9 +101,9 @@ public Q_SLOTS:
             formatMismatch = 0;
 #ifdef Q_OS_ANDROID
         } else if ((surfaceFormat.pixelFormat() == QVideoFrameFormat::Format_YUV420P
-                   || surfaceFormat.pixelFormat() == QVideoFrameFormat::Format_NV12)
-                  && (cameraFormat.pixelFormat() == QVideoFrameFormat::Format_YUV420P
-                   || cameraFormat.pixelFormat() == QVideoFrameFormat::Format_NV12)
+                   || surfaceFormat.pixelFormat() == QVideoFrameFormat::Format_NV12
+                   || surfaceFormat.pixelFormat() == QVideoFrameFormat::Format_NV21)
+            && cameraFormat.pixelFormat() == QVideoFrameFormat::Format_YUV420P
             && surfaceFormat.frameSize() == cameraFormat.resolution()) {
             formatMismatch = 0;
 #endif
