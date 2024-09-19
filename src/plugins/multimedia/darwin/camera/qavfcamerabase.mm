@@ -470,7 +470,7 @@ void QAVFCameraBase::setFocusDistance(float d)
     if (!captureDevice)
         return;
 
-    if (captureDevice.lockingFocusWithCustomLensPositionSupported) {
+    if (!captureDevice.lockingFocusWithCustomLensPositionSupported) {
         qCDebug(qLcCamera) << Q_FUNC_INFO << "Setting custom focus distance not supported\n";
         return;
     }
