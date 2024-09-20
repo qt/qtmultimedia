@@ -17,6 +17,7 @@
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qlist.h>
+#include <QtCore/qmutex.h>
 #include <QtCore/qsemaphore.h>
 
 #include <QtMultimedia/qaudioformat.h>
@@ -606,25 +607,57 @@ public:
     template <typename Functor>
     void doInIdleProbe(Functor &&work)
     {
-        struct CallbackData {
+        using namespace std::chrono_literals;
+
+        struct CallbackData
+        {
             QSemaphore waitDone;
+            std::once_flag onceFlag;
             Functor work;
+
+            void run()
+            {
+                std::call_once(onceFlag, [&] {
+                    work();
+                });
+            }
         };
 
         CallbackData cd{
             .waitDone = QSemaphore{},
+            .onceFlag = {},
             .work = std::forward<Functor>(work),
         };
 
         auto callback= [](GstPad *, GstPadProbeInfo *, gpointer p) {
             auto cd = reinterpret_cast<CallbackData*>(p);
-            cd->work();
+            cd->run();
             cd->waitDone.release();
             return GST_PAD_PROBE_REMOVE;
         };
 
-        gst_pad_add_probe(pad(), GST_PAD_PROBE_TYPE_IDLE, callback, &cd, nullptr);
-        cd.waitDone.acquire();
+        gulong probe = gst_pad_add_probe(pad(), GST_PAD_PROBE_TYPE_IDLE, callback, &cd, nullptr);
+        if (probe == 0)
+            return; // probe was executed
+
+        bool success = cd.waitDone.try_acquire_for(250ms);
+        if (success)
+            return;
+
+        // the probe has not been executed for 250ms, probably because the element has transitioned
+        // from playing to paused. Flushing the pad would unblock paused pads
+        sendFlushIfPaused();
+
+        success = cd.waitDone.try_acquire_for(1s);
+        if (success)
+            return;
+
+        // if the idle probe still has not been called, we remove it and call it
+        // explicitly to avoid deadlocking the application. Probably not exactly safe,
+        // but better than deadlocking
+        qWarning() << "QGstPad::doInIdleProbe blocked for 1s. Executing the pad probe manually";
+        gst_pad_remove_probe(pad(), probe);
+        cd.run();
     }
 
     template<auto Member, typename T>
