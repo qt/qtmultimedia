@@ -743,12 +743,12 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
     if (ts.trackCount() == 1) {
         if (streamType == VideoStream) {
             ts.setActiveInputPad(sinkPad);
-            connectTrackSelectorToOutput(ts);
+            connectTrackSelectorToOutput(ts, /*inPadHandler=*/true);
             videoAvailableChanged(true);
         }
         else if (streamType == AudioStream) {
             ts.setActiveInputPad(sinkPad);
-            connectTrackSelectorToOutput(ts);
+            connectTrackSelectorToOutput(ts, /*inPadHandler=*/true);
             audioAvailableChanged(true);
         }
     }
@@ -783,7 +783,7 @@ void QGstreamerMediaPlayer::decoderPadRemoved(const QGstElement &src, const QGst
     ts->removeInputPad(track);
 
     if (ts->trackCount() == 0) {
-        disconnectTrackSelectorFromOutput(*ts);
+        disconnectTrackSelectorFromOutput(*ts, /*inPadHandler=*/true);
         if (ts->type == AudioStream)
             audioAvailableChanged(false);
         else if (ts->type == VideoStream)
@@ -804,31 +804,45 @@ void QGstreamerMediaPlayer::disconnectAllTrackSelectors()
     videoAvailableChanged(false);
 }
 
-void QGstreamerMediaPlayer::connectTrackSelectorToOutput(TrackSelector &ts)
+void QGstreamerMediaPlayer::connectTrackSelectorToOutput(TrackSelector &ts, bool inPadHandler)
 {
     if (ts.isConnected)
         return;
 
-    QGstElement e = getSinkElementForTrackType(ts.type);
-    if (e) {
+    QGstElement sink = getSinkElementForTrackType(ts.type);
+    if (sink) {
         qCDebug(qLcMediaPlayer) << "connecting output for track type" << ts.type;
-        playerPipeline.add(e);
-        qLinkGstElements(ts.inputSelector, e);
-        e.syncStateWithParent();
+
+        if (inPadHandler) {
+            playerPipeline.add(sink);
+            qLinkGstElements(ts.inputSelector, sink);
+            sink.syncStateWithParent();
+        } else {
+            ts.inputSelector.src().modifyPipelineInIdleProbe([&] {
+                playerPipeline.add(sink);
+                qLinkGstElements(ts.inputSelector, sink);
+                sink.syncStateWithParent();
+            });
+        }
     }
 
     ts.isConnected = true;
 }
 
-void QGstreamerMediaPlayer::disconnectTrackSelectorFromOutput(TrackSelector &ts)
+void QGstreamerMediaPlayer::disconnectTrackSelectorFromOutput(TrackSelector &ts, bool inPadHandler)
 {
     if (!ts.isConnected)
         return;
 
-    QGstElement e = getSinkElementForTrackType(ts.type);
-    if (e) {
+    QGstElement sink = getSinkElementForTrackType(ts.type);
+    if (sink) {
         qCDebug(qLcMediaPlayer) << "removing output for track type" << ts.type;
-        playerPipeline.stopAndRemoveElements(e);
+        if (inPadHandler)
+            playerPipeline.stopAndRemoveElements(sink);
+        else
+            ts.inputSelector.src().modifyPipelineInIdleProbe([&] {
+                playerPipeline.stopAndRemoveElements(sink);
+            });
     }
 
     ts.isConnected = false;
@@ -1057,14 +1071,12 @@ void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
 
     auto &ts = trackSelector(AudioStream);
 
-    playerPipeline.modifyPipelineWhileNotRunning([&] {
-        if (gstAudioOutput)
-            disconnectTrackSelectorFromOutput(ts);
+    if (gstAudioOutput)
+        disconnectTrackSelectorFromOutput(ts);
 
-        gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
-        if (gstAudioOutput)
-            connectTrackSelectorToOutput(ts);
-    });
+    gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
+    if (gstAudioOutput)
+        connectTrackSelectorToOutput(ts);
 }
 
 QMediaMetaData QGstreamerMediaPlayer::metaData() const
@@ -1188,14 +1200,12 @@ void QGstreamerMediaPlayer::setActiveTrack(TrackType type, int index)
 
 void QGstreamerMediaPlayer::setActivePad(TrackSelector &ts, const QGstPad &pad)
 {
-    playerPipeline.modifyPipelineWhileNotRunning([&] {
-        if (pad) {
-            ts.setActiveInputPad(pad);
-            connectTrackSelectorToOutput(ts);
-        } else {
-            disconnectTrackSelectorFromOutput(ts);
-        }
-    });
+    if (pad) {
+        ts.setActiveInputPad(pad);
+        connectTrackSelectorToOutput(ts);
+    } else {
+        disconnectTrackSelectorFromOutput(ts);
+    }
 
     // seek to force an immediate change of the stream
     if (playerPipeline.state() == GST_STATE_PLAYING)

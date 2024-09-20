@@ -118,8 +118,8 @@ private:
                                                 GstElement *element, QGstreamerMediaPlayer *);
 
     void parseStreamsAndMetadata();
-    void connectTrackSelectorToOutput(TrackSelector &);
-    void disconnectTrackSelectorFromOutput(TrackSelector &);
+    void connectTrackSelectorToOutput(TrackSelector &, bool inPadHandler = false);
+    void disconnectTrackSelectorFromOutput(TrackSelector &, bool inPadHandler = false);
     void disconnectAllTrackSelectors();
     void setActivePad(TrackSelector &, const QGstPad &pad);
 
