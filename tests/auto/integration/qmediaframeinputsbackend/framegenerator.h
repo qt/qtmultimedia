@@ -30,6 +30,8 @@ public:
     void setSize(QSize size);
     void setFrameRate(double rate);
     void setPeriod(milliseconds period);
+    void setPresentationRotation(QtVideo::Rotation rotation);
+    void setPresentationMirrored(bool mirror);
     void emitEmptyFrameOnStop();
     QVideoFrame createFrame();
 
@@ -48,6 +50,8 @@ private:
     int m_frameIndex = 0;
     std::optional<double> m_frameRate;
     std::optional<milliseconds> m_period;
+    std::optional<QtVideo::Rotation> m_presentationRotation;
+    std::optional<bool> m_presentationMirrored;
     bool m_emitEmptyFrameOnStop = false;
 };
 

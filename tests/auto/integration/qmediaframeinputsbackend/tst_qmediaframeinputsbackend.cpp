@@ -321,6 +321,7 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withCorrectColors()
     f.connectPullMode();
     f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
     f.m_videoGenerator.setFrameCount(3);
+
     f.m_recorder.record();
     QVERIFY(f.waitForRecorderStopped(60s));
 
@@ -334,15 +335,48 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withCorrectColors()
     QVERIFY(fuzzyCompare(colors[3], Qt::yellow));
 }
 
-void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_withCorrectData_data()
+void tst_QMediaFrameInputsBackend::
+        mediaRecorderWritesVideo_withoutTransforms_whenPresentationTransformsPresent_data()
 {
-    QTest::addColumn<QAudioFormat::SampleFormat>("sampleFormat");
-    QTest::addColumn<QAudioFormat::ChannelConfig>("channelConfig");
-    QTest::addColumn<int>("sampleRate");
-    QTest::addColumn<milliseconds>("duration");
+    QTest::addColumn<QtVideo::Rotation>("presentationRotation");
+    QTest::addColumn<bool>("presentationMirrored");
+
+    QTest::addRow("No rotation, not mirrored") << QtVideo::Rotation::None << false;
+    QTest::addRow("90 degrees, not mirrored") << QtVideo::Rotation::Clockwise90 << false;
+    QTest::addRow("180 degrees, not mirrored") << QtVideo::Rotation::Clockwise180 << false;
+    QTest::addRow("270 degrees, not mirrored") << QtVideo::Rotation::Clockwise270 << false;
+    QTest::addRow("No rotation, mirrored") << QtVideo::Rotation::None << true;
+    QTest::addRow("90 degrees, mirrored") << QtVideo::Rotation::Clockwise90 << true;
+    QTest::addRow("180 degrees, mirrored") << QtVideo::Rotation::Clockwise180 << true;
+    QTest::addRow("270 degrees, mirrored") << QtVideo::Rotation::Clockwise270 << true;
 }
 
-void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_withCorrectData() { }
+void tst_QMediaFrameInputsBackend::
+        mediaRecorderWritesVideo_withoutTransforms_whenPresentationTransformsPresent()
+{
+    QFETCH(const QtVideo::Rotation, presentationRotation);
+    QFETCH(const bool, presentationMirrored);
+
+    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
+    f.connectPullMode();
+    f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
+    f.m_videoGenerator.setFrameCount(3);
+
+    f.m_videoGenerator.setPresentationRotation(presentationRotation);
+    f.m_videoGenerator.setPresentationMirrored(presentationMirrored);
+
+    f.m_recorder.record();
+    QVERIFY(f.waitForRecorderStopped(60s));
+
+    const auto info = MediaInfo::create(f.m_recorder.actualLocation());
+    QCOMPARE_EQ(info->m_colors.size(), 3);
+
+    std::array<QColor, 4> colors = info->m_colors.front();
+    QVERIFY(fuzzyCompare(colors[0], Qt::red));
+    QVERIFY(fuzzyCompare(colors[1], Qt::green));
+    QVERIFY(fuzzyCompare(colors[2], Qt::blue));
+    QVERIFY(fuzzyCompare(colors[3], Qt::yellow));
+}
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameShrinksOverTime()
 {

@@ -32,6 +32,16 @@ void VideoGenerator::setPeriod(milliseconds period)
     m_period = period;
 }
 
+void VideoGenerator::setPresentationRotation(QtVideo::Rotation rotation)
+{
+    m_presentationRotation = rotation;
+}
+
+void VideoGenerator::setPresentationMirrored(bool mirror)
+{
+    m_presentationMirrored = mirror;
+}
+
 void VideoGenerator::emitEmptyFrameOnStop()
 {
     m_emitEmptyFrameOnStop = true;
@@ -74,6 +84,12 @@ QVideoFrame VideoGenerator::createFrame()
         frame.setStartTime(duration_cast<microseconds>(*m_period).count() * m_frameIndex);
         frame.setEndTime(duration_cast<microseconds>(*m_period).count() * (m_frameIndex + 1));
     }
+
+    if (m_presentationRotation)
+        frame.setRotation(*m_presentationRotation);
+
+    if (m_presentationMirrored)
+        frame.setMirrored(*m_presentationMirrored);
 
     return frame;
 }

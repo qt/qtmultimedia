@@ -70,6 +70,7 @@ struct MediaInfo
             return {};
 
         MediaInfo info{};
+        info.m_url = fileLocation.toString();
         info.m_frameRate = player.metaData().value(QMediaMetaData::VideoFrameRate).toReal();
         info.m_size = player.metaData().value(QMediaMetaData::Resolution).toSize();
 
@@ -98,6 +99,7 @@ struct MediaInfo
 
     }
 
+    QString m_url; // Visualize recorded file name when debugging.
     int m_frameCount = 0;
     qreal m_frameRate = 0.0f;
     QSize m_size;
