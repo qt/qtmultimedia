@@ -1009,7 +1009,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
     decoder.set("use-buffering", true);
 
-    constexpr int mb = 1024 * 1024;
+    constexpr guint64 mb = 1024 * 1024;
     decoder.set("ring-buffer-max-size", 2 * mb);
 
     updateBufferProgress(0.f);
