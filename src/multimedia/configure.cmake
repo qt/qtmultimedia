@@ -33,8 +33,14 @@ if(TARGET EGL::EGL)
 endif()
 qt_find_package(EGL PROVIDED_TARGETS EGL::EGL)
 
+# If FFMPEG_DIR is specified, we require FFmpeg to be present. This makes
+# configuration problems easier to detect, and reduces risk of silent
+# fallback to native backends.
+if (DEFINED FFMPEG_DIR)
+    set(ffmpeg_required REQUIRED)
+endif()
 
-qt_find_package(FFmpeg OPTIONAL_COMPONENTS AVCODEC AVFORMAT AVUTIL SWRESAMPLE SWSCALE PROVIDED_TARGETS FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::swresample FFmpeg::swscale MODULE_NAME multimedia QMAKE_LIB ffmpeg)
+qt_find_package(FFmpeg OPTIONAL_COMPONENTS AVCODEC AVFORMAT AVUTIL SWRESAMPLE SWSCALE PROVIDED_TARGETS FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::swresample FFmpeg::swscale MODULE_NAME multimedia QMAKE_LIB ffmpeg ${ffmpeg_required})
 qt_find_package_extend_sbom(
     TARGETS
         FFmpeg::avcodec
