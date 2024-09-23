@@ -375,6 +375,59 @@ void tst_QMediaFrameInputsBackend::
     QVERIFY(fuzzyCompare(colors[3], Qt::yellow));
 }
 
+void tst_QMediaFrameInputsBackend::
+        sinkReceivesFrameWithTransformParams_whenPresentationTransformPresent_data()
+{
+    QTest::addColumn<QtVideo::Rotation>("presentationRotation");
+    QTest::addColumn<bool>("presentationMirrored");
+
+    QTest::addRow("No rotation, not mirrored") << QtVideo::Rotation::None << false;
+    QTest::addRow("90 degrees, not mirrored") << QtVideo::Rotation::Clockwise90 << false;
+    QTest::addRow("180 degrees, not mirrored") << QtVideo::Rotation::Clockwise180 << false;
+    QTest::addRow("270 degrees, not mirrored") << QtVideo::Rotation::Clockwise270 << false;
+    QTest::addRow("No rotation, mirrored") << QtVideo::Rotation::None << true;
+    QTest::addRow("90 degrees, mirrored") << QtVideo::Rotation::Clockwise90 << true;
+    QTest::addRow("180 degrees, mirrored") << QtVideo::Rotation::Clockwise180 << true;
+    QTest::addRow("270 degrees, mirrored") << QtVideo::Rotation::Clockwise270 << true;
+}
+
+void tst_QMediaFrameInputsBackend::
+        sinkReceivesFrameWithTransformParams_whenPresentationTransformPresent()
+{
+    QFETCH(const QtVideo::Rotation, presentationRotation);
+    QFETCH(const bool, presentationMirrored);
+
+    // Arrange
+    CaptureSessionFixture f{ StreamType::Video };
+    f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
+    f.m_videoGenerator.setFrameCount(2);
+
+    f.m_videoGenerator.setPresentationRotation(presentationRotation);
+    f.m_videoGenerator.setPresentationMirrored(presentationMirrored);
+
+    TestVideoSink videoSink{ true /*store frames*/};
+    f.setVideoSink(&videoSink);
+    f.start(RunMode::Push, AutoStop::No);
+
+    // Act - push two frames
+    f.m_videoGenerator.nextFrame();
+    f.m_videoGenerator.nextFrame();
+    QCOMPARE_EQ(videoSink.m_frameList.size(), 2);
+
+    // Assert
+    const QVideoFrame frame = videoSink.m_frameList.back();
+    QCOMPARE_EQ(frame.mirrored(), presentationMirrored);
+    QCOMPARE_EQ(frame.rotation(), presentationRotation);
+
+    // Note: Frame data is not transformed and QVideoFrame::toImage does not apply
+    // transformations. Transformation parameters should be forwarded to rendering
+    const std::array<QColor, 4> colors = MediaInfo::sampleQuadrants(frame.toImage());
+    QVERIFY(fuzzyCompare(colors[0], Qt::red));
+    QVERIFY(fuzzyCompare(colors[1], Qt::green));
+    QVERIFY(fuzzyCompare(colors[2], Qt::blue));
+    QVERIFY(fuzzyCompare(colors[3], Qt::yellow));
+}
+
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameShrinksOverTime()
 {
     CaptureSessionFixture f{ StreamType::Video };

@@ -30,6 +30,8 @@ private slots:
 
     void mediaRecorderWritesVideo_withoutTransforms_whenPresentationTransformsPresent_data();
     void mediaRecorderWritesVideo_withoutTransforms_whenPresentationTransformsPresent();
+    void sinkReceivesFrameWithTransformParams_whenPresentationTransformPresent_data();
+    void sinkReceivesFrameWithTransformParams_whenPresentationTransformPresent();
 
     void mediaRecorderStopsRecording_whenInputsReportedEndOfStream_data();
     void mediaRecorderStopsRecording_whenInputsReportedEndOfStream();

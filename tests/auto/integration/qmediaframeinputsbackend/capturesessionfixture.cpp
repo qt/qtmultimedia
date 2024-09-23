@@ -15,6 +15,11 @@ CaptureSessionFixture::~CaptureSessionFixture()
     QFile::remove(m_recorder.actualLocation().toLocalFile());
 }
 
+void CaptureSessionFixture::setVideoSink(QVideoSink *videoSink)
+{
+    m_videoSink = videoSink;
+}
+
 void CaptureSessionFixture::start(RunMode mode, AutoStop autoStop)
 {
     if (hasVideo()) {
@@ -56,6 +61,11 @@ void CaptureSessionFixture::start(RunMode mode, AutoStop autoStop)
     m_tempFile.open();
     m_recorder.setOutputLocation(m_tempFile.fileName());
     m_recorder.record();
+
+    // HACK: Add sink after starting recording because setting the video sink will
+    // emit ready signals and start the processing chain. TODO: Fix this
+    if (m_videoSink)
+        m_session.setVideoSink(m_videoSink);
 }
 
 bool CaptureSessionFixture::waitForRecorderStopped(milliseconds duration)
