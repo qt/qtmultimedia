@@ -26,6 +26,7 @@ struct CaptureSessionFixture
     explicit CaptureSessionFixture(StreamType streamType);
     ~CaptureSessionFixture();
 
+    void setVideoSink(QVideoSink *videoSink);
     void start(RunMode mode, AutoStop autoStop);
     bool waitForRecorderStopped(milliseconds duration);
     bool hasAudio() const;
@@ -38,6 +39,7 @@ struct CaptureSessionFixture
     QMediaCaptureSession m_session;
     QMediaRecorder m_recorder;
     QTemporaryFile m_tempFile;
+    QVideoSink *m_videoSink = nullptr;
     StreamType m_streamType = StreamType::Video;
 
     QSignalSpy readyToSendVideoFrame{ &m_videoInput, &QVideoFrameInput::readyToSendVideoFrame };
