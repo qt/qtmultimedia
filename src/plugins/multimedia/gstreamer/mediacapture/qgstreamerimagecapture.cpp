@@ -116,9 +116,9 @@ QGstreamerImageCapture::QGstreamerImageCapture(QImageCapture *parent)
     // configures the queue to be fast, lightweight and non blocking
     queue.set("leaky", 2 /*downstream*/);
     queue.set("silent", true);
-    queue.set("max-size-buffers", uint(1));
-    queue.set("max-size-bytes", uint(0));
-    queue.set("max-size-time", quint64(0));
+    queue.set("max-size-buffers", int(1));
+    queue.set("max-size-bytes", int(0));
+    queue.set("max-size-time", uint64_t(0));
 
     // imageCaptureSink do not wait for a preroll buffer when going READY -> PAUSED
     // as no buffer will arrive until capture() is called
