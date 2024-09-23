@@ -440,10 +440,10 @@ public:
 
     void set(const char *property, const char *str);
     void set(const char *property, bool b);
-    void set(const char *property, uint i);
-    void set(const char *property, int i);
-    void set(const char *property, qint64 i);
-    void set(const char *property, quint64 i);
+    void set(const char *property, int32_t i);
+    void set(const char *property, uint32_t i);
+    void set(const char *property, int64_t i);
+    void set(const char *property, uint64_t i);
     void set(const char *property, double d);
     void set(const char *property, const QGstObject &o);
     void set(const char *property, const QGstCaps &c);
