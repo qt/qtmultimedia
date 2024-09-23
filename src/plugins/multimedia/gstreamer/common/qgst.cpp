@@ -594,22 +594,22 @@ void QGstObject::set(const char *property, bool b)
     g_object_set(get(), property, gboolean(b), nullptr);
 }
 
-void QGstObject::set(const char *property, uint i)
+void QGstObject::set(const char *property, uint32_t i)
 {
     g_object_set(get(), property, guint(i), nullptr);
 }
 
-void QGstObject::set(const char *property, int i)
+void QGstObject::set(const char *property, int32_t i)
 {
     g_object_set(get(), property, gint(i), nullptr);
 }
 
-void QGstObject::set(const char *property, qint64 i)
+void QGstObject::set(const char *property, int64_t i)
 {
     g_object_set(get(), property, gint64(i), nullptr);
 }
 
-void QGstObject::set(const char *property, quint64 i)
+void QGstObject::set(const char *property, uint64_t i)
 {
     g_object_set(get(), property, guint64(i), nullptr);
 }
