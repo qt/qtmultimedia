@@ -188,8 +188,7 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInput
     QFETCH(const int, sampleRate);
     QFETCH(const milliseconds, duration);
 
-    CaptureSessionFixture f{ StreamType::Audio, AutoStop::EmitEmpty };
-    f.connectPullMode();
+    CaptureSessionFixture f{ StreamType::Audio };
 
     QAudioFormat format;
     format.setSampleFormat(sampleFormat);
@@ -200,7 +199,7 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInput
     f.m_audioGenerator.setBufferCount(bufferCount);
     f.m_audioGenerator.setDuration(duration);
 
-    f.m_recorder.record();
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
     QVERIFY(f.waitForRecorderStopped(60s));
 
@@ -255,8 +254,7 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInput
     QFETCH(const QSize, resolution);
     QFETCH(const bool, setTimeStamp);
 
-    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
-    f.connectPullMode();
+    CaptureSessionFixture f{ StreamType::Video };
     f.m_videoGenerator.setFrameCount(framesNumber);
     f.m_videoGenerator.setSize(resolution);
 
@@ -266,7 +264,7 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInput
     else
         f.m_videoGenerator.setFrameRate(frameRate);
 
-    f.m_recorder.record();
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
     QVERIFY(f.waitForRecorderStopped(60s));
 
@@ -305,7 +303,7 @@ QVector3D RGBToYUV(const QColor &c)
 
 // Considers two colors equal if their YUV components are
 // pointing in the same direction and have similar luma (Y)
-bool fuzzyCompare(const QColor &lhs, const QColor& rhs, float tol = 1e-2)
+bool fuzzyCompare(const QColor &lhs, const QColor &rhs, float tol = 1e-2)
 {
     const QVector3D lhsYuv = RGBToYUV(lhs);
     const QVector3D rhsYuv = RGBToYUV(rhs);
@@ -317,12 +315,12 @@ bool fuzzyCompare(const QColor &lhs, const QColor& rhs, float tol = 1e-2)
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withCorrectColors()
 {
-    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
-    f.connectPullMode();
+    CaptureSessionFixture f{ StreamType::Video };
+
     f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
     f.m_videoGenerator.setFrameCount(3);
 
-    f.m_recorder.record();
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
     QVERIFY(f.waitForRecorderStopped(60s));
 
     const auto info = MediaInfo::create(f.m_recorder.actualLocation());
@@ -357,15 +355,14 @@ void tst_QMediaFrameInputsBackend::
     QFETCH(const QtVideo::Rotation, presentationRotation);
     QFETCH(const bool, presentationMirrored);
 
-    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
-    f.connectPullMode();
+    CaptureSessionFixture f{ StreamType::Video };
     f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
     f.m_videoGenerator.setFrameCount(3);
 
     f.m_videoGenerator.setPresentationRotation(presentationRotation);
     f.m_videoGenerator.setPresentationMirrored(presentationMirrored);
 
-    f.m_recorder.record();
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
     QVERIFY(f.waitForRecorderStopped(60s));
 
     const auto info = MediaInfo::create(f.m_recorder.actualLocation());
@@ -380,13 +377,14 @@ void tst_QMediaFrameInputsBackend::
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameShrinksOverTime()
 {
-    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
-    f.m_recorder.record();
+    CaptureSessionFixture f{ StreamType::Video };
+    f.start(RunMode::Push, AutoStop::EmitEmpty);
     f.readyToSendVideoFrame.wait();
 
     constexpr int startSize = 38;
     int frameCount = 0;
-    for (int i = 0; i < startSize; i += 2) { // TODO crash in sws_scale if subsequent frames are odd-sized QTBUG-126259
+    for (int i = 0; i < startSize;
+         i += 2) { // TODO crash in sws_scale if subsequent frames are odd-sized QTBUG-126259
         ++frameCount;
         const QSize size{ startSize - i, startSize - i };
         f.m_videoGenerator.setSize(size);
@@ -407,15 +405,16 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameShrink
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameGrowsOverTime()
 {
-    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
-    f.m_recorder.record();
+    CaptureSessionFixture f{ StreamType::Video };
+    f.start(RunMode::Push, AutoStop::EmitEmpty);
     f.readyToSendVideoFrame.wait();
 
     constexpr int startSize = 38;
     constexpr int maxSize = 256;
     int frameCount = 0;
 
-    for (int i = 0; i < maxSize - startSize; i += 2) { // TODO crash in sws_scale if subsequent frames are odd-sized QTBUG-126259
+    for (int i = 0; i < maxSize - startSize;
+         i += 2) { // TODO crash in sws_scale if subsequent frames are odd-sized QTBUG-126259
         ++frameCount;
         const QSize size{ startSize + i, startSize + i };
         f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
@@ -437,12 +436,12 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameGrowsO
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withSingleFrame()
 {
-    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
-    f.connectPullMode();
+    CaptureSessionFixture f{ StreamType::Video };
     f.m_videoGenerator.setFrameCount(1);
     f.m_videoGenerator.setSize({ 640, 480 });
     f.m_videoGenerator.setPeriod(1s);
-    f.m_recorder.record();
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
+
     QVERIFY(f.waitForRecorderStopped(60s));
     auto info = MediaInfo::create(f.m_recorder.actualLocation());
 
@@ -462,9 +461,8 @@ void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReporte
 {
     QFETCH(const bool, audioStopsFirst);
 
-    CaptureSessionFixture f{ StreamType::AudioAndVideo, AutoStop::No };
+    CaptureSessionFixture f{ StreamType::AudioAndVideo };
     f.m_recorder.setAutoStop(true);
-    f.connectPullMode();
 
     f.m_audioGenerator.setBufferCount(30);
     f.m_videoGenerator.setFrameCount(30);
@@ -472,7 +470,7 @@ void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReporte
     QSignalSpy audioDone{ &f.m_audioGenerator, &AudioGenerator::done };
     QSignalSpy videoDone{ &f.m_videoGenerator, &VideoGenerator::done };
 
-    f.m_recorder.record();
+    f.start(RunMode::Pull, AutoStop::No);
 
     audioDone.wait();
     videoDone.wait();
@@ -510,9 +508,9 @@ void tst_QMediaFrameInputsBackend::readyToSend_isEmitted_whenRecordingStarts()
 {
     QFETCH(StreamType, streamType);
 
-    CaptureSessionFixture f{ streamType, AutoStop::No };
+    CaptureSessionFixture f{ streamType };
 
-    f.m_recorder.record();
+    f.start(RunMode::Push, AutoStop::No);
 
     if (f.hasAudio())
         QTRY_COMPARE_EQ(f.readyToSendAudioBuffer.size(), 1);
@@ -523,9 +521,9 @@ void tst_QMediaFrameInputsBackend::readyToSend_isEmitted_whenRecordingStarts()
 
 void tst_QMediaFrameInputsBackend::readyToSendVideoFrame_isEmitted_whenSendVideoFrameIsCalled()
 {
-    CaptureSessionFixture f{ StreamType::Video, AutoStop::No };
+    CaptureSessionFixture f{ StreamType::Video };
+    f.start(RunMode::Push, AutoStop::No);
 
-    f.m_recorder.record();
     QVERIFY(f.readyToSendVideoFrame.wait());
 
     f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame());
@@ -537,9 +535,9 @@ void tst_QMediaFrameInputsBackend::readyToSendVideoFrame_isEmitted_whenSendVideo
 
 void tst_QMediaFrameInputsBackend::readyToSendAudioBuffer_isEmitted_whenSendAudioBufferIsCalled()
 {
-    CaptureSessionFixture f{ StreamType::Audio, AutoStop::No };
+    CaptureSessionFixture f{ StreamType::Audio };
+    f.start(RunMode::Push, AutoStop::No);
 
-    f.m_recorder.record();
     QVERIFY(f.readyToSendAudioBuffer.wait());
 
     f.m_audioInput.sendAudioBuffer(f.m_audioGenerator.createAudioBuffer());
@@ -551,13 +549,12 @@ void tst_QMediaFrameInputsBackend::readyToSendAudioBuffer_isEmitted_whenSendAudi
 
 void tst_QMediaFrameInputsBackend::readyToSendVideoFrame_isEmittedRepeatedly_whenPullModeIsEnabled()
 {
-    CaptureSessionFixture f{ StreamType::Video, AutoStop::EmitEmpty };
-    f.connectPullMode();
+    CaptureSessionFixture f{ StreamType::Video };
 
     constexpr int expectedSignalCount = 4;
     f.m_videoGenerator.setFrameCount(expectedSignalCount - 1);
 
-    f.m_recorder.record();
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
     f.waitForRecorderStopped(60s);
 
@@ -567,13 +564,12 @@ void tst_QMediaFrameInputsBackend::readyToSendVideoFrame_isEmittedRepeatedly_whe
 void tst_QMediaFrameInputsBackend::
         readyToSendAudioBuffer_isEmittedRepeatedly_whenPullModeIsEnabled()
 {
-    CaptureSessionFixture f{ StreamType::Audio, AutoStop::EmitEmpty };
-    f.connectPullMode();
+    CaptureSessionFixture f{ StreamType::Audio };
 
     constexpr int expectedSignalCount = 4;
     f.m_audioGenerator.setBufferCount(expectedSignalCount - 1);
 
-    f.m_recorder.record();
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
     f.waitForRecorderStopped(60s);
 
@@ -583,14 +579,13 @@ void tst_QMediaFrameInputsBackend::
 void tst_QMediaFrameInputsBackend::
         readyToSendAudioBufferAndVideoFrame_isEmittedRepeatedly_whenPullModeIsEnabled()
 {
-    CaptureSessionFixture f{ StreamType::AudioAndVideo, AutoStop::EmitEmpty };
-    f.connectPullMode();
+    CaptureSessionFixture f{ StreamType::AudioAndVideo };
 
     constexpr int expectedSignalCount = 4;
     f.m_audioGenerator.setBufferCount(expectedSignalCount - 1);
     f.m_videoGenerator.setFrameCount(expectedSignalCount - 1);
 
-    f.m_recorder.record();
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
     f.waitForRecorderStopped(60s);
 
