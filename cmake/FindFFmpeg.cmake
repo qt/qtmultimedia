@@ -370,8 +370,20 @@ foreach (_component ${FFmpeg_FIND_COMPONENTS})
   list(APPEND _FFmpeg_REQUIRED_VARS ${_component}_LIBRARY ${_component}_INCLUDE_DIR)
 endforeach ()
 
+set(FIND_FFMPEG_HELP_STRING
+[=[FFMPEG_DIR CMake variable is not correct.
+    Make sure that the FFMPEG_DIR CMake variable is set to a path that
+    contains FFmpeg 'lib' and 'include' directories and that the FFmpeg
+    installation is built with the avformat, avcodec, swresample,
+    swscale, and avutil libraries. To resolve the issue, please delete
+    CMakeCache.txt and run configure again with the correct FFMPEG_DIR
+    CMake variable set.
+]=])
+
 # Give a nice error message if some of the required vars are missing.
 find_package_handle_standard_args(FFmpeg
     REQUIRED_VARS ${_FFmpeg_REQUIRED_VARS}
     HANDLE_COMPONENTS
+    REASON_FAILURE_MESSAGE
+    ${FIND_FFMPEG_HELP_STRING}
 )
