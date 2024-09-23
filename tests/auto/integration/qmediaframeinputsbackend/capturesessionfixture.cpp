@@ -8,12 +8,15 @@ QT_BEGIN_NAMESPACE
 
 using namespace std::chrono;
 
-CaptureSessionFixture::CaptureSessionFixture(StreamType streamType, AutoStop autoStop)
-    : m_streamType{ streamType }
-{
-    m_recorder.setQuality(QMediaRecorder::VeryHighQuality);
-    m_session.setRecorder(&m_recorder);
+CaptureSessionFixture::CaptureSessionFixture(StreamType streamType) : m_streamType{ streamType } { }
 
+CaptureSessionFixture::~CaptureSessionFixture()
+{
+    QFile::remove(m_recorder.actualLocation().toLocalFile());
+}
+
+void CaptureSessionFixture::start(RunMode mode, AutoStop autoStop)
+{
     if (hasVideo()) {
         m_session.setVideoFrameInput(&m_videoInput);
 
@@ -38,24 +41,21 @@ CaptureSessionFixture::CaptureSessionFixture(StreamType streamType, AutoStop aut
         }
     }
 
+    if (mode == RunMode::Pull) {
+        if (hasVideo())
+            QObject::connect(&m_videoInput, &QVideoFrameInput::readyToSendVideoFrame, //
+                             &m_videoGenerator, &VideoGenerator::nextFrame);
+
+        if (hasAudio())
+            QObject::connect(&m_audioInput, &QAudioBufferInput::readyToSendAudioBuffer, //
+                             &m_audioGenerator, &AudioGenerator::nextBuffer);
+    }
+
+    m_session.setRecorder(&m_recorder);
+    m_recorder.setQuality(QMediaRecorder::VeryHighQuality);
     m_tempFile.open();
     m_recorder.setOutputLocation(m_tempFile.fileName());
-}
-
-CaptureSessionFixture::~CaptureSessionFixture()
-{
-    QFile::remove(m_recorder.actualLocation().toLocalFile());
-}
-
-void CaptureSessionFixture::connectPullMode()
-{
-    if (hasVideo())
-        QObject::connect(&m_videoInput, &QVideoFrameInput::readyToSendVideoFrame, //
-                         &m_videoGenerator, &VideoGenerator::nextFrame);
-
-    if (hasAudio())
-        QObject::connect(&m_audioInput, &QAudioBufferInput::readyToSendAudioBuffer, //
-                         &m_audioGenerator, &AudioGenerator::nextBuffer);
+    m_recorder.record();
 }
 
 bool CaptureSessionFixture::waitForRecorderStopped(milliseconds duration)

@@ -19,13 +19,14 @@ QT_BEGIN_NAMESPACE
 
 enum class StreamType { Audio, Video, AudioAndVideo };
 enum class AutoStop { EmitEmpty, No };
+enum class RunMode { Pull, Push };
 
 struct CaptureSessionFixture
 {
-    explicit CaptureSessionFixture(StreamType streamType, AutoStop autoStop);
+    explicit CaptureSessionFixture(StreamType streamType);
     ~CaptureSessionFixture();
 
-    void connectPullMode();
+    void start(RunMode mode, AutoStop autoStop);
     bool waitForRecorderStopped(milliseconds duration);
     bool hasAudio() const;
     bool hasVideo() const;
