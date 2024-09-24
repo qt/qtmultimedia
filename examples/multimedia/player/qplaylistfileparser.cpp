@@ -267,7 +267,7 @@ public:
     QPlaylistFileParser::FileType m_type;
     struct ParserJob
     {
-        QIODevice *m_stream;
+        QIODevice *m_stream = nullptr;
         QUrl m_media;
         QString m_mimeType;
         [[nodiscard]] bool isValid() const { return m_stream || !m_media.isEmpty(); }
