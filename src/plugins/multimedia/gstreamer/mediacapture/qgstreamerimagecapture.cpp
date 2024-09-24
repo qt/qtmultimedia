@@ -42,7 +42,7 @@ struct ThreadPoolSingleton
 
         using namespace std::chrono;
 
-        m_instance = new QThreadPool(qApp);
+        m_instance = new QThreadPool;
         m_instance->setMaxThreadCount(1); // 1 thread;
         static constexpr auto expiryTimeout = minutes(5);
         m_instance->setExpiryTimeout(round<milliseconds>(expiryTimeout).count());
