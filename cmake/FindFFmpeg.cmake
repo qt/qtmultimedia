@@ -253,7 +253,11 @@ endfunction()
 # and adds them to the target library.
 function(__ffmpeg_internal_set_dependencies _component)
   string(TOLOWER ${_component} lib)
-  set(PC_FILE ${${_component}_LIBRARY_DIR}/pkgconfig/lib${lib}.pc)
+
+  # The pkgconfig directory is always in lib/pkgconfig/, even on Windows
+  # where libs and dlls are in bin/
+  set(PC_FILE ${${_component}_LIBRARY_DIR}/../lib/pkgconfig/lib${lib}.pc)
+
   if(EXISTS ${PC_FILE})
     file(READ ${PC_FILE} pcfile)
 
