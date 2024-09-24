@@ -47,24 +47,56 @@ static std::optional<qint64> streamDuration(const AVStream &stream)
     return {};
 }
 
-static int streamOrientation(const AVStream *stream)
+static QTransform displayMatrixToTransform(const int32_t *displayMatrix)
+{
+    // displayMatrix is stored as
+    //
+    //  . -- X axis
+    //  |
+    //  |    | a b u |
+    //  Y    | c d v |
+    // axis  | x y w |
+    //
+    // where a, b, c, d, x, y are 16.16 fixed-point values,
+    // and u, v, w are 30.2 point values.
+    // Only a, b, c, d impacts on mirroring and rotation,
+    // so it's enough to propagate them to QTransform.
+    //
+    // If we were interested in getting proper XY scales,
+    // we would divide a,b,c,d by 2^16. The whole scale doesn't
+    // impact mirroring and rotation, so we don't do so.
+
+    auto toRotateMirrorValue = [displayMatrix](int index) {
+        // toRotateScaleValue would be:
+        // return displayMatrix[index] / qreal(1 << 16);
+        return displayMatrix[index];
+    };
+
+    return QTransform(toRotateMirrorValue(0), toRotateMirrorValue(1),
+                      toRotateMirrorValue(3), toRotateMirrorValue(4),
+                      0, 0);
+}
+
+static NormalizedVideoTransformation streamTransformation(const AVStream *stream)
 {
     Q_ASSERT(stream);
 
     using SideDataSize = decltype(AVPacketSideData::size);
     constexpr SideDataSize displayMatrixSize = sizeof(int32_t) * 9;
-    const auto *sideData = streamSideData(stream, AV_PKT_DATA_DISPLAYMATRIX);
+    const AVPacketSideData *sideData = streamSideData(stream, AV_PKT_DATA_DISPLAYMATRIX);
     if (!sideData || sideData->size < displayMatrixSize)
-        return 0;
+        return {};
 
-    auto displayMatrix = reinterpret_cast<const int32_t *>(sideData->data);
-    auto rotation = static_cast<int>(std::round(av_display_rotation_get(displayMatrix)));
-    // Convert counterclockwise rotation angle to clockwise, restricted to 0, 90, 180 and 270
-    if (rotation % 90 != 0)
-        return 0;
-    return rotation < 0 ? -rotation % 360 : -rotation % 360 + 360;
+    const auto displayMatrix = reinterpret_cast<const int32_t *>(sideData->data);
+    const QTransform transform = displayMatrixToTransform(displayMatrix);
+    const NormalizedVideoTransformationOpt result = qVideoTransformationFromMatrix(transform);
+    if (!result) {
+        qCWarning(qLcMediaDataHolder)
+                << "Video stream contains malformed display matrix" << transform;
+        return {};
+    }
+    return *result;
 }
-
 
 static bool colorTransferSupportsHdr(const AVStream *stream)
 {
@@ -84,10 +116,17 @@ static bool colorTransferSupportsHdr(const AVStream *stream)
             || colorTransfer == QVideoFrameFormat::ColorTransfer_STD_B67;
 }
 
-QtVideo::Rotation MediaDataHolder::rotation() const
+NormalizedVideoTransformation MediaDataHolder::transformation() const
 {
-    int orientation = m_metaData.value(QMediaMetaData::Orientation).toInt();
-    return static_cast<QtVideo::Rotation>(orientation);
+    // TODO: Add QMediaMetaData::Mirrored and take from it and QMediaMetaData::Orientation:
+    // int orientation = m_metaData.value(QMediaMetaData::Orientation).toInt();
+    // return static_cast<QtVideo::Rotation>(orientation);
+
+    const int streamIndex = m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream];
+    if (streamIndex < 0)
+        return {};
+
+    return streamTransformation(m_context->streams[streamIndex]);
 }
 
 AVFormatContext *MediaDataHolder::avContext()
@@ -115,7 +154,8 @@ static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::Trac
         metaData.insert(QMediaMetaData::Resolution, QSize(codecPar->width, codecPar->height));
         metaData.insert(QMediaMetaData::VideoFrameRate,
                         qreal(stream->avg_frame_rate.num) / qreal(stream->avg_frame_rate.den));
-        metaData.insert(QMediaMetaData::Orientation, QVariant::fromValue(streamOrientation(stream)));
+        metaData.insert(QMediaMetaData::Orientation,
+                        QVariant::fromValue(streamTransformation(stream).rotation));
         metaData.insert(QMediaMetaData::HasHdrContent, colorTransferSupportsHdr(stream));
         break;
     case QPlatformMediaPlayer::AudioStream:

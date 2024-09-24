@@ -197,9 +197,9 @@ PlaybackEngine::createRenderer(QPlatformMediaPlayer::TrackType trackType)
 {
     switch (trackType) {
     case QPlatformMediaPlayer::VideoStream:
-        return m_videoSink
-                ? createPlaybackEngineObject<VideoRenderer>(m_timeController, m_videoSink, m_media.rotation())
-                : RendererPtr{ {}, {} };
+        return m_videoSink ? createPlaybackEngineObject<VideoRenderer>(
+                       m_timeController, m_videoSink, m_media.transformation())
+                           : RendererPtr{ {}, {} };
     case QPlatformMediaPlayer::AudioStream:
         return m_audioOutput || m_audioBufferOutput
                 ? createPlaybackEngineObject<AudioRenderer>(m_timeController, m_audioOutput, m_audioBufferOutput)
@@ -632,7 +632,8 @@ void PlaybackEngine::updateVideoSinkSize(QVideoSink *prevSink)
                     qCalculateFrameSize({ stream->codecpar->width, stream->codecpar->height },
                                         { pixelAspectRatio.num, pixelAspectRatio.den });
 
-            platformVideoSink->setNativeSize(qRotatedFrameSize(size, m_media.rotation()));
+            platformVideoSink->setNativeSize(
+                    qRotatedFrameSize(size, m_media.transformation().rotation));
         }
     }
 }

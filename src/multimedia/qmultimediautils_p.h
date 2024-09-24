@@ -66,6 +66,8 @@ struct NormalizedVideoTransformation
     bool xMirrorredAfterRotation = false;
 };
 
+using NormalizedVideoTransformationOpt = std::optional<NormalizedVideoTransformation>;
+
 inline bool operator==(const NormalizedVideoTransformation &lhs,
                        const NormalizedVideoTransformation &rhs)
 {
@@ -81,6 +83,23 @@ qNormalizedFrameTransformation(const QVideoFrame &frame, int additionalRotaton =
 
 Q_MULTIMEDIA_EXPORT QtVideo::Rotation
 qVideoRotationFromDegrees(int clockwiseDegrees);
+
+/* The function get mirroring and rotation from the specified QTransform.
+ *
+ * Matrix translation is not taken into consideration.
+ * Matrix negative scaling is interpreted as mirroring.
+ * Absolute X and Y scale values are not taken into consideration as
+ * QVideoFrame and QVideoFrameFormat don't support scaling transformations.
+ *
+ * Sheared matrixes are not supported,
+ * as shearing can make the transformation ambiguous
+ * (the same matrix can be reached by different angle,scaleX,scaleY,shearV,shearH).
+ *
+ * If the given matrix is invalid, or the scale sign is ambiguous,
+ * the function returns an empty optional value.
+ */
+Q_MULTIMEDIA_EXPORT NormalizedVideoTransformationOpt
+qVideoTransformationFromMatrix(const QTransform &matrix);
 
 QT_END_NAMESPACE
 

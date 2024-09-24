@@ -210,8 +210,8 @@ private slots:
     void videoSinkSignals();
     void nonAsciiFileName();
     void setMedia_setsVideoSinkSize_beforePlaying();
-    void play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata_data();
-    void play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata();
+    void play_playsTransformedVideoOutput_whenVideoFileHasTransformationMetadata_data();
+    void play_playsTransformedVideoOutput_whenVideoFileHasTransformationMetadata();
 
     void setVideoOutput_doesNotStopPlayback_data();
     void setVideoOutput_doesNotStopPlayback();
@@ -273,9 +273,13 @@ private:
     MaybeUrl m_192x108_PAR_2_3_Video = QUnexpect{};
     MaybeUrl m_192x108_PAR_3_2_Video = QUnexpect{};
     MaybeUrl m_colorMatrixVideo = QUnexpect{};
+    MaybeUrl m_colorMatrixMirroredVideo = QUnexpect{};
     MaybeUrl m_colorMatrix90degClockwiseVideo = QUnexpect{};
+    MaybeUrl m_colorMatrix90degClockwiseMirroredVideo = QUnexpect{};
     MaybeUrl m_colorMatrix180degClockwiseVideo = QUnexpect{};
+    MaybeUrl m_colorMatrix180degClockwiseMirroredVideo = QUnexpect{};
     MaybeUrl m_colorMatrix270degClockwiseVideo = QUnexpect{};
+    MaybeUrl m_colorMatrix270degClockwiseMirroredVideo = QUnexpect{};
     MaybeUrl m_hdrVideo = QUnexpect{};
     MaybeUrl m_15sVideo = QUnexpect{};
     MaybeUrl m_subtitleVideo = QUnexpect{};
@@ -404,12 +408,19 @@ void tst_QMediaPlayerBackend::initTestCase()
     m_192x108_PAR_3_2_Video = m_mediaSelector.select("qrc:/testdata/par_3_2.mp4");
 
     m_colorMatrixVideo = m_mediaSelector.select("qrc:/testdata/color_matrix.mp4");
+    m_colorMatrixMirroredVideo = m_mediaSelector.select("qrc:/testdata/color_matrix_mirrored.mp4");
     m_colorMatrix90degClockwiseVideo =
             m_mediaSelector.select("qrc:/testdata/color_matrix_90_deg_clockwise.mp4");
+    m_colorMatrix90degClockwiseMirroredVideo =
+            m_mediaSelector.select("qrc:/testdata/color_matrix_90_deg_clockwise_mirrored.mp4");
     m_colorMatrix180degClockwiseVideo =
             m_mediaSelector.select("qrc:/testdata/color_matrix_180_deg_clockwise.mp4");
+    m_colorMatrix180degClockwiseMirroredVideo =
+            m_mediaSelector.select("qrc:/testdata/color_matrix_180_deg_clockwise_mirrored.mp4");
     m_colorMatrix270degClockwiseVideo =
             m_mediaSelector.select("qrc:/testdata/color_matrix_270_deg_clockwise.mp4");
+    m_colorMatrix270degClockwiseMirroredVideo =
+            m_mediaSelector.select("qrc:/testdata/color_matrix_270_deg_clockwise_mirrored.mp4");
 
     m_hdrVideo = m_mediaSelector.select("qrc:/testdata/h264_avc1_yuv420p10le_tv_bt2020.mov");
     m_15sVideo = m_mediaSelector.select("qrc:/testdata/15s.mkv");
@@ -3978,37 +3989,79 @@ std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtpStreamProcess(QStrin
 }
 #endif //QT_CONFIG(process)
 
-void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata_data()
+void tst_QMediaPlayerBackend::
+        play_playsTransformedVideoOutput_whenVideoFileHasTransformationMetadata_data()
 {
     QTest::addColumn<MaybeUrl>("fileURL");
     QTest::addColumn<QRgb>("expectedColor");
-    QTest::addColumn<QtVideo::Rotation>("expectedRotationAngle");
+    QTest::addColumn<QtVideo::Rotation>("expectedRotation");
+    QTest::addColumn<bool>("expectedMirrored");
     QTest::addColumn<QSize>("videoSize");
 
     // clang-format off
-    QTest::addRow("without rotation") << m_colorMatrixVideo
-                                      << QRgb(0xff0000)
-                                      << QtVideo::Rotation::None
-                                      << QSize(960, 540);
+    // useful command for creating testdata:
+    // ffmpeg -display_hflip -display_rotation 90 -i color_matrix.mp4 -codec copy color_matrix_90_deg_clockwise_mirrored.mp4
 
-    QTest::addRow("90 deg clockwise") << m_colorMatrix90degClockwiseVideo
-                                      << QRgb(0x0000FF)
-                                      << QtVideo::Rotation::Clockwise90
-                                      << QSize(540, 960);
+    QTest::addRow("without transformation")
+            << m_colorMatrixVideo
+            << QRgb(0xFF0000)
+            << QtVideo::Rotation::None
+            << false
+            << QSize(960, 540);
 
-    QTest::addRow("180 deg clockwise") << m_colorMatrix180degClockwiseVideo
-                                       << QRgb(0xFFFF00)
-                                       << QtVideo::Rotation::Clockwise180
-                                       << QSize(960, 540);
+    QTest::addRow("mirrored")
+            << m_colorMatrixMirroredVideo
+            << QRgb(0x00FF00)
+            << QtVideo::Rotation::None
+            << true
+            << QSize(960, 540);
 
-    QTest::addRow("270 deg clockwise") << m_colorMatrix270degClockwiseVideo
-                                       << QRgb(0x00FF00)
-                                       << QtVideo::Rotation::Clockwise270
-                                       << QSize(540, 960);
+    QTest::addRow("90 deg clockwise")
+            << m_colorMatrix90degClockwiseVideo
+            << QRgb(0x0000FF)
+            << QtVideo::Rotation::Clockwise90
+            << false
+            << QSize(540, 960);
+
+    QTest::addRow("90 deg clockwise mirrored")
+            << m_colorMatrix90degClockwiseMirroredVideo
+            << QRgb(0xFF0000)
+            << QtVideo::Rotation::Clockwise90
+            << true
+            << QSize(540, 960);
+
+    QTest::addRow("180 deg clockwise")
+            << m_colorMatrix180degClockwiseVideo
+            << QRgb(0xFFFF00)
+            << QtVideo::Rotation::Clockwise180
+            << false
+            << QSize(960, 540);
+
+    QTest::addRow("180 deg clockwise mirrored")
+            << m_colorMatrix180degClockwiseMirroredVideo
+            << QRgb(0x0000FF)
+            << QtVideo::Rotation::Clockwise180
+            << true
+            << QSize(960, 540);
+
+    QTest::addRow("270 deg clockwise")
+            << m_colorMatrix270degClockwiseVideo
+            << QRgb(0x00FF00)
+            << QtVideo::Rotation::Clockwise270
+            << false
+            << QSize(540, 960);
+
+    QTest::addRow("270 deg clockwise mirrored")
+            << m_colorMatrix270degClockwiseMirroredVideo
+            << QRgb(0xFFFF00)
+            << QtVideo::Rotation::Clockwise270
+            << true
+            << QSize(540, 960);
     // clang-format on
 }
 
-void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata()
+void tst_QMediaPlayerBackend::
+        play_playsTransformedVideoOutput_whenVideoFileHasTransformationMetadata()
 {
     if (isGStreamerPlatform() && isCI())
         QSKIP("QTBUG-124005: Fails with gstreamer on CI");
@@ -4022,7 +4075,8 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
     // Fetch path and expected color of upper left area of each file
     QFETCH(const MaybeUrl, fileURL);
     QFETCH(const QRgb, expectedColor);
-    QFETCH(const QtVideo::Rotation, expectedRotationAngle);
+    QFETCH(const QtVideo::Rotation, expectedRotation);
+    QFETCH(const bool, expectedMirrored);
     QFETCH(const QSize, videoSize);
 
     CHECK_SELECTED_URL(fileURL);
@@ -4037,21 +4091,23 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
     // Compare orientation metadata of QMediaPlayer with expected value
     const auto metaData = m_fixture->player.metaData();
     const auto playerOrientation = metaData.value(QMediaMetaData::Orientation).value<QtVideo::Rotation>();
-    QCOMPARE(playerOrientation, expectedRotationAngle);
+    QCOMPARE(playerOrientation, expectedRotation);
 
     // Compare orientation metadata of active video stream with expected value
     const int activeVideoTrack = m_fixture->player.activeVideoTrack();
     const auto videoTrackMetaData = m_fixture->player.videoTracks().at(activeVideoTrack);
     const auto videoTrackOrientation = videoTrackMetaData.value(QMediaMetaData::Orientation).value<QtVideo::Rotation>();
-    QCOMPARE(videoTrackOrientation, expectedRotationAngle);
+    QCOMPARE(videoTrackOrientation, expectedRotation);
 
     // Play video file, sample upper left area, compare with expected color
     m_fixture->player.play();
     QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
     QVideoFrame videoFrame = m_fixture->surface.waitForFrame();
     QVERIFY(videoFrame.isValid());
-    QCOMPARE(videoFrame.surfaceFormat().rotation(), expectedRotationAngle);
+    QCOMPARE(videoFrame.surfaceFormat().rotation(), expectedRotation);
+    QCOMPARE(videoFrame.surfaceFormat().isMirrored(), expectedMirrored);
     QCOMPARE(videoFrame.rotation(), QtVideo::Rotation::None);
+    QVERIFY(!videoFrame.mirrored());
 #ifdef Q_OS_ANDROID
     QSKIP("frame.toImage will return null image because of QTBUG-108446");
 #endif

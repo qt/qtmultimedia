@@ -70,7 +70,7 @@ public:
 
     bool isSeekable() const { return m_isSeekable; }
 
-    QtVideo::Rotation rotation() const;
+    NormalizedVideoTransformation transformation() const;
 
     AVFormatContext *avContext();
 

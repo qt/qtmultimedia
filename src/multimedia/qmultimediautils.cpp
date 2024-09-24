@@ -8,6 +8,8 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qloggingcategory.h>
 
+#include <cmath>
+
 QT_BEGIN_NAMESPACE
 
 static Q_LOGGING_CATEGORY(qLcMultimediaUtils, "qt.multimedia.utils");
@@ -181,6 +183,48 @@ QtVideo::Rotation qVideoRotationFromDegrees(int clockwiseDegrees)
     if (newDegrees < 0)
         newDegrees += 360;
     return static_cast<QtVideo::Rotation>(newDegrees);
+}
+
+NormalizedVideoTransformationOpt qVideoTransformationFromMatrix(const QTransform &matrix)
+{
+    const qreal absScaleX = std::hypot(matrix.m11(), matrix.m12());
+    const qreal absScaleY = std::hypot(matrix.m21(), matrix.m22());
+
+    if (qFuzzyIsNull(absScaleX) || qFuzzyIsNull(absScaleY))
+        return {}; // the matrix is malformed
+
+    qreal cos1 = matrix.m11() / absScaleX;
+    qreal sin1 = matrix.m12() / absScaleX;
+
+    // const: consider yScale > 0, as negative yScale can be compensated via negative xScale
+    const qreal sin2 = -matrix.m21() / absScaleY;
+    const qreal cos2 = matrix.m22() / absScaleY;
+
+    NormalizedVideoTransformation result;
+
+    // try detecting the best pair option to detect mirroring
+
+    if (std::abs(cos1) + std::abs(cos2) > std::abs(sin1) + std::abs(sin2))
+        result.xMirrorredAfterRotation = std::signbit(cos1) != std::signbit(cos2);
+    else
+        result.xMirrorredAfterRotation = std::signbit(sin1) != std::signbit(sin2);
+
+    if (result.xMirrorredAfterRotation) {
+        cos1 *= -1;
+        sin1 *= -1;
+    }
+
+    const qreal maxDiscrepancy = 0.2;
+
+    if (std::abs(cos1 - cos2) > maxDiscrepancy || std::abs(sin1 - sin2) > maxDiscrepancy)
+        return {}; // the matrix is sheared too much, this is not supported currently
+
+    const qreal angle = atan2(sin1 + sin2, cos1 + cos2);
+    Q_ASSERT(!std::isnan(angle)); // checked upon scale validation
+
+    result.rotationIndex = qRound(angle / M_PI_2);
+    fixTransformation(result);
+    return result;
 }
 
 QT_END_NAMESPACE
