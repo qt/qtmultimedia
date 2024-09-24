@@ -36,6 +36,12 @@ private slots:
 
     void qVideoRotationFromDegrees_basicValues_data();
     void qVideoRotationFromDegrees_basicValues();
+
+    void qVideoTransformationFromMatrix_returnsNormalizedTransformation_whenInputIsValid_data();
+    void qVideoTransformationFromMatrix_returnsNormalizedTransformation_whenInputIsValid();
+
+    void qVideoTransformationFromMatrix_returnsNormalizedTransformation_whenInputIsInvalid_data();
+    void qVideoTransformationFromMatrix_returnsNormalizedTransformation_whenInputIsInvalid();
 };
 
 void tst_QMultimediaUtils::fraction_of_0()
@@ -241,21 +247,11 @@ void tst_QMultimediaUtils::qNormalizedFrameTransformation_normilizesInputTransfo
                QtVideo::Rotation::None, false, additionalRotation);
 }
 
-// eliminates float numbers inaccuracy
-static void fixTransform(QTransform &transform)
+static void rotate(QTransform &transform, qreal clockwiseDegrees)
 {
-    auto &matrix = transform.asAffineMatrix().m_matrix;
-    for (int i = 0; i < 3; ++i)
-        for (int j = 0; j < 3; ++j)
-            matrix[i][j] = std::round(matrix[i][j]);
-}
-
-static void rotate(QTransform &transform, int rotation)
-{
-    if (rotation != 0) {
-        transform.rotate(-qreal(rotation));
-        fixTransform(transform);
-    }
+    // QTransform::rotate rotates clockwise as long as the Y-axis points downwards
+    if (clockwiseDegrees != 0)
+        transform.rotate(clockwiseDegrees);
 }
 
 static void rotate(QTransform &transform, QtVideo::Rotation rotation)
@@ -265,28 +261,14 @@ static void rotate(QTransform &transform, QtVideo::Rotation rotation)
 
 static void xMirror(QTransform &transform, bool mirror)
 {
-    if (mirror) {
+    if (mirror)
         transform.scale(-1., 1.);
-        fixTransform(transform);
-    }
 }
 
 static void yMirror(QTransform &transform, bool mirror)
 {
-    if (mirror) {
+    if (mirror)
         transform.scale(1., -1.);
-        fixTransform(transform);
-    }
-}
-
-static QTransform makeTransformMatrix(const NormalizedVideoTransformation &transform)
-{
-    QTransform result;
-
-    rotate(result, transform.rotation);
-    xMirror(result, transform.xMirrorredAfterRotation);
-
-    return result;
 }
 
 static QTransform makeTransformMatrix(QtVideo::Rotation surfaceRotation, bool surfaceMirrored,
@@ -331,29 +313,19 @@ void tst_QMultimediaUtils::qNormalizedFrameTransformation_normilizesInputTransfo
     const NormalizedVideoTransformation actual =
             qNormalizedFrameTransformation(frame, additionalFrameRotation);
 
-    const QTransform actualTransform = makeTransformMatrix(actual);
     const QTransform expectedTransform =
             makeTransformMatrix(surfaceRotation, surfaceMirrored, scanLineDirection, frameRotation,
                                 frameMirrored, additionalFrameRotation);
 
-    if (actualTransform != expectedTransform) {
-        qWarning() << "actualRotation:" << actual.rotation
-                   << "actualMirrored:" << actual.xMirrorredAfterRotation;
-        for (bool mirrored : { true, false })
-            for (int rotationIndex = 0; rotationIndex < 4; ++rotationIndex) {
-                const NormalizedVideoTransformation transform{
-                    QtVideo::Rotation(rotationIndex * 90), rotationIndex, mirrored
-                };
-                const auto matrix = makeTransformMatrix(transform);
-                if (matrix == expectedTransform)
-                    qWarning() << "expectedRotation:" << transform.rotation
-                               << "expectedMirrored:" << transform.xMirrorredAfterRotation;
-            }
-    }
+    const NormalizedVideoTransformationOpt expected =
+            qVideoTransformationFromMatrix(expectedTransform);
+
+    QTEST_ASSERT(expected);
 
     // Assert
-    QCOMPARE(actualTransform, expectedTransform);
-    QCOMPARE(qToUnderlying(actual.rotation), actual.rotationIndex * 90);
+    QCOMPARE(actual.rotation, expected->rotation);
+    QCOMPARE(actual.rotationIndex, expected->rotationIndex);
+    QCOMPARE(actual.xMirrorredAfterRotation, expected->xMirrorredAfterRotation);
 }
 
 void tst_QMultimediaUtils::qVideoRotationFromDegrees_basicValues_data()
@@ -384,5 +356,76 @@ void tst_QMultimediaUtils::qVideoRotationFromDegrees_basicValues()
     QCOMPARE(actual, expectedOutput);
 }
 
+void tst_QMultimediaUtils::
+        qVideoTransformationFromMatrix_returnsNormalizedTransformation_whenInputIsValid_data()
+{
+    QTest::addColumn<QTransform>("matrix");
+    QTest::addColumn<QtVideo::Rotation>("expectedRotation");
+    QTest::addColumn<bool>("expectedMirrored");
+
+    const auto clockwiseDegreesList = { -44.7, 0., 44., 45.01, 90., 180., 270., 359. };
+    const auto scales = { -20., -1., -0.1, 0.1, 1., 20. };
+
+    for (double xScale : scales)
+        for (double yScale : { 1., 100. })
+            for (double clockwiseDegrees : clockwiseDegreesList) {
+                QtVideo::Rotation rotation =
+                        QtVideo::Rotation(qRound(clockwiseDegrees / 90.) % 4 * 90);
+                const bool mirrored = xScale < 0;
+
+                const QString tag = QStringLiteral("clockwiseDegrees: %1; yScale: %2; yScale: %3")
+                                            .arg(QString::number(clockwiseDegrees),
+                                                 QString::number(xScale), QString::number(yScale));
+                QTransform matrix;
+                rotate(matrix, clockwiseDegrees);
+                matrix.scale(xScale, yScale);
+
+                QTest::newRow(tag.toLocal8Bit().constData()) << matrix << rotation << mirrored;
+            }
+}
+
+void tst_QMultimediaUtils::
+        qVideoTransformationFromMatrix_returnsNormalizedTransformation_whenInputIsValid()
+{
+    QFETCH(const QTransform, matrix);
+    QFETCH(const QtVideo::Rotation, expectedRotation);
+    QFETCH(const bool, expectedMirrored);
+
+    const NormalizedVideoTransformationOpt actual = qVideoTransformationFromMatrix(matrix);
+
+    QVERIFY(actual);
+    QCOMPARE(actual->rotation, expectedRotation);
+    QCOMPARE(actual->rotationIndex, qToUnderlying(expectedRotation) / 90);
+    QCOMPARE(actual->xMirrorredAfterRotation, expectedMirrored);
+}
+
+void tst_QMultimediaUtils::
+        qVideoTransformationFromMatrix_returnsNormalizedTransformation_whenInputIsInvalid_data()
+{
+    QTest::addColumn<QTransform>("matrix");
+
+    QTest::newRow("zeros") << QTransform(0., 0., 0., 0., 0., 0.);
+    QTest::newRow("xScale is zero") << QTransform(0., 1., 0., 1., 0., 0.);
+    QTest::newRow("yScale is zero") << QTransform(1., 0., 1., 0., 0., 0.);
+    QTest::newRow("sheared: m22 is zero") << QTransform(1., 1., 1., 0., 0., 0.);
+    QTest::newRow("sheared: m11 is zero") << QTransform(0., 1., 1., 1., 0., 0.);
+    QTest::newRow("sheared: m12 is zero") << QTransform(1., 0., 1., 1., 0., 0.);
+    QTest::newRow("sheared: m21 is zero") << QTransform(1., 1., 0., 1., 0., 0.);
+    QTest::newRow("sheared: ambiguous mirror") << QTransform(1., 1., 1., 1., 0., 0.);
+}
+
+void tst_QMultimediaUtils::
+        qVideoTransformationFromMatrix_returnsNormalizedTransformation_whenInputIsInvalid()
+{
+    QFETCH(const QTransform, matrix);
+
+    const NormalizedVideoTransformationOpt actual = qVideoTransformationFromMatrix(matrix);
+
+    QVERIFY(!actual);
+}
+
 QTEST_MAIN(tst_QMultimediaUtils)
+
+Q_DECLARE_METATYPE(QTransform)
+
 #include "tst_qmultimediautils.moc"

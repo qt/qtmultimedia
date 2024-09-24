@@ -10,8 +10,9 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-VideoRenderer::VideoRenderer(const TimeController &tc, QVideoSink *sink, QtVideo::Rotation rotation)
-    : Renderer(tc), m_sink(sink), m_rotation(rotation)
+VideoRenderer::VideoRenderer(const TimeController &tc, QVideoSink *sink,
+                             const NormalizedVideoTransformation &transform)
+    : Renderer(tc), m_sink(sink), m_transform(transform)
 {
 }
 
@@ -69,7 +70,8 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
     format.setColorTransfer(buffer->colorTransfer());
     format.setColorRange(buffer->colorRange());
     format.setMaxLuminance(buffer->maxNits());
-    format.setRotation(m_rotation);
+    format.setRotation(m_transform.rotation);
+    format.setMirrored(m_transform.xMirrorredAfterRotation);
     QVideoFrame videoFrame = QVideoFramePrivate::createFrame(std::move(buffer), format);
     videoFrame.setStartTime(frame.pts());
     videoFrame.setEndTime(frame.end());
