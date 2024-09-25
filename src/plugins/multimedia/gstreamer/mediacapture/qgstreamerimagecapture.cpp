@@ -315,7 +315,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
     QMutexLocker guard(&m_mutex);
-    QGstreamerMediaCapture *captureSession = static_cast<QGstreamerMediaCapture *>(session);
+    QGstreamerMediaCaptureSession *captureSession = static_cast<QGstreamerMediaCaptureSession *>(session);
     if (m_session == captureSession)
         return;
 
