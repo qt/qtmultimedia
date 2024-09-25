@@ -54,12 +54,21 @@ public:
     void setVideoPreview(QVideoSink *sink) override;
     void setAudioOutput(QPlatformAudioOutput *output) override;
 
-    void linkEncoder(QGstPad audioSink, QGstPad videoSink);
-    void unlinkEncoder();
-
     const QGstPipeline &pipeline() const;
 
     QGstreamerVideoSink *gstreamerVideoSink() const;
+
+    struct RecorderElements
+    {
+        QGstBin encodeBin;
+        QGstElement fileSink;
+
+        QGstPad audioSink;
+        QGstPad videoSink;
+    };
+    void linkAndStartEncoder(RecorderElements, const QMediaMetaData &);
+    void unlinkRecorder();
+    void finalizeRecorder();
 
 private:
     bool processBusMessage(const QGstreamerMessage &) override;
@@ -79,13 +88,22 @@ private:
     QMetaObject::Connection gstCameraActiveConnection;
 
     QGstElement gstAudioTee;
+    QGstPad audioSrcPadForEncoder;
+    QGstPad audioSrcPadForOutput;
+
     QGstElement gstVideoTee;
+    QGstPad videoSrcPadForEncoder;
+    QGstPad videoSrcPadForOutput;
+    QGstPad videoSrcPadForImageCapture;
+
     QGstElement encoderVideoCapsFilter;
     QGstElement encoderAudioCapsFilter;
 
-    QGstPad encoderAudioSink;
-    QGstPad encoderVideoSink;
-    QGstPad imageCaptureSink;
+    QGstPad imageCaptureSink();
+    QGstPad videoOutputSink();
+    QGstPad audioOutputSink();
+
+    std::optional<RecorderElements> m_currentRecorderState;
 
     QGstreamerAudioOutput *gstAudioOutput = nullptr;
     QGstreamerVideoOutput *gstVideoOutput = nullptr;
