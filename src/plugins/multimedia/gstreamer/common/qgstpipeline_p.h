@@ -56,23 +56,6 @@ public:
                                    std::chrono::nanoseconds timeout = {});
     bool processNextPendingMessage(std::chrono::nanoseconds timeout);
 
-    template <typename Functor>
-    void modifyPipelineWhileNotRunning(Functor &&fn)
-    {
-        beginConfig();
-        fn();
-        endConfig();
-    }
-
-    template <typename Functor>
-    static void modifyPipelineWhileNotRunning(QGstPipeline &&pipeline, Functor &&fn)
-    {
-        if (pipeline)
-            pipeline.modifyPipelineWhileNotRunning(fn);
-        else
-            fn();
-    }
-
     void flush();
 
     void setPlaybackRate(double rate, bool forceFlushingSeek = false);
@@ -100,9 +83,6 @@ private:
     void seek(std::chrono::nanoseconds pos);
 
     QGstPipelinePrivate *getPrivate() const;
-
-    void beginConfig();
-    void endConfig();
 };
 
 QT_END_NAMESPACE
