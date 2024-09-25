@@ -274,16 +274,15 @@ void QGstreamerMediaRecorder::record(QMediaEncoderSettings &settings)
 
     Q_ASSERT(!actualSink.isEmpty());
 
-    gstEncodebin = QGstBin::createFromFactory("encodebin", "encodebin");
+    QGstBin gstEncodebin = QGstBin::createFromFactory("encodebin", "encodebin");
     Q_ASSERT(gstEncodebin);
     auto *encodingProfile = createEncodingProfile(settings);
     g_object_set(gstEncodebin.object(), "profile", encodingProfile, nullptr);
     gst_encoding_profile_unref(encodingProfile);
 
-    gstFileSink = QGstElement::createFromFactory("filesink", "filesink");
+    QGstElement gstFileSink = QGstElement::createFromFactory("filesink", "filesink");
     Q_ASSERT(gstFileSink);
     gstFileSink.set("location", QFile::encodeName(actualSink.toLocalFile()).constData());
-    gstFileSink.set("async", false);
 
     QGstPad audioSink = {};
     QGstPad videoSink = {};
@@ -307,19 +306,14 @@ void QGstreamerMediaRecorder::record(QMediaEncoderSettings &settings)
             videoPauseControl.installOn(videoSink);
     }
 
-    // TODO: remove direct pipeline access
-    QGstPipeline capturePipeline = m_session->pipeline();
+    QGstreamerMediaCaptureSession::RecorderElements recorder{
+        .encodeBin = std::move(gstEncodebin),
+        .fileSink = std::move(gstFileSink),
+        .audioSink = std::move(audioSink),
+        .videoSink = std::move(videoSink),
+    };
 
-    capturePipeline.modifyPipelineWhileNotRunning([&] {
-        capturePipeline.add(gstEncodebin, gstFileSink);
-        qLinkGstElements(gstEncodebin, gstFileSink);
-        applyMetaDataToTagSetter(m_metaData, gstEncodebin);
-
-        m_session->linkEncoder(audioSink, videoSink);
-
-        gstEncodebin.syncStateWithParent();
-        gstFileSink.syncStateWithParent();
-    });
+    m_session->linkAndStartEncoder(std::move(recorder), m_metaData);
 
     signalDurationChangedTimer.start();
 
@@ -356,24 +350,18 @@ void QGstreamerMediaRecorder::stop()
     durationChanged(duration());
     qCDebug(qLcMediaRecorder) << "stop";
     m_finalizing = true;
-    m_session->unlinkEncoder();
+    m_session->unlinkRecorder();
     signalDurationChangedTimer.stop();
-
-    qCDebug(qLcMediaRecorder) << ">>>>>>>>>>>>> sending EOS";
-    gstEncodebin.sendEos();
 }
 
 void QGstreamerMediaRecorder::finalize()
 {
-    if (!m_session || gstEncodebin.isNull())
+    if (!m_session || !m_finalizing)
         return;
 
     qCDebug(qLcMediaRecorder) << "finalize";
 
-    // TODO: remove direct pipeline access
-    QGstPipeline{ m_session->pipeline() }.stopAndRemoveElements(gstEncodebin, gstFileSink);
-    gstFileSink = {};
-    gstEncodebin = {};
+    m_session->finalizeRecorder();
     m_finalizing = false;
     stateChanged(QMediaRecorder::StoppedState);
 }

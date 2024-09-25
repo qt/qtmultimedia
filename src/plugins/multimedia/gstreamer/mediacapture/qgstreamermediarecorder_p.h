@@ -47,8 +47,6 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-    QGstElement getEncodebin() { return gstEncodebin; }
-
     void processBusMessage(const QGstreamerMessage &message);
 
 private:
@@ -75,9 +73,6 @@ private:
     QGstreamerMediaCaptureSession *m_session = nullptr;
     QMediaMetaData m_metaData;
     QTimer signalDurationChangedTimer;
-
-    QGstBin gstEncodebin;
-    QGstElement gstFileSink;
 
     bool m_finalizing = false;
 };
