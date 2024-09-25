@@ -18,7 +18,7 @@
 #include <private/qplatformcamera_p.h>
 #include <private/qmultimediautils_p.h>
 
-#include <mediacapture/qgstreamermediacapture_p.h>
+#include <mediacapture/qgstreamermediacapturesession_p.h>
 #include <common/qgst_p.h>
 #include <common/qgstpipeline_p.h>
 

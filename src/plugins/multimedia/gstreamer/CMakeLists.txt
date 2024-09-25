@@ -34,8 +34,8 @@ qt_internal_add_module(QGstreamerMediaPluginImplPrivate
         qgstreamervideodevices.cpp qgstreamervideodevices_p.h
         mediacapture/qgstreamercamera.cpp mediacapture/qgstreamercamera_p.h
         mediacapture/qgstreamerimagecapture.cpp mediacapture/qgstreamerimagecapture_p.h
-        mediacapture/qgstreamermediacapture.cpp mediacapture/qgstreamermediacapture_p.h
-        mediacapture/qgstreamermediaencoder.cpp mediacapture/qgstreamermediaencoder_p.h
+        mediacapture/qgstreamermediacapturesession.cpp mediacapture/qgstreamermediacapturesession_p.h
+        mediacapture/qgstreamermediarecorder.cpp mediacapture/qgstreamermediarecorder_p.h
         uri_handler/qgstreamer_qrc_handler.cpp uri_handler/qgstreamer_qrc_handler_p.h
 
     NO_UNITY_BUILD_SOURCES
