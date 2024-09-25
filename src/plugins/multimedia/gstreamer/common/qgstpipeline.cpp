@@ -25,8 +25,6 @@ public:
     mutable std::chrono::nanoseconds m_position{};
 
     double m_rate = 1.;
-    int m_configCounter = 0;
-    GstState m_savedState = GST_STATE_NULL;
 
     explicit QGstPipelinePrivate(QGstBusHandle);
 };
@@ -116,60 +114,6 @@ bool QGstPipeline::processNextPendingMessage(GstMessageType types, std::chrono::
 bool QGstPipeline::processNextPendingMessage(std::chrono::nanoseconds timeout)
 {
     return processNextPendingMessage(GST_MESSAGE_ANY, timeout);
-}
-
-void QGstPipeline::beginConfig()
-{
-    QGstPipelinePrivate *d = getPrivate();
-    Q_ASSERT(!isNull());
-
-    ++d->m_configCounter;
-    if (d->m_configCounter > 1)
-        return;
-
-    GstState state;
-    GstState pending;
-    GstStateChangeReturn stateChangeReturn = gst_element_get_state(element(), &state, &pending, 0);
-    switch (stateChangeReturn) {
-    case GST_STATE_CHANGE_ASYNC: {
-        if (state == GST_STATE_PLAYING) {
-            // playing->paused transition in progress. wait for it to finish
-            bool stateChangeSuccessful = this->finishStateChange();
-            if (!stateChangeSuccessful)
-                qWarning() << "QGstPipeline::beginConfig: timeout when waiting for state change";
-        }
-
-        state = pending;
-        break;
-    }
-    case GST_STATE_CHANGE_FAILURE: {
-        qDebug() << "QGstPipeline::beginConfig: state change failure";
-        dumpGraph("beginConfigFailure");
-        break;
-    }
-
-    case GST_STATE_CHANGE_NO_PREROLL:
-    case GST_STATE_CHANGE_SUCCESS:
-        break;
-    }
-
-    d->m_savedState = state;
-    if (d->m_savedState == GST_STATE_PLAYING)
-        setStateSync(GST_STATE_PAUSED);
-}
-
-void QGstPipeline::endConfig()
-{
-    QGstPipelinePrivate *d = getPrivate();
-    Q_ASSERT(!isNull());
-
-    --d->m_configCounter;
-    if (d->m_configCounter)
-        return;
-
-    if (d->m_savedState == GST_STATE_PLAYING)
-        setState(GST_STATE_PLAYING);
-    d->m_savedState = GST_STATE_NULL;
 }
 
 void QGstPipeline::flush()
