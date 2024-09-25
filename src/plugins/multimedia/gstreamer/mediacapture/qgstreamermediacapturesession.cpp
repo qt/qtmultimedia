@@ -1,8 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <mediacapture/qgstreamermediacapture_p.h>
-#include <mediacapture/qgstreamermediaencoder_p.h>
+#include <mediacapture/qgstreamermediacapturesession_p.h>
+#include <mediacapture/qgstreamermediarecorder_p.h>
 #include <mediacapture/qgstreamerimagecapture_p.h>
 #include <mediacapture/qgstreamercamera_p.h>
 #include <common/qgstpipeline_p.h>
@@ -25,7 +25,7 @@ static void linkTeeToPad(QGstElement tee, QGstPad sink)
     source.link(sink);
 }
 
-QMaybe<QPlatformMediaCaptureSession *> QGstreamerMediaCapture::create()
+QMaybe<QPlatformMediaCaptureSession *> QGstreamerMediaCaptureSession::create()
 {
     auto videoOutput = QGstreamerVideoOutput::create();
     if (!videoOutput)
@@ -35,10 +35,10 @@ QMaybe<QPlatformMediaCaptureSession *> QGstreamerMediaCapture::create()
     if (error)
         return *error;
 
-    return new QGstreamerMediaCapture(videoOutput.value());
+    return new QGstreamerMediaCaptureSession(videoOutput.value());
 }
 
-QGstreamerMediaCapture::QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutput)
+QGstreamerMediaCaptureSession::QGstreamerMediaCaptureSession(QGstreamerVideoOutput *videoOutput)
     : capturePipeline(QGstPipeline::create("mediaCapturePipeline")), gstVideoOutput(videoOutput)
 {
     gstVideoOutput->setParent(this);
@@ -64,7 +64,7 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutpu
     capturePipeline.dumpGraph("initial");
 }
 
-QGstreamerMediaCapture::~QGstreamerMediaCapture()
+QGstreamerMediaCaptureSession::~QGstreamerMediaCaptureSession()
 {
     setMediaRecorder(nullptr);
     setImageCapture(nullptr);
@@ -73,12 +73,12 @@ QGstreamerMediaCapture::~QGstreamerMediaCapture()
     capturePipeline.setStateSync(GST_STATE_NULL);
 }
 
-QPlatformCamera *QGstreamerMediaCapture::camera()
+QPlatformCamera *QGstreamerMediaCaptureSession::camera()
 {
     return gstCamera;
 }
 
-void QGstreamerMediaCapture::setCamera(QPlatformCamera *platformCamera)
+void QGstreamerMediaCaptureSession::setCamera(QPlatformCamera *platformCamera)
 {
     auto *camera = static_cast<QGstreamerCameraBase *>(platformCamera);
     if (gstCamera == camera)
@@ -93,8 +93,9 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *platformCamera)
     gstCamera = camera;
 
     if (gstCamera) {
-        gstCameraActiveConnection = QObject::connect(camera, &QPlatformCamera::activeChanged, this,
-                                                     &QGstreamerMediaCapture::setCameraActive);
+        gstCameraActiveConnection =
+                QObject::connect(camera, &QPlatformCamera::activeChanged, this,
+                                 &QGstreamerMediaCaptureSession::setCameraActive);
         if (gstCamera->isActive())
             setCameraActive(true);
     }
@@ -102,7 +103,7 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *platformCamera)
     emit cameraChanged();
 }
 
-void QGstreamerMediaCapture::setCameraActive(bool activate)
+void QGstreamerMediaCaptureSession::setCameraActive(bool activate)
 {
     capturePipeline.modifyPipelineWhileNotRunning([&] {
         if (activate) {
@@ -138,12 +139,12 @@ void QGstreamerMediaCapture::setCameraActive(bool activate)
     capturePipeline.dumpGraph("camera");
 }
 
-QPlatformImageCapture *QGstreamerMediaCapture::imageCapture()
+QPlatformImageCapture *QGstreamerMediaCaptureSession::imageCapture()
 {
     return m_imageCapture;
 }
 
-void QGstreamerMediaCapture::setImageCapture(QPlatformImageCapture *imageCapture)
+void QGstreamerMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCapture)
 {
     QGstreamerImageCapture *control = static_cast<QGstreamerImageCapture *>(imageCapture);
     if (m_imageCapture == control)
@@ -173,28 +174,28 @@ void QGstreamerMediaCapture::setImageCapture(QPlatformImageCapture *imageCapture
     emit imageCaptureChanged();
 }
 
-void QGstreamerMediaCapture::setMediaRecorder(QPlatformMediaRecorder *recorder)
+void QGstreamerMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *recorder)
 {
-    QGstreamerMediaEncoder *control = static_cast<QGstreamerMediaEncoder *>(recorder);
-    if (m_mediaEncoder == control)
+    QGstreamerMediaRecorder *control = static_cast<QGstreamerMediaRecorder *>(recorder);
+    if (m_mediaRecorder == control)
         return;
 
-    if (m_mediaEncoder)
-        m_mediaEncoder->setCaptureSession(nullptr);
-    m_mediaEncoder = control;
-    if (m_mediaEncoder)
-        m_mediaEncoder->setCaptureSession(this);
+    if (m_mediaRecorder)
+        m_mediaRecorder->setCaptureSession(nullptr);
+    m_mediaRecorder = control;
+    if (m_mediaRecorder)
+        m_mediaRecorder->setCaptureSession(this);
 
     emit encoderChanged();
     capturePipeline.dumpGraph("encoder");
 }
 
-QPlatformMediaRecorder *QGstreamerMediaCapture::mediaRecorder()
+QPlatformMediaRecorder *QGstreamerMediaCaptureSession::mediaRecorder()
 {
-    return m_mediaEncoder;
+    return m_mediaRecorder;
 }
 
-void QGstreamerMediaCapture::linkEncoder(QGstPad audioSink, QGstPad videoSink)
+void QGstreamerMediaCaptureSession::linkEncoder(QGstPad audioSink, QGstPad videoSink)
 {
     capturePipeline.modifyPipelineWhileNotRunning([&] {
         if (!gstVideoTee.isNull() && !videoSink.isNull()) {
@@ -229,7 +230,7 @@ void QGstreamerMediaCapture::linkEncoder(QGstPad audioSink, QGstPad videoSink)
     });
 }
 
-void QGstreamerMediaCapture::unlinkEncoder()
+void QGstreamerMediaCaptureSession::unlinkEncoder()
 {
     capturePipeline.modifyPipelineWhileNotRunning([&] {
         if (encoderVideoCapsFilter) {
@@ -251,12 +252,12 @@ void QGstreamerMediaCapture::unlinkEncoder()
     });
 }
 
-const QGstPipeline &QGstreamerMediaCapture::pipeline() const
+const QGstPipeline &QGstreamerMediaCaptureSession::pipeline() const
 {
     return capturePipeline;
 }
 
-void QGstreamerMediaCapture::setAudioInput(QPlatformAudioInput *input)
+void QGstreamerMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
 {
     if (gstAudioInput == input)
         return;
@@ -296,12 +297,12 @@ void QGstreamerMediaCapture::setAudioInput(QPlatformAudioInput *input)
     });
 }
 
-void QGstreamerMediaCapture::setVideoPreview(QVideoSink *sink)
+void QGstreamerMediaCaptureSession::setVideoPreview(QVideoSink *sink)
 {
     gstVideoOutput->setVideoSink(sink);
 }
 
-void QGstreamerMediaCapture::setAudioOutput(QPlatformAudioOutput *output)
+void QGstreamerMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
 {
     if (gstAudioOutput == output)
         return;
@@ -322,12 +323,12 @@ void QGstreamerMediaCapture::setAudioOutput(QPlatformAudioOutput *output)
     });
 }
 
-QGstreamerVideoSink *QGstreamerMediaCapture::gstreamerVideoSink() const
+QGstreamerVideoSink *QGstreamerMediaCaptureSession::gstreamerVideoSink() const
 {
     return gstVideoOutput ? gstVideoOutput->gstreamerVideoSink() : nullptr;
 }
 
-bool QGstreamerMediaCapture::processBusMessage(const QGstreamerMessage &msg)
+bool QGstreamerMediaCaptureSession::processBusMessage(const QGstreamerMessage &msg)
 {
     switch (msg.type()) {
     case GST_MESSAGE_ERROR:
@@ -343,7 +344,7 @@ bool QGstreamerMediaCapture::processBusMessage(const QGstreamerMessage &msg)
     return false;
 }
 
-bool QGstreamerMediaCapture::processBusMessageError(const QGstreamerMessage &msg)
+bool QGstreamerMediaCaptureSession::processBusMessageError(const QGstreamerMessage &msg)
 {
     QUniqueGErrorHandle error;
     QUniqueGStringHandle message;
@@ -355,12 +356,10 @@ bool QGstreamerMediaCapture::processBusMessageError(const QGstreamerMessage &msg
     return false;
 }
 
-bool QGstreamerMediaCapture::processBusMessageLatency(const QGstreamerMessage &)
+bool QGstreamerMediaCaptureSession::processBusMessageLatency(const QGstreamerMessage &)
 {
     capturePipeline.recalculateLatency();
     return false;
 }
 
 QT_END_NAMESPACE
-
-#include "moc_qgstreamermediacapture_p.cpp"

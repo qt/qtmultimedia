@@ -12,8 +12,8 @@
 #include <common/qgstreamervideosink_p.h>
 #include <mediacapture/qgstreamercamera_p.h>
 #include <mediacapture/qgstreamerimagecapture_p.h>
-#include <mediacapture/qgstreamermediacapture_p.h>
-#include <mediacapture/qgstreamermediaencoder_p.h>
+#include <mediacapture/qgstreamermediacapturesession_p.h>
+#include <mediacapture/qgstreamermediarecorder_p.h>
 #include <uri_handler/qgstreamer_qrc_handler_p.h>
 
 #include <QtCore/qloggingcategory.h>
@@ -95,8 +95,8 @@ QGStreamerPlatformSpecificInterfaceImplementation::gstPipeline(QMediaCaptureSess
     if (!priv)
         return nullptr;
 
-    QGstreamerMediaCapture *gstreamerCapture =
-            dynamic_cast<QGstreamerMediaCapture *>(priv->captureSession.get());
+    QGstreamerMediaCaptureSession *gstreamerCapture =
+            dynamic_cast<QGstreamerMediaCaptureSession *>(priv->captureSession.get());
     return gstreamerCapture ? gstreamerCapture->pipeline().pipeline() : nullptr;
 }
 
@@ -187,7 +187,7 @@ QMaybe<QPlatformAudioDecoder *> QGstreamerIntegration::createAudioDecoder(QAudio
 
 QMaybe<QPlatformMediaCaptureSession *> QGstreamerIntegration::createCaptureSession()
 {
-    return QGstreamerMediaCapture::create();
+    return QGstreamerMediaCaptureSession::create();
 }
 
 QMaybe<QPlatformMediaPlayer *> QGstreamerIntegration::createPlayer(QMediaPlayer *player)
@@ -208,7 +208,7 @@ QMaybe<QPlatformCamera *> QGstreamerIntegration::createCamera(QCamera *camera)
 
 QMaybe<QPlatformMediaRecorder *> QGstreamerIntegration::createRecorder(QMediaRecorder *recorder)
 {
-    return new QGstreamerMediaEncoder(recorder);
+    return new QGstreamerMediaRecorder(recorder);
 }
 
 QMaybe<QPlatformImageCapture *> QGstreamerIntegration::createImageCapture(QImageCapture *imageCapture)

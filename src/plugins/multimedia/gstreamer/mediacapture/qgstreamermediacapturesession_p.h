@@ -1,8 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QGSTREAMERCAPTURESERVICE_H
-#define QGSTREAMERCAPTURESERVICE_H
+#ifndef QGSTREAMERMEDIACAPTURESESSION_H
+#define QGSTREAMERMEDIACAPTURESESSION_H
 
 //
 //  W A R N I N G
@@ -26,19 +26,18 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerCameraBase;
 class QGstreamerImageCapture;
-class QGstreamerMediaEncoder;
+class QGstreamerMediaRecorder;
 class QGstreamerAudioInput;
 class QGstreamerAudioOutput;
 class QGstreamerVideoOutput;
 class QGstreamerVideoSink;
 
-class QGstreamerMediaCapture final : public QPlatformMediaCaptureSession, QGstreamerBusMessageFilter
+class QGstreamerMediaCaptureSession final : public QPlatformMediaCaptureSession,
+                                            QGstreamerBusMessageFilter
 {
-    Q_OBJECT
-
 public:
     static QMaybe<QPlatformMediaCaptureSession *> create();
-    virtual ~QGstreamerMediaCapture();
+    virtual ~QGstreamerMediaCaptureSession();
 
     QPlatformCamera *camera() override;
     void setCamera(QPlatformCamera *camera) override;
@@ -69,9 +68,9 @@ private:
 
     void setCameraActive(bool activate);
 
-    explicit QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutput);
+    explicit QGstreamerMediaCaptureSession(QGstreamerVideoOutput *videoOutput);
 
-    friend QGstreamerMediaEncoder;
+    friend QGstreamerMediaRecorder;
     // Gst elements
     QGstPipeline capturePipeline;
 
@@ -91,10 +90,10 @@ private:
     QGstreamerAudioOutput *gstAudioOutput = nullptr;
     QGstreamerVideoOutput *gstVideoOutput = nullptr;
 
-    QGstreamerMediaEncoder *m_mediaEncoder = nullptr;
+    QGstreamerMediaRecorder *m_mediaRecorder = nullptr;
     QGstreamerImageCapture *m_imageCapture = nullptr;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERCAPTURESERVICE_H
+#endif // QGSTREAMERMEDIACAPTURESESSION_H

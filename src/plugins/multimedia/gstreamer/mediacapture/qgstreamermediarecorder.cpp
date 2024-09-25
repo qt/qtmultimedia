@@ -1,7 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <mediacapture/qgstreamermediaencoder_p.h>
+#include <mediacapture/qgstreamermediarecorder_p.h>
 #include <qgstreamerformatinfo_p.h>
 #include <common/qgstpipeline_p.h>
 #include <common/qgstreamermessage_p.h>
@@ -23,14 +23,12 @@
 #include <gst/video/video.h>
 #include <gst/pbutils/encoding-profile.h>
 
-Q_STATIC_LOGGING_CATEGORY(qLcMediaEncoderGst, "qt.multimedia.encoder");
+Q_STATIC_LOGGING_CATEGORY(qLcMediaRecorder, "qt.multimedia.recorder");
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaRecorder *parent)
-  : QPlatformMediaRecorder(parent),
-    audioPauseControl(*this),
-    videoPauseControl(*this)
+QGstreamerMediaRecorder::QGstreamerMediaRecorder(QMediaRecorder *parent)
+    : QPlatformMediaRecorder(parent), audioPauseControl(*this), videoPauseControl(*this)
 {
     signalDurationChangedTimer.setInterval(100);
     signalDurationChangedTimer.callOnTimeout(&signalDurationChangedTimer, [this]() {
@@ -38,7 +36,7 @@ QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaRecorder *parent)
     });
 }
 
-QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
+QGstreamerMediaRecorder::~QGstreamerMediaRecorder()
 {
     if (!capturePipeline.isNull()) {
         finalize();
@@ -47,24 +45,25 @@ QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
     }
 }
 
-bool QGstreamerMediaEncoder::isLocationWritable(const QUrl &) const
+bool QGstreamerMediaRecorder::isLocationWritable(const QUrl &) const
 {
     return true;
 }
 
-void QGstreamerMediaEncoder::handleSessionError(QMediaRecorder::Error code, const QString &description)
+void QGstreamerMediaRecorder::handleSessionError(QMediaRecorder::Error code,
+                                                 const QString &description)
 {
     updateError(code, description);
     stop();
 }
 
-bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &msg)
+bool QGstreamerMediaRecorder::processBusMessage(const QGstreamerMessage &msg)
 {
     constexpr bool traceStateChange = false;
     constexpr bool traceAllEvents = false;
 
     if constexpr (traceAllEvents)
-        qCDebug(qLcMediaEncoderGst) << "received event:" << msg;
+        qCDebug(qLcMediaRecorder) << "received event:" << msg;
 
     switch (msg.type()) {
     case GST_MESSAGE_ELEMENT: {
@@ -72,20 +71,20 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &msg)
         if (s.name() == "GstBinForwarded")
             return processBusMessage(s.getMessage());
 
-        qCDebug(qLcMediaEncoderGst)
-                << "received element message from" << msg.source().name() << s.name();
+        qCDebug(qLcMediaRecorder) << "received element message from" << msg.source().name()
+                                  << s.name();
         return false;
     }
 
     case GST_MESSAGE_EOS: {
-        qCDebug(qLcMediaEncoderGst) << "received EOS from" << msg.source().name();
+        qCDebug(qLcMediaRecorder) << "received EOS from" << msg.source().name();
         finalize();
         return false;
     }
 
     case GST_MESSAGE_ERROR: {
-        qCDebug(qLcMediaEncoderGst)
-                << "received error:" << msg.source().name() << QCompactGstMessageAdaptor(msg);
+        qCDebug(qLcMediaRecorder) << "received error:" << msg.source().name()
+                                  << QCompactGstMessageAdaptor(msg);
 
         QUniqueGErrorHandle err;
         QGString debug;
@@ -99,8 +98,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &msg)
 
     case GST_MESSAGE_STATE_CHANGED: {
         if constexpr (traceStateChange)
-            qCDebug(qLcMediaEncoderGst)
-                    << "received state change" << QCompactGstMessageAdaptor(msg);
+            qCDebug(qLcMediaRecorder) << "received state change" << QCompactGstMessageAdaptor(msg);
 
         return false;
     }
@@ -110,7 +108,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &msg)
     };
 }
 
-qint64 QGstreamerMediaEncoder::duration() const
+qint64 QGstreamerMediaRecorder::duration() const
 {
     return std::max(audioPauseControl.duration, videoPauseControl.duration);
 }
@@ -203,7 +201,7 @@ static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSet
     return containerProfile;
 }
 
-void QGstreamerMediaEncoder::PauseControl::reset()
+void QGstreamerMediaRecorder::PauseControl::reset()
 {
     pauseOffsetPts = 0;
     pauseStartPts.reset();
@@ -211,12 +209,14 @@ void QGstreamerMediaEncoder::PauseControl::reset()
     firstBufferPts.reset();
 }
 
-void QGstreamerMediaEncoder::PauseControl::installOn(QGstPad pad)
+void QGstreamerMediaRecorder::PauseControl::installOn(QGstPad pad)
 {
-    pad.addProbe<&QGstreamerMediaEncoder::PauseControl::processBuffer>(this, GST_PAD_PROBE_TYPE_BUFFER);
+    pad.addProbe<&QGstreamerMediaRecorder::PauseControl::processBuffer>(this,
+                                                                        GST_PAD_PROBE_TYPE_BUFFER);
 }
 
-GstPadProbeReturn QGstreamerMediaEncoder::PauseControl::processBuffer(QGstPad, GstPadProbeInfo *info)
+GstPadProbeReturn QGstreamerMediaRecorder::PauseControl::processBuffer(QGstPad,
+                                                                       GstPadProbeInfo *info)
 {
     auto buffer = GST_PAD_PROBE_INFO_BUFFER(info);
     if (!buffer)
@@ -253,7 +253,7 @@ GstPadProbeReturn QGstreamerMediaEncoder::PauseControl::processBuffer(QGstPad, G
     return GST_PAD_PROBE_OK;
 }
 
-void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
+void QGstreamerMediaRecorder::record(QMediaEncoderSettings &settings)
 {
     if (!m_session ||m_finalizing || state() != QMediaRecorder::StoppedState)
         return;
@@ -273,14 +273,14 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     auto location = QMediaStorageLocation::generateFileName(outputLocation().toLocalFile(), primaryLocation, container);
 
     QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(location);
-    qCDebug(qLcMediaEncoderGst) << "recording new video to" << actualSink;
+    qCDebug(qLcMediaRecorder) << "recording new video to" << actualSink;
 
     Q_ASSERT(!actualSink.isEmpty());
 
-    gstEncoder = QGstBin::createFromFactory("encodebin", "encodebin");
-    Q_ASSERT(gstEncoder);
+    gstEncodebin = QGstBin::createFromFactory("encodebin", "encodebin");
+    Q_ASSERT(gstEncodebin);
     auto *encodingProfile = createEncodingProfile(settings);
-    g_object_set (gstEncoder.object(), "profile", encodingProfile, nullptr);
+    g_object_set(gstEncodebin.object(), "profile", encodingProfile, nullptr);
     gst_encoding_profile_unref(encodingProfile);
 
     gstFileSink = QGstElement::createFromFactory("filesink", "filesink");
@@ -295,7 +295,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     videoPauseControl.reset();
 
     if (hasAudio) {
-        audioSink = gstEncoder.getRequestPad("audio_%u");
+        audioSink = gstEncodebin.getRequestPad("audio_%u");
         if (audioSink.isNull())
             qWarning() << "Unsupported audio codec";
         else
@@ -303,7 +303,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     }
 
     if (hasVideo) {
-        videoSink = gstEncoder.getRequestPad("video_%u");
+        videoSink = gstEncodebin.getRequestPad("video_%u");
         if (videoSink.isNull())
             qWarning() << "Unsupported video codec";
         else
@@ -311,13 +311,13 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     }
 
     capturePipeline.modifyPipelineWhileNotRunning([&] {
-        capturePipeline.add(gstEncoder, gstFileSink);
-        qLinkGstElements(gstEncoder, gstFileSink);
-        applyMetaDataToTagSetter(m_metaData, gstEncoder);
+        capturePipeline.add(gstEncodebin, gstFileSink);
+        qLinkGstElements(gstEncodebin, gstFileSink);
+        applyMetaDataToTagSetter(m_metaData, gstEncodebin);
 
         m_session->linkEncoder(audioSink, videoSink);
 
-        gstEncoder.syncStateWithParent();
+        gstEncodebin.syncStateWithParent();
         gstFileSink.syncStateWithParent();
     });
 
@@ -329,7 +329,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     actualLocationChanged(QUrl::fromLocalFile(location));
 }
 
-void QGstreamerMediaEncoder::pause()
+void QGstreamerMediaRecorder::pause()
 {
     if (!m_session || m_finalizing || state() != QMediaRecorder::RecordingState)
         return;
@@ -339,7 +339,7 @@ void QGstreamerMediaEncoder::pause()
     stateChanged(QMediaRecorder::PausedState);
 }
 
-void QGstreamerMediaEncoder::resume()
+void QGstreamerMediaRecorder::resume()
 {
     capturePipeline.dumpGraph("before-resume");
     if (!m_session || m_finalizing || state() != QMediaRecorder::PausedState)
@@ -348,49 +348,50 @@ void QGstreamerMediaEncoder::resume()
     stateChanged(QMediaRecorder::RecordingState);
 }
 
-void QGstreamerMediaEncoder::stop()
+void QGstreamerMediaRecorder::stop()
 {
     if (!m_session || m_finalizing || state() == QMediaRecorder::StoppedState)
         return;
     durationChanged(duration());
-    qCDebug(qLcMediaEncoderGst) << "stop";
+    qCDebug(qLcMediaRecorder) << "stop";
     m_finalizing = true;
     m_session->unlinkEncoder();
     signalDurationChangedTimer.stop();
 
-    qCDebug(qLcMediaEncoderGst) << ">>>>>>>>>>>>> sending EOS";
-    gstEncoder.sendEos();
+    qCDebug(qLcMediaRecorder) << ">>>>>>>>>>>>> sending EOS";
+    gstEncodebin.sendEos();
 }
 
-void QGstreamerMediaEncoder::finalize()
+void QGstreamerMediaRecorder::finalize()
 {
-    if (!m_session || gstEncoder.isNull())
+    if (!m_session || gstEncodebin.isNull())
         return;
 
-    qCDebug(qLcMediaEncoderGst) << "finalize";
+    qCDebug(qLcMediaRecorder) << "finalize";
 
-    capturePipeline.stopAndRemoveElements(gstEncoder, gstFileSink);
+    capturePipeline.stopAndRemoveElements(gstEncodebin, gstFileSink);
     gstFileSink = {};
-    gstEncoder = {};
+    gstEncodebin = {};
     m_finalizing = false;
     stateChanged(QMediaRecorder::StoppedState);
 }
 
-void QGstreamerMediaEncoder::setMetaData(const QMediaMetaData &metaData)
+void QGstreamerMediaRecorder::setMetaData(const QMediaMetaData &metaData)
 {
     if (!m_session)
         return;
     m_metaData = metaData;
 }
 
-QMediaMetaData QGstreamerMediaEncoder::metaData() const
+QMediaMetaData QGstreamerMediaRecorder::metaData() const
 {
     return m_metaData;
 }
 
-void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
+void QGstreamerMediaRecorder::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
-    QGstreamerMediaCapture *captureSession = static_cast<QGstreamerMediaCapture *>(session);
+    QGstreamerMediaCaptureSession *captureSession =
+            static_cast<QGstreamerMediaCaptureSession *>(session);
     if (m_session == captureSession)
         return;
 
