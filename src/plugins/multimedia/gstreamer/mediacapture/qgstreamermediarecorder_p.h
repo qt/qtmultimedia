@@ -17,12 +17,9 @@
 
 #include <mediacapture/qgstreamermediacapturesession_p.h>
 #include <common/qgstreamermetadata_p.h>
-#include <common/qgst_bus_p.h>
 
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <QtCore/qurl.h>
-#include <QtCore/qdir.h>
-#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qtimer.h>
 
 QT_BEGIN_NAMESPACE
@@ -30,7 +27,7 @@ QT_BEGIN_NAMESPACE
 class QMediaMetaData;
 class QGstreamerMessage;
 
-class QGstreamerMediaRecorder : public QPlatformMediaRecorder, QGstreamerBusMessageFilter
+class QGstreamerMediaRecorder : public QPlatformMediaRecorder
 {
 public:
     explicit QGstreamerMediaRecorder(QMediaRecorder *parent);
@@ -52,8 +49,7 @@ public:
 
     QGstElement getEncodebin() { return gstEncodebin; }
 
-private:
-    bool processBusMessage(const QGstreamerMessage& message) override;
+    void processBusMessage(const QGstreamerMessage &message);
 
 private:
     struct PauseControl {
@@ -80,7 +76,6 @@ private:
     QMediaMetaData m_metaData;
     QTimer signalDurationChangedTimer;
 
-    QGstPipeline capturePipeline;
     QGstBin gstEncodebin;
     QGstElement gstFileSink;
 
