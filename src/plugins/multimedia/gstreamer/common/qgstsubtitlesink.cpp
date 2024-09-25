@@ -28,7 +28,6 @@ QGstElement QGstSubtitleSink::createSink(QAbstractSubtitleObserver *observer)
 
     QGstSubtitleSink *gstSink = reinterpret_cast<QGstSubtitleSink *>(
             g_object_new(QGstSubtitleSink::get_type(), nullptr));
-    g_object_set(gstSink, "async", false, nullptr);
 
     return QGstElement{
         qGstCheckedCast<GstElement>(gstSink),

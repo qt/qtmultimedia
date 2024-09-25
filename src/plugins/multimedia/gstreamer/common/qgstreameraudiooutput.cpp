@@ -177,7 +177,6 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &device)
     }
 
     QGstElement newSink = createGstElement();
-    newSink.set("async", false); // no async state changes
 
     m_audioVolume.src().modifyPipelineInIdleProbe([&] {
         qUnlinkGstElements(m_audioVolume, m_audioSink);

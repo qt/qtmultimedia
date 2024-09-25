@@ -119,10 +119,6 @@ QGstreamerImageCapture::QGstreamerImageCapture(QImageCapture *parent)
     queue.set("max-size-bytes", int(0));
     queue.set("max-size-time", uint64_t(0));
 
-    // imageCaptureSink do not wait for a preroll buffer when going READY -> PAUSED
-    // as no buffer will arrive until capture() is called
-    sink.set("async", false);
-
     bin.add(queue, filter, videoConvert, encoder, muxer, sink);
     qLinkGstElements(queue, filter, videoConvert, encoder, muxer, sink);
     bin.addGhostPad(queue, "sink");

@@ -61,7 +61,6 @@ QGstreamerVideoOutput::QGstreamerVideoOutput(QObject *parent)
       }
 {
     m_videoSink.set("sync", true);
-    m_videoSink.set("async", false); // no asynchronous state changes
 
     m_outputBin.add(m_videoQueue, m_videoConvertScale, m_videoSink);
     qLinkGstElements(m_videoQueue, m_videoConvertScale, m_videoSink);
@@ -99,7 +98,6 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         videoSink = QGstElement::createFromFactory("fakesink", "fakevideosink");
         Q_ASSERT(videoSink);
         videoSink.set("sync", true);
-        videoSink.set("async", false); // no asynchronous state changes
     }
 
     QObject::disconnect(m_subtitleConnection);
