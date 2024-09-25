@@ -227,11 +227,12 @@ void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawi
 
     QVERIFY(sc.isActive());
 
+#ifdef Q_OS_LINUX
     // In some cases, on Linux the window seems to be of a wrong color after appearance,
     // the delay helps.
     // TODO: remove the delay
-    QTest::qWait(300);
-
+    QTest::qWait(2000);
+#endif
     // Let's wait for the first frame to address a potential initialization delay.
     // In practice, the delay varies between the platform and may randomly get increased.
     {
