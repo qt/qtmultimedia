@@ -45,6 +45,7 @@ QGstreamerMediaCaptureSession::QGstreamerMediaCaptureSession(QGstreamerVideoOutp
     gstVideoOutput->setIsPreview();
 
     capturePipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
+    capturePipeline.set("message-forward", true);
 
     // Use system clock to drive all elements in the pipeline. Otherwise,
     // the clock is sourced from the elements (e.g. from an audio source).
@@ -330,6 +331,9 @@ QGstreamerVideoSink *QGstreamerMediaCaptureSession::gstreamerVideoSink() const
 
 bool QGstreamerMediaCaptureSession::processBusMessage(const QGstreamerMessage &msg)
 {
+    if (m_mediaRecorder)
+        m_mediaRecorder->processBusMessage(msg);
+
     switch (msg.type()) {
     case GST_MESSAGE_ERROR:
         return processBusMessageError(msg);
