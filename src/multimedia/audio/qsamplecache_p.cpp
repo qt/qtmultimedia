@@ -361,6 +361,15 @@ void QSample::load()
     Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
 #endif
     qCDebug(qLcSampleCache) << "QSample: load [" << m_url << "]";
+
+    if (m_url.scheme().isEmpty()) {
+        // exit early, to avoid QNetworkAccessManager trying to construct a default ssl
+        // configuration, which tends to cause timeouts on CI on macos.
+        // catch this case and exit early.
+        emit loadingError(QNetworkReply::NetworkError::ProtocolUnknownError);
+        return;
+    }
+
     QNetworkReply *reply = m_parent->networkAccessManager().get(QNetworkRequest(m_url));
     m_stream = reply;
     connect(reply, &QNetworkReply::errorOccurred, this, &QSample::loadingError);
