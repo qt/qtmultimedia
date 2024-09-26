@@ -1,0 +1,9 @@
+version = 1
+
+[[annotations]]
+path = ["**"]
+precedence = "closest"
+SPDX-FileCopyrightText = ["Copyright (c) 2013 Julien Pommier <pommier@modartt.com>",
+                          "Copyright (c) 2004 the University Corporation for Atmospheric Research 'UCAR'"]
+SPDX-License-Identifier = "BSD-3-Clause"
+comment = "We consider FFTPACK license to be similar to BSD-3-Clause"
