@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["FindPipeWire.cmake"]
+precedence = "aggregate"
+comment = "build system. The copyright is provided in file."
+SPDX-License-Identifier = "BSD-3-Clause"

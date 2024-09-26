@@ -1,0 +1,44 @@
+version = 1
+
+[[annotations]]
+path = ["**"]
+comment = "files with no copyright nor license header are licensed under the terms of the third party component itself"
+SPDX-FileCopyrightText = "Unknown"
+SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0 AND Apache-2.0"
+
+[[annotations]]
+path = ["Eigen/**", "INSTALL"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright Mozilla."
+SPDX-License-Identifier = "MPL-2.0"
+
+[[annotations]]
+path = ["Eigen/src/Cholesky/LLT_LAPACKE.h",
+        "Eigen/src/Core/Assign_MKL.h",
+        "Eigen/src/Core/arch/Default/Half.h",
+        "Eigen/src/Core/products/GeneralMatrixMatrixTriangular_BLAS.h",
+        "Eigen/src/Core/products/GeneralMatrixMatrix_BLAS.h",
+        "Eigen/src/Core/products/GeneralMatrixVector_BLAS.h",
+        "Eigen/src/Core/products/SelfadjointMatrixMatrix_BLAS.h",
+        "Eigen/src/Core/products/SelfadjointMatrixVector_BLAS.h",
+        "Eigen/src/Core/products/TriangularMatrixMatrix_BLAS.h",
+        "Eigen/src/Core/products/TriangularMatrixVector_BLAS.h",
+        "Eigen/src/Core/products/TriangularSolverMatrix_BLAS.h",
+        "Eigen/src/Core/util/MKL_support.h",
+        "Eigen/src/Eigenvalues/ComplexSchur_LAPACKE.h",
+        "Eigen/src/Eigenvalues/RealSchur_LAPACKE.h",
+        "Eigen/src/Eigenvalues/SelfAdjointEigenSolver_LAPACKE.h",
+        "Eigen/src/Geometry/AlignedBox.h",
+        "Eigen/src/LU/PartialPivLU_LAPACKE.h",
+        "Eigen/src/QR/ColPivHouseholderQR_LAPACKE.h",
+        "Eigen/src/QR/HouseholderQR_LAPACKE.h",
+        "Eigen/src/SVD/JacobiSVD_LAPACKE.h",
+        "Eigen/src/misc/lapacke.h"]
+precedence = "closest"
+comment = "license not in a reuse readable format."
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = ["Eigen/src/Core/arch/Default/BFloat16.h"]
+precedence = "closest"
+SPDX-License-Identifier = "Apache-2.0"
