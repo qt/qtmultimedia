@@ -6,7 +6,7 @@
     \title QML Media Player Example
     \ingroup multimedia_examples
     \ingroup video_examples_qml
-    \examplecategory {Graphics & Multimedia}
+    \examplecategory {Multimedia}
     \brief Playing audio and video using the QML \c MediaPlayer type.
     \meta {tag} {quick}
     \meta {tag} {player}
