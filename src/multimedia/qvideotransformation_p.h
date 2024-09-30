@@ -68,6 +68,8 @@ inline bool operator!=(const VideoTransformation &lhs, const VideoTransformation
     return !(lhs == rhs);
 }
 
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, const VideoTransformation &transform);
+
 QT_END_NAMESPACE
 
 #endif // QVIDEOTRANSFORMATION_P_H

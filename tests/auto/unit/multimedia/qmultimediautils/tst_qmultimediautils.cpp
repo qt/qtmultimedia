@@ -322,8 +322,7 @@ void tst_QMultimediaUtils::qNormalizedFrameTransformation_normilizesInputTransfo
     QTEST_ASSERT(expected);
 
     // Assert
-    QCOMPARE(actual.rotation, expected->rotation);
-    QCOMPARE(actual.mirrorredHorizontallyAfterRotation, expected->mirrorredHorizontallyAfterRotation);
+    QCOMPARE(actual, *expected);
 }
 
 void tst_QMultimediaUtils::qVideoRotationFromDegrees_basicValues_data()
@@ -358,8 +357,7 @@ void tst_QMultimediaUtils::
         qVideoTransformationFromMatrix_returnsNormalizedTransformation_whenInputIsValid_data()
 {
     QTest::addColumn<QTransform>("matrix");
-    QTest::addColumn<QtVideo::Rotation>("expectedRotation");
-    QTest::addColumn<bool>("expectedMirrored");
+    QTest::addColumn<VideoTransformation>("expected");
 
     const auto clockwiseDegreesList = { -44.7, 0., 44., 45.01, 90., 180., 270., 359. };
     const auto scales = { -20., -1., -0.1, 0.1, 1., 20. };
@@ -367,9 +365,9 @@ void tst_QMultimediaUtils::
     for (double xScale : scales)
         for (double yScale : { 1., 100. })
             for (double clockwiseDegrees : clockwiseDegreesList) {
-                QtVideo::Rotation rotation =
-                        QtVideo::Rotation(qRound(clockwiseDegrees / 90.) % 4 * 90);
-                const bool mirrored = xScale < 0;
+                const VideoTransformation transform{
+                    QtVideo::Rotation(qRound(clockwiseDegrees / 90.) % 4 * 90), xScale < 0
+                };
 
                 const QString tag = QStringLiteral("clockwiseDegrees: %1; yScale: %2; yScale: %3")
                                             .arg(QString::number(clockwiseDegrees),
@@ -378,7 +376,7 @@ void tst_QMultimediaUtils::
                 rotate(matrix, clockwiseDegrees);
                 matrix.scale(xScale, yScale);
 
-                QTest::newRow(tag.toLocal8Bit().constData()) << matrix << rotation << mirrored;
+                QTest::newRow(tag.toLocal8Bit().constData()) << matrix << transform;
             }
 }
 
@@ -386,14 +384,12 @@ void tst_QMultimediaUtils::
         qVideoTransformationFromMatrix_returnsNormalizedTransformation_whenInputIsValid()
 {
     QFETCH(const QTransform, matrix);
-    QFETCH(const QtVideo::Rotation, expectedRotation);
-    QFETCH(const bool, expectedMirrored);
+    QFETCH(const VideoTransformation, expected);
 
     const VideoTransformationOpt actual = qVideoTransformationFromMatrix(matrix);
 
     QVERIFY(actual);
-    QCOMPARE(actual->rotation, expectedRotation);
-    QCOMPARE(actual->mirrorredHorizontallyAfterRotation, expectedMirrored);
+    QCOMPARE(*actual, expected);
 }
 
 void tst_QMultimediaUtils::
