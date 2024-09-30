@@ -776,7 +776,7 @@ void QVideoFrame::setEndTime(qint64 time)
 void QVideoFrame::setRotation(QtVideo::Rotation angle)
 {
     if (d)
-        d->presentationRotation = angle;
+        d->presentationTransformation.rotation = angle;
 }
 
 /*!
@@ -789,7 +789,7 @@ void QVideoFrame::setRotation(QtVideo::Rotation angle)
  */
 QtVideo::Rotation QVideoFrame::rotation() const
 {
-    return d ? d->presentationRotation : QtVideo::Rotation::None;
+    return d ? d->presentationTransformation.rotation : QtVideo::Rotation::None;
 }
 
 /*!
@@ -807,7 +807,7 @@ QtVideo::Rotation QVideoFrame::rotation() const
 void QVideoFrame::setMirrored(bool mirrored)
 {
     if (d)
-        d->presentationMirrored = mirrored;
+        d->presentationTransformation.mirrorredHorizontallyAfterRotation = mirrored;
 }
 
 /*!
@@ -822,7 +822,7 @@ void QVideoFrame::setMirrored(bool mirrored)
 */
 bool QVideoFrame::mirrored() const
 {
-    return d && d->presentationMirrored;
+    return d && d->presentationTransformation.mirrorredHorizontallyAfterRotation;
 }
 
 /*!
@@ -935,7 +935,7 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
         painter->setTransform(transform);
 
         const bool hasPresentationTransformation =
-                d->presentationMirrored || d->presentationRotation != QtVideo::Rotation::None;
+                d->presentationTransformation != VideoTransformation{};
 
         // Use cache for images without presentation transform
         const QImage image = hasPresentationTransformation
