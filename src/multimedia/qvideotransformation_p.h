@@ -23,8 +23,36 @@ QT_BEGIN_NAMESPACE
 struct VideoTransformation
 {
     QtVideo::Rotation rotation = QtVideo::Rotation::None;
-    int rotationIndex = 0; // to be removed
     bool mirrorredHorizontallyAfterRotation = false;
+
+    void rotate(QtVideo::Rotation rotation)
+    {
+        if (rotation != QtVideo::Rotation::None) {
+            int angle = qToUnderlying(rotation);
+            if (mirrorredHorizontallyAfterRotation && angle % 180 != 0)
+                angle += 180;
+
+            appendRotation(angle);
+        }
+    }
+
+    void mirrorHorizontally(bool mirror = true) { mirrorredHorizontallyAfterRotation ^= mirror; }
+
+    void mirrorVertically(bool mirror = true)
+    {
+        if (mirror) {
+            mirrorredHorizontallyAfterRotation ^= true;
+            appendRotation(180);
+        }
+    }
+
+    int rotationIndex() const { return qToUnderlying(rotation) / 90; }
+
+private:
+    void appendRotation(quint32 angle)
+    {
+        rotation = QtVideo::Rotation((angle + qToUnderlying(rotation)) % 360);
+    }
 };
 
 using VideoTransformationOpt = std::optional<VideoTransformation>;

@@ -425,7 +425,7 @@ void QVideoWindowPrivate::render()
     cb->setViewport({ 0, 0, float(size.width()), float(size.height()) });
     cb->setShaderResources(m_shaderResourceBindings.get());
 
-    const quint32 vertexOffset = quint32(sizeof(float)) * 16 * frameTransformation.rotationIndex;
+    const quint32 vertexOffset = quint32(sizeof(float)) * 16 * frameTransformation.rotationIndex();
     const QRhiCommandBuffer::VertexInput vbufBinding(m_vertexBuf.get(), vertexOffset);
     cb->setVertexInput(0, 1, &vbufBinding);
     cb->draw(4);
