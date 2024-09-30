@@ -357,7 +357,7 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
         break;
     }
 
-    if (m_frameTransformation.xMirrorredAfterRotation) {
+    if (m_frameTransformation.mirrorredHorizontallyAfterRotation) {
         qSwapTex(v + 0, v + 2);
         qSwapTex(v + 1, v + 3);
     }

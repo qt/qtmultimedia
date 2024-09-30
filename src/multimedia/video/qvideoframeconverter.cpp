@@ -121,7 +121,7 @@ static void rasterTransform(QImage &image, NormalizedVideoTransformation transfo
     QTransform t;
     if (transformation.rotation != QtVideo::Rotation::None)
         t.rotate(qreal(transformation.rotation));
-    if (transformation.xMirrorredAfterRotation)
+    if (transformation.mirrorredHorizontallyAfterRotation)
         t.scale(-1., 1);
     if (!t.isIdentity())
         image = image.transformed(t);
@@ -380,7 +380,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame,
         return convertCPU(frame, transformation);
     }
 
-    float xScale = transformation.xMirrorredAfterRotation ? -1.0 : 1.0;
+    float xScale = transformation.mirrorredHorizontallyAfterRotation ? -1.0 : 1.0;
     float yScale = 1.f;
 
     if (rhi->isYUpInFramebuffer())
