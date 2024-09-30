@@ -102,67 +102,22 @@ bool qShouldUpdateSwapChainFormat(QRhiSwapChain *swapChain,
             && swapChain->isFormatSupported(requiredSwapChainFormat);
 }
 
-static void applyRotation(VideoTransformation &transform, int degreesClockwise)
-{
-    if (degreesClockwise) {
-        const int rotationIndex = degreesClockwise / 90;
-        transform.rotationIndex += rotationIndex;
-        if (transform.mirrorredHorizontallyAfterRotation && rotationIndex % 2 != 0)
-            transform.rotationIndex += 2;
-    }
-}
-
-static void applyRotation(VideoTransformation &transform, QtVideo::Rotation rotation)
-{
-    applyRotation(transform, qToUnderlying(rotation));
-}
-
-static void applyXMirror(VideoTransformation &transform, bool mirror)
-{
-    transform.mirrorredHorizontallyAfterRotation ^= mirror;
-}
-
-static void applyYMirror(VideoTransformation &transform, bool mirror)
-{
-    if (mirror) {
-        transform.mirrorredHorizontallyAfterRotation ^= mirror;
-        transform.rotationIndex += 2;
-    }
-}
-
-static void fixTransformation(VideoTransformation &transform)
-{
-    transform.rotationIndex %= 4;
-    if (transform.rotationIndex < 0)
-        transform.rotationIndex += 4;
-    transform.rotation = QtVideo::Rotation(transform.rotationIndex * 90);
-}
-
-static void applySurfaceTransformation(VideoTransformation &transform,
-                                       const QVideoFrameFormat &format)
-{
-    applyYMirror(transform, format.scanLineDirection() == QVideoFrameFormat::BottomToTop);
-    applyRotation(transform, format.rotation());
-    applyXMirror(transform, format.isMirrored());
-}
-
 Q_MULTIMEDIA_EXPORT VideoTransformation
 qNormalizedSurfaceTransformation(const QVideoFrameFormat &format)
 {
     VideoTransformation result;
-    applySurfaceTransformation(result, format);
-    fixTransformation(result);
+    result.mirrorVertically(format.scanLineDirection() == QVideoFrameFormat::BottomToTop);
+    result.rotate(format.rotation());
+    result.mirrorHorizontally(format.isMirrored());
     return result;
 }
 
 VideoTransformation qNormalizedFrameTransformation(const QVideoFrame &frame, int additionalRotaton)
 {
-    VideoTransformation result;
-    applySurfaceTransformation(result, frame.surfaceFormat());
-    applyRotation(result, frame.rotation());
-    applyXMirror(result, frame.mirrored());
-    applyRotation(result, additionalRotaton);
-    fixTransformation(result);
+    VideoTransformation result = qNormalizedSurfaceTransformation(frame.surfaceFormat());
+    result.rotate(frame.rotation());
+    result.mirrorHorizontally(frame.mirrored());
+    result.rotate(qVideoRotationFromDegrees(additionalRotaton));
     return result;
 }
 
@@ -221,8 +176,7 @@ VideoTransformationOpt qVideoTransformationFromMatrix(const QTransform &matrix)
     const qreal angle = atan2(sin1 + sin2, cos1 + cos2);
     Q_ASSERT(!std::isnan(angle)); // checked upon scale validation
 
-    result.rotationIndex = qRound(angle / M_PI_2);
-    fixTransformation(result);
+    result.rotation = qVideoRotationFromDegrees(qRound(angle / M_PI_2) * 90);
     return result;
 }
 

@@ -399,7 +399,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
     cb->setViewport({ 0, 0, float(frameSize.width()), float(frameSize.height()) });
     cb->setShaderResources(shaderResourceBindings.get());
 
-    const quint32 vertexOffset = quint32(sizeof(float)) * 16 * transformation.rotationIndex;
+    const quint32 vertexOffset = quint32(sizeof(float)) * 16 * transformation.rotationIndex();
     const QRhiCommandBuffer::VertexInput vbufBinding(vertexBuffer.get(), vertexOffset);
     cb->setVertexInput(0, 1, &vbufBinding);
     cb->draw(4);

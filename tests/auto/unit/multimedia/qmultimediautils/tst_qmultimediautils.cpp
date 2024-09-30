@@ -323,7 +323,6 @@ void tst_QMultimediaUtils::qNormalizedFrameTransformation_normilizesInputTransfo
 
     // Assert
     QCOMPARE(actual.rotation, expected->rotation);
-    QCOMPARE(actual.rotationIndex, expected->rotationIndex);
     QCOMPARE(actual.mirrorredHorizontallyAfterRotation, expected->mirrorredHorizontallyAfterRotation);
 }
 
@@ -394,7 +393,6 @@ void tst_QMultimediaUtils::
 
     QVERIFY(actual);
     QCOMPARE(actual->rotation, expectedRotation);
-    QCOMPARE(actual->rotationIndex, qToUnderlying(expectedRotation) / 90);
     QCOMPARE(actual->mirrorredHorizontallyAfterRotation, expectedMirrored);
 }
 
