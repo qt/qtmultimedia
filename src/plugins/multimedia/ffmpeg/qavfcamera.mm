@@ -339,18 +339,18 @@ QVideoFrameFormat QAVFCamera::frameFormat() const
 {
     QVideoFrameFormat result = QPlatformCamera::frameFormat();
 
-    const QAVFSampleBufferTransformation transform = surfaceTransform();
+    const VideoTransformation transform = surfaceTransform();
     result.setRotation(transform.rotation);
-    result.setMirrored(transform.mirrored);
+    result.setMirrored(transform.mirrorredHorizontallyAfterRotation);
 
     result.setColorRange(QAVFHelpers::colorRangeForCVPixelFormat(m_cvPixelFormat));
 
     return result;
 }
 
-QAVFSampleBufferTransformation QAVFCamera::surfaceTransform() const
+VideoTransformation QAVFCamera::surfaceTransform() const
 {
-    QAVFSampleBufferTransformation transform;
+    VideoTransformation transform;
 
     // Add the rotation metadata of this AVCaptureDevice.
     //
@@ -387,7 +387,7 @@ QAVFSampleBufferTransformation QAVFCamera::surfaceTransform() const
             connectionAngle = static_cast<int>(std::round(connection.videoRotationAngle));
 #endif
 
-        transform.mirrored = connection.videoMirrored;
+        transform.mirrorredHorizontallyAfterRotation = connection.videoMirrored;
     }
 
     transform.rotation = qVideoRotationFromDegrees(captureAngle - connectionAngle);

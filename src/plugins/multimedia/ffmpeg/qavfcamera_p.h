@@ -38,7 +38,7 @@ Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceRotationCoordinator);
 QT_BEGIN_NAMESPACE
 
 class QFFmpegVideoSink;
-struct QAVFSampleBufferTransformation;
+struct VideoTransformation;
 
 class QAVFCamera : public QAVFCameraBase
 {
@@ -70,7 +70,7 @@ private:
     void attachVideoInputDevice();
     void setPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat, uint32_t inputCvPixFormat);
     QSize adjustedResolution() const;
-    QAVFSampleBufferTransformation surfaceTransform() const;
+    VideoTransformation surfaceTransform() const;
     bool isFrontCamera() const;
 
     AVCaptureDevice *device() const;
