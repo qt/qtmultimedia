@@ -20,7 +20,7 @@
 
 #include <qtconfigmacros.h>
 #include <qtypes.h>
-#include <qtvideo.h>
+#include <private/qvideotransformation_p.h>
 
 #include <memory>
 #include <functional>
@@ -32,12 +32,6 @@ class QVideoFrame;
 namespace QFFmpeg {
 class HWAccel;
 }
-
-// Struct for transforming a QVideoFrame constructed by the QAVFSamplerBufferDelegate
-struct QAVFSampleBufferTransformation {
-    QtVideo::Rotation rotation = QtVideo::Rotation::None;
-    bool mirrored = false;
-};
 
 QT_END_NAMESPACE
 
@@ -54,7 +48,7 @@ QT_END_NAMESPACE
 
 // Allows the object to update the QVideoFrame metadata based on rotatation and mirroring.
 // This does NOT rotate the pixel buffer.
-- (void)setTransformationProvider:(std::function<QAVFSampleBufferTransformation()>)provider;
+- (void)setTransformationProvider:(std::function<VideoTransformation()>)provider;
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
         didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
