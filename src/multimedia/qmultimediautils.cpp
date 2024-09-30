@@ -102,7 +102,7 @@ bool qShouldUpdateSwapChainFormat(QRhiSwapChain *swapChain,
             && swapChain->isFormatSupported(requiredSwapChainFormat);
 }
 
-static void applyRotation(NormalizedVideoTransformation &transform, int degreesClockwise)
+static void applyRotation(VideoTransformation &transform, int degreesClockwise)
 {
     if (degreesClockwise) {
         const int rotationIndex = degreesClockwise / 90;
@@ -112,17 +112,17 @@ static void applyRotation(NormalizedVideoTransformation &transform, int degreesC
     }
 }
 
-static void applyRotation(NormalizedVideoTransformation &transform, QtVideo::Rotation rotation)
+static void applyRotation(VideoTransformation &transform, QtVideo::Rotation rotation)
 {
     applyRotation(transform, qToUnderlying(rotation));
 }
 
-static void applyXMirror(NormalizedVideoTransformation &transform, bool mirror)
+static void applyXMirror(VideoTransformation &transform, bool mirror)
 {
     transform.mirrorredHorizontallyAfterRotation ^= mirror;
 }
 
-static void applyYMirror(NormalizedVideoTransformation &transform, bool mirror)
+static void applyYMirror(VideoTransformation &transform, bool mirror)
 {
     if (mirror) {
         transform.mirrorredHorizontallyAfterRotation ^= mirror;
@@ -130,7 +130,7 @@ static void applyYMirror(NormalizedVideoTransformation &transform, bool mirror)
     }
 }
 
-static void fixTransformation(NormalizedVideoTransformation &transform)
+static void fixTransformation(VideoTransformation &transform)
 {
     transform.rotationIndex %= 4;
     if (transform.rotationIndex < 0)
@@ -138,7 +138,7 @@ static void fixTransformation(NormalizedVideoTransformation &transform)
     transform.rotation = QtVideo::Rotation(transform.rotationIndex * 90);
 }
 
-static void applySurfaceTransformation(NormalizedVideoTransformation &transform,
+static void applySurfaceTransformation(VideoTransformation &transform,
                                        const QVideoFrameFormat &format)
 {
     applyYMirror(transform, format.scanLineDirection() == QVideoFrameFormat::BottomToTop);
@@ -146,19 +146,18 @@ static void applySurfaceTransformation(NormalizedVideoTransformation &transform,
     applyXMirror(transform, format.isMirrored());
 }
 
-Q_MULTIMEDIA_EXPORT NormalizedVideoTransformation
+Q_MULTIMEDIA_EXPORT VideoTransformation
 qNormalizedSurfaceTransformation(const QVideoFrameFormat &format)
 {
-    NormalizedVideoTransformation result;
+    VideoTransformation result;
     applySurfaceTransformation(result, format);
     fixTransformation(result);
     return result;
 }
 
-NormalizedVideoTransformation qNormalizedFrameTransformation(const QVideoFrame &frame,
-                                                             int additionalRotaton)
+VideoTransformation qNormalizedFrameTransformation(const QVideoFrame &frame, int additionalRotaton)
 {
-    NormalizedVideoTransformation result;
+    VideoTransformation result;
     applySurfaceTransformation(result, frame.surfaceFormat());
     applyRotation(result, frame.rotation());
     applyXMirror(result, frame.mirrored());
@@ -185,7 +184,7 @@ QtVideo::Rotation qVideoRotationFromDegrees(int clockwiseDegrees)
     return static_cast<QtVideo::Rotation>(newDegrees);
 }
 
-NormalizedVideoTransformationOpt qVideoTransformationFromMatrix(const QTransform &matrix)
+VideoTransformationOpt qVideoTransformationFromMatrix(const QTransform &matrix)
 {
     const qreal absScaleX = std::hypot(matrix.m11(), matrix.m12());
     const qreal absScaleY = std::hypot(matrix.m21(), matrix.m22());
@@ -200,7 +199,7 @@ NormalizedVideoTransformationOpt qVideoTransformationFromMatrix(const QTransform
     const qreal sin2 = -matrix.m21() / absScaleY;
     const qreal cos2 = matrix.m22() / absScaleY;
 
-    NormalizedVideoTransformation result;
+    VideoTransformation result;
 
     // try detecting the best pair option to detect mirroring
 

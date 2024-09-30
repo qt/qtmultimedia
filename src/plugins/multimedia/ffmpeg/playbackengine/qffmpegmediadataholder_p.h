@@ -70,7 +70,7 @@ public:
 
     bool isSeekable() const { return m_isSeekable; }
 
-    NormalizedVideoTransformation transformation() const;
+    VideoTransformation transformation() const;
 
     AVFormatContext *avContext();
 

@@ -28,8 +28,7 @@ class VideoRenderer : public Renderer
 {
     Q_OBJECT
 public:
-    VideoRenderer(const TimeController &tc, QVideoSink *sink,
-                  const NormalizedVideoTransformation &transform);
+    VideoRenderer(const TimeController &tc, QVideoSink *sink, const VideoTransformation &transform);
 
     void setOutput(QVideoSink *sink, bool cleanPrevSink = false);
 
@@ -38,7 +37,7 @@ protected:
 
 private:
     QPointer<QVideoSink> m_sink;
-    NormalizedVideoTransformation m_transform;
+    VideoTransformation m_transform;
 };
 
 } // namespace QFFmpeg
