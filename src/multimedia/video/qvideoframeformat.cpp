@@ -3,6 +3,7 @@
 
 #include "qvideoframeformat.h"
 #include "qvideotexturehelper_p.h"
+#include "qvideotransformation_p.h"
 
 #include <qdebug.h>
 #include <qlist.h>
@@ -33,14 +34,10 @@ public:
 
     bool operator ==(const QVideoFrameFormatPrivate &other) const
     {
-        if (pixelFormat == other.pixelFormat
-            && scanLineDirection == other.scanLineDirection
-            && frameSize == other.frameSize
-            && viewport == other.viewport
-            && frameRatesEqual(frameRate, other.frameRate)
-            && colorSpace == other.colorSpace
-            && mirrored == other.mirrored
-            && rotation == other.rotation)
+        if (pixelFormat == other.pixelFormat && scanLineDirection == other.scanLineDirection
+            && frameSize == other.frameSize && viewport == other.viewport
+            && frameRatesEqual(frameRate, other.frameRate) && colorSpace == other.colorSpace
+            && transformation == other.transformation)
             return true;
 
         return false;
@@ -60,8 +57,7 @@ public:
     QRect viewport;
     float frameRate = 0.0;
     float maxLuminance = -1.;
-    bool mirrored = false;
-    QtVideo::Rotation rotation = QtVideo::Rotation::None;
+    VideoTransformation transformation;
 };
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
@@ -671,7 +667,7 @@ void QVideoFrameFormat::setColorRange(ColorRange range)
  */
 bool QVideoFrameFormat::isMirrored() const
 {
-    return d->mirrored;
+    return d->transformation.mirrorredHorizontallyAfterRotation;
 }
 
 /*!
@@ -694,7 +690,7 @@ bool QVideoFrameFormat::isMirrored() const
 void QVideoFrameFormat::setMirrored(bool mirrored)
 {
     detach();
-    d->mirrored = mirrored;
+    d->transformation.mirrorredHorizontallyAfterRotation = mirrored;
 }
 
 /*!
@@ -709,7 +705,7 @@ void QVideoFrameFormat::setMirrored(bool mirrored)
  */
 QtVideo::Rotation QVideoFrameFormat::rotation() const
 {
-    return d->rotation;
+    return d->transformation.rotation;
 }
 
 /*!
@@ -727,7 +723,7 @@ QtVideo::Rotation QVideoFrameFormat::rotation() const
 void QVideoFrameFormat::setRotation(QtVideo::Rotation angle)
 {
     detach();
-    d->rotation = angle;
+    d->transformation.rotation = angle;
 }
 
 /*!

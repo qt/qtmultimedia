@@ -17,6 +17,7 @@
 
 #include "qvideoframe.h"
 #include "qhwvideobuffer_p.h"
+#include "private/qvideotransformation_p.h"
 
 #include <qmutex.h>
 
@@ -83,8 +84,8 @@ public:
     QString subtitleText;
     QImage image;
     QMutex imageMutex;
-    QtVideo::Rotation presentationRotation = QtVideo::Rotation::None;
-    bool presentationMirrored = false;
+    VideoTransformation presentationTransformation;
+
 private:
     Q_DISABLE_COPY(QVideoFramePrivate)
 };

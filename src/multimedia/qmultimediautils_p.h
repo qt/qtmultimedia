@@ -16,8 +16,8 @@
 //
 
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qtvideo.h>
 #include <QtMultimedia/private/qmaybe_p.h>
+#include <QtMultimedia/private/qvideotransformation_p.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qurl.h>
 #include <QtGui/rhi/qrhi.h>
@@ -58,21 +58,6 @@ qGetRequiredSwapChainFormat(const QVideoFrameFormat &format);
 Q_MULTIMEDIA_EXPORT bool
 qShouldUpdateSwapChainFormat(QRhiSwapChain *swapChain,
                              QRhiSwapChain::Format requiredSwapChainFormat);
-
-struct VideoTransformation
-{
-    QtVideo::Rotation rotation = QtVideo::Rotation::None;
-    int rotationIndex = 0;
-    bool mirrorredHorizontallyAfterRotation = false;
-};
-
-using VideoTransformationOpt = std::optional<VideoTransformation>;
-
-inline bool operator==(const VideoTransformation &lhs, const VideoTransformation &rhs)
-{
-    return lhs.rotation == rhs.rotation
-            && lhs.mirrorredHorizontallyAfterRotation == rhs.mirrorredHorizontallyAfterRotation;
-}
 
 Q_MULTIMEDIA_EXPORT VideoTransformation
 qNormalizedSurfaceTransformation(const QVideoFrameFormat &format);
