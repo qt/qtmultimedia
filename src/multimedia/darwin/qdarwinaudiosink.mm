@@ -25,11 +25,6 @@ QT_BEGIN_NAMESPACE
 
 static int audioRingBufferSize(int bufferSize, int maxPeriodSize)
 {
-#if defined(Q_OS_IOS)
-    // LATER: we probably to derive the ringbuffer size from an absolute latency rather than
-    // tying it to coreaudio
-    bufferSize *= 4;
-#endif
     // TODO: review this code
     return bufferSize
             + (bufferSize % maxPeriodSize == 0 ? 0 : maxPeriodSize - (bufferSize % maxPeriodSize));
