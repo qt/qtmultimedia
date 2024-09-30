@@ -63,7 +63,7 @@ struct NormalizedVideoTransformation
 {
     QtVideo::Rotation rotation = QtVideo::Rotation::None;
     int rotationIndex = 0;
-    bool xMirrorredAfterRotation = false;
+    bool mirrorredHorizontallyAfterRotation = false;
 };
 
 using NormalizedVideoTransformationOpt = std::optional<NormalizedVideoTransformation>;
@@ -72,7 +72,7 @@ inline bool operator==(const NormalizedVideoTransformation &lhs,
                        const NormalizedVideoTransformation &rhs)
 {
     return lhs.rotation == rhs.rotation
-            && lhs.xMirrorredAfterRotation == rhs.xMirrorredAfterRotation;
+            && lhs.mirrorredHorizontallyAfterRotation == rhs.mirrorredHorizontallyAfterRotation;
 }
 
 Q_MULTIMEDIA_EXPORT NormalizedVideoTransformation

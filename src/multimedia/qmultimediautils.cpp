@@ -107,7 +107,7 @@ static void applyRotation(NormalizedVideoTransformation &transform, int degreesC
     if (degreesClockwise) {
         const int rotationIndex = degreesClockwise / 90;
         transform.rotationIndex += rotationIndex;
-        if (transform.xMirrorredAfterRotation && rotationIndex % 2 != 0)
+        if (transform.mirrorredHorizontallyAfterRotation && rotationIndex % 2 != 0)
             transform.rotationIndex += 2;
     }
 }
@@ -119,13 +119,13 @@ static void applyRotation(NormalizedVideoTransformation &transform, QtVideo::Rot
 
 static void applyXMirror(NormalizedVideoTransformation &transform, bool mirror)
 {
-    transform.xMirrorredAfterRotation ^= mirror;
+    transform.mirrorredHorizontallyAfterRotation ^= mirror;
 }
 
 static void applyYMirror(NormalizedVideoTransformation &transform, bool mirror)
 {
     if (mirror) {
-        transform.xMirrorredAfterRotation ^= mirror;
+        transform.mirrorredHorizontallyAfterRotation ^= mirror;
         transform.rotationIndex += 2;
     }
 }
@@ -205,11 +205,11 @@ NormalizedVideoTransformationOpt qVideoTransformationFromMatrix(const QTransform
     // try detecting the best pair option to detect mirroring
 
     if (std::abs(cos1) + std::abs(cos2) > std::abs(sin1) + std::abs(sin2))
-        result.xMirrorredAfterRotation = std::signbit(cos1) != std::signbit(cos2);
+        result.mirrorredHorizontallyAfterRotation = std::signbit(cos1) != std::signbit(cos2);
     else
-        result.xMirrorredAfterRotation = std::signbit(sin1) != std::signbit(sin2);
+        result.mirrorredHorizontallyAfterRotation = std::signbit(sin1) != std::signbit(sin2);
 
-    if (result.xMirrorredAfterRotation) {
+    if (result.mirrorredHorizontallyAfterRotation) {
         cos1 *= -1;
         sin1 *= -1;
     }
