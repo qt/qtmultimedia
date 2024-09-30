@@ -620,7 +620,7 @@ static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame,
                 || surfaceFormat.rotation() != QtVideo::Rotation::None;
 
         if (hasSurfaceTransform)
-            image = qImageFromVideoFrame(frame, NormalizedVideoTransformation{});
+            image = qImageFromVideoFrame(frame, VideoTransformation{});
         else
             image = frame.toImage(); // use the frame cache, no surface transforms applied
 

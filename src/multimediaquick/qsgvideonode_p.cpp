@@ -292,7 +292,7 @@ void QSGVideoNode::setSubtitleGeometry()
 /* Update the vertices and texture coordinates.  Orientation must be in {0,90,180,270} */
 void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &textureRect, int orientation)
 {
-    const NormalizedVideoTransformation currentFrameTransformation =
+    const VideoTransformation currentFrameTransformation =
             qNormalizedFrameTransformation(m_material ? m_material->m_currentFrame : QVideoFrame{});
 
     if (rect == m_rect && textureRect == m_textureRect && orientation == m_orientation

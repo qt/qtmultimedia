@@ -310,15 +310,14 @@ void tst_QMultimediaUtils::qNormalizedFrameTransformation_normilizesInputTransfo
     frame.setMirrored(frameMirrored);
 
     // Act
-    const NormalizedVideoTransformation actual =
+    const VideoTransformation actual =
             qNormalizedFrameTransformation(frame, additionalFrameRotation);
 
     const QTransform expectedTransform =
             makeTransformMatrix(surfaceRotation, surfaceMirrored, scanLineDirection, frameRotation,
                                 frameMirrored, additionalFrameRotation);
 
-    const NormalizedVideoTransformationOpt expected =
-            qVideoTransformationFromMatrix(expectedTransform);
+    const VideoTransformationOpt expected = qVideoTransformationFromMatrix(expectedTransform);
 
     QTEST_ASSERT(expected);
 
@@ -391,7 +390,7 @@ void tst_QMultimediaUtils::
     QFETCH(const QtVideo::Rotation, expectedRotation);
     QFETCH(const bool, expectedMirrored);
 
-    const NormalizedVideoTransformationOpt actual = qVideoTransformationFromMatrix(matrix);
+    const VideoTransformationOpt actual = qVideoTransformationFromMatrix(matrix);
 
     QVERIFY(actual);
     QCOMPARE(actual->rotation, expectedRotation);
@@ -419,7 +418,7 @@ void tst_QMultimediaUtils::
 {
     QFETCH(const QTransform, matrix);
 
-    const NormalizedVideoTransformationOpt actual = qVideoTransformationFromMatrix(matrix);
+    const VideoTransformationOpt actual = qVideoTransformationFromMatrix(matrix);
 
     QVERIFY(!actual);
 }

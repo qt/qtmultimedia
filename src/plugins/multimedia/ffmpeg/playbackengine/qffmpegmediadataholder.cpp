@@ -77,7 +77,7 @@ static QTransform displayMatrixToTransform(const int32_t *displayMatrix)
                       0, 0);
 }
 
-static NormalizedVideoTransformation streamTransformation(const AVStream *stream)
+static VideoTransformation streamTransformation(const AVStream *stream)
 {
     Q_ASSERT(stream);
 
@@ -89,7 +89,7 @@ static NormalizedVideoTransformation streamTransformation(const AVStream *stream
 
     const auto displayMatrix = reinterpret_cast<const int32_t *>(sideData->data);
     const QTransform transform = displayMatrixToTransform(displayMatrix);
-    const NormalizedVideoTransformationOpt result = qVideoTransformationFromMatrix(transform);
+    const VideoTransformationOpt result = qVideoTransformationFromMatrix(transform);
     if (!result) {
         qCWarning(qLcMediaDataHolder)
                 << "Video stream contains malformed display matrix" << transform;
@@ -116,7 +116,7 @@ static bool colorTransferSupportsHdr(const AVStream *stream)
             || colorTransfer == QVideoFrameFormat::ColorTransfer_STD_B67;
 }
 
-NormalizedVideoTransformation MediaDataHolder::transformation() const
+VideoTransformation MediaDataHolder::transformation() const
 {
     // TODO: Add QMediaMetaData::Mirrored and take from it and QMediaMetaData::Orientation:
     // int orientation = m_metaData.value(QMediaMetaData::Orientation).toInt();

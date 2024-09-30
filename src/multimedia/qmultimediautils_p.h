@@ -59,27 +59,26 @@ Q_MULTIMEDIA_EXPORT bool
 qShouldUpdateSwapChainFormat(QRhiSwapChain *swapChain,
                              QRhiSwapChain::Format requiredSwapChainFormat);
 
-struct NormalizedVideoTransformation
+struct VideoTransformation
 {
     QtVideo::Rotation rotation = QtVideo::Rotation::None;
     int rotationIndex = 0;
     bool mirrorredHorizontallyAfterRotation = false;
 };
 
-using NormalizedVideoTransformationOpt = std::optional<NormalizedVideoTransformation>;
+using VideoTransformationOpt = std::optional<VideoTransformation>;
 
-inline bool operator==(const NormalizedVideoTransformation &lhs,
-                       const NormalizedVideoTransformation &rhs)
+inline bool operator==(const VideoTransformation &lhs, const VideoTransformation &rhs)
 {
     return lhs.rotation == rhs.rotation
             && lhs.mirrorredHorizontallyAfterRotation == rhs.mirrorredHorizontallyAfterRotation;
 }
 
-Q_MULTIMEDIA_EXPORT NormalizedVideoTransformation
+Q_MULTIMEDIA_EXPORT VideoTransformation
 qNormalizedSurfaceTransformation(const QVideoFrameFormat &format);
 
-Q_MULTIMEDIA_EXPORT NormalizedVideoTransformation
-qNormalizedFrameTransformation(const QVideoFrame &frame, int additionalRotaton = 0);
+Q_MULTIMEDIA_EXPORT VideoTransformation qNormalizedFrameTransformation(const QVideoFrame &frame,
+                                                                       int additionalRotaton = 0);
 
 Q_MULTIMEDIA_EXPORT QtVideo::Rotation
 qVideoRotationFromDegrees(int clockwiseDegrees);
@@ -98,8 +97,7 @@ qVideoRotationFromDegrees(int clockwiseDegrees);
  * If the given matrix is invalid, or the scale sign is ambiguous,
  * the function returns an empty optional value.
  */
-Q_MULTIMEDIA_EXPORT NormalizedVideoTransformationOpt
-qVideoTransformationFromMatrix(const QTransform &matrix);
+Q_MULTIMEDIA_EXPORT VideoTransformationOpt qVideoTransformationFromMatrix(const QTransform &matrix);
 
 QT_END_NAMESPACE
 
