@@ -26,7 +26,7 @@ private:
     // Destructor is not public. Caller should call Release.
     ~EVRCustomPresenterActivate() override { }
 
-    EVRCustomPresenter *m_presenter;
+    ComPtr<EVRCustomPresenter> m_presenter;
     QVideoSink *m_videoSink;
     QRect m_cropRect;
     QMutex m_mutex;
@@ -50,15 +50,13 @@ void MFVideoRendererControl::releaseActivate()
 
     if (m_presenterActivate) {
         m_presenterActivate->ShutdownObject();
-        m_presenterActivate->Release();
-        m_presenterActivate = NULL;
+        m_presenterActivate.Reset();
     }
 
     if (m_currentActivate) {
         m_currentActivate->ShutdownObject();
-        m_currentActivate->Release();
+        m_currentActivate.Reset();
     }
-    m_currentActivate = NULL;
 }
 
 void MFVideoRendererControl::setSink(QVideoSink *sink)
@@ -82,18 +80,17 @@ IMFActivate* MFVideoRendererControl::createActivate()
     if (m_sink) {
         // Create the EVR media sink, but replace the presenter with our own
         if (SUCCEEDED(MFCreateVideoRendererActivate(::GetShellWindow(), &m_currentActivate))) {
-            m_presenterActivate = new EVRCustomPresenterActivate(m_sink);
-            m_currentActivate->SetUnknown(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_ACTIVATE, m_presenterActivate);
+            m_presenterActivate = makeComObject<EVRCustomPresenterActivate>(m_sink);
+            m_currentActivate->SetUnknown(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_ACTIVATE,
+                                          m_presenterActivate.Get());
         }
     }
 
-    return m_currentActivate;
+    return m_currentActivate.Get();
 }
 
 EVRCustomPresenterActivate::EVRCustomPresenterActivate(QVideoSink *sink)
-    : MFAbstractActivate()
-    , m_presenter(0)
-    , m_videoSink(sink)
+    : MFAbstractActivate(), m_videoSink(sink)
 { }
 
 HRESULT EVRCustomPresenterActivate::ActivateObject(REFIID riid, void **ppv)
@@ -102,7 +99,7 @@ HRESULT EVRCustomPresenterActivate::ActivateObject(REFIID riid, void **ppv)
         return E_INVALIDARG;
     QMutexLocker locker(&m_mutex);
     if (!m_presenter) {
-        m_presenter = new EVRCustomPresenter(m_videoSink);
+        m_presenter = makeComObject<EVRCustomPresenter>(m_videoSink);
         m_presenter->setCropRect(m_cropRect);
     }
     return m_presenter->QueryInterface(riid, ppv);
@@ -119,8 +116,7 @@ HRESULT EVRCustomPresenterActivate::DetachObject()
 {
     QMutexLocker locker(&m_mutex);
     if (m_presenter) {
-        m_presenter->Release();
-        m_presenter = 0;
+        m_presenter.Reset();
     }
     return S_OK;
 }
