@@ -17,7 +17,9 @@ QT_BEGIN_NAMESPACE
     \since 6.7
 
     The angle of the clockwise rotation that should be applied to a video
-    frame before displaying.
+    frame before displaying. The rotation is performed in video coordinates,
+    where the Y-axis points downwards on the display. It means that
+    the rotation direction complies with \l QTransform::rotate.
 
     \value None No rotation required, the frame has correct orientation
     \value Clockwise90 The frame should be rotated clockwise by 90 degrees
