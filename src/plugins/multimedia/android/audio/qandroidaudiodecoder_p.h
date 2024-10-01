@@ -100,7 +100,7 @@ private:
     void decode();
 
     QIODevice *m_device = nullptr;
-    Decoder *m_decoder;
+    Decoder *m_decoder = nullptr;
 
     QList<QPair<QAudioBuffer, int>> m_audioBuffer;
     QUrl m_source;
