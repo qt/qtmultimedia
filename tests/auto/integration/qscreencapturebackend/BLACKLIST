@@ -9,3 +9,11 @@ opensuse-15.5 ci
 [capture_capturesToFile_whenConnectedToMediaRecorder]
 linux ci
 android ci
+
+# QTBUG-128515
+[setScreen_selectsScreen_whenCalledWithWidgetsScreen]
+ubuntu-24.04 xcb ci
+
+# QTBUG-128515
+[constructor_selectsPrimaryScreenAsDefault]
+ubuntu-24.04 xcb ci
