@@ -19,6 +19,7 @@
 #include <qpointer.h>
 #include <qrect.h>
 #include <mfobjects.h>
+#include <QtCore/private/qcomptr_p.h>
 
 QT_BEGIN_NAMESPACE
 class EVRCustomPresenterActivate;
@@ -38,8 +39,8 @@ public:
 
 private:
     QPointer<QVideoSink> m_sink;
-    IMFActivate *m_currentActivate = nullptr;
-    EVRCustomPresenterActivate *m_presenterActivate = nullptr;
+    ComPtr<IMFActivate> m_currentActivate;
+    ComPtr<EVRCustomPresenterActivate> m_presenterActivate;
 };
 
 QT_END_NAMESPACE
