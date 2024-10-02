@@ -451,7 +451,10 @@ void QGstVideoRendererSink::finalize(GObject *object)
 GstStateChangeReturn QGstVideoRendererSink::change_state(
         GstElement *element, GstStateChange transition)
 {
-    return GST_ELEMENT_CLASS(gvrs_sink_parent_class)->change_state(element, transition);
+    GstStateChangeReturn ret =
+            GST_ELEMENT_CLASS(gvrs_sink_parent_class)->change_state(element, transition);
+    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::change_state:" << transition << ret;
+    return ret;
 }
 
 GstCaps *QGstVideoRendererSink::get_caps(GstBaseSink *base, GstCaps *filter)
