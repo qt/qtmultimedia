@@ -39,7 +39,10 @@ inline bool isWindowsPlatform()
 
 inline bool isCI()
 {
-    return qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci";
+    return qEnvironmentVariable("QTEST_ENVIRONMENT")
+            .toLower()
+            .split(' ')
+            .contains(QStringLiteral("ci"));
 }
 
 #define QSKIP_GSTREAMER(message) \
