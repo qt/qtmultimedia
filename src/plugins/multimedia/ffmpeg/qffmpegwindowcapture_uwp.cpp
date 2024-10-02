@@ -292,7 +292,6 @@ private:
 
 class QFFmpegWindowCaptureUwp::Grabber : public QFFmpegSurfaceCaptureGrabber
 {
-    Q_OBJECT
 public:
     Grabber(QFFmpegWindowCaptureUwp &capture, HWND hwnd)
         : m_hwnd(hwnd),
@@ -504,5 +503,3 @@ QVideoFrameFormat QFFmpegWindowCaptureUwp::frameFormat() const
 }
 
 QT_END_NAMESPACE
-
-#include "qffmpegwindowcapture_uwp.moc"
