@@ -15,6 +15,8 @@ extern "C" {
 
 QT_BEGIN_NAMESPACE
 
+using namespace QFFmpeg;
+
 static bool isFrameFlipped(const AVFrame& frame) {
     for (int i = 0; i < AV_NUM_DATA_POINTERS && frame.data[i]; ++i) {
         if (frame.linesize[i] < 0)
@@ -34,7 +36,7 @@ QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrameUPtr frame, AVRational pixelAspect
 {
     if (frame->hw_frames_ctx) {
         m_hwFrame = std::move(frame);
-        m_pixelFormat = toQtPixelFormat(QFFmpeg::HWAccel::format(m_hwFrame.get()));
+        m_pixelFormat = toQtPixelFormat(HWAccel::format(m_hwFrame.get()));
         return;
     }
 
@@ -53,29 +55,29 @@ void QFFmpegVideoBuffer::convertSWFrame()
     const auto actualAVPixelFormat = AVPixelFormat(m_swFrame->format);
     const auto targetAVPixelFormat = toAVPixelFormat(m_pixelFormat);
 
+    const QSize actualSize(m_swFrame->width, m_swFrame->height);
     if (actualAVPixelFormat != targetAVPixelFormat || isFrameFlipped(*m_swFrame)
-        || m_size != QSize(m_swFrame->width, m_swFrame->height)) {
+        || m_size != actualSize) {
         Q_ASSERT(toQtPixelFormat(targetAVPixelFormat) == m_pixelFormat);
         // convert the format into something we can handle
-        SwsContext *c = sws_getContext(m_swFrame->width, m_swFrame->height, actualAVPixelFormat,
-                                       m_size.width(), m_size.height(), targetAVPixelFormat,
-                                       SWS_BICUBIC, nullptr, nullptr, nullptr);
+        SwsContextUPtr scaleContext = createSwsContext(actualSize, actualAVPixelFormat, m_size,
+                                                       targetAVPixelFormat, SWS_BICUBIC);
 
-        auto newFrame = QFFmpeg::makeAVFrame();
+        auto newFrame = makeAVFrame();
         newFrame->width = m_size.width();
         newFrame->height = m_size.height();
         newFrame->format = targetAVPixelFormat;
         av_frame_get_buffer(newFrame.get(), 0);
 
-        sws_scale(c, m_swFrame->data, m_swFrame->linesize, 0, m_swFrame->height, newFrame->data, newFrame->linesize);
+        sws_scale(scaleContext.get(), m_swFrame->data, m_swFrame->linesize, 0, m_swFrame->height,
+                  newFrame->data, newFrame->linesize);
         if (m_frame == m_swFrame.get())
             m_frame = newFrame.get();
         m_swFrame = std::move(newFrame);
-        sws_freeContext(c);
     }
 }
 
-void QFFmpegVideoBuffer::setTextureConverter(const QFFmpeg::TextureConverter &converter)
+void QFFmpegVideoBuffer::setTextureConverter(const TextureConverter &converter)
 {
     m_textureConverter = converter;
     m_textureConverter.init(m_hwFrame.get());
@@ -84,17 +86,17 @@ void QFFmpegVideoBuffer::setTextureConverter(const QFFmpeg::TextureConverter &co
 
 QVideoFrameFormat::ColorSpace QFFmpegVideoBuffer::colorSpace() const
 {
-    return QFFmpeg::fromAvColorSpace(m_frame->colorspace);
+    return fromAvColorSpace(m_frame->colorspace);
 }
 
 QVideoFrameFormat::ColorTransfer QFFmpegVideoBuffer::colorTransfer() const
 {
-    return QFFmpeg::fromAvColorTransfer(m_frame->color_trc);
+    return fromAvColorTransfer(m_frame->color_trc);
 }
 
 QVideoFrameFormat::ColorRange QFFmpegVideoBuffer::colorRange() const
 {
-    return QFFmpeg::fromAvColorRange(m_frame->color_range);
+    return fromAvColorRange(m_frame->color_range);
 }
 
 float QFFmpegVideoBuffer::maxNits()
@@ -117,7 +119,7 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     if (!m_swFrame) {
         Q_ASSERT(m_hwFrame && m_hwFrame->hw_frames_ctx);
-        m_swFrame = QFFmpeg::makeAVFrame();
+        m_swFrame = makeAVFrame();
         /* retrieve data from GPU to CPU */
         int ret = av_hwframe_transfer_data(m_swFrame.get(), m_hwFrame.get(), 0);
         if (ret < 0) {

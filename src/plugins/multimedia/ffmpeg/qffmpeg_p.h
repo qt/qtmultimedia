@@ -123,11 +123,17 @@ struct AVDictionaryHolder
 template<typename FunctionType, FunctionType F>
 struct AVDeleter
 {
-    template<typename T>
+    template <typename T, std::invoke_result_t<FunctionType, T **> * = nullptr>
     void operator()(T *object) const
     {
         if (object)
             F(&object);
+    }
+
+    template <typename T, std::invoke_result_t<FunctionType, T *> * = nullptr>
+    void operator()(T *object) const
+    {
+        F(object);
     }
 };
 
@@ -153,6 +159,9 @@ using AVHWFramesConstraintsUPtr = std::unique_ptr<
         AVDeleter<decltype(&av_hwframe_constraints_free), &av_hwframe_constraints_free>>;
 
 using SwrContextUPtr = std::unique_ptr<SwrContext, AVDeleter<decltype(&swr_free), &swr_free>>;
+
+using SwsContextUPtr =
+        std::unique_ptr<SwsContext, AVDeleter<decltype(&sws_freeContext), &sws_freeContext>>;
 
 template <typename T>
 inline constexpr auto InvalidAvValue = T{};
@@ -260,6 +269,9 @@ QVideoFrameFormat::ColorRange fromAvColorRange(AVColorRange colorRange);
 AVColorRange toAvColorRange(QVideoFrameFormat::ColorRange colorRange);
 
 AVHWDeviceContext *avFrameDeviceContext(const AVFrame *frame);
+
+SwsContextUPtr createSwsContext(const QSize &srcSize, AVPixelFormat srcPixFmt, const QSize &dstSize,
+                                AVPixelFormat dstPixFmt, int conversionType = SWS_BICUBIC);
 
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t format);

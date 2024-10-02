@@ -340,7 +340,7 @@ struct FrameConverter
         return 0;
     }
 
-    void convert(SwsContext *converter, AVPixelFormat format, const QSize &size)
+    void convert(SwsContext *scaleContext, AVPixelFormat format, const QSize &size)
     {
         AVFrameUPtr scaledFrame = makeAVFrame();
 
@@ -349,8 +349,11 @@ struct FrameConverter
         scaledFrame->height = size.height();
 
         av_frame_get_buffer(scaledFrame.get(), 0);
+
+        const AVFrame *srcFrame = currentFrame();
+
         const auto scaledHeight =
-                sws_scale(converter, currentFrame()->data, currentFrame()->linesize, 0, currentFrame()->height,
+                sws_scale(scaleContext, srcFrame->data, srcFrame->linesize, 0, srcFrame->height,
                           scaledFrame->data, scaledFrame->linesize);
 
         if (scaledHeight != scaledFrame->height)
@@ -444,8 +447,8 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr inputFrame)
             return status;
     }
 
-    if (m_converter)
-        converter.convert(m_converter.get(), m_targetSWFormat, m_targetSize);
+    if (m_scaleContext)
+        converter.convert(m_scaleContext.get(), m_targetSWFormat, m_targetSize);
 
     if (m_uploadToHW) {
         const int status = converter.uploadToHw(m_accel.get());
@@ -589,7 +592,7 @@ void VideoFrameEncoder::updateConversions()
     const bool needToScale = m_sourceSize != m_targetSize;
     const bool zeroCopy = m_sourceFormat == m_targetFormat && !needToScale;
 
-    m_converter.reset();
+    m_scaleContext.reset();
 
     if (zeroCopy) {
         m_downloadFromHW = false;
@@ -608,10 +611,8 @@ void VideoFrameEncoder::updateConversions()
                 << "video source and encoder use different formats:" << m_sourceSWFormat
                 << m_targetSWFormat << "or sizes:" << m_sourceSize << m_targetSize;
 
-        m_converter.reset(sws_getContext(m_sourceSize.width(), m_sourceSize.height(),
-                                         m_sourceSWFormat, m_targetSize.width(),
-                                         m_targetSize.height(), m_targetSWFormat, SWS_FAST_BILINEAR,
-                                         nullptr, nullptr, nullptr));
+        m_scaleContext = createSwsContext(m_sourceSize, m_sourceSWFormat, m_targetSize,
+                                          m_targetSWFormat, SWS_FAST_BILINEAR);
     }
 
     qCDebug(qLcVideoFrameEncoder) << "VideoFrameEncoder conversions initialized:"
@@ -621,7 +622,7 @@ void VideoFrameEncoder::updateConversions()
                                   << (isHwPixelFormat(m_targetFormat) ? "(hw)" : "(sw)")
                                   << "sourceSWFormat:" << m_sourceSWFormat
                                   << "targetSWFormat:" << m_targetSWFormat
-                                  << "converter:" << m_converter.get();
+                                  << "scaleContext:" << m_scaleContext.get();
 }
 
 } // namespace QFFmpeg
