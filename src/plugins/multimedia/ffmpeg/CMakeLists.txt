@@ -100,7 +100,8 @@ endif()
 
 if (QT_FEATURE_pipewire)
     qt_internal_extend_target(QFFmpegMediaPlugin
-        INCLUDE_DIRECTORIES "${PipeWire_INCLUDE_DIRS};${Spa_INCLUDE_DIRS}"
+        SYSTEM_INCLUDE_DIRECTORIES
+            "${PipeWire_INCLUDE_DIRS};${Spa_INCLUDE_DIRS}"
         SOURCES
             qpipewirecapture.cpp qpipewirecapture_p.h
             qpipewirecapturehelper.cpp qpipewirecapturehelper_p.h
