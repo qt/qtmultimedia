@@ -662,6 +662,11 @@ void QPipeWireCaptureHelper::recreateStream()
     m_streamListener = {};
     pw_stream_add_listener(m_stream, &m_streamListener, &streamEvents, this);
 
+    QT_WARNING_PUSH
+    // QTBUG-129587: libpipewire=1.2.5 warning
+    QT_WARNING_DISABLE_GCC("-Wmissing-field-initializers")
+    QT_WARNING_DISABLE_CLANG("-Wmissing-field-initializers")
+
     uint8_t buffer[4096];
     struct spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
     const struct spa_pod *params[1];
@@ -689,6 +694,7 @@ void QPipeWireCaptureHelper::recreateStream()
             SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(
                                             &defrate, &minrate, &maxrate))
     );
+    QT_WARNING_POP
 
     const int connectErr = pw_stream_connect(
             m_stream,
