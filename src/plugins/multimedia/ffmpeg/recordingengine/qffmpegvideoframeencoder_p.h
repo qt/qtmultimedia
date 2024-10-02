@@ -99,8 +99,7 @@ private:
 
     qint64 m_lastPacketTime = AV_NOPTS_VALUE;
     AVCodecContextUPtr m_codecContext;
-    std::unique_ptr<SwsContext, decltype(&sws_freeContext)> m_converter = { nullptr,
-                                                                            &sws_freeContext };
+    SwsContextUPtr m_scaleContext;
     AVPixelFormat m_sourceFormat = AV_PIX_FMT_NONE;
     AVPixelFormat m_sourceSWFormat = AV_PIX_FMT_NONE;
     AVPixelFormat m_targetFormat = AV_PIX_FMT_NONE;

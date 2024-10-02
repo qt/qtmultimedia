@@ -300,6 +300,25 @@ AVHWDeviceContext* avFrameDeviceContext(const AVFrame* frame) {
     return frameCtx->device_ctx;
 }
 
+SwsContextUPtr createSwsContext(const QSize &srcSize, AVPixelFormat srcPixFmt, const QSize &dstSize,
+                                AVPixelFormat dstPixFmt, int conversionType)
+{
+
+    SwsContext *result =
+            sws_getContext(srcSize.width(), srcSize.height(), srcPixFmt, dstSize.width(),
+                           dstSize.height(), dstPixFmt, conversionType, nullptr, nullptr, nullptr);
+
+    if (!result)
+        qCWarning(qLcFFmpegUtils) << "Cannot create sws context for:\n"
+                                  << "srcSize:" << srcSize
+                                  << "srcPixFmt:" << srcPixFmt
+                                  << "dstSize:" << dstSize
+                                  << "dstPixFmt:" << dstPixFmt
+                                  << "conversionType:" << conversionType;
+
+    return SwsContextUPtr(result);
+}
+
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t cvFormat)
 {

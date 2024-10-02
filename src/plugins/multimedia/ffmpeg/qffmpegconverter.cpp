@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegconverter_p.h"
+#include "qffmpeg_p.h"
 #include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qloggingcategory.h>
@@ -143,20 +144,14 @@ SwsColorSpace toSwsColorSpace(QVideoFrameFormat::ColorRange colorRange,
     }
 }
 
-using SwsContextUPtr = std::unique_ptr<SwsContext, decltype(&sws_freeContext)>;
 using PixelFormat = QVideoFrameFormat::PixelFormat;
 
 // clang-format off
 
-SwsContextUPtr createConverter(const QSize &srcSize, PixelFormat srcPixFmt,
+QFFmpeg::SwsContextUPtr createConverter(const QSize &srcSize, PixelFormat srcPixFmt,
                                const QSize &dstSize, PixelFormat dstPixFmt)
 {
-    SwsContext* context = sws_getContext(
-        srcSize.width(), srcSize.height(), toAVPixelFormat(srcPixFmt),
-        dstSize.width(), dstSize.height(), toAVPixelFormat(dstPixFmt),
-        SWS_BILINEAR, nullptr, nullptr, nullptr);
-
-    return { context, &sws_freeContext };
+    return QFFmpeg::createSwsContext(srcSize, toAVPixelFormat(srcPixFmt), dstSize, toAVPixelFormat(dstPixFmt), SWS_BILINEAR);
 }
 
 bool setColorSpaceDetails(SwsContext *context,
@@ -244,7 +239,7 @@ QVideoFrame convertFrame(QVideoFrame &src, const QVideoFrameFormat &dstFormat)
     if (size != src.size())
         qCWarning(lc) << "Input truncated to even width/height";
 
-    const SwsContextUPtr conv = createConverter(
+    const QFFmpeg::SwsContextUPtr conv = createConverter(
         size, src.pixelFormat(), size, dstFormat.pixelFormat());
 
     if (!conv) {
