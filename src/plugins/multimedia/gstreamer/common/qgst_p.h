@@ -595,82 +595,14 @@ public:
     bool sendEvent(GstEvent *event);
     void sendFlushStartStop(bool resetTime);
 
-    template<auto Member, typename T>
-    void addProbe(T *instance, GstPadProbeType type) {
-        auto callback = [](GstPad *pad, GstPadProbeInfo *info, gpointer userData) {
-            return (static_cast<T *>(userData)->*Member)(QGstPad(pad, NeedsRef), info);
-        };
-
-        gst_pad_add_probe(pad(), type, callback, instance, nullptr);
-    }
+    template <auto Member, typename T>
+    void addProbe(T *instance, GstPadProbeType type);
 
     template <typename Functor>
-    void doInIdleProbe(Functor &&work)
-    {
-        using namespace std::chrono_literals;
+    void doInIdleProbe(Functor &&work);
 
-        struct CallbackData
-        {
-            QSemaphore waitDone;
-            std::once_flag onceFlag;
-            Functor work;
-
-            void run()
-            {
-                std::call_once(onceFlag, [&] {
-                    work();
-                });
-            }
-        };
-
-        CallbackData cd{
-            .waitDone = QSemaphore{},
-            .onceFlag = {},
-            .work = std::forward<Functor>(work),
-        };
-
-        auto callback= [](GstPad *, GstPadProbeInfo *, gpointer p) {
-            auto cd = reinterpret_cast<CallbackData*>(p);
-            cd->run();
-            cd->waitDone.release();
-            return GST_PAD_PROBE_REMOVE;
-        };
-
-        gulong probe = gst_pad_add_probe(pad(), GST_PAD_PROBE_TYPE_IDLE, callback, &cd, nullptr);
-        if (probe == 0)
-            return; // probe was executed
-
-        bool success = cd.waitDone.try_acquire_for(250ms);
-        if (success)
-            return;
-
-        // the probe has not been executed for 250ms, probably because the element has transitioned
-        // from playing to paused. Flushing the pad would unblock paused pads
-        sendFlushIfPaused();
-
-        success = cd.waitDone.try_acquire_for(1s);
-        if (success)
-            return;
-
-        // if the idle probe still has not been called, we remove it and call it
-        // explicitly to avoid deadlocking the application. Probably not exactly safe,
-        // but better than deadlocking
-        qWarning() << "QGstPad::doInIdleProbe blocked for 1s. Executing the pad probe manually";
-        gst_pad_remove_probe(pad(), probe);
-        cd.run();
-    }
-
-    template<auto Member, typename T>
-    void addEosProbe(T *instance) {
-        auto callback = [](GstPad *, GstPadProbeInfo *info, gpointer userData) {
-            if (GST_EVENT_TYPE(GST_PAD_PROBE_INFO_DATA(info)) != GST_EVENT_EOS)
-                return GST_PAD_PROBE_PASS;
-            (static_cast<T *>(userData)->*Member)();
-            return GST_PAD_PROBE_REMOVE;
-        };
-
-        gst_pad_add_probe(pad(), GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, callback, instance, nullptr);
-    }
+    template <auto Member, typename T>
+    void addEosProbe(T *instance);
 
     template <typename Functor>
     void modifyPipelineInIdleProbe(Functor &&f);
@@ -797,6 +729,87 @@ private:
     mutable QGstQueryHandle m_positionQuery;
 };
 
+// QGstPad implementations
+
+template <auto Member, typename T>
+void QGstPad::addProbe(T *instance, GstPadProbeType type)
+{
+    auto callback = [](GstPad *pad, GstPadProbeInfo *info, gpointer userData) {
+        return (static_cast<T *>(userData)->*Member)(QGstPad(pad, NeedsRef), info);
+    };
+
+    gst_pad_add_probe(pad(), type, callback, instance, nullptr);
+}
+
+template <typename Functor>
+void QGstPad::doInIdleProbe(Functor &&work)
+{
+    using namespace std::chrono_literals;
+
+    struct CallbackData
+    {
+        QSemaphore waitDone;
+        std::once_flag onceFlag;
+        Functor work;
+
+        void run()
+        {
+            std::call_once(onceFlag, [&] {
+                work();
+            });
+        }
+    };
+
+    CallbackData cd{
+        .waitDone = QSemaphore{},
+        .onceFlag = {},
+        .work = std::forward<Functor>(work),
+    };
+
+    auto callback = [](GstPad *, GstPadProbeInfo *, gpointer p) {
+        auto cd = reinterpret_cast<CallbackData *>(p);
+        cd->run();
+        cd->waitDone.release();
+        return GST_PAD_PROBE_REMOVE;
+    };
+
+    gulong probe = gst_pad_add_probe(pad(), GST_PAD_PROBE_TYPE_IDLE, callback, &cd, nullptr);
+    if (probe == 0)
+        return; // probe was executed
+
+    bool success = cd.waitDone.try_acquire_for(250ms);
+    if (success)
+        return;
+
+    // the probe has not been executed for 250ms, probably because the element has transitioned
+    // from playing to paused. Flushing the pad would unblock paused pads
+    sendFlushIfPaused();
+
+    success = cd.waitDone.try_acquire_for(1s);
+    if (success)
+        return;
+
+    // if the idle probe still has not been called, we remove it and call it
+    // explicitly to avoid deadlocking the application. Probably not exactly safe,
+    // but better than deadlocking
+    qWarning() << "QGstPad::doInIdleProbe blocked for 1s. Executing the pad probe manually";
+    parent().dumpPipelineGraph("doInIdleProbeHang");
+    gst_pad_remove_probe(pad(), probe);
+    cd.run();
+}
+
+template <auto Member, typename T>
+void QGstPad::addEosProbe(T *instance)
+{
+    auto callback = [](GstPad *, GstPadProbeInfo *info, gpointer userData) {
+        if (GST_EVENT_TYPE(GST_PAD_PROBE_INFO_DATA(info)) != GST_EVENT_EOS)
+            return GST_PAD_PROBE_PASS;
+        (static_cast<T *>(userData)->*Member)();
+        return GST_PAD_PROBE_REMOVE;
+    };
+
+    gst_pad_add_probe(pad(), GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, callback, instance, nullptr);
+}
 template <typename Functor>
 void QGstPad::modifyPipelineInIdleProbe(Functor &&f)
 {
