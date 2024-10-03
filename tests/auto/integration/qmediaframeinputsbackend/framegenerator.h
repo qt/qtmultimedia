@@ -30,6 +30,7 @@ public:
     void setPattern(ImagePattern pattern);
     void setFrameCount(int count);
     void setSize(QSize size);
+    void setPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat);
     void setFrameRate(double rate);
     void setPeriod(milliseconds period);
     void setPresentationRotation(QtVideo::Rotation rotation);
@@ -48,6 +49,7 @@ private:
     QList<QColor> colors = { Qt::red, Qt::green, Qt::blue, Qt::black, Qt::white };
     ImagePattern m_pattern = ImagePattern::SingleColor;
     QSize m_size{ 640, 480 };
+    QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_BGRA8888;
     std::optional<int> m_maxFrameCount;
     int m_frameIndex = 0;
     std::optional<double> m_frameRate;

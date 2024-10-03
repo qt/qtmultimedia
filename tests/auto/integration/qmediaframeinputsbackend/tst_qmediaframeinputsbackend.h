@@ -5,6 +5,7 @@
 #define TST_QMEDIAFRAMEINPUTSBACKEND_H
 
 #include <QObject>
+#include <QtCore/qtemporarydir.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -14,6 +15,7 @@ class tst_QMediaFrameInputsBackend : public QObject
 
 private slots:
     void initTestCase();
+    void cleanupTestCase();
 
     void mediaRecorderWritesAudio_whenAudioFramesInputSends_data();
     void mediaRecorderWritesAudio_whenAudioFramesInputSends();
@@ -26,6 +28,7 @@ private slots:
 
     void mediaRecorderWritesVideo_withSingleFrame();
 
+    void mediaRecorderWritesVideo_withCorrectColors_data();
     void mediaRecorderWritesVideo_withCorrectColors();
 
     void mediaRecorderWritesVideo_withoutTransforms_whenPresentationTransformsPresent_data();
@@ -45,6 +48,9 @@ private slots:
     void readyToSendVideoFrame_isEmittedRepeatedly_whenPullModeIsEnabled();
     void readyToSendAudioBuffer_isEmittedRepeatedly_whenPullModeIsEnabled();
     void readyToSendAudioBufferAndVideoFrame_isEmittedRepeatedly_whenPullModeIsEnabled();
+
+private:
+    QTemporaryDir m_tempDir;
 };
 
 QT_END_NAMESPACE
