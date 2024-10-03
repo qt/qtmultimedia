@@ -35,11 +35,9 @@ public:
 
     bool isEndOfSourceStream() const { return m_endOfSourceStream; }
 
-    void startEncoding();
+    void startEncoding(bool noError);
 
     bool isInitialized() const { return m_initialized; }
-
-    void stopAndDelete() override;
 
 protected:
     bool init() override;

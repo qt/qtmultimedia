@@ -90,7 +90,7 @@ private:
 
     private:
         RecordingEngine &m_recordingEngine;
-        State m_state;
+        State m_previousState;
     };
 
     friend class EncodingInitializer;

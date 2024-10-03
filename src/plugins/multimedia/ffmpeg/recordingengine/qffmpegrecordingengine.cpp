@@ -174,7 +174,7 @@ void RecordingEngine::initialize(const std::vector<QPlatformAudioBufferInputBase
 
 RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine &recordingEngine)
     : m_recordingEngine(recordingEngine),
-      m_state(std::exchange(recordingEngine.m_state, State::Finalization))
+      m_previousState(std::exchange(recordingEngine.m_state, State::Finalization))
 {
     connect(this, &QThread::finished, this, &QObject::deleteLater);
 }
@@ -184,7 +184,8 @@ void RecordingEngine::EncodingFinalizer::run()
     m_recordingEngine.forEachEncoder(&EncoderThread::stopAndDelete);
     m_recordingEngine.m_muxer->stopAndDelete();
 
-    if (m_state == State::Encoding) {
+    const bool headerWritten = m_previousState == State::Encoding;
+    if (headerWritten) {
         const int res = av_write_trailer(m_recordingEngine.avFormatContext());
         if (res < 0) {
             const auto errorDescription = err2str(res);
@@ -209,12 +210,17 @@ void RecordingEngine::finalize()
 {
     qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> finalize";
 
-    Q_ASSERT(m_state == State::Encoding || m_state == State::EncodersInitialization
-             || m_state == State::FormatsInitialization);
+    Q_ASSERT(m_state == State::FormatsInitialization || m_state == State::EncodersInitialization
+             || m_state == State::Encoding);
+
+    Q_ASSERT((m_state == State::FormatsInitialization) == !!m_formatsInitializer);
 
     m_formatsInitializer.reset();
 
     forEachEncoder(&disconnectEncoderFromSource);
+    if (m_state != State::Encoding)
+        forEachEncoder(&EncoderThread::startEncoding, false);
+
 
     EncodingFinalizer *finalizer = new EncodingFinalizer(*this);
     finalizer->start();
@@ -260,14 +266,15 @@ void RecordingEngine::handleSourceEndOfStream()
 void RecordingEngine::handleEncoderInitialization()
 {
     Q_ASSERT(m_state == State::EncodersInitialization || m_state == State::Finalization);
+
     if (m_state == State::Finalization)
-        return;
+        return; // outdated event, drop it
 
     ++m_initializedEncodersCount;
 
-    Q_ASSERT(m_initializedEncodersCount <= m_videoEncoders.size() + m_audioEncoders.size());
+    Q_ASSERT(m_initializedEncodersCount <= encodersCount());
 
-    if (m_initializedEncodersCount < m_videoEncoders.size() + m_audioEncoders.size())
+    if (m_initializedEncodersCount < encodersCount())
         return;
 
     Q_ASSERT(allOfEncoders(&EncoderThread::isInitialized));
@@ -288,7 +295,7 @@ void RecordingEngine::handleEncoderInitialization()
 
     m_state = State::Encoding;
     m_muxer->start();
-    forEachEncoder(&EncoderThread::startEncoding);
+    forEachEncoder(&EncoderThread::startEncoding, true);
 }
 
 template <typename F, typename... Args>

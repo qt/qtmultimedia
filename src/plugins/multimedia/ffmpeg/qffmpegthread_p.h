@@ -40,7 +40,7 @@ public:
     /*!
         Stops the thread and deletes this object
      */
-    virtual void stopAndDelete();
+    void stopAndDelete();
 
 protected:
 

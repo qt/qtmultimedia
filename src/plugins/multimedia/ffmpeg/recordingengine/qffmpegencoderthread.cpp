@@ -11,12 +11,6 @@ EncoderThread::EncoderThread(RecordingEngine &recordingEngine) : m_recordingEngi
 {
 }
 
-void EncoderThread::stopAndDelete()
-{
-    m_encodingStartSemaphore.release();
-    ConsumerThread::stopAndDelete();
-}
-
 void EncoderThread::setPaused(bool paused)
 {
     auto guard = lockLoopData();
@@ -39,9 +33,11 @@ void EncoderThread::setEndOfSourceStream()
     emit endOfSourceStream();
 }
 
-void EncoderThread::startEncoding()
+void EncoderThread::startEncoding(bool noError)
 {
-    m_encodingStarted = true;
+    Q_ASSERT(!m_encodingStarted);
+
+    m_encodingStarted = noError;
     m_encodingStartSemaphore.release();
 }
 
