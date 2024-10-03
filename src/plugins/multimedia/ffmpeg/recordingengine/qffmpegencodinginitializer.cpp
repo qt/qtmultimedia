@@ -117,7 +117,7 @@ void EncodingInitializer::addPendingVideoSource(QPlatformVideoSource *source)
 void EncodingInitializer::tryStartRecordingEngine()
 {
     if (m_pendingSources.empty())
-        m_recordingEngine.start();
+        m_recordingEngine.handleFormatsInitialization();
 }
 
 void EncodingInitializer::emitStreamInitializationError(QString error)
