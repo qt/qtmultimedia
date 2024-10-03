@@ -5,6 +5,5 @@ qt_internal_add_test(tst_qerrorinfo
     SOURCES
         tst_qerrorinfo.cpp
     LIBRARIES
-        Qt::Gui
         Qt::MultimediaPrivate
 )
