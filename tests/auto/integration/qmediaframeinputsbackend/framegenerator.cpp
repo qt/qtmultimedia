@@ -4,6 +4,8 @@
 #include "framegenerator.h"
 #include <QtCore/qdebug.h>
 
+#include <private/qplatformmediaintegration_p.h>
+
 QT_BEGIN_NAMESPACE
 
 void VideoGenerator::setPattern(ImagePattern pattern)
@@ -19,6 +21,11 @@ void VideoGenerator::setFrameCount(int count)
 void VideoGenerator::setSize(QSize size)
 {
     m_size = size;
+}
+
+void VideoGenerator::setPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
+{
+    m_pixelFormat = pixelFormat;
 }
 
 void VideoGenerator::setFrameRate(double rate)
@@ -74,7 +81,10 @@ QVideoFrame VideoGenerator::createFrame()
         break;
     }
 
-    QVideoFrame frame(image);
+    QVideoFrame rgbFrame(image);
+    QVideoFrameFormat outputFormat { m_size, m_pixelFormat };
+    QVideoFrame frame =
+            QPlatformMediaIntegration::instance()->convertVideoFrame(rgbFrame, outputFormat);
 
     if (m_frameRate)
         frame.setStreamFrameRate(*m_frameRate);

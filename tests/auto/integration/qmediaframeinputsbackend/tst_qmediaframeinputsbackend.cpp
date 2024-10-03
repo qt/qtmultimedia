@@ -20,6 +20,24 @@
 QT_BEGIN_NAMESPACE
 
 namespace {
+
+bool copyAllFiles(const QDir &source, const QDir &dest)
+{
+    if (!source.exists() || !dest.exists())
+        return false;
+
+    QDirIterator it(source);
+    while (it.hasNext()) {
+        QFileInfo file{ it.next() };
+        if (file.isFile()) {
+            const QString destination = dest.absolutePath() + "/" + file.fileName();
+            QFile::copy(file.absoluteFilePath(), destination);
+        }
+    }
+
+    return true;
+}
+
 struct AudioComparisonResult
 {
     struct ChannelInfo
@@ -147,6 +165,18 @@ AudioComparisonResult compareAudioData(QAudioBuffer actual, QAudioBuffer expecte
 void tst_QMediaFrameInputsBackend::initTestCase()
 {
     QSKIP_GSTREAMER("Not implemented in the gstreamer backend");
+}
+
+void tst_QMediaFrameInputsBackend::cleanupTestCase()
+{
+    // Copy any stored files in the temporary directory over to COIN result directory
+    // to allow inspecting image differences.
+    if (qEnvironmentVariableIsSet("COIN_CTEST_RESULTSDIR")) {
+        const QDir sourceDir = m_tempDir.path();
+        const QDir resultsDir{ qEnvironmentVariable("COIN_CTEST_RESULTSDIR") };
+        if (!copyAllFiles(sourceDir, resultsDir))
+            qWarning() << "Failed to copy files to COIN_CTEST_RESULTSDIR";
+    }
 }
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInputSends_data()
@@ -305,7 +335,7 @@ QVector3D RGBToYUV(const QColor &c)
 
 // Considers two colors equal if their YUV components are
 // pointing in the same direction and have similar luma (Y)
-bool fuzzyCompare(const QColor &lhs, const QColor &rhs, float tol = 1e-2)
+bool fuzzyCompare(const QColor &lhs, const QColor &rhs, float tol = 1e-2f)
 {
     const QVector3D lhsYuv = RGBToYUV(lhs);
     const QVector3D rhsYuv = RGBToYUV(rhs);
@@ -315,25 +345,87 @@ bool fuzzyCompare(const QColor &lhs, const QColor &rhs, float tol = 1e-2)
     return colorDiff < tol && relativeLumaDiff < tol;
 }
 
+bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
+{
+    // TODO: Enable more pixel formats once support is added
+    switch (pixelFormat) {
+    case QVideoFrameFormat::Format_AYUV:
+    case QVideoFrameFormat::Format_AYUV_Premultiplied:
+    case QVideoFrameFormat::Format_YV12:
+    case QVideoFrameFormat::Format_IMC1:
+    case QVideoFrameFormat::Format_IMC2:
+    case QVideoFrameFormat::Format_IMC3:
+    case QVideoFrameFormat::Format_IMC4:
+    case QVideoFrameFormat::Format_YUV420P10: // TODO: Cpu conversion not implemented, fails in CI if RHI is not supported
+    case QVideoFrameFormat::Format_Y16: // TODO: Fails on Android
+    case QVideoFrameFormat::Format_P010: // TODO: Fails on Android
+    case QVideoFrameFormat::Format_P016: // TODO: Fails on Android
+    case QVideoFrameFormat::Format_SamplerExternalOES:
+    case QVideoFrameFormat::Format_Jpeg:
+    case QVideoFrameFormat::Format_SamplerRect:
+        return false;
+    default:
+        return true;
+    }
+}
+void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withCorrectColors_data()
+{
+    QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
+
+    for (int i = QVideoFrameFormat::Format_ARGB8888; i < QVideoFrameFormat::NPixelFormats; ++i) {
+        const auto format = static_cast<QVideoFrameFormat::PixelFormat>(i);
+        if (!isSupportedPixelFormat(format))
+            continue;
+        const QByteArray formatName = QVideoFrameFormat::pixelFormatToString(format).toLatin1();
+        QTest::addRow("%s", formatName.data()) << format;
+    }
+}
+
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withCorrectColors()
 {
+    QFETCH(const QVideoFrameFormat::PixelFormat, pixelFormat);
+
+    // Arrange
     CaptureSessionFixture f{ StreamType::Video };
-
+    f.m_videoGenerator.setPixelFormat(pixelFormat);
     f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
-    f.m_videoGenerator.setFrameCount(3);
+    f.m_videoGenerator.setFrameCount(1);
+    f.m_videoGenerator.setSize({ 128, 64 }); // Small frames to speed up test
 
-    f.start(RunMode::Pull, AutoStop::EmitEmpty);
+    f.start(RunMode::Push, AutoStop::EmitEmpty);
+
+    // Act: Push one frame through and send sentinel stop frame
+    f.readyToSendVideoFrame.wait();
+    f.m_videoGenerator.nextFrame();
+    f.readyToSendVideoFrame.wait();
+    f.m_videoGenerator.nextFrame();
+
     QVERIFY(f.waitForRecorderStopped(60s));
     QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
 
-    const auto info = MediaInfo::create(f.m_recorder.actualLocation());
-    QCOMPARE_EQ(info->m_colors.size(), 3);
+    const auto info = MediaInfo::create(f.m_recorder.actualLocation(), /*keep frames */ true);
 
-    std::array<QColor, 4> colors = info->m_colors.front();
-    QVERIFY(fuzzyCompare(colors[0], Qt::red));
-    QVERIFY(fuzzyCompare(colors[1], Qt::green));
-    QVERIFY(fuzzyCompare(colors[2], Qt::blue));
-    QVERIFY(fuzzyCompare(colors[3], Qt::yellow));
+    const QImage expectedImage = f.m_videoGenerator.createFrame().toImage();
+
+    QCOMPARE_EQ(info->m_frames.size(), 2u); // Front has content, back is empty
+    const QImage actualImage = info->m_frames.front().toImage();
+
+    // Store images to simplify debugging/verifying output
+    const QString path = m_tempDir.filePath(QVideoFrameFormat::pixelFormatToString(pixelFormat));
+    QVERIFY(expectedImage.save(path + "_expected.png"));
+    QVERIFY(actualImage.save(path + "_actual.png"));
+
+    // Extract center of each quadrant, because recorder compression introduces artifacts
+    // in color boundaries.
+    const std::array<QColor, 4> expectedColors = MediaInfo::sampleQuadrants(expectedImage);
+    const std::array<QColor, 4> actualColors = MediaInfo::sampleQuadrants(actualImage);
+
+    // Assert that colors are similar (not exactly the same because compression introduces minor
+    // differences)
+    QVERIFY(fuzzyCompare(expectedColors[0], actualColors[0]));
+    QVERIFY(fuzzyCompare(expectedColors[1], actualColors[1]));
+    QVERIFY(fuzzyCompare(expectedColors[2], actualColors[2]));
+    QVERIFY(fuzzyCompare(expectedColors[3], actualColors[3]));
 }
 
 void tst_QMediaFrameInputsBackend::

@@ -20,7 +20,7 @@ using namespace std::chrono;
 // Extracts media metadata from a input media file
 struct MediaInfo
 {
-    static std::optional<MediaInfo> create(const QUrl &fileLocation)
+    static std::optional<MediaInfo> create(const QUrl &fileLocation, bool keepFrames = false)
     {
         QMediaPlayer player;
         const QSignalSpy mediaStatusChanged{ &player, &QMediaPlayer::mediaStatusChanged };
@@ -32,8 +32,11 @@ struct MediaInfo
         player.setVideoSink(&sink);
 
         std::vector<std::array<QColor, 4>> colors;
+        std::vector<QVideoFrame> frames;
         QObject::connect(&sink, &TestVideoSink::videoFrameChangedSync, &sink,
                          [&](const QVideoFrame &frame) {
+                             if (keepFrames)
+                                frames.push_back(frame);
                              if (frame.isValid())
                                  colors.push_back(sampleQuadrants(frame.toImage()));
                          });
@@ -80,6 +83,7 @@ struct MediaInfo
         info.m_hasVideo = player.hasVideo();
         info.m_hasAudio = player.hasAudio();
         info.m_colors = std::move(colors);
+        info.m_frames = std::move(frames);
         info.m_audioBuffer = QAudioBuffer(audioData, audioFormat);
         return info;
     }
@@ -106,6 +110,7 @@ struct MediaInfo
     milliseconds m_duration;
     bool m_hasVideo = false;
     bool m_hasAudio = false;
+    std::vector<QVideoFrame> m_frames; // Decoded video frames (optional)
     std::vector<std::array<QColor, 4>> m_colors; // Colors in upper left, upper right, bottom left, and bottom right
     QAudioBuffer m_audioBuffer;
 
