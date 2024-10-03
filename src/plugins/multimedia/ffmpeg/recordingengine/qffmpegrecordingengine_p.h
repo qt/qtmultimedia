@@ -58,7 +58,7 @@ public:
 
     void setMetaData(const QMediaMetaData &metaData);
     AVFormatContext *avFormatContext() { return m_formatContext->avFormatContext(); }
-    Muxer *getMuxer() { return m_muxer; }
+    Muxer *getMuxer() { return m_muxer.get(); }
 
     bool isEndOfSourceStreams() const;
 
@@ -104,7 +104,9 @@ private:
 
     void handleFormatsInitialization();
 
-    qsizetype encodersCount() const { return m_audioEncoders.size() + m_videoEncoders.size(); }
+    size_t encodersCount() const { return m_audioEncoders.size() + m_videoEncoders.size(); }
+
+    void stopAndDeleteThreads();
 
     template <typename F, typename... Args>
     void forEachEncoder(F &&f, Args &&...args);
@@ -116,17 +118,17 @@ private:
     QMediaEncoderSettings m_settings;
     QMediaMetaData m_metaData;
     std::unique_ptr<EncodingFormatContext> m_formatContext;
-    Muxer *m_muxer = nullptr;
+    ConsumerThreadUPtr<Muxer> m_muxer;
 
-    QList<AudioEncoder *> m_audioEncoders;
-    QList<VideoEncoder *> m_videoEncoders;
+    std::vector<ConsumerThreadUPtr<AudioEncoder>> m_audioEncoders;
+    std::vector<ConsumerThreadUPtr<VideoEncoder>> m_videoEncoders;
     std::unique_ptr<EncodingInitializer> m_formatsInitializer;
 
     QMutex m_timeMutex;
     qint64 m_timeRecorded = 0;
 
     bool m_autoStop = false;
-    qsizetype m_initializedEncodersCount = 0;
+    size_t m_initializedEncodersCount = 0;
     State m_state = State::None;
 };
 
