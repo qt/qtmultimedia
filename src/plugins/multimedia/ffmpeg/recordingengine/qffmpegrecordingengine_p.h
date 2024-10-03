@@ -73,6 +73,14 @@ Q_SIGNALS:
     void autoStopped();
 
 private:
+    enum class State {
+        None,
+        FormatsInitialization,
+        EncodersInitialization,
+        Encoding, // header written
+        Finalization
+    };
+
     class EncodingFinalizer : public QThread
     {
     public:
@@ -82,6 +90,7 @@ private:
 
     private:
         RecordingEngine &m_recordingEngine;
+        State m_state;
     };
 
     friend class EncodingInitializer;
@@ -93,7 +102,9 @@ private:
     void handleSourceEndOfStream();
     void handleEncoderInitialization();
 
-    void start();
+    void handleFormatsInitialization();
+
+    qsizetype encodersCount() const { return m_audioEncoders.size() + m_videoEncoders.size(); }
 
     template <typename F, typename... Args>
     void forEachEncoder(F &&f, Args &&...args);
@@ -109,14 +120,14 @@ private:
 
     QList<AudioEncoder *> m_audioEncoders;
     QList<VideoEncoder *> m_videoEncoders;
-    std::unique_ptr<EncodingInitializer> m_initializer;
+    std::unique_ptr<EncodingInitializer> m_formatsInitializer;
 
     QMutex m_timeMutex;
     qint64 m_timeRecorded = 0;
 
-    bool m_isHeaderWritten = false;
     bool m_autoStop = false;
     qsizetype m_initializedEncodersCount = 0;
+    State m_state = State::None;
 };
 
 }
