@@ -37,12 +37,16 @@ namespace QFFmpeg
 class ConsumerThread : public QThread
 {
 public:
+    struct Deleter
+    {
+        void operator()(ConsumerThread *thread) const { thread->stopAndDelete(); }
+    };
+
+protected:
     /*!
         Stops the thread and deletes this object
      */
     void stopAndDelete();
-
-protected:
 
     /*!
         Called on this thread when thread starts
@@ -89,6 +93,8 @@ private:
     bool m_exit = false;
 };
 
+template <typename T>
+using ConsumerThreadUPtr = std::unique_ptr<T, ConsumerThread::Deleter>;
 }
 
 QT_END_NAMESPACE

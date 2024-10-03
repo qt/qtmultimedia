@@ -86,7 +86,7 @@ AudioEncoder *RecordingEngine::createAudioEncoder(const QAudioFormat &format)
 
     auto audioEncoder = new AudioEncoder(*this, format, m_settings);
 
-    m_audioEncoders.push_back(audioEncoder);
+    m_audioEncoders.emplace_back(audioEncoder);
     connect(audioEncoder, &EncoderThread::endOfSourceStream, this,
             &RecordingEngine::handleSourceEndOfStream);
     connect(audioEncoder, &EncoderThread::initialized, this,
@@ -125,7 +125,7 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
                               << "ffmpegHWPixelFormat=" << (hwPixelFormat ? *hwPixelFormat : AV_PIX_FMT_NONE);
 
     auto videoEncoder = new VideoEncoder(*this, m_settings, frameFormat, hwPixelFormat);
-    m_videoEncoders.append(videoEncoder);
+    m_videoEncoders.emplace_back(videoEncoder);
     if (m_autoStop)
         videoEncoder->setAutoStop(true);
 
@@ -181,8 +181,9 @@ RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine &recording
 
 void RecordingEngine::EncodingFinalizer::run()
 {
-    m_recordingEngine.forEachEncoder(&EncoderThread::stopAndDelete);
-    m_recordingEngine.m_muxer->stopAndDelete();
+    Q_ASSERT(m_recordingEngine.m_state == State::Finalization);
+
+    m_recordingEngine.stopAndDeleteThreads();
 
     const bool headerWritten = m_previousState == State::Encoding;
     if (headerWritten) {
@@ -298,19 +299,26 @@ void RecordingEngine::handleEncoderInitialization()
     forEachEncoder(&EncoderThread::startEncoding, true);
 }
 
+void RecordingEngine::stopAndDeleteThreads()
+{
+    m_audioEncoders.clear();
+    m_videoEncoders.clear();
+    m_muxer.reset();
+}
+
 template <typename F, typename... Args>
 void RecordingEngine::forEachEncoder(F &&f, Args &&...args)
 {
-    for (AudioEncoder *audioEncoder : m_audioEncoders)
-        std::invoke(f, audioEncoder, args...);
-    for (VideoEncoder *videoEncoder : m_videoEncoders)
-        std::invoke(f, videoEncoder, args...);
+    for (auto &audioEncoder : m_audioEncoders)
+        std::invoke(f, audioEncoder.get(), args...);
+    for (auto &videoEncoder : m_videoEncoders)
+        std::invoke(f, videoEncoder.get(), args...);
 }
 
 template <typename F>
 bool RecordingEngine::allOfEncoders(F &&f) const
 {
-    auto predicate = [&f](const EncoderThread *encoder) { return std::invoke(f, encoder); };
+    auto predicate = [&f](const auto &encoder) { return std::invoke(f, encoder.get()); };
 
     return std::all_of(m_audioEncoders.cbegin(), m_audioEncoders.cend(), predicate)
             && std::all_of(m_videoEncoders.cbegin(), m_videoEncoders.cend(), predicate);
