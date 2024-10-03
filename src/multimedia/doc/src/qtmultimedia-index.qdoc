@@ -206,7 +206,7 @@
 
     \section2 The FFmpeg backend
 
-    The FFmpeg media backend relies on the \b{FFmpeg 7.0} libraries,
+    The FFmpeg media backend relies on the \b{FFmpeg 7.1} libraries,
     which are included with the Qt Online Installer and tested by the
     maintainers. The binary packages from the online installer use
     dynamic linking to FFmpeg. Therefore, applications must either
