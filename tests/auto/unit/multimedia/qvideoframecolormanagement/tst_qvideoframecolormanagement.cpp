@@ -114,6 +114,7 @@ bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
         return true;
     }
 #else
+    Q_UNUSED(pixelFormat);
     return true;
 #endif
 }
