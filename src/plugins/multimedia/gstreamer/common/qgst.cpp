@@ -858,7 +858,11 @@ bool QGstPad::unlink(const QGstPad &sink) const
 
 bool QGstPad::unlinkPeer() const
 {
-    return unlink(peer());
+    QGstPad peerPad = peer();
+    if (peerPad)
+        return GST_PAD_IS_SRC(pad()) ? unlink(peerPad) : peerPad.unlink(*this);
+
+    return true;
 }
 
 QGstPad QGstPad::peer() const

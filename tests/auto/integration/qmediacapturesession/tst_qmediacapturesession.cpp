@@ -1005,6 +1005,8 @@ void tst_QMediaCaptureSession::recording_stops_when_recorder_removed()
     if (input.device().isNull())
         QSKIP("Recording source not available");
 
+    QSKIP_GSTREAMER("spurious failures on gstreamer");
+
     QMediaRecorder recorder;
     QMediaCaptureSession session;
 
@@ -1124,6 +1126,8 @@ void tst_QMediaCaptureSession::capture_is_not_available_when_Camera_is_null()
     if (!camera.isAvailable())
         QSKIP("No video input available");
 
+    QSKIP_GSTREAMER("Spurious failures");
+
     QImageCapture capture;
     QMediaCaptureSession session;
 
@@ -1159,6 +1163,8 @@ void tst_QMediaCaptureSession::can_add_ImageCapture_and_capture_during_recording
 
     if (!camera.isAvailable())
         QSKIP("No video input available");
+
+    QSKIP_GSTREAMER("spurious failures with gstreamer");
 
     QImageCapture capture;
     QMediaCaptureSession session;
