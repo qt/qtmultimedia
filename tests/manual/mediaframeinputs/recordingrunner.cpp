@@ -3,34 +3,10 @@
 
 #include "recordingrunner.h"
 
-#include <QUrl>
-#include <QVideoFrame>
-#include <QAudioBuffer>
-#include <QAudioBufferInput>
-#include <QVideoFrameInput>
+/// Base
 
-RecordingRunner::RecordingRunner(
-        const std::optional<AudioGenerator::Settings> &audioGenerationSettings,
-        const std::optional<VideoGenerator::Settings> &videoGenerationSettings)
+RecordingRunner::RecordingRunner()
 {
-    Q_ASSERT(audioGenerationSettings || videoGenerationSettings);
-
-    if (audioGenerationSettings) {
-        m_audioGenerator = std::make_unique<AudioGenerator>(*audioGenerationSettings);
-        m_audioInput = std::make_unique<QAudioBufferInput>();
-        connect(m_audioInput.get(), &QAudioBufferInput::readyToSendAudioBuffer, this,
-                &RecordingRunner::sendNextAudioData);
-        m_session.setAudioBufferInput(m_audioInput.get());
-    }
-
-    if (videoGenerationSettings) {
-        m_videoGenerator = std::make_unique<VideoGenerator>(*videoGenerationSettings);
-        m_videoInput = std::make_unique<QVideoFrameInput>();
-        connect(m_videoInput.get(), &QVideoFrameInput::readyToSendVideoFrame, this,
-                &RecordingRunner::sendNextVideoData);
-        m_session.setVideoFrameInput(m_videoInput.get());
-    }
-
     m_session.setRecorder(&m_recorder);
     m_recorder.setAutoStop(true);
 
@@ -69,14 +45,88 @@ void RecordingRunner::handleError(QMediaRecorder::Error error, QString descripti
         emit finished();
 }
 
-void RecordingRunner::sendNextAudioData()
+/// Pull mode
+
+PullModeRecordingRunner::PullModeRecordingRunner(
+        const AudioGeneratorSettingsOpt &audioGenerationSettings,
+        const VideoGeneratorSettingsOpt &videoGenerationSettings)
 {
-    m_audioInput->sendAudioBuffer(m_audioGenerator->generate());
+    Q_ASSERT(audioGenerationSettings || videoGenerationSettings);
+
+    if (audioGenerationSettings) {
+        m_audioGenerator = std::make_unique<AudioGenerator>(*audioGenerationSettings);
+        m_audioInput = std::make_unique<QAudioBufferInput>();
+        connect(m_audioInput.get(), &QAudioBufferInput::readyToSendAudioBuffer, this,
+                &PullModeRecordingRunner::sendNextAudioBuffer);
+        session().setAudioBufferInput(m_audioInput.get());
+    }
+
+    if (videoGenerationSettings) {
+        m_videoGenerator = std::make_unique<VideoGenerator>(*videoGenerationSettings);
+        m_videoInput = std::make_unique<QVideoFrameInput>();
+        connect(m_videoInput.get(), &QVideoFrameInput::readyToSendVideoFrame, this,
+                &PullModeRecordingRunner::sendNextVideoFrame);
+        session().setVideoFrameInput(m_videoInput.get());
+    }
 }
 
-void RecordingRunner::sendNextVideoData()
+void PullModeRecordingRunner::sendNextAudioBuffer()
 {
-    m_videoInput->sendVideoFrame(m_videoGenerator->generate());
+    const bool result = m_audioInput->sendAudioBuffer(m_audioGenerator->generate());
+    Q_ASSERT(result);
+}
+
+void PullModeRecordingRunner::sendNextVideoFrame()
+{
+    const bool result = m_videoInput->sendVideoFrame(m_videoGenerator->generate());
+    Q_ASSERT(result);
+}
+
+/// Push mode
+
+PushModeRecordingRunner::PushModeRecordingRunner(
+        const AudioGeneratorSettingsOpt &audioGenerationSettings,
+        const VideoGeneratorSettingsOpt &videoGenerationSettings,
+        const PushModeSettings &pushModeSettings)
+{
+    if (audioGenerationSettings) {
+        m_audioBufferInputQueue =
+                std::make_unique<AudioBufferInputQueue>(pushModeSettings.maxQueueSize);
+        session().setAudioBufferInput(m_audioBufferInputQueue->mediaFrameInput());
+        m_audioBufferSource = std::make_unique<AudioBufferSource>(*audioGenerationSettings,
+                                                                  pushModeSettings.producingRate);
+        m_audioBufferSource->addFrameReceivedCallback(&AudioBufferInputQueue::pushMediaFrame,
+                                                      m_audioBufferInputQueue.get());
+    }
+
+    if (videoGenerationSettings) {
+        m_videoFrameInputQueue =
+                std::make_unique<VideoFrameInputQueue>(pushModeSettings.maxQueueSize);
+        session().setVideoFrameInput(m_videoFrameInputQueue->mediaFrameInput());
+        m_videoFrameSource = std::make_unique<VideoFrameSource>(*videoGenerationSettings,
+                                                                pushModeSettings.producingRate);
+        m_videoFrameSource->addFrameReceivedCallback(&VideoFrameInputQueue::pushMediaFrame,
+                                                     m_videoFrameInputQueue.get());
+    }
+
+    connect(this, &RecordingRunner::finished, this, &PushModeRecordingRunner::onFinished);
+}
+
+PushModeRecordingRunner::~PushModeRecordingRunner() = default;
+
+void PushModeRecordingRunner::onFinished()
+{
+    m_audioBufferSource.reset();
+    m_videoFrameSource.reset();
+}
+
+void PushModeRecordingRunner::run(const QUrl &outputLocation)
+{
+    if (m_audioBufferSource)
+        m_audioBufferSource->run();
+    if (m_videoFrameSource)
+        m_videoFrameSource->run();
+    RecordingRunner::run(outputLocation);
 }
 
 #include "moc_recordingrunner.cpp"

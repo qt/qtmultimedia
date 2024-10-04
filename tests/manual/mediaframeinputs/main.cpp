@@ -7,8 +7,6 @@
 #include "previewrunner.h"
 #include "recordingrunner.h"
 
-#include <optional>
-
 template <typename F>
 auto cmdParserValue(const QCommandLineParser &parser, QString key, F &&f)
         -> std::optional<std::invoke_result_t<F, QString, bool &>>
@@ -30,8 +28,9 @@ auto cmdParserValue(const QCommandLineParser &parser, QString key, F &&f)
 
 struct CommandLineParseResult
 {
-    std::optional<AudioGenerator::Settings> audioGenerationSettings;
-    std::optional<VideoGenerator::Settings> videoGenerationSettings;
+    AudioGeneratorSettingsOpt audioGenerationSettings;
+    VideoGeneratorSettingsOpt videoGenerationSettings;
+    PushModeSettingsOpt pushModeSettings;
     QUrl outputLocation;
 };
 
@@ -70,6 +69,13 @@ auto toFloat(const QString &value, bool &ok)
     return value.toFloat(&ok);
 }
 
+auto toPositiveFloat(const QString &value, bool &ok)
+{
+    const float result = value.toFloat(&ok);
+    ok = ok && result > 0;
+    return result;
+}
+
 auto toStreams(const QString &value, bool &ok)
 {
     const QStringList result = value.split(',');
@@ -91,8 +97,11 @@ static CommandLineParseResult parseCommandLine()
 
     AudioGenerator::Settings audioGenerationSettings;
     VideoGenerator::Settings videoGenerationSettings;
+    PushModeSettings pushModeSettings;
     QUrl outputLocation;
     QStringList streams{ QStringLiteral("audio"), QStringLiteral("video") };
+    QStringList modes{ QStringLiteral("pull"), QStringLiteral("push") };
+    bool isPushMode = false;
 
     cmdParser.setApplicationDescription(QStringLiteral("Media Frame Inputs Test"));
 
@@ -100,6 +109,11 @@ static CommandLineParseResult parseCommandLine()
             { QStringLiteral("streams"),
               QStringLiteral("Types of generated streams (%1).").arg(streams.join(u", ")),
               QStringLiteral("list of enum; defaults to %1").arg(streams.join(',')) });
+
+    cmdParser.addOption(
+            { QStringLiteral("mode"),
+              QStringLiteral("Media frames generation mode (%1).").arg(modes.join(u", ")),
+              QStringLiteral("list of enum; defaults to %1").arg(isPushMode ? u"push" : u"pull") });
 
     cmdParser.addOption({ QStringLiteral("outputLocation"),
                           QStringLiteral("Output location for the media."),
@@ -182,6 +196,16 @@ static CommandLineParseResult parseCommandLine()
               QStringLiteral("Relative speed of moving the frame pattern."),
               QStringLiteral("float, defaults to %1").arg(videoGenerationSettings.patternSpeed) });
 
+    cmdParser.addOption({ QStringLiteral("pushModeProducingRate"),
+                          QStringLiteral("Relative factor of media producing rate in push mode."),
+                          QStringLiteral("positive float, defaults to %1")
+                                  .arg(pushModeSettings.producingRate) });
+
+    cmdParser.addOption(
+            { QStringLiteral("pushModeMaxQueueSize"),
+              QStringLiteral("Max number of media frames in the local queue"),
+              QStringLiteral("uint, defaults to %1").arg(pushModeSettings.maxQueueSize) });
+
     cmdParser.addOption({
             QStringLiteral("help"),
             QStringLiteral("Print help."),
@@ -241,6 +265,31 @@ static CommandLineParseResult parseCommandLine()
     if (auto parsedStreams = cmdParserValue(cmdParser, QStringLiteral("streams"), toStreams))
         streams = *parsedStreams;
 
+    auto toMode = [&](const QString &value, bool &ok) {
+        ok = modes.contains(value, Qt::CaseInsensitive);
+        return value;
+    };
+
+    if (auto mode = cmdParserValue(cmdParser, QStringLiteral("mode"), toMode))
+        isPushMode = mode->compare(QStringLiteral("push"), Qt::CaseInsensitive) == 0;
+
+    auto checkPushMode = [&](const char *optionName) {
+        if (!isPushMode)
+            qWarning() << "push mode is not enabled;" << optionName << "will be ignored";
+    };
+
+    if (auto producingRate = cmdParserValue(cmdParser, QStringLiteral("pushModeProducingRate"),
+                                            toPositiveFloat)) {
+        checkPushMode("pushModeProducingRate");
+        pushModeSettings.producingRate = *producingRate;
+    }
+
+    if (auto maxQueueSize = cmdParserValue(cmdParser, QStringLiteral("pushModeMaxQueueSize"),
+                                           toPositiveFloat)) {
+        checkPushMode("pushModeMaxQueueSize");
+        pushModeSettings.maxQueueSize = *maxQueueSize;
+    }
+
     CommandLineParseResult result;
 
     if (streams.contains(QStringView(u"audio"), Qt::CaseInsensitive))
@@ -248,6 +297,9 @@ static CommandLineParseResult parseCommandLine()
 
     if (streams.contains(QStringView(u"video"), Qt::CaseInsensitive))
         result.videoGenerationSettings = std::move(videoGenerationSettings);
+
+    if (isPushMode)
+        result.pushModeSettings = pushModeSettings;
 
     result.outputLocation = std::move(outputLocation);
 
@@ -258,14 +310,22 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    auto [audioGenerationSettings, videoGenerationSettings, outputLocation] = parseCommandLine();
+    auto [audioGenerationSettings, videoGenerationSettings, pushModeSettings, outputLocation] =
+            parseCommandLine();
 
-    RecordingRunner recordingRunner(audioGenerationSettings, videoGenerationSettings);
+    std::unique_ptr<RecordingRunner> recordingRunner;
+    if (pushModeSettings)
+        recordingRunner = std::make_unique<PushModeRecordingRunner>(
+                audioGenerationSettings, videoGenerationSettings, *pushModeSettings);
+    else
+        recordingRunner = std::make_unique<PullModeRecordingRunner>(audioGenerationSettings,
+                                                                    videoGenerationSettings);
+
     PreviewRunner previewRunner;
 
-    QObject::connect(&recordingRunner, &RecordingRunner::finished, &app, [&]() {
-        if (recordingRunner.recorder().error() == QMediaRecorder::NoError)
-            previewRunner.run(recordingRunner.recorder().actualLocation());
+    QObject::connect(recordingRunner.get(), &RecordingRunner::finished, &app, [&]() {
+        if (recordingRunner->recorder().error() == QMediaRecorder::NoError)
+            previewRunner.run(recordingRunner->recorder().actualLocation());
         else
             QMetaObject::invokeMethod(&app, &QApplication::quit, Qt::QueuedConnection);
     });
@@ -273,7 +333,7 @@ int main(int argc, char *argv[])
     QObject::connect(&previewRunner, &PreviewRunner::finished, &app, &QApplication::quit,
                      Qt::QueuedConnection);
 
-    recordingRunner.run(outputLocation);
+    recordingRunner->run(outputLocation);
 
     return app.exec();
 }

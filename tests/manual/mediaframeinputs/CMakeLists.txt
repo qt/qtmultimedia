@@ -19,6 +19,8 @@ qt_add_executable(mediaframeinputs MACOSX_BUNDLE
     previewrunner.cpp previewrunner.h
     recordingrunner.cpp recordingrunner.h
     mediagenerator.cpp mediagenerator.h
+    pushmodemediasource.h
+    mediaframeinputqueue.h
 )
 
 target_link_libraries(mediaframeinputs PUBLIC
