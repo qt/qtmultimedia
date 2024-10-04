@@ -172,10 +172,11 @@ void RecordingEngine::initialize(const std::vector<QPlatformAudioBufferInputBase
     m_formatsInitializer->start(audioSources, videoSources);
 }
 
-RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine &recordingEngine)
-    : m_recordingEngine(recordingEngine),
-      m_previousState(std::exchange(recordingEngine.m_state, State::Finalization))
+RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine &recordingEngine,
+                                                      bool writeTrailer)
+    : m_recordingEngine(recordingEngine), m_writeTrailer(writeTrailer)
 {
+    Q_ASSERT(m_recordingEngine.m_state == State::Finalization);
     connect(this, &QThread::finished, this, &QObject::deleteLater);
 }
 
@@ -185,8 +186,7 @@ void RecordingEngine::EncodingFinalizer::run()
 
     m_recordingEngine.stopAndDeleteThreads();
 
-    const bool headerWritten = m_previousState == State::Encoding;
-    if (headerWritten) {
+    if (m_writeTrailer) {
         const int res = av_write_trailer(m_recordingEngine.avFormatContext());
         if (res < 0) {
             const auto errorDescription = err2str(res);
@@ -222,8 +222,10 @@ void RecordingEngine::finalize()
     if (m_state != State::Encoding)
         forEachEncoder(&EncoderThread::startEncoding, false);
 
+    const bool shouldWriteTrailer = m_state == State::Encoding;
+    m_state = State::Finalization;
 
-    EncodingFinalizer *finalizer = new EncodingFinalizer(*this);
+    EncodingFinalizer *finalizer = new EncodingFinalizer(*this, shouldWriteTrailer);
     finalizer->start();
 }
 
