@@ -39,16 +39,6 @@ QGstBus::QGstBus(QGstBusHandle bus)
     gst_bus_set_sync_handler(get(), (GstBusSyncHandler)syncGstBusFilter, this, nullptr);
 }
 
-QGstBus::QGstBus(GstBus *bus, QGstBusHandle::RefMode refmode)
-    : QGstBus{
-          QGstBusHandle{
-              bus,
-              refmode,
-          },
-      }
-{
-}
-
 QGstBus::~QGstBus()
 {
     close();
@@ -116,6 +106,11 @@ bool QGstBus::processNextPendingMessage(GstMessageType type,
     }
 
     return true;
+}
+
+bool QGstBus::currentThreadIsNotifierThread() const
+{
+    return m_socketNotifier.thread()->isCurrentThread();
 }
 
 void QGstBus::processAllPendingMessages()

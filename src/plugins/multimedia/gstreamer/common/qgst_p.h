@@ -173,7 +173,6 @@ DestinationType *qGstCheckedCast(SourceType *arg)
 class QSize;
 class QGstStructureView;
 class QGstCaps;
-class QGstPipelinePrivate;
 class QCameraFormat;
 
 template <typename T> struct QGRange
