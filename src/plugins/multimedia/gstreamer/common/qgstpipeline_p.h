@@ -25,7 +25,7 @@ QT_BEGIN_NAMESPACE
 class QGstreamerMessage;
 class QGstreamerSyncMessageFilter;
 class QGstreamerBusMessageFilter;
-class QGstPipelinePrivate;
+struct QGstPipelinePrivate;
 
 class QGstPipeline : public QGstBin
 {

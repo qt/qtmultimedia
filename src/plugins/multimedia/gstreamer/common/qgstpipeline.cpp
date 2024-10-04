@@ -1,6 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qloggingcategory.h>
 
 #include "qgstpipeline_p.h"
@@ -19,21 +20,37 @@ static constexpr GstSeekFlags rateChangeSeekFlags =
         GST_SEEK_FLAG_FLUSH;
 #endif
 
-class QGstPipelinePrivate : public QGstBus
+struct QGstPipelinePrivate
 {
-public:
-    mutable std::chrono::nanoseconds m_position{};
-
-    double m_rate = 1.;
-
     explicit QGstPipelinePrivate(QGstBusHandle);
+    ~QGstPipelinePrivate();
+
+    std::chrono::nanoseconds m_position{};
+    double m_rate = 1.;
+    std::unique_ptr<QGstBus> m_bus;
 };
 
 QGstPipelinePrivate::QGstPipelinePrivate(QGstBusHandle bus)
-    : QGstBus{
-          std::move(bus),
+    : m_bus{
+          std::make_unique<QGstBus>(std::move(bus)),
       }
 {
+    Q_ASSERT(QThread::isMainThread());
+}
+
+QGstPipelinePrivate::~QGstPipelinePrivate()
+{
+    m_bus->close();
+
+    if (m_bus->currentThreadIsNotifierThread())
+        return;
+
+    // The QGstPipelinePrivate is owned the the GstPipeline and can be destroyed from a gstreamer
+    // thread. In this case we cannot destroy the object immediately, but need to marshall it
+    // through the event loop of the main thread
+    QMetaObject::invokeMethod(qApp, [bus = std::move(m_bus)] {
+        // nothing to do, we just extend the lifetime of the bus
+    });
 }
 
 // QGstPipeline
@@ -79,25 +96,25 @@ QGstPipeline::~QGstPipeline() = default;
 void QGstPipeline::installMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
     QGstPipelinePrivate *d = getPrivate();
-    d->installMessageFilter(filter);
+    d->m_bus->installMessageFilter(filter);
 }
 
 void QGstPipeline::removeMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
     QGstPipelinePrivate *d = getPrivate();
-    d->removeMessageFilter(filter);
+    d->m_bus->removeMessageFilter(filter);
 }
 
 void QGstPipeline::installMessageFilter(QGstreamerBusMessageFilter *filter)
 {
     QGstPipelinePrivate *d = getPrivate();
-    d->installMessageFilter(filter);
+    d->m_bus->installMessageFilter(filter);
 }
 
 void QGstPipeline::removeMessageFilter(QGstreamerBusMessageFilter *filter)
 {
     QGstPipelinePrivate *d = getPrivate();
-    d->removeMessageFilter(filter);
+    d->m_bus->removeMessageFilter(filter);
 }
 
 GstStateChangeReturn QGstPipeline::setState(GstState state)
@@ -108,7 +125,7 @@ GstStateChangeReturn QGstPipeline::setState(GstState state)
 bool QGstPipeline::processNextPendingMessage(GstMessageType types, std::chrono::nanoseconds timeout)
 {
     QGstPipelinePrivate *d = getPrivate();
-    return d->processNextPendingMessage(types, timeout);
+    return d->m_bus->processNextPendingMessage(types, timeout);
 }
 
 bool QGstPipeline::processNextPendingMessage(std::chrono::nanoseconds timeout)
