@@ -46,7 +46,6 @@ public:
     using QGstBusHandle::RefMode;
 
     explicit QGstBus(QGstBusHandle);
-    QGstBus(GstBus *, QGstBusHandle::RefMode);
 
     ~QGstBus();
     QGstBus(const QGstBus &) = delete;
@@ -63,6 +62,8 @@ public:
 
     bool processNextPendingMessage(GstMessageType type = GST_MESSAGE_ANY,
                                    std::optional<std::chrono::nanoseconds> timeout = {});
+
+    bool currentThreadIsNotifierThread() const;
 
 private:
     void processAllPendingMessages();

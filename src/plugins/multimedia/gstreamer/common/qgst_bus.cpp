@@ -3,6 +3,8 @@
 
 #include "qgst_bus_p.h"
 
+#include <QtCore/qthread.h>
+
 QT_BEGIN_NAMESPACE
 
 QGstBus::QGstBus(QGstBusHandle bus)
@@ -37,16 +39,6 @@ QGstBus::QGstBus(QGstBusHandle bus)
 #endif
 
     gst_bus_set_sync_handler(get(), (GstBusSyncHandler)syncGstBusFilter, this, nullptr);
-}
-
-QGstBus::QGstBus(GstBus *bus, QGstBusHandle::RefMode refmode)
-    : QGstBus{
-          QGstBusHandle{
-              bus,
-              refmode,
-          },
-      }
-{
 }
 
 QGstBus::~QGstBus()
@@ -116,6 +108,11 @@ bool QGstBus::processNextPendingMessage(GstMessageType type,
     }
 
     return true;
+}
+
+bool QGstBus::currentThreadIsNotifierThread() const
+{
+    return m_socketNotifier.thread() == QThread::currentThread();
 }
 
 void QGstBus::processAllPendingMessages()
