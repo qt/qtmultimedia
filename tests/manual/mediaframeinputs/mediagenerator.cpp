@@ -5,14 +5,16 @@
 
 #include <QVideoFrame>
 #include <QAudioBuffer>
+#include <QDebug>
 
-static uint32_t channelFrequency(int channelIndex, const std::vector<uint32_t> &channelFrequencies)
+namespace {
+
+uint32_t channelFrequency(int channelIndex, const std::vector<uint32_t> &channelFrequencies)
 {
     return channelFrequencies[channelIndex % channelFrequencies.size()];
 }
 
-static double normalizedSineSampleValue(uint32_t frequency, uint32_t sampleIndex,
-                                        uint32_t sampleRate)
+double normalizedSineSampleValue(uint32_t frequency, uint32_t sampleIndex, uint32_t sampleRate)
 {
     return sin(2 * M_PI * frequency * sampleIndex / sampleRate);
 }
@@ -44,9 +46,9 @@ void toSampleValue(double normalizedValue, QAudioFormat::SampleFormat sampleForm
     }
 }
 
-static QByteArray createSineWaveData(const QAudioFormat &format, uint32_t &sampleIndex,
-                                     std::chrono::microseconds duration,
-                                     const std::vector<uint32_t> &channelFrequencies)
+QByteArray createSineWaveData(const QAudioFormat &format, uint32_t &sampleIndex,
+                              std::chrono::microseconds duration,
+                              const std::vector<uint32_t> &channelFrequencies)
 {
     const int bytesPerSample = format.bytesPerSample();
 
@@ -79,18 +81,18 @@ static QByteArray createSineWaveData(const QAudioFormat &format, uint32_t &sampl
     return result;
 }
 
-static QRgb imagePatternValue(int xIndex, int yIndex, float patternSpeed, uint32_t patternWidth,
-                              uint32_t imageIndex)
+QRgb imagePatternValue(int xIndex, int yIndex, double patternSpeed, uint32_t patternWidth,
+                       uint32_t imageIndex)
 {
     static const uint32_t availableColors[] = { qRgba(255, 0, 0, 0), qRgba(0, 255, 0, 0),
                                                 qRgba(0, 0, 255, 0) };
-    constexpr float angle = M_PI / 3;
+    constexpr double angle = M_PI / 3;
 
     // inverse sin and cos as angle, otherise the angle will represent the orthogonal line
-    static const float xFactor = sin(angle);
-    static const float yFactor = cos(angle);
+    static const double xFactor = sin(angle);
+    static const double yFactor = cos(angle);
 
-    const float value =
+    const double value =
             (xIndex * xFactor + yIndex * yFactor + imageIndex * patternSpeed) / patternWidth;
     int colorIndex = qRound(value) % std::size(availableColors);
     if (colorIndex < 0)
@@ -98,8 +100,8 @@ static QRgb imagePatternValue(int xIndex, int yIndex, float patternSpeed, uint32
     return availableColors[colorIndex];
 }
 
-static QImage createPatternImage(QSize size, uint32_t patternWidth, float patternSpeed,
-                                 uint32_t imageIndex)
+QImage createPatternImage(QSize size, uint32_t patternWidth, float patternSpeed,
+                          uint32_t imageIndex)
 {
     QImage image(size, QImage::Format_RGBA8888);
 
@@ -117,22 +119,41 @@ static QImage createPatternImage(QSize size, uint32_t patternWidth, float patter
     return image;
 }
 
-AudioGenerator::AudioGenerator(const Settings &settings) : m_settings(settings) { }
+std::chrono::microseconds videoFrameTime(uint32_t frameIndex, uint32_t frameRate)
+{
+    using namespace std::chrono;
+    return microseconds(seconds(1)) * frameIndex / frameRate;
+}
+
+} // namespace
+
+AudioGenerator::AudioGenerator(const Settings &settings) : m_settings(settings)
+{
+    m_format.setSampleFormat(m_settings.sampleFormat);
+    m_format.setSampleRate(m_settings.sampleRate);
+    m_format.setChannelConfig(m_settings.channelConfig);
+
+    // align duration
+    m_settings.bufferDuration = std::chrono::microseconds(m_format.durationForBytes(
+            m_format.bytesForDuration(m_settings.bufferDuration.count())));
+}
 
 QAudioBuffer AudioGenerator::generate()
 {
     if (m_index == m_settings.duration / m_settings.bufferDuration)
         return {};
 
+    const QByteArray sineData = createSineWaveData(
+            m_format, m_sampleIndex, m_settings.bufferDuration, m_settings.channelFrequencies);
+
+    qint64 startTime = -1;
+    if (qToUnderlying(m_settings.timeGenerationMode)
+        & qToUnderlying(MediaTimeGenerationMode::TimeStamps))
+        startTime = std::chrono::microseconds(m_settings.bufferDuration * m_index).count();
+
     ++m_index;
 
-    QAudioFormat format;
-    format.setSampleFormat(m_settings.sampleFormat);
-    format.setSampleRate(m_settings.sampleRate);
-    format.setChannelConfig(m_settings.channelConfig);
-    const QByteArray sineData = createSineWaveData(format, m_sampleIndex, m_settings.bufferDuration,
-                                                   m_settings.channelFrequencies);
-    return QAudioBuffer(sineData, format);
+    return QAudioBuffer(sineData, m_format, startTime);
 }
 
 VideoGenerator::VideoGenerator(const Settings &settings) : m_settings(settings) { }
@@ -144,7 +165,15 @@ QVideoFrame VideoGenerator::generate()
 
     QVideoFrame frame(createPatternImage(m_settings.resolution, m_settings.patternWidth,
                                          m_settings.patternSpeed, m_index));
-    frame.setStreamFrameRate(m_settings.frameRate);
+    if (qToUnderlying(m_settings.timeGenerationMode)
+        & qToUnderlying(MediaTimeGenerationMode::FrameRate))
+        frame.setStreamFrameRate(m_settings.frameRate);
+
+    if (qToUnderlying(m_settings.timeGenerationMode)
+        & qToUnderlying(MediaTimeGenerationMode::TimeStamps)) {
+        frame.setStartTime(videoFrameTime(m_index, m_settings.frameRate).count());
+        frame.setEndTime(videoFrameTime(m_index + 1, m_settings.frameRate).count());
+    }
 
     ++m_index;
 

@@ -8,11 +8,19 @@
 #include <QSize>
 #include <chrono>
 #include <vector>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 class QVideoFrame;
 class QAudioBuffer;
 QT_END_NAMESPACE
+
+enum class MediaTimeGenerationMode {
+    None,
+    FrameRate = 0x1,
+    TimeStamps = 0x2,
+    FrameRateAndTimeStamps = FrameRate | TimeStamps
+};
 
 class AudioGenerator
 {
@@ -21,21 +29,28 @@ public:
     {
         std::chrono::milliseconds duration = std::chrono::seconds(5);
         std::vector<uint32_t> channelFrequencies = { 555 };
-        std::chrono::milliseconds bufferDuration = std::chrono::milliseconds(100);
+        std::chrono::microseconds bufferDuration = std::chrono::milliseconds(100);
         QAudioFormat::SampleFormat sampleFormat = QAudioFormat::Int16;
         uint32_t sampleRate = 40000;
         QAudioFormat::ChannelConfig channelConfig = QAudioFormat::ChannelConfigStereo;
+        MediaTimeGenerationMode timeGenerationMode =
+                MediaTimeGenerationMode::FrameRateAndTimeStamps;
     };
 
     AudioGenerator(const Settings &settings);
 
     QAudioBuffer generate();
 
+    std::chrono::microseconds interval() const { return m_settings.bufferDuration; }
+
 private:
     Settings m_settings;
+    QAudioFormat m_format;
     uint32_t m_index = 0;
     uint32_t m_sampleIndex = 0;
 };
+
+using AudioGeneratorSettingsOpt = std::optional<AudioGenerator::Settings>;
 
 class VideoGenerator
 {
@@ -47,15 +62,23 @@ public:
         QSize resolution = { 1024, 700 };
         uint32_t patternWidth = 20;
         float patternSpeed = 1.f;
+        MediaTimeGenerationMode timeGenerationMode = MediaTimeGenerationMode::TimeStamps;
     };
 
     VideoGenerator(const Settings &settings);
 
     QVideoFrame generate();
 
+    std::chrono::microseconds interval() const
+    {
+        return std::chrono::microseconds(std::chrono::seconds(1)) / m_settings.frameRate;
+    }
+
 private:
     Settings m_settings;
     uint32_t m_index = 0;
 };
+
+using VideoGeneratorSettingsOpt = std::optional<VideoGenerator::Settings>;
 
 #endif // MEDIAGENERATOR_H
