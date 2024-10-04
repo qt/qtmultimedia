@@ -394,6 +394,8 @@ QVideoSink *QMediaCaptureSession::videoSink() const
 }
 /*!
     Sets the audio output device to \a{output}.
+
+    Setting an audio output device enables audio routing from an audio input device.
 */
 void QMediaCaptureSession::setAudioOutput(QAudioOutput *output)
 {
@@ -413,6 +415,9 @@ void QMediaCaptureSession::setAudioOutput(QAudioOutput *output)
 /*!
     \qmlproperty AudioOutput QtMultimedia::CaptureSession::audioOutput
     \brief The audio output device for the capture session.
+
+    Add an AudioOutput device to the capture session to enable
+    audio routing from an AudioInput device.
 */
 QAudioOutput *QMediaCaptureSession::audioOutput() const
 {

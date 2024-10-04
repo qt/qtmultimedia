@@ -108,23 +108,19 @@ void Decoder::setSource(const QUrl &source)
     if (!m_extractor)
         m_extractor = AMediaExtractor_new();
 
-    int fd = -1;
-    if (source.path().contains(QLatin1String("content"))) {
-        fd = QJniObject::callStaticMethod<jint>("org/qtproject/qt/android/QtNative",
-                                "openFdForContentUrl",
-                                "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)I",
-                                QNativeInterface::QAndroidApplication::context(),
-                                QJniObject::fromString(source.path()).object(),
-                                QJniObject::fromString(QLatin1String("r")).object());
-    } else {
-        fd = open(source.path().toStdString().c_str(), O_RDONLY);
-    }
+    QFile file(source.path());
+    if (!file.open(QFile::ReadOnly)) {
+        emit error(QAudioDecoder::ResourceError, tr("Cannot open the file"));
+        return;
+     }
+
+    const int fd = file.handle();
 
     if (fd < 0) {
         emit error(QAudioDecoder::ResourceError, tr("Invalid fileDescriptor for source."));
         return;
     }
-    const int size = QFile(source.toString()).size();
+    const int size = file.size();
     media_status_t status = AMediaExtractor_setDataSourceFd(m_extractor, fd, 0,
                                                             size > 0 ? size : LONG_MAX);
     close(fd);

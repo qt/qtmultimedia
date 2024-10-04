@@ -916,4 +916,9 @@ void QGstreamerMediaPlayer::setActiveTrack(TrackType type, int index)
         m_requiresSeekOnPlay = true;
 }
 
+void *QGstreamerMediaPlayer::nativePipeline()
+{
+    return playerPipeline.pipeline();
+}
+
 QT_END_NAMESPACE

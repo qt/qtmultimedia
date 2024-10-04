@@ -122,6 +122,18 @@ void QPlatformMediaPlayer::error(int error, const QString &errorString)
     player->d_func()->setError(error, errorString);
 }
 
+void *QPlatformMediaPlayer::nativePipeline(QMediaPlayer *player)
+{
+    if (!player)
+        return nullptr;
+
+    auto playerPrivate = player->d_func();
+    if (!playerPrivate || !playerPrivate->control)
+        return nullptr;
+
+    return playerPrivate->control->nativePipeline();
+}
+
 /*!
     \fn QPlatformMediaPlayer::duration() const
 
