@@ -5,6 +5,7 @@
 #include <qaudiosource.h>
 #include <qaudiobuffer.h>
 #include <qatomic.h>
+#include <qmetaobject.h>
 #include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
@@ -204,14 +205,38 @@ void QFFmpegAudioInput::setBufferSize(int bufferSize)
     m_audioIO->setBufferSize(bufferSize);
 }
 
-void QFFmpegAudioInput::setRunning(bool b)
-{
-    m_audioIO->setRunning(b);
-}
-
 int QFFmpegAudioInput::bufferSize() const
 {
     return m_audioIO->bufferSize();
+}
+
+void QFFmpegAudioInput::connectNotify(const QMetaMethod &signal)
+{
+    // threading considerations:
+    // AudioSourceIO::setRunning doesn't reenter
+    // the internal QObject's mutex of the audio input instance
+    if (signal == QMetaMethod::fromSignal(&QFFmpegAudioInput::newAudioBuffer))
+        m_audioIO->setRunning(true);
+}
+
+void QFFmpegAudioInput::disconnectNotify(const QMetaMethod &signal)
+{
+    if (!signal.isValid()
+        || signal == QMetaMethod::fromSignal(&QFFmpegAudioInput::newAudioBuffer)) {
+        auto stopIOifNeeded = [this]() {
+            // if the signal disconnectNotify is not
+            if (!isSignalConnected(QMetaMethod::fromSignal(&QFFmpegAudioInput::newAudioBuffer)))
+                m_audioIO->setRunning(false);
+        };
+
+        // threading considerations:
+        // QMetaObject::invokeMethod doesn't reenter
+        // the internal QObject's mutex of the audio input instance.
+        // Instead, QMetaObject::invokeMethod locks ThreadData::postEventMutex
+
+        // postpone update to avoid redundant QAudioSource restarts upon reconnection
+        QMetaObject::invokeMethod(this, stopIOifNeeded, Qt::QueuedConnection);
+    }
 }
 
 QT_END_NAMESPACE

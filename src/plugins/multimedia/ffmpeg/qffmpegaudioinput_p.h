@@ -42,9 +42,17 @@ public:
     void setVolume(float /*volume*/) override;
 
     void setBufferSize(int bufferSize);
-    void setRunning(bool b);
 
     int bufferSize() const;
+
+protected:
+    // ensures the underlying audio source is run if
+    // the signal newAudioBuffer is connected
+    void connectNotify(const QMetaMethod &signal) override;
+
+    // postponly ensures that the underlying audio source is not run
+    // if the signal newAudioBuffer is not connacted to any slot.
+    void disconnectNotify(const QMetaMethod &signal) override;
 
 private:
     QFFmpeg::AudioSourceIO *m_audioIO = nullptr;

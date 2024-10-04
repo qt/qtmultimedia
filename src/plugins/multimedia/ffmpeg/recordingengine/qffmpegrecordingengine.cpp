@@ -59,8 +59,6 @@ void RecordingEngine::addAudioInput(QFFmpegAudioInput *input)
 
     AudioEncoder *audioEncoder = createAudioEncoder(format);
     connectEncoderToSource(audioEncoder, input);
-
-    input->setRunning(true);
 }
 
 void RecordingEngine::addAudioBufferInput(QPlatformAudioBufferInput *input,

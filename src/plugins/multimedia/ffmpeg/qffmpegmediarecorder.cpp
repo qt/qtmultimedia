@@ -143,10 +143,7 @@ void QFFmpegMediaRecorder::stop()
 {
     if (!m_session || state() == QMediaRecorder::StoppedState)
         return;
-    auto * input = m_session ? m_session->audioInput() : nullptr;
-    if (input)
-        static_cast<QFFmpegAudioInput *>(input)->setRunning(false);
-    qCDebug(qLcMediaEncoder) << "Stopping media recorder";
+    qCDebug(qLcMediaEncoder) << "stop";
 
     m_recordingEngine.reset();
 }
