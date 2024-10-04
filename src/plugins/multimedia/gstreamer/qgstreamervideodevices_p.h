@@ -21,7 +21,7 @@
 #include <vector>
 
 #include <common/qgst_handle_types_p.h>
-#include <common/qgst_bus_p.h>
+#include <common/qgst_bus_observer_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -51,7 +51,7 @@ private:
     std::vector<QGstRecordDevice> m_videoSources;
 
     QGstDeviceMonitorHandle m_deviceMonitor;
-    QGstBus m_bus;
+    QGstBusObserver m_busObserver;
 };
 
 QT_END_NAMESPACE

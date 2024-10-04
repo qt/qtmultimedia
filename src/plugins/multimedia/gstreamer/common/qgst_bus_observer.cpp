@@ -1,13 +1,13 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qgst_bus_p.h"
+#include "qgst_bus_observer_p.h"
 
 #include <QtCore/qthread.h>
 
 QT_BEGIN_NAMESPACE
 
-QGstBus::QGstBus(QGstBusHandle bus)
+QGstBusObserver::QGstBusObserver(QGstBusHandle bus)
     : QGstBusHandle{
           std::move(bus),
       }
@@ -41,12 +41,12 @@ QGstBus::QGstBus(QGstBusHandle bus)
     gst_bus_set_sync_handler(get(), (GstBusSyncHandler)syncGstBusFilter, this, nullptr);
 }
 
-QGstBus::~QGstBus()
+QGstBusObserver::~QGstBusObserver()
 {
     close();
 }
 
-void QGstBus::close()
+void QGstBusObserver::close()
 {
     if (!get())
         return;
@@ -55,7 +55,7 @@ void QGstBus::close()
     QGstBusHandle::close();
 }
 
-void QGstBus::installMessageFilter(QGstreamerSyncMessageFilter *filter)
+void QGstBusObserver::installMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
     Q_ASSERT(filter);
     QMutexLocker lock(&filterMutex);
@@ -63,28 +63,28 @@ void QGstBus::installMessageFilter(QGstreamerSyncMessageFilter *filter)
         syncFilters.append(filter);
 }
 
-void QGstBus::removeMessageFilter(QGstreamerSyncMessageFilter *filter)
+void QGstBusObserver::removeMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
     Q_ASSERT(filter);
     QMutexLocker lock(&filterMutex);
     syncFilters.removeAll(filter);
 }
 
-void QGstBus::installMessageFilter(QGstreamerBusMessageFilter *filter)
+void QGstBusObserver::installMessageFilter(QGstreamerBusMessageFilter *filter)
 {
     Q_ASSERT(filter);
     if (!busFilters.contains(filter))
         busFilters.append(filter);
 }
 
-void QGstBus::removeMessageFilter(QGstreamerBusMessageFilter *filter)
+void QGstBusObserver::removeMessageFilter(QGstreamerBusMessageFilter *filter)
 {
     Q_ASSERT(filter);
     busFilters.removeAll(filter);
 }
 
-bool QGstBus::processNextPendingMessage(GstMessageType type,
-                                    std::optional<std::chrono::nanoseconds> timeout)
+bool QGstBusObserver::processNextPendingMessage(GstMessageType type,
+                                                std::optional<std::chrono::nanoseconds> timeout)
 {
     if (!get())
         return false;
@@ -110,12 +110,12 @@ bool QGstBus::processNextPendingMessage(GstMessageType type,
     return true;
 }
 
-bool QGstBus::currentThreadIsNotifierThread() const
+bool QGstBusObserver::currentThreadIsNotifierThread() const
 {
     return m_socketNotifier.thread() == QThread::currentThread();
 }
 
-void QGstBus::processAllPendingMessages()
+void QGstBusObserver::processAllPendingMessages()
 {
     for (;;) {
         bool messageHandled = processNextPendingMessage(GST_MESSAGE_ANY, std::chrono::nanoseconds{ 0 });
@@ -125,7 +125,8 @@ void QGstBus::processAllPendingMessages()
     }
 }
 
-GstBusSyncReply QGstBus::syncGstBusFilter(GstBus *bus, GstMessage *message, QGstBus *self)
+GstBusSyncReply QGstBusObserver::syncGstBusFilter(GstBus *bus, GstMessage *message,
+                                                  QGstBusObserver *self)
 {
     if (!message)
         return GST_BUS_PASS;

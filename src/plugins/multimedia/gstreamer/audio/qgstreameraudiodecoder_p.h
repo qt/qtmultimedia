@@ -24,7 +24,7 @@
 #include <QtCore/qurl.h>
 
 #include <common/qgst_p.h>
-#include <common/qgst_bus_p.h>
+#include <common/qgst_bus_observer_p.h>
 #include <common/qgstpipeline_p.h>
 
 #include <gst/app/gstappsink.h>
