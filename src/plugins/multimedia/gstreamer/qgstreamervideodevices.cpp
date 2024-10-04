@@ -26,7 +26,7 @@ QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integr
       m_deviceMonitor{
           gst_device_monitor_new(),
       },
-      m_bus{
+      m_busObserver{
           QGstBusHandle{
                   gst_device_monitor_get_bus(m_deviceMonitor.get()),
                   QGstBusHandle::HasRef,
@@ -35,7 +35,7 @@ QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integr
 {
     gst_device_monitor_add_filter(m_deviceMonitor.get(), "Video/Source", nullptr);
 
-    m_bus.installMessageFilter(this);
+    m_busObserver.installMessageFilter(this);
     gst_device_monitor_start(m_deviceMonitor.get());
 
     GList *devices = gst_device_monitor_get_devices(m_deviceMonitor.get());

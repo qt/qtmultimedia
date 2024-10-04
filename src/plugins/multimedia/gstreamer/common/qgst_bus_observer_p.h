@@ -1,8 +1,8 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QGST_BUS_P_H
-#define QGST_BUS_P_H
+#ifndef QGST_BUS_OBSERVER_P_H
+#define QGST_BUS_OBSERVER_P_H
 
 //
 //  W A R N I N G
@@ -38,20 +38,20 @@ public:
     virtual bool processBusMessage(const QGstreamerMessage &message) = 0;
 };
 
-class QGstBus : private QGstBusHandle
+class QGstBusObserver : private QGstBusHandle
 {
 public:
     using QGstBusHandle::get;
     using QGstBusHandle::HasRef;
     using QGstBusHandle::RefMode;
 
-    explicit QGstBus(QGstBusHandle);
+    explicit QGstBusObserver(QGstBusHandle);
 
-    ~QGstBus();
-    QGstBus(const QGstBus &) = delete;
-    QGstBus(QGstBus &&) = delete;
-    QGstBus &operator=(const QGstBus &) = delete;
-    QGstBus &operator=(QGstBus &&) = delete;
+    ~QGstBusObserver();
+    QGstBusObserver(const QGstBusObserver &) = delete;
+    QGstBusObserver(QGstBusObserver &&) = delete;
+    QGstBusObserver &operator=(const QGstBusObserver &) = delete;
+    QGstBusObserver &operator=(QGstBusObserver &&) = delete;
 
     void close();
 
@@ -68,7 +68,7 @@ public:
 private:
     void processAllPendingMessages();
 
-    static GstBusSyncReply syncGstBusFilter(GstBus *, GstMessage *, QGstBus *);
+    static GstBusSyncReply syncGstBusFilter(GstBus *, GstMessage *, QGstBusObserver *);
 
 #ifndef Q_OS_WIN
     QSocketNotifier m_socketNotifier{ QSocketNotifier::Read };
@@ -82,4 +82,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QGST_BUS_P_H
+#endif // QGST_BUS_OBSERVER_P_H

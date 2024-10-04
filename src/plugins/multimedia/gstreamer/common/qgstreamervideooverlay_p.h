@@ -19,7 +19,7 @@
 
 #include <common/qgstreamerbufferprobe_p.h>
 #include <common/qgst_p.h>
-#include <common/qgst_bus_p.h>
+#include <common/qgst_bus_observer_p.h>
 
 QT_BEGIN_NAMESPACE
 class QGstreamerVideoSink;

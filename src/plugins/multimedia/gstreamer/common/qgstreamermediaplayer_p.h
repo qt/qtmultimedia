@@ -22,7 +22,7 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qtimer.h>
 
-#include <common/qgst_bus_p.h>
+#include <common/qgst_bus_observer_p.h>
 #include <common/qgst_p.h>
 #include <common/qgstpipeline_p.h>
 
