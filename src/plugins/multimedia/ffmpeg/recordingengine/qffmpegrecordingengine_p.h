@@ -73,6 +73,15 @@ Q_SIGNALS:
     void autoStopped();
 
 private:
+    // Normal states transition, Stop is called upon Encoding,
+    // header, content, and trailer are written:
+    // None -> FormatsInitialization -> EncodersInitialization -> Encoding -> Finalization
+    //
+    // Stop is called upon FormatsInitialization, nothing is written to the output:
+    // None -> FormatsInitialization -> Finalization
+    //
+    // Stop is called upon EncodersInitialization, nothing is written to the output:
+    // None -> FormatsInitialization -> EncodersInitialization -> Finalization
     enum class State {
         None,
         FormatsInitialization,
@@ -84,13 +93,13 @@ private:
     class EncodingFinalizer : public QThread
     {
     public:
-        EncodingFinalizer(RecordingEngine &recordingEngine);
+        EncodingFinalizer(RecordingEngine &recordingEngine, bool writeTrailer);
 
         void run() override;
 
     private:
         RecordingEngine &m_recordingEngine;
-        State m_previousState;
+        bool m_writeTrailer;
     };
 
     friend class EncodingInitializer;
