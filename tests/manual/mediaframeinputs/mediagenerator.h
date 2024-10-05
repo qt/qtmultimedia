@@ -4,6 +4,8 @@
 #ifndef MEDIAGENERATOR_H
 #define MEDIAGENERATOR_H
 
+#include "settings.h"
+
 #include <QAudioFormat>
 #include <QSize>
 #include <chrono>
@@ -15,27 +17,10 @@ class QVideoFrame;
 class QAudioBuffer;
 QT_END_NAMESPACE
 
-enum class MediaTimeGenerationMode {
-    None,
-    FrameRate = 0x1,
-    TimeStamps = 0x2,
-    FrameRateAndTimeStamps = FrameRate | TimeStamps
-};
-
 class AudioGenerator
 {
 public:
-    struct Settings
-    {
-        std::chrono::milliseconds duration = std::chrono::seconds(5);
-        std::vector<uint32_t> channelFrequencies = { 555 };
-        std::chrono::microseconds bufferDuration = std::chrono::milliseconds(100);
-        QAudioFormat::SampleFormat sampleFormat = QAudioFormat::Int16;
-        uint32_t sampleRate = 40000;
-        QAudioFormat::ChannelConfig channelConfig = QAudioFormat::ChannelConfigStereo;
-        MediaTimeGenerationMode timeGenerationMode =
-                MediaTimeGenerationMode::FrameRateAndTimeStamps;
-    };
+    using Settings = AudioGeneratorSettings;
 
     AudioGenerator(const Settings &settings);
 
@@ -55,15 +40,7 @@ using AudioGeneratorSettingsOpt = std::optional<AudioGenerator::Settings>;
 class VideoGenerator
 {
 public:
-    struct Settings
-    {
-        std::chrono::milliseconds duration = std::chrono::seconds(5);
-        uint32_t frameRate = 30;
-        QSize resolution = { 1024, 700 };
-        uint32_t patternWidth = 20;
-        float patternSpeed = 1.f;
-        MediaTimeGenerationMode timeGenerationMode = MediaTimeGenerationMode::TimeStamps;
-    };
+    using Settings = VideoGeneratorSettings;
 
     VideoGenerator(const Settings &settings);
 
@@ -78,7 +55,5 @@ private:
     Settings m_settings;
     uint32_t m_index = 0;
 };
-
-using VideoGeneratorSettingsOpt = std::optional<VideoGenerator::Settings>;
 
 #endif // MEDIAGENERATOR_H

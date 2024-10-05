@@ -5,22 +5,30 @@
 
 /// Base
 
-RecordingRunner::RecordingRunner()
+RecordingRunner::RecordingRunner(const RecorderSettings &recorderSettings)
 {
-    m_session.setRecorder(&m_recorder);
+    if (recorderSettings.frameRate)
+        m_recorder.setVideoFrameRate(recorderSettings.frameRate);
+    if (recorderSettings.resolution.isValid())
+        m_recorder.setVideoResolution(recorderSettings.resolution);
+    if (recorderSettings.quality)
+        m_recorder.setQuality(*recorderSettings.quality);
+    if (!recorderSettings.outputLocation.isEmpty())
+        m_recorder.setOutputLocation(recorderSettings.outputLocation);
+
     m_recorder.setAutoStop(true);
 
     connect(&m_recorder, &QMediaRecorder::recorderStateChanged, this,
             &RecordingRunner::handleRecorderStateChanged);
     connect(&m_recorder, &QMediaRecorder::errorOccurred, this, &RecordingRunner::handleError);
+
+    m_session.setRecorder(&m_recorder);
 }
 
 RecordingRunner::~RecordingRunner() = default;
 
-void RecordingRunner::run(const QUrl &outputLocation)
+void RecordingRunner::run()
 {
-    if (!outputLocation.isEmpty())
-        m_recorder.setOutputLocation(outputLocation);
     m_recorder.record();
 }
 
@@ -48,8 +56,10 @@ void RecordingRunner::handleError(QMediaRecorder::Error error, QString descripti
 /// Pull mode
 
 PullModeRecordingRunner::PullModeRecordingRunner(
+        const RecorderSettings &recorderSettings,
         const AudioGeneratorSettingsOpt &audioGenerationSettings,
         const VideoGeneratorSettingsOpt &videoGenerationSettings)
+    : RecordingRunner(recorderSettings)
 {
     Q_ASSERT(audioGenerationSettings || videoGenerationSettings);
 
@@ -85,9 +95,11 @@ void PullModeRecordingRunner::sendNextVideoFrame()
 /// Push mode
 
 PushModeRecordingRunner::PushModeRecordingRunner(
+        const RecorderSettings &recorderSettings,
         const AudioGeneratorSettingsOpt &audioGenerationSettings,
         const VideoGeneratorSettingsOpt &videoGenerationSettings,
         const PushModeSettings &pushModeSettings)
+    : RecordingRunner(recorderSettings)
 {
     if (audioGenerationSettings) {
         m_audioBufferInputQueue =
@@ -120,13 +132,13 @@ void PushModeRecordingRunner::onFinished()
     m_videoFrameSource.reset();
 }
 
-void PushModeRecordingRunner::run(const QUrl &outputLocation)
+void PushModeRecordingRunner::run()
 {
     if (m_audioBufferSource)
         m_audioBufferSource->run();
     if (m_videoFrameSource)
         m_videoFrameSource->run();
-    RecordingRunner::run(outputLocation);
+    RecordingRunner::run();
 }
 
 #include "moc_recordingrunner.cpp"

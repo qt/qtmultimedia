@@ -6,6 +6,39 @@
 #include <QApplication>
 
 namespace {
+bool contains(const QStringList &list, const QStringView &str)
+{
+    return list.contains(str, Qt::CaseInsensitive);
+}
+
+bool equals(const QStringView &a, const QStringView &b)
+{
+    return a.compare(b, Qt::CaseInsensitive) == 0;
+}
+
+template <typename Container, typename Separator, typename ToString>
+QString join(const Container &container, const Separator &separator, ToString &&toString)
+{
+    QString result;
+    for (const auto &element : container) {
+        if (!result.isEmpty())
+            result += separator;
+        result += toString(element);
+    }
+    return result;
+}
+
+template <typename Numbers, typename Separator>
+QString joinNumberElements(const Numbers &numbers, const Separator &separator)
+{
+    return join(numbers, separator, [](auto number) { return QString::number(number); });
+}
+
+template <typename Map, typename Separator>
+QString joinMapStringValues(const Map &map, const Separator &separator)
+{
+    return join(map, separator, [](const auto &pair) { return pair.second; });
+}
 auto toUInt(const QString &value, bool &ok)
 {
     return value.toUInt(&ok);
@@ -68,42 +101,12 @@ auto toMode(const QStringList &modes, const QString &value, bool &ok)
     return value;
 }
 
-auto toChannelConfig(const QList<QAudioFormat::ChannelConfig> &channelConfigs,
-                     const QStringList &channelConfigsStr, const QString &value, bool &ok)
-{
-    const qsizetype index = channelConfigsStr.indexOf(value, 0, Qt::CaseInsensitive);
-    ok = index >= 0;
-    return ok ? channelConfigs.at(index) : QAudioFormat::ChannelConfigUnknown;
-}
-
-auto toSampleFormat(const QStringList &sampleFormatsStr, const QString &value, bool &ok)
-{
-    const qsizetype index = sampleFormatsStr.indexOf(value, 0, Qt::CaseInsensitive);
-    ok = index >= 0;
-    return QAudioFormat::SampleFormat(index + 1);
-}
-
-bool contains(const QStringList &list, const QString str)
-{
-    return list.contains(str, Qt::CaseInsensitive);
-}
-
-bool equals(const QString &a, const QString b)
-{
-    return a.compare(b, Qt::CaseInsensitive) == 0;
-}
-
-template <typename Numbers, typename Separator>
-QString joinNumbers(const Numbers &numbers, const Separator &separator)
-{
-    QString result;
-    for (auto number : numbers) {
-        if (!result.isEmpty())
-            result += separator;
-        result += QString::number(number);
-    }
-    return result;
-}
+auto toEnum = [](const auto &enumMap, const QString &value, bool &ok) {
+    auto found = std::find_if(enumMap.begin(), enumMap.end(),
+                              [&](const auto &pair) { return equals(pair.second, value); });
+    ok = found != enumMap.end();
+    return ok ? found->first : decltype(found->first)();
+};
 
 template <typename Duration>
 auto toMsCount(Duration duration)
@@ -157,12 +160,12 @@ CommandLineParser::Result CommandLineParser::process()
     if (auto bufferDuration = parsedValue(m_options.audioBufferDuration, checkAudioStream, toUInt))
         m_audioGenerationSettings.bufferDuration = std::chrono::milliseconds(*bufferDuration);
 
-    if (auto format = parsedValue(m_options.sampleFormat, checkAudioStream, toSampleFormat,
-                                  m_sampleFormatsStr))
+    if (auto format =
+                parsedValue(m_options.sampleFormat, checkAudioStream, toEnum, m_sampleFormats))
         m_audioGenerationSettings.sampleFormat = *format;
 
-    if (auto config = parsedValue(m_options.channelConfig, checkAudioStream, toChannelConfig,
-                                  m_channelConfigs, m_channelConfigsStr))
+    if (auto config =
+                parsedValue(m_options.channelConfig, checkAudioStream, toEnum, m_channelConfigs))
         m_audioGenerationSettings.channelConfig = *config;
 
     if (auto frameRate = parsedValue(m_options.frameRate, checkVideoStream, toUInt))
@@ -177,15 +180,25 @@ CommandLineParser::Result CommandLineParser::process()
     if (auto patternSpeed = parsedValue(m_options.framePatternSpeed, checkVideoStream, toUInt))
         m_videoGenerationSettings.patternSpeed = *patternSpeed;
 
-    if (auto location = parsedValue(m_options.outputLocation, noCheck, toUrl))
-        m_outputLocation = *location;
-
     if (auto producingRate =
                 parsedValue(m_options.pushModeProducingRate, checkPushMode, toPositiveFloat))
         m_pushModeSettings.producingRate = *producingRate;
 
     if (auto maxQueueSize = parsedValue(m_options.pushModeMaxQueueSize, checkPushMode, toUInt))
         m_pushModeSettings.maxQueueSize = *maxQueueSize;
+
+    // recording settings
+    if (auto location = parsedValue(m_options.outputLocation, noCheck, toUrl))
+        m_recorderSettings.outputLocation = *location;
+
+    if (auto frameRate = parsedValue(m_options.recorderFrameRate, noCheck, toUInt))
+        m_recorderSettings.frameRate = *frameRate;
+
+    if (auto resolution = parsedValue(m_options.recorderResolution, noCheck, toSize))
+        m_recorderSettings.resolution = *resolution;
+
+    m_recorderSettings.quality =
+            parsedValue(m_options.recorderQuality, noCheck, toEnum, m_recorderQualities);
 
     return takeResult();
 }
@@ -203,7 +216,7 @@ CommandLineParser::Result CommandLineParser::takeResult()
     if (equals(m_mode, m_pushMode))
         result.pushModeSettings = m_pushModeSettings;
 
-    result.outputLocation = std::move(m_outputLocation);
+    result.recorderSettings = std::move(m_recorderSettings);
 
     return result;
 }
@@ -254,67 +267,91 @@ CommandLineParser::Options CommandLineParser::createOptions()
                               QStringLiteral("Media frames generation mode (%1).\nDefaults to %2.")
                                       .arg(m_modes.join(u", "), m_mode),
                               QStringLiteral("list of enum") });
-    result.outputLocation = addOption({ QStringLiteral("outputLocation"),
-                                        QStringLiteral("Output location for the media."),
-                                        QStringLiteral("file or directory") });
-    result.duration = addOption({ QStringLiteral("duration"),
-                                  QStringLiteral("Media duration.\nDefaults to %1.")
-                                          .arg(toMsCount(m_audioGenerationSettings.duration)),
-                                  QStringLiteral("ms") });
+    result.duration =
+            addOption({ { QStringLiteral("generator.duration"), QStringLiteral("duration") },
+                        QStringLiteral("Media duration.\nDefaults to %1.")
+                                .arg(toMsCount(m_audioGenerationSettings.duration)),
+                        QStringLiteral("ms") });
     result.channelFrequencies = addOption(
-            { QStringLiteral("frequencies"),
+            { { QStringLiteral("generator.frequencies"), QStringLiteral("frequencies") },
               QStringLiteral("Generated audio frequencies for each channel. It's "
                              "possible to set one or several ones: x,y,z.\nDefaults to %1.")
-                      .arg(joinNumbers(m_audioGenerationSettings.channelFrequencies, u",")),
+                      .arg(joinNumberElements(m_audioGenerationSettings.channelFrequencies, u",")),
               QStringLiteral("list of hz") });
     result.audioBufferDuration =
-            addOption({ QStringLiteral("audioBufferDuration"),
-                        QStringLiteral("Duration of single audio buffer.\nDefaults to %1")
+                addOption({ { QStringLiteral("generator.audioBufferDuration"),
+                              QStringLiteral("audioBufferDuration") },
+                            QStringLiteral("Duration of single audio buffer.\nDefaults to %1.")
                                 .arg(toMsCount(m_audioGenerationSettings.bufferDuration)),
                         QStringLiteral("ms") });
     result.sampleFormat = addOption(
-            { QStringLiteral("sampleFormat"),
+                { { QStringLiteral("generator.sampleFormat"), QStringLiteral("sampleFormat") },
               QStringLiteral("Generated audio sample format (%1).\nDefaults to %2.")
-                      .arg(m_sampleFormatsStr.join(u", "),
-                           m_sampleFormatsStr.at(m_audioGenerationSettings.sampleFormat - 1)),
+                          .arg(joinMapStringValues(m_sampleFormats, u", "),
+                               m_sampleFormats.at(m_audioGenerationSettings.sampleFormat)),
               QStringLiteral("enum") });
-    result.channelConfig =
-            addOption({ QStringLiteral("channelConfig"),
-                        QStringLiteral("Generated audio channel config (%1).\nDefaults to %2.")
-                                .arg(m_channelConfigsStr.join(u", "),
-                                     m_channelConfigsStr.at(m_channelConfigs.indexOf(
-                                             m_audioGenerationSettings.channelConfig))),
-                        QStringLiteral("enum") });
-    result.frameRate = addOption({ QStringLiteral("frameRate"),
-                                   QStringLiteral("Generated video frame rate.\nDefaults to %1.")
-                                           .arg(m_videoGenerationSettings.frameRate),
-                                   QStringLiteral("uint") });
+    result.channelConfig = addOption(
+            { { QStringLiteral("generator.channelConfig"), QStringLiteral("channelConfig") },
+              QStringLiteral("Generated audio channel config (%1).\nDefaults to %2.")
+                      .arg(joinMapStringValues(m_channelConfigs, u", "),
+                           m_channelConfigs.at(m_audioGenerationSettings.channelConfig)),
+              QStringLiteral("enum") });
+    result.frameRate =
+            addOption({ { QStringLiteral("generator.frameRate"), QStringLiteral("frameRate") },
+                        QStringLiteral("Generated video frame rate.\nDefaults to %1.")
+                                .arg(m_videoGenerationSettings.frameRate),
+                        QStringLiteral("uint") });
     result.resolution = addOption(
-            { QStringLiteral("resolution"),
+                { { QStringLiteral("generator.resolution"), QStringLiteral("resolution") },
               QStringLiteral("Generated video frame resolution.\nDefaults to %1x%2.")
                       .arg(QString::number(m_videoGenerationSettings.resolution.width()),
                            QString::number(m_videoGenerationSettings.resolution.height())),
               QStringLiteral("WxH") });
     result.framePatternWidth =
-            addOption({ QStringLiteral("framePatternWidth"),
+            addOption({ { QStringLiteral("generator.framePatternWidth"),
+                          QStringLiteral("framePatternWidth") },
                         QStringLiteral("Generated video frame patern pixel width.\nDefaults to %1.")
                                 .arg(m_videoGenerationSettings.patternWidth),
                         QStringLiteral("uint") });
     result.framePatternSpeed = addOption(
-            { QStringLiteral("framePatternSpeed"),
+                { { QStringLiteral("generator.framePatternSpeed"),
+                    QStringLiteral("framePatternSpeed") },
               QStringLiteral("Relative speed of moving the frame pattern.\nDefaults to %1.")
                       .arg(m_videoGenerationSettings.patternSpeed),
               QStringLiteral("float") });
     result.pushModeProducingRate = addOption(
-            { QStringLiteral("pushModeProducingRate"),
+                { { QStringLiteral("generator.pushMode.producingRate"),
+                    QStringLiteral("producingRate") },
               QStringLiteral(
                       "Relative factor of media producing rate in push mode.\nDefaults to %1.")
                       .arg(m_pushModeSettings.producingRate),
               QStringLiteral("positive float") });
-    result.pushModeMaxQueueSize = addOption(
-            { QStringLiteral("pushModeMaxQueueSize"),
-              QStringLiteral("Max number of media frames in the local queue.\nDefaults to %1.")
-                      .arg(m_pushModeSettings.maxQueueSize),
-              QStringLiteral("uint") });
+    result.pushModeMaxQueueSize =
+            addOption({ {
+                                QStringLiteral("generator.pushMode.maxQueueSize"),
+                                QStringLiteral("maxQueueSize"),
+                        },
+                        QStringLiteral("Max number of generated media frames in the queue on "
+                                       "the front of media recorder.\nDefaults to %1.")
+                                .arg(m_pushModeSettings.maxQueueSize),
+                        QStringLiteral("uint") });
+    result.outputLocation = addOption(
+            { { QStringLiteral("recorder.outputLocation"), QStringLiteral("outputLocation") },
+              QStringLiteral("Output location for the media."),
+              QStringLiteral("file or directory") });
+    result.recorderFrameRate =
+            addOption({ QStringLiteral("recorder.frameRate"),
+                        QStringLiteral("Video frame rate for media recorder.\nNo default value."),
+                        QStringLiteral("uint") });
+    result.recorderQuality =
+            addOption({ { QStringLiteral("recorder.quality"), QStringLiteral("quality") },
+                        QStringLiteral("Quality of media recording (%1).\nNo default value.")
+                                .arg(joinMapStringValues(m_recorderQualities, u", ")),
+                        QStringLiteral("enum") });
+    result.recorderResolution =
+            addOption({ QStringLiteral("recorder.resolution"),
+                        QStringLiteral("Video resolution for media recorder.\nNo default value."),
+                        QStringLiteral("WxH") });
+
     return result;
 }
