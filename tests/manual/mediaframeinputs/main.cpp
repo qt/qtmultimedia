@@ -16,11 +16,12 @@ int main(int argc, char *argv[])
     std::unique_ptr<RecordingRunner> recordingRunner;
     if (cmdResult.pushModeSettings)
         recordingRunner = std::make_unique<PushModeRecordingRunner>(
-                cmdResult.audioGenerationSettings, cmdResult.videoGenerationSettings,
-                *cmdResult.pushModeSettings);
+                cmdResult.recorderSettings, cmdResult.audioGenerationSettings,
+                cmdResult.videoGenerationSettings, *cmdResult.pushModeSettings);
     else
         recordingRunner = std::make_unique<PullModeRecordingRunner>(
-                cmdResult.audioGenerationSettings, cmdResult.videoGenerationSettings);
+                cmdResult.recorderSettings, cmdResult.audioGenerationSettings,
+                cmdResult.videoGenerationSettings);
 
     PreviewRunner previewRunner;
 
@@ -34,7 +35,7 @@ int main(int argc, char *argv[])
     QObject::connect(&previewRunner, &PreviewRunner::finished, &app, &QApplication::quit,
                      Qt::QueuedConnection);
 
-    recordingRunner->run(cmdResult.outputLocation);
+    recordingRunner->run();
 
     return app.exec();
 }

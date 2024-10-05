@@ -4,10 +4,10 @@
 #ifndef COMMANDLINEPARSER_H
 #define COMMANDLINEPARSER_H
 
-#include <QCommandLineParser>
+#include "settings.h"
 
-#include "mediagenerator.h"
-#include "recordingrunner.h"
+#include <QCommandLineParser>
+#include <unordered_map>
 
 class CommandLineParser
 {
@@ -17,7 +17,7 @@ public:
         AudioGeneratorSettingsOpt audioGenerationSettings;
         VideoGeneratorSettingsOpt videoGenerationSettings;
         PushModeSettingsOpt pushModeSettings;
-        QUrl outputLocation;
+        RecorderSettings recorderSettings;
     };
 
     CommandLineParser();
@@ -37,9 +37,11 @@ private:
 
     struct Options
     {
+        // common
         QString streams;
         QString mode;
-        QString outputLocation;
+
+        // generator
         QString duration;
         QString channelFrequencies;
         QString audioBufferDuration;
@@ -51,6 +53,12 @@ private:
         QString framePatternSpeed;
         QString pushModeProducingRate;
         QString pushModeMaxQueueSize;
+
+        // recorder
+        QString outputLocation;
+        QString recorderFrameRate;
+        QString recorderQuality;
+        QString recorderResolution;
     };
 
     Options createOptions();
@@ -64,27 +72,37 @@ private:
     QStringList m_streams{ m_audioStream, m_videoStream };
     const QStringList m_modes{ m_pullMode, m_pushMode };
 
-    const QStringList m_sampleFormatsStr = { QStringLiteral("UInt8"), QStringLiteral("Int16"),
-                                             QStringLiteral("Int32"), QStringLiteral("Float") };
+    template <typename Enum>
+    using EnumMap = std::unordered_map<Enum, QStringView>;
 
-    const QList<QAudioFormat::ChannelConfig> m_channelConfigs = {
-        QAudioFormat::ChannelConfigMono,          QAudioFormat::ChannelConfigStereo,
-        QAudioFormat::ChannelConfig2Dot1,         QAudioFormat::ChannelConfig3Dot0,
-        QAudioFormat::ChannelConfig3Dot1,         QAudioFormat::ChannelConfigSurround5Dot0,
-        QAudioFormat::ChannelConfigSurround5Dot1, QAudioFormat::ChannelConfigSurround7Dot1,
+    const EnumMap<QAudioFormat::SampleFormat> m_sampleFormats = {
+        { QAudioFormat::UInt8, u"uint8" },
+        { QAudioFormat::Int16, u"int16" },
+        { QAudioFormat::Int32, u"int32" },
+        { QAudioFormat::Float, u"float" },
     };
 
-    const QStringList m_channelConfigsStr = {
-        QStringLiteral("ChannelConfigMono"),          QStringLiteral("ChannelConfigStereo"),
-        QStringLiteral("ChannelConfig2Dot1"),         QStringLiteral("ChannelConfig3Dot0"),
-        QStringLiteral("ChannelConfig3Dot1"),         QStringLiteral("ChannelConfigSurround5Dot0"),
-        QStringLiteral("ChannelConfigSurround5Dot1"), QStringLiteral("ChannelConfigSurround7Dot1")
+    const EnumMap<QAudioFormat::ChannelConfig> m_channelConfigs = {
+        { QAudioFormat::ChannelConfigMono, u"mono" },
+        { QAudioFormat::ChannelConfigStereo, u"stereo" },
+        { QAudioFormat::ChannelConfig2Dot1, u"2Dot1" },
+        { QAudioFormat::ChannelConfig3Dot0, u"3Dot0" },
+        { QAudioFormat::ChannelConfig3Dot1, u"3Dot1" },
+        { QAudioFormat::ChannelConfigSurround5Dot0, u"surround5Dot0" },
+        { QAudioFormat::ChannelConfigSurround5Dot1, u"surround5Dot1" },
+        { QAudioFormat::ChannelConfigSurround7Dot1, u"surround7Dot1" }
     };
 
-    AudioGenerator::Settings m_audioGenerationSettings;
-    VideoGenerator::Settings m_videoGenerationSettings;
+    const EnumMap<QMediaRecorder::Quality> m_recorderQualities = {
+        { QMediaRecorder::VeryLowQuality, u"veryLow" },   { QMediaRecorder::LowQuality, u"low" },
+        { QMediaRecorder::NormalQuality, u"normal" },     { QMediaRecorder::HighQuality, u"high" },
+        { QMediaRecorder::VeryHighQuality, u"veryHigh" },
+    };
+
+    AudioGeneratorSettings m_audioGenerationSettings;
+    VideoGeneratorSettings m_videoGenerationSettings;
     PushModeSettings m_pushModeSettings;
-    QUrl m_outputLocation;
+    RecorderSettings m_recorderSettings;
     QString m_mode = m_pullMode;
 
     QCommandLineParser m_parser;

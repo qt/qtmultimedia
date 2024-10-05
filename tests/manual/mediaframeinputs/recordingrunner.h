@@ -6,13 +6,11 @@
 
 #include <QMediaRecorder>
 #include <QMediaCaptureSession>
-#include <QUrl>
 
 #include "mediagenerator.h"
 #include "pushmodemediasource.h"
 #include "mediaframeinputqueue.h"
-
-#include <optional>
+#include "settings.h"
 
 class RecordingRunner : public QObject
 {
@@ -20,12 +18,12 @@ class RecordingRunner : public QObject
 public:
     ~RecordingRunner() override;
 
-    virtual void run(const QUrl &outputLocation = {});
+    virtual void run();
 
     const QMediaRecorder &recorder() const { return m_recorder; }
 
 protected:
-    RecordingRunner();
+    RecordingRunner(const RecorderSettings &recorderSettings);
 
     QMediaCaptureSession &session() { return m_session; }
 
@@ -45,7 +43,8 @@ private:
 class PullModeRecordingRunner : public RecordingRunner
 {
 public:
-    PullModeRecordingRunner(const AudioGeneratorSettingsOpt &audioGenerationSettings,
+    PullModeRecordingRunner(const RecorderSettings &recorderSettings,
+                            const AudioGeneratorSettingsOpt &audioGenerationSettings,
                             const VideoGeneratorSettingsOpt &videoGenerationSettings);
 
 private:
@@ -61,24 +60,17 @@ private:
     std::unique_ptr<QVideoFrameInput> m_videoInput;
 };
 
-struct PushModeSettings
-{
-    qreal producingRate = 1.;
-    std::uint32_t maxQueueSize = 5;
-};
-
-using PushModeSettingsOpt = std::optional<PushModeSettings>;
-
 class PushModeRecordingRunner : public RecordingRunner
 {
 public:
-    PushModeRecordingRunner(const AudioGeneratorSettingsOpt &audioGenerationSettings,
+    PushModeRecordingRunner(const RecorderSettings &recorderSettings,
+                            const AudioGeneratorSettingsOpt &audioGenerationSettings,
                             const VideoGeneratorSettingsOpt &videoGenerationSettings,
                             const PushModeSettings &pushModeSettings);
 
     ~PushModeRecordingRunner();
 
-    void run(const QUrl &outputLocation = {}) override;
+    void run() override;
 
 private:
     void onFinished();
