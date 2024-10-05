@@ -21,6 +21,7 @@ qt_add_executable(mediaframeinputs MACOSX_BUNDLE
     mediagenerator.cpp mediagenerator.h
     pushmodemediasource.h
     mediaframeinputqueue.h
+    commandlineparser.cpp commandlineparser.h
 )
 
 target_link_libraries(mediaframeinputs PUBLIC
