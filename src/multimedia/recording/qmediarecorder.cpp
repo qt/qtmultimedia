@@ -265,6 +265,8 @@ void QMediaRecorder::setOutputLocation(const QUrl &location)
     If the recording has been started, the device must be kept alive and open until
     the signal \c recorderStateChanged(StoppedState) is emitted.
 
+    QMediaRecorder::setOutputDevice is only supported with the FFmpeg backend.
+
     \sa outputDevice()
 */
 void QMediaRecorder::setOutputDevice(QIODevice *device)
@@ -623,6 +625,8 @@ void QMediaRecorder::addMetaData(const QMediaMetaData &metaData)
     can be deactivated via the function \c setActive.
 
     Defaults to \c false.
+
+    QMediaRecorder::autoStop is only supported with the FFmpeg backend.
 
     \sa QCamera, QScreenCapture, QWindowCapture
 */

@@ -20,6 +20,8 @@ QT_BEGIN_NAMESPACE
     decoded by the media player. The received audio data can be used for any
     processing or visualization.
 
+    QAudioBufferOutput is only supported with the FFmpeg backend.
+
     \sa QMediaPlayer, QMediaPlayer::setAudioBufferOutput, QAudioBuffer
 */
 
