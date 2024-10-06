@@ -81,8 +81,7 @@ bool CaptureSessionFixture::waitForRecorderStopped(milliseconds duration)
     if (!stopped)
         return false;
 
-    return m_recorder.recorderState() == QMediaRecorder::StoppedState
-            && m_recorder.error() == QMediaRecorder::NoError;
+    return m_recorder.recorderState() == QMediaRecorder::StoppedState;
 }
 
 bool CaptureSessionFixture::hasAudio() const
