@@ -16,12 +16,12 @@ int main(int argc, char *argv[])
     std::unique_ptr<RecordingRunner> recordingRunner;
     if (cmdResult.pushModeSettings)
         recordingRunner = std::make_unique<PushModeRecordingRunner>(
-                cmdResult.recorderSettings, cmdResult.audioGenerationSettings,
-                cmdResult.videoGenerationSettings, *cmdResult.pushModeSettings);
+                cmdResult.recorderSettings, cmdResult.audioGeneratorSettings,
+                cmdResult.videoGeneratorSettings, *cmdResult.pushModeSettings);
     else
         recordingRunner = std::make_unique<PullModeRecordingRunner>(
-                cmdResult.recorderSettings, cmdResult.audioGenerationSettings,
-                cmdResult.videoGenerationSettings);
+                cmdResult.recorderSettings, cmdResult.audioGeneratorSettings,
+                cmdResult.videoGeneratorSettings);
 
     PreviewRunner previewRunner;
 

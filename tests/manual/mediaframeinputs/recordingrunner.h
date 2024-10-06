@@ -44,8 +44,8 @@ class PullModeRecordingRunner : public RecordingRunner
 {
 public:
     PullModeRecordingRunner(const RecorderSettings &recorderSettings,
-                            const AudioGeneratorSettingsOpt &audioGenerationSettings,
-                            const VideoGeneratorSettingsOpt &videoGenerationSettings);
+                            const AudioGeneratorSettingsOpt &audioGeneratorSettings,
+                            const VideoGeneratorSettingsOpt &videoGeneratorSettings);
 
 private:
     void sendNextAudioBuffer();
@@ -64,8 +64,8 @@ class PushModeRecordingRunner : public RecordingRunner
 {
 public:
     PushModeRecordingRunner(const RecorderSettings &recorderSettings,
-                            const AudioGeneratorSettingsOpt &audioGenerationSettings,
-                            const VideoGeneratorSettingsOpt &videoGenerationSettings,
+                            const AudioGeneratorSettingsOpt &audioGeneratorSettings,
+                            const VideoGeneratorSettingsOpt &videoGeneratorSettings,
                             const PushModeSettings &pushModeSettings);
 
     ~PushModeRecordingRunner();

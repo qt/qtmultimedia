@@ -146,15 +146,15 @@ CommandLineParser::Result CommandLineParser::process()
 void CommandLineParser::parseCommonSettings()
 {
     if (auto duration = parsedValue(m_options.duration, noCheck, toUInt)) {
-        m_result.audioGenerationSettings->duration = std::chrono::milliseconds(*duration);
-        m_result.videoGenerationSettings->duration = std::chrono::milliseconds(*duration);
+        m_result.audioGeneratorSettings->duration = std::chrono::milliseconds(*duration);
+        m_result.videoGeneratorSettings->duration = std::chrono::milliseconds(*duration);
     }
 
     if (auto streams = parsedValue(m_options.streams, noCheck, toStreams, m_streams)) {
         if (!contains(*streams, m_audioStream))
-            m_result.audioGenerationSettings.reset();
+            m_result.audioGeneratorSettings.reset();
         if (!contains(*streams, m_videoStream))
-            m_result.videoGenerationSettings.reset();
+            m_result.videoGeneratorSettings.reset();
     }
 
     if (auto mode = parsedValue(m_options.mode, noCheck, toMode, m_modes))
@@ -166,7 +166,7 @@ void CommandLineParser::parseCommonSettings()
 
 void CommandLineParser::parseAudioGeneratorSettings()
 {
-    AudioGeneratorSettingsOpt &settings = m_result.audioGenerationSettings;
+    AudioGeneratorSettingsOpt &settings = m_result.audioGeneratorSettings;
 
     auto check = [&settings]() -> const char * {
         return settings ? nullptr : "audio stream is not enabled";
@@ -187,7 +187,7 @@ void CommandLineParser::parseAudioGeneratorSettings()
 
 void CommandLineParser::parseVideoGeneratorSettings()
 {
-    VideoGeneratorSettingsOpt &settings = m_result.videoGenerationSettings;
+    VideoGeneratorSettingsOpt &settings = m_result.videoGeneratorSettings;
 
     auto check = [&settings]() -> const char * {
         return settings ? nullptr : "video stream is not enabled";
@@ -278,11 +278,11 @@ QString CommandLineParser::addOption(QCommandLineOption option)
 CommandLineParser::Options CommandLineParser::createOptions()
 {
     Options result;
-    Q_ASSERT(m_result.audioGenerationSettings && m_result.videoGenerationSettings
+    Q_ASSERT(m_result.audioGeneratorSettings && m_result.videoGeneratorSettings
              && m_result.pushModeSettings);
 
-    const AudioGeneratorSettings &audioGeneratorSettings = *m_result.audioGenerationSettings;
-    const VideoGeneratorSettings &videoGeneratorSettings = *m_result.videoGenerationSettings;
+    const AudioGeneratorSettings &audioGeneratorSettings = *m_result.audioGeneratorSettings;
+    const VideoGeneratorSettings &videoGeneratorSettings = *m_result.videoGeneratorSettings;
     const PushModeSettings &pushModeSettings = *m_result.pushModeSettings;
 
     result.streams = addOption({ QStringLiteral("streams"),
