@@ -14,8 +14,8 @@ class CommandLineParser
 public:
     struct Result
     {
-        AudioGeneratorSettingsOpt audioGenerationSettings;
-        VideoGeneratorSettingsOpt videoGenerationSettings;
+        AudioGeneratorSettingsOpt audioGeneratorSettings;
+        VideoGeneratorSettingsOpt videoGeneratorSettings;
         PushModeSettingsOpt pushModeSettings;
         RecorderSettings recorderSettings;
     };
