@@ -6,6 +6,7 @@
 
 #include <QAudioFormat>
 #include <QMediaRecorder>
+#include <QMediaFormat>
 #include <QUrl>
 
 #include <optional>
@@ -50,6 +51,9 @@ struct RecorderSettings
     QSize resolution;
     std::optional<QMediaRecorder::Quality> quality;
     QUrl outputLocation;
+    std::optional<QMediaFormat::AudioCodec> audioCodec;
+    std::optional<QMediaFormat::VideoCodec> videoCodec;
+    std::optional<QMediaFormat::FileFormat> fileFormat;
 };
 
 struct PushModeSettings

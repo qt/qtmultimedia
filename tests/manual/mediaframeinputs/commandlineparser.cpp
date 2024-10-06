@@ -200,6 +200,15 @@ CommandLineParser::Result CommandLineParser::process()
     m_recorderSettings.quality =
             parsedValue(m_options.recorderQuality, noCheck, toEnum, m_recorderQualities);
 
+    m_recorderSettings.audioCodec =
+            parsedValue(m_options.recorderAudioCodec, noCheck, toEnum, m_audioCodecs);
+
+    m_recorderSettings.videoCodec =
+            parsedValue(m_options.recorderVideoCodec, noCheck, toEnum, m_videoCodecs);
+
+    m_recorderSettings.fileFormat =
+            parsedValue(m_options.recorderFileFormat, noCheck, toEnum, m_fileFormats);
+
     return takeResult();
 }
 
@@ -352,6 +361,18 @@ CommandLineParser::Options CommandLineParser::createOptions()
             addOption({ QStringLiteral("recorder.resolution"),
                         QStringLiteral("Video resolution for media recorder.\nNo default value."),
                         QStringLiteral("WxH") });
+    result.recorderAudioCodec =
+            addOption({ { QStringLiteral("recorder.audioCodec"), QStringLiteral("audioCodec") },
+                        QStringLiteral("Audio codec for media recorder. \nNo default value."),
+                        QStringLiteral("enum") });
+    result.recorderVideoCodec =
+            addOption({ { QStringLiteral("recorder.videoCodec"), QStringLiteral("videoCodec") },
+                        QStringLiteral("Video codec for media recorder.\nNo default value."),
+                        QStringLiteral("enum") });
+    result.recorderFileFormat =
+            addOption({ { QStringLiteral("recorder.fileFormat"), QStringLiteral("fileFormat") },
+                        QStringLiteral("File format for media recorder.\nNo default value."),
+                        QStringLiteral("enum") });
 
     return result;
 }

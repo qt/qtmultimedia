@@ -59,6 +59,9 @@ private:
         QString recorderFrameRate;
         QString recorderQuality;
         QString recorderResolution;
+        QString recorderAudioCodec;
+        QString recorderVideoCodec;
+        QString recorderFileFormat;
     };
 
     Options createOptions();
@@ -97,6 +100,49 @@ private:
         { QMediaRecorder::VeryLowQuality, u"veryLow" },   { QMediaRecorder::LowQuality, u"low" },
         { QMediaRecorder::NormalQuality, u"normal" },     { QMediaRecorder::HighQuality, u"high" },
         { QMediaRecorder::VeryHighQuality, u"veryHigh" },
+    };
+
+    const EnumMap<QMediaFormat::AudioCodec> m_audioCodecs = {
+        { QMediaFormat::AudioCodec::MP3, u"mp3" },
+        { QMediaFormat::AudioCodec::AAC, u"aac" },
+        { QMediaFormat::AudioCodec::AC3, u"ac3" },
+        { QMediaFormat::AudioCodec::EAC3, u"eac3" },
+        { QMediaFormat::AudioCodec::FLAC, u"flac" },
+        { QMediaFormat::AudioCodec::DolbyTrueHD, u"dolbyTrueHD" },
+        { QMediaFormat::AudioCodec::Opus, u"opus" },
+        { QMediaFormat::AudioCodec::Vorbis, u"vorbis" },
+        { QMediaFormat::AudioCodec::Wave, u"wave" },
+        { QMediaFormat::AudioCodec::WMA, u"wma" },
+        { QMediaFormat::AudioCodec::ALAC, u"alac" },
+    };
+
+    const EnumMap<QMediaFormat::VideoCodec> m_videoCodecs = {
+        { QMediaFormat::VideoCodec::MPEG1, u"mpeg1" },
+        { QMediaFormat::VideoCodec::MPEG2, u"mpeg2" },
+        { QMediaFormat::VideoCodec::MPEG4, u"mpeg4" },
+        { QMediaFormat::VideoCodec::H264, u"h264" },
+        { QMediaFormat::VideoCodec::H265, u"h265" },
+        { QMediaFormat::VideoCodec::VP8, u"vp8" },
+        { QMediaFormat::VideoCodec::VP9, u"vp9" },
+        { QMediaFormat::VideoCodec::AV1, u"av1" },
+        { QMediaFormat::VideoCodec::Theora, u"theora" },
+        { QMediaFormat::VideoCodec::WMV, u"wmv" },
+        { QMediaFormat::VideoCodec::MotionJPEG, u"motionJPEG" },
+    };
+
+    const EnumMap<QMediaFormat::FileFormat> m_fileFormats = {
+        { QMediaFormat::FileFormat::WMV, u"wmv" },
+        { QMediaFormat::FileFormat::AVI, u"avi" },
+        { QMediaFormat::FileFormat::Matroska, u"matroska" },
+        { QMediaFormat::FileFormat::MPEG4, u"mpeg4" },
+        { QMediaFormat::FileFormat::Ogg, u"ogg" },
+        { QMediaFormat::FileFormat::QuickTime, u"quickTime" },
+        { QMediaFormat::FileFormat::WebM, u"webm" },
+        { QMediaFormat::FileFormat::Mpeg4Audio, u"mpeg4Audio" },
+        { QMediaFormat::FileFormat::AAC, u"aac" },
+        { QMediaFormat::FileFormat::WMA, u"wma" },
+        { QMediaFormat::FileFormat::MP3, u"mp3" },
+        { QMediaFormat::FileFormat::FLAC, u"flac" },
     };
 
     AudioGeneratorSettings m_audioGenerationSettings;

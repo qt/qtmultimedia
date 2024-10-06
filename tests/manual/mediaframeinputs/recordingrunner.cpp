@@ -15,6 +15,16 @@ RecordingRunner::RecordingRunner(const RecorderSettings &recorderSettings)
         m_recorder.setQuality(*recorderSettings.quality);
     if (!recorderSettings.outputLocation.isEmpty())
         m_recorder.setOutputLocation(recorderSettings.outputLocation);
+    if (recorderSettings.fileFormat || recorderSettings.audioCodec || recorderSettings.videoCodec) {
+        QMediaFormat format;
+        if (recorderSettings.fileFormat)
+            format.setFileFormat(*recorderSettings.fileFormat);
+        if (recorderSettings.videoCodec)
+            format.setVideoCodec(*recorderSettings.videoCodec);
+        if (recorderSettings.audioCodec)
+            format.setAudioCodec(*recorderSettings.audioCodec);
+        m_recorder.setMediaFormat(format);
+    }
 
     m_recorder.setAutoStop(true);
 
