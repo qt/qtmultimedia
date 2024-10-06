@@ -104,8 +104,8 @@ AudioComparisonResult compareAudioData(QSpan<const float> actual, QSpan<const fl
     // can be calculated
     result.actualSamplesOffset = 0;
 
-    const auto samplesCount =
-            qMin(result.actualSampleCount - result.actualSamplesOffset, result.expectedSampleCount);
+    const quint32 samplesCount = static_cast<quint32>(qMin(
+            result.actualSampleCount - result.actualSamplesOffset, result.expectedSampleCount));
 
     for (int channel = 0; channel < channelsCount; ++channel)
         result.channelsInfo.push_back(
@@ -202,6 +202,7 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInput
     f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
     QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
 
     auto info = MediaInfo::create(f.m_recorder.actualLocation());
 
@@ -267,6 +268,7 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInput
     f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
     QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
 
     auto info = MediaInfo::create(f.m_recorder.actualLocation());
 
@@ -322,6 +324,7 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withCorrectColors()
 
     f.start(RunMode::Pull, AutoStop::EmitEmpty);
     QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
 
     const auto info = MediaInfo::create(f.m_recorder.actualLocation());
     QCOMPARE_EQ(info->m_colors.size(), 3);
@@ -364,6 +367,7 @@ void tst_QMediaFrameInputsBackend::
 
     f.start(RunMode::Pull, AutoStop::EmitEmpty);
     QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
 
     const auto info = MediaInfo::create(f.m_recorder.actualLocation());
     QCOMPARE_EQ(info->m_colors.size(), 3);
@@ -448,6 +452,8 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameShrink
     f.m_videoInput.sendVideoFrame({});
 
     QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
+
     auto info = MediaInfo::create(f.m_recorder.actualLocation());
 
     QCOMPARE_EQ(info->m_frameCount, frameCount);
@@ -479,6 +485,8 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameGrowsO
     f.m_videoInput.sendVideoFrame({});
 
     QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
+
     auto info = MediaInfo::create(f.m_recorder.actualLocation());
 
     QCOMPARE_EQ(info->m_frameCount, frameCount);
@@ -496,6 +504,8 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withSingleFrame()
     f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
     QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
+
     auto info = MediaInfo::create(f.m_recorder.actualLocation());
 
     QCOMPARE_EQ(info->m_frameCount, 1);
@@ -531,14 +541,19 @@ void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReporte
     if (audioStopsFirst) {
         f.m_audioInput.sendAudioBuffer({});
         QVERIFY(!f.waitForRecorderStopped(300ms)); // Should not stop until both streams stopped
+        QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
+                 f.m_recorder.errorString().toLatin1());
         f.m_videoInput.sendVideoFrame({});
     } else {
         f.m_videoInput.sendVideoFrame({});
         QVERIFY(!f.waitForRecorderStopped(300ms)); // Should not stop until both streams stopped
+        QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
+                 f.m_recorder.errorString().toLatin1());
         f.m_audioInput.sendAudioBuffer({});
     }
 
     QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
 
     // check if the file has been written
 
@@ -609,7 +624,8 @@ void tst_QMediaFrameInputsBackend::readyToSendVideoFrame_isEmittedRepeatedly_whe
 
     f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
-    f.waitForRecorderStopped(60s);
+    QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
 
     QCOMPARE_EQ(f.readyToSendVideoFrame.size(), expectedSignalCount);
 }
@@ -624,7 +640,8 @@ void tst_QMediaFrameInputsBackend::
 
     f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
-    f.waitForRecorderStopped(60s);
+    QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
 
     QCOMPARE_EQ(f.readyToSendAudioBuffer.size(), expectedSignalCount);
 }
@@ -640,7 +657,8 @@ void tst_QMediaFrameInputsBackend::
 
     f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
-    f.waitForRecorderStopped(60s);
+    QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
 
     QCOMPARE_EQ(f.readyToSendAudioBuffer.size(), expectedSignalCount);
     QCOMPARE_EQ(f.readyToSendVideoFrame.size(), expectedSignalCount);
