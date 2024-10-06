@@ -80,6 +80,8 @@ private:
     \brief The QAudioBufferInput class is used for providing custom audio buffers
     to \l QMediaRecorder through \l QMediaCaptureSession.
 
+    QAudioBufferInput is only supported with the FFmpeg backend.
+
     \sa QMediaRecorder, QMediaCaptureSession
 */
 
