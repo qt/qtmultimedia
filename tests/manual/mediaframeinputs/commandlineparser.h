@@ -25,8 +25,6 @@ public:
     Result process();
 
 private:
-    Result takeResult();
-
     template <typename ContextChecker, typename... ResultGetter>
     auto parsedValue(const QString &option, ContextChecker &&contextChecker,
                      ResultGetter &&...resultGetter)
@@ -34,6 +32,17 @@ private:
                                                   std::declval<bool &>()))>;
 
     QString addOption(QCommandLineOption option);
+
+    void parseCommonSettings();
+
+    void parseAudioGeneratorSettings();
+
+    void parseVideoGeneratorSettings();
+
+    void parsePushModeSettings();
+
+    void parseRecorderSettings();
+
 
     struct Options
     {
@@ -72,7 +81,7 @@ private:
     const QString m_pullMode = QStringLiteral("pull");
     const QString m_pushMode = QStringLiteral("push");
 
-    QStringList m_streams{ m_audioStream, m_videoStream };
+    const QStringList m_streams{ m_audioStream, m_videoStream };
     const QStringList m_modes{ m_pullMode, m_pushMode };
 
     template <typename Enum>
@@ -145,11 +154,8 @@ private:
         { QMediaFormat::FileFormat::FLAC, u"flac" },
     };
 
-    AudioGeneratorSettings m_audioGenerationSettings;
-    VideoGeneratorSettings m_videoGenerationSettings;
-    PushModeSettings m_pushModeSettings;
-    RecorderSettings m_recorderSettings;
     QString m_mode = m_pullMode;
+    Result m_result;
 
     QCommandLineParser m_parser;
     Options m_options = createOptions(); // should be the last member

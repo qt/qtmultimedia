@@ -44,7 +44,7 @@ auto toUInt(const QString &value, bool &ok)
     return value.toUInt(&ok);
 }
 
-auto toChannelFrequencies(const QString &value, bool &ok)
+auto toUIntList(const QString &value, bool &ok)
 {
     std::vector<uint32_t> result;
     const QStringList split = value.split(',');
@@ -114,9 +114,15 @@ auto toMsCount(Duration duration)
     return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 }
 
+const char *noCheck()
+{
+    return nullptr;
+};
+
 } // namespace
 
 CommandLineParser::CommandLineParser()
+    : m_result{ AudioGeneratorSettings{}, VideoGeneratorSettings{}, PushModeSettings{} }
 {
     m_parser.setApplicationDescription(QStringLiteral(
             "The application tests QtMultimedia media frame inputs with media "
@@ -128,106 +134,110 @@ CommandLineParser::Result CommandLineParser::process()
 {
     m_parser.process(*QApplication::instance());
 
-    auto noCheck = []() -> const char * { return nullptr; };
+    parseCommonSettings(); // parse common settings first
+    parseAudioGeneratorSettings();
+    parseVideoGeneratorSettings();
+    parsePushModeSettings();
+    parseRecorderSettings();
 
-    if (auto parsedStreams = parsedValue(m_options.streams, noCheck, toStreams, m_streams))
-        m_streams = *parsedStreams;
+    return std::move(m_result);
+}
+
+void CommandLineParser::parseCommonSettings()
+{
+    if (auto duration = parsedValue(m_options.duration, noCheck, toUInt)) {
+        m_result.audioGenerationSettings->duration = std::chrono::milliseconds(*duration);
+        m_result.videoGenerationSettings->duration = std::chrono::milliseconds(*duration);
+    }
+
+    if (auto streams = parsedValue(m_options.streams, noCheck, toStreams, m_streams)) {
+        if (!contains(*streams, m_audioStream))
+            m_result.audioGenerationSettings.reset();
+        if (!contains(*streams, m_videoStream))
+            m_result.videoGenerationSettings.reset();
+    }
 
     if (auto mode = parsedValue(m_options.mode, noCheck, toMode, m_modes))
         m_mode = *mode;
 
-    auto checkAudioStream = [this]() -> const char * {
-        return contains(m_streams, m_audioStream) ? nullptr : "audio stream is not enabled";
-    };
-
-    auto checkVideoStream = [this]() -> const char * {
-        return contains(m_streams, m_videoStream) ? nullptr : "video stream is not enabled";
-    };
-
-    auto checkPushMode = [this]() -> const char * {
-        return equals(m_mode, m_pushMode) ? nullptr : "push mode is not enabled";
-    };
-
-    if (auto duration = parsedValue(m_options.duration, noCheck, toUInt)) {
-        m_audioGenerationSettings.duration = std::chrono::milliseconds(*duration);
-        m_videoGenerationSettings.duration = std::chrono::milliseconds(*duration);
-    }
-
-    if (auto frequencies =
-                parsedValue(m_options.channelFrequencies, checkAudioStream, toChannelFrequencies))
-        m_audioGenerationSettings.channelFrequencies = std::move(*frequencies);
-
-    if (auto bufferDuration = parsedValue(m_options.audioBufferDuration, checkAudioStream, toUInt))
-        m_audioGenerationSettings.bufferDuration = std::chrono::milliseconds(*bufferDuration);
-
-    if (auto format =
-                parsedValue(m_options.sampleFormat, checkAudioStream, toEnum, m_sampleFormats))
-        m_audioGenerationSettings.sampleFormat = *format;
-
-    if (auto config =
-                parsedValue(m_options.channelConfig, checkAudioStream, toEnum, m_channelConfigs))
-        m_audioGenerationSettings.channelConfig = *config;
-
-    if (auto frameRate = parsedValue(m_options.frameRate, checkVideoStream, toUInt))
-        m_videoGenerationSettings.frameRate = *frameRate;
-
-    if (auto resolution = parsedValue(m_options.resolution, checkVideoStream, toSize))
-        m_videoGenerationSettings.resolution = *resolution;
-
-    if (auto patternWidth = parsedValue(m_options.framePatternWidth, checkVideoStream, toUInt))
-        m_videoGenerationSettings.patternWidth = *patternWidth;
-
-    if (auto patternSpeed = parsedValue(m_options.framePatternSpeed, checkVideoStream, toUInt))
-        m_videoGenerationSettings.patternSpeed = *patternSpeed;
-
-    if (auto producingRate =
-                parsedValue(m_options.pushModeProducingRate, checkPushMode, toPositiveFloat))
-        m_pushModeSettings.producingRate = *producingRate;
-
-    if (auto maxQueueSize = parsedValue(m_options.pushModeMaxQueueSize, checkPushMode, toUInt))
-        m_pushModeSettings.maxQueueSize = *maxQueueSize;
-
-    // recording settings
-    if (auto location = parsedValue(m_options.outputLocation, noCheck, toUrl))
-        m_recorderSettings.outputLocation = *location;
-
-    if (auto frameRate = parsedValue(m_options.recorderFrameRate, noCheck, toUInt))
-        m_recorderSettings.frameRate = *frameRate;
-
-    if (auto resolution = parsedValue(m_options.recorderResolution, noCheck, toSize))
-        m_recorderSettings.resolution = *resolution;
-
-    m_recorderSettings.quality =
-            parsedValue(m_options.recorderQuality, noCheck, toEnum, m_recorderQualities);
-
-    m_recorderSettings.audioCodec =
-            parsedValue(m_options.recorderAudioCodec, noCheck, toEnum, m_audioCodecs);
-
-    m_recorderSettings.videoCodec =
-            parsedValue(m_options.recorderVideoCodec, noCheck, toEnum, m_videoCodecs);
-
-    m_recorderSettings.fileFormat =
-            parsedValue(m_options.recorderFileFormat, noCheck, toEnum, m_fileFormats);
-
-    return takeResult();
+    if (!equals(m_mode, m_pushMode))
+        m_result.pushModeSettings.reset();
 }
 
-CommandLineParser::Result CommandLineParser::takeResult()
+void CommandLineParser::parseAudioGeneratorSettings()
 {
-    Result result;
+    AudioGeneratorSettingsOpt &settings = m_result.audioGenerationSettings;
 
-    if (contains(m_streams, m_audioStream))
-        result.audioGenerationSettings = std::move(m_audioGenerationSettings);
+    auto check = [&settings]() -> const char * {
+        return settings ? nullptr : "audio stream is not enabled";
+    };
 
-    if (contains(m_streams, m_videoStream))
-        result.videoGenerationSettings = std::move(m_videoGenerationSettings);
+    if (auto frequencies = parsedValue(m_options.channelFrequencies, check, toUIntList))
+        settings->channelFrequencies = std::move(*frequencies);
 
-    if (equals(m_mode, m_pushMode))
-        result.pushModeSettings = m_pushModeSettings;
+    if (auto bufferDuration = parsedValue(m_options.audioBufferDuration, check, toUInt))
+        settings->bufferDuration = std::chrono::milliseconds(*bufferDuration);
 
-    result.recorderSettings = std::move(m_recorderSettings);
+    if (auto format = parsedValue(m_options.sampleFormat, check, toEnum, m_sampleFormats))
+        settings->sampleFormat = *format;
 
-    return result;
+    if (auto config = parsedValue(m_options.channelConfig, check, toEnum, m_channelConfigs))
+        settings->channelConfig = *config;
+}
+
+void CommandLineParser::parseVideoGeneratorSettings()
+{
+    VideoGeneratorSettingsOpt &settings = m_result.videoGenerationSettings;
+
+    auto check = [&settings]() -> const char * {
+        return settings ? nullptr : "video stream is not enabled";
+    };
+
+    if (auto frameRate = parsedValue(m_options.frameRate, check, toUInt))
+        settings->frameRate = *frameRate;
+
+    if (auto resolution = parsedValue(m_options.resolution, check, toSize))
+        settings->resolution = *resolution;
+
+    if (auto patternWidth = parsedValue(m_options.framePatternWidth, check, toUInt))
+        settings->patternWidth = *patternWidth;
+
+    if (auto patternSpeed = parsedValue(m_options.framePatternSpeed, check, toUInt))
+        settings->patternSpeed = *patternSpeed;
+}
+
+void CommandLineParser::parsePushModeSettings()
+{
+    PushModeSettingsOpt &settings = m_result.pushModeSettings;
+
+    auto check = [&settings]() -> const char * {
+        return settings ? nullptr : "push mode is not enabled";
+    };
+
+    if (auto producingRate = parsedValue(m_options.pushModeProducingRate, check, toPositiveFloat))
+        settings->producingRate = *producingRate;
+
+    if (auto maxQueueSize = parsedValue(m_options.pushModeMaxQueueSize, check, toUInt))
+        settings->maxQueueSize = *maxQueueSize;
+}
+
+void CommandLineParser::parseRecorderSettings()
+{
+    RecorderSettings &settings = m_result.recorderSettings;
+
+    if (auto location = parsedValue(m_options.outputLocation, noCheck, toUrl))
+        settings.outputLocation = *location;
+
+    if (auto frameRate = parsedValue(m_options.recorderFrameRate, noCheck, toUInt))
+        settings.frameRate = *frameRate;
+
+    if (auto resolution = parsedValue(m_options.recorderResolution, noCheck, toSize))
+        settings.resolution = *resolution;
+
+    settings.quality = parsedValue(m_options.recorderQuality, noCheck, toEnum, m_recorderQualities);
+    settings.audioCodec = parsedValue(m_options.recorderAudioCodec, noCheck, toEnum, m_audioCodecs);
+    settings.videoCodec = parsedValue(m_options.recorderVideoCodec, noCheck, toEnum, m_videoCodecs);
+    settings.fileFormat = parsedValue(m_options.recorderFileFormat, noCheck, toEnum, m_fileFormats);
 }
 
 template <typename ContextChecker, typename... ResultGetter>
@@ -268,72 +278,79 @@ QString CommandLineParser::addOption(QCommandLineOption option)
 CommandLineParser::Options CommandLineParser::createOptions()
 {
     Options result;
+    Q_ASSERT(m_result.audioGenerationSettings && m_result.videoGenerationSettings
+             && m_result.pushModeSettings);
+
+    const AudioGeneratorSettings &audioGeneratorSettings = *m_result.audioGenerationSettings;
+    const VideoGeneratorSettings &videoGeneratorSettings = *m_result.videoGenerationSettings;
+    const PushModeSettings &pushModeSettings = *m_result.pushModeSettings;
+
     result.streams = addOption({ QStringLiteral("streams"),
                                  QStringLiteral("Types of generated streams (%1).\nDefaults to %2.")
                                          .arg(m_streams.join(u", "), m_streams.join(',')),
                                  QStringLiteral("list of enum") });
     result.mode = addOption({ QStringLiteral("mode"),
                               QStringLiteral("Media frames generation mode (%1).\nDefaults to %2.")
-                                      .arg(m_modes.join(u", "), m_mode),
+                                    .arg(m_modes.join(u", "), m_pullMode),
                               QStringLiteral("list of enum") });
     result.duration =
             addOption({ { QStringLiteral("generator.duration"), QStringLiteral("duration") },
                         QStringLiteral("Media duration.\nDefaults to %1.")
-                                .arg(toMsCount(m_audioGenerationSettings.duration)),
+                                    .arg(toMsCount(audioGeneratorSettings.duration)),
                         QStringLiteral("ms") });
     result.channelFrequencies = addOption(
             { { QStringLiteral("generator.frequencies"), QStringLiteral("frequencies") },
               QStringLiteral("Generated audio frequencies for each channel. It's "
                              "possible to set one or several ones: x,y,z.\nDefaults to %1.")
-                      .arg(joinNumberElements(m_audioGenerationSettings.channelFrequencies, u",")),
+                      .arg(joinNumberElements(audioGeneratorSettings.channelFrequencies, u",")),
               QStringLiteral("list of hz") });
     result.audioBufferDuration =
                 addOption({ { QStringLiteral("generator.audioBufferDuration"),
                               QStringLiteral("audioBufferDuration") },
                             QStringLiteral("Duration of single audio buffer.\nDefaults to %1.")
-                                .arg(toMsCount(m_audioGenerationSettings.bufferDuration)),
+                                    .arg(toMsCount(audioGeneratorSettings.bufferDuration)),
                         QStringLiteral("ms") });
     result.sampleFormat = addOption(
                 { { QStringLiteral("generator.sampleFormat"), QStringLiteral("sampleFormat") },
               QStringLiteral("Generated audio sample format (%1).\nDefaults to %2.")
                           .arg(joinMapStringValues(m_sampleFormats, u", "),
-                               m_sampleFormats.at(m_audioGenerationSettings.sampleFormat)),
+                               m_sampleFormats.at(audioGeneratorSettings.sampleFormat)),
               QStringLiteral("enum") });
     result.channelConfig = addOption(
             { { QStringLiteral("generator.channelConfig"), QStringLiteral("channelConfig") },
               QStringLiteral("Generated audio channel config (%1).\nDefaults to %2.")
                       .arg(joinMapStringValues(m_channelConfigs, u", "),
-                           m_channelConfigs.at(m_audioGenerationSettings.channelConfig)),
+                               m_channelConfigs.at(audioGeneratorSettings.channelConfig)),
               QStringLiteral("enum") });
     result.frameRate =
             addOption({ { QStringLiteral("generator.frameRate"), QStringLiteral("frameRate") },
                         QStringLiteral("Generated video frame rate.\nDefaults to %1.")
-                                .arg(m_videoGenerationSettings.frameRate),
+                                    .arg(videoGeneratorSettings.frameRate),
                         QStringLiteral("uint") });
     result.resolution = addOption(
                 { { QStringLiteral("generator.resolution"), QStringLiteral("resolution") },
               QStringLiteral("Generated video frame resolution.\nDefaults to %1x%2.")
-                      .arg(QString::number(m_videoGenerationSettings.resolution.width()),
-                           QString::number(m_videoGenerationSettings.resolution.height())),
+                          .arg(QString::number(videoGeneratorSettings.resolution.width()),
+                               QString::number(videoGeneratorSettings.resolution.height())),
               QStringLiteral("WxH") });
     result.framePatternWidth =
             addOption({ { QStringLiteral("generator.framePatternWidth"),
                           QStringLiteral("framePatternWidth") },
                         QStringLiteral("Generated video frame patern pixel width.\nDefaults to %1.")
-                                .arg(m_videoGenerationSettings.patternWidth),
+                          .arg(videoGeneratorSettings.patternWidth),
                         QStringLiteral("uint") });
     result.framePatternSpeed = addOption(
                 { { QStringLiteral("generator.framePatternSpeed"),
                     QStringLiteral("framePatternSpeed") },
               QStringLiteral("Relative speed of moving the frame pattern.\nDefaults to %1.")
-                      .arg(m_videoGenerationSettings.patternSpeed),
+                          .arg(videoGeneratorSettings.patternSpeed),
               QStringLiteral("float") });
     result.pushModeProducingRate = addOption(
                 { { QStringLiteral("generator.pushMode.producingRate"),
                     QStringLiteral("producingRate") },
               QStringLiteral(
                       "Relative factor of media producing rate in push mode.\nDefaults to %1.")
-                      .arg(m_pushModeSettings.producingRate),
+                          .arg(pushModeSettings.producingRate),
               QStringLiteral("positive float") });
     result.pushModeMaxQueueSize =
             addOption({ {
@@ -342,7 +359,7 @@ CommandLineParser::Options CommandLineParser::createOptions()
                         },
                         QStringLiteral("Max number of generated media frames in the queue on "
                                        "the front of media recorder.\nDefaults to %1.")
-                                .arg(m_pushModeSettings.maxQueueSize),
+                                    .arg(pushModeSettings.maxQueueSize),
                         QStringLiteral("uint") });
     result.outputLocation = addOption(
             { { QStringLiteral("recorder.outputLocation"), QStringLiteral("outputLocation") },
