@@ -176,6 +176,9 @@ void QAVFCamera::setCamera(const QCameraDevice &camera)
     if (checkCameraPermission())
         updateVideoInput();
     setCameraFormat({});
+
+    // Reset settings of the camera.
+    updateSupportedFeatures();
 }
 
 bool QAVFCamera::setCameraFormat(const QCameraFormat &format)

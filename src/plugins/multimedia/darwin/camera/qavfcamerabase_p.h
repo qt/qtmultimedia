@@ -59,11 +59,20 @@ public:
     bool setCameraFormat(const QCameraFormat &format) override;
 
     void setFocusMode(QCamera::FocusMode mode) override;
+
+    // FocusModeAuto maps to AVCaptureFocusModeContinuousFocusMode.
+    //
+    // FocusModeManual does not map to any specific AVCaptureFocusMode
+    // value, but rather to the setting setFocusModeLockedWithLensPosition.
+    // This setting doesn't actually change the AVCaptureFocusMode but puts it
+    // into a state where the AVCaptureFocusMode no longer applies.
+    // You can go back into autofocus mode by setting the AVCaptureDevice
+    // focus mode.
     bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
     void setCustomFocusPoint(const QPointF &point) override;
 
-    void setFocusDistance(float d) override;
+    void setFocusDistance(float distance) override;
     void zoomTo(float factor, float rate) override;
 
     void setFlashMode(QCamera::FlashMode mode) override;
@@ -93,8 +102,14 @@ public:
 
 protected:
     void updateCameraConfiguration();
-    void updateCameraProperties();
+
+    // Updates the supported features of the camera.
+    void updateSupportedFeatures();
     void applyFlashSettings();
+
+    // Applies the focusDistance to the AVCaptureDevice.
+    // Does NOT trigger focusDistanceChanged
+    void applyFocusDistanceToAVCaptureDevice(float distance);
 
     QCameraDevice m_cameraDevice;
     bool m_active = false;
