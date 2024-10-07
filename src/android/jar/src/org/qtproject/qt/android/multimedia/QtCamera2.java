@@ -72,6 +72,7 @@ class QtCamera2 {
     private static final int DEFAULT_TORCH_MODE = CameraMetadata.FLASH_MODE_OFF;
     // Default value in QPlatformCamera is FocusModeAuto, which maps to CONTINUOUS_PICTURE.
     private static final int DEFAULT_AF_MODE = CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE;
+    private static final float DEFAULT_FOCUS_DISTANCE = 1.f;
     private static final float DEFAULT_ZOOM_FACTOR = 1.0f;
 
     // The purpose of this class is to gather variables that are accessed across
@@ -104,6 +105,12 @@ class QtCamera2 {
         // does not support this AF_MODE this will not reflect what the camera is currently doing.
         private int mAFMode = DEFAULT_AF_MODE;
 
+        // Not to be confused with CaptureRequest.LENS_FOCUS_DISTANCE. This variable stores the
+        // current QCamera::focusDistance. Must be applied whenever the focus-mode is set to
+        // Manual.
+        // Must have the same default value as the one set in QPlatformCamera.
+        private float mFocusDistance = DEFAULT_FOCUS_DISTANCE;
+
         // Not to be confused with CaptureRequest.CONTROL_ZOOM_RATIO
         // This matches the current QCamera::zoomFactor of the C++ QCamera object.
         private float mZoomFactor = DEFAULT_ZOOM_FACTOR;
@@ -117,6 +124,7 @@ class QtCamera2 {
             mSyncedMembers.mFlashMode = DEFAULT_FLASH_MODE;
             mSyncedMembers.mTorchMode = DEFAULT_TORCH_MODE;
             mSyncedMembers.mAFMode = DEFAULT_AF_MODE;
+            mSyncedMembers.mFocusDistance = DEFAULT_FOCUS_DISTANCE;
             mSyncedMembers.mZoomFactor = DEFAULT_ZOOM_FACTOR;
         }
     }
@@ -521,6 +529,8 @@ class QtCamera2 {
                    mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(mCapturedPhotoReader.getSurface());
 
+            applyFocusSettingsToCaptureRequestBuilder(captureBuilder);
+
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, aeMode);
             if (zoomFactor != 1.0f)
                 updateZoom(captureBuilder, zoomFactor);
@@ -545,8 +555,9 @@ class QtCamera2 {
         }
 
         try {
-            // If we currently want to use auto-focus, and it is supported, we start a capture photo
-            // routine with auto-focus enabled.
+            // If we are doing continuous auto-focusing, we trigger the still-photo capture routine.
+            // This will make the focus make an additional attempt to lock focus on the subject
+            // before capturing the photo.
             if (afMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
                 && isAfModeSupported(afMode))
             {
@@ -615,6 +626,63 @@ class QtCamera2 {
         }
     }
 
+    // As described in QPlatformCamera::setFocusMode, this function must apply the focus-distance
+    // whenever the new QCamera::focusMode is set to Manual.
+    // For now, the QtCamera2 implementation only supports Auto and Manual FocusModes.
+    @UsedFromNativeCode
+    void setFocusMode(int newFocusMode)
+    {
+        // TODO: In the future, not all QCamera::FocusModes will have a 1:1 mapping to the
+        // CONTROL_AF_MODE values. We will need a general solution to translate between
+        // QCamera::FocusModes and the relevant Android Camera2 properties.
+
+        // Expand with more values in the future.
+        // Translate into the corresponding CONTROL_AF_MODE.
+        int newAfMode = 0;
+        if (newFocusMode == 0) // FocusModeAuto
+            newAfMode = CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE;
+        else if (newFocusMode == 5) // FocusModeManual
+            newAfMode = CaptureRequest.CONTROL_AF_MODE_OFF;
+        else {
+            Log.d(
+                "QtCamera2",
+                "received a QCamera::FocusMode from native code that is not recognized. " +
+                "Likely Qt developer bug. Ignoring.");
+            return;
+        }
+
+        // TODO: Ideally this should check if newAfMode is supported through isAfModeSupported()
+        // but in some situation, mCameraId will be null and therefore isAfModeSupported will always
+        // return false. One example of this is during QCamera::setCameraDevice.
+        /*
+        if (!isAfModeSupported(newAfMode)) {
+            Log.d(
+                "QtCamera2",
+                "received a QCamera::FocusMode from native code that is not reported as supported. " +
+                "Likely Qt developer bug. Ignoring.");
+            return;
+        }
+         */
+
+        synchronized (mSyncedMembers) {
+            mSyncedMembers.mAFMode = newAfMode;
+
+            // If the camera is not in the started state yet, we skip activating focus-mode here.
+            // Instead it will get applied when the camera is initialized.
+            if (!mSyncedMembers.mIsStarted)
+                return;
+
+            applyFocusSettingsToCaptureRequestBuilder(mPreviewRequestBuilder);
+            mPreviewRequest = mPreviewRequestBuilder.build();
+
+            try {
+                mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+            } catch (Exception exception) {
+                Log.w("QtCamera2", "Failed to set focus mode:" + exception);
+            }
+        }
+    }
+
     @UsedFromNativeCode
     void setFlashMode(String flashMode)
     {
@@ -637,6 +705,49 @@ class QtCamera2 {
                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
             } catch (Exception exception) {
                 Log.w("QtCamera2", "Failed to set flash mode:" + exception);
+            }
+        }
+    }
+
+    // Sets the focus distance of the camera. Input is the same that accepted by the
+    // QCamera public API. Accepts a float in the range 0,1. Where 0 means as close as possible,
+    // and 1 means infinity.
+    //
+    // This should never be called if the device specifies focus-distance as unsupported.
+    @UsedFromNativeCode
+    public void setFocusDistance(float distanceInput)
+    {
+        if (distanceInput < 0.f || distanceInput > 1.f) {
+            Log.w(
+                "QtCamera2",
+                "received out-of-bounds value when setting camera focus-distance. " +
+                "Likely Qt developer bug. Ignoring.");
+            return;
+        }
+
+        // TODO: Add error handling to check if current mCameraId supports setting focus-distance.
+        // See setFocusMode relevant issue.
+
+        synchronized (mSyncedMembers) {
+            mSyncedMembers.mFocusDistance = distanceInput;
+
+            // If the camera is not in the started state yet, we skip applying any camera-controls
+            // here. It will get applied once the camera is ready.
+            if (!mSyncedMembers.mIsStarted)
+                return;
+
+            // If we are currently in QCamera::FocusModeManual, we apply the focus distance
+            // immediately. Otherwise, we store the value and apply it during setFocusMode(Manual).
+            if (mSyncedMembers.mAFMode == CaptureRequest.CONTROL_AF_MODE_OFF) {
+                applyFocusSettingsToCaptureRequestBuilder(mPreviewRequestBuilder);
+
+                mPreviewRequest = mPreviewRequestBuilder.build();
+
+                try {
+                    mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+                } catch (Exception exception) {
+                    Log.w("QtCamera2", "Failed to set focus distance:" + exception);
+                }
             }
         }
     }
@@ -681,11 +792,46 @@ class QtCamera2 {
                         CaptureRequest.CONTROL_AF_MODE,
                         CaptureRequest.CONTROL_AF_MODE_OFF);
                 }
+
+                requestBuilder.set(CaptureRequest.LENS_FOCUS_DISTANCE, null);
                 return;
             }
 
             requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, mSyncedMembers.mAFMode);
+
+
+            // Set correct lens focus distance if we are in QCamera::FocusModeManual
+            if (mSyncedMembers.mAFMode == CaptureRequest.CONTROL_AF_MODE_OFF) {
+                final float lensFocusDistance = calcLensFocusDistanceFromQCameraFocusDistance(
+                    mSyncedMembers.mFocusDistance);
+                if (lensFocusDistance < 0) {
+                    Log.w(
+                        "QtCamera2",
+                        "Tried to apply FocusModeManual on a camera that doesn't support " +
+                        "setting lens distance. Likely Qt developer bug. Ignoring.");
+                } else {
+                    requestBuilder.set(CaptureRequest.LENS_FOCUS_DISTANCE, lensFocusDistance);
+                }
+            } else {
+                requestBuilder.set(CaptureRequest.LENS_FOCUS_DISTANCE, null);
+            }
         }
+    }
+
+    // Calculates the CaptureRequest.LENS_FOCUS_DISTANCE equivalent given a QCamera::focusDistance
+    // value. Returns -1 on failure, such as if camera does not support setting manual focus
+    // distance.
+    private float calcLensFocusDistanceFromQCameraFocusDistance(float qCameraFocusDistance) {
+        float lensMinimumFocusDistance =
+            mVideoDeviceManager.getLensInfoMinimumFocusDistance(mCameraId);
+        if (lensMinimumFocusDistance <= 0)
+            return -1;
+
+        // Input is 0 to 1, with 0 meaning as close as possible.
+        // Android Camera2 expects it to be in the range [0, minimumFocusDistance]
+        // where higher values means closer to the camera and 0 means as far away as possible.
+        // We need to map to this range.
+        return (1.f - qCameraFocusDistance) * lensMinimumFocusDistance;
     }
 
     // Helper function to check if a given CaptureRequest.CONTROL_AF_MODE is supported on this

@@ -66,6 +66,9 @@ public:
     // in the backend.
     //
     // If the new mode is FocusModeManual, apply the focusDistance setting.
+    //
+    // This function should call QPlatformCamera::focusModeChanged if
+    // successful.
     virtual void setFocusMode(QCamera::FocusMode /*mode*/) {}
 
     virtual void setCustomFocusPoint(const QPointF &/*point*/) {}
@@ -83,6 +86,9 @@ public:
     //
     // The value 0 maps to the distance closest to the camera.
     // The value 1 maps to the distance furthest away from the camera.
+    //
+    // This function should call QPlatformCamera::focusDistanceChanged()
+    // if successful.
     virtual void setFocusDistance(float) {}
 
     // smaller 0: zoom instantly, rate in power-of-two/sec
