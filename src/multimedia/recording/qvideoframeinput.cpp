@@ -76,7 +76,22 @@ private:
 
     QVideoFrameInput is only supported with the FFmpeg backend.
 
-    \sa QMediaRecorder, QMediaCaptureSession, QVideoSink
+    Custom video frames can be recorded by connecting a \l QVideoFrameInput and a
+    \l QMediaRecorder to a \l QMediaCaptureSession. For a pull mode implementation,
+    call \l sendVideoFrame() in response to the \l readyToSendVideoFrame() signal. In
+    the snippet below this is done by connecting the signal to a slot in a custom media
+    generator class. The slot function emits a another signal with a new video frame, which
+    is connected to \l sendVideoFrame():
+
+    \snippet custommediainputsnippets/custommediainputsnippets.cpp QVideoFrameInput setup
+
+    Here's a minimal implementation of the slot function that provides video frames:
+
+    \snippet custommediainputsnippets/custommediainputsnippets.cpp nextVideoFrame()
+
+    For more details see readyToSendVideoFrame() and sendVideoFrame().
+
+    \sa QMediaRecorder, QMediaCaptureSession and QVideoSink.
 */
 
 /*!
