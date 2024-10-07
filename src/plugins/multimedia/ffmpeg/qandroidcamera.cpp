@@ -417,6 +417,8 @@ void QAndroidCamera::updateCameraCharacteristics()
 
 
     // Gather capabilities.
+    QCamera::Features newSupportedFeatures = {};
+
     float newMaxZoom = 1.f;
     float newMinZoom = 1.f;
     const auto newZoomRange = deviceManager.callMethod<jfloat[]>(
@@ -450,9 +452,14 @@ void QAndroidCamera::updateCameraCharacteristics()
         deviceManager,
         m_cameraDevice);
 
+    if (m_supportedFocusModes.contains(QCamera::FocusMode::FocusModeManual))
+        newSupportedFeatures |= QCamera::Feature::FocusDistance;
 
+
+    // Signal capability changes
     minimumZoomFactorChanged(newMinZoom);
     maximumZoomFactorChanged(newMaxZoom);
+    supportedFeaturesChanged(newSupportedFeatures);
 
 
     // Apply properties
@@ -509,6 +516,57 @@ void QAndroidCamera::cleanCameraCharacteristics()
     if (focusMode() != QCamera::FocusModeAuto)
         setFocusMode(QCamera::FocusModeAuto);
     m_supportedFocusModes.clear();
+
+    supportedFeaturesChanged({});
+}
+
+void QAndroidCamera::setFocusDistance(float distance)
+{
+    if (qFuzzyCompare(focusDistance(), distance))
+        return;
+
+    if (!(supportedFeatures() & QCamera::Feature::FocusDistance)) {
+        qCWarning(qLCAndroidCamera) <<
+            Q_FUNC_INFO <<
+            "attmpted to set focus-distance on camera without support for FocusDistance feature";
+        return;
+    }
+
+    if (distance < 0 || distance > 1) {
+        qCWarning(qLCAndroidCamera) <<
+            Q_FUNC_INFO <<
+            "attempted to set camera focus-distance with out-of-bounds value";
+        return;
+    }
+
+    // focusDistance should only be applied if the focusMode is currently set to Manual.
+    // The Java function will handle this behavior. Either way, the value should be accepted so
+    // we can apply it if FocusModeManual is activated
+    m_jniCamera.callMethod<void>("setFocusDistance", distance);
+
+    focusDistanceChanged(distance);
+}
+
+void QAndroidCamera::setFocusMode(QCamera::FocusMode mode)
+{
+    if (focusMode() == mode)
+        return;
+
+    if (!isFocusModeSupported(mode)) {
+        qCWarning(qLCAndroidCamera) <<
+            Q_FUNC_INFO <<
+            QLatin1String("attempted to set focus-mode '%1' on camera where it is unsupported.")
+                .arg(QMetaEnum::fromType<QCamera::FocusMode>().valueToKey(mode));
+        return;
+    }
+
+    // If the new focus-mode is Manual, then the focusDistance
+    // needs to be applied as well. The Java function handles this.
+    m_jniCamera.callMethod<void>(
+        "setFocusMode",
+        static_cast<jint>(mode));
+
+    focusModeChanged(mode);
 }
 
 void QAndroidCamera::setFlashMode(QCamera::FlashMode mode)

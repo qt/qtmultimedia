@@ -42,6 +42,19 @@ public:
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
     void setFlashMode(QCamera::FlashMode mode) override;
+    void setFocusDistance(float distance) override;
+
+    // FocusModeAuto maps to CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+    //
+    // The CustomFocusPoint functionality maps to CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+    // but with the CaptureRequest.CONTROL_AF_REGIONS setting.
+    //
+    // FocusModeManual maps to CaptureRequest.CONTROL_AF_MODE_OFF
+    // but also requires us to be able to set focusDistance using
+    // CaptureRequest.LENS_FOCUS_DISTANCE.
+    //
+    // Currently implemented focus-modes: Auto, Manual
+    void setFocusMode(QCamera::FocusMode mode) override;
     void setTorchMode(QCamera::TorchMode mode) override;
     void zoomTo(float factor, float rate) override;
 

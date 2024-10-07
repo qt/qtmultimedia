@@ -246,9 +246,14 @@ class QtVideoDeviceManager {
             .stream(getAllAvailableAfModes(cameraId))
             .anyMatch(value -> value == afMode);
 
-        // Currently we have only implemented CONTINUOUS_PICTURE
-        if (available && afMode == CameraCharacteristics.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
-            return true;
+        if (available) {
+            if (afMode == CameraCharacteristics.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
+                return true;
+            else if (afMode == CameraCharacteristics.CONTROL_AF_MODE_OFF
+                && isManualFocusDistanceSupported(cameraId))
+                return true;
+        }
+
 
         return false;
     }
@@ -267,6 +272,10 @@ class QtVideoDeviceManager {
         if (isAfModeSupported(cameraId, CameraCharacteristics.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
             outList.add("FocusModeAuto");
         }
+
+        if (isAfModeSupported(cameraId, CameraCharacteristics.CONTROL_AF_MODE_OFF)
+            && isManualFocusDistanceSupported(cameraId))
+            outList.add("FocusModeManual");
 
         String[] ret = new String[ outList.size() ];
         return outList.toArray(ret);
@@ -287,6 +296,31 @@ class QtVideoDeviceManager {
 
         String[] ret = new String[ supportedFlashModesList.size() ];
         return supportedFlashModesList.toArray(ret);
+    }
+
+    // Returns the CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE for the given cameraId.
+    // for the given cameraId. If this returns 0, it means the camera is fixed-focus and can't be
+    // adjusted and so should not be applied as manual focus distance.
+    // Returns -1 if setting focus distance is not supported.
+    float getLensInfoMinimumFocusDistance(String cameraId) {
+        final CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
+        if (characteristics == null)
+            return -1;
+        final Float value = characteristics.get(
+            CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
+        if (value == null)
+            return -1;
+        return value;
+    }
+
+    // Returns true if the camera is able to manually set
+    // lens focus distance. This is required to support
+    // QCamera::FocusModeManual and QCamera::Feature::FocusDistance.
+    //
+    // Docs require LENS_INFO_MINIMUM_FOCUS_DISTANCE to be higher than 0 in
+    // order for manual focus distance to be supported.
+    boolean isManualFocusDistanceSupported(String cameraId) {
+        return getLensInfoMinimumFocusDistance(cameraId) > 0;
     }
 
     static boolean isEmulator()
