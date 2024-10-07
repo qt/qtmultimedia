@@ -15,18 +15,7 @@ qt_internal_add_test(tst_qmediaplayer_gstreamer
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::QGstreamerMediaPluginImplPrivate
+    TESTDATA
+        "testdata/color_matrix.mp4"
+    BUILTIN_TESTDATA
 )
-
-
-# Resources:
-set(testdata_resource_files
-    "testdata/color_matrix.mp4"
-)
-
-qt_internal_add_resource(tst_qmediaplayer_gstreamer "testdata"
-    PREFIX
-        "/"
-    FILES
-        ${testdata_resource_files}
-)
-
