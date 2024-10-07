@@ -6,10 +6,11 @@
 #####################################################################
 
 # Collect test data
-file(GLOB_RECURSE test_data_glob
-    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+file(GLOB_RECURSE test_data
+    CONFIGURE_DEPENDS
+    RELATIVE
+        ${CMAKE_CURRENT_SOURCE_DIR}
     testdata/*)
-list(APPEND testdata_resource_files ${test_data_glob})
 
 qt_internal_add_test(tst_qvideoframebackend
     SOURCES
@@ -21,7 +22,7 @@ qt_internal_add_test(tst_qvideoframebackend
         Qt::Gui
         Qt::MultimediaPrivate
     BUILTIN_TESTDATA
-    TESTDATA ${testdata_resource_files}
+    TESTDATA ${test_data}
     INCLUDE_DIRECTORIES
         ../shared/
         ../../shared/
