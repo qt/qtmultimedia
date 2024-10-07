@@ -13,6 +13,9 @@ qt_internal_add_test(tst_qmediaframeinputsbackend
         framegenerator.cpp framegenerator.h
         ../shared/testvideosink.h
         ../shared/audiogenerationutils.h
+        ../../shared/mediabackendutils.h
+    INCLUDE_DIRECTORIES
+        ../../shared/
     LIBRARIES
         Qt::Multimedia
         Qt::MultimediaPrivate

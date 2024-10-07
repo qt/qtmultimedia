@@ -12,8 +12,9 @@
 #include <qaudioformat.h>
 #include <qaudio.h>
 #include <qmediadevices.h>
-
 #include <qwavedecoder.h>
+
+#include "mediabackendutils.h"
 
 #define RANGE_ERR 0.5
 
@@ -76,7 +77,7 @@ private:
     QScopedPointer<QByteArray> m_byteArray;
     QScopedPointer<QBuffer> m_buffer;
 
-    bool m_inCISystem = false;
+    bool m_inCISystem = isCI();
 };
 
 void tst_QAudioSource::generate_audiofile_testrows()
@@ -112,8 +113,6 @@ void tst_QAudioSource::initTestCase()
     if (QNativeInterface::QAndroidApplication::sdkVersion() < __ANDROID_API_Q__)
         QSKIP("Emulated Android version doesn't support audio recording");
 #endif
-
-    m_inCISystem = qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci";
 
     if (m_inCISystem)
         QSKIP("SKIP initTestCase on CI. To be fixed");

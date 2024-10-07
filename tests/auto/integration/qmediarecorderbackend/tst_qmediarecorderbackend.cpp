@@ -7,7 +7,7 @@
 #include <QtMultimedia/qaudiobufferinput.h>
 #include <QtMultimedia/qmediaformat.h>
 #include "../shared/audiogenerationutils.h"
-#include "../shared/mediabackendutils.h"
+#include "mediabackendutils.h"
 
 #include <QtCore/qtemporarydir.h>
 #include <chrono>

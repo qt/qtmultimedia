@@ -16,6 +16,8 @@
 #include <qmockintegration.h>
 #include <qmockvideosink.h>
 
+#include "mediabackendutils.h"
+
 QT_USE_NAMESPACE
 
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
@@ -64,7 +66,7 @@ public:
 void tst_QVideoWidget::initTestCase()
 {
 #ifdef Q_OS_MACOS
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+    if (isCI())
         QSKIP("SKIP on macOS CI since metal is not supported, otherwise it often crashes. To be "
               "fixed.");
 #endif

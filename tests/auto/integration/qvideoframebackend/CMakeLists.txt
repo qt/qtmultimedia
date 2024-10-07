@@ -15,6 +15,7 @@ qt_internal_add_test(tst_qvideoframebackend
     SOURCES
         ../shared/mediafileselector.h
         ../shared/testvideosink.h
+        ../../shared/mediabackendutils.h
         tst_qvideoframebackend.cpp
     LIBRARIES
         Qt::Gui
@@ -23,4 +24,5 @@ qt_internal_add_test(tst_qvideoframebackend
     TESTDATA ${testdata_resource_files}
     INCLUDE_DIRECTORIES
         ../shared/
+        ../../shared/
 )

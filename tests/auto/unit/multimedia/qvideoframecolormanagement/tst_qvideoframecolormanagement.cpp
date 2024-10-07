@@ -14,7 +14,7 @@
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
 
-#include "../../../integration/shared/mediabackendutils.h"
+#include "mediabackendutils.h"
 
 QT_USE_NAMESPACE
 
