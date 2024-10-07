@@ -663,18 +663,18 @@ void QCamera::setCustomFocusPoint(const QPointF &point)
     Setting the focus distance will be ignored unless the focus mode is set to
     \l FocusModeManual.
 */
-void QCamera::setFocusDistance(float d)
+void QCamera::setFocusDistance(float distance)
 {
-    if (!d_func()->control || focusMode() != FocusModeManual)
+    if (!d_func()->control)
         return;
-    d_func()->control->setFocusDistance(d);
+    d_func()->control->setFocusDistance(distance);
 }
 
 float QCamera::focusDistance() const
 {
-    if (d_func()->control && focusMode() == FocusModeManual)
+    if (d_func()->control)
         return d_func()->control->focusDistance();
-    return 0.;
+    return 0.f;
 }
 
 /*!

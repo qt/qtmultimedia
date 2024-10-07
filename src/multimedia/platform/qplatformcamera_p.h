@@ -26,15 +26,45 @@ class Q_MULTIMEDIA_EXPORT QPlatformCamera : public QPlatformVideoSource
     Q_OBJECT
 
 public:
+    // TODO: How we handle other settings during
+    // camera-device change is uncertain. See QTBUG-129831.
     virtual void setCamera(const QCameraDevice &camera) = 0;
     virtual bool setCameraFormat(const QCameraFormat &/*format*/) { return false; }
     QCameraFormat cameraFormat() const { return m_cameraFormat; }
 
+    // FocusModeManual should only be reported as supported if the camera
+    // backend is also able to apply the focusDistance setting.
+    // This effectively means the backend should also report Feature::FocusDistance
+    // as supported if this is the case.
     virtual bool isFocusModeSupported(QCamera::FocusMode mode) const { return mode == QCamera::FocusModeAuto; }
+
+    // If the focusMode is the same as the current, ignore the function call.
+    //
+    // If the new focusMode is reported as unsupported, send a warning
+    // and do nothing.
+    //
+    // FocusModeAuto should map to continuous autofocus mode in the backend.
+    // FocusModeManual should be treated as fixed lens position
+    // in the backend.
+    //
+    // If the new mode is FocusModeManual, apply the focusDistance setting.
     virtual void setFocusMode(QCamera::FocusMode /*mode*/) {}
 
     virtual void setCustomFocusPoint(const QPointF &/*point*/) {}
 
+    // If the new distance is the same as previous, ignore the function call.
+    //
+    // If supportedFeatures does not include the FocusDistance flag,
+    // send a warning and do nothing.
+    //
+    // If the incoming value is out of bounds (outside [0,1]),
+    // send a warning and do nothing.
+    //
+    // If focusMode is set to Manual, apply this focusDistance to the camera.
+    // If not, accept the value but don't apply it to the camera.
+    //
+    // The value 0 maps to the distance closest to the camera.
+    // The value 1 maps to the distance furthest away from the camera.
     virtual void setFocusDistance(float) {}
 
     // smaller 0: zoom instantly, rate in power-of-two/sec
@@ -61,6 +91,9 @@ public:
 
     QVideoFrameFormat frameFormat() const override;
 
+    // Note: Because FocusModeManual effectively cannot function without
+    // being able to set FocusDistance, this feature flag is redundant.
+    // Should be considered for deprecation in the future.
     QCamera::Features supportedFeatures() const { return m_supportedFeatures; }
 
     QCamera::FocusMode focusMode() const { return m_focusMode; }

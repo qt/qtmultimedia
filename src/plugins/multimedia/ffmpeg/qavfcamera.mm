@@ -218,6 +218,9 @@ void QAVFCamera::setCamera(const QCameraDevice &camera)
     if (m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized)
         updateVideoInput();
     setCameraFormat({});
+
+    // Reset settings of the camera.
+    updateSupportedFeatures();
 }
 
 bool QAVFCamera::setCameraFormat(const QCameraFormat &format)
