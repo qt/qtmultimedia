@@ -16,6 +16,8 @@
 #include <chrono>
 #include <vector>
 
+#include "mediabackendutils.h"
+
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::microseconds;
@@ -33,11 +35,10 @@ private slots:
      QSKIP("Feature does not work on Android");
 #endif
 #if defined(Q_OS_LINUX)
-        if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci"
-            && qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
-            QSKIP("Skip on wayland; to be fixed");
+     if (isCI() && qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
+         QSKIP("Skip on wayland; to be fixed");
 #elif defined(Q_OS_MACOS)
-        if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        if (isCI())
             QSKIP("QTBUG-116285: Skip on macOS CI because of permissions issues");
 #endif
 
@@ -157,7 +158,7 @@ private slots:
     void recorder_encodesFrames_toValidMediaFile()
     {
 #ifdef Q_OS_LINUX
-        if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        if (isCI())
             QSKIP("QTBUG-116671: SKIP on linux CI to avoid crashes in ffmpeg. To be fixed.");
 #endif
         QFETCH(QSize, windowSize);
@@ -186,7 +187,7 @@ private slots:
     void recorder_encodesFrames_toValidMediaFile_whenWindowResizes()
     {
 #ifdef Q_OS_LINUX
-        if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        if (isCI())
             QSKIP("QTBUG-116671: SKIP on linux CI to avoid crashes in ffmpeg. To be fixed.");
 #endif
         QFETCH(int, increment);

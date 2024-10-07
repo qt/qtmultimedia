@@ -10,6 +10,9 @@ list(APPEND testdata_resource_files ${test_data_glob})
 qt_internal_add_test(tst_qvideoframecolormanagement
     SOURCES
         tst_qvideoframecolormanagement.cpp
+        ../../../shared/mediabackendutils.h
+    INCLUDE_DIRECTORIES
+        ../../../shared
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate

@@ -13,7 +13,7 @@
 #include <QtCore/QPointer>
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
 #include "private/qvideoframeconverter_p.h"
-#include "../../../integration/shared/mediabackendutils.h"
+#include "mediabackendutils.h"
 
 // Adds an enum, and the stringized version
 #define ADD_ENUM_TEST(x) \

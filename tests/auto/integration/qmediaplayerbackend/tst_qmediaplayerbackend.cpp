@@ -2903,7 +2903,7 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+    if (isCI())
         QSKIP("SKIP on macOS CI since multiple fake drawing on macOS CI platform causes UB. To be "
               "investigated: QTBUG-111744");
 #endif
@@ -3490,7 +3490,7 @@ void tst_QMediaPlayerBackend::finiteLoops()
     QSKIP_GSTREAMER("Spurious test failures on CI");
 
 #ifdef Q_OS_MACOS
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+    if (isCI())
         QSKIP("The test accidently gets crashed on macOS CI, not reproduced locally. To be "
               "investigated: QTBUG-111744");
 #endif
@@ -3581,7 +3581,7 @@ void tst_QMediaPlayerBackend::infiniteLoops()
     CHECK_SELECTED_URL(m_localVideoFile2);
 
 #ifdef Q_OS_MACOS
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+    if (isCI())
         QSKIP("The test accidently gets crashed on macOS CI, not reproduced locally. To be "
               "investigated: QTBUG-111744");
 #endif
@@ -3633,7 +3633,7 @@ void tst_QMediaPlayerBackend::seekOnLoops()
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+    if (isCI())
         QSKIP("The test accidently gets crashed on macOS CI, not reproduced locally. To be "
               "investigated: QTBUG-111744");
 #endif
@@ -3684,7 +3684,7 @@ void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+    if (isCI())
         QSKIP("The test accidently gets crashed on macOS CI, not reproduced locally. To be "
               "investigated: QTBUG-111744");
 #endif
@@ -3722,7 +3722,7 @@ void tst_QMediaPlayerBackend::seekAfterLoopReset()
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+    if (isCI())
         QSKIP("The test accidently gets crashed on macOS CI, not reproduced locally. To be "
               "investigated: QTBUG-111744");
 #endif
