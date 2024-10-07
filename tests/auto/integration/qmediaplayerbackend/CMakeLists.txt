@@ -14,8 +14,8 @@ list(APPEND testdata_resource_files ${test_data_glob})
 qt_internal_add_test(tst_qmediaplayerbackend
     SOURCES
         ../shared/mediafileselector.h
-        ../shared/mediabackendutils.h
         ../shared/testvideosink.h
+        ../../shared/mediabackendutils.h
         ../../shared/qsequentialfileadaptor.h
         mediaplayerstate.h
         fake.h

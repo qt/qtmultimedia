@@ -8,8 +8,10 @@
 qt_internal_add_test(tst_multimedia_qcamera
     SOURCES
         tst_qcamera.cpp
+        ../../../shared/mediabackendutils.h
     INCLUDE_DIRECTORIES
         ../../mockbackend
+        ../../../shared/
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate

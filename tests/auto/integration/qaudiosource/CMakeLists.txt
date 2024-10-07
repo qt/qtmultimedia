@@ -8,6 +8,9 @@
 qt_internal_add_test(tst_qaudiosource
     SOURCES
         tst_qaudiosource.cpp
+        ../../shared/mediabackendutils.h
+    INCLUDE_DIRECTORIES
+        ../../shared/
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate

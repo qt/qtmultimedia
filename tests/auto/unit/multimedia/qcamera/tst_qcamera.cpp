@@ -18,6 +18,8 @@
 #include "qmockmediacapturesession.h"
 #include "qmockcamera.h"
 
+#include "mediabackendutils.h"
+
 QT_USE_NAMESPACE
 
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
@@ -76,7 +78,7 @@ private slots:
 void tst_QCamera::initTestCase()
 {
 #ifdef Q_OS_MACOS
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+    if (isCI())
         QSKIP("Flakiness on macOS CI, to be investigated, QTBUG-111812");
 #endif
 }
