@@ -256,6 +256,7 @@
     related to the multimedia backend.
 
     \list
+      \li \l{Qt Multimedia on Windows}{Windows}
       \li \l{Qt Multimedia on macOS and iOS}{macOS and iOS}
       \li \l{Qt Multimedia on WebAssembly}{WebAssembly}
     \endlist

@@ -36,14 +36,12 @@ public:
 QWindowsMediaIntegration::QWindowsMediaIntegration()
     : QPlatformMediaIntegration(QLatin1String("windows"))
 {
-    CoInitialize(NULL);
     MFStartup(MF_VERSION);
 }
 
 QWindowsMediaIntegration::~QWindowsMediaIntegration()
 {
     MFShutdown();
-    CoUninitialize();
 }
 
 QPlatformMediaFormatInfo *QWindowsMediaIntegration::createFormatInfo()
