@@ -941,6 +941,9 @@ void AVFMediaPlayer::updateAudioOutputDevice()
 {
 #ifdef Q_OS_MACOS
     AVPlayer *player = [static_cast<AVFMediaPlayerObserver*>(m_observer) player];
+    if (!player)
+        return;
+
     if (!m_audioOutput || m_audioOutput->device.id().isEmpty()) {
         player.audioOutputDeviceUniqueID = nil;
         if (!m_audioOutput)
