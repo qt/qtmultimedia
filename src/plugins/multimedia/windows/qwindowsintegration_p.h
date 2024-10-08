@@ -16,6 +16,7 @@
 //
 
 #include <private/qplatformmediaintegration_p.h>
+#include <private/qcominitializer_p.h>
 #include "qwindowsvideodevices_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -44,6 +45,9 @@ protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;
 
     QPlatformVideoDevices *createVideoDevices() override;
+
+private:
+    QComInitializer m_comInitializer;
 };
 
 QT_END_NAMESPACE

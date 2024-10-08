@@ -1,0 +1,29 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-windows.html
+\title Qt Multimedia on Windows
+\brief Platform notes for Windows
+
+This page discusses considerations for using Qt Multimedia on Windows.
+
+\section1 Notes on COM
+
+Qt Multimedia uses COM APIs from the Windows platform. This requires COM
+to be initialized on the threads that access Qt Multimedia APIs.
+Although Qt Multimedia APIs will automatically initialize COM as needed,
+we recommend initializing the QGuiApplication instance from the main
+thread during application startup before making any calls to Qt
+Multimedia APIs. This ensures that the main single threaded apartment
+(main STA) is initialized before Qt Multimedia APIs are called from any
+thread. This also guarantees that the main STA is not uninitialized
+until all other apartments have shut down.
+
+Qt Multimedia APIs that require COM will initialize the thread as a
+single-threaded apartment by calling \c{CoInitializeEx(nullptr,
+COINIT_APARTMENT_THREADED)}, and \c{CoUninitialize} will not be called
+until the thread exits. This applies to the main application thread as
+well, where \c{CoUninitialize} is called during the destruction of
+static variables.
+*/
