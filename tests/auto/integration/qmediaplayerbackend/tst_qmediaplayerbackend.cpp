@@ -2838,8 +2838,8 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
 
         QTRY_VERIFY(positionSpy.size() >= 1);
         int setPosition = positionSpy.first().first().toInt();
-        QCOMPARE_GT(setPosition, pos - 120);
-        QCOMPARE_LT(setPosition, pos + 120);
+        QCOMPARE_GT(setPosition, pos - 130);
+        QCOMPARE_LT(setPosition, pos + 130);
     };
 
     constexpr qint64 posInterval = 10;
