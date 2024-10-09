@@ -194,7 +194,7 @@ void QGstreamerVideoSink::updateSinkElement(QGstVideoRendererSinkElement newSink
         m_gstVideoSink.syncStateWithParent();
     });
 
-    m_sinkBin.dumpPipelineGraph("updateVideoSink");
+    m_sinkBin.dumpPipelineGraph("updateSinkElement");
 }
 
 void QGstreamerVideoSink::unrefGstContexts()
