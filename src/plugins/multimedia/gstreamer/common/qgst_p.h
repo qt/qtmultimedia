@@ -356,6 +356,11 @@ public:
         return *this;
     }
 
+#ifdef __cpp_lib_three_way_comparison
+    // clang-format off
+    auto operator<=>(const QGstObjectWrapper &rhs) const = default;
+    // clang-format on
+#else
     friend bool operator==(const QGstObjectWrapper &a, const QGstObjectWrapper &b)
     {
         return a.m_object == b.m_object;
@@ -364,6 +369,11 @@ public:
     {
         return a.m_object != b.m_object;
     }
+    friend bool operator<(const QGstObjectWrapper &a, const QGstObjectWrapper &b)
+    {
+        return a.m_object < b.m_object;
+    }
+#endif
 
     explicit operator bool() const { return bool(m_object); }
     bool isNull() const { return !m_object; }
