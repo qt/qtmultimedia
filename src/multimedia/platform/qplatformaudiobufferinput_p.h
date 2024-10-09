@@ -38,9 +38,9 @@ public:
     const QAudioFormat &audioFormat() const { return m_format; }
 
     QMediaInputEncoderInterface *encoderInterface() const { return m_encoderInterface; }
-    void setEncoderInterface(QMediaInputEncoderInterface *interface)
+    void setEncoderInterface(QMediaInputEncoderInterface *encoderInterface)
     {
-        m_encoderInterface = interface;
+        m_encoderInterface = encoderInterface;
     }
 
 Q_SIGNALS:
