@@ -14,7 +14,7 @@
 // We mean it.
 //
 
-#include "qffmpeg_p.h"
+#include "qffmpegdefs_p.h"
 #include "qffmpeghwaccel_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -22,10 +22,12 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg {
 
 AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *codec,
-                                 const HWAccel &accel);
+                                 const HWAccel &accel,
+                                 const AVPixelFormatSet &prohibitedFormats = {});
 
 AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
-                               const AVCodec *codec, const HWAccel *accel);
+                               const AVCodec *codec, const HWAccel *accel,
+                               const AVPixelFormatSet &prohibitedFormats = {});
 
 std::pair<const AVCodec *, HWAccelUPtr> findHwEncoder(AVCodecID codecID, const QSize &sourceSize);
 
