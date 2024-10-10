@@ -19,13 +19,13 @@ void doWithMediaFrameInput(QObject *source, F &&f)
         f(audioBufferInput);
 }
 
-void setEncoderInterface(QObject *source, QMediaInputEncoderInterface *interface)
+void setEncoderInterface(QObject *source, QMediaInputEncoderInterface *encoderInterface)
 {
     doWithMediaFrameInput(source, [&](auto source) {
         using Source = std::remove_pointer_t<decltype(source)>;
 
-        source->setEncoderInterface(interface);
-        if (interface)
+        source->setEncoderInterface(encoderInterface);
+        if (encoderInterface)
             // Postpone emit 'encoderUpdated' as the encoding pipeline may be not
             // completely ready at the moment. The case is calling QMediaRecorder::stop
             // upon handling 'readyToSendFrame'

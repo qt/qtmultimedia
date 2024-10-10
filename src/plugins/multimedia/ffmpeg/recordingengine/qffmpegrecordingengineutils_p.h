@@ -40,7 +40,7 @@ T dequeueIfPossible(std::queue<T> &queue)
     return result;
 }
 
-void setEncoderInterface(QObject *source, QMediaInputEncoderInterface *interface);
+void setEncoderInterface(QObject *source, QMediaInputEncoderInterface *);
 
 void setEncoderUpdateConnection(QObject *source, EncoderThread *encoder);
 
