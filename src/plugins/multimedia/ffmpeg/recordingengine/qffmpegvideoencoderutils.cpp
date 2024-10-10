@@ -14,11 +14,15 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg {
 
 static AVScore calculateTargetSwFormatScore(const AVPixFmtDescriptor *sourceSwFormatDesc,
-                                            AVPixelFormat fmt)
+                                            AVPixelFormat fmt,
+                                            const AVPixelFormatSet &prohibitedFormats)
 {
     // determine the format used by the encoder.
-    // We prefer YUV422 based formats such as NV12 or P010. Selection trues to find the best
+    // We prefer YUV420 based formats such as NV12 or P010. Selection trues to find the best
     // matching format for the encoder depending on the bit depth of the source format
+
+    if (prohibitedFormats.count(fmt))
+        return NotSuitableAVScore;
 
     const auto *desc = av_pix_fmt_desc_get(fmt);
     if (!desc)
@@ -59,10 +63,14 @@ static AVScore calculateTargetSwFormatScore(const AVPixFmtDescriptor *sourceSwFo
     return score;
 }
 
-static auto targetSwFormatScoreCalculator(AVPixelFormat sourceFormat)
+static auto
+targetSwFormatScoreCalculator(AVPixelFormat sourceFormat,
+                              std::reference_wrapper<const AVPixelFormatSet> prohibitedFormats)
 {
     const auto sourceSwFormatDesc = av_pix_fmt_desc_get(sourceFormat);
-    return [=](AVPixelFormat fmt) { return calculateTargetSwFormatScore(sourceSwFormatDesc, fmt); };
+    return [=](AVPixelFormat fmt) {
+        return calculateTargetSwFormatScore(sourceSwFormatDesc, fmt, prohibitedFormats);
+    };
 }
 
 static bool isHwFormatAcceptedByCodec(AVPixelFormat pixFormat)
@@ -77,9 +85,9 @@ static bool isHwFormatAcceptedByCodec(AVPixelFormat pixFormat)
 }
 
 AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *codec,
-                                 const HWAccel &accel)
+                                 const HWAccel &accel, const AVPixelFormatSet &prohibitedFormats)
 {
-    auto scoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
+    auto scoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, prohibitedFormats);
 
     const auto constraints = accel.constraints();
     if (constraints && constraints->valid_sw_formats)
@@ -95,7 +103,8 @@ AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *co
 }
 
 AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
-                               const AVCodec *codec, const HWAccel *accel)
+                               const AVCodec *codec, const HWAccel *accel,
+                               const AVPixelFormatSet &prohibitedFormats)
 {
     Q_UNUSED(sourceFormat);
 
@@ -103,8 +112,8 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
         const auto hwFormat = accel->hwFormat();
 
         // TODO: handle codec->capabilities & AV_CODEC_CAP_HARDWARE here
-        if (!isHwFormatAcceptedByCodec(hwFormat))
-            return findTargetSWFormat(sourceSWFormat, codec, *accel);
+        if (!isHwFormatAcceptedByCodec(hwFormat) || prohibitedFormats.count(hwFormat))
+            return findTargetSWFormat(sourceSWFormat, codec, *accel, prohibitedFormats);
 
         const auto constraints = accel->constraints();
         if (constraints && hasAVValue(constraints->valid_hw_formats, hwFormat))
@@ -124,7 +133,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
         return sourceSWFormat;
     }
 
-    auto swScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
+    auto swScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, prohibitedFormats);
     return findBestAVValue(pixelFormats, swScoreCalculator).first;
 }
 
@@ -148,7 +157,8 @@ AVScore findSWFormatScores(const AVCodec* codec, AVPixelFormat sourceSWFormat)
         // codecs without pixel formats are suspicious
         return MinAVScore;
 
-    auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
+    AVPixelFormatSet emptySet;
+    auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, emptySet);
     return findBestAVValue(pixelFormats, formatScoreCalculator).second;
 }
 

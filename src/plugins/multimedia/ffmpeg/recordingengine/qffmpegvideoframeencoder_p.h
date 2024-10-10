@@ -18,6 +18,8 @@
 #include "private/qplatformmediarecorder_p.h"
 #include "private/qmultimediautils_p.h"
 
+#include <unordered_set>
+
 QT_BEGIN_NAMESPACE
 
 class QMediaEncoderSettings;
@@ -70,15 +72,22 @@ private:
 
     void updateConversions();
 
-    static VideoFrameEncoderUPtr create(AVStream *stream, const AVCodec *codec, HWAccelUPtr hwAccel,
-                                        const SourceParams &sourceParams,
-                                        const QMediaEncoderSettings &encoderSettings);
+    struct CreationResult
+    {
+        VideoFrameEncoderUPtr encoder;
+        AVPixelFormat targetFormat = AV_PIX_FMT_NONE;
+    };
+
+    static CreationResult create(AVStream *stream, const AVCodec *codec, HWAccelUPtr hwAccel,
+                                 const SourceParams &sourceParams,
+                                 const QMediaEncoderSettings &encoderSettings,
+                                 const AVPixelFormatSet &prohibitedTargetFormats = {});
 
     void initTargetSize();
 
     void initCodecFrameRate();
 
-    bool initTargetFormats();
+    bool initTargetFormats(const AVPixelFormatSet &prohibitedTargetFormats);
 
     void initStream();
 

@@ -15,7 +15,10 @@
 // We mean it.
 //
 
+#include "qtconfigmacros.h"
+
 #include <limits>
+#include <unordered_set>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -46,11 +49,17 @@ extern "C" {
 #define QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG \
     (LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(59, 39, 100)) // since FFmpeg n7.1
 
+QT_BEGIN_NAMESPACE
+
 using PixelOrSampleFormat = int;
 using AVScore = int;
 constexpr AVScore BestAVScore = std::numeric_limits<AVScore>::max();
 constexpr AVScore DefaultAVScore = 0;
 constexpr AVScore NotSuitableAVScore = std::numeric_limits<AVScore>::min();
 constexpr AVScore MinAVScore = NotSuitableAVScore + 1;
+
+using AVPixelFormatSet = std::unordered_set<AVPixelFormat>;
+
+QT_END_NAMESPACE
 
 #endif // QFFMPEGDEFS_P_H
