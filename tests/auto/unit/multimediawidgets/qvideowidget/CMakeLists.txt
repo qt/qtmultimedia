@@ -8,14 +8,13 @@
 qt_internal_add_test(tst_qvideowidget
     SOURCES
         tst_qvideowidget.cpp
-        ../../../shared/mediabackendutils.h
     INCLUDE_DIRECTORIES
         ../../mockbackend
-        ../../../shared/
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
         Qt::MultimediaWidgetsPrivate
         Qt::Widgets
         Qt::MockMultimediaPlugin
+        Qt::MultimediaTestLibPrivate
 )

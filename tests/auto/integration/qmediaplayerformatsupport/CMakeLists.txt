@@ -11,12 +11,10 @@ file(GLOB_RECURSE test_data
 qt_internal_add_test(tst_qmediaplayerformatsupport
     SOURCES
         tst_qmediaplayerformatsupport.cpp
-        ../../shared/mediabackendutils.h
-    INCLUDE_DIRECTORIES
-        ../../shared/
     LIBRARIES
         Qt::Core
         Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
     BUILTIN_TESTDATA
     TESTDATA
         ${test_data}

@@ -9,12 +9,10 @@ qt_internal_add_test(tst_qmediaplayer_gstreamer
     SOURCES
         tst_qmediaplayer_gstreamer.cpp
         tst_qmediaplayer_gstreamer.h
-        ../../../shared/qscopedenvironmentvariable.h
-    INCLUDE_DIRECTORIES
-        ../../../shared
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::QGstreamerMediaPluginImplPrivate
+        Qt::MultimediaTestLibPrivate
     TESTDATA
         "testdata/color_matrix.mp4"
     BUILTIN_TESTDATA

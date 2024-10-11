@@ -8,10 +8,8 @@
 qt_internal_add_test(tst_qvideoframe
     SOURCES
         tst_qvideoframe.cpp
-        ../../../shared/mediabackendutils.h
-    INCLUDE_DIRECTORIES
-        ../../../shared/
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
 )

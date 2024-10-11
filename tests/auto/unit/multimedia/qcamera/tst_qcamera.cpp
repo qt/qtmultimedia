@@ -18,7 +18,7 @@
 #include "qmockmediacapturesession.h"
 #include "qmockcamera.h"
 
-#include "mediabackendutils.h"
+#include <private/mediabackendutils_p.h>
 
 QT_USE_NAMESPACE
 

@@ -33,8 +33,8 @@
 #include <QtQuick/private/qquickloader_p.h>
 
 #include "mediafileselector.h"
-#include "mediabackendutils.h"
-#include "qsequentialfileadaptor.h"
+#include <private/mediabackendutils_p.h>
+#include <private/qsequentialfileadaptor_p.h>
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
 #include "private/qquickvideooutput_p.h"
 

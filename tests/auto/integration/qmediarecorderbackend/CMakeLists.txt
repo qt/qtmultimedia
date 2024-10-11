@@ -5,9 +5,7 @@ qt_internal_add_test(tst_qmediarecorderbackend
     SOURCES
         tst_qmediarecorderbackend.cpp
         ../shared/audiogenerationutils.h
-        ../../shared/mediabackendutils.h
-    INCLUDE_DIRECTORIES
-        ../../shared/
     LIBRARIES
         Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
 )

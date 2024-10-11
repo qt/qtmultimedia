@@ -16,14 +16,13 @@ qt_internal_add_test(tst_qvideoframebackend
     SOURCES
         ../shared/mediafileselector.h
         ../shared/testvideosink.h
-        ../../shared/mediabackendutils.h
         tst_qvideoframebackend.cpp
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
     BUILTIN_TESTDATA
     TESTDATA ${test_data}
     INCLUDE_DIRECTORIES
         ../shared/
-        ../../shared/
 )

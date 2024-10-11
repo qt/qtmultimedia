@@ -14,7 +14,7 @@
 #include <qmediadevices.h>
 #include <qwavedecoder.h>
 
-#include "mediabackendutils.h"
+#include <private/mediabackendutils_p.h>
 
 #define RANGE_ERR 0.5
 

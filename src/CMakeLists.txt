@@ -25,4 +25,7 @@ if(TARGET Qt::Widgets)
 endif()
 
 add_subdirectory(plugins)
-#special case end
+
+if(QT_FEATURE_testlib AND TARGET Qt::Test)
+    add_subdirectory(multimediatestlib)
+endif()
