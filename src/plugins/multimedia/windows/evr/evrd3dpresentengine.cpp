@@ -436,13 +436,13 @@ static bool readWglNvDxInteropProc(WglNvDxInterop &f)
 namespace {
 
 bool hwTextureRenderingEnabled() {
-    // add possibility for an user to opt-out HW video rendering
+    // add possibility for an user to opt-in to HW video rendering
     // using the same env. variable as for FFmpeg backend
     static bool isDisableConversionSet = false;
     static const int disableHwConversion = qEnvironmentVariableIntValue(
             "QT_DISABLE_HW_TEXTURES_CONVERSION", &isDisableConversionSet);
 
-    return !isDisableConversionSet || !disableHwConversion;
+    return isDisableConversionSet && !disableHwConversion;
 }
 
 }
