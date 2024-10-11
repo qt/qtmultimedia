@@ -915,8 +915,8 @@ public:
     }
 
     template <typename... Ts>
-    std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), void>
-    stopAndRemoveElements(Ts... ts)
+    std::enable_if_t<(std::is_base_of_v<QGstElement, std::remove_reference_t<Ts>> && ...), void>
+    stopAndRemoveElements(Ts &&...ts)
     {
         bool stateChangeSuccessful = (ts.setStateSync(GST_STATE_NULL) && ...);
         Q_ASSERT(stateChangeSuccessful);
