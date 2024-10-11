@@ -1,2 +1,2 @@
 # QTBUG-129956
-ci !windows
+ci !windows !linux
