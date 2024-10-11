@@ -128,6 +128,8 @@ std::optional<guint64> QGstQrcSrc::size()
 
 GstFlowReturn QGstQrcSrc::fill(guint64 offset, guint length, GstBuffer *buf)
 {
+    auto lock = lockObject();
+
     if (!file.isOpen())
         return GST_FLOW_ERROR;
 
