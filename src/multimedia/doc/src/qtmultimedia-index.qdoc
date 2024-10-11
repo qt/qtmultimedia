@@ -273,7 +273,7 @@
 
     In the case of issues with the default FFmpeg backend, we suggest testing with a native backend.
     You can switch to native backends by setting the \c{QT_MEDIA_BACKEND} environment variable
-    to \c windows, \c GStreamer (on Linux), \c Darwin (on macOS and iOS), or \c android:
+    to \c windows, \c gstreamer (on Linux), \c darwin (on macOS and iOS), or \c android:
 
     \code
     export QT_MEDIA_BACKEND=darwin
