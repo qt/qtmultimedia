@@ -26,7 +26,7 @@
 #include <QtCore/private/qcore_mac_p.h>
 #endif
 
-#include <mediabackendutils.h>
+#include <private/mediabackendutils_p.h>
 
 QT_USE_NAMESPACE
 

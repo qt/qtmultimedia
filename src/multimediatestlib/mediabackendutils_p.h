@@ -4,6 +4,17 @@
 #ifndef MEDIABACKENDUTILS_H
 #define MEDIABACKENDUTILS_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
 #include <QtTest/qtestcase.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <QtGui/private/qguiapplication_p.h>

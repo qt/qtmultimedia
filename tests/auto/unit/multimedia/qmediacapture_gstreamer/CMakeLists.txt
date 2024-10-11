@@ -8,11 +8,9 @@
 qt_internal_add_test(tst_qmediacapture_gstreamer
     SOURCES
         tst_qmediacapture_gstreamer.cpp
-        ../../../shared/qscopedenvironmentvariable.h
-    INCLUDE_DIRECTORIES
-        ../../../shared
     LIBRARIES
         Qt::Multimedia
         Qt::MultimediaPrivate
         Qt::QGstreamerMediaPluginImplPrivate
+        Qt::MultimediaTestLibPrivate
 )

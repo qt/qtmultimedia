@@ -3,7 +3,7 @@
 
 #include <QtTest/QtTest>
 #include <qwavedecoder.h>
-#include "../../../shared/qsinewavevalidator.h"
+#include <private/qsinewavevalidator_p.h>
 
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>

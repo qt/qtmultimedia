@@ -6,7 +6,7 @@
 #include "qaudiodecoder.h"
 
 #include "mediafileselector.h"
-#include "mediabackendutils.h"
+#include <private/mediabackendutils_p.h>
 
 constexpr char TEST_FILE_NAME[] = "testdata/test.wav";
 constexpr char TEST_UNSUPPORTED_FILE_NAME[] = "testdata/test-unsupported.avi";

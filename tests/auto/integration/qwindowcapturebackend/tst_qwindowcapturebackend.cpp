@@ -16,7 +16,7 @@
 #include <chrono>
 #include <vector>
 
-#include "mediabackendutils.h"
+#include <private/mediabackendutils_p.h>
 
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;

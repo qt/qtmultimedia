@@ -16,7 +16,7 @@
 #include <qmockintegration.h>
 #include <qmockvideosink.h>
 
-#include "mediabackendutils.h"
+#include <private/mediabackendutils_p.h>
 
 QT_USE_NAMESPACE
 

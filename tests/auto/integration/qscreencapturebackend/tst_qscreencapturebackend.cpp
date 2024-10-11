@@ -12,7 +12,7 @@
 #include <qmediarecorder.h>
 #include <qmediaplayer.h>
 
-#include "mediabackendutils.h"
+#include <private/mediabackendutils_p.h>
 
 #include <vector>
 

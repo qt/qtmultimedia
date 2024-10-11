@@ -6,7 +6,7 @@
 #include <QtTest/QtTest>
 #include <QtMultimedia/private/qmediaplayer_p.h>
 
-#include <qscopedenvironmentvariable.h>
+#include <private/qscopedenvironmentvariable_p.h>
 
 QT_USE_NAMESPACE
 

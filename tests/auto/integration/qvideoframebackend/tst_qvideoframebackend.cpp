@@ -7,7 +7,7 @@
 #include <qdebug.h>
 
 #include "mediafileselector.h"
-#include "mediabackendutils.h"
+#include <private/mediabackendutils_p.h>
 #include "testvideosink.h"
 #include "private/qvideotexturehelper_p.h"
 #include "private/qvideowindow_p.h"

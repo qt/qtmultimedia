@@ -10,10 +10,6 @@ qt_internal_add_test(tst_qwindowcapturebackend
         grabber.cpp
         fixture.h
         fixture.cpp
-        ../../shared/mediabackendutils.h
-
-    INCLUDE_DIRECTORIES
-        ../../shared/
 
     LIBRARIES
         Qt::Multimedia
@@ -21,6 +17,7 @@ qt_internal_add_test(tst_qwindowcapturebackend
         Qt::Gui
         Qt::Widgets
         Qt::MultimediaWidgets
+        Qt::MultimediaTestLibPrivate
 )
 
 

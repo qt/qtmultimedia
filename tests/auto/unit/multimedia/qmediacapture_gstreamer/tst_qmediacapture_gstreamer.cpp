@@ -11,7 +11,7 @@
 #include <QtMultimedia/private/qplatformmediacapture_p.h>
 #include <QtQGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
 
-#include <qscopedenvironmentvariable.h>
+#include <private/qscopedenvironmentvariable_p.h>
 
 #include <memory>
 

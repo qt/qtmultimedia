@@ -15,11 +15,11 @@ file(GLOB_RECURSE test_data
 qt_internal_add_test(tst_qwavedecoder
     SOURCES
         tst_qwavedecoder.cpp
-        ../../../shared/qsinewavevalidator.h
         data/gendata.sh
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
         Qt::Network
+        Qt::MultimediaTestLibPrivate
     TESTDATA ${test_data}
 )

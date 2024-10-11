@@ -16,14 +16,13 @@ qt_internal_add_test(tst_qaudiodecoderbackend
     SOURCES
         tst_qaudiodecoderbackend.cpp
         ../shared/mediafileselector.h
-        ../../shared/mediabackendutils.h
     INCLUDE_DIRECTORIES
         ../shared/
-        ../../shared/
         ../../../../src/multimedia/audio
     LIBRARIES
         Qt::Gui
         Qt::Multimedia
         Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
     TESTDATA ${test_data}
 )

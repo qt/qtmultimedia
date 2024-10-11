@@ -8,13 +8,11 @@
 qt_internal_add_test(tst_qcamerabackend
     SOURCES
         tst_qcamerabackend.cpp
-        ../../shared/mediabackendutils.h
-    INCLUDE_DIRECTORIES
-        ../../shared/
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
         Qt::Widgets
+        Qt::MultimediaTestLibPrivate
 )
 
 # special case begin

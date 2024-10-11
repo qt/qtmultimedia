@@ -14,7 +14,7 @@
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformaudioresampler_p.h>
 #include <../shared/testvideosink.h>
-#include "mediabackendutils.h"
+#include <private/mediabackendutils_p.h>
 #include <../shared/audiogenerationutils.h>
 
 QT_BEGIN_NAMESPACE

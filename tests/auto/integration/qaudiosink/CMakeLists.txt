@@ -8,8 +8,8 @@
 qt_internal_add_test(tst_qaudiosink
     SOURCES
         tst_qaudiosink.cpp
-        ../shared/audiogenerationutils.h
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
 )
