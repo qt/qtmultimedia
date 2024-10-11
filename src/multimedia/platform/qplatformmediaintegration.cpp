@@ -71,7 +71,7 @@ struct InstanceHolder
             qCCritical(qLcMediaPlugin()) << "Qt Multimedia requires a QCoreApplication instance";
 
         const QStringList backends = QPlatformMediaIntegration::availableBackends();
-        QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
+        QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND")).toLower();
         if (backend.isEmpty() && !backends.isEmpty())
             backend = defaultBackend(backends);
 
