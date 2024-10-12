@@ -139,8 +139,9 @@ static QRhi *initializeRHI(QRhi *videoFrameRhi)
         return g_state.localData().rhi;
 
     QRhi::Implementation backend = videoFrameRhi ? videoFrameRhi->backend() : QRhi::Null;
+    const QPlatformIntegration *qpa = QGuiApplicationPrivate::platformIntegration();
 
-    if (QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::RhiBasedRendering)) {
+    if (qpa && qpa->hasCapability(QPlatformIntegration::RhiBasedRendering)) {
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
         if (backend == QRhi::Metal || backend == QRhi::Null) {
@@ -158,8 +159,8 @@ static QRhi *initializeRHI(QRhi *videoFrameRhi)
 
 #if QT_CONFIG(opengl)
         if (!g_state.localData().rhi && (backend == QRhi::OpenGLES2 || backend == QRhi::Null)) {
-            if (QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::OpenGL)
-                    && QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::RasterGLSurface)
+            if (qpa->hasCapability(QPlatformIntegration::OpenGL)
+                    && qpa->hasCapability(QPlatformIntegration::RasterGLSurface)
                     && !QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets)) {
 
                 g_state.localData().fallbackSurface = QRhiGles2InitParams::newFallbackSurface();
