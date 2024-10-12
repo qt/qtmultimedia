@@ -5,7 +5,6 @@
 #define TST_QMEDIAFRAMEINPUTSBACKEND_H
 
 #include <QObject>
-#include <QtCore/qtemporarydir.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -15,7 +14,6 @@ class tst_QMediaFrameInputsBackend : public QObject
 
 private slots:
     void initTestCase();
-    void cleanupTestCase();
 
     void mediaRecorderWritesAudio_whenAudioFramesInputSends_data();
     void mediaRecorderWritesAudio_whenAudioFramesInputSends();
@@ -23,21 +21,10 @@ private slots:
     void mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames_data();
     void mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames();
 
-    void mediaRecorderWritesVideo_whenInputFrameShrinksOverTime();
-    void mediaRecorderWritesVideo_whenInputFrameGrowsOverTime();
-
     void mediaRecorderWritesVideo_withSingleFrame();
 
-    void mediaRecorderWritesVideo_withCorrectColors_data();
-    void mediaRecorderWritesVideo_withCorrectColors();
-
-    void mediaRecorderWritesVideo_withoutTransforms_whenPresentationTransformsPresent_data();
-    void mediaRecorderWritesVideo_withoutTransforms_whenPresentationTransformsPresent();
     void sinkReceivesFrameWithTransformParams_whenPresentationTransformPresent_data();
     void sinkReceivesFrameWithTransformParams_whenPresentationTransformPresent();
-
-    void mediaRecorderStopsRecording_whenInputsReportedEndOfStream_data();
-    void mediaRecorderStopsRecording_whenInputsReportedEndOfStream();
 
     void readyToSend_isEmitted_whenRecordingStarts_data();
     void readyToSend_isEmitted_whenRecordingStarts();
@@ -49,8 +36,6 @@ private slots:
     void readyToSendAudioBuffer_isEmittedRepeatedly_whenPullModeIsEnabled();
     void readyToSendAudioBufferAndVideoFrame_isEmittedRepeatedly_whenPullModeIsEnabled();
 
-private:
-    QTemporaryDir m_tempDir;
 };
 
 QT_END_NAMESPACE

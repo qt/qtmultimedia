@@ -12,6 +12,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
         mediafileselector_p.h
         mediainfo_p.h
         testvideosink_p.h
+        qcolorutil_p.h qcolorutil.cpp
         qfileutil_p.h qfileutil.cpp
         qscopedenvironmentvariable_p.h
         qsequentialfileadaptor_p.h
