@@ -7,7 +7,7 @@
 #include <QtCore/QSharedPointer>
 #include <QtCore/QScopedPointer>
 
-#include "../shared/audiogenerationutils.h"
+#include <private/audiogenerationutils_p.h>
 #include <qaudiosink.h>
 #include <qaudiodevice.h>
 #include <qaudioformat.h>

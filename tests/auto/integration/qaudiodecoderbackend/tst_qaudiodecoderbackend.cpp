@@ -5,7 +5,7 @@
 #include <QDebug>
 #include "qaudiodecoder.h"
 
-#include "mediafileselector.h"
+#include <private/mediafileselector_p.h>
 #include <private/mediabackendutils_p.h>
 
 constexpr char TEST_FILE_NAME[] = "testdata/test.wav";

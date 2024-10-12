@@ -10,7 +10,7 @@
 #include <QtMultimedia/qaudiooutput.h>
 #include <QtMultimedia/qaudiobufferoutput.h>
 #include <QtMultimedia/qaudiobuffer.h>
-#include "../shared/testvideosink.h"
+#include <private/testvideosink_p.h>
 #include <chrono>
 
 QT_USE_NAMESPACE

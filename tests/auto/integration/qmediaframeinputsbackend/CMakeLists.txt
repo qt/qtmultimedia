@@ -11,8 +11,6 @@ qt_internal_add_test(tst_qmediaframeinputsbackend
         capturesessionfixture.cpp capturesessionfixture.h
         mediainfo.h
         framegenerator.cpp framegenerator.h
-        ../shared/testvideosink.h
-        ../shared/audiogenerationutils.h
     LIBRARIES
         Qt::Multimedia
         Qt::MultimediaPrivate

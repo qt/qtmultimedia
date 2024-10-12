@@ -4,12 +4,10 @@
 qt_internal_add_test(tst_qmediaplayer_concurrent
     SOURCES
         tst_qmediaplayer_concurrent.cpp
-        ../shared/testvideosink.h
-    INCLUDE_DIRECTORIES
-        ../shared/
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
     TESTDATA "3colors_with_sound_1s.mp4"
     BUILTIN_TESTDATA
 )

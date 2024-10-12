@@ -14,8 +14,6 @@ file(GLOB_RECURSE test_data
 
 qt_internal_add_test(tst_qmediaplayerbackend
     SOURCES
-        ../shared/mediafileselector.h
-        ../shared/testvideosink.h
         mediaplayerstate.h
         fake.h
         fixture.h
@@ -33,6 +31,4 @@ qt_internal_add_test(tst_qmediaplayerbackend
     TESTDATA
         ${test_data}
         "LazyLoad.qml"
-    INCLUDE_DIRECTORIES
-        ../shared/
 )

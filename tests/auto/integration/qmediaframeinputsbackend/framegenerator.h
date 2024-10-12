@@ -8,7 +8,7 @@
 #include <QtCore/qlist.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qaudiobuffer.h>
-#include "../shared/audiogenerationutils.h"
+#include <private/audiogenerationutils_p.h>
 
 #include <functional>
 #include <chrono>

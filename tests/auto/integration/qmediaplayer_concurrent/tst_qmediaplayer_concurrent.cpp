@@ -5,7 +5,7 @@
 #include <QtCore/qthread.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qaudiooutput.h>
-#include "testvideosink.h"
+#include <private/testvideosink_p.h>
 
 #include <QtCore/qstring.h>
 #include <QtCore/qatomic.h>

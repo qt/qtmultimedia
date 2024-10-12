@@ -32,7 +32,7 @@
 #include <QtQuick/qquickview.h>
 #include <QtQuick/private/qquickloader_p.h>
 
-#include "mediafileselector.h"
+#include <private/mediafileselector_p.h>
 #include <private/mediabackendutils_p.h>
 #include <private/qsequentialfileadaptor_p.h>
 #include <QtMultimedia/private/qtmultimedia-config_p.h>

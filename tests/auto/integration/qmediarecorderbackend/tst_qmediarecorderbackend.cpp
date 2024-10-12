@@ -6,7 +6,7 @@
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/qaudiobufferinput.h>
 #include <QtMultimedia/qmediaformat.h>
-#include "../shared/audiogenerationutils.h"
+#include <private/audiogenerationutils_p.h>
 #include <private/mediabackendutils_p.h>
 
 #include <QtCore/qtemporarydir.h>

@@ -6,9 +6,9 @@
 #include <qvideoframe.h>
 #include <qdebug.h>
 
-#include "mediafileselector.h"
+#include <private/mediafileselector_p.h>
 #include <private/mediabackendutils_p.h>
-#include "testvideosink.h"
+#include <private/testvideosink_p.h>
 #include "private/qvideotexturehelper_p.h"
 #include "private/qvideowindow_p.h"
 #include <thread>
