@@ -13,6 +13,8 @@
 #include <private/qcolorutil_p.h>
 #include <private/qfileutil_p.h>
 #include <private/mediabackendutils_p.h>
+#include <private/formatutils_p.h>
+#include <private/osdetection_p.h>
 
 #include <QtCore/qtemporarydir.h>
 #include <chrono>
@@ -22,6 +24,7 @@ using namespace std::chrono_literals;
 QT_USE_NAMESPACE
 
 namespace {
+
 bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
 {
     // TODO: Enable more pixel formats once support is added
@@ -46,6 +49,36 @@ bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
         return true;
     }
 }
+
+std::set<QMediaFormat::VideoCodec> unsupportedVideoCodecs(QMediaFormat::FileFormat fileFormat)
+{
+    using VideoCodec = QMediaFormat::VideoCodec;
+
+    if constexpr (isLinux)
+        return {};
+
+    std::set<QMediaFormat::VideoCodec> unsupportedCodecs;
+    if constexpr (isMacOS) {
+        if (fileFormat == QMediaFormat::Matroska)
+            unsupportedCodecs.insert(VideoCodec::H265);
+        if constexpr (isArm) {
+            if (fileFormat == QMediaFormat::FileFormat::WMV)
+                unsupportedCodecs.insert(VideoCodec::H264);
+            else if (fileFormat == QMediaFormat::FileFormat::AVI)
+                unsupportedCodecs.insert(VideoCodec::H264);
+            else if (fileFormat == QMediaFormat::MPEG4)
+                unsupportedCodecs.insert(VideoCodec::H264);
+            else if (fileFormat == QMediaFormat::QuickTime)
+                unsupportedCodecs.insert(VideoCodec::H264);
+        }
+    }
+
+    if (fileFormat == QMediaFormat::FileFormat::Matroska)
+        unsupportedCodecs.insert({ VideoCodec::H264 });
+
+    return unsupportedCodecs;
+}
+
 } // namespace
 
 using namespace Qt::StringLiterals;
@@ -80,6 +113,12 @@ private slots:
     void record_writesToOutputDevice_whenWritableOutputDeviceAndLocationAreSet();
 
     void record_writesToOutputLocation_whenNotWritableOutputDeviceAndLocationAreSet();
+
+    void record_writesVideo_withAllSupportedVideoFormats_data();
+    void record_writesVideo_withAllSupportedVideoFormats();
+
+    void record_writesAudio_withAllSupportedAudioFormats_data();
+    void record_writesAudio_withAllSupportedAudioFormats();
 
     void record_emits_mediaformatChanged_whenFormatChanged();
 
@@ -506,6 +545,135 @@ void tst_QMediaRecorderBackend::record_writesToOutputLocation_whenNotWritableOut
     QCOMPARE_NE(f.m_recorder.actualLocation(), QUrl());
     QCOMPARE(tempFile.size(), 0);
 }
+
+void tst_QMediaRecorderBackend::record_writesVideo_withAllSupportedVideoFormats_data()
+{
+    QTest::addColumn<QMediaFormat>("format");
+
+    for (QMediaFormat f : allFileFormats(/*with unspecified*/ true)) {
+        for (const QMediaFormat::VideoCodec &c : allVideoCodecs(/*with unspecified*/ true)) {
+            f.setVideoCodec(c);
+
+            if (!f.isSupported(QMediaFormat::Encode))
+                continue;
+
+            const auto formatName = QMediaFormat::fileFormatName(f.fileFormat()).toLatin1();
+            const auto videoCodecName = QMediaFormat::videoCodecName(f.videoCodec()).toLatin1();
+
+            QTest::addRow("%s,%s", formatName.data(), videoCodecName.data()) << f;
+        }
+    }
+}
+
+void tst_QMediaRecorderBackend::record_writesVideo_withAllSupportedVideoFormats()
+{
+    if (!isFFMPEGPlatform())
+        QSKIP("Tested only with FFmpeg backend because other backends don't have the same "
+              "format support");
+
+    QFETCH(const QMediaFormat, format);
+
+    CaptureSessionFixture f{ StreamType::Video };
+
+    f.m_recorder.setMediaFormat(format);
+    f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
+    f.m_videoGenerator.setFrameCount(3);
+    f.m_videoGenerator.setFrameRate(24);
+    f.m_videoGenerator.setSize({ 128, 64 });
+
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
+
+    const auto actualFormat = f.m_recorder.mediaFormat();
+
+    qDebug() << "Actual format used: " << QMediaFormat::fileFormatName(actualFormat.fileFormat())
+             << "/" << QMediaFormat::videoCodecName(actualFormat.videoCodec());
+
+    QVERIFY(f.waitForRecorderStopped(60s));
+
+    if (unsupportedVideoCodecs(actualFormat.fileFormat()).count(actualFormat.videoCodec()))
+        QEXPECT_FAIL("", "QTBUG-126276", Abort);
+
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
+             f.m_recorder.errorString().toLatin1().data());
+
+    const std::optional<MediaInfo> info = MediaInfo::create(f.m_recorder.actualLocation());
+    QVERIFY(info);
+
+    QCOMPARE_GE(info->m_colors.size(),
+                2u); // TODO: We loose one frame with some combinations
+    QCOMPARE_LE(info->m_colors.size(), 3u);
+
+    std::array<QColor, 4> colors = info->m_colors.front();
+    QVERIFY(fuzzyCompare(colors[0], Qt::red));
+    QVERIFY(fuzzyCompare(colors[1], Qt::green));
+    QVERIFY(fuzzyCompare(colors[2], Qt::blue));
+    QVERIFY(fuzzyCompare(colors[3], Qt::yellow));
+}
+
+void tst_QMediaRecorderBackend::record_writesAudio_withAllSupportedAudioFormats_data()
+{
+    QTest::addColumn<QMediaFormat>("format");
+
+    for (QMediaFormat f : allFileFormats(/*with unspecified*/ true)) {
+        for (const QMediaFormat::AudioCodec &c : allAudioCodecs(/*with unspecified*/ true)) {
+            f.setAudioCodec(c);
+
+            if (!f.isSupported(QMediaFormat::Encode))
+                continue;
+
+            const auto formatName = QMediaFormat::fileFormatName(f.fileFormat()).toLatin1();
+            const auto audioCodecName = QMediaFormat::audioCodecName(f.audioCodec()).toLatin1();
+
+            QTest::addRow("%s,%s", formatName.data(), audioCodecName.data()) << f;
+        }
+    }
+}
+
+void tst_QMediaRecorderBackend::record_writesAudio_withAllSupportedAudioFormats()
+{
+    if (!isFFMPEGPlatform())
+        QSKIP("Tested only with FFmpeg backend because other backends don't have the same "
+              "format support");
+
+    QFETCH(const QMediaFormat, format);
+
+    CaptureSessionFixture f{ StreamType::Audio };
+    f.m_recorder.setMediaFormat(format);
+
+    QAudioFormat audioFormat;
+    audioFormat.setSampleRate(44100); // TODO: Change to 8000 fails some tests
+    audioFormat.setSampleFormat(QAudioFormat::Float);
+    audioFormat.setChannelConfig(
+            QAudioFormat::ChannelConfigStereo); // TODO: Change to Mono fails some tests
+    f.m_audioGenerator.setFormat(audioFormat);
+
+    constexpr seconds expectedDuration = 1s;
+
+    f.m_audioGenerator.setDuration(expectedDuration);
+    f.m_audioGenerator.setFrequency(800);
+
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
+
+    const auto actualFormat = f.m_recorder.mediaFormat();
+
+    qDebug() << "Actual format: " << QMediaFormat::fileFormatName(actualFormat.fileFormat()) << ","
+             << QMediaFormat::audioCodecName(actualFormat.audioCodec());
+
+    QVERIFY(f.waitForRecorderStopped(60s));
+
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
+             f.m_recorder.errorString().toLatin1().data());
+
+    const std::optional<MediaInfo> info = MediaInfo::create(f.m_recorder.actualLocation());
+    QVERIFY(info);
+
+    QCOMPARE_GE(info->m_audioBuffer.duration(),
+                std::chrono::microseconds(expectedDuration / 5).count()); // TODO: Fix cut audio
+
+    QCOMPARE_GE(info->m_audioBuffer.byteCount(), 1u); // TODO: Verify with QSineWaveValidator
+}
+
+// TODO: Add test that verifies format support with both audio and video in the same recording
 
 void tst_QMediaRecorderBackend::record_emits_mediaformatChanged_whenFormatChanged()
 {
