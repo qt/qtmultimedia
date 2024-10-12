@@ -15,9 +15,7 @@ file(GLOB_RECURSE test_data
 qt_internal_add_test(tst_qaudiodecoderbackend
     SOURCES
         tst_qaudiodecoderbackend.cpp
-        ../shared/mediafileselector.h
     INCLUDE_DIRECTORIES
-        ../shared/
         ../../../../src/multimedia/audio
     LIBRARIES
         Qt::Gui

@@ -12,7 +12,7 @@
 #include <QtMultimedia/qaudiobufferinput.h>
 #include <QtCore/qtemporaryfile.h>
 
-#include <../shared/testvideosink.h>
+#include <private/testvideosink_p.h>
 #include <QtTest/qsignalspy.h>
 
 QT_BEGIN_NAMESPACE

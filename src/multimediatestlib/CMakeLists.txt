@@ -5,7 +5,10 @@ qt_internal_add_module(MultimediaTestLibPrivate
     STATIC
     INTERNAL_MODULE
     SOURCES
+        audiogenerationutils_p.h
         mediabackendutils_p.h
+        mediafileselector_p.h
+        testvideosink_p.h
         qscopedenvironmentvariable_p.h
         qsequentialfileadaptor_p.h
         qsinewavevalidator_p.h qsinewavevalidator.cpp
@@ -16,6 +19,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
         Qt::GuiPrivate
         Qt::Multimedia
         Qt::MultimediaPrivate
+        Qt::Test
     NO_GENERATE_CPP_EXPORTS
     QT_LICENSE_ID QT_COMMERCIAL_OR_GPL3
 )

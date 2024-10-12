@@ -10,7 +10,7 @@
 #include <qsignalspy.h>
 
 #include "fake.h"
-#include "testvideosink.h"
+#include <private/testvideosink_p.h>
 
 QT_USE_NAMESPACE
 
