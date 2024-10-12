@@ -1,18 +1,18 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "capturesessionfixture.h"
 #include "tst_qmediaframeinputsbackend.h"
 
-#include "mediainfo.h"
 #include <QtTest/QtTest>
 #include <qvideoframeinput.h>
 #include <qaudiobufferinput.h>
 #include <qsignalspy.h>
 #include <qmediarecorder.h>
 #include <qmediaplayer.h>
+#include <private/capturesessionfixture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformaudioresampler_p.h>
+#include <private/mediainfo_p.h>
 #include <private/testvideosink_p.h>
 #include <private/mediabackendutils_p.h>
 #include <private/audiogenerationutils_p.h>

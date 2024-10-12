@@ -8,9 +8,6 @@
 qt_internal_add_test(tst_qmediaframeinputsbackend
     SOURCES
         tst_qmediaframeinputsbackend.cpp tst_qmediaframeinputsbackend.h
-        capturesessionfixture.cpp capturesessionfixture.h
-        mediainfo.h
-        framegenerator.cpp framegenerator.h
     LIBRARIES
         Qt::Multimedia
         Qt::MultimediaPrivate

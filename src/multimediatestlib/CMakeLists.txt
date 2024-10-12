@@ -6,8 +6,11 @@ qt_internal_add_module(MultimediaTestLibPrivate
     INTERNAL_MODULE
     SOURCES
         audiogenerationutils_p.h
+        capturesessionfixture_p.h capturesessionfixture.cpp
+        framegenerator_p.h framegenerator.cpp
         mediabackendutils_p.h
         mediafileselector_p.h
+        mediainfo_p.h
         testvideosink_p.h
         qscopedenvironmentvariable_p.h
         qsequentialfileadaptor_p.h

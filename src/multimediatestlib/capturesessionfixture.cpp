@@ -1,7 +1,7 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "capturesessionfixture.h"
+#include "capturesessionfixture_p.h"
 #include <QtTest/qtest.h>
 
 QT_BEGIN_NAMESPACE
@@ -68,7 +68,7 @@ void CaptureSessionFixture::start(RunMode mode, AutoStop autoStop)
         m_session.setVideoSink(m_videoSink);
 }
 
-bool CaptureSessionFixture::waitForRecorderStopped(milliseconds duration)
+bool CaptureSessionFixture::waitForRecorderStopped(std::chrono::milliseconds duration)
 {
     // StoppedState is emitted when media is finalized.
     const bool stopped = QTest::qWaitFor(
