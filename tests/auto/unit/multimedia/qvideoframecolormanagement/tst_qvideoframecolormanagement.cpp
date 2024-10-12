@@ -10,6 +10,7 @@
 #include "private/qplatformmediaintegration_p.h"
 #include "private/qimagevideobuffer_p.h"
 #include "private/qvideoframe_p.h"
+#include <private/qfileutil_p.h>
 #include <QtGui/QColorSpace>
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
@@ -250,23 +251,6 @@ std::optional<ImageDiffReport> compareImagesRgb32(const QImage &computed, const 
         }
     }
     return report;
-}
-
-bool copyAllFiles(const QDir &source, const QDir &dest)
-{
-    if (!source.exists() || !dest.exists())
-        return false;
-
-    QDirIterator it(source);
-    while (it.hasNext()) {
-        QFileInfo file{ it.next() };
-        if (file.isFile()) {
-            const QString destination = dest.absolutePath() + "/" + file.fileName();
-            QFile::copy(file.absoluteFilePath(), destination);
-        }
-    }
-
-    return true;
 }
 
 class ReferenceData
