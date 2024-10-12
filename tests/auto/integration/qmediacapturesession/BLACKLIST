@@ -1,2 +1,2 @@
 # QTBUG-129956
-ci !windows !linux !macos
+ci !windows !linux !macos !android !ios
