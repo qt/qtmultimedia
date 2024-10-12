@@ -5,97 +5,14 @@
 #include <QtMultimedia/qmediaformat.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <private/mediabackendutils_p.h>
+#include <private/formatutils_p.h>
+#include <private/osdetection_p.h>
 #include <set>
 #include <map>
 
 QT_USE_NAMESPACE
 
 using namespace Qt::StringLiterals;
-
-constexpr bool isLinux =
-#ifdef Q_OS_LINUX
-        true;
-#else
-        false;
-#endif
-
-constexpr bool isWindows =
-#ifdef Q_OS_WINDOWS
-        true;
-#else
-        false;
-#endif
-
-constexpr bool isAndroid =
-#ifdef Q_OS_ANDROID
-        true;
-#else
-        false;
-#endif
-
-constexpr bool isMacOS =
-#ifdef Q_OS_MACOS
-        true;
-#else
-        false;
-#endif
-
-std::set<QMediaFormat::VideoCodec> allVideoCodecs(bool includeUnspecified = false)
-{
-    using VideoCodec = QMediaFormat::VideoCodec;
-    std::set<VideoCodec> codecs;
-
-    const int firstCodec = qToUnderlying(VideoCodec::Unspecified) + (includeUnspecified ? 0 : 1);
-    constexpr int lastCodec = qToUnderlying(VideoCodec::LastVideoCodec);
-
-    for (int i = firstCodec; i <= lastCodec; ++i)
-        codecs.insert(static_cast<VideoCodec>(i));
-
-    return codecs;
-}
-
-std::set<QMediaFormat::AudioCodec> allAudioCodecs(bool includeUnspecified = false)
-{
-    using AudioCodec = QMediaFormat::AudioCodec;
-    std::set<AudioCodec> codecs;
-
-    const int firstCodec = qToUnderlying(AudioCodec::Unspecified) + (includeUnspecified ? 0 : 1);
-    constexpr int lastCodec = qToUnderlying(AudioCodec::LastAudioCodec);
-
-    for (int i = firstCodec; i <= lastCodec; ++i)
-        codecs.insert(static_cast<AudioCodec>(i));
-
-    return codecs;
-}
-
-std::set<QMediaFormat::FileFormat> allFileFormats(bool includeUnspecified = false)
-{
-    using FileFormat = QMediaFormat::FileFormat;
-
-    std::set<FileFormat> videoFormats;
-    const int firstFormat = FileFormat::UnspecifiedFormat + (includeUnspecified ? 0 : 1);
-    for (int i = firstFormat; i <= FileFormat::LastFileFormat; ++i) {
-        const FileFormat format = static_cast<FileFormat>(i);
-        videoFormats.insert(format);
-    }
-    return videoFormats;
-}
-
-std::vector<QMediaFormat> allMediaFormats(bool includeUnspecified = false)
-{
-    std::vector<QMediaFormat> formats;
-    for (const auto &fileFormat : allFileFormats(includeUnspecified)) {
-        for (const auto &audioCodec : allAudioCodecs(includeUnspecified)) {
-            for (const auto &videoCodec : allVideoCodecs(includeUnspecified)) {
-                QMediaFormat format{ fileFormat };
-                format.setAudioCodec(audioCodec);
-                format.setVideoCodec(videoCodec);
-                formats.push_back(format);
-            }
-        }
-    }
-    return formats;
-}
 
 std::set<QMediaFormat::VideoCodec> supportedVideoEncoders(QMediaFormat::FileFormat fileFormat)
 {

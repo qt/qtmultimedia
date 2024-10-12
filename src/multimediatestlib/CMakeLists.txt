@@ -10,7 +10,9 @@ qt_internal_add_module(MultimediaTestLibPrivate
         framegenerator_p.h framegenerator.cpp
         mediabackendutils_p.h
         mediafileselector_p.h
+        formatutils_p.h formatutils.cpp
         mediainfo_p.h
+        osdetection_p.h
         testvideosink_p.h
         qcolorutil_p.h qcolorutil.cpp
         qfileutil_p.h qfileutil.cpp
