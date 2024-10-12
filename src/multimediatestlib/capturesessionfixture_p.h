@@ -1,10 +1,21 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#ifndef CAPTURESESSIONFIXTURE_H
-#define CAPTURESESSIONFIXTURE_H
+#ifndef CAPTURESESSIONFIXTURE_P_H
+#define CAPTURESESSIONFIXTURE_P_H
 
-#include "framegenerator.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/framegenerator_p.h>
 #include <QtMultimedia/qvideoframeinput.h>
 #include <QtMultimedia/qaudioinput.h>
 #include <QtMultimedia/qmediacapturesession.h>
@@ -28,7 +39,7 @@ struct CaptureSessionFixture
 
     void setVideoSink(QVideoSink *videoSink);
     void start(RunMode mode, AutoStop autoStop);
-    bool waitForRecorderStopped(milliseconds duration);
+    bool waitForRecorderStopped(std::chrono::milliseconds duration);
     bool hasAudio() const;
     bool hasVideo() const;
 

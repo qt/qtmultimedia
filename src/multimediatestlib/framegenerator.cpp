@@ -1,7 +1,7 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "framegenerator.h"
+#include "framegenerator_p.h"
 #include <QtCore/qdebug.h>
 
 #include <private/qplatformmediaintegration_p.h>
@@ -33,7 +33,7 @@ void VideoGenerator::setFrameRate(double rate)
     m_frameRate = rate;
 }
 
-void VideoGenerator::setPeriod(milliseconds period)
+void VideoGenerator::setPeriod(std::chrono::milliseconds period)
 {
     m_period = period;
 }
@@ -71,6 +71,8 @@ static void fillColoredSquares(QImage& image)
 
 QVideoFrame VideoGenerator::createFrame()
 {
+    using namespace std::chrono;
+
     QImage image(m_size, QImage::Format_ARGB32);
     switch (m_pattern) {
     case ImagePattern::SingleColor:
@@ -119,4 +121,4 @@ void VideoGenerator::nextFrame()
 
 QT_END_NAMESPACE
 
-#include "moc_framegenerator.cpp"
+#include "moc_framegenerator_p.cpp"
