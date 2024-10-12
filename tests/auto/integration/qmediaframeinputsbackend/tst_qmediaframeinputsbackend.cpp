@@ -16,7 +16,7 @@
 #include <private/testvideosink_p.h>
 #include <private/mediabackendutils_p.h>
 #include <private/audiogenerationutils_p.h>
-#include <private/qfileutil_p.h>
+#include <private/qcolorutil_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -149,18 +149,6 @@ AudioComparisonResult compareAudioData(QAudioBuffer actual, QAudioBuffer expecte
 void tst_QMediaFrameInputsBackend::initTestCase()
 {
     QSKIP_GSTREAMER("Not implemented in the gstreamer backend");
-}
-
-void tst_QMediaFrameInputsBackend::cleanupTestCase()
-{
-    // Copy any stored files in the temporary directory over to COIN result directory
-    // to allow inspecting image differences.
-    if (qEnvironmentVariableIsSet("COIN_CTEST_RESULTSDIR")) {
-        const QDir sourceDir = m_tempDir.path();
-        const QDir resultsDir{ qEnvironmentVariable("COIN_CTEST_RESULTSDIR") };
-        if (!copyAllFiles(sourceDir, resultsDir))
-            qWarning() << "Failed to copy files to COIN_CTEST_RESULTSDIR";
-    }
 }
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInputSends_data()
@@ -296,165 +284,6 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenVideoFramesInput
     QCOMPARE_EQ(info->m_frameCount, framesNumber);
 }
 
-struct YUV
-{
-    double Y;
-    double U;
-    double V;
-};
-
-// Poor man's RGB to YUV conversion with BT.709 coefficients
-// from https://en.wikipedia.org/wiki/Y%E2%80%B2UV
-QVector3D RGBToYUV(const QColor &c)
-{
-    const float R = c.redF();
-    const float G = c.greenF();
-    const float B = c.blueF();
-    QVector3D yuv;
-    yuv[0] = 0.2126f * R + 0.7152f * G + 0.0722f * B;
-    yuv[1] = -0.09991f * R - 0.33609f * G + 0.436f * B;
-    yuv[2] = 0.615f * R - 0.55861f * G - 0.05639f * B;
-    return yuv;
-}
-
-// Considers two colors equal if their YUV components are
-// pointing in the same direction and have similar luma (Y)
-bool fuzzyCompare(const QColor &lhs, const QColor &rhs, float tol = 1e-2f)
-{
-    const QVector3D lhsYuv = RGBToYUV(lhs);
-    const QVector3D rhsYuv = RGBToYUV(rhs);
-    const float relativeLumaDiff =
-            0.5f * std::abs((lhsYuv[0] - rhsYuv[0]) / (lhsYuv[0] + rhsYuv[0]));
-    const float colorDiff = QVector3D::crossProduct(lhsYuv, rhsYuv).length();
-    return colorDiff < tol && relativeLumaDiff < tol;
-}
-
-bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
-{
-    // TODO: Enable more pixel formats once support is added
-    switch (pixelFormat) {
-    case QVideoFrameFormat::Format_AYUV:
-    case QVideoFrameFormat::Format_AYUV_Premultiplied:
-    case QVideoFrameFormat::Format_YV12:
-    case QVideoFrameFormat::Format_IMC1:
-    case QVideoFrameFormat::Format_IMC2:
-    case QVideoFrameFormat::Format_IMC3:
-    case QVideoFrameFormat::Format_IMC4:
-    case QVideoFrameFormat::Format_YUV420P10: // TODO: Cpu conversion not implemented, fails in CI if RHI is not supported
-    case QVideoFrameFormat::Format_Y16: // TODO: Fails on Android
-    case QVideoFrameFormat::Format_P010: // TODO: Fails on Android
-    case QVideoFrameFormat::Format_P016: // TODO: Fails on Android
-    case QVideoFrameFormat::Format_SamplerExternalOES:
-    case QVideoFrameFormat::Format_Jpeg:
-    case QVideoFrameFormat::Format_SamplerRect:
-        return false;
-    default:
-        return true;
-    }
-}
-void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withCorrectColors_data()
-{
-    QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
-
-    for (int i = QVideoFrameFormat::Format_ARGB8888; i < QVideoFrameFormat::NPixelFormats; ++i) {
-        const auto format = static_cast<QVideoFrameFormat::PixelFormat>(i);
-        if (!isSupportedPixelFormat(format))
-            continue;
-        const QByteArray formatName = QVideoFrameFormat::pixelFormatToString(format).toLatin1();
-        QTest::addRow("%s", formatName.data()) << format;
-    }
-}
-
-void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withCorrectColors()
-{
-    QFETCH(const QVideoFrameFormat::PixelFormat, pixelFormat);
-
-    // Arrange
-    CaptureSessionFixture f{ StreamType::Video };
-    f.m_videoGenerator.setPixelFormat(pixelFormat);
-    f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
-    f.m_videoGenerator.setFrameCount(1);
-    f.m_videoGenerator.setSize({ 128, 64 }); // Small frames to speed up test
-
-    f.start(RunMode::Push, AutoStop::EmitEmpty);
-
-    // Act: Push one frame through and send sentinel stop frame
-    f.readyToSendVideoFrame.wait();
-    f.m_videoGenerator.nextFrame();
-    f.readyToSendVideoFrame.wait();
-    f.m_videoGenerator.nextFrame();
-
-    QVERIFY(f.waitForRecorderStopped(60s));
-    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
-
-    const auto info = MediaInfo::create(f.m_recorder.actualLocation(), /*keep frames */ true);
-
-    const QImage expectedImage = f.m_videoGenerator.createFrame().toImage();
-
-    QCOMPARE_EQ(info->m_frames.size(), 2u); // Front has content, back is empty
-    const QImage actualImage = info->m_frames.front().toImage();
-
-    // Store images to simplify debugging/verifying output
-    const QString path = m_tempDir.filePath(QVideoFrameFormat::pixelFormatToString(pixelFormat));
-    QVERIFY(expectedImage.save(path + "_expected.png"));
-    QVERIFY(actualImage.save(path + "_actual.png"));
-
-    // Extract center of each quadrant, because recorder compression introduces artifacts
-    // in color boundaries.
-    const std::array<QColor, 4> expectedColors = MediaInfo::sampleQuadrants(expectedImage);
-    const std::array<QColor, 4> actualColors = MediaInfo::sampleQuadrants(actualImage);
-
-    // Assert that colors are similar (not exactly the same because compression introduces minor
-    // differences)
-    QVERIFY(fuzzyCompare(expectedColors[0], actualColors[0]));
-    QVERIFY(fuzzyCompare(expectedColors[1], actualColors[1]));
-    QVERIFY(fuzzyCompare(expectedColors[2], actualColors[2]));
-    QVERIFY(fuzzyCompare(expectedColors[3], actualColors[3]));
-}
-
-void tst_QMediaFrameInputsBackend::
-        mediaRecorderWritesVideo_withoutTransforms_whenPresentationTransformsPresent_data()
-{
-    QTest::addColumn<QtVideo::Rotation>("presentationRotation");
-    QTest::addColumn<bool>("presentationMirrored");
-
-    QTest::addRow("No rotation, not mirrored") << QtVideo::Rotation::None << false;
-    QTest::addRow("90 degrees, not mirrored") << QtVideo::Rotation::Clockwise90 << false;
-    QTest::addRow("180 degrees, not mirrored") << QtVideo::Rotation::Clockwise180 << false;
-    QTest::addRow("270 degrees, not mirrored") << QtVideo::Rotation::Clockwise270 << false;
-    QTest::addRow("No rotation, mirrored") << QtVideo::Rotation::None << true;
-    QTest::addRow("90 degrees, mirrored") << QtVideo::Rotation::Clockwise90 << true;
-    QTest::addRow("180 degrees, mirrored") << QtVideo::Rotation::Clockwise180 << true;
-    QTest::addRow("270 degrees, mirrored") << QtVideo::Rotation::Clockwise270 << true;
-}
-
-void tst_QMediaFrameInputsBackend::
-        mediaRecorderWritesVideo_withoutTransforms_whenPresentationTransformsPresent()
-{
-    QFETCH(const QtVideo::Rotation, presentationRotation);
-    QFETCH(const bool, presentationMirrored);
-
-    CaptureSessionFixture f{ StreamType::Video };
-    f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
-    f.m_videoGenerator.setFrameCount(3);
-
-    f.m_videoGenerator.setPresentationRotation(presentationRotation);
-    f.m_videoGenerator.setPresentationMirrored(presentationMirrored);
-
-    f.start(RunMode::Pull, AutoStop::EmitEmpty);
-    QVERIFY(f.waitForRecorderStopped(60s));
-    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
-
-    const auto info = MediaInfo::create(f.m_recorder.actualLocation());
-    QCOMPARE_EQ(info->m_colors.size(), 3);
-
-    std::array<QColor, 4> colors = info->m_colors.front();
-    QVERIFY(fuzzyCompare(colors[0], Qt::red));
-    QVERIFY(fuzzyCompare(colors[1], Qt::green));
-    QVERIFY(fuzzyCompare(colors[2], Qt::blue));
-    QVERIFY(fuzzyCompare(colors[3], Qt::yellow));
-}
-
 void tst_QMediaFrameInputsBackend::
         sinkReceivesFrameWithTransformParams_whenPresentationTransformPresent_data()
 {
@@ -508,69 +337,6 @@ void tst_QMediaFrameInputsBackend::
     QVERIFY(fuzzyCompare(colors[3], Qt::yellow));
 }
 
-void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameShrinksOverTime()
-{
-    CaptureSessionFixture f{ StreamType::Video };
-    f.start(RunMode::Push, AutoStop::EmitEmpty);
-    f.readyToSendVideoFrame.wait();
-
-    constexpr int startSize = 38;
-    int frameCount = 0;
-    for (int i = 0; i < startSize;
-         i += 2) { // TODO crash in sws_scale if subsequent frames are odd-sized QTBUG-126259
-        ++frameCount;
-        const QSize size{ startSize - i, startSize - i };
-        f.m_videoGenerator.setSize(size);
-        f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame());
-        f.readyToSendVideoFrame.wait();
-    }
-
-    f.m_videoInput.sendVideoFrame({});
-
-    QVERIFY(f.waitForRecorderStopped(60s));
-    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
-
-    auto info = MediaInfo::create(f.m_recorder.actualLocation());
-
-    QCOMPARE_EQ(info->m_frameCount, frameCount);
-
-    // All frames should be resized to the size of the first frame
-    QCOMPARE_EQ(info->m_size, QSize(startSize, startSize));
-}
-
-void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_whenInputFrameGrowsOverTime()
-{
-    CaptureSessionFixture f{ StreamType::Video };
-    f.start(RunMode::Push, AutoStop::EmitEmpty);
-    f.readyToSendVideoFrame.wait();
-
-    constexpr int startSize = 38;
-    constexpr int maxSize = 256;
-    int frameCount = 0;
-
-    for (int i = 0; i < maxSize - startSize;
-         i += 2) { // TODO crash in sws_scale if subsequent frames are odd-sized QTBUG-126259
-        ++frameCount;
-        const QSize size{ startSize + i, startSize + i };
-        f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
-        f.m_videoGenerator.setSize(size);
-        f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame());
-        f.readyToSendVideoFrame.wait();
-    }
-
-    f.m_videoInput.sendVideoFrame({});
-
-    QVERIFY(f.waitForRecorderStopped(60s));
-    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
-
-    auto info = MediaInfo::create(f.m_recorder.actualLocation());
-
-    QCOMPARE_EQ(info->m_frameCount, frameCount);
-
-    // All frames should be resized to the size of the first frame
-    QCOMPARE_EQ(info->m_size, QSize(startSize, startSize));
-}
-
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withSingleFrame()
 {
     CaptureSessionFixture f{ StreamType::Video };
@@ -586,58 +352,6 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withSingleFrame()
 
     QCOMPARE_EQ(info->m_frameCount, 1);
     QCOMPARE_EQ(info->m_duration, 1s);
-}
-
-void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReportedEndOfStream_data()
-{
-    QTest::addColumn<bool>("audioStopsFirst");
-
-    QTest::addRow("audio stops first") << true;
-    QTest::addRow("video stops first") << true;
-}
-
-void tst_QMediaFrameInputsBackend::mediaRecorderStopsRecording_whenInputsReportedEndOfStream()
-{
-    QFETCH(const bool, audioStopsFirst);
-
-    CaptureSessionFixture f{ StreamType::AudioAndVideo };
-    f.m_recorder.setAutoStop(true);
-
-    f.m_audioGenerator.setBufferCount(30);
-    f.m_videoGenerator.setFrameCount(30);
-
-    QSignalSpy audioDone{ &f.m_audioGenerator, &AudioGenerator::done };
-    QSignalSpy videoDone{ &f.m_videoGenerator, &VideoGenerator::done };
-
-    f.start(RunMode::Pull, AutoStop::No);
-
-    audioDone.wait();
-    videoDone.wait();
-
-    if (audioStopsFirst) {
-        f.m_audioInput.sendAudioBuffer({});
-        QVERIFY(!f.waitForRecorderStopped(300ms)); // Should not stop until both streams stopped
-        QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
-                 f.m_recorder.errorString().toLatin1());
-        f.m_videoInput.sendVideoFrame({});
-    } else {
-        f.m_videoInput.sendVideoFrame({});
-        QVERIFY(!f.waitForRecorderStopped(300ms)); // Should not stop until both streams stopped
-        QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
-                 f.m_recorder.errorString().toLatin1());
-        f.m_audioInput.sendAudioBuffer({});
-    }
-
-    QVERIFY(f.waitForRecorderStopped(60s));
-    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError, f.m_recorder.errorString().toLatin1());
-
-    // check if the file has been written
-
-    const std::optional<MediaInfo> mediaInfo = MediaInfo::create(f.m_recorder.actualLocation());
-
-    QVERIFY(mediaInfo);
-    QVERIFY(mediaInfo->m_hasVideo);
-    QVERIFY(mediaInfo->m_hasAudio);
 }
 
 void tst_QMediaFrameInputsBackend::readyToSend_isEmitted_whenRecordingStarts_data()
