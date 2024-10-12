@@ -16,27 +16,11 @@
 #include <private/testvideosink_p.h>
 #include <private/mediabackendutils_p.h>
 #include <private/audiogenerationutils_p.h>
+#include <private/qfileutil_p.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace {
-
-bool copyAllFiles(const QDir &source, const QDir &dest)
-{
-    if (!source.exists() || !dest.exists())
-        return false;
-
-    QDirIterator it(source);
-    while (it.hasNext()) {
-        QFileInfo file{ it.next() };
-        if (file.isFile()) {
-            const QString destination = dest.absolutePath() + "/" + file.fileName();
-            QFile::copy(file.absoluteFilePath(), destination);
-        }
-    }
-
-    return true;
-}
 
 struct AudioComparisonResult
 {
