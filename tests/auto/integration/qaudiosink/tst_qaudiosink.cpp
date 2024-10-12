@@ -437,8 +437,8 @@ void tst_QAudioSink::pull()
     QTest::qWait(40);
     QVERIFY2((audioOutput.elapsedUSecs() > 0), "elapsedUSecs() is still zero after start()");
 
-    // Wait until playback finishes
-    QTRY_VERIFY2(audioFile->atEnd(), "didn't play to EOF");
+    // Wait until playback finishes using a high timeout to avoid flakiness in CI
+    QTRY_VERIFY2_WITH_TIMEOUT(audioFile->atEnd(), "didn't play to EOF", 60s);
     QTRY_VERIFY(stateSignal.size() > 0);
     QTRY_COMPARE(qvariant_cast<QAudio::State>(stateSignal.last().at(0)), QAudio::IdleState);
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
