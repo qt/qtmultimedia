@@ -160,6 +160,7 @@ QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(int bufferSize, int maxPeriod
       m_deviceError(false),
       m_device(nullptr),
       m_buffer(bufferSize),
+      m_inputBufferList(inputFormat),
       m_audioConverter(nullptr),
       m_inputFormat(inputFormat),
       m_outputFormat(outputFormat),
@@ -167,8 +168,6 @@ QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(int bufferSize, int maxPeriod
 {
     m_maxPeriodSize = maxPeriodSize;
     m_periodTime = m_maxPeriodSize / m_outputFormat.mBytesPerFrame * 1000 / m_outputFormat.mSampleRate;
-
-    m_inputBufferList = new QCoreAudioBufferList(m_inputFormat);
 
     m_flushTimer = new QTimer(this);
     connect(m_flushTimer, &QTimer::timeout, this, &QDarwinAudioSourceBuffer::flushBuffer);
@@ -200,25 +199,20 @@ qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnit
     OSStatus    err;
     qint64      framesRendered = 0;
 
-    m_inputBufferList->reset();
-    err = AudioUnitRender(audioUnit,
-                          ioActionFlags,
-                          inTimeStamp,
-                          inBusNumber,
-                          inNumberFrames,
-                          m_inputBufferList->audioBufferList());
+    m_inputBufferList.reset();
+    err = AudioUnitRender(audioUnit, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames,
+                          m_inputBufferList.audioBufferList());
 
     // adjust volume, if necessary
     if (!qFuzzyCompare(m_volume, qreal(1.0f))) {
-        QAudioHelperInternal::qMultiplySamples(m_volume,
-                                               m_qFormat,
-                                               m_inputBufferList->data(), /* input */
-                                               m_inputBufferList->data(), /* output */
-                                               m_inputBufferList->bufferSize());
+        QAudioHelperInternal::qMultiplySamples(m_volume, m_qFormat,
+                                               m_inputBufferList.data(), /* input */
+                                               m_inputBufferList.data(), /* output */
+                                               m_inputBufferList.bufferSize());
     }
 
     if (m_audioConverter != 0) {
-        QCoreAudioPacketFeeder  feeder(m_inputBufferList);
+        QCoreAudioPacketFeeder feeder(&m_inputBufferList);
 
         int bytesConsumed = m_buffer.consume(m_buffer.free(), [&](QSpan<const char> region) {
             AudioBufferList output;
@@ -236,8 +230,8 @@ qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnit
     }
     else {
         int bytesCopied = m_buffer.write(QSpan<const char>{
-                reinterpret_cast<const char *>(m_inputBufferList->data()),
-                m_inputBufferList->bufferSize(),
+                reinterpret_cast<const char *>(m_inputBufferList.data()),
+                m_inputBufferList.bufferSize(),
         });
 
         framesRendered = bytesCopied / m_outputFormat.mBytesPerFrame;

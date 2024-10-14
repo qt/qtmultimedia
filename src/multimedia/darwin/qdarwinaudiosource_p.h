@@ -126,7 +126,7 @@ private:
     QIODevice *m_device;
     QTimer *m_flushTimer;
     QtPrivate::QAudioRingBuffer<char> m_buffer;
-    QCoreAudioBufferList *m_inputBufferList;
+    QCoreAudioBufferList m_inputBufferList;
     AudioConverterRef m_audioConverter;
     AudioStreamBasicDescription m_inputFormat;
     AudioStreamBasicDescription m_outputFormat;
