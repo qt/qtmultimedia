@@ -4,6 +4,9 @@
 package org.qtproject.qt.android.multimedia;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
 import android.content.Context;
 import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
@@ -181,6 +184,31 @@ class QtAudioDeviceManager
 
     }
 
+    private static final HashMap<Integer, Integer> priorityMap = new HashMap<Integer, Integer>() {{
+        put(AudioDeviceInfo.TYPE_WIRED_HEADSET, 1);
+        put(AudioDeviceInfo.TYPE_WIRED_HEADPHONES, 1);
+        put(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, 2);
+        put(AudioDeviceInfo.TYPE_BLUETOOTH_SCO, 2);
+        put(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER, 3);
+    }};
+    private static final int DEFAULT_PRIORITY = 4;
+
+    private static void sortAudioDevices(AudioDeviceInfo[] devices) {
+
+        Comparator<AudioDeviceInfo> deviceTypeComparator = new Comparator<AudioDeviceInfo>() {
+            @Override
+            public int compare(AudioDeviceInfo device1, AudioDeviceInfo device2) {
+                return getPriority(device1) - getPriority(device2);
+            }
+
+            private int getPriority(AudioDeviceInfo device) {
+                return priorityMap.getOrDefault(device.getType(), DEFAULT_PRIORITY);
+            }
+        };
+
+       Arrays.sort(devices, deviceTypeComparator);
+    }
+
     private static String[] getAudioDevices(int type)
     {
         ArrayList<String> devices = new ArrayList<>();
@@ -188,7 +216,10 @@ class QtAudioDeviceManager
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             boolean builtInMicAdded = false;
             boolean bluetoothDeviceAdded = false;
-            for (AudioDeviceInfo deviceInfo : m_audioManager.getDevices(type)) {
+            AudioDeviceInfo[] audioDevices = m_audioManager.getDevices(type);
+            sortAudioDevices(audioDevices);
+
+            for (AudioDeviceInfo deviceInfo : audioDevices) {
                 String deviceType = audioDeviceTypeToString(deviceInfo.getType());
 
                 if (deviceType.equals(audioDeviceTypeToString(AudioDeviceInfo.TYPE_UNKNOWN))) {

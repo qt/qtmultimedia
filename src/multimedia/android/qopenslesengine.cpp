@@ -123,7 +123,7 @@ QList<QAudioDevice> QOpenSLESEngine::availableDevices(QAudioDevice::Mode mode)
               env->DeleteLocalRef(devElement);
               int pos = val.indexOf(QStringLiteral(":"));
               devices << (new QOpenSLESDeviceInfo(
-                              val.left(pos).toUtf8(), val.mid(pos+1), mode))->create();
+                              val.left(pos).toUtf8(), val.mid(pos+1), mode, i == 0))->create();
           }
     }
     return devices;
