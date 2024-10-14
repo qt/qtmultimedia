@@ -231,7 +231,7 @@ private:
     Float64 m_clockFrequency;
     QAudio::Error m_errorCode;
     QAudio::State m_stateCode;
-    QDarwinAudioSourceBuffer *m_audioBuffer;
+    std::unique_ptr<QDarwinAudioSourceBuffer> m_audioBuffer;
     QAtomicInt m_audioThreadState;
     AudioStreamBasicDescription m_streamFormat;
     AudioStreamBasicDescription m_deviceFormat;

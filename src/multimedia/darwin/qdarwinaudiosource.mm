@@ -46,7 +46,7 @@ QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &st
 QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &streamFormat, char *buffer, int bufferSize)
     : m_owner(false)
     , m_streamDescription(streamFormat)
-    , m_bufferList(0)
+    , m_bufferList(nullptr)
 {
     m_dataSize = bufferSize;
 
@@ -61,7 +61,7 @@ QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &st
 QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &streamFormat, int framesToBuffer)
     : m_owner(true)
     , m_streamDescription(streamFormat)
-    , m_bufferList(0)
+    , m_bufferList(nullptr)
 {
     const bool isInterleaved = (m_streamDescription.mFormatFlags & kAudioFormatFlagIsNonInterleaved) == 0;
     const int numberOfBuffers = isInterleaved ? 1 : m_streamDescription.mChannelsPerFrame;
@@ -158,9 +158,9 @@ QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(int bufferSize, int maxPeriod
                                                    QObject *parent)
     : QObject(parent),
       m_deviceError(false),
-      m_device(0),
+      m_device(nullptr),
       m_buffer(bufferSize),
-      m_audioConverter(0),
+      m_audioConverter(nullptr),
       m_inputFormat(inputFormat),
       m_outputFormat(outputFormat),
       m_volume(qreal(1.0f))
@@ -171,7 +171,7 @@ QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(int bufferSize, int maxPeriod
     m_inputBufferList = new QCoreAudioBufferList(m_inputFormat);
 
     m_flushTimer = new QTimer(this);
-    connect(m_flushTimer, SIGNAL(timeout()), this, SLOT(flushBuffer()));
+    connect(m_flushTimer, &QTimer::timeout, this, &QDarwinAudioSourceBuffer::flushBuffer);
 
     if (CoreAudioUtils::toQAudioFormat(inputFormat) != CoreAudioUtils::toQAudioFormat(outputFormat)) {
         if (AudioConverterNew(&m_inputFormat, &m_outputFormat, &m_audioConverter) != noErr) {
@@ -259,13 +259,12 @@ qint64 QDarwinAudioSourceBuffer::readBytes(char *data, qint64 len)
 
 void QDarwinAudioSourceBuffer::setFlushDevice(QIODevice *device)
 {
-    if (m_device != device)
-        m_device = device;
+    m_device = device;
 }
 
 void QDarwinAudioSourceBuffer::startFlushTimer()
 {
-    if (m_device != 0) {
+    if (m_device != nullptr) {
         // We use the period time for the timer, since that's
         // around the buffer size (pre conversion >.>)
         m_flushTimer->start(qMax(1, m_periodTime));
@@ -334,8 +333,10 @@ QDarwinAudioSourceDevice::QDarwinAudioSourceDevice(QDarwinAudioSourceBuffer *aud
     : QIODevice(parent)
     , m_audioBuffer(audioBuffer)
 {
+    Q_ASSERT(m_audioBuffer);
     open(QIODevice::ReadOnly | QIODevice::Unbuffered);
-    connect(m_audioBuffer, SIGNAL(readyRead()), this, SIGNAL(readyRead()));
+    connect(m_audioBuffer, &QDarwinAudioSourceBuffer::readyRead, this,
+            &QDarwinAudioSourceDevice::readyRead);
 }
 
 qint64 QDarwinAudioSourceDevice::readData(char *data, qint64 len)
@@ -562,13 +563,13 @@ bool QDarwinAudioSource::open()
         // tying it to coreaudio
         int ringbufferSize = m_internalBufferSize * 4;
 
-        QMutexLocker lock(m_audioBuffer);
-        m_audioBuffer = new QDarwinAudioSourceBuffer(ringbufferSize, m_periodSizeBytes,
-                                                     m_deviceFormat, m_streamFormat, this);
+        QMutexLocker lock(m_audioBuffer.get());
+        m_audioBuffer = std::make_unique<QDarwinAudioSourceBuffer>(
+                ringbufferSize, m_periodSizeBytes, m_deviceFormat, m_streamFormat, this);
 
         m_audioBuffer->setVolume(m_volume);
     }
-    m_audioIO = new QDarwinAudioSourceDevice(m_audioBuffer, this);
+    m_audioIO = new QDarwinAudioSourceDevice(m_audioBuffer.get(), this);
 
     // Init
     if (AudioUnitInitialize(m_audioUnit) != noErr) {
@@ -591,30 +592,26 @@ void QDarwinAudioSource::close()
         AudioComponentInstanceDispose(m_audioUnit);
     }
 
-    delete m_audioBuffer;
-    m_audioBuffer = nullptr;
+    m_audioBuffer.reset();
     m_isOpen = false;
 }
 
 void QDarwinAudioSource::start(QIODevice *device)
 {
-    QIODevice* op = device;
-
     if (!m_audioDeviceInfo.isFormatSupported(m_audioFormat) || !open()) {
         m_stateCode = QAudio::StoppedState;
         m_errorCode = QAudio::OpenError;
         return;
     }
 
+    // TODO: set error for null input device
+
     reset();
     {
-        QMutexLocker lock(m_audioBuffer);
+        QMutexLocker lock(m_audioBuffer.get());
         m_audioBuffer->reset();
-        m_audioBuffer->setFlushDevice(op);
+        m_audioBuffer->setFlushDevice(device);
     }
-
-    if (op == 0)
-        op = m_audioIO;
 
     // Start
     m_totalFrames = 0;
@@ -626,11 +623,8 @@ void QDarwinAudioSource::start(QIODevice *device)
     audioThreadStart();
 }
 
-
 QIODevice *QDarwinAudioSource::start()
 {
-    QIODevice* op = 0;
-
     if (!m_audioDeviceInfo.isFormatSupported(m_audioFormat) || !open()) {
         m_stateCode = QAudio::StoppedState;
         m_errorCode = QAudio::OpenError;
@@ -639,13 +633,10 @@ QIODevice *QDarwinAudioSource::start()
 
     reset();
     {
-        QMutexLocker lock(m_audioBuffer);
+        QMutexLocker lock(m_audioBuffer.get());
         m_audioBuffer->reset();
-        m_audioBuffer->setFlushDevice(op);
+        m_audioBuffer->setFlushDevice(nullptr);
     }
-
-    if (op == 0)
-        op = m_audioIO;
 
     // Start
     m_totalFrames = 0;
@@ -656,13 +647,13 @@ QIODevice *QDarwinAudioSource::start()
 
     audioThreadStart();
 
-    return op;
+    return m_audioIO;
 }
 
 
 void QDarwinAudioSource::stop()
 {
-    QMutexLocker lock(m_audioBuffer);
+    QMutexLocker lock(m_audioBuffer.get());
     if (m_stateCode != QAudio::StoppedState) {
         audioThreadStop();
         m_audioBuffer->flush(true);
@@ -676,7 +667,7 @@ void QDarwinAudioSource::stop()
 
 void QDarwinAudioSource::reset()
 {
-    QMutexLocker lock(m_audioBuffer);
+    QMutexLocker lock(m_audioBuffer.get());
     if (m_stateCode != QAudio::StoppedState) {
         audioThreadStop();
 
@@ -690,7 +681,7 @@ void QDarwinAudioSource::reset()
 
 void QDarwinAudioSource::suspend()
 {
-    QMutexLocker lock(m_audioBuffer);
+    QMutexLocker lock(m_audioBuffer.get());
     if (m_stateCode == QAudio::ActiveState || m_stateCode == QAudio::IdleState) {
         audioThreadStop();
 
@@ -703,7 +694,7 @@ void QDarwinAudioSource::suspend()
 
 void QDarwinAudioSource::resume()
 {
-    QMutexLocker lock(m_audioBuffer);
+    QMutexLocker lock(m_audioBuffer.get());
     if (m_stateCode == QAudio::SuspendedState) {
         audioThreadStart();
 
@@ -716,7 +707,7 @@ void QDarwinAudioSource::resume()
 
 qsizetype QDarwinAudioSource::bytesReady() const
 {
-    QMutexLocker lock(m_audioBuffer);
+    QMutexLocker lock(m_audioBuffer.get());
     if (!m_audioBuffer)
         return 0;
     return m_audioBuffer->used();
@@ -765,7 +756,7 @@ QAudioFormat QDarwinAudioSource::format() const
 
 void QDarwinAudioSource::setVolume(qreal volume)
 {
-    QMutexLocker lock(m_audioBuffer);
+    QMutexLocker lock(m_audioBuffer.get());
     m_volume = volume;
     if (m_audioBuffer)
         m_audioBuffer->setVolume(m_volume);
@@ -807,7 +798,7 @@ void QDarwinAudioSource::audioDeviceStop()
 void QDarwinAudioSource::audioDeviceActive()
 {
     if (m_stateCode == QAudio::IdleState) {
-        QMutexLocker lock(m_audioBuffer);
+        QMutexLocker lock(m_audioBuffer.get());
         m_stateCode = QAudio::ActiveState;
         emit stateChanged(m_stateCode);
     }
@@ -816,7 +807,7 @@ void QDarwinAudioSource::audioDeviceActive()
 void QDarwinAudioSource::audioDeviceFull()
 {
     if (m_stateCode == QAudio::ActiveState) {
-        QMutexLocker lock(m_audioBuffer);
+        QMutexLocker lock(m_audioBuffer.get());
         m_errorCode = QAudio::UnderrunError;
         m_stateCode = QAudio::IdleState;
         emit stateChanged(m_stateCode);
@@ -826,7 +817,7 @@ void QDarwinAudioSource::audioDeviceFull()
 void QDarwinAudioSource::audioDeviceError()
 {
     if (m_stateCode == QAudio::ActiveState) {
-        QMutexLocker lock(m_audioBuffer);
+        QMutexLocker lock(m_audioBuffer.get());
         audioDeviceStop();
 
         m_errorCode = QAudio::IOError;
@@ -858,7 +849,7 @@ OSStatus QDarwinAudioSource::inputCallback(void *inRefCon, AudioUnitRenderAction
         qint64 framesWritten;
 
         {
-            QMutexLocker locker(d->m_audioBuffer);
+            QMutexLocker locker(d->m_audioBuffer.get());
             framesWritten = d->m_audioBuffer->renderFromDevice(d->m_audioUnit,
                                                              ioActionFlags,
                                                              inTimeStamp,
