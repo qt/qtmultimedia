@@ -51,10 +51,10 @@ public:
     void reset();
 
 private:
-    bool m_owner;
-    int m_dataSize;
+    bool m_owner = false;
+    int m_dataSize = 0;
     AudioStreamBasicDescription m_streamDescription;
-    AudioBufferList *m_bufferList;
+    AudioBufferList *m_bufferList = nullptr;
 };
 
 class QCoreAudioPacketFeeder
@@ -67,7 +67,7 @@ public:
 
 private:
     UInt32 m_totalPackets;
-    UInt32 m_position;
+    UInt32 m_position = 0;
     QCoreAudioBufferList *m_audioBufferList;
 };
 
@@ -114,17 +114,15 @@ private slots:
 private:
     bool m_deviceError = false;
     bool m_flushingEnabled = false;
-    int m_maxPeriodSize;
-    int m_periodTime;
-    QIODevice *m_device;
-    QTimer *m_flushTimer;
+    int m_maxPeriodSize = 0;
+    QIODevice *m_device = nullptr;
+    QTimer *m_flushTimer = nullptr;
     QtPrivate::QAudioRingBuffer<char> m_buffer;
     QCoreAudioBufferList m_inputBufferList;
-    AudioConverterRef m_audioConverter;
-    AudioStreamBasicDescription m_inputFormat;
-    AudioStreamBasicDescription m_outputFormat;
+    AudioConverterRef m_audioConverter = nullptr;
+    const AudioStreamBasicDescription m_outputFormat;
     QAudioFormat m_qFormat;
-    qreal m_volume;
+    qreal m_volume = qreal(1.0);
 
     const static OSStatus as_empty = 'qtem';
 
@@ -198,21 +196,21 @@ private:
 
     QAudioDevice m_audioDeviceInfo;
     QByteArray m_device;
-    bool m_isOpen;
-    int m_periodSizeBytes;
-    int m_internalBufferSize;
-    qint64 m_totalFrames;
+    bool m_isOpen = false;
+    int m_periodSizeBytes = 0;
+    int m_internalBufferSize = 0;
+    qint64 m_totalFrames = 0;
     QAudioFormat m_audioFormat;
-    QIODevice *m_audioIO;
-    AudioUnit m_audioUnit;
+    QIODevice *m_audioIO = nullptr;
+    AudioUnit m_audioUnit = 0;
 #if defined(Q_OS_MACOS)
-    AudioDeviceID m_audioDeviceId;
+    AudioDeviceID m_audioDeviceId = 0;
 #endif
-    Float64 m_clockFrequency;
+    Float64 m_clockFrequency = 0.;
     std::unique_ptr<QDarwinAudioSourceBuffer> m_audioBuffer;
     AudioStreamBasicDescription m_streamFormat;
     AudioStreamBasicDescription m_deviceFormat;
-    qreal m_volume;
+    qreal m_volume = qreal(1.0);
 
     bool m_audioUnitStarted = false;
 
