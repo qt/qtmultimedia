@@ -129,8 +129,10 @@ void QDarwinAudioSinkBuffer::setFillingEnabled(bool enabled)
     if (!enabled)
         m_fillTimer->stop();
     else if (m_device) {
-        fillBuffer();
         m_fillTimer->start();
+        // call fillBuffer() after m_fillTimer->start() so that
+        // it can stop the timer if an error has occurred.
+        fillBuffer();
     }
 }
 
