@@ -161,7 +161,6 @@ private:
 #if defined(Q_OS_MACOS)
     qreal m_volume = 1.;
 #endif
-    bool m_pullMode = false;
 
     QAudioStateMachine m_stateMachine;
     QSemaphore m_drainSemaphore;

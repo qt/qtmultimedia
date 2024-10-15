@@ -230,7 +230,6 @@ void QDarwinAudioSink::start(QIODevice *device)
 
     m_audioBuffer->setPrefetchDevice(device);
 
-    m_pullMode = true;
     m_totalFrames = 0;
 
     m_stateMachine.start();
@@ -245,7 +244,6 @@ QIODevice *QDarwinAudioSink::start()
         return m_audioIO;
     }
 
-    m_pullMode = false;
     m_totalFrames = 0;
 
     m_stateMachine.start(false);
