@@ -42,13 +42,14 @@ AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, QFFmpegAudioInput *
     m_stream->id = recordingEngine.avFormatContext()->nb_streams - 1;
     m_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
     m_stream->codecpar->codec_id = codecID;
+    const auto channelLayouts = getCodecChannelLayouts(m_avCodec);
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
     m_stream->codecpar->channel_layout =
-            adjustChannelLayout(m_avCodec->channel_layouts, requestedAudioFormat.channelLayoutMask);
+            adjustChannelLayout(channelLayouts, requestedAudioFormat.channelLayoutMask);
     m_stream->codecpar->channels = qPopulationCount(m_stream->codecpar->channel_layout);
 #else
     m_stream->codecpar->ch_layout =
-            adjustChannelLayout(m_avCodec->ch_layouts, requestedAudioFormat.channelLayout);
+            adjustChannelLayout(channelLayouts, requestedAudioFormat.channelLayout);
 #endif
     const auto sampleRate =
             adjustSampleRate(m_avCodec->supported_samplerates, requestedAudioFormat.sampleRate);

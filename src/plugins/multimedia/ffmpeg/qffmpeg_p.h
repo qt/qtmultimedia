@@ -152,6 +152,13 @@ inline const AVChannelLayout *getCodecChannelLayouts(const AVCodec *codec)
 #endif
 }
 
+#else
+
+inline const uint64_t *getCodecChannelLayouts(const AVCodec *codec)
+{
+    return codec->channel_layouts;
+}
+
 #endif
 
 inline const AVRational *getCodecFrameRates(const AVCodec *codec)
