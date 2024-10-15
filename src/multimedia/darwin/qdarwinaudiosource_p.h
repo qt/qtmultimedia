@@ -16,6 +16,7 @@
 
 #include "qaudioringbuffer_p.h"
 #include <private/qaudiosystem_p.h>
+#include <private/qaudiostatemachine_p.h>
 #include <qdarwinaudiodevice_p.h>
 
 #include <AudioUnit/AudioUnit.h>
@@ -23,8 +24,6 @@
 #include <AudioToolbox/AudioToolbox.h>
 
 #include <QtCore/QIODevice>
-#include <QtCore/QWaitCondition>
-#include <QtCore/QMutex>
 #include <QtCore/QTimer>
 
 QT_BEGIN_NAMESPACE
@@ -96,19 +95,15 @@ public:
 
     void setFlushDevice(QIODevice *device);
 
-    void startFlushTimer();
-    void stopFlushTimer();
+    void setFlushingEnabled(bool enabled);
 
-    void flush(bool all = false);
     void reset();
+    void flushAll() { flush(true); }
     int available() const;
     int used() const;
 
-    void lock() { m_mutex.lock(); }
-    void unlock() { m_mutex.unlock(); }
-
-    void wait() { m_threadFinished.wait(&m_mutex); }
-    void wake() { m_threadFinished.wakeOne(); }
+private:
+    void flush(bool all = false);
 
 signals:
     void readyRead();
@@ -117,10 +112,8 @@ private slots:
     void flushBuffer();
 
 private:
-    QMutex m_mutex;
-    QWaitCondition m_threadFinished;
-
-    bool m_deviceError;
+    bool m_deviceError = false;
+    bool m_flushingEnabled = false;
     int m_maxPeriodSize;
     int m_periodTime;
     QIODevice *m_device;
@@ -185,28 +178,15 @@ public:
     void setVolume(qreal volume);
     qreal volume() const;
 
-private slots:
-    void deviceStoppped();
-
 private:
-    enum {
-        Running,
-        Stopped
-    };
-
     bool open();
     void close();
 
-    void audioThreadStart();
-    void audioThreadStop();
+    void onAudioDeviceError();
+    void onAudioDeviceFull();
+    void onAudioDeviceActive();
 
-    void audioDeviceStop();
-    void audioDeviceActive();
-    void audioDeviceFull();
-    void audioDeviceError();
-
-    void startTimers();
-    void stopTimers();
+    void updateAudioDevice();
 
     // Input callback
     static OSStatus inputCallback(void *inRefCon,
@@ -229,13 +209,14 @@ private:
     AudioDeviceID m_audioDeviceId;
 #endif
     Float64 m_clockFrequency;
-    QAudio::Error m_errorCode;
-    QAudio::State m_stateCode;
     std::unique_ptr<QDarwinAudioSourceBuffer> m_audioBuffer;
-    QAtomicInt m_audioThreadState;
     AudioStreamBasicDescription m_streamFormat;
     AudioStreamBasicDescription m_deviceFormat;
     qreal m_volume;
+
+    bool m_audioUnitStarted = false;
+
+    QAudioStateMachine m_stateMachine;
 };
 
 QT_END_NAMESPACE
