@@ -256,8 +256,10 @@ void QDarwinAudioSourceBuffer::setFlushingEnabled(bool enabled)
     if (!enabled)
         m_flushTimer->stop();
     else if (m_device) {
-        flushBuffer();
         m_flushTimer->start();
+        // call flushBuffer() after m_flushTimer->start() so that
+        // it can stop the timer if an error has occurred.
+        flushBuffer();
     }
 }
 
