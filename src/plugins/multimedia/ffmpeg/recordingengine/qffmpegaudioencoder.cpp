@@ -21,12 +21,12 @@ namespace {
 void setupStreamParameters(AVStream *stream, const AVCodec *codec,
                            const AVAudioFormat &requestedAudioFormat)
 {
+    const auto channelLayouts = getCodecChannelLayouts(codec);
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
     stream->codecpar->channel_layout =
-            adjustChannelLayout(codec->channel_layouts, requestedAudioFormat.channelLayoutMask);
+            adjustChannelLayout(channelLayouts, requestedAudioFormat.channelLayoutMask);
     stream->codecpar->channels = qPopulationCount(stream->codecpar->channel_layout);
 #else
-    const auto channelLayouts = getCodecChannelLayouts(codec);
     stream->codecpar->ch_layout =
             adjustChannelLayout(channelLayouts, requestedAudioFormat.channelLayout);
 #endif
@@ -144,7 +144,7 @@ bool AudioEncoder::init()
                     result += hasAVValue(rates, requestedAudioFormat.sampleRate) ? 1 : -1;
 
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-                if (auto layouts = codec->channel_layouts)
+                if (auto layouts = getCodecChannelLayouts(codec))
                     result += hasAVValue(layouts, requestedAudioFormat.channelLayoutMask) ? 1 : -1;
 #else
                 if (auto layouts = getCodecChannelLayouts(codec))
