@@ -30,8 +30,6 @@ QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &st
     const bool isInterleaved = (m_streamDescription.mFormatFlags & kAudioFormatFlagIsNonInterleaved) == 0;
     const int numberOfBuffers = isInterleaved ? 1 : m_streamDescription.mChannelsPerFrame;
 
-    m_dataSize = 0;
-
     m_bufferList = reinterpret_cast<AudioBufferList*>(malloc(sizeof(AudioBufferList) +
                                                             (sizeof(AudioBuffer) * numberOfBuffers)));
 
@@ -43,13 +41,10 @@ QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &st
     }
 }
 
-QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &streamFormat, char *buffer, int bufferSize)
-    : m_owner(false)
-    , m_streamDescription(streamFormat)
-    , m_bufferList(nullptr)
+QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &streamFormat,
+                                           char *buffer, int bufferSize)
+    : m_owner(false), m_dataSize(bufferSize), m_streamDescription(streamFormat)
 {
-    m_dataSize = bufferSize;
-
     m_bufferList = reinterpret_cast<AudioBufferList*>(malloc(sizeof(AudioBufferList) + sizeof(AudioBuffer)));
 
     m_bufferList->mNumberBuffers = 1;
@@ -58,10 +53,9 @@ QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &st
     m_bufferList->mBuffers[0].mData = buffer;
 }
 
-QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &streamFormat, int framesToBuffer)
-    : m_owner(true)
-    , m_streamDescription(streamFormat)
-    , m_bufferList(nullptr)
+QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &streamFormat,
+                                           int framesToBuffer)
+    : m_owner(true), m_streamDescription(streamFormat)
 {
     const bool isInterleaved = (m_streamDescription.mFormatFlags & kAudioFormatFlagIsNonInterleaved) == 0;
     const int numberOfBuffers = isInterleaved ? 1 : m_streamDescription.mChannelsPerFrame;
@@ -125,7 +119,6 @@ QCoreAudioPacketFeeder::QCoreAudioPacketFeeder(QCoreAudioBufferList *abl)
     : m_audioBufferList(abl)
 {
     m_totalPackets = m_audioBufferList->packetCount();
-    m_position = 0;
 }
 
 bool QCoreAudioPacketFeeder::feed(AudioBufferList &dst, UInt32 &packetCount)
@@ -157,25 +150,21 @@ QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(int bufferSize, int maxPeriod
                                                    const AudioStreamBasicDescription &outputFormat,
                                                    QObject *parent)
     : QObject(parent),
-      m_deviceError(false),
-      m_device(nullptr),
+      m_maxPeriodSize(maxPeriodSize),
       m_buffer(bufferSize),
       m_inputBufferList(inputFormat),
-      m_audioConverter(nullptr),
-      m_inputFormat(inputFormat),
-      m_outputFormat(outputFormat),
-      m_volume(qreal(1.0f))
+      m_outputFormat(outputFormat)
 {
-    m_maxPeriodSize = maxPeriodSize;
-    m_periodTime = m_maxPeriodSize / m_outputFormat.mBytesPerFrame * 1000 / m_outputFormat.mSampleRate;
-
     m_flushTimer = new QTimer(this);
     connect(m_flushTimer, &QTimer::timeout, this, &QDarwinAudioSourceBuffer::flushBuffer);
     m_flushTimer->setTimerType(Qt::PreciseTimer);
-    m_flushTimer->start(qMax(1, m_periodTime));
+
+    const int periodTime =
+            m_maxPeriodSize / m_outputFormat.mBytesPerFrame * 1000 / m_outputFormat.mSampleRate;
+    m_flushTimer->start(qMax(1, periodTime));
 
     if (CoreAudioUtils::toQAudioFormat(inputFormat) != CoreAudioUtils::toQAudioFormat(outputFormat)) {
-        if (AudioConverterNew(&m_inputFormat, &m_outputFormat, &m_audioConverter) != noErr) {
+        if (AudioConverterNew(&inputFormat, &m_outputFormat, &m_audioConverter) != noErr) {
             qWarning() << "QAudioSource: Unable to create an Audio Converter";
             m_audioConverter = 0;
         }
@@ -358,14 +347,8 @@ qint64 QDarwinAudioSourceDevice::writeData(const char *data, qint64 len)
 QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device, QObject *parent)
     : QPlatformAudioSource(parent),
       m_audioDeviceInfo(device),
-      m_isOpen(false),
       m_internalBufferSize(DEFAULT_BUFFER_SIZE),
-      m_totalFrames(0),
-      m_audioIO(nullptr),
-      m_audioUnit(0),
       m_clockFrequency(CoreAudioUtils::frequency() / 1000),
-      m_audioBuffer(nullptr),
-      m_volume(1.0),
       m_stateMachine(*this)
 {
     QAudioDevice di = device;
