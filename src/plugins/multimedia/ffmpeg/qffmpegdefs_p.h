@@ -41,6 +41,8 @@ extern "C" {
   (LIBAVFORMAT_VERSION_MAJOR >= 61)
 #define QT_CODEC_PARAMETERS_HAVE_FRAMERATE \
   (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(60, 11, 100)) // since ffmpeg n6.1
+#define QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG \
+    (LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(59, 39, 100)) // since ffmpeg n7.1
 
 using PixelOrSampleFormat = int;
 using AVScore = int;

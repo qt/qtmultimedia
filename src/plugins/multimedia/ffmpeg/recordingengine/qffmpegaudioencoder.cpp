@@ -26,16 +26,17 @@ void setupStreamParameters(AVStream *stream, const AVCodec *codec,
             adjustChannelLayout(codec->channel_layouts, requestedAudioFormat.channelLayoutMask);
     stream->codecpar->channels = qPopulationCount(stream->codecpar->channel_layout);
 #else
+    const auto channelLayouts = getCodecChannelLayouts(codec);
     stream->codecpar->ch_layout =
-            adjustChannelLayout(codec->ch_layouts, requestedAudioFormat.channelLayout);
+            adjustChannelLayout(channelLayouts, requestedAudioFormat.channelLayout);
 #endif
-    const auto sampleRate =
-            adjustSampleRate(codec->supported_samplerates, requestedAudioFormat.sampleRate);
+    const auto sampleRates = getCodecSampleRates(codec);
+    const auto sampleRate = adjustSampleRate(sampleRates, requestedAudioFormat.sampleRate);
 
     stream->codecpar->sample_rate = sampleRate;
     stream->codecpar->frame_size = 1024;
-    stream->codecpar->format =
-            adjustSampleFormat(codec->sample_fmts, requestedAudioFormat.sampleFormat);
+    const auto sampleFormats = getCodecSampleFormats(codec);
+    stream->codecpar->format = adjustSampleFormat(sampleFormats, requestedAudioFormat.sampleFormat);
 
     stream->time_base = AVRational{ 1, sampleRate };
 
@@ -136,17 +137,17 @@ bool AudioEncoder::init()
                 AVScore result = DefaultAVScore;
 
                 // Attempt to find no-conversion format
-                if (auto fmts = codec->sample_fmts)
+                if (auto fmts = getCodecSampleFormats(codec))
                     result += hasAVValue(fmts, requestedAudioFormat.sampleFormat) ? 1 : -1;
 
-                if (auto rates = codec->supported_samplerates)
+                if (auto rates = getCodecSampleRates(codec))
                     result += hasAVValue(rates, requestedAudioFormat.sampleRate) ? 1 : -1;
 
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
                 if (auto layouts = codec->channel_layouts)
                     result += hasAVValue(layouts, requestedAudioFormat.channelLayoutMask) ? 1 : -1;
 #else
-                if (auto layouts = codec->ch_layouts)
+                if (auto layouts = getCodecChannelLayouts(codec))
                     result += hasAVValue(layouts, requestedAudioFormat.channelLayout) ? 1 : -1;
 #endif
 

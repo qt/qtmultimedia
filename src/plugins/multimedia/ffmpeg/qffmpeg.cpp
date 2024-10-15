@@ -28,8 +28,10 @@ bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format)
         return findAVPixelFormat(codec, checkFormat) != AV_PIX_FMT_NONE;
     }
 
-    if (codec->type == AVMEDIA_TYPE_AUDIO)
-        return hasAVValue(codec->sample_fmts, AVSampleFormat(format));
+    if (codec->type == AVMEDIA_TYPE_AUDIO) {
+        const auto sampleFormats = getCodecSampleFormats(codec);
+        return hasAVValue(sampleFormats, AVSampleFormat(format));
+    }
 
     return false;
 }
@@ -333,6 +335,14 @@ std::string cvFormatToString(uint32_t cvFormat)
 
 #endif
 
+#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
+void logGetCodecConfigError(const AVCodec *codec, AVCodecConfig config, int error)
+{
+    qCWarning(qLcFFmpegUtils) << "Failed to retrieve config" << config << "for codec" << codec->name
+                              << "with error" << error << err2str(error);
+}
+#endif
+
 } // namespace QFFmpeg
 
 QDebug operator<<(QDebug dbg, const AVRational &value)
@@ -354,6 +364,40 @@ QDebug operator<<(QDebug dbg, const AVChannelLayout &layout)
         dbg << ", id: " << layout.u.map->id;
 
     dbg << ']';
+
+    return dbg;
+}
+#endif
+
+#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
+QDebug operator<<(QDebug dbg, const AVCodecConfig value)
+{
+    switch (value) {
+    case AV_CODEC_CONFIG_CHANNEL_LAYOUT:
+        dbg << "AV_CODEC_CONFIG_CHANNEL_LAYOUT";
+        break;
+    case AV_CODEC_CONFIG_COLOR_RANGE:
+        dbg << "AV_CODEC_CONFIG_COLOR_RANGE";
+        break;
+    case AV_CODEC_CONFIG_COLOR_SPACE:
+        dbg << "AV_CODEC_CONFIG_COLOR_SPACE";
+        break;
+    case AV_CODEC_CONFIG_FRAME_RATE:
+        dbg << "AV_CODEC_CONFIG_FRAME_RATE";
+        break;
+    case AV_CODEC_CONFIG_PIX_FORMAT:
+        dbg << "AV_CODEC_CONFIG_PIX_FORMAT";
+        break;
+    case AV_CODEC_CONFIG_SAMPLE_FORMAT:
+        dbg << "AV_CODEC_CONFIG_SAMPLE_FORMAT";
+        break;
+    case AV_CODEC_CONFIG_SAMPLE_RATE:
+        dbg << "AV_CODEC_CONFIG_SAMPLE_RATE";
+        break;
+    default:
+        dbg << "<UNKNOWN_CODEC_CONFIG>";
+        break;
+    }
 
     return dbg;
 }
