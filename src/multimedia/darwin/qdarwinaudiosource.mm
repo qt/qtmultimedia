@@ -145,11 +145,13 @@ bool QCoreAudioPacketFeeder::empty() const
     return m_position == m_totalPackets;
 }
 
-QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(int bufferSize, int maxPeriodSize,
+QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(const QDarwinAudioSource &audioSource,
+                                                   int bufferSize, int maxPeriodSize,
                                                    const AudioStreamBasicDescription &inputFormat,
                                                    const AudioStreamBasicDescription &outputFormat,
                                                    QObject *parent)
     : QObject(parent),
+      m_audioSource(audioSource),
       m_maxPeriodSize(maxPeriodSize),
       m_buffer(bufferSize),
       m_inputBufferList(inputFormat),
@@ -173,16 +175,6 @@ QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(int bufferSize, int maxPeriod
     m_qFormat = CoreAudioUtils::toQAudioFormat(inputFormat); // we adjust volume before conversion
 }
 
-qreal QDarwinAudioSourceBuffer::volume() const
-{
-    return m_volume;
-}
-
-void QDarwinAudioSourceBuffer::setVolume(qreal v)
-{
-    m_volume = v;
-}
-
 qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames)
 {
     const bool pullMode = m_device == nullptr;
@@ -195,7 +187,7 @@ qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnit
                           m_inputBufferList.audioBufferList());
 
     // adjust volume, if necessary
-    const qreal volume = m_volume;
+    const qreal volume = m_audioSource.volume();
     if (!qFuzzyCompare(volume, qreal(1.0f))) {
         QAudioHelperInternal::qMultiplySamples(volume, m_qFormat,
                                                m_inputBufferList.data(), /* input */
@@ -245,6 +237,8 @@ qint64 QDarwinAudioSourceBuffer::readBytes(char *data, qint64 len)
 
 void QDarwinAudioSourceBuffer::setFlushDevice(QIODevice *device)
 {
+    Q_ASSERT(!m_audioSource.audioUnitStarted());
+
     if (std::exchange(m_device, device) == device)
         return;
 
@@ -269,6 +263,8 @@ void QDarwinAudioSourceBuffer::setFlushingEnabled(bool enabled)
 
 void QDarwinAudioSourceBuffer::reset()
 {
+    Q_ASSERT(!m_audioSource.audioUnitStarted());
+
     m_buffer.reset();
     setFlushingEnabled(false);
     setFlushDevice(nullptr);
@@ -551,9 +547,7 @@ bool QDarwinAudioSource::open()
         const int ringbufferSize = m_internalBufferSize * 4;
 
         m_audioBuffer = std::make_unique<QDarwinAudioSourceBuffer>(
-                ringbufferSize, m_periodSizeBytes, m_deviceFormat, m_streamFormat, this);
-
-        m_audioBuffer->setVolume(m_volume);
+                *this, ringbufferSize, m_periodSizeBytes, m_deviceFormat, m_streamFormat, this);
     }
     m_audioIO = new QDarwinAudioSourceDevice(m_audioBuffer.get(), this);
 
@@ -719,8 +713,6 @@ QAudioFormat QDarwinAudioSource::format() const
 void QDarwinAudioSource::setVolume(qreal volume)
 {
     m_volume = volume;
-    if (m_audioBuffer)
-        m_audioBuffer->setVolume(m_volume);
 }
 
 qreal QDarwinAudioSource::volume() const
