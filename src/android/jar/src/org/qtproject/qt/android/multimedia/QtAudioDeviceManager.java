@@ -15,6 +15,7 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -34,18 +35,16 @@ class QtAudioDeviceManager
     static private final int m_channels = AudioFormat.CHANNEL_CONFIGURATION_MONO;
     static private final int m_audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     static private final int m_bufferSize = AudioRecord.getMinBufferSize(m_sampleRate, m_channels, m_audioFormat);
+    static private int m_currentOutputId = -1;
 
     static native void onAudioInputDevicesUpdated();
     static native void onAudioOutputDevicesUpdated();
 
     static private void updateDeviceList() {
+        if (m_currentOutputId != -1)
+            setAudioOutput(m_currentOutputId);
         onAudioInputDevicesUpdated();
         onAudioOutputDevicesUpdated();
-        if (m_useSpeaker) {
-            final AudioDeviceInfo[] audioDevices =
-                                        m_audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
-            setAudioOutput(getModeForSpeaker(audioDevices), false, true);
-        }
     }
 
     private static class AudioDevicesReceiver extends AudioDeviceCallback {
@@ -99,7 +98,7 @@ class QtAudioDeviceManager
 
     private static boolean setAudioInput(MediaRecorder recorder, int id)
     {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.P)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
             return false;
 
         final AudioDeviceInfo[] audioDevices =
@@ -175,7 +174,7 @@ class QtAudioDeviceManager
         }
 
         // API 24
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             if (type == AudioDeviceInfo.TYPE_BUS)
                 return "Bus";
         }
@@ -213,7 +212,7 @@ class QtAudioDeviceManager
     {
         ArrayList<String> devices = new ArrayList<>();
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             boolean builtInMicAdded = false;
             boolean bluetoothDeviceAdded = false;
             AudioDeviceInfo[] audioDevices = m_audioManager.getDevices(type);
@@ -256,27 +255,45 @@ class QtAudioDeviceManager
         return ret;
     }
 
-    private static int getModeForSpeaker(AudioDeviceInfo[] audioDevices)
-    {
-        // If we want to force device to use speaker when Bluetooth or Wiread headset is connected,
-        // we need to use MODE_IN_COMMUNICATION. Otherwise the MODE_NORMAL can be used.
-        for (AudioDeviceInfo deviceInfo : audioDevices) {
-            switch (deviceInfo.getType()) {
-                case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
-                case AudioDeviceInfo.TYPE_BLUETOOTH_SCO:
-                case AudioDeviceInfo.TYPE_WIRED_HEADSET:
-                case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
-                     return AudioManager.MODE_IN_COMMUNICATION;
-                default: break;
-            }
-        }
-        return AudioManager.MODE_NORMAL;
+    final private static int [] bluetoothTypes = {
+            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+            AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+    };
+    final private static int [] wiredTypes = {
+            AudioDeviceInfo.TYPE_WIRED_HEADSET,
+            AudioDeviceInfo.TYPE_WIRED_HEADPHONES
+    };
+
+    private static boolean containsAnyOfType(AudioDeviceInfo[] devices, int[]... types) {
+
+    return Arrays.stream(devices)
+                 .anyMatch(device -> Arrays.stream(types)
+                                           .flatMapToInt(Arrays::stream)
+                                           .anyMatch(type -> device.getType() == type));
     }
 
+    private static int getCorrectModeIfContainsAnyOfType(AudioDeviceInfo[] devices, int[]... types) {
+        return containsAnyOfType(devices, types) ?
+                AudioManager.MODE_IN_COMMUNICATION : AudioManager.MODE_NORMAL;
+    }
+
+    private static int getModeForWired(AudioDeviceInfo[] audioDevices)
+    {
+        return getCorrectModeIfContainsAnyOfType(audioDevices, bluetoothTypes);
+    }
+
+    private static int getModeForBluotooth(AudioDeviceInfo[] audioDevices)
+    {
+        return getCorrectModeIfContainsAnyOfType(audioDevices, wiredTypes);
+    }
+
+    private static int getModeForSpeaker(AudioDeviceInfo[] audioDevices)
+    {
+        return getCorrectModeIfContainsAnyOfType(audioDevices, bluetoothTypes, wiredTypes);
+    }
 
     private static boolean setAudioOutput(int id)
     {
-        m_useSpeaker = false;
         final AudioDeviceInfo[] audioDevices =
                                         m_audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
         for (AudioDeviceInfo deviceInfo : audioDevices) {
@@ -285,15 +302,14 @@ class QtAudioDeviceManager
                {
                    case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
                    case AudioDeviceInfo.TYPE_BLUETOOTH_SCO:
-                       setAudioOutput(AudioManager.MODE_IN_COMMUNICATION, true, false);
+                       setAudioOutput(deviceInfo, getModeForBluotooth(audioDevices), true, false);
                        return true;
                    case AudioDeviceInfo.TYPE_BUILTIN_SPEAKER:
-                       m_useSpeaker = true;
-                       setAudioOutput(getModeForSpeaker(audioDevices), false, true);
+                       setAudioOutput(deviceInfo, getModeForSpeaker(audioDevices), false, true);
                        return true;
                    case AudioDeviceInfo.TYPE_WIRED_HEADSET:
                    case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
-                       setAudioOutput(AudioManager.MODE_IN_COMMUNICATION, false, false);
+                       setAudioOutput(deviceInfo, getModeForWired(audioDevices), false, false);
                        return true;
                    case AudioDeviceInfo.TYPE_BUILTIN_EARPIECE:
                        // It doesn't work when WIRED HEADPHONES are connected
@@ -301,12 +317,12 @@ class QtAudioDeviceManager
                        // method to force it is deprecated
                        Log.w(TAG, "Built in Earpiece may not work when "
                              + "Wired Headphones are connected");
-                       setAudioOutput(AudioManager.MODE_IN_CALL, false, false);
+                       setAudioOutput(deviceInfo, AudioManager.MODE_IN_CALL, false, false);
                        return true;
                    case AudioDeviceInfo.TYPE_HDMI:
                    case AudioDeviceInfo.TYPE_HDMI_ARC:
                    case AudioDeviceInfo.TYPE_HDMI_EARC:
-                       setAudioOutput(AudioManager.MODE_NORMAL, false, false);
+                       setAudioOutput(deviceInfo, AudioManager.MODE_NORMAL, false, false);
                        return true;
                    default:
                        return false;
@@ -316,17 +332,25 @@ class QtAudioDeviceManager
         return false;
     }
 
-    private static void setAudioOutput(int mode, boolean bluetoothOn, boolean speakerOn)
+    private static void setAudioOutput(AudioDeviceInfo deviceInfo, int mode, boolean bluetoothOn,
+                                       boolean speakerOn)
     {
         m_audioManager.setMode(mode);
-        if (bluetoothOn) {
-            m_audioManager.startBluetoothSco();
-        } else {
-            m_audioManager.stopBluetoothSco();
-        }
-        m_audioManager.setBluetoothScoOn(bluetoothOn);
-        m_audioManager.setSpeakerphoneOn(speakerOn);
 
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            if (bluetoothOn)
+                m_audioManager.startBluetoothSco();
+            else
+                m_audioManager.stopBluetoothSco();
+            m_audioManager.setSpeakerphoneOn(speakerOn);
+
+        } else if (mode == AudioManager.MODE_IN_COMMUNICATION) {
+            m_audioManager.setCommunicationDevice(deviceInfo);
+        }
+
+        m_audioManager.setBluetoothScoOn(bluetoothOn);
+
+        m_currentOutputId = deviceInfo.getId();
     }
 
     private static void streamSound()
