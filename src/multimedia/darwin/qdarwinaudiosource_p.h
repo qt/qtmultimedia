@@ -71,19 +71,16 @@ private:
     QCoreAudioBufferList *m_audioBufferList;
 };
 
+class QDarwinAudioSource;
+
 class QDarwinAudioSourceBuffer : public QObject
 {
     Q_OBJECT
 
 public:
-    QDarwinAudioSourceBuffer(int bufferSize,
-                        int maxPeriodSize,
-                        AudioStreamBasicDescription const& inputFormat,
-                        AudioStreamBasicDescription const& outputFormat,
-                        QObject *parent);
-
-    qreal volume() const;
-    void setVolume(qreal v);
+    QDarwinAudioSourceBuffer(const QDarwinAudioSource &audioSource, int bufferSize,
+                             int maxPeriodSize, AudioStreamBasicDescription const &inputFormat,
+                             AudioStreamBasicDescription const &outputFormat, QObject *parent);
 
     qint64 renderFromDevice(AudioUnit audioUnit,
                              AudioUnitRenderActionFlags *ioActionFlags,
@@ -112,6 +109,7 @@ private slots:
     void flushBuffer();
 
 private:
+    const QDarwinAudioSource &m_audioSource;
     bool m_deviceError = false;
     bool m_flushingEnabled = false;
     int m_maxPeriodSize = 0;
@@ -122,7 +120,6 @@ private:
     AudioConverterRef m_audioConverter = nullptr;
     const AudioStreamBasicDescription m_outputFormat;
     QAudioFormat m_qFormat;
-    qreal m_volume = qreal(1.0);
 
     const static OSStatus as_empty = 'qtem';
 
@@ -175,6 +172,8 @@ public:
 
     void setVolume(qreal volume);
     qreal volume() const;
+
+    bool audioUnitStarted() const { return m_audioUnitStarted; }
 
 private:
     bool open();
