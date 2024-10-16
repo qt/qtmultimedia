@@ -146,7 +146,8 @@ bool QCoreAudioPacketFeeder::empty() const
 }
 
 QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(const QDarwinAudioSource &audioSource,
-                                                   int bufferSize, int maxPeriodSize,
+                                                   int bufferSize,
+                                                   int maxPeriodSize,
                                                    const AudioStreamBasicDescription &inputFormat,
                                                    const AudioStreamBasicDescription &outputFormat,
                                                    QObject *parent)
@@ -175,7 +176,11 @@ QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(const QDarwinAudioSource &aud
     m_qFormat = CoreAudioUtils::toQAudioFormat(inputFormat); // we adjust volume before conversion
 }
 
-qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames)
+qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit,
+                                                  AudioUnitRenderActionFlags *ioActionFlags,
+                                                  const AudioTimeStamp *inTimeStamp,
+                                                  UInt32 inBusNumber,
+                                                  UInt32 inNumberFrames)
 {
     const bool pullMode = m_device == nullptr;
 
@@ -313,7 +318,11 @@ void QDarwinAudioSourceBuffer::flushBuffer()
     flush();
 }
 
-OSStatus QDarwinAudioSourceBuffer::converterCallback(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData)
+OSStatus QDarwinAudioSourceBuffer::converterCallback(AudioConverterRef inAudioConverter,
+                                                     UInt32 *ioNumberDataPackets,
+                                                     AudioBufferList *ioData,
+                                                     AudioStreamPacketDescription **outDataPacketDescription,
+                                                     void *inUserData)
 {
     Q_UNUSED(inAudioConverter);
     Q_UNUSED(outDataPacketDescription);
@@ -411,22 +420,22 @@ bool QDarwinAudioSource::open()
     // switch to input mode
     UInt32 enable = 1;
     if (AudioUnitSetProperty(m_audioUnit,
-                               kAudioOutputUnitProperty_EnableIO,
-                               kAudioUnitScope_Input,
-                               1,
-                               &enable,
-                               sizeof(enable)) != noErr) {
+                             kAudioOutputUnitProperty_EnableIO,
+                             kAudioUnitScope_Input,
+                             1,
+                             &enable,
+                             sizeof(enable)) != noErr) {
         qWarning() << "QAudioSource: Unable to switch to input mode (Enable Input)";
         return false;
     }
 
     enable = 0;
     if (AudioUnitSetProperty(m_audioUnit,
-                            kAudioOutputUnitProperty_EnableIO,
-                            kAudioUnitScope_Output,
-                            0,
-                            &enable,
-                            sizeof(enable)) != noErr) {
+                             kAudioOutputUnitProperty_EnableIO,
+                             kAudioUnitScope_Output,
+                             0,
+                             &enable,
+                             sizeof(enable)) != noErr) {
         qWarning() << "QAudioSource: Unable to switch to input mode (Disable output)";
         return false;
     }
@@ -437,11 +446,11 @@ bool QDarwinAudioSource::open()
     callback.inputProcRefCon = this;
 
     if (AudioUnitSetProperty(m_audioUnit,
-                               kAudioOutputUnitProperty_SetInputCallback,
-                               kAudioUnitScope_Global,
-                               0,
-                               &callback,
-                               sizeof(callback)) != noErr) {
+                             kAudioOutputUnitProperty_SetInputCallback,
+                             kAudioUnitScope_Global,
+                             0,
+                             &callback,
+                             sizeof(callback)) != noErr) {
         qWarning() << "QAudioSource: Failed to set AudioUnit callback";
         return false;
     }
@@ -467,14 +476,13 @@ bool QDarwinAudioSource::open()
 
     if (m_audioFormat == m_audioDeviceInfo.preferredFormat()) {
 #endif
-
-    m_deviceFormat = m_streamFormat;
-    AudioUnitSetProperty(m_audioUnit,
-                         kAudioUnitProperty_StreamFormat,
-                         kAudioUnitScope_Output,
-                         1,
-                         &m_deviceFormat,
-                         sizeof(m_deviceFormat));
+        m_deviceFormat = m_streamFormat;
+        AudioUnitSetProperty(m_audioUnit,
+                             kAudioUnitProperty_StreamFormat,
+                             kAudioUnitScope_Output,
+                             1,
+                             &m_deviceFormat,
+                             sizeof(m_deviceFormat));
 #if defined(Q_OS_MACOS)
     } else {
         size = sizeof(m_deviceFormat);
@@ -529,7 +537,9 @@ bool QDarwinAudioSource::open()
     }
 
     // See if the requested buffer size is permissible
-    numberOfFrames = qBound((UInt32)bufferRange.mMinimum, m_internalBufferSize / m_streamFormat.mBytesPerFrame, (UInt32)bufferRange.mMaximum);
+    numberOfFrames = qBound(static_cast<UInt32>(bufferRange.mMinimum),
+                            m_internalBufferSize / m_streamFormat.mBytesPerFrame,
+                            static_cast<UInt32>(bufferRange.mMaximum));
 
     // Set it back
     if (AudioUnitSetProperty(m_audioUnit,
@@ -544,7 +554,7 @@ bool QDarwinAudioSource::open()
 #else //iOS
     Float32 bufferSize = CoreAudioSessionManager::instance().currentIOBufferDuration();
     bufferSize *= m_streamFormat.mSampleRate;
-    numberOfFrames = bufferSize;
+    numberOfFrames = static_cast<UInt32>(bufferSize);
 #endif
 
     // Now allocate a few buffers to be safe.
@@ -740,7 +750,12 @@ void QDarwinAudioSource::onAudioDeviceFull()
                                       QAudio::UnderrunError);
 }
 
-OSStatus QDarwinAudioSource::inputCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
+OSStatus QDarwinAudioSource::inputCallback(void *inRefCon,
+                                           AudioUnitRenderActionFlags *ioActionFlags,
+                                           const AudioTimeStamp *inTimeStamp,
+                                           UInt32 inBusNumber,
+                                           UInt32 inNumberFrames,
+                                           AudioBufferList *ioData)
 {
     Q_UNUSED(ioData);
 
