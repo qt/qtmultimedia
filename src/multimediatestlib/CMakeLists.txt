@@ -17,6 +17,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
         qscopedenvironmentvariable_p.h
         qsequentialfileadaptor_p.h
         qsinewavevalidator_p.h qsinewavevalidator.cpp
+        qmockiodevice_p.h
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::CorePrivate

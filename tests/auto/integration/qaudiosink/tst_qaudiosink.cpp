@@ -15,7 +15,31 @@
 #include <qmediadevices.h>
 #include <qwavedecoder.h>
 
+#include <private/qmockiodevice_p.h>
+
 #define AUDIO_BUFFER 192000
+
+using AudioSinkInitializer = bool (*)(QAudioSink &);
+
+class AudioPullSource : public QIODevice
+{
+public:
+    qint64 readData(char *data, qint64 len) override
+    {
+        qint64 read = qMin(len, available);
+        available -= read;
+        memset(data, 0, read);
+        return read;
+    }
+    qint64 writeData(const char *, qint64) override { return 0; }
+    bool isSequential() const override { return true; }
+
+    qint64 bytesAvailable() const override { return available; }
+    bool atEnd() const override { return signalEnd && available == 0; }
+
+    qint64 available = 0;
+    bool signalEnd = false;
+};
 
 class tst_QAudioSink : public QObject
 {
@@ -58,6 +82,9 @@ private slots:
 
     void volume_data();
     void volume();
+
+    void stop_stopsAudioSink_whenInvokedUponFirstStateChange_data();
+    void stop_stopsAudioSink_whenInvokedUponFirstStateChange();
 
 private:
     using FilePtr = QSharedPointer<QFile>;
@@ -554,25 +581,6 @@ void tst_QAudioSink::pullSuspendResume()
 
 void tst_QAudioSink::pullResumeFromUnderrun()
 {
-    class AudioPullSource : public QIODevice
-    {
-    public:
-        qint64 readData(char *data, qint64 len) override {
-            qint64 read = qMin(len, available);
-            available -= read;
-            memset(data, 0, read);
-            return read;
-        }
-        qint64 writeData(const char *, qint64) override { return 0; }
-        bool isSequential() const override { return true; }
-
-        qint64 bytesAvailable() const override { return available; }
-        bool atEnd() const override { return signalEnd && available == 0; }
-
-        qint64 available = 0;
-        bool signalEnd = false;
-    };
-
     constexpr int chunkSize = 128;
 
     QAudioFormat format;
@@ -1001,6 +1009,46 @@ void tst_QAudioSink::volume()
     // Wait a while to see if this changes
     QTest::qWait(500);
     QTRY_VERIFY(qRound(audioOutput.volume()*10.0f) == expectedInt);
+}
+
+void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange_data()
+{
+    QTest::addColumn<AudioSinkInitializer>("initializer");
+
+    AudioSinkInitializer initPullMode = [](QAudioSink &sink) {
+        QIODevice *device = new MockIODevice(&sink);
+        device->open(QIODevice::ReadOnly);
+        sink.start(device);
+        return sink.error() == QtAudio::NoError;
+    };
+
+    AudioSinkInitializer initPushMode = [](QAudioSink &sink) {
+        QIODevice *device = sink.start();
+        return device && sink.error() == QtAudio::NoError;
+    };
+
+    QTest::newRow("pullMode") << initPullMode;
+    QTest::newRow("pushMode") << initPushMode;
+}
+
+void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange()
+{
+    QFETCH(const AudioSinkInitializer, initializer);
+
+    QAudioSink audioSink(testFormats.at(0));
+
+    auto stop = [&audioSink]() {
+        audioSink.stop();
+        QCOMPARE(audioSink.state(), QtAudio::State::StoppedState);
+    };
+
+    connect(&audioSink, &QAudioSink::stateChanged, this, stop, Qt::SingleShotConnection);
+
+    if (!initializer(audioSink))
+        QSKIP("Cannot start the audio sink"); // Pulse audio backend fails on some Linux CI.
+                                              // TODO: replace with QVERIFY
+
+    QTRY_COMPARE(audioSink.state(), QtAudio::State::StoppedState);
 }
 
 QTEST_MAIN(tst_QAudioSink)
