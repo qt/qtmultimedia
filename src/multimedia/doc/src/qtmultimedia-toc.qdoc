@@ -17,6 +17,12 @@
     \li \l {Qt Multimedia on macOS and iOS}{Platform Notes - macOS and iOS}
     \li \l {Qt Multimedia on WebAssembly}{Platform Notes - WebAssembly}
     \li \l {Building Qt Multimedia from sources}{Building from sources}
+        \list
+            \li \l {Building FFmpeg from source}{Building FFmpeg}
+                \list
+                    \li \l {Building FFmpeg from source on Windows}{Building FFmpeg on Windows}
+                \endlist
+        \endlist
     \li \l {Changes to Qt Multimedia}{Upgrading from Qt 5}
     \endlist
 

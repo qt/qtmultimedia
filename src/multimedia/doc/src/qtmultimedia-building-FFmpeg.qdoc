@@ -1,0 +1,31 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-building-ffmpeg.html
+\title Building FFmpeg from source
+\brief This document describes how to build FFmpeg from source code.
+
+This page describes the process of configuring and building \l{FFmpeg} on
+supported platforms.
+
+You may need to build FFmpeg when:
+
+\list
+\li You need a custom configuration or static build of FFmpeg.
+\li FFmpeg builds available online are not suitable for your product.
+\li FFmpeg needs to be updated on an existing product between Qt releases.
+\endlist
+
+In these guides, we describe how to build FFmpeg with the same feature support
+as the FFmpeg binaries that are bundled with the Qt Online Installer. FFmpeg has
+a wide variety of configuration options to tune the FFmpeg library size,
+performance, and feature support. To read more about these options, see the
+\l{https://trac.ffmpeg.org/wiki/CompilationGuide}{FFmpeg Compilation Guide}.
+
+\section1 Windows
+\list
+    \li \l{Building FFmpeg from source on Windows}
+\endlist
+
+*/
