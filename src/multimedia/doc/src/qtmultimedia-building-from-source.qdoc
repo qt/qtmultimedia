@@ -22,11 +22,12 @@ It is possible to build Qt Multimedia without the Qt Multimedia FFmpeg
 media backend, but this is only recommended when building for platforms
 where the FFmpeg backend is not supported.
 
-FFmpeg developer libraries required to build Qt Multimedia can be built
-from sources or downloaded as binary packages. Qt Multimedia can use
-either static linking or dynamic linking to FFmpeg libraries. We
+FFmpeg development libraries required to build Qt Multimedia can be
+built from sources or downloaded as binary packages. Qt Multimedia can
+use either static linking or dynamic linking to FFmpeg libraries. We
 recommend using the same major version of FFmpeg that is listed in
-\l{FFmpeg as the default backend}.
+\l{FFmpeg as the default backend}. For information on how to build the FFmpeg
+development libraries, see \l{Building FFmpeg from source}.
 
 To build Qt Multimedia with FFmpeg support, specify the \c{-DFFMPEG_DIR}
 CMake variable on the configure command line when building Qt. Note the
