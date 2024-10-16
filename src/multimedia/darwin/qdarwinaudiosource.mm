@@ -179,12 +179,9 @@ qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnit
 {
     const bool pullMode = m_device == nullptr;
 
-    OSStatus    err;
-    qint64      framesRendered = 0;
-
     m_inputBufferList.reset();
-    err = AudioUnitRender(audioUnit, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames,
-                          m_inputBufferList.audioBufferList());
+    OSStatus err = AudioUnitRender(audioUnit, ioActionFlags, inTimeStamp, inBusNumber,
+                                   inNumberFrames, m_inputBufferList.audioBufferList());
 
     // adjust volume, if necessary
     const qreal volume = m_audioSource.volume();
@@ -195,31 +192,41 @@ qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnit
                                                m_inputBufferList.bufferSize());
     }
 
-    if (m_audioConverter != 0) {
+    int bytesCopied = 0;
+
+    if (m_audioConverter != nullptr) {
         QCoreAudioPacketFeeder feeder(&m_inputBufferList);
 
-        int bytesConsumed = m_buffer.consume(m_buffer.free(), [&](QSpan<const char> region) {
+        const int bytesAvailable = m_buffer.free();
+
+        while (err == noErr && !feeder.empty()) {
+            const auto region = m_buffer.acquireWriteRegion(bytesAvailable - bytesCopied);
+
+            if (region.empty())
+                break;
+
             AudioBufferList output;
             output.mNumberBuffers = 1;
             output.mBuffers[0].mNumberChannels = 1;
             output.mBuffers[0].mDataByteSize = region.size();
-            output.mBuffers[0].mData = (void *)region.data();
+            output.mBuffers[0].mData = region.data();
 
-            UInt32 packetSize = region.size() / m_outputFormat.mBytesPerPacket;
+            UInt32 packetSize = static_cast<UInt32>(region.size() / m_outputFormat.mBytesPerPacket);
             err = AudioConverterFillComplexBuffer(m_audioConverter, converterCallback, &feeder,
                                                   &packetSize, &output, 0);
-        });
 
-        framesRendered += bytesConsumed / m_outputFormat.mBytesPerFrame;
-    }
-    else {
-        int bytesCopied = m_buffer.write(QSpan<const char>{
+            bytesCopied += output.mBuffers[0].mDataByteSize;
+            m_buffer.releaseWriteRegion(output.mBuffers[0].mDataByteSize);
+        }
+
+    } else {
+        bytesCopied = m_buffer.write(QSpan<const char>{
                 reinterpret_cast<const char *>(m_inputBufferList.data()),
                 m_inputBufferList.bufferSize(),
         });
-
-        framesRendered = bytesCopied / m_outputFormat.mBytesPerFrame;
     }
+
+    const qint64 framesRendered = bytesCopied / m_outputFormat.mBytesPerFrame;
 
     if (pullMode && framesRendered > 0)
         emit readyRead();
