@@ -58,10 +58,10 @@ Notifier QAudioStateMachine::stop(QAudio::Error error, bool shouldDrain, bool fo
     return changeState(statesChecker, getNewState);
 }
 
-Notifier QAudioStateMachine::start(bool active)
+Notifier QAudioStateMachine::start(RunningState activeOrIdle)
 {
     return changeState(makeStatesChecker(QAudio::StoppedState),
-                       toRawState(active ? QAudio::ActiveState : QAudio::IdleState));
+                       toRawState(static_cast<QtAudio::State>(activeOrIdle)));
 }
 
 bool QAudioStateMachine::isActiveOrIdle() const
@@ -114,11 +114,10 @@ Notifier QAudioStateMachine::activateFromIdle()
     return changeState(makeStatesChecker(QAudio::IdleState), toRawState(QAudio::ActiveState));
 }
 
-Notifier QAudioStateMachine::updateActiveOrIdle(bool isActive, QAudio::Error error)
+Notifier QAudioStateMachine::updateActiveOrIdle(RunningState activeOrIdle, QAudio::Error error)
 {
-    const auto state = isActive ? QAudio::ActiveState : QAudio::IdleState;
     return changeState(makeStatesChecker(QAudio::ActiveState, QAudio::IdleState),
-                       toRawState(state, error));
+                       toRawState(static_cast<QtAudio::State>(activeOrIdle), error));
 }
 
 Notifier QAudioStateMachine::setError(QAudio::Error error)
