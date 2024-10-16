@@ -633,7 +633,7 @@ void QDarwinAudioSource::start(QIODevice *device)
 
     // Start
     m_totalFrames = 0;
-    m_stateMachine.start(false);
+    m_stateMachine.start(QAudioStateMachine::RunningState::Idle);
 }
 
 QIODevice *QDarwinAudioSource::start()
@@ -649,7 +649,7 @@ QIODevice *QDarwinAudioSource::start()
 
     // Start
     m_totalFrames = 0;
-    m_stateMachine.start(false);
+    m_stateMachine.start(QAudioStateMachine::RunningState::Idle);
 
     return m_audioIO;
 }
@@ -731,12 +731,13 @@ qreal QDarwinAudioSource::volume() const
 
 void QDarwinAudioSource::onAudioDeviceActive()
 {
-    m_stateMachine.updateActiveOrIdle(true);
+    m_stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Active);
 }
 
 void QDarwinAudioSource::onAudioDeviceFull()
 {
-    m_stateMachine.updateActiveOrIdle(false, QAudio::UnderrunError);
+    m_stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Idle,
+                                      QAudio::UnderrunError);
 }
 
 OSStatus QDarwinAudioSource::inputCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)

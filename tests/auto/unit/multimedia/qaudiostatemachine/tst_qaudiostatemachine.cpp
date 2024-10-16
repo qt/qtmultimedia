@@ -106,17 +106,17 @@ void tst_QAudioStateMachine::constructor_setsStoppedStateWithNoError()
 
 void tst_QAudioStateMachine::start_changesState_whenStateIsStopped_data()
 {
-    QTest::addColumn<bool>("active");
+    QTest::addColumn<QAudioStateMachine::RunningState>("runningStated");
     QTest::addColumn<QAudio::State>("expectedState");
 
-    QTest::newRow("to active") << true << QAudio::ActiveState;
-    QTest::newRow("to not active") << false << QAudio::IdleState;
+    QTest::newRow("to active") << QAudioStateMachine::RunningState::Active << QAudio::ActiveState;
+    QTest::newRow("to not active") << QAudioStateMachine::RunningState::Idle << QAudio::IdleState;
 }
 
 void tst_QAudioStateMachine::start_changesState_whenStateIsStopped()
 {
-    QFETCH(bool, active);
-    QFETCH(QAudio::State, expectedState);
+    QFETCH(const QAudioStateMachine::RunningState, runningStated);
+    QFETCH(const QAudio::State, expectedState);
 
     QAudioStateChangeNotifier changeNotifier;
     QAudioStateMachine stateMachine(changeNotifier);
@@ -124,7 +124,7 @@ void tst_QAudioStateMachine::start_changesState_whenStateIsStopped()
     QSignalSpy stateSpy(&changeNotifier, &QAudioStateChangeNotifier::stateChanged);
     QSignalSpy errorSpy(&changeNotifier, &QAudioStateChangeNotifier::errorChanged);
 
-    QVERIFY(stateMachine.start(active));
+    QVERIFY(stateMachine.start(runningStated));
 
     QCOMPARE(stateSpy.size(), 1);
     QCOMPARE(stateSpy.front().front().value<QAudio::State>(), expectedState);
@@ -151,7 +151,8 @@ void tst_QAudioStateMachine::start_doesntChangeState_whenStateIsNotStopped()
     QSignalSpy errorSpy(&changeNotifier, &QAudioStateChangeNotifier::errorChanged);
 
     QVERIFY2(!stateMachine.start(), "Cannot start (active)");
-    QVERIFY2(!stateMachine.start(false), "Cannot start (not active)");
+    QVERIFY2(!stateMachine.start(QAudioStateMachine::RunningState::Idle),
+             "Cannot start (not active)");
 
     QCOMPARE(stateSpy.size(), 0);
     QCOMPARE(errorSpy.size(), 0);
@@ -276,8 +277,8 @@ void tst_QAudioStateMachine::methods_dontChangeState_whenDraining()
     QVERIFY(!stateMachine.stop(QAudio::NoError, true));
     QVERIFY(!stateMachine.suspend());
     QVERIFY(!stateMachine.resume());
-    QVERIFY(!stateMachine.updateActiveOrIdle(false));
-    QVERIFY(!stateMachine.updateActiveOrIdle(true));
+    QVERIFY(!stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Idle));
+    QVERIFY(!stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Active));
 
     QCOMPARE(stateMachine.state(), QAudio::StoppedState);
     QCOMPARE(stateMachine.error(), QAudio::IOError);
@@ -351,8 +352,8 @@ void tst_QAudioStateMachine::updateActiveOrIdle_doesntChangeState_whenStateIsNot
     QSignalSpy stateSpy(&changeNotifier, &QAudioStateChangeNotifier::stateChanged);
     QSignalSpy errorSpy(&changeNotifier, &QAudioStateChangeNotifier::errorChanged);
 
-    QVERIFY(!stateMachine.updateActiveOrIdle(true));
-    QVERIFY(!stateMachine.updateActiveOrIdle(false));
+    QVERIFY(!stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Active));
+    QVERIFY(!stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Idle));
 
     QCOMPARE(stateSpy.size(), 0);
     QCOMPARE(errorSpy.size(), 0);
@@ -362,22 +363,22 @@ void tst_QAudioStateMachine::updateActiveOrIdle_changesState_whenStateIsActiveOr
 {
     QTest::addColumn<QAudio::State>("prevState");
     QTest::addColumn<QAudio::Error>("prevError");
-    QTest::addColumn<bool>("active");
+    QTest::addColumn<QAudioStateMachine::RunningState>("runningState");
     QTest::addColumn<QAudio::Error>("error");
 
     QTest::newRow("from ActiveState+NoError -> not active+NoError")
-            << QAudio::ActiveState << QAudio::NoError << false << QAudio::NoError;
+        << QAudio::ActiveState << QAudio::NoError << QAudioStateMachine::RunningState::Idle << QAudio::NoError;
     QTest::newRow("from Idle(UnderrunError) -> active+NoError")
-            << QAudio::IdleState << QAudio::UnderrunError << true << QAudio::NoError;
+        << QAudio::IdleState << QAudio::UnderrunError << QAudioStateMachine::RunningState::Active << QAudio::NoError;
     QTest::newRow("from Idle(UnderrunError) -> not active+UnderrunError")
-            << QAudio::IdleState << QAudio::UnderrunError << false << QAudio::UnderrunError;
+        << QAudio::IdleState << QAudio::UnderrunError << QAudioStateMachine::RunningState::Idle << QAudio::UnderrunError;
 }
 
 void tst_QAudioStateMachine::updateActiveOrIdle_changesState_whenStateIsActiveOrIdle()
 {
     QFETCH(QAudio::State, prevState);
     QFETCH(QAudio::Error, prevError);
-    QFETCH(bool, active);
+    QFETCH(QAudioStateMachine::RunningState, runningState);
     QFETCH(QAudio::Error, error);
 
     QAudioStateChangeNotifier changeNotifier;
@@ -388,9 +389,9 @@ void tst_QAudioStateMachine::updateActiveOrIdle_changesState_whenStateIsActiveOr
     QSignalSpy stateSpy(&changeNotifier, &QAudioStateChangeNotifier::stateChanged);
     QSignalSpy errorSpy(&changeNotifier, &QAudioStateChangeNotifier::errorChanged);
 
-    const auto expectedState = active ? QAudio::ActiveState : QAudio::IdleState;
+    const auto expectedState = static_cast<QtAudio::State>(runningState);
 
-    auto notifier = stateMachine.updateActiveOrIdle(active, error);
+    auto notifier = stateMachine.updateActiveOrIdle(runningState, error);
     QVERIFY(notifier);
 
     QCOMPARE(stateSpy.size(), 0);
@@ -568,14 +569,16 @@ void tst_QAudioStateMachine::twoThreadsToggleSuspendResumeAndIdleActive_statesAr
     });
 
     auto threadIdleActive = createTestThread(counters, 1, [&]() {
-        if (auto notifier = stateMachine.updateActiveOrIdle(false)) {
+        if (auto notifier =
+                    stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Idle)) {
             if (notifier.isStateChanged())
                 ++changesCount;
 
             QCOMPARE(notifier.audioState(), QAudio::IdleState);
         }
 
-        if (auto notifier = stateMachine.updateActiveOrIdle(true)) {
+        if (auto notifier =
+                    stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Active)) {
             if (notifier.isStateChanged())
                 ++changesCount;
 
@@ -628,7 +631,7 @@ void tst_QAudioStateMachine::twoThreadsToggleStartStop_statesAreConsistent()
     });
 
     auto threadStartIdle = createTestThread(counters, 1, [&]() {
-        if (auto startNotifier = stateMachine.start(false)) {
+        if (auto startNotifier = stateMachine.start(QAudioStateMachine::RunningState::Idle)) {
             QCOMPARE(startNotifier.prevAudioState(), QAudio::StoppedState);
             QCOMPARE(startNotifier.audioState(), QAudio::IdleState);
             ++changesCount;

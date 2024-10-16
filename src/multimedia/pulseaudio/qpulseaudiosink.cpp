@@ -152,8 +152,9 @@ void QPulseAudioSink::streamUnderflowCallback()
         exchangeDrainOperation(pa_stream_drain(m_stream, outputStreamDrainComplete, this));
     }
 
-    m_stateMachine.updateActiveOrIdle(
-            false, (m_pullMode && atEnd) ? QAudio::NoError : QAudio::UnderrunError);
+    m_stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Idle,
+                                      (m_pullMode && atEnd) ? QAudio::NoError
+                                                            : QAudio::UnderrunError);
 }
 
 void QPulseAudioSink::streamDrainedCallback()
@@ -214,7 +215,7 @@ QIODevice *QPulseAudioSink::start()
     gettimeofday(&lastTimingInfo, nullptr);
     lastProcessedUSecs = 0;
 
-    m_stateMachine.start(false);
+    m_stateMachine.start(QAudioStateMachine::RunningState::Idle);
 
     return m_audioSource;
 }
@@ -480,7 +481,7 @@ qint64 QPulseAudioSink::write(const char *data, qint64 len)
         pulseEngine->unlock();
         qCWarning(qLcPulseAudioOut)
                 << "pa_stream_begin_write error:" << currentError(pulseEngine->context());
-        m_stateMachine.updateActiveOrIdle(false, QAudio::IOError);
+        m_stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Idle, QAudio::IOError);
         return 0;
     }
 
@@ -500,14 +501,14 @@ qint64 QPulseAudioSink::write(const char *data, qint64 len)
         pulseEngine->unlock();
         qCWarning(qLcPulseAudioOut)
                 << "pa_stream_write error:" << currentError(pulseEngine->context());
-        m_stateMachine.updateActiveOrIdle(false, QAudio::IOError);
+        m_stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Idle, QAudio::IOError);
         return 0;
     }
 
     pulseEngine->unlock();
     m_totalTimeValue += len;
 
-    m_stateMachine.updateActiveOrIdle(true);
+    m_stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Active);
     return len;
 }
 

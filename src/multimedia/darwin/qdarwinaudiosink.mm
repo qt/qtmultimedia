@@ -248,7 +248,7 @@ QIODevice *QDarwinAudioSink::start()
 
     m_totalFrames = 0;
 
-    m_stateMachine.start(false);
+    m_stateMachine.start(QAudioStateMachine::RunningState::Idle);
 
     return m_audioIO;
 }
@@ -559,7 +559,8 @@ void QDarwinAudioSink::close()
 void QDarwinAudioSink::onAudioDeviceIdle()
 {
     const bool atEnd = m_audioBuffer->deviceAtEnd();
-    if (!m_stateMachine.updateActiveOrIdle(false, atEnd ? QAudio::NoError : QAudio::UnderrunError))
+    if (!m_stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Idle,
+                                           atEnd ? QAudio::NoError : QAudio::UnderrunError))
         onAudioDeviceDrained();
 }
 

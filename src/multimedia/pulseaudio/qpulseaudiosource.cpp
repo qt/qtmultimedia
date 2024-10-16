@@ -159,7 +159,7 @@ QIODevice *QPulseAudioSource::start()
     m_audioSource = new PulseInputPrivate(this);
     m_audioSource->open(QIODevice::ReadOnly | QIODevice::Unbuffered);
 
-    m_stateMachine.start(false);
+    m_stateMachine.start(QAudioStateMachine::RunningState::Idle);
 
     return m_audioSource;
 }
@@ -335,7 +335,7 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
 
     Q_ASSERT(data != nullptr || len == 0);
 
-    m_stateMachine.updateActiveOrIdle(true, QAudio::NoError);
+    m_stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Active, QAudio::NoError);
     int readBytes = 0;
 
     if (!m_pullMode && !m_tempBuffer.isEmpty()) {
@@ -383,7 +383,8 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
 
             if (actualLength < qint64(readLength)) {
                 pulseEngine->unlock();
-                m_stateMachine.updateActiveOrIdle(false, QAudio::UnderrunError);
+                m_stateMachine.updateActiveOrIdle(QAudioStateMachine::RunningState::Idle,
+                                                  QAudio::UnderrunError);
                 return actualLength;
             }
         } else {

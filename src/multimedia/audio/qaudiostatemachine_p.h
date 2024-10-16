@@ -82,6 +82,11 @@ public:
         friend class QAudioStateMachine;
     };
 
+    enum class RunningState {
+        Active = QtAudio::State::ActiveState,
+        Idle = QtAudio::State::IdleState
+    };
+
     QAudioStateMachine(QAudioStateChangeNotifier &notifier);
 
     ~QAudioStateMachine();
@@ -112,7 +117,7 @@ public:
     }
 
     // Stopped -> Active/Idle
-    Notifier start(bool isActive = true);
+    Notifier start(RunningState activeOrIdle = RunningState::Active);
 
     // Active/Idle -> Suspended + saves the exchanged state
     Notifier suspend();
@@ -124,7 +129,7 @@ public:
     Notifier activateFromIdle();
 
     // Active/Idle -> Active/Idle + updateError
-    Notifier updateActiveOrIdle(bool isActive, QAudio::Error error = QAudio::NoError);
+    Notifier updateActiveOrIdle(RunningState activeOrIdle, QAudio::Error error = QAudio::NoError);
 
     // Any -> Any; better use more strict methods
     Notifier forceSetState(QAudio::State state, QAudio::Error error = QAudio::NoError);
