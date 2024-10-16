@@ -9,9 +9,9 @@
 
 FrameGrabber::FrameGrabber()
 {
-    const auto copyFrame = [this](const QVideoFrame &frame) { m_frames.push_back(frame); };
+    const auto addFrame = [this](const QVideoFrame &frame) { m_frames.push_back(frame); };
 
-    connect(this, &QVideoSink::videoFrameChanged, this, copyFrame, Qt::DirectConnection);
+    connect(this, &QVideoSink::videoFrameChanged, this, addFrame);
 }
 
 const std::vector<QVideoFrame> &FrameGrabber::getFrames() const
@@ -26,6 +26,9 @@ std::vector<QVideoFrame> FrameGrabber::waitAndTakeFrames(size_t minCount, qint64
     const auto enoughFramesOrStopped = [this, minCount, noOlderThanTime]() -> bool {
         if (m_stopped)
             return true; // Stop waiting
+
+        // ensure that all signals &QVideoSink::videoFrameChanged have been processed
+        QCoreApplication::processEvents(QEventLoop::AllEvents);
 
         if (noOlderThanTime > 0) {
             // Reject frames older than noOlderThanTime
@@ -45,7 +48,7 @@ std::vector<QVideoFrame> FrameGrabber::waitAndTakeFrames(size_t minCount, qint64
     if (m_stopped)
         return {};
 
-    return std::exchange(m_frames, {});
+    return std::move(m_frames);
 }
 
 bool FrameGrabber::isStopped() const
