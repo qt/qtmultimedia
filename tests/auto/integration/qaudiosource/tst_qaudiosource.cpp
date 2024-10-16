@@ -15,6 +15,7 @@
 #include <qwavedecoder.h>
 
 #include <private/mediabackendutils_p.h>
+#include <private/qmockiodevice_p.h>
 
 #define RANGE_ERR 0.5
 
@@ -22,6 +23,8 @@ template<typename T> inline bool qTolerantCompare(T value, T expected)
 {
     return qAbs(value - expected) < (RANGE_ERR * expected);
 }
+
+using AudioSourceInitializer = bool (*)(QAudioSource &);
 
 class tst_QAudioSource : public QObject
 {
@@ -61,6 +64,9 @@ private slots:
     void volume();
 
     void stop_finishesPushMode_whenInvokedUponReadyReadSignal();
+
+    void stop_stopsAudioSource_whenInvokedUponFirstStateChange_data();
+    void stop_stopsAudioSource_whenInvokedUponFirstStateChange();
 
 private:
     using FilePtr = QSharedPointer<QFile>;
@@ -842,6 +848,55 @@ void tst_QAudioSource::stop_finishesPushMode_whenInvokedUponReadyReadSignal()
 
     QVERIFY2((audioInput.state() == QAudio::StoppedState),
              "didn't transitions to StoppedState after close()");
+}
+
+void tst_QAudioSource::stop_stopsAudioSource_whenInvokedUponFirstStateChange_data()
+{
+    QTest::addColumn<AudioSourceInitializer>("initializer");
+
+    AudioSourceInitializer initPullMode = [](QAudioSource &source) {
+        QIODevice *device = new MockIODevice(&source);
+        device->open(QIODevice::WriteOnly);
+        source.start(device);
+        return source.error() == QtAudio::NoError;
+    };
+
+    AudioSourceInitializer initPushMode = [](QAudioSource &source) {
+        QIODevice *device = source.start();
+        return device && source.error() == QtAudio::NoError;
+    };
+
+    QTest::newRow("pullMode") << initPullMode;
+    QTest::newRow("pushMode") << initPushMode;
+}
+
+void tst_QAudioSource::stop_stopsAudioSource_whenInvokedUponFirstStateChange()
+{
+    QFETCH(const AudioSourceInitializer, initializer);
+
+    const QAudioDevice defaultAudioInputDevice = QMediaDevices::defaultAudioInput();
+
+    QAudioFormat audioFormat;
+    audioFormat.setSampleFormat(QAudioFormat::Int16);
+    audioFormat.setSampleRate(qBound(defaultAudioInputDevice.minimumSampleRate(), 48000,
+                                     defaultAudioInputDevice.maximumSampleRate()));
+    audioFormat.setChannelCount(qBound(defaultAudioInputDevice.minimumChannelCount(), 2,
+                                       defaultAudioInputDevice.maximumChannelCount()));
+
+    QAudioSource audioSource(audioFormat);
+
+    auto stop = [&audioSource]() {
+        audioSource.stop();
+        QCOMPARE(audioSource.state(), QtAudio::State::StoppedState);
+    };
+
+    connect(&audioSource, &QAudioSource::stateChanged, this, stop, Qt::SingleShotConnection);
+
+    if (!initializer(audioSource))
+        QSKIP("Cannot start the audio source"); // Pulse audio backend fails on some Linux CI.
+                                                // TODO: replace with QVERIFY, QTBUG-130272
+
+    QTRY_COMPARE(audioSource.state(), QtAudio::State::StoppedState);
 }
 
 QTEST_MAIN(tst_QAudioSource)
