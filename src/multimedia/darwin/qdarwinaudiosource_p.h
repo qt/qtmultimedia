@@ -78,15 +78,18 @@ class QDarwinAudioSourceBuffer : public QObject
     Q_OBJECT
 
 public:
-    QDarwinAudioSourceBuffer(const QDarwinAudioSource &audioSource, int bufferSize,
-                             int maxPeriodSize, AudioStreamBasicDescription const &inputFormat,
-                             AudioStreamBasicDescription const &outputFormat, QObject *parent);
+    QDarwinAudioSourceBuffer(const QDarwinAudioSource &audioSource,
+                             int bufferSize,
+                             int maxPeriodSize,
+                             const AudioStreamBasicDescription &inputFormat,
+                             const AudioStreamBasicDescription &outputFormat,
+                             QObject *parent);
 
     qint64 renderFromDevice(AudioUnit audioUnit,
-                             AudioUnitRenderActionFlags *ioActionFlags,
-                             const AudioTimeStamp *inTimeStamp,
-                             UInt32 inBusNumber,
-                             UInt32 inNumberFrames);
+                            AudioUnitRenderActionFlags *ioActionFlags,
+                            const AudioTimeStamp *inTimeStamp,
+                            UInt32 inBusNumber,
+                            UInt32 inNumberFrames);
 
     qint64 readBytes(char *data, qint64 len);
 
@@ -125,10 +128,10 @@ private:
 
     // Converter callback
     static OSStatus converterCallback(AudioConverterRef inAudioConverter,
-                                UInt32 *ioNumberDataPackets,
-                                AudioBufferList *ioData,
-                                AudioStreamPacketDescription **outDataPacketDescription,
-                                void *inUserData);
+                                      UInt32 *ioNumberDataPackets,
+                                      AudioBufferList *ioData,
+                                      AudioStreamPacketDescription **outDataPacketDescription,
+                                      void *inUserData);
 };
 
 class QDarwinAudioSourceDevice : public QIODevice
@@ -187,11 +190,11 @@ private:
 
     // Input callback
     static OSStatus inputCallback(void *inRefCon,
-                                    AudioUnitRenderActionFlags *ioActionFlags,
-                                    const AudioTimeStamp *inTimeStamp,
-                                    UInt32 inBusNumber,
-                                    UInt32 inNumberFrames,
-                                    AudioBufferList *ioData);
+                                  AudioUnitRenderActionFlags *ioActionFlags,
+                                  const AudioTimeStamp *inTimeStamp,
+                                  UInt32 inBusNumber,
+                                  UInt32 inNumberFrames,
+                                  AudioBufferList *ioData);
 
     QAudioDevice m_audioDeviceInfo;
     QByteArray m_device;
