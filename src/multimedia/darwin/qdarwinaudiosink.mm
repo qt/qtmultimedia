@@ -148,22 +148,18 @@ void QDarwinAudioSinkBuffer::fillBuffer()
         while (!m_deviceError && wecan && filled < writeSize) {
             QSpan<char> region = m_buffer.acquireWriteRegion(writeSize - filled);
 
-            int bytesRead;
             if (region.size() > 0) {
-                bytesRead = m_device->read(region.data(), region.size());
-                region = region.first(bytesRead);
+                const int bytesRead = m_device->read(region.data(), region.size());
                 m_deviceAtEnd = m_device->atEnd();
-                if (bytesRead > 0)
+                if (bytesRead > 0) {
                     filled += bytesRead;
-                else if (bytesRead == 0)
+                    m_buffer.releaseWriteRegion(bytesRead);
+                } else if (bytesRead == 0)
                     wecan = false;
                 else if (bytesRead < 0) {
                     setFillingEnabled(false);
-                    bytesRead = 0;
                     m_deviceError = true;
                 }
-                if (bytesRead)
-                    m_buffer.releaseWriteRegion(bytesRead);
             } else
                 wecan = false;
         }
