@@ -72,7 +72,7 @@ private:
 
     SLmillibel adjustVolume(qreal vol);
 
-    static constexpr int BufferCount = 2;
+    static constexpr int BufferCount = 4;
 
     QByteArray m_deviceName;
     QAudio::State m_state = QAudio::StoppedState;
