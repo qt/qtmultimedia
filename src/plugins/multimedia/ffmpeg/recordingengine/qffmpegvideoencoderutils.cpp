@@ -28,25 +28,40 @@ static AVScore calculateTargetSwFormatScore(const AVPixFmtDescriptor *sourceSwFo
     if (!desc)
         return NotSuitableAVScore;
 
-    const int sourceDepth = sourceSwFormatDesc ? sourceSwFormatDesc->comp[0].depth : 0;
-
     if (desc->flags & AV_PIX_FMT_FLAG_HWACCEL)
         // we really don't want HW accelerated formats here
         return NotSuitableAVScore;
 
-    auto score = DefaultAVScore;
+    AVScore score = DefaultAVScore;
 
     if (desc == sourceSwFormatDesc)
         // prefer exact matches
         score += 10;
-    if (desc->comp[0].depth == sourceDepth)
+
+    const int sourceBpp = av_get_bits_per_pixel(sourceSwFormatDesc);
+    const int bpp = av_get_bits_per_pixel(desc);
+
+    // we want formats with the same bpp
+    if (bpp == sourceBpp)
         score += 100;
-    else if (desc->comp[0].depth < sourceDepth)
-        score -= 100 + (sourceDepth - desc->comp[0].depth);
+    else if (bpp < sourceBpp)
+        score -= 100 + (sourceBpp - bpp);
+
+    // Add a slight preference for 4:2:0 formats.
+    // TODO: shouldn't we compare withc sourceSwFormatDesc->log2_chroma_h
+    // and sourceSwFormatDesc->log2_chroma_w ?
     if (desc->log2_chroma_h == 1)
         score += 1;
     if (desc->log2_chroma_w == 1)
         score += 1;
+
+#ifdef Q_OS_ANDROID
+    // Add a slight preference for NV12 on Android
+    // as it's supported better than other 4:2:0 formats
+    if (fmt == AV_PIX_FMT_NV12)
+        score += 1;
+#endif
+
     if (desc->flags & AV_PIX_FMT_FLAG_BE)
         score -= 10;
     if (desc->flags & AV_PIX_FMT_FLAG_PAL)
@@ -55,7 +70,6 @@ static AVScore calculateTargetSwFormatScore(const AVPixFmtDescriptor *sourceSwFo
     if (desc->flags & AV_PIX_FMT_FLAG_RGB)
         // we don't want RGB formats
         score -= 1000;
-
     // qCDebug(qLcVideoFrameEncoder)
     //        << "checking format" << fmt << Qt::hex << desc->flags << desc->comp[0].depth
     //        << desc->log2_chroma_h << desc->log2_chroma_w << "score:" << score;
