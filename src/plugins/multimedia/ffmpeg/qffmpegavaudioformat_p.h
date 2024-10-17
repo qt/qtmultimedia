@@ -45,10 +45,10 @@ struct AVAudioFormat
 
     AVAudioFormat(const QAudioFormat &audioFormat);
 
-#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
-    uint64_t channelLayoutMask;
-#else
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     AVChannelLayout channelLayout;
+#else
+    uint64_t channelLayoutMask;
 #endif
     AVSampleFormat sampleFormat;
     int sampleRate;
