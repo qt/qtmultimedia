@@ -142,16 +142,25 @@ inline const int *getCodecSampleRates(const AVCodec *codec)
 #endif
 }
 
+#if !QT_FFMPEG_OLD_CHANNEL_LAYOUT
+
 inline const AVChannelLayout *getCodecChannelLayouts(const AVCodec *codec)
 {
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-    return codec->channel_layouts;
-#elif QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
+#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
     return getCodecConfig<AVChannelLayout>(codec, AV_CODEC_CONFIG_CHANNEL_LAYOUT);
 #else
     return codec->ch_layouts;
 #endif
 }
+
+#else
+
+inline const uint64_t *getCodecChannelLayouts(const AVCodec *codec)
+{
+    return codec->channel_layouts;
+}
+
+#endif
 
 inline const AVRational *getCodecFrameRates(const AVCodec *codec)
 {
