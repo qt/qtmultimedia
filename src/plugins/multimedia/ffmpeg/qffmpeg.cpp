@@ -137,7 +137,7 @@ SwrContextUPtr createResampleContext(const AVAudioFormat &inputFormat,
                                      const AVAudioFormat &outputFormat)
 {
     SwrContext *resampler = nullptr;
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     resampler = swr_alloc_set_opts(nullptr,
                                    outputFormat.channelLayoutMask,
                                    outputFormat.sampleFormat,
@@ -351,7 +351,7 @@ QDebug operator<<(QDebug dbg, const AVRational &value)
     return dbg;
 }
 
-#if !QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 QDebug operator<<(QDebug dbg, const AVChannelLayout &layout)
 {
     dbg << '[';

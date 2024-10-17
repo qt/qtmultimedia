@@ -142,7 +142,7 @@ inline const int *getCodecSampleRates(const AVCodec *codec)
 #endif
 }
 
-#if !QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 
 inline const AVChannelLayout *getCodecChannelLayouts(const AVCodec *codec)
 {
@@ -356,7 +356,7 @@ std::string cvFormatToString(uint32_t format);
 
 QDebug operator<<(QDebug, const AVRational &);
 
-#if !QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 QDebug operator<<(QDebug, const AVChannelLayout &);
 #endif
 
