@@ -14,7 +14,7 @@ AVSampleFormat adjustSampleFormat(const AVSampleFormat *supportedFormats, AVSamp
 
 int adjustSampleRate(const int *supportedRates, int requested);
 
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 uint64_t adjustChannelLayout(const uint64_t *supportedLayouts, uint64_t requested);
 #else
 AVChannelLayout adjustChannelLayout(const AVChannelLayout *supportedLayouts,

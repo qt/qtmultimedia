@@ -68,7 +68,7 @@ static AVScore calculateScoreByChannelsMask(int supportedChannelsNumber, uint64_
     return calculateScoreByChannelsCount(supportedChannelsNumber, requestedChannelsNumber);
 }
 
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 
 uint64_t adjustChannelLayout(const uint64_t *supportedMasks, uint64_t requested)
 {

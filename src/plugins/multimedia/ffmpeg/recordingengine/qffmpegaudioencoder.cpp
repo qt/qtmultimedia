@@ -43,7 +43,7 @@ AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, QFFmpegAudioInput *
     m_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
     m_stream->codecpar->codec_id = codecID;
     const auto channelLayouts = getCodecChannelLayouts(m_avCodec);
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     m_stream->codecpar->channel_layout =
             adjustChannelLayout(channelLayouts, requestedAudioFormat.channelLayoutMask);
     m_stream->codecpar->channels = qPopulationCount(m_stream->codecpar->channel_layout);
@@ -175,7 +175,7 @@ void AudioEncoder::processOne()
 
     auto frame = makeAVFrame();
     frame->format = m_codecContext->sample_fmt;
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     frame->channel_layout = m_codecContext->channel_layout;
     frame->channels = m_codecContext->channels;
 #else
