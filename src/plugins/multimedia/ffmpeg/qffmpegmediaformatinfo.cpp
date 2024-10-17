@@ -502,16 +502,16 @@ QAudioFormat QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(AVCodecParam
     QAudioFormat format;
     format.setSampleFormat(sampleFormat(AVSampleFormat(codecpar->format)));
     format.setSampleRate(codecpar->sample_rate);
-#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
-    uint64_t channelLayout = codecpar->channel_layout;
-    if (!channelLayout)
-        channelLayout = avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar->channels));
-#else
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     uint64_t channelLayout = 0;
     if (codecpar->ch_layout.order == AV_CHANNEL_ORDER_NATIVE)
         channelLayout = codecpar->ch_layout.u.mask;
     else
         channelLayout = avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar->ch_layout.nb_channels));
+#else
+    uint64_t channelLayout = codecpar->channel_layout;
+    if (!channelLayout)
+        channelLayout = avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar->channels));
 #endif
     format.setChannelConfig(channelConfigForAVLayout(channelLayout));
     return format;

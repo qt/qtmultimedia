@@ -18,7 +18,9 @@ namespace QFFmpeg {
 AVAudioFormat::AVAudioFormat(const AVCodecContext *context)
     : sampleFormat(context->sample_fmt), sampleRate(context->sample_rate)
 {
-#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
+    channelLayout = context->ch_layout;
+#else
     if (context->channel_layout) {
         channelLayoutMask = context->channel_layout;
     } else {
@@ -26,15 +28,15 @@ AVAudioFormat::AVAudioFormat(const AVCodecContext *context)
                 QAudioFormat::defaultChannelConfigForChannelCount(context->channels);
         channelLayoutMask = QFFmpegMediaFormatInfo::avChannelLayout(channelConfig);
     }
-#else
-    channelLayout = context->ch_layout;
 #endif
 }
 
 AVAudioFormat::AVAudioFormat(const AVCodecParameters *codecPar)
     : sampleFormat(AVSampleFormat(codecPar->format)), sampleRate(codecPar->sample_rate)
 {
-#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
+    channelLayout = codecPar->ch_layout;
+#else
     if (codecPar->channel_layout) {
         channelLayoutMask = codecPar->channel_layout;
     } else {
@@ -42,8 +44,6 @@ AVAudioFormat::AVAudioFormat(const AVCodecParameters *codecPar)
                 QAudioFormat::defaultChannelConfigForChannelCount(codecPar->channels);
         channelLayoutMask = QFFmpegMediaFormatInfo::avChannelLayout(channelConfig);
     }
-#else
-    channelLayout = codecPar->ch_layout;
 #endif
 }
 
@@ -57,20 +57,20 @@ AVAudioFormat::AVAudioFormat(const QAudioFormat &audioFormat)
 
     const auto mask = QFFmpegMediaFormatInfo::avChannelLayout(channelConfig);
 
-#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
-    channelLayoutMask = mask;
-#else
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     av_channel_layout_from_mask(&channelLayout, mask);
+#else
+    channelLayoutMask = mask;
 #endif
 }
 
 bool operator==(const AVAudioFormat &lhs, const AVAudioFormat &rhs)
 {
     return lhs.sampleFormat == rhs.sampleFormat && lhs.sampleRate == rhs.sampleRate &&
-#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
-            lhs.channelLayoutMask == rhs.channelLayoutMask
-#else
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
             lhs.channelLayout == rhs.channelLayout
+#else
+            lhs.channelLayoutMask == rhs.channelLayoutMask
 #endif
             ;
 }
@@ -82,10 +82,10 @@ QDebug operator<<(QDebug dbg, const AVAudioFormat &format)
     dbg << "sample format:" << (sampleFormatName ? sampleFormatName : "unknown");
     dbg << ", sample rate:" << format.sampleRate;
 
-#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
-    dbg << "channel layout:" << Qt::bin << format.channelLayoutMask << Qt::dec;
-#else
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     dbg << ", channel layout:" << format.channelLayout;
+#else
+    dbg << "channel layout:" << Qt::bin << format.channelLayoutMask << Qt::dec;
 #endif
     dbg << ']';
     return dbg;
