@@ -150,6 +150,11 @@ void QGstreamerVideoSink::setActive(bool isActive)
         m_gstQtSink.setActive(isActive);
 }
 
+void QGstreamerVideoSink::setAsync(bool isAsync)
+{
+    m_sinkIsAsync = isAsync;
+}
+
 void QGstreamerVideoSink::setRhi(QRhi *rhi)
 {
     if (rhi && rhi->backend() != QRhi::OpenGLES2)
@@ -173,7 +178,8 @@ void QGstreamerVideoSink::createQtSink()
     Q_ASSERT(!m_gstQtSink);
 
     m_gstQtSink = QGstVideoRendererSink::createSink(this);
-    m_gstQtSink.set("async", false); // no asynchronous state changes
+    if (!m_sinkIsAsync)
+        m_gstQtSink.set("async", false);
     m_gstQtSink.setActive(m_isActive);
 }
 
