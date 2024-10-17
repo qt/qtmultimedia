@@ -14,9 +14,11 @@ endif()
 set(CMAKE_BUILD_TYPE Release)
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}")
 
-find_package(QT NAMES Qt5 Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Multimedia MultimediaWidgets)
-find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS Widgets)
+if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    find_package(QT NAMES Qt5 Qt6 REQUIRED COMPONENTS Core)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Multimedia MultimediaWidgets)
+    find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS Widgets)
+endif()
 
 qt_add_executable(camera-test WIN32 MACOSX_BUNDLE
     main.cpp

@@ -12,7 +12,9 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/minimal-audio-recorder")
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets)
+if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets)
+endif()
 
 qt_add_executable( minimal-audio-recorder MACOSX_BUNDLE
     minimal-audio-recorder.cpp

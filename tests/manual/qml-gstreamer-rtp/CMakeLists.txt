@@ -12,7 +12,9 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/qml-gstreamer-rtp")
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick)
+if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick)
+endif()
 
 qt_add_executable( qml-gstreamer-rtp WIN32 MACOSX_BUNDLE
     qml-gstreamer-rtp.cpp
