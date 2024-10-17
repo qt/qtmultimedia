@@ -502,7 +502,7 @@ QAudioFormat QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(AVCodecParam
     QAudioFormat format;
     format.setSampleFormat(sampleFormat(AVSampleFormat(codecpar->format)));
     format.setSampleRate(codecpar->sample_rate);
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     uint64_t channelLayout = codecpar->channel_layout;
     if (!channelLayout)
         channelLayout = avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar->channels));

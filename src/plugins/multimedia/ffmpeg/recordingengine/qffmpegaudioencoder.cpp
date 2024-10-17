@@ -22,7 +22,7 @@ void setupStreamParameters(AVStream *stream, const AVCodec *codec,
                            const AVAudioFormat &requestedAudioFormat)
 {
     const auto channelLayouts = getCodecChannelLayouts(codec);
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     stream->codecpar->channel_layout =
             adjustChannelLayout(channelLayouts, requestedAudioFormat.channelLayoutMask);
     stream->codecpar->channels = qPopulationCount(stream->codecpar->channel_layout);
@@ -143,7 +143,7 @@ bool AudioEncoder::init()
                 if (auto rates = getCodecSampleRates(codec))
                     result += hasAVValue(rates, requestedAudioFormat.sampleRate) ? 1 : -1;
 
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
                 if (auto layouts = getCodecChannelLayouts(codec))
                     result += hasAVValue(layouts, requestedAudioFormat.channelLayoutMask) ? 1 : -1;
 #else
@@ -298,7 +298,7 @@ void AudioEncoder::ensurePendingFrame(int availableSamplesCount)
     m_avFrame = makeAVFrame();
 
     m_avFrame->format = m_codecContext->sample_fmt;
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     m_avFrame->channel_layout = m_codecContext->channel_layout;
     m_avFrame->channels = m_codecContext->channels;
 #else
@@ -328,7 +328,7 @@ void AudioEncoder::writeDataToPendingFrame(const uchar *data, int &samplesOffset
     const int bytesPerSample = av_get_bytes_per_sample(m_codecContext->sample_fmt);
     const bool isPlanar = av_sample_fmt_is_planar(m_codecContext->sample_fmt);
 
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if !QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     const int channelsCount = m_codecContext->channels;
 #else
     const int channelsCount = m_codecContext->ch_layout.nb_channels;
