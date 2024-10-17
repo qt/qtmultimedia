@@ -12,7 +12,9 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/audiodecoder")
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Widgets)
+if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Widgets)
+endif()
 
 if(ANDROID)
 

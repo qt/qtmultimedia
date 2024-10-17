@@ -12,7 +12,9 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/qml-minimal-sound-effect")
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick)
+if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick)
+endif()
 
 qt_add_executable( qml-minimal-sound-effect MACOSX_BUNDLE
     qml-minimal-sound-effect.cpp

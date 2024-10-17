@@ -16,7 +16,9 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/devices")
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia)
+if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia)
+endif()
 
 qt_add_executable(devices
     main.cpp
