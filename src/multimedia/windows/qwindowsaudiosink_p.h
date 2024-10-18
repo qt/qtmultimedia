@@ -49,16 +49,18 @@ public:
     qint64 render(const QAudioFormat &format, qreal volume, const char *data, qint64 len);
     void start();
     void stop();
+    bool resetResampler();
 
 private:
-    AudioClient(const ComPtr<IMMDevice> &device);
-    bool create(const QAudioFormat& format, qsizetype& bufferSize);
+    AudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format);
+    bool create(qsizetype& bufferSize);
     std::optional<quint32> availableFrameCount() const;
 
     ComPtr<IMMDevice> m_device;
     ComPtr<IAudioClient> m_audioClient;
     ComPtr<IAudioRenderClient> m_renderClient;
     QWindowsResampler m_resampler;
+    QAudioFormat m_inputFormat;
     QAudioFormat m_outputFormat;
 };
 
@@ -108,6 +110,7 @@ private:
     QScopedPointer<QIODevice> m_pushSource;
     QPointer<QIODevice> m_pullSource;
     ComPtr<IMMDevice> m_device;
+    bool m_recreateClient = true;
     std::unique_ptr<AudioClient> m_client;
 };
 
