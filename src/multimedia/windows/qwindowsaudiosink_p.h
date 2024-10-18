@@ -38,6 +38,30 @@ QT_BEGIN_NAMESPACE
 
 class QWindowsResampler;
 
+class AudioClient
+{
+public:
+    static std::unique_ptr<AudioClient> create(const ComPtr<IMMDevice> &device,
+                                               const QAudioFormat &format, qsizetype &bufferSize);
+    qint64 remainingPlayTimeUs();
+    qsizetype bytesFree() const;
+    quint64 totalInputBytes() const;
+    qint64 render(const QAudioFormat &format, qreal volume, const char *data, qint64 len);
+    void start();
+    void stop();
+
+private:
+    AudioClient(const ComPtr<IMMDevice> &device);
+    bool create(const QAudioFormat& format, qsizetype& bufferSize);
+    std::optional<quint32> availableFrameCount() const;
+
+    ComPtr<IMMDevice> m_device;
+    ComPtr<IAudioClient> m_audioClient;
+    ComPtr<IAudioRenderClient> m_renderClient;
+    QWindowsResampler m_resampler;
+    QAudioFormat m_outputFormat;
+};
+
 class QWindowsAudioSink : public QPlatformAudioSink
 {
     Q_OBJECT
@@ -69,11 +93,9 @@ private:
 
     bool open();
     void close();
-
     void deviceStateChange(QAudio::State, QAudio::Error);
 
     void pullSource();
-    qint64 remainingPlayTimeUs();
 
     QAudioFormat m_format;
     QAudio::Error errorState = QAudio::NoError;
@@ -86,9 +108,7 @@ private:
     QScopedPointer<QIODevice> m_pushSource;
     QPointer<QIODevice> m_pullSource;
     ComPtr<IMMDevice> m_device;
-    ComPtr<IAudioClient> m_audioClient;
-    ComPtr<IAudioRenderClient> m_renderClient;
-    QWindowsResampler m_resampler;
+    std::unique_ptr<AudioClient> m_client;
 };
 
 QT_END_NAMESPACE
