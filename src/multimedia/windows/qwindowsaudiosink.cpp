@@ -52,21 +52,21 @@ std::unique_ptr<AudioClient> AudioClient::create(const ComPtr<IMMDevice> &device
                                                  const QAudioFormat &format, qsizetype &bufferSize)
 {
     std::unique_ptr<AudioClient> client{ //
-        new AudioClient{ device }
+        new AudioClient{ device, format }
     }; // No make_unique with private ctor
 
-    if (client->create(format, bufferSize))
+    if (client->create(bufferSize))
         return client;
 
     return {};
 }
 
-AudioClient::AudioClient(const ComPtr<IMMDevice> &device)
-    : m_device{device}
+AudioClient::AudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format)
+    : m_device{ device }, m_inputFormat{ format }
 {
 }
 
-bool AudioClient::create(const QAudioFormat &format, qsizetype &bufferSize)
+bool AudioClient::create(qsizetype &bufferSize)
 {
     HRESULT hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
                                     reinterpret_cast<void**>(m_audioClient.GetAddressOf()));
@@ -84,16 +84,14 @@ bool AudioClient::create(const QAudioFormat &format, qsizetype &bufferSize)
 
     m_outputFormat = QWindowsAudioUtils::waveFormatExToFormat(*mixFormat);
 
-    if (!m_resampler.setup(format, m_outputFormat)) {
-        qCWarning(qLcAudioOutput) << "Failed to set up resampler";
+    if (!resetResampler())
         return false;
-    }
 
     if (bufferSize == 0)
-        bufferSize = format.sampleRate() * format.bytesPerFrame() / 2;
+        bufferSize = m_inputFormat.sampleRate() * m_inputFormat.bytesPerFrame() / 2;
 
     REFERENCE_TIME requestedDuration =
-            format.durationForBytes(static_cast<qint32>(bufferSize)) * 10;
+            m_inputFormat.durationForBytes(static_cast<qint32>(bufferSize)) * 10;
 
     hr = m_audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, requestedDuration, 0, mixFormat.get(),
                                    nullptr);
@@ -109,7 +107,7 @@ bool AudioClient::create(const QAudioFormat &format, qsizetype &bufferSize)
         return false;
     }
 
-    bufferSize = format.bytesForDuration(
+    bufferSize = m_inputFormat.bytesForDuration(
             m_outputFormat.durationForFrames(static_cast<qint32>(*framesAllocated)));
 
     hr = m_audioClient->GetService(__uuidof(IAudioRenderClient),
@@ -147,6 +145,14 @@ std::optional<quint32> AudioClient::availableFrameCount() const
     if (framesAllocated && framesInUse)
         return *framesAllocated - *framesInUse;
     return {};
+}
+
+bool AudioClient::resetResampler()
+{
+    const bool success = m_resampler.setup(m_inputFormat, m_outputFormat);
+    if (!success)
+        qCWarning(qLcAudioOutput) << "Failed to set up resampler";
+    return success;
 }
 
 qsizetype AudioClient::bytesFree() const
@@ -252,8 +258,10 @@ QAudioFormat QWindowsAudioSink::format() const
 
 void QWindowsAudioSink::setFormat(const QAudioFormat& fmt)
 {
-    if (deviceState == QAudio::StoppedState)
+    if (deviceState == QAudio::StoppedState) {
         m_format = fmt;
+        m_recreateClient = true;
+    }
 }
 
 void QWindowsAudioSink::pullSource()
@@ -344,8 +352,15 @@ QIODevice* QWindowsAudioSink::start()
 
 bool QWindowsAudioSink::open()
 {
-    if (m_client)
+    if (m_recreateClient) {
+        m_client = nullptr;
+        m_recreateClient = false;
+    }
+
+    if (m_client) {
+        m_client->resetResampler();
         return true;
+    }
 
     m_client = AudioClient::create(m_device, m_format, m_bufferSize);
 
@@ -362,7 +377,6 @@ void QWindowsAudioSink::close()
 
     if (m_pullSource)
         disconnect(m_pullSource, &QIODevice::readyRead, this, &QWindowsAudioSink::pullSource);
-    m_client = nullptr;
     m_pullSource = nullptr;
 }
 
@@ -373,8 +387,10 @@ qsizetype QWindowsAudioSink::bytesFree() const
 
 void QWindowsAudioSink::setBufferSize(qsizetype value)
 {
-    if (!m_client)
+    if (value != m_bufferSize) {
         m_bufferSize = value;
+        m_recreateClient = true;
+    }
 }
 
 qint64 QWindowsAudioSink::processedUSecs() const
@@ -423,8 +439,8 @@ void QWindowsAudioSink::setVolume(qreal v)
     m_volume = qBound(qreal(0), v, qreal(1));
 }
 
-void QWindowsAudioSink::stop() {
-    // TODO: investigate and find a way to drain and stop instead of closing
+void QWindowsAudioSink::stop()
+{
     close();
 }
 
