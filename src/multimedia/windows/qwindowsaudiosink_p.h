@@ -45,7 +45,7 @@ public:
     static std::unique_ptr<AudioClient> create(const ComPtr<IMMDevice> &device,
                                                const QAudioFormat &format, qsizetype &bufferSize);
     std::chrono::microseconds remainingPlayTime();
-    qsizetype bytesFree() const;
+    quint64 bytesFree() const;
     quint64 totalInputBytes() const;
     qint64 render(const QAudioFormat &format, qreal volume, const char *data, qint64 len);
     void start();
