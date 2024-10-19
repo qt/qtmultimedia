@@ -121,10 +121,12 @@ bool AudioClient::create(qsizetype &bufferSize)
     return true;
 }
 
-qint64 AudioClient::remainingPlayTimeUs()
+std::chrono::microseconds AudioClient::remainingPlayTime()
 {
     auto framesInUse = QWindowsAudioUtils::audioClientFramesInUse(m_audioClient.Get());
-    return m_outputFormat.durationForFrames(framesInUse ? *framesInUse : 0);
+    return std::chrono::microseconds{
+        m_outputFormat.durationForFrames(framesInUse ? *framesInUse : 0)
+    };
 }
 
 void AudioClient::start()
@@ -266,6 +268,9 @@ void QWindowsAudioSink::setFormat(const QAudioFormat& fmt)
 
 void QWindowsAudioSink::pullSource()
 {
+    using namespace std::chrono_literals;
+    using namespace std::chrono;
+
     qCDebug(qLcAudioOutput) << "Pull source";
     if (!m_pullSource)
         return;
@@ -282,12 +287,12 @@ void QWindowsAudioSink::pullSource()
         }
     }
 
-    auto playTimeUs = m_client->remainingPlayTimeUs();
-    if (playTimeUs == 0) {
+    const microseconds playTime = m_client->remainingPlayTime();
+    if (playTime == 0us) {
         deviceStateChange(QAudio::IdleState, m_pullSource->atEnd() ? QAudio::NoError : QAudio::UnderrunError);
     } else {
         deviceStateChange(QAudio::ActiveState, QAudio::NoError);
-        m_timer->start(playTimeUs / 2000);
+        m_timer->start(duration_cast<milliseconds>(playTime / 2));
     }
 }
 
@@ -316,13 +321,15 @@ void QWindowsAudioSink::start(QIODevice* device)
 
 qint64 QWindowsAudioSink::push(const char *data, qint64 len)
 {
+    using namespace std::chrono;
+
     if (deviceState == QAudio::StoppedState)
         return -1;
 
     qint64 written = write(data, len);
     if (written > 0) {
         deviceStateChange(QAudio::ActiveState, QAudio::NoError);
-        m_timer->start(m_client->remainingPlayTimeUs() / 1000);
+        m_timer->start(duration_cast<milliseconds>(m_client->remainingPlayTime()));
     }
 
     return written;
@@ -410,13 +417,15 @@ qint64 QWindowsAudioSink::write(const char *data, qint64 len)
 
 void QWindowsAudioSink::resume()
 {
+    using namespace std::chrono_literals;
+
     qCDebug(qLcAudioOutput) << "resume()";
     if (deviceState == QAudio::SuspendedState) {
         if (m_pullSource) {
             pullSource();
         } else {
             deviceStateChange(suspendedInState, QAudio::NoError);
-            if (m_client->remainingPlayTimeUs() > 0)
+            if (m_client->remainingPlayTime() > 0us)
                 m_client->start();
         }
     }
