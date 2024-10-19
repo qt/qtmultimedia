@@ -157,12 +157,12 @@ bool AudioClient::resetResampler()
     return success;
 }
 
-qsizetype AudioClient::bytesFree() const
+quint64 AudioClient::bytesFree() const
 {
     if (!m_audioClient)
         return 0;
 
-    auto framesAvailable = availableFrameCount();
+    const auto framesAvailable = availableFrameCount();
     if (framesAvailable)
         return m_resampler.inputBufferSize(*framesAvailable * m_outputFormat.bytesPerFrame());
     return 0;
@@ -389,7 +389,7 @@ void QWindowsAudioSink::close()
 
 qsizetype QWindowsAudioSink::bytesFree() const
 {
-    return m_client->bytesFree();
+    return static_cast<qsizetype>(m_client->bytesFree());
 }
 
 void QWindowsAudioSink::setBufferSize(qsizetype value)
