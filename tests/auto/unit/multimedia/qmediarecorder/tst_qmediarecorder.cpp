@@ -26,15 +26,23 @@ class tst_QMediaRecorder : public QObject
     Q_OBJECT
 
 public slots:
-    void initTestCase();
-    void cleanupTestCase();
+    void init();
+    void cleanup();
 
 private slots:
     void testBasicSession();
     void testNullControls();
     void testDeleteMediaCapture();
     void testError();
-    void testSink();
+
+    void record_initializesActualLocation();
+
+    void setOutputLocation_resetsActualLocation_data();
+    void setOutputLocation_resetsActualLocation();
+
+    void setOutputDevice_resetsActualLocation();
+    void setOutputDevice_doesntChangeActualLocation_whenDeviceIsNull();
+
     void testRecord();
     void testEncodingSettings();
     void testAudioSettings();
@@ -52,29 +60,30 @@ private slots:
     void testApplicationInative();
 
 private:
-    QMediaCaptureSession *captureSession;
-    QCamera *object = nullptr;
+    std::unique_ptr<QMediaCaptureSession> captureSession;
+    std::unique_ptr<QCamera> camera;
+    std::unique_ptr<QMediaRecorder> encoder;
+
     QMockMediaCaptureSession *service = nullptr;
-    QMockMediaEncoder *mock;
-    QMediaRecorder *encoder;
+    QMockMediaEncoder *mock = nullptr;
 };
 
-void tst_QMediaRecorder::initTestCase()
+void tst_QMediaRecorder::init()
 {
-    captureSession = new QMediaCaptureSession;
-    object = new QCamera;
-    encoder = new QMediaRecorder;
-    captureSession->setCamera(object);
-    captureSession->setRecorder(encoder);
+    captureSession = std::make_unique<QMediaCaptureSession>();
+    camera = std::make_unique<QCamera>();
+    encoder = std::make_unique<QMediaRecorder>();
+    captureSession->setCamera(camera.get());
+    captureSession->setRecorder(encoder.get());
     service = QMockIntegration::instance()->lastCaptureService();
     mock = service->mockControl;
 }
 
-void tst_QMediaRecorder::cleanupTestCase()
+void tst_QMediaRecorder::cleanup()
 {
-    delete encoder;
-    delete object;
-    delete captureSession;
+    encoder.reset();
+    camera.reset();
+    captureSession.reset();
 }
 
 void tst_QMediaRecorder::testBasicSession()
@@ -190,7 +199,7 @@ void tst_QMediaRecorder::testError()
 {
     const QString errorString(QLatin1String("format error"));
 
-    QSignalSpy spy(encoder, &QMediaRecorder::errorOccurred);
+    QSignalSpy spy(encoder.get(), &QMediaRecorder::errorOccurred);
 
     QCOMPARE(encoder->error(), QMediaRecorder::NoError);
     QCOMPARE(encoder->errorString(), QString());
@@ -203,35 +212,76 @@ void tst_QMediaRecorder::testError()
     QCOMPARE(spy.last()[0].value<QMediaRecorder::Error>(), QMediaRecorder::FormatError);
 }
 
-void tst_QMediaRecorder::testSink()
+void tst_QMediaRecorder::record_initializesActualLocation()
 {
-    encoder->setOutputLocation(QUrl("test.tmp"));
-    QUrl s = encoder->outputLocation();
-    QCOMPARE(s.toString(), QStringLiteral("test.tmp"));
-    QCOMPARE(encoder->actualLocation(), QUrl());
-
-    //the actual location is available after record
-    encoder->record();
-    QCOMPARE(encoder->actualLocation().toString(), QStringLiteral("test.tmp"));
-    encoder->stop();
-    QCOMPARE(encoder->actualLocation().toString(), QStringLiteral("test.tmp"));
-
-    //setOutputLocation resets the actual location
-    encoder->setOutputLocation(QUrl());
-    QCOMPARE(encoder->actualLocation(), QUrl());
-
+    // Since the class uses a mock implementation, the test only verifies that
+    // QMediaEncoder::record doesn't reset actual location after the mock has set it.
     encoder->record();
     QCOMPARE(encoder->actualLocation(), QUrl::fromLocalFile("default_name.mp4"));
-    encoder->stop();
-    QCOMPARE(encoder->actualLocation(), QUrl::fromLocalFile("default_name.mp4"));
+}
 
-    mock->reset();
+void tst_QMediaRecorder::setOutputLocation_resetsActualLocation_data()
+{
+    QTest::addColumn<QString>("initialOutputLocation");
+    QTest::addColumn<QString>("newOutputLocation");
+
+    QTest::newRow("empty") << QString() << QString();
+    QTest::newRow("the same non-empty locations") << QString("test.tmp") << QString("test.tmp");
+    QTest::newRow("different locations") << QString("test1.tmp") << QString("test2.tmp");
+}
+
+void tst_QMediaRecorder::setOutputLocation_resetsActualLocation()
+{
+    // Arrange
+    QFETCH(QString, initialOutputLocation);
+    QFETCH(QString, newOutputLocation);
+
+    encoder->setOutputLocation(initialOutputLocation);
+    encoder->record();
+    encoder->stop();
+
+    QCOMPARE_NE(encoder->actualLocation(), QUrl());
+
+    // Act
+    encoder->setOutputLocation(newOutputLocation);
+
+    // Assert
+    QCOMPARE(encoder->actualLocation(), QUrl());
+}
+
+void tst_QMediaRecorder::setOutputDevice_resetsActualLocation()
+{
+    // Arrange
+    encoder->record();
+    encoder->stop();
+
+    QCOMPARE_NE(encoder->actualLocation(), QUrl());
+    QTemporaryFile file;
+
+    // Act
+    encoder->setOutputDevice(&file);
+
+    // Assert
+    QCOMPARE(encoder->actualLocation(), QUrl());
+}
+
+void tst_QMediaRecorder::setOutputDevice_doesntChangeActualLocation_whenDeviceIsNull()
+{
+    // Arrange
+    encoder->record();
+    encoder->stop();
+
+    // Act
+    encoder->setOutputDevice(nullptr);
+
+    // Assert
+    QCOMPARE(encoder->actualLocation(), QUrl::fromLocalFile("default_name.mp4"));
 }
 
 void tst_QMediaRecorder::testRecord()
 {
-    QSignalSpy stateSignal(encoder, &QMediaRecorder::recorderStateChanged);
-    QSignalSpy progressSignal(encoder, &QMediaRecorder::durationChanged);
+    QSignalSpy stateSignal(encoder.get(), &QMediaRecorder::recorderStateChanged);
+    QSignalSpy progressSignal(encoder.get(), &QMediaRecorder::durationChanged);
     encoder->record();
     QCOMPARE(encoder->recorderState(), QMediaRecorder::RecordingState);
     QCOMPARE(encoder->error(), QMediaRecorder::NoError);
@@ -261,8 +311,6 @@ void tst_QMediaRecorder::testRecord()
 
     mock->stop();
     QCOMPARE(stateSignal.size(), 3);
-
-    mock->reset();
 }
 
 void tst_QMediaRecorder::testEncodingSettings()
@@ -413,7 +461,7 @@ void tst_QMediaRecorder::testEnum()
 {
     const QString errorString(QLatin1String("resource error"));
 
-    QSignalSpy spy(encoder, &QMediaRecorder::errorOccurred);
+    QSignalSpy spy(encoder.get(), &QMediaRecorder::errorOccurred);
 
     QCOMPARE(encoder->error(), QMediaRecorder::NoError);
     QCOMPARE(encoder->errorString(), QString());
