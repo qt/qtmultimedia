@@ -320,8 +320,8 @@ void QGstreamerMediaRecorder::record(QMediaEncoderSettings &settings)
     m_session->pipeline().dumpGraph("recording");
 
     durationChanged(0);
-    stateChanged(QMediaRecorder::RecordingState);
     actualLocationChanged(QUrl::fromLocalFile(location));
+    stateChanged(QMediaRecorder::RecordingState);
 }
 
 void QGstreamerMediaRecorder::pause()

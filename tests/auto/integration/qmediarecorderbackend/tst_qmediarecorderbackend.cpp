@@ -391,6 +391,27 @@ private slots:
         QVERIFY(fuzzyCompare(expectedColors[3], actualColors[3]));
     }
 
+    void actualLocation_returnsNonEmptyLocation_whenRecorderEntersRecordingState()
+    {
+        const QUrl url = QUrl::fromLocalFile(m_tempDir.filePath("any_file_name"));
+        CaptureSessionFixture f{ StreamType::AudioAndVideo };
+        f.m_recorder.setOutputLocation(url);
+
+        auto onStateChanged = [&f](QMediaRecorder::RecorderState state) {
+            QCOMPARE(state, QMediaRecorder::RecordingState);
+            QCOMPARE_NE(f.m_recorder.actualLocation(), QUrl());
+        };
+
+        connect(&f.m_recorder, &QMediaRecorder::recorderStateChanged, this, onStateChanged,
+                Qt::SingleShotConnection);
+
+        QCOMPARE(f.m_recorder.actualLocation(), QUrl());
+        f.start(RunMode::Pull, AutoStop::EmitEmpty);
+
+        QTRY_COMPARE(f.m_recorder.recorderState(), QMediaRecorder::RecordingState);
+        f.m_recorder.stop();
+    }
+
 private:
     QTemporaryDir m_tempDir;
 };
