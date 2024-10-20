@@ -75,16 +75,6 @@ public:
         stateChanged(m_state);
     }
 
-    void reset()
-    {
-        m_state = QMediaRecorder::StoppedState;
-        m_settings = QMediaEncoderSettings();
-        m_position = 0;
-        stateChanged(m_state);
-        durationChanged(m_position);
-        clearActualLocation();
-    }
-
 public:
     QMediaMetaData m_metaData;
     QMediaRecorder::RecorderState m_state;

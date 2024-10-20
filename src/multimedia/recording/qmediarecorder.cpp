@@ -252,7 +252,8 @@ void QMediaRecorder::setOutputLocation(const QUrl &location)
     d->control->setOutputLocation(location);
     d->control->clearActualLocation();
     if (!location.isEmpty() && !d->control->isLocationWritable(location))
-            emit errorOccurred(QMediaRecorder::LocationNotWritable, tr("Output location not writable"));
+        emit errorOccurred(QMediaRecorder::LocationNotWritable,
+                           QStringLiteral("Output location not writable"));
 }
 
 /*!
@@ -272,8 +273,15 @@ void QMediaRecorder::setOutputLocation(const QUrl &location)
 void QMediaRecorder::setOutputDevice(QIODevice *device)
 {
     Q_D(QMediaRecorder);
-    if (d->control)
-        d->control->setOutputDevice(device);
+    if (!d->control) {
+        emit errorOccurred(QMediaRecorder::ResourceError, d->initErrorMessage);
+        return;
+    }
+
+    d->control->setOutputDevice(device);
+
+    if (device)
+        d->control->clearActualLocation();
 }
 
 /*!
