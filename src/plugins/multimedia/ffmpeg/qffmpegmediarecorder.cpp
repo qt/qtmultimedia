@@ -100,8 +100,8 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
             handleStreamInitializationError);
 
     durationChanged(0);
-    stateChanged(QMediaRecorder::RecordingState);
     actualLocationChanged(QUrl::fromLocalFile(actualLocation));
+    stateChanged(QMediaRecorder::RecordingState);
 
     m_recordingEngine->initialize(audioInputs, videoSources);
 }
