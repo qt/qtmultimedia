@@ -4,6 +4,10 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <QtMultimedia/qmediaformat.h>
+#include <private/qplatformmediaformatinfo_p.h>
+#include "qmockintegration.h"
+
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 
 class tst_QMediaFormat : public QObject
 {
@@ -17,6 +21,12 @@ private slots:
 
 void tst_QMediaFormat::testResolveForEncoding()
 {
+    QPlatformMediaFormatInfo *formatInfo = QMockIntegration::instance()->getWritableFormatInfo();
+
+    // TODO: extend test coverage and exercise the tests that requires no WAV encoder
+    formatInfo->encoders.append({ QMediaFormat::FileFormat::MP3,
+                                  { QMediaFormat::AudioCodec::MP3 },
+                                  { QMediaFormat::VideoCodec::MPEG1 } });
     QMediaFormat format;
 
     auto hasVideoCodecs = !format.supportedVideoCodecs(QMediaFormat::Encode).isEmpty();
