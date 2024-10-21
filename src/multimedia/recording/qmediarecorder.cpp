@@ -193,40 +193,78 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 
     Setting the location can fail, for example when the service supports only
     local file system locations but a network URL was passed. If the operation
-    fails an errorOccured() signal is emitted.
+    fails an \l errorOccured() signal is emitted.
 
-    The location can be relative or empty. If empty the recorder uses the
-    system specific place and file naming scheme.
+    The output location can be empty, a directory, or a file. The path to a
+    directory or file can be relative or absolute. The \l record() method
+    generates the actual location according to the specified output location and
+    system-specific settings. Refer to the \l actualLocation property description
+    for details.
 
-   \sa errorOccurred()
+   \sa actualLocation, errorOccurred()
 */
 
 /*!
     \property QMediaRecorder::outputLocation
-    \brief the destination location of media content.
+    \brief The destination location of media content.
 
     Setting the location can fail, for example when the service supports only
     local file system locations but a network URL was passed. If the operation
-    fails an errorOccured() signal is emitted.
+    fails, the \l errorOccured() signal is emitted.
 
-    The output location can be relative or empty; in the latter case the recorder
-    uses the system specific place and file naming scheme.
+    The output location is ignored if a writable \l outputDevice
+    has been assigned to the recorder.
+    This behavior may change in the future, so we recommend setting only one output,
+    either \c outputLocation or \c outputDevice.
+
+    The output location can be empty, a directory, or a file. The path to a
+    directory or file can be relative or absolute. The \l record() method
+    generates the actual location according to the specified output location and
+    system-specific settings. Refer to the \l actualLocation property description
+    for details.
+
+    \sa actualLocation, outputDevice()
 */
 
 /*!
     \qmlproperty QUrl QtMultimedia::MediaRecorder::actualLocation
     \brief The actual location of the last media content.
 
-    The actual location is usually available after recording starts,
-    and reset when new location is set or new recording starts.
+    The actual location is reset when a new \l outputLocation is assigned.
+    When \l record() is invoked, the recorder generates the actual location
+    basing on the following rules.
+    \list
+        \li If \c outputLocation is empty, a directory, or a file
+            without an extension, the recorder generates the appropriate extension
+            based on the selected media format and system MIME types.
+        \li If \c outputLocation is a directory, the recorder generates a new file
+            name within it.
+        \li If \c outputLocation is empty, the recorder generates a new file name in
+            the system-specific directory for audio or video.
+        \li The recorder generates the actual location before
+            emitting \c recorderStateChanged(RecordingState).
+    \endlist
 */
 
 /*!
     \property QMediaRecorder::actualLocation
     \brief The actual location of the last media content.
 
-    The actual location is usually available after recording starts,
-    and reset when new location is set or new recording starts.
+    The actual location is reset when a new \l outputLocation
+    or a non-null \l outputDevice is assigned.
+    When \l record() is invoked and \c outputDevice is \c null or not writable,
+    the recorder generates the actual location basing on the following rules.
+    \list
+        \li If \c outputLocation is empty, a directory, or a file
+            without an extension, the recorder generates the appropriate extension
+            based on the selected media format and system MIME types.
+        \li If \c outputLocation is a directory, the recorder generates a new file
+            name within it.
+        \li If \c outputLocation is empty, the recorder generates a new file name in
+            the system-specific directory for audio or video.
+        \li The recorder generates the actual location before
+            emitting \c recorderStateChanged(RecordingState).
+    \endlist
 */
 
 /*!
@@ -266,9 +304,17 @@ void QMediaRecorder::setOutputLocation(const QUrl &location)
     If the recording has been started, the device must be kept alive and open until
     the signal \c recorderStateChanged(StoppedState) is emitted.
 
-    QMediaRecorder::setOutputDevice is only supported with the FFmpeg backend.
+    This method resets \l actualLocation immediately unless
+    the specified \a device is \c null.
 
-    \sa outputDevice()
+    If a writable output device is assigned to the recorder, \l outputLocation
+    is ignored, and \l actualLocation is not generated when recording starts.
+    This behavior may change in the future, so we recommend setting only
+    one output, either \c outputLocation or \c outputDevice.
+
+    \c QMediaRecorder::setOutputDevice is only supported with the FFmpeg backend.
+
+    \sa outputDevice(), outputLocation
 */
 void QMediaRecorder::setOutputDevice(QIODevice *device)
 {
@@ -377,6 +423,8 @@ qint64 QMediaRecorder::duration() const
     If recording fails, the error() signal is emitted with recorder state being
     reset back to \c{QMediaRecorder.StoppedState}.
 
+    This method updates \l actualLocation according to its generation rules.
+
     \note On mobile devices, recording will happen in the orientation the
     device had when calling record and is locked for the duration of the recording.
     To avoid artifacts on the user interface, we recommend to keep the user interface
@@ -385,13 +433,15 @@ qint64 QMediaRecorder::duration() const
     is finished.
 */
 /*!
-    Start recording.
+    Starts recording.
 
     While the recorder state is changed immediately to
     c\{QMediaRecorder::RecordingState}, recording may start asynchronously.
 
     If recording fails error() signal is emitted with recorder state being
     reset back to \c{QMediaRecorder::StoppedState}.
+
+    This method updates \l actualLocation according to its generation rules.
 
     \note On mobile devices, recording will happen in the orientation the
     device had when calling record and is locked for the duration of the recording.
