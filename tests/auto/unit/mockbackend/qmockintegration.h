@@ -25,6 +25,7 @@ class QMockCamera;
 class QMockMediaCaptureSession;
 class QMockVideoSink;
 class QMockSurfaceCapture;
+class QPlatformMediaFormatInfo;
 
 class QMockIntegration : public QPlatformMediaIntegration
 {
@@ -64,13 +65,13 @@ public:
     QMockMediaCaptureSession *lastCaptureService() const { return m_lastCaptureService; }
     QMockVideoSink *lastVideoSink() const { return m_lastVideoSink; }
     QMockSurfaceCapture *lastScreenCapture() { return m_lastScreenCapture; }
+    QPlatformMediaFormatInfo *getWritableFormatInfo();
 
 protected:
     QPlatformVideoDevices *createVideoDevices() override;
     std::unique_ptr<QPlatformMediaDevices> createMediaDevices() override;
 
 private:
-
     Flags m_flags = {};
     QMockMediaPlayer *m_lastPlayer = nullptr;
     QMockAudioDecoder *m_lastAudioDecoderControl = nullptr;
