@@ -626,11 +626,9 @@ HRESULT EVRCustomPresenter::InitServicePointers(IMFTopologyServiceLookup *lookup
 HRESULT EVRCustomPresenter::ReleaseServicePointers()
 {
     // Enter the shut-down state.
-    m_mutex.lock();
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     m_renderState = RenderShutdown;
-
-    m_mutex.unlock();
 
     // Flush any samples that were scheduled.
     flush();
