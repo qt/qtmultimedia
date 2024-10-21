@@ -12,7 +12,8 @@ CaptureSessionFixture::CaptureSessionFixture(StreamType streamType) : m_streamTy
 
 CaptureSessionFixture::~CaptureSessionFixture()
 {
-    QFile::remove(m_recorder.actualLocation().toLocalFile());
+    if (!m_recorder.actualLocation().isEmpty())
+        QFile::remove(m_recorder.actualLocation().toLocalFile());
 }
 
 void CaptureSessionFixture::setVideoSink(QVideoSink *videoSink)
@@ -58,8 +59,17 @@ void CaptureSessionFixture::start(RunMode mode, AutoStop autoStop)
 
     m_session.setRecorder(&m_recorder);
     m_recorder.setQuality(QMediaRecorder::VeryHighQuality);
-    m_tempFile.open();
-    m_recorder.setOutputLocation(m_tempFile.fileName());
+
+    if (m_recorder.outputLocation().isEmpty()) {
+        // Create a temporary file.
+        // The file name is not available without opening.
+        m_tempFile.open();
+        m_tempFile.close();
+
+        m_recorder.setOutputLocation(m_tempFile.fileName());
+    }
+    // else: outputLocation has been already set
+
     m_recorder.record();
 
     // HACK: Add sink after starting recording because setting the video sink will
