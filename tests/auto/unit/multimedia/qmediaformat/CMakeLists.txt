@@ -4,7 +4,10 @@
 qt_internal_add_test(tst_qmediaformat
     SOURCES
         tst_qmediaformat.cpp
+    INCLUDE_DIRECTORIES
+        ../../mockbackend
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
+        Qt::MockMultimediaPlugin
 )
