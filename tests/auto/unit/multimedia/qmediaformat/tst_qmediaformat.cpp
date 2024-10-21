@@ -13,63 +13,143 @@ class tst_QMediaFormat : public QObject
 {
     Q_OBJECT
 
+public slots:
+    void init() { //
+        *m_formatInfo = {};
+    }
+
 private slots:
-    void testResolveForEncoding();
+    // clang-format off
+    void resolveForEncoding_setsVideoCodecToUnspecified_whenCalledWithNoFlags();
+    void resolveForEncoding_setsVideoCodecToSpecificCodec_whenCalledWithRequiresVideoAndVideoSupported();
+    void resolveForEncoding_setsVideoCodecToSpecificCodec_whenCalledWithRequiresVideoAndVideoNotSupported();
+    void resolveForEncoding_resetsVideoCodecToUnspecified_whenCalledWithNoFlags();
+    void resolveForEncoding_setsAudioCodecToSpecificCodec_whenCalledWithAnyFlags();
+    void resolveForEncoding_setsFileFormatToSpecificFormat_whenCalledWithNoFlags();
+    void resolveForEncoding_setsFileFormatToSpecificFormat_whenCalledWithRequiresVideoAndVideoSupported();
+    void resolveForEncoding_setsFileFormatToSpecificFormat_whenCalledWithRequiresVideoAndVideoNotSupported();
+    void resolveForEncoding_selectsFallback_whenPrimaryCodecIsNotAvailable();
     void mimetype_returnsExpectedMimeType_data();
     void mimetype_returnsExpectedMimeType();
+    // clang-format on
+private:
+    QPlatformMediaFormatInfo *m_formatInfo = QMockIntegration::instance()->getWritableFormatInfo();
 };
 
-void tst_QMediaFormat::testResolveForEncoding()
+void tst_QMediaFormat::resolveForEncoding_setsVideoCodecToUnspecified_whenCalledWithNoFlags()
 {
-    QPlatformMediaFormatInfo *formatInfo = QMockIntegration::instance()->getWritableFormatInfo();
+    m_formatInfo->encoders.append(
+            { QMediaFormat::FileFormat::MP3, { QMediaFormat::AudioCodec::MP3 }, {} });
 
-    // TODO: extend test coverage and exercise the tests that requires no WAV encoder
-    formatInfo->encoders.append({ QMediaFormat::FileFormat::MP3,
-                                  { QMediaFormat::AudioCodec::MP3 },
-                                  { QMediaFormat::VideoCodec::MPEG1 } });
+    QMediaFormat format;
+    format.resolveForEncoding(QMediaFormat::NoFlags);
+    QCOMPARE_EQ(format.videoCodec(), QMediaFormat::VideoCodec::Unspecified);
+}
+
+void tst_QMediaFormat::
+        resolveForEncoding_setsVideoCodecToSpecificCodec_whenCalledWithRequiresVideoAndVideoSupported()
+{
+    m_formatInfo->encoders.append(
+            { QMediaFormat::FileFormat::MPEG4, {}, { QMediaFormat::VideoCodec::H264 } });
+
+    QMediaFormat format;
+    format.resolveForEncoding(QMediaFormat::RequiresVideo);
+
+    QCOMPARE_NE(format.videoCodec(), QMediaFormat::VideoCodec::Unspecified);
+}
+
+void tst_QMediaFormat::
+        resolveForEncoding_setsVideoCodecToSpecificCodec_whenCalledWithRequiresVideoAndVideoNotSupported()
+{
+    m_formatInfo->encoders.append(
+            { QMediaFormat::FileFormat::MP3, { QMediaFormat::AudioCodec::MP3 }, {} });
+
+    QMediaFormat format;
+    format.resolveForEncoding(QMediaFormat::RequiresVideo);
+
+    QCOMPARE_EQ(format.videoCodec(), QMediaFormat::VideoCodec::Unspecified);
+}
+
+void tst_QMediaFormat::resolveForEncoding_resetsVideoCodecToUnspecified_whenCalledWithNoFlags()
+{
+    QMediaFormat format;
+    format.resolveForEncoding(QMediaFormat::RequiresVideo);
+    format.resolveForEncoding(QMediaFormat::NoFlags);
+    QCOMPARE_EQ(format.videoCodec(), QMediaFormat::VideoCodec::Unspecified);
+}
+
+void tst_QMediaFormat::resolveForEncoding_setsAudioCodecToSpecificCodec_whenCalledWithAnyFlags()
+{
+    m_formatInfo->encoders.append(
+            { QMediaFormat::FileFormat::MP3, { QMediaFormat::AudioCodec::MP3 }, {} });
+
+    m_formatInfo->encoders.append({ QMediaFormat::FileFormat::MPEG4,
+                                    { QMediaFormat::AudioCodec::MP3 },
+                                    { QMediaFormat::VideoCodec::H264 } });
+
+    QMediaFormat audioFormat;
+    audioFormat.resolveForEncoding(QMediaFormat::NoFlags);
+    QCOMPARE_NE(audioFormat.audioCodec(), QMediaFormat::AudioCodec::Unspecified);
+
+    QMediaFormat videoFormat;
+    videoFormat.resolveForEncoding(QMediaFormat::RequiresVideo);
+    QCOMPARE_NE(videoFormat.audioCodec(), QMediaFormat::AudioCodec::Unspecified);
+}
+
+void tst_QMediaFormat::resolveForEncoding_setsFileFormatToSpecificFormat_whenCalledWithNoFlags()
+{
+    m_formatInfo->encoders.append(
+            { QMediaFormat::FileFormat::MP3, { QMediaFormat::AudioCodec::MP3 }, {} });
+
+    QMediaFormat audioFormat;
+    audioFormat.resolveForEncoding(QMediaFormat::NoFlags);
+    QCOMPARE_NE(audioFormat.fileFormat(), QMediaFormat::FileFormat::UnspecifiedFormat);
+}
+
+void tst_QMediaFormat::
+        resolveForEncoding_setsFileFormatToSpecificFormat_whenCalledWithRequiresVideoAndVideoSupported()
+{
+    m_formatInfo->encoders.append({ QMediaFormat::FileFormat::MPEG4,
+                                    { QMediaFormat::AudioCodec::MP3 },
+                                    { QMediaFormat::VideoCodec::H264 } });
+    QMediaFormat videoFormat;
+    videoFormat.resolveForEncoding(QMediaFormat::RequiresVideo);
+    QCOMPARE_NE(videoFormat.fileFormat(), QMediaFormat::FileFormat::UnspecifiedFormat);
+}
+
+void tst_QMediaFormat::
+        resolveForEncoding_setsFileFormatToSpecificFormat_whenCalledWithRequiresVideoAndVideoNotSupported()
+{
+    m_formatInfo->encoders.append({ QMediaFormat::FileFormat::MP3,
+                                    { QMediaFormat::AudioCodec::MP3 },
+                                    { QMediaFormat::VideoCodec::H264 } });
+    QMediaFormat videoFormat;
+    videoFormat.resolveForEncoding(QMediaFormat::RequiresVideo);
+    QCOMPARE_EQ(videoFormat.fileFormat(), QMediaFormat::FileFormat::UnspecifiedFormat);
+}
+
+void tst_QMediaFormat::resolveForEncoding_selectsFallback_whenPrimaryCodecIsNotAvailable()
+{
+    m_formatInfo->encoders.append(
+            { QMediaFormat::FileFormat::Wave, { QMediaFormat::AudioCodec::MP3 }, {} });
+    m_formatInfo->encoders.append(
+            { QMediaFormat::FileFormat::Mpeg4Audio, { QMediaFormat::AudioCodec::MP3 }, {} });
+
     QMediaFormat format;
 
-    auto hasVideoCodecs = !format.supportedVideoCodecs(QMediaFormat::Encode).isEmpty();
-    bool hasWav = format.supportedFileFormats(QMediaFormat::Encode).contains(QMediaFormat::Wave);
-
-    // Resolve codecs for audio only stream
+    QMediaFormat f(QMediaFormat::Mpeg4Audio);
+    format.setFileFormat(QMediaFormat::Mpeg4Audio);
+    format.setAudioCodec(QMediaFormat::AudioCodec::Wave);
     format.resolveForEncoding(QMediaFormat::NoFlags);
-    QVERIFY(format.audioCodec() != QMediaFormat::AudioCodec::Unspecified);
-    QVERIFY(format.fileFormat() != QMediaFormat::FileFormat::UnspecifiedFormat);
-    QVERIFY(format.videoCodec() == QMediaFormat::VideoCodec::Unspecified);
+    QCOMPARE_EQ(format.fileFormat(), QMediaFormat::Mpeg4Audio);
+    QCOMPARE_NE(format.audioCodec(), QMediaFormat::AudioCodec::Wave);
 
-    // Resolve codecs for audio/video stream
-    format.resolveForEncoding(QMediaFormat::RequiresVideo);
-    QVERIFY(format.audioCodec() != QMediaFormat::AudioCodec::Unspecified);
-    QVERIFY(format.fileFormat() != QMediaFormat::FileFormat::UnspecifiedFormat);
-    if (hasVideoCodecs)
-        QVERIFY(format.videoCodec() != QMediaFormat::VideoCodec::Unspecified);
-    else
-        QVERIFY(format.videoCodec() == QMediaFormat::VideoCodec::Unspecified);
-
-    // Resolve again for audio only stream
+    format = {};
+    format.setFileFormat(QMediaFormat::Wave);
+    format.setAudioCodec(QMediaFormat::AudioCodec::AAC);
     format.resolveForEncoding(QMediaFormat::NoFlags);
-    QVERIFY(format.videoCodec() == QMediaFormat::VideoCodec::Unspecified);
-
-    // check some specific conditions
-    if (hasWav) {
-        QMediaFormat f(QMediaFormat::Mpeg4Audio);
-        if (!f.supportedAudioCodecs(QMediaFormat::Encode).contains(QMediaFormat::AudioCodec::Wave)) {
-            qDebug() << "testing!";
-            format.setFileFormat(QMediaFormat::Mpeg4Audio);
-            format.setAudioCodec(QMediaFormat::AudioCodec::Wave);
-            format.resolveForEncoding(QMediaFormat::NoFlags);
-            QVERIFY(format.fileFormat() == QMediaFormat::Mpeg4Audio);
-            QVERIFY(format.audioCodec() != QMediaFormat::AudioCodec::Wave);
-
-            format = {};
-            format.setFileFormat(QMediaFormat::Wave);
-            format.setAudioCodec(QMediaFormat::AudioCodec::AAC);
-            format.resolveForEncoding(QMediaFormat::NoFlags);
-            QVERIFY(format.fileFormat() == QMediaFormat::Wave);
-            QVERIFY(format.audioCodec() == QMediaFormat::AudioCodec::Wave);
-        }
-    }
+    QCOMPARE_EQ(format.fileFormat(), QMediaFormat::Wave);
+    QCOMPARE_EQ(format.audioCodec(), QMediaFormat::AudioCodec::MP3);
 }
 
 void tst_QMediaFormat::mimetype_returnsExpectedMimeType_data()
