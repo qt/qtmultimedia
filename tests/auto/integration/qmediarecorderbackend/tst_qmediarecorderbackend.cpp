@@ -12,6 +12,7 @@
 #include <private/mediainfo_p.h>
 #include <private/qcolorutil_p.h>
 #include <private/qfileutil_p.h>
+#include <private/mediabackendutils_p.h>
 
 #include <QtCore/qtemporarydir.h>
 #include <chrono>
@@ -75,6 +76,10 @@ private slots:
     void record_writesVideo_withCorrectColors();
 
     void actualLocation_returnsNonEmptyLocation_whenRecorderEntersRecordingState();
+
+    void record_writesToOutputDevice_whenWritableOutputDeviceAndLocationAreSet();
+
+    void record_writesToOutputLocation_whenNotWritableOutputDeviceAndLocationAreSet();
 
 private:
     QTemporaryDir m_tempDir;
@@ -432,6 +437,59 @@ void tst_QMediaFrameInputsBackend::actualLocation_returnsNonEmptyLocation_whenRe
 
     QTRY_COMPARE(f.m_recorder.recorderState(), QMediaRecorder::RecordingState);
     f.m_recorder.stop();
+}
+
+void tst_QMediaFrameInputsBackend::record_writesToOutputDevice_whenWritableOutputDeviceAndLocationAreSet()
+{
+    QSKIP_IF_NOT_FFMPEG();
+
+    // Arrange
+    const QUrl url = QUrl::fromLocalFile(m_tempDir.filePath("file_to_be_not_created.mp4"));
+    CaptureSessionFixture f{ StreamType::Audio };
+    f.m_recorder.setOutputLocation(url);
+
+    QTemporaryFile tempFile;
+    tempFile.open();
+
+    f.m_recorder.setOutputDevice(&tempFile);
+
+    // Act
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
+
+    QVERIFY(f.waitForRecorderStopped(60s));
+    tempFile.close();
+
+    // Assert
+    QVERIFY(!QFileInfo::exists(url.toLocalFile()));
+    QCOMPARE(f.m_recorder.actualLocation(), QUrl());
+    QCOMPARE_GT(tempFile.size(), 0);
+}
+
+void tst_QMediaFrameInputsBackend::record_writesToOutputLocation_whenNotWritableOutputDeviceAndLocationAreSet()
+{
+    QSKIP_IF_NOT_FFMPEG();
+
+    // Arrange
+    CaptureSessionFixture f{ StreamType::Audio };
+
+    const QUrl url = QUrl::fromLocalFile(m_tempDir.filePath("file_to_be_not_created.mp4"));
+
+    QTemporaryFile tempFile;
+    f.m_recorder.setOutputDevice(&tempFile);
+    f.m_recorder.setOutputLocation(url);
+
+    // Act
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
+
+    QVERIFY(f.waitForRecorderStopped(60s));
+    tempFile.close();
+
+    // Assert
+    const QString actualLocation = f.m_recorder.actualLocation().toLocalFile();
+    QVERIFY(QFileInfo::exists(actualLocation));
+    QCOMPARE_GT(QFileInfo(actualLocation).size(), 0);
+    QCOMPARE_NE(f.m_recorder.actualLocation(), QUrl());
+    QCOMPARE(tempFile.size(), 0);
 }
 
 QTEST_MAIN(tst_QMediaFrameInputsBackend)
