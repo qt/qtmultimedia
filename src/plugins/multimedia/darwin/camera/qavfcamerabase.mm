@@ -661,20 +661,39 @@ void QAVFCameraBase::updateSupportedFeatures()
     QCamera::Features features;
     AVCaptureDevice *captureDevice = device();
 
+    if (captureDevice) {
+        if ([captureDevice isFocusPointOfInterestSupported])
+            features |= QCamera::Feature::CustomFocusPoint;
+
 #ifdef Q_OS_IOS
-    features = QCamera::Feature::ColorTemperature | QCamera::Feature::ExposureCompensation |
-                          QCamera::Feature::IsoSensitivity | QCamera::Feature::ManualExposureTime;
+        AVCaptureDeviceFormat *activeFormat = captureDevice.activeFormat;
 
-    // No point in reporting the feature as supported if we don't also
-    // report the corresponding focus-mode as supported.
-    if (captureDevice &&
-        isFocusModeSupported(QCamera::FocusModeManual) &&
-        [captureDevice isLockingFocusWithCustomLensPositionSupported])
-        features |= QCamera::Feature::FocusDistance;
+        // IsoSensitivity
+        if ([captureDevice isExposureModeSupported:AVCaptureExposureModeCustom] &&
+            activeFormat.minISO < activeFormat.maxISO)
+            features |= QCamera::Feature::IsoSensitivity;
+
+        // ColorTemperature
+        if (captureDevice.lockingWhiteBalanceWithCustomDeviceGainsSupported)
+            features |= QCamera::Feature::ColorTemperature;
+
+        // Exposure compensation
+        if ([captureDevice isExposureModeSupported:AVCaptureExposureModeCustom] &&
+            captureDevice.minExposureTargetBias < captureDevice.maxExposureTargetBias)
+            features |= QCamera::Feature::ExposureCompensation;
+
+        // Manual exposure time
+        if ([captureDevice isExposureModeSupported:AVCaptureExposureModeCustom] &&
+            CMTimeCompare(activeFormat.minExposureDuration, activeFormat.maxExposureDuration) == -1)
+            features |= QCamera::Feature::ManualExposureTime;
+
+        // No point in reporting the feature as supported if we don't also
+        // report the corresponding focus-mode as supported.
+        if (isFocusModeSupported(QCamera::FocusModeManual) &&
+            [captureDevice isLockingFocusWithCustomLensPositionSupported])
+            features |= QCamera::Feature::FocusDistance;
 #endif
-
-    if (captureDevice && [captureDevice isFocusPointOfInterestSupported])
-        features |= QCamera::Feature::CustomFocusPoint;
+    }
 
     supportedFeaturesChanged(features);
 }
