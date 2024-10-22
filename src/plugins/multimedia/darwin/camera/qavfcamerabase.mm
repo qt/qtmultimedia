@@ -366,27 +366,18 @@ bool qt_focus_mode_supported(QCamera::FocusMode mode)
     return mode == QCamera::FocusModeAuto;
 }
 
-#ifdef Q_OS_IOS
-AVCaptureFocusMode avf_focus_mode(QCamera::FocusMode requestedMode)
-{
-    switch (requestedMode) {
-        case QCamera::FocusModeHyperfocal:
-        case QCamera::FocusModeInfinity:
-        case QCamera::FocusModeManual:
-            return AVCaptureFocusModeLocked;
-        default:
-            return AVCaptureFocusModeContinuousAutoFocus;
-    }
-}
-#endif
-
 }
 
 void QAVFCameraBase::setFocusMode(QCamera::FocusMode mode)
 {
-    if (focusMode() == mode)
+    if (mode == focusMode())
         return;
+    forceSetFocusMode(mode);
+}
 
+// Does not check if new QCamera::FocusMode is same as old one.
+void QAVFCameraBase::forceSetFocusMode(QCamera::FocusMode mode)
+{
     if (!isFocusModeSupported(mode)) {
         qCDebug(qLcCamera) <<
             Q_FUNC_INFO <<
@@ -550,9 +541,73 @@ void QAVFCameraBase::updateCameraConfiguration()
 {
     AVCaptureDevice *captureDevice = device();
     if (!captureDevice) {
-        qCDebug(qLcCamera) << Q_FUNC_INFO << "capture device is nil in 'active' state";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "capture device is nil when trying to update QAVFCamera";
         return;
     }
+
+    // We require an active format to update several of the valid ranges. I.e max zoom factor.
+    AVCaptureDeviceFormat *activeFormat = captureDevice.activeFormat;
+    if (!activeFormat) {
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "capture device has no active format when trying to update QAVFCamera";
+        return;
+    }
+
+    // First we gather new capabilities
+
+    // Handle flash/torch capabilities.
+    isFlashSupported = isFlashAutoSupported = false;
+    isTorchSupported = isTorchAutoSupported = false;
+    if (captureDevice.hasFlash) {
+        if ([captureDevice isFlashModeSupported:AVCaptureFlashModeOn])
+            isFlashSupported = true;
+        if ([captureDevice isFlashModeSupported:AVCaptureFlashModeAuto])
+            isFlashAutoSupported = true;
+    }
+    if (captureDevice.hasTorch) {
+        if ([captureDevice isTorchModeSupported:AVCaptureTorchModeOn])
+            isTorchSupported = true;
+        if ([captureDevice isTorchModeSupported:AVCaptureTorchModeAuto])
+            isTorchAutoSupported = true;
+    }
+
+    flashReadyChanged(isFlashSupported);
+#ifdef Q_OS_IOS
+    minimumZoomFactorChanged(captureDevice.minAvailableVideoZoomFactor);
+    maximumZoomFactorChanged(activeFormat.videoMaxZoomFactor);
+#endif // Q_OS_IOS
+
+
+    // The we apply properties to the camera if they are supported.
+
+    if (minZoomFactor() < maxZoomFactor()) {
+        // Zoom is supported, clamp it and apply it.
+        //
+        // TODO: zoom has no public API to allow instant zooming, only smooth transitions
+        // but the Darwin implementation of zoomTo uses rate < 0 to allow this.
+        forceZoomTo(qBound(zoomFactor(), minZoomFactor(), maxZoomFactor()), -1);
+    }
+    applyFlashSettings();
+
+    // Focus mode properties
+    // This will also take care of applying FocusDistance if applicable.
+    if (isFocusModeSupported(focusMode()))
+        forceSetFocusMode(focusMode());
+
+
+    // Reset properties that are not supported on the new camera device.
+
+    if (minZoomFactor() >= maxZoomFactor())
+        zoomFactorChanged(defaultZoomFactor());
+
+    if (!(supportedFeatures() & QCamera::Feature::FocusDistance))
+        focusDistanceChanged(defaultFocusDistance());
+
+    if (!isFocusModeSupported(focusMode()))
+        focusModeChanged(defaultFocusMode());
+
+    // TODO: Several of the following features have inconsistent behavior
+    // and currently do not have any Android implementation. These features
+    // should be revised.
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
@@ -567,27 +622,6 @@ void QAVFCameraBase::updateCameraConfiguration()
     }
 
 #ifdef Q_OS_IOS
-    if (focusMode() != QCamera::FocusModeAuto) {
-        const AVCaptureFocusMode avMode = avf_focus_mode(focusMode());
-        if (captureDevice.focusMode != avMode) {
-            if ([captureDevice isFocusModeSupported:avMode]) {
-                [captureDevice setFocusMode:avMode];
-            } else {
-                qCDebug(qLcCamera) << Q_FUNC_INFO << "focus mode not supported";
-            }
-        }
-    }
-
-    if (!captureDevice.activeFormat) {
-        qCDebug(qLcCamera) << Q_FUNC_INFO << "camera state is active, but active format is nil";
-        return;
-    }
-
-    minimumZoomFactorChanged(captureDevice.minAvailableVideoZoomFactor);
-    maximumZoomFactorChanged(captureDevice.activeFormat.videoMaxZoomFactor);
-
-    captureDevice.videoZoomFactor = zoomFactor();
-
     CMTime newDuration = AVCaptureExposureDurationCurrent;
     bool setCustomMode = false;
 
@@ -643,27 +677,7 @@ void QAVFCameraBase::updateCameraConfiguration()
     }
 
     captureDevice.exposureMode = avMode;
-#endif
-
-    isFlashSupported = isFlashAutoSupported = false;
-    isTorchSupported = isTorchAutoSupported = false;
-
-    if (captureDevice.hasFlash) {
-        if ([captureDevice isFlashModeSupported:AVCaptureFlashModeOn])
-            isFlashSupported = true;
-        if ([captureDevice isFlashModeSupported:AVCaptureFlashModeAuto])
-            isFlashAutoSupported = true;
-    }
-
-    if (captureDevice.hasTorch) {
-        if ([captureDevice isTorchModeSupported:AVCaptureTorchModeOn])
-            isTorchSupported = true;
-        if ([captureDevice isTorchModeSupported:AVCaptureTorchModeAuto])
-            isTorchAutoSupported = true;
-    }
-
-    applyFlashSettings();
-    flashReadyChanged(isFlashSupported);
+#endif // Q_OS_IOS
 }
 
 // Updates the supportedFeatures() flags based on the current
@@ -712,13 +726,17 @@ void QAVFCameraBase::updateSupportedFeatures()
 
 void QAVFCameraBase::zoomTo(float factor, float rate)
 {
-    Q_UNUSED(factor);
-    Q_UNUSED(rate);
-
-#ifdef Q_OS_IOS
     if (zoomFactor() == factor)
         return;
+    forceZoomTo(factor, rate);
+}
 
+// Internal function that gives us the option to run zoomTo
+// without skipping early return when factor == QCamera::zoomFactor()
+// Useful when switching camera-device.
+void QAVFCameraBase::forceZoomTo(float factor, float rate)
+{
+#ifdef Q_OS_IOS
     AVCaptureDevice *captureDevice = device();
     if (!captureDevice || !captureDevice.activeFormat)
         return;
@@ -726,16 +744,22 @@ void QAVFCameraBase::zoomTo(float factor, float rate)
     factor = qBound(captureDevice.minAvailableVideoZoomFactor, factor,
                     captureDevice.activeFormat.videoMaxZoomFactor);
 
-    const AVFConfigurationLock lock(captureDevice);
-    if (!lock) {
-        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock for configuration";
-        return;
-    }
+    {
+        const AVFConfigurationLock lock(captureDevice);
+        if (!lock) {
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock for configuration";
+            return;
+        }
 
-   if (rate <= 0)
-        captureDevice.videoZoomFactor = factor;
-   else
-       [captureDevice rampToVideoZoomFactor:factor withRate:rate];
+        if (rate <= 0)
+            captureDevice.videoZoomFactor = factor;
+        else
+            [captureDevice rampToVideoZoomFactor:factor withRate:rate];
+    }
+    zoomFactorChanged(factor);
+#else
+    Q_UNUSED(rate);
+    Q_UNUSED(factor);
 #endif
 }
 

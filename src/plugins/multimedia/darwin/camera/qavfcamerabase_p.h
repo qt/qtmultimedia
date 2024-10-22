@@ -126,6 +126,9 @@ private:
     bool isFlashAutoSupported = false;
     bool isTorchSupported = false;
     bool isTorchAutoSupported = false;
+
+    void forceSetFocusMode(QCamera::FocusMode mode);
+    void forceZoomTo(float factor, float rate);
 };
 
 QT_END_NAMESPACE
