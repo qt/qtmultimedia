@@ -44,18 +44,19 @@ private:
     QList<QCameraDevice> m_cameraDevices;
 };
 
-
+// The purpose of this class is to provide camera controls on
+// both the old native Darwin backend and the FFmpeg backend.
 class QAVFCameraBase : public QPlatformCamera
-{;
+{
 Q_OBJECT
 public:
     QAVFCameraBase(QCamera *camera);
     ~QAVFCameraBase();
 
     bool isActive() const override;
-    void setActive(bool activce) override;
+    void setActive(bool active) override final;
 
-    void setCamera(const QCameraDevice &camera) override;
+    void setCamera(const QCameraDevice &camera) override final;
     bool setCameraFormat(const QCameraFormat &format) override;
 
     void setFocusMode(QCamera::FocusMode mode) override;
@@ -101,9 +102,16 @@ public:
     AVCaptureDevice *device() const;
 
 protected:
-    void updateCameraConfiguration();
+    // Called by setActive() when the active status is successfully changed.
+    virtual void onActiveChanged(bool active) = 0;
+    // Called by setCamera() when the camera is successfully changed.
+    virtual void onCameraDeviceChanged(const QCameraDevice &device) = 0;
 
-    // Updates the supported features of the camera.
+    bool checkCameraPermission();
+
+    void requestCameraPermissionIfNeeded();
+    void cameraAuthorizationChanged(bool authorized);
+    void updateCameraConfiguration();
     void updateSupportedFeatures();
     void applyFlashSettings();
 

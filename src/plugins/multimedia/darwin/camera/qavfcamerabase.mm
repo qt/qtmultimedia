@@ -10,10 +10,13 @@
 #include <QtCore/qset.h>
 #include <QtCore/qsystemdetection.h>
 #include <QMetaEnum>
+#include <qpointer.h>
 
 QT_USE_NAMESPACE
 
 namespace {
+
+static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatusNotDetermined;
 
 // All these methods to work with exposure/ISO/SS in custom mode do not support macOS.
 
@@ -305,25 +308,32 @@ void QAVFCameraBase::setActive(bool active)
         return;
     if (m_cameraDevice.isNull() && active)
         return;
+    if (!checkCameraPermission())
+        return;
 
     m_active = active;
 
-    if (active)
-        updateCameraConfiguration();
-    Q_EMIT activeChanged(m_active);
+    onActiveChanged(active);
+
+    emit activeChanged(m_active);
 }
 
-// This function is currently not used by any backend.
 void QAVFCameraBase::setCamera(const QCameraDevice &camera)
 {
     if (m_cameraDevice == camera)
         return;
     m_cameraDevice = camera;
-    setCameraFormat({});
 
+    onCameraDeviceChanged(camera);
+
+    // Setting camera format and properties must happen after the
+    // backend applies backend specific device changes.
+    setCameraFormat({});
     updateSupportedFeatures();
+    updateCameraConfiguration();
 }
 
+// Currently not used by any backend.
 bool QAVFCameraBase::setCameraFormat(const QCameraFormat &format)
 {
     if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
@@ -656,6 +666,8 @@ void QAVFCameraBase::updateCameraConfiguration()
     flashReadyChanged(isFlashSupported);
 }
 
+// Updates the supportedFeatures() flags based on the current
+// AVCaptureDevice.
 void QAVFCameraBase::updateSupportedFeatures()
 {
     QCamera::Features features;
@@ -855,8 +867,6 @@ bool QAVFCameraBase::isExposureModeSupported(QCamera::ExposureMode mode) const
 
 void QAVFCameraBase::applyFlashSettings()
 {
-    Q_ASSERT(isActive());
-
     AVCaptureDevice *captureDevice = device();
     if (!captureDevice) {
         qCDebug(qLcCamera) << Q_FUNC_INFO << "no capture device found";
@@ -1167,5 +1177,55 @@ int QAVFCameraBase::isoSensitivity() const
     return manualIsoSensitivity();
 }
 
+// Returns true if the application currently has camera permissions.
+// Will try to request permission if permission is currently not determined.
+bool QAVFCameraBase::checkCameraPermission()
+{
+    requestCameraPermissionIfNeeded();
+    return m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized;
+}
+
+void QAVFCameraBase::requestCameraPermissionIfNeeded()
+{
+    if (m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized)
+        return;
+
+    switch ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo])
+    {
+    case AVAuthorizationStatusAuthorized:
+    {
+        m_cameraAuthorizationStatus = AVAuthorizationStatusAuthorized;
+        break;
+    }
+    case AVAuthorizationStatusNotDetermined:
+    {
+        m_cameraAuthorizationStatus = AVAuthorizationStatusNotDetermined;
+        QPointer<QAVFCameraBase> guard(this);
+        [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
+                                     dispatch_async(dispatch_get_main_queue(), ^{
+                                         if (guard)
+                                             cameraAuthorizationChanged(granted);
+                                     });
+                                 }];
+        break;
+    }
+    case AVAuthorizationStatusDenied:
+    case AVAuthorizationStatusRestricted:
+    {
+        m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
+        return;
+    }
+    }
+}
+
+void QAVFCameraBase::cameraAuthorizationChanged(bool authorized)
+{
+    if (authorized) {
+        m_cameraAuthorizationStatus = AVAuthorizationStatusAuthorized;
+    } else {
+        m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
+        qWarning() << "User has denied access to camera";
+    }
+}
 
 #include "moc_qavfcamerabase_p.cpp"

@@ -46,12 +46,8 @@ public:
     explicit QAVFCamera(QCamera *parent);
     ~QAVFCamera();
 
-    bool isActive() const override;
-    void setActive(bool active) override;
-
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
-    void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
 
     void syncHandleFrame(const QVideoFrame &frame);
@@ -62,6 +58,10 @@ public:
 
     int cameraPixelFormatScore(QVideoFrameFormat::PixelFormat pixelFmt,
                                QVideoFrameFormat::ColorRange colorRange) const override;
+
+protected:
+    void onActiveChanged(bool active) override;
+    void onCameraDeviceChanged(const QCameraDevice &device) override;
 
 private:
     void requestCameraPermissionIfNeeded();
