@@ -40,7 +40,7 @@ qt-source/configure -- -DFFMPEG_DIR=<FFMPEG_DIR>
 
 Here, \c{<FFMPEG_DIR>} is the directory containing the FFmpeg include,
 lib, and bin directories. To build Qt Multimedia without FFmpeg, omit
-the \c{<FFMPEG_DIR>} variable or specify the \c{-no-feature-ffmpeg}
+the \c{<FFMPEG_DIR>} variable and specify the \c{-no-feature-ffmpeg}
 configure option.
 
 If you prefer not to build all Qt's submodules, you can reduce configure
