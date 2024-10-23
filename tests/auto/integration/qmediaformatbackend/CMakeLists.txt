@@ -6,4 +6,5 @@ qt_internal_add_test(tst_qmediaformatbackend
         tst_qmediaformatbackend.cpp
     LIBRARIES
         Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
 )

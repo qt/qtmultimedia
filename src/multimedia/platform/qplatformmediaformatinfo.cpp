@@ -64,7 +64,7 @@ bool QPlatformMediaFormatInfo::isSupported(const QMediaFormat &format, QMediaFor
     for (const auto &m : codecMap) {
         if (m.format != format.fileFormat())
             continue;
-        if (!m.audio.contains(format.audioCodec()))
+        if (format.audioCodec() != QMediaFormat::AudioCodec::Unspecified && !m.audio.contains(format.audioCodec()))
             continue;
         if (format.videoCodec() != QMediaFormat::VideoCodec::Unspecified && !m.video.contains(format.videoCodec()))
             continue;
