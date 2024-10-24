@@ -52,10 +52,23 @@ public class QtCamera2 {
     private Object mStartMutex = new Object();
     private boolean mIsStarted = false;
     private static int MaxNumberFrames = 12;
-    private int mFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
-    private int mTorchMode = CameraMetadata.FLASH_MODE_OFF;
-    private int mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
-    private float mZoomFactor = 1.0f;
+
+    private static final int defaultFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
+    private int mFlashMode = defaultFlashMode;
+    private static final int defaultTorchMode = CameraMetadata.FLASH_MODE_OFF;
+    private int mTorchMode = defaultTorchMode;
+    private static final int defaultAfMode =  CaptureRequest.CONTROL_AF_MODE_OFF;
+    private int mAFMode = defaultAfMode;
+    private static final float defaultZoomFactor = 1.0f;
+    private float mZoomFactor = defaultZoomFactor;
+    // Assumes that the mStartMutex is locked already.
+    private void resetControls() {
+        mFlashMode = defaultFlashMode;
+        mTorchMode = defaultTorchMode;
+        mAFMode = defaultAfMode;
+        mZoomFactor = defaultZoomFactor;
+    }
+
     private Range<Integer> mFpsRange = null;
     private QtExifDataHandler mExifDataHandler = null;
 
@@ -374,6 +387,10 @@ public class QtCamera2 {
                 Log.w("QtCamera2", "Failed to stop and close:" + exception);
             }
             mIsStarted = false;
+
+            // In the case that we are switching camera-device the controls will be
+            // repopulated by QAndroidCamera.
+            resetControls();
         }
     }
 
@@ -464,7 +481,7 @@ public class QtCamera2 {
             mZoomFactor = factor;
 
             if (!mIsStarted) {
-                Log.w("QtCamera2", "Cannot set zoom on invalid camera");
+                // Camera capture has not begun. Zoom will be applied during start().
                 return;
             }
 
