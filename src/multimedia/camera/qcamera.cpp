@@ -415,6 +415,19 @@ QPlatformCamera *QCamera::platformCamera()
 /*! \qmlproperty cameraDevice QtMultimedia::Camera::cameraDevice
 
     Gets or sets the currently active camera device.
+
+    When switching camera devices, the QCamera's capabilities are updated.
+    Additionally, the QCamera's control properties (such as \l focusMode,
+    \l flashMode, \l focusDistance, \l zoomFactor) are updated as follows:
+
+    \list
+        \li If a property is supported on the new device, the property value is applied to the
+            camera device.
+        \li If a property is supported but its range of valid values was changed, the property
+            is clamped to the new range and applied to the camera device.
+        \li If the new camera device does not support a property, the property value is reset
+            to default, and no changes are made to the camera device.
+    \endlist
 */
 
 /*!
@@ -432,6 +445,19 @@ QCameraDevice QCamera::cameraDevice() const
     Connects the camera object to the physical camera device described by
     \a cameraDevice. Using a default constructed QCameraDevice object as
     \a cameraDevice will connect the camera to the system default camera device.
+
+    When switching camera devices, the QCamera's capabilities are updated.
+    Additionally, the QCamera's control properties (such as \l focusMode,
+    \l flashMode, \l focusDistance, \l zoomFactor) are updated as follows:
+
+    \list
+        \li If a property is supported on the new device, the property value is applied to the
+            camera device.
+        \li If a property is supported but its range of valid values was changed, the property
+            is clamped to the new range and applied to the camera device.
+        \li If the new camera device does not support a property, the property value is reset
+            to default, and no changes are made to the camera device.
+    \endlist
 */
 void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
 {

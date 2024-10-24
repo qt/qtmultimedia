@@ -26,8 +26,26 @@ class Q_MULTIMEDIA_EXPORT QPlatformCamera : public QPlatformVideoSource
     Q_OBJECT
 
 public:
-    // TODO: How we handle other settings during
-    // camera-device change is uncertain. See QTBUG-129831.
+    // If the new camera-device is the same as the old camera-device,
+    // do nothing.
+    //
+    // The implementation needs to handle other camera properties during a successful
+    // camera-device-change. This should be done for every property, i.e focusMode,
+    // flashMode, focusDistance, zoom etc.
+    //
+    // The properties should be handled in the following way:
+    //  - If property is supported on new device, apply the property to the device immediately.
+    //  - If property is supported on new device, but range of valid values has changed,
+    //    clamp the property and apply it to the camera-device.
+    //  - If property is NOT supported on new device, reset the value to default and do
+    //    nothing to the camera-device.
+    //
+    // TODO: There is currently no rules on the order of how each signal should be triggered.
+    // In the future we might want to add a rule that requires the implementation
+    // to update all properties at once, then trigger all relevant signals.
+    //
+    // TODO: There are currently no rules in the public API on how we should handle
+    // devices being disconnected or the user passing in an invalid device-id.
     virtual void setCamera(const QCameraDevice &camera) = 0;
     virtual bool setCameraFormat(const QCameraFormat &/*format*/) { return false; }
     QCameraFormat cameraFormat() const { return m_cameraFormat; }
