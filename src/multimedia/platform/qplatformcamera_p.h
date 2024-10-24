@@ -182,30 +182,46 @@ protected:
     QCameraFormat m_cameraFormat;
     QVideoFrameFormat::PixelFormat m_framePixelFormat = QVideoFrameFormat::Format_Invalid;
 
+    // Helper functions to allow backends to reset properties to default values.
+    // i.e using focusModeChanged(defaultFocusMode());
+    static constexpr int defaultColorTemperature() { return 0; }
+    static constexpr QPointF defaultCustomFocusPoint() { return { -1, -1 }; }
+    static constexpr float defaultExposureCompensation() { return 0.f; }
+    static constexpr QCamera::ExposureMode defaultExposureMode() { return QCamera::ExposureAuto; }
+    static constexpr float defaultExposureTime() { return -1.f; }
+    static constexpr QCamera::FlashMode defaultFlashMode() { return QCamera::FlashOff; }
+    static constexpr bool defaultFlashReady() { return false; }
+    static constexpr float defaultFocusDistance() { return 1.f; }
+    static constexpr QCamera::FocusMode defaultFocusMode() { return QCamera::FocusModeAuto; }
+    static constexpr int defaultIso() { return -1; }
+    static constexpr QCamera::TorchMode defaultTorchMode() { return QCamera::TorchOff; }
+    static constexpr QCamera::WhiteBalanceMode defaultWhiteBalanceMode() { return QCamera::WhiteBalanceAuto; }
+    static constexpr float defaultZoomFactor() { return 1.f; }
+
 private:
     QCamera *m_camera = nullptr;
     QCamera::Features m_supportedFeatures = {};
-    QCamera::FocusMode m_focusMode = QCamera::FocusModeAuto;
+    QCamera::FocusMode m_focusMode = defaultFocusMode();
     float m_minZoom = 1.;
     float m_maxZoom = 1.;
-    float m_zoomFactor = 1.;
-    float m_focusDistance = 1.;
-    QPointF m_customFocusPoint{-1, -1};
-    bool m_flashReady = false;
-    QCamera::FlashMode m_flashMode = QCamera::FlashOff;
-    QCamera::TorchMode m_torchMode = QCamera::TorchOff;
-    QCamera::ExposureMode m_exposureMode = QCamera::ExposureAuto;
-    float m_exposureCompensation = 0.;
+    float m_zoomFactor = defaultZoomFactor();
+    float m_focusDistance = defaultFocusDistance();
+    QPointF m_customFocusPoint = defaultCustomFocusPoint();
+    bool m_flashReady = defaultFlashReady();
+    QCamera::FlashMode m_flashMode = defaultFlashMode();
+    QCamera::TorchMode m_torchMode = defaultTorchMode();
+    QCamera::ExposureMode m_exposureMode = defaultExposureMode();
+    float m_exposureCompensation = defaultExposureCompensation();
     float m_minExposureCompensation = 0.;
     float m_maxExposureCompensation = 0.;
-    int m_iso = -1;
+    int m_iso = defaultIso();
     int m_minIso = -1;
     int m_maxIso = -1;
-    float m_exposureTime = -1.;
+    float m_exposureTime = defaultExposureTime();
     float m_minExposureTime = -1.;
     float m_maxExposureTime = -1.;
-    QCamera::WhiteBalanceMode m_whiteBalance = QCamera::WhiteBalanceAuto;
-    int m_colorTemperature = 0;
+    QCamera::WhiteBalanceMode m_whiteBalance = defaultWhiteBalanceMode();
+    int m_colorTemperature = defaultColorTemperature();
     QErrorInfo<QCamera::Error> m_error;
 };
 
