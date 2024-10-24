@@ -27,7 +27,7 @@ function(qt6_add_ios_ffmpeg_libraries target)
                  XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/")
 
     if(NOT QT_NO_FFMPEG_XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY)
-        set_property(TARGET ${target} APPEND PROPERTY XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY ON)
+        set_property(TARGET ${target} PROPERTY XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY ON)
     endif()
 
     target_link_libraries(${target} PRIVATE ${ffmpeg_dylibs})
