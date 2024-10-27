@@ -134,34 +134,28 @@ bool QGstPipeline::processNextPendingMessage(std::chrono::nanoseconds timeout)
 
 void QGstPipeline::flush()
 {
-    seek(position());
+    seek(position(), /*flush=*/true);
 }
 
-void QGstPipeline::seek(std::chrono::nanoseconds pos, double rate)
+void QGstPipeline::seek(std::chrono::nanoseconds pos, double rate, bool flush)
 {
     using namespace std::chrono_literals;
-
-    // CAVEAT: we need to ensure that no async operation is currently in-flight, i.e
-    // gst_element_get_state does not return GST_STATE_CHANGE_ASYNC.
-    // Apparently this can happen when (a) the pipeline is changed due to new sinks being added or
-    // the like and (b) during pending seeks.
-    bool asyncChangeSuccess = waitForAsyncStateChangeComplete();
-    if (!asyncChangeSuccess) {
-        qWarning() << "QGstPipeline::seek: async pipeline change in progress. Seeking impossible";
-        return;
-    }
 
     QGstPipelinePrivate *d = getPrivate();
     // always adjust the rate, so it can be set before playback starts
     // setting position needs a loaded media file that's seekable
 
-    qCDebug(qLcGstPipeline) << "QGstPipeline::seek to" << pos.count() << "rate:" << rate;
+    qCDebug(qLcGstPipeline) << "QGstPipeline::seek to" << pos.count() << "rate:" << rate
+                            << (flush ? "flushing" : "not flushing");
+
+    GstSeekFlags seekFlags = flush ? GST_SEEK_FLAG_FLUSH : GST_SEEK_FLAG_NONE;
+    seekFlags = GstSeekFlags(seekFlags | GST_SEEK_FLAG_SEGMENT | GST_SEEK_FLAG_ACCURATE);
 
     bool success = (rate > 0)
-            ? gst_element_seek(element(), rate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
-                               GST_SEEK_TYPE_SET, pos.count(), GST_SEEK_TYPE_END, 0)
-            : gst_element_seek(element(), rate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
-                               GST_SEEK_TYPE_SET, 0, GST_SEEK_TYPE_SET, pos.count());
+            ? gst_element_seek(element(), rate, GST_FORMAT_TIME, seekFlags, GST_SEEK_TYPE_SET,
+                               pos.count(), GST_SEEK_TYPE_END, 0)
+            : gst_element_seek(element(), rate, GST_FORMAT_TIME, seekFlags, GST_SEEK_TYPE_SET, 0,
+                               GST_SEEK_TYPE_SET, pos.count());
 
     if (!success) {
         qDebug() << "seek: gst_element_seek failed" << pos.count();
@@ -172,10 +166,10 @@ void QGstPipeline::seek(std::chrono::nanoseconds pos, double rate)
     d->m_position = pos;
 }
 
-void QGstPipeline::seek(std::chrono::nanoseconds pos)
+void QGstPipeline::seek(std::chrono::nanoseconds pos, bool flush)
 {
     qCDebug(qLcGstPipeline) << "QGstPipeline::seek to" << pos.count();
-    seek(pos, getPrivate()->m_rate);
+    seek(pos, getPrivate()->m_rate, flush);
 }
 
 void QGstPipeline::setPlaybackRate(double rate, bool forceFlushingSeek)
@@ -224,9 +218,9 @@ void QGstPipeline::applyPlaybackRate(bool forceFlushingSeek)
     }
 }
 
-void QGstPipeline::setPosition(std::chrono::nanoseconds pos)
+void QGstPipeline::setPosition(std::chrono::nanoseconds pos, bool flush)
 {
-    seek(pos);
+    seek(pos, flush);
 }
 
 std::chrono::nanoseconds QGstPipeline::position() const
@@ -325,6 +319,14 @@ QGstPipeline::queryPositionAndDuration(std::chrono::nanoseconds timeout) const
         std::this_thread::sleep_for(20ms);
         totalSleepTime += 20ms;
     }
+}
+
+void QGstPipeline::seekToEndWithEOS()
+{
+    QGstPipelinePrivate *d = getPrivate();
+
+    gst_element_seek(element(), d->m_rate, GST_FORMAT_TIME, GST_SEEK_FLAG_NONE, GST_SEEK_TYPE_END,
+                     0, GST_SEEK_TYPE_END, 0);
 }
 
 QGstPipelinePrivate *QGstPipeline::getPrivate() const

@@ -3434,8 +3434,6 @@ void tst_QMediaPlayerBackend::finiteLoops()
 
     QFETCH(bool, pauseDuringPlayback);
     QFETCH(bool, rateChange);
-    if (pauseDuringPlayback)
-        QSKIP_GSTREAMER("Spurious test failures on CI");
 
 #ifdef Q_OS_MACOS
     if (isCI())
@@ -3524,8 +3522,6 @@ void tst_QMediaPlayerBackend::finiteLoops_data()
 
 void tst_QMediaPlayerBackend::infiniteLoops()
 {
-    QSKIP_GSTREAMER("QTBUG-123056(?): spuriously failures of the gstreamer backend");
-
     CHECK_SELECTED_URL(m_localVideoFile2);
 
 #ifdef Q_OS_MACOS
@@ -3576,8 +3572,6 @@ void tst_QMediaPlayerBackend::infiniteLoops()
 
 void tst_QMediaPlayerBackend::seekOnLoops()
 {
-    QSKIP_GSTREAMER("QTBUG-123056(?): spuriously failures of the gstreamer backend");
-
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
@@ -3629,8 +3623,6 @@ void tst_QMediaPlayerBackend::seekOnLoops()
 
 void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
 {
-    QSKIP_GSTREAMER("QTBUG-123056(?): spuriously failures of the gstreamer backend");
-
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS

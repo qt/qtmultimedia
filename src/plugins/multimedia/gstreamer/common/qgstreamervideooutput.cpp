@@ -80,12 +80,11 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 {
     using namespace std::chrono_literals;
 
-    auto *gstVideoSink =
-            sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
-    if (gstVideoSink == m_platformVideoSink)
+    auto *gstSink = sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
+    if (gstSink == m_platformVideoSink)
         return;
 
-    m_platformVideoSink = gstVideoSink;
+    m_platformVideoSink = gstSink;
     if (m_platformVideoSink) {
         m_platformVideoSink->setActive(m_isActive);
         if (m_nativeSize.isValid())
