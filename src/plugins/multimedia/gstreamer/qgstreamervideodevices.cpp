@@ -138,19 +138,17 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
         QFileDescriptorHandle fd{
             qt_safe_open(p, O_RDONLY),
         };
-        int index;
-        if (::ioctl(fd.get(), VIDIOC_G_INPUT, &index) < 0) {
-            switch (errno) {
-            case ENOTTY: // no video inputs
-            case EINVAL: // ioctl is not supported. E.g. the Broadcom Image Signal Processor
-                         // available on Raspberry Pi
-                return;
 
-            default:
-                qWarning() << "ioctl failed: VIDIOC_G_INPUT" << qt_error_string(errno) << p;
-                return;
-            }
-        }
+        struct v4l2_capability cap;
+        if (::ioctl(fd.get(), VIDIOC_QUERYCAP, &cap) < 0)
+            return;
+
+        if (cap.device_caps & V4L2_CAP_META_CAPTURE)
+            return;
+        if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
+            return;
+        if (!(cap.capabilities & V4L2_CAP_STREAMING))
+            return;
     }
 #endif
 
