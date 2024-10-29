@@ -409,7 +409,6 @@ void QSoundEffect::setSource(const QUrl &url)
     stop();
 
     d->m_url = url;
-
     d->m_sampleReady = false;
 
     if (url.isEmpty()) {
@@ -434,6 +433,8 @@ void QSoundEffect::setSource(const QUrl &url)
         disconnect(d->m_audioSink.get(), &QAudioSink::stateChanged, d, &QSoundEffectPrivate::stateChanged);
         d->m_audioSink.reset();
     }
+
+    d->m_audioBuffer = {};
 
     d->setStatus(QSoundEffect::Loading);
     d->m_sample.reset(sampleCache()->requestSample(url));
