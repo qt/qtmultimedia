@@ -7,6 +7,7 @@
 #include "qdarwinmediadevices_p.h"
 #include <qmediadevices.h>
 
+#include <QtCore/QLoggingCategory>
 #include <QtCore/QDataStream>
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>
@@ -21,7 +22,11 @@
 # include <QtMultimedia/private/qaudiohelpers_p.h>
 #endif
 
+#include <QtWidgets/qapplication.h>
+
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(qLcDarwinAudioSink, "qt.multimedia.darwin.audiosink")
 
 static int audioRingBufferSize(int bufferSize, int maxPeriodSize)
 {
@@ -205,6 +210,10 @@ QDarwinAudioSink::QDarwinAudioSink(const QAudioDevice &device, QObject *parent)
     m_clockFrequency = CoreAudioUtils::frequency() / 1000;
 
     connect(this, &QDarwinAudioSink::stateChanged, this, &QDarwinAudioSink::updateAudioDevice);
+#ifdef Q_OS_IOS
+    if (qApp)
+        connect(qApp, &QApplication::applicationStateChanged, this, &QDarwinAudioSink::appStateChanged);
+#endif
 }
 
 QDarwinAudioSink::~QDarwinAudioSink()
@@ -574,18 +583,50 @@ void QDarwinAudioSink::onAudioDeviceError()
 void QDarwinAudioSink::updateAudioDevice()
 {
     const auto state = m_stateMachine.state();
+    const auto desiredAudioUnitState = state == QAudio::ActiveState ? AudioUnitState::Started : AudioUnitState::Stopped;
+
+    Q_ASSERT(m_audioUnit);
+    if (m_audioUnitState != desiredAudioUnitState) {
+        if (desiredAudioUnitState == AudioUnitState::Started) {
+            const auto status = AudioOutputUnitStart(m_audioUnit);
+            if (status != noErr) {
+                qCWarning(qLcDarwinAudioSink) << "AudioOutputUnitStart failed with error:"
+                                              << status << "the current application state is:"
+                                              << QGuiApplication::applicationState();
+                m_audioUnitState = AudioUnitState::StartFailed;
+            } else {
+                m_audioUnitState = desiredAudioUnitState;
+            }
+        } else {
+            if (m_audioUnitState == AudioUnitState::Started)
+                AudioOutputUnitStop(m_audioUnit);
+            m_audioUnitState = desiredAudioUnitState;
+        }
+    }
 
     Q_ASSERT(m_audioBuffer);
-    Q_ASSERT(m_audioUnit);
-
-    if (state == QAudio::StoppedState)
+    if (state == QAudio::StoppedState) {
         m_audioBuffer->reset();
-    else
-        m_audioBuffer->setFillingEnabled(state != QAudio::SuspendedState);
+    } else {
+        m_audioBuffer->setFillingEnabled(state != QAudio::SuspendedState
+                                         && m_audioUnitState != AudioUnitState::StartFailed);
+    }
+}
 
-    const bool unitStarted = state == QAudio::ActiveState;
-    if (std::exchange(m_audioUnitStarted, unitStarted) != unitStarted)
-        (unitStarted ? AudioOutputUnitStart : AudioOutputUnitStop)(m_audioUnit);
+void QDarwinAudioSink::appStateChanged(Qt::ApplicationState newState)
+{
+#ifdef Q_OS_IOS
+    if (newState == Qt::ApplicationActive && m_audioUnitState == AudioUnitState::StartFailed) {
+        // Retry audio unit start:
+        updateAudioDevice();
+        if (m_audioUnitState != AudioUnitState::Started) {
+            // Failed again?
+            m_stateMachine.forceSetState(QAudio::StoppedState, QAudio::IOError);
+        }
+    }
+#else
+    Q_UNUSED(newState);
+#endif // Q_OS_IOS
 }
 
 QT_END_NAMESPACE

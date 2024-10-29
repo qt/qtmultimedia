@@ -186,6 +186,7 @@ endif()
 
 qt_internal_extend_target(Multimedia CONDITION APPLE
     SOURCES
+        darwin/qdarwinaudiounit_p.h
         darwin/qdarwinaudiodevice.mm darwin/qdarwinaudiodevice_p.h
         darwin/qdarwinaudiosource.mm darwin/qdarwinaudiosource_p.h
         darwin/qdarwinaudiosink.mm darwin/qdarwinaudiosink_p.h

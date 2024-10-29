@@ -25,6 +25,7 @@
 
 #include <QtCore/QIODevice>
 #include <qdarwinaudiodevice_p.h>
+#include <qdarwinaudiounit_p.h>
 #include <qsemaphore.h>
 
 #include "../audio/qaudioringbuffer_p.h"
@@ -121,6 +122,7 @@ public:
 private slots:
     void inputReady();
     void updateAudioDevice();
+    void appStateChanged(Qt::ApplicationState state);
 
 private:
     enum ThreadState { Running, Draining, Stopped };
@@ -153,7 +155,6 @@ private:
     AudioDeviceID m_audioDeviceId;
 #endif
     AudioUnit m_audioUnit = 0;
-    bool m_audioUnitStarted = false;
     Float64 m_clockFrequency = 0;
     AudioStreamBasicDescription m_streamFormat;
     std::unique_ptr<QDarwinAudioSinkBuffer> m_audioBuffer;
@@ -164,6 +165,7 @@ private:
 
     QAudioStateMachine m_stateMachine;
     QSemaphore m_drainSemaphore;
+    AudioUnitState m_audioUnitState = AudioUnitState::Stopped;
 };
 
 QT_END_NAMESPACE
