@@ -91,7 +91,6 @@ public:
 
 private:
     friend class OutputPrivate;
-    qint64 write(const char *data, qint64 len);
     qint64 push(const char *data, qint64 len);
 
     bool open();

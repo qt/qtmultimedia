@@ -187,7 +187,7 @@ ComPtr<IMFMediaType> QWindowsAudioUtils::formatToMediaType(QWindowsMediaFoundati
     return mediaType;
 }
 
-std::optional<quint32> QWindowsAudioUtils::audioClientFramesInUse(IAudioClient *client)
+std::optional<quint32> QWindowsAudioUtils::usedFrames(IAudioClient *client)
 {
     Q_ASSERT(client);
     UINT32 framesPadding = 0;
@@ -196,7 +196,7 @@ std::optional<quint32> QWindowsAudioUtils::audioClientFramesInUse(IAudioClient *
     return {};
 }
 
-std::optional<quint32> QWindowsAudioUtils::audioClientFramesAllocated(IAudioClient *client)
+std::optional<quint32> QWindowsAudioUtils::allocatedFrames(IAudioClient *client)
 {
     Q_ASSERT(client);
     UINT32 bufferFrameCount = 0;
