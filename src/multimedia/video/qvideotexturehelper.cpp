@@ -16,6 +16,22 @@ QT_BEGIN_NAMESPACE
 namespace QVideoTextureHelper
 {
 
+static constexpr QRhiTexture::Format singleComponentFormat8()
+{
+#if QT_CONFIG(opengles2)
+    // NOTE: RED_OR_ALPHA8 resolves to:
+    //     * GL_R8/GL_RED when QRhiGles2 caps.coreProfile == true
+    //     * GL_ALPHA/GL_ALPHA when QRhiGles2 caps.coreProfile == false
+    // caps.coreProfile can be queried with QRhi::isFeatureSupported(QRhi::RedOrAlpha8IsRed) to
+    // determine if alpha shaders should be used.
+    return QRhiTexture::RED_OR_ALPHA8;
+#else
+    return QRhiTexture::R8;
+#endif
+}
+
+// TODO: Replace RG8 textures on platforms that don't support the underlying format (GLES2)
+
 static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] = {
     //  Format_Invalid
     { 0, 0,
@@ -98,19 +114,19 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
     // Format_YUV420P
     { 3, 1,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
+     { singleComponentFormat8(), singleComponentFormat8(), singleComponentFormat8() },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
      // Format_YUV422P
     { 3, 1,
       [](int stride, int height) { return stride * height * 2; },
-     { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
+     { singleComponentFormat8(), singleComponentFormat8(), singleComponentFormat8() },
      { { 1, 1 }, { 2, 1 }, { 2, 1 } }
     },
      // Format_YV12
     { 3, 1,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
+     { singleComponentFormat8(), singleComponentFormat8(), singleComponentFormat8() },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
     // Format_UYVY
@@ -128,13 +144,13 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
     // Format_NV12
     { 2, 1,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { QRhiTexture::R8, QRhiTexture::RG8, QRhiTexture::UnknownFormat },
+     { singleComponentFormat8(), QRhiTexture::RG8, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_NV21
     { 2, 1,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { QRhiTexture::R8, QRhiTexture::RG8, QRhiTexture::UnknownFormat },
+     { singleComponentFormat8(), QRhiTexture::RG8, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_IMC1
@@ -145,13 +161,13 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
           h += 2*(((h/2) + 15) & ~15);
           return stride * h;
       },
-     { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
+     { singleComponentFormat8(), singleComponentFormat8(), singleComponentFormat8() },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
     // Format_IMC2
     { 2, 1,
       [](int stride, int height) { return 2*stride*height; },
-     { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::UnknownFormat },
+     { singleComponentFormat8(), singleComponentFormat8(), QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 2 }, { 1, 1 } }
     },
     // Format_IMC3
@@ -162,19 +178,19 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
           h += 2*(((h/2) + 15) & ~15);
           return stride * h;
       },
-     { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
+     { singleComponentFormat8(), singleComponentFormat8(), singleComponentFormat8() },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
     // Format_IMC4
     { 2, 1,
       [](int stride, int height) { return 2*stride*height; },
-     { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::UnknownFormat },
+     { singleComponentFormat8(), singleComponentFormat8(), QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 2 }, { 1, 1 } }
     },
     // Format_Y8
     { 1, 1,
       [](int stride, int height) { return stride*height; },
-     { QRhiTexture::R8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+     { singleComponentFormat8(), QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_Y16
@@ -245,7 +261,8 @@ QString vertexShaderFileName(const QVideoFrameFormat &format)
     return QStringLiteral(":/qt-project.org/multimedia/shaders/vertex.vert.qsb");
 }
 
-QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhiSwapChain::Format surfaceFormat)
+QString fragmentShaderFileName(const QVideoFrameFormat &format, bool useAlphaShader,
+                               QRhiSwapChain::Format surfaceFormat)
 {
     const char *shader = nullptr;
     switch (format.pixelFormat()) {
@@ -334,9 +351,24 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhiSwapChain::F
     default:
         break;
     }
+
     if (!shader)
         return QString();
+
     QString shaderFile = QStringLiteral(":/qt-project.org/multimedia/shaders/") + QString::fromLatin1(shader);
+
+    if (useAlphaShader) {
+        // Check if texture description formats contain RED_OR_ALPHA8
+        auto desc = textureDescription(format.pixelFormat());
+        for (auto i = 0; i < desc->nplanes; ++i) {
+            if (desc->textureFormat[i] != QRhiTexture::RED_OR_ALPHA8)
+                continue;
+
+            shaderFile += QStringView(u"_a");
+            break;
+        }
+    }
+
     if (surfaceFormat == QRhiSwapChain::HDRExtendedSrgbLinear)
         shaderFile += QLatin1String("_linear");
     shaderFile += QStringLiteral(".frag.qsb");

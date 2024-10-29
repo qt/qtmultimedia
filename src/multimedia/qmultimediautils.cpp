@@ -182,4 +182,15 @@ VideoTransformationOpt qVideoTransformationFromMatrix(const QTransform &matrix)
     return result;
 }
 
+bool qUseAlphaShader(QRhi *rhi)
+{
+#if !QT_CONFIG(opengles2)
+    Q_UNUSED(rhi);
+    return false;
+#else
+    Q_ASSERT(rhi);
+    return !rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
+#endif
+}
+
 QT_END_NAMESPACE

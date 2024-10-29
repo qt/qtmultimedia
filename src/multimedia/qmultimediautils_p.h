@@ -91,6 +91,8 @@ inline VideoTransformation qNormalizedFrameTransformation(const QVideoFrame &fra
  */
 Q_MULTIMEDIA_EXPORT VideoTransformationOpt qVideoTransformationFromMatrix(const QTransform &matrix);
 
+Q_MULTIMEDIA_EXPORT bool qUseAlphaShader(QRhi *rhi);
+
 QT_END_NAMESPACE
 
 #endif // QMULTIMEDIAUTILS_P_H
