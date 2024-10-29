@@ -7,6 +7,7 @@
 #include <qpainter.h>
 #include <private/qguiapplication_p.h>
 #include <private/qmemoryvideobuffer_p.h>
+#include <private/qmultimediautils_p.h>
 #include <qpa/qplatformintegration.h>
 
 QT_BEGIN_NAMESPACE
@@ -184,7 +185,8 @@ void QVideoWindowPrivate::setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, 
     pipeline->setTopology(QRhiGraphicsPipeline::TriangleStrip);
     QShader vs = vwGetShader(QVideoTextureHelper::vertexShaderFileName(fmt));
     Q_ASSERT(vs.isValid());
-    QShader fs = vwGetShader(QVideoTextureHelper::fragmentShaderFileName(fmt, m_swapChain->format()));
+    QShader fs = vwGetShader(QVideoTextureHelper::fragmentShaderFileName(
+            fmt, qUseAlphaShader(m_rhi.get()), m_swapChain->format()));
     Q_ASSERT(fs.isValid());
     pipeline->setShaderStages({
         { QRhiShaderStage::Vertex, vs },

@@ -5,6 +5,7 @@
 #include "qvideoframe.h"
 
 #include <QtCore/qdir.h>
+#include <QtGui/private/qrhi_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -65,6 +66,17 @@ QSize qRotatedFrameSize(const QVideoFrame &frame)
 QUrl qMediaFromUserInput(QUrl url)
 {
     return QUrl::fromUserInput(url.toString(), QDir::currentPath(), QUrl::AssumeLocalFile);
+}
+
+bool qUseAlphaShader(QRhi *rhi)
+{
+#if !QT_CONFIG(opengles2)
+    Q_UNUSED(rhi);
+    return false;
+#else
+    Q_ASSERT(rhi);
+    return !rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
+#endif
 }
 
 QT_END_NAMESPACE

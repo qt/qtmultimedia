@@ -287,6 +287,19 @@ set(VIDEO_SHADERS
     "shaders/nv12_bt2020_hlg.frag"
 )
 
+# Alpha shaders are required to counter missing texture formats on OpenGL ES 2.0, included on developer builds as well
+if (QT_FEATURE_opengles2 OR FEATURE_developer_build OR QT_FEATURE_developer_build)
+    list(APPEND VIDEO_SHADERS
+        "shaders/y_a.frag"
+        "shaders/nv12_a.frag"
+        "shaders/nv21_a.frag"
+        "shaders/imc2_a.frag"
+        "shaders/imc4_a.frag"
+        "shaders/yuv_triplanar_a.frag"
+        "shaders/yvu_triplanar_a.frag"
+    )
+endif()
+
 qt_internal_add_shaders(Multimedia "qtmultimedia_shaders"
     SILENT
     BATCHABLE
