@@ -132,6 +132,8 @@ QGstElement QGstreamerAudioOutput::createGstElement()
                 QGstElement::createFromFactory(defaultSinkName.constData(), "audiosink");
         if (newSink) {
             newSink.set("device", id.constData());
+            if (!m_sinkIsAsync)
+                newSink.set("async", false);
             return newSink;
         }
 
@@ -140,6 +142,8 @@ QGstElement QGstreamerAudioOutput::createGstElement()
         auto *deviceInfo = dynamic_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
         if (deviceInfo && deviceInfo->gstDevice) {
             QGstElement element = QGstElement::createFromDevice(deviceInfo->gstDevice, "audiosink");
+            if (!m_sinkIsAsync)
+                element.set("async", false);
             if (element)
                 return element;
         }
@@ -163,6 +167,13 @@ void QGstreamerAudioOutput::setVolume(float volume)
 void QGstreamerAudioOutput::setMuted(bool muted)
 {
     m_audioVolume.set("mute", muted);
+}
+
+void QGstreamerAudioOutput::setAsync(bool isAsync)
+{
+    m_sinkIsAsync = isAsync;
+    if (m_audioSink)
+        m_audioSink.set("async", m_sinkIsAsync);
 }
 
 void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &device)

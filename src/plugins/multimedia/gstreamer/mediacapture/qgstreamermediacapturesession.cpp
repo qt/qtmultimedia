@@ -464,6 +464,10 @@ void QGstreamerMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
     if (gstAudioOutput == output)
         return;
 
+    auto *gstOutput = static_cast<QGstreamerAudioOutput *>(output);
+    if (gstOutput)
+        gstOutput->setAsync(false);
+
     if (!gstAudioInput) {
         // audio output is not active, since there is no audio input
         gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
