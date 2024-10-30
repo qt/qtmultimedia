@@ -322,6 +322,9 @@ void QGstreamerMediaCaptureSession::linkAndStartEncoder(RecorderElements recorde
         setStateOnElements({ recorder.encodeBin, recorder.fileSink, encoderVideoCapsFilter,
                              encoderAudioCapsFilter },
                            GST_STATE_PLAYING);
+
+        GstEvent *event = gst_event_new_reconfigure();
+        gst_element_send_event(recorder.fileSink.element(), event);
     });
 
     finishStateChangeOnElements({ recorder.encodeBin, recorder.fileSink, encoderVideoCapsFilter,
