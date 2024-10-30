@@ -9,12 +9,14 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QWidget>
 
+#include <optional>
+
 using namespace std::chrono_literals;
 using namespace Qt::Literals;
 
 struct CLIArgs
 {
-    bool loop;
+    std::optional<int> loop;
     bool noAudio;
     bool toggleWidgets;
     QString media;
@@ -23,33 +25,36 @@ struct CLIArgs
 
 std::optional<CLIArgs> parseArgs(QCoreApplication &app)
 {
+    using namespace Qt::Literals;
     QCommandLineParser parser;
-    parser.setApplicationDescription("Minimal Player");
+    parser.setApplicationDescription(u"Minimal Player"_s);
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.addPositionalArgument("media", "File to play");
+    parser.addPositionalArgument(u"media"_s, u"File to play"_s);
 
     QCommandLineOption toggleWidgetsOption{
-        "toggle-widgets",
-        "Toggle between widgets.",
+        u"toggle-widgets"_s,
+        u"Toggle between widgets."_s,
     };
     parser.addOption(toggleWidgetsOption);
 
     QCommandLineOption playAfterEndOfMediaOption{
-        "play-after-end-of-media",
-        "Play after end of media.",
+        u"play-after-end-of-media"_s,
+        u"Play after end of media."_s,
     };
     parser.addOption(playAfterEndOfMediaOption);
 
     QCommandLineOption disableAudioOption{
-        "no-audio",
-        "Disable audio output.",
+        u"no-audio"_s,
+        u"Disable audio output."_s,
     };
     parser.addOption(disableAudioOption);
 
     QCommandLineOption loopOption{
-        "loop",
-        "Loop.",
+        u"loop"_s,
+        u"Loop."_s,
+        u"loop"_s,
+        u"0"_s,
     };
     parser.addOption(loopOption);
 
@@ -62,12 +67,15 @@ std::optional<CLIArgs> parseArgs(QCoreApplication &app)
 
     QString filename = parser.positionalArguments()[0];
 
+    std::optional<int> loops;
+    bool ok{};
+    int loopValue = parser.value(loopOption).toInt(&ok);
+    if (ok)
+        loops = loopValue;
+
     return CLIArgs{
-        parser.isSet(loopOption),
-        parser.isSet(disableAudioOption),
-        parser.isSet(toggleWidgetsOption),
-        filename,
-        parser.isSet(playAfterEndOfMediaOption),
+        loops,    parser.isSet(disableAudioOption),        parser.isSet(toggleWidgetsOption),
+        filename, parser.isSet(playAfterEndOfMediaOption),
     };
 }
 
@@ -86,6 +94,9 @@ int run(const CLIArgs &args)
     else
         player.setAudioOutput(&audioOutput);
     player.setSource(args.media);
+
+    if (args.loop)
+        player.setLoops(*args.loop);
 
     widget1.show();
 
