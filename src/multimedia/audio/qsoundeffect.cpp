@@ -229,7 +229,7 @@ qint64 QSoundEffectPrivate::readData(char *data, qint64 len)
         len -= toWrite;
         m_offset += toWrite;
         if (m_offset >= sampleSize) {
-            if (m_runningCount > 0 && m_runningCount != QSoundEffect::Infinite)
+            if (m_runningCount > 0)
                 setLoopsRemaining(m_runningCount - 1);
             m_offset = 0;
         }
