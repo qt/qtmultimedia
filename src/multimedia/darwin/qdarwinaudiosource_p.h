@@ -18,6 +18,7 @@
 #include <private/qaudiosystem_p.h>
 #include <private/qaudiostatemachine_p.h>
 #include <qdarwinaudiodevice_p.h>
+#include <qdarwinaudiounit_p.h>
 
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudioTypes.h>
@@ -176,7 +177,10 @@ public:
     void setVolume(qreal volume);
     qreal volume() const;
 
-    bool audioUnitStarted() const { return m_audioUnitStarted; }
+    bool audioUnitStarted() const { return m_audioUnitState == AudioUnitState::Started; }
+
+private slots:
+    void appStateChanged(Qt::ApplicationState state);
 
 private:
     bool open();
@@ -214,8 +218,7 @@ private:
     AudioStreamBasicDescription m_deviceFormat;
     qreal m_volume = qreal(1.0);
 
-    bool m_audioUnitStarted = false;
-
+    AudioUnitState m_audioUnitState = AudioUnitState::Stopped;
     QAudioStateMachine m_stateMachine;
 };
 
