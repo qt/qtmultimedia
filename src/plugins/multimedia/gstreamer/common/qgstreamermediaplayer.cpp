@@ -1326,6 +1326,8 @@ void QGstreamerMediaPlayer::finalizePreroll()
     }
 
     m_playerReady = true;
+
+    applyPendingOperations(/*inTimer=*/false);
 }
 
 void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
