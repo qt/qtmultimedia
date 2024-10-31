@@ -54,9 +54,9 @@ void pulseVersionSanityCheck()
 
     std::call_once(versionCheckGuard, [] {
         QVersionNumber paVersion = QVersionNumber::fromString(pa_get_library_version());
-        QVersionNumber minVersionWarning(15, 99);
-        QVersionNumber maxVersionWarning(17, 00);
-        if (paVersion >= minVersionWarning && paVersion < maxVersionWarning) {
+        QVersionNumber firstBadVersion(15, 99);
+        QVersionNumber firstGoodVersion(16, 2);
+        if (paVersion >= firstBadVersion && paVersion < firstGoodVersion) {
             qWarning() << "Pulseaudio v16 detected. It has known issues, that can cause GStreamer "
                           "to freeze.";
             // Note: gstreamer requires these two patches to work correctly:
