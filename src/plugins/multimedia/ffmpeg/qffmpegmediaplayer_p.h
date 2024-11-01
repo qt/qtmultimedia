@@ -89,7 +89,7 @@ private:
 private slots:
     void updatePosition();
     void endOfStream();
-    void error(int error, const QString &errorString)
+    void error(QMediaPlayer::Error error, const QString &errorString)
     {
         QPlatformMediaPlayer::error(error, errorString);
     }
