@@ -1082,15 +1082,6 @@ GstStateChangeReturn QGstElement::setState(GstState state)
 
 bool QGstElement::setStateSync(GstState state, std::chrono::nanoseconds timeout)
 {
-    if (state == GST_STATE_NULL) {
-        // QTBUG-125251: when changing pipeline state too quickly between NULL->PAUSED->NULL there
-        // may be a pending task to activate pads while we try to switch to NULL. This can cause an
-        // assertion failure in gstreamer. we therefore finish the state change when called on a bin
-        // or pipeline.
-        if (qIsGstObjectOfType<GstBin>(element()))
-            finishStateChange();
-    }
-
     GstStateChangeReturn change = gst_element_set_state(element(), state);
     if (change == GST_STATE_CHANGE_ASYNC)
         change = gst_element_get_state(element(), nullptr, &state, timeout.count());
