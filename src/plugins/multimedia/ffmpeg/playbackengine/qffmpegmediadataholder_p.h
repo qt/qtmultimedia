@@ -49,7 +49,7 @@ public:
 
     struct ContextError
     {
-        int code = 0;
+        QMediaPlayer::Error code{};
         QString description;
     };
 

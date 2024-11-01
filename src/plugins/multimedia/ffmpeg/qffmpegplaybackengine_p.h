@@ -122,7 +122,7 @@ public:
 
 signals:
     void endOfStream();
-    void errorOccured(int, const QString &);
+    void errorOccured(QMediaPlayer::Error, const QString &);
     void loopChanged();
     void buffered();
 

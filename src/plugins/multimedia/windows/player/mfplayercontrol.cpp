@@ -281,7 +281,7 @@ void MFPlayerControl::handleError(QMediaPlayer::Error errorCode, const QString& 
 {
     if (isFatal)
         stop();
-    error(int(errorCode), errorString);
+    error(errorCode, errorString);
 }
 
 void MFPlayerControl::setActiveTrack(TrackType type, int index)
