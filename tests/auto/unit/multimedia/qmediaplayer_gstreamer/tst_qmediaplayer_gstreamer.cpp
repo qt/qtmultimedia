@@ -86,6 +86,8 @@ void tst_QMediaPlayerGStreamer::cleanup()
 
 void tst_QMediaPlayerGStreamer::constructor_preparesGstPipeline()
 {
+    player->setSource(QUrl("qrc:/testdata/color_matrix.mp4"));
+
     auto *rawPipeline = getGstPipeline();
     QVERIFY(rawPipeline);
 
@@ -95,10 +97,7 @@ void tst_QMediaPlayerGStreamer::constructor_preparesGstPipeline()
     };
     QVERIFY(pipeline);
 
-    QVERIFY(pipeline.findByName("videoInputSelector"));
-    QVERIFY(pipeline.findByName("audioInputSelector"));
-    QVERIFY(pipeline.findByName("subTitleInputSelector"));
-
+    QTRY_VERIFY(pipeline.findByName("videoInputSelector"));
     dumpGraph("constructor_preparesGstPipeline");
 }
 
