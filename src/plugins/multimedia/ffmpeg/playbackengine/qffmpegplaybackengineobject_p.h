@@ -14,9 +14,11 @@
 // We mean it.
 //
 
+#include <QtCore/qatomic.h>
+#include <QtCore/qthread.h>
+#include <QtMultimedia/qmediaplayer.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackenginedefs_p.h>
-#include "qthread.h"
-#include "qatomic.h"
+
 #include <chrono>
 
 QT_BEGIN_NAMESPACE
@@ -50,7 +52,7 @@ public:
 signals:
     void atEnd();
 
-    void error(int code, const QString &errorString);
+    void error(QMediaPlayer::Error, const QString &errorString);
 
 protected:
     QTimer &timer();
