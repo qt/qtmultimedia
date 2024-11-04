@@ -12,7 +12,9 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/media-metadata")
 
-find_package(Qt6 REQUIRED COMPONENTS Multimedia)
+if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    find_package(Qt6 REQUIRED COMPONENTS Multimedia)
+endif()
 
 qt_add_executable( media-metadata MACOSX_BUNDLE
     media-metadata.cpp
