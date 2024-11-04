@@ -58,7 +58,7 @@ public:
     mutable QMediaPlaylist::Error error;
     mutable QString errorString;
 
-    QMediaPlaylist *q_ptr;
+    QMediaPlaylist *q_ptr = nullptr;
 };
 
 QT_END_NAMESPACE
