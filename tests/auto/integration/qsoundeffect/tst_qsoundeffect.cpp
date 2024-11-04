@@ -37,6 +37,9 @@ private slots:
     void testSupportedMimeTypes();
     void testCorruptFile();
 
+    void setAudioDevice_emitsSignalsInExpectedOrder_data();
+    void setAudioDevice_emitsSignalsInExpectedOrder();
+
 private:
     QSoundEffect* sound;
     QUrl url; // test.wav: pcm_s16le, 48000 Hz, stereo, s16
@@ -46,15 +49,12 @@ private:
 
 void tst_QSoundEffect::init()
 {
-    sound->stop();
-    sound->setSource(QUrl());
-    sound->setLoopCount(1);
-    sound->setVolume(1.0);
-    sound->setMuted(false);
+    sound = new QSoundEffect(this);
 }
 
 void tst_QSoundEffect::cleanup()
 {
+    sound = nullptr;
 }
 
 void tst_QSoundEffect::initTestCase()
@@ -85,6 +85,7 @@ void tst_QSoundEffect::initTestCase()
     QVERIFY(sound->loopCount() == 1);
     QVERIFY(sound->volume() == 1);
     QVERIFY(sound->isMuted() == false);
+    sound = nullptr;
 }
 
 void tst_QSoundEffect::testSource()
@@ -397,6 +398,64 @@ void tst_QSoundEffect::testCorruptFile()
         sound->play();
         QVERIFY(sound->isPlaying());
     }
+}
+
+void tst_QSoundEffect::setAudioDevice_emitsSignalsInExpectedOrder_data()
+{
+    QTest::addColumn<bool>("while_playing");
+    QTest::addColumn<bool>("with_source");
+    QTest::addColumn<QStringList>("expectedSignals");
+    QTest::addRow("while_playing")
+        << true << true << QStringList{"playingChanged", "playingChanged", "audioDeviceChanged"};
+    QTest::addRow("while_stopped, with source")
+        << false << true << QStringList{"audioDeviceChanged"};
+    QTest::addRow("while_stopped, without source")
+        << false << false << QStringList{"audioDeviceChanged"};
+}
+
+void tst_QSoundEffect::setAudioDevice_emitsSignalsInExpectedOrder()
+{
+    // Arrange
+    QList outputs = QMediaDevices::audioOutputs();
+    if (outputs.size() < 2)
+        QSKIP("Needs at least 2 audioOuputs");
+
+    QFETCH(bool, while_playing);
+    QFETCH(bool, with_source);
+    QFETCH(QStringList, expectedSignals);
+
+    // Track the order of emitted signals by appending them to a list
+    QStringList emittedSignals;
+    connect(sound, &QSoundEffect::audioDeviceChanged, this, [&emittedSignals]() {
+        emittedSignals.append("audioDeviceChanged");
+    });
+    connect(sound, &QSoundEffect::playingChanged, this, [&emittedSignals]() {
+        emittedSignals.append("playingChanged");
+    });
+    connect(sound, &QSoundEffect::statusChanged, this, [&emittedSignals]() {
+        emittedSignals.append("statusChanged");
+    });
+
+    // Set source or not based on test data
+    if (with_source)
+        sound->setSource(url);
+    QTRY_COMPARE(sound->isLoaded(), with_source);
+
+    // Start playback or not based on test data
+    if (while_playing) {
+        sound->play();
+    }
+    QTRY_COMPARE(sound->isPlaying(), while_playing);
+
+    QVERIFY(sound->audioDevice() != outputs.at(1));
+    emittedSignals.clear();
+
+    // Act
+    sound->setAudioDevice(outputs.at(1));
+
+    // Assert
+    QTRY_VERIFY(sound->isPlaying() == while_playing); // Verify that playback state didn't change
+    QCOMPARE(emittedSignals, expectedSignals);
 }
 
 QTEST_MAIN(tst_QSoundEffect)

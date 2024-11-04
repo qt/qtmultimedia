@@ -70,6 +70,7 @@ public:
     void setLoopsRemaining(int loopsRemaining);
     void setStatus(QSoundEffect::Status status);
     void setPlaying(bool playing);
+    bool updateAudioOutput();
 
 public Q_SLOTS:
     void sampleReady(QSample *);
@@ -114,51 +115,12 @@ void QSoundEffectPrivate::sampleReady(QSample *sample)
     qCDebug(qLcSoundEffect) << this << "sampleReady: sample size:" << m_sample->data().size();
     disconnect(m_sample.get(), &QSample::error, this, &QSoundEffectPrivate::decoderError);
     disconnect(m_sample.get(), &QSample::ready, this, &QSoundEffectPrivate::sampleReady);
+
     if (!m_audioSink) {
-        const auto audioDevice =
-                m_audioDevice.isNull() ? QMediaDevices::defaultAudioOutput() : m_audioDevice;
-
-        if (audioDevice.isNull()) {
-            // We are likely on a virtual machine, for example in CI
-            qCCritical(qLcSoundEffect) << "Failed to play sound. No audio devices present.";
-            setStatus(QSoundEffect::Error);
-            return;
-        }
-
-        const auto &sampleFormat = m_sample->format();
-        const auto sampleChannelConfig =
-                sampleFormat.channelConfig() == QAudioFormat::ChannelConfigUnknown
-                ? QAudioFormat::defaultChannelConfigForChannelCount(sampleFormat.channelCount())
-                : sampleFormat.channelConfig();
-
-        if (sampleChannelConfig != audioDevice.channelConfiguration()
-            && audioDevice.channelConfiguration() != QAudioFormat::ChannelConfigUnknown) {
-            qCDebug(qLcSoundEffect) << "Create resampler for channels mapping: config"
-                                    << sampleFormat.channelConfig() << "=> config"
-                                    << audioDevice.channelConfiguration();
-            auto outputFormat = sampleFormat;
-            outputFormat.setChannelConfig(audioDevice.channelConfiguration());
-
-            const auto resampler = QPlatformMediaIntegration::instance()->createAudioResampler(
-                    m_sample->format(), outputFormat);
-            if (resampler)
-                m_audioBuffer = resampler.value()->resample(m_sample->data().constData(),
-                                                            m_sample->data().size());
-            else
-                qCDebug(qLcSoundEffect) << "Cannot create resampler for channels mapping";
-        }
-
-        if (!m_audioBuffer.isValid())
-            m_audioBuffer = QAudioBuffer(m_sample->data(), m_sample->format());
-
-        m_audioSink.reset(new QAudioSink(audioDevice, m_audioBuffer.format()));
-
-        connect(m_audioSink.get(), &QAudioSink::stateChanged, this, &QSoundEffectPrivate::stateChanged);
-        if (!m_muted)
-            m_audioSink->setVolume(m_volume);
-        else
-            m_audioSink->setVolume(0);
+        if (!updateAudioOutput()) // Create audio sink
+            return; // Returns if no audio devices are available
     }
+
     m_sampleReady = true;
     setStatus(QSoundEffect::Ready);
 
@@ -187,6 +149,63 @@ void QSoundEffectPrivate::stateChanged(QAudio::State state)
         q_ptr->stop();
 }
 
+bool QSoundEffectPrivate::updateAudioOutput()
+{
+    const auto audioDevice =
+            m_audioDevice.isNull() ? QMediaDevices::defaultAudioOutput() : m_audioDevice;
+
+    if (audioDevice.isNull()) {
+        // We are likely on a virtual machine, for example in CI
+        qCCritical(qLcSoundEffect) << "Failed to update audio output. No audio devices available.";
+        setStatus(QSoundEffect::Error);
+        return false;
+    }
+
+    if (m_audioDevice.isNull()) {
+        q_ptr->setAudioDevice(audioDevice); // Updates m_audioDevice and emits audioDeviceChanged
+    }
+
+    m_audioBuffer = {};
+
+    Q_ASSERT(m_sample);
+
+    const auto &sampleFormat = m_sample->format();
+    const auto sampleChannelConfig =
+            sampleFormat.channelConfig() == QAudioFormat::ChannelConfigUnknown
+            ? QAudioFormat::defaultChannelConfigForChannelCount(sampleFormat.channelCount())
+            : sampleFormat.channelConfig();
+
+    if (sampleChannelConfig != audioDevice.channelConfiguration()
+        && audioDevice.channelConfiguration() != QAudioFormat::ChannelConfigUnknown) {
+        qCDebug(qLcSoundEffect) << "Create resampler for channels mapping: config"
+                                << sampleFormat.channelConfig() << "=> config"
+                                << audioDevice.channelConfiguration();
+        auto outputFormat = sampleFormat;
+        outputFormat.setChannelConfig(audioDevice.channelConfiguration());
+
+        const auto resampler = QPlatformMediaIntegration::instance()->createAudioResampler(
+                m_sample->format(), outputFormat);
+        if (resampler)
+            m_audioBuffer = resampler.value()->resample(m_sample->data().constData(),
+                                                        m_sample->data().size());
+        else
+            qCDebug(qLcSoundEffect) << "Cannot create resampler for channels mapping";
+    }
+
+    if (!m_audioBuffer.isValid())
+        m_audioBuffer = QAudioBuffer(m_sample->data(), m_sample->format());
+
+    m_audioSink.reset(new QAudioSink(audioDevice, m_audioBuffer.format()));
+
+    connect(m_audioSink.get(), &QAudioSink::stateChanged, this, &QSoundEffectPrivate::stateChanged);
+    if (!m_muted)
+        m_audioSink->setVolume(m_volume);
+    else
+        m_audioSink->setVolume(0);
+
+    return true;
+}
+
 qint64 QSoundEffectPrivate::readData(char *data, qint64 len)
 {
     qCDebug(qLcSoundEffect) << this << "readData" << len << m_runningCount;
@@ -203,7 +222,7 @@ qint64 QSoundEffectPrivate::readData(char *data, qint64 len)
     const char *sampleData = m_audioBuffer.constData<char>();
 
     while (len && m_runningCount) {
-        int toWrite = qMin(sampleSize - m_offset, len);
+        int toWrite = qMax(0, qMin(sampleSize - m_offset, len));
         memcpy(data, sampleData + m_offset, toWrite);
         bytesWritten += toWrite;
         data += toWrite;
@@ -434,8 +453,6 @@ void QSoundEffect::setSource(const QUrl &url)
         d->m_audioSink.reset();
     }
 
-    d->m_audioBuffer = {};
-
     d->setStatus(QSoundEffect::Loading);
     d->m_sample.reset(sampleCache()->requestSample(url));
     connect(d->m_sample.get(), &QSample::error, d, &QSoundEffectPrivate::decoderError);
@@ -529,10 +546,28 @@ QAudioDevice QSoundEffect::audioDevice()
 
 void QSoundEffect::setAudioDevice(const QAudioDevice &device)
 {
+    qCDebug(qLcSoundEffect) << this << "setAudioDevice:" << device.description();
+
     if (d->m_audioDevice == device)
         return;
-    // ### recreate the QAudioSink if needed
+
     d->m_audioDevice = device;
+
+    if (!d->m_sampleReady) {
+        emit audioDeviceChanged();
+        return; // The audio sink will be recreated later by QSoundEffect::sampleReady()
+    }
+
+    bool playing = d->m_playing;
+    std::chrono::microseconds current_time{d->m_audioBuffer.format().durationForBytes(d->m_offset)};
+
+    // Recreate the QAudioSink with the new audio device and current sample
+    if (d->updateAudioOutput() && playing) {
+        // Resume playback from current position
+        d->m_offset = d->m_audioBuffer.format().bytesForDuration(current_time.count());
+        d->setPlaying(true);
+    }
+
     emit audioDeviceChanged();
 }
 
