@@ -484,6 +484,11 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
         return;
     }
 
+    // This is necessary to explicitly recreate m_audioInput inside AVFCameraSession.
+    // Which in turn is necessary for the case when the microphone was disconnected
+    // after stopping recording and reconnected.
+    m_service->session()->updateAudioInput();
+
     m_service->session()->setActive(true);
     const bool audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
     AVCaptureSession *session = m_service->session()->captureSession();
