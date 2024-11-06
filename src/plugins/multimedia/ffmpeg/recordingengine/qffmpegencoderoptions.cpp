@@ -239,7 +239,10 @@ static void apply_mf(const QMediaEncoderSettings &settings, AVCodecContext *code
 static void apply_mediacodec(const QMediaEncoderSettings &settings, AVCodecContext *codec,
                              AVDictionary **opts)
 {
-    codec->bit_rate = settings.videoBitRate();
+    if (settings.videoBitRate() != -1)
+        codec->bit_rate = settings.videoBitRate();
+    else
+        codec->bit_rate = bitrateForSettings(settings);
 
     const int quality[] = { 25, 50, 75, 90, 100 };
     codec->global_quality = quality[settings.quality()];
