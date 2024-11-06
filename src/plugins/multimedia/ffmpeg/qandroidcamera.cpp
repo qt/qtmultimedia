@@ -40,18 +40,56 @@ namespace {
 QCameraFormat getDefaultCameraFormat(const QCameraDevice & cameraDevice)
 {
     // default settings
+    const auto defaultFrameFormat = QVideoFrameFormat::Format_YUV420P;
+    const auto defaultResolution = QSize(1920, 1080);
     QCameraFormatPrivate *defaultFormat = new QCameraFormatPrivate{
-        .pixelFormat = QVideoFrameFormat::Format_YUV420P,
-        .resolution = { 1920, 1080 },
+        .pixelFormat = defaultFrameFormat,
+        .resolution = defaultResolution,
         .minFrameRate = 12,
         .maxFrameRate = 30,
     };
-    QCameraFormat format = defaultFormat->create();
 
-    if (!cameraDevice.videoFormats().empty() && !cameraDevice.videoFormats().contains(format))
-        return cameraDevice.videoFormats().first();
+    QCameraFormat resultFormat = defaultFormat->create();
+    const auto &supportedFormats = cameraDevice.videoFormats();
 
-    return format;
+    if (supportedFormats.empty() || supportedFormats.contains(resultFormat))
+        return resultFormat;
+
+    auto pixelCount = [](const QSize& resolution) {
+        Q_ASSERT(resolution.isValid());
+        return resolution.width() * resolution.height();
+    };
+
+    const int defaultPixelCount = pixelCount(defaultResolution);
+
+    // The lower the score, the better the format suits
+    int differenceScore = std::numeric_limits<int>::max();
+
+    auto calcDifferenceScore = [defaultPixelCount, pixelCount](const QCameraFormat& format) {
+        const int pixelDifference = pixelCount(format.resolution()) - defaultPixelCount;
+        // prefer:
+        // 1. 'pixels count >= default' over 'pixels count < default'
+        // 2. lower abs(pixelDifference)
+        return pixelDifference < 0
+                  ? -pixelDifference
+                  : std::numeric_limits<int>::min() + pixelDifference;
+    };
+
+    for (const auto &supportedFormat : supportedFormats) {
+        if (supportedFormat.pixelFormat() == defaultFrameFormat) {
+            if (supportedFormat.resolution() == defaultResolution)
+                return supportedFormat;
+
+            const int currentDifferenceScore = calcDifferenceScore(supportedFormat);
+
+            if (currentDifferenceScore < differenceScore) {
+                differenceScore = currentDifferenceScore;
+                resultFormat = supportedFormat;
+            }
+        }
+    }
+
+    return resultFormat;
 }
 
 bool checkCameraPermission()
