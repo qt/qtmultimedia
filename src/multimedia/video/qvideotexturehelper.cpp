@@ -264,86 +264,86 @@ QString vertexShaderFileName(const QVideoFrameFormat &format)
 QString fragmentShaderFileName(const QVideoFrameFormat &format, bool useAlphaShader,
                                QRhiSwapChain::Format surfaceFormat)
 {
-    const char *shader = nullptr;
+    QString shaderFile;
     switch (format.pixelFormat()) {
     case QVideoFrameFormat::Format_Y8:
     case QVideoFrameFormat::Format_Y16:
-        shader = "y";
+        shaderFile = QStringLiteral("y");
         break;
     case QVideoFrameFormat::Format_AYUV:
     case QVideoFrameFormat::Format_AYUV_Premultiplied:
-        shader = "ayuv";
+        shaderFile = QStringLiteral("ayuv");
         break;
     case QVideoFrameFormat::Format_ARGB8888:
     case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
     case QVideoFrameFormat::Format_XRGB8888:
-        shader = "argb";
+        shaderFile = QStringLiteral("argb");
         break;
     case QVideoFrameFormat::Format_ABGR8888:
     case QVideoFrameFormat::Format_XBGR8888:
-        shader = "abgr";
+        shaderFile = QStringLiteral("abgr");
         break;
     case QVideoFrameFormat::Format_Jpeg: // Jpeg is decoded transparently into an ARGB texture
-        shader = "bgra";
+        shaderFile = QStringLiteral("bgra");
         break;
     case QVideoFrameFormat::Format_RGBA8888:
     case QVideoFrameFormat::Format_RGBX8888:
     case QVideoFrameFormat::Format_BGRA8888:
     case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
     case QVideoFrameFormat::Format_BGRX8888:
-        shader = "rgba";
+        shaderFile = QStringLiteral("rgba");
         break;
     case QVideoFrameFormat::Format_YUV420P:
     case QVideoFrameFormat::Format_YUV422P:
     case QVideoFrameFormat::Format_IMC3:
-        shader = "yuv_triplanar";
+        shaderFile = QStringLiteral("yuv_triplanar");
         break;
     case QVideoFrameFormat::Format_YUV420P10:
-        shader = "yuv_triplanar_p10";
+        shaderFile = QStringLiteral("yuv_triplanar_p10");
         break;
     case QVideoFrameFormat::Format_YV12:
     case QVideoFrameFormat::Format_IMC1:
-        shader = "yvu_triplanar";
+        shaderFile = QStringLiteral("yvu_triplanar");
         break;
     case QVideoFrameFormat::Format_IMC2:
-        shader = "imc2";
+        shaderFile = QStringLiteral("imc2");
         break;
     case QVideoFrameFormat::Format_IMC4:
-        shader = "imc4";
+        shaderFile = QStringLiteral("imc4");
         break;
     case QVideoFrameFormat::Format_UYVY:
-        shader = "uyvy";
+        shaderFile = QStringLiteral("uyvy");
         break;
     case QVideoFrameFormat::Format_YUYV:
-        shader = "yuyv";
+        shaderFile = QStringLiteral("yuyv");
         break;
     case QVideoFrameFormat::Format_P010:
     case QVideoFrameFormat::Format_P016:
         // P010/P016 have the same layout as NV12, just 16 instead of 8 bits per pixel
         if (format.colorTransfer() == QVideoFrameFormat::ColorTransfer_ST2084) {
-            shader = "nv12_bt2020_pq";
+            shaderFile = QStringLiteral("nv12_bt2020_pq");
             break;
         }
         if (format.colorTransfer() == QVideoFrameFormat::ColorTransfer_STD_B67) {
-            shader = "nv12_bt2020_hlg";
+            shaderFile = QStringLiteral("nv12_bt2020_hlg");
             break;
         }
         // Fall through, should be bt709
         Q_FALLTHROUGH();
     case QVideoFrameFormat::Format_NV12:
-        shader = "nv12";
+        shaderFile = QStringLiteral("nv12");
         break;
     case QVideoFrameFormat::Format_NV21:
-        shader = "nv21";
+        shaderFile = QStringLiteral("nv21");
         break;
     case QVideoFrameFormat::Format_SamplerExternalOES:
 #if 1//def Q_OS_ANDROID
-        shader = "externalsampler";
+        shaderFile = QStringLiteral("externalsampler");
         break;
 #endif
     case QVideoFrameFormat::Format_SamplerRect:
 #if 1//def Q_OS_MACOS
-        shader = "rectsampler_bgra";
+        shaderFile = QStringLiteral("rectsampler_bgra");
         break;
 #endif
         // fallthrough
@@ -352,10 +352,10 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, bool useAlphaSha
         break;
     }
 
-    if (!shader)
+    if (shaderFile.isEmpty())
         return QString();
 
-    QString shaderFile = QStringLiteral(":/qt-project.org/multimedia/shaders/") + QString::fromLatin1(shader);
+    shaderFile.prepend(u":/qt-project.org/multimedia/shaders/");
 
     if (useAlphaShader) {
         // Check if texture description formats contain RED_OR_ALPHA8
@@ -364,14 +364,15 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, bool useAlphaSha
             if (desc->textureFormat[i] != QRhiTexture::RED_OR_ALPHA8)
                 continue;
 
-            shaderFile += QStringView(u"_a");
+            shaderFile.append(u"_a");
             break;
         }
     }
 
     if (surfaceFormat == QRhiSwapChain::HDRExtendedSrgbLinear)
-        shaderFile += QLatin1String("_linear");
-    shaderFile += QStringLiteral(".frag.qsb");
+        shaderFile.append(u"_linear");
+
+    shaderFile.append(u".frag.qsb");
     return shaderFile;
 }
 
