@@ -139,16 +139,46 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
             qt_safe_open(p, O_RDONLY),
         };
 
-        struct v4l2_capability cap;
-        if (::ioctl(fd.get(), VIDIOC_QUERYCAP, &cap) < 0)
+        if (!fd) {
+            qCDebug(ltVideoDevices) << "Cannot open v4l2 device:" << p;
             return;
+        }
 
-        if (cap.device_caps & V4L2_CAP_META_CAPTURE)
+        struct v4l2_capability cap;
+        if (::ioctl(fd.get(), VIDIOC_QUERYCAP, &cap) < 0) {
+            qCWarning(ltVideoDevices)
+                    << "ioctl failed: VIDIOC_QUERYCAP" << qt_error_string(errno) << p;
             return;
-        if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
+        }
+
+        if (cap.device_caps & V4L2_CAP_META_CAPTURE) {
+            qCDebug(ltVideoDevices) << "V4L2_CAP_META_CAPTURE device detected" << p;
             return;
-        if (!(cap.capabilities & V4L2_CAP_STREAMING))
+        }
+        if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
+            qCDebug(ltVideoDevices) << "not a V4L2_CAP_VIDEO_CAPTURE device" << p;
             return;
+        }
+        if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
+            qCDebug(ltVideoDevices) << "not a V4L2_CAP_STREAMING device" << p;
+            return;
+        }
+
+        int index;
+        if (::ioctl(fd.get(), VIDIOC_G_INPUT, &index) < 0) {
+            switch (errno) {
+            case ENOTTY:
+                qCDebug(ltVideoDevices) << "device does not have video inputs" << p;
+                return;
+
+            default:
+                qCWarning(ltVideoDevices)
+                        << "ioctl failed: VIDIOC_G_INPUT" << qt_error_string(errno) << p;
+                return;
+            }
+        }
+    } else {
+        qCDebug(ltVideoDevices) << "Video device not a v4l2 device:" << structureHandle;
     }
 #endif
 
