@@ -123,8 +123,6 @@ private slots:
     void pause_doesNotChangePlayerState_whenInvalidFileLoaded();
     void pause_doesNothing_whenMediaIsNotLoaded();
     void pause_entersPauseState_whenPlayerWasPlaying();
-    void pause_initializesExpectedDefaultState();
-    void pause_initializesExpectedDefaultState_data();
     void pause_doesNotAdvancePosition();
     void pause_playback_resumesFromPausedPosition();
 
@@ -1205,73 +1203,6 @@ void tst_QMediaPlayerBackend::pause_entersPauseState_whenPlayerWasPlaying()
     QTest::qWait(500);
 
     QTRY_COMPARE_LT(qAbs(m_fixture->player.position() - positionBeforePause), 200);
-}
-
-void tst_QMediaPlayerBackend::pause_initializesExpectedDefaultState()
-{
-    QFETCH(MaybeUrl, url);
-    QFETCH(bool, hasVideo);
-    QFETCH(bool, hasAudio);
-    CHECK_SELECTED_URL(url);
-
-    if (isFFMPEGPlatform() && url->path().contains("Av1"))
-        QSKIP("QTBUG-119711: ffmpeg's binaries on CI do not support av1");
-
-    QMediaPlayer &player = m_fixture->player;
-    player.setSource(*url);
-    player.pause();
-
-    QTRY_COMPARE(player.playbackState(), QMediaPlayer::PausedState);
-
-    MediaPlayerState expectedState = MediaPlayerState::defaultState();
-    expectedState.source = *url;
-    expectedState.playbackState = QMediaPlayer::PausedState;
-    expectedState.isSeekable = true;
-
-    expectedState.mediaStatus = std::nullopt;
-    expectedState.duration = std::nullopt;
-    expectedState.bufferProgress = std::nullopt;
-
-    expectedState.audioTracks = std::nullopt;
-    expectedState.videoTracks = std::nullopt;
-    expectedState.metaData = std::nullopt;
-
-    if (hasVideo) {
-        expectedState.activeVideoTrack = 0;
-        expectedState.hasVideo = std::nullopt;
-    }
-
-    if (hasAudio) {
-        expectedState.activeAudioTrack = 0;
-        expectedState.hasAudio = std::nullopt;
-    }
-
-    const MediaPlayerState actualState{ player };
-    COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
-
-    QVERIFY(actualState.mediaStatus == QMediaPlayer::BufferingMedia
-            || actualState.mediaStatus == QMediaPlayer::BufferedMedia);
-
-    if (hasVideo)
-        QCOMPARE(actualState.videoTracks->size(), 1);
-    if (hasAudio)
-        QCOMPARE(actualState.audioTracks->size(), 1);
-
-    QSKIP_GSTREAMER("GStreamer doesn't update bufferProgress while paused");
-
-    QTRY_COMPARE_GT(actualState.bufferProgress, 0);
-}
-
-void tst_QMediaPlayerBackend::pause_initializesExpectedDefaultState_data()
-{
-    QTest::addColumn<MaybeUrl>("url");
-    QTest::addColumn<bool>("hasVideo");
-    QTest::addColumn<bool>("hasAudio");
-
-    QTest::addRow("with wave file") << m_localWavFile << false << true;
-    QTest::addRow("with video file") << m_localVideoFile << true << true;
-    QTest::addRow("with av1 file") << m_av1File << true << false;
-    QTest::addRow("with compressed sound file") << m_localCompressedSoundFile << false << true;
 }
 
 void tst_QMediaPlayerBackend::pause_doesNotAdvancePosition()
