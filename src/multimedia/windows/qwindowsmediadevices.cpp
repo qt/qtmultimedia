@@ -177,12 +177,37 @@ QWindowsMediaDevices::~QWindowsMediaDevices()
     m_warmUpAudioClient.Reset();
 }
 
+namespace {
+
+QString getDeviceId(bool isOutput, UINT waveID)
+{
+    void *wave = UIntToPtr(waveID);
+    auto waveMessage = [wave, isOutput](UINT msg, auto p0, auto p1) {
+        return isOutput
+                ? waveOutMessage(static_cast<HWAVEOUT>(wave), msg, reinterpret_cast<DWORD_PTR>(p0),
+                                 static_cast<DWORD_PTR>(p1))
+                : waveInMessage(static_cast<HWAVEIN>(wave), msg, reinterpret_cast<DWORD_PTR>(p0),
+                                static_cast<DWORD_PTR>(p1));
+    };
+
+    ULONG len = 0; // Includes space for null-terminator
+    if (waveMessage(DRV_QUERYFUNCTIONINSTANCEIDSIZE, &len, 0) != MMSYSERR_NOERROR)
+        return {};
+
+    QVarLengthArray<WCHAR> deviceId(static_cast<qsizetype>(len / sizeof(WCHAR)));
+    if (waveMessage(DRV_QUERYFUNCTIONINSTANCEID, deviceId.data(), len) != MMSYSERR_NOERROR)
+        return {};
+
+    return QString::fromWCharArray(deviceId.data(), len);
+}
+}
+
 QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mode) const
 {
     if (!m_deviceEnumerator)
         return {};
 
-    const auto audioOut = mode == QAudioDevice::Output;
+    const bool audioOut = mode == QAudioDevice::Output;
 
     const auto defaultAudioDeviceID = [this, audioOut]{
         const auto dataFlow = audioOut ? EDataFlow::eRender : EDataFlow::eCapture;
@@ -200,26 +225,17 @@ QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mo
 
     QList<QAudioDevice> devices;
 
-    auto waveDevices = audioOut ? waveOutGetNumDevs() : waveInGetNumDevs();
+    const UINT waveDevices = audioOut ? waveOutGetNumDevs() : waveInGetNumDevs();
 
-    for (auto waveID = 0u; waveID < waveDevices; waveID++) {
-        auto wave = IntToPtr(waveID);
-        auto waveMessage = [wave, audioOut](UINT msg, auto p0, auto p1) {
-            return audioOut ? waveOutMessage((HWAVEOUT)wave, msg, (DWORD_PTR)p0, (DWORD_PTR)p1)
-                            : waveInMessage((HWAVEIN)wave, msg, (DWORD_PTR)p0, (DWORD_PTR)p1);
-        };
-
-        size_t len = 0;
-        if (waveMessage(DRV_QUERYFUNCTIONINSTANCEIDSIZE, &len, 0) != MMSYSERR_NOERROR)
-            continue;
-
-        QVarLengthArray<WCHAR> id(len);
-        if (waveMessage(DRV_QUERYFUNCTIONINSTANCEID, id.data(), len) != MMSYSERR_NOERROR)
+    for (UINT waveID = 0u; waveID < waveDevices; waveID++) {
+        const QString deviceId = getDeviceId(audioOut, waveID);
+        if (deviceId.isEmpty())
             continue;
 
         ComPtr<IMMDevice> device;
         ComPtr<IPropertyStore> props;
-        if (FAILED(m_deviceEnumerator->GetDevice(id.data(), device.GetAddressOf()))
+        if (FAILED(m_deviceEnumerator->GetDevice(deviceId.toStdWString().c_str(),
+                                                 device.GetAddressOf()))
             || FAILED(device->OpenPropertyStore(STGM_READ, props.GetAddressOf()))) {
             continue;
         }
@@ -228,8 +244,8 @@ QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mo
         PropVariantInit(&varName);
 
         if (SUCCEEDED(props->GetValue(QMM_PKEY_Device_FriendlyName, &varName))) {
-            auto description = QString::fromWCharArray(varName.pwszVal);
-            auto strID = QString::fromWCharArray(id.data()).toUtf8();
+            const QString description = QString::fromWCharArray(varName.pwszVal);
+            const QByteArray strID = deviceId.toUtf8();
 
             auto dev = new QWindowsAudioDeviceInfo(strID, device, waveID, description, mode);
             dev->isDefault = strID == defaultAudioDeviceID;
