@@ -106,10 +106,10 @@ public:
         EDataFlow flow;
 
         if (SUCCEEDED(m_enumerator->GetDevice(deviceID, device.GetAddressOf()))
-            && SUCCEEDED(device->QueryInterface(__uuidof(IMMEndpoint), (void**)endpoint.GetAddressOf()))
+            && SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&endpoint)))
             && SUCCEEDED(endpoint->GetDataFlow(&flow)))
         {
-                    emitAudioDevicesChanged(flow);
+            emitAudioDevicesChanged(flow);
         }
     }
 
@@ -121,9 +121,8 @@ private:
 QWindowsMediaDevices::QWindowsMediaDevices()
     : QPlatformMediaDevices()
 {
-    auto hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
-                CLSCTX_INPROC_SERVER,__uuidof(IMMDeviceEnumerator),
-                (void**)&m_deviceEnumerator);
+    auto hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
+                               IID_PPV_ARGS(&m_deviceEnumerator));
 
     if (FAILED(hr)) {
         qWarning("Failed to instantiate IMMDeviceEnumerator (%s)."
