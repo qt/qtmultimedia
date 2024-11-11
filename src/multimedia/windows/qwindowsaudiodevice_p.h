@@ -36,7 +36,7 @@ const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
 class QWindowsAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
-    QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevice> immdev, int waveID, const QString &description, QAudioDevice::Mode mode);
+    QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevice> immdev, UINT waveID, const QString &description, QAudioDevice::Mode mode);
     ~QWindowsAudioDeviceInfo();
 
     bool open();
@@ -48,7 +48,7 @@ public:
     ComPtr<IMMDevice> immDev() const { return m_immDev; }
 
 private:
-    quint32 m_devId;
+    UINT m_devId;
     ComPtr<IMMDevice> m_immDev;
 };
 

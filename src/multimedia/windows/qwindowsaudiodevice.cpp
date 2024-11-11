@@ -29,7 +29,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevice> immDev, int waveID, const QString &description, QAudioDevice::Mode mode)
+QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevice> immDev, UINT waveID, const QString &description, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(dev, mode),
       m_devId(waveID),
       m_immDev(std::move(immDev))
@@ -215,10 +215,10 @@ bool QWindowsAudioDeviceInfo::testSettings(const QAudioFormat& format) const
     if (QWindowsAudioUtils::formatToWaveFormatExtensible(format, wfx)) {
         // query only, do not open device
         if (mode == QAudioDevice::Output) {
-            return (waveOutOpen(NULL, UINT_PTR(m_devId), &wfx.Format, 0, 0,
+            return (waveOutOpen(NULL, m_devId, &wfx.Format, 0, 0,
                                 WAVE_FORMAT_QUERY) == MMSYSERR_NOERROR);
         } else { // AudioInput
-            return (waveInOpen(NULL, UINT_PTR(m_devId), &wfx.Format, 0, 0,
+            return (waveInOpen(NULL, m_devId, &wfx.Format, 0, 0,
                                 WAVE_FORMAT_QUERY) == MMSYSERR_NOERROR);
         }
     }
