@@ -40,7 +40,7 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevic
 
     ComPtr<IAudioClient> audioClient;
     HRESULT hr = m_immDev->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                                    (void **)audioClient.GetAddressOf());
+                                    reinterpret_cast<void**>(audioClient.GetAddressOf()));
     if (SUCCEEDED(hr)) {
         WAVEFORMATEX *pwfx = nullptr;
         hr = audioClient->GetMixFormat(&pwfx);
@@ -215,11 +215,11 @@ bool QWindowsAudioDeviceInfo::testSettings(const QAudioFormat& format) const
     if (QWindowsAudioUtils::formatToWaveFormatExtensible(format, wfx)) {
         // query only, do not open device
         if (mode == QAudioDevice::Output) {
-            return (waveOutOpen(NULL, m_devId, &wfx.Format, 0, 0,
+            return (waveOutOpen(nullptr, m_devId, &wfx.Format, 0, 0,
                                 WAVE_FORMAT_QUERY) == MMSYSERR_NOERROR);
         } else { // AudioInput
-            return (waveInOpen(NULL, m_devId, &wfx.Format, 0, 0,
-                                WAVE_FORMAT_QUERY) == MMSYSERR_NOERROR);
+            return (waveInOpen(nullptr, m_devId, &wfx.Format, 0, 0,
+                               WAVE_FORMAT_QUERY) == MMSYSERR_NOERROR);
         }
     }
 
