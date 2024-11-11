@@ -16,6 +16,7 @@ if(QT_FEATURE_gstreamer)
 endif()
 
 if(TARGET Qt::Quick)
+    add_subdirectory(qml-minimal-audio-recorder)
     add_subdirectory(qml-minimal-camera)
     add_subdirectory(qml-minimal-player)
     add_subdirectory(qml-minimal-sound-effect)
