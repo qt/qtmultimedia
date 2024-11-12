@@ -7,6 +7,8 @@
 #include <QtMultimedia/private/qplatformimagecapture_p.h>
 #include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/private/qmediastoragelocation_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtGui/qguiapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qstandardpaths.h>
@@ -256,17 +258,26 @@ void QGstreamerImageCapture::saveBufferToFile(QGstBufferHandle buffer, QString f
         });
     });
 }
-void QGstreamerImageCapture::convertBufferToImage(QGstBufferHandle buffer, QGstCaps caps,
+void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveMutex> &locker,
+                                                  QGstBufferHandle buffer, QGstCaps caps,
                                                   QMediaMetaData metadata, int taskId)
 {
-    runInThreadPool([this, taskId, buffer = std::move(buffer), caps = std::move(caps),
-                     metadata = std::move(metadata)]() mutable {
-        QMutexLocker guard(&m_mutex);
+    using namespace Qt::Literals;
+    Q_ASSERT(locker.mutex() == &m_mutex);
+    Q_ASSERT(locker.isLocked());
+
+    // QTBUG-131107: QVideoFrame::toImage() can only be called from the application thread
+    constexpr bool isOpenGLPlatform = QT_CONFIG(opengl);
+
+    // QTBUG-130970: QVideoFrame::toImage() on worker thread causes wayland to crash on the
+    // application thread
+    static const bool isWaylandQPA = QGuiApplication::platformName() == u"wayland"_s;
+
+    if (isOpenGLPlatform || isWaylandQPA) {
         if (!m_session) {
-            qDebug() << "QGstreamerImageCapture::probeBuffer: no session";
+            qDebug() << "QGstreamerImageCapture::convertBufferToImage: no session";
             return;
         }
-
         auto memoryFormat = caps.memoryFormat();
 
         GstVideoInfo previewInfo;
@@ -280,24 +291,63 @@ void QGstreamerImageCapture::convertBufferToImage(QGstBufferHandle buffer, QGstC
                                                            fmt, memoryFormat);
         QVideoFrame frame(gstBuffer.release(), fmt);
 
-        QImage img = frame.toImage();
-        if (img.isNull()) {
-            qDebug() << "received a null image";
-            return;
-        }
+        metadata.insert(QMediaMetaData::Resolution, frame.size());
 
-        QMediaMetaData imageMetaData = metaData();
-        imageMetaData.insert(QMediaMetaData::Resolution, frame.size());
+        invokeDeferred(
+                [this, frame = std::move(frame), taskId, metadata = std::move(metadata)]() mutable {
+            QImage img = frame.toImage();
+            if (img.isNull()) {
+                qDebug() << "received a null image";
+                return;
+            }
 
-        invokeDeferred([this, taskId, metadata = std::move(metadata), frame = std::move(frame),
-                        img = std::move(img)]() mutable {
             emit imageExposed(taskId);
             qCDebug(qLcImageCaptureGst) << "Image available!";
             emit imageAvailable(taskId, frame);
             emit imageCaptured(taskId, img);
             emit imageMetadataAvailable(taskId, metadata);
         });
-    });
+    } else {
+        runInThreadPool([this, taskId, buffer = std::move(buffer), caps = std::move(caps),
+                         metadata = std::move(metadata)]() mutable {
+            QMutexLocker guard(&m_mutex);
+            if (!m_session) {
+                qDebug() << "QGstreamerImageCapture::probeBuffer: no session";
+                return;
+            }
+
+            auto memoryFormat = caps.memoryFormat();
+
+            GstVideoInfo previewInfo;
+            QVideoFrameFormat fmt;
+            auto optionalFormatAndVideoInfo = caps.formatAndVideoInfo();
+            if (optionalFormatAndVideoInfo)
+                std::tie(fmt, previewInfo) = std::move(*optionalFormatAndVideoInfo);
+
+            auto *sink = m_session->gstreamerVideoSink();
+            auto gstBuffer = std::make_unique<QGstVideoBuffer>(std::move(buffer), previewInfo, sink,
+                                                               fmt, memoryFormat);
+
+            QVideoFrame frame(gstBuffer.release(), fmt);
+            QImage img = frame.toImage();
+            if (img.isNull()) {
+                qDebug() << "received a null image";
+                return;
+            }
+
+            QMediaMetaData imageMetaData = metaData();
+            imageMetaData.insert(QMediaMetaData::Resolution, frame.size());
+
+            invokeDeferred([this, taskId, metadata = std::move(metadata), frame = std::move(frame),
+                            img = std::move(img)]() mutable {
+                emit imageExposed(taskId);
+                qCDebug(qLcImageCaptureGst) << "Image available!";
+                emit imageAvailable(taskId, frame);
+                emit imageCaptured(taskId, img);
+                emit imageMetadataAvailable(taskId, metadata);
+            });
+        });
+    }
 }
 
 void QGstreamerImageCapture::setResolution(const QSize &resolution)
@@ -346,7 +396,8 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
     QGstCaps caps = bin.staticPad("sink").currentCaps();
 
     QMediaMetaData imageMetaData = metaData();
-    convertBufferToImage(bufferHandle, std::move(caps), std::move(imageMetaData), imageData.id);
+    convertBufferToImage(guard, bufferHandle, std::move(caps), std::move(imageMetaData),
+                         imageData.id);
 
     return true;
 }
