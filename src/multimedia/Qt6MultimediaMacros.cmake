@@ -17,11 +17,11 @@ function(qt6_add_ios_ffmpeg_libraries target)
         return()
     endif()
 
-    file (GLOB ffmpeg_dylibs "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_LIBS}/ffmpeg/*.*.dylib")
-    if(NOT ffmpeg_dylibs)
+    file (GLOB ffmpeg_frameworks "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_LIBS}/ffmpeg/*.framework")
+    if(NOT ffmpeg_frameworks)
         return()
     endif()
-    set_property(TARGET ${target} APPEND PROPERTY XCODE_EMBED_FRAMEWORKS "${ffmpeg_dylibs}")
+    set_property(TARGET ${target} APPEND PROPERTY XCODE_EMBED_FRAMEWORKS "${ffmpeg_frameworks}")
 
     set_property(TARGET ${target} APPEND PROPERTY
                  XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/")
@@ -30,5 +30,5 @@ function(qt6_add_ios_ffmpeg_libraries target)
         set_property(TARGET ${target} PROPERTY XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY ON)
     endif()
 
-    target_link_libraries(${target} PRIVATE ${ffmpeg_dylibs})
+    target_link_libraries(${target} PRIVATE ${ffmpeg_frameworks})
 endfunction()
