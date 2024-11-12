@@ -9,7 +9,6 @@ qtHaveModule(widgets) {
         audiorecorder \
         camera \
         player \
-        spectrum \
         videographicsitem \
         videowidget \
         screencapture

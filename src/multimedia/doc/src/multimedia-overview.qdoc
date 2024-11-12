@@ -73,8 +73,7 @@ For some quick recipes, see this table:
         \li QAudioSink
     \row
         \li Accessing raw audio input data
-        \li \l{Spectrum Example}{spectrum},
-            \l{Audio Source Example}{audiosource}
+        \li \l{Audio Source Example}{audiosource}
         \li
         \li QAudioSource
     \row
