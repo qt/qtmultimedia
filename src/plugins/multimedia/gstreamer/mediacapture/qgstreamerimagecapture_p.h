@@ -64,7 +64,8 @@ private:
     void setResolution(const QSize &resolution);
     int doCapture(QString fileName);
     void saveBufferToFile(QGstBufferHandle, QString filename, int id);
-    void convertBufferToImage(QGstBufferHandle, QGstCaps, QMediaMetaData, int id);
+    void convertBufferToImage(const QMutexLocker<QRecursiveMutex> &, QGstBufferHandle, QGstCaps,
+                              QMediaMetaData, int id);
 
     mutable QRecursiveMutex m_mutex; // guard all elements accessed from gstreamer / worker threads
     QGstreamerMediaCaptureSession *m_session = nullptr;
