@@ -87,7 +87,7 @@ private:
     QGstElement sink;
     QGstPad videoSrcPad;
 
-    bool passImage = false;
+    std::atomic_bool m_captureNextBuffer{};
     bool cameraActive = false;
 
     QMutex m_pendingFuturesMutex;

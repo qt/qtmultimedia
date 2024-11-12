@@ -171,7 +171,7 @@ QGstreamerImageCapture::~QGstreamerImageCapture()
 bool QGstreamerImageCapture::isReadyForCapture() const
 {
     QMutexLocker guard(&m_mutex);
-    return m_session && !passImage && cameraActive;
+    return m_session && !m_captureNextBuffer && cameraActive;
 }
 
 int QGstreamerImageCapture::capture(const QString &fileName)
@@ -210,7 +210,7 @@ int QGstreamerImageCapture::doCapture(QString fileName)
             qCDebug(qLcImageCaptureGst) << "error 2";
             return -1;
         }
-        if (passImage) {
+        if (m_captureNextBuffer) {
             invokeDeferred([this] {
                 emit error(-1, QImageCapture::NotReadyError,
                            QPlatformImageCapture::msgCameraNotReady());
@@ -223,7 +223,7 @@ int QGstreamerImageCapture::doCapture(QString fileName)
 
         pendingImages.enqueue({ m_lastId, std::move(fileName) });
         // let one image pass the pipeline
-        passImage = true;
+        m_captureNextBuffer = true;
     }
 
     emit readyForCaptureChanged(false);
@@ -319,10 +319,10 @@ void QGstreamerImageCapture::setResolution(const QSize &resolution)
 
 bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 {
-    QMutexLocker guard(&m_mutex);
-
-    if (!passImage)
+    if (!m_captureNextBuffer.load())
         return false;
+
+    QMutexLocker guard(&m_mutex);
     qCDebug(qLcImageCaptureGst) << "probe buffer";
 
     QGstBufferHandle bufferHandle{
@@ -330,7 +330,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
         QGstBufferHandle::NeedsRef,
     };
 
-    passImage = false;
+    m_captureNextBuffer = false;
 
     bool ready = isReadyForCapture();
     invokeDeferred([this, ready] {
@@ -363,7 +363,7 @@ void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *ses
         disconnect(m_session, nullptr, this, nullptr);
         m_lastId = 0;
         pendingImages.clear();
-        passImage = false;
+        m_captureNextBuffer = false;
         cameraActive = false;
     }
 
