@@ -438,7 +438,7 @@ void tst_QSoundEffect::setAudioDevice_emitsSignalsInExpectedOrder()
 
     // Set source or not based on test data
     if (with_source)
-        sound->setSource(url);
+        sound->setSource(url2); // Long tone to prevent playback to stop before test finishes
     QTRY_COMPARE(sound->isLoaded(), with_source);
 
     // Start playback or not based on test data
