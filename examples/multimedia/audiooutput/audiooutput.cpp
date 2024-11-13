@@ -118,8 +118,7 @@ void AudioTest::initializeWindow()
         if (deviceInfo != defaultDeviceInfo)
             m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
     }
-    connect(m_deviceBox, QOverload<int>::of(&QComboBox::activated), this,
-            &AudioTest::deviceChanged);
+    connect(m_deviceBox, &QComboBox::currentIndexChanged, this, &AudioTest::deviceChanged);
     connect(m_devices, &QMediaDevices::audioOutputsChanged, this, &AudioTest::updateAudioDevices);
     layout->addWidget(m_deviceBox);
 
