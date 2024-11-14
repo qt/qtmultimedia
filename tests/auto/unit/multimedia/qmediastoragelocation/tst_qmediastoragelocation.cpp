@@ -55,6 +55,65 @@ private slots:
 
         QVERIFY(pass);
     }
+
+    void generateFileName_generatesFileNameWithProperIndexAndExtension_whenInvokedForDirectory_data()
+    {
+        QTest::addColumn<QStandardPaths::StandardLocation>("locationType");
+        QTest::addColumn<QString>("extension");
+        QTest::addColumn<QString>("expectedFilePattern");
+
+        QTest::addRow("Music location, with extension")
+            << QStandardPaths::MusicLocation << QStringLiteral("myext") << QStringLiteral("record_000%1.myext");
+        QTest::addRow("Music location, without extension")
+            << QStandardPaths::MusicLocation << QString() << QStringLiteral("record_000%1");
+
+        QTest::addRow("Movies location, with extension")
+            << QStandardPaths::MoviesLocation << QStringLiteral("myext") << QStringLiteral("video_000%1.myext");
+        QTest::addRow("Movies location, without extension")
+            << QStandardPaths::MoviesLocation << QString() << QStringLiteral("video_000%1");
+
+        QTest::addRow("Pictures location, with extension")
+            << QStandardPaths::PicturesLocation << QStringLiteral("myext") << QStringLiteral("image_000%1.myext");
+        QTest::addRow("Pictures location, without extension")
+            << QStandardPaths::PicturesLocation << QString() << QStringLiteral("image_000%1");
+
+        QTest::addRow("Any location, with extension")
+            << QStandardPaths::TempLocation << QStringLiteral("myext") << QStringLiteral("clip_000%1.myext");
+        QTest::addRow("Any location, without extension")
+            << QStandardPaths::TempLocation << QString() << QStringLiteral("clip_000%1");
+    }
+
+    void generateFileName_generatesFileNameWithProperIndexAndExtension_whenInvokedForDirectory()
+    {
+        QFETCH(const QStandardPaths::StandardLocation, locationType);
+        QFETCH(const QString, extension);
+        QFETCH(const QString, expectedFilePattern);
+
+        QTemporaryDir tempDir;
+
+        auto generateFileName = [&]() {
+            return QMediaStorageLocation::generateFileName(tempDir.path(), locationType, extension);
+        };
+
+        auto createFile = [&](int index) {
+            QTEST_ASSERT(index < 10);
+            QFile file(tempDir.filePath(expectedFilePattern.arg(index)));
+            file.open(QFile::WriteOnly);
+        };
+
+        const QString fileName_1 = generateFileName();
+
+        QCOMPARE(fileName_1, tempDir.filePath(expectedFilePattern.arg(1)));
+        QCOMPARE(fileName_1, generateFileName()); // generates the same name 2nd time
+
+        createFile(1);
+        const QString fileName_2 = generateFileName();
+        QCOMPARE(fileName_2, tempDir.filePath(expectedFilePattern.arg(2)));
+
+        createFile(8);
+        const QString fileName_9 = generateFileName();
+        QCOMPARE(fileName_9, tempDir.filePath(expectedFilePattern.arg(9)));
+    }
 };
 
 QTEST_GUILESS_MAIN(tst_qmediastoragelocation)
