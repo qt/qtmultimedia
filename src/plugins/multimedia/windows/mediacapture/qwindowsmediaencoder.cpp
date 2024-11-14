@@ -7,7 +7,6 @@
 #include "qwindowsmediacapture_p.h"
 #include "mfmetadata_p.h"
 #include <QtCore/QUrl>
-#include <QtCore/QMimeType>
 #include <mferror.h>
 #include <shobjidl.h>
 #include <private/qmediastoragelocation_p.h>
@@ -59,10 +58,10 @@ void QWindowsMediaEncoder::record(QMediaEncoderSettings &settings)
     }
 
     const auto audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
-    m_fileName = QMediaStorageLocation::generateFileName(outputLocation().toLocalFile(), audioOnly
-                                                    ? QStandardPaths::MusicLocation
-                                                    : QStandardPaths::MoviesLocation,
-                                                    settings.mimeType().preferredSuffix());
+    m_fileName = QMediaStorageLocation::generateFileName(outputLocation().toLocalFile(),
+                                                         audioOnly ? QStandardPaths::MusicLocation
+                                                                   : QStandardPaths::MoviesLocation,
+                                                         settings.preferredSuffix());
 
     QMediaRecorder::Error ec = m_mediaDeviceSession->startRecording(settings, m_fileName, audioOnly);
     if (ec == QMediaRecorder::NoError) {

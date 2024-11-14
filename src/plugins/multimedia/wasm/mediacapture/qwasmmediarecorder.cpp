@@ -504,7 +504,7 @@ void QWasmMediaRecorder::startStream()
 void QWasmMediaRecorder::setUpFileSink()
 {
     QString m_targetFileName = outputLocation().toLocalFile();
-    QString suffix = m_mediaSettings.mimeType().preferredSuffix();
+    QString suffix = m_mediaSettings.preferredSuffix();
     if (m_targetFileName.isEmpty()) {
         m_targetFileName = "/home/web_user/tmp." + suffix;
         QPlatformMediaRecorder::setOutputLocation(m_targetFileName);

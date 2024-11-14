@@ -58,6 +58,7 @@ public:
     QMediaFormat::VideoCodec videoCodec() const { return mediaFormat().videoCodec(); }
     QMediaFormat::AudioCodec audioCodec() const { return mediaFormat().audioCodec(); }
     QMimeType mimeType() const { return mediaFormat().mimeType(); }
+    QString preferredSuffix() const { return mimeType().preferredSuffix(); }
 
     QMediaRecorder::EncodingMode encodingMode() const { return m_encodingMode; }
     void setEncodingMode(QMediaRecorder::EncodingMode mode) { m_encodingMode = mode; }

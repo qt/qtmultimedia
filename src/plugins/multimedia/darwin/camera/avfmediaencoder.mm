@@ -20,7 +20,6 @@
 
 #include <QtCore/qmath.h>
 #include <QtCore/qdebug.h>
-#include <QtCore/qmimetype.h>
 
 #include <private/qcoreaudioutils_p.h>
 
@@ -501,9 +500,9 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
 
     const QString path(outputLocation().scheme() == QLatin1String("file") ?
                            outputLocation().path() : outputLocation().toString());
-    const QUrl fileURL(QUrl::fromLocalFile(QMediaStorageLocation::generateFileName(path,
-                    audioOnly ? QStandardPaths::MusicLocation : QStandardPaths::MoviesLocation,
-                    settings.mimeType().preferredSuffix())));
+    const QUrl fileURL(QUrl::fromLocalFile(QMediaStorageLocation::generateFileName(
+            path, audioOnly ? QStandardPaths::MusicLocation : QStandardPaths::MoviesLocation,
+            settings.preferredSuffix())));
 
     NSURL *nsFileURL = fileURL.toNSURL();
     if (!nsFileURL) {

@@ -16,7 +16,6 @@
 #include <private/qplatformaudiooutput_p.h>
 #include <private/qmediarecorder_p.h>
 #include <private/qmediastoragelocation_p.h>
-#include <QtCore/qmimetype.h>
 
 #include <algorithm>
 
@@ -202,7 +201,7 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
         m_mediaRecorder->setAudioEncoder(m_audioEncoder);
     }
 
-    QString extension = settings.mimeType().preferredSuffix();
+    QString extension = settings.preferredSuffix();
     // Set output file
     auto location = outputLocation.toString(QUrl::PreferLocalFile);
     QString filePath = location;

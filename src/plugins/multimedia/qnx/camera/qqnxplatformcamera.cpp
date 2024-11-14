@@ -334,7 +334,7 @@ bool QQnxPlatformCamera::startVideoRecording()
         return false;
     }
 
-    const QString container = m_encoderSettings.mimeType().preferredSuffix();
+    const QString container = m_encoderSettings.preferredSuffix();
     const QString location = QMediaStorageLocation::generateFileName(m_outputUrl.toLocalFile(),
             QStandardPaths::MoviesLocation, container);
 

@@ -15,7 +15,6 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qeventloop.h>
 #include <QtCore/qstandardpaths.h>
-#include <QtCore/qmimetype.h>
 #include <QtCore/qloggingcategory.h>
 
 #include <gst/gsttagsetter.h>
@@ -266,7 +265,7 @@ void QGstreamerMediaRecorder::record(QMediaEncoderSettings &settings)
     const auto audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
 
     auto primaryLocation = audioOnly ? QStandardPaths::MusicLocation : QStandardPaths::MoviesLocation;
-    auto container = settings.mimeType().preferredSuffix();
+    auto container = settings.preferredSuffix();
     auto location = QMediaStorageLocation::generateFileName(outputLocation().toLocalFile(), primaryLocation, container);
 
     QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(location);
