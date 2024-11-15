@@ -32,7 +32,7 @@ using QVideoFrameTexturesHandlesUPtr = std::unique_ptr<QVideoFrameTexturesHandle
 namespace QVideoTextureHelper
 {
 
-struct TextureDescription
+struct Q_MULTIMEDIA_EXPORT TextureDescription
 {
     static constexpr int maxPlanes = 3;
     struct SizeScale {
@@ -40,6 +40,18 @@ struct TextureDescription
         int y;
     };
     using BytesRequired = int(*)(int stride, int height);
+
+    enum TextureFormat {
+        UnknownFormat,
+        Red_8,
+        RG_8,
+        RGBA_8,
+        BGRA_8,
+        Red_16,
+        RG_16,
+    };
+
+    QRhiTexture::Format rhiTextureFormat(int plane, QRhi *rhi) const;
 
     inline int strideForWidth(int width) const { return (width*strideFactor + 15) & ~15; }
     inline int bytesForSize(QSize s) const { return bytesRequired(strideForWidth(s.width()), s.height()); }
@@ -57,7 +69,7 @@ struct TextureDescription
     int nplanes;
     int strideFactor;
     BytesRequired bytesRequired;
-    QRhiTexture::Format textureFormat[maxPlanes];
+    TextureFormat textureFormat[maxPlanes];
     SizeScale sizeScale[maxPlanes];
 };
 
@@ -65,7 +77,7 @@ Q_MULTIMEDIA_EXPORT const TextureDescription *textureDescription(QVideoFrameForm
 
 Q_MULTIMEDIA_EXPORT QString vertexShaderFileName(const QVideoFrameFormat &format);
 Q_MULTIMEDIA_EXPORT QString
-fragmentShaderFileName(const QVideoFrameFormat &format, bool useAlphaShader,
+fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *rhi,
                        QRhiSwapChain::Format surfaceFormat = QRhiSwapChain::SDR);
 Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame,
                                            const QMatrix4x4 &transform, float opacity, float maxNits = 100);

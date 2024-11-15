@@ -44,7 +44,7 @@ public:
     QSGVideoMaterialRhiShader(const QVideoFrameFormat &videoFormat,
                               const QRhiSwapChain::Format surfaceFormat,
                               const QRhiSwapChainHdrInfo &hdrInfo,
-                              bool useAlphaShader = false)
+                              QRhi *rhi)
         : m_videoFormat(videoFormat)
         , m_surfaceFormat(surfaceFormat)
         , m_hdrInfo(hdrInfo)
@@ -52,7 +52,7 @@ public:
         setShaderFileName(VertexStage, QVideoTextureHelper::vertexShaderFileName(m_videoFormat));
         setShaderFileName(FragmentStage,
                           QVideoTextureHelper::fragmentShaderFileName(
-                                  m_videoFormat, useAlphaShader, m_surfaceFormat));
+                                  m_videoFormat, rhi, m_surfaceFormat));
     }
 
     bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,
@@ -70,7 +70,7 @@ protected:
 class QSGVideoMaterial : public QSGMaterial
 {
 public:
-    QSGVideoMaterial(const QVideoFrameFormat &videoFormat, bool useAlphaShader = false);
+    QSGVideoMaterial(const QVideoFrameFormat &videoFormat, QRhi *rhi);
 
     [[nodiscard]] QSGMaterialType *type() const override {
         static constexpr int NFormats = QRhiSwapChain::HDRExtendedDisplayP3Linear + 1;
@@ -79,8 +79,7 @@ public:
     }
 
     [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
-        return new QSGVideoMaterialRhiShader(m_videoFormat, m_surfaceFormat, m_hdrInfo,
-                                             m_useAlphaShader);
+        return new QSGVideoMaterialRhiShader(m_videoFormat, m_surfaceFormat, m_hdrInfo, m_rhi);
     }
 
     int compare(const QSGMaterial *other) const override {
@@ -120,7 +119,7 @@ public:
     QVideoFrameTexturePoolPtr m_texturePool = std::make_shared<QVideoFrameTexturePool>();
     std::array<QSGVideoTexture, 3> m_textures;
 
-    bool m_useAlphaShader = false;
+    QRhi *m_rhi;
 };
 
 void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
@@ -184,20 +183,20 @@ void QSGVideoMaterialRhiShader::updateSampledImage(RenderState &state, int bindi
     *texture = &m->m_textures[binding - 1];
 }
 
-QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &videoFormat, bool useAlphaShader)
+QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &videoFormat, QRhi *rhi)
     : m_videoFormat(videoFormat),
-    m_useAlphaShader(useAlphaShader)
+    m_rhi(rhi)
 {
     setFlag(Blending, false);
 }
 
 QSGVideoNode::QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &videoFormat,
-                           bool useAlphaShader)
+                           QRhi *rhi)
     : m_parent(parent), m_videoFormat(videoFormat)
 {
     setFlag(QSGNode::OwnsMaterial);
     setFlag(QSGNode::OwnsGeometry);
-    m_material = new QSGVideoMaterial(videoFormat, useAlphaShader);
+    m_material = new QSGVideoMaterial(videoFormat, rhi);
     setMaterial(m_material);
 }
 

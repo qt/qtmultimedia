@@ -146,7 +146,7 @@ quint64 AVFVideoBuffer::textureHandle(QRhi &, int plane)
             }
 
             // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
-            const auto pixelFormat = rhiTextureFormatToMetalFormat(textureDescription->textureFormat[plane]);
+            const auto pixelFormat = rhiTextureFormatToMetalFormat(textureDescription->rhiTextureFormat(plane, m_rhi));
             if (pixelFormat != MTLPixelFormatInvalid) {
                 // Passing invalid pixel format makes Metal API validation
                 // to crash (and also makes no sense at all).
@@ -163,7 +163,7 @@ quint64 AVFVideoBuffer::textureHandle(QRhi &, int plane)
                     qCWarning(qLcVideoBuffer) << "texture creation failed" << ret;
             } else {
                 qCWarning(qLcVideoBuffer) << "requested invalid pixel format:"
-                                          << textureDescription->textureFormat[plane];
+                                          << textureDescription->rhiTextureFormat(plane, m_rhi);
             }
         }
 

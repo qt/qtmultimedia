@@ -230,7 +230,7 @@ public:
         for (uint i = 0; i < textures.count; ++i) {
             QSize planeSize(desc->widthForPlane(size.width(), int(i)),
                             desc->heightForPlane(size.height(), int(i)));
-            m_textures[i].reset(rhi->newTexture(desc->textureFormat[i], planeSize, 1, {}));
+            m_textures[i].reset(rhi->newTexture(desc->rhiTextureFormat(i, m_rhi), planeSize, 1, {}));
             m_textures[i]->createFrom({textures.names[i], 0});
         }
     }

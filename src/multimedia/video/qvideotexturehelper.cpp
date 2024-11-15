@@ -17,141 +17,125 @@ QT_BEGIN_NAMESPACE
 namespace QVideoTextureHelper
 {
 
-static constexpr QRhiTexture::Format singleComponentFormat8()
-{
-#if QT_CONFIG(opengles2)
-    // NOTE: RED_OR_ALPHA8 resolves to:
-    //     * GL_R8/GL_RED when QRhiGles2 caps.coreProfile == true
-    //     * GL_ALPHA/GL_ALPHA when QRhiGles2 caps.coreProfile == false
-    // caps.coreProfile can be queried with QRhi::isFeatureSupported(QRhi::RedOrAlpha8IsRed) to
-    // determine if alpha shaders should be used.
-    return QRhiTexture::RED_OR_ALPHA8;
-#else
-    return QRhiTexture::R8;
-#endif
-}
-
-// TODO: Replace RG8 textures on platforms that don't support the underlying format (GLES2)
-
 static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] = {
     //  Format_Invalid
     { 0, 0,
       [](int, int) { return 0; },
-     { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat},
+     { TextureDescription::UnknownFormat, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat},
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_ARGB8888
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_ARGB8888_Premultiplied
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_XRGB8888
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_BGRA8888
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::BGRA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_BGRA8888_Premultiplied
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::BGRA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_BGRX8888
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::BGRA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_ABGR8888
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_XBGR8888
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_RGBA8888
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_RGBX8888
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_AYUV
     { 1, 4,
       [](int stride, int height) { return stride*height; },
-     { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+     { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_AYUV_Premultiplied
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_YUV420P
     { 3, 1,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { singleComponentFormat8(), singleComponentFormat8(), singleComponentFormat8() },
+     { TextureDescription::Red_8, TextureDescription::Red_8, TextureDescription::Red_8 },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
      // Format_YUV422P
     { 3, 1,
       [](int stride, int height) { return stride * height * 2; },
-     { singleComponentFormat8(), singleComponentFormat8(), singleComponentFormat8() },
+     {TextureDescription::Red_8, TextureDescription::Red_8, TextureDescription::Red_8 },
      { { 1, 1 }, { 2, 1 }, { 2, 1 } }
     },
      // Format_YV12
     { 3, 1,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { singleComponentFormat8(), singleComponentFormat8(), singleComponentFormat8() },
+     {TextureDescription::Red_8, TextureDescription::Red_8, TextureDescription::Red_8 },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
     // Format_UYVY
     { 1, 2,
       [](int stride, int height) { return stride*height; },
-     { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+     { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
      { { 2, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_YUYV
     { 1, 2,
       [](int stride, int height) { return stride*height; },
-     { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+     { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
      { { 2, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_NV12
     { 2, 1,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { singleComponentFormat8(), QRhiTexture::RG8, QRhiTexture::UnknownFormat },
+     { TextureDescription::Red_8, TextureDescription::RG_8, TextureDescription::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_NV21
     { 2, 1,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { singleComponentFormat8(), QRhiTexture::RG8, QRhiTexture::UnknownFormat },
+     { TextureDescription::Red_8, TextureDescription::RG_8, TextureDescription::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_IMC1
@@ -162,13 +146,13 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
           h += 2*(((h/2) + 15) & ~15);
           return stride * h;
       },
-     { singleComponentFormat8(), singleComponentFormat8(), singleComponentFormat8() },
+     {TextureDescription::Red_8,TextureDescription::Red_8,TextureDescription::Red_8 },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
     // Format_IMC2
     { 2, 1,
       [](int stride, int height) { return 2*stride*height; },
-     { singleComponentFormat8(), singleComponentFormat8(), QRhiTexture::UnknownFormat },
+     {TextureDescription::Red_8,TextureDescription::Red_8, TextureDescription::UnknownFormat },
      { { 1, 1 }, { 1, 2 }, { 1, 1 } }
     },
     // Format_IMC3
@@ -179,66 +163,108 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
           h += 2*(((h/2) + 15) & ~15);
           return stride * h;
       },
-     { singleComponentFormat8(), singleComponentFormat8(), singleComponentFormat8() },
+     {TextureDescription::Red_8,TextureDescription::Red_8,TextureDescription::Red_8 },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
     // Format_IMC4
     { 2, 1,
       [](int stride, int height) { return 2*stride*height; },
-     { singleComponentFormat8(), singleComponentFormat8(), QRhiTexture::UnknownFormat },
+     {TextureDescription::Red_8,TextureDescription::Red_8, TextureDescription::UnknownFormat },
      { { 1, 1 }, { 1, 2 }, { 1, 1 } }
     },
     // Format_Y8
     { 1, 1,
       [](int stride, int height) { return stride*height; },
-     { singleComponentFormat8(), QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+     {TextureDescription::Red_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_Y16
     { 1, 2,
       [](int stride, int height) { return stride*height; },
-     { QRhiTexture::R16, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+     { TextureDescription::Red_16, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_P010
     { 2, 2,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { QRhiTexture::R16, QRhiTexture::RG16, QRhiTexture::UnknownFormat },
+     { TextureDescription::Red_16, TextureDescription::RG_16, TextureDescription::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_P016
     { 2, 2,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { QRhiTexture::R16, QRhiTexture::RG16, QRhiTexture::UnknownFormat },
+     { TextureDescription::Red_16, TextureDescription::RG_16, TextureDescription::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_SamplerExternalOES
     {
         1, 0,
         [](int, int) { return 0; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_Jpeg
     { 1, 4,
       [](int stride, int height) { return stride*height; },
-     { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+     { TextureDescription::RGBA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_SamplerRect
     {
         1, 0,
         [](int, int) { return 0; },
-        { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { TextureDescription::BGRA_8, TextureDescription::UnknownFormat, TextureDescription::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_YUV420P10
     { 3, 2,
         [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-        { QRhiTexture::R16, QRhiTexture::R16, QRhiTexture::R16 },
+        { TextureDescription::Red_16, TextureDescription::Red_16, TextureDescription::Red_16 },
         { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
 };
+
+static QRhiTexture::Format
+resolveRhiTextureFormat(QRhi *rhi, QRhiTexture::Format format,
+                        QRhiTexture::Format fallback = QRhiTexture::UnknownFormat)
+{
+    if (!rhi || rhi->isTextureFormatSupported(format))
+        return format;
+
+    if (fallback != QRhiTexture::UnknownFormat && rhi->isTextureFormatSupported(fallback))
+        return fallback;
+
+    qWarning() << "Cannot determine any usable texture format, using preferred format" << format;
+    return format;
+}
+
+QRhiTexture::Format TextureDescription::rhiTextureFormat(int plane, QRhi *rhi) const
+{
+    switch (textureFormat[plane]) {
+        case UnknownFormat:
+            return QRhiTexture::UnknownFormat;
+        case Red_8:
+            // NOTE: RED_OR_ALPHA8 requires special alpha shaders if rhi doesn't have feature
+            // RedOrAlpha8IsRed
+            return resolveRhiTextureFormat(rhi, QRhiTexture::R8, QRhiTexture::RED_OR_ALPHA8);
+        case RG_8:
+            // TODO: Pack four values in one pixel of texture, requires special handling of
+            // width here and components in shader
+            return resolveRhiTextureFormat(rhi, QRhiTexture::RG8);
+        case RGBA_8:
+            return resolveRhiTextureFormat(rhi, QRhiTexture::RGBA8);
+        case BGRA_8:
+            return resolveRhiTextureFormat(rhi, QRhiTexture::BGRA8);
+        case Red_16:
+            // TODO: Special handling for 16-bit formats, if we want to support them at all.
+            // Otherwise should give an error.
+            return resolveRhiTextureFormat(rhi, QRhiTexture::R16);
+        case RG_16:
+            return resolveRhiTextureFormat(rhi, QRhiTexture::RG16);
+        default:
+            Q_UNREACHABLE();
+    }
+}
 
 const TextureDescription *textureDescription(QVideoFrameFormat::PixelFormat format)
 {
@@ -262,7 +288,7 @@ QString vertexShaderFileName(const QVideoFrameFormat &format)
     return QStringLiteral(":/qt-project.org/multimedia/shaders/vertex.vert.qsb");
 }
 
-QString fragmentShaderFileName(const QVideoFrameFormat &format, bool useAlphaShader,
+QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *rhi,
                                QRhiSwapChain::Format surfaceFormat)
 {
     QString shaderFile;
@@ -358,11 +384,12 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, bool useAlphaSha
 
     shaderFile.prepend(u":/qt-project.org/multimedia/shaders/");
 
-    if (useAlphaShader) {
+    if (rhi && !rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed)) {
         // Check if texture description formats contain RED_OR_ALPHA8
         auto desc = textureDescription(format.pixelFormat());
         for (auto i = 0; i < desc->nplanes; ++i) {
-            if (desc->textureFormat[i] != QRhiTexture::RED_OR_ALPHA8)
+            if (desc->rhiTextureFormat(i, rhi) != QRhiTexture::RED_OR_ALPHA8)
+                // Only use alpha shaders with single component textures
                 continue;
 
             shaderFile.append(u"_a");
@@ -618,9 +645,9 @@ static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame,
     const TextureDescription &texDesc = descriptions[pixelFormat];
     QSize planeSize(size.width()/texDesc.sizeScale[plane].x, size.height()/texDesc.sizeScale[plane].y);
 
-    bool needsRebuild = !tex || tex->pixelSize() != planeSize || tex->format() != texDesc.textureFormat[plane];
+    bool needsRebuild = !tex || tex->pixelSize() != planeSize || tex->format() != texDesc.rhiTextureFormat(plane, &rhi);
     if (!tex) {
-        tex.reset(rhi.newTexture(texDesc.textureFormat[plane], planeSize, 1, {}));
+        tex.reset(rhi.newTexture(texDesc.rhiTextureFormat(plane, &rhi), planeSize, 1, {}));
         if (!tex) {
             qWarning("Failed to create new texture (size %dx%d)", planeSize.width(), planeSize.height());
             return UpdateTextureWithMapResult::Failed;
@@ -628,7 +655,7 @@ static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame,
     }
 
     if (needsRebuild) {
-        tex->setFormat(texDesc.textureFormat[plane]);
+        tex->setFormat(texDesc.rhiTextureFormat(plane, &rhi));
         tex->setPixelSize(planeSize);
         if (!tex->create()) {
             qWarning("Failed to create texture (size %dx%d)", planeSize.width(), planeSize.height());
@@ -698,7 +725,7 @@ createTextureFromHandle(QVideoFrameTexturesHandles &texturesSet, QRhi &rhi,
     }
 
     if (quint64 handle = texturesSet.textureHandle(rhi, plane); handle) {
-        std::unique_ptr<QRhiTexture> tex(rhi.newTexture(texDesc.textureFormat[plane], planeSize, 1, textureFlags));
+        std::unique_ptr<QRhiTexture> tex(rhi.newTexture(texDesc.rhiTextureFormat(plane, &rhi), planeSize, 1, textureFlags));
         if (tex->createFrom({handle, 0}))
             return tex;
 
