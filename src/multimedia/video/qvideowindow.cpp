@@ -184,7 +184,7 @@ void QVideoWindowPrivate::setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, 
     QShader vs = vwGetShader(QVideoTextureHelper::vertexShaderFileName(fmt));
     Q_ASSERT(vs.isValid());
     QShader fs = vwGetShader(QVideoTextureHelper::fragmentShaderFileName(
-            fmt, qUseAlphaShader(m_rhi.get()), m_swapChain->format()));
+            fmt, m_rhi.get(), m_swapChain->format()));
     Q_ASSERT(fs.isValid());
     pipeline->setShaderStages({
         { QRhiShaderStage::Vertex, vs },

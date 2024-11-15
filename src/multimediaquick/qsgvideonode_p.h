@@ -37,7 +37,7 @@ class QSGVideoNode : public QSGGeometryNode
 {
 public:
     QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &videoFormat,
-                 bool useAlphaShader = false);
+                 QRhi *rhi);
     ~QSGVideoNode();
 
     QVideoFrameFormat::PixelFormat pixelFormat() const { return m_videoFormat.pixelFormat(); }

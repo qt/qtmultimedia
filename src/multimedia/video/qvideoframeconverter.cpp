@@ -223,7 +223,7 @@ static bool updateTextures(QRhi *rhi,
     if (!vs.isValid())
         return false;
 
-    QShader fs = vfcGetShader(QVideoTextureHelper::fragmentShaderFileName(format, qUseAlphaShader(rhi)));
+    QShader fs = vfcGetShader(QVideoTextureHelper::fragmentShaderFileName(format, rhi));
     if (!fs.isValid())
         return false;
 

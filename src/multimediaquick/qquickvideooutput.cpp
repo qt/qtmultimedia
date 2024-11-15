@@ -565,7 +565,7 @@ QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
             // QSGVideoItemSurface supports (logically) anything.
             updateGeometry();
             QRhi *rhi = m_window ? QQuickWindowPrivate::get(m_window)->rhi : nullptr;
-            videoNode = new QSGVideoNode(this, m_videoFormat, rhi ? qUseAlphaShader(rhi) : false);
+            videoNode = new QSGVideoNode(this, m_videoFormat, rhi);
             m_texturePool = videoNode->texturePool();
             qCDebug(qLcVideo) << "updatePaintNode: Video node created. Handle type:" << m_frame.handleType();
         }

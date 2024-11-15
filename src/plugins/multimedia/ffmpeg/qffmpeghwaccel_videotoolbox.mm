@@ -198,7 +198,7 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
         // before we create any Metal textures.
         for (int plane = 0; plane < bufferPlanes; ++plane) {
             const MTLPixelFormat metalPixelFormatForPlane =
-                rhiTextureFormatToMetalFormat(textureDescription->textureFormat[plane]);
+                rhiTextureFormatToMetalFormat(textureDescription->rhiTextureFormat(plane, rhi));
             if (metalPixelFormatForPlane == MTLPixelFormatInvalid)
                 return nullptr;
         }
@@ -211,7 +211,7 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
 
             // Tested to be valid in prior loop.
             const MTLPixelFormat metalPixelFormatForPlane =
-                rhiTextureFormatToMetalFormat(textureDescription->textureFormat[plane]);
+                rhiTextureFormatToMetalFormat(textureDescription->rhiTextureFormat(plane, rhi));
 
             // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
             auto ret = CVMetalTextureCacheCreateTextureFromImage(
