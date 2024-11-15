@@ -384,6 +384,441 @@ std::set<QMediaFormat::VideoCodec> supportedVideoDecoders(QMediaFormat::FileForm
     return videoDecoders[fileFormat];
 }
 
+std::set<QMediaFormat::AudioCodec> supportedAudioEncoders(QMediaFormat::FileFormat fileFormat)
+{
+    std::map<QMediaFormat::FileFormat, std::set<QMediaFormat::AudioCodec>> audioEncoders;
+
+    if constexpr (isWindows) {
+        audioEncoders[QMediaFormat::FileFormat::WMV] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::AVI] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Matroska] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::MPEG4] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Ogg] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::QuickTime] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::WebM] = {};
+        audioEncoders[QMediaFormat::FileFormat::Mpeg4Audio] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::AAC] = {
+            QMediaFormat::AudioCodec::AAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::WMA] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::MP3] = {
+            QMediaFormat::AudioCodec::MP3,
+        };
+        audioEncoders[QMediaFormat::FileFormat::FLAC] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Wave] = {
+            QMediaFormat::AudioCodec::Wave,
+        };
+    } else if constexpr (isAndroid) {
+        audioEncoders[QMediaFormat::FileFormat::WMV] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::AVI] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Matroska] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::MPEG4] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Ogg] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::QuickTime] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::WebM] = {};
+        audioEncoders[QMediaFormat::FileFormat::Mpeg4Audio] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::AAC] = {
+            QMediaFormat::AudioCodec::AAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::WMA] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::MP3] = {};
+        audioEncoders[QMediaFormat::FileFormat::FLAC] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Wave] = {
+            QMediaFormat::AudioCodec::Wave,
+        };
+    } else if constexpr (isLinux) {
+        audioEncoders[QMediaFormat::FileFormat::WMV] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::AVI] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Matroska] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::MPEG4] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Ogg] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::QuickTime] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::WebM] = {};
+        audioEncoders[QMediaFormat::FileFormat::Mpeg4Audio] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::AAC] = {
+            QMediaFormat::AudioCodec::AAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::WMA] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::MP3] = {};
+        audioEncoders[QMediaFormat::FileFormat::FLAC] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Wave] = {
+            QMediaFormat::AudioCodec::Wave,
+        };
+    } else if constexpr (isMacOS) {
+        audioEncoders[QMediaFormat::FileFormat::WMV] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::AVI] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Matroska] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::MPEG4] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Ogg] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::QuickTime] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::WebM] = {};
+        audioEncoders[QMediaFormat::FileFormat::Mpeg4Audio] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::AAC] = {
+            QMediaFormat::AudioCodec::AAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::WMA] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioEncoders[QMediaFormat::FileFormat::MP3] = {};
+        audioEncoders[QMediaFormat::FileFormat::FLAC] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioEncoders[QMediaFormat::FileFormat::Wave] = {
+            QMediaFormat::AudioCodec::Wave,
+        };
+    }
+    return audioEncoders[fileFormat];
+}
+
+std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileFormat fileFormat)
+{
+    std::map<QMediaFormat::FileFormat, std::set<QMediaFormat::AudioCodec>> audioDecoders;
+
+    if constexpr (isWindows) {
+        audioDecoders[QMediaFormat::FileFormat::WMV] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::AVI] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Matroska] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::MPEG4] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::WMA,  QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Ogg] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::QuickTime] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::WebM] = {};
+        audioDecoders[QMediaFormat::FileFormat::Mpeg4Audio] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::AAC] = {
+            QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::WMA,
+        };
+        audioDecoders[QMediaFormat::FileFormat::WMA] = {
+            QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
+            QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::MP3] = {
+            QMediaFormat::AudioCodec::MP3,
+        };
+        audioDecoders[QMediaFormat::FileFormat::FLAC] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Wave] = {
+            QMediaFormat::AudioCodec::Wave,
+        };
+    } else if constexpr (isAndroid) {
+        audioDecoders[QMediaFormat::FileFormat::WMV] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::AVI] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Matroska] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::MPEG4] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Ogg] = {
+            QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::WMA,
+        };
+        audioDecoders[QMediaFormat::FileFormat::QuickTime] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::WebM] = {};
+        audioDecoders[QMediaFormat::FileFormat::Mpeg4Audio] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::AAC] = {
+            QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::WMA,
+        };
+        audioDecoders[QMediaFormat::FileFormat::WMA] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::MP3] = {};
+        audioDecoders[QMediaFormat::FileFormat::FLAC] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Wave] = {
+            QMediaFormat::AudioCodec::Wave,
+        };
+    } else if constexpr (isLinux) {
+        audioDecoders[QMediaFormat::FileFormat::WMV] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::AVI] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Matroska] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::MPEG4] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Ogg] = {
+            QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::WMA,
+        };
+        audioDecoders[QMediaFormat::FileFormat::QuickTime] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::WebM] = {};
+        audioDecoders[QMediaFormat::FileFormat::Mpeg4Audio] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::AAC] = {
+            QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::WMA,
+        };
+        audioDecoders[QMediaFormat::FileFormat::WMA] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::MP3] = {};
+        audioDecoders[QMediaFormat::FileFormat::FLAC] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Wave] = {
+            QMediaFormat::AudioCodec::Wave,
+        };
+    } else if constexpr (isMacOS) {
+        audioDecoders[QMediaFormat::FileFormat::WMV] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::AVI] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Matroska] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::MPEG4] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Ogg] = {
+            QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::WMA,
+        };
+        audioDecoders[QMediaFormat::FileFormat::QuickTime] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::WebM] = {};
+        audioDecoders[QMediaFormat::FileFormat::Mpeg4Audio] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::ALAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::AAC] = {
+            QMediaFormat::AudioCodec::AAC,
+            QMediaFormat::AudioCodec::WMA,
+        };
+        audioDecoders[QMediaFormat::FileFormat::WMA] = {
+            QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
+            QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
+            QMediaFormat::AudioCodec::Wave,
+        };
+        audioDecoders[QMediaFormat::FileFormat::MP3] = {};
+        audioDecoders[QMediaFormat::FileFormat::FLAC] = {
+            QMediaFormat::AudioCodec::FLAC,
+        };
+        audioDecoders[QMediaFormat::FileFormat::Wave] = {
+            QMediaFormat::AudioCodec::Wave,
+        };
+    }
+    return audioDecoders[fileFormat];
+}
+
 template <typename T>
 QString toString(T enumValue)
 {
@@ -431,6 +866,44 @@ private slots:
 
         bool isSupportedEncoder = supportedEncoders.find(videoCodec) != supportedEncoders.end();
         bool isSupportedDecoder = supportedDecoders.find(videoCodec) != supportedDecoders.end();
+
+        QCOMPARE_EQ(format.isSupported(QMediaFormat::Encode), isSupportedEncoder);
+        QCOMPARE_EQ(format.isSupported(QMediaFormat::Decode), isSupportedDecoder);
+    }
+
+    void isSupported_returnsTrue_whenFormatAndAudioCodecIsSupported_data()
+    {
+        QTest::addColumn<QMediaFormat::FileFormat>("fileFormat");
+        QTest::addColumn<QMediaFormat::AudioCodec>("audioCodec");
+
+        for (const QMediaFormat::FileFormat f : allFileFormats()) {
+            for (const QMediaFormat::AudioCodec c : allAudioCodecs()) {
+                const QByteArray formatName = QMediaFormat::fileFormatName(f).toLatin1();
+                const QByteArray codecName = QMediaFormat::audioCodecName(c).toLatin1();
+                QTest::addRow("%s,%s", formatName.data(), codecName.data()) << f << c;
+            }
+        }
+    }
+
+    void isSupported_returnsTrue_whenFormatAndAudioCodecIsSupported()
+    {
+        if (!isFFMPEGPlatform())
+            QSKIP("This test verifies only the FFmpeg media backend");
+
+        QFETCH(QMediaFormat::FileFormat, fileFormat);
+        QFETCH(QMediaFormat::AudioCodec, audioCodec);
+
+        QMediaFormat format(fileFormat);
+        format.setAudioCodec(audioCodec);
+
+        const std::set<QMediaFormat::AudioCodec> supportedEncoders =
+                supportedAudioEncoders(fileFormat);
+
+        const std::set<QMediaFormat::AudioCodec> supportedDecoders =
+                supportedAudioDecoders(fileFormat);
+
+        bool isSupportedEncoder = supportedEncoders.find(audioCodec) != supportedEncoders.end();
+        bool isSupportedDecoder = supportedDecoders.find(audioCodec) != supportedDecoders.end();
 
         QCOMPARE_EQ(format.isSupported(QMediaFormat::Encode), isSupportedEncoder);
         QCOMPARE_EQ(format.isSupported(QMediaFormat::Decode), isSupportedDecoder);
