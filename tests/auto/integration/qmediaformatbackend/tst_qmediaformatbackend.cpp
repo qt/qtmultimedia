@@ -909,6 +909,58 @@ private slots:
         QCOMPARE_EQ(format.isSupported(QMediaFormat::Decode), isSupportedDecoder);
     }
 
+    void isSupported_returnsTrue_whenAudioAndVideoCodecsAreCombined_data()
+    {
+        QTest::addColumn<QMediaFormat::FileFormat>("fileFormat");
+        QTest::addColumn<QMediaFormat::AudioCodec>("audioCodec");
+        QTest::addColumn<QMediaFormat::VideoCodec>("videoCodec");
+        QTest::addColumn<QMediaFormat::ConversionMode>("conversionMode");
+
+        // Verify with all combinations of file format, video codecs, and audio codecs
+        for (const QMediaFormat::FileFormat format : allFileFormats()) {
+            const auto formatName = QMediaFormat::fileFormatName(format).toLatin1();
+            for (const QMediaFormat::AudioCodec audioCodec : allAudioCodecs()) {
+                const auto audioCodecName = QMediaFormat::audioCodecName(audioCodec).toLatin1();
+                for (const auto videoCodec : allVideoCodecs()) {
+                    const auto videoCodecName = QMediaFormat::videoCodecName(videoCodec).toLatin1();
+                    for (const auto &mode : { QMediaFormat::Encode, QMediaFormat::Decode }) {
+                        const auto convEnum = QMetaEnum::fromType<QMediaFormat::ConversionMode>();
+                        QTest::addRow("%s,%s,%s,%s", formatName.data(), audioCodecName.data(),
+                                      videoCodecName.data(), convEnum.valueToKey(mode))
+                                << format << audioCodec << videoCodec << mode;
+                    }
+                }
+            }
+        }
+    }
+
+    void isSupported_returnsTrue_whenAudioAndVideoCodecsAreCombined()
+    {
+        if (!isFFMPEGPlatform())
+            QSKIP("This test verifies only the FFmpeg media backend");
+
+        QFETCH(QMediaFormat::FileFormat, fileFormat);
+        QFETCH(QMediaFormat::AudioCodec, audioCodec);
+        QFETCH(QMediaFormat::VideoCodec, videoCodec);
+        QFETCH(QMediaFormat::ConversionMode, conversionMode);
+
+        QMediaFormat format(fileFormat);
+        format.setAudioCodec(audioCodec);
+        format.setVideoCodec(videoCodec);
+
+        QMediaFormat audioFormat(fileFormat);
+        audioFormat.setAudioCodec(audioCodec);
+
+        QMediaFormat videoFormat(fileFormat);
+        videoFormat.setVideoCodec(videoCodec);
+
+        // Check that format.isSupported() returns the same as
+        // audioFormat.isSupported() && videoFormat.isSupported()
+        QCOMPARE_EQ(format.isSupported(conversionMode),
+                    audioFormat.isSupported(conversionMode)
+                            && videoFormat.isSupported(conversionMode));
+    }
+
     void print_formatSupport_video_encoding_noVerify_data()
     {
         QTest::addColumn<QMediaFormat::ConversionMode>("conversionMode");
