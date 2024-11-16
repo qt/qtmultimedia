@@ -51,6 +51,16 @@ extern "C" {
 
 QT_BEGIN_NAMESPACE
 
+namespace QFFmpeg {
+
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
+using ChannelLayoutT = AVChannelLayout;
+#else
+using ChannelLayoutT = uint64_t;
+#endif
+
+} // namespace QFFmpeg
+
 using PixelOrSampleFormat = int;
 using AVScore = int;
 constexpr AVScore BestAVScore = std::numeric_limits<AVScore>::max();

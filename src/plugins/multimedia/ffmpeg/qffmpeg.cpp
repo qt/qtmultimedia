@@ -338,14 +338,6 @@ std::string cvFormatToString(uint32_t cvFormat)
 
 #endif
 
-#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
-void logGetCodecConfigError(const AVCodec *codec, AVCodecConfig config, int error)
-{
-    qCWarning(qLcFFmpegUtils) << "Failed to retrieve config" << config << "for codec" << codec->name
-                              << "with error" << error << err2str(error);
-}
-#endif
-
 } // namespace QFFmpeg
 
 QDebug operator<<(QDebug dbg, const AVRational &value)
