@@ -122,7 +122,7 @@ void dumpCodecInfo(const AVCodec *codec)
                              << "capabilities:"
                              << flagsToString(codec->capabilities, capabilitiesNames);
 
-    const auto pixelFormats = getCodecPixelFormats(codec);
+    const auto pixelFormats = Codec{ codec }.pixelFormats();
     if (pixelFormats) {
         static const FlagNames flagNames = {
             { AV_PIX_FMT_FLAG_BE, "BE" },
@@ -147,7 +147,7 @@ void dumpCodecInfo(const AVCodec *codec)
         qCDebug(qLcCodecStorage) << "  pixelFormats: null";
     }
 
-    const auto sampleFormats = getCodecSampleFormats(codec);
+    const auto sampleFormats = Codec{ codec }.sampleFormats();
     if (sampleFormats) {
         qCDebug(qLcCodecStorage) << "  sampleFormats:";
         for (auto f = sampleFormats; *f != AV_SAMPLE_FMT_NONE; ++f) {
@@ -189,7 +189,7 @@ bool isCodecValid(const AVCodec *codec, const std::vector<AVHWDeviceType> &avail
     if (codec->type != AVMEDIA_TYPE_VIDEO)
         return true;
 
-    const auto pixelFormats = getCodecPixelFormats(codec);
+    const auto pixelFormats = Codec{ codec }.pixelFormats();
     if (!pixelFormats) {
 #if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
         // Disable V4L2 M2M codecs for encoding for now,

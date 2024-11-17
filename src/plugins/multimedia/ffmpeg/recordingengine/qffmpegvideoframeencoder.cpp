@@ -211,7 +211,7 @@ void VideoFrameEncoder::initTargetSize()
 
 void VideoFrameEncoder::initCodecFrameRate()
 {
-    const auto frameRates = getCodecFrameRates(m_codec);
+    const auto frameRates = Codec{ m_codec }.frameRates();
     if (frameRates && qLcVideoFrameEncoder().isEnabled(QtDebugMsg))
         for (auto rate = frameRates; rate->num && rate->den; ++rate)
             qCDebug(qLcVideoFrameEncoder) << "supported frame rate:" << *rate;
@@ -277,7 +277,7 @@ void VideoFrameEncoder::initStream()
     m_stream->codecpar->framerate = m_codecFrameRate;
 #endif
 
-    const auto frameRates = getCodecFrameRates(m_codec);
+    const auto frameRates = Codec{ m_codec }.frameRates();
     m_stream->time_base = adjustFrameTimeBase(frameRates, m_codecFrameRate);
 }
 

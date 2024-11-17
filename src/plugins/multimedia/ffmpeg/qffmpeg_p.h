@@ -204,7 +204,7 @@ const AVCodecHWConfig *findHwConfig(const AVCodec *codec, const Predicate &predi
 template <typename Predicate>
 AVPixelFormat findAVPixelFormat(const AVCodec *codec, const Predicate &predicate)
 {
-    const auto pixelFormats = getCodecPixelFormats(codec);
+    const auto pixelFormats = Codec{ codec }.pixelFormats();
     const AVPixelFormat format = findAVValue(pixelFormats, predicate);
     if (format != AV_PIX_FMT_NONE)
         return format;

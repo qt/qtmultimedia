@@ -109,7 +109,7 @@ AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *co
 
     // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
     // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since n7.1)
-    const auto pixelFormats = getCodecPixelFormats(codec);
+    const auto pixelFormats = Codec{ codec }.pixelFormats();
     if (pixelFormats)
         return findBestAVValue(pixelFormats, scoreCalculator).first;
 
@@ -140,7 +140,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
             return hwFormat;
     }
 
-    const auto pixelFormats = getCodecPixelFormats(codec);
+    const auto pixelFormats = Codec{ codec }.pixelFormats();
     if (!pixelFormats) {
         qWarning() << "Codec pix formats are undefined, it's likely to behave incorrectly";
 
@@ -166,7 +166,7 @@ std::pair<const AVCodec *, HWAccelUPtr> findHwEncoder(AVCodecID codecID, const Q
 
 AVScore findSWFormatScores(const AVCodec* codec, AVPixelFormat sourceSWFormat)
 {
-    const auto pixelFormats = getCodecPixelFormats(codec);
+    const auto pixelFormats = Codec{ codec }.pixelFormats();
     if (!pixelFormats)
         // codecs without pixel formats are suspicious
         return MinAVScore;

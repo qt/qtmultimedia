@@ -8,6 +8,7 @@
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
+namespace {
 
 #if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
 
@@ -78,6 +79,48 @@ const AVRational *getCodecFrameRates(const AVCodec *codec)
 #else
     return codec->supported_framerates;
 #endif
+}
+} // namespace
+
+Codec::Codec(const AVCodec *codec) : m_codec{ codec } { }
+
+const AVPixelFormat *Codec::pixelFormats() const noexcept {
+    if (!m_codec)
+        return nullptr;
+
+    return getCodecPixelFormats(m_codec);
+}
+
+const AVSampleFormat* Codec::sampleFormats() const noexcept
+{
+    if (!m_codec)
+        return nullptr;
+
+    return getCodecSampleFormats(m_codec);
+}
+
+const int* Codec::sampleRates() const noexcept
+{
+    if (!m_codec)
+        return nullptr;
+
+    return getCodecSampleRates(m_codec);
+}
+
+const ChannelLayoutT* Codec::channelLayouts() const noexcept
+{
+    if (!m_codec)
+        return nullptr;
+
+    return getCodecChannelLayouts(m_codec);
+}
+
+const AVRational* Codec::frameRates() const noexcept
+{
+    if (!m_codec)
+        return nullptr;
+
+    return getCodecFrameRates(m_codec);
 }
 
 } // namespace QFFmpeg

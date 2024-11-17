@@ -25,11 +25,21 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-const AVPixelFormat *getCodecPixelFormats(const AVCodec *codec);
-const AVSampleFormat *getCodecSampleFormats(const AVCodec *codec);
-const int *getCodecSampleRates(const AVCodec *codec);
-const ChannelLayoutT *getCodecChannelLayouts(const AVCodec *codec);
-const AVRational *getCodecFrameRates(const AVCodec *codec);
+class Codec
+{
+public:
+    Codec() = default;
+    explicit Codec(const AVCodec *codec);
+
+    [[nodiscard]] const AVPixelFormat *pixelFormats() const noexcept;
+    [[nodiscard]] const AVSampleFormat *sampleFormats() const noexcept;
+    [[nodiscard]] const int *sampleRates() const noexcept;
+    [[nodiscard]] const ChannelLayoutT *channelLayouts() const noexcept;
+    [[nodiscard]] const AVRational *frameRates() const noexcept;
+
+private:
+    const AVCodec *m_codec = nullptr;
+};
 
 } // namespace FFmpeg
 
