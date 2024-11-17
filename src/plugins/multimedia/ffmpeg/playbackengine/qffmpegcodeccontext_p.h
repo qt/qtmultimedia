@@ -15,11 +15,11 @@
 // We mean it.
 //
 
-#include "qshareddata.h"
-#include "qqueue.h"
-#include "private/qmultimediautils_p.h"
 #include "qffmpeg_p.h"
 #include "qffmpeghwaccel_p.h"
+
+#include <QtMultimedia/private/qmaybe_p.h>
+#include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
 

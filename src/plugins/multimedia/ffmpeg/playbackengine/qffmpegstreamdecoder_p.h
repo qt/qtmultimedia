@@ -19,6 +19,8 @@
 #include "playbackengine/qffmpegpositionwithoffset_p.h"
 #include "private/qplatformmediaplayer_p.h"
 
+#include <QtCore/qqueue.h>
+
 #include <optional>
 
 QT_BEGIN_NAMESPACE

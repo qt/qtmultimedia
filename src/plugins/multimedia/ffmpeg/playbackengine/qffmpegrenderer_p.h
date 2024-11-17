@@ -19,6 +19,7 @@
 #include "playbackengine/qffmpegframe_p.h"
 
 #include <QtCore/qpointer.h>
+#include <QtCore/qqueue.h>
 
 #include <chrono>
 
