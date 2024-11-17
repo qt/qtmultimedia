@@ -62,7 +62,7 @@ public:
     AVPacketUPtr retrievePacket();
 
 private:
-    VideoFrameEncoder(AVStream *stream, const AVCodec *codec, HWAccelUPtr hwAccel,
+    VideoFrameEncoder(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
                       const SourceParams &sourceParams,
                       const QMediaEncoderSettings &encoderSettings);
 
@@ -78,7 +78,7 @@ private:
         AVPixelFormat targetFormat = AV_PIX_FMT_NONE;
     };
 
-    static CreationResult create(AVStream *stream, const AVCodec *codec, HWAccelUPtr hwAccel,
+    static CreationResult create(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
                                  const SourceParams &sourceParams,
                                  const QMediaEncoderSettings &encoderSettings,
                                  const AVPixelFormatSet &prohibitedTargetFormats = {});
@@ -100,7 +100,7 @@ private:
 private:
     QMediaEncoderSettings m_settings;
     AVStream *m_stream = nullptr;
-    const AVCodec *m_codec = nullptr;
+    Codec m_codec;
     HWAccelUPtr m_accel;
 
     QSize m_sourceSize;

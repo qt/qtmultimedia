@@ -24,23 +24,21 @@
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
+class Codec;
 
 bool findAndOpenAVDecoder(AVCodecID codecId,
-                          const std::function<AVScore(const AVCodec *)> &scoresGetter,
-                          const std::function<bool(const AVCodec *)> &codecOpener);
+                          const std::function<AVScore(const Codec &)> &scoresGetter,
+                          const std::function<bool(const Codec &)> &codecOpener);
 
 bool findAndOpenAVEncoder(AVCodecID codecId,
-                          const std::function<AVScore(const AVCodec *)> &scoresGetter,
-                          const std::function<bool(const AVCodec *)> &codecOpener);
+                          const std::function<AVScore(const Codec &)> &scoresGetter,
+                          const std::function<bool(const Codec &)> &codecOpener);
 
-const AVCodec *findAVDecoder(AVCodecID codecId,
-                             const std::optional<PixelOrSampleFormat> &format = {});
+Codec findAVDecoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format = {});
 
-const AVCodec *findAVEncoder(AVCodecID codecId,
-                             const std::optional<PixelOrSampleFormat> &format = {});
+Codec findAVEncoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format = {});
 
-const AVCodec *findAVEncoder(AVCodecID codecId,
-                             const std::function<AVScore(const AVCodec *)> &scoresGetter);
+Codec findAVEncoder(AVCodecID codecId, const std::function<AVScore(const Codec &)> &scoresGetter);
 
 } // namespace QFFmpeg
 

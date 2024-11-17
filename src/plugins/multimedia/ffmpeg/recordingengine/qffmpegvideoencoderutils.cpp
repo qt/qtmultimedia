@@ -98,7 +98,7 @@ static bool isHwFormatAcceptedByCodec(AVPixelFormat pixFormat)
     }
 }
 
-AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *codec,
+AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
                                  const HWAccel &accel, const AVPixelFormatSet &prohibitedFormats)
 {
     auto scoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, prohibitedFormats);
@@ -109,7 +109,7 @@ AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *co
 
     // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
     // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since n7.1)
-    const auto pixelFormats = Codec{ codec }.pixelFormats();
+    const auto pixelFormats = codec.pixelFormats();
     if (pixelFormats)
         return findBestAVValue(pixelFormats, scoreCalculator).first;
 
@@ -117,7 +117,7 @@ AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *co
 }
 
 AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
-                               const AVCodec *codec, const HWAccel *accel,
+                               const Codec &codec, const HWAccel *accel,
                                const AVPixelFormatSet &prohibitedFormats)
 {
     Q_UNUSED(sourceFormat);
@@ -140,7 +140,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
             return hwFormat;
     }
 
-    const auto pixelFormats = Codec{ codec }.pixelFormats();
+    const auto pixelFormats = codec.pixelFormats();
     if (!pixelFormats) {
         qWarning() << "Codec pix formats are undefined, it's likely to behave incorrectly";
 
@@ -151,7 +151,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
     return findBestAVValue(pixelFormats, swScoreCalculator).first;
 }
 
-std::pair<const AVCodec *, HWAccelUPtr> findHwEncoder(AVCodecID codecID, const QSize &resolution)
+std::pair<Codec, HWAccelUPtr> findHwEncoder(AVCodecID codecID, const QSize &resolution)
 {
     auto matchesSizeConstraints = [&resolution](const HWAccel &accel) {
         return accel.matchesSizeContraints(resolution);
@@ -159,14 +159,14 @@ std::pair<const AVCodec *, HWAccelUPtr> findHwEncoder(AVCodecID codecID, const Q
 
     // 1st - attempt to find hw accelerated encoder
     auto result = HWAccel::findEncoderWithHwAccel(codecID, matchesSizeConstraints);
-    Q_ASSERT(!!result.first == !!result.second);
+    Q_ASSERT(result.first.isValid() == !!result.second);
 
     return result;
 }
 
-AVScore findSWFormatScores(const AVCodec* codec, AVPixelFormat sourceSWFormat)
+AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
 {
-    const auto pixelFormats = Codec{ codec }.pixelFormats();
+    const auto pixelFormats = codec.pixelFormats();
     if (!pixelFormats)
         // codecs without pixel formats are suspicious
         return MinAVScore;
@@ -176,9 +176,9 @@ AVScore findSWFormatScores(const AVCodec* codec, AVPixelFormat sourceSWFormat)
     return findBestAVValue(pixelFormats, formatScoreCalculator).second;
 }
 
-const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat)
+Codec findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat)
 {
-    return findAVEncoder(codecID, [sourceSWFormat](const AVCodec *codec) {
+    return findAVEncoder(codecID, [sourceSWFormat](const Codec &codec) {
         return findSWFormatScores(codec, sourceSWFormat);
     });
 }
@@ -220,11 +220,11 @@ AVRational adjustFrameTimeBase(const AVRational *supportedRates, AVRational fram
     return { frameRate.den, frameRate.num * TimeScaleFactor };
 }
 
-QSize adjustVideoResolution(const AVCodec *codec, QSize requestedResolution)
+QSize adjustVideoResolution(const Codec &codec, QSize requestedResolution)
 {
 #ifdef Q_OS_WINDOWS
     // TODO: investigate, there might be more encoders not supporting odd resolution
-    if (strcmp(codec->name, "h264_mf") == 0) {
+    if (codec.name() == "h264_mf") {
         auto makeEven = [](int size) { return size & ~1; };
         return QSize(makeEven(requestedResolution.width()), makeEven(requestedResolution.height()));
     }

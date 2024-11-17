@@ -21,15 +21,15 @@ static Q_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
 
 namespace QFFmpeg {
 
-bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format)
+bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format)
 {
-    if (codec->type == AVMEDIA_TYPE_VIDEO) {
+    if (codec.type() == AVMEDIA_TYPE_VIDEO) {
         auto checkFormat = [format](AVPixelFormat f) { return f == format; };
         return findAVPixelFormat(codec, checkFormat) != AV_PIX_FMT_NONE;
     }
 
-    if (codec->type == AVMEDIA_TYPE_AUDIO) {
-        const auto sampleFormats = Codec{ codec }.sampleFormats();
+    if (codec.type() == AVMEDIA_TYPE_AUDIO) {
+        const auto sampleFormats = codec.sampleFormats();
         return hasAVValue(sampleFormats, AVSampleFormat(format));
     }
 
@@ -42,16 +42,11 @@ bool isHwPixelFormat(AVPixelFormat format)
     return desc && (desc->flags & AV_PIX_FMT_FLAG_HWACCEL) != 0;
 }
 
-bool isAVCodecExperimental(const AVCodec *codec)
+void applyExperimentalCodecOptions(const Codec &codec, AVDictionary **opts)
 {
-    return (codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) != 0;
-}
-
-void applyExperimentalCodecOptions(const AVCodec *codec, AVDictionary** opts)
-{
-    if (isAVCodecExperimental(codec)) {
+    if (codec.isExperimental()) {
         qCWarning(qLcFFmpegUtils) << "Applying the option 'strict -2' for the experimental codec"
-                                  << codec->name << ". it's unlikely to work properly";
+                                  << codec.name() << ". it's unlikely to work properly";
         av_dict_set(opts, "strict", "-2", 0);
     }
 }

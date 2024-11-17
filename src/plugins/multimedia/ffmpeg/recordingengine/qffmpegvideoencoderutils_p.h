@@ -21,19 +21,19 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *codec,
+AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
                                  const HWAccel &accel,
                                  const AVPixelFormatSet &prohibitedFormats = {});
 
 AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
-                               const AVCodec *codec, const HWAccel *accel,
+                               const Codec &codec, const HWAccel *accel,
                                const AVPixelFormatSet &prohibitedFormats = {});
 
-std::pair<const AVCodec *, HWAccelUPtr> findHwEncoder(AVCodecID codecID, const QSize &sourceSize);
+std::pair<Codec, HWAccelUPtr> findHwEncoder(AVCodecID codecID, const QSize &sourceSize);
 
-AVScore findSWFormatScores(const AVCodec* codec, AVPixelFormat sourceSWFormat);
+AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat);
 
-const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat);
+Codec findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat);
 
 /**
  * @brief adjustFrameRate get a rational frame rate be requested qreal rate.
@@ -58,7 +58,7 @@ AVRational adjustFrameRate(const AVRational *supportedRates, qreal requestedRate
  */
 AVRational adjustFrameTimeBase(const AVRational *supportedRates, AVRational frameRate);
 
-QSize adjustVideoResolution(const AVCodec *codec, QSize requestedResolution);
+QSize adjustVideoResolution(const Codec &codec, QSize requestedResolution);
 
 } // namespace QFFmpeg
 

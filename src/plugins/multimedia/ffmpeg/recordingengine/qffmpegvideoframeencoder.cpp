@@ -45,7 +45,7 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
     CreationResult result;
 
     auto findAndOpenAVEncoder = [&](const auto &scoresGetter, const auto &creator) {
-        auto createWithTargetFormatFallback = [&](const AVCodec *codec) {
+        auto createWithTargetFormatFallback = [&](const Codec &codec) {
             result = creator(codec, AVPixelFormatSet{});
 #ifdef Q_OS_ANDROID
             // On Android some encoders fail to open encoders with 4:2:0 formats unless it's NV12.
@@ -68,7 +68,7 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
     {
         const auto &deviceTypes = HWAccel::encodingDeviceTypes();
 
-        auto findDeviceType = [&](const AVCodec *codec) {
+        auto findDeviceType = [&](const Codec &codec) {
             AVPixelFormat pixelFormat = findAVPixelFormat(codec, &isHwPixelFormat);
             if (pixelFormat == AV_PIX_FMT_NONE)
                 return deviceTypes.end();
@@ -80,14 +80,14 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
         };
 
         findAndOpenAVEncoder(
-                [&](const AVCodec *codec) {
+                [&](const Codec &codec) {
                     const auto found = findDeviceType(codec);
                     if (found == deviceTypes.end())
                         return NotSuitableAVScore;
 
                     return DefaultAVScore - static_cast<AVScore>(found - deviceTypes.begin());
                 },
-                [&](const AVCodec *codec, const AVPixelFormatSet &prohibitedTargetFormats) {
+                [&](const Codec &codec, const AVPixelFormatSet &prohibitedTargetFormats) {
                     HWAccelUPtr hwAccel = HWAccel::create(*findDeviceType(codec));
                     if (!hwAccel)
                         return CreationResult{};
@@ -100,25 +100,26 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
 
     if (!result.encoder) {
         findAndOpenAVEncoder(
-                [&](const AVCodec *codec) {
+                [&](const Codec &codec) {
                     return findSWFormatScores(codec, sourceParams.swFormat);
                 },
-                [&](const AVCodec *codec, const AVPixelFormatSet &prohibitedTargetFormats) {
+                [&](const Codec &codec, const AVPixelFormatSet &prohibitedTargetFormats) {
                     return create(stream, codec, nullptr, sourceParams, encoderSettings,
                                   prohibitedTargetFormats);
                 });
     }
 
     if (auto &encoder = result.encoder)
-        qCDebug(qLcVideoFrameEncoder) << "found" << (encoder->m_accel ? "hw" : "sw") << "encoder"
-                                      << encoder->m_codec->name << "for id" << encoder->m_codec->id;
+        qCDebug(qLcVideoFrameEncoder)
+                << "found" << (encoder->m_accel ? "hw" : "sw") << "encoder"
+                << encoder->m_codec.name() << "for id" << encoder->m_codec.id();
     else
         qCWarning(qLcVideoFrameEncoder) << "No valid video codecs found";
 
     return std::move(result.encoder);
 }
 
-VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const AVCodec *codec, HWAccelUPtr hwAccel,
+VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
                                      const SourceParams &sourceParams,
                                      const QMediaEncoderSettings &encoderSettings)
     : m_settings(encoderSettings),
@@ -162,7 +163,7 @@ AVStream *VideoFrameEncoder::createStream(const SourceParams &sourceParams,
 }
 
 VideoFrameEncoder::CreationResult
-VideoFrameEncoder::create(AVStream *stream, const AVCodec *codec, HWAccelUPtr hwAccel,
+VideoFrameEncoder::create(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
                           const SourceParams &sourceParams,
                           const QMediaEncoderSettings &encoderSettings,
                           const AVPixelFormatSet &prohibitedTargetFormats)
@@ -197,11 +198,11 @@ void VideoFrameEncoder::initTargetSize()
 
 #ifdef Q_OS_WINDOWS
     // TODO: investigate, there might be more encoders not supporting odd resolution
-    if (strcmp(m_codec->name, "h264_mf") == 0) {
+    if (m_codec.name() == "h264_mf") {
         auto makeEven = [](int size) { return size & ~1; };
         const QSize fixedSize(makeEven(m_targetSize.width()), makeEven(m_targetSize.height()));
         if (fixedSize != m_targetSize) {
-            qCDebug(qLcVideoFrameEncoder) << "Fix odd video resolution for codec" << m_codec->name
+            qCDebug(qLcVideoFrameEncoder) << "Fix odd video resolution for codec" << m_codec.name()
                                           << ":" << m_targetSize << "->" << fixedSize;
             m_targetSize = fixedSize;
         }
@@ -211,7 +212,7 @@ void VideoFrameEncoder::initTargetSize()
 
 void VideoFrameEncoder::initCodecFrameRate()
 {
-    const auto frameRates = Codec{ m_codec }.frameRates();
+    const auto frameRates = m_codec.frameRates();
     if (frameRates && qLcVideoFrameEncoder().isEnabled(QtDebugMsg))
         for (auto rate = frameRates; rate->num && rate->den; ++rate)
             qCDebug(qLcVideoFrameEncoder) << "supported frame rate:" << *rate;
@@ -226,7 +227,7 @@ bool VideoFrameEncoder::initTargetFormats(const AVPixelFormatSet &prohibitedTarg
                                       prohibitedTargetFormats);
 
     if (m_targetFormat == AV_PIX_FMT_NONE) {
-        qWarning() << "Could not find target format for codecId" << m_codec->id;
+        qWarning() << "Could not find target format for codecId" << m_codec.id();
         return false;
     }
 
@@ -257,13 +258,13 @@ VideoFrameEncoder::~VideoFrameEncoder() = default;
 
 void VideoFrameEncoder::initStream()
 {
-    Q_ASSERT(m_codec);
+    Q_ASSERT(m_codec.isValid());
 
-    m_stream->codecpar->codec_id = m_codec->id;
+    m_stream->codecpar->codec_id = m_codec.id();
 
     // Apples HEVC decoders don't like the hev1 tag ffmpeg uses by default, use hvc1 as the more
     // commonly accepted tag
-    if (m_codec->id == AV_CODEC_ID_HEVC)
+    if (m_codec.id() == AV_CODEC_ID_HEVC)
         m_stream->codecpar->codec_tag = MKTAG('h', 'v', 'c', '1');
     else
         m_stream->codecpar->codec_tag = 0;
@@ -277,16 +278,16 @@ void VideoFrameEncoder::initStream()
     m_stream->codecpar->framerate = m_codecFrameRate;
 #endif
 
-    const auto frameRates = Codec{ m_codec }.frameRates();
+    const auto frameRates = m_codec.frameRates();
     m_stream->time_base = adjustFrameTimeBase(frameRates, m_codecFrameRate);
 }
 
 bool VideoFrameEncoder::initCodecContext()
 {
-    Q_ASSERT(m_codec);
+    Q_ASSERT(m_codec.isValid());
     Q_ASSERT(m_stream->codecpar->codec_id);
 
-    m_codecContext.reset(avcodec_alloc_context3(m_codec));
+    m_codecContext.reset(avcodec_alloc_context3(m_codec.get()));
     if (!m_codecContext) {
         qWarning() << "Could not allocate codec context";
         return false;
@@ -318,13 +319,13 @@ bool VideoFrameEncoder::open()
     Q_ASSERT(m_codecContext);
 
     AVDictionaryHolder opts;
-    applyVideoEncoderOptions(m_settings, m_codec->name, m_codecContext.get(), opts);
+    applyVideoEncoderOptions(m_settings, QByteArray{ m_codec.name() }, m_codecContext.get(), opts);
     applyExperimentalCodecOptions(m_codec, opts);
 
-    const int res = avcodec_open2(m_codecContext.get(), m_codec, opts);
+    const int res = avcodec_open2(m_codecContext.get(), m_codec.get(), opts);
     if (res < 0) {
         qCWarning(qLcVideoFrameEncoder)
-                << "Couldn't open video encoder" << m_codec->name << "; result:" << err2str(res);
+                << "Couldn't open video encoder" << m_codec.name() << "; result:" << err2str(res);
         return false;
     }
     qCDebug(qLcVideoFrameEncoder) << "video codec opened" << res << "time base"

@@ -17,6 +17,8 @@
 
 #include "qffmpegdefs_p.h" // Important: Must be included first
 
+#include <QtCore/qlatin1stringview.h>
+
 extern "C" {
 #include <libavcodec/codec.h>
 }
@@ -31,15 +33,44 @@ public:
     Codec() = default;
     explicit Codec(const AVCodec *codec);
 
+    [[nodiscard]] bool isValid() const noexcept;
+    [[nodiscard]] const AVCodec *get() const noexcept;
+    [[nodiscard]] AVCodecID id() const noexcept;
+    [[nodiscard]] QLatin1StringView name() const noexcept;
+    [[nodiscard]] AVMediaType type() const noexcept;
+    [[nodiscard]] int capabilities() const noexcept;
+    [[nodiscard]] bool isEncoder() const noexcept;
+    [[nodiscard]] bool isDecoder() const noexcept;
+    [[nodiscard]] bool isExperimental() const noexcept;
     [[nodiscard]] const AVPixelFormat *pixelFormats() const noexcept;
     [[nodiscard]] const AVSampleFormat *sampleFormats() const noexcept;
     [[nodiscard]] const int *sampleRates() const noexcept;
     [[nodiscard]] const ChannelLayoutT *channelLayouts() const noexcept;
     [[nodiscard]] const AVRational *frameRates() const noexcept;
+    [[nodiscard]] const AVCodecHWConfig *hwConfig(int i) const noexcept;
 
 private:
     const AVCodec *m_codec = nullptr;
 };
+
+// Minimal iterator to support range-based for-loop
+class CodecIterator
+{
+public:
+    // named constructors
+    static CodecIterator begin();
+    static CodecIterator end();
+
+    CodecIterator &operator++() noexcept;
+    [[nodiscard]] Codec operator*() const noexcept;
+    [[nodiscard]] bool operator!=(const CodecIterator &other) const noexcept;
+
+private:
+    void *m_state = nullptr;
+    const AVCodec *m_codec = nullptr;
+};
+
+using CodecEnumerator = CodecIterator;
 
 } // namespace FFmpeg
 

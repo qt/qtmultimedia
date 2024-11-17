@@ -173,7 +173,7 @@ inline constexpr auto InvalidAvValue<AVSampleFormat> = AV_SAMPLE_FMT_NONE;
 template<>
 inline constexpr auto InvalidAvValue<AVPixelFormat> = AV_PIX_FMT_NONE;
 
-bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format);
+bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format);
 
 template <typename Format>
 bool hasAVValue(const Format *fmts, Format format)
@@ -191,9 +191,9 @@ AVValue findAVValue(const AVValue *fmts, const Predicate &predicate)
 }
 
 template <typename Predicate>
-const AVCodecHWConfig *findHwConfig(const AVCodec *codec, const Predicate &predicate)
+const AVCodecHWConfig *findHwConfig(const Codec &codec, const Predicate &predicate)
 {
-    for (int i = 0; const auto hwConfig = avcodec_get_hw_config(codec, i); ++i) {
+    for (int i = 0; const auto hwConfig = codec.hwConfig(i); ++i) {
         if (predicate(hwConfig))
             return hwConfig;
     }
@@ -202,9 +202,9 @@ const AVCodecHWConfig *findHwConfig(const AVCodec *codec, const Predicate &predi
 }
 
 template <typename Predicate>
-AVPixelFormat findAVPixelFormat(const AVCodec *codec, const Predicate &predicate)
+AVPixelFormat findAVPixelFormat(const Codec &codec, const Predicate &predicate)
 {
-    const auto pixelFormats = Codec{ codec }.pixelFormats();
+    const auto pixelFormats = codec.pixelFormats();
     const AVPixelFormat format = findAVValue(pixelFormats, predicate);
     if (format != AV_PIX_FMT_NONE)
         return format;
@@ -245,9 +245,7 @@ inline bool isSwPixelFormat(AVPixelFormat format)
     return !isHwPixelFormat(format);
 }
 
-bool isAVCodecExperimental(const AVCodec *codec);
-
-void applyExperimentalCodecOptions(const AVCodec *codec, AVDictionary** opts);
+void applyExperimentalCodecOptions(const Codec &codec, AVDictionary **opts);
 
 AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType);
 
