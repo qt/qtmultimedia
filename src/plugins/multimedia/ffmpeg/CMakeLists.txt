@@ -50,7 +50,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         playbackengine/qffmpegsubtitlerenderer.cpp playbackengine/qffmpegsubtitlerenderer_p.h
         playbackengine/qffmpegtimecontroller.cpp playbackengine/qffmpegtimecontroller_p.h
         playbackengine/qffmpegmediadataholder.cpp playbackengine/qffmpegmediadataholder_p.h
-        playbackengine/qffmpegcodec.cpp playbackengine/qffmpegcodec_p.h
+        playbackengine/qffmpegcodeccontext.cpp playbackengine/qffmpegcodeccontext_p.h
         playbackengine/qffmpegpacket_p.h
         playbackengine/qffmpegframe_p.h
         playbackengine/qffmpegpositionwithoffset_p.h

@@ -16,7 +16,7 @@
 //
 
 #include "qffmpeg_p.h"
-#include "playbackengine/qffmpegcodec_p.h"
+#include "playbackengine/qffmpegcodeccontext_p.h"
 #include "playbackengine/qffmpegpositionwithoffset_p.h"
 #include "QtCore/qsharedpointer.h"
 #include "qpointer.h"
@@ -32,22 +32,26 @@ struct Frame
 {
     struct Data
     {
-        Data(const LoopOffset &offset, AVFrameUPtr f, const Codec &codec, qint64, quint64 sourceId)
-            : loopOffset(offset), codec(codec), frame(std::move(f)), sourceId(sourceId)
+        Data(const LoopOffset &offset, AVFrameUPtr f, const CodecContext &codecContext, qint64,
+             quint64 sourceId)
+            : loopOffset(offset),
+              codecContext(codecContext),
+              frame(std::move(f)),
+              sourceId(sourceId)
         {
             Q_ASSERT(frame);
             if (frame->pts != AV_NOPTS_VALUE)
-                pts = codec.toUs(frame->pts);
+                pts = codecContext.toUs(frame->pts);
             else
-                pts = codec.toUs(frame->best_effort_timestamp);
+                pts = codecContext.toUs(frame->best_effort_timestamp);
 
-            if (frame->sample_rate && codec.context()->codec_type == AVMEDIA_TYPE_AUDIO)
+            if (frame->sample_rate && codecContext.context()->codec_type == AVMEDIA_TYPE_AUDIO)
                 duration = qint64(1000000) * frame->nb_samples / frame->sample_rate;
 
             if (auto frameDuration = getAVFrameDuration(*frame)) {
-                duration = codec.toUs(frameDuration);
+                duration = codecContext.toUs(frameDuration);
             } else {
-                const auto &avgFrameRate = codec.stream()->avg_frame_rate;
+                const auto &avgFrameRate = codecContext.stream()->avg_frame_rate;
                 duration = mul(qint64(1000000), { avgFrameRate.den, avgFrameRate.num }).value_or(0);
             }
         }
@@ -59,7 +63,7 @@ struct Frame
 
         QAtomicInt ref;
         LoopOffset loopOffset;
-        std::optional<Codec> codec;
+        std::optional<CodecContext> codecContext;
         AVFrameUPtr frame;
         QString text;
         qint64 pts = -1;
@@ -68,9 +72,9 @@ struct Frame
     };
     Frame() = default;
 
-    Frame(const LoopOffset &offset, AVFrameUPtr f, const Codec &codec, qint64 pts,
+    Frame(const LoopOffset &offset, AVFrameUPtr f, const CodecContext &codecContext, qint64 pts,
           quint64 sourceIndex)
-        : d(new Data(offset, std::move(f), codec, pts, sourceIndex))
+        : d(new Data(offset, std::move(f), codecContext, pts, sourceIndex))
     {
     }
     Frame(const LoopOffset &offset, const QString &text, qint64 pts, qint64 duration,
@@ -82,7 +86,10 @@ struct Frame
 
     AVFrame *avFrame() const { return data().frame.get(); }
     AVFrameUPtr takeAVFrame() { return std::move(data().frame); }
-    const Codec *codec() const { return data().codec ? &data().codec.value() : nullptr; }
+    const CodecContext *codecContext() const
+    {
+        return data().codecContext ? &data().codecContext.value() : nullptr;
+    }
     qint64 pts() const { return data().pts; }
     qint64 duration() const { return data().duration; }
     qint64 end() const { return data().pts + data().duration; }

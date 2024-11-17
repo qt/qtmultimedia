@@ -22,14 +22,14 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg
 {
-class Codec;
+class CodecContext;
 }
 
 class QFFmpegResampler : public QPlatformAudioResampler
 {
 public:
     QFFmpegResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat);
-    QFFmpegResampler(const QFFmpeg::Codec *codec, const QAudioFormat &outputFormat,
+    QFFmpegResampler(const QFFmpeg::CodecContext *codecContext, const QAudioFormat &outputFormat,
                      qint64 startTime = 0);
 
     ~QFFmpegResampler() override;

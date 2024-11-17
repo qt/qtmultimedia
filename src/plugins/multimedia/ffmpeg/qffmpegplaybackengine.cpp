@@ -323,11 +323,11 @@ void PlaybackEngine::forceUpdate()
 
 void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType trackType)
 {
-    auto codec = codecForTrack(trackType);
+    auto codecContext = codecContextForTrack(trackType);
 
     auto &renderer = m_renderers[trackType];
 
-    if (!codec)
+    if (!codecContext)
         return;
 
     if (!renderer) {
@@ -351,7 +351,7 @@ void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType tra
     }
 
     auto &stream = m_streams[trackType] =
-            createPlaybackEngineObject<StreamDecoder>(*codec, renderer->seekPosition());
+            createPlaybackEngineObject<StreamDecoder>(*codecContext, renderer->seekPosition());
 
     Q_ASSERT(trackType == stream->trackType());
 
@@ -362,30 +362,30 @@ void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType tra
             &StreamDecoder::onFrameProcessed);
 }
 
-std::optional<Codec> PlaybackEngine::codecForTrack(QPlatformMediaPlayer::TrackType trackType)
+std::optional<CodecContext> PlaybackEngine::codecContextForTrack(QPlatformMediaPlayer::TrackType trackType)
 {
     const auto streamIndex = m_media.currentStreamIndex(trackType);
     if (streamIndex < 0)
         return {};
 
-    auto &result = m_codecs[trackType];
+    auto &codecContext = m_codecContexts[trackType];
 
-    if (!result) {
+    if (!codecContext) {
         qCDebug(qLcPlaybackEngine)
                 << "Create codec for stream:" << streamIndex << "trackType:" << trackType;
-        auto maybeCodec =
-                Codec::create(m_media.avContext()->streams[streamIndex], m_media.avContext());
+        auto maybeCodecContext = CodecContext::create(m_media.avContext()->streams[streamIndex],
+                                                      m_media.avContext());
 
-        if (!maybeCodec) {
+        if (!maybeCodecContext) {
             emit errorOccured(QMediaPlayer::FormatError,
-                              "Cannot create codec," + maybeCodec.error());
+                              "Cannot create codec," + maybeCodecContext.error());
             return {};
         }
 
-        result = maybeCodec.value();
+        codecContext = maybeCodecContext.value();
     }
 
-    return result;
+    return codecContext;
 }
 
 bool PlaybackEngine::hasMediaStream() const
@@ -559,7 +559,7 @@ void PlaybackEngine::setActiveTrack(QPlatformMediaPlayer::TrackType trackType, i
     if (!m_media.setActiveTrack(trackType, streamNumber))
         return;
 
-    m_codecs[trackType] = {};
+    m_codecContexts[trackType] = {};
 
     m_renderers[trackType].reset();
     m_streams = defaultObjectsArray<decltype(m_streams)>();

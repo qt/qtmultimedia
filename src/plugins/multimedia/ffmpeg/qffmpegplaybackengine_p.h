@@ -48,7 +48,7 @@
 #include "playbackengine/qffmpegplaybackenginedefs_p.h"
 #include "playbackengine/qffmpegtimecontroller_p.h"
 #include "playbackengine/qffmpegmediadataholder_p.h"
-#include "playbackengine/qffmpegcodec_p.h"
+#include "playbackengine/qffmpegcodeccontext_p.h"
 #include "playbackengine/qffmpegpositionwithoffset_p.h"
 
 #include <QtCore/qpointer.h>
@@ -183,7 +183,7 @@ private:
 
     static QString objectThreadName(const PlaybackEngineObject &object);
 
-    std::optional<Codec> codecForTrack(QPlatformMediaPlayer::TrackType trackType);
+    std::optional<CodecContext> codecContextForTrack(QPlatformMediaPlayer::TrackType trackType);
 
     bool hasMediaStream() const;
 
@@ -215,7 +215,7 @@ private:
     std::array<StreamPtr, QPlatformMediaPlayer::NTrackTypes> m_streams;
     std::array<RendererPtr, QPlatformMediaPlayer::NTrackTypes> m_renderers;
 
-    std::array<std::optional<Codec>, QPlatformMediaPlayer::NTrackTypes> m_codecs;
+    std::array<std::optional<CodecContext>, QPlatformMediaPlayer::NTrackTypes> m_codecContexts;
     int m_loops = QMediaPlayer::Once;
     LoopOffset m_currentLoopOffset;
 };

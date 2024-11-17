@@ -1,7 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "playbackengine/qffmpegcodec_p.h"
+#include "playbackengine/qffmpegcodeccontext_p.h"
 #include "qloggingcategory.h"
 #include "qffmpegcodecstorage_p.h"
 
@@ -11,15 +11,15 @@ static Q_LOGGING_CATEGORY(qLcPlaybackEngineCodec, "qt.multimedia.playbackengine.
 
 namespace QFFmpeg {
 
-Codec::Data::Data(AVCodecContextUPtr context, AVStream *stream, AVFormatContext *formatContext,
-                  std::unique_ptr<QFFmpeg::HWAccel> hwAccel)
+CodecContext::Data::Data(AVCodecContextUPtr context, AVStream *stream,
+                         AVFormatContext *formatContext, std::unique_ptr<QFFmpeg::HWAccel> hwAccel)
     : context(std::move(context)), stream(stream), hwAccel(std::move(hwAccel))
 {
     if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
         pixelAspectRatio = av_guess_sample_aspect_ratio(formatContext, stream, nullptr);
 }
 
-QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext)
+QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *formatContext)
 {
     if (!stream)
         return { "Invalid stream" };
@@ -32,22 +32,22 @@ QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext)
         qCInfo(qLcPlaybackEngineCodec) << hwCodec.error();
     }
 
-    auto codec = create(stream, formatContext, Sw);
-    if (!codec)
-        qCWarning(qLcPlaybackEngineCodec) << codec.error();
+    auto context = create(stream, formatContext, Sw);
+    if (!context)
+        qCWarning(qLcPlaybackEngineCodec) << context.error();
 
-    return codec;
+    return context;
 }
 
-AVRational Codec::pixelAspectRatio(AVFrame *frame) const
+AVRational CodecContext::pixelAspectRatio(AVFrame *frame) const
 {
     // does the same as av_guess_sample_aspect_ratio, but more efficient
     return d->pixelAspectRatio.num && d->pixelAspectRatio.den ? d->pixelAspectRatio
                                                               : frame->sample_aspect_ratio;
 }
 
-QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext,
-                            VideoCodecCreationPolicy videoCodecPolicy)
+QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *formatContext,
+                                          VideoCodecCreationPolicy videoCodecPolicy)
 {
     Q_ASSERT(stream);
 
@@ -110,7 +110,7 @@ QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext,
     if (ret < 0)
         return QStringLiteral("Failed to open FFmpeg codec context: %1").arg(err2str(ret));
 
-    return Codec(new Data(std::move(context), stream, formatContext, std::move(hwAccel)));
+    return CodecContext(new Data(std::move(context), stream, formatContext, std::move(hwAccel)));
 }
 
 QT_END_NAMESPACE

@@ -61,13 +61,13 @@ qreal sampleRateFactor() {
 QAudioFormat audioFormatFromFrame(const Frame &frame)
 {
     return QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(
-            frame.codec()->stream()->codecpar);
+            frame.codecContext()->stream()->codecpar);
 }
 
 std::unique_ptr<QFFmpegResampler> createResampler(const Frame &frame,
                                                   const QAudioFormat &outputFormat)
 {
-    return std::make_unique<QFFmpegResampler>(frame.codec(), outputFormat, frame.pts());
+    return std::make_unique<QFFmpegResampler>(frame.codecContext(), outputFormat, frame.pts());
 }
 
 } // namespace

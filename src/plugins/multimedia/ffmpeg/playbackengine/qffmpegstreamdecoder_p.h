@@ -29,7 +29,7 @@ class StreamDecoder : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
-    StreamDecoder(const Codec &codec, qint64 absSeekPos);
+    StreamDecoder(const CodecContext &codecContext, qint64 absSeekPos);
 
     ~StreamDecoder();
 
@@ -69,7 +69,7 @@ private:
     void receiveAVFrames(bool flushPacket = false);
 
 private:
-    Codec m_codec;
+    CodecContext m_codecContext;
     qint64 m_absSeekPos = 0;
     const QPlatformMediaPlayer::TrackType m_trackType;
 

@@ -42,8 +42,8 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
 
     //        qCDebug(qLcVideoRenderer) << "RHI:" << accel.isNull() << accel.rhi() << sink->rhi();
 
-    const auto codec = frame.codec();
-    Q_ASSERT(codec);
+    const auto codecContext = frame.codecContext();
+    Q_ASSERT(codecContext);
 
 #ifdef Q_OS_ANDROID
     // QTBUG-108446
@@ -51,8 +51,8 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
     //   frames may require additional specific data for hw contexts, so
     //   just setting of hw_frames_ctx is not enough.
     // TODO: investigate the case in order to remove or fix the code.
-    if (codec->hwAccel() && !frame.avFrame()->hw_frames_ctx) {
-        HWAccel *hwaccel = codec->hwAccel();
+    if (codecContext->hwAccel() && !frame.avFrame()->hw_frames_ctx) {
+        HWAccel *hwaccel = codecContext->hwAccel();
         AVFrame *avframe = frame.avFrame();
         if (!hwaccel->hwFramesContext())
             hwaccel->createFramesContext(AVPixelFormat(avframe->format),
@@ -63,7 +63,7 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
     }
 #endif
 
-    const auto pixelAspectRatio = codec->pixelAspectRatio(frame.avFrame());
+    const auto pixelAspectRatio = codecContext->pixelAspectRatio(frame.avFrame());
     auto buffer = std::make_unique<QFFmpegVideoBuffer>(frame.takeAVFrame(), pixelAspectRatio);
     QVideoFrameFormat format(buffer->size(), buffer->pixelFormat());
     format.setColorSpace(buffer->colorSpace());

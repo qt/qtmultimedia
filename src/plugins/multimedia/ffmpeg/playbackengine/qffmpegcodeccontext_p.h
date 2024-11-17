@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QFFMPEGCODEC_P_H
-#define QFFMPEGCODEC_P_H
+#ifndef QFFMPEGCODECCONTEXT_P_H
+#define QFFMPEGCODECCONTEXT_P_H
 
 //
 //  W A R N I N G
@@ -25,7 +25,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-class Codec
+class CodecContext
 {
     struct Data
     {
@@ -39,7 +39,7 @@ class Codec
     };
 
 public:
-    static QMaybe<Codec> create(AVStream *stream, AVFormatContext *formatContext);
+    static QMaybe<CodecContext> create(AVStream *stream, AVFormatContext *formatContext);
 
     AVRational pixelAspectRatio(AVFrame *frame) const;
 
@@ -56,9 +56,9 @@ private:
         Sw,
     };
 
-    static QMaybe<Codec> create(AVStream *stream, AVFormatContext *formatContext,
-                                VideoCodecCreationPolicy videoCodecPolicy);
-    Codec(Data *data) : d(data) { }
+    static QMaybe<CodecContext> create(AVStream *stream, AVFormatContext *formatContext,
+                                       VideoCodecCreationPolicy videoCodecPolicy);
+    CodecContext(Data *data) : d(data) { }
     QExplicitlySharedDataPointer<Data> d;
 };
 
@@ -66,4 +66,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QFFMPEGCODEC_P_H
+#endif // QFFMPEGCODECCONTEXT_P_H

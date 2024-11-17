@@ -28,7 +28,7 @@ public:
             return {};
 
         if (!m_resampler)
-            m_resampler = std::make_unique<QFFmpegResampler>(frame.codec(), m_format);
+            m_resampler = std::make_unique<QFFmpegResampler>(frame.codecContext(), m_format);
 
         emit newAudioBuffer(m_resampler->resample(frame.avFrame()));
 

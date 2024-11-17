@@ -11,10 +11,10 @@ static Q_LOGGING_CATEGORY(qLcStreamDecoder, "qt.multimedia.ffmpeg.streamdecoder"
 
 namespace QFFmpeg {
 
-StreamDecoder::StreamDecoder(const Codec &codec, qint64 absSeekPos)
-    : m_codec(codec),
+StreamDecoder::StreamDecoder(const CodecContext &codecContext, qint64 absSeekPos)
+    : m_codecContext(codecContext),
       m_absSeekPos(absSeekPos),
-      m_trackType(MediaDataHolder::trackTypeFromMediaType(codec.context()->codec_type))
+      m_trackType(MediaDataHolder::trackTypeFromMediaType(codecContext.context()->codec_type))
 {
     qCDebug(qLcStreamDecoder) << "Create stream decoder, trackType" << m_trackType
                               << "absSeekPos:" << absSeekPos;
@@ -23,7 +23,7 @@ StreamDecoder::StreamDecoder(const Codec &codec, qint64 absSeekPos)
 
 StreamDecoder::~StreamDecoder()
 {
-    avcodec_flush_buffers(m_codec.context());
+    avcodec_flush_buffers(m_codecContext.context());
 }
 
 void StreamDecoder::onFinalPacketReceived()
@@ -59,7 +59,7 @@ void StreamDecoder::doNextStep()
 
         qCDebug(qLcStreamDecoder) << "flush buffers due to new loop:" << packet.loopOffset().index;
 
-        avcodec_flush_buffers(m_codec.context());
+        avcodec_flush_buffers(m_codecContext.context());
         m_offset = packet.loopOffset();
     }
 
@@ -145,7 +145,7 @@ void StreamDecoder::decodeMedia(Packet packet)
 
 int StreamDecoder::sendAVPacket(Packet packet)
 {
-    return avcodec_send_packet(m_codec.context(), packet.isValid() ? packet.avPacket() : nullptr);
+    return avcodec_send_packet(m_codecContext.context(), packet.isValid() ? packet.avPacket() : nullptr);
 }
 
 void StreamDecoder::receiveAVFrames(bool flushPacket)
@@ -153,7 +153,7 @@ void StreamDecoder::receiveAVFrames(bool flushPacket)
     while (true) {
         auto avFrame = makeAVFrame();
 
-        const auto receiveFrameResult = avcodec_receive_frame(m_codec.context(), avFrame.get());
+        const auto receiveFrameResult = avcodec_receive_frame(m_codecContext.context(), avFrame.get());
 
         if (receiveFrameResult == AVERROR_EOF || receiveFrameResult == AVERROR(EAGAIN)) {
             if (flushPacket && receiveFrameResult == AVERROR(EAGAIN)) {
@@ -182,7 +182,7 @@ void StreamDecoder::receiveAVFrames(bool flushPacket)
         if (m_trackType == QPlatformMediaPlayer::VideoStream)
             avFrame = copyFromHwPool(std::move(avFrame));
 
-        onFrameFound({ m_offset, std::move(avFrame), m_codec, 0, id() });
+        onFrameFound({ m_offset, std::move(avFrame), m_codecContext, 0, id() });
     }
 }
 
@@ -197,7 +197,7 @@ void StreamDecoder::decodeSubtitle(Packet packet)
     int gotSubtitle = 0;
 
     const int res =
-            avcodec_decode_subtitle2(m_codec.context(), &subtitle, &gotSubtitle, packet.avPacket());
+            avcodec_decode_subtitle2(m_codecContext.context(), &subtitle, &gotSubtitle, packet.avPacket());
     //    qCDebug(qLcDecoder) << "       subtitle got:" << res << gotSubtitle << subtitle.format <<
     //    Qt::hex << (quint64)subtitle.pts;
     if (res < 0 || !gotSubtitle)
@@ -207,8 +207,8 @@ void StreamDecoder::decodeSubtitle(Packet packet)
     // if they are missing, use the packets pts and duration values instead
     qint64 start, end;
     if (subtitle.pts == AV_NOPTS_VALUE) {
-        start = m_codec.toUs(packet.avPacket()->pts);
-        end = start + m_codec.toUs(packet.avPacket()->duration);
+        start = m_codecContext.toUs(packet.avPacket()->pts);
+        end = start + m_codecContext.toUs(packet.avPacket()->duration);
     } else {
         auto pts = timeStampUs(subtitle.pts, AVRational{ 1, AV_TIME_BASE });
         start = *pts + qint64(subtitle.start_display_time) * 1000;

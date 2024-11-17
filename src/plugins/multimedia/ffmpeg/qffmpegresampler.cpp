@@ -1,7 +1,7 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qffmpegresampler_p.h"
-#include "playbackengine/qffmpegcodec_p.h"
+#include "playbackengine/qffmpegcodeccontext_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 #include <qloggingcategory.h>
 
@@ -21,14 +21,15 @@ QFFmpegResampler::QFFmpegResampler(const QAudioFormat &inputFormat, const QAudio
             createResampleContext(AVAudioFormat(m_inputFormat), AVAudioFormat(m_outputFormat));
 }
 
-QFFmpegResampler::QFFmpegResampler(const Codec *codec, const QAudioFormat &outputFormat,
+QFFmpegResampler::QFFmpegResampler(const CodecContext *codecContext,
+                                   const QAudioFormat &outputFormat,
                                    qint64 startTime)
     : m_outputFormat(outputFormat), m_startTime(startTime)
 {
-    Q_ASSERT(codec);
+    Q_ASSERT(codecContext);
 
     qCDebug(qLcResampler) << "createResampler";
-    const AVStream *audioStream = codec->stream();
+    const AVStream *audioStream = codecContext->stream();
 
     if (!m_outputFormat.isValid())
         // want the native format
