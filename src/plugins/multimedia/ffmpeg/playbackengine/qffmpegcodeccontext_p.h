@@ -27,11 +27,10 @@ namespace QFFmpeg {
 
 class CodecContext
 {
-    struct Data
+    struct Data : QSharedData
     {
-        Data(AVCodecContextUPtr context, AVStream *stream, AVFormatContext *formatContext,
+        Data(AVCodecContextUPtr context, AVStream *avStream, AVFormatContext *formatContext,
              std::unique_ptr<QFFmpeg::HWAccel> hwAccel);
-        QAtomicInt ref;
         AVCodecContextUPtr context;
         AVStream *stream = nullptr;
         AVRational pixelAspectRatio = { 0, 1 };

@@ -11,9 +11,9 @@ static Q_LOGGING_CATEGORY(qLcPlaybackEngineCodec, "qt.multimedia.playbackengine.
 
 namespace QFFmpeg {
 
-CodecContext::Data::Data(AVCodecContextUPtr context, AVStream *stream,
+CodecContext::Data::Data(AVCodecContextUPtr context, AVStream *avStream,
                          AVFormatContext *formatContext, std::unique_ptr<QFFmpeg::HWAccel> hwAccel)
-    : context(std::move(context)), stream(stream), hwAccel(std::move(hwAccel))
+    : context(std::move(context)), stream(avStream), hwAccel(std::move(hwAccel))
 {
     if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
         pixelAspectRatio = av_guess_sample_aspect_ratio(formatContext, stream, nullptr);
