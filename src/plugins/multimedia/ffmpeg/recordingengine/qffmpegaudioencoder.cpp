@@ -86,7 +86,7 @@ AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, const QAudioFormat 
     Q_ASSERT(avformat_query_codec(recordingEngine.avFormatContext()->oformat, codecID,
                                   FF_COMPLIANCE_NORMAL));
 
-    Q_ASSERT(QFFmpeg::findAVEncoder(codecID).isValid());
+    Q_ASSERT(QFFmpeg::findAVEncoder(codecID));
 
     m_stream = avformat_new_stream(recordingEngine.avFormatContext(), nullptr);
     m_stream->id = recordingEngine.avFormatContext()->nb_streams - 1;

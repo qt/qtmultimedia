@@ -82,38 +82,34 @@ const AVRational *getCodecFrameRates(const AVCodec *codec)
 }
 } // namespace
 
-Codec::Codec(const AVCodec *codec) : m_codec{ codec } { }
-
-bool Codec::isValid() const noexcept
+Codec::Codec(const AVCodec *codec) : m_codec{ codec }
 {
-    return m_codec != nullptr;
+    Q_ASSERT(m_codec);
 }
 
 const AVCodec* Codec::get() const noexcept
 {
+    Q_ASSERT(m_codec);
     return m_codec;
 }
 
 AVCodecID Codec::id() const noexcept
 {
-    if (!m_codec)
-        return AV_CODEC_ID_NONE;
+    Q_ASSERT(m_codec);
 
     return m_codec->id;
 }
 
 QLatin1StringView Codec::name() const noexcept
 {
-    if (!m_codec)
-        return {};
+    Q_ASSERT(m_codec);
 
     return QLatin1StringView{ m_codec->name };
 }
 
 AVMediaType Codec::type() const noexcept
 {
-    if (!m_codec)
-        return AVMEDIA_TYPE_UNKNOWN;
+    Q_ASSERT(m_codec);
 
     return m_codec->type;
 }
@@ -121,79 +117,69 @@ AVMediaType Codec::type() const noexcept
 // See AV_CODEC_CAP_*
 int Codec::capabilities() const noexcept
 {
-    if (!m_codec)
-        return 0;
+    Q_ASSERT(m_codec);
 
     return m_codec->capabilities;
 }
 
 bool Codec::isEncoder() const noexcept
 {
-    if (!m_codec)
-        return false;
+    Q_ASSERT(m_codec);
 
     return av_codec_is_encoder(m_codec) != 0;
 }
 
 bool Codec::isDecoder() const noexcept
 {
-    if (!m_codec)
-        return false;
+    Q_ASSERT(m_codec);
 
     return av_codec_is_decoder(m_codec) != 0;
 }
 
 bool Codec::isExperimental() const noexcept
 {
-    if (!m_codec)
-        return false;
+    Q_ASSERT(m_codec);
 
     return (m_codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) != 0;
 }
 
 const AVPixelFormat *Codec::pixelFormats() const noexcept {
-    if (!m_codec)
-        return nullptr;
+    Q_ASSERT(m_codec);
 
     return getCodecPixelFormats(m_codec);
 }
 
 const AVSampleFormat* Codec::sampleFormats() const noexcept
 {
-    if (!m_codec)
-        return nullptr;
+    Q_ASSERT(m_codec);
 
     return getCodecSampleFormats(m_codec);
 }
 
 const int* Codec::sampleRates() const noexcept
 {
-    if (!m_codec)
-        return nullptr;
+    Q_ASSERT(m_codec);
 
     return getCodecSampleRates(m_codec);
 }
 
 const ChannelLayoutT* Codec::channelLayouts() const noexcept
 {
-    if (!m_codec)
-        return nullptr;
+    Q_ASSERT(m_codec);
 
     return getCodecChannelLayouts(m_codec);
 }
 
 const AVRational* Codec::frameRates() const noexcept
 {
-    if (!m_codec)
-        return nullptr;
+    Q_ASSERT(m_codec);
 
     return getCodecFrameRates(m_codec);
 }
 
 const AVCodecHWConfig* Codec::hwConfig(int i) const noexcept
 {
-    if (!m_codec)
-        return nullptr;
+    Q_ASSERT(m_codec);
 
     return avcodec_get_hw_config(m_codec, i);
 }

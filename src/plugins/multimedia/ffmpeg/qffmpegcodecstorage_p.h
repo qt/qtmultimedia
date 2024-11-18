@@ -34,11 +34,14 @@ bool findAndOpenAVEncoder(AVCodecID codecId,
                           const std::function<AVScore(const Codec &)> &scoresGetter,
                           const std::function<bool(const Codec &)> &codecOpener);
 
-Codec findAVDecoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format = {});
+std::optional<Codec> findAVDecoder(AVCodecID codecId,
+                                   const std::optional<PixelOrSampleFormat> &format = {});
 
-Codec findAVEncoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format = {});
+std::optional<Codec> findAVEncoder(AVCodecID codecId,
+                                   const std::optional<PixelOrSampleFormat> &format = {});
 
-Codec findAVEncoder(AVCodecID codecId, const std::function<AVScore(const Codec &)> &scoresGetter);
+std::optional<Codec> findAVEncoder(AVCodecID codecId,
+                                   const std::function<AVScore(const Codec &)> &scoresGetter);
 
 } // namespace QFFmpeg
 

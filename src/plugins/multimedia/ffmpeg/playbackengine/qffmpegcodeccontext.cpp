@@ -55,7 +55,7 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
     if (videoCodecPolicy == Hw && stream->codecpar->codec_type != AVMEDIA_TYPE_VIDEO)
         Q_ASSERT(!"Codec::create has been called with Hw policy on a non-video stream");
 
-    Codec decoder;
+    std::optional<Codec> decoder;
     std::unique_ptr<QFFmpeg::HWAccel> hwAccel;
 
     if (videoCodecPolicy == Hw)
@@ -63,12 +63,13 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
     else
         decoder = QFFmpeg::findAVDecoder(stream->codecpar->codec_id);
 
-    if (!decoder.isValid())
+    if (!decoder)
         return { QString("No %1 decoder found").arg(videoCodecPolicy == Hw ? "HW" : "SW") };
 
-    qCDebug(qLcPlaybackEngineCodec) << "found decoder" << decoder.name() << "for id" << decoder.id();
+    qCDebug(qLcPlaybackEngineCodec)
+            << "found decoder" << decoder->name() << "for id" << decoder->id();
 
-    AVCodecContextUPtr context(avcodec_alloc_context3(decoder.get()));
+    AVCodecContextUPtr context(avcodec_alloc_context3(decoder->get()));
     if (!context)
         return { "Failed to allocate a FFmpeg codec context" };
 
@@ -104,9 +105,9 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
     AVDictionaryHolder opts;
     av_dict_set(opts, "refcounted_frames", "1", 0);
     av_dict_set(opts, "threads", "auto", 0);
-    applyExperimentalCodecOptions(decoder, opts);
+    applyExperimentalCodecOptions(*decoder, opts);
 
-    ret = avcodec_open2(context.get(), decoder.get(), opts);
+    ret = avcodec_open2(context.get(), decoder->get(), opts);
 
     if (ret < 0)
         return QStringLiteral("Failed to open FFmpeg codec context: %1").arg(err2str(ret));

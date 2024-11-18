@@ -30,10 +30,8 @@ namespace QFFmpeg {
 class Codec
 {
 public:
-    Codec() = default;
     explicit Codec(const AVCodec *codec);
 
-    [[nodiscard]] bool isValid() const noexcept;
     [[nodiscard]] const AVCodec *get() const noexcept;
     [[nodiscard]] AVCodecID id() const noexcept;
     [[nodiscard]] QLatin1StringView name() const noexcept;

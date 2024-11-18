@@ -258,8 +258,6 @@ VideoFrameEncoder::~VideoFrameEncoder() = default;
 
 void VideoFrameEncoder::initStream()
 {
-    Q_ASSERT(m_codec.isValid());
-
     m_stream->codecpar->codec_id = m_codec.id();
 
     // Apples HEVC decoders don't like the hev1 tag ffmpeg uses by default, use hvc1 as the more
@@ -284,7 +282,6 @@ void VideoFrameEncoder::initStream()
 
 bool VideoFrameEncoder::initCodecContext()
 {
-    Q_ASSERT(m_codec.isValid());
     Q_ASSERT(m_stream->codecpar->codec_id);
 
     m_codecContext.reset(avcodec_alloc_context3(m_codec.get()));

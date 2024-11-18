@@ -207,18 +207,18 @@ static std::vector<AVHWDeviceType> deviceTypes(const char *envVarName)
 }
 
 template <typename CodecFinder>
-std::pair<Codec, HWAccelUPtr>
+std::pair<std::optional<Codec>, HWAccelUPtr>
 findCodecWithHwAccel(AVCodecID id, const std::vector<AVHWDeviceType> &deviceTypes,
                      CodecFinder codecFinder,
                      const std::function<bool(const HWAccel &)> &hwAccelPredicate)
 {
     for (auto type : deviceTypes) {
-        const auto codec = codecFinder(id, pixelFormatForHwDevice(type));
+        const std::optional<Codec> codec = codecFinder(id, pixelFormatForHwDevice(type));
 
-        if (!codec.isValid())
+        if (!codec)
             continue;
 
-        qCDebug(qLHWAccel) << "Found potential codec" << codec.name() << "for hw accel" << type
+        qCDebug(qLHWAccel) << "Found potential codec" << codec->name() << "for hw accel" << type
                            << "; Checking the hw device...";
 
         auto hwAccel = QFFmpeg::HWAccel::create(type);
@@ -238,7 +238,7 @@ findCodecWithHwAccel(AVCodecID id, const std::vector<AVHWDeviceType> &deviceType
 
     qCDebug(qLHWAccel) << "No hw acceleration found for codec id" << id;
 
-    return { Codec{}, nullptr };
+    return { std::nullopt, nullptr };
 }
 
 static bool isNoConversionFormat(AVPixelFormat f)
@@ -412,7 +412,7 @@ bool HWAccel::matchesSizeContraints(QSize size) const
             && size.height() <= constraints->max_height;
 }
 
-std::pair<Codec, HWAccelUPtr>
+std::pair<std::optional<Codec>, HWAccelUPtr>
 HWAccel::findDecoderWithHwAccel(AVCodecID id,
                                 const std::function<bool(const HWAccel &)> &hwAccelPredicate)
 {

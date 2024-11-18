@@ -356,13 +356,13 @@ bool findAndOpenCodec(CodecStorageType codecsType, AVCodecID codecId,
 }
 
 template <typename CodecScoreGetter>
-Codec findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
-                           const CodecScoreGetter &scoreGetter)
+std::optional<Codec> findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
+                                 const CodecScoreGetter &scoreGetter)
 {
     const auto &storage = codecsStorage(codecsType);
     auto it = std::lower_bound(storage.begin(), storage.end(), codecId, CodecsComparator{});
 
-    Codec result;
+    std::optional<Codec> result;
     AVScore resultScore = NotSuitableAVScore;
 
     for (; it != storage.end() && it->id() == codecId && resultScore != BestAVScore; ++it) {
@@ -377,8 +377,8 @@ Codec findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
     return result;
 }
 
-Codec findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
-                           const std::optional<PixelOrSampleFormat> &format)
+std::optional<Codec> findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
+                                 const std::optional<PixelOrSampleFormat> &format)
 {
     // TODO: remove deviceType and use only isAVFormatSupported to check the format
 
@@ -392,17 +392,19 @@ Codec findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
 
 } // namespace
 
-Codec findAVDecoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format)
+std::optional<Codec> findAVDecoder(AVCodecID codecId,
+                                   const std::optional<PixelOrSampleFormat> &format)
 {
     return findAVCodec(Decoders, codecId, format);
 }
 
-Codec findAVEncoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format)
+std::optional<Codec> findAVEncoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format)
 {
     return findAVCodec(Encoders, codecId, format);
 }
 
-Codec findAVEncoder(AVCodecID codecId, const std::function<AVScore(const Codec &)> &scoresGetter)
+std::optional<Codec> findAVEncoder(AVCodecID codecId,
+                                   const std::function<AVScore(const Codec &)> &scoresGetter)
 {
     return findAVCodec(Encoders, codecId, scoresGetter);
 }

@@ -131,8 +131,8 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
 
     const AVCodecDescriptor *descriptor = nullptr;
     while ((descriptor = avcodec_descriptor_next(descriptor))) {
-        const bool canEncode{ QFFmpeg::findAVEncoder(descriptor->id).isValid() };
-        const bool canDecode{ QFFmpeg::findAVDecoder(descriptor->id).isValid() };
+        const bool canEncode{ QFFmpeg::findAVEncoder(descriptor->id).has_value() };
+        const bool canDecode{ QFFmpeg::findAVDecoder(descriptor->id).has_value() };
         auto videoCodec = videoCodecForAVCodecId(descriptor->id);
         auto audioCodec = audioCodecForAVCodecId(descriptor->id);
         if (descriptor->type == AVMEDIA_TYPE_VIDEO && videoCodec != QMediaFormat::VideoCodec::Unspecified) {
