@@ -8,7 +8,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-AVSampleFormat adjustSampleFormat(const AVSampleFormat *supportedFormats, AVSampleFormat requested)
+AVSampleFormat adjustSampleFormat(QSpan<const AVSampleFormat> supportedFormats, AVSampleFormat requested)
 {
     auto calcScore = [requested](AVSampleFormat format) {
         if (format == requested)
@@ -30,7 +30,7 @@ AVSampleFormat adjustSampleFormat(const AVSampleFormat *supportedFormats, AVSamp
     return result == AV_SAMPLE_FMT_NONE ? requested : result;
 }
 
-int adjustSampleRate(const int *supportedRates, int requested)
+int adjustSampleRate(QSpan<const int> supportedRates, int requested)
 {
     auto calcScore = [requested](int rate) {
         if (requested == rate)
@@ -68,7 +68,7 @@ static AVScore calculateScoreByChannelsMask(int supportedChannelsNumber, uint64_
     return calculateScoreByChannelsCount(supportedChannelsNumber, requestedChannelsNumber);
 }
 
-ChannelLayoutT adjustChannelLayout(const ChannelLayoutT *supportedLayouts,
+ChannelLayoutT adjustChannelLayout(QSpan<const ChannelLayoutT> supportedLayouts,
                                    const ChannelLayoutT &requested)
 {
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT

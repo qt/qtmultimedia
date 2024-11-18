@@ -281,8 +281,9 @@ void setupDecoder(const AVPixelFormat format, AVCodecContext *const codecContext
 } // namespace
 
 // Used for the AVCodecContext::get_format callback
-AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *suggestedFormats)
+AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
 {
+    QSpan<const AVPixelFormat> suggestedFormats = makeSpan(fmt);
     // First check HW accelerated codecs, the HW device context must be set
     if (codecContext->hw_device_ctx) {
         auto *device_ctx = (AVHWDeviceContext *)codecContext->hw_device_ctx->data;
@@ -342,10 +343,11 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *sugge
         return noConversionFormat;
     }
 
-    qCDebug(qLHWAccel) << "Selected format with conversion" << *suggestedFormats;
+    const AVPixelFormat format = !suggestedFormats.empty() ? suggestedFormats[0] : AV_PIX_FMT_NONE;
+    qCDebug(qLHWAccel) << "Selected format with conversion" << format;
 
     // take the native format, this will involve one additional format conversion on the CPU side
-    return *suggestedFormats;
+    return format;
 }
 
 HWAccel::~HWAccel() = default;

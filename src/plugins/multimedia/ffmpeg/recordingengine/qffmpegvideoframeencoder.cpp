@@ -213,9 +213,9 @@ void VideoFrameEncoder::initTargetSize()
 void VideoFrameEncoder::initCodecFrameRate()
 {
     const auto frameRates = m_codec.frameRates();
-    if (frameRates && qLcVideoFrameEncoder().isEnabled(QtDebugMsg))
-        for (auto rate = frameRates; rate->num && rate->den; ++rate)
-            qCDebug(qLcVideoFrameEncoder) << "supported frame rate:" << *rate;
+    if (qLcVideoFrameEncoder().isEnabled(QtDebugMsg))
+        for (AVRational rate : frameRates)
+            qCDebug(qLcVideoFrameEncoder) << "supported frame rate:" << rate;
 
     m_codecFrameRate = adjustFrameRate(frameRates, m_settings.videoFrameRate());
     qCDebug(qLcVideoFrameEncoder) << "Adjusted frame rate:" << m_codecFrameRate;

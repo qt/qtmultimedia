@@ -122,7 +122,7 @@ void dumpCodecInfo(const Codec &codec)
                              << flagsToString(codec.capabilities(), capabilitiesNames);
 
     const auto pixelFormats = codec.pixelFormats();
-    if (pixelFormats) {
+    if (!pixelFormats.empty()) {
         static const FlagNames flagNames = {
             { AV_PIX_FMT_FLAG_BE, "BE" },
             { AV_PIX_FMT_FLAG_PAL, "PAL" },
@@ -136,10 +136,10 @@ void dumpCodecInfo(const Codec &codec)
         };
 
         qCDebug(qLcCodecStorage) << "  pixelFormats:";
-        for (auto f = pixelFormats; *f != AV_PIX_FMT_NONE; ++f) {
-            auto desc = av_pix_fmt_desc_get(*f);
+        for (AVPixelFormat f : pixelFormats) {
+            auto desc = av_pix_fmt_desc_get(f);
             qCDebug(qLcCodecStorage)
-                    << "    id:" << *f << desc->name << "depth:" << desc->comp[0].depth
+                    << "    id:" << f << desc->name << "depth:" << desc->comp[0].depth
                     << "flags:" << flagsToString(desc->flags, flagNames);
         }
     } else if (codec.type() == AVMEDIA_TYPE_VIDEO) {
@@ -147,13 +147,13 @@ void dumpCodecInfo(const Codec &codec)
     }
 
     const auto sampleFormats = codec.sampleFormats();
-    if (sampleFormats) {
+    if (!sampleFormats.empty()) {
         qCDebug(qLcCodecStorage) << "  sampleFormats:";
-        for (auto f = sampleFormats; *f != AV_SAMPLE_FMT_NONE; ++f) {
-            const auto name = av_get_sample_fmt_name(*f);
-            qCDebug(qLcCodecStorage) << "    id:" << *f << (name ? name : "unknown")
-                                     << "bytes_per_sample:" << av_get_bytes_per_sample(*f)
-                                     << "is_planar:" << av_sample_fmt_is_planar(*f);
+        for (auto f : sampleFormats) {
+            const auto name = av_get_sample_fmt_name(f);
+            qCDebug(qLcCodecStorage) << "    id:" << f << (name ? name : "unknown")
+                                     << "bytes_per_sample:" << av_get_bytes_per_sample(f)
+                                     << "is_planar:" << av_sample_fmt_is_planar(f);
         }
     } else if (codec.type() == AVMEDIA_TYPE_AUDIO) {
         qCDebug(qLcCodecStorage) << "  sampleFormats: null";
@@ -189,7 +189,7 @@ bool isCodecValid(const Codec &codec, const std::vector<AVHWDeviceType> &availab
         return true;
 
     const auto pixelFormats = codec.pixelFormats();
-    if (!pixelFormats) {
+    if (pixelFormats.empty()) {
 #if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
         //  Disable V4L2 M2M codecs for encoding for now,
         //  TODO: Investigate on how to get them working

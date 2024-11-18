@@ -21,63 +21,72 @@ void logGetCodecConfigError(const AVCodec *codec, AVCodecConfig config, int erro
 }
 
 template <typename T>
-const T *getCodecConfig(const AVCodec *codec, AVCodecConfig config)
+QSpan<const T> getCodecConfig(const AVCodec *codec, AVCodecConfig config)
 {
     const T *result = nullptr;
+    int size = 0;
     const auto error = avcodec_get_supported_config(
-            nullptr, codec, config, 0u, reinterpret_cast<const void **>(&result), nullptr);
+            nullptr, codec, config, 0u, reinterpret_cast<const void **>(&result), &size);
     if (error != 0) {
         logGetCodecConfigError(codec, config, error);
-        return nullptr;
+        return {};
     }
-    return result;
+
+    // Sanity check of FFmpeg's array layout. If it is not nullptr, it should end with a terminator,
+    // and be non-empty. A non-null but empty config would mean that no values are accepted by the
+    // codec, which does not make sense.
+    Q_ASSERT(!result || (size > 0 && result[size] == InvalidAvValue<T>));
+
+    // Returns empty span if 'result' is nullptr. This can be misleading, as it may
+    // mean that 'any' value is allowed, or that the result is 'unknown'.
+    return QSpan<const T>{ result, size };
 }
 #endif
 
-const AVPixelFormat *getCodecPixelFormats(const AVCodec *codec)
+QSpan<const AVPixelFormat> getCodecPixelFormats(const AVCodec *codec)
 {
 #if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
     return getCodecConfig<AVPixelFormat>(codec, AV_CODEC_CONFIG_PIX_FORMAT);
 #else
-    return codec->pix_fmts;
+    return makeSpan(codec->pix_fmts);
 #endif
 }
 
-const AVSampleFormat *getCodecSampleFormats(const AVCodec *codec)
+QSpan<const AVSampleFormat> getCodecSampleFormats(const AVCodec *codec)
 {
 #if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
     return getCodecConfig<AVSampleFormat>(codec, AV_CODEC_CONFIG_SAMPLE_FORMAT);
 #else
-    return codec->sample_fmts;
+    return makeSpan(codec->sample_fmts);
 #endif
 }
 
-const int *getCodecSampleRates(const AVCodec *codec)
+QSpan<const int> getCodecSampleRates(const AVCodec *codec)
 {
 #if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
     return getCodecConfig<int>(codec, AV_CODEC_CONFIG_SAMPLE_RATE);
 #else
-    return codec->supported_samplerates;
+    return makeSpan(codec->supported_samplerates);
 #endif
 }
 
-const ChannelLayoutT *getCodecChannelLayouts(const AVCodec *codec)
+QSpan<const ChannelLayoutT> getCodecChannelLayouts(const AVCodec *codec)
 {
 #if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
     return getCodecConfig<AVChannelLayout>(codec, AV_CODEC_CONFIG_CHANNEL_LAYOUT);
 #elif QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
-    return codec->ch_layouts;
+    return makeSpan(codec->ch_layouts);
 #else
-    return codec->channel_layouts;
+    return makeSpan(codec->channel_layouts);
 #endif
 }
 
-const AVRational *getCodecFrameRates(const AVCodec *codec)
+QSpan<const AVRational> getCodecFrameRates(const AVCodec *codec)
 {
 #if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
     return getCodecConfig<AVRational>(codec, AV_CODEC_CONFIG_FRAME_RATE);
 #else
-    return codec->supported_framerates;
+    return makeSpan(codec->supported_framerates);
 #endif
 }
 } // namespace
@@ -143,34 +152,34 @@ bool Codec::isExperimental() const noexcept
     return (m_codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) != 0;
 }
 
-const AVPixelFormat *Codec::pixelFormats() const noexcept {
+QSpan<const AVPixelFormat> Codec::pixelFormats() const noexcept {
     Q_ASSERT(m_codec);
 
     return getCodecPixelFormats(m_codec);
 }
 
-const AVSampleFormat* Codec::sampleFormats() const noexcept
+QSpan<const AVSampleFormat> Codec::sampleFormats() const noexcept
 {
     Q_ASSERT(m_codec);
 
     return getCodecSampleFormats(m_codec);
 }
 
-const int* Codec::sampleRates() const noexcept
+QSpan<const int> Codec::sampleRates() const noexcept
 {
     Q_ASSERT(m_codec);
 
     return getCodecSampleRates(m_codec);
 }
 
-const ChannelLayoutT* Codec::channelLayouts() const noexcept
+QSpan<const ChannelLayoutT> Codec::channelLayouts() const noexcept
 {
     Q_ASSERT(m_codec);
 
     return getCodecChannelLayouts(m_codec);
 }
 
-const AVRational* Codec::frameRates() const noexcept
+QSpan<const AVRational> Codec::frameRates() const noexcept
 {
     Q_ASSERT(m_codec);
 

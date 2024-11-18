@@ -32,7 +32,7 @@ class QFFmpegVideoBuffer;
 namespace QFFmpeg {
 
 // used for the get_format callback for the decoder
-enum AVPixelFormat getFormat(struct AVCodecContext *s, const enum AVPixelFormat * fmt);
+AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt);
 
 class HWAccel;
 

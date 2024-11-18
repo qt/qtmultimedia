@@ -105,12 +105,12 @@ AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &code
 
     const auto constraints = accel.constraints();
     if (constraints && constraints->valid_sw_formats)
-        return findBestAVValue(constraints->valid_sw_formats, scoreCalculator).first;
+        return findBestAVValue(makeSpan(constraints->valid_sw_formats), scoreCalculator).first;
 
     // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
     // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since n7.1)
     const auto pixelFormats = codec.pixelFormats();
-    if (pixelFormats)
+    if (!pixelFormats.empty())
         return findBestAVValue(pixelFormats, scoreCalculator).first;
 
     return AV_PIX_FMT_NONE;
@@ -130,7 +130,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
             return findTargetSWFormat(sourceSWFormat, codec, *accel, prohibitedFormats);
 
         const auto constraints = accel->constraints();
-        if (constraints && hasAVValue(constraints->valid_hw_formats, hwFormat))
+        if (constraints && hasAVValue(makeSpan(constraints->valid_hw_formats), hwFormat))
             return hwFormat;
 
         // Some codecs, don't expose constraints,
@@ -141,7 +141,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
     }
 
     const auto pixelFormats = codec.pixelFormats();
-    if (!pixelFormats) {
+    if (pixelFormats.empty()) {
         qWarning() << "Codec pix formats are undefined, it's likely to behave incorrectly";
 
         return sourceSWFormat;
@@ -154,7 +154,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
 AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
 {
     const auto pixelFormats = codec.pixelFormats();
-    if (!pixelFormats)
+    if (pixelFormats.empty())
         // codecs without pixel formats are suspicious
         return MinAVScore;
 
@@ -163,7 +163,7 @@ AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
     return findBestAVValue(pixelFormats, formatScoreCalculator).second;
 }
 
-AVRational adjustFrameRate(const AVRational *supportedRates, qreal requestedRate)
+AVRational adjustFrameRate(QSpan<const AVRational> supportedRates, qreal requestedRate)
 {
     auto calcScore = [requestedRate](const AVRational &rate) {
         // relative comparison
@@ -179,13 +179,13 @@ AVRational adjustFrameRate(const AVRational *supportedRates, qreal requestedRate
     return { num, den };
 }
 
-AVRational adjustFrameTimeBase(const AVRational *supportedRates, AVRational frameRate)
+AVRational adjustFrameTimeBase(QSpan<const AVRational> supportedRates, AVRational frameRate)
 {
     // TODO: user-specified frame rate might be required.
-    if (supportedRates) {
+    if (!supportedRates.empty()) {
         auto hasFrameRate = [&]() {
-            for (auto rate = supportedRates; rate->num && rate->den; ++rate)
-                if (rate->den == frameRate.den && rate->num == frameRate.num)
+            for (AVRational rate : supportedRates)
+                if (rate.den == frameRate.den && rate.num == frameRate.num)
                     return true;
 
             return false;

@@ -18,6 +18,7 @@
 #include "qffmpegdefs_p.h" // Important: Must be included first
 
 #include <QtCore/qlatin1stringview.h>
+#include <QtCore/qspan.h>
 
 extern "C" {
 #include <libavcodec/codec.h>
@@ -40,11 +41,11 @@ public:
     [[nodiscard]] bool isEncoder() const noexcept;
     [[nodiscard]] bool isDecoder() const noexcept;
     [[nodiscard]] bool isExperimental() const noexcept;
-    [[nodiscard]] const AVPixelFormat *pixelFormats() const noexcept;
-    [[nodiscard]] const AVSampleFormat *sampleFormats() const noexcept;
-    [[nodiscard]] const int *sampleRates() const noexcept;
-    [[nodiscard]] const ChannelLayoutT *channelLayouts() const noexcept;
-    [[nodiscard]] const AVRational *frameRates() const noexcept;
+    [[nodiscard]] QSpan<const AVPixelFormat> pixelFormats() const noexcept;
+    [[nodiscard]] QSpan<const AVSampleFormat> sampleFormats() const noexcept;
+    [[nodiscard]] QSpan<const int> sampleRates() const noexcept;
+    [[nodiscard]] QSpan<const ChannelLayoutT> channelLayouts() const noexcept;
+    [[nodiscard]] QSpan<const AVRational> frameRates() const noexcept;
     [[nodiscard]] const AVCodecHWConfig *hwConfig(int i) const noexcept;
 
 private:

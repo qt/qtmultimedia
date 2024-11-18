@@ -17,6 +17,8 @@
 #include "qffmpegdefs_p.h"
 #include "qffmpeghwaccel_p.h"
 
+#include <QtCore/qspan.h>
+
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
@@ -37,7 +39,7 @@ AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat);
  *        the function selects the most suitable one,
  *        otherwise just makes AVRational from qreal.
  */
-AVRational adjustFrameRate(const AVRational *supportedRates, qreal requestedRate);
+AVRational adjustFrameRate(QSpan<const AVRational> supportedRates, qreal requestedRate);
 
 /**
  * @brief adjustFrameTimeBase gets adjusted timebase by a list of supported frame rates
@@ -52,7 +54,7 @@ AVRational adjustFrameRate(const AVRational *supportedRates, qreal requestedRate
  *
  *        The adjusted time base is supposed to be set to stream and codec context.
  */
-AVRational adjustFrameTimeBase(const AVRational *supportedRates, AVRational frameRate);
+AVRational adjustFrameTimeBase(QSpan<const AVRational> supportedRates, AVRational frameRate);
 
 QSize adjustVideoResolution(const Codec &codec, QSize requestedResolution);
 

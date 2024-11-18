@@ -173,16 +173,29 @@ inline constexpr auto InvalidAvValue<AVSampleFormat> = AV_SAMPLE_FMT_NONE;
 template<>
 inline constexpr auto InvalidAvValue<AVPixelFormat> = AV_PIX_FMT_NONE;
 
+template <typename T>
+QSpan<const T> makeSpan(const T *values)
+{
+    if (!values)
+        return { };
+
+    qsizetype size = 0;
+    while (values[size] != InvalidAvValue<T>)
+        ++size;
+
+    return QSpan<const T>{ values, size };
+}
+
 bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format);
 
 template <typename Format>
-bool hasAVValue(const Format *fmts, Format format)
+bool hasAVValue(QSpan<const Format> fmts, Format format)
 {
-    return findAVValue(fmts, [format](Format f) { return f == format; }) != InvalidAvValue<Format>;
+    return std::find(fmts.begin(), fmts.end(), format) != fmts.end();
 }
 
 template <typename AVValue, typename Predicate>
-AVValue findAVValue(const AVValue *fmts, const Predicate &predicate)
+AVValue findAVValue(QSpan<const AVValue> fmts, const Predicate &predicate)
 {
     auto scoresGetter = [&predicate](AVValue value) {
         return predicate(value) ? BestAVScore : NotSuitableAVScore;
@@ -220,19 +233,21 @@ AVPixelFormat findAVPixelFormat(const Codec &codec, const Predicate &predicate)
 }
 
 template <typename Value, typename CalculateScore>
-auto findBestAVValue(const Value *values, const CalculateScore &calculateScore)
+auto findBestAVValue(QSpan<const Value> values, const CalculateScore &calculateScore)
 {
-    using Limits = std::numeric_limits<decltype(calculateScore(*values))>;
+    static_assert(std::is_invocable_v<CalculateScore, Value>);
+    using Limits = std::numeric_limits<std::invoke_result_t<CalculateScore, Value>>;
 
     const Value invalidValue = InvalidAvValue<Value>;
     std::pair result(invalidValue, Limits::min());
-    if (values) {
 
-        for (; *values != invalidValue && result.second != Limits::max(); ++values) {
-            const auto score = calculateScore(*values);
-            if (score > result.second)
-                result = { *values, score };
-        }
+    for (const Value &val : values) {
+        const auto score = calculateScore(val);
+        if (score > result.second)
+            result = { val, score };
+
+        if (result.second == Limits::max())
+            break;
     }
 
     return result;
