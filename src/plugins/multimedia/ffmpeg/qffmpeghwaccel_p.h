@@ -99,10 +99,6 @@ public:
     static HWAccelUPtr create(AVHWDeviceType deviceType);
 
     static std::pair<Codec, HWAccelUPtr>
-    findEncoderWithHwAccel(AVCodecID id,
-                           const std::function<bool(const HWAccel &)> &hwAccelPredicate = nullptr);
-
-    static std::pair<Codec, HWAccelUPtr>
     findDecoderWithHwAccel(AVCodecID id,
                            const std::function<bool(const HWAccel &)> &hwAccelPredicate = nullptr);
 

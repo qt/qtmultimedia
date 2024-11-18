@@ -413,15 +413,6 @@ bool HWAccel::matchesSizeContraints(QSize size) const
 }
 
 std::pair<Codec, HWAccelUPtr>
-HWAccel::findEncoderWithHwAccel(AVCodecID id,
-                                const std::function<bool(const HWAccel &)> &hwAccelPredicate)
-{
-    auto finder = qOverload<AVCodecID, const std::optional<PixelOrSampleFormat> &>(
-            &QFFmpeg::findAVEncoder);
-    return findCodecWithHwAccel(id, encodingDeviceTypes(), finder, hwAccelPredicate);
-}
-
-std::pair<Codec, HWAccelUPtr>
 HWAccel::findDecoderWithHwAccel(AVCodecID id,
                                 const std::function<bool(const HWAccel &)> &hwAccelPredicate)
 {

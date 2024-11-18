@@ -29,11 +29,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
                                const Codec &codec, const HWAccel *accel,
                                const AVPixelFormatSet &prohibitedFormats = {});
 
-std::pair<Codec, HWAccelUPtr> findHwEncoder(AVCodecID codecID, const QSize &sourceSize);
-
 AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat);
-
-Codec findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat);
 
 /**
  * @brief adjustFrameRate get a rational frame rate be requested qreal rate.

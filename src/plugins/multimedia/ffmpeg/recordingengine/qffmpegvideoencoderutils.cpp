@@ -151,19 +151,6 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
     return findBestAVValue(pixelFormats, swScoreCalculator).first;
 }
 
-std::pair<Codec, HWAccelUPtr> findHwEncoder(AVCodecID codecID, const QSize &resolution)
-{
-    auto matchesSizeConstraints = [&resolution](const HWAccel &accel) {
-        return accel.matchesSizeContraints(resolution);
-    };
-
-    // 1st - attempt to find hw accelerated encoder
-    auto result = HWAccel::findEncoderWithHwAccel(codecID, matchesSizeConstraints);
-    Q_ASSERT(result.first.isValid() == !!result.second);
-
-    return result;
-}
-
 AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
 {
     const auto pixelFormats = codec.pixelFormats();
@@ -174,13 +161,6 @@ AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
     AVPixelFormatSet emptySet;
     auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, emptySet);
     return findBestAVValue(pixelFormats, formatScoreCalculator).second;
-}
-
-Codec findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat)
-{
-    return findAVEncoder(codecID, [sourceSWFormat](const Codec &codec) {
-        return findSWFormatScores(codec, sourceSWFormat);
-    });
 }
 
 AVRational adjustFrameRate(const AVRational *supportedRates, qreal requestedRate)
