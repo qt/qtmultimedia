@@ -25,7 +25,7 @@ bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format)
 {
     if (codec.type() == AVMEDIA_TYPE_VIDEO) {
         auto checkFormat = [format](AVPixelFormat f) { return f == format; };
-        return findAVPixelFormat(codec, checkFormat) != AV_PIX_FMT_NONE;
+        return findAVPixelFormat(codec, checkFormat).has_value();
     }
 
     if (codec.type() == AVMEDIA_TYPE_AUDIO) {

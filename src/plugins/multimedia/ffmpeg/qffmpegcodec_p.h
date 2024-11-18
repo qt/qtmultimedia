@@ -71,6 +71,9 @@ private:
 
 using CodecEnumerator = CodecIterator;
 
+// Helper function to wrap pixel formats inside a span
+QSpan<const AVPixelFormat> makeSpan(const AVPixelFormat *values);
+
 } // namespace FFmpeg
 
 QT_END_NAMESPACE

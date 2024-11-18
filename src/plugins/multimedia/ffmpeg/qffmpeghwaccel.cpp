@@ -287,7 +287,7 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
     // First check HW accelerated codecs, the HW device context must be set
     if (codecContext->hw_device_ctx) {
         auto *device_ctx = (AVHWDeviceContext *)codecContext->hw_device_ctx->data;
-        std::pair formatAndScore(AV_PIX_FMT_NONE, NotSuitableAVScore);
+        ValueAndScore<AVPixelFormat> formatAndScore;
 
         // to be rewritten via findBestAVFormat
         const Codec codec{ codecContext->codec };
@@ -322,25 +322,25 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
                 return result;
             };
 
-            const auto found = findBestAVValue(suggestedFormats, scoresGettor);
+            const auto found = findBestAVValueWithScore(suggestedFormats, scoresGettor);
 
-            if (found.second > formatAndScore.second)
+            if (found.score > formatAndScore.score)
                 formatAndScore = found;
         }
 
-        const auto &format = formatAndScore.first;
-        if (format != AV_PIX_FMT_NONE) {
-            setupDecoder(format, codecContext);
-            qCDebug(qLHWAccel) << "Selected format" << format << "for hw" << device_ctx->type;
-            return format;
+        const auto format = formatAndScore.value;
+        if (format) {
+            setupDecoder(*format, codecContext);
+            qCDebug(qLHWAccel) << "Selected format" << *format << "for hw" << device_ctx->type;
+            return *format;
         }
     }
 
     // prefer video formats we can handle directly
     const auto noConversionFormat = findAVValue(suggestedFormats, &isNoConversionFormat);
-    if (noConversionFormat != AV_PIX_FMT_NONE) {
-        qCDebug(qLHWAccel) << "Selected format with no conversion" << noConversionFormat;
-        return noConversionFormat;
+    if (noConversionFormat) {
+        qCDebug(qLHWAccel) << "Selected format with no conversion" << *noConversionFormat;
+        return *noConversionFormat;
     }
 
     const AVPixelFormat format = !suggestedFormats.empty() ? suggestedFormats[0] : AV_PIX_FMT_NONE;

@@ -10,6 +10,28 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg {
 namespace {
 
+template <typename T>
+inline constexpr auto InvalidAvValue = T{};
+
+template <>
+inline constexpr auto InvalidAvValue<AVSampleFormat> = AV_SAMPLE_FMT_NONE;
+
+template <>
+inline constexpr auto InvalidAvValue<AVPixelFormat> = AV_PIX_FMT_NONE;
+
+template <typename T>
+QSpan<const T> makeSpan(const T *values)
+{
+    if (!values)
+        return {};
+
+    qsizetype size = 0;
+    while (values[size] != InvalidAvValue<T>)
+        ++size;
+
+    return QSpan<const T>{ values, size };
+}
+
 #if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
 
 Q_STATIC_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
@@ -222,6 +244,12 @@ bool CodecIterator::operator!=(const CodecIterator &other) const noexcept
 {
     return m_codec != other.m_codec;
 }
+
+QSpan<const AVPixelFormat> makeSpan(const AVPixelFormat *values)
+{
+    return makeSpan<AVPixelFormat>(values);
+}
+
 
 } // namespace QFFmpeg
 

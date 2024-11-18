@@ -208,7 +208,7 @@ bool isCodecValid(const Codec &codec, const std::vector<AVHWDeviceType> &availab
         // and with v4l2m2m codecs, that is suspicious.
     }
 
-    if (findAVPixelFormat(codec, &isHwPixelFormat) == AV_PIX_FMT_NONE)
+    if (!findAVPixelFormat(codec, &isHwPixelFormat).has_value())
         return true;
 
     if ((codec.capabilities() & AV_CODEC_CAP_HARDWARE) == 0)

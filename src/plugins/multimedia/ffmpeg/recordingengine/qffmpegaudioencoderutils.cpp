@@ -26,8 +26,8 @@ AVSampleFormat adjustSampleFormat(QSpan<const AVSampleFormat> supportedFormats, 
         return DefaultAVScore - (bpsRequested - bps) - 1000000;
     };
 
-    const auto result = findBestAVValue(supportedFormats, calcScore).first;
-    return result == AV_SAMPLE_FMT_NONE ? requested : result;
+    const auto result = findBestAVValue(supportedFormats, calcScore);
+    return result.value_or(requested);
 }
 
 int adjustSampleRate(QSpan<const int> supportedRates, int requested)
@@ -44,8 +44,8 @@ int adjustSampleRate(QSpan<const int> supportedRates, int requested)
         return DefaultAVScore - (requested - rate) - 1000000;
     };
 
-    const auto result = findBestAVValue(supportedRates, calcScore).first;
-    return result == 0 ? requested : result;
+    const auto result = findBestAVValue(supportedRates, calcScore);
+    return result.value_or(requested);
 }
 
 static AVScore calculateScoreByChannelsCount(int supportedChannelsNumber,
@@ -91,15 +91,15 @@ ChannelLayoutT adjustChannelLayout(QSpan<const ChannelLayoutT> supportedLayouts,
     };
 
     const auto result = findBestAVValue(supportedLayouts, calcScore);
-    return result.second == NotSuitableAVScore ? requested : result.first;
+    return result.value_or(requested);
 #else
     auto calcScore = [requested](ChannelLayoutT mask) {
         return calculateScoreByChannelsMask(qPopulationCount(mask), mask,
                                             qPopulationCount(requested), requested);
     };
 
-    const auto result = findBestAVValue(supportedLayouts, calcScore).first;
-    return result == 0 ? requested : result;
+    const auto result = findBestAVValue(supportedLayouts, calcScore);
+    return result.value_or(requested);
 #endif
 }
 

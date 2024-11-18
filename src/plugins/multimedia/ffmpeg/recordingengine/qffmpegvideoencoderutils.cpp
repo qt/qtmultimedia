@@ -98,27 +98,28 @@ static bool isHwFormatAcceptedByCodec(AVPixelFormat pixFormat)
     }
 }
 
-AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
-                                 const HWAccel &accel, const AVPixelFormatSet &prohibitedFormats)
+std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
+                                                const HWAccel &accel,
+                                                const AVPixelFormatSet &prohibitedFormats)
 {
     auto scoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, prohibitedFormats);
 
     const auto constraints = accel.constraints();
-    if (constraints && constraints->valid_sw_formats)
-        return findBestAVValue(makeSpan(constraints->valid_sw_formats), scoreCalculator).first;
+    if (constraints && constraints->valid_sw_formats) {
+        QSpan<const AVPixelFormat> formats = makeSpan(constraints->valid_sw_formats);
+        return findBestAVValue(formats, scoreCalculator);
+    }
 
     // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
     // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since n7.1)
     const auto pixelFormats = codec.pixelFormats();
-    if (!pixelFormats.empty())
-        return findBestAVValue(pixelFormats, scoreCalculator).first;
-
-    return AV_PIX_FMT_NONE;
+    return findBestAVValue(pixelFormats, scoreCalculator);
 }
 
-AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
-                               const Codec &codec, const HWAccel *accel,
-                               const AVPixelFormatSet &prohibitedFormats)
+std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceFormat,
+                                              AVPixelFormat sourceSWFormat, const Codec &codec,
+                                              const HWAccel *accel,
+                                              const AVPixelFormatSet &prohibitedFormats)
 {
     Q_UNUSED(sourceFormat);
 
@@ -148,7 +149,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
     }
 
     auto swScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, prohibitedFormats);
-    return findBestAVValue(pixelFormats, swScoreCalculator).first;
+    return findBestAVValue(pixelFormats, swScoreCalculator);
 }
 
 AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
@@ -160,7 +161,7 @@ AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
 
     AVPixelFormatSet emptySet;
     auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, emptySet);
-    return findBestAVValue(pixelFormats, formatScoreCalculator).second;
+    return findBestAVValueWithScore(pixelFormats, formatScoreCalculator).score;
 }
 
 AVRational adjustFrameRate(QSpan<const AVRational> supportedRates, qreal requestedRate)
@@ -171,9 +172,9 @@ AVRational adjustFrameRate(QSpan<const AVRational> supportedRates, qreal request
                 / qMax(requestedRate * rate.den, qreal(rate.num));
     };
 
-    const auto result = findBestAVValue(supportedRates, calcScore).first;
-    if (result.num && result.den)
-        return result;
+    const auto result = findBestAVValue(supportedRates, calcScore);
+    if (result && result->num && result->den)
+        return *result;
 
     const auto [num, den] = qRealToFraction(requestedRate);
     return { num, den };

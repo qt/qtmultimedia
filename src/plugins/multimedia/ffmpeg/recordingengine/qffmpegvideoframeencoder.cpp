@@ -69,8 +69,8 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
         const auto &deviceTypes = HWAccel::encodingDeviceTypes();
 
         auto findDeviceType = [&](const Codec &codec) {
-            AVPixelFormat pixelFormat = findAVPixelFormat(codec, &isHwPixelFormat);
-            if (pixelFormat == AV_PIX_FMT_NONE)
+            std::optional<AVPixelFormat> pixelFormat = findAVPixelFormat(codec, &isHwPixelFormat);
+            if (!pixelFormat)
                 return deviceTypes.end();
 
             return std::find_if(deviceTypes.begin(), deviceTypes.end(),
@@ -223,26 +223,29 @@ void VideoFrameEncoder::initCodecFrameRate()
 
 bool VideoFrameEncoder::initTargetFormats(const AVPixelFormatSet &prohibitedTargetFormats)
 {
-    m_targetFormat = findTargetFormat(m_sourceFormat, m_sourceSWFormat, m_codec, m_accel.get(),
-                                      prohibitedTargetFormats);
+    const auto format = findTargetFormat(m_sourceFormat, m_sourceSWFormat, m_codec, m_accel.get(),
+                                         prohibitedTargetFormats);
 
-    if (m_targetFormat == AV_PIX_FMT_NONE) {
+    if (!format) {
         qWarning() << "Could not find target format for codecId" << m_codec.id();
         return false;
     }
+
+    m_targetFormat = *format;
 
     if (isHwPixelFormat(m_targetFormat)) {
         Q_ASSERT(m_accel);
 
         // don't pass prohibitedTargetFormats here as m_targetSWFormat is the format,
         // from which we load a hardware texture, and the format doesn't impact on encoding.
-        m_targetSWFormat = findTargetSWFormat(m_sourceSWFormat, m_codec, *m_accel);
-
-        if (m_targetSWFormat == AV_PIX_FMT_NONE) {
+        const auto swFormat = findTargetSWFormat(m_sourceSWFormat, m_codec, *m_accel);
+        if (!swFormat) {
             qWarning() << "Cannot find software target format. sourceSWFormat:" << m_sourceSWFormat
                        << "targetFormat:" << m_targetFormat;
             return false;
         }
+
+        m_targetSWFormat = *swFormat;
 
         m_accel->createFramesContext(m_targetSWFormat, m_targetSize);
         if (!m_accel->hwFramesContextAsBuffer())

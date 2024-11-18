@@ -164,28 +164,6 @@ using SwrContextUPtr = std::unique_ptr<SwrContext, AVDeleter<decltype(&swr_free)
 using SwsContextUPtr =
         std::unique_ptr<SwsContext, AVDeleter<decltype(&sws_freeContext), &sws_freeContext>>;
 
-template <typename T>
-inline constexpr auto InvalidAvValue = T{};
-
-template<>
-inline constexpr auto InvalidAvValue<AVSampleFormat> = AV_SAMPLE_FMT_NONE;
-
-template<>
-inline constexpr auto InvalidAvValue<AVPixelFormat> = AV_PIX_FMT_NONE;
-
-template <typename T>
-QSpan<const T> makeSpan(const T *values)
-{
-    if (!values)
-        return { };
-
-    qsizetype size = 0;
-    while (values[size] != InvalidAvValue<T>)
-        ++size;
-
-    return QSpan<const T>{ values, size };
-}
-
 bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format);
 
 template <typename Format>
@@ -195,12 +173,12 @@ bool hasAVValue(QSpan<const Format> fmts, Format format)
 }
 
 template <typename AVValue, typename Predicate>
-AVValue findAVValue(QSpan<const AVValue> fmts, const Predicate &predicate)
+std::optional<AVValue> findAVValue(QSpan<const AVValue> fmts, const Predicate &predicate)
 {
     auto scoresGetter = [&predicate](AVValue value) {
         return predicate(value) ? BestAVScore : NotSuitableAVScore;
     };
-    return findBestAVValue(fmts, scoresGetter).first;
+    return findBestAVValue(fmts, scoresGetter);
 }
 
 template <typename Predicate>
@@ -215,11 +193,11 @@ const AVCodecHWConfig *findHwConfig(const Codec &codec, const Predicate &predica
 }
 
 template <typename Predicate>
-AVPixelFormat findAVPixelFormat(const Codec &codec, const Predicate &predicate)
+std::optional<AVPixelFormat> findAVPixelFormat(const Codec &codec, const Predicate &predicate)
 {
     const auto pixelFormats = codec.pixelFormats();
-    const AVPixelFormat format = findAVValue(pixelFormats, predicate);
-    if (format != AV_PIX_FMT_NONE)
+
+    if (const auto format = findAVValue(pixelFormats, predicate))
         return format;
 
     auto checkHwConfig = [&predicate](const AVCodecHWConfig *config) {
@@ -229,28 +207,41 @@ AVPixelFormat findAVPixelFormat(const Codec &codec, const Predicate &predicate)
     if (auto hwConfig = findHwConfig(codec, checkHwConfig))
         return hwConfig->pix_fmt;
 
-    return AV_PIX_FMT_NONE;
+    return {};
 }
 
-template <typename Value, typename CalculateScore>
-auto findBestAVValue(QSpan<const Value> values, const CalculateScore &calculateScore)
+template <typename ValueT, typename ScoreT = AVScore>
+struct ValueAndScore
+{
+    std::optional<ValueT> value;
+    ScoreT score = std::numeric_limits<ScoreT>::min();
+};
+
+template <typename Value, typename CalculateScore,
+          typename ScoreType = std::invoke_result_t<CalculateScore, Value>>
+ValueAndScore<Value, ScoreType> findBestAVValueWithScore(QSpan<const Value> values,
+                                                         const CalculateScore &calculateScore)
 {
     static_assert(std::is_invocable_v<CalculateScore, Value>);
-    using Limits = std::numeric_limits<std::invoke_result_t<CalculateScore, Value>>;
 
-    const Value invalidValue = InvalidAvValue<Value>;
-    std::pair result(invalidValue, Limits::min());
-
+    ValueAndScore<Value, ScoreType> result;
     for (const Value &val : values) {
-        const auto score = calculateScore(val);
-        if (score > result.second)
-            result = { val, score };
+        const ScoreType score = calculateScore(val);
+        if (score > result.score)
+            result = { val, score }; // Note: Optional is only set if score > Limits::min()
 
-        if (result.second == Limits::max())
+        if (result.score == std::numeric_limits<ScoreType>::max())
             break;
     }
 
     return result;
+}
+
+template <typename Value, typename CalculateScore>
+std::optional<Value> findBestAVValue(QSpan<const Value> values,
+                                     const CalculateScore &calculateScore)
+{
+    return findBestAVValueWithScore(values, calculateScore).value;
 }
 
 bool isHwPixelFormat(AVPixelFormat format);

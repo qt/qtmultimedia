@@ -23,13 +23,14 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
-                                 const HWAccel &accel,
-                                 const AVPixelFormatSet &prohibitedFormats = {});
+std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
+                                                const HWAccel &accel,
+                                                const AVPixelFormatSet &prohibitedFormats = {});
 
-AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
-                               const Codec &codec, const HWAccel *accel,
-                               const AVPixelFormatSet &prohibitedFormats = {});
+std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceFormat,
+                                              AVPixelFormat sourceSWFormat, const Codec &codec,
+                                              const HWAccel *accel,
+                                              const AVPixelFormatSet &prohibitedFormats = {});
 
 AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat);
 
