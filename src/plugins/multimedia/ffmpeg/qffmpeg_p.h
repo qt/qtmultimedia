@@ -186,17 +186,10 @@ std::optional<Value> findIf(QSpan<const Value> range, const Predicate &predicate
     return *value;
 }
 
-template <typename Predicate>
-const AVCodecHWConfig *findHwConfig(const Codec &codec, const Predicate &predicate)
-{
-    for (int i = 0; const auto hwConfig = codec.hwConfig(i); ++i) {
-        if (predicate(hwConfig))
-            return hwConfig;
-    }
-
-    return nullptr;
-}
-
+// Search the codec's pixel formats for a format that matches the predicate.
+// If no pixel format is found, repeat the search through the pixel formats
+// of all the codec's hardware configs. If no matching pixel format is found,
+// std::nullopt is returned.
 template <typename Predicate>
 std::optional<AVPixelFormat> findAVPixelFormat(const Codec &codec, const Predicate &predicate)
 {
@@ -205,13 +198,17 @@ std::optional<AVPixelFormat> findAVPixelFormat(const Codec &codec, const Predica
     if (const auto format = findIf(pixelFormats, predicate))
         return format;
 
-    auto checkHwConfig = [&predicate](const AVCodecHWConfig *config) {
-        return config->pix_fmt != AV_PIX_FMT_NONE && predicate(config->pix_fmt);
-    };
+    // No matching pixel format was found. Check the pixel format
+    // of the codec's hardware config.
+    for (int i = 0; const auto config = codec.hwConfig(i); ++i) {
+        const AVPixelFormat format = config->pix_fmt;
 
-    if (auto hwConfig = findHwConfig(codec, checkHwConfig))
-        return hwConfig->pix_fmt;
+        if (format == AV_PIX_FMT_NONE)
+            continue;
 
+        if (predicate(format))
+            return format;
+    }
     return {};
 }
 

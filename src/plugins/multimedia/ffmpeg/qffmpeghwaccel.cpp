@@ -154,7 +154,7 @@ static const std::vector<AVHWDeviceType> &deviceTypes()
             findAVPixelFormat(codec, [&](AVPixelFormat format) {
                 if (isHwPixelFormat(format))
                     hwPixFormats.insert(format);
-                return false;
+                return false; // Evaluate for all pixel formats
             });
         }
 
