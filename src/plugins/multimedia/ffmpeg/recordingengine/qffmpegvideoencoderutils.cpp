@@ -131,7 +131,7 @@ std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceFormat,
             return findTargetSWFormat(sourceSWFormat, codec, *accel, prohibitedFormats);
 
         const auto constraints = accel->constraints();
-        if (constraints && hasAVValue(makeSpan(constraints->valid_hw_formats), hwFormat))
+        if (constraints && hasValue(makeSpan(constraints->valid_hw_formats), hwFormat))
             return hwFormat;
 
         // Some codecs, don't expose constraints,

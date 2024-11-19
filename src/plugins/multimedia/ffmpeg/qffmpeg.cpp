@@ -30,7 +30,7 @@ bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format)
 
     if (codec.type() == AVMEDIA_TYPE_AUDIO) {
         const auto sampleFormats = codec.sampleFormats();
-        return hasAVValue(sampleFormats, AVSampleFormat(format));
+        return hasValue(sampleFormats, AVSampleFormat(format));
     }
 
     return false;

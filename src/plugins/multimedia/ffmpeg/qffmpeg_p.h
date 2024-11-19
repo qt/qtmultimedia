@@ -166,19 +166,24 @@ using SwsContextUPtr =
 
 bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format);
 
-template <typename Format>
-bool hasAVValue(QSpan<const Format> fmts, Format format)
+// Returns true if the range contains the value, false otherwise
+template <typename Value>
+bool hasValue(QSpan<const Value> range, Value value)
 {
-    return std::find(fmts.begin(), fmts.end(), format) != fmts.end();
+    return std::find(range.begin(), range.end(), value) != range.end();
 }
 
-template <typename AVValue, typename Predicate>
-std::optional<AVValue> findAVValue(QSpan<const AVValue> fmts, const Predicate &predicate)
+// Search for the first element in the range that satisfies the predicate
+// The predicate is evaluated for each value in the range until it returns
+// true, and the corresponding value is returned. If no match is found,
+// std::nullopt is returned.
+template <typename Value, typename Predicate>
+std::optional<Value> findIf(QSpan<const Value> range, const Predicate &predicate)
 {
-    auto scoresGetter = [&predicate](AVValue value) {
-        return predicate(value) ? BestAVScore : NotSuitableAVScore;
-    };
-    return findBestAVValue(fmts, scoresGetter);
+    const auto value = std::find_if(range.begin(), range.end(), predicate);
+    if (value == range.end())
+        return {};
+    return *value;
 }
 
 template <typename Predicate>
@@ -197,7 +202,7 @@ std::optional<AVPixelFormat> findAVPixelFormat(const Codec &codec, const Predica
 {
     const auto pixelFormats = codec.pixelFormats();
 
-    if (const auto format = findAVValue(pixelFormats, predicate))
+    if (const auto format = findIf(pixelFormats, predicate))
         return format;
 
     auto checkHwConfig = [&predicate](const AVCodecHWConfig *config) {
