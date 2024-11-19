@@ -151,10 +151,9 @@ static const std::vector<AVHWDeviceType> &deviceTypes()
         // gather hw pix formats
         std::unordered_set<AVPixelFormat> hwPixFormats;
         for (const Codec codec : CodecEnumerator()) {
-            findAVPixelFormat(codec, [&](AVPixelFormat format) {
+            forEachAVPixelFormat(codec, [&](AVPixelFormat format) {
                 if (isHwPixelFormat(format))
                     hwPixFormats.insert(format);
-                return false; // Evaluate for all pixel formats
             });
         }
 

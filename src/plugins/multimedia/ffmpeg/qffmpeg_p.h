@@ -189,7 +189,8 @@ std::optional<Value> findIf(QSpan<const Value> range, const Predicate &predicate
 // Search the codec's pixel formats for a format that matches the predicate.
 // If no pixel format is found, repeat the search through the pixel formats
 // of all the codec's hardware configs. If no matching pixel format is found,
-// std::nullopt is returned.
+// std::nullopt is returned. The predicate is evaluated once for each pixel
+// format until the predicate returns true.
 template <typename Predicate>
 std::optional<AVPixelFormat> findAVPixelFormat(const Codec &codec, const Predicate &predicate)
 {
@@ -210,6 +211,17 @@ std::optional<AVPixelFormat> findAVPixelFormat(const Codec &codec, const Predica
             return format;
     }
     return {};
+}
+
+// Evaluate the function for each of the codec's pixel formats and each of
+// the pixel formats supported by the codec's hardware configs.
+template <typename Function>
+void forEachAVPixelFormat(const Codec &codec, const Function &function)
+{
+    findAVPixelFormat(codec, [&function](AVPixelFormat format) {
+        function(format);
+        return false; // Evaluate the function for all pixel formats
+    });
 }
 
 template <typename ValueT, typename ScoreT = AVScore>
