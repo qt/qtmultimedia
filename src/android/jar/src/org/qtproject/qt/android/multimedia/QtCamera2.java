@@ -42,10 +42,19 @@ class QtCamera2 {
     String mCameraId;
     List<Surface> mTargetSurfaces = new ArrayList<>();
 
+    // The following constants are used during the capturePhoto routine.
+    // It should happen in the following order:
+    // 1. Acquire focus
+    // 2. Calibrate auto-exposure for pre-capture
+    // 3. Calibrate auto-exposure for capture
+    // 4. Capture the photo
     private static final int STATE_PREVIEW = 0;
-    private static final int STATE_WAITING_LOCK = 1;
-    private static final int STATE_WAITING_PRECAPTURE = 2;
-    private static final int STATE_WAITING_NON_PRECAPTURE = 3;
+    // We are waiting for focus lock
+    private static final int STATE_WAITING_FOCUS_LOCK = 1;
+    // We are waiting for exposure calibration
+    private static final int STATE_WAITING_EXPOSURE_PRECAPTURE = 2;
+    private static final int STATE_WAITING_EXPOSURE_NON_PRECAPTURE = 3;
+    // The picture is ready to be read into an image object.
     private static final int STATE_PICTURE_TAKEN = 4;
 
     private int mState = STATE_PREVIEW;
@@ -138,7 +147,7 @@ class QtCamera2 {
 
         private void process(CaptureResult result) {
             switch (mState) {
-                case STATE_WAITING_LOCK: {
+                case STATE_WAITING_FOCUS_LOCK: {
                     Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
                     if (afState == null) {
                         capturePhoto();
@@ -154,7 +163,7 @@ class QtCamera2 {
                                 mPreviewRequestBuilder.set(
                                     CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
                                     CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-                                mState = STATE_WAITING_PRECAPTURE;
+                                mState = STATE_WAITING_EXPOSURE_PRECAPTURE;
                                 mCaptureSession.capture(mPreviewRequestBuilder.build(),
                                                         mCaptureCallback,
                                                         mBackgroundHandler);
@@ -165,14 +174,14 @@ class QtCamera2 {
                     }
                     break;
                 }
-                case STATE_WAITING_PRECAPTURE: {
+                case STATE_WAITING_EXPOSURE_PRECAPTURE: {
                     Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                     if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
-                        mState = STATE_WAITING_NON_PRECAPTURE;
+                        mState = STATE_WAITING_EXPOSURE_NON_PRECAPTURE;
                     }
                     break;
                 }
-                case STATE_WAITING_NON_PRECAPTURE: {
+                case STATE_WAITING_EXPOSURE_NON_PRECAPTURE: {
                     Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                     if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
                         mState = STATE_PICTURE_TAKEN;
@@ -437,7 +446,7 @@ class QtCamera2 {
         try {
             if (mAFMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
-                mState = STATE_WAITING_LOCK;
+                mState = STATE_WAITING_FOCUS_LOCK;
                 mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
             } else {
                 capturePhoto();
