@@ -197,7 +197,9 @@ QString getDeviceId(bool isOutput, UINT waveID)
     if (waveMessage(DRV_QUERYFUNCTIONINSTANCEID, deviceId.data(), len) != MMSYSERR_NOERROR)
         return {};
 
-    return QString::fromWCharArray(deviceId.data(), len);
+    Q_ASSERT(deviceId.empty() || deviceId.back() == QChar::Null);
+
+    return QString::fromWCharArray(deviceId.data());
 }
 }
 
