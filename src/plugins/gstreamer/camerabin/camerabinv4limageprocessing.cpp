@@ -42,10 +42,52 @@
 
 #include <QDebug>
 
+#include <gst/gst.h>
+
 #include <private/qcore_unix_p.h>
 #include <linux/videodev2.h>
 
 QT_BEGIN_NAMESPACE
+
+class V4LDeviceResource {
+public:
+    V4LDeviceResource(CameraBinSession *session, int flags) : m_fd(-1), m_needsClose(false)
+    {
+        if (!session)
+            return;
+
+        // request fd from GstElement
+        if (session->videoSource())
+            g_object_get(G_OBJECT(session->videoSource()), "device-fd", &m_fd, NULL);
+
+        if (m_fd != -1)
+            return;
+
+        // manually open resource if GstElement does not have it open
+        const QString deviceName = session->device();
+        m_fd = qt_safe_open(deviceName.toLocal8Bit().constData(), flags);
+
+        if (m_fd == -1) {
+            qWarning() << "Unable to open the camera" << deviceName
+                       << ":" << qt_error_string(errno);
+            return;
+        }
+
+        m_needsClose = true;
+    }
+
+    ~V4LDeviceResource()
+    {
+        if (m_needsClose)
+            qt_safe_close(m_fd);
+    }
+
+    int fd() const { return m_fd; }
+
+private:
+    int m_fd;
+    bool m_needsClose;
+};
 
 CameraBinV4LImageProcessing::CameraBinV4LImageProcessing(CameraBinSession *session)
     : QCameraImageProcessingControl(session)
@@ -129,25 +171,24 @@ QVariant CameraBinV4LImageProcessing::parameter(
         return QVariant();
     }
 
-    const QString deviceName = m_session->device();
-    const int fd = qt_safe_open(deviceName.toLocal8Bit().constData(), O_RDONLY);
-    if (fd == -1) {
-        qWarning() << "Unable to open the camera" << deviceName
-                   << "for read to get the parameter value:" << qt_error_string(errno);
-        return QVariant();
-    }
-
     struct v4l2_control control;
-    ::memset(&control, 0, sizeof(control));
-    control.id = (*sourceValueInfo).cid;
+    {
+        V4LDeviceResource resource(m_session, O_RDONLY);
+        if (resource.fd() == -1) {
+            qWarning("Unable to open device for get parameter value");
+            return QVariant();
+        }
 
-    const bool ret = (::ioctl(fd, VIDIOC_G_CTRL, &control) == 0);
+        ::memset(&control, 0, sizeof(control));
+        control.id = (*sourceValueInfo).cid;
 
-    qt_safe_close(fd);
+        const bool ret = (::ioctl(resource.fd(), VIDIOC_G_CTRL, &control) == 0);
 
-    if (!ret) {
-        qWarning() << "Unable to get the parameter value:" << parameter << ":" << qt_error_string(errno);
-        return QVariant();
+        if (!ret) {
+            qWarning() << "Unable to get the parameter value:" << parameter << ":"
+                       << qt_error_string(errno);
+            return QVariant();
+        }
     }
 
     switch (parameter) {
@@ -184,11 +225,9 @@ void CameraBinV4LImageProcessing::setParameter(
         return;
     }
 
-    const QString deviceName = m_session->device();
-    const int fd = qt_safe_open(deviceName.toLocal8Bit().constData(), O_WRONLY);
-    if (fd == -1) {
-        qWarning() << "Unable to open the camera" << deviceName
-                   << "for write to set the parameter value:" << qt_error_string(errno);
+    V4LDeviceResource resource(m_session, O_WRONLY);
+    if (resource.fd() == -1) {
+        qWarning() << "Unable to open device for set parameter value";
         return;
     }
 
@@ -203,7 +242,6 @@ void CameraBinV4LImageProcessing::setParameter(
                 value.value<QCameraImageProcessing::WhiteBalanceMode>();
         if (m != QCameraImageProcessing::WhiteBalanceAuto
                 && m != QCameraImageProcessing::WhiteBalanceManual) {
-            qt_safe_close(fd);
             return;
         }
 
@@ -224,14 +262,11 @@ void CameraBinV4LImageProcessing::setParameter(
         break;
 
     default:
-        qt_safe_close(fd);
         return;
     }
 
-    if (::ioctl(fd, VIDIOC_S_CTRL, &control) != 0)
+    if (::ioctl(resource.fd(), VIDIOC_S_CTRL, &control) != 0)
         qWarning() << "Unable to set the parameter value:" << parameter << ":" << qt_error_string(errno);
-
-    qt_safe_close(fd);
 }
 
 void CameraBinV4LImageProcessing::updateParametersInfo(
@@ -240,11 +275,9 @@ void CameraBinV4LImageProcessing::updateParametersInfo(
     if (cameraStatus == QCamera::UnloadedStatus)
         m_parametersInfo.clear();
     else if (cameraStatus == QCamera::LoadedStatus) {
-        const QString deviceName = m_session->device();
-        const int fd = qt_safe_open(deviceName.toLocal8Bit().constData(), O_RDONLY);
-        if (fd == -1) {
-            qWarning() << "Unable to open the camera" << deviceName
-                       << "for read to query the parameter info:" << qt_error_string(errno);
+        V4LDeviceResource resource(m_session, O_RDONLY);
+        if (resource.fd() == -1) {
+            qWarning() << "Unable to open device to query parameter info";
             return;
         }
 
@@ -265,7 +298,7 @@ void CameraBinV4LImageProcessing::updateParametersInfo(
             ::memset(&queryControl, 0, sizeof(queryControl));
             queryControl.id = supportedParametersEntries[i].cid;
 
-            if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) != 0) {
+            if (::ioctl(resource.fd(), VIDIOC_QUERYCTRL, &queryControl) != 0) {
                 qWarning() << "Unable to query the parameter info:" << supportedParametersEntries[i].parameter
                     << ":" << qt_error_string(errno);
                 continue;
@@ -279,8 +312,6 @@ void CameraBinV4LImageProcessing::updateParametersInfo(
 
             m_parametersInfo.insert(supportedParametersEntries[i].parameter, sourceValueInfo);
         }
-
-        qt_safe_close(fd);
     }
 }
 

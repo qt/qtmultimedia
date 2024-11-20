@@ -99,6 +99,7 @@ public:
 #endif
     GstElement *cameraBin() { return m_camerabin; }
     GstElement *cameraSource() { return m_cameraSrc; }
+    GstElement *videoSource() { return m_videoSrc; }
     QGstreamerBusHelper *bus() { return m_busHelper; }
 
     QList< QPair<int,int> > supportedFrameRates(const QSize &frameSize, bool *continuous) const;
