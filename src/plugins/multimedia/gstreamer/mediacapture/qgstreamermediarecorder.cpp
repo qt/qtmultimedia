@@ -306,10 +306,10 @@ void QGstreamerMediaRecorder::record(QMediaEncoderSettings &settings)
     }
 
     QGstreamerMediaCaptureSession::RecorderElements recorder{
-        .encodeBin = std::move(gstEncodebin),
-        .fileSink = std::move(gstFileSink),
-        .audioSink = std::move(audioSink),
-        .videoSink = std::move(videoSink),
+        std::move(gstEncodebin),
+        std::move(gstFileSink),
+        std::move(audioSink),
+        std::move(videoSink),
     };
 
     m_session->linkAndStartEncoder(std::move(recorder), m_metaData);

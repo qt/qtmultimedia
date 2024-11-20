@@ -221,9 +221,9 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
     }
 
     RenderBufferState state{
-        .buffer = QGstBufferHandle{ buffer, QGstBufferHandle::NeedsRef },
-        .format = m_format,
-        .memoryFormat = m_memoryFormat,
+        QGstBufferHandle{ buffer, QGstBufferHandle::NeedsRef },
+        m_format,
+        m_memoryFormat,
     };
 
     qCDebug(qLcGstVideoRenderer) << "    sending video frame";

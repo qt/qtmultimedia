@@ -15,7 +15,12 @@
 // We mean it.
 //
 
+#ifdef Q_OS_UNIX
 #include <QtCore/private/qcore_unix_p.h>
+#else
+#include <qplatformdefs.h>
+#endif
+
 #include <QtCore/private/quniquehandle_p.h>
 #include <QtCore/qtconfigmacros.h>
 
@@ -191,7 +196,7 @@ struct QFileDescriptorHandleTraits
     static constexpr Type invalidValue() noexcept { return -1; }
     static bool close(Type fd) noexcept
     {
-        int closeResult = qt_safe_close(fd);
+        int closeResult = QT_CLOSE(fd);
         return closeResult == 0;
     }
 };

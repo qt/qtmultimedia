@@ -769,11 +769,7 @@ void QGstPad::doInIdleProbe(Functor &&work)
         }
     };
 
-    CallbackData cd{
-        .waitDone = QSemaphore{},
-        .onceFlag = {},
-        .work = std::forward<Functor>(work),
-    };
+    CallbackData cd{ QSemaphore{}, {}, std::forward<Functor>(work) };
 
     auto callback = [](GstPad *, GstPadProbeInfo *, gpointer p) {
         auto cd = reinterpret_cast<CallbackData *>(p);

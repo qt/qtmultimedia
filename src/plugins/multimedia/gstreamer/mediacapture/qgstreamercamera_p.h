@@ -102,7 +102,7 @@ private:
             return f(gstreamerDeviceFd);
 
         auto v4l2FileDescriptor = QFileDescriptorHandle{
-            qt_safe_open(m_v4l2DevicePath.toLocal8Bit().constData(), O_RDONLY),
+            QT_OPEN(m_v4l2DevicePath.toLocal8Bit().constData(), O_RDONLY),
         };
         if (!v4l2FileDescriptor) {
             qWarning() << "Unable to open the camera" << m_v4l2DevicePath
