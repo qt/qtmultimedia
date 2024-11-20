@@ -209,6 +209,12 @@ QMaybe<QPlatformMediaPlayer *> QGstreamerMediaPlayer::create(QMediaPlayer *paren
     return new QGstreamerMediaPlayer(videoOutput.value(), parent);
 }
 
+template <typename T>
+void setSeekAccurate(T *config, gboolean accurate)
+{
+    gst_play_config_set_seek_accurate(config, accurate);
+}
+
 QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
                                              QMediaPlayer *parent)
     : QObject(parent),
@@ -225,11 +231,32 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
           QGstBusHandle{ gst_play_get_message_bus(m_gstPlay.get()), QGstBusHandle::HasRef },
       }
 {
+#if 1
+    // LATER: remove this hack after meta-freescale decides not to pull in outdated APIs
+
+    // QTBUG-131300: nxp deliberately reverted to an old gst-play API before the gst-play API
+    // stabilized. compare:
+    // https://github.com/nxp-imx/gst-plugins-bad/commit/ff04fa9ca1b79c98e836d8cdb26ac3502dafba41
+    constexpr bool useNxpWorkaround = std::is_same_v<decltype(&gst_play_config_set_seek_accurate),
+                                                     void (*)(GstPlay *, gboolean)>;
+
+    QUniqueGstStructureHandle config{
+        gst_play_get_config(m_gstPlay.get()),
+    };
+
+    if constexpr (useNxpWorkaround)
+        setSeekAccurate(m_gstPlay.get(), true);
+    else
+        setSeekAccurate(config.get(), true);
+
+    gst_play_set_config(m_gstPlay.get(), config.release());
+#else
     QUniqueGstStructureHandle config{
         gst_play_get_config(m_gstPlay.get()),
     };
     gst_play_config_set_seek_accurate(config.get(), true);
     gst_play_set_config(m_gstPlay.get(), config.release());
+#endif
 
     gstVideoOutput->setParent(this);
 
