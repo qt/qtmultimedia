@@ -201,7 +201,7 @@ std::optional<AVPixelFormat> findAVPixelFormat(const Codec &codec, const Predica
 
     // No matching pixel format was found. Check the pixel format
     // of the codec's hardware config.
-    for (int i = 0; const auto config = codec.hwConfig(i); ++i) {
+    for (const AVCodecHWConfig *const config : codec.hwConfigs()) {
         const AVPixelFormat format = config->pix_fmt;
 
         if (format == AV_PIX_FMT_NONE)

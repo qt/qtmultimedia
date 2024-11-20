@@ -208,11 +208,18 @@ QSpan<const AVRational> Codec::frameRates() const noexcept
     return getCodecFrameRates(m_codec);
 }
 
-const AVCodecHWConfig* Codec::hwConfig(int i) const noexcept
+std::vector<const AVCodecHWConfig *> Codec::hwConfigs() const noexcept
 {
     Q_ASSERT(m_codec);
 
-    return avcodec_get_hw_config(m_codec, i);
+    // For most codecs, hwConfig is empty so we optimize for
+    // the hot path and do not preallocate/reserve any memory.
+    std::vector<const AVCodecHWConfig *> configs;
+
+    for (int index = 0; auto config = avcodec_get_hw_config(m_codec, index); ++index)
+        configs.push_back(config);
+
+    return configs;
 }
 
 CodecIterator CodecIterator::begin()

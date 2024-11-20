@@ -159,7 +159,8 @@ void dumpCodecInfo(const Codec &codec)
         qCDebug(qLcCodecStorage) << "  sampleFormats: null";
     }
 
-    if (codec.hwConfig(0)) {
+    const std::vector<const AVCodecHWConfig*> hwConfigs = codec.hwConfigs();
+    if (!hwConfigs.empty()) {
         static const FlagNames hwConfigMethodNames = {
             { AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX, "HW_DEVICE_CTX" },
             { AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX, "HW_FRAMES_CTX" },
@@ -168,7 +169,7 @@ void dumpCodecInfo(const Codec &codec)
         };
 
         qCDebug(qLcCodecStorage) << "  hw config:";
-        for (int index = 0; auto config = codec.hwConfig(index); ++index) {
+        for (const AVCodecHWConfig* config : hwConfigs) {
             const auto pixFmtForDevice = pixelFormatForHwDevice(config->device_type);
             auto pixFmtDesc = av_pix_fmt_desc_get(config->pix_fmt);
             auto pixFmtForDeviceDesc = av_pix_fmt_desc_get(pixFmtForDevice);

@@ -290,7 +290,7 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
 
         // to be rewritten via findBestAVFormat
         const Codec codec{ codecContext->codec };
-        for (int i = 0; const AVCodecHWConfig *config = codec.hwConfig(i); i++) {
+        for (const AVCodecHWConfig *config : codec.hwConfigs()) {
             if (!(config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX))
                 continue;
 

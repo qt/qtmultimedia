@@ -20,6 +20,8 @@
 #include <QtCore/qlatin1stringview.h>
 #include <QtCore/qspan.h>
 
+#include <vector>
+
 extern "C" {
 #include <libavcodec/codec.h>
 }
@@ -46,7 +48,7 @@ public:
     [[nodiscard]] QSpan<const int> sampleRates() const noexcept;
     [[nodiscard]] QSpan<const ChannelLayoutT> channelLayouts() const noexcept;
     [[nodiscard]] QSpan<const AVRational> frameRates() const noexcept;
-    [[nodiscard]] const AVCodecHWConfig *hwConfig(int i) const noexcept;
+    [[nodiscard]] std::vector<const AVCodecHWConfig *> hwConfigs() const noexcept;
 
 private:
     const AVCodec *m_codec = nullptr;
