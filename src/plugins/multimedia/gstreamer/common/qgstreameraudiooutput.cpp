@@ -33,7 +33,7 @@ constexpr QLatin1String defaultSinkName = [] {
         return "autoaudiosink"_L1;
 }();
 
-[[maybe_unused]] bool sinkHasDeviceProperty(const QGstElement &element)
+bool sinkHasDeviceProperty(const QGstElement &element)
 {
     using namespace Qt::Literals;
     QLatin1String elementType = element.typeName();
@@ -184,15 +184,9 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &device)
 
     m_audioDevice = device;
 
-    // NOTE: ideally we could set the `device` property on the pulsesink. however that seems to
-    // cause the pipeline to stall in rare occassions. so we need to force the creation of a new
-    // sink
-    constexpr bool forceNewSinkCreation = true;
-    if constexpr (!forceNewSinkCreation) {
-        if (sinkHasDeviceProperty(m_audioSink) && !isCustomAudioDevice(m_audioDevice)) {
-            m_audioSink.set("device", m_audioDevice.id().constData());
-            return;
-        }
+    if (sinkHasDeviceProperty(m_audioSink) && !isCustomAudioDevice(m_audioDevice)) {
+        m_audioSink.set("device", m_audioDevice.id().constData());
+        return;
     }
 
     QGstElement newSink = createGstElement();

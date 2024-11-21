@@ -62,7 +62,7 @@ public:
     double playbackRate() const;
     void applyPlaybackRate(bool forceFlushingSeek = false);
 
-    void setPosition(std::chrono::nanoseconds pos, bool flush = true);
+    void setPosition(std::chrono::nanoseconds pos);
     std::chrono::nanoseconds position() const;
     std::chrono::milliseconds positionInMs() const;
 
@@ -75,14 +75,12 @@ public:
     std::optional<std::pair<std::chrono::nanoseconds, std::chrono::nanoseconds>>
     queryPositionAndDuration(std::chrono::nanoseconds timeout = defaultQueryTimeout) const;
 
-    void seekToEndWithEOS();
-
 private:
     // installs QGstPipelinePrivate as "pipeline-private" gobject property
     static QGstPipeline adopt(GstPipeline *);
 
-    void seek(std::chrono::nanoseconds pos, double rate, bool flush);
-    void seek(std::chrono::nanoseconds pos, bool flush);
+    void seek(std::chrono::nanoseconds pos, double rate);
+    void seek(std::chrono::nanoseconds pos);
 
     QGstPipelinePrivate *getPrivate() const;
 };

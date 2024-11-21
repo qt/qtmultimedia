@@ -30,8 +30,7 @@ public:
           volumeChanged(&output, &QAudioOutput::volumeChanged),
           mutedChanged(&output, &QAudioOutput::mutedChanged),
           bufferProgressChanged(&player, &QMediaPlayer::bufferProgressChanged),
-          destroyed(&player, &QObject::destroyed),
-          tracksChanged(&player, &QMediaPlayer::tracksChanged)
+          destroyed(&player, &QObject::destroyed)
     {
         setVideoSinkAsyncFramesCounter(surface, framesCount);
 
@@ -53,7 +52,6 @@ public:
         mutedChanged.clear();
         bufferProgressChanged.clear();
         destroyed.clear();
-        tracksChanged.clear();
     }
 
     QMediaPlayer player;
@@ -73,7 +71,6 @@ public:
     QSignalSpy mutedChanged;
     QSignalSpy bufferProgressChanged;
     QSignalSpy destroyed;
-    QSignalSpy tracksChanged;
 };
 
 // Helper to create an object that is comparable to a QSignalSpy
