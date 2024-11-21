@@ -98,9 +98,7 @@ public:
 
     static HWAccelUPtr create(AVHWDeviceType deviceType);
 
-    static std::pair<std::optional<Codec>, HWAccelUPtr>
-    findDecoderWithHwAccel(AVCodecID id,
-                           const std::function<bool(const HWAccel &)> &hwAccelPredicate = nullptr);
+    static std::pair<std::optional<Codec>, HWAccelUPtr> findDecoderWithHwAccel(AVCodecID id);
 
     AVHWDeviceType deviceType() const;
 

@@ -205,14 +205,10 @@ static std::vector<AVHWDeviceType> deviceTypes(const char *envVarName)
     return result;
 }
 
-template <typename CodecFinder>
-std::pair<std::optional<Codec>, HWAccelUPtr>
-findCodecWithHwAccel(AVCodecID id, const std::vector<AVHWDeviceType> &deviceTypes,
-                     CodecFinder codecFinder,
-                     const std::function<bool(const HWAccel &)> &hwAccelPredicate)
+std::pair<std::optional<Codec>, HWAccelUPtr> HWAccel::findDecoderWithHwAccel(AVCodecID id)
 {
-    for (auto type : deviceTypes) {
-        const std::optional<Codec> codec = codecFinder(id, pixelFormatForHwDevice(type));
+    for (auto type : decodingDeviceTypes()) {
+        const std::optional<Codec> codec = findAVDecoder(id, pixelFormatForHwDevice(type));
 
         if (!codec)
             continue;
@@ -220,15 +216,10 @@ findCodecWithHwAccel(AVCodecID id, const std::vector<AVHWDeviceType> &deviceType
         qCDebug(qLHWAccel) << "Found potential codec" << codec->name() << "for hw accel" << type
                            << "; Checking the hw device...";
 
-        auto hwAccel = QFFmpeg::HWAccel::create(type);
+        HWAccelUPtr hwAccel = create(type);
 
         if (!hwAccel)
             continue;
-
-        if (hwAccelPredicate && !hwAccelPredicate(*hwAccel)) {
-            qCDebug(qLHWAccel) << "HW device is available but doesn't suit due to restrictions";
-            continue;
-        }
 
         qCDebug(qLHWAccel) << "HW device is OK";
 
@@ -411,14 +402,6 @@ bool HWAccel::matchesSizeContraints(QSize size) const
             && size.height() >= constraints->min_height
             && size.width() <= constraints->max_width
             && size.height() <= constraints->max_height;
-}
-
-std::pair<std::optional<Codec>, HWAccelUPtr>
-HWAccel::findDecoderWithHwAccel(AVCodecID id,
-                                const std::function<bool(const HWAccel &)> &hwAccelPredicate)
-{
-    return findCodecWithHwAccel(id, decodingDeviceTypes(), &QFFmpeg::findAVDecoder,
-                                hwAccelPredicate);
 }
 
 AVHWDeviceType HWAccel::deviceType() const
