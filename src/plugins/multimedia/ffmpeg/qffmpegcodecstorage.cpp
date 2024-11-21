@@ -58,6 +58,7 @@ struct CodecsComparator
     }
 
     bool operator()(const Codec &codec, AVCodecID id) const { return codec.id() < id; }
+    bool operator()(AVCodecID id, const Codec &codec) const { return id < codec.id(); }
 };
 
 template <typename FlagNames>
@@ -356,39 +357,25 @@ bool findAndOpenCodec(CodecStorageType codecsType, AVCodecID codecId,
     return std::any_of(codecsToScores.begin(), codecsToScores.end(), open);
 }
 
-template <typename CodecScoreGetter>
-std::optional<Codec> findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
-                                 const CodecScoreGetter &scoreGetter)
-{
-    const auto &storage = codecsStorage(codecsType);
-    auto it = std::lower_bound(storage.begin(), storage.end(), codecId, CodecsComparator{});
-
-    std::optional<Codec> result;
-    AVScore resultScore = NotSuitableAVScore;
-
-    for (; it != storage.end() && it->id() == codecId && resultScore != BestAVScore; ++it) {
-        const auto score = scoreGetter(*it);
-
-        if (score > resultScore) {
-            resultScore = score;
-            result = *it;
-        }
-    }
-
-    return result;
-}
-
 std::optional<Codec> findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
                                  const std::optional<PixelOrSampleFormat> &format)
 {
-    // TODO: remove deviceType and use only isAVFormatSupported to check the format
+    const CodecsStorage& storage = codecsStorage(codecsType);
 
-    return findAVCodec(codecsType, codecId, [&](const Codec &codec) {
-        if (format && !isAVFormatSupported(codec, *format))
-            return NotSuitableAVScore;
+    // Storage is sorted, so we can quickly narrow down the search to codecs with the specific id.
+    auto begin = std::lower_bound(storage.begin(), storage.end(), codecId, CodecsComparator{});
+    auto end = std::upper_bound(begin, storage.end(), codecId, CodecsComparator{});
 
-        return BestAVScore;
+    // Within the narrowed down range, look for a codec that supports the format.
+    // If no format is specified, return the first one.
+    auto codecIt = std::find_if(begin, end, [&format](const Codec &codec) {
+        return !format || isAVFormatSupported(codec, *format);
     });
+
+    if (codecIt != end)
+        return *codecIt;
+
+    return {};
 }
 
 } // namespace
