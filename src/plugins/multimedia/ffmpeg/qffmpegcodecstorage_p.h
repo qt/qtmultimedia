@@ -40,9 +40,6 @@ std::optional<Codec> findAVDecoder(AVCodecID codecId,
 std::optional<Codec> findAVEncoder(AVCodecID codecId,
                                    const std::optional<PixelOrSampleFormat> &format = {});
 
-std::optional<Codec> findAVEncoder(AVCodecID codecId,
-                                   const std::function<AVScore(const Codec &)> &scoresGetter);
-
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

@@ -404,12 +404,6 @@ std::optional<Codec> findAVEncoder(AVCodecID codecId, const std::optional<PixelO
     return findAVCodec(Encoders, codecId, format);
 }
 
-std::optional<Codec> findAVEncoder(AVCodecID codecId,
-                                   const std::function<AVScore(const Codec &)> &scoresGetter)
-{
-    return findAVCodec(Encoders, codecId, scoresGetter);
-}
-
 bool findAndOpenAVDecoder(AVCodecID codecId,
                           const std::function<AVScore(const Codec &)> &scoresGetter,
                           const std::function<bool(const Codec &)> &codecOpener)
