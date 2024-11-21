@@ -7,6 +7,7 @@
 #include <QGuiApplication>
 #include <QIcon>
 #include <QTimer>
+#include <QtCore/private/qflatmap_p.h>
 #include "qaudioengine_pulse_p.h"
 #include "qpulseaudiodevice_p.h"
 #include "qpulsehelpers_p.h"
@@ -145,10 +146,10 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
     Q_ASSERT(info);
 
     if (Q_UNLIKELY(qLcPulseAudioEngine().isEnabled(QtDebugMsg))) {
-        static const QMap<pa_sink_state, QString> stateMap{
-            { PA_SINK_INVALID_STATE, u"n/a"_s }, { PA_SINK_RUNNING, u"RUNNING"_s },
-            { PA_SINK_IDLE, u"IDLE"_s },         { PA_SINK_SUSPENDED, u"SUSPENDED"_s },
-            { PA_SINK_UNLINKED, u"UNLINKED"_s },
+        static const QFlatMap<pa_sink_state, QStringView> stateMap{
+            { PA_SINK_INVALID_STATE, u"n/a" }, { PA_SINK_RUNNING, u"RUNNING" },
+            { PA_SINK_IDLE, u"IDLE" },         { PA_SINK_SUSPENDED, u"SUSPENDED" },
+            { PA_SINK_UNLINKED, u"UNLINKED" },
         };
 
         qCDebug(qLcPulseAudioEngine)
@@ -181,10 +182,10 @@ static void sourceInfoCallback(pa_context *context, const pa_source_info *info, 
     Q_ASSERT(info);
 
     if (Q_UNLIKELY(qLcPulseAudioEngine().isEnabled(QtDebugMsg))) {
-        static const QMap<pa_source_state, QString> stateMap{
-            { PA_SOURCE_INVALID_STATE, u"n/a"_s }, { PA_SOURCE_RUNNING, u"RUNNING"_s },
-            { PA_SOURCE_IDLE, u"IDLE"_s },         { PA_SOURCE_SUSPENDED, u"SUSPENDED"_s },
-            { PA_SOURCE_UNLINKED, u"UNLINKED"_s },
+        static const QFlatMap<pa_source_state, QStringView> stateMap{
+            { PA_SOURCE_INVALID_STATE, u"n/a" }, { PA_SOURCE_RUNNING, u"RUNNING" },
+            { PA_SOURCE_IDLE, u"IDLE" },         { PA_SOURCE_SUSPENDED, u"SUSPENDED" },
+            { PA_SOURCE_UNLINKED, u"UNLINKED" },
         };
 
         qCDebug(qLcPulseAudioEngine)

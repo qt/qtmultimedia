@@ -6,7 +6,6 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qiodevice.h>
-#include <QtCore/qmap.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qspan.h>
@@ -60,7 +59,7 @@ private:
 
     QMutex m_registryMutex;
     std::map<QByteArray, SharedRecord, std::less<>> m_registry;
-    QMap<QIODevice *, QByteArray> m_reverseLookupTable;
+    std::map<QIODevice *, QByteArray> m_reverseLookupTable;
 };
 
 QByteArray QIODeviceRegistry::registerQIODevice(QIODevice *device)
@@ -74,7 +73,7 @@ QByteArray QIODeviceRegistry::registerQIODevice(QIODevice *device)
 
     auto it = m_reverseLookupTable.find(device);
     if (it != m_reverseLookupTable.end())
-        return it.value();
+        return it->second;
 
     QByteArray identifier =
             "qiodevice:/"_ba + QUuid::createUuid().toByteArray(QUuid::StringFormat::Id128);
@@ -99,7 +98,7 @@ QByteArray QIODeviceRegistry::registerQIODevice(QIODevice *device)
     },
             Qt::DirectConnection);
 
-    m_reverseLookupTable.insert(device, identifier);
+    m_reverseLookupTable.emplace(device, identifier);
     return identifier;
 }
 
@@ -120,7 +119,7 @@ void QIODeviceRegistry::unregisterDevice(QIODevice *device)
     if (reverseLookupIt == m_reverseLookupTable.end())
         return;
 
-    auto it = m_registry.find(reverseLookupIt.value());
+    auto it = m_registry.find(reverseLookupIt->second);
     Q_ASSERT(it != m_registry.end());
 
     it->second->unsetDevice();
