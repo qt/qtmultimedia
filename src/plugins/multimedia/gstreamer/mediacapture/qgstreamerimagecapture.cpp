@@ -139,8 +139,8 @@ QGstreamerImageCapture::~QGstreamerImageCapture()
         return std::move(m_pendingFutures);
     }();
 
-    for (QFuture<void> &pendingImage : pendingFutures)
-        pendingImage.waitForFinished();
+    for (auto &element : pendingFutures)
+        element.second.waitForFinished();
 }
 
 bool QGstreamerImageCapture::isReadyForCapture() const
@@ -264,7 +264,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
     QFuture<void> future = s_threadPoolSingleton.run([EQ_THIS_CAPTURE]() mutable {
         QMutexLocker guard(&m_mutex);
         auto scopeExit = qScopeGuard([&] {
-            m_pendingFutures.remove(futureId);
+            m_pendingFutures.erase(futureId);
         });
 
         if (!m_session) {
@@ -302,7 +302,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
     if (!future.isValid()) // during qApplication shutdown the threadpool becomes unusable
         return true;
 
-    m_pendingFutures.insert(futureId, future);
+    m_pendingFutures.emplace(futureId, future);
 
     return true;
 }
@@ -399,7 +399,7 @@ void QGstreamerImageCapture::saveBufferToImage(GstBuffer *buffer)
                                                        id]() mutable {
         auto cleanup = qScopeGuard([&] {
             QMutexLocker guard(&m_mutex);
-            m_pendingFutures.remove(id);
+            m_pendingFutures.erase(id);
         });
 
         qCDebug(qLcImageCaptureGst) << "saving image as" << imageData.filename;
@@ -423,7 +423,7 @@ void QGstreamerImageCapture::saveBufferToImage(GstBuffer *buffer)
         });
     });
 
-    m_pendingFutures.insert(id, saveImageFuture);
+    m_pendingFutures.emplace(id, saveImageFuture);
 }
 
 QImageEncoderSettings QGstreamerImageCapture::imageSettings() const

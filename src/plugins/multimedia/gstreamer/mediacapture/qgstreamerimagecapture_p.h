@@ -27,6 +27,8 @@
 #include <mediacapture/qgstreamermediacapturesession_p.h>
 #include <gst/video/video.h>
 
+#include <map>
+
 QT_BEGIN_NAMESPACE
 
 class QGstreamerImageCapture : public QPlatformImageCapture, private QGstreamerBufferProbe
@@ -94,7 +96,7 @@ private:
 
     QGObjectHandlerScopedConnection m_handoffConnection;
 
-    QMap<int, QFuture<void>> m_pendingFutures;
+    std::map<int, QFuture<void>> m_pendingFutures;
     int futureIDAllocator = 0;
 
     template <typename Functor>
