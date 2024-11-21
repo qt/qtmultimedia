@@ -206,22 +206,21 @@ bool isCodecValid(const Codec &codec, const std::vector<AVHWDeviceType> &availab
             return false;
 #endif
 
-        return true; // To be investigated. This happens for RAW_VIDEO, that is supposed to be OK,
-        // and with v4l2m2m codecs, that is suspicious.
+        return true; // When the codec reports no pixel formats, format support is unknown.
     }
 
-    if (!findAVPixelFormat(codec, &isHwPixelFormat).has_value())
-        return true;
+    if (!findAVPixelFormat(codec, &isHwPixelFormat))
+        return true; // Codec does not support any hw pixel formats, so no further checks are needed
 
     if ((codec.capabilities() & AV_CODEC_CAP_HARDWARE) == 0)
-        return true;
+        return true; // Codec does not support hardware processing, so no further checks are needed
+
+    if (codecAvailableOnDevice && codecAvailableOnDevice->count(codec.id()) == 0)
+        return false; // Codec is not in platform's allow-list
 
     auto checkDeviceType = [codec](AVHWDeviceType type) {
         return isAVFormatSupported(codec, pixelFormatForHwDevice(type));
     };
-
-    if (codecAvailableOnDevice && codecAvailableOnDevice->count(codec.id()) == 0)
-        return false;
 
     return std::any_of(availableHwDeviceTypes.begin(), availableHwDeviceTypes.end(),
                        checkDeviceType);
