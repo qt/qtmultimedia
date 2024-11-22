@@ -104,8 +104,9 @@ class QtCamera2 {
     }
     private final SyncedMembers mSyncedMembers = new SyncedMembers();
 
+    // Called from C++.
     // Resets the control properties of this camera to their default values.
-    private void resetControls() {
+    public void resetControlProperties() {
         synchronized (mSyncedMembers) {
             mSyncedMembers.mFlashMode = defaultFlashMode;
             mSyncedMembers.mTorchMode = defaultTorchMode;
@@ -454,10 +455,6 @@ class QtCamera2 {
                 Log.w("QtCamera2", "Failed to stop and close:" + exception);
             }
             mSyncedMembers.mIsStarted = false;
-
-            // In the case that we are switching camera-device the controls will be
-            // repopulated by QAndroidCamera.
-            resetControls();
         }
     }
 
