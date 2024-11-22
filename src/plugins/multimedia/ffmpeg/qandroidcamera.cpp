@@ -158,6 +158,10 @@ void QAndroidCamera::setCamera(const QCameraDevice &camera)
     if (oldActive)
         setActive(false);
 
+    // Reset all our control-members on the Java-side to default
+    // values. Then populate them again during updateCameraCharacteristics()
+    m_jniCamera.callMethod<void>("resetControlProperties");
+
     m_cameraDevice = camera;
     updateCameraCharacteristics();
     m_cameraFormat = getDefaultCameraFormat(camera);
