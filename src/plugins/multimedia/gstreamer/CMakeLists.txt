@@ -23,7 +23,6 @@ qt_internal_add_module(QGstreamerMediaPluginImplPrivate
         common/qgstreamermessage_p.h
         common/qgstreamermediaplayer.cpp common/qgstreamermediaplayer_p.h
         common/qgstreamervideooutput.cpp common/qgstreamervideooutput_p.h
-        common/qgstreamervideooverlay.cpp common/qgstreamervideooverlay_p.h
         common/qgstreamervideosink.cpp common/qgstreamervideosink_p.h
         common/qgstpipeline.cpp common/qgstpipeline_p.h
         common/qgstutils.cpp common/qgstutils_p.h
