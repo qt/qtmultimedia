@@ -655,6 +655,9 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
 
+    // Make sure GstPlay is ready if play() is called from slots during discovery
+    gst_play_set_uri(m_gstPlay.get(), playUrl.toEncoded().constData());
+
     // LATER: discover is synchronous, but we would be way more friendly to make it asynchronous.
     bool mediaDiscovered = discover(playUrl);
     if (!mediaDiscovered) {
@@ -666,8 +669,6 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     }
 
     positionChanged(0ms);
-
-    gst_play_set_uri(m_gstPlay.get(), playUrl.toEncoded().constData());
 }
 
 void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
