@@ -23,7 +23,6 @@
 QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
-class QGstreamerSyncMessageFilter;
 class QGstreamerBusMessageFilter;
 struct QGstPipelinePrivate;
 
@@ -43,8 +42,6 @@ public:
     static QGstPipeline createFromFactory(const char *factory, const char *name);
     static QGstPipeline create(const char *name);
 
-    void installMessageFilter(QGstreamerSyncMessageFilter *filter);
-    void removeMessageFilter(QGstreamerSyncMessageFilter *filter);
     void installMessageFilter(QGstreamerBusMessageFilter *filter);
     void removeMessageFilter(QGstreamerBusMessageFilter *filter);
 

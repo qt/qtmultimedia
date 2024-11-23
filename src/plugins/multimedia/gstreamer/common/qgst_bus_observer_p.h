@@ -24,13 +24,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerSyncMessageFilter
-{
-public:
-    // returns true if message was processed and should be dropped, false otherwise
-    virtual bool processSyncMessage(const QGstreamerMessage &message) = 0;
-};
-
 class QGstreamerBusMessageFilter
 {
 public:
@@ -55,8 +48,6 @@ public:
 
     void close();
 
-    void installMessageFilter(QGstreamerSyncMessageFilter *);
-    void removeMessageFilter(QGstreamerSyncMessageFilter *);
     void installMessageFilter(QGstreamerBusMessageFilter *);
     void removeMessageFilter(QGstreamerBusMessageFilter *);
 
@@ -68,15 +59,11 @@ public:
 private:
     void processAllPendingMessages();
 
-    static GstBusSyncReply syncGstBusFilter(GstBus *, GstMessage *, QGstBusObserver *);
-
 #ifndef Q_OS_WIN
     QSocketNotifier m_socketNotifier{ QSocketNotifier::Read };
 #else
     QWinEventNotifier m_socketNotifier{};
 #endif
-    QMutex filterMutex;
-    QList<QGstreamerSyncMessageFilter *> syncFilters;
     QList<QGstreamerBusMessageFilter *> busFilters;
 };
 

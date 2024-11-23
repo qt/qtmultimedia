@@ -86,18 +86,6 @@ QGstPipeline::QGstPipeline(GstPipeline *p, RefMode mode) : QGstBin(qGstCheckedCa
 
 QGstPipeline::~QGstPipeline() = default;
 
-void QGstPipeline::installMessageFilter(QGstreamerSyncMessageFilter *filter)
-{
-    QGstPipelinePrivate *d = getPrivate();
-    d->m_busObserver->installMessageFilter(filter);
-}
-
-void QGstPipeline::removeMessageFilter(QGstreamerSyncMessageFilter *filter)
-{
-    QGstPipelinePrivate *d = getPrivate();
-    d->m_busObserver->removeMessageFilter(filter);
-}
-
 void QGstPipeline::installMessageFilter(QGstreamerBusMessageFilter *filter)
 {
     QGstPipelinePrivate *d = getPrivate();
