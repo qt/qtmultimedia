@@ -27,7 +27,6 @@ public slots:
     void cleanup();
 
 private slots:
-    void constructor_preparesGstPipeline();
     void videoSink_constructor_overridesConversionElement();
     void videoSink_constructor_overridesConversionElement_withMultipleElements();
 

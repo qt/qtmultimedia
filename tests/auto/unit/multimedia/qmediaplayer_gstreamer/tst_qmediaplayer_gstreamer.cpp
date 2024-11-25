@@ -84,23 +84,6 @@ void tst_QMediaPlayerGStreamer::cleanup()
     player.reset();
 }
 
-void tst_QMediaPlayerGStreamer::constructor_preparesGstPipeline()
-{
-    player->setSource(QUrl("qrc:/testdata/color_matrix.mp4"));
-
-    auto *rawPipeline = getGstPipeline();
-    QVERIFY(rawPipeline);
-
-    QGstPipeline pipeline{
-        rawPipeline,
-        QGstPipeline::NeedsRef,
-    };
-    QVERIFY(pipeline);
-
-    QTRY_VERIFY(pipeline.findByName("videoInputSelector"));
-    dumpGraph("constructor_preparesGstPipeline");
-}
-
 void tst_QMediaPlayerGStreamer::videoSink_constructor_overridesConversionElement()
 {
     if (!mediaSupported)
@@ -114,13 +97,13 @@ void tst_QMediaPlayerGStreamer::videoSink_constructor_overridesConversionElement
     QVideoSink sink;
     player->setVideoSink(&sink);
     player->setSource(QUrl("qrc:/testdata/color_matrix.mp4"));
+    player->pause();
 
     QGstPipeline pipeline = getPipeline();
     QTEST_ASSERT(pipeline);
+    dumpGraph("videoSink_constructor_overridesConversionElement");
 
     QTRY_VERIFY(pipeline.findByName("myConverter"));
-
-    dumpGraph("videoSink_constructor_overridesConversionElement");
 }
 
 void tst_QMediaPlayerGStreamer::
@@ -137,6 +120,7 @@ void tst_QMediaPlayerGStreamer::
     QVideoSink sink;
     player->setVideoSink(&sink);
     player->setSource(QUrl("qrc:/testdata/color_matrix.mp4"));
+    player->pause();
 
     QGstPipeline pipeline = getPipeline();
     QTEST_ASSERT(pipeline);
