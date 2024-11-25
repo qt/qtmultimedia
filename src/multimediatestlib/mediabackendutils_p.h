@@ -20,34 +20,38 @@
 #include <QtGui/private/qguiapplication_p.h>
 #include <QtGui/qpa/qplatformintegration.h>
 
+namespace BackendUtilsImpl {
+
+using namespace Qt::Literals;
+
 inline bool isGStreamerPlatform()
 {
-    return QPlatformMediaIntegration::instance()->name() == "gstreamer";
+    return QPlatformMediaIntegration::instance()->name() == "gstreamer"_L1;
 }
 
 inline bool isQNXPlatform()
 {
-    return QPlatformMediaIntegration::instance()->name() == "qnx";
+    return QPlatformMediaIntegration::instance()->name() == "qnx"_L1;
 }
 
 inline bool isDarwinPlatform()
 {
-    return QPlatformMediaIntegration::instance()->name() == "darwin";
+    return QPlatformMediaIntegration::instance()->name() == "darwin"_L1;
 }
 
 inline bool isAndroidPlatform()
 {
-    return QPlatformMediaIntegration::instance()->name() == "android";
+    return QPlatformMediaIntegration::instance()->name() == "android"_L1;
 }
 
 inline bool isFFMPEGPlatform()
 {
-    return QPlatformMediaIntegration::instance()->name() == "ffmpeg";
+    return QPlatformMediaIntegration::instance()->name() == "ffmpeg"_L1;
 }
 
 inline bool isWindowsPlatform()
 {
-    return QPlatformMediaIntegration::instance()->name() == "windows";
+    return QPlatformMediaIntegration::instance()->name() == "windows"_L1;
 }
 
 inline bool isRhiRenderingSupported()
@@ -58,11 +62,12 @@ inline bool isRhiRenderingSupported()
 
 inline bool isCI()
 {
-    return qEnvironmentVariable("QTEST_ENVIRONMENT")
-            .toLower()
-            .split(' ')
-            .contains(QStringLiteral("ci"));
+    return qEnvironmentVariable("QTEST_ENVIRONMENT").toLower().split(u' ').contains(u"ci"_s);
 }
+
+} // namespace BackendUtilsImpl
+
+using namespace BackendUtilsImpl;
 
 #define QSKIP_GSTREAMER(message) \
   do {                           \
