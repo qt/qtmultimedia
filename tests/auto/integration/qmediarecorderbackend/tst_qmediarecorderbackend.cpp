@@ -199,6 +199,8 @@ void tst_QMediaFrameInputsBackend::record_createsFileWithExpectedExtension_whenR
 
 void tst_QMediaFrameInputsBackend::record_writesVideo_whenInputFrameShrinksOverTime()
 {
+    QSKIP_IF_NOT_FFMPEG();
+
     CaptureSessionFixture f{ StreamType::Video };
     f.start(RunMode::Push, AutoStop::EmitEmpty);
     f.readyToSendVideoFrame.wait();
@@ -210,7 +212,7 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_whenInputFrameShrinksOverT
         ++frameCount;
         const QSize size{ startSize - i, startSize - i };
         f.m_videoGenerator.setSize(size);
-        f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame());
+        QVERIFY(f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame()));
         f.readyToSendVideoFrame.wait();
     }
 
@@ -230,6 +232,8 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_whenInputFrameShrinksOverT
 
 void tst_QMediaFrameInputsBackend::record_writesVideo_whenInputFrameGrowsOverTime()
 {
+    QSKIP_IF_NOT_FFMPEG();
+
     CaptureSessionFixture f{ StreamType::Video };
     f.start(RunMode::Push, AutoStop::EmitEmpty);
     f.readyToSendVideoFrame.wait();
@@ -244,7 +248,7 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_whenInputFrameGrowsOverTim
         const QSize size{ startSize + i, startSize + i };
         f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
         f.m_videoGenerator.setSize(size);
-        f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame());
+        QVERIFY(f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame()));
         f.readyToSendVideoFrame.wait();
     }
 
@@ -272,6 +276,8 @@ void tst_QMediaFrameInputsBackend::record_stopsRecording_whenInputsReportedEndOf
 
 void tst_QMediaFrameInputsBackend::record_stopsRecording_whenInputsReportedEndOfStream()
 {
+    QSKIP_IF_NOT_FFMPEG();
+
     QFETCH(const bool, audioStopsFirst);
 
     CaptureSessionFixture f{ StreamType::AudioAndVideo };
@@ -332,6 +338,8 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_withoutTransforms_whenPres
 
 void tst_QMediaFrameInputsBackend::record_writesVideo_withoutTransforms_whenPresentationTransformsPresent()
 {
+    QSKIP_IF_NOT_FFMPEG();
+
     QFETCH(const QtVideo::Rotation, presentationRotation);
     QFETCH(const bool, presentationMirrored);
 
@@ -372,6 +380,8 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_withCorrectColors_data()
 
 void tst_QMediaFrameInputsBackend::record_writesVideo_withCorrectColors()
 {
+    QSKIP_IF_NOT_FFMPEG();
+
     QFETCH(const QVideoFrameFormat::PixelFormat, pixelFormat);
 
     // Arrange
@@ -420,6 +430,8 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_withCorrectColors()
 
 void tst_QMediaFrameInputsBackend::actualLocation_returnsNonEmptyLocation_whenRecorderEntersRecordingState()
 {
+    QSKIP_IF_NOT_FFMPEG();
+
     const QUrl url = QUrl::fromLocalFile(m_tempDir.filePath("any_file_name"));
     CaptureSessionFixture f{ StreamType::AudioAndVideo };
     f.m_recorder.setOutputLocation(url);
