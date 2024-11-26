@@ -143,6 +143,7 @@ static MTLPixelFormat rhiTextureFormatToMetalFormat(QRhiTexture::Format f)
     case QRhiTexture::BGRA8:
         return MTLPixelFormatBGRA8Unorm;
     case QRhiTexture::R8:
+    case QRhiTexture::RED_OR_ALPHA8:
         return MTLPixelFormatR8Unorm;
     case QRhiTexture::RG8:
         return MTLPixelFormatRG8Unorm;
