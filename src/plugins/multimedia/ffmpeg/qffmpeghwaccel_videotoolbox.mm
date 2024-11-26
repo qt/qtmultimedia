@@ -186,18 +186,31 @@ TextureSet *VideoToolBoxTextureConverter::getTextures(AVFrame *frame)
 //    qDebug() << "XXXXX getTextures" << pixelFormat << bufferPlanes << buffer;
 
     if (rhi->backend() == QRhi::Metal) {
+        // First check that all planes have pixel-formats that we can handle,
+        // before we create any Metal textures.
+        for (int plane = 0; plane < bufferPlanes; ++plane) {
+            const MTLPixelFormat metalPixelFormatForPlane =
+                rhiTextureFormatToMetalFormat(textureDescription->textureFormat[plane]);
+            if (metalPixelFormatForPlane == MTLPixelFormatInvalid)
+                return nullptr;
+        }
+
         for (int plane = 0; plane < bufferPlanes; ++plane) {
             size_t width = CVPixelBufferGetWidth(buffer);
             size_t height = CVPixelBufferGetHeight(buffer);
             width = textureDescription->widthForPlane(width, plane);
             height = textureDescription->heightForPlane(height, plane);
 
+            // Tested to be valid in prior loop.
+            const MTLPixelFormat metalPixelFormatForPlane =
+                rhiTextureFormatToMetalFormat(textureDescription->textureFormat[plane]);
+
             // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
             auto ret = CVMetalTextureCacheCreateTextureFromImage(
                             kCFAllocatorDefault,
                             mtc(cvMetalTextureCache),
                             buffer, nil,
-                            rhiTextureFormatToMetalFormat(textureDescription->textureFormat[plane]),
+                            metalPixelFormatForPlane,
                             width, height,
                             plane,
                             &textureSet->cvMetalTexture[plane]);
