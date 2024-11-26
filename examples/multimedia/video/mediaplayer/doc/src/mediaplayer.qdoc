@@ -10,7 +10,7 @@
     \brief Playing audio and video using the QML \c MediaPlayer type.
     \meta {tag} {quick}
     \meta {tag} {player}
-    \image mediaplayer.png
+    \image qtmultimedia-examples-qml-media-player.png
 
     This example demonstrates a simple multimedia player that can play
     audio and video files using various codecs.
@@ -117,7 +117,7 @@
     metadata of the currently loaded media and track selection, as well as the ability to update the
     playback rate. This \c Popup is defined in \c SettingsPopup.qml.
 
-    \image settings.png
+    \image qtmultimedia-examples-qml-media-player-settings.png
 
     The metadata is contained in its own component file, \c MetadataInfo.qml. It contains a \c ListModel,
     a function to clear it, \c {clear()}, and a function to populate it, \c {read(MediaMetadata metadata)}.
