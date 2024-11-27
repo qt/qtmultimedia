@@ -214,18 +214,26 @@ void QQuickVideoOutput::_q_updateGeometry()
 /*!
     \qmlproperty int QtMultimedia::VideoOutput::orientation
 
-    In some cases the source video stream requires a certain
-    orientation to be correct.  This includes
+    This property determines the angle in, degrees, at which the displayed video
+    is rotated clockwise in video coordinates, where the Y-axis points
+    downwards on the display.
+
+    The orientation change affects the mapping of coordinates from the source to the viewport.
+
+    Only multiples of \c 90 degrees are supported, that is 0, 90, -90, 180, 270, etc.,
+    otherwise, the specified value is ignored.
+
+    In some cases, the source video stream requires a certain
+    orientation to be corrected. This includes
     sources like a camera viewfinder, where the displayed
-    viewfinder should match reality, no matter what rotation
+    viewfinder should match the reality, no matter what rotation
     the rest of the user interface has.
 
-    This property allows you to apply a rotation (in steps
-    of 90 degrees) to compensate for any user interface
-    rotation, with positive values in the anti-clockwise direction.
+    We recommend using this property to compensate a user interface
+    rotation, or align the output view with other application business
+    requirements.
 
-    The orientation change will also affect the mapping
-    of coordinates from source to viewport.
+    The default value is \c 0.
 */
 int QQuickVideoOutput::orientation() const
 {

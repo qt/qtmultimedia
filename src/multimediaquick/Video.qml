@@ -107,8 +107,14 @@ Item {
     /*!
         \qmlproperty int Video::orientation
 
-        The orientation of the \c Video in degrees. Only multiples of 90
-        degrees is supported, that is 0, 90, 180, 270, 360, etc.
+        This property determines the angle, in degrees, at which the displayed video
+        is rotated clockwise in video coordinates, where the Y-axis points
+        downwards on the display.
+
+        Only multiples of \c 90 degrees are supported, that is 0, 90, -90, 180, 270, etc.,
+        otherwise, the specified value is ignored.
+
+        The default value is \c 0.
     */
     property alias orientation:         videoOut.orientation
 
