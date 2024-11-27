@@ -293,7 +293,7 @@ void QSGVideoNode::setSubtitleGeometry()
 void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &textureRect, int orientation)
 {
     const VideoTransformation currentFrameTransformation =
-            qNormalizedFrameTransformation(m_material ? m_material->m_currentFrame : QVideoFrame{});
+            qNormalizedFrameTransformation(m_material ? m_material->m_currentFrame : QVideoFrame{}, orientation);
 
     if (rect == m_rect && textureRect == m_textureRect && orientation == m_orientation
         && currentFrameTransformation == m_frameTransformation)
