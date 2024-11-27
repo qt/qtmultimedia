@@ -29,19 +29,6 @@ inline bool qIsDefaultAspect(QtVideo::Rotation rotation)
 {
     return qIsDefaultAspect(qToUnderlying(rotation));
 }
-
-/*
- * Return the orientation normalized to 0-359
- */
-inline int qNormalizedOrientation(int o)
-{
-    // Negative orientations give negative results
-    int o2 = o % 360;
-    if (o2 < 0)
-        o2 += 360;
-    return o2;
-}
-
 }
 
 /*!
@@ -508,9 +495,9 @@ QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
         m_frame = QVideoFrame();
     }
 
-    // Negative rotations need lots of %360
-    videoNode->setTexturedRectGeometry(m_renderedRect, m_sourceTextureRect,
-                                       qNormalizedOrientation(orientation()));
+    videoNode->setTexturedRectGeometry(
+            m_renderedRect, m_sourceTextureRect,
+            VideoTransformation{ qVideoRotationFromDegrees(orientation()), m_mirrored });
 
     return videoNode;
 }

@@ -112,12 +112,14 @@ qNormalizedSurfaceTransformation(const QVideoFrameFormat &format)
     return result;
 }
 
-VideoTransformation qNormalizedFrameTransformation(const QVideoFrame &frame, int additionalRotaton)
+VideoTransformation qNormalizedFrameTransformation(const QVideoFrame &frame,
+                                                   VideoTransformation videoOutputTransformation)
 {
     VideoTransformation result = qNormalizedSurfaceTransformation(frame.surfaceFormat());
     result.rotate(frame.rotation());
     result.mirrorHorizontally(frame.mirrored());
-    result.rotate(qVideoRotationFromDegrees(additionalRotaton));
+    result.rotate(videoOutputTransformation.rotation);
+    result.mirrorHorizontally(videoOutputTransformation.mirrorredHorizontallyAfterRotation);
     return result;
 }
 

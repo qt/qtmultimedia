@@ -62,11 +62,18 @@ qShouldUpdateSwapChainFormat(QRhiSwapChain *swapChain,
 Q_MULTIMEDIA_EXPORT VideoTransformation
 qNormalizedSurfaceTransformation(const QVideoFrameFormat &format);
 
-Q_MULTIMEDIA_EXPORT VideoTransformation qNormalizedFrameTransformation(const QVideoFrame &frame,
-                                                                       int additionalRotaton = 0);
+Q_MULTIMEDIA_EXPORT VideoTransformation qNormalizedFrameTransformation(
+        const QVideoFrame &frame, VideoTransformation videoOutputTransformation = {});
 
 Q_MULTIMEDIA_EXPORT QtVideo::Rotation
 qVideoRotationFromDegrees(int clockwiseDegrees);
+
+inline VideoTransformation qNormalizedFrameTransformation(const QVideoFrame &frame,
+                                                          int videoOutputRotation)
+{
+    return qNormalizedFrameTransformation(
+            frame, VideoTransformation{ qVideoRotationFromDegrees(videoOutputRotation) });
+}
 
 /* The function get mirroring and rotation from the specified QTransform.
  *

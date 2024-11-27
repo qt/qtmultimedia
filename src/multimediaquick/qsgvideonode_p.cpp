@@ -239,7 +239,7 @@ void QSGVideoNode::updateSubtitle(const QVideoFrame &frame)
     if (subtitleFrameSize.isEmpty())
         return;
 
-    subtitleFrameSize = qRotatedFrameSize(subtitleFrameSize, m_orientation);
+    subtitleFrameSize = qRotatedFrameSize(subtitleFrameSize, m_videoOutputTransformation.rotation);
 
     if (!m_subtitleLayout.update(subtitleFrameSize, frame.subtitleText()))
         return;
@@ -269,39 +269,44 @@ void QSGVideoNode::setSubtitleGeometry()
     if (m_material)
         updateSubtitle(m_material->m_currentFrame);
 
-    float rotate = -1.f * m_orientation;
+    float rotate = -1.f * qToUnderlying(m_videoOutputTransformation.rotation);
     float yTranslate = 0;
     float xTranslate = 0;
-    if (m_orientation == 90) {
+    if (m_videoOutputTransformation.rotation == QtVideo::Rotation::Clockwise90) {
         yTranslate = m_rect.height();
-    } else if (m_orientation == 180) {
+    } else if (m_videoOutputTransformation.rotation == QtVideo::Rotation::Clockwise180) {
         yTranslate = m_rect.height();
         xTranslate = m_rect.width();
-    } else if (m_orientation == 270) {
+    } else if (m_videoOutputTransformation.rotation == QtVideo::Rotation::Clockwise270) {
         xTranslate = m_rect.width();
     }
 
     QMatrix4x4 transform;
     transform.translate(m_rect.x() + xTranslate, m_rect.y() + yTranslate);
     transform.rotate(rotate, 0, 0, 1);
+    // TODO: Investigate if we should we mirror subtitles
+    // if (m_videoOutputTransformation.mirrorredHorizontallyAfterRotation)
+    //    transform.scale(-1.f, 1.f);
 
     m_subtitleTextNode->setMatrix(transform);
     m_subtitleTextNode->markDirty(DirtyGeometry);
 }
 
-/* Update the vertices and texture coordinates.  Orientation must be in {0,90,180,270} */
-void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &textureRect, int orientation)
+/* Update the vertices and texture coordinates.*/
+void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &textureRect,
+                                           VideoTransformation videoOutputTransformation)
 {
-    const VideoTransformation currentFrameTransformation =
-            qNormalizedFrameTransformation(m_material ? m_material->m_currentFrame : QVideoFrame{}, orientation);
+    const VideoTransformation currentFrameTransformation = qNormalizedFrameTransformation(
+            m_material ? m_material->m_currentFrame : QVideoFrame{}, videoOutputTransformation);
 
-    if (rect == m_rect && textureRect == m_textureRect && orientation == m_orientation
+    if (rect == m_rect && textureRect == m_textureRect
+        && videoOutputTransformation == m_videoOutputTransformation
         && currentFrameTransformation == m_frameTransformation)
         return;
 
     m_rect = rect;
     m_textureRect = textureRect;
-    m_orientation = orientation;
+    m_videoOutputTransformation = videoOutputTransformation;
     m_frameTransformation = currentFrameTransformation;
 
     QSGGeometry *g = geometry();
