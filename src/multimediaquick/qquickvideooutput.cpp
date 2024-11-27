@@ -244,7 +244,7 @@ void QQuickVideoOutput::setOrientation(int orientation)
 
     // If the new orientation is the same effect
     // as the old one, don't update the video node stuff
-    if ((m_orientation % 360) == (orientation % 360)) {
+    if (qVideoRotationFromDegrees(orientation - m_orientation) == QtVideo::Rotation::None) {
         m_orientation = orientation;
         emit orientationChanged();
         return;
