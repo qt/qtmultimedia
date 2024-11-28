@@ -40,6 +40,9 @@ bool QGstreamerMediaPlayer::discover(const QUrl &url)
 
     auto discoveryResult = discoverer.discover(url);
     if (discoveryResult) {
+        // Make sure GstPlay is ready if play() is called from slots during discovery
+        gst_play_set_uri(m_gstPlay.get(), url.toEncoded().constData());
+
         m_trackMetaData.fill({});
         seekableChanged(discoveryResult->isSeekable);
         if (discoveryResult->duration)
@@ -654,9 +657,6 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     }
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
-
-    // Make sure GstPlay is ready if play() is called from slots during discovery
-    gst_play_set_uri(m_gstPlay.get(), playUrl.toEncoded().constData());
 
     // LATER: discover is synchronous, but we would be way more friendly to make it asynchronous.
     bool mediaDiscovered = discover(playUrl);
