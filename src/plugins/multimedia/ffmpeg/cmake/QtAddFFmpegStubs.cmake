@@ -72,7 +72,14 @@ macro(qt_internal_multimedia_find_openssl_soversion)
         endif()
 
         get_filename_component(ssl_lib_realpath "${OPENSSL_SSL_LIBRARY}" REALPATH)
-        string(REGEX MATCH "[0-9]+(\\.[0-9]+)*$" ssl_soversion "${ssl_lib_realpath}")
+
+        string(REGEX MATCH "[0-9]+(\\.[0-9]+)*[a-z]?$" ssl_soversion "${ssl_lib_realpath}")
+
+        # 1.0.xx => ABI 1.0.0
+        # 1.1.xx => ABI 1.1
+        # 3.x.xx => ABI 3
+        string(REGEX REPLACE "^1\\.1(\\..*|$)" "1.1" ssl_soversion "${ssl_soversion}")
+        string(REGEX REPLACE "^1\\.0(\\..*|$)" "1.0.0" ssl_soversion "${ssl_soversion}")
         string(REGEX REPLACE "^3(\\..*|$)" "3" ssl_soversion "${ssl_soversion}")
     endif()
 
