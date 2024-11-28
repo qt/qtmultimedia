@@ -487,6 +487,18 @@ public class QtCamera2 {
                     mBackgroundHandler);
             } catch (CameraAccessException e) {
                 e.printStackTrace();
+            } catch (NullPointerException e) {
+                // See QTBUG-130901:
+                // It should not be possible for mCaptureSession to be null here
+                // because we always call .close() on mCaptureSession and then set it to null.
+                // Calling .close() should flush all pending callbacks, including this one.
+                // Either way, user has evidence this is happening, and catching this exception
+                // stops us from crashing the program.
+                Log.e(
+                    "QtCamera2",
+                    "Null-pointer access exception thrown when finalizing still photo capture. " +
+                    "This should not be possible.");
+                e.printStackTrace();
             }
         }
     }
