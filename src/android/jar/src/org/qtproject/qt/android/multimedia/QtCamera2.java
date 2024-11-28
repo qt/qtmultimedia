@@ -48,6 +48,10 @@ class QtCamera2 {
     // 2. Calibrate auto-exposure for pre-capture
     // 3. Calibrate auto-exposure for capture
     // 4. Capture the photo
+    //
+    // Still photo captures should be finalized using a single CameraCaptureSession.capture() call,
+    // but precapture calibration steps (auto-focus, auto-exposure) should be done using the
+    // continuously repeating preview request.
     private static final int STATE_PREVIEW = 0;
     // We are waiting for focus lock
     private static final int STATE_WAITING_FOCUS_LOCK = 1;
@@ -57,19 +61,38 @@ class QtCamera2 {
     // The picture is ready to be read into an image object.
     private static final int STATE_PICTURE_TAKEN = 4;
 
+    // An mState that is not set to STATE_PREVIEW implies we are currently trying to capture a still
+    // photo.
     private int mState = STATE_PREVIEW;
     private Object mStartMutex = new Object();
     private boolean mIsStarted = false;
     private static int MaxNumberFrames = 12;
 
     private static final int defaultFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
+    // Not to be confused with QCamera::FlashMode.
+    // This controls the currently desired CaptureRequest.CONTROL_AE_MODE.
+    // QCamera::FlashMode::FlashOff maps to CaptureRequest.CONTROL_AE_MODE_ON. This implies regular
+    // automatic exposure.
+    // QCamera::FlashMode::FlashAuto maps to CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH.
+    // QCamera::FlashMode::FlashOn maps to CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH.
     private int mFlashMode = defaultFlashMode;
     private static final int defaultTorchMode = CameraMetadata.FLASH_MODE_OFF;
+    // Not to be confused with QCamera::TorchMode.
+    // This controls the currently desired CaptureRequest.FLASH_MODE
+    // QCamera::TorchMode::TorchOff maps to CaptureRequest.FLASH_MODE_OFF
+    // QCamera::TorchMode::TorchAuto is not supported.
+    // QCamera::TorhcMode::TorchOn maps to CaptureRequest.FLASH_MODE_TORCH.
     private int mTorchMode = defaultTorchMode;
     private static final int defaultAfMode =  CaptureRequest.CONTROL_AF_MODE_OFF;
+    // Not to be confused with QCamera::FocusMode
+    // This controls the currently desired CaptureRequest.CONTROL_AF_MODE
+    // QCamera::FocusMode::FocusModeAuto maps to CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
     private int mAFMode = defaultAfMode;
     private static final float defaultZoomFactor = 1.0f;
+    // Not to be confused with CaptureRequest.CONTROL_ZOOM_RATIO
+    // This matches the current QCamera::zoomFactor of the C++ QCamera object.
     private float mZoomFactor = defaultZoomFactor;
+
     // Assumes that the mStartMutex is locked already.
     private void resetControls() {
         mFlashMode = defaultFlashMode;
@@ -456,6 +479,8 @@ class QtCamera2 {
         }
     }
 
+    // Can be called from C++ thread through 'takePhoto()' or directly by CameraCaptureCallback
+    // on background thread in order to finalize a still photo capture.
     private void capturePhoto() {
         try {
             final CaptureRequest.Builder captureBuilder =
@@ -474,6 +499,9 @@ class QtCamera2 {
         }
     }
 
+    // Called from C++ thread.
+    // If auto-focus is enabled, will initiate the still photo precapture routine by adjusting
+    // focusing and exposure. Otherwise, will finalize a still photo immediately.
     void takePhoto() {
         try {
             if (mAFMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
