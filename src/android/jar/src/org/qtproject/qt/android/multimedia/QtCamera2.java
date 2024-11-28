@@ -425,6 +425,37 @@ class QtCamera2 {
         }
     }
 
+    // Used for finalizing a still photo capture. Will reset mState and preview-request back to
+    // default when capture is done. This should be used for a singular capture-call, not a
+    // repeating request.
+    class StillPhotoCaptureSessionCallback extends CameraCaptureSession.CaptureCallback {
+        @Override
+        public void onCaptureCompleted(
+            CameraCaptureSession session,
+            CaptureRequest request,
+            TotalCaptureResult result)
+        {
+            try {
+                mExifDataHandler = new QtExifDataHandler(result);
+                // Reset the focus/flash and go back to the normal state of preview.
+                mPreviewRequestBuilder.set(
+                    CaptureRequest.CONTROL_AF_TRIGGER,
+                    CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
+                mPreviewRequestBuilder.set(
+                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
+                mPreviewRequest = mPreviewRequestBuilder.build();
+                mState = STATE_PREVIEW;
+                mCaptureSession.setRepeatingRequest(
+                    mPreviewRequest,
+                    mCaptureCallback,
+                    mBackgroundHandler);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void capturePhoto() {
         try {
             final CaptureRequest.Builder captureBuilder =
@@ -434,28 +465,8 @@ class QtCamera2 {
             if (mZoomFactor != 1.0f)
                 updateZoom(captureBuilder);
 
-            CameraCaptureSession.CaptureCallback captureCallback
-                        = new CameraCaptureSession.CaptureCallback() {
-            @Override
-            public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request,
-                                           TotalCaptureResult result) {
-                    try {
-                        mExifDataHandler = new QtExifDataHandler(result);
-                        // Reset the focus/flash and go back to the normal state of preview.
-                        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                                                   CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
-                        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
-                                                   CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
-                        mPreviewRequest = mPreviewRequestBuilder.build();
-                        mState = STATE_PREVIEW;
-                        mCaptureSession.setRepeatingRequest(mPreviewRequest,
-                                                            mCaptureCallback,
-                                                            mBackgroundHandler);
-                    } catch (CameraAccessException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
+            final StillPhotoCaptureSessionCallback captureCallback =
+                new StillPhotoCaptureSessionCallback();
 
             mCaptureSession.capture(captureBuilder.build(), captureCallback, mBackgroundHandler);
         } catch (CameraAccessException e) {
