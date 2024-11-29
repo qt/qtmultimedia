@@ -76,16 +76,19 @@ private:
 
     State m_state = State::Closed;
     QCameraDevice m_cameraDevice;
-    long lastTimestamp = 0;
     QJniObject m_jniCamera;
 
     std::unique_ptr<QFFmpeg::HWAccel> m_hwAccel;
 
     QVideoFrameFormat::PixelFormat m_androidFramePixelFormat;
     QList<QCamera::FlashMode> m_supportedFlashModes;
-    bool m_waitingForFirstFrame = false;
     bool m_TorchModeSupported = false;
     bool m_wasActive = false;
+
+    // The following members should only be accessed from the processing background thread
+    // instantiated by Java.
+    long lastTimestamp = 0;
+    bool m_waitingForFirstFrame = false;
 };
 
 QT_END_NAMESPACE
