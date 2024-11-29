@@ -98,10 +98,11 @@ QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
 
     m_sink = new QQuickVideoSink(this);
     qRegisterMetaType<QVideoFrameFormat>();
+
+    // TODO: investigate if we have any benefit of setting frame in the source thread
     connect(m_sink, &QVideoSink::videoFrameChanged, this,
             [this](const QVideoFrame &frame) {
                 setFrame(frame);
-                QMetaObject::invokeMethod(this, &QQuickVideoOutput::_q_newFrame, frame.size());
             },
             Qt::DirectConnection);
 
@@ -546,12 +547,16 @@ QRectF QQuickVideoOutput::adjustedViewport() const
 
 void QQuickVideoOutput::setFrame(const QVideoFrame &frame)
 {
-    QMutexLocker lock(&m_frameMutex);
+    {
+        QMutexLocker lock(&m_frameMutex);
 
-    m_videoFormat = frame.surfaceFormat();
-    m_frame = frame;
-    m_frameDisplayingRotation = qNormalizedFrameTransformation(frame, m_orientation).rotation;
-    m_frameChanged = true;
+        m_videoFormat = frame.surfaceFormat();
+        m_frame = frame;
+        m_frameDisplayingRotation = qNormalizedFrameTransformation(frame, m_orientation).rotation;
+        m_frameChanged = true;
+    }
+
+    QMetaObject::invokeMethod(this, &QQuickVideoOutput::_q_newFrame, frame.size());
 }
 
 QT_END_NAMESPACE
