@@ -101,10 +101,22 @@ QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
     m_sink = new QQuickVideoSink(this);
     qRegisterMetaType<QVideoFrameFormat>();
 
+    QByteArray eosPolicyEnv = qgetenv("QT_VIDEOOUTPUT_EOS_POLICY");
+    if (!eosPolicyEnv.isEmpty()) {
+        bool ok = false;
+        const int eosPolicy =
+                QMetaEnum::fromType<EndOfStreamPolicy>().keyToValue(eosPolicyEnv.data(), &ok);
+        if (ok)
+            m_endOfStreamPolicy = static_cast<EndOfStreamPolicy>(eosPolicy);
+        else
+            qWarning() << "Invalid value for env QT_VIDEOOUTPUT_EOS_POLICY:" << eosPolicyEnv;
+    }
+
     // TODO: investigate if we have any benefit of setting frame in the source thread
     connect(m_sink, &QVideoSink::videoFrameChanged, this,
             [this](const QVideoFrame &frame) {
-                setFrame(frame);
+                if (frame.isValid() || m_endOfStreamPolicy == ClearOutput)
+                    setFrame(frame);
             },
             Qt::DirectConnection);
 
@@ -305,6 +317,11 @@ void QQuickVideoOutput::setOrientation(int orientation)
 QRectF QQuickVideoOutput::contentRect() const
 {
     return m_contentRect;
+}
+
+void QQuickVideoOutput::clearOutput()
+{
+    setFrame({});
 }
 
 /*!

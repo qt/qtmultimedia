@@ -74,6 +74,13 @@ public:
     };
     Q_ENUM(FillMode)
 
+    enum EndOfStreamPolicy
+    {
+        ClearOutput,
+        KeepLastFrame
+    };
+    Q_ENUM(EndOfStreamPolicy)
+
     QQuickVideoOutput(QQuickItem *parent = 0);
     ~QQuickVideoOutput() override;
 
@@ -87,6 +94,8 @@ public:
 
     QRectF sourceRect() const;
     QRectF contentRect() const;
+
+    Q_INVOKABLE void clearOutput();
 
 Q_SIGNALS:
     void sourceChanged();
@@ -139,6 +148,8 @@ private:
     QMutex m_frameMutex;
     QRectF m_renderedRect;         // Destination pixel coordinates, clipped
     QRectF m_sourceTextureRect;    // Source texture coordinates
+
+    EndOfStreamPolicy m_endOfStreamPolicy = ClearOutput;
 };
 
 QT_END_NAMESPACE
