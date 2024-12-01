@@ -200,9 +200,9 @@ void AudioRenderer::onPlaybackRateChanged()
     m_resampler.reset();
 }
 
-int AudioRenderer::timerInterval() const
+std::chrono::milliseconds AudioRenderer::timerInterval() const
 {
-    constexpr auto MaxFixableInterval = 50; // ms
+    constexpr auto MaxFixableInterval = 50ms;
 
     const auto interval = Renderer::timerInterval();
 
@@ -210,7 +210,7 @@ int AudioRenderer::timerInterval() const
         || interval > MaxFixableInterval)
         return interval;
 
-    return 0;
+    return 0ms;
 }
 
 void AudioRenderer::onPauseChanged()

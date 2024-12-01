@@ -118,16 +118,18 @@ float Renderer::playbackRate() const
     return m_timeController.playbackRate();
 }
 
-int Renderer::timerInterval() const
+std::chrono::milliseconds Renderer::timerInterval() const
 {
+    using namespace std::chrono_literals;
+
     if (m_frames.empty())
-        return 0;
+        return 0ms;
 
     auto calculateInterval = [](const TimePoint &nextTime) {
         using namespace std::chrono;
 
-        const auto delay = nextTime - Clock::now();
-        return std::max(0, static_cast<int>(duration_cast<milliseconds>(delay).count()));
+        const milliseconds delay = duration_cast<milliseconds>(nextTime - Clock::now());
+        return std::max(0ms, std::chrono::duration_cast<milliseconds>(delay));
     };
 
     if (m_explicitNextFrameTime)
@@ -139,7 +141,7 @@ int Renderer::timerInterval() const
     if (m_lastFrameEnd > 0)
         return calculateInterval(m_timeController.timeFromPosition(m_lastFrameEnd));
 
-    return 0;
+    return 0ms;
 }
 
 bool Renderer::setForceStepDone()

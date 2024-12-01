@@ -78,9 +78,10 @@ void PlaybackEngineObject::onTimeout()
         doNextStep();
 }
 
-int PlaybackEngineObject::timerInterval() const
+std::chrono::milliseconds PlaybackEngineObject::timerInterval() const
 {
-    return 0;
+    using namespace std::chrono_literals;
+    return 0ms;
 }
 
 void PlaybackEngineObject::onPauseChanged()
@@ -90,13 +91,16 @@ void PlaybackEngineObject::onPauseChanged()
 
 void PlaybackEngineObject::scheduleNextStep(bool allowDoImmediatelly)
 {
+    using std::chrono::milliseconds;
+    using namespace std::chrono_literals;
+
     if (!m_deleting && canDoNextStep()) {
-        const auto interval = timerInterval();
-        if (interval == 0 && allowDoImmediatelly) {
+        const milliseconds interval = timerInterval();
+        if (interval == 0ms && allowDoImmediatelly) {
             timer().stop();
             doNextStep();
         } else {
-            timer().start(interval);
+            timer().start(static_cast<int>(interval.count()));
         }
     } else {
         timer().stop();
