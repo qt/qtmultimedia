@@ -194,6 +194,9 @@ std::optional<Value> findIf(QSpan<const Value> range, const Predicate &predicate
 template <typename Predicate>
 std::optional<AVPixelFormat> findAVPixelFormat(const Codec &codec, const Predicate &predicate)
 {
+    if (codec.type() != AVMEDIA_TYPE_VIDEO)
+        return {};
+
     const auto pixelFormats = codec.pixelFormats();
 
     if (const auto format = findIf(pixelFormats, predicate))

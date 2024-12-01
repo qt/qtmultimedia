@@ -122,42 +122,44 @@ void dumpCodecInfo(const Codec &codec)
                              << "capabilities:"
                              << flagsToString(codec.capabilities(), capabilitiesNames);
 
-    const auto pixelFormats = codec.pixelFormats();
-    if (!pixelFormats.empty()) {
-        static const FlagNames flagNames = {
-            { AV_PIX_FMT_FLAG_BE, "BE" },
-            { AV_PIX_FMT_FLAG_PAL, "PAL" },
-            { AV_PIX_FMT_FLAG_BITSTREAM, "BITSTREAM" },
-            { AV_PIX_FMT_FLAG_HWACCEL, "HWACCEL" },
-            { AV_PIX_FMT_FLAG_PLANAR, "PLANAR" },
-            { AV_PIX_FMT_FLAG_RGB, "RGB" },
-            { AV_PIX_FMT_FLAG_ALPHA, "ALPHA" },
-            { AV_PIX_FMT_FLAG_BAYER, "BAYER" },
-            { AV_PIX_FMT_FLAG_FLOAT, "FLOAT" },
-        };
+    if (codec.type() == AVMEDIA_TYPE_VIDEO) {
+        const auto pixelFormats = codec.pixelFormats();
+        if (!pixelFormats.empty()) {
+            static const FlagNames flagNames = {
+                { AV_PIX_FMT_FLAG_BE, "BE" },
+                { AV_PIX_FMT_FLAG_PAL, "PAL" },
+                { AV_PIX_FMT_FLAG_BITSTREAM, "BITSTREAM" },
+                { AV_PIX_FMT_FLAG_HWACCEL, "HWACCEL" },
+                { AV_PIX_FMT_FLAG_PLANAR, "PLANAR" },
+                { AV_PIX_FMT_FLAG_RGB, "RGB" },
+                { AV_PIX_FMT_FLAG_ALPHA, "ALPHA" },
+                { AV_PIX_FMT_FLAG_BAYER, "BAYER" },
+                { AV_PIX_FMT_FLAG_FLOAT, "FLOAT" },
+            };
 
-        qCDebug(qLcCodecStorage) << "  pixelFormats:";
-        for (AVPixelFormat f : pixelFormats) {
-            auto desc = av_pix_fmt_desc_get(f);
-            qCDebug(qLcCodecStorage)
-                    << "    id:" << f << desc->name << "depth:" << desc->comp[0].depth
-                    << "flags:" << flagsToString(desc->flags, flagNames);
-        }
-    } else if (codec.type() == AVMEDIA_TYPE_VIDEO) {
-        qCDebug(qLcCodecStorage) << "  pixelFormats: null";
-    }
-
-    const auto sampleFormats = codec.sampleFormats();
-    if (!sampleFormats.empty()) {
-        qCDebug(qLcCodecStorage) << "  sampleFormats:";
-        for (auto f : sampleFormats) {
-            const auto name = av_get_sample_fmt_name(f);
-            qCDebug(qLcCodecStorage) << "    id:" << f << (name ? name : "unknown")
-                                     << "bytes_per_sample:" << av_get_bytes_per_sample(f)
-                                     << "is_planar:" << av_sample_fmt_is_planar(f);
+            qCDebug(qLcCodecStorage) << "  pixelFormats:";
+            for (AVPixelFormat f : pixelFormats) {
+                auto desc = av_pix_fmt_desc_get(f);
+                qCDebug(qLcCodecStorage)
+                        << "    id:" << f << desc->name << "depth:" << desc->comp[0].depth
+                        << "flags:" << flagsToString(desc->flags, flagNames);
+            }
+        } else {
+            qCDebug(qLcCodecStorage) << "  pixelFormats: null";
         }
     } else if (codec.type() == AVMEDIA_TYPE_AUDIO) {
-        qCDebug(qLcCodecStorage) << "  sampleFormats: null";
+        const auto sampleFormats = codec.sampleFormats();
+        if (!sampleFormats.empty()) {
+            qCDebug(qLcCodecStorage) << "  sampleFormats:";
+            for (auto f : sampleFormats) {
+                const auto name = av_get_sample_fmt_name(f);
+                qCDebug(qLcCodecStorage) << "    id:" << f << (name ? name : "unknown")
+                                         << "bytes_per_sample:" << av_get_bytes_per_sample(f)
+                                         << "is_planar:" << av_sample_fmt_is_planar(f);
+            }
+        } else {
+            qCDebug(qLcCodecStorage) << "  sampleFormats: null";
+        }
     }
 
     const std::vector<const AVCodecHWConfig*> hwConfigs = codec.hwConfigs();

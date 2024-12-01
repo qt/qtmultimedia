@@ -174,8 +174,12 @@ bool Codec::isExperimental() const noexcept
     return (m_codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) != 0;
 }
 
-QSpan<const AVPixelFormat> Codec::pixelFormats() const noexcept {
+QSpan<const AVPixelFormat> Codec::pixelFormats() const noexcept
+{
     Q_ASSERT(m_codec);
+
+    if (m_codec->type != AVMEDIA_TYPE_VIDEO)
+        return {};
 
     return getCodecPixelFormats(m_codec);
 }
@@ -184,12 +188,18 @@ QSpan<const AVSampleFormat> Codec::sampleFormats() const noexcept
 {
     Q_ASSERT(m_codec);
 
+    if (m_codec->type != AVMEDIA_TYPE_AUDIO)
+        return {};
+
     return getCodecSampleFormats(m_codec);
 }
 
 QSpan<const int> Codec::sampleRates() const noexcept
 {
     Q_ASSERT(m_codec);
+
+    if (m_codec->type != AVMEDIA_TYPE_AUDIO)
+        return {};
 
     return getCodecSampleRates(m_codec);
 }
@@ -198,12 +208,18 @@ QSpan<const ChannelLayoutT> Codec::channelLayouts() const noexcept
 {
     Q_ASSERT(m_codec);
 
+    if (m_codec->type != AVMEDIA_TYPE_AUDIO)
+        return {};
+
     return getCodecChannelLayouts(m_codec);
 }
 
 QSpan<const AVRational> Codec::frameRates() const noexcept
 {
     Q_ASSERT(m_codec);
+
+    if (m_codec->type != AVMEDIA_TYPE_VIDEO)
+        return {};
 
     return getCodecFrameRates(m_codec);
 }
