@@ -16,8 +16,8 @@
 //
 
 #include "qffmpeg_p.h"
-#include "QtCore/qsharedpointer.h"
 #include "playbackengine/qffmpegpositionwithoffset_p.h"
+#include <QtCore/qsharedpointer.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -25,14 +25,13 @@ namespace QFFmpeg {
 
 struct Packet
 {
-    struct Data
+    struct Data : QSharedData
     {
         Data(const LoopOffset &offset, AVPacketUPtr p, quint64 sourceId)
             : loopOffset(offset), packet(std::move(p)), sourceId(sourceId)
         {
         }
 
-        QAtomicInt ref;
         LoopOffset loopOffset;
         AVPacketUPtr packet;
         quint64 sourceId;
