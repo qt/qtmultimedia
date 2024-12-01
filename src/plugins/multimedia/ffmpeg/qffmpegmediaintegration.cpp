@@ -68,7 +68,11 @@ extern "C" {
 #include "qeglfsscreencapture_p.h"
 #endif
 
+#include <QtCore/qloggingcategory.h>
+
 QT_BEGIN_NAMESPACE
+
+static Q_LOGGING_CATEGORY(qLcFFmpeg, "qt.multimedia.ffmpeg");
 
 class QFFmpegMediaPlugin : public QPlatformMediaPlugin
 {
@@ -177,15 +181,16 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
     setupFFmpegLogger();
 
-#ifndef QT_NO_DEBUG
-    qDebug() << "Available HW decoding frameworks:";
-    for (auto type : QFFmpeg::HWAccel::decodingDeviceTypes())
-        qDebug() << "    " << av_hwdevice_get_type_name(type);
+    qCInfo(qLcFFmpeg) << "Using Qt multimedia with FFmpeg version" << av_version_info()
+                      << avutil_license();
 
-    qDebug() << "Available HW encoding frameworks:";
+    qCInfo(qLcFFmpeg) << "Available HW decoding frameworks:";
+    for (auto type : QFFmpeg::HWAccel::decodingDeviceTypes())
+        qCInfo(qLcFFmpeg) << "    " << av_hwdevice_get_type_name(type);
+
+    qCInfo(qLcFFmpeg) << "Available HW encoding frameworks:";
     for (auto type : QFFmpeg::HWAccel::encodingDeviceTypes())
-        qDebug() << "    " << av_hwdevice_get_type_name(type);
-#endif
+        qCInfo(qLcFFmpeg) << "    " << av_hwdevice_get_type_name(type);
 }
 
 QMaybe<QPlatformAudioDecoder *> QFFmpegMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
