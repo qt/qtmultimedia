@@ -47,6 +47,9 @@ signals:
     void firstPacketFound(TimePoint tp, qint64 trackPos);
     void packetsBuffered();
 
+protected:
+    std::chrono::milliseconds timerInterval() const override;
+
 private:
     bool canDoNextStep() const override;
 
@@ -79,6 +82,9 @@ private:
     qint64 m_maxPacketsEndPos = 0;
     QAtomicInt m_loops = QMediaPlayer::Once;
     bool m_buffered = false;
+    qsizetype m_demuxerRetryCount = 0;
+    static constexpr qsizetype s_maxDemuxerRetries = 10; // Arbitrarily chosen
+    static constexpr std::chrono::milliseconds s_demuxerRetryInterval = std::chrono::milliseconds(10);
 };
 
 } // namespace QFFmpeg
