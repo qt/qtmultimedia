@@ -3,6 +3,7 @@
 
 #include "playbackengine/qffmpegdemuxer_p.h"
 #include <qloggingcategory.h>
+#include <chrono>
 
 QT_BEGIN_NAMESPACE
 
@@ -67,8 +68,10 @@ void Demuxer::doNextStep()
     ensureSeeked();
 
     Packet packet(m_loopOffset, AVPacketUPtr{ av_packet_alloc() }, id());
-    if (av_read_frame(m_context, packet.avPacket()) < 0
-        || !isPacketWithinStreamDuration(m_context, packet)) {
+
+    const int demuxStatus = av_read_frame(m_context, packet.avPacket());
+
+    if (demuxStatus == AVERROR_EOF || !isPacketWithinStreamDuration(m_context, packet)) {
         ++m_loopOffset.loopIndex;
 
         const auto loops = m_loops.loadAcquire();
@@ -96,6 +99,33 @@ void Demuxer::doNextStep()
 
         return;
     }
+
+    if (demuxStatus < 0) {
+        qCWarning(qLcDemuxer) << "Demuxing failed" << demuxStatus << err2str(demuxStatus);
+
+        if (demuxStatus == AVERROR(EAGAIN) && m_demuxerRetryCount != s_maxDemuxerRetries) {
+            // When demuxer reports EAGAIN, we can try to recover by calling av_read_frame again.
+            // The documentation for av_read_frame does not mention this, but FFmpeg command line
+            // tool does this, see input_thread() function in ffmpeg_demux.c. There, the response
+            // is to sleep for 10 ms before trying again. NOTE: We do not have any known way of
+            // reproducing this in our tests.
+            ++m_demuxerRetryCount;
+
+            qCDebug(qLcDemuxer) << "Retrying";
+            scheduleNextStep(false);
+        } else {
+            // av_read_frame reports another error. This could for example happen if network is
+            // disconnected while playing a network stream, where av_read_frame may return
+            // ETIMEDOUT.
+            // TODO: Demuxer errors should likely stop playback in media player examples.
+            emit error(QMediaPlayer::ResourceError,
+                       QLatin1StringView("Demuxing failed"));
+        }
+
+        return;
+    }
+
+    m_demuxerRetryCount = 0;
 
     auto &avPacket = *packet.avPacket();
 
@@ -164,6 +194,12 @@ void Demuxer::onPacketProcessed(Packet packet)
     }
 
     scheduleNextStep();
+}
+
+std::chrono::milliseconds Demuxer::timerInterval() const
+{
+    using namespace std::chrono_literals;
+    return m_demuxerRetryCount != 0 ? s_demuxerRetryInterval : PlaybackEngineObject::timerInterval();
 }
 
 bool Demuxer::canDoNextStep() const
