@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <qqmlintegration.h>
 
 class FrequencyMonitorPrivate;
 
@@ -19,6 +20,7 @@ class FrequencyMonitorPrivate;
 class FrequencyMonitor : public QObject
 {
     Q_OBJECT
+    QML_ELEMENT
     Q_DECLARE_PRIVATE(FrequencyMonitor)
     Q_PROPERTY(QString label READ label WRITE setLabel NOTIFY labelChanged)
     Q_PROPERTY(bool active READ active WRITE setActive NOTIFY activeChanged)
@@ -33,8 +35,6 @@ class FrequencyMonitor : public QObject
 public:
     FrequencyMonitor(QObject *parent = nullptr);
     ~FrequencyMonitor();
-
-    static void qmlRegisterType();
 
     QString label() const;
     bool active() const;

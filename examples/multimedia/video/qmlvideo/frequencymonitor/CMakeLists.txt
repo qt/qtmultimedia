@@ -9,8 +9,12 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/qmlvideo/frequen
 
 qt_add_qml_module(frequencymonitor
     URI frequencymonitor
+    VERSION 1.0
     QML_FILES
         "FrequencyItem.qml"
+        "PerformanceItem.qml"
+    SOURCES
+        frequencymonitor.h frequencymonitor.cpp
 )
 
 target_link_libraries(frequencymonitor PRIVATE

@@ -1,12 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#include "performancemonitor.h"
 #include "trace.h"
 #include "qmlvideo/videosingleton.h"
-#ifdef PERFORMANCEMONITOR_SUPPORT
-#    include "performancemonitordeclarative.h"
-#endif
 
 #include <QGuiApplication>
 #include <QQmlContext>
@@ -28,17 +24,12 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-#ifdef PERFORMANCEMONITOR_SUPPORT
-    PerformanceMonitor::qmlRegisterTypes();
-#endif
-
     QString source1, source2;
     qreal volume = 0.5;
     QStringList args = app.arguments();
-#ifdef PERFORMANCEMONITOR_SUPPORT
-    PerformanceMonitor::State performanceMonitorState;
-#endif
     bool sourceIsUrl = false;
+    bool perfMonitorsLogging = false;
+    bool perfMonitorsVisible = true;
     for (int i = 1; i < args.size(); ++i) {
         const QByteArray arg = args.at(i).toUtf8();
         if (arg.startsWith('-')) {
@@ -48,11 +39,18 @@ int main(int argc, char *argv[])
                 else
                     qtTrace() << "Option \"-volume\" takes a value";
             }
-#ifdef PERFORMANCEMONITOR_SUPPORT
-            else if (performanceMonitorState.parseArgument(arg)) {
-                // Do nothing
+            else if (arg == "-log-perf") {
+                perfMonitorsLogging = true;
             }
-#endif
+            else if (arg == "-no-log-perf") {
+                perfMonitorsLogging = false;
+            }
+            else if (arg == "-show-perf") {
+                perfMonitorsVisible = true;
+            }
+            else if (arg == "-hide-perf") {
+                perfMonitorsVisible = false;
+            }
             else if ("-url" == arg) {
                 sourceIsUrl = true;
             } else {
@@ -92,14 +90,10 @@ int main(int argc, char *argv[])
     viewer.loadFromModule("qmlvideo", "Main");
     QObject::connect(viewer.engine(), &QQmlEngine::quit, &viewer, &QQuickView::close);
 
-#ifdef PERFORMANCEMONITOR_SUPPORT
     QQuickItem *rootObject = viewer.rootObject();
-    if (performanceMonitorState.valid) {
-        rootObject->setProperty("perfMonitorsLogging", performanceMonitorState.logging);
-        rootObject->setProperty("perfMonitorsVisible", performanceMonitorState.visible);
-    }
+    rootObject->setProperty("perfMonitorsLogging", perfMonitorsLogging);
+    rootObject->setProperty("perfMonitorsVisible", perfMonitorsVisible);
     QObject::connect(&viewer, SIGNAL(afterRendering()), rootObject, SLOT(qmlFramePainted()));
-#endif
 
     QMetaObject::invokeMethod(rootObject, "init");
 

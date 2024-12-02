@@ -7,34 +7,25 @@ android: qtHaveModule(androidextras) {
     DEFINES += REQUEST_PERMISSIONS_ON_ANDROID
 }
 
-DEFINES += \
-    FREQUENCYMONITOR_SUPPORT \
-    PERFORMANCEMONITOR_SUPPORT
-
 SOURCES += \
-    frequencymonitor.cpp \
-    frequencymonitordeclarative.cpp \
+    frequencymonitor/frequencymonitor.cpp \
     main.cpp \
-    performancemonitor.cpp \
-    performancemonitordeclarative.cpp \
     qmlvideo/videosingleton.cpp
 
 INCLUDEPATH += qmlvideo
+INCLUDEPATH += frequencymonitor
 
 DEFINES += QMLVIDEO_LIB
 
 HEADERS += \
-    frequencymonitor.h \
-    performancemonitor.h \
-    performancemonitordeclarative.h \
+    frequencymonitor/frequencymonitor.h \
     trace.h \
     qmlvideo/videosingleton.h
 
 resources.files = \
     frequencymonitor/FrequencyItem.qml \
     frequencymonitor/qmldir \
-    performancemonitor/PerformanceItem.qml \
-    performancemonitor/qmldir \
+    frequencymonitor/PerformanceItem.qml \
     qmlvideo/CameraBasic.qml \
     qmlvideo/CameraDrag.qml \
     qmlvideo/CameraDummy.qml \
@@ -88,7 +79,10 @@ RESOURCES += resources
 
 CONFIG += qmltypes
 QML_IMPORT_NAME = qmlvideo
+# QML_IMPORT_NAME = frequencymonitor
 QML_IMPORT_MAJOR_VERSION = 1
+
+QML_IMPORT_PATH = $$PWD/frequencymonitor
 
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/video/qmlvideo
 INSTALLS += target

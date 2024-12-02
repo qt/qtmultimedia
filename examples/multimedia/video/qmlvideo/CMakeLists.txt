@@ -17,10 +17,6 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick)
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(qmlvideoexample
-    frequencymonitor.cpp frequencymonitor.h
-    frequencymonitordeclarative.cpp
-    performancemonitor.cpp performancemonitor.h
-    performancemonitordeclarative.cpp performancemonitordeclarative.h
     main.cpp
     trace.h
 )
@@ -34,13 +30,7 @@ set_target_properties(qmlvideoexample PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER "io.qt.examples.qmlvideo"
 )
 
-target_compile_definitions(qmlvideoexample PUBLIC
-    FREQUENCYMONITOR_SUPPORT
-    PERFORMANCEMONITOR_SUPPORT
-)
-
 add_subdirectory(qmlvideo)
-add_subdirectory(performancemonitor)
 add_subdirectory(frequencymonitor)
 
 target_link_libraries(qmlvideoexample PRIVATE
@@ -50,7 +40,6 @@ target_link_libraries(qmlvideoexample PRIVATE
     Qt::Qml
     Qt::Quick
     qmlvideo
-    performancemonitor
     frequencymonitor
 )
 

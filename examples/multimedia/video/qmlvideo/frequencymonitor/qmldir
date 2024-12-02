@@ -1,3 +1,4 @@
 module frequencymonitor
 
 FrequencyItem 1.0 FrequencyItem.qml
+PerformanceItem 1.0 PerformanceItem.qml

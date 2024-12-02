@@ -9,6 +9,7 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/qmlvideo/qmlvide
 
 qt_add_qml_module(qmlvideo
     URI qmlvideo
+    VERSION 1.0
     SOURCES
         videosingleton.cpp
         videosingleton.h

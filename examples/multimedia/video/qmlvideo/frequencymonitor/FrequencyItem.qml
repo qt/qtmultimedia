@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
-import FrequencyMonitor 1.0
+import frequencymonitor
 
 Rectangle {
     id: root
