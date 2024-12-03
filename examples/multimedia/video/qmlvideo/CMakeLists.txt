@@ -25,6 +25,8 @@ qt_add_executable(qmlvideoexample
     trace.h
 )
 
+qt_add_ios_ffmpeg_libraries(qmlvideoexample)
+
 set_target_properties(qmlvideoexample PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE

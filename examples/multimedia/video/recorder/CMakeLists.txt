@@ -19,6 +19,8 @@ qt_add_executable(recorder
     main.cpp
 )
 
+qt_add_ios_ffmpeg_libraries(recorder)
+
 set(resource_files
     "main.qml"
     "main_no_permissions.qml"

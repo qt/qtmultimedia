@@ -21,6 +21,8 @@ qt_add_executable(mediaplayerexample
     main.cpp
 )
 
+qt_add_ios_ffmpeg_libraries(mediaplayerexample)
+
 set_target_properties(mediaplayerexample PROPERTIES
     MACOSX_BUNDLE TRUE
 )
