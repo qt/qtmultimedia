@@ -122,11 +122,23 @@ private:
 
     bool discover(const QUrl &);
 
+    // custom sources
+    void decoderPadAddedCustomSource(const QGstElement &src, const QGstPad &pad);
+    void decoderPadRemovedCustomSource(const QGstElement &src, const QGstPad &pad);
+    bool isCustomSource() const { return m_url.scheme() == QStringLiteral(u"gstreamer-pipeline"); }
+    void setMediaCustomSource(const QUrl &content);
+    void cleanupCustomPipeline();
+    QGstElement decoder;
+    QGstPipeline customPipeline;
+    QGObjectHandlerScopedConnection padAdded;
+    QGObjectHandlerScopedConnection padRemoved;
+    std::unique_ptr<QTimer> positionUpdateTimer;
+    std::array<QGstElement, 3> customPipelineSinks;
+    std::array<QGstPad, 3> customPipelinePads;
+
     // play
     QGstPlayHandle m_gstPlay;
-
     QGstPipeline m_playbin;
-
     QGstBusObserver m_gstPlayBus;
 
     // metadata

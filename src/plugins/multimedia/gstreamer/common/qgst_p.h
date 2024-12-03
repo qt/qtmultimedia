@@ -630,6 +630,7 @@ public:
     GstClockTime time() const;
 };
 
+class QGstBin;
 class QGstPipeline;
 
 class QGstElement : public QGstObject
@@ -730,7 +731,10 @@ public:
     GstElement *element() const;
 
     QGstElement getParent() const;
+    QGstBin getParentBin() const;
     QGstPipeline getPipeline() const;
+
+    void removeFromParent();
     void dumpPipelineGraph(const char *filename) const;
 
 private:
@@ -923,6 +927,7 @@ public:
 
     void addGhostPad(const QGstElement &child, const char *name);
     void addGhostPad(const char *name, const QGstPad &pad);
+    void addUnlinkedGhostPads(GstPadDirection);
 
     bool syncChildrenState();
 

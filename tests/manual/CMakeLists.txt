@@ -22,6 +22,7 @@ if(TARGET Qt::Quick)
     add_subdirectory(qml-minimal-sound-effect)
 
     if(QT_FEATURE_gstreamer)
+        add_subdirectory(qml-gstreamer-pipeline)
         add_subdirectory(qml-gstreamer-rtp)
     endif()
 endif()

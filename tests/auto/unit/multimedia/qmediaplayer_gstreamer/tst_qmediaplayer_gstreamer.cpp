@@ -77,6 +77,7 @@ void tst_QMediaPlayerGStreamer::initTestCase()
 void tst_QMediaPlayerGStreamer::init()
 {
     player = std::make_unique<QMediaPlayer>();
+    mediaStatusSpy.emplace(player.get(), &QMediaPlayer::mediaStatusChanged);
 }
 
 void tst_QMediaPlayerGStreamer::cleanup()
@@ -129,6 +130,31 @@ void tst_QMediaPlayerGStreamer::
     QTRY_VERIFY(pipeline.findByName("myConverter2"));
 
     dumpGraph("videoSink_constructer_overridesConversionElement_withMultipleElements");
+}
+
+void tst_QMediaPlayerGStreamer::setSource_customGStreamerPipeline_videoTest()
+{
+    player->setSource(u"gstreamer-pipeline: videotestsrc name=testsrc"_s);
+
+    QGstPipeline pipeline = getPipeline();
+    QTEST_ASSERT(pipeline);
+
+    QVERIFY(pipeline.findByName("testsrc"));
+
+    dumpGraph("setSource_customGStreamerPipeline_videoTest");
+}
+
+void tst_QMediaPlayerGStreamer::setSource_customGStreamerPipeline_uriDecodeBin()
+{
+    player->setSource(
+            u"gstreamer-pipeline: uridecodebin uri=http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4 name=testsrc"_s);
+
+    QGstPipeline pipeline = getPipeline();
+    QTEST_ASSERT(pipeline);
+
+    QVERIFY(pipeline.findByName("testsrc"));
+
+    dumpGraph("setSource_customGStreamerPipeline_uriDecodeBin");
 }
 
 QTEST_GUILESS_MAIN(tst_QMediaPlayerGStreamer)
