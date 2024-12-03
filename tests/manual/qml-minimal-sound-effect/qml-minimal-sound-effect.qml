@@ -22,7 +22,7 @@ ApplicationWindow {
     SoundEffect {
         id: effect
         audioDevice: mediaDevices.defaultAudioOutput
-        source: "qrc:/double-drop.wav"
+        source: "qrc:/triple-click.wav"
     }
 
     menuBar: MenuBar{
@@ -33,7 +33,11 @@ ApplicationWindow {
                 onTriggered: fileDialog.open()
             }
             Action {
-                text: qsTr("&Default sound")
+                text: qsTr("&Triple click sound")
+                onTriggered: effect.source = "qrc:/triple-click.wav"
+            }
+            Action {
+                text: qsTr("&Double drop sound")
                 onTriggered: effect.source = "qrc:/double-drop.wav"
             }
         }

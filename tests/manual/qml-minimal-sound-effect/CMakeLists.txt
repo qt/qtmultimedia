@@ -35,6 +35,7 @@ target_link_libraries( qml-minimal-sound-effect PUBLIC
 
 set(qml_minimal_sound_effect_files
     "double-drop.wav"
+    "triple-click.wav"
 )
 
 qt_add_resources(qml-minimal-sound-effect "qml-minimal-sound-effect"
