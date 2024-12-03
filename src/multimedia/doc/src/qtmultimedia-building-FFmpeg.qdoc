@@ -28,4 +28,9 @@ performance, and feature support. To read more about these options, see the
     \li \l{Building FFmpeg from source on Windows}
 \endlist
 
+\section1 macOS
+\list
+    \li \l{Building FFmpeg from source on macOS}
+\endlist
+
 */
