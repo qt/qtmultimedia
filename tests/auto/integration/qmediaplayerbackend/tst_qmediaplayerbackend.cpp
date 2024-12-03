@@ -128,7 +128,7 @@ private slots:
     void pause_doesNotAdvancePosition();
     void pause_playback_resumesFromPausedPosition();
 
-    void play_resetsErrorState_whenCalledWithInvalidFile();
+    void play_doesNotResetErrorState_whenCalledWithInvalidFile();
     void play_resumesPlaying_whenValidMediaIsProvidedAfterInvalidMedia();
     void play_doesNothing_whenMediaIsNotLoaded();
     void play_setsPlaybackStateAndMediaStatus_whenValidFileIsLoaded();
@@ -1260,7 +1260,7 @@ void tst_QMediaPlayerBackend::pause_playback_resumesFromPausedPosition()
     QCOMPARE_LT(player.position(), pausePos + 500);
 }
 
-void tst_QMediaPlayerBackend::play_resetsErrorState_whenCalledWithInvalidFile()
+void tst_QMediaPlayerBackend::play_doesNotResetErrorState_whenCalledWithInvalidFile()
 {
     m_fixture->player.setSource({ "Some not existing media" });
     QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
@@ -1269,7 +1269,6 @@ void tst_QMediaPlayerBackend::play_resetsErrorState_whenCalledWithInvalidFile()
 
     m_fixture->player.play();
 
-    expectedState.error = QMediaPlayer::NoError;
     COMPARE_MEDIA_PLAYER_STATE_EQ(MediaPlayerState{ m_fixture->player }, expectedState);
 
     QTest::qWait(150); // wait a bit and check position is not changed

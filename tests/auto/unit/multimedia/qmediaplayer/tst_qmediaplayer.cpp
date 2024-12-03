@@ -53,6 +53,7 @@ public slots:
     void cleanup();
 
 private slots:
+    void play_doesNotResetError();
     void setSource_resetsError();
     void setSourceDevice_resetsError();
     void testValid();
@@ -200,6 +201,21 @@ void tst_QMediaPlayer::init()
 void tst_QMediaPlayer::cleanup()
 {
     delete player;
+}
+
+void tst_QMediaPlayer::play_doesNotResetError()
+{
+    player->setSource({ "https://dummy/dummy.mp3" });
+
+    mockPlayer->setError(QMediaPlayer::AccessDeniedError);
+    mockPlayer->setErrorString(QStringLiteral(u"Error"));
+    QSignalSpy errorSpy{ player, &QMediaPlayer::errorChanged };
+
+    player->play();
+
+    QCOMPARE_EQ(player->error(), QMediaPlayer::AccessDeniedError);
+    QCOMPARE_EQ(player->errorString(), QStringLiteral(u"Error"));
+    QCOMPARE_EQ(errorSpy.size(), 0);
 }
 
 void tst_QMediaPlayer::setSource_resetsError()

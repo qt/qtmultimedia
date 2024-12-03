@@ -510,9 +510,6 @@ void QMediaPlayer::play()
     if (!d->control)
         return;
 
-    // Reset error conditions
-    d->setError(NoError, QString());
-
     d->control->play();
 }
 
