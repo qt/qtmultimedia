@@ -442,6 +442,9 @@ static QMutex sessionMutex;
 
     [m_mimeType release];
     [m_playerLayer release];
+    // 'videoTrack' is a 'retain' property, but still needs a
+    // manual 'release' (i.e. setting to nil):
+    self.videoTrack = nil;
     [super dealloc];
 }
 
