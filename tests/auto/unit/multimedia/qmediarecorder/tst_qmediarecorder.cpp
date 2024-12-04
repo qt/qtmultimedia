@@ -36,6 +36,7 @@ private slots:
     void testError();
 
     void record_initializesActualLocation();
+    void record_emitsSignals_whenSettingsChange();
 
     void setOutputLocation_resetsActualLocation_data();
     void setOutputLocation_resetsActualLocation();
@@ -220,6 +221,145 @@ void tst_QMediaRecorder::record_initializesActualLocation()
     QCOMPARE(encoder->actualLocation(), QUrl::fromLocalFile("default_name.mp4"));
 }
 
+void tst_QMediaRecorder::record_emitsSignals_whenSettingsChange()
+{
+    {
+        QSignalSpy mediaFormatChanged{ encoder.get(), &QMediaRecorder::mediaFormatChanged };
+
+        encoder->record();
+        QVERIFY(mediaFormatChanged.empty());
+
+        mock->m_settingsModifier = [](QMediaEncoderSettings &settings) {
+            settings.setMediaFormat({ QMediaFormat::Wave });
+        };
+
+        encoder->record();
+        QCOMPARE_EQ(mediaFormatChanged.size(), 1);
+        QCOMPARE_EQ(encoder->mediaFormat(), QMediaFormat::Wave);
+    }
+
+    {
+        QSignalSpy encodingModeChanged{ encoder.get(), &QMediaRecorder::encodingModeChanged };
+
+        encoder->record();
+        QVERIFY(encodingModeChanged.empty());
+
+        mock->m_settingsModifier = [](QMediaEncoderSettings &settings) {
+            settings.setEncodingMode(QMediaRecorder::AverageBitRateEncoding);
+        };
+
+        encoder->record();
+        QCOMPARE_EQ(encodingModeChanged.size(), 1);
+        QCOMPARE_EQ(encoder->encodingMode(), QMediaRecorder::AverageBitRateEncoding);
+    }
+
+    {
+        QSignalSpy qualityChanged{ encoder.get(), &QMediaRecorder::qualityChanged };
+
+        encoder->record();
+        QVERIFY(qualityChanged.empty());
+
+        mock->m_settingsModifier = [](QMediaEncoderSettings &settings) {
+            settings.setQuality(QMediaRecorder::HighQuality);
+        };
+
+        encoder->record();
+        QCOMPARE_EQ(qualityChanged.size(), 1);
+        QCOMPARE_EQ(encoder->quality(), QMediaRecorder::HighQuality);
+    }
+
+    {
+        QSignalSpy videoResolutionChanged{ encoder.get(), &QMediaRecorder::videoResolutionChanged };
+
+        encoder->record();
+        QVERIFY(videoResolutionChanged.empty());
+
+        mock->m_settingsModifier = [](QMediaEncoderSettings &settings) {
+            settings.setVideoResolution({ 64, 64 });
+        };
+
+        encoder->record();
+        QCOMPARE_EQ(videoResolutionChanged.size(), 1);
+        QCOMPARE_EQ(encoder->videoResolution(), QSize(64, 64));
+    }
+
+    {
+        QSignalSpy videoFrameRateChanged{ encoder.get(), &QMediaRecorder::videoFrameRateChanged };
+
+        encoder->record();
+        QVERIFY(videoFrameRateChanged.empty());
+
+        mock->m_settingsModifier = [](QMediaEncoderSettings &settings) {
+            settings.setVideoFrameRate(static_cast<qreal>(60));
+        };
+
+        encoder->record();
+        QCOMPARE_EQ(videoFrameRateChanged.size(), 1);
+        QVERIFY(qFuzzyCompare(encoder->videoFrameRate(), 60));
+    }
+
+    {
+        QSignalSpy videoBitRateChanged{ encoder.get(), &QMediaRecorder::videoBitRateChanged };
+
+        encoder->record();
+        QVERIFY(videoBitRateChanged.empty());
+
+        mock->m_settingsModifier = [](QMediaEncoderSettings &settings) {
+            settings.setVideoBitRate(128000);
+        };
+
+        encoder->record();
+        QCOMPARE_EQ(videoBitRateChanged.size(), 1);
+        QCOMPARE_EQ(encoder->videoBitRate(), 128000);
+    }
+
+    {
+        QSignalSpy audioBitRateChanged{ encoder.get(), &QMediaRecorder::audioBitRateChanged };
+
+        encoder->record();
+        QVERIFY(audioBitRateChanged.empty());
+
+        mock->m_settingsModifier = [](QMediaEncoderSettings &settings) {
+            settings.setAudioBitRate(128000);
+        };
+
+        encoder->record();
+        QCOMPARE_EQ(audioBitRateChanged.size(), 1);
+        QCOMPARE_EQ(encoder->audioBitRate(), 128000);
+    }
+
+    {
+        QSignalSpy audioChannelCountChanged{ encoder.get(),
+                                             &QMediaRecorder::audioChannelCountChanged };
+
+        encoder->record();
+        QVERIFY(audioChannelCountChanged.empty());
+
+        mock->m_settingsModifier = [](QMediaEncoderSettings &settings) {
+            settings.setAudioChannelCount(2);
+        };
+
+        encoder->record();
+        QCOMPARE_EQ(audioChannelCountChanged.size(), 1);
+        QCOMPARE_EQ(encoder->audioChannelCount(), 2);
+    }
+
+    {
+        QSignalSpy audioSampleRateChanged{ encoder.get(), &QMediaRecorder::audioSampleRateChanged };
+
+        encoder->record();
+        QVERIFY(audioSampleRateChanged.empty());
+
+        mock->m_settingsModifier = [](QMediaEncoderSettings &settings) {
+            settings.setAudioSampleRate(64000);
+        };
+
+        encoder->record();
+        QCOMPARE_EQ(audioSampleRateChanged.size(), 1);
+        QCOMPARE_EQ(encoder->audioSampleRate(), 64000);
+    }
+}
+
 void tst_QMediaRecorder::setOutputLocation_resetsActualLocation_data()
 {
     QTest::addColumn<QString>("initialOutputLocation");
@@ -381,31 +521,65 @@ void tst_QMediaRecorder::testVideoSettings()
 
     QCOMPARE(recorder.mediaFormat(), QMediaFormat());
     QCOMPARE(recorder.mediaFormat().videoCodec(), QMediaFormat::VideoCodec::Unspecified);
-    QMediaFormat format;
-    format.setVideoCodec(QMediaFormat::VideoCodec::H265);
-    recorder.setMediaFormat(format);
-    QCOMPARE(recorder.mediaFormat(), format);
-    QCOMPARE(recorder.mediaFormat().videoCodec(), QMediaFormat::VideoCodec::H265);
 
-    QCOMPARE(recorder.videoBitRate(), -1);
-    recorder.setVideoBitRate(128000);
-    QCOMPARE(recorder.videoBitRate(), 128000);
+    { // Changing media format
+        QMediaFormat format;
+        format.setVideoCodec(QMediaFormat::VideoCodec::H265);
 
-    QCOMPARE(recorder.quality(), QMediaRecorder::NormalQuality);
-    recorder.setQuality(QMediaRecorder::HighQuality);
-    QCOMPARE(recorder.quality(), QMediaRecorder::HighQuality);
+        QSignalSpy mediaFormatChanged{ &recorder, &QMediaRecorder::mediaFormatChanged };
+        recorder.setMediaFormat(format);
+        QCOMPARE(recorder.mediaFormat(), format);
+        QCOMPARE(recorder.mediaFormat().videoCodec(), QMediaFormat::VideoCodec::H265);
+        QCOMPARE_EQ(mediaFormatChanged.size(), 1);
 
-    QCOMPARE(recorder.videoFrameRate(), -1);
-    recorder.setVideoFrameRate(60);
-    QVERIFY(qFuzzyCompare(recorder.videoFrameRate(), qreal(60)));
-    recorder.setVideoFrameRate(24.0);
-    QVERIFY(qFuzzyCompare(recorder.videoFrameRate(), qreal(24.0)));
+        recorder.setMediaFormat(format);
+        QCOMPARE_EQ(mediaFormatChanged.size(), 1);
+    }
 
-    QCOMPARE(recorder.videoResolution(), QSize());
-    recorder.setVideoResolution(QSize(320,240));
-    QCOMPARE(recorder.videoResolution(), QSize(320,240));
-    recorder.setVideoResolution(800,600);
-    QCOMPARE(recorder.videoResolution(), QSize(800,600));
+    { // Changing video bit rate
+        QSignalSpy videoBitRateChanged{ &recorder, &QMediaRecorder::videoBitRateChanged };
+        QCOMPARE(recorder.videoBitRate(), -1);
+        recorder.setVideoBitRate(128000);
+        QCOMPARE(recorder.videoBitRate(), 128000);
+        QCOMPARE_EQ(videoBitRateChanged.size(), 1);
+
+        recorder.setVideoBitRate(128000);
+        QCOMPARE_EQ(videoBitRateChanged.size(), 1);
+    }
+
+    { // Changing quality
+        QSignalSpy qualityChanged{ &recorder, &QMediaRecorder::qualityChanged };
+        QCOMPARE(recorder.quality(), QMediaRecorder::NormalQuality);
+        recorder.setQuality(QMediaRecorder::HighQuality);
+        QCOMPARE(recorder.quality(), QMediaRecorder::HighQuality);
+        QCOMPARE_EQ(qualityChanged.size(), 1);
+
+        recorder.setQuality(QMediaRecorder::HighQuality);
+        QCOMPARE_EQ(qualityChanged.size(), 1);
+    }
+
+    { // Changing video frame rate
+        QSignalSpy videoFrameRateChanged{ &recorder, &QMediaRecorder::videoFrameRateChanged };
+        QCOMPARE(recorder.videoFrameRate(), -1);
+        recorder.setVideoFrameRate(60);
+        QVERIFY(qFuzzyCompare(recorder.videoFrameRate(), qreal(60)));
+        QCOMPARE_EQ(videoFrameRateChanged.size(), 1);
+
+        recorder.setVideoFrameRate(60);
+        QCOMPARE_EQ(videoFrameRateChanged.size(), 1);
+    }
+
+    { // Changing video resolution
+        QSignalSpy videoResolutionChanged{ &recorder, &QMediaRecorder::videoResolutionChanged };
+
+        QCOMPARE(recorder.videoResolution(), QSize());
+        recorder.setVideoResolution(QSize(320,240));
+        QCOMPARE(recorder.videoResolution(), QSize(320,240));
+        QCOMPARE_EQ(videoResolutionChanged.size(), 1);
+
+        recorder.setVideoResolution(QSize(320, 240));
+        QCOMPARE_EQ(videoResolutionChanged.size(), 1);
+    }
 }
 
 void tst_QMediaRecorder::testSettingsApplied()

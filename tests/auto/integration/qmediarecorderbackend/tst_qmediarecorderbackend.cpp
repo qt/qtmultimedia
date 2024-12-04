@@ -81,6 +81,8 @@ private slots:
 
     void record_writesToOutputLocation_whenNotWritableOutputDeviceAndLocationAreSet();
 
+    void record_emits_mediaformatChanged_whenFormatChanged();
+
 private:
     QTemporaryDir m_tempDir;
 };
@@ -501,6 +503,32 @@ void tst_QMediaRecorderBackend::record_writesToOutputLocation_whenNotWritableOut
     QCOMPARE_GT(QFileInfo(actualLocation).size(), 0);
     QCOMPARE_NE(f.m_recorder.actualLocation(), QUrl());
     QCOMPARE(tempFile.size(), 0);
+}
+
+void tst_QMediaRecorderBackend::record_emits_mediaformatChanged_whenFormatChanged()
+{
+    QSKIP_IF_NOT_FFMPEG();
+
+    // Arrange
+    CaptureSessionFixture f{ StreamType::Video };
+    f.m_videoGenerator.setFrameCount(1);
+    f.m_videoGenerator.setSize({ 128, 64 }); // Small frames to speed up test
+
+    QMediaFormat unspecifiedFormat;
+    f.m_recorder.setMediaFormat(unspecifiedFormat);
+
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
+
+    QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
+             f.m_recorder.errorString().toLatin1().data());
+
+    QCOMPARE_EQ(f.mediaFormatChanged.size(), 1);
+
+    const QMediaFormat actualFormat = f.m_recorder.mediaFormat();
+    QCOMPARE_NE(actualFormat.fileFormat(), QMediaFormat::UnspecifiedFormat);
+    QCOMPARE_NE(actualFormat.videoCodec(), QMediaFormat::VideoCodec::Unspecified);
+    QCOMPARE_NE(actualFormat.audioCodec(), QMediaFormat::AudioCodec::Unspecified);
 }
 
 QTEST_MAIN(tst_QMediaRecorderBackend)

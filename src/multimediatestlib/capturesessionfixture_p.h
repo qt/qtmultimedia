@@ -56,6 +56,7 @@ struct CaptureSessionFixture
     QSignalSpy readyToSendVideoFrame{ &m_videoInput, &QVideoFrameInput::readyToSendVideoFrame };
     QSignalSpy readyToSendAudioBuffer{ &m_audioInput, &QAudioBufferInput::readyToSendAudioBuffer };
     QSignalSpy recorderStateChanged{ &m_recorder, &QMediaRecorder::recorderStateChanged };
+    QSignalSpy mediaFormatChanged{ &m_recorder, &QMediaRecorder::mediaFormatChanged };
 };
 
 QT_END_NAMESPACE

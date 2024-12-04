@@ -487,6 +487,30 @@ QT_WARNING_POP
 
         if (oldMediaFormat != d->encoderSettings.mediaFormat())
             emit mediaFormatChanged();
+
+        if (settings.encodingMode() != d->encoderSettings.encodingMode())
+            emit encodingModeChanged();
+
+        if (settings.quality() != d->encoderSettings.quality())
+            emit qualityChanged();
+
+        if (settings.videoResolution() != d->encoderSettings.videoResolution())
+            emit videoResolutionChanged();
+
+        if (!qFuzzyCompare(settings.videoFrameRate(), d->encoderSettings.videoFrameRate()))
+            emit videoFrameRateChanged();
+
+        if (settings.videoBitRate() != d->encoderSettings.videoBitRate())
+            emit videoBitRateChanged();
+
+        if (settings.audioBitRate() != d->encoderSettings.audioBitRate())
+            emit audioBitRateChanged();
+
+        if (settings.audioChannelCount() != d->encoderSettings.audioChannelCount())
+            emit audioChannelCountChanged();
+
+        if (settings.audioSampleRate() != d->encoderSettings.audioSampleRate())
+            emit audioSampleRateChanged();
     }
 }
 /*!

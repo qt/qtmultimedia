@@ -44,6 +44,7 @@ public:
     using QPlatformMediaRecorder::updateError;
 
 public:
+
     void record(QMediaEncoderSettings &settings) override
     {
         m_state = QMediaRecorder::RecordingState;
@@ -54,6 +55,9 @@ public:
 
         QUrl actualLocation = outputLocation().isEmpty() ? QUrl::fromLocalFile("default_name.mp4") : outputLocation();
         actualLocationChanged(actualLocation);
+
+        if (m_settingsModifier)
+            m_settingsModifier(settings);
     }
 
     void pause() override
@@ -80,6 +84,7 @@ public:
     QMediaRecorder::RecorderState m_state;
     QMediaEncoderSettings m_settings;
     qint64     m_position;
+    std::function<void(QMediaEncoderSettings &settings)> m_settingsModifier;
 };
 
 #endif // MOCKRECORDERCONTROL_H
