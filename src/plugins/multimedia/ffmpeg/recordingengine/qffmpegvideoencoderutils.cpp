@@ -215,6 +215,23 @@ QSize adjustVideoResolution(const Codec &codec, QSize requestedResolution)
     return requestedResolution;
 }
 
+int getScaleConversionType(const QSize &sourceSize, const QSize &targetSize)
+{
+    int conversionType = SWS_FAST_BILINEAR;
+
+#ifdef Q_OS_ANDROID
+    // On Android, use SWS_BICUBIC for upscaling if least one dimension is upscaled
+    // to avoid a crash caused by ff_hcscale_fast_c with SWS_FAST_BILINEAR.
+    if (targetSize.width() > sourceSize.width() || targetSize.height() > sourceSize.height())
+        conversionType = SWS_BICUBIC;
+#else
+    Q_UNUSED(sourceSize);
+    Q_UNUSED(targetSize);
+#endif
+
+    return conversionType;
+}
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE
