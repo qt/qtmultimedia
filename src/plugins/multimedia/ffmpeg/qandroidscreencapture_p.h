@@ -22,6 +22,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QAndroidVideoFrameFactory;
+
 class QAndroidScreenCapture : public QPlatformSurfaceCapture
 {
     class Grabber;
@@ -40,6 +42,7 @@ protected:
 private:
     const int m_id;
     std::unique_ptr<Grabber> m_grabber;
+    std::shared_ptr<QAndroidVideoFrameFactory> m_frameFactory;
 };
 
 QT_END_NAMESPACE

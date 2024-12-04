@@ -21,9 +21,7 @@
 #include <private/qvideoframeconverter_p.h>
 #include <private/qvideotexturehelper_p.h>
 #include <qffmpegvideobuffer_p.h>
-
-#include <qandroidvideoframebuffer_p.h>
-#include <utility>
+#include <qandroidvideoframefactory_p.h>
 
 extern "C" {
 #include "libavutil/hwcontext.h"
@@ -193,50 +191,34 @@ QVideoFrameFormat QAndroidCamera::frameFormat() const
 // Called by the Java-side processing background thread.
 void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
 {
-    if (!(m_state == State::WaitingStart || m_state == State::Started) && !m_waitingForFirstFrame) {
+    if ((!(m_state == State::WaitingStart || m_state == State::Started) && !m_waitingForFirstFrame)
+            || m_frameFactory == nullptr) {
         qCWarning(qLCAndroidCamera) << "Received frame when not active... ignoring";
         qCWarning(qLCAndroidCamera) << "state:" << m_state;
         image.callMethod<void>("close");
         return;
     }
 
-    auto androidFrame = std::make_unique<QAndroidVideoFrameBuffer>(image);
-    if (!androidFrame->isParsed()) {
-        qCWarning(qLCAndroidCamera) << "Failed to parse frame.. dropping frame";
+    QVideoFrame videoFrame = m_frameFactory->createVideoFrame(image, rotation());
+    if (!videoFrame.isValid())
         return;
-    }
 
-    int timestamp = androidFrame->timestamp();
     // TODO: m_androidFramePixelFormat is written by the Java-side processing
     // background thread, but read by the QCamera thread during QAndroid::ffmpegHWPixelFormat().
     // This causes a race condition (not severe). We should eventually implement some
     // synchronization strategy.
-    m_androidFramePixelFormat = androidFrame->format().pixelFormat();
+    m_androidFramePixelFormat = videoFrame.pixelFormat();
     if (m_waitingForFirstFrame) {
         m_waitingForFirstFrame = false;
         setState(State::Started);
     }
 
-    QVideoFrameFormat format(androidFrame->format().frameSize(), m_androidFramePixelFormat);
-    format.setRotation(rotation());
-
-    QVideoFrame videoFrame(std::move(androidFrame));
-
-    if (lastTimestamp == 0)
-        lastTimestamp = timestamp;
-
-    // apply mirroring for presentation only
     videoFrame.setMirrored(m_cameraDevice.position() == QCameraDevice::Position::FrontFace);
-
-    videoFrame.setStartTime(lastTimestamp);
-    videoFrame.setEndTime(timestamp);
 
     if (!takePhoto)
         emit newVideoFrame(videoFrame);
     else
         emit onCaptured(videoFrame);
-
-    lastTimestamp = timestamp;
 }
 
 QtVideo::Rotation QAndroidCamera::rotation() const
@@ -296,6 +278,9 @@ void QAndroidCamera::setActive(bool active)
 
         setState(State::WaitingOpen);
         g_qcameras->insert(m_cameraDevice.id(), this);
+
+        // Create frameFactory when ImageReader is created;
+        m_frameFactory = QAndroidVideoFrameFactory::create();
 
         // this should use the camera format.
         // but there is only 2 fully supported formats on android - JPG and YUV420P

@@ -227,6 +227,7 @@ if (ANDROID)
             qandroidcamera_p.h qandroidcamera.cpp
             qandroidvideodevices.cpp qandroidvideodevices_p.h
             qandroidvideoframebuffer_p.h  qandroidvideoframebuffer.cpp
+            qandroidvideoframefactory_p.h qandroidvideoframefactory.cpp
             qandroidimagecapture_p.h qandroidimagecapture.cpp
             qandroidscreencapture_p.h qandroidscreencapture.cpp
             ../android/wrappers/jni/androidsurfacetexture_p.h

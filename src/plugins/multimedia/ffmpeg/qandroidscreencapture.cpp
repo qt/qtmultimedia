@@ -6,7 +6,7 @@
 #include <QtCore/private/qjnihelpers_p.h>
 #include <QReadWriteLock>
 #include <qffmpegvideobuffer_p.h>
-#include <private/qvideoframe_p.h>
+#include <qandroidvideoframefactory_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -125,28 +125,28 @@ bool QAndroidScreenCapture::setActiveInternal(bool active)
     if (active == static_cast<bool>(m_grabber))
         return true;
 
-    if (m_grabber)
+    if (m_grabber) {
         m_grabber.reset();
-    else
+        m_frameFactory.reset();
+    } else {
         m_grabber = std::make_unique<Grabber>(m_id);
+        m_frameFactory = QAndroidVideoFrameFactory::create();
+    }
 
     return static_cast<bool>(m_grabber) == active;
 }
 
 void QAndroidScreenCapture::onNewFrameReceived(QtJniTypes::AndroidImage image)
 {
-    auto androidFrame = std::make_unique<QAndroidVideoFrameBuffer>(image);
-    if (!androidFrame->isParsed()) {
-        updateError(QPlatformSurfaceCapture::InternalError,
-                    QStringLiteral("Cannot parse screen frame"));
-        return;
-    }
-    if (!isActive()) {
+    if (!isActive() || m_frameFactory == nullptr) {
+        if (image.isValid())
+            image.callMethod<void>("close");
         return;
     }
 
-    QVideoFrame videoFrame(std::move(androidFrame));
-    emit newVideoFrame(videoFrame);
+    QVideoFrame videoFrame = m_frameFactory->createVideoFrame(image);
+    if (videoFrame.isValid())
+        emit newVideoFrame(videoFrame);
 }
 
 static void onScreenFrameAvailable(JNIEnv *env, jobject obj, QtJniTypes::AndroidImage image, jint id)

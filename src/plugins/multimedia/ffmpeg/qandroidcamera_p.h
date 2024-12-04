@@ -23,6 +23,7 @@
 QT_BEGIN_NAMESPACE
 
 class QVideoFrame;
+class QAndroidVideoFrameFactory;
 
 class QAndroidCamera : public QPlatformCamera
 {
@@ -80,14 +81,12 @@ private:
 
     std::unique_ptr<QFFmpeg::HWAccel> m_hwAccel;
 
+    std::shared_ptr<QAndroidVideoFrameFactory> m_frameFactory;
     QVideoFrameFormat::PixelFormat m_androidFramePixelFormat;
     QList<QCamera::FlashMode> m_supportedFlashModes;
     bool m_TorchModeSupported = false;
     bool m_wasActive = false;
 
-    // The following members should only be accessed from the processing background thread
-    // instantiated by Java.
-    long lastTimestamp = 0;
     bool m_waitingForFirstFrame = false;
 };
 
