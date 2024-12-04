@@ -149,7 +149,11 @@ Q_SIGNALS:
     void recorderStateChanged(RecorderState state);
     void durationChanged(qint64 duration);
     void actualLocationChanged(const QUrl &location);
+
+#if QT_DEPRECATED_SINCE(6, 9)
+    QT_DEPRECATED_VERSION_X_6_9("Use specific signals instead")
     void encoderSettingsChanged();
+#endif
 
     void errorOccurred(Error error, const QString &errorString);
     void errorChanged();

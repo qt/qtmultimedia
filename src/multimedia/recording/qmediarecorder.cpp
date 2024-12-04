@@ -408,11 +408,15 @@ qint64 QMediaRecorder::duration() const
 {
     return d_func()->control ? d_func()->control->duration() : 0;
 }
+
+#if QT_DEPRECATED_SINCE(6, 9)
 /*!
     \fn void QMediaRecorder::encoderSettingsChanged()
 
     Signals when the encoder settings change.
 */
+#endif
+
 /*!
     \qmlmethod QtMultimedia::MediaRecorder::record()
     \brief Starts recording.
@@ -473,8 +477,13 @@ void QMediaRecorder::record()
         auto settings = d->encoderSettings;
         d->control->record(d->encoderSettings);
 
+#if QT_DEPRECATED_SINCE(6, 9)
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
         if (settings != d->encoderSettings)
             emit encoderSettingsChanged();
+QT_WARNING_POP
+#endif
 
         if (oldMediaFormat != d->encoderSettings.mediaFormat())
             emit mediaFormatChanged();
