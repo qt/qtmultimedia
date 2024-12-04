@@ -12,6 +12,8 @@ set(java_sources
     src/org/qtproject/qt/android/multimedia/QtVideoDeviceManager.java
     src/org/qtproject/qt/android/multimedia/QtMediaRecorderListener.java
     src/org/qtproject/qt/android/multimedia/QtMultimediaUtils.java
+    src/org/qtproject/qt/android/multimedia/QtScreenGrabber.java
+    src/org/qtproject/qt/android/multimedia/QtScreenCaptureService.java
     src/org/qtproject/qt/android/multimedia/QtSurfaceHolderCallback.java
     src/org/qtproject/qt/android/multimedia/QtSurfaceTextureHolder.java
     src/org/qtproject/qt/android/multimedia/QtSurfaceTextureListener.java
