@@ -33,16 +33,28 @@ Q_DECLARE_JNI_CLASS(JavaByteBuffer, "java/nio/ByteBuffer")
 class QAndroidVideoFrameBuffer : public QAbstractVideoBuffer
 {
 public:
+    class FrameReleaseDelegate {
+        public:
+            virtual ~FrameReleaseDelegate() = default;
+            virtual void onFrameReleased() = 0;
+    };
+    enum class MemoryPolicy {
+        Copy,   // Make a copy of frame data
+        Reuse   // Reuse frame data
+    };
 
-    QAndroidVideoFrameBuffer(QJniObject frame);
+    // Please note that MemoryPolicy::Reuse can be changed internally to MemoryPolicy::Copy
+    QAndroidVideoFrameBuffer(QJniObject frame,
+                        std::shared_ptr<FrameReleaseDelegate> frameReleaseDelegate,
+                        MemoryPolicy policy);
     ~QAndroidVideoFrameBuffer();
-
     MapData map(QVideoFrame::MapMode) override { return m_mapData; }
     QVideoFrameFormat format() const override { return m_videoFrameFormat; }
     long timestamp() const { return m_timestamp; }
     bool isParsed() const { return m_parsed; }
 
 private:
+    bool useCopiedData() const;
     bool parse(const QJniObject &frame);
     QVideoFrameFormat m_videoFrameFormat;
     long m_timestamp = 0;
@@ -50,7 +62,9 @@ private:
     // Currently we have maximum 3 planes here
     // We keep this data in QByteArray for proper cleaning
     QByteArray dataCleaner[3];
-    jobject m_frame = nullptr;
+    jobject m_nativeFrame = nullptr;
+    std::shared_ptr<FrameReleaseDelegate> m_frameReleaseDelegate;
+    MemoryPolicy m_policy;
     bool m_parsed = false;
     QImage m_image;
 

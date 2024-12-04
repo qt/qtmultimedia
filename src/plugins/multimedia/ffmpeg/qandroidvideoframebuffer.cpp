@@ -18,6 +18,11 @@ bool isWorkaroundForEmulatorNeeded() {
 }
 }
 
+bool QAndroidVideoFrameBuffer::useCopiedData() const
+{
+    return m_policy == MemoryPolicy::Copy;
+}
+
 bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
 {
     QJniEnvironment jniEnv;
@@ -132,12 +137,12 @@ bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
         return false;
     }
 
-    auto copyPlane = [&](int mapIndex, int arrayIndex, bool copyData = false) {
+    auto copyPlane = [&](int mapIndex, int arrayIndex) {
         if (arrayIndex >= numberPlanes)
             return;
 
         m_mapData.bytesPerLine[mapIndex] = rowStrides[arrayIndex];
-        dataCleaner[mapIndex] = copyData ?
+        dataCleaner[mapIndex] = useCopiedData() ?
             QByteArray(buffer[arrayIndex], bufferSize[arrayIndex])
           : QByteArray::fromRawData(buffer[arrayIndex], bufferSize[arrayIndex]);
         m_mapData.data[mapIndex] = (uchar *)dataCleaner[mapIndex].constData();
@@ -151,15 +156,20 @@ bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
     switch (calculedPixelFormat) {
     case QVideoFrameFormat::Format_RGBA8888:
         m_mapData.planeCount = 1;
-        copyPlane(0, 0, isWorkaroundForEmulatorNeeded());
+        if (isWorkaroundForEmulatorNeeded())
+            m_policy = MemoryPolicy::Copy;
+
+        copyPlane(0, 0);
 
         pixelFormat = QVideoFrameFormat::Format_RGBA8888;
         break;
     case QVideoFrameFormat::Format_YUV420P:
         m_mapData.planeCount = 3;
-        copyPlane(0, 0, isWorkaroundForEmulatorNeeded());
-        copyPlane(1, 1, isWorkaroundForEmulatorNeeded());
-        copyPlane(2, 2, isWorkaroundForEmulatorNeeded());
+        if (isWorkaroundForEmulatorNeeded())
+            m_policy = MemoryPolicy::Copy;
+        copyPlane(0, 0);
+        copyPlane(1, 1);
+        copyPlane(2, 2);
 
         pixelFormat = QVideoFrameFormat::Format_YUV420P;
         break;
@@ -179,8 +189,12 @@ bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
             const int indexOfFirstPlane = calculedPixelFormat == QVideoFrameFormat::Format_NV21 ?
                                           2 : 1;
             m_mapData.bytesPerLine[1] = rowStrides[indexOfFirstPlane];
-            dataCleaner[1] = QByteArray::fromRawData(buffer[indexOfFirstPlane],
-                                                      bufferSize[indexOfFirstPlane] + 1);
+
+            dataCleaner[1] = useCopiedData() ?
+                                 QByteArray(buffer[indexOfFirstPlane],
+                                            bufferSize[indexOfFirstPlane] + 1)
+                               : QByteArray::fromRawData(buffer[indexOfFirstPlane],
+                                            bufferSize[indexOfFirstPlane] + 1);
             m_mapData.data[1] = (uchar *)dataCleaner[1].constData();
             m_mapData.dataSize[1] = bufferSize[indexOfFirstPlane] + 1;
         }
@@ -190,6 +204,7 @@ bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
         qCWarning(qLCAndroidCameraFrame)
                 << "FFmpeg HW Mediacodec does not encode other than YCbCr formats";
         // we still parse it to preview the frame
+        m_policy = MemoryPolicy::Copy;
         m_image = QImage::fromData((uchar *)buffer[0], bufferSize[0]);
         m_mapData.bytesPerLine[0] = m_image.bytesPerLine();
         dataCleaner[0] = QByteArray::fromRawData((char*)m_image.bits(), m_image.sizeInBytes());
@@ -208,31 +223,38 @@ bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
     return true;
 }
 
-QAndroidVideoFrameBuffer::QAndroidVideoFrameBuffer(QJniObject frame)
-    : m_parsed(parse(frame))
+QAndroidVideoFrameBuffer::QAndroidVideoFrameBuffer(QJniObject frame,
+                        std::shared_ptr<FrameReleaseDelegate> frameReleaseDelegate,
+                        MemoryPolicy policy)
+    : m_frameReleaseDelegate(frameReleaseDelegate)
+    , m_policy(policy)
+    , m_parsed(parse(frame))
 {
-    if (isParsed()) {
+    if (isParsed() && !useCopiedData()) {
         // holding the frame java object
         QJniEnvironment jniEnv;
-        m_frame = jniEnv->NewGlobalRef(frame.object());
+        m_nativeFrame = jniEnv->NewGlobalRef(frame.object());
         jniEnv.checkAndClearExceptions();
     } else if (frame.isValid()) {
         frame.callMethod<void>("close");
+        m_frameReleaseDelegate->onFrameReleased();
     }
 }
 
 QAndroidVideoFrameBuffer::~QAndroidVideoFrameBuffer()
 {
-    if (!isParsed()) // nothing to clean
+    if (!isParsed() || useCopiedData()) // nothing to clean
         return;
 
-    QJniObject qFrame(m_frame);
-    if (qFrame.isValid())
+    QJniObject qFrame(m_nativeFrame);
+    if (qFrame.isValid()) {
         qFrame.callMethod<void>("close");
+        m_frameReleaseDelegate->onFrameReleased();
+    }
 
     QJniEnvironment jniEnv;
-    if (m_frame)
-        jniEnv->DeleteGlobalRef(m_frame);
+    if (m_nativeFrame)
+        jniEnv->DeleteGlobalRef(m_nativeFrame);
 }
 
 QT_END_NAMESPACE
