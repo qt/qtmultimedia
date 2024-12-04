@@ -388,9 +388,11 @@ void VideoFrameEncoder::updateConversions()
                 << "video source and encoder use different formats:" << m_sourceSWFormat
                 << m_targetSWFormat << "or sizes:" << m_sourceSize << targetSize;
 
+        const int conversionType = getScaleConversionType(m_sourceSize, targetSize);
+
         m_converter.reset(sws_getContext(m_sourceSize.width(), m_sourceSize.height(),
                                          m_sourceSWFormat, targetSize.width(), targetSize.height(),
-                                         m_targetSWFormat, SWS_FAST_BILINEAR, nullptr, nullptr,
+                                         m_targetSWFormat, conversionType, nullptr, nullptr,
                                          nullptr));
     }
 
