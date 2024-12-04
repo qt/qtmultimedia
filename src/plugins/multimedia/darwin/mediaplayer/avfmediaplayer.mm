@@ -945,9 +945,9 @@ void AVFMediaPlayer::updateAudioOutputDevice()
         return;
 
     if (!m_audioOutput || m_audioOutput->device.id().isEmpty()) {
-        player.audioOutputDeviceUniqueID = nil;
         if (!m_audioOutput)
             player.muted = true;
+        player.audioOutputDeviceUniqueID = nil;
     } else {
         NSString *str = QString::fromUtf8(m_audioOutput->device.id()).toNSString();
         player.audioOutputDeviceUniqueID = str;
