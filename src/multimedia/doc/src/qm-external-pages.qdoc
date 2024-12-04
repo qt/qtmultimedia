@@ -227,6 +227,11 @@
 */
 
 /*!
+    \externalpage https://developer.android.com/media/grow/media-projection#foreground_service_permission
+    \title Android foreground service permission
+*/
+
+/*!
     \externalpage https://gstreamer.freedesktop.org/
     \title GStreamer
 */
