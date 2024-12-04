@@ -34,7 +34,7 @@ QSpan<const T> makeSpan(const T *values)
 
 #if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
 
-Q_STATIC_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
+static Q_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
 
 void logGetCodecConfigError(const AVCodec *codec, AVCodecConfig config, int error)
 {
