@@ -40,6 +40,7 @@
 #    include "qandroidvideodevices_p.h"
 #    include "qandroidcamera_p.h"
 #    include "qandroidimagecapture_p.h"
+#    include "qandroidscreencapture_p.h"
 extern "C" {
 #  include <libavutil/log.h>
 #  include <libavcodec/jni.h>
@@ -261,6 +262,8 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
     return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
     return new QAVFScreenCapture;
+#elif defined(Q_OS_ANDROID)
+    return new QAndroidScreenCapture;
 #else
     return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
 #endif
@@ -379,8 +382,10 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     if (av_jni_set_java_vm(vm, nullptr))
         return JNI_ERR;
 
-    if (!QAndroidCamera::registerNativeMethods())
+    if (!QAndroidCamera::registerNativeMethods()
+            ||!QAndroidScreenCapture::registerNativeMethods()) {
         return JNI_ERR;
+    }
 
     return JNI_VERSION_1_6;
 }
