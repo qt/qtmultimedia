@@ -41,6 +41,7 @@ public:
 private:
     QVideoFrame m_sourceFrame;
 };
+using QVideoFrameTexturesUPtr = std::unique_ptr<QVideoFrameTextures>;
 
 class Q_MULTIMEDIA_EXPORT QVideoFrameTexturesSet {
 public:
@@ -48,6 +49,7 @@ public:
 
     virtual quint64 textureHandle(QRhi *, int /*plane*/) { return 0; };
 };
+using QVideoFrameTexturesSetUPtr = std::unique_ptr<QVideoFrameTexturesSet>;
 
 class Q_MULTIMEDIA_EXPORT QHwVideoBuffer : public QAbstractVideoBuffer, public QVideoFrameTexturesSet
 {

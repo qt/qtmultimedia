@@ -26,8 +26,6 @@ static bool isFrameFlipped(const AVFrame& frame) {
     return false;
 }
 
-Q_STATIC_LOGGING_CATEGORY(qLcFFmpegVideoBuffer, "qt.multimedia.ffmpeg.videobuffer");
-
 QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrameUPtr frame, AVRational pixelAspectRatio)
     : QHwVideoBuffer(QVideoFrame::NoHandle),
       m_frame(frame.get()),
@@ -145,13 +143,6 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
     if ((mode & QVideoFrame::WriteOnly) != 0 && m_hwFrame) {
         m_type = QVideoFrame::NoHandle;
         m_hwFrame.reset();
-        if (m_textures) {
-            qCDebug(qLcFFmpegVideoBuffer)
-                    << "Mapping of FFmpeg video buffer with write mode when "
-                       "textures have been created. Visual artifacts might "
-                       "happen if the frame is still in the rendering pipeline";
-            m_textures.reset();
-        }
     }
 
     return mapData;
@@ -164,29 +155,23 @@ void QFFmpegVideoBuffer::unmap()
     m_mode = QVideoFrame::NotMapped;
 }
 
-std::unique_ptr<QVideoFrameTextures> QFFmpegVideoBuffer::mapTextures(QRhi *)
+QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi *rhi)
 {
-    if (m_textures)
-        return {};
     if (!m_hwFrame)
         return {};
-    if (m_textureConverter.isNull()) {
-        m_textures = nullptr;
+    if (m_textureConverter.isNull())
         return {};
-    }
 
-    m_textures.reset(m_textureConverter.getTextures(m_hwFrame.get()));
-    if (!m_textures) {
+    QVideoFrameTexturesSetUPtr textures(m_textureConverter.getTextures(m_hwFrame.get()));
+    if (!textures) {
         static thread_local int lastFormat = 0;
         if (std::exchange(lastFormat, m_hwFrame->format) != m_hwFrame->format) // prevent logging spam
             qWarning() << "    failed to get textures for frame; format:" << m_hwFrame->format;
+        return {};
     }
-    return {};
-}
 
-quint64 QFFmpegVideoBuffer::textureHandle(QRhi *rhi, int plane)
-{
-    return m_textures ? m_textures->textureHandle(rhi, plane) : 0;
+    return QVideoTextureHelper::createTexturesFromHandles(std::move(textures), *rhi, m_pixelFormat,
+                                                          { m_hwFrame->width, m_hwFrame->height });
 }
 
 QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::pixelFormat() const

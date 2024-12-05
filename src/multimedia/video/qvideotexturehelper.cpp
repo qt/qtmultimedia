@@ -704,12 +704,22 @@ static std::unique_ptr<QRhiTexture> createTextureFromHandle(QVideoFrameTexturesS
     return {};
 }
 
+using TexturesSetRawOrUPtr = std::variant<QVideoFrameTexturesSet *, QVideoFrameTexturesSetUPtr>;
+
+static QVideoFrameTexturesSet &texturesSetRef(TexturesSetRawOrUPtr &rawOrUPtr)
+{
+    return std::visit([](auto &ptr) -> QVideoFrameTexturesSet & { return *ptr; }, rawOrUPtr);
+}
+
 class QVideoFrameTexturesArray : public QVideoFrameTextures
 {
 public:
     using TextureArray = std::array<std::unique_ptr<QRhiTexture>, TextureDescription::maxPlanes>;
-    QVideoFrameTexturesArray(TextureArray &&textures, QVideoFrame mappedFrame = {})
-        : m_textures(std::move(textures)), m_mappedFrame(std::move(mappedFrame))
+    QVideoFrameTexturesArray(TextureArray &&textures, QVideoFrame mappedFrame = {},
+                             TexturesSetRawOrUPtr texturesSet = {})
+        : m_textures(std::move(textures)),
+          m_mappedFrame(std::move(mappedFrame)),
+          m_texturesSet(std::move(texturesSet))
     {
         Q_ASSERT(!m_mappedFrame.isValid() || m_mappedFrame.isReadable());
     }
@@ -731,9 +741,10 @@ public:
 private:
     TextureArray m_textures;
     QVideoFrame m_mappedFrame;
+    TexturesSetRawOrUPtr m_texturesSet;
 };
 
-static QVideoFrameTexturesUPtr createTexturesFromHandles(QVideoFrameTexturesSet &texturesSet,
+static QVideoFrameTexturesUPtr createTexturesFromHandles(TexturesSetRawOrUPtr texturesSet,
                                                          QRhi &rhi,
                                                          QVideoFrameFormat::PixelFormat pixelFormat,
                                                          QSize size)
@@ -742,13 +753,31 @@ static QVideoFrameTexturesUPtr createTexturesFromHandles(QVideoFrameTexturesSet 
     bool ok = true;
     QVideoFrameTexturesArray::TextureArray textures;
     for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {
-        textures[plane] = QVideoTextureHelper::createTextureFromHandle(texturesSet, rhi, pixelFormat, size, plane);
+        textures[plane] = QVideoTextureHelper::createTextureFromHandle(
+                texturesSetRef(texturesSet), rhi, pixelFormat, size, plane);
         ok &= bool(textures[plane]);
     }
     if (ok)
-        return std::make_unique<QVideoFrameTexturesArray>(std::move(textures));
+        return std::make_unique<QVideoFrameTexturesArray>(std::move(textures), QVideoFrame(),
+                                                          std::move(texturesSet));
     else
         return {};
+}
+
+QVideoFrameTexturesUPtr createTexturesFromHandles(QVideoFrameTexturesSetUPtr texturesSet, QRhi &rhi,
+                                                  QVideoFrameFormat::PixelFormat pixelFormat,
+                                                  QSize size)
+{
+    if (!texturesSet)
+        return nullptr;
+
+    if (pixelFormat == QVideoFrameFormat::Format_Invalid)
+        return nullptr;
+
+    if (size.isEmpty())
+        return nullptr;
+
+    return createTexturesFromHandles(TexturesSetRawOrUPtr(std::move(texturesSet)), rhi, pixelFormat, size);
 }
 
 static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi &rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTextures *old)
@@ -798,7 +827,10 @@ QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
             return setSourceFrame(std::move(textures));
 
         QVideoFrameFormat format = frame.surfaceFormat();
-        if (auto textures = createTexturesFromHandles(*hwBuffer, rhi, format.pixelFormat(), format.frameSize()))
+        if (auto textures = createTexturesFromHandles(TexturesSetRawOrUPtr(hwBuffer),
+                                                      rhi,
+                                                      format.pixelFormat(),
+                                                      format.frameSize()))
             return setSourceFrame(std::move(textures));
     }
 
