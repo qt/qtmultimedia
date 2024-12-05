@@ -16,7 +16,7 @@
 
 #include "qffmpeg_p.h"
 #include "qvideoframeformat.h"
-#include "qabstractvideobuffer.h"
+#include "private/qhwvideobuffer_p.h"
 
 #include <qshareddata.h>
 #include <memory>
@@ -36,13 +36,6 @@ AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt);
 
 class HWAccel;
 
-class TextureSet {
-public:
-    // ### Should add QVideoFrameFormat::PixelFormat here
-    virtual ~TextureSet() {}
-    virtual qint64 textureHandle(QRhi *, int /*plane*/) { return 0; }
-};
-
 class TextureConverterBackend
 {
 public:
@@ -50,7 +43,7 @@ public:
         : rhi(rhi)
     {}
     virtual ~TextureConverterBackend() {}
-    virtual TextureSet *getTextures(AVFrame * /*frame*/) { return nullptr; }
+    virtual QVideoFrameTexturesSet *getTextures(AVFrame * /*frame*/) { return nullptr; }
 
     QRhi *rhi = nullptr;
 };
@@ -73,7 +66,7 @@ public:
         if (fmt != d->format)
             updateBackend(fmt);
     }
-    TextureSet *getTextures(AVFrame *frame);
+    QVideoFrameTexturesSet *getTextures(AVFrame *frame);
     bool isNull() const { return !d->backend || !d->backend->rhi; }
 
 private:

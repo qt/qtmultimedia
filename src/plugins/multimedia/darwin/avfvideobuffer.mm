@@ -124,7 +124,7 @@ static MTLPixelFormat rhiTextureFormatToMetalFormat(QRhiTexture::Format f)
 }
 
 
-quint64 AVFVideoBuffer::textureHandle(QRhi *, int plane) const
+quint64 AVFVideoBuffer::textureHandle(QRhi *, int plane)
 {
     auto *textureDescription = QVideoTextureHelper::textureDescription(m_format.pixelFormat());
     int bufferPlanes = CVPixelBufferGetPlaneCount(m_buffer);

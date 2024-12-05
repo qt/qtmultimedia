@@ -25,7 +25,7 @@ class MediaCodecTextureConverter : public TextureConverterBackend
 {
 public:
     MediaCodecTextureConverter(QRhi *rhi) : TextureConverterBackend(rhi){};
-    TextureSet *getTextures(AVFrame *frame) override;
+    QVideoFrameTexturesSet *getTextures(AVFrame *frame) override;
 
     static void setupDecoderSurface(AVCodecContext *s);
 private:

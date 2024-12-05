@@ -80,13 +80,13 @@ public:
         return {};
     }
 
-    quint64 textureHandle(QRhi *, int plane) const override
+    quint64 textureHandle(QRhi *, int plane) override
     {
         if (plane != 0)
             return 0;
-        if (!m_handle) {
-            const_cast<QnxTextureBuffer*>(this)->m_handle = m_windowGrabber->getNextTextureId();
-        }
+        if (!m_handle)
+            m_handle = m_windowGrabber->getNextTextureId();
+
         return m_handle;
     }
 

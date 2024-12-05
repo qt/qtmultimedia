@@ -17,15 +17,15 @@ extern "C" {
 
 namespace QFFmpeg {
 
-class MediaCodecTextureSet : public TextureSet
+class MediaCodecTextureSet : public QVideoFrameTexturesSet
 {
 public:
-    MediaCodecTextureSet(qint64 textureHandle) : handle(textureHandle) { }
+    MediaCodecTextureSet(quint64 textureHandle) : m_handle(textureHandle) { }
 
-    qint64 textureHandle(QRhi *, int plane) override { return (plane == 0) ? handle : 0; }
+    quint64 textureHandle(QRhi *, int plane) override { return (plane == 0) ? m_handle : 0; }
 
 private:
-    qint64 handle;
+    quint64 m_handle;
 };
 
 namespace {
@@ -80,7 +80,7 @@ void MediaCodecTextureConverter::setupDecoderSurface(AVCodecContext *avCodecCont
     deviceContext->free = deleteSurface;
 }
 
-TextureSet *MediaCodecTextureConverter::getTextures(AVFrame *frame)
+QVideoFrameTexturesSet *MediaCodecTextureConverter::getTextures(AVFrame *frame)
 {
     AndroidSurfaceTexture * androidSurfaceTexture = getTextureSurface(frame);
 
