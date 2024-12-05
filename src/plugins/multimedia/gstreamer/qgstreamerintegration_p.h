@@ -44,6 +44,7 @@ class QGstreamerIntegration : public QPlatformMediaIntegration
 {
 public:
     QGstreamerIntegration();
+    ~QGstreamerIntegration();
 
     static QGstreamerIntegration *instance()
     {
