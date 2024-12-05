@@ -17,7 +17,6 @@
 #include "qwindowsmultimediautils_p.h"
 #include "qcomtaskresource_p.h"
 
-#include <QtCore/QDataStream>
 #include <QtCore/qtimer.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qpointer.h>
