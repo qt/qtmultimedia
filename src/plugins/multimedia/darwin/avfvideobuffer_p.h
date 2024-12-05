@@ -36,22 +36,22 @@ public:
     AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buffer);
     ~AVFVideoBuffer();
 
-    MapData map(QVideoFrame::MapMode mode);
-    void unmap();
+    MapData map(QVideoFrame::MapMode mode) override;
+    void unmap() override;
 
-    virtual quint64 textureHandle(QRhi *, int plane) const;
+    quint64 textureHandle(QRhi *, int plane) override;
 
     QVideoFrameFormat videoFormat() const { return m_format; }
 
 private:
     AVFVideoSinkInterface *sink = nullptr;
 
-    mutable CVMetalTextureRef cvMetalTexture[3] = {};
-    mutable QCFType<CVMetalTextureCacheRef> metalCache;
+    CVMetalTextureRef cvMetalTexture[3] = {};
+    QCFType<CVMetalTextureCacheRef> metalCache;
 #if defined(Q_OS_MACOS)
-    mutable CVOpenGLTextureRef cvOpenGLTexture = nullptr;
+    CVOpenGLTextureRef cvOpenGLTexture = nullptr;
 #elif defined(Q_OS_IOS)
-    mutable CVOpenGLESTextureRef cvOpenGLESTexture = nullptr;
+    CVOpenGLESTextureRef cvOpenGLESTexture = nullptr;
 #endif
 
     CVImageBufferRef m_buffer = nullptr;

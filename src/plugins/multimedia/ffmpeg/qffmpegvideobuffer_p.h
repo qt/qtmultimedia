@@ -35,7 +35,7 @@ public:
     void unmap() override;
 
     virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) override;
-    virtual quint64 textureHandle(QRhi *rhi, int plane) const override;
+    virtual quint64 textureHandle(QRhi *rhi, int plane) override;
 
     QVideoFrameFormat::PixelFormat pixelFormat() const;
     QSize size() const;
@@ -63,7 +63,7 @@ private:
     QSize m_size;
     QFFmpeg::TextureConverter m_textureConverter;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-    std::unique_ptr<QFFmpeg::TextureSet> m_textures;
+    std::unique_ptr<QVideoFrameTexturesSet> m_textures;
 };
 
 QT_END_NAMESPACE

@@ -35,11 +35,11 @@ namespace QFFmpeg
 
 static CVMetalTextureCacheRef &mtc(void *&cache) { return reinterpret_cast<CVMetalTextureCacheRef &>(cache); }
 
-class VideoToolBoxTextureSet : public TextureSet
+class VideoToolBoxTextureSet : public QVideoFrameTexturesSet
 {
 public:
     ~VideoToolBoxTextureSet();
-    qint64 textureHandle(QRhi *, int plane) override;
+    quint64 textureHandle(QRhi *, int plane) override;
 
     QRhi *rhi = nullptr;
     CVMetalTextureRef cvMetalTexture[3] = {};
@@ -163,7 +163,7 @@ static MTLPixelFormat rhiTextureFormatToMetalFormat(QRhiTexture::Format f)
     }
 }
 
-TextureSet *VideoToolBoxTextureConverter::getTextures(AVFrame *frame)
+QVideoFrameTexturesSet *VideoToolBoxTextureConverter::getTextures(AVFrame *frame)
 {
     if (!rhi)
         return nullptr;
@@ -282,7 +282,7 @@ VideoToolBoxTextureSet::~VideoToolBoxTextureSet()
     CVPixelBufferRelease(m_buffer);
 }
 
-qint64 VideoToolBoxTextureSet::textureHandle(QRhi *, int plane)
+quint64 VideoToolBoxTextureSet::textureHandle(QRhi *, int plane)
 {
     if (rhi->backend() == QRhi::Metal)
         return cvMetalTexture[plane] ? qint64(CVMetalTextureGetTexture(cvMetalTexture[plane])) : 0;

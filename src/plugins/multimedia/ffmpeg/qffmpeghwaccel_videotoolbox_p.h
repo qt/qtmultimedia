@@ -40,7 +40,7 @@ class VideoToolBoxTextureConverter : public TextureConverterBackend
 public:
     VideoToolBoxTextureConverter(QRhi *rhi);
     ~VideoToolBoxTextureConverter();
-    TextureSet *getTextures(AVFrame *frame) override;
+    QVideoFrameTexturesSet *getTextures(AVFrame *frame) override;
 
 private:
     void freeTextureCaches();

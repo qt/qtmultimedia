@@ -33,7 +33,7 @@ public:
     VAAPITextureConverter(QRhi *rhi);
     ~VAAPITextureConverter();
 
-    TextureSet *getTextures(AVFrame *frame) override;
+    QVideoFrameTexturesSet *getTextures(AVFrame *frame) override;
 
     Qt::HANDLE eglDisplay = nullptr;
     QOpenGLContext *glContext = nullptr;

@@ -150,11 +150,11 @@ static const quint32 *fourccFromPixelFormat(const QVideoFrameFormat::PixelFormat
     return nullptr;
 }
 
-class VAAPITextureSet : public TextureSet
+class VAAPITextureSet : public QVideoFrameTexturesSet
 {
 public:
     ~VAAPITextureSet();
-    qint64 textureHandle(QRhi *, int plane) override {
+    quint64 textureHandle(QRhi *, int plane) override {
         return textures[plane];
     }
 
@@ -206,7 +206,7 @@ VAAPITextureConverter::~VAAPITextureConverter()
 }
 
 //#define VA_EXPORT_USE_LAYERS
-TextureSet *VAAPITextureConverter::getTextures(AVFrame *frame)
+QVideoFrameTexturesSet *VAAPITextureConverter::getTextures(AVFrame *frame)
 {
 //        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel::getTextures";
     if (frame->format != AV_PIX_FMT_VAAPI || !eglDisplay) {

@@ -32,7 +32,14 @@ public:
     virtual QRhiTexture *texture(uint plane) const = 0;
 };
 
-class Q_MULTIMEDIA_EXPORT QHwVideoBuffer : public QAbstractVideoBuffer
+class Q_MULTIMEDIA_EXPORT QVideoFrameTexturesSet {
+public:
+    virtual ~QVideoFrameTexturesSet();
+
+    virtual quint64 textureHandle(QRhi *, int /*plane*/) { return 0; };
+};
+
+class Q_MULTIMEDIA_EXPORT QHwVideoBuffer : public QAbstractVideoBuffer, public QVideoFrameTexturesSet
 {
 public:
     QHwVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi = nullptr);
@@ -44,9 +51,9 @@ public:
 
     QVideoFrameFormat format() const override { return {}; }
 
-    virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) { return {}; }
-    virtual quint64 textureHandle(QRhi *, int /*plane*/) const { return 0; }
     virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
+
+    virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) { return nullptr; };
 
 protected:
     QVideoFrame::HandleType m_type;

@@ -247,7 +247,7 @@ bool TextureBridge::recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D>
     return true;
 }
 
-class D3D11TextureSet : public TextureSet
+class D3D11TextureSet : public QVideoFrameTexturesSet
 {
 public:
     D3D11TextureSet(QRhi *rhi, ComPtr<ID3D11Texture2D> &&tex)
@@ -255,7 +255,7 @@ public:
     {
     }
 
-    qint64 textureHandle(QRhi *rhi, int /*plane*/) override
+    quint64 textureHandle(QRhi *rhi, int /*plane*/) override
     {
         if (rhi != m_owner)
             return 0u;
@@ -276,7 +276,7 @@ D3D11TextureConverter::D3D11TextureConverter(QRhi *rhi)
     m_rhiDevice->GetImmediateContext(m_rhiCtx.GetAddressOf());
 }
 
-TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
+QVideoFrameTexturesSet *D3D11TextureConverter::getTextures(AVFrame *frame)
 {
     if (!m_rhiDevice)
         return nullptr;

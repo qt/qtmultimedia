@@ -445,7 +445,7 @@ TextureConverter::TextureConverter(QRhi *rhi)
     d->rhi = rhi;
 }
 
-TextureSet *TextureConverter::getTextures(AVFrame *frame)
+QVideoFrameTexturesSet *TextureConverter::getTextures(AVFrame *frame)
 {
     if (!frame || isNull())
         return nullptr;
