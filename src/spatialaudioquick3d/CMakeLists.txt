@@ -12,7 +12,7 @@ qt_internal_add_qml_module(Quick3DSpatialAudioPrivate
     PLUGIN_TARGET quick3dspatialaudio
     NO_GENERATE_PLUGIN_SOURCE
     NO_PLUGIN_OPTIONAL
-    DEPENDENCIES QtQuick QtQuick3DPrivate QtMultimedia
+    DEPENDENCIES QtQuick QtMultimedia
     CONFIG_MODULE_NAME quick3dspatialaudio
     INTERNAL_MODULE
     SOURCES
