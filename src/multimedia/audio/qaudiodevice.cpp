@@ -127,13 +127,7 @@ QAudioDevice &QAudioDevice::operator=(const QAudioDevice &other) = default;
 */
 bool QAudioDevice::operator==(const QAudioDevice &other) const
 {
-    if (d == other.d)
-        return true;
-    if (!d || !other.d)
-        return false;
-    if (d->mode == other.d->mode && d->id == other.d->id && d->isDefault == other.d->isDefault)
-        return true;
-    return false;
+    return mode() == other.mode() && id() == other.id();
 }
 
 /*!
