@@ -169,6 +169,15 @@ QGstreamerIntegration::QGstreamerIntegration()
     qGstRegisterQIODeviceHandler(nullptr);
 }
 
+QGstreamerIntegration::~QGstreamerIntegration()
+{
+    // by default we don't deinit, as the application may have initialized gstreamer
+    // (gst_init/deinit is not refcounted).
+    // however it's useful to force deinitialization for leak detection in qt's unit tests.
+    if (qEnvironmentVariableIsSet("QT_GSTREAMER_DEINIT"))
+        gst_deinit();
+}
+
 QPlatformMediaFormatInfo *QGstreamerIntegration::createFormatInfo()
 {
     return new QGstreamerFormatInfo();
