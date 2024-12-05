@@ -216,7 +216,7 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
                 std::make_unique<QMemoryVideoBuffer>(QByteArray{ 4, 0 }, 4),
                 QVideoFrameFormat(QSize(1, 1), QVideoFrameFormat::Format_RGBA8888));
 
-    m_frameTextures = QVideoTextureHelper::createTextures(m_currentFrame, m_rhi.get(), rub, std::move(m_frameTextures));
+    m_frameTextures = QVideoTextureHelper::createTextures(m_currentFrame, *m_rhi, rub, std::move(m_frameTextures));
     if (!m_frameTextures)
         return;
 
