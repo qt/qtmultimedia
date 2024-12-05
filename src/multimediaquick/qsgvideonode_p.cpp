@@ -142,7 +142,7 @@ void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resour
     m_videoFrameSlots[rhi->currentFrameSlot()] = m_currentFrame;
 
     // update and upload all textures
-    m_videoFrameTextures = QVideoTextureHelper::createTextures(m_currentFrame, rhi, resourceUpdates, std::move(m_videoFrameTextures));
+    m_videoFrameTextures = QVideoTextureHelper::createTextures(m_currentFrame, *rhi, resourceUpdates, std::move(m_videoFrameTextures));
     if (!m_videoFrameTextures)
         return;
 

@@ -25,6 +25,7 @@ QT_BEGIN_NAMESPACE
 class QVideoFrame;
 class QTextLayout;
 class QVideoFrameTextures;
+using QVideoFrameTexturesUPtr = std::unique_ptr<QVideoFrameTextures>;
 
 namespace QVideoTextureHelper
 {
@@ -66,7 +67,8 @@ fragmentShaderFileName(const QVideoFrameFormat &format, bool useAlphaShader,
                        QRhiSwapChain::Format surfaceFormat = QRhiSwapChain::SDR);
 Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame,
                                            const QMatrix4x4 &transform, float opacity, float maxNits = 100);
-Q_MULTIMEDIA_EXPORT std::unique_ptr<QVideoFrameTextures> createTextures(QVideoFrame &frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, std::unique_ptr<QVideoFrameTextures> &&oldTextures);
+
+Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTextures(QVideoFrame &frame, QRhi &rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTexturesUPtr &&oldTextures);
 
 struct UniformData {
     float transformMatrix[4][4];

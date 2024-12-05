@@ -604,7 +604,7 @@ enum class UpdateTextureWithMapResult : uint8_t {
     UpdatedWithDataReference
 };
 
-static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame, QRhi *rhi,
+static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame, QRhi &rhi,
                                                        QRhiResourceUpdateBatch *rub, int plane,
                                                        std::unique_ptr<QRhiTexture> &tex)
 {
@@ -619,7 +619,7 @@ static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame,
 
     bool needsRebuild = !tex || tex->pixelSize() != planeSize || tex->format() != texDesc.textureFormat[plane];
     if (!tex) {
-        tex.reset(rhi->newTexture(texDesc.textureFormat[plane], planeSize, 1, {}));
+        tex.reset(rhi.newTexture(texDesc.textureFormat[plane], planeSize, 1, {}));
         if (!tex) {
             qWarning("Failed to create new texture (size %dx%d)", planeSize.width(), planeSize.height());
             return UpdateTextureWithMapResult::Failed;
@@ -675,34 +675,27 @@ static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame,
     return result;
 }
 
-static std::unique_ptr<QRhiTexture> createTextureFromHandle(const QVideoFrame &frame, QRhi *rhi, int plane)
+static std::unique_ptr<QRhiTexture> createTextureFromHandle(QVideoFrameTexturesSet& texturesSet, QRhi &rhi, QVideoFrameFormat::PixelFormat pixelFormat, QSize size, int plane)
 {
-    QHwVideoBuffer *hwBuffer = QVideoFramePrivate::hwBuffer(frame);
-    Q_ASSERT(hwBuffer);
-
-    QVideoFrameFormat fmt = frame.surfaceFormat();
-    QVideoFrameFormat::PixelFormat pixelFormat = fmt.pixelFormat();
-    QSize size = fmt.frameSize();
-
     const TextureDescription &texDesc = descriptions[pixelFormat];
     QSize planeSize(size.width()/texDesc.sizeScale[plane].x, size.height()/texDesc.sizeScale[plane].y);
 
     QRhiTexture::Flags textureFlags = {};
     if (pixelFormat == QVideoFrameFormat::Format_SamplerExternalOES) {
 #ifdef Q_OS_ANDROID
-        if (rhi->backend() == QRhi::OpenGLES2)
+        if (rhi.backend() == QRhi::OpenGLES2)
             textureFlags |= QRhiTexture::ExternalOES;
 #endif
     }
     if (pixelFormat == QVideoFrameFormat::Format_SamplerRect) {
 #ifdef Q_OS_MACOS
-        if (rhi->backend() == QRhi::OpenGLES2)
+        if (rhi.backend() == QRhi::OpenGLES2)
             textureFlags |= QRhiTexture::TextureRectangleGL;
 #endif
     }
 
-    if (quint64 handle = hwBuffer->textureHandle(rhi, plane); handle) {
-        std::unique_ptr<QRhiTexture> tex(rhi->newTexture(texDesc.textureFormat[plane], planeSize, 1, textureFlags));
+    if (quint64 handle = texturesSet.textureHandle(&rhi, plane); handle) {
+        std::unique_ptr<QRhiTexture> tex(rhi.newTexture(texDesc.textureFormat[plane], planeSize, 1, textureFlags));
         if (tex->createFrom({handle, 0}))
             return tex;
 
@@ -740,13 +733,16 @@ private:
     QVideoFrame m_mappedFrame;
 };
 
-static std::unique_ptr<QVideoFrameTextures> createTexturesFromHandles(const QVideoFrame &frame, QRhi *rhi)
+static QVideoFrameTexturesUPtr createTexturesFromHandles(QVideoFrameTexturesSet &texturesSet,
+                                                         QRhi &rhi,
+                                                         QVideoFrameFormat::PixelFormat pixelFormat,
+                                                         QSize size)
 {
-    const TextureDescription &texDesc = descriptions[frame.surfaceFormat().pixelFormat()];
+    const TextureDescription &texDesc = descriptions[pixelFormat];
     bool ok = true;
     QVideoFrameTexturesArray::TextureArray textures;
     for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {
-        textures[plane] = QVideoTextureHelper::createTextureFromHandle(frame, rhi, plane);
+        textures[plane] = QVideoTextureHelper::createTextureFromHandle(texturesSet, rhi, pixelFormat, size, plane);
         ok &= bool(textures[plane]);
     }
     if (ok)
@@ -755,7 +751,7 @@ static std::unique_ptr<QVideoFrameTextures> createTexturesFromHandles(const QVid
         return {};
 }
 
-static std::unique_ptr<QVideoFrameTextures> createTexturesFromMemory(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTextures *old)
+static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi &rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTextures *old)
 {
     const TextureDescription &texDesc = descriptions[frame.surfaceFormat().pixelFormat()];
     QVideoFrameTexturesArray::TextureArray textures;
@@ -785,16 +781,17 @@ static std::unique_ptr<QVideoFrameTextures> createTexturesFromMemory(QVideoFrame
             std::move(textures), shouldKeepMapping ? std::move(frame) : QVideoFrame());
 }
 
-std::unique_ptr<QVideoFrameTextures> createTextures(QVideoFrame &frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, std::unique_ptr<QVideoFrameTextures> &&oldTextures)
+QVideoFrameTexturesUPtr createTextures(QVideoFrame &frame, QRhi &rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTexturesUPtr &&oldTextures)
 {
     if (!frame.isValid())
         return {};
 
     if (QHwVideoBuffer *hwBuffer = QVideoFramePrivate::hwBuffer(frame)) {
-        if (auto textures = hwBuffer->mapTextures(rhi))
+        if (auto textures = hwBuffer->mapTextures(&rhi))
             return textures;
 
-        if (auto textures = createTexturesFromHandles(frame, rhi))
+        QVideoFrameFormat format = frame.surfaceFormat();
+        if (auto textures = createTexturesFromHandles(*hwBuffer, rhi, format.pixelFormat(), format.frameSize()))
             return textures;
     }
 
