@@ -24,12 +24,22 @@ QT_BEGIN_NAMESPACE
 
 class QRhi;
 class QRhiTexture;
+class QVideoFrame;
 
 class Q_MULTIMEDIA_EXPORT QVideoFrameTextures
 {
 public:
     virtual ~QVideoFrameTextures();
     virtual QRhiTexture *texture(uint plane) const = 0;
+
+    void setSourceFrame(QVideoFrame sourceFrame)
+    {
+        Q_ASSERT(!m_sourceFrame.isValid()); // we don't want to reassign the source frame
+        m_sourceFrame = std::move(sourceFrame);
+    }
+
+private:
+    QVideoFrame m_sourceFrame;
 };
 
 class Q_MULTIMEDIA_EXPORT QVideoFrameTexturesSet {

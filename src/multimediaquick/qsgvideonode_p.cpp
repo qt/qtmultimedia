@@ -125,9 +125,8 @@ public:
     QVideoFrame m_currentFrame;
 
     enum { NVideoFrameSlots = 4 };
-    QVideoFrame m_videoFrameSlots[NVideoFrameSlots];
+    QVideoFrameTexturesUPtr m_textureSlots[NVideoFrameSlots];
     std::array<QSGVideoTexture, 3> m_textures;
-    std::unique_ptr<QVideoFrameTextures> m_videoFrameTextures;
 
     bool m_useAlphaShader = false;
 };
@@ -139,15 +138,15 @@ void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resour
 
     // keep the video frames alive until we know that they are not needed anymore
     Q_ASSERT(NVideoFrameSlots >= rhi->resourceLimit(QRhi::FramesInFlight));
-    m_videoFrameSlots[rhi->currentFrameSlot()] = m_currentFrame;
 
-    // update and upload all textures
-    m_videoFrameTextures = QVideoTextureHelper::createTextures(m_currentFrame, *rhi, resourceUpdates, std::move(m_videoFrameTextures));
-    if (!m_videoFrameTextures)
+    QVideoFrameTexturesUPtr &textures = m_textureSlots[rhi->currentFrameSlot()];
+    textures = QVideoTextureHelper::createTextures(m_currentFrame, *rhi, resourceUpdates,
+                                                   std::move(textures));
+    if (!textures)
         return;
 
     for (int plane = 0; plane < 3; ++plane)
-        m_textures[plane].setRhiTexture(m_videoFrameTextures->texture(plane));
+        m_textures[plane].setRhiTexture(textures->texture(plane));
     m_texturesDirty = false;
 }
 

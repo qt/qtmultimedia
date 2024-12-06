@@ -68,7 +68,9 @@ fragmentShaderFileName(const QVideoFrameFormat &format, bool useAlphaShader,
 Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame,
                                            const QMatrix4x4 &transform, float opacity, float maxNits = 100);
 
-Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTextures(QVideoFrame &frame, QRhi &rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTexturesUPtr &&oldTextures);
+Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
+                                                           QRhiResourceUpdateBatch *rub,
+                                                           QVideoFrameTexturesUPtr &&oldTextures);
 
 struct UniformData {
     float transformMatrix[4][4];

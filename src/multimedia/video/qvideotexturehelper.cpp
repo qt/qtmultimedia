@@ -781,21 +781,28 @@ static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi 
             std::move(textures), shouldKeepMapping ? std::move(frame) : QVideoFrame());
 }
 
-QVideoFrameTexturesUPtr createTextures(QVideoFrame &frame, QRhi &rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTexturesUPtr &&oldTextures)
+QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
+                                       QRhiResourceUpdateBatch *rub,
+                                       QVideoFrameTexturesUPtr &&oldTextures)
 {
     if (!frame.isValid())
         return {};
 
+    auto setSourceFrame = [&frame](QVideoFrameTexturesUPtr result) {
+        result->setSourceFrame(frame);
+        return result;
+    };
+
     if (QHwVideoBuffer *hwBuffer = QVideoFramePrivate::hwBuffer(frame)) {
         if (auto textures = hwBuffer->mapTextures(&rhi))
-            return textures;
+            return setSourceFrame(std::move(textures));
 
         QVideoFrameFormat format = frame.surfaceFormat();
         if (auto textures = createTexturesFromHandles(*hwBuffer, rhi, format.pixelFormat(), format.frameSize()))
-            return textures;
+            return setSourceFrame(std::move(textures));
     }
 
-    return createTexturesFromMemory(frame, rhi, rub, oldTextures.get());
+    return setSourceFrame(createTexturesFromMemory(frame, rhi, rub, oldTextures.get()));
 }
 
 bool SubtitleLayout::update(const QSize &frameSize, QString text)
