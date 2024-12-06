@@ -17,15 +17,22 @@ bool copyAllFiles(const QDir &source, const QDir &dest)
         return false;
 
     QDirIterator it(source);
+    bool success = true;
     while (it.hasNext()) {
         QFileInfo file{ it.next() };
         if (file.isFile()) {
             const QString destination = dest.absolutePath() + u"/"_s + file.fileName();
-            QFile::copy(file.absoluteFilePath(), destination);
+
+            if (QFile::exists(destination))
+                if (!QFile::remove(destination))
+                    success = false;
+
+            if (!QFile::copy(file.absoluteFilePath(), destination))
+                success = false;
         }
     }
 
-    return true;
+    return success;
 }
 
 QT_END_NAMESPACE
