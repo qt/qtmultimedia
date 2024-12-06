@@ -216,8 +216,10 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
                 std::make_unique<QMemoryVideoBuffer>(QByteArray{ 4, 0 }, 4),
                 QVideoFrameFormat(QSize(1, 1), QVideoFrameFormat::Format_RGBA8888));
 
-    m_frameTextures = QVideoTextureHelper::createTextures(m_currentFrame, *m_rhi, rub, std::move(m_frameTextures));
-    if (!m_frameTextures)
+    QVideoFrameTexturesUPtr &textures = m_textureSlots[m_rhi->currentFrameSlot()];
+    textures =
+            QVideoTextureHelper::createTextures(m_currentFrame, *m_rhi, rub, std::move(textures));
+    if (!textures)
         return;
 
     QRhiShaderResourceBinding bindings[4];
@@ -229,8 +231,9 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
     auto textureDesc = QVideoTextureHelper::textureDescription(fmt.pixelFormat());
 
     for (int i = 0; i < textureDesc->nplanes; ++i)
-        (*b++) = QRhiShaderResourceBinding::sampledTexture(i + 1, QRhiShaderResourceBinding::FragmentStage,
-                                                           m_frameTextures->texture(i), m_textureSampler.get());
+        (*b++) = QRhiShaderResourceBinding::sampledTexture(
+                i + 1, QRhiShaderResourceBinding::FragmentStage, textures->texture(i),
+                m_textureSampler.get());
     m_shaderResourceBindings->setBindings(bindings, b);
     m_shaderResourceBindings->create();
 
@@ -358,9 +361,6 @@ void QVideoWindowPrivate::render()
         return;
 
     QRhi::FrameOpResult r = m_rhi->beginFrame(m_swapChain.get());
-
-    // keep the video frames alive until we know that they are not needed anymore
-    m_videoFrameSlots[m_rhi->currentFrameSlot()] = m_currentFrame;
 
     if (r == QRhi::FrameOpSwapChainOutOfDate) {
         resizeSwapChain();
