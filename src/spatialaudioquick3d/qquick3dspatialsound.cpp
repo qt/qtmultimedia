@@ -75,7 +75,7 @@ void QQuick3DSpatialSound::setSource(QUrl source)
 }
 
 /*!
-    \qmlproperty float SpatialSound::volume
+    \qmlproperty real SpatialSound::volume
 
     Defines an overall volume for this sound source.
 
@@ -122,7 +122,7 @@ QQuick3DSpatialSound::DistanceModel QQuick3DSpatialSound::distanceModel() const
 }
 
 /*!
-    \qmlproperty float SpatialSound::size
+    \qmlproperty real SpatialSound::size
 
     Defines the size of the sound source. If the listener is closer to the sound
     object than the size, volume will stay constant. The size is also used to for
@@ -139,7 +139,7 @@ float QQuick3DSpatialSound::size() const
 }
 
 /*!
-    \qmlproperty float SpatialSound::distanceCutoff
+    \qmlproperty real SpatialSound::distanceCutoff
 
     Defines a distance beyond which sound coming from the source will cutoff.
     If the listener is further away from the sound object than the cutoff
@@ -156,7 +156,7 @@ float QQuick3DSpatialSound::distanceCutoff() const
 }
 
 /*!
-    \qmlproperty float SpatialSound::manualAttenuation
+    \qmlproperty real SpatialSound::manualAttenuation
 
     Defines a manual attenuation factor if \l distanceModel is set to
     SpatialSound.ManualAttenuation.
@@ -172,7 +172,7 @@ float QQuick3DSpatialSound::manualAttenuation() const
 }
 
 /*!
-    \qmlproperty float SpatialSound::occlusionIntensity
+    \qmlproperty real SpatialSound::occlusionIntensity
 
     Defines how much the object is occluded. 0 implies the object is
     not occluded at all, while a large number implies a large occlusion.
@@ -190,7 +190,7 @@ float QQuick3DSpatialSound::occlusionIntensity() const
 }
 
 /*!
-    \qmlproperty float SpatialSound::directivity
+    \qmlproperty real SpatialSound::directivity
 
     Defines the directivity of the sound source. A value of 0 implies that the sound is
     emitted equally in all directions, while a value of 1 implies that the source mainly
@@ -209,7 +209,7 @@ float QQuick3DSpatialSound::directivity() const
 }
 
 /*!
-    \qmlproperty float SpatialSound::directivityOrder
+    \qmlproperty real SpatialSound::directivityOrder
 
     Defines the order of the directivity of the sound source. A higher order
     implies a sharper localization of the sound cone.
@@ -227,7 +227,7 @@ float QQuick3DSpatialSound::directivityOrder() const
 }
 
 /*!
-    \qmlproperty float SpatialSound::nearFieldGain
+    \qmlproperty real SpatialSound::nearFieldGain
 
     Defines the near field gain for the sound source. Valid values are between 0 and 1.
     A near field gain of 1 will raise the volume of the sound signal by approx 20 dB for

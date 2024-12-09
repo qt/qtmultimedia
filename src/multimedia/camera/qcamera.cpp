@@ -689,7 +689,7 @@ void QCamera::setCustomFocusPoint(const QPointF &point)
 }
 
 /*!
-    \qmlproperty float QtMultimedia::Camera::focusDistance
+    \qmlproperty real QtMultimedia::Camera::focusDistance
 
     This property defines the lens focus distance when the camera device works in
     manual focus mode. Valid values range from 0 to 1, where 0 is the closest
@@ -1156,7 +1156,7 @@ float QCamera::maximumExposureTime() const
 }
 
 /*!
-    \qmlproperty float QtMultimedia::Camera::exposureTime
+    \qmlproperty real QtMultimedia::Camera::exposureTime
     Returns the Camera's exposure time in seconds.
 
     \sa manualExposureTime

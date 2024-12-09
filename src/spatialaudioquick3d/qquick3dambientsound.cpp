@@ -62,7 +62,7 @@ void QQuick3DAmbientSound::setSource(QUrl source)
 }
 
 /*!
-    \qmlproperty float AmbientSound::volume
+    \qmlproperty real AmbientSound::volume
 
     Defines an overall volume for this sound source.
  */
