@@ -142,10 +142,10 @@ QGstDiscovererInfo parseGstDiscovererInfo(GstDiscovererInfo *info)
     if (duration != GST_CLOCK_TIME_NONE)
         result.duration = std::chrono::nanoseconds{ duration };
 
-    GstDiscovererStreamInfo *streamInfo = gst_discoverer_info_get_stream_info(info);
-    if (streamInfo && GST_IS_DISCOVERER_CONTAINER_INFO(streamInfo))
+    QGstDiscovererStreamInfoHandle streamInfo{ gst_discoverer_info_get_stream_info(info) };
+    if (streamInfo && GST_IS_DISCOVERER_CONTAINER_INFO(streamInfo.get()))
         result.containerInfo =
-                parseGstDiscovererContainerInfo(GST_DISCOVERER_CONTAINER_INFO(streamInfo));
+                parseGstDiscovererContainerInfo(GST_DISCOVERER_CONTAINER_INFO(streamInfo.get()));
     result.tags = duplicateTagList(gst_discoverer_info_get_tags(info));
 
     GstDiscovererStreamInfoList<GstDiscovererVideoInfo> videoStreams{
