@@ -17,6 +17,7 @@
 #include "qffmpeg_p.h"
 #include "qvideoframeformat.h"
 #include "private/qhwvideobuffer_p.h"
+#include "private/qrhivaluemapper_p.h"
 
 #include <qshareddata.h>
 #include <memory>
@@ -77,6 +78,13 @@ private:
 
 class HWAccel;
 using HWAccelUPtr = std::unique_ptr<HWAccel>;
+
+struct HwFrameContextData
+{
+    QRhiValueMapper<TextureConverter> textureConverterMapper;
+
+    static HwFrameContextData &ensure(AVFrame &hwFrame);
+};
 
 class HWAccel
 {

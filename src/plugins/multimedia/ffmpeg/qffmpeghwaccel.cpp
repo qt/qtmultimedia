@@ -490,6 +490,27 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
     d->format = fmt;
 }
 
+static void deleteHwFrameContextData(AVHWFramesContext *context)
+{
+    delete reinterpret_cast<HwFrameContextData *>(context->user_opaque);
+}
+
+HwFrameContextData &HwFrameContextData::ensure(AVFrame &hwFrame)
+{
+    Q_ASSERT(hwFrame.hw_frames_ctx && hwFrame.hw_frames_ctx->data);
+
+    auto context = reinterpret_cast<AVHWFramesContext *>(hwFrame.hw_frames_ctx->data);
+    if (!context->user_opaque) {
+        context->user_opaque = new HwFrameContextData;
+        Q_ASSERT(!context->free);
+        context->free = deleteHwFrameContextData;
+    } else {
+        Q_ASSERT(context->free == deleteHwFrameContextData);
+    }
+
+    return *reinterpret_cast<HwFrameContextData *>(context->user_opaque);
+}
+
 AVFrameUPtr copyFromHwPool(AVFrameUPtr frame)
 {
 #if QT_CONFIG(wmf)
