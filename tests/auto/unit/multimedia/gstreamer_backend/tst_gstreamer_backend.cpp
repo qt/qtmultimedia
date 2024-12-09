@@ -56,7 +56,7 @@ QGstTagListHandle tst_GStreamer::parseTagList(const char *str)
 {
     QGstTagListHandle tagList{
         gst_tag_list_new_from_string(str),
-        QGstTagListHandle::NeedsRef,
+        QGstTagListHandle::HasRef,
     };
     return tagList;
 }
