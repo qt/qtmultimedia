@@ -46,7 +46,9 @@ public:
 
     AVFrame *getHWFrame() const { return m_hwFrame.get(); }
 
-    void setTextureConverter(const QFFmpeg::TextureConverter &converter);
+    void initTextureConverter(QRhi &rhi) override;
+
+    QRhi *rhi() const override;
 
     QVideoFrameFormat::ColorSpace colorSpace() const;
     QVideoFrameFormat::ColorTransfer colorTransfer() const;
@@ -60,7 +62,6 @@ private:
     AVFrameUPtr m_hwFrame;
     AVFrameUPtr m_swFrame;
     QSize m_size;
-    QFFmpeg::TextureConverter m_textureConverter;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
 };
 

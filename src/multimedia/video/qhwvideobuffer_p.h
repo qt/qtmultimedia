@@ -59,13 +59,15 @@ public:
     ~QHwVideoBuffer() override;
 
     QVideoFrame::HandleType handleType() const { return m_type; }
-    QRhi *rhi() const { return m_rhi; }
+    virtual QRhi *rhi() const { return m_rhi; }
 
     QVideoFrameFormat format() const override { return {}; }
 
     virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
 
     virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) { return nullptr; };
+
+    virtual void initTextureConverter(QRhi &) { }
 
 protected:
     QVideoFrame::HandleType m_type;

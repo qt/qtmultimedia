@@ -16,15 +16,14 @@ void QFFmpegVideoSink::setRhi(QRhi *rhi)
     if (m_rhi == rhi)
         return;
     m_rhi = rhi;
-    textureConverter = QFFmpeg::TextureConverter(rhi);
     emit rhiChanged(rhi);
 }
 
 void QFFmpegVideoSink::setVideoFrame(const QVideoFrame &frame)
 {
-    auto *buffer = dynamic_cast<QFFmpegVideoBuffer *>(QVideoFramePrivate::hwBuffer(frame));
-    if (buffer)
-        buffer->setTextureConverter(textureConverter);
+    auto *buffer = QVideoFramePrivate::hwBuffer(frame);
+    if (buffer && m_rhi)
+        buffer->initTextureConverter(*m_rhi);
 
     QPlatformVideoSink::setVideoFrame(frame);
 }
