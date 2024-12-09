@@ -149,11 +149,12 @@ QList<QCameraDevice> QAVFVideoDevices::videoDevices() const
 
 void QAVFVideoDevices::updateCameraDevices()
 {
-#ifdef Q_OS_IOS
-    // Cameras can't change dynamically on iOS. Update only once.
-    if (!m_cameraDevices.isEmpty())
-        return;
-#endif
+    if (@available(iOS 17, *)) {
+    } else {
+        // Cameras can't change dynamically on iOS 16 and older. Update only once.
+        if (!m_cameraDevices.isEmpty())
+            return;
+    }
 
     QList<QCameraDevice> cameras;
 
