@@ -75,11 +75,37 @@ void QFFmpegVideoBuffer::convertSWFrame()
     }
 }
 
-void QFFmpegVideoBuffer::setTextureConverter(const TextureConverter &converter)
+void QFFmpegVideoBuffer::initTextureConverter(QRhi &rhi)
 {
-    m_textureConverter = converter;
-    m_textureConverter.init(m_hwFrame.get());
-    m_type = converter.isNull() ? QVideoFrame::NoHandle : QVideoFrame::RhiTextureHandle;
+    if (!m_hwFrame)
+        return;
+
+    HwFrameContextData &frameContextData = HwFrameContextData::ensure(*m_hwFrame);
+    QFFmpeg::TextureConverter *converter = frameContextData.textureConverterMapper.get(rhi);
+
+    if (!converter) {
+        QFFmpeg::TextureConverter newConverter(&rhi);
+        newConverter.init(m_hwFrame.get()); // TOOD: move to mapTextures to init in the rhi's thread
+
+        bool added = false;
+        std::tie(converter, added) =
+                frameContextData.textureConverterMapper.tryMap(rhi, std::move(newConverter));
+        // no issues are expected if it's already added in another thread, however, it's worth to
+        // check it
+        Q_ASSERT(converter && added);
+    }
+
+    m_type = converter->isNull() ? QVideoFrame::NoHandle : QVideoFrame::RhiTextureHandle;
+}
+
+QRhi *QFFmpegVideoBuffer::rhi() const
+{
+    if (!m_hwFrame)
+        return nullptr;
+
+    HwFrameContextData &frameContextData = HwFrameContextData::ensure(*m_hwFrame);
+    return frameContextData.textureConverterMapper.findRhi(
+            [](QRhi &rhi) { return rhi.thread()->isCurrentThread(); });
 }
 
 QVideoFrameFormat::ColorSpace QFFmpegVideoBuffer::colorSpace() const
@@ -159,10 +185,13 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi *rhi)
 {
     if (!m_hwFrame)
         return {};
-    if (m_textureConverter.isNull())
+
+    HwFrameContextData &frameContextData = HwFrameContextData::ensure(*m_hwFrame);
+    TextureConverter *converter = frameContextData.textureConverterMapper.get(*rhi);
+    if (!converter || converter->isNull())
         return {};
 
-    QVideoFrameTexturesSetUPtr textures(m_textureConverter.getTextures(m_hwFrame.get()));
+    QVideoFrameTexturesSetUPtr textures(converter->getTextures(m_hwFrame.get()));
     if (!textures) {
         static thread_local int lastFormat = 0;
         if (std::exchange(lastFormat, m_hwFrame->format) != m_hwFrame->format) // prevent logging spam
