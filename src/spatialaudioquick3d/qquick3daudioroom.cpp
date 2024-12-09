@@ -180,7 +180,7 @@ QQuick3DAudioRoom::Material QQuick3DAudioRoom::ceilingMaterial() const
 }
 
 /*!
-    \qmlproperty float AudioRoom::reflectionGain
+    \qmlproperty real AudioRoom::reflectionGain
 
     A gain factor for reflections generated in this room. A value
     from 0 to 1 will dampen reflections, while a value larger than 1
@@ -200,7 +200,7 @@ float QQuick3DAudioRoom::reflectionGain() const
 }
 
 /*!
-    \qmlproperty float AudioRoom::reverbGain
+    \qmlproperty real AudioRoom::reverbGain
 
     A gain factor for reverb generated in this room. A value
     from 0 to 1 will dampen reverb, while a value larger than 1
@@ -220,7 +220,7 @@ float QQuick3DAudioRoom::reverbGain() const
 }
 
 /*!
-    \qmlproperty float AudioRoom::reverbTime
+    \qmlproperty real AudioRoom::reverbTime
 
     A factor to be applies to all reverb timings generated for this room.
     Larger values will lead to longer reverb timings, making the room sound
@@ -239,7 +239,7 @@ float QQuick3DAudioRoom::reverbTime() const
 }
 
 /*!
-    \qmlproperty float AudioRoom::reverbBrightness
+    \qmlproperty real AudioRoom::reverbBrightness
 
     A brightness factor to be applied to the generated reverb.
     A positive value will increase reverb for higher frequencies and

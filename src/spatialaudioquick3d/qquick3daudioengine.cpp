@@ -100,7 +100,7 @@ QAudioDevice QQuick3DAudioEngine::outputDevice() const
 }
 
 /*!
-    \qmlproperty float AudioEngine::masterVolume
+    \qmlproperty real AudioEngine::masterVolume
 
     Sets or returns overall volume being used to render the sound field.
  */

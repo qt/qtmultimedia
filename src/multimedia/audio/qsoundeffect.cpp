@@ -590,7 +590,7 @@ int QSoundEffect::loopsRemaining() const
 
 
 /*!
-    \qmlproperty qreal QtMultimedia::SoundEffect::volume
+    \qmlproperty real QtMultimedia::SoundEffect::volume
 
     This property holds the volume of the sound effect playback.
 
