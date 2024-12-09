@@ -16,4 +16,7 @@ qt_internal_add_test(tst_qscreencapturebackend
         Qt::MultimediaTestLibPrivate
 )
 
-
+if(ANDROID)
+    set_property(TARGET tst_qscreencapturebackend
+        PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
+endif()

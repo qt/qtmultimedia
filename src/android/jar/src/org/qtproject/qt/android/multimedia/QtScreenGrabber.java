@@ -38,6 +38,7 @@ class QtScreenGrabber {
                 QtScreenCaptureService.ScreenCaptureBinder binder =
                     (QtScreenCaptureService.ScreenCaptureBinder) service;
                 mService = binder.getService();
+                mServiceLock.notify();
             }
         }
 
@@ -95,6 +96,11 @@ class QtScreenGrabber {
         try {
             Intent serviceIntent = new Intent(m_activity, QtScreenCaptureService.class);
             synchronized (mServiceLock) {
+                if (mService == null)
+                    // Service wasn't started at all or was not bound yet.
+                    // Lets wait to make sure that we will call stopScreenCapture if it is needed
+                    mServiceLock.wait(1000);
+
                 if (mService != null)
                     mService.stopScreenCapture();
                 m_activity.unbindService(mConnection);
