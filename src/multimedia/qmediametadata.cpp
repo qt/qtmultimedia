@@ -514,7 +514,7 @@ QDebug operator<<(QDebug dbg, const QMediaMetaData &metaData)
 
 // operator documentation
 /*!
-\fn QVariant &QMediaMetaData ::operator[](QMediaMetaData::Key k)
+\fn QVariant &QMediaMetaData::operator[](QMediaMetaData::Key k)
     Returns data stored at the Key \a{k}.
     \code
         QMediaMetaData rockBallad1;
