@@ -51,29 +51,24 @@ public:
 
 class TextureConverter
 {
-    class Data final
-    {
-    public:
-        QAtomicInt ref = 0;
-        QRhi *rhi = nullptr;
-        AVPixelFormat format = AV_PIX_FMT_NONE;
-        std::unique_ptr<TextureConverterBackend> backend;
-    };
 public:
-    TextureConverter(QRhi *rhi = nullptr);
+    TextureConverter(QRhi &rhi);
 
-    void init(AVFrame *frame) {
-        AVPixelFormat fmt = frame ? AVPixelFormat(frame->format) : AV_PIX_FMT_NONE;
-        if (fmt != d->format)
+    void init(AVFrame &frame)
+    {
+        AVPixelFormat fmt = AVPixelFormat(frame.format);
+        if (fmt != m_format)
             updateBackend(fmt);
     }
-    QVideoFrameTexturesSet *getTextures(AVFrame *frame);
-    bool isNull() const { return !d->backend || !d->backend->rhi; }
+    QVideoFrameTexturesSet *getTextures(AVFrame &frame);
+    bool isNull() const { return !m_backend || !m_backend->rhi; }
 
 private:
     void updateBackend(AVPixelFormat format);
 
-    QExplicitlySharedDataPointer<Data> d;
+    QRhi &m_rhi;
+    AVPixelFormat m_format = AV_PIX_FMT_NONE;
+    std::unique_ptr<TextureConverterBackend> m_backend;
 };
 
 class HWAccel;

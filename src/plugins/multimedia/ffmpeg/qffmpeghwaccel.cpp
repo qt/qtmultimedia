@@ -438,27 +438,21 @@ AVHWFramesContext *HWAccel::hwFramesContext() const
     return m_hwFramesContext ? (AVHWFramesContext *)m_hwFramesContext->data : nullptr;
 }
 
+TextureConverter::TextureConverter(QRhi &rhi) : m_rhi(rhi) { }
 
-TextureConverter::TextureConverter(QRhi *rhi)
-    : d(new Data)
+QVideoFrameTexturesSet *TextureConverter::getTextures(AVFrame &frame)
 {
-    d->rhi = rhi;
-}
-
-QVideoFrameTexturesSet *TextureConverter::getTextures(AVFrame *frame)
-{
-    if (!frame || isNull())
+    if (isNull())
         return nullptr;
 
-    Q_ASSERT(frame->format == d->format);
-    return d->backend->getTextures(frame);
+    Q_ASSERT(frame.format == m_format);
+    return m_backend->getTextures(&frame);
 }
 
 void TextureConverter::updateBackend(AVPixelFormat fmt)
 {
-    d->backend = nullptr;
-    if (!d->rhi)
-        return;
+    m_backend = nullptr;
+    m_format = fmt;
 
     if (!hwTextureConversionEnabled())
         return;
@@ -466,28 +460,27 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
     switch (fmt) {
 #if QT_CONFIG(vaapi)
     case AV_PIX_FMT_VAAPI:
-        d->backend = std::make_unique<VAAPITextureConverter>(d->rhi);
+        m_backend = std::make_unique<VAAPITextureConverter>(&m_rhi);
         break;
 #endif
 #ifdef Q_OS_DARWIN
     case AV_PIX_FMT_VIDEOTOOLBOX:
-        d->backend = std::make_unique<VideoToolBoxTextureConverter>(d->rhi);
+        m_backend = std::make_unique<VideoToolBoxTextureConverter>(&m_rhi);
         break;
 #endif
 #if QT_CONFIG(wmf)
     case AV_PIX_FMT_D3D11:
-        d->backend = std::make_unique<D3D11TextureConverter>(d->rhi);
+        m_backend = std::make_unique<D3D11TextureConverter>(&m_rhi);
         break;
 #endif
 #ifdef Q_OS_ANDROID
     case AV_PIX_FMT_MEDIACODEC:
-        d->backend = std::make_unique<MediaCodecTextureConverter>(d->rhi);
+        m_backend = std::make_unique<MediaCodecTextureConverter>(&m_rhi);
         break;
 #endif
     default:
         break;
     }
-    d->format = fmt;
 }
 
 static void deleteHwFrameContextData(AVHWFramesContext *context)

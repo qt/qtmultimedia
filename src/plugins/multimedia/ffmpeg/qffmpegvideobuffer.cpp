@@ -84,8 +84,8 @@ void QFFmpegVideoBuffer::initTextureConverter(QRhi &rhi)
     QFFmpeg::TextureConverter *converter = frameContextData.textureConverterMapper.get(rhi);
 
     if (!converter) {
-        QFFmpeg::TextureConverter newConverter(&rhi);
-        newConverter.init(m_hwFrame.get()); // TOOD: move to mapTextures to init in the rhi's thread
+        QFFmpeg::TextureConverter newConverter(rhi);
+        newConverter.init(*m_hwFrame); // TOOD: move to mapTextures to init in the rhi's thread
 
         bool added = false;
         std::tie(converter, added) =
@@ -191,7 +191,7 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi *rhi)
     if (!converter || converter->isNull())
         return {};
 
-    QVideoFrameTexturesSetUPtr textures(converter->getTextures(m_hwFrame.get()));
+    QVideoFrameTexturesSetUPtr textures(converter->getTextures(*m_hwFrame));
     if (!textures) {
         static thread_local int lastFormat = 0;
         if (std::exchange(lastFormat, m_hwFrame->format) != m_hwFrame->format) // prevent logging spam
