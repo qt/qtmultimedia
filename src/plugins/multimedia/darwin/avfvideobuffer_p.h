@@ -39,7 +39,7 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
-    quint64 textureHandle(QRhi *, int plane) override;
+    quint64 textureHandle(QRhi &, int plane) override;
 
     QVideoFrameFormat videoFormat() const { return m_format; }
 

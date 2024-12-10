@@ -36,7 +36,7 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
-    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) override;
+    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi &) override;
 
 private:
     const QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;

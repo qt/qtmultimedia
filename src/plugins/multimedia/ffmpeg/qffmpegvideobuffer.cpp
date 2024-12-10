@@ -187,7 +187,7 @@ void QFFmpegVideoBuffer::unmap()
     m_mode = QVideoFrame::NotMapped;
 }
 
-QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi *rhi)
+QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi)
 {
     if (!m_hwFrame)
         return {};
@@ -199,8 +199,8 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi *rhi)
     constexpr bool initTextureConverterForAnyRhi = false;
 
     TextureConverter *converter = initTextureConverterForAnyRhi
-            ? &ensureTextureConverter(*rhi)
-            : HwFrameContextData::ensure(*m_hwFrame).textureConverterMapper.get(*rhi);
+            ? &ensureTextureConverter(rhi)
+            : HwFrameContextData::ensure(*m_hwFrame).textureConverterMapper.get(rhi);
 
     if (!converter || converter->isNull())
         return {};
@@ -213,7 +213,7 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi *rhi)
         return {};
     }
 
-    return QVideoTextureHelper::createTexturesFromHandles(std::move(textures), *rhi, m_pixelFormat,
+    return QVideoTextureHelper::createTexturesFromHandles(std::move(textures), rhi, m_pixelFormat,
                                                           { m_hwFrame->width, m_hwFrame->height });
 }
 

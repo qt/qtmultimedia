@@ -22,7 +22,7 @@ class MediaCodecTextureSet : public QVideoFrameTexturesSet
 public:
     MediaCodecTextureSet(quint64 textureHandle) : m_handle(textureHandle) { }
 
-    quint64 textureHandle(QRhi *, int plane) override { return (plane == 0) ? m_handle : 0; }
+    quint64 textureHandle(QRhi &, int plane) override { return (plane == 0) ? m_handle : 0; }
 
 private:
     quint64 m_handle;

@@ -3,6 +3,7 @@
 
 #include <QtTest/QtTest>
 
+#include <rhi/qrhi.h>
 #include <private/qhwvideobuffer_p.h>
 
 class tst_QAbstractVideoBuffer : public QObject
@@ -84,7 +85,9 @@ void tst_QAbstractVideoBuffer::handle()
 {
     QtTestVideoBuffer buffer(QVideoFrame::NoHandle);
 
-    QVERIFY(buffer.textureHandle(nullptr, 0) == 0);
+    std::unique_ptr<QRhi> rhi(QRhi::create(QRhi::Null, {}));
+
+    QVERIFY(buffer.textureHandle(*rhi, 0) == 0);
 }
 
 void tst_QAbstractVideoBuffer::mapModeDebug()

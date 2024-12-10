@@ -154,7 +154,7 @@ class VAAPITextureSet : public QVideoFrameTexturesSet
 {
 public:
     ~VAAPITextureSet();
-    quint64 textureHandle(QRhi *, int plane) override {
+    quint64 textureHandle(QRhi &, int plane) override {
         return textures[plane];
     }
 
