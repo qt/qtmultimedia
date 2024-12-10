@@ -28,7 +28,8 @@ class CodecContext;
 class QFFmpegResampler : public QPlatformAudioResampler
 {
 public:
-    QFFmpegResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat);
+    QFFmpegResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat,
+                     qint64 startTime = 0);
     QFFmpegResampler(const QFFmpeg::CodecContext *codecContext, const QAudioFormat &outputFormat,
                      qint64 startTime = 0);
 

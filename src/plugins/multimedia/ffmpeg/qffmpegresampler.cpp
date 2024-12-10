@@ -11,8 +11,9 @@ QT_BEGIN_NAMESPACE
 
 using namespace QFFmpeg;
 
-QFFmpegResampler::QFFmpegResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat) :
-    m_inputFormat(inputFormat), m_outputFormat(outputFormat)
+QFFmpegResampler::QFFmpegResampler(const QAudioFormat &inputFormat,
+                                   const QAudioFormat &outputFormat, qint64 startTime)
+    : m_inputFormat(inputFormat), m_outputFormat(outputFormat), m_startTime(startTime)
 {
     Q_ASSERT(inputFormat.isValid());
     Q_ASSERT(outputFormat.isValid());

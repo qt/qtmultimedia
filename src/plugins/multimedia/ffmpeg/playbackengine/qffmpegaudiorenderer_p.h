@@ -27,6 +27,12 @@ class QFFmpegResampler;
 
 namespace QFFmpeg {
 
+struct AbstactAudioFrameConverter
+{
+    virtual ~AbstactAudioFrameConverter();
+    virtual QAudioBuffer convert(AVFrame *) = 0;
+};
+
 class AudioRenderer : public Renderer
 {
     Q_OBJECT
@@ -90,7 +96,7 @@ protected:
 
     void updateOutputs(const Frame &frame);
 
-    void initResampler(const Frame &frame);
+    void initAudioFrameConverter(const Frame &frame);
 
     void onDeviceChanged();
 
@@ -110,7 +116,6 @@ private:
     std::unique_ptr<QAudioSink> m_sink;
     AudioTimings m_timings;
     BufferLoadingInfo m_bufferLoadingInfo;
-    std::unique_ptr<QFFmpegResampler> m_resampler;
     std::unique_ptr<QFFmpegResampler> m_bufferOutputResampler;
     QAudioFormat m_sinkFormat;
 
@@ -123,6 +128,10 @@ private:
     bool m_bufferOutputChanged = false;
     bool m_drained = false;
     bool m_firstFrameToSink = true;
+
+    // pitch compensation
+    bool m_pitchCompensation = false; // TODO: we need an API to enable pitch compensation
+    std::unique_ptr<AbstactAudioFrameConverter> m_audioFrameConverter;
 };
 
 } // namespace QFFmpeg

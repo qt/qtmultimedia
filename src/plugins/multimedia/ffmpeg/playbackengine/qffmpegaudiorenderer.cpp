@@ -2,14 +2,20 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "playbackengine/qffmpegaudiorenderer_p.h"
-#include "qaudiosink.h"
-#include "qaudiooutput.h"
-#include "qaudiobufferoutput.h"
-#include "private/qplatformaudiooutput_p.h"
+
+#include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qaudiobufferoutput.h>
+#include <QtMultimedia/private/qaudiobuffer_support_p.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
+
 #include <QtCore/qloggingcategory.h>
 
 #include "qffmpegresampler_p.h"
 #include "qffmpegmediaformatinfo_p.h"
+
+// TODO: namespace 3p library to prevent odr violations
+#include <signalsmith-stretch.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -70,11 +76,105 @@ std::unique_ptr<QFFmpegResampler> createResampler(const Frame &frame,
     return std::make_unique<QFFmpegResampler>(frame.codecContext(), outputFormat, frame.pts());
 }
 
+struct TrivialAudioFrameConverter : AbstactAudioFrameConverter
+{
+    explicit TrivialAudioFrameConverter(const Frame &frame, QAudioFormat outputFormat,
+                                        float playbackRate)
+    {
+        int sampleRate = qRound(outputFormat.sampleRate() / playbackRate * sampleRateFactor());
+        outputFormat.setSampleRate(sampleRate);
+        m_converter = createResampler(frame, outputFormat);
+    }
+
+    QAudioBuffer convert(AVFrame *frame) override { return m_converter->resample(frame); }
+
+private:
+    std::unique_ptr<QFFmpegResampler> m_converter;
+};
+
+struct PitchShiftingAudioFrameConverter : AbstactAudioFrameConverter
+{
+    explicit PitchShiftingAudioFrameConverter(const Frame &frame, QAudioFormat outputFormat,
+                                              float playbackRate)
+        : m_playbackRate{ playbackRate }
+    {
+        const QAudioFormat mediaFormat = QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(
+                *frame.codecContext()->stream()->codecpar);
+
+        const QAudioFormat floatFormat = [&] {
+            QAudioFormat ret = mediaFormat;
+            ret.setSampleFormat(QAudioFormat::SampleFormat::Float);
+            return ret;
+        }();
+
+        m_toPCMDecoder = createResampler(frame, floatFormat); // this is *not* a resampler
+        m_stretcher.reset();
+        m_pendingFractionalFrames = 0.f;
+        m_stretcher.presetDefault(mediaFormat.channelCount(), outputFormat.sampleRate());
+
+        const QAudioFormat pitchCompensatedFormat = [&] {
+            QAudioFormat ret = floatFormat;
+            ret.setSampleRate(outputFormat.sampleRate());
+            return ret;
+        }();
+        m_toOutputFormatConverter = std::make_unique<QFFmpegResampler>(pitchCompensatedFormat,
+                                                                       outputFormat, frame.pts());
+    }
+
+    QAudioBuffer convert(AVFrame *frame) override
+    {
+        using namespace QtPrivate;
+
+        // convert to pcm buffer
+        QAudioBuffer wordConverted = m_toPCMDecoder->resample(frame);
+
+        // compute stretch amount
+        int mediaFrameCount = wordConverted.frameCount();
+        float expectedNumberOfFrames = mediaFrameCount / m_playbackRate + m_pendingFractionalFrames;
+        int numberOfFullExpectedFrames = qFloor(expectedNumberOfFrames);
+        m_pendingFractionalFrames = expectedNumberOfFrames - numberOfFullExpectedFrames;
+
+        auto timeStretcherOutput = QAudioBuffer{
+            numberOfFullExpectedFrames,
+            wordConverted.format(),
+        };
+
+        // stretch
+        m_stretcher.process(
+                QAudioBufferDeinterleaveAdaptor<const float>{
+                        wordConverted,
+                },
+                mediaFrameCount,
+                QAudioBufferDeinterleaveAdaptor<float>{
+                        timeStretcherOutput,
+                },
+                numberOfFullExpectedFrames);
+
+        // convert to audio output format
+        QAudioBuffer outputBuffer = m_toOutputFormatConverter->resample(
+                timeStretcherOutput.constData<const char>(), timeStretcherOutput.byteCount());
+
+        return outputBuffer;
+    }
+
+private:
+    std::unique_ptr<QFFmpegResampler> m_toPCMDecoder;
+    signalsmith::stretch::SignalsmithStretch<float> m_stretcher;
+    std::unique_ptr<QFFmpegResampler> m_toOutputFormatConverter;
+    float m_playbackRate;
+    float m_pendingFractionalFrames = 0.f;
+};
+
 } // namespace
+
+AbstactAudioFrameConverter::~AbstactAudioFrameConverter() = default;
 
 AudioRenderer::AudioRenderer(const TimeController &tc, QAudioOutput *output,
                              QAudioBufferOutput *bufferOutput)
-    : Renderer(tc), m_output(output), m_bufferOutput(bufferOutput)
+    : Renderer(tc),
+      m_output(output),
+      m_bufferOutput(bufferOutput),
+      m_pitchCompensation{ qEnvironmentVariableIsSet("QT_MEDIA_PLAYER_ENABLE_PITCH_COMPENSATION") }
 {
     if (output) {
         // TODO: implement the signals in QPlatformAudioOutput and connect to them, QTBUG-112294
@@ -131,7 +231,7 @@ Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
 
 AudioRenderer::RenderingResult AudioRenderer::pushFrameToOutput(const Frame &frame)
 {
-    if (!m_ioDevice || !m_resampler)
+    if (!m_ioDevice || !m_audioFrameConverter)
         return {};
 
     Q_ASSERT(m_sink);
@@ -153,7 +253,9 @@ AudioRenderer::RenderingResult AudioRenderer::pushFrameToOutput(const Frame &fra
             return { time.count() == 0, time };
         }
 
-        m_bufferedData = { m_resampler->resample(frame.avFrame()) };
+        m_bufferedData = {
+            m_audioFrameConverter->convert(frame.avFrame()),
+        };
     }
 
     if (m_bufferedData.isValid()) {
@@ -197,7 +299,7 @@ void AudioRenderer::pushFrameToBufferOutput(const Frame &frame)
 
 void AudioRenderer::onPlaybackRateChanged()
 {
-    m_resampler.reset();
+    m_audioFrameConverter.reset();
 }
 
 std::chrono::milliseconds AudioRenderer::timerInterval() const
@@ -219,14 +321,16 @@ void AudioRenderer::onPauseChanged()
     Renderer::onPauseChanged();
 }
 
-void AudioRenderer::initResampler(const Frame &frame)
+void AudioRenderer::initAudioFrameConverter(const Frame &frame)
 {
-    // We recreate resampler whenever format is changed
-
-    auto resamplerFormat = m_sinkFormat;
-    resamplerFormat.setSampleRate(
-            qRound(m_sinkFormat.sampleRate() / playbackRate() * sampleRateFactor()));
-    m_resampler = createResampler(frame, resamplerFormat);
+    // We recreate the frame converter whenever format or playback rate is changed
+    if (!m_pitchCompensation || qFuzzyCompare(playbackRate(), 1.0f)) {
+        m_audioFrameConverter =
+                std::make_unique<TrivialAudioFrameConverter>(frame, m_sinkFormat, playbackRate());
+    } else {
+        m_audioFrameConverter = std::make_unique<PitchShiftingAudioFrameConverter>(
+                frame, m_sinkFormat, playbackRate());
+    }
 }
 
 void AudioRenderer::freeOutput()
@@ -252,7 +356,7 @@ void AudioRenderer::updateOutputs(const Frame &frame)
 {
     if (m_deviceChanged) {
         freeOutput();
-        m_resampler.reset();
+        m_audioFrameConverter.reset();
     }
 
     if (m_bufferOutput) {
@@ -297,8 +401,8 @@ void AudioRenderer::updateOutputs(const Frame &frame)
                  && m_timings.maxSoundDelay < m_timings.actualBufferDuration);
     }
 
-    if (!m_resampler)
-        initResampler(frame);
+    if (!m_audioFrameConverter)
+        initAudioFrameConverter(frame);
 }
 
 void AudioRenderer::updateSynchronization(const SynchronizationStamp &stamp, const Frame &frame)

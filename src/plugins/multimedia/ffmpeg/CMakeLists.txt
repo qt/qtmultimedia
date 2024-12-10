@@ -78,6 +78,9 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
+
+    SYSTEM_INCLUDE_DIRECTORIES
+        ../../../3rdparty/signalsmith-stretch/
 )
 
 if (LINUX OR ANDROID)
