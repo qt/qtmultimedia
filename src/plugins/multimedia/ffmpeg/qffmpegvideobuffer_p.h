@@ -57,6 +57,9 @@ public:
     float maxNits();
 
 private:
+    QFFmpeg::TextureConverter &ensureTextureConverter(QRhi &rhi);
+
+private:
     QVideoFrameFormat::PixelFormat m_pixelFormat;
     AVFrame *m_frame = nullptr;
     AVFrameUPtr m_hwFrame;
