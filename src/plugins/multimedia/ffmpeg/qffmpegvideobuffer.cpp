@@ -77,8 +77,13 @@ void QFFmpegVideoBuffer::convertSWFrame()
 
 void QFFmpegVideoBuffer::initTextureConverter(QRhi &rhi)
 {
-    if (!m_hwFrame)
-        return;
+    if (m_hwFrame)
+        ensureTextureConverter(rhi);
+}
+
+QFFmpeg::TextureConverter &QFFmpegVideoBuffer::ensureTextureConverter(QRhi &rhi)
+{
+    Q_ASSERT(m_hwFrame);
 
     HwFrameContextData &frameContextData = HwFrameContextData::ensure(*m_hwFrame);
     QFFmpeg::TextureConverter *converter = frameContextData.textureConverterMapper.get(rhi);
@@ -96,6 +101,7 @@ void QFFmpegVideoBuffer::initTextureConverter(QRhi &rhi)
     }
 
     m_type = converter->isNull() ? QVideoFrame::NoHandle : QVideoFrame::RhiTextureHandle;
+    return *converter;
 }
 
 QRhi *QFFmpegVideoBuffer::rhi() const
@@ -186,8 +192,16 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi *rhi)
     if (!m_hwFrame)
         return {};
 
-    HwFrameContextData &frameContextData = HwFrameContextData::ensure(*m_hwFrame);
-    TextureConverter *converter = frameContextData.textureConverterMapper.get(*rhi);
+    // We aim to set initTextureConverterForAnyRhi=true for as much platforms as we can,
+    // and remove the check after all platforms work fine on CI. If the flag is enabled,
+    // QVideoFrame::toImage can work faster, and we can test hw texture conversion on CI.
+    // Currently, enabling the flag fails some CI platforms.
+    constexpr bool initTextureConverterForAnyRhi = false;
+
+    TextureConverter *converter = initTextureConverterForAnyRhi
+            ? &ensureTextureConverter(*rhi)
+            : HwFrameContextData::ensure(*m_hwFrame).textureConverterMapper.get(*rhi);
+
     if (!converter || converter->isNull())
         return {};
 
