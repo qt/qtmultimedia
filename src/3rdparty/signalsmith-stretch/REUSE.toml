@@ -1,0 +1,6 @@
+version = 1
+
+[[annotations]]
+path = ["**"]
+SPDX-FileCopyrightText = ["Copyright (c) 2022 Geraint Luff / Signalsmith Audio Ltd."]
+SPDX-License-Identifier = "MIT"

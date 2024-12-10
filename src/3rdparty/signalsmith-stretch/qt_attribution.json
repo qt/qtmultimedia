@@ -1,0 +1,18 @@
+{
+    "Id": "signalsmith-stretch",
+    "Name": "Signalsmith Stretch",
+    "QDocModule": "qtmultimedia",
+    "Description": "This is a C++11 header-only class for pitch-shifting and time-stretching.",
+    "QtUsage": "Used in the FFMpeg media backend for pitch compensation (QMediaPlayer).",
+    "SecurityCritical": false,
+
+    "Homepage": "https://signalsmith-audio.co.uk/code/stretch.git",
+    "Version": "1.0.0",
+    "DownloadLocation": "https://signalsmith-audio.co.uk/code/stretch.git",
+    "Copyright": "Copyright (c) 2022 Geraint Luff / Signalsmith Audio Ltd.",
+    "License": "MIT License",
+    "LicenseId": "MIT",
+    "LicenseFile": "LICENSE.txt",
+
+    "PURL": "pkg:github/signalsmith-audio/signalsmith-stretch@1.0.0"
+}
