@@ -219,7 +219,7 @@ void AudioRenderer::onPauseChanged()
     Renderer::onPauseChanged();
 }
 
-void AudioRenderer::initResempler(const Frame &frame)
+void AudioRenderer::initResampler(const Frame &frame)
 {
     // We recreate resampler whenever format is changed
 
@@ -298,7 +298,7 @@ void AudioRenderer::updateOutputs(const Frame &frame)
     }
 
     if (!m_resampler)
-        initResempler(frame);
+        initResampler(frame);
 }
 
 void AudioRenderer::updateSynchronization(const SynchronizationStamp &stamp, const Frame &frame)

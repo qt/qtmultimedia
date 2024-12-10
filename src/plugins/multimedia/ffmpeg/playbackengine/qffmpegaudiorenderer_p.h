@@ -90,7 +90,7 @@ protected:
 
     void updateOutputs(const Frame &frame);
 
-    void initResempler(const Frame &frame);
+    void initResampler(const Frame &frame);
 
     void onDeviceChanged();
 
