@@ -5,6 +5,7 @@
 #include <QtTest/QtTest>
 
 #include <qaudiobuffer.h>
+#include <QtMultimedia/private/qaudiobuffer_support_p.h>
 
 class tst_QAudioBuffer : public QObject
 {
@@ -23,6 +24,9 @@ private Q_SLOTS:
     void durations();
     void durations_data();
     void stereoSample();
+
+    void makeChannelAdapter();
+    void deInterleaveBufferAdaptorSample();
 
 private:
     QAudioFormat mFormat;
@@ -308,6 +312,75 @@ void tst_QAudioBuffer::stereoSample()
     QCOMPARE(f32s[QAudioFormat::FrontRight], 0.0f);
 }
 
+void tst_QAudioBuffer::makeChannelAdapter()
+{
+    QAudioFormat fmt;
+    fmt.setSampleFormat(QAudioFormat::Float);
+    fmt.setChannelCount(2);
+    fmt.setSampleRate(44100);
+
+    QAudioBuffer b(2, fmt);
+    float *rawBuffer = b.data<float>();
+    rawBuffer[0] = 0.0;
+    rawBuffer[1] = 0.5;
+    rawBuffer[2] = 1.0;
+    rawBuffer[3] = 1.5;
+
+    auto channel0 = QtPrivate::makeChannelView<float>(b, 0);
+    auto channel1 = QtPrivate::makeChannelView<float>(b, 1);
+
+    QCOMPARE(channel0[0], 0.0);
+    QCOMPARE(channel0[1], 1.0);
+    QCOMPARE(channel1[0], 0.5);
+    QCOMPARE(channel1[1], 1.5);
+
+    channel0[0] = 3.0;
+    QCOMPARE(rawBuffer[0], 3.0);
+}
+
+void tst_QAudioBuffer::deInterleaveBufferAdaptorSample()
+{
+    QAudioFormat fmt;
+    fmt.setSampleFormat(QAudioFormat::Float);
+    fmt.setChannelCount(2);
+    fmt.setSampleRate(44100);
+
+    QAudioBuffer b(2, fmt);
+    float *rawBuffer = b.data<float>();
+    rawBuffer[0] = 0.0;
+    rawBuffer[1] = 0.5;
+    rawBuffer[2] = 1.0;
+    rawBuffer[3] = 1.5;
+
+    auto validate = [](auto adaptor) {
+        auto channel0 = adaptor[0];
+        auto channel1 = adaptor[1];
+
+        QCOMPARE(channel0[0], 0.0);
+        QCOMPARE(channel0[1], 1.0);
+        QCOMPARE(channel1[0], 0.5);
+        QCOMPARE(channel1[1], 1.5);
+    };
+
+    auto adaptorFromBuffer = QtPrivate::QAudioBufferDeinterleaveAdaptor<const float>{
+        b,
+    };
+    validate(adaptorFromBuffer);
+
+    const QAudioBuffer constBufferRef{ b };
+    auto adaptorFromConstBufferRef = QtPrivate::QAudioBufferDeinterleaveAdaptor<const float>{
+        constBufferRef,
+    };
+    validate(adaptorFromConstBufferRef);
+
+    auto mutableAdaptor = QtPrivate::QAudioBufferDeinterleaveAdaptor<float>{
+        b,
+    };
+    validate(mutableAdaptor);
+
+    mutableAdaptor[0][0] = 3.0;
+    QCOMPARE(rawBuffer[0], 3.0);
+}
 
 QTEST_APPLESS_MAIN(tst_QAudioBuffer);
 
