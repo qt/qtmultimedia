@@ -9,5 +9,5 @@ qt_internal_add_test(tst_qaudiobuffer
     SOURCES
         tst_qaudiobuffer.cpp
     LIBRARIES
-        Qt::Multimedia
+        Qt::Multimedia Qt::MultimediaPrivate
 )
