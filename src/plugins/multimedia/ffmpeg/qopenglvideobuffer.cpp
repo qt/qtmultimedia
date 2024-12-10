@@ -73,7 +73,7 @@ void QOpenGLVideoBuffer::unmap()
         m_imageBuffer->unmap();
 }
 
-quint64 QOpenGLVideoBuffer::textureHandle(QRhi *, int plane)
+quint64 QOpenGLVideoBuffer::textureHandle(QRhi &, int plane)
 {
     Q_UNUSED(plane);
     return m_fbo->texture();

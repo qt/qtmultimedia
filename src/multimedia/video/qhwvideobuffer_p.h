@@ -47,7 +47,7 @@ class Q_MULTIMEDIA_EXPORT QVideoFrameTexturesSet {
 public:
     virtual ~QVideoFrameTexturesSet();
 
-    virtual quint64 textureHandle(QRhi *, int /*plane*/) { return 0; };
+    virtual quint64 textureHandle(QRhi &, int /*plane*/) { return 0; };
 };
 using QVideoFrameTexturesSetUPtr = std::unique_ptr<QVideoFrameTexturesSet>;
 
@@ -65,7 +65,7 @@ public:
 
     virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
 
-    virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) { return nullptr; };
+    virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi &) { return nullptr; };
 
     virtual void initTextureConverter(QRhi &) { }
 

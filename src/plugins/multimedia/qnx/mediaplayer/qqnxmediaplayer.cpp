@@ -80,7 +80,7 @@ public:
         return {};
     }
 
-    quint64 textureHandle(QRhi *, int plane) override
+    quint64 textureHandle(QRhi &, int plane) override
     {
         if (plane != 0)
             return 0;

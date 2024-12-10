@@ -39,7 +39,7 @@ class VideoToolBoxTextureSet : public QVideoFrameTexturesSet
 {
 public:
     ~VideoToolBoxTextureSet();
-    quint64 textureHandle(QRhi *, int plane) override;
+    quint64 textureHandle(QRhi &, int plane) override;
 
     QRhi *rhi = nullptr;
     CVMetalTextureRef cvMetalTexture[3] = {};
@@ -282,7 +282,7 @@ VideoToolBoxTextureSet::~VideoToolBoxTextureSet()
     CVPixelBufferRelease(m_buffer);
 }
 
-quint64 VideoToolBoxTextureSet::textureHandle(QRhi *, int plane)
+quint64 VideoToolBoxTextureSet::textureHandle(QRhi &, int plane)
 {
     if (rhi->backend() == QRhi::Metal)
         return cvMetalTexture[plane] ? qint64(CVMetalTextureGetTexture(cvMetalTexture[plane])) : 0;

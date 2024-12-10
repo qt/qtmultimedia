@@ -138,12 +138,12 @@ public:
         , m_sharedHandle(sharedHandle)
     {}
 
-    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *rhi) override
+    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi &rhi) override
     {
-        if (!rhi || rhi->backend() != QRhi::D3D11)
+        if (rhi.backend() != QRhi::D3D11)
             return {};
 
-        auto nh = static_cast<const QRhiD3D11NativeHandles*>(rhi->nativeHandles());
+        auto nh = static_cast<const QRhiD3D11NativeHandles*>(rhi.nativeHandles());
         if (!nh)
             return {};
 
@@ -164,7 +164,7 @@ public:
             else
                 return {};
 
-            std::unique_ptr<QRhiTexture> tex(rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
+            std::unique_ptr<QRhiTexture> tex(rhi.newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
             tex->createFrom({quint64(d3d11tex.Get()), 0});
             return std::make_unique<QVideoFrameD3D11Textures>(std::move(tex), std::move(d3d11tex));
 
@@ -292,7 +292,7 @@ public:
         , m_wgl(wglNvDxInterop)
     {}
 
-    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *rhi) override
+    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi &rhi) override
     {
         if (!m_texture) {
             ComPtr<IMFMediaBuffer> buffer;
@@ -311,7 +311,7 @@ public:
                 return {};
         }
 
-        return QVideoFrameOpenGlTextures::create(m_wgl, rhi, m_device.Get(), m_texture.Get(), m_sharedHandle);
+        return QVideoFrameOpenGlTextures::create(m_wgl, &rhi, m_device.Get(), m_texture.Get(), m_sharedHandle);
     }
 
 private:

@@ -255,9 +255,9 @@ public:
     {
     }
 
-    quint64 textureHandle(QRhi *rhi, int /*plane*/) override
+    quint64 textureHandle(QRhi &rhi, int /*plane*/) override
     {
-        if (rhi != m_owner)
+        if (&rhi != m_owner)
             return 0u;
         return reinterpret_cast<qint64>(m_tex.Get());
     }

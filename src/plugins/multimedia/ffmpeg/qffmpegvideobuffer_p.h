@@ -34,7 +34,7 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
-    QVideoFrameTexturesUPtr mapTextures(QRhi *) override;
+    QVideoFrameTexturesUPtr mapTextures(QRhi &) override;
 
     QVideoFrameFormat::PixelFormat pixelFormat() const;
     QSize size() const;

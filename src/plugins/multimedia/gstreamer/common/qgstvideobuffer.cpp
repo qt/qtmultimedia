@@ -369,11 +369,8 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
 #endif
 #endif
 
-std::unique_ptr<QVideoFrameTextures> QGstVideoBuffer::mapTextures(QRhi *rhi)
+std::unique_ptr<QVideoFrameTextures> QGstVideoBuffer::mapTextures(QRhi &rhi)
 {
-    if (!rhi)
-        return {};
-
 #if QT_CONFIG(gstreamer_gl)
     GlTextures textures = {};
     if (memoryFormat == QGstCaps::GLTexture)
@@ -386,7 +383,7 @@ std::unique_ptr<QVideoFrameTextures> QGstVideoBuffer::mapTextures(QRhi *rhi)
 
 #  endif
     if (textures.count > 0)
-        return std::make_unique<QGstQVideoFrameTextures>(rhi, QSize{m_videoInfo.width, m_videoInfo.height},
+        return std::make_unique<QGstQVideoFrameTextures>(&rhi, QSize{m_videoInfo.width, m_videoInfo.height},
                                                          m_frameFormat.pixelFormat(), textures);
 #endif
     return {};
