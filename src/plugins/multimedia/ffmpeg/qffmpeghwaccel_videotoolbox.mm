@@ -53,8 +53,8 @@ public:
     CVImageBufferRef m_buffer = nullptr;
 };
 
-VideoToolBoxTextureConverter::VideoToolBoxTextureConverter(QRhi *rhi)
-    : TextureConverterBackend(rhi)
+VideoToolBoxTextureConverter::VideoToolBoxTextureConverter(QRhi *targetRhi)
+    : TextureConverterBackend(targetRhi)
 {
     if (!rhi)
         return;
