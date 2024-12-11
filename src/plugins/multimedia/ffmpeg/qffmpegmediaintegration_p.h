@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#ifndef QGSTREAMERINTEGRATION_H
-#define QGSTREAMERINTEGRATION_H
+#ifndef QFFMPEGMEDIAINTEGRATION_H
+#define QFFMPEGMEDIAINTEGRATION_H
 
 //
 //  W A R N I N G
