@@ -213,8 +213,8 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi)
         return {};
     }
 
-    return QVideoTextureHelper::createTexturesFromHandles(std::move(textures), rhi, m_pixelFormat,
-                                                          { m_hwFrame->width, m_hwFrame->height });
+    return QVideoTextureHelper::createTexturesFromHandlesSet(
+            std::move(textures), rhi, m_pixelFormat, { m_hwFrame->width, m_hwFrame->height });
 }
 
 QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::pixelFormat() const
