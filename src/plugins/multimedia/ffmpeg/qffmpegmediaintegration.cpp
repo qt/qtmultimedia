@@ -338,7 +338,9 @@ QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
 #elif QT_CONFIG(linux_v4l)
     return new QV4L2CameraDevices(this);
 #elif defined Q_OS_DARWIN
-    return new QAVFVideoDevices(this);
+    return new QAVFVideoDevices(
+        this,
+        &QFFmpeg::isCVFormatSupported);
 #elif defined(Q_OS_WINDOWS)
     return new QWindowsVideoDevices(this);
 #else
