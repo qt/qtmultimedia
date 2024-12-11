@@ -228,8 +228,7 @@ public:
     {
         auto desc = QVideoTextureHelper::textureDescription(format);
         for (uint i = 0; i < textures.count; ++i) {
-            QSize planeSize(desc->widthForPlane(size.width(), int(i)),
-                            desc->heightForPlane(size.height(), int(i)));
+            QSize planeSize = desc->rhiPlaneSize(size, i, rhi);
             m_textures[i].reset(rhi->newTexture(desc->rhiTextureFormat(i, m_rhi), planeSize, 1, {}));
             m_textures[i]->createFrom({textures.names[i], 0});
         }

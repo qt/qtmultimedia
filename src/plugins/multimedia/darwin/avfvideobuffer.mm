@@ -137,8 +137,7 @@ quint64 AVFVideoBuffer::textureHandle(QRhi &, int plane)
         if (!cvMetalTexture[plane]) {
             size_t width = CVPixelBufferGetWidth(m_buffer);
             size_t height = CVPixelBufferGetHeight(m_buffer);
-            width = textureDescription->widthForPlane(width, plane);
-            height = textureDescription->heightForPlane(height, plane);
+            QSize planeSize = textureDescription->rhiPlaneSize(QSize(width, height), plane, m_rhi);
 
             if (!metalCache) {
                 qWarning("cannot create texture, Metal texture cache was released?");
@@ -155,7 +154,7 @@ quint64 AVFVideoBuffer::textureHandle(QRhi &, int plane)
                                 metalCache,
                                 m_buffer, nil,
                                 pixelFormat,
-                                width, height,
+                                planeSize.width(), planeSize.height(),
                                 plane,
                                 &cvMetalTexture[plane]);
 

@@ -298,10 +298,11 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
 #define PLANE i
 #endif
 
+        QSize planeSize = desc->rhiPlaneSize(QSize(frame->width, frame->height), i, rhi);
         EGLAttrib img_attr[] = {
             EGL_LINUX_DRM_FOURCC_EXT,      (EGLint)drm_formats[i],
-            EGL_WIDTH,                     desc->widthForPlane(frame->width, i),
-            EGL_HEIGHT,                    desc->heightForPlane(frame->height, i),
+            EGL_WIDTH,                     planeSize.width(),
+            EGL_HEIGHT,                    planeSize.height(),
             EGL_DMA_BUF_PLANE0_FD_EXT,     prime.objects[prime.layers[LAYER].object_index[PLANE]].fd,
             EGL_DMA_BUF_PLANE0_OFFSET_EXT, (EGLint)prime.layers[LAYER].offset[PLANE],
             EGL_DMA_BUF_PLANE0_PITCH_EXT,  (EGLint)prime.layers[LAYER].pitch[PLANE],

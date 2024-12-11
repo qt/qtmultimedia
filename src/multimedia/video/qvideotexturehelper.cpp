@@ -248,9 +248,7 @@ QRhiTexture::Format TextureDescription::rhiTextureFormat(int plane, QRhi *rhi) c
             // RedOrAlpha8IsRed
             return resolveRhiTextureFormat(rhi, QRhiTexture::R8, QRhiTexture::RED_OR_ALPHA8);
         case RG_8:
-            // TODO: Pack four values in one pixel of texture, requires special handling of
-            // width here and components in shader
-            return resolveRhiTextureFormat(rhi, QRhiTexture::RG8);
+            return resolveRhiTextureFormat(rhi, QRhiTexture::RG8, QRhiTexture::RGBA8);
         case RGBA_8:
             return resolveRhiTextureFormat(rhi, QRhiTexture::RGBA8);
         case BGRA_8:
@@ -384,14 +382,19 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *rhi,
 
     shaderFile.prepend(u":/qt-project.org/multimedia/shaders/");
 
-    if (rhi && !rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed)) {
-        // Check if texture description formats contain RED_OR_ALPHA8
+    if (rhi && !rhi->isTextureFormatSupported(QRhiTexture::R8)) {
+        // Check if texture description formats contain R8 fallback format RED_OR_ALPHA8
         auto desc = textureDescription(format.pixelFormat());
         for (auto i = 0; i < desc->nplanes; ++i) {
             if (desc->rhiTextureFormat(i, rhi) != QRhiTexture::RED_OR_ALPHA8)
                 // Only use alpha shaders with single component textures
                 continue;
 
+            // NOTE: nv12_a and nv21_a shaders also expect UV plane values to be packed in RGBA8
+            // texture
+            if (format.pixelFormat() == QVideoFrameFormat::Format_NV12
+                || format.pixelFormat() == QVideoFrameFormat::Format_NV21)
+                Q_ASSERT(!rhi->isTextureFormatSupported(QRhiTexture::RG8));
             shaderFile.append(u"_a");
             break;
         }
@@ -643,7 +646,7 @@ static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame,
     QSize size = fmt.frameSize();
 
     const TextureDescription &texDesc = descriptions[pixelFormat];
-    QSize planeSize(size.width()/texDesc.sizeScale[plane].x, size.height()/texDesc.sizeScale[plane].y);
+    QSize planeSize = texDesc.rhiPlaneSize(size, plane, &rhi);
 
     bool needsRebuild = !tex || tex->pixelSize() != planeSize || tex->format() != texDesc.rhiTextureFormat(plane, &rhi);
     if (!tex) {
@@ -708,7 +711,7 @@ createTextureFromHandle(QVideoFrameTexturesHandles &texturesSet, QRhi &rhi,
                         QVideoFrameFormat::PixelFormat pixelFormat, QSize size, int plane)
 {
     const TextureDescription &texDesc = descriptions[pixelFormat];
-    QSize planeSize(size.width()/texDesc.sizeScale[plane].x, size.height()/texDesc.sizeScale[plane].y);
+    QSize planeSize = texDesc.rhiPlaneSize(size, plane, &rhi);
 
     QRhiTexture::Flags textureFlags = {};
     if (pixelFormat == QVideoFrameFormat::Format_SamplerExternalOES) {
