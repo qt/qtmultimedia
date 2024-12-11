@@ -6,6 +6,7 @@
 #include "qvideotexturehelper_p.h"
 #include "qvideoframeconverter_p.h"
 #include "qvideoframe_p.h"
+#include "qvideoframetexturefromsource_p.h"
 #include "private/qmultimediautils_p.h"
 
 #include <qpainter.h>
@@ -704,69 +705,29 @@ static std::unique_ptr<QRhiTexture> createTextureFromHandle(QVideoFrameTexturesS
     return {};
 }
 
-using TexturesSetRawOrUPtr = std::variant<QVideoFrameTexturesSet *, QVideoFrameTexturesSetUPtr>;
-
-static QVideoFrameTexturesSet &texturesSetRef(TexturesSetRawOrUPtr &rawOrUPtr)
-{
-    return std::visit([](auto &ptr) -> QVideoFrameTexturesSet & { return *ptr; }, rawOrUPtr);
-}
-
-class QVideoFrameTexturesArray : public QVideoFrameTextures
-{
-public:
-    using TextureArray = std::array<std::unique_ptr<QRhiTexture>, TextureDescription::maxPlanes>;
-    QVideoFrameTexturesArray(TextureArray &&textures, QVideoFrame mappedFrame = {},
-                             TexturesSetRawOrUPtr texturesSet = {})
-        : m_textures(std::move(textures)),
-          m_mappedFrame(std::move(mappedFrame)),
-          m_texturesSet(std::move(texturesSet))
-    {
-        Q_ASSERT(!m_mappedFrame.isValid() || m_mappedFrame.isReadable());
-    }
-
-    // We keep the source frame mapped during the target texture lifetime.
-    // Alternatively, we may use setting a custom image to QRhiTextureSubresourceUploadDescription,
-    // unsig videoFramePlaneAsImage, however, the OpenGL rendering pipeline in QRhi
-    // may keep QImage, and consequently the mapped QVideoFrame,
-    // even after the target texture is deleted: QTBUG-123174.
-    ~QVideoFrameTexturesArray() { m_mappedFrame.unmap(); }
-
-    QRhiTexture *texture(uint plane) const override
-    {
-        return plane < std::size(m_textures) ? m_textures[plane].get() : nullptr;
-    }
-
-    TextureArray takeTextures() { return std::move(m_textures); }
-
-private:
-    TextureArray m_textures;
-    QVideoFrame m_mappedFrame;
-    TexturesSetRawOrUPtr m_texturesSet;
-};
-
-static QVideoFrameTexturesUPtr createTexturesFromHandles(TexturesSetRawOrUPtr texturesSet,
-                                                         QRhi &rhi,
-                                                         QVideoFrameFormat::PixelFormat pixelFormat,
-                                                         QSize size)
+template <typename TexturesType, typename... Args>
+static QVideoFrameTexturesUPtr createTexturesArray(QRhi &rhi, QVideoFrameTexturesSet &texturesSet,
+                                                   QVideoFrameFormat::PixelFormat pixelFormat,
+                                                   QSize size, Args &&...args)
 {
     const TextureDescription &texDesc = descriptions[pixelFormat];
     bool ok = true;
-    QVideoFrameTexturesArray::TextureArray textures;
+    RhiTextureArray textures;
     for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {
-        textures[plane] = QVideoTextureHelper::createTextureFromHandle(
-                texturesSetRef(texturesSet), rhi, pixelFormat, size, plane);
+        textures[plane] = QVideoTextureHelper::createTextureFromHandle(texturesSet, rhi,
+                                                                       pixelFormat, size, plane);
         ok &= bool(textures[plane]);
     }
     if (ok)
-        return std::make_unique<QVideoFrameTexturesArray>(std::move(textures), QVideoFrame(),
-                                                          std::move(texturesSet));
+        return std::make_unique<TexturesType>(std::move(textures), std::forward<Args>(args)...);
     else
         return {};
 }
 
-QVideoFrameTexturesUPtr createTexturesFromHandles(QVideoFrameTexturesSetUPtr texturesSet, QRhi &rhi,
-                                                  QVideoFrameFormat::PixelFormat pixelFormat,
-                                                  QSize size)
+QVideoFrameTexturesUPtr createTexturesFromHandlesSet(QVideoFrameTexturesSetUPtr texturesSet,
+                                                     QRhi &rhi,
+                                                     QVideoFrameFormat::PixelFormat pixelFormat,
+                                                     QSize size)
 {
     if (!texturesSet)
         return nullptr;
@@ -777,16 +738,18 @@ QVideoFrameTexturesUPtr createTexturesFromHandles(QVideoFrameTexturesSetUPtr tex
     if (size.isEmpty())
         return nullptr;
 
-    return createTexturesFromHandles(TexturesSetRawOrUPtr(std::move(texturesSet)), rhi, pixelFormat, size);
+    auto &texturesSetRef = *texturesSet;
+    return createTexturesArray<QVideoFrameTexturesFromHandlesSet>(rhi, texturesSetRef, pixelFormat,
+                                                                  size, std::move(texturesSet));
 }
 
 static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi &rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTextures *old)
 {
     const TextureDescription &texDesc = descriptions[frame.surfaceFormat().pixelFormat()];
-    QVideoFrameTexturesArray::TextureArray textures;
-    auto oldArray = dynamic_cast<QVideoFrameTexturesArray *>(old);
-    if (oldArray)
-        textures = oldArray->takeTextures();
+    RhiTextureArray rhiTextures;
+    auto oldTextureFromMemory = dynamic_cast<QVideoFrameTexturesFromMemory *>(old);
+    if (oldTextureFromMemory)
+        rhiTextures = oldTextureFromMemory->takeRhiTextures();
 
     if (!frame.map(QVideoFrame::ReadOnly)) {
         qWarning() << "Cannot map a video frame in ReadOnly mode!";
@@ -797,7 +760,7 @@ static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi 
 
     bool shouldKeepMapping = false;
     for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {
-        const auto result = updateTextureWithMap(frame, rhi, rub, plane, textures[plane]);
+        const auto result = updateTextureWithMap(frame, rhi, rub, plane, rhiTextures[plane]);
         if (result == UpdateTextureWithMapResult::Failed)
             return {};
 
@@ -806,8 +769,8 @@ static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi 
     }
 
     // as QVideoFrame::unmap does nothing with null frames, we just move the frame to the result
-    return std::make_unique<QVideoFrameTexturesArray>(
-            std::move(textures), shouldKeepMapping ? std::move(frame) : QVideoFrame());
+    return std::make_unique<QVideoFrameTexturesFromMemory>(
+            std::move(rhiTextures), shouldKeepMapping ? std::move(frame) : QVideoFrame());
 }
 
 QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
@@ -827,10 +790,8 @@ QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
             return setSourceFrame(std::move(textures));
 
         QVideoFrameFormat format = frame.surfaceFormat();
-        if (auto textures = createTexturesFromHandles(TexturesSetRawOrUPtr(hwBuffer),
-                                                      rhi,
-                                                      format.pixelFormat(),
-                                                      format.frameSize()))
+        if (auto textures = createTexturesArray<QVideoFrameTexturesFromRhiTextureArray>(
+                    rhi, *hwBuffer, format.pixelFormat(), format.frameSize()))
             return setSourceFrame(std::move(textures));
     }
 

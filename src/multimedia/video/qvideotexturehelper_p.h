@@ -71,8 +71,8 @@ Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFor
                                            const QMatrix4x4 &transform, float opacity, float maxNits = 100);
 
 Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr
-createTexturesFromHandles(QVideoFrameTexturesSetUPtr texturesSet, QRhi &rhi,
-                          QVideoFrameFormat::PixelFormat pixelFormat, QSize size);
+createTexturesFromHandlesSet(QVideoFrameTexturesSetUPtr texturesSet, QRhi &rhi,
+                             QVideoFrameFormat::PixelFormat pixelFormat, QSize size);
 
 Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
                                                            QRhiResourceUpdateBatch *rub,
