@@ -115,8 +115,11 @@ QCameraDevice::Position qt_AVCaptureDevicePosition_to_QCameraDevicePosition(AVCa
 
 
 
-QAVFVideoDevices::QAVFVideoDevices(QPlatformMediaIntegration *integration)
-    : QPlatformVideoDevices(integration)
+QAVFVideoDevices::QAVFVideoDevices(
+    QPlatformMediaIntegration *integration,
+    std::function<bool(uint32_t)> &&isCvPixelFormatSupportedDelegate)
+    : QPlatformVideoDevices(integration),
+      m_isCvPixelFormatSupportedDelegate(std::move(isCvPixelFormatSupportedDelegate))
 {
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     m_deviceConnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasConnectedNotification
@@ -145,6 +148,11 @@ QAVFVideoDevices::~QAVFVideoDevices()
 QList<QCameraDevice> QAVFVideoDevices::videoDevices() const
 {
     return m_cameraDevices;
+}
+
+bool QAVFVideoDevices::isCvPixelFormatSupported(uint32_t cvPixelFormat) const
+{
+    return !m_isCvPixelFormatSupportedDelegate || m_isCvPixelFormatSupportedDelegate(cvPixelFormat);
 }
 
 void QAVFVideoDevices::updateCameraDevices()
@@ -232,6 +240,12 @@ void QAVFVideoDevices::updateCameraDevices()
             float minFrameRate = 1.e6;
 
             auto encoding = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
+
+            // Don't expose formats if the media backend says we can't start a capture session
+            // with it.
+            if (!isCvPixelFormatSupported(encoding))
+                continue;
+
             auto pixelFormat = QAVFHelpers::fromCVPixelFormat(encoding);
             auto colorRange = QAVFHelpers::colorRangeForCVPixelFormat(encoding);
             // Ignore pixel formats we can't handle
