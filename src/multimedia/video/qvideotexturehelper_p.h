@@ -66,6 +66,32 @@ struct Q_MULTIMEDIA_EXPORT TextureDescription
         return (height + sizeScale[plane].y - 1)/sizeScale[plane].y;
     }
 
+    /**
+     * \returns Plane scaling factors taking into account possible workarounds due to QRhi backend
+     * capabilities.
+     */
+    SizeScale rhiSizeScale(int plane, QRhi *rhi) const
+    {
+        if (!rhi)
+            return sizeScale[plane];
+
+        // NOTE: We need to handle sizing difference when packing two-component textures to RGBA8,
+        // where width gets cut in half.
+        // Another option would be to compare QRhiImplementation::TextureFormatInfo to expected
+        // based on TextureDescription::Format.
+        if (textureFormat[plane] == TextureDescription::RG_8
+            && rhiTextureFormat(plane, rhi) == QRhiTexture::RGBA8)
+            return { sizeScale[plane].x * 2, sizeScale[plane].y };
+
+        return sizeScale[plane];
+    }
+
+    QSize rhiPlaneSize(QSize frameSize, int plane, QRhi *rhi) const
+    {
+        SizeScale scale = rhiSizeScale(plane, rhi);
+        return QSize(frameSize.width() / scale.x, frameSize.height() / scale.y);
+    }
+
     int nplanes;
     int strideFactor;
     BytesRequired bytesRequired;
