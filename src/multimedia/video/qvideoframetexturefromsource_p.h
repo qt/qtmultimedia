@@ -55,12 +55,19 @@ public:
         Q_ASSERT(!m_mappedFrame.isValid() || m_mappedFrame.isReadable());
     }
 
-    // We keep the source frame mapped during the target texture lifetime.
-    // Alternatively, we may use setting a custom image to QRhiTextureSubresourceUploadDescription,
-    // unsig videoFramePlaneAsImage, however, the OpenGL rendering pipeline in QRhi
-    // may keep QImage, and consequently the mapped QVideoFrame,
-    // even after the target texture is deleted: QTBUG-123174.
+    // We keep the source frame mapped until QRhi::endFrame is invoked.
+    // QRhi::endFrame ensures that the mapped frame's memory has been loaded into the texture.
+    // See QTBUG-123174 for bug's details.
     ~QVideoFrameTexturesFromMemory() { m_mappedFrame.unmap(); }
+
+    void onFrameEndInvoked() override
+    {
+        // After invoking QRhi::endFrame, the texture is loaded, and we don't need to
+        // to store the source mapped frame anymore
+        m_mappedFrame.unmap();
+        m_mappedFrame = {};
+        setSourceFrame({});
+    }
 
 private:
     QVideoFrame m_mappedFrame;

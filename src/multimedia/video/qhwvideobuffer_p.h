@@ -34,11 +34,7 @@ public:
 
     virtual void onFrameEndInvoked() { }
 
-    void setSourceFrame(QVideoFrame sourceFrame)
-    {
-        Q_ASSERT(!m_sourceFrame.isValid()); // we don't want to reassign the source frame
-        m_sourceFrame = std::move(sourceFrame);
-    }
+    void setSourceFrame(QVideoFrame sourceFrame) { m_sourceFrame = std::move(sourceFrame); }
 
 private:
     QVideoFrame m_sourceFrame;
