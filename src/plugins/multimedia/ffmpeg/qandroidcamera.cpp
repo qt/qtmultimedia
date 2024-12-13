@@ -238,7 +238,7 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     for (int planeNumber = 0; planeNumber < androidFrame->numberPlanes(); planeNumber++) {
         QAndroidCameraFrame::Plane plane = androidFrame->plane(planeNumber);
         avframe->linesize[planeNumber] = plane.rowStride;
-        avframe->data[planeNumber] = plane.data;
+        avframe->data[planeNumber] = (uint8_t*)plane.buf.constData();
     }
 
     avframe->data[3] = nullptr;
