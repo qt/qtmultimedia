@@ -9,6 +9,7 @@
 #include <private/qquickitem_p.h>
 #include <private/qquickvideooutput_p.h>
 #include <private/qhwvideobuffer_p.h>
+#include <private/qvideoframetexturepool_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -99,11 +100,6 @@ public:
         setFlag(Blending, !qFuzzyCompare(m_opacity, float(1.0)));
     }
 
-    void setCurrentFrame(const QVideoFrame &frame) {
-        m_currentFrame = frame;
-        m_texturesDirty = true;
-    }
-
     void setSurfaceFormat(const QRhiSwapChain::Format surfaceFormat)
     {
         m_surfaceFormat = surfaceFormat;
@@ -121,11 +117,7 @@ public:
     float m_opacity = 1.0f;
     QRhiSwapChainHdrInfo m_hdrInfo;
 
-    bool m_texturesDirty = false;
-    QVideoFrame m_currentFrame;
-
-    enum { NVideoFrameSlots = 4 };
-    QVideoFrameTexturesUPtr m_textureSlots[NVideoFrameSlots];
+    QVideoFrameTexturePool m_texturePool;
     std::array<QSGVideoTexture, 3> m_textures;
 
     bool m_useAlphaShader = false;
@@ -133,21 +125,15 @@ public:
 
 void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
 {
-    if (!m_texturesDirty)
+    if (!m_texturePool.texturesDirty())
         return;
 
-    // keep the video frames alive until we know that they are not needed anymore
-    Q_ASSERT(NVideoFrameSlots >= rhi->resourceLimit(QRhi::FramesInFlight));
-
-    QVideoFrameTexturesUPtr &textures = m_textureSlots[rhi->currentFrameSlot()];
-    textures = QVideoTextureHelper::createTextures(m_currentFrame, *rhi, resourceUpdates,
-                                                   std::move(textures));
+    QVideoFrameTextures *textures = m_texturePool.updateTextures(*rhi, *resourceUpdates);
     if (!textures)
         return;
 
     for (int plane = 0; plane < 3; ++plane)
         m_textures[plane].setRhiTexture(textures->texture(plane));
-    m_texturesDirty = false;
 }
 
 
@@ -180,7 +166,7 @@ bool QSGVideoMaterialRhiShader::updateUniformData(RenderState &state, QSGMateria
     }
 
     QVideoTextureHelper::updateUniformData(state.uniformData(), m_videoFormat,
-        m->m_currentFrame, state.combinedMatrix(), state.opacity(), maxNits);
+        m->m_texturePool.currentFrame(), state.combinedMatrix(), state.opacity(), maxNits);
 
     return true;
 }
@@ -221,7 +207,7 @@ QSGVideoNode::~QSGVideoNode()
 
 void QSGVideoNode::setCurrentFrame(const QVideoFrame &frame)
 {
-    m_material->setCurrentFrame(frame);
+    m_material->m_texturePool.setCurrentFrame(frame);
     markDirty(DirtyMaterial);
     updateSubtitle(frame);
 }
@@ -272,7 +258,7 @@ void QSGVideoNode::setSubtitleGeometry()
         return;
 
     if (m_material)
-        updateSubtitle(m_material->m_currentFrame);
+        updateSubtitle(m_material->m_texturePool.currentFrame());
 
     float rotate = -1.f * qToUnderlying(m_videoOutputTransformation.rotation);
     float yTranslate = 0;
@@ -302,7 +288,7 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
                                            VideoTransformation videoOutputTransformation)
 {
     const VideoTransformation currentFrameTransformation = qNormalizedFrameTransformation(
-            m_material ? m_material->m_currentFrame : QVideoFrame{}, videoOutputTransformation);
+            m_material ? m_material->m_texturePool.currentFrame() : QVideoFrame{}, videoOutputTransformation);
 
     if (rect == m_rect && textureRect == m_textureRect
         && videoOutputTransformation == m_videoOutputTransformation
