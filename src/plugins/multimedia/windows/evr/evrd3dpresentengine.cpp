@@ -138,7 +138,7 @@ public:
         , m_sharedHandle(sharedHandle)
     {}
 
-    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi &rhi) override
+    QVideoFrameTexturesUPtr mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/) override
     {
         if (rhi.backend() != QRhi::D3D11)
             return {};
@@ -292,7 +292,7 @@ public:
         , m_wgl(wglNvDxInterop)
     {}
 
-    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi &rhi) override
+    QVideoFrameTexturesUPtr mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/) override
     {
         if (!m_texture) {
             ComPtr<IMFMediaBuffer> buffer;

@@ -187,7 +187,7 @@ void QFFmpegVideoBuffer::unmap()
     m_mode = QVideoFrame::NotMapped;
 }
 
-QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi)
+QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/)
 {
     if (!m_hwFrame)
         return {};

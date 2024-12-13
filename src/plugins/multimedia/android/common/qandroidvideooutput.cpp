@@ -70,8 +70,10 @@ public:
         m_mapMode = QVideoFrame::NotMapped;
     }
 
-    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi &rhi) override
+QVideoFrameTexturesUPtr mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/) override
     {
+        // TODO: reuse oldTextures: the underlying QRhiTexture must be taken from it instead of
+        // keeping it in AndroidTextureConverter. See QTBUG-132174
         return std::make_unique<QAndroidVideoFrameTextures>(&rhi, m_size, m_tex->nativeTexture().object);
     }
 
@@ -88,9 +90,9 @@ public:
     ImageFromVideoFrameHelper(AndroidTextureVideoBuffer &atvb)
         : QHwVideoBuffer(QVideoFrame::RhiTextureHandle, atvb.rhi()), m_atvb(atvb)
     {}
-    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi &rhi) override
+    QVideoFrameTexturesUPtr mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& oldTextures) override
     {
-        return m_atvb.mapTextures(rhi);
+        return m_atvb.mapTextures(rhi, oldTextures);
     }
 
     MapData map(QVideoFrame::MapMode) override { return {}; }

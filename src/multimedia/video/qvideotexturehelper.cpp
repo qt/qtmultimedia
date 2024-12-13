@@ -745,13 +745,16 @@ QVideoFrameTexturesUPtr createTexturesFromHandlesSet(QVideoFrameTexturesSetUPtr 
 
 static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi &rhi,
                                                         QRhiResourceUpdateBatch &rub,
-                                                        QVideoFrameTextures *old)
+                                                        QVideoFrameTexturesUPtr &oldTextures)
 {
     const TextureDescription &texDesc = descriptions[frame.surfaceFormat().pixelFormat()];
     RhiTextureArray rhiTextures;
-    auto oldTextureFromMemory = dynamic_cast<QVideoFrameTexturesFromMemory *>(old);
-    if (oldTextureFromMemory)
+    auto oldTextureFromMemory = dynamic_cast<QVideoFrameTexturesFromMemory *>(oldTextures.get());
+    if (oldTextureFromMemory) {
+        // TODO: instead of extracting the array and creating a new object,
+        // oldTextures might be reused and returned
         rhiTextures = oldTextureFromMemory->takeRhiTextures();
+    }
 
     if (!frame.map(QVideoFrame::ReadOnly)) {
         qWarning() << "Cannot map a video frame in ReadOnly mode!";
@@ -777,7 +780,7 @@ static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi 
 
 QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
                                        QRhiResourceUpdateBatch &rub,
-                                       QVideoFrameTexturesUPtr &&oldTextures)
+                                       QVideoFrameTexturesUPtr oldTextures)
 {
     if (!frame.isValid())
         return {};
@@ -788,7 +791,7 @@ QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
     };
 
     if (QHwVideoBuffer *hwBuffer = QVideoFramePrivate::hwBuffer(frame)) {
-        if (auto textures = hwBuffer->mapTextures(rhi))
+        if (auto textures = hwBuffer->mapTextures(rhi, oldTextures))
             return setSourceFrame(std::move(textures));
 
         QVideoFrameFormat format = frame.surfaceFormat();
@@ -797,7 +800,7 @@ QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
             return setSourceFrame(std::move(textures));
     }
 
-    return setSourceFrame(createTexturesFromMemory(frame, rhi, rub, oldTextures.get()));
+    return setSourceFrame(createTexturesFromMemory(frame, rhi, rub, oldTextures));
 }
 
 bool SubtitleLayout::update(const QSize &frameSize, QString text)

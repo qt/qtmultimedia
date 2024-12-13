@@ -76,7 +76,7 @@ createTexturesFromHandlesSet(QVideoFrameTexturesSetUPtr texturesSet, QRhi &rhi,
 
 Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
                                                            QRhiResourceUpdateBatch &rub,
-                                                           QVideoFrameTexturesUPtr &&oldTextures);
+                                                           QVideoFrameTexturesUPtr oldTextures);
 
 struct UniformData {
     float transformMatrix[4][4];
