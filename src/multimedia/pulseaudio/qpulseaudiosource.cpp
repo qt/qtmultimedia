@@ -317,13 +317,17 @@ qsizetype QPulseAudioSource::bytesReady() const
 
     std::lock_guard lock(*QPulseAudioEngine::instance());
 
+    qsizetype tempBufferSize = 0;
+    if (!m_pullMode && !m_tempBuffer.isEmpty()) {
+        tempBufferSize = m_tempBuffer.size();
+    }
     int bytes = pa_stream_readable_size(m_stream.get());
     if (bytes < 0) {
         qWarning() << "pa_stream_readable_size() failed:" << currentError(m_stream.get());
-        return 0;
+        return tempBufferSize;
     }
 
-    return static_cast<qsizetype>(bytes);
+    return static_cast<qsizetype>(bytes) + tempBufferSize;
 }
 
 qint64 QPulseAudioSource::read(char *data, qint64 len)
