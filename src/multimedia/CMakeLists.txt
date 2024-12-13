@@ -89,6 +89,7 @@ qt_internal_add_module(Multimedia
         video/qvideosink.cpp video/qvideosink.h
         video/qvideotexturehelper.cpp video/qvideotexturehelper_p.h
         video/qvideoframetexturefromsource_p.h
+        video/qvideoframetexturepool.cpp video/qvideoframetexturepool_p.h
         video/qvideoframeconversionhelper.cpp video/qvideoframeconversionhelper_p.h
         video/qvideooutputorientationhandler.cpp video/qvideooutputorientationhandler_p.h
         video/qvideoframeconverter.cpp video/qvideoframeconverter_p.h

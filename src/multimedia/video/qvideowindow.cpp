@@ -175,8 +175,6 @@ void QVideoWindowPrivate::initRhi()
 
     m_subtitleUniformBuf.reset(m_rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(QVideoTextureHelper::UniformData)));
     m_subtitleUniformBuf->create();
-
-    Q_ASSERT(NVideoFrameSlots >= m_rhi->resourceLimit(QRhi::FramesInFlight));
 }
 
 void QVideoWindowPrivate::setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, QRhiShaderResourceBindings *bindings, const QVideoFrameFormat &fmt)
@@ -208,17 +206,16 @@ void QVideoWindowPrivate::setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, 
 
 void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
 {
-    m_texturesDirty = false;
-
     // We render a 1x1 black pixel when we don't have a video
-    if (!m_currentFrame.isValid())
-        m_currentFrame = QVideoFramePrivate::createFrame(
+    if (!m_texturePool.currentFrame().isValid())
+        m_texturePool.setCurrentFrame(QVideoFramePrivate::createFrame(
                 std::make_unique<QMemoryVideoBuffer>(QByteArray{ 4, 0 }, 4),
-                QVideoFrameFormat(QSize(1, 1), QVideoFrameFormat::Format_RGBA8888));
+                QVideoFrameFormat(QSize(1, 1), QVideoFrameFormat::Format_RGBA8888)));
 
-    QVideoFrameTexturesUPtr &textures = m_textureSlots[m_rhi->currentFrameSlot()];
-    textures =
-            QVideoTextureHelper::createTextures(m_currentFrame, *m_rhi, rub, std::move(textures));
+    if (!m_texturePool.texturesDirty())
+        return;
+
+    QVideoFrameTextures *textures = m_texturePool.updateTextures(*m_rhi, *rub);
     if (!textures)
         return;
 
@@ -227,7 +224,7 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
     *(b++) = QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
                                                    m_uniformBuf.get());
 
-    auto fmt = m_currentFrame.surfaceFormat();
+    auto fmt = m_texturePool.currentFrame().surfaceFormat();
     auto textureDesc = QVideoTextureHelper::textureDescription(fmt.pixelFormat());
 
     for (int i = 0; i < textureDesc->nplanes; ++i)
@@ -249,11 +246,11 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
 void QVideoWindowPrivate::updateSubtitle(QRhiResourceUpdateBatch *rub, const QSize &frameSize)
 {
     m_subtitleDirty = false;
-    m_hasSubtitle = !m_currentFrame.subtitleText().isEmpty();
+    m_hasSubtitle = !m_texturePool.currentFrame().subtitleText().isEmpty();
     if (!m_hasSubtitle)
         return;
 
-    m_subtitleLayout.update(frameSize, m_currentFrame.subtitleText());
+    m_subtitleLayout.update(frameSize, m_texturePool.currentFrame().subtitleText());
     QSize size = m_subtitleLayout.bounds.size().toSize();
 
     QImage img = m_subtitleLayout.toImage();
@@ -330,7 +327,8 @@ void QVideoWindowPrivate::render()
             return;
         QPainter painter(device);
 
-        m_currentFrame.paint(&painter, rect, { Qt::black, aspectRatioMode });
+        QVideoFrame frame = m_texturePool.currentFrame();
+        frame.paint(&painter, rect, { Qt::black, aspectRatioMode });
         painter.end();
 
         backingStore->endPaint();
@@ -339,8 +337,8 @@ void QVideoWindowPrivate::render()
     }
 
     const VideoTransformation frameTransformation =
-            qNormalizedFrameTransformation(m_currentFrame.surfaceFormat());
-    const QSize frameSize = qRotatedFramePresentationSize(m_currentFrame);
+            qNormalizedFrameTransformation(m_texturePool.currentFrame().surfaceFormat());
+    const QSize frameSize = qRotatedFramePresentationSize(m_texturePool.currentFrame());
     const QSize scaled = frameSize.scaled(rect.size(), aspectRatioMode);
     QRect videoRect = QRect(QPoint(0, 0), scaled);
     videoRect.moveCenter(rect.center());
@@ -350,7 +348,7 @@ void QVideoWindowPrivate::render()
         resizeSwapChain();
 
     const auto requiredSwapChainFormat =
-            qGetRequiredSwapChainFormat(m_currentFrame.surfaceFormat());
+            qGetRequiredSwapChainFormat(m_texturePool.currentFrame().surfaceFormat());
     if (qShouldUpdateSwapChainFormat(m_swapChain.get(), requiredSwapChainFormat)) {
         releaseSwapChain();
         m_swapChain->setFormat(requiredSwapChainFormat);
@@ -381,8 +379,7 @@ void QVideoWindowPrivate::render()
         rub->uploadStaticBuffer(m_vertexBuf.get(), g_vw_quad);
     }
 
-    if (m_texturesDirty)
-        updateTextures(rub);
+    updateTextures(rub);
 
     if (m_subtitleDirty || m_subtitleLayout.videoSize != subtitleRect.size())
         updateSubtitle(rub, subtitleRect.size());
@@ -404,7 +401,7 @@ void QVideoWindowPrivate::render()
     }
 
     QByteArray uniformData;
-    QVideoTextureHelper::updateUniformData(&uniformData, m_currentFrame.surfaceFormat(), m_currentFrame, transform, 1.f, maxNits);
+    QVideoTextureHelper::updateUniformData(&uniformData, m_texturePool.currentFrame().surfaceFormat(), m_texturePool.currentFrame(), transform, 1.f, maxNits);
     rub->updateDynamicBuffer(m_uniformBuf.get(), 0, uniformData.size(), uniformData.constData());
 
     if (m_hasSubtitle) {
@@ -518,10 +515,9 @@ void QVideoWindow::resizeEvent(QResizeEvent *resizeEvent)
 
 void QVideoWindow::setVideoFrame(const QVideoFrame &frame)
 {
-    if (d->m_currentFrame.subtitleText() != frame.subtitleText())
+    if (d->m_texturePool.currentFrame().subtitleText() != frame.subtitleText())
         d->m_subtitleDirty = true;
-    d->m_currentFrame = frame;
-    d->m_texturesDirty = true;
+    d->m_texturePool.setCurrentFrame(frame);
     if (d->isExposed)
         requestUpdate();
 }

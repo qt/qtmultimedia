@@ -22,6 +22,7 @@
 #include <qvideoframe.h>
 #include <private/qplatformvideosink_p.h>
 #include <private/qvideotexturehelper_p.h>
+#include <private/qvideoframetexturepool_p.h>
 #include <qbackingstore.h>
 
 QT_BEGIN_NAMESPACE
@@ -75,17 +76,13 @@ public:
 
     std::unique_ptr<QVideoSink> m_sink;
     QRhi::Implementation m_graphicsApi = QRhi::Null;
-    QVideoFrame m_currentFrame;
     QVideoTextureHelper::SubtitleLayout m_subtitleLayout;
-
-    enum { NVideoFrameSlots = 4 };
-    QVideoFrameTexturesUPtr m_textureSlots[NVideoFrameSlots];
+    QVideoFrameTexturePool m_texturePool;
 
     bool initialized = false;
     bool isExposed = false;
     bool m_useRhi = true;
     bool m_hasSwapChain = false;
-    bool m_texturesDirty = true;
     bool m_subtitleDirty = false;
     bool m_hasSubtitle = false;
     QVideoFrameFormat format;
