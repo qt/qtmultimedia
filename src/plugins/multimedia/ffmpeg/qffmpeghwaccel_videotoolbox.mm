@@ -163,7 +163,7 @@ static MTLPixelFormat rhiTextureFormatToMetalFormat(QRhiTexture::Format f)
     }
 }
 
-QVideoFrameTexturesSet *VideoToolBoxTextureConverter::getTextures(AVFrame *frame)
+QVideoFrameTexturesSetUPtr VideoToolBoxTextureConverter::getTextures(AVFrame *frame, QVideoFrameTexturesSetUPtr /*oldHandles*/)
 {
     if (!rhi)
         return nullptr;
@@ -264,7 +264,7 @@ QVideoFrameTexturesSet *VideoToolBoxTextureConverter::getTextures(AVFrame *frame
 #endif
     }
 
-    return textureSet.release();
+    return textureSet;
 }
 
 VideoToolBoxTextureSet::~VideoToolBoxTextureSet()

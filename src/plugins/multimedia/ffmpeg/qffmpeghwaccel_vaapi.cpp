@@ -206,7 +206,7 @@ VAAPITextureConverter::~VAAPITextureConverter()
 }
 
 //#define VA_EXPORT_USE_LAYERS
-QVideoFrameTexturesSet *VAAPITextureConverter::getTextures(AVFrame *frame)
+QVideoFrameTexturesSetUPtr VAAPITextureConverter::getTextures(AVFrame *frame, QVideoFrameTexturesSetUPtr /*oldHandles*/)
 {
 //        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel::getTextures";
     if (frame->format != AV_PIX_FMT_VAAPI || !eglDisplay) {
@@ -337,7 +337,7 @@ QVideoFrameTexturesSet *VAAPITextureConverter::getTextures(AVFrame *frame)
         eglDestroyImage(eglDisplay, images[i]);
     }
 
-    VAAPITextureSet *textureSet = new VAAPITextureSet;
+    auto textureSet = std::make_unique<VAAPITextureSet>();
     textureSet->nPlanes = nPlanes;
     textureSet->rhi = rhi;
     textureSet->glContext = glContext;

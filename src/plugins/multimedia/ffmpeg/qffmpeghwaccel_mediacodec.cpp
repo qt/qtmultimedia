@@ -80,8 +80,10 @@ void MediaCodecTextureConverter::setupDecoderSurface(AVCodecContext *avCodecCont
     deviceContext->free = deleteSurface;
 }
 
-QVideoFrameTexturesSet *MediaCodecTextureConverter::getTextures(AVFrame *frame)
+QVideoFrameTexturesSetUPtr MediaCodecTextureConverter::getTextures(AVFrame *frame, QVideoFrameTexturesSetUPtr /*oldHandles*/)
 {
+    // TODO: reuse oldHandles: the underlying QRhiTexture must be taken from it instead of
+    // keeping it in AndroidTextureConverter. See QTBUG-132174
     AndroidSurfaceTexture * androidSurfaceTexture = getTextureSurface(frame);
 
     if (!androidSurfaceTexture || !androidSurfaceTexture->isValid())
@@ -115,6 +117,6 @@ QVideoFrameTexturesSet *MediaCodecTextureConverter::getTextures(AVFrame *frame)
 
     androidSurfaceTexture->updateTexImage();
 
-    return new MediaCodecTextureSet(externalTexture->nativeTexture().object);
+    return std::make_unique<MediaCodecTextureSet>(externalTexture->nativeTexture().object);
 }
 }
