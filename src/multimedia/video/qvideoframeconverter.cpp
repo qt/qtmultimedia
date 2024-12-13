@@ -199,7 +199,7 @@ static bool updateTextures(QRhi *rhi,
                            std::unique_ptr<QRhiGraphicsPipeline> &graphicsPipeline,
                            std::unique_ptr<QRhiRenderPassDescriptor> &renderPass,
                            QVideoFrame &frame,
-                           const std::unique_ptr<QVideoFrameTextures> &videoFrameTextures)
+                           const QVideoFrameTexturesUPtr &videoFrameTextures)
 {
     auto format = frame.surfaceFormat();
     auto pixelFormat = format.pixelFormat();

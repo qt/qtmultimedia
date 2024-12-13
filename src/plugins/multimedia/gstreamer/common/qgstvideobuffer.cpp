@@ -369,7 +369,7 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
 #endif
 #endif
 
-std::unique_ptr<QVideoFrameTextures> QGstVideoBuffer::mapTextures(QRhi &rhi)
+QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/)
 {
 #if QT_CONFIG(gstreamer_gl)
     GlTextures textures = {};

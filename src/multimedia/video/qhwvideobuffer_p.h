@@ -63,7 +63,7 @@ public:
 
     virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
 
-    virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi &) { return nullptr; };
+    virtual QVideoFrameTexturesUPtr mapTextures(QRhi &, QVideoFrameTexturesUPtr& /*oldTextures*/) { return nullptr; };
 
     virtual void initTextureConverter(QRhi &) { }
 
