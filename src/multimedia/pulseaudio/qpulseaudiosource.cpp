@@ -544,6 +544,11 @@ PulseInputPrivate::PulseInputPrivate(QPulseAudioSource *audio)
     m_audioDevice = qobject_cast<QPulseAudioSource *>(audio);
 }
 
+qint64 PulseInputPrivate::bytesAvailable() const
+{
+    return m_audioDevice->bytesReady();
+}
+
 qint64 PulseInputPrivate::readData(char *data, qint64 len)
 {
     return m_audioDevice->read(data, len);
