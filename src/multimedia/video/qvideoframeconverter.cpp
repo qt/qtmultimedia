@@ -365,11 +365,12 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
     }
 
     QRhiResourceUpdateBatch *rub = rhi->nextResourceUpdateBatch();
+    Q_ASSERT(rub);
 
     rub->uploadStaticBuffer(vertexBuffer.get(), g_quad);
 
     QVideoFrame frameTmp = frame;
-    auto videoFrameTextures = QVideoTextureHelper::createTextures(frameTmp, *rhi, rub, {});
+    auto videoFrameTextures = QVideoTextureHelper::createTextures(frameTmp, *rhi, *rub, {});
     if (!videoFrameTextures) {
         qCDebug(qLcVideoFrameConverter) << "Failed obtain textures. Using CPU conversion.";
         return convertCPU(frame, transformation);
