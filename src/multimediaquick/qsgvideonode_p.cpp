@@ -117,7 +117,7 @@ public:
     float m_opacity = 1.0f;
     QRhiSwapChainHdrInfo m_hdrInfo;
 
-    QVideoFrameTexturePool m_texturePool;
+    QVideoFrameTexturePoolPtr m_texturePool = std::make_shared<QVideoFrameTexturePool>();
     std::array<QSGVideoTexture, 3> m_textures;
 
     bool m_useAlphaShader = false;
@@ -125,10 +125,10 @@ public:
 
 void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
 {
-    if (!m_texturePool.texturesDirty())
+    if (!m_texturePool->texturesDirty())
         return;
 
-    QVideoFrameTextures *textures = m_texturePool.updateTextures(*rhi, *resourceUpdates);
+    QVideoFrameTextures *textures = m_texturePool->updateTextures(*rhi, *resourceUpdates);
     if (!textures)
         return;
 
@@ -166,7 +166,8 @@ bool QSGVideoMaterialRhiShader::updateUniformData(RenderState &state, QSGMateria
     }
 
     QVideoTextureHelper::updateUniformData(state.uniformData(), m_videoFormat,
-        m->m_texturePool.currentFrame(), state.combinedMatrix(), state.opacity(), maxNits);
+                                           m->m_texturePool->currentFrame(), state.combinedMatrix(),
+                                           state.opacity(), maxNits);
 
     return true;
 }
@@ -207,7 +208,7 @@ QSGVideoNode::~QSGVideoNode()
 
 void QSGVideoNode::setCurrentFrame(const QVideoFrame &frame)
 {
-    m_material->m_texturePool.setCurrentFrame(frame);
+    texturePool()->setCurrentFrame(frame);
     markDirty(DirtyMaterial);
     updateSubtitle(frame);
 }
@@ -258,7 +259,7 @@ void QSGVideoNode::setSubtitleGeometry()
         return;
 
     if (m_material)
-        updateSubtitle(m_material->m_texturePool.currentFrame());
+        updateSubtitle(texturePool()->currentFrame());
 
     float rotate = -1.f * qToUnderlying(m_videoOutputTransformation.rotation);
     float yTranslate = 0;
@@ -288,7 +289,7 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
                                            VideoTransformation videoOutputTransformation)
 {
     const VideoTransformation currentFrameTransformation = qNormalizedFrameTransformation(
-            m_material ? m_material->m_texturePool.currentFrame() : QVideoFrame{}, videoOutputTransformation);
+            m_material ? texturePool()->currentFrame() : QVideoFrame{}, videoOutputTransformation);
 
     if (rect == m_rect && textureRect == m_textureRect
         && videoOutputTransformation == m_videoOutputTransformation
@@ -364,6 +365,11 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
     markDirty(DirtyGeometry);
 
     setSubtitleGeometry();
+}
+
+const QVideoFrameTexturePoolPtr &QSGVideoNode::texturePool() const
+{
+    return m_material->m_texturePool;
 }
 
 QT_END_NAMESPACE

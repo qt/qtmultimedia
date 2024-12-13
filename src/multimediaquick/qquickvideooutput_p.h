@@ -33,6 +33,8 @@ class QQuickVideoBackend;
 class QVideoOutputOrientationHandler;
 class QVideoSink;
 class QSGVideoNode;
+class QVideoFrameTexturePool;
+using QVideoFrameTexturePoolWPtr = std::weak_ptr<QVideoFrameTexturePool>;
 
 class QQuickVideoSink : public QVideoSink
 {
@@ -136,6 +138,7 @@ private Q_SLOTS:
     void _q_updateGeometry();
     void _q_invalidateSceneGraph();
     void _q_sceneGraphInitialized();
+    void _q_afterFrameEnd();
 
 private:
     QSize m_nativeSize;
@@ -152,7 +155,7 @@ private:
     QVideoSink *m_sink = nullptr;
     QVideoFrameFormat m_videoFormat;
 
-    QList<QVideoFrame> m_videoFrameQueue;
+    QVideoFrameTexturePoolWPtr m_texturePool;
     QVideoFrame m_frame;
     bool m_frameChanged = false;
     QMutex m_frameMutex;
