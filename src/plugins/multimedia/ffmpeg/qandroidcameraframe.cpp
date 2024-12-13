@@ -34,7 +34,7 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
     int pixelStrides[numberPlanes];
     int rowStrides[numberPlanes];
     int bufferSize[numberPlanes];
-    uint8_t *buffer[numberPlanes];
+    char *buffer[numberPlanes];
 
     auto resetPlane = [&](int index) {
         if (index < 0 || index > numberPlanes)
@@ -64,7 +64,7 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
 
         // Uses direct access which is garanteed by android to work with
         // ImageReader bytebuffer
-        buffer[index] = static_cast<uint8_t *>(jniEnv->GetDirectBufferAddress(byteBuffer.object()));
+        buffer[index] = static_cast<char *>(jniEnv->GetDirectBufferAddress(byteBuffer.object()));
         bufferSize[index] = byteBuffer.callMethod<jint>("remaining");
     }
 
@@ -132,13 +132,14 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
         return false;
     }
 
-    auto copyPlane = [&](int mapIndex, int arrayIndex) {
+    auto copyPlane = [&](int mapIndex, int arrayIndex, bool copyData = false) {
         if (arrayIndex >= numberPlanes)
             return;
 
         m_planes[mapIndex].rowStride = rowStrides[arrayIndex];
-        m_planes[mapIndex].size = bufferSize[arrayIndex];
-        m_planes[mapIndex].data = buffer[arrayIndex];
+        m_planes[mapIndex].buf = copyData ?
+            QByteArray(buffer[arrayIndex], bufferSize[arrayIndex])
+          : QByteArray::fromRawData(buffer[arrayIndex], bufferSize[arrayIndex]);
     };
 
     int width = frame.callMethod<jint>("getWidth");
@@ -148,28 +149,15 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
     switch (calculedPixelFormat) {
     case QVideoFrameFormat::Format_RGBA8888:
         m_numberPlanes = 1;
-        copyPlane(0, 0);
-        if (isWorkaroundForEmulatorNeeded()) {
-            const int dataSize = m_planes[0].size;
-            m_planes[0].data = new uint8_t[dataSize];
-            memcpy(m_planes[0].data, buffer[0], dataSize);
-        }
+        copyPlane(0, 0, isWorkaroundForEmulatorNeeded());
 
         m_pixelFormat = QVideoFrameFormat::Format_RGBA8888;
         break;
     case QVideoFrameFormat::Format_YUV420P:
         m_numberPlanes = 3;
-        copyPlane(0, 0);
-        copyPlane(1, 1);
-        copyPlane(2, 2);
-
-        if (isWorkaroundForEmulatorNeeded()) {
-            for (int i = 0; i < 3; ++i) {
-                const int dataSize = (i == 0) ? width * height : width * height / 4;
-                m_planes[i].data = new uint8_t[dataSize];
-                memcpy(m_planes[i].data, buffer[i], dataSize);
-            }
-        }
+        copyPlane(0, 0, isWorkaroundForEmulatorNeeded());
+        copyPlane(1, 1, isWorkaroundForEmulatorNeeded());
+        copyPlane(2, 2, isWorkaroundForEmulatorNeeded());
 
         m_pixelFormat = QVideoFrameFormat::Format_YUV420P;
         break;
@@ -181,24 +169,26 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
 
         // Android reports U and V planes as planes[1] and planes[2] respectively, regardless of the
         // order of interleaved samples. We point to whichever is first in memory.
-        copyPlane(1, calculedPixelFormat == QVideoFrameFormat::Format_NV21 ? 2 : 1);
-
         // With interleaved UV plane, Android reports the size of each plane as the smallest size
         // that includes all samples of that plane. For example, if the UV plane is [u, v, u, v],
         // the size of the U-plane is 3, not 4. With FFmpeg we need to count the total number of
         // bytes in the UV-plane, which is 1 more than what Android reports.
-        m_planes[1].size++;
-
+        {
+            const int indexOfFirstPlane = calculedPixelFormat == QVideoFrameFormat::Format_NV21 ?
+                                          2 : 1;
+            m_planes[1].rowStride = rowStrides[indexOfFirstPlane];
+            m_planes[1].buf = QByteArray::fromRawData(buffer[indexOfFirstPlane],
+                                                      bufferSize[indexOfFirstPlane] + 1);
+        }
         m_pixelFormat = calculedPixelFormat;
         break;
     case QVideoFrameFormat::Format_Jpeg:
         qCWarning(qLCAndroidCameraFrame)
                 << "FFmpeg HW Mediacodec does not encode other than YCbCr formats";
         // we still parse it to preview the frame
-        m_image = QImage::fromData(buffer[0], bufferSize[0]);
+        m_image = QImage::fromData((uchar *)buffer[0], bufferSize[0]);
         m_planes[0].rowStride = m_image.bytesPerLine();
-        m_planes[0].size = m_image.sizeInBytes();
-        m_planes[0].data = m_image.bits();
+        m_planes[0].buf = QByteArray::fromRawData((char*)m_image.bits(), m_image.sizeInBytes());
         m_pixelFormat = QVideoFrameFormat::pixelFormatFromImageFormat(m_image.format());
         break;
     default:
@@ -236,14 +226,6 @@ QAndroidCameraFrame::~QAndroidCameraFrame()
     QJniEnvironment jniEnv;
     if (m_frame)
         jniEnv->DeleteGlobalRef(m_frame);
-
-    if (isWorkaroundForEmulatorNeeded()) {
-        if (m_pixelFormat == QVideoFrameFormat::Format_YUV420P
-            || m_pixelFormat == QVideoFrameFormat::Format_RGBA8888) {
-                for (int i = 0; i < m_numberPlanes; ++i)
-                    delete[] m_planes[i].data;
-        }
-    }
 }
 
 QT_END_NAMESPACE

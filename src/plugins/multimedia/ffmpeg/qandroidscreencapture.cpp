@@ -158,7 +158,7 @@ void QAndroidScreenCapture::onNewFrameReceived(QtJniTypes::AndroidImage image)
     avframe->format = QFFmpegVideoBuffer::toAVPixelFormat(androidFrame->format());
     avframe->pts = androidFrame->timestamp();
     avframe->linesize[0] = androidFrame->plane(0).rowStride;
-    avframe->data[0] = androidFrame->plane(0).data;
+    avframe->data[0] = (uint8_t*)androidFrame->plane(0).buf.constData();
     avframe->data[1] = nullptr;
     avframe->buf[0] = nullptr;
     avframe->extended_data = avframe->data;

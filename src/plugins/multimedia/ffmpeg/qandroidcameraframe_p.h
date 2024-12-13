@@ -15,6 +15,7 @@
 // We mean it.
 //
 
+#include <QByteArray>
 #include <QVideoFrameFormat>
 #include <QJniObject>
 #include <QtCore/qjnitypes.h>
@@ -35,8 +36,7 @@ public:
     {
         int pixelStride = 0;
         int rowStride = 0;
-        int size = 0;
-        uint8_t *data = nullptr;
+        QByteArray buf;
     };
 
     QAndroidCameraFrame(QJniObject frame);
