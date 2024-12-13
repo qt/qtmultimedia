@@ -19,6 +19,7 @@
 #include "qhwvideobuffer_p.h"
 
 #include <array>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -36,10 +37,13 @@ public:
 
     QVideoFrameTextures* updateTextures(QRhi &rhi, QRhiResourceUpdateBatch &rub);
 
+    void onFrameEndInvoked();
+
 private:
     QVideoFrame m_currentFrame;
     bool m_texturesDirty = false;
     std::array<QVideoFrameTexturesUPtr, MaxSlotsCount> m_textureSlots;
+    std::optional<int> m_currentSlot;
 };
 
 QT_END_NAMESPACE

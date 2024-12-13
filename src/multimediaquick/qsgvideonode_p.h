@@ -30,6 +30,9 @@ class QSGVideoMaterial;
 class QQuickVideoOutput;
 class QSGInternalTextNode;
 
+class QVideoFrameTexturePool;
+using QVideoFrameTexturePoolPtr = std::shared_ptr<QVideoFrameTexturePool>;
+
 class QSGVideoNode : public QSGGeometryNode
 {
 public:
@@ -44,6 +47,8 @@ public:
 
     void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect,
                                  VideoTransformation videoOutputTransformation);
+
+    const QVideoFrameTexturePoolPtr &texturePool() const;
 
 private:
     void updateSubtitle(const QVideoFrame &frame);

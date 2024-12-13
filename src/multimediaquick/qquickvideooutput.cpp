@@ -4,6 +4,7 @@
 #include "qquickvideooutput_p.h"
 
 #include <private/qvideooutputorientationhandler_p.h>
+#include <private/qvideoframetexturepool_p.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediacapturesession.h>
 #include <private/qfactoryloader_p.h>
@@ -365,6 +366,12 @@ void QQuickVideoOutput::_q_sceneGraphInitialized()
     initRhiForSink();
 }
 
+void QQuickVideoOutput::_q_afterFrameEnd()
+{
+    if (auto texturePool = m_texturePool.lock())
+        texturePool->onFrameEndInvoked();
+}
+
 void QQuickVideoOutput::releaseResources()
 {
     // Called on the gui thread when the window is closed or changed.
@@ -402,6 +409,8 @@ void QQuickVideoOutput::itemChange(QQuickItem::ItemChange change,
                 &QQuickVideoOutput::_q_sceneGraphInitialized, Qt::DirectConnection);
         connect(m_window, &QQuickWindow::sceneGraphInvalidated, this,
                 &QQuickVideoOutput::_q_invalidateSceneGraph, Qt::DirectConnection);
+        connect(m_window, &QQuickWindow::afterFrameEnd, this, &QQuickVideoOutput::_q_afterFrameEnd,
+                Qt::DirectConnection);
     }
     initRhiForSink();
 }
@@ -485,6 +494,7 @@ QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
             updateGeometry();
             QRhi *rhi = m_window ? QQuickWindowPrivate::get(m_window)->rhi : nullptr;
             videoNode = new QSGVideoNode(this, m_videoFormat, rhi ? qUseAlphaShader(rhi) : false);
+            m_texturePool = videoNode->texturePool();
             qCDebug(qLcVideo) << "updatePaintNode: Video node created. Handle type:" << m_frame.handleType();
         }
     }

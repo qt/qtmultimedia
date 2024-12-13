@@ -439,6 +439,8 @@ void QVideoWindowPrivate::render()
     cb->endPass();
 
     m_rhi->endFrame(m_swapChain.get());
+
+    m_texturePool.onFrameEndInvoked();
 }
 
 /*!
