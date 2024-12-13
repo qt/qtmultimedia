@@ -606,7 +606,7 @@ enum class UpdateTextureWithMapResult : uint8_t {
 };
 
 static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame, QRhi &rhi,
-                                                       QRhiResourceUpdateBatch *rub, int plane,
+                                                       QRhiResourceUpdateBatch &rub, int plane,
                                                        std::unique_ptr<QRhiTexture> &tex)
 {
     Q_ASSERT(frame.isMapped());
@@ -671,7 +671,7 @@ static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame,
 
     QRhiTextureUploadEntry entry(0, 0, subresDesc);
     QRhiTextureUploadDescription desc({ entry });
-    rub->uploadTexture(tex.get(), desc);
+    rub.uploadTexture(tex.get(), desc);
 
     return result;
 }
@@ -743,7 +743,9 @@ QVideoFrameTexturesUPtr createTexturesFromHandlesSet(QVideoFrameTexturesSetUPtr 
                                                                   size, std::move(texturesSet));
 }
 
-static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi &rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTextures *old)
+static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi &rhi,
+                                                        QRhiResourceUpdateBatch &rub,
+                                                        QVideoFrameTextures *old)
 {
     const TextureDescription &texDesc = descriptions[frame.surfaceFormat().pixelFormat()];
     RhiTextureArray rhiTextures;
@@ -774,7 +776,7 @@ static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi 
 }
 
 QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
-                                       QRhiResourceUpdateBatch *rub,
+                                       QRhiResourceUpdateBatch &rub,
                                        QVideoFrameTexturesUPtr &&oldTextures)
 {
     if (!frame.isValid())

@@ -75,7 +75,7 @@ createTexturesFromHandlesSet(QVideoFrameTexturesSetUPtr texturesSet, QRhi &rhi,
                              QVideoFrameFormat::PixelFormat pixelFormat, QSize size);
 
 Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
-                                                           QRhiResourceUpdateBatch *rub,
+                                                           QRhiResourceUpdateBatch &rub,
                                                            QVideoFrameTexturesUPtr &&oldTextures);
 
 struct UniformData {

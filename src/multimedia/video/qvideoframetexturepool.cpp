@@ -19,7 +19,7 @@ QVideoFrameTextures* QVideoFrameTexturePool::updateTextures(QRhi &rhi, QRhiResou
 
     m_texturesDirty = false;
     QVideoFrameTexturesUPtr &textures = m_textureSlots[currentSlot];
-    textures = QVideoTextureHelper::createTextures(m_currentFrame, rhi, &rub, std::move(textures));
+    textures = QVideoTextureHelper::createTextures(m_currentFrame, rhi, rub, std::move(textures));
     m_currentSlot = textures ? currentSlot : std::optional<int>{};
 
     return textures.get();
