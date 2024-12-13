@@ -187,7 +187,7 @@ void QFFmpegVideoBuffer::unmap()
     m_mode = QVideoFrame::NotMapped;
 }
 
-QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/)
+QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& oldTextures)
 {
     if (!m_hwFrame)
         return {};
@@ -205,7 +205,7 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTe
     if (!converter || converter->isNull())
         return {};
 
-    QVideoFrameTexturesSetUPtr textures(converter->getTextures(*m_hwFrame));
+    QVideoFrameTexturesSetUPtr textures(converter->getTextures(*m_hwFrame, oldTextures ? oldTextures->takeHandles() : nullptr));
     if (!textures) {
         static thread_local int lastFormat = 0;
         if (std::exchange(lastFormat, m_hwFrame->format) != m_hwFrame->format) // prevent logging spam

@@ -276,7 +276,7 @@ D3D11TextureConverter::D3D11TextureConverter(QRhi *rhi)
     m_rhiDevice->GetImmediateContext(m_rhiCtx.GetAddressOf());
 }
 
-QVideoFrameTexturesSet *D3D11TextureConverter::getTextures(AVFrame *frame)
+QVideoFrameTexturesSetUPtr D3D11TextureConverter::getTextures(AVFrame *frame, QVideoFrameTexturesSetUPtr /*oldHandles*/)
 {
     if (!m_rhiDevice)
         return nullptr;
@@ -320,7 +320,7 @@ QVideoFrameTexturesSet *D3D11TextureConverter::getTextures(AVFrame *frame)
         if (!output)
             return nullptr;
 
-        return new D3D11TextureSet(rhi, std::move(output));
+        return std::make_unique<D3D11TextureSet>(rhi, std::move(output));
     }
 
     return nullptr;

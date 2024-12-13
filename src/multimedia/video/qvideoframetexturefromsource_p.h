@@ -83,6 +83,8 @@ public:
     {
     }
 
+    QVideoFrameTexturesSetUPtr takeHandles() override { return std::move(m_texturesSet); }
+
 private:
     QVideoFrameTexturesSetUPtr m_texturesSet;
 };
