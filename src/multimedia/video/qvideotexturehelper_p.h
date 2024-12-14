@@ -26,8 +26,8 @@ class QVideoFrame;
 class QTextLayout;
 class QVideoFrameTextures;
 using QVideoFrameTexturesUPtr = std::unique_ptr<QVideoFrameTextures>;
-class QVideoFrameTexturesSet;
-using QVideoFrameTexturesSetUPtr = std::unique_ptr<QVideoFrameTexturesSet>;
+class QVideoFrameTexturesHandles;
+using QVideoFrameTexturesHandlesUPtr = std::unique_ptr<QVideoFrameTexturesHandles>;
 
 namespace QVideoTextureHelper
 {
@@ -71,8 +71,8 @@ Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFor
                                            const QMatrix4x4 &transform, float opacity, float maxNits = 100);
 
 Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr
-createTexturesFromHandlesSet(QVideoFrameTexturesSetUPtr texturesSet, QRhi &rhi,
-                             QVideoFrameFormat::PixelFormat pixelFormat, QSize size);
+createTexturesFromHandles(QVideoFrameTexturesHandlesUPtr handles, QRhi &rhi,
+                          QVideoFrameFormat::PixelFormat pixelFormat, QSize size);
 
 Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
                                                            QRhiResourceUpdateBatch &rub,

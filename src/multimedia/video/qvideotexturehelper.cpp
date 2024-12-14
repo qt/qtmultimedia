@@ -676,7 +676,9 @@ static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame,
     return result;
 }
 
-static std::unique_ptr<QRhiTexture> createTextureFromHandle(QVideoFrameTexturesSet& texturesSet, QRhi &rhi, QVideoFrameFormat::PixelFormat pixelFormat, QSize size, int plane)
+static std::unique_ptr<QRhiTexture>
+createTextureFromHandle(QVideoFrameTexturesHandles &texturesSet, QRhi &rhi,
+                        QVideoFrameFormat::PixelFormat pixelFormat, QSize size, int plane)
 {
     const TextureDescription &texDesc = descriptions[pixelFormat];
     QSize planeSize(size.width()/texDesc.sizeScale[plane].x, size.height()/texDesc.sizeScale[plane].y);
@@ -706,9 +708,9 @@ static std::unique_ptr<QRhiTexture> createTextureFromHandle(QVideoFrameTexturesS
 }
 
 template <typename TexturesType, typename... Args>
-static QVideoFrameTexturesUPtr createTexturesArray(QRhi &rhi, QVideoFrameTexturesSet &texturesSet,
-                                                   QVideoFrameFormat::PixelFormat pixelFormat,
-                                                   QSize size, Args &&...args)
+static QVideoFrameTexturesUPtr
+createTexturesArray(QRhi &rhi, QVideoFrameTexturesHandles &texturesSet,
+                    QVideoFrameFormat::PixelFormat pixelFormat, QSize size, Args &&...args)
 {
     const TextureDescription &texDesc = descriptions[pixelFormat];
     bool ok = true;
@@ -724,10 +726,10 @@ static QVideoFrameTexturesUPtr createTexturesArray(QRhi &rhi, QVideoFrameTexture
         return {};
 }
 
-QVideoFrameTexturesUPtr createTexturesFromHandlesSet(QVideoFrameTexturesSetUPtr texturesSet,
-                                                     QRhi &rhi,
-                                                     QVideoFrameFormat::PixelFormat pixelFormat,
-                                                     QSize size)
+QVideoFrameTexturesUPtr createTexturesFromHandles(QVideoFrameTexturesHandlesUPtr texturesSet,
+                                                  QRhi &rhi,
+                                                  QVideoFrameFormat::PixelFormat pixelFormat,
+                                                  QSize size)
 {
     if (!texturesSet)
         return nullptr;

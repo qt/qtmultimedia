@@ -76,17 +76,17 @@ private:
 class QVideoFrameTexturesFromHandlesSet : public QVideoFrameTexturesFromRhiTextureArray
 {
 public:
-    QVideoFrameTexturesFromHandlesSet(RhiTextureArray &&textures,
-                                      QVideoFrameTexturesSetUPtr texturesSet)
-        : QVideoFrameTexturesFromRhiTextureArray(std::move(textures)),
-          m_texturesSet(std::move(texturesSet))
+    QVideoFrameTexturesFromHandlesSet(RhiTextureArray &&rhiTextures,
+                                      QVideoFrameTexturesHandlesUPtr handles)
+        : QVideoFrameTexturesFromRhiTextureArray(std::move(rhiTextures)),
+          m_textureHandles(std::move(handles))
     {
     }
 
-    QVideoFrameTexturesSetUPtr takeHandles() override { return std::move(m_texturesSet); }
+    QVideoFrameTexturesHandlesUPtr takeHandles() override { return std::move(m_textureHandles); }
 
 private:
-    QVideoFrameTexturesSetUPtr m_texturesSet;
+    QVideoFrameTexturesHandlesUPtr m_textureHandles;
 };
 
 } // namespace QVideoTextureHelper
