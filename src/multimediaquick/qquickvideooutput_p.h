@@ -128,8 +128,6 @@ private:
 
     void setFrame(const QVideoFrame &frame);
 
-    void invalidateSceneGraph();
-
     void initRhiForSink();
     void updateHdr(QSGVideoNode *videoNode);
 

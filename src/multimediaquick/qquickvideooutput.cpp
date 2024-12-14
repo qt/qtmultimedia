@@ -432,7 +432,11 @@ void QQuickVideoOutput::geometryChange(const QRectF &newGeometry, const QRectF &
 
 void QQuickVideoOutput::_q_invalidateSceneGraph()
 {
-    invalidateSceneGraph();
+    // Invoked in the renderer thread
+
+    if (auto texturePool = m_texturePool.lock())
+        texturePool->clearTextures();
+    initRhiForSink();
 }
 
 void QQuickVideoOutput::_q_sceneGraphInitialized()
@@ -449,14 +453,8 @@ void QQuickVideoOutput::_q_afterFrameEnd()
 void QQuickVideoOutput::releaseResources()
 {
     // Called on the gui thread when the window is closed or changed.
-    invalidateSceneGraph();
-}
-
-void QQuickVideoOutput::invalidateSceneGraph()
-{
-    // Called on the render thread, e.g. when the context is lost.
-    //    QMutexLocker lock(&m_frameMutex);
     initRhiForSink();
+    QQuickItem::releaseResources();
 }
 
 void QQuickVideoOutput::initRhiForSink()

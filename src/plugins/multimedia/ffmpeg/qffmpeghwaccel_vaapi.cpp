@@ -159,6 +159,7 @@ public:
         return textures[plane];
     }
 
+    TextureConverterBackendPtr parentConverterBackend; // ensures the backend is deleted after the texture
     QRhi *rhi = nullptr;
     QOpenGLContext *glContext = nullptr;
     int nPlanes = 0;
@@ -342,6 +343,7 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
     }
 
     auto textureHandles = std::make_unique<VAAPITextureHandles>();
+    textureHandles->parentConverterBackend = shared_from_this();
     textureHandles->nPlanes = nPlanes;
     textureHandles->rhi = rhi;
     textureHandles->glContext = glContext;

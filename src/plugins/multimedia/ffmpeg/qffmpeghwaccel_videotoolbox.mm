@@ -42,6 +42,8 @@ public:
     ~VideoToolBoxTextureHandles();
     quint64 textureHandle(QRhi &, int plane) override;
 
+    TextureConverterBackendPtr parentConverterBackend; // ensures the backend is deleted after the texture
+
     QRhi *rhi = nullptr;
     CVMetalTextureRef cvMetalTexture[3] = {};
 
@@ -182,6 +184,7 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
     CVPixelBufferRef buffer = (CVPixelBufferRef)frame->data[3];
 
     auto textureHandles = std::make_unique<VideoToolBoxTextureHandles>();
+    textureHandles->parentConverterBackend = shared_from_this();
     textureHandles->m_buffer = buffer;
     textureHandles->rhi = rhi;
     CVPixelBufferRetain(buffer);
