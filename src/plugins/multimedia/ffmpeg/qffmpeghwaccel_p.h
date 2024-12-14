@@ -37,7 +37,7 @@ AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt);
 
 class HWAccel;
 
-class TextureConverterBackend
+class TextureConverterBackend : public std::enable_shared_from_this<TextureConverterBackend>
 {
 public:
     TextureConverterBackend(QRhi *rhi)
@@ -52,6 +52,7 @@ public:
 
     QRhi *rhi = nullptr;
 };
+using TextureConverterBackendPtr = std::shared_ptr<TextureConverterBackend>;
 
 class TextureConverter
 {
@@ -73,7 +74,7 @@ private:
 
     QRhi &m_rhi;
     AVPixelFormat m_format = AV_PIX_FMT_NONE;
-    std::unique_ptr<TextureConverterBackend> m_backend;
+    TextureConverterBackendPtr m_backend;
 };
 
 class HWAccel;

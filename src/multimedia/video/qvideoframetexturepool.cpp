@@ -31,4 +31,11 @@ void QVideoFrameTexturePool::onFrameEndInvoked()
         m_textureSlots[*m_currentSlot]->onFrameEndInvoked();
 }
 
+void QVideoFrameTexturePool::clearTextures()
+{
+    std::fill(std::begin(m_textureSlots), std::end(m_textureSlots), nullptr);
+    m_currentSlot.reset();
+    m_texturesDirty = m_currentFrame.isValid();
+}
+
 QT_END_NAMESPACE

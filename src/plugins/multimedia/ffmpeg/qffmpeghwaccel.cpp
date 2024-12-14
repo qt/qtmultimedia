@@ -461,22 +461,22 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
     switch (fmt) {
 #if QT_CONFIG(vaapi)
     case AV_PIX_FMT_VAAPI:
-        m_backend = std::make_unique<VAAPITextureConverter>(&m_rhi);
+        m_backend = std::make_shared<VAAPITextureConverter>(&m_rhi);
         break;
 #endif
 #ifdef Q_OS_DARWIN
     case AV_PIX_FMT_VIDEOTOOLBOX:
-        m_backend = std::make_unique<VideoToolBoxTextureConverter>(&m_rhi);
+        m_backend = std::make_shared<VideoToolBoxTextureConverter>(&m_rhi);
         break;
 #endif
 #if QT_CONFIG(wmf)
     case AV_PIX_FMT_D3D11:
-        m_backend = std::make_unique<D3D11TextureConverter>(&m_rhi);
+        m_backend = std::make_shared<D3D11TextureConverter>(&m_rhi);
         break;
 #endif
 #ifdef Q_OS_ANDROID
     case AV_PIX_FMT_MEDIACODEC:
-        m_backend = std::make_unique<MediaCodecTextureConverter>(&m_rhi);
+        m_backend = std::make_shared<MediaCodecTextureConverter>(&m_rhi);
         break;
 #endif
     default:

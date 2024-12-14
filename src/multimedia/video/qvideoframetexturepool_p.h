@@ -39,6 +39,8 @@ public:
 
     void onFrameEndInvoked();
 
+    void clearTextures();
+
 private:
     QVideoFrame m_currentFrame;
     bool m_texturesDirty = false;

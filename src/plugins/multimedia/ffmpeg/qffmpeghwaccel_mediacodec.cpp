@@ -22,11 +22,15 @@ namespace {
 class MediaCodecTextureHandles : public QVideoFrameTexturesHandles
 {
 public:
-    MediaCodecTextureHandles(quint64 textureHandle) : m_handle(textureHandle) { }
+    MediaCodecTextureHandles(TextureConverterBackendPtr &&converterBackend, quint64 textureHandle)
+        : m_parentConverterBackend(std::move(converterBackend)), m_handle(textureHandle)
+    {
+    }
 
     quint64 textureHandle(QRhi &, int plane) override { return (plane == 0) ? m_handle : 0; }
 
 private:
+    TextureConverterBackendPtr m_parentConverterBackend; // ensures the backend is kept
     quint64 m_handle;
 };
 
@@ -119,6 +123,7 @@ MediaCodecTextureConverter::createTextureHandles(AVFrame *frame,
 
     androidSurfaceTexture->updateTexImage();
 
-    return std::make_unique<MediaCodecTextureHandles>(externalTexture->nativeTexture().object);
+    return std::make_unique<MediaCodecTextureHandles>(shared_from_this(),
+                                                      externalTexture->nativeTexture().object);
 }
 }
