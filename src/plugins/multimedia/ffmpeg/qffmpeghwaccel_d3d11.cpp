@@ -247,10 +247,11 @@ bool TextureBridge::recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D>
     return true;
 }
 
-class D3D11TextureSet : public QVideoFrameTexturesSet
+namespace {
+class D3D11TextureHandles : public QVideoFrameTexturesHandles
 {
 public:
-    D3D11TextureSet(QRhi *rhi, ComPtr<ID3D11Texture2D> &&tex)
+    D3D11TextureHandles(QRhi *rhi, ComPtr<ID3D11Texture2D> &&tex)
         : m_owner{ rhi }, m_tex(std::move(tex))
     {
     }
@@ -266,6 +267,7 @@ private:
     QRhi *m_owner = nullptr;
     ComPtr<ID3D11Texture2D> m_tex;
 };
+}
 
 D3D11TextureConverter::D3D11TextureConverter(QRhi *rhi)
     : TextureConverterBackend(rhi), m_rhiDevice{ GetD3DDevice(rhi) }
@@ -276,7 +278,9 @@ D3D11TextureConverter::D3D11TextureConverter(QRhi *rhi)
     m_rhiDevice->GetImmediateContext(m_rhiCtx.GetAddressOf());
 }
 
-QVideoFrameTexturesSetUPtr D3D11TextureConverter::getTextures(AVFrame *frame, QVideoFrameTexturesSetUPtr /*oldHandles*/)
+QVideoFrameTexturesHandlesUPtr
+D3D11TextureConverter::createTextureHandles(AVFrame *frame,
+                                            QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
 {
     if (!m_rhiDevice)
         return nullptr;
@@ -320,7 +324,7 @@ QVideoFrameTexturesSetUPtr D3D11TextureConverter::getTextures(AVFrame *frame, QV
         if (!output)
             return nullptr;
 
-        return std::make_unique<D3D11TextureSet>(rhi, std::move(output));
+        return std::make_unique<D3D11TextureHandles>(rhi, std::move(output));
     }
 
     return nullptr;

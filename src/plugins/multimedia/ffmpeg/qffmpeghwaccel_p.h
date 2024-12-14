@@ -44,7 +44,11 @@ public:
         : rhi(rhi)
     {}
     virtual ~TextureConverterBackend() {}
-    virtual QVideoFrameTexturesSetUPtr getTextures(AVFrame * /*frame*/, QVideoFrameTexturesSetUPtr /*oldHandles*/) { return nullptr; }
+    virtual QVideoFrameTexturesHandlesUPtr
+    createTextureHandles(AVFrame * /*frame*/, QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
+    {
+        return nullptr;
+    }
 
     QRhi *rhi = nullptr;
 };
@@ -60,7 +64,8 @@ public:
         if (fmt != m_format)
             updateBackend(fmt);
     }
-    QVideoFrameTexturesSetUPtr getTextures(AVFrame &frame, QVideoFrameTexturesSetUPtr /*oldHandles*/);
+    QVideoFrameTexturesHandlesUPtr
+    createTextureHandles(AVFrame &frame, QVideoFrameTexturesHandlesUPtr /*oldHandles*/);
     bool isNull() const { return !m_backend || !m_backend->rhi; }
 
 private:

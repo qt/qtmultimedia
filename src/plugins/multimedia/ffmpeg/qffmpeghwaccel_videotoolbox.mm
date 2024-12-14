@@ -33,12 +33,13 @@ Q_STATIC_LOGGING_CATEGORY(qLcVideotoolbox, "qt.multimedia.ffmpeg.videotoolbox");
 namespace QFFmpeg
 {
 
-static CVMetalTextureCacheRef &mtc(void *&cache) { return reinterpret_cast<CVMetalTextureCacheRef &>(cache); }
+namespace {
+CVMetalTextureCacheRef &mtc(void *&cache) { return reinterpret_cast<CVMetalTextureCacheRef &>(cache); }
 
-class VideoToolBoxTextureSet : public QVideoFrameTexturesSet
+class VideoToolBoxTextureHandles : public QVideoFrameTexturesHandles
 {
 public:
-    ~VideoToolBoxTextureSet();
+    ~VideoToolBoxTextureHandles();
     quint64 textureHandle(QRhi &, int plane) override;
 
     QRhi *rhi = nullptr;
@@ -52,6 +53,7 @@ public:
 
     CVImageBufferRef m_buffer = nullptr;
 };
+}
 
 VideoToolBoxTextureConverter::VideoToolBoxTextureConverter(QRhi *targetRhi)
     : TextureConverterBackend(targetRhi)
@@ -163,7 +165,9 @@ static MTLPixelFormat rhiTextureFormatToMetalFormat(QRhiTexture::Format f)
     }
 }
 
-QVideoFrameTexturesSetUPtr VideoToolBoxTextureConverter::getTextures(AVFrame *frame, QVideoFrameTexturesSetUPtr /*oldHandles*/)
+QVideoFrameTexturesHandlesUPtr
+VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
+                                                   QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
 {
     if (!rhi)
         return nullptr;
@@ -177,14 +181,14 @@ QVideoFrameTexturesSetUPtr VideoToolBoxTextureConverter::getTextures(AVFrame *fr
 
     CVPixelBufferRef buffer = (CVPixelBufferRef)frame->data[3];
 
-    auto textureSet = std::make_unique<VideoToolBoxTextureSet>();
-    textureSet->m_buffer = buffer;
-    textureSet->rhi = rhi;
+    auto textureHandles = std::make_unique<VideoToolBoxTextureHandles>();
+    textureHandles->m_buffer = buffer;
+    textureHandles->rhi = rhi;
     CVPixelBufferRetain(buffer);
 
     auto *textureDescription = QVideoTextureHelper::textureDescription(pixelFormat);
     int bufferPlanes = CVPixelBufferGetPlaneCount(buffer);
-//    qDebug() << "XXXXX getTextures" << pixelFormat << bufferPlanes << buffer;
+    //    qDebug() << "XXXXX createTextureHandles" << pixelFormat << bufferPlanes << buffer;
 
     if (rhi->backend() == QRhi::Metal) {
         // First check that all planes have pixel-formats that we can handle,
@@ -214,12 +218,12 @@ QVideoFrameTexturesSetUPtr VideoToolBoxTextureConverter::getTextures(AVFrame *fr
                             metalPixelFormatForPlane,
                             width, height,
                             plane,
-                            &textureSet->cvMetalTexture[plane]);
+                            &textureHandles->cvMetalTexture[plane]);
 
             if (ret != kCVReturnSuccess)
                 qWarning() << "texture creation failed" << ret;
-//            auto t = CVMetalTextureGetTexture(textureSet->cvMetalTexture[plane]);
-//            qDebug() << "    metal texture for plane" << plane << "is" << quint64(textureSet->cvMetalTexture[plane]) << width << height;
+//            auto t = CVMetalTextureGetTexture(textureHandles->cvMetalTexture[plane]);
+//            qDebug() << "    metal texture for plane" << plane << "is" << quint64(textureHandles->cvMetalTexture[plane]) << width << height;
 //            qDebug() << "    " << t.iosurfacePlane << t.pixelFormat << t.width << t.height;
         }
     } else if (rhi->backend() == QRhi::OpenGLES2) {
@@ -232,13 +236,13 @@ QVideoFrameTexturesSetUPtr VideoToolBoxTextureConverter::getTextures(AVFrame *fr
                         cvOpenGLTextureCache,
                         buffer,
                         nil,
-                        &textureSet->cvOpenGLTexture);
+                        &textureHandles->cvOpenGLTexture);
         if (cvret != kCVReturnSuccess) {
             qCWarning(qLcVideotoolbox) << "OpenGL texture creation failed" << cvret;
             return nullptr;
         }
 
-        Q_ASSERT(CVOpenGLTextureGetTarget(textureSet->cvOpenGLTexture) == GL_TEXTURE_RECTANGLE);
+        Q_ASSERT(CVOpenGLTextureGetTarget(textureHandles->cvOpenGLTexture) == GL_TEXTURE_RECTANGLE);
 #endif
 #ifdef Q_OS_IOS
         CVOpenGLESTextureCacheFlush(cvOpenGLESTextureCache, 0);
@@ -255,7 +259,7 @@ QVideoFrameTexturesSetUPtr VideoToolBoxTextureConverter::getTextures(AVFrame *fr
                         GL_RGBA,
                         GL_UNSIGNED_BYTE,
                         0,
-                        &textureSet->cvOpenGLESTexture);
+                        &textureHandles->cvOpenGLESTexture);
         if (cvret != kCVReturnSuccess) {
             qCWarning(qLcVideotoolbox) << "OpenGL ES texture creation failed" << cvret;
             return nullptr;
@@ -264,10 +268,10 @@ QVideoFrameTexturesSetUPtr VideoToolBoxTextureConverter::getTextures(AVFrame *fr
 #endif
     }
 
-    return textureSet;
+    return textureHandles;
 }
 
-VideoToolBoxTextureSet::~VideoToolBoxTextureSet()
+VideoToolBoxTextureHandles::~VideoToolBoxTextureHandles()
 {
     for (int i = 0; i < 4; ++i)
         if (cvMetalTexture[i])
@@ -282,7 +286,7 @@ VideoToolBoxTextureSet::~VideoToolBoxTextureSet()
     CVPixelBufferRelease(m_buffer);
 }
 
-quint64 VideoToolBoxTextureSet::textureHandle(QRhi &, int plane)
+quint64 VideoToolBoxTextureHandles::textureHandle(QRhi &, int plane)
 {
     if (rhi->backend() == QRhi::Metal)
         return cvMetalTexture[plane] ? qint64(CVMetalTextureGetTexture(cvMetalTexture[plane])) : 0;

@@ -26,13 +26,14 @@ class QRhi;
 class QRhiTexture;
 class QVideoFrame;
 
-class Q_MULTIMEDIA_EXPORT QVideoFrameTexturesSet {
+class Q_MULTIMEDIA_EXPORT QVideoFrameTexturesHandles
+{
 public:
-    virtual ~QVideoFrameTexturesSet();
+    virtual ~QVideoFrameTexturesHandles();
 
     virtual quint64 textureHandle(QRhi &, int /*plane*/) { return 0; };
 };
-using QVideoFrameTexturesSetUPtr = std::unique_ptr<QVideoFrameTexturesSet>;
+using QVideoFrameTexturesHandlesUPtr = std::unique_ptr<QVideoFrameTexturesHandles>;
 
 class Q_MULTIMEDIA_EXPORT QVideoFrameTextures
 {
@@ -42,7 +43,7 @@ public:
 
     virtual void onFrameEndInvoked() { }
 
-    virtual QVideoFrameTexturesSetUPtr takeHandles() { return nullptr; }
+    virtual QVideoFrameTexturesHandlesUPtr takeHandles() { return nullptr; }
 
     void setSourceFrame(QVideoFrame sourceFrame) { m_sourceFrame = std::move(sourceFrame); }
 
@@ -51,7 +52,8 @@ private:
 };
 using QVideoFrameTexturesUPtr = std::unique_ptr<QVideoFrameTextures>;
 
-class Q_MULTIMEDIA_EXPORT QHwVideoBuffer : public QAbstractVideoBuffer, public QVideoFrameTexturesSet
+class Q_MULTIMEDIA_EXPORT QHwVideoBuffer : public QAbstractVideoBuffer,
+                                           public QVideoFrameTexturesHandles
 {
 public:
     QHwVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi = nullptr);

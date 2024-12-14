@@ -17,18 +17,18 @@ extern "C" {
 
 namespace QFFmpeg {
 
-class MediaCodecTextureSet : public QVideoFrameTexturesSet
+namespace {
+
+class MediaCodecTextureHandles : public QVideoFrameTexturesHandles
 {
 public:
-    MediaCodecTextureSet(quint64 textureHandle) : m_handle(textureHandle) { }
+    MediaCodecTextureHandles(quint64 textureHandle) : m_handle(textureHandle) { }
 
     quint64 textureHandle(QRhi &, int plane) override { return (plane == 0) ? m_handle : 0; }
 
 private:
     quint64 m_handle;
 };
-
-namespace {
 
 void deleteSurface(AVHWDeviceContext *ctx)
 {
@@ -80,7 +80,9 @@ void MediaCodecTextureConverter::setupDecoderSurface(AVCodecContext *avCodecCont
     deviceContext->free = deleteSurface;
 }
 
-QVideoFrameTexturesSetUPtr MediaCodecTextureConverter::getTextures(AVFrame *frame, QVideoFrameTexturesSetUPtr /*oldHandles*/)
+QVideoFrameTexturesHandlesUPtr
+MediaCodecTextureConverter::createTextureHandles(AVFrame *frame,
+                                                 QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
 {
     // TODO: reuse oldHandles: the underlying QRhiTexture must be taken from it instead of
     // keeping it in AndroidTextureConverter. See QTBUG-132174
@@ -117,6 +119,6 @@ QVideoFrameTexturesSetUPtr MediaCodecTextureConverter::getTextures(AVFrame *fram
 
     androidSurfaceTexture->updateTexImage();
 
-    return std::make_unique<MediaCodecTextureSet>(externalTexture->nativeTexture().object);
+    return std::make_unique<MediaCodecTextureHandles>(externalTexture->nativeTexture().object);
 }
 }

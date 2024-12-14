@@ -150,10 +150,11 @@ static const quint32 *fourccFromPixelFormat(const QVideoFrameFormat::PixelFormat
     return nullptr;
 }
 
-class VAAPITextureSet : public QVideoFrameTexturesSet
+namespace {
+class VAAPITextureHandles : public QVideoFrameTexturesHandles
 {
 public:
-    ~VAAPITextureSet();
+    ~VAAPITextureHandles();
     quint64 textureHandle(QRhi &, int plane) override {
         return textures[plane];
     }
@@ -163,6 +164,7 @@ public:
     int nPlanes = 0;
     GLuint textures[4] = {};
 };
+}
 
 
 VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
@@ -206,9 +208,11 @@ VAAPITextureConverter::~VAAPITextureConverter()
 }
 
 //#define VA_EXPORT_USE_LAYERS
-QVideoFrameTexturesSetUPtr VAAPITextureConverter::getTextures(AVFrame *frame, QVideoFrameTexturesSetUPtr /*oldHandles*/)
+QVideoFrameTexturesHandlesUPtr
+VAAPITextureConverter::createTextureHandles(AVFrame *frame,
+                                            QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
 {
-//        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel::getTextures";
+    //        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel::createTextureHandles";
     if (frame->format != AV_PIX_FMT_VAAPI || !eglDisplay) {
         qCDebug(qLHWAccelVAAPI) << "format/egl error" << frame->format << eglDisplay;
         return nullptr;
@@ -337,19 +341,19 @@ QVideoFrameTexturesSetUPtr VAAPITextureConverter::getTextures(AVFrame *frame, QV
         eglDestroyImage(eglDisplay, images[i]);
     }
 
-    auto textureSet = std::make_unique<VAAPITextureSet>();
-    textureSet->nPlanes = nPlanes;
-    textureSet->rhi = rhi;
-    textureSet->glContext = glContext;
+    auto textureHandles = std::make_unique<VAAPITextureHandles>();
+    textureHandles->nPlanes = nPlanes;
+    textureHandles->rhi = rhi;
+    textureHandles->glContext = glContext;
 
     for (int i = 0; i < 4; ++i)
-        textureSet->textures[i] = glTextures[i];
+        textureHandles->textures[i] = glTextures[i];
 //        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel: got textures" << textures[0] << textures[1] << textures[2] << textures[3];
 
-    return textureSet;
+    return textureHandles;
 }
 
-VAAPITextureSet::~VAAPITextureSet()
+VAAPITextureHandles::~VAAPITextureHandles()
 {
     if (rhi) {
         rhi->makeThreadLocalNativeContextCurrent();

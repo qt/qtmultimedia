@@ -7,7 +7,7 @@ QT_BEGIN_NAMESPACE
 
 QVideoFrameTextures::~QVideoFrameTextures() = default;
 
-QVideoFrameTexturesSet::~QVideoFrameTexturesSet() = default;
+QVideoFrameTexturesHandles::~QVideoFrameTexturesHandles() = default;
 
 QHwVideoBuffer::QHwVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi) : m_type(type), m_rhi(rhi)
 {
