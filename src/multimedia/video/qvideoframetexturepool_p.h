@@ -26,19 +26,51 @@ QT_BEGIN_NAMESPACE
 class QRhi;
 class QRhiResourceUpdateBatch;
 
+/**
+ * @brief The class QVideoFrameTexturePool stores textures in slots to ensure
+ *        they are alive during rhi's rendering rounds.
+ *        Depending on the rhi backend, 1, 2, or 3 rounds are needed
+ *        to complete the texture presentaton.
+ *        The strategy of slots filling is based on QRhi::currentFrameSlot results.
+ */
 class Q_MULTIMEDIA_EXPORT QVideoFrameTexturePool {
     static constexpr size_t MaxSlotsCount = 4;
 public:
+    /**
+     * @brief The flag indicates whether the textures need update.
+     *        Whenever a new current frame is set, the flag is turning into true.
+     */
     bool texturesDirty() const { return m_texturesDirty; }
 
     const QVideoFrame& currentFrame() const { return m_currentFrame; }
 
+    /**
+     * @brief The method sets the current frame to be converted into textures.
+     *        The flag texturesDirty becomes true after setting a new frame.
+     */
     void setCurrentFrame(QVideoFrame frame);
 
+    /**
+     * @brief The method updates textures basing on the current frame.
+     *        It's recommended to invoke it during rhi's rendering,
+     *        in other words, between QRhi::beginFrame and QRhi::endFrame.
+     *        The method resets texturesDirty to false.
+     *
+     * @return the pointer to the updated texture or null if failed
+     */
     QVideoFrameTextures* updateTextures(QRhi &rhi, QRhiResourceUpdateBatch &rub);
 
+    /**
+     * @brief The method should be invoked after finishing QRhi::endFrame.
+     *        It propagates the call to the current texture in order to
+     *        free resources that are not needed anymore.
+     */
     void onFrameEndInvoked();
 
+    /**
+     * @brief The method clears all texture slots and sets the dirty flag if
+     *        the current frame is valid.
+     */
     void clearTextures();
 
 private:

@@ -26,6 +26,12 @@ QT_BEGIN_NAMESPACE
 
 class QRhi;
 
+/**
+ * @brief The QRhiCallback class implements a thread-safe wrapper around QRhi
+ *        cleanup callbacks. For adding a callback to QRhi, create a shared insance
+ *        of the class and invoke addToRhi for the specific QRhi. To deactivate
+ *        the callback delete the instance.
+ */
 class Q_MULTIMEDIA_EXPORT QRhiCallback : public std::enable_shared_from_this<QRhiCallback>
 {
 public:
@@ -43,6 +49,21 @@ private:
     std::shared_ptr<Manager> m_manager;
 };
 
+/**
+ * @brief The class associates values of the specified type with different QRhi.
+ *        One instance of QRhiValueMapper associates one QRhi with one value.
+ *        The mapped value is deleted when the matching QRhi is cleaned/deleted,
+ *        when QRhiValueMapper::clear is invoked, or the QRhiValueMapper's
+ *        instance is deleted.
+ *
+ *        QRhiValueMapper's API is thread safe, whereas the objects, which pointers you
+ *        obtain via QRhiValueMapper::get(), are not. Thus, their thread-safity
+ *        has to be managed by the code using the mapper.
+
+ *        Note, that QRhiValueMapper destructs the values under its mutex.
+ *        Keep it in mind and aim to avoid callbacks and signals emissions fror
+ *        the Value's destructor.
+ */
 template <typename Value>
 class QRhiValueMapper
 {

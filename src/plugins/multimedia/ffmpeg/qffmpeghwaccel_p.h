@@ -80,10 +80,20 @@ private:
 class HWAccel;
 using HWAccelUPtr = std::unique_ptr<HWAccel>;
 
+/**
+ * @brief The HwFrameContextData class contains custom belongings
+ *        of hw frames context.
+ */
 struct HwFrameContextData
 {
     QRhiValueMapper<TextureConverter> textureConverterMapper;
 
+    /**
+     * @brief gets or creates an instance of the class, associated with
+     *        the frames context of the specified frame. Note, AVFrame
+     *        holds shared ownership of the frames context, so consider this
+     *        when designing HwFrameContextData's lifetime.
+     */
     static HwFrameContextData &ensure(AVFrame &hwFrame);
 };
 

@@ -192,6 +192,7 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTe
     if (!m_hwFrame)
         return {};
 
+    // QTBUG-132200:
     // We aim to set initTextureConverterForAnyRhi=true for as much platforms as we can,
     // and remove the check after all platforms work fine on CI. If the flag is enabled,
     // QVideoFrame::toImage can work faster, and we can test hw texture conversion on CI.
