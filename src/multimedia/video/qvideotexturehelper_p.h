@@ -70,10 +70,22 @@ fragmentShaderFileName(const QVideoFrameFormat &format, bool useAlphaShader,
 Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame,
                                            const QMatrix4x4 &transform, float opacity, float maxNits = 100);
 
+/**
+ * @brief Creates plane textures from texture handles set by the specified rhi.
+ *        The result owns the specified handles set; the QRhiTexture(s), exposed by the result
+ *        refer to the owned handles set.
+ *        If the specified size is empty or pixelFormat is invalid, null is returned.
+ */
 Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr
 createTexturesFromHandles(QVideoFrameTexturesHandlesUPtr handles, QRhi &rhi,
                           QVideoFrameFormat::PixelFormat pixelFormat, QSize size);
 
+
+/**
+ * @brief Creates plane textures from a video frame by the specified rhi.
+          If possible, the function modifies 'oldTextures', which is the texture from the pool,
+          and returns the specified one or a new one with any taken data.
+ */
 Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
                                                            QRhiResourceUpdateBatch &rub,
                                                            QVideoFrameTexturesUPtr oldTextures);
