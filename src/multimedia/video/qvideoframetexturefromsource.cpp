@@ -7,8 +7,7 @@ QT_BEGIN_NAMESPACE
 
 using namespace QVideoTextureHelper;
 
-QVideoFrameTexturesFromRhiTextureArray::QVideoFrameTexturesFromRhiTextureArray(
-        RhiTextureArray &&rhiTextures)
+QVideoFrameTexturesFromRhiTextureArray::QVideoFrameTexturesFromRhiTextureArray(RhiTextureArray &&rhiTextures)
     : m_rhiTextures(std::move(rhiTextures))
 {
 }
@@ -21,12 +20,10 @@ QRhiTexture *QVideoFrameTexturesFromRhiTextureArray::texture(uint plane) const
     return plane < m_rhiTextures.size() ? m_rhiTextures[plane].get() : nullptr;
 }
 
-QVideoFrameTexturesFromMemory::QVideoFrameTexturesFromMemory(RhiTextureArray &&rhiTextures,
-                                                             QVideoFrame mappedFrame)
-    : QVideoFrameTexturesFromRhiTextureArray(std::move(rhiTextures)),
-      m_mappedFrame(std::move(mappedFrame))
-{
-    Q_ASSERT(!m_mappedFrame.isValid() || m_mappedFrame.isReadable());
+void QVideoFrameTexturesFromMemory::setMappedFrame(QVideoFrame mappedFrame) {
+    Q_ASSERT(!mappedFrame.isValid() || mappedFrame.isReadable());
+    m_mappedFrame.unmap();
+    m_mappedFrame = std::move(mappedFrame);
 }
 
 // We keep the source frame mapped until QRhi::endFrame is invoked.
@@ -41,8 +38,7 @@ void QVideoFrameTexturesFromMemory::onFrameEndInvoked()
 {
     // After invoking QRhi::endFrame, the texture is loaded, and we don't need to
     // to store the source mapped frame anymore
-    m_mappedFrame.unmap();
-    m_mappedFrame = {};
+    setMappedFrame({});
     setSourceFrame({});
 }
 

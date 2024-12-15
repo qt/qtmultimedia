@@ -29,13 +29,13 @@ using RhiTextureArray = std::array<std::unique_ptr<QRhiTexture>, TextureDescript
 class QVideoFrameTexturesFromRhiTextureArray : public QVideoFrameTextures
 {
 public:
-    QVideoFrameTexturesFromRhiTextureArray(RhiTextureArray &&rhiTextures);
+    QVideoFrameTexturesFromRhiTextureArray(RhiTextureArray &&rhiTextures = {});
 
     ~QVideoFrameTexturesFromRhiTextureArray() override;
 
     QRhiTexture *texture(uint plane) const override;
 
-    RhiTextureArray takeRhiTextures() { return std::move(m_rhiTextures); }
+    RhiTextureArray &textureArray() { return m_rhiTextures; }
 
 private:
     RhiTextureArray m_rhiTextures;
@@ -44,7 +44,9 @@ private:
 class QVideoFrameTexturesFromMemory : public QVideoFrameTexturesFromRhiTextureArray
 {
 public:
-    QVideoFrameTexturesFromMemory(RhiTextureArray &&rhiTextures, QVideoFrame mappedFrame);
+    using QVideoFrameTexturesFromRhiTextureArray::QVideoFrameTexturesFromRhiTextureArray;
+
+    void setMappedFrame(QVideoFrame mappedFrame);
 
     ~QVideoFrameTexturesFromMemory() override;
 
