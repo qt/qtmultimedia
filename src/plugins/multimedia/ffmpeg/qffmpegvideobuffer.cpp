@@ -206,17 +206,27 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTe
     if (!converter || converter->isNull())
         return {};
 
-    QVideoFrameTexturesHandlesUPtr textures = converter->createTextureHandles(
-            *m_hwFrame, oldTextures ? oldTextures->takeHandles() : nullptr);
-    if (!textures) {
-        static thread_local int lastFormat = 0;
-        if (std::exchange(lastFormat, m_hwFrame->format) != m_hwFrame->format) // prevent logging spam
-            qWarning() << "    failed to get textures for frame; format:" << m_hwFrame->format;
-        return {};
-    }
+    const QVideoFrameTextures *oldTexturesRaw = oldTextures.get();
+    if (QVideoFrameTexturesUPtr newTextures = converter->createTextures(*m_hwFrame, oldTextures))
+        return newTextures;
 
-    return QVideoTextureHelper::createTexturesFromHandles(std::move(textures), rhi, m_pixelFormat,
-                                                          { m_hwFrame->width, m_hwFrame->height });
+    Q_ASSERT(oldTextures.get() == oldTexturesRaw);
+
+    QVideoFrameTexturesHandlesUPtr oldTextureHandles =
+            oldTextures ? oldTextures->takeHandles() : nullptr;
+    QVideoFrameTexturesHandlesUPtr newTextureHandles =
+            converter->createTextureHandles(*m_hwFrame, std::move(oldTextureHandles));
+
+    if (newTextureHandles)
+        return QVideoTextureHelper::createTexturesFromHandles(
+                std::move(newTextureHandles), rhi, m_pixelFormat,
+                { m_hwFrame->width, m_hwFrame->height });
+
+    static thread_local int lastFormat = 0;
+    if (std::exchange(lastFormat, m_hwFrame->format) != m_hwFrame->format) // prevent logging spam
+        qWarning() << "    failed to get textures for frame; format:" << m_hwFrame->format;
+
+    return {};
 }
 
 QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::pixelFormat() const

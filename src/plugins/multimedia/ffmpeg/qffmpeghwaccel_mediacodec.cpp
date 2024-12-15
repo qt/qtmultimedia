@@ -84,6 +84,16 @@ void MediaCodecTextureConverter::setupDecoderSurface(AVCodecContext *avCodecCont
     deviceContext->free = deleteSurface;
 }
 
+QVideoFrameTexturesUPtr
+MediaCodecTextureConverter::createTextures(AVFrame * /*frame*/,
+                                           QVideoFrameTexturesUPtr & /*oldTextures*/)
+{
+    // Most likely, this method should be used instead of createTextureHandles, QRhiTexture is
+    // already created, and we don't need to convert it to handle and back. This work should be done
+    // in the scope of QTBUG-132174
+    return nullptr;
+}
+
 QVideoFrameTexturesHandlesUPtr
 MediaCodecTextureConverter::createTextureHandles(AVFrame *frame,
                                                  QVideoFrameTexturesHandlesUPtr /*oldHandles*/)

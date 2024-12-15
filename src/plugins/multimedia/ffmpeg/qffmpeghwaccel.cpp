@@ -440,6 +440,16 @@ AVHWFramesContext *HWAccel::hwFramesContext() const
 
 TextureConverter::TextureConverter(QRhi &rhi) : m_rhi(rhi) { }
 
+QVideoFrameTexturesUPtr TextureConverter::createTextures(AVFrame &frame,
+                                                         QVideoFrameTexturesUPtr &oldTextures)
+{
+    if (isNull())
+        return nullptr;
+
+    Q_ASSERT(frame.format == m_format);
+    return m_backend->createTextures(&frame, oldTextures);
+}
+
 QVideoFrameTexturesHandlesUPtr
 TextureConverter::createTextureHandles(AVFrame &frame, QVideoFrameTexturesHandlesUPtr oldHandles)
 {
