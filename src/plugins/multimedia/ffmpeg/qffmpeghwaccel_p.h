@@ -40,10 +40,16 @@ class HWAccel;
 class TextureConverterBackend : public std::enable_shared_from_this<TextureConverterBackend>
 {
 public:
-    TextureConverterBackend(QRhi *rhi)
-        : rhi(rhi)
-    {}
-    virtual ~TextureConverterBackend() {}
+    TextureConverterBackend(QRhi *rhi) : rhi(rhi) { }
+
+    virtual ~TextureConverterBackend() = default;
+
+    virtual QVideoFrameTexturesUPtr createTextures(AVFrame * /*frame*/,
+                                                   QVideoFrameTexturesUPtr & /*oldTextures*/)
+    {
+        return nullptr;
+    }
+
     virtual QVideoFrameTexturesHandlesUPtr
     createTextureHandles(AVFrame * /*frame*/, QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
     {
@@ -65,8 +71,12 @@ public:
         if (fmt != m_format)
             updateBackend(fmt);
     }
-    QVideoFrameTexturesHandlesUPtr
-    createTextureHandles(AVFrame &frame, QVideoFrameTexturesHandlesUPtr /*oldHandles*/);
+
+    QVideoFrameTexturesUPtr createTextures(AVFrame &frame, QVideoFrameTexturesUPtr &oldTextures);
+
+    QVideoFrameTexturesHandlesUPtr createTextureHandles(AVFrame &frame,
+                                                        QVideoFrameTexturesHandlesUPtr oldHandles);
+
     bool isNull() const { return !m_backend || !m_backend->rhi; }
 
 private:

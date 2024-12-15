@@ -25,6 +25,10 @@ class MediaCodecTextureConverter : public TextureConverterBackend
 {
 public:
     MediaCodecTextureConverter(QRhi *rhi) : TextureConverterBackend(rhi){};
+
+    QVideoFrameTexturesUPtr createTextures(AVFrame *frame,
+                                           QVideoFrameTexturesUPtr &oldTextures) override;
+
     QVideoFrameTexturesHandlesUPtr
     createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr oldHandles) override;
 
