@@ -749,15 +749,6 @@ static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi 
                                                         QRhiResourceUpdateBatch &rub,
                                                         QVideoFrameTexturesUPtr &oldTextures)
 {
-    const TextureDescription &texDesc = descriptions[frame.surfaceFormat().pixelFormat()];
-    RhiTextureArray rhiTextures;
-    auto oldTextureFromMemory = dynamic_cast<QVideoFrameTexturesFromMemory *>(oldTextures.get());
-    if (oldTextureFromMemory) {
-        // TODO: instead of extracting the array and creating a new object,
-        // oldTextures might be reused and returned
-        rhiTextures = oldTextureFromMemory->takeRhiTextures();
-    }
-
     if (!frame.map(QVideoFrame::ReadOnly)) {
         qWarning() << "Cannot map a video frame in ReadOnly mode!";
         return {};
@@ -765,9 +756,18 @@ static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi 
 
     auto unmapFrameGuard = qScopeGuard([&frame] { frame.unmap(); });
 
+    const TextureDescription &texDesc = descriptions[frame.surfaceFormat().pixelFormat()];
+
+    const bool canReuseTextures(dynamic_cast<QVideoFrameTexturesFromMemory*>(oldTextures.get()));
+
+    std::unique_ptr<QVideoFrameTexturesFromMemory> textures(canReuseTextures ?
+                static_cast<QVideoFrameTexturesFromMemory *>(oldTextures.release()) :
+                new QVideoFrameTexturesFromMemory);
+
+    RhiTextureArray& textureArray = textures->textureArray();
     bool shouldKeepMapping = false;
     for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {
-        const auto result = updateTextureWithMap(frame, rhi, rub, plane, rhiTextures[plane]);
+        const auto result = updateTextureWithMap(frame, rhi, rub, plane, textureArray[plane]);
         if (result == UpdateTextureWithMapResult::Failed)
             return {};
 
@@ -776,8 +776,9 @@ static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi 
     }
 
     // as QVideoFrame::unmap does nothing with null frames, we just move the frame to the result
-    return std::make_unique<QVideoFrameTexturesFromMemory>(
-            std::move(rhiTextures), shouldKeepMapping ? std::move(frame) : QVideoFrame());
+    textures->setMappedFrame(shouldKeepMapping ? std::move(frame) : QVideoFrame());
+
+    return textures;
 }
 
 QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
