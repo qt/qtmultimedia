@@ -29,15 +29,11 @@ using RhiTextureArray = std::array<std::unique_ptr<QRhiTexture>, TextureDescript
 class QVideoFrameTexturesFromRhiTextureArray : public QVideoFrameTextures
 {
 public:
-    QVideoFrameTexturesFromRhiTextureArray(RhiTextureArray &&rhiTextures)
-        : m_rhiTextures(std::move(rhiTextures))
-    {
-    }
+    QVideoFrameTexturesFromRhiTextureArray(RhiTextureArray &&rhiTextures);
 
-    QRhiTexture *texture(uint plane) const override
-    {
-        return plane < m_rhiTextures.size() ? m_rhiTextures[plane].get() : nullptr;
-    }
+    ~QVideoFrameTexturesFromRhiTextureArray() override;
+
+    QRhiTexture *texture(uint plane) const override;
 
     RhiTextureArray takeRhiTextures() { return std::move(m_rhiTextures); }
 
@@ -48,26 +44,11 @@ private:
 class QVideoFrameTexturesFromMemory : public QVideoFrameTexturesFromRhiTextureArray
 {
 public:
-    QVideoFrameTexturesFromMemory(RhiTextureArray &&rhiTextures, QVideoFrame mappedFrame)
-        : QVideoFrameTexturesFromRhiTextureArray(std::move(rhiTextures)),
-          m_mappedFrame(std::move(mappedFrame))
-    {
-        Q_ASSERT(!m_mappedFrame.isValid() || m_mappedFrame.isReadable());
-    }
+    QVideoFrameTexturesFromMemory(RhiTextureArray &&rhiTextures, QVideoFrame mappedFrame);
 
-    // We keep the source frame mapped until QRhi::endFrame is invoked.
-    // QRhi::endFrame ensures that the mapped frame's memory has been loaded into the texture.
-    // See QTBUG-123174 for bug's details.
-    ~QVideoFrameTexturesFromMemory() { m_mappedFrame.unmap(); }
+    ~QVideoFrameTexturesFromMemory() override;
 
-    void onFrameEndInvoked() override
-    {
-        // After invoking QRhi::endFrame, the texture is loaded, and we don't need to
-        // to store the source mapped frame anymore
-        m_mappedFrame.unmap();
-        m_mappedFrame = {};
-        setSourceFrame({});
-    }
+    void onFrameEndInvoked() override;
 
 private:
     QVideoFrame m_mappedFrame;
@@ -77,11 +58,9 @@ class QVideoFrameTexturesFromHandlesSet : public QVideoFrameTexturesFromRhiTextu
 {
 public:
     QVideoFrameTexturesFromHandlesSet(RhiTextureArray &&rhiTextures,
-                                      QVideoFrameTexturesHandlesUPtr handles)
-        : QVideoFrameTexturesFromRhiTextureArray(std::move(rhiTextures)),
-          m_textureHandles(std::move(handles))
-    {
-    }
+                                      QVideoFrameTexturesHandlesUPtr handles);
+
+    ~QVideoFrameTexturesFromHandlesSet() override;
 
     QVideoFrameTexturesHandlesUPtr takeHandles() override { return std::move(m_textureHandles); }
 
