@@ -6,6 +6,7 @@
 #include "private/qmultimediautils_p.h"
 #include "qffmpeghwaccel_p.h"
 #include "qloggingcategory.h"
+#include <QtCore/qthread.h>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -77,8 +78,16 @@ void QFFmpegVideoBuffer::convertSWFrame()
 
 void QFFmpegVideoBuffer::initTextureConverter(QRhi &rhi)
 {
-    if (m_hwFrame)
-        ensureTextureConverter(rhi);
+    if (!m_hwFrame)
+        return;
+
+    // don't use the result reference here
+    ensureTextureConverter(rhi);
+
+    // the type is to be clarified in the method mapTextures
+    m_type = m_hwFrame && TextureConverter::isBackendAvailable(*m_hwFrame)
+            ? QVideoFrame::RhiTextureHandle
+            : QVideoFrame::NoHandle;
 }
 
 QFFmpeg::TextureConverter &QFFmpegVideoBuffer::ensureTextureConverter(QRhi &rhi)
@@ -86,21 +95,19 @@ QFFmpeg::TextureConverter &QFFmpegVideoBuffer::ensureTextureConverter(QRhi &rhi)
     Q_ASSERT(m_hwFrame);
 
     HwFrameContextData &frameContextData = HwFrameContextData::ensure(*m_hwFrame);
-    QFFmpeg::TextureConverter *converter = frameContextData.textureConverterMapper.get(rhi);
+    TextureConverter *converter = frameContextData.textureConverterMapper.get(rhi);
 
     if (!converter) {
-        QFFmpeg::TextureConverter newConverter(rhi);
-        newConverter.init(*m_hwFrame); // TOOD: move to mapTextures to init in the rhi's thread
+        TextureConverter newConverter(rhi);
 
         bool added = false;
         std::tie(converter, added) =
-                frameContextData.textureConverterMapper.tryMap(rhi, std::move(newConverter));
-        // no issues are expected if it's already added in another thread, however, it's worth to
+                frameContextData.textureConverterMapper.tryMap(rhi, TextureConverter(rhi));
+        // no issues are expected if it's already added in another thread, however,it's worth to
         // check it
         Q_ASSERT(converter && added);
     }
 
-    m_type = converter->isNull() ? QVideoFrame::NoHandle : QVideoFrame::RhiTextureHandle;
     return *converter;
 }
 
@@ -189,6 +196,17 @@ void QFFmpegVideoBuffer::unmap()
 
 QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& oldTextures)
 {
+    Q_ASSERT(rhi.thread()->isCurrentThread());
+
+    QVideoFrameTexturesUPtr result = createTexturesFromHwFrame(rhi, oldTextures);
+
+    // update m_type according to the real result
+    m_type = result ? QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle;
+    return result;
+}
+
+QVideoFrameTexturesUPtr QFFmpegVideoBuffer::createTexturesFromHwFrame(QRhi &rhi, QVideoFrameTexturesUPtr& oldTextures) {
+
     if (!m_hwFrame)
         return {};
 
@@ -203,7 +221,10 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTe
             ? &ensureTextureConverter(rhi)
             : HwFrameContextData::ensure(*m_hwFrame).textureConverterMapper.get(rhi);
 
-    if (!converter || converter->isNull())
+    if (!converter)
+        return {};
+
+    if (!converter->init(*m_hwFrame))
         return {};
 
     const QVideoFrameTextures *oldTexturesRaw = oldTextures.get();
@@ -217,10 +238,13 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTe
     QVideoFrameTexturesHandlesUPtr newTextureHandles =
             converter->createTextureHandles(*m_hwFrame, std::move(oldTextureHandles));
 
-    if (newTextureHandles)
-        return QVideoTextureHelper::createTexturesFromHandles(
+    if (newTextureHandles) {
+        QVideoFrameTexturesUPtr newTextures = QVideoTextureHelper::createTexturesFromHandles(
                 std::move(newTextureHandles), rhi, m_pixelFormat,
                 { m_hwFrame->width, m_hwFrame->height });
+
+        return newTextures;
+    }
 
     static thread_local int lastFormat = 0;
     if (std::exchange(lastFormat, m_hwFrame->format) != m_hwFrame->format) // prevent logging spam

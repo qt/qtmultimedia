@@ -77,10 +77,13 @@ public:
 
     /**
      * @brief Initializes the instance of the texture converter for the frame context
-     *        associated with the specified frame.
-     *        TODO: this method can be merged into the constructor or to texture creators.
+     *        associated with the specified frame. The method tries to initialize
+     *        the conversion backend during the first call with the specified frame format.
+     *        If frame format is not changed, the method does nothing even if the first
+     *        attempt failed.
+     * @return Whether the instance has been initialized.
      */
-    void init(AVFrame &hwFrame);
+    bool init(AVFrame &hwFrame);
 
     /**
      * @brief Creates video frame textures basing on the current hw frame and the previous textures
@@ -112,6 +115,14 @@ public:
      * @brief Indicates whether hw texture conversion is enabled for the application.
      */
     static bool hwTextureConversionEnabled();
+
+    /**
+     * @brief Indicates whether the matching textute converter backend can be created.
+     *        If isBackendAvailable returns false, instances cannot be initialized with
+     *        the specified frame. If it returns true, init will attempt to create backend,
+     *        but it may fail if something goes wrong in the backend.
+     */
+    static bool isBackendAvailable(AVFrame &hwFrame);
 
 private:
     void updateBackend(AVPixelFormat format);

@@ -5,6 +5,8 @@
 #include "qffmpeghwaccel_p.h"
 #include <rhi/qrhi.h>
 
+#include <q20type_traits.h>
+
 #if QT_CONFIG(vaapi)
 #  include "qffmpeghwaccel_vaapi_p.h"
 #endif
@@ -25,16 +27,57 @@ QT_BEGIN_NAMESPACE
 
 using namespace QFFmpeg;
 
+namespace {
+
+template <typename Converter>
+using ConverterTypeIdentity = q20::type_identity<Converter>;
+
+template <typename ConverterTypeHandler>
+void applyConverterTypeByPixelFormat(AVPixelFormat fmt, ConverterTypeHandler &&handler)
+{
+    if (!TextureConverter::hwTextureConversionEnabled())
+        return;
+
+    switch (fmt) {
+#if QT_CONFIG(vaapi)
+    case AV_PIX_FMT_VAAPI:
+        handler(ConverterTypeIdentity<VAAPITextureConverter>{});
+        break;
+#endif
+#ifdef Q_OS_DARWIN
+    case AV_PIX_FMT_VIDEOTOOLBOX:
+        handler(ConverterTypeIdentity<VideoToolBoxTextureConverter>{});
+        break;
+#endif
+#if QT_CONFIG(wmf)
+    case AV_PIX_FMT_D3D11:
+        handler(ConverterTypeIdentity<D3D11TextureConverter>{});
+        break;
+#endif
+#ifdef Q_OS_ANDROID
+    case AV_PIX_FMT_MEDIACODEC:
+        handler(ConverterTypeIdentity<MediaCodecTextureConverter>{});
+        break;
+#endif
+    default:
+        Q_UNUSED(handler)
+        break;
+    }
+}
+
+} // namespace
+
 TextureConverterBackend::~TextureConverterBackend() = default;
 
 TextureConverter::TextureConverter(QRhi &rhi) : m_rhi(rhi) { }
 
-void TextureConverter::init(AVFrame &hwFrame)
+bool TextureConverter::init(AVFrame &hwFrame)
 {
     Q_ASSERT(hwFrame.hw_frames_ctx);
     AVPixelFormat fmt = AVPixelFormat(hwFrame.format);
     if (fmt != m_format)
         updateBackend(fmt);
+    return !isNull();
 }
 
 QVideoFrameTexturesUPtr TextureConverter::createTextures(AVFrame &hwFrame,
@@ -60,35 +103,12 @@ TextureConverter::createTextureHandles(AVFrame &hwFrame, QVideoFrameTexturesHand
 void TextureConverter::updateBackend(AVPixelFormat fmt)
 {
     m_backend = nullptr;
-    m_format = fmt; // init on the top; should be saved even if m_backend is not created
+    m_format = fmt; // should be saved even if m_backend is not created
 
-    if (!hwTextureConversionEnabled())
-        return;
-
-    switch (fmt) {
-#if QT_CONFIG(vaapi)
-    case AV_PIX_FMT_VAAPI:
-        m_backend = std::make_shared<VAAPITextureConverter>(&m_rhi);
-        break;
-#endif
-#ifdef Q_OS_DARWIN
-    case AV_PIX_FMT_VIDEOTOOLBOX:
-        m_backend = std::make_shared<VideoToolBoxTextureConverter>(&m_rhi);
-        break;
-#endif
-#if QT_CONFIG(wmf)
-    case AV_PIX_FMT_D3D11:
-        m_backend = std::make_shared<D3D11TextureConverter>(&m_rhi);
-        break;
-#endif
-#ifdef Q_OS_ANDROID
-    case AV_PIX_FMT_MEDIACODEC:
-        m_backend = std::make_shared<MediaCodecTextureConverter>(&m_rhi);
-        break;
-#endif
-    default:
-        break;
-    }
+    applyConverterTypeByPixelFormat(m_format, [this](auto converterTypeIdentity) {
+        using ConverterType = typename decltype(converterTypeIdentity)::type;
+        m_backend = std::make_shared<ConverterType>(&m_rhi);
+    });
 }
 
 bool TextureConverter::hwTextureConversionEnabled()
@@ -118,6 +138,15 @@ void TextureConverter::applyDecoderPreset(const AVPixelFormat format, AVCodecCon
     Q_UNUSED(codecContext);
     Q_UNUSED(format);
 #endif
+}
+
+bool TextureConverter::isBackendAvailable(AVFrame &hwFrame)
+{
+    bool result = false;
+    applyConverterTypeByPixelFormat(AVPixelFormat(hwFrame.format), [&result](auto) {
+        result = true;
+    });
+    return result;
 }
 
 QT_END_NAMESPACE
