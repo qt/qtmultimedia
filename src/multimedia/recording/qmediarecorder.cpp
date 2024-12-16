@@ -412,6 +412,7 @@ qint64 QMediaRecorder::duration() const
 #if QT_DEPRECATED_SINCE(6, 9)
 /*!
     \fn void QMediaRecorder::encoderSettingsChanged()
+    \deprecated [6.9] Use specific signals instead.
 
     Signals when the encoder settings change.
 */
