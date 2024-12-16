@@ -128,7 +128,7 @@ Item {
         This property determines the angle, in degrees, at which the displayed video
         is rotated clockwise in video coordinates, where the Y-axis points
         downwards on the display.
-        The orientation transformation is applied before \l mirorred.
+        The orientation transformation is applied before \l mirrored.
 
         Only multiples of \c 90 degrees are supported, that is 0, 90, -90, 180, 270, etc.,
         otherwise, the specified value is ignored.

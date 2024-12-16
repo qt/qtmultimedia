@@ -193,7 +193,7 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 
     Setting the location can fail, for example when the service supports only
     local file system locations but a network URL was passed. If the operation
-    fails an \l errorOccured() signal is emitted.
+    fails, the \l errorOccurred() signal is emitted.
 
     The output location can be empty, a directory, or a file. The path to a
     directory or file can be relative or absolute. The \l record() method
@@ -210,7 +210,7 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 
     Setting the location can fail, for example when the service supports only
     local file system locations but a network URL was passed. If the operation
-    fails, the \l errorOccured() signal is emitted.
+    fails, the \l errorOccurred() signal is emitted.
 
     The output location is ignored if a writable \l outputDevice
     has been assigned to the recorder.
