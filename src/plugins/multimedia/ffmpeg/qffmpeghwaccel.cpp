@@ -4,32 +4,25 @@
 #include "libavutil/version.h"
 
 #include "qffmpeghwaccel_p.h"
-#if QT_CONFIG(vaapi)
-#include "qffmpeghwaccel_vaapi_p.h"
-#endif
-#ifdef Q_OS_DARWIN
-#include "qffmpeghwaccel_videotoolbox_p.h"
-#endif
-#if QT_CONFIG(wmf)
-#include "qffmpeghwaccel_d3d11_p.h"
-#include <QtCore/private/qsystemlibrary_p.h>
 
+#if QT_CONFIG(wmf)
+#  include "qffmpeghwaccel_d3d11_p.h"
+#  include <QtCore/private/qsystemlibrary_p.h>
 #endif
-#ifdef Q_OS_ANDROID
-#    include "qffmpeghwaccel_mediacodec_p.h"
-#endif
+
 #include "qffmpeg_p.h"
 #include "qffmpegcodecstorage_p.h"
 #include "qffmpegvideobuffer_p.h"
 #include "qscopedvaluerollback.h"
-#include "QtCore/qfile.h"
+
+#ifdef Q_OS_LINUX
+#  include "QtCore/qfile.h"
+#  include <QLibrary>
+#endif
 
 #include <rhi/qrhi.h>
 #include <qloggingcategory.h>
 #include <unordered_set>
-#ifdef Q_OS_LINUX
-#include <QLibrary>
-#endif
 
 /* Infrastructure for HW acceleration goes into this file. */
 
@@ -238,38 +231,6 @@ static bool isNoConversionFormat(AVPixelFormat f)
     return !needsConversion;
 };
 
-namespace {
-
-bool hwTextureConversionEnabled()
-{
-
-    // HW textures conversions are not stable in specific cases, dependent on the hardware and OS.
-    // We need the env var for testing with no textures conversion on the user's side.
-    static const int disableHwConversion =
-            qEnvironmentVariableIntValue("QT_DISABLE_HW_TEXTURES_CONVERSION");
-
-    return !disableHwConversion;
-}
-
-void setupDecoder(const AVPixelFormat format, AVCodecContext *const codecContext)
-{
-    if (!hwTextureConversionEnabled())
-        return;
-
-#if QT_CONFIG(wmf)
-    if (format == AV_PIX_FMT_D3D11)
-        QFFmpeg::D3D11TextureConverter::SetupDecoderTextures(codecContext);
-#elif defined Q_OS_ANDROID
-    if (format == AV_PIX_FMT_MEDIACODEC)
-        QFFmpeg::MediaCodecTextureConverter::setupDecoderSurface(codecContext);
-#else
-    Q_UNUSED(codecContext);
-    Q_UNUSED(format);
-#endif
-}
-
-} // namespace
-
 // Used for the AVCodecContext::get_format callback
 AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
 {
@@ -320,7 +281,7 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
 
         const auto format = formatAndScore.value;
         if (format) {
-            setupDecoder(*format, codecContext);
+            TextureConverter::applyDecoderPreset(*format, *codecContext);
             qCDebug(qLHWAccel) << "Selected format" << *format << "for hw" << device_ctx->type;
             return *format;
         }
@@ -436,62 +397,6 @@ void HWAccel::createFramesContext(AVPixelFormat swFormat, const QSize &size)
 AVHWFramesContext *HWAccel::hwFramesContext() const
 {
     return m_hwFramesContext ? (AVHWFramesContext *)m_hwFramesContext->data : nullptr;
-}
-
-TextureConverter::TextureConverter(QRhi &rhi) : m_rhi(rhi) { }
-
-QVideoFrameTexturesUPtr TextureConverter::createTextures(AVFrame &frame,
-                                                         QVideoFrameTexturesUPtr &oldTextures)
-{
-    if (isNull())
-        return nullptr;
-
-    Q_ASSERT(frame.format == m_format);
-    return m_backend->createTextures(&frame, oldTextures);
-}
-
-QVideoFrameTexturesHandlesUPtr
-TextureConverter::createTextureHandles(AVFrame &frame, QVideoFrameTexturesHandlesUPtr oldHandles)
-{
-    if (isNull())
-        return nullptr;
-
-    Q_ASSERT(frame.format == m_format);
-    return m_backend->createTextureHandles(&frame, std::move(oldHandles));
-}
-
-void TextureConverter::updateBackend(AVPixelFormat fmt)
-{
-    m_backend = nullptr;
-    m_format = fmt;
-
-    if (!hwTextureConversionEnabled())
-        return;
-
-    switch (fmt) {
-#if QT_CONFIG(vaapi)
-    case AV_PIX_FMT_VAAPI:
-        m_backend = std::make_shared<VAAPITextureConverter>(&m_rhi);
-        break;
-#endif
-#ifdef Q_OS_DARWIN
-    case AV_PIX_FMT_VIDEOTOOLBOX:
-        m_backend = std::make_shared<VideoToolBoxTextureConverter>(&m_rhi);
-        break;
-#endif
-#if QT_CONFIG(wmf)
-    case AV_PIX_FMT_D3D11:
-        m_backend = std::make_shared<D3D11TextureConverter>(&m_rhi);
-        break;
-#endif
-#ifdef Q_OS_ANDROID
-    case AV_PIX_FMT_MEDIACODEC:
-        m_backend = std::make_shared<MediaCodecTextureConverter>(&m_rhi);
-        break;
-#endif
-    default:
-        break;
-    }
 }
 
 static void deleteHwFrameContextData(AVHWFramesContext *context)

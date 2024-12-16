@@ -25,6 +25,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegcodec.cpp qffmpegcodec_p.h
         qffmpegconverter.cpp qffmpegconverter_p.h
         qffmpeghwaccel.cpp qffmpeghwaccel_p.h
+        qffmpegtextureconverter.cpp qffmpegtextureconverter_p.h
         qffmpegmediametadata.cpp qffmpegmediametadata_p.h
         qffmpegmediaplayer.cpp qffmpegmediaplayer_p.h
         qffmpegvideosink.cpp qffmpegvideosink_p.h

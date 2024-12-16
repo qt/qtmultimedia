@@ -15,6 +15,7 @@
 //
 
 #include "qffmpeg_p.h"
+#include "qffmpegtextureconverter_p.h"
 #include "qvideoframeformat.h"
 #include "private/qhwvideobuffer_p.h"
 #include "private/qrhivaluemapper_p.h"
@@ -36,56 +37,6 @@ namespace QFFmpeg {
 AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt);
 
 class HWAccel;
-
-class TextureConverterBackend : public std::enable_shared_from_this<TextureConverterBackend>
-{
-public:
-    TextureConverterBackend(QRhi *rhi) : rhi(rhi) { }
-
-    virtual ~TextureConverterBackend() = default;
-
-    virtual QVideoFrameTexturesUPtr createTextures(AVFrame * /*frame*/,
-                                                   QVideoFrameTexturesUPtr & /*oldTextures*/)
-    {
-        return nullptr;
-    }
-
-    virtual QVideoFrameTexturesHandlesUPtr
-    createTextureHandles(AVFrame * /*frame*/, QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
-    {
-        return nullptr;
-    }
-
-    QRhi *rhi = nullptr;
-};
-using TextureConverterBackendPtr = std::shared_ptr<TextureConverterBackend>;
-
-class TextureConverter
-{
-public:
-    TextureConverter(QRhi &rhi);
-
-    void init(AVFrame &frame)
-    {
-        AVPixelFormat fmt = AVPixelFormat(frame.format);
-        if (fmt != m_format)
-            updateBackend(fmt);
-    }
-
-    QVideoFrameTexturesUPtr createTextures(AVFrame &frame, QVideoFrameTexturesUPtr &oldTextures);
-
-    QVideoFrameTexturesHandlesUPtr createTextureHandles(AVFrame &frame,
-                                                        QVideoFrameTexturesHandlesUPtr oldHandles);
-
-    bool isNull() const { return !m_backend || !m_backend->rhi; }
-
-private:
-    void updateBackend(AVPixelFormat format);
-
-    QRhi &m_rhi;
-    AVPixelFormat m_format = AV_PIX_FMT_NONE;
-    TextureConverterBackendPtr m_backend;
-};
 
 class HWAccel;
 using HWAccelUPtr = std::unique_ptr<HWAccel>;
