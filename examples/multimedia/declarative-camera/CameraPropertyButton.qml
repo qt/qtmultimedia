@@ -91,6 +91,7 @@ Item {
             AnchorChanges {
                 target: popup
                 anchors.bottom: parent.top;
+                anchors.left: parent.left;
             }
         },
         State {
