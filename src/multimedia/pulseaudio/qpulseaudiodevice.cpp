@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qpulseaudiodevice_p.h"
-#include "qaudioengine_pulse_p.h"
-#include "qpulsehelpers_p.h"
 
 QT_BEGIN_NAMESPACE
 
