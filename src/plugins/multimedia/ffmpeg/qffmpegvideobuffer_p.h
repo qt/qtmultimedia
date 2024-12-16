@@ -34,7 +34,7 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
-    QVideoFrameTexturesUPtr mapTextures(QRhi &, QVideoFrameTexturesUPtr& /*oldTextures*/) override;
+    QVideoFrameTexturesUPtr mapTextures(QRhi &, QVideoFrameTexturesUPtr& oldTextures) override;
 
     QVideoFrameFormat::PixelFormat pixelFormat() const;
     QSize size() const;
@@ -57,7 +57,10 @@ public:
     float maxNits();
 
 private:
+    // The result texture converter must be accessed from the rhi's thread
     QFFmpeg::TextureConverter &ensureTextureConverter(QRhi &rhi);
+
+    QVideoFrameTexturesUPtr createTexturesFromHwFrame(QRhi &, QVideoFrameTexturesUPtr& oldTextures);
 
 private:
     QVideoFrameFormat::PixelFormat m_pixelFormat;
