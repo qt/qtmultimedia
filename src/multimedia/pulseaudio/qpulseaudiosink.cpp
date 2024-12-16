@@ -18,8 +18,6 @@ QT_BEGIN_NAMESPACE
 static constexpr uint SinkPeriodTimeMs = 20;
 static constexpr uint DefaultBufferLengthMs = 100;
 
-#define LOW_LATENCY_CATEGORY_NAME "game"
-
 static void outputStreamWriteCallback(pa_stream *stream, size_t length, void *userdata)
 {
     Q_UNUSED(stream);
