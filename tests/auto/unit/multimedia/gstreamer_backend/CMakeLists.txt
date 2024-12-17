@@ -17,4 +17,5 @@ qt_internal_add_test(tst_gstreamer_backend
     TESTDATA
         "metadata_test_file.mp4"
         "color_matrix_90_deg_clockwise.mp4"
+        "color_matrix_90_deg_clockwise.m2v"
 )

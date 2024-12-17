@@ -580,6 +580,17 @@ void tst_GStreamer::QGstDiscoverer_discoverMedia_withRotation()
              QtVideo::Rotation::Clockwise90);
 }
 
+void tst_GStreamer::QGstDiscoverer_filtersOutVideoStream_whenStreamIdIsNull()
+{
+    using namespace QGst;
+
+    QGstDiscoverer discoverer;
+    auto result = discoverer.discover(QUrl("qrc:/color_matrix_90_deg_clockwise.m2v"));
+
+    QCOMPARE_EQ(result->videoStreams.size(), 1u);
+    QVERIFY(!result->videoStreams[0].streamID.isNull());
+}
+
 QTEST_GUILESS_MAIN(tst_GStreamer)
 
 #include "moc_tst_gstreamer_backend.cpp"
