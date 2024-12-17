@@ -154,20 +154,27 @@ QGstDiscovererInfo parseGstDiscovererInfo(GstDiscovererInfo *info)
     GstDiscovererStreamInfoList<GstDiscovererVideoInfo> videoStreams{
         gst_discoverer_info_get_video_streams(info),
     };
-    for (GstDiscovererVideoInfo *videoInfo : videoStreams)
-        result.videoStreams.emplace_back(parseGstDiscovererVideoInfo(videoInfo));
-
+    for (GstDiscovererVideoInfo *videoInfo : videoStreams) {
+        QGstDiscovererVideoInfo item = parseGstDiscovererVideoInfo(videoInfo);
+        if (!item.streamID.isNull()) // Ignore stream info without stream ID
+            result.videoStreams.emplace_back(std::move(item));
+    }
     GstDiscovererStreamInfoList<GstDiscovererAudioInfo> audioStreams{
         gst_discoverer_info_get_audio_streams(info),
     };
-    for (GstDiscovererAudioInfo *audioInfo : audioStreams)
-        result.audioStreams.emplace_back(parseGstDiscovererAudioInfo(audioInfo));
-
+    for (GstDiscovererAudioInfo *audioInfo : audioStreams) {
+        QGstDiscovererAudioInfo item = parseGstDiscovererAudioInfo(audioInfo);
+        if (!item.streamID.isNull()) // Ignore stream info without stream ID
+            result.audioStreams.emplace_back(std::move(item));
+    }
     GstDiscovererStreamInfoList<GstDiscovererSubtitleInfo> subtitleStreams{
         gst_discoverer_info_get_subtitle_streams(info),
     };
-    for (GstDiscovererSubtitleInfo *subtitleInfo : subtitleStreams)
-        result.subtitleStreams.emplace_back(parseGstDiscovererSubtitleInfo(subtitleInfo));
+    for (GstDiscovererSubtitleInfo *subtitleInfo : subtitleStreams) {
+        QGstDiscovererSubtitleInfo item = parseGstDiscovererSubtitleInfo(subtitleInfo);
+        if (!item.streamID.isNull()) // Ignore stream info without stream ID
+            result.subtitleStreams.emplace_back(std::move(item));
+    }
 
     GstDiscovererStreamInfoList<GstDiscovererContainerInfo> containerStreams{
         gst_discoverer_info_get_container_streams(info),

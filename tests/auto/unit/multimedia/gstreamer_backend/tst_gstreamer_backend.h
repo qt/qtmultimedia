@@ -55,6 +55,7 @@ private slots:
     void QGstDiscoverer_discoverMedia_data();
 
     void QGstDiscoverer_discoverMedia_withRotation();
+    void QGstDiscoverer_filtersOutVideoStream_whenStreamIdIsNull();
 
 private:
     QGstreamerIntegration integration;
