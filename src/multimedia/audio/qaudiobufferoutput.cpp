@@ -18,7 +18,8 @@ QT_BEGIN_NAMESPACE
 
     QAudioBufferOutput can be set to QMediaPlayer in order to receive audio buffers
     decoded by the media player. The received audio data can be used for any
-    processing or visualization.
+    processing or visualization. An audio level meter implementation can be seen
+    in the widget based \l{Media Player Example}.
 
     QAudioBufferOutput is only supported with the FFmpeg backend.
 

@@ -23,6 +23,7 @@ qt_add_executable(player
     qmediaplaylist.cpp qmediaplaylist.h
     qmediaplaylist_p.cpp qmediaplaylist_p.h
     qplaylistfileparser.cpp qplaylistfileparser.h
+    audiolevelmeter.cpp audiolevelmeter.h
 )
 
 qt_add_ios_ffmpeg_libraries(player)

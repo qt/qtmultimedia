@@ -13,7 +13,8 @@ HEADERS = \
     videowidget.h \
     qmediaplaylist.h \
     qmediaplaylist_p.h \
-    qplaylistfileparser.h
+    qplaylistfileparser.h \
+    audiolevelmeter.h
 
 SOURCES = main.cpp \
     player.cpp \
@@ -22,7 +23,8 @@ SOURCES = main.cpp \
     videowidget.cpp \
     qmediaplaylist.cpp \
     qmediaplaylist_p.cpp \
-    qplaylistfileparser.cpp
+    qplaylistfileparser.cpp \
+    audiolevelmeter.cpp
 
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/player
 INSTALLS += target
