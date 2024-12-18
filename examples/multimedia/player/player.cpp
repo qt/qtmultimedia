@@ -6,6 +6,7 @@
 #include "playlistmodel.h"
 #include "qmediaplaylist.h"
 #include "videowidget.h"
+#include "audiolevelmeter.h"
 
 #include <QApplication>
 #include <QAudioDevice>
@@ -27,6 +28,7 @@
 #include <QStandardPaths>
 #include <QStatusBar>
 #include <QVBoxLayout>
+#include <QAudioBufferOutput>
 
 Player::Player(QWidget *parent) : QWidget(parent)
 {
@@ -56,12 +58,22 @@ Player::Player(QWidget *parent) : QWidget(parent)
     connect(m_playlist, &QMediaPlaylist::currentIndexChanged, this,
             &Player::playlistPositionChanged);
 
+    // audio level meter
+    m_audioBufferOutput = new QAudioBufferOutput(this);
+    m_player->setAudioBufferOutput(m_audioBufferOutput);
+    m_audioLevelMeter = new AudioLevelMeter(this);
+    connect(m_audioBufferOutput, &QAudioBufferOutput::audioBufferReceived,
+            m_audioLevelMeter, &AudioLevelMeter::onAudioBufferReceived);
+    connect(m_player, &QMediaPlayer::playingChanged,
+            m_audioLevelMeter, &AudioLevelMeter::deactivate);
+
     // player layout
     QBoxLayout *layout = new QVBoxLayout(this);
 
     // display
     QBoxLayout *displayLayout = new QHBoxLayout;
     displayLayout->addWidget(m_videoWidget, 2);
+    displayLayout->addWidget(m_audioLevelMeter, 3);
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     m_playlistView = new QListView();
     m_playlistView->setModel(m_playlistModel);

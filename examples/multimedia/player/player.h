@@ -21,9 +21,11 @@ class QComboBox;
 class QSlider;
 class QStatusBar;
 class QVideoWidget;
+class QAudioBufferOutput;
 QT_END_NAMESPACE
 
 class PlaylistModel;
+class AudioLevelMeter;
 
 class Player : public QWidget
 {
@@ -77,6 +79,8 @@ private:
 
     QMediaPlayer *m_player = nullptr;
     QAudioOutput *m_audioOutput = nullptr;
+    AudioLevelMeter *m_audioLevelMeter = nullptr;
+    QAudioBufferOutput *m_audioBufferOutput = nullptr;
     QMediaPlaylist *m_playlist = nullptr;
     QVideoWidget *m_videoWidget = nullptr;
     QSlider *m_slider = nullptr;

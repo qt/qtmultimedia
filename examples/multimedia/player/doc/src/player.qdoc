@@ -7,19 +7,25 @@
     \ingroup multimedia_examples
     \ingroup video_examples
     \examplecategory {Multimedia}
-    \brief Playing audio and video.
+    \brief Playing audio and video using Qt Widgets.
     \meta {tag} {widgets}
 
     \image mediaplayerex.jpg
 
     \e{Media Player} demonstrates a simple multimedia player that can play
-    audio and or video files using various codecs.
+    audio and video files using various codecs.
 
     \include examples-run.qdocinc
 
     The example uses a QMediaPlayer object passed into a QVideoWidget to
     control the video output. To give the application playlist capability
-    we also use a QPlayList object.
+    we also use a QMediaPlaylist object. QMediaPlaylist was removed from
+    our API in Qt 6, but its implementation is included in this example.
+
+    An audio level meter shows peak and RMS levels during playback.
+    This is implemented by setting a QAudioBufferOutput to QMediaPlayer,
+    processing each QAudioBuffer it emits on a separate thread and
+    visualising the values through QWidget::paintEvent.
 
     To activate the various functions such as play and stop on the dialog,
     the button clicked events emit the play() and stop() signals, which
