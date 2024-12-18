@@ -9,6 +9,7 @@
 #include "qvideoframetexturefromsource_p.h"
 #include "private/qmultimediautils_p.h"
 
+#include <QtCore/qfile.h>
 #include <qpainter.h>
 #include <qloggingcategory.h>
 
@@ -404,6 +405,9 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *rhi,
         shaderFile.append(u"_linear");
 
     shaderFile.append(u".frag.qsb");
+
+    Q_ASSERT_X(QFile::exists(shaderFile), Q_FUNC_INFO,
+               QStringLiteral("Shader file %1 does not exist").arg(shaderFile).toLatin1());
     return shaderFile;
 }
 
