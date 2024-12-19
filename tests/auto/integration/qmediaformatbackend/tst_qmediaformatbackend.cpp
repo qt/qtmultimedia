@@ -967,6 +967,59 @@ private slots:
                             && videoFormat.isSupported(conversionMode));
     }
 
+    void resolveForEncoding_doesNotChangeFormat_whenFormatIsSupported_data()
+    {
+        QTest::addColumn<QMediaFormat>("format");
+        QTest::addColumn<const QMediaFormat::ResolveFlags>("resolveFlags");
+
+        for (const QMediaFormat &format : allMediaFormats(true)) {
+            const auto formatName = QMediaFormat::fileFormatName(format.fileFormat());
+            const auto audioCodecName = QMediaFormat::audioCodecName(format.audioCodec());
+            const auto videoCodecName = QMediaFormat::videoCodecName(format.videoCodec());
+
+            for (const auto resolveFlags : { QMediaFormat::NoFlags, QMediaFormat::RequiresVideo }) {
+                const auto flagName =
+                        resolveFlags == QMediaFormat::NoFlags ? "NoFlags" : "RequiresVideo";
+                QTest::addRow("%s,%s,%s,%s", formatName.toLatin1().data(),
+                              audioCodecName.toLatin1().data(), videoCodecName.toLatin1().data(),
+                              flagName)
+                        << format << resolveFlags;
+            }
+        }
+    }
+
+    void resolveForEncoding_doesNotChangeFormat_whenFormatIsSupported()
+    {
+        if (!isFFMPEGPlatform())
+            QSKIP("This test verifies only the FFmpeg media backend");
+
+        QFETCH(QMediaFormat, format);
+        QFETCH(const QMediaFormat::ResolveFlags, resolveFlags);
+
+        // resolveForEncoding should not do anything if the format is already
+        // supported and file format and required codecs are specified. Note
+        // in particular that resolveForEncoding will clear the video codec if
+        // the resolve flag does not specify that video is required.
+        bool resolveShouldDoNothing = format.isSupported(QMediaFormat::Encode)
+                && format.fileFormat() != QMediaFormat::UnspecifiedFormat
+                && format.audioCodec() != QMediaFormat::AudioCodec::Unspecified;
+
+        if (resolveFlags == QMediaFormat::RequiresVideo)
+            resolveShouldDoNothing = resolveShouldDoNothing
+                    && format.videoCodec() != QMediaFormat::VideoCodec::Unspecified;
+        else
+            resolveShouldDoNothing = resolveShouldDoNothing
+                    && format.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
+
+        QMediaFormat originalFormat = format;
+
+        format.resolveForEncoding(resolveFlags);
+        if (resolveShouldDoNothing)
+            QCOMPARE_EQ(format, originalFormat);
+        else
+            QCOMPARE_NE(format, originalFormat);
+    }
+
     void resolveForEncoding_givesSupportedFormat_whenCalledWithAllCodecs_data()
     {
         QTest::addColumn<QMediaFormat>("format");
