@@ -136,15 +136,6 @@ QGstElement QGstreamerAudioOutput::createGstElement()
         }
 
         qWarning() << "Cannot create" << defaultSinkName;
-    } else {
-        auto *deviceInfo = dynamic_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
-        if (deviceInfo && deviceInfo->gstDevice) {
-            QGstElement element = QGstElement::createFromDevice(deviceInfo->gstDevice, "audiosink");
-            if (!m_sinkIsAsync)
-                element.set("async", false);
-            if (element)
-                return element;
-        }
     }
     qCWarning(qLcMediaAudioOutput) << "Invalid audio device:" << m_audioDevice.id();
     qCWarning(qLcMediaAudioOutput)
