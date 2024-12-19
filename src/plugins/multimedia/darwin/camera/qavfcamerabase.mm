@@ -232,30 +232,35 @@ void QAVFVideoDevices::updateCameraDevices()
             if (![format.mediaType isEqualToString:AVMediaTypeVideo])
                 continue;
 
-            auto dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
+            const CMVideoDimensions dimensions =
+                CMVideoFormatDescriptionGetDimensions(format.formatDescription);
             QSize resolution(dimensions.width, dimensions.height);
             photoResolutions.insert(resolution);
 
             float maxFrameRate = 0;
             float minFrameRate = 1.e6;
 
-            auto encoding = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
+            const CvPixelFormat cvPixelFormat =
+                CMVideoFormatDescriptionGetCodecType(format.formatDescription);
 
             // Don't expose formats if the media backend says we can't start a capture session
             // with it.
-            if (!isCvPixelFormatSupported(encoding))
+            if (!isCvPixelFormatSupported(cvPixelFormat))
                 continue;
 
-            auto pixelFormat = QAVFHelpers::fromCVPixelFormat(encoding);
-            auto colorRange = QAVFHelpers::colorRangeForCVPixelFormat(encoding);
+            const QVideoFrameFormat::PixelFormat pixelFormat =
+                QAVFHelpers::fromCVPixelFormat(cvPixelFormat);
+            const QVideoFrameFormat::ColorRange colorRange =
+                QAVFHelpers::colorRangeForCVPixelFormat(cvPixelFormat);
+
             // Ignore pixel formats we can't handle
             if (pixelFormat == QVideoFrameFormat::Format_Invalid) {
-                qCDebug(qLcCamera) << "ignore camera CV format" << encoding
+                qCDebug(qLcCamera) << "ignore camera CV format" << cvPixelFormat
                                    << "as no matching video format found";
                 continue;
             }
 
-            for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
+            for (const AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
                 if (frameRateRange.minFrameRate < minFrameRate)
                     minFrameRate = frameRateRange.minFrameRate;
                 if (frameRateRange.maxFrameRate > maxFrameRate)
@@ -274,7 +279,7 @@ void QAVFVideoDevices::updateCameraDevices()
 #endif
 
             qCDebug(qLcCamera) << "Add camera format. pixelFormat:" << pixelFormat
-                               << "colorRange:" << colorRange << "cvPixelFormat" << encoding
+                               << "colorRange:" << colorRange << "cvPixelFormat" << cvPixelFormat
                                << "resolution:" << resolution << "frameRate: [" << minFrameRate
                                << maxFrameRate << "]";
 
