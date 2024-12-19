@@ -29,7 +29,7 @@ void QPlatformAudioDecoder::bufferAvailableChanged(bool available)
         return;
     m_bufferAvailable = available;
 
-    if (QThread::currentThread() != q->thread())
+    if (!q->thread()->isCurrentThread())
         QMetaObject::invokeMethod(q, "bufferAvailableChanged", Qt::QueuedConnection, Q_ARG(bool, available));
     else
         emit q->bufferAvailableChanged(available);
@@ -37,7 +37,7 @@ void QPlatformAudioDecoder::bufferAvailableChanged(bool available)
 
 void QPlatformAudioDecoder::bufferReady()
 {
-    if (QThread::currentThread() != q->thread())
+    if (!q->thread()->isCurrentThread())
         QMetaObject::invokeMethod(q, "bufferReady", Qt::QueuedConnection);
     else
         emit q->bufferReady();

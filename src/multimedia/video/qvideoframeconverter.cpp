@@ -324,7 +324,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
     if (QHwVideoBuffer *buffer = QVideoFramePrivate::hwBuffer(frame))
         rhi = buffer->rhi();
 
-    if (!rhi || rhi->thread() != QThread::currentThread())
+    if (!rhi || !rhi->thread()->isCurrentThread())
         rhi = initializeRHI(rhi);
 
     if (!rhi || rhi->isRecordingFrame())

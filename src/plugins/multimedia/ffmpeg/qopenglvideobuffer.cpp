@@ -39,9 +39,8 @@ static bool setCurrentOpenGLContext()
     static thread_local QOffscreenSurface *surface = nullptr;
 
     if (!context) {
-        context = (compositorContext->thread() == QThread::currentThread())
-                ? compositorContext
-                : createContext(compositorContext);
+        context = compositorContext->thread()->isCurrentThread() ? compositorContext
+                                                                 : createContext(compositorContext);
 
         if (!context)
             return false;
