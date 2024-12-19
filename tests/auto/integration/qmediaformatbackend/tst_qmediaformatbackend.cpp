@@ -47,12 +47,12 @@ constexpr bool isArm =
         false;
 #endif
 
-std::set<QMediaFormat::VideoCodec> allVideoCodecs()
+std::set<QMediaFormat::VideoCodec> allVideoCodecs(bool includeUnspecified = false)
 {
     using VideoCodec = QMediaFormat::VideoCodec;
     std::set<VideoCodec> codecs;
 
-    constexpr int firstCodec = qToUnderlying(VideoCodec::Unspecified) + 1;
+    const int firstCodec = qToUnderlying(VideoCodec::Unspecified) + (includeUnspecified ? 0 : 1);
     constexpr int lastCodec = qToUnderlying(VideoCodec::LastVideoCodec);
 
     for (int i = firstCodec; i <= lastCodec; ++i)
@@ -61,12 +61,12 @@ std::set<QMediaFormat::VideoCodec> allVideoCodecs()
     return codecs;
 }
 
-std::set<QMediaFormat::AudioCodec> allAudioCodecs()
+std::set<QMediaFormat::AudioCodec> allAudioCodecs(bool includeUnspecified = false)
 {
     using AudioCodec = QMediaFormat::AudioCodec;
     std::set<AudioCodec> codecs;
 
-    constexpr int firstCodec = qToUnderlying(AudioCodec::Unspecified) + 1;
+    const int firstCodec = qToUnderlying(AudioCodec::Unspecified) + (includeUnspecified ? 0 : 1);
     constexpr int lastCodec = qToUnderlying(AudioCodec::LastAudioCodec);
 
     for (int i = firstCodec; i <= lastCodec; ++i)
@@ -75,16 +75,33 @@ std::set<QMediaFormat::AudioCodec> allAudioCodecs()
     return codecs;
 }
 
-std::set<QMediaFormat::FileFormat> allFileFormats()
+std::set<QMediaFormat::FileFormat> allFileFormats(bool includeUnspecified = false)
 {
     using FileFormat = QMediaFormat::FileFormat;
 
     std::set<FileFormat> videoFormats;
-    for (int i = FileFormat::UnspecifiedFormat + 1; i <= FileFormat::LastFileFormat; ++i) {
+    const int firstFormat = FileFormat::UnspecifiedFormat + (includeUnspecified ? 0 : 1);
+    for (int i = firstFormat; i <= FileFormat::LastFileFormat; ++i) {
         const FileFormat format = static_cast<FileFormat>(i);
         videoFormats.insert(format);
     }
     return videoFormats;
+}
+
+std::vector<QMediaFormat> allMediaFormats(bool includeUnspecified = false)
+{
+    std::vector<QMediaFormat> formats;
+    for (const auto &fileFormat : allFileFormats(includeUnspecified)) {
+        for (const auto &audioCodec : allAudioCodecs(includeUnspecified)) {
+            for (const auto &videoCodec : allVideoCodecs(includeUnspecified)) {
+                QMediaFormat format{ fileFormat };
+                format.setAudioCodec(audioCodec);
+                format.setVideoCodec(videoCodec);
+                formats.push_back(format);
+            }
+        }
+    }
+    return formats;
 }
 
 std::set<QMediaFormat::VideoCodec> supportedVideoEncoders(QMediaFormat::FileFormat fileFormat)
@@ -820,7 +837,7 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
 }
 
 template <typename T>
-QString toString(T enumValue)
+QString enumToString(T enumValue)
 {
     QMetaEnum metaEnum = QMetaEnum::fromType<decltype(enumValue)>();
     return QString("%1::%2::%3")
@@ -911,25 +928,20 @@ private slots:
 
     void isSupported_returnsTrue_whenAudioAndVideoCodecsAreCombined_data()
     {
-        QTest::addColumn<QMediaFormat::FileFormat>("fileFormat");
-        QTest::addColumn<QMediaFormat::AudioCodec>("audioCodec");
-        QTest::addColumn<QMediaFormat::VideoCodec>("videoCodec");
+        QTest::addColumn<QMediaFormat>("format");
         QTest::addColumn<QMediaFormat::ConversionMode>("conversionMode");
 
-        // Verify with all combinations of file format, video codecs, and audio codecs
-        for (const QMediaFormat::FileFormat format : allFileFormats()) {
-            const auto formatName = QMediaFormat::fileFormatName(format).toLatin1();
-            for (const QMediaFormat::AudioCodec audioCodec : allAudioCodecs()) {
-                const auto audioCodecName = QMediaFormat::audioCodecName(audioCodec).toLatin1();
-                for (const auto videoCodec : allVideoCodecs()) {
-                    const auto videoCodecName = QMediaFormat::videoCodecName(videoCodec).toLatin1();
-                    for (const auto &mode : { QMediaFormat::Encode, QMediaFormat::Decode }) {
-                        const auto convEnum = QMetaEnum::fromType<QMediaFormat::ConversionMode>();
-                        QTest::addRow("%s,%s,%s,%s", formatName.data(), audioCodecName.data(),
-                                      videoCodecName.data(), convEnum.valueToKey(mode))
-                                << format << audioCodec << videoCodec << mode;
-                    }
-                }
+        for (const QMediaFormat &format : allMediaFormats(true)) {
+            const auto formatName = QMediaFormat::fileFormatName(format.fileFormat());
+            const auto audioCodecName = QMediaFormat::audioCodecName(format.audioCodec());
+            const auto videoCodecName = QMediaFormat::videoCodecName(format.videoCodec());
+
+            for (const auto &mode : { QMediaFormat::Encode, QMediaFormat::Decode }) {
+                const auto convEnum = QMetaEnum::fromType<QMediaFormat::ConversionMode>();
+                QTest::addRow("%s,%s,%s,%s", formatName.toLatin1().data(),
+                              audioCodecName.toLatin1().data(), videoCodecName.toLatin1().data(),
+                              convEnum.valueToKey(mode))
+                        << format << mode;
             }
         }
     }
@@ -939,26 +951,61 @@ private slots:
         if (!isFFMPEGPlatform())
             QSKIP("This test verifies only the FFmpeg media backend");
 
-        QFETCH(QMediaFormat::FileFormat, fileFormat);
-        QFETCH(QMediaFormat::AudioCodec, audioCodec);
-        QFETCH(QMediaFormat::VideoCodec, videoCodec);
+        QFETCH(QMediaFormat, format);
         QFETCH(QMediaFormat::ConversionMode, conversionMode);
 
-        QMediaFormat format(fileFormat);
-        format.setAudioCodec(audioCodec);
-        format.setVideoCodec(videoCodec);
+        QMediaFormat audioFormat(format.fileFormat());
+        audioFormat.setAudioCodec(format.audioCodec());
 
-        QMediaFormat audioFormat(fileFormat);
-        audioFormat.setAudioCodec(audioCodec);
-
-        QMediaFormat videoFormat(fileFormat);
-        videoFormat.setVideoCodec(videoCodec);
+        QMediaFormat videoFormat(format.fileFormat());
+        videoFormat.setVideoCodec(format.videoCodec());
 
         // Check that format.isSupported() returns the same as
         // audioFormat.isSupported() && videoFormat.isSupported()
         QCOMPARE_EQ(format.isSupported(conversionMode),
                     audioFormat.isSupported(conversionMode)
                             && videoFormat.isSupported(conversionMode));
+    }
+
+    void resolveForEncoding_givesSupportedFormat_whenCalledWithAllCodecs_data()
+    {
+        QTest::addColumn<QMediaFormat>("format");
+        QTest::addColumn<const QMediaFormat::ResolveFlags>("resolveFlags");
+
+        for (const QMediaFormat &format : allMediaFormats(true)) {
+            const auto formatName = QMediaFormat::fileFormatName(format.fileFormat());
+            const auto audioCodecName = QMediaFormat::audioCodecName(format.audioCodec());
+            const auto videoCodecName = QMediaFormat::videoCodecName(format.videoCodec());
+
+            for (const auto resolveFlags : { QMediaFormat::NoFlags, QMediaFormat::RequiresVideo }) {
+                const auto flagName =
+                        resolveFlags == QMediaFormat::NoFlags ? "NoFlags" : "RequiresVideo";
+                QTest::addRow("%s,%s,%s,%s", formatName.toLatin1().data(),
+                              audioCodecName.toLatin1().data(), videoCodecName.toLatin1().data(),
+                              flagName)
+                        << format << resolveFlags;
+            }
+        }
+    }
+
+    void resolveForEncoding_givesSupportedFormat_whenCalledWithAllCodecs()
+    {
+        if (!isFFMPEGPlatform())
+            QSKIP("This test verifies only the FFmpeg media backend");
+
+        QFETCH(QMediaFormat, format);
+        QFETCH(const QMediaFormat::ResolveFlags, resolveFlags);
+
+        format.resolveForEncoding(resolveFlags);
+
+        QCOMPARE_NE(format.fileFormat(), QMediaFormat::FileFormat::UnspecifiedFormat);
+        QCOMPARE_NE(format.audioCodec(), QMediaFormat::AudioCodec::Unspecified);
+        if (resolveFlags == QMediaFormat::NoFlags)
+            QCOMPARE_EQ(format.videoCodec(), QMediaFormat::VideoCodec::Unspecified);
+        else
+            QCOMPARE_NE(format.videoCodec(), QMediaFormat::VideoCodec::Unspecified);
+
+        QVERIFY(format.isSupported(QMediaFormat::Encode));
     }
 
     void print_formatSupport_video_encoding_noVerify_data()
@@ -980,12 +1027,12 @@ private slots:
         output << "std::map<QMediaFormat::FileFormat, std::set<QMediaFormat::VideoCodec>> "
                << variableName << ";";
         for (const QMediaFormat::FileFormat f : allFileFormats()) {
-            output << variableName << "[" << toString(f) << "] = {";
+            output << variableName << "[" << enumToString(f) << "] = {";
             for (const QMediaFormat::VideoCodec c : allVideoCodecs()) {
                 QMediaFormat format(f);
                 format.setVideoCodec(c);
                 if (format.isSupported(conversionMode))
-                    output << toString(c) << ",";
+                    output << enumToString(c) << ",";
             }
             output << "};";
         }
@@ -1010,12 +1057,12 @@ private slots:
         output << "std::map<QMediaFormat::FileFormat, std::set<QMediaFormat::AudioCodec>> "
                << variableName << ";";
         for (const QMediaFormat::FileFormat f : allFileFormats()) {
-            output << variableName << "[" << toString(f) << "] = {";
+            output << variableName << "[" << enumToString(f) << "] = {";
             for (const QMediaFormat::AudioCodec c : allAudioCodecs()) {
                 QMediaFormat format(f);
                 format.setAudioCodec(c);
                 if (format.isSupported(conversionMode))
-                    output << toString(c) << ",";
+                    output << enumToString(c) << ",";
             }
             output << "};";
         }
