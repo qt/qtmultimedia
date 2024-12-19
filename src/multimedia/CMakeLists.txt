@@ -104,12 +104,16 @@ qt_internal_add_module(Multimedia
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::Gui
-        Qt::Network
     PRIVATE_MODULE_INTERFACE
         Qt::CorePrivate
         Qt::GuiPrivate
     NO_PCH_SOURCES
         compat/removed_api.cpp
+)
+
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_network
+    PUBLIC_LIBRARIES
+        Qt::Network
 )
 
 qt_internal_extend_target(Multimedia

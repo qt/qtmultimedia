@@ -12,20 +12,41 @@ public:
 public slots:
 
 private slots:
+    void testCachedSample_data() { generateTestData(); }
     void testCachedSample();
+
+    void testNotCachedSample_data() { generateTestData(); }
     void testNotCachedSample();
+
+    void testEnoughCapacity_data() { generateTestData(); }
     void testEnoughCapacity();
+
+    void testNotEnoughCapacity_data() { generateTestData(); }
     void testNotEnoughCapacity();
+
+    void testInvalidFile_data() { generateTestData(); }
     void testInvalidFile();
+
+    void testIncompatibleFile_data() { generateTestData(); }
     void testIncompatibleFile();
 
 private:
-
+    void generateTestData()
+    {
+        QTest::addColumn<QSampleCache::SampleSourceType>("sampleSourceType");
+#ifdef QT_FEATURE_network
+        QTest::newRow("NetworkManager") << QSampleCache::SampleSourceType::NetworkManager;
+#endif
+        QTest::newRow("File") << QSampleCache::SampleSourceType::File;
+    }
 };
 
 void tst_QSampleCache::testCachedSample()
 {
+    QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
+
     QSampleCache cache;
+    cache.setSampleSourceType(sampleSourceType);
 
     QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
@@ -43,7 +64,10 @@ void tst_QSampleCache::testCachedSample()
 
 void tst_QSampleCache::testNotCachedSample()
 {
+    QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
+
     QSampleCache cache;
+    cache.setSampleSourceType(sampleSourceType);
 
     QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
@@ -56,7 +80,10 @@ void tst_QSampleCache::testNotCachedSample()
 
 void tst_QSampleCache::testEnoughCapacity()
 {
+    QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
+
     QSampleCache cache;
+    cache.setSampleSourceType(sampleSourceType);
 
     QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
@@ -97,8 +124,12 @@ void tst_QSampleCache::testEnoughCapacity()
 
 void tst_QSampleCache::testNotEnoughCapacity()
 {
-    using namespace Qt::Literals;
+    QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
+
     QSampleCache cache;
+    cache.setSampleSourceType(sampleSourceType);
+
+    using namespace Qt::Literals;
 
     QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
@@ -135,7 +166,10 @@ void tst_QSampleCache::testNotEnoughCapacity()
 
 void tst_QSampleCache::testInvalidFile()
 {
+    QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
+
     QSampleCache cache;
+    cache.setSampleSourceType(sampleSourceType);
 
     QSample* sample = cache.requestSample(QUrl::fromLocalFile("invalid"));
     QVERIFY(sample);
@@ -148,7 +182,10 @@ void tst_QSampleCache::testInvalidFile()
 
 void tst_QSampleCache::testIncompatibleFile()
 {
+    QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
+
     QSampleCache cache;
+    cache.setSampleSourceType(sampleSourceType);
     cache.setCapacity(10024);
 
     // Load a sample that is known to fail and verify that
@@ -165,6 +202,6 @@ void tst_QSampleCache::testIncompatibleFile()
     }
 }
 
-QTEST_MAIN(tst_QSampleCache)
+QTEST_GUILESS_MAIN(tst_QSampleCache)
 
 #include "tst_qsamplecache.moc"

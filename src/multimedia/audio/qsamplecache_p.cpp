@@ -3,10 +3,14 @@
 
 #include "qsamplecache_p.h"
 #include "qwavedecoder.h"
+#include "qfile.h"
+#include "qmultimediautils_p.h"
 
-#include <QtNetwork/QNetworkAccessManager>
-#include <QtNetwork/QNetworkReply>
-#include <QtNetwork/QNetworkRequest>
+#ifdef QT_FEATURE_network
+#  include <QtNetwork/QNetworkAccessManager>
+#  include <QtNetwork/QNetworkReply>
+#  include <QtNetwork/QNetworkRequest>
+#endif
 
 #include <QtCore/QDebug>
 #include <QtCore/qloggingcategory.h>
@@ -64,20 +68,41 @@ QT_BEGIN_NAMESPACE
 */
 
 QSampleCache::QSampleCache(QObject *parent)
-    : QObject(parent)
-    , m_networkAccessManager(nullptr)
-    , m_capacity(0)
-    , m_usage(0)
-    , m_loadingRefCount(0)
+    : QObject(parent), m_capacity(0), m_usage(0), m_loadingRefCount(0)
 {
     m_loadingThread.setObjectName(QLatin1String("QSampleCache::LoadingThread"));
 }
 
-QNetworkAccessManager& QSampleCache::networkAccessManager()
+std::unique_ptr<QIODevice> QSampleCache::createStreamForSample(QSample &sample)
 {
-    if (!m_networkAccessManager)
-        m_networkAccessManager = new QNetworkAccessManager();
-    return *m_networkAccessManager;
+#ifdef QT_FEATURE_network
+    if (m_sampleSourceType == SampleSourceType::NetworkManager) {
+        if (sample.m_url.scheme().isEmpty()) {
+            // exit early, to avoid QNetworkAccessManager trying to construct a default ssl
+            // configuration, which tends to cause timeouts on CI on macos.
+            // catch this case and exit early.
+            return nullptr;
+        }
+
+        if (!m_networkAccessManager)
+            m_networkAccessManager = std::make_unique<QNetworkAccessManager>();
+        std::unique_ptr<QNetworkReply> reply(
+                m_networkAccessManager->get(QNetworkRequest(sample.m_url)));
+        if (reply)
+            connect(reply.get(), &QNetworkReply::errorOccurred, &sample,
+                    &QSample::handleLoadingError);
+        return reply;
+    }
+#endif
+
+    // The QFile source is needed of the QtLite build, which excludes networking
+    if (m_sampleSourceType == SampleSourceType::File) {
+        auto file = std::make_unique<QFile>(sample.m_url.toLocalFile());
+        if (file->open(QFile::ReadOnly))
+            return file;
+    }
+
+    return nullptr;
 }
 
 QSampleCache::~QSampleCache()
@@ -97,7 +122,10 @@ QSampleCache::~QSampleCache()
     for (QSample* sample : copyStaleSamples)
         delete sample;
 
-    delete m_networkAccessManager;
+#ifdef QT_FEATURE_network
+    // Should we delete it under the mutex?
+    m_networkAccessManager.reset();
+#endif
 }
 
 void QSampleCache::loadingRelease()
@@ -106,10 +134,10 @@ void QSampleCache::loadingRelease()
     m_loadingRefCount--;
     if (m_loadingRefCount == 0) {
         if (m_loadingThread.isRunning()) {
-            if (m_networkAccessManager) {
-                m_networkAccessManager->deleteLater();
-                m_networkAccessManager = nullptr;
-            }
+#ifdef QT_FEATURE_network
+            if (m_networkAccessManager)
+                m_networkAccessManager.release()->deleteLater();
+#endif
             m_loadingThread.exit();
         }
     }
@@ -290,15 +318,13 @@ void QSample::cleanup()
     qCDebug(qLcSampleCache) << "QSample: cleanup";
     if (m_waveDecoder) {
         m_waveDecoder->disconnect(this);
-        m_waveDecoder->deleteLater();
-    }
-    if (m_stream) {
-        m_stream->disconnect(this);
-        m_stream->deleteLater();
+        m_waveDecoder.release()->deleteLater();
     }
 
-    m_waveDecoder = nullptr;
-    m_stream = nullptr;
+    if (m_stream) {
+        m_stream->disconnect(this);
+        m_stream.release()->deleteLater();
+    }
 }
 
 // Called in application thread
@@ -362,32 +388,29 @@ void QSample::load()
 #endif
     qCDebug(qLcSampleCache) << "QSample: load [" << m_url << "]";
 
-    if (m_url.scheme().isEmpty()) {
-        // exit early, to avoid QNetworkAccessManager trying to construct a default ssl
-        // configuration, which tends to cause timeouts on CI on macos.
-        // catch this case and exit early.
-        emit loadingError(QNetworkReply::NetworkError::ProtocolUnknownError);
+    m_stream = m_parent->createStreamForSample(*this);
+
+    if (!m_stream) {
+        handleLoadingError();
         return;
     }
 
-    QNetworkReply *reply = m_parent->networkAccessManager().get(QNetworkRequest(m_url));
-    m_stream = reply;
-    connect(reply, &QNetworkReply::errorOccurred, this, &QSample::loadingError);
-    m_waveDecoder = new QWaveDecoder(m_stream);
-    connect(m_waveDecoder, &QWaveDecoder::formatKnown, this, &QSample::decoderReady);
-    connect(m_waveDecoder, &QWaveDecoder::parsingError, this, &QSample::decoderError);
-    connect(m_waveDecoder, &QIODevice::readyRead, this, &QSample::readSample);
+    m_waveDecoder = std::make_unique<QWaveDecoder>(m_stream.get());
+    connect(m_waveDecoder.get(), &QWaveDecoder::formatKnown, this, &QSample::decoderReady);
+    connect(m_waveDecoder.get(), &QWaveDecoder::parsingError, this, &QSample::decoderError);
+    connect(m_waveDecoder.get(), &QIODevice::readyRead, this, &QSample::readSample);
 
     m_waveDecoder->open(QIODevice::ReadOnly);
 }
 
-void QSample::loadingError(QNetworkReply::NetworkError errorCode)
+void QSample::handleLoadingError(int errorCode)
 {
 #if QT_CONFIG(thread)
     Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
 #endif
     QMutexLocker m(&m_mutex);
-    qCDebug(qLcSampleCache) << "QSample: loading error" << errorCode;
+    qCDebug(qLcSampleCache) << "QSample: loading error:" << errorCode
+                            << "source type: " << qToUnderlying(m_parent->sampleSourceType());
     cleanup();
     m_state = QSample::Error;
     m_parent->loadingRelease();
@@ -423,14 +446,13 @@ void QSample::onReady()
 }
 
 // Called in application thread, then moved to loader thread
-QSample::QSample(const QUrl& url, QSampleCache *parent)
-    : m_parent(parent)
-    , m_stream(nullptr)
-    , m_waveDecoder(nullptr)
-    , m_url(url)
-    , m_sampleReadLength(0)
-    , m_state(Creating)
-    , m_ref(0)
+QSample::QSample(const QUrl &url, QSampleCache *parent)
+    : m_parent(parent),
+      m_waveDecoder(nullptr),
+      m_url(url),
+      m_sampleReadLength(0),
+      m_state(Creating),
+      m_ref(0)
 {
 }
 

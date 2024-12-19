@@ -21,10 +21,6 @@ if(NOT TARGET Qt::Gui)
     message(NOTICE "Skipping the build as the condition \"TARGET Qt::Gui\" is not met.")
     return()
 endif()
-if(NOT TARGET Qt::Network)
-    message(NOTICE "Skipping the build as the condition \"TARGET Qt::Network\" is not met.")
-    return()
-endif()
 
 include(src/multimedia/Qt6MultimediaMacros.cmake)
 
