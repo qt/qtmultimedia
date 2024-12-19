@@ -16,7 +16,7 @@ PlaybackEngineObject::PlaybackEngineObject() : m_id(PersistentId.fetchAndAddRela
 
 PlaybackEngineObject::~PlaybackEngineObject()
 {
-    if (thread() != QThread::currentThread())
+    if (!thread()->isCurrentThread())
         qWarning() << "The playback engine object is being removed in an unexpected thread";
 }
 
