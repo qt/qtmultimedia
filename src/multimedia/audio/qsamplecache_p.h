@@ -62,7 +62,7 @@ protected:
 
 private Q_SLOTS:
     void load();
-    void loadingError(QNetworkReply::NetworkError);
+    void handleLoadingError(int errorCode = -1);
     void decoderError();
     void readSample();
     void decoderReady();
@@ -79,8 +79,8 @@ private:
     QSampleCache *m_parent;
     QByteArray   m_soundData;
     QAudioFormat m_audioFormat;
-    QIODevice    *m_stream;
-    QWaveDecoder *m_waveDecoder;
+    std::unique_ptr<QIODevice> m_stream;
+    std::unique_ptr<QWaveDecoder> m_waveDecoder;
     QUrl         m_url;
     qint64       m_sampleReadLength;
     State        m_state;
@@ -93,6 +93,11 @@ class Q_MULTIMEDIA_EXPORT QSampleCache : public QObject
 public:
     friend class QSample;
 
+    enum class SampleSourceType {
+        File,
+        NetworkManager,
+    };
+
     QSampleCache(QObject *parent = nullptr);
     ~QSampleCache();
 
@@ -102,16 +107,33 @@ public:
     bool isLoading() const;
     bool isCached(const QUrl& url) const;
 
+    SampleSourceType sampleSourceType() const { return m_sampleSourceType; }
+
+    // For tests only
+    void setSampleSourceType(SampleSourceType sampleSourceType)
+    {
+        m_sampleSourceType = sampleSourceType;
+    }
+
+private:
+    std::unique_ptr<QIODevice> createStreamForSample(QSample &sample);
+
 private:
     QMap<QUrl, QSample*> m_samples;
     QSet<QSample*> m_staleSamples;
-    QNetworkAccessManager *m_networkAccessManager;
+
+#ifdef QT_FEATURE_network
+    std::unique_ptr<QNetworkAccessManager> m_networkAccessManager;
+    SampleSourceType m_sampleSourceType = SampleSourceType::NetworkManager;
+#else
+    SampleSourceType m_sampleSourceType = SampleLoadingPolicy::File;
+#endif
+
     mutable QRecursiveMutex m_mutex;
     qint64 m_capacity;
     qint64 m_usage;
     QThread m_loadingThread;
 
-    QNetworkAccessManager& networkAccessManager();
     void refresh(qint64 usageChange);
     bool notifyUnreferencedSample(QSample* sample);
     void removeUnreferencedSample(QSample* sample);
