@@ -21,7 +21,7 @@
 #include <private/qvideotexturehelper_p.h>
 #include <qffmpegvideobuffer_p.h>
 
-#include <qandroidcameraframe_p.h>
+#include <qandroidvideoframebuffer_p.h>
 #include <utility>
 
 extern "C" {
@@ -193,7 +193,7 @@ static void deleteFrame(void *opaque, uint8_t *data)
 {
     Q_UNUSED(data);
 
-    auto frame = reinterpret_cast<QAndroidCameraFrame *>(opaque);
+    auto frame = reinterpret_cast<QAndroidVideoFrameBuffer *>(opaque);
 
     if (frame)
         delete frame;
@@ -209,7 +209,7 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
         return;
     }
 
-    auto androidFrame = new QAndroidCameraFrame(image);
+    auto androidFrame = new QAndroidVideoFrameBuffer(image);
     if (!androidFrame->isParsed()) {
         qCWarning(qLCAndroidCamera) << "Failed to parse frame.. dropping frame";
         delete androidFrame;
@@ -236,7 +236,7 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     avframe->pts = androidFrame->timestamp();
 
     for (int planeNumber = 0; planeNumber < androidFrame->numberPlanes(); planeNumber++) {
-        QAndroidCameraFrame::Plane plane = androidFrame->plane(planeNumber);
+        QAndroidVideoFrameBuffer::Plane plane = androidFrame->plane(planeNumber);
         avframe->linesize[planeNumber] = plane.rowStride;
         avframe->data[planeNumber] = (uint8_t*)plane.buf.constData();
     }

@@ -136,14 +136,14 @@ bool QAndroidScreenCapture::setActiveInternal(bool active)
 static void deleteFrame(void *opaque, uint8_t *data)
 {
     Q_UNUSED(data);
-    auto frame = reinterpret_cast<QAndroidCameraFrame *>(opaque);
+    auto frame = reinterpret_cast<QAndroidVideoFrameBuffer *>(opaque);
     if (frame)
         delete frame;
 }
 
 void QAndroidScreenCapture::onNewFrameReceived(QtJniTypes::AndroidImage image)
 {
-    auto androidFrame = std::make_unique<QAndroidCameraFrame>(image);
+    auto androidFrame = std::make_unique<QAndroidVideoFrameBuffer>(image);
     if (!androidFrame->isParsed()) {
         updateError(QPlatformSurfaceCapture::InternalError,
                     QStringLiteral("Cannot parse screen frame"));

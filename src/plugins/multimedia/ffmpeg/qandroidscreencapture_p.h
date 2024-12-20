@@ -16,7 +16,7 @@
 //
 
 #include "private/qplatformsurfacecapture_p.h"
-#include <qandroidcameraframe_p.h>
+#include <qandroidvideoframebuffer_p.h>
 #include <QJniObject>
 #include <memory>
 
