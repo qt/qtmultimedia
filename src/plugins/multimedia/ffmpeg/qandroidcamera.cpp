@@ -221,24 +221,24 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     // background thread, but read by the QCamera thread during QAndroid::ffmpegHWPixelFormat().
     // This causes a race condition (not severe). We should eventually implement some
     // synchronization strategy.
-    m_androidFramePixelFormat = androidFrame->format();
+    m_androidFramePixelFormat = androidFrame->format().pixelFormat();
     if (m_waitingForFirstFrame) {
         m_waitingForFirstFrame = false;
         setState(State::Started);
     }
     auto avframe = QFFmpeg::makeAVFrame();
 
-    avframe->width = androidFrame->size().width();
-    avframe->height = androidFrame->size().height();
-    avframe->format = QFFmpegVideoBuffer::toAVPixelFormat(androidFrame->format());
+    avframe->width = androidFrame->format().frameWidth();
+    avframe->height = androidFrame->format().frameHeight();
+    avframe->format = QFFmpegVideoBuffer::toAVPixelFormat(m_androidFramePixelFormat);
 
     avframe->extended_data = avframe->data;
     avframe->pts = androidFrame->timestamp();
 
-    for (int planeNumber = 0; planeNumber < androidFrame->numberPlanes(); planeNumber++) {
-        QAndroidVideoFrameBuffer::Plane plane = androidFrame->plane(planeNumber);
-        avframe->linesize[planeNumber] = plane.rowStride;
-        avframe->data[planeNumber] = (uint8_t*)plane.buf.constData();
+    const auto mapData = androidFrame->map(QVideoFrame::MapMode::ReadOnly);
+    for (int planeNumber = 0; planeNumber < mapData.planeCount; planeNumber++) {
+        avframe->linesize[planeNumber] = mapData.bytesPerLine[planeNumber];
+        avframe->data[planeNumber] = (uint8_t*)mapData.data[planeNumber];
     }
 
     avframe->data[3] = nullptr;
@@ -248,7 +248,7 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     avframe->extended_data = avframe->data;
     avframe->pts = timestamp;
 
-    QVideoFrameFormat format(androidFrame->size(), androidFrame->format());
+    QVideoFrameFormat format(androidFrame->format().frameSize(), m_androidFramePixelFormat);
     format.setRotation(rotation());
 
     QVideoFrame videoFrame(new QFFmpegVideoBuffer(std::move(avframe)), format);

@@ -153,16 +153,18 @@ void QAndroidScreenCapture::onNewFrameReceived(QtJniTypes::AndroidImage image)
         return;
     }
     auto avframe = QFFmpeg::makeAVFrame();
-    avframe->width = androidFrame->size().width();
-    avframe->height = androidFrame->size().height();
-    avframe->format = QFFmpegVideoBuffer::toAVPixelFormat(androidFrame->format());
+    avframe->width = androidFrame->format().frameWidth();
+    avframe->height = androidFrame->format().frameHeight();
+    const auto pixelFormat = androidFrame->format().pixelFormat();
+    avframe->format = QFFmpegVideoBuffer::toAVPixelFormat(pixelFormat);
     avframe->pts = androidFrame->timestamp();
-    avframe->linesize[0] = androidFrame->plane(0).rowStride;
-    avframe->data[0] = (uint8_t*)androidFrame->plane(0).buf.constData();
+    const auto mapData = androidFrame->map(QVideoFrame::MapMode::ReadOnly);
+    avframe->linesize[0] = mapData.bytesPerLine[0];
+    avframe->data[0] = (uint8_t*)mapData.data[0];
     avframe->data[1] = nullptr;
     avframe->buf[0] = nullptr;
     avframe->extended_data = avframe->data;
-    QVideoFrameFormat format(androidFrame->size(), androidFrame->format());
+    QVideoFrameFormat format(androidFrame->format().frameSize(), pixelFormat);
     avframe->opaque_ref = av_buffer_create(NULL, 1, deleteFrame, androidFrame.release(), 0);
 
     QVideoFrame videoFrame = QVideoFramePrivate::createFrame(
