@@ -50,7 +50,7 @@ bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
 
 using namespace Qt::StringLiterals;
 
-class tst_QMediaFrameInputsBackend : public QObject
+class tst_QMediaRecorderBackend : public QObject
 {
     Q_OBJECT
 
@@ -87,7 +87,7 @@ private:
     QTemporaryDir m_tempDir;
 };
 
-void tst_QMediaFrameInputsBackend::cleanupTestCase()
+void tst_QMediaRecorderBackend::cleanupTestCase()
 {
     // Copy any stored files in the temporary directory over to COIN result directory
     // to allow inspecting image differences.
@@ -99,7 +99,7 @@ void tst_QMediaFrameInputsBackend::cleanupTestCase()
     }
 }
 
-void tst_QMediaFrameInputsBackend::record_createsFileWithExpectedExtension_whenRecordingAudio_data()
+void tst_QMediaRecorderBackend::record_createsFileWithExpectedExtension_whenRecordingAudio_data()
 {
     QTest::addColumn<QMediaFormat::FileFormat>("fileFormat");
     QTest::addColumn<QString>("inputFileName");
@@ -137,7 +137,7 @@ void tst_QMediaFrameInputsBackend::record_createsFileWithExpectedExtension_whenR
     }
 }
 
-void tst_QMediaFrameInputsBackend::record_createsFileWithExpectedExtension_whenRecordingAudio()
+void tst_QMediaRecorderBackend::record_createsFileWithExpectedExtension_whenRecordingAudio()
 {
     if (!isFFMPEGPlatform())
         QSKIP("This test requires APIs that are only implemented with FFmpeg media backend");
@@ -199,7 +199,7 @@ void tst_QMediaFrameInputsBackend::record_createsFileWithExpectedExtension_whenR
     QVERIFY(pass);
 }
 
-void tst_QMediaFrameInputsBackend::record_writesVideo_whenInputFrameShrinksOverTime()
+void tst_QMediaRecorderBackend::record_writesVideo_whenInputFrameShrinksOverTime()
 {
     QSKIP_IF_NOT_FFMPEG();
 
@@ -232,7 +232,7 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_whenInputFrameShrinksOverT
     QCOMPARE_EQ(info->m_size, QSize(startSize, startSize));
 }
 
-void tst_QMediaFrameInputsBackend::record_writesVideo_whenInputFrameGrowsOverTime()
+void tst_QMediaRecorderBackend::record_writesVideo_whenInputFrameGrowsOverTime()
 {
     QSKIP_IF_NOT_FFMPEG();
 
@@ -268,7 +268,7 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_whenInputFrameGrowsOverTim
     QCOMPARE_EQ(info->m_size, QSize(startSize, startSize));
 }
 
-void tst_QMediaFrameInputsBackend::record_stopsRecording_whenInputsReportedEndOfStream_data()
+void tst_QMediaRecorderBackend::record_stopsRecording_whenInputsReportedEndOfStream_data()
 {
     QTest::addColumn<bool>("audioStopsFirst");
 
@@ -276,7 +276,7 @@ void tst_QMediaFrameInputsBackend::record_stopsRecording_whenInputsReportedEndOf
     QTest::addRow("video stops first") << true;
 }
 
-void tst_QMediaFrameInputsBackend::record_stopsRecording_whenInputsReportedEndOfStream()
+void tst_QMediaRecorderBackend::record_stopsRecording_whenInputsReportedEndOfStream()
 {
     QSKIP_IF_NOT_FFMPEG();
 
@@ -323,7 +323,7 @@ void tst_QMediaFrameInputsBackend::record_stopsRecording_whenInputsReportedEndOf
     QVERIFY(mediaInfo->m_hasAudio);
 }
 
-void tst_QMediaFrameInputsBackend::record_writesVideo_withoutTransforms_whenPresentationTransformsPresent_data()
+void tst_QMediaRecorderBackend::record_writesVideo_withoutTransforms_whenPresentationTransformsPresent_data()
 {
     QTest::addColumn<QtVideo::Rotation>("presentationRotation");
     QTest::addColumn<bool>("presentationMirrored");
@@ -338,7 +338,7 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_withoutTransforms_whenPres
     QTest::addRow("270 degrees, mirrored") << QtVideo::Rotation::Clockwise270 << true;
 }
 
-void tst_QMediaFrameInputsBackend::record_writesVideo_withoutTransforms_whenPresentationTransformsPresent()
+void tst_QMediaRecorderBackend::record_writesVideo_withoutTransforms_whenPresentationTransformsPresent()
 {
     QSKIP_IF_NOT_FFMPEG();
 
@@ -367,7 +367,7 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_withoutTransforms_whenPres
     QVERIFY(fuzzyCompare(colors[3], Qt::yellow));
 }
 
-void tst_QMediaFrameInputsBackend::record_writesVideo_withCorrectColors_data()
+void tst_QMediaRecorderBackend::record_writesVideo_withCorrectColors_data()
 {
     QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
 
@@ -380,7 +380,7 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_withCorrectColors_data()
     }
 }
 
-void tst_QMediaFrameInputsBackend::record_writesVideo_withCorrectColors()
+void tst_QMediaRecorderBackend::record_writesVideo_withCorrectColors()
 {
     QSKIP_IF_NOT_FFMPEG();
 
@@ -430,7 +430,7 @@ void tst_QMediaFrameInputsBackend::record_writesVideo_withCorrectColors()
     QVERIFY(fuzzyCompare(expectedColors[3], actualColors[3]));
 }
 
-void tst_QMediaFrameInputsBackend::actualLocation_returnsNonEmptyLocation_whenRecorderEntersRecordingState()
+void tst_QMediaRecorderBackend::actualLocation_returnsNonEmptyLocation_whenRecorderEntersRecordingState()
 {
     QSKIP_IF_NOT_FFMPEG();
 
@@ -453,7 +453,7 @@ void tst_QMediaFrameInputsBackend::actualLocation_returnsNonEmptyLocation_whenRe
     f.m_recorder.stop();
 }
 
-void tst_QMediaFrameInputsBackend::record_writesToOutputDevice_whenWritableOutputDeviceAndLocationAreSet()
+void tst_QMediaRecorderBackend::record_writesToOutputDevice_whenWritableOutputDeviceAndLocationAreSet()
 {
     QSKIP_IF_NOT_FFMPEG();
 
@@ -479,7 +479,7 @@ void tst_QMediaFrameInputsBackend::record_writesToOutputDevice_whenWritableOutpu
     QCOMPARE_GT(tempFile.size(), 0);
 }
 
-void tst_QMediaFrameInputsBackend::record_writesToOutputLocation_whenNotWritableOutputDeviceAndLocationAreSet()
+void tst_QMediaRecorderBackend::record_writesToOutputLocation_whenNotWritableOutputDeviceAndLocationAreSet()
 {
     QSKIP_IF_NOT_FFMPEG();
 
@@ -506,7 +506,7 @@ void tst_QMediaFrameInputsBackend::record_writesToOutputLocation_whenNotWritable
     QCOMPARE(tempFile.size(), 0);
 }
 
-void tst_QMediaFrameInputsBackend::record_emits_mediaformatChanged_whenFormatChanged()
+void tst_QMediaRecorderBackend::record_emits_mediaformatChanged_whenFormatChanged()
 {
     QSKIP_IF_NOT_FFMPEG();
 
@@ -532,6 +532,6 @@ void tst_QMediaFrameInputsBackend::record_emits_mediaformatChanged_whenFormatCha
     QCOMPARE_NE(actualFormat.audioCodec(), QMediaFormat::AudioCodec::Unspecified);
 }
 
-QTEST_MAIN(tst_QMediaFrameInputsBackend)
+QTEST_MAIN(tst_QMediaRecorderBackend)
 
 #include "tst_qmediarecorderbackend.moc"
