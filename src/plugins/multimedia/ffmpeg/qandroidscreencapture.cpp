@@ -133,14 +133,6 @@ bool QAndroidScreenCapture::setActiveInternal(bool active)
     return static_cast<bool>(m_grabber) == active;
 }
 
-static void deleteFrame(void *opaque, uint8_t *data)
-{
-    Q_UNUSED(data);
-    auto frame = reinterpret_cast<QAndroidVideoFrameBuffer *>(opaque);
-    if (frame)
-        delete frame;
-}
-
 void QAndroidScreenCapture::onNewFrameReceived(QtJniTypes::AndroidImage image)
 {
     auto androidFrame = std::make_unique<QAndroidVideoFrameBuffer>(image);
@@ -152,24 +144,8 @@ void QAndroidScreenCapture::onNewFrameReceived(QtJniTypes::AndroidImage image)
     if (!isActive()) {
         return;
     }
-    auto avframe = QFFmpeg::makeAVFrame();
-    avframe->width = androidFrame->format().frameWidth();
-    avframe->height = androidFrame->format().frameHeight();
-    const auto pixelFormat = androidFrame->format().pixelFormat();
-    avframe->format = QFFmpegVideoBuffer::toAVPixelFormat(pixelFormat);
-    avframe->pts = androidFrame->timestamp();
-    const auto mapData = androidFrame->map(QVideoFrame::MapMode::ReadOnly);
-    avframe->linesize[0] = mapData.bytesPerLine[0];
-    avframe->data[0] = (uint8_t*)mapData.data[0];
-    avframe->data[1] = nullptr;
-    avframe->buf[0] = nullptr;
-    avframe->extended_data = avframe->data;
-    QVideoFrameFormat format(androidFrame->format().frameSize(), pixelFormat);
-    avframe->opaque_ref = av_buffer_create(NULL, 1, deleteFrame, androidFrame.release(), 0);
 
-    QVideoFrame videoFrame = QVideoFramePrivate::createFrame(
-            std::make_unique<QFFmpegVideoBuffer>(std::move(avframe)), format);
-
+    QVideoFrame videoFrame(std::move(androidFrame));
     emit newVideoFrame(videoFrame);
 }
 
