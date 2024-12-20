@@ -1,7 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qandroidcameraframe_p.h"
+#include "qandroidvideoframebuffer_p.h"
 #include <jni.h>
 #include <QDebug>
 #include <QtCore/qjnitypes.h>
@@ -18,7 +18,7 @@ bool isWorkaroundForEmulatorNeeded() {
 }
 }
 
-bool QAndroidCameraFrame::parse(const QJniObject &frame)
+bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
 {
     QJniEnvironment jniEnv;
 
@@ -201,7 +201,7 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
     return true;
 }
 
-QAndroidCameraFrame::QAndroidCameraFrame(QJniObject frame)
+QAndroidVideoFrameBuffer::QAndroidVideoFrameBuffer(QJniObject frame)
     : m_pixelFormat(QVideoFrameFormat::Format_Invalid), m_parsed(parse(frame))
 {
     if (isParsed()) {
@@ -214,7 +214,7 @@ QAndroidCameraFrame::QAndroidCameraFrame(QJniObject frame)
     }
 }
 
-QAndroidCameraFrame::~QAndroidCameraFrame()
+QAndroidVideoFrameBuffer::~QAndroidVideoFrameBuffer()
 {
     if (!isParsed()) // nothing to clean
         return;

@@ -1,8 +1,8 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QANDROIDCAMERAFRAME_H
-#define QANDROIDCAMERAFRAME_H
+#ifndef QANDROIDVIDEOFRAMEBUFFER_P_H
+#define QANDROIDVIDEOFRAMEBUFFER_P_H
 
 //
 //  W A R N I N G
@@ -29,7 +29,7 @@ Q_DECLARE_JNI_CLASS(AndroidImageFormat, "android/graphics/ImageFormat")
 Q_DECLARE_JNI_CLASS(AndroidImagePlane, "android/media/Image$Plane")
 Q_DECLARE_JNI_CLASS(JavaByteBuffer, "java/nio/ByteBuffer")
 
-class QAndroidCameraFrame
+class QAndroidVideoFrameBuffer
 {
 public:
     struct Plane
@@ -39,8 +39,8 @@ public:
         QByteArray buf;
     };
 
-    QAndroidCameraFrame(QJniObject frame);
-    ~QAndroidCameraFrame();
+    QAndroidVideoFrameBuffer(QJniObject frame);
+    ~QAndroidVideoFrameBuffer();
 
     QVideoFrameFormat::PixelFormat format() const { return m_pixelFormat; }
     int numberPlanes() const { return m_numberPlanes; }
@@ -86,4 +86,4 @@ private:
     };
 };
 
-#endif // QANDROIDCAMERAFRAME_H
+#endif // QANDROIDVIDEOFRAMEBUFFER_P_H

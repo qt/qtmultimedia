@@ -226,7 +226,7 @@ if (ANDROID)
             qffmpeghwaccel_mediacodec.cpp qffmpeghwaccel_mediacodec_p.h
             qandroidcamera_p.h qandroidcamera.cpp
             qandroidvideodevices.cpp qandroidvideodevices_p.h
-            qandroidcameraframe_p.h  qandroidcameraframe.cpp
+            qandroidvideoframebuffer_p.h  qandroidvideoframebuffer.cpp
             qandroidimagecapture_p.h qandroidimagecapture.cpp
             qandroidscreencapture_p.h qandroidscreencapture.cpp
             ../android/wrappers/jni/androidsurfacetexture_p.h
@@ -235,7 +235,7 @@ if (ANDROID)
             # Duplicate declration of JNI Classes using `Q_DECLARE_JNI_CLASS`
             qandroidcamera.cpp
             qandroidvideodevices.cpp
-            qandroidcameraframe.cpp
+            qandroidvideoframebuffer.cpp
         INCLUDE_DIRECTORIES
             ${FFMPEG_DIR}/include
             ../android/wrappers/jni/
