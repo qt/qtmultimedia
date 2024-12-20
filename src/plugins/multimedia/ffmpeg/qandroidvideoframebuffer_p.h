@@ -15,6 +15,7 @@
 // We mean it.
 //
 
+#include <QAbstractVideoBuffer>
 #include <QByteArray>
 #include <QVideoFrameFormat>
 #include <QJniObject>
@@ -29,41 +30,26 @@ Q_DECLARE_JNI_CLASS(AndroidImageFormat, "android/graphics/ImageFormat")
 Q_DECLARE_JNI_CLASS(AndroidImagePlane, "android/media/Image$Plane")
 Q_DECLARE_JNI_CLASS(JavaByteBuffer, "java/nio/ByteBuffer")
 
-class QAndroidVideoFrameBuffer
+class QAndroidVideoFrameBuffer : public QAbstractVideoBuffer
 {
 public:
-    struct Plane
-    {
-        int pixelStride = 0;
-        int rowStride = 0;
-        QByteArray buf;
-    };
 
     QAndroidVideoFrameBuffer(QJniObject frame);
     ~QAndroidVideoFrameBuffer();
 
-    QVideoFrameFormat::PixelFormat format() const { return m_pixelFormat; }
-    int numberPlanes() const { return m_numberPlanes; }
-    Plane plane(int index) const
-    {
-        if (index < 0 || index >= numberPlanes())
-            return {};
-
-        return m_planes[index];
-    }
-    QSize size() const { return m_size; }
+    MapData map(QVideoFrame::MapMode) override { return m_mapData; }
+    QVideoFrameFormat format() const override { return m_videoFrameFormat; }
     long timestamp() const { return m_timestamp; }
-
     bool isParsed() const { return m_parsed; }
 
 private:
     bool parse(const QJniObject &frame);
-    QVideoFrameFormat::PixelFormat m_pixelFormat;
-
-    QSize m_size = {};
+    QVideoFrameFormat m_videoFrameFormat;
     long m_timestamp = 0;
-    int m_numberPlanes = 0;
-    Plane m_planes[3]; // 3 max number planes
+    MapData m_mapData;
+    // Currently we have maximum 3 planes here
+    // We keep this data in QByteArray for proper cleaning
+    QByteArray dataCleaner[3];
     jobject m_frame = nullptr;
     bool m_parsed = false;
     QImage m_image;

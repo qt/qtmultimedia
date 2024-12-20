@@ -136,35 +136,37 @@ bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
         if (arrayIndex >= numberPlanes)
             return;
 
-        m_planes[mapIndex].rowStride = rowStrides[arrayIndex];
-        m_planes[mapIndex].buf = copyData ?
+        m_mapData.bytesPerLine[mapIndex] = rowStrides[arrayIndex];
+        dataCleaner[mapIndex] = copyData ?
             QByteArray(buffer[arrayIndex], bufferSize[arrayIndex])
           : QByteArray::fromRawData(buffer[arrayIndex], bufferSize[arrayIndex]);
+        m_mapData.data[mapIndex] = (uchar *)dataCleaner[mapIndex].constData();
+        m_mapData.dataSize[mapIndex] = bufferSize[arrayIndex];
     };
 
     int width = frame.callMethod<jint>("getWidth");
     int height = frame.callMethod<jint>("getHeight");
-    m_size = QSize(width, height);
+    QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_Invalid;
 
     switch (calculedPixelFormat) {
     case QVideoFrameFormat::Format_RGBA8888:
-        m_numberPlanes = 1;
+        m_mapData.planeCount = 1;
         copyPlane(0, 0, isWorkaroundForEmulatorNeeded());
 
-        m_pixelFormat = QVideoFrameFormat::Format_RGBA8888;
+        pixelFormat = QVideoFrameFormat::Format_RGBA8888;
         break;
     case QVideoFrameFormat::Format_YUV420P:
-        m_numberPlanes = 3;
+        m_mapData.planeCount = 3;
         copyPlane(0, 0, isWorkaroundForEmulatorNeeded());
         copyPlane(1, 1, isWorkaroundForEmulatorNeeded());
         copyPlane(2, 2, isWorkaroundForEmulatorNeeded());
 
-        m_pixelFormat = QVideoFrameFormat::Format_YUV420P;
+        pixelFormat = QVideoFrameFormat::Format_YUV420P;
         break;
     case QVideoFrameFormat::Format_NV12:
     case QVideoFrameFormat::Format_NV21:
         // Y-plane and combined interleaved UV-plane
-        m_numberPlanes = 2;
+        m_mapData.planeCount = 2;
         copyPlane(0, 0);
 
         // Android reports U and V planes as planes[1] and planes[2] respectively, regardless of the
@@ -176,20 +178,24 @@ bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
         {
             const int indexOfFirstPlane = calculedPixelFormat == QVideoFrameFormat::Format_NV21 ?
                                           2 : 1;
-            m_planes[1].rowStride = rowStrides[indexOfFirstPlane];
-            m_planes[1].buf = QByteArray::fromRawData(buffer[indexOfFirstPlane],
+            m_mapData.bytesPerLine[1] = rowStrides[indexOfFirstPlane];
+            dataCleaner[1] = QByteArray::fromRawData(buffer[indexOfFirstPlane],
                                                       bufferSize[indexOfFirstPlane] + 1);
+            m_mapData.data[1] = (uchar *)dataCleaner[1].constData();
+            m_mapData.dataSize[1] = bufferSize[indexOfFirstPlane] + 1;
         }
-        m_pixelFormat = calculedPixelFormat;
+        pixelFormat = calculedPixelFormat;
         break;
     case QVideoFrameFormat::Format_Jpeg:
         qCWarning(qLCAndroidCameraFrame)
                 << "FFmpeg HW Mediacodec does not encode other than YCbCr formats";
         // we still parse it to preview the frame
         m_image = QImage::fromData((uchar *)buffer[0], bufferSize[0]);
-        m_planes[0].rowStride = m_image.bytesPerLine();
-        m_planes[0].buf = QByteArray::fromRawData((char*)m_image.bits(), m_image.sizeInBytes());
-        m_pixelFormat = QVideoFrameFormat::pixelFormatFromImageFormat(m_image.format());
+        m_mapData.bytesPerLine[0] = m_image.bytesPerLine();
+        dataCleaner[0] = QByteArray::fromRawData((char*)m_image.bits(), m_image.sizeInBytes());
+        m_mapData.data[0] = (uchar *)dataCleaner[0].constData();
+        m_mapData.dataSize[0] = m_image.sizeInBytes();
+        pixelFormat = QVideoFrameFormat::pixelFormatFromImageFormat(m_image.format());
         break;
     default:
         break;
@@ -198,11 +204,12 @@ bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
     long timestamp = frame.callMethod<jlong>("getTimestamp");
     m_timestamp = timestamp / 1000;
 
+    m_videoFrameFormat = QVideoFrameFormat(QSize(width, height), pixelFormat);
     return true;
 }
 
 QAndroidVideoFrameBuffer::QAndroidVideoFrameBuffer(QJniObject frame)
-    : m_pixelFormat(QVideoFrameFormat::Format_Invalid), m_parsed(parse(frame))
+    : m_parsed(parse(frame))
 {
     if (isParsed()) {
         // holding the frame java object
