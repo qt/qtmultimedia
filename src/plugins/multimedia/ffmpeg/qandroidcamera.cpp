@@ -17,6 +17,7 @@
 #include <QtCore/private/qandroidextras_p.h>
 #include <private/qcameradevice_p.h>
 #include <QReadWriteLock>
+#include <private/qvideoframe_p.h>
 #include <private/qvideoframeconverter_p.h>
 #include <private/qvideotexturehelper_p.h>
 #include <qffmpegvideobuffer_p.h>
@@ -189,16 +190,6 @@ QVideoFrameFormat QAndroidCamera::frameFormat() const
     return result;
 }
 
-static void deleteFrame(void *opaque, uint8_t *data)
-{
-    Q_UNUSED(data);
-
-    auto frame = reinterpret_cast<QAndroidVideoFrameBuffer *>(opaque);
-
-    if (frame)
-        delete frame;
-}
-
 // Called by the Java-side processing background thread.
 void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
 {
@@ -209,10 +200,9 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
         return;
     }
 
-    auto androidFrame = new QAndroidVideoFrameBuffer(image);
+    auto androidFrame = std::make_unique<QAndroidVideoFrameBuffer>(image);
     if (!androidFrame->isParsed()) {
         qCWarning(qLCAndroidCamera) << "Failed to parse frame.. dropping frame";
-        delete androidFrame;
         return;
     }
 
@@ -226,32 +216,11 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
         m_waitingForFirstFrame = false;
         setState(State::Started);
     }
-    auto avframe = QFFmpeg::makeAVFrame();
-
-    avframe->width = androidFrame->format().frameWidth();
-    avframe->height = androidFrame->format().frameHeight();
-    avframe->format = QFFmpegVideoBuffer::toAVPixelFormat(m_androidFramePixelFormat);
-
-    avframe->extended_data = avframe->data;
-    avframe->pts = androidFrame->timestamp();
-
-    const auto mapData = androidFrame->map(QVideoFrame::MapMode::ReadOnly);
-    for (int planeNumber = 0; planeNumber < mapData.planeCount; planeNumber++) {
-        avframe->linesize[planeNumber] = mapData.bytesPerLine[planeNumber];
-        avframe->data[planeNumber] = (uint8_t*)mapData.data[planeNumber];
-    }
-
-    avframe->data[3] = nullptr;
-    avframe->buf[0] = nullptr;
-
-    avframe->opaque_ref = av_buffer_create(NULL, 1, deleteFrame, androidFrame, 0);
-    avframe->extended_data = avframe->data;
-    avframe->pts = timestamp;
 
     QVideoFrameFormat format(androidFrame->format().frameSize(), m_androidFramePixelFormat);
     format.setRotation(rotation());
 
-    QVideoFrame videoFrame(new QFFmpegVideoBuffer(std::move(avframe)), format);
+    QVideoFrame videoFrame(std::move(androidFrame));
 
     if (lastTimestamp == 0)
         lastTimestamp = timestamp;
