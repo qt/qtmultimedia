@@ -89,8 +89,8 @@ public:
 
     Q_DISABLE_COPY(QRhiValueMapper);
 
-    QRhiValueMapper(QRhiValueMapper&& ) = default;
-    QRhiValueMapper& operator = (QRhiValueMapper&&) = default;
+    QRhiValueMapper(QRhiValueMapper&& ) noexcept = default;
+    QRhiValueMapper& operator = (QRhiValueMapper&&) noexcept = default;
 
     QRhiValueMapper() : m_data(std::make_shared<Data>()) { }
 
