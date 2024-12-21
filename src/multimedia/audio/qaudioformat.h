@@ -12,8 +12,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAudioFormatPrivate;
-
 namespace QtPrivate {
 template <typename... Args>
 constexpr int channelConfig(Args... values) {
