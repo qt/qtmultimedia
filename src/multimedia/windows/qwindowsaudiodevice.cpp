@@ -19,6 +19,8 @@
 #include <QtCore/QDataStream>
 #include <QtCore/QIODevice>
 
+#include <QtMultimedia/private/qcomtaskresource_p.h>
+
 #include <audioclient.h>
 #include <mmsystem.h>
 
@@ -42,10 +44,10 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevic
     HRESULT hr = m_immDev->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
                                     reinterpret_cast<void**>(audioClient.GetAddressOf()));
     if (SUCCEEDED(hr)) {
-        WAVEFORMATEX *pwfx = nullptr;
-        hr = audioClient->GetMixFormat(&pwfx);
+        QComTaskResource<WAVEFORMATEX> mixFormat;
+        hr = audioClient->GetMixFormat(mixFormat.address());
         if (SUCCEEDED(hr))
-            preferredFormat = QWindowsAudioUtils::waveFormatExToFormat(*pwfx);
+            preferredFormat = QWindowsAudioUtils::waveFormatExToFormat(*mixFormat);
     }
 
     if (!preferredFormat.isValid()) {
@@ -205,9 +207,7 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevic
     }
 }
 
-QWindowsAudioDeviceInfo::~QWindowsAudioDeviceInfo()
-{
-}
+QWindowsAudioDeviceInfo::~QWindowsAudioDeviceInfo() = default;
 
 bool QWindowsAudioDeviceInfo::testSettings(const QAudioFormat& format) const
 {
