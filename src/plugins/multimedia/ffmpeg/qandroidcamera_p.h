@@ -36,6 +36,7 @@ public:
     bool isActive() const override { return m_state == State::Started; }
     bool isFlashModeSupported(QCamera::FlashMode mode) const override;
     bool isFlashReady() const override;
+    bool isFocusModeSupported(QCamera::FocusMode focusMode) const override;
     bool isTorchModeSupported(QCamera::TorchMode mode) const override;
     void setActive(bool active) override;
     void setCamera(const QCameraDevice &camera) override;
@@ -84,6 +85,9 @@ private:
     std::shared_ptr<QAndroidVideoFrameFactory> m_frameFactory;
     QVideoFrameFormat::PixelFormat m_androidFramePixelFormat;
     QList<QCamera::FlashMode> m_supportedFlashModes;
+    // List of supported focus-modes as reported by the Android camera device. Queried once when
+    // camera-device is initialized. Useful for avoiding multiple JNI calls.
+    QList<QCamera::FocusMode> m_supportedFocusModes;
     bool m_TorchModeSupported = false;
     bool m_wasActive = false;
 

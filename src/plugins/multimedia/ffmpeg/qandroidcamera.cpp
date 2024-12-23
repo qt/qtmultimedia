@@ -23,6 +23,9 @@
 #include <qffmpegvideobuffer_p.h>
 #include <qandroidvideoframefactory_p.h>
 
+#include <QMetaEnum>
+#include <utility>
+
 extern "C" {
 #include "libavutil/hwcontext.h"
 }
@@ -115,6 +118,39 @@ int sensorOrientation(QString cameraId)
     return deviceManager.callMethod<jint>("getSensorOrientation",
                                           QJniObject::fromString(cameraId).object<jstring>());
 }
+
+// Returns the FocusModes that are available on the physical device, for which we also have
+// an implementation.
+[[nodiscard]] static QList<QCamera::FocusMode> qGetSupportedFocusModesFromAndroidCamera(
+    const QJniObject &deviceManager,
+    const QCameraDevice &cameraDevice)
+{
+    QList<QCamera::FocusMode> returnValue;
+
+    const QStringList focusModeStrings =
+        deviceManager.callMethod<QStringList>(
+            "getSupportedQCameraFocusModesAsStrings",
+            QJniObject::fromString(cameraDevice.id()).object<jstring>());
+
+    // Translate the strings into enums if possible.
+    for (const QString &focusModeString : focusModeStrings) {
+        bool ok = false;
+        const auto focusMode = static_cast<QCamera::FocusMode>(
+            QMetaEnum::fromType<QCamera::FocusMode>()
+                .keyToValue(
+                    focusModeString.toLatin1().data(),
+                    &ok));
+        if (ok)
+            returnValue.push_back(focusMode);
+        else
+            qCDebug(qLCAndroidCamera) <<
+                "received a QCamera::FocusMode string from Android "
+                "QtVideoDeviceManager.java that was not recognized.";
+    }
+
+    return returnValue;
+}
+
 } // namespace
 
 // QAndroidCamera
@@ -410,6 +446,11 @@ void QAndroidCamera::updateCameraCharacteristics()
     m_TorchModeSupported = deviceManager.callMethod<jboolean>(
             "isTorchModeSupported", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
 
+    m_supportedFocusModes = qGetSupportedFocusModesFromAndroidCamera(
+        deviceManager,
+        m_cameraDevice);
+
+
     minimumZoomFactorChanged(newMinZoom);
     maximumZoomFactorChanged(newMaxZoom);
 
@@ -427,6 +468,9 @@ void QAndroidCamera::updateCameraCharacteristics()
     if (isTorchModeSupported(torchMode()))
         setTorchMode(torchMode());
 
+    if (isFocusModeSupported(focusMode()))
+        setFocusMode(focusMode());
+
 
     // Reset properties if needed.
     if (minZoomFactor() >= maxZoomFactor())
@@ -437,6 +481,9 @@ void QAndroidCamera::updateCameraCharacteristics()
 
     if (!isTorchModeSupported(torchMode()))
         torchModeChanged(defaultTorchMode());
+
+    if (!isFocusModeSupported(focusMode()))
+        focusModeChanged(defaultFocusMode());
 }
 
 // Should only be called when the camera device is set to null.
@@ -456,6 +503,12 @@ void QAndroidCamera::cleanCameraCharacteristics()
     }
     m_supportedFlashModes.clear();
     m_supportedFlashModes.append(QCamera::FlashOff);
+
+
+    // Reset focus mode.
+    if (focusMode() != QCamera::FocusModeAuto)
+        setFocusMode(QCamera::FocusModeAuto);
+    m_supportedFocusModes.clear();
 }
 
 void QAndroidCamera::setFlashMode(QCamera::FlashMode mode)
@@ -491,6 +544,11 @@ bool QAndroidCamera::isFlashReady() const
     // Android doesn't have an API for that.
     // Only check if device supports more flash modes than just FlashOff.
     return m_supportedFlashModes.size() > 1;
+}
+
+bool QAndroidCamera::isFocusModeSupported(QCamera::FocusMode mode) const
+{
+    return QPlatformCamera::isFocusModeSupported(mode) || m_supportedFocusModes.contains(mode);
 }
 
 bool QAndroidCamera::isTorchModeSupported(QCamera::TorchMode mode) const
