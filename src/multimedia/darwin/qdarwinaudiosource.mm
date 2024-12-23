@@ -9,6 +9,7 @@
 
 #if defined(Q_OS_MACOS)
 # include <AudioUnit/AudioComponent.h>
+# include "qmacosaudiodatautils_p.h"
 #endif
 
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
@@ -374,13 +375,6 @@ QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device, QObject *pare
     m_audioDevice = device.isNull()
         ? QMediaDevices::defaultAudioInput()
         : device;
-#if defined(Q_OS_MACOS)
-    // TODO: This code can be problematic in the scenario we have no audio-devices attached,
-    // in which case even defaultAudioInput() will return a null-device.
-    const QCoreAudioDeviceInfo *info = static_cast<const QCoreAudioDeviceInfo *>(m_audioDevice.handle());
-    Q_ASSERT(info);
-    m_audioDeviceId = info->deviceID();
-#endif
 
     connect(this, &QDarwinAudioSource::stateChanged, this, &QDarwinAudioSource::updateAudioDevice);
 #ifdef Q_OS_IOS
@@ -404,6 +398,10 @@ bool QDarwinAudioSource::open()
 
     if (m_isOpen)
         return true;
+
+    // TODO: It's possible that the audio-device is set to null-device at this point,
+    // i.e as a result of no audio-devices being connected. We should likely do some error-handling here
+    // and early return.
 
     AudioComponentDescription componentDescription;
     componentDescription.componentType = kAudioUnitType_Output;
@@ -467,13 +465,23 @@ bool QDarwinAudioSource::open()
     }
 
 #if defined(Q_OS_MACOS)
+    // Find the the most recent CoreAudio AudioDeviceID for the current device
+    // to start the audio stream.
+    const std::optional<AudioDeviceID> nativeDeviceIdOpt = qCoreAudioFindAudioDeviceId(m_audioDevice);
+    if (!nativeDeviceIdOpt.has_value()) {
+        qWarning() <<
+            "QAudioSource: Unable to use find most recent CoreAudio AudioDeviceID for "
+            "given device-id. The device might not be connected.";
+        return false;
+    }
+    const AudioDeviceID nativeDeviceId = nativeDeviceIdOpt.value();
     //Set Audio Device
     if (AudioUnitSetProperty(m_audioUnit,
                              kAudioOutputUnitProperty_CurrentDevice,
                              kAudioUnitScope_Global,
                              0,
-                             &m_audioDeviceId,
-                             sizeof(m_audioDeviceId)) != noErr) {
+                             &nativeDeviceId,
+                             sizeof(nativeDeviceId)) != noErr) {
         qWarning() << "QAudioSource: Unable to use configured device";
         return false;
     }

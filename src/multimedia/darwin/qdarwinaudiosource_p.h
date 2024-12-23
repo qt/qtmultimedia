@@ -208,9 +208,6 @@ private:
     QAudioFormat m_audioFormat;
     QIODevice *m_audioIO = nullptr;
     AudioUnit m_audioUnit = 0;
-#if defined(Q_OS_MACOS)
-    AudioDeviceID m_audioDeviceId = 0;
-#endif
     std::unique_ptr<QDarwinAudioSourceBuffer> m_audioBuffer;
     AudioStreamBasicDescription m_streamFormat;
     AudioStreamBasicDescription m_deviceFormat;

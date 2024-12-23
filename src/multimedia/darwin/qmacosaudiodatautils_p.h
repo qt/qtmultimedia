@@ -118,6 +118,13 @@ std::optional<T> getAudioObject(AudioObjectID objectID, const AudioObjectPropert
     AudioDeviceID device,
     QAudioDevice::Mode mode);
 
+[[nodiscard]] std::optional<AudioDeviceID> qCoreAudioFindAudioDeviceId(
+    const QByteArray &id,
+    QAudioDevice::Mode mode);
+
+[[nodiscard]] std::optional<AudioDeviceID> qCoreAudioFindAudioDeviceId(
+    const QAudioDevice &device);
+
 QT_END_NAMESPACE
 
 #endif // QMACOSAUDIODATAUTILS_P_H
