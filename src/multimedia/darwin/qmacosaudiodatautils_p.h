@@ -107,6 +107,26 @@ std::optional<T> getAudioObject(AudioObjectID objectID, const AudioObjectPropert
     return {};
 }
 
+[[nodiscard]] inline static QByteArray qCoreAudioReadPersistentAudioDeviceID(
+    AudioDeviceID device,
+    QAudioDevice::Mode mode)
+{
+    const AudioObjectPropertyAddress propertyAddress = makePropertyAddress(
+        kAudioDevicePropertyDeviceUID,
+        mode);
+
+    const std::optional<CFStringRef> name = getAudioObject<CFStringRef>(
+        device,
+        propertyAddress,
+        "Device UID");
+    if (name) {
+        QString s = QString::fromCFString(*name);
+        CFRelease(*name);
+        return s.toUtf8();
+    }
+
+    return QByteArray();
+}
 QT_END_NAMESPACE
 
 #endif // QMACOSAUDIODATAUTILS_P_H
