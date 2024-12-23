@@ -70,7 +70,8 @@ class QtCamera2 {
 
     private static final int DEFAULT_FLASH_MODE = CaptureRequest.CONTROL_AE_MODE_ON;
     private static final int DEFAULT_TORCH_MODE = CameraMetadata.FLASH_MODE_OFF;
-    private static final int DEFAULT_AF_MODE = CaptureRequest.CONTROL_AF_MODE_OFF;
+    // Default value in QPlatformCamera is FocusModeAuto, which maps to CONTINUOUS_PICTURE.
+    private static final int DEFAULT_AF_MODE = CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE;
     private static final float DEFAULT_ZOOM_FACTOR = 1.0f;
 
     // The purpose of this class is to gather variables that are accessed across
@@ -98,6 +99,9 @@ class QtCamera2 {
         // Not to be confused with QCamera::FocusMode
         // This controls the currently desired CaptureRequest.CONTROL_AF_MODE
         // QCamera::FocusMode::FocusModeAuto maps to CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+        //
+        // This variable only controls the AF_MODE we desire to apply. If the device
+        // does not support this AF_MODE this will not reflect what the camera is currently doing.
         private int mAFMode = DEFAULT_AF_MODE;
 
         // Not to be confused with CaptureRequest.CONTROL_ZOOM_RATIO
@@ -415,18 +419,21 @@ class QtCamera2 {
             try {
                 mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(template);
                 mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
-                mSyncedMembers.mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
-                for (int mode : mVideoDeviceManager.getAllAvailableAfModes(mCameraId)) {
-                    if (mode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
-                        mSyncedMembers.mAFMode = mode;
-                        break;
-                    }
+
+                // Only apply the focus-mode if it's confirmed to be supported.
+                if (isAfModeSupported(mSyncedMembers.mAFMode)) {
+                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, mSyncedMembers.mAFMode);
+                } else if (isAfModeSupported(CaptureRequest.CONTROL_AF_MODE_OFF)) {
+                    mPreviewRequestBuilder.set(
+                        CaptureRequest.CONTROL_AF_MODE,
+                        CaptureRequest.CONTROL_AF_MODE_OFF);
                 }
+                // If none of our desired or fallback AF_MODES are available,
+                // we leave it to the default value set during .createCaptureRequest()
 
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, mSyncedMembers.mFlashMode);
                 mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mSyncedMembers.mTorchMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
-                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, mSyncedMembers.mAFMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
                 if (mSyncedMembers.mZoomFactor != 1.0f)
                     updateZoom(mPreviewRequestBuilder, mSyncedMembers.mZoomFactor);
@@ -547,7 +554,12 @@ class QtCamera2 {
         }
 
         try {
-            if (afMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
+            // If we currently want to use auto-focus, and it is supported, we start a capture photo
+            // routine with auto-focus enabled.
+            if (afMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+                && isAfModeSupported(afMode))
+            {
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, afMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
                 mState = STATE_WAITING_FOCUS_LOCK;
                 mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
@@ -660,5 +672,13 @@ class QtCamera2 {
                 }
             }
         }
+    }
+
+    // Helper function to check if a given CaptureRequest.CONTROL_AF_MODE is supported on this
+    // device, and we have a working implementation for it.
+    private boolean isAfModeSupported(int afMode) {
+        if (mVideoDeviceManager == null || mCameraId == null || mCameraId.isEmpty())
+            return false;
+        return mVideoDeviceManager.isAfModeSupported(mCameraId, afMode);
     }
 }
