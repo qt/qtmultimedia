@@ -216,13 +216,21 @@ class QtVideoDeviceManager {
         }
     }
 
-    int[] getSupportedAfModes(String cameraId) {
+    // Returns all available modes exposed by the physical device, regardless
+    // of whether we have implemented them.
+    //
+    // Guaranteed to not return null. Will instead return array of size zero.
+    int[] getAllAvailableAfModes(String cameraId) {
+        if (cameraId.isEmpty())
+            return new int[0];
 
         CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
         if (characteristics == null)
             return new int[0];
 
-        return characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+        final int[] characteristicsValue = characteristics.get(
+            CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+        return characteristicsValue != null ? characteristicsValue : new int[0];
     }
 
     @UsedFromNativeCode
