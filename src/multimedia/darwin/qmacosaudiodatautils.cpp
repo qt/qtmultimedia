@@ -160,4 +160,44 @@ QByteArray qCoreAudioReadPersistentAudioDeviceID(
     return QByteArray();
 }
 
+std::optional<AudioDeviceID> qCoreAudioFindAudioDeviceId(
+    const QByteArray &id,
+    QAudioDevice::Mode mode)
+{
+    if (id.isEmpty() || mode == QAudioDevice::Mode::Null)
+        return std::nullopt;
+    // Iterate over all the devices connected and find the one matching our ID and return the AudioDeviceID.
+    const AudioObjectPropertyAddress audioDevicesPropertyAddress = {
+        kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMain
+    };
+    const std::optional<std::vector<AudioDeviceID>> audioDevicesOpt = getAudioData<AudioDeviceID>(
+        kAudioObjectSystemObject,
+        audioDevicesPropertyAddress);
+    if (audioDevicesOpt.has_value()) {
+        const std::vector<AudioDeviceID> &audioDevices = audioDevicesOpt.value();
+        const AudioObjectPropertyAddress audioDeviceStreamFormatPropertyAddress = makePropertyAddress(
+            kAudioDevicePropertyStreamFormat,
+            mode);
+        for (const AudioDeviceID &device : audioDevices) {
+            // Ignore devices that don't have any audio formats we can use.
+            const std::optional<AudioStreamBasicDescription> audioStreamOpt =
+                getAudioObject<AudioStreamBasicDescription>(
+                    device,
+                    audioDeviceStreamFormatPropertyAddress);
+            // Check that these devices have the same unique-id. In which case, we found the
+            // correct CoreAudioID.
+            if (audioStreamOpt.has_value() && qCoreAudioReadPersistentAudioDeviceID(device, mode) == id)
+                return device;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<AudioDeviceID> qCoreAudioFindAudioDeviceId(
+    const QAudioDevice &device)
+{
+    return qCoreAudioFindAudioDeviceId(device.id(), device.mode());
+}
+
 QT_END_NAMESPACE
