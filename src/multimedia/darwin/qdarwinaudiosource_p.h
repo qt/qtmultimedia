@@ -225,9 +225,6 @@ private:
     QAudioFormat m_audioFormat;
     QIODevice *m_audioIO;
     AudioUnit m_audioUnit;
-#if defined(Q_OS_MACOS)
-    AudioDeviceID m_audioDeviceId;
-#endif
     Float64 m_clockFrequency;
     QAudio::Error m_errorCode;
     QAudio::State m_stateCode;
