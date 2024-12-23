@@ -24,8 +24,9 @@
 
 #include "qaudio.h"
 #include "qaudiodevice.h"
-#include <private/qaudiosystem_p.h>
-#include <private/qaudiostatemachine_p.h>
+#include <QtMultimedia/private/qpulsehelpers_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qaudiostatemachine_p.h>
 
 #include <pulse/pulseaudio.h>
 
@@ -79,6 +80,9 @@ private:
     bool open();
     void close();
 
+    using PAOperationHandle = QPulseAudioInternal::PAOperationHandle;
+    using PAStreamHandle = QPulseAudioInternal::PAStreamHandle;
+
     bool m_pullMode;
     bool m_opened;
     int m_bufferSize;
@@ -86,13 +90,14 @@ private:
     unsigned int m_periodTime;
     QBasicTimer m_timer;
     qint64 m_elapsedTimeOffset;
-    pa_stream *m_stream;
+    PAStreamHandle m_stream;
     QByteArray m_streamName;
     QByteArray m_device;
     QByteArray m_tempBuffer;
     pa_sample_spec m_spec;
 
     QAudioStateMachine m_stateMachine;
+
 };
 
 class PulseInputPrivate : public QIODevice

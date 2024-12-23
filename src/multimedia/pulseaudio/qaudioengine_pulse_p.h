@@ -28,30 +28,33 @@ class QPulseAudioEngine : public QObject
 {
     Q_OBJECT
 
+    using PAContextHandle = QPulseAudioInternal::PAContextHandle;
+    using PAOperationHandle = QPulseAudioInternal::PAOperationHandle;
+
 public:
-    QPulseAudioEngine(QObject *parent = 0);
+    explicit QPulseAudioEngine(QObject *parent = nullptr);
     ~QPulseAudioEngine() override;
 
     static QPulseAudioEngine *instance();
-    pa_threaded_mainloop *mainloop() { return m_mainLoop; }
-    pa_context *context() { return m_context; }
+    pa_threaded_mainloop *mainloop() { return m_mainLoop.get(); }
+    pa_context *context() { return m_context.get(); }
 
     inline void lock()
     {
         if (m_mainLoop)
-            pa_threaded_mainloop_lock(m_mainLoop);
+            pa_threaded_mainloop_lock(m_mainLoop.get());
     }
 
     inline void unlock()
     {
         if (m_mainLoop)
-            pa_threaded_mainloop_unlock(m_mainLoop);
+            pa_threaded_mainloop_unlock(m_mainLoop.get());
     }
 
-    inline void wait(pa_operation *op)
+    inline void wait(const PAOperationHandle &op)
     {
-        while (m_mainLoop && pa_operation_get_state(op) == PA_OPERATION_RUNNING)
-            pa_threaded_mainloop_wait(m_mainLoop);
+        while (m_mainLoop && pa_operation_get_state(op.get()) == PA_OPERATION_RUNNING)
+            pa_threaded_mainloop_wait(m_mainLoop.get());
     }
 
     QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
@@ -67,10 +70,19 @@ private Q_SLOTS:
     void onContextFailed();
 
 private:
+    static void serverInfoCallback(pa_context *context, const pa_server_info *info, void *userdata);
+    static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int isLast,
+                                 void *userdata);
+    static void sourceInfoCallback(pa_context *context, const pa_source_info *info, int isLast,
+                                   void *userdata);
+    static void eventCallback(pa_context *context, pa_subscription_event_type_t t, uint32_t index,
+                              void *userdata);
+    static void contextStateCallbackInit(pa_context *context, void *userdata);
+    static void contextStateCallback(pa_context *c, void *userdata);
+
     void updateDevices();
     void release();
 
-public:
     QMap<int, QAudioDevice> m_sinks;
     QMap<int, QAudioDevice> m_sources;
 
@@ -81,11 +93,10 @@ public:
     mutable QReadWriteLock m_sourceLock;
     mutable QReadWriteLock m_serverLock;
 
-private:
-    pa_mainloop_api *m_mainLoopApi;
-    pa_threaded_mainloop *m_mainLoop;
-    pa_context *m_context;
-    bool m_prepared;
+    pa_mainloop_api *m_mainLoopApi{};
+    std::unique_ptr<pa_threaded_mainloop, QPulseAudioInternal::PaMainLoopDeleter> m_mainLoop;
+    PAContextHandle m_context;
+    bool m_prepared{};
  };
 
 QT_END_NAMESPACE

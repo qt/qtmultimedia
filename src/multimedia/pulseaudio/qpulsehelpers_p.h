@@ -18,8 +18,11 @@
 #include "qaudiodevice.h"
 #include <qaudioformat.h>
 #include <pulse/pulseaudio.h>
-#include <QtCore/QLoggingCategory>
+
+#include <QtMultimedia/private/qsharedhandle_p.h>
+
 #include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -27,15 +30,40 @@ Q_DECLARE_LOGGING_CATEGORY(qLcPulseAudioOut)
 Q_DECLARE_LOGGING_CATEGORY(qLcPulseAudioIn)
 Q_DECLARE_LOGGING_CATEGORY(qLcPulseAudioEngine)
 
-struct PAOperationDeleter
-{
-    void operator()(pa_operation *op) const { pa_operation_unref(op); }
-};
-
-using PAOperationUPtr = std::unique_ptr<pa_operation, PAOperationDeleter>;
-
 namespace QPulseAudioInternal
 {
+
+template <typename TypeArg, TypeArg *(*RefFn)(TypeArg *), void (*UnrefFn)(TypeArg *)>
+struct PaHandleTraits
+{
+    using Type = TypeArg *;
+    static constexpr Type invalidValue() noexcept { return nullptr; }
+    static bool close(Type handle)
+    {
+        (*UnrefFn)(handle);
+        return true;
+    }
+
+    static Type ref(Type handle)
+    {
+        Type ret = (*RefFn)(handle);
+        return ret;
+    }
+};
+
+using PAOperationHandleTraits = PaHandleTraits<pa_operation, pa_operation_ref, pa_operation_unref>;
+using PAContextHandleTraits = PaHandleTraits<pa_context, pa_context_ref, pa_context_unref>;
+using PAStreamHandleTraits = PaHandleTraits<pa_stream, pa_stream_ref, pa_stream_unref>;
+
+using PAOperationHandle = QSharedHandle<PAOperationHandleTraits>;
+using PAContextHandle = QSharedHandle<PAContextHandleTraits>;
+using PAStreamHandle = QSharedHandle<PAStreamHandleTraits>;
+
+struct PaMainLoopDeleter
+{
+    void operator()(pa_threaded_mainloop *m) const { pa_threaded_mainloop_free(m); }
+};
+
 pa_sample_spec audioFormatToSampleSpec(const QAudioFormat &format);
 QAudioFormat sampleSpecToAudioFormat(const pa_sample_spec &spec);
 pa_channel_map channelMapForAudioFormat(const QAudioFormat &format);

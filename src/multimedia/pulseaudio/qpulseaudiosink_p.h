@@ -77,9 +77,11 @@ private Q_SLOTS:
     void userFeed();
     void onPulseContextFailed();
 
-    PAOperationUPtr exchangeDrainOperation(pa_operation *newOperation);
-
 private:
+    using PAOperationHandle = QPulseAudioInternal::PAOperationHandle;
+    using PAStreamHandle = QPulseAudioInternal::PAStreamHandle;
+    PAOperationHandle exchangeDrainOperation(pa_operation *newOperation);
+
     qsizetype defaultBufferSize() const;
 
     pa_sample_spec m_spec = {};
@@ -94,7 +96,7 @@ private:
     QBasicTimer m_tickTimer;
 
     QIODevice *m_audioSource = nullptr;
-    pa_stream *m_stream = nullptr;
+    PAStreamHandle m_stream;
     std::vector<char> m_audioBuffer;
 
     qint64 m_totalTimeValue = 0;
