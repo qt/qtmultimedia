@@ -20,6 +20,7 @@ import android.util.Log;
 
 import java.lang.String;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -220,6 +221,7 @@ class QtVideoDeviceManager {
     // of whether we have implemented them.
     //
     // Guaranteed to not return null. Will instead return array of size zero.
+    @UsedFromNativeCode
     int[] getAllAvailableAfModes(String cameraId) {
         if (cameraId.isEmpty())
             return new int[0];
@@ -231,6 +233,43 @@ class QtVideoDeviceManager {
         final int[] characteristicsValue = characteristics.get(
             CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
         return characteristicsValue != null ? characteristicsValue : new int[0];
+    }
+
+    // Returns true if the afMode is both available and we have a working implementation
+    // for it.
+    @UsedFromNativeCode
+    boolean isAfModeSupported(String cameraId, int afMode) {
+        if (cameraId == null || cameraId.isEmpty())
+            return false;
+
+        final boolean available = Arrays
+            .stream(getAllAvailableAfModes(cameraId))
+            .anyMatch(value -> value == afMode);
+
+        // Currently we have only implemented CONTINUOUS_PICTURE
+        if (available && afMode == CameraCharacteristics.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
+            return true;
+
+        return false;
+    }
+
+    // Returns supported QCamera::FocusModes as strings. I.e FocusModeAuto becomes "FocusModeAuto".
+    // This method will return only those focus-modes for which we have an implementation, and
+    // is also reported as available by the physical device. This method will never return null.
+    // It is guaranteed to return an empty list if no focus modes are found.
+    //
+    // Note: These returned strings MUST match that of QCamera::FocusMode.
+    @UsedFromNativeCode
+    String[] getSupportedQCameraFocusModesAsStrings(String cameraId) {
+        ArrayList<String> outList = new ArrayList<String>();
+
+        // FocusModeAuto maps to the CONTINUOUS_PICTURE mode.
+        if (isAfModeSupported(cameraId, CameraCharacteristics.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
+            outList.add("FocusModeAuto");
+        }
+
+        String[] ret = new String[ outList.size() ];
+        return outList.toArray(ret);
     }
 
     @UsedFromNativeCode
