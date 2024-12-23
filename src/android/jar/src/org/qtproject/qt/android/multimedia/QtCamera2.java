@@ -416,7 +416,7 @@ class QtCamera2 {
                 mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(template);
                 mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
                 mSyncedMembers.mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
-                for (int mode : mVideoDeviceManager.getSupportedAfModes(mCameraId)) {
+                for (int mode : mVideoDeviceManager.getAllAvailableAfModes(mCameraId)) {
                     if (mode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
                         mSyncedMembers.mAFMode = mode;
                         break;
