@@ -25,9 +25,14 @@ struct AudioSinkDeleter
 {
     void operator ()(QAudioSink* sink) const
     {
+        // Wait for sink to finish before stopping it
+        if (sink->state() == QAudio::ActiveState) {
+            sink->drain();
+        }
         sink->stop();
-        // Investigate:should we just delete?
-        sink->deleteLater();
+        
+        // Delete sink immediately after it has stopped
+        delete sink;
     }
 };
 
