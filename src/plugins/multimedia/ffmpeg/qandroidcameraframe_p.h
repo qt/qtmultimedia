@@ -36,7 +36,7 @@ public:
         int pixelStride = 0;
         int rowStride = 0;
         int size = 0;
-        uint8_t *data;
+        uint8_t *data = nullptr;
     };
 
     QAndroidCameraFrame(QJniObject frame);
@@ -69,6 +69,10 @@ private:
     QImage m_image;
 
     enum AndroidImageFormat {
+    // Values taken from Android API ImageFormat, PixelFormat, or HardwareBuffer
+    // (that can be retuned by Image::getFormat() method)
+    // https://developer.android.com/reference/android/media/Image#getFormat()
+        RGBA_8888 = 1,
         RAW_SENSOR = 32,
         YUV_420_888 = 35,
         RAW_PRIVATE = 36,

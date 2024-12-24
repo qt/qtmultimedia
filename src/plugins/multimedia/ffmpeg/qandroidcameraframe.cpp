@@ -77,6 +77,12 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
     AndroidImageFormat imageFormat = AndroidImageFormat(format);
 
     switch (imageFormat) {
+    case AndroidImageFormat::RGBA_8888: {
+        // RGBA_8888 should have a single plane
+        calculedPixelFormat = numberPlanes != 1 ? QVideoFrameFormat::Format_Invalid :
+                                                  QVideoFrameFormat::Format_RGBA8888;
+        break;
+    }
     case AndroidImageFormat::JPEG:
         calculedPixelFormat = QVideoFrameFormat::Format_Jpeg;
         break;
@@ -140,6 +146,17 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
     m_size = QSize(width, height);
 
     switch (calculedPixelFormat) {
+    case QVideoFrameFormat::Format_RGBA8888:
+        m_numberPlanes = 1;
+        copyPlane(0, 0);
+        if (isWorkaroundForEmulatorNeeded()) {
+            const int dataSize = m_planes[0].size;
+            m_planes[0].data = new uint8_t[dataSize];
+            memcpy(m_planes[0].data, buffer[0], dataSize);
+        }
+
+        m_pixelFormat = QVideoFrameFormat::Format_RGBA8888;
+        break;
     case QVideoFrameFormat::Format_YUV420P:
         m_numberPlanes = 3;
         copyPlane(0, 0);
@@ -221,9 +238,10 @@ QAndroidCameraFrame::~QAndroidCameraFrame()
         jniEnv->DeleteGlobalRef(m_frame);
 
     if (isWorkaroundForEmulatorNeeded()) {
-        if (m_pixelFormat == QVideoFrameFormat::Format_YUV420P) {
-            for (int i = 0; i < 3; ++i)
-                delete[] m_planes[i].data;
+        if (m_pixelFormat == QVideoFrameFormat::Format_YUV420P
+            || m_pixelFormat == QVideoFrameFormat::Format_RGBA8888) {
+                for (int i = 0; i < m_numberPlanes; ++i)
+                    delete[] m_planes[i].data;
         }
     }
 }
