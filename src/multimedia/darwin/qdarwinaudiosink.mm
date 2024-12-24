@@ -207,8 +207,6 @@ QDarwinAudioSink::QDarwinAudioSink(const QAudioDevice &device, QObject *parent)
 #endif
     m_device = di.id();
 
-    m_clockFrequency = CoreAudioUtils::frequency() / 1000;
-
     connect(this, &QDarwinAudioSink::stateChanged, this, &QDarwinAudioSink::updateAudioDevice);
 #ifdef Q_OS_IOS
     if (qApp)

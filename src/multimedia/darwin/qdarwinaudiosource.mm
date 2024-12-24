@@ -368,7 +368,6 @@ QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device, QObject *pare
     : QPlatformAudioSource(parent),
       m_audioDeviceInfo(device),
       m_internalBufferSize(DEFAULT_BUFFER_SIZE),
-      m_clockFrequency(CoreAudioUtils::frequency() / 1000),
       m_stateMachine(*this)
 {
     QAudioDevice di = device;

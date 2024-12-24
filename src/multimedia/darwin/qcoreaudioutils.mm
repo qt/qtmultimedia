@@ -3,35 +3,8 @@
 
 #include "qcoreaudioutils_p.h"
 #include <qdebug.h>
-#include <mach/mach_time.h>
 
 QT_BEGIN_NAMESPACE
-
-double CoreAudioUtils::sFrequency = 0.0;
-bool CoreAudioUtils::sIsInitialized = false;
-
-void CoreAudioUtils::initialize()
-{
-    struct mach_timebase_info timeBaseInfo;
-    mach_timebase_info(&timeBaseInfo);
-    sFrequency = static_cast<double>(timeBaseInfo.denom) / static_cast<double>(timeBaseInfo.numer);
-    sFrequency *= 1000000000.0;
-
-    sIsInitialized = true;
-}
-
-
-quint64 CoreAudioUtils::currentTime()
-{
-    return mach_absolute_time();
-}
-
-double CoreAudioUtils::frequency()
-{
-    if (!sIsInitialized)
-        initialize();
-    return sFrequency;
-}
 
 QAudioFormat CoreAudioUtils::toQAudioFormat(AudioStreamBasicDescription const& sf)
 {
