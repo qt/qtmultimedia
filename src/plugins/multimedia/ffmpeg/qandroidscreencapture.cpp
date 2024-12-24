@@ -16,10 +16,6 @@ Q_DECLARE_JNI_CLASS(QtScreenCaptureService,
                     "org/qtproject/qt/android/multimedia/QtScreenCaptureService")
 Q_DECLARE_JNI_CLASS(Size, "android/util/Size")
 
-typedef QMap<int, QAndroidScreenCapture *> QAndroidScreenCaptureMap;
-Q_GLOBAL_STATIC(QAndroidScreenCaptureMap, g_qsurfaceCaptures)
-Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
-
 
 namespace {
 QAtomicInteger<int> idCounter = 0;
@@ -31,9 +27,9 @@ constexpr int RESULT_OK = -1;
 class QAndroidScreenCapture::Grabber : public QtAndroidPrivate::ActivityResultListener
 {
 public:
-    Grabber(int surfaceCaptureID)
-        : m_surfaceCaptureId(surfaceCaptureID)
-        , m_activityRequestCode(REQUEST_CODE_MEDIA_PROJECTION + surfaceCaptureID)
+    Grabber(QAndroidScreenCapture & screenCapture)
+        : m_activityRequestCode(REQUEST_CODE_MEDIA_PROJECTION + idCounter.fetchAndAddRelaxed(1))
+        , m_screenCapture(screenCapture)
     {
         using namespace QtJniTypes;
         const auto sizeObj = QtScreenGrabber::callStaticMethod<Size>(
@@ -62,7 +58,7 @@ public:
             const bool screenCaptureServiceStarted = m_jniGrabber.callMethod<bool>(
                                                         "startScreenCaptureService",
                                                         resultCode,
-                                                        m_surfaceCaptureId,
+                                                        reinterpret_cast<jlong>(&m_screenCapture),
                                                         m_format.frameWidth(),
                                                         m_format.frameHeight(),
                                                         intent);
@@ -85,34 +81,26 @@ public:
 private:
     void updateError(const QString &errorString)
     {
-        QWriteLocker locker(rwLock);
-        if (g_qsurfaceCaptures->contains(m_surfaceCaptureId))
-            QMetaObject::invokeMethod(g_qsurfaceCaptures->value(m_surfaceCaptureId),
-                                      &QPlatformSurfaceCapture::updateError,
-                                      Qt::QueuedConnection,
-                                      QPlatformSurfaceCapture::InternalError,
-                                      errorString);
+        QMetaObject::invokeMethod(&m_screenCapture,
+                                  &QPlatformSurfaceCapture::updateError,
+                                  Qt::QueuedConnection,
+                                  QPlatformSurfaceCapture::InternalError,
+                                  errorString);
     }
 
     QtJniTypes::QtScreenGrabber m_jniGrabber;
-    const int m_surfaceCaptureId;
     const int m_activityRequestCode;
+    QAndroidScreenCapture & m_screenCapture;
     QVideoFrameFormat m_format;
 };
 
 QAndroidScreenCapture::QAndroidScreenCapture()
     : QPlatformSurfaceCapture(ScreenSource{})
-      , m_id(idCounter.fetchAndAddRelaxed(1))
 {
-    QWriteLocker locker(rwLock);
-    g_qsurfaceCaptures->insert(m_id, this);
-
 }
 
 QAndroidScreenCapture::~QAndroidScreenCapture()
 {
-    QWriteLocker locker(rwLock);
-    g_qsurfaceCaptures->remove(m_id);
 }
 
 QVideoFrameFormat QAndroidScreenCapture::frameFormat() const
@@ -129,7 +117,7 @@ bool QAndroidScreenCapture::setActiveInternal(bool active)
         m_grabber.reset();
         m_frameFactory.reset();
     } else {
-        m_grabber = std::make_unique<Grabber>(m_id);
+        m_grabber = std::make_unique<Grabber>(*this);
         m_frameFactory = QAndroidVideoFrameFactory::create();
     }
 
@@ -149,30 +137,25 @@ void QAndroidScreenCapture::onNewFrameReceived(QtJniTypes::AndroidImage image)
         emit newVideoFrame(videoFrame);
 }
 
-static void onScreenFrameAvailable(JNIEnv *env, jobject obj, QtJniTypes::AndroidImage image, jint id)
+static void onScreenFrameAvailable(JNIEnv *env, jobject obj, QtJniTypes::AndroidImage image, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(obj);
-    QReadLocker locker(rwLock);
-    if (g_qsurfaceCaptures->contains(id))
-        g_qsurfaceCaptures->value(id)->onNewFrameReceived(image);
-    else
-        image.callMethod<void>("close");
+    auto cppObj = reinterpret_cast<QAndroidScreenCapture*>(id);
+    cppObj->onNewFrameReceived(image);
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onScreenFrameAvailable)
 
-static void onErrorUpdate(JNIEnv *env, jobject obj, QString errorString, jint id)
+static void onErrorUpdate(JNIEnv *env, jobject obj, QString errorString, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(obj);
-    QReadLocker locker(rwLock);
-    if (g_qsurfaceCaptures->contains(id)) {
-        QMetaObject::invokeMethod(g_qsurfaceCaptures->value(id),
-                                  &QPlatformSurfaceCapture::updateError,
-                                  Qt::QueuedConnection,
-                                  QPlatformSurfaceCapture::InternalError,
-                                  errorString);
-    }
+    auto cppObj = reinterpret_cast<QAndroidScreenCapture*>(id);
+    QMetaObject::invokeMethod(cppObj,
+                              &QPlatformSurfaceCapture::updateError,
+                              Qt::QueuedConnection,
+                              QPlatformSurfaceCapture::InternalError,
+                              errorString);
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onErrorUpdate)
 
