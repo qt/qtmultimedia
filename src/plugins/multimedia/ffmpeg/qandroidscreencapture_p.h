@@ -40,7 +40,6 @@ protected:
     bool setActiveInternal(bool active) override;
 
 private:
-    const int m_id;
     std::unique_ptr<Grabber> m_grabber;
     std::shared_ptr<QAndroidVideoFrameFactory> m_frameFactory;
 };

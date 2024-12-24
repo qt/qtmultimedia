@@ -28,6 +28,9 @@ import android.util.Log;
 
 
 public class QtScreenCaptureService extends Service {
+    // Lock for synchronization
+    private final Object mServiceStopLock = new Object();
+    private boolean mServiceStopped = false;
     private static final String QtTAG = "QtScreenCaptureService";
     private static final String CHANNEL_ID = "ScreenCaptureChannel";
     private static final String VIRTUAL_DISPLAY_NAME = "ScreenCapture";
@@ -37,12 +40,12 @@ public class QtScreenCaptureService extends Service {
     private MediaProjection mMediaProjection = null;
     private Handler mBackgroundHandler = null;
     private HandlerThread mBackgroundThread = null;
-    private int mId;
+    private long mId;
     private int mScreenWidth;
     private int mScreenHeight;
 
-    static native void onScreenFrameAvailable(Image frame, int id);
-    static native void onErrorUpdate(String errorString, int id);
+    static native void onScreenFrameAvailable(Image frame, long id);
+    static native void onErrorUpdate(String errorString, long id);
 
     @Override
     public void onCreate() {
@@ -64,6 +67,17 @@ public class QtScreenCaptureService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        synchronized (mServiceStopLock) {
+            if (mServiceStopped)
+                return START_STICKY;
+            return onStartCommandInternal(intent, flags, startId);
+        }
+    }
+
+    private int onStartCommandInternal(Intent intent, int flags, int startId) {
+        if (mServiceStopped)
+            return START_STICKY;
+
         if (intent == null)
             return START_STICKY;
 
@@ -74,7 +88,7 @@ public class QtScreenCaptureService extends Service {
         Intent data = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ?
                     intent.getParcelableExtra(QtScreenGrabber.DATA) :
                     intent.getParcelableExtra(QtScreenGrabber.DATA, Intent.class);
-        mId = intent.getIntExtra(QtScreenGrabber.ID, -1);
+        mId = intent.getLongExtra(QtScreenGrabber.ID, -1);
         if (data == null || mId == -1) {
             onErrorUpdate("Cannot parse Intent. Screen capture not started", mId);
             return START_STICKY;
@@ -139,26 +153,32 @@ public class QtScreenCaptureService extends Service {
 
     public void stopScreenCapture()
     {
-        if (mImageReader != null)
-            mImageReader.setOnImageAvailableListener(null, mBackgroundHandler);
+        synchronized (mServiceStopLock) {
+            if (mServiceStopped)
+               return;
+            mServiceStopped = true;
 
-        if (mVirtualDisplay != null) {
-            mVirtualDisplay.release();
-            mVirtualDisplay = null;
-        }
-        if (mBackgroundHandler != null) {
-            mBackgroundHandler.getLooper().quitSafely();
-            mBackgroundHandler = null;
-        }
+            if (mImageReader != null)
+                mImageReader.setOnImageAvailableListener(null, mBackgroundHandler);
 
-        if (mBackgroundThread != null) {
-            mBackgroundThread.quitSafely();
-            try {
-                mBackgroundThread.join();
-            } catch (InterruptedException e) {
-                Log.w(QtTAG, "The thread is interrupted. Cannot join: " + e);
+            if (mVirtualDisplay != null) {
+                mVirtualDisplay.release();
+                mVirtualDisplay = null;
             }
-            mBackgroundThread = null;
+            if (mBackgroundHandler != null) {
+                mBackgroundHandler.getLooper().quitSafely();
+                mBackgroundHandler = null;
+            }
+
+            if (mBackgroundThread != null) {
+                mBackgroundThread.quitSafely();
+                try {
+                    mBackgroundThread.join();
+                } catch (InterruptedException e) {
+                    Log.w(QtTAG, "The thread is interrupted. Cannot join: " + e);
+                }
+                mBackgroundThread = null;
+            }
         }
     }
 

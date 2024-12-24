@@ -73,7 +73,7 @@ class QtScreenGrabber {
         }
     }
 
-    public boolean startScreenCaptureService(int resultCode, int id, int width, int height, Intent data) {
+    public boolean startScreenCaptureService(int resultCode, long id, int width, int height, Intent data) {
         try {
             Intent serviceIntent = new Intent(m_activity, QtScreenCaptureService.class);
             serviceIntent.putExtra(RESULT_CODE, resultCode);
