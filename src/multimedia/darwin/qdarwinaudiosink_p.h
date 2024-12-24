@@ -155,7 +155,6 @@ private:
     AudioDeviceID m_audioDeviceId;
 #endif
     AudioUnit m_audioUnit = 0;
-    Float64 m_clockFrequency = 0;
     AudioStreamBasicDescription m_streamFormat;
     std::unique_ptr<QDarwinAudioSinkBuffer> m_audioBuffer;
     qreal m_cachedVolume = 1.;

@@ -212,7 +212,6 @@ private:
 #if defined(Q_OS_MACOS)
     AudioDeviceID m_audioDeviceId = 0;
 #endif
-    Float64 m_clockFrequency = 0.;
     std::unique_ptr<QDarwinAudioSourceBuffer> m_audioBuffer;
     AudioStreamBasicDescription m_streamFormat;
     AudioStreamBasicDescription m_deviceFormat;

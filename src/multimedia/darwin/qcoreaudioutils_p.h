@@ -25,19 +25,12 @@ QT_BEGIN_NAMESPACE
 class CoreAudioUtils
 {
 public:
-    static quint64 currentTime();
-    static double frequency();
     static Q_MULTIMEDIA_EXPORT QAudioFormat toQAudioFormat(const AudioStreamBasicDescription& streamFormat);
     static AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& audioFormat);
 
     // ownership is transferred to caller, free with ::free()
     static Q_MULTIMEDIA_EXPORT std::unique_ptr<AudioChannelLayout> toAudioChannelLayout(const QAudioFormat &format, UInt32 *size);
     static QAudioFormat::ChannelConfig fromAudioChannelLayout(const AudioChannelLayout *layout);
-
-private:
-    static void initialize();
-    static double sFrequency;
-    static bool sIsInitialized;
 };
 
 QT_END_NAMESPACE
