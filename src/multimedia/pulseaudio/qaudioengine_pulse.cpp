@@ -1,21 +1,76 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtCore/qdebug.h>
-
-#include <qaudiodevice.h>
-#include <QGuiApplication>
-#include <QIcon>
-#include <QTimer>
-#include <QtCore/private/qflatmap_p.h>
 #include "qaudioengine_pulse_p.h"
-#include "qpulseaudiodevice_p.h"
+
+#include <QtCore/qdebug.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/private/qflatmap_p.h>
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qicon.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/private/qaudiodevice_p.h>
+
 #include "qpulsehelpers_p.h"
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <mutex> // for lock_guard
 
 QT_BEGIN_NAMESPACE
+
+static std::unique_ptr<QAudioDevicePrivate>
+makeQAudioDevicePrivate(const char *device, const char *desc, bool isDef, QAudioDevice::Mode mode,
+                        const pa_channel_map &map, const pa_sample_spec &spec)
+{
+    using namespace QPulseAudioInternal;
+
+    auto deviceInfo = std::make_unique<QAudioDevicePrivate>(device, mode);
+    QAudioFormat::ChannelConfig channelConfig = channelConfigFromMap(map);
+
+    deviceInfo->description = QString::fromUtf8(desc);
+    deviceInfo->isDefault = isDef;
+    deviceInfo->channelConfiguration = channelConfig;
+
+    deviceInfo->minimumChannelCount = 1;
+    deviceInfo->maximumChannelCount = PA_CHANNELS_MAX;
+    deviceInfo->minimumSampleRate = 1;
+    deviceInfo->maximumSampleRate = PA_RATE_MAX;
+
+    constexpr bool isBigEndian = QSysInfo::ByteOrder == QSysInfo::BigEndian;
+
+    constexpr struct
+    {
+        pa_sample_format pa_fmt;
+        QAudioFormat::SampleFormat qt_fmt;
+    } formatMap[] = {
+        { PA_SAMPLE_U8, QAudioFormat::UInt8 },
+        { isBigEndian ? PA_SAMPLE_S16BE : PA_SAMPLE_S16LE, QAudioFormat::Int16 },
+        { isBigEndian ? PA_SAMPLE_S32BE : PA_SAMPLE_S32LE, QAudioFormat::Int32 },
+        { isBigEndian ? PA_SAMPLE_FLOAT32BE : PA_SAMPLE_FLOAT32LE, QAudioFormat::Float },
+    };
+
+    for (const auto &f : formatMap) {
+        if (pa_sample_format_valid(f.pa_fmt) != 0)
+            deviceInfo->supportedSampleFormats.append(f.qt_fmt);
+    }
+
+    QAudioFormat preferredFormat = sampleSpecToAudioFormat(spec);
+    if (!preferredFormat.isValid()) {
+        preferredFormat.setChannelCount(spec.channels ? spec.channels : 2);
+        preferredFormat.setSampleRate(spec.rate ? spec.rate : 48000);
+
+        Q_ASSERT(spec.format != PA_SAMPLE_INVALID);
+        if (!deviceInfo->supportedSampleFormats.contains(preferredFormat.sampleFormat()))
+            preferredFormat.setSampleFormat(QAudioFormat::Float);
+    }
+
+    deviceInfo->preferredFormat = preferredFormat;
+    deviceInfo->preferredFormat.setChannelConfig(channelConfig);
+    Q_ASSERT(deviceInfo->preferredFormat.isValid());
+
+    return deviceInfo;
+}
 
 template<typename Info>
 static bool updateDevicesMap(QReadWriteLock &lock, QByteArray defaultDeviceId,
@@ -25,10 +80,8 @@ static bool updateDevicesMap(QReadWriteLock &lock, QByteArray defaultDeviceId,
     QWriteLocker locker(&lock);
 
     bool isDefault = defaultDeviceId == info.name;
-    auto newDeviceInfo = std::make_unique<QPulseAudioDeviceInfo>(info.name, info.description, isDefault, mode);
-    newDeviceInfo->channelConfiguration = QPulseAudioInternal::channelConfigFromMap(info.channel_map);
-    newDeviceInfo->preferredFormat = QPulseAudioInternal::sampleSpecToAudioFormat(info.sample_spec);
-    newDeviceInfo->preferredFormat.setChannelConfig(newDeviceInfo->channelConfiguration);
+    auto newDeviceInfo = makeQAudioDevicePrivate(info.name, info.description, isDefault, mode,
+                                                 info.channel_map, info.sample_spec);
 
     auto &device = devices[info.index];
     if (device.handle() && *newDeviceInfo == *device.handle())
@@ -49,9 +102,7 @@ static bool updateDevicesMap(QReadWriteLock &lock, QByteArray defaultDeviceId,
         auto deviceInfo = device.handle();
         const auto isDefault = deviceInfo->id == defaultDeviceId;
         if (deviceInfo->isDefault != isDefault) {
-            Q_ASSERT(dynamic_cast<const QPulseAudioDeviceInfo *>(deviceInfo));
-            auto newDeviceInfo = std::make_unique<QPulseAudioDeviceInfo>(
-                    *static_cast<const QPulseAudioDeviceInfo *>(deviceInfo));
+            auto newDeviceInfo = std::make_unique<QAudioDevicePrivate>(*deviceInfo);
             newDeviceInfo->isDefault = isDefault;
             device = newDeviceInfo.release()->create();
             result = true;

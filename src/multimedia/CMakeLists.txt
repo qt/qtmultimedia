@@ -155,7 +155,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
     SOURCES
-        pulseaudio/qpulseaudiodevice.cpp pulseaudio/qpulseaudiodevice_p.h
         pulseaudio/qaudioengine_pulse.cpp pulseaudio/qaudioengine_pulse_p.h
         pulseaudio/qpulseaudiosource.cpp pulseaudio/qpulseaudiosource_p.h
         pulseaudio/qpulseaudiosink.cpp pulseaudio/qpulseaudiosink_p.h

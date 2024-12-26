@@ -191,8 +191,8 @@ QAudioFormat sampleSpecToAudioFormat(const pa_sample_spec &spec)
     case PA_SAMPLE_S32BE:
         sampleFormat = QAudioFormat::Int32;
         break;
-        default:
-            return {};
+    default:
+        return {};
     }
 
     format.setSampleFormat(sampleFormat);
