@@ -1,9 +1,6 @@
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
-# Generated from integration.pro.
-
-# special case begin
 add_subdirectory(qaudiodecoderbackend)
 add_subdirectory(qaudiodevicebackend)
 add_subdirectory(qaudiosource)
@@ -42,4 +39,7 @@ if(TARGET Qt::Quick)
     endif()
 
 endif()
-# special case end
+
+if(QT_FEATURE_static)
+    add_subdirectory(static_linking)
+endif()
