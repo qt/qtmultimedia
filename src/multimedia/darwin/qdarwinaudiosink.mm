@@ -13,7 +13,6 @@
 #include <QtCore/QDebug>
 
 #include <AudioUnit/AudioUnit.h>
-#include <AudioToolbox/AudioToolbox.h>
 #if defined(Q_OS_MACOS)
 # include <AudioUnit/AudioComponent.h>
 #endif

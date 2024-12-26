@@ -9,13 +9,7 @@
 #include <AVFoundation/AVFoundation.h>
 #import <QuartzCore/CATransaction.h>
 
-#if __has_include(<AppKit/AppKit.h>)
-#include <AppKit/AppKit.h>
-#endif
-
-#if __has_include(<UIKit/UIKit.h>)
-#include <UIKit/UIKit.h>
-#endif
+#include <Foundation/Foundation.h>
 
 QT_USE_NAMESPACE
 

@@ -2,12 +2,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 
-qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia) # special case
-qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio) # special case
-qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit) # special case
-qt_internal_find_apple_system_framework(FWVideoToolbox VideoToolbox) # special case
-qt_internal_find_apple_system_framework(FWAVFoundation AVFoundation) # special case
-
 qt_internal_add_plugin(QDarwinMediaPlugin
     OUTPUT_NAME darwinmediaplugin
     PLUGIN_TYPE multimedia
@@ -30,13 +24,12 @@ qt_internal_add_plugin(QDarwinMediaPlugin
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
+        ${FWAudioToolbox}
         ${FWCoreMedia}
-        ${FWCoreAudio}
         ${FWCoreVideo}
         ${FWFoundation}
         ${FWMetal}
         ${FWQuartzCore}
-        ${FWAudioToolbox}
         AVFoundation::AVFoundation
 )
 

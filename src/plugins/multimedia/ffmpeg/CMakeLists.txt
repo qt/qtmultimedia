@@ -4,13 +4,6 @@
 qt_find_package(EGL)
 qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VAAPI MODULE_NAME multimedia QMAKE_LIB vaapi)
 
-qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia)
-qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio)
-qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit)
-qt_internal_find_apple_system_framework(FWVideoToolbox VideoToolbox)
-qt_internal_find_apple_system_framework(FWAVFoundation AVFoundation)
-qt_internal_find_apple_system_framework(FWSecurity Security)
-
 qt_internal_add_plugin(QFFmpegMediaPlugin
     OUTPUT_NAME ffmpegmediaplugin
     PLUGIN_TYPE multimedia
@@ -154,8 +147,6 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         ../darwin/camera
     LIBRARIES
         ${FWAudioToolbox}
-        ${FWCoreAudio}
-        ${FWCoreFoundation}
         ${FWCoreMedia}
         ${FWCoreVideo}
         ${FWVideoToolbox}
@@ -168,6 +159,8 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION MACOS
         qavfscreencapture.mm qavfscreencapture_p.h
         qcgwindowcapture.mm qcgwindowcapture_p.h
         qcgcapturablewindows.mm qcgcapturablewindows_p.h
+    LIBRARIES
+        ${FWAppKit}
 )
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
