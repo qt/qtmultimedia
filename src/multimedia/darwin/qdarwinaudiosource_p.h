@@ -22,7 +22,7 @@
 
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudioTypes.h>
-#include <AudioToolbox/AudioToolbox.h>
+#include <AudioToolbox/AudioConverter.h>
 
 #include <QtCore/QIODevice>
 #include <QtCore/QTimer>

@@ -7,12 +7,6 @@
 
 find_package(Qt6 COMPONENTS ShaderTools)
 
-qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio) # special case
-qt_internal_find_apple_system_framework(FWCoreVideo CoreVideo) # special case
-qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit) # special case
-qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia) # special case
-qt_internal_find_apple_system_framework(FWAudioToolbox AudioToolbox) # special case
-
 qt_internal_add_module(Multimedia
     PLUGIN_TYPES multimedia
     SOURCES
@@ -199,10 +193,8 @@ qt_internal_extend_target(Multimedia CONDITION APPLE
     INCLUDE_DIRECTORIES
         darwin
     LIBRARIES
-        ${FWAudioToolbox}
         ${FWCoreAudio}
-        ${FWCoreMedia}
-        ${FWCoreFoundation}
+        ${FWAudioToolbox}
 )
 
 qt_internal_extend_target(Multimedia CONDITION MACOS
