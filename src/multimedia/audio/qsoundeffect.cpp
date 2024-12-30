@@ -25,9 +25,11 @@ struct AudioSinkDeleter
 {
     void operator ()(QAudioSink* sink) const
     {
+        // Stop sink before deleting it
         sink->stop();
-        // Investigate:should we just delete?
-        sink->deleteLater();
+
+        // Delete sink immediately after it has stopped
+        delete sink;
     }
 };
 
