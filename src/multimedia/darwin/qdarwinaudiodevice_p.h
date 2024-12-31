@@ -37,10 +37,9 @@ public:
     AudioDeviceID deviceID() const { return m_deviceId; }
 #endif
 private:
-    QAudioFormat determinePreferredFormat() const;
-    QString getDescription() const;
-    void getChannelLayout();
 #if defined(Q_OS_MACOS)
+    // TODO: This value is volatile. It will change whenever a device is disconnected + reconnected.
+    // Should be removed in a future patch.
     AudioDeviceID m_deviceId;
 #endif
 };
