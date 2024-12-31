@@ -16,93 +16,133 @@
 #include <QtCore/QSet>
 #include <QIODevice>
 
+#include <optional>
+
 QT_BEGIN_NAMESPACE
 
-#if defined(Q_OS_MACOS)
-QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(device, mode),
-    m_deviceId(id)
-#else
-QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(device, mode)
-#endif
-{
-    description = getDescription();
-    getChannelLayout();
-    preferredFormat = determinePreferredFormat();
-    minimumSampleRate = 1;
-    maximumSampleRate = 96000;
-    minimumChannelCount = 1;
-    maximumChannelCount = 16;
-    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
-
-}
-
-QAudioFormat QCoreAudioDeviceInfo::determinePreferredFormat() const
+[[nodiscard]] static QAudioFormat qDefaultPreferredFormat(
+    QAudioDevice::Mode mode,
+    QAudioFormat::ChannelConfig channelConfig)
 {
     QAudioFormat format;
+    format.setSampleRate(44100);
+    format.setSampleFormat(QAudioFormat::Int16);
+    format.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
+    format.setChannelConfig(channelConfig);
+    return format;
+}
 
-#if defined(Q_OS_MACOS)
+[[nodiscard]] static QAudioFormat::ChannelConfig qGetDefaultChannelLayout(QAudioDevice::Mode mode)
+{
+    return (mode == QAudioDevice::Input) ? QAudioFormat::ChannelConfigMono : QAudioFormat::ChannelConfigStereo;
+}
+
+[[nodiscard]] static QString qGetDefaultDescription(const QByteArray &id)
+{
+    return QString::fromUtf8(id);
+}
+
+#ifdef Q_OS_MACOS
+
+[[nodiscard]] static std::optional<QAudioFormat> qGetPreferredFormatForCoreAudioDevice(
+    QAudioDevice::Mode mode,
+    AudioDeviceID deviceId)
+{
     const auto audioDevicePropertyStreamsAddress =
-            makePropertyAddress(kAudioDevicePropertyStreams, mode);
+        makePropertyAddress(kAudioDevicePropertyStreams, mode);
 
-    if (auto streamIDs = getAudioData<AudioStreamID>(m_deviceId, audioDevicePropertyStreamsAddress,
+    if (auto streamIDs = getAudioData<AudioStreamID>(deviceId, audioDevicePropertyStreamsAddress,
                                                      "propertyStreams")) {
         const auto audioDevicePhysicalFormatPropertyAddress =
-                makePropertyAddress(kAudioStreamPropertyPhysicalFormat, mode);
+            makePropertyAddress(kAudioStreamPropertyPhysicalFormat, mode);
 
         for (auto streamID : *streamIDs) {
             if (auto streamDescription = getAudioObject<AudioStreamBasicDescription>(
                         streamID, audioDevicePhysicalFormatPropertyAddress,
                         "prefferedPhysicalFormat")) {
-                format = CoreAudioUtils::toQAudioFormat(*streamDescription);
-                break;
+                return CoreAudioUtils::toQAudioFormat(*streamDescription);
             }
         }
     }
 
-    if (!format.isValid())
-#endif
-    {
-        format.setSampleRate(44100);
-        format.setSampleFormat(QAudioFormat::Int16);
-        format.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
-    }
-    format.setChannelConfig(channelConfiguration);
-
-    return format;
+    return std::nullopt;
 }
 
-
-QString QCoreAudioDeviceInfo::getDescription() const
+[[nodiscard]] static std::optional<QAudioFormat::ChannelConfig> qGetChannelLayoutForCoreAudioDevice(
+    QAudioDevice::Mode mode,
+    AudioDeviceID deviceId)
 {
-#ifdef Q_OS_MACOS
+    const auto propertyAddress =
+        makePropertyAddress(kAudioDevicePropertyPreferredChannelLayout, mode);
+    if (auto data = getAudioData<char>(deviceId, propertyAddress, "prefferedChannelLayout",
+                                       sizeof(AudioChannelLayout))) {
+        const auto *layout = reinterpret_cast<const AudioChannelLayout *>(data->data());
+        return CoreAudioUtils::fromAudioChannelLayout(layout);
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] static std::optional<QString> qGetDescriptionForCoreAudioDevice(
+    QAudioDevice::Mode mode,
+    AudioDeviceID deviceId)
+{
     const auto propertyAddress = makePropertyAddress(kAudioObjectPropertyName, mode);
     if (auto name =
-                getAudioObject<CFStringRef>(m_deviceId, propertyAddress, "Device Description")) {
+        getAudioObject<CFStringRef>(deviceId, propertyAddress, "Device Description")) {
         auto deleter = qScopeGuard([&name]() { CFRelease(*name); });
         return QString::fromCFString(*name);
     }
-
-    return {};
-#else
-    return QString::fromUtf8(id);
-#endif
+    return std::nullopt;
 }
 
-void QCoreAudioDeviceInfo::getChannelLayout()
+QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(device, mode),
+      m_deviceId(id)
 {
-#ifdef Q_OS_MACOS
-    const auto propertyAddress =
-            makePropertyAddress(kAudioDevicePropertyPreferredChannelLayout, mode);
-    if (auto data = getAudioData<char>(m_deviceId, propertyAddress, "prefferedChannelLayout",
-                                       sizeof(AudioChannelLayout))) {
-        const auto *layout = reinterpret_cast<const AudioChannelLayout *>(data->data());
-        channelConfiguration = CoreAudioUtils::fromAudioChannelLayout(layout);
-    }
-#else
-    channelConfiguration = (mode == QAudioDevice::Input) ? QAudioFormat::ChannelConfigMono : QAudioFormat::ChannelConfigStereo;
-#endif
+    const std::optional<QAudioFormat::ChannelConfig> channelConfigOpt =
+        qGetChannelLayoutForCoreAudioDevice(mode, id);
+    if (channelConfigOpt.has_value())
+        channelConfiguration = channelConfigOpt.value();
+    else
+        channelConfiguration = qGetDefaultChannelLayout(mode);
+
+    const std::optional<QAudioFormat> preferredFormatOpt =
+        qGetPreferredFormatForCoreAudioDevice(mode, id);
+    if (preferredFormatOpt.has_value())
+        preferredFormat = preferredFormatOpt.value();
+    else
+        preferredFormat = qDefaultPreferredFormat(mode, channelConfiguration);
+
+    const std::optional<QString> descriptionOpt = qGetDescriptionForCoreAudioDevice(mode, id);
+    if (descriptionOpt.has_value())
+        description = descriptionOpt.value();
+    else
+        description = qGetDefaultDescription(device);
+
+    // TODO: There is some duplicate code here with the iOS constructor
+    minimumSampleRate = 1;
+    maximumSampleRate = 96000;
+    minimumChannelCount = 1;
+    maximumChannelCount = 16;
+    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
 }
+
+#else
+
+QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(device, mode)
+{
+    channelConfiguration = qGetDefaultChannelLayout(mode);
+    preferredFormat = qDefaultPreferredFormat(mode, channelConfiguration);
+    description = qGetDefaultDescription(device);
+
+    minimumSampleRate = 1;
+    maximumSampleRate = 96000;
+    minimumChannelCount = 1;
+    maximumChannelCount = 16;
+    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
+}
+
+#endif
 
 QT_END_NAMESPACE
