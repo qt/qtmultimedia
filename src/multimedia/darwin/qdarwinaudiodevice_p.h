@@ -33,8 +33,6 @@ public:
 #endif
     ~QCoreAudioDeviceInfo() {}
 
-    bool isFormatSupported(const QAudioFormat &format) const;
-
 #if defined(Q_OS_MACOS)
     AudioDeviceID deviceID() const { return m_deviceId; }
 #endif
