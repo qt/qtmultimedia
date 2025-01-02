@@ -109,14 +109,9 @@ void InputTest::initializeWindow()
     layout->addWidget(m_canvas);
 
     m_deviceBox = new QComboBox(this);
-    const QAudioDevice &defaultDeviceInfo = QMediaDevices::defaultAudioInput();
-    m_deviceBox->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
-    for (auto &deviceInfo : m_devices->audioInputs()) {
-        if (deviceInfo != defaultDeviceInfo)
-            m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
-    }
-
     connect(m_deviceBox, &QComboBox::activated, this, &InputTest::deviceChanged);
+    connect(m_devices, &QMediaDevices::audioInputsChanged, this, &InputTest::updateAudioDevices);
+    updateAudioDevices();
     layout->addWidget(m_deviceBox);
 
     m_volumeSlider = new QSlider(Qt::Horizontal, this);
@@ -246,6 +241,17 @@ void InputTest::sliderChanged(int value)
                                                QAudio::LinearVolumeScale);
 
     m_audioInput->setVolume(linearVolume);
+}
+
+void InputTest::updateAudioDevices()
+{
+    m_deviceBox->clear();
+    const QAudioDevice &defaultDeviceInfo = QMediaDevices::defaultAudioInput();
+    m_deviceBox->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
+    for (auto &deviceInfo : m_devices->audioInputs()) {
+        if (deviceInfo != defaultDeviceInfo)
+            m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+    }
 }
 
 #include "moc_audiosource.cpp"
