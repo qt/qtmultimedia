@@ -42,7 +42,7 @@ class QGstreamerMediaPlayer : public QObject,
                               public QPlatformMediaPlayer,
                               public QGstreamerBusMessageFilter
 {
-    using QGstPlayHandle = QGstImpl::QGstHandleHelper<GstPlay>::UniqueHandle;
+    using QGstPlayHandle = QGstImpl::QGstHandleHelper<GstPlay>::SharedHandle;
 
 public:
     static QMaybe<QPlatformMediaPlayer *> create(QMediaPlayer *parent = nullptr);

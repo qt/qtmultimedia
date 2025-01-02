@@ -330,6 +330,7 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
       gstVideoOutput(videoOutput),
       m_gstPlay{
           gst_play_new(nullptr),
+          QGstPlayHandle::HasRef,
       },
       m_playbin{
           GST_PIPELINE_CAST(gst_play_get_pipeline(m_gstPlay.get())),

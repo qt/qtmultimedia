@@ -29,13 +29,13 @@ QT_BEGIN_NAMESPACE
 namespace QGstPlaySupport {
 
 using QUniqueGstPlayMediaInfoHandle =
-        QGstImpl::QGObjectHandleHelper<GstPlayMediaInfo>::UniqueHandle;
+        QGstImpl::QGObjectHandleHelper<GstPlayMediaInfo>::SharedHandle;
 using QUniqueGstPlayAudioInfoHandle =
-        QGstImpl::QGObjectHandleHelper<GstPlayAudioInfo>::UniqueHandle;
+        QGstImpl::QGObjectHandleHelper<GstPlayAudioInfo>::SharedHandle;
 using QUniqueGstPlayVideoInfoHandle =
-        QGstImpl::QGObjectHandleHelper<GstPlayVideoInfo>::UniqueHandle;
+        QGstImpl::QGObjectHandleHelper<GstPlayVideoInfo>::SharedHandle;
 using QUniqueGstPlaySubtitleInfoHandle =
-        QGstImpl::QGObjectHandleHelper<GstPlaySubtitleInfo>::UniqueHandle;
+        QGstImpl::QGObjectHandleHelper<GstPlaySubtitleInfo>::SharedHandle;
 
 struct VideoInfo
 {
