@@ -217,8 +217,7 @@ private:
                                     UInt32 inNumberFrames,
                                     AudioBufferList *ioData);
 
-    QAudioDevice m_audioDeviceInfo;
-    QByteArray m_device;
+    QAudioDevice m_audioDevice;
     bool m_isOpen;
     int m_periodSizeBytes;
     int m_internalBufferSize;
