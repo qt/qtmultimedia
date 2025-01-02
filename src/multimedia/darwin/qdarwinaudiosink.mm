@@ -194,17 +194,20 @@ qint64 QDarwinAudioSinkDevice::writeData(const char *data, qint64 len)
 }
 
 QDarwinAudioSink::QDarwinAudioSink(const QAudioDevice &device, QObject *parent)
-    : QPlatformAudioSink(parent), m_audioDeviceInfo(device), m_stateMachine(*this)
+    : QPlatformAudioSink(parent),
+      m_stateMachine(*this)
 {
-    QAudioDevice di = device;
-    if (di.isNull())
-        di = QMediaDevices::defaultAudioOutput();
+    // If incoming device is null, fallback to default device.
+    // Note: Default device can also be null if no audio-devices are connected.
+    m_audioDevice = device.isNull()
+        ? QMediaDevices::defaultAudioInput()
+        : device;
 #if defined(Q_OS_MACOS)
-    const QCoreAudioDeviceInfo *info = static_cast<const QCoreAudioDeviceInfo *>(di.handle());
+    // TODO: This code is problematic because the device might be null-device.
+    const QCoreAudioDeviceInfo *info = static_cast<const QCoreAudioDeviceInfo *>(m_audioDevice.handle());
     Q_ASSERT(info);
     m_audioDeviceId = info->deviceID();
 #endif
-    m_device = di.id();
 
     connect(this, &QDarwinAudioSink::stateChanged, this, &QDarwinAudioSink::updateAudioDevice);
 #ifdef Q_OS_IOS
@@ -222,7 +225,7 @@ void QDarwinAudioSink::start(QIODevice *device)
 {
     reset();
 
-    if (!m_audioDeviceInfo.isFormatSupported(m_audioFormat) || !open()) {
+    if (!m_audioDevice.isFormatSupported(m_audioFormat) || !open()) {
         m_stateMachine.setError(QAudio::OpenError);
         return;
     }
@@ -243,7 +246,7 @@ QIODevice *QDarwinAudioSink::start()
 {
     reset();
 
-    if (!m_audioDeviceInfo.isFormatSupported(m_audioFormat) || !open()) {
+    if (!m_audioDevice.isFormatSupported(m_audioFormat) || !open()) {
         m_stateMachine.setError(QAudio::OpenError);
         return m_audioIO;
     }
