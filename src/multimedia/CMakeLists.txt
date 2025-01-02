@@ -203,7 +203,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE
 
 qt_internal_extend_target(Multimedia CONDITION MACOS
     SOURCES
-        darwin/qmacosaudiodatautils_p.h
+        darwin/qmacosaudiodatautils_p.h darwin/qmacosaudiodatautils.mm
 )
 
 qt_internal_extend_target(Multimedia CONDITION IOS OR TVOS OR VISIONOS
