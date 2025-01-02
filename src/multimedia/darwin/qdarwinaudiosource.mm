@@ -366,19 +366,21 @@ qint64 QDarwinAudioSourceDevice::writeData(const char *data, qint64 len)
 
 QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device, QObject *parent)
     : QPlatformAudioSource(parent),
-      m_audioDeviceInfo(device),
       m_internalBufferSize(DEFAULT_BUFFER_SIZE),
       m_stateMachine(*this)
 {
-    QAudioDevice di = device;
-    if (di.isNull())
-        di = QMediaDevices::defaultAudioInput();
+    // If incoming device is null, fallback to default device.
+    // Note: Default device can still be null in the case no devices are connected.
+    m_audioDevice = device.isNull()
+        ? QMediaDevices::defaultAudioInput()
+        : device;
 #if defined(Q_OS_MACOS)
-    const QCoreAudioDeviceInfo *info = static_cast<const QCoreAudioDeviceInfo *>(di.handle());
+    // TODO: This code can be problematic in the scenario we have no audio-devices attached,
+    // in which case even defaultAudioInput() will return a null-device.
+    const QCoreAudioDeviceInfo *info = static_cast<const QCoreAudioDeviceInfo *>(m_audioDevice.handle());
     Q_ASSERT(info);
     m_audioDeviceId = info->deviceID();
 #endif
-    m_device = di.id();
 
     connect(this, &QDarwinAudioSource::stateChanged, this, &QDarwinAudioSource::updateAudioDevice);
 #ifdef Q_OS_IOS
@@ -483,7 +485,7 @@ bool QDarwinAudioSource::open()
 #if defined(Q_OS_MACOS)
     UInt32 size = 0;
 
-    if (m_audioFormat == m_audioDeviceInfo.preferredFormat()) {
+    if (m_audioFormat == m_audioDevice.preferredFormat()) {
 #endif
         m_deviceFormat = m_streamFormat;
         AudioUnitSetProperty(m_audioUnit,
@@ -650,7 +652,7 @@ void QDarwinAudioSource::start(QIODevice *device)
 {
     reset();
 
-    if (!m_audioDeviceInfo.isFormatSupported(m_audioFormat) || !open()) {
+    if (!m_audioDevice.isFormatSupported(m_audioFormat) || !open()) {
         m_stateMachine.setError(QAudio::OpenError);
         return;
     }
@@ -671,7 +673,7 @@ QIODevice *QDarwinAudioSource::start()
 {
     reset();
 
-    if (!m_audioDeviceInfo.isFormatSupported(m_audioFormat) || !open()) {
+    if (!m_audioDevice.isFormatSupported(m_audioFormat) || !open()) {
         m_stateMachine.setError(QAudio::OpenError);
         return m_audioIO;
     }
