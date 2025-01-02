@@ -25,6 +25,7 @@
 #include <QtCore/qtconfigmacros.h>
 
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
+#include <QtMultimedia/private/qsharedhandle_p.h>
 
 #include <gst/gst.h>
 
@@ -35,81 +36,6 @@
 QT_BEGIN_NAMESPACE
 
 namespace QGstImpl {
-
-template <typename HandleTraits>
-struct QSharedHandle : private QUniqueHandle<HandleTraits>
-{
-    using BaseClass = QUniqueHandle<HandleTraits>;
-
-    enum RefMode { HasRef, NeedsRef };
-
-    QSharedHandle() = default;
-
-    explicit QSharedHandle(typename HandleTraits::Type object, RefMode mode)
-        : BaseClass{ mode == NeedsRef ? HandleTraits::ref(object) : object }
-    {
-    }
-
-    QSharedHandle(const QSharedHandle &o)
-        : BaseClass{
-              HandleTraits::ref(o.get()),
-          }
-    {
-    }
-
-    QSharedHandle(QSharedHandle &&) noexcept = default;
-
-    QSharedHandle &operator=(const QSharedHandle &o) // NOLINT: bugprone-unhandled-self-assign
-    {
-        if (BaseClass::get() != o.get())
-            reset(HandleTraits::ref(o.get()));
-        return *this;
-    };
-
-    QSharedHandle &operator=(QSharedHandle &&) noexcept = default;
-
-    [[nodiscard]] friend bool operator==(const QSharedHandle &lhs,
-                                         const QSharedHandle &rhs) noexcept
-    {
-        return lhs.get() == rhs.get();
-    }
-
-    [[nodiscard]] friend bool operator!=(const QSharedHandle &lhs,
-                                         const QSharedHandle &rhs) noexcept
-    {
-        return lhs.get() != rhs.get();
-    }
-
-    [[nodiscard]] friend bool operator<(const QSharedHandle &lhs, const QSharedHandle &rhs) noexcept
-    {
-        return lhs.get() < rhs.get();
-    }
-
-    [[nodiscard]] friend bool operator<=(const QSharedHandle &lhs,
-                                         const QSharedHandle &rhs) noexcept
-    {
-        return lhs.get() <= rhs.get();
-    }
-
-    [[nodiscard]] friend bool operator>(const QSharedHandle &lhs, const QSharedHandle &rhs) noexcept
-    {
-        return lhs.get() > rhs.get();
-    }
-
-    [[nodiscard]] friend bool operator>=(const QSharedHandle &lhs,
-                                         const QSharedHandle &rhs) noexcept
-    {
-        return lhs.get() >= rhs.get();
-    }
-
-    using BaseClass::get;
-    using BaseClass::isValid;
-    using BaseClass::operator bool;
-    using BaseClass::release;
-    using BaseClass::reset;
-    using BaseClass::operator&;
-    using BaseClass::close;
-};
 
 struct QGstTagListHandleTraits
 {
