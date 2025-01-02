@@ -3865,7 +3865,7 @@ void tst_QMediaPlayerBackend::setMedia_setsVideoSinkSize_beforePlaying()
 std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtpStreamProcess(QString fileName,
                                                                           QString sdpUrl)
 {
-    Q_ASSERT(!m_vlcCommand.isEmpty());
+    QTEST_ASSERT(!m_vlcCommand.isEmpty());
 
     auto process = std::make_unique<QProcess>();
 #if defined(Q_OS_WINDOWS)

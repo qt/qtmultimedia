@@ -192,10 +192,10 @@ void tst_QMediaPlayer::init()
 {
     player = new QMediaPlayer;
     mockPlayer = QMockIntegration::instance()->lastPlayer();
-    Q_ASSERT(mockPlayer);
+    QTEST_ASSERT(mockPlayer);
     audioOutput = new QAudioOutput;
     player->setAudioOutput(audioOutput);
-    Q_ASSERT(mockPlayer->m_audioOutput != nullptr);
+    QTEST_ASSERT(mockPlayer->m_audioOutput != nullptr);
 }
 
 void tst_QMediaPlayer::cleanup()

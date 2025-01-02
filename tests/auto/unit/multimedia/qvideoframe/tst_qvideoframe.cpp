@@ -49,7 +49,7 @@ QRgb swizzle(uint value, QVideoFrameFormat::PixelFormat format)
     case QVideoFrameFormat::Format_ARGB8888:
     case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
     case QVideoFrameFormat::Format_XRGB8888:
-        Q_ASSERT(false); // not implemented
+        QTEST_ASSERT(false); // not implemented
         return 0;
     case QVideoFrameFormat::Format_BGRA8888:
     case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
@@ -57,7 +57,7 @@ QRgb swizzle(uint value, QVideoFrameFormat::PixelFormat format)
         return value;
     case QVideoFrameFormat::Format_ABGR8888:
     case QVideoFrameFormat::Format_XBGR8888:
-        Q_ASSERT(false); // not implemented
+        QTEST_ASSERT(false); // not implemented
         return 0;
     case QVideoFrameFormat::Format_RGBA8888:
     case QVideoFrameFormat::Format_RGBX8888:

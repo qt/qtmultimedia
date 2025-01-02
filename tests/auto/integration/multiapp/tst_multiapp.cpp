@@ -61,7 +61,7 @@ private slots:
 
     bool soundEffect_doesNotCrash_whenRecreatingApplication_impl(int argc, char **argv)
     {
-        Q_ASSERT(!qApp);
+        QTEST_ASSERT(!qApp);
 
         // Play a sound twice under two different application objects
         // This verifies that QSoundEffect works in use cases where
