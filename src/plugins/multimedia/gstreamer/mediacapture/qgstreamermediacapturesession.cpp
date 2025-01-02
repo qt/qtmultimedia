@@ -103,6 +103,7 @@ QGstreamerMediaCaptureSession::QGstreamerMediaCaptureSession(QGstreamerVideoOutp
 
     QGstClockHandle systemClock{
         gst_system_clock_obtain(),
+        QGstClockHandle::HasRef,
     };
     gst_pipeline_use_clock(capturePipeline.pipeline(), systemClock.get());
 

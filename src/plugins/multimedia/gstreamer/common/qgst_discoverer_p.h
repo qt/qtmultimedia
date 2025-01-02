@@ -34,16 +34,16 @@ class QMediaMetaData;
 
 namespace QGst {
 
-using QGstDiscovererHandle = QGstImpl::QGstHandleHelper<GstDiscoverer>::UniqueHandle;
-using QGstDiscovererInfoHandle = QGstImpl::QGstHandleHelper<GstDiscovererInfo>::UniqueHandle;
+using QGstDiscovererHandle = QGstImpl::QGstHandleHelper<GstDiscoverer>::SharedHandle;
+using QGstDiscovererInfoHandle = QGstImpl::QGstHandleHelper<GstDiscovererInfo>::SharedHandle;
 using QGstDiscovererAudioInfoHandle =
-        QGstImpl::QGstHandleHelper<GstDiscovererAudioInfo>::UniqueHandle;
+        QGstImpl::QGstHandleHelper<GstDiscovererAudioInfo>::SharedHandle;
 using QGstDiscovererVideoInfoHandle =
-        QGstImpl::QGstHandleHelper<GstDiscovererVideoInfo>::UniqueHandle;
+        QGstImpl::QGstHandleHelper<GstDiscovererVideoInfo>::SharedHandle;
 using QGstDiscovererSubtitleInfoHandle =
-        QGstImpl::QGstHandleHelper<GstDiscovererSubtitleInfo>::UniqueHandle;
+        QGstImpl::QGstHandleHelper<GstDiscovererSubtitleInfo>::SharedHandle;
 using QGstDiscovererStreamInfoHandle =
-        QGstImpl::QGstHandleHelper<GstDiscovererStreamInfo>::UniqueHandle;
+        QGstImpl::QGstHandleHelper<GstDiscovererStreamInfo>::SharedHandle;
 
 struct QGstDiscovererStreamInfo
 {
