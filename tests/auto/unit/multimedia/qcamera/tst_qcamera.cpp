@@ -603,8 +603,8 @@ void tst_QCamera::testErrorSignal()
     QCamera camera;
     session.setCamera(&camera);
     auto *service = QMockIntegration::instance()->lastCaptureService();
-    Q_ASSERT(service);
-    Q_ASSERT(service->mockCameraControl);
+    QTEST_ASSERT(service);
+    QTEST_ASSERT(service->mockCameraControl);
 
     QSignalSpy spyError(&camera, &QCamera::errorOccurred);
 

@@ -371,7 +371,7 @@ void tst_QGraphicsVideoItem::paint()
     QVERIFY(item->paintCount() || item->waitForPaint(1));
 
     auto *sink = item->videoSink();
-    Q_ASSERT(sink);
+    QTEST_ASSERT(sink);
 
     QVideoFrameFormat format(QSize(2, 2), QVideoFrameFormat::Format_XRGB8888);
     QVideoFrame frame(format);

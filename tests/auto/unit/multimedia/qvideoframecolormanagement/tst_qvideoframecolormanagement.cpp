@@ -38,7 +38,7 @@ QString toString(QVideoFrameFormat::ColorRange r)
     case QVideoFrameFormat::ColorRange_Full:
         return "Full";
     default:
-        Q_ASSERT(false);
+        QTEST_ASSERT(false);
         return "";
     }
 }
@@ -133,7 +133,7 @@ QString toString(QVideoFrameFormat::ColorSpace s)
     case QVideoFrameFormat::ColorSpace_BT2020:
         return "BT2020";
     default:
-        Q_ASSERT(false);
+        QTEST_ASSERT(false);
         return "";
     }
 }
@@ -209,7 +209,7 @@ QRgb pixelDiff(QRgb lhs, QRgb rhs)
 std::optional<ImageDiffReport> compareImagesRgb32(const QImage &computed, const QImage &baseline,
                                              int channelThreshold)
 {
-    Q_ASSERT(baseline.format() == QImage::Format_RGB32);
+    QTEST_ASSERT(baseline.format() == QImage::Format_RGB32);
 
     if (computed.size() != baseline.size())
         return {};
@@ -300,7 +300,7 @@ public:
         const QString filename = path(*m_testdataDir, params);
         if (!reference.save(filename)) {
             qDebug() << "Failed to save reference file";
-            Q_ASSERT(false);
+            QTEST_ASSERT(false);
         }
 
         m_testdataDir->setAutoRemove(false);
@@ -310,7 +310,7 @@ public:
     {
         if (!image.save(path(*m_testdataDir, params, suffix))) {
             qDebug() << "Unexpectedly failed to save actual image to file";
-            Q_ASSERT(false);
+            QTEST_ASSERT(false);
             return false;
         }
         m_testdataDir->setAutoRemove(false);

@@ -78,7 +78,7 @@ ColorSpaceCoeff getColorSpaceCoef(QVideoFrameFormat::ColorSpace colorSpace,
     if (it != colorSpaces.end())
         return it->coefficients;
 
-    Q_ASSERT(false);
+    QTEST_ASSERT(false);
 
     return {};
 }
