@@ -463,7 +463,7 @@ void tst_QMediaRecorderBackend::record_writesToOutputDevice_whenWritableOutputDe
     f.m_recorder.setOutputLocation(url);
 
     QTemporaryFile tempFile;
-    tempFile.open();
+    QTEST_ASSERT(tempFile.open());
 
     f.m_recorder.setOutputDevice(&tempFile);
 

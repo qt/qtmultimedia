@@ -40,13 +40,6 @@ constexpr bool isMacOS =
         false;
 #endif
 
-constexpr bool isArm =
-#ifdef Q_PROCESSOR_ARM
-        true;
-#else
-        false;
-#endif
-
 std::set<QMediaFormat::VideoCodec> allVideoCodecs(bool includeUnspecified = false)
 {
     using VideoCodec = QMediaFormat::VideoCodec;

@@ -380,7 +380,7 @@ void tst_QAudioSource::pull()
     QVERIFY2((audioSource.elapsedUSecs() == qint64(0)), "elapsedUSecs() not zero on creation");
 
     audioFile->close();
-    audioFile->open(QIODevice::WriteOnly);
+    QTEST_ASSERT(audioFile->open(QIODevice::WriteOnly));
     QWaveDecoder waveDecoder(audioFile.data(), audioFormat);
     if (!waveDecoder.open(QIODevice::WriteOnly)) {
         waveDecoder.close();
@@ -456,7 +456,7 @@ void tst_QAudioSource::pullSuspendResume()
     QVERIFY2((audioSource.elapsedUSecs() == qint64(0)), "elapsedUSecs() not zero on creation");
 
     audioFile->close();
-    audioFile->open(QIODevice::WriteOnly);
+    QTEST_ASSERT(audioFile->open(QIODevice::WriteOnly));
     QWaveDecoder waveDecoder(audioFile.get(), audioFormat);
     if (!waveDecoder.open(QIODevice::WriteOnly)) {
         waveDecoder.close();
@@ -570,7 +570,7 @@ void tst_QAudioSource::push()
     QVERIFY2((audioSource.elapsedUSecs() == qint64(0)), "elapsedUSecs() not zero on creation");
 
     audioFile->close();
-    audioFile->open(QIODevice::WriteOnly);
+    QTEST_ASSERT(audioFile->open(QIODevice::WriteOnly));
     QWaveDecoder waveDecoder(audioFile.get(), audioFormat);
     if (!waveDecoder.open(QIODevice::WriteOnly)) {
         waveDecoder.close();
@@ -668,7 +668,7 @@ void tst_QAudioSource::pushSuspendResume()
     QVERIFY2((audioSource.elapsedUSecs() == qint64(0)), "elapsedUSecs() not zero on creation");
 
     audioFile->close();
-    audioFile->open(QIODevice::WriteOnly);
+    QTEST_ASSERT(audioFile->open(QIODevice::WriteOnly));
     QWaveDecoder waveDecoder(audioFile.get(), audioFormat);
     if (!waveDecoder.open(QIODevice::WriteOnly)) {
         waveDecoder.close();
