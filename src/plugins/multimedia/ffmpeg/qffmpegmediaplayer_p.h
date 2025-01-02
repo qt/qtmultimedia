@@ -38,7 +38,7 @@ class QFFmpegMediaPlayer : public QObject, public QPlatformMediaPlayer
     Q_OBJECT
 public:
     QFFmpegMediaPlayer(QMediaPlayer *player);
-    ~QFFmpegMediaPlayer();
+    ~QFFmpegMediaPlayer() override;
 
     qint64 duration() const override;
 

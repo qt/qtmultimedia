@@ -25,7 +25,7 @@ class Q_SPATIALAUDIO_EXPORT QAudioRoom : public QObject
     Q_PROPERTY(float reverbBrightness READ reverbBrightness WRITE setReverbBrightness NOTIFY reverbBrightnessChanged)
 public:
     explicit QAudioRoom(QAudioEngine *engine);
-    ~QAudioRoom();
+    ~QAudioRoom() override;
 
     enum Material {
       Transparent,

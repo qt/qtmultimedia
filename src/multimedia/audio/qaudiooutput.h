@@ -25,7 +25,7 @@ class Q_MULTIMEDIA_EXPORT QAudioOutput : public QObject
 public:
     explicit QAudioOutput(QObject *parent = nullptr);
     explicit QAudioOutput(const QAudioDevice &device, QObject *parent = nullptr);
-    ~QAudioOutput();
+    ~QAudioOutput() override;
 
     QAudioDevice device() const;
     float volume() const;

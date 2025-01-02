@@ -34,7 +34,7 @@ class QQuickImageCapture : public QImageCapture
 
 public:
     QQuickImageCapture(QObject *parent = nullptr);
-    ~QQuickImageCapture();
+    ~QQuickImageCapture() override;
 
     QString preview() const;
 

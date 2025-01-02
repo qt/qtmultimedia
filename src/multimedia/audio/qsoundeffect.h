@@ -48,7 +48,7 @@ public:
 
     explicit QSoundEffect(QObject *parent = nullptr);
     explicit QSoundEffect(const QAudioDevice &audioDevice, QObject *parent = nullptr);
-    ~QSoundEffect();
+    ~QSoundEffect() override;
 
     static QStringList supportedMimeTypes();
 

@@ -94,7 +94,7 @@ public:
     Q_ENUM(Loops)
 
     explicit QMediaPlayer(QObject *parent = nullptr);
-    ~QMediaPlayer();
+    ~QMediaPlayer() override;
 
     QList<QMediaMetaData> audioTracks() const;
     QList<QMediaMetaData> videoTracks() const;

@@ -40,7 +40,7 @@ public:
     Q_ENUM(OutputMode)
 
     QQuick3DAudioEngine();
-    ~QQuick3DAudioEngine();
+    ~QQuick3DAudioEngine() override;
 
     void setOutputMode(OutputMode mode);
     OutputMode outputMode() const;

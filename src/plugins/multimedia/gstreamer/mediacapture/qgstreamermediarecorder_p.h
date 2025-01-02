@@ -31,7 +31,7 @@ class QGstreamerMediaRecorder : public QPlatformMediaRecorder
 {
 public:
     explicit QGstreamerMediaRecorder(QMediaRecorder *parent);
-    virtual ~QGstreamerMediaRecorder();
+    ~QGstreamerMediaRecorder() override;
 
     bool isLocationWritable(const QUrl &sink) const override;
 

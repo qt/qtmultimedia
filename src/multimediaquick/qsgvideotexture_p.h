@@ -28,7 +28,7 @@ class Q_MULTIMEDIAQUICK_EXPORT QSGVideoTexture : public QSGTexture
     Q_DECLARE_PRIVATE(QSGVideoTexture)
 public:
     QSGVideoTexture();
-    ~QSGVideoTexture();
+    ~QSGVideoTexture() override;
 
     qint64 comparisonKey() const override;
     QRhiTexture *rhiTexture() const override;

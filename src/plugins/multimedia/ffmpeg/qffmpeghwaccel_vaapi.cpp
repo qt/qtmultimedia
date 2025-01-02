@@ -154,7 +154,7 @@ namespace {
 class VAAPITextureHandles : public QVideoFrameTexturesHandles
 {
 public:
-    ~VAAPITextureHandles();
+    ~VAAPITextureHandles() override;
     quint64 textureHandle(QRhi &, int plane) override {
         return textures[plane];
     }

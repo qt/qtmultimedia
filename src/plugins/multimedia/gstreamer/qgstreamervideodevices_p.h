@@ -30,7 +30,7 @@ class QGstreamerVideoDevices final : public QPlatformVideoDevices,
 {
 public:
     explicit QGstreamerVideoDevices(QPlatformMediaIntegration *integration);
-    ~QGstreamerVideoDevices();
+    ~QGstreamerVideoDevices() override;
 
     QList<QCameraDevice> videoDevices() const override;
     GstDevice *videoDevice(const QByteArray &id) const;

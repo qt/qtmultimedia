@@ -73,7 +73,7 @@ public:
 
     virtual bool canReadQrc() const { return false; }
 
-    virtual ~QPlatformAudioDecoder();
+    ~QPlatformAudioDecoder() override;
 
 protected:
     explicit QPlatformAudioDecoder(QAudioDecoder *parent);

@@ -37,7 +37,7 @@ class QGstreamerCamera : public QGstreamerCameraBase
 public:
     static QMaybe<QPlatformCamera *> create(QCamera *camera);
 
-    virtual ~QGstreamerCamera();
+    ~QGstreamerCamera() override;
 
     bool isActive() const override;
     void setActive(bool active) override;

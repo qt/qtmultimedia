@@ -75,7 +75,7 @@ public:
     Q_ENUM(FillMode)
 
     QQuickVideoOutput(QQuickItem *parent = 0);
-    ~QQuickVideoOutput();
+    ~QQuickVideoOutput() override;
 
     Q_INVOKABLE QVideoSink *videoSink() const;
 

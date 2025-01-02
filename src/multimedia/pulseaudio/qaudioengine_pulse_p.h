@@ -30,7 +30,7 @@ class QPulseAudioEngine : public QObject
 
 public:
     QPulseAudioEngine(QObject *parent = 0);
-    ~QPulseAudioEngine();
+    ~QPulseAudioEngine() override;
 
     static QPulseAudioEngine *instance();
     pa_threaded_mainloop *mainloop() { return m_mainLoop; }

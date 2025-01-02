@@ -24,7 +24,7 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickImagePreviewProvider : public QQuickImagePr
 {
 public:
     QQuickImagePreviewProvider();
-    ~QQuickImagePreviewProvider();
+    ~QQuickImagePreviewProvider() override;
 
     QImage requestImage(const QString &id, QSize *size, const QSize& requestedSize) override;
     static void registerPreview(const QString &id, const QImage &preview);

@@ -39,7 +39,7 @@ class QPulseAudioSink : public QPlatformAudioSink
 
 public:
     QPulseAudioSink(const QByteArray &device, QObject *parent);
-    ~QPulseAudioSink();
+    ~QPulseAudioSink() override;
 
     void start(QIODevice *device) override;
     QIODevice *start() override;
@@ -121,7 +121,7 @@ class PulseOutputPrivate : public QIODevice
 
 public:
     PulseOutputPrivate(QPulseAudioSink *audio);
-    virtual ~PulseOutputPrivate() {}
+    ~PulseOutputPrivate() override = default;
 
 protected:
     qint64 readData(char *data, qint64 len) override;

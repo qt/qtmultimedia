@@ -46,7 +46,7 @@ class QGstreamerMediaPlayer : public QObject,
 
 public:
     static QMaybe<QPlatformMediaPlayer *> create(QMediaPlayer *parent = nullptr);
-    ~QGstreamerMediaPlayer();
+    ~QGstreamerMediaPlayer() override;
 
     qint64 duration() const override;
 

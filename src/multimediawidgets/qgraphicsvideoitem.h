@@ -24,7 +24,7 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject
     Q_PROPERTY(QVideoSink* videoSink READ videoSink CONSTANT)
 public:
     explicit QGraphicsVideoItem(QGraphicsItem *parent = nullptr);
-    ~QGraphicsVideoItem();
+    ~QGraphicsVideoItem() override;
 
     Q_INVOKABLE QVideoSink *videoSink() const;
 

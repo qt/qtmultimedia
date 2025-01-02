@@ -31,7 +31,7 @@ class QGstVideoBuffer final : public QHwVideoBuffer
 public:
     QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &info, QGstreamerVideoSink *sink,
                     const QVideoFrameFormat &frameFormat, QGstCaps::MemoryFormat format);
-    ~QGstVideoBuffer();
+    ~QGstVideoBuffer() override;
 
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;

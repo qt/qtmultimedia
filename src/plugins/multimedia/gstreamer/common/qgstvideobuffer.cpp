@@ -235,7 +235,7 @@ public:
         }
     }
 
-    ~QGstQVideoFrameTextures()
+    ~QGstQVideoFrameTextures() override
     {
         m_rhi->makeThreadLocalNativeContextCurrent();
         auto ctx = QOpenGLContext::currentContext();

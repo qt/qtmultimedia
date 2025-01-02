@@ -20,7 +20,7 @@ public:
     explicit QWaveDecoder(QIODevice *device, QObject *parent = nullptr);
     explicit QWaveDecoder(QIODevice *device, const QAudioFormat &format,
                         QObject *parent = nullptr);
-    ~QWaveDecoder();
+    ~QWaveDecoder() override;
 
     QAudioFormat audioFormat() const;
     QIODevice* getDevice();

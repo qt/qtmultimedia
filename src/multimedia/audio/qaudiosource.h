@@ -25,7 +25,7 @@ class Q_MULTIMEDIA_EXPORT QAudioSource : public QObject
 public:
     explicit QAudioSource(const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
     explicit QAudioSource(const QAudioDevice &audioDeviceInfo, const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
-    ~QAudioSource();
+    ~QAudioSource() override;
 
     bool isNull() const { return !d; }
 

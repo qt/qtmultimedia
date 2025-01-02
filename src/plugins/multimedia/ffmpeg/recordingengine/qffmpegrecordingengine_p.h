@@ -44,7 +44,7 @@ class RecordingEngine : public QObject
     Q_OBJECT
 public:
     RecordingEngine(const QMediaEncoderSettings &settings, std::unique_ptr<EncodingFormatContext> context);
-    ~RecordingEngine();
+    ~RecordingEngine() override;
 
     void initialize(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
                     const std::vector<QPlatformVideoSource *> &videoSources);

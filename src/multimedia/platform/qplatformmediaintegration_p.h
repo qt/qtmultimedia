@@ -69,7 +69,7 @@ public:
     static QPlatformMediaIntegration *instance();
 
     explicit QPlatformMediaIntegration(QLatin1String);
-    virtual ~QPlatformMediaIntegration();
+    ~QPlatformMediaIntegration() override;
     const QPlatformMediaFormatInfo *formatInfo();
 
     virtual QList<QCameraDevice> videoInputs();

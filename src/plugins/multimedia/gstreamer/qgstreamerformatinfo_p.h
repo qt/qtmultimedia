@@ -25,7 +25,7 @@ class QGstreamerFormatInfo : public QPlatformMediaFormatInfo
 {
 public:
     QGstreamerFormatInfo();
-    ~QGstreamerFormatInfo();
+    ~QGstreamerFormatInfo() override;
 
     QGstCaps formatCaps(const QMediaFormat &f) const;
     QGstCaps audioCaps(const QMediaFormat &f) const;

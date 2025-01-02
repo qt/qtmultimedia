@@ -40,7 +40,7 @@ class QQuick3DSpatialSound : public QQuick3DNode
 
 public:
     QQuick3DSpatialSound();
-    ~QQuick3DSpatialSound();
+    ~QQuick3DSpatialSound() override;
 
     void setSource(QUrl source);
     QUrl source() const;

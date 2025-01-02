@@ -37,7 +37,7 @@ class QGstreamerMediaCaptureSession final : public QPlatformMediaCaptureSession,
 {
 public:
     static QMaybe<QPlatformMediaCaptureSession *> create();
-    virtual ~QGstreamerMediaCaptureSession();
+    ~QGstreamerMediaCaptureSession() override;
 
     QPlatformCamera *camera() override;
     void setCamera(QPlatformCamera *camera) override;

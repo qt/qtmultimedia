@@ -43,7 +43,7 @@ class QQuick3DAudioRoom : public QQuick3DNode
     QML_NAMED_ELEMENT(AudioRoom)
 public:
     QQuick3DAudioRoom();
-    ~QQuick3DAudioRoom();
+    ~QQuick3DAudioRoom() override;
 
     enum Material {
       Transparent,

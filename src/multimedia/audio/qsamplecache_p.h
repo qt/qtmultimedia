@@ -73,7 +73,7 @@ private:
     void addRef();
     void loadIfNecessary();
     QSample();
-    ~QSample();
+    ~QSample() override;
 
     mutable QMutex m_mutex;
     QSampleCache *m_parent;
@@ -99,7 +99,7 @@ public:
     };
 
     QSampleCache(QObject *parent = nullptr);
-    ~QSampleCache();
+    ~QSampleCache() override;
 
     QSample* requestSample(const QUrl& url);
     void setCapacity(qint64 capacity);

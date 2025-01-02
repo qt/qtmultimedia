@@ -29,7 +29,7 @@ class QGstreamerVideoSink : public QPlatformVideoSink
 
 public:
     explicit QGstreamerVideoSink(QVideoSink *parent = nullptr);
-    ~QGstreamerVideoSink();
+    ~QGstreamerVideoSink() override;
 
     void setRhi(QRhi *rhi) override;
     QRhi *rhi() const { return m_rhi; }
