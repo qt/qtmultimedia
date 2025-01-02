@@ -768,7 +768,7 @@ void tst_QAudioDecoderBackend::invalidSource()
 
     QFile file;
     file.setFileName(TEST_INVALID_SOURCE);
-    file.open(QIODevice::ReadOnly);
+    QTEST_ASSERT(!file.open(QIODevice::ReadOnly));
     d.setSourceDevice(&file);
 
     d.start();

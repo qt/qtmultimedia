@@ -98,7 +98,7 @@ private slots:
         auto createFile = [&](int index) {
             QTEST_ASSERT(index < 10);
             QFile file(tempDir.filePath(expectedFilePattern.arg(index)));
-            file.open(QFile::WriteOnly);
+            QTEST_ASSERT(file.open(QFile::WriteOnly));
         };
 
         const QString fileName_1 = generateFileName();

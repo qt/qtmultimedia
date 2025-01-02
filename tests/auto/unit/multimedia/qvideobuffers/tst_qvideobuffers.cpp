@@ -42,7 +42,7 @@ private:
         QTest::addColumn<const uint8_t *>("sourcePointer");
 
         static QMetaEnum modeEnum = QMetaEnum::fromType<QVideoFrame::MapMode>();
-        Q_ASSERT(modeEnum.isValid());
+        QTEST_ASSERT(modeEnum.isValid());
         for (int i = 0; i < modeEnum.keyCount(); ++i) {
             const QVideoFrame::MapMode mode = QVideoFrame::MapMode(modeEnum.value(i));
             if (mode == QVideoFrame::NotMapped)
