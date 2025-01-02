@@ -282,8 +282,9 @@ void addTagsFromExtendedComment(const GstTagList *list, const gchar *tag, QMedia
         const QLatin1StringView valueString = strValue.last(strValue.size() - equalIndex - 1);
 
         if (key == "DURATION"_L1) {
-            QUniqueGstDateTimeHandle duration{
+            QGstDateTimeHandle duration{
                 gst_date_time_new_from_iso8601_string(valueString.data()),
+                QGstDateTimeHandle::HasRef,
             };
 
             if (duration) {

@@ -276,6 +276,7 @@ void QGstreamerVideoSink::updateGstContexts()
     GstGLAPI glApi = QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL ? GST_GL_API_OPENGL : GST_GL_API_GLES2;
     QGstGLContextHandle appContext{
         gst_gl_context_new_wrapped(gstGlDisplay.get(), guintptr(nativeContext), glPlatform, glApi),
+        QGstGLContextHandle::HasRef,
     };
     if (!appContext)
         qWarning() << "Could not create wrappped context for platform:" << glPlatform;
