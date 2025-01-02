@@ -30,7 +30,7 @@ public:
     Q_ENUM(Error)
 
     explicit QAudioDecoder(QObject *parent = nullptr);
-    ~QAudioDecoder();
+    ~QAudioDecoder() override;
 
     bool isSupported() const;
     bool isDecoding() const;

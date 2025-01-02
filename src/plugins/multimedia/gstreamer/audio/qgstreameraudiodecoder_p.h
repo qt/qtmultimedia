@@ -39,7 +39,7 @@ class QGstreamerAudioDecoder final : public QPlatformAudioDecoder, public QGstre
 
 public:
     static QMaybe<QPlatformAudioDecoder *> create(QAudioDecoder *parent);
-    virtual ~QGstreamerAudioDecoder();
+    ~QGstreamerAudioDecoder() override;
 
     QUrl source() const override;
     void setSource(const QUrl &fileName) override;

@@ -34,7 +34,7 @@ class Q_SPATIALAUDIO_EXPORT QSpatialSound : public QObject
 
 public:
     explicit QSpatialSound(QAudioEngine *engine);
-    ~QSpatialSound();
+    ~QSpatialSound() override;
 
     void setSource(const QUrl &url);
     QUrl source() const;

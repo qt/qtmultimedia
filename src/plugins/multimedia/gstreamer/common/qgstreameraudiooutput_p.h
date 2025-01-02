@@ -28,7 +28,7 @@ class QGstreamerAudioOutput : public QObject, public QPlatformAudioOutput
 {
 public:
     static QMaybe<QPlatformAudioOutput *> create(QAudioOutput *parent);
-    ~QGstreamerAudioOutput();
+    ~QGstreamerAudioOutput() override;
 
     void setAudioDevice(const QAudioDevice &) override;
     void setVolume(float) override;

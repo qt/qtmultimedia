@@ -31,7 +31,7 @@ class QFFmpegAudioDecoder : public QPlatformAudioDecoder
 
 public:
     QFFmpegAudioDecoder(QAudioDecoder *parent);
-    virtual ~QFFmpegAudioDecoder();
+    ~QFFmpegAudioDecoder() override;
 
     QUrl source() const override;
     void setSource(const QUrl &fileName) override;

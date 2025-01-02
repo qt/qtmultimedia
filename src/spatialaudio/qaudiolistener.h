@@ -18,7 +18,7 @@ class Q_SPATIALAUDIO_EXPORT QAudioListener : public QObject
 {
 public:
     explicit QAudioListener(QAudioEngine *engine);
-    ~QAudioListener();
+    ~QAudioListener() override;
 
     void setPosition(QVector3D pos);
     QVector3D position() const;

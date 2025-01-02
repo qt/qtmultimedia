@@ -42,7 +42,7 @@ class Q_MULTIMEDIA_EXPORT QMediaCaptureSession : public QObject
     Q_PROPERTY(QObject *videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
 public:
     explicit QMediaCaptureSession(QObject *parent = nullptr);
-    ~QMediaCaptureSession();
+    ~QMediaCaptureSession() override;
 
     QAudioInput *audioInput() const;
     void setAudioInput(QAudioInput *input);

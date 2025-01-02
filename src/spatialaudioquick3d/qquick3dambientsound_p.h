@@ -33,7 +33,7 @@ class QQuick3DAmbientSound : public QObject
 
 public:
     QQuick3DAmbientSound();
-    ~QQuick3DAmbientSound();
+    ~QQuick3DAmbientSound() override;
 
     void setSource(QUrl source);
     QUrl source() const;

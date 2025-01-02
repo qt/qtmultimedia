@@ -27,7 +27,7 @@ class Q_MULTIMEDIA_EXPORT QAudioSink : public QObject
 public:
     explicit QAudioSink(const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
     explicit QAudioSink(const QAudioDevice &audioDeviceInfo, const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
-    ~QAudioSink();
+    ~QAudioSink() override;
 
     bool isNull() const { return !d; }
 

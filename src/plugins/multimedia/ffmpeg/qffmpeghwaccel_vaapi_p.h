@@ -31,7 +31,7 @@ class VAAPITextureConverter : public TextureConverterBackend
 {
 public:
     VAAPITextureConverter(QRhi *rhi);
-    ~VAAPITextureConverter();
+    ~VAAPITextureConverter() override;
 
     QVideoFrameTexturesHandlesUPtr
     createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr oldHandles) override;

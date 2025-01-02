@@ -27,7 +27,7 @@ class QPulseAudioMediaDevices : public QPlatformMediaDevices
 {
 public:
     QPulseAudioMediaDevices();
-    ~QPulseAudioMediaDevices();
+    ~QPulseAudioMediaDevices() override;
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;

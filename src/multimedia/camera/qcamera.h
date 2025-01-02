@@ -134,7 +134,7 @@ public:
     explicit QCamera(QObject *parent = nullptr);
     explicit QCamera(const QCameraDevice& cameraDevice, QObject *parent = nullptr);
     explicit QCamera(QCameraDevice::Position position, QObject *parent = nullptr);
-    ~QCamera();
+    ~QCamera() override;
 
     bool isAvailable() const;
     bool isActive() const;

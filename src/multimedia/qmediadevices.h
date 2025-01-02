@@ -27,7 +27,7 @@ class Q_MULTIMEDIA_EXPORT QMediaDevices : public QObject
 
 public:
     QMediaDevices(QObject *parent = nullptr);
-    ~QMediaDevices();
+    ~QMediaDevices() override;
 
     static QList<QAudioDevice> audioInputs();
     static QList<QAudioDevice> audioOutputs();

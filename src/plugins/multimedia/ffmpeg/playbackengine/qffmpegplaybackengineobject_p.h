@@ -35,7 +35,7 @@ public:
 
     PlaybackEngineObject();
 
-    ~PlaybackEngineObject();
+    ~PlaybackEngineObject() override;
 
     bool isPaused() const;
 

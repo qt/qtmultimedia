@@ -29,7 +29,7 @@ class QFFmpegImageCapture : public QPlatformImageCapture
     Q_OBJECT
 public:
     QFFmpegImageCapture(QImageCapture *parent);
-    virtual ~QFFmpegImageCapture();
+    ~QFFmpegImageCapture() override;
 
     bool isReadyForCapture() const override;
     int capture(const QString &fileName) override;

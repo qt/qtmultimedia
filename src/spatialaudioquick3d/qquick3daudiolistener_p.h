@@ -28,7 +28,7 @@ class QQuick3DAudioListener : public QQuick3DNode
 
 public:
     QQuick3DAudioListener();
-    ~QQuick3DAudioListener();
+    ~QQuick3DAudioListener() override;
 
     QAudioListener *listener() { return m_listener; }
 protected:

@@ -88,7 +88,7 @@ class QGstVideoRenderer : public QObject
 
 public:
     explicit QGstVideoRenderer(QGstreamerVideoSink *);
-    ~QGstVideoRenderer();
+    ~QGstVideoRenderer() override;
 
     const QGstCaps &caps();
 

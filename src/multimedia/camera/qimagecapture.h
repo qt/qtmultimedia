@@ -62,7 +62,7 @@ public:
     Q_ENUM(FileFormat)
 
     explicit QImageCapture(QObject *parent = nullptr);
-    ~QImageCapture();
+    ~QImageCapture() override;
 
     bool isAvailable() const;
 

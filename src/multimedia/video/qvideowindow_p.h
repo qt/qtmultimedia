@@ -94,7 +94,7 @@ class Q_MULTIMEDIA_EXPORT QVideoWindow : public QWindow
 public:
     explicit QVideoWindow(QScreen *screen = nullptr);
     explicit QVideoWindow(QWindow *parent);
-    ~QVideoWindow();
+    ~QVideoWindow() override;
 
     Q_INVOKABLE QVideoSink *videoSink() const;
 

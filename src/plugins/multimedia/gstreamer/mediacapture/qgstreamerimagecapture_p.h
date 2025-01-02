@@ -37,7 +37,7 @@ class QGstreamerImageCapture : public QPlatformImageCapture, private QGstreamerB
 
 public:
     static QMaybe<QPlatformImageCapture *> create(QImageCapture *parent);
-    virtual ~QGstreamerImageCapture();
+    ~QGstreamerImageCapture() override;
 
     bool isReadyForCapture() const override;
     int capture(const QString &fileName) override;

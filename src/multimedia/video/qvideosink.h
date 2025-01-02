@@ -25,7 +25,7 @@ class Q_MULTIMEDIA_EXPORT QVideoSink : public QObject
     Q_PROPERTY(QSize videoSize READ videoSize NOTIFY videoSizeChanged)
 public:
     QVideoSink(QObject *parent = nullptr);
-    ~QVideoSink();
+    ~QVideoSink() override;
 
     QRhi *rhi() const;
     void setRhi(QRhi *rhi);

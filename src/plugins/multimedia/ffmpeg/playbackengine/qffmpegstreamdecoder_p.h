@@ -33,7 +33,7 @@ class StreamDecoder : public PlaybackEngineObject
 public:
     StreamDecoder(const CodecContext &codecContext, qint64 absSeekPos);
 
-    ~StreamDecoder();
+    ~StreamDecoder() override;
 
     QPlatformMediaPlayer::TrackType trackType() const;
 

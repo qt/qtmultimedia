@@ -27,7 +27,7 @@ class QFFmpegMediaFormatInfo : public QPlatformMediaFormatInfo
 {
 public:
     QFFmpegMediaFormatInfo();
-    ~QFFmpegMediaFormatInfo();
+    ~QFFmpegMediaFormatInfo() override;
 
     static QMediaFormat::VideoCodec videoCodecForAVCodecId(AVCodecID id);
     static QMediaFormat::AudioCodec audioCodecForAVCodecId(AVCodecID id);

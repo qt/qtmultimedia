@@ -83,7 +83,7 @@ public:
     Q_ENUM(Error)
 
     QMediaRecorder(QObject *parent = nullptr);
-    ~QMediaRecorder();
+    ~QMediaRecorder() override;
 
     bool isAvailable() const;
 

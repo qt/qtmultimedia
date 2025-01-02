@@ -34,7 +34,7 @@ class QFFmpegMediaRecorder : public QObject, public QPlatformMediaRecorder
     Q_OBJECT
 public:
     QFFmpegMediaRecorder(QMediaRecorder *parent);
-    virtual ~QFFmpegMediaRecorder();
+    ~QFFmpegMediaRecorder() override;
 
     bool isLocationWritable(const QUrl &sink) const override;
 

@@ -21,7 +21,7 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget
 
 public:
     explicit QVideoWidget(QWidget *parent = nullptr);
-    ~QVideoWidget();
+    ~QVideoWidget() override;
 
     Q_INVOKABLE QVideoSink *videoSink() const;
 

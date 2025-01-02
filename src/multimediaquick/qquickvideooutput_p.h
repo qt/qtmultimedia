@@ -85,7 +85,7 @@ public:
     Q_ENUM(EndOfStreamPolicy)
 
     QQuickVideoOutput(QQuickItem *parent = 0);
-    ~QQuickVideoOutput();
+    ~QQuickVideoOutput() override;
 
     Q_INVOKABLE QVideoSink *videoSink() const;
 

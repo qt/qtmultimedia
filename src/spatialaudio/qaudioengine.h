@@ -24,7 +24,7 @@ public:
     QAudioEngine() : QAudioEngine(nullptr) {};
     explicit QAudioEngine(QObject *parent) : QAudioEngine(44100, parent) {}
     explicit QAudioEngine(int sampleRate, QObject *parent = nullptr);
-    ~QAudioEngine();
+    ~QAudioEngine() override;
 
     enum OutputMode {
         Surround,

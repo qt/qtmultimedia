@@ -33,7 +33,7 @@ class QGstreamerVideoOutput : public QObject, QAbstractSubtitleObserver
 
 public:
     static QMaybe<QGstreamerVideoOutput *> create(QObject *parent = nullptr);
-    ~QGstreamerVideoOutput();
+    ~QGstreamerVideoOutput() override;
 
     void setVideoSink(QVideoSink *sink);
     QGstreamerVideoSink *gstreamerVideoSink() const { return m_platformVideoSink; }

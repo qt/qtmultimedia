@@ -26,7 +26,7 @@ class QOpenGLVideoBuffer : public QHwVideoBuffer
 {
 public:
     QOpenGLVideoBuffer(std::unique_ptr<QOpenGLFramebufferObject> fbo);
-    ~QOpenGLVideoBuffer();
+    ~QOpenGLVideoBuffer() override;
 
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;

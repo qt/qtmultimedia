@@ -57,7 +57,7 @@ class QV4L2Camera : public QPlatformCamera
 
 public:
     explicit QV4L2Camera(QCamera *parent);
-    ~QV4L2Camera();
+    ~QV4L2Camera() override;
 
     bool isActive() const override;
     void setActive(bool active) override;
