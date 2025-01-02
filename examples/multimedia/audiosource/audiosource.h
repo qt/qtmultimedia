@@ -76,6 +76,7 @@ private slots:
     void toggleSuspend();
     void deviceChanged(int index);
     void sliderChanged(int value);
+    void updateAudioDevices();
 
 private:
     // Owned by layout
