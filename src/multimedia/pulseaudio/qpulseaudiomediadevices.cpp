@@ -29,12 +29,12 @@ QPulseAudioMediaDevices::~QPulseAudioMediaDevices()
     delete pulseEngine;
 }
 
-QList<QAudioDevice> QPulseAudioMediaDevices::audioInputs() const
+QList<QAudioDevice> QPulseAudioMediaDevices::findAudioInputs() const
 {
     return pulseEngine->availableDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QPulseAudioMediaDevices::audioOutputs() const
+QList<QAudioDevice> QPulseAudioMediaDevices::findAudioOutputs() const
 {
     return pulseEngine->availableDevices(QAudioDevice::Output);
 }

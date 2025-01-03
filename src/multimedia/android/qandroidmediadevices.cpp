@@ -34,12 +34,12 @@ QAndroidMediaDevices::~QAndroidMediaDevices()
    QtJniTypes::QtAudioDeviceManager::callStaticMethod<void>("unregisterAudioHeadsetStateReceiver");
 }
 
-QList<QAudioDevice> QAndroidMediaDevices::audioInputs() const
+QList<QAudioDevice> QAndroidMediaDevices::findAudioInputs() const
 {
     return QOpenSLESEngine::availableDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QAndroidMediaDevices::audioOutputs() const
+QList<QAudioDevice> QAndroidMediaDevices::findAudioOutputs() const
 {
     return QOpenSLESEngine::availableDevices(QAudioDevice::Output);
 }

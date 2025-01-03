@@ -24,7 +24,6 @@
 #include <private/qwasmmediadevices_p.h>
 #endif
 
-
 QT_BEGIN_NAMESPACE
 
 std::unique_ptr<QPlatformMediaDevices> QPlatformMediaDevices::create()
@@ -48,7 +47,20 @@ std::unique_ptr<QPlatformMediaDevices> QPlatformMediaDevices::create()
 #endif
 }
 
-QPlatformMediaDevices::QPlatformMediaDevices() = default;
+QPlatformMediaDevices::QPlatformMediaDevices()
+{
+    connect(this, &QPlatformMediaDevices::audioInputsChanged, this,
+            [this]() {
+                m_audioInputs.reset();
+            },
+            Qt::DirectConnection);
+
+    connect(this, &QPlatformMediaDevices::audioOutputsChanged, this,
+            [this]() {
+                m_audioOutputs.reset();
+            },
+            Qt::DirectConnection);
+}
 
 void QPlatformMediaDevices::initVideoDevicesConnection()
 {
@@ -62,12 +74,16 @@ QPlatformMediaDevices::~QPlatformMediaDevices() = default;
 
 QList<QAudioDevice> QPlatformMediaDevices::audioInputs() const
 {
-    return {};
+    return m_audioInputs.ensure([this]() {
+        return findAudioInputs();
+    });
 }
 
 QList<QAudioDevice> QPlatformMediaDevices::audioOutputs() const
 {
-    return {};
+    return m_audioOutputs.ensure([this]() {
+        return findAudioOutputs();
+    });
 }
 
 QPlatformAudioSource *QPlatformMediaDevices::createAudioSource(const QAudioDevice &, QObject *)

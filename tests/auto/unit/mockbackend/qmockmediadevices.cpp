@@ -13,12 +13,12 @@ QMockMediaDevices::QMockMediaDevices()
 
 QMockMediaDevices::~QMockMediaDevices() = default;
 
-QList<QAudioDevice> QMockMediaDevices::audioInputs() const
+QList<QAudioDevice> QMockMediaDevices::findAudioInputs() const
 {
     return m_inputDevices;
 }
 
-QList<QAudioDevice> QMockMediaDevices::audioOutputs() const
+QList<QAudioDevice> QMockMediaDevices::findAudioOutputs() const
 {
     return m_outputDevices;
 }
