@@ -84,11 +84,9 @@ QT_BEGIN_NAMESPACE
     AudioDeviceID deviceId)
 {
     const auto propertyAddress = makePropertyAddress(kAudioObjectPropertyName, mode);
-    if (auto name =
-        getAudioObject<CFStringRef>(deviceId, propertyAddress)) {
-        auto deleter = qScopeGuard([&name]() { CFRelease(*name); });
-        return QString::fromCFString(*name);
-    }
+    if (auto name = getAudioObject<QCFString>(deviceId, propertyAddress))
+        return name;
+
     return std::nullopt;
 }
 

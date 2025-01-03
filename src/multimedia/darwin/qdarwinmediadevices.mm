@@ -57,11 +57,8 @@ static QByteArray uniqueId(AudioDeviceID device, QAudioDevice::Mode mode)
     const AudioObjectPropertyAddress propertyAddress =
             makePropertyAddress(kAudioDevicePropertyDeviceUID, mode);
 
-    if (auto name = getAudioObject<CFStringRef>(device, propertyAddress)) {
-        QString s = QString::fromCFString(*name);
-        CFRelease(*name);
-        return s.toUtf8();
-    }
+    if (auto name = getAudioObject<QCFString>(device, propertyAddress))
+        return QString{*name}.toUtf8();
 
     return QByteArray();
 }
