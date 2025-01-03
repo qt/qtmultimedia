@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <CoreAudio/CoreAudioTypes.h>
+#include <CoreAudioTypes/CoreAudioTypes.h>
 
 #include <QtMultimedia/QAudioFormat>
 #include <QtCore/qglobal.h>

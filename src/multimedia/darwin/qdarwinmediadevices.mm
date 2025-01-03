@@ -45,8 +45,7 @@ static AudioDeviceID defaultAudioDevice(QAudioDevice::Mode mode)
         kAudioObjectPropertyElementMain,
     };
 
-    if (auto audioDevice = getAudioObject<AudioDeviceID>(kAudioObjectSystemObject, propertyAddress,
-                                                         "Default Device")) {
+    if (auto audioDevice = getAudioObject<AudioDeviceID>(kAudioObjectSystemObject, propertyAddress)) {
         return *audioDevice;
     }
 
@@ -58,7 +57,7 @@ static QByteArray uniqueId(AudioDeviceID device, QAudioDevice::Mode mode)
     const AudioObjectPropertyAddress propertyAddress =
             makePropertyAddress(kAudioDevicePropertyDeviceUID, mode);
 
-    if (auto name = getAudioObject<CFStringRef>(device, propertyAddress, "Device UID")) {
+    if (auto name = getAudioObject<CFStringRef>(device, propertyAddress)) {
         QString s = QString::fromCFString(*name);
         CFRelease(*name);
         return s.toUtf8();
@@ -81,7 +80,7 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
     };
 
     if (auto audioDevices = getAudioData<AudioDeviceID>(
-                kAudioObjectSystemObject, audioDevicesPropertyAddress, "Audio Devices")) {
+                kAudioObjectSystemObject, audioDevicesPropertyAddress)) {
         const AudioObjectPropertyAddress audioDeviceStreamFormatPropertyAddress =
                 makePropertyAddress(kAudioDevicePropertyStreamFormat, mode);
 
@@ -91,7 +90,7 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
 
             if (getAudioObject<AudioStreamBasicDescription>(device,
                                                             audioDeviceStreamFormatPropertyAddress,
-                                                            nullptr /*don't print logs*/)) {
+                                                            /*warnIfMissing=*/false)) {
                 devices << createAudioDevice(false, device, uniqueId(device, mode), mode);
             }
         }
