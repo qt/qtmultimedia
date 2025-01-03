@@ -47,12 +47,12 @@ namespace {
     const auto audioDevicePropertyStreamsAddress =
         makePropertyAddress(kAudioDevicePropertyStreams, mode);
 
-    if (auto streamIDs = getAudioData<AudioStreamID>(deviceId, audioDevicePropertyStreamsAddress)) {
+    if (auto streamIDs = getAudioPropertyList<AudioStreamID>(deviceId, audioDevicePropertyStreamsAddress)) {
         const auto audioDevicePhysicalFormatPropertyAddress =
             makePropertyAddress(kAudioStreamPropertyPhysicalFormat, mode);
 
         for (auto streamID : *streamIDs) {
-            if (auto streamDescription = getAudioObject<AudioStreamBasicDescription>(
+            if (auto streamDescription = getAudioProperty<AudioStreamBasicDescription>(
                         streamID, audioDevicePhysicalFormatPropertyAddress)) {
                 return QCoreAudioUtils::toQAudioFormat(*streamDescription);
             }
@@ -68,7 +68,7 @@ namespace {
 {
     const auto propertyAddress =
         makePropertyAddress(kAudioDevicePropertyPreferredChannelLayout, mode);
-    if (auto data = getAudioData<char>(deviceId, propertyAddress, sizeof(AudioChannelLayout))) {
+    if (auto data = getAudioPropertyList<char>(deviceId, propertyAddress, sizeof(AudioChannelLayout))) {
         const auto *layout = reinterpret_cast<const AudioChannelLayout *>(data->data());
         return QCoreAudioUtils::fromAudioChannelLayout(layout);
     }
@@ -80,7 +80,7 @@ namespace {
     AudioDeviceID deviceId)
 {
     const auto propertyAddress = makePropertyAddress(kAudioObjectPropertyName, mode);
-    if (auto name = getAudioObject<QCFString>(deviceId, propertyAddress))
+    if (auto name = getAudioProperty<QCFString>(deviceId, propertyAddress))
         return name;
 
     return std::nullopt;
@@ -96,7 +96,7 @@ qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
 {
     auto propertyAddress = makePropertyAddress(kAudioDevicePropertyAvailableNominalSampleRates, mode);
 
-    auto rates = getAudioData<Float64>(deviceId, propertyAddress);
+    auto rates = getAudioPropertyList<Float64>(deviceId, propertyAddress);
     if (rates && !rates->empty()) {
         std::sort(rates->begin(), rates->end());
         return SamplingRateRange{
@@ -115,7 +115,7 @@ qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
     const auto audioDevicePropertyStreamsAddress =
             makePropertyAddress(kAudioDevicePropertyStreams, mode);
 
-    auto streamIDs = getAudioData<AudioStreamID>(deviceId, audioDevicePropertyStreamsAddress);
+    auto streamIDs = getAudioPropertyList<AudioStreamID>(deviceId, audioDevicePropertyStreamsAddress);
     if (!streamIDs)
         return std::nullopt;
 
@@ -124,7 +124,7 @@ qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
     int ret{};
 
     for (auto streamID : *streamIDs) {
-        auto streamDescription = getAudioObject<AudioStreamBasicDescription>(streamID, propVirtualFormat);
+        auto streamDescription = getAudioProperty<AudioStreamBasicDescription>(streamID, propVirtualFormat);
         if (!streamDescription)
             continue;
         ret += streamDescription->mChannelsPerFrame;
