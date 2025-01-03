@@ -172,14 +172,14 @@ QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(const QDarwinAudioSource &aud
             m_maxPeriodSize / m_outputFormat.mBytesPerFrame * 1000 / m_outputFormat.mSampleRate;
     m_flushTimer->start(qMax(1, periodTime));
 
-    if (CoreAudioUtils::toQAudioFormat(inputFormat) != CoreAudioUtils::toQAudioFormat(outputFormat)) {
+    if (QCoreAudioUtils::toQAudioFormat(inputFormat) != QCoreAudioUtils::toQAudioFormat(outputFormat)) {
         if (AudioConverterNew(&inputFormat, &m_outputFormat, &m_audioConverter) != noErr) {
             qWarning() << "QAudioSource: Unable to create an Audio Converter";
             m_audioConverter = 0;
         }
     }
 
-    m_qFormat = CoreAudioUtils::toQAudioFormat(inputFormat); // we adjust volume before conversion
+    m_qFormat = QCoreAudioUtils::toQAudioFormat(inputFormat); // we adjust volume before conversion
 }
 
 qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit,
@@ -480,7 +480,7 @@ bool QDarwinAudioSource::open()
 #endif
 
     //set format
-    m_streamFormat = CoreAudioUtils::toAudioStreamBasicDescription(m_audioFormat);
+    m_streamFormat = QCoreAudioUtils::toAudioStreamBasicDescription(m_audioFormat);
 
 #if defined(Q_OS_MACOS)
     UInt32 size = 0;

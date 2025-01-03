@@ -27,7 +27,7 @@ QAudioBuffer handleNextSampleBuffer(CMSampleBufferRef sampleBuffer)
     if (!formatDescription)
         return {};
     const AudioStreamBasicDescription* const asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
-    QAudioFormat qtFormat = CoreAudioUtils::toQAudioFormat(*asbd);
+    QAudioFormat qtFormat = QCoreAudioUtils::toQAudioFormat(*asbd);
     if (qtFormat.sampleFormat() == QAudioFormat::Unknown && asbd->mBitsPerChannel == 8)
         qtFormat.setSampleFormat(QAudioFormat::UInt8);
     if (!qtFormat.isValid())
@@ -171,7 +171,7 @@ QAudioFormat qt_format_for_audio_track(AVAssetTrack *track)
     CMFormatDescriptionRef desc =  (__bridge CMFormatDescriptionRef)track.formatDescriptions[0];
     const AudioStreamBasicDescription* const asbd =
         CMAudioFormatDescriptionGetStreamBasicDescription(desc);
-    format = CoreAudioUtils::toQAudioFormat(*asbd);
+    format = QCoreAudioUtils::toQAudioFormat(*asbd);
     // AudioStreamBasicDescription's mBitsPerChannel is 0 for compressed formats
     // In this case set default Int16 sample format
     if (asbd->mBitsPerChannel == 0)

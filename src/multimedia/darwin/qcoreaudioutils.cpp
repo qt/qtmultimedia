@@ -6,7 +6,9 @@
 
 QT_BEGIN_NAMESPACE
 
-QAudioFormat CoreAudioUtils::toQAudioFormat(AudioStreamBasicDescription const& sf)
+namespace QCoreAudioUtils {
+
+QAudioFormat toQAudioFormat(AudioStreamBasicDescription const& sf)
 {
     QAudioFormat    audioFormat;
     // all Darwin HW is little endian, we ignore those formats
@@ -41,7 +43,7 @@ QAudioFormat CoreAudioUtils::toQAudioFormat(AudioStreamBasicDescription const& s
     return audioFormat;
 }
 
-AudioStreamBasicDescription CoreAudioUtils::toAudioStreamBasicDescription(QAudioFormat const& audioFormat)
+AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& audioFormat)
 {
     AudioStreamBasicDescription sf;
 
@@ -100,7 +102,7 @@ static constexpr struct {
         { QAudioFormat::TopBackCenter, kAudioChannelLabel_TopBackCenter },
 };
 
-std::unique_ptr<AudioChannelLayout> CoreAudioUtils::toAudioChannelLayout(const QAudioFormat &format, UInt32 *size)
+std::unique_ptr<AudioChannelLayout> toAudioChannelLayout(const QAudioFormat &format, UInt32 *size)
 {
     auto channelConfig = format.channelConfig();
     if (channelConfig == QAudioFormat::ChannelConfigUnknown)
@@ -187,7 +189,7 @@ static constexpr struct {
 };
 
 
-QAudioFormat::ChannelConfig CoreAudioUtils::fromAudioChannelLayout(const AudioChannelLayout *layout)
+QAudioFormat::ChannelConfig fromAudioChannelLayout(const AudioChannelLayout *layout)
 {
     for (const auto &m : layoutTagMap) {
         if (m.tag == layout->mChannelLayoutTag)
@@ -231,5 +233,7 @@ QAudioFormat::ChannelConfig CoreAudioUtils::fromAudioChannelLayout(const AudioCh
     }
     return QAudioFormat::ChannelConfig(channels);
 }
+
+} // namespace QCoreAudioUtils
 
 QT_END_NAMESPACE

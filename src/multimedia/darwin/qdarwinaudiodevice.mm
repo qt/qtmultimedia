@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
             if (auto streamDescription = getAudioObject<AudioStreamBasicDescription>(
                         streamID, audioDevicePhysicalFormatPropertyAddress,
                         "prefferedPhysicalFormat")) {
-                return CoreAudioUtils::toQAudioFormat(*streamDescription);
+                return QCoreAudioUtils::toQAudioFormat(*streamDescription);
             }
         }
     }
@@ -77,7 +77,7 @@ QT_BEGIN_NAMESPACE
     if (auto data = getAudioData<char>(deviceId, propertyAddress, "prefferedChannelLayout",
                                        sizeof(AudioChannelLayout))) {
         const auto *layout = reinterpret_cast<const AudioChannelLayout *>(data->data());
-        return CoreAudioUtils::fromAudioChannelLayout(layout);
+        return QCoreAudioUtils::fromAudioChannelLayout(layout);
     }
     return std::nullopt;
 }
