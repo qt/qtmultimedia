@@ -613,10 +613,15 @@ void tst_QAudioSink::pullResumeFromUnderrun()
 {
     constexpr int chunkSize = 128;
 
+    QAudioDevice output = QMediaDevices::defaultAudioOutput();
+    if (output.isNull())
+        QSKIP("no audio output detected");
+
+
     QAudioFormat format;
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::UInt8);
-    format.setSampleRate(8000);
+    format.setSampleRate(output.preferredFormat().sampleRate());
 
     AudioPullSource audioSource;
     QAudioSink audioSink(format, this);

@@ -90,6 +90,54 @@ QT_BEGIN_NAMESPACE
     return std::nullopt;
 }
 
+struct SamplingRateRange {
+    int min;
+    int max;
+};
+
+[[nodiscard]] static std::optional<SamplingRateRange>
+qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
+{
+    auto propertyAddress = makePropertyAddress(kAudioDevicePropertyAvailableNominalSampleRates, mode);
+
+    auto rates = getAudioData<Float64>(deviceId, propertyAddress);
+    if (rates && !rates->empty()) {
+        std::sort(rates->begin(), rates->end());
+        return SamplingRateRange{
+            int(rates->front()),
+            int(rates->back()),
+        };
+    }
+
+    return std::nullopt;
+}
+
+[[nodiscard]] static std::optional<int> qSupportedNumberOfChannels(
+        QAudioDevice::Mode mode,
+        AudioDeviceID deviceId)
+{
+    const auto audioDevicePropertyStreamsAddress =
+            makePropertyAddress(kAudioDevicePropertyStreams, mode);
+
+    auto streamIDs = getAudioData<AudioStreamID>(deviceId, audioDevicePropertyStreamsAddress);
+    if (!streamIDs)
+        return std::nullopt;
+
+    const auto propVirtualFormat = makePropertyAddress(kAudioStreamPropertyVirtualFormat, mode);
+
+    int ret{};
+
+    for (auto streamID : *streamIDs) {
+        auto streamDescription = getAudioObject<AudioStreamBasicDescription>(streamID, propVirtualFormat);
+        if (!streamDescription)
+            continue;
+        ret += streamDescription->mChannelsPerFrame;
+    }
+
+    return ret;
+}
+
+
 QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(device, mode),
       m_deviceId(id)
@@ -114,11 +162,15 @@ QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &d
     else
         description = qGetDefaultDescription(device);
 
-    // TODO: There is some duplicate code here with the iOS constructor
-    minimumSampleRate = 1;
-    maximumSampleRate = 96000;
+    if (auto rates = qSupportedSamplingRates(mode, id)) {
+        minimumSampleRate = rates->min;
+        maximumSampleRate = rates->max;
+    } else {
+        minimumSampleRate = 1;
+        maximumSampleRate = 96000;
+    }
     minimumChannelCount = 1;
-    maximumChannelCount = 16;
+    maximumChannelCount = qSupportedNumberOfChannels(mode, id).value_or(16);
     supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
 }
 
