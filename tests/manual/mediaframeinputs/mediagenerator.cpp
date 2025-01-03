@@ -105,9 +105,6 @@ QImage createPatternImage(QSize size, uint32_t patternWidth, float patternSpeed,
 {
     QImage image(size, QImage::Format_RGBA8888);
 
-    static const uint32_t availableColors[] = { qRgba(255, 0, 0, 0), qRgba(0, 255, 0, 0),
-                                                qRgba(0, 0, 255, 0) };
-
     uchar *imageData = image.bits();
     for (int yIndex = 0; yIndex < size.height(); ++yIndex) {
         auto colors = reinterpret_cast<uint32_t *>(imageData + yIndex * image.bytesPerLine());
