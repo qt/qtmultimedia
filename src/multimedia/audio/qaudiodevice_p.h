@@ -21,6 +21,8 @@
 
 QT_BEGIN_NAMESPACE
 
+// Implementations should not include volatile members, such as values  that can change between
+// connection sessions. For example, CoreAudio AudioDeviceId on macOS.
 class Q_MULTIMEDIA_EXPORT QAudioDevicePrivate : public QSharedData
 {
 public:
