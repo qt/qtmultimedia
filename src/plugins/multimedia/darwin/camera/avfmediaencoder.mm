@@ -208,7 +208,7 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
         // fallback to providing channel layout if channel count is not specified or supported
         UInt32 size = 0;
         if (format.isValid()) {
-            auto layout = CoreAudioUtils::toAudioChannelLayout(format, &size);
+            auto layout = QCoreAudioUtils::toAudioChannelLayout(format, &size);
             UInt32 layoutSize = offsetof(AudioChannelLayout, mChannelDescriptions)
                     + layout->mNumberChannelDescriptions * sizeof(AudioChannelDescription);
             [settings setObject:[NSData dataWithBytes:layout.get() length:layoutSize] forKey:AVChannelLayoutKey];

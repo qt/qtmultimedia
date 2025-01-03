@@ -495,7 +495,7 @@ bool QDarwinAudioSink::open()
 
 
     // Set stream format
-    m_streamFormat = CoreAudioUtils::toAudioStreamBasicDescription(m_audioFormat);
+    m_streamFormat = QCoreAudioUtils::toAudioStreamBasicDescription(m_audioFormat);
     size = sizeof(m_streamFormat);
 
     if (AudioUnitSetProperty(m_audioUnit,
