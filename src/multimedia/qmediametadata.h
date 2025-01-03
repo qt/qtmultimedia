@@ -79,6 +79,7 @@ public:
 
     Q_INVOKABLE static QString metaDataKeyToString(Key k);
 
+    QT_POST_CXX17_API_IN_EXPORTED_CLASS // don't export QHash's key-value-range
     QT_TECH_PREVIEW_API auto asKeyValueRange() const { return data.asKeyValueRange(); }
 
 protected:
