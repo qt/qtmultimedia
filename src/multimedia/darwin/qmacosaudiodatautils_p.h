@@ -20,9 +20,9 @@
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qspan.h>
 #include <QtCore/private/qcore_mac_p.h>
 
-#include <algorithm>
 #include <optional>
 #include <vector>
 
@@ -56,18 +56,17 @@ void printUnableToReadWarning(AudioObjectID objectID, const AudioObjectPropertyA
     QAudioDevice::Mode mode,
     AudioObjectPropertyElement element = kAudioObjectPropertyElementMain);
 
-[[nodiscard]] bool getAudioData(
+[[nodiscard]] bool getAudioPropertyRaw(
     AudioObjectID objectID,
     const AudioObjectPropertyAddress &address,
-    void *dst,
-    UInt32 dstSize,
+    QSpan<std::byte> destination,
     bool warnIfMissing = true);
 
 template<typename T>
-std::optional<std::vector<T>> getAudioData(AudioObjectID objectID,
-                                           const AudioObjectPropertyAddress &address,
-                                           size_t minDataSize = 0,
-                                           bool warnIfMissing = true)
+std::optional<std::vector<T>> getAudioPropertyList(AudioObjectID objectID,
+                                                   const AudioObjectPropertyAddress &address,
+                                                   size_t minDataSize = 0,
+                                                   bool warnIfMissing = true)
 {
     static_assert(std::is_trivial_v<T>, "A trivial type is expected");
 
@@ -84,19 +83,19 @@ std::optional<std::vector<T>> getAudioData(AudioObjectID objectID,
                                      minDataSize * sizeof(T), "bytes");
     } else {
         std::vector<T> data(size / sizeof(T));
-        if (getAudioData(objectID, address, data.data(), data.size() * sizeof(T)))
-            return { std::move(data) };
+        if (getAudioPropertyRaw(objectID, address, as_writable_bytes(QSpan{data})))
+            return data;
     }
 
     return {};
 }
 
 template<typename T>
-std::optional<T> getAudioObject(AudioObjectID objectID, const AudioObjectPropertyAddress &address,
-                                bool warnIfMissing = false)
+std::optional<T> getAudioProperty(AudioObjectID objectID, const AudioObjectPropertyAddress &address,
+                                  bool warnIfMissing = false)
 {
     if constexpr(std::is_same_v<T, QCFString>) {
-        const std::optional<CFStringRef> string = getAudioObject<CFStringRef>(
+        const std::optional<CFStringRef> string = getAudioProperty<CFStringRef>(
                 objectID, address, warnIfMissing);
         if (string)
             return QCFString{*string};
@@ -106,7 +105,7 @@ std::optional<T> getAudioObject(AudioObjectID objectID, const AudioObjectPropert
         static_assert(std::is_trivial_v<T>, "A trivial type is expected");
 
         T object{};
-        if (getAudioData(objectID, address, &object, sizeof(T), warnIfMissing))
+        if (getAudioPropertyRaw(objectID, address, as_writable_bytes(QSpan(&object, 1)), warnIfMissing))
             return object;
 
         return {};
