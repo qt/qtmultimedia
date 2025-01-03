@@ -259,12 +259,12 @@ QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mo
     return devices;
 }
 
-QList<QAudioDevice> QWindowsMediaDevices::audioInputs() const
+QList<QAudioDevice> QWindowsMediaDevices::findAudioInputs() const
 {
     return availableDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QWindowsMediaDevices::audioOutputs() const
+QList<QAudioDevice> QWindowsMediaDevices::findAudioOutputs() const
 {
     return availableDevices(QAudioDevice::Output);
 }

@@ -225,12 +225,12 @@ QDarwinMediaDevices::~QDarwinMediaDevices()
     removeAudioListeners(*this);
 }
 
-QList<QAudioDevice> QDarwinMediaDevices::audioInputs() const
+QList<QAudioDevice> QDarwinMediaDevices::findAudioInputs() const
 {
     return availableAudioDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QDarwinMediaDevices::audioOutputs() const
+QList<QAudioDevice> QDarwinMediaDevices::findAudioOutputs() const
 {
     return availableAudioDevices(QAudioDevice::Output);
 }

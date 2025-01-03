@@ -29,12 +29,14 @@ public:
     QPulseAudioMediaDevices();
     ~QPulseAudioMediaDevices() override;
 
-    QList<QAudioDevice> audioInputs() const override;
-    QList<QAudioDevice> audioOutputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
                                             QObject *parent) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
                                         QObject *parent) override;
+
+protected:
+    QList<QAudioDevice> findAudioInputs() const override;
+    QList<QAudioDevice> findAudioOutputs() const override;
 
 private:
     QPulseAudioEngine *pulseEngine;

@@ -26,8 +26,6 @@ public:
     QAndroidMediaDevices();
 
     ~QAndroidMediaDevices();
-    QList<QAudioDevice> audioInputs() const override;
-    QList<QAudioDevice> audioOutputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
                                             QObject *parent) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
@@ -35,6 +33,10 @@ public:
 
     void forwardAudioOutputsChanged();
     void forwardAudioInputsChanged();
+
+protected:
+    QList<QAudioDevice> findAudioInputs() const override;
+    QList<QAudioDevice> findAudioOutputs() const override;
 };
 
 QT_END_NAMESPACE

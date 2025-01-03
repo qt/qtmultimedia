@@ -28,12 +28,14 @@ class QAlsaMediaDevices : public QPlatformMediaDevices
 public:
     QAlsaMediaDevices();
 
-    QList<QAudioDevice> audioInputs() const override;
-    QList<QAudioDevice> audioOutputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
                                             QObject *parent) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
                                         QObject *parent) override;
+
+protected:
+    QList<QAudioDevice> findAudioInputs() const override;
+    QList<QAudioDevice> findAudioOutputs() const override;
 };
 
 QT_END_NAMESPACE

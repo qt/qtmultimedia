@@ -53,8 +53,6 @@ class QWasmMediaDevices : public QPlatformMediaDevices
 public:
     QWasmMediaDevices();
 
-    QList<QAudioDevice> audioInputs() const override;
-    QList<QAudioDevice> audioOutputs() const override;
     QList<QCameraDevice> videoInputs() const;
 
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
@@ -62,6 +60,10 @@ public:
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
                                         QObject *parent) override;
     void initDevices();
+
+protected:
+    QList<QAudioDevice> findAudioInputs() const override;
+    QList<QAudioDevice> findAudioOutputs() const override;
 
 private:
     void updateCameraDevices();
