@@ -69,11 +69,6 @@ auto toSize(const QString &value, bool &ok)
     return result;
 }
 
-auto toFloat(const QString &value, bool &ok)
-{
-    return value.toFloat(&ok);
-}
-
 auto toPositiveFloat(const QString &value, bool &ok)
 {
     const float result = value.toFloat(&ok);
@@ -81,7 +76,7 @@ auto toPositiveFloat(const QString &value, bool &ok)
     return result;
 }
 
-auto toUrl(const QString &value, bool &ok)
+auto toUrl(const QString &value, [[maybe_unused]] bool &ok)
 {
     return QUrl::fromLocalFile(value);
 }
@@ -122,7 +117,7 @@ const char *noCheck()
 } // namespace
 
 CommandLineParser::CommandLineParser()
-    : m_result{ AudioGeneratorSettings{}, VideoGeneratorSettings{}, PushModeSettings{} }
+    : m_result{}
 {
     m_parser.setApplicationDescription(QStringLiteral(
             "The application tests QtMultimedia media frame inputs with media "
