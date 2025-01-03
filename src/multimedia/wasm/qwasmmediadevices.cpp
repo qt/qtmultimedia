@@ -44,12 +44,12 @@ void QWasmMediaDevices::initDevices()
     getMediaDevices(); // asynchronous
 }
 
-QList<QAudioDevice> QWasmMediaDevices::audioInputs() const
+QList<QAudioDevice> QWasmMediaDevices::findAudioInputs() const
 {
     return m_audioInputs.values();
 }
 
-QList<QAudioDevice> QWasmMediaDevices::audioOutputs() const
+QList<QAudioDevice> QWasmMediaDevices::findAudioOutputs() const
 {
     return m_audioOutputs.values();
 }

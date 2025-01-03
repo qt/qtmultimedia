@@ -45,12 +45,12 @@ QQnxMediaDevices::QQnxMediaDevices()
 {
 }
 
-QList<QAudioDevice> QQnxMediaDevices::audioInputs() const
+QList<QAudioDevice> QQnxMediaDevices::findAudioInputs() const
 {
     return ::enumeratePcmDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QQnxMediaDevices::audioOutputs() const
+QList<QAudioDevice> QQnxMediaDevices::findAudioOutputs() const
 {
     return ::enumeratePcmDevices(QAudioDevice::Output);
 }
