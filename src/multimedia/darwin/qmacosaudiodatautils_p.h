@@ -20,6 +20,7 @@
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/private/qcore_mac_p.h>
 
 #include <algorithm>
 #include <optional>
@@ -94,14 +95,24 @@ template<typename T>
 std::optional<T> getAudioObject(AudioObjectID objectID, const AudioObjectPropertyAddress &address,
                                 bool warnIfMissing = false)
 {
-    static_assert(std::is_trivial_v<T>, "A trivial type is expected");
+    if constexpr(std::is_same_v<T, QCFString>) {
+        const std::optional<CFStringRef> string = getAudioObject<CFStringRef>(
+                objectID, address, warnIfMissing);
+        if (string)
+            return QCFString{*string};
 
-    T object{};
-    if (getAudioData(objectID, address, &object, sizeof(T), warnIfMissing))
-        return { object };
+        return {};
+    } else {
+        static_assert(std::is_trivial_v<T>, "A trivial type is expected");
 
-    return {};
+        T object{};
+        if (getAudioData(objectID, address, &object, sizeof(T), warnIfMissing))
+            return object;
+
+        return {};
+    }
 }
+
 
 [[nodiscard]] QByteArray qCoreAudioReadPersistentAudioDeviceID(
     AudioDeviceID device,

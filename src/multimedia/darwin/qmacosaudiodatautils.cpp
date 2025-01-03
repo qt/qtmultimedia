@@ -153,14 +153,9 @@ QByteArray qCoreAudioReadPersistentAudioDeviceID(
         kAudioDevicePropertyDeviceUID,
         mode);
 
-    const std::optional<CFStringRef> name = getAudioObject<CFStringRef>(
-        device,
-        propertyAddress);
-    if (name) {
-        QString s = QString::fromCFString(*name);
-        CFRelease(*name);
-        return s.toUtf8();
-    }
+    const std::optional<QCFString> name = getAudioObject<QCFString>(device, propertyAddress);
+    if (name)
+        return QString{*name}.toUtf8();
 
     return QByteArray();
 }
