@@ -56,24 +56,16 @@ QPlatformAudioSink *QAndroidMediaDevices::createAudioSink(const QAudioDevice &de
     return new QAndroidAudioSink(deviceInfo.id(), parent);
 }
 
-void QAndroidMediaDevices::forwardAudioOutputsChanged()
-{
-    emit audioOutputsChanged();
-}
-
-void QAndroidMediaDevices::forwardAudioInputsChanged()
-{
-    emit audioInputsChanged();
-}
-
 static void onAudioInputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
 {
-    static_cast<QAndroidMediaDevices*>(QPlatformMediaIntegration::instance()->mediaDevices())->forwardAudioInputsChanged();
+    static_cast<QAndroidMediaDevices *>(QPlatformMediaIntegration::instance()->mediaDevices())
+            ->onAudioInputsChanged();
 }
 
 static void onAudioOutputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
 {
-    static_cast<QAndroidMediaDevices*>(QPlatformMediaIntegration::instance()->mediaDevices())->forwardAudioOutputsChanged();
+    static_cast<QAndroidMediaDevices *>(QPlatformMediaIntegration::instance()->mediaDevices())
+            ->onAudioOutputsChanged();
 }
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)

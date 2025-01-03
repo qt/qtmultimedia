@@ -113,14 +113,14 @@ static OSStatus audioDeviceChangeListener(AudioObjectID id, UInt32,
 
     switch (address->mSelector) {
     case kAudioHardwarePropertyDefaultInputDevice:
-        instance->onInputsUpdated();
+        instance->updateAudioInputsCache();
         break;
     case kAudioHardwarePropertyDefaultOutputDevice:
-        instance->onOutputsUpdated();
+        instance->updateAudioOutputsCache();
         break;
     default:
-        instance->onInputsUpdated();
-        instance->onOutputsUpdated();
+        instance->updateAudioInputsCache();
+        instance->updateAudioOutputsCache();
         break;
     }
 
@@ -214,8 +214,8 @@ QDarwinMediaDevices::QDarwinMediaDevices()
 {
 #ifdef Q_OS_MACOS // TODO: implement setAudioListeners, removeAudioListeners for Q_OS_IOS, after
                   // that - remove or modify the define
-    m_cachedAudioInputs = availableAudioDevices(QAudioDevice::Input);
-    m_cachedAudioOutputs = availableAudioDevices(QAudioDevice::Output);
+    updateAudioInputsCache();
+    updateAudioOutputsCache();
 #endif
 
     setAudioListeners(*this);
@@ -235,24 +235,6 @@ QList<QAudioDevice> QDarwinMediaDevices::findAudioInputs() const
 QList<QAudioDevice> QDarwinMediaDevices::findAudioOutputs() const
 {
     return availableAudioDevices(QAudioDevice::Output);
-}
-
-void QDarwinMediaDevices::onInputsUpdated()
-{
-    auto inputs = availableAudioDevices(QAudioDevice::Input);
-    if (m_cachedAudioInputs != inputs) {
-        m_cachedAudioInputs = inputs;
-        emit audioInputsChanged();
-    }
-}
-
-void QDarwinMediaDevices::onOutputsUpdated()
-{
-    auto outputs = availableAudioDevices(QAudioDevice::Output);
-    if (m_cachedAudioOutputs != outputs) {
-        m_cachedAudioOutputs = outputs;
-        emit audioOutputsChanged();
-    }
 }
 
 QPlatformAudioSource *QDarwinMediaDevices::createAudioSource(const QAudioDevice &info,

@@ -18,10 +18,10 @@ QPulseAudioMediaDevices::QPulseAudioMediaDevices()
 
     // TODO: it might make sense to connect device changing signals
     // to each added QMediaDevices
-    QObject::connect(pulseEngine, &QPulseAudioEngine::audioInputsChanged,
-                     this, &QPulseAudioMediaDevices::audioInputsChanged, Qt::DirectConnection);
-    QObject::connect(pulseEngine, &QPulseAudioEngine::audioOutputsChanged,
-                     this, &QPulseAudioMediaDevices::audioOutputsChanged, Qt::DirectConnection);
+    QObject::connect(pulseEngine, &QPulseAudioEngine::audioInputsChanged, this,
+                     &QPulseAudioMediaDevices::onAudioInputsChanged, Qt::DirectConnection);
+    QObject::connect(pulseEngine, &QPulseAudioEngine::audioOutputsChanged, this,
+                     &QPulseAudioMediaDevices::onAudioOutputsChanged, Qt::DirectConnection);
 }
 
 QPulseAudioMediaDevices::~QPulseAudioMediaDevices()

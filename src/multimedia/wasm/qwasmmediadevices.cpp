@@ -174,9 +174,9 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
     if (m_videoInputsAdded || m_videoInputsRemoved)
         emit videoInputsChanged();
     if (m_audioInputsAdded || m_audioInputsRemoved)
-        emit audioInputsChanged();
+        onAudioInputsChanged();
     if (m_audioOutputsAdded || m_audioOutputsRemoved)
-        emit audioOutputsChanged();
+        onAudioOutputsChanged();
 
     m_firstInit = false;
 
@@ -245,7 +245,7 @@ void QWasmMediaDevices::getOpenALAudioDevices()
                                                    true, QAudioDevice::Input))
                                      ->create());
         m_audioInputsAdded = true;
-        emit audioInputsChanged();
+        onAudioInputsChanged();
     }
 
     auto playback = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
@@ -255,7 +255,7 @@ void QWasmMediaDevices::getOpenALAudioDevices()
                               (new QWasmAudioDevice(playback, "WebAssembly audio playback device",
                                                     true, QAudioDevice::Output))
                                       ->create());
-        emit audioOutputsChanged();
+        onAudioOutputsChanged();
     }
     m_firstInit = true;
 }

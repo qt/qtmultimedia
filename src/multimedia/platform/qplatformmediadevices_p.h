@@ -31,6 +31,9 @@ class QAudioFormat;
 class Q_MULTIMEDIA_EXPORT QPlatformMediaDevices : public QObject
 {
     Q_OBJECT
+
+    QT_DEFINE_TAG_STRUCT(PrivateTag);
+
 public:
     QPlatformMediaDevices();
     ~QPlatformMediaDevices() override;
@@ -56,9 +59,15 @@ protected:
     virtual QList<QAudioDevice> findAudioInputs() const { return {}; }
     virtual QList<QAudioDevice> findAudioOutputs() const { return {}; }
 
+    void onAudioInputsChanged();
+    void onAudioOutputsChanged();
+
+    void updateAudioInputsCache();
+    void updateAudioOutputsCache();
+
 Q_SIGNALS:
-    void audioInputsChanged();
-    void audioOutputsChanged();
+    void audioInputsChanged(PrivateTag);
+    void audioOutputsChanged(PrivateTag);
     void videoInputsChanged();
 
 private:

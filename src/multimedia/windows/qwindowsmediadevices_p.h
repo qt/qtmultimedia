@@ -43,6 +43,9 @@ public:
 
     void prepareAudio() override;
 
+    using QPlatformMediaDevices::onAudioInputsChanged;
+    using QPlatformMediaDevices::onAudioOutputsChanged;
+
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;

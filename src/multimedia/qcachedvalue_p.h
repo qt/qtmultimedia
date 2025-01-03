@@ -44,6 +44,16 @@ public:
         }
     }
 
+    bool update(T value)
+    {
+        QWriteLocker locker(&m_lock);
+        if (value == m_cached)
+            return false;
+        auto temp = std::exchange(m_cached, std::move(value));
+        locker.unlock();
+        return true;
+    }
+
     void reset()
     {
         QWriteLocker locker(&m_lock);
