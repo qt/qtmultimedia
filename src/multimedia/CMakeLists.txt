@@ -193,7 +193,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE
         darwin/qdarwinaudiodevice.mm darwin/qdarwinaudiodevice_p.h
         darwin/qdarwinaudiosource.mm darwin/qdarwinaudiosource_p.h
         darwin/qdarwinaudiosink.mm darwin/qdarwinaudiosink_p.h
-        darwin/qcoreaudioutils.mm darwin/qcoreaudioutils_p.h
+        darwin/qcoreaudioutils.cpp darwin/qcoreaudioutils_p.h
         darwin/qdarwinmediadevices.mm darwin/qdarwinmediadevices_p.h
     INCLUDE_DIRECTORIES
         darwin
@@ -204,7 +204,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE
 
 qt_internal_extend_target(Multimedia CONDITION MACOS
     SOURCES
-        darwin/qmacosaudiodatautils_p.h darwin/qmacosaudiodatautils.mm
+        darwin/qmacosaudiodatautils_p.h darwin/qmacosaudiodatautils.cpp
 )
 
 qt_internal_extend_target(Multimedia CONDITION IOS OR TVOS
