@@ -49,17 +49,7 @@ std::unique_ptr<QPlatformMediaDevices> QPlatformMediaDevices::create()
 
 QPlatformMediaDevices::QPlatformMediaDevices()
 {
-    connect(this, &QPlatformMediaDevices::audioInputsChanged, this,
-            [this]() {
-                m_audioInputs.reset();
-            },
-            Qt::DirectConnection);
-
-    connect(this, &QPlatformMediaDevices::audioOutputsChanged, this,
-            [this]() {
-                m_audioOutputs.reset();
-            },
-            Qt::DirectConnection);
+    qRegisterMetaType<PrivateTag>(); // for the case of queued connections
 }
 
 void QPlatformMediaDevices::initVideoDevicesConnection()
@@ -84,6 +74,30 @@ QList<QAudioDevice> QPlatformMediaDevices::audioOutputs() const
     return m_audioOutputs.ensure([this]() {
         return findAudioOutputs();
     });
+}
+
+void QPlatformMediaDevices::onAudioInputsChanged()
+{
+    m_audioInputs.reset();
+    emit audioInputsChanged(PrivateTag{});
+}
+
+void QPlatformMediaDevices::onAudioOutputsChanged()
+{
+    m_audioOutputs.reset();
+    emit audioOutputsChanged(PrivateTag{});
+}
+
+void QPlatformMediaDevices::updateAudioInputsCache()
+{
+    if (m_audioInputs.update(findAudioInputs()))
+        emit audioInputsChanged(PrivateTag{});
+}
+
+void QPlatformMediaDevices::updateAudioOutputsCache()
+{
+    if (m_audioOutputs.update(findAudioOutputs()))
+        emit audioOutputsChanged(PrivateTag{});
 }
 
 QPlatformAudioSource *QPlatformMediaDevices::createAudioSource(const QAudioDevice &, QObject *)

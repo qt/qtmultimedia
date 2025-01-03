@@ -31,8 +31,8 @@ public:
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
                                         QObject *parent) override;
 
-    void forwardAudioOutputsChanged();
-    void forwardAudioInputsChanged();
+    using QPlatformMediaDevices::onAudioInputsChanged;
+    using QPlatformMediaDevices::onAudioOutputsChanged;
 
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
