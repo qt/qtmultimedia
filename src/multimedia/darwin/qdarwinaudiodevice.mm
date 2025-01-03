@@ -51,15 +51,13 @@ QT_BEGIN_NAMESPACE
     const auto audioDevicePropertyStreamsAddress =
         makePropertyAddress(kAudioDevicePropertyStreams, mode);
 
-    if (auto streamIDs = getAudioData<AudioStreamID>(deviceId, audioDevicePropertyStreamsAddress,
-                                                     "propertyStreams")) {
+    if (auto streamIDs = getAudioData<AudioStreamID>(deviceId, audioDevicePropertyStreamsAddress)) {
         const auto audioDevicePhysicalFormatPropertyAddress =
             makePropertyAddress(kAudioStreamPropertyPhysicalFormat, mode);
 
         for (auto streamID : *streamIDs) {
             if (auto streamDescription = getAudioObject<AudioStreamBasicDescription>(
-                        streamID, audioDevicePhysicalFormatPropertyAddress,
-                        "prefferedPhysicalFormat")) {
+                        streamID, audioDevicePhysicalFormatPropertyAddress)) {
                 return QCoreAudioUtils::toQAudioFormat(*streamDescription);
             }
         }
@@ -74,8 +72,7 @@ QT_BEGIN_NAMESPACE
 {
     const auto propertyAddress =
         makePropertyAddress(kAudioDevicePropertyPreferredChannelLayout, mode);
-    if (auto data = getAudioData<char>(deviceId, propertyAddress, "prefferedChannelLayout",
-                                       sizeof(AudioChannelLayout))) {
+    if (auto data = getAudioData<char>(deviceId, propertyAddress, sizeof(AudioChannelLayout))) {
         const auto *layout = reinterpret_cast<const AudioChannelLayout *>(data->data());
         return QCoreAudioUtils::fromAudioChannelLayout(layout);
     }
@@ -88,7 +85,7 @@ QT_BEGIN_NAMESPACE
 {
     const auto propertyAddress = makePropertyAddress(kAudioObjectPropertyName, mode);
     if (auto name =
-        getAudioObject<CFStringRef>(deviceId, propertyAddress, "Device Description")) {
+        getAudioObject<CFStringRef>(deviceId, propertyAddress)) {
         auto deleter = qScopeGuard([&name]() { CFRelease(*name); });
         return QString::fromCFString(*name);
     }
