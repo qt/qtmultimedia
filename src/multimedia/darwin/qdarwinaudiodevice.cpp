@@ -68,10 +68,10 @@ namespace {
 {
     const auto propertyAddress =
         makePropertyAddress(kAudioDevicePropertyPreferredChannelLayout, mode);
-    if (auto data = getAudioPropertyList<char>(deviceId, propertyAddress, sizeof(AudioChannelLayout))) {
-        const auto *layout = reinterpret_cast<const AudioChannelLayout *>(data->data());
-        return QCoreAudioUtils::fromAudioChannelLayout(layout);
-    }
+
+    if (auto layout = getAudioPropertyWithFlexibleArrayMember<AudioChannelLayout>(deviceId, propertyAddress))
+        return QCoreAudioUtils::fromAudioChannelLayout(layout.get());
+
     return std::nullopt;
 }
 
