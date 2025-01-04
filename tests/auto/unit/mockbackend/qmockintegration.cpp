@@ -88,7 +88,7 @@ public:
         emit videoInputsChanged();
     }
 
-    QList<QCameraDevice> videoDevices() const override
+    QList<QCameraDevice> videoInputs() const override
     {
         return m_cameraDevices;
     }

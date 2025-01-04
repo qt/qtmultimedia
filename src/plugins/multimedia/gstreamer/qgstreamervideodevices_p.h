@@ -32,7 +32,7 @@ public:
     explicit QGstreamerVideoDevices(QPlatformMediaIntegration *integration);
     ~QGstreamerVideoDevices() override;
 
-    QList<QCameraDevice> videoDevices() const override;
+    QList<QCameraDevice> videoInputs() const override;
     GstDevice *videoDevice(const QByteArray &id) const;
 
     void addDevice(QGstDeviceHandle);

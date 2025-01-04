@@ -56,7 +56,7 @@ QGstreamerVideoDevices::~QGstreamerVideoDevices()
     gst_device_monitor_stop(m_deviceMonitor.get());
 }
 
-QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
+QList<QCameraDevice> QGstreamerVideoDevices::videoInputs() const
 {
     QList<QCameraDevice> devices;
 

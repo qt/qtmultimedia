@@ -108,7 +108,7 @@ QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 QList<QCameraDevice> QPlatformMediaIntegration::videoInputs()
 {
     auto devices = videoDevices();
-    return devices ? devices->videoDevices() : QList<QCameraDevice>{};
+    return devices ? devices->videoInputs() : QList<QCameraDevice>{};
 }
 
 QMaybe<std::unique_ptr<QPlatformAudioResampler>>

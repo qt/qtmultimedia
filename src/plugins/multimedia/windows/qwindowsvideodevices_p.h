@@ -29,7 +29,7 @@ public:
     QWindowsVideoDevices(QPlatformMediaIntegration *integration);
     ~QWindowsVideoDevices();
 
-    QList<QCameraDevice> videoDevices() const override;
+    QList<QCameraDevice> videoInputs() const override;
 
 private:
     QComInitializer m_comInitializer;
