@@ -14,7 +14,6 @@
 // We mean it.
 //
 
-#include <private/qaudiosystem_p.h>
 #include <private/qaudiodevice_p.h>
 
 #if defined(Q_OS_MACOS)
