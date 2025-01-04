@@ -371,7 +371,7 @@ void MediaDataHolder::updateMetaData()
     m_metaData = QFFmpegMetaData::fromAVMetaData(m_context->metadata);
     m_metaData.insert(QMediaMetaData::FileFormat,
                       QVariant::fromValue(QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(
-                              m_context->iformat)));
+                              *m_context->iformat)));
     m_metaData.insert(QMediaMetaData::Duration, m_duration / qint64(1000));
 
     if (!m_cachedThumbnail.has_value())

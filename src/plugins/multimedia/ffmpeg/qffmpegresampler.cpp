@@ -33,7 +33,7 @@ QFFmpegResampler::QFFmpegResampler(const CodecContext *codecContext,
 
     if (!m_outputFormat.isValid())
         // want the native format
-        m_outputFormat = QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(audioStream->codecpar);
+        m_outputFormat = QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(*audioStream->codecpar);
 
     m_resampler = createResampleContext(AVAudioFormat(audioStream->codecpar),
                                         AVAudioFormat(m_outputFormat));
