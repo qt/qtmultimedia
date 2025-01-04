@@ -2,25 +2,21 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qdarwinaudiodevice_p.h"
-#include "qcoreaudioutils_p.h"
-#include <private/qcore_mac_p.h>
 
-#if defined(QT_PLATFORM_UIKIT)
-#include "qcoreaudiosessionmanager_p.h"
-#else
-#include "qmacosaudiodatautils_p.h"
+#include <QtCore/private/qcore_mac_p.h>
+
+#include <QtMultimedia/private/qcoreaudioutils_p.h>
+#ifdef Q_OS_MACOS
+#include <QtMultimedia/private/qmacosaudiodatautils_p.h>
 #endif
-
-#include <QtCore/QDataStream>
-#include <QtCore/QDebug>
-#include <QtCore/QSet>
-#include <QIODevice>
 
 #include <optional>
 
 QT_BEGIN_NAMESPACE
 
-[[nodiscard]] static QAudioFormat qDefaultPreferredFormat(
+namespace {
+
+[[nodiscard]] QAudioFormat qDefaultPreferredFormat(
     QAudioDevice::Mode mode,
     QAudioFormat::ChannelConfig channelConfig)
 {
@@ -32,19 +28,19 @@ QT_BEGIN_NAMESPACE
     return format;
 }
 
-[[nodiscard]] static QAudioFormat::ChannelConfig qGetDefaultChannelLayout(QAudioDevice::Mode mode)
+[[nodiscard]] QAudioFormat::ChannelConfig qGetDefaultChannelLayout(QAudioDevice::Mode mode)
 {
     return (mode == QAudioDevice::Input) ? QAudioFormat::ChannelConfigMono : QAudioFormat::ChannelConfigStereo;
 }
 
-[[nodiscard]] static QString qGetDefaultDescription(const QByteArray &id)
+[[nodiscard]] QString qGetDefaultDescription(const QByteArray &id)
 {
     return QString::fromUtf8(id);
 }
 
 #ifdef Q_OS_MACOS
 
-[[nodiscard]] static std::optional<QAudioFormat> qGetPreferredFormatForCoreAudioDevice(
+[[nodiscard]] std::optional<QAudioFormat> qGetPreferredFormatForCoreAudioDevice(
     QAudioDevice::Mode mode,
     AudioDeviceID deviceId)
 {
@@ -66,7 +62,7 @@ QT_BEGIN_NAMESPACE
     return std::nullopt;
 }
 
-[[nodiscard]] static std::optional<QAudioFormat::ChannelConfig> qGetChannelLayoutForCoreAudioDevice(
+[[nodiscard]] std::optional<QAudioFormat::ChannelConfig> qGetChannelLayoutForCoreAudioDevice(
     QAudioDevice::Mode mode,
     AudioDeviceID deviceId)
 {
@@ -79,7 +75,7 @@ QT_BEGIN_NAMESPACE
     return std::nullopt;
 }
 
-[[nodiscard]] static std::optional<QString> qGetDescriptionForCoreAudioDevice(
+[[nodiscard]] std::optional<QString> qGetDescriptionForCoreAudioDevice(
     QAudioDevice::Mode mode,
     AudioDeviceID deviceId)
 {
@@ -95,7 +91,7 @@ struct SamplingRateRange {
     int max;
 };
 
-[[nodiscard]] static std::optional<SamplingRateRange>
+[[nodiscard]] std::optional<SamplingRateRange>
 qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
 {
     auto propertyAddress = makePropertyAddress(kAudioDevicePropertyAvailableNominalSampleRates, mode);
@@ -112,7 +108,7 @@ qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
     return std::nullopt;
 }
 
-[[nodiscard]] static std::optional<int> qSupportedNumberOfChannels(
+[[nodiscard]] std::optional<int> qSupportedNumberOfChannels(
         QAudioDevice::Mode mode,
         AudioDeviceID deviceId)
 {
@@ -137,6 +133,11 @@ qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
     return ret;
 }
 
+#endif
+
+} // namespace
+
+#ifdef Q_OS_MACOS
 
 QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(device, mode),
