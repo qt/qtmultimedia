@@ -143,7 +143,7 @@ QAVFVideoDevices::~QAVFVideoDevices()
     [notificationCenter removeObserver:(id)m_deviceDisconnectedObserver];
 }
 
-QList<QCameraDevice> QAVFVideoDevices::videoDevices() const
+QList<QCameraDevice> QAVFVideoDevices::videoInputs() const
 {
     return m_cameraDevices;
 }

@@ -198,7 +198,7 @@ static QList<QCameraDevice> readCameraDevices(IMFAttributes *attr)
     return cameras;
 }
 
-QList<QCameraDevice> QWindowsVideoDevices::videoDevices() const
+QList<QCameraDevice> QWindowsVideoDevices::videoInputs() const
 {
     QList<QCameraDevice> cameras;
 

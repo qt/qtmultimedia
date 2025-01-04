@@ -33,7 +33,7 @@ public:
 
     ~QPlatformVideoDevices() override;
 
-    virtual QList<QCameraDevice> videoDevices() const = 0;
+    virtual QList<QCameraDevice> videoInputs() const = 0;
 
 Q_SIGNALS:
     void videoInputsChanged();

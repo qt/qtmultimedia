@@ -25,7 +25,7 @@ public:
     QAndroidVideoDevices(QPlatformMediaIntegration *integration)
         : QPlatformVideoDevices(integration), m_videoDevices(findVideoDevices()){};
 
-    QList<QCameraDevice> videoDevices() const override { return m_videoDevices; }
+    QList<QCameraDevice> videoInputs() const override { return m_videoDevices; }
 
 private:
     QList<QCameraDevice> findVideoDevices();

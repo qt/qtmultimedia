@@ -23,7 +23,7 @@ QWasmCameraDevices::QWasmCameraDevices(QPlatformMediaIntegration *integration)
     m_mediaDevices = QPlatformMediaIntegration::instance()->mediaDevices();
 }
 
-QList<QCameraDevice> QWasmCameraDevices::videoDevices() const
+QList<QCameraDevice> QWasmCameraDevices::videoInputs() const
 {
     QWasmMediaDevices *wasmMediaDevices = reinterpret_cast<QWasmMediaDevices *>(m_mediaDevices);
     return wasmMediaDevices ? wasmMediaDevices->videoInputs() : QList<QCameraDevice>();

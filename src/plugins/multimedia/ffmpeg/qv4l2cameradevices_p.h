@@ -28,7 +28,7 @@ class QV4L2CameraDevices : public QPlatformVideoDevices
 public:
     QV4L2CameraDevices(QPlatformMediaIntegration *integration);
 
-    QList<QCameraDevice> videoDevices() const override;
+    QList<QCameraDevice> videoInputs() const override;
 
 public Q_SLOTS:
     void checkCameras();

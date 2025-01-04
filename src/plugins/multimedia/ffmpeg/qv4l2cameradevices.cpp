@@ -39,7 +39,7 @@ QV4L2CameraDevices::QV4L2CameraDevices(QPlatformMediaIntegration *integration)
     doCheckCameras();
 }
 
-QList<QCameraDevice> QV4L2CameraDevices::videoDevices() const
+QList<QCameraDevice> QV4L2CameraDevices::videoInputs() const
 {
     return m_cameras;
 }
