@@ -33,8 +33,8 @@ namespace QFFmpeg {
 struct SharedTextureHandleTraits
 {
     using Type = HANDLE;
-    static Type invalidValue() { return nullptr; }
-    static bool close(Type handle) { return CloseHandle(handle) != 0; }
+    static Type invalidValue() noexcept { return nullptr; }
+    static bool close(Type handle) noexcept { return CloseHandle(handle) != 0; }
 };
 
 using SharedTextureHandle = QUniqueHandle<SharedTextureHandleTraits>;

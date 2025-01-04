@@ -20,8 +20,8 @@ namespace {
 struct DummyHandleTraits
 {
     using Type = int;
-    static Type invalidValue() { return -1; }
-    static bool close(Type /*handle*/) { return true; }
+    static Type invalidValue() noexcept { return -1; }
+    static bool close(Type /*handle*/) noexcept { return true; }
 };
 
 using DummyHandle = QUniqueHandle<DummyHandleTraits>;
