@@ -102,7 +102,8 @@ static constexpr struct {
         { QAudioFormat::TopBackCenter, kAudioChannelLabel_TopBackCenter },
 };
 
-std::unique_ptr<AudioChannelLayout> toAudioChannelLayout(const QAudioFormat &format, UInt32 *size)
+std::unique_ptr<AudioChannelLayout, QFreeDeleter>
+toAudioChannelLayout(const QAudioFormat &format, UInt32 *size)
 {
     auto channelConfig = format.channelConfig();
     if (channelConfig == QAudioFormat::ChannelConfigUnknown)
@@ -143,7 +144,7 @@ std::unique_ptr<AudioChannelLayout> toAudioChannelLayout(const QAudioFormat &for
         desc.mCoordinates[kAudioChannelCoordinates_Distance] = 1.f;
     }
 
-    return std::unique_ptr<AudioChannelLayout>(layout);
+    return std::unique_ptr<AudioChannelLayout, QFreeDeleter>(layout);
 }
 
 static constexpr struct {
