@@ -25,10 +25,21 @@ QT_BEGIN_NAMESPACE
 namespace QCoreAudioUtils
 {
 
+struct QFreeDeleter
+{
+    template <typename T>
+    void operator()(T*t)
+    {
+        ::free(t);
+    }
+};
+
+
 Q_MULTIMEDIA_EXPORT QAudioFormat toQAudioFormat(const AudioStreamBasicDescription& streamFormat);
 AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& audioFormat);
 
-Q_MULTIMEDIA_EXPORT std::unique_ptr<AudioChannelLayout> toAudioChannelLayout(const QAudioFormat &format, UInt32 *size);
+Q_MULTIMEDIA_EXPORT std::unique_ptr<AudioChannelLayout, QFreeDeleter>
+toAudioChannelLayout(const QAudioFormat &format, UInt32 *size);
 QAudioFormat::ChannelConfig fromAudioChannelLayout(const AudioChannelLayout *layout);
 
 } // namespace QCoreAudioUtils
