@@ -278,7 +278,7 @@ QMediaFormat::VideoCodec QFFmpegMediaFormatInfo::videoCodecForAVCodecId(AVCodecI
 }
 
 QMediaFormat::FileFormat
-QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(const AVInputFormat *format)
+QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(const AVInputFormat &format)
 {
     // Seems like FFmpeg uses different names for muxers and demuxers of the same format.
     // that makes it somewhat cumbersome to detect things correctly.
@@ -305,12 +305,12 @@ QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(const AVInputFormat *format)
         { QMediaFormat::UnspecifiedFormat, nullptr }
     };
 
-    if (!format->name)
+    if (!format.name)
         return QMediaFormat::UnspecifiedFormat;
 
     auto *m = map;
     while (m->fileFormat != QMediaFormat::UnspecifiedFormat) {
-        if (!strncmp(m->name, format->name, strlen(m->name)))
+        if (!strncmp(m->name, format.name, strlen(m->name)))
             return m->fileFormat;
         ++m;
     }
@@ -491,21 +491,22 @@ QAudioFormat::ChannelConfig QFFmpegMediaFormatInfo::channelConfigForAVLayout(int
     return QAudioFormat::ChannelConfig(channelConfig);
 }
 
-QAudioFormat QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(AVCodecParameters *codecpar)
+QAudioFormat
+QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(const AVCodecParameters &codecpar)
 {
     QAudioFormat format;
-    format.setSampleFormat(sampleFormat(AVSampleFormat(codecpar->format)));
-    format.setSampleRate(codecpar->sample_rate);
+    format.setSampleFormat(sampleFormat(AVSampleFormat(codecpar.format)));
+    format.setSampleRate(codecpar.sample_rate);
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     uint64_t channelLayout = 0;
-    if (codecpar->ch_layout.order == AV_CHANNEL_ORDER_NATIVE)
-        channelLayout = codecpar->ch_layout.u.mask;
+    if (codecpar.ch_layout.order == AV_CHANNEL_ORDER_NATIVE)
+        channelLayout = codecpar.ch_layout.u.mask;
     else
-        channelLayout = avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar->ch_layout.nb_channels));
+        channelLayout = avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar.ch_layout.nb_channels));
 #else
-    uint64_t channelLayout = codecpar->channel_layout;
+    uint64_t channelLayout = codecpar.channel_layout;
     if (!channelLayout)
-        channelLayout = avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar->channels));
+        channelLayout = avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar.channels));
 #endif
     format.setChannelConfig(channelConfigForAVLayout(channelLayout));
     return format;
