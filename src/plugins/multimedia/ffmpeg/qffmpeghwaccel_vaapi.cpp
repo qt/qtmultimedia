@@ -165,8 +165,7 @@ public:
     int nPlanes = 0;
     GLuint textures[4] = {};
 };
-}
-
+} // namespace
 
 VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
     : TextureConverterBackend(nullptr)
@@ -204,9 +203,7 @@ VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
     this->rhi = rhi;
 }
 
-VAAPITextureConverter::~VAAPITextureConverter()
-{
-}
+VAAPITextureConverter::~VAAPITextureConverter() = default;
 
 //#define VA_EXPORT_USE_LAYERS
 QVideoFrameTexturesHandlesUPtr
@@ -364,6 +361,6 @@ VAAPITextureHandles::~VAAPITextureHandles()
     }
 }
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE

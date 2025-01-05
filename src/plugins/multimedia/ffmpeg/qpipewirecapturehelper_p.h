@@ -35,7 +35,7 @@ class QDBusArgument;
 class QDBusInterface;
 namespace QtPipeWire {
     class Pipewire;
-}
+    } // namespace QtPipeWire
 
 class QPipeWireCaptureHelper : public QObject
 {
@@ -124,7 +124,7 @@ private:
 
     int m_requestToken = -1;
     QString m_requestTokenPrefix;
-    QString m_sessionHandle = {};
+    QString m_sessionHandle;
 
     struct StreamInfo
     {
@@ -132,7 +132,7 @@ private:
         quint32 sourceType;
         QRect rect;
     };
-    QVector<StreamInfo> m_streams = {};
+    QVector<StreamInfo> m_streams;
 
     int m_pipewireFd = -1;
 

@@ -359,7 +359,7 @@ QImage getAttachedPicture(const AVFormatContext *context)
     return {};
 }
 
-}
+} // namespace
 
 void MediaDataHolder::updateMetaData()
 {

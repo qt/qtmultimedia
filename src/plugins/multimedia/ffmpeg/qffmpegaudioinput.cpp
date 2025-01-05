@@ -15,7 +15,7 @@ class AudioSourceIO : public QIODevice
 {
     Q_OBJECT
 public:
-    AudioSourceIO(QFFmpegAudioInput *audioInput) : QIODevice(), m_input(audioInput)
+    AudioSourceIO(QFFmpegAudioInput *audioInput) : m_input(audioInput)
     {
         m_muted = m_input->muted;
         m_volume = m_input->volume;
@@ -144,7 +144,7 @@ private:
     QByteArray m_pcm;
 };
 
-}
+} // namespace QFFmpeg
 
 QFFmpegAudioInput::QFFmpegAudioInput(QAudioInput *qq)
     : QPlatformAudioInput(qq)

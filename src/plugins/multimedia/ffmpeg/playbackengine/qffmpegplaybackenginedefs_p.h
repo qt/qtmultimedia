@@ -24,7 +24,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 class PlaybackEngine;
-}
+} // namespace QFFmpeg
 
 namespace QFFmpeg {
 

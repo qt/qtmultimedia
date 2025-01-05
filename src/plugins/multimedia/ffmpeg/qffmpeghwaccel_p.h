@@ -97,7 +97,7 @@ private:
 
 AVFrameUPtr copyFromHwPool(AVFrameUPtr frame);
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

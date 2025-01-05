@@ -79,8 +79,7 @@ private:
     QPointer<Renderer> m_audioRenderer;
     QAudioFormat m_format;
 };
-}
-
+} // namespace QFFmpeg
 
 QFFmpegAudioDecoder::QFFmpegAudioDecoder(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent)

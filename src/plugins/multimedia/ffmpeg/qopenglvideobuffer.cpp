@@ -59,7 +59,7 @@ QOpenGLVideoBuffer::QOpenGLVideoBuffer(std::unique_ptr<QOpenGLFramebufferObject>
     Q_ASSERT(m_fbo);
 }
 
-QOpenGLVideoBuffer::~QOpenGLVideoBuffer() { }
+QOpenGLVideoBuffer::~QOpenGLVideoBuffer() = default;
 
 QAbstractVideoBuffer::MapData QOpenGLVideoBuffer::map(QVideoFrame::MapMode mode)
 {

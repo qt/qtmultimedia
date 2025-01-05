@@ -453,7 +453,7 @@ private:
     AVFrameUPtr m_inputFrame;
     AVFrameUPtr m_convertedFrame;
 };
-}
+} // namespace
 
 int VideoFrameEncoder::sendFrame(AVFrameUPtr inputFrame)
 {

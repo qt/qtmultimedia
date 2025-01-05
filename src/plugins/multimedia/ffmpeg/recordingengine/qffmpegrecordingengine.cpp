@@ -325,7 +325,7 @@ bool RecordingEngine::allOfEncoders(F &&f) const
     return std::all_of(m_audioEncoders.cbegin(), m_audioEncoders.cend(), predicate)
             && std::all_of(m_videoEncoders.cbegin(), m_videoEncoders.cend(), predicate);
 }
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

@@ -121,7 +121,7 @@ private:
     int64_t m_prevPacketDts = AV_NOPTS_VALUE;
     int64_t m_packetDtsOffset = 0;
 };
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

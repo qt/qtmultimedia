@@ -83,7 +83,7 @@ private:
     bool m_paused = true;
     PlaybackRate m_playbackRate = 1;
     TrackTime m_position;
-    TimePoint m_timePoint = {};
+    TimePoint m_timePoint;
     std::optional<SoftSyncData> m_softSyncData;
 };
 

@@ -23,7 +23,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 class AudioDecoder;
-}
+} // namespace QFFmpeg
 
 class QFFmpegAudioDecoder : public QPlatformAudioDecoder
 {

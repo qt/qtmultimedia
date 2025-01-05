@@ -47,7 +47,7 @@ constexpr ffmpegTagToMetaDataKey ffmpegTagToMetaDataKey[] = {
     { nullptr, QMediaMetaData::Title }
 };
 
-}
+} // namespace
 
 static QMediaMetaData::Key tagToKey(const char *tag)
 {

@@ -208,7 +208,7 @@ bool AudioEncoder::hasData() const
 
 void AudioEncoder::retrievePackets()
 {
-    while (1) {
+    while (true) {
         AVPacketUPtr packet(av_packet_alloc());
         int ret = avcodec_receive_packet(m_codecContext.get(), packet.get());
         if (ret < 0) {

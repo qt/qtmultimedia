@@ -81,11 +81,7 @@ class QFFmpegMediaPlugin : public QPlatformMediaPlugin
     Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "ffmpeg.json")
 
 public:
-    QFFmpegMediaPlugin()
-      : QPlatformMediaPlugin()
-    {}
-
-    QPlatformMediaIntegration* create(const QString &name) override
+    QPlatformMediaIntegration *create(const QString &name) override
     {
         if (name == u"ffmpeg")
             return new QFFmpegMediaIntegration;

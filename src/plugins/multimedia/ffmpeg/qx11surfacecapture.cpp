@@ -171,7 +171,7 @@ private:
         if (std::exchange(m_attached, false)) {
             XShmDetach(m_display.get(), &m_shmInfo);
             shmdt(m_shmInfo.shmaddr);
-            shmctl(m_shmInfo.shmid, IPC_RMID, 0);
+            shmctl(m_shmInfo.shmid, IPC_RMID, nullptr);
         }
     }
 
@@ -186,7 +186,7 @@ private:
             return;
 
         m_shmInfo.readOnly = false;
-        m_shmInfo.shmaddr = m_xImage->data = (char *)shmat(m_shmInfo.shmid, 0, 0);
+        m_shmInfo.shmaddr = m_xImage->data = (char *)shmat(m_shmInfo.shmid, nullptr, 0);
 
         m_attached = XShmAttach(m_display.get(), &m_shmInfo);
     }

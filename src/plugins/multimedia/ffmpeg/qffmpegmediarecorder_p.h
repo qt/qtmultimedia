@@ -27,7 +27,7 @@ class QFFmpegMediaCaptureSession;
 
 namespace QFFmpeg {
 class RecordingEngine;
-}
+} // namespace QFFmpeg
 
 class QFFmpegMediaRecorder : public QObject, public QPlatformMediaRecorder
 {
