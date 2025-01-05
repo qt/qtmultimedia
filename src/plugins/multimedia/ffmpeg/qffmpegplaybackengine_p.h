@@ -227,7 +227,7 @@ PlaybackEngine::ObjectPtr<T> PlaybackEngine::createPlaybackEngineObject(Args &&.
     registerObject(*result);
     return result;
 }
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

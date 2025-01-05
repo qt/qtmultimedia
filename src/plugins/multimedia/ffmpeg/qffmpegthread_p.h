@@ -95,7 +95,7 @@ private:
 
 template <typename T>
 using ConsumerThreadUPtr = std::unique_ptr<T, ConsumerThread::Deleter>;
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

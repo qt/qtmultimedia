@@ -106,7 +106,7 @@ public:
      * @brief Applies platform-specific hw texture conversion presets for a decoder.
      *        The function is supposed to be invoked for the get_format callback.
      */
-    static void applyDecoderPreset(const AVPixelFormat format, AVCodecContext &codecContext);
+    static void applyDecoderPreset(AVPixelFormat format, AVCodecContext &codecContext);
 
     /**
      * @brief Indicates whether hw texture conversion is enabled for the application.

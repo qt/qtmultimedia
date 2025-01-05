@@ -302,7 +302,7 @@ bool isCVFormatSupported(uint32_t format);
 std::string cvFormatToString(uint32_t format);
 
 #endif
-}
+} // namespace QFFmpeg
 
 QDebug operator<<(QDebug, const AVRational &);
 

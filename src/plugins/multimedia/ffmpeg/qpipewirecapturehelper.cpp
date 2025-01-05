@@ -98,7 +98,7 @@ struct PipeWireCaptureGlobalState
     std::weak_ptr<Pipewire> pipewire;
 };
 
-}
+} // namespace QtPipeWire
 using namespace QtPipeWire;
 Q_GLOBAL_STATIC(PipeWireCaptureGlobalState, globalState)
 
@@ -416,7 +416,7 @@ public:
 private:
     pw_thread_loop *m_threadLoop = nullptr;
 };
-}
+} // namespace
 
 bool QPipeWireCaptureHelper::open(int pipewireFd)
 {
@@ -777,14 +777,14 @@ void QPipeWireCaptureHelper::onProcess()
     void *sdata;
     qsizetype size = 0;
 
-    if ((b = pw_stream_dequeue_buffer(m_stream)) == NULL) {
+    if ((b = pw_stream_dequeue_buffer(m_stream)) == nullptr) {
         updateError(QPlatformSurfaceCapture::InternalError,
                     "Out of buffers in pipewire stream dequeue."_L1);
         return;
     }
 
     buf = b->buffer;
-    if ((sdata = buf->datas[0].data) == NULL)
+    if ((sdata = buf->datas[0].data) == nullptr)
         return;
 
     sstride = buf->datas[0].chunk->stride;
@@ -834,7 +834,7 @@ void QPipeWireCaptureHelper::destroy()
 
 void QPipeWireCaptureHelper::onParamChanged(uint32_t id, const struct spa_pod *param)
 {
-    if (param == NULL || id != SPA_PARAM_Format)
+    if (param == nullptr || id != SPA_PARAM_Format)
         return;
 
     if (spa_format_parse(param,

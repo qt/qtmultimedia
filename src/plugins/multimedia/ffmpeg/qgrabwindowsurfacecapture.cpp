@@ -119,7 +119,9 @@ private:
     QVideoFrame grabFrame() override
     {
         setScreenRemovingLocked(true);
-        auto screenGuard = qScopeGuard(std::bind(&Grabber::setScreenRemovingLocked, this, false));
+        auto screenGuard = qScopeGuard([this] {
+            setScreenRemovingLocked(false);
+        });
 
         WId wid = m_window ? m_window->winId() : 0;
         QScreen *screen = m_window ? m_window->screen() : m_screen ? m_screen.data() : nullptr;

@@ -25,7 +25,7 @@ namespace QFFmpeg {
 void applyVideoEncoderOptions(const QMediaEncoderSettings &settings, const QByteArray &codecName, AVCodecContext *codec, AVDictionary **opts);
 void applyAudioEncoderOptions(const QMediaEncoderSettings &settings, const QByteArray &codecName, AVCodecContext *codec, AVDictionary **opts);
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

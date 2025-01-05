@@ -28,9 +28,7 @@ QFFmpegImageCapture::QFFmpegImageCapture(QImageCapture *parent)
     qRegisterMetaType<QVideoFrame>();
 }
 
-QFFmpegImageCapture::~QFFmpegImageCapture()
-{
-}
+QFFmpegImageCapture::~QFFmpegImageCapture() = default;
 
 bool QFFmpegImageCapture::isReadyForCapture() const
 {

@@ -298,7 +298,6 @@ void QV4L2Camera::setManualIsoSensitivity(int iso)
         iso = qBound(minIso(), iso, maxIso());
         setV4L2Parameter(V4L2_CID_ISO_SENSITIVITY, iso);
     }
-    return;
 }
 
 int QV4L2Camera::isoSensitivity() const

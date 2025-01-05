@@ -29,7 +29,7 @@ namespace QFFmpeg {
 class CancelToken;
 
 class PlaybackEngine;
-}
+} // namespace QFFmpeg
 
 class QPlatformAudioOutput;
 

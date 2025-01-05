@@ -23,7 +23,7 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg
 {
 class CodecContext;
-}
+} // namespace QFFmpeg
 
 class QFFmpegResampler : public QPlatformAudioResampler
 {

@@ -14,9 +14,7 @@ QPipeWireCapture::QPipeWireCapture(Source initialSource)
     m_helper = std::make_unique<QPipeWireCaptureHelper>(*this);
 }
 
-QPipeWireCapture::~QPipeWireCapture()
-{
-}
+QPipeWireCapture::~QPipeWireCapture() = default;
 
 QVideoFrameFormat QPipeWireCapture::frameFormat() const
 {

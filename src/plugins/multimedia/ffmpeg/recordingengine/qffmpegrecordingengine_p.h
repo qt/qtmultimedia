@@ -141,7 +141,7 @@ private:
     State m_state = State::None;
 };
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

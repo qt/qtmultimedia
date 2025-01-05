@@ -104,7 +104,7 @@ static void apply_libvpx(const QMediaEncoderSettings &settings, AVCodecContext *
             "38", "34", "31", "28", "25",
         };
         av_dict_set(opts, "crf", scales[settings.quality()], 0);
-        av_dict_set(opts, "b", 0, 0);
+        av_dict_set(opts, "b", nullptr, 0);
     }
     av_dict_set(opts, "row-mt", "1", 0); // better multithreading
 }
@@ -360,6 +360,6 @@ void applyAudioEncoderOptions(const QMediaEncoderSettings &settings, const QByte
 
 }
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE

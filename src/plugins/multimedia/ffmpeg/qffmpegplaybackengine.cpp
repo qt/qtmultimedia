@@ -643,7 +643,7 @@ qint64 PlaybackEngine::boundPosition(qint64 position) const
     position = qMax(position, 0);
     return duration() > 0 ? qMin(position, duration()) : position;
 }
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

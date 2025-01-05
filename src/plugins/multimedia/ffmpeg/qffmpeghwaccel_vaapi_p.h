@@ -40,7 +40,7 @@ public:
     QOpenGLContext *glContext = nullptr;
     QFunctionPointer eglImageTargetTexture2D = nullptr;
 };
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

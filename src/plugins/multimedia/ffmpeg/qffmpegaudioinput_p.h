@@ -25,7 +25,7 @@ class QAudioSource;
 class QAudioBuffer;
 namespace QFFmpeg {
 class AudioSourceIO;
-}
+} // namespace QFFmpeg
 
 constexpr int DefaultAudioInputBufferSize = 4096;
 
