@@ -38,7 +38,6 @@ public:
     QMaybe<QPlatformCamera *> createCamera(QCamera *camera) override;
     QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *recorder) override;
     QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *imageCapture) override;
-    QList<QCameraDevice> videoInputs() override;
 
 protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;

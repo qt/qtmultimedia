@@ -4,6 +4,7 @@
 #include "qmediadevices.h"
 #include "private/qplatformmediaintegration_p.h"
 #include "private/qplatformmediadevices_p.h"
+#include "private/qplatformvideodevices_p.h"
 
 #include <QtCore/qmetaobject.h>
 
@@ -164,8 +165,7 @@ QList<QAudioDevice> QMediaDevices::audioOutputs()
 */
 QList<QCameraDevice> QMediaDevices::videoInputs()
 {
-    QPlatformMediaIntegration::instance()->mediaDevices()->initVideoDevicesConnection();
-    return QPlatformMediaIntegration::instance()->videoInputs();
+    return QPlatformMediaIntegration::instance()->videoDevices()->videoInputs();
 }
 
 /*!
@@ -264,8 +264,7 @@ QMediaDevices::QMediaDevices(QObject *parent)
     : QObject(parent)
 {
     auto platformDevices = QPlatformMediaIntegration::instance()->mediaDevices();
-    connect(platformDevices, &QPlatformMediaDevices::videoInputsChanged, this,
-            &QMediaDevices::videoInputsChanged);
+
     connect(platformDevices, &QPlatformMediaDevices::audioInputsChanged, this,
             &QMediaDevices::audioInputsChanged);
     connect(platformDevices, &QPlatformMediaDevices::audioOutputsChanged, this,
@@ -279,8 +278,15 @@ QMediaDevices::~QMediaDevices() = default;
 
 void QMediaDevices::connectNotify(const QMetaMethod &signal)
 {
-    if (signal == QMetaMethod::fromSignal(&QMediaDevices::videoInputsChanged))
-        QPlatformMediaIntegration::instance()->mediaDevices()->initVideoDevicesConnection();
+    // we don't connect in the constructor in order to not initialize
+    // the cameras tracking pipeline if cameras are not requested
+    // TODO: lazily connect audio signals
+    if (signal == QMetaMethod::fromSignal(&QMediaDevices::videoInputsChanged)) {
+        QPlatformVideoDevices *videoDevices = QPlatformMediaIntegration::instance()->videoDevices();
+        if (videoDevices)
+            connect(videoDevices, &QPlatformVideoDevices::videoInputsChanged, this,
+                &QMediaDevices::videoInputsChanged, Qt::UniqueConnection);
+    }
 
     QObject::connectNotify(signal);
 }

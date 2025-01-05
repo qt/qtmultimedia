@@ -99,11 +99,6 @@ QWasmMediaIntegration::createImageCapture(QImageCapture *imageCapture)
     return new QWasmImageCapture(imageCapture);
 }
 
-QList<QCameraDevice> QWasmMediaIntegration::videoInputs()
-{
-    return videoDevices()->videoDevices();
-}
-
 QT_END_NAMESPACE
 
 #include "qwasmmediaintegration.moc"

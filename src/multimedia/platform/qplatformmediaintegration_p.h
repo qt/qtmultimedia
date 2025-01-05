@@ -74,7 +74,6 @@ public:
     ~QPlatformMediaIntegration() override;
     const QPlatformMediaFormatInfo *formatInfo();
 
-    virtual QList<QCameraDevice> videoInputs();
     virtual QMaybe<QPlatformCamera *> createCamera(QCamera *) { return notAvailable; }
     virtual QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *) { return nullptr; }
     virtual QPlatformSurfaceCapture *createWindowCapture(QWindowCapture *) { return nullptr; }
