@@ -19,6 +19,7 @@
 #include "qandroidaudioinput_p.h"
 #include "qandroidvideosink_p.h"
 #include "qandroidaudiodecoder_p.h"
+#include <private/qplatformvideodevices_p.h>
 
 #include <QCoreApplication>
 #include <QtCore/qjnitypes.h>
@@ -28,6 +29,19 @@
 QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qtAndroidMediaPlugin, "qt.multimedia.android")
+
+namespace {
+class AndroidVideoDevices : public QPlatformVideoDevices
+{
+public:
+    using QPlatformVideoDevices::QPlatformVideoDevices;
+
+    QList<QCameraDevice> videoInputs() const override
+    {
+        return QAndroidCameraSession::availableCameras();
+    }
+};
+} // namespace
 
 class QAndroidMediaPlugin : public QPlatformMediaPlugin
 {
@@ -135,9 +149,9 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     return JNI_VERSION_1_6;
 }
 
-QList<QCameraDevice> QAndroidIntegration::videoInputs()
+QPlatformVideoDevices *QAndroidIntegration::createVideoDevices()
 {
-    return QAndroidCameraSession::availableCameras();
+    return new AndroidVideoDevices(this);
 }
 
 QT_END_NAMESPACE

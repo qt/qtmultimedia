@@ -37,9 +37,9 @@ public:
     QMaybe<QPlatformAudioInput *> createAudioInput(QAudioInput *audioInput) override;
 
     QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) override;
-    QList<QCameraDevice> videoInputs() override;
 
 protected:
+    QPlatformVideoDevices *createVideoDevices() override;
     QPlatformMediaFormatInfo *createFormatInfo() override;
 };
 

@@ -68,7 +68,6 @@ protected:
 Q_SIGNALS:
     void audioInputsChanged(PrivateTag);
     void audioOutputsChanged(PrivateTag);
-    void videoInputsChanged();
 
 private:
     mutable QCachedValue<QList<QAudioDevice>> m_audioInputs;

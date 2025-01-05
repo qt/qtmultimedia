@@ -172,7 +172,7 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
     m_audioOutputsRemoved = !audioOutputsToRemove.isEmpty();
 
     if (m_videoInputsAdded || m_videoInputsRemoved)
-        emit videoInputsChanged();
+        emit QPlatformMediaIntegration::instance()->videoDevices()->videoInputsChanged();
     if (m_audioInputsAdded || m_audioInputsRemoved)
         onAudioInputsChanged();
     if (m_audioOutputsAdded || m_audioOutputsRemoved)

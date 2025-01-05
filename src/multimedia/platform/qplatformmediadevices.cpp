@@ -2,11 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qplatformmediadevices_p.h"
-#include "qplatformmediaintegration_p.h"
 #include "qcameradevice.h"
 #include "qaudiosystem_p.h"
 #include "qaudiodevice.h"
-#include "qplatformvideodevices_p.h"
 
 #if defined(Q_OS_ANDROID)
 #include <qandroidmediadevices_p.h>
@@ -50,14 +48,6 @@ std::unique_ptr<QPlatformMediaDevices> QPlatformMediaDevices::create()
 QPlatformMediaDevices::QPlatformMediaDevices()
 {
     qRegisterMetaType<PrivateTag>(); // for the case of queued connections
-}
-
-void QPlatformMediaDevices::initVideoDevicesConnection()
-{
-    // Make sure we are notified if video inputs changed
-    if (const auto videoDevices = QPlatformMediaIntegration::instance()->videoDevices())
-        connect(videoDevices, &QPlatformVideoDevices::videoInputsChanged, this,
-                &QPlatformMediaDevices::videoInputsChanged, Qt::UniqueConnection);
 }
 
 QPlatformMediaDevices::~QPlatformMediaDevices() = default;

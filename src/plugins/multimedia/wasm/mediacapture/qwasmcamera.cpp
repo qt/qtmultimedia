@@ -4,7 +4,8 @@
 #include "qwasmcamera_p.h"
 #include "qmediadevices.h"
 #include <qcameradevice.h>
-#include "private/qplatformvideosink_p.h"
+#include <private/qplatformvideosink_p.h>
+#include <private/qplatformvideodevices_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qvideotexturehelper_p.h>
 #include <private/qwasmmediadevices_p.h>
@@ -27,11 +28,10 @@ QWasmCamera::QWasmCamera(QCamera *camera)
       m_cameraOutput(new QWasmVideoOutput),
       m_cameraIsReady(false)
 {
-    QWasmMediaDevices *wasmMediaDevices =
-            static_cast<QWasmMediaDevices *>(QPlatformMediaIntegration::instance()->mediaDevices());
+    QPlatformVideoDevices *videoDevices = QPlatformMediaIntegration::instance()->videoDevices();
 
-    connect(wasmMediaDevices, &QWasmMediaDevices::videoInputsChanged,this, [this]() {
-        const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
+    connect(videoDevices, &QPlatformVideoDevices::videoInputsChanged, this, [&]() {
+        const QList<QCameraDevice> cameras = videoDevices->videoInputs();
 
         if (!cameras.isEmpty()) {
             if (m_cameraDev.id().isEmpty())
