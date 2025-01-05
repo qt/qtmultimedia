@@ -24,8 +24,8 @@ Q_STATIC_LOGGING_CATEGORY(qLcPlaybackEngine, "qt.multimedia.ffmpeg.playbackengin
 
 // The helper is needed since on some compilers std::unique_ptr
 // doesn't have a default constructor in the case of sizeof(CustomDeleter) > 0
-template<typename Array>
-inline Array defaultObjectsArray()
+template <typename Array>
+inline static Array defaultObjectsArray()
 {
     using T = typename Array::value_type;
     return { T{ {}, {} }, T{ {}, {} }, T{ {}, {} } };

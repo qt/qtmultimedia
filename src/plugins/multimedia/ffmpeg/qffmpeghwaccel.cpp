@@ -12,6 +12,7 @@
 
 #include "qffmpeg_p.h"
 #include "qffmpegcodecstorage_p.h"
+#include "qffmpegmediaintegration_p.h"
 #include "qffmpegvideobuffer_p.h"
 #include "qscopedvaluerollback.h"
 
@@ -29,7 +30,6 @@
 QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLHWAccel, "qt.multimedia.ffmpeg.hwaccel");
-extern bool thread_local FFmpegLogsEnabledInThread;
 
 namespace QFFmpeg {
 

@@ -19,6 +19,8 @@
 
 QT_BEGIN_NAMESPACE
 
+extern bool thread_local FFmpegLogsEnabledInThread;
+
 class QFFmpegMediaFormatInfo;
 
 class QFFmpegMediaIntegration : public QPlatformMediaIntegration
