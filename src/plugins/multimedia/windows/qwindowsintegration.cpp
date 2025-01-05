@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwindowsintegration_p.h"
-#include <private/qwindowsmediadevices_p.h>
+#include <private/qwindowsaudiodevices_p.h>
 #include <qwindowsformatinfo_p.h>
 #include <qwindowsmediacapture_p.h>
 #include <qwindowsimagecapture_p.h>

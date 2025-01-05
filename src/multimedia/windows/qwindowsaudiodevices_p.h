@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QWINDOWSMEDIADEVICES_H
-#define QWINDOWSMEDIADEVICES_H
+#ifndef QWINDOWSAUDIODEVICES_H
+#define QWINDOWSAUDIODEVICES_H
 
 //
 //  W A R N I N G
@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformaudiodevices_p.h>
 #include <private/qcomptr_p.h>
 #include <private/qcominitializer_p.h>
 #include <private/qwindowsmediafoundation_p.h>
@@ -30,11 +30,11 @@ QT_BEGIN_NAMESPACE
 class QWindowsEngine;
 class CMMNotificationClient;
 
-class QWindowsMediaDevices : public QPlatformMediaDevices
+class QWindowsAudioDevices : public QPlatformAudioDevices
 {
 public:
-    QWindowsMediaDevices();
-    virtual ~QWindowsMediaDevices();
+    QWindowsAudioDevices();
+    virtual ~QWindowsAudioDevices();
 
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
                                             QObject *parent) override;
@@ -43,8 +43,8 @@ public:
 
     void prepareAudio() override;
 
-    using QPlatformMediaDevices::onAudioInputsChanged;
-    using QPlatformMediaDevices::onAudioOutputsChanged;
+    using QPlatformAudioDevices::onAudioInputsChanged;
+    using QPlatformAudioDevices::onAudioOutputsChanged;
 
 protected:
     QList<QAudioDevice> findAudioInputs() const override;

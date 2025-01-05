@@ -1,7 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qandroidmediadevices_p.h"
+#include "qandroidaudiodevices_p.h"
 #include "qmediadevices.h"
 #include "private/qcameradevice_p.h"
 
@@ -21,36 +21,36 @@ Q_DECLARE_JNI_CLASS(QtAudioDeviceManager,
                             "org/qtproject/qt/android/multimedia/QtAudioDeviceManager");
 
 
-QAndroidMediaDevices::QAndroidMediaDevices() : QPlatformMediaDevices()
+QAndroidAudioDevices::QAndroidAudioDevices() : QPlatformAudioDevices()
 {
    QtJniTypes::QtAudioDeviceManager::callStaticMethod<void>("registerAudioHeadsetStateReceiver");
 }
 
-QAndroidMediaDevices::~QAndroidMediaDevices()
+QAndroidAudioDevices::~QAndroidAudioDevices()
 {
-   // Object of QAndroidMediaDevices type is static. Unregistering will happend only when closing
+   // Object of QAndroidAudioDevices type is static. Unregistering will happend only when closing
    // the application. In such case it is probably not needed, but let's leave it for
    // compatibility with Android documentation
    QtJniTypes::QtAudioDeviceManager::callStaticMethod<void>("unregisterAudioHeadsetStateReceiver");
 }
 
-QList<QAudioDevice> QAndroidMediaDevices::findAudioInputs() const
+QList<QAudioDevice> QAndroidAudioDevices::findAudioInputs() const
 {
     return QOpenSLESEngine::availableDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QAndroidMediaDevices::findAudioOutputs() const
+QList<QAudioDevice> QAndroidAudioDevices::findAudioOutputs() const
 {
     return QOpenSLESEngine::availableDevices(QAudioDevice::Output);
 }
 
-QPlatformAudioSource *QAndroidMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
+QPlatformAudioSource *QAndroidAudioDevices::createAudioSource(const QAudioDevice &deviceInfo,
                                                               QObject *parent)
 {
     return new QAndroidAudioSource(deviceInfo.id(), parent);
 }
 
-QPlatformAudioSink *QAndroidMediaDevices::createAudioSink(const QAudioDevice &deviceInfo,
+QPlatformAudioSink *QAndroidAudioDevices::createAudioSink(const QAudioDevice &deviceInfo,
                                                           QObject *parent)
 {
     return new QAndroidAudioSink(deviceInfo.id(), parent);
@@ -58,13 +58,13 @@ QPlatformAudioSink *QAndroidMediaDevices::createAudioSink(const QAudioDevice &de
 
 static void onAudioInputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
 {
-    static_cast<QAndroidMediaDevices *>(QPlatformMediaIntegration::instance()->mediaDevices())
+    static_cast<QAndroidAudioDevices *>(QPlatformMediaIntegration::instance()->audioDevices())
             ->onAudioInputsChanged();
 }
 
 static void onAudioOutputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
 {
-    static_cast<QAndroidMediaDevices *>(QPlatformMediaIntegration::instance()->mediaDevices())
+    static_cast<QAndroidAudioDevices *>(QPlatformMediaIntegration::instance()->audioDevices())
             ->onAudioOutputsChanged();
 }
 

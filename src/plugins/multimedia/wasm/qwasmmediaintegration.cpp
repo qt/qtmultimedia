@@ -9,7 +9,7 @@
 
 #include <private/qplatformmediaformatinfo_p.h>
 #include <private/qplatformmediaplugin_p.h>
-#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformaudiodevices_p.h>
 #include <private/qplatformvideodevices_p.h>
 
 #include "mediaplayer/qwasmmediaplayer_p.h"

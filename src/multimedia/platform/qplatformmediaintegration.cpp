@@ -16,7 +16,7 @@
 #include <QtCore/qapplicationstatic.h>
 
 #include "qplatformcapturablewindows_p.h"
-#include "qplatformmediadevices_p.h"
+#include "qplatformaudiodevices_p.h"
 #include <QtCore/private/qfactoryloader_p.h>
 #include <QtCore/private/qcoreapplication_p.h>
 #include <private/qplatformmediaformatinfo_p.h>
@@ -147,9 +147,9 @@ QPlatformMediaFormatInfo *QPlatformMediaIntegration::createFormatInfo()
     return new QPlatformMediaFormatInfo;
 }
 
-std::unique_ptr<QPlatformMediaDevices> QPlatformMediaIntegration::createMediaDevices()
+std::unique_ptr<QPlatformAudioDevices> QPlatformMediaIntegration::createAudioDevices()
 {
-    return QPlatformMediaDevices::create();
+    return QPlatformAudioDevices::create();
 }
 
 // clang-format off
@@ -171,12 +171,12 @@ QPlatformCapturableWindows *QPlatformMediaIntegration::capturableWindows()
     return m_capturableWindows.get();
 }
 
-QPlatformMediaDevices *QPlatformMediaIntegration::mediaDevices()
+QPlatformAudioDevices *QPlatformMediaIntegration::audioDevices()
 {
-    std::call_once(m_mediaDevicesOnceFlag, [this] {
-        m_mediaDevices = createMediaDevices();
+    std::call_once(m_audioDevicesOnceFlag, [this] {
+        m_audioDevices = createAudioDevices();
     });
-    return m_mediaDevices.get();
+    return m_audioDevices.get();
 }
 
 // clang-format on

@@ -5,7 +5,7 @@
 #include "mediacapture/qwasmimagecapture_p.h"
 
 #include "qwasmcamera_p.h"
-#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformaudiodevices_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qwasmmediadevices_p.h>
 
@@ -13,7 +13,7 @@ Q_LOGGING_CATEGORY(qWasmMediaCaptureSession, "qt.multimedia.wasm.capturesession"
 
 QWasmMediaCaptureSession::QWasmMediaCaptureSession()
 {
-    QWasmMediaDevices *wasmMediaDevices = static_cast<QWasmMediaDevices *>(QPlatformMediaIntegration::instance()->mediaDevices());
+    QWasmMediaDevices *wasmMediaDevices = static_cast<QWasmMediaDevices *>(QPlatformMediaIntegration::instance()->audioDevices());
     wasmMediaDevices->initDevices();
 }
 

@@ -20,7 +20,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QDarwinMediaDevices;
+class QDarwinAudioDevices;
 
 class QDarwinFormatInfo : public QPlatformMediaFormatInfo
 {

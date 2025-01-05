@@ -18,15 +18,14 @@ QT_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(qWasmMediaDevices, "qt.multimedia.wasm.mediadevices")
 
 QWasmCameraDevices::QWasmCameraDevices(QPlatformMediaIntegration *integration)
-    : QPlatformVideoDevices(integration)
+    : QPlatformVideoDevices(integration),
+      m_mediaDevices(static_cast<QWasmMediaDevices *>(integration->audioDevices()))
 {
-    m_mediaDevices = QPlatformMediaIntegration::instance()->mediaDevices();
 }
 
 QList<QCameraDevice> QWasmCameraDevices::videoInputs() const
 {
-    QWasmMediaDevices *wasmMediaDevices = reinterpret_cast<QWasmMediaDevices *>(m_mediaDevices);
-    return wasmMediaDevices ? wasmMediaDevices->videoInputs() : QList<QCameraDevice>();
+    return m_mediaDevices ? m_mediaDevices->videoInputs() : QList<QCameraDevice>();
 }
 
 QWasmMediaDevices::QWasmMediaDevices()

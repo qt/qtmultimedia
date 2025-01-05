@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QPULSEAUDIOMEDIADEVICES_H
-#define QPULSEAUDIOMEDIADEVICES_H
+#ifndef QDARWINMEDIADEVICES_H
+#define QDARWINMEDIADEVICES_H
 
 //
 //  W A R N I N G
@@ -15,34 +15,31 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevices_p.h>
-#include <qset.h>
-#include <qaudio.h>
+#include <private/qplatformaudiodevices_p.h>
+#include <qelapsedtimer.h>
+#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioEngine;
+class QCameraDevice;
 
-class QPulseAudioMediaDevices : public QPlatformMediaDevices
+class QDarwinAudioDevices : public QPlatformAudioDevices
 {
 public:
-    QPulseAudioMediaDevices();
-    ~QPulseAudioMediaDevices() override;
+    QDarwinAudioDevices();
+    ~QDarwinAudioDevices() override;
 
-    QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &info,
                                             QObject *parent) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &info,
                                         QObject *parent) override;
 
-    using QPlatformMediaDevices::onAudioInputsChanged;
-    using QPlatformMediaDevices::onAudioOutputsChanged;
+    using QPlatformAudioDevices::updateAudioInputsCache;
+    using QPlatformAudioDevices::updateAudioOutputsCache;
 
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;
-
-private:
-    QPulseAudioEngine *pulseEngine;
 };
 
 QT_END_NAMESPACE

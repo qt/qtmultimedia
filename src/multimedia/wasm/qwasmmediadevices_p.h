@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformaudiodevices_p.h>
 
 #include <private/qplatformvideodevices_p.h>
 
@@ -35,6 +35,7 @@ QT_BEGIN_NAMESPACE
 Q_DECLARE_LOGGING_CATEGORY(qWasmMediaDevices)
 
 class QWasmAudioEngine;
+class QWasmMediaDevices;
 
 class QWasmCameraDevices : public QPlatformVideoDevices
 {
@@ -45,10 +46,12 @@ public:
     QList<QCameraDevice> videoInputs() const override;
 private:
     // weak
-    QPlatformMediaDevices *m_mediaDevices;
+    QWasmMediaDevices *m_mediaDevices;
 };
 
-class QWasmMediaDevices : public QPlatformMediaDevices
+// TODO: get rid of the inheritance. Instead, we should create QWasmAudioDevices,
+// and use QWasmMediaDevices in both, QWasmAudioDevices and QWasmVideoDevices.
+class QWasmMediaDevices : public QPlatformAudioDevices
 {
 public:
     QWasmMediaDevices();

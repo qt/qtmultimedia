@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformaudiodevices_p.h>
 #include <qelapsedtimer.h>
 #include <qaudiodevice.h>
 #include <qcameradevice.h>
@@ -24,11 +24,11 @@ QT_BEGIN_NAMESPACE
 
 class QCameraDevice;
 
-class QMockMediaDevices : public QPlatformMediaDevices
+class QMockAudioDevices : public QPlatformAudioDevices
 {
 public:
-    QMockMediaDevices();
-    ~QMockMediaDevices();
+    QMockAudioDevices();
+    ~QMockAudioDevices();
 
     QPlatformAudioSource *createAudioSource(const QAudioDevice &info, QObject *parent) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &info, QObject *parent) override;

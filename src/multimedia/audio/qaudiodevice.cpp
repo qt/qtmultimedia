@@ -3,7 +3,7 @@
 
 #include "qaudiosystem_p.h"
 #include "qaudiodevice_p.h"
-#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformaudiodevices_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
 #include <QtCore/qmap.h>
