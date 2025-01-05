@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QANDROIDMEDIADEVICES_H
-#define QANDROIDMEDIADEVICES_H
+#ifndef QALSAAUDIODEVICES_H
+#define QALSAAUDIODEVICES_H
 
 //
 //  W A R N I N G
@@ -15,24 +15,23 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformaudiodevices_p.h>
+#include <qset.h>
 #include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaDevices : public QPlatformMediaDevices
+class QAlsaEngine;
+
+class QAlsaAudioDevices : public QPlatformAudioDevices
 {
 public:
-    QAndroidMediaDevices();
+    QAlsaAudioDevices();
 
-    ~QAndroidMediaDevices();
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
                                             QObject *parent) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
                                         QObject *parent) override;
-
-    using QPlatformMediaDevices::onAudioInputsChanged;
-    using QPlatformMediaDevices::onAudioOutputsChanged;
 
 protected:
     QList<QAudioDevice> findAudioInputs() const override;

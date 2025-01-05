@@ -38,6 +38,7 @@ class QMediaPlayer;
 class QMediaRecorder;
 class QObject;
 class QPlatformAudioDecoder;
+class QPlatformAudioDevices;
 class QPlatformAudioInput;
 class QPlatformAudioOutput;
 class QPlatformAudioResampler;
@@ -45,7 +46,6 @@ class QPlatformCamera;
 class QPlatformCapturableWindows;
 class QPlatformImageCapture;
 class QPlatformMediaCaptureSession;
-class QPlatformMediaDevices;
 class QPlatformMediaFormatInfo;
 class QPlatformMediaPlayer;
 class QPlatformMediaRecorder;
@@ -99,7 +99,7 @@ public:
 
     QPlatformCapturableWindows *capturableWindows();
 
-    QPlatformMediaDevices *mediaDevices();
+    QPlatformAudioDevices *audioDevices();
 
     static QStringList availableBackends();
     QLatin1String name(); // for unit tests
@@ -116,7 +116,7 @@ protected:
 
     virtual QPlatformCapturableWindows *createCapturableWindows() { return nullptr; }
 
-    virtual std::unique_ptr<QPlatformMediaDevices> createMediaDevices();
+    virtual std::unique_ptr<QPlatformAudioDevices> createAudioDevices();
 
 private:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
@@ -128,8 +128,8 @@ private:
     mutable std::unique_ptr<QPlatformMediaFormatInfo> m_formatInfo;
     mutable std::once_flag m_formatInfoOnceFlg;
 
-    std::unique_ptr<QPlatformMediaDevices> m_mediaDevices;
-    std::once_flag m_mediaDevicesOnceFlag;
+    std::unique_ptr<QPlatformAudioDevices> m_audioDevices;
+    std::once_flag m_audioDevicesOnceFlag;
 
     const QLatin1String m_backendName;
 };

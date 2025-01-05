@@ -19,7 +19,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaDevices;
+class QAndroidAudioDevices;
 
 class QAndroidIntegration : public QPlatformMediaIntegration
 {

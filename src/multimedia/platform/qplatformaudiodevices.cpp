@@ -1,105 +1,105 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qplatformmediadevices_p.h"
+#include "qplatformaudiodevices_p.h"
 #include "qcameradevice.h"
 #include "qaudiosystem_p.h"
 #include "qaudiodevice.h"
 
 #if defined(Q_OS_ANDROID)
-#include <qandroidmediadevices_p.h>
+#include <qandroidaudiodevices_p.h>
 #elif defined(Q_OS_DARWIN)
-#include <qdarwinmediadevices_p.h>
+#include <qdarwinaudiodevices_p.h>
 #elif defined(Q_OS_WINDOWS) && QT_CONFIG(wmf)
-#include <qwindowsmediadevices_p.h>
+#include <qwindowsaudiodevices_p.h>
 #elif QT_CONFIG(alsa)
-#include <qalsamediadevices_p.h>
+#include <qalsaaudiodevices_p.h>
 #elif QT_CONFIG(pulseaudio)
-#include <qpulseaudiomediadevices_p.h>
+#include <qpulseaudiodevices_p.h>
 #elif defined(Q_OS_QNX)
-#include <qqnxmediadevices_p.h>
+#include <qqnxaudiodevices_p.h>
 #elif defined(Q_OS_WASM)
 #include <private/qwasmmediadevices_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
 
-std::unique_ptr<QPlatformMediaDevices> QPlatformMediaDevices::create()
+std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
 {
 #ifdef Q_OS_DARWIN
-    return std::make_unique<QDarwinMediaDevices>();
+    return std::make_unique<QDarwinAudioDevices>();
 #elif defined(Q_OS_WINDOWS) && QT_CONFIG(wmf)
-    return std::make_unique<QWindowsMediaDevices>();
+    return std::make_unique<QWindowsAudioDevices>();
 #elif defined(Q_OS_ANDROID)
-    return std::make_unique<QAndroidMediaDevices>();
+    return std::make_unique<QAndroidAudioDevices>();
 #elif QT_CONFIG(alsa)
-    return std::make_unique<QAlsaMediaDevices>();
+    return std::make_unique<QAlsaAudioDevices>();
 #elif QT_CONFIG(pulseaudio)
-    return std::make_unique<QPulseAudioMediaDevices>();
+    return std::make_unique<QPulseAudioDevices>();
 #elif defined(Q_OS_QNX)
-    return std::make_unique<QQnxMediaDevices>();
+    return std::make_unique<QQnxAudioDevices>();
 #elif defined(Q_OS_WASM)
     return std::make_unique<QWasmMediaDevices>();
 #else
-    return std::make_unique<QPlatformMediaDevices>();
+    return std::make_unique<QPlatformAudioDevices>();
 #endif
 }
 
-QPlatformMediaDevices::QPlatformMediaDevices()
+QPlatformAudioDevices::QPlatformAudioDevices()
 {
     qRegisterMetaType<PrivateTag>(); // for the case of queued connections
 }
 
-QPlatformMediaDevices::~QPlatformMediaDevices() = default;
+QPlatformAudioDevices::~QPlatformAudioDevices() = default;
 
-QList<QAudioDevice> QPlatformMediaDevices::audioInputs() const
+QList<QAudioDevice> QPlatformAudioDevices::audioInputs() const
 {
     return m_audioInputs.ensure([this]() {
         return findAudioInputs();
     });
 }
 
-QList<QAudioDevice> QPlatformMediaDevices::audioOutputs() const
+QList<QAudioDevice> QPlatformAudioDevices::audioOutputs() const
 {
     return m_audioOutputs.ensure([this]() {
         return findAudioOutputs();
     });
 }
 
-void QPlatformMediaDevices::onAudioInputsChanged()
+void QPlatformAudioDevices::onAudioInputsChanged()
 {
     m_audioInputs.reset();
     emit audioInputsChanged(PrivateTag{});
 }
 
-void QPlatformMediaDevices::onAudioOutputsChanged()
+void QPlatformAudioDevices::onAudioOutputsChanged()
 {
     m_audioOutputs.reset();
     emit audioOutputsChanged(PrivateTag{});
 }
 
-void QPlatformMediaDevices::updateAudioInputsCache()
+void QPlatformAudioDevices::updateAudioInputsCache()
 {
     if (m_audioInputs.update(findAudioInputs()))
         emit audioInputsChanged(PrivateTag{});
 }
 
-void QPlatformMediaDevices::updateAudioOutputsCache()
+void QPlatformAudioDevices::updateAudioOutputsCache()
 {
     if (m_audioOutputs.update(findAudioOutputs()))
         emit audioOutputsChanged(PrivateTag{});
 }
 
-QPlatformAudioSource *QPlatformMediaDevices::createAudioSource(const QAudioDevice &, QObject *)
+QPlatformAudioSource *QPlatformAudioDevices::createAudioSource(const QAudioDevice &, QObject *)
 {
     return nullptr;
 }
-QPlatformAudioSink *QPlatformMediaDevices::createAudioSink(const QAudioDevice &, QObject *)
+QPlatformAudioSink *QPlatformAudioDevices::createAudioSink(const QAudioDevice &, QObject *)
 {
     return nullptr;
 }
 
-QPlatformAudioSource *QPlatformMediaDevices::audioInputDevice(const QAudioFormat &format,
+QPlatformAudioSource *QPlatformAudioDevices::audioInputDevice(const QAudioFormat &format,
                                                               const QAudioDevice &deviceInfo,
                                                               QObject *parent)
 {
@@ -113,7 +113,7 @@ QPlatformAudioSource *QPlatformMediaDevices::audioInputDevice(const QAudioFormat
     return p;
 }
 
-QPlatformAudioSink *QPlatformMediaDevices::audioOutputDevice(const QAudioFormat &format,
+QPlatformAudioSink *QPlatformAudioDevices::audioOutputDevice(const QAudioFormat &format,
                                                              const QAudioDevice &deviceInfo,
                                                              QObject *parent)
 {
@@ -127,8 +127,8 @@ QPlatformAudioSink *QPlatformMediaDevices::audioOutputDevice(const QAudioFormat 
     return p;
 }
 
-void QPlatformMediaDevices::prepareAudio() { }
+void QPlatformAudioDevices::prepareAudio() { }
 
 QT_END_NAMESPACE
 
-#include "moc_qplatformmediadevices_p.cpp"
+#include "moc_qplatformaudiodevices_p.cpp"

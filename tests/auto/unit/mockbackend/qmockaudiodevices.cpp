@@ -1,29 +1,29 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "qmockmediadevices.h"
+#include "qmockaudiodevices.h"
 #include "private/qcameradevice_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QMockMediaDevices::QMockMediaDevices()
-    : QPlatformMediaDevices()
+QMockAudioDevices::QMockAudioDevices()
+    : QPlatformAudioDevices()
 {
 }
 
-QMockMediaDevices::~QMockMediaDevices() = default;
+QMockAudioDevices::~QMockAudioDevices() = default;
 
-QList<QAudioDevice> QMockMediaDevices::findAudioInputs() const
+QList<QAudioDevice> QMockAudioDevices::findAudioInputs() const
 {
     return m_inputDevices;
 }
 
-QList<QAudioDevice> QMockMediaDevices::findAudioOutputs() const
+QList<QAudioDevice> QMockAudioDevices::findAudioOutputs() const
 {
     return m_outputDevices;
 }
 
-QPlatformAudioSource *QMockMediaDevices::createAudioSource(const QAudioDevice &info,
+QPlatformAudioSource *QMockAudioDevices::createAudioSource(const QAudioDevice &info,
                                                            QObject *parent)
 {
     Q_UNUSED(info);
@@ -31,7 +31,7 @@ QPlatformAudioSource *QMockMediaDevices::createAudioSource(const QAudioDevice &i
     return nullptr;// ###
 }
 
-QPlatformAudioSink *QMockMediaDevices::createAudioSink(const QAudioDevice &info,
+QPlatformAudioSink *QMockAudioDevices::createAudioSink(const QAudioDevice &info,
                                                        QObject *parent)
 {
     Q_UNUSED(info);

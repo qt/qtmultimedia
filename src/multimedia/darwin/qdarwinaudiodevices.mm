@@ -1,7 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qdarwinmediadevices_p.h"
+#include "qdarwinaudiodevices_p.h"
 #include "qmediadevices.h"
 #include "private/qaudiodevice_p.h"
 #include "qdarwinaudiodevice_p.h"
@@ -102,7 +102,7 @@ static OSStatus audioDeviceChangeListener(AudioObjectID id, UInt32,
     Q_ASSERT(address);
     Q_ASSERT(ptr);
 
-    QDarwinMediaDevices *instance = static_cast<QDarwinMediaDevices *>(ptr);
+    QDarwinAudioDevices *instance = static_cast<QDarwinAudioDevices *>(ptr);
 
     qCDebug(qLcDarwinMediaDevices)
             << "audioDeviceChangeListener: id:" << id << "address: " << address->mSelector
@@ -133,7 +133,7 @@ static constexpr AudioObjectPropertyAddress listenerAddresses[] = {
       kAudioObjectPropertyElementMain }
 };
 
-static void setAudioListeners(QDarwinMediaDevices &instance)
+static void setAudioListeners(QDarwinAudioDevices &instance)
 {
     for (const auto &address : listenerAddresses) {
         const auto err = AudioObjectAddPropertyListener(kAudioObjectSystemObject, &address,
@@ -146,7 +146,7 @@ static void setAudioListeners(QDarwinMediaDevices &instance)
     }
 }
 
-static void removeAudioListeners(QDarwinMediaDevices &instance)
+static void removeAudioListeners(QDarwinAudioDevices &instance)
 {
     for (const auto &address : listenerAddresses) {
         const auto err = AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &address,
@@ -193,12 +193,12 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
     return devices;
 }
 
-static void setAudioListeners(QDarwinMediaDevices &)
+static void setAudioListeners(QDarwinAudioDevices &)
 {
     // ### This should use the audio session manager
 }
 
-static void removeAudioListeners(QDarwinMediaDevices &)
+static void removeAudioListeners(QDarwinAudioDevices &)
 {
     // ### This should use the audio session manager
 }
@@ -206,8 +206,8 @@ static void removeAudioListeners(QDarwinMediaDevices &)
 #endif
 
 
-QDarwinMediaDevices::QDarwinMediaDevices()
-    : QPlatformMediaDevices()
+QDarwinAudioDevices::QDarwinAudioDevices()
+    : QPlatformAudioDevices()
 {
 #ifdef Q_OS_MACOS // TODO: implement setAudioListeners, removeAudioListeners for Q_OS_IOS, after
                   // that - remove or modify the define
@@ -219,28 +219,28 @@ QDarwinMediaDevices::QDarwinMediaDevices()
 }
 
 
-QDarwinMediaDevices::~QDarwinMediaDevices()
+QDarwinAudioDevices::~QDarwinAudioDevices()
 {
     removeAudioListeners(*this);
 }
 
-QList<QAudioDevice> QDarwinMediaDevices::findAudioInputs() const
+QList<QAudioDevice> QDarwinAudioDevices::findAudioInputs() const
 {
     return availableAudioDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QDarwinMediaDevices::findAudioOutputs() const
+QList<QAudioDevice> QDarwinAudioDevices::findAudioOutputs() const
 {
     return availableAudioDevices(QAudioDevice::Output);
 }
 
-QPlatformAudioSource *QDarwinMediaDevices::createAudioSource(const QAudioDevice &info,
+QPlatformAudioSource *QDarwinAudioDevices::createAudioSource(const QAudioDevice &info,
                                                              QObject *parent)
 {
     return new QDarwinAudioSource(info, parent);
 }
 
-QPlatformAudioSink *QDarwinMediaDevices::createAudioSink(const QAudioDevice &info,
+QPlatformAudioSink *QDarwinAudioDevices::createAudioSink(const QAudioDevice &info,
                                                          QObject *parent)
 {
     return new QDarwinAudioSink(info, parent);

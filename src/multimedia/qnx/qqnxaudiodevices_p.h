@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QALSAMEDIADEVICES_H
-#define QALSAMEDIADEVICES_H
+#ifndef QQNXAUDIODEVICES_H
+#define QQNXAUDIODEVICES_H
 
 //
 //  W A R N I N G
@@ -15,18 +15,16 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevices_p.h>
-#include <qset.h>
+#include <private/qplatformaudiodevices_p.h>
 #include <qaudio.h>
+#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAlsaEngine;
-
-class QAlsaMediaDevices : public QPlatformMediaDevices
+class QQnxAudioDevices : public QPlatformAudioDevices
 {
 public:
-    QAlsaMediaDevices();
+    QQnxAudioDevices();
 
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
                                             QObject *parent) override;

@@ -1,7 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qwindowsmediadevices_p.h"
+#include "qwindowsaudiodevices_p.h"
 #include "qmediadevices.h"
 #include "qvarlengtharray.h"
 
@@ -27,11 +27,11 @@ QT_BEGIN_NAMESPACE
 class CMMNotificationClient : public QComObject<IMMNotificationClient>
 {
     ComPtr<IMMDeviceEnumerator> m_enumerator;
-    QWindowsMediaDevices *m_windowsMediaDevices;
+    QWindowsAudioDevices *m_windowsMediaDevices;
     QMap<QString, DWORD> m_deviceState;
 
 public:
-    CMMNotificationClient(QWindowsMediaDevices *windowsMediaDevices,
+    CMMNotificationClient(QWindowsAudioDevices *windowsMediaDevices,
                           ComPtr<IMMDeviceEnumerator> enumerator,
                           QMap<QString, DWORD> &&deviceState)
         : m_enumerator(enumerator),
@@ -118,8 +118,8 @@ private:
     ~CMMNotificationClient() override = default;
 };
 
-QWindowsMediaDevices::QWindowsMediaDevices()
-    : QPlatformMediaDevices()
+QWindowsAudioDevices::QWindowsAudioDevices()
+    : QPlatformAudioDevices()
 {
     auto hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
                                IID_PPV_ARGS(&m_deviceEnumerator));
@@ -156,7 +156,7 @@ QWindowsMediaDevices::QWindowsMediaDevices()
     m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient.Get());
 }
 
-QWindowsMediaDevices::~QWindowsMediaDevices()
+QWindowsAudioDevices::~QWindowsAudioDevices()
 {
     if (m_deviceEnumerator) {
         // Note: Calling UnregisterEndpointNotificationCallback after CoUninitialize
@@ -203,7 +203,7 @@ QString getDeviceId(bool isOutput, UINT waveID)
 }
 }
 
-QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mode) const
+QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mode) const
 {
     if (!m_deviceEnumerator)
         return {};
@@ -259,24 +259,24 @@ QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mo
     return devices;
 }
 
-QList<QAudioDevice> QWindowsMediaDevices::findAudioInputs() const
+QList<QAudioDevice> QWindowsAudioDevices::findAudioInputs() const
 {
     return availableDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QWindowsMediaDevices::findAudioOutputs() const
+QList<QAudioDevice> QWindowsAudioDevices::findAudioOutputs() const
 {
     return availableDevices(QAudioDevice::Output);
 }
 
-QPlatformAudioSource *QWindowsMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
+QPlatformAudioSource *QWindowsAudioDevices::createAudioSource(const QAudioDevice &deviceInfo,
                                                               QObject *parent)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
     return new QWindowsAudioSource(devInfo->immDev(), parent);
 }
 
-QPlatformAudioSink *QWindowsMediaDevices::createAudioSink(const QAudioDevice &deviceInfo,
+QPlatformAudioSink *QWindowsAudioDevices::createAudioSink(const QAudioDevice &deviceInfo,
                                                           QObject *parent)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
@@ -292,7 +292,7 @@ static bool isPrepareAudioEnabled()
     return !isDisableAudioPrepareSet || disableAudioPrepare == 0;
 }
 
-void QWindowsMediaDevices::prepareAudio()
+void QWindowsAudioDevices::prepareAudio()
 {
     if (!isPrepareAudioEnabled())
         return;

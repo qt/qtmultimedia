@@ -9,7 +9,7 @@
 #include "qmediadevices.h"
 #include "qaudiobuffer.h"
 #include <QtCore/qloggingcategory.h>
-#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformaudiodevices_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformaudioresampler_p.h>
 
@@ -101,7 +101,7 @@ QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &au
 {
     open(QIODevice::ReadOnly);
 
-    QPlatformMediaIntegration::instance()->mediaDevices()->prepareAudio();
+    QPlatformMediaIntegration::instance()->audioDevices()->prepareAudio();
 }
 
 void QSoundEffectPrivate::sampleReady(QSample *sample)

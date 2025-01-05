@@ -71,7 +71,7 @@ public:
 
 protected:
     QPlatformVideoDevices *createVideoDevices() override;
-    std::unique_ptr<QPlatformMediaDevices> createMediaDevices() override;
+    std::unique_ptr<QPlatformAudioDevices> createAudioDevices() override;
 
 private:
     Flags m_flags = {};

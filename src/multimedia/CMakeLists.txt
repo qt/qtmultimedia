@@ -43,7 +43,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformcapturablewindows_p.h
         platform/qplatformimagecapture.cpp platform/qplatformimagecapture_p.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
-        platform/qplatformmediadevices.cpp platform/qplatformmediadevices_p.h
+        platform/qplatformaudiodevices.cpp platform/qplatformaudiodevices_p.h
         platform/qplatformmediaformatinfo.cpp  platform/qplatformmediaformatinfo_p.h
         platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
         platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
@@ -149,7 +149,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
         alsa/qalsaaudiodevice.cpp alsa/qalsaaudiodevice_p.h
         alsa/qalsaaudiosource.cpp alsa/qalsaaudiosource_p.h
         alsa/qalsaaudiosink.cpp alsa/qalsaaudiosink_p.h
-        alsa/qalsamediadevices.cpp alsa/qalsamediadevices_p.h
+        alsa/qalsaaudiodevices.cpp alsa/qalsaaudiodevices_p.h
     INCLUDE_DIRECTORIES
         alsa
     LIBRARIES
@@ -162,7 +162,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
         pulseaudio/qpulseaudiosource.cpp pulseaudio/qpulseaudiosource_p.h
         pulseaudio/qpulseaudiosink.cpp pulseaudio/qpulseaudiosink_p.h
         pulseaudio/qpulsehelpers.cpp pulseaudio/qpulsehelpers_p.h
-        pulseaudio/qpulseaudiomediadevices.cpp pulseaudio/qpulseaudiomediadevices_p.h
+        pulseaudio/qpulseaudiodevices.cpp pulseaudio/qpulseaudiodevices_p.h
     INCLUDE_DIRECTORIES
         pulseaudio
     LIBRARIES
@@ -175,7 +175,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         android/qandroidaudiosink.cpp android/qandroidaudiosink_p.h
         android/qandroidaudiodevice.cpp android/qandroidaudiodevice_p.h
         android/qopenslesengine.cpp android/qopenslesengine_p.h
-        android/qandroidmediadevices.cpp android/qandroidmediadevices_p.h
+        android/qandroidaudiodevices.cpp android/qandroidaudiodevices_p.h
     INCLUDE_DIRECTORIES
         android
     LIBRARIES
@@ -195,7 +195,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE
         darwin/qdarwinaudiosource.mm darwin/qdarwinaudiosource_p.h
         darwin/qdarwinaudiosink.mm darwin/qdarwinaudiosink_p.h
         darwin/qcoreaudioutils.cpp darwin/qcoreaudioutils_p.h
-        darwin/qdarwinmediadevices.mm darwin/qdarwinmediadevices_p.h
+        darwin/qdarwinaudiodevices.mm darwin/qdarwinaudiodevices_p.h
     INCLUDE_DIRECTORIES
         darwin
     LIBRARIES
@@ -222,7 +222,7 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         qnx/qqnxaudiosink.cpp qnx/qqnxaudiosink_p.h
         qnx/qqnxaudiosource.cpp qnx/qqnxaudiosource_p.h
         qnx/qqnxaudioutils.cpp qnx/qqnxaudioutils_p.h
-        qnx/qqnxmediadevices.cpp qnx/qqnxmediadevices_p.h
+        qnx/qqnxaudiodevices.cpp qnx/qqnxaudiodevices_p.h
     INCLUDE_DIRECTORIES
         qnx
     LIBRARIES
@@ -235,7 +235,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         windows/qwindowsaudiosource.cpp windows/qwindowsaudiosource_p.h
         windows/qwindowsaudiosink.cpp windows/qwindowsaudiosink_p.h
         windows/qwindowsaudioutils.cpp windows/qwindowsaudioutils_p.h
-        windows/qwindowsmediadevices.cpp windows/qwindowsmediadevices_p.h
+        windows/qwindowsaudiodevices.cpp windows/qwindowsaudiodevices_p.h
         windows/qwindowsmediafoundation.cpp windows/qwindowsmediafoundation_p.h
         windows/qwindowsresampler.cpp windows/qwindowsresampler_p.h
         windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h
@@ -258,7 +258,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf AND MINGW
         windows/qwindowsaudiosource.cpp windows/qwindowsaudiosource_p.h
         windows/qwindowsaudiosink.cpp windows/qwindowsaudiosink_p.h
         windows/qwindowsaudioutils.cpp windows/qwindowsaudioutils_p.h
-        windows/qwindowsmediadevices.cpp windows/qwindowsmediadevices_p.h
+        windows/qwindowsaudiodevices.cpp windows/qwindowsaudiodevices_p.h
         windows/qwindowsmediafoundation.cpp windows/qwindowsmediafoundation_p.h
         windows/qwindowsresampler.cpp windows/qwindowsresampler_p.h
         windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h

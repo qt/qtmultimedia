@@ -4,7 +4,7 @@
 #include "qcoreaudiosessionmanager_p.h"
 #include "qdarwinaudiodevice_p.h"
 #include "qcoreaudioutils_p.h"
-#include "qdarwinmediadevices_p.h"
+#include "qdarwinaudiodevices_p.h"
 #include <qmediadevices.h>
 
 #include <QtCore/QLoggingCategory>

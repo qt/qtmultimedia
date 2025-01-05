@@ -21,7 +21,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsMediaDevices;
+class QWindowsAudioDevices;
 class QWindowsFormatInfo;
 
 class QWindowsMediaIntegration : public QPlatformMediaIntegration

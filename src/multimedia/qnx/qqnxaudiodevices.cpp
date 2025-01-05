@@ -1,7 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qqnxmediadevices_p.h"
+#include "qqnxaudiodevices_p.h"
 #include "qmediadevices.h"
 #include "private/qcameradevice_p.h"
 #include "qcameradevice.h"
@@ -40,28 +40,28 @@ static QList<QAudioDevice> enumeratePcmDevices(QAudioDevice::Mode mode)
     return devices;
 }
 
-QQnxMediaDevices::QQnxMediaDevices()
-    : QPlatformMediaDevices()
+QQnxAudioDevices::QQnxAudioDevices()
+    : QPlatformAudioDevices()
 {
 }
 
-QList<QAudioDevice> QQnxMediaDevices::findAudioInputs() const
+QList<QAudioDevice> QQnxAudioDevices::findAudioInputs() const
 {
     return ::enumeratePcmDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QQnxMediaDevices::findAudioOutputs() const
+QList<QAudioDevice> QQnxAudioDevices::findAudioOutputs() const
 {
     return ::enumeratePcmDevices(QAudioDevice::Output);
 }
 
-QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
+QPlatformAudioSource *QQnxAudioDevices::createAudioSource(const QAudioDevice &deviceInfo,
                                                           QObject *parent)
 {
     return new QQnxAudioSource(deviceInfo, parent);
 }
 
-QPlatformAudioSink *QQnxMediaDevices::createAudioSink(const QAudioDevice &deviceInfo,
+QPlatformAudioSink *QQnxAudioDevices::createAudioSink(const QAudioDevice &deviceInfo,
                                                       QObject *parent)
 {
     return new QQnxAudioSink(deviceInfo, parent);

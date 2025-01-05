@@ -3,7 +3,7 @@
 
 #include "qmediadevices.h"
 #include "private/qplatformmediaintegration_p.h"
-#include "private/qplatformmediadevices_p.h"
+#include "private/qplatformaudiodevices_p.h"
 #include "private/qplatformvideodevices_p.h"
 
 #include <QtCore/qmetaobject.h>
@@ -129,7 +129,7 @@ QT_BEGIN_NAMESPACE
 */
 QList<QAudioDevice> QMediaDevices::audioInputs()
 {
-    return QPlatformMediaIntegration::instance()->mediaDevices()->audioInputs();
+    return QPlatformMediaIntegration::instance()->audioDevices()->audioInputs();
 }
 
 /*!
@@ -150,7 +150,7 @@ QList<QAudioDevice> QMediaDevices::audioInputs()
 */
 QList<QAudioDevice> QMediaDevices::audioOutputs()
 {
-    return QPlatformMediaIntegration::instance()->mediaDevices()->audioOutputs();
+    return QPlatformMediaIntegration::instance()->audioDevices()->audioOutputs();
 }
 
 /*!
@@ -264,11 +264,11 @@ QCameraDevice QMediaDevices::defaultVideoInput()
 QMediaDevices::QMediaDevices(QObject *parent)
     : QObject(parent)
 {
-    auto platformDevices = QPlatformMediaIntegration::instance()->mediaDevices();
+    auto platformDevices = QPlatformMediaIntegration::instance()->audioDevices();
 
-    connect(platformDevices, &QPlatformMediaDevices::audioInputsChanged, this,
+    connect(platformDevices, &QPlatformAudioDevices::audioInputsChanged, this,
             &QMediaDevices::audioInputsChanged);
-    connect(platformDevices, &QPlatformMediaDevices::audioOutputsChanged, this,
+    connect(platformDevices, &QPlatformAudioDevices::audioOutputsChanged, this,
             &QMediaDevices::audioOutputsChanged);
 }
 

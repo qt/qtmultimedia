@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QPLATFORMMEDIADEVICES_H
-#define QPLATFORMMEDIADEVICES_H
+#ifndef QPLATFORMAUDIODEVICES_H
+#define QPLATFORMAUDIODEVICES_H
 
 //
 //  W A R N I N G
@@ -28,17 +28,17 @@ class QPlatformAudioSource;
 class QPlatformAudioSink;
 class QAudioFormat;
 
-class Q_MULTIMEDIA_EXPORT QPlatformMediaDevices : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformAudioDevices : public QObject
 {
     Q_OBJECT
 
     QT_DEFINE_TAG_STRUCT(PrivateTag);
 
 public:
-    QPlatformMediaDevices();
-    ~QPlatformMediaDevices() override;
+    QPlatformAudioDevices();
+    ~QPlatformAudioDevices() override;
 
-    static std::unique_ptr<QPlatformMediaDevices> create();
+    static std::unique_ptr<QPlatformAudioDevices> create();
 
     QList<QAudioDevice> audioInputs() const;
     QList<QAudioDevice> audioOutputs() const;
@@ -77,4 +77,4 @@ private:
 QT_END_NAMESPACE
 
 
-#endif // QPLATFORMMEDIADEVICES_H
+#endif // QPLATFORMAUDIODEVICES_H
