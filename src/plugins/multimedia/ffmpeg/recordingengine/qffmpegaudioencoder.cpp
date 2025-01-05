@@ -89,6 +89,8 @@ void AudioEncoder::open()
     qCDebug(qLcFFmpegAudioEncoder) << "audio codec params: fmt=" << m_codecContext->sample_fmt
                               << "rate=" << m_codecContext->sample_rate;
 
+    avcodec_parameters_from_context(m_stream->codecpar, m_codecContext.get());
+
     const AVAudioFormat requestedAudioFormat(m_format);
     const AVAudioFormat codecAudioFormat(m_codecContext.get());
 
