@@ -11,7 +11,7 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg {
 
 template <typename F>
-void doWithMediaFrameInput(QObject *source, F &&f)
+static void doWithMediaFrameInput(QObject *source, F &&f)
 {
     if (auto videoFrameInput = qobject_cast<QPlatformVideoFrameInput *>(source))
         f(videoFrameInput);
