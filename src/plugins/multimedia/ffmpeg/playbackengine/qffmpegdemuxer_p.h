@@ -14,10 +14,10 @@
 // We mean it.
 //
 
-#include "playbackengine/qffmpegplaybackengineobject_p.h"
-#include "private/qplatformmediaplayer_p.h"
-#include "playbackengine/qffmpegpacket_p.h"
-#include "playbackengine/qffmpegpositionwithoffset_p.h"
+#include "qffmpegplaybackengineobject_p.h"
+#include "qffmpegpacket_p.h"
+#include "qffmpegpositionwithoffset_p.h"
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
 
 #include <unordered_map>
 

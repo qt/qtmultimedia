@@ -16,7 +16,7 @@
 //
 
 #include "qffmpegdefs_p.h"
-#include <private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 inline bool operator==(const AVChannelLayout &lhs, const AVChannelLayout &rhs)
