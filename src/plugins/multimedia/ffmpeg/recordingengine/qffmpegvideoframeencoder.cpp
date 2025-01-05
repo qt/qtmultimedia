@@ -311,6 +311,8 @@ bool VideoFrameEncoder::initCodecContext()
             m_codecContext->hw_frames_ctx = av_buffer_ref(framesContext);
     }
 
+    avcodec_parameters_from_context(m_stream->codecpar, m_codecContext.get());
+
     return true;
 }
 
