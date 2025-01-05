@@ -14,7 +14,7 @@
 // We mean it.
 //
 
-#include "playbackengine/qffmpegrenderer_p.h"
+#include "qffmpegrenderer_p.h"
 
 #include "qaudiobuffer.h"
 
