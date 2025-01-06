@@ -119,6 +119,10 @@ protected:
     virtual std::unique_ptr<QPlatformAudioDevices> createAudioDevices();
 
 private:
+    friend class QMockIntegration;
+    void resetInstance(); // tests only
+
+private:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
     std::once_flag m_videoDevicesOnceFlag;
 

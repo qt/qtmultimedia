@@ -67,6 +67,11 @@ struct InstanceHolder
 {
     InstanceHolder()
     {
+        init();
+    }
+
+    void init()
+    {
         if (!QCoreApplication::instance())
             qCCritical(qLcMediaPlugin()) << "Qt Multimedia requires a QCoreApplication instance";
 
@@ -103,6 +108,11 @@ QT_BEGIN_NAMESPACE
 QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 {
     return s_instanceHolder->instance.get();
+}
+
+void QPlatformMediaIntegration::resetInstance()
+{
+    s_instanceHolder->init(); // tests only
 }
 
 QMaybe<std::unique_ptr<QPlatformAudioResampler>>

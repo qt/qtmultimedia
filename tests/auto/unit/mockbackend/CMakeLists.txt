@@ -22,6 +22,7 @@ qt_internal_add_plugin(MockMultimediaPlugin
         qmockmediacapturesession.h
         qmockvideosink.h
         qmockaudiodevices.cpp qmockaudiodevices.h
+        qmockvideodevices.cpp qmockvideodevices.h
         qmockintegration.cpp qmockintegration.h
     LIBRARIES
         Qt::MultimediaPrivate
