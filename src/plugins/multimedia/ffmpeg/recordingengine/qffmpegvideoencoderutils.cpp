@@ -153,11 +153,12 @@ const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat)
     auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
 
     return findAVEncoder(codecID, [&formatScoreCalculator](const AVCodec *codec) {
-        if (!codec->pix_fmts)
-            // codecs without pix_fmts are suspicious
+        const auto pixelFormats = getCodecPixelFormats(codec);
+        if (!pixelFormats)
+            // codecs without pixel formats are suspicious
             return MinAVScore;
 
-        return findBestAVFormat(codec->pix_fmts, formatScoreCalculator).second;
+        return findBestAVFormat(pixelFormats, formatScoreCalculator).second;
     });
 }
 
