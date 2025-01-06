@@ -33,13 +33,21 @@ public:
     QPlatformAudioSource *createAudioSource(const QAudioDevice &info, QObject *parent) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &info, QObject *parent) override;
 
+    void addAudioInput();
+    void addAudioOutput();
+
+    int getFindAudioInputsInvokeCount() const { return m_findAudioInputsInvokeCount; }
+    int getFindAudioOutputsInvokeCount() const { return m_findAudioOutputsInvokeCount; }
+
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;
 
 private:
     QList<QAudioDevice> m_inputDevices;
+    mutable int m_findAudioInputsInvokeCount = 0;
     QList<QAudioDevice> m_outputDevices;
+    mutable int m_findAudioOutputsInvokeCount = 0;
 };
 
 QT_END_NAMESPACE

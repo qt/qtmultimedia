@@ -5,17 +5,15 @@
 #include "qmockintegration.h"
 #include "qmockmediaplayer.h"
 #include "qmockaudiodecoder.h"
+#include "qmockaudiodevices.h"
+#include "qmockvideodevices.h"
 #include "qmockcamera.h"
 #include "qmockmediacapturesession.h"
 #include "qmockvideosink.h"
 #include "qmockimagecapture.h"
 #include "qmockaudiooutput.h"
 #include "qmocksurfacecapture.h"
-#include <private/qcameradevice_p.h>
-#include <private/qplatformvideodevices_p.h>
 #include <private/qplatformmediaformatinfo_p.h>
-
-#include "qmockaudiodevices.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -35,68 +33,6 @@ public:
     }
 };
 
-class QMockVideoDevices : public QPlatformVideoDevices
-{
-public:
-    QMockVideoDevices(QPlatformMediaIntegration *pmi)
-        : QPlatformVideoDevices(pmi)
-    {
-        QCameraDevicePrivate *info = new QCameraDevicePrivate;
-        info->description = QStringLiteral("defaultCamera");
-        info->id = "default";
-        info->isDefault = true;
-        auto *f = new QCameraFormatPrivate{
-            QSharedData(),
-            QVideoFrameFormat::Format_ARGB8888,
-            QSize(640, 480),
-            0,
-            30
-        };
-        info->videoFormats << f->create();
-        m_cameraDevices.append(info->create());
-        info = new QCameraDevicePrivate;
-        info->description = QStringLiteral("frontCamera");
-        info->id = "front";
-        info->isDefault = false;
-        info->position = QCameraDevice::FrontFace;
-        f = new QCameraFormatPrivate{
-            QSharedData(),
-            QVideoFrameFormat::Format_XRGB8888,
-            QSize(1280, 720),
-            0,
-            30
-        };
-        info->videoFormats << f->create();
-        m_cameraDevices.append(info->create());
-        info = new QCameraDevicePrivate;
-        info->description = QStringLiteral("backCamera");
-        info->id = "back";
-        info->isDefault = false;
-        info->position = QCameraDevice::BackFace;
-        m_cameraDevices.append(info->create());
-    }
-
-    void addNewCamera()
-    {
-        auto info = new QCameraDevicePrivate;
-        info->description = QLatin1String("newCamera") + QString::number(m_cameraDevices.size());
-        info->id =
-                QString(QLatin1String("camera") + QString::number(m_cameraDevices.size())).toUtf8();
-        info->isDefault = false;
-        m_cameraDevices.append(info->create());
-
-        onVideoInputsChanged();
-    }
-
-    QList<QCameraDevice> findVideoInputs() const override
-    {
-        return m_cameraDevices;
-    }
-
-private:
-    QList<QCameraDevice> m_cameraDevices;
-};
-
 QMockIntegration::QMockIntegration() : QPlatformMediaIntegration(QLatin1String("mock")) { }
 QMockIntegration::~QMockIntegration() = default;
 
@@ -107,13 +43,23 @@ QPlatformMediaFormatInfo *QMockIntegration::getWritableFormatInfo()
     return const_cast<QPlatformMediaFormatInfo *>(formatInfo());
 }
 
+QMockAudioDevices* QMockIntegration::audioDevices() {
+    return static_cast<QMockAudioDevices*>(QPlatformMediaIntegration::audioDevices());
+}
+
+QMockVideoDevices* QMockIntegration::videoDevices() {
+    return static_cast<QMockVideoDevices*>(QPlatformMediaIntegration::videoDevices());
+}
+
 QPlatformVideoDevices *QMockIntegration::createVideoDevices()
 {
+    ++m_createVideoDevicesInvokeCount;
     return new QMockVideoDevices(this);
 }
 
 std::unique_ptr<QPlatformAudioDevices> QMockIntegration::createAudioDevices()
 {
+    ++m_createAudioDevicesInvokeCount;
     return std::make_unique<QMockAudioDevices>();
 }
 
