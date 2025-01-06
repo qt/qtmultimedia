@@ -86,11 +86,25 @@ void AudioRecorder::init()
     connect(ui->containerBox, &QComboBox::currentIndexChanged, this, &AudioRecorder::updateFormats);
 
     // sample rate
-    ui->sampleRateBox->setRange(m_captureSession.audioInput()->device().minimumSampleRate(),
-                                m_captureSession.audioInput()->device().maximumSampleRate());
-    ui->sampleRateBox->setValue(
-            qBound(m_captureSession.audioInput()->device().minimumSampleRate(), 44100,
-                   m_captureSession.audioInput()->device().maximumSampleRate()));
+    constexpr auto allSamplingRates = std::array{
+        8000,  11025, 12000, 16000, 22050,  24000,  32000,  44100,
+        48000, 64000, 88200, 96000, 128000, 176400, 192000,
+    };
+
+    QAudioDevice device = m_captureSession.audioInput()->device();
+    int minSamplingRate = device.minimumSampleRate();
+    int maxSamplingRate = device.maximumSampleRate();
+
+    for (int rate : allSamplingRates) {
+        if (rate <= minSamplingRate || rate >= maxSamplingRate)
+            continue;
+        ui->sampleRateBox->addItem(QString::number(rate), rate);
+    }
+    int preferredRate = device.preferredFormat().sampleRate();
+    if (preferredRate > 0) {
+        int index = ui->sampleRateBox->findData(device.preferredFormat().sampleRate());
+        ui->sampleRateBox->setCurrentIndex(index);
+    }
 
     connect(m_audioRecorder, &QMediaRecorder::durationChanged, this,
             &AudioRecorder::updateProgress);
@@ -153,7 +167,7 @@ void AudioRecorder::toggleRecord()
                 boxValue(ui->audioDeviceBox).value<QAudioDevice>());
 
         m_audioRecorder->setMediaFormat(selectedMediaFormat());
-        m_audioRecorder->setAudioSampleRate(ui->sampleRateBox->value());
+        m_audioRecorder->setAudioSampleRate(boxValue(ui->sampleRateBox).toInt());
         m_audioRecorder->setAudioBitRate(boxValue(ui->bitrateBox).toInt());
         m_audioRecorder->setAudioChannelCount(boxValue(ui->channelsBox).toInt());
         m_audioRecorder->setQuality(QMediaRecorder::Quality(ui->qualitySlider->value()));
