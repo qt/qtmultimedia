@@ -39,10 +39,11 @@ public:
         std::function<bool(uint32_t)> &&isCvPixelFormatSupportedDelegate = nullptr);
     ~QAVFVideoDevices();
 
-    QList<QCameraDevice> videoInputs() const override;
-
     // Returns true if the given CvPixelFormat is supported for camera capture session.
     [[nodiscard]] bool isCvPixelFormatSupported(uint32_t cvPixelFormat) const;
+
+protected:
+    QList<QCameraDevice> findVideoInputs() const override;
 
 private:
     void updateCameraDevices();

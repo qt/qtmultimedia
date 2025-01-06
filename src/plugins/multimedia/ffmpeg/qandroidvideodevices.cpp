@@ -29,7 +29,7 @@ QCameraFormat createCameraFormat(int width, int height, int fpsMin, int fpsMax)
     return format->create();
 }
 
-QList<QCameraDevice> QAndroidVideoDevices::findVideoDevices()
+QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
 {
     QList<QCameraDevice> devices;
 

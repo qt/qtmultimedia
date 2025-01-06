@@ -36,7 +36,8 @@ class AndroidVideoDevices : public QPlatformVideoDevices
 public:
     using QPlatformVideoDevices::QPlatformVideoDevices;
 
-    QList<QCameraDevice> videoInputs() const override
+protected:
+    QList<QCameraDevice> findVideoInputs() const override
     {
         return QAndroidCameraSession::availableCameras();
     }

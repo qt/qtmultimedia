@@ -5,7 +5,24 @@
 
 QT_BEGIN_NAMESPACE
 
+QPlatformVideoDevices::QPlatformVideoDevices(QPlatformMediaIntegration *integration)
+    : m_integration(integration)
+{
+    qRegisterMetaType<PrivateTag>(); // for queued connections
+}
+
 QPlatformVideoDevices::~QPlatformVideoDevices() = default;
+
+void QPlatformVideoDevices::onVideoInputsChanged() {
+    m_videoInputs.reset();
+    emit videoInputsChanged(PrivateTag{});
+}
+
+QList<QCameraDevice> QPlatformVideoDevices::videoInputs() const {
+    return m_videoInputs.ensure([this]() {
+        return findVideoInputs();
+    });
+}
 
 QT_END_NAMESPACE
 

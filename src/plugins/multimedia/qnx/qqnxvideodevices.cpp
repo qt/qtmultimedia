@@ -88,7 +88,7 @@ QQnxVideoDevices::QQnxVideoDevices(QPlatformMediaIntegration *integration)
 {
 }
 
-QList<QCameraDevice> QQnxVideoDevices::videoInputs() const
+QList<QCameraDevice> QQnxVideoDevices::findVideoInputs() const
 {
     QList<QCameraDevice> cameras;
 
