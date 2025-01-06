@@ -261,16 +261,7 @@ QCameraDevice QMediaDevices::defaultVideoInput()
 /*!
     \internal
 */
-QMediaDevices::QMediaDevices(QObject *parent)
-    : QObject(parent)
-{
-    auto platformDevices = QPlatformMediaIntegration::instance()->audioDevices();
-
-    connect(platformDevices, &QPlatformAudioDevices::audioInputsChanged, this,
-            &QMediaDevices::audioInputsChanged);
-    connect(platformDevices, &QPlatformAudioDevices::audioOutputsChanged, this,
-            &QMediaDevices::audioOutputsChanged);
-}
+QMediaDevices::QMediaDevices(QObject *parent) : QObject(parent) { }
 
 /*!
     \internal
@@ -280,14 +271,31 @@ QMediaDevices::~QMediaDevices() = default;
 void QMediaDevices::connectNotify(const QMetaMethod &signal)
 {
     // we don't connect in the constructor in order to not initialize
-    // the cameras tracking pipeline if cameras are not requested
-    // TODO: lazily connect audio signals
-    if (signal == QMetaMethod::fromSignal(&QMediaDevices::videoInputsChanged)) {
-        QPlatformVideoDevices *videoDevices = QPlatformMediaIntegration::instance()->videoDevices();
-        if (videoDevices)
-            connect(videoDevices, &QPlatformVideoDevices::videoInputsChanged, this,
-                &QMediaDevices::videoInputsChanged, Qt::UniqueConnection);
-    }
+    // the cameras tracking pipeline or audio tracking pipeline if cameras or audio devices
+    // are not requested. The instance of device provider is lazily created upon the first
+    // connection or the first devices request.
+
+    auto ensureConnection = [&](auto devicesMethod, auto platformDevicesSignal, auto targetSignal) {
+        if (signal == QMetaMethod::fromSignal(targetSignal))
+            if (auto devices = (QPlatformMediaIntegration::instance()->*devicesMethod)()) {
+                connect(devices, platformDevicesSignal, this, targetSignal, Qt::UniqueConnection);
+                return true;
+            }
+
+        return false;
+    };
+
+    // clang-format off
+    ensureConnection(&QPlatformMediaIntegration::videoDevices,
+                     &QPlatformVideoDevices::videoInputsChanged,
+                     &QMediaDevices::videoInputsChanged) ||
+    ensureConnection(&QPlatformMediaIntegration::audioDevices,
+                     &QPlatformAudioDevices::audioInputsChanged,
+                     &QMediaDevices::audioInputsChanged) ||
+    ensureConnection(&QPlatformMediaIntegration::audioDevices,
+                     &QPlatformAudioDevices::audioOutputsChanged,
+                     &QMediaDevices::audioOutputsChanged);
+    // clang-format on
 
     QObject::connectNotify(signal);
 }
