@@ -4,9 +4,113 @@
 #include "qmediaformat.h"
 #include "private/qplatformmediaintegration_p.h"
 #include "private/qplatformmediaformatinfo_p.h"
+#include "private/qmultimedia_enum_to_string_converter_p.h"
+
 #include <QtCore/qmimedatabase.h>
 
 QT_BEGIN_NAMESPACE
+
+// clang-format off
+
+struct DescriptionRole{};
+
+QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::FileFormat, QtMultimediaPrivate::EnumName,
+                           (QMediaFormat::UnspecifiedFormat, "Unspecified")
+                           (QMediaFormat::WMV, "WMV")
+                           (QMediaFormat::AVI, "AVI")
+                           (QMediaFormat::Matroska, "Matroska")
+                           (QMediaFormat::MPEG4, "MPEG-4")
+                           (QMediaFormat::Ogg, "Ogg")
+                           (QMediaFormat::QuickTime, "QuickTime")
+                           (QMediaFormat::WebM, "WebM")
+                           // Audio Formats
+                           (QMediaFormat::Mpeg4Audio, "MPEG-4 Audio")
+                           (QMediaFormat::AAC, "AAC")
+                           (QMediaFormat::WMA, "WMA")
+                           (QMediaFormat::MP3, "MP3")
+                           (QMediaFormat::FLAC, "FLAC")
+                           (QMediaFormat::Wave, "Wave")
+                          );
+
+QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::FileFormat, DescriptionRole,
+                           (QMediaFormat::UnspecifiedFormat, "Unspecified File Format")
+                           (QMediaFormat::WMV, "Windows Media Video")
+                           (QMediaFormat::AVI, "Audio Video Interleave")
+                           (QMediaFormat::Matroska, "Matroska Multimedia Container")
+                           (QMediaFormat::MPEG4, "MPEG-4 Video Container")
+                           (QMediaFormat::Ogg, "Ogg")
+                           (QMediaFormat::QuickTime, "QuickTime Container")
+                           (QMediaFormat::WebM, "WebM")
+                           // Audio Formats
+                           (QMediaFormat::Mpeg4Audio, "MPEG-4 Audio")
+                           (QMediaFormat::AAC, "AAC")
+                           (QMediaFormat::WMA, "Windows Media Audio")
+                           (QMediaFormat::MP3, "MP3")
+                           (QMediaFormat::FLAC, "Free Lossless Audio Codec (FLAC)")
+                           (QMediaFormat::Wave, "Wave File")
+                          );
+
+QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::AudioCodec, QtMultimediaPrivate::EnumName,
+                           (QMediaFormat::AudioCodec::Unspecified, "Unspecified")
+                           (QMediaFormat::AudioCodec::MP3, "MP3")
+                           (QMediaFormat::AudioCodec::AAC, "AAC")
+                           (QMediaFormat::AudioCodec::AC3, "AC3")
+                           (QMediaFormat::AudioCodec::EAC3, "EAC3")
+                           (QMediaFormat::AudioCodec::FLAC, "FLAC")
+                           (QMediaFormat::AudioCodec::DolbyTrueHD, "DolbyTrueHD")
+                           (QMediaFormat::AudioCodec::Opus, "Opus")
+                           (QMediaFormat::AudioCodec::Vorbis, "Vorbis")
+                           (QMediaFormat::AudioCodec::Wave, "Wave")
+                           (QMediaFormat::AudioCodec::WMA, "WMA")
+                           (QMediaFormat::AudioCodec::ALAC, "ALAC")
+                          );
+
+QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::AudioCodec, DescriptionRole,
+                           (QMediaFormat::AudioCodec::Unspecified, "Unspecified Audio Codec")
+                           (QMediaFormat::AudioCodec::MP3, "MP3")
+                           (QMediaFormat::AudioCodec::AAC, "Advanced Audio Codec (AAC)")
+                           (QMediaFormat::AudioCodec::AC3, "Dolby Digital (AC3)")
+                           (QMediaFormat::AudioCodec::EAC3, "Dolby Digital Plus (E-AC3)")
+                           (QMediaFormat::AudioCodec::FLAC, "Free Lossless Audio Codec (FLAC)")
+                           (QMediaFormat::AudioCodec::DolbyTrueHD, "Dolby True HD")
+                           (QMediaFormat::AudioCodec::Opus, "Opus")
+                           (QMediaFormat::AudioCodec::Vorbis, "Vorbis")
+                           (QMediaFormat::AudioCodec::Wave, "Wave")
+                           (QMediaFormat::AudioCodec::WMA, "Windows Media Audio")
+                           (QMediaFormat::AudioCodec::ALAC, "Apple Lossless Audio Codec (ALAC)")
+                          );
+
+
+QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::VideoCodec, QtMultimediaPrivate::EnumName,
+                           (QMediaFormat::VideoCodec::Unspecified, "Unspecified")
+                           (QMediaFormat::VideoCodec::MPEG1, "MPEG1")
+                           (QMediaFormat::VideoCodec::MPEG2, "MPEG2")
+                           (QMediaFormat::VideoCodec::MPEG4, "MPEG4")
+                           (QMediaFormat::VideoCodec::H264, "H264")
+                           (QMediaFormat::VideoCodec::H265, "H265")
+                           (QMediaFormat::VideoCodec::VP8, "VP8")
+                           (QMediaFormat::VideoCodec::VP9, "VP9")
+                           (QMediaFormat::VideoCodec::AV1, "AV1")
+                           (QMediaFormat::VideoCodec::Theora, "Theora")
+                           (QMediaFormat::VideoCodec::WMV, "WMV")
+                           (QMediaFormat::VideoCodec::MotionJPEG, "MotionJPEG")
+                          );
+
+QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::VideoCodec, DescriptionRole,
+                           (QMediaFormat::VideoCodec::Unspecified, "Unspecified Video Codec")
+                           (QMediaFormat::VideoCodec::MPEG1, "MPEG-1 Video")
+                           (QMediaFormat::VideoCodec::MPEG2, "MPEG-2 Video")
+                           (QMediaFormat::VideoCodec::MPEG4, "MPEG-4 Video")
+                           (QMediaFormat::VideoCodec::H264, "H.264")
+                           (QMediaFormat::VideoCodec::H265, "H.265")
+                           (QMediaFormat::VideoCodec::VP8, "VP8")
+                           (QMediaFormat::VideoCodec::VP9, "VP9")
+                           (QMediaFormat::VideoCodec::AV1, "AV1")
+                           (QMediaFormat::VideoCodec::Theora, "Theora")
+                           (QMediaFormat::VideoCodec::WMV, "Windows Media Video")
+                           (QMediaFormat::VideoCodec::MotionJPEG, "MotionJPEG")
+                          );
+// clang-format on
 
 /*!
     \class QMediaFormat
@@ -558,24 +662,8 @@ QList<QMediaFormat::AudioCodec> QMediaFormat::supportedAudioCodecs(QMediaFormat:
 */
 QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat fileFormat)
 {
-    constexpr const char *descriptions[QMediaFormat::LastFileFormat + 2] = {
-        "Unspecified",
-        "WMV",
-        "AVI",
-        "Matroska",
-        "MPEG-4",
-        "Ogg",
-        "QuickTime",
-        "WebM",
-        // Audio Formats
-        "MPEG-4 Audio",
-        "AAC",
-        "WMA",
-        "MP3",
-        "FLAC",
-        "Wave"
-    };
-    return QString::fromUtf8(descriptions[int(fileFormat) + 1]);
+    return QtMultimediaPrivate::StringResolver<QMediaFormat::FileFormat>::toQString(fileFormat)
+            .value_or(QStringLiteral("Unknown File Format"));
 }
 
 /*!
@@ -588,21 +676,8 @@ QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat fileFormat)
 */
 QString QMediaFormat::audioCodecName(QMediaFormat::AudioCodec codec)
 {
-    constexpr const char *descriptions[] = {
-        "Invalid",
-        "MP3",
-        "AAC",
-        "AC3",
-        "EAC3",
-        "FLAC",
-        "DolbyTrueHD",
-        "Opus",
-        "Vorbis",
-        "Wave",
-        "WMA",
-        "ALAC",
-    };
-    return QString::fromUtf8(descriptions[int(codec) + 1]);
+    return QtMultimediaPrivate::StringResolver<QMediaFormat::AudioCodec>::toQString(codec).value_or(
+            QStringLiteral("Unknown Audio Codec"));
 }
 
 /*!
@@ -615,21 +690,8 @@ QString QMediaFormat::audioCodecName(QMediaFormat::AudioCodec codec)
 */
 QString QMediaFormat::videoCodecName(QMediaFormat::VideoCodec codec)
 {
-    constexpr const char *descriptions[] = {
-        "Invalid",
-        "MPEG1",
-        "MPEG2",
-        "MPEG4",
-        "H264",
-        "H265",
-        "VP8",
-        "VP9",
-        "AV1",
-        "Theora",
-        "WMV",
-        "MotionJPEG"
-    };
-    return QString::fromUtf8(descriptions[int(codec) + 1]);
+    return QtMultimediaPrivate::StringResolver<QMediaFormat::VideoCodec>::toQString(codec).value_or(
+            QStringLiteral("Unknown Video Codec"));
 }
 
 /*!
@@ -642,24 +704,9 @@ QString QMediaFormat::videoCodecName(QMediaFormat::VideoCodec codec)
 */
 QString QMediaFormat::fileFormatDescription(QMediaFormat::FileFormat fileFormat)
 {
-    constexpr const char *descriptions[QMediaFormat::LastFileFormat + 2] = {
-        "Unspecified File Format",
-        "Windows Media Video",
-        "Audio Video Interleave",
-        "Matroska Multimedia Container",
-        "MPEG-4 Video Container",
-        "Ogg",
-        "QuickTime Container",
-        "WebM",
-        // Audio Formats
-        "MPEG-4 Audio",
-        "AAC",
-        "Windows Media Audio",
-        "MP3",
-        "Free Lossless Audio Codec (FLAC)",
-        "Wave File"
-    };
-    return QString::fromUtf8(descriptions[int(fileFormat) + 1]);
+    return QtMultimediaPrivate::StringResolver<QMediaFormat::FileFormat,
+                                               DescriptionRole>::toQString(fileFormat)
+            .value_or(QStringLiteral("Unknown File Format"));
 }
 
 /*!
@@ -672,21 +719,9 @@ QString QMediaFormat::fileFormatDescription(QMediaFormat::FileFormat fileFormat)
 */
 QString QMediaFormat::audioCodecDescription(QMediaFormat::AudioCodec codec)
 {
-    constexpr const char *descriptions[] = {
-        "Unspecified Audio Codec",
-        "MP3",
-        "Advanced Audio Codec (AAC)",
-        "Dolby Digital (AC3)",
-        "Dolby Digital Plus (E-AC3)",
-        "Free Lossless Audio Codec (FLAC)",
-        "Dolby True HD",
-        "Opus",
-        "Vorbis",
-        "Wave",
-        "Windows Media Audio",
-        "Apple Lossless Audio Codec (ALAC)",
-    };
-    return QString::fromUtf8(descriptions[int(codec) + 1]);
+    return QtMultimediaPrivate::StringResolver<QMediaFormat::AudioCodec,
+                                               DescriptionRole>::toQString(codec)
+            .value_or(QStringLiteral("Unknown Audio Codec"));
 }
 
 /*!
@@ -699,21 +734,9 @@ QString QMediaFormat::audioCodecDescription(QMediaFormat::AudioCodec codec)
 */
 QString QMediaFormat::videoCodecDescription(QMediaFormat::VideoCodec codec)
 {
-    constexpr const char *descriptions[] = {
-        "Unspecified Video Codec",
-        "MPEG-1 Video",
-        "MPEG-2 Video",
-        "MPEG-4 Video",
-        "H.264",
-        "H.265",
-        "VP8",
-        "VP9",
-        "AV1",
-        "Theora",
-        "Windows Media Video",
-        "MotionJPEG"
-    };
-    return QString::fromUtf8(descriptions[int(codec) + 1]);
+    return QtMultimediaPrivate::StringResolver<QMediaFormat::VideoCodec,
+                                               DescriptionRole>::toQString(codec)
+            .value_or(QStringLiteral("Unknown Video Codec"));
 }
 
 /*!

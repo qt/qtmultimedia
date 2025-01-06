@@ -56,6 +56,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformvideoframeinput.cpp platform/qplatformvideoframeinput_p.h
         platform/qplatformaudiobufferinput.cpp platform/qplatformaudiobufferinput_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h
+        qmultimedia_enum_to_string_converter_p.h
         qmediadevices.cpp qmediadevices.h
         qmediaformat.cpp  qmediaformat.h
         qmediametadata.cpp qmediametadata.h
