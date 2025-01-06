@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/QtTest>
-#include <QtMultimedia/qmediarecorder.h>
-#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudiobufferinput.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qwavedecoder.h>
 #include <private/audiogenerationutils_p.h>
 #include <private/mediabackendutils_p.h>
 #include <private/capturesessionfixture_p.h>
@@ -115,6 +118,9 @@ private slots:
     void record_emits_mediaformatChanged_whenFormatChanged();
 
     void stop_stopsRecording_whenInvokedUponRecordingStart();
+
+    void record_reflectsAudioEncoderSetting();
+
 private:
     QTemporaryDir m_tempDir;
 };
@@ -715,6 +721,36 @@ void tst_QMediaRecorderBackend::stop_stopsRecording_whenInvokedUponRecordingStar
     QTRY_COMPARE(f.m_recorder.recorderState(), QMediaRecorder::StoppedState);
     QList< QList<QVariant> > expectedRecorderStateChangedSignals( { { QMediaRecorder::RecordingState }, { QMediaRecorder::StoppedState } });
     QCOMPARE(f.recorderStateChanged, expectedRecorderStateChangedSignals);
+}
+
+void tst_QMediaRecorderBackend::record_reflectsAudioEncoderSetting()
+{
+    QSKIP_IF_NOT_FFMPEG();
+
+    // Arrange
+    CaptureSessionFixture f{ StreamType::Audio };
+
+    QAudioFormat audioFormat;
+    audioFormat.setSampleFormat(QAudioFormat::Float);
+    audioFormat.setChannelCount(2);
+    audioFormat.setSampleRate(44100);
+    f.m_audioGenerator.setFormat(audioFormat);
+
+    QMediaFormat fmt{ QMediaFormat::Wave };
+    fmt.setAudioCodec(QMediaFormat::AudioCodec::Wave);
+    f.m_recorder.setMediaFormat(fmt);
+    f.m_recorder.setAudioSampleRate(24000); // nonstandard sampling rate
+    f.m_recorder.setAudioChannelCount(1); // mono
+
+    // act
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
+    QVERIFY(f.waitForRecorderStopped(60s));
+
+    // Assert
+    auto info = MediaInfo::create(f.m_recorder.actualLocation());
+    QVERIFY(info);
+    QCOMPARE_EQ(info->m_audioBuffer.format().sampleRate(), 24000);
+    QCOMPARE_EQ(info->m_audioBuffer.format().channelCount(), 1);
 }
 
 QTEST_MAIN(tst_QMediaRecorderBackend)

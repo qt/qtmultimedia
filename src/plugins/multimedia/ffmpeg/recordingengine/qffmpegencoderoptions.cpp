@@ -2,9 +2,15 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qffmpegencoderoptions_p.h"
 
+#include "qffmpegmediaformatinfo_p.h"
+
+#include <QtMultimedia/qaudioformat.h>
+
 #if QT_CONFIG(vaapi)
 #include <va/va.h>
 #endif
+
+#include <libavutil/channel_layout.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -347,6 +353,21 @@ void applyAudioEncoderOptions(const QMediaEncoderSettings &settings, const QByte
     codec->thread_count = -1; // we always want automatic threading
     if (settings.encodingMode() == QMediaRecorder::ConstantBitRateEncoding || settings.encodingMode() == QMediaRecorder::AverageBitRateEncoding)
         codec->bit_rate = settings.audioBitRate();
+
+    if (settings.audioSampleRate() != -1)
+        codec->sample_rate = settings.audioSampleRate();
+
+    if (settings.audioChannelCount() != -1) {
+        auto mask = QFFmpegMediaFormatInfo::avChannelLayout(
+                QAudioFormat::defaultChannelConfigForChannelCount(settings.audioChannelCount()));
+
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
+        av_channel_layout_from_mask(&codec->ch_layout, mask);
+#else
+        codec->channel_layout = mask;
+        codec->channels = qPopulationCount(codec->channel_layout);
+#endif
+    }
 
     auto *table = audioCodecOptionTable;
     while (table->name) {
