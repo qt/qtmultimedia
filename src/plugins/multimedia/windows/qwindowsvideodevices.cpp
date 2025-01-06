@@ -25,7 +25,7 @@ LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND hWnd, UINT message, WPARA
             auto wmd = reinterpret_cast<QWindowsVideoDevices *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
             if (wmd) {
                 if (wParam == DBT_DEVICEARRIVAL || wParam == DBT_DEVICEREMOVECOMPLETE) {
-                    emit wmd->videoInputsChanged();
+                    wmd->onVideoInputsChanged();
                 }
             }
         }
@@ -198,7 +198,7 @@ static QList<QCameraDevice> readCameraDevices(IMFAttributes *attr)
     return cameras;
 }
 
-QList<QCameraDevice> QWindowsVideoDevices::videoInputs() const
+QList<QCameraDevice> QWindowsVideoDevices::findVideoInputs() const
 {
     QList<QCameraDevice> cameras;
 

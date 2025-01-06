@@ -22,14 +22,10 @@ class QAndroidVideoDevices : public QPlatformVideoDevices
 {
     Q_OBJECT
 public:
-    QAndroidVideoDevices(QPlatformMediaIntegration *integration)
-        : QPlatformVideoDevices(integration), m_videoDevices(findVideoDevices()){};
+    using QPlatformVideoDevices::QPlatformVideoDevices;
 
-    QList<QCameraDevice> videoInputs() const override { return m_videoDevices; }
-
-private:
-    QList<QCameraDevice> findVideoDevices();
-    QList<QCameraDevice> m_videoDevices;
+protected:
+    QList<QCameraDevice> findVideoInputs() const override;
 };
 
 #endif // QFANDROIDVIDEODEVICES_H

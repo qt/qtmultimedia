@@ -85,10 +85,10 @@ public:
         info->isDefault = false;
         m_cameraDevices.append(info->create());
 
-        emit videoInputsChanged();
+        onVideoInputsChanged();
     }
 
-    QList<QCameraDevice> videoInputs() const override
+    QList<QCameraDevice> findVideoInputs() const override
     {
         return m_cameraDevices;
     }

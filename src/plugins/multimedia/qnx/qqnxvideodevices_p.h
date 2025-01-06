@@ -24,7 +24,8 @@ class QQnxVideoDevices : public QPlatformVideoDevices
 public:
     explicit QQnxVideoDevices(QPlatformMediaIntegration *integration);
 
-    QList<QCameraDevice> videoInputs() const override;
+protected:
+    QList<QCameraDevice> findVideoInputs() const override;
 };
 
 QT_END_NAMESPACE

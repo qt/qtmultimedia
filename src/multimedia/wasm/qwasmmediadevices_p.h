@@ -43,7 +43,11 @@ class QWasmCameraDevices : public QPlatformVideoDevices
 public:
     QWasmCameraDevices(QPlatformMediaIntegration *integration);
 
-    QList<QCameraDevice> videoInputs() const override;
+    using QPlatformVideoDevices::onVideoInputsChanged;
+
+protected:
+    QList<QCameraDevice> findVideoInputs() const override;
+
 private:
     // weak
     QWasmMediaDevices *m_mediaDevices;

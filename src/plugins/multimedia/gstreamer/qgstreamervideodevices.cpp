@@ -57,7 +57,7 @@ QGstreamerVideoDevices::~QGstreamerVideoDevices()
     gst_device_monitor_stop(m_deviceMonitor.get());
 }
 
-QList<QCameraDevice> QGstreamerVideoDevices::videoInputs() const
+QList<QCameraDevice> QGstreamerVideoDevices::findVideoInputs() const
 {
     QList<QCameraDevice> devices;
 
@@ -194,8 +194,10 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
             std::move(device),
             QByteArray::number(m_idGenerator),
     });
-    emit videoInputsChanged();
+
     m_idGenerator++;
+
+    onVideoInputsChanged();
 }
 
 void QGstreamerVideoDevices::removeDevice(QGstDeviceHandle device)
@@ -205,7 +207,7 @@ void QGstreamerVideoDevices::removeDevice(QGstDeviceHandle device)
 
     if (it != m_videoSources.end()) {
         m_videoSources.erase(it);
-        emit videoInputsChanged();
+        onVideoInputsChanged();
     }
 }
 

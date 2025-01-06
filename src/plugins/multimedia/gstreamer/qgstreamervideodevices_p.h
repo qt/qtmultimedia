@@ -32,11 +32,13 @@ public:
     explicit QGstreamerVideoDevices(QPlatformMediaIntegration *integration);
     ~QGstreamerVideoDevices() override;
 
-    QList<QCameraDevice> videoInputs() const override;
     GstDevice *videoDevice(const QByteArray &id) const;
 
     void addDevice(QGstDeviceHandle);
     void removeDevice(QGstDeviceHandle);
+
+protected:
+    QList<QCameraDevice> findVideoInputs() const override;
 
 private:
     bool processBusMessage(const QGstreamerMessage &message) override;
