@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qplatformmediaformatinfo_p.h"
-#include <qset.h>
+
+#include <set>
 
 QT_BEGIN_NAMESPACE
 
@@ -12,7 +13,7 @@ QPlatformMediaFormatInfo::~QPlatformMediaFormatInfo() = default;
 
 QList<QMediaFormat::FileFormat> QPlatformMediaFormatInfo::supportedFileFormats(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
 {
-    QSet<QMediaFormat::FileFormat> formats;
+    std::set<QMediaFormat::FileFormat> formats;
 
     const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
     for (const auto &m : codecMap) {
@@ -22,12 +23,12 @@ QList<QMediaFormat::FileFormat> QPlatformMediaFormatInfo::supportedFileFormats(c
             continue;
         formats.insert(m.format);
     }
-    return formats.values();
+    return { formats.begin(), formats.end() };
 }
 
 QList<QMediaFormat::AudioCodec> QPlatformMediaFormatInfo::supportedAudioCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
 {
-    QSet<QMediaFormat::AudioCodec> codecs;
+    std::set<QMediaFormat::AudioCodec> codecs;
 
     const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
     for (const auto &m : codecMap) {
@@ -38,12 +39,13 @@ QList<QMediaFormat::AudioCodec> QPlatformMediaFormatInfo::supportedAudioCodecs(c
         for (const auto &c : m.audio)
             codecs.insert(c);
     }
-    return codecs.values();
+
+    return { codecs.begin(), codecs.end() };
 }
 
 QList<QMediaFormat::VideoCodec> QPlatformMediaFormatInfo::supportedVideoCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
 {
-    QSet<QMediaFormat::VideoCodec> codecs;
+    std::set<QMediaFormat::VideoCodec> codecs;
 
     const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
     for (const auto &m : codecMap) {
@@ -54,7 +56,7 @@ QList<QMediaFormat::VideoCodec> QPlatformMediaFormatInfo::supportedVideoCodecs(c
         for (const auto &c : m.video)
             codecs.insert(c);
     }
-    return codecs.values();
+    return { codecs.begin(), codecs.end() };
 }
 
 bool QPlatformMediaFormatInfo::isSupported(const QMediaFormat &format, QMediaFormat::ConversionMode m) const
