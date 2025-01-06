@@ -35,8 +35,8 @@ QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::FileFormat, QtMultimediaPrivate::EnumNa
 
 QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::FileFormat, DescriptionRole,
                            (QMediaFormat::UnspecifiedFormat, "Unspecified File Format")
-                           (QMediaFormat::WMV, "Windows Media Video")
-                           (QMediaFormat::AVI, "Audio Video Interleave")
+                           (QMediaFormat::WMV, "Windows Media Video (WMV)")
+                           (QMediaFormat::AVI, "Audio Video Interleave (AVI)")
                            (QMediaFormat::Matroska, "Matroska Multimedia Container")
                            (QMediaFormat::MPEG4, "MPEG-4 Video Container")
                            (QMediaFormat::Ogg, "Ogg")
@@ -44,11 +44,11 @@ QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::FileFormat, DescriptionRole,
                            (QMediaFormat::WebM, "WebM")
                            // Audio Formats
                            (QMediaFormat::Mpeg4Audio, "MPEG-4 Audio")
-                           (QMediaFormat::AAC, "AAC")
-                           (QMediaFormat::WMA, "Windows Media Audio")
+                           (QMediaFormat::AAC, "Advanced Audio Coding (AAC)")
+                           (QMediaFormat::WMA, "Windows Media Audio (WMA)")
                            (QMediaFormat::MP3, "MP3")
                            (QMediaFormat::FLAC, "Free Lossless Audio Codec (FLAC)")
-                           (QMediaFormat::Wave, "Wave File")
+                           (QMediaFormat::Wave, "Wave Audio File Format (WAVE)")
                           );
 
 QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::AudioCodec, QtMultimediaPrivate::EnumName,
@@ -69,7 +69,7 @@ QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::AudioCodec, QtMultimediaPrivate::EnumNa
 QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::AudioCodec, DescriptionRole,
                            (QMediaFormat::AudioCodec::Unspecified, "Unspecified Audio Codec")
                            (QMediaFormat::AudioCodec::MP3, "MP3")
-                           (QMediaFormat::AudioCodec::AAC, "Advanced Audio Codec (AAC)")
+                           (QMediaFormat::AudioCodec::AAC, "Advanced Audio Coding (AAC)")
                            (QMediaFormat::AudioCodec::AC3, "Dolby Digital (AC3)")
                            (QMediaFormat::AudioCodec::EAC3, "Dolby Digital Plus (E-AC3)")
                            (QMediaFormat::AudioCodec::FLAC, "Free Lossless Audio Codec (FLAC)")
@@ -77,7 +77,7 @@ QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::AudioCodec, DescriptionRole,
                            (QMediaFormat::AudioCodec::Opus, "Opus")
                            (QMediaFormat::AudioCodec::Vorbis, "Vorbis")
                            (QMediaFormat::AudioCodec::Wave, "Wave")
-                           (QMediaFormat::AudioCodec::WMA, "Windows Media Audio")
+                           (QMediaFormat::AudioCodec::WMA, "Windows Media Audio (WMA)")
                            (QMediaFormat::AudioCodec::ALAC, "Apple Lossless Audio Codec (ALAC)")
                           );
 
@@ -108,7 +108,7 @@ QT_MM_MAKE_STRING_RESOLVER(QMediaFormat::VideoCodec, DescriptionRole,
                            (QMediaFormat::VideoCodec::VP9, "VP9")
                            (QMediaFormat::VideoCodec::AV1, "AV1")
                            (QMediaFormat::VideoCodec::Theora, "Theora")
-                           (QMediaFormat::VideoCodec::WMV, "Windows Media Video")
+                           (QMediaFormat::VideoCodec::WMV, "Windows Media Video (WMV)")
                            (QMediaFormat::VideoCodec::MotionJPEG, "MotionJPEG")
                           );
 // clang-format on
