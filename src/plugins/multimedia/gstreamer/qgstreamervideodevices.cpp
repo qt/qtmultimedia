@@ -6,6 +6,7 @@
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/private/quniquehandle_types_p.h>
 
 #include <common/qgst_p.h>
 #include <common/qgst_debug_p.h>
@@ -136,7 +137,7 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
 
     const auto *p = QGstStructureView(structureHandle.get())["device.path"].toString();
     if (p) {
-        QFileDescriptorHandle fd{
+        QUniqueFileDescriptorHandle fd{
             qt_safe_open(p, O_RDONLY),
         };
 
