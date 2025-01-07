@@ -48,7 +48,7 @@ QAudioFormat::SampleFormat gstSampleFormatToSampleFormat(const char *fmt)
 QAudioFormat QGstUtils::audioFormatForSample(GstSample *sample)
 {
     auto caps = QGstCaps(gst_sample_get_caps(sample), QGstCaps::NeedsRef);
-    if (caps.isNull())
+    if (!caps)
         return {};
     return audioFormatForCaps(caps);
 }

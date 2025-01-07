@@ -472,7 +472,7 @@ gboolean QGstVideoRendererSink::set_caps(GstBaseSink *base, GstCaps *gcaps)
 
     qCDebug(qLcGstVideoRenderer) << "set_caps:" << caps;
 
-    if (caps.isNull()) {
+    if (!caps) {
         sink->renderer->stop();
         return TRUE;
     }

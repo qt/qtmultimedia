@@ -160,7 +160,7 @@ void QGstreamerVideoOutput::setIsPreview()
 
 void QGstreamerVideoOutput::flushSubtitles()
 {
-    if (!m_subtitleSink.isNull()) {
+    if (m_subtitleSink) {
         auto pad = m_subtitleSink.staticPad("sink");
         auto *event = gst_event_new_flush_start();
         pad.sendEvent(event);

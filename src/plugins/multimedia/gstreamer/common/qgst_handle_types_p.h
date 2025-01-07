@@ -213,6 +213,7 @@ using QGstContextHandle = QGstImpl::QGstMiniObjectHandleHelper<GstContext>::Shar
 using QGstGstDateTimeHandle = QGstImpl::QGstMiniObjectHandleHelper<GstDateTime>::SharedHandle;
 using QGstPluginFeatureHandle = QGstImpl::QGstHandleHelper<GstPluginFeature>::SharedHandle;
 using QGstQueryHandle = QGstImpl::QGstMiniObjectHandleHelper<GstQuery>::SharedHandle;
+using QGstMessageHandle = QGstImpl::QGstMiniObjectHandleHelper<GstMessage>::SharedHandle;
 
 #if QT_CONFIG(gstreamer_gl)
 using QGstGLContextHandle = QGstImpl::QGstHandleHelper<GstGLContext>::SharedHandle;

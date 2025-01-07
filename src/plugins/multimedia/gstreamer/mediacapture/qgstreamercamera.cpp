@@ -194,7 +194,7 @@ void QGstreamerCamera::updateCameraProperties()
 #if QT_CONFIG(gstreamer_photography)
 GstPhotography *QGstreamerCamera::photography() const
 {
-    if (!gstCamera.isNull() && GST_IS_PHOTOGRAPHY(gstCamera.element()))
+    if (gstCamera && GST_IS_PHOTOGRAPHY(gstCamera.element()))
         return GST_PHOTOGRAPHY(gstCamera.element());
     return nullptr;
 }

@@ -15,24 +15,16 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qsharedhandle_p.h>
+#include "qgst_handle_types_p.h"
 #include "qgst_p.h"
 
 QT_BEGIN_NAMESPACE
 
-// Required for QDoc workaround
-class QString;
-
-template <>
-struct QGstPointerImpl::QGstRefcountingAdaptor<GstMessage>
+class QGstreamerMessage : public QGstMessageHandle
 {
-    static void ref(GstMessage *arg) noexcept { gst_message_ref(arg); }
-    static void unref(GstMessage *arg) noexcept { gst_message_unref(arg); }
-};
-
-class QGstreamerMessage : public QGstPointerImpl::QGstObjectWrapper<GstMessage>
-{
-    using BaseClass = QGstPointerImpl::QGstObjectWrapper<GstMessage>;
+    using BaseClass = QGstMessageHandle;
 
 public:
     using BaseClass::BaseClass;
@@ -49,7 +41,5 @@ public:
 };
 
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QGstreamerMessage);
 
 #endif
