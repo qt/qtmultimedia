@@ -20,6 +20,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QCameraDevice;
 class QPlatformMediaIntegration;
 
 class Q_MULTIMEDIA_EXPORT QPlatformVideoDevices : public QObject
