@@ -210,8 +210,10 @@ bool QPulseAudioSource::open()
 
     std::unique_lock engineLock{ *pulseEngine };
 
-    m_stream.reset(
-            pa_stream_new(pulseEngine->context(), m_streamName.constData(), &spec, &channel_map));
+    m_stream = PAStreamHandle{
+        pa_stream_new(pulseEngine->context(), m_streamName.constData(), &spec, &channel_map),
+        PAStreamHandle::HasRef,
+    };
 
     pa_stream_set_state_callback(m_stream.get(), inputStreamStateCallback, this);
     pa_stream_set_read_callback(m_stream.get(), inputStreamReadCallback, this);

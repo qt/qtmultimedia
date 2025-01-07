@@ -278,8 +278,11 @@ bool QPulseAudioSink::open()
         pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, r);
 #endif
 
-    m_stream.reset(pa_stream_new_with_proplist(pulseEngine->context(), m_streamName.constData(),
-                                               &m_spec, &channel_map, propList));
+    m_stream = PAStreamHandle{
+        pa_stream_new_with_proplist(pulseEngine->context(), m_streamName.constData(), &m_spec,
+                                    &channel_map, propList),
+        PAStreamHandle::HasRef,
+    };
     pa_proplist_free(propList);
 
     if (!m_stream) {
@@ -648,8 +651,10 @@ void QPulseAudioSink::resume()
 
             pulseEngine->wait(operation);
 
-            operation.reset(
-                    pa_stream_trigger(m_stream.get(), outputStreamSuccessCallback, nullptr));
+            operation = PAOperationHandle{
+                pa_stream_trigger(m_stream.get(), outputStreamSuccessCallback, nullptr),
+                PAOperationHandle::HasRef,
+            };
             pulseEngine->wait(operation);
         }
 
