@@ -17,6 +17,7 @@
 
 #include <private/qplatformcamera_p.h>
 #include <private/qmultimediautils_p.h>
+#include <QtCore/private/quniquehandle_types_p.h>
 
 #include <mediacapture/qgstreamermediacapturesession_p.h>
 #include <common/qgst_p.h>
@@ -101,7 +102,7 @@ private:
         if (int gstreamerDeviceFd = gstCamera.getInt("device-fd"); gstreamerDeviceFd != -1)
             return f(gstreamerDeviceFd);
 
-        auto v4l2FileDescriptor = QFileDescriptorHandle{
+        auto v4l2FileDescriptor = QUniqueFileDescriptorHandle{
             QT_OPEN(m_v4l2DevicePath.toLocal8Bit().constData(), O_RDONLY),
         };
         if (!v4l2FileDescriptor) {
