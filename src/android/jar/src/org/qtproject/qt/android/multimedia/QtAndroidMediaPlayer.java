@@ -52,7 +52,7 @@ class QtAndroidMediaPlayer
     private static final String TAG = "Qt MediaPlayer";
     private SurfaceHolder mSurfaceHolder = null;
     private ScheduledExecutorService mProgressScheduler = null;
-    private ScheduledFuture mProgressWatcherHandle = null;
+    private ScheduledFuture<?> mProgressWatcherHandle = null;
 
     private class State {
         final static int Uninitialized = 0x1 /* End */;
