@@ -25,6 +25,7 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtMultimedia/private/qplatformmediaplayer_p.h>
+#include <QtMultimedia/private/qsharedhandle_p.h>
 
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
@@ -289,102 +290,6 @@ public:
     QList<QAudioFormat::SampleFormat> getSampleFormats() const;
 };
 
-namespace QGstPointerImpl {
-
-template <typename RefcountedObject>
-struct QGstRefcountingAdaptor;
-
-template <typename GstType>
-class QGstObjectWrapper
-{
-    using Adaptor = QGstRefcountingAdaptor<GstType>;
-
-    GstType *m_object = nullptr;
-
-public:
-    enum RefMode { HasRef, NeedsRef };
-
-    constexpr QGstObjectWrapper() = default;
-
-    explicit QGstObjectWrapper(GstType *object, RefMode mode) : m_object(object)
-    {
-        if (m_object && mode == NeedsRef)
-            Adaptor::ref(m_object);
-    }
-
-    QGstObjectWrapper(const QGstObjectWrapper &other) : m_object(other.m_object)
-    {
-        if (m_object)
-            Adaptor::ref(m_object);
-    }
-
-    ~QGstObjectWrapper()
-    {
-        if (m_object)
-            Adaptor::unref(m_object);
-    }
-
-    QGstObjectWrapper(QGstObjectWrapper &&other) noexcept
-        : m_object(std::exchange(other.m_object, nullptr))
-    {
-    }
-
-    QGstObjectWrapper &
-    operator=(const QGstObjectWrapper &other) // NOLINT: bugprone-unhandled-self-assign
-    {
-        if (m_object != other.m_object) {
-            GstType *originalObject = m_object;
-
-            m_object = other.m_object;
-            if (m_object)
-                Adaptor::ref(m_object);
-            if (originalObject)
-                Adaptor::unref(originalObject);
-        }
-        return *this;
-    }
-
-    QGstObjectWrapper &operator=(QGstObjectWrapper &&other) noexcept
-    {
-        if (this != &other) {
-            GstType *originalObject = m_object;
-            m_object = std::exchange(other.m_object, nullptr);
-
-            if (originalObject)
-                Adaptor::unref(originalObject);
-        }
-        return *this;
-    }
-
-#ifdef __cpp_lib_three_way_comparison
-    // clang-format off
-    auto operator<=>(const QGstObjectWrapper &rhs) const = default;
-    // clang-format on
-#else
-    friend bool operator==(const QGstObjectWrapper &a, const QGstObjectWrapper &b)
-    {
-        return a.m_object == b.m_object;
-    }
-    friend bool operator!=(const QGstObjectWrapper &a, const QGstObjectWrapper &b)
-    {
-        return a.m_object != b.m_object;
-    }
-    friend bool operator<(const QGstObjectWrapper &a, const QGstObjectWrapper &b)
-    {
-        return a.m_object < b.m_object;
-    }
-#endif
-
-    explicit operator bool() const { return bool(m_object); }
-    bool isNull() const { return !m_object; }
-    GstType *release() { return std::exchange(m_object, nullptr); }
-
-protected:
-    GstType *get() const { return m_object; }
-};
-
-} // namespace QGstPointerImpl
-
 class QGstreamerMessage;
 
 class QGstStructureView
@@ -412,16 +317,21 @@ public:
     QSize nativeSize() const;
 };
 
-template <>
-struct QGstPointerImpl::QGstRefcountingAdaptor<GstCaps>
+struct QSharedGstCapsTraits
 {
-    static void ref(GstCaps *arg) noexcept { gst_caps_ref(arg); }
-    static void unref(GstCaps *arg) noexcept { gst_caps_unref(arg); }
+    using Type = GstCaps *;
+    static constexpr Type invalidValue() noexcept { return nullptr; }
+    static GstCaps *ref(GstCaps *arg) noexcept { return gst_caps_ref(arg); }
+    static bool unref(GstCaps *arg) noexcept
+    {
+        gst_caps_unref(arg);
+        return true;
+    }
 };
 
-class QGstCaps : public QGstPointerImpl::QGstObjectWrapper<GstCaps>
+class QGstCaps : public QtPrivate::QSharedHandle<QSharedGstCapsTraits>
 {
-    using BaseClass = QGstPointerImpl::QGstObjectWrapper<GstCaps>;
+    using BaseClass = QtPrivate::QSharedHandle<QSharedGstCapsTraits>;
 
 public:
     using BaseClass::BaseClass;
@@ -449,18 +359,27 @@ public:
     QGstCaps copy() const;
 };
 
-template <>
-struct QGstPointerImpl::QGstRefcountingAdaptor<GstObject>
+struct QSharedGstObjectTraits
 {
-    static void ref(GstObject *arg) noexcept { gst_object_ref_sink(arg); }
-    static void unref(GstObject *arg) noexcept { gst_object_unref(arg); }
+    using Type = GstObject *;
+    static constexpr Type invalidValue() noexcept { return nullptr; }
+    static GstObject *ref(GstObject *arg) noexcept
+    {
+        gst_object_ref_sink(arg);
+        return arg;
+    }
+    static bool unref(GstObject *arg) noexcept
+    {
+        gst_object_unref(arg);
+        return true;
+    }
 };
 
 class QGObjectHandlerConnection;
 
-class QGstObject : public QGstPointerImpl::QGstObjectWrapper<GstObject>
+class QGstObject : public QtPrivate::QSharedHandle<QSharedGstObjectTraits>
 {
-    using BaseClass = QGstPointerImpl::QGstObjectWrapper<GstObject>;
+    using BaseClass = QtPrivate::QSharedHandle<QSharedGstObjectTraits>;
 
 public:
     using BaseClass::BaseClass;

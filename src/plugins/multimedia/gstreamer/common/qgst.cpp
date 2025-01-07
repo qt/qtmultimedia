@@ -1374,7 +1374,7 @@ bool QGstBin::syncChildrenState()
 
 void QGstBin::dumpGraph(const char *fileNamePrefix) const
 {
-    if (isNull())
+    if (!get())
         return;
 
     GST_DEBUG_BIN_TO_DOT_FILE(bin(), GST_DEBUG_GRAPH_SHOW_VERBOSE, fileNamePrefix);
