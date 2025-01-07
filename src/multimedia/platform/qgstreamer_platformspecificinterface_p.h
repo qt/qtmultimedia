@@ -21,6 +21,8 @@ typedef struct _GstElement GstElement; // NOLINT (bugprone-reserved-identifier)
 
 QT_BEGIN_NAMESPACE
 
+class QAudioDevice;
+
 class Q_MULTIMEDIA_EXPORT QGStreamerPlatformSpecificInterface
     : public QAbstractPlatformSpecificInterface
 {

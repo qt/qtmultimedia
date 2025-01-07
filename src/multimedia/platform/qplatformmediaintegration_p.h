@@ -25,35 +25,37 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMediaPlayer;
 class QAudioDecoder;
-class QCamera;
-class QScreenCapture;
-class QWindowCapture;
-class QMediaRecorder;
-class QImageCapture;
-class QMediaDevices;
-class QPlatformMediaDevices;
-class QPlatformMediaCaptureSession;
-class QPlatformMediaPlayer;
-class QPlatformAudioDecoder;
-class QPlatformAudioResampler;
-class QPlatformCamera;
-class QPlatformSurfaceCapture;
-class QPlatformMediaRecorder;
-class QPlatformImageCapture;
-class QPlatformMediaFormatInfo;
-class QObject;
-class QPlatformVideoSink;
-class QVideoSink;
+class QAudioFormat;
 class QAudioInput;
 class QAudioOutput;
+class QCamera;
+class QCameraDevice;
+class QCapturableWindow;
+class QImageCapture;
+class QMediaDevices;
+class QMediaPlayer;
+class QMediaRecorder;
+class QObject;
+class QPlatformAudioDecoder;
 class QPlatformAudioInput;
 class QPlatformAudioOutput;
-class QPlatformVideoDevices;
-class QCapturableWindow;
+class QPlatformAudioResampler;
+class QPlatformCamera;
 class QPlatformCapturableWindows;
+class QPlatformImageCapture;
+class QPlatformMediaCaptureSession;
+class QPlatformMediaDevices;
+class QPlatformMediaFormatInfo;
+class QPlatformMediaPlayer;
+class QPlatformMediaRecorder;
+class QPlatformSurfaceCapture;
+class QPlatformVideoDevices;
+class QPlatformVideoSink;
+class QScreenCapture;
 class QVideoFrame;
+class QVideoSink;
+class QWindowCapture;
 
 class Q_MULTIMEDIA_EXPORT QAbstractPlatformSpecificInterface
 {

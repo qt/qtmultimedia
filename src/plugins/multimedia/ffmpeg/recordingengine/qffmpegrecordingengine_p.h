@@ -22,12 +22,13 @@
 
 QT_BEGIN_NAMESPACE
 
+class QAudioBuffer;
+class QAudioFormat;
 class QFFmpegAudioInput;
 class QPlatformAudioBufferInput;
 class QPlatformAudioBufferInputBase;
-class QVideoFrame;
-class QAudioBuffer;
 class QPlatformVideoSource;
+class QVideoFrame;
 
 namespace QFFmpeg
 {

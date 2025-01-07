@@ -14,12 +14,7 @@
 QT_BEGIN_NAMESPACE
 
 class QUrl;
-class QSize;
-class QAudioFormat;
-class QCamera;
-class QCameraDevice;
 class QMediaFormat;
-class QAudioDevice;
 class QMediaCaptureSession;
 class QPlatformMediaRecorder;
 
