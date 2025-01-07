@@ -205,8 +205,8 @@ void QGstreamerVideoSink::updateSinkElement(QGstVideoRendererSinkElement newSink
 
 void QGstreamerVideoSink::unrefGstContexts()
 {
-    m_gstGlDisplayContext.close();
-    m_gstGlLocalContext.close();
+    m_gstGlDisplayContext.reset();
+    m_gstGlLocalContext.reset();
     m_eglDisplay = nullptr;
     m_eglImageTargetTexture2D = nullptr;
 }
@@ -238,7 +238,8 @@ void QGstreamerVideoSink::updateGstContexts()
     if (m_eglDisplay) {
 #  if QT_CONFIG(gstreamer_gl_egl)
         gstGlDisplay.reset(
-                GST_GL_DISPLAY_CAST(gst_gl_display_egl_new_with_egl_display(m_eglDisplay)));
+                GST_GL_DISPLAY_CAST(gst_gl_display_egl_new_with_egl_display(m_eglDisplay)),
+                QGstGLDisplayHandle::HasRef);
         m_eglImageTargetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
 #  endif
     } else {
@@ -250,15 +251,17 @@ void QGstreamerVideoSink::updateGstContexts()
                 contextName = "glxcontext"_ba;
                 glPlatform = GST_GL_PLATFORM_GLX;
 
-                gstGlDisplay.reset(GST_GL_DISPLAY_CAST(
-                        gst_gl_display_x11_new_with_display(reinterpret_cast<Display *>(display))));
+                gstGlDisplay.reset(GST_GL_DISPLAY_CAST(gst_gl_display_x11_new_with_display(
+                                           reinterpret_cast<Display *>(display))),
+                                   QGstGLDisplayHandle::HasRef);
             }
 #  endif
 #  if QT_CONFIG(gstreamer_gl_wayland)
             if (platform.startsWith(QLatin1String("wayland"))) {
                 Q_ASSERT(!gstGlDisplay);
                 gstGlDisplay.reset(GST_GL_DISPLAY_CAST(gst_gl_display_wayland_new_with_display(
-                        reinterpret_cast<struct wl_display *>(display))));
+                                           reinterpret_cast<struct wl_display *>(display))),
+                                   QGstGLDisplayHandle::HasRef);
             }
 #endif
         }
@@ -295,15 +298,17 @@ void QGstreamerVideoSink::updateGstContexts()
     if (error)
         qWarning() << "Could not create display context:" << error;
 
-    appContext.close();
+    appContext.reset();
 
-    m_gstGlDisplayContext.reset(gst_context_new(GST_GL_DISPLAY_CONTEXT_TYPE, false));
+    m_gstGlDisplayContext.reset(gst_context_new(GST_GL_DISPLAY_CONTEXT_TYPE, false),
+                                QGstContextHandle::HasRef);
     gst_context_set_gl_display(m_gstGlDisplayContext.get(), gstGlDisplay.get());
 
-    m_gstGlLocalContext.reset(gst_context_new("gst.gl.local_context", false));
+    m_gstGlLocalContext.reset(gst_context_new("gst.gl.local_context", false),
+                              QGstContextHandle::HasRef);
     GstStructure *structure = gst_context_writable_structure(m_gstGlLocalContext.get());
     gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, displayContext.get(), nullptr);
-    displayContext.close();
+    displayContext.reset();
 
     // Note: after updating the context, we switch the sink and send gst_event_new_reconfigure()
     // upstream. this will cause the context to be queried again.

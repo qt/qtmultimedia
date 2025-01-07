@@ -41,24 +41,24 @@ struct QGstTagListHandleTraits
 {
     using Type = GstTagList *;
     static constexpr Type invalidValue() noexcept { return nullptr; }
-    static bool close(Type handle) noexcept
+    static Type ref(Type handle) noexcept { return gst_tag_list_ref(handle); }
+    static bool unref(Type handle) noexcept
     {
         gst_tag_list_unref(handle);
         return true;
     }
-    static Type ref(Type handle) noexcept { return gst_tag_list_ref(handle); }
 };
 
 struct QGstSampleHandleTraits
 {
     using Type = GstSample *;
     static constexpr Type invalidValue() noexcept { return nullptr; }
-    static bool close(Type handle) noexcept
+    static Type ref(Type handle) noexcept { return gst_sample_ref(handle); }
+    static bool unref(Type handle) noexcept
     {
         gst_sample_unref(handle);
         return true;
     }
-    static Type ref(Type handle) noexcept { return gst_sample_ref(handle); }
 };
 
 struct QUniqueGstStructureHandleTraits
@@ -109,12 +109,12 @@ struct QGstDateTimeHandleTraits
 {
     using Type = GstDateTime *;
     static constexpr Type invalidValue() noexcept { return nullptr; }
-    static bool close(Type handle) noexcept
+    static Type ref(Type handle) noexcept { return gst_date_time_ref(handle); }
+    static bool unref(Type handle) noexcept
     {
         gst_date_time_unref(handle);
         return true;
     }
-    static Type ref(Type handle) noexcept { return gst_date_time_ref(handle); }
 };
 
 template <typename GstType>
@@ -124,20 +124,20 @@ struct QGstHandleHelper
     {
         using Type = GstType *;
         static constexpr Type invalidValue() noexcept { return nullptr; }
-        static bool close(Type handle) noexcept
-        {
-            gst_object_unref(G_OBJECT(handle));
-            return true;
-        }
-
         static Type ref(Type handle) noexcept
         {
             gst_object_ref_sink(G_OBJECT(handle));
             return handle;
         }
+
+        static bool unref(Type handle) noexcept
+        {
+            gst_object_unref(G_OBJECT(handle));
+            return true;
+        }
     };
 
-    using SharedHandle = QSharedHandle<QGstSafeObjectHandleTraits>;
+    using SharedHandle = QtPrivate::QSharedHandle<QGstSafeObjectHandleTraits>;
 };
 
 template <typename GstType>
@@ -147,11 +147,6 @@ struct QGstMiniObjectHandleHelper
     {
         using Type = GstType *;
         static constexpr Type invalidValue() noexcept { return nullptr; }
-        static bool close(Type handle) noexcept
-        {
-            gst_mini_object_unref(GST_MINI_OBJECT_CAST(handle));
-            return true;
-        }
 
         static Type ref(Type handle) noexcept
         {
@@ -159,9 +154,15 @@ struct QGstMiniObjectHandleHelper
                 gst_mini_object_ref(GST_MINI_OBJECT_CAST(handle));
             return handle;
         }
+
+        static bool unref(Type handle) noexcept
+        {
+            gst_mini_object_unref(GST_MINI_OBJECT_CAST(handle));
+            return true;
+        }
     };
 
-    using SharedHandle = QSharedHandle<Traits>;
+    using SharedHandle = QtPrivate::QSharedHandle<Traits>;
 };
 
 template <typename TypeArg>
@@ -171,21 +172,21 @@ struct QGObjectHandleHelper
     {
         using Type = TypeArg *;
         static constexpr Type invalidValue() noexcept { return nullptr; }
-        static bool close(Type handle) noexcept
-        {
-            g_object_unref(G_OBJECT(handle));
-            return true;
-        }
-
         static Type ref(Type handle) noexcept
         {
             if (G_OBJECT(handle))
                 g_object_ref(G_OBJECT(handle));
             return handle;
         }
+
+        static bool unref(Type handle) noexcept
+        {
+            g_object_unref(G_OBJECT(handle));
+            return true;
+        }
     };
 
-    using SharedHandle = QSharedHandle<Traits>;
+    using SharedHandle = QtPrivate::QSharedHandle<Traits>;
 };
 
 } // namespace QGstImpl
@@ -199,14 +200,14 @@ using QGstBusHandle = QGstImpl::QGstHandleHelper<GstBus>::SharedHandle;
 using QGstStreamCollectionHandle = QGstImpl::QGstHandleHelper<GstStreamCollection>::SharedHandle;
 using QGstStreamHandle = QGstImpl::QGstHandleHelper<GstStream>::SharedHandle;
 
-using QGstTagListHandle = QSharedHandle<QGstImpl::QGstTagListHandleTraits>;
-using QGstSampleHandle = QSharedHandle<QGstImpl::QGstSampleHandleTraits>;
+using QGstTagListHandle = QtPrivate::QSharedHandle<QGstImpl::QGstTagListHandleTraits>;
+using QGstSampleHandle = QtPrivate::QSharedHandle<QGstImpl::QGstSampleHandleTraits>;
 
 using QUniqueGstStructureHandle = QUniqueHandle<QGstImpl::QUniqueGstStructureHandleTraits>;
 using QUniqueGStringHandle = QUniqueHandle<QGstImpl::QUniqueGStringHandleTraits>;
 using QUniqueGErrorHandle = QUniqueHandle<QGstImpl::QUniqueGErrorHandleTraits>;
 using QUniqueGDateHandle = QUniqueHandle<QGstImpl::QUniqueGDateHandleTraits>;
-using QGstDateTimeHandle = QSharedHandle<QGstImpl::QGstDateTimeHandleTraits>;
+using QGstDateTimeHandle = QtPrivate::QSharedHandle<QGstImpl::QGstDateTimeHandleTraits>;
 using QGstBufferHandle = QGstImpl::QGstMiniObjectHandleHelper<GstBuffer>::SharedHandle;
 using QGstContextHandle = QGstImpl::QGstMiniObjectHandleHelper<GstContext>::SharedHandle;
 using QGstGstDateTimeHandle = QGstImpl::QGstMiniObjectHandleHelper<GstDateTime>::SharedHandle;

@@ -38,16 +38,16 @@ struct PaHandleTraits
 {
     using Type = TypeArg *;
     static constexpr Type invalidValue() noexcept { return nullptr; }
-    static bool close(Type handle)
-    {
-        (*UnrefFn)(handle);
-        return true;
-    }
 
     static Type ref(Type handle)
     {
         Type ret = (*RefFn)(handle);
         return ret;
+    }
+    static bool unref(Type handle)
+    {
+        (*UnrefFn)(handle);
+        return true;
     }
 };
 
@@ -55,9 +55,9 @@ using PAOperationHandleTraits = PaHandleTraits<pa_operation, pa_operation_ref, p
 using PAContextHandleTraits = PaHandleTraits<pa_context, pa_context_ref, pa_context_unref>;
 using PAStreamHandleTraits = PaHandleTraits<pa_stream, pa_stream_ref, pa_stream_unref>;
 
-using PAOperationHandle = QSharedHandle<PAOperationHandleTraits>;
-using PAContextHandle = QSharedHandle<PAContextHandleTraits>;
-using PAStreamHandle = QSharedHandle<PAStreamHandleTraits>;
+using PAOperationHandle = QtPrivate::QSharedHandle<PAOperationHandleTraits>;
+using PAContextHandle = QtPrivate::QSharedHandle<PAContextHandleTraits>;
+using PAStreamHandle = QtPrivate::QSharedHandle<PAStreamHandleTraits>;
 
 struct PaMainLoopDeleter
 {

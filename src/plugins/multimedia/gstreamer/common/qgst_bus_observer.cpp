@@ -48,7 +48,7 @@ void QGstBusObserver::close()
     if (!get())
         return;
 
-    QGstBusHandle::close();
+    QGstBusHandle::reset();
 }
 
 void QGstBusObserver::installMessageFilter(QGstreamerBusMessageFilter *filter)
