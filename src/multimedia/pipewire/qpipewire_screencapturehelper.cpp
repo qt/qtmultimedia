@@ -1,8 +1,10 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qpipewire_screencapture_p.h"
 #include "qpipewire_screencapturehelper_p.h"
+
+#include "qpipewire_instance_p.h"
+#include "qpipewire_symbolloader_p.h"
 #include "qpipewire_symbolloader_p.h"
 
 #include <QtCore/qdebug.h>
@@ -45,23 +47,10 @@ QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
 
-Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCapture, "qt.multimedia.pipewirecapture");
-Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCaptureMore, "qt.multimedia.pipewirecapture.more");
+Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCapture, "qt.multimedia.pipewire.capture");
+Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCaptureMore, "qt.multimedia.pipewire.capture.more");
 
 namespace QtPipeWire {
-
-class Pipewire
-{
-public:
-    Pipewire() {
-        pw_init(nullptr, nullptr);
-    };
-    ~Pipewire() {
-        pw_deinit();
-    }
-
-    Q_DISABLE_COPY(Pipewire)
-};
 
 struct PipeWireCaptureGlobalState
 {
@@ -88,28 +77,9 @@ struct PipeWireCaptureGlobalState
     }
 
     bool hasScreenCastPortal = false;
-
-    std::weak_ptr<Pipewire> pipewire;
 };
 
 Q_GLOBAL_STATIC(PipeWireCaptureGlobalState, globalState)
-
-void QPipeWireCaptureHelper::initPipeWire()
-{
-    if (!globalState->hasScreenCastPortal)
-        return;
-
-    m_pipewire = globalState->pipewire.lock();
-    if (!m_pipewire) {
-        m_pipewire = std::make_shared<Pipewire>();
-        globalState->pipewire = m_pipewire;
-    }
-}
-
-void QPipeWireCaptureHelper::deinitPipeWire()
-{
-    m_pipewire.reset();
-}
 
 bool QPipeWireCaptureHelper::setActiveInternal(bool active)
 {
@@ -416,8 +386,8 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
 
     if (!globalState)
         return false;
-    if (!m_pipewire)
-        initPipeWire();
+
+    QPipeWireInstance::instance(); // initialize pipewire instance
 
     static const pw_core_events coreEvents = {
         .version = PW_VERSION_CORE_EVENTS,
@@ -816,9 +786,6 @@ void QPipeWireCaptureHelper::destroy()
         pw_context_destroy(m_context);
 
     pw_thread_loop_destroy(m_threadLoop);
-
-    if (m_pipewire)
-        deinitPipeWire();
 
     m_state = NoState;
 }
