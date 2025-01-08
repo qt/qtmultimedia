@@ -1,8 +1,10 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qpipewire_screencapture_p.h"
 #include "qpipewire_screencapturehelper_p.h"
+
+#include "qpipewire_instance_p.h"
+#include "qpipewire_symbolloader_p.h"
 #include "qpipewire_symbolloader_p.h"
 
 #include <QtCore/qdebug.h>
@@ -50,19 +52,6 @@ static Q_LOGGING_CATEGORY(qLcPipeWireCaptureMore, "qt.multimedia.pipewirecapture
 
 namespace QtPipeWire {
 
-class Pipewire
-{
-public:
-    Pipewire() {
-        pw_init(nullptr, nullptr);
-    };
-    ~Pipewire() {
-        pw_deinit();
-    }
-
-    Q_DISABLE_COPY(Pipewire)
-};
-
 struct PipeWireCaptureGlobalState
 {
     PipeWireCaptureGlobalState() {
@@ -88,28 +77,9 @@ struct PipeWireCaptureGlobalState
     }
 
     bool hasScreenCastPortal = false;
-
-    std::weak_ptr<Pipewire> pipewire;
 };
 
 Q_GLOBAL_STATIC(PipeWireCaptureGlobalState, globalState)
-
-void QPipeWireCaptureHelper::initPipeWire()
-{
-    if (!globalState->hasScreenCastPortal)
-        return;
-
-    m_pipewire = globalState->pipewire.lock();
-    if (!m_pipewire) {
-        m_pipewire = std::make_shared<Pipewire>();
-        globalState->pipewire = m_pipewire;
-    }
-}
-
-void QPipeWireCaptureHelper::deinitPipeWire()
-{
-    m_pipewire.reset();
-}
 
 bool QPipeWireCaptureHelper::setActiveInternal(bool active)
 {
@@ -416,8 +386,8 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
 
     if (!globalState)
         return false;
-    if (!m_pipewire)
-        initPipeWire();
+
+    QPipeWireInstance::instance(); // initialize pipewire instance
 
     static const pw_core_events coreEvents = {
         .version = PW_VERSION_CORE_EVENTS,
@@ -813,9 +783,6 @@ void QPipeWireCaptureHelper::destroy()
     m_core = {};
     m_context = {};
     m_threadLoop = {};
-
-    if (m_pipewire)
-        deinitPipeWire();
 
     m_state = NoState;
 }

@@ -161,6 +161,7 @@ if (QT_FEATURE_pipewire)
         SYSTEM_INCLUDE_DIRECTORIES
             "${PipeWire_INCLUDE_DIRS};${Spa_INCLUDE_DIRS}"
         SOURCES
+            pipewire/qpipewire_instance.cpp            pipewire/qpipewire_instance_p.h
             pipewire/qpipewire_screencapture.cpp       pipewire/qpipewire_screencapture_p.h
             pipewire/qpipewire_screencapturehelper.cpp pipewire/qpipewire_screencapturehelper_p.h
                                                        pipewire/qpipewire_support_p.h
