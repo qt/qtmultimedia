@@ -223,8 +223,8 @@ QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicLevel ambisonicLevel, const QAudio
 QAmbisonicDecoder::~QAmbisonicDecoder()
 {
     if (simpleDecoderFactors) {
-        delete simpleDecoderFactors;
-        delete reverbFactors;
+        delete[] simpleDecoderFactors;
+        delete[] reverbFactors;
     }
 }
 
