@@ -63,6 +63,10 @@ QT_BEGIN_NAMESPACE
     \l {camera_image_processing}{Camera Image Processing}.
 
     See the \l{Camera Overview}{camera overview} for more information.
+
+    \note On WebAssembly platform, due to it's asynchronous nature,
+    QMediaDevices::videoInputsChanged() signal is emitted when the list of
+    video inputs is ready. User permissions are required. Works only on secure https contexts.
 */
 
 /*!

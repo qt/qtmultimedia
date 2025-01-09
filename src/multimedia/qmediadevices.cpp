@@ -58,6 +58,11 @@ QT_BEGIN_NAMESPACE
     select the device to be used.
 
     QMediaDevices is a singleton object and all getters are thread-safe.
+
+    \note On WebAssembly platform, due to it's asynchronous nature,
+    the lists of devices will only be available after audioInputsChanged,
+    audioOutputsChanded, or videoInputsChanged notifications.
+
 */
 
 /*!

@@ -49,6 +49,10 @@
     This class represents an input channel that can be used together with
     QMediaCaptureSession. It enables the selection of the physical input device
     to be used, muting the channel, and changing the channel's volume.
+
+    \note On WebAssembly platform, due to it's asynchronous nature,
+    QMediaDevices::audioInputsChanged() signal is emitted when the list of
+    audio inputs is ready. User permissions are required. Works only on secure https contexts.
 */
 
 QAudioInput::QAudioInput(QObject *parent) : QAudioInput(QMediaDevices::defaultAudioInput(), parent)
