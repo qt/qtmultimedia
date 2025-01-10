@@ -73,8 +73,8 @@ public:
     {
         int elementsConsumed = 0;
 
-        while (elements > 0) {
-            ConstRegion readRegion = acquireReadRegion(elements);
+        while (elements > elementsConsumed) {
+            ConstRegion readRegion = acquireReadRegion(elements - elementsConsumed);
             if (readRegion.isEmpty())
                 break;
 
@@ -149,7 +149,7 @@ private:
     int m_readPos{};
     int m_writePos{};
     std::unique_ptr<T[]> m_buffer;
-    QAtomicInt m_bufferUsed;
+    QAtomicInt m_bufferUsed{};
 };
 
 } // namespace QtPrivate
