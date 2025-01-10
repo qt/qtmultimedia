@@ -83,6 +83,7 @@ private slots:
 
     void record_emits_mediaformatChanged_whenFormatChanged();
 
+    void stop_stopsRecording_whenInvokedUponRecordingStart();
 private:
     QTemporaryDir m_tempDir;
 };
@@ -530,6 +531,31 @@ void tst_QMediaRecorderBackend::record_emits_mediaformatChanged_whenFormatChange
     QCOMPARE_NE(actualFormat.fileFormat(), QMediaFormat::UnspecifiedFormat);
     QCOMPARE_NE(actualFormat.videoCodec(), QMediaFormat::VideoCodec::Unspecified);
     QCOMPARE_NE(actualFormat.audioCodec(), QMediaFormat::AudioCodec::Unspecified);
+}
+
+void tst_QMediaRecorderBackend::stop_stopsRecording_whenInvokedUponRecordingStart()
+{
+    QSKIP_IF_NOT_FFMPEG();
+
+    // Arrange
+    const QUrl url = QUrl::fromLocalFile(m_tempDir.filePath("any_file_name"));
+    CaptureSessionFixture f{ StreamType::AudioAndVideo };
+    f.m_recorder.setOutputLocation(url);
+
+    auto onStateChanged = [&f](QMediaRecorder::RecorderState state) {
+        if (state == QMediaRecorder::RecordingState)
+            f.m_recorder.stop();
+    };
+
+    connect(&f.m_recorder, &QMediaRecorder::recorderStateChanged, this, onStateChanged);
+
+    // Act
+    f.start(RunMode::Pull, AutoStop::No);
+
+    // Assert
+    QTRY_COMPARE(f.m_recorder.recorderState(), QMediaRecorder::StoppedState);
+    QList< QList<QVariant> > expectedRecorderStateChangedSignals( { { QMediaRecorder::RecordingState }, { QMediaRecorder::StoppedState } });
+    QCOMPARE(f.recorderStateChanged, expectedRecorderStateChangedSignals);
 }
 
 QTEST_MAIN(tst_QMediaRecorderBackend)

@@ -101,9 +101,10 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
 
     durationChanged(0);
     actualLocationChanged(QUrl::fromLocalFile(actualLocation));
-    stateChanged(QMediaRecorder::RecordingState);
 
-    m_recordingEngine->initialize(audioInputs, videoSources);
+    if (m_recordingEngine->initialize(audioInputs, videoSources))
+        stateChanged(QMediaRecorder::RecordingState);
+    // else an error has been already emitted
 }
 
 void QFFmpegMediaRecorder::pause()

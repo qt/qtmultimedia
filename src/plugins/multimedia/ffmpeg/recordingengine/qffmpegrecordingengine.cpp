@@ -140,7 +140,7 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
     connectEncoderToSource(videoEncoder, source);
 }
 
-void RecordingEngine::handleFormatsInitialization()
+bool RecordingEngine::handleFormatsInitialization()
 {
     Q_ASSERT(m_state == State::FormatsInitialization);
     Q_ASSERT(m_formatsInitializer);
@@ -149,7 +149,7 @@ void RecordingEngine::handleFormatsInitialization()
     if (m_audioEncoders.empty() && m_videoEncoders.empty()) {
         emit sessionError(QMediaRecorder::ResourceError,
                           QLatin1StringView("No valid stream found for encoding"));
-        return;
+        return false;
     }
 
     m_state = State::EncodersInitialization;
@@ -157,9 +157,10 @@ void RecordingEngine::handleFormatsInitialization()
     qCDebug(qLcFFmpegEncoder) << "RecordingEngine::start!";
 
     forEachEncoder([](EncoderThread *encoder) { encoder->start(); });
+    return true;
 }
 
-void RecordingEngine::initialize(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
+bool RecordingEngine::initialize(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
                                  const std::vector<QPlatformVideoSource *> &videoSources)
 {
     qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> initialize";
@@ -167,7 +168,7 @@ void RecordingEngine::initialize(const std::vector<QPlatformAudioBufferInputBase
 
     m_state = State::FormatsInitialization;
     m_formatsInitializer = std::make_unique<EncodingInitializer>(*this);
-    m_formatsInitializer->start(audioSources, videoSources);
+    return m_formatsInitializer->start(audioSources, videoSources);
 }
 
 RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine &recordingEngine,
