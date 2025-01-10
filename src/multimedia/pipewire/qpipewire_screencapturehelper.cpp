@@ -23,7 +23,7 @@
 #include <QtMultimedia/private/qvideoframeconversionhelper_p.h>
 
 #if QT_CONFIG(dbus)
-// These QtCore includes are needed for xdg-desktop-portal support
+// These includes are needed for xdg-desktop-portal support
 #include <QtCore/private/qcore_unix_p.h>
 
 #include <QtCore/QFileInfo>
@@ -37,6 +37,10 @@
 #include <QtDBus/QDBusPendingCallWatcher>
 #include <QtDBus/QDBusPendingReply>
 #include <QtDBus/QDBusUnixFileDescriptor>
+
+#include <QtGui/private/qgenericunixservices_p.h>
+#include <QtGui/qpa/qplatformintegration.h>
+#include <QtGui/private/qguiapplication_p.h>
 
 #include <fcntl.h>
 
@@ -261,8 +265,13 @@ void QPipeWireCaptureHelper::startStream()
     QVariantMap options{
         { u"handle_token"_s, getRequestToken() },
     };
-    QDBusMessage reply = m_screenCastInterface->call(u"Start"_s, QDBusObjectPath(m_sessionHandle),
-                                                     u""_s, options);
+
+    const auto unixServices = dynamic_cast<QGenericUnixServices *>(QGuiApplicationPrivate::platformIntegration()->services());
+    const QString parentWindow = QGuiApplication::focusWindow() && unixServices
+            ? unixServices->portalWindowIdentifier(QGuiApplication::focusWindow())
+            : QString();
+    QDBusMessage reply = m_screenCastInterface->call("Start"_L1, QDBusObjectPath(m_sessionHandle),
+                                                     parentWindow, options);
     if (!reply.errorMessage().isEmpty()) {
         updateError(QPlatformSurfaceCapture::InternalError,
                     u"Failed to start stream for org.freedesktop.portal.ScreenCast. Error: "_s
