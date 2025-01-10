@@ -41,7 +41,7 @@ public:
 
     ~EncodingInitializer() override;
 
-    void start(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
+    bool start(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
                const std::vector<QPlatformVideoSource *> &videoSources);
 
 private:
@@ -55,7 +55,7 @@ private:
 
     void addPendingSource(QObject *source);
 
-    void tryStartRecordingEngine();
+    bool tryStartRecordingEngine();
 
 private:
     void emitStreamInitializationError(QString error);

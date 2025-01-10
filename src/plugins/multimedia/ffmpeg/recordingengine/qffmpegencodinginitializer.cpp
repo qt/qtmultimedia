@@ -23,7 +23,7 @@ EncodingInitializer::~EncodingInitializer()
         setEncoderInterface(source, nullptr);
 }
 
-void EncodingInitializer::start(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
+bool EncodingInitializer::start(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
                                 const std::vector<QPlatformVideoSource *> &videoSources)
 {
     for (auto source : audioSources) {
@@ -38,7 +38,7 @@ void EncodingInitializer::start(const std::vector<QPlatformAudioBufferInputBase 
     for (auto source : videoSources)
         addVideoSource(source);
 
-    tryStartRecordingEngine();
+    return tryStartRecordingEngine();
 }
 
 void EncodingInitializer::addAudioBufferInput(QPlatformAudioBufferInput *input)
@@ -114,10 +114,14 @@ void EncodingInitializer::addPendingVideoSource(QPlatformVideoSource *source)
             });
 }
 
-void EncodingInitializer::tryStartRecordingEngine()
+bool EncodingInitializer::tryStartRecordingEngine()
 {
     if (m_pendingSources.empty())
-        m_recordingEngine.handleFormatsInitialization();
+        return m_recordingEngine.handleFormatsInitialization();
+
+    // return true as no errors found, even though they can occur later on,
+    // upon the following encoders initializations.
+    return true;
 }
 
 void EncodingInitializer::emitStreamInitializationError(QString error)

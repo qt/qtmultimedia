@@ -47,7 +47,13 @@ public:
     RecordingEngine(const QMediaEncoderSettings &settings, std::unique_ptr<EncodingFormatContext> context);
     ~RecordingEngine() override;
 
-    void initialize(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
+    /** Initializes the recording engine immediately or
+     *  postpones it if no source formats provided.
+     *  Returns true if no session errors have occurred during the immediate run or
+     *  the engine is to be initialized postponly.
+     *  If any session error has occurred, it emits the signal sessionError and returns false.
+     */
+    bool initialize(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
                     const std::vector<QPlatformVideoSource *> &videoSources);
     void finalize();
 
@@ -112,7 +118,7 @@ private:
     void handleSourceEndOfStream();
     void handleEncoderInitialization();
 
-    void handleFormatsInitialization();
+    bool handleFormatsInitialization();
 
     size_t encodersCount() const { return m_audioEncoders.size() + m_videoEncoders.size(); }
 
