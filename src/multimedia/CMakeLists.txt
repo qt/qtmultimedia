@@ -174,6 +174,7 @@ if (QT_FEATURE_pipewire)
             pipewire/qpipewire_audiodevice.cpp         pipewire/qpipewire_audiodevice_p.h
             pipewire/qpipewire_audiodevicemonitor.cpp  pipewire/qpipewire_audiodevicemonitor_p.h
             pipewire/qpipewire_audiodevices.cpp        pipewire/qpipewire_audiodevices_p.h
+            pipewire/qpipewire_audiosink.cpp           pipewire/qpipewire_audiosink_p.h
             pipewire/qpipewire_instance.cpp            pipewire/qpipewire_instance_p.h
             pipewire/qpipewire_propertydict.cpp        pipewire/qpipewire_propertydict_p.h
             pipewire/qpipewire_registry_support.cpp    pipewire/qpipewire_registry_support_p.h
@@ -202,6 +203,7 @@ if (QT_FEATURE_pipewire)
             pipewire/qpipewire_audiocontextmanager.cpp
             pipewire/qpipewire_audiodevicemonitor.cpp
             pipewire/qpipewire_audiodevices.cpp
+            pipewire/qpipewire_audiosink.cpp
             pipewire/qpipewire_instance.cpp
             pipewire/qpipewire_screencapture.cpp
             pipewire/qpipewire_screencapturehelper.cpp

@@ -5,11 +5,14 @@
 
 #include <pipewire/pipewire.h>
 
-#if !PW_CHECK_VERSION(0, 3, 75)
 extern "C" {
+#if !PW_CHECK_VERSION(0, 3, 75)
 bool pw_check_library_version(int major, int minor, int micro);
-}
 #endif
+#if !PW_CHECK_VERSION(0, 3, 50)
+int pw_stream_get_time_n(struct pw_stream *stream, struct pw_time *time, size_t size);
+#endif
+}
 
 //BEGIN_INIT_FUNCS("pipewire-0.3", "0")
 BEGIN_INIT_FUNCS("pipewire-" PW_API_VERSION, "0")
@@ -35,12 +38,15 @@ INIT_FUNC(pw_thread_loop_in_thread);
 INIT_FUNC(pw_properties_new_dict);
 INIT_FUNC(pw_properties_free);
 INIT_FUNC(pw_stream_new);
+INIT_FUNC(pw_stream_new_simple);
 INIT_FUNC(pw_stream_destroy);
 INIT_FUNC(pw_stream_add_listener);
 INIT_FUNC(pw_stream_connect);
 INIT_FUNC(pw_stream_disconnect);
+INIT_FUNC(pw_stream_set_active);
 INIT_FUNC(pw_stream_dequeue_buffer);
 INIT_FUNC(pw_stream_queue_buffer);
+INIT_OPT_FUNC(pw_stream_get_time_n);
 INIT_FUNC(pw_proxy_destroy);
 INIT_FUNC(pw_get_library_version);
 
@@ -67,12 +73,15 @@ DEFINE_FUNC(pw_thread_loop_in_thread, 1);
 DEFINE_FUNC(pw_properties_new_dict, 1);
 DEFINE_FUNC(pw_properties_free, 1);
 DEFINE_FUNC(pw_stream_new, 3);
+DEFINE_FUNC(pw_stream_new_simple, 5);
 DEFINE_FUNC(pw_stream_destroy, 1);
 DEFINE_FUNC(pw_stream_add_listener, 4);
 DEFINE_FUNC(pw_stream_connect, 6);
 DEFINE_FUNC(pw_stream_disconnect, 1);
+DEFINE_FUNC(pw_stream_set_active, 2);
 DEFINE_FUNC(pw_stream_dequeue_buffer, 1);
 DEFINE_FUNC(pw_stream_queue_buffer, 2);
+DEFINE_FUNC(pw_stream_get_time_n, 3, -1);
 DEFINE_FUNC(pw_proxy_destroy, 1);
 DEFINE_FUNC(pw_get_library_version, 0);
 

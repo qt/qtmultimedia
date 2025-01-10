@@ -37,7 +37,8 @@ public:
 
     explicit QAudioRingBuffer(int bufferSize) : m_bufferSize(bufferSize)
     {
-        m_buffer.reset(new T[bufferSize]); // no value-initialization for trivial types
+        if (bufferSize)
+            m_buffer.reset(new T[bufferSize]); // no value-initialization for trivial types
     }
 
     int write(ConstRegion region)

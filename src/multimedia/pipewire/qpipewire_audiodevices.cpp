@@ -5,6 +5,7 @@
 
 #include "qpipewire_audiocontextmanager_p.h"
 #include "qpipewire_instance_p.h"
+#include "qpipewire_audiosink_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -60,9 +61,9 @@ QPlatformAudioSource *QAudioDevices::createAudioSource(const QAudioDevice &, QOb
     return {};
 }
 
-QPlatformAudioSink *QAudioDevices::createAudioSink(const QAudioDevice &, QObject *)
+QPlatformAudioSink *QAudioDevices::createAudioSink(const QAudioDevice &device, QObject *parent)
 {
-    return {};
+    return new QPipewireAudioSink(device, parent);
 }
 
 } // namespace QtPipeWire
