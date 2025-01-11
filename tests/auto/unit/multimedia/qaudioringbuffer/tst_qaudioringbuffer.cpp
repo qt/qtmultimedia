@@ -81,10 +81,11 @@ void tst_QAudioRingBuffer::stressTest()
 
     QFETCH(bool, rateLimitProducer);
     QFETCH(bool, rateLimitConsumer);
+    QFETCH(int, ringbufferSize);
 
-    QtPrivate::QAudioRingBuffer<int> ringbuffer{ 64 };
+    QtPrivate::QAudioRingBuffer<int> ringbuffer{ ringbufferSize };
 
-    static constexpr int elementsToPush = 1'000'000;
+    static constexpr int elementsToPush = 200'000;
 
     std::thread producer([&] {
         std::mt19937 rng;
@@ -141,10 +142,14 @@ void tst_QAudioRingBuffer::stressTest_data()
 {
     QTest::addColumn<bool>("rateLimitProducer");
     QTest::addColumn<bool>("rateLimitConsumer");
+    QTest::addColumn<int>("ringbufferSize");
 
-    QTest::newRow("no rate limit") << false << false;
-    QTest::newRow("rate limit producer") << true << false;
-    QTest::newRow("rate limit consumer") << false << true;
+    QTest::newRow("no rate limit") << false << false << 64;
+    QTest::newRow("no rate limit, size 63") << false << false << 63;
+    QTest::newRow("no rate limit, size 67") << false << false << 67;
+
+    QTest::newRow("rate limit producer") << true << false << 64;
+    QTest::newRow("rate limit consumer") << false << true << 64;
 }
 
 QTEST_APPLESS_MAIN(tst_QAudioRingBuffer);

@@ -15,10 +15,10 @@
 #ifndef QAUDIORINGBUFFER_P_H
 #define QAUDIORINGBUFFER_P_H
 
-#include <QtCore/qatomic.h>
 #include <QtCore/qspan.h>
 
 #include <algorithm>
+#include <atomic>
 #include <limits>
 
 QT_BEGIN_NAMESPACE
@@ -93,8 +93,8 @@ public:
     }
 
     // CAVEAT: beware of the thread safety
-    int used() const { return m_bufferUsed.loadRelaxed(); }
-    int free() const { return m_bufferSize - m_bufferUsed.loadRelaxed(); }
+    int used() const { return m_bufferUsed.load(std::memory_order_relaxed); }
+    int free() const { return m_bufferSize - m_bufferUsed.load(std::memory_order_relaxed); }
 
     int size() const { return m_bufferSize; };
 
@@ -102,12 +102,12 @@ public:
     {
         m_readPos = 0;
         m_writePos = 0;
-        m_bufferUsed.storeRelaxed(0);
+        m_bufferUsed.store(0, std::memory_order_relaxed);
     }
 
     Region acquireWriteRegion(int size)
     {
-        const int free = m_bufferSize - m_bufferUsed.loadAcquire();
+        const int free = m_bufferSize - m_bufferUsed.load(std::memory_order_acquire);
 
         Region output;
         if (free > 0) {
@@ -122,12 +122,12 @@ public:
     void releaseWriteRegion(int elementsRead)
     {
         m_writePos = (m_writePos + elementsRead) % m_bufferSize;
-        m_bufferUsed.fetchAndAddRelease(elementsRead);
+        m_bufferUsed.fetch_add(elementsRead, std::memory_order_release);
     }
 
     ConstRegion acquireReadRegion(int size)
     {
-        const int used = m_bufferUsed.loadAcquire();
+        const int used = m_bufferUsed.load(std::memory_order_acquire);
 
         if (used > 0) {
             const int readSize = qMin(size, qMin(m_bufferSize - m_readPos, used));
@@ -140,7 +140,7 @@ public:
     void releaseReadRegion(int elementsWritten)
     {
         m_readPos = (m_readPos + elementsWritten) % m_bufferSize;
-        m_bufferUsed.fetchAndAddRelease(-elementsWritten);
+        m_bufferUsed.fetch_sub(elementsWritten, std::memory_order_release);
     }
 
 
@@ -149,7 +149,7 @@ private:
     int m_readPos{};
     int m_writePos{};
     std::unique_ptr<T[]> m_buffer;
-    QAtomicInt m_bufferUsed{};
+    std::atomic_int m_bufferUsed{};
 };
 
 } // namespace QtPrivate
