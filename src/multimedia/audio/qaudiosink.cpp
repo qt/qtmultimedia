@@ -191,8 +191,10 @@ void QAudioSink::stop()
 }
 
 /*!
-    Drops all audio data in the buffers, resets buffers to zero.
+    Immediately halts audio output and discards any audio data currently in the buffers. All pending
+    audio data pushed to QIODevice is ignored.
 
+    \sa stop()
 */
 void QAudioSink::reset()
 {
