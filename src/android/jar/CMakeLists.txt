@@ -20,7 +20,9 @@ set(java_sources
 )
 
 qt_internal_add_jar(Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia
-    INCLUDE_JARS ${QT_ANDROID_JAR}
+    INCLUDE_JARS
+        ${QT_ANDROID_JAR}
+        ${QT6_INSTALL_PREFIX}/jar/Qt${QtMultimedia_VERSION_MAJOR}Android.jar
     SOURCES ${java_sources}
     OUTPUT_DIR "${QT_BUILD_DIR}/jar"
 )
