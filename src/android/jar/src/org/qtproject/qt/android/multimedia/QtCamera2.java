@@ -66,10 +66,10 @@ class QtCamera2 {
     private int mState = STATE_PREVIEW;
     private static int MaxNumberFrames = 12;
 
-    private static final int defaultFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
-    private static final int defaultTorchMode = CameraMetadata.FLASH_MODE_OFF;
-    private static final int defaultAfMode =  CaptureRequest.CONTROL_AF_MODE_OFF;
-    private static final float defaultZoomFactor = 1.0f;
+    private static final int DEFAULT_FLASH_MODE = CaptureRequest.CONTROL_AE_MODE_ON;
+    private static final int DEFAULT_TORCH_MODE = CameraMetadata.FLASH_MODE_OFF;
+    private static final int DEFAULT_AF_MODE = CaptureRequest.CONTROL_AF_MODE_OFF;
+    private static final float DEFAULT_ZOOM_FACTOR = 1.0f;
 
     // The purpose of this class is to gather variables that are accessed across
     // the C++ QCamera's thread, and the background capture-processing thread.
@@ -84,23 +84,23 @@ class QtCamera2 {
         // automatic exposure.
         // QCamera::FlashMode::FlashAuto maps to CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH.
         // QCamera::FlashMode::FlashOn maps to CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH.
-        private int mFlashMode = defaultFlashMode;
+        private int mFlashMode = DEFAULT_FLASH_MODE;
 
         // Not to be confused with QCamera::TorchMode.
         // This controls the currently desired CaptureRequest.FLASH_MODE
         // QCamera::TorchMode::TorchOff maps to CaptureRequest.FLASH_MODE_OFF
         // QCamera::TorchMode::TorchAuto is not supported.
         // QCamera::TorhcMode::TorchOn maps to CaptureRequest.FLASH_MODE_TORCH.
-        private int mTorchMode = defaultTorchMode;
+        private int mTorchMode = DEFAULT_TORCH_MODE;
 
         // Not to be confused with QCamera::FocusMode
         // This controls the currently desired CaptureRequest.CONTROL_AF_MODE
         // QCamera::FocusMode::FocusModeAuto maps to CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
-        private int mAFMode = defaultAfMode;
+        private int mAFMode = DEFAULT_AF_MODE;
 
         // Not to be confused with CaptureRequest.CONTROL_ZOOM_RATIO
         // This matches the current QCamera::zoomFactor of the C++ QCamera object.
-        private float mZoomFactor = defaultZoomFactor;
+        private float mZoomFactor = DEFAULT_ZOOM_FACTOR;
     }
     private final SyncedMembers mSyncedMembers = new SyncedMembers();
 
@@ -108,10 +108,10 @@ class QtCamera2 {
     // Resets the control properties of this camera to their default values.
     public void resetControlProperties() {
         synchronized (mSyncedMembers) {
-            mSyncedMembers.mFlashMode = defaultFlashMode;
-            mSyncedMembers.mTorchMode = defaultTorchMode;
-            mSyncedMembers.mAFMode = defaultAfMode;
-            mSyncedMembers.mZoomFactor = defaultZoomFactor;
+            mSyncedMembers.mFlashMode = DEFAULT_FLASH_MODE;
+            mSyncedMembers.mTorchMode = DEFAULT_TORCH_MODE;
+            mSyncedMembers.mAFMode = DEFAULT_AF_MODE;
+            mSyncedMembers.mZoomFactor = DEFAULT_ZOOM_FACTOR;
         }
     }
 
