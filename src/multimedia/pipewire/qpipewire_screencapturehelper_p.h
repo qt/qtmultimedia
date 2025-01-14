@@ -93,7 +93,7 @@ private:
 
     QVideoFrame m_currentFrame;
     QVideoFrameFormat m_videoFrameFormat;
-    QVideoFrameFormat::PixelFormat m_pixelFormat;
+    QVideoFrameFormat::PixelFormat m_pixelFormat{};
     QSize m_size;
 
     pw_thread_loop *m_threadLoop = nullptr;
@@ -108,7 +108,7 @@ private:
     pw_stream *m_stream = nullptr;
     spa_hook m_streamListener = {};
 
-    spa_video_info m_format;
+    spa_video_info m_format{};
 
     bool m_err = false;
     bool m_hasSource = false;

@@ -4,12 +4,14 @@
 #include "qpipewire_screencapture_p.h"
 #include "qpipewire_screencapturehelper_p.h"
 
+#include <utility>
+
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
 QPipeWireCapture::QPipeWireCapture(Source initialSource)
-    : QPlatformSurfaceCapture(initialSource)
+    : QPlatformSurfaceCapture(std::move(initialSource))
 {
     m_helper = std::make_unique<QPipeWireCaptureHelper>(*this);
 }
