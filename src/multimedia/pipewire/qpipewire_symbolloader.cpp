@@ -1,7 +1,7 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtMultimedia/private/qsymbolsresolveutils_p.h>
+#include "qpipewire_symbolloader_p.h"
 
 #include <pipewire/pipewire.h>
 
@@ -32,6 +32,7 @@ INIT_FUNC(pw_proxy_destroy);
 INIT_FUNC(pw_core_disconnect);
 INIT_FUNC(pw_context_destroy);
 INIT_FUNC(pw_thread_loop_destroy);
+INIT_FUNC(pw_get_library_version);
 
 END_INIT_FUNCS()
 
@@ -59,5 +60,6 @@ DEFINE_FUNC(pw_proxy_destroy, 1);
 DEFINE_FUNC(pw_core_disconnect, 1);
 DEFINE_FUNC(pw_context_destroy, 1);
 DEFINE_FUNC(pw_thread_loop_destroy, 1);
+DEFINE_FUNC(pw_get_library_version, 0);
 
-DEFINE_IS_LOADED_CHECKER(isPipewireLoaded)
+DEFINE_IS_LOADED_CHECKER(qPipewireIsLoaded)

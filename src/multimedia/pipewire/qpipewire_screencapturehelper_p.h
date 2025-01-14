@@ -1,8 +1,8 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef PIPEWIREAPTUREHELPER_P_H
-#define PIPEWIREAPTUREHELPER_P_H
+#ifndef QPIPEWIRE_SCREENCAPTUREHELPER_P_H
+#define QPIPEWIRE_SCREENCAPTUREHELPER_P_H
 
 //
 //  W A R N I N G
@@ -15,18 +15,16 @@
 // We mean it.
 //
 
-#include "qpipewirecapture_p.h"
+#include "qpipewire_screencapture_p.h"
 
-#include <qvideoframe.h>
+#include <QtMultimedia/qvideoframe.h>
 
+#include <pipewire/pipewire.h>
 #include <spa/debug/types.h>
 #include <spa/utils/dict.h>
 #include <spa/param/video/format-utils.h>
 #include <spa/param/video/type-info.h>
 
-#include <pipewire/pipewire.h>
-
-#include <mutex>
 #include <memory>
 
 QT_BEGIN_NAMESPACE
@@ -34,8 +32,8 @@ QT_BEGIN_NAMESPACE
 class QDBusArgument;
 class QDBusInterface;
 namespace QtPipeWire {
-    class Pipewire;
-    } // namespace QtPipeWire
+
+class Pipewire;
 
 class QPipeWireCaptureHelper : public QObject
 {
@@ -145,6 +143,8 @@ private:
     State m_state = NoState;
 };
 
+} // namespace QtPipeWire
+
 QT_END_NAMESPACE
 
-#endif // PIPEWIREAPTUREHELPER_P_H
+#endif // QPIPEWIRE_SCREENCAPTUREHELPER_P_H
