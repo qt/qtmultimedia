@@ -72,10 +72,10 @@ void QWasmVideoOutput::start()
     case QWasmVideoOutput::VideoOutput: {
         emscripten::val sourceObj = m_video["src"];
         if ((sourceObj.isUndefined() || sourceObj.isNull()) && !m_source.isEmpty()) {
-            qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << "calling load" << m_source;
             m_video.set("src", m_source);
-            m_video.call<void>("load");
         }
+        if (!isReady())
+            m_video.call<void>("load");
     } break;
     case QWasmVideoOutput::Camera: {
         if (!m_cameraIsReady) {
