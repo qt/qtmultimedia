@@ -31,7 +31,10 @@ QT_BEGIN_NAMESPACE
 
 class QDBusArgument;
 class QDBusInterface;
+
 namespace QtPipeWire {
+
+class QPipeWireInstance;
 
 class QPipeWireCaptureHelper : public QObject
 {
@@ -83,6 +86,7 @@ private Q_SLOTS:
     void gotRequestResponse(uint result, const QVariantMap &map);
 
 private:
+    std::shared_ptr<QPipeWireInstance> m_instance;
     QPipeWireCapture &m_capture;
 
     QVideoFrame m_currentFrame;

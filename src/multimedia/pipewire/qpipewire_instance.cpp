@@ -3,17 +3,42 @@
 
 #include "qpipewire_instance_p.h"
 
+#include <QtCore/qmutex.h>
+#include <mutex>
+
+#if !PW_CHECK_VERSION(0, 3, 75)
+extern "C" {
+bool pw_check_library_version(int major, int minor, int micro);
+}
+#endif
+
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
 Q_LOGGING_CATEGORY(lcPipewire, "qt.multimedia.pipewire");
 
-Q_GLOBAL_STATIC(QPipeWireInstance, s_instance);
+namespace {
 
-QPipeWireInstance *QPipeWireInstance::instance()
+struct InstanceHolder
 {
-    return s_instance;
+    QMutex mutex;
+    std::weak_ptr<QPipeWireInstance> instance;
+};
+
+Q_GLOBAL_STATIC(InstanceHolder, s_pipeWireInstance);
+
+} // namespace
+
+std::shared_ptr<QPipeWireInstance> QPipeWireInstance::instance()
+{
+    std::lock_guard guard{ s_pipeWireInstance->mutex };
+    std::shared_ptr<QPipeWireInstance> ret = s_pipeWireInstance->instance.lock();
+    if (!ret) {
+        ret = std::make_shared<QPipeWireInstance>();
+        s_pipeWireInstance->instance = ret;
+    }
+    return ret;
 }
 
 QPipeWireInstance::QPipeWireInstance()
@@ -26,7 +51,8 @@ QPipeWireInstance::QPipeWireInstance()
 
 QPipeWireInstance::~QPipeWireInstance()
 {
-    pw_deinit();
+    if (pw_check_library_version(0, 3, 49))
+        pw_deinit();
 }
 
 } // namespace QtPipeWire

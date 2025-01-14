@@ -29,7 +29,7 @@ Q_DECLARE_LOGGING_CATEGORY(lcPipewire); // "qt.multimedia.pipewire"
 class QPipeWireInstance
 {
 public:
-    static QPipeWireInstance *instance();
+    [[nodiscard]] static std::shared_ptr<QPipeWireInstance> instance();
 
     QPipeWireInstance();
     ~QPipeWireInstance();

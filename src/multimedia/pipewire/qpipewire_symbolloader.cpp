@@ -5,6 +5,12 @@
 
 #include <pipewire/pipewire.h>
 
+#if !PW_CHECK_VERSION(0, 3, 75)
+extern "C" {
+bool pw_check_library_version(int major, int minor, int micro);
+}
+#endif
+
 //BEGIN_INIT_FUNCS("pipewire-0.3", "0")
 BEGIN_INIT_FUNCS("pipewire-" PW_API_VERSION, "0")
 
@@ -33,6 +39,7 @@ INIT_FUNC(pw_core_disconnect);
 INIT_FUNC(pw_context_destroy);
 INIT_FUNC(pw_thread_loop_destroy);
 INIT_FUNC(pw_get_library_version);
+INIT_OPT_FUNC(pw_check_library_version);
 
 END_INIT_FUNCS()
 
@@ -61,5 +68,6 @@ DEFINE_FUNC(pw_core_disconnect, 1);
 DEFINE_FUNC(pw_context_destroy, 1);
 DEFINE_FUNC(pw_thread_loop_destroy, 1);
 DEFINE_FUNC(pw_get_library_version, 0);
+DEFINE_FUNC(pw_check_library_version, 3);
 
 DEFINE_IS_LOADED_CHECKER(qPipewireIsLoaded)
