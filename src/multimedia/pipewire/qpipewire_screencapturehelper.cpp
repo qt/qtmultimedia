@@ -387,7 +387,8 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     if (!globalState)
         return false;
 
-    QPipeWireInstance::instance(); // initialize pipewire instance
+    if (!m_instance)
+        m_instance = QPipeWireInstance::instance();
 
     static const pw_core_events coreEvents = {
         .version = PW_VERSION_CORE_EVENTS,
