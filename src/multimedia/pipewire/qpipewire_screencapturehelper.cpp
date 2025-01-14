@@ -1,14 +1,24 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qpipewirecapture_p.h"
-#include "qpipewirecapturehelper_p.h"
+#include "qpipewire_screencapture_p.h"
+#include "qpipewire_screencapturehelper_p.h"
+#include "qpipewire_symbolloader_p.h"
 
-#include <QtCore/QMutexLocker>
-#include <QtCore/QUuid>
-#include <QtCore/QRandomGenerator>
-
-#include <QtCore/QVariantMap>
+#include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qrandom.h>
+#include <QtCore/quuid.h>
+#include <QtCore/qvariantmap.h>
+#include <QtGui/qscreen.h>
+#include <QtGui/qwindow.h>
+#include <QtGui/qguiapplication.h>
+#include <QtMultimedia/qabstractvideobuffer.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtMultimedia/private/qcapturablewindow_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qvideoframeconversionhelper_p.h>
 
 #if QT_CONFIG(dbus)
 // These QtCore includes are needed for xdg-desktop-portal support
@@ -30,26 +40,13 @@
 
 #endif // QT_CONFIG(dbus)
 
-#include <qabstractvideobuffer.h>
-#include <qscreen.h>
-#include <qwindow.h>
-#include <qdebug.h>
-#include <qguiapplication.h>
-#include <qloggingcategory.h>
-
-#include "private/qvideoframe_p.h"
-#include "private/qcapturablewindow_p.h"
-#include "private/qmemoryvideobuffer_p.h"
-#include "private/qvideoframeconversionhelper_p.h"
 
 QT_BEGIN_NAMESPACE
 
-extern bool isPipewireLoaded();
-
 using namespace Qt::StringLiterals;
 
-static Q_LOGGING_CATEGORY(qLcPipeWireCapture, "qt.multimedia.ffmpeg.pipewirecapture");
-static Q_LOGGING_CATEGORY(qLcPipeWireCaptureMore, "qt.multimedia.ffmpeg.pipewirecapture.more");
+Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCapture, "qt.multimedia.pipewirecapture");
+Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCaptureMore, "qt.multimedia.pipewirecapture.more");
 
 namespace QtPipeWire {
 
@@ -98,8 +95,6 @@ struct PipeWireCaptureGlobalState
     std::weak_ptr<Pipewire> pipewire;
 };
 
-} // namespace QtPipeWire
-using namespace QtPipeWire;
 Q_GLOBAL_STATIC(PipeWireCaptureGlobalState, globalState)
 
 void QPipeWireCaptureHelper::initPipeWire()
@@ -144,16 +139,15 @@ void QPipeWireCaptureHelper::updateError(QPlatformSurfaceCapture::Error error,
 
 bool QPipeWireCapture::isSupported()
 {
-    if (!isPipewireLoaded())
+    if (!qPipewireIsLoaded())
         return false;
 
     return QPipeWireCaptureHelper::isSupported();
 }
 
 QPipeWireCaptureHelper::QPipeWireCaptureHelper(QPipeWireCapture &capture)
-    : QObject()
-      , m_capture(capture)
-      , m_requestTokenPrefix(QUuid::createUuid().toString(QUuid::WithoutBraces).left(8))
+    : m_capture(capture),
+      m_requestTokenPrefix(QUuid::createUuid().toString(QUuid::WithoutBraces).left(8))
 {
 }
 
@@ -974,5 +968,7 @@ spa_video_format QPipeWireCaptureHelper::toSpaVideoFormat(QVideoFrameFormat::Pix
 
     return SPA_VIDEO_FORMAT_UNKNOWN;
 }
+
+} // namespace QtPipeWire
 
 QT_END_NAMESPACE

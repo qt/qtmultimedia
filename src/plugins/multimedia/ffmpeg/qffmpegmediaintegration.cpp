@@ -62,7 +62,7 @@ extern "C" {
 #endif
 
 #if QT_CONFIG(pipewire)
-#include "qpipewirecapture_p.h"
+#  include <QtMultimedia/private/qpipewire_screencapture_p.h>
 #endif
 
 #if QT_CONFIG(eglfs)
@@ -245,8 +245,8 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
 #endif
 
 #if QT_CONFIG(pipewire)
-    if (QPipeWireCapture::isSupported())
-        return new QPipeWireCapture(QPlatformSurfaceCapture::ScreenSource{});
+    if (QtPipeWire::QPipeWireCapture::isSupported())
+        return new QtPipeWire::QPipeWireCapture(QPlatformSurfaceCapture::ScreenSource{});
 #endif
 
 #if QT_CONFIG(eglfs)

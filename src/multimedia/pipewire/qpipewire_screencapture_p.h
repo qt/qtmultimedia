@@ -1,8 +1,8 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef PIPEWIREAPTURE_P_H
-#define PIPEWIREAPTURE_P_H
+#ifndef QPIPEWIRE_SCREENCAPTURE_P_H
+#define QPIPEWIRE_SCREENCAPTURE_P_H
 
 //
 //  W A R N I N G
@@ -19,9 +19,11 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QtPipeWire {
+
 class QPipeWireCaptureHelper;
 
-class QPipeWireCapture : public QPlatformSurfaceCapture
+class Q_MULTIMEDIA_EXPORT QPipeWireCapture : public QPlatformSurfaceCapture
 {
     Q_OBJECT
 public:
@@ -39,6 +41,8 @@ private:
     std::unique_ptr<QPipeWireCaptureHelper> m_helper;
 };
 
+} // namespace QtPipeWire
+
 QT_END_NAMESPACE
 
-#endif // PIPEWIREAPTURE_P_H
+#endif // QPIPEWIRE_SCREENCAPTURE_P_H

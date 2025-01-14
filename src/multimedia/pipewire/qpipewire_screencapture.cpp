@@ -1,12 +1,12 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qpipewirecapture_p.h"
-#include "qpipewirecapturehelper_p.h"
+#include "qpipewire_screencapture_p.h"
+#include "qpipewire_screencapturehelper_p.h"
 
 QT_BEGIN_NAMESPACE
 
-using namespace Qt::StringLiterals;
+namespace QtPipeWire {
 
 QPipeWireCapture::QPipeWireCapture(Source initialSource)
     : QPlatformSurfaceCapture(initialSource)
@@ -34,5 +34,7 @@ bool QPipeWireCapture::setActiveInternal(bool active)
 
     return static_cast<bool>(m_helper) == active;
 }
+
+} // namespace QtPipeWire
 
 QT_END_NAMESPACE

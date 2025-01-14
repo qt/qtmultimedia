@@ -179,6 +179,11 @@ QT_BEGIN_NAMESPACE \
 bool FuncName() { return SymbolsResolverImpl::instance().isLoaded(); } \
 QT_END_NAMESPACE
 
+#define DECLARE_IS_LOADED_CHECKER(FuncName) \
+QT_BEGIN_NAMESPACE \
+bool FuncName(); \
+QT_END_NAMESPACE
+
 // clang-format on
 
 #endif // Q_SYMBOLSRESOLVEUTILS

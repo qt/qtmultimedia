@@ -156,6 +156,20 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
         ALSA::ALSA
 )
 
+if (QT_FEATURE_pipewire)
+    qt_internal_extend_target(Multimedia
+        SYSTEM_INCLUDE_DIRECTORIES
+            "${PipeWire_INCLUDE_DIRS};${Spa_INCLUDE_DIRS}"
+        SOURCES
+            pipewire/qpipewire_screencapture.cpp       pipewire/qpipewire_screencapture_p.h
+            pipewire/qpipewire_screencapturehelper.cpp pipewire/qpipewire_screencapturehelper_p.h
+            pipewire/qpipewire_symbolloader.cpp        pipewire/qpipewire_symbolloader_p.h
+        LIBRARIES
+            Qt::DBus
+    )
+endif()
+
+
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
     SOURCES
         pulseaudio/qaudioengine_pulse.cpp pulseaudio/qaudioengine_pulse_p.h

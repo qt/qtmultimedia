@@ -96,23 +96,6 @@ if (LINUX OR ANDROID)
     qt_internal_multimedia_add_ffmpeg_stubs()
 endif()
 
-if (QT_FEATURE_pipewire)
-    qt_internal_extend_target(QFFmpegMediaPlugin
-        SYSTEM_INCLUDE_DIRECTORIES
-            "${PipeWire_INCLUDE_DIRS};${Spa_INCLUDE_DIRS}"
-        SOURCES
-            qpipewirecapture.cpp qpipewirecapture_p.h
-            qpipewirecapturehelper.cpp qpipewirecapturehelper_p.h
-            symbolstubs/qffmpegsymbols-pipewire.cpp
-
-        NO_UNITY_BUILD_SOURCES
-            # conflict with qffmpegsymbols-va.cpp: class SymbolsResolverImpl
-            symbolstubs/qffmpegsymbols-pipewire.cpp
-        LIBRARIES
-            Qt::DBus
-    )
-endif()
-
 if (QT_FEATURE_vaapi)
     qt_internal_extend_target(QFFmpegMediaPlugin
         SOURCES
