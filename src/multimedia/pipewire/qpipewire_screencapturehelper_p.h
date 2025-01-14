@@ -16,6 +16,7 @@
 //
 
 #include "qpipewire_screencapture_p.h"
+#include "qpipewire_support_p.h"
 
 #include <QtMultimedia/qvideoframe.h>
 
@@ -94,16 +95,16 @@ private:
     QVideoFrameFormat::PixelFormat m_pixelFormat{};
     QSize m_size;
 
-    pw_thread_loop *m_threadLoop = nullptr;
-    pw_context *m_context = nullptr;
+    PwThreadLoopHandle m_threadLoop;
+    PwContextHandle m_context;
 
-    pw_core *m_core = nullptr;
+    PwCoreConnectionHandle m_core;
     spa_hook m_coreListener = {};
 
-    pw_registry *m_registry = nullptr;
+    PwRegistryHandle m_registry = nullptr;
     spa_hook m_registryListener = {};
 
-    pw_stream *m_stream = nullptr;
+    PwStreamHandle m_stream = nullptr;
     spa_hook m_streamListener = {};
 
     spa_video_info m_format{};
