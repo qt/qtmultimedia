@@ -1,0 +1,187 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-building-ffmpeg-linux.html
+\title Building FFmpeg from source on Linux
+\brief This document describes how to build FFmpeg from source code.
+
+This page explains how to configure and build \l{FFmpeg} on Linux.
+This involves:
+
+\list
+\li Get the FFmpeg source code.
+\li Install the required dependencies.
+\li Configure FFmpeg from the command line.
+\li Build the development libraries.
+\endlist
+
+\section1 Get the FFmpeg source code
+
+You can get the FFmpeg source code in these ways:
+
+\list
+    \li Download from the
+        \l{https://ffmpeg.org/download.html#get-sources}{FFmpeg download page}.
+    \li Clone from git. For example, this command clones the version 7.1 of the
+        FFmpeg sources to \c{~/ffmpeg}.
+
+        \badcode
+        $ git clone --branch n7.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg
+        \endcode
+\endlist
+
+It is recommended to use the same FFmpeg version as documented in the
+\l{Qt Multimedia}{Qt Multimedia main page}.
+
+The following paragraphs assume that you store the FFmpeg source code under
+\c{~/ffmpeg}.
+
+\section1 Prerequisites
+
+To build FFmpeg, these tools and packages are required:
+
+\list
+    \li Yasm
+    \li Developer packages for your chosen security backend (see below).
+\endlist
+
+\section2 Installing packages
+
+To install the required packages (including Yasm for FFmpeg), run:
+
+\badcode
+$ apt-get install yasm
+\endcode
+
+Additionally, if you're enabling a security backend, you need the corresponding
+developer package, for example:
+
+\badcode
+$ apt-get install libssl-dev
+\endcode
+
+For other backends, install the relevant packages:
+
+\list
+    \li For OpenSSL: \c{libssl-dev}.
+    \li For GnuTLS: \c{libgnutls-dev}.
+    \li For LibreSSL (libtls): \c{libtls-dev}.
+    \li For MbedTLS: \c{libmbedtls-dev}.
+\endlist
+
+\section1 Configuring and building FFmpeg
+
+Create a \c build directory inside the \c{~/ffmpeg} directory and navigate into it:
+
+\badcode
+$ mkdir ~/ffmpeg/build
+$ cd ~/ffmpeg/build
+\endcode
+
+To configure FFmpeg, run:
+
+\badcode
+$ ../configure --prefix=/usr/local/ffmpeg --disable-doc --enable-network --enable-shared
+\endcode
+
+The \c{--prefix} argument specifies a path where the FFmpeg development
+libraries are installed after building. The documentation is not needed, but
+network features should be enabled. To build FFmpeg as static libraries, omit
+the \c{--enable-shared} option.
+
+If you're building FFmpeg with a security backend, choose the appropriate option:
+
+\badcode
+$ ../configure --enable-openssl # For OpenSSL
+$ ../configure --enable-gnutls # For GnuTLS
+$ ../configure --enable-libtls # For LibreSSL (libtls)
+$ ../configure --enable-mbedtls # For MbedTLS
+\endcode
+
+Make sure you have the corresponding developer package installed as mentioned earlier.
+
+\section2 Hardware Acceleration
+
+By default, FFmpeg is built without hardware acceleration unless the appropriate packages
+are installed. For better performance, especially on systems with GPU support, it’s
+recommended to install VAAPI development packages:
+
+\badcode
+$ apt-get install libva-dev
+\endcode
+
+This will enable FFmpeg to detect VAAPI support during configuration.
+
+If FFmpeg will be used with NVIDIA graphics cards, you should install the NVIDIA codec
+headers. These can be downloaded from the following repository:
+\l{https://github.com/FFmpeg/nv-codec-headers}{NVIDIA Codec Headers on GitHub}.
+
+To build and install the headers, run the following commands:
+
+\badcode
+$ mkdir ~/nv-codec-headers
+$ cd ~/nv-codec-headers
+$ git clone https://github.com/FFmpeg/nv-codec-headers.git
+$ mkdir build
+$ cd build
+$ make -j install
+\endcode
+
+Make sure to check the compatibility of the \c nv-codec-headers with your NVIDIA driver
+version, as newer \c nv-codec-headers may not be compatible with older driver versions.
+Refer to the official documentation for more details.
+
+\section1 Disabling Autodetect
+
+By default, FFmpeg attempts to automatically detect available dependencies on the build system.
+This includes hardware acceleration and security backends. If you want to disable autodetection
+(for example, to avoid compiling unnecessary dependencies), you can use:
+
+\badcode
+$ ../configure --disable-autodetect
+\endcode
+
+If you are building FFmpeg with any additional dependencies (like a security backend or
+hardware acceleration), ensure that the required libraries are installed on the target system.
+There are several ways to handle this:
+
+\list
+    \li Deliver binaries of the dependencies together with FFmpeg.
+    \li Ensure that the required binaries are installed on the target system.
+    \li Implement library stubs that can look up the real libraries and return an error code if
+    the real libraries aren't found.
+\endlist
+
+\section1 RPATH and RUNPATH on Linux
+
+On Linux, FFmpeg uses both RPATH and RUNPATH metadata sections to manage library paths.
+We recommend using the \c patchelf utility to set the correct runpath:
+
+\badcode
+$ patchelf --set-rpath "new/runpath" lib.so
+\endcode
+
+By default, \c patchelf modifies the RUNPATH, as RPATH is considered obsolete on Linux.
+To set a relative runpath, you can use the \c $ORIGIN variable, which makes the path relative
+to the location of the executable:
+
+\badcode
+$ patchelf --set-rpath "$ORIGIN/../lib" lib.so
+\endcode
+
+This approach ensures portability by linking libraries based on their relative locations.
+
+\section1 Building FFmpeg
+
+Once you've configured FFmpeg with your desired options, you can build and install it:
+
+\badcode
+$ make -j install
+\endcode
+
+If the build completes without errors, FFmpeg development libraries will be installed
+in the \c{/usr/local/ffmpeg} directory. You can then reference this path when configuring
+Qt Multimedia by setting the \c FFMPEG_DIR variable.
+
+*/
