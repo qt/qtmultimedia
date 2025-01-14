@@ -46,7 +46,8 @@ public:
     // Please note that MemoryPolicy::Reuse can be changed internally to MemoryPolicy::Copy
     QAndroidVideoFrameBuffer(QJniObject frame,
                         std::shared_ptr<FrameReleaseDelegate> frameReleaseDelegate,
-                        MemoryPolicy policy);
+                        MemoryPolicy policy,
+                        QtVideo::Rotation rotation = QtVideo::Rotation::None);
     ~QAndroidVideoFrameBuffer();
     MapData map(QVideoFrame::MapMode) override { return m_mapData; }
     QVideoFrameFormat format() const override { return m_videoFrameFormat; }

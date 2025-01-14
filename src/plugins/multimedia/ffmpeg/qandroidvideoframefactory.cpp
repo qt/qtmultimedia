@@ -24,14 +24,13 @@ QVideoFrame QAndroidVideoFrameFactory::createVideoFrame(QtJniTypes::AndroidImage
             shared_from_this(),
             currentCounter > NATIVE_FRAME_LIMIT ?
                 QAndroidVideoFrameBuffer::MemoryPolicy::Copy
-              : QAndroidVideoFrameBuffer::MemoryPolicy::Reuse);
+              : QAndroidVideoFrameBuffer::MemoryPolicy::Reuse,
+            rotation);
 
     if (!frameAdapter->isParsed())
         return QVideoFrame{};
 
     const qint64 currentTimeStamp = frameAdapter->timestamp();
-    QVideoFrameFormat format(frameAdapter->format().frameSize(),
-                             frameAdapter->format().pixelFormat());
     QVideoFrame videoFrame(std::move(frameAdapter));
 
     if (m_lastTimestamp == 0)
@@ -39,7 +38,6 @@ QVideoFrame QAndroidVideoFrameFactory::createVideoFrame(QtJniTypes::AndroidImage
 
     videoFrame.setStartTime(m_lastTimestamp);
     videoFrame.setEndTime(currentTimeStamp);
-    videoFrame.setRotation(rotation);
 
     m_lastTimestamp = currentTimeStamp;
 

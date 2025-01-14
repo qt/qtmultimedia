@@ -225,7 +225,8 @@ bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
 
 QAndroidVideoFrameBuffer::QAndroidVideoFrameBuffer(QJniObject frame,
                         std::shared_ptr<FrameReleaseDelegate> frameReleaseDelegate,
-                        MemoryPolicy policy)
+                        MemoryPolicy policy,
+                        QtVideo::Rotation rotation)
     : m_frameReleaseDelegate(frameReleaseDelegate)
     , m_policy(policy)
     , m_parsed(parse(frame))
@@ -239,6 +240,7 @@ QAndroidVideoFrameBuffer::QAndroidVideoFrameBuffer(QJniObject frame,
         frame.callMethod<void>("close");
         m_frameReleaseDelegate->onFrameReleased();
     }
+    m_videoFrameFormat.setRotation(rotation);
 }
 
 QAndroidVideoFrameBuffer::~QAndroidVideoFrameBuffer()
