@@ -168,6 +168,18 @@ if (QT_FEATURE_pipewire)
         LIBRARIES
             Qt::DBus
     )
+
+    # pipewire macros emit -Wsign-compare warnings
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag(QT_MM_HAS_WSIGN_COMPARE -Wsign-compare)
+    if (QT_MM_HAS_WSIGN_COMPARE)
+        set_source_files_properties(
+            pipewire/qpipewire_instance.cpp
+            pipewire/qpipewire_screencapture.cpp
+            pipewire/qpipewire_screencapturehelper.cpp
+            PROPERTIES COMPILE_FLAGS -Wno-sign-compare
+        )
+    endif()
 endif()
 
 
