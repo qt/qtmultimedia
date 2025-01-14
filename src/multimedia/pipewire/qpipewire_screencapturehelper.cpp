@@ -481,7 +481,9 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
         },
     };
 
-    m_threadLoop = pw_thread_loop_new("qt-multimedia-pipewire-loop", nullptr);
+    m_threadLoop = PwThreadLoopHandle{
+        pw_thread_loop_new("qt-multimedia-pipewire-loop", nullptr),
+    };
     if (!m_threadLoop) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::InternalError,
@@ -489,7 +491,9 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
         return false;
     }
 
-    m_context = pw_context_new(pw_thread_loop_get_loop(m_threadLoop), nullptr, 0);
+    m_context = PwContextHandle{
+        pw_context_new(pw_thread_loop_get_loop(m_threadLoop.get()), nullptr, 0),
+    };
     if (!m_context) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::InternalError,
@@ -497,10 +501,9 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
         return false;
     }
 
-    m_core = pw_context_connect_fd(m_context,
-                                   fcntl(pipewireFd, F_DUPFD_CLOEXEC, 5),
-                                   nullptr,
-                                   0);
+    m_core = PwCoreConnectionHandle{
+        pw_context_connect_fd(m_context.get(), fcntl(pipewireFd, F_DUPFD_CLOEXEC, 5), nullptr, 0),
+    };
     if (!m_core) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::InternalError,
@@ -508,29 +511,31 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
         return false;
     }
 
-    pw_core_add_listener(m_core, &m_coreListener, &coreEvents, this);
+    pw_core_add_listener(m_core.get(), &m_coreListener, &coreEvents, this);
 
-    m_registry = pw_core_get_registry(m_core, PW_VERSION_REGISTRY, 0);
+    m_registry = PwRegistryHandle{
+        pw_core_get_registry(m_core.get(), PW_VERSION_REGISTRY, 0),
+    };
     if (!m_registry) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_core_get_registry()."_s);
         return false;
     }
-    pw_registry_add_listener(m_registry, &m_registryListener, &registryEvents, this);
+    pw_registry_add_listener(m_registry.get(), &m_registryListener, &registryEvents, this);
 
     updateCoreInitSeq();
 
-    if (pw_thread_loop_start(m_threadLoop) != 0) {
+    if (pw_thread_loop_start(m_threadLoop.get()) != 0) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_thread_loop_start()."_s);
         return false;
     }
 
-    LoopLocker locker(m_threadLoop);
+    LoopLocker locker(m_threadLoop.get());
     while (!m_initDone) {
-        if (pw_thread_loop_timed_wait(m_threadLoop, 2) != 0)
+        if (pw_thread_loop_timed_wait(m_threadLoop.get(), 2) != 0)
             break;
     }
 
@@ -539,7 +544,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
 
 void QPipeWireCaptureHelper::updateCoreInitSeq()
 {
-    m_coreInitSeq = pw_core_sync(m_core, PW_ID_CORE, m_coreInitSeq);
+    m_coreInitSeq = pw_core_sync(m_core.get(), PW_ID_CORE, m_coreInitSeq);
 }
 
 void QPipeWireCaptureHelper::onCoreEventDone(uint32_t id, int seq)
@@ -549,7 +554,7 @@ void QPipeWireCaptureHelper::onCoreEventDone(uint32_t id, int seq)
         spa_hook_remove(&m_coreListener);
 
         m_initDone = true;
-        pw_thread_loop_signal(m_threadLoop, false);
+        pw_thread_loop_signal(m_threadLoop.get(), false);
     }
 }
 
@@ -639,9 +644,11 @@ void QPipeWireCaptureHelper::recreateStream()
     info = SPA_DICT_INIT(items, 3);
     auto props = pw_properties_new_dict(&info);
 
-    LoopLocker locker(m_threadLoop);
+    LoopLocker locker(m_threadLoop.get());
 
-    m_stream = pw_stream_new(m_core, "video-capture", props);
+    m_stream = PwStreamHandle{
+        pw_stream_new(m_core.get(), "video-capture", props),
+    };
     if (!m_stream) {
         m_err = true;
         locker.unlock();
@@ -651,7 +658,7 @@ void QPipeWireCaptureHelper::recreateStream()
     }
 
     m_streamListener = {};
-    pw_stream_add_listener(m_stream, &m_streamListener, &streamEvents, this);
+    pw_stream_add_listener(m_stream.get(), &m_streamListener, &streamEvents, this);
 
     QT_WARNING_PUSH
     // QTBUG-129587: libpipewire=1.2.5 warning
@@ -688,13 +695,9 @@ void QPipeWireCaptureHelper::recreateStream()
     QT_WARNING_POP
 
     const int connectErr = pw_stream_connect(
-            m_stream,
-            PW_DIRECTION_INPUT,
-            streamInfo.nodeId,
+            m_stream.get(), PW_DIRECTION_INPUT, streamInfo.nodeId,
             static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS),
-            params,
-            1
-    );
+            params, 1);
     if (connectErr != 0) {
         m_err = true;
         locker.unlock();
@@ -709,17 +712,17 @@ void QPipeWireCaptureHelper::destroyStream(bool forceDrain)
         return;
 
     if (forceDrain) {
-        LoopLocker locker(m_threadLoop);
+        LoopLocker locker(m_threadLoop.get());
         while (!m_streamPaused && !m_silence && !m_err) {
-            if (pw_thread_loop_timed_wait(m_threadLoop, 1) != 0)
+            if (pw_thread_loop_timed_wait(m_threadLoop.get(), 1) != 0)
                 break;
         }
     }
 
-    LoopLocker locker(m_threadLoop);
+    LoopLocker locker(m_threadLoop.get());
     m_ignoreStateChange = true;
-    pw_stream_disconnect(m_stream);
-    pw_stream_destroy(m_stream);
+    pw_stream_disconnect(m_stream.get());
+    m_stream = {};
     m_ignoreStateChange = false;
 
     m_stream = nullptr;
@@ -732,7 +735,7 @@ void QPipeWireCaptureHelper::signalLoop(bool onProcessDone, bool err)
         m_err = true;
     if (onProcessDone)
         m_processed = true;
-    pw_thread_loop_signal(m_threadLoop, false);
+    pw_thread_loop_signal(m_threadLoop.get(), false);
 }
 
 void QPipeWireCaptureHelper::onStateChanged(pw_stream_state old, pw_stream_state state, const char *error)
@@ -768,7 +771,7 @@ void QPipeWireCaptureHelper::onProcess()
     void *sdata;
     qsizetype size = 0;
 
-    if ((b = pw_stream_dequeue_buffer(m_stream)) == nullptr) {
+    if ((b = pw_stream_dequeue_buffer(m_stream.get())) == nullptr) {
         updateError(QPlatformSurfaceCapture::InternalError,
                     u"Out of buffers in pipewire stream dequeue."_s);
         return;
@@ -792,7 +795,7 @@ void QPipeWireCaptureHelper::onProcess()
     emit m_capture.newVideoFrame(m_currentFrame);
     qCDebug(qLcPipeWireCaptureMore) << "got a frame of size " << buf->datas[0].chunk->size;
 
-    pw_stream_queue_buffer(m_stream, b);
+    pw_stream_queue_buffer(m_stream.get(), b);
 
     signalLoop(true, false);
 }
@@ -804,18 +807,12 @@ void QPipeWireCaptureHelper::destroy()
     m_state = Stopping;
     destroyStream(false);
 
-    pw_thread_loop_stop(m_threadLoop);
+    pw_thread_loop_stop(m_threadLoop.get());
 
-    if (m_registry)
-        pw_proxy_destroy(reinterpret_cast<pw_proxy *>(m_registry));
-
-    if (m_core)
-        pw_core_disconnect(m_core);
-
-    if (m_context)
-        pw_context_destroy(m_context);
-
-    pw_thread_loop_destroy(m_threadLoop);
+    m_registry = {};
+    m_core = {};
+    m_context = {};
+    m_threadLoop = {};
 
     if (m_pipewire)
         deinitPipeWire();

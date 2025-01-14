@@ -163,6 +163,7 @@ if (QT_FEATURE_pipewire)
         SOURCES
             pipewire/qpipewire_screencapture.cpp       pipewire/qpipewire_screencapture_p.h
             pipewire/qpipewire_screencapturehelper.cpp pipewire/qpipewire_screencapturehelper_p.h
+                                                       pipewire/qpipewire_support_p.h
             pipewire/qpipewire_symbolloader.cpp        pipewire/qpipewire_symbolloader_p.h
         LIBRARIES
             Qt::DBus
