@@ -67,17 +67,14 @@ struct PipeWireCaptureGlobalState
 {
     PipeWireCaptureGlobalState() {
         QDBusConnection bus = QDBusConnection::sessionBus();
-        QDBusInterface *interface = new QDBusInterface("org.freedesktop.portal.Desktop"_L1,
-                                                       "/org/freedesktop/portal/desktop"_L1,
-                                                       "org.freedesktop.DBus.Properties"_L1,
-                                                       bus,
-                                                       qGuiApp);
+        QDBusInterface *interface = new QDBusInterface(
+                u"org.freedesktop.portal.Desktop"_s, u"/org/freedesktop/portal/desktop"_s,
+                u"org.freedesktop.DBus.Properties"_s, bus, qGuiApp);
 
         QList<QVariant> args;
-        args << "org.freedesktop.portal.ScreenCast"_L1
-             << "version"_L1;
+        args << u"org.freedesktop.portal.ScreenCast"_s << u"version"_s;
 
-        QDBusMessage reply = interface->callWithArgumentList(QDBus::Block, "Get"_L1, args);
+        QDBusMessage reply = interface->callWithArgumentList(QDBus::Block, u"Get"_s, args);
         qCDebug(qLcPipeWireCapture) << "v1=" << reply.type()
                                     << "v2=" << reply.arguments().size()
                                     << "v3=" << reply.arguments().at(0).toUInt();
@@ -126,7 +123,7 @@ bool QPipeWireCaptureHelper::setActiveInternal(bool active)
     }
 
     updateError(QPlatformSurfaceCapture::InternalError,
-                "There is no ScreenCast service available in org.freedesktop.portal!"_L1);
+                u"There is no ScreenCast service available in org.freedesktop.portal!"_s);
 
     return false;
 }
@@ -183,13 +180,13 @@ void QPipeWireCaptureHelper::gotRequestResponse(uint result, const QVariantMap &
 
     switch (m_operationState) {
     case CreateSession:
-        selectSources(map["session_handle"].toString());
+        selectSources(map[u"session_handle"_s].toString());
         break;
     case SelectSources:
         startStream();
         break;
     case StartStream:
-        updateStreams(map["streams"].value<QDBusArgument>());
+        updateStreams(map[u"streams"_s].value<QDBusArgument>());
         openPipeWireRemote();
         m_operationState = NoOperation;
         m_state = Streaming;
@@ -206,7 +203,7 @@ QString QPipeWireCaptureHelper::getRequestToken()
 {
     if (m_requestToken <= 0)
         m_requestToken = generateRequestToken();
-    return QStringLiteral("u%1%2").arg(m_requestTokenPrefix).arg(m_requestToken);
+    return u"u%1%2"_s.arg(m_requestTokenPrefix).arg(m_requestToken);
 }
 
 int QPipeWireCaptureHelper::generateRequestToken()
@@ -224,18 +221,17 @@ void QPipeWireCaptureHelper::createInterface()
     m_operationState = NoOperation;
 
     if (!m_screenCastInterface) {
-        m_screenCastInterface = std::make_unique<QDBusInterface>("org.freedesktop.portal.Desktop"_L1,
-                                                   "/org/freedesktop/portal/desktop"_L1,
-                                                   "org.freedesktop.portal.ScreenCast"_L1,
-                                                   QDBusConnection::sessionBus());
-        bool ok = m_screenCastInterface->connection()
-                      .connect("org.freedesktop.portal.Desktop"_L1, ""_L1,
-                               "org.freedesktop.portal.Request"_L1, "Response"_L1,
-                               this, SLOT(gotRequestResponse(uint, QVariantMap)));
+        m_screenCastInterface = std::make_unique<QDBusInterface>(
+                u"org.freedesktop.portal.Desktop"_s, u"/org/freedesktop/portal/desktop"_s,
+                u"org.freedesktop.portal.ScreenCast"_s, QDBusConnection::sessionBus());
+        bool ok = m_screenCastInterface->connection().connect(
+                u"org.freedesktop.portal.Desktop"_s, u""_s, u"org.freedesktop.portal.Request"_s,
+                u"Response"_s, this, SLOT(gotRequestResponse(uint, QVariantMap)));
 
         if (!ok) {
-            updateError(QPlatformSurfaceCapture::InternalError,
-                        "Failed to connect to org.freedesktop.portal.ScreenCast dbus interface."_L1);
+            updateError(
+                    QPlatformSurfaceCapture::InternalError,
+                    u"Failed to connect to org.freedesktop.portal.ScreenCast dbus interface."_s);
             return;
         }
     }
@@ -247,15 +243,15 @@ void QPipeWireCaptureHelper::createSession()
     if (!m_screenCastInterface)
         return;
 
-    QVariantMap options {
-        //{"handle_token"_L1        , getRequestToken()},
-        {"session_handle_token"_L1, getRequestToken()},
+    QVariantMap options{
+        //{u"handle_token"_s        , getRequestToken()},
+        { u"session_handle_token"_s, getRequestToken() },
     };
-    QDBusMessage reply = m_screenCastInterface->call("CreateSession"_L1, options);
+    QDBusMessage reply = m_screenCastInterface->call(u"CreateSession"_s, options);
     if (!reply.errorMessage().isEmpty()) {
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "Failed to create session for org.freedesktop.portal.ScreenCast. Error: "_L1 + reply.errorName()
-                            + ": "_L1 + reply.errorMessage());
+                    u"Failed to create session for org.freedesktop.portal.ScreenCast. Error: "_s
+                            + reply.errorName() + u": "_s + reply.errorMessage());
         return;
     }
 
@@ -268,19 +264,19 @@ void QPipeWireCaptureHelper::selectSources(const QString &sessionHandle)
         return;
 
     m_sessionHandle = sessionHandle;
-    QVariantMap options {
-        {"handle_token"_L1        , getRequestToken()},
-        {"types"_L1               , (uint)1},
-        {"multiple"_L1            , false},
-        {"cursor_mode"_L1         , (uint)1},
-        {"persist_mode"_L1        , (uint)0},
+    QVariantMap options{
+        { u"handle_token"_s, getRequestToken() },
+        { u"types"_s, (uint)1 },
+        { u"multiple"_s, false },
+        { u"cursor_mode"_s, (uint)1 },
+        { u"persist_mode"_s, (uint)0 },
     };
-    QDBusMessage reply = m_screenCastInterface->call("SelectSources"_L1,
+    QDBusMessage reply = m_screenCastInterface->call(u"SelectSources"_s,
                                                      QDBusObjectPath(sessionHandle), options);
     if (!reply.errorMessage().isEmpty()) {
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "Failed to select sources for org.freedesktop.portal.ScreenCast. Error: "_L1 + reply.errorName()
-                            + ": "_L1 + reply.errorMessage());
+                    u"Failed to select sources for org.freedesktop.portal.ScreenCast. Error: "_s
+                            + reply.errorName() + u": "_s + reply.errorMessage());
         return;
     }
 
@@ -292,15 +288,15 @@ void QPipeWireCaptureHelper::startStream()
     if (!m_screenCastInterface)
         return;
 
-    QVariantMap options {
-        {"handle_token"_L1        , getRequestToken()},
+    QVariantMap options{
+        { u"handle_token"_s, getRequestToken() },
     };
-    QDBusMessage reply = m_screenCastInterface->call("Start"_L1,
-                                                     QDBusObjectPath(m_sessionHandle), "", options);
+    QDBusMessage reply = m_screenCastInterface->call(u"Start"_s, QDBusObjectPath(m_sessionHandle),
+                                                     u""_s, options);
     if (!reply.errorMessage().isEmpty()) {
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "Failed to start stream for org.freedesktop.portal.ScreenCast. Error: "_L1 + reply.errorName()
-                            + ": "_L1 + reply.errorMessage());
+                    u"Failed to start stream for org.freedesktop.portal.ScreenCast. Error: "_s
+                            + reply.errorName() + u": "_s + reply.errorMessage());
         return;
     }
 
@@ -322,8 +318,8 @@ void QPipeWireCaptureHelper::updateStreams(const QDBusArgument &streamsInfo)
 
         qint32 x = 0;
         qint32 y = 0;
-        if (properties.contains("position")) {
-            const QDBusArgument position = properties["position"].value<QDBusArgument>();
+        if (properties.contains(u"position"_s)) {
+            const QDBusArgument position = properties[u"position"_s].value<QDBusArgument>();
             position.beginStructure();
             position >> x;
             position >> y;
@@ -332,8 +328,8 @@ void QPipeWireCaptureHelper::updateStreams(const QDBusArgument &streamsInfo)
 
         qint32 width = 0;
         qint32 height = 0;
-        if (properties.contains("size")) {
-            const QDBusArgument size = properties["size"].value<QDBusArgument>();
+        if (properties.contains(u"size"_s)) {
+            const QDBusArgument size = properties[u"size"_s].value<QDBusArgument>();
             size.beginStructure();
             size >> width;
             size >> height;
@@ -341,8 +337,8 @@ void QPipeWireCaptureHelper::updateStreams(const QDBusArgument &streamsInfo)
         }
 
         uint sourceType = 0;
-        if (properties.contains("source_type"))
-            sourceType = properties["source_type"].toUInt();
+        if (properties.contains(u"source_type"_s))
+            sourceType = properties[u"source_type"_s].toUInt();
 
         StreamInfo streamInfo;
         streamInfo.nodeId = nodeId;
@@ -362,12 +358,13 @@ void QPipeWireCaptureHelper::openPipeWireRemote()
         return;
 
     QVariantMap options;
-    QDBusReply<QDBusUnixFileDescriptor> reply = m_screenCastInterface->call("OpenPipeWireRemote"_L1,
-                                                                            QDBusObjectPath(m_sessionHandle), options);
+    QDBusReply<QDBusUnixFileDescriptor> reply = m_screenCastInterface->call(
+            u"OpenPipeWireRemote"_s, QDBusObjectPath(m_sessionHandle), options);
     if (!reply.isValid()) {
-        updateError(QPlatformSurfaceCapture::InternalError,
-                    "Failed to open pipewire remote for org.freedesktop.portal.ScreenCast. Error: name="_L1
-                            + reply.error().name() + ", message="_L1 + reply.error().message());
+        updateError(
+                QPlatformSurfaceCapture::InternalError,
+                u"Failed to open pipewire remote for org.freedesktop.portal.ScreenCast. Error: name="_s
+                        + reply.error().name() + u", message="_s + reply.error().message());
         return;
     }
 
@@ -376,7 +373,7 @@ void QPipeWireCaptureHelper::openPipeWireRemote()
     qCDebug(qLcPipeWireCapture) << "open(" << m_pipewireFd << ") result=" << ok;
     if (!ok) {
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "Failed to open pipewire remote file descriptor"_L1);
+                    u"Failed to open pipewire remote file descriptor"_s);
         return;
     }
 
@@ -488,7 +485,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     if (!m_threadLoop) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "QPipeWireCaptureHelper failed at pw_thread_loop_new()."_L1);
+                    u"QPipeWireCaptureHelper failed at pw_thread_loop_new()."_s);
         return false;
     }
 
@@ -496,7 +493,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     if (!m_context) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "QPipeWireCaptureHelper failed at pw_context_new()."_L1);
+                    u"QPipeWireCaptureHelper failed at pw_context_new()."_s);
         return false;
     }
 
@@ -507,7 +504,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     if (!m_core) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "QPipeWireCaptureHelper failed at pw_context_connect_fd()."_L1);
+                    u"QPipeWireCaptureHelper failed at pw_context_connect_fd()."_s);
         return false;
     }
 
@@ -517,7 +514,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     if (!m_registry) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "QPipeWireCaptureHelper failed at pw_core_get_registry()."_L1);
+                    u"QPipeWireCaptureHelper failed at pw_core_get_registry()."_s);
         return false;
     }
     pw_registry_add_listener(m_registry, &m_registryListener, &registryEvents, this);
@@ -527,7 +524,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     if (pw_thread_loop_start(m_threadLoop) != 0) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "QPipeWireCaptureHelper failed at pw_thread_loop_start()."_L1);
+                    u"QPipeWireCaptureHelper failed at pw_thread_loop_start()."_s);
         return false;
     }
 
@@ -649,7 +646,7 @@ void QPipeWireCaptureHelper::recreateStream()
         m_err = true;
         locker.unlock();
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "QPipeWireCaptureHelper failed at pw_stream_new()."_L1);
+                    u"QPipeWireCaptureHelper failed at pw_stream_new()."_s);
         return;
     }
 
@@ -702,7 +699,7 @@ void QPipeWireCaptureHelper::recreateStream()
         m_err = true;
         locker.unlock();
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "QPipeWireCaptureHelper failed at pw_stream_connect()."_L1);
+                    u"QPipeWireCaptureHelper failed at pw_stream_connect()."_s);
         return;
     }
 }
@@ -773,7 +770,7 @@ void QPipeWireCaptureHelper::onProcess()
 
     if ((b = pw_stream_dequeue_buffer(m_stream)) == nullptr) {
         updateError(QPlatformSurfaceCapture::InternalError,
-                    "Out of buffers in pipewire stream dequeue."_L1);
+                    u"Out of buffers in pipewire stream dequeue."_s);
         return;
     }
 
