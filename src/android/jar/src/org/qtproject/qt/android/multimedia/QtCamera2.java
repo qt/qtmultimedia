@@ -26,6 +26,8 @@ import java.lang.Thread;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.qtproject.qt.android.UsedFromNativeCode;
+
 @TargetApi(23)
 class QtCamera2 {
 
@@ -104,8 +106,8 @@ class QtCamera2 {
     }
     private final SyncedMembers mSyncedMembers = new SyncedMembers();
 
-    // Called from C++.
     // Resets the control properties of this camera to their default values.
+    @UsedFromNativeCode
     public void resetControlProperties() {
         synchronized (mSyncedMembers) {
             mSyncedMembers.mFlashMode = DEFAULT_FLASH_MODE;
@@ -275,6 +277,7 @@ class QtCamera2 {
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
     }
 
+    @UsedFromNativeCode
     void stopBackgroundThread() {
         mBackgroundThread.quitSafely();
         try {
@@ -337,7 +340,7 @@ class QtCamera2 {
         }
     };
 
-
+    @UsedFromNativeCode
     void prepareCamera(int width, int height, int format, int minFps, int maxFps) {
 
         addImageReader(width, height, format);
@@ -380,10 +383,12 @@ class QtCamera2 {
         return  mTargetSurfaces.remove(surface);
     }
 
+    @UsedFromNativeCode
     void clearSurfaces() {
         mTargetSurfaces.clear();
     }
 
+    @UsedFromNativeCode
     boolean createSession() {
         if (mCameraDevice == null)
             return false;
@@ -397,6 +402,7 @@ class QtCamera2 {
         return false;
     }
 
+    @UsedFromNativeCode
     boolean start(int template) {
 
         if (mCameraDevice == null)
@@ -438,6 +444,7 @@ class QtCamera2 {
         }
     }
 
+    @UsedFromNativeCode
     void stopAndClose() {
         synchronized (mSyncedMembers) {
             try {
@@ -529,9 +536,9 @@ class QtCamera2 {
         }
     }
 
-    // Called from C++ thread.
     // If auto-focus is enabled, will initiate the still photo precapture routine by adjusting
     // focusing and exposure. Otherwise, will finalize a still photo immediately.
+    @UsedFromNativeCode
     void takePhoto() {
         // Load copies of synced members before applying.
         int afMode = 0;
@@ -552,6 +559,7 @@ class QtCamera2 {
         }
     }
 
+    @UsedFromNativeCode
     void saveExifToFile(String path)
     {
         if (mExifDataHandler != null)
@@ -582,6 +590,7 @@ class QtCamera2 {
         }
     }
 
+    @UsedFromNativeCode
     void zoomTo(float factor)
     {
         synchronized (mSyncedMembers) {
@@ -602,6 +611,8 @@ class QtCamera2 {
             }
         }
     }
+
+    @UsedFromNativeCode
     void setFlashMode(String flashMode)
     {
         synchronized (mSyncedMembers) {
@@ -632,6 +643,7 @@ class QtCamera2 {
         return mode ? CameraMetadata.FLASH_MODE_TORCH : CameraMetadata.FLASH_MODE_OFF;
     }
 
+    @UsedFromNativeCode
     void setTorchMode(boolean torchMode)
     {
         synchronized (mSyncedMembers) {
