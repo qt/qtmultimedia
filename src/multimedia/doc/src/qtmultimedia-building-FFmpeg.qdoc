@@ -33,4 +33,9 @@ performance, and feature support. To read more about these options, see the
     \li \l{Building FFmpeg from source on macOS}
 \endlist
 
+\section1 Linux
+\list
+    \li \l{Building FFmpeg from source on Linux}
+\endlist
+
 */
