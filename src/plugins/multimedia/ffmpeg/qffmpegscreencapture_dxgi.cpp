@@ -71,8 +71,8 @@ class QD3D11TextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
     QD3D11TextureVideoBuffer(const ComPtr<ID3D11Device> &device, std::shared_ptr<QMutex> &mutex,
-                             const ComPtr<ID3D11Texture2D> &texture, QSize size)
-        : m_device(device), m_texture(texture), m_ctxMutex(mutex), m_size(size)
+                             const ComPtr<ID3D11Texture2D> &texture)
+        : m_device(device), m_texture(texture), m_ctxMutex(mutex)
     {}
 
     ~QD3D11TextureVideoBuffer() { Q_ASSERT(m_mapMode == QVideoFrame::NotMapped); }
@@ -113,7 +113,7 @@ public:
             mapData.planeCount = 1;
             mapData.bytesPerLine[0] = int(resource.RowPitch);
             mapData.data[0] = reinterpret_cast<uchar*>(resource.pData);
-            mapData.dataSize[0] = m_size.height() * int(resource.RowPitch);
+            mapData.dataSize[0] = int(texDesc.Height * resource.RowPitch);
         }
 
         return mapData;
@@ -152,7 +152,6 @@ private:
     ComPtr<ID3D11Texture2D> m_cpuTexture;
     ComPtr<ID3D11DeviceContext> m_ctx;
     std::shared_ptr<QMutex> m_ctxMutex;
-    QSize m_size;
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
 };
 
@@ -206,15 +205,6 @@ public:
 
     bool valid() const { return m_dup != nullptr; }
 
-    QSize getFrameSize() const
-    {
-        DXGI_OUTDUPL_DESC outputDesc = {};
-        m_dup->GetDesc(&outputDesc);
-
-        return { static_cast<int>(outputDesc.ModeDesc.Width),
-                 static_cast<int>(outputDesc.ModeDesc.Height) };
-    }
-
     QMaybe<std::unique_ptr<QD3D11TextureVideoBuffer>, ComStatus> getNextVideoFrame()
     {
         const ComProduct<ID3D11Texture2D> texture = getNextFrame();
@@ -222,8 +212,7 @@ public:
         if (!texture)
             return texture.error();
 
-        return std::make_unique<QD3D11TextureVideoBuffer>(m_device, m_ctxMutex, *texture,
-                                                          getFrameSize());
+        return std::make_unique<QD3D11TextureVideoBuffer>(m_device, m_ctxMutex, *texture);
     }
 
 private:
