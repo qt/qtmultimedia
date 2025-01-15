@@ -173,8 +173,7 @@ void tst_QMediaRecorderBackend::record_createsFileWithExpectedExtension_whenReco
 
 void tst_QMediaRecorderBackend::record_createsFileWithExpectedExtension_whenRecordingAudio()
 {
-    if (!isFFMPEGPlatform())
-        QSKIP("This test requires APIs that are only implemented with FFmpeg media backend");
+    QSKIP_IF_NOT_FFMPEG("This test requires APIs that are only implemented with FFmpeg media backend");
 
     QFETCH(const QMediaFormat::FileFormat, fileFormat);
     QFETCH(const QString, inputFileName);

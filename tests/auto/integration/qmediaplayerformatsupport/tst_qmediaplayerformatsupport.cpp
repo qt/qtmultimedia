@@ -42,8 +42,7 @@ class tst_qmediaplayerformatsupport : public QObject
 public slots:
     void initTestCase()
     {
-        if (!isFFMPEGPlatform())
-            QSKIP("Test is only intended for FFmpeg backend");
+        QSKIP_IF_NOT_FFMPEG("Test is only intended for FFmpeg backend");
     }
 
 private slots:
