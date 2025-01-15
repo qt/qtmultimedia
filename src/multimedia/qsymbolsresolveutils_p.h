@@ -85,6 +85,7 @@ protected:
     SymbolsResolver(const char *libName, const char *version = "",
                     const char *libLoggingName = nullptr);
 
+    QFunctionPointer initOptionalFunction(const char *name);
     QFunctionPointer initFunction(const char *name);
 
     struct SymbolsMarker {};
@@ -116,6 +117,7 @@ QT_END_NAMESPACE
             SymbolsMarker symbolsBegin;
 
 #define INIT_FUNC(F) QFunctionPointer F = initFunction(#F);
+#define INIT_OPT_FUNC(F) QFunctionPointer F = initOptionalFunction(#F);
 
 #define END_INIT_FUNCS() \
            SymbolsMarker symbolsEnd; \
