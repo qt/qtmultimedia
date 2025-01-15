@@ -950,8 +950,7 @@ void tst_QMediaPlayerBackend::setSource_emitsError_whenSdpFileIsLoaded()
     // by default. For when the user wants to override these defaults, see
     // play_playsRtpStream_whenSdpFileIsLoaded
 
-    if (!isFFMPEGPlatform())
-        QSKIP("This test is only for FFmpeg backend");
+    QSKIP_IF_NOT_FFMPEG("This test is only for FFmpeg backend");
 
     // Create stream
     if (!canCreateRtpStream())
@@ -1601,8 +1600,7 @@ void tst_QMediaPlayerBackend::play_playsRtpStream_whenSdpFileIsLoaded()
 #if !QT_CONFIG(process)
     QSKIP("This test requires QProcess support");
 #else
-    if (!isFFMPEGPlatform())
-        QSKIP("This test is only for FFmpeg backend");
+    QSKIP_IF_NOT_FFMPEG("This test is only for FFmpeg backend");
 
     // Create stream
     if (!canCreateRtpStream())

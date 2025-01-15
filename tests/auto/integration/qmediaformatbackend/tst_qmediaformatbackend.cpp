@@ -859,8 +859,7 @@ private slots:
 
     void isSupported_returnsTrue_whenFormatAndVideoCodecIsSupported()
     {
-        if (!isFFMPEGPlatform())
-            QSKIP("This test verifies only the FFmpeg media backend");
+        QSKIP_IF_NOT_FFMPEG("This test verifies only the FFmpeg media backend");
 
         QFETCH(QMediaFormat::FileFormat, fileFormat);
         QFETCH(QMediaFormat::VideoCodec, videoCodec);
@@ -897,8 +896,7 @@ private slots:
 
     void isSupported_returnsTrue_whenFormatAndAudioCodecIsSupported()
     {
-        if (!isFFMPEGPlatform())
-            QSKIP("This test verifies only the FFmpeg media backend");
+        QSKIP_IF_NOT_FFMPEG("This test verifies only the FFmpeg media backend");
 
         QFETCH(QMediaFormat::FileFormat, fileFormat);
         QFETCH(QMediaFormat::AudioCodec, audioCodec);
@@ -941,8 +939,7 @@ private slots:
 
     void isSupported_returnsTrue_whenAudioAndVideoCodecsAreCombined()
     {
-        if (!isFFMPEGPlatform())
-            QSKIP("This test verifies only the FFmpeg media backend");
+        QSKIP_IF_NOT_FFMPEG("This test verifies only the FFmpeg media backend");
 
         QFETCH(QMediaFormat, format);
         QFETCH(QMediaFormat::ConversionMode, conversionMode);
@@ -983,8 +980,7 @@ private slots:
 
     void resolveForEncoding_doesNotChangeFormat_whenFormatIsSupported()
     {
-        if (!isFFMPEGPlatform())
-            QSKIP("This test verifies only the FFmpeg media backend");
+        QSKIP_IF_NOT_FFMPEG("This test verifies only the FFmpeg media backend");
 
         QFETCH(QMediaFormat, format);
         QFETCH(const QMediaFormat::ResolveFlags, resolveFlags);
@@ -1036,8 +1032,7 @@ private slots:
 
     void resolveForEncoding_givesSupportedFormat_whenCalledWithAllCodecs()
     {
-        if (!isFFMPEGPlatform())
-            QSKIP("This test verifies only the FFmpeg media backend");
+        QSKIP_IF_NOT_FFMPEG("This test verifies only the FFmpeg media backend");
 
         QFETCH(QMediaFormat, format);
         QFETCH(const QMediaFormat::ResolveFlags, resolveFlags);

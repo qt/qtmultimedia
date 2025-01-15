@@ -69,23 +69,20 @@ inline bool isCI()
 
 using namespace BackendUtilsImpl;
 
-#define QSKIP_GSTREAMER(message) \
-  do {                           \
-    if (isGStreamerPlatform())   \
-      QSKIP(message);            \
-  } while (0)
-
-#define QSKIP_IF_NOT_FFMPEG()                             \
-    do {                                                  \
-        if (!isFFMPEGPlatform())                          \
-            QSKIP("Feature is only supported on FFmpeg"); \
+#define QSKIP_IF(checker, defaultMessage, /*messageOpt*/...)                 \
+    do {                                                                     \
+        if (checker)                                                         \
+            QSKIP(strlen(__VA_ARGS__ "") ? __VA_ARGS__ "" : defaultMessage); \
     } while (0)
 
-#define QSKIP_FFMPEG(message) \
-  do {                        \
-    if (isFFMPEGPlatform())   \
-      QSKIP(message);         \
-  } while (0)
+#define QSKIP_GSTREAMER(/*messageOpt*/...) \
+    QSKIP_IF(isGStreamerPlatform(), "The feature is not supported on GStreamer", __VA_ARGS__)
+
+#define QSKIP_IF_NOT_FFMPEG(/*messageOpt*/...) \
+    QSKIP_IF(!isFFMPEGPlatform(), "The feature is only supported on FFmpeg", __VA_ARGS__)
+
+#define QSKIP_FFMPEG(/*messageOpt*/...) \
+    QSKIP_IF(isFFMPEGPlatform(), "The feature is not supported on FFmpeg", __VA_ARGS__)
 
 #define QEXPECT_FAIL_GSTREAMER(dataIndex, comment, mode) \
   do {                                                   \

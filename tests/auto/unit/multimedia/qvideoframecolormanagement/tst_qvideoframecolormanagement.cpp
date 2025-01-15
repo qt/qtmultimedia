@@ -371,8 +371,7 @@ class tst_qvideoframecolormanagement : public QObject
 private slots:
     void initTestCase()
     {
-        if (!isFFMPEGPlatform())
-            QSKIP("This test requires the ffmpeg backend to create test frames");
+        QSKIP_IF_NOT_FFMPEG("This test requires the FFmpeg backend to create test frames");
     }
 
     void qImageFromVideoFrame_returnsQImageWithCorrectColors_data()
