@@ -171,7 +171,26 @@ struct DxgiScreen
                                  bounds.right - bounds.left,
                                  bounds.bottom - bounds.top };
         return displayRect.size();
+    }
 
+    QMaybe<QtVideo::Rotation, ComStatus> rotation() const
+    {
+        DXGI_OUTPUT_DESC desc{};
+        const HRESULT hr = output->GetDesc(&desc);
+        if (hr != S_OK)
+            return { unexpect, hr };
+
+        switch (desc.Rotation) {
+
+        case DXGI_MODE_ROTATION_ROTATE90:
+            return QtVideo::Rotation::Clockwise90;
+        case DXGI_MODE_ROTATION_ROTATE180:
+            return QtVideo::Rotation::Clockwise180;
+        case DXGI_MODE_ROTATION_ROTATE270:
+            return QtVideo::Rotation::Clockwise270;
+        default:
+            return QtVideo::Rotation::None;
+        }
     }
 
     ComPtr<IDXGIAdapter1> adapter;
@@ -324,7 +343,12 @@ QMaybe<QVideoFrameFormat, ComStatus> getFrameFormat(const QScreen* screen)
     if (!screenSize)
         return screenSize.error();
 
+    const auto rotation = dxgiScreen->rotation();
+    if (!rotation)
+        return rotation.error();
+
     QVideoFrameFormat format = { *screenSize, QVideoFrameFormat::Format_BGRA8888 };
+    format.setRotation(*rotation);
     format.setStreamFrameRate(static_cast<int>(screen->refreshRate()));
 
     return format;
