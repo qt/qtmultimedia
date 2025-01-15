@@ -54,9 +54,6 @@ std::set<QMediaFormat::VideoCodec> unsupportedVideoCodecs(QMediaFormat::FileForm
 {
     using VideoCodec = QMediaFormat::VideoCodec;
 
-    if constexpr (isLinux)
-        return {};
-
     std::set<QMediaFormat::VideoCodec> unsupportedCodecs;
     if constexpr (isMacOS) {
         if (fileFormat == QMediaFormat::Matroska)
@@ -72,9 +69,6 @@ std::set<QMediaFormat::VideoCodec> unsupportedVideoCodecs(QMediaFormat::FileForm
                 unsupportedCodecs.insert(VideoCodec::H264);
         }
     }
-
-    if (fileFormat == QMediaFormat::FileFormat::Matroska)
-        unsupportedCodecs.insert({ VideoCodec::H264 });
 
     return unsupportedCodecs;
 }
