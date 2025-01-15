@@ -42,8 +42,9 @@ std::set<QMediaFormat::VideoCodec> supportedVideoEncoders(QMediaFormat::FileForm
             QMediaFormat::VideoCodec::MotionJPEG,
         };
         videoEncoders[QMediaFormat::FileFormat::Matroska] = {
-            QMediaFormat::VideoCodec::MPEG1,      QMediaFormat::VideoCodec::MPEG2,
-            QMediaFormat::VideoCodec::MPEG4,      QMediaFormat::VideoCodec::H264,
+            QMediaFormat::VideoCodec::MPEG1,
+            QMediaFormat::VideoCodec::MPEG2,
+            QMediaFormat::VideoCodec::MPEG4,
             QMediaFormat::VideoCodec::MotionJPEG,
         };
         videoEncoders[QMediaFormat::FileFormat::MPEG4] = {
@@ -130,9 +131,10 @@ std::set<QMediaFormat::VideoCodec> supportedVideoEncoders(QMediaFormat::FileForm
             QMediaFormat::VideoCodec::MotionJPEG,
         };
         videoEncoders[QMediaFormat::FileFormat::Matroska] = {
-            QMediaFormat::VideoCodec::MPEG1, QMediaFormat::VideoCodec::MPEG2,
-            QMediaFormat::VideoCodec::MPEG4, QMediaFormat::VideoCodec::H264,
-            QMediaFormat::VideoCodec::H265,  QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::MPEG1,
+            QMediaFormat::VideoCodec::MPEG2,
+            QMediaFormat::VideoCodec::MPEG4,
+            QMediaFormat::VideoCodec::MotionJPEG,
         };
         videoEncoders[QMediaFormat::FileFormat::MPEG4] = {
             QMediaFormat::VideoCodec::MPEG1, QMediaFormat::VideoCodec::MPEG2,

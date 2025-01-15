@@ -230,6 +230,18 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
     }
 #endif
 
+    // FFmpeg's Matroska muxer does not work with H264 video codec
+    for (auto &encoder : encoders) {
+        if (encoder.format == QMediaFormat::Matroska) {
+            encoder.video.removeAll(VideoCodec::H264);
+
+            // And on macOS, also not with H265
+#ifdef Q_OS_MACOS
+            encoder.video.removeAll(VideoCodec::H265);
+#endif
+        }
+    }
+
     // FFmpeg can currently only decode WMA and WMV, not encode
     if (extraAudioDecoders.contains(AudioCodec::WMA)) {
         decoders[QMediaFormat::WMA].audio.append(AudioCodec::WMA);
