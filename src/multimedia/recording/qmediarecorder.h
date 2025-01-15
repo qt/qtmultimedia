@@ -146,7 +146,7 @@ Q_SIGNALS:
     void actualLocationChanged(const QUrl &location);
 
 #if QT_DEPRECATED_SINCE(6, 9)
-    QT_DEPRECATED_VERSION_X_6_9("Use specific signals instead")
+    QT_MOC_COMPAT QT_DEPRECATED_VERSION_X_6_9("Use specific signals instead")
     void encoderSettingsChanged();
 #endif
 
