@@ -52,17 +52,23 @@ SymbolsResolver::~SymbolsResolver()
         m_library->unload();
 }
 
+QFunctionPointer SymbolsResolver::initOptionalFunction(const char *funcName)
+{
+    return m_library ? m_library->resolve(funcName) : nullptr;
+}
+
 QFunctionPointer SymbolsResolver::initFunction(const char *funcName)
 {
-    if (!m_library)
-        return nullptr;
-    if (auto func = m_library->resolve(funcName))
-        return func;
+    QFunctionPointer func = initOptionalFunction(funcName);
 
-    qCWarning(qLcSymbolsResolver) << "Couldn't resolve" << m_libLoggingName << "symbol" << funcName;
-    m_library->unload();
-    m_library.reset();
-    return nullptr;
+    if (!func && m_library)
+    {
+        qCWarning(qLcSymbolsResolver) << "Couldn't resolve" << m_libLoggingName << "symbol" << funcName;
+        m_library->unload();
+        m_library.reset();
+    }
+
+    return func;
 }
 
 void SymbolsResolver::checkLibrariesLoaded(SymbolsMarker *begin, SymbolsMarker *end)
