@@ -7,6 +7,10 @@
 
 int main(int argc, char *argv[])
 {
+#ifdef Q_OS_ANDROID
+    // To be removed after QTBUG-132816
+    QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuBar);
+#endif
     QApplication app(argc, argv);
 
     Camera camera;
