@@ -8,43 +8,34 @@
 #include "qpipewire_symbolloader_p.h"
 
 #include <QtCore/qdebug.h>
+#include <QtCore/qfileinfo.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qrandom.h>
+#include <QtCore/qurlquery.h>
 #include <QtCore/quuid.h>
 #include <QtCore/qvariantmap.h>
+#include <QtCore/private/qcore_unix_p.h>
+#include <QtDBus/qdbusconnection.h>
+#include <QtDBus/qdbusinterface.h>
+#include <QtDBus/qdbusmessage.h>
+#include <QtDBus/qdbuspendingcall.h>
+#include <QtDBus/qdbuspendingreply.h>
+#include <QtDBus/qdbusreply.h>
+#include <QtDBus/qdbusunixfiledescriptor.h>
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qpa/qplatformintegration.h>
 #include <QtGui/qscreen.h>
 #include <QtGui/qwindow.h>
-#include <QtGui/qguiapplication.h>
+#include <QtGui/private/qgenericunixservices_p.h>
+#include <QtGui/private/qguiapplication_p.h>
 #include <QtMultimedia/qabstractvideobuffer.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 #include <QtMultimedia/private/qcapturablewindow_p.h>
 #include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 #include <QtMultimedia/private/qvideoframeconversionhelper_p.h>
 
-#if QT_CONFIG(dbus)
-// These includes are needed for xdg-desktop-portal support
-#include <QtCore/private/qcore_unix_p.h>
-
-#include <QtCore/QFileInfo>
-#include <QtCore/QUrlQuery>
-
-#include <QtDBus/QDBusConnection>
-#include <QtDBus/QDBusInterface>
-#include <QtDBus/QDBusMessage>
-#include <QtDBus/QDBusReply>
-#include <QtDBus/QDBusPendingCall>
-#include <QtDBus/QDBusPendingCallWatcher>
-#include <QtDBus/QDBusPendingReply>
-#include <QtDBus/QDBusUnixFileDescriptor>
-
-#include <QtGui/private/qgenericunixservices_p.h>
-#include <QtGui/qpa/qplatformintegration.h>
-#include <QtGui/private/qguiapplication_p.h>
-
 #include <fcntl.h>
-
-#endif // QT_CONFIG(dbus)
 
 
 QT_BEGIN_NAMESPACE
