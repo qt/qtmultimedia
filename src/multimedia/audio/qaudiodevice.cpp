@@ -30,6 +30,11 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDevicePrivate);
     QAudioSource, and QAudioSink. It is also used to determine the
     input or output device to use in a capture session or during media playback.
 
+    The QAudioDevice instance retains its properties throughout its lifetime,
+    even if the corresponding physical device is disconnected or its settings are
+    modified. To keep track of updated properties, the user should load new instances
+    of QAudioDevice from \l{QMediaDevices} when the relevant signals are fired.
+
     You can also query each device for the formats it supports. A
     format in this context is a set consisting of a channel count, sample rate, and sample type. A
     format is represented by the QAudioFormat class.
@@ -68,6 +73,11 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDevicePrivate);
 
     The audioDevice value type describes the properties of an audio device that
     is connected to the system.
+
+    The audioDevice instance retains its properties throughout its lifetime,
+    even if the corresponding physical device is disconnected or its settings are
+    modified. To keep track of updated properties, the user should load new instances
+    of audioDevice from \l{MediaDevices} when the relevant signals are fired.
 
     The list of audio input or output devices can be queried from the \l{MediaDevices}
     type. To select a certain audio device for input or output set it as the device
