@@ -6,6 +6,7 @@
 add_subdirectory(qabstractvideobuffer)
 add_subdirectory(qaudiorecorder)
 add_subdirectory(qaudioringbuffer)
+add_subdirectory(qaudiodevice)
 add_subdirectory(qaudioformat)
 add_subdirectory(qaudionamespace)
 add_subdirectory(qaudiostatemachine)
