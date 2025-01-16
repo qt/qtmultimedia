@@ -10,11 +10,11 @@
 #include <QList>
 #include <QMediaDevices>
 
-class tst_QAudioDevice : public QObject
+class tst_QAudioDeviceBackend : public QObject
 {
     Q_OBJECT
 public:
-    tst_QAudioDevice(QObject* parent=nullptr) : QObject(parent) {}
+    tst_QAudioDeviceBackend(QObject* parent=nullptr) : QObject(parent) {}
 
 private slots:
     void initTestCase();
@@ -34,7 +34,7 @@ private:
     std::unique_ptr<QAudioDevice> device;
 };
 
-void tst_QAudioDevice::initTestCase()
+void tst_QAudioDeviceBackend::initTestCase()
 {
     // Only perform tests if audio output device exists!
     QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
@@ -45,7 +45,7 @@ void tst_QAudioDevice::initTestCase()
     }
 }
 
-void tst_QAudioDevice::checkAvailableDefaultInput()
+void tst_QAudioDeviceBackend::checkAvailableDefaultInput()
 {
     // Only perform tests if audio input device exists!
     QList<QAudioDevice> devices = QMediaDevices::audioInputs();
@@ -56,7 +56,7 @@ void tst_QAudioDevice::checkAvailableDefaultInput()
     }
 }
 
-void tst_QAudioDevice::checkAvailableDefaultOutput()
+void tst_QAudioDeviceBackend::checkAvailableDefaultOutput()
 {
     // Only perform tests if audio input device exists!
     QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
@@ -67,25 +67,25 @@ void tst_QAudioDevice::checkAvailableDefaultOutput()
     }
 }
 
-void tst_QAudioDevice::channels()
+void tst_QAudioDeviceBackend::channels()
 {
     QVERIFY(device->minimumChannelCount() > 0);
     QVERIFY(device->maximumChannelCount() >= device->minimumChannelCount());
 }
 
-void tst_QAudioDevice::sampleFormat()
+void tst_QAudioDeviceBackend::sampleFormat()
 {
     QList<QAudioFormat::SampleFormat> avail = device->supportedSampleFormats();
     QVERIFY(avail.size() > 0);
 }
 
-void tst_QAudioDevice::sampleRates()
+void tst_QAudioDeviceBackend::sampleRates()
 {
     QVERIFY(device->minimumSampleRate() > 0);
     QVERIFY(device->maximumSampleRate() >= device->minimumSampleRate());
 }
 
-void tst_QAudioDevice::isFormatSupported()
+void tst_QAudioDeviceBackend::isFormatSupported()
 {
     QAudioFormat format;
     format.setSampleRate(44100);
@@ -96,7 +96,7 @@ void tst_QAudioDevice::isFormatSupported()
     QVERIFY(device->isFormatSupported(format));
 }
 
-void tst_QAudioDevice::preferred()
+void tst_QAudioDeviceBackend::preferred()
 {
     QAudioFormat format = device->preferredFormat();
     QVERIFY(format.isValid());
@@ -104,7 +104,7 @@ void tst_QAudioDevice::preferred()
 }
 
 // QAudioDevice's assignOperator method
-void tst_QAudioDevice::assignOperator()
+void tst_QAudioDeviceBackend::assignOperator()
 {
     QAudioDevice dev;
     QVERIFY(dev.id().isNull());
@@ -118,21 +118,21 @@ void tst_QAudioDevice::assignOperator()
     QVERIFY(dev.id() == dev1.id());
 }
 
-void tst_QAudioDevice::id()
+void tst_QAudioDeviceBackend::id()
 {
     QVERIFY(!device->id().isNull());
     QVERIFY(device->id() == QMediaDevices::audioOutputs().at(0).id());
 }
 
 // QAudioDevice's defaultConstructor method
-void tst_QAudioDevice::defaultConstructor()
+void tst_QAudioDeviceBackend::defaultConstructor()
 {
     QAudioDevice dev;
     QVERIFY(dev.isNull() == true);
     QVERIFY(dev.id().isNull());
 }
 
-void tst_QAudioDevice::equalityOperator()
+void tst_QAudioDeviceBackend::equalityOperator()
 {
     // Get some default device infos
     QAudioDevice dev1;
@@ -159,6 +159,6 @@ void tst_QAudioDevice::equalityOperator()
     // XXX Perhaps each available device should not be equal to any other
 }
 
-QTEST_MAIN(tst_QAudioDevice)
+QTEST_MAIN(tst_QAudioDeviceBackend)
 
-#include "tst_qaudiodevice.moc"
+#include "tst_qaudiodevicebackend.moc"

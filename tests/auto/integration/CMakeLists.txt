@@ -5,7 +5,7 @@
 
 # special case begin
 add_subdirectory(qaudiodecoderbackend)
-add_subdirectory(qaudiodevice)
+add_subdirectory(qaudiodevicebackend)
 add_subdirectory(qaudiosource)
 add_subdirectory(qaudiosink)
 add_subdirectory(qmediaformatbackend)
