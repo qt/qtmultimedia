@@ -56,8 +56,6 @@ std::set<QMediaFormat::VideoCodec> unsupportedVideoCodecs(QMediaFormat::FileForm
 
     std::set<QMediaFormat::VideoCodec> unsupportedCodecs;
     if constexpr (isMacOS) {
-        if (fileFormat == QMediaFormat::Matroska)
-            unsupportedCodecs.insert(VideoCodec::H265);
         if constexpr (isArm) {
             if (fileFormat == QMediaFormat::FileFormat::WMV)
                 unsupportedCodecs.insert(VideoCodec::H264);
