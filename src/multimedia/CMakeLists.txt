@@ -19,7 +19,7 @@ qt_internal_add_module(Multimedia
         audio/qaudiobufferinput.cpp audio/qaudiobufferinput.h
         audio/qaudiobufferoutput.cpp audio/qaudiobufferoutput.h audio/qaudiobufferoutput_p.h
         audio/qaudiooutput.cpp audio/qaudiooutput.h
-        audio/qaudioformat.cpp audio/qaudioformat.h
+        audio/qaudioformat.cpp audio/qaudioformat.h audio/qaudioformat_p.h
         audio/qaudiohelpers.cpp audio/qaudiohelpers_p.h
         audio/qaudioringbuffer_p.h
         audio/qaudiosource.cpp audio/qaudiosource.h

@@ -13,28 +13,225 @@
 //
 
 #include "qwindowsaudiodevice_p.h"
-#include "qwindowsaudioutils_p.h"
 
+#include <QtCore/qdebug.h>
 #include <QtCore/qt_windows.h>
-#include <QtCore/QDataStream>
-#include <QtCore/QIODevice>
+#include <QtCore/private/qsystemerror_p.h>
 
+#include <QtMultimedia/private/qaudioformat_p.h>
+#include <QtMultimedia/private/qcomtaskresource_p.h>
+#include <QtMultimedia/private/qwindowsaudioutils_p.h>
 #include <QtMultimedia/private/qcomtaskresource_p.h>
 
 #include <audioclient.h>
-#include <mmsystem.h>
-
 #include <initguid.h>
-#include <wtypes.h>
-#include <propkeydef.h>
 #include <mmdeviceapi.h>
+#include <propkeydef.h>
+
+#include <set>
 
 QT_BEGIN_NAMESPACE
 
-QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevice> immDev, UINT waveID, const QString &description, QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(dev, mode),
-      m_devId(waveID),
-      m_immDev(std::move(immDev))
+namespace {
+
+std::optional<EndpointFormFactor> inferFormFactor(const ComPtr<IPropertyStore> &propertyStore)
+{
+    PROPVARIANT var;
+    PropVariantInit(&var);
+    HRESULT hr = propertyStore->GetValue(PKEY_AudioEndpoint_FormFactor, &var);
+    if (SUCCEEDED(hr) && var.uintVal != EndpointFormFactor::UnknownFormFactor)
+        return EndpointFormFactor(var.uintVal);
+
+    return std::nullopt;
+}
+
+std::optional<QAudioFormat::ChannelConfig>
+inferChannelConfiguration(const ComPtr<IPropertyStore> &propertyStore, int maximumChannelCount)
+{
+    PROPVARIANT var;
+    PropVariantInit(&var);
+    HRESULT hr = propertyStore->GetValue(PKEY_AudioEndpoint_PhysicalSpeakers, &var);
+    if (SUCCEEDED(hr) && var.uintVal != 0)
+        return QWindowsAudioUtils::maskToChannelConfig(var.uintVal, maximumChannelCount);
+
+    return std::nullopt;
+}
+
+int maxChannelCountForFormFactor(EndpointFormFactor formFactor)
+{
+    switch (formFactor) {
+    case EndpointFormFactor::Headphones:
+    case EndpointFormFactor::Headset:
+        return 2;
+    case EndpointFormFactor::SPDIF:
+        return 6; // SPDIF can have 2 channels of uncompressed or 6 channels of compressed audio
+
+    case EndpointFormFactor::DigitalAudioDisplayDevice:
+        return 8; // HDMI can have max 8 channels
+
+    default:
+        return 128;
+    }
+}
+
+struct FormatProbeResult
+{
+    void update(const QAudioFormat &fmt)
+    {
+        supportedSampleFormats.insert(fmt.sampleFormat());
+        updateChannelCount(fmt.channelCount());
+        updateSamplingRate(fmt.sampleRate());
+    }
+
+    void updateChannelCount(int channelCount)
+    {
+        if (channelCount < channelCountRange.first)
+            channelCountRange.first = channelCount;
+        if (channelCount > channelCountRange.second)
+            channelCountRange.second = channelCount;
+    }
+
+    void updateSamplingRate(int samplingRate)
+    {
+        if (samplingRate < sampleRateRange.first)
+            sampleRateRange.first = samplingRate;
+        if (samplingRate > sampleRateRange.second)
+            sampleRateRange.second = samplingRate;
+    }
+
+    std::set<QAudioFormat::SampleFormat> supportedSampleFormats;
+    std::pair<int, int> channelCountRange{ std::numeric_limits<int>::max(), 0 };
+    std::pair<int, int> sampleRateRange{ std::numeric_limits<int>::max(), 0 };
+};
+
+std::optional<int> inferMaxNumberOfChannelsForSampleRate(const ComPtr<IAudioClient> &audioClient,
+                                                         QAudioFormat::SampleFormat sampleFormat,
+                                                         int sampleRate,
+                                                         int maxChannelsForFormFactor)
+{
+    using namespace QWindowsAudioUtils;
+
+    QAudioFormat fmt;
+    fmt.setSampleFormat(sampleFormat);
+    fmt.setSampleRate(sampleRate);
+    fmt.setChannelCount(maxChannelsForFormFactor);
+
+    std::optional<WAVEFORMATEXTENSIBLE> formatEx = toWaveFormatExtensible(fmt);
+    if (!formatEx)
+        return std::nullopt;
+
+    QComTaskResource<WAVEFORMATEX> closestMatch;
+    HRESULT result = audioClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, &formatEx->Format,
+                                                    closestMatch.address());
+
+    if (FAILED(result))
+        return std::nullopt;
+
+    if (closestMatch) {
+        QAudioFormat closestMatchFormat = waveFormatExToFormat(*closestMatch);
+        if (closestMatchFormat.sampleRate() != sampleRate)
+            return std::nullopt; // sample rate not supported at all
+
+        if (closestMatchFormat.sampleFormat() != sampleFormat)
+            return std::nullopt; // sample format not supported for this sample rate
+
+        return closestMatchFormat.channelCount();
+    }
+
+    return maxChannelsForFormFactor;
+}
+
+std::optional<FormatProbeResult> probeFormats(const ComPtr<IAudioClient> &audioClient,
+                                              const ComPtr<IPropertyStore> &propertyStore)
+{
+    using namespace QWindowsAudioUtils;
+
+    // probing formats is a bit slow, so we limit the number of channels of we can
+    std::optional<EndpointFormFactor> formFactor =
+            propertyStore ? inferFormFactor(propertyStore) : std::nullopt;
+    int maxChannelsForFormFactor = formFactor ? maxChannelCountForFormFactor(*formFactor) : 128;
+
+    std::optional<FormatProbeResult> limits;
+    for (QAudioFormat::SampleFormat sampleFormat : QtPrivate::allSupportedSampleFormats) {
+        for (int sampleRate : QtPrivate::allSupportedSampleRates) {
+
+            // we initially probe for 128 channels for the format.
+            // wasapi will recommend a "closest" match, containing the max number of channels we can
+            // probe for.
+            std::optional<int> maxChannelForFormat = inferMaxNumberOfChannelsForSampleRate(
+                    audioClient, sampleFormat, sampleRate, maxChannelsForFormFactor);
+
+            if (!maxChannelForFormat)
+                continue;
+
+            for (int channelCount = 1; channelCount != *maxChannelForFormat + 1; ++channelCount) {
+                QAudioFormat fmt;
+                fmt.setSampleFormat(sampleFormat);
+                fmt.setSampleRate(sampleRate);
+                fmt.setChannelCount(channelCount);
+
+                std::optional<WAVEFORMATEXTENSIBLE> formatEx = toWaveFormatExtensible(fmt);
+                if (!formatEx)
+                    continue;
+
+                QComTaskResource<WAVEFORMATEX> closestMatch;
+                HRESULT result = audioClient->IsFormatSupported(
+                        AUDCLNT_SHAREMODE_SHARED, &formatEx->Format, closestMatch.address());
+
+                if (FAILED(result))
+                    continue;
+
+                if (closestMatch)
+                    continue; // we don't have an exact match, but just something close by
+
+                if (!limits)
+                    limits = FormatProbeResult{};
+
+                limits->update(fmt);
+            }
+        }
+    }
+
+    return limits;
+}
+
+std::optional<QAudioFormat> probePreferredFormat(const ComPtr<IAudioClient> &audioClient)
+{
+    using namespace QWindowsAudioUtils;
+
+    static const QAudioFormat preferredFormat = [] {
+        QAudioFormat fmt;
+        fmt.setSampleRate(44100);
+        fmt.setChannelCount(2);
+        fmt.setSampleFormat(QAudioFormat::Int16);
+        return fmt;
+    }();
+
+    std::optional<WAVEFORMATEXTENSIBLE> formatEx = toWaveFormatExtensible(preferredFormat);
+    if (!formatEx)
+        return std::nullopt;
+
+    QComTaskResource<WAVEFORMATEX> closestMatch;
+    HRESULT result = audioClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, &formatEx->Format,
+                                                    closestMatch.address());
+
+    if (FAILED(result))
+        return std::nullopt;
+    if (!closestMatch)
+        return preferredFormat;
+
+    QAudioFormat closestMatchFormat = waveFormatExToFormat(*closestMatch);
+    if (closestMatchFormat.isValid())
+        return closestMatchFormat;
+    return std::nullopt;
+}
+
+} // namespace
+
+QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevice> immDev,
+                                                 const QString &description,
+                                                 QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(dev, mode), m_immDev(std::move(immDev))
 {
     Q_ASSERT(m_immDev);
 
@@ -42,188 +239,53 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevic
 
     ComPtr<IAudioClient> audioClient;
     HRESULT hr = m_immDev->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                                    reinterpret_cast<void**>(audioClient.GetAddressOf()));
+                                    reinterpret_cast<void **>(audioClient.GetAddressOf()));
+
     if (SUCCEEDED(hr)) {
         QComTaskResource<WAVEFORMATEX> mixFormat;
         hr = audioClient->GetMixFormat(mixFormat.address());
         if (SUCCEEDED(hr))
             preferredFormat = QWindowsAudioUtils::waveFormatExToFormat(*mixFormat);
-    }
-
-    if (!preferredFormat.isValid()) {
-        preferredFormat.setSampleRate(44100);
-        preferredFormat.setChannelCount(2);
-        preferredFormat.setSampleFormat(QAudioFormat::Int16);
-    }
-
-    DWORD fmt = 0;
-
-    if(mode == QAudioDevice::Output) {
-        WAVEOUTCAPS woc;
-        if (waveOutGetDevCaps(m_devId, &woc, sizeof(WAVEOUTCAPS)) == MMSYSERR_NOERROR)
-            fmt = woc.dwFormats;
     } else {
-        WAVEINCAPS woc;
-        if (waveInGetDevCaps(m_devId, &woc, sizeof(WAVEINCAPS)) == MMSYSERR_NOERROR)
-            fmt = woc.dwFormats;
-    }
-
-    if (!fmt)
+        qWarning() << "QWindowsAudioDeviceInfo: could not activate audio client:" << description
+                   << QSystemError::windowsComString(hr);
         return;
-
-    // Check sample size
-    if ((fmt & WAVE_FORMAT_1M08)
-        || (fmt & WAVE_FORMAT_1S08)
-        || (fmt & WAVE_FORMAT_2M08)
-        || (fmt & WAVE_FORMAT_2S08)
-        || (fmt & WAVE_FORMAT_4M08)
-        || (fmt & WAVE_FORMAT_4S08)
-        || (fmt & WAVE_FORMAT_48M08)
-        || (fmt & WAVE_FORMAT_48S08)
-        || (fmt & WAVE_FORMAT_96M08)
-        || (fmt & WAVE_FORMAT_96S08)) {
-        supportedSampleFormats.append(QAudioFormat::UInt8);
     }
-    if ((fmt & WAVE_FORMAT_1M16)
-        || (fmt & WAVE_FORMAT_1S16)
-        || (fmt & WAVE_FORMAT_2M16)
-        || (fmt & WAVE_FORMAT_2S16)
-        || (fmt & WAVE_FORMAT_4M16)
-        || (fmt & WAVE_FORMAT_4S16)
-        || (fmt & WAVE_FORMAT_48M16)
-        || (fmt & WAVE_FORMAT_48S16)
-        || (fmt & WAVE_FORMAT_96M16)
-        || (fmt & WAVE_FORMAT_96S16)) {
-        supportedSampleFormats.append(QAudioFormat::Int16);
-    }
-
-    minimumSampleRate = std::numeric_limits<int>::max();
-    maximumSampleRate = 0;
-    // Check sample rate
-    if ((fmt & WAVE_FORMAT_1M08)
-       || (fmt & WAVE_FORMAT_1S08)
-       || (fmt & WAVE_FORMAT_1M16)
-       || (fmt & WAVE_FORMAT_1S16)) {
-        minimumSampleRate = qMin(minimumSampleRate, 11025);
-        maximumSampleRate = qMax(maximumSampleRate, 11025);
-    }
-    if ((fmt & WAVE_FORMAT_2M08)
-       || (fmt & WAVE_FORMAT_2S08)
-       || (fmt & WAVE_FORMAT_2M16)
-       || (fmt & WAVE_FORMAT_2S16)) {
-        minimumSampleRate = qMin(minimumSampleRate, 22050);
-        maximumSampleRate = qMax(maximumSampleRate, 22050);
-    }
-    if ((fmt & WAVE_FORMAT_4M08)
-       || (fmt & WAVE_FORMAT_4S08)
-       || (fmt & WAVE_FORMAT_4M16)
-       || (fmt & WAVE_FORMAT_4S16)) {
-        minimumSampleRate = qMin(minimumSampleRate, 44100);
-        maximumSampleRate = qMax(maximumSampleRate, 44100);
-    }
-    if ((fmt & WAVE_FORMAT_48M08)
-        || (fmt & WAVE_FORMAT_48S08)
-        || (fmt & WAVE_FORMAT_48M16)
-        || (fmt & WAVE_FORMAT_48S16)) {
-        minimumSampleRate = qMin(minimumSampleRate, 48000);
-        maximumSampleRate = qMax(maximumSampleRate, 48000);
-    }
-    if ((fmt & WAVE_FORMAT_96M08)
-       || (fmt & WAVE_FORMAT_96S08)
-       || (fmt & WAVE_FORMAT_96M16)
-       || (fmt & WAVE_FORMAT_96S16)) {
-        minimumSampleRate = qMin(minimumSampleRate, 96000);
-        maximumSampleRate = qMax(maximumSampleRate, 96000);
-    }
-    if (minimumSampleRate == std::numeric_limits<int>::max())
-        minimumSampleRate = 0;
-
-    minimumChannelCount = std::numeric_limits<int>::max();
-    maximumChannelCount = 0;
-    // Check channel count
-    if (fmt & WAVE_FORMAT_1M08
-            || fmt & WAVE_FORMAT_1M16
-            || fmt & WAVE_FORMAT_2M08
-            || fmt & WAVE_FORMAT_2M16
-            || fmt & WAVE_FORMAT_4M08
-            || fmt & WAVE_FORMAT_4M16
-            || fmt & WAVE_FORMAT_48M08
-            || fmt & WAVE_FORMAT_48M16
-            || fmt & WAVE_FORMAT_96M08
-            || fmt & WAVE_FORMAT_96M16) {
-        minimumChannelCount = 1;
-        maximumChannelCount = 1;
-    }
-    if (fmt & WAVE_FORMAT_1S08
-            || fmt & WAVE_FORMAT_1S16
-            || fmt & WAVE_FORMAT_2S08
-            || fmt & WAVE_FORMAT_2S16
-            || fmt & WAVE_FORMAT_4S08
-            || fmt & WAVE_FORMAT_4S16
-            || fmt & WAVE_FORMAT_48S08
-            || fmt & WAVE_FORMAT_48S16
-            || fmt & WAVE_FORMAT_96S08
-            || fmt & WAVE_FORMAT_96S16) {
-        minimumChannelCount = qMin(minimumChannelCount, 2);
-        maximumChannelCount = qMax(maximumChannelCount, 2);
-    }
-
-    if (minimumChannelCount == std::numeric_limits<int>::max())
-        minimumChannelCount = 0;
-
-    // WAVEOUTCAPS and WAVEINCAPS contains information only for the previously tested parameters.
-    // WaveOut and WaveInt might actually support more formats, the only way to know is to try
-    // opening the device with it.
-    QAudioFormat testFormat;
-    testFormat.setChannelCount(maximumChannelCount);
-    testFormat.setSampleRate(maximumSampleRate);
-    const QAudioFormat defaultTestFormat(testFormat);
-
-    // Check if float samples are supported
-    testFormat.setSampleFormat(QAudioFormat::Float);
-    if (testSettings(testFormat))
-        supportedSampleFormats.append(QAudioFormat::Float);
-
-    // Check channel counts > 2
-    testFormat = defaultTestFormat;
-    for (int i = 18; i > 2; --i) { // <mmreg.h> defines 18 different channels
-        testFormat.setChannelCount(i);
-        if (testSettings(testFormat)) {
-            maximumChannelCount = i;
-            break;
-        }
-    }
-
-    channelConfiguration = QAudioFormat::defaultChannelConfigForChannelCount(maximumChannelCount);
 
     ComPtr<IPropertyStore> props;
     hr = m_immDev->OpenPropertyStore(STGM_READ, props.GetAddressOf());
-    if (SUCCEEDED(hr)) {
-        PROPVARIANT var;
-        PropVariantInit(&var);
-        hr = props->GetValue(PKEY_AudioEndpoint_PhysicalSpeakers, &var);
-        if (SUCCEEDED(hr) && var.uintVal != 0)
-            channelConfiguration = QWindowsAudioUtils::maskToChannelConfig(var.uintVal, maximumChannelCount);
+    if (!SUCCEEDED(hr)) {
+        qWarning() << "QWindowsAudioDeviceInfo: could not open property store:" << description
+                   << QSystemError::windowsComString(hr);
+        props.Reset();
     }
+
+    std::optional<FormatProbeResult> probedFormats = probeFormats(audioClient, props);
+    if (probedFormats) {
+        supportedSampleFormats.assign(probedFormats->supportedSampleFormats.begin(),
+                                      probedFormats->supportedSampleFormats.end());
+
+        minimumSampleRate = probedFormats->sampleRateRange.first;
+        maximumSampleRate = probedFormats->sampleRateRange.second;
+        minimumChannelCount = probedFormats->channelCountRange.first;
+        maximumChannelCount = probedFormats->channelCountRange.second;
+    }
+
+    if (!preferredFormat.isValid()) {
+        std::optional<QAudioFormat> probedFormat = probePreferredFormat(audioClient);
+        if (probedFormat)
+            preferredFormat = *probedFormat;
+    }
+
+    std::optional<QAudioFormat::ChannelConfig> config;
+    if (props)
+        config = inferChannelConfiguration(props, maximumChannelCount);
+
+    channelConfiguration = config
+            ? *config
+            : QAudioFormat::defaultChannelConfigForChannelCount(maximumChannelCount);
 }
 
 QWindowsAudioDeviceInfo::~QWindowsAudioDeviceInfo() = default;
-
-bool QWindowsAudioDeviceInfo::testSettings(const QAudioFormat& format) const
-{
-    WAVEFORMATEXTENSIBLE wfx;
-    if (QWindowsAudioUtils::formatToWaveFormatExtensible(format, wfx)) {
-        // query only, do not open device
-        if (mode == QAudioDevice::Output) {
-            return (waveOutOpen(nullptr, m_devId, &wfx.Format, 0, 0,
-                                WAVE_FORMAT_QUERY) == MMSYSERR_NOERROR);
-        } else { // AudioInput
-            return (waveInOpen(nullptr, m_devId, &wfx.Format, 0, 0,
-                               WAVE_FORMAT_QUERY) == MMSYSERR_NOERROR);
-        }
-    }
-
-    return false;
-}
 
 QT_END_NAMESPACE

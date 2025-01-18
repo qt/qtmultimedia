@@ -32,6 +32,8 @@ class QWindowsMediaFoundation;
 namespace QWindowsAudioUtils
 {
     bool formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx);
+    std::optional<WAVEFORMATEXTENSIBLE> toWaveFormatExtensible(const QAudioFormat &format);
+
     QAudioFormat waveFormatExToFormat(const WAVEFORMATEX &in);
     Q_MULTIMEDIA_EXPORT QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType);
     ComPtr<IMFMediaType> formatToMediaType(QWindowsMediaFoundation &, const QAudioFormat &format);

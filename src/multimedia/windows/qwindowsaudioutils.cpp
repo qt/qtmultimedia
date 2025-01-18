@@ -90,6 +90,16 @@ bool QWindowsAudioUtils::formatToWaveFormatExtensible(const QAudioFormat &format
     return true;
 }
 
+std::optional<WAVEFORMATEXTENSIBLE>
+QWindowsAudioUtils::toWaveFormatExtensible(const QAudioFormat &format)
+{
+    WAVEFORMATEXTENSIBLE ret{};
+    if (formatToWaveFormatExtensible(format, ret))
+        return ret;
+
+    return std::nullopt;
+}
+
 QAudioFormat QWindowsAudioUtils::waveFormatExToFormat(const WAVEFORMATEX &in)
 {
     QAudioFormat out;
