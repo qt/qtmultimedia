@@ -248,7 +248,7 @@ QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mo
             const QString description = QString::fromWCharArray(varName.pwszVal);
             const QByteArray strID = deviceId.toUtf8();
 
-            auto dev = new QWindowsAudioDeviceInfo(strID, device, waveID, description, mode);
+            auto dev = new QWindowsAudioDeviceInfo(strID, device, description, mode);
             dev->isDefault = strID == defaultAudioDeviceID;
 
             devices.append(dev->create());
