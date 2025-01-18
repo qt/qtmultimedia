@@ -61,7 +61,7 @@ extern "C" {
 #include "qx11capturablewindows_p.h"
 #endif
 
-#if QT_CONFIG(pipewire)
+#if QT_CONFIG(pipewire_screencapture)
 #  include <QtMultimedia/private/qpipewire_screencapture_p.h>
 #endif
 
@@ -244,7 +244,7 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
         return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
 #endif
 
-#if QT_CONFIG(pipewire)
+#if QT_CONFIG(pipewire_screencapture)
     if (QtPipeWire::QPipeWireCapture::isSupported())
         return new QtPipeWire::QPipeWireCapture(QPlatformSurfaceCapture::ScreenSource{});
 #endif
