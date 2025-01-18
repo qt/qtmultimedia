@@ -143,7 +143,11 @@ qt_feature("ffmpeg" PRIVATE
 qt_feature("pipewire" PRIVATE
     LABEL "PipeWire"
     ENABLE INPUT_pipewire STREQUAL 'yes'
-    CONDITION QT_FEATURE_dbus AND TARGET PipeWire::PipeWire
+    CONDITION QT_FEATURE_library AND TARGET PipeWire::PipeWire
+)
+qt_feature("pipewire_screencapture" PRIVATE
+    LABEL "PipeWire screen capture"
+    CONDITION QT_FEATURE_dbus AND QT_FEATURE_pipewire
 )
 qt_feature("alsa" PUBLIC PRIVATE
     LABEL "ALSA (experimental)"
@@ -260,7 +264,7 @@ qt_configure_add_summary_section(NAME "Plugin")
 qt_configure_add_summary_entry(ARGS "gstreamer")
 qt_configure_add_summary_entry(ARGS "ffmpeg")
 qt_configure_add_summary_section(NAME "FFmpeg plugin features")
-qt_configure_add_summary_entry(ARGS "pipewire")
+qt_configure_add_summary_entry(ARGS "pipewire_screencapture")
 qt_configure_end_summary_section()
 qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "avfoundation")
