@@ -274,6 +274,7 @@ public class QtCamera2 {
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
     }
 
+    // Used from native code
     void stopBackgroundThread() {
         mBackgroundThread.quitSafely();
         try {
@@ -336,7 +337,7 @@ public class QtCamera2 {
         }
     };
 
-
+    // Used from native code
     public void prepareCamera(int width, int height, int format, int minFps, int maxFps) {
 
         addImageReader(width, height, format);
@@ -379,10 +380,12 @@ public class QtCamera2 {
         return  mTargetSurfaces.remove(surface);
     }
 
+    // Used from native code
     public void clearSurfaces() {
         mTargetSurfaces.clear();
     }
 
+    // Used from native code
     public boolean createSession() {
         if (mCameraDevice == null)
             return false;
@@ -396,6 +399,7 @@ public class QtCamera2 {
         return false;
     }
 
+    // Used from native code
     public boolean start(int template) {
 
         if (mCameraDevice == null)
@@ -437,6 +441,7 @@ public class QtCamera2 {
         }
     }
 
+    // Used from native code
     public void stopAndClose() {
         synchronized (mSyncedMembers) {
             try {
@@ -528,7 +533,7 @@ public class QtCamera2 {
         }
     }
 
-    // Called from C++ thread.
+    // Used from native code
     // If auto-focus is enabled, will initiate the still photo precapture routine by adjusting
     // focusing and exposure. Otherwise, will finalize a still photo immediately.
     public void takePhoto() {
@@ -551,6 +556,7 @@ public class QtCamera2 {
         }
     }
 
+    // Used from native code
     public void saveExifToFile(String path)
     {
         if (mExifDataHandler != null)
@@ -581,6 +587,7 @@ public class QtCamera2 {
         }
     }
 
+    // Used from native code
     public void zoomTo(float factor)
     {
         synchronized (mSyncedMembers) {
@@ -601,6 +608,8 @@ public class QtCamera2 {
             }
         }
     }
+
+    // Used from native code
     public void setFlashMode(String flashMode)
     {
         synchronized (mSyncedMembers) {
@@ -631,6 +640,7 @@ public class QtCamera2 {
         return mode ? CameraMetadata.FLASH_MODE_TORCH : CameraMetadata.FLASH_MODE_OFF;
     }
 
+    // Used from native code
     public void setTorchMode(boolean torchMode)
     {
         synchronized (mSyncedMembers) {

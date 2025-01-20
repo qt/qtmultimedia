@@ -30,6 +30,7 @@ public class QtVideoDeviceManager {
     CameraManager mCameraManager;
     Map<String, CameraCharacteristics> cache;
 
+    // Used from native code
     public QtVideoDeviceManager(Context context) {
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         cache = new WeakHashMap<String, CameraCharacteristics>();
@@ -81,6 +82,7 @@ public class QtVideoDeviceManager {
     static public String[] getHWVideoDecoders() { return getHWVideoCodecs(CODEC.DECODER); }
     static public String[] getHWVideoEncoders() { return getHWVideoCodecs(CODEC.ENCODER); }
 
+    // Used from native code
     public String[] getCameraIdList() {
         try {
             return mCameraManager.getCameraIdList();
@@ -90,6 +92,7 @@ public class QtVideoDeviceManager {
         return null;
     }
 
+    // Used from native code
     public int getSensorOrientation(String cameraId) {
         CameraCharacteristics characteristics =  getCameraCharacteristics(cameraId);
         if (characteristics == null)
@@ -97,6 +100,7 @@ public class QtVideoDeviceManager {
         return characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
     }
 
+    // Used from native code
     public int getLensFacing(String cameraId) {
         CameraCharacteristics characteristics =  getCameraCharacteristics(cameraId);
         if (characteristics == null)
@@ -104,6 +108,7 @@ public class QtVideoDeviceManager {
         return characteristics.get(CameraCharacteristics.LENS_FACING);
     }
 
+    // Used from native code
     public String[] getFpsRange(String cameraId) {
 
         CameraCharacteristics characteristics =  getCameraCharacteristics(cameraId);
@@ -121,6 +126,7 @@ public class QtVideoDeviceManager {
         return fps;
     }
 
+    // Used from native code
     public float[] getZoomRange(String cameraId) {
 
         float[] zoomRange = { 1.0f, 1.0f };
@@ -151,6 +157,7 @@ public class QtVideoDeviceManager {
     }
 
     static final int maxResolution = 3840*2160; // 4k resolution
+    // Used from native code
     public String[] getStreamConfigurationsSizes(String cameraId, int imageFormat) {
 
         CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
@@ -216,6 +223,7 @@ public class QtVideoDeviceManager {
         return characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
     }
 
+    // Used from native code
     public String[] getSupportedFlashModes(String cameraId) {
 
         CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
@@ -249,6 +257,7 @@ public class QtVideoDeviceManager {
             || Build.PRODUCT.contains("simulator"));
     }
 
+    // Used from native code
     public boolean isTorchModeSupported(String cameraId) {
         boolean ret = false;
         final CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
