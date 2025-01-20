@@ -7,20 +7,19 @@
 
 #include "qpulseaudiosource_p.h"
 #include "qpulseaudiosink_p.h"
-#include "qaudioengine_pulse_p.h"
+#include "qpulseaudio_contextmanager_p.h"
 
 QT_BEGIN_NAMESPACE
 
 QPulseAudioDevices::QPulseAudioDevices()
-    : QPlatformAudioDevices()
 {
-    pulseEngine = new QPulseAudioEngine();
+    pulseEngine = new QPulseAudioContextManager();
 
     // TODO: it might make sense to connect device changing signals
     // to each added QMediaDevices
-    QObject::connect(pulseEngine, &QPulseAudioEngine::audioInputsChanged, this,
+    QObject::connect(pulseEngine, &QPulseAudioContextManager::audioInputsChanged, this,
                      &QPulseAudioDevices::onAudioInputsChanged, Qt::DirectConnection);
-    QObject::connect(pulseEngine, &QPulseAudioEngine::audioOutputsChanged, this,
+    QObject::connect(pulseEngine, &QPulseAudioContextManager::audioOutputsChanged, this,
                      &QPulseAudioDevices::onAudioOutputsChanged, Qt::DirectConnection);
 }
 

@@ -21,7 +21,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioEngine;
+class QPulseAudioContextManager;
 
 class QPulseAudioDevices : public QPlatformAudioDevices
 {
@@ -42,7 +42,7 @@ protected:
     QList<QAudioDevice> findAudioOutputs() const override;
 
 private:
-    QPulseAudioEngine *pulseEngine;
+    QPulseAudioContextManager *pulseEngine;
 };
 
 QT_END_NAMESPACE

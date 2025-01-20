@@ -7,7 +7,7 @@
 #include <private/qaudiohelpers_p.h>
 
 #include "qpulseaudiosource_p.h"
-#include "qaudioengine_pulse_p.h"
+#include "qpulseaudio_contextmanager_p.h"
 #include "qpulsehelpers_p.h"
 #include <sys/types.h>
 #include <unistd.h>
@@ -22,7 +22,7 @@ static void inputStreamReadCallback(pa_stream *stream, size_t length, void *user
     Q_UNUSED(userdata);
     Q_UNUSED(length);
     Q_UNUSED(stream);
-    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+    QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
 
@@ -57,7 +57,7 @@ static void inputStreamStateCallback(pa_stream *stream, void *userdata)
     case PA_STREAM_FAILED:
     default:
         qWarning() << "Stream error: " << currentError(stream);
-        QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+        QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
         pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
         break;
     }
@@ -86,7 +86,7 @@ static void inputStreamSuccessCallback(pa_stream *stream, int success, void *use
     // if (!success)
     // TODO: Is cork success?  i->operation_success = success;
 
-    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+    QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
 
@@ -173,7 +173,7 @@ bool QPulseAudioSource::open()
     if (m_opened)
         return true;
 
-    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+    QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
 
     if (!pulseEngine->context()
         || pa_context_get_state(pulseEngine->context()) != PA_CONTEXT_READY) {
@@ -265,7 +265,7 @@ bool QPulseAudioSource::open()
 
     engineLock.unlock();
 
-    connect(pulseEngine, &QPulseAudioEngine::contextFailed, this,
+    connect(pulseEngine, &QPulseAudioContextManager::contextFailed, this,
             &QPulseAudioSource::onPulseContextFailed);
 
     m_opened = true;
@@ -284,7 +284,7 @@ void QPulseAudioSource::close()
 
     m_timer.stop();
 
-    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+    QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
 
     if (m_stream) {
         std::lock_guard lock(*pulseEngine);
@@ -298,7 +298,7 @@ void QPulseAudioSource::close()
         m_stream = {};
     }
 
-    disconnect(pulseEngine, &QPulseAudioEngine::contextFailed, this,
+    disconnect(pulseEngine, &QPulseAudioContextManager::contextFailed, this,
                &QPulseAudioSource::onPulseContextFailed);
 
     if (!m_pullMode && m_audioSource) {
@@ -315,7 +315,7 @@ qsizetype QPulseAudioSource::bytesReady() const
     if (!m_stateMachine.isActiveOrIdle())
         return 0;
 
-    std::lock_guard lock(*QPulseAudioEngine::instance());
+    std::lock_guard lock(*QPulseAudioContextManager::instance());
 
     qsizetype tempBufferSize = 0;
     if (!m_pullMode && !m_tempBuffer.isEmpty()) {
@@ -362,7 +362,7 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
                                      << " bytes available from pulse audio";
         }
 
-        QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+        QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
         std::unique_lock engineLock{ *pulseEngine };
 
         const void *audioBuffer;
@@ -437,7 +437,7 @@ void QPulseAudioSource::resume()
 {
     if (auto notifier = m_stateMachine.resume()) {
         {
-            QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+            QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
 
             std::lock_guard lock(*pulseEngine);
 
@@ -493,7 +493,7 @@ void QPulseAudioSource::suspend()
     if (auto notifier = m_stateMachine.suspend()) {
         m_timer.stop();
 
-        QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+        QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
 
         std::lock_guard lock(*pulseEngine);
 

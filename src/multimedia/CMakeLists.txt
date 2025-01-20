@@ -186,7 +186,7 @@ endif()
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
     SOURCES
-        pulseaudio/qaudioengine_pulse.cpp pulseaudio/qaudioengine_pulse_p.h
+        pulseaudio/qpulseaudio_contextmanager.cpp pulseaudio/qpulseaudio_contextmanager_p.h
         pulseaudio/qpulseaudiosource.cpp pulseaudio/qpulseaudiosource_p.h
         pulseaudio/qpulseaudiosink.cpp pulseaudio/qpulseaudiosink_p.h
         pulseaudio/qpulsehelpers.cpp pulseaudio/qpulsehelpers_p.h
