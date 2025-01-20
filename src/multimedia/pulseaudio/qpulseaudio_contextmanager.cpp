@@ -1,7 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qaudioengine_pulse_p.h"
+#include "qpulseaudio_contextmanager_p.h"
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qtimer.h>
@@ -114,8 +114,8 @@ static bool updateDevicesMap(QReadWriteLock &lock, const QByteArray &defaultDevi
     return result;
 };
 
-void QPulseAudioEngine::serverInfoCallback(pa_context *context, const pa_server_info *info,
-                                           void *userdata)
+void QPulseAudioContextManager::serverInfoCallback(pa_context *context, const pa_server_info *info,
+                                                   void *userdata)
 {
     using namespace Qt::Literals;
     using namespace QPulseAudioInternal;
@@ -148,7 +148,7 @@ void QPulseAudioEngine::serverInfoCallback(pa_context *context, const pa_server_
                                 QString::fromUtf8(info->default_source_name));
     }
 
-    QPulseAudioEngine *pulseEngine = static_cast<QPulseAudioEngine *>(userdata);
+    QPulseAudioContextManager *pulseEngine = static_cast<QPulseAudioContextManager *>(userdata);
 
     bool defaultSinkChanged = false;
     bool defaultSourceChanged = false;
@@ -180,13 +180,13 @@ void QPulseAudioEngine::serverInfoCallback(pa_context *context, const pa_server_
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
 
-void QPulseAudioEngine::sinkInfoCallback(pa_context *context, const pa_sink_info *info, int isLast,
-                                         void *userdata)
+void QPulseAudioContextManager::sinkInfoCallback(pa_context *context, const pa_sink_info *info,
+                                                 int isLast, void *userdata)
 {
     using namespace Qt::Literals;
     using namespace QPulseAudioInternal;
 
-    QPulseAudioEngine *pulseEngine = static_cast<QPulseAudioEngine *>(userdata);
+    QPulseAudioContextManager *pulseEngine = static_cast<QPulseAudioContextManager *>(userdata);
 
     if (isLast < 0) {
         qWarning() << "Failed to get sink information:" << currentError(context);
@@ -222,13 +222,13 @@ void QPulseAudioEngine::sinkInfoCallback(pa_context *context, const pa_sink_info
         emit pulseEngine->audioOutputsChanged();
 }
 
-void QPulseAudioEngine::sourceInfoCallback(pa_context *context, const pa_source_info *info,
-                                           int isLast, void *userdata)
+void QPulseAudioContextManager::sourceInfoCallback(pa_context *context, const pa_source_info *info,
+                                                   int isLast, void *userdata)
 {
     using namespace Qt::Literals;
 
     Q_UNUSED(context);
-    QPulseAudioEngine *pulseEngine = static_cast<QPulseAudioEngine*>(userdata);
+    QPulseAudioContextManager *pulseEngine = static_cast<QPulseAudioContextManager *>(userdata);
 
     if (isLast) {
         pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
@@ -263,10 +263,10 @@ void QPulseAudioEngine::sourceInfoCallback(pa_context *context, const pa_source_
         emit pulseEngine->audioInputsChanged();
 }
 
-void QPulseAudioEngine::eventCallback(pa_context *context, pa_subscription_event_type_t t,
-                                      uint32_t index, void *userdata)
+void QPulseAudioContextManager::eventCallback(pa_context *context, pa_subscription_event_type_t t,
+                                              uint32_t index, void *userdata)
 {
-    QPulseAudioEngine *pulseEngine = static_cast<QPulseAudioEngine*>(userdata);
+    QPulseAudioContextManager *pulseEngine = static_cast<QPulseAudioContextManager *>(userdata);
 
     int type = t & PA_SUBSCRIPTION_EVENT_TYPE_MASK;
     int facility = t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
@@ -329,42 +329,44 @@ void QPulseAudioEngine::eventCallback(pa_context *context, pa_subscription_event
     }
 }
 
-void QPulseAudioEngine::contextStateCallbackInit(pa_context *context, void *userdata)
+void QPulseAudioContextManager::contextStateCallbackInit(pa_context *context, void *userdata)
 {
     Q_UNUSED(context);
 
     if (Q_UNLIKELY(qLcPulseAudioEngine().isEnabled(QtDebugMsg)))
         qCDebug(qLcPulseAudioEngine) << pa_context_get_state(context);
 
-    QPulseAudioEngine *pulseEngine = reinterpret_cast<QPulseAudioEngine*>(userdata);
+    QPulseAudioContextManager *pulseEngine =
+            reinterpret_cast<QPulseAudioContextManager *>(userdata);
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
 
-void QPulseAudioEngine::contextStateCallback(pa_context *c, void *userdata)
+void QPulseAudioContextManager::contextStateCallback(pa_context *c, void *userdata)
 {
-    QPulseAudioEngine *self = reinterpret_cast<QPulseAudioEngine*>(userdata);
+    QPulseAudioContextManager *self = reinterpret_cast<QPulseAudioContextManager *>(userdata);
     pa_context_state_t state = pa_context_get_state(c);
 
     if (Q_UNLIKELY(qLcPulseAudioEngine().isEnabled(QtDebugMsg)))
         qCDebug(qLcPulseAudioEngine) << state;
 
     if (state == PA_CONTEXT_FAILED)
-        QMetaObject::invokeMethod(self, &QPulseAudioEngine::onContextFailed, Qt::QueuedConnection);
+        QMetaObject::invokeMethod(self, &QPulseAudioContextManager::onContextFailed,
+                                  Qt::QueuedConnection);
 }
 
-Q_GLOBAL_STATIC(QPulseAudioEngine, pulseEngine);
+Q_GLOBAL_STATIC(QPulseAudioContextManager, pulseEngine);
 
-QPulseAudioEngine::QPulseAudioEngine(QObject *parent) : QObject(parent)
+QPulseAudioContextManager::QPulseAudioContextManager(QObject *parent) : QObject(parent)
 {
     prepare();
 }
 
-QPulseAudioEngine::~QPulseAudioEngine()
+QPulseAudioContextManager::~QPulseAudioContextManager()
 {
     release();
 }
 
-void QPulseAudioEngine::prepare()
+void QPulseAudioContextManager::prepare()
 {
     using namespace QPulseAudioInternal;
     bool keepGoing = true;
@@ -400,7 +402,10 @@ void QPulseAudioEngine::prepare()
         !windowIconName.isEmpty())
         pa_proplist_sets(proplist, PA_PROP_WINDOW_ICON_NAME, qUtf8Printable(windowIconName));
 
-    m_context.reset(pa_context_new_with_proplist(m_mainLoopApi, nullptr, proplist));
+    m_context = PAContextHandle{
+        pa_context_new_with_proplist(m_mainLoopApi, nullptr, proplist),
+        PAContextHandle::HasRef,
+    };
     pa_proplist_free(proplist);
 
     if (!m_context) {
@@ -483,7 +488,7 @@ void QPulseAudioEngine::prepare()
     }
 }
 
-void QPulseAudioEngine::release()
+void QPulseAudioContextManager::release()
 {
     if (m_context) {
         std::unique_lock lock{ *this };
@@ -497,7 +502,7 @@ void QPulseAudioEngine::release()
     }
 }
 
-void QPulseAudioEngine::updateDevices()
+void QPulseAudioContextManager::updateDevices()
 {
     std::lock_guard lock(*this);
 
@@ -513,21 +518,27 @@ void QPulseAudioEngine::updateDevices()
         qWarning() << "PulseAudioService: failed to get server info";
 
     // Get output devices
-    operation.reset(pa_context_get_sink_info_list(m_context.get(), sinkInfoCallback, this));
+    operation = PAOperationHandle{
+        pa_context_get_sink_info_list(m_context.get(), sinkInfoCallback, this),
+        PAOperationHandle::HasRef,
+    };
     if (operation)
         wait(operation);
     else
         qWarning() << "PulseAudioService: failed to get sink info";
 
     // Get input devices
-    operation.reset(pa_context_get_source_info_list(m_context.get(), sourceInfoCallback, this));
+    operation = PAOperationHandle{
+        pa_context_get_source_info_list(m_context.get(), sourceInfoCallback, this),
+        PAOperationHandle::HasRef,
+    };
     if (operation)
         wait(operation);
     else
         qWarning() << "PulseAudioService: failed to get source info";
 }
 
-void QPulseAudioEngine::onContextFailed()
+void QPulseAudioContextManager::onContextFailed()
 {
     // Give a chance to the connected slots to still use the Pulse main loop before releasing it.
     emit contextFailed();
@@ -535,15 +546,15 @@ void QPulseAudioEngine::onContextFailed()
     release();
 
     // Try to reconnect later
-    QTimer::singleShot(3000, this, &QPulseAudioEngine::prepare);
+    QTimer::singleShot(3000, this, &QPulseAudioContextManager::prepare);
 }
 
-QPulseAudioEngine *QPulseAudioEngine::instance()
+QPulseAudioContextManager *QPulseAudioContextManager::instance()
 {
     return pulseEngine();
 }
 
-QList<QAudioDevice> QPulseAudioEngine::availableDevices(QAudioDevice::Mode mode) const
+QList<QAudioDevice> QPulseAudioContextManager::availableDevices(QAudioDevice::Mode mode) const
 {
     if (mode == QAudioDevice::Output) {
         QReadLocker locker(&m_sinkLock);
@@ -558,7 +569,7 @@ QList<QAudioDevice> QPulseAudioEngine::availableDevices(QAudioDevice::Mode mode)
     return {};
 }
 
-QByteArray QPulseAudioEngine::defaultDevice(QAudioDevice::Mode mode) const
+QByteArray QPulseAudioContextManager::defaultDevice(QAudioDevice::Mode mode) const
 {
     return (mode == QAudioDevice::Output) ? m_defaultSink : m_defaultSource;
 }

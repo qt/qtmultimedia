@@ -1,8 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QPULSEAUDIOENGINE_H
-#define QPULSEAUDIOENGINE_H
+#ifndef QPULSEAUDIO_CONTEXTMANAGER_P_H
+#define QPULSEAUDIO_CONTEXTMANAGER_P_H
 
 //
 //  W A R N I N G
@@ -24,7 +24,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioEngine : public QObject
+class QPulseAudioContextManager : public QObject
 {
     Q_OBJECT
 
@@ -32,10 +32,10 @@ class QPulseAudioEngine : public QObject
     using PAOperationHandle = QPulseAudioInternal::PAOperationHandle;
 
 public:
-    explicit QPulseAudioEngine(QObject *parent = nullptr);
-    ~QPulseAudioEngine() override;
+    explicit QPulseAudioContextManager(QObject *parent = nullptr);
+    ~QPulseAudioContextManager() override;
 
-    static QPulseAudioEngine *instance();
+    static QPulseAudioContextManager *instance();
     pa_threaded_mainloop *mainloop() { return m_mainLoop.get(); }
     pa_context *context() { return m_context.get(); }
 
@@ -101,4 +101,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QPULSEAUDIO_CONTEXTMANAGER_P_H
