@@ -6,7 +6,7 @@
 #include "qfile.h"
 #include "qmultimediautils_p.h"
 
-#ifdef QT_FEATURE_network
+#if QT_CONFIG(network)
 #  include <QtNetwork/QNetworkAccessManager>
 #  include <QtNetwork/QNetworkReply>
 #  include <QtNetwork/QNetworkRequest>
@@ -75,7 +75,7 @@ QSampleCache::QSampleCache(QObject *parent)
 
 std::unique_ptr<QIODevice> QSampleCache::createStreamForSample(QSample &sample)
 {
-#ifdef QT_FEATURE_network
+#if QT_CONFIG(network)
     if (m_sampleSourceType == SampleSourceType::NetworkManager) {
         if (sample.m_url.scheme().isEmpty()) {
             // exit early, to avoid QNetworkAccessManager trying to construct a default ssl
@@ -122,7 +122,7 @@ QSampleCache::~QSampleCache()
     for (QSample* sample : copyStaleSamples)
         delete sample;
 
-#ifdef QT_FEATURE_network
+#if QT_CONFIG(network)
     // Should we delete it under the mutex?
     m_networkAccessManager.reset();
 #endif
@@ -134,7 +134,7 @@ void QSampleCache::loadingRelease()
     m_loadingRefCount--;
     if (m_loadingRefCount == 0) {
         if (m_loadingThread.isRunning()) {
-#ifdef QT_FEATURE_network
+#if QT_CONFIG(network)
             if (m_networkAccessManager)
                 m_networkAccessManager.release()->deleteLater();
 #endif

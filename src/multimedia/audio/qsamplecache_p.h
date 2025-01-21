@@ -24,7 +24,6 @@
 #include <QtCore/qurl.h>
 #include <QtCore/private/qglobal_p.h>
 #include <QtMultimedia/qaudioformat.h>
-#include <QtNetwork/qnetworkreply.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -122,11 +121,11 @@ private:
     QMap<QUrl, QSample*> m_samples;
     QSet<QSample*> m_staleSamples;
 
-#ifdef QT_FEATURE_network
+#if QT_CONFIG(network)
     std::unique_ptr<QNetworkAccessManager> m_networkAccessManager;
     SampleSourceType m_sampleSourceType = SampleSourceType::NetworkManager;
 #else
-    SampleSourceType m_sampleSourceType = SampleLoadingPolicy::File;
+    SampleSourceType m_sampleSourceType = SampleSourceType::File;
 #endif
 
     mutable QRecursiveMutex m_mutex;
