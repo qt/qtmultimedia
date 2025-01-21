@@ -1,7 +1,8 @@
 version = 1
 
 [[annotations]]
-path = "src/android/jar/AndroidManifest.xml"
+path = ["src/android/jar/AndroidManifest.xml",
+        "src/plugins/**"]
 precedence = "closest"
 comment = "source and plugins"
 SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd."
@@ -15,8 +16,9 @@ SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd."
 SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
 
 [[annotations]]
-path = ["**.pro", "**.qrc", ".cmake.conf", "**.yaml", "**.json",
-        "**.cfg", "**BLACKLIST", "**.plist.in", "**.pri", "**.plist"]
+path = ["**.pro", "**.qrc", ".cmake.conf", "**.yaml", "**/ci_config_linux.json",
+        "**.cfg", "**BLACKLIST", "**.plist.in", "**.pri", "**.plist", "**/CMakeLists.txt",
+         "coin/instructions/tests_pipewire"]
 precedence = "closest"
 comment = "build system"
 SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd."
@@ -30,14 +32,15 @@ SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd."
 SPDX-License-Identifier = "BSD-3-Clause"
 
 [[annotations]]
-path = ["**/doc/src/images/**", "examples/**", "**/doc/snippets/**"]
+path = ["examples/**", "**/doc/snippets/**"]
 comment = "this must be after the build system table because example and snippets take precedence over build system"
 precedence = "closest"
 SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd."
 SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
 
 [[annotations]]
-path = ["util/macos_test_audio_config/README", "**.qdocconf", "**.qdocinc", "src/multimedia/doc/src/classic.css", "config_help.txt"]
+path = ["util/macos_test_audio_config/README", "**.qdocconf", "**.qdocinc", "src/multimedia/doc/src/classic.css",
+        "**/doc/src/images/**", "config_help.txt"]
 comment = "documentation"
 precedence = "closest"
 SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd."

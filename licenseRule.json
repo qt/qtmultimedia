@@ -10,7 +10,9 @@
                      "Files with other endings can also be build system files"
                      ],
         "file_pattern_ending" : ["CMakeLists.txt", ".cmake", ".pro", ".pri", ".prf",
-                     "configure", "configure.bat", "cmake.in", "plist.in", "CMakeLists.txt.in", ".ver"],
+                     "configure", "configure.bat", "cmake.in", "plist.in", "CMakeLists.txt.in", ".ver",
+                     ".cmake.conf", ".gitattributes", ".gitignore", ".tag", "ci_config_linux.json",
+                     ".yaml", "BLACKLIST", "Info.plist", ".cfg"],
         "location" : {
             "" : {
                 "comment" : "Default",
@@ -44,7 +46,8 @@
     },
     {
         "comment" : "Files with the following endings are Documentation licensed.",
-        "file_pattern_ending" : [".qdoc", ".qdocinc" , ".qdocconf", ".txt", "README", "qt_attribution.json"],
+        "file_pattern_ending" : [".qdoc", ".qdocinc" , ".qdocconf", "README", "qt_attribution.json",
+                                 "REUSE.toml", "licenseRule.json", "config_help.txt", ".css"],
         "location" :{
             "" : {
                 "comment" : "",
@@ -63,6 +66,16 @@
                 "comment" : "Default",
                 "file type" : "module and plugin",
                 "spdx"      : ["LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"]
+            },
+            "coin/" : {
+                "comment" : "Default",
+                "file type" : "build system",
+                "spdx"      : ["BSD-3-Clause"]
+            },
+            "dist/" : {
+                "comment" : "Default",
+                "file type" : "documentation",
+                "spdx"      : ["LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"]
             },
             "src/" : {
                 "comment" : "Default",
@@ -93,6 +106,11 @@
                 "comment" : "Default",
                 "file type" : "examples and snippets",
                 "spdx" : ["LicenseRef-Qt-Commercial OR BSD-3-Clause"]
+            },
+            ".*/doc/src/images/" : {
+                "comment" : "Default",
+                "file type" : "documentation",
+                "spdx" : ["LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"]
             },
             "config\\.tests/" : {
                 "comment" : "Default",
