@@ -21,7 +21,7 @@
 
 #include <QtCore/QDebug>
 
-#include <QtWidgets/qapplication.h>
+#include <QtGui/qguiapplication.h>
 #include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
@@ -379,7 +379,7 @@ QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device, QObject *pare
     connect(this, &QDarwinAudioSource::stateChanged, this, &QDarwinAudioSource::updateAudioDevice);
 #ifdef Q_OS_IOS
     if (qApp)
-        connect(qApp, &QApplication::applicationStateChanged, this, &QDarwinAudioSource::appStateChanged);
+        connect(qApp, &QGuiApplication::applicationStateChanged, this, &QDarwinAudioSource::appStateChanged);
 #endif
 }
 
