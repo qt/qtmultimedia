@@ -145,12 +145,13 @@ QGstreamerIntegration::QGstreamerIntegration()
     : QPlatformMediaIntegration(QLatin1String("gstreamer"))
 {
     gst_init(nullptr, nullptr);
-    qCDebug(lcGstreamer) << "Using gstreamer version: " << gst_version_string();
+
+    const QGString version{ gst_version_string() };
+    qCInfo(lcGstreamer) << "Using Qt multimedia with GStreamer version:" << version.asStringView();
 
     GstRegistry *reg = gst_registry_get();
 
     if constexpr (!GST_CHECK_VERSION(1, 22, 0)) {
-        GstRegistry* reg = gst_registry_get();
         for (const char *name : vaapiPluginNames)
             rankDownPlugin(reg, name);
     }
