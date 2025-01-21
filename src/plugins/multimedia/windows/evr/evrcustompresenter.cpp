@@ -404,7 +404,6 @@ ComPtr<IMFSample> SamplePool::takeSample()
 {
     QMutexLocker locker(&m_mutex);
 
-    Q_ASSERT(m_initialized);
     if (!m_initialized) {
         qCWarning(qLcEvrCustomPresenter) << "SamplePool is not initialized yet";
         return nullptr;
