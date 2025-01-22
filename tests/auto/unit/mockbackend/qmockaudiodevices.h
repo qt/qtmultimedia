@@ -39,6 +39,8 @@ public:
     int getFindAudioInputsInvokeCount() const { return m_findAudioInputsInvokeCount; }
     int getFindAudioOutputsInvokeCount() const { return m_findAudioOutputsInvokeCount; }
 
+    virtual QLatin1String backendName() const override { return QLatin1String{ "Mock" }; }
+
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;

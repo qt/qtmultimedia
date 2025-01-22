@@ -34,6 +34,8 @@ public:
     using QPlatformAudioDevices::onAudioInputsChanged;
     using QPlatformAudioDevices::onAudioOutputsChanged;
 
+    QLatin1String backendName() const override { return QLatin1String{ "Android" }; }
+
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;
