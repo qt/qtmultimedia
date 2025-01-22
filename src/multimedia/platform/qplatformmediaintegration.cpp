@@ -217,6 +217,11 @@ QVideoFrame QPlatformMediaIntegration::convertVideoFrame(QVideoFrame &,
     return {};
 }
 
+QLatin1String QPlatformMediaIntegration::audioBackendName()
+{
+    return QPlatformMediaIntegration::instance()->audioDevices()->backendName();
+}
+
 QPlatformMediaIntegration::QPlatformMediaIntegration(QLatin1String name) : m_backendName(name) { }
 
 QPlatformMediaIntegration::~QPlatformMediaIntegration() = default;

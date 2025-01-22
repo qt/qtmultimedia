@@ -54,6 +54,7 @@ public:
     virtual void prepareAudio();
 
     void initVideoDevicesConnection();
+    virtual QLatin1String backendName() const { return QLatin1String{ "null" }; }
 
 protected:
     virtual QList<QAudioDevice> findAudioInputs() const { return {}; }

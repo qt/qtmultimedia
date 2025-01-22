@@ -109,6 +109,8 @@ public:
 
     virtual QAbstractPlatformSpecificInterface *platformSpecificInterface() { return nullptr; }
 
+    static QLatin1String audioBackendName();
+
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();
 

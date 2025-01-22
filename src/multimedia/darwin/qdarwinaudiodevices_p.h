@@ -37,6 +37,8 @@ public:
     using QPlatformAudioDevices::updateAudioInputsCache;
     using QPlatformAudioDevices::updateAudioOutputsCache;
 
+    QLatin1String backendName() const override { return QLatin1String{ "CoreAudio" }; }
+
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;

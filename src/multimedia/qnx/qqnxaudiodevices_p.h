@@ -31,6 +31,8 @@ public:
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
                                         QObject *parent) override;
 
+    QLatin1String backendName() const override { return QLatin1String{ "QNX" }; }
+
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;
