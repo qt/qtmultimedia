@@ -420,16 +420,7 @@ class QtCamera2 {
                 mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(template);
                 mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
 
-                // Only apply the focus-mode if it's confirmed to be supported.
-                if (isAfModeSupported(mSyncedMembers.mAFMode)) {
-                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, mSyncedMembers.mAFMode);
-                } else if (isAfModeSupported(CaptureRequest.CONTROL_AF_MODE_OFF)) {
-                    mPreviewRequestBuilder.set(
-                        CaptureRequest.CONTROL_AF_MODE,
-                        CaptureRequest.CONTROL_AF_MODE_OFF);
-                }
-                // If none of our desired or fallback AF_MODES are available,
-                // we leave it to the default value set during .createCaptureRequest()
+                applyFocusSettingsToCaptureRequestBuilder(mPreviewRequestBuilder);
 
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, mSyncedMembers.mFlashMode);
                 mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mSyncedMembers.mTorchMode);
@@ -559,7 +550,7 @@ class QtCamera2 {
             if (afMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
                 && isAfModeSupported(afMode))
             {
-                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, afMode);
+                applyFocusSettingsToCaptureRequestBuilder(mPreviewRequestBuilder);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
                 mState = STATE_WAITING_FOCUS_LOCK;
                 mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
@@ -671,6 +662,29 @@ class QtCamera2 {
                     Log.w("QtCamera2", "Failed to set flash mode:" + exception);
                 }
             }
+        }
+    }
+
+    // This function is, under some circumstances, invoked indirectly on the C++ thread.
+    private void applyFocusSettingsToCaptureRequestBuilder(CaptureRequest.Builder requestBuilder)
+    {
+        synchronized (mSyncedMembers) {
+            if (!isAfModeSupported(mSyncedMembers.mAFMode)) {
+                // If we don't support our desired AF_MODE, fallback to AF_MODE_OFF if that is
+                // available. Otherwise don't set any focus-mode, leave it as default and
+                // undefined state.
+                //
+                // NOTE! Setting CONTROL_AF_MODE to null is illegal and will cause an exception
+                // thrown.
+                if (isAfModeSupported(CaptureRequest.CONTROL_AF_MODE_OFF)) {
+                    requestBuilder.set(
+                        CaptureRequest.CONTROL_AF_MODE,
+                        CaptureRequest.CONTROL_AF_MODE_OFF);
+                }
+                return;
+            }
+
+            requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, mSyncedMembers.mAFMode);
         }
     }
 
