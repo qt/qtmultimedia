@@ -7,6 +7,8 @@
 #include <QtCore/QSharedPointer>
 #include <QtCore/QScopedPointer>
 
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+
 #include <private/audiogenerationutils_p.h>
 #include <qaudiosink.h>
 #include <qaudiodevice.h>
@@ -40,6 +42,11 @@ public:
     qint64 available = 0;
     bool signalEnd = false;
 };
+
+static bool isPipewireBackend()
+{
+    return QPlatformMediaIntegration::audioBackendName() == "PipeWire";
+}
 
 class tst_QAudioSink : public QObject
 {
@@ -183,10 +190,13 @@ void tst_QAudioSink::generate_audiofile_testrows()
 
 void tst_QAudioSink::initTestCase()
 {
-    // Only perform tests if audio output device exists
-    const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
+    bool hasDevices = QTest::qWaitFor([&] {
+        const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
+        return !devices.isEmpty();
+    });
 
-    if (devices.size() <= 0)
+    // Only perform tests if audio output device exists
+    if (!hasDevices)
         QSKIP("No audio backend");
 
     audioDevice = QMediaDevices::defaultAudioOutput();
@@ -233,7 +243,8 @@ void tst_QAudioSink::initTestCase()
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
-    QVERIFY(testFormats.size());
+    if (testFormats.empty())
+        QSKIP("audio devices does not support test format"); // e.g RME Fireface / pipewire
 
     const QChar slash = QLatin1Char('/');
     QString temporaryPattern = QDir::tempPath();
@@ -639,7 +650,8 @@ void tst_QAudioSink::pullResumeFromUnderrun()
 
     QTRY_COMPARE(stateSignal.size(), 1);
     QCOMPARE(audioSink.state(), QAudio::IdleState);
-    QCOMPARE(audioSink.error(), QAudio::UnderrunError);
+    if (!isPipewireBackend())
+        QCOMPARE(audioSink.error(), QAudio::UnderrunError);
     stateSignal.clear();
 
     QTest::qWait(300);
@@ -1003,8 +1015,9 @@ void tst_QAudioSink::pushUnderrun()
                      .toUtf8()
                      .constData());
     QVERIFY2((audioSink.state() == QAudio::IdleState), "didn't transition to IdleState, no data");
-    QVERIFY2((audioSink.error() == QAudio::UnderrunError),
-             "error state is not equal to QAudio::UnderrunError, no data");
+    if (!isPipewireBackend())
+        QVERIFY2((audioSink.error() == QAudio::UnderrunError),
+                 "error state is not equal to QAudio::UnderrunError, no data");
     stateSignal.clear();
 
     // Play rest of the clip

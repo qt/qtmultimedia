@@ -1,0 +1,19 @@
+type: Group
+enable_if:
+  condition: or
+  conditions:
+    - condition: runtime
+      env_var: TARGET_OSVERSION_COIN
+      contains_value: ubuntu-24.04
+
+instructions:
+  - type: AppendToEnvironmentVariable
+    variableName: QTEST_ENVIRONMENT
+    variableValue: " pipewire"
+  - type: EnvironmentVariable
+    variableName: QT_AUDIO_BACKEND
+    variableValue: pipewire
+  - type: AppendToEnvironmentVariable
+    variableName: CTEST_ARGS
+    variableValue: " --tests-from-file {{.SourceDir}}/coin/instructions/tests_pipewire"
+  - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"
