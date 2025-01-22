@@ -27,7 +27,7 @@
 #include <QtGui/qpa/qplatformintegration.h>
 #include <QtGui/qscreen.h>
 #include <QtGui/qwindow.h>
-#include <QtGui/private/qgenericunixservices_p.h>
+#include <QtGui/private/qdesktopunixservices_p.h>
 #include <QtGui/private/qguiapplication_p.h>
 #include <QtMultimedia/qabstractvideobuffer.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
@@ -257,7 +257,7 @@ void QPipeWireCaptureHelper::startStream()
         { u"handle_token"_s, getRequestToken() },
     };
 
-    const auto unixServices = dynamic_cast<QGenericUnixServices *>(QGuiApplicationPrivate::platformIntegration()->services());
+    const auto unixServices = dynamic_cast<QDesktopUnixServices *>(QGuiApplicationPrivate::platformIntegration()->services());
     const QString parentWindow = QGuiApplication::focusWindow() && unixServices
             ? unixServices->portalWindowIdentifier(QGuiApplication::focusWindow())
             : QString();
