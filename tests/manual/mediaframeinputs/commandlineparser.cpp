@@ -117,7 +117,7 @@ const char *noCheck()
 } // namespace
 
 CommandLineParser::CommandLineParser()
-    : m_result{}
+    : m_result{ AudioGeneratorSettings{}, VideoGeneratorSettings{}, PushModeSettings{}, {} }
 {
     m_parser.setApplicationDescription(QStringLiteral(
             "The application tests QtMultimedia media frame inputs with media "
