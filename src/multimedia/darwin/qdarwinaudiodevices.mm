@@ -52,24 +52,17 @@ static AudioDeviceID defaultAudioDevice(QAudioDevice::Mode mode)
     return 0;
 }
 
-static QByteArray uniqueId(AudioDeviceID device, QAudioDevice::Mode mode)
-{
-    const AudioObjectPropertyAddress propertyAddress =
-            makePropertyAddress(kAudioDevicePropertyDeviceUID, mode);
-
-    if (auto name = getAudioProperty<QCFString>(device, propertyAddress))
-        return QString{*name}.toUtf8();
-
-    return QByteArray();
-}
-
 static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
 {
     QList<QAudioDevice> devices;
 
     AudioDeviceID defaultDevice = defaultAudioDevice(mode);
     if (defaultDevice != 0)
-        devices << createAudioDevice(true, defaultDevice, uniqueId(defaultDevice, mode), mode);
+        devices << createAudioDevice(
+            true,
+            defaultDevice,
+            qCoreAudioReadPersistentAudioDeviceID(defaultDevice, mode),
+            mode);
 
     const AudioObjectPropertyAddress audioDevicesPropertyAddress = {
         kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal,
@@ -88,7 +81,11 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
             if (getAudioProperty<AudioStreamBasicDescription>(device,
                                                             audioDeviceStreamFormatPropertyAddress,
                                                             /*warnIfMissing=*/false)) {
-                devices << createAudioDevice(false, device, uniqueId(device, mode), mode);
+                devices << createAudioDevice(
+                    false,
+                    device,
+                    qCoreAudioReadPersistentAudioDeviceID(device, mode),
+                    mode);
             }
         }
     }
