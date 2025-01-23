@@ -1,6 +1,6 @@
 {
-    "Id": "pfft",
-    "Name": "pfft",
+    "Id": "pffft",
+    "Name": "pffft",
     "QDocModule": "qtspatialaudio",
     "Description": "A pretty fast FFT.",
     "QtUsage": "Used to support spatial audio.",
