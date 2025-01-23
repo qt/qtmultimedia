@@ -45,7 +45,7 @@ static AudioDeviceID defaultAudioDevice(QAudioDevice::Mode mode)
         kAudioObjectPropertyElementMain,
     };
 
-    if (auto audioDevice = getAudioProperty<AudioDeviceID>(kAudioObjectSystemObject, propertyAddress)) {
+    if (auto audioDevice = QCoreAudioUtils::getAudioProperty<AudioDeviceID>(kAudioObjectSystemObject, propertyAddress)) {
         return *audioDevice;
     }
 
@@ -54,6 +54,8 @@ static AudioDeviceID defaultAudioDevice(QAudioDevice::Mode mode)
 
 static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
 {
+    using namespace QCoreAudioUtils;
+
     QList<QAudioDevice> devices;
 
     AudioDeviceID defaultDevice = defaultAudioDevice(mode);
@@ -61,7 +63,7 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
         devices << createAudioDevice(
             true,
             defaultDevice,
-            qCoreAudioReadPersistentAudioDeviceID(defaultDevice, mode),
+            QCoreAudioUtils::readPersistentDeviceId(defaultDevice, mode),
             mode);
 
     const AudioObjectPropertyAddress audioDevicesPropertyAddress = {
@@ -84,7 +86,7 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
                 devices << createAudioDevice(
                     false,
                     device,
-                    qCoreAudioReadPersistentAudioDeviceID(device, mode),
+                    QCoreAudioUtils::readPersistentDeviceId(defaultDevice, mode),
                     mode);
             }
         }

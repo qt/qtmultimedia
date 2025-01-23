@@ -467,7 +467,8 @@ bool QDarwinAudioSource::open()
 #if defined(Q_OS_MACOS)
     // Find the the most recent CoreAudio AudioDeviceID for the current device
     // to start the audio stream.
-    const std::optional<AudioDeviceID> nativeDeviceIdOpt = qCoreAudioFindAudioDeviceId(m_audioDevice);
+    const std::optional<AudioDeviceID> nativeDeviceIdOpt =
+        QCoreAudioUtils::findAudioDeviceId(m_audioDevice);
     if (!nativeDeviceIdOpt.has_value()) {
         qWarning() <<
             "QAudioSource: Unable to use find most recent CoreAudio AudioDeviceID for "

@@ -114,7 +114,7 @@ QStringView audioPropertyElementToString(AudioObjectPropertyElement element)
 }
 
 AudioObjectPropertyAddress
-makePropertyAddress(
+QCoreAudioUtils::makePropertyAddress(
     AudioObjectPropertySelector selector,
     QAudioDevice::Mode mode,
     AudioObjectPropertyElement element)
@@ -125,7 +125,7 @@ makePropertyAddress(
              element };
 }
 
-bool getAudioPropertyRaw(AudioObjectID objectID, const AudioObjectPropertyAddress &address,
+bool QCoreAudioUtils::getAudioPropertyRaw(AudioObjectID objectID, const AudioObjectPropertyAddress &address,
                          QSpan<std::byte> destination, bool warnIfMissing)
 {
     UInt32 readBytes = destination.size();
@@ -146,7 +146,7 @@ bool getAudioPropertyRaw(AudioObjectID objectID, const AudioObjectPropertyAddres
     return false;
 }
 
-QByteArray qCoreAudioReadPersistentAudioDeviceID(
+QByteArray QCoreAudioUtils::readPersistentDeviceId(
     AudioDeviceID device,
     QAudioDevice::Mode mode)
 {
@@ -161,7 +161,7 @@ QByteArray qCoreAudioReadPersistentAudioDeviceID(
     return QByteArray();
 }
 
-std::optional<AudioDeviceID> qCoreAudioFindAudioDeviceId(
+std::optional<AudioDeviceID> QCoreAudioUtils::findAudioDeviceId(
     const QByteArray &id,
     QAudioDevice::Mode mode)
 {
@@ -188,17 +188,17 @@ std::optional<AudioDeviceID> qCoreAudioFindAudioDeviceId(
                     audioDeviceStreamFormatPropertyAddress);
             // Check that these devices have the same unique-id. In which case, we found the
             // correct CoreAudioID.
-            if (audioStreamOpt.has_value() && qCoreAudioReadPersistentAudioDeviceID(device, mode) == id)
+            if (audioStreamOpt.has_value() && readPersistentDeviceId(device, mode) == id)
                 return device;
         }
     }
     return std::nullopt;
 }
 
-std::optional<AudioDeviceID> qCoreAudioFindAudioDeviceId(
+std::optional<AudioDeviceID> QCoreAudioUtils::findAudioDeviceId(
     const QAudioDevice &device)
 {
-    return qCoreAudioFindAudioDeviceId(device.id(), device.mode());
+    return findAudioDeviceId(device.id(), device.mode());
 }
 
 QT_END_NAMESPACE

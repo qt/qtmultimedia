@@ -44,6 +44,8 @@ namespace {
     QAudioDevice::Mode mode,
     AudioDeviceID deviceId)
 {
+    using namespace QCoreAudioUtils;
+
     const auto audioDevicePropertyStreamsAddress =
         makePropertyAddress(kAudioDevicePropertyStreams, mode);
 
@@ -66,6 +68,8 @@ namespace {
     QAudioDevice::Mode mode,
     AudioDeviceID deviceId)
 {
+    using namespace QCoreAudioUtils;
+
     const auto propertyAddress =
         makePropertyAddress(kAudioDevicePropertyPreferredChannelLayout, mode);
 
@@ -79,6 +83,8 @@ namespace {
     QAudioDevice::Mode mode,
     AudioDeviceID deviceId)
 {
+    using namespace QCoreAudioUtils;
+
     const auto propertyAddress = makePropertyAddress(kAudioObjectPropertyName, mode);
     if (auto name = getAudioProperty<QCFString>(deviceId, propertyAddress))
         return name;
@@ -94,6 +100,8 @@ struct SamplingRateRange {
 [[nodiscard]] std::optional<SamplingRateRange>
 qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
 {
+    using namespace QCoreAudioUtils;
+
     auto propertyAddress = makePropertyAddress(kAudioDevicePropertyAvailableNominalSampleRates, mode);
 
     auto rates = getAudioPropertyList<Float64>(deviceId, propertyAddress);
@@ -112,6 +120,8 @@ qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
         QAudioDevice::Mode mode,
         AudioDeviceID deviceId)
 {
+    using namespace QCoreAudioUtils;
+
     const auto audioDevicePropertyStreamsAddress =
             makePropertyAddress(kAudioDevicePropertyStreams, mode);
 
