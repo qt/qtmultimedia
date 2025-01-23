@@ -36,8 +36,15 @@ QStringView audioPropertySelectorToString(AudioObjectPropertySelector);
 QStringView audioPropertyScopeToString(AudioObjectPropertyScope);
 QStringView audioPropertyElementToString(AudioObjectPropertyElement);
 
-} // namespace QCoreAudioUtils
+[[nodiscard]] QByteArray readPersistentDeviceId(
+    AudioDeviceID,
+    QAudioDevice::Mode);
 
+[[nodiscard]] std::optional<AudioDeviceID> findAudioDeviceId(
+    const QByteArray &id,
+    QAudioDevice::Mode);
+
+[[nodiscard]] std::optional<AudioDeviceID> findAudioDeviceId(const QAudioDevice &device);
 
 template<typename... Args>
 void printUnableToReadWarning(AudioObjectID objectID, const AudioObjectPropertyAddress &address, Args &&...args)
@@ -142,16 +149,9 @@ getAudioPropertyWithFlexibleArrayMember(AudioObjectID objectID, const AudioObjec
     return {};
 }
 
-[[nodiscard]] QByteArray qCoreAudioReadPersistentAudioDeviceID(
-    AudioDeviceID device,
-    QAudioDevice::Mode mode);
+} // namespace QCoreAudioUtils
 
-[[nodiscard]] std::optional<AudioDeviceID> qCoreAudioFindAudioDeviceId(
-    const QByteArray &id,
-    QAudioDevice::Mode mode);
 
-[[nodiscard]] std::optional<AudioDeviceID> qCoreAudioFindAudioDeviceId(
-    const QAudioDevice &device);
 
 QT_END_NAMESPACE
 
