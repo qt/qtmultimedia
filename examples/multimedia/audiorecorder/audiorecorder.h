@@ -38,6 +38,7 @@ private slots:
     void onStateChanged(QMediaRecorder::RecorderState);
     void updateProgress(qint64 pos);
     void displayErrorMessage();
+    void onMediaFormatChanged();
 
     void updateDevices();
     void updateFormats();

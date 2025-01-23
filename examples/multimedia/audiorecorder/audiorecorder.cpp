@@ -112,6 +112,8 @@ void AudioRecorder::init()
             &AudioRecorder::onStateChanged);
     connect(m_audioRecorder, &QMediaRecorder::errorChanged, this,
             &AudioRecorder::displayErrorMessage);
+    connect(m_audioRecorder, &QMediaRecorder::mediaFormatChanged, this,
+            &AudioRecorder::onMediaFormatChanged);
 }
 
 void AudioRecorder::updateProgress(qint64 duration)
@@ -207,6 +209,19 @@ void AudioRecorder::displayErrorMessage()
     ui->statusbar->showMessage(m_audioRecorder->errorString());
 }
 
+void AudioRecorder::onMediaFormatChanged()
+{
+    QMediaFormat format = m_audioRecorder->mediaFormat();
+
+    int formatIndex = ui->containerBox->findData(format.fileFormat());
+    if (formatIndex != -1)
+        ui->containerBox->setCurrentIndex(formatIndex);
+
+    int codecIndex = ui->audioCodecBox->findData(QVariant::fromValue(format.audioCodec()));
+    if (codecIndex != -1)
+        ui->audioCodecBox->setCurrentIndex(codecIndex);
+}
+
 void AudioRecorder::updateDevices()
 {
     const auto currentDevice = boxValue(ui->audioDeviceBox).value<QAudioDevice>();
@@ -235,22 +250,9 @@ void AudioRecorder::updateFormats()
     QMediaFormat format;
     if (ui->containerBox->count())
         format.setFileFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());
-    if (ui->audioCodecBox->count())
-        format.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());
 
+    // Add all supported formats, remembering the previous choice
     int currentIndex = 0;
-    ui->audioCodecBox->clear();
-    ui->audioCodecBox->addItem(tr("Default audio codec"),
-                               QVariant::fromValue(QMediaFormat::AudioCodec::Unspecified));
-    for (auto codec : format.supportedAudioCodecs(QMediaFormat::Encode)) {
-        if (codec == format.audioCodec())
-            currentIndex = ui->audioCodecBox->count();
-        ui->audioCodecBox->addItem(QMediaFormat::audioCodecDescription(codec),
-                                   QVariant::fromValue(codec));
-    }
-    ui->audioCodecBox->setCurrentIndex(currentIndex);
-
-    currentIndex = 0;
     ui->containerBox->clear();
     ui->containerBox->addItem(tr("Default file format"),
                               QVariant::fromValue(QMediaFormat::UnspecifiedFormat));
@@ -263,6 +265,24 @@ void AudioRecorder::updateFormats()
                                   QVariant::fromValue(container));
     }
     ui->containerBox->setCurrentIndex(currentIndex);
+
+    // Re-populate codecs, adding only those that the chosen file format supports.
+    // Remember current codec if it is supported by the file format.
+    QMediaFormat::AudioCodec currentCodec = QMediaFormat::AudioCodec::Unspecified;
+    if (ui->audioCodecBox->count())
+        currentCodec = boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>();
+
+    currentIndex = 0;
+    ui->audioCodecBox->clear();
+    ui->audioCodecBox->addItem(tr("Default audio codec"),
+                               QVariant::fromValue(QMediaFormat::AudioCodec::Unspecified));
+    for (auto codec : format.supportedAudioCodecs(QMediaFormat::Encode)) {
+        if (codec == currentCodec)
+            currentIndex = ui->audioCodecBox->count();
+        ui->audioCodecBox->addItem(QMediaFormat::audioCodecDescription(codec),
+                                   QVariant::fromValue(codec));
+    }
+    ui->audioCodecBox->setCurrentIndex(currentIndex);
 
     m_updatingFormats = false;
 }
