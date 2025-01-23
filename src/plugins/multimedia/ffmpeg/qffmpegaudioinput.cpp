@@ -79,12 +79,23 @@ protected:
         int l = len;
         while (len > 0) {
             const auto bufferSize = m_bufferSize.loadAcquire();
+
+            while (m_pcm.size() > bufferSize) {
+                // bufferSize has been reduced. Send data until m_pcm
+                // can hold more data.
+                sendBuffer(m_pcm.first(bufferSize));
+                m_pcm.remove(0, bufferSize);
+            }
+
+            // Size of m_pcm is always <= bufferSize
             int toAppend = qMin(len, bufferSize - m_pcm.size());
             m_pcm.append(data, toAppend);
             data += toAppend;
             len -= toAppend;
-            if (m_pcm.size() == bufferSize)
-                sendBuffer();
+            if (m_pcm.size() == bufferSize) {
+                sendBuffer(m_pcm);
+                m_pcm.clear();
+            }
         }
 
         return l;
@@ -121,14 +132,13 @@ private Q_SLOTS:
 
 private:
 
-    void sendBuffer()
+    void sendBuffer(const QByteArray &pcmData)
     {
         QAudioFormat fmt = m_audioSource->format();
         qint64 time = fmt.durationForBytes(m_processed);
-        QAudioBuffer buffer(m_pcm, fmt, time);
+        QAudioBuffer buffer(pcmData, fmt, time);
         emit m_input->newAudioBuffer(buffer);
-        m_processed += m_pcm.size();
-        m_pcm.clear();
+        m_processed += pcmData.size();
     }
 
     QMutex m_mutex;
