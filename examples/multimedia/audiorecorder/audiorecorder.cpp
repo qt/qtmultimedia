@@ -96,7 +96,7 @@ void AudioRecorder::init()
     int maxSamplingRate = device.maximumSampleRate();
 
     for (int rate : allSamplingRates) {
-        if (rate <= minSamplingRate || rate >= maxSamplingRate)
+        if (rate < minSamplingRate || rate > maxSamplingRate)
             continue;
         ui->sampleRateBox->addItem(QString::number(rate), rate);
     }
