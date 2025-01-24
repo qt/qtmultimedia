@@ -21,6 +21,16 @@ namespace QtPipeWire {
 
 Q_STATIC_LOGGING_CATEGORY(lcPipewireDeviceMonitor, "qt.multimedia.pipewire.devicemonitor");
 
+ObjectRemoveObserver::ObjectRemoveObserver(ObjectSerial objectSerial)
+    : m_observedSerial(objectSerial)
+{
+}
+
+ObjectSerial ObjectRemoveObserver::serial() const
+{
+    return m_observedSerial;
+}
+
 QAudioDeviceMonitor::QAudioDeviceMonitor()
 {
     if (!QThread::isMainThread()) {
@@ -130,11 +140,24 @@ void QAudioDeviceMonitor::objectRemoved(ObjectId id)
 
     qCDebug(lcPipewireDeviceMonitor) << "removing object" << *serial;
 
+    std::vector<SharedObjectRemoveObserver> removalObserversForObject;
     {
         QWriteLocker lock{ &m_objectDictMutex };
+
+        for (const auto &observer : m_objectRemoveObserver) {
+            if (observer->serial() == serial)
+                removalObserversForObject.push_back(observer);
+        }
+        q20::erase_if(m_objectRemoveObserver, [&](const SharedObjectRemoveObserver &element) {
+            return element->serial() == serial;
+        });
+
         m_objectSerialDict.erase(id);
         m_serialObjectDict.erase(*serial);
     }
+
+    for (const SharedObjectRemoveObserver &element : removalObserversForObject)
+        emit element->objectRemoved();
 
     {
         std::lock_guard guard{ m_pendingRecordsMutex };
@@ -382,6 +405,24 @@ std::optional<ObjectSerial> QAudioDeviceMonitor::findObjectSerial(ObjectId id)
     if (it != m_objectSerialDict.end())
         return it->second;
     return std::nullopt;
+}
+
+bool QAudioDeviceMonitor::registerObserver(SharedObjectRemoveObserver observer)
+{
+    QWriteLocker lock{ &m_objectDictMutex };
+
+    if (m_serialObjectDict.find(observer->serial()) == m_serialObjectDict.end())
+        return false; // don't register observer if the object has already been removed
+
+    m_objectRemoveObserver.push_back(std::move(observer));
+    return true;
+}
+
+void QAudioDeviceMonitor::unregisterObserver(const SharedObjectRemoveObserver &observer)
+{
+    QWriteLocker lock{ &m_objectDictMutex };
+
+    q20::erase(m_objectRemoveObserver, observer);
 }
 
 void QAudioDeviceMonitor::startCompressionTimer()

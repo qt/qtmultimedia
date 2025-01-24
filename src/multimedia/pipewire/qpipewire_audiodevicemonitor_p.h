@@ -34,6 +34,22 @@ QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
+class ObjectRemoveObserver : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ObjectRemoveObserver(ObjectSerial objectSerial);
+    ObjectSerial serial() const;
+
+signals:
+    void objectRemoved();
+
+private:
+    const ObjectSerial m_observedSerial;
+};
+
+using SharedObjectRemoveObserver = std::shared_ptr<ObjectRemoveObserver>;
+
 // TODO: can we make use of COW here?
 class QAudioDeviceMonitor : public QObject
 {
@@ -64,6 +80,9 @@ public:
     // ObjectId/ObjectSerial mapping
     std::optional<ObjectId> findObjectId(ObjectSerial);
     std::optional<ObjectSerial> findObjectSerial(ObjectId);
+
+    [[nodiscard]] bool registerObserver(SharedObjectRemoveObserver);
+    void unregisterObserver(const SharedObjectRemoveObserver &);
 
 signals:
     void audioSinksChanged(QList<QAudioDevice>);
@@ -144,6 +163,9 @@ private:
     mutable QReadWriteLock m_objectDictMutex;
     std::map<ObjectId, ObjectSerial> m_objectSerialDict QT_MM_GUARDED_BY(m_objectDictMutex);
     std::map<ObjectSerial, ObjectId> m_serialObjectDict QT_MM_GUARDED_BY(m_objectDictMutex);
+
+    std::vector<SharedObjectRemoveObserver>
+            m_objectRemoveObserver QT_MM_GUARDED_BY(m_objectDictMutex);
 };
 
 } // namespace QtPipeWire

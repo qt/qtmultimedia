@@ -70,8 +70,8 @@ struct QPipewireAudioSinkStream : std::enable_shared_from_this<QPipewireAudioSin
     qsizetype bytesFree() const;
     void suspend();
     void resume();
-    bool start(QIODevice *device, ObjectSerial deviceSerial);
-    QIODevice *start(ObjectSerial deviceSerial);
+    bool start(QIODevice *device, ObjectSerial sinkNodeSerial);
+    QIODevice *start(ObjectSerial sinkNodeSerial);
     void stop(ShutdownPolicy);
 
     void setVolume(qreal);
@@ -143,6 +143,7 @@ private:
     std::atomic<uint64_t> m_totalNumberOfSamplesConsumedFromRingbuffer{};
 
     QPipewireAudioSink *m_parent;
+    SharedObjectRemoveObserver m_deviceRemovalObserver;
 };
 
 QPipewireAudioSinkStream::QPipewireAudioSinkStream(QPipewireAudioSink *parent,
@@ -192,6 +193,9 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QPipewireAudioSink *parent,
 
 QPipewireAudioSinkStream::~QPipewireAudioSinkStream()
 {
+    Q_ASSERT(m_stopRequested);
+    Q_ASSERT(!m_deviceRemovalObserver);
+
     QAudioContextManager::withEventLoopLock([&] {
         m_stream = {};
     });
@@ -244,8 +248,21 @@ bool QPipewireAudioSinkStream::start(QIODevice *device, ObjectSerial sinkNodeSer
 
     int status = QAudioContextManager::withEventLoopLock([&] {
         std::optional<ObjectId> sinkNodeId =
-                QAudioContextManager::instance()->deviceMonitor().findObjectId(sinkNodeSerial);
+                QAudioContextManager::deviceMonitor().findObjectId(sinkNodeSerial);
         if (!sinkNodeId)
+            return -ENODEV;
+
+        m_deviceRemovalObserver = std::make_shared<ObjectRemoveObserver>(sinkNodeSerial);
+        QObject::connect(m_deviceRemovalObserver.get(), &ObjectRemoveObserver::objectRemoved,
+                         m_deviceRemovalObserver.get(), [this] {
+            if (!m_stopRequested)
+                // note: as long as the stream is not stopped, m_parent is valid
+                m_parent->updateError(QAudio::Error::IOError);
+        });
+
+        bool deviceAlreadyRemoved =
+                !QAudioContextManager::deviceMonitor().registerObserver(m_deviceRemovalObserver);
+        if (deviceAlreadyRemoved)
             return -ENODEV;
 
         return pw_stream_connect(
@@ -300,6 +317,7 @@ void QPipewireAudioSinkStream::stop(ShutdownPolicy shutdownPolicy)
     }
 
     m_stopRequested.store(true, std::memory_order_release);
+    m_parent = nullptr;
 
     // disconnect ringbuffer from QIODevice
     QObject::disconnect(m_ringbufferHasSpaceConnection);
@@ -309,6 +327,10 @@ void QPipewireAudioSinkStream::stop(ShutdownPolicy shutdownPolicy)
         // disconnect immediately
         disconnectStream();
     }
+
+    Q_ASSERT(m_deviceRemovalObserver);
+    QAudioContextManager::deviceMonitor().unregisterObserver(m_deviceRemovalObserver);
+    m_deviceRemovalObserver = {};
 }
 
 void QPipewireAudioSinkStream::setVolume(qreal volume)
@@ -873,7 +895,7 @@ std::optional<ObjectSerial> QPipewireAudioSink::findSinkNodeSerial()
 {
     QByteArray deviceName = privateDevice()->deviceName();
 
-    return QAudioContextManager::instance()->deviceMonitor().findSinkNodeSerial(std::string_view{
+    return QAudioContextManager::deviceMonitor().findSinkNodeSerial(std::string_view{
             deviceName.data(),
             size_t(deviceName.size()),
     });

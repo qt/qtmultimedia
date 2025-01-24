@@ -69,7 +69,6 @@ private:
     void startHelper(Functor &&f);
 
     // errors
-    // TODO: we should raise an IOError when a device is connected during playback
     void updateError(QAudio::Error);
     QAudio::Error m_error = QAudio::Error::NoError;
 
