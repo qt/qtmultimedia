@@ -3,6 +3,8 @@
 
 #include "qffmpegcodec_p.h"
 #include "qffmpeg_p.h"
+#include "qffmpegmediaformatinfo_p.h"
+
 #include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
@@ -92,15 +94,42 @@ QSpan<const int> getCodecSampleRates(const AVCodec *codec)
 #endif
 }
 
+#ifdef Q_OS_WINDOWS
+
+auto stereoLayout() // unused function on non-Windows platforms
+{
+    constexpr uint64_t mask = AV_CH_FRONT_LEFT | AV_CH_FRONT_RIGHT;
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
+    AVChannelLayout channelLayout{};
+    av_channel_layout_from_mask(&channelLayout, mask);
+    return channelLayout;
+#else
+    return mask;
+#endif
+};
+
+#endif
+
 QSpan<const ChannelLayoutT> getCodecChannelLayouts(const AVCodec *codec)
 {
+    QSpan<const ChannelLayoutT> layout;
 #if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
-    return getCodecConfig<AVChannelLayout>(codec, AV_CODEC_CONFIG_CHANNEL_LAYOUT);
+    layout = getCodecConfig<AVChannelLayout>(codec, AV_CODEC_CONFIG_CHANNEL_LAYOUT);
 #elif QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
-    return makeSpan(codec->ch_layouts);
+    layout = makeSpan(codec->ch_layouts);
 #else
-    return makeSpan(codec->channel_layouts);
+    layout = makeSpan(codec->channel_layouts);
 #endif
+
+#ifdef Q_OS_WINDOWS
+    // The mp3_mf codec does not report any layout restrictions, but does not
+    // handle more than 2 channels. We therefore make this explicit here.
+    if (layout.empty() && codec->name == QLatin1StringView("mp3_mf")) {
+        static const ChannelLayoutT defaultLayout[] = { stereoLayout() };
+        layout = defaultLayout;
+    }
+#endif
+    return layout;
 }
 
 QSpan<const AVRational> getCodecFrameRates(const AVCodec *codec)
