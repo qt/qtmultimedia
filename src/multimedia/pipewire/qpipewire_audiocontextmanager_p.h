@@ -60,6 +60,8 @@ public:
 
     PwNodeHandle bindNode(ObjectId id);
 
+    void syncRegistry();
+
 private:
     std::shared_ptr<QPipeWireInstance> m_libraryInstance;
 

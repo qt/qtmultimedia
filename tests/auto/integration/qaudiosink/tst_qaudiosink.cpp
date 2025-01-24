@@ -190,13 +190,10 @@ void tst_QAudioSink::generate_audiofile_testrows()
 
 void tst_QAudioSink::initTestCase()
 {
-    bool hasDevices = QTest::qWaitFor([&] {
-        const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
-        return !devices.isEmpty();
-    });
+    const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
 
     // Only perform tests if audio output device exists
-    if (!hasDevices)
+    if (devices.isEmpty())
         QSKIP("No audio backend");
 
     audioDevice = QMediaDevices::defaultAudioOutput();

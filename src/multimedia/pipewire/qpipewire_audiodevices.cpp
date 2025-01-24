@@ -15,6 +15,12 @@ QAudioDevices::QAudioDevices()
 {
     Q_ASSERT(isSupported());
 
+    QAudioDeviceMonitor::DeviceLists deviceLists =
+            QAudioContextManager::deviceMonitor().getDeviceLists();
+
+    m_sourceDeviceList = std::move(deviceLists.sources);
+    m_sinkDeviceList = std::move(deviceLists.sinks);
+
     connect(&QAudioContextManager::deviceMonitor(), &QAudioDeviceMonitor::audioSinksChanged, this,
             [this](QList<QAudioDevice> sinks) {
         m_sinkDeviceList = std::move(sinks);

@@ -84,6 +84,14 @@ public:
     [[nodiscard]] bool registerObserver(SharedObjectRemoveObserver);
     void unregisterObserver(const SharedObjectRemoveObserver &);
 
+    // Obtaining device lists
+    struct DeviceLists
+    {
+        QList<QAudioDevice> sources;
+        QList<QAudioDevice> sinks;
+    };
+    DeviceLists getDeviceLists();
+
 signals:
     void audioSinksChanged(QList<QAudioDevice>);
     void audioSourcesChanged(QList<QAudioDevice>);

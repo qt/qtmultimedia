@@ -425,6 +425,43 @@ void QAudioDeviceMonitor::unregisterObserver(const SharedObjectRemoveObserver &o
     q20::erase(m_objectRemoveObserver, observer);
 }
 
+QAudioDeviceMonitor::DeviceLists QAudioDeviceMonitor::getDeviceLists()
+{
+    // force initial device enumeration
+    QAudioContextManager::instance()->syncRegistry();
+
+    // sync with format futures
+    for (;;) {
+        QAudioContextManager::instance()->syncRegistry();
+
+        std::lock_guard pendingRecordLock{
+            m_pendingRecordsMutex,
+        };
+
+        for (ObjectSerial removed : m_pendingRecords.m_removals)
+            m_pendingRecords.removeRecordsForObject(removed);
+
+        auto allFormatsResolved = [](const std::list<PendingNodeRecord> &list) {
+            return std::all_of(list.begin(), list.end(), [](const PendingNodeRecord &record) {
+                return record.formatFuture.isFinished();
+            });
+        };
+
+        if (allFormatsResolved(m_pendingRecords.m_sources)
+            && allFormatsResolved(m_pendingRecords.m_sinks))
+            break;
+    }
+
+    // now all formats have been resolved and we can update the device list
+    audioDevicesChanged();
+
+    QReadLocker lock{ &m_mutex };
+    return {
+        .sources = m_sourceDeviceList,
+        .sinks = m_sinkDeviceList,
+    };
+}
+
 void QAudioDeviceMonitor::startCompressionTimer()
 {
     QMetaObject::invokeMethod(this, [this] {
