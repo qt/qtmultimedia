@@ -40,10 +40,10 @@ public:
         m_device = device;
         QMetaObject::invokeMethod(this, "updateSource");
     }
-    void setFrameSize(int frameSize)
+    void setBufferSize(int bufferSize)
     {
-        m_bufferSize.storeRelease((frameSize > 0 && m_format.isValid())
-                                          ? m_format.bytesForFrames(frameSize)
+        m_bufferSize.storeRelease((bufferSize > 0 && m_format.isValid())
+                                          ? m_format.bytesForFrames(bufferSize)
                                           : DefaultAudioInputBufferSize);
     }
     void setRunning(bool r) {
@@ -192,9 +192,9 @@ void QFFmpegAudioInput::setVolume(float volume)
     m_audioIO->setVolume(volume);
 }
 
-void QFFmpegAudioInput::setFrameSize(int s)
+void QFFmpegAudioInput::setBufferSize(int bufferSize)
 {
-    m_audioIO->setFrameSize(s);
+    m_audioIO->setBufferSize(bufferSize);
 }
 
 int QFFmpegAudioInput::bufferSize() const

@@ -41,7 +41,7 @@ public:
     void setMuted(bool /*muted*/) override;
     void setVolume(float /*volume*/) override;
 
-    void setFrameSize(int frameSize);
+    void setBufferSize(int bufferSize);
 
     int bufferSize() const;
 
