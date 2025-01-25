@@ -82,19 +82,19 @@ Q_SIGNALS:
 private:
     // Normal states transition, Stop is called upon Encoding,
     // header, content, and trailer are written:
-    // None -> FormatsInitialization -> EncodersInitialization -> Encoding -> Finalization
+    // None -> FormatsInitializing -> EncodersInitializing -> Encoding -> Finalizing
     //
-    // Stop is called upon FormatsInitialization, nothing is written to the output:
-    // None -> FormatsInitialization -> Finalization
+    // Stop is called upon FormatsInitializing, nothing is written to the output:
+    // None -> FormatsInitializing -> Finalizing
     //
-    // Stop is called upon EncodersInitialization, nothing is written to the output:
-    // None -> FormatsInitialization -> EncodersInitialization -> Finalization
+    // Stop is called upon EncodersInitializing, nothing is written to the output:
+    // None -> FormatsInitializing -> EncodersInitializing -> Finalizing
     enum class State {
         None,
-        FormatsInitialization,
-        EncodersInitialization,
+        FormatsInitializing,
+        EncodersInitializing,
         Encoding, // header written
-        Finalization
+        Finalizing
     };
 
     class EncodingFinalizer : public QThread
