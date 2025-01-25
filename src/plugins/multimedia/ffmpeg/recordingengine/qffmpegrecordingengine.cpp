@@ -160,7 +160,7 @@ bool RecordingEngine::handleFormatsInitialization()
     return true;
 }
 
-bool RecordingEngine::initialize(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
+bool RecordingEngine::initialize(const std::vector<QAudioBufferSource *> &audioSources,
                                  const std::vector<QPlatformVideoSource *> &videoSources)
 {
     qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> initialize";

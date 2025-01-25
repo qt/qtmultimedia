@@ -23,7 +23,7 @@ EncodingInitializer::~EncodingInitializer()
         setEncoderInterface(source, nullptr);
 }
 
-bool EncodingInitializer::start(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
+bool EncodingInitializer::start(const std::vector<QAudioBufferSource *> &audioSources,
                                 const std::vector<QPlatformVideoSource *> &videoSources)
 {
     for (auto source : audioSources) {

@@ -25,7 +25,7 @@ QT_BEGIN_NAMESPACE
 class QFFmpegAudioInput;
 class QPlatformVideoSource;
 class QPlatformAudioBufferInput;
-class QPlatformAudioBufferInputBase;
+class QAudioBufferSource;
 class QMediaInputEncoderInterface;
 
 namespace QFFmpeg {
@@ -41,7 +41,7 @@ public:
 
     ~EncodingInitializer() override;
 
-    bool start(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
+    bool start(const std::vector<QAudioBufferSource *> &audioSources,
                const std::vector<QPlatformVideoSource *> &videoSources);
 
 private:

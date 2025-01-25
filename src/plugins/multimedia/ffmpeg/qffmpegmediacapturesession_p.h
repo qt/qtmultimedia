@@ -30,7 +30,7 @@ class QFFmpegAudioInput;
 class QAudioBuffer;
 class QPlatformVideoSource;
 class QPlatformAudioBufferInput;
-class QPlatformAudioBufferInputBase;
+class QAudioBufferSource;
 
 class QFFmpegMediaCaptureSession : public QPlatformMediaCaptureSession
 {
@@ -71,8 +71,8 @@ public:
     QPlatformVideoSource *primaryActiveVideoSource();
 
     // it might be moved to the base class, but it needs QPlatformAudioInput
-    // to be QPlatformAudioBufferInputBase, which might not make sense
-    std::vector<QPlatformAudioBufferInputBase *> activeAudioInputs() const;
+    // to be QAudioBufferSource, which might not make sense
+    std::vector<QAudioBufferSource *> activeAudioInputs() const;
 
 private Q_SLOTS:
     void updateAudioSink();
