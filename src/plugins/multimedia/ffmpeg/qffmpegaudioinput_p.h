@@ -29,7 +29,7 @@ class AudioSourceIO;
 
 constexpr int DefaultAudioInputBufferSize = 4096;
 
-class QFFmpegAudioInput : public QPlatformAudioBufferInputBase, public QPlatformAudioInput
+class QFFmpegAudioInput : public QAudioBufferSource, public QPlatformAudioInput
 {
     // for qobject_cast
     Q_OBJECT

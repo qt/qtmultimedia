@@ -301,9 +301,9 @@ QPlatformVideoSource *QFFmpegMediaCaptureSession::primaryActiveVideoSource()
     return m_primaryActiveVideoSource;
 }
 
-std::vector<QPlatformAudioBufferInputBase *> QFFmpegMediaCaptureSession::activeAudioInputs() const
+std::vector<QAudioBufferSource *> QFFmpegMediaCaptureSession::activeAudioInputs() const
 {
-    std::vector<QPlatformAudioBufferInputBase *> result;
+    std::vector<QAudioBufferSource *> result;
     if (m_audioInput)
         result.push_back(m_audioInput);
 

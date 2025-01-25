@@ -26,7 +26,7 @@ class QAudioBuffer;
 class QAudioFormat;
 class QFFmpegAudioInput;
 class QPlatformAudioBufferInput;
-class QPlatformAudioBufferInputBase;
+class QAudioBufferSource;
 class QPlatformVideoSource;
 class QVideoFrame;
 
@@ -53,7 +53,7 @@ public:
      *  the engine is to be initialized postponly.
      *  If any session error has occurred, it emits the signal sessionError and returns false.
      */
-    bool initialize(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
+    bool initialize(const std::vector<QAudioBufferSource *> &audioSources,
                     const std::vector<QPlatformVideoSource *> &videoSources);
     void finalize();
 
