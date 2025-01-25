@@ -117,7 +117,7 @@ void EncodingInitializer::addPendingVideoSource(QPlatformVideoSource *source)
 bool EncodingInitializer::tryStartRecordingEngine()
 {
     if (m_pendingSources.empty())
-        return m_recordingEngine.handleFormatsInitialization();
+        return m_recordingEngine.startEncoders();
 
     // return true as no errors found, even though they can occur later on,
     // upon the following encoders initializations.
