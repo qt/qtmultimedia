@@ -34,13 +34,13 @@ RecordingEngine::RecordingEngine(const QMediaEncoderSettings &settings,
 
 RecordingEngine::~RecordingEngine()
 {
-    Q_ASSERT(m_state == State::Finalization);
+    Q_ASSERT(m_state == State::Finalizing);
 }
 
 void RecordingEngine::addAudioInput(QFFmpegAudioInput *input)
 {
     Q_ASSERT(input);
-    Q_ASSERT(m_state == State::FormatsInitialization);
+    Q_ASSERT(m_state == State::FormatsInitializing);
 
     if (input->device.isNull()) {
         emit streamInitializationError(QMediaRecorder::ResourceError,
@@ -67,7 +67,7 @@ void RecordingEngine::addAudioBufferInput(QPlatformAudioBufferInput *input,
                                           const QAudioBuffer &firstBuffer)
 {
     Q_ASSERT(input);
-    Q_ASSERT(m_state == State::FormatsInitialization);
+    Q_ASSERT(m_state == State::FormatsInitializing);
 
     const QAudioFormat format = firstBuffer.isValid() ? firstBuffer.format() : input->audioFormat();
 
@@ -99,7 +99,7 @@ AudioEncoder *RecordingEngine::createAudioEncoder(const QAudioFormat &format)
 
 void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoFrame &firstFrame)
 {
-    Q_ASSERT(m_state == State::FormatsInitialization);
+    Q_ASSERT(m_state == State::FormatsInitializing);
 
     QVideoFrameFormat frameFormat =
             firstFrame.isValid() ? firstFrame.surfaceFormat() : source->frameFormat();
@@ -144,7 +144,7 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
 
 bool RecordingEngine::handleFormatsInitialization()
 {
-    Q_ASSERT(m_state == State::FormatsInitialization);
+    Q_ASSERT(m_state == State::FormatsInitializing);
     Q_ASSERT(m_formatsInitializer);
     m_formatsInitializer.reset();
 
@@ -154,7 +154,7 @@ bool RecordingEngine::handleFormatsInitialization()
         return false;
     }
 
-    m_state = State::EncodersInitialization;
+    m_state = State::EncodersInitializing;
 
     qCDebug(qLcFFmpegEncoder) << "RecordingEngine::start!";
 
@@ -168,7 +168,7 @@ bool RecordingEngine::initialize(const std::vector<QAudioBufferSource *> &audioS
     qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> initialize";
     Q_ASSERT(m_state == State::None);
 
-    m_state = State::FormatsInitialization;
+    m_state = State::FormatsInitializing;
     m_formatsInitializer = std::make_unique<EncodingInitializer>(*this);
     return m_formatsInitializer->start(audioSources, videoSources);
 }
@@ -177,13 +177,13 @@ RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine &recording
                                                       bool writeTrailer)
     : m_recordingEngine(recordingEngine), m_writeTrailer(writeTrailer)
 {
-    Q_ASSERT(m_recordingEngine.m_state == State::Finalization);
+    Q_ASSERT(m_recordingEngine.m_state == State::Finalizing);
     connect(this, &QThread::finished, this, &QObject::deleteLater);
 }
 
 void RecordingEngine::EncodingFinalizer::run()
 {
-    Q_ASSERT(m_recordingEngine.m_state == State::Finalization);
+    Q_ASSERT(m_recordingEngine.m_state == State::Finalizing);
 
     m_recordingEngine.stopAndDeleteThreads();
 
@@ -212,10 +212,10 @@ void RecordingEngine::finalize()
 {
     qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> finalize";
 
-    Q_ASSERT(m_state == State::FormatsInitialization || m_state == State::EncodersInitialization
+    Q_ASSERT(m_state == State::FormatsInitializing || m_state == State::EncodersInitializing
              || m_state == State::Encoding);
 
-    Q_ASSERT((m_state == State::FormatsInitialization) == !!m_formatsInitializer);
+    Q_ASSERT((m_state == State::FormatsInitializing) == !!m_formatsInitializer);
 
     m_formatsInitializer.reset();
 
@@ -224,7 +224,7 @@ void RecordingEngine::finalize()
         forEachEncoder(&EncoderThread::startEncoding, false);
 
     const bool shouldWriteTrailer = m_state == State::Encoding;
-    m_state = State::Finalization;
+    m_state = State::Finalizing;
 
     EncodingFinalizer *finalizer = new EncodingFinalizer(*this, shouldWriteTrailer);
     finalizer->start();
@@ -269,9 +269,9 @@ void RecordingEngine::handleSourceEndOfStream()
 
 void RecordingEngine::handleEncoderInitialization()
 {
-    Q_ASSERT(m_state == State::EncodersInitialization || m_state == State::Finalization);
+    Q_ASSERT(m_state == State::EncodersInitializing || m_state == State::Finalizing);
 
-    if (m_state == State::Finalization)
+    if (m_state == State::Finalizing)
         return; // outdated event, drop it
 
     ++m_initializedEncodersCount;
