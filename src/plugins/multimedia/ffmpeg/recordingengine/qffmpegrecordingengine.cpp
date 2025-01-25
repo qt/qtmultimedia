@@ -140,7 +140,7 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
     connectEncoderToSource(videoEncoder, source);
 }
 
-bool RecordingEngine::handleFormatsInitialization()
+bool RecordingEngine::startEncoders()
 {
     Q_ASSERT(m_state == State::FormatsInitialization);
     Q_ASSERT(m_formatsInitializer);
@@ -156,7 +156,9 @@ bool RecordingEngine::handleFormatsInitialization()
 
     qCDebug(qLcFFmpegEncoder) << "RecordingEngine::start!";
 
-    forEachEncoder([](EncoderThread *encoder) { encoder->start(); });
+    forEachEncoder([](EncoderThread *encoder) { //
+        encoder->start();
+    });
     return true;
 }
 

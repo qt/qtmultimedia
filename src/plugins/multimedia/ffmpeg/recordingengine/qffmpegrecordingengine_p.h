@@ -118,7 +118,7 @@ private:
     void handleSourceEndOfStream();
     void handleEncoderInitialization();
 
-    bool handleFormatsInitialization();
+    bool startEncoders();
 
     size_t encodersCount() const { return m_audioEncoders.size() + m_videoEncoders.size(); }
 
