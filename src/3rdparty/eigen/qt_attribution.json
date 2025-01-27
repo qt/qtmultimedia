@@ -4,7 +4,7 @@
     "QDocModule": "qtspatialaudio",
     "Description": "The Eigen C++ linear algebra library.",
     "QtUsage": "Used for mathematics to support spatial audio.",
-    "SecurityCritical": true,
+    "SecurityCritical": false,
 
     "Homepage": "https://eigen.tuxfamily.org/",
     "Version": "3.4.0",
