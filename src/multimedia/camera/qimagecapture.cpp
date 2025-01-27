@@ -538,7 +538,7 @@ void QImageCapture::setQuality(Quality quality)
         return;
     fmt.setQuality(quality);
     d->control->setImageSettings(fmt);
-    emit resolutionChanged();
+    emit qualityChanged();
 }
 
 /*!
