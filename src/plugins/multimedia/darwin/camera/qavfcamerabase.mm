@@ -350,7 +350,6 @@ void QAVFCameraBase::setCamera(const QCameraDevice &camera)
     updateCameraConfiguration();
 }
 
-// Currently not used by any backend.
 bool QAVFCameraBase::setCameraFormat(const QCameraFormat &format)
 {
     if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
