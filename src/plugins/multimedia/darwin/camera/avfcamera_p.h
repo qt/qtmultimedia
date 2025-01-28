@@ -30,13 +30,12 @@ public:
     AVFCamera(QCamera *camera);
     ~AVFCamera();
 
-    bool setCameraFormat(const QCameraFormat &format) override;
-
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
 protected:
     void onActiveChanged(bool active) override;
     void onCameraDeviceChanged(const QCameraDevice &device) override;
+    bool tryApplyCameraFormat(const QCameraFormat&) override;
 
 private:
     friend class AVFCameraSession;
