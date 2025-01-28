@@ -147,14 +147,15 @@ bool QAVFCamera::setCameraFormat(const QCameraFormat &format)
     if (m_cameraFormat == format && !format.isNull())
         return true;
 
+    // m_cameraFormat is overwritten by QAVFCameraBase::setCameraFormat
     if (!QAVFCameraBase::setCameraFormat(format))
         return false;
 
-    updateCameraFormat();
+    updateCameraFormat(m_cameraFormat);
     return true;
 }
 
-void QAVFCamera::updateCameraFormat()
+void QAVFCamera::updateCameraFormat(const QCameraFormat &newFormat)
 {
     m_framePixelFormat = QVideoFrameFormat::Format_Invalid;
     m_cvPixelFormat = CvPixelFormatInvalid;
@@ -163,17 +164,21 @@ void QAVFCamera::updateCameraFormat()
     if (!captureDevice)
         return;
 
-    AVCaptureDeviceFormat *newFormat = qt_convert_to_capture_device_format(
-            captureDevice, m_cameraFormat, &isCVFormatSupported);
+    AVCaptureDeviceFormat *newDeviceFormat = qt_convert_to_capture_device_format(
+        captureDevice,
+        newFormat,
+        &QFFmpeg::isCVFormatSupported);
 
-    if (!newFormat)
-        newFormat = qt_convert_to_capture_device_format(captureDevice, m_cameraFormat);
+    // If we can't find a AVCaptureDeviceFormat supported by FFmpeg,
+    // fall back to one not supported by FFmpeg.
+    if (!newDeviceFormat)
+        newDeviceFormat = qt_convert_to_capture_device_format(captureDevice, newFormat);
 
-    if (newFormat) {
-        qt_set_active_format(captureDevice, newFormat, false);
+    if (newDeviceFormat) {
+        qt_set_active_format(captureDevice, newDeviceFormat, false);
         const auto captureDeviceCVFormat =
-                CMVideoFormatDescriptionGetCodecType(newFormat.formatDescription);
-        setPixelFormat(m_cameraFormat.pixelFormat(), captureDeviceCVFormat);
+                CMVideoFormatDescriptionGetCodecType(newDeviceFormat.formatDescription);
+        setPixelFormat(newFormat.pixelFormat(), captureDeviceCVFormat);
         if (captureDeviceCVFormat != m_cvPixelFormat) {
             qCWarning(qLcCamera) << "Output CV format differs with capture device format!"
                                  << m_cvPixelFormat << cvFormatToString(m_cvPixelFormat) << "vs"
@@ -193,21 +198,21 @@ void QAVFCamera::updateCameraFormat()
     if (avPixelFormat == AV_PIX_FMT_NONE) {
         qCWarning(qLcCamera) << "Videotoolbox doesn't support cvPixelFormat:" << m_cvPixelFormat
                              << cvFormatToString(m_cvPixelFormat)
-                             << "Camera pix format:" << m_cameraFormat.pixelFormat();
+                             << "Camera pix format:" << newFormat.pixelFormat();
     } else {
         hwAccel = HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
         qCDebug(qLcCamera) << "Create VIDEOTOOLBOX hw context" << hwAccel.get() << "for camera";
     }
 
     if (hwAccel) {
-        hwAccel->createFramesContext(avPixelFormat, adjustedResolution());
+        hwAccel->createFramesContext(avPixelFormat, adjustedResolution(newFormat));
         m_hwPixelFormat = hwAccel->hwFormat();
     } else {
         m_hwPixelFormat = AV_PIX_FMT_NONE;
     }
 
     [m_sampleBufferDelegate setHWAccel:std::move(hwAccel)];
-    [m_sampleBufferDelegate setVideoFormatFrameRate:m_cameraFormat.maxFrameRate()];
+    [m_sampleBufferDelegate setVideoFormatFrameRate:newFormat.maxFrameRate()];
 }
 
 void QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFormat,
@@ -264,13 +269,13 @@ void QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFormat
     m_cvPixelFormat = [bestFormat unsignedIntValue];
 }
 
-QSize QAVFCamera::adjustedResolution() const
+QSize QAVFCamera::adjustedResolution(const QCameraFormat& newFormat) const
 {
 #ifdef Q_OS_MACOS
-    return m_cameraFormat.resolution();
+    return newFormat.resolution();
 #else
     // Check, that we have matching dimesnions.
-    QSize resolution = m_cameraFormat.resolution();
+    QSize resolution = newFormat.resolution();
     AVCaptureConnection *connection = [m_videoDataOutput connectionWithMediaType:AVMediaTypeVideo];
     if (!connection.supportsVideoOrientation)
         return resolution;
