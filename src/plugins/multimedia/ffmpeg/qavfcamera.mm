@@ -142,16 +142,11 @@ void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &device)
     updateRotationTracking();
 }
 
-bool QAVFCamera::setCameraFormat(const QCameraFormat &format)
+bool QAVFCamera::tryApplyCameraFormat(const QCameraFormat &format)
 {
-    if (m_cameraFormat == format && !format.isNull())
-        return true;
-
-    // m_cameraFormat is overwritten by QAVFCameraBase::setCameraFormat
-    if (!QAVFCameraBase::setCameraFormat(format))
-        return false;
-
-    updateCameraFormat(m_cameraFormat);
+    // TODO: In the future, we should be able to return false if we failed
+    // to apply the format.
+    updateCameraFormat(format);
     return true;
 }
 

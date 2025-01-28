@@ -50,8 +50,6 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
-    bool setCameraFormat(const QCameraFormat &format) override;
-
     std::optional<int> ffmpegHWPixelFormat() const override;
 
     int cameraPixelFormatScore(QVideoFrameFormat::PixelFormat pixelFmt,
@@ -62,6 +60,7 @@ public:
 protected:
     void onActiveChanged(bool active) override;
     void onCameraDeviceChanged(const QCameraDevice &device) override;
+    bool tryApplyCameraFormat(const QCameraFormat&) override;
 
 private:
     void updateCameraFormat(const QCameraFormat&);

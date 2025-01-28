@@ -68,7 +68,7 @@ public:
     void setActive(bool active) override final;
 
     void setCamera(const QCameraDevice &camera) override final;
-    bool setCameraFormat(const QCameraFormat &format) override;
+    bool setCameraFormat(const QCameraFormat &format) override final;
 
     void setFocusMode(QCamera::FocusMode mode) override;
 
@@ -117,6 +117,10 @@ protected:
     virtual void onActiveChanged(bool active) = 0;
     // Called by setCamera() when the camera is successfully changed.
     virtual void onCameraDeviceChanged(const QCameraDevice &device) = 0;
+    // Should be implemented by the backend to apply the camera-format
+    // to the physical camera if possible.
+    // Returns true if the format was successfully applied.
+    [[nodiscard]] virtual bool tryApplyCameraFormat(const QCameraFormat&) = 0;
 
     bool checkCameraPermission();
 

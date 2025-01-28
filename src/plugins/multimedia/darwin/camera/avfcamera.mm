@@ -36,16 +36,12 @@ void AVFCamera::onCameraDeviceChanged(const QCameraDevice &device)
         m_session->setActiveCamera(m_cameraDevice);
 }
 
-bool AVFCamera::setCameraFormat(const QCameraFormat &format)
+bool AVFCamera::tryApplyCameraFormat(const QCameraFormat &newFormat)
 {
-    if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
-        return false;
-
-    m_cameraFormat = format.isNull() ? findBestCameraFormat(m_cameraDevice) : format;
-
+    // TODO: In the future, we should be able to return false if we failed
+    // to apply the format.
     if (m_session)
-        m_session->setCameraFormat(m_cameraFormat);
-
+        m_session->setCameraFormat(newFormat);
     return true;
 }
 

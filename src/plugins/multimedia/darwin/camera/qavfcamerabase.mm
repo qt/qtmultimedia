@@ -350,12 +350,22 @@ void QAVFCameraBase::setCamera(const QCameraDevice &camera)
     updateCameraConfiguration();
 }
 
-bool QAVFCameraBase::setCameraFormat(const QCameraFormat &format)
+bool QAVFCameraBase::setCameraFormat(const QCameraFormat &newFormat)
 {
-    if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
+    if (!newFormat.isNull() && !m_cameraDevice.videoFormats().contains(newFormat))
         return false;
 
-    m_cameraFormat = format.isNull() ? findBestCameraFormat(m_cameraDevice) : format;
+    const QCameraFormat resolvedFormat = newFormat.isNull() ? findBestCameraFormat(m_cameraDevice) : newFormat;
+    // If we still couldn't find a suitable default format (such as when none are available)
+    // we don't accept the value.
+    if (resolvedFormat.isNull())
+        return false;
+
+    const bool applySuccess = tryApplyCameraFormat(resolvedFormat);
+    if (!applySuccess)
+        return false;
+
+    m_cameraFormat = resolvedFormat;
 
     return true;
 }
