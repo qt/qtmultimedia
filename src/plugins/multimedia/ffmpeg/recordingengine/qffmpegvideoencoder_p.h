@@ -3,6 +3,17 @@
 #ifndef QFFMPEGVIDEOENCODER_P_H
 #define QFFMPEGVIDEOENCODER_P_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
 #include "qffmpegencoderthread_p.h"
 #include "qffmpeg_p.h"
 #include "qffmpegvideoframeencoder_p.h"
