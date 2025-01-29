@@ -4,9 +4,9 @@
 qt_find_package(EGL)
 qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VAAPI MODULE_NAME multimedia QMAKE_LIB vaapi)
 
-qt_internal_add_plugin(QFFmpegMediaPlugin
-    OUTPUT_NAME ffmpegmediaplugin
-    PLUGIN_TYPE multimedia
+qt_internal_add_module(QFFmpegMediaPluginImplPrivate
+    STATIC
+    INTERNAL_MODULE
     SOURCES
         qffmpeg.cpp qffmpeg_p.h
         qffmpegdefs_p.h
@@ -72,18 +72,18 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         recordingengine/qffmpegvideoencoderutils.cpp
         recordingengine/qffmpegvideoframeencoder_p.h
         recordingengine/qffmpegvideoframeencoder.cpp
-
+    NO_GENERATE_CPP_EXPORTS
     DEFINES
         QT_COMPILING_FFMPEG
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
-    LIBRARIES
+    PUBLIC_LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
 )
 
 if (LINUX OR ANDROID)
-    # We have 2 options: link shared stubs to QFFmpegMediaPlugin vs
+    # We have 2 options: link shared stubs to QFFmpegMediaPluginImplPrivate vs
     # static compilation of the needed stubs to the FFmpeg plugin.
     # Currently, we chose the second option so that user could trivially
     # remove the FFmpeg libs we ship.
@@ -96,7 +96,7 @@ if (LINUX OR ANDROID)
 endif()
 
 if (QT_FEATURE_vaapi)
-    qt_internal_extend_target(QFFmpegMediaPlugin
+    qt_internal_extend_target(QFFmpegMediaPluginImplPrivate
         SOURCES
             qffmpeghwaccel_vaapi.cpp qffmpeghwaccel_vaapi_p.h
         NO_UNITY_BUILD_SOURCES
@@ -108,14 +108,14 @@ if (QT_FEATURE_vaapi)
 
     list(FIND FFMPEG_STUBS "va" va_stub_index)
     if (NOT QT_LINK_STUBS_TO_FFMPEG_PLUGIN AND (FFMPEG_SHARED_LIBRARIES OR ${va_stub_index} EQUAL -1))
-        target_compile_definitions(QFFmpegMediaPlugin PRIVATE Q_FFMPEG_PLUGIN_STUBS_ONLY)
+        target_compile_definitions(QFFmpegMediaPluginImplPrivate PRIVATE Q_FFMPEG_PLUGIN_STUBS_ONLY)
         qt_internal_multimedia_find_vaapi_soversion()
         qt_internal_multimedia_add_private_stub_to_plugin("va")
     endif()
 endif()
 
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
+qt_internal_extend_target(QFFmpegMediaPluginImplPrivate CONDITION APPLE
     SOURCES
         ../darwin/qavfhelpers.mm ../darwin/qavfhelpers_p.h
         ../darwin/camera/qavfcamerabase_p.h ../darwin/camera/qavfcamerabase.mm
@@ -139,7 +139,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         AVFoundation::AVFoundation
 )
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION MACOS
+qt_internal_extend_target(QFFmpegMediaPluginImplPrivate CONDITION MACOS
     SOURCES
         qavfscreencapture.mm qavfscreencapture_p.h
         qcgwindowcapture.mm qcgwindowcapture_p.h
@@ -148,7 +148,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION MACOS
         ${FWAppKit}
 )
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
+qt_internal_extend_target(QFFmpegMediaPluginImplPrivate CONDITION WIN32
     SOURCES
         ../windows/qwindowsvideodevices.cpp ../windows/qwindowsvideodevices_p.h
         qwindowscamera.cpp qwindowscamera_p.h
@@ -164,7 +164,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
         mfreadwrite
 )
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_cpp_winrt
+qt_internal_extend_target(QFFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_cpp_winrt
     SOURCES
         qffmpegwindowcapture_uwp.cpp qffmpegwindowcapture_uwp_p.h
     INCLUDE_DIRECTORIES
@@ -175,7 +175,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_cpp_winrt
         windowsapp
 )
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_xlib
+qt_internal_extend_target(QFFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_xlib
     SOURCES
         qx11surfacecapture.cpp qx11surfacecapture_p.h
         qx11capturablewindows.cpp qx11capturablewindows_p.h
@@ -185,7 +185,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_xlib
         Xext
 )
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_eglfs
+qt_internal_extend_target(QFFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_eglfs
     SOURCES
         qeglfsscreencapture.cpp qeglfsscreencapture_p.h
         qopenglvideobuffer.cpp qopenglvideobuffer_p.h
@@ -197,7 +197,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_eglfs
 set_source_files_properties(qx11surfacecapture.cpp qx11capturablewindows.cpp # X headers
                             PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l
+qt_internal_extend_target(QFFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_linux_v4l
     SOURCES
         qv4l2camera.cpp qv4l2camera_p.h
         qv4l2filedescriptor.cpp qv4l2filedescriptor_p.h
@@ -206,7 +206,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l
 )
 
 if (ANDROID)
-    qt_internal_extend_target(QFFmpegMediaPlugin
+    qt_internal_extend_target(QFFmpegMediaPluginImplPrivate
         SOURCES
             qffmpeghwaccel_mediacodec.cpp qffmpeghwaccel_mediacodec_p.h
             qandroidcamera_p.h qandroidcamera.cpp
@@ -230,17 +230,6 @@ if (ANDROID)
             mediandk
             android
     )
-
-    set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
-        ${INSTALL_PLUGINSDIR}/multimedia/libplugins_multimedia_ffmpegmediaplugin.so
-    )
-
-    set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_PERMISSIONS
-        android.permission.CAMERA
-        android.permission.RECORD_AUDIO
-        android.permission.BLUETOOTH
-        android.permission.MODIFY_AUDIO_SETTINGS
-    )
 endif()
 
 # TODO: get libs from FindFFmpeg.cmake
@@ -256,12 +245,35 @@ if (QT_DEPLOY_FFMPEG AND FFMPEG_SHARED_LIBRARIES AND (BUILD_SHARED_LIBS OR UIKIT
 endif()
 
 if(BUILD_SHARED_LIBS)
-    qt_internal_extend_target(QFFmpegMediaPlugin LIBRARIES ${ffmpeg_libs})
+    qt_internal_extend_target(QFFmpegMediaPluginImplPrivate PUBLIC_LIBRARIES ${ffmpeg_libs})
 else()
     foreach(ffmpeg_lib IN LISTS ffmpeg_libs)
-        qt_internal_add_target_include_dirs(QFFmpegMediaPlugin ${ffmpeg_lib})
-        target_include_directories(QFFmpegMediaPlugin PRIVATE
+        qt_internal_add_target_include_dirs(QFFmpegMediaPluginImplPrivate ${ffmpeg_lib})
+        target_include_directories(QFFmpegMediaPluginImplPrivate PUBLIC
             "$<TARGET_PROPERTY:${ffmpeg_lib},INTERFACE_COMPILE_DEFINITIONS>")
     endforeach()
 endif()
 
+qt_internal_add_plugin(QFFmpegMediaPlugin
+    OUTPUT_NAME ffmpegmediaplugin
+    PLUGIN_TYPE multimedia
+    SOURCES
+        qffmpegplugin.cpp
+        ffmpeg.json
+    LIBRARIES
+        Qt::QFFmpegMediaPluginImplPrivate
+        Qt::MultimediaPrivate
+)
+
+if (ANDROID)
+    set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
+        ${INSTALL_PLUGINSDIR}/multimedia/libplugins_multimedia_ffmpegmediaplugin.so
+    )
+
+    set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_PERMISSIONS
+        android.permission.CAMERA
+        android.permission.RECORD_AUDIO
+        android.permission.BLUETOOTH
+        android.permission.MODIFY_AUDIO_SETTINGS
+    )
+endif()

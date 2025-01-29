@@ -75,20 +75,6 @@ QT_BEGIN_NAMESPACE
 
 static Q_LOGGING_CATEGORY(qLcFFmpeg, "qt.multimedia.ffmpeg");
 
-class QFFmpegMediaPlugin : public QPlatformMediaPlugin
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "ffmpeg.json")
-
-public:
-    QPlatformMediaIntegration *create(const QString &name) override
-    {
-        if (name == u"ffmpeg")
-            return new QFFmpegMediaIntegration;
-        return nullptr;
-    }
-};
-
 bool thread_local FFmpegLogsEnabledInThread = true;
 static bool UseCustomFFmpegLogger = false;
 
@@ -390,5 +376,3 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 #endif
 
 QT_END_NAMESPACE
-
-#include "qffmpegmediaintegration.moc"
