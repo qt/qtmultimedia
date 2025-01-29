@@ -1,0 +1,42 @@
+type: Group
+instructions:
+  - type: Group
+    enable_if:
+      condition: runtime
+      env_var: NON_QTBASE_CMAKE_ARGS
+      contains_value: "-DFFMPEG_DIR="
+    instructions:
+      - type: AppendToEnvironmentVariable
+        variableName: COMMON_TEST_CMAKE_ARGS
+        variableValue: " {{.Env.NON_QTBASE_CMAKE_ARGS}}"
+        disable_if:
+          condition: runtime
+          env_var: COMMON_TEST_CMAKE_ARGS
+          equals_value: null
+      - type: EnvironmentVariable
+        variableName: COMMON_TEST_CMAKE_ARGS
+        variableValue: "{{.Env.NON_QTBASE_CMAKE_ARGS}}"
+        enable_if:
+          condition: runtime
+          env_var: COMMON_TEST_CMAKE_ARGS
+          equals_value: null
+  - type: Group
+    enable_if:
+      condition: runtime
+      env_var: NON_QTBASE_TARGET_CMAKE_ARGS
+      contains_value: "-DFFMPEG_DIR="
+    instructions:
+      - type: AppendToEnvironmentVariable
+        variableName: COMMON_TARGET_TEST_CMAKE_ARGS
+        variableValue: " {{.Env.NON_QTBASE_TARGET_CMAKE_ARGS}}"
+        disable_if:
+          condition: runtime
+          env_var: COMMON_TARGET_TEST_CMAKE_ARGS
+          equals_value: null
+      - type: EnvironmentVariable
+        variableName: COMMON_TARGET_TEST_CMAKE_ARGS
+        variableValue: "{{.Env.NON_QTBASE_TARGET_CMAKE_ARGS}}"
+        enable_if:
+          condition: runtime
+          env_var: COMMON_TARGET_TEST_CMAKE_ARGS
+          equals_value: null

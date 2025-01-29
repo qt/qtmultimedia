@@ -6,6 +6,7 @@ accept_configuration:
 
 instructions:
   Build:
+    - !include "{{qt/qtmultimedia}}/configure_tests_environment_for_ffmpeg_backend.yaml"
     - !include "{{qt/qtbase}}/coin_module_build_template_v2.yaml"
 
   Test:
