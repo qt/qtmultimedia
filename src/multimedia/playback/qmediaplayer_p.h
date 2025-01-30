@@ -77,8 +77,8 @@ public:
     QPlatformMediaPlayer* control = nullptr;
     QString errorString;
 
-    QAudioOutput *audioOutput = nullptr;
-    QVideoSink *videoSink = nullptr;
+    QPointer<QAudioOutput> audioOutput;
+    QPointer<QVideoSink> videoSink;
     QPointer<QObject> videoOutput;
     QUrl qrcMedia;
     QScopedPointer<QFile> qrcFile;
