@@ -178,10 +178,10 @@ void Renderer::doNextStep()
             m_lastFrameEnd = frame.absoluteEnd();
             m_seekPos.storeRelaxed(m_lastFrameEnd);
 
-            const auto loopIndex = frame.loopOffset().index;
+            const auto loopIndex = frame.loopOffset().loopIndex;
             if (m_loopIndex < loopIndex) {
                 m_loopIndex = loopIndex;
-                emit loopChanged(id(), frame.loopOffset().pos, m_loopIndex);
+                emit loopChanged(id(), frame.loopOffset().loopStartTimeUs, m_loopIndex);
             }
 
             emit frameProcessed(frame);

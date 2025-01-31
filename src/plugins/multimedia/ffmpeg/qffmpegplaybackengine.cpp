@@ -90,13 +90,13 @@ void PlaybackEngine::onRendererLoopChanged(quint64 id, qint64 offset, int loopIn
     if (!hasRenderer(id))
         return;
 
-    if (loopIndex > m_currentLoopOffset.index) {
+    if (loopIndex > m_currentLoopOffset.loopIndex) {
         m_currentLoopOffset = { offset, loopIndex };
         emit loopChanged();
-    } else if (loopIndex == m_currentLoopOffset.index && offset != m_currentLoopOffset.pos) {
+    } else if (loopIndex == m_currentLoopOffset.loopIndex && offset != m_currentLoopOffset.loopStartTimeUs) {
         qWarning() << "Unexpected offset for loop" << loopIndex << ":" << offset << "vs"
-                   << m_currentLoopOffset.pos;
-        m_currentLoopOffset.pos = offset;
+                   << m_currentLoopOffset.loopStartTimeUs;
+        m_currentLoopOffset.loopStartTimeUs = offset;
     }
 }
 
@@ -238,7 +238,7 @@ void PlaybackEngine::seek(qint64 pos)
     pos = boundPosition(pos);
 
     m_timeController.setPaused(true);
-    m_timeController.sync(m_currentLoopOffset.pos + pos);
+    m_timeController.sync(m_currentLoopOffset.loopStartTimeUs + pos);
 
     forceUpdate();
 }
@@ -254,7 +254,7 @@ void PlaybackEngine::setLoops(int loops)
         return;
 
     qCDebug(qLcPlaybackEngine) << "set playback engine loops:" << loops << "prev loops:" << m_loops
-                               << "index:" << m_currentLoopOffset.index;
+                               << "index:" << m_currentLoopOffset.loopIndex;
 
     if (m_demuxer)
         m_demuxer->setLoops(loops);
@@ -528,7 +528,7 @@ qint64 PlaybackEngine::currentPosition(bool topPos) const {
     if (!pos)
         pos = m_timeController.currentPosition();
 
-    return boundPosition(*pos - m_currentLoopOffset.pos);
+    return boundPosition(*pos - m_currentLoopOffset.loopStartTimeUs);
 }
 
 qint64 PlaybackEngine::duration() const

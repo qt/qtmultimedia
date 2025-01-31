@@ -54,10 +54,11 @@ void StreamDecoder::doNextStep()
             decodeMedia(packet);
     };
 
-    if (packet.isValid() && packet.loopOffset().index != m_offset.index) {
+    if (packet.isValid() && packet.loopOffset().loopIndex != m_offset.loopIndex) {
         decodePacket({});
 
-        qCDebug(qLcStreamDecoder) << "flush buffers due to new loop:" << packet.loopOffset().index;
+        qCDebug(qLcStreamDecoder) << "flush buffers due to new loop:"
+                                  << packet.loopOffset().loopIndex;
 
         avcodec_flush_buffers(m_codecContext.context());
         m_offset = packet.loopOffset();

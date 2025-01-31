@@ -96,8 +96,8 @@ struct Frame
     QString text() const { return data().text; }
     quint64 sourceId() const { return data().sourceId; };
     const LoopOffset &loopOffset() const { return data().loopOffset; };
-    qint64 absolutePts() const { return pts() + loopOffset().pos; }
-    qint64 absoluteEnd() const { return end() + loopOffset().pos; }
+    qint64 absolutePts() const { return pts() + loopOffset().loopStartTimeUs; }
+    qint64 absoluteEnd() const { return end() + loopOffset().loopStartTimeUs; }
 
 private:
     Data &data() const
