@@ -15,7 +15,7 @@ layout(binding = 2) uniform sampler2D plane2Texture;
 
 void main()
 {
-    float Y = texture(plane1Texture, texCoord).a;
+    float Y = texture(plane1Texture, texCoord)[ubuf.redOrAlphaIndex];
 
     // NV12 for GLES2.0 requires interleaved chroma plane to be packed into RGBA texture
     //
@@ -25,7 +25,7 @@ void main()
     // | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |    | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
     // | y | y | y | y | y | y | y | y |    | a | a | a | a | a | a | a | a |
     // ...                                  ...
-    // | v | u | v | u | v | u | v | u |    |[r   g] [b   a]|[r   g] [b   a]|
+    // | u | v | u | v | u | v | u | v |    |[r   g] [b   a]|[r   g] [b   a]|
     //                                              |               |
     //                                            sample          sample
 
@@ -40,9 +40,9 @@ void main()
 
     float colIndex = floor(texCoord.x * ubuf.width * 0.25); // 0., 0., 0., 0., 1., 1., 1., 1.
     float middleSampleX = colIndex * sampleWidth + 0.5 * sampleWidth;
-    vec4 vuvu = texture(plane2Texture, vec2(middleSampleX, texCoord.y)).rgba;
-    vec2 UV0 = vuvu.gr;
-    vec2 UV1 = vuvu.ab;
+    vec4 uvuv = texture(plane2Texture, vec2(middleSampleX, texCoord.y)).rgba;
+    vec2 UV0 = uvuv.rg;
+    vec2 UV1 = uvuv.ba;
 
     // X-coords of output UVs
     float x0 = middleSampleX - 0.5 * uvWidth;
@@ -65,7 +65,7 @@ void main()
         if (rightSampleX < 1.) {
             // Mix with sampled UV0 on the right
             vec4 rightSample = texture(plane2Texture, vec2(rightSampleX, texCoord.y));
-            outputUV = mix(UV1, rightSample.gr, (texCoord.x - x1) / uvWidth);
+            outputUV = mix(UV1, rightSample.rg, (texCoord.x - x1) / uvWidth);
         } else {
             // Use UV1
             outputUV = UV1;
@@ -80,7 +80,7 @@ void main()
         if (leftSampleX >= 0.) {
             // Mix with sampled UV1 on the left
             vec4 leftSample = texture(plane2Texture, vec2(leftSampleX, texCoord.y));
-            outputUV = mix(UV0, leftSample.ab, (x0 - texCoord.x) / uvWidth);
+            outputUV = mix(UV0, leftSample.ba, (x0 - texCoord.x) / uvWidth);
         } else {
             // Use UV0
             outputUV = UV0;

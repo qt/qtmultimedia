@@ -383,22 +383,10 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *rhi,
 
     shaderFile.prepend(u":/qt-project.org/multimedia/shaders/");
 
-    if (rhi && !rhi->isTextureFormatSupported(QRhiTexture::R8)) {
-        // Check if texture description formats contain R8 fallback format RED_OR_ALPHA8
-        auto desc = textureDescription(format.pixelFormat());
-        for (auto i = 0; i < desc->nplanes; ++i) {
-            if (desc->rhiTextureFormat(i, rhi) != QRhiTexture::RED_OR_ALPHA8)
-                // Only use alpha shaders with single component textures
-                continue;
-
-            // NOTE: nv12_a and nv21_a shaders also expect UV plane values to be packed in RGBA8
-            // texture
-            if (format.pixelFormat() == QVideoFrameFormat::Format_NV12
-                || format.pixelFormat() == QVideoFrameFormat::Format_NV21)
-                Q_ASSERT(!rhi->isTextureFormatSupported(QRhiTexture::RG8));
-            shaderFile.append(u"_a");
-            break;
-        }
+    if (format.pixelFormat() == QVideoFrameFormat::Format_NV12
+        || format.pixelFormat() == QVideoFrameFormat::Format_NV21) {
+        if (rhi && !rhi->isTextureFormatSupported(QRhiTexture::RG8))
+            shaderFile.append(u"_fallback");
     }
 
     if (surfaceFormat == QRhiSwapChain::HDRExtendedSrgbLinear)
@@ -633,7 +621,6 @@ void updateUniformData(QByteArray *dst, QRhi *rhi, const QVideoFrameFormat &form
     ud->width = float(format.frameWidth());
     ud->masteringWhite = fromLinear(float(format.maxLuminance())/100.f);
     ud->maxLum = fromLinear(float(maxNits)/100.f);
-
     const TextureDescription* desc = textureDescription(format.pixelFormat());
 
     // Let's consider using the red component if Red_8 is not used,
