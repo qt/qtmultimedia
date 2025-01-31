@@ -21,13 +21,15 @@ QT_USE_NAMESPACE
 
 namespace {
 
+enum class RenderingMode { Rhi, Cpu };
+
 struct TestParams
 {
     QString fileName;
     QVideoFrameFormat::PixelFormat pixelFormat;
     QVideoFrameFormat::ColorSpace colorSpace;
     QVideoFrameFormat::ColorRange colorRange;
-    bool forceCpu;
+    RenderingMode renderingMode;
 };
 
 QString toString(QVideoFrameFormat::ColorRange r)
@@ -144,16 +146,29 @@ std::vector<QVideoFrameFormat::ColorSpace> colorSpaces()
              QVideoFrameFormat::ColorSpace_AdobeRgb, QVideoFrameFormat::ColorSpace_BT2020 };
 }
 
+std::vector<RenderingMode> renderingModes(QVideoFrameFormat::PixelFormat pixelFormat)
+{
+    std::vector<RenderingMode> result;
+    if (supportsCpuConversion(pixelFormat))
+        result.push_back(RenderingMode::Cpu);
+    if (isRhiRenderingSupported())
+        result.push_back(RenderingMode::Rhi); // Only run tests on GPU if RHI is supported
+    return result;
+}
+
 QString name(const TestParams &p)
 {
+    // TODO: remove the hack; target files should be the same
+    const auto suffix = p.renderingMode == RenderingMode::Cpu ? u"_cpu" : u"";
+
     QString name = QStringLiteral("%1_%2_%3_%4%5")
-                                 .arg(p.fileName)
-                                 .arg(toString(p.pixelFormat))
-                                 .arg(toString(p.colorSpace))
-                                 .arg(toString(p.colorRange))
-                                 .arg(p.forceCpu ? "_cpu" : "")
-                                 .toLower();
-    name.replace(" ", "_");
+            .arg(p.fileName,
+                 toString(p.pixelFormat),
+                 toString(p.colorSpace),
+                 toString(p.colorRange),
+                 suffix)
+            .toLower()
+            .replace(" ", "_");
     return name;
 }
 
@@ -380,26 +395,16 @@ private slots:
         QTest::addColumn<TestParams>("params");
         for (const char *file : { "umbrellas.jpg" }) {
             for (const QVideoFrameFormat::PixelFormat pixelFormat : pixelFormats()) {
+                if (!isSupportedPixelFormat(pixelFormat))
+                    continue;
+                if (!hasCorrespondingFFmpegFormat(pixelFormat))
+                    continue;
+
                 for (const QVideoFrameFormat::ColorSpace colorSpace : colorSpaces()) {
                     for (const QVideoFrameFormat::ColorRange colorRange : colorRanges()) {
-
-                        QList<bool> cpuChoices = { true };
-                        if (isRhiRenderingSupported())
-                            cpuChoices.push_back(false); // Only run tests on GPU if RHI is supported
-
-                        for (const bool forceCpu : cpuChoices) {
-
-                            if (!isSupportedPixelFormat(pixelFormat))
-                                continue;
-
-                            if (forceCpu && !supportsCpuConversion(pixelFormat))
-                                continue; // TODO: CPU Conversion not implemented
-
-                            if (!hasCorrespondingFFmpegFormat(pixelFormat))
-                                continue;
-
+                        for (const RenderingMode renderingMode : renderingModes(pixelFormat)) {
                             TestParams param{
-                                file, pixelFormat, colorSpace, colorRange, forceCpu,
+                                file, pixelFormat, colorSpace, colorRange, renderingMode,
                             };
                             QTest::addRow("%s", name(param).toLatin1().data()) << file << param;
                         }
@@ -425,7 +430,8 @@ private slots:
         const QVideoFrame frame = createTestFrame(params, templateImage);
 
         // Act
-        const QImage actual = qImageFromVideoFrame(frame, params.forceCpu);
+        const QImage actual =
+                qImageFromVideoFrame(frame, params.renderingMode == RenderingMode::Cpu);
 
         // Assert
         constexpr int diffThreshold = 4;
