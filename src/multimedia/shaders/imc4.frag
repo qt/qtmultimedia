@@ -15,10 +15,10 @@ layout(binding = 2) uniform sampler2D plane2Texture;
 
 void main()
 {
-    float Y = texture(plane1Texture, texCoord).r;
+    float Y = texture(plane1Texture, texCoord)[ubuf.redOrAlphaIndex];
     float x = texCoord.x/2.;
-    float U = texture(plane2Texture, vec2(x, texCoord.y)).r;
-    float V = texture(plane2Texture, vec2(x + .5, texCoord.y)).r;
+    float U = texture(plane2Texture, vec2(x, texCoord.y))[ubuf.redOrAlphaIndex];
+    float V = texture(plane2Texture, vec2(x + .5, texCoord.y))[ubuf.redOrAlphaIndex];
     vec4 color = vec4(Y, U, V, 1.);
     fragColor = ubuf.colorMatrix * color * ubuf.opacity;
 
