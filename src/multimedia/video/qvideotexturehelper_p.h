@@ -92,6 +92,13 @@ struct Q_MULTIMEDIA_EXPORT TextureDescription
         return QSize(frameSize.width() / scale.x, frameSize.height() / scale.y);
     }
 
+    bool hasTextureFormat(TextureFormat format) const
+    {
+        return std::any_of(textureFormat, textureFormat + nplanes, [format](TextureFormat f) {
+            return f == format;
+        });
+    }
+
     int nplanes;
     int strideFactor;
     BytesRequired bytesRequired;
@@ -105,8 +112,10 @@ Q_MULTIMEDIA_EXPORT QString vertexShaderFileName(const QVideoFrameFormat &format
 Q_MULTIMEDIA_EXPORT QString
 fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *rhi,
                        QRhiSwapChain::Format surfaceFormat = QRhiSwapChain::SDR);
-Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame,
-                                           const QMatrix4x4 &transform, float opacity, float maxNits = 100);
+Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, QRhi *rhi,
+                                           const QVideoFrameFormat &format,
+                                           const QVideoFrame &frame, const QMatrix4x4 &transform,
+                                           float opacity, float maxNits = 100);
 
 /**
  * @brief Creates plane textures from texture handles set by the specified rhi.
@@ -135,6 +144,7 @@ struct UniformData {
     float width;
     float masteringWhite;
     float maxLum;
+    int redOrAlphaIndex;
 };
 
 struct Q_MULTIMEDIA_EXPORT SubtitleLayout

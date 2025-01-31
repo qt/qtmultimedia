@@ -13,6 +13,7 @@ struct buf
     float width;
     float masteringWhite;
     float maxLum;
+    int redOrAlphaIndex;
 };
 
 uniform buf ubuf;

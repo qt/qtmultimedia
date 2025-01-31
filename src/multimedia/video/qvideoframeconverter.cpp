@@ -337,7 +337,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
     vertexBuffer.reset(rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, sizeof(g_quad)));
     vertexBuffer->create();
 
-    uniformBuffer.reset(rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 64 + 64 + 4 + 4 + 4 + 4));
+    uniformBuffer.reset(rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(QVideoTextureHelper::UniformData)));
     uniformBuffer->create();
 
     textureSampler.reset(rhi->newSampler(QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
@@ -391,8 +391,9 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
     QMatrix4x4 transform;
     transform.scale(xScale, yScale);
 
-    QByteArray uniformData(64 + 64 + 4 + 4, Qt::Uninitialized);
-    QVideoTextureHelper::updateUniformData(&uniformData, frame.surfaceFormat(), frame, transform, 1.f);
+    QByteArray uniformData(sizeof(QVideoTextureHelper::UniformData), Qt::Uninitialized);
+    QVideoTextureHelper::updateUniformData(&uniformData, rhi, frame.surfaceFormat(), frame,
+                                           transform, 1.f);
     rub->updateDynamicBuffer(uniformBuffer.get(), 0, uniformData.size(), uniformData.constData());
 
     cb->beginPass(renderTarget.get(), Qt::black, { 1.0f, 0 }, rub);

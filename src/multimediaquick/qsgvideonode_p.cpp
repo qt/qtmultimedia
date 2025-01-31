@@ -164,7 +164,7 @@ bool QSGVideoMaterialRhiShader::updateUniformData(RenderState &state, QSGMateria
             maxNits = m_hdrInfo.limits.luminanceInNits.maxLuminance;
     }
 
-    QVideoTextureHelper::updateUniformData(state.uniformData(), m_videoFormat,
+    QVideoTextureHelper::updateUniformData(state.uniformData(), m->m_rhi, m_videoFormat,
                                            m->m_texturePool->currentFrame(), state.combinedMatrix(),
                                            state.opacity(), maxNits);
 
