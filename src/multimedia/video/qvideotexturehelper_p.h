@@ -137,6 +137,9 @@ Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTextures(const QVideoFrame &fr
                                                            QRhiResourceUpdateBatch &rub,
                                                            QVideoFrameTexturesUPtr oldTextures);
 
+Q_MULTIMEDIA_EXPORT void
+setExcludedRhiTextureFormats(QList<QRhiTexture::Format> formats); // for tests only
+
 struct UniformData {
     float transformMatrix[4][4];
     float colorMatrix[4][4];
