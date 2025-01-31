@@ -10,18 +10,39 @@
 #include "private/qplatformmediaintegration_p.h"
 #include "private/qimagevideobuffer_p.h"
 #include "private/qvideoframe_p.h"
+#include "private/qvideotexturehelper_p.h"
 #include <private/qfileutil_p.h>
+#include <private/qmultimedia_enum_to_string_converter_p.h>
 #include <QtGui/QColorSpace>
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
 
 #include <private/mediabackendutils_p.h>
 
+QT_BEGIN_NAMESPACE
+
+using namespace QtMultimediaPrivate;
+
+enum class RenderingMode { Rhi, Rhi_R8_Excluded, Rhi_RG8_Excluded, Rhi_R8_RG8_Excluded, Cpu };
+
+// clang-format off
+
+QT_MM_MAKE_STRING_RESOLVER(RenderingMode, EnumName,
+                           (RenderingMode::Rhi, "Rhi")
+                           (RenderingMode::Rhi_R8_Excluded, "Rhi_R8_Excluded")
+                           (RenderingMode::Rhi_RG8_Excluded, "Rhi_RG8_Excluded")
+                           (RenderingMode::Rhi_R8_RG8_Excluded, "Rhi_R8_RG8_Excluded")
+                           (RenderingMode::Cpu, "Cpu")
+                          );
+
+// clang-format on
+
+QT_END_NAMESPACE
+
 QT_USE_NAMESPACE
 
 namespace {
 
-enum class RenderingMode { Rhi, Cpu };
 
 struct TestParams
 {
@@ -150,13 +171,20 @@ std::vector<RenderingMode> renderingModes(QVideoFrameFormat::PixelFormat pixelFo
 {
     std::vector<RenderingMode> result;
     if (supportsCpuConversion(pixelFormat))
-        result.push_back(RenderingMode::Cpu);
-    if (isRhiRenderingSupported())
-        result.push_back(RenderingMode::Rhi); // Only run tests on GPU if RHI is supported
+        result.push_back(RenderingMode::Cpu); // Only run tests on GPU if RHI is supported
+    if (isRhiRenderingSupported()) {
+        result.push_back(RenderingMode::Rhi);
+
+        // TODO: add Rhi_R8_Excluded and Rhi_R8_RG8_Excluded to the test
+        // result.push_back(RenderingMode::Rhi_R8_Excluded);
+        // result.push_back(RenderingMode::Rhi_R8_RG8_Excluded);
+
+        result.push_back(RenderingMode::Rhi_RG8_Excluded);
+    }
     return result;
 }
 
-QString name(const TestParams &p)
+QString fileName(const TestParams &p)
 {
     // TODO: remove the hack; target files should be the same
     const auto suffix = p.renderingMode == RenderingMode::Cpu ? u"_cpu" : u"";
@@ -172,9 +200,25 @@ QString name(const TestParams &p)
     return name;
 }
 
-QString path(const QTemporaryDir &dir, const TestParams &param, const QString &suffix = ".png")
+
+QString resultPath(const QTemporaryDir &dir, const TestParams &params, const QString &suffix = ".png")
 {
-    return dir.filePath(name(param) + suffix);
+    const auto renderingModeDescription = StringResolver<RenderingMode>::toQString(params.renderingMode);
+    QTEST_ASSERT(renderingModeDescription);
+    QDir currentDir(dir.path());
+    QString resultFolderName = QStringLiteral("result_") + *renderingModeDescription;
+    const bool subdirCreated = currentDir.exists(resultFolderName) || currentDir.mkdir(resultFolderName);
+    QTEST_ASSERT(subdirCreated);
+
+    return currentDir.filePath(resultFolderName + QDir::separator() + fileName(params) + suffix);
+}
+
+QString testName(const TestParams &params)
+{
+    const auto renderingModeDescription = StringResolver<RenderingMode>::toQString(params.renderingMode);
+    QTEST_ASSERT(renderingModeDescription);
+
+    return QStringLiteral("%1, %2").arg(fileName(params), *renderingModeDescription);
 }
 
 QVideoFrame createTestFrame(const TestParams &params, const QImage &image)
@@ -302,7 +346,7 @@ public:
 
     QImage getReference(const TestParams &param) const
     {
-        const QString referenceName = name(param);
+        const QString referenceName = fileName(param);
         const QString referencePath = m_testdataDir->filePath(referenceName + ".png");
         QImage result;
         if (result.load(referencePath))
@@ -312,7 +356,7 @@ public:
 
     void saveNewReference(const QImage &reference, const TestParams &params) const
     {
-        const QString filename = path(*m_testdataDir, params);
+        const QString filename = resultPath(*m_testdataDir, params);
         if (!reference.save(filename)) {
             qDebug() << "Failed to save reference file";
             QTEST_ASSERT(false);
@@ -323,7 +367,7 @@ public:
 
     bool saveComputedImage(const TestParams &params, const QImage &image, const QString& suffix) const
     {
-        if (!image.save(path(*m_testdataDir, params, suffix))) {
+        if (!image.save(resultPath(*m_testdataDir, params, suffix))) {
             qDebug() << "Unexpectedly failed to save actual image to file";
             QTEST_ASSERT(false);
             return false;
@@ -384,6 +428,8 @@ class tst_qvideoframecolormanagement : public QObject
 {
     Q_OBJECT
 private slots:
+    void cleanup() { QVideoTextureHelper::setExcludedRhiTextureFormats({}); }
+
     void initTestCase()
     {
         QSKIP_IF_NOT_FFMPEG("This test requires the FFmpeg backend to create test frames");
@@ -406,7 +452,7 @@ private slots:
                             TestParams param{
                                 file, pixelFormat, colorSpace, colorRange, renderingMode,
                             };
-                            QTest::addRow("%s", name(param).toLatin1().data()) << file << param;
+                            QTest::newRow(testName(param).toLatin1().data()) << file << param;
                         }
                     }
                 }
@@ -424,6 +470,8 @@ private slots:
         QFETCH(const QString, fileName);
         QFETCH(const TestParams, params);
 
+        // Arrange
+        applyRenderingMode(params.renderingMode);
         const QImage templateImage = m_reference.getTestdata(fileName);
         QVERIFY(!templateImage.isNull());
 
@@ -454,6 +502,17 @@ private slots:
         QCOMPARE_LT(result->MaxDiff, 6); // Maximum per-channel difference
     }
 
+private:
+    void applyRenderingMode(RenderingMode mode)
+    {
+        QList<QRhiTexture::Format> excludedFormats;
+        if (mode == RenderingMode::Rhi_R8_RG8_Excluded || mode == RenderingMode::Rhi_R8_Excluded)
+            excludedFormats.push_back(QRhiTexture::R8);
+        if (mode == RenderingMode::Rhi_R8_RG8_Excluded || mode == RenderingMode::Rhi_RG8_Excluded)
+            excludedFormats.push_back(QRhiTexture::RG8);
+
+        QVideoTextureHelper::setExcludedRhiTextureFormats(std::move(excludedFormats));
+    }
 
 private:
     ReferenceData m_reference;

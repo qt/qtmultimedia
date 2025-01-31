@@ -225,14 +225,25 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
     },
 };
 
+Q_GLOBAL_STATIC(QList<QRhiTexture::Format>, g_excludedRhiTextureFormats) // for tests only
+
+static bool isRhiTextureFormatSupported(const QRhi *rhi, QRhiTexture::Format format)
+{
+    if (g_excludedRhiTextureFormats->contains(format))
+        return false;
+    if (!rhi) // consider the format is supported if no rhi specified
+        return true;
+    return rhi->isTextureFormatSupported(format);
+}
+
 static QRhiTexture::Format
 resolveRhiTextureFormat(QRhi *rhi, QRhiTexture::Format format,
                         QRhiTexture::Format fallback = QRhiTexture::UnknownFormat)
 {
-    if (!rhi || rhi->isTextureFormatSupported(format))
+    if (isRhiTextureFormatSupported(rhi, format))
         return format;
 
-    if (fallback != QRhiTexture::UnknownFormat && rhi->isTextureFormatSupported(fallback))
+    if (fallback != QRhiTexture::UnknownFormat && isRhiTextureFormatSupported(rhi, fallback))
         return fallback;
 
     qWarning() << "Cannot determine any usable texture format, using preferred format" << format;
@@ -263,6 +274,11 @@ QRhiTexture::Format TextureDescription::rhiTextureFormat(int plane, QRhi *rhi) c
         default:
             Q_UNREACHABLE();
     }
+}
+
+void setExcludedRhiTextureFormats(QList<QRhiTexture::Format> formats)
+{
+    g_excludedRhiTextureFormats->swap(formats);
 }
 
 const TextureDescription *textureDescription(QVideoFrameFormat::PixelFormat format)
@@ -385,7 +401,7 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *rhi,
 
     if (format.pixelFormat() == QVideoFrameFormat::Format_NV12
         || format.pixelFormat() == QVideoFrameFormat::Format_NV21) {
-        if (rhi && !rhi->isTextureFormatSupported(QRhiTexture::RG8))
+        if (!isRhiTextureFormatSupported(rhi, QRhiTexture::RG8))
             shaderFile.append(u"_fallback");
     }
 
@@ -628,8 +644,8 @@ void updateUniformData(QByteArray *dst, QRhi *rhi, const QVideoFrameFormat &form
 
     const bool useRedComponent =
             !desc->hasTextureFormat(TextureDescription::Red_8) ||
-            !rhi || rhi->isTextureFormatSupported(QRhiTexture::R8)
-            || rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
+            isRhiTextureFormatSupported(rhi, QRhiTexture::R8) ||
+            rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
     ud->redOrAlphaIndex = useRedComponent ? 0 : 3; // r:0 g:1 b:2 a:3
 }
 
