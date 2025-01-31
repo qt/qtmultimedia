@@ -48,7 +48,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         playbackengine/qffmpegcodeccontext.cpp playbackengine/qffmpegcodeccontext_p.h
         playbackengine/qffmpegpacket_p.h
         playbackengine/qffmpegframe_p.h
-        playbackengine/qffmpegpositionwithoffset_p.h
+        playbackengine/qffmpegplaybackutils_p.h
 
         recordingengine/qffmpegaudioencoder_p.h
         recordingengine/qffmpegaudioencoder.cpp

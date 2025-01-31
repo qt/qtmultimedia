@@ -16,7 +16,7 @@
 #include "playbackengine/qffmpegplaybackengineobject_p.h"
 #include "playbackengine/qffmpegframe_p.h"
 #include "playbackengine/qffmpegpacket_p.h"
-#include "playbackengine/qffmpegpositionwithoffset_p.h"
+#include "playbackengine/qffmpegplaybackutils_p.h"
 #include "private/qplatformmediaplayer_p.h"
 
 #include <QtCore/qqueue.h>

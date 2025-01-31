@@ -408,10 +408,10 @@ void PlaybackEngine::createDemuxer()
     if (!hasStreams)
         return;
 
-    const PositionWithOffset positionWithOffset{ currentPosition(false), m_currentLoopOffset };
+    const qint64 currentLoopPosUs = currentPosition(false);
 
-    m_demuxer = createPlaybackEngineObject<Demuxer>(m_media.avContext(), positionWithOffset,
-                                                    streamIndexes, m_loops);
+    m_demuxer = createPlaybackEngineObject<Demuxer>(m_media.avContext(), currentLoopPosUs,
+                                                    m_currentLoopOffset, streamIndexes, m_loops);
 
     connect(m_demuxer.get(), &Demuxer::packetsBuffered, this, &PlaybackEngine::buffered);
 
