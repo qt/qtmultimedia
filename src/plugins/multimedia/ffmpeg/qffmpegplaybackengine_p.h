@@ -49,7 +49,7 @@
 #include "playbackengine/qffmpegtimecontroller_p.h"
 #include "playbackengine/qffmpegmediadataholder_p.h"
 #include "playbackengine/qffmpegcodeccontext_p.h"
-#include "playbackengine/qffmpegpositionwithoffset_p.h"
+#include "playbackengine/qffmpegplaybackutils_p.h"
 
 #include <QtCore/qpointer.h>
 

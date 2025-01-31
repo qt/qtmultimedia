@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef qffmpegpositionwithoffset_p_H
-#define qffmpegpositionwithoffset_p_H
+#ifndef qffmpegplaybackutils_p_H
+#define qffmpegplaybackutils_p_H
 
 //
 //  W A R N I N G
@@ -27,14 +27,8 @@ struct LoopOffset
     int loopIndex = 0; // Counts the number of times the media has been played
 };
 
-struct PositionWithOffset
-{
-    qint64 posInLoopUs = 0; // Position in current loop (microseconds) in [0, media duration]
-    LoopOffset offset;
-};
-
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
-#endif // qffmpegpositionwithoffset_p_H
+#endif // qffmpegplaybackutils_p_H

@@ -42,14 +42,14 @@ static bool isPacketWithinStreamDuration(const AVFormatContext *context, const P
     // malformed duration, rework doNextStep to check for eof after that packet.
 }
 
-Demuxer::Demuxer(AVFormatContext *context, const PositionWithOffset &posWithOffset,
+Demuxer::Demuxer(AVFormatContext *context, qint64 initialPosUs, const LoopOffset &loopOffset,
                  const StreamIndexes &streamIndexes, int loops)
-    : m_context(context), m_posWithOffset(posWithOffset), m_loops(loops)
+    : m_context(context), m_posInLoopUs{ initialPosUs }, m_loopOffset(loopOffset), m_loops(loops)
 {
     qCDebug(qLcDemuxer) << "Create demuxer."
-                        << "pos:" << posWithOffset.posInLoopUs
-                        << "loop offset:" << posWithOffset.offset.loopStartTimeUs
-                        << "loop index:" << posWithOffset.offset.loopIndex << "loops:" << loops;
+                        << "pos:" << m_posInLoopUs
+                        << "loop offset:" << m_loopOffset.loopStartTimeUs
+                        << "loop index:" << m_loopOffset.loopIndex << "loops:" << loops;
 
     Q_ASSERT(m_context);
 
@@ -66,13 +66,13 @@ void Demuxer::doNextStep()
 {
     ensureSeeked();
 
-    Packet packet(m_posWithOffset.offset, AVPacketUPtr{ av_packet_alloc() }, id());
+    Packet packet(m_loopOffset, AVPacketUPtr{ av_packet_alloc() }, id());
     if (av_read_frame(m_context, packet.avPacket()) < 0
         || !isPacketWithinStreamDuration(m_context, packet)) {
-        ++m_posWithOffset.offset.loopIndex;
+        ++m_loopOffset.loopIndex;
 
         const auto loops = m_loops.loadAcquire();
-        if (loops >= 0 && m_posWithOffset.offset.loopIndex >= loops) {
+        if (loops >= 0 && m_loopOffset.loopIndex >= loops) {
             qCDebug(qLcDemuxer) << "finish demuxing";
 
             if (!std::exchange(m_buffered, true))
@@ -80,15 +80,16 @@ void Demuxer::doNextStep()
 
             setAtEnd(true);
         } else {
+            // start next loop
             m_seeked = false;
-            m_posWithOffset.posInLoopUs = 0;
-            m_posWithOffset.offset.loopStartTimeUs = m_maxPacketsEndPos;
+            m_posInLoopUs = 0;
+            m_loopOffset.loopStartTimeUs = m_maxPacketsEndPos;
             m_maxPacketsEndPos = 0;
 
             ensureSeeked();
 
-            qCDebug(qLcDemuxer) << "Demuxer loops changed. Index:" << m_posWithOffset.offset.loopIndex
-                                << "Offset:" << m_posWithOffset.offset.loopStartTimeUs;
+            qCDebug(qLcDemuxer) << "Demuxer loops changed. Index:" << m_loopOffset.loopIndex
+                                << "Offset:" << m_loopOffset.loopStartTimeUs;
 
             scheduleNextStep(false);
         }
@@ -187,7 +188,7 @@ void Demuxer::ensureSeeked()
         return;
 
     if ((m_context->ctx_flags & AVFMTCTX_UNSEEKABLE) == 0) {
-        const qint64 seekPos = m_posWithOffset.posInLoopUs * AV_TIME_BASE / 1000000;
+        const qint64 seekPos = m_posInLoopUs * AV_TIME_BASE / 1000000;
         auto err = av_seek_frame(m_context, -1, seekPos, AVSEEK_FLAG_BACKWARD);
 
         if (err < 0) {

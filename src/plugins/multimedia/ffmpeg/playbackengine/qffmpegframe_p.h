@@ -17,7 +17,7 @@
 
 #include "qffmpeg_p.h"
 #include "playbackengine/qffmpegcodeccontext_p.h"
-#include "playbackengine/qffmpegpositionwithoffset_p.h"
+#include "playbackengine/qffmpegplaybackutils_p.h"
 #include "QtCore/qsharedpointer.h"
 #include "qpointer.h"
 #include "qobject.h"

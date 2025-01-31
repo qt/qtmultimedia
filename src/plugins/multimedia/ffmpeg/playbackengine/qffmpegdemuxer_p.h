@@ -16,7 +16,7 @@
 
 #include "qffmpegplaybackengineobject_p.h"
 #include "qffmpegpacket_p.h"
-#include "qffmpegpositionwithoffset_p.h"
+#include "qffmpegplaybackutils_p.h"
 #include <QtMultimedia/private/qplatformmediaplayer_p.h>
 
 #include <unordered_map>
@@ -29,7 +29,7 @@ class Demuxer : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
-    Demuxer(AVFormatContext *context, const PositionWithOffset &posWithOffset,
+    Demuxer(AVFormatContext *context, qint64 initialPosUs, const LoopOffset &loopOffset,
             const StreamIndexes &streamIndexes, int loops);
 
     using RequestingSignal = void (Demuxer::*)(Packet);
@@ -74,7 +74,8 @@ private:
     bool m_seeked = false;
     bool m_firstPacketFound = false;
     std::unordered_map<int, StreamData> m_streams;
-    PositionWithOffset m_posWithOffset;
+    qint64 m_posInLoopUs; // Position in current loop in [0, duration()]
+    LoopOffset m_loopOffset;
     qint64 m_maxPacketsEndPos = 0;
     QAtomicInt m_loops = QMediaPlayer::Once;
     bool m_buffered = false;

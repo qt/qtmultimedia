@@ -16,7 +16,7 @@
 //
 
 #include "qffmpeg_p.h"
-#include "playbackengine/qffmpegpositionwithoffset_p.h"
+#include "playbackengine/qffmpegplaybackutils_p.h"
 #include <QtCore/qsharedpointer.h>
 
 QT_BEGIN_NAMESPACE
