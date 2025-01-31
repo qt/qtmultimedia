@@ -23,13 +23,13 @@ namespace QFFmpeg {
 
 struct LoopOffset
 {
-    qint64 pos = 0;
-    int index = 0;
+    qint64 loopStartTimeUs = 0; // Accumulated duration of previous loops (microseconds)
+    int loopIndex = 0; // Counts the number of times the media has been played
 };
 
 struct PositionWithOffset
 {
-    qint64 pos = 0;
+    qint64 posInLoopUs = 0; // Position in current loop (microseconds) in [0, media duration]
     LoopOffset offset;
 };
 
