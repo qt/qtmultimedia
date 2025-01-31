@@ -545,7 +545,9 @@ static float convertSDRFromLinear(float sig)
     return sig;
 }
 
-void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity, float maxNits)
+void updateUniformData(QByteArray *dst, QRhi *rhi, const QVideoFrameFormat &format,
+                       const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity,
+                       float maxNits)
 {
 #ifndef Q_OS_ANDROID
     Q_UNUSED(frame);
@@ -631,6 +633,17 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     ud->width = float(format.frameWidth());
     ud->masteringWhite = fromLinear(float(format.maxLuminance())/100.f);
     ud->maxLum = fromLinear(float(maxNits)/100.f);
+
+    const TextureDescription* desc = textureDescription(format.pixelFormat());
+
+    // Let's consider using the red component if Red_8 is not used,
+    // it's useful for compatibility the shaders with 16bit formats.
+
+    const bool useRedComponent =
+            !desc->hasTextureFormat(TextureDescription::Red_8) ||
+            !rhi || rhi->isTextureFormatSupported(QRhiTexture::R8)
+            || rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
+    ud->redOrAlphaIndex = useRedComponent ? 0 : 3; // r:0 g:1 b:2 a:3
 }
 
 enum class UpdateTextureWithMapResult : uint8_t {

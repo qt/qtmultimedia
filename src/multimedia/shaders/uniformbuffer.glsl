@@ -11,4 +11,5 @@ layout(std140, binding = 0) uniform buf {
     // HDR metadata required for tonemapping
     float masteringWhite; // in PQ or HLG values
     float maxLum; // in PQ or HLG values
+    int redOrAlphaIndex; // index of the RED_OR_ALPHA component
 } ubuf;

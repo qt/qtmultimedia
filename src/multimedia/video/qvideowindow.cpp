@@ -401,7 +401,9 @@ void QVideoWindowPrivate::render()
     }
 
     QByteArray uniformData;
-    QVideoTextureHelper::updateUniformData(&uniformData, m_texturePool.currentFrame().surfaceFormat(), m_texturePool.currentFrame(), transform, 1.f, maxNits);
+    QVideoTextureHelper::updateUniformData(&uniformData, m_rhi.get(),
+                                           m_texturePool.currentFrame().surfaceFormat(),
+                                           m_texturePool.currentFrame(), transform, 1.f, maxNits);
     rub->updateDynamicBuffer(m_uniformBuf.get(), 0, uniformData.size(), uniformData.constData());
 
     if (m_hasSubtitle) {
@@ -412,7 +414,8 @@ void QVideoWindowPrivate::render()
 
         QByteArray uniformData;
         QVideoFrameFormat fmt(m_subtitleLayout.bounds.size().toSize(), QVideoFrameFormat::Format_ARGB8888);
-        QVideoTextureHelper::updateUniformData(&uniformData, fmt, QVideoFrame(), st, 1.f);
+        QVideoTextureHelper::updateUniformData(&uniformData, m_rhi.get(), fmt, QVideoFrame(), st,
+                                               1.f);
         rub->updateDynamicBuffer(m_subtitleUniformBuf.get(), 0, uniformData.size(), uniformData.constData());
     }
 
