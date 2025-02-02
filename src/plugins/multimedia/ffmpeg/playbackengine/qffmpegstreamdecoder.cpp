@@ -183,7 +183,7 @@ void StreamDecoder::receiveAVFrames(bool flushPacket)
         if (m_trackType == QPlatformMediaPlayer::VideoStream)
             avFrame = copyFromHwPool(std::move(avFrame));
 
-        onFrameFound({ m_offset, std::move(avFrame), m_codecContext, 0, id() });
+        onFrameFound({ m_offset, std::move(avFrame), m_codecContext, id() });
     }
 }
 
