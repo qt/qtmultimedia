@@ -40,9 +40,9 @@ struct Frame
         {
             Q_ASSERT(frame);
             if (frame->pts != AV_NOPTS_VALUE)
-                pts = codecContext.toUs(frame->pts);
+                startTime = codecContext.toUs(frame->pts);
             else
-                pts = codecContext.toUs(frame->best_effort_timestamp);
+                startTime = codecContext.toUs(frame->best_effort_timestamp);
 
             if (frame->sample_rate && codecContext.context()->codec_type == AVMEDIA_TYPE_AUDIO)
                 duration = qint64(1000000) * frame->nb_samples / frame->sample_rate;
@@ -56,7 +56,7 @@ struct Frame
         }
         Data(const LoopOffset &offset, const QString &text, qint64 pts, qint64 duration,
              quint64 sourceId)
-            : loopOffset(offset), text(text), pts(pts), duration(duration), sourceId(sourceId)
+            : loopOffset(offset), text(text), startTime(pts), duration(duration), sourceId(sourceId)
         {
         }
 
@@ -65,7 +65,7 @@ struct Frame
         std::optional<CodecContext> codecContext;
         AVFrameUPtr frame;
         QString text;
-        qint64 pts = -1;
+        qint64 startTime = -1;
         qint64 duration = -1;
         quint64 sourceId = 0;
     };
@@ -89,14 +89,14 @@ struct Frame
     {
         return data().codecContext ? &data().codecContext.value() : nullptr;
     }
-    qint64 pts() const { return data().pts; }
+    qint64 startTime() const { return data().startTime; }
     qint64 duration() const { return data().duration; }
-    qint64 end() const { return data().pts + data().duration; }
+    qint64 endTime() const { return data().startTime + data().duration; }
     QString text() const { return data().text; }
     quint64 sourceId() const { return data().sourceId; };
     const LoopOffset &loopOffset() const { return data().loopOffset; };
-    qint64 absolutePts() const { return pts() + loopOffset().loopStartTimeUs; }
-    qint64 absoluteEnd() const { return end() + loopOffset().loopStartTimeUs; }
+    qint64 absolutePts() const { return startTime() + loopOffset().loopStartTimeUs; }
+    qint64 absoluteEnd() const { return endTime() + loopOffset().loopStartTimeUs; }
 
 private:
     Data &data() const

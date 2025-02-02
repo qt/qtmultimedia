@@ -73,8 +73,8 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
     format.setRotation(m_transform.rotation);
     format.setMirrored(m_transform.mirrorredHorizontallyAfterRotation);
     QVideoFrame videoFrame = QVideoFramePrivate::createFrame(std::move(buffer), format);
-    videoFrame.setStartTime(frame.pts());
-    videoFrame.setEndTime(frame.end());
+    videoFrame.setStartTime(frame.startTime());
+    videoFrame.setEndTime(frame.endTime());
     m_sink->setVideoFrame(videoFrame);
 
     return {};
