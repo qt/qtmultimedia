@@ -105,7 +105,7 @@ static void qffmpegLogCallback(void *ptr, int level, const char *fmt, va_list vl
         return;
 
     QString message = QStringLiteral("FFmpeg log: %1").arg(QString::vasprintf(fmt, vl));
-    if (message.endsWith("\n"))
+    if (message.endsWith(u"\n"))
         message.removeLast();
 
     if (level == AV_LOG_DEBUG || level == AV_LOG_TRACE)
@@ -230,7 +230,8 @@ QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 
 QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *)
 {
-    static const QString screenCaptureBackend = qgetenv("QT_SCREEN_CAPTURE_BACKEND").toLower();
+    static const QString screenCaptureBackend =
+            QString::fromLocal8Bit(qgetenv("QT_SCREEN_CAPTURE_BACKEND")).toLower();
 
     if (!screenCaptureBackend.isEmpty()) {
         if (auto screenCapture = createScreenCaptureByBackend(screenCaptureBackend))
@@ -267,7 +268,8 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
 
 QPlatformSurfaceCapture *QFFmpegMediaIntegration::createWindowCapture(QWindowCapture *)
 {
-    static const QString windowCaptureBackend = qgetenv("QT_WINDOW_CAPTURE_BACKEND").toLower();
+    static const QString windowCaptureBackend =
+            QString::fromLocal8Bit(qgetenv("QT_WINDOW_CAPTURE_BACKEND")).toLower();
 
     if (!windowCaptureBackend.isEmpty()) {
         if (auto windowCapture = createWindowCaptureByBackend(windowCaptureBackend))

@@ -13,6 +13,8 @@
 #include <QtCore/qjnienvironment.h>
 #include <jni.h>
 
+using namespace Qt::StringLiterals;
+
 Q_STATIC_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.videoDevices");
 
 QCameraFormat createCameraFormat(int width, int height, int fpsMin, int fpsMax)
@@ -65,11 +67,11 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
         case LENS_FACING_EXTERNAL:
         case LENS_FACING_BACK:
             info->position = QCameraDevice::BackFace;
-            info->description = QString("Rear Camera: %1").arg(cameraIndex);
+            info->description = QString(u"Rear Camera: %1").arg(cameraIndex);
             break;
         case LENS_FACING_FRONT:
             info->position = QCameraDevice::FrontFace;
-            info->description = QString("Front Camera: %1").arg(cameraIndex);
+            info->description = QString(u"Front Camera: %1").arg(cameraIndex);
             break;
         }
         ++cameraIndex;
@@ -78,10 +80,10 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
 
         int maxFps = 0, minFps = 0;
         for (auto range : fpsRanges) {
-            range = range.remove("[");
-            range = range.remove("]");
+            range = range.remove(u"["_s);
+            range = range.remove(u"]"_s);
 
-            const auto split = range.split(",");
+            const auto split = range.split(u","_s);
 
             int min = split.at(0).toInt();
             int max = split.at(1).toInt();
@@ -102,7 +104,7 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
             continue;
 
         for (const auto &sizeString : sizes) {
-            const auto split = sizeString.split("x");
+            const auto split = sizeString.split(u"x"_s);
 
             int width = split.at(0).toInt();
             int height = split.at(1).toInt();

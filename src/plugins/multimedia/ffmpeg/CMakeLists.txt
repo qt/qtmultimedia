@@ -75,6 +75,8 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
 
     DEFINES
         QT_COMPILING_FFMPEG
+        QT_NO_CAST_FROM_ASCII
+        QT_NO_CAST_TO_ASCII
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate

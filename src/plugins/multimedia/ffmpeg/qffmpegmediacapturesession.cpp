@@ -22,6 +22,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 Q_STATIC_LOGGING_CATEGORY(qLcFFmpegMediaCaptureSession, "qt.multimedia.ffmpeg.mediacapturesession")
 
 static int preferredAudioSinkBufferSize(const QFFmpegAudioInput &input)
@@ -130,7 +132,7 @@ QPlatformMediaRecorder *QFFmpegMediaCaptureSession::mediaRecorder()
 void QFFmpegMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
 {
     qCDebug(qLcFFmpegMediaCaptureSession)
-            << "set audio input:" << (input ? input->device.description() : "null");
+            << "set audio input:" << (input ? input->device.description() : u"null"_s);
 
     auto ffmpegAudioInput = dynamic_cast<QFFmpegAudioInput *>(input);
     Q_ASSERT(!!input == !!ffmpegAudioInput);
@@ -227,7 +229,7 @@ void QFFmpegMediaCaptureSession::setVideoPreview(QVideoSink *sink)
 void QFFmpegMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
 {
     qCDebug(qLcFFmpegMediaCaptureSession)
-            << "set audio output:" << (output ? output->device.description() : "null");
+            << "set audio output:" << (output ? output->device.description() : u"null"_s);
 
     if (m_audioOutput == output)
         return;

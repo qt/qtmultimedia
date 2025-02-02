@@ -8,6 +8,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 Q_STATIC_LOGGING_CATEGORY(qLcPlaybackEngineCodec, "qt.multimedia.playbackengine.codec");
 
 namespace QFFmpeg {
@@ -23,7 +25,7 @@ CodecContext::Data::Data(AVCodecContextUPtr context, AVStream *avStream,
 QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *formatContext)
 {
     if (!stream)
-        return { "Invalid stream" };
+        return { u"Invalid stream"_s };
 
     if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
         auto hwCodec = create(stream, formatContext, Hw);
@@ -64,14 +66,14 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
         decoder = QFFmpeg::findAVDecoder(stream->codecpar->codec_id);
 
     if (!decoder)
-        return { QString("No %1 decoder found").arg(videoCodecPolicy == Hw ? "HW" : "SW") };
+        return { QString(u"No %1 decoder found").arg(videoCodecPolicy == Hw ? "HW" : "SW") };
 
     qCDebug(qLcPlaybackEngineCodec)
             << "found decoder" << decoder->name() << "for id" << decoder->id();
 
     AVCodecContextUPtr context(avcodec_alloc_context3(decoder->get()));
     if (!context)
-        return { "Failed to allocate a FFmpeg codec context" };
+        return { u"Failed to allocate a FFmpeg codec context"_s };
 
     // Use HW decoding even if the codec level doesn't match the reported capabilities
     // of the hardware. FFmpeg documentation recommendeds setting this flag by default.
@@ -90,7 +92,7 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
 
     if (context->codec_type != AVMEDIA_TYPE_AUDIO && context->codec_type != AVMEDIA_TYPE_VIDEO
         && context->codec_type != AVMEDIA_TYPE_SUBTITLE) {
-        return { "Unknown codec type" };
+        return { u"Unknown codec type"_s };
     }
 
     int ret = avcodec_parameters_to_context(context.get(), stream->codecpar);

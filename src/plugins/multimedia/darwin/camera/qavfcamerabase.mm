@@ -396,10 +396,10 @@ void QAVFCameraBase::setFocusMode(QCamera::FocusMode mode)
 void QAVFCameraBase::forceSetFocusMode(QCamera::FocusMode mode)
 {
     if (!isFocusModeSupported(mode)) {
-        qCDebug(qLcCamera) <<
-            Q_FUNC_INFO <<
-            QString("attempted to set focus-mode '%1' on camera where it is unsupported.")
-                .arg(QMetaEnum::fromType<QCamera::FocusMode>().valueToKey(mode));
+        qCDebug(qLcCamera)
+                << Q_FUNC_INFO
+                << QString(u"attempted to set focus-mode '%1' on camera where it is unsupported.")
+                           .arg(QMetaEnum::fromType<QCamera::FocusMode>().valueToKey(mode));
         return;
     }
 
