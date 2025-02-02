@@ -44,14 +44,21 @@ struct Frame
             else
                 startTime = codecContext.toUs(frame->best_effort_timestamp);
 
-            if (frame->sample_rate && codecContext.context()->codec_type == AVMEDIA_TYPE_AUDIO)
-                duration = qint64(1000000) * frame->nb_samples / frame->sample_rate;
-
             if (auto frameDuration = getAVFrameDuration(*frame)) {
                 duration = codecContext.toUs(frameDuration);
             } else {
-                const auto &avgFrameRate = codecContext.stream()->avg_frame_rate;
-                duration = mul(qint64(1000000), { avgFrameRate.den, avgFrameRate.num }).value_or(0);
+                // Estimate frame duration for audio stream
+                if (codecContext.context()->codec_type == AVMEDIA_TYPE_AUDIO) {
+                    if (frame->sample_rate)
+                        duration = qint64(1000000) * frame->nb_samples / frame->sample_rate;
+                    else
+                        duration = 0; // Fallback
+                } else {
+                    // Estimate frame duration for video stream
+                    const auto &avgFrameRate = codecContext.stream()->avg_frame_rate;
+                    duration = mul(qint64(1000000), { avgFrameRate.den, avgFrameRate.num })
+                                       .value_or(0);
+                }
             }
         }
         Data(const LoopOffset &offset, const QString &text, qint64 pts, qint64 duration,
