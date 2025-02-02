@@ -32,8 +32,7 @@ struct Frame
 {
     struct Data
     {
-        Data(const LoopOffset &offset, AVFrameUPtr f, const CodecContext &codecContext, qint64,
-             quint64 sourceId)
+        Data(const LoopOffset &offset, AVFrameUPtr f, const CodecContext &codecContext, quint64 sourceId)
             : loopOffset(offset),
               codecContext(codecContext),
               frame(std::move(f)),
@@ -72,9 +71,9 @@ struct Frame
     };
     Frame() = default;
 
-    Frame(const LoopOffset &offset, AVFrameUPtr f, const CodecContext &codecContext, qint64 pts,
+    Frame(const LoopOffset &offset, AVFrameUPtr f, const CodecContext &codecContext,
           quint64 sourceIndex)
-        : d(new Data(offset, std::move(f), codecContext, pts, sourceIndex))
+        : d(new Data(offset, std::move(f), codecContext, sourceIndex))
     {
     }
     Frame(const LoopOffset &offset, const QString &text, qint64 pts, qint64 duration,
