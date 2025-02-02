@@ -124,7 +124,7 @@ QSpan<const ChannelLayoutT> getCodecChannelLayouts(const AVCodec *codec)
 #ifdef Q_OS_WINDOWS
     // The mp3_mf codec does not report any layout restrictions, but does not
     // handle more than 2 channels. We therefore make this explicit here.
-    if (layout.empty() && codec->name == QLatin1StringView("mp3_mf")) {
+    if (layout.empty() && QLatin1StringView(codec->name) == QLatin1StringView("mp3_mf")) {
         static const ChannelLayoutT defaultLayout[] = { stereoLayout() };
         layout = defaultLayout;
     }

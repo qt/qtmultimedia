@@ -149,7 +149,7 @@ public:
     static std::unique_ptr<ActiveCamera> create(QWindowsCamera &wc, const QCameraDevice &device, const QCameraFormat &format)
     {
         auto ac = std::unique_ptr<ActiveCamera>(new ActiveCamera(wc));
-        ac->m_source = createCameraSource(device.id());
+        ac->m_source = createCameraSource(QString::fromUtf8(device.id()));
         if (!ac->m_source)
             return {};
 

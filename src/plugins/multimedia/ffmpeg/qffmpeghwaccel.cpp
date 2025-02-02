@@ -29,6 +29,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 static Q_LOGGING_CATEGORY(qLHWAccel, "qt.multimedia.ffmpeg.hwaccel");
 
 namespace QFFmpeg {
@@ -77,7 +79,7 @@ static bool precheckDriver(AVHWDeviceType type)
 
         // QTBUG-122199
         // CUDA backend requires libnvcuvid in libavcodec
-        QLibrary lib("libnvcuvid.so");
+        QLibrary lib(u"libnvcuvid.so"_s);
         if (!lib.load())
             return false;
         lib.unload();
@@ -184,7 +186,7 @@ static std::vector<AVHWDeviceType> deviceTypes(const char *envVarName)
 
     std::vector<AVHWDeviceType> result;
     const auto definedDeviceTypesString = QString::fromUtf8(definedDeviceTypes).toLower();
-    for (const auto &deviceType : definedDeviceTypesString.split(',')) {
+    for (const auto &deviceType : definedDeviceTypesString.split(u',')) {
         if (!deviceType.isEmpty()) {
             const auto foundType = av_hwdevice_find_type_by_name(deviceType.toUtf8().data());
             if (foundType == AV_HWDEVICE_TYPE_NONE)

@@ -205,7 +205,7 @@ QSize adjustVideoResolution(const Codec &codec, QSize requestedResolution)
 {
 #ifdef Q_OS_WINDOWS
     // TODO: investigate, there might be more encoders not supporting odd resolution
-    if (codec.name() == "h264_mf") {
+    if (codec.name() == u"h264_mf") {
         auto makeEven = [](int size) { return size & ~1; };
         return QSize(makeEven(requestedResolution.width()), makeEven(requestedResolution.height()));
     }

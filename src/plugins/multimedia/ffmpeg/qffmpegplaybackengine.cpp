@@ -275,7 +275,7 @@ void PlaybackEngine::triggerStepIfNeeded()
 
 QString PlaybackEngine::objectThreadName(const PlaybackEngineObject &object)
 {
-    QString result = object.metaObject()->className();
+    QString result = QString::fromLatin1(object.metaObject()->className());
     if (auto stream = qobject_cast<const StreamDecoder *>(&object))
         result += QString::number(stream->trackType());
 
@@ -378,7 +378,7 @@ std::optional<CodecContext> PlaybackEngine::codecContextForTrack(QPlatformMediaP
 
         if (!maybeCodecContext) {
             emit errorOccured(QMediaPlayer::FormatError,
-                              "Cannot create codec," + maybeCodecContext.error());
+                              u"Cannot create codec," + maybeCodecContext.error());
             return {};
         }
 

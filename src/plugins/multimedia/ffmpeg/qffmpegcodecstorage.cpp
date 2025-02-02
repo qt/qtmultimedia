@@ -70,13 +70,13 @@ QString flagsToString(int flags, const FlagNames &flagNames)
         if ((flags & flagAndName.first) != 0) {
             leftover &= ~flagAndName.first;
             if (!result.isEmpty())
-                result += ", ";
-            result += flagAndName.second;
+                result += u", ";
+            result += QLatin1StringView(flagAndName.second);
         }
 
     if (leftover) {
         if (!result.isEmpty())
-            result += ", ";
+            result += u", ";
         result += QString::number(leftover, 16);
     }
     return result;

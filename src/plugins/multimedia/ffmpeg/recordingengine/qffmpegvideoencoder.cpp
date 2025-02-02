@@ -12,6 +12,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 namespace QFFmpeg {
 
 static Q_LOGGING_CATEGORY(qLcFFmpegVideoEncoder, "qt.multimedia.ffmpeg.videoencoder");
@@ -106,7 +108,7 @@ bool VideoEncoder::init()
     qCDebug(qLcFFmpegVideoEncoder) << "VideoEncoder::init started video device thread.";
     if (!m_frameEncoder) {
         emit m_recordingEngine.sessionError(QMediaRecorder::ResourceError,
-                                            "Could not initialize encoder");
+                                            u"Could not initialize encoder"_s);
         return false;
     }
 

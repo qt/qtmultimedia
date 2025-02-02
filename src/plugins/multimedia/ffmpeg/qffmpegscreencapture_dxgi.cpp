@@ -54,7 +54,7 @@ public:
     {
         if (!m_msg)
             return errorString(m_hr);
-        return *m_msg + " " + errorString(m_hr);
+        return *m_msg + u" " + errorString(m_hr);
     }
 
 private:
