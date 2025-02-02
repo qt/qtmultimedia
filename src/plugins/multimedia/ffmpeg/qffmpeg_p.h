@@ -94,8 +94,7 @@ inline int64_t getAVFrameDuration(const AVFrame &frame)
 #if QT_FFMPEG_HAS_FRAME_DURATION
     return frame.duration;
 #else
-    Q_UNUSED(frame);
-    return 0;
+    return frame.pkt_duration;
 #endif
 }
 
