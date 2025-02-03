@@ -19,6 +19,8 @@ Q_STATIC_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.ffmpeg.encoder");
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 QFFmpegMediaRecorder::QFFmpegMediaRecorder(QMediaRecorder *parent) : QPlatformMediaRecorder(parent)
 {
 }
@@ -65,12 +67,15 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
         formatContext->openAVIO(outputDevice());
     } else {
         actualLocation = findActualLocation(settings);
-        qCDebug(qLcMediaEncoder) << "recording new media to" << actualLocation;
         formatContext->openAVIO(actualLocation);
     }
 
-    qCDebug(qLcMediaEncoder) << "requested format:" << settings.fileFormat()
-                             << settings.audioCodec();
+    qCInfo(qLcMediaEncoder).nospace()
+            << "Recording new media with muxer "
+            << formatContext->avFormatContext()->oformat->long_name << " to "
+            << (actualLocation.isNull() ? u"IO device"_s : actualLocation)
+            << " with format: " << settings.fileFormat() << ", " << settings.audioCodec() << ", "
+            << settings.videoCodec();
 
     if (!formatContext->isAVIOOpen()) {
         updateError(QMediaRecorder::LocationNotWritable,
@@ -102,9 +107,14 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     durationChanged(0);
     actualLocationChanged(QUrl::fromLocalFile(actualLocation));
 
-    if (m_recordingEngine->initialize(audioInputs, videoSources))
+    qCDebug(qLcMediaEncoder) << "Starting recording engine";
+    if (m_recordingEngine->initialize(audioInputs, videoSources)) {
         stateChanged(QMediaRecorder::RecordingState);
-    // else an error has been already emitted
+        qCDebug(qLcMediaEncoder) << "Recording engine started";
+    } else {
+        // else an error has been already emitted
+        qCWarning(qLcMediaEncoder) << "Failed to start recording engine";
+    }
 }
 
 void QFFmpegMediaRecorder::pause()
@@ -134,7 +144,7 @@ void QFFmpegMediaRecorder::stop()
     if (!m_session || state() == QMediaRecorder::StoppedState)
         return;
 
-    qCDebug(qLcMediaEncoder) << "stop";
+    qCDebug(qLcMediaEncoder) << "Stopping media recorder";
 
     m_recordingEngine.reset();
 }

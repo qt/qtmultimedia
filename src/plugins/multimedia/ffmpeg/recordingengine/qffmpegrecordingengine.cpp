@@ -154,18 +154,16 @@ bool RecordingEngine::startEncoders()
 
     m_state = State::EncodersInitializing;
 
-    qCDebug(qLcFFmpegEncoder) << "RecordingEngine::start!";
-
     forEachEncoder([](EncoderThread *encoder) { //
         encoder->start();
     });
+
     return true;
 }
 
 bool RecordingEngine::initialize(const std::vector<QAudioBufferSource *> &audioSources,
                                  const std::vector<QPlatformVideoSource *> &videoSources)
 {
-    qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> initialize";
     Q_ASSERT(m_state == State::None);
 
     m_state = State::FormatsInitializing;
@@ -202,7 +200,7 @@ void RecordingEngine::EncodingFinalizer::run()
     // close AVIO before emitting finalizationDone.
     m_recordingEngine.m_formatContext->closeAVIO();
 
-    qCDebug(qLcFFmpegEncoder) << "    done finalizing.";
+    qCDebug(qLcFFmpegEncoder) << "Media recording finalized";
     emit m_recordingEngine.finalizationDone();
     auto recordingEnginePtr = &m_recordingEngine;
     delete recordingEnginePtr;
@@ -210,7 +208,7 @@ void RecordingEngine::EncodingFinalizer::run()
 
 void RecordingEngine::finalize()
 {
-    qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> finalize";
+    qCDebug(qLcFFmpegEncoder) << "Media recording finalizing";
 
     Q_ASSERT(m_state == State::FormatsInitializing || m_state == State::EncodersInitializing
              || m_state == State::Encoding);
@@ -283,7 +281,7 @@ void RecordingEngine::handleEncoderInitialization()
 
     Q_ASSERT(allOfEncoders(&EncoderThread::isInitialized));
 
-    qCDebug(qLcFFmpegEncoder) << "Encoders initialized; writing a header";
+    qCDebug(qLcFFmpegEncoder) << "Encoders initialized; writing header";
 
     avFormatContext()->metadata = QFFmpegMetaData::toAVMetaData(m_metaData);
 
@@ -295,7 +293,7 @@ void RecordingEngine::handleEncoderInitialization()
         return;
     }
 
-    qCDebug(qLcFFmpegEncoder) << "stream header is successfully written";
+    qCDebug(qLcFFmpegEncoder) << "Stream header is successfully written";
 
     m_state = State::Encoding;
     m_muxer->start();
