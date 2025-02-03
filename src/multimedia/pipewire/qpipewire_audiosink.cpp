@@ -5,7 +5,7 @@
 
 #include "qpipewire_audiocontextmanager_p.h"
 #include "qpipewire_audiodevice_p.h"
-#include "qpipewire_spa_pod_support_p.h"
+#include "qpipewire_audiostream_p.h"
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
@@ -19,22 +19,12 @@
 #include <pipewire/stream.h>
 #include <spa/pod/builder.h>
 
-#if __has_include(<spa/param/audio/raw-utils.h>)
-#  include <spa/param/audio/raw-utils.h>
-#else
-#  include "qpipewire_spa_compat_p.h"
-#endif
-
 #include <thread>
 
 #if !PW_CHECK_VERSION(0, 3, 50)
 extern "C" {
 int pw_stream_get_time_n(struct pw_stream *stream, struct pw_time *time, size_t size);
 }
-#endif
-
-#ifndef PW_KEY_NODE_FORCE_QUANTUM
-#  define PW_KEY_NODE_FORCE_QUANTUM "node.force-quantum"
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -57,7 +47,8 @@ enum class ShutdownPolicy : uint8_t
     DiscardRingbuffer,
 };
 
-struct QPipewireAudioSinkStream : std::enable_shared_from_this<QPipewireAudioSinkStream>
+struct QPipewireAudioSinkStream final : std::enable_shared_from_this<QPipewireAudioSinkStream>,
+                                        QPipewireAudioStream
 {
     using SampleFormat = QAudioFormat::SampleFormat;
 
@@ -68,8 +59,6 @@ struct QPipewireAudioSinkStream : std::enable_shared_from_this<QPipewireAudioSin
     ~QPipewireAudioSinkStream();
 
     qsizetype bytesFree() const;
-    void suspend();
-    void resume();
     bool start(QIODevice *device, ObjectSerial sinkNodeSerial);
     QIODevice *start(ObjectSerial sinkNodeSerial);
     void stop(ShutdownPolicy);
@@ -78,21 +67,17 @@ struct QPipewireAudioSinkStream : std::enable_shared_from_this<QPipewireAudioSin
 
     std::chrono::microseconds processedDuration();
 
-    explicit operator bool() const;
-
 private:
+    // QPipewireAudioStream overrides
+    void handleDeviceRemoved() override;
+    void process() QT_PIPEWIRE_NONBLOCKING override;
+    void stateChanged(pw_stream_state /*old*/, pw_stream_state state,
+                      const char * /*error*/) override;
+
     void prepareFormat(const QAudioFormat &format, std::optional<qsizetype> ringbufferSize);
-    void prepareParameters(const QAudioFormat &format);
-    void createStream(std::optional<qsizetype> hardwareBufferSize);
-    void process() QT_PIPEWIRE_NONBLOCKING;
-    void stateChanged(pw_stream_state /*old*/, pw_stream_state state, const char * /*error*/);
+
     void pullFromQIODevice();
     void disconnectStream();
-
-    std::array<uint8_t, 1024> parameterBuffer;
-    std::array<const struct spa_pod *, 1> params;
-    pw_stream_events stream_events{};
-    PwStreamHandle m_stream;
 
     std::atomic<qreal> m_volume{ 1.f };
 
@@ -104,7 +89,6 @@ private:
         0,
     };
 
-    const QAudioFormat m_format;
     uint32_t m_strideBytes{};
 
     QPointer<QIODevice> m_device;
@@ -143,14 +127,13 @@ private:
     std::atomic<uint64_t> m_totalNumberOfSamplesConsumedFromRingbuffer{};
 
     QPipewireAudioSink *m_parent;
-    SharedObjectRemoveObserver m_deviceRemovalObserver;
 };
 
 QPipewireAudioSinkStream::QPipewireAudioSinkStream(QPipewireAudioSink *parent,
                                                    const QAudioFormat &format,
                                                    std::optional<qsizetype> ringbufferSize,
                                                    std::optional<qsizetype> hardwareBufferSize):
-    m_format{
+    QPipewireAudioStream {
         format,
     },
     m_parent{
@@ -158,9 +141,13 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QPipewireAudioSink *parent,
     }
 {
     prepareFormat(format, ringbufferSize);
-    prepareParameters(format);
 
-    createStream(hardwareBufferSize);
+    auto extraProperties = std::array{
+        spa_dict_item{ PW_KEY_MEDIA_CATEGORY, "Playback" },
+        spa_dict_item{ PW_KEY_MEDIA_ROLE, "Music" },
+    };
+
+    createStream(extraProperties, hardwareBufferSize, "QPipewireAudioSink");
 
     m_xrunNotification = QObject::connect(&m_xrunOccurred, &QAutoResetEvent::activated,
                                           &m_xrunOccurred, [this, parent] {
@@ -195,10 +182,6 @@ QPipewireAudioSinkStream::~QPipewireAudioSinkStream()
 {
     Q_ASSERT(m_stopRequested);
     Q_ASSERT(!m_deviceRemovalObserver);
-
-    QAudioContextManager::withEventLoopLock([&] {
-        m_stream = {};
-    });
 }
 
 qsizetype QPipewireAudioSinkStream::bytesFree() const
@@ -207,24 +190,6 @@ qsizetype QPipewireAudioSinkStream::bytesFree() const
         using SampleType = typename std::decay_t<decltype(ringbuffer)>::ValueType;
         return ringbuffer.free() * sizeof(SampleType);
     }, m_ringbuffer);
-}
-
-void QPipewireAudioSinkStream::suspend()
-{
-    int status = QAudioContextManager::withEventLoopLock([&] {
-        return pw_stream_set_active(m_stream.get(), false);
-    });
-    if (status < 0)
-        qWarning() << "pw_stream_set_active failed" << make_error_code(-status).message();
-}
-
-void QPipewireAudioSinkStream::resume()
-{
-    int status = QAudioContextManager::withEventLoopLock([&] {
-        return pw_stream_set_active(m_stream.get(), true);
-    });
-    if (status < 0)
-        qWarning() << "pw_stream_set_active failed" << make_error_code(-status).message();
 }
 
 bool QPipewireAudioSinkStream::start(QIODevice *device, ObjectSerial sinkNodeSerial)
@@ -244,38 +209,10 @@ bool QPipewireAudioSinkStream::start(QIODevice *device, ObjectSerial sinkNodeSer
         pullFromQIODevice();
     });
 
-    assert(m_stream);
-
-    int status = QAudioContextManager::withEventLoopLock([&] {
-        std::optional<ObjectId> sinkNodeId =
-                QAudioContextManager::deviceMonitor().findObjectId(sinkNodeSerial);
-        if (!sinkNodeId)
-            return -ENODEV;
-
-        m_deviceRemovalObserver = std::make_shared<ObjectRemoveObserver>(sinkNodeSerial);
-        QObject::connect(m_deviceRemovalObserver.get(), &ObjectRemoveObserver::objectRemoved,
-                         m_deviceRemovalObserver.get(), [this] {
-            if (!m_stopRequested)
-                // note: as long as the stream is not stopped, m_parent is valid
-                m_parent->updateError(QAudio::Error::IOError);
-        });
-
-        bool deviceAlreadyRemoved =
-                !QAudioContextManager::deviceMonitor().registerObserver(m_deviceRemovalObserver);
-        if (deviceAlreadyRemoved)
-            return -ENODEV;
-
-        return pw_stream_connect(
-                m_stream.get(), SPA_DIRECTION_OUTPUT, sinkNodeId->value,
-                pw_stream_flags(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS
-                                | PW_STREAM_FLAG_RT_PROCESS | PW_STREAM_FLAG_DONT_RECONNECT),
-                params.data(), params.size());
-    });
-
-    if (status < 0) {
-        qWarning() << "pw_stream_connect failed" << make_error_code(-status).message();
+    assert(hasStream());
+    bool connected = connectStream(sinkNodeSerial, SPA_DIRECTION_OUTPUT);
+    if (!connected)
         return false;
-    }
 
     // keep instance alive until PW_STREAM_STATE_UNCONNECTED
     m_self = shared_from_this();
@@ -283,7 +220,7 @@ bool QPipewireAudioSinkStream::start(QIODevice *device, ObjectSerial sinkNodeSer
     return true;
 }
 
-QIODevice *QPipewireAudioSinkStream::start(ObjectSerial nodeId)
+QIODevice *QPipewireAudioSinkStream::start(ObjectSerial sinkNodeSerial)
 {
     std::visit([&](auto &rb) {
         using SampleType = typename std::decay_t<decltype(rb)>::ValueType;
@@ -294,7 +231,7 @@ QIODevice *QPipewireAudioSinkStream::start(ObjectSerial nodeId)
     m_ringbufferAdapter->open(QIODevice::WriteOnly | QIODevice::Unbuffered);
 
     m_streamIsIdle = true;
-    bool started = start(m_ringbufferAdapter.get(), nodeId);
+    bool started = start(m_ringbufferAdapter.get(), sinkNodeSerial);
     if (!started)
         return nullptr;
 
@@ -328,9 +265,7 @@ void QPipewireAudioSinkStream::stop(ShutdownPolicy shutdownPolicy)
         disconnectStream();
     }
 
-    Q_ASSERT(m_deviceRemovalObserver);
-    QAudioContextManager::deviceMonitor().unregisterObserver(m_deviceRemovalObserver);
-    m_deviceRemovalObserver = {};
+    unregisterDeviceObserver();
 }
 
 void QPipewireAudioSinkStream::setVolume(qreal volume)
@@ -349,9 +284,11 @@ std::chrono::microseconds QPipewireAudioSinkStream::processedDuration()
     };
 }
 
-QPipewireAudioSinkStream::operator bool() const
+void QPipewireAudioSinkStream::handleDeviceRemoved()
 {
-    return bool(m_stream);
+    if (!m_stopRequested)
+        // note: as long as the stream is not stopped, m_parent is valid
+        m_parent->updateError(QAudio::Error::IOError);
 }
 
 void QPipewireAudioSinkStream::prepareFormat(const QAudioFormat &format,
@@ -380,48 +317,6 @@ void QPipewireAudioSinkStream::prepareFormat(const QAudioFormat &format,
     }
 
     m_strideBytes = format.bytesPerSample() * format.channelCount();
-}
-
-void QPipewireAudioSinkStream::prepareParameters(const QAudioFormat &format)
-{
-    struct spa_pod_builder b =
-            SPA_POD_BUILDER_INIT(parameterBuffer.data(), uint32_t(parameterBuffer.size()));
-
-    spa_audio_info_raw audioInfo = asSpaAudioInfoRaw(format);
-
-    params[0] = spa_format_audio_raw_build(&b, SPA_PARAM_EnumFormat, &audioInfo);
-}
-
-void QPipewireAudioSinkStream::createStream(std::optional<qsizetype> hardwareBufferSize)
-{
-    stream_events.version = PW_VERSION_STREAM_EVENTS;
-    stream_events.process = [](void *userData) {
-        reinterpret_cast<QPipewireAudioSinkStream *>(userData)->process();
-    };
-
-    stream_events.state_changed = [](void *userData, pw_stream_state old, pw_stream_state state,
-                                     const char *error) {
-        reinterpret_cast<QPipewireAudioSinkStream *>(userData)->stateChanged(old, state, error);
-    };
-
-    std::vector<spa_dict_item> properties = {
-        { PW_KEY_MEDIA_TYPE, "Audio" },
-        { PW_KEY_MEDIA_CATEGORY, "Playback" },
-        { PW_KEY_MEDIA_ROLE, "Music" },
-    };
-
-    if (hardwareBufferSize)
-        properties.push_back({ PW_KEY_NODE_FORCE_QUANTUM,
-                               QString::number(*hardwareBufferSize).toStdString().data() });
-
-    QAudioContextManager::withEventLoopLock([&] {
-        m_stream = PwStreamHandle{
-            pw_stream_new_simple(QAudioContextManager::getEventLoop(), "QPipewireAudioSink",
-                                 makeProperties(properties).release(), &stream_events, this),
-        };
-    });
-    if (!m_stream)
-        qDebug() << "pw_stream_new_simple failed" << make_error_code().message();
 }
 
 void QPipewireAudioSinkStream::process() QT_PIPEWIRE_NONBLOCKING
@@ -573,17 +468,9 @@ void QPipewireAudioSinkStream::pullFromQIODevice()
 
 void QPipewireAudioSinkStream::disconnectStream()
 {
-    qCDebug(lcPipewireAudioSink) << "QPipewireAudioSinkStream::disconnectStream";
-
     auto self = shared_from_this(); // extend lifetime until this function returns;
 
-    int status = QAudioContextManager::withEventLoopLock([&] {
-        return pw_stream_disconnect(m_stream.get());
-    });
-    if (status < 0)
-        qWarning() << "pw_stream_disconnect failed" << make_error_code(-status).message();
-
-    qCDebug(lcPipewireAudioSink) << "QPipewireAudioSinkStream::disconnectedStream";
+    QPipewireAudioStream::disconnectStream();
 
     QObject::disconnect(m_xrunNotification);
 }
@@ -696,7 +583,7 @@ void QPipewireAudioSink::startHelper(Functor &&starter)
 
     m_stream = std::make_shared<QPipewireAudioSinkStream>(this, format(), m_bufferSize,
                                                           m_hardwareBufferSize);
-    if (!*m_stream) {
+    if (!m_stream->hasStream()) {
         updateError(QtAudio::Error::OpenError);
         return;
     }
