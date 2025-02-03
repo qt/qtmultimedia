@@ -6,6 +6,7 @@
 #include "qpipewire_audiocontextmanager_p.h"
 #include "qpipewire_instance_p.h"
 #include "qpipewire_audiosink_p.h"
+#include "qpipewire_audiosource_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -62,9 +63,9 @@ QList<QAudioDevice> QAudioDevices::findAudioOutputs() const
     return m_sinkDeviceList;
 }
 
-QPlatformAudioSource *QAudioDevices::createAudioSource(const QAudioDevice &, QObject *)
+QPlatformAudioSource *QAudioDevices::createAudioSource(const QAudioDevice &device, QObject *parent)
 {
-    return {};
+    return new QPipewireAudioSource(device, parent);
 }
 
 QPlatformAudioSink *QAudioDevices::createAudioSink(const QAudioDevice &device, QObject *parent)
