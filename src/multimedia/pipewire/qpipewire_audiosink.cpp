@@ -669,9 +669,8 @@ void QPipewireAudioSinkStream::performIdleDetection(uint64_t samplesWritten, uin
 // QPipewireAudioSink
 
 QPipewireAudioSink::QPipewireAudioSink(const QAudioDevice &device, QObject *parent)
-    : QPlatformAudioSink(parent), m_audioDevice(device)
+    : BaseClass(device, parent)
 {
-    m_format = device.preferredFormat();
 }
 
 QPipewireAudioSink::~QPipewireAudioSink()
@@ -784,111 +783,9 @@ qsizetype QPipewireAudioSink::bytesFree() const
     return m_stream->bytesFree();
 }
 
-void QPipewireAudioSink::setBufferSize(qsizetype value)
-{
-    if (value <= 0)
-        m_bufferSize = {};
-    else
-        m_bufferSize = value;
-}
-
-qsizetype QPipewireAudioSink::bufferSize() const
-{
-    return m_bufferSize.value_or(-1);
-}
-
-qint64 QPipewireAudioSink::processedUSecs() const
-{
-    if (m_stream)
-        return m_stream->processedDuration().count();
-    return 0;
-}
-
-QAudio::Error QPipewireAudioSink::error() const
-{
-    return m_error;
-}
-
-QAudio::State QPipewireAudioSink::state() const
-{
-    return m_state;
-}
-
-void QPipewireAudioSink::setFormat(const QAudioFormat &format)
-{
-    m_format = format;
-}
-
-QAudioFormat QPipewireAudioSink::format() const
-{
-    return m_format;
-}
-
-void QPipewireAudioSink::setVolume(qreal volume)
-{
-    m_volume = volume;
-
-    if (m_stream)
-        m_stream->setVolume(volume);
-}
-
-qreal QPipewireAudioSink::volume() const
-{
-    return m_volume;
-}
-
 void QPipewireAudioSink::reportXRuns(int numberOfXruns)
 {
     qDebug() << "XRuns occurred:" << numberOfXruns;
-}
-
-void QPipewireAudioSink::streamIdle(bool streamIsIdle)
-{
-    m_streamIsIdle = streamIsIdle;
-    updateState();
-}
-
-void QPipewireAudioSink::updateState()
-{
-    // The "state" is derived from two sources:
-    // * the m_userOwnedState, as changed by start/stop/suspend/resume
-    // * the "idle" state of the stream, as detected by the QPipewireAudioSinkStream
-    //
-    // we combine these two sources two a final "state"
-    using State = QtAudio::State;
-
-    State oldState = m_state;
-
-    switch (m_userOwnedState) {
-    case State::StoppedState:
-        m_state = State::StoppedState;
-        break;
-    case State::SuspendedState:
-        m_state = State::SuspendedState;
-        break;
-    case State::ActiveState:
-        m_state = m_streamIsIdle ? State::IdleState : State::ActiveState;
-        break;
-
-    case State::IdleState:
-        qFatal() << "Users should not be able to set the state to Idle!";
-    }
-
-    if (oldState != m_state) {
-        qCDebug(lcPipewireAudioSink)
-                << "QPipewireAudioSink updating state:" << m_state << "user state"
-                << m_userOwnedState << (m_streamIsIdle ? "(idle)" : "");
-        emit QPlatformAudioSink::stateChanged(m_state);
-    }
-}
-
-void QPipewireAudioSink::setUserOwnedState(QAudio::State state)
-{
-    if (state == m_userOwnedState)
-        return;
-
-    m_userOwnedState = state;
-    updateState();
 }
 
 std::optional<ObjectSerial> QPipewireAudioSink::findSinkNodeSerial()
@@ -899,20 +796,6 @@ std::optional<ObjectSerial> QPipewireAudioSink::findSinkNodeSerial()
             deviceName.data(),
             size_t(deviceName.size()),
     });
-}
-
-void QPipewireAudioSink::updateError(QAudio::Error err)
-{
-    if (err == m_error)
-        return;
-
-    m_error = err;
-    emit errorChanged(err);
-}
-
-const QPipewireAudioDevicePrivate *QPipewireAudioSink::privateDevice()
-{
-    return reinterpret_cast<const QPipewireAudioDevicePrivate *>(m_audioDevice.handle());
 }
 
 } // namespace QtPipeWire

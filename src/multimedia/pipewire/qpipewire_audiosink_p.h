@@ -17,6 +17,8 @@
 
 #include "qpipewire_support_p.h"
 
+#include "qpipewire_audioiobase_p.h"
+
 #include <QtMultimedia/private/qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -26,9 +28,11 @@ namespace QtPipeWire {
 class QPipewireAudioDevicePrivate;
 struct QPipewireAudioSinkStream;
 
-class QPipewireAudioSink final : public QPlatformAudioSink
+class QPipewireAudioSink final
+    : public QPipewireAudioIOBase<QPlatformAudioSink, QPipewireAudioSinkStream>
 {
     using SampleFormat = QAudioFormat::SampleFormat;
+    using BaseClass = QPipewireAudioIOBase<QPlatformAudioSink, QPipewireAudioSinkStream>;
 
 public:
     QPipewireAudioSink(const QAudioDevice &, QObject *parent);
@@ -41,47 +45,15 @@ public:
     void suspend() override;
     void resume() override;
     qsizetype bytesFree() const override;
-    void setBufferSize(qsizetype value) override;
-    qsizetype bufferSize() const override;
-    qint64 processedUSecs() const override;
-    QtAudio::Error error() const override;
-    QtAudio::State state() const override;
-    void setFormat(const QAudioFormat &format) override;
-    QAudioFormat format() const override;
-
-    void setVolume(qreal volume) override;
-    qreal volume() const override;
 
 private:
     friend QPipewireAudioSinkStream;
     void reportXRuns(int);
 
-    QAudioDevice m_audioDevice;
-    QAudioFormat m_format;
-    qreal m_volume = 1.0f;
-    std::optional<qsizetype> m_bufferSize;
-    std::optional<qsizetype> m_hardwareBufferSize;
-
-    const QPipewireAudioDevicePrivate *privateDevice();
     std::optional<ObjectSerial> findSinkNodeSerial();
 
     template <typename Functor>
     void startHelper(Functor &&f);
-
-    // errors
-    void updateError(QAudio::Error);
-    QAudio::Error m_error = QAudio::Error::NoError;
-
-    // streams
-    std::shared_ptr<QPipewireAudioSinkStream> m_stream;
-
-    // state
-    void setUserOwnedState(QtAudio::State);
-    QtAudio::State m_userOwnedState = QtAudio::StoppedState;
-    void streamIdle(bool);
-    bool m_streamIsIdle = false;
-    void updateState();
-    QtAudio::State m_state = QtAudio::StoppedState;
 };
 
 } // namespace QtPipeWire
