@@ -27,6 +27,9 @@ qt_internal_add_module(Multimedia
         audio/qaudiosystem.cpp audio/qaudiosystem_p.h
         audio/qaudiostatemachine.cpp audio/qaudiostatemachine_p.h
         audio/qaudiostatemachineutils_p.h
+        audio/qaudio_qiodevice_support_p.h
+        audio/qaudio_qspan_support_p.h
+        audio/qaudio_rtsan_support_p.h
         audio/qsamplecache_p.cpp audio/qsamplecache_p.h
         audio/qsoundeffect.cpp audio/qsoundeffect.h
         audio/qwavedecoder.cpp audio/qwavedecoder.h
