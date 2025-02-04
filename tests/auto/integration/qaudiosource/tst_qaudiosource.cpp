@@ -402,7 +402,8 @@ void tst_QAudioSource::pull()
 
     // Check that 'elapsed' increases
     QTRY_VERIFY2((audioSource.elapsedUSecs() > 0), "elapsedUSecs() is still zero after start()");
-    QTRY_VERIFY2((audioSource.processedUSecs() > 0), "elapsedUSecs() is still zero after start()");
+    QTRY_VERIFY2((audioSource.processedUSecs() > 0),
+                 "processedUSecs() is still zero after start()");
 
     // Allow some recording to happen
     QTest::qWait(3000); // 3 seconds should be plenty
