@@ -492,18 +492,14 @@ qint64 QPulseAudioSink::write(const char *data, qint64 len)
     }
 
     len = qMin(len, qint64(nbytes));
+    // Don't use PulseAudio volume, as it might affect all other streams of the same category
+    // or even affect the system volume if flat volumes are enabled
 
-    if (m_volume < 1.0f) {
-        // Don't use PulseAudio volume, as it might affect all other streams of the same category
-        // or even affect the system volume if flat volumes are enabled
-        QAudioHelperInternal::qMultiplySamples(m_volume, m_format, data, dest, len);
-    } else {
-        memcpy(dest, data, len);
-    }
+    QAudioHelperInternal::applyVolume(m_volume, m_format,
+                                      QSpan{ reinterpret_cast<const std::byte *>(data), len },
+                                      QSpan{ reinterpret_cast<std::byte *>(dest), len });
 
-    data = reinterpret_cast<char *>(dest);
-
-    if ((pa_stream_write(m_stream.get(), data, len, nullptr, 0, PA_SEEK_RELATIVE)) < 0) {
+    if ((pa_stream_write(m_stream.get(), dest, len, nullptr, 0, PA_SEEK_RELATIVE)) < 0) {
         engineLock.unlock();
         qCWarning(qLcPulseAudioOut)
                 << "pa_stream_write error:" << currentError(pulseEngine->context());

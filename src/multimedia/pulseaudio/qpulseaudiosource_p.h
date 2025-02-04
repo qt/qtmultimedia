@@ -75,7 +75,7 @@ private slots:
     void onPulseContextFailed();
 
 private:
-    void applyVolume(const void *src, void *dest, int len);
+    void applyVolume(const void *src, void *dest, int len) const;
 
     bool open();
     void close();
