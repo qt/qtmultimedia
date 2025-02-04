@@ -16,6 +16,7 @@
 #define QAUDIORINGBUFFER_P_H
 
 #include <QtCore/qspan.h>
+#include <QtMultimedia/private/qaudio_qspan_support_p.h>
 
 #include <algorithm>
 #include <atomic>
@@ -29,18 +30,6 @@ namespace QtPrivate {
 template <typename T>
 class QAudioRingBuffer
 {
-    template <typename U>
-    static QSpan<U> drop(QSpan<U> span, int n)
-    {
-        return span.subspan(n); // ranges::drop
-    }
-
-    template <typename U>
-    static QSpan<U> take(QSpan<U> span, int n)
-    {
-        return span.first(n); // ranges::take
-    }
-
 public:
     using ValueType = T;
     using Region = QSpan<T>;
@@ -53,6 +42,8 @@ public:
 
     int write(ConstRegion region)
     {
+        using namespace QtMultimediaPrivate; // drop
+
         int elementsWritten = 0;
         while (!region.isEmpty()) {
             Region writeRegion = acquireWriteRegion(region.size());
