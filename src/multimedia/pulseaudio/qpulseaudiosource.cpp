@@ -426,13 +426,11 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
     return readBytes;
 }
 
-void QPulseAudioSource::applyVolume(const void *src, void *dest, int len)
+void QPulseAudioSource::applyVolume(const void *src, void *dest, int len) const
 {
-    Q_ASSERT((src && dest) || len == 0);
-    if (m_volume < 1.f)
-        QAudioHelperInternal::qMultiplySamples(m_volume, m_format, src, dest, len);
-    else if (len)
-        memcpy(dest, src, len);
+    QAudioHelperInternal::applyVolume(m_volume, m_format,
+                                      QSpan{ reinterpret_cast<const std::byte *>(src), len },
+                                      QSpan{ reinterpret_cast<std::byte *>(dest), len });
 }
 
 void QPulseAudioSource::resume()
