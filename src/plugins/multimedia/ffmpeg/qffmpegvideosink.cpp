@@ -13,19 +13,22 @@ QFFmpegVideoSink::QFFmpegVideoSink(QVideoSink *sink)
 
 void QFFmpegVideoSink::setRhi(QRhi *rhi)
 {
-    if (m_rhi == rhi)
-        return;
-    m_rhi = rhi;
+    {
+        QMutexLocker guard{ &m_rhiMutex };
+        if (m_rhi == rhi)
+            return;
+        m_rhi = rhi;
+    }
+
     emit rhiChanged();
 }
 
-void QFFmpegVideoSink::setVideoFrame(const QVideoFrame &frame)
+void QFFmpegVideoSink::onVideoFrameChanged(const QVideoFrame &frame)
 {
+    QMutexLocker guard { &m_rhiMutex };
     auto *buffer = QVideoFramePrivate::hwBuffer(frame);
     if (buffer && m_rhi)
         buffer->initTextureConverter(*m_rhi);
-
-    QPlatformVideoSink::setVideoFrame(frame);
 }
 
 QT_END_NAMESPACE

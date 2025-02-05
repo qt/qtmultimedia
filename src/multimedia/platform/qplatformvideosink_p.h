@@ -56,7 +56,7 @@ public:
 
     void setNativeSize(QSize s);
 
-    virtual void setVideoFrame(const QVideoFrame &frame);
+    void setVideoFrame(const QVideoFrame &frame);
 
     QVideoFrame currentVideoFrame() const;
 
@@ -67,12 +67,14 @@ public:
 protected:
     explicit QPlatformVideoSink(QVideoSink *parent);
 
+    virtual void onVideoFrameChanged(const QVideoFrame &) { }
+
 Q_SIGNALS:
     void rhiChanged();
 
 private:
-    QVideoSink *m_sink = nullptr;
-    mutable QMutex m_mutex;
+    QVideoSink *const m_sink = nullptr;
+    mutable QMutex m_mutex; // Protects all members below
     QSize m_nativeSize;
     QString m_subtitleText;
     QVideoFrame m_currentVideoFrame;

@@ -30,7 +30,7 @@ void QPlatformVideoSink::setNativeSize(QSize s)
 void QPlatformVideoSink::setVideoFrame(const QVideoFrame &frame)
 {
     bool sizeChanged = false;
-
+    QVideoFrame currentFrame;
     {
         QMutexLocker locker(&m_mutex);
         if (frame == m_currentVideoFrame)
@@ -42,7 +42,10 @@ void QPlatformVideoSink::setVideoFrame(const QVideoFrame &frame)
             m_nativeSize = size;
             sizeChanged = true;
         }
+        currentFrame = m_currentVideoFrame;
     }
+
+    onVideoFrameChanged(currentFrame);
 
     // emit signals outside the mutex to avoid deadlocks on the user side
     if (sizeChanged)
