@@ -271,19 +271,11 @@ QCameraDevice::QCameraDevice(const QCameraDevice &other) = default;
 QCameraDevice::~QCameraDevice() = default;
 
 /*!
-    Returns true if this QCameraDevice is equal to \a other.
+    Returns true if this QCameraDevice represents the same device as \a other.
 */
 bool QCameraDevice::operator==(const QCameraDevice &other) const
 {
-    if (d == other.d)
-        return true;
-
-    if (!d || ! other.d)
-        return false;
-
-    return (d->id == other.d->id
-            && d->description == other.d->description
-            && d->position == other.d->position);
+    return id() == other.id();
 }
 
 /*!
