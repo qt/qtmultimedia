@@ -3,6 +3,8 @@
 
 #include "qpipewire_propertydict_p.h"
 
+#include <pipewire/extensions/metadata.h>
+
 #include <QtCore/qspan.h>
 
 #include <cstdint>
@@ -140,6 +142,11 @@ std::optional<ObjectSerial> getObjectSerial(const PwPropertyDict &dict)
     if (resolvedUint64)
         return ObjectSerial{ *resolvedUint64 };
     return std::nullopt;
+}
+
+std::optional<std::string_view> getMetadataName(const PwPropertyDict &dict)
+{
+    return resolveInDictionary(dict, PW_KEY_METADATA_NAME);
 }
 
 } // namespace QtPipeWire

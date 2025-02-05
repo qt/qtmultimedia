@@ -17,6 +17,7 @@
 
 #include "qpipewire_async_support_p.h"
 #include "qpipewire_propertydict_p.h"
+#include "qpipewire_registry_support_p.h"
 #include "qpipewire_spa_pod_support_p.h"
 
 #include <QtCore/qfuture.h>
@@ -46,9 +47,16 @@ class QAudioDeviceMonitor : public QObject
 
 public:
     QAudioDeviceMonitor();
-    void objectAdded(ObjectId, uint32_t permissions, const char *type, uint32_t version,
-                     const spa_dict *props);
+    void objectAdded(ObjectId, uint32_t permissions, PipewireRegistryType, uint32_t version,
+                     const spa_dict &props);
     void objectRemoved(ObjectId);
+
+    struct NoDefaultDeviceType
+    {
+    };
+    static constexpr NoDefaultDeviceType NoDefaultDevice{};
+    void setDefaultAudioSink(std::variant<QByteArray, NoDefaultDeviceType>);
+    void setDefaultAudioSource(std::variant<QByteArray, NoDefaultDeviceType>);
 
     std::optional<ObjectSerial> findSinkNodeSerial(std::string_view deviceName) const;
     std::optional<ObjectSerial> findSourceNodeSerial(std::string_view deviceName) const;
@@ -95,6 +103,9 @@ private:
         std::list<PendingNodeRecord> m_sinks;
         std::vector<ObjectSerial> m_removals;
 
+        std::optional<std::variant<QByteArray, NoDefaultDeviceType>> m_defaultSource;
+        std::optional<std::variant<QByteArray, NoDefaultDeviceType>> m_defaultSink;
+
         void removeRecordsForObject(ObjectSerial);
     };
     QMutex m_pendingRecordsMutex;
@@ -105,6 +116,8 @@ private:
     std::map<ObjectSerial, DeviceRecord> m_devices QT_MM_GUARDED_BY(m_mutex);
     std::vector<NodeRecord> m_sources QT_MM_GUARDED_BY(m_mutex);
     std::vector<NodeRecord> m_sinks QT_MM_GUARDED_BY(m_mutex);
+    std::optional<QByteArray> m_defaultSourceName;
+    std::optional<QByteArray> m_defaultSinkName;
 
     QTimer m_compressionTimer;
     void startCompressionTimer();

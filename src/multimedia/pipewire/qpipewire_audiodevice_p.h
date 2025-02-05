@@ -31,7 +31,7 @@ class QPipewireAudioDevicePrivate : public QAudioDevicePrivate
 public:
     QPipewireAudioDevicePrivate(const PwPropertyDict &nodeProperties,
                                 const PwPropertyDict &deviceProperties,
-                                const SpaObjectAudioFormat &, QAudioDevice::Mode);
+                                const SpaObjectAudioFormat &, QAudioDevice::Mode, bool isDefault);
     ~QPipewireAudioDevicePrivate() override;
 
     QByteArray deviceName() const { return m_deviceName; }

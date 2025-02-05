@@ -19,6 +19,7 @@
 
 #include "qpipewire_audiodevicemonitor_p.h"
 #include "qpipewire_support_p.h"
+#include "qpipewire_registry_support_p.h"
 
 #include <pipewire/pipewire.h>
 
@@ -85,6 +86,22 @@ private:
     static void objectAddedCb(void *data, uint32_t id, uint32_t permissions, const char *type,
                               uint32_t version, const struct spa_dict *props);
     static void objectRemovedCb(void *data, uint32_t id);
+    void objectAdded(ObjectId id, uint32_t permissions, PipewireRegistryType, uint32_t version,
+                     const spa_dict &props);
+
+    // default metadata
+    void startListenDefaultMetadata(ObjectId, uint32_t version);
+    struct MetadataRecord
+    {
+        const char *key;
+        const char *type;
+        const char *value;
+    };
+
+    int handleMetadata(const MetadataRecord &record);
+
+    PwMetadataHandle m_defaultMetadata;
+    struct spa_hook m_defaultMetadataListener{};
 };
 
 } // namespace QtPipeWire

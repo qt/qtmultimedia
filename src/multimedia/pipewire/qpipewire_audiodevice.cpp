@@ -47,9 +47,11 @@ bool channelPositionsEqual(const Lhs &lhs, const Rhs &rhs)
 QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &nodeProperties,
                                                          const PwPropertyDict &deviceProperties,
                                                          const SpaObjectAudioFormat &formats,
-                                                         QAudioDevice::Mode mode)
+                                                         QAudioDevice::Mode mode, bool isDefault)
     : QAudioDevicePrivate(inferDeviceId(nodeProperties), mode)
 {
+    this->isDefault = isDefault;
+
     if (auto path = getDeviceSysfsPath(deviceProperties))
         m_sysfsPath.assign(*path);
 

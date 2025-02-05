@@ -40,26 +40,16 @@ QAudioDeviceMonitor::QAudioDeviceMonitor()
     });
 }
 
-void QAudioDeviceMonitor::objectAdded(ObjectId id, uint32_t /*permissions*/, const char *type,
-                                      uint32_t /*version*/, const spa_dict *propDict)
+void QAudioDeviceMonitor::objectAdded(ObjectId id, uint32_t /*permissions*/,
+                                      PipewireRegistryType objectType, uint32_t /*version*/,
+                                      const spa_dict &propDict)
 {
     Q_ASSERT(QAudioContextManager::isInPwThreadLoop());
 
-    std::optional<PipewireRegistryType> deviceType = parsePipewireRegistryType(type);
-    if (!deviceType)
-        return;
+    Q_ASSERT(objectType == PipewireRegistryType::Device
+             || objectType == PipewireRegistryType::Node);
 
-    Q_ASSERT(propDict);
-
-    switch (*deviceType) {
-    case PipewireRegistryType::Device:
-    case PipewireRegistryType::Node:
-        break;
-    default:
-        return;
-    }
-
-    PwPropertyDict props = toPropertyDict(*propDict);
+    PwPropertyDict props = toPropertyDict(propDict);
     std::optional<std::string_view> mediaClass = getMediaClass(props);
     if (!mediaClass)
         return;
@@ -72,7 +62,7 @@ void QAudioDeviceMonitor::objectAdded(ObjectId id, uint32_t /*permissions*/, con
         m_serialObjectDict.emplace(*serial, id);
     }
 
-    switch (*deviceType) {
+    switch (objectType) {
     case PipewireRegistryType::Device: {
         if (mediaClass != "Audio/Device")
             return;
@@ -156,6 +146,22 @@ void QAudioDeviceMonitor::objectRemoved(ObjectId id)
     startCompressionTimer();
 }
 
+void QAudioDeviceMonitor::setDefaultAudioSink(
+        std::variant<QByteArray, NoDefaultDeviceType> newDefault)
+{
+    std::lock_guard guard{ m_pendingRecordsMutex };
+    m_pendingRecords.m_defaultSink = std::move(newDefault);
+    startCompressionTimer();
+}
+
+void QAudioDeviceMonitor::setDefaultAudioSource(
+        std::variant<QByteArray, NoDefaultDeviceType> newDefault)
+{
+    std::lock_guard guard{ m_pendingRecordsMutex };
+    m_pendingRecords.m_defaultSource = std::move(newDefault);
+    startCompressionTimer();
+}
+
 void QAudioDeviceMonitor::audioDevicesChanged()
 {
     Q_ASSERT(this->thread()->isCurrentThread());
@@ -165,6 +171,8 @@ void QAudioDeviceMonitor::audioDevicesChanged()
         PendingRecords resolvedRecords;
 
         std::swap(m_pendingRecords.m_removals, resolvedRecords.m_removals);
+        std::swap(m_pendingRecords.m_defaultSource, resolvedRecords.m_defaultSource);
+        std::swap(m_pendingRecords.m_defaultSink, resolvedRecords.m_defaultSink);
 
         // we may still have unresolved records, which wait on their format, but we only want to
         // handle the fully resolved elements
@@ -187,10 +195,27 @@ void QAudioDeviceMonitor::audioDevicesChanged()
         return resolvedRecords;
     }();
 
-    if (!pendingRecords.m_sources.empty() || !pendingRecords.m_removals.empty())
+    auto getNodeName =
+            [](std::variant<QByteArray, NoDefaultDeviceType> arg) -> std::optional<QByteArray> {
+        if (std::holds_alternative<NoDefaultDeviceType>(arg))
+            return std::nullopt;
+
+        return std::get<QByteArray>(arg);
+    };
+
+    bool defaultSourceChanged = pendingRecords.m_defaultSource.has_value();
+    if (defaultSourceChanged)
+        m_defaultSourceName = getNodeName(*pendingRecords.m_defaultSource);
+
+    bool defaultSinkChanged = pendingRecords.m_defaultSink.has_value();
+    if (defaultSinkChanged)
+        m_defaultSinkName = getNodeName(*pendingRecords.m_defaultSink);
+
+    if (!pendingRecords.m_sources.empty() || !pendingRecords.m_removals.empty()
+        || defaultSourceChanged)
         updateSources(std::move(pendingRecords.m_sources), pendingRecords.m_removals);
 
-    if (!pendingRecords.m_sinks.empty() || !pendingRecords.m_removals.empty())
+    if (!pendingRecords.m_sinks.empty() || !pendingRecords.m_removals.empty() || defaultSinkChanged)
         updateSinks(std::move(pendingRecords.m_sinks), pendingRecords.m_removals);
 }
 
@@ -266,6 +291,9 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
     QList<QAudioDevice> oldDeviceList =
             Mode == Direction::sink ? m_sinkDeviceList : m_sourceDeviceList;
 
+    const std::optional<QByteArray> &defaultSinkOrSourceNodeName =
+            Mode == Direction::sink ? m_defaultSinkName : m_defaultSourceName;
+
     QList<QAudioDevice> newDeviceList;
 
     // we brute-force re-create the device list ... not smart and it can certainly be improved
@@ -278,9 +306,12 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
             continue;
         }
 
+        std::optional<std::string_view> nodeName = getNodeName(sinkOrSource.properties);
+        bool isDefault = (defaultSinkOrSourceNodeName == nodeName);
+
         QPipewireAudioDevicePrivate *devicePrivate = new QPipewireAudioDevicePrivate(
                 sinkOrSource.properties, deviceIt->second.properties, sinkOrSource.format,
-                QAudioDevice::Mode::Output);
+                QAudioDevice::Mode::Output, isDefault);
 
         QAudioDevice device = devicePrivate->create();
 

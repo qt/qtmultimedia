@@ -10,7 +10,16 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 
+#include <pipewire/extensions/metadata.h>
+
 #include <system_error>
+
+#if __has_include(<spa/utils/json.h>)
+#  include <spa/utils/json.h>
+#else
+#  include <QtCore/qjsondocument.h>
+#  include <QtCore/qjsonvalue.h>
+#endif
 
 #if !PW_CHECK_VERSION(0, 3, 75)
 extern "C" {
@@ -153,8 +162,19 @@ void QAudioContextManager::objectAddedCb(void *data, uint32_t id, uint32_t permi
     qCDebug(lcPipewireRegistry) << "objectAdded" << id << QString::number(permissions, 8) << type
                                 << version << *props;
 
-    reinterpret_cast<QAudioContextManager *>(data)->m_deviceMonitor->objectAdded(
-            ObjectId{ id }, permissions, type, version, props);
+    std::optional<PipewireRegistryType> objectType = parsePipewireRegistryType(type);
+    if (!objectType) {
+        qCritical() << "object type cannot be parsed:" << type;
+        return;
+    }
+
+    if (!props) {
+        qCritical() << "null property received";
+        return;
+    }
+
+    reinterpret_cast<QAudioContextManager *>(data)->objectAdded(ObjectId{ id }, permissions,
+                                                                *objectType, version, *props);
 }
 
 void QAudioContextManager::objectRemovedCb(void *data, uint32_t id)
@@ -164,6 +184,149 @@ void QAudioContextManager::objectRemovedCb(void *data, uint32_t id)
     qCDebug(lcPipewireRegistry) << "objectRemoved" << id;
 
     reinterpret_cast<QAudioContextManager *>(data)->m_deviceMonitor->objectRemoved(ObjectId{ id });
+}
+
+void QAudioContextManager::objectAdded(ObjectId id, uint32_t permissions, PipewireRegistryType type,
+                                       uint32_t version, const spa_dict &props)
+{
+    switch (type) {
+    case PipewireRegistryType::Device:
+    case PipewireRegistryType::Node:
+        return m_deviceMonitor->objectAdded(id, permissions, type, version, props);
+
+    case PipewireRegistryType::Metadata: {
+        const char *name = spa_dict_lookup(&props, PW_KEY_METADATA_NAME);
+        if (name == std::string_view("default"))
+            // the "default" metadata will inform us about the "default" device
+            return startListenDefaultMetadata(id, version);
+        return;
+    }
+
+    default:
+        return;
+    }
+}
+
+void QAudioContextManager::startListenDefaultMetadata(ObjectId id, uint32_t version)
+{
+    if (m_defaultMetadata) {
+        qWarning(lcPipewireRegistry) << "metadata already registered";
+        return;
+    }
+
+    static constexpr pw_metadata_events metadata_events = {
+        .version = PW_VERSION_METADATA_EVENTS,
+        .property = [](void *data, uint32_t subject, const char *key, const char *type,
+                       const char *value) -> int {
+        Q_ASSERT(subject == PW_ID_CORE);
+
+        auto self = reinterpret_cast<QAudioContextManager *>(data);
+
+        Q_ASSERT(key);
+        return self->handleMetadata(MetadataRecord{
+                .key = key,
+                .type = type,
+                .value = value,
+        });
+    },
+    };
+
+    m_defaultMetadata.reset(reinterpret_cast<pw_metadata *>(pw_registry_bind(
+            m_registry.get(), id.value, PW_TYPE_INTERFACE_Metadata, version, sizeof(this))));
+    if (!m_defaultMetadata) {
+        qFatal() << "cannot bind to metadata";
+        return;
+    }
+
+    int status = pw_metadata_add_listener(m_defaultMetadata.get(), &m_defaultMetadataListener,
+                                          &metadata_events, this);
+    if (status < 0)
+        qFatal() << "Failed to add listener" << make_error_code(-status).message();
+}
+
+namespace {
+
+// parse json object with one "name" member
+std::optional<QByteArray> jsonParseObjectName(const char *json_str)
+{
+#if __has_include(<spa/utils/json.h>)
+    using namespace std::string_view_literals;
+
+    struct spa_json json;
+    spa_json_init(&json, json_str, strlen(json_str));
+
+    struct spa_json it;
+    if (spa_json_enter_object(&json, &it) > 0) {
+        char key[256];
+        while (spa_json_get_string(&it, key, sizeof(key)) > 0) {
+            if (key == "name"sv) {
+                char value[16384];
+                if (spa_json_get_string(&it, value, sizeof(value)) >= 0)
+                    return QByteArray{ value };
+            } else {
+                spa_json_next(&it, nullptr);
+            }
+        }
+    }
+
+    return std::nullopt;
+#else
+    // old pipewire does not provide json.h, so we use Qt to parse
+
+    using namespace Qt::Literals;
+
+    QByteArray value{ json_str };
+    QJsonDocument doc = QJsonDocument::fromJson(value);
+    if (doc.isNull()) {
+        qWarning() << "JSON parse error:" << json_str;
+        return std::nullopt;
+    }
+
+    QJsonValue name = doc[u"name"_s];
+    if (!name.isString())
+        return std::nullopt;
+    return name.toString().toUtf8();
+#endif
+}
+
+} // namespace
+
+int QAudioContextManager::handleMetadata(const MetadataRecord &record)
+{
+    using namespace std::string_view_literals;
+
+    qDebug(lcPipewireRegistry) << "metadata:" << record.key << record.type << record.value;
+
+    auto extractName = [&]() -> std::optional<QByteArray> {
+        if (record.type != "Spa:String:JSON"sv)
+            return std::nullopt;
+        return jsonParseObjectName(record.value);
+    };
+
+    if (record.key == "default.audio.source"sv) {
+        if (record.value) {
+            std::optional<QByteArray> name = extractName();
+            if (name)
+                m_deviceMonitor->setDefaultAudioSource(std::move(*name));
+        } else {
+            m_deviceMonitor->setDefaultAudioSource(QAudioDeviceMonitor::NoDefaultDevice);
+        }
+
+        return 0;
+    }
+
+    if (record.key == "default.audio.sink"sv) {
+        if (record.value) {
+            std::optional<QByteArray> name = extractName();
+            if (name)
+                m_deviceMonitor->setDefaultAudioSink(std::move(*name));
+        } else {
+            m_deviceMonitor->setDefaultAudioSink(QAudioDeviceMonitor::NoDefaultDevice);
+        }
+        return 0;
+    }
+
+    return 0;
 }
 
 void QAudioContextManager::startDeviceMonitor()

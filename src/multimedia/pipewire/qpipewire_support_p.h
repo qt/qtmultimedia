@@ -19,6 +19,7 @@
 #include <QtCore/qdebug.h>
 
 #include <memory>
+#include <pipewire/extensions/metadata.h>
 #include <system_error>
 
 #include <pipewire/pipewire.h>
@@ -65,6 +66,7 @@ using PwThreadLoopHandle = MakeUniquePtr<pw_thread_loop, pw_thread_loop_destroy>
 using PwStreamHandle = MakeUniquePtr<pw_stream, pw_stream_destroy>::type;
 using PwRegistryHandle = MakeUniquePtr<pw_proxy, pw_proxy_destroy, pw_registry>::type;
 using PwNodeHandle = MakeUniquePtr<pw_proxy, pw_proxy_destroy, pw_node>::type;
+using PwMetadataHandle = MakeUniquePtr<pw_proxy, pw_proxy_destroy, pw_metadata>::type;
 
 struct PwCoreConnectionDeleter
 {

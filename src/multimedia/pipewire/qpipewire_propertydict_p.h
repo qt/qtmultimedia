@@ -57,6 +57,9 @@ std::optional<ObjectId> getDeviceId(const PwPropertyDict &);
 // PW_KEY_OBJECT_SERIAL
 std::optional<ObjectSerial> getObjectSerial(const PwPropertyDict &);
 
+// PW_KEY_METADATA_NAME
+std::optional<std::string_view> getMetadataName(const PwPropertyDict &);
+
 } // namespace QtPipeWire
 
 QT_END_NAMESPACE
