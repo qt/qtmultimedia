@@ -1,0 +1,253 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-building-ffmpeg-ios.html
+\title Building FFmpeg from source for iOS on macOS
+\brief This document describes how to build FFmpeg from source code.
+
+This page explains how to configure and build \l{FFmpeg} for iOS as frameworks.
+Compilation for iOS is a cross-compilation and presumes using macOS as a host system.
+The required steps are:
+
+\list
+\li Preparing build environment
+\li Getting the FFmpeg source code
+\li Configuring FFmpeg from the command line
+\li Building dynamic libraries
+\li Creating iOS frameworks from FFmpeg libraries
+\li Creating XCFrameworks
+\li Embedding frameworks
+\endlist
+
+\note The following documentation assumes that you work with FFmpeg libraries and code
+under \c{~/ffmpeg}.
+
+\section1 Preparing build environment
+
+The build environment for iOS is provided by Apple's Xcode application, which includes
+the toolchain (compiler, linker, and other tools), and the iOS platform-SDK (headers
+and libraries) that you build and link against.
+
+\section1 Getting the FFmpeg source code
+
+You can get the FFmpeg source code in these ways:
+
+\list
+\li Download from the
+\l{https://ffmpeg.org/download.html#get-sources}{FFmpeg download page}.
+\li Clone from git. For example, these commands clone the version 7.1 of the
+FFmpeg sources to \c{~/ffmpeg/ffmpeg_src}.
+\badcode
+% cd ~/ffmpeg/
+% git clone --branch n7.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg_src
+\endcode
+\endlist
+
+\note It is recommended to use the same FFmpeg version as documented in the
+\l{Qt Multimedia}{Qt Multimedia main page}.
+
+\section1 Configuring and building FFmpeg
+
+Create a \c build and \c installed directories inside the \c{~/ffmpeg} directory and
+navigate into \c build:
+
+\badcode
+% mkdir ~/ffmpeg/build
+% mkdir ~/ffmpeg/installed
+% cd ~/ffmpeg/build
+\endcode
+
+To configure FFmpeg, run:
+
+\badcode
+ % ../ffmpeg_src/configure --disable-programs --disable-doc --enable-network --enable-shared --disable-static \
+    --sysroot="$(xcrun --sdk iphoneos --show-sdk-path)" \
+    --enable-cross-compile \
+    --arch=arm64 \
+    --prefix=../installed \
+    --cc="xcrun --sdk iphoneos clang -arch arm64" \
+    --cxx="xcrun --sdk iphoneos clang++ -arch arm64" \
+    --extra-ldflags="-miphoneos-version-min=16.0" \
+    --install-name-dir='@rpath' \
+    --disable-audiotoolbox
+\endcode
+
+The command line programs and documentation are not needed; network features
+should be enabled. We build shared libraries and don't need static libraries (omit
+\c{--disable-static} to build static libraries). \c{--sysroot} specifies the root of cross-build
+tree. The \c{--prefix} argument specifies a path where the FFmpeg libraries are installed
+after building. We build on macOS host for iOS target so we enable cross compilation.
+\c{--extra-ldflags} set the minimum version of iOS.
+\c{--install-name-dir} is a string specifying the directory portion of the "install_name"
+field of shared libraries on Apple platforms for installed targets.
+AudioToolBox is disabled, since FFmpeg is using parts of AudioToolBox
+framework which are not available on iOS.
+
+\note In the example above, replacing 'iphoneos' with 'iphonesimulator',
+and 'miphoneos-version' with 'mios-simulator-version-min', configures
+FFmpeg to be built as libraries suitable for iOS simulator.
+
+To get help on other configuration options, run:
+\badcode
+% ../ffmpeg_src/configure --help
+\endcode
+
+After configuration is complete, build FFmpeg libraries:
+
+\badcode
+% make -j install
+\endcode
+
+\section1 Creating iOS frameworks from FFmpeg libraries
+
+To work in iOS applications, FFmpeg dynamic libraries have to
+be converted into frameworks and embedded into application bundles.
+A framework is a hierarchical directory that encapsulates resources
+such as a dynamic library, image files, localized strings, header files,
+and reference documentation in a single package. In our case, FFmpeg frameworks
+only contain dynamic libraries and corresponding Info.plist files.
+For example, libavcodec converted to framework becomes \c libavcodec.framework
+directory with these contents:
+
+\list
+\li Info.plist (containing the description of the framework)
+\li libavcodec (dynamic library)
+\endlist
+
+Unlike dynamic libraries we built in the previous step, dynamic libraries
+inside iOS frameworks are unversioned and have no 'dylib' extensions. This requires
+fixing library identification names and dependencies in our dynamic libraries.
+The \c otool utility helps us to find such names. For example:
+
+\badcode
+%otool -L ../installed/lib/libavcodec.dylib
+\endcode
+
+gives us these names (we only show FFmpeg-related names):
+
+\badcode
+@rpath/libavcodec.61.dylib (compatibility version 61.0.0, current version 61.19.100)
+@rpath/libswresample.5.dylib (compatibility version 5.0.0, current version 5.3.100)
+@rpath/libavutil.59.dylib (compatibility version 59.0.0, current version 59.39.100)
+\endcode
+
+ To fix these names, use the \c install_name_tool utility. The utility options are:
+
+ \list
+ \li \c {-id} - allows changing the shared library identification name.
+ \li \c {-change} - allows changing the dependent shared library install name.
+ \endlist
+
+This script converts the previously built dynamic libraries to frameworks. The code assumes
+that you run it from the \c build directory and the frameworks are located in
+\c{~/ffmpeg/installed/framework}:
+
+\badcode
+#!/usr/bin/env bash
+
+# Creates an Info.plist file for a given framework:
+build_info_plist() {
+    local file_path="$1"
+    local framework_name="$2"
+    local framework_id="$3"
+
+    # Minimum version must be the same we used when building FFmpeg.
+    local minimum_version_key="MinimumOSVersion"
+    local minimum_os_version="16.0"
+
+    local supported_platforms="iPhoneOS"
+
+    info_plist="<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>${framework_name}</string>
+    <key>CFBundleIdentifier</key>
+    <string>${framework_id}</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>${framework_name}</string>
+    <key>CFBundlePackageType</key>
+    <string>FMWK</string>
+    <key>CFBundleShortVersionString</key>
+    <string>7.0.2</string>
+    <key>CFBundleVersion</key>
+    <string>7.0.2</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>${minimum_version_key}</key>
+    <string>${minimum_os_version}</string>
+    <key>CFBundleSupportedPlatforms</key>
+    <array>
+        <string>${supported_platforms}</string>
+    </array>
+    <key>NSPrincipalClass</key>
+    <string></string>
+</dict>
+</plist>"
+    echo $info_plist | tee ${file_path} 1>/dev/null
+}
+
+dylib_regex="^@rpath/.*\.dylib$"
+
+# Creates framework from a dylib file:
+create_framework() {
+    local framework_name="$1"
+    local ffmpeg_library_path="../installed"
+    local framework_complete_path="${ffmpeg_library_path}/framework/${framework_name}.framework/${framework_name}"
+
+    # Create framework directory and copy dylib file to this directory:
+    mkdir -p "${ffmpeg_library_path}/framework/${framework_name}.framework"
+    cp "${ffmpeg_library_path}/lib/${framework_name}.dylib" "${ffmpeg_library_path}/framework/${framework_name}.framework/${framework_name}"
+
+    # Change the shared library identification name, removing version number and 'dylib' extension;
+    # \c Frameworks part of the name is needed since this is where frameworks will be installed in
+    # an application bundle:
+    install_name_tool -id @rpath/Frameworks/${framework_name}.framework/${framework_name} "${framework_complete_path}"
+
+    # Add Info.plist file into the framework directory:
+    build_info_plist "${ffmpeg_library_path}/framework/${framework_name}.framework/Info.plist" "${framework_name}" "io.qt.ffmpegkit."${framework_name}
+    otool -L "$framework_complete_path" | awk '/\t/ {print $1}' | egrep "$dylib_regex" | while read -r dependency_path; do
+        found_name=$(tmp=${dependency_path/*\/}; echo ${tmp/\.*})
+        if [ "$found_name" != "$framework_name" ]
+        then
+            # Change the dependent shared library install name to remove version number and 'dylib' extension:
+            install_name_tool -change "$dependency_path" @rpath/Frameworks/${found_name}.framework/${found_name} "${framework_complete_path}"
+        fi
+    done
+}
+
+ffmpeg_libs="libavcodec libavformat libavutil libswresample libswscale"
+
+for name in $ffmpeg_libs; do
+    create_framework $name
+done
+
+\endcode
+
+\section1 Creating a multiplatform binary framework bundle
+
+An XCFramework bundle is a package that includes frameworks and libraries
+necessary to build for multiple platforms, for example, iOS and iOS simulator.
+To create such a framework, use the \c xcodebuild utility. For example, if
+you have frameworks for iOS and simulator located in \c {~/ffmpeg/installed/arm64}
+and \c {~/ffmpeg/installed/arm64-simulator} directories, the utility arguments look
+like follows:
+
+\badcode
+%xcodebuild -create-xcframework -framework ../installed/arm64/libavcodec.framework -framework ../installed/arm64-simulator/libavcodec.framework -output ../installed/framework/libavcodec.xcframework
+\endcode
+
+\section1 Embedding frameworks
+
+Embed the FFmpeg frameworks into an application bundle. For information on how to
+embed frameworks using XCode, refer to
+
+\l{https://developer.apple.com/library/archive/technotes/tn2435/_index.html}{Embedding Frameworks In An App}.
+
+*/
