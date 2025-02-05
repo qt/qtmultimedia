@@ -28,7 +28,7 @@ command to the app's CMakeLists.txt file:
 
 \sa {qt6_add_ios_ffmpeg_libraries}{qt_add_ios_ffmpeg_libraries()}
 
-\note FFmpeg binaries from the online installer are built for arm64 so that they can
-pass validation with Apple Store Connect.
+\note The FFmpeg binaries from the online installer are built for arm64 and arm64-simulator to ensure they
+pass validation with Apple Store Connect and can be used when running the iOS simulator.
 
 */
