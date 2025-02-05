@@ -437,7 +437,7 @@ void QQuickVideoOutput::_q_invalidateSceneGraph()
 
     if (auto texturePool = m_texturePool.lock())
         texturePool->clearTextures();
-    initRhiForSink();
+    m_sink->setRhi(nullptr);
 }
 
 void QQuickVideoOutput::_q_sceneGraphInitialized()

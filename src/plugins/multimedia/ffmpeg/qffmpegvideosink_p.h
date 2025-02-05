@@ -17,6 +17,7 @@
 
 #include <QtMultimedia/private/qplatformvideosink_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+#include <QtCore/qmutex.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -31,9 +32,11 @@ public:
     QFFmpegVideoSink(QVideoSink *sink);
     void setRhi(QRhi *rhi) override;
 
-    void setVideoFrame(const QVideoFrame &frame) override;
+protected:
+    void onVideoFrameChanged(const QVideoFrame &frame) override;
 
 private:
+    QMutex m_rhiMutex;
     QRhi *m_rhi = nullptr;
 };
 
