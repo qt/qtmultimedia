@@ -32,9 +32,9 @@ namespace {
 
 struct State
 {
-    QRhi *rhi = nullptr;
+    std::unique_ptr<QRhi> rhi;
 #if QT_CONFIG(opengl)
-    QOffscreenSurface *fallbackSurface = nullptr;
+    std::unique_ptr<QOffscreenSurface> fallbackSurface;
 #endif
     bool cpuOnly = false;
 #if defined(Q_OS_ANDROID)
@@ -45,11 +45,9 @@ struct State
     }
 
     void resetRhi() {
-        delete rhi;
-        rhi = nullptr;
+        rhi.reset();
 #if QT_CONFIG(opengl)
-        delete fallbackSurface;
-        fallbackSurface = nullptr;
+        fallbackSurface.reset();
 #endif
         cpuOnly = false;
     }
@@ -136,7 +134,7 @@ static void imageCleanupHandler(void *info)
 static QRhi *initializeRHI(QRhi *videoFrameRhi)
 {
     if (g_state.localData().rhi || g_state.localData().cpuOnly)
-        return g_state.localData().rhi;
+        return g_state.localData().rhi.get();
 
     QRhi::Implementation backend = videoFrameRhi ? videoFrameRhi->backend() : QRhi::Null;
     const QPlatformIntegration *qpa = QGuiApplicationPrivate::platformIntegration();
@@ -146,14 +144,14 @@ static QRhi *initializeRHI(QRhi *videoFrameRhi)
 #if QT_CONFIG(metal)
         if (backend == QRhi::Metal || backend == QRhi::Null) {
             QRhiMetalInitParams params;
-            g_state.localData().rhi = QRhi::create(QRhi::Metal, &params);
+            g_state.localData().rhi.reset(QRhi::create(QRhi::Metal, &params));
         }
 #endif
 
 #if defined(Q_OS_WIN)
         if (backend == QRhi::D3D11 || backend == QRhi::Null) {
             QRhiD3D11InitParams params;
-            g_state.localData().rhi = QRhi::create(QRhi::D3D11, &params);
+            g_state.localData().rhi.reset(QRhi::create(QRhi::D3D11, &params));
         }
 #endif
 
@@ -163,12 +161,13 @@ static QRhi *initializeRHI(QRhi *videoFrameRhi)
                     && qpa->hasCapability(QPlatformIntegration::RasterGLSurface)
                     && !QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets)) {
 
-                g_state.localData().fallbackSurface = QRhiGles2InitParams::newFallbackSurface();
+                g_state.localData().fallbackSurface.reset(
+                        QRhiGles2InitParams::newFallbackSurface());
                 QRhiGles2InitParams params;
-                params.fallbackSurface = g_state.localData().fallbackSurface;
+                params.fallbackSurface = g_state.localData().fallbackSurface.get();
                 if (backend == QRhi::OpenGLES2)
                     params.shareContext = static_cast<const QRhiGles2NativeHandles*>(videoFrameRhi->nativeHandles())->context;
-                g_state.localData().rhi = QRhi::create(QRhi::OpenGLES2, &params);
+                g_state.localData().rhi.reset(QRhi::create(QRhi::OpenGLES2, &params));
 
 #if defined(Q_OS_ANDROID)
                 // reset RHI state on application suspension, as this will be invalid after resuming
@@ -189,7 +188,7 @@ static QRhi *initializeRHI(QRhi *videoFrameRhi)
         qWarning() << Q_FUNC_INFO << ": No RHI backend. Using CPU conversion.";
     }
 
-    return g_state.localData().rhi;
+    return g_state.localData().rhi.get();
 }
 
 static bool updateTextures(QRhi *rhi,
@@ -297,9 +296,6 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
 #ifdef Q_OS_DARWIN
     QMacAutoReleasePool releasePool;
 #endif
-
-    if (!g_state.hasLocalData())
-        g_state.setLocalData({});
 
     std::unique_ptr<QRhiRenderPassDescriptor> renderPass;
     std::unique_ptr<QRhiBuffer> vertexBuffer;
