@@ -30,32 +30,98 @@ Q_STATIC_LOGGING_CATEGORY(qLcVideoFrameConverter, "qt.multimedia.video.frameconv
 
 namespace {
 
-struct State
+class ThreadLocalRhiHolder
 {
-    std::unique_ptr<QRhi> rhi;
+public:
+    ~ThreadLocalRhiHolder() { resetRhi(); }
+
+    QRhi *initializeRHI(QRhi *videoFrameRhi)
+    {
+        if (m_rhi || m_cpuOnly)
+            return m_rhi.get();
+
+        QRhi::Implementation backend = videoFrameRhi ? videoFrameRhi->backend() : QRhi::Null;
+        const QPlatformIntegration *qpa = QGuiApplicationPrivate::platformIntegration();
+
+        if (qpa && qpa->hasCapability(QPlatformIntegration::RhiBasedRendering)) {
+
+#if QT_CONFIG(metal)
+            if (backend == QRhi::Metal || backend == QRhi::Null) {
+                QRhiMetalInitParams params;
+                m_rhi.reset(QRhi::create(QRhi::Metal, &params));
+            }
+#endif
+
+#if defined(Q_OS_WIN)
+            if (backend == QRhi::D3D11 || backend == QRhi::Null) {
+                QRhiD3D11InitParams params;
+                m_rhi.reset(QRhi::create(QRhi::D3D11, &params));
+            }
+#endif
+
 #if QT_CONFIG(opengl)
-    std::unique_ptr<QOffscreenSurface> fallbackSurface;
+            if (!m_rhi && (backend == QRhi::OpenGLES2 || backend == QRhi::Null)) {
+                if (qpa->hasCapability(QPlatformIntegration::OpenGL)
+                    && qpa->hasCapability(QPlatformIntegration::RasterGLSurface)
+                    && !QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets)) {
+
+                    m_fallbackSurface.reset(QRhiGles2InitParams::newFallbackSurface());
+                    QRhiGles2InitParams params;
+                    params.fallbackSurface = m_fallbackSurface.get();
+                    if (backend == QRhi::OpenGLES2)
+                        params.shareContext = static_cast<const QRhiGles2NativeHandles *>(
+                                                      videoFrameRhi->nativeHandles())
+                                                      ->context;
+                    m_rhi.reset(QRhi::create(QRhi::OpenGLES2, &params));
+
+#  if defined(Q_OS_ANDROID)
+                    // reset RHI state on application suspension, as this will be invalid after
+                    // resuming
+                    if (!m_appStateChangedConnection) {
+                        m_appStateChangedConnection =
+                                QObject::connect(qApp, &QGuiApplication::applicationStateChanged,
+                                                 qApp, [this](auto state) {
+                                                     if (state == Qt::ApplicationSuspended)
+                                                         resetRhi();
+                                                 });
+                    }
+#  endif
+                }
+            }
 #endif
-    bool cpuOnly = false;
-#if defined(Q_OS_ANDROID)
-    QMetaObject::Connection appStateChangedConnection;
-#endif
-    ~State() {
-        resetRhi();
+        }
+
+        if (!m_rhi) {
+            m_cpuOnly = true;
+            qWarning() << Q_FUNC_INFO << ": No RHI backend. Using CPU conversion.";
+        }
+
+        return m_rhi.get();
     }
 
+private:
     void resetRhi() {
-        rhi.reset();
+        m_rhi.reset();
 #if QT_CONFIG(opengl)
-        fallbackSurface.reset();
+        m_fallbackSurface.reset();
 #endif
-        cpuOnly = false;
+        m_cpuOnly = false;
     }
+
+private:
+    std::unique_ptr<QRhi> m_rhi;
+#if QT_CONFIG(opengl)
+    std::unique_ptr<QOffscreenSurface> m_fallbackSurface;
+#endif
+    bool m_cpuOnly = false;
+#if defined(Q_OS_ANDROID)
+    QMetaObject::Connection m_appStateChangedConnection;
+#endif
 };
 
 }
 
-static QThreadStorage<State> g_state;
+static QThreadStorage<ThreadLocalRhiHolder> g_threadLocalRhiHolder;
 static QHash<QString, QShader> g_shaderCache;
 
 static const float g_quad[] = {
@@ -129,66 +195,6 @@ static void imageCleanupHandler(void *info)
 {
     QByteArray *imageData = reinterpret_cast<QByteArray *>(info);
     delete imageData;
-}
-
-static QRhi *initializeRHI(QRhi *videoFrameRhi)
-{
-    if (g_state.localData().rhi || g_state.localData().cpuOnly)
-        return g_state.localData().rhi.get();
-
-    QRhi::Implementation backend = videoFrameRhi ? videoFrameRhi->backend() : QRhi::Null;
-    const QPlatformIntegration *qpa = QGuiApplicationPrivate::platformIntegration();
-
-    if (qpa && qpa->hasCapability(QPlatformIntegration::RhiBasedRendering)) {
-
-#if QT_CONFIG(metal)
-        if (backend == QRhi::Metal || backend == QRhi::Null) {
-            QRhiMetalInitParams params;
-            g_state.localData().rhi.reset(QRhi::create(QRhi::Metal, &params));
-        }
-#endif
-
-#if defined(Q_OS_WIN)
-        if (backend == QRhi::D3D11 || backend == QRhi::Null) {
-            QRhiD3D11InitParams params;
-            g_state.localData().rhi.reset(QRhi::create(QRhi::D3D11, &params));
-        }
-#endif
-
-#if QT_CONFIG(opengl)
-        if (!g_state.localData().rhi && (backend == QRhi::OpenGLES2 || backend == QRhi::Null)) {
-            if (qpa->hasCapability(QPlatformIntegration::OpenGL)
-                    && qpa->hasCapability(QPlatformIntegration::RasterGLSurface)
-                    && !QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets)) {
-
-                g_state.localData().fallbackSurface.reset(
-                        QRhiGles2InitParams::newFallbackSurface());
-                QRhiGles2InitParams params;
-                params.fallbackSurface = g_state.localData().fallbackSurface.get();
-                if (backend == QRhi::OpenGLES2)
-                    params.shareContext = static_cast<const QRhiGles2NativeHandles*>(videoFrameRhi->nativeHandles())->context;
-                g_state.localData().rhi.reset(QRhi::create(QRhi::OpenGLES2, &params));
-
-#if defined(Q_OS_ANDROID)
-                // reset RHI state on application suspension, as this will be invalid after resuming
-                if (!g_state.localData().appStateChangedConnection) {
-                    g_state.localData().appStateChangedConnection = QObject::connect(qApp, &QGuiApplication::applicationStateChanged, qApp, [](auto state) {
-                        if (state == Qt::ApplicationSuspended)
-                            g_state.localData().resetRhi();
-                    });
-                }
-#endif
-            }
-        }
-#endif
-    }
-
-    if (!g_state.localData().rhi) {
-        g_state.localData().cpuOnly = true;
-        qWarning() << Q_FUNC_INFO << ": No RHI backend. Using CPU conversion.";
-    }
-
-    return g_state.localData().rhi.get();
 }
 
 static bool updateTextures(QRhi *rhi,
@@ -321,7 +327,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
         rhi = buffer->rhi();
 
     if (!rhi || !rhi->thread()->isCurrentThread())
-        rhi = initializeRHI(rhi);
+        rhi = g_threadLocalRhiHolder.localData().initializeRHI(rhi);
 
     if (!rhi || rhi->isRecordingFrame())
         return convertCPU(frame, transformation);
