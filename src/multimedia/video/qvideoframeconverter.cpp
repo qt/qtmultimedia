@@ -78,12 +78,17 @@ public:
                     // reset RHI state on application suspension, as this will be invalid after
                     // resuming
                     if (!m_appStateChangedConnection) {
+                        if (!m_eventsReceiver)
+                            m_eventsReceiver = std::make_unique<QObject>();
+
+                        auto onStateChanged = [this](auto state) {
+                            if (state == Qt::ApplicationSuspended)
+                                resetRhi();
+                        };
+
                         m_appStateChangedConnection =
                                 QObject::connect(qApp, &QGuiApplication::applicationStateChanged,
-                                                 qApp, [this](auto state) {
-                                                     if (state == Qt::ApplicationSuspended)
-                                                         resetRhi();
-                                                 });
+                                                 m_eventsReceiver.get(), onStateChanged);
                     }
 #  endif
                 }
@@ -115,12 +120,16 @@ private:
 #endif
     bool m_cpuOnly = false;
 #if defined(Q_OS_ANDROID)
+    std::unique_ptr<QObject> m_eventsReceiver;
+    // we keep and check QMetaObject::Connection because the sender, qApp,
+    // can be recreated and the connection invalidated.
     QMetaObject::Connection m_appStateChangedConnection;
 #endif
 };
 
 }
 
+// TODO: investigate if we should use thread_local instead, QTBUG-133565
 static QThreadStorage<ThreadLocalRhiHolder> g_threadLocalRhiHolder;
 static QHash<QString, QShader> g_shaderCache;
 
