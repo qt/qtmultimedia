@@ -18,8 +18,13 @@ QFFmpegResampler::QFFmpegResampler(const QAudioFormat &inputFormat,
     Q_ASSERT(inputFormat.isValid());
     Q_ASSERT(outputFormat.isValid());
 
-    m_resampler =
-            createResampleContext(AVAudioFormat(m_inputFormat), AVAudioFormat(m_outputFormat));
+    const auto inputAvFormat = AVAudioFormat(m_inputFormat);
+    const auto outputAvFormat = AVAudioFormat(m_outputFormat);
+
+    m_resampler = createResampleContext(inputAvFormat, outputAvFormat);
+
+    qCDebug(qLcResampler) << "Created QFFmpegResampler with offset" << m_startTime
+                          << "us. Converting from" << inputAvFormat << "to" << outputAvFormat;
 }
 
 QFFmpegResampler::QFFmpegResampler(const CodecContext *codecContext,
@@ -29,15 +34,19 @@ QFFmpegResampler::QFFmpegResampler(const CodecContext *codecContext,
 {
     Q_ASSERT(codecContext);
 
-    qCDebug(qLcResampler) << "createResampler";
     const AVStream *audioStream = codecContext->stream();
 
     if (!m_outputFormat.isValid())
         // want the native format
         m_outputFormat = QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(*audioStream->codecpar);
 
-    m_resampler = createResampleContext(AVAudioFormat(audioStream->codecpar),
-                                        AVAudioFormat(m_outputFormat));
+    const auto inputAvFormat = AVAudioFormat(audioStream->codecpar);
+    const auto outputAvFormat = AVAudioFormat(m_outputFormat);
+
+    m_resampler = createResampleContext(inputAvFormat, outputAvFormat);
+
+    qCDebug(qLcResampler).nospace() << "Created QFFmpegResampler. Offset: " << m_startTime
+                                    << "us. From: " << inputAvFormat << " to: " << outputAvFormat;
 }
 
 QFFmpegResampler::~QFFmpegResampler() = default;
@@ -70,8 +79,10 @@ QAudioBuffer QFFmpegResampler::resample(const uint8_t **inputData, int inputSamp
     const qint64 startTime = m_outputFormat.durationForFrames(m_samplesProcessed) + m_startTime;
     m_samplesProcessed += outSamples;
 
-    qCDebug(qLcResampler) << "    new frame" << startTime << "in_samples" << inputSamplesCount
-                          << outSamples << maxOutSamples;
+    qCDebug(qLcResampler).nospace()
+            << "Created output buffer. Time stamp: " << startTime
+            << "us. Samples in: " << inputSamplesCount
+            << ", Samples out: " << outSamples << ", Max samples: " << maxOutSamples;
     return QAudioBuffer(samples, m_outputFormat, startTime);
 }
 

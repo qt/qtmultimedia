@@ -183,7 +183,7 @@ qint64 AudioClient::render(const QAudioFormat &format, qreal volume, const char 
     Q_ASSERT(m_audioClient);
     Q_ASSERT(m_renderClient);
 
-    qCDebug(qLcAudioOutput) << "render()" << len;
+    qCDebug(qLcAudioOutput) << "render(). Buffer size:" << len << "bytes";
 
     auto framesAvailable = availableFrameCount();
     if (!framesAvailable)
