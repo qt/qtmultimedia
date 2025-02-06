@@ -17,6 +17,9 @@
 
 #include <QReadWriteLock>
 
+#include <optional>
+#include <unordered_map>
+
 QT_BEGIN_NAMESPACE
 
 template <typename T>
@@ -64,6 +67,36 @@ public:
 private:
     QReadWriteLock m_lock;
     std::optional<T> m_cached;
+};
+
+template <typename Key, typename Value>
+class QCachedValueMap
+{
+public:
+    QCachedValueMap() = default;
+
+    Q_DISABLE_COPY(QCachedValueMap)
+
+    template <typename Creator>
+    Value ensure(const Key &key, Creator &&creator)
+    {
+        {
+            QReadLocker locker(&m_lock);
+            auto it = m_map.find(key);
+            if (it != m_map.end())
+                return it->second;
+        }
+
+        {
+            QWriteLocker locker(&m_lock);
+            auto emplaceRes = m_map.try_emplace(key, creator());
+            return emplaceRes.first->second;
+        }
+    }
+
+private:
+    QReadWriteLock m_lock;
+    std::unordered_map<Key, Value> m_map;
 };
 
 QT_END_NAMESPACE
