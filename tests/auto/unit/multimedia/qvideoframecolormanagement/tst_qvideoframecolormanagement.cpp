@@ -11,6 +11,7 @@
 #include "private/qimagevideobuffer_p.h"
 #include "private/qvideoframe_p.h"
 #include "private/qvideotexturehelper_p.h"
+#include "private/qthreadlocalrhi_p.h"
 #include <private/qfileutil_p.h>
 #include <private/qmultimedia_enum_to_string_converter_p.h>
 #include <QtGui/QColorSpace>
@@ -173,13 +174,22 @@ std::vector<RenderingMode> renderingModes(QVideoFrameFormat::PixelFormat pixelFo
     if (supportsCpuConversion(pixelFormat))
         result.push_back(RenderingMode::Cpu); // Only run tests on GPU if RHI is supported
     if (isRhiRenderingSupported()) {
+        QRhi *rhi = ensureThreadLocalRhi();
+        QTEST_ASSERT(rhi);
+
         result.push_back(RenderingMode::Rhi);
 
-        // TODO: add Rhi_R8_Excluded and Rhi_R8_RG8_Excluded to the test
-        // result.push_back(RenderingMode::Rhi_R8_Excluded);
-        // result.push_back(RenderingMode::Rhi_R8_RG8_Excluded);
+        // We want to emulate excluding QRhi formats only if those are
+        // supported by the rhi.
+        if (rhi->isTextureFormatSupported(QRhiTexture::R8))
+            result.push_back(RenderingMode::Rhi_R8_Excluded);
 
-        result.push_back(RenderingMode::Rhi_RG8_Excluded);
+        if (rhi->isTextureFormatSupported(QRhiTexture::RG8))
+            result.push_back(RenderingMode::Rhi_RG8_Excluded);
+
+        if (rhi->isTextureFormatSupported(QRhiTexture::R8)
+            && rhi->isTextureFormatSupported(QRhiTexture::RG8))
+            result.push_back(RenderingMode::Rhi_R8_RG8_Excluded);
     }
     return result;
 }
