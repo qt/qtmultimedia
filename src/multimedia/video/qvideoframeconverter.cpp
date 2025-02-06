@@ -7,6 +7,7 @@
 #include "qvideoframe_p.h"
 #include "qmultimediautils_p.h"
 #include "qthreadlocalrhi_p.h"
+#include "qcachedvalue_p.h"
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qsize.h>
@@ -28,8 +29,6 @@ QT_BEGIN_NAMESPACE
 Q_STATIC_LOGGING_CATEGORY(qLcVideoFrameConverter, "qt.multimedia.video.frameconverter")
 
 // TODO: investigate if we should use thread_local instead, QTBUG-133565
-static QHash<QString, QShader> g_shaderCache;
-
 static const float g_quad[] = {
     // Rotation 0 CW
     1.f, -1.f,   1.f, 1.f,
@@ -70,20 +69,14 @@ static bool pixelFormatHasAlpha(QVideoFrameFormat::PixelFormat format)
     }
 };
 
-static QShader vfcGetShader(const QString &name)
+static QShader ensureShader(const QString &name)
 {
-    QShader shader = g_shaderCache.value(name);
-    if (shader.isValid())
-        return shader;
+    static QCachedValueMap<QString, QShader> shaderCache;
 
-    QFile f(name);
-    if (f.open(QIODevice::ReadOnly))
-        shader = QShader::fromSerialized(f.readAll());
-
-    if (shader.isValid())
-        g_shaderCache[name] = shader;
-
-    return shader;
+    return shaderCache.ensure(name, [&name]() {
+        QFile f(name);
+        return f.open(QIODevice::ReadOnly) ? QShader::fromSerialized(f.readAll()) : QShader();
+    });
 }
 
 static void rasterTransform(QImage &image, VideoTransformation transformation)
@@ -130,11 +123,11 @@ static bool updateTextures(QRhi *rhi,
     graphicsPipeline.reset(rhi->newGraphicsPipeline());
     graphicsPipeline->setTopology(QRhiGraphicsPipeline::TriangleStrip);
 
-    QShader vs = vfcGetShader(QVideoTextureHelper::vertexShaderFileName(format));
+    QShader vs = ensureShader(QVideoTextureHelper::vertexShaderFileName(format));
     if (!vs.isValid())
         return false;
 
-    QShader fs = vfcGetShader(QVideoTextureHelper::fragmentShaderFileName(format, rhi));
+    QShader fs = ensureShader(QVideoTextureHelper::fragmentShaderFileName(format, rhi));
     if (!fs.isValid())
         return false;
 
