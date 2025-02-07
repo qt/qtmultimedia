@@ -14,11 +14,11 @@
 
 
 #include "qwindowsaudiosource_p.h"
-#include "qwindowsmultimediautils_p.h"
 #include "qcomtaskresource_p.h"
 
 #include <QtCore/QDataStream>
 #include <QtCore/qtimer.h>
+#include <QtCore/private/qsystemerror_p.h>
 
 #include <private/qaudiohelpers_p.h>
 
@@ -31,7 +31,6 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcAudioSource, "qt.multimedia.audiosource");
 
-using namespace QWindowsMultimediaUtils;
 using namespace QWindowsAudioUtils;
 
 class OurSink : public QIODevice
@@ -137,7 +136,7 @@ QByteArray QWindowsAudioSource::readCaptureClientBuffer()
     DWORD flags = 0;
     HRESULT hr = m_captureClient->GetBuffer(&data, &actualFrames, &flags, nullptr, nullptr);
     if (FAILED(hr)) {
-        qWarning() << "IAudioCaptureClient::GetBuffer failed" << errorString(hr);
+        qWarning() << "IAudioCaptureClient::GetBuffer failed" << QSystemError::windowsComString(hr);
         deviceStateChange(QAudio::IdleState, QAudio::IOError);
         return {};
     }
@@ -158,7 +157,7 @@ QByteArray QWindowsAudioSource::readCaptureClientBuffer()
 
     hr = m_captureClient->ReleaseBuffer(actualFrames);
     if (FAILED(hr)) {
-        qWarning() << "IAudioCaptureClient::ReleaseBuffer failed" << errorString(hr);
+        qWarning() << "IAudioCaptureClient::ReleaseBuffer failed" << QSystemError::windowsComString(hr);
         deviceStateChange(QAudio::IdleState, QAudio::IOError);
         return {};
     }
@@ -258,14 +257,14 @@ bool QWindowsAudioSource::open()
     HRESULT hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER,
                                     nullptr, (void**)m_audioClient.GetAddressOf());
     if (FAILED(hr)) {
-        qCWarning(qLcAudioSource) << "Failed to activate audio device" << errorString(hr);
+        qCWarning(qLcAudioSource) << "Failed to activate audio device" << QSystemError::windowsComString(hr);
         return false;
     }
 
     QComTaskResource<WAVEFORMATEX> pwfx;
     hr = m_audioClient->GetMixFormat(pwfx.address());
     if (FAILED(hr)) {
-        qCWarning(qLcAudioSource) << "Format unsupported" << errorString(hr);
+        qCWarning(qLcAudioSource) << "Format unsupported" << QSystemError::windowsComString(hr);
         return false;
     }
 
@@ -283,7 +282,7 @@ bool QWindowsAudioSource::open()
                                    nullptr);
 
     if (FAILED(hr)) {
-        qCWarning(qLcAudioSource) << "Failed to initialize audio client" << errorString(hr);
+        qCWarning(qLcAudioSource) << "Failed to initialize audio client" << QSystemError::windowsComString(hr);
         return false;
     }
 
@@ -298,7 +297,7 @@ bool QWindowsAudioSource::open()
 
     hr = m_audioClient->GetService(IID_PPV_ARGS(m_captureClient.GetAddressOf()));
     if (FAILED(hr)) {
-        qCWarning(qLcAudioSource) << "Failed to obtain audio client rendering service" << errorString(hr);
+        qCWarning(qLcAudioSource) << "Failed to obtain audio client rendering service" << QSystemError::windowsComString(hr);
         return false;
     }
 

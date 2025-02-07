@@ -5,7 +5,6 @@
 #include "qffmpegsurfacecapturegrabber_p.h"
 #include "qabstractvideobuffer.h"
 #include <private/qmultimediautils_p.h>
-#include <private/qwindowsmultimediautils_p.h>
 #include <private/qvideoframe_p.h>
 #include <qtgui/qscreen_platform.h>
 #include "qvideoframe.h"
@@ -13,6 +12,7 @@
 #include <qloggingcategory.h>
 #include <qwaitcondition.h>
 #include <qmutex.h>
+#include <QtCore/private/qsystemerror_p.h>
 
 #include "D3d11.h"
 #include "dxgi1_2.h"
@@ -28,7 +28,6 @@ QT_BEGIN_NAMESPACE
 Q_STATIC_LOGGING_CATEGORY(qLcScreenCaptureDxgi, "qt.multimedia.ffmpeg.screencapturedxgi");
 
 using namespace std::chrono;
-using namespace QWindowsMultimediaUtils;
 using namespace Qt::StringLiterals;
 
 namespace {
@@ -53,8 +52,8 @@ public:
     QString str() const
     {
         if (!m_msg)
-            return errorString(m_hr);
-        return *m_msg + u" " + errorString(m_hr);
+            return QSystemError::windowsComString(m_hr);
+        return *m_msg + u" " + QSystemError::windowsComString(m_hr);
     }
 
 private:

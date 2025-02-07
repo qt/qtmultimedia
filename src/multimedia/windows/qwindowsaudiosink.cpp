@@ -14,12 +14,12 @@
 
 #include "qwindowsaudiosink_p.h"
 #include "qwindowsaudioutils_p.h"
-#include "qwindowsmultimediautils_p.h"
 #include "qcomtaskresource_p.h"
 
 #include <QtCore/qtimer.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/private/qsystemerror_p.h>
 
 #include <private/qaudiohelpers_p.h>
 
@@ -30,7 +30,6 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcAudioOutput, "qt.multimedia.audiooutput");
 
-using namespace QWindowsMultimediaUtils;
 using namespace QWindowsAudioUtils;
 
 class OutputPrivate : public QIODevice
@@ -71,14 +70,14 @@ bool AudioClient::create(qsizetype &bufferSize)
     HRESULT hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
                                     reinterpret_cast<void**>(m_audioClient.GetAddressOf()));
     if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to activate audio device" << errorString(hr);
+        qCWarning(qLcAudioOutput) << "Failed to activate audio device" << QSystemError::windowsComString(hr);
         return false;
     }
 
     QComTaskResource<WAVEFORMATEX> mixFormat;
     hr = m_audioClient->GetMixFormat(mixFormat.address());
     if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Format unsupported" << errorString(hr);
+        qCWarning(qLcAudioOutput) << "Format unsupported" << QSystemError::windowsComString(hr);
         return false;
     }
 
@@ -97,7 +96,7 @@ bool AudioClient::create(qsizetype &bufferSize)
                                    nullptr);
 
     if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to initialize audio client" << errorString(hr);
+        qCWarning(qLcAudioOutput) << "Failed to initialize audio client" << QSystemError::windowsComString(hr);
         return false;
     }
 
@@ -113,7 +112,7 @@ bool AudioClient::create(qsizetype &bufferSize)
     hr = m_audioClient->GetService(IID_PPV_ARGS(m_renderClient.GetAddressOf()));
     if (FAILED(hr)) {
         qCWarning(qLcAudioOutput) << "Failed to obtain audio client rendering service"
-                                  << errorString(hr);
+                                  << QSystemError::windowsComString(hr);
         return false;
     }
 
@@ -199,7 +198,7 @@ qint64 AudioClient::render(const QAudioFormat &format, qreal volume, const char 
     quint8 *buffer = nullptr;
     HRESULT hr = m_renderClient->GetBuffer(writeFramesNum, &buffer);
     if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to get buffer" << errorString(hr);
+        qCWarning(qLcAudioOutput) << "Failed to get buffer" << QSystemError::windowsComString(hr);
         return -1;
     }
 
@@ -212,7 +211,7 @@ qint64 AudioClient::render(const QAudioFormat &format, qreal volume, const char 
     DWORD flags = writeBytes.isEmpty() ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
     hr = m_renderClient->ReleaseBuffer(writeFramesNum, flags);
     if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to return buffer" << errorString(hr);
+        qCWarning(qLcAudioOutput) << "Failed to return buffer" << QSystemError::windowsComString(hr);
         return -1;
     }
     return writeSize;

@@ -35,9 +35,9 @@ auto wait_for(Async const& async, Windows::Foundation::TimeSpan const& timeout);
 #include <qloggingcategory.h>
 #include <qguiapplication.h>
 #include <private/qmultimediautils_p.h>
-#include <private/qwindowsmultimediautils_p.h>
 #include <private/qcapturablewindow_p.h>
 #include <qpa/qplatformscreen_p.h>
+#include <QtCore/private/qsystemerror_p.h>
 
 #include <memory>
 #include <system_error>
@@ -50,7 +50,6 @@ using namespace winrt::Windows::Graphics::Capture;
 using namespace winrt::Windows::Graphics::DirectX;
 using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 using namespace Windows::Graphics::DirectX::Direct3D11;
-using namespace QWindowsMultimediaUtils;
 
 using winrt::check_hresult;
 using winrt::com_ptr;
@@ -111,7 +110,8 @@ public:
 
                 return md;
             } else {
-                qCDebug(qLcWindowCaptureUwp) << "Failed to map DXGI surface" << errorString(hr);
+                qCDebug(qLcWindowCaptureUwp)
+                        << "Failed to map DXGI surface" << QSystemError::windowsComString(hr);
                 return {};
             }
         }
@@ -126,7 +126,8 @@ public:
 
         const HRESULT hr = m_surface->Unmap();
         if (FAILED(hr))
-            qCDebug(qLcWindowCaptureUwp) << "Failed to unmap surface" << errorString(hr);
+            qCDebug(qLcWindowCaptureUwp)
+                    << "Failed to unmap surface" << QSystemError::windowsComString(hr);
 
         m_mapMode = QVideoFrame::NotMapped;
     }
