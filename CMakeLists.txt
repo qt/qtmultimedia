@@ -17,6 +17,11 @@ find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS BuildInternals Co
 find_package(Qt6 ${PROJECT_VERSION} QUIET CONFIG OPTIONAL_COMPONENTS Network Svg Widgets Quick Qml QuickTest QuickControls2 Quick3D)
 qt_internal_project_setup()
 
+if(QNX AND CMAKE_SYSTEM_VERSION GREATER_EQUAL 800)
+    message(NOTICE "Skipping the build as multimedia is not supported on QNX8.0.")
+    return()
+endif()
+
 include(src/multimedia/Qt6MultimediaMacros.cmake)
 
 set(QT_BUILD_EXTRA_IDE_FILE_PATTERNS
