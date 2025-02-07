@@ -16,6 +16,7 @@
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qt_windows.h>
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/private/qsystemerror_p.h>
 
 #include <QtMultimedia/private/qaudioformat_p.h>
@@ -33,6 +34,8 @@
 QT_BEGIN_NAMESPACE
 
 namespace {
+
+Q_STATIC_LOGGING_CATEGORY(qLcAudioDeviceProbes, "qt.multimedia.audiodevice.probes");
 
 std::optional<EndpointFormFactor> inferFormFactor(const ComPtr<IPropertyStore> &propertyStore)
 {
@@ -102,6 +105,18 @@ struct FormatProbeResult
     std::set<QAudioFormat::SampleFormat> supportedSampleFormats;
     std::pair<int, int> channelCountRange{ std::numeric_limits<int>::max(), 0 };
     std::pair<int, int> sampleRateRange{ std::numeric_limits<int>::max(), 0 };
+
+    friend QDebug operator<<(QDebug dbg, const FormatProbeResult& self)
+    {
+        QDebugStateSaver saver(dbg);
+        dbg.nospace();
+
+        dbg << "FormatProbeResult{supportedSampleFormats: " << self.supportedSampleFormats
+            << ", channelCountRange: " << self.channelCountRange.first << " - " << self.channelCountRange.second
+            << ", sampleRateRange: " << self.sampleRateRange.first << "-" << self.sampleRateRange.second
+            << "}";
+        return dbg;
+    }
 };
 
 std::optional<int> inferMaxNumberOfChannelsForSampleRate(const ComPtr<IAudioClient> &audioClient,
@@ -151,6 +166,8 @@ std::optional<FormatProbeResult> probeFormats(const ComPtr<IAudioClient> &audioC
             propertyStore ? inferFormFactor(propertyStore) : std::nullopt;
     int maxChannelsForFormFactor = formFactor ? maxChannelCountForFormFactor(*formFactor) : 128;
 
+    qCDebug(qLcAudioDeviceProbes) << "probing: maxChannelsForFormFactor" << maxChannelsForFormFactor << formFactor;
+
     std::optional<FormatProbeResult> limits;
     for (QAudioFormat::SampleFormat sampleFormat : QtPrivate::allSupportedSampleFormats) {
         for (int sampleRate : QtPrivate::allSupportedSampleRates) {
@@ -160,6 +177,8 @@ std::optional<FormatProbeResult> probeFormats(const ComPtr<IAudioClient> &audioC
             // probe for.
             std::optional<int> maxChannelForFormat = inferMaxNumberOfChannelsForSampleRate(
                     audioClient, sampleFormat, sampleRate, maxChannelsForFormFactor);
+
+            qCDebug(qLcAudioDeviceProbes) << "probing: maxChannelForFormat" << sampleFormat << sampleRate << maxChannelForFormat;
 
             if (!maxChannelForFormat)
                 continue;
@@ -174,23 +193,34 @@ std::optional<FormatProbeResult> probeFormats(const ComPtr<IAudioClient> &audioC
                 if (!formatEx)
                     continue;
 
+                qCDebug(qLcAudioDeviceProbes) << "probing" << fmt;
+
                 QComTaskResource<WAVEFORMATEX> closestMatch;
                 HRESULT result = audioClient->IsFormatSupported(
                         AUDCLNT_SHAREMODE_SHARED, &formatEx->Format, closestMatch.address());
 
-                if (FAILED(result))
+                if (FAILED(result)) {
+                    qCDebug(qLcAudioDeviceProbes) << "probing format failed"
+                                                  << QSystemError::windowsComString(result);
                     continue;
+                }
 
-                if (closestMatch)
+                if (closestMatch) {
+                    qCDebug(qLcAudioDeviceProbes) << "probing format reported a closest match"
+                                                  << waveFormatExToFormat(*closestMatch);
                     continue; // we don't have an exact match, but just something close by
+                }
 
                 if (!limits)
                     limits = FormatProbeResult{};
 
+                qCDebug(qLcAudioDeviceProbes) << "probing format successful" << fmt;
                 limits->update(fmt);
             }
         }
     }
+
+    qCDebug(qLcAudioDeviceProbes) << "probing successful" << limits;
 
     return limits;
 }
@@ -259,6 +289,8 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevic
                    << QSystemError::windowsComString(hr);
         props.Reset();
     }
+
+    qCDebug(qLcAudioDeviceProbes) << "probing formats for" << description;
 
     std::optional<FormatProbeResult> probedFormats = probeFormats(audioClient, props);
     if (probedFormats) {
