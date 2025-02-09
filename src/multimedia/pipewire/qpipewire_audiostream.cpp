@@ -19,6 +19,12 @@
 #  define PW_KEY_NODE_FORCE_QUANTUM "node.force-quantum"
 #endif
 
+#if !PW_CHECK_VERSION(0, 3, 50)
+extern "C" {
+int pw_stream_get_time_n(struct pw_stream *stream, struct pw_time *time, size_t size);
+}
+#endif
+
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
@@ -155,6 +161,47 @@ void QPipewireAudioStream::unregisterDeviceObserver()
     Q_ASSERT(m_deviceRemovalObserver);
     QAudioContextManager::deviceMonitor().unregisterObserver(m_deviceRemovalObserver);
     m_deviceRemovalObserver = {};
+}
+
+void QPipewireAudioStream::performXRunDetection(uint64_t framesPerBuffer) QT_PIPEWIRE_NONBLOCKING
+{
+    struct pw_time time_info = {};
+    int status = pw_stream_get_time_n(m_stream.get(), &time_info, sizeof(pw_time));
+    if (status < 0) {
+        if (pw_check_library_version(0, 3, 50))
+            return; // no xrun detection on ancient pipewire
+
+        qFatal() << "pw_stream_get_time_n failed. This should not happen";
+        return;
+    }
+
+    if (std::abs(int64_t(m_expectedNextTick) - int64_t(time_info.ticks)) > 1024) {
+        m_totalNumberOfFrames = time_info.ticks;
+        m_xrunCount += 1;
+        xrunOccurred(m_xrunCount);
+    }
+
+    // CAVEAT:
+    // counts `ticks` in the device rates, which may be different to the rate the stream is
+    // running in. We therefore cannot do any precise xrun detection with this technique, but
+    // only to a best effort.
+    // TODO: can we use profiler events?
+    double rateFactor = double(time_info.rate.num) / time_info.rate.denom * m_format.sampleRate();
+
+#if PW_CHECK_VERSION(1, 1, 0)
+    if (pw_check_library_version(1, 1, 0)) {
+        // LATER: rely on time_info.size, once 1.1 is the minimum required version
+        Q_ASSERT(time_info.size == framesPerBuffer);
+        m_expectedNextTick = time_info.ticks + (time_info.size * rateFactor);
+        return;
+    }
+#endif
+    m_expectedNextTick = time_info.ticks + (framesPerBuffer * rateFactor);
+}
+
+void QPipewireAudioStream::addFramesHandled(uint64_t arg)
+{
+    m_totalNumberOfFrames += arg;
 }
 
 } // namespace QtPipeWire

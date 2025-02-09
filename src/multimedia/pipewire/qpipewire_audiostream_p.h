@@ -16,7 +16,7 @@
 //
 
 #include <QtCore/qglobal.h>
-#include "QtMultimedia/qaudioformat.h"
+#include <QtMultimedia/qaudioformat.h>
 
 #include "qpipewire_audiodevicemonitor_p.h"
 #include "qpipewire_support_p.h"
@@ -66,6 +66,18 @@ protected:
     void unregisterDeviceObserver();
     virtual void handleDeviceRemoved() = 0;
     SharedObjectRemoveObserver m_deviceRemovalObserver;
+
+    // xrun detector
+    // CAVEAT: has to be called at the beginning of a render callback
+    // streams will have to increment m_totalNumberOfFrames internally
+    void performXRunDetection(uint64_t framesPerBuffer) QT_PIPEWIRE_NONBLOCKING;
+    virtual void xrunOccurred(int xrunCount) = 0;
+    uint64_t m_expectedNextTick{};
+    std::atomic_int m_xrunCount{ 0 };
+
+    // total samples delivered from/sent to the backend
+    void addFramesHandled(uint64_t);
+    uint64_t m_totalNumberOfFrames{};
 };
 
 } // namespace QtPipeWire

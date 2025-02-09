@@ -21,12 +21,6 @@
 
 #include <thread>
 
-#if !PW_CHECK_VERSION(0, 3, 50)
-extern "C" {
-int pw_stream_get_time_n(struct pw_stream *stream, struct pw_time *time, size_t size);
-}
-#endif
-
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
@@ -111,12 +105,10 @@ private:
     void queueBuffer(struct pw_buffer *b, uint64_t samplesWritten) QT_PIPEWIRE_NONBLOCKING;
 
     // xrun detection
-    void performXRunDetection(uint64_t numberOfFrames) QT_PIPEWIRE_NONBLOCKING;
-    QAutoResetEvent m_xrunOccurred;
-    uint64_t m_expectedNextTick{};
-    uint64_t m_totalNumberOfFrames{};
-    std::atomic_int m_xrunCount{ 0 };
+    void xrunOccurred(int /*xrunCount*/) override { m_xrunOccurred.set(); }
+    QtPrivate::QAutoResetEvent m_xrunOccurred;
     QMetaObject::Connection m_xrunNotification;
+
     [[maybe_unused]] static void fakeXRun();
 
     // "idle state" detection
@@ -382,10 +374,6 @@ void QPipewireAudioSinkStream::process() QT_PIPEWIRE_NONBLOCKING
             ? samplesWritten / m_format.channelCount()
             : numberOfFrames;
 
-    m_totalNumberOfFrames += samplesWritten < requestedSamples
-            ? samplesWritten / m_format.channelCount()
-            : numberOfFrames;
-
     if (!stopRequested) {
         performIdleDetection(samplesWritten, requestedSamples);
 
@@ -393,10 +381,7 @@ void QPipewireAudioSinkStream::process() QT_PIPEWIRE_NONBLOCKING
             // ringbuffer empty, we fill the rest with zero
             std::fill(writeBuffer.begin(), writeBuffer.end(), std::byte{ 0 });
             uint64_t zeroSamples = writeBuffer.size() / m_format.bytesPerSample();
-            uint64_t zeroFrames = zeroSamples / m_format.channelCount();
-
             samplesWritten += zeroSamples;
-            m_totalNumberOfFrames += zeroFrames;
         }
     } else {
         if (samplesWritten < requestedSamples) {
@@ -408,6 +393,7 @@ void QPipewireAudioSinkStream::process() QT_PIPEWIRE_NONBLOCKING
     }
 
     queueBuffer(b, samplesWritten);
+    addFramesHandled(samplesWritten);
 }
 
 void QPipewireAudioSinkStream::stateChanged(pw_stream_state oldState, pw_stream_state state,
@@ -484,43 +470,6 @@ void QPipewireAudioSinkStream::queueBuffer(pw_buffer *b,
     buf->datas[0].chunk->size = samplesWritten * m_format.bytesPerSample();
 
     pw_stream_queue_buffer(m_stream.get(), b);
-}
-
-void QPipewireAudioSinkStream::performXRunDetection(uint64_t numberOfFrames) QT_PIPEWIRE_NONBLOCKING
-{
-    struct pw_time time_info{};
-    int status = pw_stream_get_time_n(m_stream.get(), &time_info, sizeof(pw_time));
-    if (status < 0) {
-        if (pw_check_library_version(0, 3, 50))
-            return; // no xrun detection on ancient pipewire
-
-        qFatal() << "pw_stream_get_time_n failed. This should not happen";
-        return;
-    }
-
-    if (std::abs(int64_t(m_expectedNextTick) - int64_t(time_info.ticks)) > 1024) {
-        m_totalNumberOfFrames = time_info.ticks;
-        m_xrunCount += 1;
-        m_xrunOccurred.set();
-    }
-
-    // CAVEAT:
-    // counts `ticks` in the device rates, which may be different to the rate the stream is running
-    // in.
-    // We therefore cannot do any precise xrun detection with this technique, but only to a best
-    // effort.
-    // TODO: can we use profiler events?
-    double rateFactor = double(time_info.rate.num) / time_info.rate.denom * m_format.sampleRate();
-
-#if PW_CHECK_VERSION(1, 1, 0)
-    if (pw_check_library_version(1, 1, 0)) {
-        // LATER: rely on time_info.size, once 1.1 is the minimum required version
-        Q_ASSERT(time_info.size == numberOfFrames);
-        m_expectedNextTick = time_info.ticks + (time_info.size * rateFactor);
-        return;
-    }
-#endif
-    m_expectedNextTick = time_info.ticks + (numberOfFrames * rateFactor);
 }
 
 void QPipewireAudioSinkStream::fakeXRun()
