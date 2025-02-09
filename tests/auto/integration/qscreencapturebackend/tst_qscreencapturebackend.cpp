@@ -341,7 +341,7 @@ void tst_QScreenCaptureBackend::removeWhileCapture(
     QVERIFY2(framesSpy.empty(), "No frames expected after screen removal");
 }
 
-int getStatusBarHeight(const qreal pixelRatio = 1)
+int getStatusBarHeight([[maybe_unused]] const qreal pixelRatio = 1)
 {
 #ifdef Q_OS_ANDROID
 
