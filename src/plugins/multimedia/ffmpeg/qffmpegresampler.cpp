@@ -6,6 +6,7 @@
 #include <qloggingcategory.h>
 
 static Q_LOGGING_CATEGORY(qLcResampler, "qt.multimedia.ffmpeg.resampler")
+static Q_LOGGING_CATEGORY(qLcResamplerTrace, "qt.multimedia.ffmpeg.resampler.trace")
 
 QT_BEGIN_NAMESPACE
 
@@ -78,7 +79,7 @@ QAudioBuffer QFFmpegResampler::resample(const uint8_t **inputData, int inputSamp
     const qint64 startTime = m_outputFormat.durationForFrames(m_samplesProcessed) + m_startTime;
     m_samplesProcessed += outSamples;
 
-    qCDebug(qLcResampler).nospace()
+    qCDebug(qLcResamplerTrace).nospace()
             << "Created output buffer. Time stamp: " << startTime
             << "us. Samples in: " << inputSamplesCount
             << ", Samples out: " << outSamples << ", Max samples: " << maxOutSamples;
