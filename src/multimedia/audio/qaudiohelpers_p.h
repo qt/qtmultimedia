@@ -35,7 +35,49 @@ void applyVolume(float volume,
                  QSpan<const std::byte> source,
                  QSpan<std::byte> destination) QT_MM_NONBLOCKING;
 
+enum class NativeSampleFormat : uint8_t {
+    uint8_t,
+    int16_t,
+    int32_t,
+    int24_t_3b, // 3 byte lsb
+    int24_t_4b_low, // 4 byte
+    float32_t,
+};
+
+Q_MULTIMEDIA_EXPORT
+void convertSampleFormat(QSpan<const std::byte> source, NativeSampleFormat sourceFormat,
+                         QSpan<std::byte> destination,
+                         NativeSampleFormat destinationFormat) QT_MM_NONBLOCKING;
+
+Q_MULTIMEDIA_EXPORT
+NativeSampleFormat bestNativeSampleFormat(const QAudioFormat &fmt,
+                                          QSpan<const NativeSampleFormat> supportedNativeFormats);
+QAudioFormat::SampleFormat bestSampleFormat(NativeSampleFormat);
+
+NativeSampleFormat toNativeSampleFormat(QAudioFormat::SampleFormat);
+
+constexpr size_t bytesPerSample(NativeSampleFormat fmt) QT_MM_NONBLOCKING
+{
+    switch (fmt) {
+    case NativeSampleFormat::uint8_t:
+        return 1;
+    case NativeSampleFormat::int16_t:
+        return 2;
+    case NativeSampleFormat::int24_t_3b:
+        return 3;
+    case NativeSampleFormat::int24_t_4b_low:
+    case NativeSampleFormat::float32_t:
+    case NativeSampleFormat::int32_t:
+        return 4;
+    default:
+        Q_UNREACHABLE_RETURN(0);
+    }
+}
+
 } // namespace QAudioHelperInternal
+
+Q_MULTIMEDIA_EXPORT
+QDebug operator<<(QDebug dbg, QAudioHelperInternal::NativeSampleFormat);
 
 QT_END_NAMESPACE
 
