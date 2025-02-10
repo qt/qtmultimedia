@@ -86,7 +86,10 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
     if (m_level == 0.0)
         return;
 
-    const int pos = qRound(qreal(frame.width() - 1) * m_level);
+    float remappedLevel = QtAudio::convertVolume(m_level, QtAudio::LinearVolumeScale,
+                                                 QtAudio::LogarithmicVolumeScale);
+
+    const int pos = qRound(qreal(frame.width() - 1) * remappedLevel);
     painter.fillRect(frame.left() + 1, frame.top() + 1, pos, frame.height() - 1, Qt::red);
 }
 
