@@ -253,19 +253,14 @@ void QAudioDeviceMonitor::PendingRecords::removeRecordsForObject(ObjectSerial id
 
 template <QAudioDeviceMonitor::Direction Mode>
 std::optional<ObjectSerial>
-QAudioDeviceMonitor::findNodeSerialForDevice(std::string_view deviceName) const
+QAudioDeviceMonitor::findNodeSerialForNodeName(std::string_view nodeName) const
 {
-    // find device by name
-    std::optional<ObjectSerial> deviceSerial = findDeviceSerial(deviceName);
-
-    if (!deviceSerial)
-        return std::nullopt;
-
+    // find node by name
     QReadLocker guard(&m_mutex);
 
     QSpan records = Mode == Direction::sink ? QSpan{ m_sinks } : QSpan{ m_sources };
     auto it = std::find_if(records.begin(), records.end(), [&](const NodeRecord &sink) {
-        return sink.deviceSerial == *deviceSerial;
+        return getNodeName(sink.properties) == nodeName;
     });
 
     if (it == records.end())
@@ -273,16 +268,15 @@ QAudioDeviceMonitor::findNodeSerialForDevice(std::string_view deviceName) const
     return it->serial;
 }
 
-std::optional<ObjectSerial>
-QAudioDeviceMonitor::findSinkNodeSerial(std::string_view deviceName) const
+std::optional<ObjectSerial> QAudioDeviceMonitor::findSinkNodeSerial(std::string_view nodeName) const
 {
-    return findNodeSerialForDevice<Direction::sink>(deviceName);
+    return findNodeSerialForNodeName<Direction::sink>(nodeName);
 }
 
 std::optional<ObjectSerial>
-QAudioDeviceMonitor::findSourceNodeSerial(std::string_view deviceName) const
+QAudioDeviceMonitor::findSourceNodeSerial(std::string_view nodeName) const
 {
-    return findNodeSerialForDevice<Direction::source>(deviceName);
+    return findNodeSerialForNodeName<Direction::source>(nodeName);
 }
 
 template <QAudioDeviceMonitor::Direction Mode>

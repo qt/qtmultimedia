@@ -381,7 +381,7 @@ void QPipewireAudioSource::startHelper(Functor &&starter)
 
     std::optional<ObjectSerial> deviceSerial = findSourceNodeSerial();
     if (!deviceSerial) {
-        qWarning() << "Cannot find device: " << privateDevice()->deviceName();
+        qWarning() << "Cannot find device: " << privateDevice()->nodeName();
         updateError(QtAudio::Error::OpenError);
         return;
     }
@@ -478,11 +478,11 @@ qsizetype QPipewireAudioSource::bytesReady() const
 
 std::optional<ObjectSerial> QPipewireAudioSource::findSourceNodeSerial()
 {
-    QByteArray deviceName = privateDevice()->deviceName();
+    QByteArray nodeName = privateDevice()->nodeName();
 
     return QAudioContextManager::deviceMonitor().findSourceNodeSerial(std::string_view{
-            deviceName.data(),
-            size_t(deviceName.size()),
+            nodeName.data(),
+            size_t(nodeName.size()),
     });
 }
 

@@ -74,8 +74,8 @@ public:
     void setDefaultAudioSink(std::variant<QByteArray, NoDefaultDeviceType>);
     void setDefaultAudioSource(std::variant<QByteArray, NoDefaultDeviceType>);
 
-    std::optional<ObjectSerial> findSinkNodeSerial(std::string_view deviceName) const;
-    std::optional<ObjectSerial> findSourceNodeSerial(std::string_view deviceName) const;
+    std::optional<ObjectSerial> findSinkNodeSerial(std::string_view nodeName) const;
+    std::optional<ObjectSerial> findSourceNodeSerial(std::string_view nodeName) const;
 
     // ObjectId/ObjectSerial mapping
     std::optional<ObjectId> findObjectId(ObjectSerial);
@@ -164,7 +164,7 @@ private:
     std::optional<ObjectSerial> findDeviceSerial(std::string_view deviceName) const;
 
     template <Direction>
-    std::optional<ObjectSerial> findNodeSerialForDevice(std::string_view deviceName) const;
+    std::optional<ObjectSerial> findNodeSerialForNodeName(std::string_view nodeName) const;
 
     // ObjectId/ObjectSerial mapping
     // CHECK: can we completely rely on only accessing ObjectId under the pipewire event loop lock?

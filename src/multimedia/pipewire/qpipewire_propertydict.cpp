@@ -113,6 +113,11 @@ std::optional<std::string_view> getNodeName(const PwPropertyDict &dict)
     return resolveInDictionary(dict, PW_KEY_NODE_NAME);
 }
 
+std::optional<std::string_view> getNodeDescription(const PwPropertyDict &dict)
+{
+    return resolveInDictionary(dict, PW_KEY_NODE_DESCRIPTION);
+}
+
 std::optional<ObjectId> getDeviceId(const PwPropertyDict &dict)
 {
     auto resolvedUint32 = resolveInDictionary<uint32_t>(dict, PW_KEY_DEVICE_ID);

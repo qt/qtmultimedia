@@ -46,6 +46,8 @@ PwPropertyDict toPropertyDict(const spa_dict &);
 std::optional<std::string_view> getMediaClass(const PwPropertyDict &);
 // PW_KEY_NODE_NAME
 std::optional<std::string_view> getNodeName(const PwPropertyDict &);
+// PW_KEY_NODE_DESCRIPTION
+std::optional<std::string_view> getNodeDescription(const PwPropertyDict &);
 // PW_KEY_DEVICE_SYSFS_PATH
 std::optional<std::string_view> getDeviceSysfsPath(const PwPropertyDict &);
 // PW_KEY_DEVICE_NAME

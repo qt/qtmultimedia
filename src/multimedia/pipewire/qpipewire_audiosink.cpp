@@ -525,7 +525,7 @@ void QPipewireAudioSink::startHelper(Functor &&starter)
 
     std::optional<ObjectSerial> deviceSerial = findSinkNodeSerial();
     if (!deviceSerial) {
-        qWarning() << "Cannot find device: " << privateDevice()->deviceName();
+        qWarning() << "Cannot find device: " << privateDevice()->nodeName();
         updateError(QtAudio::Error::OpenError);
         return;
     }
@@ -626,11 +626,11 @@ void QPipewireAudioSink::reportXRuns(int numberOfXruns)
 
 std::optional<ObjectSerial> QPipewireAudioSink::findSinkNodeSerial()
 {
-    QByteArray deviceName = privateDevice()->deviceName();
+    QByteArray nodeName = privateDevice()->nodeName();
 
     return QAudioContextManager::deviceMonitor().findSinkNodeSerial(std::string_view{
-            deviceName.data(),
-            size_t(deviceName.size()),
+            nodeName.data(),
+            size_t(nodeName.size()),
     });
 }
 

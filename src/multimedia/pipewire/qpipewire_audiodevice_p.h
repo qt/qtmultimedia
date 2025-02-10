@@ -34,7 +34,7 @@ public:
                                 const SpaObjectAudioFormat &, QAudioDevice::Mode, bool isDefault);
     ~QPipewireAudioDevicePrivate() override;
 
-    QByteArray deviceName() const { return m_deviceName; }
+    QByteArray nodeName() const { return m_nodeName; }
 
 private:
     void setSamplingRates(int);
@@ -45,7 +45,7 @@ private:
     void setSampleFormats(const SpaEnum<spa_audio_format> &);
 
     QByteArray m_sysfsPath;
-    QByteArray m_deviceName;
+    QByteArray m_nodeName;
 
     QList<spa_audio_channel> m_channelPositions;
 };

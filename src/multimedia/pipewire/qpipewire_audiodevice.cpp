@@ -55,11 +55,11 @@ QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &n
     if (auto path = getDeviceSysfsPath(deviceProperties))
         m_sysfsPath.assign(*path);
 
-    if (auto name = getDeviceName(deviceProperties))
-        m_deviceName.assign(*name);
+    if (auto nodeName = getNodeName(nodeProperties))
+        m_nodeName.assign(*nodeName);
 
-    if (auto deviceDescription = getDeviceDescription(deviceProperties))
-        description = QString::fromUtf8(*deviceDescription);
+    if (auto nodeDescription = getNodeDescription(nodeProperties))
+        description = QString::fromUtf8(*nodeDescription);
 
     std::visit([&](const auto &arg) {
         setSamplingRates(arg);
@@ -146,7 +146,7 @@ void QPipewireAudioDevicePrivate::setSampleFormats(spa_audio_format arg)
 {
     QAudioFormat::SampleFormat fmt = toSampleFormat(arg);
     if (fmt == QAudioFormat::Unknown) {
-        qWarning() << "No sample format supported found for device" << deviceName();
+        qWarning() << "No sample format supported found for device" << nodeName();
         return;
     }
 
@@ -169,7 +169,7 @@ void QPipewireAudioDevicePrivate::setSampleFormats(const SpaEnum<spa_audio_forma
         if (!supportedSampleFormats.empty())
             preferredFormat.setSampleFormat(supportedSampleFormats.front());
         else
-            qWarning() << "No sample format supported found for device" << deviceName();
+            qWarning() << "No sample format supported found for device" << nodeName();
     }
 }
 
