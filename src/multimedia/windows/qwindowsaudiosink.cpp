@@ -29,6 +29,7 @@
 QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcAudioOutput, "qt.multimedia.audiooutput");
+Q_STATIC_LOGGING_CATEGORY(qLcAudioOutputTrace, "qt.multimedia.audiooutput.trace");
 
 using namespace QWindowsAudioUtils;
 
@@ -182,7 +183,7 @@ qint64 AudioClient::render(const QAudioFormat &format, qreal volume, const char 
     Q_ASSERT(m_audioClient);
     Q_ASSERT(m_renderClient);
 
-    qCDebug(qLcAudioOutput) << "render(). Buffer size:" << len << "bytes";
+    qCDebug(qLcAudioOutputTrace) << "render(). Buffer size:" << len << "bytes";
 
     auto framesAvailable = availableFrameCount();
     if (!framesAvailable)
