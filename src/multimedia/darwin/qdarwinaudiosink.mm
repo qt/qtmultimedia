@@ -21,7 +21,7 @@
 # include <QtMultimedia/private/qaudiohelpers_p.h>
 #endif
 
-#include <QtWidgets/qapplication.h>
+#include <QtGui/qguiapplication.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -211,8 +211,8 @@ QDarwinAudioSink::QDarwinAudioSink(const QAudioDevice &device, QObject *parent)
 
     connect(this, &QDarwinAudioSink::stateChanged, this, &QDarwinAudioSink::updateAudioDevice);
 #ifdef Q_OS_IOS
-    if (qApp)
-        connect(qApp, &QApplication::applicationStateChanged, this, &QDarwinAudioSink::appStateChanged);
+    if (qGuiApp)
+        connect(qGuiApp, &QGuiApplication::applicationStateChanged, this, &QDarwinAudioSink::appStateChanged);
 #endif
 }
 
