@@ -1475,6 +1475,8 @@ void tst_QMediaPlayerBackend::
     player.play();
 
     QTRY_COMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+    QVERIFY(!player.isSeekable()); // VLC does not support seeking. Verify that isSeekable returns
+                                   // false
 
     const auto colors = { qRgb(0, 0, 0xFF), qRgb(0xFF, 0, 0), qRgb(0, 0xFE, 0) };
     const auto colorInterval = 5000;
