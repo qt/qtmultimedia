@@ -3086,7 +3086,6 @@ void tst_QMediaPlayerBackend::playFromSequentialStream()
     player.play();
     QTRY_COMPARE_GE(player.position(), 1000);
 
-    QSKIP_FFMPEG("QTBUG-128802: media is not seekable, but isSeekable return `true`");
     QCOMPARE(player.isSeekable(), false);
 
     player.setPosition(0);

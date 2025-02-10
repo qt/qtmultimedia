@@ -198,13 +198,20 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const std::shared_ptr<ICancel
                     QMediaPlayer::ResourceError, QLatin1String("Could not open source device.")
                 };
         }
-        if (!stream->isSequential())
+
+        auto seek = &seekQIODevice;
+
+        if (!stream->isSequential()) {
             stream->seek(0);
+        } else {
+            context->ctx_flags |= AVFMTCTX_UNSEEKABLE;
+            seek = nullptr;
+        }
 
         constexpr int bufferSize = 32768;
         unsigned char *buffer = (unsigned char *)av_malloc(bufferSize);
         context->pb = avio_alloc_context(buffer, bufferSize, false, stream, &readQIODevice, nullptr,
-                                         &seekQIODevice);
+                                         seek);
     }
 
     AVDictionaryHolder dict;
@@ -253,6 +260,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const std::shared_ptr<ICancel
 
     if (qLcMediaDataHolder().isInfoEnabled())
         av_dump_format(context.get(), 0, url.constData(), 0);
+
 
     return context;
 }
