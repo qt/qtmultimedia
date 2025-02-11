@@ -224,7 +224,16 @@ void Demuxer::ensureSeeked()
         return;
 
     if ((m_context->ctx_flags & AVFMTCTX_UNSEEKABLE) == 0) {
-        const qint64 seekPos = m_posInLoopUs * AV_TIME_BASE / 1000000;
+
+        // m_posInLoopUs is intended to be the number of microseconds since playback start, and is
+        // in the range [0, duration()]. av_seek_frame seeks to a position relative to the start of
+        // the media timeline, which may be non-zero. We adjust for this by adding the
+        // AVFormatContext's start_time.
+        //
+        // NOTE: m_posInLoop is not calculated correctly if the start_time is non-zero, but
+        // this must be fixed separately.
+        const qint64 seekPos = m_posInLoopUs * AV_TIME_BASE / 1'000'000 + m_context->start_time;
+
         auto err = av_seek_frame(m_context, -1, seekPos, AVSEEK_FLAG_BACKWARD);
 
         if (err < 0) {
