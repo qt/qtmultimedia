@@ -11,11 +11,12 @@
 
 QT_BEGIN_NAMESPACE
 
-QWasmAudioDevice::QWasmAudioDevice(const char *device, const char *desc, bool isDef, QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(device, mode)
+QWasmAudioDevice::QWasmAudioDevice(const char *device,
+                                   const char *desc,
+                                   bool isDef,
+                                   QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(device, mode, QString::fromUtf8(desc))
 {
-    description = QString::fromUtf8(desc);
-
     isDefault = isDef;
     minimumChannelCount = 1;
     maximumChannelCount = 2;

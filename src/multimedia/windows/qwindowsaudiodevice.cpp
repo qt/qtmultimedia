@@ -276,14 +276,14 @@ std::optional<QAudioFormat> probePreferredFormat(const ComPtr<IAudioClient> &aud
 
 } // namespace
 
-QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevice> immDev,
-                                                 const QString &description,
+QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev,
+                                                 ComPtr<IMMDevice> immDev,
+                                                 QString description,
                                                  QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(dev, mode), m_immDev(std::move(immDev))
+    : QAudioDevicePrivate(std::move(dev), mode, std::move(description))
+    , m_immDev(std::move(immDev))
 {
     Q_ASSERT(m_immDev);
-
-    this->description = description;
 
     ComPtr<IAudioClient> audioClient;
     HRESULT hr = m_immDev->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
