@@ -181,13 +181,13 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
     qCInfo(qLcFFmpeg) << "Using Qt multimedia with FFmpeg version" << av_version_info()
                       << avutil_license();
 
-    qCInfo(qLcFFmpeg) << "Available HW decoding frameworks:";
+    qCDebug(qLcFFmpeg) << "Available HW decoding frameworks:";
     for (auto type : QFFmpeg::HWAccel::decodingDeviceTypes())
-        qCInfo(qLcFFmpeg) << "    " << av_hwdevice_get_type_name(type);
+        qCDebug(qLcFFmpeg) << "    " << av_hwdevice_get_type_name(type);
 
-    qCInfo(qLcFFmpeg) << "Available HW encoding frameworks:";
+    qCDebug(qLcFFmpeg) << "Available HW encoding frameworks:";
     for (auto type : QFFmpeg::HWAccel::encodingDeviceTypes())
-        qCInfo(qLcFFmpeg) << "    " << av_hwdevice_get_type_name(type);
+        qCDebug(qLcFFmpeg) << "    " << av_hwdevice_get_type_name(type);
 }
 
 QMaybe<QPlatformAudioDecoder *> QFFmpegMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
