@@ -197,7 +197,7 @@ void tst_QMediaRecorderBackend::record_createsFileWithExpectedExtension_whenReco
     format.setChannelConfig(QAudioFormat::ChannelConfigMono);
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::Float);
-    format.setSampleRate(44000);
+    format.setSampleRate(44100);
 
     QAudioBufferInput input{ format };
     session.setAudioBufferInput(&input);

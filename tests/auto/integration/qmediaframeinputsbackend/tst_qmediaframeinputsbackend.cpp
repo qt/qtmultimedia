@@ -166,12 +166,12 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInput
 #endif
 
     QTest::addRow("bufferCount: 30; sampleFormat: Int32; channelConfig: Stereo; sampleRate: "
-                  "12000; duration: 2000")
-            << 30 << QAudioFormat::Int32 << QAudioFormat::ChannelConfigStereo << 12000 << 2000ms;
+                  "16000; duration: 2000")
+            << 30 << QAudioFormat::Int32 << QAudioFormat::ChannelConfigStereo << 16000 << 2000ms;
 
     QTest::addRow("bufferCount: 30; sampleFormat: Int16; channelConfig: Mono; sampleRate: "
-                  "40000; duration: 2000")
-            << 30 << QAudioFormat::Int16 << QAudioFormat::ChannelConfigMono << 40000 << 2000ms;
+                  "44100; duration: 2000")
+            << 30 << QAudioFormat::Int16 << QAudioFormat::ChannelConfigMono << 44100 << 2000ms;
 
     // TODO: investigate fails of channels configuration
     //   QTest::addRow("bufferCount: 10; sampleFormat: UInt8; channelConfig: 2Dot1; sampleRate:
