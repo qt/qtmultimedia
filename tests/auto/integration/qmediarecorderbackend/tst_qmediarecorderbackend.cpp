@@ -246,8 +246,7 @@ void tst_QMediaRecorderBackend::record_writesVideo_whenInputFrameShrinksOverTime
 
     constexpr int startSize = 38;
     int frameCount = 0;
-    for (int i = 0; i < startSize;
-         i += 2) { // TODO crash in sws_scale if subsequent frames are odd-sized QTBUG-126259
+    for (int i = 0; i < startSize; ++i) {
         ++frameCount;
         const QSize size{ startSize - i, startSize - i };
         f.m_videoGenerator.setSize(size);
@@ -281,8 +280,7 @@ void tst_QMediaRecorderBackend::record_writesVideo_whenInputFrameGrowsOverTime()
     constexpr int maxSize = 256;
     int frameCount = 0;
 
-    for (int i = 0; i < maxSize - startSize;
-         i += 2) { // TODO crash in sws_scale if subsequent frames are odd-sized QTBUG-126259
+    for (int i = 0; i < maxSize - startSize; ++i) {
         ++frameCount;
         const QSize size{ startSize + i, startSize + i };
         f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
