@@ -13,14 +13,9 @@ project(QtMultimedia
     LANGUAGES CXX C
 )
 
-find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS BuildInternals Core)
-find_package(Qt6 ${PROJECT_VERSION} QUIET CONFIG OPTIONAL_COMPONENTS Gui Network Svg Widgets Quick Qml QuickTest QuickControls2 Quick3D)
+find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS BuildInternals Core Gui)
+find_package(Qt6 ${PROJECT_VERSION} QUIET CONFIG OPTIONAL_COMPONENTS Network Svg Widgets Quick Qml QuickTest QuickControls2 Quick3D)
 qt_internal_project_setup()
-
-if(NOT TARGET Qt::Gui)
-    message(NOTICE "Skipping the build as the condition \"TARGET Qt::Gui\" is not met.")
-    return()
-endif()
 
 include(src/multimedia/Qt6MultimediaMacros.cmake)
 
