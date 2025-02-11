@@ -5,6 +5,8 @@
 #include <qaudiodevice.h>
 #include "private/qaudiodevice_p.h"
 
+using namespace Qt::StringLiterals;
+
 class tst_QAudioDevice : public QObject
 {
     Q_OBJECT
@@ -26,8 +28,8 @@ void tst_QAudioDevice::basicComparison_data()
     QTest::addColumn<QAudioDevice::Mode>("modeB");
     QTest::addColumn<bool>("expected");
 
-    const QByteArray idA = "ABC";
-    const QByteArray idB = "DEF";
+    const QByteArray idA = "ABC"_ba;
+    const QByteArray idB = "DEF"_ba;
 
     QTest::newRow("Equal ID, both input mode")
         << idA << QAudioDevice::Mode::Input
@@ -78,24 +80,24 @@ void tst_QAudioDevice::basicComparison()
     QFETCH(QAudioDevice::Mode, modeB);
     QFETCH(bool, expected);
 
-    QAudioDevicePrivate *privA = new QAudioDevicePrivate(idA, modeA);
+    QAudioDevicePrivate *privA = new QAudioDevicePrivate(idA, modeA, u""_s);
     const QAudioDevice a = privA->create();
 
-    QAudioDevicePrivate *privB = new QAudioDevicePrivate(idB, modeB);
+    QAudioDevicePrivate *privB = new QAudioDevicePrivate(idB, modeB, u""_s);
     const QAudioDevice b = privB->create();
 
     QCOMPARE(a == b, expected);
 }
 
 void tst_QAudioDevice::compare_returnsTrue_whenIsDefaultDiffers() {
-    const QByteArray id = "ABC";
+    const QByteArray id = "ABC"_ba;
     const QAudioDevice::Mode mode = QAudioDevice::Mode::Input;
 
-    QAudioDevicePrivate *privA = new QAudioDevicePrivate(id, mode);
+    QAudioDevicePrivate *privA = new QAudioDevicePrivate(id, mode, u""_s);
     privA->isDefault = true;
     const QAudioDevice a = privA->create();
 
-    QAudioDevicePrivate *privB = new QAudioDevicePrivate(id, mode);
+    QAudioDevicePrivate *privB = new QAudioDevicePrivate(id, mode, u""_s);
     privB->isDefault = false;
     const QAudioDevice b = privB->create();
 

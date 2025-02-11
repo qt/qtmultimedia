@@ -25,7 +25,10 @@ class QOpenSLESEngine;
 class QOpenSLESDeviceInfo : public QAudioDevicePrivate
 {
 public:
-    QOpenSLESDeviceInfo(const QByteArray &device, const QString &desc, QAudioDevice::Mode mode, bool isDefaultDevice = false);
+    QOpenSLESDeviceInfo(QByteArray device,
+                        QString desc,
+                        QAudioDevice::Mode mode,
+                        bool isDefaultDevice = false);
     ~QOpenSLESDeviceInfo() {}
 
 private:

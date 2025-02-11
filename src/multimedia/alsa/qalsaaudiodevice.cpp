@@ -18,11 +18,10 @@
 
 QT_BEGIN_NAMESPACE
 
-QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &desc, QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(dev, mode)
+QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &desc,
+                                           QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(dev, mode, desc)
 {
-    description = desc;
-
     checkSurround();
 
     minimumChannelCount = 1;

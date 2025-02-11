@@ -26,35 +26,22 @@ QT_BEGIN_NAMESPACE
 class Q_MULTIMEDIA_EXPORT QAudioDevicePrivate : public QSharedData
 {
 public:
-    QAudioDevicePrivate(const QByteArray &i, QAudioDevice::Mode m)
-        : id(i),
-          mode(m)
+    QAudioDevicePrivate(QByteArray i, QAudioDevice::Mode m, QString description)
+        : id(std::move(i)), mode(m), description(std::move(description))
     {}
     virtual ~QAudioDevicePrivate();
-    QByteArray id;
-    QAudioDevice::Mode mode = QAudioDevice::Output;
+    const QByteArray id;
+    const QAudioDevice::Mode mode = QAudioDevice::Output;
+    const QString description;
     bool isDefault = false;
 
     QAudioFormat preferredFormat;
-    QString description;
     int minimumSampleRate = 0;
     int maximumSampleRate = 0;
     int minimumChannelCount = 0;
     int maximumChannelCount = 0;
     QList<QAudioFormat::SampleFormat> supportedSampleFormats;
     QAudioFormat::ChannelConfig channelConfiguration = QAudioFormat::ChannelConfigUnknown;
-
-    bool operator == (const QAudioDevicePrivate &other) const
-    {
-        return id == other.id && mode == other.mode && isDefault == other.isDefault
-                && preferredFormat == other.preferredFormat && description == other.description
-                && minimumSampleRate == other.minimumSampleRate
-                && maximumSampleRate == other.maximumSampleRate
-                && minimumChannelCount == other.minimumChannelCount
-                && maximumChannelCount == other.maximumChannelCount
-                && supportedSampleFormats == other.supportedSampleFormats
-                && channelConfiguration == other.channelConfiguration;
-    }
 
     QAudioDevice create() { return QAudioDevice(this); }
 };
@@ -68,6 +55,21 @@ inline const QList<QAudioFormat::SampleFormat> &qAllSupportedSampleFormats()
         QAudioFormat::Float,
     };
     return singleton;
+}
+
+struct QAudioDevicePrivateAllMembersEqual
+{
+    bool operator()(const QAudioDevicePrivate &lhs, const QAudioDevicePrivate &rhs)
+    {
+        auto asTuple = [](const QAudioDevicePrivate &x) {
+            return std::tie(x.id, x.mode, x.isDefault, x.preferredFormat, x.description,
+                            x.minimumSampleRate, x.maximumSampleRate, x.minimumChannelCount,
+                            x.maximumChannelCount, x.supportedSampleFormats,
+                            x.channelConfiguration);
+        };
+
+        return asTuple(lhs) == asTuple(rhs);
+    }
 };
 
 QT_END_NAMESPACE
