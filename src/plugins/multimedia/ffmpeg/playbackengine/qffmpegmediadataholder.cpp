@@ -251,9 +251,9 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const std::shared_ptr<ICancel
         };
     }
 
-#ifndef QT_NO_DEBUG
-    av_dump_format(context.get(), 0, url.constData(), 0);
-#endif
+    if (qLcMediaDataHolder().isInfoEnabled())
+        av_dump_format(context.get(), 0, url.constData(), 0);
+
     return context;
 }
 
