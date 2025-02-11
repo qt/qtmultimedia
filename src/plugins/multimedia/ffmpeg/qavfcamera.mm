@@ -120,8 +120,6 @@ void QAVFCamera::onActiveChanged(bool active)
 
     // If the camera becomes active, we want to start tracking the rotation of the camera
     updateRotationTracking();
-
-    emit activeChanged(active);
 }
 
 void QAVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
