@@ -15,13 +15,11 @@ using namespace QnxAudioUtils;
 QT_BEGIN_NAMESPACE
 
 QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QByteArray &deviceName, QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(deviceName, mode)
+    : QAudioDevicePrivate(deviceName, mode, QString::fromUtf8(deviceName))
 {
     isDefault = id.contains("Preferred");
 
     preferredFormat.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
-
-    description = QString::fromUtf8(id);
 
     minimumChannelCount = 1;
     maximumChannelCount = 2;

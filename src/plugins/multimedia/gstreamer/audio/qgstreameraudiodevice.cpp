@@ -9,11 +9,12 @@
 
 QT_BEGIN_NAMESPACE
 
-QGStreamerCustomAudioDeviceInfo::QGStreamerCustomAudioDeviceInfo(
-        const QByteArray &gstreamerPipeline, QAudioDevice::Mode mode)
+QGStreamerCustomAudioDeviceInfo::QGStreamerCustomAudioDeviceInfo(const QByteArray &gstreamerPipeline,
+                                                                 QAudioDevice::Mode mode)
     : QAudioDevicePrivate{
           gstreamerPipeline,
           mode,
+          QString::fromUtf8(gstreamerPipeline),
       }
 {
 }

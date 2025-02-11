@@ -149,10 +149,19 @@ qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
 
 #ifdef Q_OS_MACOS
 
-QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id,
-                                           const QByteArray &device,
-                                           QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(device, mode)
+static QString getDescription(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode)
+{
+    if (auto optionalDescription = qGetDescriptionForCoreAudioDevice(mode, id))
+        return *optionalDescription;
+    return qGetDefaultDescription(device);
+}
+
+QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode):
+    QAudioDevicePrivate{
+        device,
+        mode,
+        getDescription(id, device, mode),
+    }
 {
     const std::optional<QAudioFormat::ChannelConfig> channelConfigOpt =
         qGetChannelLayoutForCoreAudioDevice(mode, id);
@@ -167,12 +176,6 @@ QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id,
         preferredFormat = preferredFormatOpt.value();
     else
         preferredFormat = qDefaultPreferredFormat(mode, channelConfiguration);
-
-    const std::optional<QString> descriptionOpt = qGetDescriptionForCoreAudioDevice(mode, id);
-    if (descriptionOpt.has_value())
-        description = descriptionOpt.value();
-    else
-        description = qGetDefaultDescription(device);
 
     if (auto rates = qSupportedSamplingRates(mode, id)) {
         minimumSampleRate = rates->min;
@@ -190,11 +193,10 @@ QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id,
 #else
 
 QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(device, mode)
+    : QAudioDevicePrivate(device, mode, qGetDefaultDescription(device))
 {
     channelConfiguration = qGetDefaultChannelLayout(mode);
     preferredFormat = qDefaultPreferredFormat(mode, channelConfiguration);
-    description = qGetDefaultDescription(device);
 
     minimumSampleRate = 1;
     maximumSampleRate = 96000;

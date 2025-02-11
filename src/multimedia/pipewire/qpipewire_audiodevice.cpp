@@ -48,7 +48,11 @@ QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &n
                                                          const PwPropertyDict &deviceProperties,
                                                          const SpaObjectAudioFormat &formats,
                                                          QAudioDevice::Mode mode, bool isDefault)
-    : QAudioDevicePrivate(inferDeviceId(nodeProperties), mode)
+    : QAudioDevicePrivate{
+          inferDeviceId(nodeProperties),
+          mode,
+          QString::fromUtf8(getNodeDescription(nodeProperties).value_or("")),
+      }
 {
     this->isDefault = isDefault;
 
@@ -57,9 +61,6 @@ QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &n
 
     if (auto nodeName = getNodeName(nodeProperties))
         m_nodeName.assign(*nodeName);
-
-    if (auto nodeDescription = getNodeDescription(nodeProperties))
-        description = QString::fromUtf8(*nodeDescription);
 
     std::visit([&](const auto &arg) {
         setSamplingRates(arg);

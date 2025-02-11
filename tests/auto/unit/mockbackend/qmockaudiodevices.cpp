@@ -13,16 +13,20 @@ QMockAudioDevices::~QMockAudioDevices() = default;
 
 void QMockAudioDevices::addAudioInput()
 {
-    QAudioDevicePrivate *devicePrivate = new QAudioDevicePrivate(
-            QString::number(m_inputDevices.size()).toLatin1(), QAudioDevice::Input);
+    QAudioDevicePrivate *devicePrivate
+        = new QAudioDevicePrivate(QString::number(m_inputDevices.size()).toLatin1(),
+                                  QAudioDevice::Input,
+                                  "MockAudioInput");
     m_inputDevices.push_back(devicePrivate->create());
     onAudioInputsChanged();
 }
 
 void QMockAudioDevices::addAudioOutput()
 {
-    QAudioDevicePrivate *devicePrivate = new QAudioDevicePrivate(
-            QString::number(m_outputDevices.size()).toLatin1(), QAudioDevice::Output);
+    QAudioDevicePrivate *devicePrivate
+        = new QAudioDevicePrivate(QString::number(m_outputDevices.size()).toLatin1(),
+                                  QAudioDevice::Output,
+                                  "MockAudioOutput");
     m_outputDevices.push_back(devicePrivate->create());
     onAudioOutputsChanged();
 }

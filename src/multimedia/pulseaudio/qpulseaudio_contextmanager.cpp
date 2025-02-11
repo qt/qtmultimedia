@@ -27,10 +27,9 @@ makeQAudioDevicePrivate(const char *device, const char *desc, bool isDef, QAudio
 {
     using namespace QPulseAudioInternal;
 
-    auto deviceInfo = std::make_unique<QAudioDevicePrivate>(device, mode);
+    auto deviceInfo = std::make_unique<QAudioDevicePrivate>(device, mode, QString::fromUtf8(desc));
     QAudioFormat::ChannelConfig channelConfig = channelConfigFromMap(map);
 
-    deviceInfo->description = QString::fromUtf8(desc);
     deviceInfo->isDefault = isDef;
     deviceInfo->channelConfiguration = channelConfig;
 
@@ -86,7 +85,8 @@ static bool updateDevicesMap(QReadWriteLock &lock, const QByteArray &defaultDevi
                                                  info.channel_map, info.sample_spec);
 
     auto &device = devices[info.index];
-    if (device.handle() && *newDeviceInfo == *device.handle())
+    QAudioDevicePrivateAllMembersEqual compare;
+    if (device.handle() && compare(*newDeviceInfo, *device.handle()))
         return false;
 
     device = newDeviceInfo.release()->create();
