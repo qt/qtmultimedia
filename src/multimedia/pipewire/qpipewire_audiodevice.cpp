@@ -4,6 +4,7 @@
 #include "qpipewire_audiodevice_p.h"
 
 #include <QtCore/qdebug.h>
+#include <QtMultimedia/private/qaudioformat_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -54,6 +55,14 @@ QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &n
           QString::fromUtf8(getNodeDescription(nodeProperties).value_or("")),
       }
 {
+    static const QList allSampleFormats = {
+        QAudioFormat::SampleFormat::UInt8,
+        QAudioFormat::SampleFormat::Int16,
+        QAudioFormat::SampleFormat::Int32,
+        QAudioFormat::SampleFormat::Float,
+    };
+
+    supportedSampleFormats = allSampleFormats;
     this->isDefault = isDefault;
 
     if (auto path = getDeviceSysfsPath(deviceProperties))
@@ -62,12 +71,15 @@ QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &n
     if (auto nodeName = getNodeName(nodeProperties))
         m_nodeName.assign(*nodeName);
 
+    minimumSampleRate = QtPrivate::allSupportedSampleRates.front();
+    maximumSampleRate = QtPrivate::allSupportedSampleRates.back();
+
     std::visit([&](const auto &arg) {
-        setSamplingRates(arg);
+        setPreferredSamplingRate(arg);
     }, formats.rates);
 
     std::visit([&](const auto &arg) {
-        setSampleFormats(arg);
+        setPreferredSampleFormats(arg);
     }, formats.sampleTypes);
 
     minimumChannelCount = 1;
@@ -104,46 +116,40 @@ QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &n
 
 QPipewireAudioDevicePrivate::~QPipewireAudioDevicePrivate() = default;
 
-void QPipewireAudioDevicePrivate::setSamplingRates(int arg)
+void QPipewireAudioDevicePrivate::setPreferredSamplingRate(int arg)
 {
-    minimumSampleRate = arg;
-    maximumSampleRate = arg;
     preferredFormat.setSampleRate(arg);
 }
 
-void QPipewireAudioDevicePrivate::setSamplingRates(QSpan<const int> arg)
+void QPipewireAudioDevicePrivate::setPreferredSamplingRate(QSpan<const int> arg)
 {
-    auto [minIt, maxIt] = std::minmax_element(arg.begin(), arg.end());
+    constexpr int defaultPipewireSamplingRate = 48000;
 
-    minimumSampleRate = *minIt;
-    maximumSampleRate = *maxIt;
-
-    if (std::find(arg.begin(), arg.end(), 44100) != arg.end()) {
-        preferredFormat.setSampleRate(44100);
+    if (std::find(arg.begin(), arg.end(), defaultPipewireSamplingRate) != arg.end()) {
+        preferredFormat.setSampleRate(defaultPipewireSamplingRate);
     } else {
-        // find supported rate, which is closest to 44100 (using a logarithmic scaling)
-        auto ratioTo44100 = [](int arg) {
-            return arg > 44100 ? float(arg) / 44100.f : 44100.f / float(arg);
+        // find supported rate, which is closest to the default pipewire sampling rate (using a
+        // logarithmic scaling)
+        auto ratioTodefaultRate = [](int arg) {
+            return arg > defaultPipewireSamplingRate ? float(arg) / defaultPipewireSamplingRate
+                                                     : defaultPipewireSamplingRate / float(arg);
         };
 
         std::vector<int> rates{ arg.begin(), arg.end() };
         std::sort(rates.begin(), rates.end(), [&](int lhs, int rhs) {
-            return ratioTo44100(lhs) < ratioTo44100(rhs);
+            return ratioTodefaultRate(lhs) < ratioTodefaultRate(rhs);
         });
 
         preferredFormat.setSampleRate(rates.front());
     }
 }
 
-void QPipewireAudioDevicePrivate::setSamplingRates(const SpaRange<int> &arg)
+void QPipewireAudioDevicePrivate::setPreferredSamplingRate(const SpaRange<int> &arg)
 {
-    minimumSampleRate = arg.minValue;
-    maximumSampleRate = arg.maxValue;
-
     preferredFormat.setSampleRate(arg.defaultValue);
 }
 
-void QPipewireAudioDevicePrivate::setSampleFormats(spa_audio_format arg)
+void QPipewireAudioDevicePrivate::setPreferredSampleFormats(spa_audio_format arg)
 {
     QAudioFormat::SampleFormat fmt = toSampleFormat(arg);
     if (fmt == QAudioFormat::Unknown) {
@@ -151,11 +157,10 @@ void QPipewireAudioDevicePrivate::setSampleFormats(spa_audio_format arg)
         return;
     }
 
-    supportedSampleFormats = { fmt };
     preferredFormat.setSampleFormat(fmt);
 }
 
-void QPipewireAudioDevicePrivate::setSampleFormats(const SpaEnum<spa_audio_format> &fmt)
+void QPipewireAudioDevicePrivate::setPreferredSampleFormats(const SpaEnum<spa_audio_format> &fmt)
 {
     for (spa_audio_format f : fmt.values()) {
         auto qtFormat = toSampleFormat(f);

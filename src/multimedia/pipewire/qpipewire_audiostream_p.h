@@ -69,7 +69,7 @@ protected:
     void performXRunDetection(uint64_t framesPerBuffer) QT_MM_NONBLOCKING;
     virtual void xrunOccurred(int xrunCount) = 0;
     uint64_t m_expectedNextTick{};
-    std::atomic_bool m_skipNextTickDiscontinuity{ false };
+    std::atomic_bool m_skipNextTickDiscontinuity{ true };
     std::atomic_int m_xrunCount{ 0 };
 
     // total samples delivered from/sent to the backend

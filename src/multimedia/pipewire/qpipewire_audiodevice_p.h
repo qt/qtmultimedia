@@ -37,12 +37,12 @@ public:
     QByteArray nodeName() const { return m_nodeName; }
 
 private:
-    void setSamplingRates(int);
-    void setSamplingRates(QSpan<const int>);
-    void setSamplingRates(const SpaRange<int> &);
+    void setPreferredSamplingRate(int);
+    void setPreferredSamplingRate(QSpan<const int>);
+    void setPreferredSamplingRate(const SpaRange<int> &);
 
-    void setSampleFormats(spa_audio_format);
-    void setSampleFormats(const SpaEnum<spa_audio_format> &);
+    void setPreferredSampleFormats(spa_audio_format);
+    void setPreferredSampleFormats(const SpaEnum<spa_audio_format> &);
 
     QByteArray m_sysfsPath;
     QByteArray m_nodeName;

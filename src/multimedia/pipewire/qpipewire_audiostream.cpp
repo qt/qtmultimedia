@@ -194,11 +194,11 @@ void QPipewireAudioStream::performXRunDetection(uint64_t framesPerBuffer) QT_MM_
 #if PW_CHECK_VERSION(1, 1, 0)
     if (pw_check_library_version(1, 1, 0)) {
         // LATER: rely on time_info.size, once 1.1 is the minimum required version
-        m_expectedNextTick = time_info.ticks + (time_info.size * rateFactor);
+        m_expectedNextTick = time_info.ticks + (time_info.size / rateFactor);
         return;
     }
 #endif
-    m_expectedNextTick = time_info.ticks + (framesPerBuffer * rateFactor);
+    m_expectedNextTick = time_info.ticks + (framesPerBuffer / rateFactor);
 }
 
 void QPipewireAudioStream::addFramesHandled(uint64_t arg)
