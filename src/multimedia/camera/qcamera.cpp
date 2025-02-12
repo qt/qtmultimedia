@@ -214,7 +214,7 @@ QCamera::QCamera(QCameraDevice::Position position, QObject *parent)
 
     QCameraDevice device;
     auto cameras = QMediaDevices::videoInputs();
-    for (const auto &c : cameras) {
+    for (const auto &c : std::as_const(cameras)) {
         if (c.position() == position) {
             device = c;
             break;

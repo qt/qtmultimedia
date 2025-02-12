@@ -247,7 +247,7 @@ void QAudioEnginePrivate::updateRooms()
     listenerPositionDirty = false;
 
     bool roomDirty = false;
-    for (const auto &room : rooms) {
+    for (const auto &room : std::as_const(rooms)) {
         auto *rd = QAudioRoomPrivate::get(room);
         if (rd->dirty) {
             roomDirty = true;
