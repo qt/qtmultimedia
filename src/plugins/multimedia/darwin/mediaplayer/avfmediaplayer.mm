@@ -600,10 +600,10 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     setSeekable(false);
     m_requestedPosition = -1;
     orientationChanged(QtVideo::Rotation::None, false);
-    Q_EMIT positionChanged(position());
+    positionChanged(position());
     if (m_duration != 0) {
         m_duration = 0;
-        Q_EMIT durationChanged(0);
+        durationChanged(0);
     }
     if (!m_metaData.isEmpty()) {
         m_metaData.clear();
@@ -621,18 +621,18 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     if (!m_mediaStream && content.isEmpty()) {
         m_mediaStatus = QMediaPlayer::NoMedia;
         if (m_mediaStatus != oldMediaStatus)
-            Q_EMIT mediaStatusChanged(m_mediaStatus);
+            mediaStatusChanged(m_mediaStatus);
 
         m_state = QMediaPlayer::StoppedState;
         if (m_state != oldState)
-            Q_EMIT stateChanged(m_state);
+            stateChanged(m_state);
 
         return;
     }
 
     m_mediaStatus = QMediaPlayer::LoadingMedia;
     if (m_mediaStatus != oldMediaStatus)
-        Q_EMIT mediaStatusChanged(m_mediaStatus);
+        mediaStatusChanged(m_mediaStatus);
 
     if (m_mediaStream) {
         // If there is a data, try to load it,
@@ -647,7 +647,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
     m_state = QMediaPlayer::StoppedState;
     if (m_state != oldState)
-        Q_EMIT stateChanged(m_state);
+        stateChanged(m_state);
 }
 
 qint64 AVFMediaPlayer::position() const
@@ -686,7 +686,7 @@ void AVFMediaPlayer::setAudioAvailable(bool available)
         return;
 
     m_audioAvailable = available;
-    Q_EMIT audioAvailableChanged(available);
+    audioAvailableChanged(available);
 }
 
 bool AVFMediaPlayer::isAudioAvailable() const
@@ -700,7 +700,7 @@ void AVFMediaPlayer::setVideoAvailable(bool available)
         return;
 
     m_videoAvailable = available;
-    Q_EMIT videoAvailableChanged(available);
+    videoAvailableChanged(available);
 }
 
 bool AVFMediaPlayer::isVideoAvailable() const
@@ -784,7 +784,7 @@ void AVFMediaPlayer::setPlaybackRate(qreal rate)
     if (player && m_state == QMediaPlayer::PlayingState)
         [player setRate:m_rate];
 
-    Q_EMIT playbackRateChanged(m_rate);
+    playbackRateChanged(m_rate);
 }
 
 void AVFMediaPlayer::setPosition(qint64 pos)
@@ -799,14 +799,14 @@ void AVFMediaPlayer::setPosition(qint64 pos)
     AVPlayerItem *playerItem = [static_cast<AVFMediaPlayerObserver*>(m_observer) playerItem];
     if (!playerItem) {
         m_requestedPosition = pos;
-        Q_EMIT positionChanged(m_requestedPosition);
+        positionChanged(m_requestedPosition);
         return;
     }
 
     if (!isSeekable()) {
         if (m_requestedPosition != -1) {
             m_requestedPosition = -1;
-            Q_EMIT positionChanged(position());
+            positionChanged(position());
         }
         return;
     }
@@ -824,13 +824,13 @@ void AVFMediaPlayer::setPosition(qint64 pos)
                                     m_requestedPosition = -1;
                            }];
 
-    Q_EMIT positionChanged(pos);
+    positionChanged(pos);
 
     // Reset media status if the current status is EndOfMedia
     if (m_mediaStatus == QMediaPlayer::EndOfMedia) {
         QMediaPlayer::MediaStatus newMediaStatus = (m_state == QMediaPlayer::PausedState) ? QMediaPlayer::BufferedMedia
                                                                                           : QMediaPlayer::LoadedMedia;
-        Q_EMIT mediaStatusChanged((m_mediaStatus = newMediaStatus));
+        mediaStatusChanged((m_mediaStatus = newMediaStatus));
     }
 }
 
@@ -863,7 +863,7 @@ void AVFMediaPlayer::play()
     m_state = QMediaPlayer::PlayingState;
     processLoadStateChange();
 
-    Q_EMIT stateChanged(m_state);
+    stateChanged(m_state);
     m_playbackTimer.start(100);
 }
 
@@ -890,8 +890,8 @@ void AVFMediaPlayer::pause()
     if (m_mediaStatus == QMediaPlayer::EndOfMedia)
         setPosition(0);
 
-    Q_EMIT positionChanged(position());
-    Q_EMIT stateChanged(m_state);
+    positionChanged(position());
+    stateChanged(m_state);
     m_playbackTimer.stop();
 }
 
@@ -912,9 +912,9 @@ void AVFMediaPlayer::stop()
         m_videoOutput->setLayer(nullptr);
 
     if (m_mediaStatus == QMediaPlayer::BufferedMedia)
-        Q_EMIT mediaStatusChanged((m_mediaStatus = QMediaPlayer::LoadedMedia));
+        mediaStatusChanged((m_mediaStatus = QMediaPlayer::LoadedMedia));
 
-    Q_EMIT stateChanged((m_state = QMediaPlayer::StoppedState));
+    stateChanged((m_state = QMediaPlayer::StoppedState));
     m_playbackTimer.stop();
 }
 
@@ -970,15 +970,15 @@ void AVFMediaPlayer::processEOS()
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;
 #endif
-    Q_EMIT positionChanged(position());
+    positionChanged(position());
     m_mediaStatus = QMediaPlayer::EndOfMedia;
     m_state = QMediaPlayer::StoppedState;
 
     if (m_videoOutput)
         m_videoOutput->setLayer(nullptr);
 
-    Q_EMIT mediaStatusChanged(m_mediaStatus);
-    Q_EMIT stateChanged(m_state);
+    mediaStatusChanged(m_mediaStatus);
+    stateChanged(m_state);
 }
 
 void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState)
@@ -1000,7 +1000,7 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState
 
         // get the meta data
         m_metaData = AVFMetaData::fromAsset(playerItem.asset);
-        Q_EMIT metaDataChanged();
+        metaDataChanged();
         updateTracks();
 
         if (playerItem) {
@@ -1026,8 +1026,7 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState
                                                              : QMediaPlayer::LoadedMedia;
 
         if (newStatus != m_mediaStatus)
-            Q_EMIT mediaStatusChanged((m_mediaStatus = newStatus));
-
+            mediaStatusChanged((m_mediaStatus = newStatus));
     }
 
     if (newState == QMediaPlayer::PlayingState && [static_cast<AVFMediaPlayerObserver*>(m_observer) player]) {
@@ -1046,7 +1045,7 @@ void AVFMediaPlayer::processLoadStateChange()
 
 void AVFMediaPlayer::processLoadStateFailure()
 {
-    Q_EMIT stateChanged((m_state = QMediaPlayer::StoppedState));
+    stateChanged((m_state = QMediaPlayer::StoppedState));
 }
 
 void AVFMediaPlayer::processBufferStateChange(int bufferProgress)
@@ -1068,10 +1067,10 @@ void AVFMediaPlayer::processBufferStateChange(int bufferProgress)
     }
 
     if (m_mediaStatus != status)
-        Q_EMIT mediaStatusChanged(m_mediaStatus = status);
+        mediaStatusChanged(m_mediaStatus = status);
 
     m_bufferProgress = bufferProgress;
-    Q_EMIT bufferProgressChanged(bufferProgress/100.);
+    bufferProgressChanged(bufferProgress / 100.);
 }
 
 void AVFMediaPlayer::processDurationChange(qint64 duration)
@@ -1080,7 +1079,7 @@ void AVFMediaPlayer::processDurationChange(qint64 duration)
         return;
 
     m_duration = duration;
-    Q_EMIT durationChanged(duration);
+    durationChanged(duration);
 }
 
 void AVFMediaPlayer::processPositionChange()
@@ -1088,19 +1087,19 @@ void AVFMediaPlayer::processPositionChange()
     if (m_state == QMediaPlayer::StoppedState)
         return;
 
-    Q_EMIT positionChanged(position());
+    positionChanged(position());
 }
 
 void AVFMediaPlayer::processMediaLoadError()
 {
     if (m_requestedPosition != -1) {
         m_requestedPosition = -1;
-        Q_EMIT positionChanged(position());
+        positionChanged(position());
     }
 
-    Q_EMIT mediaStatusChanged((m_mediaStatus = QMediaPlayer::InvalidMedia));
+    mediaStatusChanged((m_mediaStatus = QMediaPlayer::InvalidMedia));
 
-    Q_EMIT error(QMediaPlayer::FormatError, tr("Failed to load media"));
+    error(QMediaPlayer::FormatError, tr("Failed to load media"));
 }
 
 void AVFMediaPlayer::streamReady()
@@ -1158,7 +1157,7 @@ void AVFMediaPlayer::updateTracks()
         if (firstLoad)
             setActiveTrack(SubtitleStream, -1);
     }
-    Q_EMIT tracksChanged();
+    tracksChanged();
 }
 
 void AVFMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type, int index)
@@ -1182,7 +1181,7 @@ void AVFMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type, int in
     }
     for (int i = 0; i < t.count(); ++i)
         t.at(i).enabled = (i == index);
-    emit activeTracksChanged();
+    activeTracksChanged();
 }
 
 int AVFMediaPlayer::activeTrack(QPlatformMediaPlayer::TrackType type)

@@ -542,8 +542,8 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
 
         m_state = QMediaRecorder::RecordingState;
 
-        Q_EMIT actualLocationChanged(fileURL);
-        Q_EMIT stateChanged(m_state);
+        actualLocationChanged(fileURL);
+        stateChanged(m_state);
 
         // Apple recommends to call startRunning and do all
         // setup on a special queue, and that's what we had
@@ -627,7 +627,7 @@ void AVFMediaEncoder::assetWriterFinished()
 
     m_state = QMediaRecorder::StoppedState;
     if (m_state != lastState)
-        Q_EMIT stateChanged(m_state);
+        stateChanged(m_state);
 }
 
 void AVFMediaEncoder::assetWriterError(QString err)
