@@ -34,7 +34,7 @@ static std::optional<qint64> streamDuration(const AVStream &stream)
     // In some cases ffmpeg reports negative duration that is definitely invalid.
     // However, the correct duration may be read from the metadata.
 
-    if (stream.duration < 0) {
+    if (stream.duration < 0 && stream.duration != AV_NOPTS_VALUE) {
         qCWarning(qLcMediaDataHolder) << "AVStream duration" << stream.duration
                                       << "is invalid. Taking it from the metadata";
     }
