@@ -31,7 +31,7 @@ class StreamDecoder : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
-    StreamDecoder(const CodecContext &codecContext, qint64 absSeekPos);
+    StreamDecoder(const CodecContext &codecContext, TrackTime absSeekPos);
 
     ~StreamDecoder() override;
 
@@ -41,7 +41,7 @@ public:
     static qint32 maxQueueSize(QPlatformMediaPlayer::TrackType type);
 
 public slots:
-    void setInitialPosition(TimePoint tp, qint64 trackPos);
+    void setInitialPosition(TimePoint tp, TrackTime trackPos);
 
     void decode(Packet);
 
@@ -72,7 +72,7 @@ private:
 
 private:
     CodecContext m_codecContext;
-    qint64 m_absSeekPos = 0;
+    TrackTime m_absSeekPos = TrackTime(0);
     const QPlatformMediaPlayer::TrackType m_trackType;
 
     qint32 m_pendingFramesCount = 0;
