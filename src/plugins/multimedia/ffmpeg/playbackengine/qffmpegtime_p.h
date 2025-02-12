@@ -18,6 +18,7 @@
 #include "qglobal.h"
 
 #include "private/qtaggedtime_p.h"
+#include "qffmpeg_p.h"
 
 #include <chrono>
 
@@ -44,6 +45,10 @@ using AVContextTime =
                                                // microseconds. The position is shifted on
                                                // AVFormatContext::start_time from TrackTime.
 
+inline AVContextTime contextStartTime(const AVFormatContext *formatContext) {
+    return AVContextTime(formatContext->start_time == AV_NOPTS_VALUE ? 0 : formatContext->start_time);
+}
+
 inline UserTrackTime toUserTrackTime(TrackTime trackTime)
 {
     return UserTrackTime(std::chrono::duration_cast<std::chrono::milliseconds>(trackTime).count());
@@ -52,6 +57,27 @@ inline UserTrackTime toUserTrackTime(TrackTime trackTime)
 inline TrackTime toTrackTime(UserTrackTime userTrackTime)
 {
     return std::chrono::milliseconds(userTrackTime.get());
+}
+
+inline TrackTime toTrackTime(AVContextTime contextTime) {
+    return TrackTime(contextTime.get() * 1'000'000 / AV_TIME_BASE);
+}
+
+inline TrackTime toTrackDuration(AVStreamTime streamTime, const AVStream *avStream)
+{
+    return TrackTime(timeStampUs(streamTime.get(), avStream->time_base).value_or(0));
+}
+
+inline TrackTime toTrackTimePoint(AVStreamTime streamTime, const AVStream *avStream,
+                                  const AVFormatContext *formatContext)
+{
+    return toTrackDuration(streamTime, avStream) - toTrackTime(contextStartTime(formatContext));
+}
+
+inline AVContextTime toContextTimePoint(TrackTime trackTime, const AVFormatContext *formatContext)
+{
+
+    return AVContextTime(trackTime.count() * AV_TIME_BASE / 1'000'000) + contextStartTime(formatContext);
 }
 
 } // namespace QFFmpeg
