@@ -445,7 +445,7 @@ void QAVFCameraBase::forceSetFocusMode(QCamera::FocusMode mode)
         captureDevice.focusMode = AVCaptureFocusModeContinuousAutoFocus;
     }
 
-    Q_EMIT focusModeChanged(mode);
+    focusModeChanged(mode);
 }
 
 bool QAVFCameraBase::isFocusModeSupported(QCamera::FocusMode mode) const
