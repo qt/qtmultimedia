@@ -15,6 +15,7 @@
 //
 
 #include "qglobal.h"
+#include "playbackengine/qffmpegtime_p.h"
 
 #include <chrono>
 #include <optional>
@@ -25,8 +26,6 @@ namespace QFFmpeg {
 
 class TimeController
 {
-    using TrackTime = std::chrono::microseconds;
-
 public:
     using Clock = std::chrono::steady_clock;
     using TimePoint = Clock::time_point;
@@ -38,20 +37,20 @@ public:
 
     void setPlaybackRate(PlaybackRate playbackRate);
 
-    void sync(qint64 trackPos = 0);
+    void sync(TrackTime trackPos = TrackTime(0));
 
-    void sync(const TimePoint &tp, qint64 pos);
+    void sync(TimePoint tp, TrackTime pos);
 
-    void syncSoft(const TimePoint &tp, qint64 pos,
-                  const Clock::duration &fixingTime = std::chrono::seconds(4));
+    void syncSoft(TimePoint tp, TrackTime pos,
+                  Clock::duration fixingTime = std::chrono::seconds(4));
 
-    qint64 currentPosition(const Clock::duration &offset = Clock::duration{ 0 }) const;
+    TrackTime currentPosition(Clock::duration offset = Clock::duration{ 0 }) const;
 
     void setPaused(bool paused);
 
-    qint64 positionFromTime(TimePoint tp, bool ignorePause = false) const;
+    TrackTime positionFromTime(TimePoint tp, bool ignorePause = false) const;
 
-    TimePoint timeFromPosition(qint64 pos, bool ignorePause = false) const;
+    TimePoint timeFromPosition(TrackTime pos, bool ignorePause = false) const;
 
 private:
     struct SoftSyncData

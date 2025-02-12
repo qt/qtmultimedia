@@ -17,6 +17,7 @@
 #include "qffmpegplaybackengineobject_p.h"
 #include "qffmpegpacket_p.h"
 #include "qffmpegplaybackutils_p.h"
+#include "qffmpegtime_p.h"
 #include <QtMultimedia/private/qplatformmediaplayer_p.h>
 
 #include <unordered_map>
@@ -29,7 +30,7 @@ class Demuxer : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
-    Demuxer(AVFormatContext *context, qint64 initialPosUs, const LoopOffset &loopOffset,
+    Demuxer(AVFormatContext *context, TrackTime initialPosUs, const LoopOffset &loopOffset,
             const StreamIndexes &streamIndexes, int loops);
 
     using RequestingSignal = void (Demuxer::*)(Packet);
@@ -44,7 +45,7 @@ signals:
     void requestProcessAudioPacket(Packet);
     void requestProcessVideoPacket(Packet);
     void requestProcessSubtitlePacket(Packet);
-    void firstPacketFound(TimePoint tp, qint64 trackPos);
+    void firstPacketFound(TimePoint tp, TrackTime trackPos);
     void packetsBuffered();
 
 protected:
@@ -61,11 +62,11 @@ private:
     struct StreamData
     {
         QPlatformMediaPlayer::TrackType trackType = QPlatformMediaPlayer::TrackType::NTrackTypes;
-        qint64 bufferedDuration = 0;
+        TrackTime bufferedDuration = TrackTime(0);
         qint64 bufferedSize = 0;
 
-        qint64 maxSentPacketsPos = 0;
-        qint64 maxProcessedPacketPos = 0;
+        TrackTime maxSentPacketsPos = TrackTime(0);
+        TrackTime maxProcessedPacketPos = TrackTime(0);
 
         bool isDataLimitReached = false;
     };
@@ -77,9 +78,9 @@ private:
     bool m_seeked = false;
     bool m_firstPacketFound = false;
     std::unordered_map<int, StreamData> m_streams;
-    qint64 m_posInLoopUs; // Position in current loop in [0, duration()]
+    TrackTime m_posInLoopUs; // Position in current loop in [0, duration()]
     LoopOffset m_loopOffset;
-    qint64 m_maxPacketsEndPos = 0;
+    TrackTime m_maxPacketsEndPos = TrackTime(0);
     QAtomicInt m_loops = QMediaPlayer::Once;
     bool m_buffered = false;
     qsizetype m_demuxerRetryCount = 0;

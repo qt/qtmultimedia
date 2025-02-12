@@ -36,31 +36,31 @@ void TimeController::setPlaybackRate(PlaybackRate playbackRate)
         m_softSyncData = makeSoftSyncData(m_timePoint, m_position, m_softSyncData->dstTimePoint);
 }
 
-void TimeController::sync(qint64 trackPos)
+void TimeController::sync(TrackTime trackPos)
 {
     sync(Clock::now(), trackPos);
 }
 
-void TimeController::sync(const TimePoint &tp, qint64 pos)
+void TimeController::sync(TimePoint tp, TrackTime pos)
 {
     m_softSyncData.reset();
-    m_position = TrackTime(pos);
+    m_position = pos;
     m_timePoint = tp;
 }
 
-void TimeController::syncSoft(const TimePoint &tp, qint64 pos, const Clock::duration &fixingTime)
+void TimeController::syncSoft(TimePoint tp, TrackTime pos, Clock::duration fixingTime)
 {
     const auto srcTime = Clock::now();
     const auto srcPos = positionFromTime(srcTime, true);
     const auto dstTime = srcTime + fixingTime;
 
-    m_position = TrackTime(pos);
+    m_position = pos;
     m_timePoint = tp;
 
-    m_softSyncData = makeSoftSyncData(srcTime, TrackTime(srcPos), dstTime);
+    m_softSyncData = makeSoftSyncData(srcTime, srcPos, dstTime);
 }
 
-qint64 TimeController::currentPosition(const Clock::duration &offset) const
+TrackTime TimeController::currentPosition(Clock::duration offset) const
 {
     return positionFromTime(Clock::now() + offset);
 }
@@ -74,7 +74,7 @@ void TimeController::setPaused(bool paused)
     m_paused = paused;
 }
 
-qint64 TimeController::positionFromTime(TimePoint tp, bool ignorePause) const
+TrackTime TimeController::positionFromTime(TimePoint tp, bool ignorePause) const
 {
     tp = m_paused && !ignorePause ? m_timePoint : tp;
 
@@ -82,15 +82,14 @@ qint64 TimeController::positionFromTime(TimePoint tp, bool ignorePause) const
         const PlaybackRate rate =
                 tp > m_softSyncData->srcTimePoint ? m_softSyncData->internalRate : m_playbackRate;
 
-        return (m_softSyncData->srcPosition
-                + toTrackTime((tp - m_softSyncData->srcTimePoint) * rate))
-                .count();
+        return m_softSyncData->srcPosition
+                + toTrackTime((tp - m_softSyncData->srcTimePoint) * rate);
     }
 
-    return positionFromTimeInternal(tp).count();
+    return positionFromTimeInternal(tp);
 }
 
-TimeController::TimePoint TimeController::timeFromPosition(qint64 pos, bool ignorePause) const
+TimeController::TimePoint TimeController::timeFromPosition(TrackTime pos, bool ignorePause) const
 {
     auto position = m_paused && !ignorePause ? m_position : TrackTime(pos);
 
@@ -121,7 +120,7 @@ TimeController::SoftSyncData TimeController::makeSoftSyncData(const TimePoint &s
     return result;
 }
 
-TimeController::TrackTime TimeController::positionFromTimeInternal(const TimePoint &tp) const
+TrackTime TimeController::positionFromTimeInternal(const TimePoint &tp) const
 {
     return m_position + toTrackTime((tp - m_timePoint) * m_playbackRate);
 }
@@ -154,8 +153,8 @@ TimeController::Clock::duration TimeController::toClockTime(const T &t)
     return std::chrono::duration_cast<Clock::duration>(t);
 }
 
-template<typename T>
-TimeController::TrackTime TimeController::toTrackTime(const T &t)
+template <typename T>
+TrackTime TimeController::toTrackTime(const T &t)
 {
     return std::chrono::duration_cast<TrackTime>(t);
 }

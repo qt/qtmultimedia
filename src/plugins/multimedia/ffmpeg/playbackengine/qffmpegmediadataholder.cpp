@@ -23,12 +23,12 @@ Q_STATIC_LOGGING_CATEGORY(qLcMediaDataHolder, "qt.multimedia.ffmpeg.mediadatahol
 
 namespace QFFmpeg {
 
-static std::optional<qint64> streamDuration(const AVStream &stream)
+static std::optional<TrackTime> streamDuration(const AVStream &stream)
 {
     const auto &factor = stream.time_base;
 
     if (stream.duration > 0 && factor.num > 0 && factor.den > 0) {
-        return qint64(1000000) * stream.duration * factor.num / factor.den;
+        return TrackTime(qint64(1000000) * stream.duration * factor.num / factor.den);
     }
 
     // In some cases ffmpeg reports negative duration that is definitely invalid.
@@ -41,7 +41,7 @@ static std::optional<qint64> streamDuration(const AVStream &stream)
 
     if (const auto duration = av_dict_get(stream.metadata, "DURATION", nullptr, 0)) {
         const auto time = QTime::fromString(QString::fromUtf8(duration->value));
-        return qint64(1000) * time.msecsSinceStartOfDay();
+        return TrackTime(qint64(1000) * time.msecsSinceStartOfDay());
     }
 
     return {};
@@ -321,7 +321,7 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
 
         if (auto duration = streamDuration(*stream)) {
             m_duration = qMax(m_duration, *duration);
-            metaData.insert(QMediaMetaData::Duration, *duration / qint64(1000));
+            metaData.insert(QMediaMetaData::Duration, toUserTrackTime(*duration));
         }
 
         m_streamMap[trackType].append({ (int)i, isDefault, metaData });
@@ -329,8 +329,8 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
 
     // With some media files, streams may be lacking duration info. Let's
     // get it from ffmpeg's duration estimation instead.
-    if (m_duration == 0 && m_context->duration > 0ll) {
-        m_duration = m_context->duration;
+    if (m_duration == TrackTime(0) && m_context->duration > 0ll) {
+        m_duration = TrackTime(m_context->duration);
     }
 
     for (auto trackType :
@@ -394,7 +394,7 @@ void MediaDataHolder::updateMetaData()
     m_metaData.insert(QMediaMetaData::FileFormat,
                       QVariant::fromValue(QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(
                               *m_context->iformat)));
-    m_metaData.insert(QMediaMetaData::Duration, m_duration / qint64(1000));
+    m_metaData.insert(QMediaMetaData::Duration, toUserTrackTime(m_duration));
 
     if (!m_cachedThumbnail.has_value())
         m_cachedThumbnail = getAttachedPicture(m_context.get());

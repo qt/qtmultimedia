@@ -50,6 +50,7 @@
 #include "playbackengine/qffmpegmediadataholder_p.h"
 #include "playbackengine/qffmpegcodeccontext_p.h"
 #include "playbackengine/qffmpegplaybackutils_p.h"
+#include "playbackengine/qffmpegtime_p.h"
 
 #include <QtCore/qpointer.h>
 
@@ -96,7 +97,7 @@ public:
         setState(QMediaPlayer::StoppedState);
     }
 
-    void seek(qint64 pos);
+    void seek(TrackTime pos);
 
     void setLoops(int loopsCount);
 
@@ -106,9 +107,9 @@ public:
 
     void setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 
-    qint64 currentPosition(bool topPos = true) const;
+    TrackTime currentPosition(bool topPos = true) const;
 
-    qint64 duration() const;
+    TrackTime duration() const;
 
     bool isSeekable() const;
 
@@ -175,11 +176,11 @@ private:
     void deleteFreeThreads();
 
     void onRendererSynchronized(quint64 id, std::chrono::steady_clock::time_point time,
-                                qint64 trackTime);
+                                TrackTime trackTime);
 
     void onRendererFinished();
 
-    void onRendererLoopChanged(quint64 id, qint64 offset, int loopIndex);
+    void onRendererLoopChanged(quint64 id, TrackTime offset, int loopIndex);
 
     void triggerStepIfNeeded();
 
@@ -189,7 +190,7 @@ private:
 
     bool hasMediaStream() const;
 
-    void finilizeTime(qint64 pos);
+    void finilizeTime(TrackTime pos);
 
     void finalizeOutputs();
 
@@ -197,7 +198,7 @@ private:
 
     void updateVideoSinkSize(QVideoSink *prevSink = nullptr);
 
-    qint64 boundPosition(qint64 position) const;
+    TrackTime boundPosition(TrackTime position) const;
 
     AudioRenderer *getAudioRenderer();
 
