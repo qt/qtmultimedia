@@ -16,6 +16,7 @@
 //
 
 #include <qtypes.h>
+#include "qffmpegtime_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -23,7 +24,8 @@ namespace QFFmpeg {
 
 struct LoopOffset
 {
-    qint64 loopStartTimeUs = 0; // Accumulated duration of previous loops (microseconds)
+    TrackTime loopStartTimeUs =
+            TrackTime(0); // Accumulated duration of previous loops (microseconds)
     int loopIndex = 0; // Counts the number of times the media has been played
 };
 

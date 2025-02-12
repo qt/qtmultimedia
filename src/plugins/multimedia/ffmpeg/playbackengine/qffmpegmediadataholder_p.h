@@ -16,6 +16,7 @@
 //
 
 #include "qmediametadata.h"
+#include "playbackengine/qffmpegtime_p.h"
 #include "private/qplatformmediaplayer_p.h"
 #include "qffmpeg_p.h"
 #include "qvideoframe.h"
@@ -64,7 +65,7 @@ public:
 
     const QList<StreamInfo> &streamInfo(QPlatformMediaPlayer::TrackType trackType) const;
 
-    qint64 duration() const { return m_duration; }
+    TrackTime duration() const { return m_duration; }
 
     const QMediaMetaData &metaData() const { return m_metaData; }
 
@@ -95,7 +96,7 @@ private:
     StreamIndexes m_currentAVStreamIndex = { -1, -1, -1 };
     StreamsMap m_streamMap;
     StreamIndexes m_requestedStreams = { -1, -1, -1 };
-    qint64 m_duration = 0;
+    TrackTime m_duration = TrackTime(0);
     QMediaMetaData m_metaData;
     std::optional<QImage> m_cachedThumbnail;
 };

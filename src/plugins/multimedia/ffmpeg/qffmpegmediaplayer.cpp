@@ -53,7 +53,7 @@ QFFmpegMediaPlayer::~QFFmpegMediaPlayer()
 
 qint64 QFFmpegMediaPlayer::duration() const
 {
-    return m_playbackEngine ? m_playbackEngine->duration() / 1000 : 0;
+    return m_playbackEngine ? toUserTrackTime(m_playbackEngine->duration()) : 0;
 }
 
 void QFFmpegMediaPlayer::setPosition(qint64 position)
@@ -62,7 +62,7 @@ void QFFmpegMediaPlayer::setPosition(qint64 position)
         return;
 
     if (m_playbackEngine) {
-        m_playbackEngine->seek(position * 1000);
+        m_playbackEngine->seek(fromUserTrackTime(position));
         updatePosition();
     }
 
@@ -71,7 +71,7 @@ void QFFmpegMediaPlayer::setPosition(qint64 position)
 
 void QFFmpegMediaPlayer::updatePosition()
 {
-    positionChanged(m_playbackEngine ? m_playbackEngine->currentPosition() / 1000 : 0);
+    positionChanged(m_playbackEngine ? toUserTrackTime(m_playbackEngine->currentPosition()) : 0);
 }
 
 void QFFmpegMediaPlayer::endOfStream()
@@ -285,7 +285,7 @@ void QFFmpegMediaPlayer::play()
         return;
 
     if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState) {
-        m_playbackEngine->seek(0);
+        m_playbackEngine->seek(TrackTime(0));
         positionChanged(0);
     }
 
@@ -313,7 +313,7 @@ void QFFmpegMediaPlayer::pause()
         return;
 
     if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState) {
-        m_playbackEngine->seek(0);
+        m_playbackEngine->seek(TrackTime(0));
         positionChanged(0);
     }
     m_playbackEngine->pause();
@@ -336,7 +336,7 @@ void QFFmpegMediaPlayer::stop()
 
     m_playbackEngine->stop();
     m_positionUpdateTimer.stop();
-    m_playbackEngine->seek(0);
+    m_playbackEngine->seek(TrackTime(0));
     positionChanged(0);
     stateChanged(QMediaPlayer::StoppedState);
     mediaStatusChanged(QMediaPlayer::LoadedMedia);

@@ -11,7 +11,7 @@ static Q_LOGGING_CATEGORY(qLcStreamDecoder, "qt.multimedia.ffmpeg.streamdecoder"
 
 namespace QFFmpeg {
 
-StreamDecoder::StreamDecoder(const CodecContext &codecContext, qint64 absSeekPos)
+StreamDecoder::StreamDecoder(const CodecContext &codecContext, TrackTime absSeekPos)
     : m_codecContext(codecContext),
       m_absSeekPos(absSeekPos),
       m_trackType(MediaDataHolder::trackTypeFromMediaType(codecContext.context()->codec_type))
@@ -31,7 +31,7 @@ void StreamDecoder::onFinalPacketReceived()
     decode({});
 }
 
-void StreamDecoder::setInitialPosition(TimePoint, qint64 trackPos)
+void StreamDecoder::setInitialPosition(TimePoint, TrackTime trackPos)
 {
     m_absSeekPos = trackPos;
 }
@@ -206,14 +206,14 @@ void StreamDecoder::decodeSubtitle(Packet packet)
 
     // apparently the timestamps in the AVSubtitle structure are not always filled in
     // if they are missing, use the packets pts and duration values instead
-    qint64 start, end;
+    TrackTime start, end;
     if (subtitle.pts == AV_NOPTS_VALUE) {
-        start = m_codecContext.toUs(packet.avPacket()->pts);
-        end = start + m_codecContext.toUs(packet.avPacket()->duration);
+        start = m_codecContext.toTrackTime(packet.avPacket()->pts);
+        end = start + m_codecContext.toTrackTime(packet.avPacket()->duration);
     } else {
         auto pts = timeStampUs(subtitle.pts, AVRational{ 1, AV_TIME_BASE });
-        start = *pts + qint64(subtitle.start_display_time) * 1000;
-        end = *pts + qint64(subtitle.end_display_time) * 1000;
+        start = TrackTime(*pts + qint64(subtitle.start_display_time) * 1000);
+        end = TrackTime(*pts + qint64(subtitle.end_display_time) * 1000);
     }
 
     if (end <= start) {
@@ -251,7 +251,7 @@ void StreamDecoder::decodeSubtitle(Packet packet)
     onFrameFound({ m_offset, text, start, end - start, id() });
 
     // TODO: maybe optimize
-    onFrameFound({ m_offset, QString(), end, 0, id() });
+    onFrameFound({ m_offset, QString(), end, TrackTime(0), id() });
 }
 } // namespace QFFmpeg
 

@@ -13,12 +13,12 @@ static Q_LOGGING_CATEGORY(qLcRenderer, "qt.multimedia.ffmpeg.renderer");
 Renderer::Renderer(const TimeController &tc, const std::chrono::microseconds &seekPosTimeOffset)
     : m_timeController(tc),
       m_lastFrameEnd(tc.currentPosition()),
-      m_lastPosition(m_lastFrameEnd),
-      m_seekPos(tc.currentPosition(-seekPosTimeOffset))
+      m_lastPosition(m_lastFrameEnd.count()),
+      m_seekPos(tc.currentPosition(-seekPosTimeOffset).count())
 {
 }
 
-void Renderer::syncSoft(TimePoint tp, qint64 trackTime)
+void Renderer::syncSoft(TimePoint tp, TrackTime trackTime)
 {
     QMetaObject::invokeMethod(this, [this, tp, trackTime]() {
         m_timeController.syncSoft(tp, trackTime);
@@ -26,14 +26,14 @@ void Renderer::syncSoft(TimePoint tp, qint64 trackTime)
     });
 }
 
-qint64 Renderer::seekPosition() const
+TrackTime Renderer::seekPosition() const
 {
-    return m_seekPos;
+    return TrackTime(m_seekPos);
 }
 
-qint64 Renderer::lastPosition() const
+TrackTime Renderer::lastPosition() const
 {
-    return m_lastPosition;
+    return TrackTime(m_lastPosition);
 }
 
 void Renderer::setPlaybackRate(float rate)
@@ -66,15 +66,15 @@ bool Renderer::isStepForced() const
     return m_isStepForced;
 }
 
-void Renderer::setInitialPosition(TimePoint tp, qint64 trackPos)
+void Renderer::setInitialPosition(TimePoint tp, TrackTime trackPos)
 {
     QMetaObject::invokeMethod(this, [this, tp, trackPos]() {
         Q_ASSERT(m_loopIndex == 0);
         Q_ASSERT(m_frames.empty());
 
         m_loopIndex = 0;
-        m_lastPosition.storeRelease(trackPos);
-        m_seekPos.storeRelease(trackPos);
+        m_lastPosition.storeRelease(trackPos.count());
+        m_seekPos.storeRelease(trackPos.count());
 
         m_timeController.sync(tp, trackPos);
     });
@@ -138,7 +138,7 @@ std::chrono::milliseconds Renderer::timerInterval() const
     if (m_frames.front().isValid())
         return calculateInterval(m_timeController.timeFromPosition(m_frames.front().absolutePts()));
 
-    if (m_lastFrameEnd > 0)
+    if (m_lastFrameEnd > TrackTime(0))
         return calculateInterval(m_timeController.timeFromPosition(m_lastFrameEnd));
 
     return 0ms;
@@ -172,11 +172,11 @@ void Renderer::doNextStep()
         m_frames.dequeue();
 
         if (frame.isValid()) {
-            m_lastPosition.storeRelease(std::max(frame.absolutePts(), lastPosition()));
+            m_lastPosition.storeRelease(std::max(frame.absolutePts(), lastPosition()).count());
 
             // TODO: get rid of m_lastFrameEnd or m_seekPos
             m_lastFrameEnd = frame.absoluteEnd();
-            m_seekPos.storeRelaxed(m_lastFrameEnd);
+            m_seekPos.storeRelaxed(m_lastFrameEnd.count());
 
             const auto loopIndex = frame.loopOffset().loopIndex;
             if (m_loopIndex < loopIndex) {
@@ -186,7 +186,7 @@ void Renderer::doNextStep()
 
             emit frameProcessed(frame);
         } else {
-            m_lastPosition.storeRelease(std::max(m_lastFrameEnd, lastPosition()));
+            m_lastPosition.storeRelease(std::max(m_lastFrameEnd, lastPosition()).count());
         }
     } else {
         m_explicitNextFrameTime = Clock::now() + result.recheckInterval;

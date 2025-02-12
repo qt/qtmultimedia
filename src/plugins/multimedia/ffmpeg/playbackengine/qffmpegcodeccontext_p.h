@@ -17,6 +17,7 @@
 
 #include "qffmpeg_p.h"
 #include "qffmpeghwaccel_p.h"
+#include "qffmpegtime_p.h"
 
 #include <QtMultimedia/private/qmaybe_p.h>
 #include <QtCore/qshareddata.h>
@@ -46,8 +47,10 @@ public:
     AVStream *stream() const { return d->stream; }
     uint streamIndex() const { return d->stream->index; }
     HWAccel *hwAccel() const { return d->hwAccel.get(); }
-    qint64 toMs(qint64 ts) const { return timeStampMs(ts, d->stream->time_base).value_or(0); }
-    qint64 toUs(qint64 ts) const { return timeStampUs(ts, d->stream->time_base).value_or(0); }
+    TrackTime toTrackTime(AVStreamTime ts) const
+    {
+        return TrackTime(timeStampUs(ts, d->stream->time_base).value_or(0));
+    }
 
 private:
     enum VideoCodecCreationPolicy {
