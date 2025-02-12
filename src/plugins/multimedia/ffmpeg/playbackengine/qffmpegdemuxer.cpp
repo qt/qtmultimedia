@@ -21,23 +21,26 @@ static TrackTime streamTimeToUs(const AVStream *stream, AVStreamTime time)
 {
     Q_ASSERT(stream);
 
-    const auto res = mul(time * 1000000, stream->time_base);
-    return TrackTime(res ? *res : time);
+    const auto res = mul(time.get() * 1000000, stream->time_base);
+    return TrackTime(res ? *res : time.get());
 }
 
 static TrackTime packetEndPos(const AVStream *stream, const Packet &packet)
 {
+    const AVPacket &avPacket = *packet.avPacket();
     return packet.loopOffset().loopStartTimeUs
-            + streamTimeToUs(stream, packet.avPacket()->pts + packet.avPacket()->duration);
+            + streamTimeToUs(stream, AVStreamTime(avPacket.pts + avPacket.duration));
 }
 
 static bool isPacketWithinStreamDuration(const AVFormatContext *context, const Packet &packet)
 {
-    const AVStreamTime streamDuration = context->streams[packet.avPacket()->stream_index]->duration;
-    if (streamDuration <= 0 || context->duration_estimation_method != AVFMT_DURATION_FROM_STREAM)
+    const AVPacket &avPacket = *packet.avPacket();
+    const AVStreamTime streamDuration(context->streams[avPacket.stream_index]->duration);
+    if (streamDuration.get() <= 0
+        || context->duration_estimation_method != AVFMT_DURATION_FROM_STREAM)
         return true; // Stream duration shouldn't or doesn't need to be compared to pts
 
-    return packet.avPacket()->pts <= streamDuration;
+    return AVStreamTime(avPacket.pts) <= streamDuration;
 
     // TODO: If there is a packet that starts before the canonical end of the stream but has a
     // malformed duration, rework doNextStep to check for eof after that packet.
@@ -141,7 +144,7 @@ void Demuxer::doNextStep()
 
         // Increase buffered metrics as the packet has been processed.
 
-        streamData.bufferedDuration += streamTimeToUs(stream, avPacket.duration);
+        streamData.bufferedDuration += streamTimeToUs(stream, AVStreamTime(avPacket.duration));
         streamData.bufferedSize += avPacket.size;
         streamData.maxSentPacketsPos = qMax(streamData.maxSentPacketsPos, endPos);
         updateStreamDataLimitFlag(streamData);
@@ -153,7 +156,7 @@ void Demuxer::doNextStep()
 
         if (!m_firstPacketFound) {
             m_firstPacketFound = true;
-            const TrackTime pos = streamTimeToUs(stream, avPacket.pts);
+            const TrackTime pos = streamTimeToUs(stream, AVStreamTime(avPacket.pts));
             emit firstPacketFound(std::chrono::steady_clock::now(), pos);
         }
 
@@ -182,7 +185,7 @@ void Demuxer::onPacketProcessed(Packet packet)
 
         // Decrease buffered metrics as new data (the packet) has been received (buffered)
 
-        streamData.bufferedDuration -= streamTimeToUs(stream, avPacket.duration);
+        streamData.bufferedDuration -= streamTimeToUs(stream, AVStreamTime(avPacket.duration));
         streamData.bufferedSize -= avPacket.size;
         streamData.maxProcessedPacketPos =
                 qMax(streamData.maxProcessedPacketPos, packetEndPos(stream, packet));
@@ -232,17 +235,17 @@ void Demuxer::ensureSeeked()
         //
         // NOTE: m_posInLoop is not calculated correctly if the start_time is non-zero, but
         // this must be fixed separately.
-        const AVContextTime seekPos =
-                m_posInLoopUs.count() * AV_TIME_BASE / 1'000'000 + m_context->start_time;
+        const AVContextTime seekPos(m_posInLoopUs.count() * AV_TIME_BASE / 1'000'000
+                                    + m_context->start_time);
 
-        auto err = av_seek_frame(m_context, -1, seekPos, AVSEEK_FLAG_BACKWARD);
+        auto err = av_seek_frame(m_context, -1, seekPos.get(), AVSEEK_FLAG_BACKWARD);
 
         if (err < 0) {
-            qCWarning(qLcDemuxer) << "Failed to seek, pos" << seekPos;
+            qCWarning(qLcDemuxer) << "Failed to seek, pos" << seekPos.get();
 
             // Drop an error of seeking to initial position of streams with undefined duration.
             // This needs improvements.
-            if (seekPos != 0 || m_context->duration > 0)
+            if (seekPos != AVContextTime(0) || m_context->duration > 0)
                 emit error(QMediaPlayer::ResourceError,
                            QLatin1StringView("Failed to seek: ") + err2str(err));
         }
