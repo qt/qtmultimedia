@@ -17,19 +17,12 @@ static constexpr qint64 MaxBufferedSize = 32 * 1024 * 1024;
 
 static Q_LOGGING_CATEGORY(qLcDemuxer, "qt.multimedia.ffmpeg.demuxer");
 
-static TrackTime streamTimeToUs(const AVStream *stream, AVStreamTime time)
-{
-    Q_ASSERT(stream);
-
-    const auto res = mul(time.get() * 1000000, stream->time_base);
-    return TrackTime(res ? *res : time.get());
-}
-
-static TrackTime packetEndPos(const AVStream *stream, const Packet &packet)
+static TrackTime packetEndPos(const Packet &packet, const AVStream *stream,
+                              const AVFormatContext *context)
 {
     const AVPacket &avPacket = *packet.avPacket();
     return packet.loopOffset().loopStartTimeUs
-            + streamTimeToUs(stream, AVStreamTime(avPacket.pts + avPacket.duration));
+            + toTrackTimePoint(AVStreamTime(avPacket.pts + avPacket.duration), stream, context);
 }
 
 static bool isPacketWithinStreamDuration(const AVFormatContext *context, const Packet &packet)
@@ -139,12 +132,12 @@ void Demuxer::doNextStep()
     if (it != m_streams.end()) {
         auto &streamData = it->second;
 
-        const TrackTime endPos = packetEndPos(stream, packet);
+        const TrackTime endPos = packetEndPos(packet, stream, m_context);
         m_maxPacketsEndPos = qMax(m_maxPacketsEndPos, endPos);
 
         // Increase buffered metrics as the packet has been processed.
 
-        streamData.bufferedDuration += streamTimeToUs(stream, AVStreamTime(avPacket.duration));
+        streamData.bufferedDuration += toTrackDuration(AVStreamTime(avPacket.duration), stream);
         streamData.bufferedSize += avPacket.size;
         streamData.maxSentPacketsPos = qMax(streamData.maxSentPacketsPos, endPos);
         updateStreamDataLimitFlag(streamData);
@@ -156,7 +149,7 @@ void Demuxer::doNextStep()
 
         if (!m_firstPacketFound) {
             m_firstPacketFound = true;
-            const TrackTime pos = streamTimeToUs(stream, AVStreamTime(avPacket.pts));
+            const TrackTime pos = toTrackTimePoint(AVStreamTime(avPacket.pts), stream, m_context);
             emit firstPacketFound(std::chrono::steady_clock::now(), pos);
         }
 
@@ -185,10 +178,10 @@ void Demuxer::onPacketProcessed(Packet packet)
 
         // Decrease buffered metrics as new data (the packet) has been received (buffered)
 
-        streamData.bufferedDuration -= streamTimeToUs(stream, AVStreamTime(avPacket.duration));
+        streamData.bufferedDuration -= toTrackDuration(AVStreamTime(avPacket.duration), stream);
         streamData.bufferedSize -= avPacket.size;
         streamData.maxProcessedPacketPos =
-                qMax(streamData.maxProcessedPacketPos, packetEndPos(stream, packet));
+                qMax(streamData.maxProcessedPacketPos, packetEndPos(packet, stream, m_context));
 
         Q_ASSERT(it->second.bufferedDuration >= TrackTime(0));
         Q_ASSERT(it->second.bufferedSize >= 0);
@@ -235,8 +228,7 @@ void Demuxer::ensureSeeked()
         //
         // NOTE: m_posInLoop is not calculated correctly if the start_time is non-zero, but
         // this must be fixed separately.
-        const AVContextTime seekPos(m_posInLoopUs.count() * AV_TIME_BASE / 1'000'000
-                                    + m_context->start_time);
+        const AVContextTime seekPos = toContextTimePoint(m_posInLoopUs, m_context);
 
         auto err = av_seek_frame(m_context, -1, seekPos.get(), AVSEEK_FLAG_BACKWARD);
 

@@ -34,6 +34,7 @@ class CodecContext
              std::unique_ptr<QFFmpeg::HWAccel> hwAccel);
         AVCodecContextUPtr context;
         AVStream *stream = nullptr;
+        AVFormatContext *formatContext = nullptr;
         AVRational pixelAspectRatio = { 0, 1 };
         std::unique_ptr<QFFmpeg::HWAccel> hwAccel;
     };
@@ -47,9 +48,14 @@ public:
     AVStream *stream() const { return d->stream; }
     uint streamIndex() const { return d->stream->index; }
     HWAccel *hwAccel() const { return d->hwAccel.get(); }
-    TrackTime toTrackTime(AVStreamTime ts) const
+    TrackTime toTrackDuration(AVStreamTime duration) const
     {
-        return TrackTime(timeStampUs(ts.get(), d->stream->time_base).value_or(0));
+        return QFFmpeg::toTrackDuration(duration, d->stream);
+    }
+
+    TrackTime toTrackTimePoint(AVStreamTime timePoint) const
+    {
+        return QFFmpeg::toTrackTimePoint(timePoint, d->stream, d->formatContext);
     }
 
 private:

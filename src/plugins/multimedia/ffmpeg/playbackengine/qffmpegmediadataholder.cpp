@@ -261,7 +261,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const std::shared_ptr<ICancel
     // Test if seeking to the start of the media works. We are on a worker thread,
     // so even if this may take some time, we don't block the UI thread.
     if (!(context->ctx_flags & AVFMTCTX_UNSEEKABLE)) {
-        const int seekResult = av_seek_frame(context.get(), -1, context->start_time, 0);
+        const int seekResult = av_seek_frame(context.get(), -1, contextStartTime(context.get()).get(), 0);
         if (seekResult < 0) {
             qCWarning(qLcMediaDataHolder)
                     << "Seeking is not supported. FFmpeg error description:" << err2str(seekResult);
@@ -330,7 +330,7 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
     // With some media files, streams may be lacking duration info. Let's
     // get it from ffmpeg's duration estimation instead.
     if (m_duration == TrackTime(0) && m_context->duration > 0ll) {
-        m_duration = TrackTime(m_context->duration);
+        m_duration = toTrackTime(AVContextTime(m_context->duration));
     }
 
     for (auto trackType :
