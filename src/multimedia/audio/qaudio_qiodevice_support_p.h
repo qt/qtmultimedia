@@ -166,6 +166,16 @@ private:
     Deque m_deque;
 };
 
+inline qint64 writeToDevice(QIODevice &device, QSpan<const std::byte> data)
+{
+    return device.write(reinterpret_cast<const char *>(data.data()), data.size());
+}
+
+inline qint64 readFromDevice(QIODevice &device, QSpan<std::byte> outputBuffer)
+{
+    return device.read(reinterpret_cast<char *>(outputBuffer.data()), outputBuffer.size());
+}
+
 } // namespace QtPrivate
 
 QT_END_NAMESPACE
