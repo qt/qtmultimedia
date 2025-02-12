@@ -53,7 +53,7 @@ QFFmpegMediaPlayer::~QFFmpegMediaPlayer()
 
 qint64 QFFmpegMediaPlayer::duration() const
 {
-    return m_playbackEngine ? toUserTrackTime(m_playbackEngine->duration()) : 0;
+    return m_playbackEngine ? toUserTrackTime(m_playbackEngine->duration()).get() : 0;
 }
 
 void QFFmpegMediaPlayer::setPosition(qint64 position)
@@ -62,7 +62,7 @@ void QFFmpegMediaPlayer::setPosition(qint64 position)
         return;
 
     if (m_playbackEngine) {
-        m_playbackEngine->seek(fromUserTrackTime(position));
+        m_playbackEngine->seek(toTrackTime(UserTrackTime(position)));
         updatePosition();
     }
 
@@ -71,7 +71,8 @@ void QFFmpegMediaPlayer::setPosition(qint64 position)
 
 void QFFmpegMediaPlayer::updatePosition()
 {
-    positionChanged(m_playbackEngine ? toUserTrackTime(m_playbackEngine->currentPosition()) : 0);
+    positionChanged(m_playbackEngine ? toUserTrackTime(m_playbackEngine->currentPosition()).get()
+                                     : 0);
 }
 
 void QFFmpegMediaPlayer::endOfStream()

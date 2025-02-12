@@ -85,6 +85,7 @@ qt_internal_add_module(Multimedia
         recording/qcapturablewindow.cpp recording/qcapturablewindow.h recording/qcapturablewindow_p.h
         recording/qvideoframeinput.cpp recording/qvideoframeinput.h
         qsharedhandle_p.h
+        qtaggedtime_p.h
         video/qabstractvideobuffer.cpp video/qabstractvideobuffer.h
         video/qhwvideobuffer.cpp video/qhwvideobuffer_p.h
         video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h

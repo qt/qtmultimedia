@@ -208,8 +208,8 @@ void StreamDecoder::decodeSubtitle(Packet packet)
     // if they are missing, use the packets pts and duration values instead
     TrackTime start, end;
     if (subtitle.pts == AV_NOPTS_VALUE) {
-        start = m_codecContext.toTrackTime(packet.avPacket()->pts);
-        end = start + m_codecContext.toTrackTime(packet.avPacket()->duration);
+        start = m_codecContext.toTrackTime(AVStreamTime(packet.avPacket()->pts));
+        end = start + m_codecContext.toTrackTime(AVStreamTime(packet.avPacket()->duration));
     } else {
         auto pts = timeStampUs(subtitle.pts, AVRational{ 1, AV_TIME_BASE });
         start = TrackTime(*pts + qint64(subtitle.start_display_time) * 1000);

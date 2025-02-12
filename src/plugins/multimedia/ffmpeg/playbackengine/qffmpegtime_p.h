@@ -17,6 +17,8 @@
 
 #include "qglobal.h"
 
+#include "private/qtaggedtime_p.h"
+
 #include <chrono>
 
 QT_BEGIN_NAMESPACE
@@ -25,21 +27,31 @@ namespace QFFmpeg {
 
 using TrackTime = std::chrono::microseconds; // track position in microseconds, used as
                                              // a general time position in the playback engine
+
+struct UserTrackTimeTag;
 using UserTrackTime =
-        qint64; // track position in milliseconds, that matches the postion in the public API
-using AVStreamTime = qint64; // position in AVStream, in 'AVStream::time_base * 1sec' units
-using AVContextTime = qint64; // position in the AVFormatContext, in '1sec / AV_TIME_BASE' units,
-                              // which is actually microseconds. The position is shifted on
-                              // AVFormatContext::start_time from TrackTime.
+        QTaggedTime<qint64, UserTrackTimeTag>; // track position in milliseconds, that matches
+                                               // the postion in the public API
+
+struct AVStreamTimeTag;
+using AVStreamTime = QTaggedTime<qint64, AVStreamTimeTag>; // position in AVStream, in
+                                                           // 'AVStream::time_base * 1sec' units
+
+struct AVContextTimeTag;
+using AVContextTime =
+        QTaggedTime<qint64, AVContextTimeTag>; // position in the AVFormatContext, in '1sec /
+                                               // AV_TIME_BASE' units, which is actually
+                                               // microseconds. The position is shifted on
+                                               // AVFormatContext::start_time from TrackTime.
 
 inline UserTrackTime toUserTrackTime(TrackTime trackTime)
 {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(trackTime).count();
+    return UserTrackTime(std::chrono::duration_cast<std::chrono::milliseconds>(trackTime).count());
 }
 
-inline TrackTime fromUserTrackTime(UserTrackTime userTrackTime)
+inline TrackTime toTrackTime(UserTrackTime userTrackTime)
 {
-    return std::chrono::milliseconds(userTrackTime);
+    return std::chrono::milliseconds(userTrackTime.get());
 }
 
 } // namespace QFFmpeg
