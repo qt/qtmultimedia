@@ -321,7 +321,7 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
 
         if (auto duration = streamDuration(*stream)) {
             m_duration = qMax(m_duration, *duration);
-            metaData.insert(QMediaMetaData::Duration, toUserTrackTime(*duration));
+            metaData.insert(QMediaMetaData::Duration, toUserTrackTime(*duration).get());
         }
 
         m_streamMap[trackType].append({ (int)i, isDefault, metaData });
@@ -394,7 +394,7 @@ void MediaDataHolder::updateMetaData()
     m_metaData.insert(QMediaMetaData::FileFormat,
                       QVariant::fromValue(QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(
                               *m_context->iformat)));
-    m_metaData.insert(QMediaMetaData::Duration, toUserTrackTime(m_duration));
+    m_metaData.insert(QMediaMetaData::Duration, toUserTrackTime(m_duration).get());
 
     if (!m_cachedThumbnail.has_value())
         m_cachedThumbnail = getAttachedPicture(m_context.get());

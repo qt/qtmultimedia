@@ -49,7 +49,7 @@ public:
     HWAccel *hwAccel() const { return d->hwAccel.get(); }
     TrackTime toTrackTime(AVStreamTime ts) const
     {
-        return TrackTime(timeStampUs(ts, d->stream->time_base).value_or(0));
+        return TrackTime(timeStampUs(ts.get(), d->stream->time_base).value_or(0));
     }
 
 private:

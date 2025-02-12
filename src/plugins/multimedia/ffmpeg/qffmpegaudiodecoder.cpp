@@ -161,7 +161,7 @@ void QFFmpegAudioDecoder::start()
     if (!checkNoError())
         return;
 
-    durationChanged(QFFmpeg::toUserTrackTime(m_decoder->duration()));
+    durationChanged(QFFmpeg::toUserTrackTime(m_decoder->duration()).get());
     setIsDecoding(true);
 }
 
