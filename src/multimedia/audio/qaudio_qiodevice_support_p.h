@@ -20,10 +20,12 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qspan.h>
 
+#include <QtMultimedia/private/qaudio_alignment_support_p.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
 
 #include <deque>
+#include <mutex>
 
 QT_BEGIN_NAMESPACE
 
@@ -49,7 +51,8 @@ private:
     {
         using namespace QtMultimediaPrivate; // take/drop
 
-        int64_t usableLength = len & ~(sizeof(SampleType) - 1); // we don't write fractional samples
+        // we don't write fractional samples
+        int64_t usableLength = alignDown(len, sizeof(SampleType));
 
         QSpan<const std::byte> dataRegion = as_bytes(QSpan{ data, usableLength });
 

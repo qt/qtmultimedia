@@ -5,6 +5,7 @@
 #include <QtTest/QtTest>
 
 #include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudio_alignment_support_p.h>
 
 class tst_QAudioHelpers : public QObject
 {
@@ -13,6 +14,8 @@ class tst_QAudioHelpers : public QObject
 private slots:
     void applyVolume();
     void applyVolume_data();
+
+    void alignmentSupport();
 };
 
 namespace WordConverter {
@@ -148,6 +151,29 @@ void tst_QAudioHelpers::applyVolume_data()
     makeEntriesFor("float", SampleFormat::Float);
     makeEntriesFor("int32", SampleFormat::Int32);
     makeEntriesFor("uint8", SampleFormat::UInt8);
+}
+
+void tst_QAudioHelpers::alignmentSupport()
+{
+    using namespace QtMultimediaPrivate;
+    static_assert(isPowerOfTwo(4));
+    static_assert(!isPowerOfTwo(5));
+
+    static_assert(alignUp(4, 8) == 8);
+    static_assert(alignUp(12, 8) == 16);
+
+    static_assert(alignDown(4, 8) == 0);
+    static_assert(alignDown(12, 8) == 8);
+
+    static_assert(!isAligned(4, 8));
+    static_assert(isAligned(16, 8));
+
+    auto intPtr = std::make_unique<int>();
+    QVERIFY(isAligned(intPtr.get(), 4));
+
+    auto charPtr = reinterpret_cast<char *>(intPtr.get());
+    QVERIFY(!isAligned(charPtr + 1, 4));
+    QCOMPARE_EQ(alignDown(charPtr + 1, 4), charPtr);
 }
 
 QTEST_APPLESS_MAIN(tst_QAudioHelpers);
