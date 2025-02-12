@@ -41,12 +41,13 @@ struct Frame
         {
             Q_ASSERT(frame);
             if (frame->pts != AV_NOPTS_VALUE)
-                startTime = codecContext.toTrackTime(AVStreamTime(frame->pts));
+                startTime = codecContext.toTrackTimePoint(AVStreamTime(frame->pts));
             else
-                startTime = codecContext.toTrackTime(AVStreamTime(frame->best_effort_timestamp));
+                startTime =
+                        codecContext.toTrackTimePoint(AVStreamTime(frame->best_effort_timestamp));
 
             if (auto frameDuration = getAVFrameDuration(*frame)) {
-                duration = codecContext.toTrackTime(AVStreamTime(frameDuration));
+                duration = codecContext.toTrackDuration(AVStreamTime(frameDuration));
             } else {
                 // Estimate frame duration for audio stream
                 if (codecContext.context()->codec_type == AVMEDIA_TYPE_AUDIO) {
