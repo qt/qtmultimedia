@@ -14,7 +14,8 @@
 
 #include <AudioUnit/AudioUnit.h>
 #if defined(Q_OS_MACOS)
-# include <AudioUnit/AudioComponent.h>
+#  include <AudioUnit/AudioComponent.h>
+#  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
 #endif
 
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
@@ -202,12 +203,6 @@ QDarwinAudioSink::QDarwinAudioSink(const QAudioDevice &device, QObject *parent)
     m_audioDevice = device.isNull()
         ? QMediaDevices::defaultAudioInput()
         : device;
-#if defined(Q_OS_MACOS)
-    // TODO: This code is problematic because the device might be null-device.
-    const QCoreAudioDeviceInfo *info = static_cast<const QCoreAudioDeviceInfo *>(m_audioDevice.handle());
-    Q_ASSERT(info);
-    m_audioDeviceId = info->deviceID();
-#endif
 
     connect(this, &QDarwinAudioSink::stateChanged, this, &QDarwinAudioSink::updateAudioDevice);
 #ifdef Q_OS_IOS
@@ -442,6 +437,19 @@ bool QDarwinAudioSink::open()
         return true;
     }
 
+#if defined(Q_OS_MACOS)
+    // Find the the most recent CoreAudio AudioDeviceID for the current device
+    // to start the audio stream.
+    const std::optional<AudioDeviceID> nativeDeviceIdOpt = QCoreAudioUtils::findAudioDeviceId(
+        m_audioDevice);
+    if (!nativeDeviceIdOpt.has_value()) {
+        qWarning() << "QAudioSource: Unable to use find most recent CoreAudio AudioDeviceID for "
+                      "given device-id. The device might not be connected.";
+        return false;
+    }
+    const AudioDeviceID nativeDeviceId = nativeDeviceIdOpt.value();
+#endif
+
     AudioComponentDescription componentDescription;
     componentDescription.componentType = kAudioUnitType_Output;
 #if defined(Q_OS_MACOS)
@@ -485,8 +493,9 @@ bool QDarwinAudioSink::open()
                              kAudioOutputUnitProperty_CurrentDevice,
                              kAudioUnitScope_Global,
                              0,
-                             &m_audioDeviceId,
-                             sizeof(m_audioDeviceId)) != noErr) {
+                             &nativeDeviceId,
+                             sizeof(nativeDeviceId))
+        != noErr) {
         qWarning() << "QAudioOutput: Unable to use configured device";
         return false;
     }

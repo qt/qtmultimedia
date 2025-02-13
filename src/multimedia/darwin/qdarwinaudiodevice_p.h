@@ -1,7 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-#ifndef IOSAUDIODEVICEINFO_H
-#define IOSAUDIODEVICEINFO_H
+#ifndef QDARWINAUDIODEVICE_P_H
+#define QDARWINAUDIODEVICE_P_H
 
 //
 //  W A R N I N G
@@ -30,19 +30,8 @@ public:
 #else
     QCoreAudioDeviceInfo(const QByteArray &device, QAudioDevice::Mode mode);
 #endif
-    ~QCoreAudioDeviceInfo() {}
-
-#if defined(Q_OS_MACOS)
-    AudioDeviceID deviceID() const { return m_deviceId; }
-#endif
-private:
-#if defined(Q_OS_MACOS)
-    // TODO: This value is volatile. It will change whenever a device is disconnected + reconnected.
-    // Should be removed in a future patch.
-    AudioDeviceID m_deviceId;
-#endif
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QDARWINAUDIODEVICE_P_H

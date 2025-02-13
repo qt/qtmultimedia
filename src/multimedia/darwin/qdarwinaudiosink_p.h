@@ -150,11 +150,6 @@ private:
     qint64 m_totalFrames = 0;
     QAudioFormat m_audioFormat;
     QIODevice *m_audioIO = nullptr;
-#if defined(Q_OS_MACOS)
-    // TODO: The CoreAudio AudioDeviceId will change in between device connection sessions.
-    // This value should be updated accordingly or be reloaded during stream setup.
-    AudioDeviceID m_audioDeviceId;
-#endif
     AudioUnit m_audioUnit = 0;
     AudioStreamBasicDescription m_streamFormat;
     std::unique_ptr<QDarwinAudioSinkBuffer> m_audioBuffer;
