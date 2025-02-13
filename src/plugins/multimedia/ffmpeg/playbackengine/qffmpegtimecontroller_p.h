@@ -27,8 +27,7 @@ namespace QFFmpeg {
 class TimeController
 {
 public:
-    using Clock = std::chrono::steady_clock;
-    using TimePoint = Clock::time_point;
+    using TimePoint = RealClock::time_point;
     using PlaybackRate = float;
 
     TimeController();
@@ -42,9 +41,9 @@ public:
     void sync(TimePoint tp, TrackPosition pos);
 
     void syncSoft(TimePoint tp, TrackPosition pos,
-                  Clock::duration fixingTime = std::chrono::seconds(4));
+                  RealClock::duration fixingTime = std::chrono::seconds(4));
 
-    TrackPosition currentPosition(Clock::duration offset = Clock::duration{ 0 }) const;
+    TrackPosition currentPosition(RealClock::duration offset = RealClock::duration{ 0 }) const;
 
     void setPaused(bool paused);
 
@@ -72,9 +71,10 @@ private:
 
     void scrollTimeTillNow();
 
-    static Clock::duration toClockDuration(TrackDuration trackDuration, PlaybackRate rate = 1.f);
+    static RealClock::duration toClockDuration(TrackDuration trackDuration,
+                                               PlaybackRate rate = 1.f);
 
-    static TrackDuration toTrackDuration(Clock::duration clockDuration, PlaybackRate rate);
+    static TrackDuration toTrackDuration(RealClock::duration clockDuration, PlaybackRate rate);
 
 private:
     bool m_paused = true;
