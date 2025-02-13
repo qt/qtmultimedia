@@ -76,6 +76,18 @@ struct StringResolver
 
 // clang-format on
 
+#define QT_MM_DEFINE_QDEBUG_ENUM(EnumType)                                     \
+    QDebug operator<<(QDebug dbg, EnumType arg)                                \
+    {                                                                          \
+        std::optional<QString> resolved =                                      \
+                QtMultimediaPrivate::StringResolver<EnumType>::toQString(arg); \
+        if (resolved)                                                          \
+            dbg << *resolved;                                                  \
+        else                                                                   \
+            dbg << "Unknown Enum value";                                       \
+        return dbg;                                                            \
+    }
+
 QT_END_NAMESPACE
 
 #endif // QMULTIMEDIA_ENUM_TO_STRING_CONVERTER_P_H

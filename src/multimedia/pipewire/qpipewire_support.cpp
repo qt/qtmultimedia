@@ -32,15 +32,7 @@ QT_MM_MAKE_STRING_RESOLVER( pw_stream_state, QtMultimediaPrivate::EnumName,
                           );
 // clang-format on
 
-QDebug operator<<(QDebug dbg, pw_stream_state state)
-{
-    std::optional<QString> resolved =
-            QtMultimediaPrivate::StringResolver<pw_stream_state>::toQString(state);
-    if (resolved)
-        return dbg << *resolved;
-
-    return dbg << "unknown pw_stream_state";
-}
+QT_MM_DEFINE_QDEBUG_ENUM(pw_stream_state);
 
 QDebug operator<<(QDebug dbg, const pw_time &state)
 {
