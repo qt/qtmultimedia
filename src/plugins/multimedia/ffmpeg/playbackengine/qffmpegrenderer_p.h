@@ -31,8 +31,8 @@ class Renderer : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
-    using TimePoint = TimeController::TimePoint;
-    using Clock = TimeController::Clock;
+    using TimePoint = RealClock::time_point;
+
     Renderer(const TimeController &tc, const std::chrono::microseconds &seekPosTimeOffset = {});
 
     void syncSoft(TimePoint tp, TrackPosition trackPos);
@@ -85,7 +85,7 @@ protected:
     float playbackRate() const;
 
     std::chrono::microseconds frameDelay(const Frame &frame,
-                                         TimePoint timePoint = Clock::now()) const;
+                                         TimePoint timePoint = RealClock::now()) const;
 
     void changeRendererTime(std::chrono::microseconds offset);
 

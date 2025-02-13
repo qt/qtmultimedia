@@ -38,7 +38,7 @@ void TimeController::setPlaybackRate(PlaybackRate playbackRate)
 
 void TimeController::sync(TrackPosition trackPos)
 {
-    sync(Clock::now(), trackPos);
+    sync(RealClock::now(), trackPos);
 }
 
 void TimeController::sync(TimePoint tp, TrackPosition pos)
@@ -48,9 +48,9 @@ void TimeController::sync(TimePoint tp, TrackPosition pos)
     m_timePoint = tp;
 }
 
-void TimeController::syncSoft(TimePoint tp, TrackPosition pos, Clock::duration fixingTime)
+void TimeController::syncSoft(TimePoint tp, TrackPosition pos, RealClock::duration fixingTime)
 {
-    const auto srcTime = Clock::now();
+    const auto srcTime = RealClock::now();
     const auto srcPos = positionFromTime(srcTime, true);
     const auto dstTime = srcTime + fixingTime;
 
@@ -60,9 +60,9 @@ void TimeController::syncSoft(TimePoint tp, TrackPosition pos, Clock::duration f
     m_softSyncData = makeSoftSyncData(srcTime, srcPos, dstTime);
 }
 
-TrackPosition TimeController::currentPosition(Clock::duration offset) const
+TrackPosition TimeController::currentPosition(RealClock::duration offset) const
 {
-    return positionFromTime(Clock::now() + offset);
+    return positionFromTime(RealClock::now() + offset);
 }
 
 void TimeController::setPaused(bool paused)
@@ -133,7 +133,7 @@ TimeController::TimePoint TimeController::timeFromPositionInternal(const TrackPo
 
 void TimeController::scrollTimeTillNow()
 {
-    const auto now = Clock::now();
+    const auto now = RealClock::now();
     if (!m_paused) {
         m_position = positionFromTimeInternal(now);
 
@@ -148,14 +148,13 @@ void TimeController::scrollTimeTillNow()
     m_timePoint = now;
 }
 
-TimeController::Clock::duration TimeController::toClockDuration(TrackDuration trackDuration,
-                                                                PlaybackRate rate)
+RealClock::duration TimeController::toClockDuration(TrackDuration trackDuration, PlaybackRate rate)
 {
-    return std::chrono::duration_cast<Clock::duration>(
+    return std::chrono::duration_cast<RealClock::duration>(
             std::chrono::microseconds(trackDuration.get()) / rate);
 }
 
-TrackDuration TimeController::toTrackDuration(Clock::duration clockDuration, PlaybackRate rate)
+TrackDuration TimeController::toTrackDuration(RealClock::duration clockDuration, PlaybackRate rate)
 {
     return TrackDuration(
             std::chrono::duration_cast<std::chrono::microseconds>(clockDuration * rate).count());

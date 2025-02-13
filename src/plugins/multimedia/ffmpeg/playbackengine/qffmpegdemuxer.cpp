@@ -150,7 +150,7 @@ void Demuxer::doNextStep()
         if (!m_firstPacketFound) {
             m_firstPacketFound = true;
             const TrackPosition pos = toTrackPosition(AVStreamPosition(avPacket.pts), stream, m_context);
-            emit firstPacketFound(std::chrono::steady_clock::now(), pos);
+            emit firstPacketFound(RealClock::now(), pos);
         }
 
         auto signal = signalByTrackType(it->second.trackType);

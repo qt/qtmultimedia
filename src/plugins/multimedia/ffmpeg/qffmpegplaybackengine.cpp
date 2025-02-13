@@ -102,8 +102,7 @@ void PlaybackEngine::onRendererLoopChanged(quint64 id, TrackPosition offset, int
     }
 }
 
-void PlaybackEngine::onRendererSynchronized(quint64 id, std::chrono::steady_clock::time_point tp,
-                                            TrackPosition pos)
+void PlaybackEngine::onRendererSynchronized(quint64 id, RealClock::time_point tp, TrackPosition pos)
 {
     if (!hasRenderer(id))
         return;

@@ -175,7 +175,7 @@ private:
 
     void deleteFreeThreads();
 
-    void onRendererSynchronized(quint64 id, std::chrono::steady_clock::time_point time,
+    void onRendererSynchronized(quint64 id, RealClock::time_point timePoint,
                                 TrackPosition trackPosition);
 
     void onRendererFinished();
