@@ -5,7 +5,7 @@
 #define QENCODINGINITIALIZER_P_H
 
 #include "qobject.h"
-#include "private/qmediainputencoderinterface_p.h"
+#include <QtMultimedia/private/qmediainputencoderinterface_p.h>
 #include <unordered_set>
 #include <vector>
 

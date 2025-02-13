@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "qffmpeg_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include <QtCore/qspan.h>
 
 QT_BEGIN_NAMESPACE

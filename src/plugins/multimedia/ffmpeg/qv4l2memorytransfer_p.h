@@ -4,7 +4,7 @@
 #ifndef QV4L2MEMORYTRANSFER_P_H
 #define QV4L2MEMORYTRANSFER_P_H
 
-#include <private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <qbytearray.h>
 #include <linux/videodev2.h>
 

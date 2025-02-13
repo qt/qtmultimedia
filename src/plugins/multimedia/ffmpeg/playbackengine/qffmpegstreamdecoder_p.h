@@ -13,11 +13,11 @@
 //
 // We mean it.
 //
-#include "playbackengine/qffmpegplaybackengineobject_p.h"
-#include "playbackengine/qffmpegframe_p.h"
-#include "playbackengine/qffmpegpacket_p.h"
-#include "playbackengine/qffmpegplaybackutils_p.h"
-#include "private/qplatformmediaplayer_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegplaybackengineobject_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegframe_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegpacket_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
 
 #include <QtCore/qqueue.h>
 

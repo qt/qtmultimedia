@@ -14,9 +14,9 @@
 // We mean it.
 //
 
-#include "qffmpeghwaccel_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include "qvideoframeformat.h"
-#include "private/qplatformmediarecorder_p.h"
+#include <QtMultimedia/private/qplatformmediarecorder_p.h>
 
 QT_BEGIN_NAMESPACE
 

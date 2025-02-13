@@ -14,9 +14,9 @@
 // We mean it.
 //
 
-#include <private/qplatformaudioinput_p.h>
-#include <private/qplatformaudiobufferinput_p.h>
-#include "qffmpegthread_p.h"
+#include <QtMultimedia/private/qplatformaudioinput_p.h>
+#include <QtMultimedia/private/qplatformaudiobufferinput_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
 #include <qaudioinput.h>
 
 QT_BEGIN_NAMESPACE

@@ -16,7 +16,7 @@
 //
 
 #include <qtypes.h>
-#include "qffmpegtime_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
 
 QT_BEGIN_NAMESPACE
 

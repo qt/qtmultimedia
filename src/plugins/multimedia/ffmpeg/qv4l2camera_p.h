@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <private/qplatformcamera_p.h>
+#include <QtMultimedia/private/qplatformcamera_p.h>
 #include <sys/time.h>
 
 QT_BEGIN_NAMESPACE

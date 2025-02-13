@@ -14,11 +14,11 @@
 // We mean it.
 //
 
-#include "qffmpeg_p.h"
-#include "qffmpegtextureconverter_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegtextureconverter_p.h>
 #include "qvideoframeformat.h"
-#include "private/qhwvideobuffer_p.h"
-#include "private/qrhivaluemapper_p.h"
+#include <QtMultimedia/private/qhwvideobuffer_p.h>
+#include <QtMultimedia/private/qrhivaluemapper_p.h>
 
 #include <qshareddata.h>
 #include <memory>

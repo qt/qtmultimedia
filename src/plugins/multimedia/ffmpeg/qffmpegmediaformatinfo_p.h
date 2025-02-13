@@ -15,11 +15,11 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaformatinfo_p.h>
+#include <QtMultimedia/private/qplatformmediaformatinfo_p.h>
 #include <qhash.h>
 #include <qlist.h>
 #include <qaudioformat.h>
-#include "qffmpeg_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 
 QT_BEGIN_NAMESPACE
 

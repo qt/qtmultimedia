@@ -4,8 +4,8 @@
 #ifndef QFFMPEGTEXTURECONVERTER_P_H
 #define QFFMPEGTEXTURECONVERTER_P_H
 
-#include "qffmpegdefs_p.h"
-#include "private/qhwvideobuffer_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
+#include <QtMultimedia/private/qhwvideobuffer_p.h>
 
 #include <memory>
 

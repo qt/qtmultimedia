@@ -4,7 +4,7 @@
 #ifndef QFFMPEGENCODINGFORMATCONTEXT_P_H
 #define QFFMPEGENCODINGFORMATCONTEXT_P_H
 
-#include "qffmpegdefs_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
 #include "qmediaformat.h"
 
 //
