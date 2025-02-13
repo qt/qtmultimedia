@@ -17,8 +17,8 @@
 
 #include "qglobal.h"
 
-#include "private/qtaggedtime_p.h"
-#include "qffmpeg_p.h"
+#include <QtMultimedia/private/qtaggedtime_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 
 #include <chrono>
 

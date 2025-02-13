@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <private/qplatformmediarecorder_p.h>
+#include <QtMultimedia/private/qplatformmediarecorder_p.h>
 
 QT_BEGIN_NAMESPACE
 

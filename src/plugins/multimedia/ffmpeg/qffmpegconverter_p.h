@@ -16,7 +16,7 @@
 //
 
 #include <QtCore/qtconfigmacros.h>
-#include <private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 

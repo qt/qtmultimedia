@@ -20,7 +20,7 @@
 
 #include <qtconfigmacros.h>
 #include <qtypes.h>
-#include <private/qvideotransformation_p.h>
+#include <QtMultimedia/private/qvideotransformation_p.h>
 
 #include <memory>
 #include <functional>

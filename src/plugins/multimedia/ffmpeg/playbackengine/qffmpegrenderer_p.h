@@ -14,9 +14,9 @@
 // We mean it.
 //
 
-#include "qffmpegplaybackengineobject_p.h"
-#include "qffmpegtimecontroller_p.h"
-#include "qffmpegframe_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegplaybackengineobject_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegtimecontroller_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegframe_p.h>
 
 #include <QtCore/qpointer.h>
 #include <QtCore/qqueue.h>

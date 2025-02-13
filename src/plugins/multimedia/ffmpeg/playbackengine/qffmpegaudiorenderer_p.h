@@ -14,7 +14,7 @@
 // We mean it.
 //
 
-#include "qffmpegrenderer_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegrenderer_p.h>
 
 #include "qaudiobuffer.h"
 

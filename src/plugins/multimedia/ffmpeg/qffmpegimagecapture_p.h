@@ -16,8 +16,8 @@
 // We mean it.
 //
 
-#include <private/qplatformimagecapture_p.h>
-#include "qffmpegmediacapturesession_p.h"
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegmediacapturesession_p.h>
 
 #include <QtCore/qpointer.h>
 #include <qqueue.h>

@@ -14,10 +14,10 @@
 // We mean it.
 //
 
-#include "qffmpegthread_p.h"
-#include "qffmpegencodingformatcontext_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegencodingformatcontext_p.h>
 
-#include <private/qplatformmediarecorder_p.h>
+#include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <qmediarecorder.h>
 
 QT_BEGIN_NAMESPACE

@@ -15,11 +15,11 @@
 // We mean it.
 //
 
-#include <private/qhwvideobuffer_p.h>
+#include <QtMultimedia/private/qhwvideobuffer_p.h>
 #include <QtCore/qvariant.h>
 
-#include "qffmpeg_p.h"
-#include "qffmpeghwaccel_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 
 QT_BEGIN_NAMESPACE
 

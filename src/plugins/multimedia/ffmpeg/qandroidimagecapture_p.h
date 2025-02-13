@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "qffmpegimagecapture_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegimagecapture_p.h>
 
 QT_BEGIN_NAMESPACE
 

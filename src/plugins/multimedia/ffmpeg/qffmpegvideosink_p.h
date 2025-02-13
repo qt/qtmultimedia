@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <private/qplatformvideosink_p.h>
-#include <qffmpeghwaccel_p.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 
 QT_BEGIN_NAMESPACE
 

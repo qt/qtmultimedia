@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include "private/qplatformsurfacecapture_p.h"
-#include <qandroidvideoframebuffer_p.h>
+#include <QtMultimedia/private/qplatformsurfacecapture_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qandroidvideoframebuffer_p.h>
 #include <QJniObject>
 #include <memory>
 

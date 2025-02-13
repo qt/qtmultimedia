@@ -16,10 +16,10 @@
 //
 
 #include "qavfcamerabase_p.h"
-#include <private/qplatformmediaintegration_p.h>
-#include <private/qvideooutputorientationhandler_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qvideooutputorientationhandler_p.h>
 #define AVMediaType XAVMediaType
-#include "qffmpeghwaccel_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
 
 #include <qfilesystemwatcher.h>

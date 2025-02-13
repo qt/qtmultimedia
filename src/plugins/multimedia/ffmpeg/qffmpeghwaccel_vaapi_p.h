@@ -14,7 +14,7 @@
 // We mean it.
 //
 
-#include "qffmpeghwaccel_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 
 #if QT_CONFIG(vaapi)
 
