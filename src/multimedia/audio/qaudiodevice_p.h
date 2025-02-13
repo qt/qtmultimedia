@@ -59,6 +59,17 @@ public:
     QAudioDevice create() { return QAudioDevice(this); }
 };
 
+inline const QList<QAudioFormat::SampleFormat> &qAllSupportedSampleFormats()
+{
+    static const auto singleton = QList<QAudioFormat::SampleFormat>{
+        QAudioFormat::UInt8,
+        QAudioFormat::Int16,
+        QAudioFormat::Int32,
+        QAudioFormat::Float,
+    };
+    return singleton;
+};
+
 QT_END_NAMESPACE
 
 #endif // QAUDIODEVICEINFO_H

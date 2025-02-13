@@ -182,7 +182,8 @@ QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &d
     }
     minimumChannelCount = 1;
     maximumChannelCount = qSupportedNumberOfChannels(mode, id).value_or(16);
-    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
+
+    supportedSampleFormats = qAllSupportedSampleFormats();
 }
 
 #else
@@ -198,7 +199,7 @@ QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudioDevic
     maximumSampleRate = 96000;
     minimumChannelCount = 1;
     maximumChannelCount = 16;
-    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
+    supportedSampleFormats = qAllSupportedSampleFormats();
 }
 
 #endif
