@@ -83,11 +83,10 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
             if (getAudioProperty<AudioStreamBasicDescription>(device,
                                                             audioDeviceStreamFormatPropertyAddress,
                                                             /*warnIfMissing=*/false)) {
-                devices << createAudioDevice(
-                    false,
-                    device,
-                    QCoreAudioUtils::readPersistentDeviceId(defaultDevice, mode),
-                    mode);
+                devices << createAudioDevice(false,
+                                             device,
+                                             QCoreAudioUtils::readPersistentDeviceId(device, mode),
+                                             mode);
             }
         }
     }
