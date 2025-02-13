@@ -30,7 +30,7 @@ class Demuxer : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
-    Demuxer(AVFormatContext *context, TrackTime initialPosUs, const LoopOffset &loopOffset,
+    Demuxer(AVFormatContext *context, TrackPosition initialPosUs, const LoopOffset &loopOffset,
             const StreamIndexes &streamIndexes, int loops);
 
     using RequestingSignal = void (Demuxer::*)(Packet);
@@ -45,7 +45,7 @@ signals:
     void requestProcessAudioPacket(Packet);
     void requestProcessVideoPacket(Packet);
     void requestProcessSubtitlePacket(Packet);
-    void firstPacketFound(TimePoint tp, TrackTime trackPos);
+    void firstPacketFound(TimePoint tp, TrackPosition trackPos);
     void packetsBuffered();
 
 protected:
@@ -62,11 +62,11 @@ private:
     struct StreamData
     {
         QPlatformMediaPlayer::TrackType trackType = QPlatformMediaPlayer::TrackType::NTrackTypes;
-        TrackTime bufferedDuration = TrackTime(0);
+        TrackDuration bufferedDuration = TrackDuration(0);
         qint64 bufferedSize = 0;
 
-        TrackTime maxSentPacketsPos = TrackTime(0);
-        TrackTime maxProcessedPacketPos = TrackTime(0);
+        TrackPosition maxSentPacketsPos = TrackPosition(0);
+        TrackPosition maxProcessedPacketPos = TrackPosition(0);
 
         bool isDataLimitReached = false;
     };
@@ -78,9 +78,9 @@ private:
     bool m_seeked = false;
     bool m_firstPacketFound = false;
     std::unordered_map<int, StreamData> m_streams;
-    TrackTime m_posInLoopUs; // Position in current loop in [0, duration()]
+    TrackPosition m_posInLoopUs = TrackPosition(0); // Position in current loop in [0, duration()]
     LoopOffset m_loopOffset;
-    TrackTime m_maxPacketsEndPos = TrackTime(0);
+    TrackPosition m_maxPacketsEndPos = TrackPosition(0);
     QAtomicInt m_loops = QMediaPlayer::Once;
     bool m_buffered = false;
     qsizetype m_demuxerRetryCount = 0;

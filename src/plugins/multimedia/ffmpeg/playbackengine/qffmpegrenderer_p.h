@@ -35,11 +35,11 @@ public:
     using Clock = TimeController::Clock;
     Renderer(const TimeController &tc, const std::chrono::microseconds &seekPosTimeOffset = {});
 
-    void syncSoft(TimePoint tp, TrackTime trackPos);
+    void syncSoft(TimePoint tp, TrackPosition trackPos);
 
-    TrackTime seekPosition() const;
+    TrackPosition seekPosition() const;
 
-    TrackTime lastPosition() const;
+    TrackPosition lastPosition() const;
 
     void setPlaybackRate(float rate);
 
@@ -48,7 +48,7 @@ public:
     bool isStepForced() const;
 
 public slots:
-    void setInitialPosition(TimePoint tp, TrackTime trackPos);
+    void setInitialPosition(TimePoint tp, TrackPosition trackPos);
 
     void onFinalFrameReceived();
 
@@ -57,11 +57,11 @@ public slots:
 signals:
     void frameProcessed(Frame);
 
-    void synchronized(Id id, TimePoint tp, TrackTime pos);
+    void synchronized(Id id, TimePoint tp, TrackPosition pos);
 
     void forceStepDone();
 
-    void loopChanged(Id id, TrackTime offset, int index);
+    void loopChanged(Id id, TrackPosition offset, int index);
 
 protected:
     bool setForceStepDone();
@@ -107,7 +107,7 @@ private:
 
 private:
     TimeController m_timeController;
-    TrackTime m_lastFrameEnd = TrackTime(0);
+    TrackPosition m_lastFrameEnd = TrackPosition(0);
     QAtomicInteger<qint64> m_lastPosition = 0;
     QAtomicInteger<qint64> m_seekPos = 0;
 

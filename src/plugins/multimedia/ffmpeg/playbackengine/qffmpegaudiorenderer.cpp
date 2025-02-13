@@ -74,7 +74,7 @@ std::unique_ptr<QFFmpegResampler> createResampler(const Frame &frame,
                                                   const QAudioFormat &outputFormat)
 {
     return std::make_unique<QFFmpegResampler>(frame.codecContext(), outputFormat,
-                                              frame.startTime().count());
+                                              frame.startTime().get());
 }
 
 struct TrivialAudioFrameConverter : AbstactAudioFrameConverter
@@ -119,7 +119,7 @@ struct PitchShiftingAudioFrameConverter : AbstactAudioFrameConverter
             return ret;
         }();
         m_toOutputFormatConverter = std::make_unique<QFFmpegResampler>(
-                pitchCompensatedFormat, outputFormat, frame.startTime().count());
+                pitchCompensatedFormat, outputFormat, frame.startTime().get());
     }
 
     QAudioBuffer convert(AVFrame *frame) override

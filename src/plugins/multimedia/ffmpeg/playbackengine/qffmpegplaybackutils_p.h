@@ -24,8 +24,8 @@ namespace QFFmpeg {
 
 struct LoopOffset
 {
-    TrackTime loopStartTimeUs =
-            TrackTime(0); // Accumulated duration of previous loops (microseconds)
+    TrackPosition loopStartTimeUs =
+            TrackPosition(0); // Accumulated duration of previous loops (microseconds)
     int loopIndex = 0; // Counts the number of times the media has been played
 };
 
