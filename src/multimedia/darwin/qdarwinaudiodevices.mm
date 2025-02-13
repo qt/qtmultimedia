@@ -201,9 +201,7 @@ static void removeAudioListeners(QDarwinAudioDevices &)
 
 #endif
 
-
 QDarwinAudioDevices::QDarwinAudioDevices()
-    : QPlatformAudioDevices()
 {
 #ifdef Q_OS_MACOS // TODO: implement setAudioListeners, removeAudioListeners for Q_OS_IOS, after
                   // that - remove or modify the define
@@ -213,7 +211,6 @@ QDarwinAudioDevices::QDarwinAudioDevices()
 
     setAudioListeners(*this);
 }
-
 
 QDarwinAudioDevices::~QDarwinAudioDevices()
 {
