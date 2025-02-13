@@ -453,8 +453,8 @@ bool QDarwinAudioSink::open()
     componentDescription.componentFlags = 0;
     componentDescription.componentFlagsMask = 0;
 
-    AudioComponent component = AudioComponentFindNext(0, &componentDescription);
-    if (component == 0) {
+    AudioComponent component = AudioComponentFindNext(nullptr, &componentDescription);
+    if (component == nullptr) {
         qWarning() << "QAudioOutput: Failed to find Output component";
         return false;
     }
@@ -555,12 +555,12 @@ bool QDarwinAudioSink::open()
 
 void QDarwinAudioSink::close()
 {
-    if (m_audioUnit != 0) {
+    if (m_audioUnit != nullptr) {
         m_stateMachine.stop();
 
         AudioUnitUninitialize(m_audioUnit);
         AudioComponentInstanceDispose(m_audioUnit);
-        m_audioUnit = 0;
+        m_audioUnit = nullptr;
     }
 
     m_audioBuffer.reset();
