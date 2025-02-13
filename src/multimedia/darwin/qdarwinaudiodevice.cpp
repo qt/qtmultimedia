@@ -149,9 +149,10 @@ qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
 
 #ifdef Q_OS_MACOS
 
-QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(device, mode),
-      m_deviceId(id)
+QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id,
+                                           const QByteArray &device,
+                                           QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(device, mode)
 {
     const std::optional<QAudioFormat::ChannelConfig> channelConfigOpt =
         qGetChannelLayoutForCoreAudioDevice(mode, id);
