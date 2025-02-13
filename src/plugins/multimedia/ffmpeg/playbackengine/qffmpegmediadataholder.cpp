@@ -23,12 +23,12 @@ static Q_LOGGING_CATEGORY(qLcMediaDataHolder, "qt.multimedia.ffmpeg.mediadatahol
 
 namespace QFFmpeg {
 
-static std::optional<TrackTime> streamDuration(const AVStream &stream)
+static std::optional<TrackDuration> streamDuration(const AVStream &stream)
 {
     const auto &factor = stream.time_base;
 
     if (stream.duration > 0 && factor.num > 0 && factor.den > 0) {
-        return TrackTime(qint64(1000000) * stream.duration * factor.num / factor.den);
+        return TrackDuration(qint64(1000000) * stream.duration * factor.num / factor.den);
     }
 
     // In some cases ffmpeg reports negative duration that is definitely invalid.
@@ -41,7 +41,7 @@ static std::optional<TrackTime> streamDuration(const AVStream &stream)
 
     if (const auto duration = av_dict_get(stream.metadata, "DURATION", nullptr, 0)) {
         const auto time = QTime::fromString(QString::fromUtf8(duration->value));
-        return TrackTime(qint64(1000) * time.msecsSinceStartOfDay());
+        return TrackDuration(qint64(1000) * time.msecsSinceStartOfDay());
     }
 
     return {};
@@ -261,7 +261,8 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const std::shared_ptr<ICancel
     // Test if seeking to the start of the media works. We are on a worker thread,
     // so even if this may take some time, we don't block the UI thread.
     if (!(context->ctx_flags & AVFMTCTX_UNSEEKABLE)) {
-        const int seekResult = av_seek_frame(context.get(), -1, contextStartTime(context.get()).get(), 0);
+        const int seekResult =
+                av_seek_frame(context.get(), -1, contextStartOffset(context.get()).get(), 0);
         if (seekResult < 0) {
             qCWarning(qLcMediaDataHolder)
                     << "Seeking is not supported. FFmpeg error description:" << err2str(seekResult);
@@ -321,7 +322,7 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
 
         if (auto duration = streamDuration(*stream)) {
             m_duration = qMax(m_duration, *duration);
-            metaData.insert(QMediaMetaData::Duration, toUserTrackTime(*duration).get());
+            metaData.insert(QMediaMetaData::Duration, toUserDuration(*duration).get());
         }
 
         m_streamMap[trackType].append({ (int)i, isDefault, metaData });
@@ -329,8 +330,8 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
 
     // With some media files, streams may be lacking duration info. Let's
     // get it from ffmpeg's duration estimation instead.
-    if (m_duration == TrackTime(0) && m_context->duration > 0ll) {
-        m_duration = toTrackTime(AVContextTime(m_context->duration));
+    if (m_duration == TrackDuration(0) && m_context->duration > 0ll) {
+        m_duration = toTrackDuration(AVContextDuration(m_context->duration));
     }
 
     for (auto trackType :
@@ -394,7 +395,7 @@ void MediaDataHolder::updateMetaData()
     m_metaData.insert(QMediaMetaData::FileFormat,
                       QVariant::fromValue(QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(
                               *m_context->iformat)));
-    m_metaData.insert(QMediaMetaData::Duration, toUserTrackTime(m_duration).get());
+    m_metaData.insert(QMediaMetaData::Duration, toUserDuration(m_duration).get());
 
     if (!m_cachedThumbnail.has_value())
         m_cachedThumbnail = getAttachedPicture(m_context.get());

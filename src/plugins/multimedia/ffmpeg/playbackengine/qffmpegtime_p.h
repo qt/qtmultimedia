@@ -26,58 +26,80 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-using TrackTime = std::chrono::microseconds; // track position in microseconds, used as
-                                             // a general time position in the playback engine
+using namespace std::chrono_literals;
+
+struct TrackTimeTag;
+// track position in microseconds, used as
+// a general time position in the playback engine
+using TrackPosition = QTaggedTimePoint<qint64, TrackTimeTag>;
+using TrackDuration = QTaggedDuration<qint64, TrackTimeTag>;
 
 struct UserTrackTimeTag;
-using UserTrackTime =
-        QTaggedTime<qint64, UserTrackTimeTag>; // track position in milliseconds, that matches
-                                               // the postion in the public API
+// track position in milliseconds, that matches the postion in the public API
+using UserTrackPosition = QTaggedTimePoint<qint64, UserTrackTimeTag>;
+using UserTrackDuration = QTaggedDuration<qint64, UserTrackTimeTag>;
 
 struct AVStreamTimeTag;
-using AVStreamTime = QTaggedTime<qint64, AVStreamTimeTag>; // position in AVStream, in
-                                                           // 'AVStream::time_base * 1sec' units
+// position in AVStream, in 'AVStream::time_base * 1sec' units
+using AVStreamPosition = QTaggedTimePoint<qint64, AVStreamTimeTag>;
+using AVStreamDuration = QTaggedDuration<qint64, AVStreamTimeTag>;
 
 struct AVContextTimeTag;
-using AVContextTime =
-        QTaggedTime<qint64, AVContextTimeTag>; // position in the AVFormatContext, in '1sec /
-                                               // AV_TIME_BASE' units, which is actually
-                                               // microseconds. The position is shifted on
-                                               // AVFormatContext::start_time from TrackTime.
+// position in the AVFormatContext, in '1sec / AV_TIME_BASE' units, which is actually
+// microseconds. The position is shifted on AVFormatContext::start_time from TrackTime.
+using AVContextPosition = QTaggedTimePoint<qint64, AVContextTimeTag>;
+using AVContextDuration = QTaggedDuration<qint64, AVContextTimeTag>;
 
-inline AVContextTime contextStartTime(const AVFormatContext *formatContext) {
-    return AVContextTime(formatContext->start_time == AV_NOPTS_VALUE ? 0 : formatContext->start_time);
-}
-
-inline UserTrackTime toUserTrackTime(TrackTime trackTime)
+inline AVContextDuration contextStartOffset(const AVFormatContext *formatContext)
 {
-    return UserTrackTime(std::chrono::duration_cast<std::chrono::milliseconds>(trackTime).count());
+    return AVContextDuration(
+            formatContext->start_time == AV_NOPTS_VALUE ? 0 : formatContext->start_time);
 }
 
-inline TrackTime toTrackTime(UserTrackTime userTrackTime)
+inline UserTrackPosition toUserPosition(TrackPosition trackPosition)
 {
-    return std::chrono::milliseconds(userTrackTime.get());
+    return UserTrackPosition(trackPosition.get() / 1000);
 }
 
-inline TrackTime toTrackTime(AVContextTime contextTime) {
-    return TrackTime(contextTime.get() * 1'000'000 / AV_TIME_BASE);
-}
-
-inline TrackTime toTrackDuration(AVStreamTime streamTime, const AVStream *avStream)
+inline UserTrackDuration toUserDuration(TrackDuration trackDuration)
 {
-    return TrackTime(timeStampUs(streamTime.get(), avStream->time_base).value_or(0));
+    return UserTrackDuration(trackDuration.get() / 1000);
 }
 
-inline TrackTime toTrackTimePoint(AVStreamTime streamTime, const AVStream *avStream,
-                                  const AVFormatContext *formatContext)
+inline TrackDuration toTrackDuration(AVContextDuration contextDuration)
 {
-    return toTrackDuration(streamTime, avStream) - toTrackTime(contextStartTime(formatContext));
+    return TrackDuration(contextDuration.get() * 1'000'000 / AV_TIME_BASE);
 }
 
-inline AVContextTime toContextTimePoint(TrackTime trackTime, const AVFormatContext *formatContext)
+inline TrackPosition toTrackPosition(UserTrackPosition userTrackPosition)
+{
+    return TrackPosition(userTrackPosition.get() * 1000);
+}
+
+inline TrackDuration toTrackDuration(UserTrackDuration userTrackDuration)
+{
+    return TrackDuration(userTrackDuration.get() * 1000);
+}
+
+inline TrackDuration toTrackDuration(AVStreamDuration streamDuration, const AVStream *avStream)
+{
+    return TrackDuration(timeStampUs(streamDuration.get(), avStream->time_base).value_or(0));
+}
+
+inline TrackPosition toTrackPosition(AVStreamPosition streamPosition, const AVStream *avStream,
+                                     const AVFormatContext *formatContext)
+{
+    const auto duration = toTrackDuration(streamPosition.asDuration(), avStream)
+            - toTrackDuration(contextStartOffset(formatContext));
+    return duration.asTimePoint();
+}
+
+inline AVContextPosition toContextPosition(TrackPosition trackPosition,
+                                           const AVFormatContext *formatContext)
 {
 
-    return AVContextTime(trackTime.count() * AV_TIME_BASE / 1'000'000) + contextStartTime(formatContext);
+    return AVContextPosition(trackPosition.get() * AV_TIME_BASE / 1'000'000)
+            + contextStartOffset(formatContext);
 }
 
 } // namespace QFFmpeg

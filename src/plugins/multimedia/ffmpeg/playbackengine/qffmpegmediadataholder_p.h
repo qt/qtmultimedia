@@ -65,7 +65,7 @@ public:
 
     const QList<StreamInfo> &streamInfo(QPlatformMediaPlayer::TrackType trackType) const;
 
-    TrackTime duration() const { return m_duration; }
+    TrackDuration duration() const { return m_duration; }
 
     const QMediaMetaData &metaData() const { return m_metaData; }
 
@@ -96,7 +96,7 @@ private:
     StreamIndexes m_currentAVStreamIndex = { -1, -1, -1 };
     StreamsMap m_streamMap;
     StreamIndexes m_requestedStreams = { -1, -1, -1 };
-    TrackTime m_duration = TrackTime(0);
+    TrackDuration m_duration = TrackDuration(0);
     QMediaMetaData m_metaData;
     std::optional<QImage> m_cachedThumbnail;
 };
