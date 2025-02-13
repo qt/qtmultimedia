@@ -37,51 +37,49 @@ public:
 
     void setPlaybackRate(PlaybackRate playbackRate);
 
-    void sync(TrackTime trackPos = TrackTime(0));
+    void sync(TrackPosition trackPos = TrackPosition(0));
 
-    void sync(TimePoint tp, TrackTime pos);
+    void sync(TimePoint tp, TrackPosition pos);
 
-    void syncSoft(TimePoint tp, TrackTime pos,
+    void syncSoft(TimePoint tp, TrackPosition pos,
                   Clock::duration fixingTime = std::chrono::seconds(4));
 
-    TrackTime currentPosition(Clock::duration offset = Clock::duration{ 0 }) const;
+    TrackPosition currentPosition(Clock::duration offset = Clock::duration{ 0 }) const;
 
     void setPaused(bool paused);
 
-    TrackTime positionFromTime(TimePoint tp, bool ignorePause = false) const;
+    TrackPosition positionFromTime(TimePoint tp, bool ignorePause = false) const;
 
-    TimePoint timeFromPosition(TrackTime pos, bool ignorePause = false) const;
+    TimePoint timeFromPosition(TrackPosition pos, bool ignorePause = false) const;
 
 private:
     struct SoftSyncData
     {
         TimePoint srcTimePoint;
-        TrackTime srcPosition;
+        TrackPosition srcPosition = 0;
         TimePoint dstTimePoint;
-        TrackTime srcPosOffest;
-        TrackTime dstPosition;
+        TrackDuration srcPosOffest = 0;
+        TrackPosition dstPosition = 0;
         PlaybackRate internalRate = 1;
     };
 
-    SoftSyncData makeSoftSyncData(const TimePoint &srcTp, const TrackTime &srcPos,
+    SoftSyncData makeSoftSyncData(const TimePoint &srcTp, const TrackPosition &srcPos,
                                   const TimePoint &dstTp) const;
 
-    TrackTime positionFromTimeInternal(const TimePoint &tp) const;
+    TrackPosition positionFromTimeInternal(const TimePoint &tp) const;
 
-    TimePoint timeFromPositionInternal(const TrackTime &pos) const;
+    TimePoint timeFromPositionInternal(const TrackPosition &pos) const;
 
     void scrollTimeTillNow();
 
-    template<typename T>
-    static Clock::duration toClockTime(const T &t);
+    static Clock::duration toClockDuration(TrackDuration trackDuration, PlaybackRate rate = 1.f);
 
-    template<typename T>
-    static TrackTime toTrackTime(const T &t);
+    static TrackDuration toTrackDuration(Clock::duration clockDuration, PlaybackRate rate);
 
 private:
     bool m_paused = true;
     PlaybackRate m_playbackRate = 1;
-    TrackTime m_position;
+    TrackPosition m_position = 0;
     TimePoint m_timePoint;
     std::optional<SoftSyncData> m_softSyncData;
 };

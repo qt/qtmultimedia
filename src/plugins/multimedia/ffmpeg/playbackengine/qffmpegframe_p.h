@@ -41,32 +41,32 @@ struct Frame
         {
             Q_ASSERT(frame);
             if (frame->pts != AV_NOPTS_VALUE)
-                startTime = codecContext.toTrackTimePoint(AVStreamTime(frame->pts));
+                startTime = codecContext.toTrackPosition(AVStreamPosition(frame->pts));
             else
-                startTime =
-                        codecContext.toTrackTimePoint(AVStreamTime(frame->best_effort_timestamp));
+                startTime = codecContext.toTrackPosition(
+                        AVStreamPosition(frame->best_effort_timestamp));
 
             if (auto frameDuration = getAVFrameDuration(*frame)) {
-                duration = codecContext.toTrackDuration(AVStreamTime(frameDuration));
+                duration = codecContext.toTrackDuration(AVStreamDuration(frameDuration));
             } else {
                 // Estimate frame duration for audio stream
                 if (codecContext.context()->codec_type == AVMEDIA_TYPE_AUDIO) {
                     if (frame->sample_rate)
-                        duration =
-                                TrackTime(qint64(1000000) * frame->nb_samples / frame->sample_rate);
+                        duration = TrackDuration(qint64(1000000) * frame->nb_samples
+                                                 / frame->sample_rate);
                     else
-                        duration = TrackTime(0); // Fallback
+                        duration = TrackDuration(0); // Fallback
                 } else {
                     // Estimate frame duration for video stream
                     const auto &avgFrameRate = codecContext.stream()->avg_frame_rate;
-                    duration =
-                            TrackTime(mul(qint64(1000000), { avgFrameRate.den, avgFrameRate.num })
-                                              .value_or(0));
+                    duration = TrackDuration(
+                            mul(qint64(1000000), { avgFrameRate.den, avgFrameRate.num })
+                                    .value_or(0));
                 }
             }
         }
-        Data(const LoopOffset &offset, const QString &text, TrackTime pts, TrackTime duration,
-             quint64 sourceId)
+        Data(const LoopOffset &offset, const QString &text, TrackPosition pts,
+             TrackDuration duration, quint64 sourceId)
             : loopOffset(offset), text(text), startTime(pts), duration(duration), sourceId(sourceId)
         {
         }
@@ -76,8 +76,8 @@ struct Frame
         std::optional<CodecContext> codecContext;
         AVFrameUPtr frame;
         QString text;
-        TrackTime startTime;
-        TrackTime duration;
+        TrackPosition startTime = 0;
+        TrackDuration duration = 0;
         quint64 sourceId = 0;
     };
     Frame() = default;
@@ -87,7 +87,7 @@ struct Frame
         : d(new Data(offset, std::move(f), codecContext, sourceIndex))
     {
     }
-    Frame(const LoopOffset &offset, const QString &text, TrackTime pts, TrackTime duration,
+    Frame(const LoopOffset &offset, const QString &text, TrackPosition pts, TrackDuration duration,
           quint64 sourceIndex)
         : d(new Data(offset, text, pts, duration, sourceIndex))
     {
@@ -100,14 +100,20 @@ struct Frame
     {
         return data().codecContext ? &data().codecContext.value() : nullptr;
     }
-    TrackTime startTime() const { return data().startTime; }
-    TrackTime duration() const { return data().duration; }
-    TrackTime endTime() const { return data().startTime + data().duration; }
+    TrackPosition startTime() const { return data().startTime; }
+    TrackDuration duration() const { return data().duration; }
+    TrackPosition endTime() const { return data().startTime + data().duration; }
     QString text() const { return data().text; }
     quint64 sourceId() const { return data().sourceId; };
     const LoopOffset &loopOffset() const { return data().loopOffset; };
-    TrackTime absolutePts() const { return startTime() + loopOffset().loopStartTimeUs; }
-    TrackTime absoluteEnd() const { return endTime() + loopOffset().loopStartTimeUs; }
+    TrackPosition absolutePts() const
+    {
+        return startTime() + loopOffset().loopStartTimeUs.asDuration();
+    }
+    TrackPosition absoluteEnd() const
+    {
+        return endTime() + loopOffset().loopStartTimeUs.asDuration();
+    }
 
 private:
     Data &data() const

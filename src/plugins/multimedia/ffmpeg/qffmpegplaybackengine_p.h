@@ -97,7 +97,7 @@ public:
         setState(QMediaPlayer::StoppedState);
     }
 
-    void seek(TrackTime pos);
+    void seek(TrackPosition pos);
 
     void setLoops(int loopsCount);
 
@@ -107,9 +107,9 @@ public:
 
     void setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 
-    TrackTime currentPosition(bool topPos = true) const;
+    TrackPosition currentPosition(bool topPos = true) const;
 
-    TrackTime duration() const;
+    TrackDuration duration() const;
 
     bool isSeekable() const;
 
@@ -176,11 +176,11 @@ private:
     void deleteFreeThreads();
 
     void onRendererSynchronized(quint64 id, std::chrono::steady_clock::time_point time,
-                                TrackTime trackTime);
+                                TrackPosition trackPosition);
 
     void onRendererFinished();
 
-    void onRendererLoopChanged(quint64 id, TrackTime offset, int loopIndex);
+    void onRendererLoopChanged(quint64 id, TrackPosition offset, int loopIndex);
 
     void triggerStepIfNeeded();
 
@@ -190,7 +190,7 @@ private:
 
     bool hasMediaStream() const;
 
-    void finilizeTime(TrackTime pos);
+    void finilizeTime(TrackPosition pos);
 
     void finalizeOutputs();
 
@@ -198,7 +198,7 @@ private:
 
     void updateVideoSinkSize(QVideoSink *prevSink = nullptr);
 
-    TrackTime boundPosition(TrackTime position) const;
+    TrackPosition boundPosition(TrackPosition position) const;
 
     AudioRenderer *getAudioRenderer();
 

@@ -13,27 +13,27 @@ Q_STATIC_LOGGING_CATEGORY(qLcRenderer, "qt.multimedia.ffmpeg.renderer");
 Renderer::Renderer(const TimeController &tc, const std::chrono::microseconds &seekPosTimeOffset)
     : m_timeController(tc),
       m_lastFrameEnd(tc.currentPosition()),
-      m_lastPosition(m_lastFrameEnd.count()),
-      m_seekPos(tc.currentPosition(-seekPosTimeOffset).count())
+      m_lastPosition(m_lastFrameEnd.get()),
+      m_seekPos(tc.currentPosition(-seekPosTimeOffset).get())
 {
 }
 
-void Renderer::syncSoft(TimePoint tp, TrackTime trackTime)
+void Renderer::syncSoft(TimePoint tp, TrackPosition trackPos)
 {
-    QMetaObject::invokeMethod(this, [this, tp, trackTime]() {
-        m_timeController.syncSoft(tp, trackTime);
+    QMetaObject::invokeMethod(this, [this, tp, trackPos]() {
+        m_timeController.syncSoft(tp, trackPos);
         scheduleNextStep(true);
     });
 }
 
-TrackTime Renderer::seekPosition() const
+TrackPosition Renderer::seekPosition() const
 {
-    return TrackTime(m_seekPos);
+    return TrackPosition(m_seekPos);
 }
 
-TrackTime Renderer::lastPosition() const
+TrackPosition Renderer::lastPosition() const
 {
-    return TrackTime(m_lastPosition);
+    return TrackPosition(m_lastPosition);
 }
 
 void Renderer::setPlaybackRate(float rate)
@@ -66,15 +66,15 @@ bool Renderer::isStepForced() const
     return m_isStepForced;
 }
 
-void Renderer::setInitialPosition(TimePoint tp, TrackTime trackPos)
+void Renderer::setInitialPosition(TimePoint tp, TrackPosition trackPos)
 {
     QMetaObject::invokeMethod(this, [this, tp, trackPos]() {
         Q_ASSERT(m_loopIndex == 0);
         Q_ASSERT(m_frames.empty());
 
         m_loopIndex = 0;
-        m_lastPosition.storeRelease(trackPos.count());
-        m_seekPos.storeRelease(trackPos.count());
+        m_lastPosition.storeRelease(trackPos.get());
+        m_seekPos.storeRelease(trackPos.get());
 
         m_timeController.sync(tp, trackPos);
     });
@@ -90,8 +90,8 @@ void Renderer::render(Frame frame)
     const auto isFrameOutdated = frame.isValid() && frame.absoluteEnd() < seekPosition();
 
     if (isFrameOutdated) {
-        qCDebug(qLcRenderer) << "frame outdated! absEnd:" << frame.absoluteEnd() << "absPts"
-                             << frame.absolutePts() << "seekPos:" << seekPosition();
+        qCDebug(qLcRenderer) << "frame outdated! absEnd:" << frame.absoluteEnd().get() << "absPts"
+                             << frame.absolutePts().get() << "seekPos:" << seekPosition().get();
         emit frameProcessed(frame);
         return;
     }
@@ -138,7 +138,7 @@ std::chrono::milliseconds Renderer::timerInterval() const
     if (m_frames.front().isValid())
         return calculateInterval(m_timeController.timeFromPosition(m_frames.front().absolutePts()));
 
-    if (m_lastFrameEnd > TrackTime(0))
+    if (m_lastFrameEnd > TrackPosition(0))
         return calculateInterval(m_timeController.timeFromPosition(m_lastFrameEnd));
 
     return 0ms;
@@ -172,11 +172,11 @@ void Renderer::doNextStep()
         m_frames.dequeue();
 
         if (frame.isValid()) {
-            m_lastPosition.storeRelease(std::max(frame.absolutePts(), lastPosition()).count());
+            m_lastPosition.storeRelease(std::max(frame.absolutePts(), lastPosition()).get());
 
             // TODO: get rid of m_lastFrameEnd or m_seekPos
             m_lastFrameEnd = frame.absoluteEnd();
-            m_seekPos.storeRelaxed(m_lastFrameEnd.count());
+            m_seekPos.storeRelaxed(m_lastFrameEnd.get());
 
             const auto loopIndex = frame.loopOffset().loopIndex;
             if (m_loopIndex < loopIndex) {
@@ -186,7 +186,7 @@ void Renderer::doNextStep()
 
             emit frameProcessed(frame);
         } else {
-            m_lastPosition.storeRelease(std::max(m_lastFrameEnd, lastPosition()).count());
+            m_lastPosition.storeRelease(std::max(m_lastFrameEnd, lastPosition()).get());
         }
     } else {
         m_explicitNextFrameTime = Clock::now() + result.recheckInterval;

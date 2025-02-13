@@ -48,14 +48,14 @@ public:
     AVStream *stream() const { return d->stream; }
     uint streamIndex() const { return d->stream->index; }
     HWAccel *hwAccel() const { return d->hwAccel.get(); }
-    TrackTime toTrackDuration(AVStreamTime duration) const
+    TrackDuration toTrackDuration(AVStreamDuration duration) const
     {
         return QFFmpeg::toTrackDuration(duration, d->stream);
     }
 
-    TrackTime toTrackTimePoint(AVStreamTime timePoint) const
+    TrackPosition toTrackPosition(AVStreamPosition streamPosition) const
     {
-        return QFFmpeg::toTrackTimePoint(timePoint, d->stream, d->formatContext);
+        return QFFmpeg::toTrackPosition(streamPosition, d->stream, d->formatContext);
     }
 
 private:
