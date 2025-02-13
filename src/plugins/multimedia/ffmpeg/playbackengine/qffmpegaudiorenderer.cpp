@@ -140,7 +140,7 @@ AudioRenderer::RenderingResult AudioRenderer::pushFrameToOutput(const Frame &fra
     auto firstFrameFlagGuard = qScopeGuard([&]() { m_firstFrameToSink = false; });
 
     const SynchronizationStamp syncStamp{ m_sink->state(), m_sink->bytesFree(),
-                                          m_bufferedData.offset, Clock::now() };
+                                          m_bufferedData.offset, RealClock::now() };
 
     if (!m_bufferedData.isValid()) {
         if (!frame.isValid()) {
