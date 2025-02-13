@@ -28,12 +28,18 @@ static TrackPosition packetEndPos(const Packet &packet, const AVStream *stream,
 static bool isPacketWithinStreamDuration(const AVFormatContext *context, const Packet &packet)
 {
     const AVPacket &avPacket = *packet.avPacket();
-    const AVStreamDuration streamDuration(context->streams[avPacket.stream_index]->duration);
+    const AVStream &avStream = *context->streams[avPacket.stream_index];
+    const AVStreamDuration streamDuration(avStream.duration);
     if (streamDuration.get() <= 0
         || context->duration_estimation_method != AVFMT_DURATION_FROM_STREAM)
         return true; // Stream duration shouldn't or doesn't need to be compared to pts
 
-    return AVStreamDuration(avPacket.pts) <= streamDuration;
+    if (avStream.start_time != AV_NOPTS_VALUE)
+        return AVStreamDuration(avPacket.pts - avStream.start_time) <= streamDuration;
+
+    const TrackPosition trackPos = toTrackPosition(AVStreamPosition(avPacket.pts), &avStream, context);
+    const TrackPosition trackPosOfStreamEnd = toTrackDuration(streamDuration, &avStream).asTimePoint();
+    return trackPos <= trackPosOfStreamEnd;
 
     // TODO: If there is a packet that starts before the canonical end of the stream but has a
     // malformed duration, rework doNextStep to check for eof after that packet.
