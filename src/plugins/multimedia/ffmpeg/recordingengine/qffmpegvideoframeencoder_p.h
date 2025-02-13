@@ -14,9 +14,9 @@
 // We mean it.
 //
 
-#include "qffmpeghwaccel_p.h"
-#include "private/qplatformmediarecorder_p.h"
-#include "private/qmultimediautils_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+#include <QtMultimedia/private/qplatformmediarecorder_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 
 #include <unordered_set>
 

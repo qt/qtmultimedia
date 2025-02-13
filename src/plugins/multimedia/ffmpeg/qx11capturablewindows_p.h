@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "private/qplatformcapturablewindows_p.h"
+#include <QtMultimedia/private/qplatformcapturablewindows_p.h>
 #include <mutex>
 
 struct _XDisplay;

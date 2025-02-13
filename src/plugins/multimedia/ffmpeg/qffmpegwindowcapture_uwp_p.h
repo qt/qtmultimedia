@@ -16,7 +16,7 @@
 //
 
 #include <QtCore/qnamespace.h>
-#include "private/qplatformsurfacecapture_p.h"
+#include <QtMultimedia/private/qplatformsurfacecapture_p.h>
 #include "qvideoframeformat.h"
 #include <memory>
 

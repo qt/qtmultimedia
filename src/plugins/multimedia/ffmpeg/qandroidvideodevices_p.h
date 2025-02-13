@@ -16,7 +16,7 @@
 //
 
 #include <QObject>
-#include <private/qplatformvideodevices_p.h>
+#include <QtMultimedia/private/qplatformvideodevices_p.h>
 
 class QAndroidVideoDevices : public QPlatformVideoDevices
 {

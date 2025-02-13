@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "qandroidvideoframebuffer_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qandroidvideoframebuffer_p.h>
 #include <memory>
 
 class QAndroidVideoFrameFactory : public QAndroidVideoFrameBuffer::FrameReleaseDelegate

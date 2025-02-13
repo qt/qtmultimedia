@@ -4,7 +4,7 @@
 #ifndef QV4L2FILEDESCRIPTOR_P_H
 #define QV4L2FILEDESCRIPTOR_P_H
 
-#include <private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 //
 //  W A R N I N G

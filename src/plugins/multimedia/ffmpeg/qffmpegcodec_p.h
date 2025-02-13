@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "qffmpegdefs_p.h" // Important: Must be included first
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegdefs_p.h> // Important: Must be included first
 
 #include <QtCore/qlatin1stringview.h>
 #include <QtCore/qspan.h>

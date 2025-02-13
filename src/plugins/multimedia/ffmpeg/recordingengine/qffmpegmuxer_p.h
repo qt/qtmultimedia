@@ -14,8 +14,8 @@
 // We mean it.
 //
 
-#include "qffmpegthread_p.h"
-#include "qffmpeg_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include <queue>
 
 QT_BEGIN_NAMESPACE

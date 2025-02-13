@@ -16,11 +16,11 @@
 //
 
 #include "qmediametadata.h"
-#include "playbackengine/qffmpegtime_p.h"
-#include "private/qplatformmediaplayer_p.h"
-#include "qffmpeg_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include "qvideoframe.h"
-#include <private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 
 #include <array>
 #include <optional>

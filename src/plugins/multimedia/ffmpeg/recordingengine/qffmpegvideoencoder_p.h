@@ -14,9 +14,9 @@
 // We mean it.
 //
 
-#include "qffmpegencoderthread_p.h"
-#include "qffmpeg_p.h"
-#include "qffmpegvideoframeencoder_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegencoderthread_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegvideoframeencoder_p.h>
 #include <qvideoframe.h>
 #include <queue>
 

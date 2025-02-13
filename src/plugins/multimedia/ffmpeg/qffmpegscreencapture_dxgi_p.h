@@ -16,8 +16,8 @@
 //
 
 #include "qvideoframeformat.h"
-#include <private/qcomptr_p.h>
-#include <private/qplatformsurfacecapture_p.h>
+#include <QtCore/private/qcomptr_p.h>
+#include <QtMultimedia/private/qplatformsurfacecapture_p.h>
 #include <memory>
 
 QT_BEGIN_NAMESPACE

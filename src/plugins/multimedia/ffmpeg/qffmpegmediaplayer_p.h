@@ -15,13 +15,13 @@
 #ifndef QFFMPEGMEDIAPLAYER_H
 #define QFFMPEGMEDIAPLAYER_H
 
-#include <private/qplatformmediaplayer_p.h>
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
 #include <qmediametadata.h>
 #include <qtimer.h>
 #include <qpointer.h>
 #include <qfuture.h>
-#include "qffmpeg_p.h"
-#include "playbackengine/qffmpegmediadataholder_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegmediadataholder_p.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <private/qhwvideobuffer_p.h>
+#include <QtMultimedia/private/qhwvideobuffer_p.h>
 
 QT_BEGIN_NAMESPACE
 

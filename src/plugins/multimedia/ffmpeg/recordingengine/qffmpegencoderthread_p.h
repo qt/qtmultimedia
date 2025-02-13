@@ -14,11 +14,11 @@
 // We mean it.
 //
 
-#include "qffmpegthread_p.h"
+#include <QtQFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
 #include "qpointer.h"
 #include "qsemaphore.h"
 
-#include "private/qmediainputencoderinterface_p.h"
+#include <QtMultimedia/private/qmediainputencoderinterface_p.h>
 
 QT_BEGIN_NAMESPACE
 
