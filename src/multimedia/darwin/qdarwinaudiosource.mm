@@ -44,7 +44,7 @@ QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &st
     for (int i = 0; i < numberOfBuffers; ++i) {
         m_bufferList->mBuffers[i].mNumberChannels = isInterleaved ? numberOfBuffers : 1;
         m_bufferList->mBuffers[i].mDataByteSize = 0;
-        m_bufferList->mBuffers[i].mData = 0;
+        m_bufferList->mBuffers[i].mData = nullptr;
     }
 }
 
@@ -118,7 +118,7 @@ void QCoreAudioBufferList::reset()
 {
     for (UInt32 i = 0; i < m_bufferList->mNumberBuffers; ++i) {
         m_bufferList->mBuffers[i].mDataByteSize = m_dataSize;
-        m_bufferList->mBuffers[i].mData = 0;
+        m_bufferList->mBuffers[i].mData = nullptr;
     }
 }
 
@@ -176,7 +176,7 @@ QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(const QDarwinAudioSource &aud
     if (QCoreAudioUtils::toQAudioFormat(inputFormat) != QCoreAudioUtils::toQAudioFormat(outputFormat)) {
         if (AudioConverterNew(&inputFormat, &m_outputFormat, &m_audioConverter) != noErr) {
             qWarning() << "QAudioSource: Unable to create an Audio Converter";
-            m_audioConverter = 0;
+            m_audioConverter = nullptr;
         }
     }
 
@@ -224,8 +224,12 @@ qint64 QDarwinAudioSourceBuffer::renderFromDevice(AudioUnit audioUnit,
             output.mBuffers[0].mData = region.data();
 
             UInt32 packetSize = static_cast<UInt32>(region.size() / m_outputFormat.mBytesPerPacket);
-            err = AudioConverterFillComplexBuffer(m_audioConverter, converterCallback, &feeder,
-                                                  &packetSize, &output, 0);
+            err = AudioConverterFillComplexBuffer(m_audioConverter,
+                                                  converterCallback,
+                                                  &feeder,
+                                                  &packetSize,
+                                                  &output,
+                                                  nullptr);
 
             bytesCopied += output.mBuffers[0].mDataByteSize;
             m_buffer.releaseWriteRegion(output.mBuffers[0].mDataByteSize);
@@ -414,8 +418,8 @@ bool QDarwinAudioSource::open()
     componentDescription.componentFlags = 0;
     componentDescription.componentFlagsMask = 0;
 
-    AudioComponent component = AudioComponentFindNext(0, &componentDescription);
-    if (component == 0) {
+    AudioComponent component = AudioComponentFindNext(nullptr, &componentDescription);
+    if (component == nullptr) {
         qWarning() << "QAudioSource: Failed to find Output component";
         return false;
     }
@@ -604,12 +608,12 @@ bool QDarwinAudioSource::open()
 
 void QDarwinAudioSource::close()
 {
-    if (m_audioUnit != 0) {
+    if (m_audioUnit != nullptr) {
         m_stateMachine.stop();
 
         AudioUnitUninitialize(m_audioUnit);
         AudioComponentInstanceDispose(m_audioUnit);
-        m_audioUnit = 0;
+        m_audioUnit = nullptr;
     }
 
     m_audioBuffer.reset();
