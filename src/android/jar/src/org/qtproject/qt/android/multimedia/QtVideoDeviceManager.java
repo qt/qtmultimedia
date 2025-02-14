@@ -103,11 +103,15 @@ class QtVideoDeviceManager {
         return characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
     }
 
+    // Returns -1 when camera is not available.
     @UsedFromNativeCode
     int getLensFacing(String cameraId) {
-        CameraCharacteristics characteristics =  getCameraCharacteristics(cameraId);
+        final CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
         if (characteristics == null)
-            return 0;
+            return -1;
+
+        // The docs guarantees this is not null:
+        // https://developer.android.com/reference/android/hardware/camera2/CameraCharacteristics#LENS_FACING
         return characteristics.get(CameraCharacteristics.LENS_FACING);
     }
 
