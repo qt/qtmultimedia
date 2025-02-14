@@ -14,21 +14,20 @@
 // We mean it.
 //
 
-#include <private/qaudiosystem_p.h>
-#include <private/qaudiostatemachine_p.h>
-
 #if defined(Q_OS_MACOS)
-# include <CoreAudio/CoreAudio.h>
+#  include <CoreAudio/CoreAudio.h>
 #endif
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudioTypes.h>
 
-#include <QtCore/QIODevice>
-#include <qdarwinaudiodevice_p.h>
-#include <qdarwinaudiounit_p.h>
-#include <qsemaphore.h>
-
-#include "../audio/qaudioringbuffer_p.h"
+#include <QtCore/qiodevice.h>
+#include <QtCore/qsemaphore.h>
+#include <QtMultimedia/private/qaudioringbuffer_p.h>
+#include <QtMultimedia/private/qaudiostatemachine_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qcoreaudioutils_p.h>
+#include <QtMultimedia/private/qdarwinaudiodevice_p.h>
+#include <QtMultimedia/private/qdarwinaudiounit_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -155,6 +154,12 @@ private:
     std::unique_ptr<QDarwinAudioSinkBuffer> m_audioBuffer;
     qreal m_cachedVolume = 1.;
 #if defined(Q_OS_MACOS)
+    bool addDisconnectListener(AudioObjectID);
+    void removeDisconnectListener();
+
+    QCoreAudioUtils::DeviceDisconnectMonitor m_disconnectMonitor;
+    QFuture<void> m_stopOnDisconnected;
+
     qreal m_volume = 1.;
 #endif
 
