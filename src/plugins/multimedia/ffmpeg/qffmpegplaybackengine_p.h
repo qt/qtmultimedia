@@ -175,6 +175,8 @@ private:
 
     void deleteFreeThreads();
 
+    void onFirsPacketFound(quint64 id, TrackPosition absSeekPos);
+
     void onRendererSynchronized(quint64 id, RealClock::time_point timePoint,
                                 TrackPosition trackPosition);
 
@@ -219,6 +221,8 @@ private:
     ObjectPtr<Demuxer> m_demuxer;
     std::array<StreamPtr, QPlatformMediaPlayer::NTrackTypes> m_streams;
     std::array<RendererPtr, QPlatformMediaPlayer::NTrackTypes> m_renderers;
+
+    bool m_shouldUpdateTimeOnFirstPacket = false;
 
     std::array<std::optional<CodecContext>, QPlatformMediaPlayer::NTrackTypes> m_codecContexts;
     int m_loops = QMediaPlayer::Once;
