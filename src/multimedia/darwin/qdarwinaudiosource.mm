@@ -1,28 +1,24 @@
 // Copyright (C) 2022 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
 #include "qdarwinaudiosource_p.h"
-#include "qcoreaudiosessionmanager_p.h"
-#include "qdarwinaudiodevice_p.h"
-#include "qcoreaudioutils_p.h"
-#include "qdarwinaudiodevices_p.h"
-#include <qmediadevices.h>
+
+#include <QtCore/qdatastream.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtGui/qguiapplication.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qdarwinaudiodevice_p.h>
+#include <QtMultimedia/private/qcoreaudioutils_p.h>
+#include <QtMultimedia/private/qdarwinaudiodevices_p.h>
 
 #if defined(Q_OS_MACOS)
-# include <AudioUnit/AudioComponent.h>
-# include "qmacosaudiodatautils_p.h"
+#  include <AudioUnit/AudioComponent.h>
+#  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
+#else
+#  include <QtMultimedia/private/qcoreaudiosessionmanager_p.h>
 #endif
-
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-# include "qcoreaudiosessionmanager_p.h"
-#endif
-
-#include <QtMultimedia/private/qaudiohelpers_p.h>
-#include <QtCore/QDataStream>
-
-#include <QtCore/QDebug>
-
-#include <QtGui/qguiapplication.h>
-#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -480,7 +476,10 @@ bool QDarwinAudioSource::open()
         return false;
     }
     const AudioDeviceID nativeDeviceId = nativeDeviceIdOpt.value();
-    //Set Audio Device
+    if (!addDisconnectListener(nativeDeviceId))
+        return false;
+
+    // Set Audio Device
     if (AudioUnitSetProperty(m_audioUnit,
                              kAudioOutputUnitProperty_CurrentDevice,
                              kAudioUnitScope_Global,
@@ -610,6 +609,9 @@ void QDarwinAudioSource::close()
 {
     if (m_audioUnit != nullptr) {
         m_stateMachine.stop();
+#if defined(Q_OS_MACOS)
+        removeDisconnectListener();
+#endif
 
         AudioUnitUninitialize(m_audioUnit);
         AudioComponentInstanceDispose(m_audioUnit);
@@ -812,6 +814,28 @@ OSStatus QDarwinAudioSource::inputCallback(void *inRefCon,
 
     return noErr;
 }
+
+#if defined(Q_OS_MACOS)
+bool QDarwinAudioSource::addDisconnectListener(AudioObjectID id)
+{
+    m_stopOnDisconnected.cancel();
+
+    if (!m_disconnectMonitor.addDisconnectListener(id))
+        return false;
+
+    m_stopOnDisconnected = m_disconnectMonitor.then(this, [this] {
+        m_stateMachine.stop(QAudio::IOError);
+    });
+
+    return true;
+}
+
+void QDarwinAudioSource::removeDisconnectListener()
+{
+    m_stopOnDisconnected.cancel();
+    m_disconnectMonitor.removeDisconnectListener();
+}
+#endif
 
 void QDarwinAudioSource::appStateChanged(Qt::ApplicationState newState)
 {

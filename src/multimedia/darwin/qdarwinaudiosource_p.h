@@ -14,18 +14,20 @@
 // We mean it.
 //
 
-#include "qaudioringbuffer_p.h"
-#include <private/qaudiosystem_p.h>
-#include <private/qaudiostatemachine_p.h>
-#include <qdarwinaudiodevice_p.h>
-#include <qdarwinaudiounit_p.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qtimer.h>
+
+#include <QtMultimedia/private/qaudioringbuffer_p.h>
+#include <QtMultimedia/private/qaudiostatemachine_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qcoreaudioutils_p.h>
+#include <QtMultimedia/private/qdarwinaudiodevice_p.h>
+#include <QtMultimedia/private/qdarwinaudiounit_p.h>
 
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudioTypes.h>
 #include <AudioToolbox/AudioConverter.h>
 
-#include <QtCore/QIODevice>
-#include <QtCore/QTimer>
 
 QT_BEGIN_NAMESPACE
 
@@ -212,6 +214,14 @@ private:
     AudioStreamBasicDescription m_streamFormat;
     AudioStreamBasicDescription m_deviceFormat;
     qreal m_volume = qreal(1.0);
+
+#if defined(Q_OS_MACOS)
+    bool addDisconnectListener(AudioObjectID);
+    void removeDisconnectListener();
+
+    QCoreAudioUtils::DeviceDisconnectMonitor m_disconnectMonitor;
+    QFuture<void> m_stopOnDisconnected;
+#endif
 
     AudioUnitState m_audioUnitState = AudioUnitState::Stopped;
     QAudioStateMachine m_stateMachine;
