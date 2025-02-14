@@ -131,6 +131,8 @@ public:
         Q_EMIT player->loopsChanged();
     }
 
+    bool qmediaplayerDestructorCalled = false;
+
 protected:
     explicit QPlatformMediaPlayer(QMediaPlayer *parent = nullptr);
 
