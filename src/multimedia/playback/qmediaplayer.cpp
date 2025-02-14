@@ -252,6 +252,9 @@ QMediaPlayer::~QMediaPlayer()
     // To be investigated: registering of the source might be removed after switching on the ffmpeg
     // backend;
 
+    // Workaround to prevent freeze in GStreamer when setting audioOutput while stopped
+    if (d->control)
+        d->control->qmediaplayerDestructorCalled = true;
     setAudioOutput(nullptr);
 
     d->setVideoSink(nullptr);
