@@ -57,21 +57,30 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
 
         info->orientation = deviceManager.callMethod<jint>("getSensorOrientation", cameraId);
 
-        int facing = deviceManager.callMethod<jint>("getLensFacing", cameraId);
+        // Will be set to -1 if facing can not be determined.
+        const int facing = deviceManager.callMethod<jint>("getLensFacing", cameraId);
 
-        const int LENS_FACING_FRONT = 0;
-        const int LENS_FACING_BACK = 1;
-        const int LENS_FACING_EXTERNAL = 2;
+        // Values grabbed from Android docs CameraCharacteristics.LENS_FACING
+        constexpr int LENS_FACING_FRONT = 0;
+        constexpr int LENS_FACING_BACK = 1;
+        constexpr int LENS_FACING_EXTERNAL = 2;
 
         switch (facing) {
         case LENS_FACING_EXTERNAL:
+            info->position = QCameraDevice::Position::UnspecifiedPosition;
+            info->description = QStringLiteral(u"External Camera: %1").arg(cameraIndex);
+            break;
         case LENS_FACING_BACK:
-            info->position = QCameraDevice::BackFace;
-            info->description = QString(u"Rear Camera: %1").arg(cameraIndex);
+            info->position = QCameraDevice::Position::BackFace;
+            info->description = QStringLiteral(u"Rear Camera: %1").arg(cameraIndex);
             break;
         case LENS_FACING_FRONT:
-            info->position = QCameraDevice::FrontFace;
-            info->description = QString(u"Front Camera: %1").arg(cameraIndex);
+            info->position = QCameraDevice::Position::FrontFace;
+            info->description = QStringLiteral(u"Front Camera: %1").arg(cameraIndex);
+            break;
+        default:
+            info->position = QCameraDevice::Position::UnspecifiedPosition;
+            info->description = QStringLiteral(u"Camera: %1").arg(cameraIndex);
             break;
         }
         ++cameraIndex;
