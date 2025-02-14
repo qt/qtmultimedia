@@ -3,25 +3,32 @@
 #ifndef QFFMPEG_P_H
 #define QFFMPEG_P_H
 
-#include <private/qtmultimediaglobal_p.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include "qffmpegdefs_p.h"
+#include "qffmpegavaudioformat_p.h"
+
 #include <qstring.h>
 #include <optional>
 
-extern "C" {
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-#include <libswresample/swresample.h>
-#include <libavutil/avutil.h>
-#include <libswscale/swscale.h>
+inline bool operator==(const AVRational &lhs, const AVRational &rhs)
+{
+    return lhs.num == rhs.num && lhs.den == rhs.den;
 }
 
-#define QT_FFMPEG_OLD_CHANNEL_LAYOUT (LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59,24,100))
-#define QT_FFMPEG_HAS_VULKAN \
-  (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(58, 91, 100)) // since ffmpeg n4.3
-#define QT_FFMPEG_HAS_FRAME_TIME_BASE \
-  (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 18, 100)) // since ffmpeg n5.0
-#define QT_FFMPEG_HAS_FRAME_DURATION \
-  (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(60, 3, 100)) // since ffmpeg n6.0
+inline bool operator!=(const AVRational &lhs, const AVRational &rhs)
+{
+    return !(lhs == rhs);
+}
 
 QT_BEGIN_NAMESPACE
 
@@ -95,6 +102,15 @@ struct AVDictionaryHolder
     AVDictionary *opts = nullptr;
 
     operator AVDictionary **() { return &opts; }
+
+    AVDictionaryHolder() = default;
+
+    Q_DISABLE_COPY(AVDictionaryHolder)
+
+    AVDictionaryHolder(AVDictionaryHolder &&other) noexcept
+        : opts(std::exchange(other.opts, nullptr))
+    {
+    }
 
     ~AVDictionaryHolder()
     {
@@ -172,20 +188,30 @@ Format findAVFormat(const Format *fmts, const Predicate &predicate)
     return findBestAVFormat(fmts, scoresGetter).first;
 }
 
-template<typename Format, typename CalculateScore>
-std::pair<Format, AVScore> findBestAVFormat(const Format *fmts,
-                                            const CalculateScore &calculateScore)
+template <typename Value, typename CalculateScore>
+auto findBestAVValue(const Value *values, const CalculateScore &calculateScore,
+                     Value invalidValue = {})
 {
-    std::pair result(Format(-1), NotSuitableAVScore);
-    if (fmts) {
-        for (; *fmts != -1 && result.second != BestAVScore; ++fmts) {
-            const auto score = calculateScore(*fmts);
+    using Limits = std::numeric_limits<decltype(calculateScore(*values))>;
+    std::pair result(invalidValue, Limits::min());
+    if (values) {
+        for (; *values != invalidValue && result.second != Limits::max(); ++values) {
+            const auto score = calculateScore(*values);
             if (score > result.second)
-                result = std::pair(*fmts, score);
+                result = { *values, score };
         }
     }
 
     return result;
+}
+
+template <typename Format, typename CalculateScore>
+std::pair<Format, AVScore> findBestAVFormat(const Format *fmts,
+                                            const CalculateScore &calculateScore)
+{
+    static_assert(std::is_same_v<Format, AVSampleFormat> || std::is_same_v<Format, AVPixelFormat>,
+                  "The input value is not AV format, use findBestAVValue instead.");
+    return findBestAVValue(fmts, calculateScore, Format(-1));
 }
 
 bool isHwPixelFormat(AVPixelFormat format);
@@ -195,7 +221,16 @@ inline bool isSwPixelFormat(AVPixelFormat format)
     return !isHwPixelFormat(format);
 }
 
+bool isAVCodecExperimental(const AVCodec *codec);
+
+void applyExperimentalCodecOptions(const AVCodec *codec, AVDictionary** opts);
+
 AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType);
+
+const AVPacketSideData *streamSideData(const AVStream *stream, AVPacketSideDataType type);
+
+SwrContextUPtr createResampleContext(const AVAudioFormat &inputFormat,
+                                     const AVAudioFormat &outputFormat);
 
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t format);

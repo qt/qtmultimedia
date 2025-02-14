@@ -105,6 +105,12 @@ QString tst_QAudioSource::formatToFileName(const QAudioFormat &format)
 void tst_QAudioSource::initTestCase()
 {
     m_inCISystem = qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci";
+#ifdef Q_OS_ANDROID
+    // QTEST_ENVIRONMENT is only set on the host system. When running the test on an Android device,
+    // we are unable to confirm that it is running on CI. Test fails on Android 6 (x86) because
+    // libOpenSLES cannot create AudioRecorder for that emulator. Skip test only for Android 6
+    m_inCISystem = QNativeInterface::QAndroidApplication::sdkVersion() <= __ANDROID_API_M__;
+#endif
 
     if (m_inCISystem)
         QSKIP("SKIP initTestCase on CI. To be fixed");

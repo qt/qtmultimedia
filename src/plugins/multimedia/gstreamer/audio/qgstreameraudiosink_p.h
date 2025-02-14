@@ -109,8 +109,7 @@ class GStreamerOutputPrivate : public QIODevice
     Q_OBJECT
 
 public:
-    GStreamerOutputPrivate(QGStreamerAudioSink *audio);
-    virtual ~GStreamerOutputPrivate() {}
+    explicit GStreamerOutputPrivate(QGStreamerAudioSink *audio);
 
 protected:
     qint64 readData(char *data, qint64 len) override;

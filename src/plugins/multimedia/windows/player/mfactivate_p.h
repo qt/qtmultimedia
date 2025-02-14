@@ -16,17 +16,27 @@
 //
 
 #include <mfidl.h>
+#include <private/qcomobject_p.h>
 
-class MFAbstractActivate : public IMFActivate
+QT_BEGIN_NAMESPACE
+
+namespace QtPrivate {
+
+template <>
+struct QComObjectTraits<IMFActivate>
+{
+    static constexpr bool isGuidOf(REFIID riid) noexcept
+    {
+        return QComObjectTraits<IMFActivate, IMFAttributes>::isGuidOf(riid);
+    }
+};
+
+} // namespace QtPrivate
+
+class MFAbstractActivate : public QComObject<IMFActivate>
 {
 public:
     explicit MFAbstractActivate();
-    virtual ~MFAbstractActivate();
-
-    //from IUnknown
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
-    STDMETHODIMP_(ULONG) AddRef(void) override;
-    STDMETHODIMP_(ULONG) Release(void) override;
 
     //from IMFAttributes
     STDMETHODIMP GetItem(REFGUID guidKey, PROPVARIANT *pValue) override
@@ -179,9 +189,14 @@ public:
         return m_attributes->CopyAllItems(pDest);
     }
 
+protected:
+    // Destructor is not public. Caller should call Release.
+    ~MFAbstractActivate() override;
+
 private:
-    IMFAttributes *m_attributes;
-    ULONG m_cRef;
+    IMFAttributes *m_attributes = nullptr;
 };
+
+QT_END_NAMESPACE
 
 #endif // MFACTIVATE_H

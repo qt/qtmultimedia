@@ -5,9 +5,7 @@
 #include <QDebug>
 #include "qaudiodecoder.h"
 
-#ifdef WAV_SUPPORT_NOT_FORCED
 #include "../shared/mediafileselector.h"
-#endif
 
 #define TEST_FILE_NAME "testdata/test.wav"
 #define TEST_UNSUPPORTED_FILE_NAME "testdata/test-unsupported.avi"
@@ -32,6 +30,7 @@ public slots:
     void initTestCase();
 
 private slots:
+    void testMediaFilesAreSupported();
     void directBruteForceReading();
     void indirectReadingByBufferReadySignal();
     void indirectReadingByBufferAvailableSignal();
@@ -45,9 +44,11 @@ private slots:
     void deviceTest();
 
 private:
-    bool isWavSupported();
     QUrl testFileUrl(const QString filePath);
     void checkNoMoreChanges(QAudioDecoder &decoder);
+
+    MediaFileSelector m_mediaSelector;
+    MaybeUrl m_wavFile = QUnexpect{};
 };
 
 void tst_QAudioDecoderBackend::init()
@@ -56,22 +57,18 @@ void tst_QAudioDecoderBackend::init()
 
 void tst_QAudioDecoderBackend::initTestCase()
 {
+#ifdef Q_OS_ANDROID
+     QSKIP("SKIP initTestCase on CI, because of QTBUG-118572");
+#endif
     QAudioDecoder d;
     if (!d.isSupported())
         QSKIP("Audio decoder service is not available");
+
+    m_wavFile = m_mediaSelector.select(QFINDTESTDATA(TEST_FILE_NAME));
 }
 
 void tst_QAudioDecoderBackend::cleanup()
 {
-}
-
-bool tst_QAudioDecoderBackend::isWavSupported()
-{
-#ifdef WAV_SUPPORT_NOT_FORCED
-    return !MediaFileSelector::selectMediaFile(QStringList() << QFINDTESTDATA(TEST_FILE_NAME)).isNull();
-#else
-    return true;
-#endif
 }
 
 QUrl tst_QAudioDecoderBackend::testFileUrl(const QString filePath)
@@ -105,10 +102,14 @@ void tst_QAudioDecoderBackend::checkNoMoreChanges(QAudioDecoder &decoder)
     QCOMPARE(bufferAvailableSpy.size(), 0);
 }
 
+void tst_QAudioDecoderBackend::testMediaFilesAreSupported()
+{
+    QCOMPARE(m_mediaSelector.dumpErrors(), "");
+}
+
 void tst_QAudioDecoderBackend::directBruteForceReading()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_wavFile);
 
     QAudioDecoder decoder;
     if (decoder.error() == QAudioDecoder::NotSupportedError)
@@ -116,7 +117,7 @@ void tst_QAudioDecoderBackend::directBruteForceReading()
 
     int sampleCount = 0;
 
-    decoder.setSource(testFileUrl(TEST_FILE_NAME));
+    decoder.setSource(*m_wavFile);
     QVERIFY(!decoder.isDecoding());
     QVERIFY(!decoder.bufferAvailable());
 
@@ -145,8 +146,7 @@ void tst_QAudioDecoderBackend::directBruteForceReading()
 
 void tst_QAudioDecoderBackend::indirectReadingByBufferReadySignal()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_wavFile);
 
     QAudioDecoder decoder;
     if (decoder.error() == QAudioDecoder::NotSupportedError)
@@ -168,7 +168,7 @@ void tst_QAudioDecoderBackend::indirectReadingByBufferReadySignal()
     QSignalSpy decodingSpy(&decoder, &QAudioDecoder::isDecodingChanged);
     QSignalSpy finishSpy(&decoder, &QAudioDecoder::finished);
 
-    decoder.setSource(testFileUrl(TEST_FILE_NAME));
+    decoder.setSource(*m_wavFile);
     QVERIFY(!decoder.isDecoding());
     QVERIFY(!decoder.bufferAvailable());
 
@@ -185,8 +185,7 @@ void tst_QAudioDecoderBackend::indirectReadingByBufferReadySignal()
 }
 
 void tst_QAudioDecoderBackend::indirectReadingByBufferAvailableSignal() {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_wavFile);
 
     QAudioDecoder decoder;
     if (decoder.error() == QAudioDecoder::NotSupportedError)
@@ -213,7 +212,7 @@ void tst_QAudioDecoderBackend::indirectReadingByBufferAvailableSignal() {
     QSignalSpy decodingSpy(&decoder, &QAudioDecoder::isDecodingChanged);
     QSignalSpy finishSpy(&decoder, &QAudioDecoder::finished);
 
-    decoder.setSource(testFileUrl(TEST_FILE_NAME));
+    decoder.setSource(*m_wavFile);
     QVERIFY(!decoder.isDecoding());
     QVERIFY(!decoder.bufferAvailable());
 
@@ -231,8 +230,7 @@ void tst_QAudioDecoderBackend::indirectReadingByBufferAvailableSignal() {
 
 void tst_QAudioDecoderBackend::stopOnBufferReady()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_wavFile);
 
     QAudioDecoder decoder;
     if (decoder.error() == QAudioDecoder::NotSupportedError)
@@ -246,7 +244,7 @@ void tst_QAudioDecoderBackend::stopOnBufferReady()
     QSignalSpy finishSpy(&decoder, &QAudioDecoder::finished);
     QSignalSpy bufferReadySpy(&decoder, &QAudioDecoder::bufferReady);
 
-    decoder.setSource(testFileUrl(TEST_FILE_NAME));
+    decoder.setSource(*m_wavFile);
     decoder.start();
 
     bufferReadySpy.wait();
@@ -259,8 +257,7 @@ void tst_QAudioDecoderBackend::stopOnBufferReady()
 
 void tst_QAudioDecoderBackend::restartOnBufferReady()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_wavFile);
 
     QAudioDecoder decoder;
     if (decoder.error() == QAudioDecoder::NotSupportedError)
@@ -287,7 +284,7 @@ void tst_QAudioDecoderBackend::restartOnBufferReady()
 
     QSignalSpy finishSpy(&decoder, &QAudioDecoder::finished);
 
-    decoder.setSource(testFileUrl(TEST_FILE_NAME));
+    decoder.setSource(*m_wavFile);
     decoder.start();
 
     QTRY_VERIFY2(finishSpy.size() == 2, "Wait for signals after restart and after finishing");
@@ -300,8 +297,7 @@ void tst_QAudioDecoderBackend::restartOnBufferReady()
 
 void tst_QAudioDecoderBackend::restartOnFinish()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_wavFile);
 
     QAudioDecoder decoder;
     if (decoder.error() == QAudioDecoder::NotSupportedError)
@@ -329,7 +325,7 @@ void tst_QAudioDecoderBackend::restartOnFinish()
         });
     });
 
-    decoder.setSource(testFileUrl(TEST_FILE_NAME));
+    decoder.setSource(*m_wavFile);
     decoder.start();
 
     QTRY_VERIFY(finishSpy.size() == 2);
@@ -342,8 +338,7 @@ void tst_QAudioDecoderBackend::restartOnFinish()
 
 void tst_QAudioDecoderBackend::fileTest()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_wavFile);
 
     QAudioDecoder d;
     if (d.error() == QAudioDecoder::NotSupportedError)
@@ -359,11 +354,11 @@ void tst_QAudioDecoderBackend::fileTest()
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
-    QUrl url = testFileUrl(TEST_FILE_NAME);
-    d.setSource(url);
+
+    d.setSource(*m_wavFile);
     QVERIFY(!d.isDecoding());
     QVERIFY(!d.bufferAvailable());
-    QCOMPARE(d.source(), url);
+    QCOMPARE(d.source(), *m_wavFile);
 
     QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
     QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
@@ -779,8 +774,7 @@ void tst_QAudioDecoderBackend::invalidSource()
 
 void tst_QAudioDecoderBackend::deviceTest()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_wavFile);
 
     QAudioDecoder d;
     if (d.error() == QAudioDecoder::NotSupportedError)
@@ -801,12 +795,7 @@ void tst_QAudioDecoderBackend::deviceTest()
     QVERIFY(d.bufferAvailable() == false);
     QCOMPARE(d.source(), QString(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
-#ifndef Q_OS_ANDROID
-    QFileInfo fileInfo(QFINDTESTDATA(TEST_FILE_NAME));
-    QFile file(fileInfo.absoluteFilePath());
-#else
-    QFile file(":/" TEST_FILE_NAME);
-#endif
+    QFile file(m_wavFile->toString());
     QVERIFY(file.open(QIODevice::ReadOnly));
     d.setSourceDevice(&file);
 

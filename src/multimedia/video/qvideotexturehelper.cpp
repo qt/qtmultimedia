@@ -587,14 +587,9 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     ud->maxLum = fromLinear(float(maxNits)/100.f);
 }
 
-static bool updateTextureWithMap(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex)
+static bool updateTextureWithMap(QVideoFrame& frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex)
 {
-    if (!frame.map(QVideoFrame::ReadOnly)) {
-        qWarning() << "could not map data of QVideoFrame for upload";
-        return false;
-    }
-
-    auto unmapFrameGuard = qScopeGuard([&frame] { frame.unmap(); });
+    Q_ASSERT(frame.isMapped());
 
     QVideoFrameFormat fmt = frame.surfaceFormat();
     QVideoFrameFormat::PixelFormat pixelFormat = fmt.pixelFormat();
@@ -629,7 +624,18 @@ static bool updateTextureWithMap(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdat
         subresDesc.setData(QByteArray((const char *)image.bits(), image.bytesPerLine()*image.height()));
         subresDesc.setDataStride(image.bytesPerLine());
     } else {
-        subresDesc.setData(QByteArray::fromRawData((const char *)frame.bits(plane), frame.mappedBytes(plane)));
+        const auto frameBits = reinterpret_cast<const char *>(frame.bits(plane));
+        const auto mappedBytes = frame.mappedBytes(plane);
+        const auto underlyingByteArray = frame.videoBuffer()->underlyingByteArray(plane);
+
+        if (underlyingByteArray.size() == mappedBytes) {
+            Q_ASSERT(underlyingByteArray.constData() == frameBits);
+            subresDesc.setData(underlyingByteArray);
+        }
+        else {
+            subresDesc.setData(QByteArray::fromRawData(frameBits, mappedBytes));
+        }
+
         subresDesc.setDataStride(frame.bytesPerLine(plane));
     }
 
@@ -707,13 +713,20 @@ static std::unique_ptr<QVideoFrameTextures> createTexturesFromHandles(const QVid
         return {};
 }
 
-std::unique_ptr<QVideoFrameTextures> createTexturesFromMemory(const QVideoFrame &frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTextures *old)
+static std::unique_ptr<QVideoFrameTextures> createTexturesFromMemory(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTextures *old)
 {
     const TextureDescription &texDesc = descriptions[frame.surfaceFormat().pixelFormat()];
     QVideoFrameTexturesArray::TextureArray textures;
     auto oldArray = dynamic_cast<QVideoFrameTexturesArray *>(old);
     if (oldArray)
         textures = oldArray->takeTextures();
+
+    if (!frame.map(QVideoFrame::ReadOnly)) {
+        qWarning() << "could not map data of QVideoFrame for upload";
+        return {};
+    }
+
+    auto unmapFrameGuard = qScopeGuard([&frame] { frame.unmap(); });
 
     bool ok = true;
     for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {

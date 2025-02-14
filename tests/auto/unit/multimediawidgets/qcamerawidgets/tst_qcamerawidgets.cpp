@@ -21,6 +21,7 @@
 
 QT_USE_NAMESPACE
 
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 
 class tst_QCameraWidgets: public QObject
 {
@@ -33,9 +34,6 @@ public slots:
 private slots:
     void testCameraEncodingProperyChange();
     void testSetVideoOutput();
-
-private:
-    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 void tst_QCameraWidgets::initTestCase()

@@ -68,7 +68,7 @@ For some quick recipes, see this table:
         \li QMediaPlayer
     \row
         \li Playing raw audio data with low latency
-        \li \l{Audio Output Example}{audiooutput},
+        \li \l{Audio Output Example}{audiooutput}
         \li
         \li QAudioSink
     \row
@@ -96,19 +96,19 @@ For some quick recipes, see this table:
     \row
         \li Capturing audio and video
         \li \l {Camera Example}{camera},
-        \li \l {QML Video Recorder}{recorder}
+            \l {QML Video Recorder}{recorder}
         \li \l CaptureSession, \l Camera, \l AudioInput \l VideoOutput
         \li QMediaCaptureSession, QCamera, QAudioInput, QVideoWidget
     \row
         \li Capturing photos
         \li \l {Camera Example}{camera},
-        \li \l {QML Video Recorder}{recorder}
+            \l {QML Video Recorder}{recorder}
         \li \l CaptureSession, \l Camera, \l ImageCapture
         \li QMediaCaptureSession, QCamera, QImageCapture
     \row
         \li Capturing movies
         \li \l {Camera Example}{camera},
-        \li \l {QML Video Recorder}{recorder}
+            \l {QML Video Recorder}{recorder}
         \li \l CaptureSession, \l Camera, \l MediaRecorder
         \li QMediaCaptureSession, QCamera, QMediaRecorder
 \endtable
@@ -119,6 +119,13 @@ The Qt Multimedia APIs build upon the multimedia framework of the underlying
 platform. This can mean that support for various codecs, or containers will vary
 between machines. This support depends on what the end user has installed.
 See \l{Supported Media Formats} for more detail.
+
+\note Qt Multimedia APIs depend on functionality provided by QCoreApplication,
+and multimedia objects created using the Qt Multimedia APIs can only be used
+during the lifetime of this application object. It is therefore important to
+create a QCoreApplication, QGuiApplication, or QApplication before accessing
+any of the Qt Multimedia APIs. If the application object is recreated, make
+sure that any Qt Multimedia objects are also recreated.
 
 \section1 Changes from Previous Versions
 

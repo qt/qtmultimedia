@@ -3,56 +3,22 @@
 
 #include "qvideoframe.h"
 
+#include "qvideoframe_p.h"
 #include "qvideotexturehelper_p.h"
 #include "qmemoryvideobuffer_p.h"
 #include "qvideoframeconverter_p.h"
-#include "qvideoframeformat.h"
 #include "qpainter.h"
 #include <qtextlayout.h>
 
 #include <qimage.h>
-#include <qmutex.h>
 #include <qpair.h>
 #include <qsize.h>
 #include <qvariant.h>
 #include <private/qrhi_p.h>
 
-#include <mutex>
-
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
-
-class QVideoFramePrivate : public QSharedData
-{
-public:
-    QVideoFramePrivate() = default;
-    QVideoFramePrivate(const QVideoFrameFormat &format)
-        : format(format)
-    {
-    }
-
-    ~QVideoFramePrivate()
-    {
-        delete buffer;
-    }
-
-    qint64 startTime = -1;
-    qint64 endTime = -1;
-    QAbstractVideoBuffer::MapData mapData;
-    QVideoFrameFormat format;
-    QAbstractVideoBuffer *buffer = nullptr;
-    int mappedCount = 0;
-    QMutex mapMutex;
-    QString subtitleText;
-    QVideoFrame::RotationAngle rotationAngle = QVideoFrame::Rotation0;
-    bool mirrored = false;
-    QImage image;
-    std::once_flag imageOnceFlag;
-
-private:
-    Q_DISABLE_COPY(QVideoFramePrivate)
-};
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
 
@@ -644,7 +610,7 @@ void QVideoFrame::setEndTime(qint64 time)
 void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
 {
     if (d)
-        d->rotationAngle = angle;
+        d->rotation = QtVideo::Rotation(angle);
 }
 
 /*!
@@ -652,7 +618,7 @@ void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
  */
 QVideoFrame::RotationAngle QVideoFrame::rotationAngle() const
 {
-    return d ? d->rotationAngle : Rotation0;
+    return QVideoFrame::RotationAngle(d ? d->rotation : QtVideo::Rotation::None);
 }
 
 /*!
@@ -683,7 +649,7 @@ QImage QVideoFrame::toImage() const
 
     std::call_once(d->imageOnceFlag, [this]() {
         const bool mirrorY = surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom;
-        d->image = qImageFromVideoFrame(*this, rotationAngle(), mirrored(), mirrorY);
+        d->image = qImageFromVideoFrame(*this, QtVideo::Rotation(rotationAngle()), mirrored(), mirrorY);
     });
 
     return d->image;
@@ -724,7 +690,7 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
 
     QRectF targetRect = rect;
     QSizeF size = this->size();
-    if (rotationAngle() % 180)
+    if (qToUnderlying(rotationAngle()) % 180)
         size.transpose();
 
     size.scale(targetRect.size(), options.aspectRatioMode);

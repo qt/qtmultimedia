@@ -261,7 +261,7 @@ QMediaMetaData AVFMetaData::fromAssetTrack(AVAssetTrack *asset)
     if ([asset.mediaType isEqualToString:AVMediaTypeVideo]) {
         // add orientation
         if (metadata.value(QMediaMetaData::Orientation).isNull()) {
-            QVideoFrame::RotationAngle angle = QVideoFrame::Rotation0;
+            QtVideo::Rotation angle = QtVideo::Rotation::None;
             bool mirrored;
             AVFMediaPlayer::videoOrientationForAssetTrack(asset, angle, mirrored);
             Q_UNUSED(mirrored);

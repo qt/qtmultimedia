@@ -42,7 +42,11 @@ using CodecsStorage = std::vector<const AVCodec *>;
 
 struct CodecsComparator
 {
-    bool operator()(const AVCodec *a, const AVCodec *b) const { return a->id < b->id; }
+    bool operator()(const AVCodec *a, const AVCodec *b) const
+    {
+        return a->id < b->id
+                || (a->id == b->id && isAVCodecExperimental(a) < isAVCodecExperimental(b));
+    }
 
     bool operator()(const AVCodec *a, AVCodecID id) const { return a->id < id; }
 };
@@ -204,7 +208,12 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
             // find experimental codecs in the last order,
             // now we don't consider them at all since they are supposed to
             // be not stable, maybe we shouldn't.
-            if (codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) {
+            // Currently, it's possible to turn them on for testing purposes.
+
+            static const auto experimentalCodecsEnabled =
+                    qEnvironmentVariableIntValue("QT_ENABLE_EXPERIMENTAL_CODECS");
+
+            if (!experimentalCodecsEnabled && isAVCodecExperimental(codec)) {
                 qCDebug(qLcFFmpegUtils) << "Skip experimental codec" << codec->name;
                 continue;
             }
@@ -380,6 +389,20 @@ bool isHwPixelFormat(AVPixelFormat format)
     return desc && (desc->flags & AV_PIX_FMT_FLAG_HWACCEL) != 0;
 }
 
+bool isAVCodecExperimental(const AVCodec *codec)
+{
+    return (codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) != 0;
+}
+
+void applyExperimentalCodecOptions(const AVCodec *codec, AVDictionary** opts)
+{
+    if (isAVCodecExperimental(codec)) {
+        qCWarning(qLcFFmpegUtils) << "Applying the option 'strict -2' for the experimental codec"
+                                  << codec->name << ". it's unlikely to work properly";
+        av_dict_set(opts, "strict", "-2", 0);
+    }
+}
+
 AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)
 {
     switch (deviceType) {
@@ -410,6 +433,58 @@ AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)
     default:
         return AV_PIX_FMT_NONE;
     }
+}
+
+const AVPacketSideData *streamSideData(const AVStream *stream, AVPacketSideDataType type)
+{
+    Q_ASSERT(stream);
+
+#if QT_FFMPEG_STREAM_SIDE_DATA_DEPRECATED
+    return av_packet_side_data_get(stream->codecpar->coded_side_data,
+                                   stream->codecpar->nb_coded_side_data, type);
+#else
+    auto checkType = [type](const auto &item) { return item.type == type; };
+    const auto end = stream->side_data + stream->nb_side_data;
+    const auto found = std::find_if(stream->side_data, end, checkType);
+    return found == end ? nullptr : found;
+#endif
+}
+
+SwrContextUPtr createResampleContext(const AVAudioFormat &inputFormat,
+                                     const AVAudioFormat &outputFormat)
+{
+    SwrContext *resampler = nullptr;
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+    resampler = swr_alloc_set_opts(nullptr,
+                                   outputFormat.channelLayoutMask,
+                                   outputFormat.sampleFormat,
+                                   outputFormat.sampleRate,
+                                   inputFormat.channelLayoutMask,
+                                   inputFormat.sampleFormat,
+                                   inputFormat.sampleRate,
+                                   0,
+                                   nullptr);
+#else
+
+#if QT_FFMPEG_SWR_CONST_CH_LAYOUT
+    using AVChannelLayoutPrm = const AVChannelLayout*;
+#else
+    using AVChannelLayoutPrm = AVChannelLayout*;
+#endif
+
+    swr_alloc_set_opts2(&resampler,
+                        const_cast<AVChannelLayoutPrm>(&outputFormat.channelLayout),
+                        outputFormat.sampleFormat,
+                        outputFormat.sampleRate,
+                        const_cast<AVChannelLayoutPrm>(&inputFormat.channelLayout),
+                        inputFormat.sampleFormat,
+                        inputFormat.sampleRate,
+                        0,
+                        nullptr);
+#endif
+
+    swr_init(resampler);
+    return SwrContextUPtr(resampler);
 }
 
 #ifdef Q_OS_DARWIN

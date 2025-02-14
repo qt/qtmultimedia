@@ -17,6 +17,8 @@
 
 #include <private/qplatformmediadevices_p.h>
 #include <private/qcomptr_p.h>
+#include <QtCore/private/qfunctions_win_p.h>
+#include <private/qwindowsmediafoundation_p.h>
 
 #include <qaudiodevice.h>
 
@@ -44,6 +46,8 @@ public:
     void prepareAudio() override;
 
 private:
+    QComHelper m_comRuntime;
+    QMFRuntimeInit m_wmfRuntime{ QWindowsMediaFoundation::instance() };
     QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
 
     ComPtr<IMMDeviceEnumerator> m_deviceEnumerator;

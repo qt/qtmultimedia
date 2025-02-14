@@ -341,7 +341,7 @@ void QVideoWindowPrivate::render()
     videoRect.moveCenter(rect.center());
     QRect subtitleRect = videoRect.intersected(rect);
 
-    if (m_swapChain->currentPixelSize() != m_swapChain->surfacePixelSize())
+    if (!m_hasSwapChain || (m_swapChain->currentPixelSize() != m_swapChain->surfacePixelSize()))
         resizeSwapChain();
 
     if (!m_hasSwapChain)
@@ -487,7 +487,7 @@ bool QVideoWindow::event(QEvent *e)
     case QEvent::Expose:
         d->isExposed = isExposed();
         if (d->isExposed)
-            requestUpdate();
+            d->render();
         return true;
 
     default:

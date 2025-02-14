@@ -17,9 +17,7 @@ qt_internal_add_plugin(QWindowsMediaPlugin
         player/mfevrvideowindowcontrol.cpp player/mfevrvideowindowcontrol_p.h
         player/mfplayercontrol.cpp player/mfplayercontrol_p.h
         player/mfplayersession.cpp player/mfplayersession_p.h
-        player/mftvideo.cpp player/mftvideo_p.h
         player/mfvideorenderercontrol.cpp player/mfvideorenderercontrol_p.h
-        player/samplegrabber.cpp player/samplegrabber_p.h
         mediacapture/qwindowscamera.cpp
         mediacapture/qwindowscamera_p.h
         mediacapture/qwindowsimagecapture.cpp

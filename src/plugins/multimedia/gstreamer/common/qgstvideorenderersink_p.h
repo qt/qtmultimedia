@@ -36,7 +36,7 @@ class QGstVideoRenderer : public QObject
 {
     Q_OBJECT
 public:
-    QGstVideoRenderer(QGstreamerVideoSink *sink);
+    explicit QGstVideoRenderer(QGstreamerVideoSink *sink);
     ~QGstVideoRenderer();
 
     QGstCaps caps();
@@ -81,7 +81,7 @@ private:
     bool m_stop = false;
     bool m_flush = false;
     bool m_frameMirrored = false;
-    QVideoFrame::RotationAngle m_frameRotationAngle = QVideoFrame::Rotation0;
+    QtVideo::Rotation m_frameRotationAngle = QtVideo::Rotation::None;
 
     // --- only accessed from one thread
     QVideoFrameFormat m_format;

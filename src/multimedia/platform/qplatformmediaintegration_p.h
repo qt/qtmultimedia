@@ -35,6 +35,7 @@ class QPlatformMediaDevices;
 class QPlatformMediaCaptureSession;
 class QPlatformMediaPlayer;
 class QPlatformAudioDecoder;
+class QPlatformAudioResampler;
 class QPlatformCamera;
 class QPlatformSurfaceCapture;
 class QPlatformMediaRecorder;
@@ -64,6 +65,12 @@ public:
     virtual QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *) { return nullptr; }
 
     virtual QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *) { return notAvailable; }
+    virtual QMaybe<QPlatformAudioResampler *>
+    createAudioResampler(const QAudioFormat & /*inputFormat*/,
+                         const QAudioFormat & /*outputFormat*/)
+    {
+        return notAvailable;
+    }
     virtual QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() { return notAvailable; }
     virtual QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *) { return notAvailable; }
     virtual QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *) { return notAvailable; }
@@ -74,20 +81,16 @@ public:
 
     virtual QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) { return notAvailable; }
 
-    QPlatformVideoDevices *videoDevices() { return m_videoDevices.get(); }
+    QPlatformVideoDevices *videoDevices();
 
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();
 
-private:
-    friend class QMockIntegrationFactory;
-    // API to be able to test with a mock backend
-    using Factory = std::function<std::unique_ptr<QPlatformMediaIntegration>()>;
-    struct InstanceHolder;
-    static void setPlatformFactory(Factory factory);
+    virtual QPlatformVideoDevices *createVideoDevices() { return nullptr; }
 
-protected:
+private:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
+    std::once_flag m_videoDevicesOnceFlag;
 
     mutable std::unique_ptr<QPlatformMediaFormatInfo> m_formatInfo;
     mutable std::once_flag m_formatInfoOnceFlg;

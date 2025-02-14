@@ -22,6 +22,7 @@
 
 QT_USE_NAMESPACE
 
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 
 class tst_QCamera: public QObject
 {
@@ -72,9 +73,6 @@ private slots:
     void testSignalIsoSensitivityChanged();
     void testSignalShutterSpeedChanged();
     void testSignalFlashReady();
-
-private:
-    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 void tst_QCamera::initTestCase()

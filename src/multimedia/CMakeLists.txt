@@ -40,6 +40,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
         platform/qplatformaudioinput_p.h
         platform/qplatformaudiooutput_p.h
+        platform/qplatformaudioresampler_p.h
         platform/qplatformcamera.cpp platform/qplatformcamera_p.h
         platform/qplatformvideosource.cpp platform/qplatformvideosource_p.h
         platform/qplatformsurfacecapture.cpp platform/qplatformsurfacecapture_p.h
@@ -68,7 +69,8 @@ qt_internal_add_module(Multimedia
         recording/qscreencapture.cpp recording/qscreencapture.h
         video/qabstractvideobuffer.cpp video/qabstractvideobuffer_p.h
         video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
-        video/qvideoframe.cpp video/qvideoframe.h
+        video/qimagevideobuffer.cpp video/qimagevideobuffer_p.h
+        video/qvideoframe.cpp video/qvideoframe.h video/qvideoframe_p.h
         video/qvideosink.cpp video/qvideosink.h
         video/qvideotexturehelper.cpp video/qvideotexturehelper_p.h
         video/qvideoframeconversionhelper.cpp video/qvideoframeconversionhelper_p.h
@@ -76,6 +78,7 @@ qt_internal_add_module(Multimedia
         video/qvideoframeconverter.cpp video/qvideoframeconverter_p.h
         video/qvideoframeformat.cpp video/qvideoframeformat.h
         video/qvideowindow.cpp video/qvideowindow_p.h
+        video/qtvideo_p.h
     INCLUDE_DIRECTORIES
         audio
         camera

@@ -16,10 +16,13 @@ static Q_LOGGING_CATEGORY(qLcMetaData, "qt.multimedia.ffmpeg.metadata")
 
 namespace  {
 
-struct {
+struct ffmpegTagToMetaDataKey
+{
     const char *tag;
     QMediaMetaData::Key key;
-} ffmpegTagToMetaDataKey[] = {
+};
+
+constexpr ffmpegTagToMetaDataKey ffmpegTagToMetaDataKey[] = {
     { "title", QMediaMetaData::Title },
     { "comment", QMediaMetaData::Comment },
     { "description", QMediaMetaData::Description },
@@ -48,7 +51,7 @@ struct {
 
 static QMediaMetaData::Key tagToKey(const char *tag)
 {
-    auto *map = ffmpegTagToMetaDataKey;
+    const auto *map = ffmpegTagToMetaDataKey;
     while (map->tag) {
         if (!strcmp(map->tag, tag))
             return map->key;
@@ -59,7 +62,7 @@ static QMediaMetaData::Key tagToKey(const char *tag)
 
 static const char *keyToTag(QMediaMetaData::Key key)
 {
-    auto *map = ffmpegTagToMetaDataKey;
+    const auto *map = ffmpegTagToMetaDataKey;
     while (map->tag) {
         if (map->key == key)
             return map->tag;

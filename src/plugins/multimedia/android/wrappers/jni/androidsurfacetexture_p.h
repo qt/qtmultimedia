@@ -43,6 +43,7 @@ public:
 
     static bool registerNativeMethods();
 
+    quint64 index() const { return m_index; }
 Q_SIGNALS:
     void frameAvailable();
 
@@ -52,6 +53,7 @@ private:
     QJniObject m_surfaceTexture;
     QJniObject m_surface;
     QJniObject m_surfaceHolder;
+    const quint64 m_index = 0;
 };
 
 QT_END_NAMESPACE

@@ -33,7 +33,7 @@ class QGstreamerMessage;
 class QGstreamerMediaEncoder : public QPlatformMediaRecorder, QGstreamerBusMessageFilter
 {
 public:
-    QGstreamerMediaEncoder(QMediaRecorder *parent);
+    explicit QGstreamerMediaEncoder(QMediaRecorder *parent);
     virtual ~QGstreamerMediaEncoder();
 
     bool isLocationWritable(const QUrl &sink) const override;
@@ -56,7 +56,7 @@ private:
 
 private:
     struct PauseControl {
-        PauseControl(QPlatformMediaRecorder &encoder) : encoder(encoder) {}
+        explicit PauseControl(QPlatformMediaRecorder &encoder) : encoder(encoder) { }
 
         GstPadProbeReturn processBuffer(QGstPad pad, GstPadProbeInfo *info);
         void installOn(QGstPad pad);

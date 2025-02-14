@@ -270,7 +270,8 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
     if (message.isNull())
         return false;
 
-//    qCDebug(qLcMediaPlayer) << "received bus message from" << message.source().name() << message.type() << (message.type() == GST_MESSAGE_TAG);
+    qCDebug(qLcMediaPlayer) << "received bus message from" << message.source().name()
+                            << gst_message_type_get_name(message.type());
 
     GstMessage* gm = message.rawMessage();
     switch (message.type()) {
@@ -318,19 +319,10 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         GstState    pending;
 
         gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
-        qCDebug(qLcMediaPlayer) << "    state changed message" << oldState << newState << pending;
-
-#ifdef DEBUG_PLAYBIN
-        static QStringList states = {
-                  QStringLiteral("GST_STATE_VOID_PENDING"),  QStringLiteral("GST_STATE_NULL"),
-                  QStringLiteral("GST_STATE_READY"), QStringLiteral("GST_STATE_PAUSED"),
-                  QStringLiteral("GST_STATE_PLAYING") };
-
-        qCDebug(qLcMediaPlayer) << QStringLiteral("state changed: old: %1  new: %2  pending: %3") \
-                .arg(states[oldState]) \
-                .arg(states[newState]) \
-                .arg(states[pending]);
-#endif
+        qCDebug(qLcMediaPlayer) << "    state changed message"
+                                << gst_element_state_get_name(oldState)
+                                << gst_element_state_get_name(newState)
+                                << gst_element_state_get_name(pending);
 
         switch (newState) {
         case GST_STATE_VOID_PENDING:
@@ -359,7 +351,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                 GstQuery *query = gst_query_new_seeking(GST_FORMAT_TIME);
                 gboolean canSeek = false;
                 if (gst_element_query(playerPipeline.element(), query)) {
-                    gst_query_parse_seeking(query, NULL, &canSeek, nullptr, nullptr);
+                    gst_query_parse_seeking(query, nullptr, &canSeek, nullptr, nullptr);
                     qCDebug(qLcMediaPlayer) << "    pipeline is seekable:" << canSeek;
                 } else {
                     qCDebug(qLcMediaPlayer) << "    query for seekable failed.";

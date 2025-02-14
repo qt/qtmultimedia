@@ -25,7 +25,7 @@ QT_BEGIN_NAMESPACE
 class QGstreamerVideoDevices : public QPlatformVideoDevices
 {
 public:
-    QGstreamerVideoDevices(QPlatformMediaIntegration *integration);
+    explicit QGstreamerVideoDevices(QPlatformMediaIntegration *integration);
 
     QList<QCameraDevice> videoDevices() const override;
     GstDevice *videoDevice(const QByteArray &id) const;

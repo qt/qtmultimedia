@@ -552,7 +552,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     setVideoAvailable(false);
     setSeekable(false);
     m_requestedPosition = -1;
-    orientationChanged(QVideoFrame::Rotation0, false);
+    orientationChanged(QtVideo::Rotation::None, false);
     Q_EMIT positionChanged(position());
     if (m_duration != 0) {
         m_duration = 0;
@@ -1089,7 +1089,7 @@ void AVFMediaPlayer::updateTracks()
                     if (m_observer.videoTrack != track) {
                         m_observer.videoTrack = track;
                         bool isMirrored = false;
-                        QVideoFrame::RotationAngle orientation = QVideoFrame::Rotation0;
+                        QtVideo::Rotation orientation = QtVideo::Rotation::None;
                         videoOrientationForAssetTrack(assetTrack, orientation, isMirrored);
                         orientationChanged(orientation, isMirrored);
                     }
@@ -1179,7 +1179,7 @@ void AVFMediaPlayer::nativeSizeChanged(QSize size)
     m_videoSink->setNativeSize(size);
 }
 
-void AVFMediaPlayer::orientationChanged(QVideoFrame::RotationAngle rotation, bool mirrored)
+void AVFMediaPlayer::orientationChanged(QtVideo::Rotation rotation, bool mirrored)
 {
     if (!m_videoOutput)
         return;
@@ -1189,10 +1189,10 @@ void AVFMediaPlayer::orientationChanged(QVideoFrame::RotationAngle rotation, boo
 }
 
 void AVFMediaPlayer::videoOrientationForAssetTrack(AVAssetTrack *videoTrack,
-                                                   QVideoFrame::RotationAngle &angle,
+                                                   QtVideo::Rotation &angle,
                                                    bool &mirrored)
 {
-    angle = QVideoFrame::Rotation0;
+    angle = QtVideo::Rotation::None;
     if (videoTrack) {
         CGAffineTransform transform = videoTrack.preferredTransform;
         if (CGAffineTransformIsIdentity(transform))
@@ -1215,11 +1215,11 @@ void AVFMediaPlayer::videoOrientationForAssetTrack(AVAssetTrack *videoTrack,
         }
 
         if (qFuzzyCompare(degrees, qreal(90)) || qFuzzyCompare(degrees, qreal(-270))) {
-            angle = QVideoFrame::Rotation90;
+            angle = QtVideo::Rotation::Clockwise90;
         } else if (qFuzzyCompare(degrees, qreal(-90)) || qFuzzyCompare(degrees, qreal(270))) {
-            angle = QVideoFrame::Rotation270;
+            angle = QtVideo::Rotation::Clockwise270;
         } else if (qFuzzyCompare(degrees, qreal(180)) || qFuzzyCompare(degrees, qreal(-180))) {
-            angle = QVideoFrame::Rotation180;
+            angle = QtVideo::Rotation::Clockwise180;
         }
     }
 }

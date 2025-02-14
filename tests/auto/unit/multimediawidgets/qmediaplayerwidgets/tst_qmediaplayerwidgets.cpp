@@ -17,6 +17,8 @@
 
 QT_USE_NAMESPACE
 
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
+
 class tst_QMediaPlayerWidgets: public QObject
 {
     Q_OBJECT
@@ -31,9 +33,6 @@ private slots:
     void testSetVideoOutput();
     void testSetVideoOutputNoService();
     void testSetVideoOutputNoControl();
-
-private:
-    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 void tst_QMediaPlayerWidgets::initTestCase() { }

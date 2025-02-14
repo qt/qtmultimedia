@@ -16,6 +16,8 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
     PLUGIN_TYPE multimedia
     SOURCES
         qffmpeg.cpp qffmpeg_p.h
+        qffmpegdefs_p.h
+        qffmpegavaudioformat.cpp qffmpegavaudioformat_p.h
         qffmpegaudiodecoder.cpp qffmpegaudiodecoder_p.h
         qffmpegaudioinput.cpp qffmpegaudioinput_p.h
         qffmpeghwaccel.cpp qffmpeghwaccel_p.h
@@ -34,11 +36,13 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegresampler.cpp qffmpegresampler_p.h
         qffmpegvideoframeencoder.cpp qffmpegvideoframeencoder_p.h
         qffmpegvideoencoderutils.cpp qffmpegvideoencoderutils_p.h
+        qffmpegaudioencoderutils.cpp qffmpegaudioencoderutils_p.h
         qgrabwindowsurfacecapture.cpp qgrabwindowsurfacecapture_p.h
-        qffmpegsurfacecapturethread.cpp qffmpegsurfacecapturethread_p.h
+        qffmpegsurfacecapturegrabber.cpp qffmpegsurfacecapturegrabber_p.h
         qffmpegsymbolsresolve_p.h
 
         qffmpegplaybackengine.cpp qffmpegplaybackengine_p.h
+        playbackengine/qffmpegplaybackenginedefs_p.h
         playbackengine/qffmpegplaybackengineobject.cpp playbackengine/qffmpegplaybackengineobject_p.h
         playbackengine/qffmpegdemuxer.cpp playbackengine/qffmpegdemuxer_p.h
         playbackengine/qffmpegstreamdecoder.cpp playbackengine/qffmpegstreamdecoder_p.h
@@ -57,7 +61,6 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
-        FFmpeg::avformat FFmpeg::avcodec FFmpeg::swresample FFmpeg::swscale FFmpeg::avutil
 )
 
 if(DYNAMIC_RESOLVE_OPENSSL_SYMBOLS)
@@ -75,7 +78,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION DYNAMIC_RESOLVE_OPENSSL_S
 
 if (ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
     if (QT_FEATURE_vaapi AND NOT DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
-        if (FFMPEG_IS_STATIC)
+        if (NOT FFMPEG_SHARED_LIBRARIES)
             message(WARNING
                    "QT_FEATURE_vaapi is found but statically built ffmpeg doesn't include vaapi,"
                    "however dynamic symbols resolve is possible.")
@@ -189,6 +192,13 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_xlib
         Xext
 )
 
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_eglfs
+    SOURCES
+        qeglfsscreencapture.cpp qeglfsscreencapture_p.h
+    LIBRARIES
+        Qt::OpenGLPrivate
+)
+
 set_source_files_properties(qx11surfacecapture.cpp # X headers
                             PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
@@ -235,3 +245,17 @@ if (ANDROID)
         android.permission.MODIFY_AUDIO_SETTINGS
     )
 endif()
+
+# TODO: get libs from FindFFmpeg.cmake
+set(ffmpeg_libs FFmpeg::avformat FFmpeg::avcodec FFmpeg::swresample FFmpeg::swscale FFmpeg::avutil)
+
+if (QT_DEPLOY_FFMPEG AND NOT BUILD_SHARED_LIBS)
+    message(FATAL_ERROR "QT_DEPLOY_FFMPEG is not implemented yet for static builds")
+endif()
+
+if (QT_DEPLOY_FFMPEG AND FFMPEG_SHARED_LIBRARIES AND BUILD_SHARED_LIBS)
+    include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/QtDeployFFmpeg.cmake")
+    qt_internal_multimedia_copy_or_install_ffmpeg()
+endif()
+
+qt_internal_extend_target(QFFmpegMediaPlugin LIBRARIES ${ffmpeg_libs})

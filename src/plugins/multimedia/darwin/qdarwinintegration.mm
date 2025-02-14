@@ -42,12 +42,16 @@ QDarwinIntegration::QDarwinIntegration()
     if (__builtin_available(macOS 11.0, *))
         VTRegisterSupplementalVideoDecoderIfAvailable(kCMVideoCodecType_VP9);
 #endif
-    m_videoDevices = std::make_unique<QAVFVideoDevices>(this);
 }
 
 QPlatformMediaFormatInfo *QDarwinIntegration::createFormatInfo()
 {
     return new QDarwinFormatInfo();
+}
+
+QPlatformVideoDevices *QDarwinIntegration::createVideoDevices()
+{
+    return new QAVFVideoDevices(this);
 }
 
 QMaybe<QPlatformAudioDecoder *> QDarwinIntegration::createAudioDecoder(QAudioDecoder *decoder)

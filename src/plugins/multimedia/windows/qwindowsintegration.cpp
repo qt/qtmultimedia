@@ -37,8 +37,6 @@ QWindowsMediaIntegration::QWindowsMediaIntegration()
 {
     CoInitialize(NULL);
     MFStartup(MF_VERSION);
-
-    m_videoDevices = std::make_unique<QWindowsVideoDevices>(this);
 }
 
 QWindowsMediaIntegration::~QWindowsMediaIntegration()
@@ -50,6 +48,11 @@ QWindowsMediaIntegration::~QWindowsMediaIntegration()
 QPlatformMediaFormatInfo *QWindowsMediaIntegration::createFormatInfo()
 {
     return new QWindowsFormatInfo();
+}
+
+QPlatformVideoDevices *QWindowsMediaIntegration::createVideoDevices()
+{
+    return new QWindowsVideoDevices(this);
 }
 
 QMaybe<QPlatformMediaCaptureSession *> QWindowsMediaIntegration::createCaptureSession()

@@ -83,8 +83,12 @@ private:
 
 class TestVideoSink : public QVideoSink
 {
+    Q_OBJECT
 public:
-    TestVideoSink() = default;
+    TestVideoSink()
+    {
+        connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::videoFrameChangedSync);
+    }
 
     void setStoreImagesEnabled(bool storeImages = true) {
         if (storeImages)
@@ -94,6 +98,15 @@ public:
     }
 
     const std::vector<QImage> &images() const { return m_images; }
+
+    QVideoFrame waitForFrame()
+    {
+        QSignalSpy spy(this, &TestVideoSink::videoFrameChangedSync);
+        return spy.wait() ? spy.at(0).at(0).value<QVideoFrame>() : QVideoFrame{};
+    }
+
+signals:
+    void videoFrameChangedSync(QVideoFrame frame);
 
 private:
     void storeImage(const QVideoFrame &frame) {
@@ -208,7 +221,19 @@ void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawi
 
     sc.setActive(true);
 
+    QVERIFY(sc.isActive());
+
+    // In some cases, on Linux the window seems to be of a wrong color after appearance,
+    // the delay helps.
+    // TODO: remove the delay
     QTest::qWait(300);
+
+    // Let's wait for the first frame to address a potential initialization delay.
+    // In practice, the delay varies between the platform and may randomly get increased.
+    {
+        const auto firstFrame = sink.waitForFrame();
+        QVERIFY(firstFrame.isValid());
+    }
 
     sink.setStoreImagesEnabled();
 
@@ -227,8 +252,9 @@ void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawi
         auto pixelColor = [&drawingOffset, pixelRatio, &image](int x, int y) {
             return image.pixelColor((QPoint(x, y) + drawingOffset) * pixelRatio).toRgb();
         };
-
-        QCOMPARE(image.size(), expectedSize * pixelRatio);
+        const int capturedWidth = qRound(image.size().width() / pixelRatio);
+        const int capturedHeight = qRound(image.size().height() / pixelRatio);
+        QCOMPARE(QSize(capturedWidth, capturedHeight), expectedSize);
         QCOMPARE(pixelColor(0, 0), QColor(0xFF, 0, 0));
 
         QCOMPARE(pixelColor(39, 50), QColor(0xFF, 0, 0));
@@ -282,6 +308,9 @@ void tst_QScreenCaptureBackend::removeWhileCapture(
 
 void tst_QScreenCaptureBackend::initTestCase()
 {
+#ifdef Q_OS_ANDROID
+    QSKIP("grabWindow() no longer supported on Android adding child windows support: QTBUG-118849");
+#endif
 #if defined(Q_OS_LINUX)
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci" &&
         qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")

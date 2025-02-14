@@ -20,6 +20,8 @@
 
 QT_USE_NAMESPACE
 
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
+
 class tst_QMediaRecorder : public QObject
 {
     Q_OBJECT
@@ -51,7 +53,6 @@ private slots:
     void testApplicationInative();
 
 private:
-    QMockIntegrationFactory mockIntegrationFactory;
     QMediaCaptureSession *captureSession;
     QCamera *object = nullptr;
     QMockMediaCaptureSession *service = nullptr;

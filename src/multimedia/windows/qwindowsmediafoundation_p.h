@@ -16,30 +16,42 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <QtCore/qt_windows.h>
 #include <QtCore/private/qsystemlibrary_p.h>
-#include <memory>
 #include <mfapi.h>
-
-struct IMFMediaType;
 
 QT_BEGIN_NAMESPACE
 
 class QWindowsMediaFoundation
 {
 public:
-    ~QWindowsMediaFoundation();
-
     static QWindowsMediaFoundation *instance();
 
+    QWindowsMediaFoundation();
+    ~QWindowsMediaFoundation();
+
+    bool valid() const;
+
+    decltype(&::MFStartup) mfStartup = nullptr;
+    decltype(&::MFShutdown) mfShutdown = nullptr;
     decltype(&::MFCreateMediaType) mfCreateMediaType = nullptr;
     decltype(&::MFCreateMemoryBuffer) mfCreateMemoryBuffer = nullptr;
     decltype(&::MFCreateSample) mfCreateSample = nullptr;
 
 private:
-    QWindowsMediaFoundation() : m_mfplat(QStringLiteral("Mfplat.dll")) {}
+    QSystemLibrary m_mfplat{ QStringLiteral("Mfplat.dll") };
+    bool m_valid = false;
+};
 
-    QSystemLibrary m_mfplat;
+class QMFRuntimeInit
+{
+    Q_DISABLE_COPY_MOVE(QMFRuntimeInit)
+public:
+    QMFRuntimeInit(QWindowsMediaFoundation *wmf);
+    ~QMFRuntimeInit();
+
+private:
+    QWindowsMediaFoundation *m_wmf;
+    HRESULT m_initResult;
 };
 
 QT_END_NAMESPACE

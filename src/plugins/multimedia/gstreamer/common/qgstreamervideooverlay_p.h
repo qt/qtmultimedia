@@ -30,7 +30,8 @@ class Q_MULTIMEDIA_EXPORT QGstreamerVideoOverlay
 {
     Q_OBJECT
 public:
-    explicit QGstreamerVideoOverlay(QGstreamerVideoSink *parent = 0, const QByteArray &elementName = QByteArray());
+    explicit QGstreamerVideoOverlay(QGstreamerVideoSink *parent = nullptr,
+                                    const QByteArray &elementName = QByteArray());
     virtual ~QGstreamerVideoOverlay();
 
     QGstElement videoSink() const;

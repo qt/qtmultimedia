@@ -13,6 +13,8 @@
 
 QT_USE_NAMESPACE
 
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
+
 class tst_QScreenCapture : public QObject
 {
     Q_OBJECT
@@ -38,8 +40,6 @@ public slots:
 private slots:
     void destructionOfActiveCapture();
 
-private:
-    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 void tst_QScreenCapture::initTestCase() { }

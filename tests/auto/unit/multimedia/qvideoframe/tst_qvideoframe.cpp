@@ -788,6 +788,11 @@ void tst_QVideoFrame::formatConversion_data()
     QTest::newRow("QVideoFrameFormat::Format_Jpeg")
             << QImage::Format_Invalid
             << QVideoFrameFormat::Format_Jpeg;
+    QTest::newRow("QVideoFrameFormat::Format_RGBX8888")
+            << QImage::Format_RGBX8888 << QVideoFrameFormat::Format_RGBX8888;
+    QTest::newRow("QImage::Format_RGBA8888_Premultiplied => QVideoFrameFormat::Format_RGBX8888 "
+                  "(workaround)")
+            << QImage::Format_RGBA8888_Premultiplied << QVideoFrameFormat::Format_RGBX8888;
 }
 
 void tst_QVideoFrame::formatConversion()
@@ -797,6 +802,12 @@ void tst_QVideoFrame::formatConversion()
 
     if (imageFormat != QImage::Format_Invalid)
         QCOMPARE(QVideoFrameFormat::pixelFormatFromImageFormat(imageFormat), pixelFormat);
+
+    if (imageFormat == QImage::Format_RGBA8888_Premultiplied) {
+        qWarning() << "Workaround: convert QImage::Format_RGBA8888_Premultiplied to "
+                      "QVideoFrameFormat::Format_RGBX8888; to be removed in 6.8";
+        return;
+    }
 
     if (pixelFormat != QVideoFrameFormat::Format_Invalid)
         QCOMPARE(QVideoFrameFormat::imageFormatFromPixelFormat(pixelFormat), imageFormat);

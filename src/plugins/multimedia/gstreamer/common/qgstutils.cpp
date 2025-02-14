@@ -21,14 +21,17 @@
 #include <gst/audio/audio.h>
 #include <gst/video/video.h>
 
-template<typename T, int N> constexpr int lengthOf(const T (&)[N]) { return N; }
-
 QT_BEGIN_NAMESPACE
-
 
 namespace {
 
-static const char *audioSampleFormatNames[QAudioFormat::NSampleFormats] = {
+template <typename T, int N>
+constexpr int lengthOf(const T (&)[N])
+{
+    return N;
+}
+
+const char *audioSampleFormatNames[QAudioFormat::NSampleFormats] = {
     nullptr,
 #if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
     "U8",
@@ -43,7 +46,7 @@ static const char *audioSampleFormatNames[QAudioFormat::NSampleFormats] = {
 #endif
 };
 
-static QAudioFormat::SampleFormat gstSampleFormatToSampleFormat(const char *fmt)
+QAudioFormat::SampleFormat gstSampleFormatToSampleFormat(const char *fmt)
 {
     if (fmt) {
         for (int i = 1; i < QAudioFormat::NSampleFormats; ++i) {
@@ -121,7 +124,7 @@ QList<QAudioFormat::SampleFormat> QGValue::getSampleFormats() const
     QList<QAudioFormat::SampleFormat> formats;
     guint nFormats = gst_value_list_get_size(value);
     for (guint f = 0; f < nFormats; ++f) {
-        QGValue v = gst_value_list_get_value(value, f);
+        QGValue v = QGValue{ gst_value_list_get_value(value, f) };
         auto *name = v.toString();
         QAudioFormat::SampleFormat fmt = gstSampleFormatToSampleFormat(name);
         if (fmt == QAudioFormat::Unknown)
@@ -139,8 +142,7 @@ struct VideoFormat
     GstVideoFormat gstFormat;
 };
 
-static const VideoFormat qt_videoFormatLookup[] =
-{
+const VideoFormat qt_videoFormatLookup[] = {
     { QVideoFrameFormat::Format_YUV420P, GST_VIDEO_FORMAT_I420 },
     { QVideoFrameFormat::Format_YUV422P, GST_VIDEO_FORMAT_Y42B },
     { QVideoFrameFormat::Format_YV12   , GST_VIDEO_FORMAT_YV12 },
@@ -167,7 +169,7 @@ static const VideoFormat qt_videoFormatLookup[] =
 #endif
 };
 
-static int indexOfVideoFormat(QVideoFrameFormat::PixelFormat format)
+int indexOfVideoFormat(QVideoFrameFormat::PixelFormat format)
 {
     for (int i = 0; i < lengthOf(qt_videoFormatLookup); ++i)
         if (qt_videoFormatLookup[i].pixelFormat == format)
@@ -176,7 +178,7 @@ static int indexOfVideoFormat(QVideoFrameFormat::PixelFormat format)
     return -1;
 }
 
-static int indexOfVideoFormat(GstVideoFormat format)
+int indexOfVideoFormat(GstVideoFormat format)
 {
     for (int i = 0; i < lengthOf(qt_videoFormatLookup); ++i)
         if (qt_videoFormatLookup[i].gstFormat == format)
@@ -185,14 +187,14 @@ static int indexOfVideoFormat(GstVideoFormat format)
     return -1;
 }
 
-}
+} // namespace
 
 QVideoFrameFormat QGstCaps::formatForCaps(GstVideoInfo *info) const
 {
     GstVideoInfo vidInfo;
     GstVideoInfo *infoPtr = info ? info : &vidInfo;
 
-    if (gst_video_info_from_caps(infoPtr, caps)) {
+    if (gst_video_info_from_caps(infoPtr, m_object)) {
         int index = indexOfVideoFormat(infoPtr->finfo->format);
 
         if (index != -1) {
@@ -288,8 +290,8 @@ QVideoFrameFormat QGstCaps::formatForCaps(GstVideoInfo *info) const
 
 void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier)
 {
-    if (!gst_caps_is_writable(caps))
-        caps = gst_caps_make_writable(caps);
+    if (!gst_caps_is_writable(m_object))
+        m_object = gst_caps_make_writable(m_object);
 
     GValue list = {};
     g_value_init(&list, GST_TYPE_LIST);
@@ -312,11 +314,11 @@ void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &form
                                         "height"   , GST_TYPE_INT_RANGE, 1, INT_MAX,
                                         nullptr);
     gst_structure_set_value(structure, "format", &list);
-    gst_caps_append_structure(caps, structure);
+    gst_caps_append_structure(m_object, structure);
     g_value_unset(&list);
 
     if (modifier)
-        gst_caps_set_features(caps, size() - 1, gst_caps_features_from_string(modifier));
+        gst_caps_set_features(m_object, size() - 1, gst_caps_features_from_string(modifier));
 }
 
 QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
@@ -340,7 +342,7 @@ QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
                                       nullptr);
     }
     auto caps = QGstCaps::create();
-    gst_caps_append_structure(caps.caps, structure);
+    gst_caps_append_structure(caps.m_object, structure);
     return caps;
 }
 

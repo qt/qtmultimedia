@@ -15,6 +15,7 @@
 //
 
 #include "playbackengine/qffmpegrenderer_p.h"
+#include <private/qtvideo_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -26,7 +27,7 @@ class VideoRenderer : public Renderer
 {
     Q_OBJECT
 public:
-    VideoRenderer(const TimeController &tc, QVideoSink *sink, QVideoFrame::RotationAngle rotationAngle);
+    VideoRenderer(const TimeController &tc, QVideoSink *sink, QtVideo::Rotation rotation);
 
     void setOutput(QVideoSink *sink, bool cleanPrevSink = false);
 
@@ -35,7 +36,7 @@ protected:
 
 private:
     QPointer<QVideoSink> m_sink;
-    QVideoFrame::RotationAngle m_rotationAngle;
+    QtVideo::Rotation m_rotation;
 };
 
 } // namespace QFFmpeg

@@ -49,13 +49,14 @@ static std::optional<qint64> streamDuration(const AVStream &stream)
 static int streamOrientation(const AVStream *stream)
 {
     Q_ASSERT(stream);
+
     using SideDataSize = decltype(AVPacketSideData::size);
-    SideDataSize dataSize = 0;
     constexpr SideDataSize displayMatrixSize = sizeof(int32_t) * 9;
-    const uint8_t *sideData = av_stream_get_side_data(stream, AV_PKT_DATA_DISPLAYMATRIX, &dataSize);
-    if (dataSize < displayMatrixSize)
+    const auto *sideData = streamSideData(stream, AV_PKT_DATA_DISPLAYMATRIX);
+    if (!sideData || sideData->size < displayMatrixSize)
         return 0;
-    auto displayMatrix = reinterpret_cast<const int32_t *>(sideData);
+
+    auto displayMatrix = reinterpret_cast<const int32_t *>(sideData->data);
     auto rotation = static_cast<int>(std::round(av_display_rotation_get(displayMatrix)));
     // Convert counterclockwise rotation angle to clockwise, restricted to 0, 90, 180 and 270
     if (rotation % 90 != 0)
@@ -63,10 +64,10 @@ static int streamOrientation(const AVStream *stream)
     return rotation < 0 ? -rotation % 360 : -rotation % 360 + 360;
 }
 
-QVideoFrame::RotationAngle MediaDataHolder::getRotationAngle() const
+QtVideo::Rotation MediaDataHolder::rotation() const
 {
     int orientation = m_metaData.value(QMediaMetaData::Orientation).toInt();
-    return static_cast<QVideoFrame::RotationAngle>(orientation);
+    return static_cast<QtVideo::Rotation>(orientation);
 }
 
 AVFormatContext *MediaDataHolder::avContext()
@@ -247,6 +248,9 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
         if (trackType == QPlatformMediaPlayer::NTrackTypes)
             continue;
 
+        if (stream->disposition & AV_DISPOSITION_ATTACHED_PIC)
+            continue; // Ignore attached picture streams because we treat them as metadata
+
         auto metaData = QFFmpegMetaData::fromAVMetaData(stream->metadata);
         const bool isDefault = stream->disposition & AV_DISPOSITION_DEFAULT;
 
@@ -286,6 +290,41 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
     updateMetaData();
 }
 
+namespace {
+
+/*!
+    \internal
+
+    Attempt to find an attached picture from the context's streams.
+    This will find ID3v2 pictures on audio files, and also pictures
+    attached to videos.
+ */
+QImage getAttachedPicture(const AVFormatContext *context)
+{
+    if (!context)
+        return {};
+
+    for (unsigned int i = 0; i < context->nb_streams; ++i) {
+        const AVStream* stream = context->streams[i];
+        if (!stream || !(stream->disposition & AV_DISPOSITION_ATTACHED_PIC))
+            continue;
+
+        const AVPacket *compressedImage = &stream->attached_pic;
+        if (!compressedImage || !compressedImage->data || compressedImage->size <= 0)
+            continue;
+
+        // Feed raw compressed data to QImage::fromData, which will decompress it
+        // if it is a recognized format.
+        QImage image = QImage::fromData({ compressedImage->data, compressedImage->size });
+        if (!image.isNull())
+            return image;
+    }
+
+    return {};
+}
+
+}
+
 void MediaDataHolder::updateMetaData()
 {
     m_metaData = {};
@@ -298,6 +337,12 @@ void MediaDataHolder::updateMetaData()
                       QVariant::fromValue(QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(
                               m_context->iformat)));
     m_metaData.insert(QMediaMetaData::Duration, m_duration / qint64(1000));
+
+    if (!m_cachedThumbnail.has_value())
+        m_cachedThumbnail = getAttachedPicture(m_context.get());
+
+    if (!m_cachedThumbnail->isNull())
+        m_metaData.insert(QMediaMetaData::ThumbnailImage, m_cachedThumbnail.value());
 
     for (auto trackType :
          { QPlatformMediaPlayer::AudioStream, QPlatformMediaPlayer::VideoStream }) {

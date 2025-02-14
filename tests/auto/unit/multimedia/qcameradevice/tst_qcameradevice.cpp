@@ -13,6 +13,8 @@
 
 QT_USE_NAMESPACE
 
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
+
 class tst_QCameraDevice: public QObject
 {
     Q_OBJECT
@@ -27,9 +29,6 @@ private slots:
     void defaultCamera();
     void availableCameras();
     void equality_operators();
-
-private:
-    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 void tst_QCameraDevice::initTestCase()

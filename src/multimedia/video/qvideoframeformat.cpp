@@ -743,7 +743,9 @@ QVideoFrameFormat::PixelFormat QVideoFrameFormat::pixelFormatFromImageFormat(QIm
     case QImage::Format_RGBA8888:
         return QVideoFrameFormat::Format_RGBA8888;
     case QImage::Format_RGBA8888_Premultiplied:
-        return QVideoFrameFormat::Format_ARGB8888_Premultiplied;
+        // QVideoFrameFormat::Format_RGBA8888_Premultiplied is to be added in 6.8
+        // Format_RGBX8888 suits the best as a workaround
+        return QVideoFrameFormat::Format_RGBX8888;
     case QImage::Format_RGBX8888:
         return QVideoFrameFormat::Format_RGBX8888;
     case QImage::Format_Grayscale8:

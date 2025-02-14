@@ -2,56 +2,69 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwindowsmediafoundation_p.h"
-#include "qwindowdefs_win.h"
-#include <QDebug>
-#include <QMutex>
+#include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace {
-struct Holder {
-    ~Holder()
-    {
-        QMutexLocker locker(&mutex);
-        instance = nullptr;
-    }
-    bool loadFailed = false;
-    QBasicMutex mutex;
-    std::unique_ptr<QWindowsMediaFoundation> instance;
-} holder;
 
+Q_GLOBAL_STATIC(QWindowsMediaFoundation, s_wmf);
+
+template <typename T>
+bool setProcAddress(QSystemLibrary &lib, T &f, const char name[])
+{
+    f = reinterpret_cast<T>(lib.resolve(name));
+    return static_cast<bool>(f);
+}
+
+} // namespace
+
+QWindowsMediaFoundation *QWindowsMediaFoundation::instance()
+{
+    if (s_wmf->valid())
+        return s_wmf;
+
+    return nullptr;
+}
+
+QWindowsMediaFoundation::QWindowsMediaFoundation()
+{
+    if (!m_mfplat.load(false))
+        return;
+
+    m_valid = setProcAddress(m_mfplat, mfStartup, "MFStartup")
+            && setProcAddress(m_mfplat, mfShutdown, "MFShutdown")
+            && setProcAddress(m_mfplat, mfCreateMediaType, "MFCreateMediaType")
+            && setProcAddress(m_mfplat, mfCreateMemoryBuffer, "MFCreateMemoryBuffer")
+            && setProcAddress(m_mfplat, mfCreateSample, "MFCreateSample");
+
+    Q_ASSERT(m_valid); // If it is not valid at this point, we have a programming bug
 }
 
 QWindowsMediaFoundation::~QWindowsMediaFoundation() = default;
 
-template<typename T> bool setProcAddress(QSystemLibrary &lib, T &f, std::string_view name)
+bool QWindowsMediaFoundation::valid() const
 {
-    f = reinterpret_cast<T>(lib.resolve(name.data()));
-    return bool(f);
+    return m_valid;
 }
 
-QWindowsMediaFoundation *QWindowsMediaFoundation::instance()
+QMFRuntimeInit::QMFRuntimeInit(QWindowsMediaFoundation *wmf)
+    : m_wmf{ wmf }, m_initResult{ wmf ? m_wmf->mfStartup(MF_VERSION, MFSTARTUP_FULL) : E_FAIL }
 {
-    QMutexLocker locker(&holder.mutex);
-    if (holder.instance)
-        return holder.instance.get();
+    if (m_initResult != S_OK)
+        qErrnoWarning(m_initResult, "Failed to initialize Windows Media Foundation");
+}
 
-    if (holder.loadFailed)
-        return nullptr;
+QMFRuntimeInit::~QMFRuntimeInit()
+{
+    // According to documentation MFShutdown should be called
+    // also when MFStartup failed. This is wrong.
+    if (FAILED(m_initResult))
+        return;
 
-    std::unique_ptr<QWindowsMediaFoundation> wmf(new QWindowsMediaFoundation);
-    if (wmf->m_mfplat.load(false)) {
-        if (setProcAddress(wmf->m_mfplat, wmf->mfCreateMediaType, "MFCreateMediaType")
-            && setProcAddress(wmf->m_mfplat, wmf->mfCreateMemoryBuffer, "MFCreateMemoryBuffer")
-            && setProcAddress(wmf->m_mfplat, wmf->mfCreateSample, "MFCreateSample"))
-        {
-            holder.instance = std::move(wmf);
-            return holder.instance.get();
-        }
-    }
-
-    holder.loadFailed = true;
-    return nullptr;
+    const HRESULT hr = m_wmf->mfShutdown();
+    if (hr != S_OK)
+        qErrnoWarning(hr, "Failed to shut down Windows Media Foundation");
 }
 
 QT_END_NAMESPACE

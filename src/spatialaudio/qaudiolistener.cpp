@@ -1,5 +1,5 @@
 // Copyright (C) 2022 The Qt Company Ltd.
-// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial
 #include "qaudiolistener.h"
 #include "qaudioengine_p.h"
 #include "resonance_audio.h"
@@ -57,6 +57,8 @@ QAudioListener::~QAudioListener()
 void QAudioListener::setPosition(QVector3D pos)
 {
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
     pos *= ep->distanceScale;
     if (d->pos == pos)
         return;
@@ -74,6 +76,8 @@ void QAudioListener::setPosition(QVector3D pos)
 QVector3D QAudioListener::position() const
 {
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return QVector3D();
     return d->pos/ep->distanceScale;
 }
 

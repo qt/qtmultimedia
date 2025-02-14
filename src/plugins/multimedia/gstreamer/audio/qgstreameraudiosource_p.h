@@ -107,8 +107,7 @@ class GStreamerInputPrivate : public QIODevice
 {
     Q_OBJECT
 public:
-    GStreamerInputPrivate(QGStreamerAudioSource *audio);
-    ~GStreamerInputPrivate() {};
+    explicit GStreamerInputPrivate(QGStreamerAudioSource *audio);
 
     qint64 readData(char *data, qint64 len) override;
     qint64 writeData(const char *data, qint64 len) override;

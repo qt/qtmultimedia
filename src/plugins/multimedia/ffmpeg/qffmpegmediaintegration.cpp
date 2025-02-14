@@ -12,6 +12,7 @@
 #include "qffmpegimagecapture_p.h"
 #include "qffmpegaudioinput_p.h"
 #include "qffmpegaudiodecoder_p.h"
+#include "qffmpegresampler_p.h"
 #include "qffmpegsymbolsresolve_p.h"
 #include "qgrabwindowsurfacecapture_p.h"
 
@@ -47,6 +48,10 @@ extern "C" {
 
 #if QT_CONFIG(xlib)
 #include "qx11surfacecapture_p.h"
+#endif
+
+#if QT_CONFIG(eglfs)
+#include "qeglfsscreencapture_p.h"
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -108,22 +113,34 @@ static void setupFFmpegLogger()
     av_log_set_callback(&qffmpegLogCallback);
 }
 
+static QPlatformSurfaceCapture *createScreenCaptureByBackend(QString backend)
+{
+    if (backend == QLatin1String("grabwindow"))
+        return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
+
+#if QT_CONFIG(eglfs)
+    if (backend == QLatin1String("eglfs"))
+        return new QEglfsScreenCapture;
+#endif
+
+#if QT_CONFIG(xlib)
+    if (backend == QLatin1String("x11"))
+        return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
+#elif defined(Q_OS_WINDOWS)
+    if (backend == QLatin1String("dxgi"))
+        return new QFFmpegScreenCaptureDxgi;
+#elif defined(Q_OS_MACOS)
+    if (backend == QLatin1String("avf"))
+        return new QAVFScreenCapture;
+#endif
+    return nullptr;
+}
+
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
     resolveSymbols();
 
     setupFFmpegLogger();
-
-#if defined(Q_OS_ANDROID)
-    m_videoDevices = std::make_unique<QAndroidVideoDevices>(this);
-#elif QT_CONFIG(linux_v4l)
-    m_videoDevices = std::make_unique<QV4L2CameraDevices>(this);
-#endif
-#ifdef Q_OS_DARWIN
-    m_videoDevices = std::make_unique<QAVFVideoDevices>(this);
-#elif defined(Q_OS_WINDOWS)
-    m_videoDevices = std::make_unique<QWindowsVideoDevices>(this);
-#endif
 
 #ifndef QT_NO_DEBUG
     qDebug() << "Available HW decoding frameworks:";
@@ -139,6 +156,11 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 QMaybe<QPlatformAudioDecoder *> QFFmpegMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new QFFmpegAudioDecoder(decoder);
+}
+
+QMaybe<QPlatformAudioResampler *> QFFmpegMediaIntegration::createAudioResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat)
+{
+    return new QFFmpegResampler(inputFormat, outputFormat);
 }
 
 QMaybe<QPlatformMediaCaptureSession *> QFFmpegMediaIntegration::createCaptureSession()
@@ -169,9 +191,23 @@ QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 
 QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *)
 {
+    static const QString screenCaptureBackend = qgetenv("QT_SCREEN_CAPTURE_BACKEND").toLower();
+
+    if (!screenCaptureBackend.isEmpty()) {
+        if (auto screenCapture = createScreenCaptureByBackend(screenCaptureBackend))
+            return screenCapture;
+
+        qWarning() << "Not supported QT_SCREEN_CAPTURE_BACKEND:" << screenCaptureBackend;
+    }
+
 #if QT_CONFIG(xlib)
     if (QX11SurfaceCapture::isSupported())
         return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
+#endif
+
+#if QT_CONFIG(eglfs)
+    if (QEglfsScreenCapture::isSupported())
+        return new QEglfsScreenCapture;
 #endif
 
 #if defined(Q_OS_WINDOWS)
@@ -210,6 +246,21 @@ QMaybe<QPlatformAudioInput *> QFFmpegMediaIntegration::createAudioInput(QAudioIn
 QPlatformMediaFormatInfo *QFFmpegMediaIntegration::createFormatInfo()
 {
     return new QFFmpegMediaFormatInfo;
+}
+
+QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
+{
+#if defined(Q_OS_ANDROID)
+    return new QAndroidVideoDevices(this);
+#elif QT_CONFIG(linux_v4l)
+    return new QV4L2CameraDevices(this);
+#elif defined Q_OS_DARWIN
+    return new QAVFVideoDevices(this);
+#elif defined(Q_OS_WINDOWS)
+    return new QWindowsVideoDevices(this);
+#else
+    return nullptr;
+#endif
 }
 
 #ifdef Q_OS_ANDROID

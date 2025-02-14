@@ -11,6 +11,8 @@
 
 QT_USE_NAMESPACE
 
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
+
 class tst_QMediaDevices : public QObject
 {
     Q_OBJECT
@@ -23,7 +25,6 @@ private slots:
     void onlyVideoInputsChangedEmitted_when2MediaDevicesCreated_andCamerasChanged();
 
 private:
-    QMockIntegrationFactory mockIntegrationFactory;
     QMockMediaDevices devices;
 };
 
@@ -32,15 +33,14 @@ void tst_QMediaDevices::initTestCase() { }
 void tst_QMediaDevices::videoInputsChangedEmitted_whenCamerasChanged()
 {
     QMediaDevices mediaDevices;
-
     QSignalSpy videoInputsSpy(&mediaDevices, &QMediaDevices::videoInputsChanged);
-    QVERIFY(!mockIntegrationFactory.wasRun());
 
-    QTRY_VERIFY(mockIntegrationFactory.wasRun());
+    QVERIFY(QTest::qWaitFor([] { return QMockIntegration::created(); }));
+
     QCOMPARE(videoInputsSpy.size(), 0);
 
     QMockIntegration::instance()->addNewCamera();
-    QCOMPARE(videoInputsSpy.size(), 1);
+    QTRY_COMPARE(videoInputsSpy.size(), 1);
 
     QMockIntegration::instance()->addNewCamera();
     QCOMPARE(videoInputsSpy.size(), 2);
@@ -56,7 +56,7 @@ void tst_QMediaDevices::onlyVideoInputsChangedEmitted_when2MediaDevicesCreated_a
     QSignalSpy audioInputsSpy(&mediaDevicesA, &QMediaDevices::audioInputsChanged);
     QSignalSpy audioOutputsSpy(&mediaDevicesA, &QMediaDevices::audioOutputsChanged);
 
-    QTRY_VERIFY(mockIntegrationFactory.wasRun());
+    QVERIFY(QTest::qWaitFor([] { return QMockIntegration::created(); }));
 
     // process events to wait for the queued video connection establishing
     QTest::qWait(0);

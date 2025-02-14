@@ -30,6 +30,8 @@
 #include <qaudiodevice.h>
 #include <qtimer.h>
 #include "mfplayercontrol_p.h"
+#include <private/qcomptr_p.h>
+#include <evrhelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -48,7 +50,6 @@ class MFPlayerSession : public QObject, public IMFAsyncCallback
     friend class SourceResolver;
 public:
     MFPlayerSession(MFPlayerControl *playerControl = 0);
-    ~MFPlayerSession();
 
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
 
@@ -113,11 +114,11 @@ public Q_SLOTS:
     void updateOutputRouting();
 
 Q_SIGNALS:
-    void sessionEvent(IMFMediaEvent  *sessionEvent);
+    void sessionEvent(const ComPtr<IMFMediaEvent> &sessionEvent);
 
 private Q_SLOTS:
     void handleMediaSourceReady();
-    void handleSessionEvent(IMFMediaEvent *sessionEvent);
+    void handleSessionEvent(const ComPtr<IMFMediaEvent> &sessionEvent);
     void handleSourceError(long hr);
     void timeout();
 
@@ -125,12 +126,12 @@ private:
     long m_cRef;
     MFPlayerControl *m_playerControl = nullptr;
     MFVideoRendererControl *m_videoRendererControl = nullptr;
-    IMFMediaSession *m_session;
-    IMFPresentationClock *m_presentationClock;
-    IMFRateControl *m_rateControl;
-    IMFRateSupport *m_rateSupport;
-    IMFAudioStreamVolume *m_volumeControl;
-    IPropertyStore *m_netsourceStatistics;
+    ComPtr<IMFMediaSession> m_session;
+    ComPtr<IMFPresentationClock> m_presentationClock;
+    ComPtr<IMFRateControl> m_rateControl;
+    ComPtr<IMFRateSupport> m_rateSupport;
+    ComPtr<IMFAudioStreamVolume> m_volumeControl;
+    ComPtr<IPropertyStore> m_netsourceStatistics;
     qint64 m_position = 0;
     qint64 m_restorePosition = -1;
     qint64 m_timeCounter = 0;
@@ -158,8 +159,8 @@ private:
     bool m_scrubbing;
     float m_restoreRate;
 
-    SourceResolver  *m_sourceResolver;
-    HANDLE           m_hCloseEvent;
+    ComPtr<SourceResolver> m_sourceResolver;
+    EventHandle m_hCloseEvent;
     bool m_closing;
 
     enum MediaType
@@ -219,22 +220,16 @@ private:
     bool createSession();
     void setupPlaybackTopology(IMFMediaSource *source, IMFPresentationDescriptor *sourcePD);
     bool getStreamInfo(IMFStreamDescriptor *stream, MFPlayerSession::MediaType *type, QString *name, QString *language, GUID *format) const;
-    IMFTopologyNode* addSourceNode(IMFTopology* topology, IMFMediaSource* source,
-        IMFPresentationDescriptor* presentationDesc, IMFStreamDescriptor *streamDesc);
-    IMFTopologyNode* addOutputNode(MediaType mediaType, IMFTopology* topology, DWORD sinkID);
+    ComPtr<IMFTopologyNode> addSourceNode(IMFTopology *topology, IMFMediaSource *source,
+                                          IMFPresentationDescriptor *presentationDesc,
+                                          IMFStreamDescriptor *streamDesc);
+    ComPtr<IMFTopologyNode> addOutputNode(MediaType mediaType, IMFTopology *topology, DWORD sinkID);
 
-    bool addAudioSampleGrabberNode(IMFTopology* topology);
-    bool setupAudioSampleGrabber(IMFTopology *topology, IMFTopologyNode *sourceNode, IMFTopologyNode *outputNode);
     QAudioFormat audioFormatForMFMediaType(IMFMediaType *mediaType) const;
-    // ### Below can be used to monitor the audio channel. Currently unused.
-    AudioSampleGrabberCallback *m_audioSampleGrabber;
-    IMFTopologyNode *m_audioSampleGrabberNode;
 
-    IMFTopology *insertMFT(IMFTopology *topology, TOPOID outputNodeId);
+    ComPtr<IMFTopology> insertMFT(const ComPtr<IMFTopology> &topology, TOPOID outputNodeId);
     bool insertResizer(IMFTopology *topology);
     void insertColorConverter(IMFTopology *topology, TOPOID outputNodeId);
-    // ### Below can be used to monitor the video channel. Functionality currently unused.
-    MFTransform *m_videoProbeMFT;
 
     QTimer m_signalPositionChangeTimer;
     qint64 m_lastPosition = -1;

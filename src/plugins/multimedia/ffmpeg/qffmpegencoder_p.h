@@ -50,7 +50,7 @@ public:
     void run() override;
 
 private:
-    Encoder *encoder = nullptr;
+    Encoder *m_encoder = nullptr;
 };
 
 class Encoder : public QObject
@@ -89,27 +89,24 @@ private:
     friend class VideoEncoder;
     friend class Muxer;
 
-    QMediaEncoderSettings settings;
-    QMediaMetaData metaData;
-    AVFormatContext *formatContext = nullptr;
-    Muxer *muxer = nullptr;
+    QMediaEncoderSettings m_settings;
+    QMediaMetaData m_metaData;
+    AVFormatContext *m_formatContext = nullptr;
+    Muxer *m_muxer = nullptr;
 
-    AudioEncoder *audioEncode = nullptr;
-    QList<VideoEncoder *> videoEncoders;
-    QList<QMetaObject::Connection> connections;
+    AudioEncoder *m_audioEncoder = nullptr;
+    QList<VideoEncoder *> m_videoEncoders;
+    QList<QMetaObject::Connection> m_connections;
 
-    QMutex timeMutex;
-    qint64 timeRecorded = 0;
+    QMutex m_timeMutex;
+    qint64 m_timeRecorded = 0;
 
-    bool isHeaderWritten = false;
+    bool m_isHeaderWritten = false;
 };
 
 
 class Muxer : public ConsumerThread
 {
-    mutable QMutex queueMutex;
-    std::queue<AVPacketUPtr> packetQueue;
-
 public:
     Muxer(Encoder *encoder);
 
@@ -123,34 +120,33 @@ private:
     bool hasData() const override;
     void processOne() override;
 
-    Encoder *encoder;
+private:
+    mutable QMutex m_queueMutex;
+    std::queue<AVPacketUPtr> m_packetQueue;
+
+    Encoder *m_encoder;
 };
 
 class EncoderThread : public ConsumerThread
 {
 public:
-    virtual void setPaused(bool b)
-    {
-        paused.storeRelease(b);
-    }
+    EncoderThread(Encoder *encoder) : m_encoder(encoder) { }
+    virtual void setPaused(bool b) { m_paused.storeRelease(b); }
 
 protected:
-    QAtomicInteger<bool> paused = false;
-    Encoder *encoder = nullptr;
+    QAtomicInteger<bool> m_paused = false;
+    Encoder *m_encoder = nullptr;
 };
 
 class AudioEncoder : public EncoderThread
 {
-    mutable QMutex queueMutex;
-    std::queue<QAudioBuffer> audioBufferQueue;
-
 public:
     AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings);
 
     void open();
     void addBuffer(const QAudioBuffer &buffer);
 
-    QFFmpegAudioInput *audioInput() const { return input; }
+    QFFmpegAudioInput *audioInput() const { return m_input; }
 
 private:
     QAudioBuffer takeBuffer();
@@ -161,23 +157,23 @@ private:
     bool hasData() const override;
     void processOne() override;
 
-    AVStream *stream = nullptr;
-    AVCodecContextUPtr codecContext;
-    QFFmpegAudioInput *input = nullptr;
-    QAudioFormat format;
+private:
+    mutable QMutex m_queueMutex;
+    std::queue<QAudioBuffer> m_audioBufferQueue;
 
-    SwrContextUPtr resampler;
-    qint64 samplesWritten = 0;
-    const AVCodec *avCodec = nullptr;
-    QMediaEncoderSettings settings;
+    AVStream *m_stream = nullptr;
+    AVCodecContextUPtr m_codecContext;
+    QFFmpegAudioInput *m_input = nullptr;
+    QAudioFormat m_format;
+
+    SwrContextUPtr m_resampler;
+    qint64 m_samplesWritten = 0;
+    const AVCodec *m_avCodec = nullptr;
+    QMediaEncoderSettings m_settings;
 };
 
 class VideoEncoder : public EncoderThread
 {
-    mutable QMutex queueMutex;
-    std::queue<QVideoFrame> videoFrameQueue;
-    const size_t maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)
-
 public:
     VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settings,
                  const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat);
@@ -191,7 +187,7 @@ public:
     {
         EncoderThread::setPaused(b);
         if (b)
-            baseTime.storeRelease(-1);
+            m_baseTime.storeRelease(-1);
     }
 
 private:
@@ -203,12 +199,15 @@ private:
     bool hasData() const override;
     void processOne() override;
 
-    std::unique_ptr<VideoFrameEncoder> frameEncoder;
+private:
+    mutable QMutex m_queueMutex;
+    std::queue<QVideoFrame> m_videoFrameQueue;
+    const size_t m_maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)
 
-    QAtomicInteger<qint64> baseTime = std::numeric_limits<qint64>::min();
-    qint64 lastFrameTime = 0;
+    std::unique_ptr<VideoFrameEncoder> m_frameEncoder;
+    QAtomicInteger<qint64> m_baseTime = std::numeric_limits<qint64>::min();
+    qint64 m_lastFrameTime = 0;
 };
-
 }
 
 QT_END_NAMESPACE

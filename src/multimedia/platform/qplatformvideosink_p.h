@@ -25,6 +25,7 @@
 #include <qvideoframe.h>
 #include <qdebug.h>
 #include <private/qglobal_p.h>
+#include <private/qtvideo_p.h>
 
 QT_BEGIN_NAMESPACE
 

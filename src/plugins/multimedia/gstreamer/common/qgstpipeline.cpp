@@ -35,7 +35,7 @@ public:
     int m_configCounter = 0;
     GstState m_savedState = GST_STATE_NULL;
 
-    QGstPipelinePrivate(GstBus* bus, QObject* parent = 0);
+    explicit QGstPipelinePrivate(GstBus *bus, QObject *parent = nullptr);
     ~QGstPipelinePrivate();
 
     void ref() { ++ m_ref; }

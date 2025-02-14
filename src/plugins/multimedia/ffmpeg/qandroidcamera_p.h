@@ -17,6 +17,7 @@
 
 #include "qffmpeghwaccel_p.h"
 #include <private/qplatformcamera_p.h>
+#include <private/qtvideo_p.h>
 #include <QObject>
 #include <QJniObject>
 
@@ -68,7 +69,7 @@ private:
     bool isActivating() const { return m_state != State::Closed; }
 
     void setState(State newState);
-    QVideoFrame::RotationAngle rotation();
+    QtVideo::Rotation rotation();
     void updateCameraCharacteristics();
     void cleanCameraCharacteristics();
 

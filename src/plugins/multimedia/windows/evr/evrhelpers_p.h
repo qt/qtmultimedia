@@ -23,6 +23,7 @@
 #include <mfidl.h>
 #include <mfapi.h>
 #include <mferror.h>
+#include <private/quniquehandle_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -75,6 +76,16 @@ inline HRESULT qt_evr_getFrameRate(IMFMediaType *pType, MFRatio *pRatio)
 
 QVideoFrameFormat::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format);
 D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoFrameFormat::PixelFormat format);
+
+struct NullHandleTraits
+{
+    using Type = HANDLE;
+    static Type invalidValue() { return nullptr; }
+    static bool close(Type handle) { return CloseHandle(handle) != 0; }
+};
+
+using EventHandle = QUniqueHandle<NullHandleTraits>;
+using ThreadHandle = QUniqueHandle<NullHandleTraits>;
 
 QT_END_NAMESPACE
 

@@ -63,6 +63,8 @@ public:
     virtual quint64 textureHandle(int /*plane*/) const { return 0; }
 
     virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
+
+    virtual QByteArray underlyingByteArray(int /*plane*/) const { return {}; }
 protected:
     QVideoFrame::HandleType m_type;
     QRhi *m_rhi = nullptr;

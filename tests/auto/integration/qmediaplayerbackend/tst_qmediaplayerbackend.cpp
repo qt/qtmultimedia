@@ -77,6 +77,7 @@ public slots:
     void cleanup() { m_fixture = nullptr; }
 
 private slots:
+    void testMediaFilesAreSupported();
     void destructor_cancelsPreviousSetSource_whenServerDoesNotRespond();
 
     void getters_returnExpectedValues_whenCalledWithDefaultConstructedPlayer_data() const;
@@ -116,6 +117,7 @@ private slots:
     void play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames();
 
     void stop_entersStoppedState_whenPlayerWasPaused();
+    void stop_setsPositionToZero_afterPlayingToEndOfMedia();
 
     void playbackRate_returnsOne_byDefault();
     void setPlaybackRate_changesPlaybackRateAndEmitsSignal_data();
@@ -139,6 +141,8 @@ private slots:
     void subsequentPlayback();
     void surfaceTest();
     void metadata();
+    void metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail_data();
+    void metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail();
     void playerStateAtEOS();
     void playFromBuffer();
     void audioVideoAvailable();
@@ -163,27 +167,36 @@ private slots:
     void videoSinkSignals();
     void nonAsciiFileName();
     void setMedia_setsVideoSinkSize_beforePlaying();
+    void play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata_data();
+    void play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata();
 
 private:
-    QUrl selectVideoFile(const QStringList& mediaCandidates);
-    bool isWavSupported() const;
+    QUrl selectVideoFile(const QStringList &mediaCandidates);
 
     bool canCreateRtspStream() const;
     std::unique_ptr<QProcess> createRtspStreamProcess(QString fileName, QString outputUrl);
     void detectVlcCommand();
 
     //one second local wav file
-    QUrl m_localWavFile;
-    QUrl m_localWavFile2;
-    QUrl m_localVideoFile;
-    QUrl m_localVideoFile2;
-    QUrl m_videoDimensionTestFile;
-    QUrl m_localCompressedSoundFile;
-    QUrl m_localFileWithMetadata;
-    QUrl m_localVideoFile3ColorsWithSound;
-    QUrl m_oneRedFrameVideo;
-    QUrl m_192x108_PAR_2_3_Video;
-    QUrl m_192x108_PAR_3_2_Video;
+    MaybeUrl m_localWavFile = QUnexpect{};
+    MaybeUrl m_localWavFile2 = QUnexpect{};
+    MaybeUrl m_localVideoFile = QUnexpect{};
+    MaybeUrl m_localVideoFile2 = QUnexpect{};
+    MaybeUrl m_videoDimensionTestFile = QUnexpect{};
+    MaybeUrl m_localCompressedSoundFile = QUnexpect{};
+    MaybeUrl m_localFileWithMetadata = QUnexpect{};
+    MaybeUrl m_localVideoFile3ColorsWithSound = QUnexpect{};
+    MaybeUrl m_videoFileWithJpegThumbnail = QUnexpect{};
+    MaybeUrl m_videoFileWithPngThumbnail = QUnexpect{};
+    MaybeUrl m_oneRedFrameVideo = QUnexpect{};
+    MaybeUrl m_192x108_PAR_2_3_Video = QUnexpect{};
+    MaybeUrl m_192x108_PAR_3_2_Video = QUnexpect{};
+    MaybeUrl m_colorMatrixVideo = QUnexpect{};
+    MaybeUrl m_colorMatrix90degClockwiseVideo = QUnexpect{};
+    MaybeUrl m_colorMatrix180degClockwiseVideo = QUnexpect{};
+    MaybeUrl m_colorMatrix270degClockwiseVideo = QUnexpect{};
+
+    MediaFileSelector m_mediaSelector;
 
     const std::array<QRgb, 3> m_video3Colors = { { 0xFF0000, 0x00FF00, 0x0000FF } };
     QString m_vlcCommand;
@@ -227,11 +240,6 @@ static std::unique_ptr<QTemporaryFile> copyResourceToTemporaryFile(QString resou
     return temporaryFile;
 }
 
-bool tst_QMediaPlayerBackend::isWavSupported() const
-{
-    return !m_localWavFile.isEmpty();
-}
-
 void tst_QMediaPlayerBackend::detectVlcCommand()
 {
     m_vlcCommand = qEnvironmentVariable("QT_VLC_COMMAND");
@@ -266,47 +274,65 @@ bool tst_QMediaPlayerBackend::canCreateRtspStream() const
 
 void tst_QMediaPlayerBackend::initTestCase()
 {
+#ifdef Q_OS_ANDROID
+     QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
+#endif
+
     QMediaPlayer player;
     if (!player.isAvailable())
         QSKIP("Media player service is not available");
 
-    m_localWavFile = MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/test.wav");
-    m_localWavFile2 = MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/_test.wav");
+    qRegisterMetaType<MaybeUrl>();
 
-    QStringList mediaCandidates;
-    mediaCandidates << "qrc:/testdata/colors.mp4";
-    mediaCandidates << "qrc:/testdata/colors.ogv";
-    m_localVideoFile = MediaFileSelector::selectMediaFile(mediaCandidates);
+    m_localWavFile = m_mediaSelector.select("qrc:/testdata/test.wav");
+    m_localWavFile2 = m_mediaSelector.select("qrc:/testdata/_test.wav");
 
-    mediaCandidates.clear();
-    mediaCandidates << "qrc:/testdata/3colors_with_sound_1s.mp4";
-    m_localVideoFile3ColorsWithSound = MediaFileSelector::selectMediaFile(mediaCandidates);
+    m_localVideoFile =
+            m_mediaSelector.select("qrc:/testdata/colors.mp4", "qrc:/testdata/colors.ogv");
 
-    mediaCandidates.clear();
-    mediaCandidates << "qrc:/testdata/BigBuckBunny.mp4";
-    mediaCandidates << "qrc:/testdata/busMpeg4.mp4";
-    m_localVideoFile2 = MediaFileSelector::selectMediaFile(mediaCandidates);
+    m_localVideoFile3ColorsWithSound =
+            m_mediaSelector.select("qrc:/testdata/3colors_with_sound_1s.mp4");
 
-    mediaCandidates.clear();
-    mediaCandidates << "qrc:/testdata/BigBuckBunny.mp4";
-    m_videoDimensionTestFile = MediaFileSelector::selectMediaFile(mediaCandidates);
+    m_videoFileWithJpegThumbnail =
+            m_mediaSelector.select("qrc:/testdata/audio_video_with_jpg_thumbnail.mp4");
 
-    mediaCandidates.clear();
-    mediaCandidates << "qrc:/testdata/nokia-tune.mp3";
-    mediaCandidates << "qrc:/testdata/nokia-tune.mkv";
-    m_localCompressedSoundFile = MediaFileSelector::selectMediaFile(mediaCandidates);
+    m_videoFileWithPngThumbnail =
+            m_mediaSelector.select("qrc:/testdata/audio_video_with_png_thumbnail.mp4");
 
-    m_localFileWithMetadata = MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/nokia-tune.mp3");
+    m_localVideoFile2 =
+            m_mediaSelector.select("qrc:/testdata/BigBuckBunny.mp4", "qrc:/testdata/busMpeg4.mp4");
 
-    m_oneRedFrameVideo =
-            MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/one_red_frame.mp4");
+    m_videoDimensionTestFile = m_mediaSelector.select("qrc:/testdata/BigBuckBunny.mp4");
 
-    m_192x108_PAR_2_3_Video =
-            MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/par_2_3.mp4");
-    m_192x108_PAR_3_2_Video =
-            MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/par_3_2.mp4");
+    m_localCompressedSoundFile =
+            m_mediaSelector.select("qrc:/testdata/nokia-tune.mp3", "qrc:/testdata/nokia-tune.mkv");
+
+    m_localFileWithMetadata = m_mediaSelector.select("qrc:/testdata/nokia-tune.mp3");
+
+    m_oneRedFrameVideo = m_mediaSelector.select("qrc:/testdata/one_red_frame.mp4");
+
+    m_192x108_PAR_2_3_Video = m_mediaSelector.select("qrc:/testdata/par_2_3.mp4");
+    m_192x108_PAR_3_2_Video = m_mediaSelector.select("qrc:/testdata/par_3_2.mp4");
+
+    m_colorMatrixVideo = m_mediaSelector.select("qrc:/testdata/color_matrix.mp4");
+    m_colorMatrix90degClockwiseVideo =
+            m_mediaSelector.select("qrc:/testdata/color_matrix_90_deg_clockwise.mp4");
+    m_colorMatrix180degClockwiseVideo =
+            m_mediaSelector.select("qrc:/testdata/color_matrix_180_deg_clockwise.mp4");
+    m_colorMatrix270degClockwiseVideo =
+            m_mediaSelector.select("qrc:/testdata/color_matrix_270_deg_clockwise.mp4");
 
     detectVlcCommand();
+}
+
+void tst_QMediaPlayerBackend::testMediaFilesAreSupported()
+{
+    const auto mediaSelectionErrors = m_mediaSelector.dumpErrors();
+    if (!mediaSelectionErrors.isEmpty())
+        qDebug().noquote() << "Dump media selection errors:\n" << mediaSelectionErrors;
+
+    // TODO: probalbly, we should check errors anyway; TBD.
+    QCOMPARE(m_mediaSelector.failedSelectionsCount(), 0);
 }
 
 void tst_QMediaPlayerBackend::destructor_cancelsPreviousSetSource_whenServerDoesNotRespond()
@@ -407,9 +433,6 @@ void tst_QMediaPlayerBackend::setSource_doesNotEmitPlaybackStateChange_whenCalle
 
 void tst_QMediaPlayerBackend::setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidFile()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
-
     const QUrl invalidFile{ "Some not existing media" };
 
     m_fixture->player.setSource(invalidFile);
@@ -428,6 +451,8 @@ void tst_QMediaPlayerBackend::setSource_setsSourceMediaStatusAndError_whenCalled
 void tst_QMediaPlayerBackend::setSource_silentlyCancelsPreviousCall_whenServerDoesNotRespond()
 {
 #ifdef QT_FEATURE_network
+    CHECK_SELECTED_URL(m_localVideoFile);
+
     UnResponsiveRtspServer server;
 
     QVERIFY(server.listen());
@@ -435,7 +460,7 @@ void tst_QMediaPlayerBackend::setSource_silentlyCancelsPreviousCall_whenServerDo
     m_fixture->player.setSource(server.address());
     QVERIFY(server.waitForConnection());
 
-    m_fixture->player.setSource(m_localVideoFile);
+    m_fixture->player.setSource(*m_localVideoFile);
 
     // Cancellation can not be reliably verified due to relatively short timeout,
     // but we can verify that the player is in the correct state.
@@ -450,7 +475,7 @@ void tst_QMediaPlayerBackend::setSource_silentlyCancelsPreviousCall_whenServerDo
     QCOMPARE_EQ(m_fixture->mediaStatusChanged, expectedMediaStatus);
 
     // Two media source changed signals should be emitted still
-    const SignalList expectedSource = { { server.address() }, { m_localVideoFile } };
+    const SignalList expectedSource = { { server.address() }, { *m_localVideoFile } };
     QCOMPARE_EQ(m_fixture->sourceChanged, expectedSource);
 
 #else
@@ -460,12 +485,14 @@ void tst_QMediaPlayerBackend::setSource_silentlyCancelsPreviousCall_whenServerDo
 
 void tst_QMediaPlayerBackend::setSource_changesSourceAndMediaStatus_whenCalledWithValidFile()
 {
-    m_fixture->player.setSource(m_localVideoFile);
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    m_fixture->player.setSource(*m_localVideoFile);
 
     QCOMPARE_EQ(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::LoadingMedia } }));
 
     MediaPlayerState expectedState = MediaPlayerState::defaultState();
-    expectedState.source = m_localVideoFile;
+    expectedState.source = *m_localVideoFile;
     expectedState.mediaStatus = QMediaPlayer::LoadingMedia;
 
     MediaPlayerState actualState{ m_fixture->player };
@@ -475,7 +502,9 @@ void tst_QMediaPlayerBackend::setSource_changesSourceAndMediaStatus_whenCalledWi
 
 void tst_QMediaPlayerBackend::setSource_updatesExpectedAttributes_whenMediaHasLoaded()
 {
-    m_fixture->player.setSource(m_localVideoFile);
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    m_fixture->player.setSource(*m_localVideoFile);
 
     QTRY_COMPARE_EQ(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
@@ -483,7 +512,7 @@ void tst_QMediaPlayerBackend::setSource_updatesExpectedAttributes_whenMediaHasLo
 
     // Modify all attributes that are supposed to change with this media file
     // All other state variables are verified to be unchanged.
-    expectedState.source = m_localVideoFile;
+    expectedState.source = *m_localVideoFile;
     expectedState.mediaStatus = QMediaPlayer::LoadedMedia;
     expectedState.audioTracks = std::nullopt; // Don't compare
     expectedState.videoTracks = std::nullopt; // Don't compare
@@ -502,8 +531,10 @@ void tst_QMediaPlayerBackend::setSource_updatesExpectedAttributes_whenMediaHasLo
 
 void tst_QMediaPlayerBackend::setSource_stopsAndEntersErrorState_whenPlayerWasPlaying()
 {
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
     // Arrange
-    m_fixture->player.setSource(m_localVideoFile3ColorsWithSound);
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
     m_fixture->player.play();
     QTRY_VERIFY(m_fixture->framesCount > 0);
     QCOMPARE(m_fixture->errorOccurred.size(), 0);
@@ -531,21 +562,20 @@ void tst_QMediaPlayerBackend::setSource_stopsAndEntersErrorState_whenPlayerWasPl
 
 void tst_QMediaPlayerBackend::setSource_loadsAudioTrack_whenCalledWithValidWavFile()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
 
-    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.setSource(*m_localWavFile);
 
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
 
     QVERIFY(m_fixture->player.mediaStatus() != QMediaPlayer::NoMedia);
     QVERIFY(m_fixture->player.mediaStatus() != QMediaPlayer::InvalidMedia);
-    QVERIFY(m_fixture->player.source() == m_localWavFile);
+    QVERIFY(m_fixture->player.source() == *m_localWavFile);
 
     QCOMPARE(m_fixture->playbackStateChanged.size(), 0);
     QVERIFY(m_fixture->mediaStatusChanged.size() > 0);
     QCOMPARE(m_fixture->sourceChanged.size(), 1);
-    QCOMPARE(m_fixture->sourceChanged.last()[0].value<QUrl>(), m_localWavFile);
+    QCOMPARE(m_fixture->sourceChanged.last()[0].value<QUrl>(), *m_localWavFile);
 
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
@@ -555,11 +585,10 @@ void tst_QMediaPlayerBackend::setSource_loadsAudioTrack_whenCalledWithValidWavFi
 
 void tst_QMediaPlayerBackend::setSource_resetsState_whenCalledWithEmptyUrl()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
 
     // Load valid media and start playing
-    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.setSource(*m_localWavFile);
 
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
@@ -592,30 +621,33 @@ void tst_QMediaPlayerBackend::setSource_resetsState_whenCalledWithEmptyUrl()
 
 void tst_QMediaPlayerBackend::setSource_loadsNewMedia_whenPreviousMediaWasFullyLoaded()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
+    CHECK_SELECTED_URL(m_localWavFile2);
 
     // Load media and wait for it to completely load
-    m_fixture->player.setSource(m_localWavFile2);
+    m_fixture->player.setSource(*m_localWavFile2);
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadingMedia);
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
     // Load another media file, play it, and wait for it to enter playing state
-    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.setSource(*m_localWavFile);
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadingMedia);
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
     m_fixture->player.play();
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
     // Load first file again, and wait for it to start loading
-    m_fixture->player.setSource(m_localWavFile2);
+    m_fixture->player.setSource(*m_localWavFile2);
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadingMedia);
 }
 
 void tst_QMediaPlayerBackend::setSource_loadsCorrectTracks_whenLoadingMediaInSequence()
 {
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+    CHECK_SELECTED_URL(m_localWavFile2);
+
     // Load audio/video file, play it, and verify that both tracks are loaded
-    m_fixture->player.setSource(m_localVideoFile3ColorsWithSound);
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
     m_fixture->player.play();
     QTRY_COMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
     QVERIFY(m_fixture->surface.waitForFrame().isValid());
@@ -625,11 +657,11 @@ void tst_QMediaPlayerBackend::setSource_loadsCorrectTracks_whenLoadingMediaInSeq
     m_fixture->clearSpies();
 
     // Load an audio file, and verify that only audio track is loaded
-    m_fixture->player.setSource(m_localWavFile2);
+    m_fixture->player.setSource(*m_localWavFile2);
 
     QTRY_COMPARE_EQ(m_fixture->player.mediaStatus(), QMediaPlayer::MediaStatus::LoadedMedia);
 
-    QCOMPARE(m_fixture->player.source(), m_localWavFile2);
+    QCOMPARE(m_fixture->player.source(), *m_localWavFile2);
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
     QCOMPARE(m_fixture->playbackStateChanged.size(), 1);
     QCOMPARE(m_fixture->errorOccurred.size(), 0);
@@ -640,7 +672,7 @@ void tst_QMediaPlayerBackend::setSource_loadsCorrectTracks_whenLoadingMediaInSeq
     m_fixture->player.play();
 
     // Load video only file, and verify that only video track is loaded
-    m_fixture->player.setSource(m_localVideoFile2);
+    m_fixture->player.setSource(*m_localVideoFile2);
 
     QTRY_COMPARE_EQ(m_fixture->player.mediaStatus(), QMediaPlayer::MediaStatus::LoadedMedia);
 
@@ -652,18 +684,18 @@ void tst_QMediaPlayerBackend::setSource_loadsCorrectTracks_whenLoadingMediaInSeq
 
 void tst_QMediaPlayerBackend::setSource_remainsInStoppedState_whenPlayerWasStopped()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
+    CHECK_SELECTED_URL(m_localWavFile2);
 
     // Arrange
-    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.setSource(*m_localWavFile);
     m_fixture->player.play();
     QTRY_VERIFY(m_fixture->player.position() > 100);
     m_fixture->player.stop();
     m_fixture->clearSpies();
 
     // Act
-    m_fixture->player.setSource(m_localWavFile2);
+    m_fixture->player.setSource(*m_localWavFile2);
 
     // Assert
     QTRY_VERIFY(m_fixture->mediaStatusChanged.size() > 0);
@@ -676,17 +708,17 @@ void tst_QMediaPlayerBackend::setSource_remainsInStoppedState_whenPlayerWasStopp
 
 void tst_QMediaPlayerBackend::setSource_entersStoppedState_whenPlayerWasPlaying()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
+    CHECK_SELECTED_URL(m_localWavFile2);
 
     // Arrange
-    m_fixture->player.setSource(m_localWavFile2);
+    m_fixture->player.setSource(*m_localWavFile2);
     m_fixture->clearSpies();
     m_fixture->player.play();
     QTRY_VERIFY(m_fixture->player.position() > 100);
 
     // Act
-    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.setSource(*m_localWavFile);
 
     // Assert
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
@@ -711,7 +743,7 @@ void tst_QMediaPlayerBackend::setSource_entersStoppedState_whenPlayerWasPlaying(
 void tst_QMediaPlayerBackend::
         setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio_data()
 {
-    QTest::addColumn<QUrl>("url");
+    QTest::addColumn<MaybeUrl>("url");
     QTest::addColumn<QSize>("expectedVideoSize");
 
     QTest::addRow("Horizontal expanding (par=3/2)")
@@ -723,10 +755,12 @@ void tst_QMediaPlayerBackend::
 void tst_QMediaPlayerBackend::
         setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio()
 {
-    QFETCH(QUrl, url);
+    QFETCH(MaybeUrl, url);
     QFETCH(QSize, expectedVideoSize);
 
-    m_fixture->player.setSource(url);
+    CHECK_SELECTED_URL(url);
+
+    m_fixture->player.setSource(*url);
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
     QCOMPARE(m_fixture->player.metaData().value(QMediaMetaData::Resolution), QSize(192, 108));
 
@@ -739,6 +773,10 @@ void tst_QMediaPlayerBackend::
     QCOMPARE(frame.size(), expectedVideoSize);
     QCOMPARE(frame.surfaceFormat().frameSize(), expectedVideoSize);
     QCOMPARE(frame.surfaceFormat().viewport(), QRect(QPoint(), expectedVideoSize));
+
+#ifdef Q_OS_ANDROID
+    QSKIP("frame.toImage will return null image because of QTBUG-108446");
+#endif
 
     auto image = frame.toImage();
     QCOMPARE(frame.size(), expectedVideoSize);
@@ -811,11 +849,10 @@ void tst_QMediaPlayerBackend::pause_doesNothing_whenMediaIsNotLoaded()
 
 void tst_QMediaPlayerBackend::pause_entersPauseState_whenPlayerWasPlaying()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
 
     // Arrange
-    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.setSource(*m_localWavFile);
     m_fixture->player.play();
     QTRY_VERIFY(m_fixture->player.position() > 100);
     m_fixture->clearSpies();
@@ -854,13 +891,15 @@ void tst_QMediaPlayerBackend::play_resetsErrorState_whenCalledWithInvalidFile()
 
 void tst_QMediaPlayerBackend::play_resumesPlaying_whenValidMediaIsProvidedAfterInvalidMedia()
 {
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
     // Arrange
-    m_fixture->player.setSource(m_localVideoFile3ColorsWithSound);
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
     m_fixture->player.play();
     QTRY_VERIFY(m_fixture->framesCount > 0);
     m_fixture->player.setSource(QUrl("Some not existing media"));
     QTRY_COMPARE(m_fixture->player.error(), QMediaPlayer::ResourceError);
-    m_fixture->player.setSource(m_localVideoFile3ColorsWithSound);
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
 
     // Act
     m_fixture->player.play();
@@ -889,7 +928,9 @@ void tst_QMediaPlayerBackend::play_doesNothing_whenMediaIsNotLoaded()
 
 void tst_QMediaPlayerBackend::play_setsPlaybackStateAndMediaStatus_whenValidFileIsLoaded()
 {
-    m_fixture->player.setSource(m_localVideoFile);
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    m_fixture->player.setSource(*m_localVideoFile);
     m_fixture->player.play();
 
     QTRY_COMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
@@ -905,7 +946,9 @@ void tst_QMediaPlayerBackend::play_setsPlaybackStateAndMediaStatus_whenValidFile
 
 void tst_QMediaPlayerBackend::play_startsPlaybackAndChangesPosition_whenValidFileIsLoaded()
 {
-    m_fixture->player.setSource(m_localVideoFile);
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    m_fixture->player.setSource(*m_localVideoFile);
     m_fixture->player.play();
 
     QTRY_VERIFY(m_fixture->player.position() > 100);
@@ -916,11 +959,10 @@ void tst_QMediaPlayerBackend::play_startsPlaybackAndChangesPosition_whenValidFil
 
 void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPlayingAfterStop()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
 
     // Arrange: go through a play->pause->stop sequence
-    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.setSource(*m_localWavFile);
     m_fixture->player.play();
     QTRY_VERIFY(m_fixture->player.position() > 100);
     m_fixture->player.pause();
@@ -942,11 +984,10 @@ void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPla
 
 void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayback_whenSetSourceWasCalledWithEmptyUrl()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile2);
 
     // Arrange
-    m_fixture->player.setSource(m_localWavFile2);
+    m_fixture->player.setSource(*m_localWavFile2);
     m_fixture->clearSpies();
 
     // Act
@@ -1040,7 +1081,9 @@ void tst_QMediaPlayerBackend::
 
 void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames()
 {
-    m_fixture->player.setSource(m_oneRedFrameVideo);
+    CHECK_SELECTED_URL(m_oneRedFrameVideo);
+
+    m_fixture->player.setSource(*m_oneRedFrameVideo);
     m_fixture->player.play();
 
     auto firstFrame = m_fixture->surface.waitForFrame();
@@ -1064,11 +1107,10 @@ void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLong
 
 void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
 
     // Arrange
-    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.setSource(*m_localWavFile);
     m_fixture->player.play();
     QTRY_VERIFY(m_fixture->player.position() > 100);
     m_fixture->player.pause();
@@ -1091,6 +1133,27 @@ void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
     QCOMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), qint64(0));
     QVERIFY(m_fixture->player.duration() > 0);
 }
+
+void tst_QMediaPlayerBackend::stop_setsPositionToZero_afterPlayingToEndOfMedia()
+{
+    // Arrange
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
+    m_fixture->player.play();
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+
+    // Act
+    m_fixture->player.stop();
+
+    // Assert
+    QCOMPARE(m_fixture->player.position(), qint64(0));
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+
+    m_fixture->player.play();
+    QVERIFY(m_fixture->surface.waitForFrame().isValid());
+}
+
 
 void tst_QMediaPlayerBackend::playbackRate_returnsOne_byDefault()
 {
@@ -1204,10 +1267,9 @@ void tst_QMediaPlayerBackend::setMuted_doesNotChangeVolume()
 
 void tst_QMediaPlayerBackend::processEOS()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
 
-    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.setSource(*m_localWavFile);
 
     m_fixture->player.play();
     m_fixture->player.setPosition(900);
@@ -1335,15 +1397,14 @@ private:
 // QTBUG-24927 - deleteLater() called to QMediaPlayer from its signal handler does not work as expected
 void tst_QMediaPlayerBackend::deleteLaterAtEOS()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
 
     QPointer<QMediaPlayer> player(new QMediaPlayer);
     QAudioOutput output;
     player->setAudioOutput(&output);
     player->setPosition(800); // don't wait as long for EOS
     DeleteLaterAtEos deleter(player);
-    player->setSource(m_localWavFile);
+    player->setSource(*m_localWavFile);
 
     // Create an event loop for verifying deleteLater behavior instead of using
     // QTRY_VERIFY or QTest::qWait. QTest::qWait makes extra effort to process
@@ -1373,6 +1434,8 @@ void tst_QMediaPlayerBackend::volumeAcrossFiles_data()
 
 void tst_QMediaPlayerBackend::volumeAcrossFiles()
 {
+    CHECK_SELECTED_URL(m_localWavFile);
+
     QFETCH(int, volume);
     QFETCH(bool, muted);
     float vol = volume/100.;
@@ -1392,7 +1455,7 @@ void tst_QMediaPlayerBackend::volumeAcrossFiles()
     QTRY_COMPARE(output.volume(), vol);
     QTRY_COMPARE(output.isMuted(), muted);
 
-    player.setSource(m_localWavFile);
+    player.setSource(*m_localWavFile);
     QCOMPARE(output.volume(), vol);
     QCOMPARE(output.isMuted(), muted);
 
@@ -1408,7 +1471,7 @@ void tst_QMediaPlayerBackend::volumeAcrossFiles()
     QTRY_COMPARE(output.volume(), vol);
     QCOMPARE(output.isMuted(), muted);
 
-    player.setSource(m_localWavFile);
+    player.setSource(*m_localWavFile);
     player.pause();
 
     QTRY_COMPARE(output.volume(), vol);
@@ -1417,15 +1480,14 @@ void tst_QMediaPlayerBackend::volumeAcrossFiles()
 
 void tst_QMediaPlayerBackend::initialVolume()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
 
     {
         QAudioOutput output;
         QMediaPlayer player;
         player.setAudioOutput(&output);
         output.setVolume(1);
-        player.setSource(m_localWavFile);
+        player.setSource(*m_localWavFile);
         QCOMPARE(output.volume(), 1);
         player.play();
         QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
@@ -1436,7 +1498,7 @@ void tst_QMediaPlayerBackend::initialVolume()
         QAudioOutput output;
         QMediaPlayer player;
         player.setAudioOutput(&output);
-        player.setSource(m_localWavFile);
+        player.setSource(*m_localWavFile);
         QCOMPARE(output.volume(), 1);
         player.play();
         QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
@@ -1449,8 +1511,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 #ifdef Q_OS_ANDROID
     QSKIP("frame.toImage will return null image because of QTBUG-108446");
 #endif
-    if (m_localVideoFile.isEmpty())
-        QSKIP("No supported video file");
+    CHECK_SELECTED_URL(m_localVideoFile);
 
     TestVideoSink surface;
     QAudioOutput output;
@@ -1462,7 +1523,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
     player.setVideoOutput(&surface);
 
-    player.setSource(m_localVideoFile);
+    player.setSource(*m_localVideoFile);
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
     QVERIFY(surface.m_frameList.isEmpty()); // frame must not appear until we call pause() or play()
@@ -1525,8 +1586,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
 void tst_QMediaPlayerBackend::seekInStoppedState()
 {
-    if (m_localVideoFile.isEmpty())
-        QSKIP("No supported video file");
+    CHECK_SELECTED_URL(m_localVideoFile);
 
     TestVideoSink surface(false);
     QAudioOutput output;
@@ -1538,7 +1598,7 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
     QSignalSpy stateSpy(&player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
     QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
 
-    player.setSource(m_localVideoFile);
+    player.setSource(*m_localVideoFile);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QCOMPARE(player.position(), 0);
@@ -1644,13 +1704,12 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
 
 void tst_QMediaPlayerBackend::subsequentPlayback()
 {
-    if (m_localCompressedSoundFile.isEmpty())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localCompressedSoundFile);
 
     QAudioOutput output;
     QMediaPlayer player;
     player.setAudioOutput(&output);
-    player.setSource(m_localCompressedSoundFile);
+    player.setSource(*m_localCompressedSoundFile);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
     QTRY_VERIFY(player.isSeekable());
     player.setPosition(5000);
@@ -1684,8 +1743,8 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
 
 void tst_QMediaPlayerBackend::multipleMediaPlayback()
 {
-    if (m_localVideoFile.isEmpty() || m_localVideoFile2.isEmpty())
-        QSKIP("Video format is not supported");
+    CHECK_SELECTED_URL(m_localVideoFile);
+    CHECK_SELECTED_URL(m_localVideoFile2);
 
     QAudioOutput output;
     TestVideoSink surface(false);
@@ -1693,9 +1752,9 @@ void tst_QMediaPlayerBackend::multipleMediaPlayback()
 
     player.setVideoOutput(&surface);
     player.setAudioOutput(&output);
-    player.setSource(m_localVideoFile);
+    player.setSource(*m_localVideoFile);
 
-    QCOMPARE(player.source(), m_localVideoFile);
+    QCOMPARE(player.source(), *m_localVideoFile);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
     player.setPosition(0);
@@ -1704,13 +1763,13 @@ void tst_QMediaPlayerBackend::multipleMediaPlayback()
     QCOMPARE(player.error(), QMediaPlayer::NoError);
     QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
     QTRY_VERIFY(player.position() > 0);
-    QCOMPARE(player.source(), m_localVideoFile);
+    QCOMPARE(player.source(), *m_localVideoFile);
 
     player.stop();
 
-    player.setSource(m_localVideoFile2);
+    player.setSource(*m_localVideoFile2);
 
-    QCOMPARE(player.source(), m_localVideoFile2);
+    QCOMPARE(player.source(), *m_localVideoFile2);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
     QTRY_VERIFY(player.isSeekable());
 
@@ -1720,7 +1779,7 @@ void tst_QMediaPlayerBackend::multipleMediaPlayback()
     QCOMPARE(player.error(), QMediaPlayer::NoError);
     QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
     QTRY_VERIFY(player.position() > 0);
-    QCOMPARE(player.source(), m_localVideoFile2);
+    QCOMPARE(player.source(), *m_localVideoFile2);
 
     player.stop();
 
@@ -1729,8 +1788,7 @@ void tst_QMediaPlayerBackend::multipleMediaPlayback()
 
 void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
 {
-    if (m_localVideoFile3ColorsWithSound.isEmpty())
-        QSKIP("Video format is not supported");
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
@@ -1745,7 +1803,7 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
     player.setAudioOutput(&output);
     player.setVideoOutput(&surface);
 
-    player.setSource(m_localVideoFile3ColorsWithSound);
+    player.setSource(*m_localVideoFile3ColorsWithSound);
 
     player.play();
 
@@ -1802,8 +1860,7 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
 #ifdef Q_OS_ANDROID
     QSKIP("frame.toImage will return null image because of QTBUG-108446");
 #endif
-    if (m_localVideoFile3ColorsWithSound.isEmpty())
-        QSKIP("Video format is not supported");
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
     TestVideoSink surface(false);
     QAudioOutput output;
@@ -1812,7 +1869,7 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
     player.setAudioOutput(&output);
     player.setVideoOutput(&surface);
 
-    player.setSource(m_localVideoFile3ColorsWithSound);
+    player.setSource(*m_localVideoFile3ColorsWithSound);
 
     player.play();
 
@@ -1913,8 +1970,7 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
 #ifdef Q_OS_ANDROID
     QSKIP("frame.toImage will return null image because of QTBUG-108446");
 #endif
-    if (m_localVideoFile3ColorsWithSound.isEmpty())
-        QSKIP("Video format is not supported");
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
@@ -1925,7 +1981,7 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
     m_fixture->player.setAudioOutput(
             withAudio ? &m_fixture->output
                       : nullptr); // TODO: mock audio output and check sound by frequency
-    m_fixture->player.setSource(m_localVideoFile3ColorsWithSound);
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
 
     auto checkColorAndPosition = [&](qint64 expectedPosition, QString errorTag) {
         constexpr qint64 intervalTime = 1000;
@@ -2005,16 +2061,15 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
 
 void tst_QMediaPlayerBackend::surfaceTest()
 {
+    CHECK_SELECTED_URL(m_localVideoFile);
     // 25 fps video file
-    if (m_localVideoFile.isEmpty())
-        QSKIP("No supported video file");
 
     QAudioOutput output;
     TestVideoSink surface(false);
     QMediaPlayer player;
     player.setAudioOutput(&output);
     player.setVideoOutput(&surface);
-    player.setSource(m_localVideoFile);
+    player.setSource(*m_localVideoFile);
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
     QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
@@ -2022,36 +2077,73 @@ void tst_QMediaPlayerBackend::surfaceTest()
 
 void tst_QMediaPlayerBackend::metadata()
 {
-    if (m_localFileWithMetadata.isEmpty())
-        QSKIP("No supported media file");
+    CHECK_SELECTED_URL(m_localFileWithMetadata);
 
-    QAudioOutput output;
-    QMediaPlayer player;
-    player.setAudioOutput(&output);
+    m_fixture->player.setSource(*m_localFileWithMetadata);
 
-    QSignalSpy metadataChangedSpy(&player, SIGNAL(metaDataChanged()));
+    QTRY_VERIFY(m_fixture->metadataChanged.size() > 0);
 
-    player.setSource(m_localFileWithMetadata);
+    const QMediaMetaData metadata = m_fixture->player.metaData();
+    QCOMPARE(metadata.value(QMediaMetaData::Title).toString(), QStringLiteral("Nokia Tune"));
+    QCOMPARE(metadata.value(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
+    QCOMPARE(metadata.value(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
+    QCOMPARE(metadata.value(QMediaMetaData::Duration), QVariant(7704));
+    QVERIFY(!metadata.value(QMediaMetaData::ThumbnailImage).value<QImage>().isNull());
+    m_fixture->clearSpies();
 
-    QTRY_VERIFY(metadataChangedSpy.size() > 0);
+    m_fixture->player.setSource(QUrl());
 
-    QCOMPARE(player.metaData().value(QMediaMetaData::Title).toString(), QStringLiteral("Nokia Tune"));
-    QCOMPARE(player.metaData().value(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
-    QCOMPARE(player.metaData().value(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
-    QCOMPARE(player.metaData().value(QMediaMetaData::Duration), QVariant(7696));
+    QCOMPARE(m_fixture->metadataChanged.size(), 1);
+    QVERIFY(m_fixture->player.metaData().isEmpty());
+}
 
-    metadataChangedSpy.clear();
+void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail_data()
+{
+    QTest::addColumn<MaybeUrl>("mediaUrl");
+    QTest::addColumn<bool>("hasThumbnail");
+    QTest::addColumn<QSize>("expectedSize");
+    QTest::addColumn<QColor>("expectedColor");
 
-    player.setSource(QUrl());
+    QTest::addRow("jpeg thumbnail") << m_videoFileWithJpegThumbnail << true << QSize{ 20, 28 } << QColor(35, 177, 77);
+    QTest::addRow("png thumbnail") << m_videoFileWithPngThumbnail << true << QSize{ 20, 28 } << QColor(35, 177, 77);
+    QTest::addRow("no thumbnail") << m_localVideoFile3ColorsWithSound << false << QSize{ 0, 0 } << QColor(0, 0, 0);
+}
 
-    QCOMPARE(metadataChangedSpy.size(), 1);
-    QVERIFY(player.metaData().isEmpty());
+void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail()
+{
+    // Arrange
+    QFETCH(const MaybeUrl, mediaUrl);
+    QFETCH(const bool, hasThumbnail);
+    QFETCH(const QSize, expectedSize);
+    QFETCH(const QColor, expectedColor);
+
+    CHECK_SELECTED_URL(mediaUrl);
+
+    m_fixture->player.setSource(*mediaUrl);
+    QTRY_VERIFY(!m_fixture->metadataChanged.empty());
+
+    // Act
+    const QMediaMetaData metadata = m_fixture->player.metaData();
+    const QImage thumbnail = metadata.value(QMediaMetaData::ThumbnailImage).value<QImage>();
+
+    // Assert
+    QCOMPARE_EQ(!thumbnail.isNull(), hasThumbnail);
+    QCOMPARE_EQ(thumbnail.size(), expectedSize);
+
+    if (hasThumbnail) {
+        const QPoint center{ expectedSize.width() / 2, expectedSize.height() / 2 };
+        const auto centerColor = thumbnail.pixelColor(center);
+
+        constexpr int maxChannelDiff = 5;
+        QCOMPARE_LT(std::abs(centerColor.red() - expectedColor.red()), maxChannelDiff);
+        QCOMPARE_LT(std::abs(centerColor.green() - expectedColor.green()), maxChannelDiff);
+        QCOMPARE_LT(std::abs(centerColor.blue() - expectedColor.blue()), maxChannelDiff);
+    }
 }
 
 void tst_QMediaPlayerBackend::playerStateAtEOS()
 {
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
+    CHECK_SELECTED_URL(m_localWavFile);
 
     QAudioOutput output;
     QMediaPlayer player;
@@ -2066,7 +2158,7 @@ void tst_QMediaPlayerBackend::playerStateAtEOS()
         }
     });
 
-    player.setSource(m_localWavFile);
+    player.setSource(*m_localWavFile);
     player.play();
 
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
@@ -2075,16 +2167,15 @@ void tst_QMediaPlayerBackend::playerStateAtEOS()
 
 void tst_QMediaPlayerBackend::playFromBuffer()
 {
-    if (m_localVideoFile.isEmpty())
-        QSKIP("No supported video file");
+    CHECK_SELECTED_URL(m_localVideoFile);
 
     TestVideoSink surface(false);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
-    QFile file(m_localVideoFile.toLocalFile());
+    QFile file(m_localVideoFile->toLocalFile());
     if (!file.open(QIODevice::ReadOnly))
         QSKIP("Could not open file");
-    player.setSourceDevice(&file, m_localVideoFile);
+    player.setSourceDevice(&file, *m_localVideoFile);
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
     QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
@@ -2092,8 +2183,7 @@ void tst_QMediaPlayerBackend::playFromBuffer()
 
 void tst_QMediaPlayerBackend::audioVideoAvailable()
 {
-    if (m_localVideoFile.isEmpty())
-        QSKIP("No supported video file");
+    CHECK_SELECTED_URL(m_localVideoFile);
 
     TestVideoSink surface(false);
     QAudioOutput output;
@@ -2102,7 +2192,7 @@ void tst_QMediaPlayerBackend::audioVideoAvailable()
     QSignalSpy hasAudioSpy(&player, SIGNAL(hasAudioChanged(bool)));
     player.setVideoOutput(&surface);
     player.setAudioOutput(&output);
-    player.setSource(m_localVideoFile);
+    player.setSource(*m_localVideoFile);
     QTRY_VERIFY(player.hasVideo());
     QTRY_VERIFY(player.hasAudio());
     QCOMPARE(hasVideoSpy.size(), 1);
@@ -2116,27 +2206,25 @@ void tst_QMediaPlayerBackend::audioVideoAvailable()
 
 void tst_QMediaPlayerBackend::isSeekable()
 {
-    if (m_localVideoFile.isEmpty())
-        QSKIP("No supported video file");
+    CHECK_SELECTED_URL(m_localVideoFile);
 
     TestVideoSink surface(false);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
     QVERIFY(!player.isSeekable());
-    player.setSource(m_localVideoFile);
+    player.setSource(*m_localVideoFile);
     QTRY_VERIFY(player.isSeekable());
 }
 
 void tst_QMediaPlayerBackend::positionAfterSeek()
 {
-    if (m_localVideoFile.isEmpty())
-        QSKIP("No supported video file");
+    CHECK_SELECTED_URL(m_localVideoFile);
 
     TestVideoSink surface(false);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
     QVERIFY(!player.isSeekable());
-    player.setSource(m_localVideoFile);
+    player.setSource(*m_localVideoFile);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
     player.pause();
     player.setPosition(500);
@@ -2153,14 +2241,13 @@ void tst_QMediaPlayerBackend::positionAfterSeek()
 
 void tst_QMediaPlayerBackend::videoDimensions()
 {
-    if (m_localVideoFile.isEmpty())
-        QSKIP("No supported video file");
+    CHECK_SELECTED_URL(m_videoDimensionTestFile);
 
     TestVideoSink surface(true);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
     QVERIFY(!player.isSeekable());
-    player.setSource(m_videoDimensionTestFile);
+    player.setSource(*m_videoDimensionTestFile);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
     player.pause();
     QTRY_COMPARE(surface.m_totalFrames, 1);
@@ -2172,14 +2259,13 @@ void tst_QMediaPlayerBackend::videoDimensions()
 
 void tst_QMediaPlayerBackend::position()
 {
-    if (m_localVideoFile.isEmpty())
-        QSKIP("No supported video file");
+    CHECK_SELECTED_URL(m_localVideoFile);
 
     TestVideoSink surface(true);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
     QVERIFY(!player.isSeekable());
-    player.setSource(m_localVideoFile);
+    player.setSource(*m_localVideoFile);
     QTRY_VERIFY(player.isSeekable());
 
     player.play();
@@ -2238,8 +2324,6 @@ void tst_QMediaPlayerBackend::durationDetectionIssues()
 
     // ffmpeg detects stream an incorrect stream duration, so we take
     // the correct duration from the metadata
-    const QUrl videoWithDurationIssues =
-            MediaFileSelector::selectMediaFile({ mediaFile });
 
     TestVideoSink surface(false);
     QAudioOutput output;
@@ -2249,7 +2333,7 @@ void tst_QMediaPlayerBackend::durationDetectionIssues()
 
     player.setVideoOutput(&surface);
     player.setAudioOutput(&output);
-    player.setSource(videoWithDurationIssues);
+    player.setSource(mediaFile);
 
     QTRY_COMPARE_EQ(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
@@ -2293,8 +2377,7 @@ positionChangingIntervals(const QSignalSpy &positionSpy)
 
 void tst_QMediaPlayerBackend::finiteLoops()
 {
-    if (m_localVideoFile3ColorsWithSound.isEmpty())
-        QSKIP("Video format is not supported");
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
@@ -2313,7 +2396,7 @@ void tst_QMediaPlayerBackend::finiteLoops()
     player.setLoops(3);
     QCOMPARE(player.loops(), 3);
 
-    player.setSource(m_localVideoFile3ColorsWithSound);
+    player.setSource(*m_localVideoFile3ColorsWithSound);
     player.setPlaybackRate(5);
 
     player.play();
@@ -2354,8 +2437,7 @@ void tst_QMediaPlayerBackend::finiteLoops()
 
 void tst_QMediaPlayerBackend::infiniteLoops()
 {
-    if (m_localVideoFile2.isEmpty())
-        QSKIP("Video format is not supported");
+    CHECK_SELECTED_URL(m_localVideoFile2);
 
 #ifdef Q_OS_MACOS
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
@@ -2369,7 +2451,7 @@ void tst_QMediaPlayerBackend::infiniteLoops()
     QCOMPARE(m_fixture->player.loops(), QMediaPlayer::Infinite);
 
     // select some small file
-    m_fixture->player.setSource(m_localVideoFile2);
+    m_fixture->player.setSource(*m_localVideoFile2);
     m_fixture->player.setPlaybackRate(20);
 
     m_fixture->player.play();
@@ -2406,8 +2488,7 @@ void tst_QMediaPlayerBackend::infiniteLoops()
 
 void tst_QMediaPlayerBackend::seekOnLoops()
 {
-    if (m_localVideoFile3ColorsWithSound.isEmpty())
-        QSKIP("Video format is not supported");
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
@@ -2424,7 +2505,7 @@ void tst_QMediaPlayerBackend::seekOnLoops()
     player.setLoops(3);
     player.setPlaybackRate(2);
 
-    player.setSource(m_localVideoFile3ColorsWithSound);
+    player.setSource(*m_localVideoFile3ColorsWithSound);
 
     player.play();
     surface.waitForFrame();
@@ -2457,8 +2538,7 @@ void tst_QMediaPlayerBackend::seekOnLoops()
 
 void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
 {
-    if (m_localVideoFile3ColorsWithSound.isEmpty())
-        QSKIP("Video format is not supported");
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
@@ -2475,7 +2555,7 @@ void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
     player.setLoops(4);
     player.setPlaybackRate(5);
 
-    player.setSource(m_localVideoFile3ColorsWithSound);
+    player.setSource(*m_localVideoFile3ColorsWithSound);
 
     player.play();
     surface.waitForFrame();
@@ -2500,6 +2580,8 @@ void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
 
 void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
 {
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
     QVideoSink sinks[4];
     std::atomic_int framesCount[4] = {
         0,
@@ -2512,7 +2594,7 @@ void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
     player.setPlaybackRate(10);
 
     player.setVideoOutput(&sinks[0]);
-    player.setSource(m_localVideoFile3ColorsWithSound);
+    player.setSource(*m_localVideoFile3ColorsWithSound);
     player.play();
     QTRY_VERIFY(!player.isPlaying());
 
@@ -2540,6 +2622,8 @@ void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
 
 void tst_QMediaPlayerBackend::cleanSinkAndNoMoreFramesAfterStop()
 {
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
     QVideoSink sink;
     std::atomic_int framesCount = 0;
     setVideoSinkAsyncFramesCounter(sink, framesCount);
@@ -2548,7 +2632,7 @@ void tst_QMediaPlayerBackend::cleanSinkAndNoMoreFramesAfterStop()
     player.setPlaybackRate(10);
     player.setVideoOutput(&sink);
 
-    player.setSource(m_localVideoFile3ColorsWithSound);
+    player.setSource(*m_localVideoFile3ColorsWithSound);
 
     // Run a few time to have more chances to detect race conditions
     for (int i = 0; i < 8; ++i) {
@@ -2611,8 +2695,7 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
     // create the test target tst_QVideoSinkBackend,
     // and move the test there
 
-    if (m_localVideoFile2.isEmpty())
-        QSKIP("Video format is not supported");
+    CHECK_SELECTED_URL(m_localVideoFile2);
 
     QVideoSink sink;
     QMediaPlayer player;
@@ -2621,7 +2704,7 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
     std::atomic<int> videoFrameCounter = 0;
     std::atomic<int> videoSizeCounter = 0;
 
-    player.setSource(m_localVideoFile2);
+    player.setSource(*m_localVideoFile2);
 
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::MediaStatus::LoadedMedia);
 
@@ -2647,6 +2730,8 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
 
 void tst_QMediaPlayerBackend::nonAsciiFileName()
 {
+    CHECK_SELECTED_URL(m_localWavFile);
+
     auto temporaryFile =
             copyResourceToTemporaryFile(":/testdata/test.wav", "äöüØøÆ中文.XXXXXX.wav");
     QVERIFY(temporaryFile);
@@ -2661,6 +2746,8 @@ void tst_QMediaPlayerBackend::nonAsciiFileName()
 
 void tst_QMediaPlayerBackend::setMedia_setsVideoSinkSize_beforePlaying()
 {
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
     QVideoSink sink1;
     QVideoSink sink2;
     QMediaPlayer player;
@@ -2671,7 +2758,7 @@ void tst_QMediaPlayerBackend::setMedia_setsVideoSinkSize_beforePlaying()
     player.setVideoOutput(&sink1);
     QCOMPARE(sink1.videoSize(), QSize());
 
-    player.setSource(m_localVideoFile3ColorsWithSound);
+    player.setSource(*m_localVideoFile3ColorsWithSound);
 
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::MediaStatus::LoadedMedia);
 
@@ -2712,6 +2799,59 @@ std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtspStreamProcess(QStri
     QTest::qWait(500);
 
     return process;
+}
+
+void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata_data()
+{
+    QTest::addColumn<MaybeUrl>("fileURL");
+    QTest::addColumn<QRgb>("expectedColor");
+    QTest::addColumn<QtVideo::Rotation>("expectedRotationAngle");
+    QTest::addRow("without rotation") << m_colorMatrixVideo << QRgb(0xff0000) << QtVideo::Rotation::None;
+    QTest::addRow("90 deg clockwise") << m_colorMatrix90degClockwiseVideo << QRgb(0x0000FF) << QtVideo::Rotation::Clockwise90;
+    QTest::addRow("180 deg clockwise") << m_colorMatrix180degClockwiseVideo << QRgb(0xFFFF00) << QtVideo::Rotation::Clockwise180;
+    QTest::addRow("270 deg clockwise") << m_colorMatrix270degClockwiseVideo << QRgb(0x00FF00) << QtVideo::Rotation::Clockwise270;
+}
+
+void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata()
+{
+    // This test uses 4 video files with a 2x2 color matrix consisting of
+    // red (upper left), blue (lower left), yellow (lower right) and green (upper right).
+    // The files are identical, except that three of them contain
+    // orientation (rotation) metadata specifying that they should be
+    // viewed with a 90, 180 and 270 degree clockwise rotation respectively.
+
+    // Fetch path and expected color of upper left area of each file
+    QFETCH(MaybeUrl, fileURL);
+    QFETCH(QRgb, expectedColor);
+    QFETCH(QtVideo::Rotation, expectedRotationAngle);
+
+    CHECK_SELECTED_URL(fileURL);
+
+    // Load video file
+    m_fixture->player.setSource(*fileURL);
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+
+    // Compare orientation metadata of QMediaPlayer with expected value
+    const auto metaData = m_fixture->player.metaData();
+    const auto playerOrientation = metaData.value(QMediaMetaData::Orientation).value<QtVideo::Rotation>();
+    QCOMPARE(playerOrientation, expectedRotationAngle);
+
+    // Compare orientation metadata of active video stream with expected value
+    const int activeVideoTrack = m_fixture->player.activeVideoTrack();
+    const auto videoTrackMetaData = m_fixture->player.videoTracks().at(activeVideoTrack);
+    const auto videoTrackOrientation = videoTrackMetaData.value(QMediaMetaData::Orientation).value<QtVideo::Rotation>();
+    QCOMPARE(videoTrackOrientation, expectedRotationAngle);
+
+    // Play video file, sample upper left area, compare with expected color
+    m_fixture->player.play();
+    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
+    QVideoFrame videoFrame = m_fixture->surface.waitForFrame();
+    QVERIFY(videoFrame.isValid());
+    QCOMPARE(QtVideo::Rotation(videoFrame.rotationAngle()), expectedRotationAngle);
+    QImage image = videoFrame.toImage();
+    QVERIFY(!image.isNull());
+    QRgb upperLeftColor = image.pixel(5, 5);
+    QCOMPARE_LT(colorDifference(upperLeftColor, expectedColor), 0.006);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)

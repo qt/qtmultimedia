@@ -314,6 +314,7 @@ void QFFmpegMediaPlayer::stop()
 
     m_playbackEngine->stop();
     m_positionUpdateTimer.stop();
+    m_playbackEngine->seek(0);
     positionChanged(0);
     stateChanged(QMediaPlayer::StoppedState);
     mediaStatusChanged(QMediaPlayer::LoadedMedia);

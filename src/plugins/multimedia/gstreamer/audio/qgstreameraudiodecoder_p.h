@@ -36,9 +36,7 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
 
-class QGstreamerAudioDecoder
-        : public QPlatformAudioDecoder,
-          public QGstreamerBusMessageFilter
+class QGstreamerAudioDecoder final : public QPlatformAudioDecoder, public QGstreamerBusMessageFilter
 {
     Q_OBJECT
 

@@ -19,6 +19,9 @@
 #include <qmockintegration.h>
 
 QT_USE_NAMESPACE
+
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
+
 class tst_QGraphicsVideoItem : public QObject
 {
     Q_OBJECT
@@ -41,9 +44,6 @@ private slots:
     void boundingRect();
 
     void paint();
-
-public:
-    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 class QtTestGraphicsVideoItem : public QGraphicsVideoItem

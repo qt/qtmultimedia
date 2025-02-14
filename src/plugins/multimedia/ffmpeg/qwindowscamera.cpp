@@ -8,6 +8,7 @@
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qwindowsmfdefs_p.h>
 #include <private/qwindowsmultimediautils_p.h>
+#include <private/qcomobject_p.h>
 
 #include <mfapi.h>
 #include <mfidl.h>
@@ -20,42 +21,9 @@ QT_BEGIN_NAMESPACE
 
 using namespace QWindowsMultimediaUtils;
 
-class CameraReaderCallback : public IMFSourceReaderCallback
+class CameraReaderCallback : public QComObject<IMFSourceReaderCallback>
 {
 public:
-    CameraReaderCallback() : m_cRef(1) { }
-
-    //from IUnknown
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override
-    {
-        if (!ppvObject)
-            return E_POINTER;
-        if (riid == IID_IMFSourceReaderCallback) {
-            *ppvObject = static_cast<IMFSourceReaderCallback*>(this);
-        } else if (riid == IID_IUnknown) {
-            *ppvObject = static_cast<IUnknown *>(this);
-        } else {
-            *ppvObject =  nullptr;
-            return E_NOINTERFACE;
-        }
-        AddRef();
-        return S_OK;
-    }
-
-    STDMETHODIMP_(ULONG) AddRef() override
-    {
-        return InterlockedIncrement(&m_cRef);
-    }
-
-    STDMETHODIMP_(ULONG) Release() override
-    {
-        LONG cRef = InterlockedDecrement(&m_cRef);
-        if (cRef == 0) {
-            delete this;
-        }
-        return cRef;
-    }
-
     //from IMFSourceReaderCallback
     STDMETHODIMP OnReadSample(HRESULT status, DWORD, DWORD, LONGLONG timestamp, IMFSample *sample) override;
     STDMETHODIMP OnFlush(DWORD) override;
@@ -67,10 +35,9 @@ public:
         m_activeCamera = activeCamera;
     }
 private:
-    // Destructor is private. Caller should call Release.
-    virtual ~CameraReaderCallback() { }
+    // Destructor is not public. Caller should call Release.
+    ~CameraReaderCallback() override = default;
 
-    LONG m_cRef;
     ActiveCamera *m_activeCamera = nullptr;
     QMutex m_mutex;
 };
@@ -218,7 +185,8 @@ public:
     void onReadSample(HRESULT status, LONGLONG timestamp, IMFSample *sample)
     {
         if (FAILED(status)) {
-            emit m_windowsCamera.error(int(status), std::system_category().message(status).c_str());
+            const std::string msg{ std::system_category().message(status) };
+            emit m_windowsCamera.error(QCamera::CameraError, QString::fromStdString(msg));
             return;
         }
 

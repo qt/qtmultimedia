@@ -11,6 +11,7 @@
 #include <qmediadevices.h>
 #include <qcameradevice.h>
 #include <qloggingcategory.h>
+#include <QtCore/qcoreapplication.h>
 
 #include "QtCore/private/qfactoryloader_p.h"
 #include "private/qplatformmediaformatinfo_p.h"
@@ -70,57 +71,48 @@ static QString defaultBackend(const QStringList &backends)
     return backends[0];
 }
 
-QT_BEGIN_NAMESPACE
+namespace {
 
-struct QPlatformMediaIntegration::InstanceHolder
+struct InstanceHolder
 {
-    // TODO: replace the mutex with std::once
-    QBasicMutex mutex;
+    InstanceHolder()
+    {
+        if (!QCoreApplication::instance())
+            qCCritical(qLcMediaPlugin()) << "Qt Multimedia requires a QCoreApplication instance";
+
+        const auto backends = availableBackends();
+        QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
+        if (backend.isEmpty() && !backends.isEmpty())
+            backend = defaultBackend(backends);
+
+        qCDebug(qLcMediaPlugin) << "loading backend" << backend;
+        instance.reset(
+                qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), backend));
+
+        if (!instance) {
+            qWarning() << "could not load multimedia backend" << backend;
+            instance = std::make_unique<QDummyIntegration>();
+        }
+    }
+
     std::unique_ptr<QPlatformMediaIntegration> instance;
-    Factory factory;
-} instanceHolder;
+};
+
+Q_GLOBAL_STATIC(InstanceHolder, instanceHolder);
+
+} // namespace
+
+QT_BEGIN_NAMESPACE
 
 QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 {
-    QMutexLocker locker(&instanceHolder.mutex);
-    if (instanceHolder.instance)
-        return instanceHolder.instance.get();
-
-    if (instanceHolder.factory) {
-        instanceHolder.instance = instanceHolder.factory();
-        return instanceHolder.instance.get();
-    }
-
-    const auto backends = availableBackends();
-    QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
-    if (backend.isEmpty() && !backends.isEmpty())
-        backend = defaultBackend(backends);
-
-    qCDebug(qLcMediaPlugin) << "loading backend" << backend;
-    instanceHolder.instance.reset(
-            qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), backend));
-
-    if (!instanceHolder.instance) {
-        qWarning() << "could not load multimedia backend" << backend;
-        instanceHolder.instance = std::make_unique<QDummyIntegration>();
-    }
-
-    return instanceHolder.instance.get();
-}
-
-/*
-    This API is there to be able to test with a mock backend.
-*/
-void QPlatformMediaIntegration::setPlatformFactory(Factory factory)
-{
-    Q_ASSERT((factory == nullptr) ^ (instanceHolder.factory == nullptr));
-    instanceHolder.instance.reset();
-    instanceHolder.factory = std::move(factory);
+    return instanceHolder->instance.get();
 }
 
 QList<QCameraDevice> QPlatformMediaIntegration::videoInputs()
 {
-    return m_videoDevices ? m_videoDevices->videoDevices() : QList<QCameraDevice>{};
+    auto devices = videoDevices();
+    return devices ? devices->videoDevices() : QList<QCameraDevice>{};
 }
 
 QMaybe<QPlatformAudioInput *> QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
@@ -145,6 +137,13 @@ const QPlatformMediaFormatInfo *QPlatformMediaIntegration::formatInfo()
 QPlatformMediaFormatInfo *QPlatformMediaIntegration::createFormatInfo()
 {
     return new QPlatformMediaFormatInfo;
+}
+
+QPlatformVideoDevices *QPlatformMediaIntegration::videoDevices()
+{
+    std::call_once(m_videoDevicesOnceFlag,
+                   [this]() { m_videoDevices.reset(createVideoDevices()); });
+    return m_videoDevices.get();
 }
 
 QPlatformMediaIntegration::QPlatformMediaIntegration() = default;
