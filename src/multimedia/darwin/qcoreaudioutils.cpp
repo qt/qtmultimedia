@@ -4,6 +4,10 @@
 #include "qcoreaudioutils_p.h"
 #include <qdebug.h>
 
+#ifdef Q_OS_MACOS
+#  include <CoreAudio/AudioHardware.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 namespace QCoreAudioUtils {
@@ -234,6 +238,77 @@ QAudioFormat::ChannelConfig fromAudioChannelLayout(const AudioChannelLayout *lay
     }
     return QAudioFormat::ChannelConfig(channels);
 }
+
+#ifdef Q_OS_MACOS
+
+OSStatus DeviceDisconnectMonitor::disconnectCallback(AudioObjectID id, UInt32 numberOfAddresses,
+                                                     const AudioObjectPropertyAddress *inAddresses,
+                                                     void *self)
+{
+    return reinterpret_cast<DeviceDisconnectMonitor *>(self)->streamDisconnectListener(
+            id, QSpan{ inAddresses, numberOfAddresses });
+}
+
+static constexpr AudioObjectPropertyAddress propertyAddressDeviceIsAlive = {
+    kAudioDevicePropertyDeviceIsAlive,
+    kAudioObjectPropertyScopeGlobal,
+    kAudioObjectPropertyElementMain,
+};
+
+bool DeviceDisconnectMonitor::addDisconnectListener(AudioObjectID id)
+{
+    m_currentId = id;
+    m_disconnectedPromise = QPromise<void>{};
+    m_disconnectedFuture = m_disconnectedPromise.future();
+
+    OSStatus status = AudioObjectAddPropertyListener(
+            id, &propertyAddressDeviceIsAlive, &DeviceDisconnectMonitor::disconnectCallback, this);
+
+    if (status != noErr) {
+        qWarning() << "QAudioOutput: Failed to add property listener";
+        return false;
+    }
+    return true;
+}
+
+void DeviceDisconnectMonitor::removeDisconnectListener()
+{
+    OSStatus status =
+            AudioObjectRemovePropertyListener(m_currentId, &propertyAddressDeviceIsAlive,
+                                              &DeviceDisconnectMonitor::disconnectCallback, this);
+
+    switch (status) {
+    case noErr:
+    case kAudioHardwareBadObjectError: // when the listener fires, we may get
+                                       // kAudioHardwareBadObjectError
+        return;
+
+    default:
+        qWarning() << "QAudioOutput: Failed to remove property listener" << status;
+    }
+}
+
+OSStatus DeviceDisconnectMonitor::streamDisconnectListener(
+        AudioObjectID id, QSpan<const AudioObjectPropertyAddress> properties)
+{
+    // Called on HAL thread
+    // we use futures/continuations to notify the application thread, as we can cancel in-flight
+    // continuations
+    Q_ASSERT(id == m_currentId);
+
+    for (const AudioObjectPropertyAddress &address : properties) {
+        if (address.mSelector == kAudioDevicePropertyDeviceIsAlive) {
+            m_disconnectedPromise.start();
+            m_disconnectedPromise.finish();
+
+            return kAudioHardwareNoError;
+        }
+    }
+
+    return kAudioHardwareNoError;
+}
+
+#endif
 
 } // namespace QCoreAudioUtils
 
