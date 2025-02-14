@@ -102,6 +102,26 @@ void PlaybackEngine::onRendererLoopChanged(quint64 id, TrackPosition offset, int
     }
 }
 
+void PlaybackEngine::onFirsPacketFound(quint64 id, TrackPosition absSeekPos)
+{
+    if (!m_demuxer || m_demuxer->id() != id)
+        return;
+
+    if (m_shouldUpdateTimeOnFirstPacket) {
+        const auto timePoint = RealClock::now();
+        const RealClock::time_point expectedTimePoint =
+                m_timeController.timeFromPosition(absSeekPos);
+        const auto delay = std::chrono::duration_cast<std::chrono::microseconds>(
+                timePoint - expectedTimePoint);
+        qCDebug(qLcPlaybackEngine) << "Delay of demuxer initialization:" << delay;
+        m_timeController.sync(timePoint, absSeekPos);
+
+        m_shouldUpdateTimeOnFirstPacket = false; // turn the flag back to ensure the consistency.
+    }
+
+    forEachExistingObject<Renderer>([&](auto &renderer) { renderer->start(m_timeController); });
+}
+
 void PlaybackEngine::onRendererSynchronized(quint64 id, RealClock::time_point tp, TrackPosition pos)
 {
     if (!hasRenderer(id))
@@ -425,21 +445,8 @@ void PlaybackEngine::createDemuxer()
                 &Demuxer::onPacketProcessed);
     });
 
-    if (!isSeekable() || duration() <= TrackDuration(0)) {
-        // We need initial synchronization for such streams
-        forEachExistingObject([&](auto &object) {
-            using Type = std::remove_reference_t<decltype(*object)>;
-            if constexpr (!std::is_same_v<Type, Demuxer>)
-                connect(m_demuxer.get(), &Demuxer::firstPacketFound, object.get(),
-                        &Type::setInitialPosition);
-        });
-
-        auto updateTimeController = [this](TimeController::TimePoint tp, TrackPosition pos) {
-            m_timeController.sync(tp, pos);
-        };
-
-        connect(m_demuxer.get(), &Demuxer::firstPacketFound, this, updateTimeController);
-    }
+    m_shouldUpdateTimeOnFirstPacket = true;
+    connect(m_demuxer.get(), &Demuxer::firstPacketFound, this, &PlaybackEngine::onFirsPacketFound);
 }
 
 void PlaybackEngine::deleteFreeThreads() {
@@ -570,6 +577,11 @@ void PlaybackEngine::setActiveTrack(QPlatformMediaPlayer::TrackType trackType, i
     updateVideoSinkSize();
     createObjectsIfNeeded();
     updateObjectsPausedState();
+
+    // We strive to have a smooth playback if we change the active track. It means that
+    // we don't want to do any time shiftings. Instead, we rely on the fact that
+    // buffers in renderers are not empty to compensate the demuxer's lag.
+    m_shouldUpdateTimeOnFirstPacket = false;
 }
 
 void PlaybackEngine::finilizeTime(TrackPosition pos)

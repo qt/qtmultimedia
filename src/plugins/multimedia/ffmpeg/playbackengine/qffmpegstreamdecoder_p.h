@@ -41,7 +41,6 @@ public:
     static qint32 maxQueueSize(QPlatformMediaPlayer::TrackType type);
 
 public slots:
-    void setInitialPosition(TimePoint tp, TrackPosition trackPos);
 
     void decode(Packet);
 

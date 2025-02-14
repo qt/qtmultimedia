@@ -33,7 +33,7 @@ class Renderer : public PlaybackEngineObject
 public:
     using TimePoint = RealClock::time_point;
 
-    Renderer(const TimeController &tc, const std::chrono::microseconds &seekPosTimeOffset = {});
+    Renderer(const TimeController &tc);
 
     void syncSoft(TimePoint tp, TrackPosition trackPos);
 
@@ -47,8 +47,9 @@ public:
 
     bool isStepForced() const;
 
+    void start(const TimeController &tc);
+
 public slots:
-    void setInitialPosition(TimePoint tp, TrackPosition trackPos);
 
     void onFinalFrameReceived();
 
@@ -115,6 +116,7 @@ private:
     QQueue<Frame> m_frames;
 
     QAtomicInteger<bool> m_isStepForced = false;
+    bool m_started = false;
     std::optional<TimePoint> m_explicitNextFrameTime;
 };
 
