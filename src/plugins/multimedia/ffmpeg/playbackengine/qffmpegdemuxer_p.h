@@ -45,7 +45,7 @@ signals:
     void requestProcessAudioPacket(Packet);
     void requestProcessVideoPacket(Packet);
     void requestProcessSubtitlePacket(Packet);
-    void firstPacketFound(TimePoint tp, TrackPosition trackPos);
+    void firstPacketFound(Id id, TrackPosition absSeekPos);
     void packetsBuffered();
 
 protected:

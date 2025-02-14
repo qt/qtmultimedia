@@ -31,11 +31,6 @@ void StreamDecoder::onFinalPacketReceived()
     decode({});
 }
 
-void StreamDecoder::setInitialPosition(TimePoint, TrackPosition trackPos)
-{
-    m_absSeekPos = trackPos;
-}
-
 void StreamDecoder::decode(Packet packet)
 {
     m_packets.enqueue(packet);

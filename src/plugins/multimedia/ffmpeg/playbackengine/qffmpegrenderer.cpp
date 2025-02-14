@@ -10,11 +10,11 @@ namespace QFFmpeg {
 
 static Q_LOGGING_CATEGORY(qLcRenderer, "qt.multimedia.ffmpeg.renderer");
 
-Renderer::Renderer(const TimeController &tc, const std::chrono::microseconds &seekPosTimeOffset)
+Renderer::Renderer(const TimeController &tc)
     : m_timeController(tc),
       m_lastFrameEnd(tc.currentPosition()),
       m_lastPosition(m_lastFrameEnd.get()),
-      m_seekPos(tc.currentPosition(-seekPosTimeOffset).get())
+      m_seekPos(tc.currentPosition().get())
 {
 }
 
@@ -66,17 +66,12 @@ bool Renderer::isStepForced() const
     return m_isStepForced;
 }
 
-void Renderer::setInitialPosition(TimePoint tp, TrackPosition trackPos)
+void Renderer::start(const TimeController &tc)
 {
-    QMetaObject::invokeMethod(this, [this, tp, trackPos]() {
-        Q_ASSERT(m_loopIndex == 0);
-        Q_ASSERT(m_frames.empty());
-
-        m_loopIndex = 0;
-        m_lastPosition.storeRelease(trackPos.get());
-        m_seekPos.storeRelease(trackPos.get());
-
-        m_timeController.sync(tp, trackPos);
+    QMetaObject::invokeMethod(this, [this, tc]() {
+        m_timeController = tc;
+        m_started = true;
+        scheduleNextStep();
     });
 }
 
@@ -110,7 +105,13 @@ void Renderer::onPauseChanged()
 
 bool Renderer::canDoNextStep() const
 {
-    return !m_frames.empty() && (m_isStepForced || PlaybackEngineObject::canDoNextStep());
+    if (m_frames.empty())
+        return false;
+    if (m_isStepForced)
+        return true;
+    if (!m_started)
+        return false;
+    return PlaybackEngineObject::canDoNextStep();
 }
 
 float Renderer::playbackRate() const
