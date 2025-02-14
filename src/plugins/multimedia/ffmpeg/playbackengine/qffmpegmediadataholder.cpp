@@ -25,11 +25,8 @@ namespace QFFmpeg {
 
 static std::optional<TrackDuration> streamDuration(const AVStream &stream)
 {
-    const auto &factor = stream.time_base;
-
-    if (stream.duration > 0 && factor.num > 0 && factor.den > 0) {
-        return TrackDuration(qint64(1000000) * stream.duration * factor.num / factor.den);
-    }
+    if (stream.duration > 0)
+        return toTrackDuration(AVStreamDuration(stream.duration), &stream);
 
     // In some cases ffmpeg reports negative duration that is definitely invalid.
     // However, the correct duration may be read from the metadata.
@@ -309,6 +306,13 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
 
         if (stream->disposition & AV_DISPOSITION_ATTACHED_PIC)
             continue; // Ignore attached picture streams because we treat them as metadata
+
+        if (stream->time_base.num <= 0 || stream->time_base.den <= 0) {
+            // An invalid stream timebase is not expected to be given by FFmpeg
+            qCWarning(qLcMediaDataHolder) << "A stream for the track type" << trackType
+                                          << "has an invalid timebase:" << stream->time_base;
+            continue;
+        }
 
         auto metaData = QFFmpegMetaData::fromAVMetaData(stream->metadata);
         const bool isDefault = stream->disposition & AV_DISPOSITION_DEFAULT;
