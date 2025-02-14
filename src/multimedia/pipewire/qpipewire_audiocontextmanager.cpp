@@ -89,8 +89,9 @@ pw_loop *QAudioContextManager::getEventLoop()
 PwNodeHandle QAudioContextManager::bindNode(ObjectId id)
 {
     return PwNodeHandle{
-        (pw_node *)pw_registry_bind(m_registry.get(), id.value, PW_TYPE_INTERFACE_Node,
-                                    PW_VERSION_NODE, sizeof(void *)),
+        reinterpret_cast<pw_node *>(pw_registry_bind(m_registry.get(), id.value,
+                                                     PW_TYPE_INTERFACE_Node, PW_VERSION_NODE,
+                                                     sizeof(void *))),
     };
 }
 
