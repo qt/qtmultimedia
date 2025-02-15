@@ -254,35 +254,8 @@ void QPipewireAudioSourceStream::disconnectStream()
 
 void QPipewireAudioSourceStream::pushToIODevice()
 {
-    using namespace QtMultimediaPrivate;
-    using namespace QtPrivate;
-
     visitRingbuffer([&](auto &ringbuffer) {
-        using SampleType = typename std::decay_t<decltype(ringbuffer)>::ValueType;
-
-        for (;;) {
-            auto ringbufferRegion = ringbuffer.acquireReadRegion(ringbuffer.size());
-            if (ringbufferRegion.empty())
-                return;
-
-            QSpan bufferByteRegion = as_bytes(ringbufferRegion);
-
-            int bytesToWrite = alignDown(m_device->bytesToWrite(), sizeof(SampleType));
-            bufferByteRegion = take(bufferByteRegion, bytesToWrite);
-            int bytesWritten = writeToDevice(*m_device, bufferByteRegion);
-
-            if (bytesWritten < 0) {
-                qWarning() << "QPipewireAudioSourceStream::pushToIODevice cannot push data to "
-                              "QIODevice";
-                return;
-            }
-            if (bytesWritten == 0)
-                return;
-
-            Q_ASSERT(bytesWritten % sizeof(SampleType) == 0);
-            int samplesWritten = bytesWritten / sizeof(SampleType);
-            ringbuffer.releaseReadRegion(samplesWritten);
-        }
+        QtPrivate::pushToQIODeviceFromRingbuffer(*m_device, ringbuffer);
     });
 }
 

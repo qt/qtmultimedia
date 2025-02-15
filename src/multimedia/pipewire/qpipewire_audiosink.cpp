@@ -419,38 +419,12 @@ void QPipewireAudioSinkStream::pullFromQIODevice()
     if (!m_device)
         return;
 
-    while (true) {
-        bool allReadsDone = std::visit([&](auto &ringbuffer) {
-            using SampleType = typename std::decay_t<decltype(ringbuffer)>::ValueType;
+    auto bytesPulled = std::visit([&](auto &ringbuffer) {
+        return QtPrivate::pullFromQIODeviceToRingbuffer(*m_device, ringbuffer);
+    }, m_ringbuffer);
 
-            static constexpr uint64_t sizeMask = ~(uint64_t(sizeof(SampleType)) - 1);
-
-            qint64 bytesAvailableInDevice = m_device->bytesAvailable() & sizeMask;
-            if (!bytesAvailableInDevice)
-                return true; // no data in iodevice
-
-            qint64 samplesAvailableInDevice = bytesAvailableInDevice / sizeof(SampleType);
-
-            auto writeRegion = ringbuffer.acquireWriteRegion(samplesAvailableInDevice);
-            if (writeRegion.empty())
-                return true; // no space in ringbuffer
-
-            auto writeRegionBytes = as_writable_bytes(writeRegion);
-
-            qint64 bytesRead = m_device->read(reinterpret_cast<char *>(writeRegionBytes.data()),
-                                              writeRegionBytes.size());
-            Q_ASSERT(bytesRead == writeRegionBytes.size());
-
-            ringbuffer.releaseWriteRegion(bytesRead / sizeof(SampleType));
-
-            return false;
-        }, m_ringbuffer);
-
-        if (allReadsDone)
-            return;
-
+    if (bytesPulled)
         m_parent->updateStreamIdle(false);
-    }
 }
 
 void QPipewireAudioSinkStream::disconnectStream()
