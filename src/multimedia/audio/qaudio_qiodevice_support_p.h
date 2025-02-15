@@ -15,6 +15,7 @@
 // We mean it.
 //
 
+#include <QtCore/qdebug.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qmutex.h>
@@ -174,6 +175,78 @@ inline qint64 writeToDevice(QIODevice &device, QSpan<const std::byte> data)
 inline qint64 readFromDevice(QIODevice &device, QSpan<std::byte> outputBuffer)
 {
     return device.read(reinterpret_cast<char *>(outputBuffer.data()), outputBuffer.size());
+}
+
+template <typename SampleType>
+qsizetype pullFromQIODeviceToRingbuffer(QIODevice &device, QAudioRingBuffer<SampleType> &ringbuffer)
+{
+    using namespace QtMultimediaPrivate;
+
+    qsizetype totalBytesWritten = 0;
+
+    for (;;) {
+        qint64 bytesAvailableInDevice = alignDown(device.bytesAvailable(), sizeof(SampleType));
+        if (!bytesAvailableInDevice)
+            return totalBytesWritten; // no data in iodevice
+
+        qint64 samplesAvailableInDevice = bytesAvailableInDevice / sizeof(SampleType);
+
+        auto writeRegion = ringbuffer.acquireWriteRegion(samplesAvailableInDevice);
+        if (writeRegion.empty())
+            return totalBytesWritten;
+
+        qint64 bytesRead = readFromDevice(device, as_writable_bytes(writeRegion));
+        if (bytesRead < 0) {
+            qWarning() << "pullFromQIODeviceToRingbuffer cannot read from QIODevice:"
+                       << device.errorString();
+            return totalBytesWritten;
+        }
+
+        Q_ASSERT(bytesRead == writeRegion.size_bytes());
+        ringbuffer.releaseWriteRegion(writeRegion.size());
+
+        totalBytesWritten += writeRegion.size_bytes();
+    }
+}
+
+template <typename SampleType>
+qsizetype pushToQIODeviceFromRingbuffer(QIODevice &device, QAudioRingBuffer<SampleType> &ringbuffer)
+{
+    using namespace QtMultimediaPrivate;
+    qsizetype totalBytesWritten = 0;
+
+    for (;;) {
+        auto ringbufferRegion = ringbuffer.acquireReadRegion(ringbuffer.size());
+        if (ringbufferRegion.empty())
+            return totalBytesWritten;
+        QSpan bufferByteRegion = as_bytes(ringbufferRegion);
+
+        int deviceBytesToWrite = device.bytesToWrite();
+        if (deviceBytesToWrite > 0) {
+            // we do our best effort and only push full samples to the device
+            int bytesToWrite = alignDown(deviceBytesToWrite, sizeof(SampleType));
+            bufferByteRegion = take(bufferByteRegion, bytesToWrite);
+
+            int bytesWritten = writeToDevice(device, bufferByteRegion);
+
+            if (bytesWritten < 0) {
+                qWarning() << "pushToQIODeviceFromRingbuffer cannot push data to QIODevice:"
+                           << device.errorString();
+                return totalBytesWritten;
+            }
+            if (bytesWritten == 0)
+                return totalBytesWritten;
+            totalBytesWritten += bytesWritten;
+            Q_ASSERT(isAligned(bytesWritten, sizeof(SampleType)));
+            int samplesWritten = bytesWritten / sizeof(SampleType);
+            ringbuffer.releaseReadRegion(samplesWritten);
+        } else {
+            // we don't know how many bytes to write, so we end up filling as much as possible
+            int bytesWritten = writeToDevice(device, bufferByteRegion);
+            int samplesWritten = bytesWritten / sizeof(SampleType);
+            ringbuffer.releaseReadRegion(samplesWritten);
+        }
+    }
 }
 
 } // namespace QtPrivate
