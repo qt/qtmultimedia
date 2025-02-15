@@ -49,6 +49,15 @@ static bool isPipewireBackend()
     return QPlatformMediaIntegration::audioBackendName() == "PipeWire";
 }
 
+static bool underrunIsAnError()
+{
+#ifdef Q_OS_APPLE
+    return false;
+#endif
+
+    return !isPipewireBackend();
+}
+
 class tst_QAudioSink : public QObject
 {
     Q_OBJECT
@@ -636,7 +645,7 @@ void tst_QAudioSink::pullResumeFromUnderrun()
 
     QTRY_COMPARE(stateSignal.size(), 1);
     QCOMPARE(audioSink.state(), QAudio::IdleState);
-    if (!isPipewireBackend())
+    if (underrunIsAnError())
         QCOMPARE(audioSink.error(), QAudio::UnderrunError);
     stateSignal.clear();
 
@@ -1001,7 +1010,7 @@ void tst_QAudioSink::pushUnderrun()
                      .toUtf8()
                      .constData());
     QVERIFY2((audioSink.state() == QAudio::IdleState), "didn't transition to IdleState, no data");
-    if (!isPipewireBackend())
+    if (underrunIsAnError())
         QVERIFY2((audioSink.error() == QAudio::UnderrunError),
                  "error state is not equal to QAudio::UnderrunError, no data");
     stateSignal.clear();
