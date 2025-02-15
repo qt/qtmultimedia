@@ -228,6 +228,11 @@ void QPlatformAudioSinkStream::setIdleState(bool x)
     m_streamIsIdle.store(x);
 }
 
+void QPlatformAudioSinkStream::stopIdleDetection()
+{
+    QObject::disconnect(m_streamIdleDetectionConnection);
+}
+
 // we limit alloca calls to 0.5MB. it's good enough for virtually all use cases (i.e. buffers
 // of 4092 frames / 32 channels) and well in the reasonable range of available stack memory on linux
 // (8MB)

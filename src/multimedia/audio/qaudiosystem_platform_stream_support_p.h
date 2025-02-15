@@ -131,6 +131,18 @@ protected:
 
     // idle detection
     void setIdleState(bool);
+    bool isIdle(std::memory_order order = std::memory_order_relaxed) const
+    {
+        return m_streamIsIdle.load(order);
+    }
+    void stopIdleDetection();
+
+    template <typename Functor>
+    auto connectIdleHandler(Functor f)
+    {
+        return QObject::connect(&m_streamIdleDetectionNotifier, &QAutoResetEvent::activated,
+                                &m_streamIdleDetectionNotifier, f);
+    }
 
 private:
     // qiodevice

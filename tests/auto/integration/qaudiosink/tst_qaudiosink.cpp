@@ -42,6 +42,15 @@ public:
     bool signalEnd = false;
 };
 
+bool underrunIsAnError()
+{
+#ifdef Q_OS_APPLE
+    return false;
+#endif
+
+    return true;
+}
+
 class tst_QAudioSink : public QObject
 {
     Q_OBJECT
@@ -628,7 +637,9 @@ void tst_QAudioSink::pullResumeFromUnderrun()
 
     QTRY_COMPARE(stateSignal.size(), 1);
     QCOMPARE(audioSink.state(), QAudio::IdleState);
-    QCOMPARE(audioSink.error(), QAudio::UnderrunError);
+    if (underrunIsAnError())
+        QCOMPARE(audioSink.error(), QAudio::UnderrunError);
+
     stateSignal.clear();
 
     QTest::qWait(300);
@@ -992,8 +1003,10 @@ void tst_QAudioSink::pushUnderrun()
                      .toUtf8()
                      .constData());
     QVERIFY2((audioSink.state() == QAudio::IdleState), "didn't transition to IdleState, no data");
-    QVERIFY2((audioSink.error() == QAudio::UnderrunError),
-             "error state is not equal to QAudio::UnderrunError, no data");
+    if (underrunIsAnError())
+        QVERIFY2((audioSink.error() == QAudio::UnderrunError),
+                 "error state is not equal to QAudio::UnderrunError, no data");
+
     stateSignal.clear();
 
     // Play rest of the clip
