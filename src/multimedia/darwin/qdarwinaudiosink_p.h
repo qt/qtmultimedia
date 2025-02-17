@@ -43,7 +43,7 @@ class QDarwinAudioSinkBuffer : public QObject
 
 public:
     QDarwinAudioSinkBuffer(int bufferSize, int maxPeriodSize, QAudioFormat const& audioFormat);
-    ~QDarwinAudioSinkBuffer();
+    ~QDarwinAudioSinkBuffer() override;
 
     qint64 readFrames(char *data, qint64 maxFrames);
     qint64 writeBytes(const char *data, qint64 maxSize);
@@ -83,10 +83,10 @@ class QDarwinAudioSinkDevice : public QIODevice
 public:
     QDarwinAudioSinkDevice(QDarwinAudioSinkBuffer *audioBuffer, QObject *parent);
 
-    qint64 readData(char *data, qint64 len);
-    qint64 writeData(const char *data, qint64 len);
+    qint64 readData(char *data, qint64 len) override;
+    qint64 writeData(const char *data, qint64 len) override;
 
-    bool isSequential() const { return true; }
+    bool isSequential() const override { return true; }
 
 private:
     QDarwinAudioSinkBuffer *m_audioBuffer;
@@ -99,25 +99,25 @@ class QDarwinAudioSink : public QPlatformAudioSink
 
 public:
     QDarwinAudioSink(const QAudioDevice &device, QObject *parent);
-    ~QDarwinAudioSink();
+    ~QDarwinAudioSink() override;
 
-    void start(QIODevice *device);
-    QIODevice *start();
-    void stop();
-    void reset();
-    void suspend();
-    void resume();
-    qsizetype bytesFree() const;
-    void setBufferSize(qsizetype value);
-    qsizetype bufferSize() const;
-    qint64 processedUSecs() const;
-    QAudio::Error error() const;
-    QAudio::State state() const;
-    void setFormat(const QAudioFormat &format);
-    QAudioFormat format() const;
+    void start(QIODevice *device) override;
+    QIODevice *start() override;
+    void stop() override;
+    void reset() override;
+    void suspend() override;
+    void resume() override;
+    qsizetype bytesFree() const override;
+    void setBufferSize(qsizetype value) override;
+    qsizetype bufferSize() const override;
+    qint64 processedUSecs() const override;
+    QAudio::Error error() const override;
+    QAudio::State state() const override;
+    void setFormat(const QAudioFormat &format) override;
+    QAudioFormat format() const override;
 
-    void setVolume(qreal volume);
-    qreal volume() const;
+    void setVolume(qreal volume) override;
+    qreal volume() const override;
 
 private slots:
     void inputReady();
