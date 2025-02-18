@@ -108,8 +108,8 @@ void PlaybackEngine::onFirsPacketFound(quint64 id, TrackPosition absSeekPos)
         return;
 
     if (m_shouldUpdateTimeOnFirstPacket) {
-        const auto timePoint = RealClock::now();
-        const RealClock::time_point expectedTimePoint =
+        const auto timePoint = SteadyClock::now();
+        const SteadyClock::time_point expectedTimePoint =
                 m_timeController.timeFromPosition(absSeekPos);
         const auto delay = std::chrono::duration_cast<std::chrono::microseconds>(
                 timePoint - expectedTimePoint);
@@ -122,7 +122,7 @@ void PlaybackEngine::onFirsPacketFound(quint64 id, TrackPosition absSeekPos)
     forEachExistingObject<Renderer>([&](auto &renderer) { renderer->start(m_timeController); });
 }
 
-void PlaybackEngine::onRendererSynchronized(quint64 id, RealClock::time_point tp, TrackPosition pos)
+void PlaybackEngine::onRendererSynchronized(quint64 id, SteadyClock::time_point tp, TrackPosition pos)
 {
     if (!hasRenderer(id))
         return;

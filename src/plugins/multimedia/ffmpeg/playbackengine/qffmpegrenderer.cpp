@@ -55,7 +55,7 @@ void Renderer::doForceStep()
                 setForceStepDone();
             }
             else {
-                m_explicitNextFrameTime = RealClock::now();
+                m_explicitNextFrameTime = SteadyClock::now();
                 scheduleNextStep();
             }
         });
@@ -129,7 +129,7 @@ std::chrono::milliseconds Renderer::timerInterval() const
     auto calculateInterval = [](const TimePoint &nextTime) {
         using namespace std::chrono;
 
-        const milliseconds delay = duration_cast<milliseconds>(nextTime - RealClock::now());
+        const milliseconds delay = duration_cast<milliseconds>(nextTime - SteadyClock::now());
         return std::max(0ms, std::chrono::duration_cast<milliseconds>(delay));
     };
 
@@ -190,7 +190,7 @@ void Renderer::doNextStep()
             m_lastPosition.storeRelease(std::max(m_lastFrameEnd, lastPosition()).get());
         }
     } else {
-        m_explicitNextFrameTime = RealClock::now() + result.recheckInterval;
+        m_explicitNextFrameTime = SteadyClock::now() + result.recheckInterval;
     }
 
     setAtEnd(result.done && !frame.isValid());
@@ -206,7 +206,7 @@ std::chrono::microseconds Renderer::frameDelay(const Frame &frame, TimePoint tim
 
 void Renderer::changeRendererTime(std::chrono::microseconds offset)
 {
-    const auto now = RealClock::now();
+    const auto now = SteadyClock::now();
     const auto pos = m_timeController.positionFromTime(now);
     m_timeController.sync(now + offset, pos);
     emit synchronized(id(), now + offset, pos);

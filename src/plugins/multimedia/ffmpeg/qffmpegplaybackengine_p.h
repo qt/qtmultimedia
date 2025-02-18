@@ -177,7 +177,7 @@ private:
 
     void onFirsPacketFound(quint64 id, TrackPosition absSeekPos);
 
-    void onRendererSynchronized(quint64 id, RealClock::time_point timePoint,
+    void onRendererSynchronized(quint64 id, SteadyClock::time_point timePoint,
                                 TrackPosition trackPosition);
 
     void onRendererFinished();

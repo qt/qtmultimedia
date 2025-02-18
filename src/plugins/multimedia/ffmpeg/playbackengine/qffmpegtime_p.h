@@ -50,7 +50,7 @@ struct AVContextTimeTag;
 using AVContextPosition = QTaggedTimePoint<qint64, AVContextTimeTag>;
 using AVContextDuration = QTaggedDuration<qint64, AVContextTimeTag>;
 
-using RealClock = std::chrono::steady_clock;
+using SteadyClock = std::chrono::steady_clock;
 
 inline AVContextDuration contextStartOffset(const AVFormatContext *formatContext)
 
