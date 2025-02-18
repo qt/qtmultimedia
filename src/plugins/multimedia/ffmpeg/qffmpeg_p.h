@@ -39,7 +39,17 @@ namespace QFFmpeg
 
 inline std::optional<qint64> mul(qint64 a, AVRational b)
 {
-    return b.den != 0 ? (a * b.num + b.den / 2) / b.den : std::optional<qint64>{};
+    if (b.den == 0)
+        return {};
+
+    auto multiplyAndRound = [](qint64 a, AVRational b) { //
+        return (a * b.num + b.den / 2) / b.den;
+    };
+
+    if (a < 0)
+        return -multiplyAndRound(-a, b);
+    else
+        return multiplyAndRound(a, b);
 }
 
 inline std::optional<qreal> mul(qreal a, AVRational b)
