@@ -242,7 +242,7 @@ void Demuxer::ensureSeeked()
 
             // Drop an error of seeking to initial position of streams with undefined duration.
             // This needs improvements.
-            if (seekPos != AVContextPosition(0) || m_context->duration > 0)
+            if (m_posInLoopUs != TrackPosition{ 0 } || m_context->duration > 0)
                 emit error(QMediaPlayer::ResourceError,
                            QLatin1StringView("Failed to seek: ") + err2str(err));
         }
