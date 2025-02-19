@@ -8,7 +8,7 @@
 #include <QtCore/qstandardpaths.h>
 #include <QtTest/qsignalspy.h>
 #include <QtMultimedia/qmediaplayer.h>
-#include <QtQGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
+#include <QtGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
 #include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
 
 #include <memory>

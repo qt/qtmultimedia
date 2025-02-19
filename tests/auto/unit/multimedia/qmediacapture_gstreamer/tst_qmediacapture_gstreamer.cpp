@@ -9,7 +9,7 @@
 #include <QtMultimedia/QMediaCaptureSession>
 #include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
 #include <QtMultimedia/private/qplatformmediacapture_p.h>
-#include <QtQGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
+#include <QtGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
 
 #include <private/qscopedenvironmentvariable_p.h>
 

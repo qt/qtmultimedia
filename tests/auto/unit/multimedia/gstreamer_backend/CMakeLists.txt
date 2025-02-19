@@ -11,7 +11,7 @@ qt_internal_add_test(tst_gstreamer_backend
         tst_gstreamer_backend.h
     LIBRARIES
         Qt::MultimediaPrivate
-        Qt::QGstreamerMediaPluginImplPrivate
+        Qt::GstreamerMediaPluginImplPrivate
 
     BUILTIN_TESTDATA
     TESTDATA

@@ -11,7 +11,7 @@ qt_internal_add_test(tst_qmediaplayer_gstreamer
         tst_qmediaplayer_gstreamer.h
     LIBRARIES
         Qt::MultimediaPrivate
-        Qt::QGstreamerMediaPluginImplPrivate
+        Qt::GstreamerMediaPluginImplPrivate
         Qt::MultimediaTestLibPrivate
     TESTDATA
         "testdata/color_matrix.mp4"

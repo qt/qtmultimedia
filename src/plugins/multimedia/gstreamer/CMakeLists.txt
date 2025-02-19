@@ -3,7 +3,7 @@
 
 qt_find_package(EGL)
 
-qt_internal_add_module(QGstreamerMediaPluginImplPrivate
+qt_internal_add_module(GstreamerMediaPluginImplPrivate
     STATIC
     INTERNAL_MODULE
     SOURCES
@@ -58,29 +58,29 @@ qt_internal_add_module(QGstreamerMediaPluginImplPrivate
         GStreamer::Play
 )
 
-qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_photography
+qt_internal_extend_target(GstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_photography
     PUBLIC_LIBRARIES
         GStreamer::Photography
 )
-qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_gl
+qt_internal_extend_target(GstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_gl
     PUBLIC_LIBRARIES
         GStreamer::Gl
 )
-qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_gl_egl
+qt_internal_extend_target(GstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_gl_egl
     LIBRARIES
         GStreamer::GlEgl
         EGL::EGL
 )
-qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_gl_wayland
+qt_internal_extend_target(GstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_gl_wayland
     LIBRARIES
         GStreamer::GlWayland
 )
-qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_gl_x11
+qt_internal_extend_target(GstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_gl_x11
     LIBRARIES
         GStreamer::GlX11
 )
 
-qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_pulseaudio
+qt_internal_extend_target(GstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_pulseaudio
     LIBRARIES
         WrapPulseAudio::WrapPulseAudio
 )
@@ -92,6 +92,6 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
         qgstreamerplugin.cpp
         gstreamer.json
     LIBRARIES
-        Qt::QGstreamerMediaPluginImplPrivate
+        Qt::GstreamerMediaPluginImplPrivate
         Qt::MultimediaPrivate
 )
