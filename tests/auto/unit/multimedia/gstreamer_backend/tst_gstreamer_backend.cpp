@@ -6,12 +6,12 @@
 #include <QtTest/QtTest>
 #include <QtMultimedia/qmediaformat.h>
 
-#include <QtQGstreamerMediaPluginImpl/private/qgst_handle_types_p.h>
-#include <QtQGstreamerMediaPluginImpl/private/qgst_p.h>
-#include <QtQGstreamerMediaPluginImpl/private/qgst_debug_p.h>
-#include <QtQGstreamerMediaPluginImpl/private/qgst_discoverer_p.h>
-#include <QtQGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
-#include <QtQGstreamerMediaPluginImpl/private/qgstreamermetadata_p.h>
+#include <QtGstreamerMediaPluginImpl/private/qgst_handle_types_p.h>
+#include <QtGstreamerMediaPluginImpl/private/qgst_p.h>
+#include <QtGstreamerMediaPluginImpl/private/qgst_debug_p.h>
+#include <QtGstreamerMediaPluginImpl/private/qgst_discoverer_p.h>
+#include <QtGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
+#include <QtGstreamerMediaPluginImpl/private/qgstreamermetadata_p.h>
 
 #include <set>
 #include <variant>
