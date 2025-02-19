@@ -5,7 +5,7 @@
 
 #include <qobject.h>
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegvideoencoderutils_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegvideoencoderutils_p.h>
 
 QT_USE_NAMESPACE
 

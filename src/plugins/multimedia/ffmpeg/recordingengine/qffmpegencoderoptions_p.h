@@ -14,7 +14,7 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include "qvideoframeformat.h"
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 

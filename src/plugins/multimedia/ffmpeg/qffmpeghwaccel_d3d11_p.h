@@ -14,7 +14,7 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include <QtCore/private/quniquehandle_p.h>
 #include <QtCore/private/qcomptr_p.h>
 #include <qt_windows.h>

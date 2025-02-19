@@ -14,8 +14,8 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegencodingformatcontext_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegencodingformatcontext_p.h>
 
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <qmediarecorder.h>

@@ -16,7 +16,7 @@
 
 #include <QtMultimedia/private/qplatformaudioinput_p.h>
 #include <QtMultimedia/private/qplatformaudiobufferinput_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
 #include <qaudioinput.h>
 
 QT_BEGIN_NAMESPACE

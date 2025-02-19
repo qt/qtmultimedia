@@ -14,8 +14,8 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegtextureconverter_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegtextureconverter_p.h>
 #include "qvideoframeformat.h"
 #include <QtMultimedia/private/qhwvideobuffer_p.h>
 #include <QtMultimedia/private/qrhivaluemapper_p.h>

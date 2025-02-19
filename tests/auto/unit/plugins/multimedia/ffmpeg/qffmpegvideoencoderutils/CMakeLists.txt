@@ -9,6 +9,6 @@ qt_internal_add_test(tst_qffmpegvideoencoderutils
     SOURCES
         tst_qffmpegvideoencoderutils.cpp
     LIBRARIES
-        Qt::QFFmpegMediaPluginImplPrivate
+        Qt::FFmpegMediaPluginImplPrivate
         Qt::MultimediaPrivate
 )

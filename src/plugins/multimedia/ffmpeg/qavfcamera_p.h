@@ -19,7 +19,7 @@
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtMultimedia/private/qvideooutputorientationhandler_p.h>
 #define AVMediaType XAVMediaType
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
 
 #include <qfilesystemwatcher.h>

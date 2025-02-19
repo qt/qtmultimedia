@@ -14,8 +14,8 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegencoderthread_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegencoderthread_p.h>
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <qaudiobuffer.h>
 #include <queue>
