@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT

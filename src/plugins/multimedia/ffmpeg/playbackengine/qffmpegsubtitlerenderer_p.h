@@ -14,7 +14,7 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegrenderer_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegrenderer_p.h>
 
 #include <QtCore/qpointer.h>
 

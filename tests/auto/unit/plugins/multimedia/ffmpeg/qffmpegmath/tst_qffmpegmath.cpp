@@ -3,7 +3,7 @@
 
 #include <QtTest/QtTest>
 #include <QtCore/qobject.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 
 extern "C" {
 #include "libavutil/mathematics.h"

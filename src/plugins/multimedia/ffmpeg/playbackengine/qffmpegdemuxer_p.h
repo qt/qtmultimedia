@@ -14,10 +14,10 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegplaybackengineobject_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegpacket_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackengineobject_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegpacket_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
 #include <QtMultimedia/private/qplatformmediaplayer_p.h>
 
 #include <unordered_map>

@@ -18,8 +18,8 @@
 #include <QtMultimedia/private/qhwvideobuffer_p.h>
 #include <QtCore/qvariant.h>
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 
 QT_BEGIN_NAMESPACE
 

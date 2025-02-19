@@ -16,9 +16,9 @@
 //
 
 #include "qmediametadata.h"
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
 #include <QtMultimedia/private/qplatformmediaplayer_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include "qvideoframe.h"
 #include <QtMultimedia/private/qmultimediautils_p.h>
 

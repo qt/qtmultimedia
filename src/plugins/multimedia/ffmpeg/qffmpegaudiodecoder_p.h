@@ -16,7 +16,7 @@
 //
 
 #include <QtMultimedia/private/qplatformaudiodecoder_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include <qurl.h>
 
 QT_BEGIN_NAMESPACE

@@ -15,10 +15,10 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegcodeccontext_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegcodeccontext_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
 #include "QtCore/qsharedpointer.h"
 #include "qpointer.h"
 #include "qobject.h"

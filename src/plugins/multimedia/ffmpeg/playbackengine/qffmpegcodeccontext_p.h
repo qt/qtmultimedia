@@ -15,9 +15,9 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
 
 #include <QtMultimedia/private/qmaybe_p.h>
 #include <QtCore/qshareddata.h>

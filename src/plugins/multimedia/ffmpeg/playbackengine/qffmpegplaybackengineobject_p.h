@@ -14,7 +14,7 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegplaybackenginedefs_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackenginedefs_p.h>
 #include "qthread.h"
 #include "qatomic.h"
 #include <chrono>

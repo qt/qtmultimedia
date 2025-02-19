@@ -45,12 +45,12 @@
  *
  */
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegplaybackenginedefs_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegtimecontroller_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegmediadataholder_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegcodeccontext_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackenginedefs_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegtimecontroller_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediadataholder_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegcodeccontext_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
 
 #include <QtCore/qpointer.h>
 

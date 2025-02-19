@@ -16,7 +16,7 @@
 //
 
 #include "qtmultimediaglobal.h"
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
 
 #include <type_traits>
 
