@@ -14,7 +14,7 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
 #include "qpointer.h"
 #include "qsemaphore.h"
 

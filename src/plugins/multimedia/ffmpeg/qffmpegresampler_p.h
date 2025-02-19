@@ -15,7 +15,7 @@
 //
 
 #include "qaudiobuffer.h"
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include <QtMultimedia/private/qplatformaudioresampler_p.h>
 
 QT_BEGIN_NAMESPACE

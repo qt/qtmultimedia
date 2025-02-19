@@ -20,8 +20,8 @@
 #include <qtimer.h>
 #include <qpointer.h>
 #include <qfuture.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegmediadataholder_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediadataholder_p.h>
 
 QT_BEGIN_NAMESPACE
 

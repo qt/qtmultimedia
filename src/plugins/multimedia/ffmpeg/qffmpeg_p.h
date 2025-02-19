@@ -14,9 +14,9 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegcodec_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegavaudioformat_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegcodec_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegavaudioformat_p.h>
 #include <QtMultimedia/qvideoframeformat.h>
 
 #include <qstring.h>

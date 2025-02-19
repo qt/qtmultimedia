@@ -17,7 +17,7 @@
 //
 
 #include <QtMultimedia/private/qplatformimagecapture_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegmediacapturesession_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediacapturesession_p.h>
 
 #include <QtCore/qpointer.h>
 #include <qqueue.h>

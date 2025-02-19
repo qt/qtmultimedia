@@ -14,6 +14,6 @@ qt_internal_add_test(tst_qffmpegmath
     SOURCES
         tst_qffmpegmath.cpp
     LIBRARIES
-        Qt::QFFmpegMediaPluginImplPrivate
+        Qt::FFmpegMediaPluginImplPrivate
         Qt::MultimediaPrivate
 )

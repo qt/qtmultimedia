@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <QtQFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
 #include "qtmultimediaglobal.h"
 
 #include <functional>

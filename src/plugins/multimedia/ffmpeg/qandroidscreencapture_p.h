@@ -16,7 +16,7 @@
 //
 
 #include <QtMultimedia/private/qplatformsurfacecapture_p.h>
-#include <QtQFFmpegMediaPluginImpl/private/qandroidvideoframebuffer_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qandroidvideoframebuffer_p.h>
 #include <QJniObject>
 #include <memory>
 

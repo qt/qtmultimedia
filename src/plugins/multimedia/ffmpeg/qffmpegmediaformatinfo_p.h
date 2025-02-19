@@ -19,7 +19,7 @@
 #include <qhash.h>
 #include <qlist.h>
 #include <qaudioformat.h>
-#include <QtQFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 
 QT_BEGIN_NAMESPACE
 
