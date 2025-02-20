@@ -45,9 +45,13 @@ static bool isPacketWithinStreamDuration(const AVFormatContext *context, const P
     // malformed duration, rework doNextStep to check for eof after that packet.
 }
 
-Demuxer::Demuxer(AVFormatContext *context, TrackPosition initialPosUs, const LoopOffset &loopOffset,
-                 const StreamIndexes &streamIndexes, int loops)
-    : m_context(context), m_posInLoopUs{ initialPosUs }, m_loopOffset(loopOffset), m_loops(loops)
+Demuxer::Demuxer(AVFormatContext *context, TrackPosition initialPosUs, bool seekPending,
+                 const LoopOffset &loopOffset, const StreamIndexes &streamIndexes, int loops)
+    : m_context(context),
+      m_seeked(!seekPending && initialPosUs == TrackPosition{ 0 }), // Don't seek to 0 unless seek requested
+      m_posInLoopUs{ initialPosUs },
+      m_loopOffset(loopOffset),
+      m_loops(loops)
 {
     qCDebug(qLcDemuxer) << "Create demuxer."
                         << "pos:" << m_posInLoopUs.get()
@@ -234,6 +238,9 @@ void Demuxer::ensureSeeked()
         // NOTE: m_posInLoop is not calculated correctly if the start_time is non-zero, but
         // this must be fixed separately.
         const AVContextPosition seekPos = toContextPosition(m_posInLoopUs, m_context);
+
+        qCDebug(qLcDemuxer).nospace()
+                << "Seeking to offset " << m_posInLoopUs.get() << "us from media start.";
 
         auto err = av_seek_frame(m_context, -1, seekPos.get(), AVSEEK_FLAG_BACKWARD);
 

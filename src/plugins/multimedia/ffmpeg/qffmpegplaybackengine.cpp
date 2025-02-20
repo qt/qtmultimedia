@@ -261,6 +261,7 @@ void PlaybackEngine::seek(TrackPosition pos)
 
     m_timeController.setPaused(true);
     m_timeController.sync(m_currentLoopOffset.loopStartTimeUs.asDuration() + pos);
+    m_seekPending = true;
 
     forceUpdate();
 }
@@ -433,7 +434,10 @@ void PlaybackEngine::createDemuxer()
     const TrackPosition currentLoopPosUs = currentPosition(false);
 
     m_demuxer = createPlaybackEngineObject<Demuxer>(m_media.avContext(), currentLoopPosUs,
-                                                    m_currentLoopOffset, streamIndexes, m_loops);
+                                                    m_seekPending, m_currentLoopOffset,
+                                                    streamIndexes, m_loops);
+
+    m_seekPending = false;
 
     connect(m_demuxer.get(), &Demuxer::packetsBuffered, this, &PlaybackEngine::buffered);
 
