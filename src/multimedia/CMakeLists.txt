@@ -350,6 +350,16 @@ set(VIDEO_SHADERS
     "shaders/nv21_fallback.frag"
 )
 
+set(VIDEO_SHADERS_UTILS
+    "shaders/interpolation.glsl"
+    "shaders/colortransfer.glsl"
+    "shaders/colorconvert.glsl"
+    "shaders/uniformbuffer.glsl"
+    "shaders/hdrtonemapper.glsl")
+
+set_source_files_properties(${VIDEO_SHADERS_UTILS} PROPERTIES HEADER_FILE_ONLY ON)
+target_sources(Multimedia PRIVATE ${VIDEO_SHADERS_UTILS})
+
 qt_internal_add_shaders(Multimedia "qtmultimedia_shaders"
     SILENT
     BATCHABLE
