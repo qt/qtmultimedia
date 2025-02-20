@@ -15,10 +15,12 @@
 // We mean it.
 //
 
+#include <AudioUnit/AudioUnit.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qpromise.h>
 #include <QtCore/qfuture.h>
 #include <QtCore/qspan.h>
+#include <QtCore/private/quniquehandle_p.h>
 #include <QtMultimedia/qaudioformat.h>
 
 #include <CoreAudioTypes/CoreAudioTypes.h>
@@ -73,6 +75,15 @@ private:
     AudioObjectID m_currentId;
 };
 #endif
+
+struct AudioUnitHandleTraits
+{
+    using Type = AudioUnit;
+    static Type invalidValue() { return nullptr; }
+    static bool close(Type handle) { return AudioComponentInstanceDispose(handle) == noErr; }
+};
+
+using AudioUnitHandle = QUniqueHandle<AudioUnitHandleTraits>;
 
 } // namespace QCoreAudioUtils
 
