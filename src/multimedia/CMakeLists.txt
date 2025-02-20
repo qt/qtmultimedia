@@ -101,6 +101,7 @@ qt_internal_add_module(Multimedia
         video/qvideoframeformat.cpp video/qvideoframeformat.h
         video/qvideowindow.cpp video/qvideowindow_p.h
         video/qtvideo.cpp video/qtvideo.h
+        shaders/qrhitextureformats_p.h
     INCLUDE_DIRECTORIES
         audio
         camera
@@ -372,6 +373,7 @@ set(VIDEO_SHADERS
     "shaders/y.frag"
     "shaders/nv12.frag"
     "shaders/nv21.frag"
+    "shaders/p016.frag"
     "shaders/imc2.frag"
     "shaders/imc4.frag"
     "shaders/uyvy.frag"
@@ -382,16 +384,15 @@ set(VIDEO_SHADERS
     "shaders/ayuv.frag"
     "shaders/nv12_bt2020_pq.frag"
     "shaders/nv12_bt2020_hlg.frag"
-    "shaders/nv12_fallback.frag"
-    "shaders/nv21_fallback.frag"
 )
 
 set(VIDEO_SHADERS_UTILS
-    "shaders/interpolation.glsl"
+    "shaders/texturecomponent.glsl"
     "shaders/colortransfer.glsl"
     "shaders/colorconvert.glsl"
     "shaders/uniformbuffer.glsl"
-    "shaders/hdrtonemapper.glsl")
+    "shaders/hdrtonemapper.glsl"
+)
 
 set_source_files_properties(${VIDEO_SHADERS_UTILS} PROPERTIES HEADER_FILE_ONLY ON)
 target_sources(Multimedia PRIVATE ${VIDEO_SHADERS_UTILS})
