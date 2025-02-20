@@ -219,6 +219,7 @@ private:
     std::array<RendererPtr, QPlatformMediaPlayer::NTrackTypes> m_renderers;
 
     bool m_shouldUpdateTimeOnFirstPacket = false;
+    bool m_seekPending = false;
 
     std::array<std::optional<CodecContext>, QPlatformMediaPlayer::NTrackTypes> m_codecContexts;
     int m_loops = QMediaPlayer::Once;
