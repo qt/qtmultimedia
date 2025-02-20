@@ -303,7 +303,7 @@ QString vertexShaderFileName(const QVideoFrameFormat &format)
     return QStringLiteral(":/qt-project.org/multimedia/shaders/vertex.vert.qsb");
 }
 
-QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *rhi,
+QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *,
                                QRhiSwapChain::Format surfaceFormat)
 {
     QString shaderFile;
@@ -370,8 +370,8 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *rhi,
             shaderFile = QStringLiteral("nv12_bt2020_hlg");
             break;
         }
-        // Fall through, should be bt709
-        Q_FALLTHROUGH();
+        shaderFile = QStringLiteral("p016");
+        break;
     case QVideoFrameFormat::Format_NV12:
         shaderFile = QStringLiteral("nv12");
         break;
@@ -398,12 +398,6 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *rhi,
         return QString();
 
     shaderFile.prepend(u":/qt-project.org/multimedia/shaders/");
-
-    if (format.pixelFormat() == QVideoFrameFormat::Format_NV12
-        || format.pixelFormat() == QVideoFrameFormat::Format_NV21) {
-        if (!isRhiTextureFormatSupported(rhi, QRhiTexture::RG8))
-            shaderFile.append(u"_fallback");
-    }
 
     if (surfaceFormat == QRhiSwapChain::HDRExtendedSrgbLinear)
         shaderFile.append(u"_linear");
@@ -647,6 +641,8 @@ void updateUniformData(QByteArray *dst, QRhi *rhi, const QVideoFrameFormat &form
             isRhiTextureFormatSupported(rhi, QRhiTexture::R8) ||
             rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
     ud->redOrAlphaIndex = useRedComponent ? 0 : 3; // r:0 g:1 b:2 a:3
+    for (int plane = 0; plane < desc->nplanes; ++plane)
+        ud->planeFormats[plane] = desc->rhiTextureFormat(plane, rhi);
 }
 
 enum class UpdateTextureWithMapResult : uint8_t {

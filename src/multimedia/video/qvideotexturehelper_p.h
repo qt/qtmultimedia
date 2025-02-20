@@ -148,6 +148,7 @@ struct UniformData {
     float masteringWhite;
     float maxLum;
     int redOrAlphaIndex;
+    int planeFormats[3];
 };
 
 struct Q_MULTIMEDIA_EXPORT SubtitleLayout

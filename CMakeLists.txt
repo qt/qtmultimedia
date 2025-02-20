@@ -68,6 +68,7 @@ set(QT_BUILD_EXTRA_IDE_FILE_PATTERNS
     src/multimedia/doc/src/images/slideshow-img1.png
     src/multimedia/doc/src/images/sound-wave-small.jpg
     src/multimedia/doc/src/images/video-graphics-memory.png
+
 )
 
 qt_build_repo()
