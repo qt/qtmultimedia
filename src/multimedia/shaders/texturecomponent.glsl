@@ -1,8 +1,11 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef INTERPOLATION_UTILS
-#define INTERPOLATION_UTILS
+#ifndef TEXTURECOMPONENT
+#define TEXTURECOMPONENT
+
+#include "uniformbuffer.glsl"
+#include "qrhitextureformats_p.h"
 
 // The function implements a workaround for platforms that don't support RG8 format.
 // E.g., NV12 for GLES2.0 requires an interleaved chroma plane to be packed into RGBA texture.
@@ -84,6 +87,16 @@ vec2 interpolate_RGBA8_to_RG8(sampler2D planeTexture, vec2 texCoord, float frame
             return rgba.rg;
         }
     }
+}
+
+vec2 getRG8(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) {
+    if (rhiTextureFormat == RhiTextureFormat_RG8)
+        return texture(planeTexture, texCoord).rg;
+
+    if (rhiTextureFormat == RhiTextureFormat_RGBA8)
+        return interpolate_RGBA8_to_RG8(planeTexture, texCoord, ubuf.width);
+
+    return vec2(0, 0); 
 }
 
 #endif
