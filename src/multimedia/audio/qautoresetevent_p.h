@@ -37,6 +37,15 @@ using QAutoResetEvent = QAutoResetEventWin32;
 } // namespace QtPrivate
 QT_END_NAMESPACE
 
+#elif defined(Q_OS_APPLE)
+#  include "qautoresetevent_kqueue_p.h"
+
+QT_BEGIN_NAMESPACE
+namespace QtPrivate {
+using QAutoResetEvent = QAutoResetEventKQueue;
+} // namespace QtPrivate
+QT_END_NAMESPACE
+
 #else
 #  include "qautoresetevent_pipe_p.h"
 

@@ -254,6 +254,12 @@ qt_internal_extend_target(Multimedia CONDITION LINUX OR ANDROID
         audio/qautoresetevent_linux_p.h audio/qautoresetevent_linux.cpp
 )
 
+qt_internal_extend_target(Multimedia CONDITION APPLE
+    SOURCES
+        audio/qautoresetevent_kqueue_p.h audio/qautoresetevent_kqueue.cpp
+)
+
+
 qt_internal_extend_target(Multimedia CONDITION UNIX
     SOURCES
         audio/qautoresetevent_pipe_p.h audio/qautoresetevent_pipe.cpp
