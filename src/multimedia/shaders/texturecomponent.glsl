@@ -99,4 +99,12 @@ vec2 getRG8(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) {
     return vec2(0, 0); 
 }
 
+// it assumes that the rhi texture format is R8 or RED_OR_ALPHA
+float getR8(sampler2D planeTexture, vec2 texCoord) {
+    return texture(planeTexture, texCoord)[ubuf.redOrAlphaIndex];
+}
+
+// TODO: implement getR16 to cover Android issues
+// float getR16(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) { }
+
 #endif

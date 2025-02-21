@@ -309,8 +309,10 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *,
     QString shaderFile;
     switch (format.pixelFormat()) {
     case QVideoFrameFormat::Format_Y8:
-    case QVideoFrameFormat::Format_Y16:
         shaderFile = QStringLiteral("y");
+        break;
+    case QVideoFrameFormat::Format_Y16:
+        shaderFile = QStringLiteral("y16");
         break;
     case QVideoFrameFormat::Format_AYUV:
     case QVideoFrameFormat::Format_AYUV_Premultiplied:
