@@ -6,21 +6,17 @@
 
 #include "uniformbuffer.glsl"
 #include "colortransfer.glsl"
-#include "texturecomponent.glsl"
 
 layout(location = 0) in vec2 texCoord;
 layout(location = 0) out vec4 fragColor;
 
 layout(binding = 1) uniform sampler2D plane1Texture;
-layout(binding = 2) uniform sampler2D plane2Texture;
-layout(binding = 3) uniform sampler2D plane3Texture;
 
 void main()
 {
-    float Y = getR8(plane1Texture, texCoord);
-    float U = getR8(plane2Texture, texCoord);
-    float V = getR8(plane3Texture, texCoord);
-    vec4 color = vec4(Y, U, V, 1.);
+    float Y = texture(plane1Texture, texCoord).r;
+
+    vec4 color = vec4(Y, Y, Y, 1.);
     fragColor = ubuf.colorMatrix * color * ubuf.opacity;
 
 #ifdef QMM_OUTPUTSURFACE_LINEAR

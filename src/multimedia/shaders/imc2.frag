@@ -6,6 +6,7 @@
 
 #include "uniformbuffer.glsl"
 #include "colortransfer.glsl"
+#include "texturecomponent.glsl"
 
 layout(location = 0) in vec2 texCoord;
 layout(location = 0) out vec4 fragColor;
@@ -15,10 +16,10 @@ layout(binding = 2) uniform sampler2D plane2Texture;
 
 void main()
 {
-    float Y = texture(plane1Texture, texCoord)[ubuf.redOrAlphaIndex];
+    float Y = getR8(plane1Texture, texCoord);
     float x = texCoord.x/2.;
-    float U = texture(plane2Texture, vec2(x + .5, texCoord.y))[ubuf.redOrAlphaIndex];
-    float V = texture(plane2Texture, vec2(x, texCoord.y))[ubuf.redOrAlphaIndex];
+    float U = getR8(plane2Texture, vec2(x + .5, texCoord.y));
+    float V = getR8(plane2Texture, vec2(x, texCoord.y));
     vec4 color = vec4(Y, U, V, 1.);
     fragColor = ubuf.colorMatrix * color * ubuf.opacity;
 

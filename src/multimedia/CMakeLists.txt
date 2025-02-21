@@ -375,6 +375,7 @@ set(VIDEO_SHADERS
     "shaders/rgba.frag"
     "shaders/bgra.frag"
     "shaders/y.frag"
+    "shaders/y16.frag"
     "shaders/nv12.frag"
     "shaders/nv21.frag"
     "shaders/p016.frag"
