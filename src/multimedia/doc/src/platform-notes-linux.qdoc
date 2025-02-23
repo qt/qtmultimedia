@@ -8,6 +8,15 @@
 
 This page discusses considerations for using Qt Multimedia on Linux.
 
+\section1 Audio backend requirements
+
+Qt Multimedia audio features on Linux requires PulseAudio. The experimental ALSA backend will be
+deprecated in future versions of Qt. Until then, community contributions are required to fix issues
+with this backend.
+
+For applications that use the GStreamer backend on embedded Linux, see
+\l{Qt Multimedia GStreamer backend} for additional PulseAudio requirements.
+
 \section1 Limitations on Linux using the Wayland compositor
 
 The screen capture feature requires the installation of:

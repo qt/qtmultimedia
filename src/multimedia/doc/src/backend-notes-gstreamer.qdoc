@@ -25,6 +25,8 @@ GStreamer is not bundled with Qt, but it is typically deployed with the Linux di
   This bug currently affects most mainstream Linux distributions, including Ubuntu 22.04, 23.10 and
   24.04, Debian 11 and 12, as well as Fedora 39 and 40.
 \li Seeking, playback rates, loop, switching sinks have known bugs.
+\li Audio features requires PulseAudio. See \l{Qt Multimedia on Linux}{Linux platform notes}
+  for details.
 \endlist
 
 \section1 Customization points
