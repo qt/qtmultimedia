@@ -244,7 +244,7 @@
     media backends for each operating system:
 
     \list
-        \li GStreamer on Linux
+        \li \l{Qt Multimedia GStreamer Backend}{GStreamer backend} on Embedded Linux
         \li AVFoundation on macOS and iOS
         \li Windows Media Foundation on Windows
         \li MediaCodec framework on Android
@@ -264,7 +264,7 @@
 
     The GStreamer backend has some private APIs to allow more fine-grained control.
     However, there are known bugs in the GStreamer backend. More details can be found
-    in \l{Qt Multimedia GStreamer Backend}{GStreamer}.
+    in \l{Qt Multimedia GStreamer Backend}{platform notes for the GStreamer backend}.
 
     Backend limitations will be documented, and their status will be maintained in the
     respective classes.
@@ -273,7 +273,7 @@
 
     In the case of issues with the default FFmpeg backend, we suggest testing with a native backend.
     You can switch to native backends by setting the \c{QT_MEDIA_BACKEND} environment variable
-    to \c windows, \c gstreamer (on Linux), \c darwin (on macOS and iOS), or \c android:
+    to \c windows, \c gstreamer (on Embedded Linux), \c darwin (on macOS and iOS), or \c android:
 
     \code
     export QT_MEDIA_BACKEND=darwin
@@ -289,14 +289,14 @@
     via cmake variable \c{QT_DEFAULT_MEDIA_BACKEND}.
 
     \section2 Target platform notes
-    The following pages list issues for specific target platforms that are not
-    related to the multimedia backend.
+    The following pages list issues for specific target platforms.
 
     \list
       \li \l{Qt Multimedia on Windows}{Windows}
       \li \l{Qt Multimedia on macOS and iOS}{macOS and iOS}
       \li \l{Qt Multimedia on WebAssembly}{WebAssembly}
       \li \l{Qt Multimedia on Linux}{Linux}
+      \li \l{Qt Multimedia GStreamer Backend}{Embedded Linux and GStreamer}
     \endlist
 
     \section1 Permissions
