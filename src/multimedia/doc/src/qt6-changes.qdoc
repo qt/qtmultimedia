@@ -83,15 +83,6 @@ There are a number of new features in Qt Multimedia:
         response time for supporting new multimedia use cases. Any classes that
         contain the words "Control" or "Abstract" in the class name in Qt 5 are
         now private in Qt 6.
-    \row
-        \li Back-end plugins
-        \li Qt Multimedia in Qt 6 does not use a plugin infrastructure for its
-        back ends anymore.
-        This means that users no longer need to ship those back ends with their
-        application. Instead, the back end being used is determined at compile
-        time based on the underlying operating system. Qt uses \l gstreamer on
-        Linux, WMF on Windows, AVFoundation on macOS and iOS and the Android
-        multimedia APIs on Android.
 \endtable
 
 \section1 Changed features
