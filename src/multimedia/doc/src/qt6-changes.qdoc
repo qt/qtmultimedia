@@ -83,6 +83,11 @@ There are a number of new features in Qt Multimedia:
         response time for supporting new multimedia use cases. Any classes that
         contain the words "Control" or "Abstract" in the class name in Qt 5 are
         now private in Qt 6.
+    \row
+        \li Support for ALSA audio on Linux is experimental
+        \li Audio on Linux requires PulseAudio. Experimental ALSA support will be
+        deprecated in future Qt versions. See
+        \l{Qt Multimedia on Linux}{Linux platform notes} for details.
 \endtable
 
 \section1 Changed features
