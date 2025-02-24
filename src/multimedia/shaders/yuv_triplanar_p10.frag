@@ -6,6 +6,7 @@
 
 #include "uniformbuffer.glsl"
 #include "colortransfer.glsl"
+#include "texturecomponent.glsl"
 
 layout(location = 0) in vec2 texCoord;
 layout(location = 0) out vec4 fragColor;
@@ -16,9 +17,9 @@ layout(binding = 3) uniform sampler2D plane3Texture;
 
 void main()
 {
-    float Y = texture(plane1Texture, texCoord).r * 64;
-    float U = texture(plane2Texture, texCoord).r * 64;
-    float V = texture(plane3Texture, texCoord).r * 64;
+    float Y = getR16(plane1Texture, texCoord, ubuf.plane1Format) * 64;
+    float U = getR16(plane2Texture, texCoord, ubuf.plane2Format) * 64;
+    float V = getR16(plane3Texture, texCoord, ubuf.plane3Format) * 64;
     vec4 color = vec4(Y, U, V, 1.);
     fragColor = ubuf.colorMatrix * color * ubuf.opacity;
 
