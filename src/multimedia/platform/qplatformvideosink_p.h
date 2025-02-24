@@ -68,7 +68,7 @@ protected:
     explicit QPlatformVideoSink(QVideoSink *parent);
 
 Q_SIGNALS:
-    void rhiChanged(QRhi *rhi);
+    void rhiChanged();
 
 private:
     QVideoSink *m_sink = nullptr;
