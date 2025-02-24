@@ -8,6 +8,7 @@
 #include "colortransfer.glsl"
 #include "colorconvert.glsl"
 #include "hdrtonemapper.glsl"
+#include "texturecomponent.glsl"
 
 layout(location = 0) in vec2 texCoord;
 layout(location = 0) out vec4 fragColor;
@@ -24,8 +25,8 @@ layout(binding = 2) uniform sampler2D plane2Texture;
 // operate in HLG space here.
 void main()
 {
-    float Y = texture(plane1Texture, texCoord).r;
-    vec2 UV = texture(plane2Texture, texCoord).rg;
+    float Y = getR16(plane1Texture, texCoord, ubuf.plane1Format);
+    vec2 UV = getRG16(plane2Texture, texCoord, ubuf.plane2Format);
     // map to Rec.2020 color space
     fragColor = vec4(Y, UV.x, UV.y, 1.);
     fragColor = ubuf.colorMatrix * fragColor;

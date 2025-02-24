@@ -89,6 +89,20 @@ vec2 interpolate_RGBA8_to_RG8(sampler2D planeTexture, vec2 texCoord, float frame
     }
 }
 
+float interpolate_RG8_to_R16(sampler2D planeTexture, vec2 texCoord)
+{
+    vec2 rg = texture(planeTexture, texCoord).rg;
+    return (rg.r * 255 + rg.g * 255 * 256) / 65535;
+}
+
+vec2 interpolate_RGBA8_to_RG16(sampler2D planeTexture, vec2 texCoord)
+{
+    vec4 rgba = texture(planeTexture, texCoord);
+    float r = (rgba.r * 255 + rgba.g * 255 * 256) / 65535;
+    float g = (rgba.b * 255 + rgba.a * 255 * 256) / 65535;
+    return vec2(r, g);
+}
+
 vec2 getRG8(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) {
     if (rhiTextureFormat == RhiTextureFormat_RG8)
         return texture(planeTexture, texCoord).rg;
@@ -96,7 +110,7 @@ vec2 getRG8(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) {
     if (rhiTextureFormat == RhiTextureFormat_RGBA8)
         return interpolate_RGBA8_to_RG8(planeTexture, texCoord, ubuf.width);
 
-    return vec2(0, 0); 
+    return vec2(0, 0);
 }
 
 // it assumes that the rhi texture format is R8 or RED_OR_ALPHA
@@ -104,7 +118,24 @@ float getR8(sampler2D planeTexture, vec2 texCoord) {
     return texture(planeTexture, texCoord)[ubuf.redOrAlphaIndex];
 }
 
-// TODO: implement getR16 to cover Android issues
-// float getR16(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) { }
+float getR16(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) {
+    if (rhiTextureFormat == RhiTextureFormat_R16)
+        return texture(planeTexture, texCoord).r;
+
+    if (rhiTextureFormat == RhiTextureFormat_RG8)
+        return interpolate_RG8_to_R16(planeTexture, texCoord);
+
+    return 0;
+}
+
+vec2 getRG16(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) {
+    if (rhiTextureFormat == RhiTextureFormat_RG16)
+        return texture(planeTexture, texCoord).rg;
+
+    if (rhiTextureFormat == RhiTextureFormat_RGBA8)
+        return interpolate_RGBA8_to_RG16(planeTexture, texCoord);
+
+    return vec2(0, 0);
+}
 
 #endif

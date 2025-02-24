@@ -14,6 +14,7 @@
 #include "private/qthreadlocalrhi_p.h"
 #include <private/qfileutil_p.h>
 #include <private/qmultimedia_enum_to_string_converter_p.h>
+#include <private/osdetection_p.h>
 #include <QtGui/QColorSpace>
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
@@ -24,7 +25,8 @@ QT_BEGIN_NAMESPACE
 
 using namespace QtMultimediaPrivate;
 
-enum class RenderingMode { Rhi, Rhi_R8_Excluded, Rhi_RG8_Excluded, Rhi_R8_RG8_Excluded, Cpu };
+enum class RenderingMode { Rhi, Rhi_R8_Excluded, Rhi_RG8_Excluded, Rhi_R8_RG8_Excluded,
+                           Rhi_R16_Excluded, Rhi_RG16_Excluded, Cpu };
 
 // clang-format off
 
@@ -33,6 +35,8 @@ QT_MM_MAKE_STRING_RESOLVER(RenderingMode, EnumName,
                            (RenderingMode::Rhi_R8_Excluded, "Rhi_R8_Excluded")
                            (RenderingMode::Rhi_RG8_Excluded, "Rhi_RG8_Excluded")
                            (RenderingMode::Rhi_R8_RG8_Excluded, "Rhi_R8_RG8_Excluded")
+                           (RenderingMode::Rhi_R16_Excluded, "Rhi_R16_Excluded")
+                           (RenderingMode::Rhi_RG16_Excluded, "Rhi_RG16_Excluded")
                            (RenderingMode::Cpu, "Cpu")
                           );
 
@@ -41,6 +45,7 @@ QT_MM_MAKE_STRING_RESOLVER(RenderingMode, EnumName,
 QT_END_NAMESPACE
 
 QT_USE_NAMESPACE
+using namespace QVideoTextureHelper;
 
 namespace {
 
@@ -104,6 +109,19 @@ const QSet s_formats{ QVideoFrameFormat::Format_ARGB8888,
                       QVideoFrameFormat::Format_P016,
                       QVideoFrameFormat::Format_YUV420P10 };
 
+QList<QRhiTexture::Format> excludedRhiFormats(RenderingMode mode) {
+    QList<QRhiTexture::Format> excludedFormats;
+    if (mode == RenderingMode::Rhi_R8_RG8_Excluded || mode == RenderingMode::Rhi_R8_Excluded)
+        excludedFormats.push_back(QRhiTexture::R8);
+    if (mode == RenderingMode::Rhi_R8_RG8_Excluded || mode == RenderingMode::Rhi_RG8_Excluded)
+        excludedFormats.push_back(QRhiTexture::RG8);
+    if (mode == RenderingMode::Rhi_R16_Excluded)
+        excludedFormats.push_back(QRhiTexture::R16);
+    if (mode == RenderingMode::Rhi_RG16_Excluded)
+        excludedFormats.push_back(QRhiTexture::RG16);
+    return excludedFormats;
+}
+
 bool hasCorrespondingFFmpegFormat(QVideoFrameFormat::PixelFormat format)
 {
     return format != QVideoFrameFormat::Format_AYUV
@@ -124,26 +142,6 @@ QSet<QVideoFrameFormat::PixelFormat> pixelFormats()
 {
     return s_formats;
 }
-
-bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
-{
-#ifdef Q_OS_ANDROID
-    // TODO: QTBUG-125238
-    switch (pixelFormat) {
-    case QVideoFrameFormat::Format_Y16:
-    case QVideoFrameFormat::Format_P010:
-    case QVideoFrameFormat::Format_P016:
-    case QVideoFrameFormat::Format_YUV420P10:
-        return false;
-    default:
-        return true;
-    }
-#else
-    Q_UNUSED(pixelFormat);
-    return true;
-#endif
-}
-
 
 QString toString(QVideoFrameFormat::ColorSpace s)
 {
@@ -168,6 +166,21 @@ std::vector<QVideoFrameFormat::ColorSpace> colorSpaces()
              QVideoFrameFormat::ColorSpace_AdobeRgb, QVideoFrameFormat::ColorSpace_BT2020 };
 }
 
+bool areTextureFormatsUsedForPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat,
+                                    const QList<TextureDescription::TextureFormat>& textureFormats)
+{
+    const auto textureDescription = QVideoTextureHelper::textureDescription(pixelFormat);
+    return std::all_of(textureFormats.cbegin(), textureFormats.cend(), [textureDescription](auto textureFormat) {
+        return textureDescription->hasTextureFormat(textureFormat);
+    });
+}
+
+bool areRhiTextureFormatsSupported(const QRhi& rhi, const QList<QRhiTexture::Format>& rhiFormats) {
+    return std::all_of(rhiFormats.cbegin(), rhiFormats.cend(), [&rhi](QRhiTexture::Format rhiFormat) {
+        return rhi.isTextureFormatSupported(rhiFormat);
+    });
+}
+
 std::vector<RenderingMode> renderingModes(QVideoFrameFormat::PixelFormat pixelFormat)
 {
     std::vector<RenderingMode> result;
@@ -179,17 +192,25 @@ std::vector<RenderingMode> renderingModes(QVideoFrameFormat::PixelFormat pixelFo
 
         result.push_back(RenderingMode::Rhi);
 
-        // We want to emulate excluding QRhi formats only if those are
-        // supported by the rhi.
-        if (rhi->isTextureFormatSupported(QRhiTexture::R8))
-            result.push_back(RenderingMode::Rhi_R8_Excluded);
+        auto addRenderingModeWithExclusions = [&](RenderingMode mode, QList<TextureDescription::TextureFormat> testedFormats) {
+            // We want to emulate excluding QRhi formats only if those are
+            // supported by the rhi.
 
-        if (rhi->isTextureFormatSupported(QRhiTexture::RG8))
-            result.push_back(RenderingMode::Rhi_RG8_Excluded);
+            if (areTextureFormatsUsedForPixelFormat(pixelFormat, testedFormats) &&
+                areRhiTextureFormatsSupported(*rhi, excludedRhiFormats(mode)))
+                result.push_back(mode);
+        };
 
-        if (rhi->isTextureFormatSupported(QRhiTexture::R8)
-            && rhi->isTextureFormatSupported(QRhiTexture::RG8))
-            result.push_back(RenderingMode::Rhi_R8_RG8_Excluded);
+        addRenderingModeWithExclusions(RenderingMode::Rhi_R8_Excluded, { TextureDescription::Red_8 });
+        addRenderingModeWithExclusions(RenderingMode::Rhi_RG8_Excluded, { TextureDescription::RG_8 });
+        addRenderingModeWithExclusions(RenderingMode::Rhi_R8_RG8_Excluded, { TextureDescription::RG_8, TextureDescription::Red_8 });
+
+        // QTBUG-134113:
+        // YUV420P10 fails on Linux CI
+        const bool shouldSkip_Rhi_R16_Excluded = isLinux && isCI() && pixelFormat == QVideoFrameFormat::Format_YUV420P10;
+        if (!shouldSkip_Rhi_R16_Excluded)
+            addRenderingModeWithExclusions(RenderingMode::Rhi_R16_Excluded, { TextureDescription::Red_16 });
+        addRenderingModeWithExclusions(RenderingMode::Rhi_RG16_Excluded, { TextureDescription::RG_16 });
     }
     return result;
 }
@@ -451,8 +472,6 @@ private slots:
         QTest::addColumn<TestParams>("params");
         for (const char *file : { "umbrellas.jpg" }) {
             for (const QVideoFrameFormat::PixelFormat pixelFormat : pixelFormats()) {
-                if (!isSupportedPixelFormat(pixelFormat))
-                    continue;
                 if (!hasCorrespondingFFmpegFormat(pixelFormat))
                     continue;
 
@@ -515,13 +534,7 @@ private slots:
 private:
     void applyRenderingMode(RenderingMode mode)
     {
-        QList<QRhiTexture::Format> excludedFormats;
-        if (mode == RenderingMode::Rhi_R8_RG8_Excluded || mode == RenderingMode::Rhi_R8_Excluded)
-            excludedFormats.push_back(QRhiTexture::R8);
-        if (mode == RenderingMode::Rhi_R8_RG8_Excluded || mode == RenderingMode::Rhi_RG8_Excluded)
-            excludedFormats.push_back(QRhiTexture::RG8);
-
-        QVideoTextureHelper::setExcludedRhiTextureFormats(std::move(excludedFormats));
+        QVideoTextureHelper::setExcludedRhiTextureFormats(excludedRhiFormats(mode));
     }
 
 private:
