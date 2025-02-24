@@ -216,6 +216,11 @@ qt_feature("native_android_backend" PUBLIC PRIVATE
     AUTODETECT true # It is still found and built by default
     CONDITION ANDROID
 )
+qt_feature("native_windows_backend" PUBLIC PRIVATE
+    LABEL "Native Windows backend (deprecated)"
+    AUTODETECT true # It is still found and built by default
+    CONDITION QT_FEATURE_wmf
+)
 qt_feature("pulseaudio" PUBLIC PRIVATE
     LABEL "PulseAudio"
     DISABLE INPUT_pulseaudio STREQUAL 'no'
@@ -265,6 +270,7 @@ qt_configure_add_summary_entry(ARGS "coreaudio")
 qt_configure_add_summary_entry(ARGS "wmsdk")
 qt_configure_add_summary_entry(ARGS "opensles")
 qt_configure_add_summary_entry(ARGS "wasm")
+qt_configure_add_summary_entry(ARGS "wmf")
 qt_configure_end_summary_section()
 qt_configure_add_summary_section(NAME "Plugin")
 qt_configure_add_summary_entry(ARGS "gstreamer")
@@ -274,8 +280,8 @@ qt_configure_add_summary_entry(ARGS "pipewire_screencapture")
 qt_configure_end_summary_section()
 qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "avfoundation")
-qt_configure_add_summary_entry(ARGS "wmf")
 qt_configure_add_summary_entry(ARGS "native_android_backend")
+qt_configure_add_summary_entry(ARGS "native_windows_backend")
 qt_configure_end_summary_section()
 qt_configure_add_summary_section(NAME "Hardware acceleration and features")
 qt_configure_add_summary_entry(ARGS "linux_v4l")
@@ -302,4 +308,10 @@ qt_configure_add_report_entry(
     TYPE WARNING
     MESSAGE "No media backend found"
     CONDITION ANDROID AND NOT (QT_FEATURE_native_android_backend OR QT_FEATURE_ffmpeg)
+)
+
+qt_configure_add_report_entry(
+    TYPE WARNING
+    MESSAGE "No media backend found"
+    CONDITION WIN32 AND NOT (QT_FEATURE_native_windows_backend OR QT_FEATURE_ffmpeg)
 )
