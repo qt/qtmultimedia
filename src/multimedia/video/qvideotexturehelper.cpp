@@ -268,9 +268,9 @@ QRhiTexture::Format TextureDescription::rhiTextureFormat(int plane, QRhi *rhi) c
         case Red_16:
             // TODO: Special handling for 16-bit formats, if we want to support them at all.
             // Otherwise should give an error.
-            return resolveRhiTextureFormat(rhi, QRhiTexture::R16);
+            return resolveRhiTextureFormat(rhi, QRhiTexture::R16, QRhiTexture::RG8);
         case RG_16:
-            return resolveRhiTextureFormat(rhi, QRhiTexture::RG16);
+            return resolveRhiTextureFormat(rhi, QRhiTexture::RG16, QRhiTexture::RGBA8);
         default:
             Q_UNREACHABLE();
     }
