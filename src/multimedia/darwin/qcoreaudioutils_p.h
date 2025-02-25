@@ -30,21 +30,19 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QCoreAudioUtils
-{
+namespace QCoreAudioUtils {
 
 struct QFreeDeleter
 {
     template <typename T>
-    void operator()(T*t)
+    void operator()(T *t)
     {
         ::free(t);
     }
 };
 
-
-Q_MULTIMEDIA_EXPORT QAudioFormat toQAudioFormat(const AudioStreamBasicDescription& streamFormat);
-AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& audioFormat);
+Q_MULTIMEDIA_EXPORT QAudioFormat toQAudioFormat(const AudioStreamBasicDescription &streamFormat);
+AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const &audioFormat);
 
 Q_MULTIMEDIA_EXPORT std::unique_ptr<AudioChannelLayout, QFreeDeleter>
 toAudioChannelLayout(const QAudioFormat &format, UInt32 *size);
@@ -84,6 +82,27 @@ struct AudioUnitHandleTraits
 };
 
 using AudioUnitHandle = QUniqueHandle<AudioUnitHandleTraits>;
+
+// AudioUnit helpers
+std::optional<AudioUnitHandle> makeAudioUnitForIO();
+bool audioUnitSetInputEnabled(AudioUnitHandle &, bool);
+bool audioUnitSetOutputEnabled(AudioUnitHandle &, bool);
+bool audioUnitSetInputStreamFormat(AudioUnitHandle &, AudioUnitElement,
+                                   const AudioStreamBasicDescription &);
+bool audioUnitSetOutputStreamFormat(AudioUnitHandle &, AudioUnitElement,
+                                    const AudioStreamBasicDescription &);
+bool audioUnitIsRunning(AudioUnitHandle &);
+
+std::optional<AudioStreamBasicDescription> audioUnitGetInputStreamFormat(AudioUnitHandle &,
+                                                                         AudioUnitElement);
+
+std::optional<int> audioUnitGetFramesPerSlice(AudioUnitHandle &);
+
+#if defined(Q_OS_MACOS)
+bool audioUnitSetCurrentDevice(AudioUnitHandle &, AudioObjectID);
+std::optional<int> audioUnitGetFramesPerBuffer(AudioUnitHandle &);
+bool audioObjectSetSamplingRate(AudioObjectID, int);
+#endif
 
 } // namespace QCoreAudioUtils
 
