@@ -223,8 +223,8 @@ QAudioFormat::ChannelConfig fromAudioChannelLayout(const AudioChannelLayout *lay
 
             const auto found = std::find_if(channelMap, std::end(channelMap),
                                             [channelLabel](const auto &labelWithPos) {
-                                                return labelWithPos.label == channelLabel;
-                                            });
+                return labelWithPos.label == channelLabel;
+            });
 
             if (found == std::end(channelMap))
                 qWarning() << "audio device has unrecognized channel, index:" << i
@@ -309,6 +309,188 @@ OSStatus DeviceDisconnectMonitor::streamDisconnectListener(
 }
 
 #endif
+
+std::optional<AudioUnitHandle> makeAudioUnitForIO()
+{
+    AudioComponentDescription componentDescription;
+    componentDescription.componentType = kAudioUnitType_Output;
+#if defined(Q_OS_MACOS)
+    componentDescription.componentSubType = kAudioUnitSubType_HALOutput;
+#else
+    componentDescription.componentSubType = kAudioUnitSubType_RemoteIO;
+#endif
+    componentDescription.componentManufacturer = kAudioUnitManufacturer_Apple;
+    componentDescription.componentFlags = 0;
+    componentDescription.componentFlagsMask = 0;
+
+    AudioComponent component = AudioComponentFindNext(nullptr, &componentDescription);
+    if (component == nullptr) {
+        qWarning() << "makeAudioUnitForIO: Failed to find Output component";
+        return std::nullopt;
+    }
+
+    AudioUnitHandle audioUnit;
+    if (AudioComponentInstanceNew(component, &audioUnit) != noErr) {
+        qWarning() << "makeAudioUnitForIO: Unable to Open Output Component";
+        return std::nullopt;
+    }
+
+    return audioUnit;
+}
+
+bool audioUnitSetInputEnabled(AudioUnitHandle &audioUnit, bool enabled)
+{
+    UInt32 enable = enabled ? 1 : 0;
+    if (AudioUnitSetProperty(audioUnit.get(), kAudioOutputUnitProperty_EnableIO,
+                             kAudioUnitScope_Input, 1, &enable, sizeof(enable))
+        != noErr) {
+        qWarning() << "AudioUnit: Unable to enable input";
+        return false;
+    }
+    return true;
+}
+
+bool audioUnitSetOutputEnabled(AudioUnitHandle &audioUnit, bool enabled)
+{
+    UInt32 enable = enabled ? 1 : 0;
+    if (AudioUnitSetProperty(audioUnit.get(), kAudioOutputUnitProperty_EnableIO,
+                             kAudioUnitScope_Output, 0, &enable, sizeof(enable))
+        != noErr) {
+        qWarning() << "AudioUnit: Unable to enable output";
+        return false;
+    }
+    return true;
+}
+
+#ifdef Q_OS_MACOS
+bool audioUnitSetCurrentDevice(AudioUnitHandle &audioUnit, AudioObjectID deviceID)
+{
+    if (AudioUnitSetProperty(audioUnit.get(), kAudioOutputUnitProperty_CurrentDevice,
+                             kAudioUnitScope_Global, 0, &deviceID, sizeof(deviceID))
+        != noErr) {
+        qWarning() << "AudioUnit: Unable to use set device ID";
+        return false;
+    }
+
+    return true;
+}
+#endif
+
+bool audioUnitSetInputStreamFormat(AudioUnitHandle &audioUnit, AudioUnitElement element,
+                                   const AudioStreamBasicDescription &format)
+{
+    OSStatus status = AudioUnitSetProperty(audioUnit.get(), kAudioUnitProperty_StreamFormat,
+                                           kAudioUnitScope_Input, element, &format, sizeof(format));
+    if (status != noErr) {
+        qWarning() << "AudioUnit: Unable to set stream format" << status;
+        return false;
+    }
+    return true;
+}
+
+bool audioUnitSetOutputStreamFormat(AudioUnitHandle &audioUnit, AudioUnitElement element,
+                                    const AudioStreamBasicDescription &format)
+{
+    if (AudioUnitSetProperty(audioUnit.get(), kAudioUnitProperty_StreamFormat,
+                             kAudioUnitScope_Output, element, &format, sizeof(format))
+        != noErr) {
+        qWarning() << "AudioUnit: Unable to set stream format";
+        return false;
+    }
+    return true;
+}
+
+#ifdef Q_OS_MACOS
+std::optional<int> audioUnitGetFramesPerBuffer(AudioUnitHandle &audioUnit)
+{
+    int numberOfFrames;
+    UInt32 size = sizeof(UInt32);
+    if (AudioUnitGetProperty(audioUnit.get(), kAudioDevicePropertyBufferFrameSize,
+                             kAudioUnitScope_Global, 0, &numberOfFrames, &size)
+        == noErr) {
+        return numberOfFrames;
+    }
+
+    qWarning() << "audioUnitGetFramesPerBuffer: Failed to get audio period size";
+
+    AudioValueRange bufferRange;
+    size = sizeof(AudioValueRange);
+    if (AudioUnitGetProperty(audioUnit.get(), kAudioDevicePropertyBufferFrameSizeRange,
+                             kAudioUnitScope_Global, 0, &bufferRange, &size)
+        == noErr) {
+        return int(bufferRange.mMaximum);
+    }
+
+    return std::nullopt;
+}
+
+bool audioObjectSetSamplingRate(AudioObjectID id, int samplingRate)
+{
+    AudioObjectPropertyAddress sampleRateAddress = {
+        kAudioDevicePropertyNominalSampleRate,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMain,
+    };
+
+    Float64 sampleRateArg(samplingRate);
+
+    OSStatus status = AudioObjectSetPropertyData(id, &sampleRateAddress, 0, nullptr,
+                                                 sizeof(Float64), &sampleRateArg);
+
+    if (status != noErr) {
+        qDebug() << "AudioUnitGetProperty failed" << status;
+        return false;
+    }
+
+    return true;
+}
+
+#endif
+
+bool audioUnitIsRunning(AudioUnitHandle &audioUnit)
+{
+    UInt32 isRunning = 0;
+    UInt32 size = sizeof(isRunning);
+
+    OSStatus status = AudioUnitGetProperty(audioUnit.get(), kAudioOutputUnitProperty_IsRunning,
+                                           kAudioUnitScope_Global, 0, &isRunning, &size);
+
+    if (status != noErr) {
+        qDebug() << "AudioUnitGetProperty failed" << status;
+        return false;
+    }
+
+    return bool(isRunning);
+}
+
+std::optional<int> audioUnitGetFramesPerSlice(AudioUnitHandle &audioUnit)
+{
+    int numberOfFrames;
+    UInt32 size = sizeof(UInt32);
+    if (AudioUnitGetProperty(audioUnit.get(), kAudioUnitProperty_MaximumFramesPerSlice,
+                             kAudioUnitScope_Global, 0, &numberOfFrames, &size)
+        == noErr) {
+        return numberOfFrames;
+    }
+
+    return std::nullopt;
+}
+
+std::optional<AudioStreamBasicDescription> audioUnitGetInputStreamFormat(AudioUnitHandle &audioUnit,
+                                                                         AudioUnitElement element)
+{
+    AudioStreamBasicDescription ret;
+    UInt32 size = sizeof(AudioStreamBasicDescription);
+
+    if (AudioUnitGetProperty(audioUnit.get(), kAudioUnitProperty_StreamFormat,
+                             kAudioUnitScope_Input, element, &ret, &size)
+        != noErr) {
+        qWarning() << "QAudioSource: Unable to retrieve device format";
+        return std::nullopt;
+    }
+
+    return ret;
+}
 
 } // namespace QCoreAudioUtils
 
