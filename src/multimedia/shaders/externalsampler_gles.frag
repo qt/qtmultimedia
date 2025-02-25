@@ -14,6 +14,9 @@ struct buf
     float masteringWhite;
     float maxLum;
     int redOrAlphaIndex;
+    int plane1Format;
+    int plane2Format;
+    int plane3Format;
 };
 
 uniform buf ubuf;
