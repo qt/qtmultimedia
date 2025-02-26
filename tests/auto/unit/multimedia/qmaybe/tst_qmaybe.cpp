@@ -62,6 +62,12 @@ private slots:
         }
     }
 
+    void operatorBool_returnsFalse_WhenValueIsNullptr()
+    {
+        const QMaybe<int *, int> e{ nullptr };
+        QVERIFY(!e);
+    }
+
     void value_returnsReferenceToValue_whenValueSet()
     {
         {

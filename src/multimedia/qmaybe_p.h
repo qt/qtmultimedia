@@ -64,6 +64,9 @@ public:
                       "Invalid arguments for creating an error type");
     }
 
+    // NOTE: Returns false if holding a nullptr value, even if no error is set.
+    // This is different from std::expected, where a nullptr is a valid value, not
+    // an error.
     constexpr explicit operator bool() const noexcept { return m_value.has_value(); }
 
     constexpr Value &value()
