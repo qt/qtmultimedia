@@ -41,6 +41,14 @@ class tst_QMaybe : public QObject
     Q_OBJECT
 
 private slots:
+
+    void error_returnsDefaultInitialized_whenQMaybeHasValue()
+    {
+        // TODO: Disallow calling error() on QMaybe that holds value
+        QMaybe<int, char*> m{ 42 };
+        QCOMPARE_EQ(nullptr, m.error());
+    }
+
     void operatorBool_returnsFalse_onlyWhenErrorSet()
     {
         {
