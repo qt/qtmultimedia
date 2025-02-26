@@ -88,7 +88,7 @@ public:
 
 private:
     std::optional<Value> m_value;
-    Error m_error;
+    Error m_error{};
 };
 
 QT_END_NAMESPACE
