@@ -135,7 +135,7 @@ void InputTest::initializeWindow()
 void InputTest::initializeAudio(const QAudioDevice &deviceInfo)
 {
     QAudioFormat format;
-    format.setSampleRate(8000);
+    format.setSampleRate(44100);
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::Int16);
 
