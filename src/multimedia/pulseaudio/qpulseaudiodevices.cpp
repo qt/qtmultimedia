@@ -39,15 +39,21 @@ QList<QAudioDevice> QPulseAudioDevices::findAudioOutputs() const
 }
 
 QPlatformAudioSource *QPulseAudioDevices::createAudioSource(const QAudioDevice &deviceInfo,
-                                                                 QObject *parent)
+                                                            const QAudioFormat &fmt,
+                                                            QObject *parent)
 {
-    return new QPulseAudioSource(deviceInfo.id(), parent);
+    auto ret = new QPulseAudioSource(deviceInfo.id(), parent);
+    ret->setFormat(fmt);
+    return ret;
 }
 
 QPlatformAudioSink *QPulseAudioDevices::createAudioSink(const QAudioDevice &deviceInfo,
-                                                             QObject *parent)
+                                                        const QAudioFormat &fmt,
+                                                        QObject *parent)
 {
-    return new QPulseAudioSink(deviceInfo.id(), parent);
+    auto ret = new QPulseAudioSink(deviceInfo.id(), parent);
+    ret->setFormat(fmt);
+    return ret;
 }
 
 QT_END_NAMESPACE

@@ -230,15 +230,16 @@ QList<QAudioDevice> QDarwinAudioDevices::findAudioOutputs() const
 }
 
 QPlatformAudioSource *QDarwinAudioDevices::createAudioSource(const QAudioDevice &info,
+                                                             const QAudioFormat &fmt,
                                                              QObject *parent)
 {
-    return new QDarwinAudioSource(info, parent);
+    return new QDarwinAudioSource(info, fmt, parent);
 }
 
 QPlatformAudioSink *QDarwinAudioDevices::createAudioSink(const QAudioDevice &info,
-                                                         QObject *parent)
+                                                         const QAudioFormat &fmt, QObject *parent)
 {
-    return new QDarwinAudioSink(info, parent);
+    return new QDarwinAudioSink(info, fmt, parent);
 }
 
 QT_END_NAMESPACE

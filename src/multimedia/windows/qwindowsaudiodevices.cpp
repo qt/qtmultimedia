@@ -270,17 +270,19 @@ QList<QAudioDevice> QWindowsAudioDevices::findAudioOutputs() const
 }
 
 QPlatformAudioSource *QWindowsAudioDevices::createAudioSource(const QAudioDevice &deviceInfo,
+                                                              const QAudioFormat &fmt,
                                                               QObject *parent)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
-    return new QWindowsAudioSource(devInfo->immDev(), parent);
+    return new QWindowsAudioSource(devInfo->immDev(), fmt, parent);
 }
 
 QPlatformAudioSink *QWindowsAudioDevices::createAudioSink(const QAudioDevice &deviceInfo,
+                                                          const QAudioFormat &fmt,
                                                           QObject *parent)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
-    return new QWindowsAudioSink(devInfo->immDev(), parent);
+    return new QWindowsAudioSink(devInfo->immDev(), fmt, parent);
 }
 
 static bool isPrepareAudioEnabled()

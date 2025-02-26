@@ -43,8 +43,10 @@ public:
     QList<QAudioDevice> audioInputs() const;
     QList<QAudioDevice> audioOutputs() const;
 
-    virtual QPlatformAudioSource *createAudioSource(const QAudioDevice &, QObject *parent);
-    virtual QPlatformAudioSink *createAudioSink(const QAudioDevice &, QObject *parent);
+    virtual QPlatformAudioSource *createAudioSource(const QAudioDevice &, const QAudioFormat &,
+                                                    QObject *parent);
+    virtual QPlatformAudioSink *createAudioSink(const QAudioDevice &, const QAudioFormat &,
+                                                QObject *parent);
 
     QPlatformAudioSource *audioInputDevice(const QAudioFormat &format,
                                            const QAudioDevice &deviceInfo, QObject *parent);

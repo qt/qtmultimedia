@@ -193,9 +193,9 @@ qint64 QDarwinAudioSinkDevice::writeData(const char *data, qint64 len)
     return m_audioBuffer->writeBytes(data, len);
 }
 
-QDarwinAudioSink::QDarwinAudioSink(const QAudioDevice &device, QObject *parent)
-    : QPlatformAudioSink(parent),
-      m_stateMachine(*this)
+QDarwinAudioSink::QDarwinAudioSink(const QAudioDevice &device, const QAudioFormat &format,
+                                   QObject *parent)
+    : QPlatformAudioSink(parent), m_audioFormat(format), m_stateMachine(*this)
 {
     // If incoming device is null, fallback to default device.
     // Note: Default device can also be null if no audio-devices are connected.
@@ -317,12 +317,6 @@ QAudio::Error QDarwinAudioSink::error() const
 QAudio::State QDarwinAudioSink::state() const
 {
     return m_stateMachine.state();
-}
-
-void QDarwinAudioSink::setFormat(const QAudioFormat &format)
-{
-    if (state() == QAudio::StoppedState)
-        m_audioFormat = format;
 }
 
 QAudioFormat QDarwinAudioSink::format() const

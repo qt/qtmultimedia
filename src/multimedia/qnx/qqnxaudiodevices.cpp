@@ -56,15 +56,21 @@ QList<QAudioDevice> QQnxAudioDevices::findAudioOutputs() const
 }
 
 QPlatformAudioSource *QQnxAudioDevices::createAudioSource(const QAudioDevice &deviceInfo,
+                                                          const QAudioFormat &fmt,
                                                           QObject *parent)
 {
-    return new QQnxAudioSource(deviceInfo, parent);
+    auto src = new QQnxAudioSource(deviceInfo, parent);
+    src->setFormat(fmt);
+    return src;
 }
 
 QPlatformAudioSink *QQnxAudioDevices::createAudioSink(const QAudioDevice &deviceInfo,
+                                                      const QAudioFormat &fmt,
                                                       QObject *parent)
 {
-    return new QQnxAudioSink(deviceInfo, parent);
+    auto sink = new QQnxAudioSink(deviceInfo, parent);
+    sink->setFormat(fmt);
+    return sink;
 }
 
 QT_END_NAMESPACE
