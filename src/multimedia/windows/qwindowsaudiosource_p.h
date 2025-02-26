@@ -43,12 +43,11 @@ class QWindowsAudioSource : public QPlatformAudioSource
 {
     Q_OBJECT
 public:
-    QWindowsAudioSource(ComPtr<IMMDevice> device, QObject *parent);
+    QWindowsAudioSource(ComPtr<IMMDevice> device, const QAudioFormat &fmt, QObject *parent);
     ~QWindowsAudioSource();
 
     qint64 read(char* data, qint64 len);
 
-    void setFormat(const QAudioFormat& fmt) override;
     QAudioFormat format() const override;
     QIODevice* start() override;
     void start(QIODevice* device) override;
@@ -81,7 +80,7 @@ private:
 
     QIODevice* m_ourSink = nullptr;
     QIODevice* m_clientSink = nullptr;
-    QAudioFormat m_format;
+    const QAudioFormat m_format;
     QAudio::Error m_errorState = QAudio::NoError;
     QAudio::State m_deviceState = QAudio::StoppedState;
 

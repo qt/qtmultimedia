@@ -97,7 +97,7 @@ class QDarwinAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    QDarwinAudioSink(const QAudioDevice &device, QObject *parent);
+    QDarwinAudioSink(const QAudioDevice &device, const QAudioFormat &format, QObject *parent);
     ~QDarwinAudioSink() override;
 
     void start(QIODevice *device) override;
@@ -112,7 +112,6 @@ public:
     qint64 processedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &format) override;
     QAudioFormat format() const override;
 
     void setVolume(qreal volume) override;
@@ -147,7 +146,7 @@ private:
     int m_internalBufferSize = DEFAULT_BUFFER_SIZE;
     int m_periodSizeBytes = 0;
     qint64 m_totalFrames = 0;
-    QAudioFormat m_audioFormat;
+    const QAudioFormat m_audioFormat;
     QIODevice *m_audioIO = nullptr;
     AudioUnit m_audioUnit = 0;
     AudioStreamBasicDescription m_streamFormat;

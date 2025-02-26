@@ -218,8 +218,9 @@ qint64 AudioClient::render(const QAudioFormat &format, qreal volume, const char 
     return writeSize;
 };
 
-QWindowsAudioSink::QWindowsAudioSink(ComPtr<IMMDevice> device, QObject *parent) :
+QWindowsAudioSink::QWindowsAudioSink(ComPtr<IMMDevice> device, const QAudioFormat &fmt, QObject *parent) :
     QPlatformAudioSink(parent),
+    m_format(fmt),
     m_timer(new QTimer(this)),
     m_pushSource(new OutputPrivate(*this)),
     m_device{ std::move(device) }
@@ -263,14 +264,6 @@ void QWindowsAudioSink::deviceStateChange(QAudio::State state, QAudio::Error err
 QAudioFormat QWindowsAudioSink::format() const
 {
     return m_format;
-}
-
-void QWindowsAudioSink::setFormat(const QAudioFormat& fmt)
-{
-    if (deviceState == QAudio::StoppedState) {
-        m_format = fmt;
-        m_recreateClient = true;
-    }
 }
 
 /*!

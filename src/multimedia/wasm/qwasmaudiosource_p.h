@@ -61,7 +61,7 @@ public:
     qint64 processedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &fmt) override;
+    void setFormat(const QAudioFormat &fmt);
     QAudioFormat format() const override;
     void setVolume(qreal volume) override;
     qreal volume() const override;

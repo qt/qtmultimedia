@@ -46,11 +46,12 @@ private:
     QWindowsAudioSource &m_audioSource;
 };
 
-QWindowsAudioSource::QWindowsAudioSource(ComPtr<IMMDevice> device, QObject *parent)
+QWindowsAudioSource::QWindowsAudioSource(ComPtr<IMMDevice> device, const QAudioFormat &fmt, QObject *parent)
     : QPlatformAudioSource(parent),
       m_timer(new QTimer(this)),
       m_device(std::move(device)),
-      m_ourSink(new OurSink(*this))
+      m_ourSink(new OurSink(*this)),
+      m_format(fmt)
 {
     m_ourSink->open(QIODevice::ReadOnly|QIODevice::Unbuffered);
     m_timer->setTimerType(Qt::PreciseTimer);
@@ -81,18 +82,6 @@ QAudio::Error QWindowsAudioSource::error() const
 QAudio::State QWindowsAudioSource::state() const
 {
     return m_deviceState;
-}
-
-void QWindowsAudioSource::setFormat(const QAudioFormat& fmt)
-{
-    if (m_deviceState == QAudio::StoppedState) {
-        m_format = fmt;
-    } else {
-        if (m_format != fmt) {
-            qWarning() << "Cannot set a new audio format, in the current state ("
-                       << m_deviceState << ")";
-        }
-    }
 }
 
 QAudioFormat QWindowsAudioSource::format() const

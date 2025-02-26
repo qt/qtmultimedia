@@ -30,8 +30,10 @@ public:
     QMockAudioDevices();
     ~QMockAudioDevices();
 
-    QPlatformAudioSource *createAudioSource(const QAudioDevice &info, QObject *parent) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDevice &info, QObject *parent) override;
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &, const QAudioFormat &,
+                                            QObject *parent) override;
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &, const QAudioFormat &,
+                                        QObject *parent) override;
 
     void addAudioInput();
     void addAudioOutput();
