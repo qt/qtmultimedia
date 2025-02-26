@@ -43,4 +43,9 @@ performance, and feature support. To read more about these options, see the
     \li \l{Building FFmpeg from source for iOS on macOS}
 \endlist
 
+\section1 Android
+\list
+    \li \l{Building FFmpeg from source for Android on Windows}
+\endlist
+
 */
