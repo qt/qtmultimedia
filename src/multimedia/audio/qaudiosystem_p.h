@@ -57,7 +57,6 @@ public:
     virtual qint64 processedUSecs() const = 0;
     virtual QAudio::Error error() const = 0;
     virtual QAudio::State state() const = 0;
-    virtual void setFormat(const QAudioFormat& fmt) = 0;
     virtual QAudioFormat format() const = 0;
     virtual void setVolume(qreal) {}
     virtual qreal volume() const;
@@ -83,7 +82,6 @@ public:
     virtual qint64 processedUSecs() const = 0;
     virtual QAudio::Error error() const = 0;
     virtual QAudio::State state() const = 0;
-    virtual void setFormat(const QAudioFormat& fmt) = 0;
     virtual QAudioFormat format() const = 0;
     virtual void setVolume(qreal) = 0;
     virtual qreal volume() const = 0;

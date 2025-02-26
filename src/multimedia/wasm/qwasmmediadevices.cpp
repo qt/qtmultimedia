@@ -59,15 +59,21 @@ QList<QCameraDevice> QWasmMediaDevices::videoInputs() const
 }
 
 QPlatformAudioSource *QWasmMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
+                                                           const QAudioFormat &fmt,
                                                            QObject *parent)
 {
-    return new QWasmAudioSource(deviceInfo.id(), parent);
+    auto ret = new QWasmAudioSource(deviceInfo.id(), parent);
+    ret->setFormat(fmt);
+    return ret;
 }
 
 QPlatformAudioSink *QWasmMediaDevices::createAudioSink(const QAudioDevice &deviceInfo,
+                                                       const QAudioFormat &fmt,
                                                        QObject *parent)
 {
-    return new QWasmAudioSink(deviceInfo.id(), parent);
+    auto ret = new QWasmAudioSink(deviceInfo.id(), parent);
+    ret->setFormat(fmt);
+    return ret;
 }
 
 void QWasmMediaDevices::parseDevices(emscripten::val devices)

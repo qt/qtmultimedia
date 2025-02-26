@@ -360,8 +360,8 @@ void QPipewireAudioSourceStream::stateChanged(pw_stream_state /*oldState*/, pw_s
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // QPipewireAudioSource
 
-QPipewireAudioSource::QPipewireAudioSource(const QAudioDevice &device, QObject *parent)
-    : BaseClass(device, parent)
+QPipewireAudioSource::QPipewireAudioSource(const QAudioDevice &device, const QAudioFormat &format, QObject *parent)
+    : BaseClass(device, format, parent)
 {
 }
 

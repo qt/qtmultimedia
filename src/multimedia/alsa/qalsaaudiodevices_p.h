@@ -28,9 +28,9 @@ class QAlsaAudioDevices : public QPlatformAudioDevices
 public:
     QAlsaAudioDevices();
 
-    QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &, const QAudioFormat &,
                                             QObject *parent) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &, const QAudioFormat &,
                                         QObject *parent) override;
 
     QLatin1String backendName() const override { return QLatin1String{ "ALSA" }; }

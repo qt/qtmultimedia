@@ -46,7 +46,6 @@ concept QPlatformAudioIOBase = requires(T t, QIODevice *device, qsizetype size, 
     { t.processedUSecs() } -> std::same_as<qint64>;
     { t.error() } -> std::same_as<QAudio::Error>;
     { t.state() } -> std::same_as<QAudio::State>;
-    { t.setFormat(format) } -> std::same_as<void>;
     { t.format() } -> std::same_as<QAudioFormat>;
     { t.setVolume(volume) } -> std::same_as<void>;
     { t.volume() } -> std::same_as<qreal>;
@@ -74,7 +73,7 @@ class QPipewireAudioIOBase : public BaseClass
     using SampleFormat = QAudioFormat::SampleFormat;
 
 protected:
-    explicit QPipewireAudioIOBase(const QAudioDevice &, QObject *parent);
+    explicit QPipewireAudioIOBase(const QAudioDevice &, const QAudioFormat &format, QObject *parent);
 
     // device
     QAudioDevice m_audioDevice;
@@ -85,9 +84,8 @@ protected:
     const QPipewireAudioDevicePrivate *privateDevice() const;
 
     // format
-    void setFormat(const QAudioFormat &format) override;
     QAudioFormat format() const override;
-    QAudioFormat m_format;
+    const QAudioFormat m_format;
 
     // volume
     qreal m_volume = 1.0f;
@@ -116,7 +114,8 @@ protected:
 };
 
 DECLARE_TEMPLATE_ARGS
-inline QPipewireAudioIOBase<BaseClass, StreamType>::QPipewireAudioIOBase(const QAudioDevice &device, QObject *parent):
+inline QPipewireAudioIOBase<BaseClass, StreamType>::
+QPipewireAudioIOBase(const QAudioDevice &device, const QAudioFormat &format, QObject *parent):
     BaseClass{
         parent,
     },
@@ -124,15 +123,9 @@ inline QPipewireAudioIOBase<BaseClass, StreamType>::QPipewireAudioIOBase(const Q
         device,
     },
     m_format {
-        device.preferredFormat(),
+        format,
     }
 {
-}
-
-DECLARE_TEMPLATE_ARGS
-inline void QPipewireAudioIOBase<BaseClass, StreamType>::setFormat(const QAudioFormat &format)
-{
-    m_format = format;
 }
 
 DECLARE_TEMPLATE_ARGS

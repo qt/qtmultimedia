@@ -29,9 +29,9 @@ public:
     QPulseAudioDevices();
     ~QPulseAudioDevices() override;
 
-    QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &, const QAudioFormat &,
                                             QObject *parent) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &, const QAudioFormat &,
                                         QObject *parent) override;
 
     using QPlatformAudioDevices::onAudioInputsChanged;

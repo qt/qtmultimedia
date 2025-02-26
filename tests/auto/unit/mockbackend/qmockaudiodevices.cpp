@@ -7,10 +7,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QMockAudioDevices::QMockAudioDevices()
-    : QPlatformAudioDevices()
-{
-}
+QMockAudioDevices::QMockAudioDevices() = default;
 
 QMockAudioDevices::~QMockAudioDevices() = default;
 
@@ -42,20 +39,16 @@ QList<QAudioDevice> QMockAudioDevices::findAudioOutputs() const
     return m_outputDevices;
 }
 
-QPlatformAudioSource *QMockAudioDevices::createAudioSource(const QAudioDevice &info,
-                                                           QObject *parent)
+QPlatformAudioSource *QMockAudioDevices::createAudioSource(const QAudioDevice &,
+                                                           const QAudioFormat &, QObject *)
 {
-    Q_UNUSED(info);
-    Q_UNUSED(parent);
-    return nullptr;// ###
+    return nullptr;
 }
 
-QPlatformAudioSink *QMockAudioDevices::createAudioSink(const QAudioDevice &info,
-                                                       QObject *parent)
+QPlatformAudioSink *QMockAudioDevices::createAudioSink(const QAudioDevice &, const QAudioFormat &,
+                                                       QObject *)
 {
-    Q_UNUSED(info);
-    Q_UNUSED(parent);
-    return nullptr; //###
+    return nullptr;
 }
 
 

@@ -369,9 +369,11 @@ qint64 QDarwinAudioSourceDevice::writeData(const char *data, qint64 len)
     return 0;
 }
 
-QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device, QObject *parent)
+QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device, const QAudioFormat &fmt,
+                                       QObject *parent)
     : QPlatformAudioSource(parent),
       m_internalBufferSize(DEFAULT_BUFFER_SIZE),
+      m_audioFormat(fmt),
       m_stateMachine(*this)
 {
     // If incoming device is null, fallback to default device.
@@ -752,12 +754,6 @@ QAudio::Error QDarwinAudioSource::error() const
 QAudio::State QDarwinAudioSource::state() const
 {
     return m_stateMachine.state();
-}
-
-void QDarwinAudioSource::setFormat(const QAudioFormat &format)
-{
-    if (state() == QAudio::StoppedState)
-        m_audioFormat = format;
 }
 
 QAudioFormat QDarwinAudioSource::format() const

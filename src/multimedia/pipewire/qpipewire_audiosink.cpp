@@ -504,8 +504,8 @@ void QPipewireAudioSinkStream::performIdleDetection(uint64_t samplesWritten, uin
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // QPipewireAudioSink
 
-QPipewireAudioSink::QPipewireAudioSink(const QAudioDevice &device, QObject *parent)
-    : BaseClass(device, parent)
+QPipewireAudioSink::QPipewireAudioSink(const QAudioDevice &device, const QAudioFormat &format, QObject *parent)
+    : BaseClass(device, format, parent)
 {
 }
 

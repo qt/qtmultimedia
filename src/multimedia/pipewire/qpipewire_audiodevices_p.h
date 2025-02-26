@@ -34,11 +34,11 @@ public:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;
 
-    QPlatformAudioSource *createAudioSource(const QAudioDevice & /*deviceInfo*/,
-                                            QObject * /*parent*/) override;
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &, const QAudioFormat &,
+                                            QObject *parent) override;
 
-    QPlatformAudioSink *createAudioSink(const QAudioDevice & /*deviceInfo*/,
-                                        QObject * /*parent*/) override;
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &, const QAudioFormat &,
+                                        QObject *parent) override;
 
     QLatin1String backendName() const override { return QLatin1String{ "PipeWire" }; }
 

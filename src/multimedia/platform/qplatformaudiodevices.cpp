@@ -108,11 +108,13 @@ void QPlatformAudioDevices::updateAudioOutputsCache()
         emit audioOutputsChanged(PrivateTag{});
 }
 
-QPlatformAudioSource *QPlatformAudioDevices::createAudioSource(const QAudioDevice &, QObject *)
+QPlatformAudioSource *QPlatformAudioDevices::createAudioSource(const QAudioDevice &,
+                                                               const QAudioFormat &, QObject *)
 {
     return nullptr;
 }
-QPlatformAudioSink *QPlatformAudioDevices::createAudioSink(const QAudioDevice &, QObject *)
+QPlatformAudioSink *QPlatformAudioDevices::createAudioSink(const QAudioDevice &,
+                                                           const QAudioFormat &, QObject *)
 {
     return nullptr;
 }
@@ -125,9 +127,7 @@ QPlatformAudioSource *QPlatformAudioDevices::audioInputDevice(const QAudioFormat
     if (info.isNull())
         info = audioInputs().value(0);
 
-    QPlatformAudioSource* p = !info.isNull() ? createAudioSource(info, parent) : nullptr;
-    if (p)
-        p->setFormat(format);
+    QPlatformAudioSource *p = !info.isNull() ? createAudioSource(info, format, parent) : nullptr;
     return p;
 }
 
@@ -139,9 +139,7 @@ QPlatformAudioSink *QPlatformAudioDevices::audioOutputDevice(const QAudioFormat 
     if (info.isNull())
         info = audioOutputs().value(0);
 
-    QPlatformAudioSink* p = !info.isNull() ? createAudioSink(info, parent) : nullptr;
-    if (p)
-        p->setFormat(format);
+    QPlatformAudioSink *p = !info.isNull() ? createAudioSink(info, format, parent) : nullptr;
     return p;
 }
 

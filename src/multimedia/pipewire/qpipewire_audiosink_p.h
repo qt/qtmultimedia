@@ -35,7 +35,7 @@ class QPipewireAudioSink final
     using BaseClass = QPipewireAudioIOBase<QPlatformAudioSink, QPipewireAudioSinkStream>;
 
 public:
-    QPipewireAudioSink(const QAudioDevice &, QObject *parent);
+    QPipewireAudioSink(const QAudioDevice &, const QAudioFormat &format, QObject *parent);
     ~QPipewireAudioSink() override;
 
     void start(QIODevice *device) override;

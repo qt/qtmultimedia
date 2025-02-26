@@ -63,14 +63,16 @@ QList<QAudioDevice> QAudioDevices::findAudioOutputs() const
     return m_sinkDeviceList;
 }
 
-QPlatformAudioSource *QAudioDevices::createAudioSource(const QAudioDevice &device, QObject *parent)
+QPlatformAudioSource *QAudioDevices::createAudioSource(const QAudioDevice &device, const QAudioFormat &format,
+                                                       QObject *parent)
 {
-    return new QPipewireAudioSource(device, parent);
+    return new QPipewireAudioSource(device, format, parent);
 }
 
-QPlatformAudioSink *QAudioDevices::createAudioSink(const QAudioDevice &device, QObject *parent)
+QPlatformAudioSink *QAudioDevices::createAudioSink(const QAudioDevice &device, const QAudioFormat &format,
+                                                   QObject *parent)
 {
-    return new QPipewireAudioSink(device, parent);
+    return new QPipewireAudioSink(device, format, parent);
 }
 
 } // namespace QtPipeWire
