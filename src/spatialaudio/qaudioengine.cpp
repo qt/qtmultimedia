@@ -78,6 +78,8 @@ public:
     }
 
     Q_INVOKABLE void stopOutput() {
+        if (!sink)
+            return;
         sink->stop();
         sink.reset();
         ambisonicDecoder.reset();
