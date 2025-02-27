@@ -7,22 +7,19 @@
 #include "uniformbuffer.glsl"
 #include "qrhitextureformats_p.h"
 
-// The function implements a workaround for platforms that don't support RG8 format.
-// E.g., NV12 for GLES2.0 requires an interleaved chroma plane to be packed into RGBA texture.
-//
-//
-//     |  r |  g |  b |  a |
-//     | U0 | V0 | U1 | V1 | ...
-// Original:                            Input texture:
-// | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |    | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
-// | y | y | y | y | y | y | y | y |    | a | a | a | a | a | a | a | a |
-// ...                                  ...
-// | u | v | u | v | u | v | u | v |    |[r   g] [b   a]|[r   g] [b   a]|
-//                                              |               |
-// The idea is to get the subsamples "rg" and "ba", representing uv0 and uv1 for nv12,
-// and interpolate them according to the given texture coordinate.
+float convert_RG8_to_R16(vec2 rg)
+{
+    return (rg.r * 255 + rg.g * 255 * 256) / 65535;
+}
 
-vec2 interpolate_RGBA8_to_RG8(sampler2D planeTexture, vec2 texCoord, float frameWidth)
+vec2 convert_RGBA8_to_RG16(vec4 rgba)
+{
+    float r = convert_RG8_to_R16(rgba.rg);
+    float g = convert_RG8_to_R16(rgba.ba);
+    return vec2(r, g);
+}
+
+vec2 get_RG8_from_packed_RGBA8_texture(sampler2D planeTexture, vec2 texCoord, float frameWidth)
 {
     // NV12 for GLES2.0 requires interleaved chroma plane to be packed into RGBA texture
     //
@@ -89,26 +86,12 @@ vec2 interpolate_RGBA8_to_RG8(sampler2D planeTexture, vec2 texCoord, float frame
     }
 }
 
-float interpolate_RG8_to_R16(sampler2D planeTexture, vec2 texCoord)
-{
-    vec2 rg = texture(planeTexture, texCoord).rg;
-    return (rg.r * 255 + rg.g * 255 * 256) / 65535;
-}
-
-vec2 interpolate_RGBA8_to_RG16(sampler2D planeTexture, vec2 texCoord)
-{
-    vec4 rgba = texture(planeTexture, texCoord);
-    float r = (rgba.r * 255 + rgba.g * 255 * 256) / 65535;
-    float g = (rgba.b * 255 + rgba.a * 255 * 256) / 65535;
-    return vec2(r, g);
-}
-
 vec2 getRG8(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) {
     if (rhiTextureFormat == RhiTextureFormat_RG8)
         return texture(planeTexture, texCoord).rg;
 
     if (rhiTextureFormat == RhiTextureFormat_RGBA8)
-        return interpolate_RGBA8_to_RG8(planeTexture, texCoord, ubuf.width);
+        return get_RG8_from_packed_RGBA8_texture(planeTexture, texCoord, ubuf.width);
 
     return vec2(0, 0);
 }
@@ -123,7 +106,7 @@ float getR16(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) {
         return texture(planeTexture, texCoord).r;
 
     if (rhiTextureFormat == RhiTextureFormat_RG8)
-        return interpolate_RG8_to_R16(planeTexture, texCoord);
+        return convert_RG8_to_R16(texture(planeTexture, texCoord).rg);
 
     return 0;
 }
@@ -133,7 +116,7 @@ vec2 getRG16(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) {
         return texture(planeTexture, texCoord).rg;
 
     if (rhiTextureFormat == RhiTextureFormat_RGBA8)
-        return interpolate_RGBA8_to_RG16(planeTexture, texCoord);
+        return convert_RGBA8_to_RG16(texture(planeTexture, texCoord).rgba);
 
     return vec2(0, 0);
 }
