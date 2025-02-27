@@ -15,6 +15,8 @@
 
 QT_BEGIN_NAMESPACE
 
+static Q_LOGGING_CATEGORY(qLcVideoTextureHelper, "qt.multimedia.video.texturehelper")
+
 namespace QVideoTextureHelper
 {
 
@@ -238,13 +240,18 @@ static bool isRhiTextureFormatSupported(const QRhi *rhi, QRhiTexture::Format for
 
 static QRhiTexture::Format
 resolveRhiTextureFormat(QRhi *rhi, QRhiTexture::Format format,
-                        QRhiTexture::Format fallback = QRhiTexture::UnknownFormat)
+                        std::initializer_list<QRhiTexture::Format> fallbacks)
 {
     if (isRhiTextureFormatSupported(rhi, format))
         return format;
 
-    if (fallback != QRhiTexture::UnknownFormat && isRhiTextureFormatSupported(rhi, fallback))
+    for (QRhiTexture::Format fallback : fallbacks) {
+        if (!isRhiTextureFormatSupported(rhi, fallback))
+            continue;
+
+        qCDebug(qLcVideoTextureHelper) << "Using fallback texture format" << fallback;
         return fallback;
+    }
 
     qWarning() << "Cannot determine any usable texture format, using preferred format" << format;
     return format;
@@ -258,22 +265,22 @@ QRhiTexture::Format TextureDescription::rhiTextureFormat(int plane, QRhi *rhi) c
         case Red_8:
             // NOTE: RED_OR_ALPHA8 requires special alpha shaders if rhi doesn't have feature
             // RedOrAlpha8IsRed
-            return resolveRhiTextureFormat(rhi, QRhiTexture::R8, QRhiTexture::RED_OR_ALPHA8);
+            return resolveRhiTextureFormat(rhi, QRhiTexture::R8, { QRhiTexture::RED_OR_ALPHA8 });
         case RG_8:
-            return resolveRhiTextureFormat(rhi, QRhiTexture::RG8, QRhiTexture::RGBA8);
+            return resolveRhiTextureFormat(rhi, QRhiTexture::RG8, { QRhiTexture::RGBA8 });
         case RGBA_8:
-            return resolveRhiTextureFormat(rhi, QRhiTexture::RGBA8);
+            return resolveRhiTextureFormat(rhi, QRhiTexture::RGBA8, {});
         case BGRA_8:
-            return resolveRhiTextureFormat(rhi, QRhiTexture::BGRA8);
+            return resolveRhiTextureFormat(rhi, QRhiTexture::BGRA8, {});
         case Red_16:
             // TODO: Special handling for 16-bit formats, if we want to support them at all.
             // Otherwise should give an error.
-            return resolveRhiTextureFormat(rhi, QRhiTexture::R16, QRhiTexture::RG8);
+            return resolveRhiTextureFormat(rhi, QRhiTexture::R16, { QRhiTexture::RG8 });
         case RG_16:
-            return resolveRhiTextureFormat(rhi, QRhiTexture::RG16, QRhiTexture::RGBA8);
+            return resolveRhiTextureFormat(rhi, QRhiTexture::RG16, { QRhiTexture::RGBA8 });
         default:
             Q_UNREACHABLE();
-    }
+        }
 }
 
 void setExcludedRhiTextureFormats(QList<QRhiTexture::Format> formats)
