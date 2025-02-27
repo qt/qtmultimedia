@@ -238,51 +238,69 @@ static bool isRhiTextureFormatSupported(const QRhi *rhi, QRhiTexture::Format for
     return rhi->isTextureFormatSupported(format);
 }
 
-static QRhiTexture::Format
-resolveRhiTextureFormat(QRhi *rhi, QRhiTexture::Format format,
-                        std::initializer_list<QRhiTexture::Format> fallbacks)
+QRhiTexture::Format TextureDescription::rhiTextureFormat(int plane, QRhi *rhi) const
+{
+    QRhiTexture::Format preferredFormat = QRhiTexture::UnknownFormat;
+
+    switch (textureFormat[plane]) {
+        case TextureDescription::Red_8:
+            preferredFormat = QRhiTexture::R8;
+            break;
+        case TextureDescription::Red_16:
+            preferredFormat = QRhiTexture::R16;
+            break;
+        case TextureDescription::RG_8:
+            preferredFormat = QRhiTexture::RG8;
+            break;
+        case TextureDescription::RG_16:
+            preferredFormat = QRhiTexture::RG16;
+            break;
+        case TextureDescription::RGBA_8:
+            preferredFormat = QRhiTexture::RGBA8;
+            break;
+        case TextureDescription::BGRA_8:
+            preferredFormat = QRhiTexture::BGRA8;
+            break;
+        case TextureDescription::UnknownFormat:
+            break;
+        default:
+            Q_UNREACHABLE();
+    }
+
+    return resolvedRhiTextureFormat(preferredFormat, rhi);
+}
+
+QRhiTexture::Format resolvedRhiTextureFormat(QRhiTexture::Format format, QRhi *rhi)
 {
     if (isRhiTextureFormatSupported(rhi, format))
         return format;
 
-    for (QRhiTexture::Format fallback : fallbacks) {
-        if (!isRhiTextureFormatSupported(rhi, fallback))
-            continue;
-
-        qCDebug(qLcVideoTextureHelper) << "Using fallback texture format" << fallback;
-        return fallback;
+    QRhiTexture::Format fallbackFormat;
+    switch (format) {
+        case QRhiTexture::R8:
+            fallbackFormat = resolvedRhiTextureFormat(QRhiTexture::RED_OR_ALPHA8, rhi);
+            break;
+        case QRhiTexture::RG8:
+        case QRhiTexture::RG16:
+            fallbackFormat = resolvedRhiTextureFormat(QRhiTexture::RGBA8, rhi);
+            break;
+        case QRhiTexture::R16:
+            fallbackFormat = resolvedRhiTextureFormat(QRhiTexture::RG8, rhi);
+            break;
+        default:
+            // End fallback chain here, and return UnknownFormat
+            return QRhiTexture::UnknownFormat;
     }
 
-    // TODO: QTBUG-135911: In some cases rhi claims format and fallbacks are all
-    // unsupported, but when using preferred format video plays fine
-    qCDebug(qLcVideoTextureHelper) << "Cannot determine any usable texture format, using preferred format" << format;
-    return format;
-}
+    if (fallbackFormat == QRhiTexture::UnknownFormat) {
+        // TODO: QTBUG-135911: In some cases rhi claims format and fallbacks are all
+        // unsupported, but when using preferred format video plays fine
+        qCDebug(qLcVideoTextureHelper) << "Cannot determine any usable texture format, using preferred format" << format;
+        return format;
+    }
 
-QRhiTexture::Format TextureDescription::rhiTextureFormat(int plane, QRhi *rhi) const
-{
-    switch (textureFormat[plane]) {
-        case UnknownFormat:
-            return QRhiTexture::UnknownFormat;
-        case Red_8:
-            // NOTE: RED_OR_ALPHA8 requires special alpha shaders if rhi doesn't have feature
-            // RedOrAlpha8IsRed
-            return resolveRhiTextureFormat(rhi, QRhiTexture::R8, { QRhiTexture::RED_OR_ALPHA8 });
-        case RG_8:
-            return resolveRhiTextureFormat(rhi, QRhiTexture::RG8, { QRhiTexture::RGBA8 });
-        case RGBA_8:
-            return resolveRhiTextureFormat(rhi, QRhiTexture::RGBA8, {});
-        case BGRA_8:
-            return resolveRhiTextureFormat(rhi, QRhiTexture::BGRA8, {});
-        case Red_16:
-            // TODO: Special handling for 16-bit formats, if we want to support them at all.
-            // Otherwise should give an error.
-            return resolveRhiTextureFormat(rhi, QRhiTexture::R16, { QRhiTexture::RG8 });
-        case RG_16:
-            return resolveRhiTextureFormat(rhi, QRhiTexture::RG16, { QRhiTexture::RGBA8 });
-        default:
-            Q_UNREACHABLE();
-        }
+    qCDebug(qLcVideoTextureHelper) << "Using fallback texture format" << fallbackFormat;
+    return fallbackFormat;
 }
 
 void setExcludedRhiTextureFormats(QList<QRhiTexture::Format> formats)

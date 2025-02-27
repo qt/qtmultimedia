@@ -79,7 +79,8 @@ struct Q_MULTIMEDIA_EXPORT TextureDescription
         // where width gets cut in half.
         // Another option would be to compare QRhiImplementation::TextureFormatInfo to expected
         // based on TextureDescription::Format.
-        if (textureFormat[plane] == TextureDescription::RG_8
+        if ((textureFormat[plane] == TextureDescription::RG_8
+             || textureFormat[plane] == TextureDescription::Red_16)
             && rhiTextureFormat(plane, rhi) == QRhiTexture::RGBA8)
             return { sizeScale[plane].x * 2, sizeScale[plane].y };
 
@@ -136,6 +137,14 @@ createTexturesFromHandles(QVideoFrameTexturesHandlesUPtr handles, QRhi &rhi,
 Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
                                                            QRhiResourceUpdateBatch &rub,
                                                            QVideoFrameTexturesUPtr oldTextures);
+
+/**
+ * @brief Returns a QRhiTexture::Format taking into account rhi capabilities and explicitly excluded
+ *        formats using a chain of pre-defined fallback texture formats. If no valid fallback is
+ *        determined, will return the format argument.
+ */
+Q_MULTIMEDIA_EXPORT QRhiTexture::Format
+resolvedRhiTextureFormat(QRhiTexture::Format format, QRhi *rhi);
 
 Q_MULTIMEDIA_EXPORT void
 setExcludedRhiTextureFormats(QList<QRhiTexture::Format> formats); // for tests only
