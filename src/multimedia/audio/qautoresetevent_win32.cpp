@@ -24,7 +24,7 @@ QAutoResetEventWin32::QAutoResetEventWin32(QObject *parent)
                               /*lpName=*/nullptr);
 
     if (!m_handle) {
-        qFatal() << "CreateEventW failed:" << qt_error_string(GetLastError());
+        qCritical() << "CreateEventW failed:" << qt_error_string(GetLastError());
         return;
     }
 
