@@ -28,7 +28,7 @@
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <private/qaudiosystem_p.h>
-#include <qcomptr_p.h>
+#include <QtCore/private/qcomptr_p.h>
 #include <qwindowsresampler_p.h>
 
 #include <audioclient.h>

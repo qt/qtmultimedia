@@ -17,7 +17,7 @@
 
 #include <qaudioformat.h>
 #include <QtCore/qt_windows.h>
-#include <private/qcomptr_p.h>
+#include <QtCore/private/qcomptr_p.h>
 #include <mmreg.h>
 
 #include <optional>
