@@ -62,7 +62,8 @@ private:
     MapData m_mapData;
     // Currently we have maximum 3 planes here
     // We keep this data in QByteArray for proper cleaning
-    QByteArray dataCleaner[3];
+    static constexpr int MAX_PLANES = 3;
+    QByteArray dataCleaner[MAX_PLANES];
     jobject m_nativeFrame = nullptr;
     std::shared_ptr<FrameReleaseDelegate> m_frameReleaseDelegate;
     MemoryPolicy m_policy;
