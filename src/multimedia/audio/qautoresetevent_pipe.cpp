@@ -24,7 +24,7 @@ QAutoResetEventPipe::QAutoResetEventPipe(QObject *parent)
     int pipedes[2];
     int status = pipe(pipedes);
     if (status == -1) {
-        qFatal() << "pipe failed:" << qt_error_string(errno);
+        qCritical() << "pipe failed:" << qt_error_string(errno);
         return;
     }
 

@@ -23,7 +23,7 @@ QAutoResetEventEventFD::QAutoResetEventEventFD(QObject *parent)
 {
     m_fd = eventfd(/*initval=*/0, EFD_NONBLOCK);
     if (m_fd == -1) {
-        qFatal() << "eventfd failed:" << qt_error_string(errno);
+        qCritical() << "eventfd failed:" << qt_error_string(errno);
         return;
     }
 

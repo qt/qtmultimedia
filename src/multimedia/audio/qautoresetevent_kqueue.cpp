@@ -20,7 +20,7 @@ QAutoResetEventKQueue::QAutoResetEventKQueue(QObject *parent):
 {
     m_kqueue = kqueue();
     if (m_kqueue == -1) {
-        qFatal() << "kqueue failed:" << qt_error_string(errno);
+        qCritical() << "kqueue failed:" << qt_error_string(errno);
         return;
     }
 
@@ -29,7 +29,7 @@ QAutoResetEventKQueue::QAutoResetEventKQueue(QObject *parent):
     EV_SET(&m_event, 1, EVFILT_USER, EV_ADD | EV_CLEAR, 0, 0, nullptr);
     if (kevent(m_kqueue, &m_event, 1, nullptr, 0, nullptr) == -1) {
         close(m_kqueue);
-        qFatal() << "Failed to register EVFILT_USER event:" << qt_error_string(errno);
+        qCritical() << "Failed to register EVFILT_USER event:" << qt_error_string(errno);
         return;
     }
 
