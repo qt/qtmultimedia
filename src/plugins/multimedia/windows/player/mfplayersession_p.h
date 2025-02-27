@@ -30,7 +30,7 @@
 #include <qaudiodevice.h>
 #include <qtimer.h>
 #include "mfplayercontrol_p.h"
-#include <private/qcomptr_p.h>
+#include <QtCore/private/qcomptr_p.h>
 #include <evrhelpers_p.h>
 
 QT_BEGIN_NAMESPACE

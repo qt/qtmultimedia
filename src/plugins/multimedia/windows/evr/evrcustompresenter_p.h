@@ -23,7 +23,7 @@
 #include <qvideoframeformat.h>
 #include <qvideosink.h>
 #include <qpointer.h>
-#include <private/qcomptr_p.h>
+#include <QtCore/private/qcomptr_p.h>
 #include "evrhelpers_p.h"
 
 #include <d3d9.h>

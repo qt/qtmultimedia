@@ -16,7 +16,7 @@
 //
 
 #include <private/qplatformaudiodevices_p.h>
-#include <private/qcomptr_p.h>
+#include <QtCore/private/qcomptr_p.h>
 #include <private/qcominitializer_p.h>
 #include <private/qwindowsmediafoundation_p.h>
 

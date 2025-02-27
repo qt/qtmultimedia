@@ -5,7 +5,7 @@
 
 #include <mfapi.h>
 #include <mftransform.h>
-#include <private/qcomptr_p.h>
+#include <QtCore/private/qcomptr_p.h>
 #include <private/qwindowsmultimediautils_p.h>
 #include <private/qcomtaskresource_p.h>
 
