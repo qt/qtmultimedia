@@ -5,7 +5,7 @@
 #include <private/qmaybe_p.h>
 #include <QtCore/private/quniquehandle_p.h>
 #ifdef Q_OS_WINDOWS
-#include <private/qcomptr_p.h>
+#include <QtCore/private/qcomptr_p.h>
 #include <private/qcomobject_p.h>
 #endif
 

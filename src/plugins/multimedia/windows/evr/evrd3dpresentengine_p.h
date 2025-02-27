@@ -18,7 +18,7 @@
 #include <QMutex>
 #include <QSize>
 #include <QVideoFrameFormat>
-#include <private/qcomptr_p.h>
+#include <QtCore/private/qcomptr_p.h>
 #include <qpointer.h>
 
 #include <d3d9.h>

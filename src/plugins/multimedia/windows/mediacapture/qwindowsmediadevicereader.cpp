@@ -10,7 +10,7 @@
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qvideoframe_p.h>
 #include <private/qwindowsmfdefs_p.h>
-#include <private/qcomptr_p.h>
+#include <QtCore/private/qcomptr_p.h>
 #include <QtCore/qdebug.h>
 
 #include <mmdeviceapi.h>

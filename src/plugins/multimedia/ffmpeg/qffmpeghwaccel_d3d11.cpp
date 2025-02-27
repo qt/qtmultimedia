@@ -8,7 +8,7 @@
 #include "qffmpegvideobuffer_p.h"
 
 #include <private/qvideotexturehelper_p.h>
-#include <private/qcomptr_p.h>
+#include <QtCore/private/qcomptr_p.h>
 #include <private/quniquehandle_p.h>
 
 #include <rhi/qrhi.h>
