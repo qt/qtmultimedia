@@ -90,7 +90,7 @@ ComPtr<ID3D11Texture2D> TextureBridge::copyFromSharedTex(const ComPtr<ID3D11Devi
 
 bool TextureBridge::ensureDestTex(const ComPtr<ID3D11Device1> &dev)
 {
-    if (m_destDevice != dev) {
+    if (m_destDevice.Get() != dev.Get()) {
         // Destination device changed. Recreate texture.
         m_destTex = nullptr;
         m_destDevice = dev;
