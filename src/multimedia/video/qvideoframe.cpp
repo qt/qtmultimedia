@@ -807,7 +807,7 @@ QtVideo::Rotation QVideoFrame::rotation() const
 void QVideoFrame::setMirrored(bool mirrored)
 {
     if (d)
-        d->presentationTransformation.mirrorredHorizontallyAfterRotation = mirrored;
+        d->presentationTransformation.mirroredHorizontallyAfterRotation = mirrored;
 }
 
 /*!
@@ -822,7 +822,7 @@ void QVideoFrame::setMirrored(bool mirrored)
 */
 bool QVideoFrame::mirrored() const
 {
-    return d && d->presentationTransformation.mirrorredHorizontallyAfterRotation;
+    return d && d->presentationTransformation.mirroredHorizontallyAfterRotation;
 }
 
 /*!

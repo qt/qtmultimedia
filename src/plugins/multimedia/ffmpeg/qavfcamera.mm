@@ -303,7 +303,7 @@ QVideoFrameFormat QAVFCamera::frameFormat() const
 
     const VideoTransformation transform = surfaceTransform();
     result.setRotation(transform.rotation);
-    result.setMirrored(transform.mirrorredHorizontallyAfterRotation);
+    result.setMirrored(transform.mirroredHorizontallyAfterRotation);
 
     result.setColorRange(QAVFHelpers::colorRangeForCVPixelFormat(m_cvPixelFormat));
 
@@ -330,7 +330,7 @@ VideoTransformation QAVFCamera::surfaceTransform() const
         if (@available(macOS 14.0, iOS 17.0, *))
             connectionAngle = static_cast<int>(std::round(connection.videoRotationAngle));
 
-        transform.mirrorredHorizontallyAfterRotation = connection.videoMirrored;
+        transform.mirroredHorizontallyAfterRotation = connection.videoMirrored;
     }
 
     transform.rotation = qVideoRotationFromDegrees(captureAngle - connectionAngle);

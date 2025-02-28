@@ -71,7 +71,7 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
     format.setColorRange(buffer->colorRange());
     format.setMaxLuminance(buffer->maxNits());
     format.setRotation(m_transform.rotation);
-    format.setMirrored(m_transform.mirrorredHorizontallyAfterRotation);
+    format.setMirrored(m_transform.mirroredHorizontallyAfterRotation);
     QVideoFrame videoFrame = QVideoFramePrivate::createFrame(std::move(buffer), format);
     videoFrame.setStartTime(frame.startTime().get());
     videoFrame.setEndTime(frame.endTime().get());

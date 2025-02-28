@@ -384,7 +384,7 @@ void QVideoWindowPrivate::render()
     if (m_subtitleDirty || m_subtitleLayout.videoSize != subtitleRect.size())
         updateSubtitle(rub, subtitleRect.size());
 
-    const float mirrorFrame = frameTransformation.mirrorredHorizontallyAfterRotation ? -1.f : 1.f;
+    const float mirrorFrame = frameTransformation.mirroredHorizontallyAfterRotation ? -1.f : 1.f;
     const float xscale = mirrorFrame * float(videoRect.width()) / float(rect.width());
     const float yscale = -1.f * float(videoRect.height()) / float(rect.height());
 

@@ -9,7 +9,7 @@ QT_BEGIN_NAMESPACE
 QDebug operator<<(QDebug dbg, const VideoTransformation &transform)
 {
     dbg << "[ rotation:" << transform.rotation
-        << "; mirrored:" << transform.mirrorredHorizontallyAfterRotation << "]";
+        << "; mirrored:" << transform.mirroredHorizontallyAfterRotation << "]";
     return dbg;
 }
 
