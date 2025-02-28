@@ -329,7 +329,7 @@ void QAndroidCamera::setActive(bool active)
         // but there is only 2 fully supported formats on android - JPG and YUV420P
         // and JPEG is not supported for encoding in FFmpeg, so it's locked for YUV for now.
         const static int imageFormat =
-                QJniObject::getStaticField<QtJniTypes::AndroidImageFormat, jint>("YUV_420_888");
+                QJniObject::getStaticField<QtJniTypes::ImageFormat, jint>("YUV_420_888");
         m_jniCamera.callMethod<void>("prepareCamera", jint(width), jint(height),
                                      jint(imageFormat), jint(m_cameraFormat.minFrameRate()),
                                      jint(m_cameraFormat.maxFrameRate()));
@@ -755,7 +755,7 @@ void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
   QAndroidCamera *camera = g_qcameras->find(key).value();
 
 static void onFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
-                             QtJniTypes::AndroidImage image)
+                             QtJniTypes::Image image)
 {
     Q_UNUSED(env);
     Q_UNUSED(obj);
@@ -766,7 +766,7 @@ static void onFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
 Q_DECLARE_JNI_NATIVE_METHOD(onFrameAvailable)
 
 static void onPhotoAvailable(JNIEnv *env, jobject obj, jstring cameraId,
-                             QtJniTypes::AndroidImage image)
+                             QtJniTypes::Image image)
 {
     Q_UNUSED(env);
     Q_UNUSED(obj);
