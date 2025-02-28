@@ -15,15 +15,15 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qcachedvalue_p.h>
-#include <qlist.h>
-#include <qobject.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/private/qaudiodevice_p.h>
+#include <QtMultimedia/private/qcachedvalue_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <memory>
 
 QT_BEGIN_NAMESPACE
 
-class QAudioDevice;
 class QPlatformAudioSource;
 class QPlatformAudioSink;
 class QAudioFormat;

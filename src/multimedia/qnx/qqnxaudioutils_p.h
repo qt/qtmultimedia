@@ -15,7 +15,8 @@
 // We mean it.
 //
 
-#include "private/qaudiosystem_p.h"
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qaudiodevice_p.h>
 
 #include <memory>
 #include <optional>

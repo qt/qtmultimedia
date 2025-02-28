@@ -123,9 +123,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QPipewireAudioSource *par
                                           });
 }
 
-QPipewireAudioSourceStream::~QPipewireAudioSourceStream()
-{
-}
+QPipewireAudioSourceStream::~QPipewireAudioSourceStream() = default;
 
 qsizetype QPipewireAudioSourceStream::bytesReady() const
 {
@@ -147,7 +145,7 @@ bool QPipewireAudioSourceStream::start(QIODevice *device, ObjectSerial sourceNod
     if (device->isWritable()) {
         QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
             if (!m_stopRequested && m_parent)
-                m_parent->streamIdle(false);
+                m_parent->updateStreamIdle(false);
             pushToIODevice();
         });
         QObject::connect(device, &QIODevice::bytesWritten, device, [this] {
@@ -175,13 +173,13 @@ QIODevice *QPipewireAudioSourceStream::start(ObjectSerial sourceNodeSerial)
         emit m_ringbufferReaderDevice->readyRead();
 
         if (!m_stopRequested && m_parent)
-            m_parent->streamIdle(false);
+            m_parent->updateStreamIdle(false);
     });
 
     QObject::connect(&m_ringbufferIsFull, &QAutoResetEvent::activated,
                      m_ringbufferReaderDevice.get(), [this] {
         if (!m_stopRequested && m_parent)
-            m_parent->streamIdle(true);
+            m_parent->updateStreamIdle(true);
     });
 
     bool started = start(m_ringbufferReaderDevice.get(), sourceNodeSerial);
@@ -342,7 +340,7 @@ void QPipewireAudioSourceStream::process() QT_MM_NONBLOCKING
 void QPipewireAudioSourceStream::handleDeviceRemoved()
 {
     if (!m_stopRequested)
-        m_parent->updateError(QAudio::Error::IOError);
+        m_parent->setError(QAudio::Error::IOError);
 }
 
 void QPipewireAudioSourceStream::stateChanged(pw_stream_state /*oldState*/, pw_stream_state state,
@@ -376,21 +374,21 @@ void QPipewireAudioSource::startHelper(Functor &&starter)
 {
     if (!m_format.isValid()) {
         qWarning() << "invalid format" << m_format;
-        updateError(QtAudio::Error::OpenError);
+        setError(QtAudio::Error::OpenError);
         return;
     }
 
     std::optional<ObjectSerial> deviceSerial = findSourceNodeSerial();
     if (!deviceSerial) {
         qWarning() << "Cannot find device: " << privateDevice()->nodeName();
-        updateError(QtAudio::Error::OpenError);
+        setError(QtAudio::Error::OpenError);
         return;
     }
 
     m_stream = std::make_shared<QPipewireAudioSourceStream>(this, format(), m_bufferSize,
                                                             m_hardwareBufferSize);
     if (!m_stream->hasStream()) {
-        updateError(QtAudio::Error::OpenError);
+        setError(QtAudio::Error::OpenError);
         return;
     }
 
@@ -398,9 +396,9 @@ void QPipewireAudioSource::startHelper(Functor &&starter)
 
     bool started = starter(m_stream, *deviceSerial);
     if (started)
-        setUserOwnedState(QtAudio::State::ActiveState);
+        updateStreamState(QtAudio::State::ActiveState);
     else
-        updateError(QtAudio::Error::OpenError);
+        setError(QtAudio::Error::OpenError);
 }
 
 using SharedSourceStream = std::shared_ptr<QPipewireAudioSourceStream>;
@@ -420,7 +418,7 @@ QIODevice *QPipewireAudioSource::start()
         deviceToReturn = stream->start(deviceSerial);
         // HACK alert: we're "idle" until a consumer starts reading.
         // this is fundamentally broken, and we should fix this behavior
-        m_streamIsIdle = true;
+        updateStreamIdle(true, EmitStateSignal::False);
         return bool(deviceToReturn);
     });
 
@@ -433,7 +431,7 @@ void QPipewireAudioSource::stop()
         return;
 
     m_stream->stop(/*ShutdownPolicy::DrainRingbuffer*/);
-    setUserOwnedState(QtAudio::State::StoppedState);
+    updateStreamState(QtAudio::State::StoppedState);
     m_stream.reset();
 }
 
@@ -443,7 +441,7 @@ void QPipewireAudioSource::reset()
         return;
 
     m_stream->stop(/*ShutdownPolicy::DiscardRingbuffer*/);
-    setUserOwnedState(QtAudio::State::StoppedState);
+    updateStreamState(QtAudio::State::StoppedState);
     m_stream.reset();
 }
 
@@ -454,7 +452,7 @@ void QPipewireAudioSource::suspend()
 
     m_stream->suspend();
 
-    setUserOwnedState(QtAudio::State::SuspendedState);
+    updateStreamState(QtAudio::State::SuspendedState);
 }
 
 void QPipewireAudioSource::resume()
@@ -462,12 +460,12 @@ void QPipewireAudioSource::resume()
     if (!m_stream)
         return;
 
-    if (m_userOwnedState == QtAudio::State::ActiveState)
+    if (state() == QtAudio::State::ActiveState)
         return;
 
     m_stream->resume();
 
-    setUserOwnedState(QtAudio::State::ActiveState);
+    updateStreamState(QtAudio::State::ActiveState);
 }
 
 qsizetype QPipewireAudioSource::bytesReady() const

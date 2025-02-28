@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-
+#include <QtMultimedia/private/qaudiodevice_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 
 #include <QtCore/qdebug.h>
@@ -95,22 +95,6 @@ protected:
     // streams
     std::shared_ptr<StreamType> m_stream;
     qint64 processedUSecs() const override;
-
-    // error
-    QAudio::Error error() const override;
-    void updateError(QAudio::Error err);
-    QAudio::Error m_error = QAudio::Error::NoError;
-
-    // "idle" detection
-    QAudio::State state() const override;
-
-    void setUserOwnedState(QtAudio::State state);
-    void streamIdle(bool isIdle);
-    void updateState();
-
-    QtAudio::State m_userOwnedState = QtAudio::StoppedState;
-    bool m_streamIsIdle = false;
-    QtAudio::State m_inferredState = QtAudio::StoppedState;
 };
 
 DECLARE_TEMPLATE_ARGS
@@ -177,77 +161,6 @@ inline qint64 QPipewireAudioIOBase<BaseClass, StreamType>::processedUSecs() cons
     if (m_stream)
         return m_stream->processedDuration().count();
     return 0;
-}
-
-DECLARE_TEMPLATE_ARGS
-inline QAudio::Error QPipewireAudioIOBase<BaseClass, StreamType>::error() const
-{
-    return m_error;
-}
-
-DECLARE_TEMPLATE_ARGS
-inline void QPipewireAudioIOBase<BaseClass, StreamType>::updateError(QAudio::Error err)
-{
-    if (err == m_error)
-        return;
-
-    m_error = err;
-    emit BaseClass::errorChanged(err);
-}
-
-DECLARE_TEMPLATE_ARGS
-inline QAudio::State QPipewireAudioIOBase<BaseClass, StreamType>::state() const
-{
-    return m_inferredState;
-}
-
-DECLARE_TEMPLATE_ARGS
-inline void QPipewireAudioIOBase<BaseClass, StreamType>::setUserOwnedState(QAudio::State state)
-{
-    m_userOwnedState = state;
-    updateState();
-}
-
-DECLARE_TEMPLATE_ARGS
-inline void QPipewireAudioIOBase<BaseClass, StreamType>::streamIdle(bool isIdle)
-{
-    m_streamIsIdle = isIdle;
-    updateState();
-}
-
-DECLARE_TEMPLATE_ARGS
-inline void QPipewireAudioIOBase<BaseClass, StreamType>::updateState()
-{
-    // The "state" is derived from two sources:
-    // * the m_userOwnedState, as changed by start/stop/suspend/resume
-    // * the "idle" state of the stream, as detected by the ringbuffer level
-    //
-    // we combine these two sources to infer a user-visible "state"
-    using State = QtAudio::State;
-
-    State oldState = m_inferredState;
-
-    switch (m_userOwnedState) {
-    case State::StoppedState:
-        m_inferredState = State::StoppedState;
-        break;
-    case State::SuspendedState:
-        m_inferredState = State::SuspendedState;
-        break;
-    case State::ActiveState:
-        m_inferredState = m_streamIsIdle ? State::IdleState : State::ActiveState;
-        break;
-
-    case State::IdleState:
-        qFatal() << "Users should not be able to set the state to Idle!";
-    }
-
-    if (oldState != m_inferredState) {
-        qCDebug(lcPipewireAudioIO)
-                << "QPipewireAudioIOBase updating state:" << m_inferredState << "user state"
-                << m_userOwnedState << (m_streamIsIdle ? "(idle)" : "");
-        emit BaseClass::stateChanged(m_inferredState);
-    }
 }
 
 } // namespace QtPipeWire
