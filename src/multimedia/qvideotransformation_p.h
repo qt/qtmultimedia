@@ -23,25 +23,25 @@ QT_BEGIN_NAMESPACE
 struct VideoTransformation
 {
     QtVideo::Rotation rotation = QtVideo::Rotation::None;
-    bool mirrorredHorizontallyAfterRotation = false;
+    bool mirroredHorizontallyAfterRotation = false;
 
     void rotate(QtVideo::Rotation rotation)
     {
         if (rotation != QtVideo::Rotation::None) {
             int angle = qToUnderlying(rotation);
-            if (mirrorredHorizontallyAfterRotation && angle % 180 != 0)
+            if (mirroredHorizontallyAfterRotation && angle % 180 != 0)
                 angle += 180;
 
             appendRotation(angle);
         }
     }
 
-    void mirrorHorizontally(bool mirror = true) { mirrorredHorizontallyAfterRotation ^= mirror; }
+    void mirrorHorizontally(bool mirror = true) { mirroredHorizontallyAfterRotation ^= mirror; }
 
     void mirrorVertically(bool mirror = true)
     {
         if (mirror) {
-            mirrorredHorizontallyAfterRotation ^= true;
+            mirroredHorizontallyAfterRotation ^= true;
             appendRotation(180);
         }
     }
@@ -60,7 +60,7 @@ using VideoTransformationOpt = std::optional<VideoTransformation>;
 inline bool operator==(const VideoTransformation &lhs, const VideoTransformation &rhs)
 {
     return lhs.rotation == rhs.rotation
-            && lhs.mirrorredHorizontallyAfterRotation == rhs.mirrorredHorizontallyAfterRotation;
+            && lhs.mirroredHorizontallyAfterRotation == rhs.mirroredHorizontallyAfterRotation;
 }
 
 inline bool operator!=(const VideoTransformation &lhs, const VideoTransformation &rhs)

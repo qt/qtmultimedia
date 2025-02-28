@@ -206,7 +206,7 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
     if (transformationProvider) {
         const VideoTransformation transform = transformationProvider();
         format.setRotation(transform.rotation);
-        format.setMirrored(transform.mirrorredHorizontallyAfterRotation);
+        format.setMirrored(transform.mirroredHorizontallyAfterRotation);
     }
 
     format.setStreamFrameRate(frameRate);

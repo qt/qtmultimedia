@@ -119,7 +119,7 @@ VideoTransformation qNormalizedFrameTransformation(const QVideoFrame &frame,
     result.rotate(frame.rotation());
     result.mirrorHorizontally(frame.mirrored());
     result.rotate(videoOutputTransformation.rotation);
-    result.mirrorHorizontally(videoOutputTransformation.mirrorredHorizontallyAfterRotation);
+    result.mirrorHorizontally(videoOutputTransformation.mirroredHorizontallyAfterRotation);
     return result;
 }
 
@@ -161,11 +161,11 @@ VideoTransformationOpt qVideoTransformationFromMatrix(const QTransform &matrix)
     // try detecting the best pair option to detect mirroring
 
     if (std::abs(cos1) + std::abs(cos2) > std::abs(sin1) + std::abs(sin2))
-        result.mirrorredHorizontallyAfterRotation = std::signbit(cos1) != std::signbit(cos2);
+        result.mirroredHorizontallyAfterRotation = std::signbit(cos1) != std::signbit(cos2);
     else
-        result.mirrorredHorizontallyAfterRotation = std::signbit(sin1) != std::signbit(sin2);
+        result.mirroredHorizontallyAfterRotation = std::signbit(sin1) != std::signbit(sin2);
 
-    if (result.mirrorredHorizontallyAfterRotation) {
+    if (result.mirroredHorizontallyAfterRotation) {
         cos1 *= -1;
         sin1 *= -1;
     }
