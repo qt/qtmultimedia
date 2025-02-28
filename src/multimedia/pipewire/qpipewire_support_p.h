@@ -131,13 +131,6 @@ QDebug operator<<(QDebug dbg, const spa_dict &dict);
 QDebug operator<<(QDebug dbg, enum pw_stream_state);
 QDebug operator<<(QDebug dbg, const pw_time &state);
 
-// rtsan
-#if defined(__has_attribute) && __has_cpp_attribute(clang::nonblocking)
-#  define QT_PIPEWIRE_NONBLOCKING [[clang::nonblocking]]
-#else
-#  define QT_PIPEWIRE_NONBLOCKING
-#endif
-
 // Address sanitizer helper
 // for now these annotations only function as documentation
 #define QT_MM_GUARDED_BY(Mutex)

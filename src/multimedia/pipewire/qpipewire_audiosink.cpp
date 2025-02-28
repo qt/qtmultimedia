@@ -13,6 +13,7 @@
 #include <QtCore/qspan.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
+#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
 
 #include <pipewire/pipewire.h>
@@ -64,7 +65,7 @@ struct QPipewireAudioSinkStream final : std::enable_shared_from_this<QPipewireAu
 private:
     // QPipewireAudioStream overrides
     void handleDeviceRemoved() override;
-    void process() QT_PIPEWIRE_NONBLOCKING override;
+    void process() QT_MM_NONBLOCKING override;
     void stateChanged(pw_stream_state /*old*/, pw_stream_state state,
                       const char * /*error*/) override;
 
@@ -102,7 +103,7 @@ private:
     QAutoResetEvent m_ringbufferDrained;
 
     // process helpers
-    void queueBuffer(struct pw_buffer *b, uint64_t samplesWritten) QT_PIPEWIRE_NONBLOCKING;
+    void queueBuffer(struct pw_buffer *b, uint64_t samplesWritten) QT_MM_NONBLOCKING;
 
     // xrun detection
     void xrunOccurred(int /*xrunCount*/) override { m_xrunOccurred.set(); }
@@ -311,7 +312,7 @@ void QPipewireAudioSinkStream::prepareFormat(const QAudioFormat &format,
     m_strideBytes = format.bytesPerSample() * format.channelCount();
 }
 
-void QPipewireAudioSinkStream::process() QT_PIPEWIRE_NONBLOCKING
+void QPipewireAudioSinkStream::process() QT_MM_NONBLOCKING
 {
     struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
     if (!b) {
@@ -461,8 +462,7 @@ void QPipewireAudioSinkStream::disconnectStream()
     QObject::disconnect(m_xrunNotification);
 }
 
-void QPipewireAudioSinkStream::queueBuffer(pw_buffer *b,
-                                           uint64_t samplesWritten) QT_PIPEWIRE_NONBLOCKING
+void QPipewireAudioSinkStream::queueBuffer(pw_buffer *b, uint64_t samplesWritten) QT_MM_NONBLOCKING
 {
     struct spa_buffer *buf = b->buffer;
     buf->datas[0].chunk->offset = 0;

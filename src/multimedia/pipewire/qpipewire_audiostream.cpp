@@ -163,7 +163,7 @@ void QPipewireAudioStream::unregisterDeviceObserver()
     m_deviceRemovalObserver = {};
 }
 
-void QPipewireAudioStream::performXRunDetection(uint64_t framesPerBuffer) QT_PIPEWIRE_NONBLOCKING
+void QPipewireAudioStream::performXRunDetection(uint64_t framesPerBuffer) QT_MM_NONBLOCKING
 {
     struct pw_time time_info = {};
     int status = pw_stream_get_time_n(m_stream.get(), &time_info, sizeof(pw_time));

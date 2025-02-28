@@ -13,6 +13,7 @@
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
+#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -46,7 +47,7 @@ struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewire
     std::chrono::microseconds processedDuration();
 
 private:
-    void process() QT_PIPEWIRE_NONBLOCKING override;
+    void process() QT_MM_NONBLOCKING override;
     void handleDeviceRemoved() override;
 
     void stateChanged(pw_stream_state old, pw_stream_state state, const char *error) override;
@@ -289,7 +290,7 @@ void QPipewireAudioSourceStream::pushToIODevice()
     });
 }
 
-void QPipewireAudioSourceStream::process() QT_PIPEWIRE_NONBLOCKING
+void QPipewireAudioSourceStream::process() QT_MM_NONBLOCKING
 {
     struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
     if (!b) {
