@@ -667,7 +667,7 @@ void QVideoFrameFormat::setColorRange(ColorRange range)
  */
 bool QVideoFrameFormat::isMirrored() const
 {
-    return d->transformation.mirrorredHorizontallyAfterRotation;
+    return d->transformation.mirroredHorizontallyAfterRotation;
 }
 
 /*!
@@ -690,7 +690,7 @@ bool QVideoFrameFormat::isMirrored() const
 void QVideoFrameFormat::setMirrored(bool mirrored)
 {
     detach();
-    d->transformation.mirrorredHorizontallyAfterRotation = mirrored;
+    d->transformation.mirroredHorizontallyAfterRotation = mirrored;
 }
 
 /*!

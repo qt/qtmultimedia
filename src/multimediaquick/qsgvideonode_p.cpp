@@ -276,7 +276,7 @@ void QSGVideoNode::setSubtitleGeometry()
     transform.translate(m_rect.x() + xTranslate, m_rect.y() + yTranslate);
     transform.rotate(rotate, 0, 0, 1);
     // TODO: Investigate if we should we mirror subtitles
-    // if (m_videoOutputTransformation.mirrorredHorizontallyAfterRotation)
+    // if (m_videoOutputTransformation.mirroredHorizontallyAfterRotation)
     //    transform.scale(-1.f, 1.f);
 
     m_subtitleTextNode->setMatrix(transform);
@@ -353,7 +353,7 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
         break;
     }
 
-    if (m_frameTransformation.mirrorredHorizontallyAfterRotation) {
+    if (m_frameTransformation.mirroredHorizontallyAfterRotation) {
         qSwapTex(v + 0, v + 2);
         qSwapTex(v + 1, v + 3);
     }
