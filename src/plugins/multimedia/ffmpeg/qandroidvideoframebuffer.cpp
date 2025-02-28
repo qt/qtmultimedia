@@ -30,7 +30,7 @@ bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
     if (!frame.isValid())
         return false;
 
-    const auto planes = frame.callMethod<QtJniTypes::AndroidImagePlane[]>("getPlanes");
+    const auto planes = frame.callMethod<QtJniTypes::ImagePlane[]>("getPlanes");
     if (!planes.isValid())
         return false;
 
@@ -63,7 +63,7 @@ bool QAndroidVideoFrameBuffer::parse(const QJniObject &frame)
         rowStrides[index] = plane.callMethod<jint>("getRowStride");
         pixelStrides[index] = plane.callMethod<jint>("getPixelStride");
 
-        auto byteBuffer = plane.callMethod<QtJniTypes::JavaByteBuffer>("getBuffer");
+        auto byteBuffer = plane.callMethod<QtJniTypes::ByteBuffer>("getBuffer");
         if (!byteBuffer.isValid()) {
             resetPlane(index);
             continue;

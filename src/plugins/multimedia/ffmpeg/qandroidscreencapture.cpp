@@ -124,7 +124,7 @@ bool QAndroidScreenCapture::setActiveInternal(bool active)
     return static_cast<bool>(m_grabber) == active;
 }
 
-void QAndroidScreenCapture::onNewFrameReceived(QtJniTypes::AndroidImage image)
+void QAndroidScreenCapture::onNewFrameReceived(QtJniTypes::Image image)
 {
     if (!isActive() || m_frameFactory == nullptr) {
         if (image.isValid())
@@ -137,7 +137,7 @@ void QAndroidScreenCapture::onNewFrameReceived(QtJniTypes::AndroidImage image)
         emit newVideoFrame(videoFrame);
 }
 
-static void onScreenFrameAvailable(JNIEnv *env, jobject obj, QtJniTypes::AndroidImage image, jlong id)
+static void onScreenFrameAvailable(JNIEnv *env, jobject obj, QtJniTypes::Image image, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(obj);

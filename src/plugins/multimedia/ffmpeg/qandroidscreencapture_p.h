@@ -35,7 +35,7 @@ public:
     QVideoFrameFormat frameFormat() const override;
 
     static bool registerNativeMethods();
-    void onNewFrameReceived(QtJniTypes::AndroidImage image);
+    void onNewFrameReceived(QtJniTypes::Image image);
 protected:
     bool setActiveInternal(bool active) override;
 

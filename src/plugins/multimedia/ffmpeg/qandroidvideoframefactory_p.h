@@ -27,7 +27,7 @@ public:
         return std::shared_ptr<QAndroidVideoFrameFactory>(
             new QAndroidVideoFrameFactory());
     };
-    QVideoFrame createVideoFrame(QtJniTypes::AndroidImage frame,
+    QVideoFrame createVideoFrame(QtJniTypes::Image frame,
                                  QtVideo::Rotation rotation = QtVideo::Rotation::None);
     void onFrameReleased() override;
 
