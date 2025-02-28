@@ -14,7 +14,7 @@ constexpr int NATIVE_FRAME_LIMIT = 10;
 }
 
 
-QVideoFrame QAndroidVideoFrameFactory::createVideoFrame(QtJniTypes::AndroidImage frame,
+QVideoFrame QAndroidVideoFrameFactory::createVideoFrame(QtJniTypes::Image frame,
                                                         QtVideo::Rotation rotation)
 {
     const int currentCounter = m_framesCounter.fetch_add(1, std::memory_order_relaxed) + 1;

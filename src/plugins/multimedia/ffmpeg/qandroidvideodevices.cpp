@@ -125,7 +125,7 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
         }
 
         const static int imageFormat =
-                QJniObject::getStaticField<QtJniTypes::AndroidImageFormat, jint>("YUV_420_888");
+                QJniObject::getStaticField<QtJniTypes::ImageFormat, jint>("YUV_420_888");
 
         const QStringList sizes = deviceManager.callMethod<QStringList>(
                 "getStreamConfigurationsSizes", cameraId, imageFormat);
