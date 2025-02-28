@@ -19,7 +19,6 @@
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/qaudiodevice.h>
 
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/private/qglobal_p.h>
@@ -31,20 +30,48 @@ class QIODevice;
 class Q_MULTIMEDIA_EXPORT QAudioStateChangeNotifier : public QObject
 {
     Q_OBJECT
+
 public:
-    QAudioStateChangeNotifier(QObject *parent = nullptr);
+    explicit QAudioStateChangeNotifier(QObject *parent = nullptr);
 
 signals:
     void errorChanged(QAudio::Error error);
     void stateChanged(QAudio::State state);
 };
 
-class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QAudioStateChangeNotifier
+class Q_MULTIMEDIA_EXPORT QPlatformAudioEndpointBase : public QAudioStateChangeNotifier
 {
-    Q_OBJECT
-
 public:
-    QPlatformAudioSink(QObject *parent);
+    explicit QPlatformAudioEndpointBase(QObject *parent = nullptr);
+
+    // LATER: can we devirtualize these functions
+    virtual QAudio::Error error() const { return m_error; }
+    virtual QAudio::State state() const { return m_inferredState; }
+
+protected:
+    enum class EmitStateSignal : uint8_t
+    {
+        True,
+        False,
+    };
+
+    void setError(QAudio::Error);
+    void updateStreamState(QAudio::State);
+    void updateStreamIdle(bool idle, EmitStateSignal = EmitStateSignal::True);
+
+private:
+    void inferState();
+
+    QAudio::State m_streamState = QAudio::StoppedState;
+    QAudio::State m_inferredState = QAudio::StoppedState;
+    QAudio::Error m_error{};
+    bool m_streamIsIdle = false;
+};
+
+class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QPlatformAudioEndpointBase
+{
+public:
+    explicit QPlatformAudioSink(QObject *parent);
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;
@@ -55,8 +82,6 @@ public:
     virtual void setBufferSize(qsizetype value) = 0;
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
-    virtual QAudio::Error error() const = 0;
-    virtual QAudio::State state() const = 0;
     virtual QAudioFormat format() const = 0;
     virtual void setVolume(qreal) {}
     virtual qreal volume() const;
@@ -64,12 +89,10 @@ public:
     QElapsedTimer elapsedTime;
 };
 
-class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QAudioStateChangeNotifier
+class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QPlatformAudioEndpointBase
 {
-    Q_OBJECT
-
 public:
-    QPlatformAudioSource(QObject *parent);
+    explicit QPlatformAudioSource(QObject *parent);
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;
@@ -80,8 +103,6 @@ public:
     virtual void setBufferSize(qsizetype value) = 0;
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
-    virtual QAudio::Error error() const = 0;
-    virtual QAudio::State state() const = 0;
     virtual QAudioFormat format() const = 0;
     virtual void setVolume(qreal) = 0;
     virtual qreal volume() const = 0;
