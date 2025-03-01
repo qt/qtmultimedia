@@ -10,25 +10,22 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtMultimedia/private/qaudioringbuffer_p.h>
-#include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
 #include <QtMultimedia/private/qaudio_rtsan_support_p.h>
-#include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
-using QtPrivate::QAudioRingBuffer;
-using QtPrivate::QAutoResetEvent;
-using QtPrivate::QIODeviceRingBufferReader;
+using QtMultimediaPrivate::QPlatformAudioSourceStream;
 
 // LATER:
 // ideally the ringbuffer should fill a buffer that can grow via a worker thread on which we can
 // allocate.
 struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewireAudioSourceStream>,
-                                          QPipewireAudioStream
+                                          QPipewireAudioStream,
+                                          QPlatformAudioSourceStream
 {
     using SampleFormat = QAudioFormat::SampleFormat;
 
@@ -42,57 +39,27 @@ struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewire
     QIODevice *start(ObjectSerial sourceNodeSerial);
     void stop();
 
-    void setVolume(qreal);
+    using QPlatformAudioSourceStream::bytesReady;
+    using QPlatformAudioSourceStream::processedDuration;
+    using QPlatformAudioSourceStream::setVolume;
 
-    std::chrono::microseconds processedDuration();
+    void updateStreamIdle(bool idle) override;
 
 private:
+    using QPlatformAudioSourceStream::m_format;
+
     void process() QT_MM_NONBLOCKING override;
     void handleDeviceRemoved() override;
 
     void stateChanged(pw_stream_state old, pw_stream_state state, const char *error) override;
-    void prepareFormat(const QAudioFormat &format, std::optional<qsizetype> ringbufferSize);
     void disconnectStream();
 
-    void pushToIODevice();
-
-    std::atomic<qreal> m_volume{ 1.f };
-
-    using Ringbuffer = std::variant<QAudioRingBuffer<float>, QAudioRingBuffer<int32_t>,
-                                    QAudioRingBuffer<int16_t>, QAudioRingBuffer<uint8_t>>;
-
-    Ringbuffer m_ringbuffer{
-        std::in_place_type_t<QAudioRingBuffer<float>>{},
-        0,
-    };
-
-    template <typename Functor>
-    auto visitRingbuffer(Functor &&f)
-    {
-        return std::visit(f, m_ringbuffer);
-    }
-
-    template <typename Functor>
-    auto visitRingbuffer(Functor &&f) const
-    {
-        return std::visit(f, m_ringbuffer);
-    }
-
-    QAutoResetEvent m_ringbufferHasData;
-    QAutoResetEvent m_ringbufferIsFull;
-
-    std::atomic_bool m_stopRequested{ false };
     std::shared_ptr<QPipewireAudioSourceStream> m_self;
-    std::unique_ptr<QIODevice> m_ringbufferReaderDevice;
-
-    std::atomic<uint64_t> m_totalNumberOfFramesPushedToRingbuffer;
 
     // xrun detection
     void xrunOccurred(int /*xrunCount*/) override { m_xrunOccurred.set(); }
     QtPrivate::QAutoResetEvent m_xrunOccurred;
     QMetaObject::Connection m_xrunNotification;
-
-    QPointer<QIODevice> m_device;
 
     QPipewireAudioSource *m_parent;
 };
@@ -103,24 +70,28 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QPipewireAudioSource *par
                                                        std::optional<qsizetype> hardwareBufferSize):
     QPipewireAudioStream {
         format,
-    }, m_parent {
+    },
+    QPlatformAudioSourceStream {
+        {},
+        format,
+        ringbufferSize,
+    },
+    m_parent {
         parent,
     }
 {
-    prepareFormat(format, ringbufferSize);
-
     auto extraProperties = std::array{
         spa_dict_item{ PW_KEY_MEDIA_CATEGORY, "Capture" },
         spa_dict_item{ PW_KEY_MEDIA_ROLE, "Music" },
     };
     createStream(extraProperties, hardwareBufferSize, "QPipewireAudioSource");
 
-    m_xrunNotification = QObject::connect(&m_xrunOccurred, &QAutoResetEvent::activated,
-                                          &m_xrunOccurred, [this, parent] {
-                                              if (m_stopRequested)
-                                                  return;
-                                              parent->reportXRuns(m_xrunCount.exchange(0));
-                                          });
+    m_xrunNotification =
+            QObject::connect(&m_xrunOccurred, &QAutoResetEvent::activated, &m_xrunOccurred, [this] {
+        if (isStopRequested())
+            return;
+        m_parent->reportXRuns(m_xrunCount.exchange(0));
+    });
 }
 
 QPipewireAudioSourceStream::~QPipewireAudioSourceStream() = default;
@@ -135,21 +106,14 @@ qsizetype QPipewireAudioSourceStream::bytesReady() const
 
 bool QPipewireAudioSourceStream::start(QIODevice *device, ObjectSerial sourceNodeSerial)
 {
-    m_device = device;
+    setQIODevice(device);
 
     assert(hasStream());
     bool connected = connectStream(sourceNodeSerial, SPA_DIRECTION_INPUT);
     if (!connected)
         return false;
 
-    QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
-        if (!m_stopRequested && m_parent)
-            m_parent->updateStreamIdle(false);
-        pushToIODevice();
-    });
-    QObject::connect(device, &QIODevice::bytesWritten, device, [this] {
-        pushToIODevice();
-    });
+    createQIODeviceConnections(device);
 
     // keep instance alive until PW_STREAM_STATE_UNCONNECTED
     m_self = shared_from_this();
@@ -159,39 +123,19 @@ bool QPipewireAudioSourceStream::start(QIODevice *device, ObjectSerial sourceNod
 
 QIODevice *QPipewireAudioSourceStream::start(ObjectSerial sourceNodeSerial)
 {
-    visitRingbuffer([&](auto &rb) {
-        using SampleType = typename std::decay_t<decltype(rb)>::ValueType;
-        m_ringbufferReaderDevice = std::make_unique<QIODeviceRingBufferReader<SampleType>>(&rb);
-    });
+    QIODevice *device = createRingbufferReaderDevice();
 
-    m_ringbufferReaderDevice->open(QIODevice::ReadOnly | QIODevice::Unbuffered);
-
-    QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated,
-                     m_ringbufferReaderDevice.get(), [this] {
-        emit m_ringbufferReaderDevice->readyRead();
-
-        if (!m_stopRequested && m_parent)
-            m_parent->updateStreamIdle(false);
-    });
-
-    QObject::connect(&m_ringbufferIsFull, &QAutoResetEvent::activated,
-                     m_ringbufferReaderDevice.get(), [this] {
-        if (!m_stopRequested && m_parent)
-            m_parent->updateStreamIdle(true);
-    });
-
-    bool started = start(m_ringbufferReaderDevice.get(), sourceNodeSerial);
+    bool started = start(device, sourceNodeSerial);
     if (!started)
         return nullptr;
 
-    return m_ringbufferReaderDevice.get();
+    return device;
 }
 
 void QPipewireAudioSourceStream::stop()
 {
     // TODO: fix stopping behavior
-
-    m_stopRequested = true;
+    requestStop();
 
     // disconnect immediately
     disconnectStream();
@@ -199,48 +143,10 @@ void QPipewireAudioSourceStream::stop()
     unregisterDeviceObserver();
 }
 
-void QPipewireAudioSourceStream::setVolume(qreal volume)
+void QPipewireAudioSourceStream::updateStreamIdle(bool idle)
 {
-    m_volume.store(volume, std::memory_order_relaxed);
-}
-
-std::chrono::microseconds QPipewireAudioSourceStream::processedDuration()
-{
-    return std::chrono::microseconds{
-        m_format.durationForFrames(
-                m_totalNumberOfFramesPushedToRingbuffer.load(std::memory_order_relaxed)),
-    };
-}
-
-void QPipewireAudioSourceStream::prepareFormat(const QAudioFormat &format,
-                                               std::optional<qsizetype> ringbufferSize)
-{
-    using namespace std::chrono;
-    using namespace std::chrono_literals;
-    static constexpr auto defaultBufferDuration = 250ms;
-    // prepare ringbuffer
-    int defaultBufferSize = m_format.framesForDuration(microseconds(defaultBufferDuration).count())
-            * m_format.channelCount();
-
-    int bufferSize = ringbufferSize.value_or(defaultBufferSize);
-
-    switch (format.sampleFormat()) {
-    case SampleFormat::Float:
-        m_ringbuffer.emplace<QAudioRingBuffer<float>>(bufferSize);
-        break;
-    case SampleFormat::Int16:
-        m_ringbuffer.emplace<QAudioRingBuffer<int16_t>>(bufferSize);
-        break;
-    case SampleFormat::Int32:
-        m_ringbuffer.emplace<QAudioRingBuffer<int32_t>>(bufferSize);
-        break;
-    case SampleFormat::UInt8:
-        m_ringbuffer.emplace<QAudioRingBuffer<uint8_t>>(bufferSize);
-        break;
-
-    default:
-        Q_UNREACHABLE();
-    }
+    if (m_parent)
+        m_parent->updateStreamIdle(idle);
 }
 
 void QPipewireAudioSourceStream::disconnectStream()
@@ -250,13 +156,6 @@ void QPipewireAudioSourceStream::disconnectStream()
     QPipewireAudioStream::disconnectStream();
 
     QObject::disconnect(m_xrunNotification);
-}
-
-void QPipewireAudioSourceStream::pushToIODevice()
-{
-    visitRingbuffer([&](auto &ringbuffer) {
-        QtPrivate::pushToQIODeviceFromRingbuffer(*m_device, ringbuffer);
-    });
 }
 
 void QPipewireAudioSourceStream::process() QT_MM_NONBLOCKING
@@ -278,39 +177,18 @@ void QPipewireAudioSourceStream::process() QT_MM_NONBLOCKING
         qsizetype(buf->datas[0].chunk->size),
     };
 
-    int numberOfSamplesRemaining = buffer.size() / m_format.bytesPerSample();
+    int numberOfFrames = m_format.framesForBytes(buffer.size());
 
-    performXRunDetection(m_format.framesForBytes(buffer.size()));
+    performXRunDetection(numberOfFrames);
 
-    const qreal volume = m_volume.load(std::memory_order_relaxed);
-
-    uint64_t totalBytesWritten = 0;
-    visitRingbuffer([&](auto &rb) {
-        for (;;) {
-            auto region = rb.acquireWriteRegion(numberOfSamplesRemaining);
-            if (region.empty())
-                break;
-
-            QAudioHelperInternal::applyVolume(volume, m_format, buffer, as_writable_bytes(region));
-            rb.releaseWriteRegion(region.size());
-            totalBytesWritten += region.size_bytes();
-            numberOfSamplesRemaining -= region.size();
-        }
-    });
-
-    if (totalBytesWritten)
-        m_ringbufferHasData.set();
-
-    int framesWritten = m_format.framesForBytes(totalBytesWritten);
-    m_totalNumberOfFramesPushedToRingbuffer = m_format.framesForBytes(framesWritten);
-    addFramesHandled(m_format.framesForBytes(framesWritten));
-
+    uint64_t framesWritten = QPlatformAudioSourceStream::process(buffer, numberOfFrames);
+    addFramesHandled(framesWritten);
     pw_stream_queue_buffer(m_stream.get(), b);
 }
 
 void QPipewireAudioSourceStream::handleDeviceRemoved()
 {
-    if (!m_stopRequested)
+    if (!isStopRequested())
         m_parent->setError(QAudio::Error::IOError);
 }
 

@@ -124,6 +124,7 @@ void QPipewireAudioStream::suspend()
 void QPipewireAudioStream::resume()
 {
     int status = QAudioContextManager::withEventLoopLock([&] {
+        m_skipNextTickDiscontinuity = true;
         return pw_stream_set_active(m_stream.get(), true);
     });
     if (status < 0)
@@ -174,7 +175,10 @@ void QPipewireAudioStream::performXRunDetection(uint64_t framesPerBuffer) QT_MM_
         return;
     }
 
-    if (std::abs(int64_t(m_expectedNextTick) - int64_t(time_info.ticks)) > 1024) {
+    if (m_skipNextTickDiscontinuity.load(std::memory_order_relaxed)) {
+        // prevent xrun detection to fire after resume, as ticks will continue incrementing
+        m_skipNextTickDiscontinuity = false;
+    } else if (std::abs(int64_t(m_expectedNextTick) - int64_t(time_info.ticks)) > 1024) {
         m_totalNumberOfFrames = time_info.ticks;
         m_xrunCount += 1;
         xrunOccurred(m_xrunCount);
@@ -190,7 +194,6 @@ void QPipewireAudioStream::performXRunDetection(uint64_t framesPerBuffer) QT_MM_
 #if PW_CHECK_VERSION(1, 1, 0)
     if (pw_check_library_version(1, 1, 0)) {
         // LATER: rely on time_info.size, once 1.1 is the minimum required version
-        Q_ASSERT(time_info.size == framesPerBuffer);
         m_expectedNextTick = time_info.ticks + (time_info.size * rateFactor);
         return;
     }

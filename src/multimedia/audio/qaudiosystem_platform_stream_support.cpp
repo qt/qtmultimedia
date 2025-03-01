@@ -1,0 +1,412 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+#include "qaudiosystem_platform_stream_support_p.h"
+
+#include <QtCore/qdebug.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
+
+#include <stdlib.h>
+#if __has_include(<alloca.h>)
+#  include <alloca.h>
+#endif
+#if __has_include(<malloc.h>)
+#  include <malloc.h>
+#endif
+
+#ifdef Q_CC_MSVC
+#  define alloca _alloca
+#endif
+
+QT_BEGIN_NAMESPACE
+
+namespace QtMultimediaPrivate {
+
+QPlatformAudioIOStream::QPlatformAudioIOStream(QAudioDevice m_audioDevice, QAudioFormat m_format,
+                                               std::optional<int> ringbufferSize)
+    : m_audioDevice(std::move(m_audioDevice)), m_format(m_format)
+{
+    prepareRingbuffer(ringbufferSize);
+}
+
+QPlatformAudioIOStream::~QPlatformAudioIOStream()
+{
+    Q_ASSERT(m_stopRequested);
+}
+
+void QPlatformAudioIOStream::setVolume(float volume)
+{
+    m_volume.store(volume, std::memory_order_relaxed);
+}
+
+void QPlatformAudioIOStream::prepareRingbuffer(std::optional<int> ringbufferSize)
+{
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+    using SampleFormat = QAudioFormat::SampleFormat;
+
+    static constexpr auto defaultBufferDuration = 250ms;
+
+    // Warning: QAudioSink::setBufferSize is measured in *bytes* not in *frames*
+    int ringbufferElements = ringbufferSize
+            ? m_format.framesForBytes(*ringbufferSize) * m_format.channelCount()
+            : m_format.framesForDuration(microseconds(defaultBufferDuration).count())
+                    * m_format.channelCount();
+
+    switch (m_format.sampleFormat()) {
+    case SampleFormat::Float:
+        m_ringbuffer.emplace<QAudioRingBuffer<float>>(ringbufferElements);
+        break;
+    case SampleFormat::Int16:
+        m_ringbuffer.emplace<QAudioRingBuffer<int16_t>>(ringbufferElements);
+        break;
+    case SampleFormat::Int32:
+        m_ringbuffer.emplace<QAudioRingBuffer<int32_t>>(ringbufferElements);
+        break;
+    case SampleFormat::UInt8:
+        m_ringbuffer.emplace<QAudioRingBuffer<uint8_t>>(ringbufferElements);
+        break;
+
+    default:
+        qCritical() << "invalid sample format";
+        Q_UNREACHABLE_RETURN();
+    }
+}
+
+void QPlatformAudioIOStream::requestStop()
+{
+    m_stopRequested.store(true, std::memory_order_release);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+QPlatformAudioSinkStream::QPlatformAudioSinkStream(const QAudioDevice &audioDevice,
+                                                   const QAudioFormat &format,
+                                                   std::optional<int> ringbufferSize)
+    : QPlatformAudioIOStream{
+          audioDevice,
+          format,
+          ringbufferSize,
+      }
+{
+    m_streamIdleDetectionConnection =
+            QObject::connect(&m_streamIdleDetectionNotifier, &QAutoResetEvent::activated,
+                             &m_streamIdleDetectionNotifier, [this] {
+        if (m_stopRequested)
+            return;
+
+        bool sinkIsIdle = m_streamIsIdle.load();
+
+        if (sinkIsIdle) {
+            // data has been pushed to the ringbuffer, while the stream is
+            // still idle, this will change during the next audio callback
+            bool ringbufferIsEmpty = visitRingbuffer([&](auto &ringbuffer) {
+                return ringbuffer.free() == ringbuffer.size();
+            });
+
+            sinkIsIdle = ringbufferIsEmpty;
+        }
+
+        updateStreamIdle(sinkIsIdle);
+    });
+}
+
+QPlatformAudioSinkStream::~QPlatformAudioSinkStream() = default;
+
+uint64_t
+QPlatformAudioSinkStream::process(QSpan<std::byte> hostBuffer, qsizetype totalNumberOfFrames,
+                                  std::optional<NativeSampleFormat> nativeFormat) QT_MM_NONBLOCKING
+{
+    qsizetype totalNumberOfSamples = totalNumberOfFrames * m_format.channelCount();
+
+    const float vol = volume();
+
+    int samplesConsumedFromRingbuffer = visitRingbuffer([&](auto &ringbuffer) {
+        return ringbuffer.consume(totalNumberOfSamples, [&](auto ringbufferRange) {
+            QSpan byteRange = as_bytes(ringbufferRange);
+            QSpan outputByteRange = take(hostBuffer, byteRange.size());
+            hostBuffer = drop(hostBuffer, byteRange.size());
+
+            if (nativeFormat)
+                convertToNative(byteRange, outputByteRange, vol, *nativeFormat);
+            else
+                QAudioHelperInternal::applyVolume(vol, m_format, byteRange, outputByteRange);
+        });
+    });
+
+    if (!m_stopRequested) {
+        if (notificationThresholdBytes == 0 || bytesFree() > notificationThresholdBytes)
+            m_ringbufferHasSpace.set();
+
+        bool streamIsIdle = m_streamIsIdle.load(std::memory_order_relaxed);
+        if (streamIsIdle && samplesConsumedFromRingbuffer) {
+            m_streamIsIdle.store(false);
+            m_streamIdleDetectionNotifier.set();
+        } else if (!streamIsIdle && !samplesConsumedFromRingbuffer) {
+            m_streamIsIdle.store(true);
+            m_streamIdleDetectionNotifier.set();
+        }
+    }
+    if (!hostBuffer.empty())
+        std::fill_n(hostBuffer.data(), hostBuffer.size(), std::byte{});
+
+    uint64_t consumedFrames = samplesConsumedFromRingbuffer / m_format.channelCount();
+    m_processedFrameCount += consumedFrames;
+    m_totalFrameCount += totalNumberOfFrames;
+
+    return consumedFrames;
+}
+
+quint64 QPlatformAudioSinkStream::bytesFree() const
+{
+    return visitRingbuffer([](auto &ringbuffer) {
+        using SampleType = typename std::decay_t<decltype(ringbuffer)>::ValueType;
+        return ringbuffer.free() * sizeof(SampleType);
+    });
+}
+
+std::chrono::microseconds QPlatformAudioSinkStream::processedDuration() const
+{
+    return std::chrono::microseconds{
+        m_processedFrameCount * 1'000'000 / m_format.sampleRate(),
+    };
+}
+
+void QPlatformAudioSinkStream::pullFromQIODevice()
+{
+    Q_ASSERT(m_device);
+
+    visitRingbuffer([&](auto &ringbuffer) {
+        int elementsPulled = pullFromQIODeviceToRingbuffer(*m_device, ringbuffer);
+        if (elementsPulled)
+            updateStreamIdle(false);
+    });
+}
+
+void QPlatformAudioSinkStream::createQIODeviceConnections(QIODevice *device)
+{
+    // consumed from audio thread
+    m_ringbufferHasSpaceConnection =
+            QObject::connect(&m_ringbufferHasSpace, &QAutoResetEvent::activated, device, [this] {
+        pullFromQIODevice();
+    });
+
+    // data has been pushed to device
+    m_iodeviceHasNewDataConnection =
+            QObject::connect(device, &QIODevice::readyRead, device, [this] {
+        pullFromQIODevice();
+
+        updateStreamIdle(false);
+    });
+}
+
+void QPlatformAudioSinkStream::disconnectQIODeviceConnections()
+{
+    QObject::disconnect(m_ringbufferHasSpaceConnection);
+    QObject::disconnect(m_iodeviceHasNewDataConnection);
+}
+
+QIODevice *QPlatformAudioSinkStream::createRingbufferReaderDevice()
+{
+    m_ringbufferReaderDevice = visitRingbuffer([&](auto &ringbuffer) -> std::unique_ptr<QIODevice> {
+        using SampleType = typename std::decay_t<decltype(ringbuffer)>::ValueType;
+        return std::make_unique<QtPrivate::QIODeviceRingBufferWriter<SampleType>>(&ringbuffer);
+    });
+
+    m_ringbufferReaderDevice->open(QIODevice::WriteOnly | QIODevice::Unbuffered);
+    return m_ringbufferReaderDevice.get();
+}
+
+void QPlatformAudioSinkStream::setQIODevice(QIODevice *device)
+{
+    m_device = device;
+}
+
+void QPlatformAudioSinkStream::setIdleState(bool x)
+{
+    m_streamIsIdle.store(x);
+}
+
+// we limit alloca calls to 0.5MB. it's good enough for virtually all use cases (i.e. buffers
+// of 4092 frames / 32 channels) and well in the reasonable range of available stack memory on linux
+// (8MB)
+static constexpr qsizetype scratchpadBufferSizeLimit = 512 * 1024;
+static_assert(scratchpadBufferSizeLimit > 4092 * 32 * sizeof(float));
+
+void QPlatformAudioSinkStream::convertToNative(QSpan<const std::byte> internal,
+                                               QSpan<std::byte> native, float volume,
+                                               NativeSampleFormat nativeFormat) QT_MM_NONBLOCKING
+{
+    using namespace QAudioHelperInternal;
+
+    if (volume == 1.f) {
+        convertSampleFormat(internal, toNativeSampleFormat(m_format.sampleFormat()), native,
+                            nativeFormat);
+        return;
+    }
+
+    Q_ASSERT(internal.size() <= scratchpadBufferSizeLimit);
+    std::byte *scratchpadMemory = reinterpret_cast<std::byte *>(alloca(internal.size()));
+    QSpan scratchpadBuffer{ scratchpadMemory, internal.size() };
+
+    applyVolume(volume, m_format, internal, scratchpadBuffer);
+    convertSampleFormat(scratchpadBuffer, toNativeSampleFormat(m_format.sampleFormat()), native,
+                        nativeFormat);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+QPlatformAudioSourceStream::QPlatformAudioSourceStream(const QAudioDevice &audioDevice,
+                                                       const QAudioFormat &format,
+                                                       std::optional<int> ringbufferSize)
+    : QPlatformAudioIOStream{
+          audioDevice,
+          format,
+          ringbufferSize,
+      }
+{
+}
+
+QPlatformAudioSourceStream::~QPlatformAudioSourceStream() = default;
+
+uint64_t QPlatformAudioSourceStream::process(
+        QSpan<const std::byte> hostBuffer, qsizetype numberOfFrames,
+        std::optional<NativeSampleFormat> nativeFormat) QT_MM_NONBLOCKING
+{
+    qsizetype remainingNumberOfSamples = numberOfFrames * m_format.channelCount();
+
+    const float vol = volume();
+
+    using namespace QtMultimediaPrivate;
+
+    uint64_t totalBytesWritten = 0;
+    visitRingbuffer([&](auto &rb) {
+        for (;;) {
+            QSpan region = rb.acquireWriteRegion(remainingNumberOfSamples);
+            if (region.empty())
+                break;
+
+            QSpan inputChunk = take(hostBuffer, region.size_bytes());
+            hostBuffer = drop(hostBuffer, region.size_bytes());
+            if (nativeFormat)
+                convertFromNative(inputChunk, as_writable_bytes(region), vol, *nativeFormat);
+            else
+                QAudioHelperInternal::applyVolume(vol, m_format, inputChunk,
+                                                  as_writable_bytes(region));
+
+            rb.releaseWriteRegion(region.size());
+            totalBytesWritten += region.size_bytes();
+            remainingNumberOfSamples -= region.size();
+        }
+    });
+
+    if (totalBytesWritten)
+        m_ringbufferHasData.set();
+
+    uint64_t framesWritten = m_format.framesForBytes(totalBytesWritten);
+    m_totalNumberOfFramesPushedToRingbuffer += framesWritten;
+    return framesWritten;
+}
+
+void QPlatformAudioSourceStream::pushToIODevice()
+{
+    qsizetype bytesPushed = visitRingbuffer([&](auto &ringbuffer) {
+        return QtPrivate::pushToQIODeviceFromRingbuffer(*m_device, ringbuffer);
+    });
+
+    if (bytesPushed)
+        Q_EMIT m_device->readyRead();
+}
+
+bool QPlatformAudioSourceStream::deviceIsRingbufferReader() const
+{
+    return m_device == m_ringbufferReaderDevice.get();
+}
+
+qsizetype QPlatformAudioSourceStream::bytesReady() const
+{
+    return visitRingbuffer([](const auto &ringbuffer) {
+        return ringbuffer.used() * sizeof(typename std::decay_t<decltype(ringbuffer)>::ValueType);
+    });
+}
+
+std::chrono::microseconds QPlatformAudioSourceStream::processedDuration() const
+{
+    return std::chrono::microseconds{
+        m_format.durationForFrames(
+                m_totalNumberOfFramesPushedToRingbuffer.load(std::memory_order_relaxed)),
+    };
+}
+
+void QPlatformAudioSourceStream::setQIODevice(QIODevice *device)
+{
+    m_device = device;
+}
+
+void QPlatformAudioSourceStream::createQIODeviceConnections(QIODevice *device)
+{
+    bool pushToDevice = device != m_ringbufferReaderDevice.get();
+
+    if (pushToDevice) {
+        QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
+            if (!isStopRequested())
+                updateStreamIdle(false);
+            pushToIODevice();
+        });
+    } else {
+        QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
+            if (!isStopRequested())
+                updateStreamIdle(false);
+            Q_EMIT m_device->readyRead();
+        });
+    }
+
+    QObject::connect(&m_ringbufferIsFull, &QAutoResetEvent::activated, device, [this] {
+        if (!isStopRequested())
+            updateStreamIdle(true);
+    });
+}
+
+QIODevice *QPlatformAudioSourceStream::createRingbufferReaderDevice()
+{
+    using namespace QtPrivate;
+
+    m_ringbufferReaderDevice = visitRingbuffer([&](auto &rb) -> std::unique_ptr<QIODevice> {
+        using SampleType = typename std::decay_t<decltype(rb)>::ValueType;
+        return std::make_unique<QIODeviceRingBufferReader<SampleType>>(&rb);
+    });
+
+    m_ringbufferReaderDevice->open(QIODevice::ReadOnly | QIODevice::Unbuffered);
+
+    return m_ringbufferReaderDevice.get();
+}
+
+void QPlatformAudioSourceStream::convertFromNative(
+        QSpan<const std::byte> native, QSpan<std::byte> internal, float volume,
+        NativeSampleFormat nativeFormat) QT_MM_NONBLOCKING
+{
+    using namespace QAudioHelperInternal;
+    if (volume == 1.f) {
+        convertSampleFormat(native, nativeFormat, internal,
+                            QAudioHelperInternal::toNativeSampleFormat(m_format.sampleFormat()));
+        return;
+    }
+
+    Q_ASSERT(internal.size() <= scratchpadBufferSizeLimit);
+    std::byte *scratchpadMemory = reinterpret_cast<std::byte *>(alloca(internal.size()));
+    QSpan scratchpadBuffer{ scratchpadMemory, internal.size() };
+
+    convertSampleFormat(native, nativeFormat, scratchpadBuffer,
+                        QAudioHelperInternal::toNativeSampleFormat(m_format.sampleFormat()));
+
+    applyVolume(volume, m_format, scratchpadBuffer, internal);
+}
+
+} // namespace QtMultimediaPrivate
+
+QT_END_NAMESPACE
+
+#ifdef Q_CC_MSVC
+#  undef alloca
+#endif
