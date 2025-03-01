@@ -27,6 +27,7 @@ qt_internal_add_module(Multimedia
         audio/qaudiosource.cpp audio/qaudiosource.h
         audio/qaudiosink.cpp audio/qaudiosink.h
         audio/qaudiosystem.cpp audio/qaudiosystem_p.h
+        audio/qaudiosystem_platform_stream_support.cpp audio/qaudiosystem_platform_stream_support_p.h
         audio/qaudiostatemachine.cpp audio/qaudiostatemachine_p.h
         audio/qaudiostatemachineutils_p.h
         audio/qaudio_alignment_support_p.h
