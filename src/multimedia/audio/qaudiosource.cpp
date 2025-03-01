@@ -329,8 +329,6 @@ qint64 QAudioSource::processedUSecs() const
     Suspend states.
 */
 
-#include <qdebug.h>
-
 qint64 QAudioSource::elapsedUSecs() const
 {
     return state() == QAudio::StoppedState ? 0 : d->elapsedTime.nsecsElapsed()/1000;
