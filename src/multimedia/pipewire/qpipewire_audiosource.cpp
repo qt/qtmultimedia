@@ -142,16 +142,14 @@ bool QPipewireAudioSourceStream::start(QIODevice *device, ObjectSerial sourceNod
     if (!connected)
         return false;
 
-    if (device->isWritable()) {
-        QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
-            if (!m_stopRequested && m_parent)
-                m_parent->updateStreamIdle(false);
-            pushToIODevice();
-        });
-        QObject::connect(device, &QIODevice::bytesWritten, device, [this] {
-            pushToIODevice();
-        });
-    }
+    QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
+        if (!m_stopRequested && m_parent)
+            m_parent->updateStreamIdle(false);
+        pushToIODevice();
+    });
+    QObject::connect(device, &QIODevice::bytesWritten, device, [this] {
+        pushToIODevice();
+    });
 
     // keep instance alive until PW_STREAM_STATE_UNCONNECTED
     m_self = shared_from_this();
