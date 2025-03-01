@@ -55,8 +55,7 @@ private:
         // we don't write fractional samples
         int64_t usableLength = alignDown(len, sizeof(SampleType));
 
-        QSpan<const std::byte> dataRegion = as_bytes(QSpan{ data, usableLength });
-
+        QSpan<const std::byte> dataRegion = as_bytes(QSpan{ data, qsizetype(usableLength) });
         qint64 totalBytesWritten = 0;
 
         do {
@@ -74,7 +73,7 @@ private:
             totalBytesWritten += bytesToWrite;
             dataRegion = drop(dataRegion, bytesToWrite);
 
-            m_ringbuffer->releaseWriteRegion(bytesToWrite / sizeof(SampleType));
+            m_ringbuffer->releaseWriteRegion(int(bytesToWrite / sizeof(SampleType)));
         } while (!dataRegion.isEmpty());
 
         if (totalBytesWritten)
@@ -106,13 +105,13 @@ private:
     {
         using namespace QtMultimediaPrivate; // drop
 
-        QSpan<std::byte> outputRegion = as_writable_bytes(QSpan{ data, maxlen });
+        QSpan<std::byte> outputRegion = as_writable_bytes(QSpan{ data, qsizetype(maxlen) });
 
         qint64 totalBytesRead = 0;
 
         while (!outputRegion.isEmpty()) {
-            int maxSizeToRead = outputRegion.size_bytes() / sizeof(SampleType);
-            QSpan readRegion = m_ringbuffer->acquireReadRegion(maxSizeToRead);
+            qsizetype maxSizeToRead = outputRegion.size_bytes() / sizeof(SampleType);
+            QSpan readRegion = m_ringbuffer->acquireReadRegion(int(maxSizeToRead));
             if (readRegion.isEmpty())
                 return totalBytesRead;
 
@@ -142,7 +141,7 @@ public:
 
     explicit QDequeIODevice(QObject *parent = nullptr) : QIODevice(parent) { }
 
-    qsizetype bytesAvailable() const override { return m_deque.size(); }
+    qint64 bytesAvailable() const override { return qint64(m_deque.size()); }
 
 private:
     qint64 readData(char *data, qint64 maxlen) override
@@ -227,25 +226,23 @@ qsizetype pushToQIODeviceFromRingbuffer(QIODevice &device, QAudioRingBuffer<Samp
             int bytesToWrite = alignDown(deviceBytesToWrite, sizeof(SampleType));
             bufferByteRegion = take(bufferByteRegion, bytesToWrite);
 
-            int bytesWritten = writeToDevice(device, bufferByteRegion);
-
-            if (bytesWritten < 0) {
-                qWarning() << "pushToQIODeviceFromRingbuffer cannot push data to QIODevice:"
-                           << device.errorString();
+            if (bufferByteRegion.empty())
                 return totalBytesWritten;
-            }
-            if (bytesWritten == 0)
-                return totalBytesWritten;
-            totalBytesWritten += bytesWritten;
-            Q_ASSERT(isAligned(bytesWritten, sizeof(SampleType)));
-            int samplesWritten = bytesWritten / sizeof(SampleType);
-            ringbuffer.releaseReadRegion(samplesWritten);
-        } else {
-            // we don't know how many bytes to write, so we end up filling as much as possible
-            int bytesWritten = writeToDevice(device, bufferByteRegion);
-            int samplesWritten = bytesWritten / sizeof(SampleType);
-            ringbuffer.releaseReadRegion(samplesWritten);
         }
+
+        int bytesWritten = writeToDevice(device, bufferByteRegion);
+        if (bytesWritten < 0) {
+            qWarning() << "pushToQIODeviceFromRingbuffer cannot push data to QIODevice:"
+                       << device.errorString();
+            return totalBytesWritten;
+        }
+        if (bytesWritten == 0)
+            return totalBytesWritten;
+
+        totalBytesWritten += bytesWritten;
+        Q_ASSERT(isAligned(bytesWritten, sizeof(SampleType)));
+        int samplesWritten = bytesWritten / sizeof(SampleType);
+        ringbuffer.releaseReadRegion(samplesWritten);
     }
 }
 
