@@ -368,16 +368,11 @@ qint64 QDarwinAudioSourceDevice::writeData(const char *data, qint64 len)
 QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device, const QAudioFormat &fmt,
                                        QObject *parent)
     : QPlatformAudioSource(parent),
+      m_audioDevice(device),
       m_internalBufferSize(DEFAULT_BUFFER_SIZE),
       m_audioFormat(fmt),
       m_stateMachine(*this)
 {
-    // If incoming device is null, fallback to default device.
-    // Note: Default device can still be null in the case no devices are connected.
-    m_audioDevice = device.isNull()
-        ? QMediaDevices::defaultAudioInput()
-        : device;
-
     connect(this, &QDarwinAudioSource::stateChanged, this, &QDarwinAudioSource::updateAudioDevice);
 #ifdef Q_OS_IOS
     if (qApp)
