@@ -47,6 +47,7 @@ public:
     // LATER: can we devirtualize these functions
     virtual QAudio::Error error() const { return m_error; }
     virtual QAudio::State state() const { return m_inferredState; }
+    void setError(QAudio::Error);
 
 protected:
     enum class EmitStateSignal : uint8_t
@@ -55,7 +56,6 @@ protected:
         False,
     };
 
-    void setError(QAudio::Error);
     void updateStreamState(QAudio::State);
     void updateStreamIdle(bool idle, EmitStateSignal = EmitStateSignal::True);
 

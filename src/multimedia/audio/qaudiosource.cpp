@@ -144,6 +144,12 @@ void QAudioSource::start(QIODevice* device)
 {
     if (!d)
         return;
+    if (!device->isWritable()) {
+        qWarning() << "QAudioSource::start: QIODevice is not writable";
+        d->setError(QAudio::OpenError);
+        return;
+    }
+
     d->elapsedTime.start();
     d->start(device);
 }
