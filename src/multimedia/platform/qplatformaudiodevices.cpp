@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qplatformaudiodevices_p.h"
-#include "qcameradevice.h"
-#include "qaudiosystem_p.h"
-#include "qaudiodevice.h"
+
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 
 #if defined(Q_OS_ANDROID)
 #  include <qandroidaudiodevices_p.h>
@@ -123,24 +124,28 @@ QPlatformAudioSource *QPlatformAudioDevices::audioInputDevice(const QAudioFormat
                                                               const QAudioDevice &deviceInfo,
                                                               QObject *parent)
 {
-    QAudioDevice info = deviceInfo;
-    if (info.isNull())
-        info = audioInputs().value(0);
+    QAudioDevice device = deviceInfo;
+    if (device.isNull())
+        device = QMediaDevices::defaultAudioInput();
 
-    QPlatformAudioSource *p = !info.isNull() ? createAudioSource(info, format, parent) : nullptr;
-    return p;
+    if (device.isNull())
+        return nullptr;
+
+    return createAudioSource(device, format, parent);
 }
 
 QPlatformAudioSink *QPlatformAudioDevices::audioOutputDevice(const QAudioFormat &format,
                                                              const QAudioDevice &deviceInfo,
                                                              QObject *parent)
 {
-    QAudioDevice info = deviceInfo;
-    if (info.isNull())
-        info = audioOutputs().value(0);
+    QAudioDevice device = deviceInfo;
+    if (device.isNull())
+        device = QMediaDevices::defaultAudioOutput();
 
-    QPlatformAudioSink *p = !info.isNull() ? createAudioSink(info, format, parent) : nullptr;
-    return p;
+    if (device.isNull())
+        return nullptr;
+
+    return createAudioSink(device, format, parent);
 }
 
 void QPlatformAudioDevices::prepareAudio() { }
