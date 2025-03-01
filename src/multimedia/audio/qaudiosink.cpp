@@ -143,6 +143,13 @@ void QAudioSink::start(QIODevice* device)
 {
     if (!d)
         return;
+
+    if (!device->isReadable()) {
+        qWarning() << "QAudioSink::start: QIODevice is not readable";
+        d->setError(QAudio::OpenError);
+        return;
+    }
+
     d->elapsedTime.restart();
     d->start(device);
 }
