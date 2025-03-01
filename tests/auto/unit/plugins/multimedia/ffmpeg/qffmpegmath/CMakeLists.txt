@@ -6,7 +6,7 @@
 #####################################################################
 
 if(LINUX OR ANDROID)
-    message(WARNING, "Tests can not run on Linux or Android because of QTBUG-133914")
+    message(WARNING "tst_qffmpegmath can not run on Linux or Android because of QTBUG-133914")
     return()
 endif()
 
