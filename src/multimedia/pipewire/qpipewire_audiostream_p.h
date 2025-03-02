@@ -24,8 +24,6 @@
 
 #include <pipewire/stream.h>
 
-#include <array>
-
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
@@ -36,7 +34,6 @@ protected:
     explicit QPipewireAudioStream(const QAudioFormat &);
     ~QPipewireAudioStream();
 
-    void prepareParameters();
     const QAudioFormat m_format;
 
     // stream control
@@ -57,8 +54,6 @@ protected:
                               const char *error) = 0;
 
     // stream members
-    std::array<uint8_t, 1024> parameterBuffer;
-    std::array<const struct spa_pod *, 1> params;
     pw_stream_events stream_events{};
     PwStreamHandle m_stream;
 

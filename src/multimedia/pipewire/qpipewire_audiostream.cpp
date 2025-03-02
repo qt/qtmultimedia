@@ -25,13 +25,14 @@ int pw_stream_get_time_n(struct pw_stream *stream, struct pw_time *time, size_t 
 }
 #endif
 
+#include <array>
+
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
 QPipewireAudioStream::QPipewireAudioStream(const QAudioFormat &format) : m_format{ format }
 {
-    prepareParameters();
 }
 
 QPipewireAudioStream::~QPipewireAudioStream()
@@ -39,16 +40,6 @@ QPipewireAudioStream::~QPipewireAudioStream()
     QAudioContextManager::withEventLoopLock([&] {
         m_stream = {};
     });
-}
-
-void QPipewireAudioStream::prepareParameters()
-{
-    struct spa_pod_builder b =
-            SPA_POD_BUILDER_INIT(parameterBuffer.data(), uint32_t(parameterBuffer.size()));
-
-    spa_audio_info_raw audioInfo = asSpaAudioInfoRaw(m_format);
-
-    params[0] = spa_format_audio_raw_build(&b, SPA_PARAM_EnumFormat, &audioInfo);
 }
 
 void QPipewireAudioStream::createStream(QSpan<spa_dict_item> extraProperties,
@@ -97,6 +88,14 @@ bool QPipewireAudioStream::connectStream(ObjectSerial target, spa_direction dire
         bool deviceAlreadyRemoved = registerDeviceObserver(target);
         if (!deviceAlreadyRemoved)
             return -ENODEV;
+
+        std::array<uint8_t, 1024> buffer;
+        struct spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer.data(), uint32_t(buffer.size()));
+        spa_audio_info_raw audioInfo = asSpaAudioInfoRaw(m_format);
+
+        std::array<const struct spa_pod *, 1> params{
+            spa_format_audio_raw_build(&b, SPA_PARAM_EnumFormat, &audioInfo),
+        };
 
         return pw_stream_connect(
                 m_stream.get(), direction, targetNodeId->value,
