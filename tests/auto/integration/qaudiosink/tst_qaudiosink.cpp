@@ -194,7 +194,7 @@ void tst_QAudioSink::initTestCase()
 
     // Only perform tests if audio output device exists
     if (devices.isEmpty())
-        QSKIP("No audio backend");
+        QSKIP("No audio outputs found");
 
     audioDevice = QMediaDevices::defaultAudioOutput();
 
