@@ -127,7 +127,7 @@ void tst_QAudioSource::initTestCase()
     const QList<QAudioDevice> devices = QMediaDevices::audioInputs();
 
     if (devices.size() <= 0)
-        QSKIP("No audio backend");
+        QSKIP("No audio inputs found");
 
     audioDevice = QMediaDevices::defaultAudioInput();
 
