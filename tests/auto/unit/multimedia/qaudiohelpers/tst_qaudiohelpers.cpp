@@ -6,6 +6,9 @@
 
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudio_alignment_support_p.h>
+#include <QtMultimedia/private/qaudio_qspan_support_p.h>
+
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
 
 class tst_QAudioHelpers : public QObject
 {
@@ -16,6 +19,9 @@ private slots:
     void applyVolume_data();
 
     void alignmentSupport();
+
+    void span_drop();
+    void span_take();
 };
 
 namespace WordConverter {
@@ -174,6 +180,36 @@ void tst_QAudioHelpers::alignmentSupport()
     auto charPtr = reinterpret_cast<char *>(intPtr.get());
     QVERIFY(!isAligned(charPtr + 1, 4));
     QCOMPARE_EQ(alignDown(charPtr + 1, 4), charPtr);
+}
+
+void tst_QAudioHelpers::span_drop()
+{
+    using namespace QtMultimediaPrivate;
+
+    std::array<int, 3> x;
+    QSpan<int> dut{ x };
+
+    QVERIFY(drop(dut, 3).empty());
+    QCOMPARE(drop(dut, 2).size(), 1);
+
+    QSpan<int> emptySpan = {};
+    QVERIFY(drop(emptySpan, 3).empty());
+}
+
+void tst_QAudioHelpers::span_take()
+{
+    using namespace QtMultimediaPrivate;
+
+    std::array<int, 3> x;
+    QSpan<int> dut{ x };
+
+    QCOMPARE(take(dut, 4).size(), 3);
+    QCOMPARE(take(dut, 3).size(), 3);
+    QCOMPARE(take(dut, 2).size(), 2);
+    QVERIFY(take(dut, 0).empty());
+
+    QSpan<int> emptySpan = {};
+    QVERIFY(take(emptySpan, 3).empty());
 }
 
 QTEST_APPLESS_MAIN(tst_QAudioHelpers);
