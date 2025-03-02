@@ -24,15 +24,21 @@ namespace QtMultimediaPrivate {
 
 // some span utils (poor man's ranges-v3)
 template <typename U>
-inline QSpan<U> drop(QSpan<U> span, int n)
+inline QSpan<U> drop(QSpan<U> span, int n) // ranges::drop
 {
-    return span.subspan(n); // ranges::drop
+    if (n < span.size())
+        return span.subspan(n);
+    else
+        return {};
 }
 
 template <typename U>
-inline QSpan<U> take(QSpan<U> span, int n)
+inline QSpan<U> take(QSpan<U> span, int n) // ranges::take
 {
-    return span.first(n); // ranges::take
+    if (n > span.size())
+        return span;
+    else
+        return span.first(n);
 }
 
 } // namespace QtMultimediaPrivate
