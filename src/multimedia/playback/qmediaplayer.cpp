@@ -1101,10 +1101,9 @@ bool QMediaPlayer::pitchCompensation() const
 }
 
 /*!
-    \fn QMediaPlayer::setPitchCompensation(bool enabled)
-
-    Sets the state of pitch compensation. This only has an effect if the audio pitch
-    compensation can be configured on the backend at runtime.
+    Sets the state (\a enabled or disabled) of pitch compensation. This only
+    has an effect if the audio pitch compensation can be configured on the
+    backend at runtime.
     \since 6.10
 */
 void QMediaPlayer::setPitchCompensation(bool enabled) const
