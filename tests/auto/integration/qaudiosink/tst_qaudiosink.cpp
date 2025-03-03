@@ -199,39 +199,27 @@ void tst_QAudioSink::initTestCase()
             testFormats.append(audioDevice.preferredFormat());
     }
 
-    // PCM 11025 mono S16LE
-    format.setChannelCount(1);
-    format.setSampleRate(11025);
     format.setSampleFormat(QAudioFormat::Int16);
-    if (audioDevice.isFormatSupported(format))
-        testFormats.append(format);
+    for (int channels : { 1, 2 }) {
+        format.setChannelCount(channels);
+        for (int rate : { 44100, 48000 }) {
+            format.setSampleRate(rate);
 
-    // PCM 22050 mono S16LE
-    format.setSampleRate(22050);
-    if (audioDevice.isFormatSupported(format))
-        testFormats.append(format);
+            if (audioDevice.isFormatSupported(format))
+                testFormats.append(format);
+        }
+    }
 
-    // PCM 22050 stereo S16LE
-    format.setChannelCount(2);
-    if (audioDevice.isFormatSupported(format))
-        testFormats.append(format);
-
-    // PCM 44100 stereo S16LE
-    format.setSampleRate(44100);
-    if (audioDevice.isFormatSupported(format))
 #ifdef Q_OS_ANDROID
-        // Testset crash on emulator x86 with API 23 (Android 6) for 44,1 MHz.
-        // It is not happen on x86 with API 24. What is more, there is no crash when
-        // tested sample rate is 44,999 or any other value. Seems like problem on
-        // emulator side. Let's turn off this frequency for API 23
-        if (QNativeInterface::QAndroidApplication::sdkVersion() > __ANDROID_API_M__)
+    // Testset crash on emulator x86 with API 23 (Android 6) for 44,1 MHz.
+    // It is not happen on x86 with API 24. What is more, there is no crash when
+    // tested sample rate is 44,999 or any other value. Seems like problem on
+    // emulator side. Let's turn off this frequency for API 23
+    if (QNativeInterface::QAndroidApplication::sdkVersion() <= __ANDROID_API_M__)
+        testFormats.removeIf([](const QAudioFormat &fmt) {
+            return fmt.sampleRate() == 44100;
+        });
 #endif
-        testFormats.append(format);
-
-    // PCM 48000 stereo S16LE
-    format.setSampleRate(48000);
-    if (audioDevice.isFormatSupported(format))
-        testFormats.append(format);
 
     QVERIFY(testFormats.size());
 
