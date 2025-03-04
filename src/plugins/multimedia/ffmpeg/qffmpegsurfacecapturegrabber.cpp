@@ -12,9 +12,7 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcScreenCaptureGrabber, "qt.multimedia.ffmpeg.surfacecapturegrabber");
 
-namespace {
-
-class GrabbingProfiler
+class QFFmpegSurfaceCaptureGrabber::GrabbingProfiler
 {
 public:
     auto measure()
@@ -47,8 +45,6 @@ private:
     qint64 m_wholeTime = 0;
     qint64 m_number = 0;
 };
-
-} // namespace
 
 struct QFFmpegSurfaceCaptureGrabber::GrabbingContext
 {

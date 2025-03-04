@@ -78,6 +78,7 @@ protected:
     bool isGrabbingContextInitialized() const;
 
 private:
+    class GrabbingProfiler;
     struct GrabbingContext;
     class GrabbingThread;
 
