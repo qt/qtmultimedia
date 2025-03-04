@@ -1097,7 +1097,7 @@ QMediaMetaData QMediaPlayer::metaData() const
 bool QMediaPlayer::pitchCompensation() const
 {
     Q_D(const QMediaPlayer);
-    return d->control->pitchCompensation();
+    return d->control ? d->control->pitchCompensation() : false;
 }
 
 /*!
@@ -1110,7 +1110,8 @@ bool QMediaPlayer::pitchCompensation() const
 void QMediaPlayer::setPitchCompensation(bool enabled) const
 {
     Q_D(const QMediaPlayer);
-    d->control->setPitchCompensation(enabled);
+    if (d->control)
+        d->control->setPitchCompensation(enabled);
 }
 
 /*!
