@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "qmediacapturesession.h"
+#include <QtMultimedia/qmediacapturesession.h>
 #include <QtCore/private/qobject_p.h>
 
 QT_BEGIN_NAMESPACE
