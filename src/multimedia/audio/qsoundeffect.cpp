@@ -19,29 +19,23 @@ QT_BEGIN_NAMESPACE
 
 Q_GLOBAL_STATIC(QSampleCache, sampleCache)
 
-namespace
-{
-struct AudioSinkDeleter
-{
-    void operator ()(QAudioSink* sink) const
-    {
-        sink->stop();
-        // Investigate:should we just delete?
-        sink->deleteLater();
-    }
-};
-
-struct SampleDeleter
-{
-    void operator ()(QSample* sample) const
-    {
-        sample->release();
-    }
-};
-}
-
 class QSoundEffectPrivate : public QIODevice
 {
+    struct AudioSinkDeleter
+    {
+        void operator()(QAudioSink *sink) const
+        {
+            sink->stop();
+            // Investigate:should we just delete?
+            sink->deleteLater();
+        }
+    };
+
+    struct SampleDeleter
+    {
+        void operator()(QSample *sample) const { sample->release(); }
+    };
+
 public:
     QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &audioDevice = QAudioDevice());
     ~QSoundEffectPrivate() override = default;
