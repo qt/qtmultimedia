@@ -15,13 +15,12 @@
 // We mean it.
 //
 
-#include "qplatformvideosource_p.h"
-#include "qscreen.h"
-#include "qcapturablewindow.h"
-#include "qpointer.h"
-#include "private/qerrorinfo_p.h"
+#include <QtCore/qpointer.h>
+#include <QtGui/qscreen.h>
+#include <QtMultimedia/qcapturablewindow.h>
+#include <QtMultimedia/private/qerrorinfo_p.h>
+#include <QtMultimedia/private/qplatformvideosource_p.h>
 
-#include <optional>
 #include <variant>
 
 QT_BEGIN_NAMESPACE
