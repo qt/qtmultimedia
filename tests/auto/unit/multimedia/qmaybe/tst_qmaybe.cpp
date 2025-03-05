@@ -52,7 +52,7 @@ private slots:
     void operatorBool_returnsFalse_onlyWhenErrorSet()
     {
         {
-            const QMaybe<QString, int> error{ -1 }; // TOOD: Is it safe to deduce expected/unexpected only based on type?
+            const QMaybe<QString, int> error{ unexpect, -1 };
             QVERIFY(!static_cast<bool>(error));
         }
 

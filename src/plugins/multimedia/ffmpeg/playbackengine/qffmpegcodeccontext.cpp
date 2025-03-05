@@ -29,7 +29,7 @@ CodecContext::Data::Data(AVCodecContextUPtr context, AVStream *avStream,
 QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *formatContext)
 {
     if (!stream)
-        return { u"Invalid stream"_s };
+        return { unexpect, u"Invalid stream"_s };
 
     if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
         auto hwCodec = create(stream, formatContext, Hw);
@@ -70,14 +70,15 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
         decoder = QFFmpeg::findAVDecoder(stream->codecpar->codec_id);
 
     if (!decoder)
-        return { QString(u"No %1 decoder found").arg(videoCodecPolicy == Hw ? "HW" : "SW") };
+        return { unexpect,
+                 QString(u"No %1 decoder found").arg(videoCodecPolicy == Hw ? "HW" : "SW") };
 
     qCDebug(qLcPlaybackEngineCodec)
             << "found decoder" << decoder->name() << "for id" << decoder->id();
 
     AVCodecContextUPtr context(avcodec_alloc_context3(decoder->get()));
     if (!context)
-        return { u"Failed to allocate a FFmpeg codec context"_s };
+        return { unexpect, u"Failed to allocate a FFmpeg codec context"_s };
 
     // Use HW decoding even if the codec level doesn't match the reported capabilities
     // of the hardware. FFmpeg documentation recommendeds setting this flag by default.
@@ -96,12 +97,13 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
 
     if (context->codec_type != AVMEDIA_TYPE_AUDIO && context->codec_type != AVMEDIA_TYPE_VIDEO
         && context->codec_type != AVMEDIA_TYPE_SUBTITLE) {
-        return { u"Unknown codec type"_s };
+        return { unexpect, u"Unknown codec type"_s };
     }
 
     int ret = avcodec_parameters_to_context(context.get(), stream->codecpar);
     if (ret < 0)
-        return QStringLiteral("Failed to set FFmpeg codec parameters: %1").arg(err2str(ret));
+        return { unexpect,
+                 QStringLiteral("Failed to set FFmpeg codec parameters: %1").arg(err2str(ret)) };
 
     // ### This still gives errors about wrong HW formats (as we accept all of them)
     // But it would be good to get so we can filter out pixel format we don't support natively
@@ -116,7 +118,8 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
     ret = avcodec_open2(context.get(), decoder->get(), opts);
 
     if (ret < 0)
-        return QStringLiteral("Failed to open FFmpeg codec context: %1").arg(err2str(ret));
+        return { unexpect,
+                 QStringLiteral("Failed to open FFmpeg codec context: %1").arg(err2str(ret)) };
 
     return CodecContext(new Data(std::move(context), stream, formatContext, std::move(hwAccel)));
 }

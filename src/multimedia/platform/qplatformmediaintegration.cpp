@@ -118,7 +118,7 @@ void QPlatformMediaIntegration::resetInstance()
 QMaybe<std::unique_ptr<QPlatformAudioResampler>>
 QPlatformMediaIntegration::createAudioResampler(const QAudioFormat &, const QAudioFormat &)
 {
-    return notAvailable;
+    return { unexpect, notAvailable };
 }
 
 QMaybe<QPlatformAudioInput *> QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
