@@ -64,11 +64,11 @@ QMaybe<QPlatformMediaCaptureSession *> QGstreamerMediaCaptureSession::create()
 {
     auto videoOutput = QGstreamerVideoOutput::create();
     if (!videoOutput)
-        return videoOutput.error();
+        return { unexpect, videoOutput.error() };
 
     static const auto error = qGstErrorMessageIfElementsNotAvailable("tee", "capsfilter");
     if (error)
-        return *error;
+        return { unexpect, *error };
 
     return new QGstreamerMediaCaptureSession(videoOutput.value());
 }

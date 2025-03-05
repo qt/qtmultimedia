@@ -55,8 +55,6 @@ public:
 
     QMaybe &operator=(const QMaybe &other) = default;
 
-    QMaybe(const Error &error) : m_error(error) { }
-
     template <class... Args>
     QMaybe(QUnexpect, Args &&...args) : m_error{ std::forward<Args>(args)... }
     {

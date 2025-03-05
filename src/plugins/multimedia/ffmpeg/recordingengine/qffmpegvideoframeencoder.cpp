@@ -437,7 +437,7 @@ struct FrameConverter
         // Copy metadata except size and format from input frame
         const int status = av_frame_copy_props(converted.get(), input.get());
         if (status != 0)
-            return status;
+            return { unexpect, status };
 
         return converted;
     }

@@ -40,7 +40,7 @@ QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
     }();
 
     if (elementCheck)
-        return *elementCheck;
+        return { unexpect, *elementCheck };
 
     return new QGstreamerVideoOutput(parent);
 }
