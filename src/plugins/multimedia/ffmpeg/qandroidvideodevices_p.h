@@ -16,6 +16,8 @@
 //
 
 #include <QObject>
+#include <QJniObject>
+
 #include <QtMultimedia/private/qplatformvideodevices_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -24,10 +26,18 @@ class QAndroidVideoDevices : public QPlatformVideoDevices
 {
     Q_OBJECT
 public:
-    using QPlatformVideoDevices::QPlatformVideoDevices;
+    QAndroidVideoDevices(QPlatformMediaIntegration *integration);
+    ~QAndroidVideoDevices() override;
+
+    using QPlatformVideoDevices::onVideoInputsChanged;
 
 protected:
     QList<QCameraDevice> findVideoInputs() const override;
+
+private:
+    QJniObject m_javaCameraAvailabilityListener;
+
+    static void registerNativeMethods();
 };
 
 QT_END_NAMESPACE

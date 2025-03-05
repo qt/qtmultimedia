@@ -10,6 +10,7 @@ set(java_sources
     src/org/qtproject/qt/android/multimedia/QtExifDataHandler.java
     src/org/qtproject/qt/android/multimedia/QtAudioDeviceManager.java
     src/org/qtproject/qt/android/multimedia/QtVideoDeviceManager.java
+    src/org/qtproject/qt/android/multimedia/QtCameraAvailabilityListener.java
     src/org/qtproject/qt/android/multimedia/QtMediaRecorderListener.java
     src/org/qtproject/qt/android/multimedia/QtMultimediaUtils.java
     src/org/qtproject/qt/android/multimedia/QtScreenGrabber.java
