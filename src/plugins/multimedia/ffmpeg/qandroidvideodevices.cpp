@@ -13,6 +13,8 @@
 #include <QtCore/qjnienvironment.h>
 #include <jni.h>
 
+QT_BEGIN_NAMESPACE
+
 using namespace Qt::StringLiterals;
 
 static Q_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.videoDevices")
@@ -126,3 +128,5 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
 
     return devices;
 }
+
+QT_END_NAMESPACE
