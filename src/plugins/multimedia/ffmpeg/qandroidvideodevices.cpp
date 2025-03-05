@@ -73,7 +73,7 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
         if (!cameraId.isValid())
             continue;
 
-        QCameraDevicePrivate *info = new QCameraDevicePrivate;
+        auto info = std::make_unique<QCameraDevicePrivate>();
         info->id = cameraId.toString().toUtf8();
 
         info->orientation = deviceManager.callMethod<jint>("getSensorOrientation", cameraId);
@@ -142,7 +142,8 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
             info->videoFormats.append(createCameraFormat(width, height, minFps, maxFps));
         }
 
-        devices.push_back(info->create());
+
+        devices.push_back(info.release()->create());
     }
 
     return devices;
