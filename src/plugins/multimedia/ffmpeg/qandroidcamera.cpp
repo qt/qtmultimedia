@@ -258,6 +258,13 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
 
 QtVideo::Rotation QAndroidCamera::rotation() const
 {
+    // If the camera is not attached to the main display, we don't want to apply rotation
+    // based on primary screen. We assume we are an external camera.
+    const QCameraDevice::Position cameraPosition = m_cameraDevice.position();
+    const bool isExternalCamera = cameraPosition == QCameraDevice::Position::UnspecifiedPosition;
+    if (isExternalCamera)
+        return QtVideo::Rotation::None;
+
     auto screen = QGuiApplication::primaryScreen();
     auto screenOrientation = screen->orientation();
     if (screenOrientation == Qt::PrimaryOrientation)
@@ -281,7 +288,7 @@ QtVideo::Rotation QAndroidCamera::rotation() const
         break;
     }
 
-    int sign = (m_cameraDevice.position() == QCameraDevice::Position::FrontFace) ? 1 : -1;
+    const int sign = (cameraPosition == QCameraDevice::Position::FrontFace) ? 1 : -1;
     int rotation = (sensorOrientation(QString::fromUtf8(m_cameraDevice.id()))
             - deviceOrientation * sign + 360) % 360;
 
