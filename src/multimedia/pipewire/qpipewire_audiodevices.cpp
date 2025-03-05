@@ -37,20 +37,8 @@ QAudioDevices::QAudioDevices()
 
 bool QAudioDevices::isSupported()
 {
-    QByteArray requestedBackend = qgetenv("QT_AUDIO_BACKEND");
-    if (requestedBackend == "pipewire") {
-        bool pipewireAudioAvailable = QPipeWireInstance::isLoaded()
-                && QAudioContextManager::minimumRequirementMet()
-                && QAudioContextManager::instance()->isConnected();
-
-        if (!pipewireAudioAvailable) {
-            qDebug() << "PipeWire audio backend requested. not available. Using default backend";
-            return false;
-        }
-        return true;
-    }
-
-    return false;
+    return QPipeWireInstance::isLoaded() && QAudioContextManager::minimumRequirementMet()
+            && QAudioContextManager::instance()->isConnected();
 }
 
 QList<QAudioDevice> QAudioDevices::findAudioInputs() const

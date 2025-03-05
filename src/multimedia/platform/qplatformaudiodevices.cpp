@@ -3,6 +3,7 @@
 
 #include "qplatformaudiodevices_p.h"
 
+#include <QtCore/qdebug.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
@@ -46,8 +47,17 @@ std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
     return std::make_unique<QAndroidAudioDevices>();
 #endif
 #if QT_CONFIG(pipewire)
-    if (QtPipeWire::QAudioDevices::isSupported())
+    using namespace Qt::Literals;
+    QByteArray requestedBackend = qgetenv("QT_AUDIO_BACKEND");
+    const bool pipewireRequested = requestedBackend == "pipewire"_ba;
+    const bool considerPipewire = requestedBackend.isNull() || pipewireRequested;
+
+    if (QtPipeWire::QAudioDevices::isSupported() && considerPipewire)
         return std::make_unique<QtPipeWire::QAudioDevices>();
+
+    if (pipewireRequested)
+        qDebug() << "PipeWire audio backend requested. not available. Using default backend";
+
 #endif
 #if QT_CONFIG(pulseaudio)
     return std::make_unique<QPulseAudioDevices>();
