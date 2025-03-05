@@ -41,6 +41,9 @@ public:
 protected:
     virtual QList<QCameraDevice> findVideoInputs() const = 0;
 
+    // Thread-safe.
+    // Called by the platform-implementation to signal that findVideoInputs() will return a new list
+    // of devices.
     void onVideoInputsChanged();
 
 Q_SIGNALS:
