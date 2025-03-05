@@ -1,8 +1,8 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QFANDROIDVIDEODEVICES_H
-#define QFANDROIDVIDEODEVICES_H
+#ifndef QANDROIDVIDEODEVICES_H
+#define QANDROIDVIDEODEVICES_H
 
 //
 //  W A R N I N G
@@ -32,4 +32,4 @@ protected:
 
 QT_END_NAMESPACE
 
-#endif // QFANDROIDVIDEODEVICES_H
+#endif // QANDROIDVIDEODEVICES_H
