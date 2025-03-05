@@ -25,7 +25,7 @@ QMaybe<QPlatformCamera *> QGstreamerCamera::create(QCamera *camera)
     static const auto error = qGstErrorMessageIfElementsNotAvailable(
             "videotestsrc", "capsfilter", "videoconvert", "videoscale", "identity");
     if (error)
-        return *error;
+        return { unexpect, *error };
 
     return new QGstreamerCamera(camera);
 }

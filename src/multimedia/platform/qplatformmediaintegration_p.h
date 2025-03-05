@@ -74,23 +74,41 @@ public:
     ~QPlatformMediaIntegration() override;
     const QPlatformMediaFormatInfo *formatInfo();
 
-    virtual QMaybe<QPlatformCamera *> createCamera(QCamera *) { return notAvailable; }
+    virtual QMaybe<QPlatformCamera *> createCamera(QCamera *) { return { unexpect, notAvailable }; }
     virtual QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *) { return nullptr; }
     virtual QPlatformSurfaceCapture *createWindowCapture(QWindowCapture *) { return nullptr; }
 
-    virtual QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *) { return notAvailable; }
+    virtual QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *)
+    {
+        return { unexpect, notAvailable };
+    }
     virtual QMaybe<std::unique_ptr<QPlatformAudioResampler>>
     createAudioResampler(const QAudioFormat & /*inputFormat*/,
                          const QAudioFormat & /*outputFormat*/);
-    virtual QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() { return notAvailable; }
-    virtual QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *) { return notAvailable; }
-    virtual QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *) { return notAvailable; }
-    virtual QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *) { return notAvailable; }
+    virtual QMaybe<QPlatformMediaCaptureSession *> createCaptureSession()
+    {
+        return { unexpect, notAvailable };
+    }
+    virtual QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *)
+    {
+        return { unexpect, notAvailable };
+    }
+    virtual QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *)
+    {
+        return { unexpect, notAvailable };
+    }
+    virtual QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *)
+    {
+        return { unexpect, notAvailable };
+    }
 
     virtual QMaybe<QPlatformAudioInput *> createAudioInput(QAudioInput *);
     virtual QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *);
 
-    virtual QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) { return notAvailable; }
+    virtual QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *)
+    {
+        return { unexpect, notAvailable };
+    }
 
     QList<QCapturableWindow> capturableWindowsList();
     bool isCapturableWindowValid(const QCapturableWindowPrivate &);

@@ -273,7 +273,7 @@ public:
         const ComProduct<ID3D11Texture2D> texture = getNextFrame();
 
         if (!texture)
-            return texture.error();
+            return { unexpect, texture.error() };
 
         return std::make_unique<QD3D11TextureVideoBuffer>(m_device, m_ctxMutex, *texture);
     }
@@ -289,7 +289,7 @@ private:
             HRESULT hr = m_dup->ReleaseFrame();
 
             if (hr != S_OK)
-                return ComStatus{ hr, "Failed to release duplication frame."_L1 };
+                return { unexpect, ComStatus{ hr, "Failed to release duplication frame."_L1 } };
         }
 
         ComPtr<IDXGIResource> frame;
@@ -336,15 +336,15 @@ QMaybe<QVideoFrameFormat, ComStatus> getFrameFormat(const QScreen* screen)
 {
     const auto dxgiScreen = findDxgiScreen(screen);
     if (!dxgiScreen)
-        return dxgiScreen.error();
+        return { unexpect, dxgiScreen.error() };
 
     const auto screenSize = dxgiScreen->physicalSize();
     if (!screenSize)
-        return screenSize.error();
+        return { unexpect, screenSize.error() };
 
     const auto rotation = dxgiScreen->rotation();
     if (!rotation)
-        return rotation.error();
+        return { unexpect, rotation.error() };
 
     QVideoFrameFormat format = { *screenSize, QVideoFrameFormat::Format_BGRA8888 };
     format.setRotation(*rotation);

@@ -314,7 +314,7 @@ QMaybe<QPlatformMediaPlayer *> QGstreamerMediaPlayer::create(QMediaPlayer *paren
 {
     auto videoOutput = QGstreamerVideoOutput::create();
     if (!videoOutput)
-        return videoOutput.error();
+        return { unexpect, videoOutput.error() };
 
     return new QGstreamerMediaPlayer(videoOutput.value(), parent);
 }

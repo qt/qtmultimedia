@@ -109,7 +109,7 @@ QMaybe<QPlatformImageCapture *> QGstreamerImageCapture::create(QImageCapture *pa
     static const auto error = qGstErrorMessageIfElementsNotAvailable(
             "queue", "capsfilter", "videoconvert", "jpegenc", "jifmux", "fakesink");
     if (error)
-        return *error;
+        return { unexpect, *error };
 
     return new QGstreamerImageCapture(parent);
 }

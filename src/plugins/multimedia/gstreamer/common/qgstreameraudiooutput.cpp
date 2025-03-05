@@ -72,7 +72,7 @@ QMaybe<QPlatformAudioOutput *> QGstreamerAudioOutput::create(QAudioOutput *paren
     static const auto error = qGstErrorMessageIfElementsNotAvailable(
             "audioconvert", "audioresample", "volume", "autoaudiosink");
     if (error)
-        return *error;
+        return { unexpect, *error };
 
     return new QGstreamerAudioOutput(parent);
 }
