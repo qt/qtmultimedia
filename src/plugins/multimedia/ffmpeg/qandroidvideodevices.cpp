@@ -19,6 +19,25 @@ using namespace Qt::StringLiterals;
 
 Q_STATIC_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.videoDevices");
 
+Q_DECLARE_JNI_CLASS(
+    QtCameraAvailabilityListener,
+    "org/qtproject/qt/android/multimedia/QtCameraAvailabilityListener");
+
+QAndroidVideoDevices::QAndroidVideoDevices(QPlatformMediaIntegration *integration)
+    : QPlatformVideoDevices(integration)
+{
+    registerNativeMethods();
+
+    m_javaCameraAvailabilityListener = QtJniTypes::QtCameraAvailabilityListener(
+        QtAndroidPrivate::activity(),
+        static_cast<jlong>(reinterpret_cast<size_t>(this)));
+}
+
+QAndroidVideoDevices::~QAndroidVideoDevices()
+{
+    m_javaCameraAvailabilityListener.callMethod<void>("cleanup");
+}
+
 QCameraFormat createCameraFormat(int width, int height, int fpsMin, int fpsMax)
 {
     QCameraFormatPrivate *format = new QCameraFormatPrivate();
@@ -127,6 +146,37 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
     }
 
     return devices;
+}
+
+// Called from main looper thread in Android
+static void onCameraAvailableNative(
+    JNIEnv*,
+    jobject,
+    jlong nativePtr)
+{
+    auto* videoDevices = reinterpret_cast<QAndroidVideoDevices*>(static_cast<size_t>(nativePtr));
+    videoDevices->onVideoInputsChanged();
+}
+Q_DECLARE_JNI_NATIVE_METHOD(onCameraAvailableNative)
+
+// Called from main looper thread in Android
+static void onCameraUnavailableNative(
+    JNIEnv*,
+    jobject,
+    jlong nativePtr)
+{
+    auto* videoDevices = reinterpret_cast<QAndroidVideoDevices*>(static_cast<size_t>(nativePtr));
+    videoDevices->onVideoInputsChanged();
+}
+Q_DECLARE_JNI_NATIVE_METHOD(onCameraUnavailableNative)
+
+void QAndroidVideoDevices::registerNativeMethods() {
+    QJniEnvironment().registerNativeMethods(
+        QtJniTypes::Traits<QtJniTypes::QtCameraAvailabilityListener>::className(),
+        {
+            Q_JNI_NATIVE_METHOD(onCameraAvailableNative),
+            Q_JNI_NATIVE_METHOD(onCameraUnavailableNative),
+        });
 }
 
 QT_END_NAMESPACE
