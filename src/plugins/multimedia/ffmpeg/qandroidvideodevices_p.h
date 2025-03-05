@@ -18,6 +18,8 @@
 #include <QObject>
 #include <QtMultimedia/private/qplatformvideodevices_p.h>
 
+QT_BEGIN_NAMESPACE
+
 class QAndroidVideoDevices : public QPlatformVideoDevices
 {
     Q_OBJECT
@@ -27,5 +29,7 @@ public:
 protected:
     QList<QCameraDevice> findVideoInputs() const override;
 };
+
+QT_END_NAMESPACE
 
 #endif // QFANDROIDVIDEODEVICES_H
