@@ -6,6 +6,8 @@ QT += network \
       multimediawidgets \
       widgets
 
+CONFIG += add_ios_ffmpeg_libraries
+
 HEADERS = \
     player.h \
     playercontrols.h \

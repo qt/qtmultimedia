@@ -2,6 +2,7 @@ TEMPLATE = app
 TARGET = camera
 
 QT += multimedia multimediawidgets
+CONFIG += add_ios_ffmpeg_libraries
 
 HEADERS = \
     camera.h \

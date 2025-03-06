@@ -2,6 +2,7 @@ TEMPLATE = app
 TARGET = screencapture
 
 QT += multimedia multimediawidgets
+CONFIG += add_ios_ffmpeg_libraries
 
 HEADERS = \
     screencapturepreview.h \

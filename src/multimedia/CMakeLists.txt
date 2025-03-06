@@ -451,3 +451,10 @@ if(DEFINED QT_DEFAULT_MEDIA_BACKEND)
     target_compile_definitions(Multimedia
         PRIVATE QT_DEFAULT_MEDIA_BACKEND="${QT_DEFAULT_MEDIA_BACKEND}")
 endif()
+
+# Install public QMake support files.
+qt_path_join(ios_prf_install_dir "${QT_INSTALL_DIR}" "${INSTALL_MKSPECSDIR}" features ios)
+qt_copy_or_install(FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../mkspecs/features/ios/add_ios_ffmpeg_libraries.prf"
+    DESTINATION ${ios_prf_install_dir}
+)

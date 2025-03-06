@@ -2,6 +2,7 @@ TEMPLATE = app
 TARGET = audiodevices
 
 QT += multimedia
+CONFIG += add_ios_ffmpeg_libraries
 
 HEADERS       = audiodevices.h
 
