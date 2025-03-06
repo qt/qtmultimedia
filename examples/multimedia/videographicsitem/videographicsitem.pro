@@ -2,6 +2,7 @@ TEMPLATE = app
 TARGET = videographicsitem
 
 QT += multimedia multimediawidgets
+CONFIG += add_ios_ffmpeg_libraries
 
 HEADERS   += videoplayer.h
 

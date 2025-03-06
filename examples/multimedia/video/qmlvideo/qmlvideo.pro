@@ -2,6 +2,7 @@ TEMPLATE = app
 TARGET = qmlvideo
 
 QT += quick multimedia
+CONFIG += add_ios_ffmpeg_libraries
 android: qtHaveModule(androidextras) {
     QT += androidextras
     DEFINES += REQUEST_PERMISSIONS_ON_ANDROID

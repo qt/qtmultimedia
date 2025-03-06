@@ -2,6 +2,7 @@ TEMPLATE = app
 TARGET = audiorecorder
 
 QT += multimedia
+CONFIG += add_ios_ffmpeg_libraries
 
 win32:INCLUDEPATH += $$PWD
 

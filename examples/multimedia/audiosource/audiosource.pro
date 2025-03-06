@@ -2,6 +2,7 @@ TEMPLATE = app
 TARGET = audiosource
 
 QT += multimedia widgets
+CONFIG += add_ios_ffmpeg_libraries
 
 HEADERS       = audiosource.h
 
