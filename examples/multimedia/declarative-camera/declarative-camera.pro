@@ -2,6 +2,7 @@ TEMPLATE=app
 TARGET=declarative-camera
 
 QT += quick qml multimedia
+CONFIG += add_ios_ffmpeg_libraries
 
 SOURCES += qmlcamera.cpp
 RESOURCES += declarative-camera.qrc

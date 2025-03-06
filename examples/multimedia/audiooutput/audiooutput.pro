@@ -2,6 +2,7 @@ TEMPLATE = app
 TARGET = audiooutput
 
 QT += multimedia widgets
+CONFIG += add_ios_ffmpeg_libraries
 
 HEADERS       = audiooutput.h
 
