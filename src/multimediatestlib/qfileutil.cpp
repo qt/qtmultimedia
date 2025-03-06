@@ -16,19 +16,25 @@ bool copyAllFiles(const QDir &source, const QDir &dest)
     if (!source.exists() || !dest.exists())
         return false;
 
-    QDirIterator it(source);
+    QDirIterator it(source, QDirIterator::Subdirectories);
     bool success = true;
     while (it.hasNext()) {
         QFileInfo file{ it.next() };
-        if (file.isFile()) {
-            const QString destination = dest.absolutePath() + u"/"_s + file.fileName();
+        const QString relativePath = source.relativeFilePath(file.absoluteFilePath());
+        const QString destination = dest.absolutePath() + u"/"_s + relativePath;
 
+        if (file.isFile()) {
             if (QFile::exists(destination))
                 if (!QFile::remove(destination))
                     success = false;
 
             if (!QFile::copy(file.absoluteFilePath(), destination))
                 success = false;
+
+        } else if (file.isDir()) {
+            if (!QDir(destination).exists())
+                if (!dest.mkpath(relativePath))
+                    success = false;
         }
     }
 
