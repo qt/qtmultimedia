@@ -163,6 +163,7 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION WIN32
         Qt::MultimediaPrivate
         WMF::WMF
         mfreadwrite
+        ksuser
 )
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_cpp_winrt

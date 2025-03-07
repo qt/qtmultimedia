@@ -7,6 +7,8 @@
 #include <qimage.h>
 #include <quuid.h>
 
+#include <guiddef.h>
+#include <cguid.h>
 #include <mfapi.h>
 #include <mfidl.h>
 #include <propvarutil.h>

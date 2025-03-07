@@ -3,6 +3,8 @@
 
 #include "evrhelpers_p.h"
 
+#include <cguid.h>
+
 #ifndef D3DFMT_YV12
 #define D3DFMT_YV12 (D3DFORMAT)MAKEFOURCC ('Y', 'V', '1', '2')
 #endif
