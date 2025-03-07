@@ -17,7 +17,6 @@
 #include "mfplayercontrol_p.h"
 #include "mfvideorenderercontrol_p.h"
 #include <mfmetadata_p.h>
-#include <private/qwindowsmfdefs_p.h>
 #include <private/qwindowsaudioutils_p.h>
 
 #include "mfplayersession_p.h"
@@ -27,8 +26,11 @@
 #include "sourceresolver_p.h"
 #include <wmcodecdsp.h>
 
+#include <initguid.h>
+#include <mfidl.h>
 #include <mmdeviceapi.h>
 #include <propvarutil.h>
+#include <Wininet.h>
 #include <functiondiscoverykeys_devpkey.h>
 
 //#define DEBUG_MEDIAFOUNDATION
@@ -180,7 +182,7 @@ void MFPlayerSession::handleSourceError(long hr)
         errorCode = QMediaPlayer::ResourceError;
         errorString = tr("Unsupported URL scheme.");
         break;
-    case QMM_WININET_E_CANNOT_CONNECT:
+    case INET_E_CANNOT_CONNECT:
         errorCode = QMediaPlayer::NetworkError;
         errorString = tr("Connection to server could not be established.");
         break;
@@ -244,16 +246,16 @@ bool MFPlayerSession::getStreamInfo(IMFStreamDescriptor *stream,
     if (SUCCEEDED(stream->GetMediaTypeHandler(&typeHandler))) {
 
         UINT32 len = 0;
-        if (SUCCEEDED(stream->GetStringLength(QMM_MF_SD_STREAM_NAME, &len)) && len > 0) {
+        if (SUCCEEDED(stream->GetStringLength(MF_SD_STREAM_NAME, &len)) && len > 0) {
             WCHAR *wstr = new WCHAR[len+1];
-            if (SUCCEEDED(stream->GetString(QMM_MF_SD_STREAM_NAME, wstr, len+1, &len))) {
+            if (SUCCEEDED(stream->GetString(MF_SD_STREAM_NAME, wstr, len + 1, &len))) {
                 *name = QString::fromUtf16(reinterpret_cast<const char16_t *>(wstr));
             }
             delete []wstr;
         }
-        if (SUCCEEDED(stream->GetStringLength(QMM_MF_SD_LANGUAGE, &len)) && len > 0) {
+        if (SUCCEEDED(stream->GetStringLength(MF_SD_LANGUAGE, &len)) && len > 0) {
             WCHAR *wstr = new WCHAR[len+1];
-            if (SUCCEEDED(stream->GetString(QMM_MF_SD_LANGUAGE, wstr, len+1, &len))) {
+            if (SUCCEEDED(stream->GetString(MF_SD_LANGUAGE, wstr, len + 1, &len))) {
                 *language = QString::fromUtf16(reinterpret_cast<const char16_t *>(wstr));
             }
             delete []wstr;
@@ -1643,7 +1645,7 @@ void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int i
 
     ComPtr<IMFTopology> topology;
 
-    if (SUCCEEDED(m_session->GetFullTopology(QMM_MFSESSION_GETFULLTOPOLOGY_CURRENT, 0, &topology))) {
+    if (SUCCEEDED(m_session->GetFullTopology(MFSESSION_GETFULLTOPOLOGY_CURRENT, 0, &topology))) {
 
         m_restorePosition = position() * 10000;
 

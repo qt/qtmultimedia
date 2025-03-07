@@ -323,7 +323,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         windows/qwindowsmediafoundation.cpp windows/qwindowsmediafoundation_p.h
         windows/qwindowsresampler.cpp windows/qwindowsresampler_p.h
         windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h
-        windows/qwindowsmfdefs.cpp windows/qwindowsmfdefs_p.h
         windows/qcominitializer.cpp windows/qcominitializer_p.h
         windows/qcomtaskresource_p.h
     INCLUDE_DIRECTORIES
