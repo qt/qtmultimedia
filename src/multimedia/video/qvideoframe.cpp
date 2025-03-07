@@ -845,8 +845,8 @@ qreal QVideoFrame::streamFrameRate() const
 /*!
     Converts current video frame to image.
 
-    The consversion is based on the current pixel data and
-    the \l {surface format}{QVideoFrame::surfaceFormat}.
+    The conversion is based on the current pixel data and
+    the \l {QVideoFrame::surfaceFormat}{surface format}.
     Transformations of the frame don't impact the result
     since they are applied for presentation only.
 
