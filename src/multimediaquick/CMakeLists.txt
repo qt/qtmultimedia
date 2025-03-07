@@ -23,7 +23,6 @@ qt_internal_add_qml_module(MultimediaQuickPrivate
     SOURCES
         qquickimagecapture.cpp qquickimagecapture_p.h
         qquickimagepreviewprovider.cpp qquickimagepreviewprovider_p.h
-#        qquickplaylist.cpp qquickplaylist_p.h
         qquickmediaplayer.cpp qquickmediaplayer_p.h
         qquickscreencapture.cpp qquickscreencapture_p.h
         qquicksoundeffect.cpp qquicksoundeffect_p.h
