@@ -16,7 +16,8 @@
 #include <mfidl.h>
 #include <mferror.h>
 #include <mmdeviceapi.h>
-#include <qwindowsmfdefs_p.h>
+#include <Initguid.h>
+#include <Functiondiscoverykeys_devpkey.h>
 
 #include <QtCore/qmap.h>
 #include <private/qcomobject_p.h>
@@ -244,7 +245,7 @@ QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mo
         PROPVARIANT varName;
         PropVariantInit(&varName);
 
-        if (SUCCEEDED(props->GetValue(QMM_PKEY_Device_FriendlyName, &varName))) {
+        if (SUCCEEDED(props->GetValue(PKEY_Device_FriendlyName, &varName))) {
             const QString description = QString::fromWCharArray(varName.pwszVal);
             const QByteArray strID = deviceId.toUtf8();
 

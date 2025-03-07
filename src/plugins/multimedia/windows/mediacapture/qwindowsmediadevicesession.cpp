@@ -11,6 +11,8 @@
 #include <qaudioinput.h>
 #include <qaudiooutput.h>
 
+#include <cguid.h>
+
 QT_BEGIN_NAMESPACE
 
 QWindowsMediaDeviceSession::QWindowsMediaDeviceSession(QObject *parent)

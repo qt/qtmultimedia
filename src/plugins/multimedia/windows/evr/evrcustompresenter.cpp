@@ -7,7 +7,6 @@
 #include "evrhelpers_p.h"
 #include <private/qwindowsmultimediautils_p.h>
 #include <private/qplatformvideosink_p.h>
-#include <private/qwindowsmfdefs_p.h>
 
 #include <rhi/qrhi.h>
 
@@ -32,6 +31,8 @@ const static MFRatio g_DefaultFrameRate = { 30, 1 };
 static const DWORD SCHEDULER_TIMEOUT = 5000;
 static const MFTIME ONE_SECOND = 10000000;
 static const LONG   ONE_MSEC = 1000;
+
+#define QMM_PRESENTATION_CURRENT_POSITION 0x7fffffffffffffff
 
 // Function declarations.
 static HRESULT setMixerSourceRect(IMFTransform *mixer, const MFVideoNormalizedRect& nrcSource);

@@ -6,7 +6,6 @@
 #include "qmutex.h"
 
 #include <private/qmemoryvideobuffer_p.h>
-#include <private/qwindowsmfdefs_p.h>
 #include <private/qwindowsmultimediautils_p.h>
 #include <private/qvideoframe_p.h>
 #include <private/qcomobject_p.h>
@@ -71,7 +70,8 @@ static ComPtr<IMFMediaSource> createCameraSource(const QString &deviceId)
     ComPtr<IMFAttributes> sourceAttributes;
     HRESULT hr = MFCreateAttributes(sourceAttributes.GetAddressOf(), 2);
     if (SUCCEEDED(hr)) {
-        hr = sourceAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE, QMM_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+        hr = sourceAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
         if (SUCCEEDED(hr)) {
             hr = sourceAttributes->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK,
                                              reinterpret_cast<LPCWSTR>(deviceId.utf16()));

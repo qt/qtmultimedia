@@ -4,16 +4,26 @@
 #include "qwindowsvideodevices_p.h"
 
 #include <private/qcameradevice_p.h>
-#include <private/qwindowsmfdefs_p.h>
 #include <private/qwindowsmultimediautils_p.h>
 #include <QtCore/private/qcomptr_p.h>
 #include <private/qcomtaskresource_p.h>
 
 #include <dbt.h>
 
+#include <initguid.h>
 #include <mfapi.h>
+#include <mfidl.h>
 #include <mfreadwrite.h>
 #include <mferror.h>
+#include <ks.h>
+
+// MinGW-13.1 workaround
+#ifndef KSCATEGORY_SENSOR_CAMERA
+static constexpr GUID KSCATEGORY_SENSOR_CAMERA = {
+    0x24e552d7, 0x6523, 0x47f7, { 0xa6, 0x47, 0xd3, 0x46, 0x5b, 0xf1, 0xf5, 0xca }
+};
+
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -67,7 +77,7 @@ QWindowsVideoDevices::QWindowsVideoDevices(QPlatformMediaIntegration *integratio
         DEV_BROADCAST_DEVICEINTERFACE di = {};
         di.dbcc_size = sizeof(di);
         di.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-        di.dbcc_classguid = QMM_KSCATEGORY_VIDEO_CAMERA;
+        di.dbcc_classguid = KSCATEGORY_VIDEO_CAMERA;
 
         m_videoDeviceNotification =
                 RegisterDeviceNotification(m_videoDeviceMsgWindow, &di, DEVICE_NOTIFY_WINDOW_HANDLE);
@@ -213,7 +223,7 @@ QList<QCameraDevice> QWindowsVideoDevices::findVideoInputs() const
         cameras << readCameraDevices(attr.Get());
 
         hr = attr->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_CATEGORY,
-                           QMM_KSCATEGORY_SENSOR_CAMERA);
+                           KSCATEGORY_SENSOR_CAMERA);
         if (SUCCEEDED(hr))
             cameras << readCameraDevices(attr.Get());
     }
