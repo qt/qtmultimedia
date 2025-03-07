@@ -4,7 +4,6 @@
 #include "qsamplecache_p.h"
 #include "qwavedecoder.h"
 #include "qfile.h"
-#include "qmultimediautils_p.h"
 
 #if QT_CONFIG(network)
 #  include <QtNetwork/QNetworkAccessManager>
