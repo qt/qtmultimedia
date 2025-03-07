@@ -22,7 +22,6 @@
 static constexpr GUID KSCATEGORY_SENSOR_CAMERA = {
     0x24e552d7, 0x6523, 0x47f7, { 0xa6, 0x47, 0xd3, 0x46, 0x5b, 0xf1, 0xf5, 0xca }
 };
-
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -149,7 +148,8 @@ static QString getString(IMFActivate *device, const IID &id)
     }
 }
 
-static std::optional<QCameraDevice> createCameraDevice(IMFActivate *device)
+static std::optional<QCameraDevice> createCameraDevice(const QWindowsMediaFoundation &wmf,
+                                                       IMFActivate *device)
 {
     auto info = std::make_unique<QCameraDevicePrivate>();
     info->description = getString(device, MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME);
@@ -161,7 +161,7 @@ static std::optional<QCameraDevice> createCameraDevice(IMFActivate *device)
         return {};
 
     ComPtr<IMFSourceReader> reader;
-    hr = MFCreateSourceReaderFromMediaSource(source, NULL, reader.GetAddressOf());
+    hr = wmf.mfCreateSourceReaderFromMediaSource(source, NULL, reader.GetAddressOf());
     if (FAILED(hr))
         return {};
 
@@ -187,19 +187,20 @@ static std::optional<QCameraDevice> createCameraDevice(IMFActivate *device)
     return info.release()->create();
 }
 
-static QList<QCameraDevice> readCameraDevices(IMFAttributes *attr)
+static QList<QCameraDevice> readCameraDevices(const QWindowsMediaFoundation &wmf,
+                                              IMFAttributes *attr)
 {
     QList<QCameraDevice> cameras;
     UINT32 count = 0;
     IMFActivate **devicesRaw = nullptr;
-    HRESULT hr = MFEnumDeviceSources(attr, &devicesRaw, &count);
+    HRESULT hr = wmf.mfEnumDeviceSources(attr, &devicesRaw, &count);
     if (SUCCEEDED(hr)) {
         QComTaskResource<IMFActivate *[], QComDeleter> devices(devicesRaw, count);
 
         for (UINT32 i = 0; i < count; i++) {
             IMFActivate *device = devices[i];
             if (device) {
-                auto maybeCamera = createCameraDevice(device);
+                auto maybeCamera = createCameraDevice(wmf, device);
                 if (maybeCamera)
                     cameras << *maybeCamera;
             }
@@ -210,22 +211,25 @@ static QList<QCameraDevice> readCameraDevices(IMFAttributes *attr)
 
 QList<QCameraDevice> QWindowsVideoDevices::findVideoInputs() const
 {
+    if (!m_wmf)
+        return {};
+
     QList<QCameraDevice> cameras;
 
     ComPtr<IMFAttributes> attr;
-    HRESULT hr = MFCreateAttributes(attr.GetAddressOf(), 2);
+    HRESULT hr = m_wmf->mfCreateAttributes(attr.GetAddressOf(), 2);
     if (FAILED(hr))
         return {};
 
     hr = attr->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
                        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
     if (SUCCEEDED(hr)) {
-        cameras << readCameraDevices(attr.Get());
+        cameras << readCameraDevices(*m_wmf, attr.Get());
 
         hr = attr->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_CATEGORY,
                            KSCATEGORY_SENSOR_CAMERA);
         if (SUCCEEDED(hr))
-            cameras << readCameraDevices(attr.Get());
+            cameras << readCameraDevices(*m_wmf, attr.Get());
     }
 
     return cameras;

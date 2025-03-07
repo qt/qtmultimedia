@@ -28,11 +28,11 @@
 #include "qavfcamera_p.h"
 
 #elif defined(Q_OS_WINDOWS)
-#include "qwindowscamera_p.h"
-#include "qwindowsvideodevices_p.h"
-#include "qffmpegscreencapture_dxgi_p.h"
-#include "qwincapturablewindows_p.h"
-#include "qgdiwindowcapture_p.h"
+#  include <QtMultimedia/private/qwindowsvideodevices_p.h>
+#  include "qwindowscamera_p.h"
+#  include "qffmpegscreencapture_dxgi_p.h"
+#  include "qwincapturablewindows_p.h"
+#  include "qgdiwindowcapture_p.h"
 #endif
 
 #ifdef Q_OS_ANDROID
