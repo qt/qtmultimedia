@@ -3,7 +3,6 @@
 
 #include "qalsaaudiodevices_p.h"
 #include "qmediadevices.h"
-#include "qcameradevice_p.h"
 
 #include "private/qalsaaudiosource_p.h"
 #include "private/qalsaaudiosink_p.h"
