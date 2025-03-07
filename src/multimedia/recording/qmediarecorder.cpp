@@ -819,7 +819,7 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
     \brief This property holds the current \l QMediaFormat of the recorder.
 
     The value of this property may change when invoking \l record(). If this happens, the
-    \l mediaFormatChanged signal will be emitted. This will always happen if the
+    mediaFormatChanged() signal will be emitted. This will always happen if the
     \l QMediaFormat::audioCodec or \l QMediaFormat::fileFormat properties are set to unspecified.
     If a video source (\l QCamera, \l QScreenCapture, or \l QVideoFrameInput) is connected to the
     \l QMediaCaptureSession, \l QMediaFormat::videoCodec must also be specified.
@@ -828,36 +828,35 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
 
     The \l QMediaFormat::fileFormat property value may also change to an \c audio only format if a
     video format was requested, but \l QMediaCaptureSession does not have a video source connected.
-    For example, if \l QMediaFormat::fileFormat is set to \l QMediaFormat::FileFormat::MPEG4, it may
-    be changed to \l QMediaFormat::FileFormat::Mpeg4Audio.
+    For example, if \l QMediaFormat::fileFormat is set to \l QMediaFormat::MPEG4, it may
+    be changed to \l QMediaFormat::Mpeg4Audio.
 
-    Applications can determine if \l mediaFormat will change before recording starts by calling the
+    Applications can determine if \c mediaFormat will change before recording starts by calling the
     \l QMediaFormat::isSupported() function. When recording without any video inputs,
     \l record() will not be changed the \l QMediaFormat if the following is true:
     \list
         \li \l QMediaFormat::fileFormat is specified
         \li \l QMediaFormat::audioCodec is specified
         \li \l QMediaFormat::videoCodec is \b{unspecified}
-        \li \l QMediaFormat::isSupported returns \c true
+        \li \l QMediaFormat::isSupported() returns \c true
     \endlist
-    When recording with video input, \l mediaFormat will not be changed if the following is true:
+    When recording with video input, \c mediaFormat will not be changed if the following is true:
     \list
         \li \l QMediaFormat::fileFormat is specified
         \li \l QMediaFormat::audioCodec is specified
         \li \l QMediaFormat::videoCodec is specified
-        \li \l QMediaFormat::isSupported returns \c true
+        \li \l QMediaFormat::isSupported() returns \c true
     \endlist
 
     \note The \l QMediaRecorder does not take the file name extension from the \l outputLocation
     property into account when determining the \l QMediaFormat::fileFormat, and will not adjust the
     extension of the \l outputLocation \l QUrl to match the selected file format if an extension is
     specified. Applications should therefore make sure to set the
-    \l QMediaRecorder::mediaFormat::fileFormat to match the file extension, or not specify a file
-    extension. If no file extension is specified, the \l actualLocation file extension will be
-    updated to match the file format used for recording.
+    \l {QMediaFormat::fileFormat}{QMediaRecorder::mediaFormat::fileFormat} to match the file
+    extension, or not specify a file extension. If no file extension is specified, the
+    \l actualLocation file extension will be updated to match the file format used for recording.
 
-    \sa QMediaFormat::isSupported()
-    \sa QMediaRecorder::actualLocation
+    \sa QMediaFormat::isSupported(), actualLocation
 */
 QMediaFormat QMediaRecorder::mediaFormat() const
 {
