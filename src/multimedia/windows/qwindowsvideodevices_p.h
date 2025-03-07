@@ -15,9 +15,10 @@
 // We mean it.
 //
 
-#include <private/qplatformvideodevices_p.h>
-#include <private/qcominitializer_p.h>
 #include <QtCore/qt_windows.h>
+#include <QtMultimedia/private/qplatformvideodevices_p.h>
+#include <QtMultimedia/private/qcominitializer_p.h>
+#include <QtMultimedia/private/qwindowsmediafoundation_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -26,8 +27,8 @@ LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 class QWindowsVideoDevices : public QPlatformVideoDevices
 {
 public:
-    QWindowsVideoDevices(QPlatformMediaIntegration *integration);
-    ~QWindowsVideoDevices();
+    Q_MULTIMEDIA_EXPORT QWindowsVideoDevices(QPlatformMediaIntegration *integration);
+    Q_MULTIMEDIA_EXPORT ~QWindowsVideoDevices();
 
     using QPlatformVideoDevices::onVideoInputsChanged;
 protected:
@@ -38,9 +39,10 @@ private:
     HWND m_videoDeviceMsgWindow = nullptr;
     HDEVNOTIFY m_videoDeviceNotification = nullptr;
 
+    QWindowsMediaFoundation *m_wmf{ QWindowsMediaFoundation::instance() };
+
     friend LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 };
-
 
 
 QT_END_NAMESPACE

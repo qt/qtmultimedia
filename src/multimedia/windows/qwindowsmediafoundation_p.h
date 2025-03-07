@@ -17,7 +17,10 @@
 
 #include <private/qtmultimediaglobal_p.h>
 #include <QtCore/private/qsystemlibrary_p.h>
+
 #include <mfapi.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -36,9 +39,14 @@ public:
     decltype(&::MFCreateMediaType) mfCreateMediaType = nullptr;
     decltype(&::MFCreateMemoryBuffer) mfCreateMemoryBuffer = nullptr;
     decltype(&::MFCreateSample) mfCreateSample = nullptr;
+    decltype(&::MFCreateAttributes) mfCreateAttributes = nullptr;
+    decltype(&::MFEnumDeviceSources) mfEnumDeviceSources = nullptr;
+    decltype(&::MFCreateSourceReaderFromMediaSource) mfCreateSourceReaderFromMediaSource = nullptr;
 
 private:
     QSystemLibrary m_mfplat{ QStringLiteral("Mfplat.dll") };
+    QSystemLibrary m_mf{ QStringLiteral("Mf.dll") };
+    QSystemLibrary m_mfreadwrite{ QStringLiteral("Mfreadwrite.dll") };
     bool m_valid = false;
 };
 

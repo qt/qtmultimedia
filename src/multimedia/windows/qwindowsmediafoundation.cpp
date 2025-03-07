@@ -32,11 +32,21 @@ QWindowsMediaFoundation::QWindowsMediaFoundation()
     if (!m_mfplat.load(false))
         return;
 
+    if (!m_mf.load(false))
+        return;
+
+    if (!m_mfreadwrite.load(false))
+        return;
+
     m_valid = setProcAddress(m_mfplat, mfStartup, "MFStartup")
             && setProcAddress(m_mfplat, mfShutdown, "MFShutdown")
             && setProcAddress(m_mfplat, mfCreateMediaType, "MFCreateMediaType")
             && setProcAddress(m_mfplat, mfCreateMemoryBuffer, "MFCreateMemoryBuffer")
-            && setProcAddress(m_mfplat, mfCreateSample, "MFCreateSample");
+            && setProcAddress(m_mfplat, mfCreateSample, "MFCreateSample")
+            && setProcAddress(m_mfplat, mfCreateAttributes, "MFCreateAttributes")
+            && setProcAddress(m_mf, mfEnumDeviceSources, "MFEnumDeviceSources")
+            && setProcAddress(m_mfreadwrite, mfCreateSourceReaderFromMediaSource,
+                              "MFCreateSourceReaderFromMediaSource");
 
     Q_ASSERT(m_valid); // If it is not valid at this point, we have a programming bug
 }

@@ -151,7 +151,6 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION MACOS
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION WIN32
     SOURCES
-        ../windows/qwindowsvideodevices.cpp ../windows/qwindowsvideodevices_p.h
         qwindowscamera.cpp qwindowscamera_p.h
         qffmpeghwaccel_d3d11.cpp qffmpeghwaccel_d3d11_p.h
         qgdiwindowcapture.cpp qgdiwindowcapture_p.h
@@ -163,7 +162,6 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION WIN32
         Qt::MultimediaPrivate
         WMF::WMF
         mfreadwrite
-        ksuser
 )
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_cpp_winrt
