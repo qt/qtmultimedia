@@ -64,7 +64,8 @@ private slots:
 
     void operatorBool_returnsFalse_WhenValueIsNullptr()
     {
-        const QMaybe<int *, int> e{ nullptr };
+        int *null = nullptr;
+        const QMaybe<int *, int> e{ null };
         QVERIFY(!e);
     }
 
