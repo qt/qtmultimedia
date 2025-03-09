@@ -88,6 +88,8 @@ public:
     constexpr const Error &error() const { return m_error; }
 
 private:
+    QMaybe(std::nullptr_t) { }
+
     std::optional<Value> m_value;
     Error m_error{};
 };

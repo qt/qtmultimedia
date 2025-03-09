@@ -67,7 +67,7 @@ QMaybe<QPlatformAudioDecoder *> QDarwinIntegration::createAudioDecoder(QAudioDec
 QMaybe<QPlatformMediaCaptureSession *> QDarwinIntegration::createCaptureSession()
 {
 #if defined(Q_OS_VISIONOS)
-    return nullptr;
+    return { unexpect, notAvailable };
 #else
     return new AVFCameraService;
 #endif
@@ -82,7 +82,7 @@ QMaybe<QPlatformCamera *> QDarwinIntegration::createCamera(QCamera *camera)
 {
 #if defined(Q_OS_VISIONOS)
     Q_UNUSED(camera);
-    return nullptr;
+    return { unexpect, notAvailable };
 #else
     return new AVFCamera(camera);
 #endif
@@ -92,7 +92,7 @@ QMaybe<QPlatformMediaRecorder *> QDarwinIntegration::createRecorder(QMediaRecord
 {
 #if defined(Q_OS_VISIONOS)
     Q_UNUSED(recorder);
-    return nullptr;
+    return { unexpect, notAvailable };
 #else
     return new AVFMediaEncoder(recorder);
 #endif
@@ -102,7 +102,7 @@ QMaybe<QPlatformImageCapture *> QDarwinIntegration::createImageCapture(QImageCap
 {
 #if defined(Q_OS_VISIONOS)
     Q_UNUSED(imageCapture);
-    return nullptr;
+    return { unexpect, notAvailable };
 #else
     return new AVFImageCapture(imageCapture);
 #endif

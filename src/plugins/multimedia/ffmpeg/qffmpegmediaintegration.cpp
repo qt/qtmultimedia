@@ -210,7 +210,7 @@ QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
     return new QWindowsCamera(camera);
 #else
     Q_UNUSED(camera);
-    return nullptr;//new QFFmpegCamera(camera);
+    return { unexpect, notAvailable };
 #endif
 }
 

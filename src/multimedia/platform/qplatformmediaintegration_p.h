@@ -66,7 +66,6 @@ public:
 class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration : public QObject
 {
     Q_OBJECT
-    inline static const QString notAvailable = QStringLiteral("Not available");
 public:
     static QPlatformMediaIntegration *instance();
 
@@ -137,6 +136,8 @@ protected:
     virtual QPlatformCapturableWindows *createCapturableWindows() { return nullptr; }
 
     virtual std::unique_ptr<QPlatformAudioDevices> createAudioDevices();
+
+    inline static const QString notAvailable = QStringLiteral("Not available");
 
 private:
     friend class QMockIntegration;
