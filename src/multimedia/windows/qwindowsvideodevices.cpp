@@ -3,10 +3,11 @@
 
 #include "qwindowsvideodevices_p.h"
 
-#include <private/qcameradevice_p.h>
-#include <private/qwindowsmultimediautils_p.h>
+#include <QtCore/quuid.h>
 #include <QtCore/private/qcomptr_p.h>
-#include <private/qcomtaskresource_p.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtMultimedia/private/qcomtaskresource_p.h>
+#include <QtMultimedia/private/qwindowsmultimediautils_p.h>
 
 #include <dbt.h>
 
@@ -26,6 +27,8 @@ static constexpr GUID KSCATEGORY_SENSOR_CAMERA = {
 
 QT_BEGIN_NAMESPACE
 
+namespace {
+
 LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     if (message == WM_DEVICECHANGE) {
@@ -43,28 +46,41 @@ LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND hWnd, UINT message, WPARA
     return 1;
 }
 
-static const auto windowClassName = TEXT("QWindowsMediaDevicesMessageWindow");
+LPCWSTR getWindowsClassName()
+{
+    // each Qt instance should have its own window class name to prevent name clashes when multiple
+    // qt instances are used in the same process.
+    // appending a uuid is good enough to ensure that.
+    static const std::wstring singleton =
+            QString(QStringLiteral("QWindowsMediaDevicesMessageWindow_")
+                    + QUuid::createUuid().toString())
+                    .toStdWString();
+    Q_ASSERT(singleton.size() < 256 && "The maximum length for lpszClassName is 256");
+    return singleton.c_str();
+}
 
-static HWND createMessageOnlyWindow()
+HWND createMessageOnlyWindow()
 {
     WNDCLASSEX wx = {};
     wx.cbSize = sizeof(WNDCLASSEX);
     wx.lpfnWndProc = deviceNotificationWndProc;
     wx.hInstance = GetModuleHandle(nullptr);
-    wx.lpszClassName = windowClassName;
+    wx.lpszClassName = getWindowsClassName();
 
     if (!RegisterClassEx(&wx))
         return nullptr;
 
-    auto hwnd = CreateWindowEx(0, windowClassName, TEXT("Message"),
-                               0, 0, 0, 0, 0, HWND_MESSAGE, nullptr, nullptr, nullptr);
+    auto hwnd = CreateWindowEx(0, getWindowsClassName(), TEXT("Message"), 0, 0, 0, 0, 0,
+                               HWND_MESSAGE, nullptr, nullptr, nullptr);
     if (!hwnd) {
-        UnregisterClass(windowClassName, GetModuleHandle(nullptr));
+        UnregisterClass(getWindowsClassName(), GetModuleHandle(nullptr));
         return nullptr;
     }
 
     return hwnd;
 }
+
+} // namespace
 
 QWindowsVideoDevices::QWindowsVideoDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration)
@@ -84,7 +100,7 @@ QWindowsVideoDevices::QWindowsVideoDevices(QPlatformMediaIntegration *integratio
             DestroyWindow(m_videoDeviceMsgWindow);
             m_videoDeviceMsgWindow = nullptr;
 
-            UnregisterClass(windowClassName, GetModuleHandle(nullptr));
+            UnregisterClass(getWindowsClassName(), GetModuleHandle(nullptr));
         }
     }
 
@@ -101,7 +117,7 @@ QWindowsVideoDevices::~QWindowsVideoDevices()
 
     if (m_videoDeviceMsgWindow) {
         DestroyWindow(m_videoDeviceMsgWindow);
-        UnregisterClass(windowClassName, GetModuleHandle(nullptr));
+        UnregisterClass(getWindowsClassName(), GetModuleHandle(nullptr));
     }
 }
 
