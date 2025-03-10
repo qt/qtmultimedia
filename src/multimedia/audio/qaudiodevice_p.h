@@ -26,8 +26,8 @@ QT_BEGIN_NAMESPACE
 class Q_MULTIMEDIA_EXPORT QAudioDevicePrivate : public QSharedData
 {
 public:
-    QAudioDevicePrivate(QByteArray i, QAudioDevice::Mode m, QString description)
-        : id(std::move(i)), mode(m), description(std::move(description))
+    QAudioDevicePrivate(QByteArray id, QAudioDevice::Mode m, QString description)
+        : id(std::move(id)), mode(m), description(std::move(description))
     {}
     virtual ~QAudioDevicePrivate();
     const QByteArray id;
