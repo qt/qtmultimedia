@@ -17,7 +17,6 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include <QtCore/private/quniquehandle_p.h>
 #include <QtCore/private/qcomptr_p.h>
-#include <qt_windows.h>
 
 #include <d3d11.h>
 #include <d3d11_1.h>

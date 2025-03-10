@@ -15,7 +15,6 @@
 // We mean it.
 //
 
-#include <QtCore/qt_windows.h>
 #include <QtMultimedia/private/qplatformvideodevices_p.h>
 #include <QtMultimedia/private/qcominitializer_p.h>
 #include <QtMultimedia/private/qwindowsmediafoundation_p.h>

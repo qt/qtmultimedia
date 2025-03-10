@@ -22,7 +22,6 @@
 #include <QtCore/private/qcomptr_p.h>
 #include <private/qwindowsmediafoundation_p.h>
 #include <private/qcominitializer_p.h>
-#include <qt_windows.h>
 #include <mftransform.h>
 
 struct IMFSample;
