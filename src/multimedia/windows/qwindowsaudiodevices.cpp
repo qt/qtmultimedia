@@ -178,80 +178,83 @@ QWindowsAudioDevices::~QWindowsAudioDevices()
     m_warmUpAudioClient.Reset();
 }
 
-namespace {
-
-QString getDeviceId(bool isOutput, UINT waveID)
+static std::optional<QString> getDeviceId(const ComPtr<IMMDevice> &dev)
 {
-    void *wave = UIntToPtr(waveID);
-    auto waveMessage = [wave, isOutput](UINT msg, auto p0, auto p1) {
-        return isOutput
-                ? waveOutMessage(static_cast<HWAVEOUT>(wave), msg, reinterpret_cast<DWORD_PTR>(p0),
-                                 static_cast<DWORD_PTR>(p1))
-                : waveInMessage(static_cast<HWAVEIN>(wave), msg, reinterpret_cast<DWORD_PTR>(p0),
-                                static_cast<DWORD_PTR>(p1));
-    };
-
-    ULONG len = 0; // Includes space for null-terminator
-    if (waveMessage(DRV_QUERYFUNCTIONINSTANCEIDSIZE, &len, 0) != MMSYSERR_NOERROR)
+    Q_ASSERT(dev);
+    QComTaskResource<WCHAR> id;
+    HRESULT status = dev->GetId(id.address());
+    if (FAILED(status)) {
+        qWarning() << "IMMDevice::GetId failed" << QSystemError::windowsComString(status);
         return {};
-
-    QVarLengthArray<WCHAR> deviceId(static_cast<qsizetype>(len / sizeof(WCHAR)));
-    if (waveMessage(DRV_QUERYFUNCTIONINSTANCEID, deviceId.data(), len) != MMSYSERR_NOERROR)
-        return {};
-
-    Q_ASSERT(deviceId.empty() || deviceId.back() == QChar::Null);
-
-    return QString::fromWCharArray(deviceId.data());
-}
+    }
+    return QString::fromWCharArray(id.get());
 }
 
 QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mode) const
 {
+    using QtMultimediaPrivate::PropertyStoreHelper;
     if (!m_deviceEnumerator)
         return {};
 
     const bool audioOut = mode == QAudioDevice::Output;
+    const auto dataFlow = audioOut ? EDataFlow::eRender : EDataFlow::eCapture;
 
-    const QString defaultAudioDeviceID = [this, audioOut] {
-        const auto dataFlow = audioOut ? EDataFlow::eRender : EDataFlow::eCapture;
+    const auto defaultAudioDeviceID = [&, this]() -> std::optional<QString> {
         ComPtr<IMMDevice> dev;
-        QComTaskResource<WCHAR> id;
-        QString sid;
+        if (SUCCEEDED(m_deviceEnumerator->GetDefaultAudioEndpoint(dataFlow, ERole::eMultimedia,
+                                                                  dev.GetAddressOf())))
+            return getDeviceId(dev);
 
-        if (SUCCEEDED(m_deviceEnumerator->GetDefaultAudioEndpoint(dataFlow, ERole::eMultimedia, dev.GetAddressOf()))) {
-            if (dev && SUCCEEDED(dev->GetId(id.address()))) {
-                sid = QString::fromWCharArray(id.get());
-            }
-        }
-        return sid;
+        return std::nullopt;
     }();
 
     QList<QAudioDevice> devices;
 
-    const UINT waveDevices = audioOut ? waveOutGetNumDevs() : waveInGetNumDevs();
+    ComPtr<IMMDeviceCollection> allActiveDevices;
+    HRESULT result = m_deviceEnumerator->EnumAudioEndpoints(dataFlow, DEVICE_STATE_ACTIVE,
+                                                            allActiveDevices.GetAddressOf());
 
-    for (UINT waveID = 0u; waveID < waveDevices; waveID++) {
-        using namespace QtMultimediaPrivate;
+    if (FAILED(result)) {
+        qWarning() << "IMMDeviceEnumerator::EnumAudioEndpoints failed"
+                   << QSystemError::windowsComString(result);
+        return devices;
+    }
 
-        const QString deviceId = getDeviceId(audioOut, waveID);
-        if (deviceId.isEmpty())
-            continue;
+    UINT numberOfDevices;
+    result = allActiveDevices->GetCount(&numberOfDevices);
+    if (FAILED(result)) {
+        qWarning() << "IMMDeviceCollection::GetCount failed"
+                   << QSystemError::windowsComString(result);
+        return devices;
+    }
 
+    for (UINT index = 0; index != numberOfDevices; ++index) {
         ComPtr<IMMDevice> device;
-        if (FAILED(m_deviceEnumerator->GetDevice(deviceId.toStdWString().c_str(),
-                                                 device.GetAddressOf())))
+        result = allActiveDevices->Item(index, device.GetAddressOf());
+        if (FAILED(result)) {
+            qWarning() << "IMMDeviceCollection::Item" << QSystemError::windowsComString(result);
+            continue;
+        }
+
+        std::optional<QString> deviceId = getDeviceId(device);
+        if (!deviceId)
             continue;
 
         QMaybe<PropertyStoreHelper> props = PropertyStoreHelper::open(device);
-        if (!props)
+        if (!props) {
+            qWarning() << "OpenPropertyStore failed" << props.error();
             continue;
+        }
 
         std::optional<QString> friendlyName = props->getString(PKEY_Device_FriendlyName);
-        if (friendlyName) {
-            auto dev = new QWindowsAudioDevice(deviceId.toUtf8(), device, *friendlyName, mode);
-            dev->isDefault = deviceId == defaultAudioDeviceID;
-            devices.append(dev->create());
+        if (!friendlyName) {
+            qWarning() << "Cannot read property store";
+            continue;
         }
+
+        auto dev = new QWindowsAudioDevice(deviceId->toUtf8(), device, *friendlyName, mode);
+        dev->isDefault = deviceId == defaultAudioDeviceID;
+        devices.append(dev->create());
     }
 
     return devices;
