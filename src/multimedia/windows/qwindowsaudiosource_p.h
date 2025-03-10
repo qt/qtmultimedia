@@ -43,8 +43,7 @@ class QWindowsAudioSource : public QPlatformAudioSource
 {
     Q_OBJECT
 public:
-    QWindowsAudioSource(QAudioDevice, ComPtr<IMMDevice> device, const QAudioFormat &fmt,
-                        QObject *parent);
+    QWindowsAudioSource(QAudioDevice, const QAudioFormat &fmt, QObject *parent);
     ~QWindowsAudioSource();
 
     qint64 read(char* data, qint64 len);

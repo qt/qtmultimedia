@@ -69,8 +69,7 @@ class QWindowsAudioSink : public QPlatformAudioSink
 {
     Q_OBJECT
 public:
-    QWindowsAudioSink(QAudioDevice, ComPtr<IMMDevice> device, const QAudioFormat &fmt,
-                      QObject *parent);
+    QWindowsAudioSink(QAudioDevice, const QAudioFormat &fmt, QObject *parent);
     ~QWindowsAudioSink();
 
     QAudioFormat format() const override;

@@ -2,15 +2,16 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwindowsaudiosink_p.h"
-#include "qwindowsaudioutils_p.h"
-#include "qcomtaskresource_p.h"
 
 #include <QtCore/qtimer.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/private/qsystemerror_p.h>
 
-#include <private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qcomtaskresource_p.h>
+#include <QtMultimedia/private/qwindowsaudiodevice_p.h>
+#include <QtMultimedia/private/qwindowsaudioutils_p.h>
 
 #include <audioclient.h>
 #include <mmdeviceapi.h>
@@ -207,13 +208,12 @@ qint64 AudioClient::render(const QAudioFormat &format, qreal volume, const char 
     return writeSize;
 };
 
-QWindowsAudioSink::QWindowsAudioSink(QAudioDevice audioDevice, ComPtr<IMMDevice> device,
-                                     const QAudioFormat &fmt, QObject *parent)
+QWindowsAudioSink::QWindowsAudioSink(QAudioDevice audioDevice, const QAudioFormat &fmt,
+                                     QObject *parent)
     : QPlatformAudioSink(std::move(audioDevice), parent),
       m_format(fmt),
       m_timer(new QTimer(this)),
-      m_pushSource(new OutputPrivate(*this)),
-      m_device{ std::move(device) }
+      m_pushSource(new OutputPrivate(*this))
 {
     m_pushSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
     m_timer->setSingleShot(true);
@@ -368,6 +368,10 @@ bool QWindowsAudioSink::open()
         m_client->resetResampler();
         return true;
     }
+
+    m_device = static_cast<const QWindowsAudioDevice *>(m_audioDevice.handle())->open();
+    if (!m_device)
+        return false;
 
     m_client = AudioClient::create(m_device, m_format, m_bufferSize);
 
