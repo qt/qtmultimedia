@@ -30,17 +30,11 @@ QT_BEGIN_NAMESPACE
 class QWindowsAudioDevice : public QAudioDevicePrivate
 {
 public:
-    QWindowsAudioDevice(QByteArray dev, ComPtr<IMMDevice> immdev, QString description,
+    QWindowsAudioDevice(QByteArray deviceId, ComPtr<IMMDevice> immdev, QString description,
                         QAudioDevice::Mode mode);
     ~QWindowsAudioDevice();
 
-    bool open();
-    void close();
-
-    ComPtr<IMMDevice> immDev() const { return m_immDev; }
-
-private:
-    ComPtr<IMMDevice> m_immDev;
+    ComPtr<IMMDevice> open() const;
 };
 
 QT_END_NAMESPACE
