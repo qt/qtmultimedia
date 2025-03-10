@@ -6,7 +6,7 @@
 #include "qabstractvideobuffer.h"
 #include <private/qmultimediautils_p.h>
 #include <private/qvideoframe_p.h>
-#include <qtgui/qscreen_platform.h>
+#include <QtGui/qscreen_platform.h>
 #include "qvideoframe.h"
 
 #include <qloggingcategory.h>
@@ -18,8 +18,6 @@
 #include "dxgi1_2.h"
 
 #include <system_error>
-#include <thread>
-#include <chrono>
 
 #include <mutex> // std::scoped_lock
 
@@ -27,7 +25,6 @@ QT_BEGIN_NAMESPACE
 
 static Q_LOGGING_CATEGORY(qLcScreenCaptureDxgi, "qt.multimedia.ffmpeg.screencapturedxgi")
 
-using namespace std::chrono;
 using namespace Qt::StringLiterals;
 
 namespace {
