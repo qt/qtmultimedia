@@ -98,7 +98,8 @@ struct FormatProbeResult
     std::pair<int, int> channelCountRange{ std::numeric_limits<int>::max(), 0 };
     std::pair<int, int> sampleRateRange{ std::numeric_limits<int>::max(), 0 };
 
-    friend QDebug operator<<(QDebug dbg, const FormatProbeResult& self)
+    [[maybe_unused]]
+    friend QDebug operator<<(QDebug dbg, const FormatProbeResult &self)
     {
         QDebugStateSaver saver(dbg);
         dbg.nospace();
@@ -265,12 +266,9 @@ std::optional<QAudioFormat> probePreferredFormat(const ComPtr<IAudioClient> &aud
 
 } // namespace
 
-QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev,
-                                                 ComPtr<IMMDevice> immDev,
-                                                 QString description,
-                                                 QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(std::move(dev), mode, std::move(description))
-    , m_immDev(std::move(immDev))
+QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev,
+                                         QString description, QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(std::move(id), mode, std::move(description)), m_immDev(std::move(immDev))
 {
     Q_ASSERT(m_immDev);
 
@@ -325,6 +323,6 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev,
             : QAudioFormat::defaultChannelConfigForChannelCount(maximumChannelCount);
 }
 
-QWindowsAudioDeviceInfo::~QWindowsAudioDeviceInfo() = default;
+QWindowsAudioDevice::~QWindowsAudioDevice() = default;
 
 QT_END_NAMESPACE
