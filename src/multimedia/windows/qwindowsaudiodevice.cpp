@@ -9,6 +9,7 @@
 #include <QtCore/private/qsystemerror_p.h>
 
 #include <QtMultimedia/private/qaudioformat_p.h>
+#include <QtMultimedia/private/qcominitializer_p.h>
 #include <QtMultimedia/private/qcomtaskresource_p.h>
 #include <QtMultimedia/private/qwindows_propertystore_p.h>
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
@@ -265,13 +266,13 @@ std::optional<QAudioFormat> probePreferredFormat(const ComPtr<IAudioClient> &aud
 
 QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev,
                                          QString description, QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(std::move(id), mode, std::move(description)), m_immDev(std::move(immDev))
+    : QAudioDevicePrivate(std::move(id), mode, std::move(description))
 {
-    Q_ASSERT(m_immDev);
+    Q_ASSERT(immDev);
 
     ComPtr<IAudioClient> audioClient;
-    HRESULT hr = m_immDev->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                                    reinterpret_cast<void **>(audioClient.GetAddressOf()));
+    HRESULT hr = immDev->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
+                                  reinterpret_cast<void **>(audioClient.GetAddressOf()));
 
     if (SUCCEEDED(hr)) {
         QComTaskResource<WAVEFORMATEX> mixFormat;
@@ -284,7 +285,7 @@ QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev
         return;
     }
 
-    auto propStoreHelper = PropertyStoreHelper::open(m_immDev);
+    auto propStoreHelper = PropertyStoreHelper::open(immDev);
     if (!propStoreHelper) {
         qWarning() << "QWindowsAudioDeviceInfo: could not open property store:" << description
                    << propStoreHelper.error();
@@ -316,6 +317,30 @@ QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev
     channelConfiguration = config
             ? *config
             : QAudioFormat::defaultChannelConfigForChannelCount(maximumChannelCount);
+}
+
+ComPtr<IMMDevice> QWindowsAudioDevice::open() const
+{
+    QComInitializer init;
+    ComPtr<IMMDeviceEnumerator> deviceEnumerator;
+    HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
+                                  IID_PPV_ARGS(&deviceEnumerator));
+    if (FAILED(hr)) {
+        qWarning() << "Failed to create device enumerator" << hr;
+        return nullptr;
+    }
+
+    auto deviceId = QString::fromUtf8(id);
+
+    ComPtr<IMMDevice> device;
+    HRESULT result =
+            deviceEnumerator->GetDevice(deviceId.toStdWString().c_str(), device.GetAddressOf());
+    if (FAILED(result)) {
+        qWarning() << "IMMDeviceEnumerator::GetDevice failed" << id
+                   << QSystemError::windowsComString(result);
+        return nullptr;
+    }
+    return device;
 }
 
 QWindowsAudioDevice::~QWindowsAudioDevice() = default;

@@ -23,6 +23,7 @@
 #include <qaudiodevice.h>
 
 struct IAudioClient3;
+struct IMMDevice;
 struct IMMDeviceEnumerator;
 
 QT_BEGIN_NAMESPACE

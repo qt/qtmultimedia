@@ -2,16 +2,17 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwindowsaudiosource_p.h"
-#include "qcomtaskresource_p.h"
 
-#include <QtCore/QDataStream>
+#include <QtCore/qdatastream.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/qtimer.h>
 #include <QtCore/private/qsystemerror_p.h>
 
-#include <private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qcomtaskresource_p.h>
+#include <QtMultimedia/private/qwindowsaudiodevice_p.h>
 
-#include <qloggingcategory.h>
-#include <qdebug.h>
 #include <audioclient.h>
 #include <mmdeviceapi.h>
 
@@ -34,11 +35,10 @@ private:
     QWindowsAudioSource &m_audioSource;
 };
 
-QWindowsAudioSource::QWindowsAudioSource(QAudioDevice audioDevice, ComPtr<IMMDevice> device,
-                                         const QAudioFormat &fmt, QObject *parent)
+QWindowsAudioSource::QWindowsAudioSource(QAudioDevice audioDevice, const QAudioFormat &fmt,
+                                         QObject *parent)
     : QPlatformAudioSource(std::move(audioDevice), parent),
       m_timer(new QTimer(this)),
-      m_device(std::move(device)),
       m_ourSink(new OurSink(*this)),
       m_format(fmt)
 {
@@ -222,8 +222,12 @@ void QWindowsAudioSource::stop()
 
 bool QWindowsAudioSource::open()
 {
-    HRESULT hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER,
-                                    nullptr, (void**)m_audioClient.GetAddressOf());
+    m_device = static_cast<const QWindowsAudioDevice *>(m_audioDevice.handle())->open();
+    if (!m_device)
+        return false;
+
+    HRESULT hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
+                                    (void **)m_audioClient.GetAddressOf());
     if (FAILED(hr)) {
         qCWarning(qLcAudioSource) << "Failed to activate audio device" << QSystemError::windowsComString(hr);
         return false;
