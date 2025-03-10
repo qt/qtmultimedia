@@ -10,8 +10,8 @@
 
 #include <QtMultimedia/private/qaudioformat_p.h>
 #include <QtMultimedia/private/qcomtaskresource_p.h>
+#include <QtMultimedia/private/qwindows_propertystore_p.h>
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
-#include <QtMultimedia/private/qcomtaskresource_p.h>
 
 #include <audioclient.h>
 #include <initguid.h>
@@ -22,29 +22,27 @@
 
 QT_BEGIN_NAMESPACE
 
+using QtMultimediaPrivate::PropertyStoreHelper;
+
 namespace {
 
 Q_STATIC_LOGGING_CATEGORY(qLcAudioDeviceProbes, "qt.multimedia.audiodevice.probes");
 
-std::optional<EndpointFormFactor> inferFormFactor(const ComPtr<IPropertyStore> &propertyStore)
+std::optional<EndpointFormFactor> inferFormFactor(PropertyStoreHelper &propertyStore)
 {
-    PROPVARIANT var;
-    PropVariantInit(&var);
-    HRESULT hr = propertyStore->GetValue(PKEY_AudioEndpoint_FormFactor, &var);
-    if (SUCCEEDED(hr) && var.uintVal != EndpointFormFactor::UnknownFormFactor)
-        return EndpointFormFactor(var.uintVal);
+    std::optional<uint32_t> val = propertyStore.getUInt32(PKEY_AudioEndpoint_FormFactor);
+    if (val == EndpointFormFactor::UnknownFormFactor)
+        return EndpointFormFactor(*val);
 
     return std::nullopt;
 }
 
 std::optional<QAudioFormat::ChannelConfig>
-inferChannelConfiguration(const ComPtr<IPropertyStore> &propertyStore, int maximumChannelCount)
+inferChannelConfiguration(PropertyStoreHelper &propertyStore, int maximumChannelCount)
 {
-    PROPVARIANT var;
-    PropVariantInit(&var);
-    HRESULT hr = propertyStore->GetValue(PKEY_AudioEndpoint_PhysicalSpeakers, &var);
-    if (SUCCEEDED(hr) && var.uintVal != 0)
-        return QWindowsAudioUtils::maskToChannelConfig(var.uintVal, maximumChannelCount);
+    std::optional<uint32_t> val = propertyStore.getUInt32(PKEY_AudioEndpoint_PhysicalSpeakers);
+    if (val && val != 0)
+        return QWindowsAudioUtils::maskToChannelConfig(*val, maximumChannelCount);
 
     return std::nullopt;
 }
@@ -144,13 +142,12 @@ std::optional<QAudioFormat> performIsFormatSupportedWithClosestMatch(const ComPt
 }
 
 std::optional<FormatProbeResult> probeFormats(const ComPtr<IAudioClient> &audioClient,
-                                              const ComPtr<IPropertyStore> &propertyStore)
+                                              PropertyStoreHelper &propertyStore)
 {
     using namespace QWindowsAudioUtils;
 
     // probing formats is a bit slow, so we limit the number of channels of we can
-    std::optional<EndpointFormFactor> formFactor =
-            propertyStore ? inferFormFactor(propertyStore) : std::nullopt;
+    std::optional<EndpointFormFactor> formFactor = inferFormFactor(propertyStore);
     int maxChannelsForFormFactor = formFactor ? maxChannelCountForFormFactor(*formFactor) : 128;
 
     qCDebug(qLcAudioDeviceProbes) << "probing: maxChannelsForFormFactor" << maxChannelsForFormFactor << formFactor;
@@ -287,17 +284,16 @@ QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev
         return;
     }
 
-    ComPtr<IPropertyStore> props;
-    hr = m_immDev->OpenPropertyStore(STGM_READ, props.GetAddressOf());
-    if (!SUCCEEDED(hr)) {
+    auto propStoreHelper = PropertyStoreHelper::open(m_immDev);
+    if (!propStoreHelper) {
         qWarning() << "QWindowsAudioDeviceInfo: could not open property store:" << description
-                   << QSystemError::windowsComString(hr);
-        props.Reset();
+                   << propStoreHelper.error();
+        return;
     }
 
     qCDebug(qLcAudioDeviceProbes) << "probing formats for" << description;
 
-    std::optional<FormatProbeResult> probedFormats = probeFormats(audioClient, props);
+    std::optional<FormatProbeResult> probedFormats = probeFormats(audioClient, *propStoreHelper);
     if (probedFormats) {
         supportedSampleFormats.assign(probedFormats->supportedSampleFormats.begin(),
                                       probedFormats->supportedSampleFormats.end());
@@ -314,9 +310,8 @@ QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev
             preferredFormat = *probedFormat;
     }
 
-    std::optional<QAudioFormat::ChannelConfig> config;
-    if (props)
-        config = inferChannelConfiguration(props, maximumChannelCount);
+    std::optional<QAudioFormat::ChannelConfig> config =
+            inferChannelConfiguration(*propStoreHelper, maximumChannelCount);
 
     channelConfiguration = config
             ? *config

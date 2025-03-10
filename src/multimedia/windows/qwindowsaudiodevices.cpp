@@ -2,13 +2,18 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwindowsaudiodevices_p.h"
-#include "qmediadevices.h"
-#include "qvarlengtharray.h"
 
-#include "qwindowsaudiosource_p.h"
-#include "qwindowsaudiosink_p.h"
-#include "qwindowsaudiodevice_p.h"
-#include "qcomtaskresource_p.h"
+#include <QtCore/qmap.h>
+#include <QtCore/qvarlengtharray.h>
+#include <QtCore/private/qcomobject_p.h>
+#include <QtCore/private/qsystemerror_p.h>
+
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qcomtaskresource_p.h>
+#include <QtMultimedia/private/qwindowsaudiodevice_p.h>
+#include <QtMultimedia/private/qwindowsaudiosink_p.h>
+#include <QtMultimedia/private/qwindowsaudiosource_p.h>
+#include <QtMultimedia/private/qwindows_propertystore_p.h>
 
 #include <mmsystem.h>
 #include <mmddk.h>
@@ -18,10 +23,6 @@
 #include <mmdeviceapi.h>
 #include <Initguid.h>
 #include <Functiondiscoverykeys_devpkey.h>
-
-#include <QtCore/qmap.h>
-#include <private/qcomobject_p.h>
-#include <private/qsystemerror_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -211,7 +212,7 @@ QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mo
 
     const bool audioOut = mode == QAudioDevice::Output;
 
-    const auto defaultAudioDeviceID = [this, audioOut]{
+    const QString defaultAudioDeviceID = [this, audioOut] {
         const auto dataFlow = audioOut ? EDataFlow::eRender : EDataFlow::eCapture;
         ComPtr<IMMDevice> dev;
         QComTaskResource<WCHAR> id;
@@ -222,7 +223,7 @@ QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mo
                 sid = QString::fromWCharArray(id.get());
             }
         }
-        return sid.toUtf8();
+        return sid;
     }();
 
     QList<QAudioDevice> devices;
@@ -230,31 +231,27 @@ QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mo
     const UINT waveDevices = audioOut ? waveOutGetNumDevs() : waveInGetNumDevs();
 
     for (UINT waveID = 0u; waveID < waveDevices; waveID++) {
+        using namespace QtMultimediaPrivate;
+
         const QString deviceId = getDeviceId(audioOut, waveID);
         if (deviceId.isEmpty())
             continue;
 
         ComPtr<IMMDevice> device;
-        ComPtr<IPropertyStore> props;
         if (FAILED(m_deviceEnumerator->GetDevice(deviceId.toStdWString().c_str(),
-                                                 device.GetAddressOf()))
-            || FAILED(device->OpenPropertyStore(STGM_READ, props.GetAddressOf()))) {
+                                                 device.GetAddressOf())))
             continue;
-        }
 
-        PROPVARIANT varName;
-        PropVariantInit(&varName);
+        QMaybe<PropertyStoreHelper> props = PropertyStoreHelper::open(device);
+        if (!props)
+            continue;
 
-        if (SUCCEEDED(props->GetValue(PKEY_Device_FriendlyName, &varName))) {
-            const QString description = QString::fromWCharArray(varName.pwszVal);
-            const QByteArray strID = deviceId.toUtf8();
-
-            auto dev = new QWindowsAudioDevice(strID, device, description, mode);
-            dev->isDefault = strID == defaultAudioDeviceID;
-
+        std::optional<QString> friendlyName = props->getString(PKEY_Device_FriendlyName);
+        if (friendlyName) {
+            auto dev = new QWindowsAudioDevice(deviceId.toUtf8(), device, *friendlyName, mode);
+            dev->isDefault = deviceId == defaultAudioDeviceID;
             devices.append(dev->create());
         }
-        PropVariantClear(&varName);
     }
 
     return devices;

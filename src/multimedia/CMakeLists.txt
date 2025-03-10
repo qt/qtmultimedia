@@ -326,11 +326,13 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         windows/qwindowsvideodevices.cpp windows/qwindowsvideodevices_p.h
         windows/qcominitializer.cpp windows/qcominitializer_p.h
         windows/qcomtaskresource_p.h
+        windows/qwindows_propertystore.cpp windows/qwindows_propertystore_p.h
     INCLUDE_DIRECTORIES
         windows
     LIBRARIES
         winmm
         ksuser
+        Propsys
 )
 
 # Only on Windows' MinGW/LLVM build, symbols from `strmif.h` and `ddraw.h` conflicts
