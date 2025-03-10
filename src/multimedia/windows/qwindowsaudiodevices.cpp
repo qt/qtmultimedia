@@ -249,7 +249,7 @@ QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mo
             const QString description = QString::fromWCharArray(varName.pwszVal);
             const QByteArray strID = deviceId.toUtf8();
 
-            auto dev = new QWindowsAudioDeviceInfo(strID, device, description, mode);
+            auto dev = new QWindowsAudioDevice(strID, device, description, mode);
             dev->isDefault = strID == defaultAudioDeviceID;
 
             devices.append(dev->create());
@@ -274,7 +274,7 @@ QPlatformAudioSource *QWindowsAudioDevices::createAudioSource(const QAudioDevice
                                                               const QAudioFormat &fmt,
                                                               QObject *parent)
 {
-    const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
+    const auto *devInfo = static_cast<const QWindowsAudioDevice *>(deviceInfo.handle());
     return new QWindowsAudioSource(deviceInfo, devInfo->immDev(), fmt, parent);
 }
 
@@ -282,7 +282,7 @@ QPlatformAudioSink *QWindowsAudioDevices::createAudioSink(const QAudioDevice &de
                                                           const QAudioFormat &fmt,
                                                           QObject *parent)
 {
-    const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
+    const auto *devInfo = static_cast<const QWindowsAudioDevice *>(deviceInfo.handle());
     return new QWindowsAudioSink(deviceInfo, devInfo->immDev(), fmt, parent);
 }
 

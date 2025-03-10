@@ -12,30 +12,27 @@
 // We mean it.
 //
 
-
-#ifndef QWINDOWSAUDIODEVICEINFO_H
-#define QWINDOWSAUDIODEVICEINFO_H
+#ifndef QWINDOWSAUDIODEVICE_H
+#define QWINDOWSAUDIODEVICE_H
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qstring.h>
+#include <QtCore/private/qcomptr_p.h>
 
 #include <QtMultimedia/qaudiodevice.h>
-#include <private/qaudiosystem_p.h>
-#include <private/qaudiodevice_p.h>
-#include <QtCore/private/qcomptr_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qaudiodevice_p.h>
 
 struct IMMDevice;
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsAudioDeviceInfo : public QAudioDevicePrivate
+class QWindowsAudioDevice : public QAudioDevicePrivate
 {
 public:
-    QWindowsAudioDeviceInfo(QByteArray dev,
-                            ComPtr<IMMDevice> immdev,
-                            QString description,
-                            QAudioDevice::Mode mode);
-    ~QWindowsAudioDeviceInfo();
+    QWindowsAudioDevice(QByteArray dev, ComPtr<IMMDevice> immdev, QString description,
+                        QAudioDevice::Mode mode);
+    ~QWindowsAudioDevice();
 
     bool open();
     void close();
@@ -48,5 +45,4 @@ private:
 
 QT_END_NAMESPACE
 
-
-#endif // QWINDOWSAUDIODEVICEINFO_H
+#endif // QWINDOWSAUDIODEVICE_H
