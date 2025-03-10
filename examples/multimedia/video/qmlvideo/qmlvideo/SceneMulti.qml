@@ -105,10 +105,9 @@ Scene {
             id: cameraLoader
             onLoaded: {
                 item.parent = cameraHolder
-                item.anchors.centerIn = cameraHolder
+                item.anchors.fill = cameraHolder
                 item.contentType = "camera"
                 item.showFrameRate = true
-                item.width = root.itemWidth
                 item.z = 1.0
                 cameraErrorConnection.target = item
                 item.initialize()
