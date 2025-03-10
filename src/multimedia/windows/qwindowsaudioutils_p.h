@@ -15,9 +15,8 @@
 // We mean it.
 //
 
-#include <qaudioformat.h>
-#include <QtCore/qt_windows.h>
 #include <QtCore/private/qcomptr_p.h>
+#include <QtMultimedia/qaudioformat.h>
 #include <mmreg.h>
 
 #include <optional>
