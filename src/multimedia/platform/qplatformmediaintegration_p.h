@@ -74,32 +74,35 @@ public:
     ~QPlatformMediaIntegration() override;
     const QPlatformMediaFormatInfo *formatInfo();
 
-    virtual QMaybe<QPlatformCamera *> createCamera(QCamera *) { return { unexpect, notAvailable }; }
+    virtual QMaybe<QPlatformCamera *> createCamera(QCamera *)
+    {
+        return QUnexpected{ notAvailable };
+    }
     virtual QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *) { return nullptr; }
     virtual QPlatformSurfaceCapture *createWindowCapture(QWindowCapture *) { return nullptr; }
 
     virtual QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *)
     {
-        return { unexpect, notAvailable };
+        return QUnexpected{ notAvailable };
     }
     virtual QMaybe<std::unique_ptr<QPlatformAudioResampler>>
     createAudioResampler(const QAudioFormat & /*inputFormat*/,
                          const QAudioFormat & /*outputFormat*/);
     virtual QMaybe<QPlatformMediaCaptureSession *> createCaptureSession()
     {
-        return { unexpect, notAvailable };
+        return QUnexpected{ notAvailable };
     }
     virtual QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *)
     {
-        return { unexpect, notAvailable };
+        return QUnexpected{ notAvailable };
     }
     virtual QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *)
     {
-        return { unexpect, notAvailable };
+        return QUnexpected{ notAvailable };
     }
     virtual QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *)
     {
-        return { unexpect, notAvailable };
+        return QUnexpected{ notAvailable };
     }
 
     virtual QMaybe<QPlatformAudioInput *> createAudioInput(QAudioInput *);
@@ -107,7 +110,7 @@ public:
 
     virtual QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *)
     {
-        return { unexpect, notAvailable };
+        return QUnexpected{ notAvailable };
     }
 
     QList<QCapturableWindow> capturableWindowsList();
@@ -159,6 +162,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
 
 #endif // QPLATFORMMEDIAINTERFACE_H

@@ -129,6 +129,13 @@ private slots:
         }
     }
 #endif
+
+    void constructFromUnexpected()
+    {
+        const QMaybe<int *, int> dut{ QUnexpected(42) };
+        QVERIFY(!dut);
+        QCOMPARE_EQ(dut.error(), 42);
+    }
 };
 
 QTEST_APPLESS_MAIN(tst_QMaybe)
