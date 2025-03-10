@@ -16,8 +16,8 @@ struct AudioBufferInputQueueTraits
 {
     using MediaFrame = QAudioBuffer;
     using MediaFrameInput = QAudioBufferInput;
-    static constexpr auto sendMediaFrame = &QAudioBufferInput::sendAudioBuffer;
-    static constexpr auto readyToSend = &QAudioBufferInput::readyToSendAudioBuffer;
+    static inline const auto sendMediaFrame = &QAudioBufferInput::sendAudioBuffer;
+    static inline const auto readyToSend = &QAudioBufferInput::readyToSendAudioBuffer;
     static constexpr char name[] = "audio";
 };
 
@@ -25,8 +25,8 @@ struct VideoFrameInputQueueTraits
 {
     using MediaFrame = QVideoFrame;
     using MediaFrameInput = QVideoFrameInput;
-    static constexpr auto sendMediaFrame = &QVideoFrameInput::sendVideoFrame;
-    static constexpr auto readyToSend = &QVideoFrameInput::readyToSendVideoFrame;
+    static inline const auto sendMediaFrame = &QVideoFrameInput::sendVideoFrame;
+    static inline const auto readyToSend = &QVideoFrameInput::readyToSendVideoFrame;
     static constexpr char name[] = "video";
 };
 
