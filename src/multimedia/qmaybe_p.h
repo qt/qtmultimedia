@@ -23,11 +23,33 @@
 
 QT_BEGIN_NAMESPACE
 
+template <class Error = QString>
+struct QUnexpected
+{
+    constexpr QUnexpected(const QUnexpected &) = default;
+    constexpr QUnexpected(QUnexpected &&) = default;
+
+    template <class Err = Error>
+    constexpr explicit QUnexpected(Err &&e) : e{ std::forward<Err>(e) }
+    {
+    }
+
+    Error e;
+
+    constexpr const Error &error() const & noexcept { return e; }
+    constexpr Error &error() & noexcept { return e; }
+    constexpr const Error &&error() const && noexcept { return std::move(e); };
+    constexpr Error &&error() && noexcept { return std::move(e); }
+};
+
+template <class E>
+QUnexpected(E) -> QUnexpected<E>;
+
 struct QUnexpect
 {
 };
 
-static constexpr QUnexpect unexpect{};
+inline constexpr QUnexpect unexpect{};
 
 template <typename Value, typename Error = QString>
 class QMaybe
@@ -60,6 +82,16 @@ public:
     {
         static_assert(std::is_constructible_v<Error, Args &&...>,
                       "Invalid arguments for creating an error type");
+    }
+
+    template <class G>
+    constexpr QMaybe(const QUnexpected<G> &e) : m_error{ e.error() }
+    {
+    }
+
+    template <class G>
+    constexpr QMaybe(QUnexpected<G> &&e) : m_error{ e.error() }
+    {
     }
 
     // NOTE: Returns false if holding a nullptr value, even if no error is set.
