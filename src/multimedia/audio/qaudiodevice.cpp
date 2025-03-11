@@ -372,6 +372,12 @@ QDebug operator<<(QDebug dbg, QAudioDevice::Mode mode)
 }
 #endif
 
+QAudioDevice
+QAudioDevicePrivate::createQAudioDevice(std::unique_ptr<QAudioDevicePrivate> devicePrivate)
+{
+    return QAudioDevice(devicePrivate.release());
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qaudiodevice.cpp"

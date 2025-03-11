@@ -24,7 +24,7 @@ QAudioDevice qMakeCustomGStreamerAudioInput(const QByteArray &gstreamerPipeline)
     auto deviceInfo = std::make_unique<QGStreamerCustomAudioDeviceInfo>(gstreamerPipeline,
                                                                         QAudioDevice::Mode::Input);
 
-    return deviceInfo.release()->create();
+    return QAudioDevicePrivate::createQAudioDevice(std::move(deviceInfo));
 }
 
 QAudioDevice qMakeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline)
@@ -32,7 +32,7 @@ QAudioDevice qMakeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline
     auto deviceInfo = std::make_unique<QGStreamerCustomAudioDeviceInfo>(gstreamerPipeline,
                                                                         QAudioDevice::Mode::Output);
 
-    return deviceInfo.release()->create();
+    return QAudioDevicePrivate::createQAudioDevice(std::move(deviceInfo));
 }
 
 bool isCustomAudioDevice(const QAudioDevicePrivate *device)

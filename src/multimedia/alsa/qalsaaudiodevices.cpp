@@ -52,19 +52,16 @@ static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
 
     QAlsaAudioDeviceInfo *sysdefault = nullptr;
 
-    auto makeDeviceInfo = [&filter, mode](void *entry) -> QAlsaAudioDeviceInfo * {
+    auto makeDeviceInfo = [&filter, mode](void *entry) -> std::unique_ptr<QAlsaAudioDeviceInfo> {
         unique_str name{ snd_device_name_get_hint(entry, "NAME") };
         if (name && name != "null") {
             unique_str descr{ snd_device_name_get_hint(entry, "DESC") };
             unique_str io{ snd_device_name_get_hint(entry, "IOID") };
 
             if (descr && (!io || (io == filter))) {
-                auto *infop = new QAlsaAudioDeviceInfo{
-                    name.get(),
-                    QString::fromUtf8(descr.get()),
-                    mode,
-                };
-                return infop;
+                auto info = std::make_unique<QAlsaAudioDeviceInfo>(
+                        name.get(), QString::fromUtf8(descr.get()), mode);
+                return info;
             }
         }
         return nullptr;
@@ -73,16 +70,16 @@ static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
     bool hasDefault = false;
     void **n = hints;
     while (*n != NULL) {
-        QAlsaAudioDeviceInfo *infop = makeDeviceInfo(*n++);
+        std::unique_ptr<QAlsaAudioDeviceInfo> info = makeDeviceInfo(*n++);
 
-        if (infop) {
-            devices.append(infop->create());
-            if (!hasDefault && infop->id.startsWith("default")) {
-                infop->isDefault = true;
+        if (info) {
+            if (!hasDefault && info->id.startsWith("default")) {
+                info->isDefault = true;
                 hasDefault = true;
             }
-            if (!sysdefault && infop->id.startsWith("sysdefault"))
-                sysdefault = infop;
+            if (!sysdefault && info->id.startsWith("sysdefault"))
+                sysdefault = info.get();
+            devices.append(QAudioDevicePrivate::createQAudioDevice(std::move(info)));
         }
     }
 
@@ -93,10 +90,10 @@ static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
     }
     if (!hasDefault && devices.size() > 0) {
         // forcefully declare the first device as "default"
-        QAlsaAudioDeviceInfo *infop = makeDeviceInfo(hints[0]);
-        if (infop) {
-            infop->isDefault = true;
-            devices.prepend(infop->create());
+        std::unique_ptr<QAlsaAudioDeviceInfo> info = makeDeviceInfo(hints[0]);
+        if (info) {
+            info->isDefault = true;
+            devices.prepend(QAudioDevicePrivate::createQAudioDevice(std::move(info)));
         }
     }
 

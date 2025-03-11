@@ -89,7 +89,7 @@ static bool updateDevicesMap(QReadWriteLock &lock, const QByteArray &defaultDevi
     if (device.handle() && compare(*newDeviceInfo, *device.handle()))
         return false;
 
-    device = newDeviceInfo.release()->create();
+    device = QAudioDevicePrivate::createQAudioDevice(std::move(newDeviceInfo));
     return true;
 }
 
@@ -106,7 +106,7 @@ static bool updateDevicesMap(QReadWriteLock &lock, const QByteArray &defaultDevi
         if (deviceInfo->isDefault != isDefault) {
             auto newDeviceInfo = std::make_unique<QAudioDevicePrivate>(*deviceInfo);
             newDeviceInfo->isDefault = isDefault;
-            device = newDeviceInfo.release()->create();
+            device = QAudioDevicePrivate::createQAudioDevice(std::move(newDeviceInfo));
             result = true;
         }
     }

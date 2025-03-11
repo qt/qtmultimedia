@@ -43,7 +43,7 @@ public:
     QList<QAudioFormat::SampleFormat> supportedSampleFormats;
     QAudioFormat::ChannelConfig channelConfiguration = QAudioFormat::ChannelConfigUnknown;
 
-    QAudioDevice create() { return QAudioDevice(this); }
+    static QAudioDevice createQAudioDevice(std::unique_ptr<QAudioDevicePrivate> devicePrivate);
 };
 
 inline const QList<QAudioFormat::SampleFormat> &qAllSupportedSampleFormats()

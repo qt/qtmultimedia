@@ -34,7 +34,8 @@ static QList<QAudioDevice> enumeratePcmDevices(QAudioDevice::Mode mode)
 
     for (const QString &entry : dir.entryList()) {
         if (entry.startsWith(QStringLiteral("pcm")) && entry.back() == modeSuffix)
-            devices << (new QnxAudioDeviceInfo(entry.toUtf8(), mode))->create();
+            devices << QAudioDevicePrivate::createQAudioDevice(
+                    std::make_unique<QnxAudioDeviceInfo>(entry.toUtf8(), mode));
     }
 
     return devices;

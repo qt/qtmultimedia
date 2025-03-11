@@ -252,9 +252,10 @@ QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mo
             continue;
         }
 
-        auto dev = new QWindowsAudioDevice(deviceId->toUtf8(), device, *friendlyName, mode);
+        auto dev = std::make_unique<QWindowsAudioDevice>(deviceId->toUtf8(), device, *friendlyName,
+                                                         mode);
         dev->isDefault = deviceId == defaultAudioDeviceID;
-        devices.append(dev->create());
+        devices.append(QAudioDevicePrivate::createQAudioDevice(std::move(dev)));
     }
 
     return devices;
