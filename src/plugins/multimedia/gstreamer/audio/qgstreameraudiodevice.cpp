@@ -42,7 +42,7 @@ bool isCustomAudioDevice(const QAudioDevicePrivate *device)
 
 bool isCustomAudioDevice(const QAudioDevice &device)
 {
-    return isCustomAudioDevice(device.handle());
+    return isCustomAudioDevice(QAudioDevicePrivate::handle(device));
 }
 
 QT_END_NAMESPACE
