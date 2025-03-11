@@ -13,21 +13,19 @@ QMockAudioDevices::~QMockAudioDevices() = default;
 
 void QMockAudioDevices::addAudioInput()
 {
-    QAudioDevicePrivate *devicePrivate
-        = new QAudioDevicePrivate(QString::number(m_inputDevices.size()).toLatin1(),
-                                  QAudioDevice::Input,
-                                  "MockAudioInput");
-    m_inputDevices.push_back(devicePrivate->create());
+    auto devicePrivate =
+            std::make_unique<QAudioDevicePrivate>(QString::number(m_inputDevices.size()).toLatin1(),
+                                                  QAudioDevice::Input, "MockAudioInput");
+    m_inputDevices.push_back(QAudioDevicePrivate::createQAudioDevice(std::move(devicePrivate)));
     onAudioInputsChanged();
 }
 
 void QMockAudioDevices::addAudioOutput()
 {
-    QAudioDevicePrivate *devicePrivate
-        = new QAudioDevicePrivate(QString::number(m_outputDevices.size()).toLatin1(),
-                                  QAudioDevice::Output,
-                                  "MockAudioOutput");
-    m_outputDevices.push_back(devicePrivate->create());
+    auto devicePrivate = std::make_unique<QAudioDevicePrivate>(
+            QString::number(m_outputDevices.size()).toLatin1(), QAudioDevice::Output,
+            "MockAudioOutput");
+    m_outputDevices.push_back(QAudioDevicePrivate::createQAudioDevice(std::move(devicePrivate)));
     onAudioOutputsChanged();
 }
 

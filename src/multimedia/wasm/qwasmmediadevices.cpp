@@ -133,10 +133,10 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
         } else if (deviceKind == std::string("audioinput")) {
             if (!m_audioInputs.contains(deviceId)) {
                 isDefault = !m_audioInputsAdded;
-                m_audioInputs.insert(deviceId,
-                                     (new QWasmAudioDevice(deviceId.c_str(), label.c_str(),
-                                                           isDefault, QAudioDevice::Input))
-                                             ->create());
+                m_audioInputs.insert(
+                        deviceId,
+                        QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
+                                deviceId.c_str(), label.c_str(), isDefault, QAudioDevice::Input)));
 
                 m_audioInputsAdded = true;
             }
@@ -144,10 +144,11 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
         } else if (deviceKind == std::string("audiooutput")) {
             if (!m_audioOutputs.contains(deviceId)) {
                 isDefault = !m_audioOutputsAdded;
-                m_audioOutputs.insert(deviceId,
-                                      (new QWasmAudioDevice(deviceId.c_str(), label.c_str(),
-                                                            isDefault, QAudioDevice::Input))
-                                              ->create());
+                m_audioOutputs.insert(
+                        deviceId,
+                        QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
+                                deviceId.c_str(), label.c_str(), isDefault, QAudioDevice::Output)));
+                ;
 
                 m_audioOutputsAdded = true;
             }
@@ -247,10 +248,10 @@ void QWasmMediaDevices::getOpenALAudioDevices()
     auto capture = alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
     // present even if there is no capture device
     if (capture && !m_audioOutputs.contains(capture)) {
-        m_audioInputs.insert(capture,
-                             (new QWasmAudioDevice(capture, "WebAssembly audio capture device",
-                                                   true, QAudioDevice::Input))
-                                     ->create());
+        m_audioInputs.insert(
+                capture,
+                QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
+                        capture, "WebAssembly audio capture device", true, QAudioDevice::Input)));
         m_audioInputsAdded = true;
         onAudioInputsChanged();
     }
@@ -258,10 +259,11 @@ void QWasmMediaDevices::getOpenALAudioDevices()
     auto playback = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
     // present even if there is no playback device
     if (playback && !m_audioOutputs.contains(capture)) {
-        m_audioOutputs.insert(playback,
-                              (new QWasmAudioDevice(playback, "WebAssembly audio playback device",
-                                                    true, QAudioDevice::Output))
-                                      ->create());
+        m_audioOutputs.insert(
+                playback,
+                QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
+                        playback, "WebAssembly audio playback device", true,
+                        QAudioDevice::Output)));
         onAudioOutputsChanged();
     }
     m_firstInit = true;

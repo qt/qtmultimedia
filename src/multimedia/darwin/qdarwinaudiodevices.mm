@@ -28,9 +28,9 @@ QT_BEGIN_NAMESPACE
 template<typename... Args>
 QAudioDevice createAudioDevice(bool isDefault, Args &&...args)
 {
-    auto *dev = new QCoreAudioDeviceInfo(std::forward<Args>(args)...);
+    auto dev = std::make_unique<QCoreAudioDeviceInfo>(std::forward<Args>(args)...);
     dev->isDefault = isDefault;
-    return dev->create();
+    return QAudioDevicePrivate::createQAudioDevice(std::move(dev));
 }
 
 #if defined(Q_OS_MACOS)
