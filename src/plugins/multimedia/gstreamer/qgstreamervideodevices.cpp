@@ -157,8 +157,13 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
             qCDebug(ltVideoDevices) << "V4L2_CAP_META_CAPTURE device detected" << p;
             return;
         }
-        if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
-            qCDebug(ltVideoDevices) << "not a V4L2_CAP_VIDEO_CAPTURE device" << p;
+
+        constexpr uint32_t videoCaptureCapabilities =
+                V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_CAPTURE_MPLANE;
+
+        if (!(cap.capabilities & videoCaptureCapabilities)) {
+            qCDebug(ltVideoDevices)
+                    << "not a V4L2_CAP_VIDEO_CAPTURE or V4L2_CAP_VIDEO_CAPTURE_MPLANE device" << p;
             return;
         }
         if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
