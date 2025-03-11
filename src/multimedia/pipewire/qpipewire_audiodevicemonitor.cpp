@@ -326,11 +326,11 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
         std::optional<std::string_view> nodeName = getNodeName(sinkOrSource.properties);
         bool isDefault = (defaultSinkOrSourceNodeName == nodeName);
 
-        QPipewireAudioDevicePrivate *devicePrivate = new QPipewireAudioDevicePrivate(
+        auto devicePrivate = std::make_unique<QPipewireAudioDevicePrivate>(
                 sinkOrSource.properties, deviceIt->second.properties, sinkOrSource.format,
                 QAudioDevice::Mode::Output, isDefault);
 
-        QAudioDevice device = devicePrivate->create();
+        QAudioDevice device = QAudioDevicePrivate::createQAudioDevice(std::move(devicePrivate));
 
         newDeviceList.push_back(device);
 

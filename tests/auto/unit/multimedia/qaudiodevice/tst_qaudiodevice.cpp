@@ -80,11 +80,11 @@ void tst_QAudioDevice::basicComparison()
     QFETCH(QAudioDevice::Mode, modeB);
     QFETCH(bool, expected);
 
-    QAudioDevicePrivate *privA = new QAudioDevicePrivate(idA, modeA, u""_s);
-    const QAudioDevice a = privA->create();
+    auto privA = std::make_unique<QAudioDevicePrivate>(idA, modeA, u""_s);
+    const QAudioDevice a = QAudioDevicePrivate::createQAudioDevice(std::move(privA));
 
-    QAudioDevicePrivate *privB = new QAudioDevicePrivate(idB, modeB, u""_s);
-    const QAudioDevice b = privB->create();
+    auto privB = std::make_unique<QAudioDevicePrivate>(idB, modeB, u""_s);
+    const QAudioDevice b = QAudioDevicePrivate::createQAudioDevice(std::move(privB));
 
     QCOMPARE(a == b, expected);
 }
@@ -93,13 +93,13 @@ void tst_QAudioDevice::compare_returnsTrue_whenIsDefaultDiffers() {
     const QByteArray id = "ABC"_ba;
     const QAudioDevice::Mode mode = QAudioDevice::Mode::Input;
 
-    QAudioDevicePrivate *privA = new QAudioDevicePrivate(id, mode, u""_s);
+    auto privA = std::make_unique<QAudioDevicePrivate>(id, mode, u""_s);
     privA->isDefault = true;
-    const QAudioDevice a = privA->create();
+    const QAudioDevice a = QAudioDevicePrivate::createQAudioDevice(std::move(privA));
 
-    QAudioDevicePrivate *privB = new QAudioDevicePrivate(id, mode, u""_s);
+    auto privB = std::make_unique<QAudioDevicePrivate>(id, mode, u""_s);
     privB->isDefault = false;
-    const QAudioDevice b = privB->create();
+    const QAudioDevice b = QAudioDevicePrivate::createQAudioDevice(std::move(privB));
 
     QVERIFY(a == b);
 }

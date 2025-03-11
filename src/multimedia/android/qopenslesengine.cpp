@@ -122,8 +122,9 @@ QList<QAudioDevice> QOpenSLESEngine::availableDevices(QAudioDevice::Mode mode)
               QString val = QJniObject(devElement).toString();
               env->DeleteLocalRef(devElement);
               int pos = val.indexOf(QStringLiteral(":"));
-              devices << (new QOpenSLESDeviceInfo(
-                              val.left(pos).toUtf8(), val.mid(pos+1), mode, i == 0))->create();
+              devices << QAudioDevicePrivate::createQAudioDevice(
+                      std::make_unique<QOpenSLESDeviceInfo>(val.left(pos).toUtf8(),
+                                                            val.mid(pos + 1), mode, i == 0));
           }
     }
     return devices;
