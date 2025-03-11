@@ -369,7 +369,7 @@ bool QWindowsAudioSink::open()
         return true;
     }
 
-    m_device = static_cast<const QWindowsAudioDevice *>(m_audioDevice.handle())->open();
+    m_device = QAudioDevicePrivate::handle<QWindowsAudioDevice>(m_audioDevice)->open();
     if (!m_device)
         return false;
 

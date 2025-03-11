@@ -101,7 +101,7 @@ static bool updateDevicesMap(QReadWriteLock &lock, const QByteArray &defaultDevi
     bool result = false;
 
     for (QAudioDevice &device : devices) {
-        auto deviceInfo = device.handle();
+        auto deviceInfo = QAudioDevicePrivate::handle(device);
         const auto isDefault = deviceInfo->id == defaultDeviceId;
         if (deviceInfo->isDefault != isDefault) {
             auto newDeviceInfo = std::make_unique<QAudioDevicePrivate>(*deviceInfo);

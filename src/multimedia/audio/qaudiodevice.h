@@ -68,7 +68,10 @@ public:
     QList<QAudioFormat::SampleFormat> supportedSampleFormats() const;
     QAudioFormat::ChannelConfig channelConfiguration() const;
 
+#if QT_DEPRECATED_SINCE(6, 10)
+    QT_DEPRECATED_VERSION_X_6_10("The method is internal and deprecated")
     const QAudioDevicePrivate *handle() const { return d.get(); }
+#endif
 private:
     friend class QAudioDevicePrivate;
     QAudioDevice(QAudioDevicePrivate *p);
