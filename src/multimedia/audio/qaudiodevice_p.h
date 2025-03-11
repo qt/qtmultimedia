@@ -44,6 +44,15 @@ public:
     QAudioFormat::ChannelConfig channelConfiguration = QAudioFormat::ChannelConfigUnknown;
 
     static QAudioDevice createQAudioDevice(std::unique_ptr<QAudioDevicePrivate> devicePrivate);
+
+    static const QAudioDevicePrivate *handle(const QAudioDevice &device) { return device.d.get(); }
+
+    template <typename Derived>
+    static const Derived *handle(const QAudioDevice &device)
+    {
+        // Note: RTTI is required for dispatching in the gstreamer backend
+        return dynamic_cast<const Derived *>(handle(device));
+    }
 };
 
 inline const QList<QAudioFormat::SampleFormat> &qAllSupportedSampleFormats()
