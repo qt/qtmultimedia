@@ -93,7 +93,7 @@ QPlatformAudioSinkStream::QPlatformAudioSinkStream(const QAudioDevice &audioDevi
     m_streamIdleDetectionConnection =
             QObject::connect(&m_streamIdleDetectionNotifier, &QAutoResetEvent::activated,
                              &m_streamIdleDetectionNotifier, [this] {
-        if (m_stopRequested)
+        if (isStopRequested())
             return;
 
         bool sinkIsIdle = m_streamIsIdle.load();
@@ -135,7 +135,7 @@ QPlatformAudioSinkStream::process(QSpan<std::byte> hostBuffer, qsizetype totalNu
         });
     });
 
-    if (!m_stopRequested) {
+    if (!isStopRequested()) {
         if (notificationThresholdBytes == 0 || bytesFree() > notificationThresholdBytes)
             m_ringbufferHasSpace.set();
 
