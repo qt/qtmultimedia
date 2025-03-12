@@ -147,11 +147,10 @@ private:
     QMetaObject::Connection m_iodeviceHasNewDataConnection;
 
     std::unique_ptr<QIODevice> m_ringbufferReaderDevice;
-    std::atomic<bool> m_stopRequested = false;
 
     // stats
-    std::atomic_int64_t m_totalFrameCount;
-    std::atomic_int64_t m_processedFrameCount;
+    std::atomic_int64_t m_totalFrameCount{};
+    std::atomic_int64_t m_processedFrameCount{};
 
     void convertToNative(QSpan<const std::byte> internal, QSpan<std::byte> native, float volume,
                          NativeSampleFormat) QT_MM_NONBLOCKING;
