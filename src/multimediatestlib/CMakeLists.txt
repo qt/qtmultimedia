@@ -12,6 +12,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
         mediafileselector_p.h
         formatutils_p.h formatutils.cpp
         mediainfo_p.h
+        multimedia_debug_support_p.h
         osdetection_p.h
         testvideosink_p.h
         qcolorutil_p.h qcolorutil.cpp
