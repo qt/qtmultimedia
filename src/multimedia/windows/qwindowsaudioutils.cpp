@@ -2,16 +2,34 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwindowsaudioutils_p.h"
-#include "qwindowsmediafoundation_p.h"
-#include "qdebug.h"
-#include "ks.h"
-#include "ksmedia.h"
+
+#include <QtCore/qdebug.h>
+#include <QtCore/private/qsystemerror_p.h>
+#include <QtMultimedia/private/qwindowsmediafoundation_p.h>
+
 
 #include <audioclient.h>
+#include <mmdeviceapi.h>
+#include <ks.h>
+#include <ksmedia.h>
+
+// MinGW misses some error codes
+#ifndef AUDCLNT_E_EFFECT_NOT_AVAILABLE
+#  define AUDCLNT_E_EFFECT_NOT_AVAILABLE AUDCLNT_ERR(0x041)
+#endif
+
+#ifndef AUDCLNT_E_EFFECT_STATE_READ_ONLY
+#  define AUDCLNT_E_EFFECT_STATE_READ_ONLY AUDCLNT_ERR(0x042)
+#endif
 
 QT_BEGIN_NAMESPACE
 
-static QAudioFormat::AudioChannelPosition channelFormatMap[] =
+namespace QWindowsAudioUtils {
+
+using namespace std::chrono_literals;
+using namespace Qt::Literals;
+
+static constexpr QAudioFormat::AudioChannelPosition channelFormatMap[] =
         { QAudioFormat::FrontLeft         // SPEAKER_FRONT_LEFT (0x1)
         , QAudioFormat::FrontRight        // SPEAKER_FRONT_RIGHT (0x2)
         , QAudioFormat::FrontCenter       // SPEAKER_FRONT_CENTER (0x4)
@@ -32,7 +50,7 @@ static QAudioFormat::AudioChannelPosition channelFormatMap[] =
         , QAudioFormat::TopBackRight      // SPEAKER_TOP_BACK_RIGHT (0x20000)
         };
 
-QAudioFormat::ChannelConfig QWindowsAudioUtils::maskToChannelConfig(UINT32 mask, int count)
+QAudioFormat::ChannelConfig maskToChannelConfig(UINT32 mask, int count)
 {
     quint32 config = 0;
     int set = 0;
@@ -60,7 +78,7 @@ static UINT32 channelConfigToMask(QAudioFormat::ChannelConfig config)
     return mask;
 }
 
-bool QWindowsAudioUtils::formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx)
+bool formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx)
 {
     if (!format.isValid())
         return false;
@@ -90,8 +108,7 @@ bool QWindowsAudioUtils::formatToWaveFormatExtensible(const QAudioFormat &format
     return true;
 }
 
-std::optional<WAVEFORMATEXTENSIBLE>
-QWindowsAudioUtils::toWaveFormatExtensible(const QAudioFormat &format)
+std::optional<WAVEFORMATEXTENSIBLE> toWaveFormatExtensible(const QAudioFormat &format)
 {
     WAVEFORMATEXTENSIBLE ret{};
     if (formatToWaveFormatExtensible(format, ret))
@@ -100,7 +117,7 @@ QWindowsAudioUtils::toWaveFormatExtensible(const QAudioFormat &format)
     return std::nullopt;
 }
 
-QAudioFormat QWindowsAudioUtils::waveFormatExToFormat(const WAVEFORMATEX &in)
+QAudioFormat waveFormatExToFormat(const WAVEFORMATEX &in)
 {
     QAudioFormat out;
     out.setSampleRate(in.nSamplesPerSec);
@@ -127,7 +144,7 @@ QAudioFormat QWindowsAudioUtils::waveFormatExToFormat(const WAVEFORMATEX &in)
     return out;
 }
 
-QAudioFormat QWindowsAudioUtils::mediaTypeToFormat(IMFMediaType *mediaType)
+QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType)
 {
     QAudioFormat format;
     if (!mediaType)
@@ -167,7 +184,7 @@ QAudioFormat QWindowsAudioUtils::mediaTypeToFormat(IMFMediaType *mediaType)
     return format;
 }
 
-ComPtr<IMFMediaType> QWindowsAudioUtils::formatToMediaType(QWindowsMediaFoundation &wmf, const QAudioFormat &format)
+ComPtr<IMFMediaType> formatToMediaType(QWindowsMediaFoundation &wmf, const QAudioFormat &format)
 {
     ComPtr<IMFMediaType> mediaType;
 
@@ -197,7 +214,7 @@ ComPtr<IMFMediaType> QWindowsAudioUtils::formatToMediaType(QWindowsMediaFoundati
     return mediaType;
 }
 
-std::optional<quint32> QWindowsAudioUtils::usedFrames(IAudioClient *client)
+std::optional<quint32> usedFrames(IAudioClient *client)
 {
     Q_ASSERT(client);
     UINT32 framesPadding = 0;
@@ -206,7 +223,7 @@ std::optional<quint32> QWindowsAudioUtils::usedFrames(IAudioClient *client)
     return {};
 }
 
-std::optional<quint32> QWindowsAudioUtils::allocatedFrames(IAudioClient *client)
+std::optional<quint32> allocatedFrames(IAudioClient *client)
 {
     Q_ASSERT(client);
     UINT32 bufferFrameCount = 0;
@@ -214,5 +231,259 @@ std::optional<quint32> QWindowsAudioUtils::allocatedFrames(IAudioClient *client)
         return bufferFrameCount;
     return {};
 }
+
+std::optional<quint32> getBufferSizeInFrames(const ComPtr<IAudioClient3> &client)
+{
+    Q_ASSERT(client);
+
+    UINT32 bufferFrameCount = 0;
+
+    HRESULT hr = client->GetBufferSize(&bufferFrameCount);
+    if (SUCCEEDED(hr))
+        return bufferFrameCount;
+
+    qWarning() << "IAudioClient::getBufferSize failed" << audioClientErrorString(hr);
+    return std::nullopt;
+}
+
+std::optional<AudioClientDevicePeriod> getDevicePeriod(const ComPtr<IAudioClient3> &client)
+{
+    Q_ASSERT(client);
+    REFERENCE_TIME defaultPeriodDuration, minimalPeriodDuration;
+    HRESULT hr = client->GetDevicePeriod(&defaultPeriodDuration, &minimalPeriodDuration);
+
+    if (FAILED(hr)) {
+        qWarning() << "IAudioClient3::GetDevicePeriod failed" << audioClientErrorString(hr);
+        return std::nullopt;
+    }
+
+    return AudioClientDevicePeriod{
+        reference_time{ defaultPeriodDuration },
+        reference_time{ minimalPeriodDuration },
+    };
+}
+
+QString audioClientErrorString(HRESULT hr)
+{
+    switch (hr) {
+    case AUDCLNT_E_NOT_INITIALIZED:
+        return u"AUDCLNT_E_NOT_INITIALIZED"_s;
+    case AUDCLNT_E_ALREADY_INITIALIZED:
+        return u"AUDCLNT_E_ALREADY_INITIALIZED"_s;
+    case AUDCLNT_E_WRONG_ENDPOINT_TYPE:
+        return u"AUDCLNT_E_WRONG_ENDPOINT_TYPE"_s;
+    case AUDCLNT_E_DEVICE_INVALIDATED:
+        return u"AUDCLNT_E_DEVICE_INVALIDATED"_s;
+    case AUDCLNT_E_NOT_STOPPED:
+        return u"AUDCLNT_E_NOT_STOPPED"_s;
+    case AUDCLNT_E_BUFFER_TOO_LARGE:
+        return u"AUDCLNT_E_BUFFER_TOO_LARGE"_s;
+    case AUDCLNT_E_OUT_OF_ORDER:
+        return u"AUDCLNT_E_OUT_OF_ORDER"_s;
+    case AUDCLNT_E_UNSUPPORTED_FORMAT:
+        return u"AUDCLNT_E_UNSUPPORTED_FORMAT"_s;
+    case AUDCLNT_E_INVALID_SIZE:
+        return u"AUDCLNT_E_INVALID_SIZE"_s;
+    case AUDCLNT_E_DEVICE_IN_USE:
+        return u"AUDCLNT_E_DEVICE_IN_USE"_s;
+    case AUDCLNT_E_BUFFER_OPERATION_PENDING:
+        return u"AUDCLNT_E_BUFFER_OPERATION_PENDING"_s;
+    case AUDCLNT_E_THREAD_NOT_REGISTERED:
+        return u"AUDCLNT_E_THREAD_NOT_REGISTERED"_s;
+    case AUDCLNT_E_EXCLUSIVE_MODE_NOT_ALLOWED:
+        return u"AUDCLNT_E_EXCLUSIVE_MODE_NOT_ALLOWED"_s;
+    case AUDCLNT_E_ENDPOINT_CREATE_FAILED:
+        return u"AUDCLNT_E_ENDPOINT_CREATE_FAILED"_s;
+    case AUDCLNT_E_SERVICE_NOT_RUNNING:
+        return u"AUDCLNT_E_SERVICE_NOT_RUNNING"_s;
+    case AUDCLNT_E_EVENTHANDLE_NOT_EXPECTED:
+        return u"AUDCLNT_E_EVENTHANDLE_NOT_EXPECTED"_s;
+    case AUDCLNT_E_EXCLUSIVE_MODE_ONLY:
+        return u"AUDCLNT_E_EXCLUSIVE_MODE_ONLY"_s;
+    case AUDCLNT_E_BUFDURATION_PERIOD_NOT_EQUAL:
+        return u"AUDCLNT_E_BUFDURATION_PERIOD_NOT_EQUAL"_s;
+    case AUDCLNT_E_EVENTHANDLE_NOT_SET:
+        return u"AUDCLNT_E_EVENTHANDLE_NOT_SET"_s;
+    case AUDCLNT_E_INCORRECT_BUFFER_SIZE:
+        return u"AUDCLNT_E_INCORRECT_BUFFER_SIZE"_s;
+    case AUDCLNT_E_BUFFER_SIZE_ERROR:
+        return u"AUDCLNT_E_BUFFER_SIZE_ERROR"_s;
+    case AUDCLNT_E_CPUUSAGE_EXCEEDED:
+        return u"AUDCLNT_E_CPUUSAGE_EXCEEDED"_s;
+    case AUDCLNT_E_BUFFER_ERROR:
+        return u"AUDCLNT_E_BUFFER_ERROR"_s;
+    case AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED:
+        return u"AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED"_s;
+    case AUDCLNT_E_INVALID_DEVICE_PERIOD:
+        return u"AUDCLNT_E_INVALID_DEVICE_PERIOD"_s;
+    case AUDCLNT_E_INVALID_STREAM_FLAG:
+        return u"AUDCLNT_E_INVALID_STREAM_FLAG"_s;
+    case AUDCLNT_E_ENDPOINT_OFFLOAD_NOT_CAPABLE:
+        return u"AUDCLNT_E_ENDPOINT_OFFLOAD_NOT_CAPABLE"_s;
+    case AUDCLNT_E_OUT_OF_OFFLOAD_RESOURCES:
+        return u"AUDCLNT_E_OUT_OF_OFFLOAD_RESOURCES"_s;
+    case AUDCLNT_E_OFFLOAD_MODE_ONLY:
+        return u"AUDCLNT_E_OFFLOAD_MODE_ONLY"_s;
+    case AUDCLNT_E_NONOFFLOAD_MODE_ONLY:
+        return u"AUDCLNT_E_NONOFFLOAD_MODE_ONLY"_s;
+    case AUDCLNT_E_RESOURCES_INVALIDATED:
+        return u"AUDCLNT_E_RESOURCES_INVALIDATED"_s;
+    case AUDCLNT_E_RAW_MODE_UNSUPPORTED:
+        return u"AUDCLNT_E_RAW_MODE_UNSUPPORTED"_s;
+    case AUDCLNT_E_ENGINE_PERIODICITY_LOCKED:
+        return u"AUDCLNT_E_ENGINE_PERIODICITY_LOCKED"_s;
+    case AUDCLNT_E_ENGINE_FORMAT_LOCKED:
+        return u"AUDCLNT_E_ENGINE_FORMAT_LOCKED"_s;
+    case AUDCLNT_E_HEADTRACKING_ENABLED:
+        return u"AUDCLNT_E_HEADTRACKING_ENABLED"_s;
+    case AUDCLNT_E_HEADTRACKING_UNSUPPORTED:
+        return u"AUDCLNT_E_HEADTRACKING_UNSUPPORTED"_s;
+    case AUDCLNT_E_EFFECT_NOT_AVAILABLE:
+        return u"AUDCLNT_E_EFFECT_NOT_AVAILABLE"_s;
+    case AUDCLNT_E_EFFECT_STATE_READ_ONLY:
+        return u"AUDCLNT_E_EFFECT_STATE_READ_ONLY"_s;
+
+    default:
+        return QSystemError::windowsComString(hr);
+    }
+}
+
+std::optional<AudioClientCreationResult>
+createAudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format,
+                  std::optional<qsizetype> hardwareBufferFrames,
+                  const QUniqueWin32NullHandle &wasapiEventHandle)
+{
+    ComPtr<IAudioClient3> audioClient;
+
+    HRESULT hr = device->Activate(__uuidof(IAudioClient3), CLSCTX_INPROC_SERVER, nullptr,
+                                  reinterpret_cast<void **>(audioClient.GetAddressOf()));
+    if (FAILED(hr)) {
+        qWarning() << "Failed to activate audio device" << audioClientErrorString(hr);
+        return std::nullopt;
+    }
+
+    std::optional<AudioClientDevicePeriod> devicePeriods = getDevicePeriod(audioClient);
+    if (!devicePeriods)
+        return std::nullopt;
+
+    // qCDebug(qLcAudioSource) << devicePeriods->defaultDuration << devicePeriods->minimalDuration;
+    reference_time periodSize = devicePeriods->defaultDuration;
+    if (hardwareBufferFrames) {
+        std::chrono::microseconds dur{ format.durationForFrames(*hardwareBufferFrames) };
+        if (dur < devicePeriods->minimalDuration)
+            qWarning() << "Requested hardware buffer size to small:" << dur << "minimal duration"
+                       << devicePeriods->minimalDuration;
+        else
+            periodSize = dur;
+    }
+
+    auto fmt = toWaveFormatExtensible(format);
+    if (!fmt)
+        return std::nullopt;
+    auto waveFormat = *fmt;
+
+    // CHECK: do we want to use AUDCLNT_STREAMFLAGS_RATEADJUST?
+    constexpr DWORD streamFlags =
+            AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM;
+
+    hr = audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, streamFlags,
+                                 /*hnsBufferDuration=*/reference_time(periodSize).count(),
+                                 /*hnsPeriodicity=*/reference_time(periodSize).count(),
+                                 &waveFormat.Format, nullptr);
+
+    if (FAILED(hr)) {
+        qWarning() << "IAudioClient3::Initialize failed" << audioClientErrorString(hr);
+        return std::nullopt;
+    }
+
+    std::optional<quint32> framesPerBuffer = getBufferSizeInFrames(audioClient);
+    if (!framesPerBuffer)
+        return std::nullopt;
+    qsizetype audioClientFrames = *framesPerBuffer;
+
+    hr = audioClient->SetEventHandle(wasapiEventHandle.get());
+    if (FAILED(hr)) {
+        qWarning() << "IAudioClient3::SetEventHandle failed" << audioClientErrorString(hr);
+        return std::nullopt;
+    }
+
+    return AudioClientCreationResult{
+        /*.client =*/std::move(audioClient),
+        /*.periodSize =*/periodSize,
+        /*.audioClientFrames =*/audioClientFrames,
+    };
+}
+
+bool audioClientStart(const ComPtr<IAudioClient3> &client)
+{
+    HRESULT hr = client->Start();
+    if (FAILED(hr)) {
+        qWarning() << "IAudioClient3::Start failed" << audioClientErrorString(hr);
+        return false;
+    }
+    return true;
+}
+
+bool audioClientStop(const ComPtr<IAudioClient3> &client)
+{
+    HRESULT hr = client->Stop();
+    if (FAILED(hr)) {
+        qWarning() << "IAudioClient3::Stop failed" << audioClientErrorString(hr);
+        return false;
+    }
+    return true;
+}
+
+bool audioClientReset(const ComPtr<IAudioClient3> &client)
+{
+    HRESULT hr = client->Reset();
+    if (FAILED(hr)) {
+        qWarning() << "IAudioClient3::Reset failed" << audioClientErrorString(hr);
+        return false;
+    }
+    return true;
+}
+
+bool audioClientSetRate(const ComPtr<IAudioClient3> &client, int rate)
+{
+    ComPtr<IAudioClockAdjustment> clockAdjustment;
+
+    HRESULT hr = client->GetService(IID_PPV_ARGS(clockAdjustment.GetAddressOf()));
+    if (FAILED(hr)) {
+        qWarning() << "IAudioClient3::GetService failed to obtain IAudioClockAdjustment"
+                   << audioClientErrorString(hr);
+        return false;
+    }
+
+    hr = clockAdjustment->SetSampleRate(float(rate));
+    if (FAILED(hr)) {
+        qWarning() << "IAudioClockAdjustment::SetSampleRate failed" << audioClientErrorString(hr);
+        return false;
+    }
+
+    return true;
+}
+
+void setMCSSForPeriodSize(reference_time periodSize)
+{
+    // heuristics are similar to what windows does for exclusive mode:
+    // 10ms is the default, when going lower, "Pro Audio" is the way to go
+    auto threadCharacteristics = periodSize < 10ms ? "Pro Audio" : "Audio";
+    DWORD taskIndex = 0;
+    HANDLE hTask = AvSetMmThreadCharacteristicsA(threadCharacteristics, &taskIndex);
+
+    if (hTask == NULL) {
+        qWarning() << "AvSetMmThreadCharacteristics failed to set thread characteristics"
+                   << QSystemError::windowsString();
+    }
+
+    AVRT_PRIORITY priority = periodSize < 10ms ? AVRT_PRIORITY_CRITICAL : AVRT_PRIORITY_HIGH;
+    bool success = AvSetMmThreadPriority(hTask, priority);
+    if (!success)
+        qWarning() << "AvSetMmThreadPriority failed to set thread priority"
+                   << QSystemError::windowsString();
+}
+
+} // namespace QWindowsAudioUtils
 
 QT_END_NAMESPACE

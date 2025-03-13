@@ -316,24 +316,25 @@ qt_internal_extend_target(Multimedia CONDITION QNX
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
     SOURCES
-        windows/qwindowsaudiodevice.cpp windows/qwindowsaudiodevice_p.h
-        windows/qwindowsaudiosource.cpp windows/qwindowsaudiosource_p.h
-        windows/qwindowsaudiosink.cpp windows/qwindowsaudiosink_p.h
-        windows/qwindowsaudioutils.cpp windows/qwindowsaudioutils_p.h
-        windows/qwindowsaudiodevices.cpp windows/qwindowsaudiodevices_p.h
-        windows/qwindowsmediafoundation.cpp windows/qwindowsmediafoundation_p.h
-        windows/qwindowsresampler.cpp windows/qwindowsresampler_p.h
-        windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h
-        windows/qwindowsvideodevices.cpp windows/qwindowsvideodevices_p.h
         windows/qcominitializer.cpp windows/qcominitializer_p.h
         windows/qcomtaskresource_p.h
         windows/qwindows_propertystore.cpp windows/qwindows_propertystore_p.h
+        windows/qwindowsaudiodevice.cpp windows/qwindowsaudiodevice_p.h
+        windows/qwindowsaudiodevices.cpp windows/qwindowsaudiodevices_p.h
+        windows/qwindowsaudiosink.cpp windows/qwindowsaudiosink_p.h
+        windows/qwindowsaudiosource.cpp windows/qwindowsaudiosource_p.h
+        windows/qwindowsaudioutils.cpp windows/qwindowsaudioutils_p.h
+        windows/qwindowsmediafoundation.cpp windows/qwindowsmediafoundation_p.h
+        windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h
+        windows/qwindowsresampler.cpp windows/qwindowsresampler_p.h
+        windows/qwindowsvideodevices.cpp windows/qwindowsvideodevices_p.h
     INCLUDE_DIRECTORIES
         windows
     LIBRARIES
-        winmm
+        avrt
         ksuser
-        Propsys
+        propsys
+        winmm
 )
 
 # Only on Windows' MinGW/LLVM build, symbols from `strmif.h` and `ddraw.h` conflicts
