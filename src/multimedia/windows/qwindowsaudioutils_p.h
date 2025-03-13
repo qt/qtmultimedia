@@ -15,14 +15,21 @@
 // We mean it.
 //
 
+#include <QtCore/qstring.h>
 #include <QtCore/private/qcomptr_p.h>
+#include <QtCore/private/quniquehandle_types_p.h>
 #include <QtMultimedia/qaudioformat.h>
+
 #include <mmreg.h>
 
+#include <chrono>
 #include <optional>
 
 struct IAudioClient;
+struct IAudioClient3;
 struct IMFMediaType;
+struct IMMDevice;
+typedef LONGLONG REFERENCE_TIME;
 
 QT_BEGIN_NAMESPACE
 
@@ -30,16 +37,55 @@ class QWindowsMediaFoundation;
 
 namespace QWindowsAudioUtils
 {
-    bool formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx);
-    std::optional<WAVEFORMATEXTENSIBLE> toWaveFormatExtensible(const QAudioFormat &format);
 
-    QAudioFormat waveFormatExToFormat(const WAVEFORMATEX &in);
-    Q_MULTIMEDIA_EXPORT QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType);
-    ComPtr<IMFMediaType> formatToMediaType(QWindowsMediaFoundation &, const QAudioFormat &format);
-    QAudioFormat::ChannelConfig maskToChannelConfig(UINT32 mask, int count);
-    std::optional<quint32> usedFrames(IAudioClient *client);
-    std::optional<quint32> allocatedFrames(IAudioClient *client);
-}
+// REFERENCE_TIME helper
+using reference_time = std::chrono::duration<long long, std::ratio<1, 10000000>>;
+static_assert(reference_time(1) == std::chrono::nanoseconds(100));
+
+// format utilities
+bool formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx);
+std::optional<WAVEFORMATEXTENSIBLE> toWaveFormatExtensible(const QAudioFormat &format);
+
+QAudioFormat waveFormatExToFormat(const WAVEFORMATEX &in);
+Q_MULTIMEDIA_EXPORT QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType);
+ComPtr<IMFMediaType> formatToMediaType(QWindowsMediaFoundation &, const QAudioFormat &format);
+QAudioFormat::ChannelConfig maskToChannelConfig(UINT32 mask, int count);
+
+// IAudioClient helpers
+[[deprecated]] std::optional<quint32> usedFrames(IAudioClient *client);
+[[deprecated]] std::optional<quint32> allocatedFrames(IAudioClient *client);
+
+struct AudioClientCreationResult
+{
+    ComPtr<IAudioClient3> client;
+    reference_time periodSize;
+    qsizetype audioClientFrames;
+};
+std::optional<AudioClientCreationResult>
+createAudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format,
+                  std::optional<qsizetype> hardwareBufferFrames,
+                  const QUniqueWin32NullHandle &wasapiEventHandle);
+
+bool audioClientStart(const ComPtr<IAudioClient3> &);
+bool audioClientStop(const ComPtr<IAudioClient3> &);
+bool audioClientReset(const ComPtr<IAudioClient3> &);
+bool audioClientSetRate(const ComPtr<IAudioClient3> &, int rate);
+
+std::optional<quint32> getBufferSizeInFrames(const ComPtr<IAudioClient3> &client);
+struct AudioClientDevicePeriod
+{
+    reference_time defaultDuration;
+    reference_time minimalDuration;
+};
+std::optional<AudioClientDevicePeriod> getDevicePeriod(const ComPtr<IAudioClient3> &client);
+
+// wasapi thread helper
+void setMCSSForPeriodSize(reference_time);
+
+// error stringification
+QString audioClientErrorString(HRESULT);
+
+} // namespace QWindowsAudioUtils
 
 QT_END_NAMESPACE
 
