@@ -15,6 +15,7 @@
 #include <qmediadevices.h>
 #include <qwavedecoder.h>
 
+#include <private/multimedia_debug_support_p.h>
 #include <private/qmockiodevice_p.h>
 
 #define AUDIO_BUFFER 192000
@@ -122,7 +123,7 @@ QString tst_QAudioSink::dumpStateSignalSpy(const QSignalSpy& stateSignalSpy) {
     {
         if (!std::exchange(first, false))
             result += ',';
-        result += QString::number(params.front().value<QAudio::State>());
+        result += qAsQString(params.front().value<QAudio::State>());
     }
     result.append(']');
     return result;
