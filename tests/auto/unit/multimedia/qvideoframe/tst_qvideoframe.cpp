@@ -158,23 +158,6 @@ QSet s_pixelFormats{ QVideoFrameFormat::Format_ARGB8888,
                      QVideoFrameFormat::Format_P016,
                      QVideoFrameFormat::Format_YUV420P10 };
 
-bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
-{
-    switch (pixelFormat) {
-#ifdef Q_OS_ANDROID
-    // TODO: QTBUG-125238
-    case QVideoFrameFormat::Format_Y16:
-    case QVideoFrameFormat::Format_P010:
-    case QVideoFrameFormat::Format_P016:
-    case QVideoFrameFormat::Format_YUV420P10:
-        return false;
-#endif
-    default:
-        break;
-    }
-    return true;
-}
-
 class tst_QVideoFrame : public QObject
 {
     Q_OBJECT
@@ -1063,7 +1046,7 @@ void tst_QVideoFrame::qImageFromVideoFrame_doesNotCrash_whenCalledWithEvenAndOdd
                                .arg(forceCpu ? "_cpu" : "");
 
                 QTest::addRow("%s", name.toLatin1().data())
-                        << size << pixelFormat << forceCpu << isSupportedPixelFormat(pixelFormat);
+                        << size << pixelFormat << forceCpu;
             }
         }
     }
@@ -1073,16 +1056,12 @@ void tst_QVideoFrame::qImageFromVideoFrame_doesNotCrash_whenCalledWithEvenAndOdd
     QFETCH(const QSize, size);
     QFETCH(const QVideoFrameFormat::PixelFormat, pixelFormat);
     QFETCH(const bool, forceCpuConversion);
-    QFETCH(const bool, supportedOnPlatform);
 
     const QVideoFrameFormat format{ size, pixelFormat };
     const QVideoFrame frame{ format };
     const QImage actual = qImageFromVideoFrame(frame, forceCpuConversion);
 
-    if (supportedOnPlatform)
-        QCOMPARE_EQ(actual.isNull(), size.isEmpty());
-    // Otherwise, we don't expect an image being produced, although it might.
-    // TODO: Investigate why 16 bit formats fail on some Android flavors.
+    QCOMPARE_EQ(actual.isNull(), size.isEmpty());
 }
 
 #define TEST_MAPPED(frame, mode) \
