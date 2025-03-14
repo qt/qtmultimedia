@@ -1,6 +1,9 @@
 // Copyright (C) 2018 Wim Taymans
 // SPDX-License-Identifier: MIT
 
+#ifndef QPIPEWIRE_SPA_COMPAT_P_H
+#define QPIPEWIRE_SPA_COMPAT_P_H
+
 //
 //  W A R N I N G
 //  -------------
@@ -87,4 +90,6 @@ spa_format_audio_raw_build(struct spa_pod_builder *builder, uint32_t id,
 }  /* extern "C" */
 #endif
 
-#endif
+#endif // !__has_include(<spa/param/audio/raw-utils.h>)
+
+#endif // QPIPEWIRE_SPA_COMPAT_P_H
