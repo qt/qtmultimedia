@@ -3,59 +3,208 @@
 
 #include "qwindowsaudiosource_p.h"
 
-#include <QtCore/qdatastream.h>
-#include <QtCore/qdebug.h>
+#include <QtCore/qthread.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/qtimer.h>
-#include <QtCore/private/qsystemerror_p.h>
-
-#include <QtMultimedia/private/qaudiohelpers_p.h>
-#include <QtMultimedia/private/qcomtaskresource_p.h>
+#include <QtCore/private/quniquehandle_types_p.h>
+#include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
 #include <QtMultimedia/private/qwindowsaudiodevice_p.h>
+#include <QtMultimedia/private/qwindowsaudioutils_p.h>
 
 #include <audioclient.h>
 #include <mmdeviceapi.h>
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcAudioSource, "qt.multimedia.audiosource")
+using QtMultimediaPrivate::QPlatformAudioIOStream;
+using QtMultimediaPrivate::QPlatformAudioSourceStream;
+using QWindowsAudioUtils::audioClientErrorString;
+using namespace std::chrono_literals;
 
-using namespace QWindowsAudioUtils;
-
-class OurSink : public QIODevice
+struct QWASAPIAudioSourceStream final : std::enable_shared_from_this<QWASAPIAudioSourceStream>,
+                                        QPlatformAudioSourceStream
 {
-public:
-    OurSink(QWindowsAudioSource& source) : QIODevice(&source), m_audioSource(source) {}
+    using SampleFormat = QAudioFormat::SampleFormat;
 
-    qint64 bytesAvailable() const override { return m_audioSource.bytesReady(); }
-    qint64 readData(char* data, qint64 len) override { return m_audioSource.read(data, len); }
-    qint64 writeData(const char*, qint64) override { return 0; }
+    QWASAPIAudioSourceStream(QAudioDevice, QWindowsAudioSource *parent, const QAudioFormat &,
+                             std::optional<qsizetype> ringbufferSize,
+                             std::optional<qsizetype> hardwareBufferSize, float volume);
+
+    ~QWASAPIAudioSourceStream();
+
+    using QPlatformAudioSourceStream::bytesReady;
+    using QPlatformAudioSourceStream::processedDuration;
+    using QPlatformAudioSourceStream::setVolume;
+
+    bool start(QIODevice *, ComPtr<IMMDevice>);
+    QIODevice *start(ComPtr<IMMDevice>);
+
+    void suspend();
+    void resume();
+    void stop(ShutdownPolicy);
+
+    void updateStreamIdle(bool) override;
 
 private:
-    QWindowsAudioSource &m_audioSource;
+    bool openAudioClient(ComPtr<IMMDevice> device);
+    bool startAudioClient();
+
+    void runProcessLoop();
+    bool process() QT_MM_NONBLOCKING;
+    void handleAudioClientError();
+
+    std::optional<qsizetype> m_hardwareBufferFrames;
+    ComPtr<IAudioClient3> m_audioClient;
+    ComPtr<IAudioCaptureClient> m_captureClient;
+
+    QWindowsAudioUtils::reference_time m_periodSize;
+    qsizetype m_audioClientFrames;
+
+    std::atomic_bool m_suspended{};
+    std::atomic<ShutdownPolicy> m_shutdownPolicy{ ShutdownPolicy::DiscardRingbuffer };
+    QAutoResetEvent m_ringbufferDrained;
+
+    const QUniqueWin32NullHandle m_wasapiHandle;
+    std::unique_ptr<QThread> m_workerThread;
+
+    QWindowsAudioSource *m_parent;
 };
+
+QWASAPIAudioSourceStream::~QWASAPIAudioSourceStream() = default;
+
+void QWASAPIAudioSourceStream::updateStreamIdle(bool streamIsIdle)
+{
+    if (m_parent)
+        m_parent->updateStreamIdle(streamIsIdle);
+}
+
+bool QWASAPIAudioSourceStream::openAudioClient(ComPtr<IMMDevice> device)
+{
+    using namespace QWindowsAudioUtils;
+
+    std::optional<AudioClientCreationResult> clientData =
+            createAudioClient(device, m_format, m_hardwareBufferFrames, m_wasapiHandle);
+
+    if (!clientData)
+        return false;
+
+    m_audioClient = std::move(clientData->client);
+    m_periodSize = clientData->periodSize;
+    m_audioClientFrames = clientData->audioClientFrames;
+
+    HRESULT hr = m_audioClient->GetService(IID_PPV_ARGS(m_captureClient.GetAddressOf()));
+    if (FAILED(hr)) {
+        qWarning() << "IAudioClient3::GetService failed to obtain IAudioCaptureClient"
+                   << audioClientErrorString(hr);
+        return false;
+    }
+
+    return true;
+}
+
+bool QWASAPIAudioSourceStream::startAudioClient()
+{
+    using namespace QWindowsAudioUtils;
+    m_workerThread.reset(QThread::create([this] {
+        setMCSSForPeriodSize(m_periodSize);
+        runProcessLoop();
+    }));
+
+    m_workerThread->setObjectName(u"QWASAPIAudioSourceStream");
+    m_workerThread->start();
+
+    return audioClientStart(m_audioClient);
+}
+
+void QWASAPIAudioSourceStream::runProcessLoop()
+{
+    using namespace QWindowsAudioUtils;
+    for (;;) {
+        constexpr std::chrono::milliseconds timeout = 2s;
+        DWORD retval = WaitForSingleObject(m_wasapiHandle.get(), timeout.count());
+        if (retval != WAIT_OBJECT_0) {
+            if (m_suspended)
+                continue;
+
+            handleAudioClientError();
+            return;
+        }
+
+        if (isStopRequested())
+            return; // TODO: distinguish between stop/reset?
+
+        bool success = process();
+        if (!success) {
+            handleAudioClientError();
+            return;
+        }
+    }
+}
+
+bool QWASAPIAudioSourceStream::process() QT_MM_NONBLOCKING
+{
+    for (;;) {
+        unsigned char *hostBuffer;
+        uint32_t hostBufferFrames;
+        DWORD flags;
+        uint64_t devicePosition;
+        uint64_t QPCPosition;
+        HRESULT hr = m_captureClient->GetBuffer(&hostBuffer, &hostBufferFrames, &flags,
+                                                &devicePosition, &QPCPosition);
+        if (FAILED(hr)) {
+            qWarning() << "IAudioCaptureClient::GetBuffer failed" << audioClientErrorString(hr);
+            return false;
+        }
+
+        QSpan hostBufferSpan{
+            hostBuffer,
+            m_format.bytesForFrames(hostBufferFrames),
+        };
+
+        uint64_t framesWritten =
+                QPlatformAudioSourceStream::process(as_bytes(hostBufferSpan), hostBufferFrames);
+        if (framesWritten != hostBufferFrames)
+            updateStreamIdle(true);
+
+        hr = m_captureClient->ReleaseBuffer(hostBufferFrames);
+        if (FAILED(hr)) {
+            qWarning() << "IAudioCaptureClient::ReleaseBuffer failed" << audioClientErrorString(hr);
+            return false;
+        }
+
+        uint32_t framesInNextPacket;
+        hr = m_captureClient->GetNextPacketSize(&framesInNextPacket);
+
+        if (FAILED(hr)) {
+            qWarning() << "IAudioCaptureClient::GetNextPacketSize failed"
+                       << audioClientErrorString(hr);
+            return false;
+        }
+
+        if (framesInNextPacket == 0)
+            return true;
+    }
+}
+
+void QWASAPIAudioSourceStream::handleAudioClientError()
+{
+    using namespace QWindowsAudioUtils;
+    audioClientStop(m_audioClient);
+    audioClientReset(m_audioClient);
+
+    QMetaObject::invokeMethod(&m_ringbufferDrained, [this] {
+        if (m_parent) {
+            m_parent->setError(QAudio::IOError);
+            m_parent->updateStreamState(QtAudio::State::StoppedState);
+        }
+    });
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 QWindowsAudioSource::QWindowsAudioSource(QAudioDevice audioDevice, const QAudioFormat &fmt,
                                          QObject *parent)
-    : QPlatformAudioSource(std::move(audioDevice), parent),
-      m_timer(new QTimer(this)),
-      m_ourSink(new OurSink(*this)),
-      m_format(fmt)
+    : QPlatformAudioSource(std::move(audioDevice), parent), m_format(fmt)
 {
-    m_ourSink->open(QIODevice::ReadOnly|QIODevice::Unbuffered);
-    m_timer->setTimerType(Qt::PreciseTimer);
-    m_timer->setSingleShot(true);
-    m_timer->callOnTimeout(this, &QWindowsAudioSource::pullCaptureClient);
-}
-
-void QWindowsAudioSource::setVolume(qreal volume)
-{
-    m_volume = qBound(qreal(0), volume, qreal(1));
-}
-
-qreal QWindowsAudioSource::volume() const
-{
-    return m_volume;
 }
 
 QWindowsAudioSource::~QWindowsAudioSource()
@@ -63,290 +212,99 @@ QWindowsAudioSource::~QWindowsAudioSource()
     stop();
 }
 
-QAudio::State QWindowsAudioSource::state() const
-{
-    return m_deviceState;
-}
-
 QAudioFormat QWindowsAudioSource::format() const
 {
     return m_format;
 }
 
-void QWindowsAudioSource::deviceStateChange(QAudio::State state, QAudio::Error error)
+QIODevice *QWindowsAudioSource::start()
 {
-    if (state != m_deviceState) {
-        bool wasActive = m_deviceState == QAudio::ActiveState || m_deviceState == QAudio::IdleState;
-        bool isActive = state == QAudio::ActiveState || state == QAudio::IdleState;
-
-        if (isActive && !wasActive) {
-            m_audioClient->Start();
-            qCDebug(qLcAudioSource) << "Audio client started";
-
-        } else if (wasActive && !isActive) {
-            m_timer->stop();
-            m_audioClient->Stop();
-            qCDebug(qLcAudioSource) << "Audio client stopped";
-        }
-
-        m_deviceState = state;
-        emit stateChanged(m_deviceState);
-    }
-
-    setError(error);
-}
-
-QByteArray QWindowsAudioSource::readCaptureClientBuffer()
-{
-    if (m_deviceState == QAudio::StoppedState)
-        return {};
-
-    UINT32 actualFrames = 0;
-    BYTE *data = nullptr;
-    DWORD flags = 0;
-    HRESULT hr = m_captureClient->GetBuffer(&data, &actualFrames, &flags, nullptr, nullptr);
-    if (FAILED(hr)) {
-        qWarning() << "IAudioCaptureClient::GetBuffer failed" << QSystemError::windowsComString(hr);
-        deviceStateChange(QAudio::IdleState, QAudio::IOError);
-        return {};
-    }
-
-    if (actualFrames == 0)
-        return {};
-
-    QByteArray out;
-    if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
-        out.resize(m_resampler.outputFormat().bytesForDuration(
-                           m_resampler.inputFormat().framesForDuration(actualFrames)),
-                   0);
-    } else {
-        out = m_resampler.resample(
-                { data, m_resampler.inputFormat().bytesForFrames(actualFrames) });
-        QAudioHelperInternal::qMultiplySamples(m_volume, m_resampler.outputFormat(), out.data(), out.data(), out.size());
-    }
-
-    hr = m_captureClient->ReleaseBuffer(actualFrames);
-    if (FAILED(hr)) {
-        qWarning() << "IAudioCaptureClient::ReleaseBuffer failed" << QSystemError::windowsComString(hr);
-        deviceStateChange(QAudio::IdleState, QAudio::IOError);
-        return {};
-    }
-
-    return out;
-}
-
-void QWindowsAudioSource::schedulePull()
-{
-    auto allocated = allocatedFrames(m_audioClient.Get());
-    auto inUse = usedFrames(m_audioClient.Get());
-
-    if (!allocated || !inUse) {
-        deviceStateChange(QAudio::IdleState, QAudio::IOError);
-    } else {
-        // Schedule the next audio pull immediately if the audio buffer is more
-        // than half-full or wait until the audio source fills at least half of it.
-        if (*inUse > *allocated / 2) {
-            m_timer->start(0);
-        } else {
-            auto timeToHalfBuffer = m_resampler.inputFormat().durationForFrames(*allocated / 2 - *inUse);
-            m_timer->start(timeToHalfBuffer / 1000);
-        }
-    }
-}
-
-void QWindowsAudioSource::pullCaptureClient()
-{
-    qCDebug(qLcAudioSource) << "Pull captureClient";
-    while (true) {
-        auto out = readCaptureClientBuffer();
-        if (out.isEmpty())
-            break;
-
-        if (m_clientSink) {
-            qint64 written = m_clientSink->write(out.data(), out.size());
-            if (written != out.size())
-                qCDebug(qLcAudioSource) << "Did not write all data to the output";
-
-        } else {
-            m_clientBufferResidue += out;
-            emit m_ourSink->readyRead();
-        }
-    }
-
-    if (m_deviceState != QAudio::StoppedState)
-        schedulePull();
-}
-
-void QWindowsAudioSource::start(QIODevice* device)
-{
-    qCDebug(qLcAudioSource) << "start(ioDevice)";
-    if (m_deviceState != QAudio::StoppedState)
-        close();
-
-    if (device == nullptr)
-        return;
-
-    if (!open()) {
-        setError(QAudio::OpenError);
-        return;
-    }
-
-    m_clientSink = device;
-    schedulePull();
-    deviceStateChange(QAudio::ActiveState, QAudio::NoError);
-}
-
-QIODevice* QWindowsAudioSource::start()
-{
-    qCDebug(qLcAudioSource) << "start()";
-    if (m_deviceState != QAudio::StoppedState)
-        close();
-
-    if (!open()) {
-        setError(QAudio::OpenError);
+    auto immDevice = QAudioDevicePrivate::handle<QWindowsAudioDevice>(m_audioDevice)->open();
+    if (!immDevice) {
+        setError(QtAudio::OpenError);
         return nullptr;
     }
 
-    schedulePull();
-    deviceStateChange(QAudio::IdleState, QAudio::NoError);
-    return m_ourSink;
+    m_stream = std::make_unique<QWASAPIAudioSourceStream>(
+            m_audioDevice, this, m_format, m_bufferSize, m_hardwareBufferSize, m_volume);
+
+    QIODevice *ioDevice = m_stream->start(std::move(immDevice));
+    if (!ioDevice) {
+        setError(QtAudio::OpenError);
+        return nullptr;
+    }
+
+    updateStreamState(QtAudio::State::ActiveState);
+
+    return ioDevice;
+}
+
+void QWindowsAudioSource::start(QIODevice *iodevice)
+{
+    auto immDevice = QAudioDevicePrivate::handle<QWindowsAudioDevice>(m_audioDevice)->open();
+    if (!immDevice) {
+        setError(QtAudio::OpenError);
+        return;
+    }
+
+    m_stream = std::make_unique<QWASAPIAudioSourceStream>(
+            m_audioDevice, this, m_format, m_bufferSize, m_hardwareBufferSize, m_volume);
+
+    bool started = m_stream->start(iodevice, std::move(immDevice));
+    if (!started) {
+        setError(QtAudio::OpenError);
+        return;
+    }
+
+    updateStreamState(QtAudio::State::ActiveState);
 }
 
 void QWindowsAudioSource::stop()
 {
-    if (m_deviceState == QAudio::StoppedState)
+    if (!m_stream)
         return;
 
-    close();
+    m_stream->stop(QPlatformAudioIOStream::ShutdownPolicy::DrainRingbuffer);
+    m_stream = {};
+    updateStreamState(QtAudio::State::StoppedState);
 }
 
-bool QWindowsAudioSource::open()
+void QWindowsAudioSource::reset()
 {
-    m_device = QAudioDevicePrivate::handle<QWindowsAudioDevice>(m_audioDevice)->open();
-    if (!m_device)
-        return false;
-
-    HRESULT hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                                    (void **)m_audioClient.GetAddressOf());
-    if (FAILED(hr)) {
-        qCWarning(qLcAudioSource) << "Failed to activate audio device" << QSystemError::windowsComString(hr);
-        return false;
-    }
-
-    QComTaskResource<WAVEFORMATEX> pwfx;
-    hr = m_audioClient->GetMixFormat(pwfx.address());
-    if (FAILED(hr)) {
-        qCWarning(qLcAudioSource) << "Format unsupported" << QSystemError::windowsComString(hr);
-        return false;
-    }
-
-    if (!m_resampler.setup(waveFormatExToFormat(*pwfx), m_format)) {
-        qCWarning(qLcAudioSource) << "Failed to set up resampler";
-        return false;
-    }
-
-    if (m_bufferSize == 0)
-        m_bufferSize = m_format.sampleRate() * m_format.bytesPerFrame() / 5; // 200ms
-
-    REFERENCE_TIME requestedDuration = m_format.durationForBytes(m_bufferSize);
-
-    hr = m_audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, requestedDuration, 0, pwfx.get(),
-                                   nullptr);
-
-    if (FAILED(hr)) {
-        qCWarning(qLcAudioSource) << "Failed to initialize audio client" << QSystemError::windowsComString(hr);
-        return false;
-    }
-
-    auto framesAllocated = allocatedFrames(m_audioClient.Get());
-    if (!framesAllocated) {
-        qCWarning(qLcAudioSource) << "Failed to get audio client buffer size";
-        return false;
-    }
-
-    m_bufferSize = m_format.bytesForDuration(
-            m_resampler.inputFormat().durationForFrames(*framesAllocated));
-
-    hr = m_audioClient->GetService(IID_PPV_ARGS(m_captureClient.GetAddressOf()));
-    if (FAILED(hr)) {
-        qCWarning(qLcAudioSource) << "Failed to obtain audio client rendering service" << QSystemError::windowsComString(hr);
-        return false;
-    }
-
-    return true;
-}
-
-void QWindowsAudioSource::close()
-{
-    qCDebug(qLcAudioSource) << "close()";
-    if (m_deviceState == QAudio::StoppedState)
+    if (!m_stream)
         return;
 
-    deviceStateChange(QAudio::StoppedState, QAudio::NoError);
-
-    m_clientBufferResidue.clear();
-    m_captureClient.Reset();
-    m_audioClient.Reset();
-    m_clientSink = nullptr;
+    m_stream->stop(QPlatformAudioIOStream::ShutdownPolicy::DiscardRingbuffer);
+    m_stream = {};
+    updateStreamState(QtAudio::State::StoppedState);
 }
 
-qsizetype QWindowsAudioSource::bytesReady() const
+void QWindowsAudioSource::suspend()
 {
-    if (m_deviceState == QAudio::StoppedState || m_deviceState == QAudio::SuspendedState)
-        return 0;
+    if (!m_stream)
+        return;
 
-    auto frames = usedFrames(m_audioClient.Get());
-    if (frames) {
-        auto clientBufferSize = m_resampler.outputFormat().bytesForDuration(
-                m_resampler.inputFormat().durationForFrames(*frames));
+    m_stream->suspend();
 
-        return clientBufferSize + m_clientBufferResidue.size();
-
-    } else {
-        return 0;
-    }
-}
-
-qint64 QWindowsAudioSource::read(char* data, qint64 len)
-{
-    deviceStateChange(QAudio::ActiveState, QAudio::NoError);
-    schedulePull();
-
-    if (data == nullptr || len < 0)
-        return -1;
-
-    auto offset = 0;
-    if (!m_clientBufferResidue.isEmpty()) {
-        auto copyLen = qMin(m_clientBufferResidue.size(), len);
-        memcpy(data, m_clientBufferResidue.data(), copyLen);
-        len -= copyLen;
-        offset += copyLen;
-    }
-
-    m_clientBufferResidue = QByteArray{ m_clientBufferResidue.data() + offset,
-                                        m_clientBufferResidue.size() - offset };
-
-    if (len > 0) {
-        auto out = readCaptureClientBuffer();
-        if (!out.isEmpty()) {
-            qsizetype copyLen = qMin(out.size(), len);
-            memcpy(data + offset, out.data(), copyLen);
-            offset += copyLen;
-
-            m_clientBufferResidue = QByteArray{ out.data() + copyLen, out.size() - copyLen };
-        }
-    }
-
-    return offset;
+    updateStreamState(QtAudio::State::SuspendedState);
 }
 
 void QWindowsAudioSource::resume()
 {
-    qCDebug(qLcAudioSource) << "resume()";
-    if (m_deviceState == QAudio::SuspendedState) {
-        deviceStateChange(QAudio::ActiveState, QAudio::NoError);
-        pullCaptureClient();
-    }
+    if (!m_stream)
+        return;
+
+    if (state() == QtAudio::State::ActiveState)
+        return;
+
+    m_stream->resume();
+
+    updateStreamState(QtAudio::State::ActiveState);
+}
+
+qsizetype QWindowsAudioSource::bytesReady() const
+{
+    return m_stream ? m_stream->bytesReady() : 0;
 }
 
 void QWindowsAudioSource::setBufferSize(qsizetype value)
@@ -356,27 +314,113 @@ void QWindowsAudioSource::setBufferSize(qsizetype value)
 
 qsizetype QWindowsAudioSource::bufferSize() const
 {
-    return m_bufferSize;
+    return m_bufferSize.value_or(-1);
 }
 
 qint64 QWindowsAudioSource::processedUSecs() const
 {
-    if (m_deviceState == QAudio::StoppedState)
-        return 0;
-
-    return m_resampler.outputFormat().durationForBytes(m_resampler.totalOutputBytes());
+    return m_stream ? m_stream->processedDuration().count() : 0;
 }
 
-void QWindowsAudioSource::suspend()
+QWASAPIAudioSourceStream::QWASAPIAudioSourceStream(QAudioDevice device, QWindowsAudioSource *parent,
+                                                   const QAudioFormat &format,
+                                                   std::optional<qsizetype> ringbufferSize,
+                                                   std::optional<qsizetype> hardwareBufferSize, float volume):
+    QPlatformAudioSourceStream{
+        std::move(device),
+        format,
+        ringbufferSize,
+        volume,
+    },
+    m_hardwareBufferFrames{
+        hardwareBufferSize,
+    },
+    m_wasapiHandle {
+        CreateEvent(0, false, false, nullptr),
+    },
+    m_parent{
+        parent
+    }
 {
-    qCDebug(qLcAudioSource) << "suspend";
-    if (m_deviceState == QAudio::ActiveState || m_deviceState == QAudio::IdleState)
-        deviceStateChange(QAudio::SuspendedState, QAudio::NoError);
 }
 
-void QWindowsAudioSource::reset()
+bool QWASAPIAudioSourceStream::start(QIODevice *ioDevice, ComPtr<IMMDevice> immDevice)
 {
-    stop();
+    bool clientOpen = openAudioClient(std::move(immDevice));
+    if (!clientOpen)
+        return false;
+
+    setQIODevice(ioDevice);
+    createQIODeviceConnections(ioDevice);
+
+    bool started = startAudioClient();
+    if (!started)
+        return false;
+
+    return true;
+}
+
+QIODevice *QWASAPIAudioSourceStream::start(ComPtr<IMMDevice> immDevice)
+{
+    bool clientOpen = openAudioClient(std::move(immDevice));
+    if (!clientOpen)
+        return nullptr;
+
+    QIODevice *ioDevice = createRingbufferReaderDevice();
+
+    m_parent->updateStreamIdle(true, QWindowsAudioSource::EmitStateSignal::False);
+
+    setQIODevice(ioDevice);
+    createQIODeviceConnections(ioDevice);
+
+    bool started = startAudioClient();
+    if (!started)
+        return nullptr;
+
+    return ioDevice;
+}
+
+void QWASAPIAudioSourceStream::suspend()
+{
+    m_suspended = true;
+    QWindowsAudioUtils::audioClientStop(m_audioClient);
+}
+
+void QWASAPIAudioSourceStream::resume()
+{
+    m_suspended = false;
+    QWindowsAudioUtils::audioClientStart(m_audioClient);
+}
+
+void QWASAPIAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
+{
+    m_parent = nullptr;
+    m_shutdownPolicy = shutdownPolicy;
+    // TODO: handle shutdown policies in a better way
+
+    requestStop();
+    QWindowsAudioUtils::audioClientStop(m_audioClient);
+    m_workerThread->wait();
+    QWindowsAudioUtils::audioClientReset(m_audioClient);
+
+    if (shutdownPolicy == ShutdownPolicy::DiscardRingbuffer) {
+        visitRingbuffer([](auto &ringbuffer) {
+            ringbuffer.consumeAll([](auto /*ringbufferRegion*/) {
+            });
+        });
+    }
+}
+
+void QWindowsAudioSource::setVolume(qreal v)
+{
+    m_volume = v;
+    if (m_stream)
+        m_stream->setVolume(v);
+}
+
+qreal QWindowsAudioSource::volume() const
+{
+    return m_volume;
 }
 
 QT_END_NAMESPACE

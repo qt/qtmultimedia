@@ -12,41 +12,23 @@
 // We mean it.
 //
 
-#ifndef QWINDOWSAUDIOINPUT_H
-#define QWINDOWSAUDIOINPUT_H
+#ifndef QWINDOWSAUDIOSOURCE_H
+#define QWINDOWSAUDIOSOURCE_H
 
-#include "qwindowsaudioutils_p.h"
-
-#include <QtCore/qfile.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/qelapsedtimer.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qdatetime.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qbytearray.h>
-
-#include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
-#include <private/qaudiosystem_p.h>
-
-#include <qwindowsresampler_p.h>
-
-struct IMMDevice;
-struct IAudioClient;
-struct IAudioCaptureClient;
+#include <QtMultimedia/private/qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
-class QTimer;
 
-class QWindowsAudioSource : public QPlatformAudioSource
+struct QWASAPIAudioSourceStream;
+
+class QWindowsAudioSource final : public QPlatformAudioSource
 {
     Q_OBJECT
+
 public:
     QWindowsAudioSource(QAudioDevice, const QAudioFormat &fmt, QObject *parent);
     ~QWindowsAudioSource();
-
-    qint64 read(char* data, qint64 len);
 
     QAudioFormat format() const override;
     QIODevice* start() override;
@@ -59,33 +41,18 @@ public:
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
-    QAudio::State state() const override;
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
 private:
-    void deviceStateChange(QAudio::State state, QAudio::Error error);
-    void pullCaptureClient();
-    void schedulePull();
-    QByteArray readCaptureClientBuffer();
+    friend struct QWASAPIAudioSourceStream;
 
-    QTimer *m_timer = nullptr;
-    ComPtr<IMMDevice> m_device;
-    ComPtr<IAudioClient> m_audioClient;
-    ComPtr<IAudioCaptureClient> m_captureClient;
-    QWindowsResampler m_resampler;
-    int m_bufferSize = 0;
-    qreal m_volume = 1.0;
-
-    QIODevice* m_ourSink = nullptr;
-    QIODevice* m_clientSink = nullptr;
     const QAudioFormat m_format;
-    QAudio::State m_deviceState = QAudio::StoppedState;
+    std::optional<qsizetype> m_bufferSize;
+    std::optional<qsizetype> m_hardwareBufferSize;
 
-    QByteArray m_clientBufferResidue;
-
-    bool open();
-    void close();
+    qreal m_volume = 1.0;
+    std::shared_ptr<QWASAPIAudioSourceStream> m_stream;
 };
 
 QT_END_NAMESPACE
