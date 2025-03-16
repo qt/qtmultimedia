@@ -20,6 +20,7 @@ class Q_MULTIMEDIA_EXPORT QPlaybackOptions
                        resetNetworkTimeoutMs FINAL)
     Q_PROPERTY(PlaybackIntent playbackIntent READ playbackIntent WRITE setPlaybackIntent RESET
                        resetPlaybackIntent)
+    Q_PROPERTY(int probeSize READ probeSize WRITE setProbeSize RESET resetProbeSize)
 
 public:
     enum PlaybackIntent {
@@ -44,6 +45,10 @@ public:
     PlaybackIntent playbackIntent() const;
     void setPlaybackIntent(PlaybackIntent intent);
     void resetPlaybackIntent();
+
+    int probeSize() const;
+    void setProbeSize(int probeSizeBytes);
+    void resetProbeSize();
 
 private:
     friend Q_MULTIMEDIA_EXPORT bool comparesEqual(const QPlaybackOptions &lhs,

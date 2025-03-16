@@ -39,4 +39,19 @@ TestCase {
         compare(options.playbackIntent, PlaybackOptions.Playback)
     }
 
+    function test_probeSize_returnsMinusOneBack_byDefault() {
+        compare(options.probeSize, -1)
+    }
+
+    function test_settingProbeSize_changesProbeSize() {
+        options.probeSize = 32
+        compare(options.probeSize, 32)
+    }
+
+    function test_resettingProbeSize_resetsToDefault() {
+        options.probeSize = 32
+        options.probeSize = undefined
+        compare(options.probeSize, -1)
+    }
+
 }

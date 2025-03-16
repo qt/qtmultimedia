@@ -226,6 +226,19 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
         qCDebug(qLcMediaDataHolder) << "Using custom network timeout:" << timeout;
     }
 
+    {
+        const int probeSize = playbackOptions.probeSize();
+        if (probeSize != -1) {
+            constexpr int minProbeSizeFFmpeg = 32;
+            if (probeSize >= minProbeSizeFFmpeg) {
+                av_dict_set_int(dict, "probesize", probeSize, 0);
+                qCDebug(qLcMediaDataHolder) << "Using custom probesize" << probeSize;
+            }
+            else
+                qCWarning(qLcMediaDataHolder) << "Invalid probe size, using default";
+        }
+    }
+
     const QByteArray protocolWhitelist = qgetenv("QT_FFMPEG_PROTOCOL_WHITELIST");
     if (!protocolWhitelist.isNull())
         av_dict_set(dict, "protocol_whitelist", protocolWhitelist.data(), 0);

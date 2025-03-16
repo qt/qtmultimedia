@@ -35,23 +35,32 @@ private slots:
         QPlaybackOptions lhs;
         QPlaybackOptions rhs;
 
-        const auto intents = {QPlaybackOptions::PlaybackIntent::Playback,
+        const auto intents = { QPlaybackOptions::PlaybackIntent::Playback,
                                QPlaybackOptions::PlaybackIntent::LowLatencyStreaming };
 
-        for (QPlaybackOptions::PlaybackIntent lhsIntent : intents) {
-            lhs.setPlaybackIntent(lhsIntent);
-            for (QPlaybackOptions::PlaybackIntent rhsIntent : intents) {
-                rhs.setPlaybackIntent(rhsIntent);
-                for (int lhsTimeout : { 0, 1 }) {
-                    lhs.setNetworkTimeoutMs(lhsTimeout);
-                    for (int rhsTimeout : { 0, 1 }) {
-                        rhs.setNetworkTimeoutMs(rhsTimeout);
-                        QTest::newRow(qPrintable(QString{ "lhs(t=%1,i=%3), rhs(t=%2,i=%4)" }
-                                                         .arg(lhsTimeout)
-                                                         .arg(rhsTimeout)
-                                                         .arg(lhsIntent)
-                                                         .arg(rhsIntent)))
-                                << lhs << rhs;
+        for (int lhsProbeSize : { 0, 1 }) {
+            lhs.setProbeSize(lhsProbeSize);
+            for (int rhsProbeSize : { 0, 1 }) {
+                rhs.setProbeSize(rhsProbeSize);
+                for (QPlaybackOptions::PlaybackIntent lhsIntent : intents) {
+                    lhs.setPlaybackIntent(lhsIntent);
+                    for (QPlaybackOptions::PlaybackIntent rhsIntent : intents) {
+                        rhs.setPlaybackIntent(rhsIntent);
+                        for (int lhsTimeout : { 0, 1 }) {
+                            lhs.setNetworkTimeoutMs(lhsTimeout);
+                            for (int rhsTimeout : { 0, 1 }) {
+                                rhs.setNetworkTimeoutMs(rhsTimeout);
+                                QTest::newRow(qPrintable(
+                                        QString{ "lhs(t=%1,i=%3,p=%5), rhs(t=%2,i=%4,p=%6)" }
+                                                .arg(lhsTimeout)
+                                                .arg(rhsTimeout)
+                                                .arg(lhsIntent)
+                                                .arg(rhsIntent)
+                                                .arg(lhsProbeSize)
+                                                .arg(rhsProbeSize)))
+                                        << lhs << rhs;
+                            }
+                        }
                     }
                 }
             }
@@ -62,8 +71,8 @@ private slots:
         QFETCH(QPlaybackOptions, lhs);
         QFETCH(QPlaybackOptions, rhs);
 
-        const auto lhsTuple = std::make_tuple(lhs.networkTimeoutMs(), lhs.playbackIntent());
-        const auto rhsTuple = std::make_tuple(rhs.networkTimeoutMs(), rhs.playbackIntent());
+        const auto lhsTuple = std::make_tuple(lhs.networkTimeoutMs(), lhs.playbackIntent(), lhs.probeSize());
+        const auto rhsTuple = std::make_tuple(rhs.networkTimeoutMs(), rhs.playbackIntent(), rhs.probeSize());
 
         QCOMPARE_EQ(lhs == rhs, lhsTuple == rhsTuple);
         QCOMPARE_EQ(lhs != rhs, lhsTuple != rhsTuple);
@@ -124,6 +133,26 @@ private slots:
         QCOMPARE_EQ(options.playbackIntent(), QPlaybackOptions::PlaybackIntent::Playback);
     }
 
+    void probeSize_returnsNegativeOne_byDefault()
+    {
+        QPlaybackOptions options;
+        QCOMPARE_EQ(options.probeSize(), -1);
+    }
+
+    void setProbeSize_setsProbeSize()
+    {
+        QPlaybackOptions options;
+        options.setProbeSize(32);
+        QCOMPARE_EQ(options.probeSize(),32);
+    }
+
+    void resetProbeSize_resetsProbeSize()
+    {
+        QPlaybackOptions options;
+        options.setProbeSize(32);
+        options.resetProbeSize();
+        QCOMPARE_EQ(options.probeSize(), QPlaybackOptions{}.probeSize());
+    }
 };
 
 QTEST_MAIN(tst_qplaybackoptions)
