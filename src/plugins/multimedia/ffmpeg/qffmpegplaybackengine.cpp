@@ -40,10 +40,11 @@ inline static Array defaultObjectsArray()
 //
 static constexpr bool shouldPauseStreams = false;
 
-PlaybackEngine::PlaybackEngine()
+PlaybackEngine::PlaybackEngine(const QPlaybackOptions &options)
     : m_demuxer({}, {}),
       m_streams(defaultObjectsArray<decltype(m_streams)>()),
-      m_renderers(defaultObjectsArray<decltype(m_renderers)>())
+      m_renderers(defaultObjectsArray<decltype(m_renderers)>()),
+      m_options{ options }
 {
     qCDebug(qLcPlaybackEngine) << "Create PlaybackEngine";
     qRegisterMetaType<QFFmpeg::Packet>();
@@ -397,7 +398,7 @@ std::optional<CodecContext> PlaybackEngine::codecContextForTrack(QPlatformMediaP
         qCDebug(qLcPlaybackEngine)
                 << "Create codec for stream:" << streamIndex << "trackType:" << trackType;
         auto maybeCodecContext = CodecContext::create(m_media.avContext()->streams[streamIndex],
-                                                      m_media.avContext());
+                                                      m_media.avContext(), m_options);
 
         if (!maybeCodecContext) {
             emit errorOccured(QMediaPlayer::FormatError,

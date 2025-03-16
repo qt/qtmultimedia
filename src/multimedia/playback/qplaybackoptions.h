@@ -18,8 +18,16 @@ class Q_MULTIMEDIA_EXPORT QPlaybackOptions
     Q_GADGET
     Q_PROPERTY(int networkTimeoutMs READ networkTimeoutMs WRITE setNetworkTimeoutMs RESET
                        resetNetworkTimeoutMs FINAL)
+    Q_PROPERTY(PlaybackIntent playbackIntent READ playbackIntent WRITE setPlaybackIntent RESET
+                       resetPlaybackIntent)
 
 public:
+    enum PlaybackIntent {
+        Playback,
+        LowLatencyStreaming
+    };
+    Q_ENUM(PlaybackIntent)
+
     QPlaybackOptions();
     QPlaybackOptions(const QPlaybackOptions &);
     QPlaybackOptions &operator=(const QPlaybackOptions &);
@@ -32,6 +40,10 @@ public:
     int networkTimeoutMs() const;
     void setNetworkTimeoutMs(int timeout);
     void resetNetworkTimeoutMs();
+
+    PlaybackIntent playbackIntent() const;
+    void setPlaybackIntent(PlaybackIntent intent);
+    void resetPlaybackIntent();
 
 private:
     friend Q_MULTIMEDIA_EXPORT bool comparesEqual(const QPlaybackOptions &lhs,

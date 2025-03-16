@@ -14,16 +14,21 @@ public:
     friend bool comparesEqual(const QPlaybackOptionsPrivate &lhs,
                               const QPlaybackOptionsPrivate &rhs)
     {
-        return lhs.m_networkTimeout == rhs.m_networkTimeout;
+        return lhs.m_networkTimeout == rhs.m_networkTimeout
+                && lhs.m_playbackIntent == rhs.m_playbackIntent;
     }
 
     friend Qt::strong_ordering compareThreeWay(const QPlaybackOptionsPrivate &lhs,
                                                const QPlaybackOptionsPrivate &rhs)
     {
-        return qCompareThreeWay(lhs.m_networkTimeout.count(), rhs.m_networkTimeout.count());
+        if (lhs.m_networkTimeout != rhs.m_networkTimeout)
+            return qCompareThreeWay(lhs.m_networkTimeout.count(), rhs.m_networkTimeout.count());
+
+        return qCompareThreeWay(lhs.m_playbackIntent, rhs.m_playbackIntent);
     }
 
     std::chrono::milliseconds m_networkTimeout{ 5'000 };
+    QPlaybackOptions::PlaybackIntent m_playbackIntent = QPlaybackOptions::PlaybackIntent::Playback;
 };
 
 /*!
@@ -129,6 +134,58 @@ void QPlaybackOptions::resetNetworkTimeoutMs()
 {
     d.detach();
     d->m_networkTimeout = QPlaybackOptionsPrivate{}.m_networkTimeout;
+}
+
+/*!
+    \enum QPlaybackOptions::PlaybackIntent
+    \since 6.10
+
+    Configures the intent of media playback, to focus on either high quality playback or
+    low latency media streaming.
+
+    \value Playback The intent is robust and high quality media playback, enabling sufficient
+        buffering to prevent glitches during playback.
+    \value LowLatencyStreaming Buffering is reduced to optimize for low latency streaming, but
+        with a higher likelihood of lost frames or other glitches during playback.
+*/
+
+/*!
+    \property QPlaybackOptions::playbackIntent
+    \since 6.10
+
+    Determines if \l QMediaPlayer should optimize for robust high quality video playback (default),
+    or low latency streaming.
+
+    This option is only supported with the FFmpeg media backend.
+*/
+
+/*!
+    \qmlproperty PlaybackOptions::PlaybackIntent PlaybackOptions::playbackIntent
+    \since 6.10
+
+    Determines if \l MediaPlayer should optimize for robust high quality video playback (default),
+    or low latency streaming.
+
+    This option is only supported with the FFmpeg media backend.
+
+    \qmlenumeratorsfrom QPlaybackOptions::PlaybackIntent
+*/
+
+QPlaybackOptions::PlaybackIntent QPlaybackOptions::playbackIntent() const
+{
+    return d->m_playbackIntent;
+}
+
+void QPlaybackOptions::setPlaybackIntent(PlaybackIntent intent)
+{
+    d.detach();
+    d->m_playbackIntent = intent;
+}
+
+void QPlaybackOptions::resetPlaybackIntent()
+{
+    d.detach();
+    d->m_playbackIntent = QPlaybackOptionsPrivate{}.m_playbackIntent;
 }
 
 QT_END_NAMESPACE

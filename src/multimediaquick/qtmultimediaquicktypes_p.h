@@ -193,9 +193,17 @@ struct QPlaybackOptionsForeign
 {
     Q_GADGET
     QML_FOREIGN(QPlaybackOptions)
+    QML_VALUE_TYPE(QPlaybackOptionsForeign)
     QML_NAMED_ELEMENT(playbackOptions)
     QML_ADDED_IN_VERSION(6, 10)
 };
+
+namespace QPlaybackOptionsNamespaceForeign {
+    Q_NAMESPACE
+    QML_NAMED_ELEMENT(PlaybackOptions)
+    QML_FOREIGN_NAMESPACE(QPlaybackOptions)
+    QML_ADDED_IN_VERSION(6, 10)
+}
 
 QT_END_NAMESPACE
 

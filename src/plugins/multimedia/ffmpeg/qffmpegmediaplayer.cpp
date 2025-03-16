@@ -235,7 +235,7 @@ void QFFmpegMediaPlayer::setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaData
         return;
     }
 
-    m_playbackEngine = std::make_unique<PlaybackEngine>();
+    m_playbackEngine = std::make_unique<PlaybackEngine>(playbackOptions());
 
     connect(m_playbackEngine.get(), &PlaybackEngine::endOfStream, this,
             &QFFmpegMediaPlayer::endOfStream);

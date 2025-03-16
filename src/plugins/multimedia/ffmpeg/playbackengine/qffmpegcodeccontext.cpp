@@ -4,6 +4,7 @@
 #include "playbackengine/qffmpegcodeccontext_p.h"
 #include "qffmpegcodecstorage_p.h"
 
+#include <QtMultimedia/qplaybackoptions.h>
 #include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
@@ -26,20 +27,21 @@ CodecContext::Data::Data(AVCodecContextUPtr context, AVStream *avStream,
         pixelAspectRatio = av_guess_sample_aspect_ratio(formatContext, stream, nullptr);
 }
 
-QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *formatContext)
+QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *formatContext,
+                                          const QPlaybackOptions &options)
 {
     if (!stream)
         return { unexpect, u"Invalid stream"_s };
 
     if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-        auto hwCodec = create(stream, formatContext, Hw);
+        auto hwCodec = create(stream, formatContext, options, Hw);
         if (hwCodec)
             return hwCodec;
 
         qCInfo(qLcPlaybackEngineCodec) << hwCodec.error();
     }
 
-    auto context = create(stream, formatContext, Sw);
+    auto context = create(stream, formatContext, options, Sw);
     if (!context)
         qCWarning(qLcPlaybackEngineCodec) << context.error();
 
@@ -54,6 +56,7 @@ AVRational CodecContext::pixelAspectRatio(AVFrame *frame) const
 }
 
 QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *formatContext,
+                                          const QPlaybackOptions &options,
                                           VideoCodecCreationPolicy videoCodecPolicy)
 {
     Q_ASSERT(stream);
@@ -111,6 +114,9 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
 
     /* Init the decoder, with reference counting and threading */
     AVDictionaryHolder opts;
+    if (options.playbackIntent() == QPlaybackOptions::LowLatencyStreaming)
+        av_dict_set(opts, "flags", "low_delay", 0);
+
     av_dict_set(opts, "refcounted_frames", "1", 0);
     av_dict_set(opts, "threads", "auto", 0);
     applyExperimentalCodecOptions(*decoder, opts);

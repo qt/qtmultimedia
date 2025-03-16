@@ -24,6 +24,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QPlaybackOptions;
+
 namespace QFFmpeg {
 
 class CodecContext
@@ -40,7 +42,8 @@ class CodecContext
     };
 
 public:
-    static QMaybe<CodecContext> create(AVStream *stream, AVFormatContext *formatContext);
+    static QMaybe<CodecContext> create(AVStream *stream, AVFormatContext *formatContext,
+                                       const QPlaybackOptions &options);
 
     AVRational pixelAspectRatio(AVFrame *frame) const;
 
@@ -65,6 +68,7 @@ private:
     };
 
     static QMaybe<CodecContext> create(AVStream *stream, AVFormatContext *formatContext,
+                                       const QPlaybackOptions &playbackOptions,
                                        VideoCodecCreationPolicy videoCodecPolicy);
     CodecContext(Data *data) : d(data) { }
     QExplicitlySharedDataPointer<Data> d;

@@ -51,6 +51,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpegcodeccontext_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
+#include <QtMultimedia/qplaybackoptions.h>
 
 #include <QtCore/qpointer.h>
 
@@ -63,6 +64,7 @@ class QVideoSink;
 class QAudioOutput;
 class QAudioBufferOutput;
 class QFFmpegMediaPlayer;
+class QPlaybackOptions;
 
 namespace QFFmpeg
 {
@@ -71,7 +73,7 @@ class PlaybackEngine : public QObject
 {
     Q_OBJECT
 public:
-    PlaybackEngine();
+    explicit PlaybackEngine(const QPlaybackOptions &options);
 
     ~PlaybackEngine() override;
 
@@ -230,6 +232,7 @@ private:
     LoopOffset m_currentLoopOffset;
 
     bool m_pitchCompensation = true;
+    QPlaybackOptions m_options;
 };
 
 template<typename T, typename... Args>

@@ -34,13 +34,26 @@ private slots:
 
         QPlaybackOptions lhs;
         QPlaybackOptions rhs;
-        for (int lhsTimeout : { 0, 1 }) {
-            lhs.setNetworkTimeoutMs(lhsTimeout);
-            for (int rhsTimeout : { 0, 1 }) {
-                rhs.setNetworkTimeoutMs(rhsTimeout);
-                QTest::newRow(
-                        qPrintable(QString{ "lhs(t=%1), rhs(t=%2)" }.arg(lhsTimeout).arg(rhsTimeout)))
-                        << lhs << rhs;
+
+        const auto intents = {QPlaybackOptions::PlaybackIntent::Playback,
+                               QPlaybackOptions::PlaybackIntent::LowLatencyStreaming };
+
+        for (QPlaybackOptions::PlaybackIntent lhsIntent : intents) {
+            lhs.setPlaybackIntent(lhsIntent);
+            for (QPlaybackOptions::PlaybackIntent rhsIntent : intents) {
+                rhs.setPlaybackIntent(rhsIntent);
+                for (int lhsTimeout : { 0, 1 }) {
+                    lhs.setNetworkTimeoutMs(lhsTimeout);
+                    for (int rhsTimeout : { 0, 1 }) {
+                        rhs.setNetworkTimeoutMs(rhsTimeout);
+                        QTest::newRow(qPrintable(QString{ "lhs(t=%1,i=%3), rhs(t=%2,i=%4)" }
+                                                         .arg(lhsTimeout)
+                                                         .arg(rhsTimeout)
+                                                         .arg(lhsIntent)
+                                                         .arg(rhsIntent)))
+                                << lhs << rhs;
+                    }
+                }
             }
         }
     }
@@ -49,8 +62,8 @@ private slots:
         QFETCH(QPlaybackOptions, lhs);
         QFETCH(QPlaybackOptions, rhs);
 
-        const auto lhsTuple = std::make_tuple(lhs.networkTimeoutMs());
-        const auto rhsTuple = std::make_tuple(rhs.networkTimeoutMs());
+        const auto lhsTuple = std::make_tuple(lhs.networkTimeoutMs(), lhs.playbackIntent());
+        const auto rhsTuple = std::make_tuple(rhs.networkTimeoutMs(), rhs.playbackIntent());
 
         QCOMPARE_EQ(lhs == rhs, lhsTuple == rhsTuple);
         QCOMPARE_EQ(lhs != rhs, lhsTuple != rhsTuple);
@@ -86,6 +99,31 @@ private slots:
 
         QCOMPARE_EQ(options.networkTimeoutMs(), defaultTimeout);
     }
+    void playbackIntent_returnsPlayback_byDefault()
+    {
+        QPlaybackOptions options;
+        QCOMPARE_EQ(options.playbackIntent(), QPlaybackOptions::PlaybackIntent::Playback);
+    }
+
+    void setPlaybackIntent_changesPlaybackIntent()
+    {
+        QPlaybackOptions options;
+
+        options.setPlaybackIntent(QPlaybackOptions::PlaybackIntent::LowLatencyStreaming);
+
+        QCOMPARE_EQ(options.playbackIntent(), QPlaybackOptions::PlaybackIntent::LowLatencyStreaming);
+    }
+
+    void resetPlaybackIntent_resetsPlaybackIntent()
+    {
+        QPlaybackOptions options;
+
+        options.setPlaybackIntent(QPlaybackOptions::LowLatencyStreaming);
+        options.resetPlaybackIntent();
+
+        QCOMPARE_EQ(options.playbackIntent(), QPlaybackOptions::PlaybackIntent::Playback);
+    }
+
 };
 
 QTEST_MAIN(tst_qplaybackoptions)

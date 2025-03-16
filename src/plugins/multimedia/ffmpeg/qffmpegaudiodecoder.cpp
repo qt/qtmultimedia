@@ -47,7 +47,10 @@ class AudioDecoder : public PlaybackEngine
 {
     Q_OBJECT
 public:
-    explicit AudioDecoder(const QAudioFormat &format) : m_format(format) { }
+    explicit AudioDecoder(const QAudioFormat &format, const QPlaybackOptions &options)
+        : PlaybackEngine{ options }, m_format(format)
+    {
+    }
 
     RendererPtr createRenderer(QPlatformMediaPlayer::TrackType trackType) override
     {
@@ -130,13 +133,13 @@ void QFFmpegAudioDecoder::start()
         return false;
     };
 
-    m_decoder = std::make_unique<AudioDecoder>(m_audioFormat);
+    QPlaybackOptions defaultOptions;
+    m_decoder = std::make_unique<AudioDecoder>(m_audioFormat, defaultOptions);
     connect(m_decoder.get(), &AudioDecoder::errorOccured, this, &QFFmpegAudioDecoder::errorSignal);
     connect(m_decoder.get(), &AudioDecoder::endOfStream, this, &QFFmpegAudioDecoder::done);
     connect(m_decoder.get(), &AudioDecoder::newAudioBuffer, this,
             &QFFmpegAudioDecoder::newAudioBuffer);
 
-    QPlaybackOptions defaultOptions;
     QFFmpeg::MediaDataHolder::Maybe media =
             QFFmpeg::MediaDataHolder::create(m_url, m_sourceDevice, defaultOptions, nullptr);
 
