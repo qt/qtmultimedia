@@ -6,7 +6,7 @@
 
 #include "qffmpegplaybackengine_p.h"
 #include "playbackengine/qffmpegrenderer_p.h"
-
+#include <QtMultimedia/qplaybackoptions.h>
 #include <qloggingcategory.h>
 
 Q_STATIC_LOGGING_CATEGORY(qLcAudioDecoder, "qt.multimedia.ffmpeg.audioDecoder")
@@ -136,7 +136,9 @@ void QFFmpegAudioDecoder::start()
     connect(m_decoder.get(), &AudioDecoder::newAudioBuffer, this,
             &QFFmpegAudioDecoder::newAudioBuffer);
 
-    QFFmpeg::MediaDataHolder::Maybe media = QFFmpeg::MediaDataHolder::create(m_url, m_sourceDevice, nullptr);
+    QPlaybackOptions defaultOptions;
+    QFFmpeg::MediaDataHolder::Maybe media =
+            QFFmpeg::MediaDataHolder::create(m_url, m_sourceDevice, defaultOptions, nullptr);
 
     if (media) {
         Q_ASSERT(media.value());

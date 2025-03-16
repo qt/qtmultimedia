@@ -138,6 +138,8 @@ public:
     virtual bool pitchCompensation() const;
     void pitchCompensationChanged(bool enabled) const;
 
+    QPlaybackOptions playbackOptions() const;
+
     bool qmediaplayerDestructorCalled = false;
 
 protected:

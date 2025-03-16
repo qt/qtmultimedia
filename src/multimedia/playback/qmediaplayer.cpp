@@ -1177,6 +1177,52 @@ QMediaPlayer::PitchCompensationAvailability QMediaPlayer::pitchCompensationAvail
     return d->control->pitchCompensationAvailability();
 }
 
+/*!
+    \qmlproperty playbackOptions MediaPlayer::playbackOptions
+    \since 6.10
+
+    This property exposes the \l playbackOptions API that gives low-level control of media playback
+    options. Although we strongly recommend to rely on the default settings of \l MediaPlayer,
+    this API can be used to optimize media playback for specific use cases where the default
+    options are not ideal.
+
+    Playback options take effect the next time \l MediaPlayer::source is changed.
+*/
+
+/*!
+    \property QMediaPlayer::playbackOptions
+    \brief Advanced playback options used to configure media playback and decoding.
+    \since 6.10
+
+    This property exposes the \l QPlaybackOptions API that gives low-level control of media
+    playback options. Although we strongly recommend to rely on the default settings of
+    \l QMediaPlayer, this API can be used to optimize media playback for specific use cases where
+    the default options are not ideal.
+
+    Playback options take effect the next time \l QMediaPlayer::setSource() is called.
+*/
+
+QPlaybackOptions QMediaPlayer::playbackOptions() const
+{
+    Q_D(const QMediaPlayer);
+    return d->playbackOptions;
+}
+
+void QMediaPlayer::setPlaybackOptions(const QPlaybackOptions &options)
+{
+    Q_D(QMediaPlayer);
+    if (std::exchange(d->playbackOptions, options) != options)
+        emit playbackOptionsChanged();
+}
+
+void QMediaPlayer::resetPlaybackOptions()
+{
+    Q_D(QMediaPlayer);
+    QPlaybackOptions defaultOptions{ };
+    if (std::exchange(d->playbackOptions, defaultOptions) != defaultOptions)
+        emit playbackOptionsChanged();
+}
+
 // Enums
 /*!
     \enum QMediaPlayer::PlaybackState

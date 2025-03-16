@@ -16,4 +16,17 @@ TestCase {
         verify(!player.playing)
     }
 
+    function test_playbackOptions_isReadWriteProperty() {
+        // Test that the property exists by trying to use one of its members
+        var defaultValue = player.playbackOptions.networkTimeoutMs
+        player.playbackOptions.networkTimeoutMs = defaultValue + 1
+        compare(player.playbackOptions.networkTimeoutMs, defaultValue + 1)
+    }
+
+    function test_playbackOptions_isResettable() {
+        player.playbackOptions.networkTimeoutMs = 0
+        player.playbackOptions = undefined
+        verify(player.playbackOptions.networkTimeoutMs != 0)
+    }
+
 }

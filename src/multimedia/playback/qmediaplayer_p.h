@@ -20,6 +20,7 @@
 #include "qvideosink.h"
 #include "qaudiooutput.h"
 #include "qaudiobufferoutput.h"
+#include "qplaybackoptions.h"
 #include <private/qplatformmediaplayer_p.h>
 #include <private/qerrorinfo_p.h>
 
@@ -57,6 +58,7 @@ public:
     std::unique_ptr<QFile> qrcFile;
     QUrl source;
     QIODevice *stream = nullptr;
+    QPlaybackOptions playbackOptions;
 
     QMediaPlayer::PlaybackState state = QMediaPlayer::StoppedState;
     QErrorInfo<QMediaPlayer::Error> error;

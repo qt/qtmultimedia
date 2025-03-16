@@ -6,10 +6,10 @@
 #include "qvideosink.h"
 #include "qaudiooutput.h"
 #include "qaudiobufferoutput.h"
-
 #include "qffmpegplaybackengine_p.h"
 #include <qiodevice.h>
 #include <qvideosink.h>
+#include <QtMultimedia/qplaybackoptions.h>
 #include <qtimer.h>
 #include <QtConcurrent/QtConcurrent>
 
@@ -203,7 +203,7 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     m_loadMedia = QtConcurrent::run([this, media, stream, cancelToken = m_cancelToken] {
         // On worker thread
         const MediaDataHolder::Maybe mediaHolder =
-                MediaDataHolder::create(media, stream, cancelToken);
+                MediaDataHolder::create(media, stream, playbackOptions(), cancelToken);
 
         // Transition back to calling thread using invokeMethod because
         // QFuture continuations back on calling thread may deadlock (QTBUG-117918)

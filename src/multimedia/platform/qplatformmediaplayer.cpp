@@ -59,4 +59,9 @@ void QPlatformMediaPlayer::pitchCompensationChanged(bool enabled) const
     emit player->pitchCompensationChanged(enabled);
 }
 
+QPlaybackOptions QPlatformMediaPlayer::playbackOptions() const
+{
+    return player->playbackOptions();
+}
+
 QT_END_NAMESPACE

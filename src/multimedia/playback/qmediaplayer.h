@@ -17,6 +17,7 @@ class QAudioDevice;
 class QMediaMetaData;
 class QMediaTimeRange;
 class QAudioBufferOutput;
+class QPlaybackOptions;
 
 class QMediaPlayerPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
@@ -61,6 +62,10 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
     Q_REVISION(6, 10)
     Q_PROPERTY(bool pitchCompensation READ pitchCompensation WRITE setPitchCompensation NOTIFY
                        pitchCompensationChanged)
+
+    Q_REVISION(6, 10)
+    Q_PROPERTY(QPlaybackOptions playbackOptions READ playbackOptions WRITE setPlaybackOptions NOTIFY
+                       playbackOptionsChanged RESET resetPlaybackOptions FINAL)
 
 public:
     enum PlaybackState
@@ -168,6 +173,8 @@ public:
     PitchCompensationAvailability pitchCompensationAvailability() const;
     bool pitchCompensation() const;
 
+    QPlaybackOptions playbackOptions() const;
+
 public Q_SLOTS:
     void play();
     void pause();
@@ -181,6 +188,9 @@ public Q_SLOTS:
     void setSourceDevice(QIODevice *device, const QUrl &sourceUrl = QUrl());
 
     void setPitchCompensation(bool) const;
+
+    void setPlaybackOptions(const QPlaybackOptions &options);
+    void resetPlaybackOptions();
 
 Q_SIGNALS:
     void sourceChanged(const QUrl &media);
@@ -213,6 +223,9 @@ Q_SIGNALS:
 
     Q_REVISION(6, 10)
     void pitchCompensationChanged(bool);
+
+    Q_REVISION(6, 10)
+    void playbackOptionsChanged();
 
 private:
     Q_DISABLE_COPY(QMediaPlayer)

@@ -189,6 +189,14 @@ struct QWindowCaptureForeign
     QML_NAMED_ELEMENT(WindowCapture)
 };
 
+struct QPlaybackOptionsForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QPlaybackOptions)
+    QML_NAMED_ELEMENT(playbackOptions)
+    QML_ADDED_IN_VERSION(6, 10)
+};
+
 QT_END_NAMESPACE
 
 #endif
