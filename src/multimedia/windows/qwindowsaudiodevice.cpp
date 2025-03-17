@@ -143,7 +143,8 @@ std::optional<QAudioFormat> performIsFormatSupportedWithClosestMatch(const ComPt
 }
 
 std::optional<FormatProbeResult> probeFormats(const ComPtr<IAudioClient> &audioClient,
-                                              PropertyStoreHelper &propertyStore)
+                                              PropertyStoreHelper &propertyStore,
+                                              const QAudioFormat &preferredFormat)
 {
     using namespace QWindowsAudioUtils;
 
@@ -159,78 +160,75 @@ std::optional<FormatProbeResult> probeFormats(const ComPtr<IAudioClient> &audioC
     // devices.
     constexpr QAudioFormat::SampleFormat initialSampleFormat = QAudioFormat::SampleFormat::Float;
 
-    for (int sampleRate : QtPrivate::allSupportedSampleRates) {
+    // we initially probe for the maximum channel count for the format.
+    // wasapi will typically recommend a "closest" match, containing the max number of channels
+    // we can probe for.
+    QAudioFormat initialProbeFormat;
+    initialProbeFormat.setSampleFormat(initialSampleFormat);
+    initialProbeFormat.setSampleRate(preferredFormat.sampleRate());
+    initialProbeFormat.setChannelCount(maxChannelsForFormFactor);
 
-        // we initially probe for the maximum channel count for the format.
-        // wasapi will typically recommend a "closest" match, containing the max number of channels
-        // we can probe for.
-        QAudioFormat initialProbeFormat;
-        initialProbeFormat.setSampleFormat(initialSampleFormat);
-        initialProbeFormat.setSampleRate(sampleRate);
-        initialProbeFormat.setChannelCount(maxChannelsForFormFactor);
+    qCDebug(qLcAudioDeviceProbes) << "probeFormats: probing for" << initialProbeFormat;
 
-        qCDebug(qLcAudioDeviceProbes) << "probeFormats: probing for" << initialProbeFormat;
+    std::optional<QAudioFormat> initialProbeResult =
+            performIsFormatSupportedWithClosestMatch(audioClient, initialProbeFormat);
 
-        std::optional<QAudioFormat> initialProbeResult =
-                performIsFormatSupportedWithClosestMatch(audioClient, initialProbeFormat);
-
-        int maxChannelForFormat;
-        if (initialProbeResult) {
-            if (initialProbeResult->sampleRate() != sampleRate) {
-                qCDebug(qLcAudioDeviceProbes)
-                        << "probing: returned a different sample rate as closest match ..."
-                        << *initialProbeResult;
-                continue;
-            }
-
-            maxChannelForFormat = initialProbeResult->channelCount();
-        } else {
-            // some drivers seem to not report any closest match, but simply fail.
-            // in this case we need to brute-force enumerate the formats
-            // however probing is rather expensive, so we limit our probes to a maxmimum of 2
-            // channels
-            maxChannelForFormat = std::min(maxChannelsForFormFactor, 2);
+    int maxChannelForFormat;
+    if (initialProbeResult) {
+        if (initialProbeResult->sampleRate() != preferredFormat.sampleRate()) {
+            qCDebug(qLcAudioDeviceProbes)
+                    << "probing: returned a different sample rate as closest match ..."
+                    << *initialProbeResult;
+            return std::nullopt;
         }
 
-        // we rely on wasapi's AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM for format conversion, so we only
-        // need to check the closest match format
-        QAudioFormat::SampleFormat probeSampleFormat =
-                initialProbeResult ? initialProbeResult->sampleFormat() : initialSampleFormat;
+        maxChannelForFormat = initialProbeResult->channelCount();
+    } else {
+        // some drivers seem to not report any closest match, but simply fail.
+        // in this case we need to brute-force enumerate the formats
+        // however probing is rather expensive, so we limit our probes to a maxmimum of 2
+        // channels
+        maxChannelForFormat = std::min(maxChannelsForFormFactor, 2);
+    }
 
-        for (int channelCount = 1; channelCount != maxChannelForFormat + 1; ++channelCount) {
-            QAudioFormat fmt;
-            fmt.setSampleFormat(probeSampleFormat);
-            fmt.setSampleRate(sampleRate);
-            fmt.setChannelCount(channelCount);
+    // we rely on wasapi's AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM for format conversion, so we only
+    // need to check the closest match format
+    QAudioFormat::SampleFormat probeSampleFormat =
+            initialProbeResult ? initialProbeResult->sampleFormat() : initialSampleFormat;
 
-            std::optional<WAVEFORMATEXTENSIBLE> formatEx = toWaveFormatExtensible(fmt);
-            if (!formatEx)
-                continue;
+    for (int channelCount = 1; channelCount != maxChannelForFormat + 1; ++channelCount) {
+        QAudioFormat fmt;
+        fmt.setSampleFormat(probeSampleFormat);
+        fmt.setSampleRate(preferredFormat.sampleRate());
+        fmt.setChannelCount(channelCount);
 
-            qCDebug(qLcAudioDeviceProbes) << "probing" << fmt;
+        std::optional<WAVEFORMATEXTENSIBLE> formatEx = toWaveFormatExtensible(fmt);
+        if (!formatEx)
+            continue;
 
-            QComTaskResource<WAVEFORMATEX> closestMatch;
-            HRESULT result = audioClient->IsFormatSupported(
-                    AUDCLNT_SHAREMODE_SHARED, &formatEx->Format, closestMatch.address());
+        qCDebug(qLcAudioDeviceProbes) << "probing" << fmt;
 
-            if (FAILED(result)) {
-                qCDebug(qLcAudioDeviceProbes)
-                        << "probing format failed" << QSystemError::windowsComString(result);
-                continue;
-            }
+        QComTaskResource<WAVEFORMATEX> closestMatch;
+        HRESULT result = audioClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, &formatEx->Format,
+                                                        closestMatch.address());
 
-            if (closestMatch) {
-                qCDebug(qLcAudioDeviceProbes) << "probing format reported a closest match"
-                                              << waveFormatExToFormat(*closestMatch);
-                continue; // we don't have an exact match, but just something close by
-            }
-
-            if (!limits)
-                limits = FormatProbeResult{};
-
-            qCDebug(qLcAudioDeviceProbes) << "probing format successful" << fmt;
-            limits->update(fmt);
+        if (FAILED(result)) {
+            qCDebug(qLcAudioDeviceProbes)
+                    << "probing format failed" << QSystemError::windowsComString(result);
+            continue;
         }
+
+        if (closestMatch) {
+            qCDebug(qLcAudioDeviceProbes) << "probing format reported a closest match"
+                                          << waveFormatExToFormat(*closestMatch);
+            continue; // we don't have an exact match, but just something close by
+        }
+
+        if (!limits)
+            limits = FormatProbeResult{};
+
+        qCDebug(qLcAudioDeviceProbes) << "probing format successful" << fmt;
+        limits->update(fmt);
     }
 
     qCDebug(qLcAudioDeviceProbes) << "probing successful" << limits;
@@ -301,13 +299,14 @@ QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev
 
     qCDebug(qLcAudioDeviceProbes) << "probing formats for" << description;
 
-    std::optional<FormatProbeResult> probedFormats = probeFormats(audioClient, *propStoreHelper);
+    std::optional<FormatProbeResult> probedFormats =
+            probeFormats(audioClient, *propStoreHelper, preferredFormat);
     if (probedFormats) {
         // wasapi does sample format conversion for us: AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM
         supportedSampleFormats = qAllSupportedSampleFormats();
+        minimumSampleRate = QtPrivate::allSupportedSampleRates.front();
+        maximumSampleRate = QtPrivate::allSupportedSampleRates.back();
 
-        minimumSampleRate = probedFormats->sampleRateRange.first;
-        maximumSampleRate = probedFormats->sampleRateRange.second;
         minimumChannelCount = probedFormats->channelCountRange.first;
         maximumChannelCount = probedFormats->channelCountRange.second;
     }
