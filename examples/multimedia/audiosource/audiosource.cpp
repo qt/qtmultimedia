@@ -139,6 +139,17 @@ void InputTest::initializeAudio(const QAudioDevice &deviceInfo)
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::Int16);
 
+    bool sampleRateSupported = format.sampleRate() < deviceInfo.maximumSampleRate()
+            && format.sampleRate() > deviceInfo.minimumSampleRate();
+    bool channelCountSupported = format.channelCount() < deviceInfo.maximumChannelCount()
+            && format.channelCount() > deviceInfo.minimumChannelCount();
+
+    if (!sampleRateSupported)
+        format.setSampleRate(deviceInfo.preferredFormat().sampleRate());
+
+    if (!channelCountSupported)
+        format.setChannelCount(deviceInfo.preferredFormat().channelCount());
+
     m_audioInfo.reset(new AudioInfo(format));
     connect(m_audioInfo.data(), &AudioInfo::levelChanged, m_canvas, &RenderArea::setLevel);
 
