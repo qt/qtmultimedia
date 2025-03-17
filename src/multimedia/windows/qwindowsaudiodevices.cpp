@@ -3,8 +3,8 @@
 
 #include "qwindowsaudiodevices_p.h"
 
+#include <QtCore/qdebug.h>
 #include <QtCore/qmap.h>
-#include <QtCore/qvarlengtharray.h>
 #include <QtCore/private/qcomobject_p.h>
 #include <QtCore/private/qsystemerror_p.h>
 
@@ -15,15 +15,10 @@
 #include <QtMultimedia/private/qwindowsaudiosource_p.h>
 #include <QtMultimedia/private/qwindows_propertystore_p.h>
 
+#include <initguid.h>
 #include <audioclient.h>
-#include <mmsystem.h>
-#include <mmddk.h>
-#include <mfobjects.h>
-#include <mfidl.h>
-#include <mferror.h>
+#include <functiondiscoverykeys_devpkey.h>
 #include <mmdeviceapi.h>
-#include <Initguid.h>
-#include <Functiondiscoverykeys_devpkey.h>
 
 QT_BEGIN_NAMESPACE
 
