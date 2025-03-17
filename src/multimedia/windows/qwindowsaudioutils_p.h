@@ -52,9 +52,6 @@ ComPtr<IMFMediaType> formatToMediaType(QWindowsMediaFoundation &, const QAudioFo
 QAudioFormat::ChannelConfig maskToChannelConfig(UINT32 mask, int count);
 
 // IAudioClient helpers
-[[deprecated]] std::optional<quint32> usedFrames(IAudioClient *client);
-[[deprecated]] std::optional<quint32> allocatedFrames(IAudioClient *client);
-
 struct AudioClientCreationResult
 {
     ComPtr<IAudioClient3> client;

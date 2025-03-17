@@ -214,24 +214,6 @@ ComPtr<IMFMediaType> formatToMediaType(QWindowsMediaFoundation &wmf, const QAudi
     return mediaType;
 }
 
-std::optional<quint32> usedFrames(IAudioClient *client)
-{
-    Q_ASSERT(client);
-    UINT32 framesPadding = 0;
-    if (SUCCEEDED(client->GetCurrentPadding(&framesPadding)))
-        return framesPadding;
-    return {};
-}
-
-std::optional<quint32> allocatedFrames(IAudioClient *client)
-{
-    Q_ASSERT(client);
-    UINT32 bufferFrameCount = 0;
-    if (SUCCEEDED(client->GetBufferSize(&bufferFrameCount)))
-        return bufferFrameCount;
-    return {};
-}
-
 std::optional<quint32> getBufferSizeInFrames(const ComPtr<IAudioClient3> &client)
 {
     Q_ASSERT(client);
