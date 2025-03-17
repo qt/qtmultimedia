@@ -22,10 +22,6 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
 
-#include <qfilesystemwatcher.h>
-#include <qsocketnotifier.h>
-#include <qmutex.h>
-
 #include <dispatch/dispatch.h>
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureSession);
@@ -37,7 +33,6 @@ Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceRotationCoordinator);
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegVideoSink;
 struct VideoTransformation;
 
 class QAVFCamera : public QAVFCameraBase
