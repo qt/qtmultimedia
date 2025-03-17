@@ -198,6 +198,9 @@ bool QWASAPIAudioSinkStream::openAudioClient(ComPtr<IMMDevice> device)
         return false;
     }
 
+    if (m_audioDevice.preferredFormat().sampleRate() != m_format.sampleRate())
+        audioClientSetRate(m_audioClient, m_format.sampleRate());
+
     return true;
 }
 
