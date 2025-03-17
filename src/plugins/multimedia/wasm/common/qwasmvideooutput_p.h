@@ -25,6 +25,7 @@
 #include <QtCore/qloggingcategory.h>
 
 #include <private/qstdweb_p.h>
+#include <private/qwasmsuspendresumecontrol_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -136,26 +137,26 @@ private:
     QMediaPlayer::MediaStatus m_currentMediaStatus;
     qreal m_currentBufferedValue;
 
-    QScopedPointer<qstdweb::EventCallback> m_timeUpdateEvent;
-    QScopedPointer<qstdweb::EventCallback> m_playEvent;
-    QScopedPointer<qstdweb::EventCallback> m_endedEvent;
-    QScopedPointer<qstdweb::EventCallback> m_durationChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_loadedDataEvent;
-    QScopedPointer<qstdweb::EventCallback> m_errorChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_resizeChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_loadedMetadataChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_loadStartChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_canPlayChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_canPlayThroughChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_seekingChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_seekedChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_emptiedChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_stalledChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_waitingChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_playingChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_progressChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_pauseChangeEvent;
-    QScopedPointer<qstdweb::EventCallback> m_beforeUnloadEvent;
+    QScopedPointer<QWasmEventHandler> m_timeUpdateEvent;
+    QScopedPointer<QWasmEventHandler> m_playEvent;
+    QScopedPointer<QWasmEventHandler> m_endedEvent;
+    QScopedPointer<QWasmEventHandler> m_durationChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_loadedDataEvent;
+    QScopedPointer<QWasmEventHandler> m_errorChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_resizeChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_loadedMetadataChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_loadStartChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_canPlayChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_canPlayThroughChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_seekingChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_seekedChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_emptiedChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_stalledChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_waitingChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_playingChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_progressChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_pauseChangeEvent;
+    QScopedPointer<QWasmEventHandler> m_beforeUnloadEvent;
 };
 
 QT_END_NAMESPACE

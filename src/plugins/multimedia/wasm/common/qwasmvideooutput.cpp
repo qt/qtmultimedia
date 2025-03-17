@@ -479,7 +479,7 @@ void QWasmVideoOutput::doElementCallbacks()
         // qt progress is ms
         emit progressChanged(event["target"]["currentTime"].as<double>() * 1000);
     };
-    m_timeUpdateEvent.reset(new qstdweb::EventCallback(m_video, "timeupdate", timeUpdateCallback));
+    m_timeUpdateEvent.reset(new QWasmEventHandler(m_video, "timeupdate", timeUpdateCallback));
 
     // play
     auto playCallback = [=](emscripten::val event) {
@@ -488,7 +488,7 @@ void QWasmVideoOutput::doElementCallbacks()
         if (!m_isSeeking)
             emit stateChanged(QWasmMediaPlayer::Preparing);
     };
-    m_playEvent.reset(new qstdweb::EventCallback(m_video, "play", playCallback));
+    m_playEvent.reset(new QWasmEventHandler(m_video, "play", playCallback));
 
     // ended
     auto endedCallback = [=](emscripten::val event) {
@@ -499,7 +499,7 @@ void QWasmVideoOutput::doElementCallbacks()
         m_shouldStop = true;
         stop();
     };
-    m_endedEvent.reset(new qstdweb::EventCallback(m_video, "ended", endedCallback));
+    m_endedEvent.reset(new QWasmEventHandler(m_video, "ended", endedCallback));
 
     // durationchange
     auto durationChangeCallback = [=](emscripten::val event) {
@@ -510,7 +510,7 @@ void QWasmVideoOutput::doElementCallbacks()
         emit durationChanged(dur);
     };
     m_durationChangeEvent.reset(
-            new qstdweb::EventCallback(m_video, "durationchange", durationChangeCallback));
+            new QWasmEventHandler(m_video, "durationchange", durationChangeCallback));
 
     // loadeddata
     auto loadedDataCallback = [=](emscripten::val event) {
@@ -523,7 +523,7 @@ void QWasmVideoOutput::doElementCallbacks()
             emit seekableChanged(m_isSeekable);
         }
     };
-    m_loadedDataEvent.reset(new qstdweb::EventCallback(m_video, "loadeddata", loadedDataCallback));
+    m_loadedDataEvent.reset(new QWasmEventHandler(m_video, "loadeddata", loadedDataCallback));
 
     // error
     auto errorCallback = [=](emscripten::val event) {
@@ -533,7 +533,7 @@ void QWasmVideoOutput::doElementCallbacks()
         emit errorOccured(m_video["error"]["code"].as<int>(),
                           QString::fromStdString(m_video["error"]["message"].as<std::string>()));
     };
-    m_errorChangeEvent.reset(new qstdweb::EventCallback(m_video, "error", errorCallback));
+    m_errorChangeEvent.reset(new QWasmEventHandler(m_video, "error", errorCallback));
 
     // resize
     auto resizeCallback = [=](emscripten::val event) {
@@ -545,7 +545,7 @@ void QWasmVideoOutput::doElementCallbacks()
         emit sizeChange(m_video["videoWidth"].as<int>(), m_video["videoHeight"].as<int>());
 
     };
-    m_resizeChangeEvent.reset(new qstdweb::EventCallback(m_video, "resize", resizeCallback));
+    m_resizeChangeEvent.reset(new QWasmEventHandler(m_video, "resize", resizeCallback));
 
     // loadedmetadata
     auto loadedMetadataCallback = [=](emscripten::val event) {
@@ -555,7 +555,7 @@ void QWasmVideoOutput::doElementCallbacks()
         emit metaDataLoaded();
     };
     m_loadedMetadataChangeEvent.reset(
-            new qstdweb::EventCallback(m_video, "loadedmetadata", loadedMetadataCallback));
+            new QWasmEventHandler(m_video, "loadedmetadata", loadedMetadataCallback));
 
     // loadstart
     auto loadStartCallback = [=](emscripten::val event) {
@@ -565,7 +565,7 @@ void QWasmVideoOutput::doElementCallbacks()
         emit statusChanged(m_currentMediaStatus);
         m_shouldStop = false;
     };
-    m_loadStartChangeEvent.reset(new qstdweb::EventCallback(m_video, "loadstart", loadStartCallback));
+    m_loadStartChangeEvent.reset(new QWasmEventHandler(m_video, "loadstart", loadStartCallback));
 
     // canplay
 
@@ -578,7 +578,7 @@ void QWasmVideoOutput::doElementCallbacks()
         if (!m_shouldStop)
             emit readyChanged(true); // sets video available
     };
-    m_canPlayChangeEvent.reset(new qstdweb::EventCallback(m_video, "canplay", canPlayCallback));
+    m_canPlayChangeEvent.reset(new QWasmEventHandler(m_video, "canplay", canPlayCallback));
 
     // canplaythrough
     auto canPlayThroughCallback = [=](emscripten::val event) {
@@ -615,7 +615,7 @@ void QWasmVideoOutput::doElementCallbacks()
         }
     };
     m_canPlayThroughChangeEvent.reset(
-            new qstdweb::EventCallback(m_video, "canplaythrough", canPlayThroughCallback));
+            new QWasmEventHandler(m_video, "canplaythrough", canPlayThroughCallback));
 
     // seeking
     auto seekingCallback = [=](emscripten::val event) {
@@ -624,7 +624,7 @@ void QWasmVideoOutput::doElementCallbacks()
                 << "seeking started" << (m_video["currentTime"].as<double>() * 1000);
         m_isSeeking = true;
     };
-    m_seekingChangeEvent.reset(new qstdweb::EventCallback(m_video, "seeking", seekingCallback));
+    m_seekingChangeEvent.reset(new QWasmEventHandler(m_video, "seeking", seekingCallback));
 
     // seeked
     auto seekedCallback = [=](emscripten::val event) {
@@ -633,7 +633,7 @@ void QWasmVideoOutput::doElementCallbacks()
         emit progressChanged(m_video["currentTime"].as<double>() * 1000);
         m_isSeeking = false;
     };
-    m_seekedChangeEvent.reset(new qstdweb::EventCallback(m_video, "seeked", seekedCallback));
+    m_seekedChangeEvent.reset(new QWasmEventHandler(m_video, "seeked", seekedCallback));
 
     // emptied
     auto emptiedCallback = [=](emscripten::val event) {
@@ -643,7 +643,7 @@ void QWasmVideoOutput::doElementCallbacks()
         m_currentMediaStatus = MediaStatus::EndOfMedia;
         emit statusChanged(m_currentMediaStatus);
     };
-    m_emptiedChangeEvent.reset(new qstdweb::EventCallback(m_video, "emptied", emptiedCallback));
+    m_emptiedChangeEvent.reset(new QWasmEventHandler(m_video, "emptied", emptiedCallback));
 
     // stalled
     auto stalledCallback = [=](emscripten::val event) {
@@ -652,7 +652,7 @@ void QWasmVideoOutput::doElementCallbacks()
         m_currentMediaStatus = MediaStatus::StalledMedia;
         emit statusChanged(m_currentMediaStatus);
     };
-    m_stalledChangeEvent.reset(new qstdweb::EventCallback(m_video, "stalled", stalledCallback));
+    m_stalledChangeEvent.reset(new QWasmEventHandler(m_video, "stalled", stalledCallback));
 
     // waiting
     auto waitingCallback = [=](emscripten::val event) {
@@ -661,7 +661,7 @@ void QWasmVideoOutput::doElementCallbacks()
         qCDebug(qWasmMediaVideoOutput) << "waiting";
         // check buffer
     };
-    m_waitingChangeEvent.reset(new qstdweb::EventCallback(m_video, "waiting", waitingCallback));
+    m_waitingChangeEvent.reset(new QWasmEventHandler(m_video, "waiting", waitingCallback));
 
     // suspend
 
@@ -678,7 +678,7 @@ void QWasmVideoOutput::doElementCallbacks()
             videoFrameTimerCallback(); // get the ball rolling
         }
     };
-    m_playingChangeEvent.reset(new qstdweb::EventCallback(m_video, "playing", playingCallback));
+    m_playingChangeEvent.reset(new QWasmEventHandler(m_video, "playing", playingCallback));
 
     // progress (buffering progress)
     auto progesssCallback = [=](emscripten::val event) {
@@ -711,7 +711,7 @@ void QWasmVideoOutput::doElementCallbacks()
             }
         }
     };
-    m_progressChangeEvent.reset(new qstdweb::EventCallback(m_video, "progress", progesssCallback));
+    m_progressChangeEvent.reset(new QWasmEventHandler(m_video, "progress", progesssCallback));
 
     // pause
     auto pauseCallback = [=](emscripten::val event) {
@@ -728,7 +728,7 @@ void QWasmVideoOutput::doElementCallbacks()
             emit stateChanged(QWasmMediaPlayer::Stopped);
         }
     };
-    m_pauseChangeEvent.reset(new qstdweb::EventCallback(m_video, "pause", pauseCallback));
+    m_pauseChangeEvent.reset(new QWasmEventHandler(m_video, "pause", pauseCallback));
 
     // onunload
     // we use lower level events here as to avert a crash on activate using the
@@ -742,7 +742,7 @@ void QWasmVideoOutput::doElementCallbacks()
         m_video.call<void>("removeAttribute", emscripten::val("src"));
         m_video.call<void>("load");
     };
-    m_beforeUnloadEvent.reset(new qstdweb::EventCallback(window, "beforeunload", beforeUnloadCallback));
+    m_beforeUnloadEvent.reset(new QWasmEventHandler(window, "beforeunload", beforeUnloadCallback));
 
 }
 
