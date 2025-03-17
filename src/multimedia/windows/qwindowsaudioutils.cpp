@@ -382,9 +382,9 @@ createAudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format,
         return std::nullopt;
     auto waveFormat = *fmt;
 
-    // CHECK: do we want to use AUDCLNT_STREAMFLAGS_RATEADJUST?
-    constexpr DWORD streamFlags =
-            AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM;
+    constexpr DWORD streamFlags = AUDCLNT_STREAMFLAGS_EVENTCALLBACK
+            | AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY
+            | AUDCLNT_STREAMFLAGS_RATEADJUST;
 
     hr = audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, streamFlags,
                                  /*hnsBufferDuration=*/reference_time(periodSize).count(),
