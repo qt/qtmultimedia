@@ -297,8 +297,9 @@ void QPipewireAudioSinkStream::fakeXRun()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // QPipewireAudioSink
 
-QPipewireAudioSink::QPipewireAudioSink(const QAudioDevice &device, const QAudioFormat &format, QObject *parent)
-    : BaseClass(device, format, parent)
+QPipewireAudioSink::QPipewireAudioSink(QAudioDevice device, const QAudioFormat &format,
+                                       QObject *parent)
+    : BaseClass(std::move(device), format, parent)
 {
 }
 

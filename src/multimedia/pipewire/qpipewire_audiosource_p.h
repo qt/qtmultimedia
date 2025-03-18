@@ -35,7 +35,7 @@ class QPipewireAudioSource final
     using BaseClass = QPipewireAudioIOBase<QPlatformAudioSource, QPipewireAudioSourceStream>;
 
 public:
-    QPipewireAudioSource(const QAudioDevice &, const QAudioFormat &format, QObject *parent);
+    QPipewireAudioSource(QAudioDevice, const QAudioFormat &format, QObject *parent);
     ~QPipewireAudioSource() override;
 
     // QPlatformAudioSource interface

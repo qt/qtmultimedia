@@ -27,7 +27,6 @@ class QWasmAudioSource : public QPlatformAudioSource
 {
     Q_OBJECT
 
-    QByteArray m_name;
     ALData *aldata = nullptr;
     QTimer *m_timer = nullptr;
     QIODevice *m_device = nullptr;
@@ -36,7 +35,6 @@ class QWasmAudioSource : public QPlatformAudioSource
     qsizetype m_bufferSize;
     bool m_running = false;
     bool m_suspended = false;
-    QAudio::Error m_error;
     bool m_pullMode;
     char *m_tmpData = nullptr;
     QElapsedTimer m_elapsedTimer;
@@ -45,7 +43,7 @@ class QWasmAudioSource : public QPlatformAudioSource
 
     void writeBuffer();
 public:
-    QWasmAudioSource(const QByteArray &device, QObject *parent);
+    QWasmAudioSource(QAudioDevice device, QObject *parent);
 
 public:
     void start(QIODevice *device) override;
@@ -59,7 +57,6 @@ public:
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
-    QAudio::Error error() const override;
     QAudio::State state() const override;
     void setFormat(const QAudioFormat &fmt);
     QAudioFormat format() const override;
@@ -67,7 +64,6 @@ public:
     qreal volume() const override;
 
     friend class QWasmAudioSourceDevice;
-    void setError(const QAudio::Error &error);
 };
 
 QT_END_NAMESPACE

@@ -9,21 +9,19 @@
 
 QT_BEGIN_NAMESPACE
 
-QQnxAudioSource::QQnxAudioSource(const QAudioDevice &deviceInfo, QObject *parent)
-    : QPlatformAudioSource(parent)
-    , m_audioSource(0)
-    , m_pcmNotifier(0)
-    , m_error(QAudio::NoError)
-    , m_state(QAudio::StoppedState)
-    , m_bytesRead(0)
-    , m_elapsedTimeOffset(0)
-    , m_totalTimeValue(0)
-    , m_volume(qreal(1.0f))
-    , m_bytesAvailable(0)
-    , m_bufferSize(0)
-    , m_periodSize(0)
-    , m_deviceInfo(deviceInfo)
-    , m_pullMode(true)
+QQnxAudioSource::QQnxAudioSource(QAudioDevice device, QObject *parent)
+    : QPlatformAudioSource(std::move(device), parent),
+      m_audioSource(0),
+      m_pcmNotifier(0),
+      m_state(QAudio::StoppedState),
+      m_bytesRead(0),
+      m_elapsedTimeOffset(0),
+      m_totalTimeValue(0),
+      m_volume(qreal(1.0f)),
+      m_bytesAvailable(0),
+      m_bufferSize(0),
+      m_periodSize(0),
+      m_pullMode(true)
 {
 }
 
@@ -137,11 +135,6 @@ qint64 QQnxAudioSource::processedUSecs() const
     return qint64(1000000) * m_format.framesForBytes(m_bytesRead) / m_format.sampleRate();
 }
 
-QAudio::Error QQnxAudioSource::error() const
-{
-    return m_error;
-}
-
 QAudio::State QQnxAudioSource::state() const
 {
     return m_state;
@@ -199,16 +192,7 @@ bool QQnxAudioSource::deviceReady()
 
 bool QQnxAudioSource::open()
 {
-    if (!m_format.isValid() || m_format.sampleRate() <= 0) {
-        if (!m_format.isValid())
-            qWarning("QQnxAudioSource: open error, invalid format.");
-        else
-            qWarning("QQnxAudioSource: open error, invalid sample rate (%d).", m_format.sampleRate());
-
-        return false;
-    }
-
-    m_pcmHandle = QnxAudioUtils::openPcmDevice(m_deviceInfo.id(), QAudioDevice::Input);
+    m_pcmHandle = QnxAudioUtils::openPcmDevice(m_audioDevice.id(), QAudioDevice::Input);
 
     if (!m_pcmHandle)
         return false;
@@ -335,10 +319,7 @@ void QQnxAudioSource::changeState(QAudio::State state, QAudio::Error error)
         emit stateChanged(state);
     }
 
-    if (m_error != error) {
-        m_error = error;
-        emit errorChanged(error);
-    }
+    setError(error);
 }
 
 InputPrivate::InputPrivate(QQnxAudioSource *audio)

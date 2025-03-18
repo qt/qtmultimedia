@@ -237,6 +237,8 @@ void tst_QAudioSource::invalidFormat()
     QVERIFY2((audioSource.error() == QAudio::NoError),
              "error() was not set to QAudio::NoError before start()");
 
+    QTest::ignoreMessage(QtWarningMsg,
+                         "QAudioSource::start: QAudioFormat not supported by QAudioDevice");
     audioSource.start();
 
     // Check that error is raised

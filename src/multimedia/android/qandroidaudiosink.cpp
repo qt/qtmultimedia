@@ -26,9 +26,8 @@ static inline void openSlDebugInfo()
              << "\nDefault buffer size: " << QOpenSLESEngine::getDefaultBufferSize(format);
 }
 
-QAndroidAudioSink::QAndroidAudioSink(const QByteArray &device, QObject *parent)
-    : QPlatformAudioSink(parent),
-      m_deviceName(device)
+QAndroidAudioSink::QAndroidAudioSink(QAudioDevice device, QObject *parent)
+    : QPlatformAudioSink(std::move(device), parent)
 {
 #ifndef ANDROID
       m_streamType = -1;
@@ -40,11 +39,6 @@ QAndroidAudioSink::QAndroidAudioSink(const QByteArray &device, QObject *parent)
 QAndroidAudioSink::~QAndroidAudioSink()
 {
     destroyPlayer();
-}
-
-QAudio::Error QAndroidAudioSink::error() const
-{
-    return m_error;
 }
 
 QAudio::State QAndroidAudioSink::state() const
@@ -324,7 +318,7 @@ bool QAndroidAudioSink::preparePlayer()
     else
         return true;
 
-    if (!QOpenSLESEngine::setAudioOutput(m_deviceName))
+    if (!QOpenSLESEngine::setAudioOutput(m_audioDevice.id()))
         qWarning() << "Unable to set up Audio Output Device";
 
     SLEngineItf engine = QOpenSLESEngine::instance()->slEngine();
@@ -589,15 +583,6 @@ inline void QAndroidAudioSink::setState(QAudio::State state)
 
     m_state = state;
     Q_EMIT stateChanged(m_state);
-}
-
-inline void QAndroidAudioSink::setError(QAudio::Error error)
-{
-    if (m_error == error)
-        return;
-
-    m_error = error;
-    Q_EMIT errorChanged(m_error);
 }
 
 inline SLmillibel QAndroidAudioSink::adjustVolume(qreal vol)

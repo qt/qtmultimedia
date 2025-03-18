@@ -18,6 +18,7 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 
 #include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
 
 #include <QtCore/qelapsedtimer.h>
@@ -42,12 +43,14 @@ signals:
 class Q_MULTIMEDIA_EXPORT QPlatformAudioEndpointBase : public QAudioStateChangeNotifier
 {
 public:
-    explicit QPlatformAudioEndpointBase(QObject *parent = nullptr);
+    explicit QPlatformAudioEndpointBase(QAudioDevice, QObject *parent = nullptr);
 
     // LATER: can we devirtualize these functions
-    virtual QAudio::Error error() const { return m_error; }
+    QAudio::Error error() const { return m_error; }
     virtual QAudio::State state() const { return m_inferredState; }
-    void setError(QAudio::Error);
+    virtual void setError(QAudio::Error);
+
+    virtual bool isFormatSupported(const QAudioFormat &format) const;
 
 protected:
     enum class EmitStateSignal : uint8_t
@@ -58,6 +61,8 @@ protected:
 
     void updateStreamState(QAudio::State);
     void updateStreamIdle(bool idle, EmitStateSignal = EmitStateSignal::True);
+
+    const QAudioDevice m_audioDevice;
 
 private:
     void inferState();
@@ -71,7 +76,7 @@ private:
 class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QPlatformAudioEndpointBase
 {
 public:
-    explicit QPlatformAudioSink(QObject *parent);
+    explicit QPlatformAudioSink(QAudioDevice, QObject *parent);
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;
@@ -92,7 +97,7 @@ public:
 class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QPlatformAudioEndpointBase
 {
 public:
-    explicit QPlatformAudioSource(QObject *parent);
+    explicit QPlatformAudioSource(QAudioDevice, QObject *parent);
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;

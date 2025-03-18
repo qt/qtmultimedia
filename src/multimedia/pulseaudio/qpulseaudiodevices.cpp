@@ -42,7 +42,7 @@ QPlatformAudioSource *QPulseAudioDevices::createAudioSource(const QAudioDevice &
                                                             const QAudioFormat &fmt,
                                                             QObject *parent)
 {
-    auto ret = new QPulseAudioSource(deviceInfo.id(), parent);
+    auto ret = new QPulseAudioSource(deviceInfo, parent);
     ret->setFormat(fmt);
     return ret;
 }
@@ -51,7 +51,7 @@ QPlatformAudioSink *QPulseAudioDevices::createAudioSink(const QAudioDevice &devi
                                                         const QAudioFormat &fmt,
                                                         QObject *parent)
 {
-    auto ret = new QPulseAudioSink(deviceInfo.id(), parent);
+    auto ret = new QPulseAudioSink(deviceInfo, parent);
     ret->setFormat(fmt);
     return ret;
 }

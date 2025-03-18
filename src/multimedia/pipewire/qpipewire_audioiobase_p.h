@@ -73,10 +73,9 @@ class QPipewireAudioIOBase : public BaseClass
     using SampleFormat = QAudioFormat::SampleFormat;
 
 protected:
-    explicit QPipewireAudioIOBase(const QAudioDevice &, const QAudioFormat &format, QObject *parent);
+    explicit QPipewireAudioIOBase(QAudioDevice, const QAudioFormat &format, QObject *parent);
 
     // device
-    QAudioDevice m_audioDevice;
     std::optional<qsizetype> m_bufferSize;
     std::optional<qsizetype> m_hardwareBufferSize;
     void setBufferSize(qsizetype value) override;
@@ -99,12 +98,10 @@ protected:
 
 DECLARE_TEMPLATE_ARGS
 inline QPipewireAudioIOBase<BaseClass, StreamType>::
-QPipewireAudioIOBase(const QAudioDevice &device, const QAudioFormat &format, QObject *parent):
+QPipewireAudioIOBase(QAudioDevice device, const QAudioFormat &format, QObject *parent):
     BaseClass{
+        std::move(device),
         parent,
-    },
-    m_audioDevice{
-        device,
     },
     m_format {
         format,
@@ -137,7 +134,7 @@ DECLARE_TEMPLATE_ARGS
 inline const QPipewireAudioDevicePrivate *
 QPipewireAudioIOBase<BaseClass, StreamType>::privateDevice() const
 {
-    return reinterpret_cast<const QPipewireAudioDevicePrivate *>(m_audioDevice.handle());
+    return reinterpret_cast<const QPipewireAudioDevicePrivate *>(BaseClass::m_audioDevice.handle());
 }
 
 DECLARE_TEMPLATE_ARGS

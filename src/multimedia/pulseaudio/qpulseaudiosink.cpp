@@ -121,8 +121,8 @@ static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *
     qCDebug(qLcPulseAudioOut) << "Prebuffer adjusted:" << static_cast<bool>(success);
 }
 
-QPulseAudioSink::QPulseAudioSink(const QByteArray &device, QObject *parent)
-    : QPlatformAudioSink(parent), m_device(device), m_stateMachine(*this)
+QPulseAudioSink::QPulseAudioSink(QAudioDevice device, QObject *parent)
+    : QPlatformAudioSink(std::move(device), parent), m_stateMachine(*this)
 {
 }
 
@@ -130,11 +130,6 @@ QPulseAudioSink::~QPulseAudioSink()
 {
     if (auto notifier = m_stateMachine.stop())
         close();
-}
-
-QAudio::Error QPulseAudioSink::error() const
-{
-    return m_stateMachine.error();
 }
 
 QAudio::State QPulseAudioSink::state() const
@@ -313,8 +308,8 @@ bool QPulseAudioSink::open()
 
     pa_stream_flags flags =
             pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_ADJUST_LATENCY);
-    if (pa_stream_connect_playback(m_stream.get(), m_device.data(), &requestedBuffer, flags,
-                                   nullptr, nullptr)
+    if (pa_stream_connect_playback(m_stream.get(), m_audioDevice.id().data(), &requestedBuffer,
+                                   flags, nullptr, nullptr)
         < 0) {
         qCWarning(qLcPulseAudioOut) << "pa_stream_connect_playback() failed!";
         m_stream = {};

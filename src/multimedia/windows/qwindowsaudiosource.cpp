@@ -34,8 +34,9 @@ private:
     QWindowsAudioSource &m_audioSource;
 };
 
-QWindowsAudioSource::QWindowsAudioSource(ComPtr<IMMDevice> device, const QAudioFormat &fmt, QObject *parent)
-    : QPlatformAudioSource(parent),
+QWindowsAudioSource::QWindowsAudioSource(QAudioDevice audioDevice, ComPtr<IMMDevice> device,
+                                         const QAudioFormat &fmt, QObject *parent)
+    : QPlatformAudioSource(std::move(audioDevice), parent),
       m_timer(new QTimer(this)),
       m_device(std::move(device)),
       m_ourSink(new OurSink(*this)),
@@ -60,11 +61,6 @@ qreal QWindowsAudioSource::volume() const
 QWindowsAudioSource::~QWindowsAudioSource()
 {
     stop();
-}
-
-QAudio::Error QWindowsAudioSource::error() const
-{
-    return m_errorState;
 }
 
 QAudio::State QWindowsAudioSource::state() const
@@ -97,10 +93,7 @@ void QWindowsAudioSource::deviceStateChange(QAudio::State state, QAudio::Error e
         emit stateChanged(m_deviceState);
     }
 
-    if (error != m_errorState) {
-        m_errorState = error;
-        emit errorChanged(error);
-    }
+    setError(error);
 }
 
 QByteArray QWindowsAudioSource::readCaptureClientBuffer()
@@ -194,8 +187,7 @@ void QWindowsAudioSource::start(QIODevice* device)
         return;
 
     if (!open()) {
-        m_errorState = QAudio::OpenError;
-        emit errorChanged(QAudio::OpenError);
+        setError(QAudio::OpenError);
         return;
     }
 
@@ -211,8 +203,7 @@ QIODevice* QWindowsAudioSource::start()
         close();
 
     if (!open()) {
-        m_errorState = QAudio::OpenError;
-        emit errorChanged(QAudio::OpenError);
+        setError(QAudio::OpenError);
         return nullptr;
     }
 

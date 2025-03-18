@@ -69,7 +69,8 @@ class QWindowsAudioSink : public QPlatformAudioSink
 {
     Q_OBJECT
 public:
-    QWindowsAudioSink(ComPtr<IMMDevice> device, const QAudioFormat &fmt, QObject *parent);
+    QWindowsAudioSink(QAudioDevice, ComPtr<IMMDevice> device, const QAudioFormat &fmt,
+                      QObject *parent);
     ~QWindowsAudioSink();
 
     QAudioFormat format() const override;
@@ -83,7 +84,6 @@ public:
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override { return m_bufferSize; }
     qint64 processedUSecs() const override;
-    QAudio::Error error() const override { return errorState; }
     QAudio::State state() const override { return deviceState; }
     void setVolume(qreal) override;
     qreal volume() const override { return m_volume; }
@@ -99,7 +99,6 @@ private:
     void pullSource();
 
     const QAudioFormat m_format;
-    QAudio::Error errorState = QAudio::NoError;
     QAudio::State deviceState = QAudio::StoppedState;
     QAudio::State suspendedInState = QAudio::SuspendedState;
 
