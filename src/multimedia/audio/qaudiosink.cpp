@@ -150,6 +150,12 @@ void QAudioSink::start(QIODevice* device)
         return;
     }
 
+    if (!d->isFormatSupported(d->format())) {
+        qWarning() << "QAudioSink::start: QAudioFormat not supported by QAudioDevice";
+        d->setError(QAudio::OpenError);
+        return;
+    }
+
     d->elapsedTime.restart();
     d->start(device);
 }
@@ -176,6 +182,13 @@ QIODevice* QAudioSink::start()
     if (!d)
         return nullptr;
     d->elapsedTime.restart();
+
+    if (!d->isFormatSupported(d->format())) {
+        qWarning() << "QAudioSink::start: QAudioFormat not supported by QAudioDevice";
+        d->setError(QAudio::OpenError);
+        return nullptr;
+    }
+
     return d->start();
 }
 

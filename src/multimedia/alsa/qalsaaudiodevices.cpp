@@ -118,7 +118,7 @@ QPlatformAudioSource *QAlsaAudioDevices::createAudioSource(const QAudioDevice &d
                                                            const QAudioFormat &fmt,
                                                            QObject *parent)
 {
-    auto ret = new QAlsaAudioSource(deviceInfo.id(), parent);
+    auto ret = new QAlsaAudioSource(deviceInfo, parent);
     ret->setFormat(fmt);
     return ret;
 }
@@ -127,7 +127,7 @@ QPlatformAudioSink *QAlsaAudioDevices::createAudioSink(const QAudioDevice &devic
                                                        const QAudioFormat &fmt,
                                                        QObject *parent)
 {
-    auto ret = new QAlsaAudioSink(deviceInfo.id(), parent);
+    auto ret = new QAlsaAudioSink(deviceInfo, parent);
     ret->setFormat(fmt);
     return ret;
 }

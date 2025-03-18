@@ -90,8 +90,8 @@ static void inputStreamSuccessCallback(pa_stream *stream, int success, void *use
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
 
-QPulseAudioSource::QPulseAudioSource(const QByteArray &device, QObject *parent)
-    : QPlatformAudioSource(parent),
+QPulseAudioSource::QPulseAudioSource(QAudioDevice device, QObject *parent)
+    : QPlatformAudioSource(std::move(device), parent),
       m_totalTimeValue(0),
       m_audioSource(nullptr),
       m_volume(qreal(1.0f)),
@@ -100,7 +100,6 @@ QPulseAudioSource::QPulseAudioSource(const QByteArray &device, QObject *parent)
       m_bufferSize(0),
       m_periodSize(0),
       m_periodTime(SourcePeriodTimeMs),
-      m_device(device),
       m_stateMachine(*this)
 {
 }
@@ -110,11 +109,6 @@ QPulseAudioSource::~QPulseAudioSource()
     // TODO: Investigate draining the stream
     if (auto notifier = m_stateMachine.stop())
         close();
-}
-
-QAudio::Error QPulseAudioSource::error() const
-{
-    return m_stateMachine.error();
 }
 
 QAudio::State QPulseAudioSource::state() const
@@ -238,8 +232,9 @@ bool QPulseAudioSource::open()
 
     flags |= PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_INTERPOLATE_TIMING;
 
-    int connectionResult = pa_stream_connect_record(m_stream.get(), m_device.data(), &buffer_attr,
-                                                    static_cast<pa_stream_flags_t>(flags));
+    int connectionResult =
+            pa_stream_connect_record(m_stream.get(), m_audioDevice.id().data(), &buffer_attr,
+                                     static_cast<pa_stream_flags_t>(flags));
     if (connectionResult < 0) {
         qWarning() << "pa_stream_connect_record() failed!";
         m_stream = {};

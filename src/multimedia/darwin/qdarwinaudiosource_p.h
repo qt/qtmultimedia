@@ -36,7 +36,7 @@ class QCoreAudioSourceStream;
 class QDarwinAudioSource final : public QPlatformAudioSource
 {
 public:
-    QDarwinAudioSource(const QAudioDevice &, const QAudioFormat &, QObject *parent);
+    QDarwinAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
     ~QDarwinAudioSource() override;
 
     void start(QIODevice *device) override;
@@ -55,7 +55,6 @@ public:
     qreal volume() const override;
 
 private:
-    QAudioDevice m_audioDevice;
     QAudioFormat m_audioFormat;
 
     std::shared_ptr<QCoreAudioSourceStream> m_stream;

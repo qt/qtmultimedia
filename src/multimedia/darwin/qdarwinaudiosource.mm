@@ -299,14 +299,10 @@ void QCoreAudioSourceStream::removeDisconnectListener()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device, const QAudioFormat &format,
+QDarwinAudioSource::QDarwinAudioSource(QAudioDevice device, const QAudioFormat &format,
                                        QObject *parent)
-    : QPlatformAudioSource(parent), m_audioFormat(format)
+    : QPlatformAudioSource(std::move(device), parent), m_audioFormat(format)
 {
-    // If incoming device is null, fallback to default device.
-    // Note: Default device can still be null in the case no devices are connected.
-    m_audioDevice = device.isNull() ? QMediaDevices::defaultAudioInput() : device;
-
 #ifndef Q_OS_MACOS
     if (qGuiApp)
         QObject::connect(qGuiApp, &QGuiApplication::applicationStateChanged, this,
@@ -325,11 +321,6 @@ QDarwinAudioSource::~QDarwinAudioSource()
 
 void QDarwinAudioSource::start(QIODevice *device)
 {
-    if (!m_audioDevice.isFormatSupported(m_audioFormat)) {
-        setError(QAudio::OpenError);
-        return;
-    }
-
     if (!device) {
         setError(QAudio::IOError);
         return;
@@ -349,11 +340,6 @@ void QDarwinAudioSource::start(QIODevice *device)
 
 QIODevice *QDarwinAudioSource::start()
 {
-    if (!m_audioDevice.isFormatSupported(m_audioFormat)) {
-        setError(QAudio::OpenError);
-        return nullptr;
-    }
-
     m_stream = std::make_shared<QCoreAudioSourceStream>(m_audioDevice, m_audioFormat,
                                                         m_internalBufferSize, this);
 

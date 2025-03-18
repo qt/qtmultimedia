@@ -11,9 +11,12 @@ QT_BEGIN_NAMESPACE
 
 QAudioStateChangeNotifier::QAudioStateChangeNotifier(QObject *parent) : QObject(parent) { }
 
-QPlatformAudioEndpointBase::QPlatformAudioEndpointBase(QObject *parent)
-    : QAudioStateChangeNotifier(parent)
+QPlatformAudioEndpointBase::QPlatformAudioEndpointBase(QAudioDevice device, QObject *parent)
+    : QAudioStateChangeNotifier{ parent }, m_audioDevice{ std::move(device) }
 {
+    connect(this, &QAudioStateChangeNotifier::errorChanged, this, [this](QAudio::Error err) {
+        setError(err);
+    });
 }
 
 void QPlatformAudioEndpointBase::setError(QAudio::Error err)
@@ -21,7 +24,23 @@ void QPlatformAudioEndpointBase::setError(QAudio::Error err)
     if (err == m_error)
         return;
     m_error = err;
-    emit errorChanged(err);
+
+    // NOTE: we don't emit errorChanged, since it's only used internally from QAudioStateMachine to
+    // QPlatformAudioEndpointBase, not to notify the public API from QPlatformAudioEndpointBase.
+}
+
+bool QPlatformAudioEndpointBase::isFormatSupported(const QAudioFormat &format) const
+{
+    if (m_audioDevice.isFormatSupported(format))
+        return true;
+
+#ifdef Q_OS_ANDROID
+    // FIXME: isFormatSupported on android seems to have some issues
+    if (format == m_audioDevice.preferredFormat())
+        return true;
+#endif
+
+    return false;
 }
 
 void QPlatformAudioEndpointBase::updateStreamState(QAudio::State state)
@@ -74,14 +93,20 @@ void QPlatformAudioEndpointBase::inferState()
         emit stateChanged(m_inferredState);
 }
 
-QPlatformAudioSink::QPlatformAudioSink(QObject *parent) : QPlatformAudioEndpointBase(parent) { }
+QPlatformAudioSink::QPlatformAudioSink(QAudioDevice device, QObject *parent)
+    : QPlatformAudioEndpointBase(std::move(device), parent)
+{
+}
 
 qreal QPlatformAudioSink::volume() const
 {
     return 1.0;
 }
 
-QPlatformAudioSource::QPlatformAudioSource(QObject *parent) : QPlatformAudioEndpointBase(parent) { }
+QPlatformAudioSource::QPlatformAudioSource(QAudioDevice device, QObject *parent)
+    : QPlatformAudioEndpointBase(std::move(device), parent)
+{
+}
 
 QT_END_NAMESPACE
 
