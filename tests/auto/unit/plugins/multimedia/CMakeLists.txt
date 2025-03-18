@@ -4,3 +4,7 @@
 if(QT_FEATURE_ffmpeg)
     add_subdirectory(ffmpeg)
 endif()
+
+if(QT_FEATURE_gstreamer)
+    add_subdirectory(gstreamer)
+endif()
