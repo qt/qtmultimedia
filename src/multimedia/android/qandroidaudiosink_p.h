@@ -29,7 +29,7 @@ class QAndroidAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    QAndroidAudioSink(const QByteArray &device, QObject *parent);
+    QAndroidAudioSink(QAudioDevice device, QObject *parent);
     ~QAndroidAudioSink();
 
     void start(QIODevice *device) override;
@@ -42,7 +42,6 @@ public:
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
-    QAudio::Error error() const override;
     QAudio::State state() const override;
     void setFormat(const QAudioFormat &format);
     QAudioFormat format() const override;
@@ -68,16 +67,13 @@ private:
     qint64 writeData(const char *data, qint64 len);
 
     void setState(QAudio::State state);
-    void setError(QAudio::Error error);
 
     SLmillibel adjustVolume(qreal vol);
 
     static constexpr int BufferCount = 4;
 
-    QByteArray m_deviceName;
     QAudio::State m_state = QAudio::StoppedState;
     QAudio::State m_suspendedInState = QAudio::SuspendedState;
-    QAudio::Error m_error = QAudio::NoError;
     SLObjectItf m_outputMixObject = nullptr;
     SLObjectItf m_playerObject = nullptr;
     SLPlayItf m_playItf = nullptr;

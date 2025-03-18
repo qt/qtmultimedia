@@ -36,7 +36,7 @@ class QCoreAudioSinkStream;
 class QDarwinAudioSink final : public QPlatformAudioSink
 {
 public:
-    QDarwinAudioSink(const QAudioDevice &device, const QAudioFormat &format, QObject *parent);
+    QDarwinAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent);
     ~QDarwinAudioSink() override;
 
     void start(QIODevice *device) override;
@@ -58,7 +58,6 @@ private:
     void resumeStreamIfNecessary();
 
     friend class QCoreAudioSinkStream;
-    QAudioDevice m_audioDevice;
 
     const QAudioFormat m_audioFormat;
     std::optional<int> m_internalBufferSize;

@@ -48,7 +48,7 @@ QPlatformAudioSource *QAndroidAudioDevices::createAudioSource(const QAudioDevice
                                                               const QAudioFormat &fmt,
                                                               QObject *parent)
 {
-    auto ret = new QAndroidAudioSource(deviceInfo.id(), parent);
+    auto ret = new QAndroidAudioSource(deviceInfo, parent);
     ret->setFormat(fmt);
     return ret;
 }
@@ -57,7 +57,7 @@ QPlatformAudioSink *QAndroidAudioDevices::createAudioSink(const QAudioDevice &de
                                                           const QAudioFormat &fmt,
                                                           QObject *parent)
 {
-    auto ret = new QAndroidAudioSink(deviceInfo.id(), parent);
+    auto ret = new QAndroidAudioSink(deviceInfo, parent);
     ret->setFormat(fmt);
     return ret;
 }

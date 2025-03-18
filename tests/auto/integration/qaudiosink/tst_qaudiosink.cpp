@@ -334,6 +334,9 @@ void tst_QAudioSink::invalidFormat()
     QVERIFY2((audioSink.error() == QAudio::NoError),
              "error() was not set to QAudio::NoError before start()");
 
+    QTest::ignoreMessage(QtWarningMsg,
+                         "QAudioSink::start: QAudioFormat not supported by QAudioDevice");
+
     audioSink.start();
     // Check that error is raised
     QTRY_VERIFY2((audioSink.error() == QAudio::OpenError),
@@ -615,11 +618,7 @@ void tst_QAudioSink::pullResumeFromUnderrun()
     if (output.isNull())
         QSKIP("no audio output detected");
 
-
-    QAudioFormat format;
-    format.setChannelCount(1);
-    format.setSampleFormat(QAudioFormat::UInt8);
-    format.setSampleRate(output.preferredFormat().sampleRate());
+    QAudioFormat format = output.preferredFormat();
 
     AudioPullSource audioSource;
     QAudioSink audioSink(format, this);
@@ -657,8 +656,9 @@ void tst_QAudioSink::pullResumeFromUnderrun()
     QCOMPARE(audioSink.state(), QAudio::IdleState);
 
     // we played two chunks, sample rate is per second
-    const int expectedUSecs = (double(chunkSize) / double(format.sampleRate()))
-                            * 2 * 1000 * 1000;
+    const int expectedUSecs =
+            (double(chunkSize) / double(format.sampleRate()) / format.bytesPerFrame()) * 2 * 1000
+            * 1000;
     QTRY_COMPARE(audioSink.processedUSecs(), expectedUSecs);
 }
 

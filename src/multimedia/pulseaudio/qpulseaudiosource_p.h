@@ -39,7 +39,7 @@ class QPulseAudioSource : public QPlatformAudioSource
     Q_OBJECT
 
 public:
-    QPulseAudioSource(const QByteArray &device, QObject *parent);
+    QPulseAudioSource(QAudioDevice device, QObject *parent);
     ~QPulseAudioSource() override;
 
     qint64 read(char *data, qint64 len);
@@ -54,7 +54,6 @@ public:
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
-    QAudio::Error error() const override;
     QAudio::State state() const override;
     void setFormat(const QAudioFormat &format);
     QAudioFormat format() const override;
@@ -92,7 +91,6 @@ private:
     qint64 m_elapsedTimeOffset;
     PAStreamHandle m_stream;
     QByteArray m_streamName;
-    QByteArray m_device;
     QByteArray m_tempBuffer;
     pa_sample_spec m_spec;
 

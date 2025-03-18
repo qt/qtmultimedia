@@ -207,12 +207,13 @@ qint64 AudioClient::render(const QAudioFormat &format, qreal volume, const char 
     return writeSize;
 };
 
-QWindowsAudioSink::QWindowsAudioSink(ComPtr<IMMDevice> device, const QAudioFormat &fmt, QObject *parent) :
-    QPlatformAudioSink(parent),
-    m_format(fmt),
-    m_timer(new QTimer(this)),
-    m_pushSource(new OutputPrivate(*this)),
-    m_device{ std::move(device) }
+QWindowsAudioSink::QWindowsAudioSink(QAudioDevice audioDevice, ComPtr<IMMDevice> device,
+                                     const QAudioFormat &fmt, QObject *parent)
+    : QPlatformAudioSink(std::move(audioDevice), parent),
+      m_format(fmt),
+      m_timer(new QTimer(this)),
+      m_pushSource(new OutputPrivate(*this)),
+      m_device{ std::move(device) }
 {
     m_pushSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
     m_timer->setSingleShot(true);
@@ -244,10 +245,7 @@ void QWindowsAudioSink::deviceStateChange(QAudio::State state, QAudio::Error err
             return;
     }
 
-    if (error != errorState) {
-        errorState = error;
-        emit errorChanged(error);
-    }
+    setError(error);
 }
 
 QAudioFormat QWindowsAudioSink::format() const
@@ -308,8 +306,7 @@ void QWindowsAudioSink::start(QIODevice* device)
         return;
 
     if (!open()) {
-        errorState = QAudio::OpenError;
-        emit errorChanged(QAudio::OpenError);
+        setError(QAudio::OpenError);
         return;
     }
 
@@ -346,8 +343,7 @@ QIODevice* QWindowsAudioSink::start()
         close();
 
     if (!open()) {
-        errorState = QAudio::OpenError;
-        emit errorChanged(QAudio::OpenError);
+        setError(QAudio::OpenError);
         return nullptr;
     }
 

@@ -5,7 +5,6 @@
 #include <QtCore/qvarlengtharray.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include "qalsaaudiosink_p.h"
-#include "qalsaaudiodevice_p.h"
 #include <QLoggingCategory>
 
 QT_BEGIN_NAMESPACE
@@ -13,11 +12,9 @@ QT_BEGIN_NAMESPACE
 static Q_LOGGING_CATEGORY(lcAlsaOutput, "qt.multimedia.alsa.output")
 //#define DEBUG_AUDIO 1
 
-QAlsaAudioSink::QAlsaAudioSink(const QByteArray &device, QObject *parent)
-    : QPlatformAudioSink(parent)
+QAlsaAudioSink::QAlsaAudioSink(QAudioDevice device, QObject *parent)
+    : QPlatformAudioSink(std::move(device), parent)
 {
-    m_device = device;
-
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &QAlsaAudioSink::userFeed);
 }
@@ -37,11 +34,6 @@ void QAlsaAudioSink::setVolume(qreal vol)
 qreal QAlsaAudioSink::volume() const
 {
     return m_volume;
-}
-
-QAudio::Error QAlsaAudioSink::error() const
-{
-    return errorState;
 }
 
 QAudio::State QAlsaAudioSink::state() const
@@ -208,29 +200,13 @@ bool QAlsaAudioSink::open()
     elapsedTimeOffset = 0;
 
     int dir;
-    int err = 0;
+    int err = -1;
     int count=0;
     unsigned int sampleRate = settings.sampleRate();
 
-    if (!settings.isValid()) {
-        qWarning("QAudioSink: open error, invalid format.");
-    } else if (settings.sampleRate() <= 0) {
-        qWarning("QAudioSink: open error, invalid sample rate (%d).",
-                 settings.sampleRate());
-    } else {
-        err = -1;
-    }
-
-    if (err == 0) {
-        errorState = QAudio::OpenError;
-        deviceState = QAudio::StoppedState;
-        emit errorChanged(errorState);
-        return false;
-    }
-
     // Step 1: try and open the device
     while((count < 5) && (err < 0)) {
-        err=snd_pcm_open(&handle, m_device.constData(),SND_PCM_STREAM_PLAYBACK,0);
+        err = snd_pcm_open(&handle, m_audioDevice.id().constData(), SND_PCM_STREAM_PLAYBACK, 0);
         if(err < 0)
             count++;
     }
