@@ -337,21 +337,9 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         winmm
 )
 
-# Only on Windows' MinGW/LLVM build, symbols from `strmif.h` and `ddraw.h` conflicts
-# with symbols defined in `ksmedia.h`.
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf AND MINGW
-    NO_UNITY_BUILD_SOURCES
-        windows/qwindowsaudiodevice.cpp windows/qwindowsaudiodevice_p.h
-        windows/qwindowsaudiosource.cpp windows/qwindowsaudiosource_p.h
-        windows/qwindowsaudiosink.cpp windows/qwindowsaudiosink_p.h
-        windows/qwindowsaudioutils.cpp windows/qwindowsaudioutils_p.h
-        windows/qwindowsaudiodevices.cpp windows/qwindowsaudiodevices_p.h
-        windows/qwindowsmediafoundation.cpp windows/qwindowsmediafoundation_p.h
-        windows/qwindowsresampler.cpp windows/qwindowsresampler_p.h
-        windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h
-        windows/qwindowsmfdefs.cpp windows/qwindowsmfdefs_p.h
-        windows/qcomtaskresource_p.h
-)
+# define INITGUID for unity builds to ensure guids are emitted in the translation units
+target_compile_definitions(Multimedia
+    PRIVATE $<$<BOOL:$<TARGET_PROPERTY:Multimedia,UNITY_BUILD>>:INITGUID>)
 
 qt_internal_extend_target(Multimedia CONDITION WASM
     SOURCES
