@@ -86,7 +86,8 @@ static bool updateDevicesMap(QReadWriteLock &lock, const QByteArray &defaultDevi
 
     auto &device = devices[info.index];
     QAudioDevicePrivateAllMembersEqual compare;
-    if (device.handle() && compare(*newDeviceInfo, *device.handle()))
+    const QAudioDevicePrivate *handle = QAudioDevicePrivate::handle(device);
+    if (handle && compare(*newDeviceInfo, *handle))
         return false;
 
     device = QAudioDevicePrivate::createQAudioDevice(std::move(newDeviceInfo));

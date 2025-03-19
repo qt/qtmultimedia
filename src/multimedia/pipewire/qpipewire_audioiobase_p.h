@@ -134,7 +134,7 @@ DECLARE_TEMPLATE_ARGS
 inline const QPipewireAudioDevicePrivate *
 QPipewireAudioIOBase<BaseClass, StreamType>::privateDevice() const
 {
-    return reinterpret_cast<const QPipewireAudioDevicePrivate *>(BaseClass::m_audioDevice.handle());
+    return QAudioDevicePrivate::handle<QPipewireAudioDevicePrivate>(BaseClass::m_audioDevice);
 }
 
 DECLARE_TEMPLATE_ARGS
