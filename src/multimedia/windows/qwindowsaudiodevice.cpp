@@ -15,7 +15,9 @@
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
 
 #include <audioclient.h>
-#include <initguid.h>
+#ifndef INITGUID
+#  include <initguid.h>
+#endif
 #include <mmdeviceapi.h>
 #include <propkeydef.h>
 
