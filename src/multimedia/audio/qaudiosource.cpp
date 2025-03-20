@@ -79,7 +79,8 @@ QT_BEGIN_NAMESPACE
 /*!
     Construct a new audio input and attach it to \a parent.
     The default audio input device is used with the output
-    \a format parameters.
+    \a format parameters. If \a format is default-initialized,
+    the format will be set to the preferred format of the audio device.
 */
 
 QAudioSource::QAudioSource(const QAudioFormat &format, QObject *parent)
@@ -90,7 +91,8 @@ QAudioSource::QAudioSource(const QAudioFormat &format, QObject *parent)
 /*!
     Construct a new audio input and attach it to \a parent.
     The device referenced by \a audioDevice is used with the input
-    \a format parameters.
+    \a format parameters. If \a format is default-initialized,
+    the format will be set to the preferred format of \a audioDevice.
 */
 
 QAudioSource::QAudioSource(const QAudioDevice &audioDevice, const QAudioFormat &format, QObject *parent):

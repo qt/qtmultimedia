@@ -130,7 +130,7 @@ QPlatformAudioSink *QPlatformAudioDevices::createAudioSink(const QAudioDevice &,
     return nullptr;
 }
 
-QPlatformAudioSource *QPlatformAudioDevices::audioInputDevice(const QAudioFormat &format,
+QPlatformAudioSource *QPlatformAudioDevices::audioInputDevice(QAudioFormat format,
                                                               const QAudioDevice &deviceInfo,
                                                               QObject *parent)
 {
@@ -141,10 +141,13 @@ QPlatformAudioSource *QPlatformAudioDevices::audioInputDevice(const QAudioFormat
     if (device.isNull())
         return nullptr;
 
+    if (format == QAudioFormat{})
+        format = device.preferredFormat();
+
     return createAudioSource(device, format, parent);
 }
 
-QPlatformAudioSink *QPlatformAudioDevices::audioOutputDevice(const QAudioFormat &format,
+QPlatformAudioSink *QPlatformAudioDevices::audioOutputDevice(QAudioFormat format,
                                                              const QAudioDevice &deviceInfo,
                                                              QObject *parent)
 {
@@ -154,6 +157,9 @@ QPlatformAudioSink *QPlatformAudioDevices::audioOutputDevice(const QAudioFormat 
 
     if (device.isNull())
         return nullptr;
+
+    if (format == QAudioFormat{})
+        format = device.preferredFormat();
 
     return createAudioSink(device, format, parent);
 }

@@ -38,6 +38,7 @@ private slots:
     void format();
     void invalidFormat_data();
     void invalidFormat();
+    void nullFormat();
 
     void bufferSize();
 
@@ -203,9 +204,6 @@ void tst_QAudioSource::invalidFormat_data()
 
     QAudioFormat format;
 
-    QTest::newRow("Null Format")
-            << format;
-
     format = audioDevice.preferredFormat();
     format.setChannelCount(0);
     QTest::newRow("Channel count 0")
@@ -244,6 +242,22 @@ void tst_QAudioSource::invalidFormat()
     // Check that error is raised
     QTRY_VERIFY2((audioSource.error() == QAudio::OpenError),
                  "error() was not set to QAudio::OpenError after start()");
+}
+
+void tst_QAudioSource::nullFormat()
+{
+    QAudioDevice audioDevice = QMediaDevices::defaultAudioInput();
+    if (audioDevice.isNull())
+        QSKIP("No audio inputs found");
+
+    {
+        QAudioSource audioSource;
+        QCOMPARE(audioSource.format(), audioDevice.preferredFormat());
+    }
+    {
+        QAudioSource audioSource(audioDevice);
+        QCOMPARE(audioSource.format(), audioDevice.preferredFormat());
+    }
 }
 
 void tst_QAudioSource::bufferSize()

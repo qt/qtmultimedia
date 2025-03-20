@@ -72,7 +72,8 @@ QT_BEGIN_NAMESPACE
 /*!
     Construct a new audio output and attach it to \a parent.
     The default audio output device is used with the output
-    \a format parameters.
+    \a format parameters. If \a format is default-initialized,
+    the format will be set to the preferred format of the audio device.
 */
 QAudioSink::QAudioSink(const QAudioFormat &format, QObject *parent)
     : QAudioSink({}, format, parent)
@@ -82,7 +83,8 @@ QAudioSink::QAudioSink(const QAudioFormat &format, QObject *parent)
 /*!
     Construct a new audio output and attach it to \a parent.
     The device referenced by \a audioDevice is used with the output
-    \a format parameters.
+    \a format parameters. If \a format is default-initialized,
+    the format will be set to the preferred format of \a audioDevice.
 */
 QAudioSink::QAudioSink(const QAudioDevice &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)

@@ -48,10 +48,8 @@ public:
     virtual QPlatformAudioSink *createAudioSink(const QAudioDevice &, const QAudioFormat &,
                                                 QObject *parent);
 
-    QPlatformAudioSource *audioInputDevice(const QAudioFormat &format,
-                                           const QAudioDevice &deviceInfo, QObject *parent);
-    QPlatformAudioSink *audioOutputDevice(const QAudioFormat &format,
-                                          const QAudioDevice &deviceInfo, QObject *parent);
+    QPlatformAudioSource *audioInputDevice(QAudioFormat, const QAudioDevice &, QObject *parent);
+    QPlatformAudioSink *audioOutputDevice(QAudioFormat, const QAudioDevice &, QObject *parent);
 
     virtual void prepareAudio();
 
