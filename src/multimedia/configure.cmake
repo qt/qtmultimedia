@@ -301,3 +301,9 @@ qt_configure_add_report_entry(
     MESSAGE "No media backend found"
     CONDITION ANDROID AND NOT (QT_FEATURE_native_android_backend OR QT_FEATURE_ffmpeg)
 )
+
+qt_configure_add_report_entry(
+    TYPE ERROR
+    MESSAGE "ALSA and PulseAudio backend are mutually exclusive"
+    CONDITION QT_FEATURE_alsa AND QT_FEATURE_pulseaudio
+)
