@@ -6,14 +6,14 @@ import QtMultimedia
 import QtTest
 
 TestCase {
-    name: "SoundEffect"
+    name: "MediaPlayer"
 
-    SoundEffect {
-        id: effect
+    MediaPlayer {
+        id: player
     }
 
     function test_playing_returnsFalse_byDefault() {
-        verify(!effect.playing)
+        verify(!player.playing)
     }
 
 }
