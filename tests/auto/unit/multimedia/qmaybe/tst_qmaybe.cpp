@@ -137,6 +137,16 @@ private slots:
         QVERIFY(!dut);
         QCOMPARE_EQ(dut.error(), 42);
     }
+
+    void copy_move_unexpected()
+    {
+        QUnexpected u(42);
+        QUnexpected v(u);
+        QCOMPARE_EQ(u.error(), v.error());
+
+        QUnexpected w(std::move(v));
+        QCOMPARE_EQ(u.error(), w.error());
+    }
 };
 
 QTEST_APPLESS_MAIN(tst_QMaybe)
