@@ -29,7 +29,8 @@ struct QUnexpected
     constexpr QUnexpected(const QUnexpected &) = default;
     constexpr QUnexpected(QUnexpected &&) = default;
 
-    template <class Err = Error>
+    template <class Err = Error,
+              class Enabler = std::enable_if_t<!std::is_same_v<std::decay_t<Err>, QUnexpected>>>
     constexpr explicit QUnexpected(Err &&e) : e{ std::forward<Err>(e) }
     {
     }
