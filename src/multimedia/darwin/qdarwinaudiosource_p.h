@@ -63,6 +63,7 @@ private:
     void resumeStreamIfNecessary();
 
     friend class QCoreAudioSourceStream;
+    std::shared_ptr<QCoreAudioSourceStream> m_retiredStream;
 
     float m_volume{ 1.f };
 };
