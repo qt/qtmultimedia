@@ -199,7 +199,7 @@ private:
     QAutoResetEvent m_ringbufferIsFull;
 
     // stats
-    std::atomic_uint64_t m_totalNumberOfFramesPushedToRingbuffer;
+    std::atomic_uint64_t m_totalNumberOfFramesPushedToRingbuffer{};
 
     void convertFromNative(QSpan<const std::byte> native, QSpan<std::byte> internal, float volume,
                            NativeSampleFormat) QT_MM_NONBLOCKING;
