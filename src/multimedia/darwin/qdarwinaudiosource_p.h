@@ -64,7 +64,7 @@ private:
 
     friend class QCoreAudioSourceStream;
 
-    float m_volume;
+    float m_volume{ 1.f };
 };
 
 QT_END_NAMESPACE
