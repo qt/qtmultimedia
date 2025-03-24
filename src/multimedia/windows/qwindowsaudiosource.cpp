@@ -32,6 +32,7 @@ struct QWASAPIAudioSourceStream final : std::enable_shared_from_this<QWASAPIAudi
     ~QWASAPIAudioSourceStream();
 
     using QPlatformAudioSourceStream::bytesReady;
+    using QPlatformAudioSourceStream::deviceIsRingbufferReader;
     using QPlatformAudioSourceStream::processedDuration;
     using QPlatformAudioSourceStream::setVolume;
 
@@ -267,6 +268,10 @@ void QWindowsAudioSource::stop()
     if (!m_stream)
         return;
 
+    if (m_stream->deviceIsRingbufferReader())
+        // we own the qiodevice, so let's keep it alive to allow users to drain the ringbuffer
+        m_retiredStream = m_stream;
+
     m_stream->stop(QPlatformAudioIOStream::ShutdownPolicy::DrainRingbuffer);
     m_stream = {};
     updateStreamState(QtAudio::State::StoppedState);
@@ -274,6 +279,8 @@ void QWindowsAudioSource::stop()
 
 void QWindowsAudioSource::reset()
 {
+    m_retiredStream = {};
+
     if (!m_stream)
         return;
 
@@ -399,19 +406,17 @@ void QWASAPIAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
 {
     m_parent = nullptr;
     m_shutdownPolicy = shutdownPolicy;
-    // TODO: handle shutdown policies in a better way
 
     requestStop();
+    disconnectQIODeviceConnections();
+
     QWindowsAudioUtils::audioClientStop(m_audioClient);
     m_workerThread->wait();
     QWindowsAudioUtils::audioClientReset(m_audioClient);
 
-    if (shutdownPolicy == ShutdownPolicy::DiscardRingbuffer) {
-        visitRingbuffer([](auto &ringbuffer) {
-            ringbuffer.consumeAll([](auto /*ringbufferRegion*/) {
-            });
-        });
-    }
+    finalizeQIODevice(shutdownPolicy);
+    if (shutdownPolicy == ShutdownPolicy::DiscardRingbuffer)
+        emptyRingbuffer();
 }
 
 void QWindowsAudioSource::setVolume(qreal v)

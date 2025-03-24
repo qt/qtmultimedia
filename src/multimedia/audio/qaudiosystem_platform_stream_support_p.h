@@ -194,9 +194,12 @@ protected:
     // iodevice
     void setQIODevice(QIODevice *device);
     void createQIODeviceConnections(QIODevice *device);
+    void disconnectQIODeviceConnections();
     QIODevice *createRingbufferReaderDevice();
     void pushToIODevice();
     bool deviceIsRingbufferReader() const;
+    void finalizeQIODevice(ShutdownPolicy);
+    void emptyRingbuffer();
 
     // downstream delegates
     virtual void updateStreamIdle(bool) = 0;
@@ -209,6 +212,9 @@ private:
     // ringbuffer events
     QAutoResetEvent m_ringbufferHasData;
     QAutoResetEvent m_ringbufferIsFull;
+
+    QMetaObject::Connection m_ringbufferHasDataConnection;
+    QMetaObject::Connection m_ringbufferIsFullConnection;
 
     // stats
     std::atomic_uint64_t m_totalNumberOfFramesPushedToRingbuffer{};

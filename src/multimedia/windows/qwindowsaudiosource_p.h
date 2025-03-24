@@ -53,6 +53,7 @@ private:
 
     qreal m_volume = 1.0;
     std::shared_ptr<QWASAPIAudioSourceStream> m_stream;
+    std::shared_ptr<QWASAPIAudioSourceStream> m_retiredStream;
 };
 
 QT_END_NAMESPACE
