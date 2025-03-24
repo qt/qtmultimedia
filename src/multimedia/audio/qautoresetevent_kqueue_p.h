@@ -30,8 +30,8 @@ class Q_MULTIMEDIA_EXPORT QAutoResetEventKQueue final : public QObject
 
 public:
     explicit QAutoResetEventKQueue(QObject *parent = nullptr);
-
     ~QAutoResetEventKQueue();
+    Q_DISABLE_COPY_MOVE(QAutoResetEventKQueue)
 
     bool isValid() const;
     void set();
