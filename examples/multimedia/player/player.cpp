@@ -182,10 +182,13 @@ Player::Player(QWidget *parent) : QWidget(parent)
         for (int j = 0; j < 6; j += 2) {
             m_metaDataLabels[key] = new QLabel(
                     QMediaMetaData::metaDataKeyToString(static_cast<QMediaMetaData::Key>(key)));
-            if (key == QMediaMetaData::ThumbnailImage || key == QMediaMetaData::CoverArtImage)
+            if (key == QMediaMetaData::ThumbnailImage || key == QMediaMetaData::CoverArtImage) {
                 m_metaDataFields[key] = new QLabel;
-            else
-                m_metaDataFields[key] = new QLineEdit;
+            } else {
+                auto lineEdit = new QLineEdit;
+                lineEdit->setReadOnly(true);
+                m_metaDataFields[key] = lineEdit;
+            }
             m_metaDataLabels[key]->setDisabled(true);
             m_metaDataFields[key]->setDisabled(true);
             metaDataLayout->addWidget(m_metaDataLabels[key], i, j);
