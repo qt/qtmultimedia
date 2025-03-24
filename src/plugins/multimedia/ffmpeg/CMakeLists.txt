@@ -189,14 +189,27 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_xlib
         Xext
 )
 
-qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_eglfs
-    SOURCES
-        qeglfsscreencapture.cpp qeglfsscreencapture_p.h
-        qopenglvideobuffer.cpp qopenglvideobuffer_p.h
-    LIBRARIES
-        Qt::OpenGLPrivate
-        Qt::Quick
-)
+
+if(QT_FEATURE_eglfs AND TARGET Qt::OpenGLPrivate)
+    if(TARGET Qt::Quick)
+        qt_internal_extend_target(FFmpegMediaPluginImplPrivate
+            LIBRARIES Qt::Quick
+        )
+    else()
+        # There's no "quick" feature we could test for in C++ code. Add a define for that.
+        qt_internal_extend_target(FFmpegMediaPluginImplPrivate
+            DEFINES QT_NO_QUICK
+        )
+    endif()
+
+    qt_internal_extend_target(FFmpegMediaPluginImplPrivate
+        SOURCES
+            qeglfsscreencapture.cpp qeglfsscreencapture_p.h
+            qopenglvideobuffer.cpp qopenglvideobuffer_p.h
+        LIBRARIES
+            Qt::OpenGLPrivate
+    )
+endif()
 
 set_source_files_properties(qx11surfacecapture.cpp qx11capturablewindows.cpp # X headers
                             PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)

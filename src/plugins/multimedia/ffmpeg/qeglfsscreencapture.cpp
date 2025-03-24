@@ -12,7 +12,9 @@
 #include <QtOpenGL/private/qopenglcompositor_p.h>
 #include <QtOpenGL/private/qopenglframebufferobject_p.h>
 
+#ifndef QT_NO_QUICK
 #include <QtQuick/qquickwindow.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -64,6 +66,7 @@ protected:
     QVideoFrameFormat m_format;
 };
 
+#ifndef QT_NO_QUICK
 class QEglfsScreenCapture::QuickGrabber : public Grabber
 {
 public:
@@ -101,6 +104,7 @@ protected:
 private:
     QPointer<QQuickWindow> m_quickWindow;
 };
+#endif // QT_NO_QUICK
 
 QEglfsScreenCapture::QEglfsScreenCapture() : QPlatformSurfaceCapture(ScreenSource{}) { }
 
@@ -158,6 +162,7 @@ std::unique_ptr<QEglfsScreenCapture::Grabber> QEglfsScreenCapture::createGrabber
         return std::make_unique<Grabber>(*this, screen);
     }
 
+#ifndef QT_NO_QUICK
     // Check for QQuickWindow
     auto windows = QGuiApplication::topLevelWindows();
     auto it = std::find_if(windows.begin(), windows.end(), [screen](QWindow *window) {
@@ -172,6 +177,7 @@ std::unique_ptr<QEglfsScreenCapture::Grabber> QEglfsScreenCapture::createGrabber
         // Create grabber that calls QQuickWindow::grabWindow
         return std::make_unique<QuickGrabber>(*this, screen, qobject_cast<QQuickWindow *>(*it));
     }
+#endif // QT_NO_QUICK
 
     updateError(Error::CaptureFailed, QLatin1String("No existing OpenGL context or QQuickWindow"));
     return nullptr;
