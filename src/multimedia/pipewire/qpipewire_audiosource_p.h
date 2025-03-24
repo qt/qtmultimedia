@@ -56,6 +56,8 @@ private:
     void startHelper(Functor &&f);
 
     void reportXRuns(int numberOfXruns);
+
+    std::shared_ptr<QPipewireAudioSourceStream> m_retiredStream;
 };
 
 } // namespace QtPipeWire

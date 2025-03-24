@@ -9,6 +9,7 @@
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/qsemaphore.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
 #include <QtMultimedia/private/qaudio_rtsan_support_p.h>
@@ -19,6 +20,8 @@ QT_BEGIN_NAMESPACE
 namespace QtPipeWire {
 
 using QtMultimediaPrivate::QPlatformAudioSourceStream;
+using ShutdownPolicy = QtMultimediaPrivate::QPlatformAudioIOStream::ShutdownPolicy;
+using namespace std::chrono_literals;
 
 // LATER:
 // ideally the ringbuffer should fill a buffer that can grow via a worker thread on which we can
@@ -39,9 +42,10 @@ struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewire
     qsizetype bytesReady() const;
     bool start(QIODevice *device, ObjectSerial sourceNodeSerial);
     QIODevice *start(ObjectSerial sourceNodeSerial);
-    void stop();
+    void stop(ShutdownPolicy);
 
     using QPlatformAudioSourceStream::bytesReady;
+    using QPlatformAudioSourceStream::deviceIsRingbufferReader;
     using QPlatformAudioSourceStream::processedDuration;
     using QPlatformAudioSourceStream::setVolume;
 
@@ -57,6 +61,7 @@ private:
     void disconnectStream();
 
     std::shared_ptr<QPipewireAudioSourceStream> m_self;
+    QSemaphore m_streamDisconnected;
 
     // xrun detection
     void xrunOccurred(int /*xrunCount*/) override { m_xrunOccurred.set(); }
@@ -136,15 +141,25 @@ QIODevice *QPipewireAudioSourceStream::start(ObjectSerial sourceNodeSerial)
     return device;
 }
 
-void QPipewireAudioSourceStream::stop()
+void QPipewireAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
 {
-    // TODO: fix stopping behavior
     requestStop();
 
     // disconnect immediately
     disconnectStream();
-
     unregisterDeviceObserver();
+    disconnectQIODeviceConnections();
+
+    finalizeQIODevice(shutdownPolicy);
+    if (shutdownPolicy == ShutdownPolicy::DiscardRingbuffer) {
+        // Pipewire is asynchronous. So to properly discard the ringbuffer content, we need to wait
+        // for the stream to be stopped before we discard the ringbuffer content
+        bool streamDisconnected = m_streamDisconnected.try_acquire_for(5s);
+        if (!streamDisconnected)
+            qWarning() << "QPipewireAudioSourceStream::stop: m_streamDisconnected semaphore "
+                          "timeout. This should not happen";
+        emptyRingbuffer();
+    }
 }
 
 void QPipewireAudioSourceStream::updateStreamIdle(bool idle)
@@ -204,6 +219,7 @@ void QPipewireAudioSourceStream::stateChanged(pw_stream_state /*oldState*/, pw_s
 {
     switch (state) {
     case pw_stream_state::PW_STREAM_STATE_UNCONNECTED:
+        m_streamDisconnected.release();
         m_self.reset();
         break;
 
@@ -285,17 +301,23 @@ void QPipewireAudioSource::stop()
     if (!m_stream)
         return;
 
-    m_stream->stop(/*ShutdownPolicy::DrainRingbuffer*/);
+    if (m_stream->deviceIsRingbufferReader())
+        // we own the qiodevice, so let's keep it alive to allow users to drain the ringbuffer
+        m_retiredStream = m_stream;
+
+    m_stream->stop(ShutdownPolicy::DrainRingbuffer);
     updateStreamState(QtAudio::State::StoppedState);
     m_stream.reset();
 }
 
 void QPipewireAudioSource::reset()
 {
+    m_retiredStream = {};
+
     if (!m_stream)
         return;
 
-    m_stream->stop(/*ShutdownPolicy::DiscardRingbuffer*/);
+    m_stream->stop(ShutdownPolicy::DiscardRingbuffer);
     updateStreamState(QtAudio::State::StoppedState);
     m_stream.reset();
 }

@@ -39,13 +39,13 @@ public:
 
     bool start(QIODevice *);
     QIODevice *start();
-    void stop();
-    void reset();
+    void stop(ShutdownPolicy);
 
     void suspend();
     void resume();
 
     using QPlatformAudioSourceStream::bytesReady;
+    using QPlatformAudioSourceStream::deviceIsRingbufferReader;
     using QPlatformAudioSourceStream::processedDuration;
     using QPlatformAudioSourceStream::setVolume;
 
@@ -191,7 +191,7 @@ QIODevice *QCoreAudioSourceStream::start()
     return device;
 }
 
-void QCoreAudioSourceStream::stop()
+void QCoreAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
 {
     requestStop();
 
@@ -204,11 +204,12 @@ void QCoreAudioSourceStream::stop()
 #endif
     AudioUnitUninitialize(m_audioUnit.get());
     m_audioUnit = {};
-}
 
-void QCoreAudioSourceStream::reset()
-{
-    stop(); // FIXME: stop behavior for source, do we distinguish between stop / reset?
+    disconnectQIODeviceConnections();
+
+    finalizeQIODevice(shutdownPolicy);
+    if (shutdownPolicy == ShutdownPolicy::DiscardRingbuffer)
+        emptyRingbuffer();
 }
 
 void QCoreAudioSourceStream::suspend()
@@ -362,20 +363,30 @@ QIODevice *QDarwinAudioSource::start()
 
 void QDarwinAudioSource::stop()
 {
-    if (m_stream) {
-        m_stream->stop();
-        updateStreamState(QAudio::StoppedState);
-        m_stream = {};
-    }
+    if (!m_stream)
+        return;
+
+    if (m_stream->deviceIsRingbufferReader())
+        // we own the qiodevice, so let's keep it alive to allow users to drain the ringbuffer
+        m_retiredStream = m_stream;
+
+    using ShutdownPolicy = QtMultimediaPrivate::QPlatformAudioIOStream::ShutdownPolicy;
+    m_stream->stop(ShutdownPolicy::DrainRingbuffer);
+    updateStreamState(QAudio::StoppedState);
+    m_stream = {};
 }
 
 void QDarwinAudioSource::reset()
 {
-    if (m_stream) {
-        m_stream->reset();
-        updateStreamState(QAudio::StoppedState);
-        m_stream = {};
-    }
+    m_retiredStream = {};
+
+    if (!m_stream)
+        return;
+
+    using ShutdownPolicy = QtMultimediaPrivate::QPlatformAudioIOStream::ShutdownPolicy;
+    m_stream->stop(ShutdownPolicy::DiscardRingbuffer);
+    updateStreamState(QAudio::StoppedState);
+    m_stream = {};
 }
 
 void QDarwinAudioSource::suspend()

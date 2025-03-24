@@ -336,6 +336,29 @@ bool QPlatformAudioSourceStream::deviceIsRingbufferReader() const
     return m_device == m_ringbufferReaderDevice.get();
 }
 
+void QPlatformAudioSourceStream::finalizeQIODevice(ShutdownPolicy shutdownPolicy)
+{
+    switch (shutdownPolicy) {
+    case ShutdownPolicy::DiscardRingbuffer:
+        return;
+    case ShutdownPolicy::DrainRingbuffer:
+        if (!deviceIsRingbufferReader())
+            pushToIODevice();
+        return;
+
+    default:
+        Q_UNREACHABLE_RETURN();
+    }
+}
+
+void QPlatformAudioSourceStream::emptyRingbuffer()
+{
+    visitRingbuffer([](auto &ringbuffer) {
+        ringbuffer.consumeAll([](auto &) {
+        });
+    });
+}
+
 qsizetype QPlatformAudioSourceStream::bytesReady() const
 {
     return visitRingbuffer([](const auto &ringbuffer) {
@@ -358,26 +381,35 @@ void QPlatformAudioSourceStream::setQIODevice(QIODevice *device)
 
 void QPlatformAudioSourceStream::createQIODeviceConnections(QIODevice *device)
 {
-    bool pushToDevice = device != m_ringbufferReaderDevice.get();
+    bool pushToDevice = !deviceIsRingbufferReader();
 
     if (pushToDevice) {
-        QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
+        m_ringbufferHasDataConnection =
+                QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
             if (!isStopRequested())
                 updateStreamIdle(false);
             pushToIODevice();
         });
     } else {
-        QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
+        m_ringbufferHasDataConnection =
+                QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
             if (!isStopRequested())
                 updateStreamIdle(false);
             Q_EMIT m_device->readyRead();
         });
     }
 
-    QObject::connect(&m_ringbufferIsFull, &QAutoResetEvent::activated, device, [this] {
+    m_ringbufferIsFullConnection =
+            QObject::connect(&m_ringbufferIsFull, &QAutoResetEvent::activated, device, [this] {
         if (!isStopRequested())
             updateStreamIdle(true);
     });
+}
+
+void QPlatformAudioSourceStream::disconnectQIODeviceConnections()
+{
+    QObject::disconnect(m_ringbufferHasDataConnection);
+    QObject::disconnect(m_ringbufferIsFullConnection);
 }
 
 QIODevice *QPlatformAudioSourceStream::createRingbufferReaderDevice()
