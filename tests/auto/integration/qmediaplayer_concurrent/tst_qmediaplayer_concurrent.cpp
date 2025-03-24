@@ -37,7 +37,7 @@ private Q_SLOTS:
         // Stress test QMediaPlayer a bit to make sure it works concurrently
         // in multiple threads
         for (size_t i = 0; i < threadCount; ++i) {
-            threads[i].reset(QThread::create([&, i] { //
+            threads[i].reset(QThread::create([&] {
                 if (!playVideo(url))
                     success = false;
             }));
