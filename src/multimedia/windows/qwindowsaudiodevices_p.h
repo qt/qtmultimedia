@@ -42,8 +42,6 @@ public:
     QPlatformAudioSink *createAudioSink(const QAudioDevice &, const QAudioFormat &,
                                         QObject *parent) override;
 
-    void prepareAudio() override;
-
     using QPlatformAudioDevices::onAudioInputsChanged;
     using QPlatformAudioDevices::onAudioOutputsChanged;
 
@@ -60,10 +58,6 @@ private:
 
     ComPtr<IMMDeviceEnumerator> m_deviceEnumerator;
     ComPtr<CMMNotificationClient> m_notificationClient;
-    // The "warm-up" audio client is required to run in the background in order to keep audio engine
-    // ready for audio output immediately after creating any other subsequent audio client.
-    ComPtr<IAudioClient3> m_warmUpAudioClient;
-    std::atomic_bool m_isAudioClientWarmedUp = false;
 
     friend CMMNotificationClient;
 };

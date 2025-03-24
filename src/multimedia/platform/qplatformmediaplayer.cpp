@@ -11,7 +11,6 @@ QT_BEGIN_NAMESPACE
 
 QPlatformMediaPlayer::QPlatformMediaPlayer(QMediaPlayer *parent) : player(parent)
 {
-    QPlatformMediaIntegration::instance()->audioDevices()->prepareAudio();
 }
 
 QPlatformMediaPlayer::~QPlatformMediaPlayer() = default;

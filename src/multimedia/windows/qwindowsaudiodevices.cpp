@@ -164,16 +164,9 @@ QWindowsAudioDevices::~QWindowsAudioDevices()
         // being called (QTBUG-120198).
         m_deviceEnumerator->UnregisterEndpointNotificationCallback(m_notificationClient.Get());
     }
-    if (m_warmUpAudioClient) {
-        HRESULT hr = m_warmUpAudioClient->Stop();
-        if (FAILED(hr)) {
-            qWarning() << "Failed to stop audio engine" << hr;
-        }
-    }
 
     m_deviceEnumerator.Reset();
     m_notificationClient.Reset();
-    m_warmUpAudioClient.Reset();
 }
 
 static std::optional<QString> getDeviceId(const ComPtr<IMMDevice> &dev)
@@ -280,82 +273,6 @@ QPlatformAudioSink *QWindowsAudioDevices::createAudioSink(const QAudioDevice &de
                                                           const QAudioFormat &fmt, QObject *parent)
 {
     return new QWindowsAudioSink(device, fmt, parent);
-}
-
-static bool isPrepareAudioEnabled()
-{
-    static bool isDisableAudioPrepareSet = false;
-    static const int disableAudioPrepare =
-            qEnvironmentVariableIntValue("QT_DISABLE_AUDIO_PREPARE", &isDisableAudioPrepareSet);
-
-    return !isDisableAudioPrepareSet || disableAudioPrepare == 0;
-}
-
-void QWindowsAudioDevices::prepareAudio()
-{
-    if (!isPrepareAudioEnabled())
-        return;
-
-    if (m_isAudioClientWarmedUp.exchange(true))
-        return;
-
-    ComPtr<IMMDeviceEnumerator> deviceEnumerator;
-    HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
-                                  __uuidof(IMMDeviceEnumerator),
-                                  reinterpret_cast<void **>(deviceEnumerator.GetAddressOf()));
-    if (FAILED(hr)) {
-        qWarning() << "Failed to create device enumerator" << hr;
-        return;
-    }
-
-    ComPtr<IMMDevice> device;
-    hr = deviceEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
-    if (FAILED(hr)) {
-        if (hr != E_NOTFOUND)
-            qWarning() << "Failed to retrieve default audio endpoint" << hr;
-        return;
-    }
-
-    hr = device->Activate(__uuidof(IAudioClient3), CLSCTX_ALL, nullptr,
-                          reinterpret_cast<void **>(m_warmUpAudioClient.GetAddressOf()));
-    if (FAILED(hr)) {
-        qWarning() << "Failed to activate audio engine" << hr;
-        return;
-    }
-
-    QComTaskResource<WAVEFORMATEX> deviceFormat;
-    UINT32 currentPeriodInFrames = 0;
-    hr = m_warmUpAudioClient->GetCurrentSharedModeEnginePeriod(deviceFormat.address(),
-                                                               &currentPeriodInFrames);
-    if (FAILED(hr)) {
-        qWarning() << "Failed to retrieve the current format and periodicity of the audio engine"
-                   << hr;
-        return;
-    }
-
-    UINT32 defaultPeriodInFrames = 0;
-    UINT32 fundamentalPeriodInFrames = 0;
-    UINT32 minPeriodInFrames = 0;
-    UINT32 maxPeriodInFrames = 0;
-    hr = m_warmUpAudioClient->GetSharedModeEnginePeriod(deviceFormat.get(), &defaultPeriodInFrames,
-                                                        &fundamentalPeriodInFrames,
-                                                        &minPeriodInFrames, &maxPeriodInFrames);
-    if (FAILED(hr)) {
-        qWarning() << "Failed to retrieve the range of periodicities supported by the audio engine"
-                   << hr;
-        return;
-    }
-
-    hr = m_warmUpAudioClient->InitializeSharedAudioStream(
-            AUDCLNT_SHAREMODE_SHARED, minPeriodInFrames, deviceFormat.get(), nullptr);
-    if (FAILED(hr)) {
-        qWarning() << "Failed to initialize audio engine stream" << hr;
-        return;
-    }
-
-    hr = m_warmUpAudioClient->Start();
-    if (FAILED(hr))
-        qWarning() << "Failed to start audio engine" << hr;
 }
 
 QT_END_NAMESPACE

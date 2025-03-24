@@ -70,6 +70,7 @@ bool audioClientStart(const ComPtr<IAudioClient3> &);
 bool audioClientStop(const ComPtr<IAudioClient3> &);
 bool audioClientReset(const ComPtr<IAudioClient3> &);
 bool audioClientSetRate(const ComPtr<IAudioClient3> &, int rate);
+bool audioClientSetRole(const ComPtr<IAudioClient3> &client, AudioEndpointRole role);
 
 std::optional<quint32> getBufferSizeInFrames(const ComPtr<IAudioClient3> &client);
 struct AudioClientDevicePeriod
