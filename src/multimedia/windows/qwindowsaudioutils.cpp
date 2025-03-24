@@ -330,7 +330,7 @@ QString audioClientErrorString(HRESULT hr)
     }
 }
 
-static bool audioClientSetRole(const ComPtr<IAudioClient3> &client, AudioEndpointRole role)
+bool audioClientSetRole(const ComPtr<IAudioClient3> &client, AudioEndpointRole role)
 {
     AudioClientProperties properties{};
     properties.cbSize = sizeof(AudioClientProperties);

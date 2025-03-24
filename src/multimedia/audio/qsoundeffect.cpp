@@ -15,6 +15,10 @@
 #include <QtMultimedia/private/qsamplecache_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
+#ifdef Q_OS_WIN
+#  include <QtMultimedia/private/qwindows_wasapi_warmup_client_p.h>
+#endif
+
 static Q_LOGGING_CATEGORY(qLcSoundEffect, "qt.multimedia.soundeffect")
 
 QT_BEGIN_NAMESPACE
@@ -96,8 +100,6 @@ QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &au
     , m_audioDevice(audioDevice)
 {
     open(QIODevice::ReadOnly);
-
-    QPlatformMediaIntegration::instance()->audioDevices()->prepareAudio();
 }
 
 void QSoundEffectPrivate::sampleReady(QSample *sample)
@@ -278,8 +280,12 @@ void QSoundEffectPrivate::setPlaying(bool playing)
         return;
     m_playing = playing;
 
-    if (m_audioSink && playing)
+    if (m_audioSink && playing) {
         m_audioSink->start(this);
+#ifdef Q_OS_WIN
+        QtMultimediaPrivate::refreshWarmupClient();
+#endif
+    }
 
     emit q_ptr->playingChanged();
 }

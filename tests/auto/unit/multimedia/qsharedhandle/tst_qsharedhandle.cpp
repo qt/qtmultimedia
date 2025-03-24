@@ -171,6 +171,7 @@ private slots:
 
         QT_WARNING_PUSH
         QT_WARNING_DISABLE_CLANG("-Wself-move")
+        QT_WARNING_DISABLE_GCC("-Wself-move")
         source = std::move(source); // NOLINT(clang-diagnostic-self-move)
         QT_WARNING_POP
 

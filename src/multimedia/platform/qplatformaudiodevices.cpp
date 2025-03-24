@@ -136,8 +136,6 @@ QPlatformAudioSink *QPlatformAudioDevices::audioOutputDevice(const QAudioFormat 
     return createAudioSink(device, format, parent);
 }
 
-void QPlatformAudioDevices::prepareAudio() { }
-
 QT_END_NAMESPACE
 
 #include "moc_qplatformaudiodevices_p.cpp"

@@ -15,6 +15,10 @@
 #include <qdebug.h>
 #include <qelapsedtimer.h>
 
+#ifdef Q_OS_WIN
+#  include <QtMultimedia/private/qwindows_wasapi_warmup_client_p.h>
+#endif
+
 #include <QFile>
 
 QT_BEGIN_NAMESPACE
@@ -75,6 +79,10 @@ public:
         // It is important to unlock the mutex before starting the sink, as the sink will
         // call readData() in the audio thread, which will try to lock the mutex (again)
         sink->start(this);
+
+#ifdef Q_OS_WIN
+        QtMultimediaPrivate::refreshWarmupClient();
+#endif
     }
 
     Q_INVOKABLE void stopOutput() {
