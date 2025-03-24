@@ -53,8 +53,6 @@ public:
     QPlatformAudioSink *audioOutputDevice(const QAudioFormat &format,
                                           const QAudioDevice &deviceInfo, QObject *parent);
 
-    virtual void prepareAudio();
-
     void initVideoDevicesConnection();
     virtual QLatin1String backendName() const { return QLatin1String{ "null" }; }
 
