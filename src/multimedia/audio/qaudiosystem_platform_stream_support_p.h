@@ -47,6 +47,7 @@ protected:
     QPlatformAudioIOStream(QAudioDevice m_audioDevice, QAudioFormat m_format,
                            std::optional<int> ringbufferSize);
     ~QPlatformAudioIOStream();
+    Q_DISABLE_COPY_MOVE(QPlatformAudioIOStream)
 
     void setVolume(float);
     float volume() const { return m_volume.load(std::memory_order_relaxed); };
@@ -108,6 +109,7 @@ protected:
     QPlatformAudioSinkStream(const QAudioDevice &, const QAudioFormat &,
                              std::optional<int> ringbufferSize);
     ~QPlatformAudioSinkStream();
+    Q_DISABLE_COPY_MOVE(QPlatformAudioSinkStream)
 
     uint64_t process(QSpan<std::byte> hostBuffer, qsizetype totalNumberOfFrames,
                      std::optional<NativeSampleFormat> = {}) QT_MM_NONBLOCKING;
@@ -179,6 +181,8 @@ protected:
     QPlatformAudioSourceStream(const QAudioDevice &, const QAudioFormat &,
                                std::optional<int> ringbufferSize);
     ~QPlatformAudioSourceStream();
+
+    Q_DISABLE_COPY_MOVE(QPlatformAudioSourceStream)
 
     uint64_t process(QSpan<const std::byte> hostBuffer, qsizetype numberOfFrames,
                      std::optional<NativeSampleFormat> = {}) QT_MM_NONBLOCKING;

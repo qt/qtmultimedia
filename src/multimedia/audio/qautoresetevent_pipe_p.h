@@ -29,8 +29,8 @@ class Q_MULTIMEDIA_EXPORT QAutoResetEventPipe : public QObject
 
 public:
     explicit QAutoResetEventPipe(QObject *parent = nullptr);
-
     ~QAutoResetEventPipe();
+    Q_DISABLE_COPY_MOVE(QAutoResetEventPipe)
 
     bool isValid() const { return m_fdProducer != -1; }
 

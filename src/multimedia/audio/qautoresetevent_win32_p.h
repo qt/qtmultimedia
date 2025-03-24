@@ -29,6 +29,7 @@ class Q_MULTIMEDIA_EXPORT QAutoResetEventWin32 : public QObject
 public:
     explicit QAutoResetEventWin32(QObject *parent = nullptr);
     ~QAutoResetEventWin32();
+    Q_DISABLE_COPY_MOVE(QAutoResetEventWin32)
 
     bool isValid() const;
     void set();

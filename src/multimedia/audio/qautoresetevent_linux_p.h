@@ -28,8 +28,8 @@ class Q_MULTIMEDIA_EXPORT QAutoResetEventEventFD : public QObject
 
 public:
     explicit QAutoResetEventEventFD(QObject *parent = nullptr);
-
     ~QAutoResetEventEventFD();
+    Q_DISABLE_COPY_MOVE(QAutoResetEventEventFD)
 
     bool isValid() const { return m_fd != -1; }
     void set();

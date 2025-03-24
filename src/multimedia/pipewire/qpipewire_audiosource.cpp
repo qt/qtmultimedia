@@ -34,6 +34,8 @@ struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewire
                                std::optional<qsizetype> hardwareBufferSize = std::nullopt);
     ~QPipewireAudioSourceStream();
 
+    Q_DISABLE_COPY_MOVE(QPipewireAudioSourceStream)
+
     qsizetype bytesReady() const;
     bool start(QIODevice *device, ObjectSerial sourceNodeSerial);
     QIODevice *start(ObjectSerial sourceNodeSerial);

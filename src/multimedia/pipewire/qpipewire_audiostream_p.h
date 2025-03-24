@@ -34,6 +34,8 @@ protected:
     explicit QPipewireAudioStream(const QAudioFormat &);
     ~QPipewireAudioStream();
 
+    Q_DISABLE_COPY_MOVE(QPipewireAudioStream)
+
     const QAudioFormat m_format;
 
     // stream control
