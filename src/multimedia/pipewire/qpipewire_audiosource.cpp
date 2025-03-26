@@ -31,7 +31,7 @@ struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewire
 
     QPipewireAudioSourceStream(QPipewireAudioSource *parent, const QAudioFormat &format,
                                std::optional<qsizetype> ringbufferSize,
-                               std::optional<qsizetype> hardwareBufferSize = std::nullopt);
+                               std::optional<qsizetype> hardwareBufferSize, float volume);
     ~QPipewireAudioSourceStream();
 
     Q_DISABLE_COPY_MOVE(QPipewireAudioSourceStream)
@@ -69,7 +69,8 @@ private:
 QPipewireAudioSourceStream::QPipewireAudioSourceStream(QPipewireAudioSource *parent,
                                                        const QAudioFormat &format,
                                                        std::optional<qsizetype> ringbufferSize,
-                                                       std::optional<qsizetype> hardwareBufferSize):
+                                                       std::optional<qsizetype> hardwareBufferSize,
+                                                       float volume):
     QPipewireAudioStream {
         format,
     },
@@ -77,6 +78,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QPipewireAudioSource *par
         {},
         format,
         ringbufferSize,
+        volume,
     },
     m_parent {
         parent,
@@ -238,13 +240,11 @@ void QPipewireAudioSource::startHelper(Functor &&starter)
     }
 
     m_stream = std::make_shared<QPipewireAudioSourceStream>(this, format(), m_bufferSize,
-                                                            m_hardwareBufferSize);
+                                                            m_hardwareBufferSize, m_volume);
     if (!m_stream->hasStream()) {
         setError(QtAudio::Error::OpenError);
         return;
     }
-
-    m_stream->setVolume(m_volume);
 
     bool started = starter(m_stream, *deviceSerial);
     if (started)

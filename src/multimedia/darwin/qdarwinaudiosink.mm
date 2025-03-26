@@ -38,7 +38,8 @@ class QCoreAudioSinkStream final : public std::enable_shared_from_this<QCoreAudi
 
 public:
     explicit QCoreAudioSinkStream(const QAudioDevice &, QAudioFormat,
-                                  std::optional<int> ringbufferSize, QDarwinAudioSink *parent);
+                                  std::optional<int> ringbufferSize, QDarwinAudioSink *parent,
+                                  float volume);
 
     bool open();
     bool start(QIODevice *device);
@@ -87,9 +88,9 @@ void QCoreAudioSinkStream::updateStreamIdle(bool arg)
 
 QCoreAudioSinkStream::QCoreAudioSinkStream(const QAudioDevice &audioDevice, QAudioFormat format,
                                            std::optional<int> ringbufferSize,
-                                           QDarwinAudioSink *parent)
+                                           QDarwinAudioSink *parent, float volume)
     : QPlatformAudioSinkStream{
-          audioDevice, format, ringbufferSize,
+          audioDevice, format, ringbufferSize, volume,
       },
       m_parent(parent)
 {
@@ -334,7 +335,7 @@ void QDarwinAudioSink::start(QIODevice *device)
     }
 
     m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_audioFormat,
-                                                      m_internalBufferSize, this);
+                                                      m_internalBufferSize, this, m_volume);
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
@@ -348,7 +349,7 @@ void QDarwinAudioSink::start(QIODevice *device)
 QIODevice *QDarwinAudioSink::start()
 {
     m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_audioFormat,
-                                                      m_internalBufferSize, this);
+                                                      m_internalBufferSize, this, m_volume);
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
@@ -430,14 +431,14 @@ QAudioFormat QDarwinAudioSink::format() const
 
 void QDarwinAudioSink::setVolume(qreal volume)
 {
-    m_cachedVolume = qBound(qreal(0.0), volume, qreal(1.0));
+    m_volume = qBound(qreal(0.0), volume, qreal(1.0));
     if (m_stream)
-        m_stream->setVolume(m_cachedVolume);
+        m_stream->setVolume(m_volume);
 }
 
 qreal QDarwinAudioSink::volume() const
 {
-    return m_cachedVolume;
+    return m_volume;
 }
 
 void QDarwinAudioSink::resumeStreamIfNecessary()
