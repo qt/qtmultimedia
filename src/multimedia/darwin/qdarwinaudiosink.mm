@@ -369,8 +369,8 @@ void QDarwinAudioSink::stop()
 {
     if (m_stream) {
         m_stream->stop();
-        updateStreamState(QAudio::StoppedState);
         m_stream = {};
+        updateStreamState(QAudio::StoppedState);
     }
 }
 
@@ -378,8 +378,8 @@ void QDarwinAudioSink::reset()
 {
     if (m_stream) {
         m_stream->reset();
-        updateStreamState(QAudio::StoppedState);
         m_stream = {};
+        updateStreamState(QAudio::StoppedState);
     }
 }
 

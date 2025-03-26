@@ -306,8 +306,8 @@ void QPipewireAudioSource::stop()
         m_retiredStream = m_stream;
 
     m_stream->stop(ShutdownPolicy::DrainRingbuffer);
+    m_stream = {};
     updateStreamState(QtAudio::State::StoppedState);
-    m_stream.reset();
 }
 
 void QPipewireAudioSource::reset()
@@ -318,8 +318,8 @@ void QPipewireAudioSource::reset()
         return;
 
     m_stream->stop(ShutdownPolicy::DiscardRingbuffer);
+    m_stream = {};
     updateStreamState(QtAudio::State::StoppedState);
-    m_stream.reset();
 }
 
 void QPipewireAudioSource::suspend()
