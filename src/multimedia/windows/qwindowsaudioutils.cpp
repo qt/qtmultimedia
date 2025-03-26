@@ -330,10 +330,40 @@ QString audioClientErrorString(HRESULT hr)
     }
 }
 
+static bool audioClientSetRole(const ComPtr<IAudioClient3> &client, AudioEndpointRole role)
+{
+    AudioClientProperties properties{};
+    properties.cbSize = sizeof(AudioClientProperties);
+
+    switch (role) {
+    case AudioEndpointRole::MediaPlayback:
+        properties.eCategory = AudioCategory_Media;
+        break;
+    case AudioEndpointRole::SoundEffect:
+        properties.eCategory = AudioCategory_SoundEffects;
+        break;
+    case AudioEndpointRole::Other:
+        properties.eCategory = AudioCategory_Other;
+        break;
+    default:
+        Q_UNREACHABLE_RETURN(false);
+    }
+
+    HRESULT hr = client->SetClientProperties(&properties);
+    if (FAILED(hr)) {
+        qWarning() << "IAudioClient2::SetClientProperties failed" << audioClientErrorString(hr);
+        abort();
+        return false;
+    }
+
+    return true;
+}
+
 std::optional<AudioClientCreationResult>
 createAudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format,
                   std::optional<qsizetype> hardwareBufferFrames,
-                  const QUniqueWin32NullHandle &wasapiEventHandle)
+                  const QUniqueWin32NullHandle &wasapiEventHandle,
+                  std::optional<AudioEndpointRole> role)
 {
     ComPtr<IAudioClient3> audioClient;
 
@@ -363,6 +393,9 @@ createAudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format,
     if (!fmt)
         return std::nullopt;
     auto waveFormat = *fmt;
+
+    if (role)
+        audioClientSetRole(audioClient, *role);
 
     constexpr DWORD streamFlags = AUDCLNT_STREAMFLAGS_EVENTCALLBACK
             | AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY
@@ -465,7 +498,6 @@ void setMCSSForPeriodSize(reference_time periodSize)
         qWarning() << "AvSetMmThreadPriority failed to set thread priority"
                    << QSystemError::windowsString();
 }
-
 } // namespace QWindowsAudioUtils
 
 QT_END_NAMESPACE

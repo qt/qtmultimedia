@@ -27,6 +27,17 @@
 QT_BEGIN_NAMESPACE
 
 class QIODevice;
+class QAudioSink;
+
+namespace QtMultimediaPrivate {
+
+enum class AudioEndpointRole : uint8_t {
+    MediaPlayback,
+    SoundEffect,
+    Other,
+};
+
+} // namespace QtMultimediaPrivate
 
 class Q_MULTIMEDIA_EXPORT QAudioStateChangeNotifier : public QObject
 {
@@ -92,6 +103,11 @@ public:
     virtual qreal volume() const;
 
     QElapsedTimer elapsedTime;
+
+    static QPlatformAudioSink *get(const QAudioSink &);
+
+    using AudioEndpointRole = QtMultimediaPrivate::AudioEndpointRole;
+    virtual void setRole(AudioEndpointRole) { }
 };
 
 class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QPlatformAudioEndpointBase

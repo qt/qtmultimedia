@@ -66,7 +66,8 @@ Q_SIGNALS:
 private:
     Q_DISABLE_COPY(QAudioSink)
 
-    QPlatformAudioSink* d;
+    friend class QPlatformAudioSink;
+    QPlatformAudioSink *d;
 };
 
 QT_END_NAMESPACE
