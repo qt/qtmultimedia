@@ -372,8 +372,8 @@ void QDarwinAudioSource::stop()
 
     using ShutdownPolicy = QtMultimediaPrivate::QPlatformAudioIOStream::ShutdownPolicy;
     m_stream->stop(ShutdownPolicy::DrainRingbuffer);
-    updateStreamState(QAudio::StoppedState);
     m_stream = {};
+    updateStreamState(QAudio::StoppedState);
 }
 
 void QDarwinAudioSource::reset()
@@ -385,8 +385,8 @@ void QDarwinAudioSource::reset()
 
     using ShutdownPolicy = QtMultimediaPrivate::QPlatformAudioIOStream::ShutdownPolicy;
     m_stream->stop(ShutdownPolicy::DiscardRingbuffer);
-    updateStreamState(QAudio::StoppedState);
     m_stream = {};
+    updateStreamState(QAudio::StoppedState);
 }
 
 void QDarwinAudioSource::suspend()
