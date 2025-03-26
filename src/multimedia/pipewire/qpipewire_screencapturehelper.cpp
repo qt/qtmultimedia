@@ -99,7 +99,7 @@ void QPipeWireCaptureHelper::updateError(QPlatformSurfaceCapture::Error error,
 
 bool QPipeWireCapture::isSupported()
 {
-    if (QPipeWireInstance::isLoaded())
+    if (!QPipeWireInstance::isLoaded())
         return false;
 
     return QPipeWireCaptureHelper::isSupported();
