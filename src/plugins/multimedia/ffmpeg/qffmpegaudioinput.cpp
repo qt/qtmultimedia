@@ -34,11 +34,15 @@ public:
 
     void setDevice(const QAudioDevice &device)
     {
+        Q_ASSERT(!thread()->isCurrentThread());
         QMutexLocker locker(&m_mutex);
         if (m_device == device)
             return;
         m_device = device;
-        QMetaObject::invokeMethod(this, "updateSource");
+        QMetaObject::invokeMethod(this, [this] {
+            QMutexLocker locker(&m_mutex);
+            updateSource(locker);
+        });
     }
     void setBufferSize(int bufferSize)
     {
@@ -47,22 +51,25 @@ public:
                                           : DefaultAudioInputBufferSize);
     }
     void setRunning(bool r) {
+        Q_ASSERT(!thread()->isCurrentThread());
         QMutexLocker locker(&m_mutex);
         if (m_running == r)
             return;
         m_running = r;
-        QMetaObject::invokeMethod(this, "updateRunning");
+        QMetaObject::invokeMethod(this, &AudioSourceIO::updateRunning);
     }
 
     void setVolume(float vol) {
+        Q_ASSERT(!thread()->isCurrentThread());
         QMutexLocker locker(&m_mutex);
         m_volume = vol;
-        QMetaObject::invokeMethod(this, "updateVolume");
+        QMetaObject::invokeMethod(this, &AudioSourceIO::updateVolume);
     }
     void setMuted(bool muted) {
+        Q_ASSERT(!thread()->isCurrentThread());
         QMutexLocker locker(&m_mutex);
         m_muted = muted;
-        QMetaObject::invokeMethod(this, "updateVolume");
+        QMetaObject::invokeMethod(this, &AudioSourceIO::updateVolume);
     }
 
     int bufferSize() const { return m_bufferSize.loadAcquire(); }
@@ -102,17 +109,6 @@ protected:
     }
 
 private Q_SLOTS:
-    void updateSource() {
-        QMutexLocker locker(&m_mutex);
-        m_format = m_device.preferredFormat();
-        if (std::exchange(m_audioSource, nullptr))
-            m_pcm.clear();
-
-        m_audioSource = std::make_unique<QAudioSource>(m_device, m_format);
-        updateVolume();
-        if (m_running)
-            m_audioSource->start(this);
-    }
     void updateVolume()
     {
         if (m_audioSource)
@@ -123,7 +119,7 @@ private Q_SLOTS:
         QMutexLocker locker(&m_mutex);
         if (m_running) {
             if (!m_audioSource)
-                updateSource();
+                updateSource(locker);
             m_audioSource->start(this);
         } else {
             m_audioSource->stop();
@@ -131,6 +127,18 @@ private Q_SLOTS:
     }
 
 private:
+    void updateSource(const QMutexLocker<QMutex> &guard)
+    {
+        Q_ASSERT(guard.mutex() == &m_mutex);
+        m_format = m_device.preferredFormat();
+        if (std::exchange(m_audioSource, nullptr))
+            m_pcm.clear();
+
+        m_audioSource = std::make_unique<QAudioSource>(m_device, m_format);
+        updateVolume();
+        if (m_running)
+            m_audioSource->start(this);
+    }
 
     void sendBuffer(const QByteArray &pcmData)
     {
