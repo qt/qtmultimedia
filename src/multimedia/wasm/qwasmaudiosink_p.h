@@ -46,7 +46,7 @@ class QWasmAudioSink : public QPlatformAudioSink
     int m_tmpDataOffset = 0;
     int m_bufferFragmentsBusyCount = 0;
     bool m_pullMode;
-    qreal m_volume = 1;
+    float m_volume = 1;
 
     void loadALBuffers();
     void unloadALBuffers();
@@ -74,8 +74,8 @@ public:
     QAudio::State state() const override;
     void setFormat(const QAudioFormat &fmt);
     QAudioFormat format() const override;
-    void setVolume(qreal volume) override;
-    qreal volume() const override;
+    void setVolume(float volume) override;
+    float volume() const override;
     void setError(QAudio::Error) override;
 
     friend class QWasmAudioSinkDevice;

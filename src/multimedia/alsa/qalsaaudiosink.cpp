@@ -26,12 +26,12 @@ QAlsaAudioSink::~QAlsaAudioSink()
     delete timer;
 }
 
-void QAlsaAudioSink::setVolume(qreal vol)
+void QAlsaAudioSink::setVolume(float vol)
 {
     m_volume = vol;
 }
 
-qreal QAlsaAudioSink::volume() const
+float QAlsaAudioSink::volume() const
 {
     return m_volume;
 }

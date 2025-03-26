@@ -40,12 +40,12 @@ QAlsaAudioSource::~QAlsaAudioSource()
     delete timer;
 }
 
-void QAlsaAudioSource::setVolume(qreal vol)
+void QAlsaAudioSource::setVolume(float vol)
 {
     m_volume = vol;
 }
 
-qreal QAlsaAudioSource::volume() const
+float QAlsaAudioSource::volume() const
 {
     return m_volume;
 }

@@ -254,12 +254,12 @@ QAudioFormat QWasmAudioSource::format() const
     return m_format;
 }
 
-void QWasmAudioSource::setVolume(qreal volume)
+void QWasmAudioSource::setVolume(float volume)
 {
     m_volume = volume;
 }
 
-qreal QWasmAudioSource::volume() const
+float QWasmAudioSource::volume() const
 {
     return m_volume;
 }

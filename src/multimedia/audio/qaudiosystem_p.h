@@ -99,8 +99,8 @@ public:
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
     virtual QAudioFormat format() const = 0;
-    virtual void setVolume(qreal) {}
-    virtual qreal volume() const;
+    virtual void setVolume(float) { }
+    virtual float volume() const;
 
     QElapsedTimer elapsedTime;
 
@@ -125,8 +125,8 @@ public:
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
     virtual QAudioFormat format() const = 0;
-    virtual void setVolume(qreal) = 0;
-    virtual qreal volume() const = 0;
+    virtual void setVolume(float) = 0;
+    virtual float volume() const = 0;
 
     QElapsedTimer elapsedTime;
 };

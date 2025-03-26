@@ -54,9 +54,8 @@ public:
     QAudio::State state() const override;
     void setFormat(const QAudioFormat& fmt);
     QAudioFormat format() const override;
-    void setVolume(qreal) override;
-    qreal volume() const override;
-
+    void setVolume(float) override;
+    float volume() const override;
 
     QIODevice* audioSource = nullptr;
     QAudioFormat settings;
@@ -95,7 +94,7 @@ private:
     snd_pcm_t* handle = nullptr;
     snd_pcm_access_t access = SND_PCM_ACCESS_RW_INTERLEAVED;
     snd_pcm_hw_params_t *hwparams = nullptr;
-    qreal m_volume = 1.0f;
+    float m_volume = 1.0f;
 };
 
 class AlsaOutputPrivate : public QIODevice

@@ -208,15 +208,15 @@ void QAndroidAudioSink::reset()
     destroyPlayer();
 }
 
-void QAndroidAudioSink::setVolume(qreal vol)
+void QAndroidAudioSink::setVolume(float vol)
 {
-    m_volume = qBound(qreal(0.0), vol, qreal(1.0));
+    m_volume = vol;
     const SLmillibel newVolume = adjustVolume(m_volume);
     if (m_volumeItf && SL_RESULT_SUCCESS != (*m_volumeItf)->SetVolumeLevel(m_volumeItf, newVolume))
         qWarning() << "Unable to change volume";
 }
 
-qreal QAndroidAudioSink::volume() const
+float QAndroidAudioSink::volume() const
 {
     return m_volume;
 }
@@ -585,12 +585,12 @@ inline void QAndroidAudioSink::setState(QAudio::State state)
     Q_EMIT stateChanged(m_state);
 }
 
-inline SLmillibel QAndroidAudioSink::adjustVolume(qreal vol)
+inline SLmillibel QAndroidAudioSink::adjustVolume(float vol)
 {
-    if (qFuzzyIsNull(vol))
+    if (vol == 0.f)
         return SL_MILLIBEL_MIN;
 
-    if (qFuzzyCompare(vol, qreal(1.0)))
+    if (vol == 1.f)
         return 0;
 
     return QAudio::convertVolume(vol, QAudio::LinearVolumeScale, QAudio::DecibelVolumeScale) * 100;

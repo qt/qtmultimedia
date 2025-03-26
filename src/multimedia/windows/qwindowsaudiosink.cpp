@@ -436,7 +436,7 @@ qint64 QWindowsAudioSink::processedUSecs() const
     return m_stream ? m_stream->processedDuration().count() : 0;
 }
 
-void QWindowsAudioSink::setVolume(qreal v)
+void QWindowsAudioSink::setVolume(float v)
 {
     m_volume = v;
     if (m_stream)

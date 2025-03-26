@@ -275,16 +275,14 @@ QAudioFormat QWasmAudioSink::format() const
     return m_format;
 }
 
-void QWasmAudioSink::setVolume(qreal volume)
+void QWasmAudioSink::setVolume(float volume)
 {
-    if (m_volume == volume)
-        return;
     m_volume = volume;
     if (m_running)
         alSourcef(aldata->source, AL_GAIN, volume);
 }
 
-qreal QWasmAudioSink::volume() const
+float QWasmAudioSink::volume() const
 {
     return m_volume;
 }

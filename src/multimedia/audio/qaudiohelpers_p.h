@@ -74,6 +74,8 @@ constexpr size_t bytesPerSample(NativeSampleFormat fmt) QT_MM_NONBLOCKING
     }
 }
 
+std::optional<float> sanitizeVolume(float volume, float lastVolume);
+
 } // namespace QAudioHelperInternal
 
 Q_MULTIMEDIA_EXPORT

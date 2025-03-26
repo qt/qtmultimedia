@@ -80,8 +80,8 @@ public:
     QAudio::State state() const override;
     void setFormat(const QAudioFormat& fmt);
     QAudioFormat format() const override;
-    void setVolume(qreal) override;
-    qreal volume() const override;
+    void setVolume(float) override;
+    float volume() const override;
     bool resuming;
     snd_pcm_t* handle;
     qint64 totalTimeValue;
@@ -115,7 +115,7 @@ private:
     snd_pcm_access_t access;
     snd_pcm_format_t pcmformat;
     snd_pcm_hw_params_t *hwparams;
-    qreal m_volume;
+    float m_volume;
 };
 
 class AlsaInputPrivate : public QIODevice

@@ -58,13 +58,13 @@ public:
     void setFormat(const QAudioFormat &format);
     QAudioFormat format() const override;
 
-    void setVolume(qreal volume) override;
-    qreal volume() const override;
+    void setVolume(float volume) override;
+    float volume() const override;
 
     qint64 m_totalTimeValue;
     QIODevice *m_audioSource;
     QAudioFormat m_format;
-    qreal m_volume;
+    float m_volume;
 
 protected:
     void timerEvent(QTimerEvent *event) override;
