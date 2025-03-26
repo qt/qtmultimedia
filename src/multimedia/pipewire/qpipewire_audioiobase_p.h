@@ -33,7 +33,7 @@ class QPipewireAudioDevicePrivate;
 #ifdef __cpp_concepts
 
 template <typename T>
-concept QPlatformAudioIOBase = requires(T t, QIODevice *device, qsizetype size, qreal volume, const QAudioFormat &format) {
+concept QPlatformAudioIOBase = requires(T t, QIODevice *device, qsizetype size, float volume, const QAudioFormat &format) {
     { t.start(device) } -> std::same_as<void>;
     { t.start() } -> std::same_as<QIODevice*>;
     { t.stop() } -> std::same_as<void>;
@@ -48,7 +48,7 @@ concept QPlatformAudioIOBase = requires(T t, QIODevice *device, qsizetype size, 
     { t.state() } -> std::same_as<QAudio::State>;
     { t.format() } -> std::same_as<QAudioFormat>;
     { t.setVolume(volume) } -> std::same_as<void>;
-    { t.volume() } -> std::same_as<qreal>;
+    { t.volume() } -> std::same_as<float>;
 };
 
 static_assert(QPlatformAudioIOBase<QPlatformAudioSource>);
@@ -56,7 +56,7 @@ static_assert(QPlatformAudioIOBase<QPlatformAudioSink>);
 
 // CAVEAT: opaque, so we cannot write a concept for it
 // template <typename T>
-// concept QPipewireAudioStream = requires(T t, qreal volume) {
+// concept QPipewireAudioStream = requires(T t, float volume) {
 //     { t.setVolume(volume) } -> std::same_as<void>;
 // };
 
@@ -87,9 +87,9 @@ protected:
     const QAudioFormat m_format;
 
     // volume
-    qreal m_volume = 1.0f;
-    void setVolume(qreal volume) override;
-    qreal volume() const override;
+    float m_volume = 1.0f;
+    void setVolume(float volume) override;
+    float volume() const override;
 
     // streams
     std::shared_ptr<StreamType> m_stream;
@@ -138,7 +138,7 @@ QPipewireAudioIOBase<BaseClass, StreamType>::privateDevice() const
 }
 
 DECLARE_TEMPLATE_ARGS
-inline void QPipewireAudioIOBase<BaseClass, StreamType>::setVolume(qreal volume)
+inline void QPipewireAudioIOBase<BaseClass, StreamType>::setVolume(float volume)
 {
     m_volume = volume;
 
@@ -147,7 +147,7 @@ inline void QPipewireAudioIOBase<BaseClass, StreamType>::setVolume(qreal volume)
 }
 
 DECLARE_TEMPLATE_ARGS
-inline qreal QPipewireAudioIOBase<BaseClass, StreamType>::volume() const
+inline float QPipewireAudioIOBase<BaseClass, StreamType>::volume() const
 {
     return m_volume;
 }

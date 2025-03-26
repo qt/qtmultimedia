@@ -98,9 +98,9 @@ QPlatformAudioSink::QPlatformAudioSink(QAudioDevice device, QObject *parent)
 {
 }
 
-qreal QPlatformAudioSink::volume() const
+float QPlatformAudioSink::volume() const
 {
-    return 1.0;
+    return 1.0f;
 }
 
 QPlatformAudioSink *QPlatformAudioSink::get(const QAudioSink &sink)

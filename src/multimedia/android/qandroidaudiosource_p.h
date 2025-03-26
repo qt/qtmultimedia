@@ -57,8 +57,8 @@ public:
     void setFormat(const QAudioFormat &format);
     QAudioFormat format() const;
 
-    void setVolume(qreal volume);
-    qreal volume() const;
+    void setVolume(float volume);
+    float volume() const;
 
 public Q_SLOTS:
     void processBuffer();
@@ -87,7 +87,7 @@ private:
     QAudioFormat m_format;
     QAudio::State m_deviceState;
     qint64 m_lastNotifyTime;
-    qreal m_volume;
+    float m_volume;
     int m_bufferSize;
     QByteArray *m_buffers;
     int m_currentBuffer;

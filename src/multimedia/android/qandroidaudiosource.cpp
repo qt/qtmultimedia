@@ -441,12 +441,12 @@ qint64 QAndroidAudioSource::processedUSecs() const
     return m_format.durationForBytes(m_processedBytes);
 }
 
-void QAndroidAudioSource::setVolume(qreal vol)
+void QAndroidAudioSource::setVolume(float vol)
 {
     m_volume = vol;
 }
 
-qreal QAndroidAudioSource::volume() const
+float QAndroidAudioSource::volume() const
 {
     return m_volume;
 }

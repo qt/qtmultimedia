@@ -717,15 +717,12 @@ qint64 PulseOutputPrivate::writeData(const char *data, qint64 len)
     return written;
 }
 
-void QPulseAudioSink::setVolume(qreal vol)
+void QPulseAudioSink::setVolume(float vol)
 {
-    if (qFuzzyCompare(m_volume, vol))
-        return;
-
-    m_volume = qBound(qreal(0), vol, qreal(1));
+    m_volume = vol;
 }
 
-qreal QPulseAudioSink::volume() const
+float QPulseAudioSink::volume() const
 {
     return m_volume;
 }

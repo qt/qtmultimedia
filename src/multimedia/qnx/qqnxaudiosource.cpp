@@ -151,12 +151,12 @@ QAudioFormat QQnxAudioSource::format() const
     return m_format;
 }
 
-void QQnxAudioSource::setVolume(qreal volume)
+void QQnxAudioSource::setVolume(float volume)
 {
-    m_volume = qBound(qreal(0.0), volume, qreal(1.0));
+    m_volume = volume;
 }
 
-qreal QQnxAudioSource::volume() const
+float QQnxAudioSource::volume() const
 {
     return m_volume;
 }

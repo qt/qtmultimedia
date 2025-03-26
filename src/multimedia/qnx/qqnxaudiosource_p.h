@@ -49,8 +49,8 @@ public:
     QAudio::State state() const override;
     void setFormat(const QAudioFormat&);
     QAudioFormat format() const override;
-    void setVolume(qreal) override;
-    qreal volume() const override;
+    void setVolume(float) override;
+    float volume() const override;
 
 private slots:
     void userFeed();
@@ -76,7 +76,7 @@ private:
     qint64 m_elapsedTimeOffset;
     qint64 m_totalTimeValue;
 
-    qreal m_volume;
+    float m_volume;
 
     int m_bytesAvailable;
     int m_bufferSize;
