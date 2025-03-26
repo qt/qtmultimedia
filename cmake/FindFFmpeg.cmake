@@ -70,6 +70,12 @@ if (QT_DEPLOY_FFMPEG AND BUILD_SHARED_LIBS)
     set(shared_libs_desired TRUE)
 endif()
 
+if(IOS)
+    set(QT_FFMPEG_SHARED_LIBRARY_SUFFIX ".xcframework")
+else()
+    set(QT_FFMPEG_SHARED_LIBRARY_SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}")
+endif()
+
 # finds FFmpeg libs, including symlinks, for the specified component.
 macro(find_shared_libs_for_component _component)
     # the searching pattern is pretty rough but it seems to be sufficient to gather dynamic libs
@@ -82,13 +88,13 @@ macro(find_shared_libs_for_component _component)
             # only them even though the folder bin/ contains proper *.dll and *.lib.
 
             string(REGEX REPLACE "^lib" "" name_we "${name_we}")
-            set(shared_lib_pattern "../bin/${name_we}*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+            set(shared_lib_pattern "../bin/${name_we}*${QT_FFMPEG_SHARED_LIBRARY_SUFFIX}")
         else()
-            set(shared_lib_pattern "${name_we}*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+            set(shared_lib_pattern "${name_we}*${QT_FFMPEG_SHARED_LIBRARY_SUFFIX}")
         endif()
 
     else()
-        set(shared_lib_pattern "${name_we}*${CMAKE_SHARED_LIBRARY_SUFFIX}*")
+        set(shared_lib_pattern "${name_we}*${QT_FFMPEG_SHARED_LIBRARY_SUFFIX}*")
     endif()
 
     file(GLOB ${_component}_SHARED_LIBRARIES "${${_component}_LIBRARY_DIR}/${shared_lib_pattern}")
@@ -155,7 +161,7 @@ macro(find_component _component _pkgconfig _library _header)
     )
 
     if (shared_libs_desired AND NOT WIN32)
-        set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_SHARED_LIBRARY_SUFFIX};${CMAKE_STATIC_LIBRARY_SUFFIX}")
+        set(CMAKE_FIND_LIBRARY_SUFFIXES "${QT_FFMPEG_SHARED_LIBRARY_SUFFIX};${CMAKE_STATIC_LIBRARY_SUFFIX}")
     endif()
 
     if (${_component}_LIBRARY AND NOT EXISTS ${${_component}_LIBRARY})
@@ -163,17 +169,33 @@ macro(find_component _component _pkgconfig _library _header)
         unset(${_component}_LIBRARY CACHE)
     endif()
 
-    find_library(${_component}_LIBRARY
-        NAMES ${PC_${_component}_LIBRARIES} ${_library}
-        HINTS
-            ${PC_${_component}_LIBDIR}
-            ${PC_${_component}_LIBRARY_DIRS}
-            ${PC_FFMPEG_LIBRARY_DIRS}
-        PATHS
-            ${FFMPEG_DIR}
-        PATH_SUFFIXES
-            lib bin
-    )
+    # Search for the relevant libraries. On iOS we deploy .xcframeworks, which aren't found by
+    # find_library, so we rely on find_path.
+    if (APPLE AND IOS)
+        find_path(${_component}_LIBRARY
+            NAMES lib${_library}${QT_FFMPEG_SHARED_LIBRARY_SUFFIX}
+            PATHS
+                ${FFMPEG_DIR}
+            PATH_SUFFIXES
+                lib bin framework
+        )
+        # If found, append the path with the file we were looking for.
+        if (${_component}_LIBRARY)
+            set(${_component}_LIBRARY "${${_component}_LIBRARY}/lib${_library}${QT_FFMPEG_SHARED_LIBRARY_SUFFIX}")
+        endif()
+    else()
+        find_library(${_component}_LIBRARY
+            NAMES ${PC_${_component}_LIBRARIES} ${_library}
+            HINTS
+                ${PC_${_component}_LIBDIR}
+                ${PC_${_component}_LIBRARY_DIRS}
+                ${PC_FFMPEG_LIBRARY_DIRS}
+            PATHS
+                ${FFMPEG_DIR}
+            PATH_SUFFIXES
+                lib bin
+        )
+    endif()
 
     if(FFMPEG_DIR OR FFMPEG_ROOT)
         set(CMAKE_FIND_ROOT_PATH "${__find_ffmpeg_backup_root_dir}")
@@ -185,7 +207,7 @@ macro(find_component _component _pkgconfig _library _header)
 
         # On Windows, shared linking goes through 'integration' static libs, so we should look for shared ones anyway
         # On Unix, we gather symlinks as well so that we could install them.
-        if (WIN32 OR ${${_component}_LIBRARY_NAME} MATCHES "\\${CMAKE_SHARED_LIBRARY_SUFFIX}$")
+        if (WIN32 OR ${${_component}_LIBRARY_NAME} MATCHES "\\${QT_FFMPEG_SHARED_LIBRARY_SUFFIX}$")
             find_shared_libs_for_component(${_component})
         endif()
 
