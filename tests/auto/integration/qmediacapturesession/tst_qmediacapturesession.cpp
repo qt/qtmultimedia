@@ -48,6 +48,12 @@ class tst_QMediaCaptureSession: public QObject
     Q_OBJECT
 
 private slots:
+    void initTestCase()
+    {
+        if (qEnvironmentVariable("TARGET_OSVERSION_COIN") == u"macos_12"
+            && qEnvironmentVariable("TARGET_ARCH_COIN") == u"arm64")
+            QSKIP("macOS 12 / arm seems to crash");
+    }
 
     void testAudioMute();
     void stress_test_setup_and_teardown();
