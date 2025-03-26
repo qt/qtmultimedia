@@ -245,7 +245,7 @@ void QCoreAudioSinkStream::resume()
     if (status == noErr)
         return;
     else
-        qDebug() << "AudioOutputUnitStop failed:" << status;
+        qDebug() << "AudioOutputUnitStart failed:" << status;
 }
 
 void QCoreAudioSinkStream::resumeIfNecessary()
