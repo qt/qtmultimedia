@@ -17,6 +17,7 @@
 
 QT_BEGIN_NAMESPACE
 
+using QtMultimediaPrivate::AudioEndpointRole;
 using QtMultimediaPrivate::QPlatformAudioIOStream;
 using QtMultimediaPrivate::QPlatformAudioSinkStream;
 using QWindowsAudioUtils::audioClientErrorString;
@@ -37,8 +38,8 @@ struct QWASAPIAudioSinkStream final : std::enable_shared_from_this<QWASAPIAudioS
     using QPlatformAudioSinkStream::processedDuration;
     using QPlatformAudioSinkStream::setVolume;
 
-    bool start(QIODevice *, ComPtr<IMMDevice>);
-    QIODevice *start(ComPtr<IMMDevice>);
+    bool start(QIODevice *, ComPtr<IMMDevice>, AudioEndpointRole);
+    QIODevice *start(ComPtr<IMMDevice>, AudioEndpointRole);
 
     void suspend();
     void resume();
@@ -47,7 +48,7 @@ struct QWASAPIAudioSinkStream final : std::enable_shared_from_this<QWASAPIAudioS
     void updateStreamIdle(bool) override;
 
 private:
-    bool openAudioClient(ComPtr<IMMDevice> device);
+    bool openAudioClient(ComPtr<IMMDevice>, AudioEndpointRole);
     bool startAudioClient();
 
     void fillInitialHostBuffer();
@@ -92,9 +93,10 @@ QWASAPIAudioSinkStream::QWASAPIAudioSinkStream(QAudioDevice device, QWindowsAudi
 {
 }
 
-bool QWASAPIAudioSinkStream::start(QIODevice *ioDevice, ComPtr<IMMDevice> immDevice)
+bool QWASAPIAudioSinkStream::start(QIODevice *ioDevice, ComPtr<IMMDevice> immDevice,
+                                   AudioEndpointRole role)
 {
-    bool clientOpen = openAudioClient(std::move(immDevice));
+    bool clientOpen = openAudioClient(std::move(immDevice), role);
     if (!clientOpen)
         return false;
 
@@ -109,9 +111,9 @@ bool QWASAPIAudioSinkStream::start(QIODevice *ioDevice, ComPtr<IMMDevice> immDev
     return true;
 }
 
-QIODevice *QWASAPIAudioSinkStream::start(ComPtr<IMMDevice> immDevice)
+QIODevice *QWASAPIAudioSinkStream::start(ComPtr<IMMDevice> immDevice, AudioEndpointRole role)
 {
-    bool clientOpen = openAudioClient(std::move(immDevice));
+    bool clientOpen = openAudioClient(std::move(immDevice), role);
     if (!clientOpen)
         return nullptr;
 
@@ -177,12 +179,12 @@ void QWASAPIAudioSinkStream::updateStreamIdle(bool streamIsIdle)
         m_parent->updateStreamIdle(streamIsIdle);
 }
 
-bool QWASAPIAudioSinkStream::openAudioClient(ComPtr<IMMDevice> device)
+bool QWASAPIAudioSinkStream::openAudioClient(ComPtr<IMMDevice> device, AudioEndpointRole role)
 {
     using namespace QWindowsAudioUtils;
 
     std::optional<AudioClientCreationResult> clientData =
-            createAudioClient(device, m_format, m_hardwareBufferFrames, m_wasapiHandle);
+            createAudioClient(device, m_format, m_hardwareBufferFrames, m_wasapiHandle, role);
 
     if (!clientData)
         return false;
@@ -342,7 +344,7 @@ QIODevice *QWindowsAudioSink::start()
     m_stream = std::make_unique<QWASAPIAudioSinkStream>(m_audioDevice, this, m_format, m_bufferSize,
                                                         m_hardwareBufferSize, m_volume);
 
-    QIODevice *ioDevice = m_stream->start(std::move(immDevice));
+    QIODevice *ioDevice = m_stream->start(std::move(immDevice), m_endpointRole);
     if (!ioDevice) {
         setError(QtAudio::OpenError);
         return nullptr;
@@ -364,7 +366,7 @@ void QWindowsAudioSink::start(QIODevice *iodevice)
     m_stream = std::make_unique<QWASAPIAudioSinkStream>(m_audioDevice, this, m_format, m_bufferSize,
                                                         m_hardwareBufferSize, m_volume);
 
-    bool started = m_stream->start(iodevice, std::move(immDevice));
+    bool started = m_stream->start(iodevice, std::move(immDevice), m_endpointRole);
     if (!started) {
         setError(QtAudio::OpenError);
         return;
@@ -444,6 +446,11 @@ void QWindowsAudioSink::setVolume(qreal v)
 QAudioFormat QWindowsAudioSink::format() const
 {
     return m_format;
+}
+
+void QWindowsAudioSink::setRole(AudioEndpointRole role)
+{
+    m_endpointRole = role;
 }
 
 QT_END_NAMESPACE

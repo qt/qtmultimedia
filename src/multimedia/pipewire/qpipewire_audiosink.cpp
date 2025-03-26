@@ -31,6 +31,7 @@ Q_STATIC_LOGGING_CATEGORY(lcPipewireAudioSink, "qt.multimedia.pipewire.audiosink
 static constexpr bool pipewireRealtimeTracing = false;
 
 using QtMultimediaPrivate::QPlatformAudioSinkStream;
+using AudioEndpointRole = QtMultimediaPrivate::AudioEndpointRole;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // QPipewireAudioSinkStream
@@ -42,9 +43,8 @@ struct QPipewireAudioSinkStream final : std::enable_shared_from_this<QPipewireAu
     using SampleFormat = QAudioFormat::SampleFormat;
 
     QPipewireAudioSinkStream(QPipewireAudioSink *parent, const QAudioFormat &format,
-                             std::optional<qsizetype> ringbufferSize,
+                             AudioEndpointRole, std::optional<qsizetype> ringbufferSize,
                              std::optional<qsizetype> hardwareBufferSize, float volume);
-
     ~QPipewireAudioSinkStream();
 
     using QPlatformAudioSinkStream::bytesFree;
@@ -87,7 +87,7 @@ private:
 };
 
 QPipewireAudioSinkStream::QPipewireAudioSinkStream(QPipewireAudioSink *parent,
-                                                   const QAudioFormat &format,
+                                                   const QAudioFormat &format, AudioEndpointRole role,
                                                    std::optional<qsizetype> ringbufferSize,
                                                    std::optional<qsizetype> hardwareBufferSize,
                                                    float volume):
@@ -104,9 +104,21 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QPipewireAudioSink *parent,
         parent,
     }
 {
+    const char *roleString = [&] {
+        switch (role) {
+        case AudioEndpointRole::MediaPlayback:
+        case AudioEndpointRole::Other:
+            return "Music";
+        case AudioEndpointRole::SoundEffect:
+            return "Notification";
+        default:
+            Q_UNREACHABLE_RETURN("Music");
+        }
+    }();
+
     auto extraProperties = std::array{
         spa_dict_item{ PW_KEY_MEDIA_CATEGORY, "Playback" },
-        spa_dict_item{ PW_KEY_MEDIA_ROLE, "Music" },
+        spa_dict_item{ PW_KEY_MEDIA_ROLE, roleString },
     };
 
     createStream(extraProperties, hardwareBufferSize, "QPipewireAudioSink");
@@ -330,7 +342,7 @@ void QPipewireAudioSink::startHelper(Functor &&starter)
         return;
     }
 
-    m_stream = std::make_shared<QPipewireAudioSinkStream>(this, format(), m_bufferSize,
+    m_stream = std::make_shared<QPipewireAudioSinkStream>(this, format(), m_role, m_bufferSize,
                                                           m_hardwareBufferSize, m_volume);
     if (!m_stream->hasStream()) {
         setError(QtAudio::Error::OpenError);
@@ -430,6 +442,11 @@ std::optional<ObjectSerial> QPipewireAudioSink::findSinkNodeSerial()
             nodeName.data(),
             size_t(nodeName.size()),
     });
+}
+
+void QPipewireAudioSink::setRole(AudioEndpointRole role)
+{
+    m_role = role;
 }
 
 } // namespace QtPipeWire

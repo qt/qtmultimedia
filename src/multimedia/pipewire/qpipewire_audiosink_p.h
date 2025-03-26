@@ -54,6 +54,9 @@ private:
 
     template <typename Functor>
     void startHelper(Functor &&f);
+
+    void setRole(AudioEndpointRole role) override;
+    AudioEndpointRole m_role = AudioEndpointRole::Other;
 };
 
 } // namespace QtPipeWire

@@ -42,12 +42,16 @@ public:
     qreal volume() const override { return m_volume; }
     QAudioFormat format() const override;
 
+    void setRole(AudioEndpointRole) override;
+
 private:
     friend struct QWASAPIAudioSinkStream;
 
     const QAudioFormat m_format;
     std::optional<qsizetype> m_bufferSize;
     std::optional<qsizetype> m_hardwareBufferSize;
+
+    AudioEndpointRole m_endpointRole = AudioEndpointRole::Other;
 
     qreal m_volume = 1.0;
     std::shared_ptr<QWASAPIAudioSinkStream> m_stream;
