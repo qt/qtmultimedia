@@ -1,17 +1,19 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "qsoundeffect.h"
-#include "qsamplecache_p.h"
-#include "qaudiodevice.h"
-#include "qaudiosink.h"
-#include "qmediadevices.h"
-#include "qaudiobuffer.h"
+
 #include <QtCore/qloggingcategory.h>
-#include <private/qplatformaudiodevices_p.h>
-#include <private/qplatformmediaintegration_p.h>
-#include <private/qplatformaudioresampler_p.h>
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtMultimedia/private/qplatformaudioresampler_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qsamplecache_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 Q_STATIC_LOGGING_CATEGORY(qLcSoundEffect, "qt.multimedia.soundeffect")
 
@@ -196,6 +198,9 @@ bool QSoundEffectPrivate::updateAudioOutput()
         m_audioSink->setVolume(m_volume);
     else
         m_audioSink->setVolume(0);
+
+    QPlatformAudioSink *sinkPrivate = QPlatformAudioSink::get(*m_audioSink.get());
+    sinkPrivate->setRole(QtMultimediaPrivate::AudioEndpointRole::SoundEffect);
 
     return true;
 }
