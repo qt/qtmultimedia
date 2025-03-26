@@ -62,7 +62,7 @@ private:
     const QAudioFormat m_audioFormat;
     std::optional<int> m_internalBufferSize;
 
-    qreal m_cachedVolume = 1.;
+    qreal m_volume = 1.;
 
     std::shared_ptr<QCoreAudioSinkStream> m_stream;
 };
