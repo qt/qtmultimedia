@@ -52,8 +52,8 @@ public:
     QAudio::State state() const override;
     void setFormat(const QAudioFormat &format);
     QAudioFormat format() const override;
-    void setVolume(qreal volume) override;
-    qreal volume() const override;
+    void setVolume(float volume) override;
+    float volume() const override;
     qint64 pushData(const char *data, qint64 len);
 
 private slots:
@@ -83,7 +83,7 @@ private:
     QAudio::State m_state;
     QAudio::State m_suspendedInState;
     QAudioFormat m_format;
-    qreal m_volume;
+    float m_volume;
     int m_periodSize;
 
     QnxAudioUtils::HandleUniquePtr m_pcmHandle;

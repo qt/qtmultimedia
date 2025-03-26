@@ -435,14 +435,14 @@ QAudioFormat QDarwinAudioSource::format() const
     return m_audioFormat;
 }
 
-void QDarwinAudioSource::setVolume(qreal volume)
+void QDarwinAudioSource::setVolume(float volume)
 {
     m_volume = volume;
     if (m_stream)
         m_stream->setVolume(volume);
 }
 
-qreal QDarwinAudioSource::volume() const
+float QDarwinAudioSource::volume() const
 {
     return m_volume;
 }

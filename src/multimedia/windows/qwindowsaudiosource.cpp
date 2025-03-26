@@ -419,14 +419,14 @@ void QWASAPIAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
         emptyRingbuffer();
 }
 
-void QWindowsAudioSource::setVolume(qreal v)
+void QWindowsAudioSource::setVolume(float v)
 {
     m_volume = v;
     if (m_stream)
         m_stream->setVolume(v);
 }
 
-qreal QWindowsAudioSource::volume() const
+float QWindowsAudioSource::volume() const
 {
     return m_volume;
 }

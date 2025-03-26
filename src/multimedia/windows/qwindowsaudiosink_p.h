@@ -38,8 +38,8 @@ public:
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
-    void setVolume(qreal) override;
-    qreal volume() const override { return m_volume; }
+    void setVolume(float) override;
+    float volume() const override { return m_volume; }
     QAudioFormat format() const override;
 
     void setRole(AudioEndpointRole) override;
@@ -53,7 +53,7 @@ private:
 
     AudioEndpointRole m_endpointRole = AudioEndpointRole::Other;
 
-    qreal m_volume = 1.0;
+    float m_volume = 1.0;
     std::shared_ptr<QWASAPIAudioSinkStream> m_stream;
 };
 

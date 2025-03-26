@@ -439,6 +439,24 @@ QAudioFormat::SampleFormat bestSampleFormat(const NativeSampleFormat fmt)
     }
 }
 
+std::optional<float> sanitizeVolume(float volume, float lastValue)
+{
+    constexpr float epsilon = 1.f / (1 << 22); // good enough for 22bit resolution
+
+    // multiplication is optimized for 0 and 1
+    // values which are sufficiently close to 0 and 1 can be considered as 0 or 1
+    if (volume < epsilon)
+        volume = 0;
+    else if (volume > (1.f - epsilon))
+        volume = 1.f;
+
+    // similar to qFuzzyCompare, but with better heuristics for volume
+    if (std::abs(volume - lastValue) < epsilon)
+        return std::nullopt;
+
+    return volume;
+}
+
 } // namespace QAudioHelperInternal
 
 #undef QT_MM_RESTRICT

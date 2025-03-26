@@ -41,8 +41,8 @@ public:
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
-    void setVolume(qreal volume) override;
-    qreal volume() const override;
+    void setVolume(float volume) override;
+    float volume() const override;
 
 private:
     friend struct QWASAPIAudioSourceStream;
@@ -51,7 +51,7 @@ private:
     std::optional<qsizetype> m_bufferSize;
     std::optional<qsizetype> m_hardwareBufferSize;
 
-    qreal m_volume = 1.0;
+    float m_volume = 1.0;
     std::shared_ptr<QWASAPIAudioSourceStream> m_stream;
     std::shared_ptr<QWASAPIAudioSourceStream> m_retiredStream;
 };

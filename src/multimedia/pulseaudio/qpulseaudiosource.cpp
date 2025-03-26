@@ -94,7 +94,7 @@ QPulseAudioSource::QPulseAudioSource(QAudioDevice device, QObject *parent)
     : QPlatformAudioSource(std::move(device), parent),
       m_totalTimeValue(0),
       m_audioSource(nullptr),
-      m_volume(qreal(1.0f)),
+      m_volume(1.0f),
       m_pullMode(true),
       m_opened(false),
       m_bufferSize(0),
@@ -447,15 +447,12 @@ void QPulseAudioSource::resume()
     }
 }
 
-void QPulseAudioSource::setVolume(qreal vol)
+void QPulseAudioSource::setVolume(float vol)
 {
-    if (qFuzzyCompare(m_volume, vol))
-        return;
-
-    m_volume = qBound(qreal(0), vol, qreal(1));
+    m_volume = vol;
 }
 
-qreal QPulseAudioSource::volume() const
+float QPulseAudioSource::volume() const
 {
     return m_volume;
 }

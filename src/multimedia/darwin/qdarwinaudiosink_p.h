@@ -51,8 +51,8 @@ public:
     qint64 processedUSecs() const override;
     QAudioFormat format() const override;
 
-    void setVolume(qreal volume) override;
-    qreal volume() const override;
+    void setVolume(float volume) override;
+    float volume() const override;
 
 private:
     void resumeStreamIfNecessary();
@@ -62,7 +62,7 @@ private:
     const QAudioFormat m_audioFormat;
     std::optional<int> m_internalBufferSize;
 
-    qreal m_volume = 1.;
+    float m_volume = 1.f;
 
     std::shared_ptr<QCoreAudioSinkStream> m_stream;
 };

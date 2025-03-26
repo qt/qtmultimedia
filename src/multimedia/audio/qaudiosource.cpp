@@ -1,14 +1,14 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-
-#include "qaudio.h"
-#include "qaudiodevice.h"
-#include "qaudiosystem_p.h"
 #include "qaudiosource.h"
 
-#include <private/qplatformaudiodevices_p.h>
-#include <private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -323,8 +323,10 @@ void QAudioSource::setVolume(qreal volume)
 {
     if (!d)
         return;
-    qreal v = qBound(qreal(0.0), volume, qreal(1.0));
-    d->setVolume(v);
+
+    std::optional<float> newVolume = QAudioHelperInternal::sanitizeVolume(volume, this->volume());
+    if (newVolume)
+        d->setVolume(*newVolume);
 }
 
 /*!
