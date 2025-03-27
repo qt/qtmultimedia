@@ -90,6 +90,9 @@ namespace {
     QList<QCameraDevice> cameras;
 
     for (AVCaptureDevice *device : videoDevices) {
+        if ([device isSuspended])
+            continue;
+
         auto info = std::make_unique<QCameraDevicePrivate>();
         if ([videoDevices[0].uniqueID isEqualToString:device.uniqueID])
             info->isDefault = true;
@@ -189,19 +192,45 @@ QAVFVideoDevices::QAVFVideoDevices(
         nil,
         AVCaptureDeviceWasConnectedNotification,
         [this]() {
-            QPlatformVideoDevices::onVideoInputsChanged();
+            // Ordinarily this callback should be invoked on the same thread as
+            // the one that registered it, but this has been observed to not be
+            // the case on iOS. So we post a job to the correct thread instead.
+            QMetaObject::invokeMethod(
+                this,
+                [this]() {
+                    rebuildObserveredAvCaptureDevices();
+                    QPlatformVideoDevices::onVideoInputsChanged();
+                });
         });
 
     m_deviceDisconnectedObserver = QMacNotificationObserver(
         nil,
         AVCaptureDeviceWasDisconnectedNotification,
         [this]() {
-            QPlatformVideoDevices::onVideoInputsChanged();
+            QMetaObject::invokeMethod(
+                this,
+                [this]() {
+                    rebuildObserveredAvCaptureDevices();
+                    QPlatformVideoDevices::onVideoInputsChanged();
+                });
         });
+
+    rebuildObserveredAvCaptureDevices();
 }
 
 QAVFVideoDevices::~QAVFVideoDevices()
 {
+    clearObservedAvCaptureDevices();
+}
+
+// Does NOT lock
+void QAVFVideoDevices::clearObservedAvCaptureDevices() {
+    for (ObservedAVCaptureDevice& observedDevice : m_observedAvCaptureDevices) {
+        // Observer must be cleared before the AVCaptureDevice.
+        observedDevice.observer = {};
+        [observedDevice.avCaptureDevice release];
+    }
+    m_observedAvCaptureDevices.clear();
 }
 
 // Can be called from any thread as result of QMediaDevices::videoInputs()
@@ -218,6 +247,40 @@ QList<QCameraDevice> QAVFVideoDevices::findVideoInputs() const
 bool QAVFVideoDevices::isCvPixelFormatSupported(uint32_t cvPixelFormat) const
 {
     return !m_isCvPixelFormatSupportedDelegate || m_isCvPixelFormatSupportedDelegate(cvPixelFormat);
+}
+
+// Refreshes list of connected AVCaptureDevices and their key-value observers.
+// Thread-safe.
+void QAVFVideoDevices::rebuildObserveredAvCaptureDevices()
+{
+    const QList<AVCaptureDevice*> avCaptureDevices = qEnumerateAVCaptureDevices();
+
+    clearObservedAvCaptureDevices();
+
+    for (AVCaptureDevice *captureDevice : avCaptureDevices) {
+        ObservedAVCaptureDevice observedDevice;
+
+        observedDevice.avCaptureDevice = captureDevice;
+        [observedDevice.avCaptureDevice retain];
+
+        // When the suspended value changes, post an update job to
+        // QAVFVideoDevices.
+        observedDevice.observer = QMacKeyValueObserver(
+            observedDevice.avCaptureDevice,
+            @"suspended",
+            [this]() {
+                // Callback can potentially run on another thread. Post a job to
+                // our thread.
+                QMetaObject::invokeMethod(
+                    this,
+                    [this]() {
+                        rebuildObserveredAvCaptureDevices();
+                        QPlatformVideoDevices::onVideoInputsChanged();
+                    });
+            });
+
+        m_observedAvCaptureDevices.push_back(std::move(observedDevice));
+    }
 }
 
 QT_END_NAMESPACE
