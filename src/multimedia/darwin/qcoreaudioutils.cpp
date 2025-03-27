@@ -438,7 +438,7 @@ bool audioObjectSetSamplingRate(AudioObjectID id, int samplingRate)
                                                  sizeof(Float64), &sampleRateArg);
 
     if (status != noErr) {
-        qDebug() << "AudioUnitGetProperty failed" << status;
+        qDebug() << "AudioObjectSetPropertyData failed" << status;
         return false;
     }
 
