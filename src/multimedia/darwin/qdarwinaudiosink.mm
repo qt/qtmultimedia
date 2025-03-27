@@ -129,6 +129,9 @@ bool QCoreAudioSinkStream::open()
     }
 
 #ifdef Q_OS_MACOS
+    if (!audioObjectSetSamplingRate(nativeDeviceId, m_format.sampleRate()))
+        return false;
+
     // register listener
     if (!addDisconnectListener(*audioDeviceId))
         return false;
