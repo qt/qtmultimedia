@@ -21,6 +21,8 @@
 
 #include <functional>
 
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
+
 QT_BEGIN_NAMESPACE
 
 class QPlatformMediaIntegration;
@@ -44,6 +46,21 @@ private:
     QMacNotificationObserver m_deviceConnectedObserver;
     QMacNotificationObserver m_deviceDisconnectedObserver;
     std::function<bool(uint32_t)> m_isCvPixelFormatSupportedDelegate;
+
+    // We need to key-value observe the "suspended" value of all connected
+    // AVCaptureDevices in order to determine whether they should be exposed as
+    // QCameraDevice to the user.
+    struct ObservedAVCaptureDevice {
+        QMacKeyValueObserver observer;
+        AVCaptureDevice* avCaptureDevice;
+    };
+
+    void clearObservedAvCaptureDevices();
+    void rebuildObserveredAvCaptureDevices();
+    // All modifications and read of m_observedAvCaptureDevices happen by
+    // posting jobs the QAVFVideoDevices' thread, and so this doesn't need a
+    // lock.
+    QList<ObservedAVCaptureDevice> m_observedAvCaptureDevices;
 };
 
 QT_END_NAMESPACE
