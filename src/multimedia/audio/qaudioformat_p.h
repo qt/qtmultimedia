@@ -36,6 +36,26 @@ inline constexpr std::array allSupportedSampleFormats{
     QAudioFormat::Float,
 };
 
+template <typename T>
+int findClosestSamplingRate(int rate, QSpan<const T> supportedRates)
+{
+    Q_ASSERT(!supportedRates.empty());
+
+    auto exactMatchIt = std::find(supportedRates.begin(), supportedRates.end(), T(rate));
+    if (exactMatchIt != supportedRates.end())
+        return int(*exactMatchIt);
+
+    // find supported rate, which is closest to the default pipewire sampling rate (using a
+    // logarithmic scaling)
+    auto ratioToRate = [&](int arg) {
+        return arg > rate ? float(arg) / rate : rate / float(arg);
+    };
+
+    return *std::min_element(supportedRates.begin(), supportedRates.end(), [&](auto lhs, auto rhs) {
+        return ratioToRate(lhs) < ratioToRate(rhs);
+    });
+}
+
 } // namespace QtPrivate
 
 QT_END_NAMESPACE
