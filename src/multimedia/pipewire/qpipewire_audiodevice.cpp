@@ -125,23 +125,8 @@ void QPipewireAudioDevicePrivate::setPreferredSamplingRate(QSpan<const int> arg)
 {
     constexpr int defaultPipewireSamplingRate = 48000;
 
-    if (std::find(arg.begin(), arg.end(), defaultPipewireSamplingRate) != arg.end()) {
-        preferredFormat.setSampleRate(defaultPipewireSamplingRate);
-    } else {
-        // find supported rate, which is closest to the default pipewire sampling rate (using a
-        // logarithmic scaling)
-        auto ratioTodefaultRate = [](int arg) {
-            return arg > defaultPipewireSamplingRate ? float(arg) / defaultPipewireSamplingRate
-                                                     : defaultPipewireSamplingRate / float(arg);
-        };
-
-        std::vector<int> rates{ arg.begin(), arg.end() };
-        std::sort(rates.begin(), rates.end(), [&](int lhs, int rhs) {
-            return ratioTodefaultRate(lhs) < ratioTodefaultRate(rhs);
-        });
-
-        preferredFormat.setSampleRate(rates.front());
-    }
+    preferredFormat.setSampleRate(
+            QtPrivate::findClosestSamplingRate(defaultPipewireSamplingRate, arg));
 }
 
 void QPipewireAudioDevicePrivate::setPreferredSamplingRate(const SpaRange<int> &arg)
