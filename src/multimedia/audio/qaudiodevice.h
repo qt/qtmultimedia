@@ -71,7 +71,7 @@ public:
     const QAudioDevicePrivate *handle() const { return d.get(); }
 private:
     friend class QAudioDevicePrivate;
-    QAudioDevice(QAudioDevicePrivate *p);
+    explicit QAudioDevice(QAudioDevicePrivate *p);
     QExplicitlySharedDataPointer<QAudioDevicePrivate> d;
 };
 
