@@ -1,0 +1,19 @@
+{
+    "Id": "dr_libs",
+    "Name": "DR Libs",
+    "QDocModule": "qtmultimedia",
+    "Description": "Public domain, single file audio decoding libraries for C and C++",
+    "QtUsage": "Wave file decoder for QSoundEffect",
+    "SecurityCritical": true,
+
+    "Homepage": "https://github.com/mackron/dr_libs",
+    "Version": "0.13.17",
+    "DownloadLocation": "https://github.com/mackron/dr_libs",
+
+    "License": "MIT No Attribution",
+    "LicenseId": "MIT-0",
+    "LicenseFiles": [
+        "LICENSE"
+    ],
+    "PURL": "pkg:github/mackron/dr_libs@wav-0.13.17"
+}

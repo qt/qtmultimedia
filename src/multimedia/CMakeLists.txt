@@ -132,6 +132,18 @@ qt_internal_add_module(Multimedia
         compat/removed_api.cpp
 )
 
+
+# dr_wav preparation
+qt_internal_extend_target(Multimedia
+    SOURCES
+        audio/qaudio_dr_wav.c
+        ../3rdparty/dr_libs/dr_wav.h
+    SYSTEM_INCLUDE_DIRECTORIES
+        ../3rdparty/dr_libs
+    DEFINES
+        DR_WAV_NO_STDIO
+)
+
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_network
     PUBLIC_LIBRARIES
         Qt::Network
