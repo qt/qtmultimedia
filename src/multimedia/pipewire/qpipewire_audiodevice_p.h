@@ -26,13 +26,15 @@ QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
-class QPipewireAudioDevicePrivate : public QAudioDevicePrivate
+class Q_MULTIMEDIA_EXPORT QPipewireAudioDevicePrivate : public QAudioDevicePrivate
 {
 public:
     QPipewireAudioDevicePrivate(const PwPropertyDict &nodeProperties,
                                 const PwPropertyDict &deviceProperties,
                                 const SpaObjectAudioFormat &, QAudioDevice::Mode, bool isDefault);
     ~QPipewireAudioDevicePrivate() override;
+
+    Q_DISABLE_COPY_MOVE(QPipewireAudioDevicePrivate)
 
     QByteArray nodeName() const { return m_nodeName; }
 

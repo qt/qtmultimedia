@@ -226,6 +226,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
         pulseaudio/qpulseaudiosink.cpp pulseaudio/qpulseaudiosink_p.h
         pulseaudio/qpulsehelpers.cpp pulseaudio/qpulsehelpers_p.h
         pulseaudio/qpulseaudiodevices.cpp pulseaudio/qpulseaudiodevices_p.h
+        pulseaudio/qpulseaudiodevice_p.h
     INCLUDE_DIRECTORIES
         pulseaudio
     LIBRARIES
