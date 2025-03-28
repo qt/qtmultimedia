@@ -4,11 +4,13 @@
 #include "qsoundeffect.h"
 
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qfuture.h>
 #include <QtMultimedia/qaudiobuffer.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qmaybe_p.h>
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
 #include <QtMultimedia/private/qplatformaudioresampler_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
@@ -72,13 +74,16 @@ public:
     void setPlaying(bool playing);
     bool updateAudioOutput();
 
-public Q_SLOTS:
+    void decoderError();
     void sampleReady(QSample *);
-    void decoderError(QSample *);
+
+public Q_SLOTS:
     void stateChanged(QAudio::State);
 
 public:
     QSoundEffect *q_ptr;
+    QFuture<void> m_sampleLoadFuture;
+
     QUrl m_url;
     int m_loopCount = 1;
     int m_runningCount = 0;
@@ -104,16 +109,15 @@ QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &au
 
 void QSoundEffectPrivate::sampleReady(QSample *sample)
 {
-    if (sample && sample != m_sample.get())
-        return;
-
     if (m_status == QSoundEffect::Error)
         return;
 
-    qCDebug(qLcSoundEffect) << this << "sampleReady: sample size:" << m_sample->data().size();
-    disconnect(m_sample.get(), &QSample::error, this, &QSoundEffectPrivate::decoderError);
-    disconnect(m_sample.get(), &QSample::ready, this, &QSoundEffectPrivate::sampleReady);
+    Q_ASSERT(sample);
+    Q_ASSERT(sample != m_sample.get());
 
+    m_sample.reset(sample);
+
+    qCDebug(qLcSoundEffect) << this << "sampleReady: sample size:" << m_sample->data().size();
     if (!m_audioSink) {
         if (!updateAudioOutput()) // Create audio sink
             return; // Returns if no audio devices are available
@@ -126,18 +130,6 @@ void QSoundEffectPrivate::sampleReady(QSample *sample)
         qCDebug(qLcSoundEffect) << this << "starting playback on audiooutput";
         m_audioSink->start(this);
     }
-}
-
-void QSoundEffectPrivate::decoderError(QSample *sample)
-{
-    if (sample && sample != m_sample.get())
-        return;
-
-    qWarning("QSoundEffect(qaudio): Error decoding source %ls", qUtf16Printable(m_url.toString()));
-    disconnect(m_sample.get(), &QSample::ready, this, &QSoundEffectPrivate::sampleReady);
-    disconnect(m_sample.get(), &QSample::error, this, &QSoundEffectPrivate::decoderError);
-    m_playing = false;
-    setStatus(QSoundEffect::Error);
 }
 
 void QSoundEffectPrivate::stateChanged(QAudio::State state)
@@ -290,6 +282,14 @@ void QSoundEffectPrivate::setPlaying(bool playing)
     emit q_ptr->playingChanged();
 }
 
+void QSoundEffectPrivate::decoderError()
+{
+    qWarning("QSoundEffect(qaudio): Error decoding source %ls", qUtf16Printable(m_url.toString()));
+
+    m_playing = false;
+    setStatus(QSoundEffect::Error);
+}
+
 /*!
     \class QSoundEffect
     \brief The QSoundEffect class provides a way to play low latency sound effects.
@@ -432,6 +432,9 @@ void QSoundEffect::setSource(const QUrl &url)
 
     stop();
 
+    if (d->m_sampleLoadFuture.isValid())
+        d->m_sampleLoadFuture.cancel();
+
     d->m_url = url;
     d->m_sampleReady = false;
 
@@ -445,34 +448,22 @@ void QSoundEffect::setSource(const QUrl &url)
         return;
     }
 
-    if (d->m_sample) {
-        if (!d->m_sampleReady) {
-            disconnect(d->m_sample.get(), &QSample::error, d, &QSoundEffectPrivate::decoderError);
-            disconnect(d->m_sample.get(), &QSample::ready, d, &QSoundEffectPrivate::sampleReady);
-        }
-        d->m_sample.reset();
-    }
+    d->setStatus(QSoundEffect::Loading);
+    d->m_sample = {};
 
     if (d->m_audioSink) {
-        disconnect(d->m_audioSink.get(), &QAudioSink::stateChanged, d, &QSoundEffectPrivate::stateChanged);
+        disconnect(d->m_audioSink.get(), &QAudioSink::stateChanged, d,
+                   &QSoundEffectPrivate::stateChanged);
         d->m_audioSink.reset();
     }
 
-    d->setStatus(QSoundEffect::Loading);
-    d->m_sample.reset(sampleCache()->requestSample(url));
-    connect(d->m_sample.get(), &QSample::error, d, &QSoundEffectPrivate::decoderError);
-    connect(d->m_sample.get(), &QSample::ready, d, &QSoundEffectPrivate::sampleReady);
-
-    switch (d->m_sample->state()) {
-    case QSample::Ready:
-        d->sampleReady(d->m_sample.get());
-        break;
-    case QSample::Error:
-        d->decoderError(d->m_sample.get());
-        break;
-    default:
-        break;
-    }
+    d->m_sampleLoadFuture = sampleCache()->requestSampleFuture(url).then(
+            this, [this](QMaybe<QSample *, QSample::State> result) {
+        if (result)
+            d->sampleReady(result.value());
+        else
+            d->decoderError();
+    });
 
     emit sourceChanged();
 }

@@ -15,15 +15,18 @@
 // We mean it.
 //
 
-#include <QtCore/qmap.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qset.h>
 #include <QtCore/qthread.h>
+#include <QtCore/qfuture.h>
 #include <QtCore/qurl.h>
 #include <QtCore/private/qglobal_p.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/private/qmaybe_p.h>
+
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
@@ -101,6 +104,8 @@ public:
     ~QSampleCache() override;
 
     QSample* requestSample(const QUrl& url);
+    QFuture<QMaybe<QSample *, QSample::State>> requestSampleFuture(const QUrl &);
+
     void setCapacity(qint64 capacity);
 
     bool isLoading() const;
@@ -118,7 +123,10 @@ private:
     std::unique_ptr<QIODevice> createStreamForSample(QSample &sample);
 
 private:
-    QMap<QUrl, QSample*> m_samples;
+    using SharedSamplePromise = std::shared_ptr<QPromise<QMaybe<QSample *, QSample::State>>>;
+    std::map<SharedSamplePromise, std::unique_ptr<QObject>> m_pendingPromises;
+
+    std::map<QUrl, QSample *> m_samples;
     QSet<QSample*> m_staleSamples;
 
 #if QT_CONFIG(network)
