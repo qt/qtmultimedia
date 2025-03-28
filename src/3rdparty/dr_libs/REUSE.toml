@@ -1,0 +1,6 @@
+version = 1
+
+[[annotations]]
+path = ["**"]
+SPDX-FileCopyrightText = ["Copyright 2023 David Reid"]
+SPDX-License-Identifier = "MIT-0"
