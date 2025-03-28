@@ -12,7 +12,7 @@
 #include <avfvideosink_p.h>
 #include <avfvideobuffer_p.h>
 #include "qvideosink.h"
-#include "qavfhelpers_p.h"
+#include <QtMultimedia/private/qavfhelpers_p.h>
 
 #include <rhi/qrhi.h>
 
