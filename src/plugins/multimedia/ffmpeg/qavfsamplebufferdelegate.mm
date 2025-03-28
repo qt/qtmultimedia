@@ -6,7 +6,7 @@
 #define AVMediaType XAVMediaType
 
 #include "qffmpeghwaccel_p.h"
-#include "qavfhelpers_p.h"
+#include <QtMultimedia/private/qavfhelpers_p.h>
 #include "qffmpegvideobuffer_p.h"
 #include "private/qvideoframe_p.h"
 

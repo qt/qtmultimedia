@@ -262,11 +262,13 @@ qt_internal_extend_target(Multimedia CONDITION APPLE
         darwin/qdarwinaudiosink.mm darwin/qdarwinaudiosink_p.h
         darwin/qcoreaudioutils.cpp darwin/qcoreaudioutils_p.h
         darwin/qdarwinaudiodevices.mm darwin/qdarwinaudiodevices_p.h
+        darwin/qavfhelpers.mm darwin/qavfhelpers_p.h
     INCLUDE_DIRECTORIES
         darwin
     LIBRARIES
         ${FWCoreAudio}
         ${FWAudioToolbox}
+        ${FWCoreVideo}
 )
 
 qt_internal_extend_target(Multimedia CONDITION MACOS
