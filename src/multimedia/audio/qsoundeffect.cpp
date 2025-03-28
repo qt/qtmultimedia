@@ -39,11 +39,6 @@ class QSoundEffectPrivate : public QIODevice
         }
     };
 
-    struct SampleDeleter
-    {
-        void operator()(QSample *sample) const { sample->release(); }
-    };
-
 public:
     QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &audioDevice = QAudioDevice());
     ~QSoundEffectPrivate() override = default;
@@ -75,7 +70,7 @@ public:
     bool updateAudioOutput();
 
     void decoderError();
-    void sampleReady(QSample *);
+    void sampleReady(SharedSamplePtr);
 
 public Q_SLOTS:
     void stateChanged(QAudio::State);
@@ -90,7 +85,7 @@ public:
     bool m_playing = false;
     QSoundEffect::Status m_status = QSoundEffect::Null;
     std::unique_ptr<QAudioSink, AudioSinkDeleter> m_audioSink;
-    std::unique_ptr<QSample, SampleDeleter> m_sample;
+    SharedSamplePtr m_sample;
     QAudioBuffer m_audioBuffer;
     bool m_muted = false;
     float m_volume = 1.0;
@@ -107,15 +102,12 @@ QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &au
     open(QIODevice::ReadOnly);
 }
 
-void QSoundEffectPrivate::sampleReady(QSample *sample)
+void QSoundEffectPrivate::sampleReady(SharedSamplePtr sample)
 {
     if (m_status == QSoundEffect::Error)
         return;
 
-    Q_ASSERT(sample);
-    Q_ASSERT(sample != m_sample.get());
-
-    m_sample.reset(sample);
+    m_sample = std::move(sample);
 
     qCDebug(qLcSoundEffect) << this << "sampleReady: sample size:" << m_sample->data().size();
     if (!m_audioSink) {
@@ -457,10 +449,10 @@ void QSoundEffect::setSource(const QUrl &url)
         d->m_audioSink.reset();
     }
 
-    d->m_sampleLoadFuture = sampleCache()->requestSampleFuture(url).then(
-            this, [this](QMaybe<QSample *, QSample::State> result) {
+    d->m_sampleLoadFuture =
+            sampleCache()->requestSampleFuture(url).then(this, [this](SharedSamplePtr result) {
         if (result)
-            d->sampleReady(result.value());
+            d->sampleReady(std::move(result));
         else
             d->decoderError();
     });
