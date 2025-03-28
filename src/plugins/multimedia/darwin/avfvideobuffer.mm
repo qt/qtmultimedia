@@ -9,7 +9,7 @@
 #include <QtCore/qloggingcategory.h>
 
 #include <private/qvideotexturehelper_p.h>
-#include "qavfhelpers_p.h"
+#include <QtMultimedia/private/qavfhelpers_p.h>
 
 #import <AVFoundation/AVFoundation.h>
 #import <Metal/Metal.h>

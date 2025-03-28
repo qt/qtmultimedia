@@ -4,7 +4,7 @@
 #include "avfvideorenderercontrol_p.h"
 #include "avfdisplaylink_p.h"
 #include <avfvideobuffer_p.h>
-#include "qavfhelpers_p.h"
+#include <QtMultimedia/private/qavfhelpers_p.h>
 #include "private/qvideoframe_p.h"
 
 #include <QtMultimedia/qvideoframeformat.h>

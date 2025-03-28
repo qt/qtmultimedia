@@ -49,6 +49,8 @@ Type findInPixelFormatMap(Type defaultValue, Args... args)
 
 }
 
+QT_BEGIN_NAMESPACE
+
 ColorRange QAVFHelpers::colorRangeForCVPixelFormat(CvPixelFormat cvPixelFormat)
 {
     return findInPixelFormatMap(ColorRange::ColorRange_Unknown, cvPixelFormat);
@@ -137,3 +139,5 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
     format.setColorTransfer(colorTransfer);
     return format;
 }
+
+QT_END_NAMESPACE

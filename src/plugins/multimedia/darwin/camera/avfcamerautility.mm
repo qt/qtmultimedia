@@ -9,7 +9,7 @@
 #include <private/qmultimediautils_p.h>
 #include <private/qcameradevice_p.h>
 #include "avfvideobuffer_p.h"
-#include "qavfhelpers_p.h"
+#include <QtMultimedia/private/qavfhelpers_p.h>
 
 #include <functional>
 #include <algorithm>

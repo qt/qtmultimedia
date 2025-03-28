@@ -28,12 +28,12 @@ constexpr CvPixelFormat CvPixelFormatInvalid = 0;
 
 namespace QAVFHelpers
 {
-QVideoFrameFormat::ColorRange colorRangeForCVPixelFormat(CvPixelFormat cvPixelFormat);
-QVideoFrameFormat::PixelFormat fromCVPixelFormat(CvPixelFormat cvPixelFormat);
-CvPixelFormat toCVPixelFormat(QVideoFrameFormat::PixelFormat pixFmt,
+Q_MULTIMEDIA_EXPORT QVideoFrameFormat::ColorRange colorRangeForCVPixelFormat(CvPixelFormat cvPixelFormat);
+Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat fromCVPixelFormat(CvPixelFormat cvPixelFormat);
+Q_MULTIMEDIA_EXPORT CvPixelFormat toCVPixelFormat(QVideoFrameFormat::PixelFormat pixFmt,
                               QVideoFrameFormat::ColorRange colorRange);
 
-QVideoFrameFormat videoFormatForImageBuffer(CVImageBufferRef buffer, bool openGL = false);
+Q_MULTIMEDIA_EXPORT QVideoFrameFormat videoFormatForImageBuffer(CVImageBufferRef buffer, bool openGL = false);
 };
 
 QT_END_NAMESPACE

@@ -5,7 +5,7 @@
 #include "qavfcamerabase_p.h"
 #include "avfcamerautility_p.h"
 #include <private/qcameradevice_p.h>
-#include "qavfhelpers_p.h"
+#include <QtMultimedia/private/qavfhelpers_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <QtCore/qset.h>
 #include <QtCore/qsystemdetection.h>
