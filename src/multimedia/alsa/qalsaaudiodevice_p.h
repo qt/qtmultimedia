@@ -23,11 +23,11 @@
 
 QT_BEGIN_NAMESPACE
 
-
-class QAlsaAudioDeviceInfo : public QAudioDevicePrivate
+class Q_MULTIMEDIA_EXPORT QAlsaAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
     QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &description, QAudioDevice::Mode mode);
+    Q_DISABLE_COPY_MOVE(QAlsaAudioDeviceInfo)
     ~QAlsaAudioDeviceInfo();
 
 private:

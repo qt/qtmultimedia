@@ -10,8 +10,8 @@
 #include <QtGui/qicon.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/private/qaudiodevice_p.h>
-
-#include "qpulsehelpers_p.h"
+#include <QtMultimedia/private/qpulsehelpers_p.h>
+#include <QtMultimedia/private/qpulseaudiodevice_p.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -27,7 +27,7 @@ makeQAudioDevicePrivate(const char *device, const char *desc, bool isDef, QAudio
 {
     using namespace QPulseAudioInternal;
 
-    auto deviceInfo = std::make_unique<QAudioDevicePrivate>(device, mode, QString::fromUtf8(desc));
+    auto deviceInfo = std::make_unique<QPulseAudioDevicePrivate>(device, mode, QString::fromUtf8(desc));
     QAudioFormat::ChannelConfig channelConfig = channelConfigFromMap(map);
 
     deviceInfo->isDefault = isDef;
@@ -102,10 +102,10 @@ static bool updateDevicesMap(QReadWriteLock &lock, const QByteArray &defaultDevi
     bool result = false;
 
     for (QAudioDevice &device : devices) {
-        auto deviceInfo = QAudioDevicePrivate::handle(device);
+        auto deviceInfo = QAudioDevicePrivate::handle<QPulseAudioDevicePrivate>(device);
         const auto isDefault = deviceInfo->id == defaultDeviceId;
         if (deviceInfo->isDefault != isDefault) {
-            auto newDeviceInfo = std::make_unique<QAudioDevicePrivate>(*deviceInfo);
+            auto newDeviceInfo = std::make_unique<QPulseAudioDevicePrivate>(*deviceInfo);
             newDeviceInfo->isDefault = isDefault;
             device = QAudioDevicePrivate::createQAudioDevice(std::move(newDeviceInfo));
             result = true;
