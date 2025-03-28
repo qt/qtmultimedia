@@ -115,7 +115,7 @@ QSampleCache::~QSampleCache()
     // deleted using deleteLater.  And some samples that had deleteLater
     // already called won't have been processed (m_staleSamples)
     for (auto it = m_samples.cbegin(), end = m_samples.cend(); it != end; ++it)
-        delete it.value();
+        delete it->second;
 
     const auto copyStaleSamples = m_staleSamples; //deleting a sample does affect the m_staleSamples list, but we create a copy
     for (QSample* sample : copyStaleSamples)
@@ -150,7 +150,7 @@ bool QSampleCache::isLoading() const
 bool QSampleCache::isCached(const QUrl &url) const
 {
     const std::lock_guard<QRecursiveMutex> locker(m_mutex);
-    return m_samples.contains(url);
+    return m_samples.find(url) != m_samples.end();
 }
 
 QSample* QSampleCache::requestSample(const QUrl& url)
@@ -163,7 +163,7 @@ QSample* QSampleCache::requestSample(const QUrl& url)
 
     qCDebug(qLcSampleCache) << "QSampleCache: request sample [" << url << "]";
     std::unique_lock<QRecursiveMutex> locker(m_mutex);
-    QMap<QUrl, QSample*>::iterator it = m_samples.find(url);
+    auto it = m_samples.find(url);
     QSample* sample;
     if (it == m_samples.end()) {
         if (needsThreadStart) {
@@ -172,12 +172,12 @@ QSample* QSampleCache::requestSample(const QUrl& url)
             m_loadingThread.start();
         }
         sample = new QSample(url, this);
-        m_samples.insert(url, sample);
+        m_samples.emplace(url, sample);
 #if QT_CONFIG(thread)
         sample->moveToThread(&m_loadingThread);
 #endif
     } else {
-        sample = *it;
+        sample = it->second;
         if (sample->state() == QSample::Error && needsThreadStart) {
             m_loadingThread.wait();
             m_loadingThread.start();
@@ -191,6 +191,53 @@ QSample* QSampleCache::requestSample(const QUrl& url)
     return sample;
 }
 
+QFuture<QMaybe<QSample *, QSample::State>> QSampleCache::requestSampleFuture(const QUrl &url)
+{
+    QSample *requestedSample = requestSample(url);
+    auto promise = std::make_shared<QPromise<QMaybe<QSample *, QSample::State>>>();
+    auto future = promise->future();
+
+    switch (requestedSample->m_state) {
+    case QSample::Ready:
+        promise->start();
+        promise->addResult(requestedSample);
+        promise->finish();
+        return future;
+
+    case QSample::Error:
+        promise->start();
+        promise->addResult(QUnexpected{ QSample::Error });
+        promise->finish();
+        return future;
+    default:
+        break;
+    }
+
+    // HACK: we keep track of the context to disconnect on ready or error
+    QObject *context = new QObject(this);
+
+    QObject::connect(requestedSample, &QSample::error, context,
+                     [this, promise](QSample *requestedSample) {
+        promise->start();
+        promise->addResult(QUnexpected{ requestedSample->m_state });
+        promise->finish();
+
+        this->m_pendingPromises.erase(promise);
+    });
+
+    QObject::connect(requestedSample, &QSample::ready, context,
+                     [this, promise](QSample *requestedSample) {
+        promise->start();
+        promise->addResult(requestedSample);
+        promise->finish();
+        this->m_pendingPromises.erase(promise);
+    });
+
+    m_pendingPromises.emplace(std::move(promise), context);
+
+    return future;
+}
+
 void QSampleCache::setCapacity(qint64 capacity)
 {
     const std::lock_guard<QRecursiveMutex> locker(m_mutex);
@@ -198,8 +245,8 @@ void QSampleCache::setCapacity(qint64 capacity)
         return;
     qCDebug(qLcSampleCache) << "QSampleCache: capacity changes from " << m_capacity << "to " << capacity;
     if (m_capacity > 0 && capacity <= 0) { //memory management strategy changed
-        for (QMap<QUrl, QSample*>::iterator it = m_samples.begin(); it != m_samples.end();) {
-            QSample* sample = *it;
+        for (auto it = m_samples.begin(); it != m_samples.end();) {
+            QSample *sample = it->second;
             if (sample->m_ref == 0) {
                 unloadSample(sample);
                 it = m_samples.erase(it);
@@ -232,8 +279,8 @@ void QSampleCache::refresh(qint64 usageChange)
     qint64 recoveredSize = 0;
 
     //free unused samples to keep usage under capacity limit.
-    for (QMap<QUrl, QSample*>::iterator it = m_samples.begin(); it != m_samples.end();) {
-        QSample* sample = *it;
+    for (auto it = m_samples.begin(); it != m_samples.end();) {
+        QSample *sample = it->second;
         if (sample->m_ref > 0) {
             ++it;
             continue;
@@ -294,7 +341,7 @@ bool QSampleCache::notifyUnreferencedSample(QSample* sample)
 
     if (m_capacity > 0)
         return false;
-    m_samples.remove(sample->m_url);
+    m_samples.erase(sample->m_url);
     unloadSample(sample);
     return true;
 }
@@ -413,6 +460,7 @@ void QSample::handleLoadingError(int errorCode)
     cleanup();
     m_state = QSample::Error;
     m_parent->loadingRelease();
+
     emit error(this);
 }
 
