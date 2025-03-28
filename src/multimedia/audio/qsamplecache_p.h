@@ -27,91 +27,68 @@
 #include <QtMultimedia/private/qmaybe_p.h>
 
 #include <memory>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
-class QIODevice;
-class QNetworkAccessManager;
 class QSampleCache;
-class QWaveDecoder;
 
-class Q_MULTIMEDIA_EXPORT QSample : public QObject
+class Q_MULTIMEDIA_EXPORT QSample
 {
-    Q_OBJECT
 public:
     friend class QSampleCache;
-    enum State
-    {
+    enum State : uint8_t {
         Creating,
-        Loading,
         Error,
         Ready,
     };
+    using SharedSamplePromise = QSharedPointer<QPromise<QMaybe<QSample *, QSample::State>>>;
+    ~QSample();
 
     State state() const;
-    // These are not (currently) locked because they are only meant to be called after these
-    // variables are updated to their final states
     const QByteArray& data() const { Q_ASSERT(state() == Ready); return m_soundData; }
     const QAudioFormat& format() const { Q_ASSERT(state() == Ready); return m_audioFormat; }
-    void release();
 
-Q_SIGNALS:
-    void error(QPointer<QSample> self);
-    void ready(QPointer<QSample> self);
+    void setError();
+    void setData(QByteArray, QAudioFormat);
 
-protected:
-    QSample(const QUrl& url, QSampleCache *parent);
-
-private Q_SLOTS:
-    void load();
-    void handleLoadingError(int errorCode = -1);
-    void decoderError();
-    void readSample();
-    void decoderReady();
+    QSample(QUrl url, QSampleCache *parent);
 
 private:
-    void onReady();
-    void cleanup();
-    void addRef();
-    void loadIfNecessary();
     QSample();
-    ~QSample() override;
 
-    mutable QMutex m_mutex;
+    // clang-format off
     QSampleCache *m_parent;
     QByteArray   m_soundData;
     QAudioFormat m_audioFormat;
-    std::unique_ptr<QIODevice> m_stream;
-    std::unique_ptr<QWaveDecoder> m_waveDecoder;
-    QUrl         m_url;
-    qint64       m_sampleReadLength;
-    State        m_state;
-    int          m_ref;
+    const QUrl   m_url;
+    State        m_state = State::Creating;
+    // clang-format on
+
+    friend class QSampleCache;
+    void clearParent();
 };
+
+using SharedSamplePtr = std::shared_ptr<QSample>;
+using WeakSamplePtr = std::weak_ptr<QSample>;
 
 class Q_MULTIMEDIA_EXPORT QSampleCache : public QObject
 {
-    Q_OBJECT
 public:
     friend class QSample;
 
-    enum class SampleSourceType {
+    enum class SampleSourceType
+    {
         File,
         NetworkManager,
     };
 
-    QSampleCache(QObject *parent = nullptr);
+    explicit QSampleCache(QObject *parent = nullptr);
     ~QSampleCache() override;
 
-    QSample* requestSample(const QUrl& url);
-    QFuture<QMaybe<QSample *, QSample::State>> requestSampleFuture(const QUrl &);
+    QFuture<SharedSamplePtr> requestSampleFuture(const QUrl &);
 
-    void setCapacity(qint64 capacity);
-
-    bool isLoading() const;
     bool isCached(const QUrl& url) const;
-
-    SampleSourceType sampleSourceType() const { return m_sampleSourceType; }
 
     // For tests only
     void setSampleSourceType(SampleSourceType sampleSourceType)
@@ -123,32 +100,23 @@ private:
     std::unique_ptr<QIODevice> createStreamForSample(QSample &sample);
 
 private:
-    using SharedSamplePromise = std::shared_ptr<QPromise<QMaybe<QSample *, QSample::State>>>;
-    std::map<SharedSamplePromise, std::unique_ptr<QObject>> m_pendingPromises;
-
-    std::map<QUrl, QSample *> m_samples;
-    QSet<QSample*> m_staleSamples;
-
-#if QT_CONFIG(network)
-    std::unique_ptr<QNetworkAccessManager> m_networkAccessManager;
-    SampleSourceType m_sampleSourceType = SampleSourceType::NetworkManager;
-#else
-    SampleSourceType m_sampleSourceType = SampleSourceType::File;
-#endif
+    using SharedSamplePromise = std::shared_ptr<QPromise<SharedSamplePtr>>;
 
     mutable QRecursiveMutex m_mutex;
-    qint64 m_capacity;
-    qint64 m_usage;
-    QThread m_loadingThread;
 
-    void refresh(qint64 usageChange);
-    bool notifyUnreferencedSample(QSample* sample);
-    void removeUnreferencedSample(QSample* sample);
-    void unloadSample(QSample* sample);
+    std::map<QUrl, WeakSamplePtr> m_loadedSamples;
+    std::map<QUrl, std::pair<SharedSamplePtr, QList<SharedSamplePromise>>> m_pendingSamples;
 
-    void loadingRelease();
-    int m_loadingRefCount;
-    QMutex m_loadingMutex;
+    void removeUnreferencedSample(const QUrl &url);
+
+    using SampleLoadResult = std::optional<std::pair<QByteArray, QAudioFormat>>;
+#if QT_CONFIG(thread)
+    static SampleLoadResult
+    loadSample(const QUrl &, std::optional<SampleSourceType> forceSourceType = std::nullopt);
+    QThreadPool m_threadPool;
+#endif
+
+    std::optional<SampleSourceType> m_sampleSourceType;
 };
 
 QT_END_NAMESPACE

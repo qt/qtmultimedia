@@ -2,507 +2,266 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qsamplecache_p.h"
-#include "qwavedecoder.h"
-#include "qfile.h"
+
+#include <QtConcurrent/qtconcurrentrun.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qeventloop.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfuturewatcher.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtMultimedia/qwavedecoder.h>
 
 #if QT_CONFIG(network)
-#  include <QtNetwork/QNetworkAccessManager>
-#  include <QtNetwork/QNetworkReply>
-#  include <QtNetwork/QNetworkRequest>
+#  include <QtNetwork/qnetworkaccessmanager.h>
+#  include <QtNetwork/qnetworkreply.h>
+#  include <QtNetwork/qnetworkrequest.h>
 #endif
 
-#include <QtCore/QDebug>
-#include <QtCore/qloggingcategory.h>
+#include <utility>
 
 Q_STATIC_LOGGING_CATEGORY(qLcSampleCache, "qt.multimedia.samplecache")
 
-#include <mutex>
-
 QT_BEGIN_NAMESPACE
 
-
-/*!
-    \class QSampleCache
-    \internal
-
-    When you want to get a sound sample data, you need to request the QSample reference from QSampleCache.
-
-
-    \code
-        QSample *m_sample;     // class member.
-
-      private Q_SLOTS:
-        void decoderError();
-        void sampleReady();
-    \endcode
-
-    \code
-      Q_GLOBAL_STATIC(QSampleCache, sampleCache) //declare a singleton manager
-    \endcode
-
-    \code
-        m_sample = sampleCache()->requestSample(url);
-        switch(m_sample->state()) {
-        case QSample::Ready:
-            sampleReady();
-            break;
-        case QSample::Error:
-            decoderError();
-            break;
-        default:
-            connect(m_sample, SIGNAL(error()), this, SLOT(decoderError()));
-            connect(m_sample, SIGNAL(ready()), this, SLOT(sampleReady()));
-            break;
-        }
-    \endcode
-
-    When you no longer need the sound sample data, you need to release it:
-
-    \code
-       if (m_sample) {
-           m_sample->release();
-           m_sample = 0;
-       }
-    \endcode
-*/
-
 QSampleCache::QSampleCache(QObject *parent)
-    : QObject(parent), m_capacity(0), m_usage(0), m_loadingRefCount(0)
+    : QObject(parent)
 {
-    m_loadingThread.setObjectName(QLatin1String("QSampleCache::LoadingThread"));
-}
+#if QT_CONFIG(thread)
+    // we limit the number of loader threads to avoid thread explosion
+    static constexpr int loaderThreadLimit = 8;
+    m_threadPool.setMaxThreadCount(loaderThreadLimit);
+    m_threadPool.setExpiryTimeout(15);
+    m_threadPool.setThreadPriority(QThread::LowPriority);
+    m_threadPool.setServiceLevel(QThread::QualityOfService::Eco);
 
-std::unique_ptr<QIODevice> QSampleCache::createStreamForSample(QSample &sample)
-{
-#if QT_CONFIG(network)
-    if (m_sampleSourceType == SampleSourceType::NetworkManager) {
-        if (sample.m_url.scheme().isEmpty()) {
-            // exit early, to avoid QNetworkAccessManager trying to construct a default ssl
-            // configuration, which tends to cause timeouts on CI on macos.
-            // catch this case and exit early.
-            return nullptr;
-        }
-
-        if (!m_networkAccessManager)
-            m_networkAccessManager = std::make_unique<QNetworkAccessManager>();
-        std::unique_ptr<QNetworkReply> reply(
-                m_networkAccessManager->get(QNetworkRequest(sample.m_url)));
-        if (reply)
-            connect(reply.get(), &QNetworkReply::errorOccurred, &sample,
-                    &QSample::handleLoadingError);
-        return reply;
+    if (!thread()->isMainThread()) {
+        this->moveToThread(qApp->thread());
+        m_threadPool.moveToThread(qApp->thread());
     }
 #endif
-
-    // The QFile source is needed of the QtLite build, which excludes networking
-    if (m_sampleSourceType == SampleSourceType::File) {
-        auto file = std::make_unique<QFile>(sample.m_url.toLocalFile());
-        if (file->open(QFile::ReadOnly))
-            return file;
-    }
-
-    return nullptr;
 }
 
 QSampleCache::~QSampleCache()
 {
-    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
+    m_threadPool.clear();
+    m_threadPool.waitForDone();
 
-    m_loadingThread.quit();
-    m_loadingThread.wait();
+    for (auto &entry : m_loadedSamples) {
+        auto samplePtr = entry.second.lock();
+        if (samplePtr)
+            samplePtr->clearParent();
+    }
 
-    // Killing the loading thread means that no samples can be
-    // deleted using deleteLater.  And some samples that had deleteLater
-    // already called won't have been processed (m_staleSamples)
-    for (auto it = m_samples.cbegin(), end = m_samples.cend(); it != end; ++it)
-        delete it->second;
-
-    const auto copyStaleSamples = m_staleSamples; //deleting a sample does affect the m_staleSamples list, but we create a copy
-    for (QSample* sample : copyStaleSamples)
-        delete sample;
-
-#if QT_CONFIG(network)
-    // Should we delete it under the mutex?
-    m_networkAccessManager.reset();
-#endif
-}
-
-void QSampleCache::loadingRelease()
-{
-    QMutexLocker locker(&m_loadingMutex);
-    m_loadingRefCount--;
-    if (m_loadingRefCount == 0) {
-        if (m_loadingThread.isRunning()) {
-#if QT_CONFIG(network)
-            if (m_networkAccessManager)
-                m_networkAccessManager.release()->deleteLater();
-#endif
-            m_loadingThread.exit();
-        }
+    for (auto &entry : m_pendingSamples) {
+        auto samplePtr = entry.second.first;
+        if (samplePtr)
+            samplePtr->clearParent();
     }
 }
 
-bool QSampleCache::isLoading() const
+#if QT_CONFIG(thread)
+
+QSampleCache::SampleLoadResult
+QSampleCache::loadSample(const QUrl &url, std::optional<SampleSourceType> forceSourceType)
 {
-    return m_loadingThread.isRunning();
+    using namespace Qt::Literals;
+
+    bool errorOccurred = false;
+    QByteArray sampleData;
+    QAudioFormat audioFormat;
+
+    if (url.scheme().isEmpty())
+        // exit early, to avoid QNetworkAccessManager trying to construct a default ssl
+        // configuration, which tends to cause timeouts on CI on macos.
+        // catch this case and exit early.
+        return std::nullopt;
+
+    std::unique_ptr<QIODevice> decoderInput;
+    SampleSourceType realSourceType =
+            forceSourceType.value_or(url.scheme() == u"qrc"_s || url.scheme() == u"file"_s
+                                             ? SampleSourceType::File
+                                             : SampleSourceType::NetworkManager);
+    if (realSourceType == SampleSourceType::File) {
+        QString locationString =
+                url.isLocalFile() ? url.toLocalFile() : u":" + url.toString(QUrl::RemoveScheme);
+
+        auto *file = new QFile(locationString);
+        bool opened = file->open(QFile::ReadOnly);
+        if (!opened)
+            errorOccurred = true;
+        decoderInput.reset(file);
+    } else {
+#if QT_CONFIG(network)
+        thread_local static QNetworkAccessManager networkAccessManager;
+        QNetworkReply *reply = networkAccessManager.get(QNetworkRequest(url));
+
+        if (reply->error() != QNetworkReply::NoError)
+            errorOccurred = true;
+
+        connect(reply, &QNetworkReply::errorOccurred, reply,
+                [&]([[maybe_unused]] QNetworkReply::NetworkError errorCode) {
+            errorOccurred = true;
+        });
+
+        decoderInput.reset(reply);
+#else
+        return std::nullopt;
+#endif
+    }
+
+    if (!decoderInput->isOpen())
+        return std::nullopt;
+
+    QWaveDecoder decoder(decoderInput.get());
+
+    connect(&decoder, &QWaveDecoder::formatKnown, &decoder, [&] {
+        audioFormat = decoder.audioFormat();
+        sampleData = decoder.readAll();
+    });
+    connect(&decoder, &QWaveDecoder::parsingError, &decoder, [&] {
+        errorOccurred = true;
+    });
+
+    // opening the decoder will read everything
+    bool opened = decoder.open(QIODevice::ReadOnly);
+    if (!opened)
+        return std::nullopt;
+
+    if (errorOccurred)
+        return std::nullopt;
+
+    if (sampleData.size() != decoder.size()) {
+        qDebug() << "loadSample: error occurred in decoder";
+        return std::nullopt;
+    }
+
+    return std::pair{
+        std::move(sampleData),
+        audioFormat,
+    };
 }
+
+#endif
 
 bool QSampleCache::isCached(const QUrl &url) const
 {
-    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
-    return m_samples.find(url) != m_samples.end();
+    std::lock_guard guard(m_mutex);
+
+    return m_loadedSamples.find(url) != m_loadedSamples.end()
+            || m_pendingSamples.find(url) != m_pendingSamples.end();
 }
 
-QSample* QSampleCache::requestSample(const QUrl& url)
+QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url)
 {
-    //lock and add first to make sure live loadingThread will not be killed during this function call
-    m_loadingMutex.lock();
-    const bool needsThreadStart = m_loadingRefCount == 0;
-    m_loadingRefCount++;
-    m_loadingMutex.unlock();
+    std::lock_guard guard(m_mutex);
 
-    qCDebug(qLcSampleCache) << "QSampleCache: request sample [" << url << "]";
-    std::unique_lock<QRecursiveMutex> locker(m_mutex);
-    auto it = m_samples.find(url);
-    QSample* sample;
-    if (it == m_samples.end()) {
-        if (needsThreadStart) {
-            // Previous thread might be finishing, need to wait for it. If not, this is a no-op.
-            m_loadingThread.wait();
-            m_loadingThread.start();
-        }
-        sample = new QSample(url, this);
-        m_samples.emplace(url, sample);
-#if QT_CONFIG(thread)
-        sample->moveToThread(&m_loadingThread);
-#endif
-    } else {
-        sample = it->second;
-        if (sample->state() == QSample::Error && needsThreadStart) {
-            m_loadingThread.wait();
-            m_loadingThread.start();
-        }
-    }
-
-    sample->addRef();
-    locker.unlock();
-
-    sample->loadIfNecessary();
-    return sample;
-}
-
-QFuture<QMaybe<QSample *, QSample::State>> QSampleCache::requestSampleFuture(const QUrl &url)
-{
-    QSample *requestedSample = requestSample(url);
-    auto promise = std::make_shared<QPromise<QMaybe<QSample *, QSample::State>>>();
+    auto promise = std::make_shared<QPromise<SharedSamplePtr>>();
     auto future = promise->future();
 
-    switch (requestedSample->m_state) {
-    case QSample::Ready:
+    // found and ready
+    auto found = m_loadedSamples.find(url);
+    if (found != m_loadedSamples.end()) {
+        SharedSamplePtr foundSample = found->second.lock();
+        Q_ASSERT(foundSample);
+        Q_ASSERT(foundSample->state() == QSample::Ready);
         promise->start();
-        promise->addResult(requestedSample);
+        promise->addResult(std::move(foundSample));
         promise->finish();
         return future;
-
-    case QSample::Error:
-        promise->start();
-        promise->addResult(QUnexpected{ QSample::Error });
-        promise->finish();
-        return future;
-    default:
-        break;
     }
 
-    // HACK: we keep track of the context to disconnect on ready or error
-    QObject *context = new QObject(this);
+    // already in the process of being loaded
+    auto pending = m_pendingSamples.find(url);
+    if (pending != m_pendingSamples.end()) {
+        pending->second.second.append(promise);
+        return future;
+    }
 
-    QObject::connect(requestedSample, &QSample::error, context,
-                     [this, promise](QSample *requestedSample) {
-        promise->start();
-        promise->addResult(QUnexpected{ requestedSample->m_state });
-        promise->finish();
+    // we need to start a new load process
+    SharedSamplePtr sample = std::make_shared<QSample>(url, this);
+    m_pendingSamples.emplace(url, std::pair{ sample, QList<SharedSamplePromise>{ promise } });
 
-        this->m_pendingPromises.erase(promise);
+    auto loadPromise = std::make_shared<QPromise<SharedSamplePtr>>();
+
+#if QT_CONFIG(thread)
+    QFuture<SampleLoadResult> futureResult =
+            QtConcurrent::run(&m_threadPool, &QSampleCache::loadSample, url, m_sampleSourceType);
+#else
+    // TODO: for now we require threads
+    QPromise<SampleLoadResult> brokenPromise;
+    brokenPromise.start();
+    brokenPromise.addResult(std::nullopt);
+    brokenPromise.finish();
+    QFuture<SampleLoadResult> futureResult = brokenPromise.future();
+#endif
+
+    futureResult.then(this,
+                      [this, url, sample = std::move(sample)](SampleLoadResult loadResult) mutable {
+        if (loadResult)
+            sample->setData(loadResult->first, loadResult->second);
+        else
+            sample->setError();
+
+        std::lock_guard guard(m_mutex);
+
+        auto pending = m_pendingSamples.find(url);
+        if (pending != m_pendingSamples.end()) {
+            for (auto &promise : pending->second.second) {
+                promise->start();
+                promise->addResult(loadResult ? sample : nullptr);
+                promise->finish();
+            }
+        }
+
+        if (loadResult)
+            m_loadedSamples.emplace(url, sample);
+
+        if (pending != m_pendingSamples.end())
+            m_pendingSamples.erase(pending);
+        sample = {};
     });
-
-    QObject::connect(requestedSample, &QSample::ready, context,
-                     [this, promise](QSample *requestedSample) {
-        promise->start();
-        promise->addResult(requestedSample);
-        promise->finish();
-        this->m_pendingPromises.erase(promise);
-    });
-
-    m_pendingPromises.emplace(std::move(promise), context);
 
     return future;
 }
 
-void QSampleCache::setCapacity(qint64 capacity)
-{
-    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
-    if (m_capacity == capacity)
-        return;
-    qCDebug(qLcSampleCache) << "QSampleCache: capacity changes from " << m_capacity << "to " << capacity;
-    if (m_capacity > 0 && capacity <= 0) { //memory management strategy changed
-        for (auto it = m_samples.begin(); it != m_samples.end();) {
-            QSample *sample = it->second;
-            if (sample->m_ref == 0) {
-                unloadSample(sample);
-                it = m_samples.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-
-    m_capacity = capacity;
-    refresh(0);
-}
-
-// Called locked
-void QSampleCache::unloadSample(QSample *sample)
-{
-    m_usage -= sample->m_soundData.size();
-    m_staleSamples.insert(sample);
-    sample->deleteLater();
-}
-
-// Called in both threads
-void QSampleCache::refresh(qint64 usageChange)
-{
-    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
-    m_usage += usageChange;
-    if (m_capacity <= 0 || m_usage <= m_capacity)
-        return;
-
-    qint64 recoveredSize = 0;
-
-    //free unused samples to keep usage under capacity limit.
-    for (auto it = m_samples.begin(); it != m_samples.end();) {
-        QSample *sample = it->second;
-        if (sample->m_ref > 0) {
-            ++it;
-            continue;
-        }
-        recoveredSize += sample->m_soundData.size();
-        unloadSample(sample);
-        it = m_samples.erase(it);
-        if (m_usage <= m_capacity)
-            return;
-    }
-
-    qCDebug(qLcSampleCache) << "QSampleCache: refresh(" << usageChange
-             << ") recovered size =" << recoveredSize
-             << "new usage =" << m_usage;
-
-    if (m_usage > m_capacity)
-        qWarning() << "QSampleCache: usage" << m_usage << "out of limit" << m_capacity;
-}
-
-// Called in both threads
-void QSampleCache::removeUnreferencedSample(QSample *sample)
-{
-    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
-    m_staleSamples.remove(sample);
-}
-
-// Called in loader thread (since this lives in that thread)
-// Also called from application thread after loader thread dies.
 QSample::~QSample()
 {
     // Remove ourselves from our parent
-    m_parent->removeUnreferencedSample(this);
+    if (m_parent)
+        m_parent->removeUnreferencedSample(m_url);
 
-    QMutexLocker locker(&m_mutex);
     qCDebug(qLcSampleCache) << "~QSample" << this << ": deleted [" << m_url << "]" << QThread::currentThread();
-    cleanup();
 }
 
-// Called in application thread
-void QSample::loadIfNecessary()
+void QSampleCache::removeUnreferencedSample(const QUrl &url)
 {
-    QMutexLocker locker(&m_mutex);
-    if (m_state == QSample::Error || m_state == QSample::Creating) {
-        m_state = QSample::Loading;
-        QMetaObject::invokeMethod(this, &QSample::load, Qt::QueuedConnection);
-    } else {
-        m_parent->loadingRelease();
-    }
+    std::lock_guard guard(m_mutex);
+    m_loadedSamples.erase(url);
 }
 
-// Called in application thread
-bool QSampleCache::notifyUnreferencedSample(QSample* sample)
+void QSample::setError()
 {
-    if (m_loadingThread.isRunning())
-        m_loadingThread.wait();
-
-    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
-
-    if (m_capacity > 0)
-        return false;
-    m_samples.erase(sample->m_url);
-    unloadSample(sample);
-    return true;
+    m_state = State::Error;
 }
 
-// Called in application thread
-void QSample::release()
+void QSample::setData(QByteArray data, QAudioFormat format)
 {
-    QMutexLocker locker(&m_mutex);
-    qCDebug(qLcSampleCache) << "Sample:: release" << this << QThread::currentThread() << m_ref;
-    if (--m_ref == 0) {
-        locker.unlock();
-        m_parent->notifyUnreferencedSample(this);
-    }
+    m_state = State::Ready;
+    m_soundData = std::move(data);
+    m_audioFormat = format;
 }
 
-// Called in dtor and when stream is loaded
-// must be called locked.
-void QSample::cleanup()
-{
-    qCDebug(qLcSampleCache) << "QSample: cleanup";
-    if (m_waveDecoder) {
-        m_waveDecoder->disconnect(this);
-        m_waveDecoder.release()->deleteLater();
-    }
-
-    if (m_stream) {
-        m_stream->disconnect(this);
-        m_stream.release()->deleteLater();
-    }
-}
-
-// Called in application thread
-void QSample::addRef()
-{
-    m_ref++;
-}
-
-// Called in loading thread
-void QSample::readSample()
-{
-#if QT_CONFIG(thread)
-    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
-#endif
-    QMutexLocker m(&m_mutex);
-    qint64 read = m_waveDecoder->read(m_soundData.data() + m_sampleReadLength,
-                      qMin(m_waveDecoder->bytesAvailable(),
-                           qint64(m_waveDecoder->size() - m_sampleReadLength)));
-    qCDebug(qLcSampleCache) << "QSample: readSample" << read;
-    if (read > 0)
-        m_sampleReadLength += read;
-    if (m_sampleReadLength < m_waveDecoder->size())
-        return;
-    Q_ASSERT(m_sampleReadLength == qint64(m_soundData.size()));
-    onReady();
-}
-
-// Called in loading thread
-void QSample::decoderReady()
-{
-#if QT_CONFIG(thread)
-    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
-#endif
-    QMutexLocker m(&m_mutex);
-    qCDebug(qLcSampleCache) << "QSample: decoder ready";
-    m_parent->refresh(m_waveDecoder->size());
-
-    m_soundData.resize(m_waveDecoder->size());
-    m_sampleReadLength = 0;
-    qint64 read = m_waveDecoder->read(m_soundData.data(), m_waveDecoder->size());
-    qCDebug(qLcSampleCache) << "    bytes read" << read;
-    if (read > 0)
-        m_sampleReadLength += read;
-    if (m_sampleReadLength >= m_waveDecoder->size())
-        onReady();
-}
-
-// Called in all threads
 QSample::State QSample::state() const
 {
-    QMutexLocker m(&m_mutex);
     return m_state;
 }
 
-// Called in loading thread
-// Essentially a second ctor, doesn't need locks (?)
-void QSample::load()
+QSample::QSample(QUrl url, QSampleCache *parent) : m_parent(parent), m_url(std::move(url)) { }
+
+void QSample::clearParent()
 {
-#if QT_CONFIG(thread)
-    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
-#endif
-    qCDebug(qLcSampleCache) << "QSample: load [" << m_url << "]";
-
-    m_stream = m_parent->createStreamForSample(*this);
-
-    if (!m_stream) {
-        handleLoadingError();
-        return;
-    }
-
-    m_waveDecoder = std::make_unique<QWaveDecoder>(m_stream.get());
-    connect(m_waveDecoder.get(), &QWaveDecoder::formatKnown, this, &QSample::decoderReady);
-    connect(m_waveDecoder.get(), &QWaveDecoder::parsingError, this, &QSample::decoderError);
-    connect(m_waveDecoder.get(), &QIODevice::readyRead, this, &QSample::readSample);
-
-    m_waveDecoder->open(QIODevice::ReadOnly);
-}
-
-void QSample::handleLoadingError(int errorCode)
-{
-#if QT_CONFIG(thread)
-    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
-#endif
-    QMutexLocker m(&m_mutex);
-    qCDebug(qLcSampleCache) << "QSample: loading error:" << errorCode
-                            << "source type: " << qToUnderlying(m_parent->sampleSourceType());
-    cleanup();
-    m_state = QSample::Error;
-    m_parent->loadingRelease();
-
-    emit error(this);
-}
-
-// Called in loading thread
-void QSample::decoderError()
-{
-#if QT_CONFIG(thread)
-    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
-#endif
-    QMutexLocker m(&m_mutex);
-    qCDebug(qLcSampleCache) << "QSample: decoder error";
-    cleanup();
-    m_state = QSample::Error;
-    m_parent->loadingRelease();
-    emit error(this);
-}
-
-// Called in loading thread from decoder when sample is done. Locked already.
-void QSample::onReady()
-{
-#if QT_CONFIG(thread)
-    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
-#endif
-    m_audioFormat = m_waveDecoder->audioFormat();
-    qCDebug(qLcSampleCache) << "QSample: load ready format:" << m_audioFormat;
-    cleanup();
-    m_state = QSample::Ready;
-    m_parent->loadingRelease();
-    emit ready(this);
-}
-
-// Called in application thread, then moved to loader thread
-QSample::QSample(const QUrl &url, QSampleCache *parent)
-    : m_parent(parent),
-      m_waveDecoder(nullptr),
-      m_url(url),
-      m_sampleReadLength(0),
-      m_state(Creating),
-      m_ref(0)
-{
+    m_parent = nullptr;
 }
 
 QT_END_NAMESPACE
-
-#include "moc_qsamplecache_p.cpp"
