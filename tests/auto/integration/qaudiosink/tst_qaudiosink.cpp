@@ -21,6 +21,8 @@
 #include <private/multimedia_debug_support_p.h>
 #include <private/qmockiodevice_p.h>
 
+QT_WARNING_DISABLE_DEPRECATED; // Tests use QWaveDecoder
+
 #define AUDIO_BUFFER 192000
 
 using AudioSinkInitializer = bool (*)(QAudioSink &);

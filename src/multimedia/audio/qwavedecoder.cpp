@@ -11,6 +11,8 @@
 
 QT_BEGIN_NAMESPACE
 
+#if QT_DEPRECATED_SINCE(6, 11)
+
 QWaveDecoder::QWaveDecoder(QIODevice *device, QObject *parent)
     : QIODevice(parent),
       device(device)
@@ -480,6 +482,8 @@ void QWaveDecoder::discardBytes(qint64 numBytes)
         junkToSkip = origPos + numBytes - device->pos();
     }
 }
+
+#endif // QT_DEPRECATED_SINCE(6, 11)
 
 QT_END_NAMESPACE
 

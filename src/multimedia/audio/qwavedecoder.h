@@ -11,16 +11,17 @@
 
 QT_BEGIN_NAMESPACE
 
-
+#if QT_DEPRECATED_SINCE(6, 11)
 
 class Q_MULTIMEDIA_EXPORT QWaveDecoder : public QIODevice
 {
     Q_OBJECT
 
 public:
+    QT_DEPRECATED_VERSION_X_6_11("QWaveDecoder is deprecated. Please use QAudioDecoder instead.")
     explicit QWaveDecoder(QIODevice *device, QObject *parent = nullptr);
-    explicit QWaveDecoder(QIODevice *device, const QAudioFormat &format,
-                        QObject *parent = nullptr);
+    QT_DEPRECATED_VERSION_X_6_11("QWaveDecoder is deprecated. Please use QAudioDecoder instead.")
+    explicit QWaveDecoder(QIODevice *device, const QAudioFormat &format, QObject *parent = nullptr);
     ~QWaveDecoder() override;
 
     QAudioFormat audioFormat() const;
@@ -110,6 +111,8 @@ private:
     bool byteSwap = false;
     int bps = 0;
 };
+
+#endif // QT_DEPRECATED_SINCE(6, 11)
 
 QT_END_NAMESPACE
 

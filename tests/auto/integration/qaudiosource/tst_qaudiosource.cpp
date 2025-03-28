@@ -17,6 +17,8 @@
 #include <private/mediabackendutils_p.h>
 #include <private/qmockiodevice_p.h>
 
+QT_WARNING_DISABLE_DEPRECATED; // Tests use QWaveDecoder
+
 #define RANGE_ERR 0.5
 
 template<typename T> inline bool qTolerantCompare(T value, T expected)
