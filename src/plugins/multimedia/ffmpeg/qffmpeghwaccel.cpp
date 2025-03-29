@@ -16,6 +16,8 @@
 #include "qffmpegvideobuffer_p.h"
 #include "qscopedvaluerollback.h"
 
+#include <QtCore/QElapsedTimer>
+
 #ifdef Q_OS_LINUX
 #  include "QtCore/qfile.h"
 #  include <QLibrary>
