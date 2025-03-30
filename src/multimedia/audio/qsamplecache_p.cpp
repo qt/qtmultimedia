@@ -10,13 +10,14 @@
 #include <QtCore/qfile.h>
 #include <QtCore/qfuturewatcher.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtMultimedia/qwavedecoder.h>
 
 #if QT_CONFIG(network)
 #  include <QtNetwork/qnetworkaccessmanager.h>
 #  include <QtNetwork/qnetworkreply.h>
 #  include <QtNetwork/qnetworkrequest.h>
 #endif
+
+#include "dr_wav.h"
 
 #include <utility>
 
@@ -60,6 +61,39 @@ QSampleCache::~QSampleCache()
     }
 }
 
+QSampleCache::SampleLoadResult QSampleCache::loadSample(QByteArray data)
+{
+    using namespace QtPrivate;
+
+    drwav wavParser;
+    bool success = drwav_init_memory(&wavParser, data.constData(), data.size(), nullptr);
+    if (!success)
+        return std::nullopt;
+
+    // using float as internal format. one could argue to use int16 and save half the ram at the
+    // cost of potential run-time conversions
+    QAudioFormat audioFormat;
+    audioFormat.setChannelCount(wavParser.channels);
+    audioFormat.setSampleFormat(QAudioFormat::Float);
+    audioFormat.setSampleRate(wavParser.sampleRate);
+    audioFormat.setChannelConfig(
+            QAudioFormat::defaultChannelConfigForChannelCount(wavParser.channels));
+
+    QByteArray sampleData;
+    sampleData.resizeForOverwrite(sizeof(float) * wavParser.channels
+                                  * wavParser.totalPCMFrameCount);
+    uint64_t framesRead = drwav_read_pcm_frames_f32(&wavParser, wavParser.totalPCMFrameCount,
+                                                    reinterpret_cast<float *>(sampleData.data()));
+
+    if (framesRead != wavParser.totalPCMFrameCount)
+        return std::nullopt;
+
+    return std::pair{
+        std::move(sampleData),
+        audioFormat,
+    };
+}
+
 #if QT_CONFIG(thread)
 
 QSampleCache::SampleLoadResult
@@ -68,8 +102,6 @@ QSampleCache::loadSample(const QUrl &url, std::optional<SampleSourceType> forceS
     using namespace Qt::Literals;
 
     bool errorOccurred = false;
-    QByteArray sampleData;
-    QAudioFormat audioFormat;
 
     if (url.scheme().isEmpty())
         // exit early, to avoid QNetworkAccessManager trying to construct a default ssl
@@ -113,33 +145,11 @@ QSampleCache::loadSample(const QUrl &url, std::optional<SampleSourceType> forceS
     if (!decoderInput->isOpen())
         return std::nullopt;
 
-    QWaveDecoder decoder(decoderInput.get());
-
-    connect(&decoder, &QWaveDecoder::formatKnown, &decoder, [&] {
-        audioFormat = decoder.audioFormat();
-        sampleData = decoder.readAll();
-    });
-    connect(&decoder, &QWaveDecoder::parsingError, &decoder, [&] {
-        errorOccurred = true;
-    });
-
-    // opening the decoder will read everything
-    bool opened = decoder.open(QIODevice::ReadOnly);
-    if (!opened)
+    QByteArray data = decoderInput->readAll();
+    if (data.isEmpty() || errorOccurred)
         return std::nullopt;
 
-    if (errorOccurred)
-        return std::nullopt;
-
-    if (sampleData.size() != decoder.size()) {
-        qDebug() << "loadSample: error occurred in decoder";
-        return std::nullopt;
-    }
-
-    return std::pair{
-        std::move(sampleData),
-        audioFormat,
-    };
+    return loadSample(std::move(data));
 }
 
 #endif
@@ -182,11 +192,11 @@ QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url)
     SharedSamplePtr sample = std::make_shared<QSample>(url, this);
     m_pendingSamples.emplace(url, std::pair{ sample, QList<SharedSamplePromise>{ promise } });
 
-    auto loadPromise = std::make_shared<QPromise<SharedSamplePtr>>();
-
 #if QT_CONFIG(thread)
     QFuture<SampleLoadResult> futureResult =
-            QtConcurrent::run(&m_threadPool, &QSampleCache::loadSample, url, m_sampleSourceType);
+            QtConcurrent::run(&m_threadPool, [url, type = m_sampleSourceType] {
+        return loadSample(url, type);
+    });
 #else
     // TODO: for now we require threads
     QPromise<SampleLoadResult> brokenPromise;

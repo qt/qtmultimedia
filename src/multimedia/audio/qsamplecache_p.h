@@ -110,6 +110,9 @@ private:
     void removeUnreferencedSample(const QUrl &url);
 
     using SampleLoadResult = std::optional<std::pair<QByteArray, QAudioFormat>>;
+
+    static SampleLoadResult loadSample(QByteArray);
+
 #if QT_CONFIG(thread)
     static SampleLoadResult
     loadSample(const QUrl &, std::optional<SampleSourceType> forceSourceType = std::nullopt);
