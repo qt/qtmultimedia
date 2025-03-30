@@ -44,7 +44,11 @@ public:
     void setBufferSize(qsizetype bytes);
     qsizetype bufferSize() const;
 
+    void setBufferFrames(qsizetype frames);
+    qsizetype bufferFrames() const;
+
     qsizetype bytesFree() const;
+    qsizetype framesFree() const;
 
     qint64 processedUSecs() const;
     qint64 elapsedUSecs() const;

@@ -258,10 +258,27 @@ void QAudioSink::resume()
 
     \note The returned value is only valid while in QtAudio::ActiveState or QtAudio::IdleState
     state, otherwise returns zero.
+
+    \sa framesFree
 */
 qsizetype QAudioSink::bytesFree() const
 {
     return d ? d->bytesFree() : 0;
+}
+
+/*!
+    Returns the number of free frames available in the audio buffer.
+
+    \note The returned value is only valid while in QtAudio::ActiveState or QtAudio::IdleState
+    state, otherwise returns zero.
+
+    \sa bytesFree
+    \since 6.10
+*/
+
+qsizetype QAudioSink::framesFree() const
+{
+    return d ? d->format().framesForBytes(bytesFree()) : 0;
 }
 
 /*!
@@ -271,6 +288,8 @@ qsizetype QAudioSink::bytesFree() const
     are ignored after start(). It should not be assumed that the buffer size
     set is the actual buffer size used - call bufferSize() anytime after start()
     to return the actual buffer size being used.
+
+    \sa setBufferFrames
 */
 void QAudioSink::setBufferSize(qsizetype value)
 {
@@ -282,14 +301,52 @@ void QAudioSink::setBufferSize(qsizetype value)
     Returns the audio buffer size in bytes.
 
     If called before start(), returns platform default value.
-    If called before start() but setBufferSize() was called prior, returns value set by setBufferSize().
-    If called after start(), returns the actual buffer size being used. This may not be what was set previously
-    by setBufferSize().
+    If called before start() but setBufferSize() or setBufferFrames() was called prior, returns
+    value set by setBufferSize() or setBufferFrames(). If called after start(), returns the actual
+    buffer size being used. This may not be what was set previously by
+    setBufferSize() or setBufferFrames().
 
+    \sa bufferFrames
 */
 qsizetype QAudioSink::bufferSize() const
 {
     return d ? d->bufferSize() : 0;
+}
+
+/*!
+    Sets the audio buffer size to \a value in frames.
+
+    \note This function can be called anytime before start().  Calls to this
+    are ignored after start(). It should not be assumed that the buffer size
+    set is the actual buffer size used - call bufferFrames() anytime after start()
+    to return the actual buffer size being used.
+
+    \sa setBufferSize
+    \since 6.10
+*/
+
+void QAudioSink::setBufferFrames(qsizetype value)
+{
+    if (d)
+        setBufferSize(d->format().bytesForFrames(value));
+}
+
+/*!
+    Returns the audio buffer size in frames.
+
+    If called before start(), returns platform default value.
+    If called before start() but setBufferSize() or setBufferFrames() was called prior, returns
+    value set by setBufferSize() or setBufferFrames(). If called after start(), returns the actual
+    buffer size being used. This may not be what was set previously by
+    setBufferSize() or setBufferFrames().
+
+    \sa bufferSize
+    \since 6.10
+*/
+
+qsizetype QAudioSink::bufferFrames() const
+{
+    return d ? d->format().framesForBytes(bufferSize()) : 0;
 }
 
 /*!
