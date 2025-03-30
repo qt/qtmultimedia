@@ -138,9 +138,6 @@ Notes
 #ifndef dr_wav_h
 #define dr_wav_h
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define DRWAV_STRINGIFY(x)      #x
 #define DRWAV_XSTRINGIFY(x)     DRWAV_STRINGIFY(x)
@@ -151,6 +148,8 @@ extern "C" {
 #define DRWAV_VERSION_STRING    DRWAV_XSTRINGIFY(DRWAV_VERSION_MAJOR) "." DRWAV_XSTRINGIFY(DRWAV_VERSION_MINOR) "." DRWAV_XSTRINGIFY(DRWAV_VERSION_REVISION)
 
 #include <stddef.h> /* For size_t. */
+QT_BEGIN_NAMESPACE
+namespace QtPrivate {
 
 /* Sized Types */
 typedef   signed char           drwav_int8;
@@ -1317,9 +1316,9 @@ DRWAV_API drwav_bool32 drwav_guid_equal(const drwav_uint8 a[16], const drwav_uin
 /* Compares a four-character-code for the purpose of checking the type of a RIFF chunk. */
 DRWAV_API drwav_bool32 drwav_fourcc_equal(const drwav_uint8* a, const char* b);
 
-#ifdef __cplusplus
-}
-#endif
+} // namespace QtPrivate
+QT_END_NAMESPACE
+
 #endif  /* dr_wav_h */
 
 
@@ -1463,6 +1462,10 @@ DRWAV_API drwav_bool32 drwav_fourcc_equal(const drwav_uint8* a, const char* b);
         #define DRWAV_HAS_BYTESWAP16_INTRINSIC
     #endif
 #endif
+
+QT_BEGIN_NAMESPACE
+namespace QtPrivate {
+
 
 DRWAV_API void drwav_version(drwav_uint32* pMajor, drwav_uint32* pMinor, drwav_uint32* pRevision)
 {
@@ -8353,6 +8356,9 @@ DRWAV_API drwav_bool32 drwav_fourcc_equal(const drwav_uint8* a, const char* b)
 /* Undo the pragma at the beginning of this file. */
 #pragma options opt reset
 #endif
+
+} // namespace QtPrivate
+QT_END_NAMESPACE
 
 #endif  /* dr_wav_c */
 #endif  /* DR_WAV_IMPLEMENTATION */

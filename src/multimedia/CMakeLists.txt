@@ -136,12 +136,14 @@ qt_internal_add_module(Multimedia
 # dr_wav preparation
 qt_internal_extend_target(Multimedia
     SOURCES
-        audio/qaudio_dr_wav.c
+        audio/qaudio_dr_wav.cpp
         ../3rdparty/dr_libs/dr_wav.h
     SYSTEM_INCLUDE_DIRECTORIES
         ../3rdparty/dr_libs
     DEFINES
         DR_WAV_NO_STDIO
+    ATTRIBUTION_FILE_DIR_PATHS
+        ../3rdparty/dr_libs
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_network
