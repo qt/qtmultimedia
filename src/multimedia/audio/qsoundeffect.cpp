@@ -385,10 +385,18 @@ QStringList QSoundEffect::supportedMimeTypes()
     if (devices.isEmpty())
         return QStringList();
 
-    return QStringList() << QLatin1String("audio/x-wav")
-                         << QLatin1String("audio/wav")
-                         << QLatin1String("audio/wave")
-                         << QLatin1String("audio/x-pn-wav");
+    using namespace Qt::Literals;
+    static const QStringList mimeTypes{
+        u"audio/aiff"_s,
+        u"audio/vnd.wave"_s,
+        u"audio/wav"_s,
+        u"audio/wave"_s,
+        u"audio/x-aiff"_s
+        u"audio/x-pn-wav"_s,
+        u"audio/x-wav"_s,
+    };
+
+    return mimeTypes;
 }
 
 /*!
