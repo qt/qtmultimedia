@@ -6,6 +6,7 @@
 #include "qpipewire_audiocontextmanager_p.h"
 #include "qpipewire_audiodevice_p.h"
 #include "qpipewire_audiostream_p.h"
+#include "qpipewire_support_p.h"
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
@@ -42,7 +43,7 @@ struct QPipewireAudioSinkStream final : std::enable_shared_from_this<QPipewireAu
 {
     using SampleFormat = QAudioFormat::SampleFormat;
 
-    QPipewireAudioSinkStream(QPipewireAudioSink *parent, const QAudioFormat &format,
+    QPipewireAudioSinkStream(QAudioDevice, QPipewireAudioSink *parent, const QAudioFormat &format,
                              AudioEndpointRole, std::optional<qsizetype> ringbufferSize,
                              std::optional<int32_t> hardwareBufferSize, float volume);
     ~QPipewireAudioSinkStream();
@@ -51,13 +52,15 @@ struct QPipewireAudioSinkStream final : std::enable_shared_from_this<QPipewireAu
     using QPlatformAudioSinkStream::processedDuration;
     using QPlatformAudioSinkStream::setVolume;
 
-    bool start(QIODevice *device, ObjectSerial sinkNodeSerial);
-    QIODevice *start(ObjectSerial sinkNodeSerial);
+    bool start(QIODevice *device);
+    QIODevice *start();
     void stop(ShutdownPolicy);
 
     void updateStreamIdle(bool idle) override;
 
 private:
+    std::optional<ObjectSerial> findSinkNodeSerial();
+
     using QPlatformAudioSinkStream::m_format;
 
     // QPipewireAudioStream overrides
@@ -86,7 +89,8 @@ private:
     QPipewireAudioSink *m_parent;
 };
 
-QPipewireAudioSinkStream::QPipewireAudioSinkStream(QPipewireAudioSink *parent,
+QPipewireAudioSinkStream::QPipewireAudioSinkStream(QAudioDevice device,
+                                                   QPipewireAudioSink *parent,
                                                    const QAudioFormat &format, AudioEndpointRole role,
                                                    std::optional<qsizetype> ringbufferSize,
                                                    std::optional<int32_t> hardwareBufferFrames,
@@ -95,7 +99,7 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QPipewireAudioSink *parent,
         format,
     },
     QPlatformAudioSinkStream {
-        QAudioDevice{},
+        std::move(device),
         format,
         ringbufferSize,
         hardwareBufferFrames,
@@ -137,16 +141,19 @@ QPipewireAudioSinkStream::~QPipewireAudioSinkStream()
     Q_ASSERT(!m_deviceRemovalObserver);
 }
 
-bool QPipewireAudioSinkStream::start(QIODevice *device, ObjectSerial sinkNodeSerial)
+bool QPipewireAudioSinkStream::start(QIODevice *device)
 {
     Q_ASSERT(hasStream());
+    auto sinkNodeSerial = findSinkNodeSerial();
+    if (!sinkNodeSerial)
+        return false;
 
     setQIODevice(device);
     pullFromQIODevice();
 
     createQIODeviceConnections(device);
 
-    bool connected = connectStream(sinkNodeSerial, SPA_DIRECTION_OUTPUT);
+    bool connected = connectStream(*sinkNodeSerial, SPA_DIRECTION_OUTPUT);
     if (!connected)
         return false;
 
@@ -156,12 +163,12 @@ bool QPipewireAudioSinkStream::start(QIODevice *device, ObjectSerial sinkNodeSer
     return true;
 }
 
-QIODevice *QPipewireAudioSinkStream::start(ObjectSerial sinkNodeSerial)
+QIODevice *QPipewireAudioSinkStream::start()
 {
     QIODevice *device = createRingbufferReaderDevice();
 
     setIdleState(true);
-    bool started = start(device, sinkNodeSerial);
+    bool started = start(device);
     if (!started)
         return nullptr;
 
@@ -195,6 +202,22 @@ void QPipewireAudioSinkStream::stop(ShutdownPolicy shutdownPolicy)
 void QPipewireAudioSinkStream::updateStreamIdle(bool idle)
 {
     m_parent->updateStreamIdle(idle);
+}
+
+std::optional<ObjectSerial> QPipewireAudioSinkStream::findSinkNodeSerial()
+{
+    const QPipewireAudioDevicePrivate *device =
+            QAudioDevicePrivate::handle<QPipewireAudioDevicePrivate>(m_audioDevice);
+
+    QByteArray nodeName = device->nodeName();
+    auto ret = QAudioContextManager::deviceMonitor().findSinkNodeSerial(std::string_view{
+            nodeName.data(),
+            size_t(nodeName.size()),
+    });
+
+    if (!ret)
+        qWarning() << "Cannot find device: " << nodeName;
+    return ret;
 }
 
 void QPipewireAudioSinkStream::handleDeviceRemoved()
@@ -336,21 +359,14 @@ void QPipewireAudioSink::startHelper(Functor &&starter)
         return;
     }
 
-    std::optional<ObjectSerial> deviceSerial = findSinkNodeSerial();
-    if (!deviceSerial) {
-        qWarning() << "Cannot find device: " << privateDevice()->nodeName();
-        setError(QtAudio::Error::OpenError);
-        return;
-    }
-
-    m_stream = std::make_shared<QPipewireAudioSinkStream>(this, format(), m_role, m_bufferSize,
-                                                          m_hardwareBufferFrames, m_volume);
+    m_stream = std::make_shared<QPipewireAudioSinkStream>(
+            m_audioDevice, this, format(), m_role, m_bufferSize, m_hardwareBufferFrames, m_volume);
     if (!m_stream->hasStream()) {
         setError(QtAudio::Error::OpenError);
         return;
     }
 
-    bool started = starter(m_stream, *deviceSerial);
+    bool started = starter(m_stream);
     if (started)
         updateStreamState(QtAudio::State::ActiveState);
     else
@@ -361,8 +377,8 @@ using SharedSinkStream = std::shared_ptr<QPipewireAudioSinkStream>;
 
 void QPipewireAudioSink::start(QIODevice *device)
 {
-    startHelper([&](const SharedSinkStream &stream, ObjectSerial deviceSerial) {
-        return stream->start(device, deviceSerial);
+    startHelper([&](const SharedSinkStream &stream) {
+        return stream->start(device);
     });
 }
 
@@ -370,8 +386,8 @@ QIODevice *QPipewireAudioSink::start()
 {
     QIODevice *deviceToReturn{};
 
-    startHelper([&](const SharedSinkStream &stream, ObjectSerial deviceSerial) {
-        deviceToReturn = stream->start(deviceSerial);
+    startHelper([&](const SharedSinkStream &stream) {
+        deviceToReturn = stream->start();
         updateStreamIdle(true, EmitStateSignal::False);
         return bool(deviceToReturn);
     });
@@ -433,16 +449,6 @@ qsizetype QPipewireAudioSink::bytesFree() const
 void QPipewireAudioSink::reportXRuns(int numberOfXruns)
 {
     qDebug() << "XRuns occurred:" << numberOfXruns;
-}
-
-std::optional<ObjectSerial> QPipewireAudioSink::findSinkNodeSerial()
-{
-    QByteArray nodeName = privateDevice()->nodeName();
-
-    return QAudioContextManager::deviceMonitor().findSinkNodeSerial(std::string_view{
-            nodeName.data(),
-            size_t(nodeName.size()),
-    });
 }
 
 void QPipewireAudioSink::setRole(AudioEndpointRole role)

@@ -15,8 +15,6 @@
 // We mean it.
 //
 
-#include "qpipewire_support_p.h"
-
 #include "qpipewire_audioiobase_p.h"
 
 #include <QtMultimedia/private/qaudiosystem_p.h>
@@ -37,6 +35,7 @@ class QPipewireAudioSink final
 public:
     QPipewireAudioSink(QAudioDevice, const QAudioFormat &format, QObject *parent);
     ~QPipewireAudioSink() override;
+    Q_DISABLE_COPY_MOVE(QPipewireAudioSink)
 
     void start(QIODevice *device) override;
     QIODevice *start() override;
@@ -49,8 +48,6 @@ public:
 private:
     friend QPipewireAudioSinkStream;
     void reportXRuns(int);
-
-    std::optional<ObjectSerial> findSinkNodeSerial();
 
     template <typename Functor>
     void startHelper(Functor &&f);

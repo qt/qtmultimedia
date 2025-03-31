@@ -81,7 +81,6 @@ protected:
     std::optional<qsizetype> m_bufferSize;
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
-    const QPipewireAudioDevicePrivate *privateDevice() const;
 
     // format
     QAudioFormat format() const override;
@@ -134,13 +133,6 @@ DECLARE_TEMPLATE_ARGS
 inline qsizetype QPipewireAudioIOBase<BaseClass, StreamType>::bufferSize() const
 {
     return m_bufferSize.value_or(-1);
-}
-
-DECLARE_TEMPLATE_ARGS
-inline const QPipewireAudioDevicePrivate *
-QPipewireAudioIOBase<BaseClass, StreamType>::privateDevice() const
-{
-    return QAudioDevicePrivate::handle<QPipewireAudioDevicePrivate>(BaseClass::m_audioDevice);
 }
 
 DECLARE_TEMPLATE_ARGS

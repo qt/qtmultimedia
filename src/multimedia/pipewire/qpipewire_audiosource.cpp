@@ -6,6 +6,7 @@
 #include "qpipewire_audiocontextmanager_p.h"
 #include "qpipewire_audiodevice_p.h"
 #include "qpipewire_audiostream_p.h"
+#include "qpipewire_support_p.h"
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qpointer.h>
@@ -32,16 +33,16 @@ struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewire
 {
     using SampleFormat = QAudioFormat::SampleFormat;
 
-    QPipewireAudioSourceStream(QPipewireAudioSource *parent, const QAudioFormat &format,
-                               std::optional<qsizetype> ringbufferSize,
+    QPipewireAudioSourceStream(QAudioDevice, QPipewireAudioSource *parent,
+                               const QAudioFormat &format, std::optional<qsizetype> ringbufferSize,
                                std::optional<int32_t> hardwareBufferSize, float volume);
     ~QPipewireAudioSourceStream();
 
     Q_DISABLE_COPY_MOVE(QPipewireAudioSourceStream)
 
     qsizetype bytesReady() const;
-    bool start(QIODevice *device, ObjectSerial sourceNodeSerial);
-    QIODevice *start(ObjectSerial sourceNodeSerial);
+    bool start(QIODevice *device);
+    QIODevice *start();
     void stop(ShutdownPolicy);
 
     using QPlatformAudioSourceStream::bytesReady;
@@ -52,6 +53,22 @@ struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewire
     void updateStreamIdle(bool idle) override;
 
 private:
+    std::optional<ObjectSerial> findSourceNodeSerial()
+    {
+        const QPipewireAudioDevicePrivate *device =
+                QAudioDevicePrivate::handle<QPipewireAudioDevicePrivate>(m_audioDevice);
+
+        QByteArray nodeName = device->nodeName();
+        auto ret = QAudioContextManager::deviceMonitor().findSourceNodeSerial(std::string_view{
+                nodeName.data(),
+                size_t(nodeName.size()),
+        });
+
+        if (!ret)
+            qWarning() << "Cannot find device: " << nodeName;
+        return ret;
+    }
+
     using QPlatformAudioSourceStream::m_format;
 
     void process() QT_MM_NONBLOCKING override;
@@ -71,7 +88,7 @@ private:
     QPipewireAudioSource *m_parent;
 };
 
-QPipewireAudioSourceStream::QPipewireAudioSourceStream(QPipewireAudioSource *parent,
+QPipewireAudioSourceStream::QPipewireAudioSourceStream(QAudioDevice device, QPipewireAudioSource *parent,
                                                        const QAudioFormat &format,
                                                        std::optional<qsizetype> ringbufferSize,
                                                        std::optional<int32_t> hardwareBufferFrames,
@@ -80,7 +97,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QPipewireAudioSource *par
         format,
     },
     QPlatformAudioSourceStream {
-        {},
+        std::move(device),
         format,
         ringbufferSize,
         hardwareBufferFrames,
@@ -114,12 +131,16 @@ qsizetype QPipewireAudioSourceStream::bytesReady() const
     });
 }
 
-bool QPipewireAudioSourceStream::start(QIODevice *device, ObjectSerial sourceNodeSerial)
+bool QPipewireAudioSourceStream::start(QIODevice *device)
 {
     setQIODevice(device);
 
     assert(hasStream());
-    bool connected = connectStream(sourceNodeSerial, SPA_DIRECTION_INPUT);
+    auto sourceNodeSerial = findSourceNodeSerial();
+    if (!sourceNodeSerial)
+        return false;
+
+    bool connected = connectStream(*sourceNodeSerial, SPA_DIRECTION_INPUT);
     if (!connected)
         return false;
 
@@ -131,11 +152,11 @@ bool QPipewireAudioSourceStream::start(QIODevice *device, ObjectSerial sourceNod
     return connected;
 }
 
-QIODevice *QPipewireAudioSourceStream::start(ObjectSerial sourceNodeSerial)
+QIODevice *QPipewireAudioSourceStream::start()
 {
     QIODevice *device = createRingbufferReaderDevice();
 
-    bool started = start(device, sourceNodeSerial);
+    bool started = start(device);
     if (!started)
         return nullptr;
 
@@ -252,21 +273,14 @@ void QPipewireAudioSource::startHelper(Functor &&starter)
         return;
     }
 
-    std::optional<ObjectSerial> deviceSerial = findSourceNodeSerial();
-    if (!deviceSerial) {
-        qWarning() << "Cannot find device: " << privateDevice()->nodeName();
-        setError(QtAudio::Error::OpenError);
-        return;
-    }
-
-    m_stream = std::make_shared<QPipewireAudioSourceStream>(this, format(), m_bufferSize,
-                                                            m_hardwareBufferFrames, m_volume);
+    m_stream = std::make_shared<QPipewireAudioSourceStream>(
+            m_audioDevice, this, format(), m_bufferSize, m_hardwareBufferFrames, m_volume);
     if (!m_stream->hasStream()) {
         setError(QtAudio::Error::OpenError);
         return;
     }
 
-    bool started = starter(m_stream, *deviceSerial);
+    bool started = starter(m_stream);
     if (started)
         updateStreamState(QtAudio::State::ActiveState);
     else
@@ -277,8 +291,8 @@ using SharedSourceStream = std::shared_ptr<QPipewireAudioSourceStream>;
 
 void QPipewireAudioSource::start(QIODevice *device)
 {
-    startHelper([&](const SharedSourceStream &stream, ObjectSerial deviceSerial) {
-        return stream->start(device, deviceSerial);
+    startHelper([&](const SharedSourceStream &stream) {
+        return stream->start(device);
     });
 }
 
@@ -286,8 +300,8 @@ QIODevice *QPipewireAudioSource::start()
 {
     QIODevice *deviceToReturn{};
 
-    startHelper([&](const SharedSourceStream &stream, ObjectSerial deviceSerial) {
-        deviceToReturn = stream->start(deviceSerial);
+    startHelper([&](const SharedSourceStream &stream) {
+        deviceToReturn = stream->start();
         // HACK alert: we're "idle" until a consumer starts reading.
         // this is fundamentally broken, and we should fix this behavior
         updateStreamIdle(true, EmitStateSignal::False);
@@ -351,16 +365,6 @@ qsizetype QPipewireAudioSource::bytesReady() const
     if (m_stream)
         return m_stream->bytesReady();
     return 0;
-}
-
-std::optional<ObjectSerial> QPipewireAudioSource::findSourceNodeSerial()
-{
-    QByteArray nodeName = privateDevice()->nodeName();
-
-    return QAudioContextManager::deviceMonitor().findSourceNodeSerial(std::string_view{
-            nodeName.data(),
-            size_t(nodeName.size()),
-    });
 }
 
 void QPipewireAudioSource::reportXRuns(int numberOfXruns)

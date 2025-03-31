@@ -15,8 +15,6 @@
 // We mean it.
 //
 
-#include "qpipewire_support_p.h"
-
 #include "qpipewire_audioiobase_p.h"
 
 #include <QtMultimedia/private/qaudiosystem_p.h>
@@ -37,6 +35,7 @@ class QPipewireAudioSource final
 public:
     QPipewireAudioSource(QAudioDevice, const QAudioFormat &format, QObject *parent);
     ~QPipewireAudioSource() override;
+    Q_DISABLE_COPY_MOVE(QPipewireAudioSource)
 
     // QPlatformAudioSource interface
     void start(QIODevice *device) override;
@@ -49,8 +48,6 @@ public:
 
 private:
     friend struct QPipewireAudioSourceStream;
-
-    std::optional<ObjectSerial> findSourceNodeSerial();
 
     template <typename Functor>
     void startHelper(Functor &&f);
