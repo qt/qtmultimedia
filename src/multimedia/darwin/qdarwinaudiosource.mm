@@ -285,6 +285,7 @@ bool QCoreAudioSourceStream::addDisconnectListener(AudioObjectID id)
 
     m_stopOnDisconnected = m_disconnectMonitor.then(m_parent, [this] {
         m_parent->setError(QtAudio::IOError);
+        m_parent->updateStreamState(QtAudio::State::StoppedState);
     });
 
     return true;
