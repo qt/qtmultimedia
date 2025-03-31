@@ -41,13 +41,9 @@ protected:
     QList<QCameraDevice> findVideoInputs() const override;
 
 private:
-    void updateCameraDevices();
-
     QMacNotificationObserver m_deviceConnectedObserver;
     QMacNotificationObserver m_deviceDisconnectedObserver;
     std::function<bool(uint32_t)> m_isCvPixelFormatSupportedDelegate;
-
-    QList<QCameraDevice> m_cameraDevices;
 };
 
 QT_END_NAMESPACE
