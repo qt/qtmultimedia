@@ -5,6 +5,7 @@
 #include <avfmediaplayer_p.h>
 #include <avfcameraservice_p.h>
 #include <avfcamera_p.h>
+#include <QtMultimedia/private/qavfvideodevices_p.h>
 #include <avfimagecapture_p.h>
 #include <avfmediaencoder_p.h>
 #include <qdarwinformatsinfo_p.h>
