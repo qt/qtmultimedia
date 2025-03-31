@@ -192,8 +192,11 @@ void QPipewireAudioSourceStream::process() QT_MM_NONBLOCKING
 
 void QPipewireAudioSourceStream::handleDeviceRemoved()
 {
-    if (!isStopRequested())
+    if (!isStopRequested()) {
+        // note: as long as the stream is not stopped, m_parent is valid
         m_parent->setError(QAudio::Error::IOError);
+        m_parent->updateStreamState(QAudio::State::StoppedState);
+    }
 }
 
 void QPipewireAudioSourceStream::stateChanged(pw_stream_state /*oldState*/, pw_stream_state state,
