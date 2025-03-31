@@ -6,7 +6,7 @@
 #include "avfmediaassetwriter_p.h"
 #include "avfcameraservice_p.h"
 #include "avfcamerasession_p.h"
-#include "avfcameradebug_p.h"
+#include <QtMultimedia/private/qavfcameradebug_p.h>
 #include <qdarwinformatsinfo_p.h>
 #include <avfmetadata_p.h>
 

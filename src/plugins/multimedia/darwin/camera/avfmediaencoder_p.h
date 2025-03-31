@@ -16,7 +16,7 @@
 //
 
 #include "avfmediaassetwriter_p.h"
-#include "avfcamerautility_p.h"
+#include <QtMultimedia/private/qavfcamerautility_p.h>
 #include "qaudiodevice.h"
 
 #include <private/qplatformmediarecorder_p.h>

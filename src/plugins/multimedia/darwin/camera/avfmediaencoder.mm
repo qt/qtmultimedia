@@ -7,8 +7,8 @@
 #include "avfcamerasession_p.h"
 #include "avfcamera_p.h"
 #include "avfcameraservice_p.h"
-#include "avfcameradebug_p.h"
-#include "avfcamerautility_p.h"
+#include <QtMultimedia/private/qavfcameradebug_p.h>
+#include <QtMultimedia/private/qavfcamerautility_p.h>
 #include "qaudiodevice.h"
 
 #include "qmediadevices.h"
