@@ -236,6 +236,7 @@ private slots:
 
     void play_finishes_whenPlayingFileWithPacketsAfterStreamEnd_data();
     void play_finishes_whenPlayingFileWithPacketsAfterStreamEnd();
+    void play_finishes_whenPlayingFileIncludingPacketsWithUndefinedTimestamp();
 
     void makeStressTestCases();
     void stressTest_setupAndTeardown();
@@ -263,7 +264,7 @@ private:
     MaybeUrl m_av1File = QUnexpect{};
     MaybeUrl m_videoDimensionTestFile = QUnexpect{};
     MaybeUrl m_localCompressedSoundFile = QUnexpect{};
-    MaybeUrl m_localFileWithMetadata = QUnexpect{};
+    MaybeUrl m_localMp3FileWithMetadataAndEmbeddedThumbnail = QUnexpect{};
     MaybeUrl m_localVideoFile3ColorsWithSound = QUnexpect{};
     MaybeUrl m_videoFileWithJpegThumbnail = QUnexpect{};
     MaybeUrl m_videoFileWithPngThumbnail = QUnexpect{};
@@ -398,7 +399,7 @@ void tst_QMediaPlayerBackend::initTestCase()
     m_localCompressedSoundFile =
             m_mediaSelector.select("qrc:/testdata/nokia-tune.mp3", "qrc:/testdata/nokia-tune.mkv");
 
-    m_localFileWithMetadata = m_mediaSelector.select("qrc:/testdata/nokia-tune.mp3");
+    m_localMp3FileWithMetadataAndEmbeddedThumbnail = m_mediaSelector.select("qrc:/testdata/nokia-tune.mp3");
 
     m_oneRedFrameVideo = m_mediaSelector.select("qrc:/testdata/one_red_frame.mp4");
 
@@ -2929,9 +2930,9 @@ void tst_QMediaPlayerBackend::metadata()
     QMediaMetaData::Key thumbnailKey =
             isGStreamerPlatform() ? QMediaMetaData::CoverArtImage : QMediaMetaData::ThumbnailImage;
 
-    CHECK_SELECTED_URL(m_localFileWithMetadata);
+    CHECK_SELECTED_URL(m_localMp3FileWithMetadataAndEmbeddedThumbnail);
 
-    m_fixture->player.setSource(*m_localFileWithMetadata);
+    m_fixture->player.setSource(*m_localMp3FileWithMetadataAndEmbeddedThumbnail);
 
     QTRY_VERIFY(m_fixture->metadataChanged.size() > 0);
 
@@ -4563,6 +4564,26 @@ void tst_QMediaPlayerBackend::play_finishes_whenPlayingFileWithPacketsAfterStrea
     // Assert
     QTRY_COMPARE_WITH_TIMEOUT(m_fixture->player.playbackState(), QMediaPlayer::StoppedState, 15s);
     QCOMPARE(loopIterations(m_fixture->positionChanged).size(), unsigned(loops));
+}
+
+void tst_QMediaPlayerBackend::play_finishes_whenPlayingFileIncludingPacketsWithUndefinedTimestamp()
+{
+    // When FFmpeg demuxes MP3 files with embedded thumbnails, the PTS/DTS of the first packet
+    // is AV_NOPTS_VALUE, aka "Undefined timestamp value". This test makes sure it is played to the
+    // end by checking for position changes before reaching StoppedState.
+    CHECK_SELECTED_URL(m_localMp3FileWithMetadataAndEmbeddedThumbnail);
+
+    // Arrange
+    m_fixture->player.setSource(*m_localMp3FileWithMetadataAndEmbeddedThumbnail);
+    m_fixture->player.setPlaybackRate(10);
+
+    // Act
+    m_fixture->player.play();
+    QTRY_VERIFY(m_fixture->player.isPlaying());
+
+    // Assert
+    QTRY_COMPARE_WITH_TIMEOUT(m_fixture->player.playbackState(), QMediaPlayer::StoppedState, 10s);
+    QCOMPARE_GE(m_fixture->positionChanged.size(), 5);
 }
 
 void tst_QMediaPlayerBackend::makeStressTestCases()
