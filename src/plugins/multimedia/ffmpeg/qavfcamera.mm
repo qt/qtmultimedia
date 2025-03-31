@@ -4,9 +4,9 @@
 #include <qpointer.h>
 #include <qmediacapturesession.h>
 #include <private/qplatformmediacapture_p.h>
-#include "avfcamerautility_p.h"
+#include <QtMultimedia/private/qavfcamerautility_p.h>
 #include <QtMultimedia/private/qavfhelpers_p.h>
-#include "avfcameradebug_p.h"
+#include <QtMultimedia/private/qavfcameradebug_p.h>
 #include "qavfsamplebufferdelegate_p.h"
 #include <qvideosink.h>
 #include <rhi/qrhi.h>

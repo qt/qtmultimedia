@@ -36,12 +36,10 @@ qt_internal_extend_target(QDarwinMediaPlugin CONDITION NOT TVOS
     SOURCES
         camera/qavfcamerabase.mm camera/qavfcamerabase_p.h
         camera/avfcamera.mm camera/avfcamera_p.h
-        camera/avfcameradebug_p.h
         camera/avfaudiopreviewdelegate.mm camera/avfaudiopreviewdelegate_p.h
         camera/avfcamerarenderer.mm camera/avfcamerarenderer_p.h
         camera/avfcameraservice.mm camera/avfcameraservice_p.h
         camera/avfcamerasession.mm camera/avfcamerasession_p.h
-        camera/avfcamerautility.mm camera/avfcamerautility_p.h
         camera/avfimagecapture.mm camera/avfimagecapture_p.h
         camera/avfmediaassetwriter.mm camera/avfmediaassetwriter_p.h
         camera/avfmediaencoder.mm camera/avfmediaencoder_p.h

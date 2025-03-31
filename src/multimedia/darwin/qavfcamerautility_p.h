@@ -1,8 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef AVFCAMERAUTILITY_H
-#define AVFCAMERAUTILITY_H
+#ifndef QAVFCAMERAUTILITY_H
+#define QAVFCAMERAUTILITY_H
 
 //
 //  W A R N I N G
@@ -20,6 +20,7 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qpair.h>
 #include <QtCore/qsize.h>
+#include <QtMultimedia/qtmultimediaexports.h>
 
 #include "qcameradevice.h"
 
@@ -133,40 +134,40 @@ private:
 };
 
 typedef QPair<qreal, qreal> AVFPSRange;
-AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection);
+Q_MULTIMEDIA_EXPORT AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection);
 
-AVCaptureDeviceFormat *qt_convert_to_capture_device_format(
+Q_MULTIMEDIA_EXPORT AVCaptureDeviceFormat *qt_convert_to_capture_device_format(
         AVCaptureDevice *captureDevice, const QCameraFormat &format,
         const std::function<bool(uint32_t)> &cvFormatValidator = nullptr);
-QList<AVCaptureDeviceFormat *> qt_unique_device_formats(AVCaptureDevice *captureDevice,
+Q_MULTIMEDIA_EXPORT QList<AVCaptureDeviceFormat *> qt_unique_device_formats(AVCaptureDevice *captureDevice,
                                                         FourCharCode preferredFormat);
-QSize qt_device_format_resolution(AVCaptureDeviceFormat *format);
-QSize qt_device_format_high_resolution(AVCaptureDeviceFormat *format);
-QSize qt_device_format_pixel_aspect_ratio(AVCaptureDeviceFormat *format);
-QList<AVFPSRange> qt_device_format_framerates(AVCaptureDeviceFormat *format);
-AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice, const QSize &res,
+Q_MULTIMEDIA_EXPORT QSize qt_device_format_resolution(AVCaptureDeviceFormat *format);
+Q_MULTIMEDIA_EXPORT QSize qt_device_format_high_resolution(AVCaptureDeviceFormat *format);
+Q_MULTIMEDIA_EXPORT QSize qt_device_format_pixel_aspect_ratio(AVCaptureDeviceFormat *format);
+Q_MULTIMEDIA_EXPORT QList<AVFPSRange> qt_device_format_framerates(AVCaptureDeviceFormat *format);
+Q_MULTIMEDIA_EXPORT AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice, const QSize &res,
                                                      FourCharCode preferredFormat, bool stillImage = true);
-AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevice,
+Q_MULTIMEDIA_EXPORT AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevice,
                                                     FourCharCode preferredFormat,
                                                     Float64 fps);
-AVFrameRateRange *qt_find_supported_framerate_range(AVCaptureDeviceFormat *format, Float64 fps);
-bool qt_format_supports_framerate(AVCaptureDeviceFormat *format, qreal fps);
+Q_MULTIMEDIA_EXPORT AVFrameRateRange *qt_find_supported_framerate_range(AVCaptureDeviceFormat *format, Float64 fps);
+Q_MULTIMEDIA_EXPORT bool qt_format_supports_framerate(AVCaptureDeviceFormat *format, qreal fps);
 
-bool qt_formats_are_equal(AVCaptureDeviceFormat *f1, AVCaptureDeviceFormat *f2);
-bool qt_set_active_format(AVCaptureDevice *captureDevice, AVCaptureDeviceFormat *format, bool preserveFps);
+Q_MULTIMEDIA_EXPORT bool qt_formats_are_equal(AVCaptureDeviceFormat *f1, AVCaptureDeviceFormat *f2);
+Q_MULTIMEDIA_EXPORT bool qt_set_active_format(AVCaptureDevice *captureDevice, AVCaptureDeviceFormat *format, bool preserveFps);
 
-AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection);
-void qt_set_framerate_limits(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection,
+Q_MULTIMEDIA_EXPORT AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection);
+Q_MULTIMEDIA_EXPORT void qt_set_framerate_limits(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection,
                              qreal minFPS, qreal maxFPS);
 
-QList<AudioValueRange> qt_supported_sample_rates_for_format(int codecId);
-QList<AudioValueRange> qt_supported_bit_rates_for_format(int codecId);
-std::optional<QList<UInt32>> qt_supported_channel_counts_for_format(int codecId);
-QList<UInt32> qt_supported_channel_layout_tags_for_format(int codecId, int noChannels);
+Q_MULTIMEDIA_EXPORT QList<AudioValueRange> qt_supported_sample_rates_for_format(int codecId);
+Q_MULTIMEDIA_EXPORT QList<AudioValueRange> qt_supported_bit_rates_for_format(int codecId);
+Q_MULTIMEDIA_EXPORT std::optional<QList<UInt32>> qt_supported_channel_counts_for_format(int codecId);
+Q_MULTIMEDIA_EXPORT QList<UInt32> qt_supported_channel_layout_tags_for_format(int codecId, int noChannels);
 
 #ifdef Q_OS_IOS
 // Returns a rotation, measured in angles, 0 to 360 depending on the UIDeviceOrientation.
-int qt_ui_device_orientation_to_rotation_angle_degrees(UIDeviceOrientation orientation);
+Q_MULTIMEDIA_EXPORT int qt_ui_device_orientation_to_rotation_angle_degrees(UIDeviceOrientation orientation);
 #endif
 
 QT_END_NAMESPACE

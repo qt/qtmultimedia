@@ -263,6 +263,14 @@ qt_internal_extend_target(Multimedia CONDITION APPLE
         ${FWCoreVideo}
 )
 
+qt_internal_extend_target(Multimedia CONDITION MACOS OR IOS
+    SOURCES
+        darwin/qavfcameradebug_p.h
+        darwin/qavfcamerautility_p.h darwin/qavfcamerautility.mm
+    LIBRARIES
+        ${FWCoreMedia}
+)
+
 qt_internal_extend_target(Multimedia CONDITION MACOS
     SOURCES
         darwin/qmacosaudiodatautils_p.h darwin/qmacosaudiodatautils.cpp

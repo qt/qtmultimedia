@@ -7,7 +7,7 @@
 #include "avfcamerarenderer_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcameraservice_p.h"
-#include "avfcameradebug_p.h"
+#include <QtMultimedia/private/qavfcameradebug_p.h>
 #include "avfcamera_p.h"
 #include <avfvideosink_p.h>
 #include <avfvideobuffer_p.h>
