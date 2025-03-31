@@ -28,59 +28,9 @@ namespace {
     }
 }
 
-} // Unnamed namespace.
-
-QAVFVideoDevices::QAVFVideoDevices(
-    QPlatformMediaIntegration *integration,
-    std::function<bool(uint32_t)> &&isCvPixelFormatSupportedDelegate)
-    : QPlatformVideoDevices(integration),
-      m_isCvPixelFormatSupportedDelegate(std::move(isCvPixelFormatSupportedDelegate))
+// Thread-safe
+[[nodiscard]] QList<AVCaptureDevice*> qEnumerateAVCaptureDevices()
 {
-    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    m_deviceConnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasConnectedNotification
-                                                                object:nil
-                                                                 queue:[NSOperationQueue mainQueue]
-                                                            usingBlock:^(NSNotification *) {
-                                                                this->updateCameraDevices();
-                                                            }];
-
-    m_deviceDisconnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasDisconnectedNotification
-                                                                   object:nil
-                                                                    queue:[NSOperationQueue mainQueue]
-                                                               usingBlock:^(NSNotification *) {
-                                                                   this->updateCameraDevices();
-                                                               }];
-    updateCameraDevices();
-}
-
-QAVFVideoDevices::~QAVFVideoDevices()
-{
-    NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
-    [notificationCenter removeObserver:(id)m_deviceConnectedObserver];
-    [notificationCenter removeObserver:(id)m_deviceDisconnectedObserver];
-}
-
-QList<QCameraDevice> QAVFVideoDevices::findVideoInputs() const
-{
-    return m_cameraDevices;
-}
-
-bool QAVFVideoDevices::isCvPixelFormatSupported(uint32_t cvPixelFormat) const
-{
-    return !m_isCvPixelFormatSupportedDelegate || m_isCvPixelFormatSupportedDelegate(cvPixelFormat);
-}
-
-void QAVFVideoDevices::updateCameraDevices()
-{
-    if (@available(iOS 17, *)) {
-    } else {
-        // Cameras can't change dynamically on iOS 16 and older. Update only once.
-        if (!m_cameraDevices.isEmpty())
-            return;
-    }
-
-    QList<QCameraDevice> cameras;
-
     // List of all capture device types that we want to discover. Seems that this is the
     // only way to discover all types. This filter is mandatory and has no "unspecified"
     // option like AVCaptureDevicePosition(Unspecified) has. Order of the list is important
@@ -127,9 +77,22 @@ void QAVFVideoDevices::updateCameraDevices()
         discoverySessionWithDeviceTypes:discoveryDevices
                               mediaType:AVMediaTypeVideo
                                position:AVCaptureDevicePositionUnspecified];
-    NSArray<AVCaptureDevice *> *videoDevices = discoverySession.devices;
+    QList<AVCaptureDevice*> avCaptureDevices;
+    for (AVCaptureDevice* device in discoverySession.devices)
+        avCaptureDevices.push_back(device);
+    return avCaptureDevices;
+}
 
-    for (AVCaptureDevice *device in videoDevices) {
+// Given a list of AVCaptureDevices, returns a list of all the QCameraDevices
+// we want to expose to the user.
+// Thread-safe
+[[nodiscard]] QList<QCameraDevice> qGenerateQCameraDevices(
+    QList<AVCaptureDevice*> videoDevices,
+    const std::function<bool(CvPixelFormat)>& isCvPixelFormatSupported)
+{
+    QList<QCameraDevice> cameras;
+
+    for (AVCaptureDevice *device : videoDevices) {
         auto info = std::make_unique<QCameraDevicePrivate>();
         if ([videoDevices[0].uniqueID isEqualToString:device.uniqueID])
             info->isDefault = true;
@@ -214,8 +177,69 @@ void QAVFVideoDevices::updateCameraDevices()
         cameras.append(info.release()->create());
     }
 
-    if (cameras != m_cameraDevices) {
-        m_cameraDevices = cameras;
+    return cameras;
+}
+
+} // Unnamed namespace.
+
+QAVFVideoDevices::QAVFVideoDevices(
+    QPlatformMediaIntegration *integration,
+    std::function<bool(uint32_t)> &&isCvPixelFormatSupportedDelegate)
+    : QPlatformVideoDevices(integration),
+      m_isCvPixelFormatSupportedDelegate(std::move(isCvPixelFormatSupportedDelegate))
+{
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    m_deviceConnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasConnectedNotification
+                                                                object:nil
+                                                                 queue:[NSOperationQueue mainQueue]
+                                                            usingBlock:^(NSNotification *) {
+                                                                this->updateCameraDevices();
+                                                            }];
+
+    m_deviceDisconnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasDisconnectedNotification
+                                                                   object:nil
+                                                                    queue:[NSOperationQueue mainQueue]
+                                                               usingBlock:^(NSNotification *) {
+                                                                   this->updateCameraDevices();
+                                                               }];
+    updateCameraDevices();
+}
+
+QAVFVideoDevices::~QAVFVideoDevices()
+{
+    NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
+    [notificationCenter removeObserver:(id)m_deviceConnectedObserver];
+    [notificationCenter removeObserver:(id)m_deviceDisconnectedObserver];
+}
+
+QList<QCameraDevice> QAVFVideoDevices::findVideoInputs() const
+{
+    return m_cameraDevices;
+}
+
+bool QAVFVideoDevices::isCvPixelFormatSupported(uint32_t cvPixelFormat) const
+{
+    return !m_isCvPixelFormatSupportedDelegate || m_isCvPixelFormatSupportedDelegate(cvPixelFormat);
+}
+
+void QAVFVideoDevices::updateCameraDevices()
+{
+    if (@available(iOS 17, *)) {
+    } else {
+        // Cameras can't change dynamically on iOS 16 and older. Update only once.
+        if (!m_cameraDevices.isEmpty())
+            return;
+    }
+
+    const QList<AVCaptureDevice*> avCaptureDevices = qEnumerateAVCaptureDevices();
+    const QList<QCameraDevice> newCameraDevices = qGenerateQCameraDevices(
+        avCaptureDevices,
+        [this](uint32_t cvPixelFormat) {
+            return isCvPixelFormatSupported(cvPixelFormat);
+        });
+
+    if (newCameraDevices != m_cameraDevices) {
+        m_cameraDevices = newCameraDevices;
         onVideoInputsChanged();
     }
 }
