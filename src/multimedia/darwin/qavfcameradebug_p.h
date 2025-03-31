@@ -1,8 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef AVFDEBUG_H
-#define AVFDEBUG_H
+#ifndef QAVFDEBUG_H
+#define QAVFDEBUG_H
 
 //
 //  W A R N I N G
@@ -20,7 +20,7 @@
 #include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
-Q_DECLARE_LOGGING_CATEGORY(qLcCamera)
+QT_DECLARE_EXPORTED_QT_LOGGING_CATEGORY(qLcCamera, Q_MULTIMEDIA_EXPORT)
 QT_END_NAMESPACE
 
 #endif

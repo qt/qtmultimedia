@@ -123,7 +123,6 @@ endif()
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
     SOURCES
         ../darwin/camera/qavfcamerabase_p.h ../darwin/camera/qavfcamerabase.mm
-        ../darwin/camera/avfcamerautility_p.h ../darwin/camera/avfcamerautility.mm
         qffmpeghwaccel_videotoolbox.mm qffmpeghwaccel_videotoolbox_p.h
         qavfcamera.mm qavfcamera_p.h
         qavfsamplebufferdelegate.mm qavfsamplebufferdelegate_p.h

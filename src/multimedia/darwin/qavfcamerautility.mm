@@ -1,14 +1,13 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "avfcamerautility_p.h"
-#include "avfcameradebug_p.h"
+#include <QtMultimedia/private/qavfcamerautility_p.h>
+#include <QtMultimedia/private/qavfcameradebug_p.h>
 
 #include <QtCore/qvector.h>
 #include <QtCore/qpair.h>
 #include <private/qmultimediautils_p.h>
 #include <private/qcameradevice_p.h>
-#include "avfvideobuffer_p.h"
 #include <QtMultimedia/private/qavfhelpers_p.h>
 
 #include <functional>
