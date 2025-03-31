@@ -34,6 +34,11 @@ static bool isPacketWithinStreamDuration(const AVFormatContext *context, const P
         || context->duration_estimation_method != AVFMT_DURATION_FROM_STREAM)
         return true; // Stream duration shouldn't or doesn't need to be compared to pts
 
+    if (avPacket.pts == AV_NOPTS_VALUE) { // Unexpected situation
+        qWarning() << "QFFmpeg::Demuxer received AVPacket with pts == AV_NOPTS_VALUE";
+        return true;
+    }
+
     if (avStream.start_time != AV_NOPTS_VALUE)
         return AVStreamDuration(avPacket.pts - avStream.start_time) <= streamDuration;
 
@@ -74,10 +79,16 @@ void Demuxer::doNextStep()
     ensureSeeked();
 
     Packet packet(m_loopOffset, AVPacketUPtr{ av_packet_alloc() }, id());
+    AVPacket &avPacket = *packet.avPacket();
 
-    const int demuxStatus = av_read_frame(m_context, packet.avPacket());
+    const int demuxStatus = av_read_frame(m_context, &avPacket);
 
-    if (demuxStatus == AVERROR_EOF || !isPacketWithinStreamDuration(m_context, packet)) {
+    const int streamIndex = avPacket.stream_index;
+    auto streamIterator = m_streams.find(streamIndex);
+    const bool streamIsRelevant = streamIterator != m_streams.end();
+
+    if (demuxStatus == AVERROR_EOF
+        || (streamIsRelevant && !isPacketWithinStreamDuration(m_context, packet))) {
         ++m_loopOffset.loopIndex;
 
         const auto loops = m_loops.loadAcquire();
@@ -133,14 +144,9 @@ void Demuxer::doNextStep()
 
     m_demuxerRetryCount = 0;
 
-    auto &avPacket = *packet.avPacket();
-
-    const auto streamIndex = avPacket.stream_index;
-    const auto stream = m_context->streams[streamIndex];
-
-    auto it = m_streams.find(streamIndex);
-    if (it != m_streams.end()) {
-        auto &streamData = it->second;
+    if (streamIsRelevant) {
+        auto &streamData = streamIterator->second;
+        const AVStream *stream = m_context->streams[streamIndex];
 
         const TrackPosition endPos = packetEndPos(packet, stream, m_context);
         m_maxPacketsEndPos = qMax(m_maxPacketsEndPos, endPos);
@@ -162,7 +168,7 @@ void Demuxer::doNextStep()
             emit firstPacketFound(id(), m_posInLoopUs + m_loopOffset.loopStartTimeUs.asDuration());
         }
 
-        auto signal = signalByTrackType(it->second.trackType);
+        auto signal = signalByTrackType(streamData.trackType);
         emit (this->*signal)(packet);
     }
 
