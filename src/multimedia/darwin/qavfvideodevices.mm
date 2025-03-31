@@ -185,28 +185,25 @@ QAVFVideoDevices::QAVFVideoDevices(
     : QPlatformVideoDevices(integration),
       m_isCvPixelFormatSupportedDelegate(std::move(isCvPixelFormatSupportedDelegate))
 {
-    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    m_deviceConnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasConnectedNotification
-                                                                object:nil
-                                                                 queue:[NSOperationQueue mainQueue]
-                                                            usingBlock:^(NSNotification *) {
-                                                                this->updateCameraDevices();
-                                                            }];
+    m_deviceConnectedObserver = QMacNotificationObserver(
+        nil,
+        AVCaptureDeviceWasConnectedNotification,
+        [this]() {
+            updateCameraDevices();
+        });
 
-    m_deviceDisconnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasDisconnectedNotification
-                                                                   object:nil
-                                                                    queue:[NSOperationQueue mainQueue]
-                                                               usingBlock:^(NSNotification *) {
-                                                                   this->updateCameraDevices();
-                                                               }];
+    m_deviceDisconnectedObserver = QMacNotificationObserver(
+        nil,
+        AVCaptureDeviceWasDisconnectedNotification,
+        [this]() {
+            updateCameraDevices();
+        });
+
     updateCameraDevices();
 }
 
 QAVFVideoDevices::~QAVFVideoDevices()
 {
-    NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
-    [notificationCenter removeObserver:(id)m_deviceConnectedObserver];
-    [notificationCenter removeObserver:(id)m_deviceDisconnectedObserver];
 }
 
 QList<QCameraDevice> QAVFVideoDevices::findVideoInputs() const
