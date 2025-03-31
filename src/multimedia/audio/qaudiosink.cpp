@@ -58,9 +58,9 @@ QT_BEGIN_NAMESPACE
 
     If an error occurs, you can fetch the \l{QtAudio::Error}{error
     type} with the error() function. Please see the QtAudio::Error enum
-    for a description of the possible errors that are reported. When
-    QtAudio::UnderrunError is encountered, the state changes to QtAudio::IdleState,
-    when another error is encountered, the state changes to QtAudio::StoppedState.
+    for a description of the possible errors that are reported. The QAudioSink
+    will enter the \l{QtAudio::}{StoppedState} when an error is encountered.
+
     You can check for errors by connecting to the stateChanged()
     signal:
 

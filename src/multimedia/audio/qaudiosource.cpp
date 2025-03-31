@@ -68,7 +68,7 @@ QT_BEGIN_NAMESPACE
     If an error should occur, you can fetch its reason with error().
     The possible error reasons are described by the QtAudio::Error
     enum. The QAudioSource will enter the \l{QtAudio::}{StoppedState} when
-    an error is encountered.  Connect to the stateChanged() signal to
+    an error is encountered. Connect to the stateChanged() signal to
     handle the error:
 
     \snippet multimedia-snippets/audio.cpp Audio input state changed

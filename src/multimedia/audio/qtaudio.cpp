@@ -24,7 +24,8 @@ QT_BEGIN_NAMESPACE
 
     \value NoError         No errors have occurred
     \value OpenError       An error occurred opening the audio device
-    \value IOError         An error occurred during read/write of audio device
+    \value IOError         An error occurred during read/write of audio device. This can happen when
+                           e.g. an external audio interface is disconnected.
     \value UnderrunError   Audio data is not being fed to the audio device at a fast enough rate
     \value FatalError      A non-recoverable error has occurred, the audio device is not usable at this time.
 */
@@ -39,8 +40,14 @@ QT_BEGIN_NAMESPACE
                              a call to resume will return control of the audio device to this stream.  This
                              should usually only be done upon user request.
     \value StoppedState      The audio device is closed, and is not processing any audio data
-    \value IdleState         The QIODevice passed in has no data and audio system's buffer is empty, this state
-                             is set after start() is called and while no audio data is available to be processed.
+    \value IdleState         This state indicates that the audio system is temporarily idle due to
+                             a buffering condition.
+                             For a QAudioSink, IdleState means there isn’t enough data available
+                             from the QIODevice to read.
+                             For a QAudioSource, IdleState is entered when the ring buffer that
+                             feeds the QIODevice becomes full. In that case, any new audio data
+                             arriving from the audio interface is discarded until the application
+                             reads from the QIODevice, which frees up space in the buffer.
 */
 
 /*!
