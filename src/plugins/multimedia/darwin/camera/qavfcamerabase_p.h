@@ -18,42 +18,10 @@
 #include <QtCore/qobject.h>
 
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformvideodevices_p.h>
 
-#include <functional>
-
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceFormat);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureConnection);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
 
 QT_BEGIN_NAMESPACE
-class QPlatformMediaIntegration;
-
-class QAVFVideoDevices : public QPlatformVideoDevices
-{
-public:
-    // Takes a delegate to check whether a given CvPixelFormat is supported for a capture session.
-    // If given a nullptr, it assumes all formats are supported.
-    QAVFVideoDevices(
-        QPlatformMediaIntegration *integration,
-        std::function<bool(uint32_t)> &&isCvPixelFormatSupportedDelegate = nullptr);
-    ~QAVFVideoDevices();
-
-    // Returns true if the given CvPixelFormat is supported for camera capture session.
-    [[nodiscard]] bool isCvPixelFormatSupported(uint32_t cvPixelFormat) const;
-
-protected:
-    QList<QCameraDevice> findVideoInputs() const override;
-
-private:
-    void updateCameraDevices();
-
-    NSObject *m_deviceConnectedObserver;
-    NSObject *m_deviceDisconnectedObserver;
-    std::function<bool(uint32_t)> m_isCvPixelFormatSupportedDelegate;
-
-    QList<QCameraDevice> m_cameraDevices;
-};
 
 // The purpose of this class is to provide camera controls on
 // both the old native Darwin backend and the FFmpeg backend.
