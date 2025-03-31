@@ -6,6 +6,7 @@
 #if !defined(Q_OS_VISIONOS)
 #include <avfcameraservice_p.h>
 #include <avfcamera_p.h>
+#include <QtMultimedia/private/qavfvideodevices_p.h>
 #include <avfimagecapture_p.h>
 #include <avfmediaencoder_p.h>
 #include <qavfcamerabase_p.h>

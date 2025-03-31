@@ -26,6 +26,7 @@
 
 #ifdef Q_OS_DARWIN
 #include "qavfcamera_p.h"
+#include "QtMultimedia/private/qavfvideodevices_p.h"
 
 #elif defined(Q_OS_WINDOWS)
 #  include <QtMultimedia/private/qwindowsvideodevices_p.h>
