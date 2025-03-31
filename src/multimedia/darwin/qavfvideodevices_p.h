@@ -17,6 +17,7 @@
 
 #include <QtMultimedia/qtmultimediaexports.h>
 #include <QtMultimedia/private/qplatformvideodevices_p.h>
+#include <QtCore/private/qcore_mac_p.h>
 
 #include <functional>
 
@@ -42,8 +43,8 @@ protected:
 private:
     void updateCameraDevices();
 
-    NSObject *m_deviceConnectedObserver;
-    NSObject *m_deviceDisconnectedObserver;
+    QMacNotificationObserver m_deviceConnectedObserver;
+    QMacNotificationObserver m_deviceDisconnectedObserver;
     std::function<bool(uint32_t)> m_isCvPixelFormatSupportedDelegate;
 
     QList<QCameraDevice> m_cameraDevices;
