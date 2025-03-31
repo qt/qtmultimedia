@@ -103,15 +103,12 @@ void QAVFVideoDevices::updateCameraDevices()
 #endif
     ];
 
-#if QT_DARWIN_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_14_0, __IPHONE_17_0, __TVOS_NA, __WATCHOS_NA)
     if (@available(macOS 14, iOS 17, *)) {
         discoveryDevices = [discoveryDevices arrayByAddingObjectsFromArray: @[
             AVCaptureDeviceTypeExternal,
             AVCaptureDeviceTypeContinuityCamera
         ]];
-    } else
-#endif
-    {
+    } else {
 #ifdef Q_OS_MACOS
     QT_WARNING_PUSH
         QT_WARNING_DISABLE_DEPRECATED
