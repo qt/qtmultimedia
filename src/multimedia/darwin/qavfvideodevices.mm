@@ -189,53 +189,35 @@ QAVFVideoDevices::QAVFVideoDevices(
         nil,
         AVCaptureDeviceWasConnectedNotification,
         [this]() {
-            updateCameraDevices();
+            QPlatformVideoDevices::onVideoInputsChanged();
         });
 
     m_deviceDisconnectedObserver = QMacNotificationObserver(
         nil,
         AVCaptureDeviceWasDisconnectedNotification,
         [this]() {
-            updateCameraDevices();
+            QPlatformVideoDevices::onVideoInputsChanged();
         });
-
-    updateCameraDevices();
 }
 
 QAVFVideoDevices::~QAVFVideoDevices()
 {
 }
 
+// Can be called from any thread as result of QMediaDevices::videoInputs()
 QList<QCameraDevice> QAVFVideoDevices::findVideoInputs() const
 {
-    return m_cameraDevices;
+    const QList<AVCaptureDevice*> avCaptureDevices = qEnumerateAVCaptureDevices();
+    return qGenerateQCameraDevices(
+        avCaptureDevices,
+        [this](uint32_t cvPixelFormat) {
+            return isCvPixelFormatSupported(cvPixelFormat);
+        });
 }
 
 bool QAVFVideoDevices::isCvPixelFormatSupported(uint32_t cvPixelFormat) const
 {
     return !m_isCvPixelFormatSupportedDelegate || m_isCvPixelFormatSupportedDelegate(cvPixelFormat);
-}
-
-void QAVFVideoDevices::updateCameraDevices()
-{
-    if (@available(iOS 17, *)) {
-    } else {
-        // Cameras can't change dynamically on iOS 16 and older. Update only once.
-        if (!m_cameraDevices.isEmpty())
-            return;
-    }
-
-    const QList<AVCaptureDevice*> avCaptureDevices = qEnumerateAVCaptureDevices();
-    const QList<QCameraDevice> newCameraDevices = qGenerateQCameraDevices(
-        avCaptureDevices,
-        [this](uint32_t cvPixelFormat) {
-            return isCvPixelFormatSupported(cvPixelFormat);
-        });
-
-    if (newCameraDevices != m_cameraDevices) {
-        m_cameraDevices = newCameraDevices;
-        onVideoInputsChanged();
-    }
 }
 
 QT_END_NAMESPACE
