@@ -6,6 +6,7 @@
 #include <QtCore/private/qcore_mac_p.h>
 
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
+#include <QtMultimedia/private/qaudioformat_p.h>
 #ifdef Q_OS_MACOS
 #include <QtMultimedia/private/qmacosaudiodatautils_p.h>
 #endif
@@ -92,30 +93,6 @@ namespace {
     return std::nullopt;
 }
 
-struct SamplingRateRange {
-    int min;
-    int max;
-};
-
-[[nodiscard]] std::optional<SamplingRateRange>
-qSupportedSamplingRates(QAudioDevice::Mode mode, AudioDeviceID deviceId)
-{
-    using namespace QCoreAudioUtils;
-
-    auto propertyAddress = makePropertyAddress(kAudioDevicePropertyAvailableNominalSampleRates, mode);
-
-    auto rates = getAudioPropertyList<Float64>(deviceId, propertyAddress);
-    if (rates && !rates->empty()) {
-        std::sort(rates->begin(), rates->end());
-        return SamplingRateRange{
-            int(rates->front()),
-            int(rates->back()),
-        };
-    }
-
-    return std::nullopt;
-}
-
 [[nodiscard]] std::optional<int> qSupportedNumberOfChannels(
         QAudioDevice::Mode mode,
         AudioDeviceID deviceId)
@@ -177,13 +154,8 @@ QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &d
     else
         preferredFormat = qDefaultPreferredFormat(mode, channelConfiguration);
 
-    if (auto rates = qSupportedSamplingRates(mode, id)) {
-        minimumSampleRate = rates->min;
-        maximumSampleRate = rates->max;
-    } else {
-        minimumSampleRate = 1;
-        maximumSampleRate = 96000;
-    }
+    minimumSampleRate = QtPrivate::allSupportedSampleRates.front();
+    maximumSampleRate = QtPrivate::allSupportedSampleRates.back();
     minimumChannelCount = 1;
     maximumChannelCount = qSupportedNumberOfChannels(mode, id).value_or(16);
 

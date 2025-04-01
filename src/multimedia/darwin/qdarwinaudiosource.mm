@@ -140,8 +140,13 @@ bool QCoreAudioSourceStream::open()
     if (!audioUnitSetCurrentDevice(m_audioUnit, *nativeDeviceId))
         return false;
 
-    if (!audioObjectSetSamplingRate(*nativeDeviceId, m_format.sampleRate()))
-        return false;
+    std::optional<int> bestNominalSamplingRate = audioObjectFindBestNominalSampleRate(
+            *nativeDeviceId, QAudioDevice::Input, m_format.sampleRate());
+
+    if (bestNominalSamplingRate) {
+        if (!audioObjectSetSamplingRate(*nativeDeviceId, *bestNominalSamplingRate))
+            return false;
+    }
 #endif
 
     AudioStreamBasicDescription streamFormat = toAudioStreamBasicDescription(m_format);

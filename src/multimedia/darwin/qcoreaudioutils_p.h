@@ -22,6 +22,7 @@
 #include <QtCore/qspan.h>
 #include <QtCore/private/quniquehandle_p.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qaudiodevice.h>
 
 #include <CoreAudioTypes/CoreAudioTypes.h>
 #ifdef Q_OS_MACOS
@@ -102,6 +103,8 @@ std::optional<int> audioUnitGetFramesPerSlice(AudioUnitHandle &);
 bool audioUnitSetCurrentDevice(AudioUnitHandle &, AudioObjectID);
 std::optional<int> audioUnitGetFramesPerBuffer(AudioUnitHandle &);
 bool audioObjectSetSamplingRate(AudioObjectID, int);
+std::optional<int> audioObjectFindBestNominalSampleRate(AudioObjectID, QAudioDevice::Mode,
+                                                        int rate);
 #endif
 
 } // namespace QCoreAudioUtils
