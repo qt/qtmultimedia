@@ -118,6 +118,7 @@ private:
     loadSample(const QUrl &, std::optional<SampleSourceType> forceSourceType = std::nullopt);
     QThreadPool m_threadPool;
 #endif
+    QFuture<SampleLoadResult> loadSampleAsync(const QUrl &);
 
     std::optional<SampleSourceType> m_sampleSourceType;
 };
