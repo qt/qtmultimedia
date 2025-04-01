@@ -105,6 +105,7 @@ std::optional<int> audioUnitGetFramesPerBuffer(AudioUnitHandle &);
 bool audioObjectSetSamplingRate(AudioObjectID, int);
 std::optional<int> audioObjectFindBestNominalSampleRate(AudioObjectID, QAudioDevice::Mode,
                                                         int rate);
+bool audioObjectSetFramesPerBuffer(AudioObjectID, int32_t bufferFrames);
 #endif
 
 } // namespace QCoreAudioUtils
