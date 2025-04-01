@@ -47,6 +47,8 @@ public:
     qsizetype bytesReady() const override;
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
+    void setHardwareBufferFrames(int32_t) override;
+    int32_t hardwareBufferFrames() override;
     qint64 processedUSecs() const override;
     QAudioFormat format() const override;
 
@@ -58,6 +60,7 @@ private:
 
     std::shared_ptr<QCoreAudioSourceStream> m_stream;
     std::optional<int> m_internalBufferSize;
+    std::optional<int32_t> m_hardwareBufferFrames;
 
     void resumeStreamIfNecessary();
 

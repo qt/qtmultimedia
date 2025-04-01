@@ -462,6 +462,25 @@ std::optional<int> audioObjectFindBestNominalSampleRate(AudioObjectID id, QAudio
                                               });
 }
 
+bool audioObjectSetFramesPerBuffer(AudioObjectID id, int32_t bufferFrames)
+{
+    AudioObjectPropertyAddress bufferFrameSizeAddress = {
+        kAudioDevicePropertyBufferFrameSize,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMain,
+    };
+
+    OSStatus status = AudioObjectSetPropertyData(id, &bufferFrameSizeAddress, 0, nullptr,
+                                                 sizeof(int32_t), &bufferFrames);
+
+    if (status != noErr) {
+        qDebug() << "AudioObjectSetPropertyData failed" << status;
+        return false;
+    }
+
+    return true;
+}
+
 #endif
 
 bool audioUnitIsRunning(AudioUnitHandle &audioUnit)

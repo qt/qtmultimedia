@@ -47,6 +47,8 @@ public:
     qsizetype bytesFree() const override;
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
+    void setHardwareBufferFrames(int32_t) override;
+    int32_t hardwareBufferFrames() override;
     qint64 processedUSecs() const override;
     QAudioFormat format() const override;
 
@@ -60,6 +62,7 @@ private:
 
     const QAudioFormat m_audioFormat;
     std::optional<int> m_internalBufferSize;
+    std::optional<int32_t> m_hardwareBufferFrames;
 
     float m_volume = 1.f;
 

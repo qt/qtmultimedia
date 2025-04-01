@@ -40,6 +40,8 @@ public:
     qsizetype bytesReady() const override;
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
+    void setHardwareBufferFrames(int32_t) override;
+    int32_t hardwareBufferFrames() override;
     qint64 processedUSecs() const override;
     void setVolume(float volume) override;
     float volume() const override;
@@ -49,7 +51,7 @@ private:
 
     const QAudioFormat m_format;
     std::optional<qsizetype> m_bufferSize;
-    std::optional<qsizetype> m_hardwareBufferSize;
+    std::optional<int32_t> m_hardwareBufferFrames;
 
     float m_volume = 1.0;
     std::shared_ptr<QWASAPIAudioSourceStream> m_stream;

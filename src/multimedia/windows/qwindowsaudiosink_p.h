@@ -37,6 +37,8 @@ public:
     qsizetype bytesFree() const override;
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
+    void setHardwareBufferFrames(int32_t) override;
+    int32_t hardwareBufferFrames() override;
     qint64 processedUSecs() const override;
     void setVolume(float) override;
     float volume() const override { return m_volume; }
@@ -49,7 +51,7 @@ private:
 
     const QAudioFormat m_format;
     std::optional<qsizetype> m_bufferSize;
-    std::optional<qsizetype> m_hardwareBufferSize;
+    std::optional<int32_t> m_hardwareBufferFrames;
 
     AudioEndpointRole m_endpointRole = AudioEndpointRole::Other;
 
