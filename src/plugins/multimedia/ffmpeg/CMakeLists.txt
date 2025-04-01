@@ -82,6 +82,10 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
     PUBLIC_LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
+    NO_PCH_SOURCES
+        # compiled with different compiler options:
+        # not used because `__NO_INLINE__' not defined [-Werror=invalid-pch]
+        playbackengine/qffmpegaudioframeconverter.cpp
 
     SYSTEM_INCLUDE_DIRECTORIES
         ../../../3rdparty/signalsmith-stretch/
@@ -247,6 +251,18 @@ if (ANDROID)
             android
     )
 endif()
+
+# signalsmith-stretch is header-only and rather slow in debug builds. so let's optimize it:
+if(GCC OR CLANG)
+    set_source_files_properties(playbackengine/qffmpegaudioframeconverter.cpp PROPERTIES
+        COMPILE_OPTIONS $<$<CONFIG:Debug>:-O3>)
+elseif(MSVC)
+    # we cannot just /O2, so we need to rely on pragma optimize here
+    set_source_files_properties(playbackengine/qffmpegaudioframeconverter.cpp PROPERTIES
+        COMPILE_DEFINITIONS $<$<CONFIG:Debug>:QT_MM_OPTIMIZE_DEBUG>
+    )
+endif()
+
 
 # TODO: get libs from FindFFmpeg.cmake
 set(ffmpeg_libs FFmpeg::avformat FFmpeg::avcodec FFmpeg::swresample FFmpeg::swscale FFmpeg::avutil)
