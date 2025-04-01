@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qcoreaudioutils_p.h"
-#include <qdebug.h>
+
+#include <QtCore/qdebug.h>
 
 #ifdef Q_OS_MACOS
 #  include <CoreAudio/AudioHardware.h>
+#  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
+#  include <QtMultimedia/private/qaudioformat_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -443,6 +446,20 @@ bool audioObjectSetSamplingRate(AudioObjectID id, int samplingRate)
     }
 
     return true;
+}
+
+std::optional<int> audioObjectFindBestNominalSampleRate(AudioObjectID id, QAudioDevice::Mode mode,
+                                                        int rate)
+{
+    auto optionalAvailableRates = getAudioPropertyList<Float64>(
+            id, makePropertyAddress(kAudioDevicePropertyAvailableNominalSampleRates, mode));
+    if (!optionalAvailableRates)
+        return std::nullopt;
+
+    return QtPrivate::findClosestSamplingRate(rate,
+                                              QSpan<const double>{
+                                                      *optionalAvailableRates,
+                                              });
 }
 
 #endif
