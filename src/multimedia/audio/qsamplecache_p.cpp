@@ -23,6 +23,10 @@
 
 Q_STATIC_LOGGING_CATEGORY(qLcSampleCache, "qt.multimedia.samplecache")
 
+#if !QT_CONFIG(thread)
+#  define thread_local
+#endif
+
 QT_BEGIN_NAMESPACE
 
 QSampleCache::QSampleCache(QObject *parent)
@@ -96,6 +100,31 @@ QSampleCache::SampleLoadResult QSampleCache::loadSample(QByteArray data)
     };
 }
 
+#if QT_CONFIG(thread) && QT_CONFIG(network)
+
+namespace {
+
+Q_CONSTINIT thread_local std::optional<QNetworkAccessManager> g_networkAccessManager;
+QNetworkAccessManager &threadLocalNetworkAccessManager()
+{
+    if (!g_networkAccessManager.has_value()) {
+        g_networkAccessManager.emplace();
+
+        if (QThread::isMainThread()) {
+            // poor man's Q_APPLICATION_STATIC
+            qAddPostRoutine([] {
+                g_networkAccessManager.reset();
+            });
+        }
+    }
+
+    return *g_networkAccessManager;
+}
+
+} // namespace
+
+#endif
+
 #if QT_CONFIG(thread)
 
 QSampleCache::SampleLoadResult
@@ -127,8 +156,7 @@ QSampleCache::loadSample(const QUrl &url, std::optional<SampleSourceType> forceS
         decoderInput.reset(file);
     } else {
 #if QT_CONFIG(network)
-        thread_local static QNetworkAccessManager networkAccessManager;
-        QNetworkReply *reply = networkAccessManager.get(QNetworkRequest(url));
+        QNetworkReply *reply = threadLocalNetworkAccessManager().get(QNetworkRequest(url));
 
         if (reply->error() != QNetworkReply::NoError)
             errorOccurred = true;
@@ -155,6 +183,75 @@ QSampleCache::loadSample(const QUrl &url, std::optional<SampleSourceType> forceS
 }
 
 #endif
+
+QFuture<QSampleCache::SampleLoadResult> QSampleCache::loadSampleAsync(const QUrl &url)
+{
+    auto promise = std::make_shared<QPromise<QSampleCache::SampleLoadResult>>();
+    auto future = promise->future();
+
+    auto fulfilPromise = [&](auto &&result) mutable {
+        promise->start();
+        promise->addResult(result);
+        promise->finish();
+    };
+
+    using namespace Qt::Literals;
+
+    SampleSourceType realSourceType = (url.scheme() == u"qrc"_s || url.scheme() == u"file"_s)
+            ? SampleSourceType::File
+            : SampleSourceType::NetworkManager;
+    if (realSourceType == SampleSourceType::File) {
+        QString locationString = url.toString(QUrl::RemoveScheme);
+        if (url.scheme() == u"qrc"_s)
+            locationString = u":" + locationString;
+        QFile file{ locationString };
+        bool opened = file.open(QFile::ReadOnly);
+        if (!opened) {
+            fulfilPromise(std::nullopt);
+            return future;
+        }
+
+        QByteArray data = file.readAll();
+        if (data.isEmpty()) {
+            fulfilPromise(std::nullopt);
+            return future;
+        }
+
+        fulfilPromise(loadSample(std::move(data)));
+        return future;
+    }
+#if QT_CONFIG(network)
+    QNetworkReply *reply = threadLocalNetworkAccessManager().get(QNetworkRequest(url));
+
+    if (reply->error() != QNetworkReply::NoError) {
+        fulfilPromise(std::nullopt);
+        delete reply;
+        return future;
+    }
+
+    connect(reply, &QNetworkReply::errorOccurred, reply,
+            [reply, promise]([[maybe_unused]] QNetworkReply::NetworkError errorCode) {
+        promise->start();
+        promise->addResult(std::nullopt);
+        promise->finish();
+        reply->deleteLater(); // we cannot delete immediately
+    });
+
+    connect(reply, &QNetworkReply::finished, reply, [promise, reply] {
+        promise->start();
+        QByteArray data = reply->readAll();
+        if (data.isEmpty())
+            promise->addResult(std::nullopt);
+        else
+            promise->addResult(loadSample(std::move(data)));
+        promise->finish();
+        reply->deleteLater(); // we cannot delete immediately
+    });
+#else
+    fulfilPromise(std::nullopt);
+#endif
+    return future;
+}
 
 bool QSampleCache::isCached(const QUrl &url) const
 {
@@ -200,12 +297,7 @@ QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url)
         return loadSample(url, type);
     });
 #else
-    // TODO: for now we require threads
-    QPromise<SampleLoadResult> brokenPromise;
-    brokenPromise.start();
-    brokenPromise.addResult(std::nullopt);
-    brokenPromise.finish();
-    QFuture<SampleLoadResult> futureResult = brokenPromise.future();
+    QFuture<SampleLoadResult> futureResult = loadSampleAsync(url);
 #endif
 
     futureResult.then(this,
@@ -277,3 +369,7 @@ void QSample::clearParent()
 }
 
 QT_END_NAMESPACE
+
+#if !QT_CONFIG(thread)
+#  undef thread_local
+#endif
