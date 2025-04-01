@@ -40,7 +40,7 @@ protected:
 
     // stream control
     void createStream(QSpan<spa_dict_item> extraProperties,
-                      std::optional<qsizetype> hardwareBufferSize, const char *streamName);
+                      std::optional<int32_t> hardwareBufferFrames, const char *streamName);
     bool connectStream(ObjectSerial target, spa_direction);
     void disconnectStream();
 

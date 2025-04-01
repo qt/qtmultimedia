@@ -34,7 +34,7 @@ struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewire
 
     QPipewireAudioSourceStream(QPipewireAudioSource *parent, const QAudioFormat &format,
                                std::optional<qsizetype> ringbufferSize,
-                               std::optional<qsizetype> hardwareBufferSize, float volume);
+                               std::optional<int32_t> hardwareBufferSize, float volume);
     ~QPipewireAudioSourceStream();
 
     Q_DISABLE_COPY_MOVE(QPipewireAudioSourceStream)
@@ -74,7 +74,7 @@ private:
 QPipewireAudioSourceStream::QPipewireAudioSourceStream(QPipewireAudioSource *parent,
                                                        const QAudioFormat &format,
                                                        std::optional<qsizetype> ringbufferSize,
-                                                       std::optional<qsizetype> hardwareBufferSize,
+                                                       std::optional<int32_t> hardwareBufferFrames,
                                                        float volume):
     QPipewireAudioStream {
         format,
@@ -83,6 +83,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QPipewireAudioSource *par
         {},
         format,
         ringbufferSize,
+        hardwareBufferFrames,
         volume,
     },
     m_parent {
@@ -93,7 +94,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QPipewireAudioSource *par
         spa_dict_item{ PW_KEY_MEDIA_CATEGORY, "Capture" },
         spa_dict_item{ PW_KEY_MEDIA_ROLE, "Music" },
     };
-    createStream(extraProperties, hardwareBufferSize, "QPipewireAudioSource");
+    createStream(extraProperties, hardwareBufferFrames, "QPipewireAudioSource");
 
     m_xrunNotification =
             QObject::connect(&m_xrunOccurred, &QAutoResetEvent::activated, &m_xrunOccurred, [this] {
@@ -259,7 +260,7 @@ void QPipewireAudioSource::startHelper(Functor &&starter)
     }
 
     m_stream = std::make_shared<QPipewireAudioSourceStream>(this, format(), m_bufferSize,
-                                                            m_hardwareBufferSize, m_volume);
+                                                            m_hardwareBufferFrames, m_volume);
     if (!m_stream->hasStream()) {
         setError(QtAudio::Error::OpenError);
         return;

@@ -24,9 +24,18 @@ QT_BEGIN_NAMESPACE
 namespace QtMultimediaPrivate {
 
 QPlatformAudioIOStream::QPlatformAudioIOStream(QAudioDevice m_audioDevice, QAudioFormat m_format,
-                                               std::optional<int> ringbufferSize, float volume)
-    : m_audioDevice(std::move(m_audioDevice)),
-      m_format(m_format),
+                                               std::optional<int> ringbufferSize,
+                                               std::optional<int32_t> hardwareBufferFrames,
+                                               float volume)
+    : m_audioDevice{
+          std::move(m_audioDevice),
+      },
+      m_format{
+          m_format,
+      },
+      m_hardwareBufferFrames{
+          hardwareBufferFrames,
+      },
       m_volume{
           volume,
       }
@@ -87,12 +96,11 @@ void QPlatformAudioIOStream::requestStop()
 
 QPlatformAudioSinkStream::QPlatformAudioSinkStream(const QAudioDevice &audioDevice,
                                                    const QAudioFormat &format,
-                                                   std::optional<int> ringbufferSize, float volume)
+                                                   std::optional<int> ringbufferSize,
+                                                   std::optional<int32_t> hardwareBufferFrames,
+                                                   float volume)
     : QPlatformAudioIOStream{
-          audioDevice,
-          format,
-          ringbufferSize,
-          volume,
+          audioDevice, format, ringbufferSize, hardwareBufferFrames, volume,
       }
 {
     m_streamIdleDetectionConnection =
@@ -270,12 +278,10 @@ void QPlatformAudioSinkStream::convertToNative(QSpan<const std::byte> internal,
 QPlatformAudioSourceStream::QPlatformAudioSourceStream(const QAudioDevice &audioDevice,
                                                        const QAudioFormat &format,
                                                        std::optional<int> ringbufferSize,
+                                                       std::optional<int32_t> hardwareBufferFrames,
                                                        float volume)
     : QPlatformAudioIOStream{
-          audioDevice,
-          format,
-          ringbufferSize,
-          volume,
+          audioDevice, format, ringbufferSize, hardwareBufferFrames, volume,
       }
 {
 }

@@ -45,7 +45,8 @@ protected:
     using QAutoResetEvent = QtPrivate::QAutoResetEvent;
 
     QPlatformAudioIOStream(QAudioDevice m_audioDevice, QAudioFormat m_format,
-                           std::optional<int> ringbufferSize, float volume);
+                           std::optional<int> ringbufferSize,
+                           std::optional<int32_t> hardwareBufferFrames, float volume);
     ~QPlatformAudioIOStream();
     Q_DISABLE_COPY_MOVE(QPlatformAudioIOStream)
 
@@ -76,6 +77,7 @@ protected:
     // members
     const QAudioDevice m_audioDevice;
     const QAudioFormat m_format;
+    const std::optional<int32_t> m_hardwareBufferFrames;
 
 private:
     std::atomic<float> m_volume{
@@ -107,7 +109,8 @@ public:
 
 protected:
     QPlatformAudioSinkStream(const QAudioDevice &, const QAudioFormat &,
-                             std::optional<int> ringbufferSize, float volume);
+                             std::optional<int> ringbufferSize,
+                             std::optional<int32_t> hardwareBufferFrames, float volume);
     ~QPlatformAudioSinkStream();
     Q_DISABLE_COPY_MOVE(QPlatformAudioSinkStream)
 
@@ -179,7 +182,8 @@ public:
 
 protected:
     QPlatformAudioSourceStream(const QAudioDevice &, const QAudioFormat &,
-                               std::optional<int> ringbufferSize, float volume);
+                               std::optional<int> ringbufferSize,
+                               std::optional<int32_t> hardwareBufferFrames, float volume);
     ~QPlatformAudioSourceStream();
 
     Q_DISABLE_COPY_MOVE(QPlatformAudioSourceStream)

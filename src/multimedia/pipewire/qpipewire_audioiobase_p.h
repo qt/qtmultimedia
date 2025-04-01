@@ -33,7 +33,7 @@ class QPipewireAudioDevicePrivate;
 #ifdef __cpp_concepts
 
 template <typename T>
-concept QPlatformAudioIOBase = requires(T t, QIODevice *device, qsizetype size, float volume, const QAudioFormat &format) {
+concept QPlatformAudioIOBase = requires(T t, QIODevice *device, qsizetype size, float volume, int32_t hwBufferFrames, const QAudioFormat &format) {
     { t.start(device) } -> std::same_as<void>;
     { t.start() } -> std::same_as<QIODevice*>;
     { t.stop() } -> std::same_as<void>;
@@ -43,6 +43,8 @@ concept QPlatformAudioIOBase = requires(T t, QIODevice *device, qsizetype size, 
 
     { t.setBufferSize(size) } -> std::same_as<void>;
     { t.bufferSize() } -> std::same_as<qsizetype>;
+    { t.setHardwareBufferFrames(hwBufferFrames) } -> std::same_as<void>;
+    { t.hardwareBufferFrames() } -> std::same_as<int32_t>;
     { t.processedUSecs() } -> std::same_as<qint64>;
     { t.error() } -> std::same_as<QAudio::Error>;
     { t.state() } -> std::same_as<QAudio::State>;
@@ -77,7 +79,6 @@ protected:
 
     // device
     std::optional<qsizetype> m_bufferSize;
-    std::optional<qsizetype> m_hardwareBufferSize;
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
     const QPipewireAudioDevicePrivate *privateDevice() const;
@@ -90,6 +91,11 @@ protected:
     float m_volume = 1.0f;
     void setVolume(float volume) override;
     float volume() const override;
+
+    // hw buffer size
+    std::optional<qsizetype> m_hardwareBufferFrames;
+    void setHardwareBufferFrames(int32_t arg) override;
+    int32_t hardwareBufferFrames() override;
 
     // streams
     std::shared_ptr<StreamType> m_stream;
@@ -150,6 +156,21 @@ DECLARE_TEMPLATE_ARGS
 inline float QPipewireAudioIOBase<BaseClass, StreamType>::volume() const
 {
     return m_volume;
+}
+
+DECLARE_TEMPLATE_ARGS
+inline void QPipewireAudioIOBase<BaseClass, StreamType>::setHardwareBufferFrames(int32_t arg)
+{
+    if (m_hardwareBufferFrames > 0)
+        m_hardwareBufferFrames = arg;
+    else
+        m_hardwareBufferFrames = std::nullopt;
+}
+
+DECLARE_TEMPLATE_ARGS
+inline int32_t QPipewireAudioIOBase<BaseClass, StreamType>::hardwareBufferFrames()
+{
+    return m_hardwareBufferFrames.value_or(-1);
 }
 
 DECLARE_TEMPLATE_ARGS

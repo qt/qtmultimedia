@@ -27,7 +27,7 @@ struct QWASAPIAudioSourceStream final : std::enable_shared_from_this<QWASAPIAudi
 
     QWASAPIAudioSourceStream(QAudioDevice, QWindowsAudioSource *parent, const QAudioFormat &,
                              std::optional<qsizetype> ringbufferSize,
-                             std::optional<qsizetype> hardwareBufferSize, float volume);
+                             std::optional<int32_t> hardwareBufferFrames, float volume);
 
     ~QWASAPIAudioSourceStream();
 
@@ -53,7 +53,6 @@ private:
     bool process() QT_MM_NONBLOCKING;
     void handleAudioClientError();
 
-    std::optional<qsizetype> m_hardwareBufferFrames;
     ComPtr<IAudioClient3> m_audioClient;
     ComPtr<IAudioCaptureClient> m_captureClient;
 
@@ -230,7 +229,7 @@ QIODevice *QWindowsAudioSource::start()
     }
 
     m_stream = std::make_unique<QWASAPIAudioSourceStream>(
-            m_audioDevice, this, m_format, m_bufferSize, m_hardwareBufferSize, m_volume);
+            m_audioDevice, this, m_format, m_bufferSize, m_hardwareBufferFrames, m_volume);
 
     QIODevice *ioDevice = m_stream->start(std::move(immDevice));
     if (!ioDevice) {
@@ -252,7 +251,7 @@ void QWindowsAudioSource::start(QIODevice *iodevice)
     }
 
     m_stream = std::make_unique<QWASAPIAudioSourceStream>(
-            m_audioDevice, this, m_format, m_bufferSize, m_hardwareBufferSize, m_volume);
+            m_audioDevice, this, m_format, m_bufferSize, m_hardwareBufferFrames, m_volume);
 
     bool started = m_stream->start(iodevice, std::move(immDevice));
     if (!started) {
@@ -327,6 +326,19 @@ qsizetype QWindowsAudioSource::bufferSize() const
     return m_bufferSize.value_or(-1);
 }
 
+void QWindowsAudioSource::setHardwareBufferFrames(int32_t arg)
+{
+    if (arg > 0)
+        m_hardwareBufferFrames = arg;
+    else
+        m_hardwareBufferFrames = std::nullopt;
+}
+
+int32_t QWindowsAudioSource::hardwareBufferFrames()
+{
+    return m_hardwareBufferFrames.value_or(-1);
+}
+
 qint64 QWindowsAudioSource::processedUSecs() const
 {
     return m_stream ? m_stream->processedDuration().count() : 0;
@@ -335,15 +347,13 @@ qint64 QWindowsAudioSource::processedUSecs() const
 QWASAPIAudioSourceStream::QWASAPIAudioSourceStream(QAudioDevice device, QWindowsAudioSource *parent,
                                                    const QAudioFormat &format,
                                                    std::optional<qsizetype> ringbufferSize,
-                                                   std::optional<qsizetype> hardwareBufferSize, float volume):
+                                                   std::optional<int32_t> hardwareBufferFrames, float volume):
     QPlatformAudioSourceStream{
         std::move(device),
         format,
         ringbufferSize,
+        hardwareBufferFrames,
         volume,
-    },
-    m_hardwareBufferFrames{
-        hardwareBufferSize,
     },
     m_wasapiHandle {
         CreateEvent(0, false, false, nullptr),

@@ -43,7 +43,7 @@ QPipewireAudioStream::~QPipewireAudioStream()
 }
 
 void QPipewireAudioStream::createStream(QSpan<spa_dict_item> extraProperties,
-                                        std::optional<qsizetype> hardwareBufferSize,
+                                        std::optional<int32_t> hardwareBufferFrames,
                                         const char *streamName)
 {
     stream_events.version = PW_VERSION_STREAM_EVENTS;
@@ -61,10 +61,10 @@ void QPipewireAudioStream::createStream(QSpan<spa_dict_item> extraProperties,
     };
     properties.insert(properties.end(), extraProperties.begin(), extraProperties.end());
 
-    if (hardwareBufferSize)
+    if (hardwareBufferFrames)
         properties.push_back({
                 PW_KEY_NODE_FORCE_QUANTUM,
-                QString::number(*hardwareBufferSize).toStdString().data(),
+                std::to_string(*hardwareBufferFrames).data(),
         });
 
     QAudioContextManager::withEventLoopLock([&] {

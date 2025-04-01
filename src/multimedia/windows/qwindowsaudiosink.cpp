@@ -30,7 +30,7 @@ struct QWASAPIAudioSinkStream final : std::enable_shared_from_this<QWASAPIAudioS
 
     QWASAPIAudioSinkStream(QAudioDevice, QWindowsAudioSink *parent, const QAudioFormat &,
                            std::optional<qsizetype> ringbufferSize,
-                           std::optional<qsizetype> hardwareBufferSize, float volume);
+                           std::optional<int32_t> hardwareBufferSize, float volume);
 
     ~QWASAPIAudioSinkStream() = default;
 
@@ -57,7 +57,6 @@ private:
 
     void handleAudioClientError();
 
-    std::optional<qsizetype> m_hardwareBufferFrames;
     ComPtr<IAudioClient3> m_audioClient;
     ComPtr<IAudioRenderClient> m_renderClient;
 
@@ -76,15 +75,13 @@ private:
 
 QWASAPIAudioSinkStream::QWASAPIAudioSinkStream(QAudioDevice device, QWindowsAudioSink *parent, const QAudioFormat &format,
                                                std::optional<qsizetype> ringbufferSize,
-                                               std::optional<qsizetype> hardwareBufferSize, float volume):
+                                               std::optional<int32_t> hardwareBufferFrames, float volume):
     QPlatformAudioSinkStream{
         std::move(device),
         format,
         ringbufferSize,
+        hardwareBufferFrames,
         volume,
-    },
-    m_hardwareBufferFrames{
-        hardwareBufferSize,
     },
     m_wasapiHandle {
         CreateEvent(0, false, false, nullptr),
@@ -342,7 +339,7 @@ QIODevice *QWindowsAudioSink::start()
     }
 
     m_stream = std::make_unique<QWASAPIAudioSinkStream>(m_audioDevice, this, m_format, m_bufferSize,
-                                                        m_hardwareBufferSize, m_volume);
+                                                        m_hardwareBufferFrames, m_volume);
 
     QIODevice *ioDevice = m_stream->start(std::move(immDevice), m_endpointRole);
     if (!ioDevice) {
@@ -364,7 +361,7 @@ void QWindowsAudioSink::start(QIODevice *iodevice)
     }
 
     m_stream = std::make_unique<QWASAPIAudioSinkStream>(m_audioDevice, this, m_format, m_bufferSize,
-                                                        m_hardwareBufferSize, m_volume);
+                                                        m_hardwareBufferFrames, m_volume);
 
     bool started = m_stream->start(iodevice, std::move(immDevice), m_endpointRole);
     if (!started) {
@@ -429,6 +426,19 @@ void QWindowsAudioSink::setBufferSize(qsizetype value)
 qsizetype QWindowsAudioSink::bufferSize() const
 {
     return m_bufferSize.value_or(-1);
+}
+
+void QWindowsAudioSink::setHardwareBufferFrames(int32_t arg)
+{
+    if (arg > 0)
+        m_hardwareBufferFrames = arg;
+    else
+        m_hardwareBufferFrames = std::nullopt;
+}
+
+int32_t QWindowsAudioSink::hardwareBufferFrames()
+{
+    return m_hardwareBufferFrames.value_or(-1);
 }
 
 qint64 QWindowsAudioSink::processedUSecs() const

@@ -97,6 +97,8 @@ public:
     virtual qsizetype bytesFree() const = 0;
     virtual void setBufferSize(qsizetype value) = 0;
     virtual qsizetype bufferSize() const = 0;
+    virtual void setHardwareBufferFrames(int32_t) { };
+    virtual int32_t hardwareBufferFrames() { return -1; };
     virtual qint64 processedUSecs() const = 0;
     virtual QAudioFormat format() const = 0;
     virtual void setVolume(float) { }
@@ -122,6 +124,8 @@ public:
     virtual void resume() = 0;
     virtual qsizetype bytesReady() const = 0;
     virtual void setBufferSize(qsizetype value) = 0;
+    virtual void setHardwareBufferFrames(int32_t) { };
+    virtual int32_t hardwareBufferFrames() { return -1; };
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
     virtual QAudioFormat format() const = 0;
