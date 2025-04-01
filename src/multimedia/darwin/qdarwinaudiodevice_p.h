@@ -17,7 +17,7 @@
 #include <private/qaudiodevice_p.h>
 
 #if defined(Q_OS_MACOS)
-# include <CoreAudio/CoreAudio.h>
+#  include <CoreAudio/CoreAudio.h>
 #endif
 
 QT_BEGIN_NAMESPACE
