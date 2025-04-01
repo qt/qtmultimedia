@@ -27,11 +27,7 @@ class QFFmpegResampler;
 
 namespace QFFmpeg {
 
-struct AbstactAudioFrameConverter
-{
-    virtual ~AbstactAudioFrameConverter();
-    virtual QAudioBuffer convert(AVFrame *) = 0;
-};
+struct AbstractAudioFrameConverter;
 
 class AudioRenderer : public Renderer
 {
@@ -131,7 +127,7 @@ private:
 
     // pitch compensation
     bool m_pitchCompensation = false; // TODO: we need an API to enable pitch compensation
-    std::unique_ptr<AbstactAudioFrameConverter> m_audioFrameConverter;
+    std::unique_ptr<AbstractAudioFrameConverter> m_audioFrameConverter;
 };
 
 } // namespace QFFmpeg

@@ -40,6 +40,7 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
         playbackengine/qffmpegdemuxer.cpp playbackengine/qffmpegdemuxer_p.h
         playbackengine/qffmpegstreamdecoder.cpp playbackengine/qffmpegstreamdecoder_p.h
         playbackengine/qffmpegrenderer.cpp playbackengine/qffmpegrenderer_p.h
+        playbackengine/qffmpegaudioframeconverter.cpp playbackengine/qffmpegaudioframeconverter_p.h
         playbackengine/qffmpegaudiorenderer.cpp playbackengine/qffmpegaudiorenderer_p.h
         playbackengine/qffmpegvideorenderer.cpp playbackengine/qffmpegvideorenderer_p.h
         playbackengine/qffmpegsubtitlerenderer.cpp playbackengine/qffmpegsubtitlerenderer_p.h
