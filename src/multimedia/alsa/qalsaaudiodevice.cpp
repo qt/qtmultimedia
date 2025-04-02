@@ -3,8 +3,6 @@
 
 #include "qalsaaudiodevice_p.h"
 
-#include <alsa/version.h>
-
 QT_BEGIN_NAMESPACE
 
 QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &desc,

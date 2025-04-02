@@ -16,16 +16,10 @@
 #ifndef QALSAAUDIODEVICEINFO_H
 #define QALSAAUDIODEVICEINFO_H
 
-#include <alsa/asoundlib.h>
-
 #include <QtCore/qbytearray.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qlist.h>
-#include <QtCore/qdebug.h>
-
 #include <QtMultimedia/qaudio.h>
-#include <private/qaudiodevice_p.h>
-#include <private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qaudiodevice_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
 
