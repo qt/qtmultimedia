@@ -47,10 +47,7 @@ public:
 private Q_SLOTS:
     void addVideoFrame(const QVideoFrame &frame)
     {
-        if (!m_elapsedTimer.isValid())
-            m_elapsedTimer.start();
-        else
-            m_elapsedTimer.restart();
+        m_elapsedTimer.start();
 
         if (m_storeFrames)
             m_frameList.append(frame);
