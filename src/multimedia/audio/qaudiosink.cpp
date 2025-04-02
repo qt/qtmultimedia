@@ -143,7 +143,7 @@ void QAudioSink::start(QIODevice* device)
 {
     if (!d)
         return;
-    d->elapsedTime.restart();
+    d->elapsedTime.start();
     d->start(device);
 }
 
@@ -168,7 +168,7 @@ QIODevice* QAudioSink::start()
 {
     if (!d)
         return nullptr;
-    d->elapsedTime.restart();
+    d->elapsedTime.start();
     return d->start();
 }
 
