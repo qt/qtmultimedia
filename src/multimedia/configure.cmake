@@ -91,12 +91,6 @@ qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VAAPI MODULE_NAM
 
 #### Tests
 
-
-qt_config_compile_test("evr"
-                   LABEL "evr.h"
-                   PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/evr"
-)
-
 qt_config_compile_test("gpu_vivante"
                    LABEL "Vivante GPU"
                    PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/gpu_vivante"
@@ -166,10 +160,7 @@ qt_feature("videotoolbox" PUBLIC PRIVATE
     LABEL "VideoToolbox"
     CONDITION AVFoundation_FOUND
 )
-qt_feature("evr" PUBLIC PRIVATE
-    LABEL "evr.h"
-    CONDITION WIN32 AND TEST_evr
-)
+
 qt_feature("gstreamer" PRIVATE
     LABEL "QtMM GStreamer plugin"
     CONDITION TARGET GStreamer::GStreamer AND TARGET GStreamer::App AND TARGET GStreamer::Play
