@@ -299,15 +299,25 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
 #endif
 
         QSize planeSize = desc->rhiPlaneSize(QSize(frame->width, frame->height), i, rhi);
-        EGLAttrib img_attr[] = {
+        constexpr uint32_t maxAttrCount = 18;
+        EGLAttrib img_attr[maxAttrCount] = {
             EGL_LINUX_DRM_FOURCC_EXT,      (EGLint)drm_formats[i],
             EGL_WIDTH,                     planeSize.width(),
             EGL_HEIGHT,                    planeSize.height(),
             EGL_DMA_BUF_PLANE0_FD_EXT,     prime.objects[prime.layers[LAYER].object_index[PLANE]].fd,
             EGL_DMA_BUF_PLANE0_OFFSET_EXT, (EGLint)prime.layers[LAYER].offset[PLANE],
             EGL_DMA_BUF_PLANE0_PITCH_EXT,  (EGLint)prime.layers[LAYER].pitch[PLANE],
-            EGL_NONE
         };
+        uint32_t img_attr_idx = 12;
+        uint64_t modifier = prime.objects[prime.layers[LAYER].object_index[PLANE]].drm_format_modifier;
+        if (modifier != DRM_FORMAT_MOD_INVALID) {
+            img_attr[img_attr_idx++] = EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT;
+            img_attr[img_attr_idx++] = modifier & 0xFFFFFFFF;
+            img_attr[img_attr_idx++] = EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT;
+            img_attr[img_attr_idx++] = modifier >> 32;
+        }
+        img_attr[img_attr_idx++] = EGL_NONE;
+        Q_ASSERT(img_attr_idx <= maxAttrCount);
         images[i] = eglCreateImage(eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, img_attr);
         if (!images[i]) {
             const GLenum error = eglGetError();
