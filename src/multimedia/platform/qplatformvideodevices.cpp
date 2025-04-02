@@ -18,6 +18,12 @@ void QPlatformVideoDevices::onVideoInputsChanged() {
     emit videoInputsChanged(PrivateTag{});
 }
 
+void QPlatformVideoDevices::updateVideoInputsCache()
+{
+    if (m_videoInputs.update(findVideoInputs()))
+        emit videoInputsChanged(PrivateTag{});
+}
+
 QList<QCameraDevice> QPlatformVideoDevices::videoInputs() const {
     return m_videoInputs.ensure([this]() {
         return findVideoInputs();
