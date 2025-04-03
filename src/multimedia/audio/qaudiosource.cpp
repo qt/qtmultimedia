@@ -146,6 +146,9 @@ void QAudioSource::start(QIODevice* device)
 {
     if (!d)
         return;
+
+    d->setError(QAudio::NoError);
+
     if (!device->isWritable()) {
         qWarning() << "QAudioSource::start: QIODevice is not writable";
         d->setError(QAudio::OpenError);
@@ -184,6 +187,8 @@ QIODevice* QAudioSource::start()
 {
     if (!d)
         return nullptr;
+
+    d->setError(QAudio::NoError);
 
     if (!d->isFormatSupported(d->format())) {
         qWarning() << "QAudioSource::start: QAudioFormat not supported by QAudioDevice";
