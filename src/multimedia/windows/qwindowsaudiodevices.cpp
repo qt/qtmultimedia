@@ -15,6 +15,7 @@
 #include <QtMultimedia/private/qwindowsaudiosource_p.h>
 #include <QtMultimedia/private/qwindows_propertystore_p.h>
 
+#include <audioclient.h>
 #include <mmsystem.h>
 #include <mmddk.h>
 #include <mfobjects.h>
