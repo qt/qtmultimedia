@@ -278,6 +278,8 @@ bool QWASAPIAudioSinkStream::process() QT_MM_NONBLOCKING
     }
 
     uint32_t requiredFrames = m_audioClientFrames - numFramesPadding;
+    if (requiredFrames == 0)
+        return true;
 
     // Grab the next empty buffer from the audio device.
     unsigned char *hostBuffer{};
