@@ -251,7 +251,6 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
 
 qt_internal_extend_target(Multimedia CONDITION APPLE
     SOURCES
-        darwin/qdarwinaudiounit_p.h
         darwin/qdarwinaudiodevice.cpp darwin/qdarwinaudiodevice_p.h
         darwin/qdarwinaudiosource.mm darwin/qdarwinaudiosource_p.h
         darwin/qdarwinaudiosink.mm darwin/qdarwinaudiosink_p.h
