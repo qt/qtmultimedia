@@ -96,6 +96,18 @@ void QAVFCamera::refreshAvCaptureSessionInputDevice()
 void QAVFCamera::onActiveChanged(bool active)
 {
     if (active) {
+        // We should never try to go active if we don't already have
+        // permissions, as refreshAvCaptureSessionInputDevice() will
+        // implicitly trigger a user permission request and freeze the
+        // program. Permissions should only be requested through
+        // QPermissions.
+        Q_ASSERT(checkCameraPermission());
+
+        // The AVCaptureSession might not yet have been configured with the
+        // AVCaptureDevice, if camera permissions was not granted when applying
+        // the device to this QCamera. Set it up now.
+        refreshAvCaptureSessionInputDevice();
+
         // According to the doc, the capture device must be locked before
         // startRunning to prevent the format we set to be overridden by the
         // session preset.
