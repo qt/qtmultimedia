@@ -66,6 +66,7 @@ private:
     OSStatus process(uint32_t numberOfFrames, AudioBufferList *ioData);
 
     void updateStreamIdle(bool arg) override;
+    void stopAudioUnit();
 
 #ifdef Q_OS_MACOS
     bool addDisconnectListener(AudioObjectID id);
@@ -77,14 +78,11 @@ private:
 
     std::unique_ptr<QIODevice> m_reader;
     QCoreAudioUtils::AudioUnitHandle m_audioUnit;
+    bool m_audioUnitRunning{};
 
     QDarwinAudioSink *m_parent;
     std::shared_ptr<QCoreAudioSinkStream> m_self;
 };
-void QCoreAudioSinkStream::updateStreamIdle(bool arg)
-{
-    m_parent->updateStreamIdle(arg);
-}
 
 QCoreAudioSinkStream::QCoreAudioSinkStream(const QAudioDevice &audioDevice, QAudioFormat format,
                                            std::optional<int> ringbufferSize,
@@ -169,6 +167,8 @@ bool QCoreAudioSinkStream::start(QIODevice *device)
         return false;
     }
 
+    m_audioUnitRunning = true;
+
     createQIODeviceConnections(device);
 
     return true;
@@ -203,14 +203,7 @@ void QCoreAudioSinkStream::stop()
             return;
 
         // stop on application thread once ringbuffer is empty
-        const auto status = AudioOutputUnitStop(m_audioUnit.get());
-        if (status != noErr)
-            qDebug() << "AudioOutputUnitStop failed:" << status;
-
-#ifdef Q_OS_MACOS
-        removeDisconnectListener();
-#endif
-        m_audioUnit = {};
+        stopAudioUnit();
 
         m_self = nullptr; // might delete the instance
     });
@@ -225,14 +218,7 @@ void QCoreAudioSinkStream::reset()
 {
     requestStop();
 
-    const auto status = AudioOutputUnitStop(m_audioUnit.get());
-    if (status != noErr)
-        qDebug() << "AudioOutputUnitStop failed:" << status;
-
-#ifdef Q_OS_MACOS
-    removeDisconnectListener();
-#endif
-    m_audioUnit = {};
+    stopAudioUnit();
 }
 
 void QCoreAudioSinkStream::suspend()
@@ -285,6 +271,25 @@ OSStatus QCoreAudioSinkStream::process(uint32_t numberOfFrames,
     return noErr;
 }
 
+void QCoreAudioSinkStream::updateStreamIdle(bool arg)
+{
+    m_parent->updateStreamIdle(arg);
+}
+
+void QCoreAudioSinkStream::stopAudioUnit()
+{
+    const auto status = AudioOutputUnitStop(m_audioUnit.get());
+    if (status != noErr)
+        qDebug() << "AudioOutputUnitStop failed:" << status;
+
+    m_audioUnitRunning = false;
+
+#ifdef Q_OS_MACOS
+    removeDisconnectListener();
+#endif
+    m_audioUnit = {};
+}
+
 #ifdef Q_OS_MACOS
 bool QCoreAudioSinkStream::addDisconnectListener(AudioObjectID id)
 {
@@ -294,6 +299,13 @@ bool QCoreAudioSinkStream::addDisconnectListener(AudioObjectID id)
         return false;
 
     m_stopOnDisconnected = m_disconnectMonitor.then(m_parent, [this] {
+        // Coreaudio will pause for a bit and restart the audio unit with a different device.
+        // This is problematic, as it switches kAudioOutputUnitProperty_CurrentDevice and
+        // invalidates the native device ID (and the disconnect handler). furthermore, we don't have
+        // a way to re-synchronize the audio stream. so we explicitly stop the audio unit
+
+        stopAudioUnit();
+
         m_parent->setError(QtAudio::IOError);
         m_parent->updateStreamState(QtAudio::State::StoppedState);
     });
