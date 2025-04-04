@@ -82,6 +82,8 @@ public:
 
 protected:
     // Called by setActive() when the active status is successfully changed.
+    // If called with parameter active = true, camera permissions are
+    // guaranteed to have been granted already.
     virtual void onActiveChanged(bool active) = 0;
     // Called by setCamera() when the camera is successfully changed.
     virtual void onCameraDeviceChanged(const QCameraDevice &device) = 0;
