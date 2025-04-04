@@ -19,6 +19,8 @@ extern "C" {
 }
 #undef AVMediaType
 
+#include <QtCore/qscopeguard.h>
+
 QT_BEGIN_NAMESPACE
 
 using namespace QFFmpeg;
@@ -36,6 +38,17 @@ QAVFCamera::QAVFCamera(QCamera *parent)
     m_sampleBufferDelegate = [[QAVFSampleBufferDelegate alloc] initWithFrameHandler:frameHandler];
 
     [m_sampleBufferDelegate setTransformationProvider:[this] { return surfaceTransform(); }];
+
+    // Configure video output
+    m_videoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
+    m_delegateQueue = dispatch_queue_create("vf_queue", nullptr);
+    [m_videoDataOutput setSampleBufferDelegate:m_sampleBufferDelegate
+                                         queue:m_delegateQueue];
+
+    // Hook output object to our capture session.
+    [m_captureSession beginConfiguration];
+    [m_captureSession addOutput:m_videoDataOutput];
+    [m_captureSession commitConfiguration];
 }
 
 QAVFCamera::~QAVFCamera()
@@ -48,31 +61,17 @@ QAVFCamera::~QAVFCamera()
     updateRotationTracking();
 }
 
-void QAVFCamera::updateVideoInput()
+void QAVFCamera::refreshAvCaptureSessionInputDevice()
 {
-    if (!checkCameraPermission())
-        return;
+    // AVCaptureDeviceInput deviceInputWithDevice will implicitly ask for permission.
+    // Only the user should request permissions.
+    Q_ASSERT(checkCameraPermission());
 
     [m_captureSession beginConfiguration];
+    const QScopeGuard endConfigGuard{ [&]() {
+        [m_captureSession commitConfiguration];
+    }};
 
-    attachVideoInputDevice();
-
-    if (!m_videoDataOutput) {
-        m_videoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
-
-        // Configure video output
-        m_delegateQueue = dispatch_queue_create("vf_queue", nullptr);
-        [m_videoDataOutput
-                setSampleBufferDelegate:m_sampleBufferDelegate
-                queue:m_delegateQueue];
-
-        [m_captureSession addOutput:m_videoDataOutput];
-    }
-    [m_captureSession commitConfiguration];
-}
-
-void QAVFCamera::attachVideoInputDevice()
-{
     if (m_videoInput) {
         [m_captureSession removeInput:m_videoInput];
         [m_videoInput release];
@@ -132,8 +131,7 @@ void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &device)
     if (device.isNull() || !checkCameraPermission())
         return;
 
-    // updateVideoInput must be called before setCameraFormat.
-    updateVideoInput();
+    refreshAvCaptureSessionInputDevice();
 
     // When we change camera, we need to clear up the existing
     // rotation tracker state and set up the new one.
