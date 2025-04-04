@@ -3,9 +3,13 @@
 
 #include "qpipewire_support_p.h"
 
+#include <QtCore/qspan.h>
 #include <QtMultimedia/private/qmultimedia_enum_to_string_converter_p.h>
 
-#include <QtCore/qspan.h>
+#include <pipewire/version.h>
+#include <spa/debug/pod.h>
+
+#include <cstdarg>
 
 QT_BEGIN_NAMESPACE
 
@@ -21,6 +25,56 @@ QDebug operator<<(QDebug dbg, const spa_dict &dict)
         dbg << item.key << "=" << item.value << ", ";
     return dbg;
 }
+
+#if PW_CHECK_VERSION(0, 3, 65)
+
+namespace {
+
+struct QtSpaDebugContext : ::spa_debug_context
+{
+    explicit QtSpaDebugContext(QDebug dbg)
+        : ::spa_debug_context{},
+          dbg{
+              std::move(dbg),
+          }
+    {
+        ::spa_debug_context::log = &doLog;
+    }
+
+    static void doLog(::spa_debug_context *ctx, const char *fmt, ...)
+    {
+        std::va_list args;
+        va_start(args, fmt);
+        QString logString = QString::vasprintf(fmt, args);
+        va_end(args);
+
+        auto *self = static_cast<QtSpaDebugContext *>(ctx);
+        self->dbg << logString;
+    }
+
+    QDebug dbg;
+};
+
+} // namespace
+
+QDebug operator<<(QDebug dbg, const spa_pod &pod)
+{
+    QtSpaDebugContext context{ std::move(dbg) };
+
+    spa_debugc_pod(&context, 0, nullptr, &pod);
+    return std::move(context.dbg);
+}
+
+#else
+
+QDebug operator<<(QDebug dbg, const spa_pod &)
+{
+    dbg << "QDebug operator<<(QDebug, const spa_pod &) not implemented: minimum requirement: "
+           "pipewire-0.3.65";
+    return dbg;
+}
+
+#endif
 
 // clang-format off
 QT_MM_MAKE_STRING_RESOLVER( pw_stream_state, QtMultimediaPrivate::EnumName,
