@@ -3,6 +3,8 @@
 
 #include "qpipewire_spa_pod_support_p.h"
 
+#include "qpipewire_support_p.h"
+
 #include <QtCore/qdebug.h>
 
 #include <pipewire/version.h>
@@ -29,6 +31,11 @@ parseSampleFormat(const spa_pod &pod)
                                    SPA_POD_OPT_PodChoice(&format_pod));
     if (res < 0)
         return std::nullopt;
+
+    if (!format_pod) {
+        qWarning() << "parseSampleFormat: parse error" << pod;
+        return std::nullopt;
+    }
 
     if (spa_pod_is_choice(format_pod)) {
         switch (SPA_POD_CHOICE_TYPE(format_pod)) {

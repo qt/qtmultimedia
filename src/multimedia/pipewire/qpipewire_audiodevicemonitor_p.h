@@ -112,7 +112,7 @@ private:
         ObjectSerial deviceSerial;
         PwPropertyDict properties;
         std::unique_ptr<NodeEventListener> enumFormatListener;
-        QFuture<SpaObjectAudioFormat> formatFuture;
+        QFuture<std::optional<SpaObjectAudioFormat>> formatFuture;
     };
 
     struct NodeRecord

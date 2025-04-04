@@ -112,8 +112,8 @@ void QAudioDeviceMonitor::objectAdded(ObjectId id, uint32_t /*permissions*/,
             // enumerating the audio format is asynchronous: we enumerate the formats asynchronously
             // and wait for the result before updating the device list
             pendingRecords.emplace_back(id, *serial, *deviceSerial, std::move(props));
-            pendingRecords.back().formatFuture.then(&m_compressionTimer,
-                                                    [this](SpaObjectAudioFormat const &) {
+            pendingRecords.back().formatFuture.then(
+                    &m_compressionTimer, [this](std::optional<SpaObjectAudioFormat> const &) {
                 startCompressionTimer();
             });
         };
@@ -296,13 +296,18 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
     }
 
     for (PendingNodeRecord &record : addedNodes) {
-        auto result = record.formatFuture.result();
-        sinksOrSources.push_back(NodeRecord{
-                record.serial,
-                record.deviceSerial,
-                std::move(record.properties),
-                result,
-        });
+        std::optional<SpaObjectAudioFormat> result = record.formatFuture.result();
+        if (result) {
+            sinksOrSources.push_back(NodeRecord{
+                    record.serial,
+                    record.deviceSerial,
+                    std::move(record.properties),
+                    std::move(*result),
+            });
+        } else {
+            qDebug(lcPipewireDeviceMonitor)
+                    << "Could not resolve audio format for" << record.serial;
+        }
     }
 
     QList<QAudioDevice> oldDeviceList =
@@ -490,18 +495,16 @@ QAudioDeviceMonitor::PendingNodeRecord::PendingNodeRecord(ObjectId object, Objec
 {
     Q_ASSERT(QAudioContextManager::isInPwThreadLoop());
 
-    auto promise = std::make_shared<QPromise<SpaObjectAudioFormat>>();
+    auto promise = std::make_shared<QPromise<std::optional<SpaObjectAudioFormat>>>();
     formatFuture = promise->future();
 
     auto onParam = [promise = std::move(promise)](int /*seq*/, uint32_t /*id*/, uint32_t /*index*/,
                                                   uint32_t /*next*/,
                                                   const struct spa_pod *param) mutable {
         std::optional<SpaObjectAudioFormat> format = SpaObjectAudioFormat::parse(param);
-        if (format) {
-            promise->start();
-            promise->addResult(*format);
-            promise->finish();
-        }
+        promise->start();
+        promise->addResult(*format);
+        promise->finish();
     };
 
     QAudioContextManager *context = QAudioContextManager::instance();
