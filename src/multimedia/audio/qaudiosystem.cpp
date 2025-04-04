@@ -31,16 +31,7 @@ void QPlatformAudioEndpointBase::setError(QAudio::Error err)
 
 bool QPlatformAudioEndpointBase::isFormatSupported(const QAudioFormat &format) const
 {
-    if (m_audioDevice.isFormatSupported(format))
-        return true;
-
-#ifdef Q_OS_ANDROID
-    // FIXME: isFormatSupported on android seems to have some issues
-    if (format == m_audioDevice.preferredFormat())
-        return true;
-#endif
-
-    return false;
+    return m_audioDevice.isFormatSupported(format);
 }
 
 void QPlatformAudioEndpointBase::updateStreamState(QAudio::State state)
