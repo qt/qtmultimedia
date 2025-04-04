@@ -161,8 +161,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
         alsa/qalsaaudiosource.cpp alsa/qalsaaudiosource_p.h
         alsa/qalsaaudiosink.cpp alsa/qalsaaudiosink_p.h
         alsa/qalsaaudiodevices.cpp alsa/qalsaaudiodevices_p.h
-    INCLUDE_DIRECTORIES
-        alsa
     LIBRARIES
         ALSA::ALSA
 )
@@ -227,8 +225,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
         pulseaudio/qpulsehelpers.cpp pulseaudio/qpulsehelpers_p.h
         pulseaudio/qpulseaudiodevices.cpp pulseaudio/qpulseaudiodevices_p.h
         pulseaudio/qpulseaudiodevice_p.h
-    INCLUDE_DIRECTORIES
-        pulseaudio
     LIBRARIES
         WrapPulseAudio::WrapPulseAudio
 )
@@ -240,8 +236,6 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         android/qandroidaudiodevice.cpp android/qandroidaudiodevice_p.h
         android/qopenslesengine.cpp android/qopenslesengine_p.h
         android/qandroidaudiodevices.cpp android/qandroidaudiodevices_p.h
-    INCLUDE_DIRECTORIES
-        android
     LIBRARIES
         OpenSLES
 )
@@ -283,8 +277,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE
         darwin/qcoreaudioutils.cpp darwin/qcoreaudioutils_p.h
         darwin/qdarwinaudiodevices.mm darwin/qdarwinaudiodevices_p.h
         darwin/qavfhelpers.mm darwin/qavfhelpers_p.h
-    INCLUDE_DIRECTORIES
-        darwin
     LIBRARIES
         ${FWCoreAudio}
         ${FWAudioToolbox}
@@ -341,8 +333,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h
         windows/qwindowsresampler.cpp windows/qwindowsresampler_p.h
         windows/qwindowsvideodevices.cpp windows/qwindowsvideodevices_p.h
-    INCLUDE_DIRECTORIES
-        windows
     LIBRARIES
         avrt
         ksuser
