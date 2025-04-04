@@ -22,7 +22,6 @@
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
 #include <QtMultimedia/private/qdarwinaudiodevice_p.h>
-#include <QtMultimedia/private/qdarwinaudiounit_p.h>
 
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudioTypes.h>
