@@ -59,8 +59,7 @@ protected:
 
 private:
     void updateCameraFormat(const QCameraFormat&);
-    void updateVideoInput();
-    void attachVideoInputDevice();
+    void refreshAvCaptureSessionInputDevice();
     void setPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat, uint32_t inputCvPixFormat);
     [[nodiscard]] QSize adjustedResolution(const QCameraFormat& format) const;
     VideoTransformation surfaceTransform() const;
