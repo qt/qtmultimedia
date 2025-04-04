@@ -8,19 +8,25 @@
 #include <QtMultimedia/private/qaudiosystem_p.h>
 
 #if defined(Q_OS_ANDROID)
-#include <qandroidaudiodevices_p.h>
-#elif defined(Q_OS_DARWIN)
-#include <qdarwinaudiodevices_p.h>
-#elif defined(Q_OS_WINDOWS) && QT_CONFIG(wmf)
-#include <qwindowsaudiodevices_p.h>
-#elif QT_CONFIG(alsa)
-#include <qalsaaudiodevices_p.h>
-#elif QT_CONFIG(pulseaudio)
-#include <qpulseaudiodevices_p.h>
-#elif defined(Q_OS_QNX)
-#include <qqnxaudiodevices_p.h>
-#elif defined(Q_OS_WASM)
-#include <private/qwasmmediadevices_p.h>
+#  include <QtMultimedia/private/qandroidaudiodevices_p.h>
+#endif
+#if defined(Q_OS_DARWIN)
+#  include <QtMultimedia/private/qdarwinaudiodevices_p.h>
+#endif
+#if defined(Q_OS_WINDOWS) && QT_CONFIG(wmf)
+#  include <QtMultimedia/private/qwindowsaudiodevices_p.h>
+#endif
+#if QT_CONFIG(alsa)
+#  include <QtMultimedia/private/qalsaaudiodevices_p.h>
+#endif
+#if QT_CONFIG(pulseaudio)
+#  include <QtMultimedia/private/qpulseaudiodevices_p.h>
+#endif
+#if defined(Q_OS_QNX)
+#  include <QtMultimedia/private/qqnxaudiodevices_p.h>
+#endif
+#if defined(Q_OS_WASM)
+#  include <QtMultimedia/private/qwasmmediadevices_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE

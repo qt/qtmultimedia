@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwindowsresampler_p.h"
-#include <qwindowsaudioutils_p.h>
-#include <qloggingcategory.h>
-#include <QUuid>
+
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/quuid.h>
+#include <QtMultimedia/private/qwindowsaudioutils_p.h>
 
 #include <wmcodecdsp.h>
 #include <mftransform.h>
