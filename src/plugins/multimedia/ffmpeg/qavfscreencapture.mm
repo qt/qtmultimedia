@@ -16,7 +16,7 @@ extern "C" {
 }
 #undef AVMediaType
 
-#include <AppKit/NSScreen.h>
+#import <AppKit/NSScreen.h>
 
 #include <dispatch/dispatch.h>
 
