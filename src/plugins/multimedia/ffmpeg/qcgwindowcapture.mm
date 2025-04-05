@@ -15,9 +15,10 @@
 
 #include <ApplicationServices/ApplicationServices.h>
 #include <IOKit/graphics/IOGraphicsLib.h>
-#include <AppKit/NSScreen.h>
-#include <AppKit/NSApplication.h>
-#include <AppKit/NSWindow.h>
+
+#import <AppKit/NSScreen.h>
+#import <AppKit/NSApplication.h>
+#import <AppKit/NSWindow.h>
 
 namespace {
 

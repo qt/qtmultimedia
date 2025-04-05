@@ -5,7 +5,7 @@
 #include "private/qcapturablewindow_p.h"
 #include "QtCore/private/qcore_mac_p.h"
 
-#include <AppKit/NSWindow.h>
+#import <AppKit/NSWindow.h>
 
 QT_BEGIN_NAMESPACE
 
