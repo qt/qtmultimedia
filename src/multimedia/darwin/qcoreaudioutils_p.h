@@ -82,7 +82,20 @@ struct AudioUnitHandleTraits
     static bool close(Type handle) { return AudioComponentInstanceDispose(handle) == noErr; }
 };
 
-using AudioUnitHandle = QUniqueHandle<AudioUnitHandleTraits>;
+struct AudioUnitHandle : QUniqueHandle<AudioUnitHandleTraits>
+{
+    using QUniqueHandle::QUniqueHandle;
+    AudioUnitHandle(AudioUnitHandle &&) = default;
+    AudioUnitHandle &operator=(AudioUnitHandle &&) = default;
+    ~AudioUnitHandle();
+
+    bool initialize();
+    void deinitialize();
+    bool isInitialized() const { return m_initialized; }
+
+private:
+    bool m_initialized{};
+};
 
 // AudioUnit helpers
 std::optional<AudioUnitHandle> makeAudioUnitForIO();
