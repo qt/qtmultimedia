@@ -155,12 +155,7 @@ bool QCoreAudioSinkStream::open()
     if (!audioUnitSetInputStreamFormat(m_audioUnit, 0, streamFormat))
         return false;
 
-    if (AudioUnitInitialize(m_audioUnit.get())) {
-        qWarning() << "QAudioOutput: Failed to initialize AudioUnit";
-        return false;
-    }
-
-    return true;
+    return m_audioUnit.initialize();
 }
 
 bool QCoreAudioSinkStream::start(QIODevice *device)
@@ -215,7 +210,6 @@ void QCoreAudioSinkStream::stop()
 #ifdef Q_OS_MACOS
         removeDisconnectListener();
 #endif
-        AudioUnitUninitialize(m_audioUnit.get());
         m_audioUnit = {};
 
         m_self = nullptr; // might delete the instance
@@ -238,7 +232,6 @@ void QCoreAudioSinkStream::reset()
 #ifdef Q_OS_MACOS
     removeDisconnectListener();
 #endif
-    AudioUnitUninitialize(m_audioUnit.get());
     m_audioUnit = {};
 }
 

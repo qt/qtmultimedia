@@ -528,6 +528,30 @@ std::optional<AudioStreamBasicDescription> audioUnitGetInputStreamFormat(AudioUn
     return ret;
 }
 
+AudioUnitHandle::~AudioUnitHandle()
+{
+    deinitialize();
+}
+
+bool AudioUnitHandle::initialize()
+{
+    Q_ASSERT(!m_initialized);
+    if (AudioUnitInitialize(get())) {
+        qWarning() << "AudioUnitHandle: Failed to initialize AudioUnit";
+        return false;
+    }
+    m_initialized = true;
+    return true;
+}
+
+void AudioUnitHandle::deinitialize()
+{
+    if (m_initialized)
+        AudioUnitUninitialize(get());
+
+    m_initialized = false;
+}
+
 } // namespace QCoreAudioUtils
 
 QT_END_NAMESPACE
