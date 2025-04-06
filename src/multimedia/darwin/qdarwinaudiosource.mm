@@ -166,13 +166,7 @@ bool QCoreAudioSourceStream::open()
             m_format.bytesForFrames(framesPerBuffer.value_or(2048));
     m_bufferList.mBuffers[0].mData = malloc(m_bufferList.mBuffers[0].mDataByteSize);
 
-    // Init
-    if (AudioUnitInitialize(m_audioUnit.get()) != noErr) {
-        qWarning() << "QAudioSource: Failed to initialize AudioUnit";
-        return false;
-    }
-
-    return true;
+    return m_audioUnit.initialize();
 }
 
 bool QCoreAudioSourceStream::start(QIODevice *device)
@@ -211,7 +205,6 @@ void QCoreAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
 #ifdef Q_OS_MACOS
     removeDisconnectListener();
 #endif
-    AudioUnitUninitialize(m_audioUnit.get());
     m_audioUnit = {};
 
     disconnectQIODeviceConnections();
