@@ -7,6 +7,10 @@
 
 #include "tlsf.h"
 
+QT_BEGIN_NAMESPACE
+
+namespace QtPrivate {
+
 #if defined(__cplusplus)
 #define tlsf_decl inline
 #else
@@ -1262,3 +1266,7 @@ void* tlsf_realloc(tlsf_t tlsf, void* ptr, size_t size)
 
 	return p;
 }
+
+} // namespace QtPrivate
+
+QT_END_NAMESPACE

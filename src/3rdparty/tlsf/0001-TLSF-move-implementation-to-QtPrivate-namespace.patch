@@ -1,0 +1,90 @@
+From 5aac5654ca6764ff09dcf91501bd63547f9dc6cd Mon Sep 17 00:00:00 2001
+From: Tim Blechmann <tim.blechmann@qt.io>
+Date: Mon, 7 Apr 2025 09:16:43 +0800
+Subject: [PATCH] TLSF: move implementation to QtPrivate namespace
+
+Change-Id: I60002df86123f0dc20c5acb520a293be00291388
+---
+ src/3rdparty/tlsf/{tlsf.c => tlsf.cpp} |  8 ++++++++
+ src/3rdparty/tlsf/tlsf.h               | 14 ++++++++------
+ 2 files changed, 16 insertions(+), 6 deletions(-)
+ rename src/3rdparty/tlsf/{tlsf.c => tlsf.cpp} (99%)
+
+diff --git a/src/3rdparty/tlsf/tlsf.c b/src/3rdparty/tlsf/tlsf.cpp
+similarity index 99%
+rename from src/3rdparty/tlsf/tlsf.c
+rename to src/3rdparty/tlsf/tlsf.cpp
+index 951466eba..53ce377ba 100644
+--- a/src/3rdparty/tlsf/tlsf.c
++++ b/src/3rdparty/tlsf/tlsf.cpp
+@@ -4,12 +4,16 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ 
+ #include "tlsf.h"
+ 
++QT_BEGIN_NAMESPACE
++
++namespace QtPrivate {
++
+ #if defined(__cplusplus)
+ #define tlsf_decl inline
+ #else
+ #define tlsf_decl static
+ #endif
+ 
+@@ -1259,6 +1263,10 @@ void* tlsf_realloc(tlsf_t tlsf, void* ptr, size_t size)
+ 			p = ptr;
+ 		}
+ 	}
+ 
+ 	return p;
+ }
++
++} // namespace QtPrivate
++
++QT_END_NAMESPACE
+diff --git a/src/3rdparty/tlsf/tlsf.h b/src/3rdparty/tlsf/tlsf.h
+index e6b39f737..0b4273938 100644
+--- a/src/3rdparty/tlsf/tlsf.h
++++ b/src/3rdparty/tlsf/tlsf.h
+@@ -37,15 +37,17 @@
+ ** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ ** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+ 
+ #include <stddef.h>
+ 
+-#if defined(__cplusplus)
+-extern "C" {
+-#endif
++#include <QtCore/qtconfigmacros.h>
++
++QT_BEGIN_NAMESPACE
++
++namespace QtPrivate {
+ 
+ /* tlsf_t: a TLSF structure. Can contain 1 to N pools. */
+ /* pool_t: a block of memory that TLSF can manage. */
+ typedef void* tlsf_t;
+ typedef void* pool_t;
+ 
+@@ -80,11 +82,11 @@ size_t tlsf_alloc_overhead(void);
+ typedef void (*tlsf_walker)(void* ptr, size_t size, int used, void* user);
+ void tlsf_walk_pool(pool_t pool, tlsf_walker walker, void* user);
+ /* Returns nonzero if any internal consistency check fails. */
+ int tlsf_check(tlsf_t tlsf);
+ int tlsf_check_pool(pool_t pool);
+ 
+-#if defined(__cplusplus)
+-};
+-#endif
++} // namespace QtPrivate
++
++QT_END_NAMESPACE
+ 
+ #endif
+-- 
+2.45.2
+
