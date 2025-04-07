@@ -1,0 +1,6 @@
+version = 1
+
+[[annotations]]
+path = ["**"]
+SPDX-FileCopyrightText = ["Copyright (c) 2006-2016, Matthew Conte"]
+SPDX-License-Identifier = "BSD-3-Clause"

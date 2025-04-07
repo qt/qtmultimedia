@@ -1,0 +1,17 @@
+{
+    "Id": "tlfs",
+    "Name": "Two-Level Segregated Fit",
+    "QDocModule": "qtmultimedia",
+    "Description": "O(1) arena allocator, suitable for use on real-time threads",
+    "QtUsage": "Used in the QSoundEffect player.",
+    "SecurityCritical": true,
+
+    "Homepage": "https://github.com/mattconte/tlsf",
+    "Version": "v3.1",
+    "DownloadLocation": "https://github.com/mattconte/tlsf.git",
+    "Copyright": "Copyright (c) 2006-2016, Matthew Conte",
+    "License": "3-Clause BSD License",
+    "LicenseId": "BSD-3-Clause",
+
+    "PURL": "pkg:github.com/mattconte/tlsf@deff9ab509341f264addbd3c8ada533678591905"
+}
