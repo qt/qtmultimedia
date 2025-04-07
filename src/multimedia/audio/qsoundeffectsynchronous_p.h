@@ -22,7 +22,8 @@
 
 QT_BEGIN_NAMESPACE
 
-class QSoundEffectPrivateSynchronous : public QIODevice, public QSoundEffectPrivate
+class Q_MULTIMEDIA_EXPORT QSoundEffectPrivateSynchronous : public QIODevice,
+                                                           public QSoundEffectPrivate
 {
     struct AudioSinkDeleter
     {

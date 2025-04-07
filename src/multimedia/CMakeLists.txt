@@ -37,6 +37,7 @@ qt_internal_add_module(Multimedia
         audio/qaudio_rtsan_support_p.h
         audio/qsamplecache_p.cpp audio/qsamplecache_p.h
         audio/qsoundeffect.cpp audio/qsoundeffect.h
+        audio/qsoundeffectwithplayer.cpp audio/qsoundeffectwithplayer_p.h
         audio/qsoundeffectsynchronous.cpp audio/qsoundeffectsynchronous_p.h
         audio/qsoundeffect_p.h
         audio/qrtaudioengine.cpp audio/qrtaudioengine_p.h
