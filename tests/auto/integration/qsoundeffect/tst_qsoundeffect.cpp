@@ -7,6 +7,8 @@
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qsoundeffect.h>
 
+#include <QtMultimedia/private/qsoundeffectsynchronous_p.h>
+
 using namespace Qt::Literals;
 
 class tst_QSoundEffect : public QObject
@@ -128,7 +130,7 @@ void tst_QSoundEffect::testLooping()
     QTestEventLoop::instance().enterLoop(3);
 
     QTRY_COMPARE(sound->loopsRemaining(), 0);
-    QVERIFY(readSignal_Remaining.size() == 4);
+    QCOMPARE(readSignal_Remaining.size(), 4);
     QTRY_VERIFY(!sound->isPlaying());
 
     // QTBUG-36643 (setting the loop count while playing should work)
@@ -218,6 +220,8 @@ void tst_QSoundEffect::testMuting()
 
 void tst_QSoundEffect::testPlaying()
 {
+    QSignalSpy playingChangedSignal(sound, &QSoundEffect::playingChanged);
+
     sound->setLoopCount(QSoundEffect::Infinite);
     sound->setVolume(0.1f);
     //valid source
@@ -226,14 +230,18 @@ void tst_QSoundEffect::testPlaying()
     sound->play();
     QTestEventLoop::instance().enterLoop(1);
     QTRY_COMPARE(sound->isPlaying(), true);
+    QCOMPARE(playingChangedSignal.size(), 1);
     sound->stop();
+    QCOMPARE(playingChangedSignal.size(), 2);
 
     //empty source
+    playingChangedSignal.clear();
     sound->setSource(QUrl());
     QTestEventLoop::instance().enterLoop(1);
     sound->play();
     QTestEventLoop::instance().enterLoop(1);
     QTRY_COMPARE(sound->isPlaying(), false);
+    QCOMPARE(playingChangedSignal.size(), 0);
 
     //invalid source
     sound->setSource(QUrl((QLatin1String("invalid source"))));
@@ -395,7 +403,7 @@ void tst_QSoundEffect::testCorruptFile()
 {
     using namespace Qt::Literals;
     auto expectedMessagePattern =
-            QRegularExpression(uR"(^QSoundEffect\(qaudio\): Error decoding source .*$)"_s);
+            QRegularExpression(uR"(^QSoundEffect.*: Error decoding source .*$)"_s);
 
     for (int i = 0; i < 10; i++) {
         QSignalSpy statusSpy(sound, &QSoundEffect::statusChanged);
@@ -421,9 +429,16 @@ void tst_QSoundEffect::setAudioDevice_emitsSignalsInExpectedOrder_data()
     QTest::addColumn<bool>("while_playing");
     QTest::addColumn<bool>("with_source");
     QTest::addColumn<QStringList>("expectedSignals");
-    QTest::addRow("while_playing")
-            << true << true
-            << QStringList{ u"playingChanged"_s, u"playingChanged"_s, u"audioDeviceChanged"_s };
+    QSoundEffect sfx(this);
+
+    if (dynamic_cast<QSoundEffectPrivateSynchronous *>(QSoundEffectPrivate::get(&sfx))) {
+        QTest::addRow("while_playing")
+                << true << true
+                << QStringList{ u"playingChanged"_s, u"playingChanged"_s, u"audioDeviceChanged"_s };
+    } else {
+        QTest::addRow("while_playing")
+                << true << true << QStringList{ u"playingChanged"_s, u"audioDeviceChanged"_s };
+    }
     QTest::addRow("while_stopped, with source")
             << false << true << QStringList{ u"audioDeviceChanged"_s };
     QTest::addRow("while_stopped, without source")
