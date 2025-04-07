@@ -447,11 +447,17 @@ void tst_QSoundEffect::setAudioDevice_emitsSignalsInExpectedOrder()
     }
     QTRY_COMPARE(sound->isPlaying(), while_playing);
 
-    QVERIFY(sound->audioDevice() != outputs.at(1));
+    QAudioDevice nonDefaultDevice = [&] {
+        if (!outputs[0].isDefault())
+            return outputs[0];
+        return outputs[1];
+    }();
+
+    QVERIFY(nonDefaultDevice != outputs.at(1));
     emittedSignals.clear();
 
     // Act
-    sound->setAudioDevice(outputs.at(1));
+    sound->setAudioDevice(nonDefaultDevice);
 
     // Assert
     QTRY_VERIFY(sound->isPlaying() == while_playing); // Verify that playback state didn't change
