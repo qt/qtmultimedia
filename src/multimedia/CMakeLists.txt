@@ -12,6 +12,8 @@ qt_internal_add_module(Multimedia
     SOURCES
         audio/qautoresetevent_p.h
         audio/q_pmr_emulation_p.h
+        audio/qmemory_resource_tlsf_p.h
+        audio/qmemory_resource_tlsf.cpp
         audio/qtaudio.cpp audio/qtaudio.h audio/qaudio.h
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h
         audio/qaudiobuffer_support_p.h
@@ -120,6 +122,7 @@ qt_internal_add_module(Multimedia
     LIBRARIES
         Qt::CorePrivate
         Qt::GuiPrivate
+        Qt::BundledTLSF
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::Gui
