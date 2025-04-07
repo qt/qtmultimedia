@@ -498,3 +498,6 @@ qt_copy_or_install(FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/../../mkspecs/features/ios/add_ios_ffmpeg_libraries.prf"
     DESTINATION ${ios_prf_install_dir}
 )
+
+
+
