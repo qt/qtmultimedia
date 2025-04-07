@@ -101,6 +101,9 @@ QDebug operator<<(QDebug dbg, const GstStructure *structure)
 
 QDebug operator<<(QDebug dbg, const GstObject *object)
 {
+    if (!object)
+        return dbg << "null";
+
     dbg << QGString{gst_object_get_name(const_cast<GstObject*>(object))};
 
     {
@@ -160,6 +163,9 @@ QDebug operator<<(QDebug dbg, const GstPad *pad)
 
 QDebug operator<<(QDebug dbg, const GstDevice *device)
 {
+    if (!device)
+        return dbg << "null";
+
     GstDevice *d = const_cast<GstDevice *>(device);
     QDebugStateSaver saver(dbg);
     dbg.nospace();

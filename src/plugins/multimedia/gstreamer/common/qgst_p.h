@@ -652,6 +652,7 @@ public:
     QGstElement getParent() const;
     QGstBin getParentBin() const;
     QGstPipeline getPipeline() const;
+    QGstBin getRootBin() const;
 
     void removeFromParent();
     void dumpPipelineGraph(const char *filename) const;
