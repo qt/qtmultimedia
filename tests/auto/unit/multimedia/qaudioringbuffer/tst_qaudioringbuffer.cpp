@@ -18,6 +18,10 @@ class tst_QAudioRingBuffer : public QObject
 private slots:
     void capacityAPIs();
     void reset();
+    void moveOnlyType();
+    void destroyRemainingElements_inDestructor();
+    void destroy_inConsume();
+    void destroy_inConsumeStressTest();
 
     void stressTest();
     void stressTest_data();
@@ -46,7 +50,7 @@ void tst_QAudioRingBuffer::capacityAPIs()
     QCOMPARE(ringbuffer.free(), 64);
     QCOMPARE(ringbuffer.used(), 0);
 
-    ringbuffer.write({ 1 });
+    ringbuffer.write(std::initializer_list<int>{ 1 });
 
     QCOMPARE(ringbuffer.size(), 64);
     QCOMPARE(ringbuffer.free(), 63);
@@ -63,7 +67,7 @@ void tst_QAudioRingBuffer::capacityAPIs()
 void tst_QAudioRingBuffer::reset()
 {
     QtPrivate::QAudioRingBuffer<int> ringbuffer{ 64 };
-    ringbuffer.write({ 1 });
+    ringbuffer.write(std::initializer_list<int>{ 1 });
 
     ringbuffer.reset();
 
@@ -73,6 +77,135 @@ void tst_QAudioRingBuffer::reset()
     int elementsConsumed = ringbuffer.consumeAll([](auto) {
     });
     QCOMPARE(elementsConsumed, 0);
+}
+
+void tst_QAudioRingBuffer::moveOnlyType()
+{
+    QtPrivate::QAudioRingBuffer<std::unique_ptr<int>> ringbuffer{ 64 };
+    auto element = std::make_unique<int>(1);
+    QVERIFY(ringbuffer.write(std::move(element)));
+
+    int elementsConsumed = ringbuffer.consumeAll([](auto span) {
+        std::unique_ptr<int> element = std::move(span.front());
+        QCOMPARE(*element, 1);
+    });
+    QCOMPARE(elementsConsumed, 1);
+}
+
+void tst_QAudioRingBuffer::destroyRemainingElements_inDestructor()
+{
+    const auto element = std::make_shared<int>(1);
+
+    {
+        QtPrivate::QAudioRingBuffer<std::shared_ptr<int>> dut{ 64 };
+        dut.write(element);
+    }
+    QCOMPARE(element.use_count(), 1);
+}
+
+void tst_QAudioRingBuffer::destroy_inConsume()
+{
+    const auto element = std::make_shared<int>(1);
+
+    QtPrivate::QAudioRingBuffer<std::shared_ptr<int>> dut{ 64 };
+    dut.write(element);
+    dut.consumeAll([](auto) {
+    });
+
+    QCOMPARE(element.use_count(), 1);
+}
+
+void tst_QAudioRingBuffer::destroy_inConsumeStressTest()
+{
+    int destructorCount{};
+    int writeCount{};
+    int consumeCount{};
+
+    auto makeDestructionCounter = [&] {
+        return QScopeGuard([&]() {
+            ++destructorCount;
+        });
+    };
+    using DestructionCounter = decltype(makeDestructionCounter());
+
+    auto makeSharedDestructionCounter = [&] {
+        return std::make_shared<DestructionCounter>(makeDestructionCounter());
+    };
+
+    QtPrivate::QAudioRingBuffer<std::shared_ptr<DestructionCounter>> dut{ 3 };
+
+    enum class mode
+    {
+        push_one,
+        push_multiple,
+        consume_one,
+        consume_all,
+    };
+
+    constexpr int iterations = 100'000;
+    std::mt19937 rng;
+    std::discrete_distribution<unsigned> dist{
+        5, // push_one
+        5, // push_multiple
+        3, // consume_one
+        1, // consume_all
+    };
+
+    for (int i = 0; i != iterations; ++i) {
+        auto m = mode(dist(rng));
+
+        switch (m) {
+        case mode::push_one: {
+            auto element = makeSharedDestructionCounter();
+            bool written = dut.write(element);
+            if (written)
+                writeCount += 1;
+            else
+                element->dismiss(); // don't count dtor on if write fails
+            continue;
+        }
+        case mode::push_multiple: {
+            auto elements = std::array{
+                makeSharedDestructionCounter(),
+                makeSharedDestructionCounter(),
+            };
+
+            int elementsWritten = dut.write(elements);
+            if (elementsWritten)
+                writeCount += elementsWritten;
+
+            if (elementsWritten != 2) {
+                // don't count dtor on if write fails
+                int elmentsToDiscard = 2 - elementsWritten;
+                auto it = elements.rbegin();
+                while (elmentsToDiscard > 0) {
+                    --elmentsToDiscard;
+                    (*it++)->dismiss();
+                };
+            }
+
+            continue;
+        }
+        case mode::consume_one:
+            dut.consume(1, [&](auto) {
+                consumeCount += 1;
+            });
+            continue;
+        case mode::consume_all:
+            dut.consumeAll([&](auto region) {
+                consumeCount += region.size();
+            });
+            QCOMPARE_EQ(destructorCount, writeCount);
+            QCOMPARE_EQ(destructorCount, consumeCount);
+            continue;
+        }
+    }
+
+    dut.consumeAll([&](auto region) {
+        consumeCount += region.size();
+    });
+    QCOMPARE_EQ(destructorCount, writeCount);
+    QCOMPARE_EQ(destructorCount, consumeCount);
 }
 
 void tst_QAudioRingBuffer::stressTest()
