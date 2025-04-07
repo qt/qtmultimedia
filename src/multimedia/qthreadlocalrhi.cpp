@@ -19,6 +19,19 @@ namespace {
 
 static thread_local QRhi::Implementation s_preferredBackend = QRhi::Null;
 
+#if QT_CONFIG(opengl)
+
+bool openGLCapsSupported(const QPlatformIntegration &qpa)
+{
+     return qpa.hasCapability(QPlatformIntegration::OpenGL) &&
+            qpa.hasCapability(QPlatformIntegration::RasterGLSurface) &&
+            !QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets) &&
+            (QThread::isMainThread() ||
+                (qpa.hasCapability(QPlatformIntegration::ThreadedOpenGL) &&
+                 qpa.hasCapability(QPlatformIntegration::OffscreenSurface)));
+}
+#endif
+
 class ThreadLocalRhiHolder
 {
 public:
@@ -51,9 +64,7 @@ public:
 
 #if QT_CONFIG(opengl)
             if (!m_rhi && canUseRhiImpl(QRhi::OpenGLES2, referenceBackend)) {
-                if (qpa->hasCapability(QPlatformIntegration::OpenGL)
-                    && qpa->hasCapability(QPlatformIntegration::RasterGLSurface)
-                    && !QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets)) {
+                if (openGLCapsSupported(*qpa)) {
 
                     m_fallbackSurface.reset(QRhiGles2InitParams::newFallbackSurface());
                     QRhiGles2InitParams params;

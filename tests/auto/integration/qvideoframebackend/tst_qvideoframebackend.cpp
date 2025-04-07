@@ -246,9 +246,6 @@ void tst_QVideoFrameBackend::toImage_returnsImage_whenCalledFromSeparateThreadAn
             QSKIP("SKIP on macOS because of crash and error \"Failed to create QWindow::MetalSurface. Metal is not supported by any of the GPUs in this system.\"");
 #elif defined(Q_OS_ANDROID)
         QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
-#elif defined(Q_OS_WIN)
-        if (backend == QRhi::OpenGLES2)
-            QSKIP("Skip on Windows OpenGL: QTBUG-135598");
 #endif
     }
     // Arrange
