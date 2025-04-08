@@ -27,13 +27,13 @@ Q_MULTIMEDIA_EXPORT void qMultiplySamples(float factor,
                                           const QAudioFormat &format,
                                           const void *src,
                                           void *dest,
-                                          int len) QT_MM_NONBLOCKING;
+                                          int len) noexcept QT_MM_NONBLOCKING;
 
 Q_MULTIMEDIA_EXPORT
 void applyVolume(float volume,
                  const QAudioFormat &,
                  QSpan<const std::byte> source,
-                 QSpan<std::byte> destination) QT_MM_NONBLOCKING;
+                 QSpan<std::byte> destination) noexcept QT_MM_NONBLOCKING;
 
 enum class NativeSampleFormat : uint8_t {
     uint8_t,
@@ -47,7 +47,7 @@ enum class NativeSampleFormat : uint8_t {
 Q_MULTIMEDIA_EXPORT
 void convertSampleFormat(QSpan<const std::byte> source, NativeSampleFormat sourceFormat,
                          QSpan<std::byte> destination,
-                         NativeSampleFormat destinationFormat) QT_MM_NONBLOCKING;
+                         NativeSampleFormat destinationFormat) noexcept QT_MM_NONBLOCKING;
 
 Q_MULTIMEDIA_EXPORT
 NativeSampleFormat bestNativeSampleFormat(const QAudioFormat &fmt,
@@ -56,7 +56,7 @@ QAudioFormat::SampleFormat bestSampleFormat(NativeSampleFormat);
 
 NativeSampleFormat toNativeSampleFormat(QAudioFormat::SampleFormat);
 
-constexpr size_t bytesPerSample(NativeSampleFormat fmt) QT_MM_NONBLOCKING
+constexpr size_t bytesPerSample(NativeSampleFormat fmt) noexcept QT_MM_NONBLOCKING
 {
     switch (fmt) {
     case NativeSampleFormat::uint8_t:
