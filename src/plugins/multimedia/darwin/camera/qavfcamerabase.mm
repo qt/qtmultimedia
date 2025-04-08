@@ -1,17 +1,18 @@
 // Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtMultimedia/private/qavfcameradebug_p.h>
 #include "qavfcamerabase_p.h"
+#include <QtMultimedia/private/qavfcameradebug_p.h>
 #include <QtMultimedia/private/qavfcamerautility_p.h>
-#include <private/qcameradevice_p.h>
 #include <QtMultimedia/private/qavfhelpers_p.h>
-#include <private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qmetaobject.h>
+#include <QtCore/qpermissions.h>
 #include <QtCore/qset.h>
 #include <QtCore/qsystemdetection.h>
-#include <QMetaEnum>
-#include <QtCore/qcoreapplication.h>
-#include <QtCore/qpermissions.h>
 
 QT_USE_NAMESPACE
 
