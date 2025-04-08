@@ -34,7 +34,6 @@ public:
         Playback,
         Record,
         PlayAndRecord,
-        AudioProcessing,
         MultiRoute
     };
     enum AudioSessionCategoryOptions {
