@@ -1,25 +1,23 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
 #include <qavfcamera_p.h>
-#include <qpointer.h>
-#include <qmediacapturesession.h>
-#include <private/qplatformmediacapture_p.h>
+
+#include <QtMultimedia/private/qavfcameradebug_p.h>
 #include <QtMultimedia/private/qavfcamerautility_p.h>
 #include <QtMultimedia/private/qavfhelpers_p.h>
-#include <QtMultimedia/private/qavfcameradebug_p.h>
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
+
+#include <QtCore/qscopeguard.h>
+
 #include "qavfsamplebufferdelegate_p.h"
-#include <qvideosink.h>
-#include <rhi/qrhi.h>
+
 #define AVMediaType XAVMediaType
-#include "qffmpegvideobuffer_p.h"
-#include "qffmpegvideosink_p.h"
 extern "C" {
 #include <libavutil/hwcontext_videotoolbox.h>
 #include <libavutil/hwcontext.h>
 }
 #undef AVMediaType
-
-#include <QtCore/qscopeguard.h>
 
 QT_BEGIN_NAMESPACE
 
