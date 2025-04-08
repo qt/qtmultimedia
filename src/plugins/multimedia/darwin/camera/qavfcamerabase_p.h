@@ -16,8 +16,7 @@
 //
 
 #include <QtCore/qobject.h>
-
-#include <private/qplatformcamera_p.h>
+#include <QtMultimedia/private/qplatformcamera_p.h>
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
 
