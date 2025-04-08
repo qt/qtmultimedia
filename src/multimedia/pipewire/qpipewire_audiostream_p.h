@@ -68,7 +68,7 @@ protected:
     // xrun detector
     // CAVEAT: has to be called at the beginning of a render callback
     // streams will have to increment m_totalNumberOfFrames internally
-    void performXRunDetection(uint64_t framesPerBuffer) QT_MM_NONBLOCKING;
+    void performXRunDetection(uint64_t framesPerBuffer) noexcept QT_MM_NONBLOCKING;
     virtual void xrunOccurred(int xrunCount) = 0;
     uint64_t m_expectedNextTick{};
     std::atomic_bool m_skipNextTickDiscontinuity{ true };

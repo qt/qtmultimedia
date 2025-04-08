@@ -73,7 +73,7 @@ private:
 
     using QPlatformAudioSourceStream::m_format;
 
-    void process() QT_MM_NONBLOCKING override;
+    void process() noexcept QT_MM_NONBLOCKING override;
     void handleDeviceRemoved() override;
 
     void stateChanged(pw_stream_state old, pw_stream_state state, const char *error) override;
@@ -206,7 +206,7 @@ void QPipewireAudioSourceStream::disconnectStream()
     QObject::disconnect(m_xrunNotification);
 }
 
-void QPipewireAudioSourceStream::process() QT_MM_NONBLOCKING
+void QPipewireAudioSourceStream::process() noexcept QT_MM_NONBLOCKING
 {
     struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
     if (!b) {

@@ -61,7 +61,7 @@ private:
 
     OSStatus process(AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *,
                      UInt32 inBusNumber, UInt32 inNumberFrames,
-                     AudioBufferList *ioData) QT_MM_NONBLOCKING;
+                     AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
 
 #ifdef Q_OS_MACOS
     bool addDisconnectListener(AudioObjectID id);
@@ -263,7 +263,7 @@ OSStatus QCoreAudioSourceStream::inputCallback(void *inRefCon,
 OSStatus QCoreAudioSourceStream::process(AudioUnitRenderActionFlags *ioActionFlags,
                                          const AudioTimeStamp *timeStamp, UInt32 inBusNumber,
                                          UInt32 inNumberFrames,
-                                         AudioBufferList * /*ioData*/) QT_MM_NONBLOCKING
+                                         AudioBufferList * /*ioData*/) noexcept QT_MM_NONBLOCKING
 {
     OSStatus status = AudioUnitRender(m_audioUnit.get(), ioActionFlags, timeStamp, inBusNumber,
                                       inNumberFrames, &m_bufferList);
