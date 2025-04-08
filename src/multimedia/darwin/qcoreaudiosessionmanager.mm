@@ -225,11 +225,6 @@ bool CoreAudioSessionManager::setCategory(CoreAudioSessionManager::AudioSessionC
     case CoreAudioSessionManager::PlayAndRecord:
         targetCategory = AVAudioSessionCategoryPlayAndRecord;
         break;
-    case CoreAudioSessionManager::AudioProcessing:
-#ifndef Q_OS_TVOS
-        targetCategory = AVAudioSessionCategoryAudioProcessing;
-#endif
-        break;
     case CoreAudioSessionManager::MultiRoute:
         targetCategory = AVAudioSessionCategoryMultiRoute;
         break;
@@ -289,10 +284,6 @@ CoreAudioSessionManager::AudioSessionCategorys CoreAudioSessionManager::category
         localCategory = Record;
     } else if (category == AVAudioSessionCategoryPlayAndRecord) {
         localCategory = PlayAndRecord;
-#ifndef Q_OS_TVOS
-    } else if (category == AVAudioSessionCategoryAudioProcessing) {
-        localCategory = AudioProcessing;
-#endif
     } else if (category == AVAudioSessionCategoryMultiRoute) {
         localCategory = MultiRoute;
     }
@@ -371,9 +362,6 @@ QDebug operator<<(QDebug dbg, CoreAudioSessionManager::AudioSessionCategorys cat
         break;
     case CoreAudioSessionManager::PlayAndRecord:
         output << "AudioSessionCategoryPlayAndRecord";
-        break;
-    case CoreAudioSessionManager::AudioProcessing:
-        output << "AudioSessionCategoryAudioProcessing";
         break;
     case CoreAudioSessionManager::MultiRoute:
         output << "AudioSessionCategoryMultiRoute";
