@@ -114,7 +114,7 @@ protected:
     Q_DISABLE_COPY_MOVE(QPlatformAudioSinkStream)
 
     uint64_t process(QSpan<std::byte> hostBuffer, qsizetype totalNumberOfFrames,
-                     std::optional<NativeSampleFormat> = {}) QT_MM_NONBLOCKING;
+                     std::optional<NativeSampleFormat> = {}) noexcept QT_MM_NONBLOCKING;
 
     // ringbuffer / stats
     quint64 bytesFree() const;
@@ -169,7 +169,7 @@ private:
     std::atomic_int64_t m_processedFrameCount{};
 
     void convertToNative(QSpan<const std::byte> internal, QSpan<std::byte> native, float volume,
-                         NativeSampleFormat) QT_MM_NONBLOCKING;
+                         NativeSampleFormat) noexcept QT_MM_NONBLOCKING;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,7 +188,7 @@ protected:
     Q_DISABLE_COPY_MOVE(QPlatformAudioSourceStream)
 
     uint64_t process(QSpan<const std::byte> hostBuffer, qsizetype numberOfFrames,
-                     std::optional<NativeSampleFormat> = {}) QT_MM_NONBLOCKING;
+                     std::optional<NativeSampleFormat> = {}) noexcept QT_MM_NONBLOCKING;
 
     // ringbuffer / stats
     qsizetype bytesReady() const;
@@ -223,7 +223,7 @@ private:
     std::atomic_uint64_t m_totalNumberOfFramesPushedToRingbuffer{};
 
     void convertFromNative(QSpan<const std::byte> native, QSpan<std::byte> internal, float volume,
-                           NativeSampleFormat) QT_MM_NONBLOCKING;
+                           NativeSampleFormat) noexcept QT_MM_NONBLOCKING;
 };
 
 } // namespace QtMultimediaPrivate

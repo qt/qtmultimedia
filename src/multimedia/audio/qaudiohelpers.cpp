@@ -56,7 +56,7 @@ void qMultiplySamples(float factor,
                       const QAudioFormat &format,
                       const void *src,
                       void *dest,
-                      int len) QT_MM_NONBLOCKING
+                      int len) noexcept QT_MM_NONBLOCKING
 {
     const int samplesCount = len / qMax(1, format.bytesPerSample());
 
@@ -82,7 +82,7 @@ void qMultiplySamples(float factor,
 void applyVolume(float volume,
                  const QAudioFormat &format,
                  QSpan<const std::byte> source,
-                 QSpan<std::byte> destination) QT_MM_NONBLOCKING
+                 QSpan<std::byte> destination) noexcept QT_MM_NONBLOCKING
 {
     Q_ASSERT(source.size() == destination.size());
 
@@ -102,7 +102,7 @@ void applyVolume(float volume,
 namespace {
 
 template <NativeSampleFormat Format>
-Q_ALWAYS_INLINE constexpr int32_t toInt32(QSpan<const std::byte> source) QT_MM_NONBLOCKING
+Q_ALWAYS_INLINE constexpr int32_t toInt32(QSpan<const std::byte> source) noexcept QT_MM_NONBLOCKING
 {
     switch (Format) {
     case NativeSampleFormat::uint8_t: {
@@ -171,7 +171,7 @@ Q_ALWAYS_INLINE constexpr int32_t toInt32(QSpan<const std::byte> source) QT_MM_N
 
 template <NativeSampleFormat Format>
 Q_ALWAYS_INLINE constexpr void storeSampleWithFormat(QSpan<std::byte> destination,
-                                                     int32_t value) QT_MM_NONBLOCKING
+                                                     int32_t value) noexcept QT_MM_NONBLOCKING
 {
     switch (Format) {
     case NativeSampleFormat::uint8_t: {
@@ -276,7 +276,7 @@ struct WordConverter
 template <NativeSampleFormat destinationFormat>
 void convertSampleFormatWithDestinationFormat(QSpan<const std::byte> source,
                                               NativeSampleFormat sourceFormat,
-                                              QSpan<std::byte> destination) QT_MM_NONBLOCKING
+                                              QSpan<std::byte> destination) noexcept QT_MM_NONBLOCKING
 {
     switch (sourceFormat) {
     case NativeSampleFormat::uint8_t:
@@ -303,7 +303,7 @@ void convertSampleFormatWithDestinationFormat(QSpan<const std::byte> source,
 
 void convertSampleFormat(QSpan<const std::byte> source, NativeSampleFormat sourceFormat,
                          QSpan<std::byte> destination,
-                         NativeSampleFormat destinationFormat) QT_MM_NONBLOCKING
+                         NativeSampleFormat destinationFormat) noexcept QT_MM_NONBLOCKING
 {
     using namespace QtMultimediaPrivate;
 

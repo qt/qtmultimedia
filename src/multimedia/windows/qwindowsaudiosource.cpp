@@ -50,7 +50,7 @@ private:
     bool startAudioClient();
 
     void runProcessLoop();
-    bool process() QT_MM_NONBLOCKING;
+    bool process() noexcept QT_MM_NONBLOCKING;
     void handleAudioClientError();
 
     ComPtr<IAudioClient3> m_audioClient;
@@ -143,7 +143,7 @@ void QWASAPIAudioSourceStream::runProcessLoop()
     }
 }
 
-bool QWASAPIAudioSourceStream::process() QT_MM_NONBLOCKING
+bool QWASAPIAudioSourceStream::process() noexcept QT_MM_NONBLOCKING
 {
     for (;;) {
         unsigned char *hostBuffer;

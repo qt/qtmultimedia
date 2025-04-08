@@ -63,7 +63,7 @@ private:
                                    [[maybe_unused]] UInt32 inBusNumber,
                                    [[maybe_unused]] UInt32 inNumberFrames, AudioBufferList *ioData);
 
-    OSStatus process(uint32_t numberOfFrames, AudioBufferList *ioData);
+    OSStatus process(uint32_t numberOfFrames, AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
 
     void updateStreamIdle(bool arg) override;
     void stopAudioUnit();
@@ -255,7 +255,7 @@ OSStatus QCoreAudioSinkStream::renderCallback(void *self,
 }
 
 OSStatus QCoreAudioSinkStream::process(uint32_t numberOfFrames,
-                                       AudioBufferList *ioData) QT_MM_NONBLOCKING
+                                       AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING
 {
     const uint32_t bytesPerFrame = m_format.bytesPerFrame();
 

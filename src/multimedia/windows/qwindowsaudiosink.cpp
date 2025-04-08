@@ -53,7 +53,7 @@ private:
 
     void fillInitialHostBuffer();
     void runProcessLoop();
-    bool process() QT_MM_NONBLOCKING;
+    bool process() noexcept QT_MM_NONBLOCKING;
 
     void handleAudioClientError();
 
@@ -267,7 +267,7 @@ void QWASAPIAudioSinkStream::runProcessLoop()
     }
 }
 
-bool QWASAPIAudioSinkStream::process() QT_MM_NONBLOCKING
+bool QWASAPIAudioSinkStream::process() noexcept QT_MM_NONBLOCKING
 {
     uint32_t numFramesPadding;
     HRESULT hr = m_audioClient->GetCurrentPadding(&numFramesPadding);
