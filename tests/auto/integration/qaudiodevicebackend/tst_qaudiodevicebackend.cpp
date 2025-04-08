@@ -106,9 +106,17 @@ void tst_QAudioDeviceBackend::isFormatSupported()
 
 void tst_QAudioDeviceBackend::preferred()
 {
-    QAudioFormat format = device->preferredFormat();
-    QVERIFY(format.isValid());
-    QVERIFY(device->isFormatSupported(format));
+    auto isPrefferedSupported = [] (const QAudioDevice& dev) {
+        QAudioFormat format = dev.preferredFormat();
+        QVERIFY(format.isValid());
+        QVERIFY(dev.isFormatSupported(format));
+    };
+
+    for (const auto &dev: QMediaDevices::audioOutputs())
+        isPrefferedSupported(dev);
+
+    for (const auto &dev: QMediaDevices::audioInputs())
+        isPrefferedSupported(dev);
 }
 
 // QAudioDevice's assignOperator method
