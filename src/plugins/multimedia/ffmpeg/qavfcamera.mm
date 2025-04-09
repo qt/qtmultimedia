@@ -78,13 +78,7 @@ void QAVFCamera::refreshAvCaptureSessionInputDevice()
         m_videoInput = nullptr;
     }
 
-    QByteArray deviceId = m_cameraDevice.id();
-    if (deviceId.isEmpty())
-        return;
-
-    AVCaptureDevice *videoDevice = [AVCaptureDevice deviceWithUniqueID:
-                    [NSString stringWithUTF8String: deviceId.constData()]];
-
+    AVCaptureDevice *videoDevice = device();
     if (!videoDevice)
         return;
 
@@ -97,11 +91,6 @@ void QAVFCamera::refreshAvCaptureSessionInputDevice()
     } else {
         qWarning() << "Failed to create video device input";
     }
-}
-
-AVCaptureDevice *QAVFCamera::device() const
-{
-    return m_videoInput ? m_videoInput.device : nullptr;
 }
 
 void QAVFCamera::onActiveChanged(bool active)
