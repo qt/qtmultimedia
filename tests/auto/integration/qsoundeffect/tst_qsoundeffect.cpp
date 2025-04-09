@@ -27,6 +27,7 @@ private slots:
 
     void testPlaying();
     void testStatus();
+    void loopsRemaining_isUpdatedWhenPlaying();
 
     void testDestroyWhilePlaying();
     void testDestroyWhileRestartPlaying();
@@ -267,6 +268,20 @@ void tst_QSoundEffect::testStatus()
     QTest::ignoreMessage(QtMsgType::QtWarningMsg, QRegularExpression(".*Error decoding source.*"));
     QTestEventLoop::instance().enterLoop(1);
     QCOMPARE(sound->status(), QSoundEffect::Error);
+}
+
+void tst_QSoundEffect::loopsRemaining_isUpdatedWhenPlaying()
+{
+    sound->setSource(url);
+    QTRY_COMPARE(sound->status(), QSoundEffect::Ready);
+    sound->setLoopCount(3);
+
+    QSignalSpy loopsRemaining(sound, &QSoundEffect::loopsRemainingChanged);
+    QCOMPARE(sound->loopsRemaining(), 0);
+    sound->play();
+
+    QTRY_COMPARE(sound->loopsRemaining(), 0);
+    QCOMPARE(loopsRemaining.size(), 4);
 }
 
 void tst_QSoundEffect::testDestroyWhilePlaying()
