@@ -69,8 +69,6 @@ private:
 
     bool isFrontCamera() const;
 
-    AVCaptureDevice *device() const;
-
     QMediaCaptureSession *m_session = nullptr;
     AVCaptureSession *m_captureSession = nullptr;
     AVCaptureDeviceInput *m_videoInput = nullptr;
