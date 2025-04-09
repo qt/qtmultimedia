@@ -57,7 +57,7 @@ QAVFCamera::~QAVFCamera()
     [m_captureSession release];
     dispatch_release(m_delegateQueue);
 
-    updateRotationTracking();
+    clearRotationTracking();
 }
 
 void QAVFCamera::refreshAvCaptureSessionInputDevice()
@@ -372,18 +372,22 @@ void QAVFCamera::updateRotationTracking()
         }
 #endif
     } else {
-        if (@available(macOS 14.0, iOS 17.0, *)) {
-            if (m_rotationCoordinator)
-                [m_rotationCoordinator release];
-            m_rotationCoordinator = nullptr;
-        }
+        clearRotationTracking();
+    }
+}
+
+void QAVFCamera::clearRotationTracking() {
+    if (@available(macOS 14.0, iOS 17.0, *)) {
+        if (m_rotationCoordinator)
+            [m_rotationCoordinator release];
+        m_rotationCoordinator = nullptr;
+    }
 
 #ifdef Q_OS_IOS
-        if (m_receivingUiDeviceOrientationNotifications)
-            [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
-        m_receivingUiDeviceOrientationNotifications = false;
+    if (m_receivingUiDeviceOrientationNotifications)
+        [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
+    m_receivingUiDeviceOrientationNotifications = false;
 #endif
-    }
 }
 
 // Gets the current rotationfor this QAVFCamera.

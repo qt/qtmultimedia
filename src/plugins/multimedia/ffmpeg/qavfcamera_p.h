@@ -65,6 +65,7 @@ private:
     VideoTransformation surfaceTransform() const;
 
     void updateRotationTracking();
+    void clearRotationTracking();
     int getCurrentRotationAngleDegrees() const;
 
     bool isFrontCamera() const;
