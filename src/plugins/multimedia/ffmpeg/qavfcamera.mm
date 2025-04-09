@@ -55,6 +55,7 @@ QAVFCamera::~QAVFCamera()
     [m_videoInput release];
     [m_videoDataOutput release];
     [m_captureSession release];
+    dispatch_release(m_delegateQueue);
 
     updateRotationTracking();
 }
