@@ -30,7 +30,7 @@ class QCoreAudioSourceStream final : QtMultimediaPrivate::QPlatformAudioSourceSt
     using QPlatformAudioSourceStream = QtMultimediaPrivate::QPlatformAudioSourceStream;
 
 public:
-    explicit QCoreAudioSourceStream(const QAudioDevice &, const QAudioFormat &,
+    explicit QCoreAudioSourceStream(QAudioDevice, const QAudioFormat &,
                                     std::optional<int> ringbufferSize, QDarwinAudioSource *parent,
                                     float volume, std::optional<int32_t> hardwareBufferFrames);
     ~QCoreAudioSourceStream();
@@ -79,12 +79,12 @@ private:
     AudioBufferList m_bufferList{};
 };
 
-QCoreAudioSourceStream::QCoreAudioSourceStream(const QAudioDevice &audioDevice,
+QCoreAudioSourceStream::QCoreAudioSourceStream(QAudioDevice audioDevice,
                                                const QAudioFormat &format,
                                                std::optional<int> ringbufferSize,
                                                QDarwinAudioSource *parent, float volume, std::optional<int32_t> hardwareBufferFrames)
     : QPlatformAudioSourceStream{
-          audioDevice,
+          std::move(audioDevice),
           format,
           ringbufferSize,
           hardwareBufferFrames,

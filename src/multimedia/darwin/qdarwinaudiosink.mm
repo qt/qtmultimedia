@@ -37,9 +37,9 @@ class QCoreAudioSinkStream final : public std::enable_shared_from_this<QCoreAudi
     using QPlatformAudioSinkStream = QtMultimediaPrivate::QPlatformAudioSinkStream;
 
 public:
-    explicit QCoreAudioSinkStream(const QAudioDevice &, QAudioFormat,
-                                  std::optional<int> ringbufferSize, QDarwinAudioSink *parent,
-                                  float volume, std::optional<int32_t> hardwareBufferFrames);
+    explicit QCoreAudioSinkStream(QAudioDevice, QAudioFormat, std::optional<int> ringbufferSize,
+                                  QDarwinAudioSink *parent, float volume,
+                                  std::optional<int32_t> hardwareBufferFrames);
 
     bool open();
     bool start(QIODevice *device);
@@ -84,12 +84,12 @@ private:
     std::shared_ptr<QCoreAudioSinkStream> m_self;
 };
 
-QCoreAudioSinkStream::QCoreAudioSinkStream(const QAudioDevice &audioDevice, QAudioFormat format,
+QCoreAudioSinkStream::QCoreAudioSinkStream(QAudioDevice audioDevice, QAudioFormat format,
                                            std::optional<int> ringbufferSize,
                                            QDarwinAudioSink *parent, float volume,
                                            std::optional<int32_t> hardwareBufferFrames)
     : QPlatformAudioSinkStream{
-          audioDevice, format, ringbufferSize, hardwareBufferFrames, volume,
+          std::move(audioDevice), format, ringbufferSize, hardwareBufferFrames, volume,
       },
       m_parent(parent)
 {

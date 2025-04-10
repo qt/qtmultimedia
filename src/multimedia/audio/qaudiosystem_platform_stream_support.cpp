@@ -94,13 +94,13 @@ void QPlatformAudioIOStream::requestStop()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QPlatformAudioSinkStream::QPlatformAudioSinkStream(const QAudioDevice &audioDevice,
+QPlatformAudioSinkStream::QPlatformAudioSinkStream(QAudioDevice audioDevice,
                                                    const QAudioFormat &format,
                                                    std::optional<int> ringbufferSize,
                                                    std::optional<int32_t> hardwareBufferFrames,
                                                    float volume)
     : QPlatformAudioIOStream{
-          audioDevice, format, ringbufferSize, hardwareBufferFrames, volume,
+          std::move(audioDevice), format, ringbufferSize, hardwareBufferFrames, volume,
       }
 {
     m_streamIdleDetectionConnection =
@@ -275,13 +275,13 @@ void QPlatformAudioSinkStream::convertToNative(QSpan<const std::byte> internal,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QPlatformAudioSourceStream::QPlatformAudioSourceStream(const QAudioDevice &audioDevice,
+QPlatformAudioSourceStream::QPlatformAudioSourceStream(QAudioDevice audioDevice,
                                                        const QAudioFormat &format,
                                                        std::optional<int> ringbufferSize,
                                                        std::optional<int32_t> hardwareBufferFrames,
                                                        float volume)
     : QPlatformAudioIOStream{
-          audioDevice, format, ringbufferSize, hardwareBufferFrames, volume,
+          std::move(audioDevice), format, ringbufferSize, hardwareBufferFrames, volume,
       }
 {
 }
