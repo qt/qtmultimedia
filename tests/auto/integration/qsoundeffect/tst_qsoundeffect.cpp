@@ -8,6 +8,8 @@
 #include "qsoundeffect.h"
 #include "qmediadevices.h"
 
+using namespace Qt::Literals;
+
 class tst_QSoundEffect : public QObject
 {
     Q_OBJECT
@@ -421,11 +423,12 @@ void tst_QSoundEffect::setAudioDevice_emitsSignalsInExpectedOrder_data()
     QTest::addColumn<bool>("with_source");
     QTest::addColumn<QStringList>("expectedSignals");
     QTest::addRow("while_playing")
-        << true << true << QStringList{"playingChanged", "playingChanged", "audioDeviceChanged"};
+            << true << true
+            << QStringList{ u"playingChanged"_s, u"playingChanged"_s, u"audioDeviceChanged"_s };
     QTest::addRow("while_stopped, with source")
-        << false << true << QStringList{"audioDeviceChanged"};
+            << false << true << QStringList{ u"audioDeviceChanged"_s };
     QTest::addRow("while_stopped, without source")
-        << false << false << QStringList{"audioDeviceChanged"};
+            << false << false << QStringList{ u"audioDeviceChanged"_s };
 }
 
 void tst_QSoundEffect::setAudioDevice_emitsSignalsInExpectedOrder()
@@ -442,13 +445,13 @@ void tst_QSoundEffect::setAudioDevice_emitsSignalsInExpectedOrder()
     // Track the order of emitted signals by appending them to a list
     QStringList emittedSignals;
     connect(sound, &QSoundEffect::audioDeviceChanged, this, [&emittedSignals]() {
-        emittedSignals.append("audioDeviceChanged");
+        emittedSignals.append(u"audioDeviceChanged"_s);
     });
     connect(sound, &QSoundEffect::playingChanged, this, [&emittedSignals]() {
-        emittedSignals.append("playingChanged");
+        emittedSignals.append(u"playingChanged"_s);
     });
     connect(sound, &QSoundEffect::statusChanged, this, [&emittedSignals]() {
-        emittedSignals.append("statusChanged");
+        emittedSignals.append(u"statusChanged"_s);
     });
 
     // Set source or not based on test data
