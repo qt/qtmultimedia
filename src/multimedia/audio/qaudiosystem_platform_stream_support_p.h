@@ -108,8 +108,7 @@ public:
     using QPlatformAudioIOStream::ShutdownPolicy;
 
 protected:
-    QPlatformAudioSinkStream(const QAudioDevice &, const QAudioFormat &,
-                             std::optional<int> ringbufferSize,
+    QPlatformAudioSinkStream(QAudioDevice, const QAudioFormat &, std::optional<int> ringbufferSize,
                              std::optional<int32_t> hardwareBufferFrames, float volume);
     ~QPlatformAudioSinkStream();
     Q_DISABLE_COPY_MOVE(QPlatformAudioSinkStream)
@@ -181,7 +180,7 @@ public:
     using QPlatformAudioIOStream::ShutdownPolicy;
 
 protected:
-    QPlatformAudioSourceStream(const QAudioDevice &, const QAudioFormat &,
+    QPlatformAudioSourceStream(QAudioDevice, const QAudioFormat &,
                                std::optional<int> ringbufferSize,
                                std::optional<int32_t> hardwareBufferFrames, float volume);
     ~QPlatformAudioSourceStream();
