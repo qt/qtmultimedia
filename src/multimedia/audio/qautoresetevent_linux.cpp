@@ -5,6 +5,7 @@
 
 #include <QtCore/private/qcore_unix_p.h>
 #include <QtCore/qdebug.h>
+#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 
 #include <sys/eventfd.h>
 #include <cstdint>
@@ -50,6 +51,7 @@ void QAutoResetEventEventFD::set()
 
     constexpr uint64_t increment{ 1 };
 
+    ScopedRTSanDisabler disabler; // opened via EFD_NONBLOCK
     qint64 bytesWritten = qt_safe_write(m_fd, &increment, sizeof(increment));
     if (bytesWritten == -1)
         qCritical("QAutoResetEvent::set failed");
