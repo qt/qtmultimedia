@@ -46,6 +46,9 @@ public:
 
     void setRole(AudioEndpointRole) override;
 
+    void start(AudioCallback &&) override;
+    bool hasCallbackAPI() override;
+
 private:
     friend QtMultimediaPrivate::QPlatformAudioSinkStream;
     friend struct QWASAPIAudioSinkStream;

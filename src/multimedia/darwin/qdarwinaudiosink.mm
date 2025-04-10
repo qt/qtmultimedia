@@ -44,6 +44,7 @@ public:
     bool open();
     bool start(QIODevice *device);
     QIODevice *start();
+    bool start(AudioCallback cb);
     void stop();
     void reset();
 
@@ -58,13 +59,9 @@ public:
     void resumeIfNecessary();
 
 private:
-    static OSStatus renderCallback(void *self,
-                                   [[maybe_unused]] AudioUnitRenderActionFlags *ioActionFlags,
-                                   [[maybe_unused]] const AudioTimeStamp *inTimeStamp,
-                                   [[maybe_unused]] UInt32 inBusNumber,
-                                   [[maybe_unused]] UInt32 inNumberFrames, AudioBufferList *ioData);
-
-    OSStatus process(uint32_t numberOfFrames, AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
+    OSStatus processRingbuffer(uint32_t numberOfFrames, AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
+    OSStatus processAudioCallback(uint32_t numberOfFrames,
+                                  AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
 
     void updateStreamIdle(bool arg) override;
     void stopAudioUnit();
@@ -83,6 +80,8 @@ private:
 
     QDarwinAudioSink *m_parent;
     std::shared_ptr<QCoreAudioSinkStream> m_self;
+
+    AudioCallback m_audioCallback;
 };
 
 QCoreAudioSinkStream::QCoreAudioSinkStream(QAudioDevice audioDevice, QAudioFormat format,
@@ -117,18 +116,6 @@ bool QCoreAudioSinkStream::open()
     else
         return false;
 
-    // register callback
-    AURenderCallbackStruct callback;
-    callback.inputProc = renderCallback;
-    callback.inputProcRefCon = this;
-
-    if (AudioUnitSetProperty(m_audioUnit.get(), kAudioUnitProperty_SetRenderCallback,
-                             kAudioUnitScope_Global, 0, &callback, sizeof(callback))
-        != noErr) {
-        qWarning() << "QAudioOutput: Failed to set AudioUnit callback";
-        return false;
-    }
-
 #ifdef Q_OS_MACOS
     std::optional<int> bestNominalSamplingRate =
             audioObjectFindBestNominalSampleRate(nativeDeviceId, QAudioDevice::Output, m_format.sampleRate());
@@ -159,6 +146,22 @@ bool QCoreAudioSinkStream::open()
 
 bool QCoreAudioSinkStream::start(QIODevice *device)
 {
+    auto renderCallback = [](void *self, [[maybe_unused]] AudioUnitRenderActionFlags *ioActionFlags,
+                             [[maybe_unused]] const AudioTimeStamp *inTimeStamp,
+                             [[maybe_unused]] UInt32 inBusNumber,
+                             [[maybe_unused]] UInt32 inNumberFrames,
+                             AudioBufferList *ioData) -> OSStatus {
+        return reinterpret_cast<QCoreAudioSinkStream *>(self)->processRingbuffer(inNumberFrames,
+                                                                                 ioData);
+    };
+
+    AURenderCallbackStruct callback{
+        .inputProc = renderCallback,
+        .inputProcRefCon = this,
+    };
+    if (!audioUnitSetRenderCallback(m_audioUnit, callback))
+        return false;
+
     setQIODevice(device);
     pullFromQIODevice();
 
@@ -184,6 +187,33 @@ QIODevice *QCoreAudioSinkStream::start()
         return reader;
     else
         return nullptr;
+}
+
+bool QCoreAudioSinkStream::start(AudioCallback cb)
+{
+    auto renderCallback = [](void *self, [[maybe_unused]] AudioUnitRenderActionFlags *ioActionFlags,
+                             [[maybe_unused]] const AudioTimeStamp *inTimeStamp,
+                             [[maybe_unused]] UInt32 inBusNumber,
+                             [[maybe_unused]] UInt32 inNumberFrames,
+                             AudioBufferList *ioData) -> OSStatus {
+        return reinterpret_cast<QCoreAudioSinkStream *>(self)->processAudioCallback(inNumberFrames,
+                                                                                    ioData);
+    };
+
+    m_audioCallback = std::move(cb);
+
+    AURenderCallbackStruct callback;
+    callback.inputProc = renderCallback;
+    callback.inputProcRefCon = this;
+    if (!audioUnitSetRenderCallback(m_audioUnit, callback))
+        return false;
+
+    const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
+    if (status != noErr) {
+        qDebug() << "AudioOutputUnitStart failed:" << status;
+        return false;
+    }
+    return true;
 }
 
 void QCoreAudioSinkStream::stop()
@@ -246,17 +276,8 @@ void QCoreAudioSinkStream::resumeIfNecessary()
         resume();
 }
 
-OSStatus QCoreAudioSinkStream::renderCallback(void *self,
-                                              AudioUnitRenderActionFlags * /*ioActionFlags*/,
-                                              const AudioTimeStamp * /*inTimeStamp*/,
-                                              UInt32 /*inBusNumber*/, UInt32 inNumberFrames,
-                                              AudioBufferList *ioData)
-{
-    return reinterpret_cast<QCoreAudioSinkStream *>(self)->process(inNumberFrames, ioData);
-}
-
-OSStatus QCoreAudioSinkStream::process(uint32_t numberOfFrames,
-                                       AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING
+OSStatus QCoreAudioSinkStream::processRingbuffer(uint32_t numberOfFrames,
+                                                 AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING
 {
     const uint32_t bytesPerFrame = m_format.bytesPerFrame();
 
@@ -271,6 +292,21 @@ OSStatus QCoreAudioSinkStream::process(uint32_t numberOfFrames,
 
     return noErr;
 }
+
+OSStatus QCoreAudioSinkStream::processAudioCallback(uint32_t numberOfFrames,
+                                                    AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING
+{
+    using namespace QtMultimediaPrivate;
+    const uint32_t bytesPerFrame = m_format.bytesPerFrame();
+    const uint32_t numberOfSamples = numberOfFrames * m_format.channelCount();
+    Q_ASSERT(ioData->mBuffers[0].mDataByteSize == numberOfFrames * bytesPerFrame);
+
+    runAudioSinkCallback(m_audioCallback, reinterpret_cast<std::byte *>(ioData->mBuffers[0].mData),
+                         numberOfSamples, m_format);
+
+    return noErr;
+}
+
 
 void QCoreAudioSinkStream::updateStreamIdle(bool arg)
 {
@@ -472,6 +508,37 @@ void QDarwinAudioSink::setVolume(float volume)
 float QDarwinAudioSink::volume() const
 {
     return m_volume;
+}
+
+void QDarwinAudioSink::start(AudioCallback &&audioCallback)
+{
+    using namespace QtMultimediaPrivate;
+    if (!validateAudioSinkCallback(audioCallback, m_audioFormat)) {
+        setError(QAudio::OpenError);
+        return;
+    }
+
+    m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_audioFormat,
+                                                      m_internalBufferSize, this, m_volume,
+                                                      m_hardwareBufferFrames);
+
+    if (!m_stream->open()) {
+        setError(QAudio::OpenError);
+        return;
+    }
+
+    bool started = m_stream->start(std::move(audioCallback));
+    if (!started) {
+        setError(QAudio::OpenError);
+        return;
+    }
+
+    updateStreamState(QAudio::ActiveState);
+}
+
+bool QDarwinAudioSink::hasCallbackAPI()
+{
+    return true;
 }
 
 void QDarwinAudioSink::resumeStreamIfNecessary()

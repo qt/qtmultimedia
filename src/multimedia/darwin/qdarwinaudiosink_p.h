@@ -55,6 +55,9 @@ public:
     void setVolume(float volume) override;
     float volume() const override;
 
+    void start(AudioCallback &&) override;
+    bool hasCallbackAPI() override;
+
 private:
     void resumeStreamIfNecessary();
 
