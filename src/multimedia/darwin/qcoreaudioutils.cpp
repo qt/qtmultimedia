@@ -500,6 +500,20 @@ bool audioUnitIsRunning(AudioUnitHandle &audioUnit)
     return bool(isRunning);
 }
 
+bool audioUnitSetRenderCallback(AudioUnitHandle &audioUnit, AURenderCallbackStruct &callback)
+{
+    OSStatus status = AudioUnitSetProperty(audioUnit.get(), kAudioUnitProperty_SetRenderCallback,
+                                           kAudioUnitScope_Global, 0, &callback, sizeof(callback));
+
+    if (status != noErr) {
+        qWarning() << "AudioUnitSetProperty: Failed to set AudioUnit "
+                      "kAudioUnitProperty_SetRenderCallback"
+                   << status;
+        return false;
+    }
+    return true;
+}
+
 std::optional<int> audioUnitGetFramesPerSlice(AudioUnitHandle &audioUnit)
 {
     int numberOfFrames;
