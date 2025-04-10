@@ -44,11 +44,23 @@ QPipewireAudioStream::~QPipewireAudioStream()
 
 void QPipewireAudioStream::createStream(QSpan<spa_dict_item> extraProperties,
                                         std::optional<int32_t> hardwareBufferFrames,
-                                        const char *streamName)
+                                        const char *streamName, StreamType type)
 {
     stream_events.version = PW_VERSION_STREAM_EVENTS;
-    stream_events.process = [](void *userData) {
-        reinterpret_cast<QPipewireAudioStream *>(userData)->process();
+
+    switch (type) {
+    case StreamType::Ringbuffer:
+        stream_events.process = [](void *userData) {
+            reinterpret_cast<QPipewireAudioStream *>(userData)->processRingbuffer();
+        };
+        break;
+    case StreamType::Callback:
+        stream_events.process = [](void *userData) {
+            reinterpret_cast<QPipewireAudioStream *>(userData)->processCallback();
+        };
+        break;
+    default:
+        Q_UNREACHABLE_RETURN();
     };
 
     stream_events.state_changed = [](void *userData, pw_stream_state old, pw_stream_state state,

@@ -21,6 +21,7 @@
 #include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
 #include <QtMultimedia/private/qaudio_rtsan_support_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
 #include <QtCore/qthread.h>
@@ -115,6 +116,7 @@ class QPlatformAudioSinkStream : protected QPlatformAudioIOStream
 {
 public:
     using QPlatformAudioIOStream::ShutdownPolicy;
+    using AudioCallback = QPlatformAudioSink::AudioCallback;
 
 protected:
     QPlatformAudioSinkStream(QAudioDevice, const QAudioFormat &, std::optional<int> ringbufferSize,

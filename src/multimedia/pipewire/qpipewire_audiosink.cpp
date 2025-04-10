@@ -12,6 +12,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/qsemaphore.h>
 #include <QtCore/qspan.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
 #include <QtMultimedia/private/qaudio_rtsan_support_p.h>
@@ -58,22 +59,30 @@ struct QPipewireAudioSinkStream final : std::enable_shared_from_this<QPipewireAu
 
     bool start(QIODevice *device);
     QIODevice *start();
+    bool start(AudioCallback);
+
     void stop(ShutdownPolicy);
 
     void updateStreamIdle(bool idle) override;
 
 private:
+    void createStream(QPipewireAudioStream::StreamType);
     std::optional<ObjectSerial> findSinkNodeSerial();
 
     using QPlatformAudioSinkStream::m_format;
 
     // QPipewireAudioStream overrides
     void handleDeviceRemoved() override;
-    void process() noexcept QT_MM_NONBLOCKING override;
+    void processRingbuffer() noexcept QT_MM_NONBLOCKING override;
+    void processCallback() noexcept QT_MM_NONBLOCKING override;
+    template <typename Functor>
+    void processHelper(Functor &&f);
+
     void stateChanged(pw_stream_state /*old*/, pw_stream_state state,
                       const char * /*error*/) override;
 
     void disconnectStream();
+    QSemaphore m_disconnectSemaphore;
 
     std::shared_ptr<QPipewireAudioSinkStream> m_self;
 
@@ -89,6 +98,9 @@ private:
     QMetaObject::Connection m_xrunNotification;
 
     [[maybe_unused]] static void fakeXRun();
+
+    AudioEndpointRole m_role;
+    std::optional<AudioCallback> m_audioCallback;
 
     QPipewireAudioSink *m_parent;
 };
@@ -109,33 +121,13 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QAudioDevice device,
         hardwareBufferFrames,
         volume,
     },
+    m_role {
+        role,
+    },
     m_parent{
         parent,
     }
 {
-    const char *roleString = [&] {
-        switch (role) {
-        case AudioEndpointRole::MediaPlayback:
-        case AudioEndpointRole::Other:
-            return "Music";
-        case AudioEndpointRole::SoundEffect:
-            return "Notification";
-        default:
-            Q_UNREACHABLE_RETURN("Music");
-        }
-    }();
-
-    auto extraProperties = std::array{
-        spa_dict_item{ PW_KEY_MEDIA_CATEGORY, "Playback" },
-        spa_dict_item{ PW_KEY_MEDIA_ROLE, roleString },
-    };
-
-    QString applicationName = qApp->applicationName();
-    if (applicationName.isNull())
-        applicationName = u"QPipewireAudioSink"_s;
-
-    createStream(extraProperties, hardwareBufferFrames, applicationName.toUtf8().constData());
-
     m_xrunNotification = QObject::connect(&m_xrunOccurred, &QAutoResetEvent::activated,
                                           &m_xrunOccurred, [this, parent] {
         if (isStopRequested())
@@ -151,6 +143,8 @@ QPipewireAudioSinkStream::~QPipewireAudioSinkStream()
 
 bool QPipewireAudioSinkStream::start(QIODevice *device)
 {
+    createStream(StreamType::Ringbuffer);
+
     Q_ASSERT(hasStream());
     auto sinkNodeSerial = findSinkNodeSerial();
     if (!sinkNodeSerial)
@@ -183,6 +177,26 @@ QIODevice *QPipewireAudioSinkStream::start()
     return device;
 }
 
+bool QPipewireAudioSinkStream::start(AudioCallback audioCallback)
+{
+    createStream(StreamType::Callback);
+
+    Q_ASSERT(hasStream());
+    auto sinkNodeSerial = findSinkNodeSerial();
+    if (!sinkNodeSerial)
+        return false;
+
+    m_audioCallback = std::move(audioCallback);
+
+    bool connected = connectStream(*sinkNodeSerial, SPA_DIRECTION_OUTPUT);
+    if (!connected)
+        return false;
+
+    // keep instance alive until PW_STREAM_STATE_UNCONNECTED
+    m_self = shared_from_this();
+    return true;
+}
+
 void QPipewireAudioSinkStream::stop(ShutdownPolicy shutdownPolicy)
 {
     m_shutdownPolicy.store(shutdownPolicy, std::memory_order_relaxed);
@@ -199,17 +213,48 @@ void QPipewireAudioSinkStream::stop(ShutdownPolicy shutdownPolicy)
 
     disconnectQIODeviceConnections();
 
-    if (shutdownPolicy == ShutdownPolicy::DiscardRingbuffer) {
+    if (shutdownPolicy == ShutdownPolicy::DiscardRingbuffer || m_audioCallback) {
         // disconnect immediately
         disconnectStream();
     }
 
     unregisterDeviceObserver();
+
+    if (m_audioCallback)
+        // ensure that no callback is sent after we stop the stream
+        m_disconnectSemaphore.acquire();
 }
 
 void QPipewireAudioSinkStream::updateStreamIdle(bool idle)
 {
     m_parent->updateStreamIdle(idle);
+}
+
+void QPipewireAudioSinkStream::createStream(StreamType streamType)
+{
+    const char *roleString = [&] {
+        switch (m_role) {
+        case AudioEndpointRole::MediaPlayback:
+        case AudioEndpointRole::Other:
+            return "Music";
+        case AudioEndpointRole::SoundEffect:
+            return "Notification";
+        default:
+            Q_UNREACHABLE_RETURN("Music");
+        }
+    }();
+
+    auto extraProperties = std::array{
+        spa_dict_item{ PW_KEY_MEDIA_CATEGORY, "Playback" },
+        spa_dict_item{ PW_KEY_MEDIA_ROLE, roleString },
+    };
+
+    QString applicationName = qApp->applicationName();
+    if (applicationName.isNull())
+        applicationName = u"QPipewireAudioSink"_s;
+
+    QPipewireAudioStream::createStream(extraProperties, m_hardwareBufferFrames,
+                                       applicationName.toUtf8().constData(), streamType);
 }
 
 std::optional<ObjectSerial> QPipewireAudioSinkStream::findSinkNodeSerial()
@@ -235,16 +280,10 @@ void QPipewireAudioSinkStream::handleDeviceRemoved()
         handleIOError(m_parent);
 }
 
-void QPipewireAudioSinkStream::process() noexcept QT_MM_NONBLOCKING
+static auto resolveHostBuffer(pw_buffer *b, const QAudioFormat &format)
 {
-    struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
-    if (!b) {
-        qCritical() << "pw_stream_dequeue_buffer failed";
-        return;
-    }
-
     struct spa_buffer *buf = b->buffer;
-    uint64_t strideBytes = m_format.bytesPerSample() * m_format.channelCount();
+    uint64_t strideBytes = format.bytesPerSample() * format.channelCount();
     Q_ASSERT(strideBytes > 0);
     uint64_t totalNumberOfFrames = buf->datas[0].maxsize / strideBytes;
 
@@ -255,12 +294,36 @@ void QPipewireAudioSinkStream::process() noexcept QT_MM_NONBLOCKING
             totalNumberOfFrames = std::min(b->requested, totalNumberOfFrames);
 #endif
 
-    const uint64_t requestedSamples = totalNumberOfFrames * m_format.channelCount();
+    const uint64_t requestedSamples = totalNumberOfFrames * format.channelCount();
 
     QSpan<std::byte> writeBuffer{
         reinterpret_cast<std::byte *>(buf->datas[0].data),
-        qsizetype(requestedSamples * m_format.bytesPerSample()),
+        qsizetype(requestedSamples * format.bytesPerSample()),
     };
+
+    struct HostBufferData
+    {
+        QSpan<std::byte> writeBuffer;
+        const uint64_t requestedSamples{};
+        const uint64_t totalNumberOfFrames{};
+    };
+
+    return HostBufferData{
+        writeBuffer,
+        requestedSamples,
+        totalNumberOfFrames,
+    };
+}
+
+void QPipewireAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+{
+    struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
+    if (!b) {
+        qCritical() << "pw_stream_dequeue_buffer failed";
+        return;
+    }
+
+    auto [writeBuffer, requestedSamples, totalNumberOfFrames] = resolveHostBuffer(b, m_format);
 
     bool stopRequested = isStopRequested(std::memory_order_acquire);
     ShutdownPolicy shutdownPolicy = stopRequested ? m_shutdownPolicy.load(std::memory_order_relaxed)
@@ -295,6 +358,22 @@ void QPipewireAudioSinkStream::process() noexcept QT_MM_NONBLOCKING
     addFramesHandled(samplesWritten);
 }
 
+void QPipewireAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
+{
+    using namespace QtMultimediaPrivate;
+    struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
+    if (!b) {
+        qCritical() << "pw_stream_dequeue_buffer failed";
+        return;
+    }
+
+    auto [writeBuffer, requestedSamples, totalNumberOfFrames] = resolveHostBuffer(b, m_format);
+
+    runAudioSinkCallback(*m_audioCallback, writeBuffer.data(), requestedSamples, m_format);
+
+    queueBuffer(b, requestedSamples);
+}
+
 void QPipewireAudioSinkStream::stateChanged(pw_stream_state oldState, pw_stream_state state,
                                             const char *)
 {
@@ -302,6 +381,7 @@ void QPipewireAudioSinkStream::stateChanged(pw_stream_state oldState, pw_stream_
 
     switch (state) {
     case pw_stream_state::PW_STREAM_STATE_UNCONNECTED: {
+        m_disconnectSemaphore.release();
         m_self.reset();
         // CAVEAT: m_self may have been the last owner causing the object to be destroyed now.
         break;
@@ -361,10 +441,6 @@ void QPipewireAudioSink::startHelper(Functor &&starter)
 {
     m_stream = std::make_shared<QPipewireAudioSinkStream>(
             m_audioDevice, this, format(), m_role, m_bufferSize, m_hardwareBufferFrames, m_volume);
-    if (!m_stream->hasStream()) {
-        setError(QtAudio::Error::OpenError);
-        return;
-    }
 
     bool started = starter(m_stream);
     if (started) {
@@ -446,6 +522,24 @@ qsizetype QPipewireAudioSink::bytesFree() const
         return 0;
 
     return m_stream->bytesFree();
+}
+
+void QPipewireAudioSink::start(AudioCallback &&audioCallback)
+{
+    using namespace QtMultimediaPrivate;
+    if (!validateAudioSinkCallback(audioCallback, m_format)) {
+        setError(QAudio::OpenError);
+        return;
+    }
+
+    startHelper([&](const SharedSinkStream &stream) {
+        return stream->start(std::move(audioCallback));
+    });
+}
+
+bool QPipewireAudioSink::hasCallbackAPI()
+{
+    return true;
 }
 
 void QPipewireAudioSink::reportXRuns(int numberOfXruns)

@@ -8,6 +8,7 @@
 #include <QtCore/QScopedPointer>
 
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 
 #include <private/audiogenerationutils_p.h>
 #include <qaudiosink.h>
@@ -106,6 +107,9 @@ private slots:
 
     void stop_stopsAudioSink_whenInvokedUponFirstStateChange_data();
     void stop_stopsAudioSink_whenInvokedUponFirstStateChange();
+
+    void callbackAPI();
+    void callbackAPI_startFailsWithWrongType();
 
 private:
     using FilePtr = QSharedPointer<QFile>;
@@ -1171,6 +1175,47 @@ void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange()
                                               // TODO: replace with QVERIFY
 
     QTRY_COMPARE(audioSink.state(), QtAudio::State::StoppedState);
+}
+
+void tst_QAudioSink::callbackAPI()
+{
+    using namespace std::chrono_literals;
+
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleFormat(QAudioFormat::SampleFormat::Float);
+
+    QAudioSink audioSink(audioDevice, format);
+    QPlatformAudioSink *platformSink = QPlatformAudioSink::get(audioSink);
+    if (!platformSink->hasCallbackAPI())
+        QSKIP("Callback API not supported by this backend");
+
+    QSemaphore sync;
+
+    platformSink->start([&](QSpan<float> outputBuffer) {
+        QCOMPARE_GT(outputBuffer.size(), 0);
+        sync.release();
+    });
+    QCOMPARE(audioSink.error(), QAudio::Error::NoError);
+
+    bool callbackExecuted = sync.try_acquire_for(1s);
+    QVERIFY(callbackExecuted);
+}
+
+void tst_QAudioSink::callbackAPI_startFailsWithWrongType()
+{
+    using namespace std::chrono_literals;
+
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleFormat(QAudioFormat::SampleFormat::Float);
+
+    QAudioSink audioSink(audioDevice, format);
+    QPlatformAudioSink *platformSink = QPlatformAudioSink::get(audioSink);
+    if (!platformSink->hasCallbackAPI())
+        QSKIP("Callback API not supported by this backend");
+
+    platformSink->start([&](QSpan<int32_t>) {
+    });
+    QCOMPARE(audioSink.error(), QAudio::Error::OpenError);
 }
 
 QTEST_MAIN(tst_QAudioSink)

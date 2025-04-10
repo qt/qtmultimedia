@@ -38,9 +38,16 @@ protected:
 
     const QAudioFormat m_format;
 
+    enum class StreamType : uint8_t
+    {
+        Ringbuffer,
+        Callback,
+    };
+
     // stream control
     void createStream(QSpan<spa_dict_item> extraProperties,
-                      std::optional<int32_t> hardwareBufferFrames, const char *streamName);
+                      std::optional<int32_t> hardwareBufferFrames, const char *streamName,
+                      StreamType = StreamType::Ringbuffer);
     bool connectStream(ObjectSerial target, spa_direction);
     void disconnectStream();
 
@@ -51,7 +58,8 @@ public:
 
 protected:
     // stream callbacks
-    virtual void process() = 0;
+    virtual void processRingbuffer() = 0;
+    virtual void processCallback() = 0;
     virtual void stateChanged(pw_stream_state oldState, pw_stream_state state,
                               const char *error) = 0;
 

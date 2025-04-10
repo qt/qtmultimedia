@@ -38,6 +38,7 @@ public:
     Q_DISABLE_COPY_MOVE(QPipewireAudioSink)
 
     void start(QIODevice *device) override;
+    void start(AudioCallback &&) override;
     QIODevice *start() override;
     void stop() override;
     void reset() override;
@@ -46,6 +47,7 @@ public:
     qsizetype bytesFree() const override;
 
     using QPlatformAudioEndpointBase::updateStreamState;
+    bool hasCallbackAPI() override;
 
 private:
     friend class QtMultimediaPrivate::QPlatformAudioSinkStream;

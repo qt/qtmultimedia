@@ -106,6 +106,7 @@ bool audioUnitSetInputStreamFormat(AudioUnitHandle &, AudioUnitElement,
 bool audioUnitSetOutputStreamFormat(AudioUnitHandle &, AudioUnitElement,
                                     const AudioStreamBasicDescription &);
 bool audioUnitIsRunning(AudioUnitHandle &);
+bool audioUnitSetRenderCallback(AudioUnitHandle &, AURenderCallbackStruct &);
 
 std::optional<AudioStreamBasicDescription> audioUnitGetInputStreamFormat(AudioUnitHandle &,
                                                                          AudioUnitElement);

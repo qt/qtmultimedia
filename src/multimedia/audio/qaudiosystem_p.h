@@ -22,7 +22,11 @@
 #include <QtMultimedia/qaudioformat.h>
 
 #include <QtCore/qelapsedtimer.h>
+#include <QtCore/qspan.h>
 #include <QtCore/private/qglobal_p.h>
+
+#include <functional>
+#include <variant>
 
 QT_BEGIN_NAMESPACE
 
@@ -31,11 +35,116 @@ class QAudioSink;
 
 namespace QtMultimediaPrivate {
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 enum class AudioEndpointRole : uint8_t {
     MediaPlayback,
     SoundEffect,
     Other,
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename SampleType>
+using AudioSinkCallbackType = std::function<void(QSpan<SampleType>)>;
+
+template <typename>
+struct GetSampleTypeImpl;
+
+template <>
+struct GetSampleTypeImpl<float>
+{
+    using type = float;
+    static constexpr QAudioFormat::SampleFormat sample_format = QAudioFormat::SampleFormat::Float;
+};
+
+template <>
+struct GetSampleTypeImpl<int32_t>
+{
+    using type = int32_t;
+    static constexpr QAudioFormat::SampleFormat sample_format = QAudioFormat::SampleFormat::Int32;
+};
+template <>
+struct GetSampleTypeImpl<int16_t>
+{
+    using type = int16_t;
+    static constexpr QAudioFormat::SampleFormat sample_format = QAudioFormat::SampleFormat::Int16;
+};
+
+template <>
+struct GetSampleTypeImpl<uint8_t>
+{
+    using type = uint8_t;
+    static constexpr QAudioFormat::SampleFormat sample_format = QAudioFormat::SampleFormat::UInt8;
+};
+
+template <typename T>
+struct GetSampleTypeImpl<AudioSinkCallbackType<T>> : GetSampleTypeImpl<T>
+{
+};
+
+template <typename SampleTypeOrCallbackType>
+using GetSampleType = typename GetSampleTypeImpl<SampleTypeOrCallbackType>::type;
+
+template <typename SampleTypeOrCallbackType>
+static constexpr QAudioFormat::SampleFormat getSampleFormat()
+{
+    return GetSampleTypeImpl<SampleTypeOrCallbackType>::sample_format;
+}
+
+using AudioSinkCallback =
+        std::variant<AudioSinkCallbackType<float>, AudioSinkCallbackType<uint8_t>,
+                     AudioSinkCallbackType<int16_t>, AudioSinkCallbackType<int32_t>>;
+
+constexpr bool validateAudioSinkCallback(const AudioSinkCallback &audioCallback,
+                                         const QAudioFormat &format)
+{
+    bool isNonNullFunction = std::visit([](const auto &cb) {
+        return bool(cb);
+    }, audioCallback);
+
+    if (!isNonNullFunction)
+        return false;
+
+    bool hasCorrectFormat = std::visit([&](const auto &cb) {
+        return getSampleFormat<std::decay_t<decltype(cb)>>() == format.sampleFormat();
+    }, audioCallback);
+
+    return hasCorrectFormat;
+}
+
+inline void runAudioSinkCallback(const AudioSinkCallback &audioCallback, std::byte *hostBuffer,
+                                 qsizetype numberOfSamples, const QAudioFormat &format)
+{
+    Q_ASSERT(numberOfSamples > 0);
+
+    bool callbackIsValid = validateAudioSinkCallback(audioCallback, format);
+    Q_ASSERT(callbackIsValid);
+#if __has_cpp_attribute(assume)
+    [[assume(callbackIsValid)]];
+#endif
+
+    std::visit([&](const auto &callback) {
+        using FunctorType = std::decay_t<decltype(callback)>;
+        constexpr QAudioFormat::SampleFormat functorSampleFormat = getSampleFormat<FunctorType>();
+        Q_ASSERT(functorSampleFormat == format.sampleFormat());
+
+        using SampleType = GetSampleType<FunctorType>;
+
+        bool audioCallbackIsValid = bool(callback);
+        Q_ASSERT(audioCallbackIsValid);
+#if __has_cpp_attribute(assume)
+        [[assume(audioCallbackIsValid)]];
+#endif
+        auto buffer = QSpan<SampleType>{
+            reinterpret_cast<SampleType *>(hostBuffer),
+            numberOfSamples,
+        };
+        callback(buffer);
+    }, audioCallback);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace QtMultimediaPrivate
 
@@ -103,6 +212,11 @@ public:
     virtual QAudioFormat format() const = 0;
     virtual void setVolume(float) { }
     virtual float volume() const;
+
+    using AudioCallback = QtMultimediaPrivate::AudioSinkCallback;
+
+    virtual void start(AudioCallback &&) { }
+    virtual bool hasCallbackAPI() { return false; };
 
     QElapsedTimer elapsedTime;
 
