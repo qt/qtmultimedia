@@ -15,11 +15,46 @@
 // We mean it.
 //
 
+#include <QtCore/qtconfigmacros.h>
+#include <QtCore/qtclasshelpermacros.h>
+
+#if defined(__has_feature) && __has_feature(realtime_sanitizer)
+#  include <sanitizer/rtsan_interface.h>
+#endif
+
 // rtsan
 #if defined(__has_cpp_attribute) && __has_cpp_attribute(clang::nonblocking)
 #  define QT_MM_NONBLOCKING [[clang::nonblocking]]
 #else
 #  define QT_MM_NONBLOCKING
 #endif
+
+QT_BEGIN_NAMESPACE
+
+namespace QtPrivate {
+
+#if defined(__has_feature) && __has_feature(realtime_sanitizer)
+using ScopedRTSanDisabler = __rtsan::ScopedDisabler;
+#else
+struct [[maybe_unused]] ScopedRTSanDisabler
+{
+    ScopedRTSanDisabler() = default;
+    ~ScopedRTSanDisabler() = default;
+    Q_DISABLE_COPY_MOVE(ScopedRTSanDisabler)
+};
+#endif
+
+template <typename Functor>
+auto withRTSanDisabled(const Functor &f)
+{
+#if defined(__has_feature) && __has_feature(realtime_sanitizer)
+    __rtsan::ScopedDisabler disabler;
+#endif
+    return f();
+}
+
+} // namespace QtPrivate
+
+QT_END_NAMESPACE
 
 #endif // QAUDIO_RTSAN_SUPPORT_P_H
