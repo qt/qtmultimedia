@@ -52,7 +52,7 @@ std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
     const bool pipewireRequested = requestedBackend == "pipewire"_ba;
     const bool considerPipewire = requestedBackend.isNull() || pipewireRequested;
 
-    if (QtPipeWire::QAudioDevices::isSupported() && considerPipewire)
+    if (considerPipewire && QtPipeWire::QAudioDevices::isSupported())
         return std::make_unique<QtPipeWire::QAudioDevices>();
 
     if (pipewireRequested)
