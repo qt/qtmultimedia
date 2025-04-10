@@ -8,6 +8,7 @@
 #include "qpipewire_audiostream_p.h"
 #include "qpipewire_support_p.h"
 
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qpointer.h>
@@ -33,6 +34,7 @@ static constexpr bool pipewireRealtimeTracing = false;
 
 using QtMultimediaPrivate::QPlatformAudioSinkStream;
 using AudioEndpointRole = QtMultimediaPrivate::AudioEndpointRole;
+using namespace Qt::Literals;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // QPipewireAudioSinkStream
@@ -126,7 +128,11 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QAudioDevice device,
         spa_dict_item{ PW_KEY_MEDIA_ROLE, roleString },
     };
 
-    createStream(extraProperties, hardwareBufferFrames, "QPipewireAudioSink");
+    QString applicationName = qApp->applicationName();
+    if (applicationName.isNull())
+        applicationName = u"QPipewireAudioSink"_s;
+
+    createStream(extraProperties, hardwareBufferFrames, applicationName.toUtf8().constData());
 
     m_xrunNotification = QObject::connect(&m_xrunOccurred, &QAutoResetEvent::activated,
                                           &m_xrunOccurred, [this, parent] {

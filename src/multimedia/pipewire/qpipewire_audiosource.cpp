@@ -8,6 +8,7 @@
 #include "qpipewire_audiostream_p.h"
 #include "qpipewire_support_p.h"
 
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qsemaphore.h>
@@ -23,6 +24,7 @@ namespace QtPipeWire {
 using QtMultimediaPrivate::QPlatformAudioSourceStream;
 using ShutdownPolicy = QtMultimediaPrivate::QPlatformAudioIOStream::ShutdownPolicy;
 using namespace std::chrono_literals;
+using namespace Qt::Literals;
 
 // LATER:
 // ideally the ringbuffer should fill a buffer that can grow via a worker thread on which we can
@@ -111,7 +113,12 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QAudioDevice device, QPip
         spa_dict_item{ PW_KEY_MEDIA_CATEGORY, "Capture" },
         spa_dict_item{ PW_KEY_MEDIA_ROLE, "Music" },
     };
-    createStream(extraProperties, hardwareBufferFrames, "QPipewireAudioSource");
+
+    QString applicationName = qApp->applicationName();
+    if (applicationName.isNull())
+        applicationName = u"QPipewireAudioSource"_s;
+
+    createStream(extraProperties, hardwareBufferFrames, applicationName.toUtf8().constData());
 
     m_xrunNotification =
             QObject::connect(&m_xrunOccurred, &QAutoResetEvent::activated, &m_xrunOccurred, [this] {
