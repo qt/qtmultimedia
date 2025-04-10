@@ -133,7 +133,7 @@ void tst_QVideoWidget::aspectRatio()
 
 void tst_QVideoWidget::sizeHint_data()
 {
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     QSKIP("QTBUG-26481 - Crashes on Mac");
 #endif
 
@@ -154,7 +154,7 @@ void tst_QVideoWidget::sizeHint_data()
 
 void tst_QVideoWidget::sizeHint()
 {
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     QSKIP("QTBUG-26481 - Crashes on Mac");
 #endif
 
