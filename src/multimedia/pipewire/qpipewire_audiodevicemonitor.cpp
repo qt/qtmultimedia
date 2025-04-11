@@ -12,12 +12,16 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/private/qflatmap_p.h>
 
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
+
 #include <mutex>
 #include <q20vector.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
+
+using namespace QtMultimediaPrivate;
 
 Q_STATIC_LOGGING_CATEGORY(lcPipewireDeviceMonitor, "qt.multimedia.pipewire.devicemonitor");
 
@@ -360,7 +364,12 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
 
     guard.unlock();
 
-    if (oldDeviceList != newDeviceList) {
+    bool deviceListsEqual = ranges::equal(oldDeviceList, newDeviceList,
+                                          [](const QAudioDevice &lhs, const QAudioDevice &rhs) {
+        return (lhs.id() == rhs.id()) && (lhs.isDefault() == rhs.isDefault());
+    });
+
+    if (!deviceListsEqual) {
         qDebug(lcPipewireDeviceMonitor) << "updated device list";
 
         if constexpr (Mode == Direction::sink) {
