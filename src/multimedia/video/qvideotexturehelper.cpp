@@ -8,6 +8,7 @@
 #include "qvideoframe_p.h"
 #include "qvideoframetexturefromsource_p.h"
 #include "private/qmultimediautils_p.h"
+#include "private/qaudio_alignment_support_p.h"
 
 #include <QtCore/qfile.h>
 #include <qpainter.h>
@@ -107,7 +108,7 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
     },
     // Format_YUV420P
     { 3, 1,
-      [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
+      [](int stride, int height) { return stride * (height + QtMultimediaPrivate::alignUp(height, 2) / 2); },
      { TextureDescription::Red_8, TextureDescription::Red_8, TextureDescription::Red_8 },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
@@ -119,7 +120,7 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
     },
      // Format_YV12
     { 3, 1,
-      [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
+      [](int stride, int height) { return stride * (height + QtMultimediaPrivate::alignUp(height, 2) / 2); },
      {TextureDescription::Red_8, TextureDescription::Red_8, TextureDescription::Red_8 },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
@@ -227,7 +228,7 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
     },
     // Format_YUV420P10
     { 3, 2,
-        [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
+        [](int stride, int height) { return stride * (height + QtMultimediaPrivate::alignUp(height, 2) / 2); },
         { TextureDescription::Red_16, TextureDescription::Red_16, TextureDescription::Red_16 },
         { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
