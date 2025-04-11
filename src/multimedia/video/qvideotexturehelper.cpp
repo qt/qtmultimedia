@@ -253,7 +253,9 @@ resolveRhiTextureFormat(QRhi *rhi, QRhiTexture::Format format,
         return fallback;
     }
 
-    qWarning() << "Cannot determine any usable texture format, using preferred format" << format;
+    // TODO: QTBUG-135911: In some cases rhi claims format and fallbacks are all
+    // unsupported, but when using preferred format video plays fine
+    qCDebug(qLcVideoTextureHelper) << "Cannot determine any usable texture format, using preferred format" << format;
     return format;
 }
 
