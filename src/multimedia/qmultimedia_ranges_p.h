@@ -29,12 +29,18 @@ namespace QtMultimediaPrivate::ranges {
 
 #ifdef __cpp_lib_ranges
 using std::ranges::equal;
+using std::ranges::fill;
+
 #else
 
 // Caveat: best effort, not a 1-to-1 mapping to c++20 style ranges
 
 constexpr auto equal = [](const auto &lhs, const auto &rhs, auto &&predicate) {
     return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), predicate);
+};
+
+constexpr auto fill = [](auto &range, auto &&value) {
+    return std::fill(std::begin(range), std::end(range), value);
 };
 
 #endif
