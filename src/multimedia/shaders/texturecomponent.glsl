@@ -25,11 +25,11 @@ vec2 get_RG8_from_packed_RGBA8_texture(sampler2D planeTexture, vec2 texCoord, fl
     //
     //     |  r |  g |  b |  a |
     //     | U0 | V0 | U1 | V1 | ...
-    // Original:                            Input texture:
+    // Original (scaling factor 2):         Input texture (scaling factor 4):
     // | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |    | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
     // | y | y | y | y | y | y | y | y |    | a | a | a | a | a | a | a | a |
     // ...                                  ...
-    // | u | v | u | v | u | v | u | v |    |[r   g] [b   a]|[r   g] [b   a]|
+    // |[u   v]|[u   v]|[u   v]|[u   v]|    |[r   g] [b   a]|[r   g] [b   a]|
     //                                              |               |
     //
 
@@ -37,7 +37,7 @@ vec2 get_RG8_from_packed_RGBA8_texture(sampler2D planeTexture, vec2 texCoord, fl
     // |-|-|-|-|-|-|-|-|
     //     s       s        X coordinate to sample from
     //   0   1   0   1      X coordinates of 2 blocks, "rg" and "ba" in sampled rgba value
-    float sampleWidth = 4 / frameWidth;  // Distance between input sample x-coords
+    float sampleWidth = 4 / frameWidth;  // Distance between input sample x-coords (scaling factor 4)
     float subSampleWidth = sampleWidth / 2.; // Distance between output "rg" and "ba" x-coords, or "uv" blocks for nv12
 
     float colIndex = floor(texCoord.x * frameWidth * 0.25); // 0., 0., 0., 0., 1., 1., 1., 1.
