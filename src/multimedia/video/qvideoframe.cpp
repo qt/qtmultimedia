@@ -511,14 +511,14 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             const int height = this->height();
             const int yStride = d->mapData.bytesPerLine[0];
             const int uvHeight = pixelFmt == QVideoFrameFormat::Format_YUV422P ? height : height / 2;
-            const int uvStride = (d->mapData.dataSize[0] - (yStride * height)) / uvHeight / 2;
+            const int uvSize = d->mapData.dataSize[0] - yStride * height;
+            const int uvStride = uvSize / 2 / uvHeight;
 
             // Three planes, the second and third vertically (and horizontally for other than Format_YUV422P formats) subsampled.
             d->mapData.planeCount = 3;
             d->mapData.bytesPerLine[2] = d->mapData.bytesPerLine[1] = uvStride;
             d->mapData.dataSize[0] = yStride * height;
-            d->mapData.dataSize[1] = uvStride * uvHeight;
-            d->mapData.dataSize[2] = uvStride * uvHeight;
+            d->mapData.dataSize[2] = d->mapData.dataSize[1] = uvStride * uvHeight;
             d->mapData.data[1] = d->mapData.data[0] + d->mapData.dataSize[0];
             d->mapData.data[2] = d->mapData.data[1] + d->mapData.dataSize[1];
             break;
