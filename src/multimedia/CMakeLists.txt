@@ -71,6 +71,7 @@ qt_internal_add_module(Multimedia
         qmediastoragelocation.cpp qmediastoragelocation_p.h
         qmediatimerange.cpp qmediatimerange.h
         qmultimediautils.cpp qmultimediautils_p.h
+        qmultimedia_ranges_p.h
         qvideotransformation.cpp qvideotransformation_p.h
         qmediaframeinput.cpp qmediaframeinput_p.h
         qmultimedia_assume_p.h
