@@ -16,6 +16,7 @@
 //
 
 #include <QtCore/qtclasshelpermacros.h>
+#include <QtCore/qtimer.h>
 #include <QtCore/qmutex.h>
 
 #include <QtMultimedia/qaudiosink.h>
@@ -26,8 +27,10 @@
 #include <QtMultimedia/private/q_pmr_emulation_p.h>
 
 #include <cstdint>
+#include <deque>
 #include <set>
 #include <variant>
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 
@@ -272,6 +275,15 @@ private:
     static constexpr size_t commandBuffersSize = 2048;
     QtPrivate::QAudioRingBuffer<RtCommand> m_appToRt{ commandBuffersSize };
     QtPrivate::QAudioRingBuffer<Notification> m_rtToApp{ commandBuffersSize };
+    std::deque<RtCommand> m_appToRtOverflowBuffer;
+    std::deque<Notification, pmr::polymorphic_allocator<Notification>> m_rtToAppOverflowBuffer{
+        m_rtMemoryPool.get(),
+    };
+    void sendAppToRtCommand(RtCommand cmd);
+    bool sendRtToAppNotification(Notification cmd);
+    void sendPendingRtCommands();
+    bool sendPendingAppNotifications();
+    QTimer m_pendingCommandsTimer;
 
     QtPrivate::QAutoResetEvent m_notificationEvent;
     std::vector<VoiceId> m_finishedVoices;

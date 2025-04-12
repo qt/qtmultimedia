@@ -26,6 +26,7 @@ QT_BEGIN_NAMESPACE
 namespace QtMultimediaPrivate {
 
 using namespace QtPrivate;
+using namespace std::chrono_literals;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -114,7 +115,17 @@ QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &f
         moveToThread(appThread);
         m_sink.moveToThread(appThread);
         m_notificationEvent.moveToThread(appThread);
+        m_pendingCommandsTimer.moveToThread(appThread);
     }
+
+    m_pendingCommandsTimer.setInterval(10ms);
+    m_pendingCommandsTimer.setTimerType(Qt::CoarseTimer);
+    m_pendingCommandsTimer.callOnTimeout(&m_pendingCommandsTimer, [this] {
+        auto lock = std::lock_guard{ m_mutex };
+        sendPendingRtCommands();
+        if (m_appToRtOverflowBuffer.empty())
+            m_pendingCommandsTimer.stop();
+    });
 
     QPlatformAudioSink *platformSink = QPlatformAudioSink::get(m_sink);
 
@@ -149,7 +160,7 @@ void QRtAudioEngine::play(SharedVoice voice)
 
     m_voices.insert(voice);
 
-    m_appToRt.write(PlayCommand{
+    sendAppToRtCommand(PlayCommand{
             std::move(voice),
     });
 }
@@ -162,7 +173,7 @@ void QRtAudioEngine::stop(const SharedVoice &voice)
 void QRtAudioEngine::stop(VoiceId voiceId)
 {
     auto lock = std::lock_guard{ m_mutex };
-    m_appToRt.write(StopCommand{ voiceId });
+    sendAppToRtCommand(StopCommand{ voiceId });
 }
 
 void QRtAudioEngine::visitVoiceRt(VoiceId voiceId, RtVoiceVisitor fn, bool visitorIsTrivial)
@@ -170,13 +181,13 @@ void QRtAudioEngine::visitVoiceRt(VoiceId voiceId, RtVoiceVisitor fn, bool visit
     auto lock = std::lock_guard{ m_mutex };
 
     if (visitorIsTrivial) {
-        m_appToRt.write(VisitCommandTrivial{
+        sendAppToRtCommand(VisitCommandTrivial{
                 voiceId,
                 std::move(fn),
         });
 
     } else {
-        m_appToRt.write(VisitCommand{
+        sendAppToRtCommand(VisitCommand{
                 voiceId,
                 std::move(fn),
         });
@@ -192,6 +203,7 @@ VoiceId QRtAudioEngine::allocateVoiceId()
 void QRtAudioEngine::audioCallback(QSpan<float> outputBuffer) noexcept QT_MM_NONBLOCKING
 {
     runRtCommands();
+    bool sendNotification = sendPendingAppNotifications();
 
     std::fill(outputBuffer.begin(), outputBuffer.end(), 0.f);
 
@@ -211,15 +223,18 @@ void QRtAudioEngine::audioCallback(QSpan<float> outputBuffer) noexcept QT_MM_NON
         withRTSanDisabled([&] {
             for (const SharedVoice &voice : finishedVoices) {
                 m_rtVoiceRegistry.erase(voice);
-                m_rtToApp.write(StopNotification{ voice });
+                bool stopSent = sendRtToAppNotification(StopNotification{ voice });
+                if (stopSent)
+                    sendNotification = true;
             }
         });
-        m_notificationEvent.set();
     }
 
     // TODO: we should probably (soft)clip the output buffer
 
     cleanupRetiredVoices();
+    if (sendNotification)
+        m_notificationEvent.set();
 }
 
 void QRtAudioEngine::cleanupRetiredVoices() noexcept QT_MM_NONBLOCKING
@@ -243,10 +258,8 @@ void QRtAudioEngine::cleanupRetiredVoices() noexcept QT_MM_NONBLOCKING
     withRTSanDisabled([&] {
         erase_if(m_rtVoiceRegistry, [&](const SharedVoice &voice) {
             bool voiceIsActive = voice->isActive();
-            if (!voiceIsActive) {
-                m_rtToApp.write(StopNotification{ voice });
-                notifyApp = true;
-            }
+            if (!voiceIsActive)
+                notifyApp = sendRtToAppNotification(StopNotification{ voice });
 
             return false;
         });
@@ -282,10 +295,11 @@ void QRtAudioEngine::runRtCommand(StopCommand cmd) noexcept QT_MM_NONBLOCKING
     SharedVoice voice = *it;
     m_rtVoiceRegistry.erase(it);
 
-    m_rtToApp.write(StopNotification{
+    bool emitNotify = sendRtToAppNotification(StopNotification{
             std::move(voice),
     });
-    m_notificationEvent.set();
+    if (emitNotify)
+        m_notificationEvent.set();
 }
 
 void QRtAudioEngine::runRtCommand(VisitCommand cmd) noexcept QT_MM_NONBLOCKING
@@ -296,10 +310,11 @@ void QRtAudioEngine::runRtCommand(VisitCommand cmd) noexcept QT_MM_NONBLOCKING
     cmd.callback(**it);
 
     // send callback back to application for destruction
-    m_rtToApp.write(VisitReply{
+    bool emitNotify = sendRtToAppNotification(VisitReply{
             std::move(cmd.callback),
     });
-    m_notificationEvent.set();
+    if (emitNotify)
+        m_notificationEvent.set();
 }
 
 void QRtAudioEngine::runRtCommand(VisitCommandTrivial cmd) noexcept QT_MM_NONBLOCKING
@@ -343,6 +358,77 @@ void QRtAudioEngine::runNonRtNotification(StopNotification notification)
 void QRtAudioEngine::runNonRtNotification(VisitReply)
 {
     // nop (just making sure to delete on the application thread);
+}
+
+void QRtAudioEngine::sendAppToRtCommand(RtCommand cmd)
+{
+    // first write all pending commands from overflow buffer
+    sendPendingRtCommands();
+
+    bool written = m_appToRt.produceOne([&] {
+        return std::move(cmd);
+    });
+
+    if (written)
+        return;
+
+    m_appToRtOverflowBuffer.emplace_back(std::move(cmd));
+
+    QMetaObject::invokeMethod(&m_pendingCommandsTimer, [this] {
+        if (!m_pendingCommandsTimer.isActive())
+            m_pendingCommandsTimer.start();
+    });
+}
+
+bool QRtAudioEngine::sendRtToAppNotification(Notification cmd)
+{
+    // first write all pending commands from overflow buffer
+    bool emitNotification = sendPendingAppNotifications();
+
+    bool written = m_rtToApp.produceOne([&] {
+        return std::move(cmd);
+    });
+
+    if (written)
+        return true;
+
+    m_rtToAppOverflowBuffer.emplace_back(std::move(cmd));
+
+    return emitNotification;
+}
+
+void QRtAudioEngine::sendPendingRtCommands()
+{
+    while (!m_appToRtOverflowBuffer.empty()) {
+        Q_UNLIKELY_BRANCH;
+        bool written = m_appToRt.produceOne([&] {
+            return std::move(m_appToRtOverflowBuffer.front());
+        });
+        if (!written)
+            return;
+
+        m_appToRtOverflowBuffer.pop_front();
+    }
+}
+
+bool QRtAudioEngine::sendPendingAppNotifications()
+{
+    bool emitNotification = false;
+    while (!m_rtToAppOverflowBuffer.empty()) {
+        Q_UNLIKELY_BRANCH;
+
+        // first write all pending commands from overflow buffer
+        bool written = m_rtToApp.produceOne([&] {
+            return std::move(m_rtToAppOverflowBuffer.front());
+        });
+        if (!written)
+            break;
+
+        m_rtToAppOverflowBuffer.pop_front();
+        emitNotification = true;
+    }
+
+    return emitNotification;
 }
 
 } // namespace QtMultimediaPrivate

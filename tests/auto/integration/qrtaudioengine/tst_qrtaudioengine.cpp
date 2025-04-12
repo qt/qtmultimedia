@@ -92,6 +92,7 @@ private slots:
     void play_and_stop_byPlaybackStatus();
 
     void play_validateDuration();
+    void visit_overloadCommandBuffers();
 
 private:
     // helpers
@@ -235,6 +236,32 @@ void tst_QRtAudioEngine::play_validateDuration()
 
     QCOMPARE_LT(lowerBound, voice->m_sampleCount);
     QCOMPARE_LT(voice->m_sampleCount, upperBound);
+}
+
+void tst_QRtAudioEngine::visit_overloadCommandBuffers()
+{
+    std::shared_ptr<QRtAudioEngine> engine = makeEngine();
+
+    auto voice = makeMockVoice(getFormat());
+    QSignalSpy finishedSpy(engine.get(), &QRtAudioEngine::voiceFinished);
+    engine->play(voice);
+
+    constexpr size_t commandCount = 16384; // 8 times the command buffer size
+
+    size_t iteration = 0;
+    auto refcountedDummyObject = std::make_shared<int>(0);
+    for (size_t i = 0; i < commandCount; ++i) {
+        engine->visitVoiceRt(
+                voice,
+                [&, payload = std::array<char, 128>{}, refcountedDummyObject](NullMockVoice &) {
+            Q_UNUSED(payload);
+            iteration += 1;
+        });
+    }
+
+    QTRY_COMPARE_EQ(iteration, commandCount); // all commands should have been executed
+    QTRY_COMPARE_EQ(refcountedDummyObject.use_count(),
+                    1); // all commands should have been destroyed on the app thread
 }
 
 QTEST_MAIN(tst_QRtAudioEngine)
