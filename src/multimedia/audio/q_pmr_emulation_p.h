@@ -25,6 +25,11 @@
 #  endif
 #endif
 
+#if defined(Q_OS_VXWORKS)
+// std::pmr::deque<variant> doesn't seem to compile on VxWorks, so we use our emulation
+#  define QT_MM_PMR_EMULATION
+#endif
+
 #if !__has_include(<memory_resource>)
 #  define QT_MM_PMR_EMULATION
 #endif
