@@ -1754,6 +1754,7 @@ void tst_QMediaPlayerBackend::play_playbackLastsForTheExpectedTime()
                 "QTBUG-133652: if we pause before play, setLoops may not be applied correctly");
 
     QMediaPlayer &player = m_fixture->player;
+    QSignalSpy mediaStatusSpy(&player, &QMediaPlayer::mediaStatusChanged);
 
     player.setSource(media);
 
@@ -1784,6 +1785,7 @@ void tst_QMediaPlayerBackend::play_playbackLastsForTheExpectedTime()
                                 .arg(round<milliseconds>(duration).count())));
 
     QCOMPARE_EQ(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QVERIFY(mediaStatusSpy.contains(QList{ QVariant::fromValue(QMediaPlayer::EndOfMedia) }));
 }
 
 void tst_QMediaPlayerBackend::play_playbackLastsForTheExpectedTime_data()
