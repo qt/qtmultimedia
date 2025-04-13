@@ -4,6 +4,7 @@
 #include <common/qgstreameraudiooutput_p.h>
 
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qversionnumber.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudiooutput.h>
 
