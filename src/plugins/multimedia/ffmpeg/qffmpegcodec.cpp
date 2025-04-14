@@ -3,7 +3,6 @@
 
 #include "qffmpegcodec_p.h"
 #include "qffmpeg_p.h"
-#include "qffmpegmediaformatinfo_p.h"
 
 #include <QtCore/qloggingcategory.h>
 
