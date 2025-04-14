@@ -18,7 +18,6 @@
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 
-#include <unordered_set>
 
 QT_BEGIN_NAMESPACE
 
