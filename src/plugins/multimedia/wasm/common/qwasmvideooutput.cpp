@@ -240,53 +240,27 @@ void QWasmVideoOutput::updateVideoElementSource(const QString &src)
 void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
 {
     m_cameraIsReady = false;
-    emscripten::val navigator = emscripten::val::global("navigator");
-    emscripten::val mediaDevices = navigator["mediaDevices"];
 
-    if (mediaDevices.isNull() || mediaDevices.isUndefined()) {
-        qWarning() << "No media devices found";
-        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
-        return;
-    }
+    m_mediaInputStream.reset(new JsMediaInputStream());
 
-    qstdweb::PromiseCallbacks getUserMediaCallback{
-        .thenFunc =
-                [this](emscripten::val stream) {
-            qCDebug(qWasmMediaVideoOutput) << "getUserMediaSuccess";
+    m_mediaInputStream->setUseAudio(m_hasAudio);
+    m_mediaInputStream->setUseVideo(true);
 
-            m_video.set("srcObject", stream);
-            m_video.call<void>("load");
+    connect(m_mediaInputStream.get(), &JsMediaInputStream::mediaStreamReady, this,
+            [this]() {
+                qCDebug(qWasmMediaVideoOutput) << "mediaStreamReady";
 
-            m_cameraIsReady = true;
-            if (m_shouldBeStarted) {
-                start();
-                m_shouldBeStarted = false;
-            }
-        },
-        .catchFunc =
-                [](emscripten::val error) {
-            qCDebug(qWasmMediaVideoOutput)
-                    << "getUserMedia fail"
-                    << QString::fromStdString(error["name"].as<std::string>())
-                    << QString::fromStdString(error["message"].as<std::string>());
-        },
-        .finallyFunc = [] {}
-    };
+                m_video.set("srcObject", m_mediaInputStream->getMediaStream());
+                m_video.call<void>("load");
 
-    emscripten::val constraints = emscripten::val::object();
+                m_cameraIsReady = true;
+                if (m_shouldBeStarted) {
+                    start();
+                    m_shouldBeStarted = false;
+                }
+            });
 
-    constraints.set("audio", m_hasAudio);
-
-    emscripten::val videoContraints = emscripten::val::object();
-    emscripten::val exactDeviceId = emscripten::val::object();
-    exactDeviceId.set("exact", id);
-    videoContraints.set("deviceId", exactDeviceId);
-    videoContraints.set("resizeMode", std::string("crop-and-scale"));
-    constraints.set("video", videoContraints);
-
-    // we do it this way as this prompts user for mic/camera permissions
-    qstdweb::Promise::make(mediaDevices, QStringLiteral("getUserMedia"),
-                           std::move(getUserMediaCallback), constraints);
+    m_mediaInputStream->setStreamDevice(id);
 }
 
 void QWasmVideoOutput::setSource(QIODevice *stream)

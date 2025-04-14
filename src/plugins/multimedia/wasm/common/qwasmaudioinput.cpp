@@ -63,40 +63,21 @@ void QWasmAudioInput::setVolume(float volume)
 void QWasmAudioInput::setDeviceSourceStream(const std::string &id)
 {
     qCDebug(qWasmAudioInput) << Q_FUNC_INFO << id;
-    emscripten::val navigator = emscripten::val::global("navigator");
-    emscripten::val mediaDevices = navigator["mediaDevices"];
 
-    if (mediaDevices.isNull() || mediaDevices.isUndefined()) {
-        qWarning() << "No media devices found";
-        return;
-    }
+    m_mediaInputStream = new JsMediaInputStream();
 
-    qstdweb::PromiseCallbacks getUserMediaCallback{
-        // default
-        .thenFunc =
-                [this](emscripten::val stream) {
-                    qCDebug(qWasmAudioInput) << "getUserMediaSuccess";
-                    m_mediaStream = stream;
-                },
-        .catchFunc =
-                [](emscripten::val error) {
-                    qCDebug(qWasmAudioInput)
-                            << "addCameraSourceElement getUserMedia  fail"
-                            << QString::fromStdString(error["name"].as<std::string>())
-                            << QString::fromStdString(error["message"].as<std::string>());
-                }
-    };
+    m_mediaInputStream->setUseAudio(true);
+    m_mediaInputStream->setUseVideo(false);
 
-    emscripten::val constraints = emscripten::val::object();
-    constraints.set("audio", true);
-    if (!id.empty()) {
-        emscripten::val exactDeviceId = emscripten::val::object();
-        exactDeviceId.set("exact", id);
-        constraints.set("deviceId", exactDeviceId);
-    }
-    // we do it this way as this prompts user for mic permissions
-    qstdweb::Promise::make(mediaDevices, QStringLiteral("getUserMedia"),
-                           std::move(getUserMediaCallback), constraints);
+    connect(m_mediaInputStream, &JsMediaInputStream::mediaStreamReady, this,
+        [this]() {
+            qCDebug(qWasmAudioInput) << "mediaStreamReady";
+
+            m_mediaStream = m_mediaInputStream->getMediaStream();
+
+        });
+
+        m_mediaInputStream->setStreamDevice(id);
 }
 
 emscripten::val QWasmAudioInput::mediaStream()

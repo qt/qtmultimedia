@@ -18,6 +18,7 @@
 #include <private/qplatformaudiodevices_p.h>
 
 #include <private/qplatformvideodevices_p.h>
+#include "qwasmjs_p.h"
 
 #include <QtCore/private/qstdweb_p.h>
 #include <qaudio.h>

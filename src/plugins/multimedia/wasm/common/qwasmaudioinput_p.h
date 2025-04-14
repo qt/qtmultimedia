@@ -20,6 +20,7 @@
 
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qplatformaudioinput_p.h>
+#include "private/qwasmmediadevices_p.h"
 
 #include <emscripten.h>
 #include <emscripten/val.h>
@@ -50,6 +51,7 @@ private:
     bool m_wasMuted = false;
     void setDeviceSourceStream(const std::string &id);
     emscripten::val m_mediaStream;
+    JsMediaInputStream *m_mediaInputStream = nullptr;
 };
 
 QT_END_NAMESPACE

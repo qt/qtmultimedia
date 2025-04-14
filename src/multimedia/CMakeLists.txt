@@ -377,6 +377,8 @@ qt_internal_extend_target(Multimedia CONDITION WASM
         wasm/qwasmaudiosource.cpp wasm/qwasmaudiosource_p.h
         wasm/qwasmaudiosink.cpp wasm/qwasmaudiosink_p.h
         wasm/qwasmaudiodevice.cpp wasm/qwasmaudiodevice_p.h
+        wasm/qwasmjs.cpp wasm/qwasmjs_p.h
+
     INCLUDE_DIRECTORIES
         wasm
     PUBLIC_LIBRARIES
