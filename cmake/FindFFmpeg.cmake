@@ -279,9 +279,11 @@ endfunction()
 function(__ffmpeg_internal_set_dependencies _component)
     string(TOLOWER ${_component} lib)
 
-    # The pkgconfig directory is always in lib/pkgconfig/, even on Windows
-    # where libs and dlls are in bin/
-    set(PC_FILE ${${_component}_LIBRARY_DIR}/../lib/pkgconfig/lib${lib}.pc)
+    if (WIN32)
+        set(PC_FILE ${${_component}_LIBRARY_DIR}/../lib/pkgconfig/lib${lib}.pc)
+    else()
+        set(PC_FILE ${${_component}_LIBRARY_DIR}/pkgconfig/lib${lib}.pc)
+    endif()
 
     if(EXISTS ${PC_FILE})
         file(READ ${PC_FILE} pcfile)
