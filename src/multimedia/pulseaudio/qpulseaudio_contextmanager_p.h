@@ -59,8 +59,16 @@ public:
 
     bool waitForAsyncOperation(pa_operation *op);
 
+    bool isInMainLoop() const
+    {
+        return m_mainLoop && pa_threaded_mainloop_in_thread(m_mainLoop.get());
+    }
+
     QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
     QByteArray defaultDevice(QAudioDevice::Mode mode) const;
+
+    pa_context_state_t getContextState();
+    bool contextIsGood();
 
 Q_SIGNALS:
     void contextFailed();
