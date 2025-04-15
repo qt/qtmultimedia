@@ -933,8 +933,13 @@ QMediaRecorder::Quality QMediaRecorder::quality() const
 void QMediaRecorder::setQuality(Quality quality)
 {
     Q_D(QMediaRecorder);
+
+    quality = std::clamp(quality, QMediaRecorder::Quality::VeryLowQuality,
+                         QMediaRecorder::Quality::VeryHighQuality);
+
     if (d->encoderSettings.quality() == quality)
         return;
+
     d->encoderSettings.setQuality(quality);
     emit qualityChanged();
 }
