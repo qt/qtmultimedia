@@ -9,8 +9,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QQnxAudioSource::QQnxAudioSource(QAudioDevice device, QObject *parent)
-    : QPlatformAudioSource(std::move(device), parent),
+QQnxAudioSource::QQnxAudioSource(QAudioDevice device, const QAudioFormat &format, QObject *parent)
+    : QPlatformAudioSource(std::move(device), format, parent),
       m_audioSource(0),
       m_pcmNotifier(0),
       m_state(QAudio::StoppedState),
@@ -138,17 +138,6 @@ qint64 QQnxAudioSource::processedUSecs() const
 QAudio::State QQnxAudioSource::state() const
 {
     return m_state;
-}
-
-void QQnxAudioSource::setFormat(const QAudioFormat &format)
-{
-    if (m_state == QAudio::StoppedState)
-        m_format = format;
-}
-
-QAudioFormat QQnxAudioSource::format() const
-{
-    return m_format;
 }
 
 void QQnxAudioSource::setVolume(float volume)

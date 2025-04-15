@@ -39,7 +39,7 @@ class QPulseAudioSource : public QPlatformAudioSource
     Q_OBJECT
 
 public:
-    QPulseAudioSource(QAudioDevice device, QObject *parent);
+    QPulseAudioSource(QAudioDevice device, const QAudioFormat &, QObject *parent);
     ~QPulseAudioSource() override;
 
     qint64 read(char *data, qint64 len);
@@ -55,15 +55,12 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &format);
-    QAudioFormat format() const override;
 
     void setVolume(float volume) override;
     float volume() const override;
 
     qint64 m_totalTimeValue;
     QIODevice *m_audioSource;
-    QAudioFormat m_format;
     float m_volume;
 
 protected:

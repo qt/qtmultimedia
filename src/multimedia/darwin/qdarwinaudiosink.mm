@@ -356,7 +356,7 @@ void QCoreAudioSinkStream::removeDisconnectListener()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 QDarwinAudioSink::QDarwinAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent)
-    : QPlatformAudioSink(std::move(device), parent), m_audioFormat(format)
+    : QPlatformAudioSink(std::move(device), format, parent)
 {
 #ifndef Q_OS_MACOS
     if (qGuiApp)
@@ -380,9 +380,8 @@ void QDarwinAudioSink::start(QIODevice *device)
         return;
     }
 
-    m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_audioFormat,
-                                                      m_internalBufferSize, this, m_volume,
-                                                      m_hardwareBufferFrames);
+    m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_format, m_internalBufferSize,
+                                                      this, m_volume, m_hardwareBufferFrames);
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
@@ -396,9 +395,8 @@ void QDarwinAudioSink::start(QIODevice *device)
 
 QIODevice *QDarwinAudioSink::start()
 {
-    m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_audioFormat,
-                                                      m_internalBufferSize, this, m_volume,
-                                                      m_hardwareBufferFrames);
+    m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_format, m_internalBufferSize,
+                                                      this, m_volume, m_hardwareBufferFrames);
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
@@ -467,7 +465,7 @@ qsizetype QDarwinAudioSink::bufferSize() const
         return m_stream->ringbufferSizeInBytes();
 
     return QtMultimediaPrivate::QPlatformAudioIOStream::inferRingbufferBytes(
-            m_internalBufferSize, m_hardwareBufferFrames, m_audioFormat);
+            m_internalBufferSize, m_hardwareBufferFrames, format());
 }
 
 void QDarwinAudioSink::setHardwareBufferFrames(int32_t arg)
@@ -491,11 +489,6 @@ qint64 QDarwinAudioSink::processedUSecs() const
     return 0;
 }
 
-QAudioFormat QDarwinAudioSink::format() const
-{
-    return m_audioFormat;
-}
-
 void QDarwinAudioSink::setVolume(float volume)
 {
     m_volume = volume;
@@ -511,14 +504,13 @@ float QDarwinAudioSink::volume() const
 void QDarwinAudioSink::start(AudioCallback &&audioCallback)
 {
     using namespace QtMultimediaPrivate;
-    if (!validateAudioSinkCallback(audioCallback, m_audioFormat)) {
+    if (!validateAudioSinkCallback(audioCallback, m_format)) {
         setError(QAudio::OpenError);
         return;
     }
 
-    m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_audioFormat,
-                                                      m_internalBufferSize, this, m_volume,
-                                                      m_hardwareBufferFrames);
+    m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_format, m_internalBufferSize,
+                                                      this, m_volume, m_hardwareBufferFrames);
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);

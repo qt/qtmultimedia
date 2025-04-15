@@ -38,7 +38,7 @@ class QPulseAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    QPulseAudioSink(QAudioDevice device, QObject *parent);
+    QPulseAudioSink(QAudioDevice, const QAudioFormat &, QObject *parent);
     ~QPulseAudioSink() override;
 
     void start(QIODevice *device) override;
@@ -52,8 +52,6 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &format);
-    QAudioFormat format() const override;
 
     void setVolume(float volume) override;
     float volume() const override;
@@ -90,7 +88,6 @@ private:
     mutable QList<qint64> latencyList; // last latency values
 
     QByteArray m_streamName;
-    QAudioFormat m_format;
     QBasicTimer m_tickTimer;
 
     QIODevice *m_audioSource = nullptr;

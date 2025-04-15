@@ -29,7 +29,7 @@ class QAndroidAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    QAndroidAudioSink(QAudioDevice device, QObject *parent);
+    QAndroidAudioSink(QAudioDevice device, const QAudioFormat &, QObject *parent);
     ~QAndroidAudioSink();
 
     void start(QIODevice *device) override;
@@ -43,8 +43,6 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &format);
-    QAudioFormat format() const override;
 
     void setVolume(float volume) override;
     float volume() const override;
@@ -93,7 +91,6 @@ private:
     bool m_startRequiresInit = true;
 
     qint32 m_streamType;
-    QAudioFormat m_format;
 };
 
 class SLIODevicePrivate : public QIODevice

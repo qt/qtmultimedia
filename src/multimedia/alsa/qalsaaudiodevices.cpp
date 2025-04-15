@@ -115,18 +115,14 @@ QPlatformAudioSource *QAlsaAudioDevices::createAudioSource(const QAudioDevice &d
                                                            const QAudioFormat &fmt,
                                                            QObject *parent)
 {
-    auto ret = new QAlsaAudioSource(deviceInfo, parent);
-    ret->setFormat(fmt);
-    return ret;
+    return new QAlsaAudioSource(deviceInfo, fmt, parent);
 }
 
 QPlatformAudioSink *QAlsaAudioDevices::createAudioSink(const QAudioDevice &deviceInfo,
                                                        const QAudioFormat &fmt,
                                                        QObject *parent)
 {
-    auto ret = new QAlsaAudioSink(deviceInfo, parent);
-    ret->setFormat(fmt);
-    return ret;
+    return new QAlsaAudioSink(deviceInfo, fmt, parent);
 }
 
 QT_END_NAMESPACE

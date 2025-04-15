@@ -56,8 +56,8 @@ void QWasmAudioSource::writeBuffer()
     m_device->write(m_tmpData,bytes);
 }
 
-QWasmAudioSource::QWasmAudioSource(QAudioDevice device, QObject *parent)
-    : QPlatformAudioSource(std::move(device), parent), m_timer(new QTimer(this))
+QWasmAudioSource::QWasmAudioSource(QAudioDevice device, const QAudioFormat &fmt, QObject *parent)
+    : QPlatformAudioSource(std::move(device), fmt, parent), m_timer(new QTimer(this))
 {
     if (device.id().contains("Emscripten")) {
         aldata = new ALData();
@@ -69,6 +69,7 @@ QWasmAudioSource::QWasmAudioSource(QAudioDevice device, QObject *parent)
                 emit m_device->readyRead();
         });
     }
+    m_bufferSize = m_format.bytesForDuration(DEFAULT_BUFFER_DURATION);
 }
 
 void QWasmAudioSource::start(QIODevice *device)
@@ -241,17 +242,6 @@ QAudio::State QWasmAudioSource::state() const
         return QAudio::ActiveState;
     else
         return QAudio::StoppedState;
-}
-
-void QWasmAudioSource::setFormat(const QAudioFormat &fmt)
-{
-    m_format = fmt;
-    m_bufferSize = m_format.bytesForDuration(DEFAULT_BUFFER_DURATION);
-}
-
-QAudioFormat QWasmAudioSource::format() const
-{
-    return m_format;
 }
 
 void QWasmAudioSource::setVolume(float volume)

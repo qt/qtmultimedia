@@ -31,7 +31,6 @@ class QWasmAudioSink : public QPlatformAudioSink
     ALData *aldata = nullptr;
     QTimer *m_timer = nullptr;
     QIODevice *m_device = nullptr;
-    QAudioFormat m_format;
     bool m_running = false;
     QAudio::State m_state = QAudio::StoppedState;
     QAudio::State m_suspendedInState = QAudio::SuspendedState;
@@ -56,7 +55,7 @@ private slots:
     void updateState();
 
 public:
-    QWasmAudioSink(QAudioDevice device, QObject *parent);
+    QWasmAudioSink(QAudioDevice, const QAudioFormat &, QObject *parent);
     ~QWasmAudioSink();
 
 public:
@@ -72,8 +71,6 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &fmt);
-    QAudioFormat format() const override;
     void setVolume(float volume) override;
     float volume() const override;
     void setError(QAudio::Error) override;

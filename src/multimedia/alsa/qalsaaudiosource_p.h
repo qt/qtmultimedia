@@ -62,7 +62,7 @@ class QAlsaAudioSource : public QPlatformAudioSource
 {
     Q_OBJECT
 public:
-    QAlsaAudioSource(QAudioDevice device, QObject *parent);
+    QAlsaAudioSource(QAudioDevice device, const QAudioFormat &, QObject *parent);
     ~QAlsaAudioSource();
 
     qint64 read(char* data, qint64 len);
@@ -78,15 +78,12 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat& fmt);
-    QAudioFormat format() const override;
     void setVolume(float) override;
     float volume() const override;
     bool resuming;
     snd_pcm_t* handle;
     qint64 totalTimeValue;
     QIODevice* audioSource;
-    QAudioFormat settings;
     QAudio::State deviceState;
 
 private slots:
