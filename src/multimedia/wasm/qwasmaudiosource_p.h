@@ -30,7 +30,6 @@ class QWasmAudioSource : public QPlatformAudioSource
     ALData *aldata = nullptr;
     QTimer *m_timer = nullptr;
     QIODevice *m_device = nullptr;
-    QAudioFormat m_format;
     float m_volume = 1;
     qsizetype m_bufferSize;
     bool m_running = false;
@@ -43,7 +42,7 @@ class QWasmAudioSource : public QPlatformAudioSource
 
     void writeBuffer();
 public:
-    QWasmAudioSource(QAudioDevice device, QObject *parent);
+    QWasmAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
 
 public:
     void start(QIODevice *device) override;
@@ -58,8 +57,6 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &fmt);
-    QAudioFormat format() const override;
     void setVolume(float volume) override;
     float volume() const override;
 

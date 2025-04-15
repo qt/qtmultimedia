@@ -25,7 +25,7 @@ class QWindowsAudioSink final : public QPlatformAudioSink
 {
     Q_OBJECT
 public:
-    QWindowsAudioSink(QAudioDevice, const QAudioFormat &fmt, QObject *parent);
+    QWindowsAudioSink(QAudioDevice, const QAudioFormat &, QObject *parent);
     ~QWindowsAudioSink();
 
     QIODevice* start() override;
@@ -42,7 +42,6 @@ public:
     qint64 processedUSecs() const override;
     void setVolume(float) override;
     float volume() const override { return m_volume; }
-    QAudioFormat format() const override;
 
     void setRole(AudioEndpointRole) override;
 
@@ -53,7 +52,6 @@ private:
     friend QtMultimediaPrivate::QPlatformAudioSinkStream;
     friend struct QWASAPIAudioSinkStream;
 
-    const QAudioFormat m_format;
     std::optional<qsizetype> m_bufferSize;
     std::optional<int32_t> m_hardwareBufferFrames;
 

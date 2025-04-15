@@ -327,7 +327,7 @@ void QCoreAudioSourceStream::removeDisconnectListener()
 
 QDarwinAudioSource::QDarwinAudioSource(QAudioDevice device, const QAudioFormat &format,
                                        QObject *parent)
-    : QPlatformAudioSource(std::move(device), parent), m_audioFormat(format)
+    : QPlatformAudioSource(std::move(device), format, parent)
 {
 #ifndef Q_OS_MACOS
     if (qGuiApp)
@@ -352,9 +352,8 @@ void QDarwinAudioSource::start(QIODevice *device)
         return;
     }
 
-    m_stream = std::make_shared<QCoreAudioSourceStream>(m_audioDevice, m_audioFormat,
-                                                        m_internalBufferSize, this, m_volume,
-                                                        m_hardwareBufferFrames);
+    m_stream = std::make_shared<QCoreAudioSourceStream>(
+            m_audioDevice, m_format, m_internalBufferSize, this, m_volume, m_hardwareBufferFrames);
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
@@ -368,9 +367,8 @@ void QDarwinAudioSource::start(QIODevice *device)
 
 QIODevice *QDarwinAudioSource::start()
 {
-    m_stream = std::make_shared<QCoreAudioSourceStream>(m_audioDevice, m_audioFormat,
-                                                        m_internalBufferSize, this, m_volume,
-                                                        m_hardwareBufferFrames);
+    m_stream = std::make_shared<QCoreAudioSourceStream>(
+            m_audioDevice, m_format, m_internalBufferSize, this, m_volume, m_hardwareBufferFrames);
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
@@ -447,7 +445,7 @@ qsizetype QDarwinAudioSource::bufferSize() const
         return m_stream->ringbufferSizeInBytes();
 
     return QtMultimediaPrivate::QPlatformAudioIOStream::inferRingbufferBytes(
-            m_internalBufferSize, m_hardwareBufferFrames, m_audioFormat);
+            m_internalBufferSize, m_hardwareBufferFrames, format());
 }
 
 void QDarwinAudioSource::setHardwareBufferFrames(int32_t arg)
@@ -466,11 +464,6 @@ int32_t QDarwinAudioSource::hardwareBufferFrames()
 qint64 QDarwinAudioSource::processedUSecs() const
 {
     return m_stream ? m_stream->processedDuration().count() : 0;
-}
-
-QAudioFormat QDarwinAudioSource::format() const
-{
-    return m_audioFormat;
 }
 
 void QDarwinAudioSource::setVolume(float volume)

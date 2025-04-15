@@ -10,8 +10,8 @@ QT_BEGIN_NAMESPACE
 
 //#define DEBUG_AUDIO 1
 
-QAlsaAudioSource::QAlsaAudioSource(QAudioDevice device, QObject *parent)
-    : QPlatformAudioSource(std::move(device), parent)
+QAlsaAudioSource::QAlsaAudioSource(QAudioDevice device, const QAudioFormat &fmt, QObject *parent)
+    : QPlatformAudioSource(std::move(device), fmt, parent)
 {
     bytesAvailable = 0;
     handle = 0;
@@ -53,17 +53,6 @@ float QAlsaAudioSource::volume() const
 QAudio::State QAlsaAudioSource::state() const
 {
     return deviceState;
-}
-
-void QAlsaAudioSource::setFormat(const QAudioFormat& fmt)
-{
-    if (deviceState == QAudio::StoppedState)
-        settings = fmt;
-}
-
-QAudioFormat QAlsaAudioSource::format() const
-{
-    return settings;
 }
 
 int QAlsaAudioSource::xrun_recovery(int err)
@@ -116,7 +105,7 @@ int QAlsaAudioSource::setFormat()
 {
     snd_pcm_format_t pcmformat = SND_PCM_FORMAT_UNKNOWN;
 
-    switch (settings.sampleFormat()) {
+    switch (m_format.sampleFormat()) {
     case QAudioFormat::UInt8:
         pcmformat = SND_PCM_FORMAT_U8;
         break;
@@ -210,7 +199,7 @@ bool QAlsaAudioSource::open()
     int dir;
     int err = -1;
     int count=0;
-    unsigned int sampleRate=settings.sampleRate();
+    unsigned int sampleRate=m_format.sampleRate();
 
     // Step 1: try and open the device
     while((count < 5) && (err < 0)) {
@@ -260,7 +249,7 @@ bool QAlsaAudioSource::open()
         }
     }
     if ( !fatal ) {
-        err = snd_pcm_hw_params_set_channels( handle, hwparams, (unsigned int)settings.channelCount() );
+        err = snd_pcm_hw_params_set_channels( handle, hwparams, (unsigned int)m_format.channelCount() );
         if ( err < 0 ) {
             fatal = true;
             errMessage = QString::fromLatin1("QAudioSource: snd_pcm_hw_params_set_channels: err = %1").arg(err);
@@ -426,7 +415,7 @@ qint64 QAlsaAudioSource::read(char* data, qint64 len)
             int readFrames = snd_pcm_readi(handle, buffer.data(), frames);
             bytesRead = snd_pcm_frames_to_bytes(handle, readFrames);
             if (m_volume < 1.0f)
-                QAudioHelperInternal::qMultiplySamples(m_volume, settings,
+                QAudioHelperInternal::qMultiplySamples(m_volume, m_format,
                                                        buffer.constData(),
                                                        buffer.data(), bytesRead);
 
@@ -564,8 +553,8 @@ qsizetype QAlsaAudioSource::bufferSize() const
 qint64 QAlsaAudioSource::processedUSecs() const
 {
     qint64 result = qint64(1000000) * totalTimeValue /
-        settings.bytesPerFrame() /
-        settings.sampleRate();
+        m_format.bytesPerFrame() /
+        m_format.sampleRate();
 
     return result;
 }

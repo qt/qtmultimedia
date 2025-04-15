@@ -82,10 +82,6 @@ protected:
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
 
-    // format
-    QAudioFormat format() const override;
-    const QAudioFormat m_format;
-
     // volume
     float m_volume = 1.0f;
     void setVolume(float volume) override;
@@ -102,22 +98,15 @@ protected:
 };
 
 DECLARE_TEMPLATE_ARGS
-inline QPipewireAudioIOBase<BaseClass, StreamType>::
-QPipewireAudioIOBase(QAudioDevice device, const QAudioFormat &format, QObject *parent):
-    BaseClass{
-        std::move(device),
-        parent,
-    },
-    m_format {
-        format,
-    }
+inline QPipewireAudioIOBase<BaseClass, StreamType>::QPipewireAudioIOBase(QAudioDevice device,
+                                                                         const QAudioFormat &format,
+                                                                         QObject *parent)
+    : BaseClass{
+          std::move(device),
+          format,
+          parent,
+      }
 {
-}
-
-DECLARE_TEMPLATE_ARGS
-inline QAudioFormat QPipewireAudioIOBase<BaseClass, StreamType>::format() const
-{
-    return m_format;
 }
 
 DECLARE_TEMPLATE_ARGS
@@ -134,7 +123,8 @@ inline qsizetype QPipewireAudioIOBase<BaseClass, StreamType>::bufferSize() const
 {
     if (m_stream)
         return m_stream->ringbufferSizeInBytes();
-    return StreamType::inferRingbufferBytes(m_bufferSize, m_hardwareBufferFrames, m_format);
+    return StreamType::inferRingbufferBytes(m_bufferSize, m_hardwareBufferFrames,
+                                            BaseClass::format());
 }
 
 DECLARE_TEMPLATE_ARGS

@@ -11,8 +11,9 @@ QT_BEGIN_NAMESPACE
 
 QAudioStateChangeNotifier::QAudioStateChangeNotifier(QObject *parent) : QObject(parent) { }
 
-QPlatformAudioEndpointBase::QPlatformAudioEndpointBase(QAudioDevice device, QObject *parent)
-    : QAudioStateChangeNotifier{ parent }, m_audioDevice{ std::move(device) }
+QPlatformAudioEndpointBase::QPlatformAudioEndpointBase(QAudioDevice device,
+                                                       const QAudioFormat &format, QObject *parent)
+    : QAudioStateChangeNotifier{ parent }, m_audioDevice{ std::move(device) }, m_format{ format }
 {
     connect(this, &QAudioStateChangeNotifier::errorChanged, this, [this](QAudio::Error err) {
         setError(err);
@@ -84,8 +85,9 @@ void QPlatformAudioEndpointBase::inferState()
         emit stateChanged(m_inferredState);
 }
 
-QPlatformAudioSink::QPlatformAudioSink(QAudioDevice device, QObject *parent)
-    : QPlatformAudioEndpointBase(std::move(device), parent)
+QPlatformAudioSink::QPlatformAudioSink(QAudioDevice device, const QAudioFormat &format,
+                                       QObject *parent)
+    : QPlatformAudioEndpointBase(std::move(device), format, parent)
 {
 }
 
@@ -99,8 +101,9 @@ QPlatformAudioSink *QPlatformAudioSink::get(const QAudioSink &sink)
     return sink.d;
 }
 
-QPlatformAudioSource::QPlatformAudioSource(QAudioDevice device, QObject *parent)
-    : QPlatformAudioEndpointBase(std::move(device), parent)
+QPlatformAudioSource::QPlatformAudioSource(QAudioDevice device, const QAudioFormat &format,
+                                           QObject *parent)
+    : QPlatformAudioEndpointBase(std::move(device), format, parent)
 {
 }
 
