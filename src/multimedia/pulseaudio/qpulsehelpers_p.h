@@ -59,6 +59,13 @@ using PAOperationHandle = QtPrivate::QSharedHandle<PAOperationHandleTraits>;
 using PAContextHandle = QtPrivate::QSharedHandle<PAContextHandleTraits>;
 using PAStreamHandle = QtPrivate::QSharedHandle<PAStreamHandleTraits>;
 
+struct PAProplistDeleter
+{
+    void operator()(pa_proplist *propList) { pa_proplist_free(propList); }
+};
+
+using PAProplistHandle = std::unique_ptr<pa_proplist, PAProplistDeleter>;
+
 struct PaMainLoopDeleter
 {
     void operator()(pa_threaded_mainloop *m) const { pa_threaded_mainloop_free(m); }
