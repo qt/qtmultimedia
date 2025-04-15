@@ -50,13 +50,18 @@ static bool isPipewireBackend()
     return QPlatformMediaIntegration::audioBackendName() == "PipeWire";
 }
 
+static bool isPulseAudioBackend()
+{
+    return QPlatformMediaIntegration::audioBackendName() == "PulseAudio";
+}
+
 static bool underrunIsAnError()
 {
 #ifdef Q_OS_APPLE
     return false;
 #endif
 
-    return !isPipewireBackend();
+    return !(isPipewireBackend() || isPulseAudioBackend());
 }
 
 class tst_QAudioSink : public QObject

@@ -1,0 +1,19 @@
+# QTBUG-137343
+[play_playbackLastsForTheExpectedTime]
+rhel-8.10 ci
+
+# QTBUG-137343
+[multiplePlaybackRateChangingStressTest]
+rhel-8.10 ci
+
+# QTBUG-137343
+[setPlaybackRate_changesActualRateAndFramesRenderingTime]
+rhel-8.10 ci
+
+# QTBUG-137343
+[stop_setsPositionToZero_afterPlayingToEndOfMedia]
+rhel-8.10 ci
+
+# QTBUG-137343
+[setActiveSubtitleTrack_switchesSubtitles]
+rhel-8.10 ci
