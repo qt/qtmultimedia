@@ -121,6 +121,42 @@ static void apply_libvpx(const QMediaEncoderSettings &settings, AVCodecContext *
     av_dict_set(opts, "row-mt", "1", 0); // better multithreading
 }
 
+static void apply_mpeg4(const QMediaEncoderSettings &settings, AVCodecContext *codec,
+                        AVDictionary **opts)
+{
+    // compare https://trac.ffmpeg.org/wiki/Encode/MPEG-4
+
+    QMediaRecorder::EncodingMode encodingMode = settings.encodingMode();
+    switch (encodingMode) {
+    case QMediaRecorder::ConstantBitRateEncoding:
+    case QMediaRecorder::QMediaRecorder::AverageBitRateEncoding: {
+        codec->bit_rate = settings.videoBitRate();
+        if (encodingMode == QMediaRecorder::ConstantBitRateEncoding)
+            codec->rc_min_rate = codec->rc_max_rate = settings.videoBitRate();
+
+        break;
+    }
+    case QMediaRecorder::ConstantQualityEncoding: {
+        constexpr auto scales = std::array{
+            31, // VeryLowQuality
+            23, // LowQuality
+            16, // NormalQuality
+            9, // HighQuality
+            1, // VeryHighQuality
+        };
+        av_dict_set_int(opts, "qscale", scales[settings.quality()], 0);
+        break;
+    }
+    case QMediaRecorder::TwoPassEncoding: {
+        qWarning("Two pass encoding is not supported for MPEG4");
+        break;
+    }
+    default: {
+        Q_UNREACHABLE_RETURN();
+    }
+    }
+}
+
 #ifdef Q_OS_DARWIN
 static void apply_videotoolbox(const QMediaEncoderSettings &settings, AVCodecContext *codec, AVDictionary **opts)
 {
@@ -314,6 +350,7 @@ const struct {
                               { "h264_nvenc", apply_nvenc },
                               { "hevc_nvenc", apply_nvenc },
                               { "av1_nvenc", apply_nvenc },
+                              { "mpeg4", apply_mpeg4 },
 #ifdef Q_OS_DARWIN
                               { "h264_videotoolbox", apply_videotoolbox },
                               { "hevc_videotoolbox", apply_videotoolbox },
