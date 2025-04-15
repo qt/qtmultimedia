@@ -579,4 +579,15 @@ QByteArray QPulseAudioContextManager::defaultDevice(QAudioDevice::Mode mode) con
     return (mode == QAudioDevice::Output) ? m_defaultSink : m_defaultSource;
 }
 
+pa_context_state_t QPulseAudioContextManager::getContextState()
+{
+    auto lock = std::unique_lock{ *this };
+    return pa_context_get_state(m_context.get());
+}
+
+bool QPulseAudioContextManager::contextIsGood()
+{
+    return PA_CONTEXT_IS_GOOD(getContextState());
+}
+
 QT_END_NAMESPACE

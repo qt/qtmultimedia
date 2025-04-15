@@ -45,13 +45,18 @@ public:
     bool signalEnd = false;
 };
 
-bool underrunIsAnError()
+static bool isPulseAudioBackend()
+{
+    return QPlatformMediaIntegration::audioBackendName() == "PulseAudio";
+}
+
+static bool underrunIsAnError()
 {
 #ifdef Q_OS_APPLE
     return false;
 #endif
 
-    return true;
+    return !(isPulseAudioBackend());
 }
 
 class tst_QAudioSink : public QObject
