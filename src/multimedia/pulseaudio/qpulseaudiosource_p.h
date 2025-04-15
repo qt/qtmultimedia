@@ -12,34 +12,26 @@
 // We mean it.
 //
 
-#ifndef QAUDIOINPUTPULSE_H
-#define QAUDIOINPUTPULSE_H
+#ifndef QPULSEAUDIOSOURCE_P_H
+#define QPULSEAUDIOSOURCE_P_H
 
-#include <QtCore/qfile.h>
-#include <QtCore/qtimer.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qelapsedtimer.h>
-#include <QtCore/qiodevice.h>
+#include <QtCore/qtclasshelpermacros.h>
 
-#include "qaudio.h"
-#include "qaudiodevice.h"
-#include <QtMultimedia/private/qpulsehelpers_p.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
-#include <QtMultimedia/private/qaudiostatemachine_p.h>
-
-#include <pulse/pulseaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class PulseInputPrivate;
+namespace QPulseAudioInternal {
+struct QPulseAudioSourceStream;
+} // namespace QPulseAudioInternal
 
-class QPulseAudioSource : public QPlatformAudioSource
+class QPulseAudioSource final : public QPlatformAudioSource
 {
-    Q_OBJECT
-
 public:
     QPulseAudioSource(QAudioDevice device, const QAudioFormat &, QObject *parent);
+    Q_DISABLE_COPY_MOVE(QPulseAudioSource)
     ~QPulseAudioSource() override;
 
     qint64 read(char *data, qint64 len);
@@ -54,60 +46,21 @@ public:
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
-    QAudio::State state() const override;
-
-    qint64 m_totalTimeValue;
-    QIODevice *m_audioSource;
-
-protected:
-    void timerEvent(QTimerEvent *event) override;
-
-private slots:
-    void userFeed();
-    void onPulseContextFailed();
 
 private:
-    void applyVolume(const void *src, void *dest, int len) const;
+    using QPulseAudioSourceStream = QPulseAudioInternal::QPulseAudioSourceStream;
+    friend QtMultimediaPrivate::QPlatformAudioSourceStream;
+    friend QPulseAudioSourceStream;
+    std::shared_ptr<QPulseAudioSourceStream> m_stream;
+    std::shared_ptr<QPulseAudioSourceStream> m_retiredStream;
 
-    bool open();
-    void close();
+    std::optional<qsizetype> m_bufferSize;
+    std::optional<qsizetype> m_hardwareBufferFrames;
 
-    using PAOperationHandle = QPulseAudioInternal::PAOperationHandle;
-    using PAStreamHandle = QPulseAudioInternal::PAStreamHandle;
-
-    bool m_pullMode;
-    bool m_opened;
-    int m_bufferSize;
-    int m_periodSize;
-    unsigned int m_periodTime;
-    QBasicTimer m_timer;
-    qint64 m_elapsedTimeOffset;
-    PAStreamHandle m_stream;
-    QByteArray m_streamName;
-    QByteArray m_tempBuffer;
-    pa_sample_spec m_spec;
-
-    QAudioStateMachine m_stateMachine;
-
-};
-
-class PulseInputPrivate : public QIODevice
-{
-    Q_OBJECT
-public:
-    PulseInputPrivate(QPulseAudioSource *audio);
-    ~PulseInputPrivate() override = default;
-
-    qint64 bytesAvailable() const override;
-    qint64 readData(char *data, qint64 len) override;
-    qint64 writeData(const char *data, qint64 len) override;
-
-    void trigger();
-
-private:
-    QPulseAudioSource *m_audioDevice;
+    template <typename Functor>
+    void startHelper(Functor &&starter);
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QPULSEAUDIOSOURCE_P_H
