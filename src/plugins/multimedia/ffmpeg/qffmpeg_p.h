@@ -314,6 +314,8 @@ std::string cvFormatToString(uint32_t format);
 } // namespace QFFmpeg
 
 QDebug operator<<(QDebug, const AVRational &);
+QDebug operator<<(QDebug, const AVDictionary &);
+QDebug operator<<(QDebug, const QFFmpeg::AVDictionaryHolder &);
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 QDebug operator<<(QDebug, const AVChannelLayout &);

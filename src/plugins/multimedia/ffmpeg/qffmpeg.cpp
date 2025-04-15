@@ -3,8 +3,9 @@
 
 #include "qffmpeg_p.h"
 
-#include <qdebug.h>
-#include <qloggingcategory.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qscopeguard.h>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -339,6 +340,30 @@ QDebug operator<<(QDebug dbg, const AVRational &value)
 {
     dbg << value.num << "/" << value.den;
     return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const AVDictionary &dict)
+{
+    char *buffer = 0;
+    auto freeBuffer = QScopeGuard([&] {
+        std::free(buffer);
+    });
+
+    int status = av_dict_get_string(&dict, &buffer, '=', ',');
+    if (status < 0 || !buffer)
+        return dbg << "Failed to print AVDictionary";
+
+    dbg << buffer;
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const QFFmpeg::AVDictionaryHolder &dict)
+{
+    const AVDictionary *rawDict = dict.opts;
+    if (rawDict)
+        return dbg << *rawDict;
+    else
+        return dbg << "Empty AVDictionaryHolder";
 }
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
