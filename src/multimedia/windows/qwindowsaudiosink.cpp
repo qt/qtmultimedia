@@ -410,7 +410,7 @@ void QWASAPIAudioSinkStream::handleAudioClientError()
 
 QWindowsAudioSink::QWindowsAudioSink(QAudioDevice audioDevice, const QAudioFormat &fmt,
                                      QObject *parent)
-    : QPlatformAudioSink(std::move(audioDevice), parent), m_format(fmt)
+    : QPlatformAudioSink(std::move(audioDevice), fmt, parent)
 {
 }
 
@@ -546,11 +546,6 @@ void QWindowsAudioSink::setVolume(float v)
     m_volume = v;
     if (m_stream)
         m_stream->setVolume(v);
-}
-
-QAudioFormat QWindowsAudioSink::format() const
-{
-    return m_format;
 }
 
 void QWindowsAudioSink::setRole(AudioEndpointRole role)

@@ -204,18 +204,13 @@ void QWASAPIAudioSourceStream::handleAudioClientError()
 
 QWindowsAudioSource::QWindowsAudioSource(QAudioDevice audioDevice, const QAudioFormat &fmt,
                                          QObject *parent)
-    : QPlatformAudioSource(std::move(audioDevice), parent), m_format(fmt)
+    : QPlatformAudioSource(std::move(audioDevice), fmt, parent)
 {
 }
 
 QWindowsAudioSource::~QWindowsAudioSource()
 {
     stop();
-}
-
-QAudioFormat QWindowsAudioSource::format() const
-{
-    return m_format;
 }
 
 QIODevice *QWindowsAudioSource::start()

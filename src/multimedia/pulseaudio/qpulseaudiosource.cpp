@@ -90,8 +90,9 @@ static void inputStreamSuccessCallback(pa_stream *stream, int success, void *use
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
 
-QPulseAudioSource::QPulseAudioSource(QAudioDevice device, QObject *parent)
-    : QPlatformAudioSource(std::move(device), parent),
+QPulseAudioSource::QPulseAudioSource(QAudioDevice device, const QAudioFormat &format,
+                                     QObject *parent)
+    : QPlatformAudioSource(std::move(device), format, parent),
       m_totalTimeValue(0),
       m_audioSource(nullptr),
       m_volume(1.0f),
@@ -114,17 +115,6 @@ QPulseAudioSource::~QPulseAudioSource()
 QAudio::State QPulseAudioSource::state() const
 {
     return m_stateMachine.state();
-}
-
-void QPulseAudioSource::setFormat(const QAudioFormat &format)
-{
-    if (!m_stateMachine.isActiveOrIdle())
-        m_format = format;
-}
-
-QAudioFormat QPulseAudioSource::format() const
-{
-    return m_format;
 }
 
 void QPulseAudioSource::start(QIODevice *device)

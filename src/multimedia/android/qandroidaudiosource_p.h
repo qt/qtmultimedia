@@ -40,7 +40,7 @@ class QAndroidAudioSource : public QPlatformAudioSource
     Q_OBJECT
 
 public:
-    QAndroidAudioSource(QAudioDevice device, QObject *parent);
+    QAndroidAudioSource(QAudioDevice device, const QAudioFormat &, QObject *parent);
     ~QAndroidAudioSource();
 
     void start(QIODevice *device);
@@ -54,8 +54,6 @@ public:
     qsizetype bufferSize() const;
     qint64 processedUSecs() const;
     QAudio::State state() const;
-    void setFormat(const QAudioFormat &format);
-    QAudioFormat format() const;
 
     void setVolume(float volume);
     float volume() const;
@@ -84,7 +82,6 @@ private:
     QIODevice *m_audioSource;
     QBuffer *m_bufferIODevice;
     QByteArray m_pushBuffer;
-    QAudioFormat m_format;
     QAudio::State m_deviceState;
     qint64 m_lastNotifyTime;
     float m_volume;

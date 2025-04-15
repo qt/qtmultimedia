@@ -36,7 +36,7 @@ class QQnxAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    explicit QQnxAudioSink(QAudioDevice deviceInfo, QObject *parent);
+    explicit QQnxAudioSink(QAudioDevice deviceInfo, const QAudioFormat &, QObject *parent);
     ~QQnxAudioSink();
 
     void start(QIODevice *source) override;
@@ -50,8 +50,6 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &format);
-    QAudioFormat format() const override;
     void setVolume(float volume) override;
     float volume() const override;
     qint64 pushData(const char *data, qint64 len);
@@ -82,7 +80,6 @@ private:
 
     QAudio::State m_state;
     QAudio::State m_suspendedInState;
-    QAudioFormat m_format;
     float m_volume;
     int m_periodSize;
 

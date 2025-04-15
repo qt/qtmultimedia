@@ -36,7 +36,7 @@ class QAlsaAudioSink : public QPlatformAudioSink
     friend class AlsaOutputPrivate;
     Q_OBJECT
 public:
-    QAlsaAudioSink(QAudioDevice device, QObject *parent);
+    QAlsaAudioSink(QAudioDevice device, const QAudioFormat &, QObject *parent);
     ~QAlsaAudioSink();
 
     qint64 write( const char *data, qint64 len );
@@ -52,13 +52,10 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat& fmt);
-    QAudioFormat format() const override;
     void setVolume(float) override;
     float volume() const override;
 
     QIODevice* audioSource = nullptr;
-    QAudioFormat settings;
     QAudio::Error errorState = QAudio::NoError;
     QAudio::State deviceState = QAudio::StoppedState;
     QAudio::State suspendedInState = QAudio::SuspendedState;

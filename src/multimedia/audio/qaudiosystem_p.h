@@ -163,7 +163,8 @@ signals:
 class Q_MULTIMEDIA_EXPORT QPlatformAudioEndpointBase : public QAudioStateChangeNotifier
 {
 public:
-    explicit QPlatformAudioEndpointBase(QAudioDevice, QObject *parent = nullptr);
+    explicit QPlatformAudioEndpointBase(QAudioDevice, const QAudioFormat &,
+                                        QObject *parent = nullptr);
 
     // LATER: can we devirtualize these functions
     QAudio::Error error() const { return m_error; }
@@ -171,6 +172,7 @@ public:
     virtual void setError(QAudio::Error);
 
     virtual bool isFormatSupported(const QAudioFormat &format) const;
+    QAudioFormat format() const { return m_format; }
 
 protected:
     enum class EmitStateSignal : uint8_t
@@ -183,6 +185,7 @@ protected:
     void updateStreamIdle(bool idle, EmitStateSignal = EmitStateSignal::True);
 
     const QAudioDevice m_audioDevice;
+    const QAudioFormat m_format;
 
 private:
     void inferState();
@@ -196,7 +199,7 @@ private:
 class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QPlatformAudioEndpointBase
 {
 public:
-    explicit QPlatformAudioSink(QAudioDevice, QObject *parent);
+    explicit QPlatformAudioSink(QAudioDevice, const QAudioFormat &, QObject *parent);
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;
@@ -209,7 +212,6 @@ public:
     virtual void setHardwareBufferFrames(int32_t) { };
     virtual int32_t hardwareBufferFrames() { return -1; };
     virtual qint64 processedUSecs() const = 0;
-    virtual QAudioFormat format() const = 0;
     virtual void setVolume(float) { }
     virtual float volume() const;
 
@@ -229,7 +231,7 @@ public:
 class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QPlatformAudioEndpointBase
 {
 public:
-    explicit QPlatformAudioSource(QAudioDevice, QObject *parent);
+    explicit QPlatformAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;
@@ -242,7 +244,6 @@ public:
     virtual int32_t hardwareBufferFrames() { return -1; };
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
-    virtual QAudioFormat format() const = 0;
     virtual void setVolume(float) = 0;
     virtual float volume() const = 0;
 

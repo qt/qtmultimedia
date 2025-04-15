@@ -27,10 +27,9 @@ class QWindowsAudioSource final : public QPlatformAudioSource
     Q_OBJECT
 
 public:
-    QWindowsAudioSource(QAudioDevice, const QAudioFormat &fmt, QObject *parent);
+    QWindowsAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
     ~QWindowsAudioSource();
 
-    QAudioFormat format() const override;
     QIODevice* start() override;
     void start(QIODevice* device) override;
     void stop() override;
@@ -50,7 +49,6 @@ private:
     friend struct QWASAPIAudioSourceStream;
     friend class QtMultimediaPrivate::QPlatformAudioSourceStream;
 
-    const QAudioFormat m_format;
     std::optional<qsizetype> m_bufferSize;
     std::optional<int32_t> m_hardwareBufferFrames;
 

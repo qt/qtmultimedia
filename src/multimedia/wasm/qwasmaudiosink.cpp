@@ -41,8 +41,8 @@ protected:
     qint64 writeData(const char *data, qint64 len) override;
 };
 
-QWasmAudioSink::QWasmAudioSink(QAudioDevice device, QObject *parent)
-    : QPlatformAudioSink(std::move(device), parent), m_timer(new QTimer(this))
+QWasmAudioSink::QWasmAudioSink(QAudioDevice device, const QAudioFormat &fmt, QObject *parent)
+    : QPlatformAudioSink(std::move(device), fmt, parent), m_timer(new QTimer(this))
 {
     m_timer->setSingleShot(false);
     aldata = new ALData();
@@ -55,6 +55,10 @@ QWasmAudioSink::QWasmAudioSink(QAudioDevice device, QObject *parent)
             updateState();
         }
     });
+
+    m_bufferFragmentSize = m_format.bytesForDuration(DEFAULT_BUFFER_DURATION);
+    m_bufferSize = m_bufferFragmentSize * m_bufferFragmentsCount;
+    m_tmpData = new char[m_bufferFragmentSize];
 }
 
 QWasmAudioSink::~QWasmAudioSink()
@@ -256,23 +260,6 @@ QAudio::State QWasmAudioSink::state() const
         return m_running ? QAudio::IdleState : QAudio::StoppedState;
     }
     return QAudio::StoppedState;
-}
-
-void QWasmAudioSink::setFormat(const QAudioFormat &fmt)
-{
-    if (m_running)
-        return;
-    m_format = fmt;
-    if (m_tmpData)
-        delete[] m_tmpData;
-    m_bufferFragmentSize = m_format.bytesForDuration(DEFAULT_BUFFER_DURATION);
-    m_bufferSize = m_bufferFragmentSize * m_bufferFragmentsCount;
-    m_tmpData = new char[m_bufferFragmentSize];
-}
-
-QAudioFormat QWasmAudioSink::format() const
-{
-    return m_format;
 }
 
 void QWasmAudioSink::setVolume(float volume)

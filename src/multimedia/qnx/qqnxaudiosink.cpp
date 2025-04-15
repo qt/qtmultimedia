@@ -14,8 +14,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QQnxAudioSink::QQnxAudioSink(QAudioDevice device, QObject *parent)
-    : QPlatformAudioSink(std::move(device), parent),
+QQnxAudioSink::QQnxAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent)
+    : QPlatformAudioSink(std::move(device), format, parent),
       m_source(0),
       m_pushSource(false),
       m_timer(new QTimer(this)),
@@ -149,17 +149,6 @@ qint64 QQnxAudioSink::processedUSecs() const
 QAudio::State QQnxAudioSink::state() const
 {
     return m_state;
-}
-
-void QQnxAudioSink::setFormat(const QAudioFormat &format)
-{
-    if (m_state == QAudio::StoppedState)
-        m_format = format;
-}
-
-QAudioFormat QQnxAudioSink::format() const
-{
-    return m_format;
 }
 
 void QQnxAudioSink::setVolume(float volume)

@@ -62,18 +62,14 @@ QPlatformAudioSource *QWasmMediaDevices::createAudioSource(const QAudioDevice &d
                                                            const QAudioFormat &fmt,
                                                            QObject *parent)
 {
-    auto ret = new QWasmAudioSource(deviceInfo, parent);
-    ret->setFormat(fmt);
-    return ret;
+    return new QWasmAudioSource(deviceInfo, fmt, parent);
 }
 
 QPlatformAudioSink *QWasmMediaDevices::createAudioSink(const QAudioDevice &deviceInfo,
                                                        const QAudioFormat &fmt,
                                                        QObject *parent)
 {
-    auto ret = new QWasmAudioSink(deviceInfo, parent);
-    ret->setFormat(fmt);
-    return ret;
+    return new QWasmAudioSink(deviceInfo, fmt, parent);
 }
 
 void QWasmMediaDevices::parseDevices(emscripten::val devices)

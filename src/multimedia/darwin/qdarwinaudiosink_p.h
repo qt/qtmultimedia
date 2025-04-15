@@ -50,7 +50,6 @@ public:
     void setHardwareBufferFrames(int32_t) override;
     int32_t hardwareBufferFrames() override;
     qint64 processedUSecs() const override;
-    QAudioFormat format() const override;
 
     void setVolume(float volume) override;
     float volume() const override;
@@ -64,7 +63,6 @@ private:
     friend class QtMultimediaPrivate::QPlatformAudioSinkStream;
     friend class QCoreAudioSinkStream;
 
-    const QAudioFormat m_audioFormat;
     std::optional<int> m_internalBufferSize;
     std::optional<int32_t> m_hardwareBufferFrames;
 

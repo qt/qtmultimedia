@@ -26,8 +26,8 @@ static inline void openSlDebugInfo()
              << "\nDefault buffer size: " << QOpenSLESEngine::getDefaultBufferSize(format);
 }
 
-QAndroidAudioSink::QAndroidAudioSink(QAudioDevice device, QObject *parent)
-    : QPlatformAudioSink(std::move(device), parent)
+QAndroidAudioSink::QAndroidAudioSink(QAudioDevice device, const QAudioFormat &fmt, QObject *parent)
+    : QPlatformAudioSink(std::move(device), fmt, parent)
 {
 #ifndef ANDROID
       m_streamType = -1;
@@ -174,17 +174,6 @@ void QAndroidAudioSink::resume()
 
     setState(m_suspendedInState);
     setError(QAudio::NoError);
-}
-
-void QAndroidAudioSink::setFormat(const QAudioFormat &format)
-{
-    m_startRequiresInit = true;
-    m_format = format;
-}
-
-QAudioFormat QAndroidAudioSink::format() const
-{
-    return m_format;
 }
 
 void QAndroidAudioSink::suspend()

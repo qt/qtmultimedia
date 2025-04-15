@@ -33,7 +33,7 @@ class QQnxAudioSource : public QPlatformAudioSource
     Q_OBJECT
 
 public:
-    explicit QQnxAudioSource(QAudioDevice deviceInfo, QObject *parent);
+    explicit QQnxAudioSource(QAudioDevice deviceInfo, const QAudioFormat &, QObject *parent);
     ~QQnxAudioSource();
 
     void start(QIODevice*) override;
@@ -47,8 +47,6 @@ public:
     qsizetype bufferSize() const  override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat&);
-    QAudioFormat format() const override;
     void setVolume(float) override;
     float volume() const override;
 
@@ -63,8 +61,6 @@ private:
     void close();
     qint64 read(char *data, qint64 len);
     void changeState(QAudio::State state, QAudio::Error error);
-
-    QAudioFormat m_format;
 
     QIODevice *m_audioSource;
     QnxAudioUtils::HandleUniquePtr m_pcmHandle;

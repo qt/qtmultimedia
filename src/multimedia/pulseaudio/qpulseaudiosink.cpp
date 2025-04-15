@@ -121,8 +121,8 @@ static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *
     qCDebug(qLcPulseAudioOut) << "Prebuffer adjusted:" << static_cast<bool>(success);
 }
 
-QPulseAudioSink::QPulseAudioSink(QAudioDevice device, QObject *parent)
-    : QPlatformAudioSink(std::move(device), parent), m_stateMachine(*this)
+QPulseAudioSink::QPulseAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent)
+    : QPlatformAudioSink(std::move(device), format, parent), m_stateMachine(*this)
 {
 }
 
@@ -652,16 +652,6 @@ void QPulseAudioSink::resume()
         if (m_pullMode)
             startPulling();
     }
-}
-
-void QPulseAudioSink::setFormat(const QAudioFormat &format)
-{
-    m_format = format;
-}
-
-QAudioFormat QPulseAudioSink::format() const
-{
-    return m_format;
 }
 
 void QPulseAudioSink::suspend()
