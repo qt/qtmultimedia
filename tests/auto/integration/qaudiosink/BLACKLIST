@@ -1,5 +1,0 @@
-#QTBUG-122309
-[pullResumeFromUnderrun]
-rhel-9.2
-rhel-9.4
-ubuntu-24.04 #QTBUG-127733
