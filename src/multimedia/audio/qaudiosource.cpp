@@ -263,7 +263,7 @@ void QAudioSource::resume()
 /*!
     Sets the audio buffer size to \a value bytes.
 
-    Note: This function can be called anytime before start(), calls to this
+    \note This function can be called anytime before start(), calls to this
     are ignored after start(). It should not be assumed that the buffer size
     set is the actual buffer size used, calling bufferSize() anytime after start()
     will return the actual buffer size being used.
@@ -333,7 +333,7 @@ qsizetype QAudioSource::bufferFrames() const
 /*!
     Returns the amount of audio data available to read in bytes.
 
-    Note: returned value is only valid while in QtAudio::ActiveState or QtAudio::IdleState
+    \note returned value is only valid while in QtAudio::ActiveState or QtAudio::IdleState
     state, otherwise returns zero.
 
     \sa framesAvailable
@@ -372,7 +372,8 @@ qsizetype QAudioSource::framesAvailable() const
 
     The default volume is \c 1.0.
 
-    Note: Adjustments to the volume will change the volume of this audio stream, not the global volume.
+    \note Adjustments to the volume will change the volume of this audio stream, not the global
+    volume.
 */
 void QAudioSource::setVolume(qreal volume)
 {
