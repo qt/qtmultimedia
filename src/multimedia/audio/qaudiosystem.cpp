@@ -9,17 +9,11 @@
 
 QT_BEGIN_NAMESPACE
 
-QAudioStateChangeNotifier::QAudioStateChangeNotifier(QObject *parent) : QObject(parent) { }
-
 QPlatformAudioEndpointBase::QPlatformAudioEndpointBase(QAudioDevice device,
                                                        const QAudioFormat &format, QObject *parent)
-    : QAudioStateChangeNotifier{ parent }, m_audioDevice{ std::move(device) }, m_format{ format }
+    : QObject{ parent }, m_audioDevice{ std::move(device) }, m_format{ format }
 {
     Q_ASSERT(parent && "QPlatformAudioEndpointBase requires the QAudioSink/QAudioSource as parent");
-
-    connect(this, &QAudioStateChangeNotifier::errorChanged, this, [this](QAudio::Error err) {
-        setError(err);
-    });
 }
 
 void QPlatformAudioEndpointBase::setError(QAudio::Error err)
@@ -27,9 +21,6 @@ void QPlatformAudioEndpointBase::setError(QAudio::Error err)
     if (err == m_error)
         return;
     m_error = err;
-
-    // NOTE: we don't emit errorChanged, since it's only used internally from QAudioStateMachine to
-    // QPlatformAudioEndpointBase, not to notify the public API from QPlatformAudioEndpointBase.
 }
 
 bool QPlatformAudioEndpointBase::isFormatSupported(const QAudioFormat &format) const
