@@ -334,8 +334,7 @@ void tst_QAudioSink::invalidFormat()
     QVERIFY2((audioSink.error() == QAudio::NoError),
              "error() was not set to QAudio::NoError before start()");
 
-    QTest::ignoreMessage(QtWarningMsg,
-                         "QAudioSink::start: QAudioFormat not supported by QAudioDevice");
+    QTest::ignoreMessage(QtWarningMsg, "QAudioSink::start: QAudioFormat not valid");
 
     audioSink.start();
     // Check that error is raised
