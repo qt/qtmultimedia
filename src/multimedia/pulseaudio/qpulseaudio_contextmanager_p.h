@@ -73,7 +73,6 @@ public:
     QString serverName();
 
 Q_SIGNALS:
-    void contextFailed();
     void audioInputsChanged();
     void audioOutputsChanged();
 
