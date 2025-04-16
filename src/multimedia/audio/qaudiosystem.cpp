@@ -15,6 +15,8 @@ QPlatformAudioEndpointBase::QPlatformAudioEndpointBase(QAudioDevice device,
                                                        const QAudioFormat &format, QObject *parent)
     : QAudioStateChangeNotifier{ parent }, m_audioDevice{ std::move(device) }, m_format{ format }
 {
+    Q_ASSERT(parent && "QPlatformAudioEndpointBase requires the QAudioSink/QAudioSource as parent");
+
     connect(this, &QAudioStateChangeNotifier::errorChanged, this, [this](QAudio::Error err) {
         setError(err);
     });
