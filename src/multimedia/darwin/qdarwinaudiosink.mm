@@ -52,6 +52,7 @@ public:
 
     using QPlatformAudioSinkStream::bytesFree;
     using QPlatformAudioSinkStream::processedDuration;
+    using QPlatformAudioSinkStream::ringbufferSizeInBytes;
     using QPlatformAudioSinkStream::setVolume;
 
     void resumeIfNecessary();
@@ -428,7 +429,11 @@ void QDarwinAudioSink::setBufferSize(qsizetype value)
 
 qsizetype QDarwinAudioSink::bufferSize() const
 {
-    return m_internalBufferSize.value_or(-1);
+    if (m_stream)
+        return m_stream->ringbufferSizeInBytes();
+
+    return QtMultimediaPrivate::QPlatformAudioIOStream::inferRingbufferBytes(
+            m_internalBufferSize, m_hardwareBufferFrames, m_audioFormat);
 }
 
 void QDarwinAudioSink::setHardwareBufferFrames(int32_t arg)
