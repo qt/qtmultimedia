@@ -393,22 +393,23 @@ void QPulseAudioContextManager::prepare()
 
     std::unique_lock guard{ *this };
 
-    pa_proplist *proplist = pa_proplist_new();
+    PAProplistHandle proplist{
+        pa_proplist_new(),
+    };
     if (!QGuiApplication::applicationDisplayName().isEmpty())
-        pa_proplist_sets(proplist, PA_PROP_APPLICATION_NAME,
+        pa_proplist_sets(proplist.get(), PA_PROP_APPLICATION_NAME,
                          qUtf8Printable(QGuiApplication::applicationDisplayName()));
     if (!QGuiApplication::desktopFileName().isEmpty())
-        pa_proplist_sets(proplist, PA_PROP_APPLICATION_ID,
+        pa_proplist_sets(proplist.get(), PA_PROP_APPLICATION_ID,
                          qUtf8Printable(QGuiApplication::desktopFileName()));
     if (const QString windowIconName = QGuiApplication::windowIcon().name();
         !windowIconName.isEmpty())
-        pa_proplist_sets(proplist, PA_PROP_WINDOW_ICON_NAME, qUtf8Printable(windowIconName));
+        pa_proplist_sets(proplist.get(), PA_PROP_WINDOW_ICON_NAME, qUtf8Printable(windowIconName));
 
     m_context = PAContextHandle{
-        pa_context_new_with_proplist(m_mainLoopApi, nullptr, proplist),
+        pa_context_new_with_proplist(m_mainLoopApi, nullptr, proplist.get()),
         PAContextHandle::HasRef,
     };
-    pa_proplist_free(proplist);
 
     if (!m_context) {
         qCritical() << "PulseAudioService: Unable to create new pulseaudio context";
