@@ -51,7 +51,9 @@ struct QPipewireAudioSinkStream final : std::enable_shared_from_this<QPipewireAu
     ~QPipewireAudioSinkStream();
 
     using QPlatformAudioSinkStream::bytesFree;
+    using QPlatformAudioSinkStream::inferRingbufferBytes;
     using QPlatformAudioSinkStream::processedDuration;
+    using QPlatformAudioSinkStream::ringbufferSizeInBytes;
     using QPlatformAudioSinkStream::setVolume;
 
     bool start(QIODevice *device);

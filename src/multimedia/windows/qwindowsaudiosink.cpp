@@ -36,6 +36,7 @@ struct QWASAPIAudioSinkStream final : std::enable_shared_from_this<QWASAPIAudioS
 
     using QPlatformAudioSinkStream::bytesFree;
     using QPlatformAudioSinkStream::processedDuration;
+    using QPlatformAudioSinkStream::ringbufferSizeInBytes;
     using QPlatformAudioSinkStream::setVolume;
 
     bool start(QIODevice *, ComPtr<IMMDevice>, AudioEndpointRole);
@@ -424,7 +425,11 @@ void QWindowsAudioSink::setBufferSize(qsizetype value)
 
 qsizetype QWindowsAudioSink::bufferSize() const
 {
-    return m_bufferSize.value_or(-1);
+    if (m_stream)
+        return m_stream->ringbufferSizeInBytes();
+
+    return QPlatformAudioIOStream::inferRingbufferBytes(m_bufferSize, m_hardwareBufferFrames,
+                                                        m_format);
 }
 
 void QWindowsAudioSink::setHardwareBufferFrames(int32_t arg)

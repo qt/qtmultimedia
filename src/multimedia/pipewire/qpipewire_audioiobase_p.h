@@ -132,7 +132,9 @@ inline void QPipewireAudioIOBase<BaseClass, StreamType>::setBufferSize(qsizetype
 DECLARE_TEMPLATE_ARGS
 inline qsizetype QPipewireAudioIOBase<BaseClass, StreamType>::bufferSize() const
 {
-    return m_bufferSize.value_or(-1);
+    if (m_stream)
+        return m_stream->ringbufferSizeInBytes();
+    return StreamType::inferRingbufferBytes(m_bufferSize, m_hardwareBufferFrames, m_format);
 }
 
 DECLARE_TEMPLATE_ARGS

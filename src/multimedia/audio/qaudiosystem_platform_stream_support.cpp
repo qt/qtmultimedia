@@ -23,6 +23,8 @@ QT_BEGIN_NAMESPACE
 
 namespace QtMultimediaPrivate {
 
+using namespace std::chrono_literals;
+
 QPlatformAudioIOStream::QPlatformAudioIOStream(QAudioDevice m_audioDevice, QAudioFormat m_format,
                                                std::optional<int> ringbufferSize,
                                                std::optional<int32_t> hardwareBufferFrames,
@@ -55,17 +57,11 @@ void QPlatformAudioIOStream::setVolume(float volume)
 
 void QPlatformAudioIOStream::prepareRingbuffer(std::optional<int> ringbufferSize)
 {
-    using namespace std::chrono;
-    using namespace std::chrono_literals;
     using SampleFormat = QAudioFormat::SampleFormat;
 
-    static constexpr auto defaultBufferDuration = 250ms;
-
     // Warning: QAudioSink::setBufferSize is measured in *bytes* not in *frames*
-    int ringbufferElements = ringbufferSize
-            ? m_format.framesForBytes(*ringbufferSize) * m_format.channelCount()
-            : m_format.framesForDuration(microseconds(defaultBufferDuration).count())
-                    * m_format.channelCount();
+    int ringbufferElements = inferRingbufferFrames(ringbufferSize, m_hardwareBufferFrames, m_format)
+            * m_format.channelCount();
 
     switch (m_format.sampleFormat()) {
     case SampleFormat::Float:
@@ -90,6 +86,40 @@ void QPlatformAudioIOStream::prepareRingbuffer(std::optional<int> ringbufferSize
 void QPlatformAudioIOStream::requestStop()
 {
     m_stopRequested.store(true, std::memory_order_release);
+}
+
+qsizetype
+QPlatformAudioIOStream::inferRingbufferFrames(const std::optional<int> &ringbufferSize,
+                                              const std::optional<int32_t> &hardwareBufferFrames,
+                                              const QAudioFormat &format)
+{
+    return inferRingbufferBytes(ringbufferSize, hardwareBufferFrames, format)
+            / format.bytesPerFrame();
+}
+
+qsizetype
+QPlatformAudioIOStream::inferRingbufferBytes(const std::optional<int> &ringbufferSize,
+                                             const std::optional<int32_t> &hardwareBufferFrames,
+                                             const QAudioFormat &format)
+{
+    // ensure to a sane minimum ringbuffer size of twice the hw buffer size or 32 frames
+    const int minimumRingbufferFrames = hardwareBufferFrames ? *hardwareBufferFrames * 2 : 32;
+    const int minimumRingbufferBytes = format.bytesForFrames(minimumRingbufferFrames);
+    if (ringbufferSize)
+        return ringbufferSize >= minimumRingbufferBytes ? *ringbufferSize : minimumRingbufferBytes;
+
+    using namespace std::chrono;
+    static constexpr auto defaultBufferDuration = 250ms;
+
+    return format.bytesForDuration(microseconds(defaultBufferDuration).count());
+}
+
+int QPlatformAudioIOStream::ringbufferSizeInBytes()
+{
+    return visitRingbuffer([](auto &ringbuffer) {
+        using SampleType = typename std::decay_t<decltype(ringbuffer)>::ValueType;
+        return ringbuffer.size() * sizeof(SampleType);
+    });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -48,7 +48,9 @@ struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewire
 
     using QPlatformAudioSourceStream::bytesReady;
     using QPlatformAudioSourceStream::deviceIsRingbufferReader;
+    using QPlatformAudioSourceStream::inferRingbufferBytes;
     using QPlatformAudioSourceStream::processedDuration;
+    using QPlatformAudioSourceStream::ringbufferSizeInBytes;
     using QPlatformAudioSourceStream::setVolume;
 
     void updateStreamIdle(bool idle) override;

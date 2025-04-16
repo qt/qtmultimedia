@@ -41,6 +41,9 @@ private slots:
     void nullFormat();
 
     void bufferSize();
+    void bufferSize_getValidDefault();
+    void bufferSize_setAfterStart();
+    void bufferSize_updatedAfterStart();
 
     void stopWhileStopped();
     void suspendWhileStopped();
@@ -292,6 +295,40 @@ void tst_QAudioSource::bufferSize()
                      .arg(audioSource.bufferSize())
                      .toUtf8()
                      .constData());
+}
+
+void tst_QAudioSource::bufferSize_getValidDefault()
+{
+#if !(defined(Q_OS_MACOS) || defined(Q_OS_WIN))
+    QSKIP("bufferSize validation only fully implemented on Mac and Windows");
+#endif
+
+    QAudioSource audioSource(audioDevice.preferredFormat(), this);
+    QCOMPARE_GE(audioSource.bufferSize(),
+                audioDevice.preferredFormat().bytesForDuration(250'000)); // 250ms
+}
+
+void tst_QAudioSource::bufferSize_setAfterStart()
+{
+#if !(defined(Q_OS_MACOS) || defined(Q_OS_WIN))
+    QSKIP("bufferSize validation only fully implemented on Mac and Windows");
+#endif
+
+    QAudioSource audioSource(audioDevice.preferredFormat(), this);
+    audioSource.start();
+    QCOMPARE_GE(audioSource.bufferSize(), audioDevice.preferredFormat().bytesForFrames(32));
+}
+
+void tst_QAudioSource::bufferSize_updatedAfterStart()
+{
+#if !(defined(Q_OS_MACOS) || defined(Q_OS_WIN))
+    QSKIP("bufferSize validation only fully implemented on Mac and Windows");
+#endif
+
+    QAudioSource audioSource(audioDevice.preferredFormat(), this);
+    audioSource.setBufferSize(1); // small enough force a size increase
+    audioSource.start();
+    QCOMPARE_GE(audioSource.bufferSize(), audioDevice.preferredFormat().bytesForFrames(32));
 }
 
 void tst_QAudioSource::stopWhileStopped()
