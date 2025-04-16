@@ -125,6 +125,22 @@ QAudioFormat QAudioSink::format() const
     return d ? d->format() : QAudioFormat();
 }
 
+static bool validateFormatAtStart(QPlatformAudioSink *d)
+{
+    if (!d->format().isValid()) {
+        qWarning() << "QAudioSink::start: QAudioFormat not valid";
+        d->setError(QAudio::OpenError);
+        return false;
+    }
+
+    if (!d->isFormatSupported(d->format())) {
+        qWarning() << "QAudioSink::start: QAudioFormat not supported by QAudioDevice";
+        d->setError(QAudio::OpenError);
+        return false;
+    }
+    return true;
+};
+
 /*!
     Starts transferring audio data from the \a device to the system's audio output.
     The \a device must have been opened in the \l{QIODevice::ReadOnly}{ReadOnly} or
@@ -152,11 +168,8 @@ void QAudioSink::start(QIODevice* device)
         return;
     }
 
-    if (!d->isFormatSupported(d->format())) {
-        qWarning() << "QAudioSink::start: QAudioFormat not supported by QAudioDevice";
-        d->setError(QAudio::OpenError);
+    if (!validateFormatAtStart(d))
         return;
-    }
 
     d->elapsedTime.start();
     d->start(device);
@@ -186,11 +199,8 @@ QIODevice* QAudioSink::start()
 
     d->setError(QAudio::NoError);
 
-    if (!d->isFormatSupported(d->format())) {
-        qWarning() << "QAudioSink::start: QAudioFormat not supported by QAudioDevice";
-        d->setError(QAudio::OpenError);
+    if (!validateFormatAtStart(d))
         return nullptr;
-    }
 
     d->elapsedTime.start();
     return d->start();
