@@ -375,7 +375,7 @@ void QPulseAudioContextManager::prepare()
 
     m_mainLoop.reset(pa_threaded_mainloop_new());
     if (m_mainLoop == nullptr) {
-        qWarning() << "PulseAudioService: unable to create pulseaudio mainloop";
+        qCritical() << "PulseAudioService: unable to create pulseaudio mainloop";
         return;
     }
 
@@ -383,7 +383,7 @@ void QPulseAudioContextManager::prepare()
             m_mainLoop.get(), "QPulseAudioEngi"); // thread names are limited to 15 chars on linux
 
     if (pa_threaded_mainloop_start(m_mainLoop.get()) != 0) {
-        qWarning() << "PulseAudioService: unable to start pulseaudio mainloop";
+        qCritical() << "PulseAudioService: unable to start pulseaudio mainloop";
         m_mainLoop = {};
         return;
     }
@@ -410,7 +410,7 @@ void QPulseAudioContextManager::prepare()
     pa_proplist_free(proplist);
 
     if (!m_context) {
-        qWarning() << "PulseAudioService: Unable to create new pulseaudio context";
+        qCritical() << "PulseAudioService: Unable to create new pulseaudio context";
         guard.unlock();
         m_mainLoop = {};
         onContextFailed();
