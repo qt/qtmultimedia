@@ -262,12 +262,6 @@ QPipewireAudioSource::~QPipewireAudioSource()
 template <typename Functor>
 void QPipewireAudioSource::startHelper(Functor &&starter)
 {
-    if (!m_format.isValid()) {
-        qWarning() << "invalid format" << m_format;
-        setError(QtAudio::Error::OpenError);
-        return;
-    }
-
     m_stream = std::make_shared<QPipewireAudioSourceStream>(
             m_audioDevice, this, format(), m_bufferSize, m_hardwareBufferFrames, m_volume);
     if (!m_stream->hasStream()) {

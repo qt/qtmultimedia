@@ -127,6 +127,22 @@ QAudioSource::~QAudioSource()
     delete d;
 }
 
+static bool validateFormatAtStart(QPlatformAudioSource *d)
+{
+    if (!d->format().isValid()) {
+        qWarning() << "QAudioSource::start: QAudioFormat not valid";
+        d->setError(QAudio::OpenError);
+        return false;
+    }
+
+    if (!d->isFormatSupported(d->format())) {
+        qWarning() << "QAudioSource::start: QAudioFormat not supported by QAudioDevice";
+        d->setError(QAudio::OpenError);
+        return false;
+    }
+    return true;
+};
+
 /*!
     Starts transferring audio data from the system's audio input to the \a device.
     The \a device must have been opened in the \l{QIODevice::WriteOnly}{WriteOnly},
@@ -155,11 +171,8 @@ void QAudioSource::start(QIODevice* device)
         return;
     }
 
-    if (!d->isFormatSupported(d->format())) {
-        qWarning() << "QAudioSource::start: QAudioFormat not supported by QAudioDevice";
-        d->setError(QAudio::OpenError);
+    if (!validateFormatAtStart(d))
         return;
-    }
 
     d->elapsedTime.start();
     d->start(device);
@@ -190,11 +203,8 @@ QIODevice* QAudioSource::start()
 
     d->setError(QAudio::NoError);
 
-    if (!d->isFormatSupported(d->format())) {
-        qWarning() << "QAudioSource::start: QAudioFormat not supported by QAudioDevice";
-        d->setError(QAudio::OpenError);
+    if (!validateFormatAtStart(d))
         return nullptr;
-    }
 
     d->elapsedTime.start();
     return d->start();

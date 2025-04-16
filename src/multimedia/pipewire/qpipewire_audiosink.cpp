@@ -357,12 +357,6 @@ QPipewireAudioSink::~QPipewireAudioSink()
 template <typename Functor>
 void QPipewireAudioSink::startHelper(Functor &&starter)
 {
-    if (!m_format.isValid()) {
-        qWarning() << "invalid format" << m_format;
-        setError(QtAudio::Error::OpenError);
-        return;
-    }
-
     m_stream = std::make_shared<QPipewireAudioSinkStream>(
             m_audioDevice, this, format(), m_role, m_bufferSize, m_hardwareBufferFrames, m_volume);
     if (!m_stream->hasStream()) {
