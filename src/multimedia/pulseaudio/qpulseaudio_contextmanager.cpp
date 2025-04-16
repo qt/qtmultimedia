@@ -411,7 +411,7 @@ void QPulseAudioContextManager::prepare()
 
     if (!m_context) {
         qWarning() << "PulseAudioService: Unable to create new pulseaudio context";
-        pa_threaded_mainloop_unlock(m_mainLoop.get());
+        guard.unlock();
         m_mainLoop = {};
         onContextFailed();
         return;
