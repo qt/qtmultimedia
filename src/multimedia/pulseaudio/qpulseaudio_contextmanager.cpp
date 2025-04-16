@@ -533,9 +533,6 @@ void QPulseAudioContextManager::updateDevices()
 
 void QPulseAudioContextManager::onContextFailed()
 {
-    // Give a chance to the connected slots to still use the Pulse main loop before releasing it.
-    emit contextFailed();
-
     release();
 
     // Try to reconnect later
