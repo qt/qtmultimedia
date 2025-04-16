@@ -78,8 +78,6 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setVolume(float) override;
-    float volume() const override;
     bool resuming;
     snd_pcm_t* handle;
     qint64 totalTimeValue;
@@ -112,7 +110,6 @@ private:
     snd_pcm_access_t access;
     snd_pcm_format_t pcmformat;
     snd_pcm_hw_params_t *hwparams;
-    float m_volume;
 };
 
 class AlsaInputPrivate : public QIODevice

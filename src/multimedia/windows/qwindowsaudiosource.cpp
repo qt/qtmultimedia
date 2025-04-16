@@ -223,7 +223,7 @@ QIODevice *QWindowsAudioSource::start()
     }
 
     m_stream = std::make_unique<QWASAPIAudioSourceStream>(
-            m_audioDevice, this, m_format, m_bufferSize, m_hardwareBufferFrames, m_volume);
+            m_audioDevice, this, m_format, m_bufferSize, m_hardwareBufferFrames, volume());
 
     QIODevice *ioDevice = m_stream->start(std::move(immDevice));
     if (!ioDevice) {
@@ -245,7 +245,7 @@ void QWindowsAudioSource::start(QIODevice *iodevice)
     }
 
     m_stream = std::make_unique<QWASAPIAudioSourceStream>(
-            m_audioDevice, this, m_format, m_bufferSize, m_hardwareBufferFrames, m_volume);
+            m_audioDevice, this, m_format, m_bufferSize, m_hardwareBufferFrames, volume());
 
     bool started = m_stream->start(iodevice, std::move(immDevice));
     if (!started) {
@@ -430,14 +430,9 @@ void QWASAPIAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
 
 void QWindowsAudioSource::setVolume(float v)
 {
-    m_volume = v;
+    QPlatformAudioEndpointBase::setVolume(v);
     if (m_stream)
         m_stream->setVolume(v);
-}
-
-float QWindowsAudioSource::volume() const
-{
-    return m_volume;
 }
 
 QT_END_NAMESPACE

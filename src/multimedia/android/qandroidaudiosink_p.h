@@ -45,7 +45,6 @@ public:
     QAudio::State state() const override;
 
     void setVolume(float volume) override;
-    float volume() const override;
 
 private:
     friend class SLIODevicePrivate;
@@ -79,7 +78,6 @@ private:
     SLBufferQueueItf m_bufferQueueItf = nullptr;
     QIODevice *m_audioSource = nullptr;
     char *m_buffers = nullptr;
-    float m_volume = 1.0;
     bool m_pullMode = false;
     int m_nextBuffer = 0;
     int m_bufferSize = 0;

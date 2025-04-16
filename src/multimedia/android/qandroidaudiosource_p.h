@@ -55,9 +55,6 @@ public:
     qint64 processedUSecs() const;
     QAudio::State state() const;
 
-    void setVolume(float volume);
-    float volume() const;
-
 public Q_SLOTS:
     void processBuffer();
 
@@ -84,7 +81,6 @@ private:
     QByteArray m_pushBuffer;
     QAudio::State m_deviceState;
     qint64 m_lastNotifyTime;
-    float m_volume;
     int m_bufferSize;
     QByteArray *m_buffers;
     int m_currentBuffer;

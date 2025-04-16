@@ -41,7 +41,6 @@ public:
     int32_t hardwareBufferFrames() override;
     qint64 processedUSecs() const override;
     void setVolume(float) override;
-    float volume() const override { return m_volume; }
 
     void setRole(AudioEndpointRole) override;
 
@@ -57,7 +56,6 @@ private:
 
     AudioEndpointRole m_endpointRole = AudioEndpointRole::Other;
 
-    float m_volume = 1.0;
     std::shared_ptr<QWASAPIAudioSinkStream> m_stream;
 };
 

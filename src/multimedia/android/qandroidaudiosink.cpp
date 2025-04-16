@@ -197,17 +197,12 @@ void QAndroidAudioSink::reset()
     destroyPlayer();
 }
 
-void QAndroidAudioSink::setVolume(float vol)
+void QAndroidAudioSink::setVolume(float volume)
 {
-    m_volume = vol;
-    const SLmillibel newVolume = adjustVolume(m_volume);
+    QPlatformAudioEndpointBase::setVolume(volume);
+    const SLmillibel newVolume = adjustVolume(volume);
     if (m_volumeItf && SL_RESULT_SUCCESS != (*m_volumeItf)->SetVolumeLevel(m_volumeItf, newVolume))
         qWarning() << "Unable to change volume";
-}
-
-float QAndroidAudioSink::volume() const
-{
-    return m_volume;
 }
 
 void QAndroidAudioSink::onEOSEvent()
@@ -427,7 +422,7 @@ bool QAndroidAudioSink::preparePlayer()
         return false;
     }
 
-    setVolume(m_volume);
+    setVolume(volume());
 
     const int lowLatencyBufferSize = QOpenSLESEngine::getLowLatencyBufferSize(m_format);
     const int defaultBufferSize = QOpenSLESEngine::getDefaultBufferSize(m_format);

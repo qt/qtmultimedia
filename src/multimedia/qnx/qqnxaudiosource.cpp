@@ -17,7 +17,6 @@ QQnxAudioSource::QQnxAudioSource(QAudioDevice device, const QAudioFormat &format
       m_bytesRead(0),
       m_elapsedTimeOffset(0),
       m_totalTimeValue(0),
-      m_volume(qreal(1.0f)),
       m_bytesAvailable(0),
       m_bufferSize(0),
       m_periodSize(0),
@@ -138,16 +137,6 @@ qint64 QQnxAudioSource::processedUSecs() const
 QAudio::State QQnxAudioSource::state() const
 {
     return m_state;
-}
-
-void QQnxAudioSource::setVolume(float volume)
-{
-    m_volume = volume;
-}
-
-float QQnxAudioSource::volume() const
-{
-    return m_volume;
 }
 
 void QQnxAudioSource::userFeed()
@@ -285,8 +274,9 @@ qint64 QQnxAudioSource::read(char *data, qint64 len)
         changeState(QAudio::ActiveState, QAudio::NoError);
     }
 
-    if (m_volume < 1.0f)
-        QAudioHelperInternal::qMultiplySamples(m_volume, m_format, tempBuffer.data(), tempBuffer.data(), actualRead);
+    if (volume() < 1.0f)
+        QAudioHelperInternal::qMultiplySamples(volume(), m_format, tempBuffer.data(),
+                                               tempBuffer.data(), actualRead);
 
     m_bytesRead += actualRead;
 
