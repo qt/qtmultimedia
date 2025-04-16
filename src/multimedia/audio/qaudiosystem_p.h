@@ -148,20 +148,10 @@ inline void runAudioSinkCallback(const AudioSinkCallback &audioCallback, std::by
 
 } // namespace QtMultimediaPrivate
 
-class Q_MULTIMEDIA_EXPORT QAudioStateChangeNotifier : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformAudioEndpointBase : public QObject
 {
     Q_OBJECT
 
-public:
-    explicit QAudioStateChangeNotifier(QObject *parent = nullptr);
-
-signals:
-    void errorChanged(QAudio::Error error);
-    void stateChanged(QAudio::State state);
-};
-
-class Q_MULTIMEDIA_EXPORT QPlatformAudioEndpointBase : public QAudioStateChangeNotifier
-{
 public:
     explicit QPlatformAudioEndpointBase(QAudioDevice, const QAudioFormat &, QObject *parent);
 
@@ -175,6 +165,9 @@ public:
 
     virtual void setVolume(float volume) { m_volume = volume; }
     float volume() const { return m_volume; }
+
+Q_SIGNALS:
+    void stateChanged(QtAudio::State);
 
 protected:
     enum class EmitStateSignal : uint8_t

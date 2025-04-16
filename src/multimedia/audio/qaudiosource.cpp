@@ -100,17 +100,10 @@ QAudioSource::QAudioSource(const QAudioDevice &audioDevice, const QAudioFormat &
 {
     d = QPlatformMediaIntegration::instance()->audioDevices()->audioInputDevice(format, audioDevice,
                                                                                 this);
-    if (d) {
-        connect(d, &QPlatformAudioSource::stateChanged, this, [this](QAudio::State state) {
-            // if the signal has been emitted from another thread,
-            // the state may be already changed by main one
-            if (state == d->state())
-                emit stateChanged(state);
-        });
-    }
+    if (d)
+        connect(d, &QPlatformAudioSource::stateChanged, this, &QAudioSource::stateChanged);
     else
-        qWarning() << ("No audio device detected");
-
+        qWarning("No audio device detected");
 }
 
 /*!
