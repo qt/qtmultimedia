@@ -163,8 +163,7 @@ signals:
 class Q_MULTIMEDIA_EXPORT QPlatformAudioEndpointBase : public QAudioStateChangeNotifier
 {
 public:
-    explicit QPlatformAudioEndpointBase(QAudioDevice, const QAudioFormat &,
-                                        QObject *parent = nullptr);
+    explicit QPlatformAudioEndpointBase(QAudioDevice, const QAudioFormat &, QObject *parent);
 
     // LATER: can we devirtualize these functions
     QAudio::Error error() const { return m_error; }
