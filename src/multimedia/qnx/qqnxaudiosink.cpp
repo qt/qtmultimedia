@@ -21,7 +21,6 @@ QQnxAudioSink::QQnxAudioSink(QAudioDevice device, const QAudioFormat &format, QO
       m_timer(new QTimer(this)),
       m_state(QAudio::StoppedState),
       m_suspendedInState(QAudio::SuspendedState),
-      m_volume(1.0),
       m_periodSize(0),
       m_bytesWritten(0),
       m_requestedBufferSize(0),
@@ -149,16 +148,6 @@ qint64 QQnxAudioSink::processedUSecs() const
 QAudio::State QQnxAudioSink::state() const
 {
     return m_state;
-}
-
-void QQnxAudioSink::setVolume(float volume)
-{
-    m_volume = volume;
-}
-
-float QQnxAudioSink::volume() const
-{
-    return m_volume;
 }
 
 void QQnxAudioSink::updateState()
@@ -365,9 +354,9 @@ qint64 QQnxAudioSink::write(const char *data, qint64 len)
 
     int written = 0;
 
-    if (m_volume < 1.0f) {
+    if (volume() < 1.0f) {
         char out[size];
-        QAudioHelperInternal::qMultiplySamples(m_volume, m_format, data, out, size);
+        QAudioHelperInternal::qMultiplySamples(volume(), m_format, data, out, size);
         written = snd_pcm_plugin_write(m_pcmHandle.get(), out, size);
     } else {
         written = snd_pcm_plugin_write(m_pcmHandle.get(), data, size);

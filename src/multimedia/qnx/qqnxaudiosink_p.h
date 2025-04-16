@@ -50,8 +50,6 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setVolume(float volume) override;
-    float volume() const override;
     qint64 pushData(const char *data, qint64 len);
 
 private slots:
@@ -80,7 +78,6 @@ private:
 
     QAudio::State m_state;
     QAudio::State m_suspendedInState;
-    float m_volume;
     int m_periodSize;
 
     QnxAudioUtils::HandleUniquePtr m_pcmHandle;

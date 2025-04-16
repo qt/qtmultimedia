@@ -266,7 +266,7 @@ template <typename Functor>
 void QPipewireAudioSource::startHelper(Functor &&starter)
 {
     m_stream = std::make_shared<QPipewireAudioSourceStream>(
-            m_audioDevice, this, format(), m_bufferSize, m_hardwareBufferFrames, m_volume);
+            m_audioDevice, this, format(), m_bufferSize, m_hardwareBufferFrames, volume());
     if (!m_stream->hasStream()) {
         setError(QtAudio::Error::OpenError);
         m_stream = {};

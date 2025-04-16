@@ -381,7 +381,7 @@ void QDarwinAudioSink::start(QIODevice *device)
     }
 
     m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_format, m_internalBufferSize,
-                                                      this, m_volume, m_hardwareBufferFrames);
+                                                      this, volume(), m_hardwareBufferFrames);
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
@@ -396,7 +396,7 @@ void QDarwinAudioSink::start(QIODevice *device)
 QIODevice *QDarwinAudioSink::start()
 {
     m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_format, m_internalBufferSize,
-                                                      this, m_volume, m_hardwareBufferFrames);
+                                                      this, volume(), m_hardwareBufferFrames);
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
@@ -491,14 +491,9 @@ qint64 QDarwinAudioSink::processedUSecs() const
 
 void QDarwinAudioSink::setVolume(float volume)
 {
-    m_volume = volume;
+    QPlatformAudioEndpointBase::setVolume(volume);
     if (m_stream)
-        m_stream->setVolume(m_volume);
-}
-
-float QDarwinAudioSink::volume() const
-{
-    return m_volume;
+        m_stream->setVolume(volume);
 }
 
 void QDarwinAudioSink::start(AudioCallback &&audioCallback)
@@ -510,7 +505,7 @@ void QDarwinAudioSink::start(AudioCallback &&audioCallback)
     }
 
     m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_format, m_internalBufferSize,
-                                                      this, m_volume, m_hardwareBufferFrames);
+                                                      this, volume(), m_hardwareBufferFrames);
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);

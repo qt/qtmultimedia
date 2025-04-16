@@ -47,8 +47,6 @@ public:
     qsizetype bufferSize() const  override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setVolume(float) override;
-    float volume() const override;
 
 private slots:
     void userFeed();
@@ -71,8 +69,6 @@ private:
     qint64 m_bytesRead;
     qint64 m_elapsedTimeOffset;
     qint64 m_totalTimeValue;
-
-    float m_volume;
 
     int m_bytesAvailable;
     int m_bufferSize;

@@ -440,7 +440,7 @@ template <typename Functor>
 void QPipewireAudioSink::startHelper(Functor &&starter)
 {
     m_stream = std::make_shared<QPipewireAudioSinkStream>(
-            m_audioDevice, this, format(), m_role, m_bufferSize, m_hardwareBufferFrames, m_volume);
+            m_audioDevice, this, format(), m_role, m_bufferSize, m_hardwareBufferFrames, volume());
 
     bool started = starter(m_stream);
     if (started) {

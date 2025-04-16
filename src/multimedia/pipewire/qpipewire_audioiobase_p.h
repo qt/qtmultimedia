@@ -83,9 +83,7 @@ protected:
     qsizetype bufferSize() const override;
 
     // volume
-    float m_volume = 1.0f;
     void setVolume(float volume) override;
-    float volume() const override;
 
     // hw buffer size
     std::optional<qsizetype> m_hardwareBufferFrames;
@@ -130,16 +128,10 @@ inline qsizetype QPipewireAudioIOBase<BaseClass, StreamType>::bufferSize() const
 DECLARE_TEMPLATE_ARGS
 inline void QPipewireAudioIOBase<BaseClass, StreamType>::setVolume(float volume)
 {
-    m_volume = volume;
+    BaseClass::setVolume(volume);
 
     if (m_stream)
         m_stream->setVolume(volume);
-}
-
-DECLARE_TEMPLATE_ARGS
-inline float QPipewireAudioIOBase<BaseClass, StreamType>::volume() const
-{
-    return m_volume;
 }
 
 DECLARE_TEMPLATE_ARGS

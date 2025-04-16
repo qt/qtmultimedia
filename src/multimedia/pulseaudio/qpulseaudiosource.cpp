@@ -95,7 +95,6 @@ QPulseAudioSource::QPulseAudioSource(QAudioDevice device, const QAudioFormat &fo
     : QPlatformAudioSource(std::move(device), format, parent),
       m_totalTimeValue(0),
       m_audioSource(nullptr),
-      m_volume(1.0f),
       m_pullMode(true),
       m_opened(false),
       m_bufferSize(0),
@@ -413,7 +412,7 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
 
 void QPulseAudioSource::applyVolume(const void *src, void *dest, int len) const
 {
-    QAudioHelperInternal::applyVolume(m_volume, m_format,
+    QAudioHelperInternal::applyVolume(volume(), m_format,
                                       QSpan{ reinterpret_cast<const std::byte *>(src), len },
                                       QSpan{ reinterpret_cast<std::byte *>(dest), len });
 }
@@ -435,16 +434,6 @@ void QPulseAudioSource::resume()
 
         m_timer.start(m_periodTime, this);
     }
-}
-
-void QPulseAudioSource::setVolume(float vol)
-{
-    m_volume = vol;
-}
-
-float QPulseAudioSource::volume() const
-{
-    return m_volume;
 }
 
 void QPulseAudioSource::setBufferSize(qsizetype value)

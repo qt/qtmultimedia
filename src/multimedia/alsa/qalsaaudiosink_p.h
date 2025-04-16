@@ -52,8 +52,6 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setVolume(float) override;
-    float volume() const override;
 
     QIODevice* audioSource = nullptr;
     QAudio::Error errorState = QAudio::NoError;
@@ -91,7 +89,6 @@ private:
     snd_pcm_t* handle = nullptr;
     snd_pcm_access_t access = SND_PCM_ACCESS_RW_INTERLEAVED;
     snd_pcm_hw_params_t *hwparams = nullptr;
-    float m_volume = 1.0f;
 };
 
 class AlsaOutputPrivate : public QIODevice

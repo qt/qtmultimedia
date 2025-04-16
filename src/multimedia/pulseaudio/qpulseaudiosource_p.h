@@ -56,12 +56,8 @@ public:
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
 
-    void setVolume(float volume) override;
-    float volume() const override;
-
     qint64 m_totalTimeValue;
     QIODevice *m_audioSource;
-    float m_volume;
 
 protected:
     void timerEvent(QTimerEvent *event) override;

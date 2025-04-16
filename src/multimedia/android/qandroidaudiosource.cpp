@@ -57,7 +57,6 @@ QAndroidAudioSource::QAndroidAudioSource(QAudioDevice device, const QAudioFormat
       m_bufferIODevice(0),
       m_deviceState(QAudio::StoppedState),
       m_lastNotifyTime(0),
-      m_volume(1.0),
       m_bufferSize(0),
       m_buffers(new QByteArray[NUM_BUFFERS]),
       m_currentBuffer(0)
@@ -371,9 +370,9 @@ void QAndroidAudioSource::writeDataToDevice(const char *data, int size)
     QByteArray outData;
 
     // Apply volume
-    if (m_volume < 1.0f) {
+    if (volume() < 1.0f) {
         outData.resize(size);
-        QAudioHelperInternal::qMultiplySamples(m_volume, m_format, data, outData.data(), size);
+        QAudioHelperInternal::qMultiplySamples(volume(), m_format, data, outData.data(), size);
     } else {
         outData.append(data, size);
     }
@@ -429,16 +428,6 @@ qsizetype QAndroidAudioSource::bufferSize() const
 qint64 QAndroidAudioSource::processedUSecs() const
 {
     return m_format.durationForBytes(m_processedBytes);
-}
-
-void QAndroidAudioSource::setVolume(float vol)
-{
-    m_volume = vol;
-}
-
-float QAndroidAudioSource::volume() const
-{
-    return m_volume;
 }
 
 void QAndroidAudioSource::reset()

@@ -27,8 +27,6 @@ QAlsaAudioSource::QAlsaAudioSource(QAudioDevice device, const QAudioFormat &fmt,
     pullMode = true;
     resuming = false;
 
-    m_volume = 1.0f;
-
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &QAlsaAudioSource::userFeed);
 }
@@ -38,16 +36,6 @@ QAlsaAudioSource::~QAlsaAudioSource()
     close();
     disconnect(timer, &QTimer::timeout, this, &QAlsaAudioSource::userFeed);
     delete timer;
-}
-
-void QAlsaAudioSource::setVolume(float vol)
-{
-    m_volume = vol;
-}
-
-float QAlsaAudioSource::volume() const
-{
-    return m_volume;
 }
 
 QAudio::State QAlsaAudioSource::state() const
@@ -414,9 +402,8 @@ qint64 QAlsaAudioSource::read(char* data, qint64 len)
 
             int readFrames = snd_pcm_readi(handle, buffer.data(), frames);
             bytesRead = snd_pcm_frames_to_bytes(handle, readFrames);
-            if (m_volume < 1.0f)
-                QAudioHelperInternal::qMultiplySamples(m_volume, m_format,
-                                                       buffer.constData(),
+            if (volume() < 1.0f)
+                QAudioHelperInternal::qMultiplySamples(volume(), m_format, buffer.constData(),
                                                        buffer.data(), bytesRead);
 
             if (readFrames >= 0) {
