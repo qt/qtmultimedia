@@ -34,6 +34,7 @@ struct QWASAPIAudioSourceStream final : std::enable_shared_from_this<QWASAPIAudi
     using QPlatformAudioSourceStream::bytesReady;
     using QPlatformAudioSourceStream::deviceIsRingbufferReader;
     using QPlatformAudioSourceStream::processedDuration;
+    using QPlatformAudioSourceStream::ringbufferSizeInBytes;
     using QPlatformAudioSourceStream::setVolume;
 
     bool start(QIODevice *, ComPtr<IMMDevice>);
@@ -322,7 +323,11 @@ void QWindowsAudioSource::setBufferSize(qsizetype value)
 
 qsizetype QWindowsAudioSource::bufferSize() const
 {
-    return m_bufferSize.value_or(-1);
+    if (m_stream)
+        return m_stream->ringbufferSizeInBytes();
+
+    return QPlatformAudioIOStream::inferRingbufferBytes(m_bufferSize, m_hardwareBufferFrames,
+                                                        m_format);
 }
 
 void QWindowsAudioSource::setHardwareBufferFrames(int32_t arg)

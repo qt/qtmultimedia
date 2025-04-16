@@ -67,6 +67,9 @@ private slots:
 
     void bufferSize_data();
     void bufferSize();
+    void bufferSize_getValidDefault();
+    void bufferSize_setAfterStart();
+    void bufferSize_updatedAfterStart();
 
     void stopWhileStopped();
     void suspendWhileStopped();
@@ -370,6 +373,40 @@ void tst_QAudioSink::bufferSize()
                      .arg(audioSink.bufferSize())
                      .toUtf8()
                      .constData());
+}
+
+void tst_QAudioSink::bufferSize_getValidDefault()
+{
+#if !(defined(Q_OS_MACOS) || defined(Q_OS_WIN))
+    QSKIP("bufferSize validation only fully implemented on Mac and Windows");
+#endif
+
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+    QCOMPARE_GE(audioSink.bufferSize(),
+                audioDevice.preferredFormat().bytesForDuration(250'000)); // 250ms
+}
+
+void tst_QAudioSink::bufferSize_setAfterStart()
+{
+#if !(defined(Q_OS_MACOS) || defined(Q_OS_WIN))
+    QSKIP("bufferSize validation only fully implemented on Mac and Windows");
+#endif
+
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+    audioSink.start();
+    QCOMPARE_GE(audioSink.bufferSize(), audioDevice.preferredFormat().bytesForFrames(32));
+}
+
+void tst_QAudioSink::bufferSize_updatedAfterStart()
+{
+#if !(defined(Q_OS_MACOS) || defined(Q_OS_WIN))
+    QSKIP("bufferSize validation only fully implemented on Mac and Windows");
+#endif
+
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+    audioSink.setBufferSize(1); // small enough force a size increase
+    audioSink.start();
+    QCOMPARE_GE(audioSink.bufferSize(), audioDevice.preferredFormat().bytesForFrames(32));
 }
 
 void tst_QAudioSink::stopWhileStopped()

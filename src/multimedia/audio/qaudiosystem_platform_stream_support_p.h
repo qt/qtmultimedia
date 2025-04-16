@@ -40,6 +40,14 @@ class QPlatformAudioIOStream
     using Ringbuffer = std::variant<QAudioRingBuffer<float>, QAudioRingBuffer<int32_t>,
                                     QAudioRingBuffer<int16_t>, QAudioRingBuffer<uint8_t>>;
 
+public:
+    static qsizetype inferRingbufferFrames(const std::optional<int> &ringbufferSize,
+                                           const std::optional<int32_t> &hardwareBufferFrames,
+                                           const QAudioFormat &);
+    static qsizetype inferRingbufferBytes(const std::optional<int> &ringbufferSize,
+                                          const std::optional<int32_t> &hardwareBufferFrames,
+                                          const QAudioFormat &);
+
 protected:
     using NativeSampleFormat = QAudioHelperInternal::NativeSampleFormat;
     using QAutoResetEvent = QtPrivate::QAutoResetEvent;
@@ -66,6 +74,7 @@ protected:
     }
 
     void prepareRingbuffer(std::optional<int> ringbufferSize);
+    int ringbufferSizeInBytes();
 
     // stop requests
     void requestStop();
