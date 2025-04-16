@@ -174,6 +174,9 @@ public:
     virtual bool isFormatSupported(const QAudioFormat &format) const;
     QAudioFormat format() const { return m_format; }
 
+    virtual void setVolume(float volume) { m_volume = volume; }
+    float volume() const { return m_volume; }
+
 protected:
     enum class EmitStateSignal : uint8_t
     {
@@ -194,6 +197,8 @@ private:
     QAudio::State m_inferredState = QAudio::StoppedState;
     QAudio::Error m_error{};
     bool m_streamIsIdle = false;
+
+    float m_volume{ 1.f };
 };
 
 class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QPlatformAudioEndpointBase
@@ -212,8 +217,6 @@ public:
     virtual void setHardwareBufferFrames(int32_t) { };
     virtual int32_t hardwareBufferFrames() { return -1; };
     virtual qint64 processedUSecs() const = 0;
-    virtual void setVolume(float) { }
-    virtual float volume() const;
 
     using AudioCallback = QtMultimediaPrivate::AudioSinkCallback;
 
@@ -244,8 +247,6 @@ public:
     virtual int32_t hardwareBufferFrames() { return -1; };
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
-    virtual void setVolume(float) = 0;
-    virtual float volume() const = 0;
 
     QElapsedTimer elapsedTime;
 };

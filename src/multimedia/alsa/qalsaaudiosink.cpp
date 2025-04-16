@@ -26,16 +26,6 @@ QAlsaAudioSink::~QAlsaAudioSink()
     delete timer;
 }
 
-void QAlsaAudioSink::setVolume(float vol)
-{
-    m_volume = vol;
-}
-
-float QAlsaAudioSink::volume() const
-{
-    return m_volume;
-}
-
 QAudio::State QAlsaAudioSink::state() const
 {
     return deviceState;
@@ -437,9 +427,9 @@ qint64 QAlsaAudioSink::write( const char *data, qint64 len )
 
     frames = snd_pcm_bytes_to_frames(handle, space);
 
-    if (m_volume < 1.0f) {
+    if (volume() < 1.0f) {
         QVarLengthArray<char, 4096> out(space);
-        QAudioHelperInternal::qMultiplySamples(m_volume, m_format, data, out.data(), space);
+        QAudioHelperInternal::qMultiplySamples(volume(), m_format, data, out.data(), space);
         err = snd_pcm_writei(handle, out.constData(), frames);
     } else {
         err = snd_pcm_writei(handle, data, frames);

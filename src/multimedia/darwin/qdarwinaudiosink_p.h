@@ -52,7 +52,6 @@ public:
     qint64 processedUSecs() const override;
 
     void setVolume(float volume) override;
-    float volume() const override;
 
     void start(AudioCallback &&) override;
     bool hasCallbackAPI() override;
@@ -65,8 +64,6 @@ private:
 
     std::optional<int> m_internalBufferSize;
     std::optional<int32_t> m_hardwareBufferFrames;
-
-    float m_volume = 1.f;
 
     std::shared_ptr<QCoreAudioSinkStream> m_stream;
 };

@@ -50,8 +50,8 @@ void QWasmAudioSource::writeBuffer()
         qWarning() << alcGetString(aldata->device, err);
         return setError(QAudio::FatalError);
     }
-    if (m_volume < 1)
-        QAudioHelperInternal::qMultiplySamples(m_volume, m_format, m_tmpData, m_tmpData, bytes);
+    if (volume() < 1)
+        QAudioHelperInternal::qMultiplySamples(volume(), m_format, m_tmpData, m_tmpData, bytes);
     m_processed += bytes;
     m_device->write(m_tmpData,bytes);
 }
@@ -244,16 +244,6 @@ QAudio::State QWasmAudioSource::state() const
         return QAudio::StoppedState;
 }
 
-void QWasmAudioSource::setVolume(float volume)
-{
-    m_volume = volume;
-}
-
-float QWasmAudioSource::volume() const
-{
-    return m_volume;
-}
-
 QWasmAudioSourceDevice::QWasmAudioSourceDevice(QWasmAudioSource *in) : QIODevice(in), m_in(in)
 {
 
@@ -267,8 +257,8 @@ qint64 QWasmAudioSourceDevice::readData(char *data, qint64 maxlen)
     auto bytes = m_in->m_format.bytesForFrames(samples);
     alcGetError(m_in->aldata->device);
     alcCaptureSamples(m_in->aldata->device, data, samples);
-    if (m_in->m_volume < 1)
-        QAudioHelperInternal::qMultiplySamples(m_in->m_volume, m_in->m_format, data, data, bytes);
+    if (m_in->volume() < 1)
+        QAudioHelperInternal::qMultiplySamples(m_in->volume(), m_in->m_format, data, data, bytes);
     auto err = alcGetError(m_in->aldata->device);
     if (err) {
         qWarning() << alcGetString(m_in->aldata->device, err);

@@ -157,7 +157,7 @@ void QWasmAudioSink::start(bool mode)
     m_processed = 0;
     m_tmpDataOffset = 0;
     m_pullMode = mode;
-    alSourcef(aldata->source, AL_GAIN, m_volume);
+    alSourcef(aldata->source, AL_GAIN, volume());
     if (m_pullMode)
         loadALBuffers();
     m_timer->setInterval(DEFAULT_BUFFER_DURATION / 3000);
@@ -264,14 +264,9 @@ QAudio::State QWasmAudioSink::state() const
 
 void QWasmAudioSink::setVolume(float volume)
 {
-    m_volume = volume;
+    QPlatformAudioEndpointBase::setVolume(volume);
     if (m_running)
         alSourcef(aldata->source, AL_GAIN, volume);
-}
-
-float QWasmAudioSink::volume() const
-{
-    return m_volume;
 }
 
 void QWasmAudioSink::loadALBuffers()

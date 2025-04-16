@@ -52,7 +52,6 @@ public:
     qint64 processedUSecs() const override;
 
     void setVolume(float volume) override;
-    float volume() const override;
 
 private:
     friend class QCoreAudioSourceStream;
@@ -65,8 +64,6 @@ private:
     void resumeStreamIfNecessary();
 
     std::shared_ptr<QCoreAudioSourceStream> m_retiredStream;
-
-    float m_volume{ 1.f };
 };
 
 QT_END_NAMESPACE

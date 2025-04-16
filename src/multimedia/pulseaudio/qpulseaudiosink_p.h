@@ -53,9 +53,6 @@ public:
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
 
-    void setVolume(float volume) override;
-    float volume() const override;
-
     void streamUnderflowCallback();
     void streamDrainedCallback();
 
@@ -98,7 +95,6 @@ private:
     qint64 m_elapsedTimeOffset = 0;
     mutable qint64 averageLatency = 0; // average latency
     mutable qint64 lastProcessedUSecs = 0;
-    float m_volume = 1.0;
 
     std::atomic<pa_operation *> m_drainOperation = nullptr;
     qsizetype m_bufferSize = 0;

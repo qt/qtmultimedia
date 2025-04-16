@@ -30,7 +30,6 @@ class QWasmAudioSource : public QPlatformAudioSource
     ALData *aldata = nullptr;
     QTimer *m_timer = nullptr;
     QIODevice *m_device = nullptr;
-    float m_volume = 1;
     qsizetype m_bufferSize;
     bool m_running = false;
     bool m_suspended = false;
@@ -58,7 +57,6 @@ public:
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
     void setVolume(float volume) override;
-    float volume() const override;
 
     friend class QWasmAudioSourceDevice;
 };
