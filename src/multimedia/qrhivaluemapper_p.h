@@ -107,10 +107,10 @@ public:
         return { &rhiIt->second, rhiAdded };
     }
 
-    Value *get(QRhi &rhi) const
+    Value *get(QRhi *rhi) const
     {
         QReadLocker locker(&m_data->lock);
-        auto rhiIt = m_data->storage.find(&rhi);
+        auto rhiIt = m_data->storage.find(rhi);
         return rhiIt == m_data->storage.end() ? nullptr : &rhiIt->second;
     }
 

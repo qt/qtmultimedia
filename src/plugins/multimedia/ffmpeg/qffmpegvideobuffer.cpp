@@ -95,7 +95,7 @@ QFFmpeg::TextureConverter &QFFmpegVideoBuffer::ensureTextureConverter(QRhi &rhi)
     Q_ASSERT(m_hwFrame);
 
     HwFrameContextData &frameContextData = HwFrameContextData::ensure(*m_hwFrame);
-    TextureConverter *converter = frameContextData.textureConverterMapper.get(rhi);
+    TextureConverter *converter = frameContextData.textureConverterMapper.get(&rhi);
 
     if (!converter) {
         TextureConverter newConverter(rhi);
@@ -219,7 +219,7 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::createTexturesFromHwFrame(QRhi &rhi,
 
     TextureConverter *converter = initTextureConverterForAnyRhi
             ? &ensureTextureConverter(rhi)
-            : HwFrameContextData::ensure(*m_hwFrame).textureConverterMapper.get(rhi);
+            : HwFrameContextData::ensure(*m_hwFrame).textureConverterMapper.get(&rhi);
 
     if (!converter)
         return {};

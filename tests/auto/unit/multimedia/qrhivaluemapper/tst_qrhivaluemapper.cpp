@@ -113,7 +113,7 @@ private slots:
         Value *addingResult = m_mapper.tryMap(*rhi, value).first;
 
         // Act
-        Value *gettingResult = m_mapper.get(*rhi);
+        Value *gettingResult = m_mapper.get(rhi.get());
 
         // Assert
         QVERIFY(gettingResult);
@@ -129,7 +129,7 @@ private slots:
         m_mapper.tryMap(*rhi1, makeValue(1));
 
         // Act
-        Value *gettingResult = m_mapper.get(*rhi2);
+        Value *gettingResult = m_mapper.get(rhi2.get());
 
         // Assert
         QCOMPARE(gettingResult, nullptr);
@@ -151,8 +151,8 @@ private slots:
         m_mapper.clear();
 
         // Assert
-        QCOMPARE(m_mapper.get(*rhi1), nullptr);
-        QCOMPARE(m_mapper.get(*rhi2), nullptr);
+        QCOMPARE(m_mapper.get(rhi1.get()), nullptr);
+        QCOMPARE(m_mapper.get(rhi2.get()), nullptr);
 
         QCOMPARE(value1.use_count(), 1);
         QCOMPARE(value2.use_count(), 1);
@@ -174,7 +174,7 @@ private slots:
         rhi1.reset();
 
         // Assert
-        QCOMPARE(m_mapper.get(*rhi2), addingResult);
+        QCOMPARE(m_mapper.get(rhi2.get()), addingResult);
         QCOMPARE(value1.use_count(), 1);
         QCOMPARE(value2.use_count(), 2);
     }
@@ -192,11 +192,12 @@ private slots:
         Value *addingResult = m_mapper.tryMap(*rhi2, value2).first;
 
         // Act
-        rhi1->runCleanup();
+        QRhi *rhi1Ptr = rhi1.get();
+        rhi1 = nullptr;
 
         // Assert
-        QCOMPARE(m_mapper.get(*rhi1), nullptr);
-        QCOMPARE(m_mapper.get(*rhi2), addingResult);
+        QCOMPARE(m_mapper.get(rhi1Ptr), nullptr);
+        QCOMPARE(m_mapper.get(rhi2.get()), addingResult);
 
         QCOMPARE(value1.use_count(), 1);
         QCOMPARE(value2.use_count(), 2);
