@@ -11,6 +11,8 @@
   #include <QPermission>
 #endif
 
+using namespace Qt::Literals;
+
 // Utility functions for converting QAudioFormat fields into text
 
 static QString toString(QAudioFormat::SampleFormat sampleFormat)
@@ -115,8 +117,11 @@ void AudioTest::updateAudioDevices()
     deviceBox->clear();
     const auto devices =
             m_mode == QAudioDevice::Input ? m_devices->audioInputs() : m_devices->audioOutputs();
-    for (auto &deviceInfo : devices)
-        deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+    for (auto &deviceInfo : devices) {
+        QString description = deviceInfo.description();
+        description.replace(u"\n"_s, u" - "_s);
+        deviceBox->addItem(description, QVariant::fromValue(deviceInfo));
+    }
 }
 
 void AudioTest::modeChanged(int idx)
