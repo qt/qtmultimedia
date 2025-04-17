@@ -469,10 +469,12 @@ static QMutex sessionMutex;
     if (loadingRequest.dataRequest) {
         NSInteger requestedLength = loadingRequest.dataRequest.requestedLength;
         int maxBytes = qMin(32 * 1064, int(requestedLength));
-        char buffer[maxBytes];
+        QByteArray buffer;
+        buffer.resize(maxBytes);
+
         NSInteger submitted = 0;
         while (submitted < requestedLength) {
-            qint64 len = device->read(buffer, maxBytes);
+            qint64 len = device->read(buffer.data(), maxBytes);
             if (len < 1)
                 break;
 
