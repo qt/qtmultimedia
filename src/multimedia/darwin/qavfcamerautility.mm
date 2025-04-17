@@ -596,7 +596,6 @@ AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnec
 
 QList<AudioValueRange> qt_supported_sample_rates_for_format(int codecId)
 {
-    QList<AudioValueRange> result;
     UInt32 format = codecId;
     UInt32 size;
     OSStatus err = AudioFormatGetPropertyInfo(
@@ -606,28 +605,22 @@ QList<AudioValueRange> qt_supported_sample_rates_for_format(int codecId)
             &size);
 
     if (err != noErr)
-        return result;
+        return {};
 
     UInt32 numRanges = size / sizeof(AudioValueRange);
-    AudioValueRange sampleRanges[numRanges];
+    QList<AudioValueRange> result;
+    result.resize(numRanges);
 
     err = AudioFormatGetProperty(kAudioFormatProperty_AvailableEncodeSampleRates,
                                 sizeof(format),
                                 &format,
                                 &size,
-                                sampleRanges);
-    if (err != noErr)
-        return result;
-
-    for (UInt32 i = 0; i < numRanges; i++)
-        result << sampleRanges[i];
-
-    return result;
+                                result.data());
+    return err == noErr ? result : QList<AudioValueRange>{};
 }
 
 QList<AudioValueRange> qt_supported_bit_rates_for_format(int codecId)
 {
-    QList<AudioValueRange> result;
     UInt32 format = codecId;
     UInt32 size;
     OSStatus err = AudioFormatGetPropertyInfo(
@@ -637,28 +630,22 @@ QList<AudioValueRange> qt_supported_bit_rates_for_format(int codecId)
             &size);
 
     if (err != noErr)
-        return result;
+        return {};
 
     UInt32 numRanges = size / sizeof(AudioValueRange);
-    AudioValueRange bitRanges[numRanges];
+    QList<AudioValueRange> result;
+    result.resize(numRanges);
 
     err = AudioFormatGetProperty(kAudioFormatProperty_AvailableEncodeBitRates,
                                 sizeof(format),
                                 &format,
                                 &size,
-                                bitRanges);
-    if (err != noErr)
-        return result;
-
-    for (UInt32 i = 0; i < numRanges; i++)
-        result << bitRanges[i];
-
-    return result;
+                                result.data());
+    return err == noErr ? result : QList<AudioValueRange>{};
 }
 
 std::optional<QList<UInt32>> qt_supported_channel_counts_for_format(int codecId)
 {
-    QList<UInt32> result;
     AudioStreamBasicDescription sf = {};
     sf.mFormatID = codecId;
     UInt32 size;
@@ -669,7 +656,7 @@ std::optional<QList<UInt32>> qt_supported_channel_counts_for_format(int codecId)
             &size);
 
     if (err != noErr)
-        return result;
+        return std::nullopt;
 
     // From Apple's docs:
     // A value of 0xFFFFFFFF indicates that any number of channels may be encoded.
@@ -677,25 +664,22 @@ std::optional<QList<UInt32>> qt_supported_channel_counts_for_format(int codecId)
         return std::nullopt;
 
     UInt32 numCounts = size / sizeof(UInt32);
-    UInt32 channelCounts[numCounts];
+    QList<UInt32> channelCounts;
+    channelCounts.resize(numCounts);
 
     err = AudioFormatGetProperty(kAudioFormatProperty_AvailableEncodeNumberChannels,
                                 sizeof(sf),
                                 &sf,
                                 &size,
-                                channelCounts);
-    if (err != noErr)
-        return result;
-
-    for (UInt32 i = 0; i < numCounts; i++)
-        result << channelCounts[i];
-
-    return result;
+                                channelCounts.data());
+    if (err == noErr)
+        return channelCounts;
+    else
+        return std::nullopt;
 }
 
 QList<UInt32> qt_supported_channel_layout_tags_for_format(int codecId, int noChannels)
 {
-    QList<UInt32> result;
     AudioStreamBasicDescription sf = {};
     sf.mFormatID = codecId;
     sf.mChannelsPerFrame = noChannels;
@@ -707,21 +691,23 @@ QList<UInt32> qt_supported_channel_layout_tags_for_format(int codecId, int noCha
             &size);
 
     if (err != noErr)
-        return result;
+        return {};
 
     UInt32 noTags = (UInt32)size / sizeof(UInt32);
-    AudioChannelLayoutTag tagsArr[noTags];
+    QList<AudioChannelLayoutTag> tagsArr;
+    tagsArr.resize(noTags);
 
     err = AudioFormatGetProperty(kAudioFormatProperty_AvailableEncodeChannelLayoutTags,
                                 sizeof(sf),
                                 &sf,
                                 &size,
-                                tagsArr);
+                                tagsArr.data());
     if (err != noErr)
-        return result;
+        return {};
 
-    for (UInt32 i = 0; i < noTags; i++)
-        result << tagsArr[i];
+    QList<UInt32> result;
+    for (const AudioChannelLayoutTag &item : tagsArr)
+        result.push_back(item);
 
     return result;
 }
