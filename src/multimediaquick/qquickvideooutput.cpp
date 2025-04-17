@@ -114,10 +114,10 @@ QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
 
     // TODO: investigate if we have any benefit of setting frame in the source thread
     connect(m_sink, &QVideoSink::videoFrameChanged, this,
-            [this](const QVideoFrame &frame) {
-                if (frame.isValid() || m_endOfStreamPolicy == ClearOutput)
-                    setFrame(frame);
-            },
+            makeGuardedCall([](QQuickVideoOutput *self, const QVideoFrame &frame) {
+        if (frame.isValid() || self->m_endOfStreamPolicy == ClearOutput)
+            self->setFrame(frame);
+    }),
             Qt::DirectConnection);
 
     initRhiForSink();
@@ -125,6 +125,11 @@ QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
 
 QQuickVideoOutput::~QQuickVideoOutput()
 {
+    {
+        QMutexLocker lock(&m_destructorGuard->m_mutex);
+        m_destructorGuard->m_isAlive = false;
+    }
+    m_destructorGuard = {};
 }
 
 /*!
@@ -422,10 +427,19 @@ void QQuickVideoOutput::itemChange(QQuickItem::ItemChange change,
     if (m_window) {
         // We want to receive the signals in the render thread
         connect(m_window, &QQuickWindow::sceneGraphInitialized, this,
-                &QQuickVideoOutput::_q_sceneGraphInitialized, Qt::DirectConnection);
+                makeGuardedCall([](QQuickVideoOutput *self) {
+            self->_q_sceneGraphInitialized();
+        }),
+                Qt::DirectConnection);
         connect(m_window, &QQuickWindow::sceneGraphInvalidated, this,
-                &QQuickVideoOutput::_q_invalidateSceneGraph, Qt::DirectConnection);
-        connect(m_window, &QQuickWindow::afterFrameEnd, this, &QQuickVideoOutput::_q_afterFrameEnd,
+                makeGuardedCall([](QQuickVideoOutput *self) {
+            self->_q_invalidateSceneGraph();
+        }),
+                Qt::DirectConnection);
+        connect(m_window, &QQuickWindow::afterFrameEnd, this,
+                makeGuardedCall([](QQuickVideoOutput *self) {
+            self->_q_afterFrameEnd();
+        }),
                 Qt::DirectConnection);
     }
     initRhiForSink();

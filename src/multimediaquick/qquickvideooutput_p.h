@@ -150,6 +150,35 @@ private:
     QRectF m_sourceTextureRect;    // Source texture coordinates
 
     EndOfStreamPolicy m_endOfStreamPolicy = ClearOutput;
+
+    struct DestructorGuard
+    {
+        QMutex m_mutex;
+        bool m_isAlive{ true };
+
+        template <typename Functor>
+        void runWhileAlive(Functor &&f)
+        {
+            QMutexLocker lock(&m_mutex);
+            if (m_isAlive)
+                f();
+        }
+    };
+
+    template <typename Functor>
+    auto makeGuardedCall(Functor &&f)
+    {
+        return [this, f = std::forward<Functor>(f),
+                guard = std::weak_ptr<DestructorGuard>{ m_destructorGuard }](auto... params) {
+            auto lockedGuard = guard.lock();
+            if (lockedGuard)
+                lockedGuard->runWhileAlive([&] {
+                    f(this, params...);
+                });
+        };
+    }
+
+    std::shared_ptr<DestructorGuard> m_destructorGuard = std::make_shared<DestructorGuard>();
 };
 
 QT_END_NAMESPACE
