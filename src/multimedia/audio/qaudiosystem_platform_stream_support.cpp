@@ -325,34 +325,30 @@ uint64_t QPlatformAudioSourceStream::process(
     qsizetype remainingNumberOfSamples = numberOfFrames * m_format.channelCount();
 
     const float vol = volume();
-
     using namespace QtMultimediaPrivate;
 
-    uint64_t totalBytesWritten = 0;
-    visitRingbuffer([&](auto &rb) {
-        for (;;) {
-            QSpan region = rb.acquireWriteRegion(remainingNumberOfSamples);
-            if (region.empty())
-                break;
+    uint64_t totalSamplesWritten = visitRingbuffer([&](auto &rb) {
+        using SampleType = typename std::decay_t<decltype(rb)>::ValueType;
 
-            QSpan inputChunk = take(hostBuffer, region.size_bytes());
-            hostBuffer = drop(hostBuffer, region.size_bytes());
+        return rb.produceSome([&](QSpan<SampleType> writeRegion) {
+            QSpan<const std::byte> inputChunk = take(hostBuffer, writeRegion.size_bytes());
+            hostBuffer = drop(hostBuffer, writeRegion.size_bytes());
+
+            writeRegion = take(writeRegion, inputChunk.size() / sizeof(SampleType));
+
             if (nativeFormat)
-                convertFromNative(inputChunk, as_writable_bytes(region), vol, *nativeFormat);
+                convertFromNative(inputChunk, as_writable_bytes(writeRegion), vol, *nativeFormat);
             else
                 QAudioHelperInternal::applyVolume(vol, m_format, inputChunk,
-                                                  as_writable_bytes(region));
-
-            rb.releaseWriteRegion(region.size());
-            totalBytesWritten += region.size_bytes();
-            remainingNumberOfSamples -= region.size();
-        }
+                                                  as_writable_bytes(writeRegion));
+            return writeRegion;
+        }, remainingNumberOfSamples);
     });
 
-    if (totalBytesWritten)
+    if (totalSamplesWritten)
         m_ringbufferHasData.set();
 
-    uint64_t framesWritten = m_format.framesForBytes(totalBytesWritten);
+    uint64_t framesWritten = totalSamplesWritten * m_format.channelCount();
     m_totalNumberOfFramesPushedToRingbuffer += framesWritten;
     return framesWritten;
 }

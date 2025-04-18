@@ -62,35 +62,100 @@ public:
     int write(ConstRegion region)
     {
         using namespace QtMultimediaPrivate; // drop
+        return produceSome([&](Region writeRegion) {
+            qsizetype writeSize = std::min(region.size(), writeRegion.size());
+            std::uninitialized_copy_n(region.data(), writeSize, writeRegion.data());
+            region = drop(region, writeSize);
 
-        int elementsWritten = 0;
-        while (!region.isEmpty()) {
-            Region writeRegion = acquireWriteRegion(region.size());
-            if (writeRegion.isEmpty())
-                break;
-
-            int toWrite = qMin(writeRegion.size(), region.size());
-            std::uninitialized_copy_n(region.data(), toWrite, writeRegion.data());
-            region = drop(region, toWrite);
-            releaseWriteRegion(toWrite);
-            elementsWritten += toWrite;
-        }
-        return elementsWritten;
+            return Region{
+                writeRegion.data(),
+                writeSize,
+            };
+        });
     }
 
     bool write(T element)
+    {
+        return produceOne([&] {
+            return std::move(element);
+        });
+    }
+
+    template <typename Functor>
+    bool produceOne(Functor &&producer)
+#ifdef __cpp_concepts
+            requires
+            std::is_invocable_v<Functor> &&std::is_constructible_v<T, std::invoke_result_t<Functor>>
+#endif
     {
         Region writeRegion = acquireWriteRegion(1);
         if (writeRegion.isEmpty())
             return false;
         T *writeElement = writeRegion.data();
-        new (writeElement) T{ std::move(element) };
+        new (writeElement) T{ producer() };
         releaseWriteRegion(1);
         return true;
     }
 
     template <typename Functor>
+    int produceSome(Functor &&producer, int elements = std::numeric_limits<int>::max())
+#ifdef __cpp_concepts
+            requires std::is_invocable_v<Functor, Region>
+                    &&std::is_same_v<std::invoke_result_t<Functor, Region>, Region>
+#endif
+    {
+        int elementsRemain = elements;
+        int elementsWritten = 0;
+        while (elementsRemain) {
+            Region writeRegion = acquireWriteRegion(elementsRemain);
+            if (writeRegion.isEmpty())
+                break;
+
+            Region writtenRegion = producer(writeRegion);
+            if (writtenRegion.isEmpty())
+                break;
+
+            Q_ASSERT(writtenRegion.data() == writeRegion.data());
+            Q_ASSERT(writtenRegion.size() <= writeRegion.size());
+
+            elementsRemain -= writtenRegion.size();
+            elementsWritten += writtenRegion.size();
+            releaseWriteRegion(writtenRegion.size());
+        }
+        return elementsWritten;
+    }
+
+    template <typename Functor>
+    int consumeAll(Functor &&consumer)
+    {
+        return consumeSome([&](Region region) {
+            consumer(region);
+            return region;
+        });
+    }
+
+    template <typename Functor>
     int consume(int elements, Functor &&consumer)
+    {
+        int remainingElemnts = elements;
+        return consumeSome([&](Region region) {
+            if (remainingElemnts == 0)
+                return Region{};
+
+            Region regionToConsume = QtMultimediaPrivate::take(region, remainingElemnts);
+            consumer(regionToConsume);
+            remainingElemnts -= regionToConsume.size();
+            return regionToConsume;
+        });
+    }
+
+    // consumer has to return the region it has consumed
+    template <typename Functor>
+    int consumeSome(Functor &&consumer, int elements = std::numeric_limits<int>::max())
+#ifdef __cpp_concepts
+            requires std::is_invocable_v<Functor, Region>
+                    &&std::is_same_v<std::invoke_result_t<Functor, Region>, Region>
+#endif
     {
         int elementsConsumed = 0;
 
@@ -99,21 +164,20 @@ public:
             if (readRegion.isEmpty())
                 break;
 
-            consumer(readRegion);
-            if constexpr (!isTriviallyDestructible)
-                std::destroy(readRegion.begin(), readRegion.end());
+            Region consumedRegion = consumer(readRegion);
+            if (consumedRegion.isEmpty())
+                break;
+            Q_ASSERT(consumedRegion.data() == readRegion.data());
+            Q_ASSERT(consumedRegion.size() <= readRegion.size());
 
-            elementsConsumed += readRegion.size();
-            releaseReadRegionImpl(readRegion.size());
+            if constexpr (!isTriviallyDestructible)
+                std::destroy(consumedRegion.begin(), consumedRegion.end());
+
+            elementsConsumed += consumedRegion.size();
+            releaseReadRegion(consumedRegion.size());
         }
 
         return elementsConsumed;
-    }
-
-    template <typename Functor>
-    int consumeAll(Functor &&consumer)
-    {
-        return consume(std::numeric_limits<int>::max(), std::forward<Functor>(consumer));
     }
 
     // CAVEAT: beware of the thread safety
@@ -132,6 +196,7 @@ public:
         m_bufferUsed.store(0, std::memory_order_relaxed);
     }
 
+private:
     Region acquireWriteRegion(int size)
     {
         const int free = m_bufferSize - m_bufferUsed.load(std::memory_order_acquire);
@@ -164,17 +229,8 @@ public:
         return Region();
     }
 
-    void releaseReadRegion(int elementsWritten)
-#ifdef __cpp_concepts
-            requires isTriviallyDestructible
-#endif
-    {
-        releaseReadRegionImpl(elementsWritten);
-    }
-
-private:
     // WARNING: we need to ensure that all elements are destroyed
-    void releaseReadRegionImpl(int elementsWritten)
+    void releaseReadRegion(int elementsWritten)
     {
         m_readPos = (m_readPos + elementsWritten) % m_bufferSize;
         m_bufferUsed.fetch_sub(elementsWritten, std::memory_order_release);

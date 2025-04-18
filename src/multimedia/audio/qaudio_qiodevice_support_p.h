@@ -54,28 +54,12 @@ private:
 
         // we don't write fractional samples
         int64_t usableLength = alignDown(len, sizeof(SampleType));
+        auto readRegion = QSpan<const SampleType>{
+            reinterpret_cast<const SampleType *>(data),
+            qsizetype(usableLength / sizeof(SampleType)),
+        };
 
-        QSpan<const std::byte> dataRegion = as_bytes(QSpan{ data, qsizetype(usableLength) });
-        qint64 totalBytesWritten = 0;
-
-        do {
-            int64_t remainingSamples = dataRegion.size() / sizeof(SampleType);
-            auto writeRegion = m_ringbuffer->acquireWriteRegion(remainingSamples);
-            if (writeRegion.isEmpty())
-                break; // no space in buffer
-
-            QSpan<std::byte> writeByteRegion = as_writable_bytes(writeRegion);
-            int64_t bytesToWrite = std::min(dataRegion.size(), writeByteRegion.size());
-
-            QSpan<const std::byte> dataForChunk = take(dataRegion, bytesToWrite);
-            std::copy(dataForChunk.begin(), dataForChunk.end(), writeByteRegion.begin());
-
-            totalBytesWritten += bytesToWrite;
-            dataRegion = drop(dataRegion, bytesToWrite);
-
-            m_ringbuffer->releaseWriteRegion(int(bytesToWrite / sizeof(SampleType)));
-        } while (!dataRegion.isEmpty());
-
+        qint64 totalBytesWritten = m_ringbuffer->write(readRegion) * sizeof(SampleType);
         if (totalBytesWritten)
             emit readyRead();
 
@@ -107,24 +91,17 @@ private:
 
         QSpan<std::byte> outputRegion = as_writable_bytes(QSpan{ data, qsizetype(maxlen) });
 
-        qint64 totalBytesRead = 0;
+        qsizetype maxSizeToRead = outputRegion.size_bytes() / sizeof(SampleType);
 
-        while (!outputRegion.isEmpty()) {
-            qsizetype maxSizeToRead = outputRegion.size_bytes() / sizeof(SampleType);
-            QSpan readRegion = m_ringbuffer->acquireReadRegion(int(maxSizeToRead));
-            if (readRegion.isEmpty())
-                return totalBytesRead;
-
+        int samplesConsumed = m_ringbuffer->consumeSome([&](auto readRegion) {
             QSpan readByteRegion = as_bytes(readRegion);
             std::copy(readByteRegion.begin(), readByteRegion.end(), outputRegion.begin());
-
             outputRegion = drop(outputRegion, readByteRegion.size());
-            totalBytesRead += readByteRegion.size();
 
-            m_ringbuffer->releaseReadRegion(readRegion.size());
-        }
+            return readRegion;
+        }, maxSizeToRead);
 
-        return totalBytesRead;
+        return samplesConsumed * sizeof(SampleType);
     }
 
     qint64 writeData(const char * /*data*/, qint64 /*len*/) override { return -1; }
@@ -181,69 +158,53 @@ qsizetype pullFromQIODeviceToRingbuffer(QIODevice &device, QAudioRingBuffer<Samp
 {
     using namespace QtMultimediaPrivate;
 
-    qsizetype totalBytesWritten = 0;
-
-    for (;;) {
+    int totalSamplesWritten = ringbuffer.produceSome([&](QSpan<SampleType> writeRegion) {
         qint64 bytesAvailableInDevice = alignDown(device.bytesAvailable(), sizeof(SampleType));
         if (!bytesAvailableInDevice)
-            return totalBytesWritten; // no data in iodevice
+            return QSpan<SampleType>{}; // no data in iodevice
 
         qint64 samplesAvailableInDevice = bytesAvailableInDevice / sizeof(SampleType);
-
-        auto writeRegion = ringbuffer.acquireWriteRegion(samplesAvailableInDevice);
-        if (writeRegion.empty())
-            return totalBytesWritten;
+        writeRegion = take(writeRegion, samplesAvailableInDevice);
 
         qint64 bytesRead = readFromDevice(device, as_writable_bytes(writeRegion));
         if (bytesRead < 0) {
             qWarning() << "pullFromQIODeviceToRingbuffer cannot read from QIODevice:"
                        << device.errorString();
-            return totalBytesWritten;
+            return QSpan<SampleType>{};
         }
 
-        Q_ASSERT(bytesRead == writeRegion.size_bytes());
-        ringbuffer.releaseWriteRegion(writeRegion.size());
+        return writeRegion;
+    });
 
-        totalBytesWritten += writeRegion.size_bytes();
-    }
+    return totalSamplesWritten * sizeof(SampleType);
 }
 
 template <typename SampleType>
 qsizetype pushToQIODeviceFromRingbuffer(QIODevice &device, QAudioRingBuffer<SampleType> &ringbuffer)
 {
     using namespace QtMultimediaPrivate;
-    qsizetype totalBytesWritten = 0;
 
-    for (;;) {
-        auto ringbufferRegion = ringbuffer.acquireReadRegion(ringbuffer.size());
-        if (ringbufferRegion.empty())
-            return totalBytesWritten;
-        QSpan bufferByteRegion = as_bytes(ringbufferRegion);
+    int totalSamplesWritten = ringbuffer.consumeSome([&](QSpan<SampleType> region) {
+        // we do our best effort and only push full samples to the device
+        const quint64 bytesToWrite = [&] {
+            const qint64 deviceBytesToWrite = device.bytesToWrite();
+            return (deviceBytesToWrite > 0) ? alignDown(deviceBytesToWrite, sizeof(SampleType))
+                                            : region.size_bytes();
+        }();
 
-        int deviceBytesToWrite = device.bytesToWrite();
-        if (deviceBytesToWrite > 0) {
-            // we do our best effort and only push full samples to the device
-            int bytesToWrite = alignDown(deviceBytesToWrite, sizeof(SampleType));
-            bufferByteRegion = take(bufferByteRegion, bytesToWrite);
-
-            if (bufferByteRegion.empty())
-                return totalBytesWritten;
-        }
-
+        QSpan<const std::byte> bufferByteRegion = take(as_bytes(region), bytesToWrite);
         int bytesWritten = writeToDevice(device, bufferByteRegion);
         if (bytesWritten < 0) {
             qWarning() << "pushToQIODeviceFromRingbuffer cannot push data to QIODevice:"
                        << device.errorString();
-            return totalBytesWritten;
+            return QSpan<SampleType>{};
         }
-        if (bytesWritten == 0)
-            return totalBytesWritten;
-
-        totalBytesWritten += bytesWritten;
         Q_ASSERT(isAligned(bytesWritten, sizeof(SampleType)));
         int samplesWritten = bytesWritten / sizeof(SampleType);
-        ringbuffer.releaseReadRegion(samplesWritten);
-    }
+        return take(region, samplesWritten);
+    });
+
+    return totalSamplesWritten * sizeof(SampleType);
 }
 
 } // namespace QtPrivate

@@ -19,6 +19,7 @@ private slots:
     void capacityAPIs();
     void reset();
     void moveOnlyType();
+    void moveOnlyType_produceOne();
     void destroyRemainingElements_inDestructor();
     void destroy_inConsume();
     void destroy_inConsumeStressTest();
@@ -92,6 +93,20 @@ void tst_QAudioRingBuffer::moveOnlyType()
     QCOMPARE(elementsConsumed, 1);
 }
 
+void tst_QAudioRingBuffer::moveOnlyType_produceOne()
+{
+    QtPrivate::QAudioRingBuffer<std::unique_ptr<int>> dut{ 64 };
+    QVERIFY(dut.produceOne([] {
+        return std::make_unique<int>(2);
+    }));
+
+    int elementsConsumed = dut.consumeAll([](auto span) {
+        std::unique_ptr<int> element = std::move(span.front());
+        QCOMPARE(*element, 2);
+    });
+    QCOMPARE(elementsConsumed, 1);
+}
+
 void tst_QAudioRingBuffer::destroyRemainingElements_inDestructor()
 {
     const auto element = std::make_shared<int>(1);
@@ -139,6 +154,7 @@ void tst_QAudioRingBuffer::destroy_inConsumeStressTest()
         push_one,
         push_multiple,
         consume_one,
+        consume_two,
         consume_all,
     };
 
@@ -148,6 +164,7 @@ void tst_QAudioRingBuffer::destroy_inConsumeStressTest()
         5, // push_one
         5, // push_multiple
         3, // consume_one
+        1, // consume_two
         1, // consume_all
     };
 
@@ -190,6 +207,17 @@ void tst_QAudioRingBuffer::destroy_inConsumeStressTest()
             dut.consume(1, [&](auto) {
                 consumeCount += 1;
             });
+            continue;
+        case mode::consume_two:
+            consumeCount += dut.consumeSome([&](auto region) {
+                if (region.size() == 2) {
+                    std::uniform_int_distribution coinFlip(1, 2);
+                    int elementsToConsume = coinFlip(rng);
+                    return QtMultimediaPrivate::take(region, elementsToConsume);
+                } else {
+                    return region;
+                }
+            }, 2);
             continue;
         case mode::consume_all:
             dut.consumeAll([&](auto region) {
