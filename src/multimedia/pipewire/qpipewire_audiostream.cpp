@@ -90,7 +90,11 @@ bool QPipewireAudioStream::connectStream(ObjectSerial target, spa_direction dire
             return -ENODEV;
 
         std::array<uint8_t, 1024> buffer;
+
+        QT_WARNING_PUSH
+        QT_WARNING_DISABLE_CLANG("-Wmissing-field-initializers")
         struct spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer.data(), uint32_t(buffer.size()));
+        QT_WARNING_POP
         spa_audio_info_raw audioInfo = asSpaAudioInfoRaw(m_format);
 
         std::array<const struct spa_pod *, 1> params{
