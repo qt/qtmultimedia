@@ -36,6 +36,10 @@
 
 #include <fcntl.h>
 
+// pipewire's macros tend to emit unused value warnings
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_CLANG("-Wunused-value")
+
 QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
@@ -932,3 +936,5 @@ spa_video_format QPipeWireCaptureHelper::toSpaVideoFormat(QVideoFrameFormat::Pix
 } // namespace QtPipeWire
 
 QT_END_NAMESPACE
+
+QT_WARNING_POP
