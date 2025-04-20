@@ -310,10 +310,7 @@ void QWASAPIAudioSinkStream::handleAudioClientError()
     audioClientReset(m_audioClient);
 
     QMetaObject::invokeMethod(&m_ringbufferDrained, [this] {
-        if (m_parent) {
-            m_parent->setError(QAudio::IOError);
-            m_parent->updateStreamState(QtAudio::State::StoppedState);
-        }
+        handleIOError(m_parent);
     });
 }
 
@@ -344,6 +341,7 @@ QIODevice *QWindowsAudioSink::start()
     QIODevice *ioDevice = m_stream->start(std::move(immDevice), m_endpointRole);
     if (!ioDevice) {
         setError(QtAudio::OpenError);
+        m_stream = {};
         return nullptr;
     }
 
@@ -366,6 +364,7 @@ void QWindowsAudioSink::start(QIODevice *iodevice)
     bool started = m_stream->start(iodevice, std::move(immDevice), m_endpointRole);
     if (!started) {
         setError(QtAudio::OpenError);
+        m_stream = {};
         return;
     }
 

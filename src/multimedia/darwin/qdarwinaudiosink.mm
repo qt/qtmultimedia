@@ -305,9 +305,7 @@ bool QCoreAudioSinkStream::addDisconnectListener(AudioObjectID id)
         // a way to re-synchronize the audio stream. so we explicitly stop the audio unit
 
         stopAudioUnit();
-
-        m_parent->setError(QtAudio::IOError);
-        m_parent->updateStreamState(QtAudio::State::StoppedState);
+        handleIOError(m_parent);
     });
 
     return true;
@@ -353,6 +351,7 @@ void QDarwinAudioSink::start(QIODevice *device)
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
+        m_stream = {};
         return;
     }
 
@@ -368,6 +367,7 @@ QIODevice *QDarwinAudioSink::start()
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
+        m_stream = {};
         return nullptr;
     }
 

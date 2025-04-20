@@ -47,6 +47,7 @@ public:
     void setRole(AudioEndpointRole) override;
 
 private:
+    friend QtMultimediaPrivate::QPlatformAudioSinkStream;
     friend struct QWASAPIAudioSinkStream;
 
     const QAudioFormat m_format;
