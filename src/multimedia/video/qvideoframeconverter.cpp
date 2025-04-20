@@ -226,7 +226,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
         rhi = buffer->rhi();
 
     if (!rhi || !rhi->thread()->isCurrentThread())
-        rhi = ensureThreadLocalRhi(rhi);
+        rhi = qEnsureThreadLocalRhi(rhi);
 
     if (!rhi || rhi->isRecordingFrame())
         return convertCPU(frame, transformation);
