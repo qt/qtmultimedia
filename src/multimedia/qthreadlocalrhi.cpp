@@ -120,7 +120,7 @@ QThreadStorage<ThreadLocalRhiHolder> g_threadLocalRhiHolder;
 
 }
 
-QRhi *ensureThreadLocalRhi(QRhi* referenceRhi)
+QRhi *qEnsureThreadLocalRhi(QRhi *referenceRhi)
 {
     return g_threadLocalRhiHolder.localData().ensureRhi(referenceRhi);
 }

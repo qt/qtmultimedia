@@ -21,7 +21,7 @@ QT_BEGIN_NAMESPACE
 
 class QRhi;
 
-Q_MULTIMEDIA_EXPORT QRhi* ensureThreadLocalRhi(QRhi* referenceRhi = nullptr);
+Q_MULTIMEDIA_EXPORT QRhi *qEnsureThreadLocalRhi(QRhi *referenceRhi = nullptr);
 
 QT_END_NAMESPACE
 
