@@ -3,15 +3,15 @@
 
 #include "qthreadlocalrhi_p.h"
 
-#include <rhi/qrhi.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qthreadstorage.h>
+#include <QtGui/private/qguiapplication_p.h>
 #include <QtGui/qoffscreensurface.h>
-#include <qpa/qplatformintegration.h>
-#include <private/qguiapplication_p.h>
+#include <QtGui/qpa/qplatformintegration.h>
+#include <QtGui/rhi/qrhi.h>
 
 #if defined(Q_OS_ANDROID)
-#include <qmetaobject.h>
+#  include <QtCore/qmetaobject.h>
 #endif
 
 QT_BEGIN_NAMESPACE
