@@ -50,6 +50,9 @@ public:
     AudioTest();
     ~AudioTest();
 
+signals:
+    void pullModeChanged();
+
 private:
     void initializeWindow();
     void initializeAudio(const QAudioDevice &deviceInfo);
@@ -66,9 +69,10 @@ private:
     QSlider *m_volumeSlider = nullptr;
 
     QScopedPointer<Generator> m_generator;
-    QScopedPointer<QAudioSink> m_audioOutput;
+    QScopedPointer<QAudioSink> m_audioSink;
 
     bool m_pullMode = true;
+    void restartAudioStream();
 
 private slots:
     void toggleMode();

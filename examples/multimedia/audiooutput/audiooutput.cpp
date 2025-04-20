@@ -146,6 +146,14 @@ void AudioTest::initializeWindow()
 
     setCentralWidget(window);
     window->show();
+
+    connect(this, &AudioTest::pullModeChanged, this, [&] {
+        if (m_pullMode)
+            m_modeButton->setText(tr("Enable push mode"));
+        else
+            m_modeButton->setText(tr("Enable pull mode"));
+    });
+    emit pullModeChanged();
 }
 
 void AudioTest::initializeAudio(const QAudioDevice &deviceInfo)
@@ -155,20 +163,32 @@ void AudioTest::initializeAudio(const QAudioDevice &deviceInfo)
     const int durationSeconds = 1;
     const int toneSampleRateHz = 600;
     m_generator.reset(new Generator(format, durationSeconds * 1000000, toneSampleRateHz));
-    m_audioOutput.reset(new QAudioSink(deviceInfo, format));
+    m_audioSink.reset(new QAudioSink(deviceInfo, format));
     m_generator->start();
 
-    qreal initialVolume = QAudio::convertVolume(m_audioOutput->volume(), QAudio::LinearVolumeScale,
+    m_suspendResumeButton->setText(tr("Suspend playback"));
+    connect(m_audioSink.get(), &QAudioSink::stateChanged, this, [this](QAudio::State state) {
+        switch (state) {
+        case QAudio::SuspendedState:
+            m_suspendResumeButton->setText(tr("Resume playback"));
+            break;
+        default:
+            m_suspendResumeButton->setText(tr("Suspend playback"));
+            break;
+        }
+    });
+
+    qreal initialVolume = QAudio::convertVolume(m_audioSink->volume(), QAudio::LinearVolumeScale,
                                                 QAudio::LogarithmicVolumeScale);
     m_volumeSlider->setValue(qRound(initialVolume * 100));
-    toggleMode();
+    restartAudioStream();
 }
 
 void AudioTest::deviceChanged(int index)
 {
     m_generator->stop();
-    m_audioOutput->stop();
-    m_audioOutput->disconnect(this);
+    m_audioSink->stop();
+    m_audioSink->disconnect(this);
     initializeAudio(m_deviceBox->itemData(index).value<QAudioDevice>());
 }
 
@@ -177,7 +197,7 @@ void AudioTest::volumeChanged(int value)
     qreal linearVolume = QAudio::convertVolume(value / qreal(100), QAudio::LogarithmicVolumeScale,
                                                QAudio::LinearVolumeScale);
 
-    m_audioOutput->setVolume(linearVolume);
+    m_audioSink->setVolume(linearVolume);
 }
 
 void AudioTest::updateAudioDevices()
@@ -190,26 +210,31 @@ void AudioTest::updateAudioDevices()
 
 void AudioTest::toggleMode()
 {
+    m_pullMode = !m_pullMode;
+    emit pullModeChanged();
+
+    restartAudioStream();
+}
+
+void AudioTest::restartAudioStream()
+{
     m_pushTimer->stop();
     // Reset audiosink
-    m_audioOutput->reset();
-    toggleSuspendResume();
+    m_audioSink->reset();
 
     if (m_pullMode) {
-        // switch to pull mode (QAudioSink pulls from Generator as needed)
-        m_modeButton->setText(tr("Enable push mode"));
-        m_audioOutput->start(m_generator.data());
+        // pull mode: QAudioSink pulls from Generator as needed
+        m_audioSink->start(m_generator.data());
     } else {
-        // switch to push mode (periodically push to QAudioSink using a timer)
-        m_modeButton->setText(tr("Enable pull mode"));
-        auto io = m_audioOutput->start();
+        // push mode: periodically push to QAudioSink using a timer
+        auto io = m_audioSink->start();
         m_pushTimer->disconnect();
 
         connect(m_pushTimer, &QTimer::timeout, [this, io]() {
-            if (m_audioOutput->state() == QAudio::StoppedState)
+            if (m_audioSink->state() == QAudio::StoppedState)
                 return;
 
-            int len = m_audioOutput->bytesFree();
+            int len = m_audioSink->bytesFree();
             QByteArray buffer(len, 0);
             len = m_generator->read(buffer.data(), len);
             if (len)
@@ -218,21 +243,20 @@ void AudioTest::toggleMode()
 
         m_pushTimer->start(10);
     }
-
-    m_pullMode = !m_pullMode;
 }
 
 void AudioTest::toggleSuspendResume()
 {
-    if (m_audioOutput->state() == QAudio::SuspendedState
-        || m_audioOutput->state() == QAudio::StoppedState) {
-        m_audioOutput->resume();
-        m_suspendResumeButton->setText(tr("Suspend playback"));
-    } else if (m_audioOutput->state() == QAudio::ActiveState) {
-        m_audioOutput->suspend();
-        m_suspendResumeButton->setText(tr("Resume playback"));
-    } else if (m_audioOutput->state() == QAudio::IdleState) {
-        // no-op
+    switch (m_audioSink->state()) {
+    case QAudio::SuspendedState:
+        m_audioSink->resume();
+        return;
+    case QAudio::ActiveState:
+        m_audioSink->suspend();
+        return;
+
+    default:
+        return;
     }
 }
 

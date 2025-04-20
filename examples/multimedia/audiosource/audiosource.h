@@ -65,10 +65,14 @@ class InputTest : public QWidget
 public:
     InputTest();
 
+signals:
+    void pullModeChanged();
+
 private:
     void initializeWindow();
     void initializeAudio(const QAudioDevice &deviceInfo);
     void initializeErrorWindow();
+    void restartAudioStream();
 
 private slots:
     void init();
@@ -88,7 +92,7 @@ private:
 
     QMediaDevices *m_devices = nullptr;
     QScopedPointer<AudioInfo> m_audioInfo;
-    QScopedPointer<QAudioSource> m_audioInput;
+    QScopedPointer<QAudioSource> m_audioSource;
     bool m_pullMode = true;
 };
 
