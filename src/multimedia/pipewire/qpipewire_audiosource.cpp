@@ -236,11 +236,8 @@ void QPipewireAudioSourceStream::process() noexcept QT_MM_NONBLOCKING
 
 void QPipewireAudioSourceStream::handleDeviceRemoved()
 {
-    if (!isStopRequested()) {
-        // note: as long as the stream is not stopped, m_parent is valid
-        m_parent->setError(QAudio::Error::IOError);
-        m_parent->updateStreamState(QAudio::State::StoppedState);
-    }
+    if (!isStopRequested())
+        QPlatformAudioSourceStream::handleIOError(m_parent);
 }
 
 void QPipewireAudioSourceStream::stateChanged(pw_stream_state /*oldState*/, pw_stream_state state,
@@ -284,14 +281,17 @@ void QPipewireAudioSource::startHelper(Functor &&starter)
             m_audioDevice, this, format(), m_bufferSize, m_hardwareBufferFrames, m_volume);
     if (!m_stream->hasStream()) {
         setError(QtAudio::Error::OpenError);
+        m_stream = {};
         return;
     }
 
     bool started = starter(m_stream);
-    if (started)
+    if (started) {
         updateStreamState(QtAudio::State::ActiveState);
-    else
+    } else {
+        m_stream = {};
         setError(QtAudio::Error::OpenError);
+    }
 }
 
 using SharedSourceStream = std::shared_ptr<QPipewireAudioSourceStream>;

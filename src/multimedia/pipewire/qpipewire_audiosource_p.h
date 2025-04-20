@@ -48,6 +48,8 @@ public:
 
 private:
     friend struct QPipewireAudioSourceStream;
+    friend class QtMultimediaPrivate::QPlatformAudioSourceStream;
+    using BaseClass::m_stream;
 
     template <typename Functor>
     void startHelper(Functor &&f);

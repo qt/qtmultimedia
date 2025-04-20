@@ -58,6 +58,7 @@ public:
 private:
     void resumeStreamIfNecessary();
 
+    friend class QtMultimediaPrivate::QPlatformAudioSinkStream;
     friend class QCoreAudioSinkStream;
 
     const QAudioFormat m_audioFormat;

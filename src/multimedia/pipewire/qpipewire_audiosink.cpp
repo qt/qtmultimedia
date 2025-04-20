@@ -228,11 +228,9 @@ std::optional<ObjectSerial> QPipewireAudioSinkStream::findSinkNodeSerial()
 
 void QPipewireAudioSinkStream::handleDeviceRemoved()
 {
-    if (!isStopRequested()) {
+    if (!isStopRequested())
         // note: as long as the stream is not stopped, m_parent is valid
-        m_parent->setError(QAudio::Error::IOError);
-        m_parent->updateStreamState(QAudio::State::StoppedState);
-    }
+        handleIOError(m_parent);
 }
 
 void QPipewireAudioSinkStream::process() noexcept QT_MM_NONBLOCKING
@@ -373,10 +371,12 @@ void QPipewireAudioSink::startHelper(Functor &&starter)
     }
 
     bool started = starter(m_stream);
-    if (started)
+    if (started) {
         updateStreamState(QtAudio::State::ActiveState);
-    else
+    } else {
+        m_stream = {};
         setError(QtAudio::Error::OpenError);
+    }
 }
 
 using SharedSinkStream = std::shared_ptr<QPipewireAudioSinkStream>;

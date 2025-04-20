@@ -45,8 +45,13 @@ public:
     void resume() override;
     qsizetype bytesFree() const override;
 
+    using QPlatformAudioEndpointBase::updateStreamState;
+
 private:
+    friend class QtMultimediaPrivate::QPlatformAudioSinkStream;
     friend QPipewireAudioSinkStream;
+    using BaseClass::m_stream;
+
     void reportXRuns(int);
 
     template <typename Functor>
