@@ -135,6 +135,12 @@ public:
     QElapsedTimer elapsedTime;
 };
 
+// forward declarations
+namespace QtMultimediaPrivate {
+class QPlatformAudioSinkStream;
+class QPlatformAudioSourceStream;
+} // namespace QtMultimediaPrivate
+
 QT_END_NAMESPACE
 
 #endif // QAUDIOSYSTEM_H

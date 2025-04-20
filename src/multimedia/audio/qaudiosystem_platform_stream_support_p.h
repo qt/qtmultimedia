@@ -148,6 +148,18 @@ protected:
                                 &m_streamIdleDetectionNotifier, f);
     }
 
+    template <typename ParentType>
+    void handleIOError(ParentType *parent)
+    {
+        if (parent) {
+            Q_ASSERT(parent->thread()->isCurrentThread());
+            parent->setError(QAudio::IOError);
+            parent->updateStreamState(QtAudio::State::StoppedState);
+
+            parent->m_stream = {};
+        }
+    }
+
 private:
     // qiodevice
     QIODevice *m_device = nullptr;
@@ -206,6 +218,23 @@ protected:
 
     // downstream delegates
     virtual void updateStreamIdle(bool) = 0;
+
+    template <typename ParentType>
+    void handleIOError(ParentType *parent)
+    {
+        if (parent) {
+            Q_ASSERT(parent->thread()->isCurrentThread());
+            parent->setError(QAudio::IOError);
+            parent->updateStreamState(QtAudio::State::StoppedState);
+
+            if (deviceIsRingbufferReader())
+                // we own the qiodevice, so let's keep it alive to allow users to drain the
+                // ringbuffer
+                parent->m_retiredStream = std::move(parent->m_stream);
+            else
+                parent->m_stream = {};
+        }
+    }
 
 private:
     // qiodevice

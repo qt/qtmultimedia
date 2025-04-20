@@ -56,6 +56,9 @@ public:
     float volume() const override;
 
 private:
+    friend class QCoreAudioSourceStream;
+    friend class QtMultimediaPrivate::QPlatformAudioSourceStream;
+
     QAudioFormat m_audioFormat;
 
     std::shared_ptr<QCoreAudioSourceStream> m_stream;
@@ -64,7 +67,6 @@ private:
 
     void resumeStreamIfNecessary();
 
-    friend class QCoreAudioSourceStream;
     std::shared_ptr<QCoreAudioSourceStream> m_retiredStream;
 
     float m_volume{ 1.f };

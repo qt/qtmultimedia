@@ -48,6 +48,7 @@ public:
 
 private:
     friend struct QWASAPIAudioSourceStream;
+    friend class QtMultimediaPrivate::QPlatformAudioSourceStream;
 
     const QAudioFormat m_format;
     std::optional<qsizetype> m_bufferSize;

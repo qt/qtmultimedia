@@ -309,8 +309,7 @@ bool QCoreAudioSourceStream::addDisconnectListener(AudioObjectID id)
         stopAudioUnit();
         finalizeQIODevice(ShutdownPolicy::DrainRingbuffer);
 
-        m_parent->setError(QtAudio::IOError);
-        m_parent->updateStreamState(QtAudio::State::StoppedState);
+        QPlatformAudioSourceStream::handleIOError(m_parent);
     });
 
     return true;
@@ -358,6 +357,7 @@ void QDarwinAudioSource::start(QIODevice *device)
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
+        m_stream = {};
         return;
     }
 
@@ -373,6 +373,7 @@ QIODevice *QDarwinAudioSource::start()
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
+        m_stream = {};
         return nullptr;
     }
 
