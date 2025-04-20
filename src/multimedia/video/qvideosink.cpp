@@ -66,8 +66,8 @@ public:
     through the videoFrameChanged() signal.
 
     The video frame can then be used to read out the data of those frames and handle them
-    further. When using QPainter, the QVideoFrame can be drawing using the paint() method
-    in QVideoSink.
+    further. When using QPainter, the QVideoFrame can be drawing using the \l {QVideoFrame::}
+    {paint()} method.
 
     QVideoFrame objects can consume a significant amount of memory or system resources and
     should thus not be held for longer than required by the application.
