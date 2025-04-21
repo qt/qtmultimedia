@@ -136,9 +136,7 @@ QPlatformAudioSinkStream::QPlatformAudioSinkStream(QAudioDevice audioDevice,
           std::move(audioDevice), format, ringbufferSize, hardwareBufferFrames, volume,
       }
 {
-    m_streamIdleDetectionConnection =
-            QObject::connect(&m_streamIdleDetectionNotifier, &QAutoResetEvent::activated,
-                             &m_streamIdleDetectionNotifier, [this] {
+    m_streamIdleDetectionConnection = m_streamIdleDetectionNotifier.callOnActivated([this] {
         if (isStopRequested())
             return;
 
@@ -233,8 +231,7 @@ void QPlatformAudioSinkStream::pullFromQIODevice()
 void QPlatformAudioSinkStream::createQIODeviceConnections(QIODevice *device)
 {
     // consumed from audio thread
-    m_ringbufferHasSpaceConnection =
-            QObject::connect(&m_ringbufferHasSpace, &QAutoResetEvent::activated, device, [this] {
+    m_ringbufferHasSpaceConnection = m_ringbufferHasSpace.callOnActivated(device, [this] {
         pullFromQIODevice();
     });
 
@@ -419,23 +416,20 @@ void QPlatformAudioSourceStream::createQIODeviceConnections(QIODevice *device)
     bool pushToDevice = !deviceIsRingbufferReader();
 
     if (pushToDevice) {
-        m_ringbufferHasDataConnection =
-                QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
+        m_ringbufferHasDataConnection = m_ringbufferHasData.callOnActivated(device, [this] {
             if (!isStopRequested())
                 updateStreamIdle(false);
             pushToIODevice();
         });
     } else {
-        m_ringbufferHasDataConnection =
-                QObject::connect(&m_ringbufferHasData, &QAutoResetEvent::activated, device, [this] {
+        m_ringbufferHasDataConnection = m_ringbufferHasData.callOnActivated(device, [this] {
             if (!isStopRequested())
                 updateStreamIdle(false);
             Q_EMIT m_device->readyRead();
         });
     }
 
-    m_ringbufferIsFullConnection =
-            QObject::connect(&m_ringbufferIsFull, &QAutoResetEvent::activated, device, [this] {
+    m_ringbufferIsFullConnection = m_ringbufferHasData.callOnActivated(device, [this] {
         if (!isStopRequested())
             updateStreamIdle(true);
     });

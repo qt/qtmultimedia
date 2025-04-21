@@ -180,8 +180,7 @@ void QWASAPIAudioSinkStream::stop(ShutdownPolicy shutdownPolicy)
         return;
     }
     case ShutdownPolicy::DrainRingbuffer: {
-        QObject::connect(&m_ringbufferDrained, &QAutoResetEvent::activated, &m_ringbufferDrained,
-                         [self = shared_from_this()]() mutable {
+        m_ringbufferDrained.callOnActivated([self = shared_from_this()]() mutable {
             self->m_workerThread->wait();
             self = {};
         });

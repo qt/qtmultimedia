@@ -155,8 +155,7 @@ protected:
     template <typename Functor>
     auto connectIdleHandler(Functor f)
     {
-        return QObject::connect(&m_streamIdleDetectionNotifier, &QAutoResetEvent::activated,
-                                &m_streamIdleDetectionNotifier, f);
+        return m_streamIdleDetectionNotifier.callOnActivated(std::move(f));
     }
 
     template <typename ParentType>
