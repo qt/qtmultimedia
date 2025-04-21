@@ -122,8 +122,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QAudioDevice device, QPip
 
     createStream(extraProperties, hardwareBufferFrames, applicationName.toUtf8().constData());
 
-    m_xrunNotification =
-            QObject::connect(&m_xrunOccurred, &QAutoResetEvent::activated, &m_xrunOccurred, [this] {
+    m_xrunNotification = m_xrunOccurred.callOnActivated([this] {
         if (isStopRequested())
             return;
         m_parent->reportXRuns(m_xrunCount.exchange(0));

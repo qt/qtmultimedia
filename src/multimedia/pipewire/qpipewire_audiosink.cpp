@@ -128,8 +128,7 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QAudioDevice device,
         parent,
     }
 {
-    m_xrunNotification = QObject::connect(&m_xrunOccurred, &QAutoResetEvent::activated,
-                                          &m_xrunOccurred, [this, parent] {
+    m_xrunNotification = m_xrunOccurred.callOnActivated(&m_xrunOccurred, [this, parent] {
         if (isStopRequested())
             return;
         parent->reportXRuns(m_xrunCount.exchange(0));
@@ -202,8 +201,7 @@ void QPipewireAudioSinkStream::stop(ShutdownPolicy shutdownPolicy)
     m_shutdownPolicy.store(shutdownPolicy, std::memory_order_relaxed);
     if (shutdownPolicy == ShutdownPolicy::DrainRingbuffer) {
         // disconnect when ringbuffer is drained
-        QObject::connect(&m_ringbufferDrained, &QAutoResetEvent::activated, &m_ringbufferDrained,
-                         [this] {
+        m_ringbufferDrained.callOnActivated([this] {
             disconnectStream();
         });
     }
