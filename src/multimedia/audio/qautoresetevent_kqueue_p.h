@@ -36,6 +36,19 @@ public:
     bool isValid() const;
     void set();
 
+    template <typename... Args>
+    QMetaObject::Connection callOnActivated(Args &&...args)
+    {
+        return connect(this, &QAutoResetEventKQueue::activated, std::forward<Args>(args)...);
+    }
+
+    template <typename Functor>
+    QMetaObject::Connection callOnActivated(Functor &&functor)
+    {
+        return connect(this, &QAutoResetEventKQueue::activated, this,
+                       std::forward<Functor>(functor));
+    }
+
 Q_SIGNALS:
     void activated();
 
