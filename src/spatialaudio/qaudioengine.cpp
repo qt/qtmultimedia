@@ -217,8 +217,6 @@ void QAudioEnginePrivate::stop()
     outputStream.reset();
     audioThread.exit(0);
     audioThread.wait();
-    delete resonanceAudio->api;
-    resonanceAudio->api = nullptr;
 }
 
 void QAudioEnginePrivate::setPaused(bool paused)
