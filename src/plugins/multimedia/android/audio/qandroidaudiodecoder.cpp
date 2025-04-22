@@ -416,7 +416,7 @@ bool QAndroidAudioDecoder::createTempFile()
     file.close();
     m_deviceBuffer.clear();
     if (success)
-        m_decoder->setSource(file.fileName());
+        m_decoder->setSource(QUrl::fromLocalFile(file.fileName()));
 
     return success;
 }

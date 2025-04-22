@@ -10,6 +10,8 @@
 #include "qmockaudiodecoder.h"
 #include "qmockintegration.h"
 
+using namespace Qt::StringLiterals;
+
 QT_USE_NAMESPACE
 
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
@@ -41,7 +43,7 @@ void tst_QAudioDecoder::ctors()
     QAudioDecoder d;
     QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.source(), QStringLiteral(""));
+    QCOMPARE(d.source(), QUrl{});
 
     d.setSource(QUrl());
     QVERIFY(!d.isDecoding());
@@ -245,8 +247,8 @@ void tst_QAudioDecoder::source()
     QVERIFY(d.source() == QUrl::fromLocalFile("Foo"));
     QVERIFY(d.sourceDevice() == nullptr);
 
-    d.setSource(QString());
-    QVERIFY(d.source() == QString());
+    d.setSource(QUrl{});
+    QCOMPARE(d.source(), QUrl{});
     QVERIFY(d.sourceDevice() == nullptr);
 }
 

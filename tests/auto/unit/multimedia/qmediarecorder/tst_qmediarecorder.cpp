@@ -378,14 +378,14 @@ void tst_QMediaRecorder::setOutputLocation_resetsActualLocation()
     QFETCH(QString, initialOutputLocation);
     QFETCH(QString, newOutputLocation);
 
-    encoder->setOutputLocation(initialOutputLocation);
+    encoder->setOutputLocation(QUrl{initialOutputLocation});
     encoder->record();
     encoder->stop();
 
     QCOMPARE_NE(encoder->actualLocation(), QUrl());
 
     // Act
-    encoder->setOutputLocation(newOutputLocation);
+    encoder->setOutputLocation(QUrl{newOutputLocation});
 
     // Assert
     QCOMPARE(encoder->actualLocation(), QUrl());

@@ -1221,7 +1221,7 @@ void tst_QMediaPlayerBackend::
 
 void tst_QMediaPlayerBackend::pause_doesNotChangePlayerState_whenInvalidFileLoaded()
 {
-    m_fixture->player.setSource({ "Some not existing media" });
+    m_fixture->player.setSource(QUrl{u"Some not existing media"_s});
     QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
 
     const MediaPlayerState expectedState{ m_fixture->player };
@@ -1321,7 +1321,7 @@ void tst_QMediaPlayerBackend::pause_playback_resumesFromPausedPosition()
 
 void tst_QMediaPlayerBackend::play_doesNotResetErrorState_whenCalledWithInvalidFile()
 {
-    m_fixture->player.setSource({ "Some not existing media" });
+    m_fixture->player.setSource(QUrl{u"Some not existing media"_s});
     QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
 
     MediaPlayerState expectedState{ m_fixture->player };
@@ -1530,7 +1530,7 @@ void tst_QMediaPlayerBackend::
     // Ignore audio output to check timings accuratelly
     // player.setAudioOutput(&output);
 
-    player.setSource(streamUrl);
+    player.setSource(QUrl{streamUrl});
 
     player.play();
 
@@ -3418,7 +3418,7 @@ void tst_QMediaPlayerBackend::durationDetectionIssues()
 
     player.setVideoOutput(&surface);
     player.setAudioOutput(&output);
-    player.setSource(mediaFile);
+    player.setSource(QUrl{mediaFile});
 
     QTRY_COMPARE_EQ(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
@@ -3916,7 +3916,7 @@ void tst_QMediaPlayerBackend::nonAsciiFileName()
             copyResourceToTemporaryFile(":/testdata/test.wav", "äöüØøÆ中文.XXXXXX.wav");
     QVERIFY(temporaryFile);
 
-    m_fixture->player.setSource(temporaryFile->fileName());
+    m_fixture->player.setSource(QUrl::fromLocalFile(temporaryFile->fileName()));
     m_fixture->player.play();
 
     QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia

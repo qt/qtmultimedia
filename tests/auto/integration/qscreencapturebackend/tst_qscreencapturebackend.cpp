@@ -521,7 +521,8 @@ void tst_QScreenCaptureBackend::capture_capturesToFile_whenConnectedToMediaRecor
 
     TestVideoSink sink;
     QMediaPlayer player;
-    player.setSource(fileName);
+    // Should this be recorder.actualLocation() instead?
+    player.setSource(QUrl::fromLocalFile(fileName));
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
     QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(),
                 QSize(videoResolution));

@@ -100,7 +100,7 @@ void QQnxAudioRecorder::attach()
         qWarning("QQnxAudioRecorder: mmr_input_attach() failed");
         detach();
     } else {
-        Q_EMIT actualLocationChanged(location);
+        Q_EMIT actualLocationChanged(QUrl{location});
     }
 }
 
