@@ -809,7 +809,7 @@ void AndroidCamera::getCameraInfo(int id, QCameraDevicePrivate *info)
     // (and more) front/back cameras
     if (id > 1) {
         info->id.append(QByteArray::number(id));
-        info->description.append(QString(" %1").arg(id));
+        info->description.append(QStringLiteral(" %1").arg(id));
     }
 }
 

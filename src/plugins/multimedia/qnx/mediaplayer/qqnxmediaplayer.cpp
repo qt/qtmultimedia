@@ -47,7 +47,7 @@ static std::tuple<int, int, bool> parseBufferLevel(const QString &value)
     if (value.isEmpty())
         return {};
 
-    const int slashPos = value.indexOf('/');
+    const int slashPos = value.indexOf(QChar(u'/'));
     if (slashPos <= 0)
         return {};
 

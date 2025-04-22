@@ -10,6 +10,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::Literals;
+
 Q_LOGGING_CATEGORY(qWasmImageCapture, "qt.multimedia.wasm.imagecapture")
 /* TODO
 signals:
@@ -28,7 +30,7 @@ int QWasmImageCapture::capture(const QString &fileName)
 
     QString imageFilenName;
     if (fileName.isEmpty())
-        imageFilenName = QDir::homePath() + "/image.jpg";
+        imageFilenName = QDir::homePath() + u"/image.jpg"_s;
     else
         imageFilenName = fileName;
 

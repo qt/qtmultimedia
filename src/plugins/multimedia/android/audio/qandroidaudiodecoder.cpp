@@ -21,6 +21,8 @@ static const char tempFile[] = "encoded.wav";
 constexpr int dequeueTimeout = 5000;
 Q_STATIC_LOGGING_CATEGORY(adLogger, "QAndroidAudioDecoder");
 
+using namespace Qt::Literals;
+
 Decoder::Decoder()
     : m_format(AMediaFormat_new())
 {}
@@ -62,9 +64,9 @@ void Decoder::setSource(const QUrl &source)
                 QNativeInterface::QAndroidApplication::context().object(),
                 QJniObject::fromString(source.path()).object());
 
-    const QString mime = path.isValid() ? path.toString() : "";
+    const QString mime = path.isValid() ? path.toString() : u""_s;
 
-    if (!mime.isEmpty() && !mime.contains("audio", Qt::CaseInsensitive)) {
+    if (!mime.isEmpty() && !mime.contains(u"audio"_s, Qt::CaseInsensitive)) {
         m_formatError = tr("Cannot set source, invalid mime type for the source provided.");
         return;
     }

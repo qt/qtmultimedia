@@ -16,6 +16,7 @@ QT_USE_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcAVFAudioDecoder, "qt.multimedia.darwin.AVFAudioDecoder");
 constexpr static int MAX_BUFFERS_IN_QUEUE = 5;
+using namespace Qt::Literals;
 
 QAudioBuffer handleNextSampleBuffer(CMSampleBufferRef sampleBuffer)
 {
@@ -262,7 +263,7 @@ void AVFAudioDecoder::setSourceDevice(QIODevice *device)
 
     if (m_device) {
         const QString ext = QMimeDatabase().mimeTypeForData(m_device).preferredSuffix();
-        const QString url = "iodevice:///iodevice." + ext;
+        const QString url = u"iodevice:///iodevice."_s + ext;
         NSString *urlString = url.toNSString();
         NSURL *nsURL = [NSURL URLWithString:urlString];
 

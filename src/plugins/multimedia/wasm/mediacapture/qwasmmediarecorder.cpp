@@ -16,6 +16,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::Literals;
+
 Q_LOGGING_CATEGORY(qWasmMediaRecorder, "qt.multimedia.wasm.mediarecorder")
 
 QWasmMediaRecorder::QWasmMediaRecorder(QMediaRecorder *parent)
@@ -506,7 +508,7 @@ void QWasmMediaRecorder::setUpFileSink()
     QString m_targetFileName = outputLocation().toLocalFile();
     QString suffix = m_mediaSettings.preferredSuffix();
     if (m_targetFileName.isEmpty()) {
-        m_targetFileName = "/home/web_user/tmp." + suffix;
+        m_targetFileName = u"/home/web_user/tmp."_s + suffix;
         QPlatformMediaRecorder::setOutputLocation(m_targetFileName);
     }
 
