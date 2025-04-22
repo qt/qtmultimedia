@@ -16,69 +16,14 @@
 #include <QtMultimedia/private/qdarwinaudiodevice_p.h>
 #include <QtMultimedia/private/qdarwinaudiodevices_p.h>
 
+#include <AudioUnit/AudioComponent.h>
 #ifdef Q_OS_MACOS
-#  include <AudioUnit/AudioComponent.h>
 #  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
 #else
 #  include <QtMultimedia/private/qcoreaudiosessionmanager_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
-
-class QCoreAudioSourceStream final : QtMultimediaPrivate::QPlatformAudioSourceStream
-{
-    using QPlatformAudioSourceStream = QtMultimediaPrivate::QPlatformAudioSourceStream;
-
-public:
-    explicit QCoreAudioSourceStream(QAudioDevice, const QAudioFormat &,
-                                    std::optional<int> ringbufferSize, QDarwinAudioSource *parent,
-                                    float volume, std::optional<int32_t> hardwareBufferFrames);
-    ~QCoreAudioSourceStream();
-
-    bool open();
-
-    bool start(QIODevice *);
-    QIODevice *start();
-    void stop(ShutdownPolicy);
-
-    void suspend();
-    void resume();
-
-    using QPlatformAudioSourceStream::bytesReady;
-    using QPlatformAudioSourceStream::deviceIsRingbufferReader;
-    using QPlatformAudioSourceStream::processedDuration;
-    using QPlatformAudioSourceStream::ringbufferSizeInBytes;
-    using QPlatformAudioSourceStream::setVolume;
-
-    void resumeIfNecessary();
-
-private:
-    void updateStreamIdle(bool idle) override;
-    void stopAudioUnit();
-
-    static OSStatus inputCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags,
-                                  const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
-                                  UInt32 inNumberFrames, AudioBufferList *ioData);
-
-    OSStatus process(AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *,
-                     UInt32 inBusNumber, UInt32 inNumberFrames,
-                     AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
-
-#ifdef Q_OS_MACOS
-    bool addDisconnectListener(AudioObjectID id);
-    void removeDisconnectListener();
-
-    QCoreAudioUtils::DeviceDisconnectMonitor m_disconnectMonitor;
-    QFuture<void> m_stopOnDisconnected;
-#endif
-
-    QCoreAudioUtils::AudioUnitHandle m_audioUnit;
-    bool m_audioUnitRunning{};
-
-    QDarwinAudioSource *m_parent;
-
-    AudioBufferList m_bufferList{};
-};
 
 QCoreAudioSourceStream::QCoreAudioSourceStream(QAudioDevice audioDevice,
                                                const QAudioFormat &format,
@@ -327,7 +272,7 @@ void QCoreAudioSourceStream::removeDisconnectListener()
 
 QDarwinAudioSource::QDarwinAudioSource(QAudioDevice device, const QAudioFormat &format,
                                        QObject *parent)
-    : QPlatformAudioSource(std::move(device), format, parent)
+    : BaseClass(std::move(device), format, parent)
 {
 #ifndef Q_OS_MACOS
     if (qGuiApp)
@@ -337,140 +282,6 @@ QDarwinAudioSource::QDarwinAudioSource(QAudioDevice device, const QAudioFormat &
                 resumeStreamIfNecessary();
         });
 #endif
-}
-
-
-QDarwinAudioSource::~QDarwinAudioSource()
-{
-    stop();
-}
-
-void QDarwinAudioSource::start(QIODevice *device)
-{
-    if (!device) {
-        setError(QAudio::IOError);
-        return;
-    }
-
-    m_stream = std::make_shared<QCoreAudioSourceStream>(
-            m_audioDevice, m_format, m_internalBufferSize, this, volume(), m_hardwareBufferFrames);
-
-    if (!m_stream->open()) {
-        setError(QAudio::OpenError);
-        m_stream = {};
-        return;
-    }
-
-    m_stream->start(device);
-    updateStreamState(QAudio::ActiveState);
-}
-
-QIODevice *QDarwinAudioSource::start()
-{
-    m_stream = std::make_shared<QCoreAudioSourceStream>(
-            m_audioDevice, m_format, m_internalBufferSize, this, volume(), m_hardwareBufferFrames);
-
-    if (!m_stream->open()) {
-        setError(QAudio::OpenError);
-        m_stream = {};
-        return nullptr;
-    }
-
-    QIODevice *device = m_stream->start();
-    QObject::connect(device, &QIODevice::readyRead, this, [this] {
-        updateStreamIdle(false);
-    });
-    updateStreamIdle(true, EmitStateSignal::False);
-    updateStreamState(QAudio::ActiveState);
-    return device;
-}
-
-void QDarwinAudioSource::stop()
-{
-    if (!m_stream)
-        return;
-
-    if (m_stream->deviceIsRingbufferReader())
-        // we own the qiodevice, so let's keep it alive to allow users to drain the ringbuffer
-        m_retiredStream = m_stream;
-
-    using ShutdownPolicy = QtMultimediaPrivate::QPlatformAudioIOStream::ShutdownPolicy;
-    m_stream->stop(ShutdownPolicy::DrainRingbuffer);
-    m_stream = {};
-    updateStreamState(QAudio::StoppedState);
-}
-
-void QDarwinAudioSource::reset()
-{
-    m_retiredStream = {};
-
-    if (!m_stream)
-        return;
-
-    using ShutdownPolicy = QtMultimediaPrivate::QPlatformAudioIOStream::ShutdownPolicy;
-    m_stream->stop(ShutdownPolicy::DiscardRingbuffer);
-    m_stream = {};
-    updateStreamState(QAudio::StoppedState);
-}
-
-void QDarwinAudioSource::suspend()
-{
-    if (m_stream) {
-        m_stream->suspend();
-        updateStreamState(QAudio::SuspendedState);
-    }
-}
-
-void QDarwinAudioSource::resume()
-{
-    if (m_stream) {
-        updateStreamState(QAudio::ActiveState);
-        m_stream->resume();
-    }
-}
-
-qsizetype QDarwinAudioSource::bytesReady() const
-{
-    return m_stream ? m_stream->bytesReady() : 0;
-}
-
-void QDarwinAudioSource::setBufferSize(qsizetype value)
-{
-    m_internalBufferSize = value;
-}
-
-qsizetype QDarwinAudioSource::bufferSize() const
-{
-    if (m_stream)
-        return m_stream->ringbufferSizeInBytes();
-
-    return QtMultimediaPrivate::QPlatformAudioIOStream::inferRingbufferBytes(
-            m_internalBufferSize, m_hardwareBufferFrames, format());
-}
-
-void QDarwinAudioSource::setHardwareBufferFrames(int32_t arg)
-{
-    if (arg > 0)
-        m_hardwareBufferFrames = arg;
-    else
-        m_hardwareBufferFrames = std::nullopt;
-}
-
-int32_t QDarwinAudioSource::hardwareBufferFrames()
-{
-    return m_hardwareBufferFrames.value_or(-1);
-}
-
-qint64 QDarwinAudioSource::processedUSecs() const
-{
-    return m_stream ? m_stream->processedDuration().count() : 0;
-}
-
-void QDarwinAudioSource::setVolume(float volume)
-{
-    QPlatformAudioEndpointBase::setVolume(volume);
-    if (m_stream)
-        m_stream->setVolume(volume);
 }
 
 void QDarwinAudioSource::resumeStreamIfNecessary()

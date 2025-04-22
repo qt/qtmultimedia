@@ -15,48 +15,88 @@
 // We mean it.
 //
 
-#include "qpipewire_audioiobase_p.h"
+#include <QtCore/qsemaphore.h>
+#include <QtCore/qtclasshelpermacros.h>
 
+#include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
+#include <QtMultimedia/private/qpipewire_audiostream_p.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
-class QPipewireAudioDevicePrivate;
-struct QPipewireAudioSourceStream;
+using namespace QtMultimediaPrivate;
 
-class QPipewireAudioSource final
-    : public QPipewireAudioIOBase<QPlatformAudioSource, QPipewireAudioSourceStream>
+class QPipewireAudioSource;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// LATER:
+// ideally the ringbuffer should fill a buffer that can grow via a worker thread on which we can
+// allocate.
+struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewireAudioSourceStream>,
+                                          QPipewireAudioStream,
+                                          QPlatformAudioSourceStream
 {
+    using SourceType = QPipewireAudioSource;
     using SampleFormat = QAudioFormat::SampleFormat;
-    using BaseClass = QPipewireAudioIOBase<QPlatformAudioSource, QPipewireAudioSourceStream>;
 
-public:
-    QPipewireAudioSource(QAudioDevice, const QAudioFormat &format, QObject *parent);
-    ~QPipewireAudioSource() override;
-    Q_DISABLE_COPY_MOVE(QPipewireAudioSource)
+    QPipewireAudioSourceStream(QAudioDevice, const QAudioFormat &,
+                               std::optional<qsizetype> ringbufferSize,
+                               QPipewireAudioSource *parent, float volume,
+                               std::optional<int32_t> hardwareBufferFrames);
+    Q_DISABLE_COPY_MOVE(QPipewireAudioSourceStream)
+    ~QPipewireAudioSourceStream();
 
-    // QPlatformAudioSource interface
-    void start(QIODevice *device) override;
-    QIODevice *start() override;
-    void stop() override;
-    void reset() override;
-    void suspend() override;
-    void resume() override;
-    qsizetype bytesReady() const override;
+    bool open() { return true; }
+    bool start(QIODevice *device);
+    QIODevice *start();
+    void stop(ShutdownPolicy);
+
+    using QPlatformAudioSourceStream::bytesReady;
+    using QPlatformAudioSourceStream::deviceIsRingbufferReader;
+    using QPlatformAudioSourceStream::processedDuration;
+    using QPlatformAudioSourceStream::ringbufferSizeInBytes;
+    using QPlatformAudioSourceStream::setVolume;
+
+    void updateStreamIdle(bool idle) override;
 
 private:
-    friend struct QPipewireAudioSourceStream;
-    friend class QtMultimediaPrivate::QPlatformAudioSourceStream;
-    using BaseClass::m_stream;
+    std::optional<ObjectSerial> findSourceNodeSerial();
 
-    template <typename Functor>
-    void startHelper(Functor &&f);
+    using QPlatformAudioSourceStream::m_format;
 
-    void reportXRuns(int numberOfXruns);
+    void processRingbuffer() noexcept QT_MM_NONBLOCKING override;
+    void processCallback() noexcept QT_MM_NONBLOCKING override { Q_ASSERT(false); }
+    void handleDeviceRemoved() override;
 
-    std::shared_ptr<QPipewireAudioSourceStream> m_retiredStream;
+    void stateChanged(pw_stream_state old, pw_stream_state state, const char *error) override;
+    void disconnectStream();
+
+    std::shared_ptr<QPipewireAudioSourceStream> m_self;
+    QSemaphore m_streamDisconnected;
+
+    // xrun detection
+    void xrunOccurred(int /*xrunCount*/) override { m_xrunOccurred.set(); }
+    QtPrivate::QAutoResetEvent m_xrunOccurred;
+    QMetaObject::Connection m_xrunNotification;
+
+    QPipewireAudioSource *m_parent;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class QPipewireAudioSource final
+    : public QPlatformAudioSourceImplementation<QPipewireAudioSourceStream, QPipewireAudioSource>
+{
+    using BaseClass =
+            QPlatformAudioSourceImplementation<QPipewireAudioSourceStream, QPipewireAudioSource>;
+
+public:
+    QPipewireAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
+    void reportXRuns(int);
 };
 
 } // namespace QtPipeWire

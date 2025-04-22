@@ -31,6 +31,7 @@ qt_internal_add_module(Multimedia
         audio/qaudiostatemachine.cpp audio/qaudiostatemachine_p.h
         audio/qaudiostatemachineutils_p.h
         audio/qaudio_alignment_support_p.h
+        audio/qaudio_platform_implementation_support_p.h
         audio/qaudio_qiodevice_support_p.h
         audio/qaudio_qspan_support_p.h
         audio/qaudio_rtsan_support_p.h
@@ -181,7 +182,6 @@ if (QT_FEATURE_pipewire)
             pipewire/qpipewire_audiodevice.cpp         pipewire/qpipewire_audiodevice_p.h
             pipewire/qpipewire_audiodevicemonitor.cpp  pipewire/qpipewire_audiodevicemonitor_p.h
             pipewire/qpipewire_audiodevices.cpp        pipewire/qpipewire_audiodevices_p.h
-            pipewire/qpipewire_audioiobase.cpp         pipewire/qpipewire_audioiobase_p.h
             pipewire/qpipewire_audiosink.cpp           pipewire/qpipewire_audiosink_p.h
             pipewire/qpipewire_audiosource.cpp         pipewire/qpipewire_audiosource_p.h
             pipewire/qpipewire_audiostream.cpp         pipewire/qpipewire_audiostream_p.h
