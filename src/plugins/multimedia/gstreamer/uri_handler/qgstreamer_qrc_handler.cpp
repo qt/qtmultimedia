@@ -207,7 +207,7 @@ bool QGstQrcSrc::setURI(const char *location, GError **err)
         }
     }
 
-    std::optional<QString> path = qQUrlToQrcPath(QString::fromUtf8(location));
+    std::optional<QString> path = qQUrlToQrcPath(QUrl::fromEncoded(location));
 
     {
         std::lock_guard guard{ *this };

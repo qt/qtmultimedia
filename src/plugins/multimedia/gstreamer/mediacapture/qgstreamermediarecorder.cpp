@@ -268,7 +268,7 @@ void QGstreamerMediaRecorder::record(QMediaEncoderSettings &settings)
     auto container = settings.preferredSuffix();
     auto location = QMediaStorageLocation::generateFileName(outputLocation().toLocalFile(), primaryLocation, container);
 
-    QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(location);
+    QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(QUrl{location});
     qCDebug(qLcMediaRecorder) << "recording new video to" << actualSink;
 
     Q_ASSERT(!actualSink.isEmpty());

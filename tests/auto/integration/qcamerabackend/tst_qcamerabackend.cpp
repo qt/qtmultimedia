@@ -722,7 +722,8 @@ void tst_QCameraBackend::testVideoRecording()
     QVERIFY(QFileInfo(fileName).size() > 0);
 
     QMediaPlayer player;
-    player.setSource(fileName);
+    // Should this be recorder.actualLocation() instead?
+    player.setSource(QUrl::fromLocalFile(fileName));
 
     QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::LoadedMedia, 8s);
     QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(), QSize(320, 240));

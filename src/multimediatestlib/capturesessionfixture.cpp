@@ -69,7 +69,7 @@ void CaptureSessionFixture::start(RunMode mode, AutoStop autoStop)
         } else {
             m_tempFile.close();
 
-            m_recorder.setOutputLocation(m_tempFile.fileName());
+            m_recorder.setOutputLocation(QUrl::fromLocalFile(m_tempFile.fileName()));
         }
     }
     // else: outputLocation has been already set

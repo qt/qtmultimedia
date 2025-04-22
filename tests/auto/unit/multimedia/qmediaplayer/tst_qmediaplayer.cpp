@@ -23,6 +23,8 @@ using namespace std::chrono_literals;
 
 QT_USE_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 
 class AutoConnection
@@ -213,7 +215,7 @@ void tst_QMediaPlayer::cleanup()
 
 void tst_QMediaPlayer::play_doesNotResetError()
 {
-    player->setSource({ "https://dummy/dummy.mp3" });
+    player->setSource(QUrl{u"https://dummy/dummy.mp3"_s});
 
     mockPlayer->setError(QMediaPlayer::AccessDeniedError);
     mockPlayer->setErrorString(QStringLiteral(u"Error"));
@@ -232,7 +234,7 @@ void tst_QMediaPlayer::setSource_resetsError()
     mockPlayer->setErrorString(QStringLiteral(u"Error"));
     QSignalSpy errorSpy{ player, &QMediaPlayer::errorChanged };
 
-    player->setSource({ "https://dummy/dummy.mp3" });
+    player->setSource(QUrl{u"https://dummy/dummy.mp3"_s});
 
     QCOMPARE_EQ(player->error(), QMediaPlayer::NoError);
     QVERIFY(player->errorString().isEmpty());
@@ -245,7 +247,7 @@ void tst_QMediaPlayer::setSourceDevice_resetsError()
     mockPlayer->setErrorString(QStringLiteral(u"Error"));
     QSignalSpy errorSpy{ player, &QMediaPlayer::errorChanged };
 
-    player->setSourceDevice(nullptr, { "https://dummy/dummy.mp3" });
+    player->setSourceDevice(nullptr, QUrl{u"https://dummy/dummy.mp3"_s});
 
     QCOMPARE_EQ(player->error(), QMediaPlayer::NoError);
     QVERIFY(player->errorString().isEmpty());

@@ -34,6 +34,8 @@
 
 #include <private/mediabackendutils_p.h>
 
+using namespace Qt::StringLiterals;
+
 QT_USE_NAMESPACE
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
@@ -1226,7 +1228,7 @@ void tst_QMediaCaptureSession::testAudioMute()
     session.setAudioInput(&audioInput);
 
     session.setCamera(nullptr);
-    recorder.setOutputLocation(QStringLiteral("test"));
+    recorder.setOutputLocation(QUrl{u"test"_s});
 
     QSignalSpy spy(&audioInput, &QAudioInput::mutedChanged);
     QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);

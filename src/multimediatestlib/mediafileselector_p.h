@@ -76,7 +76,7 @@ public:
             }
 
             if (foundUrl.isEmpty() && emplaceRes.first->second.isEmpty())
-                foundUrl = media;
+                foundUrl.setUrl(media);
         }
 
         if (!foundUrl.isEmpty())
@@ -118,7 +118,7 @@ private:
         player.setAudioOutput(&audioOutput);
         player.setVideoOutput(&videoOutput);
 
-        player.setSource(media);
+        player.setSource(QUrl{media});
         player.play();
 
         const auto waitingFinished = QTest::qWaitFor([&]() {
