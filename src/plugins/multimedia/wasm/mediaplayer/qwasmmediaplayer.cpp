@@ -16,6 +16,8 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(lcMediaPlayer, "qt.multimedia.wasm.mediaplayer");
 
+using namespace Qt::Literals;
+
 QWasmMediaPlayer::QWasmMediaPlayer(QMediaPlayer *parent)
     : QPlatformMediaPlayer(parent),
       m_videoOutput(new QWasmVideoOutput),
@@ -213,7 +215,7 @@ void QWasmMediaPlayer::setMedia(const QUrl &mediaContent, QIODevice *stream)
         if (stream) {
             m_mediaStream = stream;
             qCDebug(lcMediaPlayer) << db.mimeTypeForData(stream).name();
-            if (db.mimeTypeForData(stream).name().contains("audio")) {
+            if (db.mimeTypeForData(stream).name().contains(u"audio"_s)) {
                 setAudioAvailable(true);
                 m_audioOutput->setSource(m_mediaStream);
             }  else { // treat octet-stream as video
@@ -227,7 +229,7 @@ void QWasmMediaPlayer::setMedia(const QUrl &mediaContent, QIODevice *stream)
     } else {
         QString sourceFile = mediaContent.toLocalFile();
         qCDebug(lcMediaPlayer) << db.mimeTypeForFile(QFileInfo(sourceFile)).name();
-        if (db.mimeTypeForFile(QFileInfo(sourceFile)).name().contains("audio")) {
+        if (db.mimeTypeForFile(QFileInfo(sourceFile)).name().contains(u"audio"_s)) {
             setAudioAvailable(true);
             m_audioOutput->setSource(mediaContent);
         } else { // treat octet-stream as video

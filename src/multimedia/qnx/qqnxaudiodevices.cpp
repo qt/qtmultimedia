@@ -28,7 +28,7 @@ static QList<QAudioDevice> enumeratePcmDevices(QAudioDevice::Mode mode)
     // QNX PCM devices names start with the pcm prefix and end either with the
     // 'p' (playback) or 'c' (capture) suffix
 
-    const char modeSuffix = mode == QAudioDevice::Input ? 'c' : 'p';
+    const QChar modeSuffix = mode == QAudioDevice::Input ? u'c' : u'p';
 
     QList<QAudioDevice> devices;
 

@@ -29,6 +29,7 @@ QT_BEGIN_NAMESPACE
 
 
 using namespace emscripten;
+using namespace Qt::Literals;
 
 Q_LOGGING_CATEGORY(qWasmMediaVideoOutput, "qt.multimedia.wasm.videooutput")
 
@@ -169,7 +170,7 @@ void QWasmVideoOutput::reset()
     if (m_wasmSink)
         m_wasmSink->platformVideoSink()->setVideoFrame(QVideoFrame());
 
-    m_source = "";
+    m_source = QStringLiteral("")   ;
     m_video.set("currentTime", emscripten::val(0));
     m_video.call<void>("load");
 }
@@ -752,10 +753,10 @@ void QWasmVideoOutput::updateVideoElementGeometry(const QRect &windowGeometry)
     QRect m_videoElementSource(windowGeometry.topLeft(), windowGeometry.size());
 
     emscripten::val style = m_video["style"];
-    style.set("left", QString("%1px").arg(m_videoElementSource.left()).toStdString());
-    style.set("top", QString("%1px").arg(m_videoElementSource.top()).toStdString());
-    style.set("width", QString("%1px").arg(m_videoElementSource.width()).toStdString());
-    style.set("height", QString("%1px").arg(m_videoElementSource.height()).toStdString());
+    style.set("left", QStringLiteral("%1px").arg(m_videoElementSource.left()).toStdString());
+    style.set("top", QStringLiteral("%1px").arg(m_videoElementSource.top()).toStdString());
+    style.set("width", QStringLiteral("%1px").arg(m_videoElementSource.width()).toStdString());
+    style.set("height", QStringLiteral("%1px").arg(m_videoElementSource.height()).toStdString());
     style.set("z-index", "999");
 
     if (!m_hasVideoFrame) {
@@ -935,7 +936,7 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
         return;
     };
 
-    qstdweb::Promise::make(oneVideoFrame, "copyTo", std::move(copyToCallback), frameBuffer);
+    qstdweb::Promise::make(oneVideoFrame, u"copyTo"_s, std::move(copyToCallback), frameBuffer);
 }
 
 void QWasmVideoOutput::videoFrameTimerCallback()
