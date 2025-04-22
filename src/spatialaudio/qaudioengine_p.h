@@ -15,31 +15,25 @@
 // We mean it.
 //
 
-#include <qtspatialaudioglobal_p.h>
-#include <qaudioengine.h>
-#include <qaudiodevice.h>
-#include <qaudiodecoder.h>
-#include <qthread.h>
-#include <qmutex.h>
-#include <qurl.h>
-#include <qaudiobuffer.h>
-#include <qvector3d.h>
-#include <qfile.h>
+#include <QtSpatialAudio/qaudioengine.h>
+#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtCore/qthread.h>
+#include <QtCore/qtclasshelpermacros.h>
+#include <QtCore/qmutex.h>
 
 namespace vraudio {
 class ResonanceAudio;
-}
+} // namespace vraudio
 
 QT_BEGIN_NAMESPACE
 
 class QSpatialSound;
 class QAmbientSound;
-class QAudioSink;
 class QAudioOutputStream;
-class QAmbisonicDecoder;
-class QAudioDecoder;
 class QAudioRoom;
 class QAudioListener;
+class QAudioEngine;
 
 class QAudioEnginePrivate
 {
@@ -48,17 +42,25 @@ public:
 
     static constexpr int bufferSize = 128;
 
-    QAudioEnginePrivate();
+    explicit QAudioEnginePrivate(QAudioEngine *);
+    Q_DISABLE_COPY_MOVE(QAudioEnginePrivate)
     ~QAudioEnginePrivate();
-    vraudio::ResonanceAudio *resonanceAudio = nullptr;
+
+    std::unique_ptr<vraudio::ResonanceAudio> resonanceAudio;
     int sampleRate = 44100;
     float masterVolume = 1.;
     QAudioEngine::OutputMode outputMode = QAudioEngine::Surround;
     bool roomEffectsEnabled = true;
 
-    // Resonance Audio uses meters internally, while Qt Quick 3D and our API uses cm by default.
-    // To make things independent from the scale setting, we store all distances in meters internally
-    // and convert in the setters and getters.
+    void start();
+    void stop();
+    void setPaused(bool paused);
+    void setOutputDevice(const QAudioDevice &device);
+    void setOutputMode(QAudioEngine::OutputMode);
+
+    // Resonance Audio uses meters internally, while Qt Quick 3D and our API uses cm by
+    // default. To make things independent from the scale setting, we store all distances in
+    // meters internally and convert in the setters and getters.
     float distanceScale = 0.01f;
 
     QMutex mutex;
@@ -85,6 +87,7 @@ public:
     void updateRooms();
 
     QVector3D listenerPosition() const;
+    QAudioEngine *q;
 };
 
 QT_END_NAMESPACE

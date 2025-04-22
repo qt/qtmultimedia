@@ -185,8 +185,7 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
     return bytesProcessed;
 }
 
-
-QAudioEnginePrivate::QAudioEnginePrivate()
+QAudioEnginePrivate::QAudioEnginePrivate(QAudioEngine *q) : q(q)
 {
     audioThread.setObjectName(u"QAudioThread");
     device = QMediaDevices::defaultAudioOutput();
@@ -194,7 +193,70 @@ QAudioEnginePrivate::QAudioEnginePrivate()
 
 QAudioEnginePrivate::~QAudioEnginePrivate()
 {
-    delete resonanceAudio;
+    resonanceAudio = {};
+}
+
+void QAudioEnginePrivate::start()
+{
+    if (outputStream)
+        // already started
+        return;
+
+    resonanceAudio->api->SetStereoSpeakerMode(outputMode != QAudioEngine::Headphone);
+    resonanceAudio->api->SetMasterVolume(masterVolume);
+
+    outputStream = std::make_unique<QAudioOutputStream>(this);
+    outputStream->moveToThread(&audioThread);
+    audioThread.start(QThread::TimeCriticalPriority);
+
+    QMetaObject::invokeMethod(outputStream.get(), &QAudioOutputStream::startOutput);
+}
+
+void QAudioEnginePrivate::stop()
+{
+    QMetaObject::invokeMethod(outputStream.get(), &QAudioOutputStream::stopOutput,
+                              Qt::BlockingQueuedConnection);
+    outputStream.reset();
+    audioThread.exit(0);
+    audioThread.wait();
+    delete resonanceAudio->api;
+    resonanceAudio->api = nullptr;
+}
+
+void QAudioEnginePrivate::setPaused(bool paused)
+{
+    bool old = this->paused.fetchAndStoreRelaxed(paused);
+    if (old != paused) {
+        if (outputStream)
+            outputStream->setPaused(paused);
+        emit q->pausedChanged();
+    }
+}
+
+void QAudioEnginePrivate::setOutputDevice(const QAudioDevice &device)
+{
+    if (this->device == device)
+        return;
+    if (resonanceAudio->api) {
+        qWarning() << "Changing device on a running engine not implemented";
+        return;
+    }
+    this->device = device;
+    emit q->outputDeviceChanged();
+}
+
+void QAudioEnginePrivate::setOutputMode(QAudioEngine::OutputMode mode)
+{
+    if (outputMode == mode)
+        return;
+    outputMode = mode;
+    if (resonanceAudio->api)
+        resonanceAudio->api->SetStereoSpeakerMode(mode != QAudioEngine::Headphone);
+
+    QMetaObject::invokeMethod(outputStream.get(), &QAudioOutputStream::restartOutput,
+                              Qt::BlockingQueuedConnection);
+
+    emit q->outputModeChanged();
 }
 
 void QAudioEnginePrivate::addSpatialSound(QSpatialSound *sound)
@@ -322,7 +384,6 @@ QVector3D QAudioEnginePrivate::listenerPosition() const
     return listener ? listener->position() : QVector3D();
 }
 
-
 /*!
     \class QAudioEngine
     \inmodule QtSpatialAudio
@@ -384,11 +445,11 @@ QVector3D QAudioEnginePrivate::listenerPosition() const
     avoid some CPU overhead for resampling.
  */
 QAudioEngine::QAudioEngine(int sampleRate, QObject *parent)
-    : QObject(parent)
-    , d(new QAudioEnginePrivate)
+    : QObject(parent), d(new QAudioEnginePrivate(this))
 {
     d->sampleRate = sampleRate;
-    d->resonanceAudio = new vraudio::ResonanceAudio(2, QAudioEnginePrivate::bufferSize, d->sampleRate);
+    d->resonanceAudio = std::make_unique<vraudio::ResonanceAudio>(
+            2, QAudioEnginePrivate::bufferSize, d->sampleRate);
 }
 
 /*!
@@ -419,15 +480,7 @@ QAudioEngine::~QAudioEngine()
  */
 void QAudioEngine::setOutputMode(OutputMode mode)
 {
-    if (d->outputMode == mode)
-        return;
-    d->outputMode = mode;
-    if (d->resonanceAudio->api)
-        d->resonanceAudio->api->SetStereoSpeakerMode(mode != Headphone);
-
-    QMetaObject::invokeMethod(d->outputStream.get(), "restartOutput", Qt::BlockingQueuedConnection);
-
-    emit outputModeChanged();
+    d->setOutputMode(mode);
 }
 
 QAudioEngine::OutputMode QAudioEngine::outputMode() const
@@ -450,14 +503,7 @@ int QAudioEngine::sampleRate() const
  */
 void QAudioEngine::setOutputDevice(const QAudioDevice &device)
 {
-    if (d->device == device)
-        return;
-    if (d->resonanceAudio->api) {
-        qWarning() << "Changing device on a running engine not implemented";
-        return;
-    }
-    d->device = device;
-    emit outputDeviceChanged();
+    d->setOutputDevice(device);
 }
 
 QAudioDevice QAudioEngine::outputDevice() const
@@ -489,18 +535,7 @@ float QAudioEngine::masterVolume() const
  */
 void QAudioEngine::start()
 {
-    if (d->outputStream)
-        // already started
-        return;
-
-    d->resonanceAudio->api->SetStereoSpeakerMode(d->outputMode != Headphone);
-    d->resonanceAudio->api->SetMasterVolume(d->masterVolume);
-
-    d->outputStream.reset(new QAudioOutputStream(d));
-    d->outputStream->moveToThread(&d->audioThread);
-    d->audioThread.start(QThread::TimeCriticalPriority);
-
-    QMetaObject::invokeMethod(d->outputStream.get(), "startOutput");
+    d->start();
 }
 
 /*!
@@ -508,12 +543,7 @@ void QAudioEngine::start()
  */
 void QAudioEngine::stop()
 {
-    QMetaObject::invokeMethod(d->outputStream.get(), "stopOutput", Qt::BlockingQueuedConnection);
-    d->outputStream.reset();
-    d->audioThread.exit(0);
-    d->audioThread.wait();
-    delete d->resonanceAudio->api;
-    d->resonanceAudio->api = nullptr;
+    d->stop();
 }
 
 /*!
@@ -523,12 +553,7 @@ void QAudioEngine::stop()
  */
 void QAudioEngine::setPaused(bool paused)
 {
-    bool old = d->paused.fetchAndStoreRelaxed(paused);
-    if (old != paused) {
-        if (d->outputStream)
-            d->outputStream->setPaused(paused);
-        emit pausedChanged();
-    }
+    d->setPaused(paused);
 }
 
 bool QAudioEngine::paused() const
