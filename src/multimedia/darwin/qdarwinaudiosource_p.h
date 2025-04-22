@@ -14,56 +14,84 @@
 // We mean it.
 //
 
-#include <QtCore/qiodevice.h>
-#include <QtCore/qtimer.h>
-
-#include <QtMultimedia/private/qaudioringbuffer_p.h>
-#include <QtMultimedia/private/qaudiostatemachine_p.h>
-#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
-#include <QtMultimedia/private/qdarwinaudiodevice_p.h>
 
 #include <AudioUnit/AudioUnit.h>
-#include <CoreAudio/CoreAudioTypes.h>
-#include <AudioToolbox/AudioConverter.h>
-
 
 QT_BEGIN_NAMESPACE
 
-class QCoreAudioSourceStream;
+class QDarwinAudioSource;
 
-class QDarwinAudioSource final : public QPlatformAudioSource
+class QCoreAudioSourceStream final : QtMultimediaPrivate::QPlatformAudioSourceStream
 {
+    using QPlatformAudioSourceStream = QtMultimediaPrivate::QPlatformAudioSourceStream;
+
 public:
-    QDarwinAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
-    ~QDarwinAudioSource() override;
+    using SourceType = QDarwinAudioSource;
 
-    void start(QIODevice *device) override;
-    QIODevice *start() override;
-    void stop() override;
-    void reset() override;
-    void suspend() override;
-    void resume() override;
-    qsizetype bytesReady() const override;
-    void setBufferSize(qsizetype value) override;
-    qsizetype bufferSize() const override;
-    void setHardwareBufferFrames(int32_t) override;
-    int32_t hardwareBufferFrames() override;
-    qint64 processedUSecs() const override;
+    explicit QCoreAudioSourceStream(QAudioDevice, const QAudioFormat &,
+                                    std::optional<int> ringbufferSize, QDarwinAudioSource *parent,
+                                    float volume, std::optional<int32_t> hardwareBufferFrames);
+    Q_DISABLE_COPY_MOVE(QCoreAudioSourceStream)
+    ~QCoreAudioSourceStream();
 
-    void setVolume(float volume) override;
+    bool open();
+
+    bool start(QIODevice *);
+    QIODevice *start();
+    void stop(ShutdownPolicy);
+
+    void suspend();
+    void resume();
+
+    using QPlatformAudioSourceStream::bytesReady;
+    using QPlatformAudioSourceStream::deviceIsRingbufferReader;
+    using QPlatformAudioSourceStream::processedDuration;
+    using QPlatformAudioSourceStream::ringbufferSizeInBytes;
+    using QPlatformAudioSourceStream::setVolume;
+
+    void resumeIfNecessary();
 
 private:
-    friend class QCoreAudioSourceStream;
-    friend class QtMultimediaPrivate::QPlatformAudioSourceStream;
+    void updateStreamIdle(bool idle) override;
+    void stopAudioUnit();
 
-    std::shared_ptr<QCoreAudioSourceStream> m_stream;
-    std::optional<int> m_internalBufferSize;
-    std::optional<int32_t> m_hardwareBufferFrames;
+    static OSStatus inputCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags,
+                                  const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
+                                  UInt32 inNumberFrames, AudioBufferList *ioData);
 
+    OSStatus process(AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *,
+                     UInt32 inBusNumber, UInt32 inNumberFrames,
+                     AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
+
+#ifdef Q_OS_MACOS
+    bool addDisconnectListener(AudioObjectID id);
+    void removeDisconnectListener();
+
+    QCoreAudioUtils::DeviceDisconnectMonitor m_disconnectMonitor;
+    QFuture<void> m_stopOnDisconnected;
+#endif
+
+    QCoreAudioUtils::AudioUnitHandle m_audioUnit;
+    bool m_audioUnitRunning{};
+
+    QDarwinAudioSource *m_parent;
+
+    AudioBufferList m_bufferList{};
+};
+
+class QDarwinAudioSource final
+    : public QtMultimediaPrivate::QPlatformAudioSourceImplementation<QCoreAudioSourceStream,
+                                                                     QDarwinAudioSource>
+{
+    using BaseClass =
+            QtMultimediaPrivate::QPlatformAudioSourceImplementation<QCoreAudioSourceStream,
+                                                                    QDarwinAudioSource>;
+
+public:
+    QDarwinAudioSource(QAudioDevice device, const QAudioFormat &format, QObject *parent);
     void resumeStreamIfNecessary();
-
-    std::shared_ptr<QCoreAudioSourceStream> m_retiredStream;
 };
 
 QT_END_NAMESPACE

@@ -266,13 +266,13 @@ QPlatformAudioSource *QWindowsAudioDevices::createAudioSource(const QAudioDevice
                                                               const QAudioFormat &fmt,
                                                               QObject *parent)
 {
-    return new QWindowsAudioSource(device, fmt, parent);
+    return new QtWASAPI::QWindowsAudioSource(device, fmt, parent);
 }
 
 QPlatformAudioSink *QWindowsAudioDevices::createAudioSink(const QAudioDevice &device,
                                                           const QAudioFormat &fmt, QObject *parent)
 {
-    return new QWindowsAudioSink(device, fmt, parent);
+    return new QtWASAPI::QWindowsAudioSink(device, fmt, parent);
 }
 
 QT_END_NAMESPACE

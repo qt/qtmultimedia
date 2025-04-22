@@ -14,58 +14,90 @@
 // We mean it.
 //
 
-#if defined(Q_OS_MACOS)
-#  include <CoreAudio/CoreAudio.h>
-#endif
-#include <AudioUnit/AudioUnit.h>
-#include <CoreAudio/CoreAudioTypes.h>
+#include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
 
-#include <QtCore/qiodevice.h>
-#include <QtCore/qsemaphore.h>
-#include <QtMultimedia/private/qaudioringbuffer_p.h>
-#include <QtMultimedia/private/qaudiostatemachine_p.h>
-#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <AudioUnit/AudioUnit.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
-#include <QtMultimedia/private/qdarwinaudiodevice_p.h>
+#ifdef Q_OS_MACOS
+#  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
+#else
+#  include <QtMultimedia/private/qcoreaudiosessionmanager_p.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
-class QCoreAudioSinkStream;
+class QDarwinAudioSink;
 
-class QDarwinAudioSink final : public QPlatformAudioSink
+class QCoreAudioSinkStream final : public std::enable_shared_from_this<QCoreAudioSinkStream>,
+                                   QtMultimediaPrivate::QPlatformAudioSinkStream
 {
+    using QPlatformAudioSinkStream = QtMultimediaPrivate::QPlatformAudioSinkStream;
+    using AudioEndpointRole = QtMultimediaPrivate::AudioEndpointRole;
+
 public:
-    QDarwinAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent);
-    ~QDarwinAudioSink() override;
+    using SinkType = QDarwinAudioSink;
 
-    void start(QIODevice *device) override;
-    QIODevice *start() override;
-    void stop() override;
-    void reset() override;
-    void suspend() override;
-    void resume() override;
-    qsizetype bytesFree() const override;
-    void setBufferSize(qsizetype value) override;
-    qsizetype bufferSize() const override;
-    void setHardwareBufferFrames(int32_t) override;
-    int32_t hardwareBufferFrames() override;
-    qint64 processedUSecs() const override;
+    explicit QCoreAudioSinkStream(QAudioDevice, const QAudioFormat &,
+                                  std::optional<qsizetype> ringbufferSize, QDarwinAudioSink *parent,
+                                  float volume, std::optional<int32_t> hardwareBufferFrames,
+                                  AudioEndpointRole);
+    Q_DISABLE_COPY_MOVE(QCoreAudioSinkStream)
 
-    void setVolume(float volume) override;
+    bool open();
+    bool start(QIODevice *device);
+    QIODevice *start();
+    bool start(AudioCallback cb);
+    void stop(ShutdownPolicy policy);
+    void stop();
+    void reset();
 
-    void start(AudioCallback &&) override;
-    bool hasCallbackAPI() override;
+    void suspend();
+    void resume();
+
+    using QPlatformAudioSinkStream::bytesFree;
+    using QPlatformAudioSinkStream::processedDuration;
+    using QPlatformAudioSinkStream::ringbufferSizeInBytes;
+    using QPlatformAudioSinkStream::setVolume;
+
+    void resumeIfNecessary();
 
 private:
+    OSStatus processRingbuffer(uint32_t numberOfFrames,
+                               AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
+    OSStatus processAudioCallback(uint32_t numberOfFrames,
+                                  AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
+
+    void updateStreamIdle(bool arg) override;
+    void stopAudioUnit();
+
+#ifdef Q_OS_MACOS
+    bool addDisconnectListener(AudioObjectID id);
+    void removeDisconnectListener();
+
+    QCoreAudioUtils::DeviceDisconnectMonitor m_disconnectMonitor;
+    QFuture<void> m_stopOnDisconnected;
+#endif
+
+    std::unique_ptr<QIODevice> m_reader;
+    QCoreAudioUtils::AudioUnitHandle m_audioUnit;
+    bool m_audioUnitRunning{};
+
+    QDarwinAudioSink *m_parent;
+    std::shared_ptr<QCoreAudioSinkStream> m_self;
+
+    AudioCallback m_audioCallback;
+};
+
+class QDarwinAudioSink final
+    : public QtMultimediaPrivate::QPlatformAudioSinkImplementation<QCoreAudioSinkStream,
+                                                                   QDarwinAudioSink>
+{
+    using BaseClass = QtMultimediaPrivate::QPlatformAudioSinkImplementation<QCoreAudioSinkStream,
+                                                                            QDarwinAudioSink>;
+
+public:
+    QDarwinAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent);
     void resumeStreamIfNecessary();
-
-    friend class QtMultimediaPrivate::QPlatformAudioSinkStream;
-    friend class QCoreAudioSinkStream;
-
-    std::optional<int> m_internalBufferSize;
-    std::optional<int32_t> m_hardwareBufferFrames;
-
-    std::shared_ptr<QCoreAudioSinkStream> m_stream;
 };
 
 QT_END_NAMESPACE
