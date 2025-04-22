@@ -15,12 +15,12 @@
 // We mean it.
 //
 
-#include <qtspatialaudioglobal_p.h>
-#include <qmutex.h>
-#include <qurl.h>
-#include <qfile.h>
-#include <qaudiodecoder.h>
-#include <qaudiobuffer.h>
+#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qurl.h>
+#include <QtCore/qfile.h>
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtMultimedia/qaudiobuffer.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -29,9 +29,8 @@ class QAudioEngine;
 class QAmbientSoundPrivate : public QObject
 {
 public:
-    QAmbientSoundPrivate(QObject *parent, int nchannels = 2)
-        : QObject(parent)
-        , nchannels(nchannels)
+    explicit QAmbientSoundPrivate(QObject *parent, int nchannels = 2)
+        : QObject(parent), nchannels(nchannels)
     {}
 
     template<typename T>
