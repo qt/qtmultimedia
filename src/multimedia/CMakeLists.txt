@@ -31,6 +31,7 @@ qt_internal_add_module(Multimedia
         audio/qaudiostatemachine.cpp audio/qaudiostatemachine_p.h
         audio/qaudiostatemachineutils_p.h
         audio/qaudio_alignment_support_p.h
+        audio/qaudio_platform_implementation_support_p.h
         audio/qaudio_qiodevice_support_p.h
         audio/qaudio_qspan_support_p.h
         audio/qaudio_rtsan_support_p.h

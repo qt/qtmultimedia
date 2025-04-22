@@ -31,64 +31,12 @@ QT_BEGIN_NAMESPACE
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class QCoreAudioSinkStream final : public std::enable_shared_from_this<QCoreAudioSinkStream>,
-                                   QtMultimediaPrivate::QPlatformAudioSinkStream
-{
-    using QPlatformAudioSinkStream = QtMultimediaPrivate::QPlatformAudioSinkStream;
-
-public:
-    explicit QCoreAudioSinkStream(QAudioDevice, QAudioFormat, std::optional<int> ringbufferSize,
-                                  QDarwinAudioSink *parent, float volume,
-                                  std::optional<int32_t> hardwareBufferFrames);
-
-    bool open();
-    bool start(QIODevice *device);
-    QIODevice *start();
-    bool start(AudioCallback cb);
-    void stop();
-    void reset();
-
-    void suspend();
-    void resume();
-
-    using QPlatformAudioSinkStream::bytesFree;
-    using QPlatformAudioSinkStream::processedDuration;
-    using QPlatformAudioSinkStream::ringbufferSizeInBytes;
-    using QPlatformAudioSinkStream::setVolume;
-
-    void resumeIfNecessary();
-
-private:
-    OSStatus processRingbuffer(uint32_t numberOfFrames, AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
-    OSStatus processAudioCallback(uint32_t numberOfFrames,
-                                  AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
-
-    void updateStreamIdle(bool arg) override;
-    void stopAudioUnit();
-
-#ifdef Q_OS_MACOS
-    bool addDisconnectListener(AudioObjectID id);
-    void removeDisconnectListener();
-
-    QCoreAudioUtils::DeviceDisconnectMonitor m_disconnectMonitor;
-    QFuture<void> m_stopOnDisconnected;
-#endif
-
-    std::unique_ptr<QIODevice> m_reader;
-    QCoreAudioUtils::AudioUnitHandle m_audioUnit;
-    bool m_audioUnitRunning{};
-
-    QDarwinAudioSink *m_parent;
-    std::shared_ptr<QCoreAudioSinkStream> m_self;
-
-    AudioCallback m_audioCallback;
-};
-
-QCoreAudioSinkStream::QCoreAudioSinkStream(QAudioDevice audioDevice, QAudioFormat format,
-                                           std::optional<int> ringbufferSize,
+QCoreAudioSinkStream::QCoreAudioSinkStream(QAudioDevice audioDevice, const QAudioFormat& format,
+                                           std::optional<qsizetype> ringbufferSize,
                                            QDarwinAudioSink *parent, float volume,
-                                           std::optional<int32_t> hardwareBufferFrames)
-    : QPlatformAudioSinkStream{
+                                           std::optional<int32_t> hardwareBufferFrames,
+                                           AudioEndpointRole)
+    : QPlatformAudioSinkStream {
           std::move(audioDevice), format, ringbufferSize, hardwareBufferFrames, volume,
       },
       m_parent(parent)
@@ -214,6 +162,20 @@ bool QCoreAudioSinkStream::start(AudioCallback cb)
         return false;
     }
     return true;
+}
+
+void QCoreAudioSinkStream::stop(ShutdownPolicy policy)
+{
+    switch (policy) {
+    case ShutdownPolicy::DrainRingbuffer:
+        stop();
+        break;
+    case ShutdownPolicy::DiscardRingbuffer:
+        reset();
+        break;
+    default:
+        Q_UNREACHABLE_RETURN();
+    }
 }
 
 void QCoreAudioSinkStream::stop()
@@ -356,7 +318,7 @@ void QCoreAudioSinkStream::removeDisconnectListener()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 QDarwinAudioSink::QDarwinAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent)
-    : QPlatformAudioSink(std::move(device), format, parent)
+    : BaseClass(std::move(device), format, parent)
 {
 #ifndef Q_OS_MACOS
     if (qGuiApp)
@@ -366,164 +328,6 @@ QDarwinAudioSink::QDarwinAudioSink(QAudioDevice device, const QAudioFormat &form
                 resumeStreamIfNecessary();
         });
 #endif
-}
-
-QDarwinAudioSink::~QDarwinAudioSink()
-{
-    stop();
-}
-
-void QDarwinAudioSink::start(QIODevice *device)
-{
-    if (!device) {
-        setError(QAudio::IOError);
-        return;
-    }
-
-    m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_format, m_internalBufferSize,
-                                                      this, volume(), m_hardwareBufferFrames);
-
-    if (!m_stream->open()) {
-        setError(QAudio::OpenError);
-        m_stream = {};
-        return;
-    }
-
-    m_stream->start(device);
-    updateStreamState(QAudio::ActiveState);
-}
-
-QIODevice *QDarwinAudioSink::start()
-{
-    m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_format, m_internalBufferSize,
-                                                      this, volume(), m_hardwareBufferFrames);
-
-    if (!m_stream->open()) {
-        setError(QAudio::OpenError);
-        m_stream = {};
-        return nullptr;
-    }
-
-    QIODevice *device = m_stream->start();
-    QObject::connect(device, &QIODevice::readyRead, this, [this] {
-        updateStreamIdle(false);
-    });
-    updateStreamIdle(true);
-    updateStreamState(QAudio::ActiveState);
-    return device;
-}
-
-void QDarwinAudioSink::stop()
-{
-    if (m_stream) {
-        m_stream->stop();
-        m_stream = {};
-        updateStreamState(QAudio::StoppedState);
-    }
-}
-
-void QDarwinAudioSink::reset()
-{
-    if (m_stream) {
-        m_stream->reset();
-        m_stream = {};
-        updateStreamState(QAudio::StoppedState);
-    }
-}
-
-void QDarwinAudioSink::suspend()
-{
-    if (m_stream) {
-        m_stream->suspend();
-        updateStreamState(QAudio::SuspendedState);
-    }
-}
-
-void QDarwinAudioSink::resume()
-{
-    if (m_stream) {
-        updateStreamState(QAudio::ActiveState);
-        m_stream->resume();
-    }
-}
-
-qsizetype QDarwinAudioSink::bytesFree() const
-{
-    if (m_stream)
-        return m_stream->bytesFree();
-    return 0;
-}
-
-void QDarwinAudioSink::setBufferSize(qsizetype value)
-{
-    m_internalBufferSize = value;
-}
-
-qsizetype QDarwinAudioSink::bufferSize() const
-{
-    if (m_stream)
-        return m_stream->ringbufferSizeInBytes();
-
-    return QtMultimediaPrivate::QPlatformAudioIOStream::inferRingbufferBytes(
-            m_internalBufferSize, m_hardwareBufferFrames, format());
-}
-
-void QDarwinAudioSink::setHardwareBufferFrames(int32_t arg)
-{
-    if (arg > 0)
-        m_hardwareBufferFrames = arg;
-    else
-        m_hardwareBufferFrames = std::nullopt;
-}
-
-int32_t QDarwinAudioSink::hardwareBufferFrames()
-{
-    return m_hardwareBufferFrames.value_or(-1);
-}
-
-qint64 QDarwinAudioSink::processedUSecs() const
-{
-    if (m_stream)
-        return m_stream->processedDuration().count();
-
-    return 0;
-}
-
-void QDarwinAudioSink::setVolume(float volume)
-{
-    QPlatformAudioEndpointBase::setVolume(volume);
-    if (m_stream)
-        m_stream->setVolume(volume);
-}
-
-void QDarwinAudioSink::start(AudioCallback &&audioCallback)
-{
-    using namespace QtMultimediaPrivate;
-    if (!validateAudioSinkCallback(audioCallback, m_format)) {
-        setError(QAudio::OpenError);
-        return;
-    }
-
-    m_stream = std::make_shared<QCoreAudioSinkStream>(m_audioDevice, m_format, m_internalBufferSize,
-                                                      this, volume(), m_hardwareBufferFrames);
-
-    if (!m_stream->open()) {
-        setError(QAudio::OpenError);
-        return;
-    }
-
-    bool started = m_stream->start(std::move(audioCallback));
-    if (!started) {
-        setError(QAudio::OpenError);
-        return;
-    }
-
-    updateStreamState(QAudio::ActiveState);
-}
-
-bool QDarwinAudioSink::hasCallbackAPI()
-{
-    return true;
 }
 
 void QDarwinAudioSink::resumeStreamIfNecessary()
