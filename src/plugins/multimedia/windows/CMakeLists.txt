@@ -41,6 +41,10 @@ qt_internal_add_plugin(QWindowsMediaPlugin
         evr
         player
         mediacapture
+    DEFINES
+        QT_NO_CAST_FROM_ASCII
+        QT_NO_CAST_TO_ASCII
+        QT_NO_CONTEXTLESS_CONNECT
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate

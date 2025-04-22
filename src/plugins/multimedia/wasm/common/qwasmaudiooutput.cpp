@@ -15,6 +15,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::Literals;
+
 static Q_LOGGING_CATEGORY(qWasmMediaAudioOutput, "qt.multimedia.wasm.audiooutput")
 
 QWasmAudioOutput::QWasmAudioOutput(QAudioOutput *parent)
@@ -222,7 +224,7 @@ void QWasmAudioOutput::createAudioElement(const std::string &id)
                     qCWarning(qWasmMediaAudioOutput) << "Error while trying to setSinkId";
                 }
     };
-    qstdweb::Promise::make(m_audio, "setSinkId", std::move(sinkIdCallbacks), std::move(usableId));
+    qstdweb::Promise::make(m_audio, u"setSinkId"_s, std::move(sinkIdCallbacks), std::move(usableId));
 
     m_audio.set("id", usableId.c_str());
 }
