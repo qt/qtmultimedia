@@ -244,9 +244,10 @@ if (QT_DEPLOY_FFMPEG AND FFMPEG_SHARED_LIBRARIES AND (BUILD_SHARED_LIBS OR UIKIT
     qt_internal_multimedia_copy_or_install_ffmpeg()
 endif()
 
-if(BUILD_SHARED_LIBS)
+if( NOT (UIKIT AND FFMPEG_SHARED_LIBRARIES) )
     qt_internal_extend_target(FFmpegMediaPluginImplPrivate PUBLIC_LIBRARIES ${ffmpeg_libs})
 else()
+    # applications need to link against the ffmpeg libs via qt_add_ios_ffmpeg_libraries
     foreach(ffmpeg_lib IN LISTS ffmpeg_libs)
         qt_internal_add_target_include_dirs(FFmpegMediaPluginImplPrivate ${ffmpeg_lib})
         target_include_directories(FFmpegMediaPluginImplPrivate PUBLIC
