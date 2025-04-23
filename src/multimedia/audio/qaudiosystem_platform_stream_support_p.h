@@ -18,12 +18,12 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qaudiodevice.h>
-
 #include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
 #include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
+#include <QtCore/qthread.h>
 
 #include <optional>
 #include <variant>
