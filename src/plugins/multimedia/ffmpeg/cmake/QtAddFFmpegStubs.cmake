@@ -197,7 +197,7 @@ function(qt_internal_multimedia_add_ffmpeg_stubs)
     endif()
 
     foreach (stub ${FFMPEG_STUBS})
-        if (FFMPEG_SHARED_LIBRARIES)
+        if (FFMPEG_SHARED_LIBRARIES AND BUILD_SHARED_LIBS)
             qt_internal_multimedia_add_shared_stub("${stub}")
         else()
             qt_internal_multimedia_add_private_stub_to_plugin("${stub}")
