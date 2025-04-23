@@ -74,12 +74,12 @@ QString toString(QVideoFrameFormat::ColorRange r)
 {
     switch (r) {
     case QVideoFrameFormat::ColorRange_Video:
-        return "Video";
+        return QStringLiteral("Video");
     case QVideoFrameFormat::ColorRange_Full:
-        return "Full";
+        return QStringLiteral("Full");
     default:
         QTEST_ASSERT(false);
-        return "";
+        return QString();
     }
 }
 
@@ -158,16 +158,16 @@ QString toString(QVideoFrameFormat::ColorSpace s)
 {
     switch (s) {
     case QVideoFrameFormat::ColorSpace_BT601:
-        return "BT601";
+        return QStringLiteral("BT601");
     case QVideoFrameFormat::ColorSpace_BT709:
-        return "BT709";
+        return QStringLiteral("BT709");
     case QVideoFrameFormat::ColorSpace_AdobeRgb:
-        return "AdobeRgb";
+        return QStringLiteral("AdobeRgb");
     case QVideoFrameFormat::ColorSpace_BT2020:
-        return "BT2020";
+        return QStringLiteral("BT2020");
     default:
         QTEST_ASSERT(false);
-        return "";
+        return QString();
     }
 }
 
@@ -296,7 +296,9 @@ QString fileName(const TestParams &p, FileType fileType)
     else if (fileType == FileType::Diff)
         fileNameParts.append(QStringLiteral("diff"));
 
-    QString name = fileNameParts.join('_').toLower().replace(" ", "_");
+    QString name = fileNameParts.join(QStringLiteral("_"))
+                           .toLower()
+                           .replace(QStringLiteral(" "), QStringLiteral("_"));
 
     if (fileType != FileType::TestName)
         name += u".png";
@@ -423,7 +425,7 @@ class ReferenceData
 public:
     ReferenceData()
     {
-        m_testdataDir = QTest::qExtractTestData("testdata");
+        m_testdataDir = QTest::qExtractTestData(QStringLiteral("testdata"));
         if (!m_testdataDir)
             m_testdataDir = QSharedPointer<QTemporaryDir>(new QTemporaryDir);
     }
@@ -554,14 +556,18 @@ private slots:
                     for (const QVideoFrameFormat::ColorRange colorRange : colorRanges()) {
                         for (const RenderingMode renderingMode : renderingModes(pixelFormat)) {
                             if (renderingMode == RenderingMode::Cpu) {
-                                TestParams param{ file,       pixelFormat,   colorSpace,
-                                                  colorRange, renderingMode, Exclude_None };
+                                TestParams param{ QString::fromLatin1(file),
+                                                  pixelFormat,
+                                                  colorSpace,
+                                                  colorRange,
+                                                  renderingMode,
+                                                  Exclude_None };
                                 QTest::newRow(testName(param).toLatin1().data()) << file << param;
                             } else {
                                 for (const ExcludableTextures excludableTextureCombination :
                                      excludableTextureCombinations(pixelFormat)) {
                                     TestParams param{
-                                        file,
+                                        QString::fromLatin1(file),
                                         pixelFormat,
                                         colorSpace,
                                         colorRange,
