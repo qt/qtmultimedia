@@ -9,3 +9,13 @@ android ci
 #QTBUG-111190, v4l2m2m issues
 [recorder_encodesFrames_toValidMediaFile_whenWindowResizes]
 android ci
+
+
+# QTBUG-135601 on Windows 11 24h2
+[capturedImage_changes_whenWindowContentChanges]
+windows-11 msvc ci
+[sequenceOfCapturedImages_compareEqual_whenWindowContentIsUnchanged]
+windows-11 msvc ci
+[recorder_encodesFrames_toValidMediaFile_whenWindowResizes]
+windows-11 msvc ci
+
