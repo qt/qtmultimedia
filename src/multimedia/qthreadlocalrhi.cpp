@@ -21,6 +21,7 @@ namespace {
 class ThreadLocalRhiHolder
 {
 public:
+    ThreadLocalRhiHolder();
     ~ThreadLocalRhiHolder() { resetRhi(); }
 
     QRhi *ensureRhi(QRhi *referenceRhi)
@@ -116,13 +117,26 @@ private:
 #endif
 };
 
-QThreadStorage<ThreadLocalRhiHolder> g_threadLocalRhiHolder;
+Q_CONSTINIT thread_local std::optional<ThreadLocalRhiHolder> g_threadLocalRhiHolder;
 
+ThreadLocalRhiHolder::ThreadLocalRhiHolder()
+{
+    if (QThread::isMainThread()) {
+        // ensure cleanup in qApp dtor
+        qAddPostRoutine([] {
+            g_threadLocalRhiHolder.reset();
+        });
+    }
 }
+
+} // namespace
 
 QRhi *qEnsureThreadLocalRhi(QRhi *referenceRhi)
 {
-    return g_threadLocalRhiHolder.localData().ensureRhi(referenceRhi);
+    if (!g_threadLocalRhiHolder)
+        g_threadLocalRhiHolder.emplace();
+
+    return g_threadLocalRhiHolder->ensureRhi(referenceRhi);
 }
 
 QT_END_NAMESPACE
