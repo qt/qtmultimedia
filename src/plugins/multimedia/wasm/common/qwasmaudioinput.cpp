@@ -64,12 +64,12 @@ void QWasmAudioInput::setDeviceSourceStream(const std::string &id)
 {
     qCDebug(qWasmAudioInput) << Q_FUNC_INFO << id;
 
-    m_mediaInputStream = new JsMediaInputStream();
+    m_mediaInputStream.reset(new JsMediaInputStream());
 
     m_mediaInputStream->setUseAudio(true);
     m_mediaInputStream->setUseVideo(false);
 
-    connect(m_mediaInputStream, &JsMediaInputStream::mediaStreamReady, this,
+    connect(m_mediaInputStream.get(), &JsMediaInputStream::mediaStreamReady, this,
         [this]() {
             qCDebug(qWasmAudioInput) << "mediaStreamReady";
 
