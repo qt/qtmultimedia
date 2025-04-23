@@ -69,7 +69,7 @@ std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
     return std::make_unique<QQnxAudioDevices>();
 #endif
 #if defined(Q_OS_WASM)
-    return std::make_unique<QWasmMediaDevices>();
+    return std::make_unique<QWasmAudioDevices>();
 #endif
     return std::make_unique<QPlatformAudioDevices>();
 }

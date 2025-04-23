@@ -20,8 +20,7 @@ Q_LOGGING_CATEGORY(qWasmMediaCaptureSession, "qt.multimedia.wasm.capturesession"
 QWasmMediaCaptureSession::QWasmMediaCaptureSession() :
       QPlatformMediaCaptureSession()
 {
-    QWasmMediaDevices *wasmMediaDevices = static_cast<QWasmMediaDevices *>(QPlatformMediaIntegration::instance()->audioDevices());
-    wasmMediaDevices->initDevices();
+    QWasmMediaDevices::instance()->initDevices();
 }
 
 QWasmMediaCaptureSession::~QWasmMediaCaptureSession() = default;

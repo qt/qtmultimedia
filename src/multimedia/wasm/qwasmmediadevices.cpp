@@ -17,20 +17,52 @@ QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qWasmMediaDevices, "qt.multimedia.wasm.mediadevices")
 
+Q_GLOBAL_STATIC(QWasmMediaDevices, s_wasmMediaDevicesInstance);
+
 QWasmCameraDevices::QWasmCameraDevices(QPlatformMediaIntegration *integration)
-    : QPlatformVideoDevices(integration),
-      m_mediaDevices(static_cast<QWasmMediaDevices *>(integration->audioDevices()))
+    : QPlatformVideoDevices(integration)
 {
 }
 
 QList<QCameraDevice> QWasmCameraDevices::findVideoInputs() const
 {
-    return m_mediaDevices ? m_mediaDevices->videoInputs() : QList<QCameraDevice>();
+    return QWasmMediaDevices::instance() ? QWasmMediaDevices::instance()->videoInputs() : QList<QCameraDevice>();
+}
+
+QWasmAudioDevices::QWasmAudioDevices() = default;
+
+QPlatformAudioSource *QWasmAudioDevices::createAudioSource(const QAudioDevice &deviceInfo,
+                                                           const QAudioFormat &fmt,
+                                                           QObject *parent)
+{
+    return new QWasmAudioSource(deviceInfo, fmt, parent);
+}
+
+QPlatformAudioSink *QWasmAudioDevices::createAudioSink(const QAudioDevice &deviceInfo,
+                                                       const QAudioFormat &fmt,
+                                                       QObject *parent)
+{
+    return new QWasmAudioSink(deviceInfo, fmt, parent);
+}
+
+QList<QAudioDevice> QWasmAudioDevices::findAudioInputs() const
+{
+    return QWasmMediaDevices::instance() ? QWasmMediaDevices::instance()->audioInputs() : QList<QAudioDevice>();
+}
+
+QList<QAudioDevice> QWasmAudioDevices::findAudioOutputs() const
+{
+    return QWasmMediaDevices::instance() ? QWasmMediaDevices::instance()->audioOutputs() : QList<QAudioDevice>();
 }
 
 QWasmMediaDevices::QWasmMediaDevices()
 {
     initDevices();
+}
+
+QWasmMediaDevices *QWasmMediaDevices::instance()
+{
+    return s_wasmMediaDevicesInstance();
 }
 
 void QWasmMediaDevices::initDevices()
@@ -43,33 +75,19 @@ void QWasmMediaDevices::initDevices()
     getMediaDevices(); // asynchronous
 }
 
-QList<QAudioDevice> QWasmMediaDevices::findAudioInputs() const
-{
-    return m_audioInputs.values();
-}
-
-QList<QAudioDevice> QWasmMediaDevices::findAudioOutputs() const
-{
-    return m_audioOutputs.values();
-}
-
 QList<QCameraDevice> QWasmMediaDevices::videoInputs() const
 {
     return m_cameraDevices.values();
 }
 
-QPlatformAudioSource *QWasmMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
-                                                           const QAudioFormat &fmt,
-                                                           QObject *parent)
+QList<QAudioDevice> QWasmMediaDevices::audioInputs() const
 {
-    return new QWasmAudioSource(deviceInfo, fmt, parent);
+    return m_audioInputs.values();
 }
 
-QPlatformAudioSink *QWasmMediaDevices::createAudioSink(const QAudioDevice &deviceInfo,
-                                                       const QAudioFormat &fmt,
-                                                       QObject *parent)
+QList<QAudioDevice> QWasmMediaDevices::audioOutputs() const
 {
-    return new QWasmAudioSink(deviceInfo, fmt, parent);
+    return m_audioOutputs.values();
 }
 
 void QWasmMediaDevices::parseDevices(emscripten::val devices)
@@ -177,10 +195,14 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
         auto videoDevices = static_cast<QWasmCameraDevices*>(QPlatformMediaIntegration::instance()->videoDevices());
         videoDevices->onVideoInputsChanged();
     }
-    if (m_audioInputsAdded || m_audioInputsRemoved)
-        onAudioInputsChanged();
-    if (m_audioOutputsAdded || m_audioOutputsRemoved)
-        onAudioOutputsChanged();
+    if (m_audioInputsAdded || m_audioInputsRemoved) {
+        auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
+        audioDevices->onAudioInputsChanged();
+    }
+    if (m_audioOutputsAdded || m_audioOutputsRemoved) {
+        auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
+        audioDevices->onAudioOutputsChanged();
+    }
 
     m_firstInit = false;
 
@@ -249,7 +271,8 @@ void QWasmMediaDevices::getOpenALAudioDevices()
                 QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
                         capture, "WebAssembly audio capture device", true, QAudioDevice::Input)));
         m_audioInputsAdded = true;
-        onAudioInputsChanged();
+        auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
+        audioDevices->onAudioInputsChanged();
     }
 
     auto playback = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
@@ -260,7 +283,8 @@ void QWasmMediaDevices::getOpenALAudioDevices()
                 QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
                         playback, "WebAssembly audio playback device", true,
                         QAudioDevice::Output)));
-        onAudioOutputsChanged();
+       auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
+       audioDevices->onAudioOutputsChanged();
     }
     m_firstInit = true;
 }

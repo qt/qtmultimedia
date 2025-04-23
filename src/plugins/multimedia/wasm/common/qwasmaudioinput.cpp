@@ -77,7 +77,7 @@ void QWasmAudioInput::setDeviceSourceStream(const std::string &id)
 
         });
 
-        m_mediaInputStream->setStreamDevice(id);
+    m_mediaInputStream->setStreamDevice(id);
 }
 
 emscripten::val QWasmAudioInput::mediaStream()
