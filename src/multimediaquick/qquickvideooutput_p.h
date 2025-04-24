@@ -130,6 +130,7 @@ private:
 
     void initRhiForSink();
     void updateHdr(QSGVideoNode *videoNode);
+    void disconnectWindowConnections();
 
 private Q_SLOTS:
     void _q_newFrame(QSize);
