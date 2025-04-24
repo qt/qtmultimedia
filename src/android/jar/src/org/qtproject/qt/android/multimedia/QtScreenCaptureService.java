@@ -27,7 +27,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 
-class QtScreenCaptureService extends Service {
+public class QtScreenCaptureService extends Service {
     // Lock for synchronization
     private final Object mServiceStopLock = new Object();
     private boolean mServiceStopped = false;
