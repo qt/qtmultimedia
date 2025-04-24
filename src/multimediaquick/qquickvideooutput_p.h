@@ -135,9 +135,6 @@ private:
 private Q_SLOTS:
     void _q_newFrame(QSize);
     void _q_updateGeometry();
-    void _q_invalidateSceneGraph();
-    void _q_sceneGraphInitialized();
-    void _q_afterFrameEnd();
 
 private:
     QSize m_nativeSize;
@@ -177,20 +174,17 @@ private:
         }
     };
 
+    std::shared_ptr<DestructorGuard> m_destructorGuard = std::make_shared<DestructorGuard>();
+
     template <typename Functor>
     auto makeGuardedCall(Functor &&f)
     {
-        return [this, f = std::forward<Functor>(f),
-                guard = std::weak_ptr<DestructorGuard>{ m_destructorGuard }](auto... params) {
-            auto lockedGuard = guard.lock();
-            if (lockedGuard)
-                lockedGuard->runWhileAlive([&] {
-                    f(this, params...);
-                });
+        return [f = std::forward<Functor>(f), guard = m_destructorGuard](auto... params) {
+            guard->runWhileAlive([&] {
+                f(params...);
+            });
         };
     }
-
-    std::shared_ptr<DestructorGuard> m_destructorGuard = std::make_shared<DestructorGuard>();
 };
 
 QT_END_NAMESPACE
