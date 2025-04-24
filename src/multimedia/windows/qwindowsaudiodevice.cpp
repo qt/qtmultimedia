@@ -306,8 +306,8 @@ QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev
     if (probedFormats) {
         // wasapi does sample format conversion for us: AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM
         supportedSampleFormats = qAllSupportedSampleFormats();
-        minimumSampleRate = QtPrivate::allSupportedSampleRates.front();
-        maximumSampleRate = QtPrivate::allSupportedSampleRates.back();
+        minimumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.front();
+        maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
 
         minimumChannelCount = probedFormats->channelCountRange.first;
         maximumChannelCount = probedFormats->channelCountRange.second;

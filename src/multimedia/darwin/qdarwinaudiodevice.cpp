@@ -154,8 +154,8 @@ QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &d
     else
         preferredFormat = qDefaultPreferredFormat(mode, channelConfiguration);
 
-    minimumSampleRate = QtPrivate::allSupportedSampleRates.front();
-    maximumSampleRate = QtPrivate::allSupportedSampleRates.back();
+    minimumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.front();
+    maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
     minimumChannelCount = 1;
     maximumChannelCount = qSupportedNumberOfChannels(mode, id).value_or(16);
 

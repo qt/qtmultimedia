@@ -71,8 +71,8 @@ QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &n
     if (auto nodeName = getNodeName(nodeProperties))
         m_nodeName.assign(*nodeName);
 
-    minimumSampleRate = QtPrivate::allSupportedSampleRates.front();
-    maximumSampleRate = QtPrivate::allSupportedSampleRates.back();
+    minimumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.front();
+    maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
 
     std::visit([&](const auto &arg) {
         setPreferredSamplingRate(arg);
@@ -126,7 +126,7 @@ void QPipewireAudioDevicePrivate::setPreferredSamplingRate(QSpan<const int> arg)
     constexpr int defaultPipewireSamplingRate = 48000;
 
     preferredFormat.setSampleRate(
-            QtPrivate::findClosestSamplingRate(defaultPipewireSamplingRate, arg));
+            QtMultimediaPrivate::findClosestSamplingRate(defaultPipewireSamplingRate, arg));
 }
 
 void QPipewireAudioDevicePrivate::setPreferredSamplingRate(const SpaRange<int> &arg)
