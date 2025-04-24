@@ -114,9 +114,9 @@ QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
 
     // TODO: investigate if we have any benefit of setting frame in the source thread
     connect(m_sink, &QVideoSink::videoFrameChanged, this,
-            makeGuardedCall([](QQuickVideoOutput *self, const QVideoFrame &frame) {
-        if (frame.isValid() || self->m_endOfStreamPolicy == ClearOutput)
-            self->setFrame(frame);
+            makeGuardedCall([this](const QVideoFrame &frame) {
+        if (frame.isValid() || m_endOfStreamPolicy == ClearOutput)
+            setFrame(frame);
     }),
             Qt::DirectConnection);
 
@@ -129,7 +129,6 @@ QQuickVideoOutput::~QQuickVideoOutput()
         QMutexLocker lock(&m_destructorGuard->m_mutex);
         m_destructorGuard->m_isAlive = false;
     }
-    m_destructorGuard = {};
 
     delete m_sink;
     disconnectWindowConnections();
@@ -382,26 +381,6 @@ void QQuickVideoOutput::geometryChange(const QRectF &newGeometry, const QRectF &
     _q_updateGeometry();
 }
 
-void QQuickVideoOutput::_q_invalidateSceneGraph()
-{
-    // Invoked in the renderer thread
-
-    if (auto texturePool = m_texturePool.lock())
-        texturePool->clearTextures();
-    m_sink->setRhi(nullptr);
-}
-
-void QQuickVideoOutput::_q_sceneGraphInitialized()
-{
-    initRhiForSink();
-}
-
-void QQuickVideoOutput::_q_afterFrameEnd()
-{
-    if (auto texturePool = m_texturePool.lock())
-        texturePool->onFrameEndInvoked();
-}
-
 void QQuickVideoOutput::releaseResources()
 {
     // Called on the gui thread when the window is closed or changed.
@@ -428,22 +407,26 @@ void QQuickVideoOutput::itemChange(QQuickItem::ItemChange change,
     m_window = changeData.window;
 
     if (m_window) {
+        auto connectToWindow = [&](auto signal, auto function) {
+            connect(m_window, signal, this, makeGuardedCall(std::move(function)),
+                    Qt::DirectConnection);
+        };
+
         // We want to receive the signals in the render thread
-        connect(m_window, &QQuickWindow::sceneGraphInitialized, this,
-                makeGuardedCall([](QQuickVideoOutput *self) {
-            self->_q_sceneGraphInitialized();
-        }),
-                Qt::DirectConnection);
-        connect(m_window, &QQuickWindow::sceneGraphInvalidated, this,
-                makeGuardedCall([](QQuickVideoOutput *self) {
-            self->_q_invalidateSceneGraph();
-        }),
-                Qt::DirectConnection);
-        connect(m_window, &QQuickWindow::afterFrameEnd, this,
-                makeGuardedCall([](QQuickVideoOutput *self) {
-            self->_q_afterFrameEnd();
-        }),
-                Qt::DirectConnection);
+        connectToWindow(&QQuickWindow::sceneGraphInitialized, [this] {
+            initRhiForSink();
+        });
+
+        connectToWindow(&QQuickWindow::sceneGraphInvalidated, [this] {
+            if (auto texturePool = m_texturePool.lock())
+                texturePool->clearTextures();
+            m_sink->setRhi(nullptr);
+        });
+
+        connectToWindow(&QQuickWindow::afterFrameEnd, [this] {
+            if (auto texturePool = m_texturePool.lock())
+                texturePool->onFrameEndInvoked();
+        });
     }
     initRhiForSink();
 }
