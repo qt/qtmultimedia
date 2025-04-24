@@ -130,6 +130,9 @@ QQuickVideoOutput::~QQuickVideoOutput()
         m_destructorGuard->m_isAlive = false;
     }
     m_destructorGuard = {};
+
+    delete m_sink;
+    disconnectWindowConnections();
 }
 
 /*!
@@ -420,8 +423,8 @@ void QQuickVideoOutput::itemChange(QQuickItem::ItemChange change,
 
     if (changeData.window == m_window)
         return;
-    if (m_window)
-        disconnect(m_window);
+
+    disconnectWindowConnections();
     m_window = changeData.window;
 
     if (m_window) {
@@ -578,6 +581,14 @@ void QQuickVideoOutput::updateHdr(QSGVideoNode *videoNode)
 
     videoNode->setSurfaceFormat(swapChain->format());
     videoNode->setHdrInfo(swapChain->hdrInfo());
+}
+
+void QQuickVideoOutput::disconnectWindowConnections()
+{
+    if (!m_window)
+        return;
+
+    m_window->disconnect(this);
 }
 
 QRectF QQuickVideoOutput::adjustedViewport() const
