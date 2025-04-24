@@ -456,10 +456,11 @@ std::optional<int> audioObjectFindBestNominalSampleRate(AudioObjectID id, QAudio
     if (!optionalAvailableRates)
         return std::nullopt;
 
-    return QtPrivate::findClosestSamplingRate(rate,
-                                              QSpan<const double>{
-                                                      *optionalAvailableRates,
-                                              });
+    using namespace QtMultimediaPrivate;
+    return findClosestSamplingRate(rate,
+                                   QSpan<const double>{
+                                           *optionalAvailableRates,
+                                   });
 }
 
 bool audioObjectSetFramesPerBuffer(AudioObjectID id, int32_t bufferFrames)

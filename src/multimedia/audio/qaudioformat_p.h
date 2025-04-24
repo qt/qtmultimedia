@@ -22,7 +22,7 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QtPrivate {
+namespace QtMultimediaPrivate {
 
 inline constexpr std::array allSupportedSampleRates{
     8'000,  11'025, 12'000, 16'000, 22'050,  24'000,  32'000,  44'100,
@@ -56,7 +56,7 @@ int findClosestSamplingRate(int rate, QSpan<const T> supportedRates)
     });
 }
 
-} // namespace QtPrivate
+} // namespace QtMultimediaPrivate
 
 QT_END_NAMESPACE
 
