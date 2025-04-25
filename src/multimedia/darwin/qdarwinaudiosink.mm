@@ -279,9 +279,7 @@ void QCoreAudioSinkStream::resumeIfNecessary()
 OSStatus QCoreAudioSinkStream::processRingbuffer(uint32_t numberOfFrames,
                                                  AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING
 {
-    const uint32_t bytesPerFrame = m_format.bytesPerFrame();
-
-    Q_ASSERT(ioData->mBuffers[0].mDataByteSize / bytesPerFrame == numberOfFrames);
+    Q_ASSERT(ioData->mBuffers[0].mDataByteSize == numberOfFrames * m_format.bytesPerFrame());
 
     QSpan audioBufferSpan{
         reinterpret_cast<std::byte *>(ioData->mBuffers[0].mData),
