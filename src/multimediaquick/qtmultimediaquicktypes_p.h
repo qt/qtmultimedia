@@ -180,6 +180,7 @@ struct QCapturableWindowForeign
     Q_GADGET
     QML_FOREIGN(QCapturableWindow)
     QML_VALUE_TYPE(capturableWindow)
+    QML_CONSTRUCTIBLE_VALUE
 };
 
 struct QWindowCaptureForeign

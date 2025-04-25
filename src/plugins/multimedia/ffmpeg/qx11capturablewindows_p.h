@@ -32,6 +32,8 @@ public:
 
     bool isWindowValid(const QCapturableWindowPrivate &window) const override;
 
+    QMaybe<QCapturableWindow> fromQWindow(QWindow *) const override;
+
 private:
     Display *display() const;
 

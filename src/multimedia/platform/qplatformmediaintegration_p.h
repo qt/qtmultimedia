@@ -114,6 +114,7 @@ public:
 
     QList<QCapturableWindow> capturableWindowsList();
     bool isCapturableWindowValid(const QCapturableWindowPrivate &);
+    [[nodiscard]] QMaybe<QCapturableWindow> capturableWindowFromQWindow(QWindow *);
 
     QPlatformVideoDevices *videoDevices();
 

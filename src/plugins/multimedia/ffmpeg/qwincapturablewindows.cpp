@@ -4,6 +4,8 @@
 #include "qwincapturablewindows_p.h"
 #include "private/qcapturablewindow_p.h"
 
+#include <QtGui/qwindow.h>
+
 #include <qt_windows.h>
 
 QT_BEGIN_NAMESPACE
@@ -70,4 +72,11 @@ bool QWinCapturableWindows::isWindowValid(const QCapturableWindowPrivate &window
     return isTopLevelWindow(hwnd) && canCaptureWindow(hwnd);
 }
 
+QMaybe<QCapturableWindow> QWinCapturableWindows::fromQWindow(QWindow *window) const
+{
+    const auto hwnd = reinterpret_cast<HWND>(window->winId());
+    return QCapturableWindowPrivate::create(
+        reinterpret_cast<QCapturableWindowPrivate::Id>(hwnd),
+        windowTitle(hwnd));
+}
 QT_END_NAMESPACE

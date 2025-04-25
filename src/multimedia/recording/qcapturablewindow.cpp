@@ -38,6 +38,20 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCapturableWindowPrivate)
     The class contains a dump of window information, except the property
     'isValid' which pulls the actual window state every time.
 
+    A CapturableWindow instance can be implicitly constructed from a
+    \l [QML] Window. Application developers can utilize this by passing
+    a QML Window into the 'window' property of a \l WindowCapture. See
+    the following example.
+    \qml
+    Window {
+        id: topWindow
+
+        WindowCapture {
+            window: topWindow
+        }
+    }
+    \endqml
+
     \sa WindowCapture
 */
 
@@ -63,6 +77,31 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCapturableWindowPrivate)
     Constructs a null capturable window information that doesn't refer to any window.
 */
 QCapturableWindow::QCapturableWindow() = default;
+
+/*!
+    Constructs a QCapturableWindow instance that maps to the given window.
+
+    The description of the QCapturableWindow will match the title of the given QWindow.
+
+    Note, the constructor may create an invalid instance if the specified \c QWindow
+    has not been presented yet. Thus, if the Qt application is not running, an
+    invalid \c QCapturableWindow instance is expected. The validity of the instance
+    can be tracked by querying \l isValid over time.
+
+    If given a nullptr as input, this method will return an instance that will never become valid.
+
+    If given a window that is not top-level, this method will return an instance will never become
+    valid.
+
+    \since 6.11
+*/
+QCapturableWindow::QCapturableWindow(QWindow *window) noexcept
+{
+    QMaybe<QCapturableWindow> capturableWindow =
+        QPlatformMediaIntegration::instance()->capturableWindowFromQWindow(window);
+    if (capturableWindow)
+        *this = std::move(capturableWindow.value());
+}
 
 /*!
     Destroys the window information.

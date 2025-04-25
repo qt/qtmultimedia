@@ -19,9 +19,11 @@
 #include "qcapturablewindow.h"
 
 #include <qlist.h>
+#include <QtMultimedia/private/qmaybe_p.h>
 
 QT_BEGIN_NAMESPACE
 
+class QWindow;
 class QCapturableWindow;
 class QCapturableWindowPrivate;
 
@@ -35,6 +37,13 @@ public:
     virtual QList<QCapturableWindow> windows() const { return {}; }
 
     virtual bool isWindowValid(const QCapturableWindowPrivate &) const { return false; }
+
+    // QPlatformMediaIntegration::capturableWindowFromQWindow does
+    // basic QWindow validity checks.
+    [[nodiscard]] virtual QMaybe<QCapturableWindow> fromQWindow(QWindow *) const
+    {
+        return QUnexpected{ QStringLiteral("Unimplemented") };
+    }
 
     Q_DISABLE_COPY(QPlatformCapturableWindows);
 };
