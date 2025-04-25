@@ -1,8 +1,10 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-#include <QDebug>
-#include <qaudioformat.h>
-#include <qalgorithms.h>
+
+#include "qaudioformat.h"
+
+#include <QtCore/qdebug.h>
+#include <QtMultimedia/private/qmultimedia_assume_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -278,7 +280,12 @@ qint64 QAudioFormat::durationForBytes(qint32 bytes) const
         return 0;
 
     // We round the byte count to ensure whole frames
-    return qint64(1000000LL * (bytes / bytesPerFrame())) / sampleRate();
+
+    const int bytesPerFrame = this->bytesPerFrame();
+    const int sampleRate = this->sampleRate();
+    QT_MM_ASSUME(bytesPerFrame > 0);
+    QT_MM_ASSUME(sampleRate > 0);
+    return qint64(1000000LL * (bytes / bytesPerFrame)) / sampleRate;
 }
 
 /*!
