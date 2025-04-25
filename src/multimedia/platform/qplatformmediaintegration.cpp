@@ -14,6 +14,7 @@
 #include <qloggingcategory.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qapplicationstatic.h>
+#include <QtGui/qwindow.h>
 
 #include "qplatformcapturablewindows_p.h"
 #include "qplatformaudiodevices_p.h"
@@ -141,6 +142,18 @@ bool QPlatformMediaIntegration::isCapturableWindowValid(const QCapturableWindowP
 {
     const auto capturableWindows = this->capturableWindows();
     return capturableWindows && capturableWindows->isWindowValid(window);
+}
+
+QMaybe<QCapturableWindow> QPlatformMediaIntegration::capturableWindowFromQWindow(QWindow *window)
+{
+    const auto capturableWindows = this->capturableWindows();
+    if (!capturableWindows)
+        return QUnexpected{ QStringLiteral("No windowcapture platform implementation") };
+    if (window == nullptr)
+        return QUnexpected{ QStringLiteral("QWindow is nullptr") };
+    if (!window->isTopLevel())
+        return QUnexpected{ QStringLiteral("QWindow is not top-level.") };
+    return capturableWindows->fromQWindow(window);
 }
 
 const QPlatformMediaFormatInfo *QPlatformMediaIntegration::formatInfo()

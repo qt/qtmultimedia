@@ -92,4 +92,12 @@ Display *QX11CapturableWindows::display() const
     return m_display;
 }
 
+QMaybe<QCapturableWindow> QX11CapturableWindows::fromQWindow(QWindow *window) const
+{
+    const auto xId = static_cast<XID>(window->winId());
+    return QCapturableWindowPrivate::create(
+        static_cast<QCapturableWindowPrivate::Id>(xId),
+        window->title());
+}
+
 QT_END_NAMESPACE

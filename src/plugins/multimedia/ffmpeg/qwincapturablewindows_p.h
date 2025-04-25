@@ -25,6 +25,8 @@ public:
     QList<QCapturableWindow> windows() const override;
 
     bool isWindowValid(const QCapturableWindowPrivate &window) const override;
+
+    QMaybe<QCapturableWindow> fromQWindow(QWindow *) const override;
 };
 
 QT_END_NAMESPACE
