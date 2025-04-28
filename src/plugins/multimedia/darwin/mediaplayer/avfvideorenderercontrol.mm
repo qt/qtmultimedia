@@ -65,7 +65,8 @@ AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
     : QObject(parent)
 {
     m_displayLink = new AVFDisplayLink(this);
-    connect(m_displayLink, SIGNAL(tick(CVTimeStamp)), SLOT(updateVideoFrame(CVTimeStamp)));
+
+    connect(m_displayLink, &AVFDisplayLink::tick, this, &AVFVideoRendererControl::updateVideoFrame);
 }
 
 AVFVideoRendererControl::~AVFVideoRendererControl()
@@ -74,6 +75,7 @@ AVFVideoRendererControl::~AVFVideoRendererControl()
     qDebug() << Q_FUNC_INFO;
 #endif
     m_displayLink->stop();
+    m_displayLink->disconnect(this);
     if (m_videoOutput)
         [m_videoOutput release];
     if (m_subtitleOutput)
