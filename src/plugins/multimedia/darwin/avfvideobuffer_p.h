@@ -33,7 +33,7 @@ struct AVFMetalTexture;
 class AVFVideoBuffer : public QHwVideoBuffer
 {
 public:
-    AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buffer);
+    AVFVideoBuffer(AVFVideoSinkInterface *sink, QCFType<CVImageBufferRef> buffer);
     ~AVFVideoBuffer();
 
     MapData map(QVideoFrame::MapMode mode) override;
@@ -46,15 +46,15 @@ public:
 private:
     AVFVideoSinkInterface *sink = nullptr;
 
-    CVMetalTextureRef cvMetalTexture[3] = {};
     QCFType<CVMetalTextureCacheRef> metalCache;
+    QCFType<CVImageBufferRef> m_buffer;
+    QCFType<CVMetalTextureRef> cvMetalTexture[3];
 #if defined(Q_OS_MACOS)
-    CVOpenGLTextureRef cvOpenGLTexture = nullptr;
+    QCFType<CVOpenGLTextureRef> cvOpenGLTexture;
 #elif defined(Q_OS_IOS)
-    CVOpenGLESTextureRef cvOpenGLESTexture = nullptr;
+    QCFType<CVOpenGLESTextureRef> cvOpenGLESTexture;
 #endif
 
-    CVImageBufferRef m_buffer = nullptr;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
     QVideoFrameFormat m_format;
 };
