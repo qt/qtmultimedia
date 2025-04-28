@@ -72,18 +72,13 @@ QT_USE_NAMESPACE
 
 @end
 #else
-static CVReturn CVDisplayLinkCallback(CVDisplayLinkRef displayLink,
-                                 const CVTimeStamp *inNow,
-                                 const CVTimeStamp *inOutputTime,
-                                 CVOptionFlags flagsIn,
-                                 CVOptionFlags *flagsOut,
-                                 void *displayLinkContext)
+static CVReturn CVDisplayLinkCallback([[maybe_unused]] CVDisplayLinkRef displayLink,
+                                      [[maybe_unused]] const CVTimeStamp *inNow,
+                                      const CVTimeStamp *inOutputTime,
+                                      [[maybe_unused]] CVOptionFlags flagsIn,
+                                      [[maybe_unused]] CVOptionFlags *flagsOut,
+                                      void *displayLinkContext)
 {
-    Q_UNUSED(displayLink);
-    Q_UNUSED(inNow);
-    Q_UNUSED(flagsIn);
-    Q_UNUSED(flagsOut);
-
     AVFDisplayLink *link = (AVFDisplayLink *)displayLinkContext;
 
     link->displayLinkEvent(inOutputTime);
@@ -93,9 +88,6 @@ static CVReturn CVDisplayLinkCallback(CVDisplayLinkRef displayLink,
 
 AVFDisplayLink::AVFDisplayLink(QObject *parent)
     : QObject(parent)
-    , m_displayLink(nullptr)
-    , m_pendingDisplayLinkEvent(false)
-    , m_isActive(false)
 {
 #if defined(QT_PLATFORM_UIKIT)
     m_displayLink = [[DisplayLinkObserver alloc] initWithAVFDisplayLink:this];
@@ -174,7 +166,7 @@ void AVFDisplayLink::displayLinkEvent(const CVTimeStamp *ts)
     m_pendingDisplayLinkEvent = true;
 #if defined(QT_PLATFORM_UIKIT)
     Q_UNUSED(ts);
-    memset(&m_frameTimeStamp, 0, sizeof(CVTimeStamp));
+    m_frameTimeStamp = {};
 #else
     m_frameTimeStamp = *ts;
 #endif
@@ -187,19 +179,18 @@ void AVFDisplayLink::displayLinkEvent(const CVTimeStamp *ts)
 bool AVFDisplayLink::event(QEvent *event)
 {
     switch (event->type()){
-        case QEvent::User:  {
-                m_displayLinkMutex.lock();
-                m_pendingDisplayLinkEvent = false;
-                CVTimeStamp ts = m_frameTimeStamp;
-                m_displayLinkMutex.unlock();
+    case QEvent::User: {
+        m_displayLinkMutex.lock();
+        m_pendingDisplayLinkEvent = false;
+        CVTimeStamp ts = m_frameTimeStamp;
+        m_displayLinkMutex.unlock();
 
-                Q_EMIT tick(ts);
+        Q_EMIT tick(ts);
 
-                return false;
-            }
-            break;
-        default:
-            break;
+        return false;
+    }
+    default:
+        break;
     }
     return QObject::event(event);
 }

@@ -26,12 +26,12 @@
 
 QT_BEGIN_NAMESPACE
 
-class AVFDisplayLink : public QObject
+class AVFDisplayLink final : public QObject
 {
     Q_OBJECT
 public:
     explicit AVFDisplayLink(QObject *parent = nullptr);
-    virtual ~AVFDisplayLink();
+    ~AVFDisplayLink() override;
     bool isValid() const;
     bool isActive() const;
 
@@ -46,18 +46,18 @@ public:
     void displayLinkEvent(const CVTimeStamp *);
 
 protected:
-    virtual bool event(QEvent *) override;
+    bool event(QEvent *) override;
 
 private:
 #if defined(QT_PLATFORM_UIKIT)
-    void *m_displayLink;
+    void *m_displayLink{};
 #else
-    CVDisplayLinkRef m_displayLink;
+    CVDisplayLinkRef m_displayLink{};
 #endif
     QMutex m_displayLinkMutex;
-    bool m_pendingDisplayLinkEvent;
-    bool m_isActive;
-    CVTimeStamp m_frameTimeStamp;
+    bool m_pendingDisplayLinkEvent{};
+    bool m_isActive{};
+    CVTimeStamp m_frameTimeStamp{};
 };
 
 QT_END_NAMESPACE
