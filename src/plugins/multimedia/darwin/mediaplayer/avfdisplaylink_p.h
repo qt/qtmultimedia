@@ -24,6 +24,8 @@
 #include <QuartzCore/CVDisplayLink.h>
 #endif
 
+#include <optional>
+
 QT_BEGIN_NAMESPACE
 
 class AVFDisplayLink final : public QObject
@@ -55,9 +57,8 @@ private:
     CVDisplayLinkRef m_displayLink{};
 #endif
     QMutex m_displayLinkMutex;
-    bool m_pendingDisplayLinkEvent{};
     bool m_isActive{};
-    CVTimeStamp m_frameTimeStamp{};
+    std::optional<CVTimeStamp> m_frameTimeStamp; // GUARDED_BY(m_displayLinkMutex)
 };
 
 QT_END_NAMESPACE
