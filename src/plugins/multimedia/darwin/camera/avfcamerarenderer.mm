@@ -62,8 +62,10 @@ QT_USE_NAMESPACE
     // NB: on iOS captureOutput/connection can be nil (when recording a video -
     // avfmediaassetwriter).
 
-    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
-    auto buffer = std::make_unique<AVFVideoBuffer>(m_renderer, imageBuffer);
+    auto buffer =
+            std::make_unique<AVFVideoBuffer>(m_renderer,
+                                             QCFType<CVImageBufferRef>::constructFromGet(
+                                                     CMSampleBufferGetImageBuffer(sampleBuffer)));
     auto format = buffer->videoFormat();
     if (!format.isValid()) {
         return;

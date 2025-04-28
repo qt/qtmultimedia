@@ -18,9 +18,7 @@ AVFVideoSink::AVFVideoSink(QVideoSink *parent)
 {
 }
 
-AVFVideoSink::~AVFVideoSink()
-{
-}
+AVFVideoSink::~AVFVideoSink() = default;
 
 void AVFVideoSink::setRhi(QRhi *rhi)
 {
@@ -58,17 +56,11 @@ AVFVideoSinkInterface::~AVFVideoSinkInterface()
 
 void AVFVideoSinkInterface::freeTextureCaches()
 {
-    if (cvMetalTextureCache)
-        CFRelease(cvMetalTextureCache);
-    cvMetalTextureCache = nullptr;
+    cvMetalTextureCache = {};
 #if defined(Q_OS_MACOS)
-    if (cvOpenGLTextureCache)
-        CFRelease(cvOpenGLTextureCache);
-    cvOpenGLTextureCache = nullptr;
+    cvOpenGLTextureCache = {};
 #elif defined(Q_OS_IOS)
-    if (cvOpenGLESTextureCache)
-        CFRelease(cvOpenGLESTextureCache);
-    cvOpenGLESTextureCache = nullptr;
+    cvOpenGLESTextureCache = {};
 #endif
 }
 

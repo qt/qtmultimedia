@@ -15,9 +15,10 @@
 // We mean it.
 //
 
-#include <QtCore/QObject>
-#include <QtCore/QMutex>
-#include <QtCore/QSize>
+#include <QtCore/qobject.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qsize.h>
+#include <QtCore/private/qcore_mac_p.h>
 
 #include <avfvideosink_p.h>
 
@@ -56,7 +57,7 @@ private Q_SLOTS:
 
 private:
     AVPlayerLayer *playerLayer() const { return static_cast<AVPlayerLayer *>(m_layer); }
-    CVPixelBufferRef copyPixelBufferFromLayer(size_t& width, size_t& height);
+    QCFType<CVPixelBufferRef> copyPixelBufferFromLayer(size_t &width, size_t &height);
 
     QMutex m_mutex;
     AVFDisplayLink *m_displayLink = nullptr;
