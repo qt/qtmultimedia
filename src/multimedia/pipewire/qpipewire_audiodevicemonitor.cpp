@@ -512,7 +512,7 @@ QAudioDeviceMonitor::PendingNodeRecord::PendingNodeRecord(ObjectId object, Objec
                                                   const struct spa_pod *param) mutable {
         std::optional<SpaObjectAudioFormat> format = SpaObjectAudioFormat::parse(param);
         promise->start();
-        promise->addResult(*format);
+        promise->addResult(format);
         promise->finish();
     };
 
