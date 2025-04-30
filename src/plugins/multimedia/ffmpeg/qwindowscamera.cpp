@@ -231,7 +231,8 @@ public:
     ~ActiveCamera()
     {
         flush();
-        m_readerCallback->setActiveCamera(nullptr);
+        if (m_readerCallback)
+            m_readerCallback->setActiveCamera(nullptr);
     }
 
 private:
@@ -239,7 +240,7 @@ private:
 
     void flush()
     {
-        if (SUCCEEDED(m_reader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM))) {
+        if (m_reader && SUCCEEDED(m_reader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM))) {
             m_flushWait.acquire();
         }
     }
