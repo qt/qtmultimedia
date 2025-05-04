@@ -236,7 +236,9 @@ class QtCamera2 {
 
         private void handleCaptureExposurePrecapture(CaptureResult result) {
             Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-            if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
+            if (aeState == null ||
+                aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
+                aeState == CaptureResult.CONTROL_AE_STATE_FLASH_REQUIRED) {
                 mState = STATE_WAITING_EXPOSURE_NON_PRECAPTURE;
             }
         }
