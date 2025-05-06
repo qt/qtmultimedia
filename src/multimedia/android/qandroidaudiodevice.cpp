@@ -28,9 +28,8 @@ QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(QByteArray device,
         minimumSampleRate = sampleRates.first();
         maximumSampleRate = sampleRates.last();
     }
-    if (mode == QAudioDevice::Input)
-        supportedSampleFormats.append(QAudioFormat::UInt8);
-    supportedSampleFormats.append(QAudioFormat::Int16);
+
+    supportedSampleFormats = m_engine->supportedSampleFormats(mode);
 
     preferredFormat.setChannelCount(std::clamp(2, minimumChannelCount, maximumChannelCount));
     preferredFormat.setSampleRate(std::clamp(48000, minimumSampleRate, maximumSampleRate));
