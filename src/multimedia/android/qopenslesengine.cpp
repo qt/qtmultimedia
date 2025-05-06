@@ -166,6 +166,17 @@ QList<int> QOpenSLESEngine::supportedSampleRates(QAudioDevice::Mode mode) const
     }
 }
 
+QList<QAudioFormat::SampleFormat> QOpenSLESEngine::supportedSampleFormats(
+        QAudioDevice::Mode mode) const
+{
+    QList<QAudioFormat::SampleFormat> ret;
+    if (mode == QAudioDevice::Input)
+        ret.append(QAudioFormat::UInt8);
+    ret.append(QAudioFormat::Int16);
+
+    return ret;
+}
+
 int QOpenSLESEngine::getOutputValue(QOpenSLESEngine::OutputValue type, int defaultValue)
 {
     static int sampleRate = 0;

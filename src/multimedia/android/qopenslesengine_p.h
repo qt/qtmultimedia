@@ -42,6 +42,7 @@ public:
     static bool setAudioOutput(const QByteArray &deviceId);
     QList<int> supportedChannelCounts(QAudioDevice::Mode mode) const;
     QList<int> supportedSampleRates(QAudioDevice::Mode mode) const;
+    QList<QAudioFormat::SampleFormat> supportedSampleFormats(QAudioDevice::Mode mode) const;
 
     static int getOutputValue(OutputValue type, int defaultValue = 0);
     static int getDefaultBufferSize(const QAudioFormat &format);
