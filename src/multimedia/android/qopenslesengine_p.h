@@ -20,6 +20,7 @@
 #include <qlist.h>
 #include <qaudioformat.h>
 #include <qaudiodevice.h>
+#include <qmutex.h>
 #include <SLES/OpenSLES_Android.h>
 
 QT_BEGIN_NAMESPACE
@@ -52,13 +53,19 @@ public:
 
 private:
     void checkSupportedInputFormats();
+    void checkSupportedSampleFormats(SLAndroidDataFormat_PCM_EX format, QAudioDevice::Mode mode);
+    void checkSupportedSampleFormats(QAudioDevice::Mode mode);
     bool inputFormatIsSupported(SLAndroidDataFormat_PCM_EX format);
+    bool outputFormatIsSupported(const SLAndroidDataFormat_PCM_EX& format) const;
     SLObjectItf m_engineObject;
     SLEngineItf m_engine;
 
     QList<int> m_supportedInputChannelCounts;
     QList<int> m_supportedInputSampleRates;
+    QList<QAudioFormat::SampleFormat> m_supportedSampleFormats;
     bool m_checkedInputFormats;
+    mutable QMutex m_supportedInputFormatMutex;
+    mutable QMutex m_supportedOutputFormatMutex;
 };
 
 QT_END_NAMESPACE
