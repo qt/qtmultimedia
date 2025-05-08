@@ -161,7 +161,14 @@ vec2 getRG8(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat) {
 
 // it assumes that the rhi texture format is R8 or RED_OR_ALPHA
 float getR8(sampler2D planeTexture, vec2 texCoord) {
+#if defined(GL_ES) && __VERSION__ < 300 // webGL1 does not support non-const indexation of vec4
+    if (ubuf.redOrAlphaIndex == 0)
+        return texture(planeTexture, texCoord).r;
+
+    return texture(planeTexture, texCoord).a;
+#else
     return texture(planeTexture, texCoord)[ubuf.redOrAlphaIndex];
+#endif
 }
 
 float getR16(sampler2D planeTexture, vec2 texCoord, int rhiTextureFormat, int xScale) {
