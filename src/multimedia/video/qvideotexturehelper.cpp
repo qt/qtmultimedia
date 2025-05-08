@@ -860,7 +860,10 @@ QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
             return setSourceFrame(std::move(textures));
     }
 
-    return setSourceFrame(createTexturesFromMemory(frame, rhi, rub, oldTextures));
+    if (auto textures = createTexturesFromMemory(frame, rhi, rub, oldTextures))
+        return setSourceFrame(std::move(textures));
+
+    return {};
 }
 
 bool SubtitleLayout::update(const QSize &frameSize, QString text)
