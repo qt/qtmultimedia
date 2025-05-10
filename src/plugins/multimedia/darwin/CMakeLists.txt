@@ -34,6 +34,8 @@ qt_internal_add_plugin(QDarwinMediaPlugin
         ${FWMetal}
         ${FWQuartzCore}
         AVFoundation::AVFoundation
+    COMPILE_OPTIONS
+        -Wno-c++20-extensions
 )
 
 qt_internal_extend_target(QDarwinMediaPlugin CONDITION NOT TVOS AND NOT VISIONOS
