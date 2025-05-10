@@ -3,12 +3,14 @@
 
 #include "avfaudiodecoder_p.h"
 
-#include <QtCore/qmutex.h>
 #include <QtCore/qiodevice.h>
-#include <QMimeDatabase>
-#include <QThread>
-#include "private/qcoreaudioutils_p.h"
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qmimedatabase.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qthread.h>
+#include <QtCore/private/qcore_mac_p.h>
+
+#include "private/qcoreaudioutils_p.h"
 
 #include <AVFoundation/AVFoundation.h>
 
@@ -421,6 +423,11 @@ void AVFAudioDecoder::initAssetReaderImpl(AVAssetTrack *track, NSError *error)
     AVAssetReaderTrackOutput *readerOutput =
             [[AVAssetReaderTrackOutput alloc] initWithTrack:track outputSettings:audioSettings];
     AVAssetReader *reader = [[AVAssetReader alloc] initWithAsset:m_asset error:&error];
+    auto cleanup = qScopeGuard([&] {
+        [readerOutput release];
+        [reader release];
+    });
+
     if (error) {
         processInvalidMedia(QAudioDecoder::ResourceError, QString::fromNSString(error.localizedDescription));
         return;
@@ -433,6 +440,8 @@ void AVFAudioDecoder::initAssetReaderImpl(AVAssetTrack *track, NSError *error)
     [reader addOutput:readerOutput];
 
     Q_ASSERT(m_decodingContext);
+    cleanup.dismiss();
+
     m_decodingContext->m_reader = reader;
     m_decodingContext->m_readerOutput = readerOutput;
 
@@ -487,7 +496,9 @@ void AVFAudioDecoder::startReading()
         if (!decodingContext)
             return false;
 
-        CMSampleBufferRef sampleBuffer = [decodingContext->m_readerOutput copyNextSampleBuffer];
+        QCFType<CMSampleBufferRef> sampleBuffer{
+            [decodingContext->m_readerOutput copyNextSampleBuffer],
+        };
         if (!sampleBuffer)
             return false;
 
@@ -499,8 +510,6 @@ void AVFAudioDecoder::startReading()
                     invokeWithDecodingContext(weakContext,
                                               [=]() { handleNewAudioBuffer(audioBuffer); });
             }
-
-            CFRelease(sampleBuffer);
         });
 
         return true;
