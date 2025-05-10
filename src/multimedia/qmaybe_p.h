@@ -91,7 +91,7 @@ public:
     }
 
     template <class G>
-    constexpr QMaybe(QUnexpected<G> &&e) : m_error{ e.error() }
+    constexpr QMaybe(QUnexpected<G> &&e) : m_error{ std::move(e.error()) }
     {
     }
 
