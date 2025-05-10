@@ -15,12 +15,13 @@
 // We mean it.
 //
 
-#include "qmediametadata.h"
-#include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
+#include <QtCore/private/qexpected_p.h>
+#include <QtMultimedia/qmediametadata.h>
+#include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/private/qplatformmediaplayer_p.h>
-#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
-#include "qvideoframe.h"
 #include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 
 #include <array>
 #include <optional>
@@ -77,7 +78,7 @@ public:
 
     int currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const;
 
-    using Maybe = QMaybe<QSharedPointer<MediaDataHolder>, ContextError>;
+    using Maybe = q23::expected<QSharedPointer<MediaDataHolder>, ContextError>;
     static Maybe create(const QUrl &url, QIODevice *stream, const QPlaybackOptions &options,
                         const std::shared_ptr<ICancelToken> &cancelToken);
 

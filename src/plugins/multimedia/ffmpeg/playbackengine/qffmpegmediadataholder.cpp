@@ -183,7 +183,7 @@ QPlatformMediaPlayer::TrackType MediaDataHolder::trackTypeFromMediaType(int medi
 }
 
 namespace {
-QMaybe<AVFormatContextUPtr, MediaDataHolder::ContextError>
+q23::expected<AVFormatContextUPtr, MediaDataHolder::ContextError>
 loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playbackOptions,
           const std::shared_ptr<ICancelToken> &cancelToken)
 {
@@ -198,9 +198,11 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     if (stream) {
         if (!stream->isOpen()) {
             if (!stream->open(QIODevice::ReadOnly))
-                return QUnexpected{
-                    MediaDataHolder::ContextError{ QMediaPlayer::ResourceError,
-                                                   QLatin1String("Could not open source device.") },
+                return q23::unexpected{
+                    MediaDataHolder::ContextError{
+                            QMediaPlayer::ResourceError,
+                            QLatin1String("Could not open source device."),
+                    },
                 };
         }
 
@@ -274,15 +276,18 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
         qCWarning(qLcMediaDataHolder)
                 << "Could not open media. FFmpeg error description:" << err2str(ret);
 
-        return QUnexpected{ MediaDataHolder::ContextError{
-                code, QMediaPlayer::tr("Could not open file") } };
+        return q23::unexpected{
+            MediaDataHolder::ContextError{ code, QMediaPlayer::tr("Could not open file") },
+        };
     }
 
     ret = avformat_find_stream_info(context.get(), nullptr);
     if (ret < 0) {
-        return QUnexpected{ MediaDataHolder::ContextError{
-                QMediaPlayer::FormatError,
-                QMediaPlayer::tr("Could not find stream information for media file") } };
+        return q23::unexpected{
+            MediaDataHolder::ContextError{
+                    QMediaPlayer::FormatError,
+                    QMediaPlayer::tr("Could not find stream information for media file") },
+        };
     }
 
     if (qLcMediaDataHolder().isInfoEnabled())
@@ -298,12 +303,12 @@ MediaDataHolder::Maybe MediaDataHolder::create(const QUrl &url, QIODevice *strea
                                                const QPlaybackOptions &options,
                                                const std::shared_ptr<ICancelToken> &cancelToken)
 {
-    QMaybe context = loadMedia(url, stream, options, cancelToken);
+    q23::expected context = loadMedia(url, stream, options, cancelToken);
     if (context) {
         // MediaDataHolder is wrapped in a shared pointer to interop with signal/slot mechanism
         return QSharedPointer<MediaDataHolder>{ new MediaDataHolder{ std::move(context.value()), cancelToken } };
     }
-    return QUnexpected{ context.error() };
+    return q23::unexpected{ context.error() };
 }
 
 MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
