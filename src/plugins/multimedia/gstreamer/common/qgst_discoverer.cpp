@@ -199,22 +199,22 @@ QGstDiscoverer::QGstDiscoverer()
 {
 }
 
-QMaybe<QGstDiscovererInfo, QUniqueGErrorHandle> QGstDiscoverer::discover(const QString &uri)
+q23::expected<QGstDiscovererInfo, QUniqueGErrorHandle> QGstDiscoverer::discover(const QString &uri)
 {
     return discover(uri.toUtf8().constData());
 }
 
-QMaybe<QGstDiscovererInfo, QUniqueGErrorHandle> QGstDiscoverer::discover(const QUrl &url)
+q23::expected<QGstDiscovererInfo, QUniqueGErrorHandle> QGstDiscoverer::discover(const QUrl &url)
 {
     return discover(url.toEncoded().constData());
 }
 
-QMaybe<QGstDiscovererInfo, QUniqueGErrorHandle> QGstDiscoverer::discover(QIODevice *device)
+q23::expected<QGstDiscovererInfo, QUniqueGErrorHandle> QGstDiscoverer::discover(QIODevice *device)
 {
     return discover(qGstRegisterQIODevice(device));
 }
 
-QMaybe<QGstDiscovererInfo, QUniqueGErrorHandle> QGstDiscoverer::discover(const char *uri)
+q23::expected<QGstDiscovererInfo, QUniqueGErrorHandle> QGstDiscoverer::discover(const char *uri)
 {
     QUniqueGErrorHandle error;
     QGstDiscovererInfoHandle info{
@@ -223,7 +223,7 @@ QMaybe<QGstDiscovererInfo, QUniqueGErrorHandle> QGstDiscoverer::discover(const c
     };
 
     if (error)
-        return QUnexpected{
+        return q23::unexpected{
             std::move(error),
         };
 

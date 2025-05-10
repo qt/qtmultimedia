@@ -6,8 +6,9 @@
 #include "qffmpegencoderoptions_p.h"
 #include "qffmpegvideoencoderutils_p.h"
 #include "qffmpegcodecstorage_p.h"
-#include <qloggingcategory.h>
-#include <QtMultimedia/private/qmaybe_p.h>
+
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/private/qexpected_p.h>
 
 extern "C" {
 #include "libavutil/display.h"
@@ -427,7 +428,7 @@ struct FrameConverter
         return 0;
     }
 
-    QMaybe<AVFrameUPtr, int> takeResultFrame()
+    q23::expected<AVFrameUPtr, int> takeResultFrame()
     {
         // Ensure that object is reset to empty state
         AVFrameUPtr converted = std::move(m_convertedFrame);
@@ -439,7 +440,7 @@ struct FrameConverter
         // Copy metadata except size and format from input frame
         const int status = av_frame_copy_props(converted.get(), input.get());
         if (status != 0)
-            return QUnexpected{ status };
+            return q23::unexpected{ status };
 
         return converted;
     }
@@ -489,7 +490,7 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr inputFrame)
             return status;
     }
 
-    const QMaybe<AVFrameUPtr, int> resultFrame = converter.takeResultFrame();
+    const q23::expected<AVFrameUPtr, int> resultFrame = converter.takeResultFrame();
     if (!resultFrame)
         return resultFrame.error();
 
