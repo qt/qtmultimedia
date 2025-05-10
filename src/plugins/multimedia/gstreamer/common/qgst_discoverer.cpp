@@ -223,8 +223,7 @@ QMaybe<QGstDiscovererInfo, QUniqueGErrorHandle> QGstDiscoverer::discover(const c
     };
 
     if (error)
-        return {
-            unexpect,
+        return QUnexpected{
             std::move(error),
         };
 

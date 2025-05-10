@@ -1,11 +1,12 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
+#include "qgstreamervideooutput_p.h"
+
 #include <QtMultimedia/qvideosink.h>
 
 #include <QtCore/qloggingcategory.h>
 
-#include <common/qgstreamervideooutput_p.h>
 #include <common/qgstreamervideosink_p.h>
 #include <common/qgstsubtitlesink_p.h>
 
@@ -40,7 +41,7 @@ QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
     }();
 
     if (elementCheck)
-        return { unexpect, *elementCheck };
+        return QUnexpected{ *elementCheck };
 
     return new QGstreamerVideoOutput(parent);
 }

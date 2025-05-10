@@ -49,7 +49,7 @@ QMaybe<QPlatformAudioInput *> QGstreamerAudioInput::create(QAudioInput *parent)
 {
     static const auto error = qGstErrorMessageIfElementsNotAvailable("autoaudiosrc", "volume");
     if (error)
-        return { unexpect, *error };
+        return QUnexpected{ *error };
 
     return new QGstreamerAudioInput(parent);
 }

@@ -79,7 +79,7 @@ public:
             return foundUrl;
 
         ++m_failedSelectionsCount;
-        return { QUnexpect{}, dumpErrors(candidates) };
+        return QUnexpected{ dumpErrors(candidates) };
     }
 
 private:
@@ -138,20 +138,18 @@ private:
         };
 
         if (!waitingFinished)
-            return { QUnexpect{},
-                     "The media got stuck in the status "_L1
-                             + enumValueToString(player.mediaStatus()) };
+            return QUnexpected{ "The media got stuck in the status "_L1
+                                + enumValueToString(player.mediaStatus()) };
 
         if (player.mediaStatus() == QMediaPlayer::InvalidMedia)
-            return { QUnexpect{},
-                     "Unable to load the media. Error ["_L1 + enumValueToString(player.error())
-                             + " "_L1 + player.errorString() + "]"_L1 };
+            return QUnexpected{ "Unable to load the media. Error ["_L1
+                                + enumValueToString(player.error()) + " "_L1 + player.errorString()
+                                + "]"_L1 };
 
         if (player.error() != QMediaPlayer::NoError)
-            return { QUnexpect{},
-                     "Unable to start playing the media, codecs issues. Error ["_L1
-                             + enumValueToString(player.error()) + " "_L1 + player.errorString()
-                             + "]"_L1 };
+            return QUnexpected{ "Unable to start playing the media, codecs issues. Error ["_L1
+                                + enumValueToString(player.error()) + " "_L1 + player.errorString()
+                                + "]"_L1 };
 
         return QUrl(media);
     }
