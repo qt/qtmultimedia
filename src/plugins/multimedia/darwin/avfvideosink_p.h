@@ -40,7 +40,7 @@ class AVFVideoSink : public QPlatformVideoSink
 
 public:
     explicit AVFVideoSink(QVideoSink *parent = nullptr);
-    virtual ~AVFVideoSink();
+    ~AVFVideoSink() override;
 
     // QPlatformVideoSink interface
 public:

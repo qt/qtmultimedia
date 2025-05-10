@@ -28,7 +28,7 @@ class AVFCamera : public QAVFCameraBase
 Q_OBJECT
 public:
     AVFCamera(QCamera *camera);
-    ~AVFCamera();
+    ~AVFCamera() override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 

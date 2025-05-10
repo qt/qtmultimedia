@@ -54,7 +54,7 @@ void AVFImageCapture::updateReadyStatus()
     }
 }
 
-int AVFImageCapture::doCapture(const QString &actualFileName)
+int AVFImageCapture::doCapture(const QString &fileName)
 {
     if (!m_session) {
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
@@ -72,14 +72,12 @@ int AVFImageCapture::doCapture(const QString &actualFileName)
     }
     m_lastCaptureId++;
 
-    bool captureToBuffer = actualFileName.isEmpty();
+    bool captureToBuffer = fileName.isEmpty();
 
     CaptureRequest request = { m_lastCaptureId, QSharedPointer<QSemaphore>::create()};
     m_requestsMutex.lock();
     m_captureRequests.enqueue(request);
     m_requestsMutex.unlock();
-
-    QString fileName(actualFileName);
 
     [m_stillImageOutput captureStillImageAsynchronouslyFromConnection:m_videoConnection
                         completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error) {

@@ -26,7 +26,7 @@ class QDarwinFormatInfo : public QPlatformMediaFormatInfo
 {
 public:
     QDarwinFormatInfo();
-    ~QDarwinFormatInfo();
+    ~QDarwinFormatInfo() override;
 
     static int audioFormatForCodec(QMediaFormat::AudioCodec codec);
     static NSString *videoFormatForCodec(QMediaFormat::VideoCodec codec);

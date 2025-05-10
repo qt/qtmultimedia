@@ -31,7 +31,8 @@ static NSString* const AVF_RATE_KEY                     = @"rate";
 static NSString* const AVF_CURRENT_ITEM_KEY             = @"currentItem";
 static NSString* const AVF_CURRENT_ITEM_DURATION_KEY    = @"currentItem.duration";
 
-static void *AVFMediaPlayerObserverRateObservationContext = &AVFMediaPlayerObserverRateObservationContext;
+static void *AVFMediaPlayerObserverRateObservationContext =
+        &AVFMediaPlayerObserverRateObservationContext;
 static void *AVFMediaPlayerObserverStatusObservationContext = &AVFMediaPlayerObserverStatusObservationContext;
 static void *AVFMediaPlayerObserverPresentationSizeContext = &AVFMediaPlayerObserverPresentationSizeContext;
 static void *AVFMediaPlayerObserverBufferLikelyToKeepUpContext = &AVFMediaPlayerObserverBufferLikelyToKeepUpContext;
@@ -182,7 +183,7 @@ static QMutex sessionMutex;
         [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:AVPlayerItemDidPlayToEndTimeNotification
                                                     object:m_playerItem];
-        m_playerItem = 0;
+        m_playerItem = nullptr;
     }
     if (m_player) {
         [m_player setRate:0.0];
@@ -190,7 +191,7 @@ static QMutex sessionMutex;
         [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_KEY];
         [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
         [m_player release];
-        m_player = 0;
+        m_player = nullptr;
     }
     if (m_playerLayer)
         m_playerLayer.player = nil;
@@ -426,7 +427,7 @@ static QMutex sessionMutex;
 #ifdef QT_DEBUG_AVF
         qDebug() << Q_FUNC_INFO;
 #endif
-        m_session = 0;
+        m_session = nullptr;
 }
 
 - (void) dealloc
@@ -721,7 +722,7 @@ void AVFMediaPlayer::setSeekable(bool seekable)
         return;
 
     m_seekable = seekable;
-    Q_EMIT seekableChanged(seekable);
+    seekableChanged(seekable);
 }
 
 QMediaTimeRange AVFMediaPlayer::availablePlaybackRanges() const

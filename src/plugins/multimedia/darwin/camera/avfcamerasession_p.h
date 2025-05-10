@@ -38,7 +38,7 @@ class AVFCameraSession : public QObject
     Q_OBJECT
 public:
     AVFCameraSession(AVFCameraService *service, QObject *parent = nullptr);
-    ~AVFCameraSession();
+    ~AVFCameraSession() override;
 
     QCameraDevice activecameraDevice() const { return m_activeCameraDevice; }
     void setActiveCamera(const QCameraDevice &info);
