@@ -26,8 +26,8 @@ AVFCameraService::AVFCameraService()
 
 AVFCameraService::~AVFCameraService()
 {
-    if (m_session)
-        delete m_session;
+
+    delete m_session;
 }
 
 QPlatformCamera *AVFCameraService::camera()

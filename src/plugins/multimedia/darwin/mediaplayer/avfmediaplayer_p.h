@@ -42,7 +42,7 @@ class AVFMediaPlayer : public QObject, public QPlatformMediaPlayer
     Q_OBJECT
 public:
     AVFMediaPlayer(QMediaPlayer *parent);
-    virtual ~AVFMediaPlayer();
+    ~AVFMediaPlayer() override;
 
     void setVideoSink(QVideoSink *sink) override;
     void setVideoOutput(AVFVideoRendererControl *output);

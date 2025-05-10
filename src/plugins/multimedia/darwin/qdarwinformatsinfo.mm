@@ -117,9 +117,7 @@ QDarwinFormatInfo::QDarwinFormatInfo()
     imageFormats << QImageCapture::JPEG;
 }
 
-QDarwinFormatInfo::~QDarwinFormatInfo()
-{
-}
+QDarwinFormatInfo::~QDarwinFormatInfo() = default;
 
 int QDarwinFormatInfo::audioFormatForCodec(QMediaFormat::AudioCodec codec)
 {

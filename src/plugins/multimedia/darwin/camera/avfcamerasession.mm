@@ -134,8 +134,7 @@ AVFCameraSession::~AVFCameraSession()
         [m_audioOutput release];
     }
 
-    if (m_videoOutput)
-        delete m_videoOutput;
+    delete m_videoOutput;
 
     [m_observer release];
     [m_captureSession release];

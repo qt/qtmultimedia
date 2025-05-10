@@ -39,7 +39,7 @@ class AVFVideoRendererControl : public QObject, public AVFVideoSinkInterface
     Q_OBJECT
 public:
     explicit AVFVideoRendererControl(QObject *parent = nullptr);
-    virtual ~AVFVideoRendererControl();
+    ~AVFVideoRendererControl() override;
 
     // AVFVideoSinkInterface
     void reconfigure() override;

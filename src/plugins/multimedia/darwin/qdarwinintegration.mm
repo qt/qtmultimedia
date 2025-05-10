@@ -26,9 +26,7 @@ class QDarwinMediaPlugin : public QPlatformMediaPlugin
     Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "darwin.json")
 
 public:
-    QDarwinMediaPlugin()
-        : QPlatformMediaPlugin()
-    {}
+    QDarwinMediaPlugin() = default;
 
     QPlatformMediaIntegration* create(const QString &name) override
     {

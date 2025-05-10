@@ -18,7 +18,7 @@ Q_STATIC_LOGGING_CATEGORY(qLcAVFAudioDecoder, "qt.multimedia.darwin.AVFAudioDeco
 constexpr static int MAX_BUFFERS_IN_QUEUE = 5;
 using namespace Qt::Literals;
 
-QAudioBuffer handleNextSampleBuffer(CMSampleBufferRef sampleBuffer)
+static QAudioBuffer handleNextSampleBuffer(CMSampleBufferRef sampleBuffer)
 {
     if (!sampleBuffer)
         return {};
@@ -47,7 +47,7 @@ QAudioBuffer handleNextSampleBuffer(CMSampleBufferRef sampleBuffer)
     if (err != noErr)
         return {};
 
-    CMBlockBufferRef blockBuffer = NULL;
+    CMBlockBufferRef blockBuffer = nullptr;
     AudioBufferList* audioBufferList = (AudioBufferList*) malloc(audioBufferListSize);
     // This ensures the buffers placed in audioBufferList are contiguous
     err = CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sampleBuffer,
@@ -181,7 +181,7 @@ QAudioFormat qt_format_for_audio_track(AVAssetTrack *track)
     return format;
 }
 
-}
+} // namespace
 
 struct AVFAudioDecoder::DecodingContext
 {
@@ -535,7 +535,7 @@ void AVFAudioDecoder::waitUntilBuffersCounterLessMax()
 
 void AVFAudioDecoder::handleNewAudioBuffer(QAudioBuffer buffer)
 {
-    m_cachedBuffers.enqueue(buffer);
+    m_cachedBuffers.enqueue(std::move(buffer));
     ++m_buffersCounter;
 
     Q_ASSERT(m_cachedBuffers.size() == m_buffersCounter);

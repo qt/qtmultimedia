@@ -35,7 +35,7 @@ public:
     };
 
     AVFImageCapture(QImageCapture *parent = nullptr);
-    ~AVFImageCapture();
+    ~AVFImageCapture() override;
 
     bool isReadyForCapture() const override;
 

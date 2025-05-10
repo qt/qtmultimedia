@@ -36,7 +36,7 @@ Q_FORWARD_DECLARE_OBJC_CLASS(NSError);
 
 QT_BEGIN_NAMESPACE
 
-class AVFAudioDecoder : public QPlatformAudioDecoder
+class AVFAudioDecoder final : public QPlatformAudioDecoder
 {
     Q_OBJECT
 
@@ -44,7 +44,7 @@ class AVFAudioDecoder : public QPlatformAudioDecoder
 
 public:
     AVFAudioDecoder(QAudioDecoder *parent);
-    virtual ~AVFAudioDecoder();
+    ~AVFAudioDecoder() override;
 
     QUrl source() const override;
     void setSource(const QUrl &fileName) override;

@@ -52,7 +52,7 @@ bool qt_file_exists(NSURL *fileURL)
     return false;
 }
 
-}
+} // namespace
 
 AVFMediaEncoder::AVFMediaEncoder(QMediaRecorder *parent)
     : QObject(parent)
@@ -231,7 +231,9 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
     return settings;
 }
 
-NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCaptureDevice *device, AVCaptureConnection *connection, QSize nativeSize)
+static NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings,
+                                      AVCaptureDevice *device, AVCaptureConnection *connection,
+                                      QSize nativeSize)
 {
     if (!device)
         return nil;

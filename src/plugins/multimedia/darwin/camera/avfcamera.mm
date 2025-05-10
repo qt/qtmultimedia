@@ -17,9 +17,7 @@ AVFCamera::AVFCamera(QCamera *camera)
     Q_ASSERT(camera);
 }
 
-AVFCamera::~AVFCamera()
-{
-}
+AVFCamera::~AVFCamera() = default;
 
 void AVFCamera::onActiveChanged(bool active)
 {
