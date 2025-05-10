@@ -198,10 +198,10 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     if (stream) {
         if (!stream->isOpen()) {
             if (!stream->open(QIODevice::ReadOnly))
-                return { unexpect,
-                         MediaDataHolder::ContextError{
-                                 QMediaPlayer::ResourceError,
-                                 QLatin1String("Could not open source device.") } };
+                return QUnexpected{
+                    MediaDataHolder::ContextError{ QMediaPlayer::ResourceError,
+                                                   QLatin1String("Could not open source device.") },
+                };
         }
 
         auto seek = &seekQIODevice;
@@ -274,16 +274,15 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
         qCWarning(qLcMediaDataHolder)
                 << "Could not open media. FFmpeg error description:" << err2str(ret);
 
-        return { unexpect,
-                 MediaDataHolder::ContextError{ code, QMediaPlayer::tr("Could not open file") } };
+        return QUnexpected{ MediaDataHolder::ContextError{
+                code, QMediaPlayer::tr("Could not open file") } };
     }
 
     ret = avformat_find_stream_info(context.get(), nullptr);
     if (ret < 0) {
-        return { unexpect,
-                 MediaDataHolder::ContextError{
-                         QMediaPlayer::FormatError,
-                         QMediaPlayer::tr("Could not find stream information for media file") } };
+        return QUnexpected{ MediaDataHolder::ContextError{
+                QMediaPlayer::FormatError,
+                QMediaPlayer::tr("Could not find stream information for media file") } };
     }
 
     if (qLcMediaDataHolder().isInfoEnabled())
@@ -304,7 +303,7 @@ MediaDataHolder::Maybe MediaDataHolder::create(const QUrl &url, QIODevice *strea
         // MediaDataHolder is wrapped in a shared pointer to interop with signal/slot mechanism
         return QSharedPointer<MediaDataHolder>{ new MediaDataHolder{ std::move(context.value()), cancelToken } };
     }
-    return { unexpect, context.error() };
+    return QUnexpected{ context.error() };
 }
 
 MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,

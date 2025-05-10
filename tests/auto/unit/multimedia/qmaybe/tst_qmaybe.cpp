@@ -52,7 +52,7 @@ private slots:
     void operatorBool_returnsFalse_onlyWhenErrorSet()
     {
         {
-            const QMaybe<QString, int> error{ unexpect, -1 };
+            const QMaybe<QString, int> error{ QUnexpected{ -1 } };
             QVERIFY(!static_cast<bool>(error));
         }
 

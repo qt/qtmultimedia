@@ -43,7 +43,7 @@ QMaybe<QPlatformAudioDecoder *> QGstreamerAudioDecoder::create(QAudioDecoder *pa
 {
     static const auto error = qGstErrorMessageIfElementsNotAvailable("audioconvert", "playbin");
     if (error)
-        return { unexpect, *error };
+        return QUnexpected{ *error };
 
     return new QGstreamerAudioDecoder(parent);
 }
