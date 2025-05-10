@@ -34,7 +34,7 @@ class AVFVideoBuffer : public QHwVideoBuffer
 {
 public:
     AVFVideoBuffer(AVFVideoSinkInterface *sink, QCFType<CVImageBufferRef> buffer);
-    ~AVFVideoBuffer();
+    ~AVFVideoBuffer() override;
 
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;

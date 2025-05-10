@@ -46,7 +46,7 @@ class AVFCameraRenderer : public QObject, public AVFVideoSinkInterface
 Q_OBJECT
 public:
     AVFCameraRenderer(QObject *parent = nullptr);
-    ~AVFCameraRenderer();
+    ~AVFCameraRenderer() override;
 
     void reconfigure() override;
     void setOutputSettings() override;
