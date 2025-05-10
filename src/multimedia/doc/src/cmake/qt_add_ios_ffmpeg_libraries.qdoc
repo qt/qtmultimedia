@@ -44,5 +44,7 @@ qt_add_ios_ffmpeg_libraries(target)
  \badcode
  set(QT_NO_FFMPEG_XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY ON)
  \endcode
+
+ \note \c qt_add_ios_ffmpeg_libraries requires CMake 3.28 or later.
 */
 

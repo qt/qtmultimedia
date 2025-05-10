@@ -17,6 +17,10 @@ function(qt6_add_ios_ffmpeg_libraries target)
         return()
     endif()
 
+    if (CMAKE_VERSION VERSION_LESS 3.28)
+        message(FATAL_ERROR "qt_add_ios_ffmpeg_libraries() requires CMake version 3.28 or later.")
+    endif()
+
     file (GLOB ffmpeg_frameworks "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_LIBS}/ffmpeg/*.xcframework")
     if(NOT ffmpeg_frameworks)
         message(
