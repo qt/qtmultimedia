@@ -296,7 +296,7 @@ void AVFAudioDecoder::start()
     m_decodingContext = std::make_shared<DecodingContext>();
     std::weak_ptr<DecodingContext> weakContext(m_decodingContext);
 
-    auto handleLoadingResult = [=]() {
+    auto handleLoadingResult = [=, this]() {
         NSError *error = nil;
         AVKeyValueStatus status = [m_asset statusOfValueForKey:@"tracks" error:&error];
 
@@ -317,9 +317,9 @@ void AVFAudioDecoder::start()
     };
 
     [m_asset loadValuesAsynchronouslyForKeys:@[ @"tracks" ]
-                           completionHandler:[=]() {
-                               invokeWithDecodingContext(weakContext, handleLoadingResult);
-                           }];
+                           completionHandler:[=, this]() {
+        invokeWithDecodingContext(weakContext, handleLoadingResult);
+    }];
 }
 
 void AVFAudioDecoder::decBuffersCounter(uint val)
@@ -473,7 +473,7 @@ void AVFAudioDecoder::startReading()
     // Since copyNextSampleBuffer is synchronous, submit it to an async dispatch queue
     // to run in a separate thread. Call the handleNextSampleBuffer "callback" on another
     // thread when new audio sample is read.
-    auto copyNextSampleBuffer = [=]() {
+    auto copyNextSampleBuffer = [=, this]() {
         auto decodingContext = weakContext.lock();
         if (!decodingContext)
             return false;
@@ -484,20 +484,21 @@ void AVFAudioDecoder::startReading()
         if (!sampleBuffer)
             return false;
 
-        dispatch_async(m_decodingQueue, [=]() {
+        dispatch_async(m_decodingQueue, [=, this]() {
             if (!weakContext.expired() && CMSampleBufferDataIsReady(sampleBuffer)) {
                 auto audioBuffer = handleNextSampleBuffer(sampleBuffer);
 
                 if (audioBuffer.isValid())
-                    invokeWithDecodingContext(weakContext,
-                                              [=]() { handleNewAudioBuffer(audioBuffer); });
+                    invokeWithDecodingContext(weakContext, [=, this]() {
+                        handleNewAudioBuffer(audioBuffer);
+                    });
             }
         });
 
         return true;
     };
 
-    dispatch_async(m_readingQueue, [=]() {
+    dispatch_async(m_readingQueue, [=, this]() {
         qCDebug(qLcAVFAudioDecoder()) << "start reading thread";
 
         do {
@@ -544,7 +545,8 @@ template<typename F>
 void AVFAudioDecoder::invokeWithDecodingContext(std::weak_ptr<DecodingContext> weakContext, F &&f)
 {
     if (!weakContext.expired())
-        QMetaObject::invokeMethod(this, [=]() {
+        QMetaObject::invokeMethod(
+                this, [this, f = std::forward<F>(f), weakContext = std::move(weakContext)]() {
             // strong check: compare with actual decoding context.
             // Otherwise, the context can be temporary locked by one of dispatch queues.
             if (auto context = weakContext.lock(); context && context == m_decodingContext)

@@ -23,7 +23,7 @@ public:
     template <typename... Callback>
     void addFrameReceivedCallback(Callback &&...callback)
     {
-        m_timer.callOnTimeout([=]() {
+        m_timer.callOnTimeout([=, this]() {
             auto frame = m_generator.generate();
             if (!frame.isValid())
                 m_timer.stop();
