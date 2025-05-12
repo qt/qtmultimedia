@@ -5,6 +5,7 @@ qt_internal_add_module(SpatialAudio
     SOURCES
         qambisonicdecoder.cpp qambisonicdecoder_p.h qambisonicdecoderdata_p.h
         qaudioengine.cpp qaudioengine.h qaudioengine_p.h
+        qaudioengine_threaded.cpp qaudioengine_threaded_p.h
         qaudiolistener.cpp qaudiolistener.h
         qaudioroom.cpp qaudioroom.h qaudioroom_p.h
         qspatialsound.cpp qspatialsound.h qspatialsound_p.h
@@ -19,7 +20,6 @@ qt_internal_add_module(SpatialAudio
     PUBLIC_LIBRARIES
         Qt::Multimedia
 )
-
 
 qt_internal_add_docs(SpatialAudio
     doc/qtspatialaudio.qdocconf

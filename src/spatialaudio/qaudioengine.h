@@ -71,8 +71,11 @@ public Q_SLOTS:
     void resume() { setPaused(false); }
 
 private:
-    friend class QAudioEnginePrivate;
-    QAudioEnginePrivate *d;
+    Q_DECLARE_PRIVATE(QAudioEngine)
+    friend class QAudioEngineThreaded;
+
+    // ### Qt7: remove unused member
+    QT6_ONLY(void *unused = nullptr;) // for ABI compatibility
 };
 
 QT_END_NAMESPACE

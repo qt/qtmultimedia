@@ -204,7 +204,7 @@ void QAudioRoom::setPosition(QVector3D pos)
 {
     Q_D(QAudioRoom);
     auto *ep = QAudioEnginePrivate::get(d->engine);
-    pos *= ep->distanceScale;
+    pos *= ep->distanceScale();
     if (toVector(d->roomProperties.position) == pos)
         return;
     toFloats(pos, d->roomProperties.position);
@@ -217,7 +217,7 @@ QVector3D QAudioRoom::position() const
     Q_D(const QAudioRoom);
     auto *ep = QAudioEnginePrivate::get(d->engine);
     auto pos = toVector(d->roomProperties.position);
-    pos /= ep->distanceScale;
+    pos /= ep->distanceScale();
     return pos;
 }
 
@@ -233,7 +233,7 @@ void QAudioRoom::setDimensions(QVector3D dim)
 {
     Q_D(QAudioRoom);
     auto *ep = QAudioEnginePrivate::get(d->engine);
-    dim *= ep->distanceScale;
+    dim *= ep->distanceScale();
     if (toVector(d->roomProperties.dimensions) == dim)
         return;
     toFloats(dim, d->roomProperties.dimensions);
@@ -247,7 +247,7 @@ QVector3D QAudioRoom::dimensions() const
 
     auto *ep = QAudioEnginePrivate::get(d->engine);
     auto dim = toVector(d->roomProperties.dimensions);
-    dim /= ep->distanceScale;
+    dim /= ep->distanceScale();
     return dim;
 }
 

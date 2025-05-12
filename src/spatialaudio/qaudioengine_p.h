@@ -15,14 +15,9 @@
 // We mean it.
 //
 
+#include <QtGui/qvectornd.h>
+#include <QtCore/private/qobject_p.h>
 #include <QtSpatialAudio/qaudioengine.h>
-#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
-#include <QtMultimedia/qaudiodevice.h>
-#include <QtCore/qthread.h>
-#include <QtCore/qtclasshelpermacros.h>
-#include <QtCore/qmutex.h>
-
-#include <atomic>
 
 namespace vraudio {
 class ResonanceAudio;
@@ -32,64 +27,78 @@ QT_BEGIN_NAMESPACE
 
 class QSpatialSound;
 class QAmbientSound;
-class QAudioOutputStream;
 class QAudioRoom;
 class QAudioListener;
-class QAudioEngine;
 
-class QAudioEnginePrivate
+class QAudioEnginePrivate : public QObjectPrivate
 {
 public:
-    static QAudioEnginePrivate *get(QAudioEngine *engine) { return engine ? engine->d : nullptr; }
+    Q_DECLARE_PUBLIC(QAudioEngine)
 
+    static QAudioEnginePrivate *get(QAudioEngine *engine)
+    {
+        return engine ? static_cast<QAudioEnginePrivate *>(engine->d_func()) : nullptr;
+    }
+
+    explicit QAudioEnginePrivate(int sampleRate);
+    ~QAudioEnginePrivate() override;
+
+    int sampleRate() const { return m_sampleRate; }
     static constexpr int bufferSize = 128;
 
-    explicit QAudioEnginePrivate(QAudioEngine *);
-    Q_DISABLE_COPY_MOVE(QAudioEnginePrivate)
-    ~QAudioEnginePrivate();
+    void setDistanceScale(float scale);
+    float distanceScale() const;
 
-    std::unique_ptr<vraudio::ResonanceAudio> resonanceAudio;
-    int sampleRate = 44100;
-    float masterVolume = 1.;
-    QAudioEngine::OutputMode outputMode = QAudioEngine::Surround;
-    bool roomEffectsEnabled = true;
+    // resonanceAudio access
+    void setMasterVolume(float);
+    float masterVolume() const;
+    float m_masterVolume = 1.f;
 
-    void start();
-    void stop();
-    void setPaused(bool paused);
-    void setOutputDevice(const QAudioDevice &device);
-    void setOutputMode(QAudioEngine::OutputMode);
+    virtual void setListenerPosition(QVector3D);
+    QVector3D listenerPosition() const { return m_position; }
+    void setListenerRotation(const QQuaternion &);
+
+    virtual void start() = 0;
+    virtual void stop() = 0;
+    virtual void setPaused(bool) = 0;
+    virtual bool isPaused() const = 0;
+    virtual void setOutputDevice(const QAudioDevice &) = 0;
+    virtual QAudioDevice outputDevice() const = 0;
+    virtual void setOutputMode(QAudioEngine::OutputMode) = 0;
+    virtual QAudioEngine::OutputMode outputMode() const = 0;
+    virtual void setRoomEffectsEnabled(bool) = 0;
+    virtual bool roomEffectsEnabled() const = 0;
+
+    virtual void addSpatialSound(QSpatialSound *) = 0;
+    virtual void removeSpatialSound(QSpatialSound *) = 0;
+    virtual void addStereoSound(QAmbientSound *) = 0;
+    virtual void removeStereoSound(QAmbientSound *) = 0;
+
+    virtual void addRoom(QAudioRoom *) = 0;
+    virtual void removeRoom(QAudioRoom *) = 0;
+    virtual bool setListener(QAudioListener *) = 0;
+    virtual QAudioRoom *currentRoom() const = 0;
+
+protected:
+    struct SmallestRoomForListenerResult
+    {
+        QAudioRoom *room;
+        float volume;
+    };
+
+    SmallestRoomForListenerResult findSmallestRoomForListener(QSpan<QAudioRoom *> rooms) const;
+
+private:
+    const int m_sampleRate = 44100;
 
     // Resonance Audio uses meters internally, while Qt Quick 3D and our API uses cm by
     // default. To make things independent from the scale setting, we store all distances in
     // meters internally and convert in the setters and getters.
-    float distanceScale = 0.01f;
+    float m_distanceScale = 0.01f;
+    QVector3D m_position;
 
-    QMutex mutex;
-    QAudioDevice device;
-    std::atomic_bool paused{ false };
-
-    QThread audioThread;
-    std::unique_ptr<QAudioOutputStream> outputStream;
-
-    QAudioListener *listener = nullptr;
-    QList<QSpatialSound *> sources;
-    QList<QAmbientSound *> stereoSources;
-    QList<QAudioRoom *> rooms;
-    mutable bool listenerPositionDirty = true;
-    QAudioRoom *currentRoom = nullptr;
-
-    void addSpatialSound(QSpatialSound *sound);
-    void removeSpatialSound(QSpatialSound *sound);
-    void addStereoSound(QAmbientSound *sound);
-    void removeStereoSound(QAmbientSound *sound);
-
-    void addRoom(QAudioRoom *room);
-    void removeRoom(QAudioRoom *room);
-    void updateRooms();
-
-    QVector3D listenerPosition() const;
-    QAudioEngine *q;
+public:
+    std::unique_ptr<vraudio::ResonanceAudio> resonanceAudio;
 };
 
 QT_END_NAMESPACE
