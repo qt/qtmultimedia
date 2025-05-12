@@ -31,7 +31,7 @@ void QAmbientSoundPrivate::load()
     auto *ep = QAudioEnginePrivate::get(engine);
     QAudioFormat f;
     f.setSampleFormat(QAudioFormat::Float);
-    f.setSampleRate(ep->sampleRate);
+    f.setSampleRate(ep->sampleRate());
     f.setChannelConfig(nchannels == 2 ? QAudioFormat::ChannelConfigStereo : QAudioFormat::ChannelConfigMono);
     decoder->setAudioFormat(f);
     if (url.scheme().compare(u"qrc", Qt::CaseInsensitive) == 0) {

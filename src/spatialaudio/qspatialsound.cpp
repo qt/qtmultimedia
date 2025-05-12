@@ -8,6 +8,7 @@
 #include <qaudiosink.h>
 #include <qurl.h>
 #include <qdebug.h>
+#include <qaudiodecoder.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -59,7 +60,7 @@ void QSpatialSound::setPosition(QVector3D pos)
     if (!ep)
         return;
 
-    pos *= ep->distanceScale;
+    pos *= ep->distanceScale();
     d->pos = pos;
     ep->resonanceAudio->api->SetSourcePosition(d->sourceId, pos.x(), pos.y(), pos.z());
     emit positionChanged();
@@ -69,10 +70,7 @@ QVector3D QSpatialSound::position() const
 {
     Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (!ep)
-        return {};
-
-    return d->pos/ep->distanceScale;
+    return d->pos / ep->distanceScale();
 }
 
 /*!
@@ -160,8 +158,6 @@ void QSpatialSoundPrivate::updateDistanceModel()
     if (!engine || sourceId < 0)
         return;
     auto *ep = QAudioEnginePrivate::get(engine);
-    if (!ep)
-        return;
 
     vraudio::DistanceRolloffModel dm = vraudio::kLogarithmic;
     switch (distanceModel) {
@@ -183,15 +179,15 @@ void QSpatialSoundPrivate::updateRoomEffects()
     if (!engine || sourceId < 0)
         return;
     auto *ep = QAudioEnginePrivate::get(engine);
-    if (!ep->currentRoom)
+    if (!ep->currentRoom())
         return;
-    auto *rp = QAudioRoomPrivate::get(ep->currentRoom);
+    auto *rp = QAudioRoomPrivate::get(ep->currentRoom());
     if (!rp)
         return;
 
-    QVector3D roomDim2 = ep->currentRoom->dimensions()/2.;
-    QVector3D roomPos = ep->currentRoom->position();
-    QQuaternion roomRot = ep->currentRoom->rotation();
+    QVector3D roomDim2 = ep->currentRoom()->dimensions() / 2.;
+    QVector3D roomPos = ep->currentRoom()->position();
+    QQuaternion roomRot = ep->currentRoom()->rotation();
     QVector3D dist = pos - roomPos;
     // transform into room coordinates
     dist = roomRot.rotatedVector(dist);
@@ -301,10 +297,7 @@ void QSpatialSound::setSize(float size)
 {
     Q_D(QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (!ep)
-        return;
-
-    size *= ep->distanceScale;
+    size *= ep->distanceScale();
     if (d->size == size)
         return;
     d->size = size;
@@ -317,10 +310,7 @@ float QSpatialSound::size() const
 {
     Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (!ep)
-        return .1f;
-
-    return d->size/ep->distanceScale;
+    return d->size / ep->distanceScale();
 }
 
 /*!
@@ -334,10 +324,7 @@ void QSpatialSound::setDistanceCutoff(float cutoff)
 {
     Q_D(QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (!ep)
-        return;
-
-    cutoff *= ep->distanceScale;
+    cutoff *= ep->distanceScale();
     if (d->distanceCutoff == cutoff)
         return;
     d->distanceCutoff = cutoff;
@@ -350,10 +337,7 @@ float QSpatialSound::distanceCutoff() const
 {
     Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (!ep)
-        return 50.f;
-
-    return d->distanceCutoff/ep->distanceScale;
+    return d->distanceCutoff / ep->distanceScale();
 }
 
 /*!
@@ -468,7 +452,7 @@ void QSpatialSound::setDirectivityOrder(float order)
     if (ep)
         ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
 
-    emit directivityOrderChanged();
+    emit directivityChanged();
 }
 
 float QSpatialSound::directivityOrder() const
