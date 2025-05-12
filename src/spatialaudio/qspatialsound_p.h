@@ -15,15 +15,15 @@
 // We mean it.
 //
 
-#include <qspatialsound.h>
-#include <qambientsound_p.h>
-#include <qaudioengine_p.h>
-#include <qurl.h>
-#include <qvector3d.h>
-#include <qquaternion.h>
-#include <qaudiobuffer.h>
-#include <qaudiodevice.h>
-#include <qmutex.h>
+#include <QtSpatialAudio/qspatialsound.h>
+#include <QtSpatialAudio/private/qambientsound_p.h>
+#include <QtSpatialAudio/private/qaudioengine_p.h>
+#include <QtCore/qurl.h>
+#include <QtCore/qmutex.h>
+#include <QtGui/qquaternion.h>
+#include <QtGui/qvector3d.h>
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiodevice.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -32,13 +32,15 @@ class QAudioEnginePrivate;
 
 class QSpatialSoundPrivate : public QAmbientSoundPrivate
 {
+    Q_DECLARE_PUBLIC(QSpatialSound)
+
 public:
-    QSpatialSoundPrivate(QObject *parent)
-        : QAmbientSoundPrivate(parent, 1)
-    {}
+    QSpatialSoundPrivate() : QAmbientSoundPrivate(1) { }
 
     static QSpatialSoundPrivate *get(QSpatialSound *soundSource)
-    { return soundSource ? soundSource->d : nullptr; }
+    {
+        return soundSource ? soundSource->d_func() : nullptr;
+    }
 
     QVector3D pos;
     QQuaternion rotation;
