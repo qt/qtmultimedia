@@ -32,8 +32,7 @@ QT_BEGIN_NAMESPACE
     Creates a spatial sound source for \a engine. The object can be placed in
     3D space and will be louder the closer to the listener it is.
  */
-QSpatialSound::QSpatialSound(QAudioEngine *engine)
-    : d(new QSpatialSoundPrivate(this))
+QSpatialSound::QSpatialSound(QAudioEngine *engine) : QObject(*new QSpatialSoundPrivate)
 {
     setEngine(engine);
 }
@@ -56,6 +55,7 @@ QSpatialSound::~QSpatialSound()
  */
 void QSpatialSound::setPosition(QVector3D pos)
 {
+    Q_D(QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
     if (!ep)
         return;
@@ -68,6 +68,7 @@ void QSpatialSound::setPosition(QVector3D pos)
 
 QVector3D QSpatialSound::position() const
 {
+    Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
     return d->pos/ep->distanceScale;
 }
@@ -79,6 +80,8 @@ QVector3D QSpatialSound::position() const
  */
 void QSpatialSound::setRotation(const QQuaternion &q)
 {
+    Q_D(QSpatialSound);
+
     d->rotation = q;
     auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep)
@@ -88,6 +91,7 @@ void QSpatialSound::setRotation(const QQuaternion &q)
 
 QQuaternion QSpatialSound::rotation() const
 {
+    Q_D(const QSpatialSound);
     return d->rotation;
 }
 
@@ -101,6 +105,7 @@ QQuaternion QSpatialSound::rotation() const
  */
 void QSpatialSound::setVolume(float volume)
 {
+    Q_D(QSpatialSound);
     if (d->volume == volume)
         return;
     d->volume = volume;
@@ -112,6 +117,7 @@ void QSpatialSound::setVolume(float volume)
 
 float QSpatialSound::volume() const
 {
+    Q_D(const QSpatialSound);
     return d->volume;
 }
 
@@ -137,6 +143,8 @@ float QSpatialSound::volume() const
  */
 void QSpatialSound::setDistanceModel(DistanceModel model)
 {
+    Q_D(QSpatialSound);
+
     if (d->distanceModel == model)
         return;
     d->distanceModel = model;
@@ -274,6 +282,7 @@ void QSpatialSoundPrivate::updateRoomEffects()
 
 QSpatialSound::DistanceModel QSpatialSound::distanceModel() const
 {
+    Q_D(const QSpatialSound);
     return d->distanceModel;
 }
 
@@ -286,6 +295,7 @@ QSpatialSound::DistanceModel QSpatialSound::distanceModel() const
  */
 void QSpatialSound::setSize(float size)
 {
+    Q_D(QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
     size *= ep->distanceScale;
     if (d->size == size)
@@ -298,6 +308,7 @@ void QSpatialSound::setSize(float size)
 
 float QSpatialSound::size() const
 {
+    Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
     return d->size/ep->distanceScale;
 }
@@ -311,6 +322,7 @@ float QSpatialSound::size() const
  */
 void QSpatialSound::setDistanceCutoff(float cutoff)
 {
+    Q_D(QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
     cutoff *= ep->distanceScale;
     if (d->distanceCutoff == cutoff)
@@ -323,6 +335,7 @@ void QSpatialSound::setDistanceCutoff(float cutoff)
 
 float QSpatialSound::distanceCutoff() const
 {
+    Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
     return d->distanceCutoff/ep->distanceScale;
 }
@@ -335,6 +348,7 @@ float QSpatialSound::distanceCutoff() const
  */
 void QSpatialSound::setManualAttenuation(float attenuation)
 {
+    Q_D(QSpatialSound);
     if (d->manualAttenuation == attenuation)
         return;
     d->manualAttenuation = attenuation;
@@ -346,6 +360,7 @@ void QSpatialSound::setManualAttenuation(float attenuation)
 
 float QSpatialSound::manualAttenuation() const
 {
+    Q_D(const QSpatialSound);
     return d->manualAttenuation;
 }
 
@@ -367,6 +382,8 @@ float QSpatialSound::manualAttenuation() const
  */
 void QSpatialSound::setOcclusionIntensity(float occlusion)
 {
+    Q_D(QSpatialSound);
+
     if (d->occlusionIntensity == occlusion)
         return;
     d->occlusionIntensity = occlusion;
@@ -378,6 +395,8 @@ void QSpatialSound::setOcclusionIntensity(float occlusion)
 
 float QSpatialSound::occlusionIntensity() const
 {
+    Q_D(const QSpatialSound);
+
     return d->occlusionIntensity;
 }
 
@@ -392,6 +411,8 @@ float QSpatialSound::occlusionIntensity() const
  */
 void QSpatialSound::setDirectivity(float alpha)
 {
+    Q_D(QSpatialSound);
+
     alpha = qBound(0., alpha, 1.);
     if (alpha == d->directivity)
         return;
@@ -406,6 +427,7 @@ void QSpatialSound::setDirectivity(float alpha)
 
 float QSpatialSound::directivity() const
 {
+    Q_D(const QSpatialSound);
     return d->directivity;
 }
 
@@ -419,6 +441,8 @@ float QSpatialSound::directivity() const
  */
 void QSpatialSound::setDirectivityOrder(float order)
 {
+    Q_D(QSpatialSound);
+
     order = qMax(order, 1.);
     if (order == d->directivityOrder)
         return;
@@ -433,6 +457,8 @@ void QSpatialSound::setDirectivityOrder(float order)
 
 float QSpatialSound::directivityOrder() const
 {
+    Q_D(const QSpatialSound);
+
     return d->directivityOrder;
 }
 
@@ -445,6 +471,8 @@ float QSpatialSound::directivityOrder() const
  */
 void QSpatialSound::setNearFieldGain(float gain)
 {
+    Q_D(QSpatialSound);
+
     gain = qBound(0., gain, 1.);
     if (gain == d->nearFieldGain)
         return;
@@ -460,6 +488,8 @@ void QSpatialSound::setNearFieldGain(float gain)
 
 float QSpatialSound::nearFieldGain() const
 {
+    Q_D(const QSpatialSound);
+
     return d->nearFieldGain;
 }
 
@@ -470,6 +500,8 @@ float QSpatialSound::nearFieldGain() const
  */
 void QSpatialSound::setSource(const QUrl &url)
 {
+    Q_D(QSpatialSound);
+
     if (d->url == url)
         return;
     d->url = url;
@@ -480,6 +512,8 @@ void QSpatialSound::setSource(const QUrl &url)
 
 QUrl QSpatialSound::source() const
 {
+    Q_D(const QSpatialSound);
+
     return d->url;
 }
 
@@ -501,11 +535,15 @@ QUrl QSpatialSound::source() const
  */
 int QSpatialSound::loops() const
 {
+    Q_D(const QSpatialSound);
+
     return d->m_loops.loadRelaxed();
 }
 
 void QSpatialSound::setLoops(int loops)
 {
+    Q_D(QSpatialSound);
+
     int oldLoops = d->m_loops.fetchAndStoreRelaxed(loops);
     if (oldLoops != loops)
         emit loopsChanged();
@@ -521,11 +559,14 @@ void QSpatialSound::setLoops(int loops)
  */
 bool QSpatialSound::autoPlay() const
 {
+    Q_D(const QSpatialSound);
+
     return d->m_autoPlay.loadRelaxed();
 }
 
 void QSpatialSound::setAutoPlay(bool autoPlay)
 {
+    Q_D(QSpatialSound);
     bool old = d->m_autoPlay.fetchAndStoreRelaxed(autoPlay);
     if (old != autoPlay)
         emit autoPlayChanged();
@@ -536,6 +577,8 @@ void QSpatialSound::setAutoPlay(bool autoPlay)
  */
 void QSpatialSound::play()
 {
+    Q_D(QSpatialSound);
+
     d->play();
 }
 
@@ -544,6 +587,8 @@ void QSpatialSound::play()
  */
 void QSpatialSound::pause()
 {
+    Q_D(QSpatialSound);
+
     d->pause();
 }
 
@@ -553,6 +598,8 @@ void QSpatialSound::pause()
  */
 void QSpatialSound::stop()
 {
+    Q_D(QSpatialSound);
+
     d->stop();
 }
 
@@ -561,6 +608,8 @@ void QSpatialSound::stop()
  */
 void QSpatialSound::setEngine(QAudioEngine *engine)
 {
+    Q_D(QSpatialSound);
+
     if (d->engine == engine)
         return;
 
@@ -589,6 +638,8 @@ void QSpatialSound::setEngine(QAudioEngine *engine)
  */
 QAudioEngine *QSpatialSound::engine() const
 {
+    Q_D(const QSpatialSound);
+
     return d->engine;
 }
 

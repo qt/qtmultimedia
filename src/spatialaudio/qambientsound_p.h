@@ -15,10 +15,12 @@
 // We mean it.
 //
 
+#include <QtSpatialAudio/qambientsound.h>
 #include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qfile.h>
+#include <QtCore/private/qobject_p.h>
 #include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qaudiobuffer.h>
 
@@ -26,15 +28,18 @@ QT_BEGIN_NAMESPACE
 
 class QAudioEngine;
 
-class QAmbientSoundPrivate : public QObject
+class QAmbientSoundPrivate : public QObjectPrivate
 {
-public:
-    explicit QAmbientSoundPrivate(QObject *parent, int nchannels = 2)
-        : QObject(parent), nchannels(nchannels)
-    {}
+    Q_DECLARE_PUBLIC(QAmbientSound)
 
-    template<typename T>
-    static QAmbientSoundPrivate *get(T *soundSource) { return soundSource ? soundSource->d : nullptr; }
+public:
+    explicit QAmbientSoundPrivate(int nchannels = 2) : nchannels(nchannels) { }
+
+    template <typename T>
+    static QAmbientSoundPrivate *get(T *soundSource)
+    {
+        return soundSource ? soundSource->d_func() : nullptr;
+    }
 
     QUrl url;
     float volume = 1.;
@@ -71,11 +76,6 @@ public:
 
     void load();
     void getBuffer(float *buf, int frames, int channels);
-
-private Q_SLOTS:
-    void bufferReady();
-    void finished();
-
 };
 
 QT_END_NAMESPACE
