@@ -1,25 +1,27 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
-#include <qaudioengine_p.h>
-#include <qambientsound_p.h>
-#include <qspatialsound_p.h>
-#include <qambientsound.h>
-#include <qaudioroom_p.h>
-#include <qaudiolistener.h>
-#include <resonance_audio.h>
-#include <qambisonicdecoder_p.h>
-#include <qaudiodecoder.h>
-#include <qmediadevices.h>
-#include <qiodevice.h>
-#include <qaudiosink.h>
-#include <qdebug.h>
-#include <qelapsedtimer.h>
 
+#include "qaudioengine_p.h"
+
+#include <QtCore/qiodevice.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qelapsedtimer.h>
+
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qaudiosink.h>
 #ifdef Q_OS_WIN
 #  include <QtMultimedia/private/qwindows_wasapi_warmup_client_p.h>
 #endif
 
-#include <QFile>
+#include <QtSpatialAudio/private/qambientsound_p.h>
+#include <QtSpatialAudio/private/qspatialsound_p.h>
+#include <QtSpatialAudio/private/qaudioroom_p.h>
+#include <QtSpatialAudio/private/qambisonicdecoder_p.h>
+#include <QtSpatialAudio/qambientsound.h>
+#include <QtSpatialAudio/qaudiolistener.h>
+
+#include <resonance_audio.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -32,7 +34,6 @@ const int bufferTimeMs = 100;
 // which lives in the mainThread.
 class QAudioOutputStream : public QIODevice
 {
-    Q_OBJECT
 public:
     explicit QAudioOutputStream(QAudioEnginePrivate *d)
         : d(d)
@@ -59,7 +60,8 @@ public:
         return m_pos;
     }
 
-    Q_INVOKABLE void startOutput() {
+    void startOutput()
+    {
         d->mutex.lock();
         Q_ASSERT(!sink);
         QAudioFormat format;
@@ -85,7 +87,8 @@ public:
 #endif
     }
 
-    Q_INVOKABLE void stopOutput() {
+    void stopOutput()
+    {
         if (!sink)
             return;
         sink->stop();
@@ -93,7 +96,8 @@ public:
         ambisonicDecoder.reset();
     }
 
-    Q_INVOKABLE void restartOutput() {
+    void restartOutput()
+    {
         stopOutput();
         startOutput();
     }
@@ -633,4 +637,3 @@ float QAudioEngine::distanceScale() const
 QT_END_NAMESPACE
 
 #include "moc_qaudioengine.cpp"
-#include "qaudioengine.moc"
