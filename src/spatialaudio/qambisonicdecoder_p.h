@@ -14,8 +14,8 @@
 // We mean it.
 //
 
-#include <qtspatialaudioglobal_p.h>
-#include <qaudioformat.h>
+#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
+#include <QtMultimedia/qaudioformat.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -25,16 +25,15 @@ class QAmbisonicDecoderFilter;
 class QAmbisonicDecoder
 {
 public:
-    enum AmbisonicLevel
-    {
-        AmbisonicLevel1 = 1,
-        LowQuality = AmbisonicLevel1,
-        AmbisonicLevel2 = 2,
-        MediumQuality = AmbisonicLevel2,
-        AmbisonicLevel3 = 3,
-        HighQuality = AmbisonicLevel3
+    enum AmbisonicOrder {
+        Ambisonic1stOrder = 1,
+        LowQuality = Ambisonic1stOrder,
+        Ambisonic2ndOrder = 2,
+        MediumQuality = Ambisonic2ndOrder,
+        Ambisonic3rdOrder = 3,
+        HighQuality = Ambisonic3rdOrder
     };
-    QAmbisonicDecoder(AmbisonicLevel ambisonicLevel, const QAudioFormat &format);
+    QAmbisonicDecoder(AmbisonicOrder ambisonicOrder, const QAudioFormat &format);
     ~QAmbisonicDecoder();
 
     bool hasValidConfig() const { return outputChannels > 0; }
@@ -51,10 +50,11 @@ public:
     void processBufferWithReverb(const float *input[], const float *reverb[2], short *output, int nSamples);
 
     static constexpr int maxAmbisonicChannels = 16;
-    static constexpr int maxAmbisonicLevel = 3;
+    static constexpr int maxAmbisonicOrder = 3;
+
 private:
     QAudioFormat::ChannelConfig channelConfig;
-    AmbisonicLevel level = AmbisonicLevel1;
+    AmbisonicOrder order = Ambisonic1stOrder;
     int inputChannels = 0;
     int outputChannels = 0;
     const QAmbisonicDecoderData *decoderData = nullptr;

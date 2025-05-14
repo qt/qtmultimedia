@@ -140,12 +140,11 @@ private:
     float prevR_hf[2] = {};
 };
 
-
-QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicLevel ambisonicLevel, const QAudioFormat &format)
-    : level(ambisonicLevel)
+QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicOrder ambisonicOrder, const QAudioFormat &format)
+    : order(ambisonicOrder)
 {
-    Q_ASSERT(level > 0 && level <= 3);
-    inputChannels = (level+1)*(level+1);
+    Q_ASSERT(order > 0 && order <= 3);
+    inputChannels = (order + 1) * (order + 1);
     outputChannels = format.channelCount();
 
     channelConfig = format.channelConfig();
@@ -244,8 +243,8 @@ void QAmbisonicDecoder::processBuffer(const float *input[], float *output, int n
         return;
     }
 
-    const float *matrix_hi = decoderData->hf[level - 1];
-    const float *matrix_lo = decoderData->lf[level - 1];
+    const float *matrix_hi = decoderData->hf[order - 1];
+    const float *matrix_lo = decoderData->lf[order - 1];
     for (int i = 0; i < nSamples; ++i) {
         QAmbisonicDecoderFilter::Output buf[maxAmbisonicChannels];
         for (int j = 0; j < inputChannels; ++j)
@@ -287,8 +286,8 @@ void QAmbisonicDecoder::processBufferWithReverb(const float *input[], const floa
     }
 
     //    qDebug() << "XXX" << inputChannels << outputChannels;
-    const float *matrix_hi = decoderData->hf[level - 1];
-    const float *matrix_lo = decoderData->lf[level - 1];
+    const float *matrix_hi = decoderData->hf[order - 1];
+    const float *matrix_lo = decoderData->lf[order - 1];
     for (int i = 0; i < nSamples; ++i) {
         QAmbisonicDecoderFilter::Output buf[maxAmbisonicChannels];
         for (int j = 0; j < inputChannels; ++j)
