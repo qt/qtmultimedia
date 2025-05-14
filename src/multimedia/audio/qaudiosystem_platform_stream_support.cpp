@@ -348,7 +348,7 @@ uint64_t QPlatformAudioSourceStream::process(
     if (totalSamplesWritten)
         m_ringbufferHasData.set();
 
-    uint64_t framesWritten = totalSamplesWritten * m_format.channelCount();
+    uint64_t framesWritten = totalSamplesWritten / m_format.channelCount();
     m_totalNumberOfFramesPushedToRingbuffer += framesWritten;
     return framesWritten;
 }
