@@ -98,10 +98,6 @@ void tst_QAudioSource::generate_audiofile_testrows()
     for (int i=0; i<audioFiles.size(); i++) {
         QTest::newRow(QStringLiteral("%1").arg(i).toUtf8().constData())
                 << audioFiles.at(i) << testFormats.at(i);
-
-        // Only run first format in CI system to reduce test times
-        if (m_inCISystem)
-            break;
     }
 }
 
