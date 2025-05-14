@@ -16,6 +16,7 @@
 #include <QtMultimedia/private/qaudiosystem_p.h>
 
 #include <private/mediabackendutils_p.h>
+#include <private/osdetection_p.h>
 #include <private/qmockiodevice_p.h>
 
 #include <memory>
@@ -107,8 +108,6 @@ private:
 
     std::unique_ptr<QByteArray> m_byteArray;
     std::unique_ptr<QBuffer> m_buffer;
-
-    bool m_inCISystem = isCI();
 };
 
 void tst_QAudioSource::generate_audiofile_testrows()
@@ -132,8 +131,8 @@ QString tst_QAudioSource::formatToFileName(const QAudioFormat &format)
 
 void tst_QAudioSource::initTestCase()
 {
-    if (m_inCISystem)
-        QSKIP("SKIP initTestCase on CI. To be fixed");
+    if (isMacOS && isCI())
+        QSKIP("QAudioSource requires microphone permissions");
 
     // Only perform tests if audio input device exists
     const QList<QAudioDevice> devices = QMediaDevices::audioInputs();
@@ -702,10 +701,6 @@ void tst_QAudioSource::push()
 
 void tst_QAudioSource::pushSuspendResume()
 {
-#ifdef Q_OS_LINUX
-    if (m_inCISystem)
-        QSKIP("QTBUG-26504 Fails 20% of time with pulseaudio backend");
-#endif
     QFETCH(FilePtr, audioFile);
     QFETCH(QAudioFormat, audioFormat);
     QAudioSource audioSource(audioFormat, this);
@@ -990,6 +985,10 @@ void tst_QAudioSource::stop_stopsAudioSource_whenInvokedUponFirstStateChange_dat
 
 void tst_QAudioSource::stop_stopsAudioSource_whenInvokedUponFirstStateChange()
 {
+    if (isAndroid)
+        // Revisit after migrating to AAudio
+        QSKIP("'initializer(audioSource)' returned FALSE");
+
     QFETCH(const AudioSourceInitializer, initializer);
 
     const QAudioDevice defaultAudioInputDevice = QMediaDevices::defaultAudioInput();
@@ -1010,9 +1009,7 @@ void tst_QAudioSource::stop_stopsAudioSource_whenInvokedUponFirstStateChange()
 
     connect(&audioSource, &QAudioSource::stateChanged, this, stop, Qt::SingleShotConnection);
 
-    if (!initializer(audioSource))
-        QSKIP("Cannot start the audio source"); // Pulse audio backend fails on some Linux CI.
-                                                // TODO: replace with QVERIFY, QTBUG-130272
+    QVERIFY(initializer(audioSource));
 
     QTRY_COMPARE(audioSource.state(), QtAudio::State::StoppedState);
 }

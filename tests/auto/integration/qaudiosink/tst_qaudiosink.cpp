@@ -1225,6 +1225,10 @@ void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange_data()
 
 void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange()
 {
+    if (isAndroid)
+        // Revisit after migrating to AAudio
+        QSKIP("'initializer(audioSink)' returned FALSE");
+
     QFETCH(const AudioSinkInitializer, initializer);
 
     QAudioSink audioSink(testFormats.at(0));
@@ -1236,9 +1240,7 @@ void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange()
 
     connect(&audioSink, &QAudioSink::stateChanged, this, stop, Qt::SingleShotConnection);
 
-    if (!initializer(audioSink))
-        QSKIP("Cannot start the audio sink"); // Pulse audio backend fails on some Linux CI.
-                                              // TODO: replace with QVERIFY
+    QVERIFY(initializer(audioSink));
 
     QTRY_COMPARE(audioSink.state(), QtAudio::State::StoppedState);
 }
