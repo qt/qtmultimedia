@@ -38,3 +38,9 @@ install(TARGETS mediaframeinputs
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
     LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
 )
+
+if (CLANG OR APPLECLANG OR GCC)
+    target_compile_options(mediaframeinputs PRIVATE
+        -Wno-c++20-extensions
+    )
+endif()
