@@ -18,7 +18,9 @@
 #include <qmediadevices.h>
 #include <qwavedecoder.h>
 
+#include <private/mediabackendutils_p.h>
 #include <private/multimedia_debug_support_p.h>
+#include <private/osdetection_p.h>
 #include <private/qmockiodevice_p.h>
 
 QT_WARNING_DISABLE_DEPRECATED; // Tests use QWaveDecoder
@@ -1164,6 +1166,10 @@ void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange_data()
 
 void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange()
 {
+    if (isAndroid)
+        // Revisit after migrating to AAudio
+        QSKIP("'initializer(audioSink)' returned FALSE");
+
     QFETCH(const AudioSinkInitializer, initializer);
 
     QAudioSink audioSink(testFormats.at(0));
@@ -1175,9 +1181,7 @@ void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange()
 
     connect(&audioSink, &QAudioSink::stateChanged, this, stop, Qt::SingleShotConnection);
 
-    if (!initializer(audioSink))
-        QSKIP("Cannot start the audio sink"); // Pulse audio backend fails on some Linux CI.
-                                              // TODO: replace with QVERIFY
+    QVERIFY(initializer(audioSink));
 
     QTRY_COMPARE(audioSink.state(), QtAudio::State::StoppedState);
 }
