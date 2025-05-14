@@ -128,7 +128,7 @@ function channels = normalizeSN3D(channels)
     endfor
 end
 
-function writeMatrix(outfile, level, S, M, suffix)
+function writeMatrix(outfile, order, S, M, suffix)
     m = trimMatrix(M);
     hasLFE = isfield(S, "lfeRow");
     r = rows(m);
@@ -136,8 +136,8 @@ function writeMatrix(outfile, level, S, M, suffix)
     if (hasLFE)
         r = r + 1;
     endif
-    fprintf(outfile, "// Decoder matrix for %s, ambisonic level %d\n", S.name, level);
-    fprintf(outfile, "static constexpr float decoderMatrix_%s_%d_%s[%d*%d] = {\n", S.name, level, suffix, r, c);
+    fprintf(outfile, "// Decoder matrix for %s, ambisonic order %d\n", S.name, order);
+    fprintf(outfile, "static constexpr float decoderMatrix_%s_%d_%s[%d*%d] = {\n", S.name, order, suffix, r, c);
     for i = 1:rows(S.id)
         channels = normalizeSN3D(m(i, :))
         fprintf(outfile, "%ff, ", channels);
@@ -149,17 +149,17 @@ function writeMatrix(outfile, level, S, M, suffix)
     fprintf(outfile, "};\n\n");
 end
 
-function createOneDecoder(S, imag_speakers, outfile, level)
-    ambi_order = ambi_channel_definitions_convention(level, 'ambix2011')
-    [D,S,M,C] = ambi_run_allrad(S, ambi_order, imag_speakers, [S.name '_' int2str(level)], false, "amb", 1, 3);
-    writeMatrix(outfile, level, S, M.lf, "lf");
+function createOneDecoder(S, imag_speakers, outfile, order)
+    ambi_order = ambi_channel_definitions_convention(order, 'ambix2011')
+    [D,S,M,C] = ambi_run_allrad(S, ambi_order, imag_speakers, [S.name '_' int2str(order)], false, "amb", 1, 3);
+    writeMatrix(outfile, order, S, M.lf, "lf");
     m = ambi_apply_gamma(M.hf, D.hf_gains, C);
-    writeMatrix(outfile, level, S, m, "hf");
+    writeMatrix(outfile, order, S, m, "hf");
 end
 
 function createDecoders(S, imag_speakers, outfile)
-    for level = [1:3]
-        createOneDecoder(S, imag_speakers, outfile, level)
+    for order = [1:3]
+        createOneDecoder(S, imag_speakers, outfile, order)
     endfor
 end
 
