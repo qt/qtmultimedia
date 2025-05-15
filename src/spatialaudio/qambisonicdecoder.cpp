@@ -1,10 +1,12 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
+
 #include "qambisonicdecoder_p.h"
 
-#include "qambisonicdecoderdata_p.h"
+#include <QtCore/qdebug.h>
+#include <QtSpatialAudio/private/qambisonicdecoderdata_p.h>
+
 #include <cmath>
-#include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -28,8 +30,7 @@ struct QAmbisonicDecoderData
     const float *reverb;
 };
 
-const float reverb_x_0[] =
-{
+constexpr float reverb_x_0[] = {
     1.f, 0.f, // L
     0.f, 1.f, // R
     .7f, .7f, // C
@@ -39,8 +40,7 @@ const float reverb_x_0[] =
     0.f, 1.f, // Rb
 };
 
-const float reverb_x_1[] =
-{
+constexpr float reverb_x_1[] = {
     1.f, 0.f, // L
     0.f, 1.f, // R
     .7f, .7f, // C
@@ -51,28 +51,23 @@ const float reverb_x_1[] =
     0.f, 1.f, // Rb
 };
 
-static const QAmbisonicDecoderData decoderMap[] =
-{
+static constexpr QAmbisonicDecoderData decoderMap[] = {
     { QAudioFormat::ChannelConfigSurround5Dot0,
       { decoderMatrix_5dot0_1_lf, decoderMatrix_5dot0_2_lf, decoderMatrix_5dot0_3_lf },
       { decoderMatrix_5dot0_1_hf, decoderMatrix_5dot0_2_hf, decoderMatrix_5dot0_3_hf },
-      reverb_x_0
-    },
+      reverb_x_0 },
     { QAudioFormat::ChannelConfigSurround5Dot1,
       { decoderMatrix_5dot1_1_lf, decoderMatrix_5dot1_2_lf, decoderMatrix_5dot1_3_lf },
       { decoderMatrix_5dot1_1_hf, decoderMatrix_5dot1_2_hf, decoderMatrix_5dot1_3_hf },
-      reverb_x_1
-    },
+      reverb_x_1 },
     { QAudioFormat::ChannelConfigSurround7Dot0,
       { decoderMatrix_7dot0_1_lf, decoderMatrix_7dot0_2_lf, decoderMatrix_7dot0_3_lf },
       { decoderMatrix_7dot0_1_hf, decoderMatrix_7dot0_2_hf, decoderMatrix_7dot0_3_hf },
-      reverb_x_0
-    },
+      reverb_x_0 },
     { QAudioFormat::ChannelConfigSurround7Dot1,
       { decoderMatrix_7dot1_1_lf, decoderMatrix_7dot1_2_lf, decoderMatrix_7dot1_3_lf },
       { decoderMatrix_7dot1_1_hf, decoderMatrix_7dot1_2_hf, decoderMatrix_7dot1_3_hf },
-      reverb_x_1
-    }
+      reverb_x_1 }
 };
 
 // Implements a split second order IIR filter
@@ -149,7 +144,7 @@ QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicOrder ambisonicOrder, const QAudio
 
     channelConfig = format.channelConfig();
     if (channelConfig == QAudioFormat::ChannelConfigUnknown)
-        channelConfig = format.defaultChannelConfigForChannelCount(format.channelCount());
+        channelConfig = QAudioFormat::defaultChannelConfigForChannelCount(format.channelCount());
 
     if (channelConfig == QAudioFormat::ChannelConfigMono ||
         channelConfig == QAudioFormat::ChannelConfigStereo ||
