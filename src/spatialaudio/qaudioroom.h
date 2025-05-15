@@ -98,8 +98,10 @@ Q_SIGNALS:
     void reverbBrightnessChanged();
 
 private:
-    friend class QAudioRoomPrivate;
-    QAudioRoomPrivate *d;
+    Q_DECLARE_PRIVATE(QAudioRoom)
+
+    // ### Qt7: remove unused member
+    QT6_ONLY(void *unused = nullptr;) // for ABI compatibility
 };
 
 QT_END_NAMESPACE
