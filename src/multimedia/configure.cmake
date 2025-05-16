@@ -132,12 +132,14 @@ qt_feature("ffmpeg" PRIVATE
     LABEL "FFmpeg"
     ENABLE INPUT_ffmpeg STREQUAL 'yes'
     DISABLE INPUT_ffmpeg STREQUAL 'no'
-    CONDITION FFmpeg_FOUND AND (APPLE OR WIN32 OR ANDROID OR QNX OR QT_FEATURE_pulseaudio)
+    CONDITION FFmpeg_FOUND
+              AND (APPLE OR WIN32 OR ANDROID OR QNX OR QT_FEATURE_pulseaudio)
+              AND QT_FEATURE_thread
 )
 qt_feature("pipewire" PRIVATE
     LABEL "PipeWire"
     ENABLE INPUT_pipewire STREQUAL 'yes'
-    CONDITION QT_FEATURE_library AND TARGET PipeWire::PipeWire
+    CONDITION QT_FEATURE_library AND QT_FEATURE_thread AND TARGET PipeWire::PipeWire
 )
 qt_feature("pipewire_screencapture" PRIVATE
     LABEL "PipeWire screen capture"
@@ -163,7 +165,7 @@ qt_feature("videotoolbox" PUBLIC PRIVATE
 
 qt_feature("gstreamer" PRIVATE
     LABEL "QtMM GStreamer plugin"
-    CONDITION TARGET GStreamer::GStreamer AND TARGET GStreamer::App AND TARGET GStreamer::Play
+    CONDITION TARGET GStreamer::GStreamer AND TARGET GStreamer::App AND TARGET GStreamer::Play AND QT_FEATURE_thread
     ENABLE INPUT_gstreamer STREQUAL 'yes'
     DISABLE INPUT_gstreamer STREQUAL 'no'
 )
