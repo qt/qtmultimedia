@@ -1179,6 +1179,7 @@ void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange()
 
 void tst_QAudioSink::callbackAPI()
 {
+#if QT_CONFIG(thread)
     using namespace std::chrono_literals;
 
     QAudioFormat format = audioDevice.preferredFormat();
@@ -1199,6 +1200,7 @@ void tst_QAudioSink::callbackAPI()
 
     bool callbackExecuted = sync.try_acquire_for(1s);
     QVERIFY(callbackExecuted);
+#endif
 }
 
 void tst_QAudioSink::callbackAPI_startFailsWithWrongType()
