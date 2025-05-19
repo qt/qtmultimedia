@@ -120,6 +120,8 @@ void QAmbientSoundPrivate::getBuffer(float *buf, int nframes, int channels)
  */
 QAmbientSound::QAmbientSound(QAudioEngine *engine) : QObject(*new QAmbientSoundPrivate())
 {
+    QT6_ONLY(Q_UNUSED(unused))
+
     setEngine(engine);
 }
 
