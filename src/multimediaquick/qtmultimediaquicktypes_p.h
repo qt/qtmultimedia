@@ -67,7 +67,7 @@ struct QMediaMetaDataForeign
 {
     Q_GADGET
     QML_FOREIGN(QMediaMetaData)
-    QML_NAMED_ELEMENT(mediaMetaData)
+    QML_VALUE_TYPE(mediaMetaData)
 };
 
 // To prevent the same type from being exported twice into qmltypes
@@ -109,7 +109,7 @@ struct QAudioDeviceForeign
 {
     Q_GADGET
     QML_FOREIGN(QAudioDevice)
-    QML_NAMED_ELEMENT(audioDevice)
+    QML_VALUE_TYPE(audioDevice)
 };
 
 // To prevent the same type from being exported twice into qmltypes
@@ -130,7 +130,7 @@ struct QCameraDeviceForeign
 {
     Q_GADGET
     QML_FOREIGN(QCameraDevice)
-    QML_NAMED_ELEMENT(cameraDevice)
+    QML_VALUE_TYPE(cameraDevice)
 };
 
 // To prevent the same type from being exported twice into qmltypes
@@ -151,7 +151,7 @@ struct QMediaFormatForeign
 {
     Q_GADGET
     QML_FOREIGN(QMediaFormat)
-    QML_NAMED_ELEMENT(mediaFormat)
+    QML_VALUE_TYPE(mediaFormat)
 };
 
 // To prevent the same type from being exported twice into qmltypes
@@ -172,14 +172,14 @@ struct QCameraFormatForeign
 {
     Q_GADGET
     QML_FOREIGN(QCameraFormat)
-    QML_NAMED_ELEMENT(cameraFormat)
+    QML_VALUE_TYPE(cameraFormat)
 };
 
 struct QCapturableWindowForeign
 {
     Q_GADGET
     QML_FOREIGN(QCapturableWindow)
-    QML_NAMED_ELEMENT(capturableWindow)
+    QML_VALUE_TYPE(capturableWindow)
 };
 
 struct QWindowCaptureForeign
