@@ -494,10 +494,13 @@ class QtCamera2 {
                     CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
                 mPreviewRequest = mPreviewRequestBuilder.build();
                 mState = STATE_PREVIEW;
-                mCaptureSession.setRepeatingRequest(
-                    mPreviewRequest,
-                    mCaptureCallback,
-                    mBackgroundHandler);
+                synchronized (mSyncedMembers) {
+                    if (mSyncedMembers.mIsStarted)
+                        mCaptureSession.setRepeatingRequest(
+                            mPreviewRequest,
+                            mCaptureCallback,
+                            mBackgroundHandler);
+                }
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             } catch (NullPointerException e) {
@@ -511,6 +514,12 @@ class QtCamera2 {
                     "QtCamera2",
                     "Null-pointer access exception thrown when finalizing still photo capture. " +
                     "This should not be possible.");
+                e.printStackTrace();
+            } catch (IllegalStateException e) {
+                // See QTBUG-136227:
+                // According to the Bug description, it may happen that we are trying to call
+                // setRepeatingRequest on not active session
+                Log.w("QtCamera2", "Session is no longer active.");
                 e.printStackTrace();
             }
         }
