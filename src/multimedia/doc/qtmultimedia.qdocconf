@@ -10,6 +10,9 @@ includepaths           += .
 
 examplesinstallpath     = multimedia
 
+# Path to the root of qtmultimedia (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
 # The following parameters are for creating a qhp file, the qhelpgenerator
 # program can convert the qhp file into a qch file which can be opened in
 # Qt Assistant and/or Qt Creator.
