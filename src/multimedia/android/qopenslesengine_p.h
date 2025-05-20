@@ -41,9 +41,9 @@ public:
 
     static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode);
     static bool setAudioOutput(const QByteArray &deviceId);
-    QList<int> supportedChannelCounts(QAudioDevice::Mode mode) const;
-    QList<int> supportedSampleRates(QAudioDevice::Mode mode) const;
-    QList<QAudioFormat::SampleFormat> supportedSampleFormats(QAudioDevice::Mode mode) const;
+    QList<int> supportedChannelCounts(QAudioDevice::Mode mode);
+    QList<int> supportedSampleRates(QAudioDevice::Mode mode);
+    QList<QAudioFormat::SampleFormat> supportedSampleFormats(QAudioDevice::Mode mode);
 
     static int getOutputValue(OutputValue type, int defaultValue = 0);
     static int getDefaultBufferSize(const QAudioFormat &format);
@@ -65,8 +65,8 @@ private:
     QList<int> m_supportedInputSampleRates;
     QList<QAudioFormat::SampleFormat> m_supportedSampleFormats;
     bool m_checkedInputFormats;
-    mutable QMutex m_supportedInputFormatMutex;
-    mutable QMutex m_supportedOutputFormatMutex;
+    QMutex m_supportedInputFormatMutex;
+    QMutex m_supportedOutputFormatMutex;
 };
 
 QT_END_NAMESPACE
