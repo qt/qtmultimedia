@@ -178,27 +178,27 @@ bool QOpenSLESEngine::setAudioOutput(const QByteArray &deviceId)
                                     deviceId.toInt());
 }
 
-QList<int> QOpenSLESEngine::supportedChannelCounts(QAudioDevice::Mode mode) const
+QList<int> QOpenSLESEngine::supportedChannelCounts(QAudioDevice::Mode mode)
 {
     if (mode == QAudioDevice::Input) {
         QMutexLocker lock(&m_supportedInputFormatMutex);
         if (!m_checkedInputFormats)
-            const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
+            checkSupportedInputFormats();
     } else {
         QMutexLocker lock(&m_supportedOutputFormatMutex);
         if (m_supportedChannelCounts.empty())
-            const_cast<QOpenSLESEngine *>(this)->checkSupportedOutputChannelCounts();
+            checkSupportedOutputChannelCounts();
     }
 
     return m_supportedChannelCounts;
 }
 
-QList<int> QOpenSLESEngine::supportedSampleRates(QAudioDevice::Mode mode) const
+QList<int> QOpenSLESEngine::supportedSampleRates(QAudioDevice::Mode mode)
 {
     if (mode == QAudioDevice::Input) {
         QMutexLocker lock(&m_supportedInputFormatMutex);
         if (!m_checkedInputFormats)
-            const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
+            checkSupportedInputFormats();
         return m_supportedInputSampleRates;
     } else {
         return QList<int>() << 8000 << 11025 << 12000 << 16000 << 22050 << 24000
@@ -207,16 +207,16 @@ QList<int> QOpenSLESEngine::supportedSampleRates(QAudioDevice::Mode mode) const
 }
 
 QList<QAudioFormat::SampleFormat> QOpenSLESEngine::supportedSampleFormats(
-        QAudioDevice::Mode mode) const
+        QAudioDevice::Mode mode)
 {
     if (mode == QAudioDevice::Input) {
         QMutexLocker lock(&m_supportedInputFormatMutex);
         if (!m_checkedInputFormats)
-            const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
+            checkSupportedInputFormats();
     } else {
         QMutexLocker lock(&m_supportedOutputFormatMutex);
         if (m_supportedSampleFormats.empty())
-            const_cast<QOpenSLESEngine *>(this)->checkSupportedSampleFormats(mode);
+            checkSupportedSampleFormats(mode);
     }
 
     return m_supportedSampleFormats;
