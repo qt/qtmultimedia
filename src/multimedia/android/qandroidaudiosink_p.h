@@ -1,8 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QOPENSLESAUDIOOUTPUT_H
-#define QOPENSLESAUDIOOUTPUT_H
+#ifndef QANDROIDAUDIOOUTPUT_H
+#define QANDROIDAUDIOOUTPUT_H
 
 //
 //  W A R N I N G
@@ -15,104 +15,85 @@
 // We mean it.
 //
 
-#include <private/qaudiosystem_p.h>
-#include <SLES/OpenSLES.h>
-#include <qbytearray.h>
-#include <qmap.h>
-#include <QElapsedTimer>
-#include <QIODevice>
+#include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
+
+#include <memory>
+
+#include "qaaudiostream_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidAudioSink : public QPlatformAudioSink
+namespace QtAAudio {
+
+class QAndroidAudioSink;
+
+class QAndroidAudioSinkStream final : public std::enable_shared_from_this<QAndroidAudioSinkStream>,
+                                      QtMultimediaPrivate::QPlatformAudioSinkStream
 {
-    Q_OBJECT
+    using QPlatformAudioSinkStream = QtMultimediaPrivate::QPlatformAudioSinkStream;
+    using AudioEndpointRole = QtMultimediaPrivate::AudioEndpointRole;
 
 public:
-    QAndroidAudioSink(QAudioDevice device, const QAudioFormat &, QObject *parent);
-    ~QAndroidAudioSink();
+    explicit QAndroidAudioSinkStream(QAudioDevice, const QAudioFormat &,
+                                     std::optional<qsizetype> ringbufferSize,
+                                     QAndroidAudioSink *parent, float volume,
+                                     std::optional<int32_t> hardwareBufferFrames,
+                                     AudioEndpointRole);
+    Q_DISABLE_COPY_MOVE(QAndroidAudioSinkStream)
 
-    void start(QIODevice *device) override;
-    QIODevice *start() override;
-    void stop() override;
-    void reset() override;
-    void suspend() override;
-    void resume() override;
-    qsizetype bytesFree() const override;
-    void setBufferSize(qsizetype value) override;
-    qsizetype bufferSize() const override;
-    qint64 processedUSecs() const override;
-    QAudio::State state() const override;
+    bool open();
 
-    void setVolume(float volume) override;
+    bool start(QIODevice *device);
+    QIODevice *start();
+    bool start(AudioCallback cb);
+
+    void suspend();
+    void resume();
+    void stop(ShutdownPolicy policy);
+
+    using QPlatformAudioSinkStream::bytesFree;
+    using QPlatformAudioSinkStream::processedDuration;
+    using QPlatformAudioSinkStream::ringbufferSizeInBytes;
+    using QPlatformAudioSinkStream::setVolume;
 
 private:
-    friend class SLIODevicePrivate;
+    void stop();
+    void reset();
 
-    Q_INVOKABLE void onEOSEvent();
-    Q_INVOKABLE void onBytesProcessed(qint64 bytes);
-    Q_INVOKABLE void bufferAvailable();
+    // QPlatformAudioSinkStream overrides
+    void updateStreamIdle(bool arg) override;
 
-    static void playCallback(SLPlayItf playItf, void *ctx, SLuint32 event);
-    static void bufferQueueCallback(SLBufferQueueItf bufferQueue, void *ctx);
+    aaudio_data_callback_result_t processRingbuffer(void *audioData,
+                                                    int numFrames) noexcept QT_MM_NONBLOCKING;
+    aaudio_data_callback_result_t processCallback(void *audioData,
+                                                  int numFrames) noexcept QT_MM_NONBLOCKING;
+    void handleError(aaudio_result_t error);
 
-    bool preparePlayer();
-    void destroyPlayer();
-    void stopPlayer();
-    void readyRead();
-    void startPlayer();
-    qint64 writeData(const char *data, qint64 len);
+    QAndroidAudioSink *m_parent{ nullptr };
+    std::shared_ptr<QAndroidAudioSinkStream> m_self;
 
-    void setState(QAudio::State state);
+    std::optional<AudioCallback> m_audioCallback;
 
-    SLmillibel adjustVolume(float vol);
+    AudioEndpointRole m_role;
 
-    static constexpr int BufferCount = 4;
+    std::unique_ptr<QtAAudio::Stream> m_stream;
 
-    QAudio::State m_state = QAudio::StoppedState;
-    QAudio::State m_suspendedInState = QAudio::SuspendedState;
-    SLObjectItf m_outputMixObject = nullptr;
-    SLObjectItf m_playerObject = nullptr;
-    SLPlayItf m_playItf = nullptr;
-    SLVolumeItf m_volumeItf = nullptr;
-    SLBufferQueueItf m_bufferQueueItf = nullptr;
-    QIODevice *m_audioSource = nullptr;
-    char *m_buffers = nullptr;
-    bool m_pullMode = false;
-    int m_nextBuffer = 0;
-    int m_bufferSize = 0;
-    qint64 m_elapsedTime = 0;
-    qint64 m_processedBytes = 0;
-    bool m_endSound = false;
-    QAtomicInt m_availableBuffers = BufferCount;
-    SLuint32 m_eventMask = SL_PLAYEVENT_HEADATEND;
-    bool m_startRequiresInit = true;
-
-    qint32 m_streamType;
+    std::optional<NativeSampleFormat> m_nativeSampleFormat;
 };
 
-class SLIODevicePrivate : public QIODevice
+class QAndroidAudioSink final
+    : public QtMultimediaPrivate::QPlatformAudioSinkImplementation<QAndroidAudioSinkStream,
+                                                                   QAndroidAudioSink>
 {
-    Q_OBJECT
+    using BaseClass = QtMultimediaPrivate::QPlatformAudioSinkImplementation<QAndroidAudioSinkStream,
+                                                                            QAndroidAudioSink>;
 
 public:
-    inline SLIODevicePrivate(QAndroidAudioSink *audio) : m_audioDevice(audio) {}
-    inline ~SLIODevicePrivate() override {}
-
-protected:
-    inline qint64 readData(char *, qint64) override { return 0; }
-    inline qint64 writeData(const char *data, qint64 len) override;
-
-private:
-    QAndroidAudioSink *m_audioDevice;
+    QAndroidAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent);
 };
 
-qint64 SLIODevicePrivate::writeData(const char *data, qint64 len)
-{
-    Q_ASSERT(m_audioDevice);
-    return m_audioDevice->writeData(data, len);
 }
 
 QT_END_NAMESPACE
 
-#endif // QOPENSLESAUDIOOUTPUT_H
+#endif // QANDROIDAUDIOOUTPUT_H

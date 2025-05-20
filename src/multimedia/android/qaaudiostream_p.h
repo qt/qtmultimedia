@@ -66,7 +66,6 @@ struct FormatParameterSet
 struct StreamParameterSet
 {
     aaudio_sharing_mode_t sharingMode = AAUDIO_SHARING_MODE_SHARED;
-    aaudio_performance_mode_t performanceMode = AAUDIO_PERFORMANCE_MODE_NONE;
     aaudio_direction_t direction = AAUDIO_DIRECTION_OUTPUT;
     aaudio_usage_t outputUsage = AAUDIO_USAGE_MEDIA;
     aaudio_content_type_t outputContentType = AAUDIO_CONTENT_TYPE_MUSIC;
