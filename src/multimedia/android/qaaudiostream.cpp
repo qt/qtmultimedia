@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qaaudiostream_p.h"
+
+#include "qandroidaudioutil_p.h"
+
 #include <chrono>
+#include <dlfcn.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -28,6 +32,28 @@ static aaudio_format_t aaudioFormat(const QAudioFormat::SampleFormat sampleForma
         return AAUDIO_FORMAT_INVALID;
     }
 }
+
+void setMMapPolicy(int policy)
+{
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 36)
+        return;
+
+    auto handle = dlopen("libaaudio.so", RTLD_NOW);
+    Q_ASSERT(handle);
+    auto guard = qScopeGuard([handle] {
+        dlclose(handle);
+    });
+
+    auto getPolicy = (int (*)(void))dlsym(handle, "AAudio_getMMapPolicy");
+    Q_ASSERT(getPolicy);
+    auto currentPolicy = getPolicy();
+    if (currentPolicy == policy)
+        return; // No need to set
+
+    auto setPolicy = (aaudio_result_t (*)(int))dlsym(handle, "AAudio_setMMapPolicy");
+    Q_ASSERT(setPolicy);
+    setPolicy(policy);
+};
 
 } // namespace
 
@@ -74,12 +100,16 @@ void StreamBuilder::setupBuilder()
     AAudioStreamBuilder_setDataCallback(m_builder, callback, userData);
     AAudioStreamBuilder_setErrorCallback(m_builder, errorCallback, userData);
 
+    if (QAndroidAudioUtil::supportsLowLatency()) {
+        AAudioStreamBuilder_setPerformanceMode(m_builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+        setMMapPolicy(2); // Also set MMap policy to AUTO
+    }
+
     // Set other parameters if not default
     StreamParameterSet defaultParams;
     if (params.sharingMode != defaultParams.sharingMode)
         AAudioStreamBuilder_setSharingMode(m_builder, params.sharingMode);
-    if (params.performanceMode != defaultParams.performanceMode)
-        AAudioStreamBuilder_setPerformanceMode(m_builder, params.performanceMode);
+    // Set performance mode to low latency if mmap policy cannot be set
     if (params.direction == AAUDIO_DIRECTION_OUTPUT) {
         if (params.outputUsage != defaultParams.outputUsage)
             AAudioStreamBuilder_setUsage(m_builder, params.outputUsage);
@@ -124,8 +154,6 @@ Stream::Stream(const StreamBuilder &builder)
     StreamParameterSet defaultParams;
     if ((builder.params.sharingMode == defaultParams.sharingMode
          || AAudioStream_getSharingMode(m_stream) == builder.params.sharingMode)
-        && (builder.params.performanceMode == defaultParams.performanceMode
-            || AAudioStream_getPerformanceMode(m_stream) == builder.params.performanceMode)
         && (builder.params.direction == defaultParams.direction
             || AAudioStream_getDirection(m_stream) == builder.params.direction)
         && (builder.params.outputUsage == defaultParams.outputUsage

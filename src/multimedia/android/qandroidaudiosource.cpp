@@ -3,436 +3,177 @@
 
 #include "qandroidaudiosource_p.h"
 
-#include "qopenslesengine_p.h"
-#include <private/qaudiohelpers_p.h>
-#include <qbuffer.h>
-#include <qdebug.h>
-#include <qloggingcategory.h>
+#include "qandroidaudioutil_p.h"
 
-#ifdef ANDROID
-#include <SLES/OpenSLES_AndroidConfiguration.h>
+#include <qassert.h>
+
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qpermissions.h>
-#endif
-
-Q_STATIC_LOGGING_CATEGORY(qLcAndroidAudioSource, "qt.multimedia.android.audiosource")
 
 QT_BEGIN_NAMESPACE
 
-#define NUM_BUFFERS 2
-#define DEFAULT_PERIOD_TIME_MS 50
-#define MINIMUM_PERIOD_TIME_MS 5
+namespace QtAAudio {
 
-#ifdef ANDROID
-static bool hasRecordingPermission()
+Q_STATIC_LOGGING_CATEGORY(qLcAndroidAudioSource, "qt.multimedia.android.audiosource")
+
+QAndroidAudioSourceStream::QAndroidAudioSourceStream(QAudioDevice device,
+                                                     const QAudioFormat &format,
+                                                     std::optional<int> ringbufferSize,
+                                                     QAndroidAudioSource *parent, float volume,
+                                                     std::optional<int32_t> hardwareBufferFrames)
+    : QtMultimediaPrivate::QPlatformAudioSourceStream(std::move(device), format, ringbufferSize,
+                                                      hardwareBufferFrames, volume),
+      m_parent(parent)
+{
+    QtAAudio::StreamBuilder builder(format);
+
+    qCDebug(qLcAndroidAudioSource) << "Creating source for device id:" << m_audioDevice.id()
+                                   << ", description:" << m_audioDevice.description();
+
+    // NOTE: Don't set device when creating a stream for the default bluetooth device
+    if (!m_audioDevice.isDefault() || !QAndroidAudioUtil::isBluetoothDevice(m_audioDevice))
+        builder.deviceId = m_audioDevice.id().toInt();
+
+    // Set buffer parameters
+    builder.bufferCapacity = m_hardwareBufferFrames ? *m_hardwareBufferFrames : 1024;
+
+    // NOTE: AAudio doesn't support UINT8, so convert to INT16 if that's requested
+    if (format.sampleFormat() == QAudioFormat::UInt8)
+        m_nativeSampleFormat = NativeSampleFormat::int16_t;
+
+    // Set builder parameters for audio source
+    builder.params.sharingMode = AAUDIO_SHARING_MODE_SHARED;
+    builder.params.direction = AAUDIO_DIRECTION_INPUT;
+
+    // TODO: Set input preset based on device
+
+    builder.userData = this;
+    builder.callback = [](AAudioStream *, void *userData, void *audioData,
+                          int32_t numFrames) -> int {
+        auto *stream = reinterpret_cast<QAndroidAudioSourceStream *>(userData);
+        Q_ASSERT(stream);
+        return stream->process(audioData, numFrames);
+    };
+    builder.errorCallback = [](AAudioStream *, void *userData, aaudio_result_t error) -> void {
+        auto *stream = reinterpret_cast<QAndroidAudioSourceStream *>(userData);
+        Q_ASSERT(stream);
+        stream->handleError(error);
+    };
+
+    builder.setupBuilder();
+    m_stream = std::make_unique<QtAAudio::Stream>(builder);
+}
+
+bool QAndroidAudioSourceStream::open()
 {
     QMicrophonePermission permission;
 
     const bool permitted = qApp->checkPermission(permission) == Qt::PermissionStatus::Granted;
-    if (!permitted)
-        qCWarning(qLcAndroidAudioSource, "Missing microphone permission!");
-
-    return permitted;
-}
-
-static void bufferQueueCallback(SLAndroidSimpleBufferQueueItf, void *context)
-#else
-static void bufferQueueCallback(SLBufferQueueItf, void *context)
-#endif
-{
-    // Process buffer in main thread
-    QMetaObject::invokeMethod(reinterpret_cast<QAndroidAudioSource*>(context), "processBuffer");
-}
-
-QAndroidAudioSource::QAndroidAudioSource(QAudioDevice device, const QAudioFormat &format,
-                                         QObject *parent)
-    : QPlatformAudioSource(std::move(device), format, parent),
-      m_engine(QOpenSLESEngine::instance()),
-      m_recorderObject(0),
-      m_recorder(0),
-      m_bufferQueue(0),
-      m_pullMode(true),
-      m_processedBytes(0),
-      m_audioSource(0),
-      m_bufferIODevice(0),
-      m_deviceState(QAudio::StoppedState),
-      m_lastNotifyTime(0),
-      m_bufferSize(0),
-      m_buffers(new QByteArray[NUM_BUFFERS]),
-      m_currentBuffer(0)
-{
-#ifdef ANDROID
-    if (qstrcmp(m_audioDevice.id(), QT_ANDROID_PRESET_CAMCORDER) == 0)
-        m_recorderPreset = SL_ANDROID_RECORDING_PRESET_CAMCORDER;
-    else if (qstrcmp(m_audioDevice.id(), QT_ANDROID_PRESET_VOICE_RECOGNITION) == 0)
-        m_recorderPreset = SL_ANDROID_RECORDING_PRESET_VOICE_RECOGNITION;
-    else if (qstrcmp(m_audioDevice.id(), QT_ANDROID_PRESET_VOICE_COMMUNICATION) == 0)
-        m_recorderPreset = SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION;
-    else
-        m_recorderPreset = SL_ANDROID_RECORDING_PRESET_GENERIC;
-#endif
-}
-
-QAndroidAudioSource::~QAndroidAudioSource()
-{
-    if (m_recorderObject)
-        (*m_recorderObject)->Destroy(m_recorderObject);
-    delete[] m_buffers;
-}
-
-QAudio::State QAndroidAudioSource::state() const
-{
-    return m_deviceState;
-}
-
-void QAndroidAudioSource::start(QIODevice *device)
-{
-    if (m_deviceState != QAudio::StoppedState)
-        stopRecording();
-
-    if (!m_pullMode && m_bufferIODevice) {
-        m_bufferIODevice->close();
-        delete m_bufferIODevice;
-        m_bufferIODevice = 0;
-    }
-
-    m_pullMode = true;
-    m_audioSource = device;
-
-    if (startRecording()) {
-        m_deviceState = QAudio::ActiveState;
-    } else {
-        m_deviceState = QAudio::StoppedState;
-    }
-
-    Q_EMIT stateChanged(m_deviceState);
-}
-
-QIODevice *QAndroidAudioSource::start()
-{
-    if (m_deviceState != QAudio::StoppedState)
-        stopRecording();
-
-    m_audioSource = 0;
-
-    if (!m_pullMode && m_bufferIODevice) {
-        m_bufferIODevice->close();
-        delete m_bufferIODevice;
-    }
-
-    m_pullMode = false;
-    m_pushBuffer.clear();
-    m_bufferIODevice = new QBuffer(&m_pushBuffer, this);
-    m_bufferIODevice->open(QIODevice::ReadOnly);
-
-    if (startRecording()) {
-        m_deviceState = QAudio::IdleState;
-    } else {
-        m_deviceState = QAudio::StoppedState;
-        m_bufferIODevice->close();
-        delete m_bufferIODevice;
-        m_bufferIODevice = 0;
-    }
-
-    Q_EMIT stateChanged(m_deviceState);
-    return m_bufferIODevice;
-}
-
-bool QAndroidAudioSource::startRecording()
-{
-    if (!hasRecordingPermission())
-        return false;
-
-    m_processedBytes = 0;
-    m_lastNotifyTime = 0;
-
-    SLresult result;
-
-    // configure audio source
-    SLDataLocator_IODevice loc_dev = { SL_DATALOCATOR_IODEVICE, SL_IODEVICE_AUDIOINPUT,
-                                       SL_DEFAULTDEVICEID_AUDIOINPUT, NULL };
-    SLDataSource audioSrc = { &loc_dev, NULL };
-
-    // configure audio sink
-#ifdef ANDROID
-    SLDataLocator_AndroidSimpleBufferQueue loc_bq = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
-                                                      NUM_BUFFERS };
-#else
-    SLDataLocator_BufferQueue loc_bq = { SL_DATALOCATOR_BUFFERQUEUE, NUM_BUFFERS };
-#endif
-
-    SLAndroidDataFormat_PCM_EX format_pcm = QOpenSLESEngine::audioFormatToSLFormatPCM(m_format);
-    SLDataSink audioSnk = { &loc_bq, &format_pcm };
-
-    // create audio recorder
-    // (requires the RECORD_AUDIO permission)
-#ifdef ANDROID
-    const SLInterfaceID id[2] = { SL_IID_ANDROIDSIMPLEBUFFERQUEUE, SL_IID_ANDROIDCONFIGURATION };
-    const SLboolean req[2] = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
-#else
-    const SLInterfaceID id[1] = { SL_IID_BUFFERQUEUE };
-    const SLboolean req[1] = { SL_BOOLEAN_TRUE };
-#endif
-
-    result = (*m_engine->slEngine())->CreateAudioRecorder(m_engine->slEngine(), &m_recorderObject,
-                                                          &audioSrc, &audioSnk,
-                                                          sizeof(req) / sizeof(SLboolean), id, req);
-    if (result != SL_RESULT_SUCCESS) {
-        setError(QAudio::OpenError);
+    if (!permitted) {
+        qWarning("Missing microphone permission!");
+        requestStop();
         return false;
     }
 
-#ifdef ANDROID
-    // configure recorder source
-    SLAndroidConfigurationItf configItf;
-    result = (*m_recorderObject)->GetInterface(m_recorderObject, SL_IID_ANDROIDCONFIGURATION,
-                                               &configItf);
-    if (result != SL_RESULT_SUCCESS) {
-        setError(QAudio::OpenError);
+    if (!m_stream->isOpen()) {
+        qCWarning(qLcAndroidAudioSource) << "Stream null";
+        requestStop();
         return false;
     }
 
-    result = (*configItf)->SetConfiguration(configItf, SL_ANDROID_KEY_RECORDING_PRESET,
-                                            &m_recorderPreset, sizeof(SLuint32));
+    if (!m_stream->areFormatParametersRespected())
+        qCritical() << "AAudio Stream opened for incorrect format";
 
-    SLuint32 presetValue = SL_ANDROID_RECORDING_PRESET_NONE;
-    SLuint32 presetSize = 2*sizeof(SLuint32); // intentionally too big
-    result = (*configItf)->GetConfiguration(configItf, SL_ANDROID_KEY_RECORDING_PRESET,
-                                            &presetSize, (void*)&presetValue);
-
-    if (result != SL_RESULT_SUCCESS || presetValue == SL_ANDROID_RECORDING_PRESET_NONE) {
-        setError(QAudio::OpenError);
-        return false;
-    }
-#endif
-
-    // realize the audio recorder
-    result = (*m_recorderObject)->Realize(m_recorderObject, SL_BOOLEAN_FALSE);
-    if (result != SL_RESULT_SUCCESS) {
-        setError(QAudio::OpenError);
-        return false;
-    }
-
-    // get the record interface
-    result = (*m_recorderObject)->GetInterface(m_recorderObject, SL_IID_RECORD, &m_recorder);
-    if (result != SL_RESULT_SUCCESS) {
-        setError(QAudio::FatalError);
-        return false;
-    }
-
-    // get the buffer queue interface
-#ifdef ANDROID
-    SLInterfaceID bufferqueueItfID = SL_IID_ANDROIDSIMPLEBUFFERQUEUE;
-#else
-    SLInterfaceID bufferqueueItfID = SL_IID_BUFFERQUEUE;
-#endif
-    result = (*m_recorderObject)->GetInterface(m_recorderObject, bufferqueueItfID, &m_bufferQueue);
-    if (result != SL_RESULT_SUCCESS) {
-        setError(QAudio::FatalError);
-        return false;
-    }
-
-    // register callback on the buffer queue
-    result = (*m_bufferQueue)->RegisterCallback(m_bufferQueue, bufferQueueCallback, this);
-    if (result != SL_RESULT_SUCCESS) {
-        setError(QAudio::FatalError);
-        return false;
-    }
-
-    if (m_bufferSize <= 0) {
-        m_bufferSize = m_format.bytesForDuration(DEFAULT_PERIOD_TIME_MS * 1000);
-    } else {
-        int minimumBufSize = m_format.bytesForDuration(MINIMUM_PERIOD_TIME_MS * 1000);
-        if (m_bufferSize < minimumBufSize)
-            m_bufferSize = minimumBufSize;
-    }
-
-    // enqueue empty buffers to be filled by the recorder
-    for (int i = 0; i < NUM_BUFFERS; ++i) {
-        m_buffers[i].resize(m_bufferSize);
-
-        result = (*m_bufferQueue)->Enqueue(m_bufferQueue, m_buffers[i].data(), m_bufferSize);
-        if (result != SL_RESULT_SUCCESS) {
-            setError(QAudio::FatalError);
-            return false;
-        }
-    }
-
-    // start recording
-    result = (*m_recorder)->SetRecordState(m_recorder, SL_RECORDSTATE_RECORDING);
-    if (result != SL_RESULT_SUCCESS) {
-        setError(QAudio::FatalError);
-        return false;
-    }
-
-    setError(QAudio::NoError);
+    if (!m_stream->areStreamParametersRespected())
+        qCWarning(qLcAndroidAudioSource) << "Stream parameters not correct";
 
     return true;
 }
 
-void QAndroidAudioSource::stop()
+bool QAndroidAudioSourceStream::start(QIODevice *device)
 {
-    if (m_deviceState == QAudio::StoppedState)
-        return;
+    Q_ASSERT(thread()->isCurrentThread());
+    setQIODevice(device);
+    createQIODeviceConnections(device);
 
-    m_deviceState = QAudio::StoppedState;
-
-    stopRecording();
-
-    setError(QAudio::NoError);
-    Q_EMIT stateChanged(m_deviceState);
-}
-
-void QAndroidAudioSource::stopRecording()
-{
-    flushBuffers();
-
-    (*m_recorder)->SetRecordState(m_recorder, SL_RECORDSTATE_STOPPED);
-    (*m_bufferQueue)->Clear(m_bufferQueue);
-
-    (*m_recorderObject)->Destroy(m_recorderObject);
-    m_recorderObject = 0;
-
-    for (int i = 0; i < NUM_BUFFERS; ++i)
-        m_buffers[i].clear();
-    m_currentBuffer = 0;
-
-    if (!m_pullMode && m_bufferIODevice) {
-        m_bufferIODevice->close();
-        delete m_bufferIODevice;
-        m_bufferIODevice = 0;
-        m_pushBuffer.clear();
-    }
-}
-
-void QAndroidAudioSource::suspend()
-{
-    if (m_deviceState == QAudio::ActiveState) {
-        m_deviceState = QAudio::SuspendedState;
-        emit stateChanged(m_deviceState);
-
-        (*m_recorder)->SetRecordState(m_recorder, SL_RECORDSTATE_PAUSED);
-    }
-}
-
-void QAndroidAudioSource::resume()
-{
-    if (m_deviceState == QAudio::SuspendedState || m_deviceState == QAudio::IdleState) {
-        (*m_recorder)->SetRecordState(m_recorder, SL_RECORDSTATE_RECORDING);
-
-        m_deviceState = QAudio::ActiveState;
-        emit stateChanged(m_deviceState);
-    }
-}
-
-void QAndroidAudioSource::processBuffer()
-{
-    if (m_deviceState == QAudio::StoppedState || m_deviceState == QAudio::SuspendedState)
-        return;
-
-    if (m_deviceState != QAudio::ActiveState) {
-        setError(QAudio::NoError);
-        m_deviceState = QAudio::ActiveState;
-        emit stateChanged(m_deviceState);
+    if (!m_stream->start()) {
+        requestStop();
+        return false;
     }
 
-    QByteArray *processedBuffer = &m_buffers[m_currentBuffer];
-    writeDataToDevice(processedBuffer->constData(), processedBuffer->size());
-
-    // Make sure that it was not stopped from writeDataToDevice
-    if (m_deviceState == QAudio::StoppedState || m_deviceState == QAudio::SuspendedState)
-        return;
-
-    // Re-enqueue the buffer
-    SLresult result = (*m_bufferQueue)->Enqueue(m_bufferQueue,
-                                                processedBuffer->data(),
-                                                processedBuffer->size());
-
-    m_currentBuffer = (m_currentBuffer + 1) % NUM_BUFFERS;
-
-    // If the buffer queue is empty (shouldn't happen), stop recording.
-#ifdef ANDROID
-    SLAndroidSimpleBufferQueueState state;
-#else
-    SLBufferQueueState state;
-#endif
-    result = (*m_bufferQueue)->GetState(m_bufferQueue, &state);
-    if (result != SL_RESULT_SUCCESS || state.count == 0) {
-        stop();
-        setError(QAudio::FatalError);
-    }
+    return true;
 }
 
-void QAndroidAudioSource::writeDataToDevice(const char *data, int size)
+QIODevice *QAndroidAudioSourceStream::start()
 {
-    m_processedBytes += size;
-
-    QByteArray outData;
-
-    // Apply volume
-    if (volume() < 1.0f) {
-        outData.resize(size);
-        QAudioHelperInternal::qMultiplySamples(volume(), m_format, data, outData.data(), size);
-    } else {
-        outData.append(data, size);
-    }
-
-    if (m_pullMode) {
-        // write buffer to the QIODevice
-        if (m_audioSource->write(outData) < 0) {
-            stop();
-            setError(QAudio::IOError);
-        }
-    } else {
-        // emits readyRead() so user will call read() on QIODevice to get some audio data
-        if (m_bufferIODevice != 0) {
-            m_pushBuffer.append(outData);
-            Q_EMIT m_bufferIODevice->readyRead();
-        }
-    }
+    auto *device = createRingbufferReaderDevice();
+    return start(device) ? device : nullptr;
 }
 
-void QAndroidAudioSource::flushBuffers()
+void QAndroidAudioSourceStream::suspend()
 {
-    SLmillisecond recorderPos;
-    (*m_recorder)->GetPosition(m_recorder, &recorderPos);
-    qint64 devicePos = processedUSecs();
-
-    qint64 delta = recorderPos * 1000 - devicePos;
-
-    if (delta > 0) {
-        const int writeSize = qMin(m_buffers[m_currentBuffer].size(),
-                                       m_format.bytesForDuration(delta));
-        writeDataToDevice(m_buffers[m_currentBuffer].constData(), writeSize);
-    }
+    Q_ASSERT(thread()->isCurrentThread());
+    m_stream->stop();
 }
 
-qsizetype QAndroidAudioSource::bytesReady() const
+void QAndroidAudioSourceStream::resume()
 {
-    if (m_deviceState == QAudio::ActiveState || m_deviceState == QAudio::SuspendedState)
-        return m_bufferIODevice ? m_bufferIODevice->bytesAvailable() : m_bufferSize;
-
-    return 0;
+    Q_ASSERT(thread()->isCurrentThread());
+    m_stream->start();
 }
 
-void QAndroidAudioSource::setBufferSize(qsizetype value)
+void QAndroidAudioSourceStream::stop(ShutdownPolicy policy)
 {
-    m_bufferSize = value;
+    Q_ASSERT(thread()->isCurrentThread());
+    requestStop();
+
+    m_stream->stop();
+
+    disconnectQIODeviceConnections();
+    finalizeQIODevice(policy);
+
+    if (policy == ShutdownPolicy::DiscardRingbuffer)
+        emptyRingbuffer();
 }
 
-qsizetype QAndroidAudioSource::bufferSize() const
+void QAndroidAudioSourceStream::updateStreamIdle(bool idle)
 {
-    return m_bufferSize;
+    if (m_parent)
+        m_parent->updateStreamIdle(idle);
 }
 
-qint64 QAndroidAudioSource::processedUSecs() const
+aaudio_data_callback_result_t
+QAndroidAudioSourceStream::process(void *audioData, int numFrames) noexcept QT_MM_NONBLOCKING
 {
-    return m_format.durationForBytes(m_processedBytes);
+    QSpan audioSpan{ reinterpret_cast<std::byte *>(audioData),
+                     numFrames * m_format.bytesPerFrame() };
+
+    auto framesWritten =
+            QPlatformAudioSourceStream::process(audioSpan, numFrames, m_nativeSampleFormat);
+
+    if (framesWritten != static_cast<uint64_t>(numFrames) && isStopRequested())
+        return AAUDIO_CALLBACK_RESULT_STOP;
+
+    return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
 
-void QAndroidAudioSource::reset()
+void QAndroidAudioSourceStream::handleError(aaudio_result_t)
 {
-    stop();
+    // Handle as IO error which closes the stream
+    requestStop();
+    invokeOnAppThread([this] {
+        // clang-format off
+        handleIOError(m_parent);
+        // clang-format on
+    });
 }
+
+QAndroidAudioSource::QAndroidAudioSource(QAudioDevice device, const QAudioFormat &format,
+                                         QObject *parent)
+    : BaseClass(std::move(device), format, parent)
+{
+}
+
+} // namespace QtAAudio
 
 QT_END_NAMESPACE

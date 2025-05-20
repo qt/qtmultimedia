@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QOPENSLESAUDIOINPUT_H
-#define QOPENSLESAUDIOINPUT_H
+#ifndef QANDROIDAUDIOINPUT_H
+#define QANDROIDAUDIOINPUT_H
 
 //
 //  W A R N I N G
@@ -15,77 +15,71 @@
 // We mean it.
 //
 
-#include <private/qaudiosystem_p.h>
-#include <QElapsedTimer>
-#include <SLES/OpenSLES.h>
+#include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
 
-#ifdef ANDROID
-#include <SLES/OpenSLES_Android.h>
+#include <aaudio/AAudio.h>
 
-#define QT_ANDROID_PRESET_MIC "mic"
-#define QT_ANDROID_PRESET_CAMCORDER "camcorder"
-#define QT_ANDROID_PRESET_VOICE_RECOGNITION "voicerecognition"
-#define QT_ANDROID_PRESET_VOICE_COMMUNICATION "voicecommunication"
-
-#endif
+#include "qaaudiostream_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QOpenSLESEngine;
-class QIODevice;
-class QBuffer;
+namespace QtAAudio {
 
-class QAndroidAudioSource : public QPlatformAudioSource
+class QAndroidAudioSource;
+
+class QAndroidAudioSourceStream final : public QtMultimediaPrivate::QPlatformAudioSourceStream
 {
-    Q_OBJECT
-
 public:
-    QAndroidAudioSource(QAudioDevice device, const QAudioFormat &, QObject *parent);
-    ~QAndroidAudioSource();
+    explicit QAndroidAudioSourceStream(QAudioDevice device, const QAudioFormat &format,
+                                       std::optional<int> ringbufferSize,
+                                       QAndroidAudioSource *parent, float volume,
+                                       std::optional<int32_t> hardwareBufferFrames);
+    Q_DISABLE_COPY_MOVE(QAndroidAudioSourceStream)
 
-    void start(QIODevice *device);
+    bool open();
+
+    bool start(QIODevice *);
     QIODevice *start();
-    void stop();
-    void reset();
+
     void suspend();
     void resume();
-    qsizetype bytesReady() const;
-    void setBufferSize(qsizetype value);
-    qsizetype bufferSize() const;
-    qint64 processedUSecs() const;
-    QAudio::State state() const;
+    void stop(ShutdownPolicy);
 
-public Q_SLOTS:
-    void processBuffer();
+    using QPlatformAudioSourceStream::bytesReady;
+    using QPlatformAudioSourceStream::deviceIsRingbufferReader;
+    using QPlatformAudioSourceStream::processedDuration;
+    using QPlatformAudioSourceStream::ringbufferSizeInBytes;
+    using QPlatformAudioSourceStream::setVolume;
 
 private:
-    bool startRecording();
-    void stopRecording();
-    void writeDataToDevice(const char *data, int size);
-    void flushBuffers();
+    // QPlatformAudioSourceStream overrides
+    void updateStreamIdle(bool idle) override;
 
-    QOpenSLESEngine *m_engine;
-    SLObjectItf m_recorderObject;
-    SLRecordItf m_recorder;
-#ifdef ANDROID
-    SLuint32 m_recorderPreset;
-    SLAndroidSimpleBufferQueueItf m_bufferQueue;
-#else
-    SLBufferQueueItf m_bufferQueue;
-#endif
+    aaudio_data_callback_result_t process(void *audioData,
+                                          int numFrames) noexcept QT_MM_NONBLOCKING;
+    void handleError(aaudio_result_t error);
 
-    bool m_pullMode;
-    qint64 m_processedBytes;
-    QIODevice *m_audioSource;
-    QBuffer *m_bufferIODevice;
-    QByteArray m_pushBuffer;
-    QAudio::State m_deviceState;
-    qint64 m_lastNotifyTime;
-    int m_bufferSize;
-    QByteArray *m_buffers;
-    int m_currentBuffer;
+    QAndroidAudioSource *m_parent;
+
+    std::unique_ptr<QtAAudio::Stream> m_stream;
+
+    std::optional<NativeSampleFormat> m_nativeSampleFormat;
 };
+
+class QAndroidAudioSource final
+    : public QtMultimediaPrivate::QPlatformAudioSourceImplementation<QAndroidAudioSourceStream,
+                                                                     QAndroidAudioSource>
+{
+    using BaseClass =
+            QtMultimediaPrivate::QPlatformAudioSourceImplementation<QAndroidAudioSourceStream,
+                                                                    QAndroidAudioSource>;
+
+public:
+    QAndroidAudioSource(QAudioDevice device, const QAudioFormat &format, QObject *parent);
+};
+
+}
 
 QT_END_NAMESPACE
 
-#endif // QOPENSLESAUDIOINPUT_H
+#endif // QANDROIDAUDIOINPUT_H

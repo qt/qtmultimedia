@@ -85,7 +85,25 @@ class QtAudioDeviceManager
         return getAudioDevices(AudioManager.GET_DEVICES_INPUTS);
     }
 
-    private static boolean isBluetoothDevice(AudioDeviceInfo deviceInfo)
+    static AudioDeviceInfo getOutputDeviceInfo(int id)
+    {
+        for (AudioDeviceInfo device : m_audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) {
+            if (device.getId() == id)
+                return device;
+        }
+        return null;
+    }
+
+    static AudioDeviceInfo getInputDeviceInfo(int id)
+    {
+        for (AudioDeviceInfo device : m_audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)) {
+            if (device.getId() == id)
+                return device;
+        }
+        return null;
+    }
+
+    static boolean isBluetoothDevice(AudioDeviceInfo deviceInfo)
     {
         switch (deviceInfo.getType()) {
         case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:

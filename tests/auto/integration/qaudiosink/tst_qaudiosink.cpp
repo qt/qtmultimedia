@@ -67,7 +67,7 @@ static bool isPulseAudioBackend()
 
 static bool underrunIsAnError()
 {
-#ifdef Q_OS_APPLE
+#if defined(Q_OS_APPLE) || defined(Q_OS_ANDROID)
     return false;
 #endif
 
