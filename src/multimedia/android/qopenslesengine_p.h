@@ -17,10 +17,10 @@
 
 #include <qglobal.h>
 #include <qaudio.h>
+#include <qcachedvalue_p.h>
 #include <qlist.h>
 #include <qaudioformat.h>
 #include <qaudiodevice.h>
-#include <qmutex.h>
 #include <SLES/OpenSLES_Android.h>
 
 QT_BEGIN_NAMESPACE
@@ -52,21 +52,27 @@ public:
     static bool printDebugInfo();
 
 private:
-    void checkSupportedInputFormats();
-    void checkSupportedSampleFormats(SLAndroidDataFormat_PCM_EX format, QAudioDevice::Mode mode);
-    void checkSupportedSampleFormats(QAudioDevice::Mode mode);
-    void checkSupportedOutputChannelCounts();
+    struct AudioConfig {
+        QList<int> m_channelCounts;
+        QList<int> m_sampleRates;
+        QList<QAudioFormat::SampleFormat> m_sampleFormats;
+    };
+
+    AudioConfig getSupportedInputConfigs();
+    AudioConfig getSupportedOutputConfigs();
+
+    QList<QAudioFormat::SampleFormat> getSupportedSampleFormats(SLAndroidDataFormat_PCM_EX format,
+                                                                QAudioDevice::Mode mode);
+    QList<QAudioFormat::SampleFormat> getSupportedSampleFormats(QAudioDevice::Mode mode);
+    QList<int> getSupportedOutputChannelCounts();
     bool inputFormatIsSupported(SLAndroidDataFormat_PCM_EX format);
     bool outputFormatIsSupported(const SLAndroidDataFormat_PCM_EX& format) const;
     SLObjectItf m_engineObject;
     SLEngineItf m_engine;
 
-    QList<int> m_supportedChannelCounts;
-    QList<int> m_supportedInputSampleRates;
-    QList<QAudioFormat::SampleFormat> m_supportedSampleFormats;
-    bool m_checkedInputFormats;
-    QMutex m_supportedInputFormatMutex;
-    QMutex m_supportedOutputFormatMutex;
+    QCachedValue<AudioConfig> m_supportedInput;
+    QCachedValue<AudioConfig> m_supportedOutput;
+
 };
 
 QT_END_NAMESPACE

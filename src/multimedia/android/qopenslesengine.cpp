@@ -96,7 +96,6 @@ bool hasRecordPermission()
 QOpenSLESEngine::QOpenSLESEngine()
     : m_engineObject(0)
     , m_engine(0)
-    , m_checkedInputFormats(false)
 {
     SLresult result;
 
@@ -180,46 +179,36 @@ bool QOpenSLESEngine::setAudioOutput(const QByteArray &deviceId)
 
 QList<int> QOpenSLESEngine::supportedChannelCounts(QAudioDevice::Mode mode)
 {
-    if (mode == QAudioDevice::Input) {
-        QMutexLocker lock(&m_supportedInputFormatMutex);
-        if (!m_checkedInputFormats)
-            checkSupportedInputFormats();
-    } else {
-        QMutexLocker lock(&m_supportedOutputFormatMutex);
-        if (m_supportedChannelCounts.empty())
-            checkSupportedOutputChannelCounts();
-    }
-
-    return m_supportedChannelCounts;
+    return (mode == QAudioDevice::Input) ?
+        m_supportedInput.ensure([this] () {
+          return getSupportedInputConfigs();
+        }).m_channelCounts
+      : m_supportedOutput.ensure([this] () {
+          return getSupportedOutputConfigs();
+        }).m_channelCounts;
 }
 
 QList<int> QOpenSLESEngine::supportedSampleRates(QAudioDevice::Mode mode)
 {
-    if (mode == QAudioDevice::Input) {
-        QMutexLocker lock(&m_supportedInputFormatMutex);
-        if (!m_checkedInputFormats)
-            checkSupportedInputFormats();
-        return m_supportedInputSampleRates;
-    } else {
-        return QList<int>() << 8000 << 11025 << 12000 << 16000 << 22050 << 24000
-                            << 32000 << 44100 << 48000 << 64000 << 88200 << 96000 << 192000;
-    }
+    return (mode == QAudioDevice::Input) ?
+        m_supportedInput.ensure([this] () {
+          return getSupportedInputConfigs();
+        }).m_sampleRates
+      : m_supportedOutput.ensure([this] () {
+          return getSupportedOutputConfigs();
+        }).m_sampleRates;
 }
 
 QList<QAudioFormat::SampleFormat> QOpenSLESEngine::supportedSampleFormats(
         QAudioDevice::Mode mode)
 {
-    if (mode == QAudioDevice::Input) {
-        QMutexLocker lock(&m_supportedInputFormatMutex);
-        if (!m_checkedInputFormats)
-            checkSupportedInputFormats();
-    } else {
-        QMutexLocker lock(&m_supportedOutputFormatMutex);
-        if (m_supportedSampleFormats.empty())
-            checkSupportedSampleFormats(mode);
-    }
-
-    return m_supportedSampleFormats;
+    return (mode == QAudioDevice::Input) ?
+        m_supportedInput.ensure([this] () {
+          return getSupportedInputConfigs();
+        }).m_sampleFormats
+      : m_supportedOutput.ensure([this] () {
+          return getSupportedOutputConfigs();
+        }).m_sampleFormats;
 }
 
 int QOpenSLESEngine::getOutputValue(QOpenSLESEngine::OutputValue type, int defaultValue)
@@ -356,14 +345,11 @@ bool QOpenSLESEngine::printDebugInfo()
     return qEnvironmentVariableIsSet("QT_OPENSL_INFO");
 }
 
-void QOpenSLESEngine::checkSupportedInputFormats()
+QOpenSLESEngine::AudioConfig QOpenSLESEngine::getSupportedInputConfigs()
 {
-    m_supportedChannelCounts.clear();
-    m_supportedInputSampleRates.clear();
-
+    QOpenSLESEngine::AudioConfig ret;
     auto defaultFormat = getDefaultFormat();
-
-    const SLuint32 rates[13] = { SL_SAMPLINGRATE_8,
+    constexpr SLuint32 rates[13] = { SL_SAMPLINGRATE_8,
                                 SL_SAMPLINGRATE_11_025,
                                 SL_SAMPLINGRATE_12,
                                 SL_SAMPLINGRATE_16,
@@ -376,18 +362,15 @@ void QOpenSLESEngine::checkSupportedInputFormats()
                                 SL_SAMPLINGRATE_88_2,
                                 SL_SAMPLINGRATE_96,
                                 SL_SAMPLINGRATE_192 };
-
-
     // Test sampling rates
-    for (size_t i = 0 ; i < std::size(rates); ++i) {
-        SLAndroidDataFormat_PCM_EX format = defaultFormat;
-        format.sampleRate = rates[i];
-
+    for (const auto r : rates) {
+        auto format = defaultFormat;
+        format.sampleRate = r;
         if (inputFormatIsSupported(format)) {
-            m_supportedInputSampleRates.append(rates[i] / 1000);
-            if (m_supportedChannelCounts.empty())
+            ret.m_sampleRates.append(r / 1000);
+            if (ret.m_channelCounts.empty())
                 // Add one supported channel if any of sample rates supported
-                m_supportedChannelCounts.append(1);
+                ret.m_channelCounts.append(1);
             continue;
         }
 
@@ -396,9 +379,8 @@ void QOpenSLESEngine::checkSupportedInputFormats()
         format.channelMask = SL_ANDROID_MAKE_INDEXED_CHANNEL_MASK(SL_SPEAKER_FRONT_LEFT
                                                                   | SL_SPEAKER_FRONT_RIGHT);
         if (inputFormatIsSupported(format))
-            m_supportedInputSampleRates.append(rates[i] / 1000);
+            ret.m_sampleRates.append(r / 1000);
     }
-
     // Test if stereo is supported
     {
         SLAndroidDataFormat_PCM_EX format = defaultFormat;
@@ -406,13 +388,26 @@ void QOpenSLESEngine::checkSupportedInputFormats()
         format.channelMask = SL_ANDROID_MAKE_INDEXED_CHANNEL_MASK(SL_SPEAKER_FRONT_LEFT
                                                                   | SL_SPEAKER_FRONT_RIGHT);
         if (inputFormatIsSupported(format))
-            m_supportedChannelCounts.append(2);
+            ret.m_channelCounts.append(2);
     }
 
     // Test sample Formats
-    checkSupportedSampleFormats(QAudioDevice::Input);
+    ret.m_sampleFormats = getSupportedSampleFormats(QAudioDevice::Input);
 
-    m_checkedInputFormats = true;
+    return ret;
+}
+
+QOpenSLESEngine::AudioConfig QOpenSLESEngine::getSupportedOutputConfigs()
+{
+    QOpenSLESEngine::AudioConfig ret;
+    static const QList<int> sampleRates = {
+        8000, 11025, 12000, 16000, 22050, 24000, 32000,
+        44100, 48000, 64000, 88200, 96000, 192000
+    };
+    ret.m_sampleRates = sampleRates;
+    ret.m_channelCounts = getSupportedOutputChannelCounts();
+    ret.m_sampleFormats = getSupportedSampleFormats(QAudioDevice::Output);
+    return ret;
 }
 
 bool QOpenSLESEngine::inputFormatIsSupported(SLAndroidDataFormat_PCM_EX format)
@@ -439,9 +434,10 @@ bool QOpenSLESEngine::inputFormatIsSupported(SLAndroidDataFormat_PCM_EX format)
     return result == SL_RESULT_SUCCESS;
 }
 
-void QOpenSLESEngine::checkSupportedSampleFormats(
-         SLAndroidDataFormat_PCM_EX format, QAudioDevice::Mode mode)
+QList<QAudioFormat::SampleFormat> QOpenSLESEngine::getSupportedSampleFormats(
+        SLAndroidDataFormat_PCM_EX format, QAudioDevice::Mode mode)
 {
+    QList<QAudioFormat::SampleFormat> ret;
     const auto sampleFormats = qAllSupportedSampleFormats();
 
     auto getSize = [](QAudioFormat::SampleFormat f) {
@@ -460,36 +456,38 @@ void QOpenSLESEngine::checkSupportedSampleFormats(
         format.containerSize = format.bitsPerSample;
         if (mode == QAudioDevice::Input) {
             if (inputFormatIsSupported(format))
-                m_supportedSampleFormats.append(sampleFormat);
+                ret.append(sampleFormat);
         } else {
             if (outputFormatIsSupported(format))
-                m_supportedSampleFormats.append(sampleFormat);
+                ret.append(sampleFormat);
         }
     }
+
+    return ret;
 }
 
-void QOpenSLESEngine::checkSupportedSampleFormats(QAudioDevice::Mode mode)
+QList<QAudioFormat::SampleFormat> QOpenSLESEngine::getSupportedSampleFormats(
+        QAudioDevice::Mode mode)
 {
-    m_supportedSampleFormats.clear();
+    QList<QAudioFormat::SampleFormat> ret;
     auto format = getDefaultFormat();
-    checkSupportedSampleFormats(format, mode);
+    ret = getSupportedSampleFormats(format, mode);
 
-    if (m_supportedSampleFormats.empty()) {
+    if (ret.empty()) {
         // Try once again with channel == 2. On some devices like x86 emulator with API level 28,
         // mono (1-channel) audio is not supported, while stereo (2-channel) audio is supported
         format.numChannels = 2;
         format.channelMask = SL_ANDROID_MAKE_INDEXED_CHANNEL_MASK(SL_SPEAKER_FRONT_LEFT
                                                                   | SL_SPEAKER_FRONT_RIGHT);
-        checkSupportedSampleFormats(format, mode);
+        ret = getSupportedSampleFormats(format, mode);
     }
 
-    if (m_supportedSampleFormats.empty())
-        m_supportedSampleFormats.append(QAudioFormat::Unknown);
+    return ret;
 }
 
-void QOpenSLESEngine::checkSupportedOutputChannelCounts()
+QList<int> QOpenSLESEngine::getSupportedOutputChannelCounts()
 {
-    m_supportedChannelCounts.clear();
+    QList<int> ret;
     constexpr int possibleChannelCounts[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
     auto format = getDefaultFormat();
 
@@ -497,11 +495,10 @@ void QOpenSLESEngine::checkSupportedOutputChannelCounts()
         format.numChannels = channels;
         format.channelMask = getChannelMask(channels);
         if (outputFormatIsSupported(format))
-            m_supportedChannelCounts.append(channels);
+            ret.append(channels);
     }
 
-    if (m_supportedChannelCounts.empty())
-        m_supportedChannelCounts.append(0);
+    return ret;
 }
 
 bool QOpenSLESEngine::outputFormatIsSupported(const SLAndroidDataFormat_PCM_EX& format) const
