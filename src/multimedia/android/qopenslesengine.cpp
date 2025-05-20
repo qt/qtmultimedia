@@ -86,6 +86,11 @@ SLuint32 getRepresentation(QAudioFormat::SampleFormat format) {
     default: return SL_ANDROID_PCM_REPRESENTATION_INVALID;
     }
 }
+
+bool hasRecordPermission()
+{
+    return qApp->checkPermission(QMicrophonePermission{}) == Qt::PermissionStatus::Granted;
+}
 } // namespace
 
 QOpenSLESEngine::QOpenSLESEngine()
@@ -171,11 +176,6 @@ bool QOpenSLESEngine::setAudioOutput(const QByteArray &deviceId)
                                     "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
                                     "setAudioOutput",
                                     deviceId.toInt());
-}
-
-static bool hasRecordPermission()
-{
-    return qApp->checkPermission(QMicrophonePermission{}) == Qt::PermissionStatus::Granted;
 }
 
 QList<int> QOpenSLESEngine::supportedChannelCounts(QAudioDevice::Mode mode) const
