@@ -36,6 +36,44 @@ SLAndroidDataFormat_PCM_EX getDefaultFormat()
 
     return ret;
 }
+
+SLuint32 getChannelMask(unsigned channelCount)
+{
+    switch (channelCount) {
+    case 1: return SL_SPEAKER_FRONT_CENTER;
+    case 2: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT;
+    case 3: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER;
+    case 4: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT
+                | SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT;
+    case 5: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_BACK_LEFT
+                | SL_SPEAKER_BACK_RIGHT | SL_SPEAKER_FRONT_CENTER;
+    case 6: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_BACK_LEFT
+                | SL_SPEAKER_BACK_RIGHT | SL_SPEAKER_FRONT_CENTER | SL_SPEAKER_LOW_FREQUENCY;
+    case 7: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER
+                | SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT | SL_SPEAKER_LOW_FREQUENCY
+                | SL_SPEAKER_BACK_CENTER;
+    case 8: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER
+                | SL_SPEAKER_LOW_FREQUENCY | SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT
+                | SL_SPEAKER_SIDE_LEFT | SL_SPEAKER_SIDE_RIGHT;
+    case 9: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER
+                | SL_SPEAKER_LOW_FREQUENCY | SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT
+                | SL_SPEAKER_SIDE_LEFT | SL_SPEAKER_SIDE_RIGHT | SL_SPEAKER_TOP_FRONT_CENTER;
+    case 10: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER
+                | SL_SPEAKER_LOW_FREQUENCY | SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT
+                | SL_SPEAKER_SIDE_LEFT | SL_SPEAKER_SIDE_RIGHT | SL_SPEAKER_TOP_FRONT_LEFT
+                | SL_SPEAKER_TOP_FRONT_RIGHT;
+    case 11: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER
+                | SL_SPEAKER_LOW_FREQUENCY | SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT
+                | SL_SPEAKER_SIDE_LEFT | SL_SPEAKER_SIDE_RIGHT | SL_SPEAKER_TOP_FRONT_LEFT
+                | SL_SPEAKER_TOP_FRONT_RIGHT | SL_SPEAKER_TOP_BACK_CENTER;
+    case 12: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER
+                | SL_SPEAKER_LOW_FREQUENCY | SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT
+                | SL_SPEAKER_SIDE_LEFT | SL_SPEAKER_SIDE_RIGHT | SL_SPEAKER_TOP_FRONT_LEFT
+                | SL_SPEAKER_TOP_FRONT_RIGHT | SL_SPEAKER_TOP_BACK_LEFT
+                | SL_SPEAKER_TOP_BACK_RIGHT;
+    default: return 0; // Default to 0 for an unsupported or unknown number of channels
+    }
+}
 } // namespace
 
 QOpenSLESEngine::QOpenSLESEngine()
@@ -64,22 +102,6 @@ QOpenSLESEngine::~QOpenSLESEngine()
 QOpenSLESEngine *QOpenSLESEngine::instance()
 {
     return openslesEngine();
-}
-
-static SLuint32 getChannelMask(unsigned channelCount)
-{
-    switch (channelCount) {
-        case 1: return SL_SPEAKER_FRONT_CENTER;
-        case 2: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT;
-        case 3: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER;
-        case 4: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT
-                      | SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT;
-        case 5: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_BACK_LEFT
-                      | SL_SPEAKER_BACK_RIGHT | SL_SPEAKER_FRONT_CENTER;
-        case 6: return SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_BACK_LEFT
-                      | SL_SPEAKER_BACK_RIGHT | SL_SPEAKER_FRONT_CENTER | SL_SPEAKER_LOW_FREQUENCY;
-        default: return 0; // Default to 0 for an unsupported or unknown number of channels
-    }
 }
 
 SLAndroidDataFormat_PCM_EX QOpenSLESEngine::audioFormatToSLFormatPCM(const QAudioFormat &format)
@@ -481,7 +503,7 @@ void QOpenSLESEngine::checkSupportedSampleFormats(QAudioDevice::Mode mode)
 void QOpenSLESEngine::checkSupportedOutputChannelCounts()
 {
     m_supportedChannelCounts.clear();
-    constexpr int possibleChannelCounts[] = {1, 2, 3, 4, 5, 6};
+    constexpr int possibleChannelCounts[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
     auto format = getDefaultFormat();
 
     for (int channels : possibleChannelCounts) {
