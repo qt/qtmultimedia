@@ -74,6 +74,18 @@ SLuint32 getChannelMask(unsigned channelCount)
     default: return 0; // Default to 0 for an unsupported or unknown number of channels
     }
 }
+
+SLuint32 getRepresentation(QAudioFormat::SampleFormat format) {
+    switch (format) {
+    case QAudioFormat::SampleFormat::UInt8: return SL_ANDROID_PCM_REPRESENTATION_UNSIGNED_INT;
+    case QAudioFormat::SampleFormat::Int16:
+    case QAudioFormat::SampleFormat::Int32: return SL_ANDROID_PCM_REPRESENTATION_SIGNED_INT;
+    case QAudioFormat::SampleFormat::Float: return SL_ANDROID_PCM_REPRESENTATION_FLOAT;
+    case QAudioFormat::SampleFormat::NSampleFormats:
+    case QAudioFormat::SampleFormat::Unknown:
+    default: return SL_ANDROID_PCM_REPRESENTATION_INVALID;
+    }
+}
 } // namespace
 
 QOpenSLESEngine::QOpenSLESEngine()
@@ -116,23 +128,7 @@ SLAndroidDataFormat_PCM_EX QOpenSLESEngine::audioFormatToSLFormatPCM(const QAudi
     format_pcm.endianness = (QSysInfo::ByteOrder == QSysInfo::LittleEndian ?
                                  SL_BYTEORDER_LITTLEENDIAN :
                                  SL_BYTEORDER_BIGENDIAN);
-
-    switch (format.sampleFormat()) {
-    case QAudioFormat::SampleFormat::UInt8:
-        format_pcm.representation = SL_ANDROID_PCM_REPRESENTATION_UNSIGNED_INT;
-        break;
-    case QAudioFormat::SampleFormat::Int16:
-    case QAudioFormat::SampleFormat::Int32:
-        format_pcm.representation = SL_ANDROID_PCM_REPRESENTATION_SIGNED_INT;
-        break;
-    case QAudioFormat::SampleFormat::Float:
-        format_pcm.representation = SL_ANDROID_PCM_REPRESENTATION_FLOAT;
-        break;
-    case QAudioFormat::SampleFormat::NSampleFormats:
-    case QAudioFormat::SampleFormat::Unknown:
-        format_pcm.representation = SL_ANDROID_PCM_REPRESENTATION_INVALID;
-        break;
-    }
+    format_pcm.representation = getRepresentation(format.sampleFormat());
 
     return format_pcm;
 }
@@ -455,15 +451,6 @@ void QOpenSLESEngine::checkSupportedSampleFormats(
         case QAudioFormat::Int32: return SL_PCMSAMPLEFORMAT_FIXED_32;
         case QAudioFormat::Float: return SL_PCMSAMPLEFORMAT_FIXED_32;
         default: Q_UNREACHABLE_RETURN(SL_PCMSAMPLEFORMAT_FIXED_8);
-        }
-    };
-    auto getRepresentation = [](QAudioFormat::SampleFormat f) {
-        switch (f) {
-        case QAudioFormat::UInt8: return SL_ANDROID_PCM_REPRESENTATION_UNSIGNED_INT;
-        case QAudioFormat::Int16:
-        case QAudioFormat::Int32: return SL_ANDROID_PCM_REPRESENTATION_SIGNED_INT;
-        case QAudioFormat::Float: return SL_ANDROID_PCM_REPRESENTATION_FLOAT;
-        default: Q_UNREACHABLE_RETURN(SL_ANDROID_PCM_REPRESENTATION_SIGNED_INT);
         }
     };
 
