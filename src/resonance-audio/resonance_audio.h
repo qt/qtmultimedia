@@ -19,7 +19,7 @@ public:
     // decoder will then add it to the generated surround signal.
     int getAmbisonicOutput(const float *buffers[], const float *reverb[], int nChannels);
 
-    std::unique_ptr<ResonanceAudioApi> api;
+    const std::unique_ptr<ResonanceAudioApi> api;
     bool roomEffectsEnabled = true;
 };
 
