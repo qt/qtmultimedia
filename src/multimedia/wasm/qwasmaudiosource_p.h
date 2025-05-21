@@ -56,7 +56,6 @@ public:
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
-    void setVolume(float volume) override;
 
     friend class QWasmAudioSourceDevice;
 };
