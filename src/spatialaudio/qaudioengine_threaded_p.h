@@ -56,7 +56,7 @@ public:
 
     void setRoomEffectsEnabled(bool) override;
     bool roomEffectsEnabled() const override;
-    void setListenerPosition(QVector3D pos) override;
+    void setListenerPosition(std::optional<QVector3D> pos) override;
 
     void addSpatialSound(QSpatialSound *sound) override;
     void removeSpatialSound(QSpatialSound *sound) override;
@@ -67,8 +67,6 @@ public:
     void removeRoom(QAudioRoom *room) override;
     QAudioRoom *currentRoom() const override { return m_currentRoom; }
     void updateRooms();
-
-    bool setListener(QAudioListener *listener) override;
 
 private:
     friend class QAudioOutputStream;
@@ -82,7 +80,6 @@ private:
     QThread audioThread;
     std::unique_ptr<QAudioOutputStream> outputStream;
 
-    QAudioListener *listener = nullptr;
     QList<QSpatialSound *> sources;
     QList<QAmbientSound *> stereoSources;
     QList<QAudioRoom *> rooms;

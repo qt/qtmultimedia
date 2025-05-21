@@ -17,7 +17,10 @@
 
 #include <QtGui/qvectornd.h>
 #include <QtCore/private/qobject_p.h>
+#include <QtGui/qvectornd.h>
 #include <QtSpatialAudio/qaudioengine.h>
+
+#include <optional>
 
 namespace vraudio {
 class ResonanceAudio;
@@ -54,8 +57,10 @@ public:
     float masterVolume() const;
     float m_masterVolume = 1.f;
 
-    virtual void setListenerPosition(QVector3D);
-    QVector3D listenerPosition() const { return m_position; }
+    // Listener position
+    // if set to nullopt, no QAudioListener is registered
+    virtual void setListenerPosition(std::optional<QVector3D>);
+    std::optional<QVector3D> listenerPosition() const { return m_position; }
     void setListenerRotation(const QQuaternion &);
 
     virtual void start() = 0;
@@ -76,7 +81,6 @@ public:
 
     virtual void addRoom(QAudioRoom *) = 0;
     virtual void removeRoom(QAudioRoom *) = 0;
-    virtual bool setListener(QAudioListener *) = 0;
     virtual QAudioRoom *currentRoom() const = 0;
 
 protected:
@@ -95,7 +99,8 @@ private:
     // default. To make things independent from the scale setting, we store all distances in
     // meters internally and convert in the setters and getters.
     float m_distanceScale = 0.01f;
-    QVector3D m_position;
+
+    std::optional<QVector3D> m_position;
 
 public:
     std::unique_ptr<vraudio::ResonanceAudio> resonanceAudio;

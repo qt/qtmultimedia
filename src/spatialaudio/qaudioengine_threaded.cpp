@@ -283,10 +283,11 @@ bool QAudioEngineThreaded::roomEffectsEnabled() const
     return m_roomEffectsEnabled;
 }
 
-void QAudioEngineThreaded::setListenerPosition(QVector3D pos)
+void QAudioEngineThreaded::setListenerPosition(std::optional<QVector3D> pos)
 {
     if (listenerPosition() == pos)
         return;
+
     QAudioEnginePrivate::setListenerPosition(pos);
     listenerPositionDirty = true;
 }
@@ -391,15 +392,6 @@ void QAudioEngineThreaded::updateRooms()
             continue;
         sp->updateRoomEffects();
     }
-}
-
-bool QAudioEngineThreaded::setListener(QAudioListener *listener)
-{
-    if (this->listener && listener)
-        return false;
-
-    this->listener = listener;
-    return true;
 }
 
 QT_END_NAMESPACE

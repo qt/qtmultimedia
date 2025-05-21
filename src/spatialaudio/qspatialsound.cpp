@@ -185,6 +185,10 @@ void QSpatialSoundPrivate::updateRoomEffects()
     if (!rp)
         return;
 
+    auto listenerPos = ep->listenerPosition();
+    if (!listenerPos)
+        return;
+
     QVector3D roomDim2 = ep->currentRoom()->dimensions() / 2.;
     QVector3D roomPos = ep->currentRoom()->position();
     QQuaternion roomRot = ep->currentRoom()->rotation();
@@ -204,7 +208,7 @@ void QSpatialSoundPrivate::updateRoomEffects()
         //
         // We basically cast a ray from the listener through the walls. If walls have different characteristics
         // and we get close to a corner, we try to use some averaging to avoid abrupt changes
-        auto relativeListenerPos = ep->listenerPosition() - roomPos;
+        auto relativeListenerPos = *listenerPos - roomPos;
         relativeListenerPos = roomRot.rotatedVector(relativeListenerPos);
 
         auto direction = dist.normalized();
