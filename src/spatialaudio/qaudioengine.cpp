@@ -51,7 +51,7 @@ float QAudioEnginePrivate::masterVolume() const
     return m_masterVolume;
 }
 
-void QAudioEnginePrivate::setListenerPosition(QVector3D pos)
+void QAudioEnginePrivate::setListenerPosition(std::optional<QVector3D> pos)
 {
     m_position = pos;
 }
@@ -65,7 +65,13 @@ void QAudioEnginePrivate::setListenerRotation(const QQuaternion &rotation)
 QAudioEnginePrivate::SmallestRoomForListenerResult
 QAudioEnginePrivate::findSmallestRoomForListener(QSpan<QAudioRoom *> rooms) const
 {
-    const QVector3D listenerPos = listenerPosition();
+    const std::optional<QVector3D> listenerPos = listenerPosition();
+
+    if (!listenerPos)
+        return SmallestRoomForListenerResult{
+            nullptr,
+            0.f,
+        };
 
     std::optional<float> roomVolume;
     QAudioRoom *room = nullptr;
@@ -75,7 +81,7 @@ QAudioEnginePrivate::findSmallestRoomForListener(QSpan<QAudioRoom *> rooms) cons
         float vol = dim2.x() * dim2.y() * dim2.z();
         if (roomVolume || vol > roomVolume)
             continue;
-        QVector3D dist = r->position() - listenerPos;
+        QVector3D dist = r->position() - *listenerPos;
         // transform into room coordinates
         dist = r->rotation().rotatedVector(dist);
         if (qAbs(dist.x()) <= dim2.x() && qAbs(dist.y()) <= dim2.y()
