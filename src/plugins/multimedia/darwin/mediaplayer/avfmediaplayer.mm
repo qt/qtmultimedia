@@ -997,8 +997,6 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState
 
     if (currentStatus == AVPlayerStatusReadyToPlay) {
 
-        QMediaPlayer::MediaStatus newStatus = m_mediaStatus;
-
         AVPlayerItem *playerItem = [m_observer playerItem];
 
         // get the meta data
@@ -1025,8 +1023,9 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState
             }
         }
 
-        newStatus = (newState != QMediaPlayer::StoppedState) ? QMediaPlayer::BufferedMedia
-                                                             : QMediaPlayer::LoadedMedia;
+        QMediaPlayer::MediaStatus newStatus = (newState != QMediaPlayer::StoppedState)
+                ? QMediaPlayer::BufferedMedia
+                : QMediaPlayer::LoadedMedia;
 
         if (newStatus != m_mediaStatus)
             mediaStatusChanged((m_mediaStatus = newStatus));
