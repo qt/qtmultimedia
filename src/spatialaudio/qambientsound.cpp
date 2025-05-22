@@ -1,19 +1,23 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
+
 #include "qambientsound.h"
-#include "qambientsound_p.h"
-#include "qaudioengine_p.h"
-#include "resonance_audio.h"
-#include <qaudiosink.h>
-#include <qurl.h>
-#include <qdebug.h>
-#include <qaudiodecoder.h>
+
+#include <QtCore/qdebug.h>
+#include <QtCore/qurl.h>
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtMultimedia/qaudiosink.h>
+#include <QtSpatialAudio/private/qambientsound_p.h>
+#include <QtSpatialAudio/private/qaudioengine_p.h>
+
+#include <resonance_audio.h>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
 void QAmbientSoundPrivate::load()
 {
-    decoder.reset(new QAudioDecoder);
+    decoder = std::make_unique<QAudioDecoder>();
     buffers.clear();
     currentBuffer = 0;
     sourceDeviceFile.reset(nullptr);
