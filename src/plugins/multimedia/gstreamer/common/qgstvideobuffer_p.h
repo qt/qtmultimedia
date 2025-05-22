@@ -39,7 +39,7 @@ public:
     QVideoFrameTexturesUPtr mapTextures(QRhi &, QVideoFrameTexturesUPtr& /*oldTextures*/) override;
 
 private:
-    const QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
+    const QGstCaps::MemoryFormat m_memoryFormat = QGstCaps::CpuMemory;
     const QVideoFrameFormat m_frameFormat;
     QRhi *m_rhi = nullptr;
     mutable GstVideoInfo m_videoInfo;
