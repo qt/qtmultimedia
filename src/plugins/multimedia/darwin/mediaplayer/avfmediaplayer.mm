@@ -517,7 +517,7 @@ AVFMediaPlayer::~AVFMediaPlayer()
 #endif
     //Detatch the session from the sessionObserver (which could still be alive trying to communicate with this session).
     [m_observer detatchSession];
-    [static_cast<AVFMediaPlayerObserver*>(m_observer) release];
+    [m_observer release];
 }
 
 void AVFMediaPlayer::setVideoSink(QVideoSink *sink)
@@ -543,7 +543,7 @@ void AVFMediaPlayer::setVideoOutput(AVFVideoRendererControl *output)
     m_videoOutput = output;
 
     if (m_videoOutput && m_state != QMediaPlayer::StoppedState)
-        m_videoOutput->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
+        m_videoOutput->setLayer([m_observer playerLayer]);
 }
 
 AVAsset *AVFMediaPlayer::currentAssetHandle()
@@ -551,7 +551,7 @@ AVAsset *AVFMediaPlayer::currentAssetHandle()
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;
 #endif
-    AVAsset *currentAsset = [[static_cast<AVFMediaPlayerObserver*>(m_observer) playerItem] asset];
+    AVAsset *currentAsset = [[m_observer playerItem] asset];
     return currentAsset;
 }
 
@@ -593,7 +593,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     qDebug() << Q_FUNC_INFO << content.request().url();
 #endif
 
-    [static_cast<AVFMediaPlayerObserver*>(m_observer) unloadMedia];
+    [m_observer unloadMedia];
 
     m_resources = content;
     resetStream(stream);
@@ -655,7 +655,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
 qint64 AVFMediaPlayer::position() const
 {
-    AVPlayerItem *playerItem = [static_cast<AVFMediaPlayerObserver*>(m_observer) playerItem];
+    AVPlayerItem *playerItem = [m_observer playerItem];
 
     if (m_requestedPosition != -1)
         return m_requestedPosition;
@@ -727,7 +727,7 @@ void AVFMediaPlayer::setSeekable(bool seekable)
 
 QMediaTimeRange AVFMediaPlayer::availablePlaybackRanges() const
 {
-    AVPlayerItem *playerItem = [static_cast<AVFMediaPlayerObserver*>(m_observer) playerItem];
+    AVPlayerItem *playerItem = [m_observer playerItem];
 
     if (playerItem) {
         QMediaTimeRange timeRanges;
@@ -783,7 +783,7 @@ void AVFMediaPlayer::setPlaybackRate(qreal rate)
 
     m_rate = rate;
 
-    AVPlayer *player = [static_cast<AVFMediaPlayerObserver*>(m_observer) player];
+    AVPlayer *player = [m_observer player];
     if (player && m_state == QMediaPlayer::PlayingState)
         [player setRate:m_rate];
 
@@ -799,7 +799,7 @@ void AVFMediaPlayer::setPosition(qint64 pos)
     if (pos == position())
         return;
 
-    AVPlayerItem *playerItem = [static_cast<AVFMediaPlayerObserver*>(m_observer) playerItem];
+    AVPlayerItem *playerItem = [m_observer playerItem];
     if (!playerItem) {
         m_requestedPosition = pos;
         positionChanged(m_requestedPosition);
@@ -852,7 +852,7 @@ void AVFMediaPlayer::play()
     resetCurrentLoop();
 
     if (m_videoOutput && m_videoSink)
-        m_videoOutput->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
+        m_videoOutput->setLayer([m_observer playerLayer]);
 
     // Reset media status if the current status is EndOfMedia
     if (m_mediaStatus == QMediaPlayer::EndOfMedia)
@@ -860,7 +860,7 @@ void AVFMediaPlayer::play()
 
     if (m_mediaStatus == QMediaPlayer::LoadedMedia || m_mediaStatus == QMediaPlayer::BufferedMedia) {
         // Setting the rate starts playback
-        [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] setRate:m_rate];
+        [[m_observer player] setRate:m_rate];
     }
 
     m_state = QMediaPlayer::PlayingState;
@@ -885,9 +885,9 @@ void AVFMediaPlayer::pause()
     m_state = QMediaPlayer::PausedState;
 
     if (m_videoOutput && m_videoSink)
-        m_videoOutput->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
+        m_videoOutput->setLayer([m_observer playerLayer]);
 
-    [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] pause];
+    [[m_observer player] pause];
 
     // Reset media status if the current status is EndOfMedia
     if (m_mediaStatus == QMediaPlayer::EndOfMedia)
@@ -908,7 +908,7 @@ void AVFMediaPlayer::stop()
         return;
 
     // AVPlayer doesn't have stop(), only pause() and play().
-    [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] pause];
+    [[m_observer player] pause];
     setPosition(0);
 
     if (m_videoOutput)
@@ -927,7 +927,7 @@ void AVFMediaPlayer::setVolume(float volume)
     qDebug() << Q_FUNC_INFO << volume;
 #endif
 
-    AVPlayer *player = [static_cast<AVFMediaPlayerObserver*>(m_observer) player];
+    AVPlayer *player = [m_observer player];
     if (player)
         player.volume = volume;
 }
@@ -938,7 +938,7 @@ void AVFMediaPlayer::setMuted(bool muted)
     qDebug() << Q_FUNC_INFO << muted;
 #endif
 
-    AVPlayer *player = [static_cast<AVFMediaPlayerObserver*>(m_observer) player];
+    AVPlayer *player = [m_observer player];
     if (player)
         player.muted = muted;
 }
@@ -946,7 +946,7 @@ void AVFMediaPlayer::setMuted(bool muted)
 void AVFMediaPlayer::updateAudioOutputDevice()
 {
 #ifdef Q_OS_MACOS
-    AVPlayer *player = [static_cast<AVFMediaPlayerObserver*>(m_observer) player];
+    AVPlayer *player = [m_observer player];
     if (!player)
         return;
 
@@ -965,7 +965,7 @@ void AVFMediaPlayer::processEOS()
 {
     if (doLoop()) {
         setPosition(0);
-        [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] setRate:m_rate];
+        [[m_observer player] setRate:m_rate];
         return;
     }
 
@@ -986,7 +986,7 @@ void AVFMediaPlayer::processEOS()
 
 void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState)
 {
-    AVPlayerStatus currentStatus = [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] status];
+    AVPlayerStatus currentStatus = [[m_observer player] status];
 
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO << currentStatus << ", " << m_mediaStatus << ", " << newState;
@@ -1032,9 +1032,9 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState
             mediaStatusChanged((m_mediaStatus = newStatus));
     }
 
-    if (newState == QMediaPlayer::PlayingState && [static_cast<AVFMediaPlayerObserver*>(m_observer) player]) {
+    if (newState == QMediaPlayer::PlayingState && [m_observer player]) {
         // Setting the rate is enough to start playback, no need to call play()
-        [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] setRate:m_rate];
+        [[m_observer player] setRate:m_rate];
         m_playbackTimer.start();
     }
 }
@@ -1064,7 +1064,7 @@ void AVFMediaPlayer::processBufferStateChange(int bufferProgress)
         status = QMediaPlayer::BufferedMedia;
         // Resume playback.
         if (m_state == QMediaPlayer::PlayingState) {
-            [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] setRate:m_rate];
+            [[m_observer player] setRate:m_rate];
             m_playbackTimer.start();
         }
     }
