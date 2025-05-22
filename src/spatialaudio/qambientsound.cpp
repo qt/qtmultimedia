@@ -7,6 +7,7 @@
 #include <QtCore/qurl.h>
 #include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/private/qmultimedia_assume_p.h>
 #include <QtSpatialAudio/private/qambientsound_p.h>
 #include <QtSpatialAudio/private/qaudioengine_p.h>
 
@@ -40,6 +41,8 @@ void QAmbientSoundPrivate::load()
         decoder->setSource(url);
     }
     QObject::connect(decoder.get(), &QAudioDecoder::bufferReady, decoder.get(), [this] {
+        QT_MM_ASSUME(this);
+
         QMutexLocker l(&mutex);
         auto b = decoder->read();
         buffers.append(b);
