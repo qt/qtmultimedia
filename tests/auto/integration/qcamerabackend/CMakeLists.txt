@@ -10,6 +10,9 @@
 qt_internal_add_test(tst_qcamerabackend
     SOURCES
         tst_qcamerabackend.cpp
+        ../shared/mediabackendutils.h
+    INCLUDE_DIRECTORIES
+        ../shared/
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
@@ -17,7 +20,7 @@ qt_internal_add_test(tst_qcamerabackend
 )
 
 # special case begin
-if (APPLE)
+if(APPLE)
     set_property(TARGET tst_qcamerabackend PROPERTY MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist")
     set_property(TARGET tst_qcamerabackend PROPERTY PROPERTY MACOSX_BUNDLE TRUE)
 endif()

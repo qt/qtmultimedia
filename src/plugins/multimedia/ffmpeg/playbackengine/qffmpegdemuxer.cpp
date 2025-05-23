@@ -39,7 +39,6 @@ Demuxer::Demuxer(AVFormatContext *context, const PositionWithOffset &posWithOffs
                         << "loop index:" << posWithOffset.offset.index << "loops:" << loops;
 
     Q_ASSERT(m_context);
-    Q_ASSERT(loops < 0 || m_posWithOffset.offset.index < loops);
 
     for (auto i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
         if (streamIndexes[i] >= 0) {

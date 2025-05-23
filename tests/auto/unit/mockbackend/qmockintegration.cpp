@@ -14,6 +14,8 @@
 #include <private/qcameradevice_p.h>
 #include <private/qplatformvideodevices_p.h>
 
+#include "qmockmediadevices.h"
+
 QT_BEGIN_NAMESPACE
 
 class MockMultimediaPlugin : public QPlatformMediaPlugin
@@ -39,7 +41,7 @@ public:
         : QPlatformVideoDevices(pmi)
     {
         QCameraDevicePrivate *info = new QCameraDevicePrivate;
-        info->description = QString::fromUtf8("defaultCamera");
+        info->description = QStringLiteral("defaultCamera");
         info->id = "default";
         info->isDefault = true;
         auto *f = new QCameraFormatPrivate{
@@ -52,7 +54,7 @@ public:
         info->videoFormats << f->create();
         m_cameraDevices.append(info->create());
         info = new QCameraDevicePrivate;
-        info->description = QString::fromUtf8("frontCamera");
+        info->description = QStringLiteral("frontCamera");
         info->id = "front";
         info->isDefault = false;
         info->position = QCameraDevice::FrontFace;
@@ -66,7 +68,7 @@ public:
         info->videoFormats << f->create();
         m_cameraDevices.append(info->create());
         info = new QCameraDevicePrivate;
-        info->description = QString::fromUtf8("backCamera");
+        info->description = QStringLiteral("backCamera");
         info->id = "back";
         info->isDefault = false;
         info->position = QCameraDevice::BackFace;
@@ -94,18 +96,17 @@ private:
     QList<QCameraDevice> m_cameraDevices;
 };
 
-bool QMockIntegration::s_created = false;
-
-QMockIntegration::QMockIntegration()
-{
-    s_created = true;
-}
-
+QMockIntegration::QMockIntegration() : QPlatformMediaIntegration(QLatin1String("mock")) { }
 QMockIntegration::~QMockIntegration() = default;
 
 QPlatformVideoDevices *QMockIntegration::createVideoDevices()
 {
     return new QMockVideoDevices(this);
+}
+
+std::unique_ptr<QPlatformMediaDevices> QMockIntegration::createMediaDevices()
+{
+    return std::make_unique<QMockMediaDevices>();
 }
 
 QMaybe<QPlatformAudioDecoder *> QMockIntegration::createAudioDecoder(QAudioDecoder *decoder)

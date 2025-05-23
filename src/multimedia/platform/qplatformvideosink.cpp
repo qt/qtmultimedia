@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qplatformvideosink_p.h"
+#include "qmultimediautils_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -36,10 +37,14 @@ void QPlatformVideoSink::setVideoFrame(const QVideoFrame &frame)
             return;
         m_currentVideoFrame = frame;
         m_currentVideoFrame.setSubtitleText(m_subtitleText);
-        sizeChanged = m_nativeSize != frame.size();
-        m_nativeSize = frame.size();
+        const auto size = qRotatedFrameSize(frame);
+        if (size != m_nativeSize) {
+            m_nativeSize = size;
+            sizeChanged = true;
+        }
     }
 
+    // emit signals outside the mutex to avoid deadlocks on the user side
     if (sizeChanged)
         emit m_sink->videoSizeChanged();
     emit m_sink->videoFrameChanged(frame);

@@ -282,7 +282,7 @@ void QAndroidCamera::setActive(bool active)
 
         // this should use the camera format.
         // but there is only 2 fully supported formats on android - JPG and YUV420P
-        // and JPEG is not supported for encoding in FFMpeg, so it's locked for YUV for now.
+        // and JPEG is not supported for encoding in FFmpeg, so it's locked for YUV for now.
         const static int imageFormat =
                 QJniObject::getStaticField<QtJniTypes::AndroidImageFormat, jint>("YUV_420_888");
         m_jniCamera.callMethod<jboolean>("addImageReader", jint(width), jint(height),
@@ -329,10 +329,18 @@ void QAndroidCamera::setState(QAndroidCamera::State newState)
 
 bool QAndroidCamera::setCameraFormat(const QCameraFormat &format)
 {
-    if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
+    const auto chosenFormat = format.isNull() ? getDefaultCameraFormat() : format;
+
+    if (chosenFormat == m_cameraFormat || !m_cameraDevice.videoFormats().contains(chosenFormat))
         return false;
 
-    m_cameraFormat = format.isNull() ? getDefaultCameraFormat() : format;
+    m_cameraFormat = chosenFormat;
+
+    if (isActive()) {
+        // Restart the camera to set new camera format
+        setActive(false);
+        setActive(true);
+    }
 
     return true;
 }
@@ -356,6 +364,9 @@ void QAndroidCamera::updateCameraCharacteristics()
     const float maxZoom = deviceManager.callMethod<jfloat>(
                 "getMaxZoom", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
     maximumZoomFactorChanged(maxZoom);
+    if (maxZoom < zoomFactor()) {
+        zoomTo(1.0, -1.0);
+    }
 
     m_TorchModeSupported = deviceManager.callMethod<jboolean>(
             "isTorchModeSupported", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
@@ -381,6 +392,9 @@ void QAndroidCamera::updateCameraCharacteristics()
 void QAndroidCamera::cleanCameraCharacteristics()
 {
     maximumZoomFactorChanged(1.0);
+    if (zoomFactor() != 1.0) {
+        zoomTo(1.0, -1.0);
+    }
     if (torchMode() != QCamera::TorchOff) {
         setTorchMode(QCamera::TorchOff);
     }

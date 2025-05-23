@@ -21,14 +21,15 @@ QT_BEGIN_NAMESPACE
 
 static Libs loadLibs()
 {
+    constexpr int version = VA_MAJOR_VERSION + 1;
     Libs libs;
-    libs.push_back(std::make_unique<QLibrary>("va"));
+    libs.push_back(std::make_unique<QLibrary>("va", version));
 #ifdef DYNAMIC_RESOLVE_VA_DRM_SYMBOLS
-    libs.push_back(std::make_unique<QLibrary>("va-drm"));
+    libs.push_back(std::make_unique<QLibrary>("va-drm", version));
 #endif
 
 #ifdef DYNAMIC_RESOLVE_VA_X11_SYMBOLS
-    libs.push_back(std::make_unique<QLibrary>("va-x11"));
+    libs.push_back(std::make_unique<QLibrary>("va-x11", version));
 #endif
 
     if (LibSymbolsResolver::tryLoad(libs))
@@ -37,7 +38,7 @@ static Libs loadLibs()
     return {};
 }
 
-constexpr size_t symbolsCount = 38
+constexpr size_t symbolsCount = 40
 #if VA_CHECK_VERSION(1, 9, 0)
         + 1
 #endif
@@ -113,6 +114,9 @@ DEFINE_FUNC(vaEntrypointStr, 1, emptyString);
 DEFINE_FUNC(vaGetDisplayAttributes, 3, VA_STATUS_ERROR_OPERATION_FAILED);
 
 DEFINE_FUNC(vaSetDriverName, 2, VA_STATUS_ERROR_OPERATION_FAILED);
+
+DEFINE_FUNC(vaAcquireBufferHandle, 3, VA_STATUS_ERROR_OPERATION_FAILED);
+DEFINE_FUNC(vaReleaseBufferHandle, 2, VA_STATUS_ERROR_OPERATION_FAILED);
 
 #ifdef DYNAMIC_RESOLVE_VA_DRM_SYMBOLS
 DEFINE_FUNC(vaGetDisplayDRM, 1); // va-drm

@@ -25,6 +25,7 @@ class QAndroidMediaDevices : public QPlatformMediaDevices
 public:
     QAndroidMediaDevices();
 
+    ~QAndroidMediaDevices();
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,

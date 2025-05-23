@@ -15,40 +15,30 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qmultimediautils_p.h>
-#include <qaudiodevice.h>
-
 #include <QtCore/qobject.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/qaudiodevice.h>
 
-#include <qgst_p.h>
-#include <qgstpipeline_p.h>
-#include <private/qplatformaudiooutput_p.h>
+#include <common/qgst_p.h>
+#include <common/qgstpipeline_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerMessage;
 class QAudioDevice;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerAudioOutput : public QObject, public QPlatformAudioOutput
+class QGstreamerAudioOutput : public QObject, public QPlatformAudioOutput
 {
-    Q_OBJECT
-
 public:
     static QMaybe<QPlatformAudioOutput *> create(QAudioOutput *parent);
     ~QGstreamerAudioOutput();
 
     void setAudioDevice(const QAudioDevice &) override;
-    void setVolume(float volume) override;
-    void setMuted(bool muted) override;
-
-    void setPipeline(const QGstPipeline &pipeline);
+    void setVolume(float) override;
+    void setMuted(bool) override;
 
     QGstElement gstElement() const { return gstAudioOutput; }
-
-Q_SIGNALS:
-    void mutedChanged(bool);
-    void volumeChanged(int);
 
 private:
     QGstreamerAudioOutput(QGstElement audioconvert, QGstElement audioresample, QGstElement volume,

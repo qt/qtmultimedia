@@ -22,7 +22,11 @@ qt_find_package(MMRendererCore PROVIDED_TARGETS MMRendererCore::MMRendererCore M
 qt_find_package(MMRenderer PROVIDED_TARGETS MMRenderer::MMRenderer MODULE_NAME multimedia QMAKE_LIB mmrndclient)
 qt_find_package(WrapPulseAudio PROVIDED_TARGETS WrapPulseAudio::WrapPulseAudio MODULE_NAME multimedia QMAKE_LIB pulseaudio)
 qt_find_package(WMF PROVIDED_TARGETS WMF::WMF MODULE_NAME multimedia QMAKE_LIB wmf)
-qt_find_package(EGL)
+if(TARGET EGL::EGL)
+    qt_internal_disable_find_package_global_promotion(EGL::EGL)
+endif()
+qt_find_package(EGL PROVIDED_TARGETS EGL::EGL)
+
 
 qt_find_package(FFmpeg OPTIONAL_COMPONENTS AVCODEC AVFORMAT AVUTIL SWRESAMPLE SWSCALE PROVIDED_TARGETS FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::swresample FFmpeg::swscale MODULE_NAME multimedia QMAKE_LIB ffmpeg)
 qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VAAPI MODULE_NAME multimedia QMAKE_LIB vaapi)
@@ -101,12 +105,7 @@ qt_feature("evr" PUBLIC PRIVATE
 )
 qt_feature("gstreamer_1_0" PRIVATE
     LABEL "GStreamer 1.0"
-    CONDITION ( LINUX AND GStreamer_FOUND )
-    ENABLE INPUT_gstreamer STREQUAL 'yes'
-    DISABLE INPUT_gstreamer STREQUAL 'no'
-)
-qt_feature("gstreamer" PRIVATE
-    CONDITION QT_FEATURE_gstreamer_1_0
+    CONDITION GStreamer_FOUND
 )
 qt_feature("gstreamer_app" PRIVATE
     LABEL "GStreamer App"
@@ -118,7 +117,13 @@ qt_feature("gstreamer_photography" PRIVATE
 )
 qt_feature("gstreamer_gl" PRIVATE
     LABEL "GStreamer OpenGL"
-    CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer_1_0 AND GStreamer_Gl_FOUND
+    CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer_1_0 AND GStreamer_Gl_FOUND AND EGL_FOUND
+)
+qt_feature("gstreamer" PRIVATE
+    LABEL "QtMM GStreamer plugin"
+    CONDITION (QT_FEATURE_gstreamer_1_0 AND QT_FEATURE_gstreamer_app)
+    ENABLE INPUT_gstreamer STREQUAL 'yes'
+    DISABLE INPUT_gstreamer STREQUAL 'no'
 )
 
 qt_feature("gpu_vivante" PRIVATE

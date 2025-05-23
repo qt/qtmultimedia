@@ -139,9 +139,14 @@ void QFFmpegAudioDecoder::start()
 
     QFFmpeg::MediaDataHolder::Maybe media = QFFmpeg::MediaDataHolder::create(m_url, m_sourceDevice, nullptr);
 
-    if (media)
-        m_decoder->setMedia(std::move(*media.value()));
-    else {
+    if (media) {
+        Q_ASSERT(media.value());
+        if (media.value()->streamInfo(QPlatformMediaPlayer::AudioStream).isEmpty())
+            error(QAudioDecoder::FormatError,
+                  QLatin1String("The media doesn't contain an audio stream"));
+        else
+            m_decoder->setMedia(std::move(*media.value()));
+    } else {
         auto [code, description] = media.error();
         errorSignal(code, description);
     }

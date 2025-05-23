@@ -11,8 +11,8 @@ using namespace QFFmpeg;
 void ConsumerThread::stopAndDelete()
 {
     {
-        QMutexLocker locker(&exitMutex);
-        exit = true;
+        QMutexLocker locker(&m_loopDataMutex);
+        m_exit = true;
     }
     dataReady();
     wait();
@@ -21,7 +21,7 @@ void ConsumerThread::stopAndDelete()
 
 void ConsumerThread::dataReady()
 {
-    condition.wakeAll();
+    m_condition.wakeAll();
 }
 
 void ConsumerThread::run()
@@ -31,11 +31,11 @@ void ConsumerThread::run()
     while (true) {
 
         {
-            QMutexLocker locker(&exitMutex);
-            while (!hasData() && !exit)
-                condition.wait(&exitMutex);
+            QMutexLocker locker(&m_loopDataMutex);
+            while (!hasData() && !m_exit)
+                m_condition.wait(&m_loopDataMutex);
 
-            if (exit)
+            if (m_exit)
                 break;
         }
 
@@ -43,6 +43,11 @@ void ConsumerThread::run()
     }
 
     cleanup();
+}
+
+QMutexLocker<QMutex> ConsumerThread::lockLoopData() const
+{
+    return QMutexLocker(&m_loopDataMutex);
 }
 
 QT_END_NAMESPACE

@@ -34,7 +34,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QCameraFormat cameraFormat READ cameraFormat WRITE setCameraFormat NOTIFY cameraFormatChanged)
 
-    Q_PROPERTY(FocusMode focusMode READ focusMode WRITE setFocusMode)
+    Q_PROPERTY(FocusMode focusMode READ focusMode WRITE setFocusMode NOTIFY focusModeChanged)
     Q_PROPERTY(QPointF focusPoint READ focusPoint NOTIFY focusPointChanged)
     Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint NOTIFY customFocusPointChanged)
     Q_PROPERTY(float focusDistance READ focusDistance WRITE setFocusDistance NOTIFY focusDistanceChanged)

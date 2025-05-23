@@ -4,31 +4,31 @@
 #include "qgstreamervideooverlay_p.h"
 
 #include <QtGui/qguiapplication.h>
-#include "qgstutils_p.h"
-#include "qgst_p.h"
-#include "qgstreamermessage_p.h"
-#include "qgstreamervideosink_p.h"
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+
+#include <common/qglist_helper_p.h>
+#include <common/qgst_p.h>
+#include <common/qgstreamermessage_p.h>
+#include <common/qgstreamervideosink_p.h>
+#include <common/qgstutils_p.h>
 
 #include <gst/video/videooverlay.h>
-
-#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 
 struct ElementMap
 {
-   const char *qtPlatform;
-   const char *gstreamerElement;
+    QStringView qtPlatform;
+    const char *gstreamerElement = nullptr;
 };
 
 // Ordered by descending priority
-static constexpr ElementMap elementMap[] =
-{
-    { "xcb", "xvimagesink" },
-    { "xcb", "ximagesink" },
+static constexpr ElementMap elementMap[] = {
+    { u"xcb", "xvimagesink" },
+    { u"xcb", "ximagesink" },
 
     // wayland
-    { "wayland", "waylandsink" }
+    { u"wayland", "waylandsink" },
 };
 
 static bool qt_gst_element_is_functioning(QGstElement element)
@@ -44,13 +44,14 @@ static bool qt_gst_element_is_functioning(QGstElement element)
 
 static QGstElement findBestVideoSink()
 {
+    using namespace Qt::StringLiterals;
     QString platform = QGuiApplication::platformName();
 
     // First, try some known video sinks, depending on the Qt platform plugin in use.
-    for (auto i : elementMap) {
-        if (platform != QLatin1String(i.qtPlatform))
+    for (const auto &i : elementMap) {
+        if (platform != i.qtPlatform)
             continue;
-        QGstElement choice(i.gstreamerElement, i.gstreamerElement);
+        QGstElement choice = QGstElement::createFromFactory(i.gstreamerElement, i.gstreamerElement);
         if (choice.isNull())
             continue;
 
@@ -60,20 +61,18 @@ static QGstElement findBestVideoSink()
 
     // We need a native window ID to use the GstVideoOverlay interface.
     // Bail out if the Qt platform plugin in use cannot provide a sensible WId.
-    if (platform != QLatin1String("xcb") && platform != QLatin1String("wayland"))
+    if (platform != QStringView{ u"xcb" } && platform != QStringView{ u"wayland" })
         return {};
 
     QGstElement choice;
     // If none of the known video sinks are available, try to find one that implements the
     // GstVideoOverlay interface and has autoplugging rank.
     GList *list = qt_gst_video_sinks();
-    for (GList *item = list; item != nullptr; item = item->next) {
-        GstElementFactory *f = GST_ELEMENT_FACTORY(item->data);
-
+    for (GstElementFactory *f : QGstUtils::GListRangeAdaptor<GstElementFactory *>(list)) {
         if (!gst_element_factory_has_interface(f, "GstVideoOverlay"))
             continue;
 
-        choice = QGstElement(gst_element_factory_create(f, nullptr));
+        choice = QGstElement(gst_element_factory_create(f, nullptr), QGstElement::NeedsRef);
         if (choice.isNull())
             continue;
 
@@ -96,7 +95,7 @@ QGstreamerVideoOverlay::QGstreamerVideoOverlay(QGstreamerVideoSink *parent, cons
 {
     QGstElement sink;
     if (!elementName.isEmpty())
-        sink = QGstElement(elementName.constData(), nullptr);
+        sink = QGstElement::createFromFactory(elementName.constData());
     else
         sink = findBestVideoSink();
 
@@ -121,7 +120,7 @@ void QGstreamerVideoOverlay::setVideoSink(QGstElement sink)
     if (sink.isNull())
         return;
 
-    m_videoSink = sink;
+    m_videoSink = std::move(sink);
 
     QGstPad pad = m_videoSink.staticPad("sink");
     addProbeToPad(pad.pad());
@@ -208,7 +207,7 @@ void QGstreamerVideoOverlay::setFullScreen(bool fullscreen)
 
 bool QGstreamerVideoOverlay::processSyncMessage(const QGstreamerMessage &message)
 {
-    if (!gst_is_video_overlay_prepare_window_handle_message(message.rawMessage()))
+    if (!gst_is_video_overlay_prepare_window_handle_message(message.message()))
         return false;
     gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(m_videoSink.object()), m_windowId);
     return true;

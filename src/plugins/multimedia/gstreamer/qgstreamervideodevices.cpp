@@ -2,74 +2,82 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qgstreamervideodevices_p.h"
-#include "qmediadevices.h"
-#include "private/qcameradevice_p.h"
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
 
-#include "qgstutils_p.h"
+#include <common/qgst_p.h>
+#include <common/qgstutils_p.h>
+#include <common/qglist_helper_p.h>
 
 QT_BEGIN_NAMESPACE
 
-static gboolean deviceMonitor(GstBus *, GstMessage *message, gpointer m)
+static gboolean deviceMonitorCallback(GstBus *, GstMessage *message, gpointer m)
 {
     auto *manager = static_cast<QGstreamerVideoDevices *>(m);
-    GstDevice *device = nullptr;
+    QGstDeviceHandle device;
 
-    switch (GST_MESSAGE_TYPE (message)) {
+    switch (GST_MESSAGE_TYPE(message)) {
     case GST_MESSAGE_DEVICE_ADDED:
         gst_message_parse_device_added(message, &device);
-        manager->addDevice(device);
+        manager->addDevice(std::move(device));
         break;
     case GST_MESSAGE_DEVICE_REMOVED:
         gst_message_parse_device_removed(message, &device);
-        manager->removeDevice(device);
+        manager->removeDevice(std::move(device));
         break;
     default:
         break;
     }
-    if (device)
-        gst_object_unref (device);
 
     return G_SOURCE_CONTINUE;
 }
 
 QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integration)
-    : QPlatformVideoDevices(integration)
+    : QPlatformVideoDevices(integration),
+      m_deviceMonitor{
+          gst_device_monitor_new(),
+      }
 {
-    GstDeviceMonitor *monitor;
-    GstBus *bus;
+    gst_device_monitor_add_filter(m_deviceMonitor.get(), "Video/Source", nullptr);
 
-    monitor = gst_device_monitor_new();
+    QGstBusHandle bus{
+        gst_device_monitor_get_bus(m_deviceMonitor.get()),
+    };
+    gst_bus_add_watch(bus.get(), deviceMonitorCallback, this);
+    gst_device_monitor_start(m_deviceMonitor.get());
 
-    gst_device_monitor_add_filter (monitor, nullptr, nullptr);
+    GList *devices = gst_device_monitor_get_devices(m_deviceMonitor.get());
 
-    bus = gst_device_monitor_get_bus(monitor);
-    gst_bus_add_watch(bus, deviceMonitor, this);
-    gst_object_unref(bus);
-
-    gst_device_monitor_start(monitor);
-
-    auto devices = gst_device_monitor_get_devices(monitor);
-
-    while (devices) {
-        GstDevice *device = static_cast<GstDevice *>(devices->data);
-        addDevice(device);
-        gst_object_unref(device);
-        devices = g_list_delete_link(devices, devices);
+    for (GstDevice *device : QGstUtils::GListRangeAdaptor<GstDevice *>(devices)) {
+        addDevice(QGstDeviceHandle{
+                device,
+                QGstDeviceHandle::HasRef,
+        });
     }
+
+    g_list_free(devices);
+}
+
+QGstreamerVideoDevices::~QGstreamerVideoDevices()
+{
+    gst_device_monitor_stop(m_deviceMonitor.get());
 }
 
 QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
 {
     QList<QCameraDevice> devices;
 
-    for (auto device : m_videoSources) {
+    for (const auto &device : m_videoSources) {
         QCameraDevicePrivate *info = new QCameraDevicePrivate;
-        auto *desc = gst_device_get_display_name(device.gstDevice);
-        info->description = QString::fromUtf8(desc);
-        g_free(desc);
+
+        QGString desc{
+            gst_device_get_display_name(device.gstDevice.get()),
+        };
+        info->description = desc.toQString();
         info->id = device.id;
 
-        if (QGstStructure properties = gst_device_get_properties(device.gstDevice); !properties.isNull()) {
+        if (QGstStructure properties = gst_device_get_properties(device.gstDevice.get());
+            !properties.isNull()) {
             auto def = properties["is-default"].toBool();
             info->isDefault = def && *def;
             properties.free();
@@ -80,7 +88,7 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
         else
             devices.append(info->create());
 
-        auto caps = QGstCaps(gst_device_get_caps(device.gstDevice), QGstCaps::HasRef);
+        auto caps = QGstCaps(gst_device_get_caps(device.gstDevice.get()), QGstCaps::HasRef);
         if (!caps.isNull()) {
             QList<QCameraFormat> formats;
             QSet<QSize> photoResolutions;
@@ -96,13 +104,8 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
                 auto pixelFormat = cap.pixelFormat();
                 auto frameRate = cap.frameRateRange();
 
-                auto *f = new QCameraFormatPrivate{
-                    QSharedData(),
-                    pixelFormat,
-                    resolution,
-                    frameRate.min,
-                    frameRate.max
-                };
+                auto *f = new QCameraFormatPrivate{ QSharedData(), pixelFormat, resolution,
+                                                    frameRate.min, frameRate.max };
                 formats << f->create();
                 photoResolutions.insert(resolution);
             }
@@ -114,34 +117,40 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
     return devices;
 }
 
-void QGstreamerVideoDevices::addDevice(GstDevice *device)
+void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
 {
-    if (gst_device_has_classes(device, "Video/Source")) {
-        gst_object_ref(device);
-        m_videoSources.push_back({device, QByteArray::number(m_idGenerator)});
-        emit videoInputsChanged();
-        m_idGenerator++;
-    }
+    Q_ASSERT(gst_device_has_classes(device.get(), "Video/Source"));
+
+    auto it = std::find_if(m_videoSources.begin(), m_videoSources.end(),
+                           [&](const QGstRecordDevice &a) { return a.gstDevice == device; });
+
+    if (it != m_videoSources.end())
+        return;
+
+    m_videoSources.push_back(QGstRecordDevice{
+            std::move(device),
+            QByteArray::number(m_idGenerator),
+    });
+    emit videoInputsChanged();
+    m_idGenerator++;
 }
 
-void QGstreamerVideoDevices::removeDevice(GstDevice *device)
+void QGstreamerVideoDevices::removeDevice(QGstDeviceHandle device)
 {
     auto it = std::find_if(m_videoSources.begin(), m_videoSources.end(),
-                           [=](const QGstDevice &a) { return a.gstDevice == device; });
+                           [&](const QGstRecordDevice &a) { return a.gstDevice == device; });
 
     if (it != m_videoSources.end()) {
         m_videoSources.erase(it);
         emit videoInputsChanged();
     }
-
-    gst_object_unref(device);
 }
 
 GstDevice *QGstreamerVideoDevices::videoDevice(const QByteArray &id) const
 {
     auto it = std::find_if(m_videoSources.begin(), m_videoSources.end(),
-                           [=](const QGstDevice &a) { return a.id == id; });
-    return it != m_videoSources.end() ? it->gstDevice : nullptr;
+                           [&](const QGstRecordDevice &a) { return a.id == id; });
+    return it != m_videoSources.end() ? it->gstDevice.get() : nullptr;
 }
 
 QT_END_NAMESPACE

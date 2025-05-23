@@ -20,10 +20,7 @@
 # ::
 #
 #   FFMPEG_FOUND         - System has the all required components.
-#   FFMPEG_INCLUDE_DIRS  - Include directory necessary for using the required components headers.
-#   FFMPEG_LIBRARIES     - Link these to use the required ffmpeg components.
-#   FFMPEG_LIBRARY_DIRS  - Link directories
-#   FFMPEG_DEFINITIONS   - Compiler switches required for using the required ffmpeg components.
+#   FFMPEG_SHARED_LIBRARIES - Found FFmpeg shared libraries.
 #
 # For each of the components it will additionally set.
 #
@@ -70,8 +67,32 @@ if (NOT FFmpeg_FIND_COMPONENTS)
 endif ()
 
 if (QT_DEPLOY_FFMPEG AND BUILD_SHARED_LIBS)
-    set(shared_libs_required TRUE)
+    set(shared_libs_desired TRUE)
 endif()
+
+# finds FFmpeg libs, including symlinks, for the specified component.
+macro(find_shared_libs_for_component _component)
+  # the searching pattern is pretty rough but it seems to be sufficient to gather dynamic libs
+  get_filename_component(name_we ${${_component}_LIBRARY} NAME_WE)
+
+  if (WIN32)
+    get_filename_component(dir_name ${${_component}_LIBRARY_DIR} NAME)
+    if (${dir_name} STREQUAL "lib" AND EXISTS "${${_component}_LIBRARY_DIR}/../bin")
+      # llvm-mingv builds aux ffmpeg static libs like lib/libavutil.dll.a and cmake finds
+      # only them even though the folder bin/ contains proper *.dll and *.lib.
+
+      string(REGEX REPLACE "^lib" "" name_we "${name_we}")
+      set(shared_lib_pattern "../bin/${name_we}*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    else()
+      set(shared_lib_pattern "${name_we}*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    endif()
+
+  else()
+    set(shared_lib_pattern "${name_we}*${CMAKE_SHARED_LIBRARY_SUFFIX}*")
+  endif()
+
+  file(GLOB ${_component}_SHARED_LIBRARIES "${${_component}_LIBRARY_DIR}/${shared_lib_pattern}")
+endmacro()
 
 #
 ### Macro: set_component_found
@@ -79,8 +100,7 @@ endif()
 # Marks the given component as found if both *_LIBRARY_NAME AND *_INCLUDE_DIRS is present.
 #
 macro(set_component_found _component)
-  if (${_component}_LIBRARY_NAME AND ${_component}_INCLUDE_DIR AND
-      (${_component}_SHARED_LIBRARIES OR NOT shared_libs_required))
+  if (${_component}_LIBRARY_NAME AND ${_component}_INCLUDE_DIR)
       # message(STATUS "  - ${_component} found.")
     set(${_component}_FOUND TRUE)
     set(${CMAKE_FIND_PACKAGE_NAME}_${_component}_FOUND TRUE)
@@ -135,8 +155,8 @@ macro(find_component _component _pkgconfig _library _header)
       ffmpeg include
   )
 
-  if (shared_libs_required AND NOT WIN32)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_SHARED_LIBRARY_SUFFIX})
+  if (shared_libs_desired AND NOT WIN32)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_SHARED_LIBRARY_SUFFIX};${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
 
   if (${_component}_LIBRARY AND NOT EXISTS ${${_component}_LIBRARY})
@@ -167,25 +187,20 @@ macro(find_component _component _pkgconfig _library _header)
     # On Windows, shared linking goes through 'integration' static libs, so we should look for shared ones anyway
     # On Unix, we gather symlinks as well so that we could install them.
     if (WIN32 OR ${${_component}_LIBRARY_NAME} MATCHES "\\${CMAKE_SHARED_LIBRARY_SUFFIX}$")
-      # the searching pattern is pretty rough but it seems to be sufficient to gather dynamic libs
-       get_filename_component(name_we ${${_component}_LIBRARY} NAME_WE)
-
-      file(GLOB ${_component}_SHARED_LIBRARIES "${${_component}_LIBRARY_DIR}/${name_we}*${CMAKE_SHARED_LIBRARY_SUFFIX}*")
+      find_shared_libs_for_component(${_component})
     endif()
 
   endif()
 
   set(${_component}_DEFINITIONS  ${PC_${_component}_CFLAGS_OTHER})
   set_component_found(${_component})
+
+  mark_as_advanced(${_component}_LIBRARY)
 endmacro()
 
 # Clear the previously cached variables, because they are recomputed every time
 # the Find script is included.
-unset(FFMPEG_INCLUDE_DIRS)
-unset(FFMPEG_LIBRARIES)
-unset(FFMPEG_SHARED_LIBRARIES)
-unset(FFMPEG_DEFINITIONS)
-unset(FFMPEG_LIBRARY_DIRS)
+unset(FFMPEG_SHARED_LIBRARIES CACHE)
 
 # Check for components.
 foreach (_component ${FFmpeg_FIND_COMPONENTS})
@@ -204,6 +219,9 @@ foreach (_component ${FFmpeg_FIND_COMPONENTS})
     else()
       list(APPEND FFMPEG_STATIC_COMPONENTS ${_component})
     endif()
+
+    mark_as_advanced(${_component}_LIBRARY_NAME ${_component}_DEFINITIONS ${_component}_INCLUDE_DIR
+        ${_component}_LIBRARY_DIR ${_component}_SHARED_LIBRARIES)
   endif()
 endforeach()
 
@@ -300,19 +318,12 @@ endfunction()
   list(REMOVE_DUPLICATES FFMPEG_LIBRARY_DIRS)
   list(REMOVE_DUPLICATES FFMPEG_SHARED_LIBRARIES)
 
+  message(STATUS "FFmpeg shared libs: ${FFMPEG_SHARED_LIBRARIES}")
+
   # cache the vars.
-  set(FFMPEG_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} CACHE STRING "The FFmpeg include directories." FORCE)
-  set(FFMPEG_LIBRARIES    ${FFMPEG_LIBRARIES}    CACHE STRING "The FFmpeg libraries." FORCE)
-  set(FFMPEG_DEFINITIONS  ${FFMPEG_DEFINITIONS}  CACHE STRING "The FFmpeg cflags." FORCE)
-  set(FFMPEG_LIBRARY_DIRS ${FFMPEG_LIBRARY_DIRS} CACHE STRING "The FFmpeg library dirs." FORCE)
   set(FFMPEG_SHARED_LIBRARIES ${FFMPEG_SHARED_LIBRARIES} CACHE STRING "The FFmpeg dynamic libraries." FORCE)
 
-  mark_as_advanced(FFMPEG_INCLUDE_DIRS
-                   FFMPEG_LIBRARIES
-                   FFMPEG_DEFINITIONS
-                   FFMPEG_LIBRARY_DIRS
-                   FFMPEG_SHARED_LIBRARIES
-               )
+  mark_as_advanced(FFMPEG_SHARED_LIBRARIES)
 # endif ()
 
 list(LENGTH FFMPEG_LIBRARY_DIRS DIRS_COUNT)
@@ -324,7 +335,13 @@ if(FFMPEG_SHARED_COMPONENTS AND FFMPEG_STATIC_COMPONENTS)
   message(WARNING
     "Only static or shared components are expected\n"
     "  static components: ${FFMPEG_STATIC_COMPONENTS}\n"
-    "  static components: ${FFMPEG_SHARED_COMPONENTS}")
+    "  shared components: ${FFMPEG_SHARED_COMPONENTS}")
+endif()
+
+if (shared_libs_desired AND NOT FFMPEG_SHARED_COMPONENTS)
+  message(WARNING 
+         "Shared FFmpeg libs are desired as QT_DEPLOY_FFMPEG=TRUE, but haven't been found!\n"
+         "Remove QT_DEPLOY_FFMPEG or set the proper path to shared FFmpeg via FFMPEG_DIR.")
 endif()
 
 if (NOT TARGET FFmpeg::FFmpeg)

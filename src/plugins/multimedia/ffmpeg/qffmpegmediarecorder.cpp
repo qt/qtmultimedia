@@ -9,7 +9,7 @@
 #include "qaudiosource.h"
 #include "qffmpegaudioinput_p.h"
 #include "qaudiobuffer.h"
-#include "qffmpegencoder_p.h"
+#include "recordingengine/qffmpegrecordingengine_p.h"
 #include "qffmpegmediacapturesession_p.h"
 
 #include <qdebug.h>
@@ -50,23 +50,29 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
         return;
     }
 
-    const auto audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
+    auto actualLocation = findActualLocation(settings);
 
-    auto primaryLocation = audioOnly ? QStandardPaths::MusicLocation : QStandardPaths::MoviesLocation;
-    auto suffix = settings.mimeType().preferredSuffix();
-    QString location = QMediaStorageLocation::generateFileName(outputLocation().toString(QUrl::PreferLocalFile), primaryLocation, suffix);
-    qCDebug(qLcMediaEncoder) << "recording new video to" << location;
-    qCDebug(qLcMediaEncoder) << "requested format:" << settings.fileFormat() << settings.audioCodec();
+    qCDebug(qLcMediaEncoder) << "recording new media to" << actualLocation;
+    qCDebug(qLcMediaEncoder) << "requested format:" << settings.fileFormat()
+                             << settings.audioCodec();
 
-    Q_ASSERT(!location.isEmpty());
+    auto formatContext = std::make_unique<QFFmpeg::EncodingFormatContext>(settings.fileFormat());
 
-    m_encoder.reset(new Encoder(settings, location));
-    m_encoder->setMetaData(m_metaData);
-    connect(m_encoder.get(), &QFFmpeg::Encoder::durationChanged, this,
+    formatContext->openAVIO(actualLocation);
+
+    if (!formatContext->isAVIOOpen()) {
+        error(QMediaRecorder::LocationNotWritable,
+              QMediaRecorder::tr("Cannot open the output location for writing"));
+        return;
+    }
+
+    m_recordingEngine.reset(new RecordingEngine(settings, std::move(formatContext)));
+    m_recordingEngine->setMetaData(m_metaData);
+    connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::durationChanged, this,
             &QFFmpegMediaRecorder::newDuration);
-    connect(m_encoder.get(), &QFFmpeg::Encoder::finalizationDone, this,
+    connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::finalizationDone, this,
             &QFFmpegMediaRecorder::finalizationDone);
-    connect(m_encoder.get(), &QFFmpeg::Encoder::error, this,
+    connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::error, this,
             &QFFmpegMediaRecorder::handleSessionError);
 
     auto *audioInput = m_session->audioInput();
@@ -74,17 +80,17 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
         if (audioInput->device.isNull())
             qWarning() << "Audio input device is null; cannot encode audio";
         else
-            m_encoder->addAudioInput(static_cast<QFFmpegAudioInput *>(audioInput));
+            m_recordingEngine->addAudioInput(static_cast<QFFmpegAudioInput *>(audioInput));
     }
 
     for (auto source : videoSources)
-        m_encoder->addVideoSource(source);
+        m_recordingEngine->addVideoSource(source);
 
     durationChanged(0);
     stateChanged(QMediaRecorder::RecordingState);
-    actualLocationChanged(QUrl::fromLocalFile(location));
+    actualLocationChanged(QUrl::fromLocalFile(actualLocation));
 
-    m_encoder->start();
+    m_recordingEngine->start();
 }
 
 void QFFmpegMediaRecorder::pause()
@@ -92,8 +98,8 @@ void QFFmpegMediaRecorder::pause()
     if (!m_session || state() != QMediaRecorder::RecordingState)
         return;
 
-    Q_ASSERT(m_encoder);
-    m_encoder->setPaused(true);
+    Q_ASSERT(m_recordingEngine);
+    m_recordingEngine->setPaused(true);
 
     stateChanged(QMediaRecorder::PausedState);
 }
@@ -103,8 +109,8 @@ void QFFmpegMediaRecorder::resume()
     if (!m_session || state() != QMediaRecorder::PausedState)
         return;
 
-    Q_ASSERT(m_encoder);
-    m_encoder->setPaused(false);
+    Q_ASSERT(m_recordingEngine);
+    m_recordingEngine->setPaused(false);
 
     stateChanged(QMediaRecorder::RecordingState);
 }
@@ -118,7 +124,7 @@ void QFFmpegMediaRecorder::stop()
         static_cast<QFFmpegAudioInput *>(input)->setRunning(false);
     qCDebug(qLcMediaEncoder) << "stop";
 
-    m_encoder.reset();
+    m_recordingEngine.reset();
 }
 
 void QFFmpegMediaRecorder::finalizationDone()
@@ -152,11 +158,12 @@ void QFFmpegMediaRecorder::setCaptureSession(QFFmpegMediaCaptureSession *session
         return;
 }
 
-void QFFmpegMediaRecorder::EncoderDeleter::operator()(Encoder *encoder) const
+void QFFmpegMediaRecorder::RecordingEngineDeleter::operator()(
+        RecordingEngine *recordingEngine) const
 {
     // ### all of the below should be done asynchronous. finalize() should do it's work in a thread
     // to avoid blocking the UI in case of slow codecs
-    encoder->finalize();
+    recordingEngine->finalize();
 }
 
 QT_END_NAMESPACE

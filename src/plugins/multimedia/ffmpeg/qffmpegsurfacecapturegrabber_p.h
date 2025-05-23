@@ -38,7 +38,12 @@ class QFFmpegSurfaceCaptureGrabber : public QObject
 {
     Q_OBJECT
 public:
-    QFFmpegSurfaceCaptureGrabber(bool runInThread = true);
+    enum ThreadPolicy {
+        UseCurrentThread,
+        CreateGrabbingThread,
+    };
+
+    QFFmpegSurfaceCaptureGrabber(ThreadPolicy threadPolicy = CreateGrabbingThread);
 
     ~QFFmpegSurfaceCaptureGrabber() override;
 

@@ -18,8 +18,8 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qplatformvideosink_p.h>
 
-#include <qgstpipeline_p.h>
-#include <qgstreamervideooverlay_p.h>
+#include <common/qgstpipeline_p.h>
+#include <common/qgstreamervideooverlay_p.h>
 #include <QtGui/qcolor.h>
 #include <qvideosink.h>
 
@@ -31,8 +31,7 @@ QT_BEGIN_NAMESPACE
 class QGstreamerVideoRenderer;
 class QVideoWindow;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerVideoSink
-    : public QPlatformVideoSink
+class QGstreamerVideoSink : public QPlatformVideoSink
 {
     Q_OBJECT
 public:
@@ -48,8 +47,8 @@ public:
     void setPipeline(QGstPipeline pipeline);
     bool inStoppedState() const;
 
-    GstContext *gstGlDisplayContext() const { return m_gstGlDisplayContext; }
-    GstContext *gstGlLocalContext() const { return m_gstGlLocalContext; }
+    GstContext *gstGlDisplayContext() const { return m_gstGlDisplayContext.get(); }
+    GstContext *gstGlLocalContext() const { return m_gstGlLocalContext.get(); }
     Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
     QFunctionPointer eglImageTargetTexture2D() const { return m_eglImageTargetTexture2D; }
 
@@ -64,6 +63,7 @@ private:
     QGstBin sinkBin;
     QGstElement gstQueue;
     QGstElement gstPreprocess;
+    QGstElement gstCapsFilter;
     QGstElement gstVideoSink;
     QGstElement gstQtSink;
     QGstElement gstSubtitleSink;
@@ -72,8 +72,9 @@ private:
 
     Qt::HANDLE m_eglDisplay = nullptr;
     QFunctionPointer m_eglImageTargetTexture2D = nullptr;
-    GstContext *m_gstGlLocalContext = nullptr;
-    GstContext *m_gstGlDisplayContext = nullptr;
+
+    QGstContextHandle m_gstGlLocalContext;
+    QGstContextHandle m_gstGlDisplayContext;
 };
 
 QT_END_NAMESPACE

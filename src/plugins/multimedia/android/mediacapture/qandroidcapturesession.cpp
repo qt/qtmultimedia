@@ -216,23 +216,7 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     m_outputLocationIsStandard = location.isEmpty() || QFileInfo(location).isRelative();
     m_mediaRecorder->setOutputFile(filePath);
 
-    // Even though the Android doc explicitly says that calling MediaRecorder.setPreviewDisplay()
-    // is not necessary when the Camera already has a Surface, it doesn't actually work on some
-    // devices. For example on the Samsung Galaxy Tab 2, the camera server dies after prepare()
-    // and start() if MediaRecorder.setPreviewDisplay() is not called.
     if (validCameraSession) {
-
-        if (m_cameraSession->videoOutput()) {
-            // When using a SurfaceTexture, we need to pass a new one to the MediaRecorder, not the
-            // same one that is set on the Camera or it will crash, hence the reset().
-            m_cameraSession->videoOutput()->reset();
-            if (m_cameraSession->videoOutput()->surfaceTexture())
-                m_mediaRecorder->setSurfaceTexture(
-                        m_cameraSession->videoOutput()->surfaceTexture());
-            else if (m_cameraSession->videoOutput()->surfaceHolder())
-                m_mediaRecorder->setSurfaceHolder(m_cameraSession->videoOutput()->surfaceHolder());
-        }
-
         m_cameraSession->disableRotation();
     }
 
@@ -382,23 +366,7 @@ void QAndroidCaptureSession::restartViewfinder()
 
     if (m_cameraSession && m_cameraSession->camera()) {
         m_cameraSession->camera()->reconnect();
-
-        // This is not necessary on most devices, but it crashes on some if we don't stop the
-        // preview and reset the preview display on the camera when recording is over.
         m_cameraSession->camera()->stopPreviewSynchronous();
-
-        if (m_cameraSession->videoOutput()) {
-            // When using a SurfaceTexture, we need to pass a new one to the MediaRecorder, not the
-            // same one that is set on the Camera or it will crash, hence the reset().
-            m_cameraSession->videoOutput()->reset();
-            if (m_cameraSession->videoOutput()->surfaceTexture())
-                m_cameraSession->camera()->setPreviewTexture(
-                        m_cameraSession->videoOutput()->surfaceTexture());
-            else if (m_cameraSession->videoOutput()->surfaceHolder())
-                m_cameraSession->camera()->setPreviewDisplay(
-                        m_cameraSession->videoOutput()->surfaceHolder());
-        }
-
         m_cameraSession->camera()->startPreview();
         m_cameraSession->setReadyForCapture(true);
         m_cameraSession->enableRotation();

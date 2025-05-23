@@ -51,7 +51,7 @@ struct V4L2CameraInfo
 QVideoFrameFormat::PixelFormat formatForV4L2Format(uint32_t v4l2Format);
 uint32_t v4l2FormatForPixelFormat(QVideoFrameFormat::PixelFormat format);
 
-class Q_MULTIMEDIA_EXPORT QV4L2Camera : public QPlatformCamera
+class QV4L2Camera : public QPlatformCamera
 {
     Q_OBJECT
 

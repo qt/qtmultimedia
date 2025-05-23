@@ -18,13 +18,6 @@ Codec::Data::Data(AVCodecContextUPtr context, AVStream *stream, AVFormatContext 
         pixelAspectRatio = av_guess_sample_aspect_ratio(formatContext, stream, nullptr);
 }
 
-Codec::Data::~Data()
-{
-    // TODO: investigate if we can remove avcodec_close
-    //       FFmpeg doc says that avcodec_free_context is enough
-    avcodec_close(context.get());
-}
-
 QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext)
 {
     if (!stream)

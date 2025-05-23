@@ -4,6 +4,8 @@
 #include "qvideoframeconverter_p.h"
 #include "qvideoframeconversionhelper_p.h"
 #include "qvideoframeformat.h"
+#include "qvideoframe_p.h"
+#include "qmultimediautils_p.h"
 
 #include <QtGui/private/qrhinull_p.h>
 #if QT_CONFIG(opengl)
@@ -335,11 +337,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
 
     // Do conversion using shaders
 
-    const int rotationIndex = (qToUnderlying(rotation) / 90) % 4;
-
-    QSize frameSize = frame.size();
-    if (rotationIndex % 2)
-        frameSize.transpose();
+    const QSize frameSize = qRotatedFrameSize(frame.size(), rotation);
 
     vertexBuffer.reset(rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, sizeof(g_quad)));
     vertexBuffer->create();
@@ -407,7 +405,8 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
     cb->setViewport({ 0, 0, float(frameSize.width()), float(frameSize.height()) });
     cb->setShaderResources(shaderResourceBindings.get());
 
-    quint32 vertexOffset = quint32(sizeof(float)) * 16 * rotationIndex;
+    const int rotationIndex = (qToUnderlying(rotation) / 90) % 4;
+    const quint32 vertexOffset = quint32(sizeof(float)) * 16 * rotationIndex;
     const QRhiCommandBuffer::VertexInput vbufBinding(vertexBuffer.get(), vertexOffset);
     cb->setVertexInput(0, 1, &vbufBinding);
     cb->draw(4);
@@ -435,6 +434,38 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
     return QImage(reinterpret_cast<const uchar *>(imageData->constData()),
                   readResult.pixelSize.width(), readResult.pixelSize.height(),
                   QImage::Format_RGBA8888_Premultiplied, imageCleanupHandler, imageData);
+}
+
+QImage videoFramePlaneAsImage(QVideoFrame &frame, int plane, QImage::Format targetFormat,
+                              QSize targetSize)
+{
+    if (plane >= frame.planeCount())
+        return {};
+
+    if (!frame.map(QVideoFrame::ReadOnly)) {
+        qWarning() << "Cannot map a video frame in ReadOnly mode!";
+        return {};
+    }
+
+    auto frameHandle = QVideoFramePrivate::handle(frame);
+
+    // With incrementing the reference counter, we share the mapped QVideoFrame
+    // with the target QImage. The function imageCleanupFunction is going to adopt
+    // the frameHandle by QVideoFrame and dereference it upon the destruction.
+    frameHandle->ref.ref();
+
+    auto imageCleanupFunction = [](void *data) {
+        QVideoFrame frame = reinterpret_cast<QVideoFramePrivate *>(data)->adoptThisByVideoFrame();
+        Q_ASSERT(frame.isMapped());
+        frame.unmap();
+    };
+
+    const auto bytesPerLine = frame.bytesPerLine(plane);
+    const auto height =
+            bytesPerLine ? qMin(targetSize.height(), frame.mappedBytes(plane) / bytesPerLine) : 0;
+
+    return QImage(reinterpret_cast<const uchar *>(frame.bits(plane)), targetSize.width(), height,
+                  bytesPerLine, targetFormat, imageCleanupFunction, frameHandle);
 }
 
 QT_END_NAMESPACE

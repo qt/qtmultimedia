@@ -12,8 +12,6 @@
 #include <qaudiosource.h>
 #include <qmediacapturesession.h>
 
-//TESTED_COMPONENT=src/multimedia
-
 #include "qmockmediacapturesession.h"
 #include "qmockintegration.h"
 

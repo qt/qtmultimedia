@@ -29,14 +29,13 @@ public:
 
     QPlatformMediaIntegration* create(const QString &name) override
     {
-        if (name == QLatin1String("darwin"))
+        if (name == u"darwin")
             return new QDarwinIntegration;
         return nullptr;
     }
 };
 
-
-QDarwinIntegration::QDarwinIntegration()
+QDarwinIntegration::QDarwinIntegration() : QPlatformMediaIntegration(QLatin1String("darwin"))
 {
 #if defined(Q_OS_MACOS) && QT_MACOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_11_0)
     if (__builtin_available(macOS 11.0, *))

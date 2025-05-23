@@ -23,33 +23,32 @@
 #include <QtCore/qiodevice.h>
 #include <QtCore/private/qringbuffer_p.h>
 #include <QtCore/qatomic.h>
+#include <QtCore/qmutex.h>
 
-#include <qgst_p.h>
+#include <common/qgst_p.h>
 #include <gst/app/gstappsrc.h>
 
 QT_BEGIN_NAMESPACE
 
-class QNetworkReply;
-
-class Q_MULTIMEDIA_EXPORT QGstAppSrc  : public QObject
+class QGstAppSource : public QObject
 {
     Q_OBJECT
 public:
-    static QMaybe<QGstAppSrc *> create(QObject *parent = nullptr);
-    ~QGstAppSrc();
+    static QMaybe<QGstAppSource *> create(QObject *parent = nullptr);
+    ~QGstAppSource();
 
     bool setup(QIODevice *stream = nullptr, qint64 offset = 0);
     void setAudioFormat(const QAudioFormat &f);
 
-    void setExternalAppSrc(const QGstElement &appsrc);
-    QGstElement element();
+    void setExternalAppSrc(QGstAppSrc);
+    QGstElement element() const;
 
     void write(const char *data, qsizetype size);
 
-    bool canAcceptMoreData() { return m_noMoreData || m_dataRequestSize != 0; }
+    bool canAcceptMoreData() const;
 
-    void suspend() { m_suspended = true; }
-    void resume() { m_suspended = false; m_noMoreData = true; }
+    void suspend();
+    void resume();
 
 Q_SIGNALS:
     void bytesProcessed(int bytes);
@@ -62,13 +61,10 @@ private Q_SLOTS:
 
     void streamDestroyed();
 private:
-    QGstAppSrc(QGstElement appsrc, QObject *parent);
+    QGstAppSource(QGstAppSrc appsrc, QObject *parent);
 
     bool setStream(QIODevice *, qint64 offset);
-    bool isStreamValid() const
-    {
-        return m_stream != nullptr && m_stream->isOpen();
-    }
+    bool isStreamValid() const;
 
     static gboolean on_seek_data(GstAppSrc *element, guint64 arg0, gpointer userdata);
     static void on_enough_data(GstAppSrc *element, gpointer userdata);
@@ -77,12 +73,13 @@ private:
     void sendEOS();
     void eosOrIdle();
 
+    mutable QMutex m_mutex;
+
     QIODevice *m_stream = nullptr;
-    QNetworkReply *m_networkReply = nullptr;
     QRingBuffer m_buffer;
     QAudioFormat m_format;
 
-    QGstElement m_appSrc;
+    QGstAppSrc m_appSrc;
     bool m_sequential = true;
     bool m_suspended = false;
     bool m_noMoreData = false;

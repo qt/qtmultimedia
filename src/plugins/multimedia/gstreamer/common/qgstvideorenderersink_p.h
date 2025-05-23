@@ -26,20 +26,19 @@
 #include <QtCore/qwaitcondition.h>
 #include <qvideoframeformat.h>
 #include <qvideoframe.h>
-#include <qgstvideobuffer_p.h>
-#include <qgst_p.h>
+#include <common/qgstvideobuffer_p.h>
+#include <common/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
 class QVideoSink;
 
 class QGstVideoRenderer : public QObject
 {
-    Q_OBJECT
 public:
     explicit QGstVideoRenderer(QGstreamerVideoSink *sink);
     ~QGstVideoRenderer();
 
-    QGstCaps caps();
+    const QGstCaps &caps();
 
     bool start(const QGstCaps& caps);
     void stop();
@@ -60,7 +59,10 @@ private slots:
 private:
     void notify();
     bool waitForAsyncEvent(QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time);
-    void createSurfaceCaps();
+    static QGstCaps createSurfaceCaps(QGstreamerVideoSink *);
+
+    void gstEventHandleTag(GstEvent *);
+    void gstEventHandleEOS(GstEvent *);
 
     QPointer<QGstreamerVideoSink> m_sink;
 
@@ -72,10 +74,10 @@ private:
     GstFlowReturn m_renderReturn = GST_FLOW_OK;
     bool m_active = false;
 
-    QGstCaps m_surfaceCaps;
+    const QGstCaps m_surfaceCaps;
 
     QGstCaps m_startCaps;
-    GstBuffer *m_renderBuffer = nullptr;
+    QGstBufferHandle m_renderBuffer;
 
     bool m_notified = false;
     bool m_stop = false;
@@ -85,15 +87,15 @@ private:
 
     // --- only accessed from one thread
     QVideoFrameFormat m_format;
-    GstVideoInfo m_videoInfo;
+    GstVideoInfo m_videoInfo{};
     bool m_flushed = true;
     QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
 };
 
-class Q_MULTIMEDIA_EXPORT QGstVideoRendererSink
+class QGstVideoRendererSink
 {
 public:
-    GstVideoSink parent;
+    GstVideoSink parent{};
 
     static QGstVideoRendererSink *createSink(QGstreamerVideoSink *surface);
     static void setSink(QGstreamerVideoSink *surface);

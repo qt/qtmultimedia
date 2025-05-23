@@ -68,7 +68,7 @@ public:
 
     QPlatformMediaIntegration* create(const QString &name) override
     {
-        if (name == QLatin1String("ffmpeg"))
+        if (name == u"ffmpeg")
             return new QFFmpegMediaIntegration;
         return nullptr;
     }
@@ -89,7 +89,7 @@ static void qffmpegLogCallback(void *ptr, int level, const char *fmt, va_list vl
     if (level < 0 || level > av_log_get_level())
         return;
 
-    QString message = QString("FFmpeg log: %1").arg(QString::vasprintf(fmt, vl));
+    QString message = QStringLiteral("FFmpeg log: %1").arg(QString::vasprintf(fmt, vl));
     if (message.endsWith("\n"))
         message.removeLast();
 
@@ -115,28 +115,29 @@ static void setupFFmpegLogger()
 
 static QPlatformSurfaceCapture *createScreenCaptureByBackend(QString backend)
 {
-    if (backend == QLatin1String("grabwindow"))
+    if (backend == u"grabwindow")
         return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
 
 #if QT_CONFIG(eglfs)
-    if (backend == QLatin1String("eglfs"))
+    if (backend == u"eglfs")
         return new QEglfsScreenCapture;
 #endif
 
 #if QT_CONFIG(xlib)
-    if (backend == QLatin1String("x11"))
+    if (backend == u"x11")
         return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
 #elif defined(Q_OS_WINDOWS)
-    if (backend == QLatin1String("dxgi"))
+    if (backend == u"dxgi")
         return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS)
-    if (backend == QLatin1String("avf"))
+    if (backend == u"avf")
         return new QAVFScreenCapture;
 #endif
     return nullptr;
 }
 
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
+    : QPlatformMediaIntegration(QLatin1String("ffmpeg"))
 {
     resolveSymbols();
 
@@ -158,9 +159,11 @@ QMaybe<QPlatformAudioDecoder *> QFFmpegMediaIntegration::createAudioDecoder(QAud
     return new QFFmpegAudioDecoder(decoder);
 }
 
-QMaybe<QPlatformAudioResampler *> QFFmpegMediaIntegration::createAudioResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat)
+QMaybe<std::unique_ptr<QPlatformAudioResampler>>
+QFFmpegMediaIntegration::createAudioResampler(const QAudioFormat &inputFormat,
+                                              const QAudioFormat &outputFormat)
 {
-    return new QFFmpegResampler(inputFormat, outputFormat);
+    return { std::make_unique<QFFmpegResampler>(inputFormat, outputFormat) };
 }
 
 QMaybe<QPlatformMediaCaptureSession *> QFFmpegMediaIntegration::createCaptureSession()

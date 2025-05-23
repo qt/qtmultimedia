@@ -60,7 +60,7 @@ public:
     virtual void unmap() = 0;
 
     virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) { return {}; }
-    virtual quint64 textureHandle(int /*plane*/) const { return 0; }
+    virtual quint64 textureHandle(QRhi *, int /*plane*/) const { return 0; }
 
     virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
 

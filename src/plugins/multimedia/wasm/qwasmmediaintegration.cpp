@@ -40,13 +40,14 @@ public:
 
     QPlatformMediaIntegration *create(const QString &name) override
     {
-        if (name == QLatin1String("wasm"))
+        if (name == u"wasm")
             return new QWasmMediaIntegration;
         return nullptr;
     }
 };
 
-QWasmMediaIntegration::QWasmMediaIntegration() = default;
+QWasmMediaIntegration::QWasmMediaIntegration()
+    : QPlatformMediaIntegration(QLatin1String("wasm")) { }
 
 QMaybe<QPlatformMediaPlayer *> QWasmMediaIntegration::createPlayer(QMediaPlayer *player)
 {

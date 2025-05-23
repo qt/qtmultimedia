@@ -4,14 +4,16 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qmath.h>
-#include <private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
 
 #include "qgstreameraudiosource_p.h"
 #include "qgstreameraudiodevice_p.h"
+#include "common/qgst_p.h"
+#include "common/qgst_debug_p.h"
+
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <gst/gst.h>
 Q_DECLARE_OPAQUE_POINTER(GstSample *);
 Q_DECLARE_METATYPE(GstSample *);
 
@@ -127,7 +129,7 @@ bool QGStreamerAudioSource::open()
         return false;
     }
 
-    gstInput = QGstElement(gst_device_create_element(deviceInfo->gstDevice, nullptr));
+    gstInput = QGstElement::createFromDevice(deviceInfo->gstDevice);
     if (gstInput.isNull()) {
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
@@ -148,7 +150,7 @@ bool QGStreamerAudioSource::open()
     qDebug() << "Caps: " << gst_caps_to_string(gstCaps);
 #endif
 
-    gstPipeline = QGstPipeline("pipeline");
+    gstPipeline = QGstPipeline::create("audioSourcePipeline");
 
     auto *gstBus = gst_pipeline_get_bus(gstPipeline.pipeline());
     gst_bus_add_watch(gstBus, &QGStreamerAudioSource::busMessage, this);
@@ -157,14 +159,14 @@ bool QGStreamerAudioSource::open()
     gstAppSink = createAppSink();
     gstAppSink.set("caps", gstCaps);
 
-    QGstElement conv("audioconvert", "conv");
-    gstVolume = QGstElement("volume", "volume");
+    QGstElement conv = QGstElement::createFromFactory("audioconvert", "conv");
+    gstVolume = QGstElement::createFromFactory("volume", "volume");
     Q_ASSERT(gstVolume);
     if (m_volume != 1.)
         gstVolume.set("volume", m_volume);
 
     gstPipeline.add(gstInput, gstVolume, conv, gstAppSink);
-    gstInput.link(gstVolume, conv, gstAppSink);
+    qLinkGstElements(gstInput, gstVolume, conv, gstAppSink);
 
     gstPipeline.setState(GST_STATE_PLAYING);
 
@@ -204,15 +206,7 @@ gboolean QGStreamerAudioSource::busMessage(GstBus *, GstMessage *msg, gpointer u
         break;
     case GST_MESSAGE_ERROR: {
         input->setError(QAudio::IOError);
-        gchar  *debug;
-        GError *error;
-
-        gst_message_parse_error (msg, &error, &debug);
-        g_free (debug);
-
-        qDebug("Error: %s\n", error->message);
-        g_error_free (error);
-
+        qDebug() << "Error:" << QCompactGstMessageAdaptor(msg);
         break;
     }
     default:
@@ -283,26 +277,24 @@ void QGStreamerAudioSource::reset()
 
 //#define MAX_BUFFERS_IN_QUEUE 4
 
-QGstElement QGStreamerAudioSource::createAppSink()
+QGstAppSink QGStreamerAudioSource::createAppSink()
 {
-    QGstElement sink("appsink", "appsink");
-    GstAppSink *appSink = reinterpret_cast<GstAppSink *>(sink.element());
+    QGstAppSink sink = QGstAppSink::create("appsink");
 
-    GstAppSinkCallbacks callbacks;
-    memset(&callbacks, 0, sizeof(callbacks));
-    callbacks.eos = &eos;
-    callbacks.new_sample = &new_sample;
-    gst_app_sink_set_callbacks(appSink, &callbacks, this, nullptr);
-//    gst_app_sink_set_max_buffers(appSink, MAX_BUFFERS_IN_QUEUE);
-    gst_base_sink_set_sync(GST_BASE_SINK(appSink), FALSE);
+    GstAppSinkCallbacks callbacks{};
+    callbacks.eos = eos;
+    callbacks.new_sample = new_sample;
+    sink.setCallbacks(callbacks, this, nullptr);
+    //    gst_app_sink_set_max_buffers(sink.appSink(), MAX_BUFFERS_IN_QUEUE);
+    gst_base_sink_set_sync(sink.baseSink(), FALSE);
 
     return sink;
 }
 
-void QGStreamerAudioSource::newDataAvailable(GstSample *sample)
+void QGStreamerAudioSource::newDataAvailable(QGstSampleHandle sample)
 {
     if (m_audioSink) {
-        GstBuffer *buffer = gst_sample_get_buffer(sample);
+        GstBuffer *buffer = gst_sample_get_buffer(sample.get());
         GstMapInfo mapInfo;
         gst_buffer_map(buffer, &mapInfo, GST_MAP_READ);
         const char *bufferData = (const char*)mapInfo.data;
@@ -319,8 +311,6 @@ void QGStreamerAudioSource::newDataAvailable(GstSample *sample)
 
         gst_buffer_unmap(buffer, &mapInfo);
     }
-
-    gst_sample_unref(sample);
 }
 
 GstFlowReturn QGStreamerAudioSource::new_sample(GstAppSink *sink, gpointer user_data)
@@ -328,8 +318,14 @@ GstFlowReturn QGStreamerAudioSource::new_sample(GstAppSink *sink, gpointer user_
     // "Note that the preroll buffer will also be returned as the first buffer when calling gst_app_sink_pull_buffer()."
     QGStreamerAudioSource *control = static_cast<QGStreamerAudioSource*>(user_data);
 
-    GstSample *sample = gst_app_sink_pull_sample(sink);
-    QMetaObject::invokeMethod(control, "newDataAvailable", Qt::AutoConnection, Q_ARG(GstSample *, sample));
+    QGstSampleHandle sample{
+        gst_app_sink_pull_sample(sink),
+        QGstSampleHandle::HasRef,
+    };
+
+    QMetaObject::invokeMethod(control, [control, sample = std::move(sample)]() mutable {
+        control->newDataAvailable(std::move(sample));
+    });
 
     return GST_FLOW_OK;
 }
@@ -342,7 +338,7 @@ void QGStreamerAudioSource::eos(GstAppSink *, gpointer user_data)
 
 GStreamerInputPrivate::GStreamerInputPrivate(QGStreamerAudioSource *audio)
 {
-    m_audioDevice = qobject_cast<QGStreamerAudioSource*>(audio);
+    m_audioDevice = audio;
 }
 
 qint64 GStreamerInputPrivate::readData(char *data, qint64 len)
@@ -368,5 +364,3 @@ qint64 GStreamerInputPrivate::bytesAvailable() const
 
 
 QT_END_NAMESPACE
-
-#include "moc_qgstreameraudiosource_p.cpp"

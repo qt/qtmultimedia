@@ -1,13 +1,14 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <qgstreamervideooutput_p.h>
-#include <qgstreamervideosink_p.h>
-#include <qgstsubtitlesink_p.h>
-#include <qvideosink.h>
+#include <QtMultimedia/qvideosink.h>
 
 #include <QtCore/qloggingcategory.h>
-#include <qthread.h>
+#include <QtCore/qthread.h>
+
+#include <common/qgstreamervideooutput_p.h>
+#include <common/qgstreamervideosink_p.h>
+#include <common/qgstsubtitlesink_p.h>
 
 static Q_LOGGING_CATEGORY(qLcMediaVideoOutput, "qt.multimedia.videooutput")
 
@@ -15,29 +16,56 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
 {
-    QGstElement videoConvert("videoconvert", "videoConvert");
-    if (!videoConvert)
-        return errorMessageCannotFindElement("videoconvert");
+    QGstElement videoConvert;
+    QGstElement videoScale;
 
-    QGstElement videoSink("fakesink", "fakeVideoSink");
+    QGstElementFactoryHandle factory = QGstElementFactoryHandle{
+        gst_element_factory_find("videoconvertscale"),
+    };
+
+    if (factory) { // videoconvertscale is only available in gstreamer 1.20
+        videoConvert = QGstElement{
+            gst_element_factory_create(factory.get(), "videoConvertScale"),
+            QGstElement::NeedsRef,
+        };
+    } else {
+        videoConvert = QGstElement::createFromFactory("videoconvert", "videoConvert");
+        if (!videoConvert)
+            return errorMessageCannotFindElement("videoconvert");
+
+        videoScale = QGstElement::createFromFactory("videoscale", "videoScale");
+        if (!videoScale)
+            return errorMessageCannotFindElement("videoscale");
+    }
+
+    QGstElement videoSink = QGstElement::createFromFactory("fakesink", "fakeVideoSink");
     if (!videoSink)
         return errorMessageCannotFindElement("fakesink");
+    videoSink.set("sync", true);
 
-    return new QGstreamerVideoOutput(videoConvert, videoSink, parent);
+    return new QGstreamerVideoOutput(videoConvert, videoScale, videoSink, parent);
 }
 
-QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement sink,
-                                             QObject *parent)
+QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement scale,
+                                             QGstElement sink, QObject *parent)
     : QObject(parent),
-      gstVideoOutput("videoOutput"),
+      gstVideoOutput(QGstBin::create("videoOutput")),
       videoConvert(std::move(convert)),
+      videoScale(std::move(scale)),
       videoSink(std::move(sink))
 {
-    videoQueue = QGstElement("queue", "videoQueue");
+    videoQueue = QGstElement::createFromFactory("queue", "videoQueue");
+
     videoSink.set("sync", true);
-    gstVideoOutput.add(videoQueue, videoConvert, videoSink);
-    if (!videoQueue.link(videoConvert, videoSink))
-        qCDebug(qLcMediaVideoOutput) << ">>>>>> linking failed";
+    videoSink.set("async", false); // no asynchronous state changes
+
+    if (videoScale) {
+        gstVideoOutput.add(videoQueue, videoConvert, videoScale, videoSink);
+        qLinkGstElements(videoQueue, videoConvert, videoScale, videoSink);
+    } else {
+        gstVideoOutput.add(videoQueue, videoConvert, videoSink);
+        qLinkGstElements(videoQueue, videoConvert, videoSink);
+    }
 
     gstVideoOutput.addGhostPad(videoQueue, "sink");
 }
@@ -57,39 +85,42 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         m_videoSink->setPipeline({});
 
     m_videoSink = gstVideoSink;
-    if (m_videoSink)
+    if (m_videoSink) {
         m_videoSink->setPipeline(gstPipeline);
-
+        if (nativeSize.isValid())
+            m_videoSink->setNativeSize(nativeSize);
+    }
     QGstElement gstSink;
     if (m_videoSink) {
         gstSink = m_videoSink->gstSink();
-        isFakeSink = false;
     } else {
-        gstSink = QGstElement("fakesink", "fakevideosink");
+        gstSink = QGstElement::createFromFactory("fakesink", "fakevideosink");
         Q_ASSERT(gstSink);
         gstSink.set("sync", true);
-        isFakeSink = true;
+        gstSink.set("async", false); // no asynchronous state changes
     }
 
     if (videoSink == gstSink)
         return;
 
-    gstPipeline.beginConfig();
-    if (!videoSink.isNull()) {
-        gstVideoOutput.remove(videoSink);
-        videoSink.setStateSync(GST_STATE_NULL);
-    }
-    videoSink = gstSink;
-    gstVideoOutput.add(videoSink);
+    gstPipeline.modifyPipelineWhileNotRunning([&] {
+        if (!videoSink.isNull())
+            gstVideoOutput.stopAndRemoveElements(videoSink);
 
-    videoConvert.link(videoSink);
-    GstEvent *event = gst_event_new_reconfigure();
-    gst_element_send_event(videoSink.element(), event);
-    videoSink.syncStateWithParent();
+        videoSink = gstSink;
+        gstVideoOutput.add(videoSink);
 
-    doLinkSubtitleStream();
+        if (videoScale)
+            qLinkGstElements(videoScale, videoSink);
+        else
+            qLinkGstElements(videoConvert, videoSink);
 
-    gstPipeline.endConfig();
+        GstEvent *event = gst_event_new_reconfigure();
+        gst_element_send_event(videoSink.element(), event);
+        videoSink.syncStateWithParent();
+
+        doLinkSubtitleStream();
+    });
 
     qCDebug(qLcMediaVideoOutput) << "sinkChanged" << gstSink.name();
 
@@ -113,10 +144,10 @@ void QGstreamerVideoOutput::linkSubtitleStream(QGstElement src)
     if (src == subtitleSrc)
         return;
 
-    gstPipeline.beginConfig();
-    subtitleSrc = src;
-    doLinkSubtitleStream();
-    gstPipeline.endConfig();
+    gstPipeline.modifyPipelineWhileNotRunning([&] {
+        subtitleSrc = src;
+        doLinkSubtitleStream();
+    });
 }
 
 void QGstreamerVideoOutput::unlinkSubtitleStream()
@@ -126,10 +157,10 @@ void QGstreamerVideoOutput::unlinkSubtitleStream()
     qCDebug(qLcMediaVideoOutput) << "unlink subtitle stream";
     subtitleSrc = {};
     if (!subtitleSink.isNull()) {
-        gstPipeline.beginConfig();
-        gstPipeline.remove(subtitleSink);
-        gstPipeline.endConfig();
-        subtitleSink.setStateSync(GST_STATE_NULL);
+        gstPipeline.modifyPipelineWhileNotRunning([&] {
+            gstPipeline.stopAndRemoveElements(subtitleSink);
+            return;
+        });
         subtitleSink = {};
     }
     if (m_videoSink)
@@ -139,8 +170,7 @@ void QGstreamerVideoOutput::unlinkSubtitleStream()
 void QGstreamerVideoOutput::doLinkSubtitleStream()
 {
     if (!subtitleSink.isNull()) {
-        gstPipeline.remove(subtitleSink);
-        subtitleSink.setStateSync(GST_STATE_NULL);
+        gstPipeline.stopAndRemoveElements(subtitleSink);
         subtitleSink = {};
     }
     if (!m_videoSink || subtitleSrc.isNull())
@@ -149,8 +179,15 @@ void QGstreamerVideoOutput::doLinkSubtitleStream()
         subtitleSink = m_videoSink->subtitleSink();
         gstPipeline.add(subtitleSink);
     }
-    if (!subtitleSrc.link(subtitleSink))
-        qCDebug(qLcMediaVideoOutput) << "link subtitle stream failed";
+    qLinkGstElements(subtitleSrc, subtitleSink);
+}
+
+void QGstreamerVideoOutput::updateNativeSize()
+{
+    if (!m_videoSink)
+        return;
+
+    m_videoSink->setNativeSize(qRotatedFrameSize(nativeSize, rotation));
 }
 
 void QGstreamerVideoOutput::setIsPreview()
@@ -173,6 +210,18 @@ void QGstreamerVideoOutput::flushSubtitles()
         event = gst_event_new_flush_stop(false);
         pad.sendEvent(event);
     }
+}
+
+void QGstreamerVideoOutput::setNativeSize(QSize sz)
+{
+    nativeSize = sz;
+    updateNativeSize();
+}
+
+void QGstreamerVideoOutput::setRotation(QtVideo::Rotation rot)
+{
+    rotation = rot;
+    updateNativeSize();
 }
 
 QT_END_NAMESPACE

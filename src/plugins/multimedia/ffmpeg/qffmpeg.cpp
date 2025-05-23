@@ -11,6 +11,7 @@
 #include <vector>
 #include <array>
 #include <optional>
+#include <unordered_set>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -21,7 +22,17 @@ extern "C" {
 #endif
 }
 
+#ifdef Q_OS_ANDROID
+#include <QtCore/qjniobject.h>
+#endif
+
 QT_BEGIN_NAMESPACE
+
+#ifdef Q_OS_ANDROID
+Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
+                    "org/qtproject/qt/android/multimedia/QtVideoDeviceManager");
+Q_DECLARE_JNI_TYPE(StringArray, "[Ljava/lang/String;")
+#endif
 
 static Q_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
 
@@ -171,16 +182,32 @@ void dumpCodecInfo(const AVCodec *codec)
     }
 }
 
-bool isCodecValid(const AVCodec *codec, const std::vector<AVHWDeviceType> &availableHwDeviceTypes)
+bool isCodecValid(const AVCodec *codec, const std::vector<AVHWDeviceType> &availableHwDeviceTypes,
+                  const std::optional<std::unordered_set<AVCodecID>> &codecAvailableOnDevice)
 {
     if (codec->type != AVMEDIA_TYPE_VIDEO)
         return true;
 
     const auto pixFmts = codec->pix_fmts;
 
-    if (!pixFmts)
+    if (!pixFmts) {
+#if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
+        // Disable V4L2 M2M codecs for encoding for now,
+        // TODO: Investigate on how to get them working
+        if (std::strstr(codec->name, "_v4l2m2m") && av_codec_is_encoder(codec))
+            return false;
+
+        // MediaCodec in Android is used for hardware-accelerated media processing. That is why
+        // before marking it as valid, we need to make sure if it is available on current device.
+        if (std::strstr(codec->name, "_mediacodec")
+            && (codec->capabilities & AV_CODEC_CAP_HARDWARE)
+            && codecAvailableOnDevice && codecAvailableOnDevice->count(codec->id) == 0)
+            return false;
+#endif
+
         return true; // To be investigated. This happens for RAW_VIDEO, that is supposed to be OK,
-                     // and with v4l2m2m codecs, that is suspicious.
+        // and with v4l2m2m codecs, that is suspicious.
+    }
 
     if (findAVFormat(pixFmts, &isHwPixelFormat) == AV_PIX_FMT_NONE)
         return true;
@@ -192,8 +219,44 @@ bool isCodecValid(const AVCodec *codec, const std::vector<AVHWDeviceType> &avail
         return hasAVFormat(pixFmts, pixelFormatForHwDevice(type));
     };
 
+    if (codecAvailableOnDevice && codecAvailableOnDevice->count(codec->id) == 0)
+        return false;
+
     return std::any_of(availableHwDeviceTypes.begin(), availableHwDeviceTypes.end(),
                        checkDeviceType);
+}
+
+std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecStorageType type)
+{
+#ifdef Q_OS_ANDROID
+    using namespace Qt::StringLiterals;
+    std::unordered_set<AVCodecID> availabeCodecs;
+
+    auto getCodecId = [] (const QString& codecName) {
+        if (codecName == "3gpp"_L1) return AV_CODEC_ID_H263;
+        if (codecName == "avc"_L1) return AV_CODEC_ID_H264;
+        if (codecName == "hevc"_L1) return AV_CODEC_ID_HEVC;
+        if (codecName == "mp4v-es"_L1) return AV_CODEC_ID_MPEG4;
+        if (codecName == "x-vnd.on2.vp8"_L1) return AV_CODEC_ID_VP8;
+        if (codecName == "x-vnd.on2.vp9"_L1) return AV_CODEC_ID_VP9;
+        return AV_CODEC_ID_NONE;
+    };
+
+    const QJniObject jniCodecs = QJniObject::callStaticMethod<QtJniTypes::StringArray>(
+                QtJniTypes::className<QtJniTypes::QtVideoDeviceManager>(),
+                type == ENCODERS ? "getHWVideoEncoders" : "getHWVideoDecoders");
+
+    QJniEnvironment env;
+    const jobjectArray arrCodecs = jniCodecs.object<jobjectArray>();
+    for (int i = 0; i < env->GetArrayLength(arrCodecs); ++i) {
+        const QString codec = QJniObject(env->GetObjectArrayElement(arrCodecs, i)).toString();
+        availabeCodecs.insert(getCodecId(codec));
+    }
+    return availabeCodecs;
+#else
+    Q_UNUSED(type);
+    return {};
+#endif
 }
 
 const CodecsStorage &codecsStorage(CodecStorageType codecsType)
@@ -201,6 +264,8 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
     static const auto &storages = []() {
         std::array<CodecsStorage, CODEC_STORAGE_TYPE_COUNT> result;
         void *opaque = nullptr;
+        const auto platformHwEncoders = availableHWCodecs(ENCODERS);
+        const auto platformHwDecoders = availableHWCodecs(DECODERS);
 
         while (auto codec = av_codec_iterate(&opaque)) {
             // TODO: to be investigated
@@ -219,19 +284,21 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
             }
 
             if (av_codec_is_decoder(codec)) {
-                if (isCodecValid(codec, HWAccel::decodingDeviceTypes()))
+                if (isCodecValid(codec, HWAccel::decodingDeviceTypes(), platformHwDecoders))
                     result[DECODERS].emplace_back(codec);
                 else
-                    qCDebug(qLcFFmpegUtils) << "Skip decoder" << codec->name
-                                            << "due to disabled matching hw acceleration";
+                    qCDebug(qLcFFmpegUtils)
+                            << "Skip decoder" << codec->name
+                            << "due to disabled matching hw acceleration, or dysfunctional codec";
             }
 
             if (av_codec_is_encoder(codec)) {
-                if (isCodecValid(codec, HWAccel::encodingDeviceTypes()))
+                if (isCodecValid(codec, HWAccel::encodingDeviceTypes(), platformHwEncoders))
                     result[ENCODERS].emplace_back(codec);
                 else
-                    qCDebug(qLcFFmpegUtils) << "Skip encoder" << codec->name
-                                            << "due to disabled matching hw acceleration";
+                    qCDebug(qLcFFmpegUtils)
+                            << "Skip encoder" << codec->name
+                            << "due to disabled matching hw acceleration, or dysfunctional codec";
             }
         }
 
@@ -247,7 +314,7 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
                 && qEnvironmentVariableIsSet("QT_FFMPEG_DEBUG");
 
         if (shouldDumpCodecsInfo) {
-            qCDebug(qLcFFmpegUtils) << "Advanced ffmpeg codecs info:";
+            qCDebug(qLcFFmpegUtils) << "Advanced FFmpeg codecs info:";
             for (auto &storage : result) {
                 std::for_each(storage.begin(), storage.end(), &dumpCodecInfo);
                 qCDebug(qLcFFmpegUtils) << "---------------------------";

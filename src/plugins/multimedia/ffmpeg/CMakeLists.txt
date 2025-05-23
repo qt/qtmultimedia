@@ -17,11 +17,11 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
     SOURCES
         qffmpeg.cpp qffmpeg_p.h
         qffmpegdefs_p.h
+        qffmpegioutils.cpp qffmpegioutils_p.h
         qffmpegavaudioformat.cpp qffmpegavaudioformat_p.h
         qffmpegaudiodecoder.cpp qffmpegaudiodecoder_p.h
         qffmpegaudioinput.cpp qffmpegaudioinput_p.h
         qffmpeghwaccel.cpp qffmpeghwaccel_p.h
-        qffmpegencoderoptions.cpp qffmpegencoderoptions_p.h
         qffmpegmediametadata.cpp qffmpegmediametadata_p.h
         qffmpegmediaplayer.cpp qffmpegmediaplayer_p.h
         qffmpegvideosink.cpp qffmpegvideosink_p.h
@@ -31,12 +31,9 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegimagecapture.cpp qffmpegimagecapture_p.h
         qffmpegmediacapturesession.cpp qffmpegmediacapturesession_p.h
         qffmpegmediarecorder.cpp qffmpegmediarecorder_p.h
-        qffmpegencoder.cpp qffmpegencoder_p.h
         qffmpegthread.cpp qffmpegthread_p.h
         qffmpegresampler.cpp qffmpegresampler_p.h
-        qffmpegvideoframeencoder.cpp qffmpegvideoframeencoder_p.h
-        qffmpegvideoencoderutils.cpp qffmpegvideoencoderutils_p.h
-        qffmpegaudioencoderutils.cpp qffmpegaudioencoderutils_p.h
+        qffmpegencodingformatcontext.cpp qffmpegencodingformatcontext_p.h
         qgrabwindowsurfacecapture.cpp qgrabwindowsurfacecapture_p.h
         qffmpegsurfacecapturegrabber.cpp qffmpegsurfacecapturegrabber_p.h
         qffmpegsymbolsresolve_p.h
@@ -56,6 +53,26 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         playbackengine/qffmpegpacket_p.h
         playbackengine/qffmpegframe_p.h
         playbackengine/qffmpegpositionwithoffset_p.h
+
+        recordingengine/qffmpegaudioencoder_p.h
+        recordingengine/qffmpegaudioencoder.cpp
+        recordingengine/qffmpegaudioencoderutils_p.h
+        recordingengine/qffmpegaudioencoderutils.cpp
+        recordingengine/qffmpegencoderthread_p.h
+        recordingengine/qffmpegencoderthread.cpp
+        recordingengine/qffmpegencoderoptions_p.h
+        recordingengine/qffmpegencoderoptions.cpp
+        recordingengine/qffmpegmuxer_p.h
+        recordingengine/qffmpegmuxer.cpp
+        recordingengine/qffmpegrecordingengine_p.h
+        recordingengine/qffmpegrecordingengine.cpp
+        recordingengine/qffmpegvideoencoder_p.h
+        recordingengine/qffmpegvideoencoder.cpp
+        recordingengine/qffmpegvideoencoderutils_p.h
+        recordingengine/qffmpegvideoencoderutils.cpp
+        recordingengine/qffmpegvideoframeencoder_p.h
+        recordingengine/qffmpegvideoframeencoder.cpp
+
     DEFINES
         QT_COMPILING_FFMPEG
     LIBRARIES
@@ -80,7 +97,7 @@ if (ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
     if (QT_FEATURE_vaapi AND NOT DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
         if (NOT FFMPEG_SHARED_LIBRARIES)
             message(WARNING
-                   "QT_FEATURE_vaapi is found but statically built ffmpeg doesn't include vaapi,"
+                   "QT_FEATURE_vaapi is found but statically built FFmpeg doesn't include vaapi,"
                    "however dynamic symbols resolve is possible.")
         endif()
 
@@ -89,7 +106,7 @@ if (ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
 
         message(FATAL_ERROR
                "QT_FEATURE_vaapi is not found "
-               "but ffmpeg includes VAAPI and dynamic symbols resolve is enabled.")
+               "but FFmpeg includes VAAPI and dynamic symbols resolve is enabled.")
     endif()
 endif()
 
@@ -141,6 +158,10 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         qffmpeghwaccel_videotoolbox.mm qffmpeghwaccel_videotoolbox_p.h
         qavfcamera.mm qavfcamera_p.h
         qavfsamplebufferdelegate.mm qavfsamplebufferdelegate_p.h
+
+    NO_UNITY_BUILD_SOURCES
+        qffmpeghwaccel_videotoolbox.mm # AVMediaType clash between libavformat and AVFoundation
+
     INCLUDE_DIRECTORIES
         ../darwin
         ../darwin/camera
@@ -195,8 +216,10 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_xlib
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_eglfs
     SOURCES
         qeglfsscreencapture.cpp qeglfsscreencapture_p.h
+        qopenglvideobuffer.cpp qopenglvideobuffer_p.h
     LIBRARIES
         Qt::OpenGLPrivate
+        Qt::Quick
 )
 
 set_source_files_properties(qx11surfacecapture.cpp # X headers

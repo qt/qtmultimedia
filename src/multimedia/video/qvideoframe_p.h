@@ -15,11 +15,12 @@
 // We mean it.
 //
 
+#include "qvideoframe.h"
 #include "qabstractvideobuffer_p.h"
 #include "qshareddata.h"
 #include "private/qtvideo_p.h"
+
 #include <qmutex.h>
-#include <mutex> // std::once
 
 QT_BEGIN_NAMESPACE
 
@@ -29,20 +30,27 @@ public:
     QVideoFramePrivate() = default;
     QVideoFramePrivate(const QVideoFrameFormat &format) : format(format) { }
 
-    ~QVideoFramePrivate() { delete buffer; }
+    static QVideoFramePrivate *handle(QVideoFrame &frame) { return frame.d.get(); };
+
+    QVideoFrame adoptThisByVideoFrame()
+    {
+        QVideoFrame frame;
+        frame.d = QExplicitlySharedDataPointer(this, QAdoptSharedDataTag{});
+        return frame;
+    }
 
     qint64 startTime = -1;
     qint64 endTime = -1;
     QAbstractVideoBuffer::MapData mapData;
     QVideoFrameFormat format;
-    QAbstractVideoBuffer *buffer = nullptr;
+    std::unique_ptr<QAbstractVideoBuffer> buffer;
     int mappedCount = 0;
     QMutex mapMutex;
     QString subtitleText;
     QtVideo::Rotation rotation = QtVideo::Rotation::None;
     bool mirrored = false;
     QImage image;
-    std::once_flag imageOnceFlag;
+    QMutex imageMutex;
 
 private:
     Q_DISABLE_COPY(QVideoFramePrivate)

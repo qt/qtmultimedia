@@ -17,6 +17,10 @@ private slots:
     void fraction_of_29_97();
     void fraction_of_lower_boundary();
     void fraction_of_upper_boundary();
+
+    void qRotatedFrameSize_returnsSizeAccordinglyToRotation();
+
+    void qMediaFromUserInput_addsFilePrefix_whenCalledWithLocalFile();
 };
 
 void tst_QMultimediaUtils::fraction_of_0()
@@ -69,6 +73,40 @@ void tst_QMultimediaUtils::fraction_of_upper_boundary()
     auto [n, d] = qRealToFraction(f);
     QVERIFY(double(n) / double(d) <= 1.);
     QVERIFY(double(n) / double(d) > f);
+}
+
+void tst_QMultimediaUtils::qRotatedFrameSize_returnsSizeAccordinglyToRotation()
+{
+    QCOMPARE(qRotatedFrameSize({ 10, 22 }, 0), QSize(10, 22));
+    QCOMPARE(qRotatedFrameSize({ 10, 23 }, -180), QSize(10, 23));
+    QCOMPARE(qRotatedFrameSize({ 10, 24 }, 180), QSize(10, 24));
+    QCOMPARE(qRotatedFrameSize({ 10, 25 }, 360), QSize(10, 25));
+    QCOMPARE(qRotatedFrameSize({ 11, 26 }, 540), QSize(11, 26));
+
+    QCOMPARE(qRotatedFrameSize({ 10, 22 }, -90), QSize(22, 10));
+    QCOMPARE(qRotatedFrameSize({ 10, 23 }, 90), QSize(23, 10));
+    QCOMPARE(qRotatedFrameSize({ 10, 24 }, 270), QSize(24, 10));
+    QCOMPARE(qRotatedFrameSize({ 10, 25 }, 450), QSize(25, 10));
+
+    QCOMPARE(qRotatedFrameSize({ 10, 22 }, QtVideo::Rotation::None), QSize(10, 22));
+    QCOMPARE(qRotatedFrameSize({ 10, 22 }, QtVideo::Rotation::Clockwise180), QSize(10, 22));
+
+    QCOMPARE(qRotatedFrameSize({ 11, 22 }, QtVideo::Rotation::Clockwise90), QSize(22, 11));
+    QCOMPARE(qRotatedFrameSize({ 11, 22 }, QtVideo::Rotation::Clockwise270), QSize(22, 11));
+}
+
+void tst_QMultimediaUtils::qMediaFromUserInput_addsFilePrefix_whenCalledWithLocalFile()
+{
+    using namespace Qt::Literals;
+
+    QCOMPARE(qMediaFromUserInput(QUrl(u"/foo/bar/baz"_s)), QUrl(u"file:///foo/bar/baz"_s));
+    QCOMPARE(qMediaFromUserInput(QUrl::fromLocalFile(u"C:/foo/bar/baz"_s)),
+             QUrl(u"file:///C:/foo/bar/baz"_s));
+    QCOMPARE(qMediaFromUserInput(QUrl(u"file:///foo/bar/baz"_s)), QUrl(u"file:///foo/bar/baz"_s));
+    QCOMPARE(qMediaFromUserInput(QUrl(u"http://foo/bar/baz"_s)), QUrl(u"http://foo/bar/baz"_s));
+
+    QCOMPARE(qMediaFromUserInput(QUrl(u"foo/bar/baz"_s)),
+             QUrl::fromLocalFile(QDir::currentPath() + u"/foo/bar/baz"_s));
 }
 
 QTEST_MAIN(tst_QMultimediaUtils)

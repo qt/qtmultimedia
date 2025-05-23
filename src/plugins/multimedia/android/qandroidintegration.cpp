@@ -37,17 +37,13 @@ public:
 
     QPlatformMediaIntegration* create(const QString &name) override
     {
-        if (name == QLatin1String("android"))
+        if (name == u"android")
             return new QAndroidIntegration;
         return nullptr;
     }
 };
 
-
-QAndroidIntegration::QAndroidIntegration()
-{
-
-}
+QAndroidIntegration::QAndroidIntegration() : QPlatformMediaIntegration(QLatin1String("android")) { }
 
 QMaybe<QPlatformAudioDecoder *> QAndroidIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {

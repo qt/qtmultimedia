@@ -21,7 +21,7 @@ Row {
         width: Style.widthShort
         horizontalAlignment: Text.AlignRight
         verticalAlignment: Text.AlignVCenter
-        color: root.enabled ? "black" : "gray"
+        color: root.enabled ? palette.text : palette.mid
         font.pointSize: Style.fontSize
     }
 

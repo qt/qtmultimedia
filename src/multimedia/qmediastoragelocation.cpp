@@ -4,6 +4,7 @@
 #include "qmediastoragelocation_p.h"
 
 #include <QStandardPaths>
+#include <QUrl>
 
 QT_BEGIN_NAMESPACE
 
@@ -33,13 +34,13 @@ QDir QMediaStorageLocation::defaultDirectory(QStandardPaths::StandardLocation ty
 static QString generateFileName(const QDir &dir, const QString &prefix, const QString &extension)
 {
     auto lastMediaIndex = 0;
-    const auto list = dir.entryList({ QString::fromLatin1("%1*.%2").arg(prefix, extension) });
+    const auto list = dir.entryList({ QStringLiteral("%1*.%2").arg(prefix, extension) });
     for (const QString &fileName : list) {
         auto mediaIndex = QStringView{fileName}.mid(prefix.size(), fileName.size() - prefix.size() - extension.size() - 1).toInt();
         lastMediaIndex = qMax(lastMediaIndex, mediaIndex);
     }
 
-    const QString name = QString::fromLatin1("%1%2.%3")
+    const QString name = QStringLiteral("%1%2.%3")
             .arg(prefix)
             .arg(lastMediaIndex + 1, 4, 10, QLatin1Char('0'))
             .arg(extension);
@@ -52,11 +53,16 @@ QString QMediaStorageLocation::generateFileName(const QString &requestedName,
                                                 QStandardPaths::StandardLocation type,
                                                 const QString &extension)
 {
-    auto prefix = QLatin1String("clip_");
+    using namespace Qt::StringLiterals;
+
+    if (QUrl(requestedName).scheme() == "content"_L1)
+        return requestedName;
+
+    auto prefix = "clip_"_L1;
     switch (type) {
-        case QStandardPaths::PicturesLocation: prefix = QLatin1String("image_"); break;
-        case QStandardPaths::MoviesLocation: prefix = QLatin1String("video_"); break;
-        case QStandardPaths::MusicLocation: prefix = QLatin1String("record_"); break;
+        case QStandardPaths::PicturesLocation: prefix = "image_"_L1; break;
+        case QStandardPaths::MoviesLocation: prefix = "video_"_L1; break;
+        case QStandardPaths::MusicLocation: prefix = "record_"_L1; break;
         default: break;
     }
 
@@ -65,14 +71,14 @@ QString QMediaStorageLocation::generateFileName(const QString &requestedName,
 
     QString path = requestedName;
 
-    if (QFileInfo(path).isRelative())
+    if (QFileInfo(path).isRelative() && QUrl(path).isRelative())
         path = defaultDirectory(type).absoluteFilePath(path);
 
     if (QFileInfo(path).isDir())
         return generateFileName(QDir(path), prefix, extension);
 
     if (!path.endsWith(extension))
-        path.append(QString(QLatin1String(".%1")).arg(extension));
+        path.append(QStringLiteral(".%1").arg(extension));
 
     return path;
 }

@@ -50,13 +50,14 @@ class QPlatformAudioInput;
 class QPlatformAudioOutput;
 class QPlatformVideoDevices;
 
-class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration
+class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration : public QObject
 {
+    Q_OBJECT
     inline static const QString notAvailable = QStringLiteral("Not available");
 public:
     static QPlatformMediaIntegration *instance();
 
-    QPlatformMediaIntegration();
+    explicit QPlatformMediaIntegration(QLatin1String);
     virtual ~QPlatformMediaIntegration();
     const QPlatformMediaFormatInfo *formatInfo();
 
@@ -65,12 +66,9 @@ public:
     virtual QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *) { return nullptr; }
 
     virtual QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *) { return notAvailable; }
-    virtual QMaybe<QPlatformAudioResampler *>
+    virtual QMaybe<std::unique_ptr<QPlatformAudioResampler>>
     createAudioResampler(const QAudioFormat & /*inputFormat*/,
-                         const QAudioFormat & /*outputFormat*/)
-    {
-        return notAvailable;
-    }
+                         const QAudioFormat & /*outputFormat*/);
     virtual QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() { return notAvailable; }
     virtual QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *) { return notAvailable; }
     virtual QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *) { return notAvailable; }
@@ -83,10 +81,17 @@ public:
 
     QPlatformVideoDevices *videoDevices();
 
+    QPlatformMediaDevices *mediaDevices();
+
+    static QStringList availableBackends();
+    QLatin1String name(); // for unit tests
+
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();
 
     virtual QPlatformVideoDevices *createVideoDevices() { return nullptr; }
+
+    virtual std::unique_ptr<QPlatformMediaDevices> createMediaDevices();
 
 private:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
@@ -94,6 +99,11 @@ private:
 
     mutable std::unique_ptr<QPlatformMediaFormatInfo> m_formatInfo;
     mutable std::once_flag m_formatInfoOnceFlg;
+
+    std::unique_ptr<QPlatformMediaDevices> m_mediaDevices;
+    std::once_flag m_mediaDevicesOnceFlag;
+
+    const QLatin1String m_backendName;
 };
 
 QT_END_NAMESPACE

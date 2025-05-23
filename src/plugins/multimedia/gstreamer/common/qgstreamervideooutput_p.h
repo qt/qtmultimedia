@@ -18,18 +18,18 @@
 #include <QtCore/qobject.h>
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qmultimediautils_p.h>
-#include <qgst_p.h>
-#include <qgstpipeline_p.h>
+#include <common/qgst_p.h>
+#include <common/qgstpipeline_p.h>
+#include <common/qgstreamervideosink_p.h>
 #include <qwaitcondition.h>
 #include <qmutex.h>
 #include <qpointer.h>
-#include <qgstreamervideosink_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QVideoSink;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerVideoOutput : public QObject
+class QGstreamerVideoOutput : public QObject
 {
     Q_OBJECT
 
@@ -49,13 +49,17 @@ public:
     void setIsPreview();
     void flushSubtitles();
 
+    void setNativeSize(QSize);
+    void setRotation(QtVideo::Rotation);
+
 private:
-    QGstreamerVideoOutput(QGstElement videoConvert, QGstElement videoSink, QObject *parent);
+    QGstreamerVideoOutput(QGstElement videoConvert, QGstElement videoScale, QGstElement videoSink,
+                          QObject *parent);
 
     void doLinkSubtitleStream();
+    void updateNativeSize();
 
     QPointer<QGstreamerVideoSink> m_videoSink;
-    bool isFakeSink = true;
 
     // Gst elements
     QGstPipeline gstPipeline;
@@ -63,10 +67,14 @@ private:
     QGstBin gstVideoOutput;
     QGstElement videoQueue;
     QGstElement videoConvert;
+    QGstElement videoScale;
     QGstElement videoSink;
 
     QGstElement subtitleSrc;
     QGstElement subtitleSink;
+
+    QSize nativeSize;
+    QtVideo::Rotation rotation{};
 };
 
 QT_END_NAMESPACE

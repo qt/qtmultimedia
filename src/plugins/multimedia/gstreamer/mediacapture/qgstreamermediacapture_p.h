@@ -18,8 +18,8 @@
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
-#include <qgst_p.h>
-#include <qgstpipeline_p.h>
+#include <common/qgst_p.h>
+#include <common/qgstpipeline_p.h>
 
 #include <qtimer.h>
 
@@ -64,6 +64,8 @@ public:
     QGstreamerVideoSink *gstreamerVideoSink() const;
 
 private:
+    void setCameraActive(bool activate);
+
     explicit QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutput);
 
     friend QGstreamerMediaEncoder;
@@ -72,6 +74,7 @@ private:
 
     QGstreamerAudioInput *gstAudioInput = nullptr;
     QGstreamerCamera *gstCamera = nullptr;
+    QMetaObject::Connection gstCameraActiveConnection;
 
     QGstElement gstAudioTee;
     QGstElement gstVideoTee;

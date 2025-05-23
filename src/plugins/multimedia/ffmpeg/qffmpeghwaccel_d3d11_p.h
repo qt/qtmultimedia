@@ -52,9 +52,9 @@ class TextureBridge final
 {
 public:
     /** Copy a texture slice at position 'index' belonging to device 'dev'
-     * into a shared texture */
+     * into a shared texture, limiting the texture size to the frame size */
     bool copyToSharedTex(ID3D11Device *dev, ID3D11DeviceContext *ctx,
-                         const ComPtr<ID3D11Texture2D> &tex, UINT index);
+                         const ComPtr<ID3D11Texture2D> &tex, UINT index, const QSize &frameSize);
 
     /** Obtain a copy of the texture on a second device 'dev' */
     ComPtr<ID3D11Texture2D> copyFromSharedTex(const ComPtr<ID3D11Device1> &dev,
@@ -62,9 +62,9 @@ public:
 
 private:
     bool ensureDestTex(const ComPtr<ID3D11Device1> &dev);
-    bool ensureSrcTex(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex);
-    bool isSrcInitialized(const ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex) const;
-    bool recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex);
+    bool ensureSrcTex(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex, const QSize &frameSize);
+    bool isSrcInitialized(const ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex, const QSize &frameSize) const;
+    bool recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex, const QSize &frameSize);
 
     SharedTextureHandle m_sharedHandle{};
 
@@ -73,6 +73,7 @@ private:
     ComPtr<IDXGIKeyedMutex> m_srcMutex;
 
     const UINT m_destKey = 1;
+    ComPtr<ID3D11Device1> m_destDevice;
     ComPtr<ID3D11Texture2D> m_destTex;
     ComPtr<IDXGIKeyedMutex> m_destMutex;
 

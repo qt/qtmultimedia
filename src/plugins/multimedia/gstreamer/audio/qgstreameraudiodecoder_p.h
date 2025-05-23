@@ -15,21 +15,21 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qplatformaudiodecoder_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <QObject>
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
 
-#include <private/qplatformaudiodecoder_p.h>
-#include <private/qmultimediautils_p.h>
-#include <qgstpipeline_p.h>
-#include "qaudiodecoder.h"
+#include <common/qgstpipeline_p.h>
+#include <common/qgst_p.h>
 
 #if QT_CONFIG(gstreamer_app)
-#include <qgstappsrc_p.h>
+#  include <common/qgstappsource_p.h>
 #endif
 
-#include <qgst_p.h>
 #include <gst/app/gstappsink.h>
 
 QT_BEGIN_NAMESPACE
@@ -57,7 +57,6 @@ public:
     void setAudioFormat(const QAudioFormat &format) override;
 
     QAudioBuffer read() override;
-    bool bufferAvailable() const override;
 
     qint64 position() const override;
     qint64 duration() const override;
@@ -65,43 +64,48 @@ public:
     // GStreamerBusMessageFilter interface
     bool processBusMessage(const QGstreamerMessage &message) override;
 
-#if QT_CONFIG(gstreamer_app)
-    QGstAppSrc *appsrc() const { return m_appSrc; }
-    static void configureAppSrcElement(GObject*, GObject*, GParamSpec*, QGstreamerAudioDecoder *_this);
-#endif
-
-    static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);
-
 private slots:
     void updateDuration();
 
 private:
     QGstreamerAudioDecoder(QGstPipeline playbin, QGstElement audioconvert, QAudioDecoder *parent);
 
+#if QT_CONFIG(gstreamer_app)
+    static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);
+    GstFlowReturn newSample(GstAppSink *sink);
+
+    static void configureAppSrcElement(GObject *, GObject *, GParamSpec *,
+                                       QGstreamerAudioDecoder *_this);
+#endif
+
     void setAudioFlags(bool wantNativeAudio);
     void addAppSink();
     void removeAppSink();
 
-    void processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString);
+    bool handlePlaybinMessage(const QGstreamerMessage &);
+
+    void processInvalidMedia(QAudioDecoder::Error errorCode, const QString &errorString);
     static qint64 getPositionFromBuffer(GstBuffer* buffer);
 
     QGstPipeline m_playbin;
     QGstBin m_outputBin;
     QGstElement m_audioConvert;
-    GstAppSink *m_appSink = nullptr;
-    QGstAppSrc *m_appSrc = nullptr;
+    QGstAppSink m_appSink;
+    QGstAppSource *m_appSrc = nullptr;
 
     QUrl mSource;
     QIODevice *mDevice = nullptr;
     QAudioFormat mFormat;
 
-    mutable QMutex m_buffersMutex;
     int m_buffersAvailable = 0;
-
     qint64 m_position = -1;
     qint64 m_duration = -1;
 
     int m_durationQueries = 0;
+
+    qint32 m_currentSessionId{};
+
+    QGObjectHandlerScopedConnection m_deepNotifySourceConnection;
 };
 
 QT_END_NAMESPACE

@@ -24,7 +24,10 @@ Column {
         function onMediaFormatChanged() { root.populateModels() }
     }
 
-    Text { text: "Encoder settings" }
+    Text {
+        text: "Encoder settings"
+        color: palette.text
+    }
 
     StyleParameter {
         label: "Quality"

@@ -64,6 +64,11 @@ public class QtAudioDeviceManager
         context.registerReceiver(m_audioDevicesReceiver, audioDevicesFilter);
     }
 
+    public static void unregisterAudioHeadsetStateReceiver(Context context)
+    {
+        context.unregisterReceiver(m_audioDevicesReceiver);
+    }
+
     static public void setContext(Context context)
     {
         m_audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);

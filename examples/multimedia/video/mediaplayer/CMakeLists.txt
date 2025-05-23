@@ -13,7 +13,7 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/mediaplayer")
 
-find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 Svg)
+find_package(Qt6 REQUIRED COMPONENTS Core Multimedia Quick QuickControls2 Svg)
 
 qt_add_executable(mediaplayer
     main.cpp
@@ -41,6 +41,7 @@ qt_add_resources(mediaplayer "mediaplayer"
 
 target_link_libraries(mediaplayer PRIVATE
     Qt6::Core
+    Qt6::Multimedia
     Qt6::Svg
     Qt6::Quick
 )

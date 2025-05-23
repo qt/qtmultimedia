@@ -1,8 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-//TESTED_COMPONENT=src/multimedia
-
 #include <QtTest/QtTest>
 #include <QtCore/qdebug.h>
 #include <QtCore/qbuffer.h>
@@ -23,29 +21,11 @@ class tst_QMediaPlayerWidgets: public QObject
 {
     Q_OBJECT
 
-public slots:
-    void initTestCase();
-    void cleanupTestCase();
-    void init();
-    void cleanup();
-
 private slots:
     void testSetVideoOutput();
     void testSetVideoOutputNoService();
     void testSetVideoOutputNoControl();
 };
-
-void tst_QMediaPlayerWidgets::initTestCase() { }
-
-void tst_QMediaPlayerWidgets::cleanupTestCase() { }
-
-void tst_QMediaPlayerWidgets::init()
-{
-}
-
-void tst_QMediaPlayerWidgets::cleanup()
-{
-}
 
 void tst_QMediaPlayerWidgets::testSetVideoOutput()
 {

@@ -16,7 +16,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qgst_p.h>
+#include <common/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -30,7 +30,7 @@ struct QGstPointerImpl::QGstRefcountingAdaptor<GstMessage>
     static void unref(GstMessage *arg) noexcept { gst_message_unref(arg); }
 };
 
-class Q_MULTIMEDIA_EXPORT QGstreamerMessage : public QGstPointerImpl::QGstObjectWrapper<GstMessage>
+class QGstreamerMessage : public QGstPointerImpl::QGstObjectWrapper<GstMessage>
 {
     using BaseClass = QGstPointerImpl::QGstObjectWrapper<GstMessage>;
 
@@ -41,13 +41,11 @@ public:
     QGstreamerMessage &operator=(const QGstreamerMessage &) = default;
     QGstreamerMessage &operator=(QGstreamerMessage &&) noexcept = default;
 
-    explicit QGstreamerMessage(const QGstStructure &structure);
-
     GstMessageType type() const { return GST_MESSAGE_TYPE(get()); }
-    QGstObject source() const { return QGstObject(GST_MESSAGE_SRC(get())); }
+    QGstObject source() const { return QGstObject(GST_MESSAGE_SRC(get()), QGstObject::NeedsRef); }
     QGstStructure structure() const { return QGstStructure(gst_message_get_structure(get())); }
 
-    GstMessage* rawMessage() const;
+    GstMessage *message() const { return get(); }
 };
 
 QT_END_NAMESPACE

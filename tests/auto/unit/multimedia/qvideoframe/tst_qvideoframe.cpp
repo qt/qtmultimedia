@@ -1,8 +1,6 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-//TESTED_COMPONENT=src/multimedia
-
 #include <QtTest/QtTest>
 
 #include <qvideoframe.h>
@@ -144,34 +142,43 @@ void tst_QVideoFrame::create_data()
 {
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
-    QTest::addColumn<int>("bytes");
     QTest::addColumn<int>("bytesPerLine");
 
     QTest::newRow("64x64 ARGB32")
             << QSize(64, 64)
-            << QVideoFrameFormat::Format_ARGB8888;
+            << QVideoFrameFormat::Format_ARGB8888
+            << 64*4;
     QTest::newRow("32x256 YUV420P")
             << QSize(32, 256)
-            << QVideoFrameFormat::Format_YUV420P;
+            << QVideoFrameFormat::Format_YUV420P
+            << 32;
+    QTest::newRow("32x256 UYVY")
+            << QSize(32, 256)
+            << QVideoFrameFormat::Format_UYVY
+            << 32*2;
 }
 
 void tst_QVideoFrame::create()
 {
     QFETCH(QSize, size);
     QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
+    QFETCH(int, bytesPerLine);
 
     QVideoFrame frame(QVideoFrameFormat(size, pixelFormat));
 
     QVERIFY(frame.isValid());
     QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
     QVERIFY(frame.videoBuffer() != nullptr);
-    QCOMPARE(frame.videoBuffer()->textureHandle(0), 0u);
+    QCOMPARE(frame.videoBuffer()->textureHandle(nullptr, 0), 0u);
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
     QCOMPARE(frame.height(), size.height());
     QCOMPARE(frame.startTime(), qint64(-1));
     QCOMPARE(frame.endTime(), qint64(-1));
+    frame.map(QVideoFrame::ReadOnly);
+    QCOMPARE(frame.bytesPerLine(0), bytesPerLine);
+    frame.unmap();
 }
 
 void tst_QVideoFrame::createInvalid_data()

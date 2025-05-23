@@ -121,7 +121,7 @@ Player::Player(QWidget *parent) : QWidget(parent)
 
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     m_audioOutputCombo = new QComboBox(this);
-    m_audioOutputCombo->addItem(QString::fromUtf8("Default"), QVariant::fromValue(QAudioDevice()));
+    m_audioOutputCombo->addItem(QStringLiteral("Default"), QVariant::fromValue(QAudioDevice()));
     for (auto &deviceInfo : QMediaDevices::audioOutputs())
         m_audioOutputCombo->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
     connect(m_audioOutputCombo, QOverload<int>::of(&QComboBox::activated), this,
@@ -266,7 +266,7 @@ void Player::positionChanged(qint64 progress)
 void Player::metaDataChanged()
 {
     auto metaData = m_player->metaData();
-    setTrackInfo(QString("%1 - %2")
+    setTrackInfo(QStringLiteral("%1 - %2")
                          .arg(metaData.value(QMediaMetaData::AlbumArtist).toString())
                          .arg(metaData.value(QMediaMetaData::Title).toString()));
 
@@ -319,7 +319,7 @@ QString Player::trackName(const QMediaMetaData &metaData, int index)
         if (lang == QLocale::Language::AnyLanguage)
             name = title;
         else
-            name = QString("%1 - [%2]").arg(title).arg(QLocale::languageToString(lang));
+            name = QStringLiteral("%1 - [%2]").arg(title).arg(QLocale::languageToString(lang));
     }
     return name;
 }
@@ -331,18 +331,18 @@ void Player::tracksChanged()
     m_subtitleTracks->clear();
 
     const auto audioTracks = m_player->audioTracks();
-    m_audioTracks->addItem(QString::fromUtf8("No audio"), -1);
+    m_audioTracks->addItem(QStringLiteral("No audio"), -1);
     for (int i = 0; i < audioTracks.size(); ++i)
         m_audioTracks->addItem(trackName(audioTracks.at(i), i), i);
     m_audioTracks->setCurrentIndex(m_player->activeAudioTrack() + 1);
 
     const auto videoTracks = m_player->videoTracks();
-    m_videoTracks->addItem(QString::fromUtf8("No video"), -1);
+    m_videoTracks->addItem(QStringLiteral("No video"), -1);
     for (int i = 0; i < videoTracks.size(); ++i)
         m_videoTracks->addItem(trackName(videoTracks.at(i), i), i);
     m_videoTracks->setCurrentIndex(m_player->activeVideoTrack() + 1);
 
-    m_subtitleTracks->addItem(QString::fromUtf8("No subtitles"), -1);
+    m_subtitleTracks->addItem(QStringLiteral("No subtitles"), -1);
     const auto subtitleTracks = m_player->subtitleTracks();
     for (int i = 0; i < subtitleTracks.size(); ++i)
         m_subtitleTracks->addItem(trackName(subtitleTracks.at(i), i), i);
@@ -474,7 +474,7 @@ void Player::setTrackInfo(const QString &info)
         m_statusLabel->setText(m_statusInfo);
     } else {
         if (!m_statusInfo.isEmpty())
-            setWindowTitle(QString("%1 | %2").arg(m_trackInfo).arg(m_statusInfo));
+            setWindowTitle(QStringLiteral("%1 | %2").arg(m_trackInfo).arg(m_statusInfo));
         else
             setWindowTitle(m_trackInfo);
     }
@@ -489,7 +489,7 @@ void Player::setStatusInfo(const QString &info)
         m_statusLabel->setText(m_statusInfo);
     } else {
         if (!m_statusInfo.isEmpty())
-            setWindowTitle(QString("%1 | %2").arg(m_trackInfo).arg(m_statusInfo));
+            setWindowTitle(QStringLiteral("%1 | %2").arg(m_trackInfo).arg(m_statusInfo));
         else
             setWindowTitle(m_trackInfo);
     }

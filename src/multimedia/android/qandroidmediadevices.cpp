@@ -17,7 +17,26 @@
 
 QT_BEGIN_NAMESPACE
 
-QAndroidMediaDevices::QAndroidMediaDevices() : QPlatformMediaDevices() { }
+Q_DECLARE_JNI_CLASS(QtAudioDeviceManager,
+                            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager");
+
+
+QAndroidMediaDevices::QAndroidMediaDevices() : QPlatformMediaDevices()
+{
+    QJniObject::callStaticMethod<void>(QtJniTypes::className<QtJniTypes::QtAudioDeviceManager>(),
+                                      "registerAudioHeadsetStateReceiver",
+                                      QNativeInterface::QAndroidApplication::context());
+}
+
+QAndroidMediaDevices::~QAndroidMediaDevices()
+{
+    // Object of QAndroidMediaDevices type is static. Unregistering will happend only when closing
+    // the application. In such case it is probably not needed, but let's leave it for
+    // compatibility with Android documentation
+    QJniObject::callStaticMethod<void>(QtJniTypes::className<QtJniTypes::QtAudioDeviceManager>(),
+                                      "unregisterAudioHeadsetStateReceiver",
+                                      QNativeInterface::QAndroidApplication::context());
+}
 
 QList<QAudioDevice> QAndroidMediaDevices::audioInputs() const
 {
@@ -53,12 +72,12 @@ void QAndroidMediaDevices::forwardAudioInputsChanged()
 
 static void onAudioInputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
 {
-    static_cast<QAndroidMediaDevices*>(QPlatformMediaDevices::instance())->forwardAudioInputsChanged();
+    static_cast<QAndroidMediaDevices*>(QPlatformMediaIntegration::instance()->mediaDevices())->forwardAudioInputsChanged();
 }
 
 static void onAudioOutputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
 {
-    static_cast<QAndroidMediaDevices*>(QPlatformMediaDevices::instance())->forwardAudioOutputsChanged();
+    static_cast<QAndroidMediaDevices*>(QPlatformMediaIntegration::instance()->mediaDevices())->forwardAudioOutputsChanged();
 }
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
@@ -91,11 +110,6 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 
     if (!registered)
         return JNI_ERR;
-
-    QJniObject::callStaticMethod<void>("org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
-                                       "registerAudioHeadsetStateReceiver",
-                                       "(Landroid/content/Context;)V",
-                                       QNativeInterface::QAndroidApplication::context());
 
     return JNI_VERSION_1_6;
 }

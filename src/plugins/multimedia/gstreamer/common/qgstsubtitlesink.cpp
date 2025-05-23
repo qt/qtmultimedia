@@ -118,7 +118,7 @@ GstCaps *QGstSubtitleSink::get_caps(GstBaseSink *base, GstCaps *filter)
 
 gboolean QGstSubtitleSink::set_caps(GstBaseSink *base, GstCaps *caps)
 {
-    qDebug() << "set_caps:" << QGstCaps::toString(caps);
+    qDebug() << "set_caps:" << caps;
     return gst_sink_parent_class->set_caps(base, caps);
 }
 
@@ -145,7 +145,7 @@ GstFlowReturn QGstSubtitleSink::render(GstBaseSink *base, GstBuffer *buffer)
     GstMapInfo info;
     QString subtitle;
     if (gst_memory_map(mem, &info, GST_MAP_READ))
-        subtitle = QString::fromUtf8(info.data);
+        subtitle = QString::fromUtf8(reinterpret_cast<const char *>(info.data));
     gst_memory_unmap(mem, &info);
 //    qDebug() << "render" << buffer << subtitle;
     sink->sink->setSubtitleText(subtitle);

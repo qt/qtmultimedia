@@ -15,14 +15,14 @@
 // We mean it.
 //
 
-#include <private/qplatformimagecapture_p.h>
-#include <private/qmultimediautils_p.h>
-#include "qgstreamermediacapture_p.h"
-#include "qgstreamerbufferprobe_p.h"
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 
-#include <qqueue.h>
+#include <QtCore/qqueue.h>
 
-#include <qgst_p.h>
+#include <common/qgst_p.h>
+#include <common/qgstreamerbufferprobe_p.h>
+#include <mediacapture/qgstreamermediacapture_p.h>
 #include <gst/video/video.h>
 
 QT_BEGIN_NAMESPACE
@@ -46,7 +46,7 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-    QGstElement gstElement() const { return QGstElement{ bin.element() }; }
+    QGstElement gstElement() const { return bin; }
 
 public Q_SLOTS:
     void cameraActiveChanged(bool active);
@@ -58,7 +58,10 @@ private:
 
     void setResolution(const QSize &resolution);
     int doCapture(const QString &fileName);
-    static gboolean saveImageFilter(GstElement *element, GstBuffer *buffer, GstPad *pad, void *appdata);
+    static gboolean saveImageFilter(GstElement *element, GstBuffer *buffer, GstPad *pad,
+                                    QGstreamerImageCapture *capture);
+
+    void saveBufferToImage(GstBuffer *buffer);
 
     QGstreamerMediaCapture *m_session = nullptr;
     int m_lastId = 0;
@@ -83,6 +86,8 @@ private:
 
     bool passImage = false;
     bool cameraActive = false;
+
+    QGObjectHandlerScopedConnection m_handoffConnection;
 };
 
 QT_END_NAMESPACE

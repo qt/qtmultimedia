@@ -5,6 +5,7 @@
 
 #include "qvideoframe_p.h"
 #include "qvideotexturehelper_p.h"
+#include "qmultimediautils_p.h"
 #include "qmemoryvideobuffer_p.h"
 #include "qvideoframeconverter_p.h"
 #include "qpainter.h"
@@ -75,7 +76,7 @@ QVideoFrame::QVideoFrame()
 QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &format)
     : d(new QVideoFramePrivate(format))
 {
-    d->buffer = buffer;
+    d->buffer.reset(buffer);
 }
 
 /*!
@@ -83,7 +84,7 @@ QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &
 */
 QAbstractVideoBuffer *QVideoFrame::videoBuffer() const
 {
-    return d ? d->buffer : nullptr;
+    return d ? d->buffer.get() : nullptr;
 }
 
 /*!
@@ -101,7 +102,7 @@ QVideoFrame::QVideoFrame(const QVideoFrameFormat &format)
 
         // Check the memory was successfully allocated.
         if (!data.isEmpty())
-            d->buffer = new QMemoryVideoBuffer(data, textureDescription->strideForWidth(format.frameWidth()));
+            d->buffer = std::make_unique<QMemoryVideoBuffer>(data, textureDescription->strideForWidth(format.frameWidth()));
     }
 }
 
@@ -426,6 +427,15 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
     }
 
     d->mappedCount++;
+
+    // unlock mapMutex to avoid potential deadlock imageMutex <--> mapMutex
+    lock.unlock();
+
+    if ((mode & QVideoFrame::WriteOnly) != 0) {
+        QMutexLocker lock(&d->imageMutex);
+        d->image = {};
+    }
+
     return true;
 }
 
@@ -647,10 +657,12 @@ QImage QVideoFrame::toImage() const
     if (!isValid())
         return {};
 
-    std::call_once(d->imageOnceFlag, [this]() {
+    QMutexLocker lock(&d->imageMutex);
+
+    if (d->image.isNull()) {
         const bool mirrorY = surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom;
         d->image = qImageFromVideoFrame(*this, QtVideo::Rotation(rotationAngle()), mirrored(), mirrorY);
-    });
+    }
 
     return d->image;
 }
@@ -689,9 +701,7 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
     }
 
     QRectF targetRect = rect;
-    QSizeF size = this->size();
-    if (qToUnderlying(rotationAngle()) % 180)
-        size.transpose();
+    QSizeF size = qRotatedFrameSize(*this);
 
     size.scale(targetRect.size(), options.aspectRatioMode);
 
@@ -767,12 +777,12 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
 
     if (onlyOne) {
         if (start > 0)
-            return QString::fromLatin1("@%1:%2:%3.%4")
+            return QStringLiteral("@%1:%2:%3.%4")
                     .arg(start, 1, 10, QLatin1Char('0'))
                     .arg(s_minutes, 2, 10, QLatin1Char('0'))
                     .arg(s_seconds, 2, 10, QLatin1Char('0'))
                     .arg(s_millis, 2, 10, QLatin1Char('0'));
-        return QString::fromLatin1("@%1:%2.%3")
+        return QStringLiteral("@%1:%2.%3")
                 .arg(s_minutes, 2, 10, QLatin1Char('0'))
                 .arg(s_seconds, 2, 10, QLatin1Char('0'))
                 .arg(s_millis, 2, 10, QLatin1Char('0'));
@@ -781,12 +791,12 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
     if (end == -1) {
         // Similar to start-start, except it means keep displaying it?
         if (start > 0)
-            return QString::fromLatin1("%1:%2:%3.%4 - forever")
+            return QStringLiteral("%1:%2:%3.%4 - forever")
                     .arg(start, 1, 10, QLatin1Char('0'))
                     .arg(s_minutes, 2, 10, QLatin1Char('0'))
                     .arg(s_seconds, 2, 10, QLatin1Char('0'))
                     .arg(s_millis, 2, 10, QLatin1Char('0'));
-        return QString::fromLatin1("%1:%2.%3 - forever")
+        return QStringLiteral("%1:%2.%3 - forever")
                 .arg(s_minutes, 2, 10, QLatin1Char('0'))
                 .arg(s_seconds, 2, 10, QLatin1Char('0'))
                 .arg(s_millis, 2, 10, QLatin1Char('0'));
@@ -800,7 +810,7 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
     end /= 60;
 
     if (start > 0 || end > 0)
-        return QString::fromLatin1("%1:%2:%3.%4 - %5:%6:%7.%8")
+        return QStringLiteral("%1:%2:%3.%4 - %5:%6:%7.%8")
                 .arg(start, 1, 10, QLatin1Char('0'))
                 .arg(s_minutes, 2, 10, QLatin1Char('0'))
                 .arg(s_seconds, 2, 10, QLatin1Char('0'))
@@ -809,7 +819,7 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
                 .arg(e_minutes, 2, 10, QLatin1Char('0'))
                 .arg(e_seconds, 2, 10, QLatin1Char('0'))
                 .arg(e_millis, 2, 10, QLatin1Char('0'));
-    return QString::fromLatin1("%1:%2.%3 - %4:%5.%6")
+    return QStringLiteral("%1:%2.%3 - %4:%5.%6")
             .arg(s_minutes, 2, 10, QLatin1Char('0'))
             .arg(s_seconds, 2, 10, QLatin1Char('0'))
             .arg(s_millis, 2, 10, QLatin1Char('0'))

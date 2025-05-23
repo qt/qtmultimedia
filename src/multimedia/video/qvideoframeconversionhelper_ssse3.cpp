@@ -34,7 +34,7 @@ void convert_to_ARGB32_ssse3(const QVideoFrame &frame, uchar *output)
         const auto *pixel = reinterpret_cast<const Pixel *>(src);
 
         int x = 0;
-        ALIGN(16, argb, x, width) {
+        QT_MEDIA_ALIGN(16, argb, x, width) {
             *argb = pixel->convert();
             ++pixel;
             ++argb;

@@ -22,4 +22,8 @@ void main()
 #ifdef QMM_OUTPUTSURFACE_LINEAR
     fragColor = convertSRGBToLinear(fragColor);
 #endif
+
+    // Clamp output to valid range to account for out-of-range
+    // input values and numerical inaccuracies in YUV->RGB conversion
+    fragColor = clamp(fragColor, 0.0, 1.0);
 }

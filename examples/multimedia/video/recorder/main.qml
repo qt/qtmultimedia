@@ -14,6 +14,8 @@ Window {
     width: Style.screenWidth
     height: Style.screenHeigth
 
+    color: palette.window
+
     onWidthChanged:{
         Style.calculateRatio(root.width, root.height)
     }
@@ -73,7 +75,7 @@ Window {
         x: controls.capturesVisible ? 0 : parent.width
         background: Rectangle {
             anchors.fill: parent
-            color: "white"
+            color: palette.base
             opacity: 0.8
         }
 
@@ -99,7 +101,7 @@ Window {
 
         background: Rectangle {
             anchors.fill: parent
-            color: "white"
+            color: palette.base
             opacity: 0.8
         }
 

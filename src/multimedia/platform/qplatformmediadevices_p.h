@@ -18,17 +18,14 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <qlist.h>
 #include <qobject.h>
-#include <mutex>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
-class QMediaDevices;
 class QAudioDevice;
-class QCameraDevice;
 class QPlatformAudioSource;
 class QPlatformAudioSink;
 class QAudioFormat;
-class QPlatformMediaIntegration;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaDevices : public QObject
 {
@@ -37,8 +34,7 @@ public:
     QPlatformMediaDevices();
     ~QPlatformMediaDevices() override;
 
-    static void setDevices(QPlatformMediaDevices *);
-    static QPlatformMediaDevices *instance();
+    static std::unique_ptr<QPlatformMediaDevices> create();
 
     virtual QList<QAudioDevice> audioInputs() const;
     virtual QList<QAudioDevice> audioOutputs() const;
@@ -59,9 +55,6 @@ Q_SIGNALS:
     void audioInputsChanged();
     void audioOutputsChanged();
     void videoInputsChanged();
-
-private:
-    std::once_flag m_videoDevicesConnectionFlag;
 };
 
 QT_END_NAMESPACE

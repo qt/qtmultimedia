@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpeghwaccel_d3d11_p.h"
+#include "playbackengine/qffmpegstreamdecoder_p.h"
 
 #include <qvideoframeformat.h>
 #include "qffmpegvideobuffer_p.h"
@@ -46,9 +47,10 @@ ComPtr<ID3D11Device1> GetD3DDevice(QRhi *rhi)
 namespace QFFmpeg {
 
 bool TextureBridge::copyToSharedTex(ID3D11Device *dev, ID3D11DeviceContext *ctx,
-                                    const ComPtr<ID3D11Texture2D> &tex, UINT index)
+                                    const ComPtr<ID3D11Texture2D> &tex, UINT index,
+                                    const QSize &frameSize)
 {
-    if (!ensureSrcTex(dev, tex))
+    if (!ensureSrcTex(dev, tex, frameSize))
         return false;
 
     // Flush to ensure that texture is fully updated before we share it.
@@ -57,7 +59,14 @@ bool TextureBridge::copyToSharedTex(ID3D11Device *dev, ID3D11DeviceContext *ctx,
     if (m_srcMutex->AcquireSync(m_srcKey, INFINITE) != S_OK)
         return false;
 
-    ctx->CopySubresourceRegion(m_srcTex.Get(), 0, 0, 0, 0, tex.Get(), index, nullptr);
+    const UINT width = static_cast<UINT>(frameSize.width());
+    const UINT height = static_cast<UINT>(frameSize.height());
+
+    // A crop box is needed because FFmpeg may have created textures
+    // that are bigger than the frame size to account for the decoder's
+    // surface alignment requirements.
+    const D3D11_BOX crop{ 0, 0, 0, width, height, 1 };
+    ctx->CopySubresourceRegion(m_srcTex.Get(), 0, 0, 0, 0, tex.Get(), index, &crop);
 
     m_srcMutex->ReleaseSync(m_destKey);
     return true;
@@ -81,10 +90,16 @@ ComPtr<ID3D11Texture2D> TextureBridge::copyFromSharedTex(const ComPtr<ID3D11Devi
 
 bool TextureBridge::ensureDestTex(const ComPtr<ID3D11Device1> &dev)
 {
+    if (m_destDevice != dev) {
+        // Destination device changed. Recreate texture.
+        m_destTex = nullptr;
+        m_destDevice = dev;
+    }
+
     if (m_destTex)
         return true;
 
-    if (dev->OpenSharedResource1(m_sharedHandle.get(), IID_PPV_ARGS(&m_destTex)) != S_OK)
+    if (m_destDevice->OpenSharedResource1(m_sharedHandle.get(), IID_PPV_ARGS(&m_destTex)) != S_OK)
         return false;
 
     CD3D11_TEXTURE2D_DESC desc{};
@@ -93,7 +108,7 @@ bool TextureBridge::ensureDestTex(const ComPtr<ID3D11Device1> &dev)
     desc.MiscFlags = 0;
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
-    if (dev->CreateTexture2D(&desc, nullptr, m_outputTex.ReleaseAndGetAddressOf()) != S_OK)
+    if (m_destDevice->CreateTexture2D(&desc, nullptr, m_outputTex.ReleaseAndGetAddressOf()) != S_OK)
         return false;
 
     if (m_destTex.As(&m_destMutex) != S_OK)
@@ -102,23 +117,24 @@ bool TextureBridge::ensureDestTex(const ComPtr<ID3D11Device1> &dev)
     return true;
 }
 
-bool TextureBridge::ensureSrcTex(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex)
+bool TextureBridge::ensureSrcTex(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex, const QSize &frameSize)
 {
-    if (!isSrcInitialized(dev, tex))
-        return recreateSrc(dev, tex);
+    if (!isSrcInitialized(dev, tex, frameSize))
+        return recreateSrc(dev, tex, frameSize);
 
     return true;
 }
 
 bool TextureBridge::isSrcInitialized(const ID3D11Device *dev,
-                                     const ComPtr<ID3D11Texture2D> &tex) const
+                                     const ComPtr<ID3D11Texture2D> &tex,
+                                     const QSize &frameSize) const
 {
     if (!m_srcTex)
         return false;
 
     // Check if device has changed
     ComPtr<ID3D11Device> texDevice;
-    tex->GetDevice(texDevice.GetAddressOf());
+    m_srcTex->GetDevice(texDevice.GetAddressOf());
     if (dev != texDevice.Get())
         return false;
 
@@ -132,20 +148,26 @@ bool TextureBridge::isSrcInitialized(const ID3D11Device *dev,
     if (inputDesc.Format != currentDesc.Format)
         return false;
 
-    if (inputDesc.Width != currentDesc.Width || inputDesc.Height != currentDesc.Height)
+    const UINT width = static_cast<UINT>(frameSize.width());
+    const UINT height = static_cast<UINT>(frameSize.height());
+
+    if (currentDesc.Width != width || currentDesc.Height != height)
         return false;
 
     return true;
 }
 
-bool TextureBridge::recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex)
+bool TextureBridge::recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex, const QSize &frameSize)
 {
     m_sharedHandle.close();
 
     CD3D11_TEXTURE2D_DESC desc{};
     tex->GetDesc(&desc);
 
-    CD3D11_TEXTURE2D_DESC texDesc{ desc.Format, desc.Width, desc.Height };
+    const UINT width = static_cast<UINT>(frameSize.width());
+    const UINT height = static_cast<UINT>(frameSize.height());
+
+    CD3D11_TEXTURE2D_DESC texDesc{ desc.Format, width, height };
     texDesc.MipLevels = 1;
     texDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX | D3D11_RESOURCE_MISC_SHARED_NTHANDLE;
 
@@ -173,11 +195,20 @@ bool TextureBridge::recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D>
 class D3D11TextureSet : public TextureSet
 {
 public:
-    D3D11TextureSet(ComPtr<ID3D11Texture2D> &&tex) : m_tex(std::move(tex)) { }
+    D3D11TextureSet(QRhi *rhi, ComPtr<ID3D11Texture2D> &&tex)
+        : m_owner{ rhi }, m_tex(std::move(tex))
+    {
+    }
 
-    qint64 textureHandle(int /*plane*/) override { return reinterpret_cast<qint64>(m_tex.Get()); }
+    qint64 textureHandle(QRhi *rhi, int /*plane*/) override
+    {
+        if (rhi != m_owner)
+            return 0u;
+        return reinterpret_cast<qint64>(m_tex.Get());
+    }
 
 private:
+    QRhi *m_owner = nullptr;
     ComPtr<ID3D11Texture2D> m_tex;
 };
 
@@ -220,9 +251,11 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
             avDeviceCtx->lock(avDeviceCtx->lock_ctx);
             QScopeGuard autoUnlock([&] { avDeviceCtx->unlock(avDeviceCtx->lock_ctx); });
 
-            // Populate the shared texture with one slice from the frame pool
+            // Populate the shared texture with one slice from the frame pool, cropping away
+            // extra surface alignment areas that FFmpeg adds to the textures
+            QSize frameSize{ frame->width, frame->height };
             if (!m_bridge.copyToSharedTex(avDeviceCtx->device, avDeviceCtx->device_context,
-                                          ffmpegTex, index)) {
+                                          ffmpegTex, index, frameSize)) {
                 return nullptr;
             }
         }
@@ -233,7 +266,7 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
         if (!output)
             return nullptr;
 
-        return new D3D11TextureSet(std::move(output));
+        return new D3D11TextureSet(rhi, std::move(output));
     }
 
     return nullptr;
@@ -241,6 +274,19 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
 
 void D3D11TextureConverter::SetupDecoderTextures(AVCodecContext *s)
 {
+    // We are holding pool frames alive for quite long, which may cause
+    // codecs to run out of frames because FFmpeg has a fixed size
+    // decoder frame pool. We must therefore add extra frames to the pool
+    // to account for the frames we keep alive. First, we need to account
+    // for the maximum number of queued frames during rendering. In
+    // addition, we add one frame for the RHI rendering pipeline, and one
+    // additional frame because we may hold one in the Qt event loop.
+
+    const qint32 maxRenderQueueSize = StreamDecoder::maxQueueSize(QPlatformMediaPlayer::VideoStream);
+    constexpr qint32 framesHeldByRhi = 1;
+    constexpr qint32 framesHeldByQtEventLoop = 1;
+    s->extra_hw_frames = maxRenderQueueSize + framesHeldByRhi + framesHeldByQtEventLoop;
+
     int ret = avcodec_get_hw_frames_parameters(s, s->hw_device_ctx, AV_PIX_FMT_D3D11,
                                                &s->hw_frames_ctx);
     if (ret < 0) {

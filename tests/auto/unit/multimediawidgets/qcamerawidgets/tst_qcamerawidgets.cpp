@@ -1,8 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-//TESTED_COMPONENT=src/multimedia
-
 #include <QtTest/QtTest>
 #include <QDebug>
 
@@ -53,7 +51,7 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged(bool)));
+    QSignalSpy activeChangedSignal(&camera, &QCamera::activeChanged);
 
     camera.start();
     QCOMPARE(camera.isActive(), true);

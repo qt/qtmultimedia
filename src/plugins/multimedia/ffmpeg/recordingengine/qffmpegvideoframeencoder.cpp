@@ -2,12 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegvideoframeencoder_p.h"
-#include "qffmpegvideobuffer_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegencoderoptions_p.h"
 #include "qffmpegvideoencoderutils_p.h"
-#include "private/qplatformmediarecorder_p.h"
-#include "private/qmultimediautils_p.h"
 #include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE

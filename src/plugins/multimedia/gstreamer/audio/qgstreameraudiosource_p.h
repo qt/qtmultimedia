@@ -29,8 +29,9 @@
 #include "qaudiodevice.h"
 #include <private/qaudiosystem_p.h>
 
-#include <qgstutils_p.h>
-#include <qgstpipeline_p.h>
+#include <common/qgstutils_p.h>
+#include <common/qgstpipeline_p.h>
+
 #include <gst/app/gstappsink.h>
 
 QT_BEGIN_NAMESPACE
@@ -40,7 +41,6 @@ class GStreamerInputPrivate;
 class QGStreamerAudioSource
     : public QPlatformAudioSource
 {
-    Q_OBJECT
     friend class GStreamerInputPrivate;
 public:
     QGStreamerAudioSource(const QAudioDevice &device, QObject *parent);
@@ -64,14 +64,11 @@ public:
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
-private Q_SLOTS:
-    void newDataAvailable(GstSample *sample);
-
 private:
     void setState(QAudio::State state);
     void setError(QAudio::Error error);
 
-    QGstElement createAppSink();
+    QGstAppSink createAppSink();
     static GstFlowReturn new_sample(GstAppSink *, gpointer user_data);
     static void eos(GstAppSink *, gpointer user_data);
 
@@ -79,6 +76,8 @@ private:
     void close();
 
     static gboolean busMessage(GstBus *bus, GstMessage *msg, gpointer user_data);
+
+    void newDataAvailable(QGstSampleHandle sample);
 
     QAudioDevice m_info;
     qint64 m_bytesWritten = 0;
@@ -100,12 +99,11 @@ private:
     QGstElement gstInput;
     QGstPipeline gstPipeline;
     QGstElement gstVolume;
-    QGstElement gstAppSink;
+    QGstAppSink gstAppSink;
 };
 
 class GStreamerInputPrivate : public QIODevice
 {
-    Q_OBJECT
 public:
     explicit GStreamerInputPrivate(QGStreamerAudioSource *audio);
 

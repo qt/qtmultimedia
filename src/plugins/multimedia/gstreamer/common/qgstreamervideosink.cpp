@@ -1,10 +1,11 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qgstreamervideosink_p.h"
-#include "qgstvideorenderersink_p.h"
-#include "qgstsubtitlesink_p.h"
-#include <qgstutils_p.h>
+#include <common/qgstreamervideosink_p.h>
+#include <common/qgstvideorenderersink_p.h>
+#include <common/qgstsubtitlesink_p.h>
+#include <common/qgst_debug_p.h>
+#include <common/qgstutils_p.h>
 #include <QtGui/private/qrhi_p.h>
 
 #if QT_CONFIG(gstreamer_gl)
@@ -34,12 +35,13 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
+static Q_LOGGING_CATEGORY(qLcGstVideoSink, "qt.multimedia.gstvideosink");
 
 QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)
 {
-    sinkBin = QGstBin("videoSinkBin");
+    sinkBin = QGstBin::create("videoSinkBin");
+
     // This is a hack for some iMX and NVidia platforms. These require the use of a special video
     // conversion element in the pipeline before the video sink, as they unfortunately
     // output some proprietary format from the decoder even though it's sometimes marked as
@@ -47,20 +49,74 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     //
     // To fix this, simply insert the element into the pipeline if it's available. Otherwise
     // we simply use an identity element.
-    gstQueue = QGstElement("queue");
-    auto imxVideoConvert = QGstElement("imxvideoconvert_g2d");
-    auto nvidiaVideoConvert = QGstElement("nvvidconv");
-    if (!imxVideoConvert.isNull())
-        gstPreprocess = imxVideoConvert;
-    else if (!nvidiaVideoConvert.isNull())
-        gstPreprocess = nvidiaVideoConvert;
-    else
-        gstPreprocess = QGstElement("identity");
-    sinkBin.add(gstQueue, gstPreprocess);
-    gstQueue.link(gstPreprocess);
+    gstQueue = QGstElement::createFromFactory("queue", "videoSinkQueue");
+
+    QGstElementFactoryHandle factory;
+
+    // QT_MULTIMEDIA_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT allows users to override the
+    // conversion element. Ideally we construct the element programatically, though.
+    QByteArray preprocessOverride =
+            qgetenv("QT_MULTIMEDIA_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT");
+    if (!preprocessOverride.isEmpty()) {
+        qCDebug(qLcGstVideoSink) << "requesting conversion element from environment: "
+                                 << preprocessOverride;
+        factory = QGstElementFactoryHandle{
+            gst_element_factory_find(preprocessOverride.constData()),
+        };
+    }
+
+    if (!factory)
+        factory = QGstElementFactoryHandle{
+            gst_element_factory_find("imxvideoconvert_g2d"),
+        };
+
+    if (!factory)
+        factory = QGstElementFactoryHandle{
+            gst_element_factory_find("nvvidconv"),
+        };
+
+    if (factory) {
+        qCDebug(qLcGstVideoSink) << "instantiating conversion element: "
+                                 << g_type_name(
+                                            gst_element_factory_get_element_type(factory.get()));
+
+        gstPreprocess = QGstElement{
+            gst_element_factory_create(factory.get(), "preprocess"),
+            QGstElement::NeedsRef,
+        };
+    }
+
+    bool disablePixelAspectRatio =
+            qEnvironmentVariableIsSet("QT_GSTREAMER_DISABLE_PIXEL_ASPECT_RATIO");
+    if (disablePixelAspectRatio) {
+        // Enabling the pixel aspect ratio may expose a gstreamer bug on cameras that don't expose a
+        // pixel-aspect-ratio via `VIDIOC_CROPCAP`. This can cause the caps negotiation to fail.
+        // Using the QT_GSTREAMER_DISABLE_PIXEL_ASPECT_RATIO environment variable, one can disable
+        // pixel-aspect-ratio handling
+        //
+        // compare: https://gitlab.freedesktop.org/gstreamer/gstreamer/-/merge_requests/6242
+        gstCapsFilter =
+                QGstElement::createFromFactory("identity", "nullPixelAspectRatioCapsFilter");
+    } else {
+        gstCapsFilter = QGstElement::createFromFactory("capsfilter", "pixelAspectRatioCapsFilter");
+        QGstCaps capsFilterCaps{
+            gst_caps_new_simple("video/x-raw", "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1, NULL),
+            QGstCaps::HasRef,
+        };
+        g_object_set(gstCapsFilter.element(), "caps", capsFilterCaps.caps(), NULL);
+    }
+
+    if (gstPreprocess) {
+        sinkBin.add(gstQueue, gstPreprocess, gstCapsFilter);
+        qLinkGstElements(gstQueue, gstPreprocess, gstCapsFilter);
+    } else {
+        sinkBin.add(gstQueue, gstCapsFilter);
+        qLinkGstElements(gstQueue, gstCapsFilter);
+    }
     sinkBin.addGhostPad(gstQueue, "sink");
 
-    gstSubtitleSink = QGstElement(GST_ELEMENT(QGstSubtitleSink::createSink(this)));
+    gstSubtitleSink =
+            QGstElement(GST_ELEMENT(QGstSubtitleSink::createSink(this)), QGstElement::NeedsRef);
 }
 
 QGstreamerVideoSink::~QGstreamerVideoSink()
@@ -78,7 +134,7 @@ QGstElement QGstreamerVideoSink::gstSink()
 
 void QGstreamerVideoSink::setPipeline(QGstPipeline pipeline)
 {
-    gstPipeline = pipeline;
+    gstPipeline = std::move(pipeline);
 }
 
 bool QGstreamerVideoSink::inStoppedState() const
@@ -106,7 +162,11 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
 
 void QGstreamerVideoSink::createQtSink()
 {
-    gstQtSink = QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(this)));
+    if (gstQtSink)
+        gstQtSink.setStateSync(GST_STATE_NULL);
+
+    gstQtSink = QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(this)),
+                            QGstElement::NeedsRef);
 }
 
 void QGstreamerVideoSink::updateSinkElement()
@@ -119,31 +179,25 @@ void QGstreamerVideoSink::updateSinkElement()
     if (newSink == gstVideoSink)
         return;
 
-    gstPipeline.beginConfig();
+    gstPipeline.modifyPipelineWhileNotRunning([&] {
+        if (!gstVideoSink.isNull())
+            sinkBin.stopAndRemoveElements(gstVideoSink);
 
-    if (!gstVideoSink.isNull()) {
-        gstVideoSink.setStateSync(GST_STATE_NULL);
-        sinkBin.remove(gstVideoSink);
-    }
+        newSink.set("async", false); // no asynchronous state changes
 
-    gstVideoSink = newSink;
-    sinkBin.add(gstVideoSink);
-    if (!gstPreprocess.link(gstVideoSink))
-        qCDebug(qLcMediaVideoSink) << "couldn't link preprocess and sink";
-    gstVideoSink.setState(GST_STATE_PAUSED);
+        gstVideoSink = newSink;
+        sinkBin.add(gstVideoSink);
+        qLinkGstElements(gstCapsFilter, gstVideoSink);
+        gstVideoSink.setState(GST_STATE_PAUSED);
+    });
 
-    gstPipeline.endConfig();
     gstPipeline.dumpGraph("updateVideoSink");
 }
 
 void QGstreamerVideoSink::unrefGstContexts()
 {
-    if (m_gstGlDisplayContext)
-        gst_context_unref(m_gstGlDisplayContext);
-    m_gstGlDisplayContext = nullptr;
-    if (m_gstGlLocalContext)
-        gst_context_unref(m_gstGlLocalContext);
-    m_gstGlLocalContext = nullptr;
+    m_gstGlDisplayContext.close();
+    m_gstGlLocalContext.close();
     m_eglDisplay = nullptr;
     m_eglImageTargetTexture2D = nullptr;
 }
@@ -165,13 +219,15 @@ void QGstreamerVideoSink::updateGstContexts()
     m_eglDisplay = pni->nativeResourceForIntegration("egldisplay");
 //    qDebug() << "platform is" << platform << m_eglDisplay;
 
-    GstGLDisplay *gstGlDisplay = nullptr;
+    QGstGLDisplayHandle gstGlDisplay;
+
     const char *contextName = "eglcontext";
     GstGLPlatform glPlatform = GST_GL_PLATFORM_EGL;
     // use the egl display if we have one
     if (m_eglDisplay) {
 #if GST_GL_HAVE_PLATFORM_EGL
-        gstGlDisplay = (GstGLDisplay *)gst_gl_display_egl_new_with_egl_display(m_eglDisplay);
+        gstGlDisplay.reset(
+                GST_GL_DISPLAY_CAST(gst_gl_display_egl_new_with_egl_display(m_eglDisplay)));
         m_eglImageTargetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
 #endif
     } else {
@@ -183,13 +239,15 @@ void QGstreamerVideoSink::updateGstContexts()
                 contextName = "glxcontext";
                 glPlatform = GST_GL_PLATFORM_GLX;
 
-                gstGlDisplay = (GstGLDisplay *)gst_gl_display_x11_new_with_display((Display *)display);
+                gstGlDisplay.reset(GST_GL_DISPLAY_CAST(
+                        gst_gl_display_x11_new_with_display(reinterpret_cast<Display *>(display))));
             }
 #endif
 #if GST_GL_HAVE_WINDOW_WAYLAND && __has_include("wayland-client.h")
             if (platform.startsWith(QLatin1String("wayland"))) {
                 Q_ASSERT(!gstGlDisplay);
-                gstGlDisplay = (GstGLDisplay *)gst_gl_display_wayland_new_with_display((struct wl_display *)display);
+                gstGlDisplay.reset(GST_GL_DISPLAY_CAST(gst_gl_display_wayland_new_with_display(
+                        reinterpret_cast<struct wl_display *>(display))));
             }
 #endif
         }
@@ -205,32 +263,38 @@ void QGstreamerVideoSink::updateGstContexts()
         qWarning() << "Could not find resource for" << contextName;
 
     GstGLAPI glApi = QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL ? GST_GL_API_OPENGL : GST_GL_API_GLES2;
-    GstGLContext *appContext = gst_gl_context_new_wrapped(gstGlDisplay, (guintptr)nativeContext, glPlatform, glApi);
+    QGstGLContextHandle appContext{
+        gst_gl_context_new_wrapped(gstGlDisplay.get(), guintptr(nativeContext), glPlatform, glApi),
+    };
     if (!appContext)
         qWarning() << "Could not create wrappped context for platform:" << glPlatform;
 
-    GstGLContext *displayContext = nullptr;
-    GError *error = nullptr;
-    gst_gl_display_create_context(gstGlDisplay, appContext, &displayContext, &error);
+    gst_gl_context_activate(appContext.get(), true);
+
+    QUniqueGErrorHandle error;
+    gst_gl_context_fill_info(appContext.get(), &error);
     if (error) {
-        qWarning() << "Could not create display context:" << error->message;
-        g_clear_error(&error);
+        qWarning() << "Could not fill context info:" << error;
+        error = {};
     }
 
-    if (appContext)
-        gst_object_unref(appContext);
+    QGstGLContextHandle displayContext;
+    gst_gl_display_create_context(gstGlDisplay.get(), appContext.get(), &displayContext, &error);
+    if (error)
+        qWarning() << "Could not create display context:" << error;
 
-    m_gstGlDisplayContext = gst_context_new(GST_GL_DISPLAY_CONTEXT_TYPE, false);
-    gst_context_set_gl_display(m_gstGlDisplayContext, gstGlDisplay);
-    gst_object_unref(gstGlDisplay);
+    appContext.close();
 
-    m_gstGlLocalContext = gst_context_new("gst.gl.local_context", false);
-    GstStructure *structure = gst_context_writable_structure(m_gstGlLocalContext);
-    gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, displayContext, nullptr);
-    gst_object_unref(displayContext);
+    m_gstGlDisplayContext.reset(gst_context_new(GST_GL_DISPLAY_CONTEXT_TYPE, false));
+    gst_context_set_gl_display(m_gstGlDisplayContext.get(), gstGlDisplay.get());
+
+    m_gstGlLocalContext.reset(gst_context_new("gst.gl.local_context", false));
+    GstStructure *structure = gst_context_writable_structure(m_gstGlLocalContext.get());
+    gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, displayContext.get(), nullptr);
+    displayContext.close();
 
     if (!gstPipeline.isNull())
-        gst_element_set_context(gstPipeline.element(), m_gstGlLocalContext);
+        gst_element_set_context(gstPipeline.element(), m_gstGlLocalContext.get());
 #endif // #if QT_CONFIG(gstreamer_gl)
 }
 

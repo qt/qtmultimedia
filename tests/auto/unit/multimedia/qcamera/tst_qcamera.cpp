@@ -1,8 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-//TESTED_COMPONENT=src/multimedia
-
 #include <QtTest/QtTest>
 #include <QDebug>
 
@@ -199,14 +197,14 @@ void tst_QCamera::testSimpleCameraCapture()
     QCOMPARE(imageCapture.error(), QImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
 
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,QString)));
-    imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
+    QSignalSpy errorSignal(&imageCapture, &QImageCapture::errorOccurred);
+    imageCapture.captureToFile(QStringLiteral("/dev/null"));
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(imageCapture.error(), QImageCapture::NotReadyError);
     QVERIFY(!imageCapture.errorString().isEmpty());
 
     camera.start();
-    imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
+    imageCapture.captureToFile(QStringLiteral("/dev/null"));
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(imageCapture.error(), QImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
@@ -222,10 +220,10 @@ void tst_QCamera::testCameraCapture()
 
     QVERIFY(!imageCapture.isReadyForCapture());
 
-    QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,QString)));
+    QSignalSpy capturedSignal(&imageCapture, &QImageCapture::imageCaptured);
+    QSignalSpy errorSignal(&imageCapture, &QImageCapture::errorOccurred);
 
-    imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
+    imageCapture.captureToFile(QStringLiteral("/dev/null"));
     QCOMPARE(capturedSignal.size(), 0);
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(imageCapture.error(), QImageCapture::NotReadyError);
@@ -236,7 +234,7 @@ void tst_QCamera::testCameraCapture()
     QVERIFY(imageCapture.isReadyForCapture());
     QCOMPARE(errorSignal.size(), 0);
 
-    imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
+    imageCapture.captureToFile(QStringLiteral("/dev/null"));
 
     QTRY_COMPARE(capturedSignal.size(), 1);
     QCOMPARE(errorSignal.size(), 0);
@@ -251,11 +249,11 @@ void tst_QCamera::testCameraCaptureMetadata()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
-    QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
+    QSignalSpy metadataSignal(&imageCapture, &QImageCapture::imageMetadataAvailable);
+    QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
 
     camera.start();
-    int id = imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
+    int id = imageCapture.captureToFile(QStringLiteral("/dev/null"));
 
     QTRY_COMPARE(savedSignal.size(), 1);
 
@@ -421,7 +419,7 @@ void tst_QCamera::testCameraEncodingProperyChange()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged(bool)));
+    QSignalSpy activeChangedSignal(&camera, &QCamera::activeChanged);
 
     camera.start();
     QCOMPARE(camera.isActive(), true);
@@ -606,10 +604,10 @@ void tst_QCamera::testErrorSignal()
     Q_ASSERT(service);
     Q_ASSERT(service->mockCameraControl);
 
-    QSignalSpy spyError(&camera, SIGNAL(errorOccurred(QCamera::Error,const QString&)));
+    QSignalSpy spyError(&camera, &QCamera::errorOccurred);
 
     /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QString("Camera Error"));
+    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("Camera Error"));
 
     QVERIFY(spyError.size() == 1);
     QCamera::Error err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
@@ -618,7 +616,7 @@ void tst_QCamera::testErrorSignal()
     spyError.clear();
 
     /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QString("InvalidRequestError Error"));
+    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("InvalidRequestError Error"));
     QVERIFY(spyError.size() == 1);
     err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
     QVERIFY(err == QCamera::CameraError);
@@ -626,7 +624,7 @@ void tst_QCamera::testErrorSignal()
     spyError.clear();
 
     /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QString("NotSupportedFeatureError Error"));
+    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("NotSupportedFeatureError Error"));
     QVERIFY(spyError.size() == 1);
     err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
     QVERIFY(err == QCamera::CameraError);
@@ -642,15 +640,15 @@ void tst_QCamera::testError()
     auto *service = QMockIntegration::instance()->lastCaptureService();
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QString("Camera Error"));
+    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("Camera Error"));
     QVERIFY(camera.error() == QCamera::CameraError);
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QString("InvalidRequestError Error"));
+    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("InvalidRequestError Error"));
     QVERIFY(camera.error() == QCamera::CameraError);
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QString("CameraError Error"));
+    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("CameraError Error"));
     QVERIFY(camera.error() == QCamera::CameraError);
 
 }
@@ -664,16 +662,16 @@ void tst_QCamera::testErrorString()
     auto *service = QMockIntegration::instance()->lastCaptureService();
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QString("Camera Error"));
-    QVERIFY(camera.errorString() == QString("Camera Error"));
+    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("Camera Error"));
+    QVERIFY(camera.errorString() == QStringLiteral("Camera Error"));
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QString("InvalidRequestError Error"));
-    QVERIFY(camera.errorString() == QString("InvalidRequestError Error"));
+    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("InvalidRequestError Error"));
+    QVERIFY(camera.errorString() == QStringLiteral("InvalidRequestError Error"));
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QString("CameraError Error"));
-    QVERIFY(camera.errorString() == QString("CameraError Error"));
+    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("CameraError Error"));
+    QVERIFY(camera.errorString() == QStringLiteral("CameraError Error"));
 }
 
 void tst_QCamera::testSetCameraFormat()
@@ -683,7 +681,7 @@ void tst_QCamera::testSetCameraFormat()
     auto videoFormats = device.videoFormats();
     QVERIFY(videoFormats.size());
     QCameraFormat cameraFormat = videoFormats.first();
-    QSignalSpy spy(&camera, SIGNAL(cameraFormatChanged()));
+    QSignalSpy spy(&camera, &QCamera::cameraFormatChanged);
     QVERIFY(spy.size() == 0);
     camera.setCameraFormat(cameraFormat);
     QCOMPARE(spy.size(), 1);
@@ -735,7 +733,7 @@ void tst_QCamera::testZoomChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spy(&camera, SIGNAL(zoomFactorChanged(float)));
+    QSignalSpy spy(&camera, &QCamera::zoomFactorChanged);
     QVERIFY(spy.size() == 0);
     camera.setZoomFactor(2.0);
     QVERIFY(spy.size() == 1);
@@ -753,7 +751,7 @@ void tst_QCamera::testMaxZoomChangedSignal()
     QMockCamera *mock = QMockIntegration::instance()->lastCamera();
 
     // ### change max zoom factor on backend, e.g. by changing camera
-    QSignalSpy spy(&camera, SIGNAL(maximumZoomFactorChanged(float)));
+    QSignalSpy spy(&camera, &QCamera::maximumZoomFactorChanged);
     mock->maximumZoomFactorChanged(55);
     QVERIFY(spy.size() == 1);
     QCOMPARE(camera.maximumZoomFactor(), 55);
@@ -765,9 +763,9 @@ void tst_QCamera::testSignalExposureCompensationChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spyExposureCompensationChanged(&camera, SIGNAL(exposureCompensationChanged(float)));
+    QSignalSpy spyExposureCompensationChanged(&camera, &QCamera::exposureCompensationChanged);
 
-    QVERIFY(spyExposureCompensationChanged.size() ==0);
+    QVERIFY(spyExposureCompensationChanged.size() == 0);
 
     QVERIFY(camera.exposureCompensation() != 800);
     camera.setExposureCompensation(2.0);
@@ -792,7 +790,7 @@ void tst_QCamera::testSignalIsoSensitivityChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spyisoSensitivityChanged(&camera, SIGNAL(isoSensitivityChanged(int)));
+    QSignalSpy spyisoSensitivityChanged(&camera, &QCamera::isoSensitivityChanged);
 
     QVERIFY(spyisoSensitivityChanged.size() ==0);
 
@@ -807,9 +805,9 @@ void tst_QCamera::testSignalShutterSpeedChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spySignalExposureTimeChanged(&camera, SIGNAL(exposureTimeChanged(float)));
+    QSignalSpy spySignalExposureTimeChanged(&camera, &QCamera::exposureTimeChanged);
 
-    QVERIFY(spySignalExposureTimeChanged.size() ==0);
+    QVERIFY(spySignalExposureTimeChanged.size() == 0);
 
     camera.setManualExposureTime(2.0);//set the ManualShutterSpeed to 2.0
     QTest::qWait(100);
@@ -823,7 +821,7 @@ void tst_QCamera::testSignalFlashReady()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spyflashReady(&camera,SIGNAL(flashReady(bool)));
+    QSignalSpy spyflashReady(&camera, &QCamera::flashReady);
 
     QVERIFY(spyflashReady.size() == 0);
 

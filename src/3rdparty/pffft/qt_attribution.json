@@ -7,8 +7,8 @@
     "SecurityCritical": true,
 
     "Homepage": "https://bitbucket.org/jpommier/pffft.git",
-    "Version": "7641e67977cf937c22849e2ef19fffa70269e562",
-    "DownloadLocation": "https://bitbucket.org/jpommier/pffft/get/38946c766c1a.zip",
+    "Version": "fbc4058602803f40dc554b8a5d2bcc694c005f2f",
+    "DownloadLocation": "https://bitbucket.org/jpommier/pffft/get/fbc405860280.zip",
     "CopyrightFile": "COPYRIGHTS",
     "License": "BSD 3-Clause \"New\" or \"Revised\" License",
     "LicenseId": "BSD-3-Clause",

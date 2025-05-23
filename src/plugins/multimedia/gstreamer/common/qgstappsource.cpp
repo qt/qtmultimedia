@@ -3,8 +3,8 @@
 
 #include <QDebug>
 
-#include "qgstappsrc_p.h"
-#include "qgstutils_p.h"
+#include "qgstappsource_p.h"
+#include <common/qgstutils_p.h>
 #include "qnetworkreply.h"
 #include "qloggingcategory.h"
 
@@ -12,43 +12,46 @@ static Q_LOGGING_CATEGORY(qLcAppSrc, "qt.multimedia.appsrc")
 
 QT_BEGIN_NAMESPACE
 
-QMaybe<QGstAppSrc *> QGstAppSrc::create(QObject *parent)
+QMaybe<QGstAppSource *> QGstAppSource::create(QObject *parent)
 {
-    QGstElement appsrc("appsrc", "appsrc");
+    QGstAppSrc appsrc = QGstAppSrc::create("appsrc");
     if (!appsrc)
         return errorMessageCannotFindElement("appsrc");
 
-    return new QGstAppSrc(appsrc, parent);
+    return new QGstAppSource(appsrc, parent);
 }
 
-QGstAppSrc::QGstAppSrc(QGstElement appsrc, QObject *parent)
+QGstAppSource::QGstAppSource(QGstAppSrc appsrc, QObject *parent)
     : QObject(parent), m_appSrc(std::move(appsrc))
 {
+    m_appSrc.set("emit-signals", false);
 }
 
-QGstAppSrc::~QGstAppSrc()
+QGstAppSource::~QGstAppSource()
 {
     m_appSrc.setStateSync(GST_STATE_NULL);
     streamDestroyed();
     qCDebug(qLcAppSrc) << "~QGstAppSrc";
 }
 
-bool QGstAppSrc::setup(QIODevice *stream, qint64 offset)
+bool QGstAppSource::setup(QIODevice *stream, qint64 offset)
 {
+    QMutexLocker locker(&m_mutex);
+
     if (m_appSrc.isNull())
         return false;
 
     if (!setStream(stream, offset))
         return false;
 
-    auto *appSrc = GST_APP_SRC(m_appSrc.element());
-    GstAppSrcCallbacks m_callbacks;
-    memset(&m_callbacks, 0, sizeof(GstAppSrcCallbacks));
-    m_callbacks.need_data   = &QGstAppSrc::on_need_data;
-    m_callbacks.enough_data = &QGstAppSrc::on_enough_data;
-    m_callbacks.seek_data   = &QGstAppSrc::on_seek_data;
-    gst_app_src_set_callbacks(appSrc, (GstAppSrcCallbacks*)&m_callbacks, this, nullptr);
+    GstAppSrcCallbacks callbacks{};
+    callbacks.need_data = QGstAppSource::on_need_data;
+    callbacks.enough_data = QGstAppSource::on_enough_data;
+    callbacks.seek_data = QGstAppSource::on_seek_data;
 
+    m_appSrc.setCallbacks(callbacks, this, nullptr);
+
+    GstAppSrc *appSrc = m_appSrc.appSrc();
     m_maxBytes = gst_app_src_get_max_bytes(appSrc);
     m_suspended = false;
 
@@ -59,14 +62,15 @@ bool QGstAppSrc::setup(QIODevice *stream, qint64 offset)
     gst_app_src_set_stream_type(appSrc, m_streamType);
     gst_app_src_set_size(appSrc, m_sequential ? -1 : m_stream->size() - m_offset);
 
-    m_networkReply = qobject_cast<QNetworkReply *>(m_stream);
     m_noMoreData = true;
 
     return true;
 }
 
-void QGstAppSrc::setAudioFormat(const QAudioFormat &f)
+void QGstAppSource::setAudioFormat(const QAudioFormat &f)
 {
+    QMutexLocker locker(&m_mutex);
+
     m_format = f;
     if (!m_format.isValid())
         return;
@@ -77,16 +81,17 @@ void QGstAppSrc::setAudioFormat(const QAudioFormat &f)
     m_appSrc.set("format", GST_FORMAT_TIME);
 }
 
-void QGstAppSrc::setExternalAppSrc(const QGstElement &appsrc)
+void QGstAppSource::setExternalAppSrc(QGstAppSrc appsrc)
 {
-    m_appSrc = appsrc;
+    QMutexLocker locker(&m_mutex);
+    m_appSrc = std::move(appsrc);
 }
 
-bool QGstAppSrc::setStream(QIODevice *stream, qint64 offset)
+bool QGstAppSource::setStream(QIODevice *stream, qint64 offset)
 {
     if (m_stream) {
-        disconnect(m_stream, SIGNAL(readyRead()), this, SLOT(onDataReady()));
-        disconnect(m_stream, SIGNAL(destroyed()), this, SLOT(streamDestroyed()));
+        disconnect(m_stream, &QIODevice::readyRead, this, &QGstAppSource::onDataReady);
+        disconnect(m_stream, &QIODevice::destroyed, this, &QGstAppSource::streamDestroyed);
         m_stream = nullptr;
     }
 
@@ -99,21 +104,28 @@ bool QGstAppSrc::setStream(QIODevice *stream, qint64 offset)
         if (!stream->isOpen() && !stream->open(QIODevice::ReadOnly))
             return false;
         m_stream = stream;
-        connect(m_stream, SIGNAL(destroyed()), SLOT(streamDestroyed()));
-        connect(m_stream, SIGNAL(readyRead()), this, SLOT(onDataReady()));
+        connect(m_stream, &QIODevice::destroyed, this, &QGstAppSource::streamDestroyed);
+        connect(m_stream, &QIODevice::readyRead, this, &QGstAppSource::onDataReady);
         m_sequential = m_stream->isSequential();
         m_offset = offset;
     }
     return true;
 }
 
-QGstElement QGstAppSrc::element()
+bool QGstAppSource::isStreamValid() const
+{
+    return m_stream != nullptr && m_stream->isOpen();
+}
+
+QGstElement QGstAppSource::element() const
 {
     return m_appSrc;
 }
 
-void QGstAppSrc::write(const char *data, qsizetype size)
+void QGstAppSource::write(const char *data, qsizetype size)
 {
+    QMutexLocker locker(&m_mutex);
+
     qCDebug(qLcAppSrc) << "write" << size << m_noMoreData << m_dataRequestSize;
     if (!size)
         return;
@@ -123,13 +135,32 @@ void QGstAppSrc::write(const char *data, qsizetype size)
     pushData();
 }
 
-void QGstAppSrc::onDataReady()
+bool QGstAppSource::canAcceptMoreData() const
+{
+    QMutexLocker locker(&m_mutex);
+    return m_noMoreData || m_dataRequestSize != 0;
+}
+
+void QGstAppSource::suspend()
+{
+    QMutexLocker locker(&m_mutex);
+    m_suspended = true;
+}
+
+void QGstAppSource::resume()
+{
+    QMutexLocker locker(&m_mutex);
+    m_suspended = false;
+    m_noMoreData = true;
+}
+
+void QGstAppSource::onDataReady()
 {
     qCDebug(qLcAppSrc) << "onDataReady" << m_stream->bytesAvailable() << m_stream->size();
     pushData();
 }
 
-void QGstAppSrc::streamDestroyed()
+void QGstAppSource::streamDestroyed()
 {
     qCDebug(qLcAppSrc) << "stream destroyed";
     m_stream = nullptr;
@@ -138,7 +169,7 @@ void QGstAppSrc::streamDestroyed()
     sendEOS();
 }
 
-void QGstAppSrc::pushData()
+void QGstAppSource::pushData()
 {
     if (m_appSrc.isNull() || !m_dataRequestSize || m_suspended) {
         qCDebug(qLcAppSrc) << "push data: return immediately" << m_appSrc.isNull() << m_dataRequestSize << m_suspended;
@@ -202,7 +233,7 @@ void QGstAppSrc::pushData()
     m_noMoreData = false;
     emit bytesProcessed(bytesRead);
 
-    GstFlowReturn ret = gst_app_src_push_buffer(GST_APP_SRC(m_appSrc.element()), buffer);
+    GstFlowReturn ret = m_appSrc.pushBuffer(buffer);
     if (ret == GST_FLOW_ERROR) {
         qWarning() << "QGstAppSrc: push buffer error";
     } else if (ret == GST_FLOW_FLUSHING) {
@@ -212,48 +243,52 @@ void QGstAppSrc::pushData()
 
 }
 
-bool QGstAppSrc::doSeek(qint64 value)
+bool QGstAppSource::doSeek(qint64 value)
 {
     if (isStreamValid())
         return m_stream->seek(value + m_offset);
     return false;
 }
 
-
-gboolean QGstAppSrc::on_seek_data(GstAppSrc *, guint64 arg0, gpointer userdata)
+gboolean QGstAppSource::on_seek_data(GstAppSrc *, guint64 arg0, gpointer userdata)
 {
     // we do get some spurious seeks to INT_MAX, ignore those
     if (arg0 == std::numeric_limits<quint64>::max())
         return true;
 
-    QGstAppSrc *self = reinterpret_cast<QGstAppSrc*>(userdata);
+    QGstAppSource *self = reinterpret_cast<QGstAppSource *>(userdata);
     Q_ASSERT(self);
+
+    QMutexLocker locker(&self->m_mutex);
+
     if (self->m_sequential)
         return false;
 
-    QMetaObject::invokeMethod(self, "doSeek", Qt::AutoConnection, Q_ARG(qint64, arg0));
+    self->doSeek(arg0);
     return true;
 }
 
-void QGstAppSrc::on_enough_data(GstAppSrc *, gpointer userdata)
+void QGstAppSource::on_enough_data(GstAppSrc *, gpointer userdata)
 {
     qCDebug(qLcAppSrc) << "on_enough_data";
-    QGstAppSrc *self = static_cast<QGstAppSrc*>(userdata);
+    QGstAppSource *self = static_cast<QGstAppSource *>(userdata);
     Q_ASSERT(self);
+    QMutexLocker locker(&self->m_mutex);
     self->m_dataRequestSize = 0;
 }
 
-void QGstAppSrc::on_need_data(GstAppSrc *, guint arg0, gpointer userdata)
+void QGstAppSource::on_need_data(GstAppSrc *, guint arg0, gpointer userdata)
 {
     qCDebug(qLcAppSrc) << "on_need_data requesting bytes" << arg0;
-    QGstAppSrc *self = static_cast<QGstAppSrc*>(userdata);
+    QGstAppSource *self = static_cast<QGstAppSource *>(userdata);
     Q_ASSERT(self);
+    QMutexLocker locker(&self->m_mutex);
     self->m_dataRequestSize = arg0;
-    QMetaObject::invokeMethod(self, "pushData", Qt::AutoConnection);
+    self->pushData();
     qCDebug(qLcAppSrc) << "done on_need_data";
 }
 
-void QGstAppSrc::sendEOS()
+void QGstAppSource::sendEOS()
 {
     qCDebug(qLcAppSrc) << "sending EOS";
     if (m_appSrc.isNull())
@@ -262,7 +297,7 @@ void QGstAppSrc::sendEOS()
     gst_app_src_end_of_stream(GST_APP_SRC(m_appSrc.element()));
 }
 
-void QGstAppSrc::eosOrIdle()
+void QGstAppSource::eosOrIdle()
 {
     qCDebug(qLcAppSrc) << "eosOrIdle";
     if (m_appSrc.isNull())
@@ -281,4 +316,4 @@ void QGstAppSrc::eosOrIdle()
 
 QT_END_NAMESPACE
 
-#include "moc_qgstappsrc_p.cpp"
+#include "moc_qgstappsource_p.cpp"

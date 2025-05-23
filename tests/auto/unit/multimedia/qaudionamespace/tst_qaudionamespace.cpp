@@ -1,8 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-//TESTED_COMPONENT=src/multimedia
-
 #include <QtTest/QtTest>
 
 #include <QtMultimedia/qaudio.h>
@@ -210,7 +208,7 @@ void tst_QAudioNamespace::convertVolume()
 
     qreal actualOutput = QAudio::convertVolume(input, from, to);
     QVERIFY2(qAbs(actualOutput - expectedOutput) < 0.01,
-             QString("actual: %1, expected: %2").arg(actualOutput).arg(expectedOutput).toLocal8Bit().constData());
+             QStringLiteral("actual: %1, expected: %2").arg(actualOutput).arg(expectedOutput).toLocal8Bit().constData());
 }
 
 QTEST_MAIN(tst_QAudioNamespace)

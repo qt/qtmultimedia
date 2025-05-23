@@ -4,18 +4,18 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qmath.h>
-#include <private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
 
-#include "qgstreameraudiosink_p.h"
-#include "qgstreameraudiodevice_p.h"
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <qgstpipeline_p.h>
-#include <qgstappsrc_p.h>
-
-#include <qgstutils_p.h>
-#include <qgstreamermessage_p.h>
+#include <audio/qgstreameraudiosink_p.h>
+#include <audio/qgstreameraudiodevice_p.h>
+#include <common/qgst_debug_p.h>
+#include <common/qgstappsource_p.h>
+#include <common/qgstpipeline_p.h>
+#include <common/qgstreamermessage_p.h>
+#include <common/qgstutils_p.h>
 
 #include <utility>
 
@@ -23,36 +23,37 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QPlatformAudioSink *> QGStreamerAudioSink::create(const QAudioDevice &device, QObject *parent)
 {
-    auto maybeAppSrc = QGstAppSrc::create();
+    auto maybeAppSrc = QGstAppSource::create();
     if (!maybeAppSrc)
         return maybeAppSrc.error();
 
-    QGstElement audioconvert("audioconvert", "conv");
+    QGstElement audioconvert = QGstElement::createFromFactory("audioconvert", "conv");
     if (!audioconvert)
         return errorMessageCannotFindElement("audioconvert");
 
-    QGstElement volume("volume", "volume");
+    QGstElement volume = QGstElement::createFromFactory("volume", "volume");
     if (!volume)
         return errorMessageCannotFindElement("volume");
 
     return new QGStreamerAudioSink(device, maybeAppSrc.value(), audioconvert, volume, parent);
 }
 
-QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc *appsrc,
-                                         QGstElement audioconvert, QGstElement volume, QObject *parent)
+QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSource *appsrc,
+                                         QGstElement audioconvert, QGstElement volume,
+                                         QObject *parent)
     : QPlatformAudioSink(parent),
       m_device(device.id()),
-      gstPipeline("pipeline"),
+      gstPipeline(QGstPipeline::create("audioSinkPipeline")),
       gstVolume(std::move(volume)),
       m_appSrc(appsrc)
 {
     gstPipeline.installMessageFilter(this);
 
-    connect(m_appSrc, &QGstAppSrc::bytesProcessed, this, &QGStreamerAudioSink::bytesProcessedByAppSrc);
-    connect(m_appSrc, &QGstAppSrc::noMoreData, this, &QGStreamerAudioSink::needData);
+    connect(m_appSrc, &QGstAppSource::bytesProcessed, this, &QGStreamerAudioSink::bytesProcessedByAppSrc);
+    connect(m_appSrc, &QGstAppSource::noMoreData, this, &QGStreamerAudioSink::needData);
     gstAppSrc = m_appSrc->element();
 
-    QGstElement queue("queue", "queue");
+    QGstElement queue = QGstElement::createFromFactory("queue", "audioSinkQueue");
 
     if (m_volume != 1.)
         gstVolume.set("volume", m_volume);
@@ -61,15 +62,17 @@ QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc 
     //    g_signal_connect (gstDecodeBin, "pad-added", (GCallback) padAdded, conv);
 
     const auto *audioInfo = static_cast<const QGStreamerAudioDeviceInfo *>(device.handle());
-    gstOutput = QGstElement(gst_device_create_element(audioInfo->gstDevice, nullptr));
+    gstOutput = QGstElement::createFromDevice(audioInfo->gstDevice, nullptr);
 
     gstPipeline.add(gstAppSrc, queue, /*gstDecodeBin, */ audioconvert, gstVolume, gstOutput);
-    gstAppSrc.link(queue, audioconvert, gstVolume, gstOutput);
+    qLinkGstElements(gstAppSrc, queue, audioconvert, gstVolume, gstOutput);
 }
 
 QGStreamerAudioSink::~QGStreamerAudioSink()
 {
     close();
+    gstPipeline.removeMessageFilter(this);
+
     gstPipeline = {};
     gstVolume = {};
     gstAppSrc = {};
@@ -159,9 +162,8 @@ static void padAdded(GstElement *element, GstPad *pad, gpointer data)
 {
   GstElement *other = static_cast<GstElement *>(data);
 
-  gchar *name = gst_pad_get_name(pad);
+  QGString name { gst_pad_get_name(pad)};
   qDebug("A new pad %s was created for %s\n", name, gst_element_get_name(element));
-  g_free(name);
 
   qDebug("element %s will be linked to %s\n",
            gst_element_get_name(element),
@@ -172,22 +174,14 @@ static void padAdded(GstElement *element, GstPad *pad, gpointer data)
 
 bool QGStreamerAudioSink::processBusMessage(const QGstreamerMessage &message)
 {
-    auto *msg = message.rawMessage();
+    auto *msg = message.message();
     switch (GST_MESSAGE_TYPE (msg)) {
     case GST_MESSAGE_EOS:
         setState(QAudio::IdleState);
         break;
     case GST_MESSAGE_ERROR: {
         setError(QAudio::IOError);
-        gchar  *debug;
-        GError *error;
-
-        gst_message_parse_error (msg, &error, &debug);
-        g_free (debug);
-
-        qDebug("Error: %s\n", error->message);
-        g_error_free (error);
-
+        qDebug() << "Error:" << QCompactGstMessageAdaptor(message);
         break;
     }
     default:

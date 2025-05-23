@@ -15,10 +15,10 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <QObject>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtCore/qobject.h>
 
-#include <qgst_p.h>
+#include "qgst_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -41,14 +41,18 @@ class QGstPipelinePrivate;
 
 class QGstPipeline : public QGstBin
 {
-    QGstPipelinePrivate *d = nullptr;
 public:
     constexpr QGstPipeline() = default;
-    QGstPipeline(const QGstPipeline &o);
-    QGstPipeline &operator=(const QGstPipeline &o);
-    explicit QGstPipeline(const char *name);
-    explicit QGstPipeline(GstPipeline *p);
-    ~QGstPipeline() override;
+    QGstPipeline(const QGstPipeline &) = default;
+    QGstPipeline(QGstPipeline &&) = default;
+    QGstPipeline &operator=(const QGstPipeline &) = default;
+    QGstPipeline &operator=(QGstPipeline &&) noexcept = default;
+    QGstPipeline(GstPipeline *, RefMode mode);
+    ~QGstPipeline();
+
+    // installs QGstPipelinePrivate as "pipeline-private" gobject property
+    static QGstPipeline create(const char *name);
+    static QGstPipeline adopt(GstPipeline *);
 
     // This is needed to help us avoid sending QVideoFrames or audio buffers to the
     // application while we're prerolling the pipeline.
@@ -67,36 +71,43 @@ public:
 
     GstStateChangeReturn setState(GstState state);
 
-    GstPipeline *pipeline() const { return GST_PIPELINE_CAST(m_object); }
+    GstPipeline *pipeline() const { return GST_PIPELINE_CAST(get()); }
 
-    void dumpGraph(const char *fileName)
+    void dumpGraph(const char *fileName);
+
+    template <typename Functor>
+    void modifyPipelineWhileNotRunning(Functor &&fn)
     {
-        if (isNull())
-            return;
-
-#if 1 //def QT_GST_CAPTURE_DEBUG
-        GST_DEBUG_BIN_TO_DOT_FILE(bin(),
-                                  GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL |
-                                                       GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
-                                  fileName);
-#else
-        Q_UNUSED(fileName);
-#endif
+        beginConfig();
+        fn();
+        endConfig();
     }
 
-    void beginConfig();
-    void endConfig();
+    template <typename Functor>
+    static void modifyPipelineWhileNotRunning(QGstPipeline &&pipeline, Functor &&fn)
+    {
+        if (pipeline)
+            pipeline.modifyPipelineWhileNotRunning(fn);
+        else
+            fn();
+    }
 
     void flush();
 
     bool seek(qint64 pos, double rate);
-    bool setPlaybackRate(double rate);
+    bool setPlaybackRate(double rate, bool applyToPipeline = true);
     double playbackRate() const;
 
     bool setPosition(qint64 pos);
     qint64 position() const;
 
     qint64 duration() const;
+
+private:
+    QGstPipelinePrivate *getPrivate() const;
+
+    void beginConfig();
+    void endConfig();
 };
 
 QT_END_NAMESPACE

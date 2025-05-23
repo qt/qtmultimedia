@@ -25,6 +25,7 @@ class QWindowsFormatInfo;
 
 class QWindowsMediaIntegration : public QPlatformMediaIntegration
 {
+    Q_OBJECT
 public:
     QWindowsMediaIntegration();
     ~QWindowsMediaIntegration();

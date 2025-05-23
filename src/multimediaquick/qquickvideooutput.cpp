@@ -11,6 +11,7 @@
 #include <qvideosink.h>
 #include <QtQuick/QQuickWindow>
 #include <private/qquickwindow_p.h>
+#include <private/qmultimediautils_p.h>
 #include <qsgvideonode_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -169,9 +170,7 @@ void QQuickVideoOutput::_q_newFrame(QSize size)
 {
     update();
 
-    if (!qIsDefaultAspect(m_orientation + m_frameOrientation)) {
-        size.transpose();
-    }
+    size = qRotatedFrameSize(size, m_orientation + m_frameOrientation);
 
     if (m_nativeSize != size) {
         m_nativeSize = size;

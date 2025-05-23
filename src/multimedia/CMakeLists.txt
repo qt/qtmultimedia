@@ -20,7 +20,7 @@ qt_internal_add_module(Multimedia
     SOURCES
         audio/qaudio.cpp audio/qaudio.h
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h
-        audio/qaudiodecoder.cpp audio/qaudiodecoder.h
+        audio/qaudiodecoder.cpp audio/qaudiodecoder.h audio/qaudiodecoder_p.h
         audio/qaudiodevice.cpp audio/qaudiodevice.h audio/qaudiodevice_p.h
         audio/qaudioinput.cpp audio/qaudioinput.h
         audio/qaudiooutput.cpp audio/qaudiooutput.h
@@ -62,6 +62,7 @@ qt_internal_add_module(Multimedia
         qmediastoragelocation.cpp qmediastoragelocation_p.h
         qmediatimerange.cpp qmediatimerange.h
         qmultimediautils.cpp qmultimediautils_p.h
+        qmaybe_p.h
         qtmultimediaglobal.h qtmultimediaglobal_p.h
         qerrorinfo_p.h
         recording/qmediacapturesession.cpp recording/qmediacapturesession.h
@@ -160,7 +161,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         OpenSLES
 )
 
-if (ANDROID)
+if(ANDROID)
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_BUNDLED_JAR_DEPENDENCIES
         jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtAudioDeviceManager
     )
@@ -348,7 +349,7 @@ qt_internal_add_shaders(Multimedia "qtmultimedia_shaders_gl_macos_linear"
         "shaders/rectsampler_bgra_linear.frag.qsb"
 )
 
-if (DEFINED QT_DEFAULT_MEDIA_BACKEND)
+if(DEFINED QT_DEFAULT_MEDIA_BACKEND)
     target_compile_definitions(Multimedia
         PRIVATE QT_DEFAULT_MEDIA_BACKEND="${QT_DEFAULT_MEDIA_BACKEND}")
 endif()

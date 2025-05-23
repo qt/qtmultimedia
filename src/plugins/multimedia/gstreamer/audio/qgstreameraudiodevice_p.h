@@ -23,6 +23,8 @@
 #include "qaudiodevice.h"
 #include <private/qaudiodevice_p.h>
 
+#include <common/qgst_handle_types_p.h>
+
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
@@ -33,7 +35,7 @@ public:
     QGStreamerAudioDeviceInfo(GstDevice *gstDevice, const QByteArray &device, QAudioDevice::Mode mode);
     ~QGStreamerAudioDeviceInfo();
 
-    GstDevice *gstDevice = nullptr;
+    QGstDeviceHandle gstDevice;
 };
 
 QT_END_NAMESPACE

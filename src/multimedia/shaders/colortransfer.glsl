@@ -12,14 +12,24 @@ vec4 convertRec709ToLinear(vec4 rgba)
     return mix(high, low, cutoff);
 }
 
-vec4 convertSRGBToLinear(vec4 rgba)
+vec4 convertSRGBToLinear(vec4 sRGB)
 {
-    return pow(rgba, vec4(2.2));
+    // https://en.wikipedia.org/wiki/SRGB
+    const bvec3 cutoff = lessThanEqual(sRGB.rgb, vec3(0.04045));
+    const vec3 low = sRGB.rgb / 12.92;
+    const vec3 high = pow((sRGB.rgb + 0.055) / 1.055, vec3(2.4));
+    vec3 linear = mix(high, low, cutoff);
+    return vec4(linear, sRGB.a);
 }
 
-vec4 convertSRGBFromLinear(vec4 rgba)
+vec4 convertSRGBFromLinear(vec4 linear)
 {
-    return pow(rgba, vec4(1./2.2));
+    // https://en.wikipedia.org/wiki/SRGB
+    const bvec3 cutoff = lessThanEqual(linear.rgb, vec3(0.0031308));
+    const vec3 low = linear.rgb * 12.92;
+    const vec3 high = 1.055 * pow(linear.rgb, vec3(1.0 / 2.4f)) - 0.055;
+    vec3 sRGB = mix(high, low, cutoff);
+    return vec4(sRGB, linear.a);
 }
 
 // This uses the PQ transfer function, see also https://en.wikipedia.org/wiki/Perceptual_quantizer

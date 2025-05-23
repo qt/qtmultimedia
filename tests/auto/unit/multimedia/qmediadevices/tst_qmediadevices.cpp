@@ -7,7 +7,6 @@
 #include <qmediadevices.h>
 
 #include "qmockintegration.h"
-#include "qmockmediadevices.h"
 
 QT_USE_NAMESPACE
 
@@ -17,25 +16,15 @@ class tst_QMediaDevices : public QObject
 {
     Q_OBJECT
 
-public slots:
-    void initTestCase();
-
 private slots:
     void videoInputsChangedEmitted_whenCamerasChanged();
     void onlyVideoInputsChangedEmitted_when2MediaDevicesCreated_andCamerasChanged();
-
-private:
-    QMockMediaDevices devices;
 };
-
-void tst_QMediaDevices::initTestCase() { }
 
 void tst_QMediaDevices::videoInputsChangedEmitted_whenCamerasChanged()
 {
     QMediaDevices mediaDevices;
     QSignalSpy videoInputsSpy(&mediaDevices, &QMediaDevices::videoInputsChanged);
-
-    QVERIFY(QTest::qWaitFor([] { return QMockIntegration::created(); }));
 
     QCOMPARE(videoInputsSpy.size(), 0);
 
@@ -55,11 +44,6 @@ void tst_QMediaDevices::onlyVideoInputsChangedEmitted_when2MediaDevicesCreated_a
     QSignalSpy videoInputsSpyB(&mediaDevicesB, &QMediaDevices::videoInputsChanged);
     QSignalSpy audioInputsSpy(&mediaDevicesA, &QMediaDevices::audioInputsChanged);
     QSignalSpy audioOutputsSpy(&mediaDevicesA, &QMediaDevices::audioOutputsChanged);
-
-    QVERIFY(QTest::qWaitFor([] { return QMockIntegration::created(); }));
-
-    // process events to wait for the queued video connection establishing
-    QTest::qWait(0);
 
     QMockIntegration::instance()->addNewCamera();
     QCOMPARE(videoInputsSpyA.size(), 1);

@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 //#define DEBUG_DECODER
 
-#include "qgstreameraudiodecoder_p.h"
-#include "qgstreamermessage_p.h"
+#include <audio/qgstreameraudiodecoder_p.h>
 
-#include <qgstutils_p.h>
+#include <common/qgstreamermessage_p.h>
+#include <common/qgst_debug_p.h>
+#include <common/qgstutils_p.h>
 
 #include <gst/gstvalue.h>
 #include <gst/base/gstbasesrc.h>
@@ -18,10 +19,13 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qstandardpaths.h>
 #include <QtCore/qurl.h>
+#include <QtCore/qloggingcategory.h>
 
 #define MAX_BUFFERS_IN_QUEUE 4
 
 QT_BEGIN_NAMESPACE
+
+static Q_LOGGING_CATEGORY(qLcGstreamerAudioDecoder, "qt.multimedia.gstreameraudiodecoder");
 
 typedef enum {
     GST_PLAY_FLAG_VIDEO         = 0x00000001,
@@ -38,11 +42,12 @@ typedef enum {
 
 QMaybe<QPlatformAudioDecoder *> QGstreamerAudioDecoder::create(QAudioDecoder *parent)
 {
-    QGstElement audioconvert("audioconvert", "audioconvert");
+    QGstElement audioconvert = QGstElement::createFromFactory("audioconvert", "audioconvert");
     if (!audioconvert)
         return errorMessageCannotFindElement("audioconvert");
 
-    QGstPipeline playbin(GST_PIPELINE_CAST(QGstElement("playbin", "playbin").element()));
+    QGstPipeline playbin = QGstPipeline::adopt(
+            GST_PIPELINE_CAST(QGstElement::createFromFactory("playbin", "playbin").element()));
     if (!playbin)
         return errorMessageCannotFindElement("playbin");
 
@@ -51,7 +56,9 @@ QMaybe<QPlatformAudioDecoder *> QGstreamerAudioDecoder::create(QAudioDecoder *pa
 
 QGstreamerAudioDecoder::QGstreamerAudioDecoder(QGstPipeline playbin, QGstElement audioconvert,
                                                QAudioDecoder *parent)
-    : QPlatformAudioDecoder(parent), m_playbin(playbin), m_audioConvert(audioconvert)
+    : QPlatformAudioDecoder(parent),
+      m_playbin(std::move(playbin)),
+      m_audioConvert(std::move(audioconvert))
 {
     // Sort out messages
     m_playbin.installMessageFilter(this);
@@ -59,15 +66,16 @@ QGstreamerAudioDecoder::QGstreamerAudioDecoder(QGstPipeline playbin, QGstElement
     // Set the rest of the pipeline up
     setAudioFlags(true);
 
-    m_outputBin = QGstBin("audio-output-bin");
+    m_outputBin = QGstBin::create("audio-output-bin");
     m_outputBin.add(m_audioConvert);
 
     // add ghostpad
     m_outputBin.addGhostPad(m_audioConvert, "sink");
 
     g_object_set(m_playbin.object(), "audio-sink", m_outputBin.element(), NULL);
-    g_signal_connect(m_playbin.object(), "deep-notify::source",
-                     (GCallback)&QGstreamerAudioDecoder::configureAppSrcElement, (gpointer)this);
+
+    m_deepNotifySourceConnection = m_playbin.connect(
+            "deep-notify::source", (GCallback)&configureAppSrcElement, (gpointer)this);
 
     // Set volume to 100%
     gdouble volume = 1.0;
@@ -78,161 +86,158 @@ QGstreamerAudioDecoder::~QGstreamerAudioDecoder()
 {
     stop();
 
+    m_playbin.removeMessageFilter(this);
+
 #if QT_CONFIG(gstreamer_app)
     delete m_appSrc;
 #endif
 }
 
 #if QT_CONFIG(gstreamer_app)
-void QGstreamerAudioDecoder::configureAppSrcElement(GObject* object, GObject *orig, GParamSpec *pspec, QGstreamerAudioDecoder *self)
+void QGstreamerAudioDecoder::configureAppSrcElement([[maybe_unused]] GObject *object, GObject *orig,
+                                                    [[maybe_unused]] GParamSpec *pspec,
+                                                    QGstreamerAudioDecoder *self)
 {
-    Q_UNUSED(object);
-    Q_UNUSED(pspec);
-
     // In case we switch from appsrc to not
-    if (!self->appsrc())
+    if (!self->m_appSrc)
         return;
 
-    GstElement *appsrc;
+    QGstElementHandle appsrc;
     g_object_get(orig, "source", &appsrc, NULL);
 
-    auto *qAppSrc = self->appsrc();
-    qAppSrc->setExternalAppSrc(QGstElement(appsrc));
+    auto *qAppSrc = self->m_appSrc;
+    qAppSrc->setExternalAppSrc(QGstAppSrc{
+            qGstSafeCast<GstAppSrc>(appsrc.get()),
+            QGstAppSrc::NeedsRef, // CHECK: can we `release()`?
+    });
     qAppSrc->setup(self->mDevice);
-
-    g_object_unref(G_OBJECT(appsrc));
 }
 #endif
 
 bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
 {
-    GstMessage* gm = message.rawMessage();
-    if (gm) {
-        if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_DURATION) {
-            updateDuration();
-        } else if (GST_MESSAGE_SRC(gm) == m_playbin.object()) {
-            switch (GST_MESSAGE_TYPE(gm))  {
-            case GST_MESSAGE_STATE_CHANGED:
-                {
-                    GstState    oldState;
-                    GstState    newState;
-                    GstState    pending;
+    qCDebug(qLcGstreamerAudioDecoder) << "received bus message:" << message;
 
-                    gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
+    GstMessage *gm = message.message();
 
-#ifdef DEBUG_DECODER
-                    QStringList states;
-                    states << "GST_STATE_VOID_PENDING" <<  "GST_STATE_NULL" << "GST_STATE_READY" << "GST_STATE_PAUSED" << "GST_STATE_PLAYING";
+    switch (message.type()) {
+    case GST_MESSAGE_DURATION: {
+        updateDuration();
+        return false;
+    }
 
-                    qDebug() << QString("state changed: old: %1  new: %2  pending: %3") \
-                            .arg(states[oldState]) \
-                            .arg(states[newState]) \
-                                .arg(states[pending]) << "internal" << m_state;
-#endif
+    case GST_MESSAGE_ERROR: {
+        qCDebug(qLcGstreamerAudioDecoder) << "    error" << QCompactGstMessageAdaptor(message);
 
-                    bool isDecoding = false;
-                    switch (newState) {
-                    case GST_STATE_VOID_PENDING:
-                    case GST_STATE_NULL:
-                    case GST_STATE_READY:
-                        break;
-                    case GST_STATE_PLAYING:
-                        isDecoding = true;
-                        break;
-                    case GST_STATE_PAUSED:
-                        isDecoding = true;
+        QUniqueGErrorHandle err;
+        QGString debug;
+        gst_message_parse_error(gm, &err, &debug);
 
-                        //gstreamer doesn't give a reliable indication the duration
-                        //information is ready, GST_MESSAGE_DURATION is not sent by most elements
-                        //the duration is queried up to 5 times with increasing delay
-                        m_durationQueries = 5;
-                        updateDuration();
-                        break;
-                    }
-
-                    setIsDecoding(isDecoding);
-                }
-                break;
-
-            case GST_MESSAGE_EOS:
-                m_playbin.setState(GST_STATE_NULL);
-                finished();
-                break;
-
-            case GST_MESSAGE_ERROR: {
-                    GError *err;
-                    gchar *debug;
-                    gst_message_parse_error(gm, &err, &debug);
-                    if (err->domain == GST_STREAM_ERROR && err->code == GST_STREAM_ERROR_CODEC_NOT_FOUND)
-                        processInvalidMedia(QAudioDecoder::FormatError, tr("Cannot play stream of type: <unknown>"));
-                    else
-                        processInvalidMedia(QAudioDecoder::ResourceError, QString::fromUtf8(err->message));
-                    qWarning() << "Error:" << QString::fromUtf8(err->message);
-                    g_error_free(err);
-                    g_free(debug);
-                }
-                break;
-            case GST_MESSAGE_WARNING:
-                {
-                    GError *err;
-                    gchar *debug;
-                    gst_message_parse_warning (gm, &err, &debug);
-                    qWarning() << "Warning:" << QString::fromUtf8(err->message);
-                    g_error_free (err);
-                    g_free (debug);
-                }
-                break;
-#ifdef DEBUG_DECODER
-            case GST_MESSAGE_INFO:
-                {
-                    GError *err;
-                    gchar *debug;
-                    gst_message_parse_info (gm, &err, &debug);
-                    qDebug() << "Info:" << QString::fromUtf8(err->message);
-                    g_error_free (err);
-                    g_free (debug);
-                }
-                break;
-#endif
-            default:
-                break;
-            }
-        } else if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ERROR) {
-            GError *err;
-            gchar *debug;
-            gst_message_parse_error(gm, &err, &debug);
+        if (message.source() == m_playbin) {
+            if (err.get()->domain == GST_STREAM_ERROR
+                && err.get()->code == GST_STREAM_ERROR_CODEC_NOT_FOUND)
+                processInvalidMedia(QAudioDecoder::FormatError,
+                                    tr("Cannot play stream of type: <unknown>"));
+            else
+                processInvalidMedia(QAudioDecoder::ResourceError,
+                                    QString::fromUtf8(err.get()->message));
+        } else {
             QAudioDecoder::Error qerror = QAudioDecoder::ResourceError;
-            if (err->domain == GST_STREAM_ERROR) {
-                switch (err->code) {
-                    case GST_STREAM_ERROR_DECRYPT:
-                    case GST_STREAM_ERROR_DECRYPT_NOKEY:
-                        qerror = QAudioDecoder::AccessDeniedError;
-                        break;
-                    case GST_STREAM_ERROR_FORMAT:
-                    case GST_STREAM_ERROR_DEMUX:
-                    case GST_STREAM_ERROR_DECODE:
-                    case GST_STREAM_ERROR_WRONG_TYPE:
-                    case GST_STREAM_ERROR_TYPE_NOT_FOUND:
-                    case GST_STREAM_ERROR_CODEC_NOT_FOUND:
-                        qerror = QAudioDecoder::FormatError;
-                        break;
-                    default:
-                        break;
+            if (err.get()->domain == GST_STREAM_ERROR) {
+                switch (err.get()->code) {
+                case GST_STREAM_ERROR_DECRYPT:
+                case GST_STREAM_ERROR_DECRYPT_NOKEY:
+                    qerror = QAudioDecoder::AccessDeniedError;
+                    break;
+                case GST_STREAM_ERROR_FORMAT:
+                case GST_STREAM_ERROR_DEMUX:
+                case GST_STREAM_ERROR_DECODE:
+                case GST_STREAM_ERROR_WRONG_TYPE:
+                case GST_STREAM_ERROR_TYPE_NOT_FOUND:
+                case GST_STREAM_ERROR_CODEC_NOT_FOUND:
+                    qerror = QAudioDecoder::FormatError;
+                    break;
+                default:
+                    break;
                 }
-            } else if (err->domain == GST_CORE_ERROR) {
-                switch (err->code) {
-                    case GST_CORE_ERROR_MISSING_PLUGIN:
-                        qerror = QAudioDecoder::FormatError;
-                        break;
-                    default:
-                        break;
+            } else if (err.get()->domain == GST_CORE_ERROR) {
+                switch (err.get()->code) {
+                case GST_CORE_ERROR_MISSING_PLUGIN:
+                    qerror = QAudioDecoder::FormatError;
+                    break;
+                default:
+                    break;
                 }
             }
 
-            processInvalidMedia(qerror, QString::fromUtf8(err->message));
-            g_error_free(err);
-            g_free(debug);
+            processInvalidMedia(qerror, QString::fromUtf8(err.get()->message));
         }
+        break;
+    }
+
+    default:
+        if (message.source() == m_playbin)
+            return handlePlaybinMessage(message);
+    }
+
+    return false;
+}
+
+bool QGstreamerAudioDecoder::handlePlaybinMessage(const QGstreamerMessage &message)
+{
+    GstMessage *gm = message.message();
+
+    switch (GST_MESSAGE_TYPE(gm)) {
+    case GST_MESSAGE_STATE_CHANGED: {
+        GstState oldState;
+        GstState newState;
+        GstState pending;
+
+        gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
+
+        bool isDecoding = false;
+        switch (newState) {
+        case GST_STATE_VOID_PENDING:
+        case GST_STATE_NULL:
+        case GST_STATE_READY:
+            break;
+        case GST_STATE_PLAYING:
+            isDecoding = true;
+            break;
+        case GST_STATE_PAUSED:
+            isDecoding = true;
+
+            // gstreamer doesn't give a reliable indication the duration
+            // information is ready, GST_MESSAGE_DURATION is not sent by most elements
+            // the duration is queried up to 5 times with increasing delay
+            m_durationQueries = 5;
+            updateDuration();
+            break;
+        }
+
+        setIsDecoding(isDecoding);
+        break;
+    };
+
+    case GST_MESSAGE_EOS:
+        m_playbin.setState(GST_STATE_NULL);
+        finished();
+        break;
+
+    case GST_MESSAGE_ERROR:
+        Q_UNREACHABLE_RETURN(false); // handled in processBusMessage
+
+    case GST_MESSAGE_WARNING:
+        qCWarning(qLcGstreamerAudioDecoder) << "Warning:" << QCompactGstMessageAdaptor(message);
+        break;
+
+    case GST_MESSAGE_INFO: {
+        if (qLcGstreamerAudioDecoder().isDebugEnabled())
+            qCWarning(qLcGstreamerAudioDecoder) << "Info:" << QCompactGstMessageAdaptor(message);
+        break;
+    }
+    default:
+        break;
     }
 
     return false;
@@ -253,7 +258,7 @@ void QGstreamerAudioDecoder::setSource(const QUrl &fileName)
     bool isSignalRequired = (mSource != fileName);
     mSource = fileName;
     if (isSignalRequired)
-        emit sourceChanged();
+        sourceChanged();
 }
 
 QIODevice *QGstreamerAudioDecoder::sourceDevice() const
@@ -268,7 +273,7 @@ void QGstreamerAudioDecoder::setSourceDevice(QIODevice *device)
     bool isSignalRequired = (mDevice != device);
     mDevice = device;
     if (isSignalRequired)
-        emit sourceChanged();
+        sourceChanged();
 }
 
 void QGstreamerAudioDecoder::start()
@@ -285,7 +290,7 @@ void QGstreamerAudioDecoder::start()
         }
 
         if (!m_appSrc) {
-            auto maybeAppSrc = QGstAppSrc::create(this);
+            auto maybeAppSrc = QGstAppSource::create(this);
             if (maybeAppSrc) {
                 m_appSrc = maybeAppSrc.value();
             } else {
@@ -304,11 +309,11 @@ void QGstreamerAudioDecoder::start()
         if (mFormat.isValid()) {
             setAudioFlags(false);
             auto caps = QGstUtils::capsForAudioFormat(mFormat);
-            gst_app_sink_set_caps(m_appSink, caps.get());
+            m_appSink.setCaps(caps);
         } else {
             // We want whatever the native audio format is
             setAudioFlags(true);
-            gst_app_sink_set_caps(m_appSink, nullptr);
+            m_appSink.setCaps({});
         }
     }
 
@@ -322,22 +327,23 @@ void QGstreamerAudioDecoder::start()
 void QGstreamerAudioDecoder::stop()
 {
     m_playbin.setState(GST_STATE_NULL);
+    m_currentSessionId += 1;
     removeAppSink();
 
     // GStreamer thread is stopped. Can safely access m_buffersAvailable
     if (m_buffersAvailable != 0) {
         m_buffersAvailable = 0;
-        emit bufferAvailableChanged(false);
+        bufferAvailableChanged(false);
     }
 
     if (m_position != -1) {
         m_position = -1;
-        emit positionChanged(m_position);
+        positionChanged(m_position);
     }
 
     if (m_duration != -1) {
         m_duration = -1;
-        emit durationChanged(m_duration);
+        durationChanged(m_duration);
     }
 
     setIsDecoding(false);
@@ -352,7 +358,7 @@ void QGstreamerAudioDecoder::setAudioFormat(const QAudioFormat &format)
 {
     if (mFormat != format) {
         mFormat = format;
-        emit formatChanged(mFormat);
+        formatChanged(mFormat);
     }
 }
 
@@ -360,54 +366,36 @@ QAudioBuffer QGstreamerAudioDecoder::read()
 {
     QAudioBuffer audioBuffer;
 
-    int buffersAvailable;
-    {
-        QMutexLocker locker(&m_buffersMutex);
-        buffersAvailable = m_buffersAvailable;
+    if (m_buffersAvailable == 0)
+        return audioBuffer;
 
-        // need to decrement before pulling a buffer
-        // to make sure assert in QGstreamerAudioDecoderControl::new_buffer works
-        m_buffersAvailable--;
-    }
+    m_buffersAvailable -= 1;
 
+    if (m_buffersAvailable == 0)
+        bufferAvailableChanged(false);
 
-    if (buffersAvailable) {
-        if (buffersAvailable == 1)
-            emit bufferAvailableChanged(false);
+    QGstSampleHandle sample = m_appSink.pullSample();
+    GstBuffer *buffer = gst_sample_get_buffer(sample.get());
+    GstMapInfo mapInfo;
+    gst_buffer_map(buffer, &mapInfo, GST_MAP_READ);
+    const char *bufferData = (const char *)mapInfo.data;
+    int bufferSize = mapInfo.size;
+    QAudioFormat format = QGstUtils::audioFormatForSample(sample.get());
 
-        const char* bufferData = nullptr;
-        int bufferSize = 0;
-
-        GstSample *sample = gst_app_sink_pull_sample(m_appSink);
-        GstBuffer *buffer = gst_sample_get_buffer(sample);
-        GstMapInfo mapInfo;
-        gst_buffer_map(buffer, &mapInfo, GST_MAP_READ);
-        bufferData = (const char*)mapInfo.data;
-        bufferSize = mapInfo.size;
-        QAudioFormat format = QGstUtils::audioFormatForSample(sample);
-
-        if (format.isValid()) {
-            // XXX At the moment we have to copy data from GstBuffer into QAudioBuffer.
-            // We could improve performance by implementing QAbstractAudioBuffer for GstBuffer.
-            qint64 position = getPositionFromBuffer(buffer);
-            audioBuffer = QAudioBuffer(QByteArray((const char*)bufferData, bufferSize), format, position);
-            position /= 1000; // convert to milliseconds
-            if (position != m_position) {
-                m_position = position;
-                emit positionChanged(m_position);
-            }
+    if (format.isValid()) {
+        // XXX At the moment we have to copy data from GstBuffer into QAudioBuffer.
+        // We could improve performance by implementing QAbstractAudioBuffer for GstBuffer.
+        qint64 position = getPositionFromBuffer(buffer);
+        audioBuffer = QAudioBuffer(QByteArray(bufferData, bufferSize), format, position);
+        position /= 1000; // convert to milliseconds
+        if (position != m_position) {
+            m_position = position;
+            positionChanged(m_position);
         }
-        gst_buffer_unmap(buffer, &mapInfo);
-        gst_sample_unref(sample);
     }
+    gst_buffer_unmap(buffer, &mapInfo);
 
     return audioBuffer;
-}
-
-bool QGstreamerAudioDecoder::bufferAvailable() const
-{
-    QMutexLocker locker(&m_buffersMutex);
-    return m_buffersAvailable > 0;
 }
 
 qint64 QGstreamerAudioDecoder::position() const
@@ -423,26 +411,31 @@ qint64 QGstreamerAudioDecoder::duration() const
 void QGstreamerAudioDecoder::processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString)
 {
     stop();
-    emit error(int(errorCode), errorString);
+    error(int(errorCode), errorString);
 }
 
-GstFlowReturn QGstreamerAudioDecoder::new_sample(GstAppSink *, gpointer user_data)
+GstFlowReturn QGstreamerAudioDecoder::newSample(GstAppSink *)
 {
-    // "Note that the preroll buffer will also be returned as the first buffer when calling gst_app_sink_pull_buffer()."
-    QGstreamerAudioDecoder *decoder = reinterpret_cast<QGstreamerAudioDecoder*>(user_data);
+    // "Note that the preroll buffer will also be returned as the first buffer when calling
+    // gst_app_sink_pull_buffer()."
 
-    int buffersAvailable;
-    {
-        QMutexLocker locker(&decoder->m_buffersMutex);
-        buffersAvailable = decoder->m_buffersAvailable;
-        decoder->m_buffersAvailable++;
-        Q_ASSERT(decoder->m_buffersAvailable <= MAX_BUFFERS_IN_QUEUE);
-    }
+    QMetaObject::invokeMethod(this, [this, sessionId = m_currentSessionId] {
+        if (sessionId != m_currentSessionId)
+            return; // stop()ed before message is executed
 
-    if (!buffersAvailable)
-        decoder->bufferAvailableChanged(true);
-    decoder->bufferReady();
+        m_buffersAvailable += 1;
+        bufferAvailableChanged(true);
+        bufferReady();
+    });
+
     return GST_FLOW_OK;
+}
+
+GstFlowReturn QGstreamerAudioDecoder::new_sample(GstAppSink *sink, gpointer user_data)
+{
+    QGstreamerAudioDecoder *decoder = reinterpret_cast<QGstreamerAudioDecoder *>(user_data);
+    qCDebug(qLcGstreamerAudioDecoder) << "QGstreamerAudioDecoder::new_sample";
+    return decoder->newSample(sink);
 }
 
 void QGstreamerAudioDecoder::setAudioFlags(bool wantNativeAudio)
@@ -462,17 +455,18 @@ void QGstreamerAudioDecoder::addAppSink()
     if (m_appSink)
         return;
 
-    m_appSink = (GstAppSink*)gst_element_factory_make("appsink", nullptr);
+    qCDebug(qLcGstreamerAudioDecoder) << "QGstreamerAudioDecoder::addAppSink";
+    m_appSink = QGstAppSink::create("decoderAppSink");
+    GstAppSinkCallbacks callbacks{};
+    callbacks.new_sample = new_sample;
+    m_appSink.setCallbacks(callbacks, this, nullptr);
+    gst_app_sink_set_max_buffers(m_appSink.appSink(), MAX_BUFFERS_IN_QUEUE);
+    gst_base_sink_set_sync(m_appSink.baseSink(), FALSE);
 
-    GstAppSinkCallbacks callbacks;
-    memset(&callbacks, 0, sizeof(callbacks));
-    callbacks.new_sample = &new_sample;
-    gst_app_sink_set_callbacks(m_appSink, &callbacks, this, nullptr);
-    gst_app_sink_set_max_buffers(m_appSink, MAX_BUFFERS_IN_QUEUE);
-    gst_base_sink_set_sync(GST_BASE_SINK(m_appSink), FALSE);
-
-    gst_bin_add(m_outputBin.bin(), GST_ELEMENT(m_appSink));
-    gst_element_link(m_audioConvert.element(), GST_ELEMENT(m_appSink));
+    QGstPipeline::modifyPipelineWhileNotRunning(m_playbin.getPipeline(), [&] {
+        m_outputBin.add(m_appSink);
+        qLinkGstElements(m_audioConvert, m_appSink);
+    });
 }
 
 void QGstreamerAudioDecoder::removeAppSink()
@@ -480,10 +474,13 @@ void QGstreamerAudioDecoder::removeAppSink()
     if (!m_appSink)
         return;
 
-    gst_element_unlink(m_audioConvert.element(), GST_ELEMENT(m_appSink));
-    gst_bin_remove(m_outputBin.bin(), GST_ELEMENT(m_appSink));
+    qCDebug(qLcGstreamerAudioDecoder) << "QGstreamerAudioDecoder::removeAppSink";
 
-    m_appSink = nullptr;
+    QGstPipeline::modifyPipelineWhileNotRunning(m_playbin.getPipeline(), [&] {
+        qUnlinkGstElements(m_audioConvert, m_appSink);
+        m_outputBin.stopAndRemoveElements(m_appSink);
+    });
+    m_appSink = {};
 }
 
 void QGstreamerAudioDecoder::updateDuration()
@@ -492,7 +489,7 @@ void QGstreamerAudioDecoder::updateDuration()
 
     if (m_duration != duration) {
         m_duration = duration;
-        emit durationChanged(m_duration);
+        durationChanged(m_duration);
     }
 
     if (m_duration > 0)
@@ -501,7 +498,7 @@ void QGstreamerAudioDecoder::updateDuration()
     if (m_durationQueries > 0) {
         //increase delay between duration requests
         int delay = 25 << (5 - m_durationQueries);
-        QTimer::singleShot(delay, this, SLOT(updateDuration()));
+        QTimer::singleShot(delay, this, &QGstreamerAudioDecoder::updateDuration);
         m_durationQueries--;
     }
 }

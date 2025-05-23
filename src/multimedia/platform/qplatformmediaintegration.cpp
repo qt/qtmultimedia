@@ -7,22 +7,28 @@
 #include <qmutex.h>
 #include <qplatformaudioinput_p.h>
 #include <qplatformaudiooutput_p.h>
+#include <qplatformaudioresampler_p.h>
 #include <qplatformvideodevices_p.h>
 #include <qmediadevices.h>
 #include <qcameradevice.h>
 #include <qloggingcategory.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qapplicationstatic.h>
 
-#include "QtCore/private/qfactoryloader_p.h"
-#include "private/qplatformmediaformatinfo_p.h"
+#include "qplatformmediadevices_p.h"
+#include <QtCore/private/qfactoryloader_p.h>
+#include <QtCore/private/qcoreapplication_p.h>
+#include <private/qplatformmediaformatinfo_p.h>
 #include "qplatformmediaplugin_p.h"
 
-class QDummyIntegration : public QPlatformMediaIntegration
+namespace {
+
+class QFallbackIntegration : public QPlatformMediaIntegration
 {
 public:
-    QDummyIntegration()
+    QFallbackIntegration() : QPlatformMediaIntegration(QLatin1String("fallback"))
     {
-        qCritical("QtMultimedia is not currently supported on this platform or compiler.");
+        qWarning("No QtMultimedia backends found. Only QMediaDevices, QAudioDevice, QSoundEffect, QAudioSink, and QAudioSource are available.");
     }
 };
 
@@ -33,21 +39,6 @@ Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, loader,
                            QLatin1String("/multimedia")))
 
 static const auto FFmpegBackend = QStringLiteral("ffmpeg");
-
-static QStringList availableBackends()
-{
-    QStringList list;
-
-    if (QFactoryLoader *fl = loader()) {
-        const auto keyMap = fl->keyMap();
-        for (auto it = keyMap.constBegin(); it != keyMap.constEnd(); ++it)
-            if (!list.contains(it.value()))
-                list << it.value();
-    }
-
-    qCDebug(qLcMediaPlugin) << "Available backends" << list;
-    return list;
-}
 
 static QString defaultBackend(const QStringList &backends)
 {
@@ -71,8 +62,6 @@ static QString defaultBackend(const QStringList &backends)
     return backends[0];
 }
 
-namespace {
-
 struct InstanceHolder
 {
     InstanceHolder()
@@ -80,25 +69,69 @@ struct InstanceHolder
         if (!QCoreApplication::instance())
             qCCritical(qLcMediaPlugin()) << "Qt Multimedia requires a QCoreApplication instance";
 
-        const auto backends = availableBackends();
+        const QStringList backends = QPlatformMediaIntegration::availableBackends();
         QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
         if (backend.isEmpty() && !backends.isEmpty())
             backend = defaultBackend(backends);
 
-        qCDebug(qLcMediaPlugin) << "loading backend" << backend;
+        qCDebug(qLcMediaPlugin) << "Loading media backend" << backend;
         instance.reset(
                 qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), backend));
 
         if (!instance) {
-            qWarning() << "could not load multimedia backend" << backend;
-            instance = std::make_unique<QDummyIntegration>();
+            // No backends found. Use fallback to support basic functionality
+            instance = std::make_unique<QFallbackIntegration>();
         }
+    }
+
+    ~InstanceHolder()
+    {
+        instance.reset();
+        qCDebug(qLcMediaPlugin) << "Released media backend";
+    }
+
+    // Play nice with QtGlobalStatic::ApplicationHolder
+    using QAS_Type = InstanceHolder;
+    static void innerFunction(void *pointer)
+    {
+        new (pointer) InstanceHolder();
     }
 
     std::unique_ptr<QPlatformMediaIntegration> instance;
 };
 
-Q_GLOBAL_STATIC(InstanceHolder, instanceHolder);
+// Specialized implementation of Q_APPLICATION_STATIC which behaves as
+// an application static if a Qt application is present, otherwise as a Q_GLOBAL_STATIC.
+// By doing this, and we have a Qt application, all system resources allocated by the
+// backend is released when application lifetime ends. This is important on Windows,
+// where Windows Media Foundation instances should not be released during static destruction.
+//
+// If we don't have a Qt application available when instantiating the instance holder,
+// it will be created once, and not destroyed until static destruction. This can cause
+// abrupt termination of Windows applications during static destruction. This is not a
+// supported use case, but we keep this as a fallback to keep old applications functional.
+// See also QTBUG-120198
+struct ApplicationHolder : QtGlobalStatic::ApplicationHolder<InstanceHolder>
+{
+    // Replace QtGlobalStatic::ApplicationHolder::pointer to prevent crash if
+    // no application is present
+    static InstanceHolder* pointer()
+    {
+        if (guard.loadAcquire() == QtGlobalStatic::Initialized)
+            return realPointer();
+
+        QMutexLocker locker(&mutex);
+        if (guard.loadRelaxed() == QtGlobalStatic::Uninitialized) {
+            InstanceHolder::innerFunction(&storage);
+
+            if (const QCoreApplication *app = QCoreApplication::instance())
+                QObject::connect(app, &QObject::destroyed, app, reset, Qt::DirectConnection);
+
+            guard.storeRelease(QtGlobalStatic::Initialized);
+        }
+        return realPointer();
+    }
+};
 
 } // namespace
 
@@ -106,13 +139,20 @@ QT_BEGIN_NAMESPACE
 
 QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 {
-    return instanceHolder->instance.get();
+    static QGlobalStatic<ApplicationHolder> s_instanceHolder;
+    return s_instanceHolder->instance.get();
 }
 
 QList<QCameraDevice> QPlatformMediaIntegration::videoInputs()
 {
     auto devices = videoDevices();
     return devices ? devices->videoDevices() : QList<QCameraDevice>{};
+}
+
+QMaybe<std::unique_ptr<QPlatformAudioResampler>>
+QPlatformMediaIntegration::createAudioResampler(const QAudioFormat &, const QAudioFormat &)
+{
+    return notAvailable;
 }
 
 QMaybe<QPlatformAudioInput *> QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
@@ -139,15 +179,55 @@ QPlatformMediaFormatInfo *QPlatformMediaIntegration::createFormatInfo()
     return new QPlatformMediaFormatInfo;
 }
 
+std::unique_ptr<QPlatformMediaDevices> QPlatformMediaIntegration::createMediaDevices()
+{
+    return QPlatformMediaDevices::create();
+}
+
+// clang-format off
 QPlatformVideoDevices *QPlatformMediaIntegration::videoDevices()
 {
     std::call_once(m_videoDevicesOnceFlag,
-                   [this]() { m_videoDevices.reset(createVideoDevices()); });
+                   [this]() {
+                       m_videoDevices.reset(createVideoDevices());
+                   });
     return m_videoDevices.get();
 }
 
-QPlatformMediaIntegration::QPlatformMediaIntegration() = default;
+QPlatformMediaDevices *QPlatformMediaIntegration::mediaDevices()
+{
+    std::call_once(m_mediaDevicesOnceFlag, [this] {
+        m_mediaDevices = createMediaDevices();
+    });
+    return m_mediaDevices.get();
+}
+
+// clang-format on
+
+QStringList QPlatformMediaIntegration::availableBackends()
+{
+    QStringList list;
+
+    if (QFactoryLoader *fl = loader()) {
+        const auto keyMap = fl->keyMap();
+        for (auto it = keyMap.constBegin(); it != keyMap.constEnd(); ++it)
+            if (!list.contains(it.value()))
+                list << it.value();
+    }
+
+    qCDebug(qLcMediaPlugin) << "Available backends" << list;
+    return list;
+}
+
+QLatin1String QPlatformMediaIntegration::name()
+{
+    return m_backendName;
+}
+
+QPlatformMediaIntegration::QPlatformMediaIntegration(QLatin1String name) : m_backendName(name) { }
 
 QPlatformMediaIntegration::~QPlatformMediaIntegration() = default;
 
 QT_END_NAMESPACE
+
+#include "moc_qplatformmediaintegration_p.cpp"

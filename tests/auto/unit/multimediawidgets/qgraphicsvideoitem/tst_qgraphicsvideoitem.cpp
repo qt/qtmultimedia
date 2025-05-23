@@ -1,8 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-//TESTED_COMPONENT=src/multimedia
-
 #include <qtmultimediaglobal.h>
 #include "qgraphicsvideoitem.h"
 #include <QtTest/QtTest>
@@ -216,7 +214,7 @@ void tst_QGraphicsVideoItem::nativeSize()
 
     QCOMPARE(item.nativeSize(), QSizeF());
 
-    QSignalSpy spy(&item, SIGNAL(nativeSizeChanged(QSizeF)));
+    QSignalSpy spy(&item, &QGraphicsVideoItem::nativeSizeChanged);
 
     QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_ARGB8888);
     format.setViewport(viewport);

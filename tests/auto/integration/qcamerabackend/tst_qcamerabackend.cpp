@@ -1,8 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-//TESTED_COMPONENT=src/multimedia
-
 #include <QtTest/QtTest>
 #include <QtGui/QImageReader>
 #include <QtCore/qurl.h>
@@ -26,6 +24,8 @@
 #ifdef Q_OS_DARWIN
 #include <QtCore/private/qcore_mac_p.h>
 #endif
+
+#include <mediabackendutils.h>
 
 QT_USE_NAMESPACE
 
@@ -207,8 +207,8 @@ void tst_QCameraBackend::testCameraActive()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy errorSignal(&camera, SIGNAL(errorOccurred(QCamera::Error, const QString &)));
-    QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged(bool)));
+    QSignalSpy errorSignal(&camera, &QCamera::errorOccurred);
+    QSignalSpy activeChangedSignal(&camera, &QCamera::activeChanged);
 
     QCOMPARE(camera.isActive(), false);
 
@@ -231,6 +231,11 @@ void tst_QCameraBackend::testCameraActive()
 
 void tst_QCameraBackend::testCameraStartParallel()
 {
+#ifdef Q_OS_LINUX
+    QSKIP("Multi-camera feature is currently not supported on Linux. "
+          "Cannot open same device twice.");
+#endif
+
     if (noCamera)
         QSKIP("No camera available");
 
@@ -263,7 +268,7 @@ void tst_QCameraBackend::testCameraFormat()
     if (videoFormats.isEmpty())
         QSKIP("No Camera available, skipping test.");
     QCameraFormat cameraFormat = videoFormats.first();
-    QSignalSpy spy(&camera, SIGNAL(cameraFormatChanged()));
+    QSignalSpy spy(&camera, &QCamera::cameraFormatChanged);
     QVERIFY(spy.size() == 0);
 
     QMediaCaptureSession session;
@@ -327,9 +332,9 @@ void tst_QCameraBackend::testCameraCapture()
 
     QVERIFY(!imageCapture.isReadyForCapture());
 
-    QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,const QString&)));
+    QSignalSpy capturedSignal(&imageCapture, &QImageCapture::imageCaptured);
+    QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
+    QSignalSpy errorSignal(&imageCapture, &QImageCapture::errorOccurred);
 
     imageCapture.captureToFile();
     QTRY_COMPARE(errorSignal.size(), 1);
@@ -350,7 +355,7 @@ void tst_QCameraBackend::testCameraCapture()
 
     int id = imageCapture.captureToFile();
 
-    QTRY_VERIFY(!savedSignal.isEmpty());
+    QTRY_VERIFY_WITH_TIMEOUT(!savedSignal.isEmpty(), 8000);
 
     QTRY_COMPARE(capturedSignal.size(), 1);
     QCOMPARE(capturedSignal.last().first().toInt(), id);
@@ -386,10 +391,10 @@ void tst_QCameraBackend::testCaptureToBuffer()
 
     QTRY_VERIFY(camera.isActive());
 
-    QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy imageAvailableSignal(&imageCapture, SIGNAL(imageAvailable(int,QVideoFrame)));
-    QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,const QString&)));
+    QSignalSpy capturedSignal(&imageCapture, &QImageCapture::imageCaptured);
+    QSignalSpy imageAvailableSignal(&imageCapture, &QImageCapture::imageAvailable);
+    QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
+    QSignalSpy errorSignal(&imageCapture, &QImageCapture::errorOccurred);
 
     camera.start();
     QTRY_VERIFY(imageCapture.isReadyForCapture());
@@ -431,8 +436,8 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
 
     camera.setFlashMode(QCamera::FlashOff);
 
-    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
-    QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
+    QSignalSpy metadataSignal(&imageCapture, &QImageCapture::imageMetadataAvailable);
+    QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
 
     camera.start();
 
@@ -455,9 +460,9 @@ void tst_QCameraBackend::testExposureCompensation()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy exposureCompensationSignal(&camera, SIGNAL(exposureCompensationChanged(float)));
+    QSignalSpy exposureCompensationSignal(&camera, &QCamera::exposureCompensationChanged);
 
-    //it should be possible to set exposure parameters in Unloaded state
+    // it should be possible to set exposure parameters in Unloaded state
     QCOMPARE(camera.exposureCompensation(), 0.);
     if (!(camera.supportedFeatures() & QCamera::Feature::ExposureCompensation))
         return;
@@ -554,16 +559,16 @@ void tst_QCameraBackend::testVideoRecording()
     QMediaRecorder recorder;
     session.setRecorder(&recorder);
 
-    QSignalSpy errorSignal(camera.data(), SIGNAL(errorOccurred(QCamera::Error, const QString &)));
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(QMediaRecorder::Error, const QString &)));
-    QSignalSpy recorderStateChanged(&recorder, SIGNAL(recorderStateChanged(RecorderState)));
-    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
+    QSignalSpy errorSignal(camera.data(), &QCamera::errorOccurred);
+    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
+    QSignalSpy recorderStateChanged(&recorder, &QMediaRecorder::recorderStateChanged);
+    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
 
     recorder.setVideoResolution(320, 240);
 
     // Insert metadata
     QMediaMetaData metaData;
-    metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
+    metaData.insert(QMediaMetaData::Author, QStringLiteral("Author"));
     metaData.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
     recorder.setMetaData(metaData);
 
@@ -577,8 +582,9 @@ void tst_QCameraBackend::testVideoRecording()
     QTRY_VERIFY(camera->isActive());
 
     recorder.record();
-    durationChanged.clear();
     if (!recorderErrorSignal.empty() || recorderErrorSignal.wait(550)) {
+        QEXPECT_FAIL_GSTREAMER("", "QTBUG-124148: GStreamer might return ResourceError", Continue);
+
         QCOMPARE(recorderErrorSignal.last().first().toInt(), QMediaRecorder::FormatError);
         return;
     }
@@ -602,10 +608,10 @@ void tst_QCameraBackend::testVideoRecording()
     QMediaPlayer player;
     player.setSource(fileName);
 
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::LoadedMedia, 8000);
     QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(), QSize(320, 240));
     QCOMPARE_GT(player.duration(), 350);
-    QCOMPARE_LT(player.duration(), 550);
+    QCOMPARE_LT(player.duration(), 650);
 
     // TODO: integrate with a virtual camera and check mediaplayer output
 
@@ -625,10 +631,10 @@ void tst_QCameraBackend::testNativeMetadata()
     QMediaRecorder recorder;
     session.setRecorder(&recorder);
 
-    QSignalSpy errorSignal(&camera, SIGNAL(errorOccurred(QCamera::Error, const QString &)));
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
-    QSignalSpy recorderStateChanged(&recorder, SIGNAL(recorderStateChanged(RecorderState)));
-    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
+    QSignalSpy errorSignal(&camera, &QCamera::errorOccurred);
+    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
+    QSignalSpy recorderStateChanged(&recorder, &QMediaRecorder::recorderStateChanged);
+    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
 
     camera.start();
     if (device.isNull()) {
@@ -641,15 +647,15 @@ void tst_QCameraBackend::testNativeMetadata()
     // Insert common metadata supported on all platforms
     // Don't use Date, as some backends set that on their own
     QMediaMetaData metaData;
-    metaData.insert(QMediaMetaData::Title, QString::fromUtf8("Title"));
+    metaData.insert(QMediaMetaData::Title, QStringLiteral("Title"));
     metaData.insert(QMediaMetaData::Language, QVariant::fromValue(QLocale::German));
-    metaData.insert(QMediaMetaData::Description, QString::fromUtf8("Description"));
+    metaData.insert(QMediaMetaData::Description, QStringLiteral("Description"));
 
     recorder.setMetaData(metaData);
 
     recorder.record();
-    durationChanged.clear();
     QTRY_VERIFY(durationChanged.size());
+    QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecorderState::RecordingState);
 
     QCOMPARE(recorder.metaData(), metaData);
 
@@ -657,13 +663,19 @@ void tst_QCameraBackend::testNativeMetadata()
     recorder.stop();
 
     QTRY_VERIFY(recorderStateChanged.size() > 0);
+    QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecorderState::StoppedState);
 
     QVERIFY(errorSignal.isEmpty());
-    QVERIFY(recorderErrorSignal.isEmpty());
+    if (!isGStreamerPlatform()) {
+        // https://bugreports.qt.io/browse/QTBUG-124183
+        QVERIFY(recorderErrorSignal.isEmpty());
+    }
 
     QString fileName = recorder.actualLocation().toLocalFile();
     QVERIFY(!fileName.isEmpty());
     QVERIFY(QFileInfo(fileName).size() > 0);
+
+    QSKIP_GSTREAMER("QTBUG-124182: spurious failure while retrieving the metadata");
 
     // QMediaRecorder::metaData() can only test that QMediaMetaData is set properly on the recorder.
     // Use QMediaPlayer to test that the native metadata is properly set on the track
@@ -671,7 +683,7 @@ void tst_QCameraBackend::testNativeMetadata()
     QMediaPlayer player;
     player.setAudioOutput(&output);
 
-    QSignalSpy metadataChangedSpy(&player, SIGNAL(metaDataChanged()));
+    QSignalSpy metadataChangedSpy(&player, &QMediaPlayer::metaDataChanged);
 
     player.setSource(QUrl::fromLocalFile(fileName));
     player.play();

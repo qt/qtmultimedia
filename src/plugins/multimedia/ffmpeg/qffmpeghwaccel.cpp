@@ -26,6 +26,9 @@
 #include <private/qrhi_p.h>
 #include <qloggingcategory.h>
 #include <unordered_set>
+#ifdef Q_OS_LINUX
+#include <QLibrary>
+#endif
 
 /* Infrastructure for HW acceleration goes into this file. */
 
@@ -74,8 +77,18 @@ static bool precheckDriver(AVHWDeviceType type)
 {
     // precheckings might need some improvements
 #if defined(Q_OS_LINUX)
-    if (type == AV_HWDEVICE_TYPE_CUDA)
-        return QFile::exists(QLatin1String("/proc/driver/nvidia/version"));
+    if (type == AV_HWDEVICE_TYPE_CUDA) {
+        if (!QFile::exists(QLatin1String("/proc/driver/nvidia/version")))
+            return false;
+
+        // QTBUG-122199
+        // CUDA backend requires libnvcuvid in libavcodec
+        QLibrary lib("libnvcuvid.so");
+        if (!lib.load())
+            return false;
+        lib.unload();
+        return true;
+    }
 #elif defined(Q_OS_WINDOWS)
     if (type == AV_HWDEVICE_TYPE_D3D11VA)
         return QSystemLibrary(QLatin1String("d3d11.dll")).load();
@@ -97,7 +110,7 @@ static bool checkHwType(AVHWDeviceType type)
 {
     const auto deviceName = av_hwdevice_get_type_name(type);
     if (!deviceName) {
-        qWarning() << "Internal ffmpeg error, unknow hw type:" << type;
+        qWarning() << "Internal FFmpeg error, unknow hw type:" << type;
         return false;
     }
 
@@ -321,11 +334,6 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *sugge
     return *suggestedFormats;
 }
 
-TextureConverter::Data::~Data()
-{
-    delete backend;
-}
-
 HWAccel::~HWAccel() = default;
 
 std::unique_ptr<HWAccel> HWAccel::create(AVHWDeviceType deviceType)
@@ -455,22 +463,22 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
     switch (fmt) {
 #if QT_CONFIG(vaapi)
     case AV_PIX_FMT_VAAPI:
-        d->backend = new VAAPITextureConverter(d->rhi);
+        d->backend = std::make_unique<VAAPITextureConverter>(d->rhi);
         break;
 #endif
 #ifdef Q_OS_DARWIN
     case AV_PIX_FMT_VIDEOTOOLBOX:
-        d->backend = new VideoToolBoxTextureConverter(d->rhi);
+        d->backend = std::make_unique<VideoToolBoxTextureConverter>(d->rhi);
         break;
 #endif
 #if QT_CONFIG(wmf)
     case AV_PIX_FMT_D3D11:
-        d->backend = new D3D11TextureConverter(d->rhi);
+        d->backend = std::make_unique<D3D11TextureConverter>(d->rhi);
         break;
 #endif
 #ifdef Q_OS_ANDROID
     case AV_PIX_FMT_MEDIACODEC:
-        d->backend = new MediaCodecTextureConverter(d->rhi);
+        d->backend = std::make_unique<MediaCodecTextureConverter>(d->rhi);
         break;
 #endif
     default:

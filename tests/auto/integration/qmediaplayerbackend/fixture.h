@@ -7,6 +7,10 @@
 #include <qmediaplayer.h>
 #include <qaudiooutput.h>
 #include <qtest.h>
+#include <qsignalspy.h>
+
+#include "fake.h"
+#include "testvideosink.h"
 
 QT_USE_NAMESPACE
 
@@ -24,7 +28,9 @@ public:
           playbackRateChanged(&player, &QMediaPlayer::playbackRateChanged),
           metadataChanged(&player, &QMediaPlayer::metaDataChanged),
           volumeChanged(&output, &QAudioOutput::volumeChanged),
-          mutedChanged(&output, &QAudioOutput::mutedChanged)
+          mutedChanged(&output, &QAudioOutput::mutedChanged),
+          bufferProgressChanged(&player, &QMediaPlayer::bufferProgressChanged),
+          destroyed(&player, &QObject::destroyed)
     {
         setVideoSinkAsyncFramesCounter(surface, framesCount);
 
@@ -44,6 +50,8 @@ public:
         metadataChanged.clear();
         volumeChanged.clear();
         mutedChanged.clear();
+        bufferProgressChanged.clear();
+        destroyed.clear();
     }
 
     QMediaPlayer player;
@@ -61,6 +69,8 @@ public:
     QSignalSpy metadataChanged;
     QSignalSpy volumeChanged;
     QSignalSpy mutedChanged;
+    QSignalSpy bufferProgressChanged;
+    QSignalSpy destroyed;
 };
 
 // Helper to create an object that is comparable to a QSignalSpy

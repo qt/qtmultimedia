@@ -34,26 +34,15 @@ The Camera class uses:
 
 \section1 The Camera constructor
 
-The Camera constructor does some basic initialization of the user interface
-including disabling all buttons by default.
+The Camera constructor does some basic initialization:
+\list
+    \li The user interface is initialized.
+    \li UI signals are connected to slots that react to the triggering event.
+\endlist
 
 \quotefromfile camera/camera.cpp
 \skipto Camera::Camera()
-\printuntil ui->metaDataButton->setEnabled(false);
-
-It seeks permissions for input device access:
-
-\skipto #if QT_CONFIG(permissions)
-\printuntil #endif
-
-Inputs are assigned:
-\printuntil updateCameras()
-
- UI signals are connected to slots that react to the triggering event:
-\printuntil setCamera(QMediaDevices::defaultVideoInput());
-
-However, most of the work is done when the \e{setCamera()} function is called,
-passing in a \l QCameraDevice.
+\printuntil }
 
 \section1 setCamera()
 

@@ -1,41 +1,30 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qgstreamerintegration_p.h"
-#include "qgstreamervideodevices_p.h"
-#include "qgstreamermediaplayer_p.h"
-#include "qgstreamermediacapture_p.h"
-#include "qgstreameraudiodecoder_p.h"
-#include "qgstreamercamera_p.h"
-#include "qgstreamermediaencoder_p.h"
-#include "qgstreamerimagecapture_p.h"
-#include "qgstreamerformatinfo_p.h"
-#include "qgstreamervideosink_p.h"
-#include "qgstreameraudioinput_p.h"
-#include "qgstreameraudiooutput_p.h"
-#include <QtMultimedia/private/qplatformmediaplugin_p.h>
+#include <qgstreamerintegration_p.h>
+#include <qgstreamerformatinfo_p.h>
+#include <qgstreamervideodevices_p.h>
+#include <audio/qgstreameraudiodecoder_p.h>
+#include <common/qgstreameraudioinput_p.h>
+#include <common/qgstreameraudiooutput_p.h>
+#include <common/qgstreamermediaplayer_p.h>
+#include <common/qgstreamervideosink_p.h>
+#include <mediacapture/qgstreamercamera_p.h>
+#include <mediacapture/qgstreamerimagecapture_p.h>
+#include <mediacapture/qgstreamermediacapture_p.h>
+#include <mediacapture/qgstreamermediaencoder_p.h>
+
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerMediaPlugin : public QPlatformMediaPlugin
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "gstreamer.json")
-
-public:
-    QGstreamerMediaPlugin() = default;
-
-    QPlatformMediaIntegration* create(const QString &name) override
-    {
-        if (name == QLatin1String("gstreamer"))
-            return new QGstreamerIntegration;
-        return nullptr;
-    }
-};
+Q_LOGGING_CATEGORY(lcGstreamer, "qt.multimedia.gstreamer")
 
 QGstreamerIntegration::QGstreamerIntegration()
+    : QPlatformMediaIntegration(QLatin1String("gstreamer"))
 {
     gst_init(nullptr, nullptr);
+    qCDebug(lcGstreamer) << "Using gstreamer version: " << gst_version_string();
 }
 
 QPlatformMediaFormatInfo *QGstreamerIntegration::createFormatInfo()
@@ -105,5 +94,3 @@ GstDevice *QGstreamerIntegration::videoDevice(const QByteArray &id)
 }
 
 QT_END_NAMESPACE
-
-#include "qgstreamerintegration.moc"
