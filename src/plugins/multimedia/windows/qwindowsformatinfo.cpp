@@ -24,28 +24,17 @@ using CheckedCodecs = QHash<QPair<T, QMediaFormat::ConversionMode>, bool>;
 bool isSupportedMFT(const GUID &category, const MFT_REGISTER_TYPE_INFO &type, QMediaFormat::ConversionMode mode)
 {
     UINT32 count = 0;
-    IMFActivate **activateArrayRaw = nullptr;
+    QComTaskResource<IMFActivate *> activate;
     HRESULT hr = MFTEnumEx(
             category,
             MFT_ENUM_FLAG_ALL,
             (mode == QMediaFormat::Encode) ? nullptr : &type,  // Input type
             (mode == QMediaFormat::Encode) ? &type : nullptr,  // Output type
-            &activateArrayRaw,
+            activate.address(),
             &count
             );
 
-    if (FAILED(hr))
-        return false;
-
-    QComTaskResource<IMFActivate *[], QComDeleter> activateArray(activateArrayRaw, count);
-    for (UINT32 i = 0; i < count; ++i) {
-        ComPtr<IMFTransform> transform;
-        hr = activateArray[i]->ActivateObject(IID_PPV_ARGS(transform.GetAddressOf()));
-        if (SUCCEEDED(hr))
-            return true;
-    }
-
-    return false;
+    return SUCCEEDED(hr) && count > 0;
 }
 
 bool isSupportedCodec(QMediaFormat::AudioCodec codec, QMediaFormat::ConversionMode mode)
