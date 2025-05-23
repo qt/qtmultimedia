@@ -808,7 +808,7 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
 
 /*!
 
-    \qmlproperty MediaFormat QtMultimedia::MediaRecorder::mediaFormat
+    \qmlproperty mediaFormat QtMultimedia::MediaRecorder::mediaFormat
 
     \brief This property holds the current MediaFormat of the recorder.
 */
