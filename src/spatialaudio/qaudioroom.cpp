@@ -129,6 +129,7 @@ void QAudioRoomPrivate::update()
  */
 QAudioRoom::QAudioRoom(QAudioEngine *engine) : QObject(*new QAudioRoomPrivate)
 {
+    QT6_ONLY((void)unused); // silence unused private field
     Q_ASSERT(engine);
     Q_D(QAudioRoom);
     d->engine = engine;
