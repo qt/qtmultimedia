@@ -27,6 +27,8 @@
 #include <qvideoframeformat.h>
 #include <qvideosink.h>
 
+#include <thread>
+
 QT_BEGIN_NAMESPACE
 
 class QQuickVideoBackend;
@@ -180,11 +182,22 @@ private:
     auto makeGuardedCall(Functor &&f)
     {
         return [f = std::forward<Functor>(f), guard = m_destructorGuard](auto... params) {
+            if (g_signalBackoff) {
+                Q_UNLIKELY_BRANCH;
+                std::this_thread::sleep_for(*g_signalBackoff);
+            }
+
             guard->runWhileAlive([&] {
                 f(params...);
             });
         };
     }
+
+    // for testing
+    static std::optional<std::chrono::nanoseconds> g_signalBackoff;
+
+public:
+    static void setSignalBackoff(std::optional<std::chrono::nanoseconds>);
 };
 
 QT_END_NAMESPACE
