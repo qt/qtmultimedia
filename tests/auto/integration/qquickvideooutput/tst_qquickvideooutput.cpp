@@ -5,17 +5,15 @@
 
 #include <QtTest/QtTest>
 
-#include <QtQml/qqmlengine.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimediaQuick/private/qquickvideooutput_p.h>
 #include <QtQml/qqmlcomponent.h>
-#include <QQuickView>
-#include <QVideoSink>
-#include <QMediaPlayer>
-
-#include "private/qquickvideooutput_p.h"
-
-#include <qobject.h>
-#include <qvideoframeformat.h>
-#include <qvideoframe.h>
+#include <QtQml/qqmlengine.h>
+#include <QtQuick/qquickview.h>
 
 void presentDummyFrame(QVideoSink *sink, const QSize &size)
 {
@@ -251,6 +249,16 @@ static const uchar rgb32ImageData[] =
     0x06, 0x07, 0x08, 0xff, 0x09, 0x0a, 0x0b, 0xff
 };
 
+static QVideoFrame makeRGB32Frame()
+{
+    QVideoFrame frame(QVideoFrameFormat(QSize(4, 4), QVideoFrameFormat::Format_ARGB8888));
+    frame.map(QVideoFrame::ReadWrite);
+    QTEST_ASSERT(frame.mappedBytes(0) == 64);
+    memcpy(frame.bits(0), rgb32ImageData, 64);
+    frame.unmap();
+    return frame;
+}
+
 void tst_QQuickVideoOutput::paintSurface()
 {
     QQuickView window;
@@ -265,12 +273,7 @@ void tst_QQuickVideoOutput::paintSurface()
     QVERIFY(surface);
     videoOutput->setSize(QSize(2, 2));
 
-    QVideoFrame frame(QVideoFrameFormat(QSize(4, 4), QVideoFrameFormat::Format_ARGB8888));
-    frame.map(QVideoFrame::ReadWrite);
-    QCOMPARE(frame.mappedBytes(0), 64);
-    memcpy(frame.bits(0), rgb32ImageData, 64);
-    frame.unmap();
-    surface->setVideoFrame(frame);
+    surface->setVideoFrame(makeRGB32Frame());
 }
 
 void tst_QQuickVideoOutput::sourceRect()
