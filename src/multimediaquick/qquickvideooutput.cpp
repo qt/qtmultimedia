@@ -593,6 +593,12 @@ void QQuickVideoOutput::setFrame(const QVideoFrame &frame)
     QMetaObject::invokeMethod(this, &QQuickVideoOutput::_q_newFrame, frame.size());
 }
 
+std::optional<std::chrono::nanoseconds> QQuickVideoOutput::g_signalBackoff;
+void QQuickVideoOutput::setSignalBackoff(std::optional<std::chrono::nanoseconds> ns)
+{
+    g_signalBackoff = ns;
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qquickvideooutput_p.cpp"
