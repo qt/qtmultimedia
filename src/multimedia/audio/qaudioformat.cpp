@@ -313,9 +313,24 @@ qint32 QAudioFormat::bytesForFrames(qint32 frameCount) const
 qint32 QAudioFormat::framesForBytes(qint32 byteCount) const
 {
     int size = bytesPerFrame();
-    if (size > 0)
+
+    // bitshifting to avoid integer division
+    switch (size) {
+    case 0:
+        return 0;
+    case 1:
+        return byteCount;
+    case 2:
+        return byteCount / 2;
+    case 4:
+        return byteCount / 4;
+    case 8:
+        return byteCount / 8;
+    case 16:
+        return byteCount / 16;
+    default:
         return byteCount / size;
-    return 0;
+    }
 }
 
 /*!
