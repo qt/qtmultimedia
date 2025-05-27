@@ -8,6 +8,8 @@
 #include <QtCore/QSharedData>
 #include <QtMultimedia/qcapturablewindow.h>
 
+#include <memory>
+
 //
 //  W A R N I N G
 //  -------------
@@ -28,12 +30,21 @@ public:
     QString description;
     Id id = 0;
 
+    QCapturableWindowPrivate(Id id, QString &&description)
+        : QSharedData()
+        , description{ std::move(description) }
+        , id{ id }
+    {}
+
     static const QCapturableWindowPrivate *handle(const QCapturableWindow &window)
     {
         return window.d.get();
     }
 
-    QCapturableWindow create() { return QCapturableWindow(this); }
+    [[nodiscard]] static QCapturableWindow create(Id id, QString &&description)
+    {
+        return { new QCapturableWindowPrivate(id, std::move(description)) };
+    }
 };
 
 QT_END_NAMESPACE
