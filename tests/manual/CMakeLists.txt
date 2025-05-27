@@ -22,6 +22,7 @@ if(TARGET Qt::Quick)
     add_subdirectory(qml-minimal-player)
     add_subdirectory(qml-minimal-sound-effect)
     add_subdirectory(qml-multiple-players)
+    add_subdirectory(qml-screencapture-advanced)
 
     if(QT_FEATURE_gstreamer)
         add_subdirectory(qml-gstreamer-pipeline)
