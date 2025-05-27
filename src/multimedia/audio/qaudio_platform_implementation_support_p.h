@@ -160,12 +160,14 @@ void QPlatformAudioSinkImplementation<StreamType, DerivedType>::start(AudioCallb
 
     if (!m_stream->open()) {
         setError(QAudio::OpenError);
+        m_stream = {};
         return;
     }
 
     bool started = m_stream->start(std::move(audioCallback));
     if (!started) {
         setError(QAudio::OpenError);
+        m_stream = {};
         return;
     }
 
