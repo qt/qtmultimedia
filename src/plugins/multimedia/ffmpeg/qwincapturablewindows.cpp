@@ -52,10 +52,9 @@ QList<QCapturableWindow> QWinCapturableWindows::windows() const
 
         auto& windows = *reinterpret_cast<QList<QCapturableWindow>*>(lParam);
 
-        auto windowData = std::make_unique<QCapturableWindowPrivate>();
-        windowData->id = reinterpret_cast<QCapturableWindowPrivate::Id>(hwnd);
-        windowData->description = windowTitle(hwnd);
-        windows.push_back(windowData.release()->create());
+        windows.push_back(QCapturableWindowPrivate::create(
+            reinterpret_cast<QCapturableWindowPrivate::Id>(hwnd),
+            windowTitle(hwnd)));
 
         return TRUE;
     };

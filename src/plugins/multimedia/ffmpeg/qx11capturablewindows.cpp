@@ -73,10 +73,9 @@ QList<QCapturableWindow> QX11CapturableWindows::windows() const
         if (!qIsX11WindowValid(display, windowId))
             continue;
 
-        auto windowData = std::make_unique<QCapturableWindowPrivate>();
-        windowData->id = static_cast<QCapturableWindowPrivate::Id>(windowId);
-        windowData->description = qGetX11WindowTitle(display, windowId).value_or(QString());
-        result.push_back(windowData.release()->create());
+        result.push_back(QCapturableWindowPrivate::create(
+            static_cast<QCapturableWindowPrivate::Id>(windowId),
+            qGetX11WindowTitle(display, windowId).value_or(QString())));
     }
 
     return result;
