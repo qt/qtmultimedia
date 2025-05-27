@@ -1,7 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-#ifndef IOSAUDIOOUTPUT_H
-#define IOSAUDIOOUTPUT_H
+#ifndef QDARWINAUDIOSINK_P_H
+#define QDARWINAUDIOSINK_P_H
 
 //
 //  W A R N I N G
@@ -102,4 +102,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // IOSAUDIOOUTPUT_H
+#endif // QDARWINAUDIOSINK_P_H
