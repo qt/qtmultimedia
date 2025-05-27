@@ -27,12 +27,13 @@ QList<QCapturableWindow> QCGCapturableWindows::windows() const
                       "CGWindowID size is not compatible with kCFNumberSInt32Type");
         CFNumberGetValue(windowNumber, kCFNumberSInt32Type, &windowId);
 
-        auto windowData = std::make_unique<QCapturableWindowPrivate>();
-        windowData->id = static_cast<QCapturableWindowPrivate::Id>(windowId);
+        QString windowDescription;
         if (windowName)
-            windowData->description = QString::fromCFString(windowName);
+            windowDescription = QString::fromCFString(windowName);
 
-        result.push_back(windowData.release()->create());
+        result.push_back(QCapturableWindowPrivate::create(
+            static_cast<QCapturableWindowPrivate::Id>(windowId),
+            std::move(windowDescription)));
     }
 
     return result;
