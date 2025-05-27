@@ -241,7 +241,7 @@ void QCoreAudioSinkStream::resumeIfNecessary()
 OSStatus QCoreAudioSinkStream::processRingbuffer(uint32_t numberOfFrames,
                                                  AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING
 {
-    Q_ASSERT(ioData->mBuffers[0].mDataByteSize == numberOfFrames * m_format.bytesPerFrame());
+    Q_ASSERT(int64_t(ioData->mBuffers[0].mDataByteSize) == m_format.bytesForFrames(numberOfFrames));
 
     QSpan audioBufferSpan{
         reinterpret_cast<std::byte *>(ioData->mBuffers[0].mData),
@@ -257,12 +257,15 @@ OSStatus QCoreAudioSinkStream::processAudioCallback(uint32_t numberOfFrames,
                                                     AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING
 {
     using namespace QtMultimediaPrivate;
-    const uint32_t bytesPerFrame = m_format.bytesPerFrame();
-    const uint32_t numberOfSamples = numberOfFrames * m_format.channelCount();
-    Q_ASSERT(ioData->mBuffers[0].mDataByteSize == numberOfFrames * bytesPerFrame);
 
-    runAudioSinkCallback(m_audioCallback, reinterpret_cast<std::byte *>(ioData->mBuffers[0].mData),
-                         numberOfSamples, m_format);
+    Q_ASSERT(int64_t(ioData->mBuffers[0].mDataByteSize) == m_format.bytesForFrames(numberOfFrames));
+
+    QSpan<std::byte> inputSpan{
+        reinterpret_cast<std::byte *>(ioData->mBuffers[0].mData),
+        ioData->mBuffers[0].mDataByteSize,
+    };
+
+    runAudioCallback(m_audioCallback, inputSpan, m_format);
 
     return noErr;
 }
