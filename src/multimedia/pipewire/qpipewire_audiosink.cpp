@@ -307,7 +307,7 @@ void QPipewireAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
 
     auto [writeBuffer, requestedSamples, totalNumberOfFrames] = resolveHostBuffer(b, m_format);
 
-    runAudioSinkCallback(*m_audioCallback, writeBuffer.data(), requestedSamples, m_format);
+    runAudioCallback(*m_audioCallback, writeBuffer, m_format);
 
     queueBuffer(b, requestedSamples);
 }

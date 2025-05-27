@@ -333,9 +333,7 @@ void QPulseAudioSinkStream::writeCallbackAudioCallback(size_t requestedBytes)
         });
     }
     QSpan<std::byte> hostBuffer{ reinterpret_cast<std::byte *>(dest), qsizetype(nbytes) };
-
-    runAudioSinkCallback(*m_audioCallback, hostBuffer.data(),
-                         requestedFrames * m_format.channelCount(), m_format);
+    runAudioCallback(*m_audioCallback, hostBuffer, m_format);
 
     status = pa_stream_write(m_stream.get(), hostBuffer.data(), nbytes,
                              /*free_cb= */ nullptr, /*offset=*/0, PA_SEEK_RELATIVE);

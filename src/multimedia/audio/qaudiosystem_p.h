@@ -20,6 +20,7 @@
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/private/qmultimedia_assume_p.h>
 
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qspan.h>
@@ -47,6 +48,9 @@ enum class AudioEndpointRole : uint8_t {
 
 template <typename SampleType>
 using AudioSinkCallbackType = std::function<void(QSpan<SampleType>)>;
+
+template <typename SampleType>
+using AudioSourceCallbackType = std::function<void(QSpan<const SampleType>)>;
 
 template <typename>
 struct GetSampleTypeImpl;
@@ -83,6 +87,11 @@ struct GetSampleTypeImpl<AudioSinkCallbackType<T>> : GetSampleTypeImpl<T>
 {
 };
 
+template <typename T>
+struct GetSampleTypeImpl<AudioSourceCallbackType<T>> : GetSampleTypeImpl<T>
+{
+};
+
 template <typename SampleTypeOrCallbackType>
 using GetSampleType = typename GetSampleTypeImpl<SampleTypeOrCallbackType>::type;
 
@@ -95,8 +104,12 @@ static constexpr QAudioFormat::SampleFormat getSampleFormat()
 using AudioSinkCallback =
         std::variant<AudioSinkCallbackType<float>, AudioSinkCallbackType<uint8_t>,
                      AudioSinkCallbackType<int16_t>, AudioSinkCallbackType<int32_t>>;
+using AudioSourceCallback =
+        std::variant<AudioSourceCallbackType<float>, AudioSourceCallbackType<uint8_t>,
+                     AudioSourceCallbackType<int16_t>, AudioSourceCallbackType<int32_t>>;
 
-constexpr bool validateAudioSinkCallback(const AudioSinkCallback &audioCallback,
+template <typename AnyAudioCallback>
+constexpr bool validateAudioCallbackImpl(const AnyAudioCallback &audioCallback,
                                          const QAudioFormat &format)
 {
     bool isNonNullFunction = std::visit([](const auto &cb) {
@@ -113,35 +126,59 @@ constexpr bool validateAudioSinkCallback(const AudioSinkCallback &audioCallback,
     return hasCorrectFormat;
 }
 
-inline void runAudioSinkCallback(const AudioSinkCallback &audioCallback, std::byte *hostBuffer,
-                                 qsizetype numberOfSamples, const QAudioFormat &format)
+constexpr bool validateAudioCallback(const AudioSinkCallback &audioCallback,
+                                     const QAudioFormat &format)
 {
-    Q_ASSERT(numberOfSamples > 0);
+    return validateAudioCallbackImpl(audioCallback, format);
+}
 
-    bool callbackIsValid = validateAudioSinkCallback(audioCallback, format);
-    Q_ASSERT(callbackIsValid);
-#if __has_cpp_attribute(assume)
-    [[assume(callbackIsValid)]];
-#endif
+constexpr bool validateAudioCallback(const AudioSourceCallback &audioCallback,
+                                     const QAudioFormat &format)
+{
+    return validateAudioCallbackImpl(audioCallback, format);
+}
+
+template <bool IsSink>
+inline void runAudioCallback(
+        const std::conditional_t<IsSink, AudioSinkCallback, AudioSourceCallback> &audioCallback,
+        QSpan<std::conditional_t<IsSink, std::byte, const std::byte>> hostBuffer,
+        const QAudioFormat &format)
+{
+    Q_ASSERT(!hostBuffer.empty());
+
+    bool callbackIsValid = validateAudioCallback(audioCallback, format);
+    QT_MM_ASSUME(callbackIsValid);
+
+    int numberOfSamples = format.framesForBytes(hostBuffer.size()) * format.channelCount();
 
     std::visit([&](const auto &callback) {
         using FunctorType = std::decay_t<decltype(callback)>;
-        constexpr QAudioFormat::SampleFormat functorSampleFormat = getSampleFormat<FunctorType>();
-        Q_ASSERT(functorSampleFormat == format.sampleFormat());
+        Q_ASSERT(getSampleFormat<FunctorType>() == format.sampleFormat());
 
         using SampleType = GetSampleType<FunctorType>;
 
         bool audioCallbackIsValid = bool(callback);
-        Q_ASSERT(audioCallbackIsValid);
-#if __has_cpp_attribute(assume)
-        [[assume(audioCallbackIsValid)]];
-#endif
-        auto buffer = QSpan<SampleType>{
-            reinterpret_cast<SampleType *>(hostBuffer),
+        QT_MM_ASSUME(audioCallbackIsValid);
+        using HostBufferType = std::conditional_t<IsSink, SampleType, const SampleType>;
+
+        auto buffer = QSpan<HostBufferType>{
+            reinterpret_cast<HostBufferType *>(hostBuffer.data()),
             numberOfSamples,
         };
         callback(buffer);
     }, audioCallback);
+}
+
+inline void runAudioCallback(const AudioSinkCallback &audioCallback, QSpan<std::byte> hostBuffer,
+                             const QAudioFormat &format)
+{
+    return runAudioCallback<true>(audioCallback, hostBuffer, format);
+}
+
+inline void runAudioCallback(const AudioSourceCallback &audioCallback,
+                             QSpan<const std::byte> hostBuffer, const QAudioFormat &format)
+{
+    return runAudioCallback<false>(audioCallback, hostBuffer, format);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

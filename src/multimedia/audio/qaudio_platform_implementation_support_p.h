@@ -154,7 +154,7 @@ template <STREAM_TYPE_ARG, typename DerivedType>
 void QPlatformAudioSinkImplementation<StreamType, DerivedType>::start(AudioCallback &&audioCallback)
 {
     using namespace QtMultimediaPrivate;
-    if (!validateAudioSinkCallback(audioCallback, m_format)) {
+    if (!validateAudioCallback(audioCallback, m_format)) {
         setError(QAudio::OpenError);
         return;
     }
