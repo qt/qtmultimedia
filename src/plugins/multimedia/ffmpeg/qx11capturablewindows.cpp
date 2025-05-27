@@ -7,7 +7,36 @@
 
 #include <X11/Xlib.h>
 
+#include <optional>
+
 QT_BEGIN_NAMESPACE
+
+namespace { // Anonymous namespace start
+
+[[nodiscard]] bool qIsX11WindowValid(Display *display, Window window)
+{
+    XWindowAttributes windowAttributes = {};
+    return display
+        && XGetWindowAttributes(display, window, &windowAttributes) != 0
+        && windowAttributes.depth > 0;
+}
+
+[[nodiscard]] std::optional<QString> qGetX11WindowTitle(Display *display, Window window)
+{
+    if (!display)
+        return std::nullopt;
+
+    char *windowTitle = nullptr;
+    if (XFetchName(display, window, &windowTitle) && windowTitle) {
+        QString out = QString::fromUtf8(windowTitle);
+        XFree(windowTitle);
+        return out;
+    }
+
+    return std::nullopt;
+}
+
+} // Anonymous namespace end
 
 QX11CapturableWindows::~QX11CapturableWindows()
 {
@@ -40,17 +69,14 @@ QList<QCapturableWindow> QX11CapturableWindows::windows() const
     auto freeDataGuard = qScopeGuard([data]() { XFree(data); });
     auto windows = reinterpret_cast<XID *>(data);
     for (unsigned long i = 0; i < windowsCount; i++) {
+        XID windowId = windows[i];
+        if (!qIsX11WindowValid(display, windowId))
+            continue;
+
         auto windowData = std::make_unique<QCapturableWindowPrivate>();
-        windowData->id = static_cast<QCapturableWindowPrivate::Id>(windows[i]);
-
-        char *windowTitle = nullptr;
-        if (XFetchName(display, windows[i], &windowTitle) && windowTitle) {
-            windowData->description = QString::fromUtf8(windowTitle);
-            XFree(windowTitle);
-        }
-
-        if (isWindowValid(*windowData))
-            result.push_back(windowData.release()->create());
+        windowData->id = static_cast<QCapturableWindowPrivate::Id>(windowId);
+        windowData->description = qGetX11WindowTitle(display, windowId).value_or(QString());
+        result.push_back(windowData.release()->create());
     }
 
     return result;
@@ -58,11 +84,7 @@ QList<QCapturableWindow> QX11CapturableWindows::windows() const
 
 bool QX11CapturableWindows::isWindowValid(const QCapturableWindowPrivate &window) const
 {
-    auto display = this->display();
-    XWindowAttributes windowAttributes = {};
-    return display
-            && XGetWindowAttributes(display, static_cast<Window>(window.id), &windowAttributes) != 0
-            && windowAttributes.depth > 0;
+    return qIsX11WindowValid(this->display(), static_cast<Window>(window.id));
 }
 
 Display *QX11CapturableWindows::display() const
