@@ -5,6 +5,7 @@
 #include <QtTest/QtTest>
 
 #include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudio_alignment_support_p.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 
@@ -29,6 +30,8 @@ private slots:
     void wordConverter_checkLoopUnroll();
 
     void findBestNativeSampleFormat();
+
+    void validateAudioCallbacks();
 };
 
 namespace WordConverter {
@@ -385,6 +388,38 @@ void tst_QAudioHelpers::findBestNativeSampleFormat()
     QCOMPARE_EQ(bestNativeSampleFormat(fmtFloat, all24_32_intFormats),
                 NativeSampleFormat::int24_t_3b);
     QCOMPARE_EQ(bestNativeSampleFormat(fmtFloat, telephoneFormats), NativeSampleFormat::uint8_t);
+}
+
+static constexpr QAudioFormat fmtFloat = [] {
+    QAudioFormat fmt;
+    fmt.setSampleFormat(QAudioFormat::Float);
+    fmt.setSampleRate(44100);
+    return fmt;
+}();
+
+void tst_QAudioHelpers::validateAudioCallbacks()
+{
+    using namespace QtMultimediaPrivate;
+
+    std::function<void(QSpan<float>)> nullFunction;
+    QVERIFY(!validateAudioCallback(nullFunction, fmtFloat));
+
+    std::function<void(QSpan<float>)> trivialFunction = [](QSpan<float>) {
+    };
+    QVERIFY(validateAudioCallback(trivialFunction, fmtFloat));
+
+    QVERIFY(validateAudioCallback([](QSpan<float>) {
+    }, fmtFloat));
+    QVERIFY(!validateAudioCallback([](QSpan<int16_t>) {
+    }, fmtFloat));
+
+    static_assert(getSampleFormat<std::function<void(QSpan<float>)>>()
+                  == QAudioFormat::SampleFormat::Float);
+    static_assert(getSampleFormat<std::function<void(QSpan<int16_t>)>>()
+                  == QAudioFormat::SampleFormat::Int16);
+
+    static_assert(getSampleFormat<float>() == QAudioFormat::SampleFormat::Float);
+    static_assert(getSampleFormat<int16_t>() == QAudioFormat::SampleFormat::Int16);
 }
 
 QTEST_APPLESS_MAIN(tst_QAudioHelpers);

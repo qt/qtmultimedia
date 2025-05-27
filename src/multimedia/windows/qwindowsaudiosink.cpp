@@ -314,8 +314,6 @@ bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
     if (requiredFrames == 0)
         return true;
 
-    uint32_t requiredSamples = requiredFrames * m_format.channelCount();
-
     // Grab the next empty buffer from the audio device.
     unsigned char *hostBuffer{};
     hr = m_renderClient->GetBuffer(requiredFrames, &hostBuffer);
@@ -324,8 +322,12 @@ bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
         return false;
     }
 
-    runAudioSinkCallback(m_audioCallback, reinterpret_cast<std::byte *>(hostBuffer),
-                         requiredSamples, m_format);
+    QSpan<std::byte> hostBufferSpan{
+        reinterpret_cast<std::byte *>(hostBuffer),
+        m_format.bytesForFrames(requiredFrames),
+    };
+
+    runAudioCallback(m_audioCallback, hostBufferSpan, m_format);
 
     constexpr DWORD flags = 0;
     hr = m_renderClient->ReleaseBuffer(requiredFrames, flags);
