@@ -1,8 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QAVFCAMERAUTILITY_H
-#define QAVFCAMERAUTILITY_H
+#ifndef QAVFCAMERAUTILITY_P_H
+#define QAVFCAMERAUTILITY_P_H
 
 //
 //  W A R N I N G
@@ -172,4 +172,4 @@ Q_MULTIMEDIA_EXPORT int qt_ui_device_orientation_to_rotation_angle_degrees(UIDev
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QAVFCAMERAUTILITY_P_H
