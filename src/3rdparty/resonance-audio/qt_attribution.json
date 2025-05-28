@@ -7,9 +7,13 @@
     "SecurityCritical": true,
 
     "Homepage": "https://resonance-audio.github.io/resonance-audio/",
-    "Version": "e225aedb5ec7",
+    "Version": "e225aedb5ec76ca6a0fe7079c0b84dbcbb490553",
     "DownloadLocation":
             "https://github.com/resonance-audio/resonance-audio/tree/e225aedb5ec76ca6a0fe7079c0b84dbcbb490553",
+    "PURL": [
+        "pkg:github/resonance-audio/resonance-audio@$<VERSION>"
+    ],
+    "Comment": "No relevant CPE found",
 
     "CopyrightFile": "COPYRIGHTS",
     "License": "Apache License 2.0",
