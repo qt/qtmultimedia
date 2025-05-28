@@ -26,6 +26,7 @@
                     \li \l {Building FFmpeg from source for iOS on macOS}{Building FFmpeg for iOS}
                     \li \l {Building FFmpeg from source for Android on Windows}{Building FFmpeg for Android on Windows}
                     \li \l {Building FFmpeg from source for Android on macOS}{Building FFmpeg for Android on macOS}
+                    \li \l {Building FFmpeg from source for Android on Linux}{Building FFmpeg for Android on Linux}
                 \endlist
         \endlist
     \li \l {Changes to Qt Multimedia}{Upgrading from Qt 5}
