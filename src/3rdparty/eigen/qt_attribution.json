@@ -9,6 +9,10 @@
     "Homepage": "https://eigen.tuxfamily.org/",
     "Version": "3.4.0",
     "DownloadLocation": "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.bz2",
+    "PURL": [
+        "pkg:github/eigen-mirror/eigen@$<VERSION>"
+    ],
+    "Comment": "No relevant CPE found",
 
     "License": "Mozilla Public License 2.0 and BSD 3-Clause \"New\" or \"Revised\" License",
     "LicenseId": "MPL-2.0 AND BSD-3-Clause",
