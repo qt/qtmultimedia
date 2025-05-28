@@ -144,6 +144,7 @@ private slots:
     void play_succeedsFromSourceDevice_data();
     void play_playbackLastsForTheExpectedTime();
     void play_playbackLastsForTheExpectedTime_data();
+    void play_threeMediaPlayers();
 
     void stop_entersStoppedState_whenPlayerWasPaused();
     void stop_entersStoppedState_whenPlayerWasPaused_data();
@@ -1748,6 +1749,35 @@ void tst_QMediaPlayerBackend::play_playbackLastsForTheExpectedTime_data()
             }
         }
     }
+}
+
+void tst_QMediaPlayerBackend::play_threeMediaPlayers()
+{
+    CHECK_SELECTED_URL(m_localVideoFile);
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
+    QMediaPlayer player2, player3;
+    QVideoSink sink2, sink3;
+
+    player2.setVideoOutput(&sink2);
+    player3.setVideoOutput(&sink3);
+
+    m_fixture->player.setSource(*m_localVideoFile);
+    player2.setSource(*m_localVideoFile);
+    player3.setSource(*m_localVideoFile3ColorsWithSound);
+
+
+    m_fixture->player.play();
+    player2.play();
+    player3.play();
+
+    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
+    QTRY_COMPARE(player2.playbackState(), QMediaPlayer::PlayingState);
+    QTRY_COMPARE(player3.playbackState(), QMediaPlayer::PlayingState);
+
+    QCOMPARE(m_fixture->player.error(), QMediaPlayer::NoError);
+    QCOMPARE(player2.error(), QMediaPlayer::NoError);
+    QCOMPARE(player3.error(), QMediaPlayer::NoError);
 }
 
 void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
