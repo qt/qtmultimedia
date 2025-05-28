@@ -14,15 +14,13 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qaudioinput.h>
 #include <QtMultimedia/private/qplatformaudioinput_p.h>
 #include <QtMultimedia/private/qplatformaudiobufferinput_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
-#include <qaudioinput.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAudioSource;
-class QAudioBuffer;
 namespace QFFmpeg {
 class AudioSourceIO;
 } // namespace QFFmpeg
@@ -34,7 +32,7 @@ class QFFmpegAudioInput : public QAudioBufferSource, public QPlatformAudioInput
     // for qobject_cast
     Q_OBJECT
 public:
-    QFFmpegAudioInput(QAudioInput *qq);
+    explicit QFFmpegAudioInput(QAudioInput *qq);
     ~QFFmpegAudioInput() override;
 
     void setAudioDevice(const QAudioDevice &/*device*/) override;
