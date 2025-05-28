@@ -14,5 +14,6 @@
     "LicenseId": "MIT",
     "LicenseFile": "LICENSE.txt",
 
-    "PURL": "pkg:github/signalsmith-audio/signalsmith-stretch@1.0.0"
+    "PURL": "pkg:github/signalsmith-audio/signalsmith-stretch@$<VERSION>",
+    "Comment": "No relevant CPE found"
 }
