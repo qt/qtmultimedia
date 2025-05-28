@@ -19,9 +19,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAudioSource;
-class QAudioSourceIO;
-class QAudioBuffer;
 class QMediaMetaData;
 class QFFmpegMediaCaptureSession;
 
@@ -33,7 +30,7 @@ class QFFmpegMediaRecorder : public QObject, public QPlatformMediaRecorder
 {
     Q_OBJECT
 public:
-    QFFmpegMediaRecorder(QMediaRecorder *parent);
+    explicit QFFmpegMediaRecorder(QMediaRecorder *parent);
     ~QFFmpegMediaRecorder() override;
 
     bool isLocationWritable(const QUrl &sink) const override;

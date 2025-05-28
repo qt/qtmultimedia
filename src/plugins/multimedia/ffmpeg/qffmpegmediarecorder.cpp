@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegmediarecorder_p.h"
-#include "qaudiodevice.h"
-#include <private/qmediastoragelocation_p.h>
-#include <private/qplatformcamera_p.h>
-#include <private/qplatformsurfacecapture_p.h>
-#include "qaudiosource.h"
-#include "qffmpegaudioinput_p.h"
-#include "qaudiobuffer.h"
+
+#include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudiosource.h>
+#include <QtMultimedia/private/qmediastoragelocation_p.h>
+#include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtMultimedia/private/qplatformsurfacecapture_p.h>
+
 #include "recordingengine/qffmpegrecordingengine_p.h"
 #include "qffmpegmediacapturesession_p.h"
-
-#include <qdebug.h>
-#include <qloggingcategory.h>
 
 static Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.ffmpeg.encoder");
 
