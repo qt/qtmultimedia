@@ -1,12 +1,13 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qffmpegaudioinput_p.h"
-#include <qiodevice.h>
-#include <qaudiosource.h>
-#include <qaudiobuffer.h>
-#include <qatomic.h>
-#include <qmetaobject.h>
-#include <qdebug.h>
+
+#include <QtCore/qatomic.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qmetaobject.h>
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiosource.h>
 
 QT_BEGIN_NAMESPACE
 
