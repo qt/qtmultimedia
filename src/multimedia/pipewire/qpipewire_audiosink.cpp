@@ -76,8 +76,10 @@ bool QPipewireAudioSinkStream::start(QIODevice *device)
 
     Q_ASSERT(hasStream());
     auto sinkNodeSerial = findSinkNodeSerial();
-    if (!sinkNodeSerial)
+    if (!sinkNodeSerial) {
+        requestStop();
         return false;
+    }
 
     setQIODevice(device);
     pullFromQIODevice();
@@ -85,8 +87,10 @@ bool QPipewireAudioSinkStream::start(QIODevice *device)
     createQIODeviceConnections(device);
 
     bool connected = connectStream(*sinkNodeSerial, SPA_DIRECTION_OUTPUT);
-    if (!connected)
+    if (!connected) {
+        requestStop();
         return false;
+    }
 
     // keep instance alive until PW_STREAM_STATE_UNCONNECTED
     m_self = shared_from_this();
@@ -112,14 +116,18 @@ bool QPipewireAudioSinkStream::start(AudioCallback audioCallback)
 
     Q_ASSERT(hasStream());
     auto sinkNodeSerial = findSinkNodeSerial();
-    if (!sinkNodeSerial)
+    if (!sinkNodeSerial) {
+        requestStop();
         return false;
+    }
 
     m_audioCallback = std::move(audioCallback);
 
     bool connected = connectStream(*sinkNodeSerial, SPA_DIRECTION_OUTPUT);
-    if (!connected)
+    if (!connected) {
+        requestStop();
         return false;
+    }
 
     // keep instance alive until PW_STREAM_STATE_UNCONNECTED
     m_self = shared_from_this();
