@@ -220,6 +220,15 @@ if (QT_FEATURE_pipewire)
             PROPERTIES COMPILE_FLAGS -Wno-sign-compare
         )
     endif()
+
+    # pipewire macros emit -Wunused-value warning
+    check_cxx_compiler_flag(QT_MM_HAS_UNUSED_VALUE -Wunused-value)
+    if (QT_MM_HAS_UNUSED_VALUE)
+        set_source_files_properties(
+            pipewire/qpipewire_async_support.cpp
+            PROPERTIES COMPILE_FLAGS -Wno-unused-value
+        )
+    endif()
 endif()
 
 
