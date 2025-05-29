@@ -113,6 +113,8 @@ private slots:
     void stop_stopsAudioSink_whenInvokedUponFirstStateChange_data();
     void stop_stopsAudioSink_whenInvokedUponFirstStateChange();
 
+    void stateChanged_stringBasedConnect();
+
     void callbackAPI();
     void callbackAPI_startFailsWithWrongType();
 
@@ -1194,6 +1196,18 @@ void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange()
     QVERIFY(initializer(audioSink));
 
     QTRY_COMPARE(audioSink.state(), QtAudio::State::StoppedState);
+}
+
+void tst_QAudioSink::stateChanged_stringBasedConnect()
+{
+    const QAudioDevice defaultAudioOutputDevice = QMediaDevices::defaultAudioOutput();
+
+    QAudioSink audiosink(defaultAudioOutputDevice);
+
+    QSignalSpy stateSignal(&audiosink, SIGNAL(stateChanged(QAudio::State)));
+
+    audiosink.start();
+    QTRY_VERIFY(!stateSignal.empty());
 }
 
 void tst_QAudioSink::callbackAPI()
