@@ -1691,6 +1691,10 @@ void tst_QMediaPlayerBackend::play_playbackLastsForTheExpectedTime()
 
     QSKIP_GSTREAMER("gst_play does not allow precise timing due to pipelining of state changes");
 
+    if (isFFMPEGPlatform() && loops != 1 && pauseBeforePlay)
+        QSKIP_FFMPEG(
+                "QTBUG-133652: if we pause before play, setLoops may not be applied correctly");
+
     QMediaPlayer &player = m_fixture->player;
 
     player.setSource(media);
