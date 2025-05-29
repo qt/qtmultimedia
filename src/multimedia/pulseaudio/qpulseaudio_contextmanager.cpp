@@ -156,6 +156,7 @@ void QPulseAudioContextManager::serverInfoCallback(pa_context *context, const pa
 
     {
         QWriteLocker locker(&pulseEngine->m_serverLock);
+        pulseEngine->m_serverName = QString::fromUtf8(info->server_name);
 
         if (pulseEngine->m_defaultSink != info->default_sink_name) {
             pulseEngine->m_defaultSink = info->default_sink_name;
@@ -588,6 +589,12 @@ pa_context_state_t QPulseAudioContextManager::getContextState()
 bool QPulseAudioContextManager::contextIsGood()
 {
     return PA_CONTEXT_IS_GOOD(getContextState());
+}
+
+QString QPulseAudioContextManager::serverName()
+{
+    QReadLocker locker(&pulseEngine->m_serverLock);
+    return m_serverName;
 }
 
 QT_END_NAMESPACE

@@ -70,6 +70,8 @@ public:
     pa_context_state_t getContextState();
     bool contextIsGood();
 
+    QString serverName();
+
 Q_SIGNALS:
     void contextFailed();
     void audioInputsChanged();
@@ -107,6 +109,8 @@ private:
     std::unique_ptr<pa_threaded_mainloop, QPulseAudioInternal::PaMainLoopDeleter> m_mainLoop;
     PAContextHandle m_context;
     bool m_prepared{};
+
+    QString m_serverName;
  };
 
 QT_END_NAMESPACE
