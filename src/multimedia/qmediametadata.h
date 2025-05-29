@@ -16,9 +16,6 @@
 
 QT_BEGIN_NAMESPACE
 
-// Class forward declaration required for QDoc bug
-class QString;
-
 class Q_MULTIMEDIA_EXPORT QMediaMetaData
 {
     Q_GADGET

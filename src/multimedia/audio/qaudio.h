@@ -14,11 +14,7 @@
 
 QT_BEGIN_NAMESPACE
 
-//QTM_SYNC_HEADER_EXPORT QAudio
-
-// Class forward declaration required for QDoc bug
-class QString;
-
+// ### Qt7: Remove the QAudio namespace
 #if defined(Q_QDOC)
 namespace QtAudio
 #else
