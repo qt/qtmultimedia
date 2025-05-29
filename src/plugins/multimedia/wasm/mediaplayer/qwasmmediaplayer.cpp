@@ -227,14 +227,24 @@ void QWasmMediaPlayer::setMedia(const QUrl &mediaContent, QIODevice *stream)
             setMediaStatus(QMediaPlayer::NoMedia);
         }
     } else {
-        QString sourceFile = mediaContent.toLocalFile();
-        qCDebug(lcMediaPlayer) << db.mimeTypeForFile(QFileInfo(sourceFile)).name();
-        if (db.mimeTypeForFile(QFileInfo(sourceFile)).name().contains(u"audio"_s)) {
-            setAudioAvailable(true);
-            m_audioOutput->setSource(mediaContent);
-        } else { // treat octet-stream as video
-            setVideoAvailable(true);
-            m_videoOutput->setSource(mediaContent);
+        if (mediaContent.isLocalFile()) {
+            QString sourceFile = mediaContent.toLocalFile();
+            if (db.mimeTypeForFile(QFileInfo(sourceFile)).name().contains(u"audio"_s)) {
+                setAudioAvailable(true);
+                m_audioOutput->setSource(mediaContent);
+            } else { // treat octet-stream as video
+                setVideoAvailable(true);
+                m_videoOutput->setSource(mediaContent);
+            }
+        } else {
+            // web url
+            if (!m_videoOutput->currentVideoElement().isNull()) {
+                m_videoOutput->setSource(mediaContent);
+                setVideoAvailable(true);
+            } else {
+                m_audioOutput->setSource(mediaContent);
+                setAudioAvailable(true);
+            }
         }
     }
 
