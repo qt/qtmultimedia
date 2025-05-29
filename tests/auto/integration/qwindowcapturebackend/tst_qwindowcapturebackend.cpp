@@ -45,6 +45,11 @@ private slots:
         const QWindowCapture capture;
         if (capture.error() == QWindowCapture::CapturingNotSupported)
             QSKIP("Screen capturing not supported");
+
+#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
+        QSKIP("QTBUG-135614, disabling tst_QWindowCaptureBackend for Address Sanitizer builds, due "
+              "to flakiness");
+#endif
     }
 
     void isActive_returnsFalse_whenNotStarted()
