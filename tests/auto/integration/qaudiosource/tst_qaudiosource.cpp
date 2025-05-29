@@ -80,6 +80,8 @@ private slots:
     void stop_stopsAudioSource_whenInvokedUponFirstStateChange_data();
     void stop_stopsAudioSource_whenInvokedUponFirstStateChange();
 
+    void stateChanged_stringBasedConnect();
+
 private:
     using FilePtr = std::shared_ptr<QFile>;
 
@@ -1011,6 +1013,18 @@ void tst_QAudioSource::stop_stopsAudioSource_whenInvokedUponFirstStateChange()
                                                 // TODO: replace with QVERIFY, QTBUG-130272
 
     QTRY_COMPARE(audioSource.state(), QtAudio::State::StoppedState);
+}
+
+void tst_QAudioSource::stateChanged_stringBasedConnect()
+{
+    const QAudioDevice defaultAudioInputDevice = QMediaDevices::defaultAudioInput();
+
+    QAudioSource audioSource(defaultAudioInputDevice);
+
+    QSignalSpy stateSignal(&audioSource, SIGNAL(stateChanged(QAudio::State)));
+
+    audioSource.start();
+    QTRY_VERIFY(!stateSignal.empty());
 }
 
 QTEST_MAIN(tst_QAudioSource)
