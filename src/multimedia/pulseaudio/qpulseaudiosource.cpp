@@ -129,12 +129,22 @@ void QPulseAudioSourceStream::updateStreamIdle(bool idle)
 
 bool QPulseAudioSourceStream::startStream()
 {
+    static const bool serverIsPipewire = [] {
+        QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
+        return pulseEngine->serverName().contains(u"PulseAudio (on PipeWire");
+    }();
+
     pa_buffer_attr attr{
         .maxlength = uint32_t(m_format.bytesForFrames(m_hardwareBufferFrames.value_or(1024))),
         .tlength = uint32_t(-1),
         .prebuf = uint32_t(-1),
         .minreq = uint32_t(-1),
-        .fragsize = uint32_t(-1),
+
+        // pulseaudio's vanilla implementation requires us to set a fragment size, otherwise we only
+        // get a single callback every 2-ish seconds.
+        .fragsize = serverIsPipewire
+                ? uint32_t(-1)
+                : uint32_t(m_format.bytesForFrames(m_hardwareBufferFrames.value_or(1024))),
     };
 
     constexpr pa_stream_flags flags =
