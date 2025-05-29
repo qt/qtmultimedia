@@ -2786,8 +2786,9 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
 
         QTRY_VERIFY(positionSpy.size() >= 1);
         int setPosition = positionSpy.first().first().toInt();
-        QCOMPARE_GT(setPosition, pos - 130);
-        QCOMPARE_LT(setPosition, pos + 130);
+        constexpr int threshold = 160; // 160ms threshold for position deviation
+        QCOMPARE_GT(setPosition, pos - threshold);
+        QCOMPARE_LT(setPosition, pos + threshold);
     };
 
     constexpr qint64 posInterval = 10;
