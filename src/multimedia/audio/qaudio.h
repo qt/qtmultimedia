@@ -12,7 +12,7 @@
 
 QT_BEGIN_NAMESPACE
 
-// ### Qt7: Remove the QAudio namespace
+// ### Qt7: merge the QAudio namespace into QtAudio
 #if defined(Q_QDOC)
 namespace QtAudio
 #else
@@ -48,7 +48,28 @@ Q_MULTIMEDIA_EXPORT float convertVolume(float volume, VolumeScale from, VolumeSc
 } // namespace QtAudio
 
 #if !defined(Q_QDOC)
-namespace QtAudio = QAudio;
+namespace QtAudio {
+using Error = QAudio::Error;
+using State = QAudio::State;
+using VolumeScale = QAudio::VolumeScale;
+
+inline constexpr auto NoError = QAudio::NoError;
+inline constexpr auto OpenError = QAudio::OpenError;
+inline constexpr auto IOError = QAudio::IOError;
+inline constexpr auto UnderrunError = QAudio::UnderrunError;
+inline constexpr auto FatalError = QAudio::FatalError;
+inline constexpr auto ActiveState = QAudio::ActiveState;
+inline constexpr auto SuspendedState = QAudio::SuspendedState;
+inline constexpr auto StoppedState = QAudio::StoppedState;
+inline constexpr auto IdleState = QAudio::IdleState;
+inline constexpr auto LinearVolumeScale = QAudio::LinearVolumeScale;
+inline constexpr auto CubicVolumeScale = QAudio::CubicVolumeScale;
+inline constexpr auto LogarithmicVolumeScale = QAudio::LogarithmicVolumeScale;
+inline constexpr auto DecibelVolumeScale = QAudio::DecibelVolumeScale;
+
+Q_MULTIMEDIA_EXPORT float convertVolume(float volume, VolumeScale from, VolumeScale to);
+
+} // namespace QtAudio
 #endif
 
 #ifndef QT_NO_DEBUG_STREAM
