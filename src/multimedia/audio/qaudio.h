@@ -10,8 +10,6 @@
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 
-#include <QtCore/qmetatype.h>
-
 QT_BEGIN_NAMESPACE
 
 // ### Qt7: Remove the QAudio namespace
@@ -21,18 +19,33 @@ namespace QtAudio
 namespace QAudio
 #endif
 {
-    enum Error { NoError, OpenError, IOError, UnderrunError, FatalError };
-    enum State { ActiveState, SuspendedState, StoppedState, IdleState };
+enum Error
+{
+    NoError,
+    OpenError,
+    IOError,
+    UnderrunError,
+    FatalError
+};
+enum State
+{
+    ActiveState,
+    SuspendedState,
+    StoppedState,
+    IdleState
+};
 
-    enum VolumeScale {
-        LinearVolumeScale,
-        CubicVolumeScale,
-        LogarithmicVolumeScale,
-        DecibelVolumeScale
-    };
+enum VolumeScale
+{
+    LinearVolumeScale,
+    CubicVolumeScale,
+    LogarithmicVolumeScale,
+    DecibelVolumeScale
+};
 
-    Q_MULTIMEDIA_EXPORT float convertVolume(float volume, VolumeScale from, VolumeScale to);
-}
+Q_MULTIMEDIA_EXPORT float convertVolume(float volume, VolumeScale from, VolumeScale to);
+
+} // namespace QtAudio
 
 #if !defined(Q_QDOC)
 namespace QtAudio = QAudio;
