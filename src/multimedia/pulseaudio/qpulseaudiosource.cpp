@@ -49,8 +49,6 @@ QPulseAudioSourceStream::QPulseAudioSourceStream(QAudioDevice device, const QAud
         pa_stream_new(pulseEngine->context(), streamName.constData(), &spec, &channel_map),
         PAStreamHandle::HasRef,
     };
-
-    installCallbacks();
 }
 
 QPulseAudioSourceStream::~QPulseAudioSourceStream() = default;
@@ -61,8 +59,13 @@ bool QPulseAudioSourceStream::start(QIODevice *device)
 
     createQIODeviceConnections(device);
 
-    bool streamStarted = startStream();
-    return streamStarted;
+    return startStream(StreamType::Ringbuffer);
+}
+
+bool QPulseAudioSourceStream::start(AudioCallback &&audioCallback)
+{
+    m_audioCallback = std::move(audioCallback);
+    return startStream(StreamType::Callback);
 }
 
 QIODevice *QPulseAudioSourceStream::start()
@@ -88,7 +91,7 @@ void QPulseAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
     if (shutdownPolicy == ShutdownPolicy::DrainRingbuffer) {
         size_t bytesToRead = pa_stream_readable_size(m_stream.get());
         if (bytesToRead != size_t(-1))
-            readCallback(bytesToRead);
+            readCallbackRingbuffer(bytesToRead);
     }
 
     // Note: we need to cork the stream before disconnecting to prevent pulseaudio from deadlocking
@@ -127,7 +130,7 @@ void QPulseAudioSourceStream::updateStreamIdle(bool idle)
     m_parent->updateStreamIdle(idle);
 }
 
-bool QPulseAudioSourceStream::startStream()
+bool QPulseAudioSourceStream::startStream(StreamType streamType)
 {
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     static const bool serverIsPipewire = [&] {
@@ -151,6 +154,8 @@ bool QPulseAudioSourceStream::startStream()
             pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_ADJUST_LATENCY);
 
     std::lock_guard engineLock{ *pulseEngine };
+    installCallbacks(streamType);
+
     int status = pa_stream_connect_record(m_stream.get(), m_audioDevice.id().data(), &attr, flags);
     if (status != 0) {
         qCWarning(qLcPulseAudioOut) << "pa_stream_connect_record() failed!";
@@ -160,7 +165,7 @@ bool QPulseAudioSourceStream::startStream()
     return true;
 }
 
-void QPulseAudioSourceStream::installCallbacks()
+void QPulseAudioSourceStream::installCallbacks(StreamType streamType)
 {
     pa_stream_set_overflow_callback(m_stream.get(), [](pa_stream *stream, void *data) {
         auto *self = reinterpret_cast<QPulseAudioSourceStream *>(data);
@@ -180,11 +185,26 @@ void QPulseAudioSourceStream::installCallbacks()
         self->stateCallback();
     }, this);
 
-    pa_stream_set_read_callback(m_stream.get(), [](pa_stream *stream, size_t nbytes, void *data) {
-        auto *self = reinterpret_cast<QPulseAudioSourceStream *>(data);
-        Q_ASSERT(stream == self->m_stream.get());
-        self->readCallback(nbytes);
-    }, this);
+    switch (streamType) {
+    case StreamType::Ringbuffer: {
+        pa_stream_set_read_callback(m_stream.get(),
+                                    [](pa_stream *stream, size_t nbytes, void *data) {
+            auto *self = reinterpret_cast<QPulseAudioSourceStream *>(data);
+            Q_ASSERT(stream == self->m_stream.get());
+            self->readCallbackRingbuffer(nbytes);
+        }, this);
+        break;
+    }
+    case StreamType::Callback: {
+        pa_stream_set_read_callback(m_stream.get(),
+                                    [](pa_stream *stream, size_t nbytes, void *data) {
+            auto *self = reinterpret_cast<QPulseAudioSourceStream *>(data);
+            Q_ASSERT(stream == self->m_stream.get());
+            self->readCallbackAudioCallback(nbytes);
+        }, this);
+        break;
+    }
+    }
 
     pa_stream_set_latency_update_callback(m_stream.get(), [](pa_stream *stream, void *data) {
         auto *self = reinterpret_cast<QPulseAudioSourceStream *>(data);
@@ -202,7 +222,7 @@ void QPulseAudioSourceStream::uninstallCallbacks()
     pa_stream_set_latency_update_callback(m_stream.get(), nullptr, nullptr);
 }
 
-void QPulseAudioSourceStream::readCallback([[maybe_unused]] size_t bytesToRead)
+void QPulseAudioSourceStream::readCallbackRingbuffer([[maybe_unused]] size_t bytesToRead)
 {
     const void *data{};
     size_t nBytes{};
@@ -223,6 +243,35 @@ void QPulseAudioSourceStream::readCallback([[maybe_unused]] size_t bytesToRead)
 
     [[maybe_unused]] uint64_t framesWritten =
             QPlatformAudioSourceStream::process(hostBuffer, numberOfFrames);
+    status = pa_stream_drop(m_stream.get());
+    if (status < 0) {
+        if (!isStopRequested()) {
+            QMetaObject::invokeMethod(m_parent, [this] {
+                handleIOError(m_parent);
+            });
+        }
+    }
+}
+
+void QPulseAudioSourceStream::readCallbackAudioCallback([[maybe_unused]] size_t bytesToRead)
+{
+    const void *data{};
+    size_t nBytes{};
+    int status = pa_stream_peek(m_stream.get(), &data, &nBytes);
+    if (status < 0) {
+        QMetaObject::invokeMethod(m_parent, [this] {
+            handleIOError(m_parent);
+        });
+        return;
+    }
+
+    QSpan<const std::byte> hostBuffer{
+        reinterpret_cast<const std::byte *>(data),
+        qsizetype(nBytes),
+    };
+
+    runAudioCallback(*m_audioCallback, hostBuffer, m_format);
+
     status = pa_stream_drop(m_stream.get());
     if (status < 0) {
         if (!isStopRequested()) {
@@ -257,6 +306,13 @@ void QPulseAudioSource::start(QIODevice *device)
     if (!validatePulseaudio())
         return;
     return BaseClass::start(device);
+}
+
+void QPulseAudioSource::start(AudioCallback &&cb)
+{
+    if (!validatePulseaudio())
+        return;
+    return BaseClass::start(std::move(cb));
 }
 
 QIODevice *QPulseAudioSource::start()

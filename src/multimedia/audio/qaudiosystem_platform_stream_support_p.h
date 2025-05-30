@@ -206,6 +206,7 @@ class QPlatformAudioSourceStream : protected QPlatformAudioIOStream
 {
 public:
     using QPlatformAudioIOStream::ShutdownPolicy;
+    using AudioCallback = QPlatformAudioSource::AudioCallback;
 
 protected:
     QPlatformAudioSourceStream(QAudioDevice, const QAudioFormat &,

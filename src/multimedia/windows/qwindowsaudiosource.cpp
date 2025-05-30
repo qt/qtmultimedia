@@ -83,6 +83,19 @@ QIODevice *QWASAPIAudioSourceStream::start()
     return ioDevice;
 }
 
+bool QWASAPIAudioSourceStream::start(AudioCallback &&cb)
+{
+    auto immDevice = QAudioDevicePrivate::handle<QWindowsAudioDevice>(m_audioDevice)->open();
+
+    bool clientOpen = openAudioClient(std::move(immDevice));
+    if (!clientOpen)
+        return false;
+
+    m_audioCallback = std::move(cb);
+
+    return startAudioClient();
+}
+
 void QWASAPIAudioSourceStream::suspend()
 {
     m_suspended = true;
@@ -176,7 +189,7 @@ void QWASAPIAudioSourceStream::runProcessLoop()
         if (isStopRequested())
             return; // TODO: distinguish between stop/reset?
 
-        bool success = process();
+        bool success = m_audioCallback ? processCallback() : processRingbuffer();
         if (!success) {
             handleAudioClientError();
             return;
@@ -184,7 +197,7 @@ void QWASAPIAudioSourceStream::runProcessLoop()
     }
 }
 
-bool QWASAPIAudioSourceStream::process() noexcept QT_MM_NONBLOCKING
+bool QWASAPIAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
 {
     for (;;) {
         unsigned char *hostBuffer;
@@ -218,6 +231,49 @@ bool QWASAPIAudioSourceStream::process() noexcept QT_MM_NONBLOCKING
         uint32_t framesInNextPacket;
         hr = m_captureClient->GetNextPacketSize(&framesInNextPacket);
 
+        if (FAILED(hr)) {
+            qWarning() << "IAudioCaptureClient::GetNextPacketSize failed"
+                       << audioClientErrorString(hr);
+            return false;
+        }
+
+        if (framesInNextPacket == 0)
+            return true;
+    }
+}
+
+bool QWASAPIAudioSourceStream::processCallback() noexcept QT_MM_NONBLOCKING
+{
+    using namespace QtMultimediaPrivate;
+
+    for (;;) {
+        unsigned char *hostBuffer;
+        uint32_t hostBufferFrames;
+        DWORD flags;
+        uint64_t devicePosition;
+        uint64_t QPCPosition;
+        HRESULT hr = m_captureClient->GetBuffer(&hostBuffer, &hostBufferFrames, &flags,
+                                                &devicePosition, &QPCPosition);
+        if (FAILED(hr)) {
+            qWarning() << "IAudioCaptureClient::GetBuffer failed" << audioClientErrorString(hr);
+            return false;
+        }
+
+        QSpan hostBufferSpan{
+            hostBuffer,
+            m_format.bytesForFrames(hostBufferFrames),
+        };
+
+        runAudioCallback(*m_audioCallback, as_bytes(hostBufferSpan), m_format);
+
+        hr = m_captureClient->ReleaseBuffer(hostBufferFrames);
+        if (FAILED(hr)) {
+            qWarning() << "IAudioCaptureClient::ReleaseBuffer failed" << audioClientErrorString(hr);
+            return false;
+        }
+
+        uint32_t framesInNextPacket;
+        hr = m_captureClient->GetNextPacketSize(&framesInNextPacket);
         if (FAILED(hr)) {
             qWarning() << "IAudioCaptureClient::GetNextPacketSize failed"
                        << audioClientErrorString(hr);

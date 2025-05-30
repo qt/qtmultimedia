@@ -33,6 +33,7 @@ QT_BEGIN_NAMESPACE
 
 class QIODevice;
 class QAudioSink;
+class QAudioSource;
 
 namespace QtMultimediaPrivate {
 
@@ -279,7 +280,14 @@ public:
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
 
+    using AudioCallback = QtMultimediaPrivate::AudioSourceCallback;
+
+    virtual void start(AudioCallback &&) { }
+    virtual bool hasCallbackAPI() { return false; };
+
     QElapsedTimer elapsedTime;
+
+    static QPlatformAudioSource *get(const QAudioSource &);
 };
 
 // forward declarations
