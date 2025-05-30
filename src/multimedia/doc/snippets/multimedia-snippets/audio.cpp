@@ -41,9 +41,9 @@ void AudioInputExample::setup()
 
     QAudioFormat format;
     // Set up the desired format, for example:
-    format.setSampleRate(8000);
+    format.setSampleRate(44100);
     format.setChannelCount(1);
-    format.setSampleFormat(QAudioFormat::UInt8);
+    format.setSampleFormat(QAudioFormat::Int16);
 
     QAudioDevice info = QMediaDevices::defaultAudioInput();
     if (!info.isFormatSupported(format)) {
@@ -117,9 +117,9 @@ void AudioOutputExample::setup()
 
     QAudioFormat format;
     // Set up the format, eg.
-    format.setSampleRate(8000);
+    format.setSampleRate(44100);
     format.setChannelCount(1);
-    format.setSampleFormat(QAudioFormat::UInt8);
+    format.setSampleFormat(QAudioFormat::Int16);
 
     QAudioDevice info(QMediaDevices::defaultAudioOutput());
     if (!info.isFormatSupported(format)) {
