@@ -139,6 +139,21 @@ QIODevice *QCoreAudioSourceStream::start()
     return device;
 }
 
+bool QCoreAudioSourceStream::start(AudioCallback &&cb)
+{
+    m_audioCallback = std::move(cb);
+
+    const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
+    if (status != noErr) {
+        qDebug() << "AudioOutputUnitStart failed:" << status;
+        return false;
+    }
+
+    m_audioUnitRunning = true;
+
+    return true;
+}
+
 void QCoreAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
 {
     requestStop();
@@ -202,14 +217,20 @@ OSStatus QCoreAudioSourceStream::inputCallback(void *inRefCon,
                                                UInt32 inBusNumber, UInt32 inNumberFrames,
                                                AudioBufferList *ioData)
 {
-    return reinterpret_cast<QCoreAudioSourceStream *>(inRefCon)->process(
-            ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
+    auto *self = reinterpret_cast<QCoreAudioSourceStream *>(inRefCon);
+    if (self->m_audioCallback)
+        return self->processAudioCallback(ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames,
+                                          ioData);
+    else
+        return self->processRingbuffer(ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames,
+                                       ioData);
 }
 
-OSStatus QCoreAudioSourceStream::process(AudioUnitRenderActionFlags *ioActionFlags,
-                                         const AudioTimeStamp *timeStamp, UInt32 inBusNumber,
-                                         UInt32 inNumberFrames,
-                                         AudioBufferList * /*ioData*/) noexcept QT_MM_NONBLOCKING
+OSStatus
+QCoreAudioSourceStream::processRingbuffer(AudioUnitRenderActionFlags *ioActionFlags,
+                                          const AudioTimeStamp *timeStamp, UInt32 inBusNumber,
+                                          UInt32 inNumberFrames,
+                                          AudioBufferList * /*ioData*/) noexcept QT_MM_NONBLOCKING
 {
     OSStatus status = AudioUnitRender(m_audioUnit.get(), ioActionFlags, timeStamp, inBusNumber,
                                       inNumberFrames, &m_bufferList);
@@ -234,6 +255,39 @@ OSStatus QCoreAudioSourceStream::process(AudioUnitRenderActionFlags *ioActionFla
     };
 
     QPlatformAudioSourceStream::process(inputSpan, inNumberFrames);
+
+    return noErr;
+}
+
+OSStatus QCoreAudioSourceStream::processAudioCallback(AudioUnitRenderActionFlags *ioActionFlags,
+                                                      const AudioTimeStamp *timeStamp,
+                                                      UInt32 inBusNumber, UInt32 inNumberFrames,
+                                                      AudioBufferList * /*ioData*/) noexcept
+{
+    OSStatus status = AudioUnitRender(m_audioUnit.get(), ioActionFlags, timeStamp, inBusNumber,
+                                      inNumberFrames, &m_bufferList);
+
+    switch (status) {
+    case noErr:
+        break;
+
+    case kAudioUnitErr_CannotDoInCurrentContext:
+        // it seems that during warmup, kAudioUnitErr_CannotDoInCurrentContext can occur for a few
+        // times at startup
+        return status;
+
+    default:
+        qDebug() << "AudioUnitRender failed" << status;
+        return status;
+    }
+
+    QSpan<const std::byte> inputSpan{
+        reinterpret_cast<const std::byte *>(m_bufferList.mBuffers[0].mData),
+        m_bufferList.mBuffers[0].mDataByteSize,
+    };
+
+    using namespace QtMultimediaPrivate;
+    runAudioCallback(*m_audioCallback, inputSpan, m_format);
 
     return noErr;
 }

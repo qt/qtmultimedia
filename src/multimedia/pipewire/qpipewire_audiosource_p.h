@@ -51,6 +51,7 @@ struct QPipewireAudioSourceStream final : QPipewireAudioStream, QPlatformAudioSo
     bool open() { return true; }
     bool start(QIODevice *device);
     QIODevice *start();
+    bool start(AudioCallback &&);
     void stop(ShutdownPolicy);
 
     using QPlatformAudioSourceStream::bytesReady;
@@ -62,12 +63,13 @@ struct QPipewireAudioSourceStream final : QPipewireAudioStream, QPlatformAudioSo
     void updateStreamIdle(bool idle) override;
 
 private:
+    void createStream(QPipewireAudioStream::StreamType);
     std::optional<ObjectSerial> findSourceNodeSerial();
 
     using QPlatformAudioSourceStream::m_format;
 
     void processRingbuffer() noexcept QT_MM_NONBLOCKING override;
-    void processCallback() noexcept QT_MM_NONBLOCKING override { Q_ASSERT(false); }
+    void processCallback() noexcept QT_MM_NONBLOCKING override;
     void handleDeviceRemoved() override;
 
     void stateChanged(pw_stream_state old, pw_stream_state state, const char *error) override;
@@ -80,16 +82,19 @@ private:
     QtPrivate::QAutoResetEvent m_xrunOccurred;
     QMetaObject::Connection m_xrunNotification;
 
+    std::optional<AudioCallback> m_audioCallback;
+
     QPipewireAudioSource *m_parent;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class QPipewireAudioSource final
-    : public QPlatformAudioSourceImplementation<QPipewireAudioSourceStream, QPipewireAudioSource>
+    : public QPlatformAudioSourceImplementationWithCallback<QPipewireAudioSourceStream,
+                                                            QPipewireAudioSource>
 {
-    using BaseClass =
-            QPlatformAudioSourceImplementation<QPipewireAudioSourceStream, QPipewireAudioSource>;
+    using BaseClass = QPlatformAudioSourceImplementationWithCallback<QPipewireAudioSourceStream,
+                                                                     QPipewireAudioSource>;
 
 public:
     QPipewireAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);

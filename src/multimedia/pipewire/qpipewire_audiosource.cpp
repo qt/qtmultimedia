@@ -39,17 +39,6 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QAudioDevice device, cons
         parent,
     }
 {
-    auto extraProperties = std::array{
-        spa_dict_item{ PW_KEY_MEDIA_CATEGORY, "Capture" },
-        spa_dict_item{ PW_KEY_MEDIA_ROLE, "Music" },
-    };
-
-    QString applicationName = qApp->applicationName();
-    if (applicationName.isNull())
-        applicationName = u"QPipewireAudioSource"_s;
-
-    createStream(extraProperties, hardwareBufferFrames, applicationName.toUtf8().constData());
-
     m_xrunNotification = m_xrunOccurred.callOnActivated([this] {
         if (isStopRequested())
             return;
@@ -61,16 +50,22 @@ QPipewireAudioSourceStream::~QPipewireAudioSourceStream() = default;
 
 bool QPipewireAudioSourceStream::start(QIODevice *device)
 {
+    createStream(StreamType::Ringbuffer);
+
+    Q_ASSERT(hasStream());
+    auto sourceNodeSerial = findSourceNodeSerial();
+    if (!sourceNodeSerial) {
+        requestStop();
+        return false;
+    }
+
     setQIODevice(device);
 
-    assert(hasStream());
-    auto sourceNodeSerial = findSourceNodeSerial();
-    if (!sourceNodeSerial)
-        return false;
-
     bool connected = connectStream(*sourceNodeSerial, SPA_DIRECTION_INPUT);
-    if (!connected)
+    if (!connected) {
+        requestStop();
         return false;
+    }
 
     createQIODeviceConnections(device);
 
@@ -90,6 +85,30 @@ QIODevice *QPipewireAudioSourceStream::start()
         return nullptr;
 
     return device;
+}
+
+bool QPipewireAudioSourceStream::start(AudioCallback &&audioCallback)
+{
+    createStream(StreamType::Callback);
+
+    Q_ASSERT(hasStream());
+    auto sourceNodeSerial = findSourceNodeSerial();
+    if (!sourceNodeSerial) {
+        requestStop();
+        return false;
+    }
+
+    m_audioCallback = std::move(audioCallback);
+
+    bool connected = connectStream(*sourceNodeSerial, SPA_DIRECTION_INPUT);
+    if (!connected) {
+        requestStop();
+        return false;
+    }
+
+    // keep instance alive until PW_STREAM_STATE_UNCONNECTED
+    m_self = shared_from_this();
+    return true;
 }
 
 void QPipewireAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
@@ -117,6 +136,21 @@ void QPipewireAudioSourceStream::updateStreamIdle(bool idle)
 {
     if (m_parent)
         m_parent->updateStreamIdle(idle);
+}
+
+void QPipewireAudioSourceStream::createStream(StreamType streamType)
+{
+    auto extraProperties = std::array{
+        spa_dict_item{ PW_KEY_MEDIA_CATEGORY, "Capture" },
+        spa_dict_item{ PW_KEY_MEDIA_ROLE, "Music" },
+    };
+
+    QString applicationName = qApp->applicationName();
+    if (applicationName.isNull())
+        applicationName = u"QPipewireAudioSource"_s;
+
+    QPipewireAudioStream::createStream(extraProperties, m_hardwareBufferFrames,
+                                       applicationName.toUtf8().constData(), streamType);
 }
 
 std::optional<ObjectSerial> QPipewireAudioSourceStream::findSourceNodeSerial()
@@ -169,6 +203,33 @@ void QPipewireAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
 
     uint64_t framesWritten = QPlatformAudioSourceStream::process(buffer, numberOfFrames);
     addFramesHandled(framesWritten);
+    pw_stream_queue_buffer(m_stream.get(), b);
+}
+
+void QPipewireAudioSourceStream::processCallback() noexcept
+{
+    using namespace QtMultimediaPrivate;
+    struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
+    if (!b) {
+        qCritical() << "pw_stream_dequeue_buffer failed";
+        return;
+    }
+
+    struct spa_buffer *buf = b->buffer;
+    if (buf->datas[0].data == nullptr) {
+        qWarning() << "pw_stream_dequeue_buffer received null buffer";
+        return;
+    }
+
+    QSpan buffer{
+        reinterpret_cast<const std::byte *>(buf->datas[0].data),
+        qsizetype(buf->datas[0].chunk->size),
+    };
+    int numberOfFrames = m_format.framesForBytes(buffer.size());
+
+    runAudioCallback(*m_audioCallback, buffer, m_format);
+
+    addFramesHandled(numberOfFrames);
     pw_stream_queue_buffer(m_stream.get(), b);
 }
 

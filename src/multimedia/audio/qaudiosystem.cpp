@@ -5,6 +5,7 @@
 
 #include <QtCore/qdebug.h>
 #include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/qaudiosource.h>
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -93,6 +94,11 @@ QPlatformAudioSource::QPlatformAudioSource(QAudioDevice device, const QAudioForm
                                            QObject *parent)
     : QPlatformAudioEndpointBase(std::move(device), format, parent)
 {
+}
+
+QPlatformAudioSource *QPlatformAudioSource::get(const QAudioSource &source)
+{
+    return source.d;
 }
 
 QT_END_NAMESPACE
