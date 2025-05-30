@@ -17,15 +17,14 @@
 //
 
 #include <QtCore/qrect.h>
-#include <QtCore/qsharedpointer.h>
-#include <QtQuick/qquickitem.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qmutex.h>
+#include <QtQuick/qquickitem.h>
 
-#include <private/qtmultimediaquickglobal_p.h>
-#include <qvideoframe.h>
-#include <qvideoframeformat.h>
-#include <qvideosink.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimediaQuick/private/qtmultimediaquickglobal_p.h>
 
 #include <thread>
 

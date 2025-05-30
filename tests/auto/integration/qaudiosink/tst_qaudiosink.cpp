@@ -4,7 +4,6 @@
 #include <QtTest/QtTest>
 #include <QtCore/qlocale.h>
 #include <QtCore/QTemporaryDir>
-#include <QtCore/QSharedPointer>
 
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
@@ -110,7 +109,7 @@ private slots:
     void callbackAPI_startFailsWithWrongType();
 
 private:
-    using FilePtr = QSharedPointer<QFile>;
+    using FilePtr = std::shared_ptr<QFile>;
 
     static QString formatToFileName(const QAudioFormat &format);
     static QString dumpStateSignalSpy(const QSignalSpy &stateSignalSpy);
@@ -263,7 +262,7 @@ void tst_QAudioSink::initTestCase()
                                  + formatToFileName(format) + QStringLiteral(".wav");
         FilePtr file(new QFile(fileName));
         QVERIFY2(file->open(QIODevice::WriteOnly), qPrintable(file->errorString()));
-        QWaveDecoder waveDecoder(file.data(), format);
+        QWaveDecoder waveDecoder(file.get(), format);
         if (waveDecoder.open(QIODevice::WriteOnly)) {
             waveDecoder.write(data);
             waveDecoder.close();
@@ -510,7 +509,7 @@ void tst_QAudioSink::pull()
     audioFile->open(QIODevice::ReadOnly);
     audioFile->seek(QWaveDecoder::headerLength());
 
-    audioSink.start(audioFile.data());
+    audioSink.start(audioFile.get());
 
     // Check that QAudioSink immediately transitions to ActiveState
     QTRY_VERIFY2((stateSignal.size() == 1),
@@ -576,7 +575,7 @@ void tst_QAudioSink::pullSuspendResume()
     audioFile->open(QIODevice::ReadOnly);
     audioFile->seek(QWaveDecoder::headerLength());
 
-    audioSink.start(audioFile.data());
+    audioSink.start(audioFile.get());
     // Check that QAudioSink immediately transitions to ActiveState
     QTRY_VERIFY2((stateSignal.size() == 1),
                  QStringLiteral("didn't emit signal on start(), got %1 signals instead")
