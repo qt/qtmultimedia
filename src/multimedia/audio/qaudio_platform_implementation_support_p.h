@@ -131,6 +131,11 @@ void QPlatformAudioSinkImplementation<StreamType, DerivedType>::start(QIODevice 
         return;
     }
 
+    if (m_stream) {
+        qWarning("QAudioSink::start() called while already started");
+        return;
+    }
+
     m_stream = std::make_shared<StreamType>(m_audioDevice, m_format, m_internalBufferSize,
                                             static_cast<ConcreteSinkType *>(this), volume(),
                                             m_hardwareBufferFrames, m_role);
@@ -151,6 +156,11 @@ void QPlatformAudioSinkImplementation<StreamType, DerivedType>::start(AudioCallb
     using namespace QtMultimediaPrivate;
     if (!validateAudioSinkCallback(audioCallback, m_format)) {
         setError(QAudio::OpenError);
+        return;
+    }
+
+    if (m_stream) {
+        qWarning("QAudioSink::start() called while already started");
         return;
     }
 
@@ -177,6 +187,11 @@ void QPlatformAudioSinkImplementation<StreamType, DerivedType>::start(AudioCallb
 template <STREAM_TYPE_ARG, typename DerivedType>
 QIODevice *QPlatformAudioSinkImplementation<StreamType, DerivedType>::start()
 {
+    if (m_stream) {
+        qWarning("QAudioSink::start() called while already started");
+        return nullptr;
+    }
+
     m_stream = std::make_shared<StreamType>(m_audioDevice, m_format, m_internalBufferSize,
                                             static_cast<ConcreteSinkType *>(this), volume(),
                                             m_hardwareBufferFrames, m_role);
@@ -406,6 +421,11 @@ void QPlatformAudioSourceImplementation<StreamType, DerivedType>::start(QIODevic
         return;
     }
 
+    if (m_stream) {
+        qWarning("QAudioSource::start() called while already started");
+        return;
+    }
+
     m_stream = std::make_shared<StreamType>(m_audioDevice, m_format, m_internalBufferSize,
                                             static_cast<ConcreteSourceType *>(this), volume(),
                                             m_hardwareBufferFrames);
@@ -423,6 +443,11 @@ void QPlatformAudioSourceImplementation<StreamType, DerivedType>::start(QIODevic
 template <STREAM_TYPE_ARG, typename DerivedType>
 QIODevice *QPlatformAudioSourceImplementation<StreamType, DerivedType>::start()
 {
+    if (m_stream) {
+        qWarning("QAudioSource::start() called while already started");
+        return nullptr;
+    }
+
     m_stream = std::make_shared<StreamType>(m_audioDevice, m_format, m_internalBufferSize,
                                             static_cast<ConcreteSourceType *>(this), volume(),
                                             m_hardwareBufferFrames);

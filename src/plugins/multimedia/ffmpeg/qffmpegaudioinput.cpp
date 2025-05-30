@@ -121,7 +121,8 @@ private Q_SLOTS:
         if (m_running) {
             if (!m_audioSource)
                 updateSource(locker);
-            m_audioSource->start(this);
+            else
+                m_audioSource->start(this);
         } else {
             m_audioSource->stop();
         }
