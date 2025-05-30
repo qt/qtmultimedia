@@ -271,7 +271,8 @@ MediaDataHolder::Maybe MediaDataHolder::create(const QUrl &url, QIODevice *strea
     QMaybe context = loadMedia(url, stream, cancelToken);
     if (context) {
         // MediaDataHolder is wrapped in a shared pointer to interop with signal/slot mechanism
-        return QSharedPointer<MediaDataHolder>{ new MediaDataHolder{ std::move(context.value()), cancelToken } };
+        return std::make_shared<MediaDataHolder>(
+                MediaDataHolder{ std::move(context.value()), cancelToken });
     }
     return QUnexpected{ context.error() };
 }

@@ -4,7 +4,6 @@
 #include <QtTest/QtTest>
 #include <QtCore/qlocale.h>
 #include <QtCore/QTemporaryDir>
-#include <QtCore/QSharedPointer>
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
@@ -73,7 +72,7 @@ private slots:
     void stop_stopsAudioSource_whenInvokedUponFirstStateChange();
 
 private:
-    using FilePtr = QSharedPointer<QFile>;
+    using FilePtr = std::shared_ptr<QFile>;
 
     QString formatToFileName(const QAudioFormat &format);
 
@@ -165,7 +164,7 @@ void tst_QAudioSource::initTestCase()
     const QString temporaryAudioPath = m_temporaryDir->path() + slash;
     for (const QAudioFormat &format : std::as_const(testFormats)) {
         const QString fileName = temporaryAudioPath + formatToFileName(format) + QStringLiteral(".wav");
-        audioFiles.append(FilePtr::create(fileName));
+        audioFiles.append(std::make_shared<QFile>(fileName));
     }
 }
 
@@ -401,7 +400,7 @@ void tst_QAudioSource::pull()
 
     audioFile->close();
     QTEST_ASSERT(audioFile->open(QIODevice::WriteOnly));
-    QWaveDecoder waveDecoder(audioFile.data(), audioFormat);
+    QWaveDecoder waveDecoder(audioFile.get(), audioFormat);
     if (!waveDecoder.open(QIODevice::WriteOnly)) {
         waveDecoder.close();
         audioFile->close();
@@ -409,7 +408,7 @@ void tst_QAudioSource::pull()
     }
     QCOMPARE(waveDecoder.size(), QWaveDecoder::headerLength());
 
-    audioSource.start(audioFile.data());
+    audioSource.start(audioFile.get());
 
     // Check that QAudioSource immediately transitions to ActiveState or IdleState
     QTRY_VERIFY2((stateSignal.size() > 0),"didn't emit signals on start()");
@@ -485,7 +484,7 @@ void tst_QAudioSource::pullSuspendResume()
     }
     QCOMPARE(waveDecoder.size(), QWaveDecoder::headerLength());
 
-    audioSource.start(audioFile.data());
+    audioSource.start(audioFile.get());
 
     // Check that QAudioSource immediately transitions to ActiveState or IdleState
     QTRY_VERIFY2((stateSignal.size() > 0),"didn't emit signals on start()");

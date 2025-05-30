@@ -17,7 +17,7 @@
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
-#include <QtCore/qsharedpointer.h>
+#include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
 

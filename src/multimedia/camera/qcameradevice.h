@@ -4,9 +4,9 @@
 #ifndef QCAMERAINFO_H
 #define QCAMERAINFO_H
 
+#include <QtCore/qshareddata.h>
 #include <QtMultimedia/qtvideo.h>
 #include <QtMultimedia/qvideoframe.h>
-#include <QtCore/qsharedpointer.h>
 
 QT_BEGIN_NAMESPACE
 
