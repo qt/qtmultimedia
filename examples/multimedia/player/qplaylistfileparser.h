@@ -20,6 +20,8 @@
 
 #include <QObject>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 class QIODevice;
@@ -68,7 +70,7 @@ private:
 
     Q_DISABLE_COPY(QPlaylistFileParser)
     Q_DECLARE_PRIVATE(QPlaylistFileParser)
-    QScopedPointer<QPlaylistFileParserPrivate> d_ptr;
+    std::unique_ptr<QPlaylistFileParserPrivate> d_ptr;
 };
 
 QT_END_NAMESPACE

@@ -5,17 +5,18 @@
 #include <QtCore/qlocale.h>
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QSharedPointer>
-#include <QtCore/QScopedPointer>
 
-#include <qaudiosource.h>
-#include <qaudiodevice.h>
-#include <qaudioformat.h>
-#include <qaudio.h>
-#include <qmediadevices.h>
-#include <qwavedecoder.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qaudiosource.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qwavedecoder.h>
 
 #include <private/mediabackendutils_p.h>
 #include <private/qmockiodevice_p.h>
+
+#include <memory>
 
 #define RANGE_ERR 0.5
 
@@ -82,10 +83,10 @@ private:
     QAudioDevice audioDevice;
     QList<QAudioFormat> testFormats;
     QList<FilePtr> audioFiles;
-    QScopedPointer<QTemporaryDir> m_temporaryDir;
+    std::unique_ptr<QTemporaryDir> m_temporaryDir;
 
-    QScopedPointer<QByteArray> m_byteArray;
-    QScopedPointer<QBuffer> m_buffer;
+    std::unique_ptr<QByteArray> m_byteArray;
+    std::unique_ptr<QBuffer> m_buffer;
 
     bool m_inCISystem = isCI();
 };

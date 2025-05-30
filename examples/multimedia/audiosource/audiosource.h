@@ -13,9 +13,9 @@
 #include <QWidget>
 
 #include <QPixmap>
-
 #include <QByteArray>
-#include <QScopedPointer>
+
+#include <memory>
 
 class AudioInfo : public QIODevice
 {
@@ -91,8 +91,8 @@ private:
     QSlider *m_volumeSlider = nullptr;
 
     QMediaDevices *m_devices = nullptr;
-    QScopedPointer<AudioInfo> m_audioInfo;
-    QScopedPointer<QAudioSource> m_audioSource;
+    std::unique_ptr<AudioInfo> m_audioInfo;
+    std::unique_ptr<QAudioSource> m_audioSource;
     bool m_pullMode = true;
 };
 

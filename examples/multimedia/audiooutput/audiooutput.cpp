@@ -224,7 +224,7 @@ void AudioTest::restartAudioStream()
 
     if (m_pullMode) {
         // pull mode: QAudioSink pulls from Generator as needed
-        m_audioSink->start(m_generator.data());
+        m_audioSink->start(m_generator.get());
     } else {
         // push mode: periodically push to QAudioSink using a timer
         auto io = m_audioSink->start();
