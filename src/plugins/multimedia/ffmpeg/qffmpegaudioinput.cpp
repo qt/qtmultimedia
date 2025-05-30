@@ -173,6 +173,7 @@ QFFmpegAudioInput::QFFmpegAudioInput(QAudioInput *qq)
     qRegisterMetaType<QAudioBuffer>();
 
     m_inputThread = std::make_unique<QThread>();
+    m_inputThread->setObjectName(QStringLiteral("QFFmpegAudioInputThread"));
     m_audioIO = new QFFmpeg::AudioSourceIO(this);
     m_audioIO->moveToThread(m_inputThread.get());
     m_inputThread->start();
