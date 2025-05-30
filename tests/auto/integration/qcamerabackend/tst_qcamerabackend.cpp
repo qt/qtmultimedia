@@ -28,6 +28,8 @@
 
 #include <private/mediabackendutils_p.h>
 
+#include <memory>
+
 QT_USE_NAMESPACE
 
 /*
@@ -666,13 +668,13 @@ void tst_QCameraBackend::testVideoRecording()
     QFETCH(QCameraDevice, device);
 
     QMediaCaptureSession session;
-    QScopedPointer<QCamera> camera(new QCamera(device));
-    session.setCamera(camera.data());
+    std::unique_ptr<QCamera> camera(new QCamera(device));
+    session.setCamera(camera.get());
 
     QMediaRecorder recorder;
     session.setRecorder(&recorder);
 
-    QSignalSpy errorSignal(camera.data(), &QCamera::errorOccurred);
+    QSignalSpy errorSignal(camera.get(), &QCamera::errorOccurred);
     QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
     QSignalSpy recorderStateChanged(&recorder, &QMediaRecorder::recorderStateChanged);
     QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);

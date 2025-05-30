@@ -159,7 +159,7 @@ void InputTest::initializeAudio(const QAudioDevice &deviceInfo)
         format.setChannelCount(deviceInfo.preferredFormat().channelCount());
 
     m_audioInfo.reset(new AudioInfo(format));
-    connect(m_audioInfo.data(), &AudioInfo::levelChanged, m_canvas, &RenderArea::setLevel);
+    connect(m_audioInfo.get(), &AudioInfo::levelChanged, m_canvas, &RenderArea::setLevel);
 
     m_audioSource.reset(new QAudioSource(deviceInfo, format));
     qreal initialVolume = QAudio::convertVolume(m_audioSource->volume(), QAudio::LinearVolumeScale,
@@ -213,7 +213,7 @@ void InputTest::restartAudioStream()
         });
     } else {
         // push mode: QIODevice pushes data into QIODevice
-        m_audioSource->start(m_audioInfo.data());
+        m_audioSource->start(m_audioInfo.get());
     }
 }
 

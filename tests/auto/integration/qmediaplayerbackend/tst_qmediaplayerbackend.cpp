@@ -39,6 +39,7 @@
 #include "private/qquickvideooutput_p.h"
 
 #include <array>
+#include <memory>
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 
@@ -3780,7 +3781,7 @@ void tst_QMediaPlayerBackend::lazyLoadVideo()
     QQmlEngine engine;
     QQmlComponent component(&engine);
     component.loadUrl(QUrl("qrc:/LazyLoad.qml"));
-    QScopedPointer<QObject> root(component.create());
+    std::unique_ptr<QObject> root(component.create());
     QQuickItem *rootItem = qobject_cast<QQuickItem *>(root.get());
     QVERIFY(rootItem);
 

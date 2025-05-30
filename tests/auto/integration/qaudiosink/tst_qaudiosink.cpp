@@ -5,7 +5,6 @@
 #include <QtCore/qlocale.h>
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QSharedPointer>
-#include <QtCore/QScopedPointer>
 
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
@@ -22,6 +21,8 @@
 #include <private/multimedia_debug_support_p.h>
 #include <private/osdetection_p.h>
 #include <private/qmockiodevice_p.h>
+
+#include <memory>
 
 QT_WARNING_DISABLE_DEPRECATED; // Tests use QWaveDecoder
 
@@ -136,7 +137,7 @@ private:
     QAudioDevice audioDevice;
     QList<QAudioFormat> testFormats;
     QList<FilePtr> audioFiles;
-    QScopedPointer<QTemporaryDir> m_temporaryDir;
+    std::unique_ptr<QTemporaryDir> m_temporaryDir;
 };
 
 QString tst_QAudioSink::formatToFileName(const QAudioFormat &format)

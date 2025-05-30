@@ -12,6 +12,8 @@
 #include <QMediaDevices>
 #include <QMediaRecorder>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 
@@ -41,9 +43,9 @@ private:
     void enableButtons(bool ok);
     void showFile(const QString &filename);
 
-    QScopedPointer<QCamera> m_camera;
+    std::unique_ptr<QCamera> m_camera;
     QMediaCaptureSession *m_captureSession;
-    QScopedPointer<QAudioInput> m_audioInput;
+    std::unique_ptr<QAudioInput> m_audioInput;
     QMediaDevices *m_mediaDevices;
     QMediaRecorder *m_recorder;
     bool isRecording = false;
