@@ -14,6 +14,8 @@
 #include <private/qplatformvideosink_p.h>
 #include <qmediaplayer.h>
 
+#include <memory>
+
 class QtTestVideoObject : public QObject
 {
     Q_OBJECT
@@ -47,7 +49,7 @@ private slots:
 private:
     QQmlEngine m_engine;
     QQuickVideoOutput *m_videoItem;
-    QScopedPointer<QQuickItem> m_rootItem;
+    std::unique_ptr<QQuickItem> m_rootItem;
     QtTestVideoObject m_videoObject;
     QMediaPlayer m_sourceObject;
     QQuickView m_view;

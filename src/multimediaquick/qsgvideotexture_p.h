@@ -15,10 +15,12 @@
 // We mean it.
 //
 
-#include <QtQuick/QSGTexture>
-#include <QImage>
-#include <rhi/qrhi.h>
-#include <private/qtmultimediaquickglobal_p.h>
+#include <QtQuick/qsgtexture.h>
+#include <QtGui/qimage.h>
+#include <QtGui/rhi/qrhi.h>
+#include <QtMultimediaQuick/private/qtmultimediaquickglobal_p.h>
+
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
@@ -39,7 +41,7 @@ public:
     void setData(QRhiTexture::Format f, const QSize &s, const uchar *data, int bytes);
 
 protected:
-    QScopedPointer<QSGVideoTexturePrivate> d_ptr;
+    std::unique_ptr<QSGVideoTexturePrivate> d_ptr;
 };
 
 QT_END_NAMESPACE
