@@ -57,6 +57,7 @@ struct QWASAPIAudioSourceStream final : std::enable_shared_from_this<QWASAPIAudi
     bool open() { return true; }
     bool start(QIODevice *);
     QIODevice *start();
+    bool start(AudioCallback &&);
 
     void suspend();
     void resume();
@@ -69,7 +70,8 @@ private:
     bool startAudioClient();
 
     void runProcessLoop();
-    bool process() noexcept QT_MM_NONBLOCKING;
+    bool processRingbuffer() noexcept QT_MM_NONBLOCKING;
+    bool processCallback() noexcept QT_MM_NONBLOCKING;
     void handleAudioClientError();
 
     ComPtr<IAudioClient3> m_audioClient;
@@ -85,16 +87,18 @@ private:
     const QUniqueWin32NullHandle m_wasapiHandle;
     std::unique_ptr<QThread> m_workerThread;
 
+    std::optional<AudioCallback> m_audioCallback;
     QWindowsAudioSource *m_parent;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 class QWindowsAudioSource final
-    : public QPlatformAudioSourceImplementation<QWASAPIAudioSourceStream, QWindowsAudioSource>
+    : public QPlatformAudioSourceImplementationWithCallback<QWASAPIAudioSourceStream,
+                                                            QWindowsAudioSource>
 {
-    using BaseClass =
-            QPlatformAudioSourceImplementation<QWASAPIAudioSourceStream, QWindowsAudioSource>;
+    using BaseClass = QPlatformAudioSourceImplementationWithCallback<QWASAPIAudioSourceStream,
+                                                                     QWindowsAudioSource>;
 
 public:
     QWindowsAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);

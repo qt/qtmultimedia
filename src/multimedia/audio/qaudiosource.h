@@ -63,6 +63,7 @@ Q_SIGNALS:
 
 private:
     Q_DISABLE_COPY(QAudioSource)
+    friend class QPlatformAudioSource;
 
     QPlatformAudioSource *d;
 };
