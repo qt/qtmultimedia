@@ -16,7 +16,6 @@
 //
 
 #include <QtMultimedia/qcameradevice.h>
-#include <QtCore/qsharedpointer.h>
 #include <QtCore/private/qglobal_p.h>
 
 QT_BEGIN_NAMESPACE
