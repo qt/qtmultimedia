@@ -4,7 +4,9 @@
 #ifndef QMEDIAFORMAT_H
 #define QMEDIAFORMAT_H
 
-#include <QtCore/qsharedpointer.h>
+#include <QtCore/qobjectdefs.h>
+#include <QtCore/qshareddata.h>
+#include <QtCore/qtmetamacros.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 
 QT_BEGIN_NAMESPACE

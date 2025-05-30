@@ -78,7 +78,7 @@ public:
 
     int currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const;
 
-    using Maybe = q23::expected<QSharedPointer<MediaDataHolder>, ContextError>;
+    using Maybe = q23::expected<std::shared_ptr<MediaDataHolder>, ContextError>;
     static Maybe create(const QUrl &url, QIODevice *stream, const QPlaybackOptions &options,
                         const std::shared_ptr<ICancelToken> &cancelToken);
 
