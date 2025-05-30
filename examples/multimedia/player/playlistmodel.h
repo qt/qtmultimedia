@@ -5,7 +5,8 @@
 #define PLAYLISTMODEL_H
 
 #include <QAbstractItemModel>
-#include <QScopedPointer>
+
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 class QMediaPlaylist;
@@ -43,7 +44,7 @@ private slots:
     void changeItems(int start, int end);
 
 private:
-    QScopedPointer<QMediaPlaylist> m_playlist;
+    std::unique_ptr<QMediaPlaylist> m_playlist;
     QMap<QModelIndex, QVariant> m_data;
 };
 

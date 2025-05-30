@@ -104,19 +104,19 @@ void Camera::init()
 void Camera::setCamera(const QCameraDevice &cameraDevice)
 {
     m_camera.reset(new QCamera(cameraDevice));
-    m_captureSession.setCamera(m_camera.data());
+    m_captureSession.setCamera(m_camera.get());
 
-    connect(m_camera.data(), &QCamera::activeChanged, this, &Camera::updateCameraActive);
-    connect(m_camera.data(), &QCamera::errorOccurred, this, &Camera::displayCameraError);
+    connect(m_camera.get(), &QCamera::activeChanged, this, &Camera::updateCameraActive);
+    connect(m_camera.get(), &QCamera::errorOccurred, this, &Camera::displayCameraError);
 
     if (!m_mediaRecorder) {
         m_mediaRecorder.reset(new QMediaRecorder);
-        m_captureSession.setRecorder(m_mediaRecorder.data());
-        connect(m_mediaRecorder.data(), &QMediaRecorder::recorderStateChanged, this,
+        m_captureSession.setRecorder(m_mediaRecorder.get());
+        connect(m_mediaRecorder.get(), &QMediaRecorder::recorderStateChanged, this,
                 &Camera::updateRecorderState);
-        connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this,
+        connect(m_mediaRecorder.get(), &QMediaRecorder::durationChanged, this,
                 &Camera::updateRecordTime);
-        connect(m_mediaRecorder.data(), &QMediaRecorder::errorChanged, this,
+        connect(m_mediaRecorder.get(), &QMediaRecorder::errorChanged, this,
                 &Camera::displayRecorderError);
     }
 
@@ -198,7 +198,7 @@ void Camera::configureCaptureSettings()
 
 void Camera::configureVideoSettings()
 {
-    VideoSettings settingsDialog(m_mediaRecorder.data());
+    VideoSettings settingsDialog(m_mediaRecorder.get());
 
     if (settingsDialog.exec())
         settingsDialog.applySettings();

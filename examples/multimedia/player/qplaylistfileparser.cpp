@@ -13,6 +13,8 @@
 #include <QNetworkRequest>
 #include <QPointer>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 namespace {
@@ -257,8 +259,8 @@ public:
     void abort();
     void reset();
 
-    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> m_source;
-    QScopedPointer<ParserBase> m_currentParser;
+    std::unique_ptr<QNetworkReply, QScopedPointerDeleteLater> m_source;
+    std::unique_ptr<ParserBase> m_currentParser;
     QByteArray m_buffer;
     QUrl m_root;
     QNetworkAccessManager m_mgr;
@@ -324,7 +326,7 @@ bool QPlaylistFileParserPrivate::processLine(int startIndex, int length)
             break;
         }
 
-        Q_ASSERT(!m_currentParser.isNull());
+        Q_ASSERT(m_currentParser);
     }
 
     QString line;
@@ -498,7 +500,7 @@ void QPlaylistFileParser::start(QIODevice *stream, const QString &mimeType)
         return;
     }
 
-    if (!d->m_currentParser.isNull()) {
+    if (d->m_currentParser) {
         abort();
         d->m_pendingJob = { stream, QUrl(), mimeType };
         return;
@@ -523,7 +525,7 @@ void QPlaylistFileParser::start(const QUrl &request, const QString &mimeType)
         return;
     }
 
-    if (!d->m_currentParser.isNull()) {
+    if (d->m_currentParser) {
         abort();
         d->m_pendingJob = { nullptr, request, mimeType };
         return;
@@ -534,9 +536,9 @@ void QPlaylistFileParser::start(const QUrl &request, const QString &mimeType)
     d->m_mimeType = mimeType;
     d->m_source.reset(d->m_mgr.get(QNetworkRequest(request)));
     d->m_stream = d->m_source.get();
-    connect(d->m_source.data(), SIGNAL(readyRead()), this, SLOT(handleData()));
-    connect(d->m_source.data(), SIGNAL(finished()), this, SLOT(handleData()));
-    connect(d->m_source.data(), SIGNAL(errorOccurred(QNetworkReply::NetworkError)), this,
+    connect(d->m_source.get(), SIGNAL(readyRead()), this, SLOT(handleData()));
+    connect(d->m_source.get(), SIGNAL(finished()), this, SLOT(handleData()));
+    connect(d->m_source.get(), SIGNAL(errorOccurred(QNetworkReply::NetworkError)), this,
             SLOT(handleError()));
 
     if (url.isLocalFile())
@@ -566,7 +568,7 @@ void QPlaylistFileParser::handleData()
 void QPlaylistFileParserPrivate::handleParserFinished()
 {
     Q_Q(QPlaylistFileParser);
-    const bool isParserValid = !m_currentParser.isNull();
+    const bool isParserValid = bool(m_currentParser);
     if (!isParserValid && !m_aborted)
         emit q->error(QMediaPlaylist::FormatNotSupportedError,
                       QMediaPlaylist::tr("Empty file provided"));
@@ -579,7 +581,7 @@ void QPlaylistFileParserPrivate::handleParserFinished()
     if (!m_aborted)
         q->abort();
 
-    if (!m_source.isNull())
+    if (m_source)
         m_source.reset();
 
     if (m_pendingJob.isValid())
@@ -589,14 +591,14 @@ void QPlaylistFileParserPrivate::handleParserFinished()
 void QPlaylistFileParserPrivate::abort()
 {
     m_aborted = true;
-    if (!m_currentParser.isNull())
+    if (m_currentParser)
         m_currentParser->abort();
 }
 
 void QPlaylistFileParserPrivate::reset()
 {
-    Q_ASSERT(m_currentParser.isNull());
-    Q_ASSERT(m_source.isNull());
+    Q_ASSERT(m_currentParser == nullptr);
+    Q_ASSERT(m_source == nullptr);
     m_buffer.clear();
     m_root.clear();
     m_mimeType.clear();
