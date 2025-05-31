@@ -434,9 +434,8 @@ void tst_QAudioSource::pull()
     stateSignal.clear();
 
     // Check that 'elapsed' increases
-    QTRY_VERIFY2((audioSource.elapsedUSecs() > 0), "elapsedUSecs() is still zero after start()");
-    QTRY_VERIFY2((audioSource.processedUSecs() > 0),
-                 "processedUSecs() is still zero after start()");
+    QTRY_COMPARE_GT(audioSource.elapsedUSecs(), 0);
+    QTRY_COMPARE_GT(audioSource.processedUSecs(), 0);
 
     // Allow some recording to happen
     QTest::qWait(3000); // 3 seconds should be plenty
@@ -548,8 +547,8 @@ void tst_QAudioSource::pullSuspendResume()
                      .arg(processedUs)
                      .toUtf8()
                      .constData());
-    QTRY_VERIFY(audioSource.elapsedUSecs() > elapsedUs);
-    QVERIFY(audioSource.processedUSecs() == processedUs);
+    QTRY_COMPARE_GT(audioSource.elapsedUSecs(), elapsedUs);
+    QCOMPARE(audioSource.processedUSecs(), processedUs);
 
     audioSource.resume();
 
@@ -762,8 +761,8 @@ void tst_QAudioSource::pushSuspendResume()
     // Check that only 'elapsed', and not 'processed' increases while suspended
     qint64 elapsedUs = audioSource.elapsedUSecs();
     qint64 processedUs = audioSource.processedUSecs();
-    QTRY_VERIFY(audioSource.elapsedUSecs() > elapsedUs);
-    QVERIFY(audioSource.processedUSecs() == processedUs);
+    QTRY_COMPARE_GT(audioSource.elapsedUSecs(), elapsedUs);
+    QCOMPARE(audioSource.processedUSecs(), processedUs);
 
     // Drain any data, in case we run out of space when resuming
     while (feed->readAll().size() > 0)
