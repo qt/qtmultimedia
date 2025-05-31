@@ -874,8 +874,8 @@ void tst_QAudioSink::pushSuspendResume()
     const qint64 elapsedUs = audioSink.elapsedUSecs();
     const qint64 processedUs = audioSink.processedUSecs();
     QTest::qWait(100);
-    QVERIFY(audioSink.elapsedUSecs() > elapsedUs);
-    QVERIFY(audioSink.processedUSecs() == processedUs);
+    QCOMPARE_GT(audioSink.elapsedUSecs(), elapsedUs);
+    QCOMPARE(audioSink.processedUSecs(), processedUs);
 
     audioSink.resume();
 
@@ -1011,9 +1011,8 @@ void tst_QAudioSink::pushUnderrun()
 
     // Check that 'elapsed' increases
     QTest::qWait(40);
-    QVERIFY2((audioSink.elapsedUSecs() > 0), "elapsedUSecs() is still zero after start()");
-    QVERIFY2((audioSink.processedUSecs() == qint64(0)),
-             "processedUSecs() is not zero after start()");
+    QCOMPARE_GT(audioSink.elapsedUSecs(), 0);
+    QCOMPARE(audioSink.processedUSecs(), qint64(0));
 
     qint64 written = 0;
 
@@ -1091,8 +1090,7 @@ void tst_QAudioSink::pushUnderrun()
              "didn't transitions to StoppedState after stop()");
 
     QVERIFY2((audioSink.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
-    QVERIFY2((audioSink.elapsedUSecs() == (qint64)0),
-             "elapsedUSecs() not equal to zero in StoppedState");
+    QCOMPARE(audioSink.elapsedUSecs(), 0);
 
     audioFile->close();
 }
