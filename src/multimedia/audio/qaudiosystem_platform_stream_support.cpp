@@ -431,7 +431,7 @@ void QPlatformAudioSourceStream::createQIODeviceConnections(QIODevice *device)
 
     m_ringbufferIsFullConnection = m_ringbufferHasData.callOnActivated(device, [this] {
         if (!isStopRequested())
-            updateStreamIdle(true);
+            updateStreamIdle(false);
     });
 }
 
