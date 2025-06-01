@@ -508,34 +508,24 @@ void QPulseAudioContextManager::updateDevices()
     std::lock_guard lock(*this);
 
     // Get default input and output devices
-    PAOperationHandle operation{
-        pa_context_get_server_info(m_context.get(), serverInfoCallback, this),
-        PAOperationHandle::HasRef,
-    };
+    bool success = waitForAsyncOperation(
+            pa_context_get_server_info(m_context.get(), serverInfoCallback, this));
 
-    if (operation)
-        wait(operation);
-    else
+    if (!success)
         qWarning() << "PulseAudioService: failed to get server info";
 
     // Get output devices
-    operation = PAOperationHandle{
-        pa_context_get_sink_info_list(m_context.get(), sinkInfoCallback, this),
-        PAOperationHandle::HasRef,
-    };
-    if (operation)
-        wait(operation);
-    else
+    success = waitForAsyncOperation(
+            pa_context_get_sink_info_list(m_context.get(), sinkInfoCallback, this));
+
+    if (!success)
         qWarning() << "PulseAudioService: failed to get sink info";
 
     // Get input devices
-    operation = PAOperationHandle{
-        pa_context_get_source_info_list(m_context.get(), sourceInfoCallback, this),
-        PAOperationHandle::HasRef,
-    };
-    if (operation)
-        wait(operation);
-    else
+    success = waitForAsyncOperation(
+            pa_context_get_source_info_list(m_context.get(), sourceInfoCallback, this));
+
+    if (!success)
         qWarning() << "PulseAudioService: failed to get source info";
 }
 
@@ -553,6 +543,20 @@ void QPulseAudioContextManager::onContextFailed()
 QPulseAudioContextManager *QPulseAudioContextManager::instance()
 {
     return pulseEngine();
+}
+
+bool QPulseAudioContextManager::waitForAsyncOperation(pa_operation *op)
+{
+    PAOperationHandle operation{
+        op,
+        PAOperationHandle::HasRef,
+    };
+
+    if (!operation)
+        return false;
+
+    wait(operation);
+    return true;
 }
 
 QList<QAudioDevice> QPulseAudioContextManager::availableDevices(QAudioDevice::Mode mode) const
