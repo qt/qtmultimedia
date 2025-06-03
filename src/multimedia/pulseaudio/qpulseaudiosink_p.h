@@ -37,6 +37,7 @@ public:
     ~QPulseAudioSink() override;
 
     void start(QIODevice *device) override;
+    void start(AudioCallback &&) override;
     QIODevice *start() override;
     void stop() override;
     void reset() override;
@@ -48,6 +49,7 @@ public:
     qint64 processedUSecs() const override;
 
     void setVolume(float volume) override;
+    bool hasCallbackAPI() override;
 
 private:
     using QPulseAudioSinkStream = QPulseAudioInternal::QPulseAudioSinkStream;

@@ -34,6 +34,7 @@ struct QPulseAudioSinkStream final : QPlatformAudioSinkStream
     using QPlatformAudioSinkStream::setVolume;
 
     bool start(QIODevice *device);
+    bool start(AudioCallback &&);
     QIODevice *start();
     void stop(ShutdownPolicy);
     void suspend();
@@ -42,10 +43,16 @@ struct QPulseAudioSinkStream final : QPlatformAudioSinkStream
     bool open() const;
 
 private:
-    void installCallbacks();
+    enum class StreamType : uint8_t
+    {
+        Ringbuffer,
+        Callback,
+    };
+
+    void installCallbacks(StreamType);
     void uninstallCallbacks();
 
-    bool startStream();
+    bool startStream(StreamType);
 
     void updateStreamIdle(bool) override;
 
@@ -53,11 +60,14 @@ private:
     void underflowCallback() { }
     void overflowCallback() { }
     void stateCallback() { }
-    void writeCallback(size_t requestedBytes);
+    void writeCallbackRingbuffer(size_t requestedBytes);
+    void writeCallbackAudioCallback(size_t requestedBytes);
     void latencyUpdateCallback() { }
 
     QPulseAudioSink *m_parent;
     PAStreamHandle m_stream;
+
+    std::optional<AudioCallback> m_audioCallback;
 };
 
 QPulseAudioSinkStream::QPulseAudioSinkStream(QAudioDevice device, const QAudioFormat &format,
@@ -119,8 +129,6 @@ QPulseAudioSinkStream::QPulseAudioSinkStream(QAudioDevice device, const QAudioFo
         qWarning() << "Failed to create PulseAudio stream";
         return;
     }
-
-    installCallbacks();
 }
 
 QPulseAudioSinkStream::~QPulseAudioSinkStream() = default;
@@ -132,7 +140,15 @@ bool QPulseAudioSinkStream::start(QIODevice *device)
 
     createQIODeviceConnections(device);
 
-    bool streamStarted = startStream();
+    bool streamStarted = startStream(StreamType::Ringbuffer);
+    return streamStarted;
+}
+
+bool QPulseAudioSinkStream::start(AudioCallback &&callback)
+{
+    m_audioCallback = std::move(callback);
+
+    bool streamStarted = startStream(StreamType::Callback);
     return streamStarted;
 }
 
@@ -159,32 +175,43 @@ void QPulseAudioSinkStream::stop(ShutdownPolicy policy)
     // Note: we need to cork to ensure that the stream is stopped immediately
     pa_stream_cork(m_stream.get(), 1, nullptr, nullptr);
 
-    switch (policy) {
-    case ShutdownPolicy::DrainRingbuffer: {
-        bool writeFailed = false;
+    if (m_audioCallback) {
+        switch (policy) {
+        case ShutdownPolicy::DrainRingbuffer:
+        case ShutdownPolicy::DiscardRingbuffer:
+            break;
+        default:
+            Q_UNREACHABLE_RETURN();
+        }
+    } else {
+        switch (policy) {
+        case ShutdownPolicy::DrainRingbuffer: {
+            bool writeFailed = false;
 
-        visitRingbuffer([&](auto &ringbuffer) {
-            ringbuffer.consumeAll([&](auto region) {
-                if (writeFailed)
-                    return;
+            visitRingbuffer([&](auto &ringbuffer) {
+                ringbuffer.consumeAll([&](auto region) {
+                    if (writeFailed)
+                        return;
 
-                QSpan<const std::byte> writeRegion = as_bytes(region);
-                int status = pa_stream_write(m_stream.get(), writeRegion.data(), writeRegion.size(),
-                                             /*free_cb= */ nullptr, /*offset=*/0, PA_SEEK_RELATIVE);
-                if (status != 0) {
-                    handleIOError(m_parent);
-                    writeFailed = true;
-                }
+                    QSpan<const std::byte> writeRegion = as_bytes(region);
+                    int status =
+                            pa_stream_write(m_stream.get(), writeRegion.data(), writeRegion.size(),
+                                            /*free_cb= */ nullptr, /*offset=*/0, PA_SEEK_RELATIVE);
+                    if (status != 0) {
+                        handleIOError(m_parent);
+                        writeFailed = true;
+                    }
+                });
             });
-        });
 
-        break;
-    }
-    case ShutdownPolicy::DiscardRingbuffer: {
-        break;
-    }
-    default:
-        Q_UNREACHABLE_RETURN();
+            break;
+        }
+        case ShutdownPolicy::DiscardRingbuffer: {
+            break;
+        }
+        default:
+            Q_UNREACHABLE_RETURN();
+        }
     }
     pa_stream_disconnect(m_stream.get());
 }
@@ -210,7 +237,7 @@ bool QPulseAudioSinkStream::open() const
     return m_stream.isValid();
 }
 
-void QPulseAudioSinkStream::installCallbacks()
+void QPulseAudioSinkStream::installCallbacks(StreamType streamType)
 {
     pa_stream_set_overflow_callback(m_stream.get(), [](pa_stream *stream, void *data) {
         auto *self = reinterpret_cast<QPulseAudioSinkStream *>(data);
@@ -230,11 +257,27 @@ void QPulseAudioSinkStream::installCallbacks()
         self->stateCallback();
     }, this);
 
-    pa_stream_set_write_callback(m_stream.get(), [](pa_stream *stream, size_t nbytes, void *data) {
-        auto *self = reinterpret_cast<QPulseAudioSinkStream *>(data);
-        Q_ASSERT(stream == self->m_stream.get());
-        self->writeCallback(nbytes);
-    }, this);
+    switch (streamType) {
+    case StreamType::Ringbuffer:
+        pa_stream_set_write_callback(m_stream.get(),
+                                     [](pa_stream *stream, size_t nbytes, void *data) {
+            auto *self = reinterpret_cast<QPulseAudioSinkStream *>(data);
+            Q_ASSERT(stream == self->m_stream.get());
+            self->writeCallbackRingbuffer(nbytes);
+        }, this);
+        break;
+    case StreamType::Callback:
+        pa_stream_set_write_callback(m_stream.get(),
+                                     [](pa_stream *stream, size_t nbytes, void *data) {
+            auto *self = reinterpret_cast<QPulseAudioSinkStream *>(data);
+            Q_ASSERT(stream == self->m_stream.get());
+            self->writeCallbackAudioCallback(nbytes);
+        }, this);
+        break;
+
+    default:
+        Q_UNREACHABLE_RETURN();
+    }
 
     pa_stream_set_latency_update_callback(m_stream.get(), [](pa_stream *stream, void *data) {
         auto *self = reinterpret_cast<QPulseAudioSinkStream *>(data);
@@ -252,7 +295,7 @@ void QPulseAudioSinkStream::uninstallCallbacks()
     pa_stream_set_latency_update_callback(m_stream.get(), nullptr, nullptr);
 }
 
-bool QPulseAudioSinkStream::startStream()
+bool QPulseAudioSinkStream::startStream(StreamType streamType)
 {
     pa_buffer_attr attr{
         .maxlength = uint32_t(m_format.bytesForFrames(m_hardwareBufferFrames.value_or(1024))),
@@ -261,6 +304,8 @@ bool QPulseAudioSinkStream::startStream()
         .minreq = uint32_t(-1),
         .fragsize = uint32_t(-1),
     };
+
+    installCallbacks(streamType);
 
     constexpr pa_stream_flags flags =
             pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_ADJUST_LATENCY);
@@ -281,7 +326,7 @@ void QPulseAudioSinkStream::updateStreamIdle(bool idle)
     m_parent->updateStreamIdle(idle);
 }
 
-void QPulseAudioSinkStream::writeCallback(size_t requestedBytes)
+void QPulseAudioSinkStream::writeCallbackRingbuffer(size_t requestedBytes)
 {
     // ensure round down to number of requested frames
     uint32_t requestedFrames = m_format.framesForBytes(requestedBytes);
@@ -308,6 +353,43 @@ void QPulseAudioSinkStream::writeCallback(size_t requestedBytes)
         auto remainder = drop(hostBuffer, m_format.bytesForFrames(consumedFrames));
         std::fill(remainder.begin(), remainder.end(), std::byte{});
     }
+    status = pa_stream_write(m_stream.get(), hostBuffer.data(), nbytes,
+                             /*free_cb= */ nullptr, /*offset=*/0, PA_SEEK_RELATIVE);
+    if (status != 0) {
+        qCWarning(qLcPulseAudioOut)
+                << "pa_stream_begin_write error:" << currentError(pulseEngine->context());
+
+        QMetaObject::invokeMethod(m_parent, [this] {
+            handleIOError(m_parent);
+        });
+    }
+}
+
+void QPulseAudioSinkStream::writeCallbackAudioCallback(size_t requestedBytes)
+{
+    // ensure round down to number of requested frames
+    uint32_t requestedFrames = m_format.framesForBytes(requestedBytes);
+    size_t nbytes = m_format.bytesForFrames(requestedFrames);
+
+    QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
+    Q_ASSERT(pulseEngine->isInMainLoop());
+
+    void *dest = nullptr;
+
+    int status = pa_stream_begin_write(m_stream.get(), &dest, &nbytes);
+    if (status != 0) {
+        qCWarning(qLcPulseAudioOut)
+                << "pa_stream_begin_write error:" << currentError(pulseEngine->context());
+
+        QMetaObject::invokeMethod(m_parent, [this] {
+            handleIOError(m_parent);
+        });
+    }
+    QSpan<std::byte> hostBuffer{ reinterpret_cast<std::byte *>(dest), qsizetype(nbytes) };
+
+    runAudioSinkCallback(*m_audioCallback, hostBuffer.data(),
+                         requestedFrames * m_format.channelCount(), m_format);
+
     status = pa_stream_write(m_stream.get(), hostBuffer.data(), nbytes,
                              /*free_cb= */ nullptr, /*offset=*/0, PA_SEEK_RELATIVE);
     if (status != 0) {
@@ -369,6 +451,18 @@ void QPulseAudioSink::start(QIODevice *device)
 {
     startHelper([&](const std::shared_ptr<QPulseAudioSinkStream> &stream) {
         return stream->start(device);
+    });
+}
+
+void QPulseAudioSink::start(AudioCallback &&callback)
+{
+    using namespace QtMultimediaPrivate;
+    if (!validateAudioSinkCallback(callback, m_format)) {
+        setError(QAudio::OpenError);
+        return;
+    }
+    startHelper([&](const std::shared_ptr<QPulseAudioSinkStream> &stream) {
+        return stream->start(std::forward<AudioCallback>(callback));
     });
 }
 
@@ -461,6 +555,11 @@ void QPulseAudioSink::setVolume(float volume)
     QPlatformAudioEndpointBase::setVolume(volume);
     if (m_stream)
         m_stream->setVolume(volume);
+}
+
+bool QPulseAudioSink::hasCallbackAPI()
+{
+    return true;
 }
 
 QT_END_NAMESPACE
