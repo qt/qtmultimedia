@@ -30,7 +30,7 @@
 #include <mfidl.h>
 #include <mmdeviceapi.h>
 #include <propvarutil.h>
-#include <Wininet.h>
+#include <wininet.h>
 #include <functiondiscoverykeys_devpkey.h>
 
 //#define DEBUG_MEDIAFOUNDATION
