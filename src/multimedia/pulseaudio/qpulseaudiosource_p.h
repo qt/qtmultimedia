@@ -19,47 +19,77 @@
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qpulsehelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QPulseAudioInternal {
-struct QPulseAudioSourceStream;
-} // namespace QPulseAudioInternal
 
-class QPulseAudioSource final : public QPlatformAudioSource
+class QPulseAudioSource;
+using namespace QtMultimediaPrivate;
+
+struct QPulseAudioSourceStream final : QPlatformAudioSourceStream
 {
-public:
-    QPulseAudioSource(QAudioDevice device, const QAudioFormat &, QObject *parent);
-    Q_DISABLE_COPY_MOVE(QPulseAudioSource)
-    ~QPulseAudioSource() override;
+    using SourceType = QPulseAudioSource;
 
-    qint64 read(char *data, qint64 len);
+    QPulseAudioSourceStream(QAudioDevice, const QAudioFormat &,
+                            std::optional<qsizetype> ringbufferSize, QPulseAudioSource *parent,
+                            float volume, std::optional<int32_t> hardwareBufferSize);
+    Q_DISABLE_COPY_MOVE(QPulseAudioSourceStream)
+    ~QPulseAudioSourceStream();
+
+    using QPlatformAudioSourceStream::bytesReady;
+    using QPlatformAudioSourceStream::deviceIsRingbufferReader;
+    using QPlatformAudioSourceStream::processedDuration;
+    using QPlatformAudioSourceStream::ringbufferSizeInBytes;
+    using QPlatformAudioSourceStream::setVolume;
+
+    bool start(QIODevice *device);
+    QIODevice *start();
+    void stop(ShutdownPolicy);
+    void suspend();
+    void resume();
+    bool open() const;
+
+    void updateStreamIdle(bool idle) override;
+
+private:
+    bool startStream();
+    void installCallbacks();
+    void uninstallCallbacks();
+
+    QPulseAudioSource *m_parent;
+    PAStreamHandle m_stream;
+
+    // PulseAudio callbacks
+    void underflowCallback() { }
+    void overflowCallback() { }
+    void stateCallback() { }
+    void readCallback(size_t bytesToRead);
+    void latencyUpdateCallback() { }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class QPulseAudioSource final
+    : public QPlatformAudioSourceImplementation<QPulseAudioSourceStream, QPulseAudioSource>
+{
+    using BaseClass =
+            QPlatformAudioSourceImplementation<QPulseAudioSourceStream, QPulseAudioSource>;
+
+public:
+    QPulseAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
 
     void start(QIODevice *device) override;
     QIODevice *start() override;
-    void stop() override;
-    void reset() override;
-    void suspend() override;
-    void resume() override;
-    qsizetype bytesReady() const override;
-    void setBufferSize(qsizetype value) override;
-    qsizetype bufferSize() const override;
-    qint64 processedUSecs() const override;
 
 private:
-    using QPulseAudioSourceStream = QPulseAudioInternal::QPulseAudioSourceStream;
-    friend QtMultimediaPrivate::QPlatformAudioSourceStream;
-    friend QPulseAudioSourceStream;
-    std::shared_ptr<QPulseAudioSourceStream> m_stream;
-    std::shared_ptr<QPulseAudioSourceStream> m_retiredStream;
-
-    std::optional<qsizetype> m_bufferSize;
-    std::optional<qsizetype> m_hardwareBufferFrames;
-
-    template <typename Functor>
-    void startHelper(Functor &&starter);
+    bool validatePulseaudio();
 };
+
+} // namespace QPulseAudioInternal
 
 QT_END_NAMESPACE
 

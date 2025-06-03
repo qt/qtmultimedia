@@ -5,7 +5,6 @@
 
 #include <QtCore/qdebug.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
-
 #include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
 #include <QtMultimedia/private/qpulseaudio_contextmanager_p.h>
 #include <QtMultimedia/private/qpulsehelpers_p.h>
@@ -16,59 +15,6 @@
 QT_BEGIN_NAMESPACE
 
 namespace QPulseAudioInternal {
-
-using namespace QtMultimediaPrivate;
-
-struct QPulseAudioSinkStream final : QPlatformAudioSinkStream
-{
-    using SinkType = QPulseAudioSink;
-
-    QPulseAudioSinkStream(QAudioDevice, const QAudioFormat &format,
-                          std::optional<qsizetype> ringbufferSize, QPulseAudioSink *parent,
-                          float volume, std::optional<int32_t> hardwareBufferSize,
-                          AudioEndpointRole);
-    ~QPulseAudioSinkStream();
-
-    using QPlatformAudioSinkStream::bytesFree;
-    using QPlatformAudioSinkStream::processedDuration;
-    using QPlatformAudioSinkStream::setVolume;
-
-    bool start(QIODevice *device);
-    bool start(AudioCallback &&);
-    QIODevice *start();
-    void stop(ShutdownPolicy);
-    void suspend();
-    void resume();
-
-    bool open() const;
-
-private:
-    enum class StreamType : uint8_t
-    {
-        Ringbuffer,
-        Callback,
-    };
-
-    void installCallbacks(StreamType);
-    void uninstallCallbacks();
-
-    bool startStream(StreamType);
-
-    void updateStreamIdle(bool) override;
-
-    // PulseAudio callbacks
-    void underflowCallback() { }
-    void overflowCallback() { }
-    void stateCallback() { }
-    void writeCallbackRingbuffer(size_t requestedBytes);
-    void writeCallbackAudioCallback(size_t requestedBytes);
-    void latencyUpdateCallback() { }
-
-    QPulseAudioSink *m_parent;
-    PAStreamHandle m_stream;
-
-    std::optional<AudioCallback> m_audioCallback;
-};
 
 QPulseAudioSinkStream::QPulseAudioSinkStream(QAudioDevice device, const QAudioFormat &format,
                                              std::optional<qsizetype> ringbufferSize, QPulseAudioSink *parent,
@@ -402,164 +348,43 @@ void QPulseAudioSinkStream::writeCallbackAudioCallback(size_t requestedBytes)
     }
 }
 
-} // namespace QPulseAudioInternal
-
 QPulseAudioSink::QPulseAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent)
-    : QPlatformAudioSink(std::move(device), format, parent)
+    : BaseClass(std::move(device), format, parent)
 {
 }
 
-QPulseAudioSink::~QPulseAudioSink()
-{
-    stop();
-}
-
-template <typename Functor>
-void QPulseAudioSink::startHelper(Functor &&starter)
+bool QPulseAudioSink::validatePulseaudio()
 {
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     if (!pulseEngine->contextIsGood()) {
         qWarning() << "Invalid PulseAudio context:" << pulseEngine->getContextState();
         setError(QtAudio::Error::FatalError);
-        return;
+        return false;
     }
-
-    if (!m_format.isValid()) {
-        qWarning() << "invalid format" << m_format;
-        setError(QtAudio::Error::OpenError);
-        return;
-    }
-
-    m_stream = std::make_shared<QPulseAudioSinkStream>(m_audioDevice, format(), m_bufferSize, this,
-                                                       volume(), m_hardwareBufferFrames, m_role);
-    if (!m_stream->open()) {
-        setError(QtAudio::Error::OpenError);
-        m_stream = {};
-        return;
-    }
-
-    bool started = starter(m_stream);
-    if (started) {
-        updateStreamState(QtAudio::State::ActiveState);
-    } else {
-        setError(QtAudio::Error::OpenError);
-        m_stream = {};
-    }
+    return true;
 }
 
 void QPulseAudioSink::start(QIODevice *device)
 {
-    startHelper([&](const std::shared_ptr<QPulseAudioSinkStream> &stream) {
-        return stream->start(device);
-    });
+    if (!validatePulseaudio())
+        return;
+    return BaseClass::start(device);
 }
 
 void QPulseAudioSink::start(AudioCallback &&callback)
 {
-    using namespace QtMultimediaPrivate;
-    if (!validateAudioSinkCallback(callback, m_format)) {
-        setError(QAudio::OpenError);
+    if (!validatePulseaudio())
         return;
-    }
-    startHelper([&](const std::shared_ptr<QPulseAudioSinkStream> &stream) {
-        return stream->start(std::forward<AudioCallback>(callback));
-    });
+    return BaseClass::start(std::forward<AudioCallback>(callback));
 }
 
 QIODevice *QPulseAudioSink::start()
 {
-    QIODevice *deviceToReturn{};
-
-    startHelper([&](const std::shared_ptr<QPulseAudioSinkStream> &stream) {
-        deviceToReturn = stream->start();
-        updateStreamIdle(true, EmitStateSignal::False);
-        return bool(deviceToReturn);
-    });
-
-    return deviceToReturn;
+    if (!validatePulseaudio())
+        return nullptr;
+    return BaseClass::start();
 }
 
-void QPulseAudioSink::stop()
-{
-    if (!m_stream)
-        return;
-
-    m_stream->stop(QPulseAudioSinkStream::ShutdownPolicy::DrainRingbuffer);
-    m_stream = {};
-    updateStreamState(QtAudio::State::StoppedState);
-}
-
-void QPulseAudioSink::reset()
-{
-    if (!m_stream)
-        return;
-
-    m_stream->stop(QPulseAudioSinkStream::ShutdownPolicy::DiscardRingbuffer);
-    m_stream = {};
-    updateStreamState(QtAudio::State::StoppedState);
-}
-
-void QPulseAudioSink::suspend()
-{
-    if (!m_stream)
-        return;
-
-    m_stream->suspend();
-
-    updateStreamState(QtAudio::State::SuspendedState);
-}
-
-void QPulseAudioSink::resume()
-{
-    if (!m_stream)
-        return;
-
-    if (state() == QtAudio::State::ActiveState)
-        return;
-
-    m_stream->resume();
-
-    updateStreamState(QtAudio::State::ActiveState);
-}
-
-qsizetype QPulseAudioSink::bytesFree() const
-{
-    if (!m_stream)
-        return 0;
-
-    return m_stream->bytesFree();
-}
-
-void QPulseAudioSink::setBufferSize(qsizetype value)
-{
-    if (value <= 0)
-        m_bufferSize = {};
-    else
-        m_bufferSize = value;
-}
-
-qsizetype QPulseAudioSink::bufferSize() const
-{
-    return m_bufferSize.value_or(-1);
-}
-
-qint64 QPulseAudioSink::processedUSecs() const
-{
-    if (m_stream)
-        return m_stream->processedDuration().count();
-    return 0;
-}
-
-void QPulseAudioSink::setVolume(float volume)
-{
-    QPlatformAudioEndpointBase::setVolume(volume);
-    if (m_stream)
-        m_stream->setVolume(volume);
-}
-
-bool QPulseAudioSink::hasCallbackAPI()
-{
-    return true;
-}
+} // namespace QPulseAudioInternal
 
 QT_END_NAMESPACE
