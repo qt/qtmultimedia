@@ -654,7 +654,8 @@ HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format,
     return hr;
 }
 
-QVideoFrame D3DPresentEngine::makeVideoFrame(const ComPtr<IMFSample> &sample)
+QVideoFrame D3DPresentEngine::makeVideoFrame(const ComPtr<IMFSample> &sample,
+                                             QtVideo::Rotation rotation)
 {
     if (!sample)
         return {};
@@ -680,7 +681,9 @@ QVideoFrame D3DPresentEngine::makeVideoFrame(const ComPtr<IMFSample> &sample)
     if (!vb)
         vb = std::make_unique<IMFSampleVideoBuffer>(m_device, sample, rhi);
 
-    QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(vb), m_surfaceFormat);
+    auto format = m_surfaceFormat;
+    format.setRotation(rotation);
+    QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(vb), format);
 
     // WMF uses 100-nanosecond units, Qt uses microseconds
     LONGLONG startTime = 0;
