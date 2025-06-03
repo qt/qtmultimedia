@@ -193,7 +193,7 @@ void QPipeWireCaptureHelper::createInterface()
                 u"org.freedesktop.portal.ScreenCast"_s, QDBusConnection::sessionBus());
         bool ok = m_screenCastInterface->connection().connect(
                 u"org.freedesktop.portal.Desktop"_s, u""_s, u"org.freedesktop.portal.Request"_s,
-                u"Response"_s, this, SLOT(gotRequestResponse(uint, QVariantMap)));
+                u"Response"_s, this, SLOT(gotRequestResponse(uint,QVariantMap)));
 
         if (!ok) {
             updateError(
