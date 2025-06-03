@@ -46,6 +46,11 @@ QAudioContextManager::QAudioContextManager():
 {
     prepareEventLoop();
     prepareContext();
+    if (!m_context) {
+        // pipewire server not available
+        return;
+    }
+
     connectToPipewireInstance();
     if (!isConnected())
         return;
@@ -184,8 +189,6 @@ void QAudioContextManager::prepareContext()
         pw_context_new(pw_thread_loop_get_loop(m_eventLoop.get()), props.release(),
                        /*user_data_size=*/0),
     };
-    if (!m_context)
-        qFatal() << "Failed to create pipewire context" << make_error_code().message();
 }
 
 void QAudioContextManager::connectToPipewireInstance()
