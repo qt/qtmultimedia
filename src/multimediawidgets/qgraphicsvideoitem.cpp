@@ -99,7 +99,8 @@ QGraphicsVideoItem::QGraphicsVideoItem(QGraphicsItem *parent)
     d_ptr->q_ptr = this;
     d_ptr->sink = new QVideoSink(this);
 
-    connect(d_ptr->sink, SIGNAL(videoFrameChanged(const QVideoFrame &)), this, SLOT(_q_present(const QVideoFrame &)));
+    connect(d_ptr->sink, SIGNAL(videoFrameChanged(QVideoFrame)),
+            this, SLOT(_q_present(QVideoFrame)));
 }
 
 /*!
