@@ -16,46 +16,6 @@ namespace QPulseAudioInternal {
 
 using namespace QtMultimediaPrivate;
 
-struct QPulseAudioSourceStream final : QPlatformAudioSourceStream
-{
-    using SourceType = QPulseAudioSource;
-
-    QPulseAudioSourceStream(QAudioDevice, const QAudioFormat &,
-                            std::optional<qsizetype> ringbufferSize, QPulseAudioSource *parent,
-                            float volume, std::optional<int32_t> hardwareBufferSize);
-    Q_DISABLE_COPY_MOVE(QPulseAudioSourceStream)
-    ~QPulseAudioSourceStream();
-
-    using QPlatformAudioSourceStream::bytesReady;
-    using QPlatformAudioSourceStream::deviceIsRingbufferReader;
-    using QPlatformAudioSourceStream::processedDuration;
-    using QPlatformAudioSourceStream::setVolume;
-
-    bool start(QIODevice *device);
-    QIODevice *start();
-    void stop(ShutdownPolicy);
-    void suspend();
-    void resume();
-    bool open() const;
-
-    void updateStreamIdle(bool idle) override;
-
-private:
-    bool startStream();
-    void installCallbacks();
-    void uninstallCallbacks();
-
-    QPulseAudioSource *m_parent;
-    PAStreamHandle m_stream;
-
-    // PulseAudio callbacks
-    void underflowCallback() { }
-    void overflowCallback() { }
-    void stateCallback() { }
-    void readCallback(size_t bytesToRead);
-    void latencyUpdateCallback() { }
-};
-
 QPulseAudioSourceStream::QPulseAudioSourceStream(QAudioDevice device, const QAudioFormat &format,
                                                  std::optional<qsizetype> ringbufferSize,
                                                  QPulseAudioSource *parent,
@@ -262,146 +222,39 @@ void QPulseAudioSourceStream::readCallback([[maybe_unused]] size_t bytesToRead)
     }
 }
 
-} // namespace QPulseAudioInternal
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 QPulseAudioSource::QPulseAudioSource(QAudioDevice device, const QAudioFormat &format,
                                      QObject *parent)
-    : QPlatformAudioSource(std::move(device), format, parent)
+    : BaseClass(std::move(device), format, parent)
 {
 }
 
-QPulseAudioSource::~QPulseAudioSource()
-{
-    stop();
-}
-
-template <typename Functor>
-void QPulseAudioSource::startHelper(Functor &&starter)
+bool QPulseAudioSource::validatePulseaudio()
 {
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     if (!pulseEngine->contextIsGood()) {
         qWarning() << "Invalid PulseAudio context:" << pulseEngine->getContextState();
         setError(QtAudio::Error::FatalError);
-        return;
+        return false;
     }
-
-    m_stream = std::make_shared<QPulseAudioSourceStream>(m_audioDevice, format(), m_bufferSize,
-                                                         this, volume(), m_hardwareBufferFrames);
-    if (!m_stream->open()) {
-        setError(QtAudio::Error::OpenError);
-        m_stream = {};
-        return;
-    }
-
-    bool started = starter(m_stream);
-    if (started) {
-        updateStreamState(QtAudio::State::ActiveState);
-    } else {
-        setError(QtAudio::Error::OpenError);
-        m_stream = {};
-    }
+    return true;
 }
-
-using SharedSourceStream = std::shared_ptr<QPulseAudioInternal::QPulseAudioSourceStream>;
 
 void QPulseAudioSource::start(QIODevice *device)
 {
-    startHelper([&](const SharedSourceStream &stream) {
-        return stream->start(device);
-    });
+    if (!validatePulseaudio())
+        return;
+    return BaseClass::start(device);
 }
 
 QIODevice *QPulseAudioSource::start()
 {
-    QIODevice *deviceToReturn{};
-
-    startHelper([&](const SharedSourceStream &stream) {
-        deviceToReturn = stream->start();
-        // HACK alert: we're "idle" until a consumer starts reading.
-        // this is fundamentally broken, and we should fix this behavior
-        updateStreamIdle(true, EmitStateSignal::False);
-        return bool(deviceToReturn);
-    });
-
-    return deviceToReturn;
+    if (!validatePulseaudio())
+        return nullptr;
+    return BaseClass::start();
 }
 
-using ShutdownPolicy = QtMultimediaPrivate::QPlatformAudioIOStream::ShutdownPolicy;
-
-void QPulseAudioSource::stop()
-{
-    if (!m_stream)
-        return;
-
-    if (m_stream->deviceIsRingbufferReader())
-        // we own the qiodevice, so let's keep it alive to allow users to drain the ringbuffer
-        m_retiredStream = m_stream;
-
-    m_stream->stop(ShutdownPolicy::DrainRingbuffer);
-    m_stream = {};
-    updateStreamState(QtAudio::State::StoppedState);
-}
-
-void QPulseAudioSource::reset()
-{
-    m_retiredStream = {};
-
-    if (!m_stream)
-        return;
-
-    m_stream->stop(ShutdownPolicy::DiscardRingbuffer);
-    m_stream = {};
-    updateStreamState(QtAudio::State::StoppedState);
-}
-
-void QPulseAudioSource::suspend()
-{
-    if (!m_stream)
-        return;
-
-    m_stream->suspend();
-
-    updateStreamState(QtAudio::State::SuspendedState);
-}
-
-void QPulseAudioSource::resume()
-{
-    if (!m_stream)
-        return;
-
-    if (state() == QtAudio::State::ActiveState)
-        return;
-
-    m_stream->resume();
-
-    updateStreamState(QtAudio::State::ActiveState);
-}
-
-qsizetype QPulseAudioSource::bytesReady() const
-{
-    if (m_stream)
-        return m_stream->bytesReady();
-    return 0;
-}
-
-void QPulseAudioSource::setBufferSize(qsizetype value)
-{
-    if (value <= 0)
-        m_bufferSize = {};
-    else
-        m_bufferSize = value;
-}
-
-qsizetype QPulseAudioSource::bufferSize() const
-{
-    return m_bufferSize.value_or(-1);
-}
-
-qint64 QPulseAudioSource::processedUSecs() const
-{
-    if (m_stream)
-        return m_stream->processedDuration().count();
-    return 0;
-}
+} // namespace QPulseAudioInternal
 
 QT_END_NAMESPACE
