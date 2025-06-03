@@ -237,17 +237,21 @@ bool QGstVideoRenderer::query(GstQuery *query)
 {
 #if QT_CONFIG(gstreamer_gl)
     if (GST_QUERY_TYPE(query) == GST_QUERY_CONTEXT) {
-        const gchar *type;
+        const gchar *type = nullptr;
         gst_query_parse_context_type(query, &type);
 
-        if (strcmp(type, "gst.gl.local_context") != 0)
+        QLatin1StringView typeStr(type);
+        if (typeStr != QLatin1StringView("gst.gl.GLDisplay")
+            && typeStr != QLatin1StringView("gst.gl.local_context")) {
             return false;
+        }
 
         QMutexLocker locker(&m_sinkMutex);
         if (!m_sink)
             return false;
 
-        auto *gstGlContext = m_sink->gstGlLocalContext();
+        auto *gstGlContext = typeStr == QLatin1StringView("gst.gl.GLDisplay")
+                ? m_sink->gstGlDisplayContext() : m_sink->gstGlLocalContext();
         if (!gstGlContext)
             return false;
 
