@@ -252,6 +252,7 @@ bool QCoreAudioSourceStream::addDisconnectListener(AudioObjectID id)
         // invalidates the native device ID (and the disconnect handler). furthermore, we don't have
         // a way to re-synchronize the audio stream. so we explicitly stop the audio unit
 
+        requestStop();
         stopAudioUnit();
         finalizeQIODevice(ShutdownPolicy::DrainRingbuffer);
 
