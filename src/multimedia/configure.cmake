@@ -80,6 +80,7 @@ qt_find_package_extend_sbom(
         FFmpeg::avutil
         FFmpeg::swresample
         FFmpeg::swscale
+    USE_ATTRIBUTION_FILES
     ATTRIBUTION_FILE_DIR_PATHS
         # Need to pass an absolute path here, otherwise the file will be relative to the root of
         # the source tree, not the current dir, because system libraries are processed in the
