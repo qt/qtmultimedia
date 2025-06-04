@@ -285,7 +285,7 @@ bool QWASAPIAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
     }
 
     uint32_t requiredDataSize = m_format.bytesForFrames(requiredFrames);
-    auto hostBufferSpan = as_writable_bytes(QSpan{ hostBuffer, requiredDataSize });
+    auto hostBufferSpan = as_writable_bytes(QSpan{ hostBuffer, qsizetype(requiredDataSize) });
     uint64_t consumedFrames = QPlatformAudioSinkStream::process(hostBufferSpan, requiredFrames);
 
     DWORD flags = consumedFrames != 0 ? 0 : AUDCLNT_BUFFERFLAGS_SILENT;
