@@ -90,6 +90,8 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
 
     SYSTEM_INCLUDE_DIRECTORIES
         ../../../3rdparty/signalsmith-stretch/
+    ATTRIBUTION_FILE_DIR_PATHS
+        ../../../3rdparty/signalsmith-stretch
 )
 
 if (LINUX OR ANDROID)
