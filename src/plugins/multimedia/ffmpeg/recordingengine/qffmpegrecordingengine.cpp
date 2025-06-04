@@ -175,6 +175,7 @@ RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine &recording
                                                       bool writeTrailer)
     : m_recordingEngine(recordingEngine), m_writeTrailer(writeTrailer)
 {
+    setObjectName(QStringLiteral("EncodingFinalizer"));
     Q_ASSERT(m_recordingEngine.m_state == State::Finalizing);
     connect(this, &QThread::finished, this, &QObject::deleteLater);
 }
