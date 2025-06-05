@@ -70,7 +70,7 @@ public:
     void setSeekable(bool seekable) { seekableChanged(_isSeekable = seekable); }
 
     QMediaTimeRange availablePlaybackRanges() const override { return QMediaTimeRange(_seekRange.first, _seekRange.second); }
-    void setSeekRange(qint64 minimum, qint64 maximum) { _seekRange = qMakePair(minimum, maximum); }
+    void setSeekRange(qint64 minimum, qint64 maximum) { _seekRange = std::pair(minimum, maximum); }
 
     qreal playbackRate() const override { return _playbackRate; }
     void setPlaybackRate(qreal rate) override
@@ -160,7 +160,7 @@ public:
     bool _audioAvailable;
     bool _videoAvailable;
     bool _isSeekable;
-    QPair<qint64, qint64> _seekRange;
+    std::pair<qint64, qint64> _seekRange;
     qreal _playbackRate;
     QUrl _media;
     QIODevice *_stream;

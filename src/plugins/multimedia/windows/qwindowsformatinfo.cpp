@@ -19,7 +19,7 @@ QT_BEGIN_NAMESPACE
 namespace {
 
 template<typename T>
-using CheckedCodecs = QHash<QPair<T, QMediaFormat::ConversionMode>, bool>;
+using CheckedCodecs = QHash<std::pair<T, QMediaFormat::ConversionMode>, bool>;
 
 bool isSupportedMFT(const GUID &category, const MFT_REGISTER_TYPE_INFO &type, QMediaFormat::ConversionMode mode)
 {
@@ -54,12 +54,12 @@ bool isSupportedCodec(QMediaFormat::VideoCodec codec, QMediaFormat::ConversionMo
 template <typename T>
 bool isSupportedCodec(T codec, QMediaFormat::ConversionMode m, CheckedCodecs<T> &checkedCodecs)
 {
-    if (auto it = checkedCodecs.constFind(qMakePair(codec, m)); it != checkedCodecs.constEnd())
+    if (auto it = checkedCodecs.constFind(std::pair{codec, m}); it != checkedCodecs.constEnd())
         return it.value();
 
     const bool supported = isSupportedCodec(codec, m);
 
-    checkedCodecs.insert(qMakePair(codec, m), supported);
+    checkedCodecs.insert(std::pair{codec, m}, supported);
     return supported;
 }
 

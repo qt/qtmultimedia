@@ -325,7 +325,7 @@ void QAndroidAudioDecoder::stop()
 QAudioBuffer QAndroidAudioDecoder::read()
 {
     if (!m_audioBuffer.isEmpty()) {
-        QPair<QAudioBuffer, int> buffer = m_audioBuffer.takeFirst();
+        std::pair<QAudioBuffer, int> buffer = m_audioBuffer.takeFirst();
         m_position = buffer.second;
         emit QPlatformAudioDecoder::positionChanged(buffer.second);
         return buffer.first;
@@ -352,7 +352,7 @@ qint64 QAndroidAudioDecoder::duration() const
 
 void QAndroidAudioDecoder::positionChanged(QAudioBuffer audioBuffer, qint64 position)
 {
-    m_audioBuffer.append(QPair<QAudioBuffer, int>(audioBuffer, position));
+    m_audioBuffer.append(std::pair<QAudioBuffer, int>(audioBuffer, position));
     m_position = position;
     emit bufferReady();
 }

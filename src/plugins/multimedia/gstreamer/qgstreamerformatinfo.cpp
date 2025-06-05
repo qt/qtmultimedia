@@ -178,7 +178,8 @@ QImageCapture::FileFormat QGstreamerFormatInfo::imageFormatForCaps(QGstStructure
     return QImageCapture::UnspecifiedFormat;
 }
 
-static QPair<QList<QMediaFormat::AudioCodec>, QList<QMediaFormat::VideoCodec>> getCodecsList(bool decode)
+static std::pair<QList<QMediaFormat::AudioCodec>, QList<QMediaFormat::VideoCodec>>
+getCodecsList(bool decode)
 {
     QList<QMediaFormat::AudioCodec> audio;
     QList<QMediaFormat::VideoCodec> video;
