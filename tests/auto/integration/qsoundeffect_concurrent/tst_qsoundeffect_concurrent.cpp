@@ -25,7 +25,7 @@ private Q_SLOTS:
     // See also QTBUG-129597
     void play_playsSound_whenMediaBackendInitializedOnWorkerThread()
     {
-        const QUrl url{ "qrc:double-drop.wav"_L1 };
+        const QUrl url{ "qrc:/double-drop.wav"_L1 };
 
         QAtomicInteger success = true;
         size_t threadCount = 3;
