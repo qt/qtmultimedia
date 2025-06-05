@@ -6,7 +6,6 @@
 
 #include "private/qplatformaudiodecoder_p.h"
 
-#include <QtCore/qpair.h>
 #include <QtCore/qurl.h>
 
 #include "qaudiobuffer.h"

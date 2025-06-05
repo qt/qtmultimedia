@@ -8,7 +8,6 @@
 #pragma qt_class(QMediaMetaData)
 #endif
 
-#include <QtCore/qpair.h>
 #include <QtCore/qvariant.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qhash.h>

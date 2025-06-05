@@ -20,7 +20,6 @@
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qmediametadata.h>
 
-#include <QtCore/qpair.h>
 #include <QtCore/private/qglobal_p.h>
 #include <QtCore/qobject.h>
 

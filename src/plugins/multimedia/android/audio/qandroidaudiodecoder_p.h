@@ -102,7 +102,7 @@ private:
     QIODevice *m_device = nullptr;
     Decoder *m_decoder = nullptr;
 
-    QList<QPair<QAudioBuffer, int>> m_audioBuffer;
+    QList<std::pair<QAudioBuffer, int>> m_audioBuffer;
     QUrl m_source;
 
     qint64 m_position = -1;

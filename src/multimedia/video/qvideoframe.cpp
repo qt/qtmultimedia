@@ -13,7 +13,6 @@
 #include <qtextlayout.h>
 
 #include <qimage.h>
-#include <qpair.h>
 #include <qsize.h>
 #include <qvariant.h>
 #include <rhi/qrhi.h>

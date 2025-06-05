@@ -5,7 +5,6 @@
 #include <QtMultimedia/private/qavfcameradebug_p.h>
 
 #include <QtCore/qvector.h>
-#include <QtCore/qpair.h>
 #include <private/qmultimediautils_p.h>
 #include <private/qcameradevice_p.h>
 #include <QtMultimedia/private/qavfhelpers_p.h>
@@ -272,7 +271,7 @@ AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDev
     if (!qt_area_sane(request))
         return nullptr;
 
-    typedef QPair<QSize, AVCaptureDeviceFormat *> FormatPair;
+    typedef std::pair<QSize, AVCaptureDeviceFormat *> FormatPair;
 
     QVector<FormatPair> pairs; // default|HR sizes
     pairs.reserve(formats.size());

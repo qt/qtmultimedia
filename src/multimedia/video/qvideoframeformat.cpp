@@ -8,7 +8,6 @@
 #include <qdebug.h>
 #include <qlist.h>
 #include <qmetatype.h>
-#include <qpair.h>
 #include <qvariant.h>
 #include <qmatrix4x4.h>
 
