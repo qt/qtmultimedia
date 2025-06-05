@@ -6,6 +6,7 @@
 #include <QtMultimedia/qsoundeffect.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qatomic.h>
+#include <array>
 #include <chrono>
 
 using namespace std::chrono_literals;
@@ -28,18 +29,24 @@ private Q_SLOTS:
         const QUrl url{ "qrc:/double-drop.wav"_L1 };
 
         QAtomicInteger success = true;
-        size_t threadCount = 3;
-        std::vector<std::unique_ptr<QThread>> threads(threadCount);
+        constexpr size_t threadCount = 3;
+        std::array<std::unique_ptr<QObject>, threadCount> contextElements;
+        std::array<std::unique_ptr<QThread>, threadCount> threads;
 
         // Stress test QSoundEffect a bit to make sure it works concurrently
         // in multiple threads
         for (size_t i = 0; i < threadCount; ++i) {
-            threads[i].reset(QThread::create([&] { //
-                if (!playSound(url))
-                    success = false;
-            }));
-
+            threads[i] = std::make_unique<QThread>();
             threads[i]->start();
+
+            auto contextElement = new QObject{};
+            contextElements[i].reset(contextElement);
+            contextElement->moveToThread(threads[i].get());
+            QMetaObject::invokeMethod(contextElement, [&, thread = threads[i].get()] {
+                if (!playSound(url, thread))
+                    success = false;
+                thread->exit();
+            });
         }
 
         for (size_t i = 0; i < threadCount; ++i)
@@ -52,20 +59,32 @@ private Q_SLOTS:
     }
 
 private:
-    bool playSound(const QUrl &url)
+    bool playSound(const QUrl &url, QThread *currentThread = nullptr)
     {
         QSoundEffect effect;
         effect.setSource(url);
         effect.setLoopCount(5);
         effect.play();
 
-        return QTest::qWaitFor(
-                [&] {
-                    // Error is success because CI might not have audio device.
-                    // We still want to run this test in CI to uncover any crashes or asserts
-                    return !effect.isPlaying() || effect.status() == QSoundEffect::Error;
-                },
-                60s);
+        auto waitCondition = [&] {
+            // Error is success because CI might not have audio device.
+            // We still want to run this test in CI to uncover any crashes or asserts
+            return effect.isPlaying() || effect.status() == QSoundEffect::Error;
+        };
+
+        if (currentThread) {
+            auto start = std::chrono::steady_clock::now();
+            while (std::chrono::steady_clock::now() - start < 60s) {
+                if (waitCondition())
+                    return true;
+                currentThread->eventDispatcher()->processEvents(QEventLoop::AllEvents);
+            };
+            return false;
+        } else {
+            return QTest::qWaitFor([&] {
+                return waitCondition();
+            }, 60s);
+        }
     }
 };
 
