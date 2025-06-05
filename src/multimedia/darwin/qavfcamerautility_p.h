@@ -18,7 +18,6 @@
 #include <QtCore/qglobal.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qlist.h>
-#include <QtCore/qpair.h>
 #include <QtCore/qsize.h>
 #include <QtMultimedia/qtmultimediaexports.h>
 
@@ -133,7 +132,7 @@ private:
     Q_DISABLE_COPY(AVFScopedPointer)
 };
 
-typedef QPair<qreal, qreal> AVFPSRange;
+typedef std::pair<qreal, qreal> AVFPSRange;
 Q_MULTIMEDIA_EXPORT AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection);
 
 Q_MULTIMEDIA_EXPORT AVCaptureDeviceFormat *qt_convert_to_capture_device_format(
