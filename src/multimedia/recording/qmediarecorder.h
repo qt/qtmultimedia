@@ -9,8 +9,6 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediametadata.h>
 
-#include <QtCore/qpair.h>
-
 QT_BEGIN_NAMESPACE
 
 class QUrl;

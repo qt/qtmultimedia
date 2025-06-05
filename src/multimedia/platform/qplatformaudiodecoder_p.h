@@ -17,7 +17,6 @@
 
 #include <QtMultimedia/qaudiobuffer.h>
 #include <QtMultimedia/qaudiodecoder.h>
-#include <QtCore/qpair.h>
 #include <QtCore/qurl.h>
 #include <QtCore/private/qglobal_p.h>
 

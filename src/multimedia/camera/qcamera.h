@@ -5,7 +5,6 @@
 #define QCAMERA_H
 
 #include <QtCore/qstringlist.h>
-#include <QtCore/qpair.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qpoint.h>
 #include <QtCore/qrect.h>
