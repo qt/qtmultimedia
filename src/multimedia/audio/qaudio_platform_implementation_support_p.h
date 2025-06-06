@@ -78,7 +78,7 @@ public:
     void start(AudioCallback &&) override;
     QIODevice *start() override;
 
-    void stop() override;
+    void stop() override final;
     void reset() override;
 
     void suspend() override;
@@ -370,7 +370,7 @@ public:
     void start(QIODevice *device) override;
     QIODevice *start() override;
 
-    void stop() override;
+    void stop() override final;
     void reset() override;
 
     void suspend() override;
