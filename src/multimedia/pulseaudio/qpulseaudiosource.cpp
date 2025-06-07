@@ -92,7 +92,7 @@ void QPulseAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
     }
 
     // Note: we need to cork the stream before disconnecting to prevent pulseaudio from deadlocking
-    pa_stream_cork(m_stream.get(), 1, nullptr, nullptr);
+    pulseEngine->waitForAsyncOperation(pa_stream_cork(m_stream.get(), 1, nullptr, nullptr));
 
     pa_stream_disconnect(m_stream.get());
 
@@ -106,7 +106,7 @@ void QPulseAudioSourceStream::suspend()
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     std::unique_lock engineLock{ *pulseEngine };
 
-    pa_stream_cork(m_stream.get(), 1, nullptr, nullptr);
+    pulseEngine->waitForAsyncOperation(pa_stream_cork(m_stream.get(), 1, nullptr, nullptr));
 }
 
 void QPulseAudioSourceStream::resume()
@@ -114,7 +114,7 @@ void QPulseAudioSourceStream::resume()
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     std::unique_lock engineLock{ *pulseEngine };
 
-    pa_stream_cork(m_stream.get(), 0, nullptr, nullptr);
+    pulseEngine->waitForAsyncOperation(pa_stream_cork(m_stream.get(), 0, nullptr, nullptr));
 }
 
 bool QPulseAudioSourceStream::open() const
