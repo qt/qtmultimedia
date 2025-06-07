@@ -167,7 +167,7 @@ void QPulseAudioSinkStream::suspend()
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     std::unique_lock engineLock{ *pulseEngine };
 
-    pa_stream_cork(m_stream.get(), 1, nullptr, nullptr);
+    pulseEngine->waitForAsyncOperation(pa_stream_cork(m_stream.get(), 1, nullptr, nullptr));
 }
 
 void QPulseAudioSinkStream::resume()
@@ -175,7 +175,7 @@ void QPulseAudioSinkStream::resume()
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     std::unique_lock engineLock{ *pulseEngine };
 
-    pa_stream_cork(m_stream.get(), 0, nullptr, nullptr);
+    pulseEngine->waitForAsyncOperation(pa_stream_cork(m_stream.get(), 0, nullptr, nullptr));
 }
 
 bool QPulseAudioSinkStream::open() const
