@@ -256,6 +256,9 @@ bool QPulseAudioSinkStream::startStream(StreamType streamType)
     constexpr pa_stream_flags flags =
             pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_ADJUST_LATENCY);
 
+    QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
+    std::unique_lock engineLock{ *pulseEngine };
+
     int status = pa_stream_connect_playback(m_stream.get(), m_audioDevice.id().data(), &attr, flags,
                                             nullptr, nullptr);
 

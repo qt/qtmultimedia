@@ -129,8 +129,8 @@ void QPulseAudioSourceStream::updateStreamIdle(bool idle)
 
 bool QPulseAudioSourceStream::startStream()
 {
-    static const bool serverIsPipewire = [] {
-        QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
+    QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
+    static const bool serverIsPipewire = [&] {
         return pulseEngine->serverName().contains(u"PulseAudio (on PipeWire");
     }();
 
@@ -150,6 +150,7 @@ bool QPulseAudioSourceStream::startStream()
     constexpr pa_stream_flags flags =
             pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_ADJUST_LATENCY);
 
+    std::unique_lock engineLock{ *pulseEngine };
     int status = pa_stream_connect_record(m_stream.get(), m_audioDevice.id().data(), &attr, flags);
     if (status != 0) {
         qCWarning(qLcPulseAudioOut) << "pa_stream_connect_record() failed!";
