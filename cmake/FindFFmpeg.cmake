@@ -213,7 +213,7 @@ macro(find_component _component _pkgconfig _library _header)
 
     endif()
 
-    set(${_component}_DEFINITIONS  ${PC_${_component}_CFLAGS_OTHER})
+    set(${_component}_CFLAGS ${PC_${_component}_CFLAGS} ${PC_${_component}_CFLAGS_OTHER})
     set_component_found(${_component})
 
     mark_as_advanced(${_component}_LIBRARY)
@@ -331,19 +331,17 @@ endfunction()
 foreach (_component ${FFmpeg_FIND_COMPONENTS})
     if (${_component}_FOUND)
         string(TOLOWER ${_component} _lowerComponent)
-        if (NOT TARGET FFmpeg::${_lowerComponent})
-            add_library(FFmpeg::${_lowerComponent} INTERFACE IMPORTED)
-            set_target_properties(FFmpeg::${_lowerComponent} PROPERTIES
-                INTERFACE_COMPILE_OPTIONS "${${_component}_DEFINITIONS}"
-                INTERFACE_INCLUDE_DIRECTORIES ${${_component}_INCLUDE_DIR}
-                INTERFACE_LINK_LIBRARIES "${${_component}_LIBRARY_NAME}"
-                INTERFACE_LINK_DIRECTORIES "${${_component}_LIBRARY_DIR}"
-            )
+        set(_target FFmpeg::${_lowerComponent})
+        if (NOT TARGET ${_target})
+            add_library(${_target} INTERFACE IMPORTED)
+            target_compile_options(${_target} INTERFACE "${${_component}_CFLAGS}")
+            target_include_directories(${_target} INTERFACE "${${_component}_INCLUDE_DIR}")
+            target_link_libraries(${_target} INTERFACE "${${_component}_LIBRARY_NAME}")
+            target_link_directories(${_target} INTERFACE ${${_component}_LIBRARY_DIR})
 
             __ffmpeg_internal_set_dependencies(${_component})
-            target_link_libraries(FFmpeg::${_lowerComponent} INTERFACE "${${_component}_LIBRARY_NAME}")
             if (UNIX AND NOT APPLE)
-                target_link_options(FFmpeg::${_lowerComponent} INTERFACE  "-Wl,--exclude-libs=lib${_lowerComponent}")
+                target_link_options(${_target} INTERFACE  "-Wl,--exclude-libs=lib${_lowerComponent}")
             endif ()
         endif()
     endif()
@@ -383,17 +381,6 @@ if (shared_libs_desired AND NOT FFMPEG_SHARED_COMPONENTS)
     message(WARNING
         "Shared FFmpeg libs are desired as QT_DEPLOY_FFMPEG=TRUE, but haven't been found!\n"
         "Remove QT_DEPLOY_FFMPEG or set the proper path to shared FFmpeg via FFMPEG_DIR.")
-endif()
-
-if (NOT TARGET FFmpeg::FFmpeg)
-    add_library(FFmpeg INTERFACE)
-    set_target_properties(FFmpeg PROPERTIES
-        INTERFACE_COMPILE_OPTIONS "${FFMPEG_DEFINITIONS}"
-        INTERFACE_INCLUDE_DIRECTORIES "${FFMPEG_INCLUDE_DIRS}"
-        INTERFACE_LINK_LIBRARIES "${FFMPEG_LIBRARIES}"
-        INTERFACE_LINK_DIRECTORIES "${FFMPEG_LIBRARY_DIRS}"
-    )
-    add_library(FFmpeg::FFmpeg ALIAS FFmpeg)
 endif()
 
 # Compile the list of required vars
