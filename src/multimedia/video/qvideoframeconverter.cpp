@@ -1,5 +1,6 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:critical reason:data-parser
 
 #include "qvideoframeconverter_p.h"
 #include "qvideoframeconversionhelper_p.h"
@@ -16,7 +17,8 @@
 #include <QtGui/qimage.h>
 #include <QtCore/qloggingcategory.h>
 
-#include <private/qvideotexturehelper_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
 
 #include <rhi/qrhi.h>
 
@@ -161,9 +163,45 @@ static QImage convertJPEG(const QVideoFrame &frame, const VideoTransformation &t
         qCDebug(qLcVideoFrameConverter) << Q_FUNC_INFO << ": frame mapping failed";
         return {};
     }
-    QImage image;
-    image.loadFromData(varFrame.bits(0), varFrame.mappedBytes(0), "JPG");
-    varFrame.unmap();
+
+    auto unmap = std::optional(QScopeGuard([&] {
+        varFrame.unmap();
+    }));
+
+    QSpan<uchar> jpegData{
+        varFrame.bits(0),
+        varFrame.mappedBytes(0),
+    };
+
+    constexpr std::array<uchar, 2> soiMarker{ uchar(0xff), uchar(0xd8) };
+    if (!QtMultimediaPrivate::ranges::equal(jpegData.first(2), soiMarker, std::equal_to<void>{})) {
+        qCDebug(qLcVideoFrameConverter)
+                << Q_FUNC_INFO << ": JPEG data does not start with SOI marker";
+        return QImage{};
+    }
+
+    constexpr std::array<uchar, 2> eoiMarker{ uchar(0xff), uchar(0xd9) };
+
+    // some JPEG cameras contain extra data after the JPEG marker. If so, we drop it to make
+    // libjpeg happy.
+    if (!QtMultimediaPrivate::ranges::equal(jpegData.last(2), eoiMarker, std::equal_to<void>{})) {
+        qCDebug(qLcVideoFrameConverter)
+                << Q_FUNC_INFO << ": JPEG data does not end with EOI marker";
+
+        auto eoi_it = std::find_end(jpegData.begin(), jpegData.end(), std::begin(eoiMarker),
+                                    std::end(eoiMarker));
+        if (eoi_it == jpegData.end()) {
+            qCWarning(qLcVideoFrameConverter)
+                    << Q_FUNC_INFO << ": JPEG data does not contain EOI marker";
+            return QImage{};
+        };
+
+        const size_t newSize = std::distance(jpegData.begin(), eoi_it) + std::size(eoiMarker);
+        jpegData = jpegData.first(newSize);
+    }
+
+    QImage image = QImage::fromData(jpegData, "JPG");
+    unmap = std::nullopt; // Release unmap guard
     rasterTransform(image, transform);
     return image;
 }
