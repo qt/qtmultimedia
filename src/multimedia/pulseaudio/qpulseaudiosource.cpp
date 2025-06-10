@@ -43,7 +43,7 @@ QPulseAudioSourceStream::QPulseAudioSourceStream(QAudioDevice device, const QAud
         qCDebug(qLcPulseAudioIn) << "Frame size: " << pa_frame_size(&spec);
     }
 
-    std::unique_lock engineLock{ *pulseEngine };
+    std::lock_guard engineLock{ *pulseEngine };
 
     m_stream = PAStreamHandle{
         pa_stream_new(pulseEngine->context(), streamName.constData(), &spec, &channel_map),
@@ -80,7 +80,7 @@ void QPulseAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
     requestStop();
 
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
-    std::unique_lock engineLock{ *pulseEngine };
+    std::lock_guard engineLock{ *pulseEngine };
 
     uninstallCallbacks();
     disconnectQIODeviceConnections();
@@ -104,7 +104,7 @@ void QPulseAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
 void QPulseAudioSourceStream::suspend()
 {
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
-    std::unique_lock engineLock{ *pulseEngine };
+    std::lock_guard engineLock{ *pulseEngine };
 
     pulseEngine->waitForAsyncOperation(pa_stream_cork(m_stream.get(), 1, nullptr, nullptr));
 }
@@ -112,7 +112,7 @@ void QPulseAudioSourceStream::suspend()
 void QPulseAudioSourceStream::resume()
 {
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
-    std::unique_lock engineLock{ *pulseEngine };
+    std::lock_guard engineLock{ *pulseEngine };
 
     pulseEngine->waitForAsyncOperation(pa_stream_cork(m_stream.get(), 0, nullptr, nullptr));
 }
@@ -150,7 +150,7 @@ bool QPulseAudioSourceStream::startStream()
     constexpr pa_stream_flags flags =
             pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_ADJUST_LATENCY);
 
-    std::unique_lock engineLock{ *pulseEngine };
+    std::lock_guard engineLock{ *pulseEngine };
     int status = pa_stream_connect_record(m_stream.get(), m_audioDevice.id().data(), &attr, flags);
     if (status != 0) {
         qCWarning(qLcPulseAudioOut) << "pa_stream_connect_record() failed!";
