@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 #####################################################################
-## tst_qffmpegvideoencoderutils Test:
+## tst_qffmpegmath Test:
 #####################################################################
 
 if(LINUX)
-    message(WARNING "tst_qffmpegmath can not run on Linux because of QTBUG-133914")
+    message(WARNING "tst_qffmpegmath can not run stubbed ffmpeg because of QTBUG-133914")
     return()
 endif()
 
