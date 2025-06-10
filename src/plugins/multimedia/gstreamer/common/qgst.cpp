@@ -1387,12 +1387,15 @@ bool QGstBin::syncChildrenState()
     return gst_bin_sync_children_states(bin());
 }
 
-void QGstBin::dumpGraph(const char *fileNamePrefix) const
+void QGstBin::dumpGraph(const char *fileNamePrefix, bool includeTimestamp) const
 {
     if (!get())
         return;
 
-    GST_DEBUG_BIN_TO_DOT_FILE(bin(), GST_DEBUG_GRAPH_SHOW_VERBOSE, fileNamePrefix);
+    if (includeTimestamp)
+        GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(bin(), GST_DEBUG_GRAPH_SHOW_VERBOSE, fileNamePrefix);
+    else
+        GST_DEBUG_BIN_TO_DOT_FILE(bin(), GST_DEBUG_GRAPH_SHOW_VERBOSE, fileNamePrefix);
 }
 
 QGstElement QGstBin::findByName(const char *name)
