@@ -8,6 +8,8 @@
 qt_internal_add_test(tst_qvideoframe
     SOURCES
         tst_qvideoframe.cpp
+    TESTDATA
+        umbrellas.jpg
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
