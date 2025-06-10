@@ -196,6 +196,11 @@ private slots:
     void qImageFromVideoFrame_doesNotCrash_whenCalledWithEvenAndOddSizedFrames_data();
     void qImageFromVideoFrame_doesNotCrash_whenCalledWithEvenAndOddSizedFrames();
 
+    void qImageFromVideoFrame_emptyJPEG();
+    void qImageFromVideoFrame_goodJPEG();
+    void qImageFromVideoFrame_goodJPEGWithExtraData();
+    void qImageFromVideoFrame_badJPEG();
+
     void isMapped();
     void isReadable();
     void isWritable();
@@ -1062,6 +1067,74 @@ void tst_QVideoFrame::qImageFromVideoFrame_doesNotCrash_whenCalledWithEvenAndOdd
     const QImage actual = qImageFromVideoFrame(frame, forceCpuConversion);
 
     QCOMPARE_EQ(actual.isNull(), size.isEmpty());
+}
+
+void tst_QVideoFrame::qImageFromVideoFrame_emptyJPEG()
+{
+    QByteArray byteArray;
+    auto memoryBuffer = std::make_unique<QMemoryVideoBuffer>(byteArray, byteArray.size());
+
+    QVideoFrame frame = QVideoFramePrivate::createFrame(
+            std::move(memoryBuffer),
+            QVideoFrameFormat(QSize(144, 110), QVideoFrameFormat::Format_Jpeg));
+
+    QImage img = qImageFromVideoFrame(frame, false);
+    QCOMPARE(img.isNull(), true);
+}
+
+static QByteArray umbrellasJPEG()
+{
+    static const QByteArray cachedData = [] {
+        QString input = QFINDTESTDATA("umbrellas.jpg");
+        auto file = QFile(input);
+        if (!file.open(QFile::ReadOnly))
+            return QByteArray{};
+        return file.readAll();
+    }();
+    return cachedData;
+}
+
+void tst_QVideoFrame::qImageFromVideoFrame_goodJPEG()
+{
+    QByteArray byteArray = umbrellasJPEG();
+    auto memoryBuffer = std::make_unique<QMemoryVideoBuffer>(byteArray, byteArray.size());
+
+    QVideoFrame frame = QVideoFramePrivate::createFrame(
+            std::move(memoryBuffer),
+            QVideoFrameFormat(QSize(144, 110), QVideoFrameFormat::Format_Jpeg));
+
+    QImage img = qImageFromVideoFrame(frame, false);
+    QCOMPARE(img.size(), QSize(144, 110));
+}
+
+void tst_QVideoFrame::qImageFromVideoFrame_goodJPEGWithExtraData()
+{
+    QByteArray byteArray = umbrellasJPEG();
+    byteArray += "Yada";
+
+    auto memoryBuffer = std::make_unique<QMemoryVideoBuffer>(byteArray, byteArray.size());
+
+    QVideoFrame frame = QVideoFramePrivate::createFrame(
+            std::move(memoryBuffer),
+            QVideoFrameFormat(QSize(144, 110), QVideoFrameFormat::Format_Jpeg));
+
+    QImage img = qImageFromVideoFrame(frame, false);
+    QCOMPARE(img.size(), QSize(144, 110));
+}
+
+void tst_QVideoFrame::qImageFromVideoFrame_badJPEG()
+{
+    QByteArray byteArray = umbrellasJPEG();
+    byteArray = byteArray.first(10'000);
+
+    auto memoryBuffer = std::make_unique<QMemoryVideoBuffer>(byteArray, byteArray.size());
+
+    QVideoFrame frame = QVideoFramePrivate::createFrame(
+            std::move(memoryBuffer),
+            QVideoFrameFormat(QSize(144, 110), QVideoFrameFormat::Format_Jpeg));
+
+    QImage img = qImageFromVideoFrame(frame, false);
+    QCOMPARE(img.isNull(), true);
 }
 
 #define TEST_MAPPED(frame, mode) \
