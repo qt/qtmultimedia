@@ -141,7 +141,7 @@ void QGstPipeline::seek(std::chrono::nanoseconds pos, double rate, bool flush)
 
     if (!success) {
         qDebug() << "seek: gst_element_seek failed" << pos;
-        dumpGraph("seekSeekFailed");
+        dumpGraph("seekSeekFailed", false);
         return;
     }
 
@@ -193,7 +193,7 @@ void QGstPipeline::applyPlaybackRate(bool forceFlushingSeek)
                 GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
         if (!success) {
             qDebug() << "setPlaybackRate: gst_element_seek failed";
-            dumpGraph("applyPlaybackRateSeekFailed");
+            dumpGraph("applyPlaybackRateSeekFailed", false);
         }
     } else {
         seek(position(), d->m_rate);
@@ -215,7 +215,7 @@ std::chrono::nanoseconds QGstPipeline::position() const
                                 << std::chrono::round<std::chrono::milliseconds>(*pos);
     } else {
         qDebug() << "QGstPipeline: failed to query position, using previous position";
-        dumpGraph("positionQueryFailed");
+        dumpGraph("positionQueryFailed", false);
     }
 
     return d->m_position;
