@@ -28,8 +28,8 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcVideoFrameConverter, "qt.multimedia.video.frameconverter")
 
-// TODO: investigate if we should use thread_local instead, QTBUG-133565
-static const float g_quad[] = {
+// clang-format off
+static constexpr float g_quad[] = {
     // Rotation 0 CW
     1.f, -1.f,   1.f, 1.f,
     1.f,  1.f,   1.f, 0.f,
@@ -51,6 +51,7 @@ static const float g_quad[] = {
    -1.f, -1.f,  0.f, 0.f,
    -1.f,  1.f,  1.f, 0.f,
 };
+// clang-format on
 
 static bool pixelFormatHasAlpha(QVideoFrameFormat::PixelFormat format)
 {
