@@ -494,7 +494,7 @@ void QPulseAudioContextManager::prepare()
 void QPulseAudioContextManager::release()
 {
     if (m_context) {
-        std::unique_lock lock{ *this };
+        std::lock_guard lock{ *this };
         pa_context_disconnect(m_context.get());
         m_context = {};
     }
@@ -583,7 +583,7 @@ QByteArray QPulseAudioContextManager::defaultDevice(QAudioDevice::Mode mode) con
 
 pa_context_state_t QPulseAudioContextManager::getContextState()
 {
-    auto lock = std::unique_lock{ *this };
+    auto lock = std::lock_guard{ *this };
     return pa_context_get_state(m_context.get());
 }
 
