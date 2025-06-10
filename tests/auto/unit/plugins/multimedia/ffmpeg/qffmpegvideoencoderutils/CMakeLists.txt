@@ -5,6 +5,11 @@
 ## tst_qffmpegvideoencoderutils Test:
 #####################################################################
 
+if(LINUX)
+    message(WARNING "tst_qffmpegmath can not run with stubbed ffmpeg because of QTBUG-133914")
+    return()
+endif()
+
 qt_internal_add_test(tst_qffmpegvideoencoderutils
     SOURCES
         tst_qffmpegvideoencoderutils.cpp
