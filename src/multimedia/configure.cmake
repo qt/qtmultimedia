@@ -102,10 +102,6 @@ qt_config_compile_test("linux_v4l"
                    PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/linux_v4l"
 )
 
-qt_config_compile_test("wmsdk"
-                   LABEL "wmsdk.h"
-                   PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/wmsdk"
-)
 qt_config_compile_test(linux_dmabuf
     LABEL "Linux DMA buffer support"
     LIBRARIES
@@ -218,10 +214,6 @@ qt_feature("pulseaudio" PUBLIC PRIVATE
     DISABLE INPUT_pulseaudio STREQUAL 'no'
     CONDITION WrapPulseAudio_FOUND
 )
-qt_feature("wmsdk" PRIVATE
-    LABEL "Windows Media SDK"
-    CONDITION WIN32 AND TEST_wmsdk
-)
 qt_feature("opensles" PRIVATE
     LABEL "Open SLES (Android)"
     CONDITION ANDROID
@@ -233,7 +225,7 @@ qt_feature("wasm" PRIVATE
 
 qt_feature("wmf" PRIVATE
     LABEL "Windows Media Foundation"
-    CONDITION WIN32 AND WMF_FOUND AND QT_FEATURE_wmsdk
+    CONDITION WIN32 AND WMF_FOUND
 )
 
 qt_feature("spatialaudio" PRIVATE
@@ -261,7 +253,6 @@ qt_configure_add_summary_entry(ARGS "pulseaudio")
 qt_configure_add_summary_entry(ARGS "pipewire")
 qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "coreaudio")
-qt_configure_add_summary_entry(ARGS "wmsdk")
 qt_configure_add_summary_entry(ARGS "opensles")
 qt_configure_add_summary_entry(ARGS "wasm")
 qt_configure_add_summary_entry(ARGS "wmf")
@@ -289,7 +280,7 @@ qt_configure_add_report_entry(
     TYPE WARNING
     MESSAGE "No backend for low level audio found."
     CONDITION NOT QT_FEATURE_alsa AND NOT QT_FEATURE_pulseaudio AND NOT QT_FEATURE_mmrenderer AND NOT QT_FEATURE_coreaudio
-              AND NOT QT_FEATURE_wmsdk AND NOT ANDROID AND NOT WASM AND NOT QT_FEATURE_pipewire
+              AND NOT WIN32 AND NOT ANDROID AND NOT WASM AND NOT QT_FEATURE_pipewire
 )
 
 qt_configure_add_report_entry(
