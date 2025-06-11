@@ -14,11 +14,12 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qmultimediautils_p.h>
-#include <qcapturablewindow.h>
-#include <qmediarecorder.h>
-#include <qstring.h>
+#include <QtCore/qstring.h>
+
+#include <QtMultimedia/qcapturablewindow.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 #include <memory>
 #include <mutex>
