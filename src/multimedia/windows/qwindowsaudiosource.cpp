@@ -234,6 +234,7 @@ void QWASAPIAudioSourceStream::handleAudioClientError()
     using namespace QWindowsAudioUtils;
     audioClientStop(m_audioClient);
     audioClientReset(m_audioClient);
+    requestStop();
 
     QMetaObject::invokeMethod(&m_ringbufferDrained, [this] {
         handleIOError(m_parent);
