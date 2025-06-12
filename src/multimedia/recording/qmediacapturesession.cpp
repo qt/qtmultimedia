@@ -123,8 +123,6 @@ void QMediaCaptureSessionPrivate::setVideoSink(QVideoSink *sink)
 QMediaCaptureSession::QMediaCaptureSession(QObject *parent)
     : QObject{ *new QMediaCaptureSessionPrivate, parent }
 {
-    QT6_ONLY(Q_UNUSED(unused))
-
     Q_D(QMediaCaptureSession);
 
     auto maybeCaptureSession = QPlatformMediaIntegration::instance()->createCaptureSession();
