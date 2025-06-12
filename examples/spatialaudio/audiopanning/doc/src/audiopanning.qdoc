@@ -23,6 +23,6 @@ and reverb.
 Various other properties can also be modified such as the dimensions of a virtual
 room and the intensity of the room reflections and reverb.
 
-\image audiopanning-example.png
+\image audiopanning-example.png Audio panning UI with controls for 3D positioning
 
 */
