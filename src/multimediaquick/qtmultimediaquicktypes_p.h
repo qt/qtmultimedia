@@ -84,7 +84,7 @@ namespace QMediaMetaDataNamespaceForeign
     Q_NAMESPACE
     QML_FOREIGN_NAMESPACE(QMediaMetaDataDerived)
     QML_NAMED_ELEMENT(MediaMetaData)
-};
+} // namespace QMediaMetaDataNamespaceForeign
 
 struct QMediaDevicesForeign
 {
@@ -126,7 +126,7 @@ namespace QAudioDeviceNamespaceForeign
     Q_NAMESPACE
     QML_FOREIGN_NAMESPACE(QAudioDeviceDerived)
     QML_NAMED_ELEMENT(AudioDevice)
-};
+} // namespace QAudioDeviceNamespaceForeign
 
 struct QCameraDeviceForeign
 {
@@ -147,7 +147,7 @@ namespace QCameraDeviceNamespaceForeign
     Q_NAMESPACE
     QML_FOREIGN_NAMESPACE(QCameraDeviceDerived)
     QML_NAMED_ELEMENT(CameraDevice)
-};
+} // namespace QCameraDeviceNamespaceForeign
 
 struct QMediaFormatForeign
 {
@@ -168,7 +168,7 @@ namespace QMediaFormatNamespaceForeign
     Q_NAMESPACE
     QML_FOREIGN_NAMESPACE(QMediaFormatDerived)
     QML_NAMED_ELEMENT(MediaFormat)
-};
+} // namespace QMediaFormatNamespaceForeign
 
 struct QCameraFormatForeign
 {
@@ -215,7 +215,9 @@ namespace QPlaybackOptionsNamespaceForeign {
     QML_NAMED_ELEMENT(PlaybackOptions)
     QML_FOREIGN_NAMESPACE(QPlaybackOptions)
     QML_ADDED_IN_VERSION(6, 10)
-}
+} // namespace QPlaybackOptionsNamespaceForeign
+
+
 
 } // namespace QtMultimediaPrivate
 
