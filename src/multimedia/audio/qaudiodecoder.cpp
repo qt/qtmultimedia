@@ -39,8 +39,6 @@ QT_BEGIN_NAMESPACE
 */
 QAudioDecoder::QAudioDecoder(QObject *parent) : QObject{ *new QAudioDecoderPrivate, parent }
 {
-    QT6_ONLY(Q_UNUSED(unused))
-
     Q_D(QAudioDecoder);
 
     auto maybeDecoder = QPlatformMediaIntegration::instance()->createAudioDecoder(this);

@@ -37,7 +37,6 @@ public:
  */
 QAudioListener::QAudioListener(QAudioEngine *engine) : QObject(*new QAudioListenerPrivate)
 {
-    QT6_ONLY((void)unused); // silence unused private field
     setEngine(engine);
 }
 
