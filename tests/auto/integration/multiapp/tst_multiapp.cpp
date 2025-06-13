@@ -86,7 +86,7 @@ namespace {
 
 void playSound()
 {
-    const QUrl url{ "qrc:double-drop.wav"_L1 };
+    const QUrl url{ "qrc:/double-drop.wav"_L1 };
 
     QSoundEffect effect;
     effect.setSource(url);
