@@ -189,7 +189,8 @@ class QtCamera2 {
     native void onSessionActive(String cameraId);
     native void onSessionClosed(String cameraId);
     native void onCaptureSessionFailed(String cameraId, int reason, long frameNumber);
-    CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
+
+    class PreviewCaptureSessionCallback extends CameraCaptureSession.CaptureCallback {
         @Override
         public void onCaptureFailed(CameraCaptureSession session,  CaptureRequest request,  CaptureFailure failure) {
             super.onCaptureFailed(session, request, failure);
@@ -213,7 +214,7 @@ class QtCamera2 {
                 // If exposure is already converged, or unavailable entirely, we go
                 // straight to capturing the photo.
                 Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                if (aeState == null ||  aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
+                if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
                     mState = STATE_PICTURE_TAKEN;
                     capturePhoto();
                 } else {
@@ -235,10 +236,12 @@ class QtCamera2 {
         }
 
         private void handleCaptureExposurePrecapture(CaptureResult result) {
-            Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-            if (aeState == null ||
-                aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
-                aeState == CaptureResult.CONTROL_AE_STATE_FLASH_REQUIRED) {
+            final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+            final boolean proceedToWaitingExposure =
+                aeState == null
+                || aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE
+                || aeState == CaptureResult.CONTROL_AE_STATE_FLASH_REQUIRED;
+            if (proceedToWaitingExposure) {
                 mState = STATE_WAITING_EXPOSURE_NON_PRECAPTURE;
             }
         }
@@ -269,15 +272,25 @@ class QtCamera2 {
         }
 
         @Override
-        public void onCaptureProgressed(CameraCaptureSession s, CaptureRequest r, CaptureResult partialResult) {
+        public void onCaptureProgressed(
+            CameraCaptureSession s,
+            CaptureRequest r,
+            CaptureResult partialResult)
+        {
             process(partialResult);
         }
 
         @Override
-        public void onCaptureCompleted(CameraCaptureSession s, CaptureRequest r, TotalCaptureResult result) {
+        public void onCaptureCompleted(
+            CameraCaptureSession s,
+            CaptureRequest r,
+            TotalCaptureResult result)
+        {
             process(result);
         }
-    };
+    }
+
+    CameraCaptureSession.CaptureCallback mCaptureCallback = new PreviewCaptureSessionCallback();
 
     QtCamera2(Context context) {
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
