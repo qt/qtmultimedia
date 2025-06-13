@@ -28,7 +28,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
-struct QPipewireAudioStream
+struct QPipewireAudioStream : std::enable_shared_from_this<QPipewireAudioStream>
 {
 protected:
     explicit QPipewireAudioStream(const QAudioFormat &);
@@ -85,6 +85,9 @@ protected:
     // total samples delivered from/sent to the backend
     void addFramesHandled(uint64_t);
     uint64_t m_totalNumberOfFrames{};
+
+    friend class QAudioContextManager; // to access m_self
+    std::shared_ptr<QPipewireAudioStream> m_self;
 };
 
 } // namespace QtPipeWire

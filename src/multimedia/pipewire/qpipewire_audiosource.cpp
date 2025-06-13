@@ -76,6 +76,7 @@ bool QPipewireAudioSourceStream::start(QIODevice *device)
 
     // keep instance alive until PW_STREAM_STATE_UNCONNECTED
     m_self = shared_from_this();
+    QAudioContextManager::instance()->registerStreamReference(m_self);
 
     return connected;
 }
@@ -183,6 +184,7 @@ void QPipewireAudioSourceStream::stateChanged(pw_stream_state /*oldState*/, pw_s
     switch (state) {
     case pw_stream_state::PW_STREAM_STATE_UNCONNECTED:
         m_streamDisconnected.release();
+        QAudioContextManager::instance()->unregisterStreamReference(m_self);
         m_self.reset();
         break;
 

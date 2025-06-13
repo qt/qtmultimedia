@@ -33,9 +33,7 @@ class QPipewireAudioSink;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct QPipewireAudioSinkStream final : std::enable_shared_from_this<QPipewireAudioSinkStream>,
-                                        QPipewireAudioStream,
-                                        QPlatformAudioSinkStream
+struct QPipewireAudioSinkStream final : QPipewireAudioStream, QPlatformAudioSinkStream
 {
     using SampleFormat = QAudioFormat::SampleFormat;
     using SinkType = QPipewireAudioSink;
@@ -80,8 +78,6 @@ private:
 
     void disconnectStream();
     QSemaphore m_disconnectSemaphore;
-
-    std::shared_ptr<QPipewireAudioSinkStream> m_self;
 
     std::atomic<ShutdownPolicy> m_shutdownPolicy{ ShutdownPolicy::DiscardRingbuffer };
     QAutoResetEvent m_ringbufferDrained;
