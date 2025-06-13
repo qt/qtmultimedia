@@ -94,6 +94,7 @@ bool QPipewireAudioSinkStream::start(QIODevice *device)
 
     // keep instance alive until PW_STREAM_STATE_UNCONNECTED
     m_self = shared_from_this();
+    QAudioContextManager::instance()->registerStreamReference(m_self);
 
     return true;
 }
@@ -131,6 +132,7 @@ bool QPipewireAudioSinkStream::start(AudioCallback audioCallback)
 
     // keep instance alive until PW_STREAM_STATE_UNCONNECTED
     m_self = shared_from_this();
+    QAudioContextManager::instance()->registerStreamReference(m_self);
     return true;
 }
 
@@ -318,6 +320,7 @@ void QPipewireAudioSinkStream::stateChanged(pw_stream_state oldState, pw_stream_
     switch (state) {
     case pw_stream_state::PW_STREAM_STATE_UNCONNECTED: {
         m_disconnectSemaphore.release();
+        QAudioContextManager::instance()->unregisterStreamReference(m_self);
         m_self.reset();
         // CAVEAT: m_self may have been the last owner causing the object to be destroyed now.
         break;

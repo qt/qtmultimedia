@@ -28,6 +28,7 @@ QT_BEGIN_NAMESPACE
 namespace QtPipeWire {
 
 class QPipeWireInstance;
+struct QPipewireAudioStream;
 
 class QAudioContextManager
 {
@@ -61,6 +62,9 @@ public:
     PwNodeHandle bindNode(ObjectId id);
 
     void syncRegistry();
+
+    void registerStreamReference(std::shared_ptr<QPipewireAudioStream>);
+    void unregisterStreamReference(const std::shared_ptr<QPipewireAudioStream> &);
 
 private:
     std::shared_ptr<QPipeWireInstance> m_libraryInstance;
@@ -104,6 +108,10 @@ private:
 
     PwMetadataHandle m_defaultMetadata;
     struct spa_hook m_defaultMetadataListener{};
+
+    QMutex m_activeStreamMutex;
+    std::set<std::shared_ptr<QPipewireAudioStream>> m_activeStreams;
+    void stopActiveStreams();
 };
 
 } // namespace QtPipeWire

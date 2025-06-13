@@ -36,9 +36,7 @@ class QPipewireAudioSource;
 // LATER:
 // ideally the ringbuffer should fill a buffer that can grow via a worker thread on which we can
 // allocate.
-struct QPipewireAudioSourceStream final : std::enable_shared_from_this<QPipewireAudioSourceStream>,
-                                          QPipewireAudioStream,
-                                          QPlatformAudioSourceStream
+struct QPipewireAudioSourceStream final : QPipewireAudioStream, QPlatformAudioSourceStream
 {
     using SourceType = QPipewireAudioSource;
     using SampleFormat = QAudioFormat::SampleFormat;
@@ -75,7 +73,6 @@ private:
     void stateChanged(pw_stream_state old, pw_stream_state state, const char *error) override;
     void disconnectStream();
 
-    std::shared_ptr<QPipewireAudioSourceStream> m_self;
     QSemaphore m_streamDisconnected;
 
     // xrun detection

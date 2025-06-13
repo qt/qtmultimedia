@@ -3,6 +3,7 @@
 
 #include "qpipewire_audiocontextmanager_p.h"
 
+#include "qpipewire_audiostream_p.h"
 #include "qpipewire_instance_p.h"
 #include "qpipewire_propertydict_p.h"
 #include "qpipewire_support_p.h"
@@ -153,6 +154,19 @@ void QAudioContextManager::syncRegistry()
         sync.acquire();
 
     spa_hook_remove(&coreListener);
+}
+
+void QAudioContextManager::registerStreamReference(std::shared_ptr<QPipewireAudioStream> stream)
+{
+    std::lock_guard guard{ m_activeStreamMutex };
+    m_activeStreams.emplace(std::move(stream));
+}
+
+void QAudioContextManager::unregisterStreamReference(
+        const std::shared_ptr<QPipewireAudioStream> &stream)
+{
+    std::lock_guard guard{ m_activeStreamMutex };
+    m_activeStreams.erase(stream);
 }
 
 void QAudioContextManager::prepareEventLoop()
@@ -376,6 +390,13 @@ int QAudioContextManager::handleMetadata(const MetadataRecord &record)
     }
 
     return 0;
+}
+
+void QAudioContextManager::stopActiveStreams()
+{
+    for (const auto &stream : m_activeStreams)
+        stream->m_self.reset();
+    m_activeStreams.clear();
 }
 
 void QAudioContextManager::startDeviceMonitor()
