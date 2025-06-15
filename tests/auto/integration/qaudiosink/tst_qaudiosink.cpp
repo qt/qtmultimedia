@@ -21,8 +21,6 @@
 #include <private/multimedia_debug_support_p.h>
 #include <private/qmockiodevice_p.h>
 
-#define AUDIO_BUFFER 192000
-
 using AudioSinkInitializer = bool (*)(QAudioSink &);
 
 class AudioPullSource : public QIODevice
