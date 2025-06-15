@@ -18,8 +18,8 @@
 #include "private/qtmultimediaglobal_p.h"
 #include "qcapturablewindow.h"
 
-#include <qlist.h>
-#include <QtMultimedia/private/qmaybe_p.h>
+#include <QtCore/qlist.h>
+#include <QtCore/private/qexpected_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -40,9 +40,9 @@ public:
 
     // QPlatformMediaIntegration::capturableWindowFromQWindow does
     // basic QWindow validity checks.
-    [[nodiscard]] virtual QMaybe<QCapturableWindow> fromQWindow(QWindow *) const
+    [[nodiscard]] virtual q23::expected<QCapturableWindow, QString> fromQWindow(QWindow *) const
     {
-        return QUnexpected{ QStringLiteral("Unimplemented") };
+        return q23::unexpected{ QStringLiteral("Unimplemented") };
     }
 
     Q_DISABLE_COPY(QPlatformCapturableWindows);

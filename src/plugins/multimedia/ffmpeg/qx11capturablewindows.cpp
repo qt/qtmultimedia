@@ -94,7 +94,7 @@ Display *QX11CapturableWindows::display() const
     return m_display;
 }
 
-QMaybe<QCapturableWindow> QX11CapturableWindows::fromQWindow(QWindow *window) const
+q23::expected<QCapturableWindow, QString> QX11CapturableWindows::fromQWindow(QWindow *window) const
 {
     const auto xId = static_cast<XID>(window->winId());
     return QCapturableWindowPrivate::create(

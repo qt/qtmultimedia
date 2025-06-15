@@ -45,11 +45,11 @@ bool srcHasDeviceProperty(const QGstElement &element)
 
 } // namespace
 
-QMaybe<QPlatformAudioInput *> QGstreamerAudioInput::create(QAudioInput *parent)
+q23::expected<QPlatformAudioInput *, QString> QGstreamerAudioInput::create(QAudioInput *parent)
 {
     static const auto error = qGstErrorMessageIfElementsNotAvailable("autoaudiosrc", "volume");
     if (error)
-        return QUnexpected{ *error };
+        return q23::unexpected{ *error };
 
     return new QGstreamerAudioInput(parent);
 }

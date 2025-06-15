@@ -58,56 +58,56 @@ QPlatformVideoDevices *QDarwinIntegration::createVideoDevices()
 #endif
 }
 
-QMaybe<QPlatformAudioDecoder *> QDarwinIntegration::createAudioDecoder(QAudioDecoder *decoder)
+q23::expected<QPlatformAudioDecoder *, QString> QDarwinIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new AVFAudioDecoder(decoder);
 }
 
-QMaybe<QPlatformMediaCaptureSession *> QDarwinIntegration::createCaptureSession()
+q23::expected<QPlatformMediaCaptureSession *, QString> QDarwinIntegration::createCaptureSession()
 {
 #if defined(Q_OS_VISIONOS)
-    return { unexpect, notAvailable };
+    return q23::unexpected{ notAvailable };
 #else
     return new AVFCameraService;
 #endif
 }
 
-QMaybe<QPlatformMediaPlayer *> QDarwinIntegration::createPlayer(QMediaPlayer *player)
+q23::expected<QPlatformMediaPlayer *, QString> QDarwinIntegration::createPlayer(QMediaPlayer *player)
 {
     return new AVFMediaPlayer(player);
 }
 
-QMaybe<QPlatformCamera *> QDarwinIntegration::createCamera(QCamera *camera)
+q23::expected<QPlatformCamera *, QString> QDarwinIntegration::createCamera(QCamera *camera)
 {
 #if defined(Q_OS_VISIONOS)
     Q_UNUSED(camera);
-    return { unexpect, notAvailable };
+    return q23::unexpected{ notAvailable };
 #else
     return new AVFCamera(camera);
 #endif
 }
 
-QMaybe<QPlatformMediaRecorder *> QDarwinIntegration::createRecorder(QMediaRecorder *recorder)
+q23::expected<QPlatformMediaRecorder *, QString> QDarwinIntegration::createRecorder(QMediaRecorder *recorder)
 {
 #if defined(Q_OS_VISIONOS)
     Q_UNUSED(recorder);
-    return { unexpect, notAvailable };
+    return q23::unexpected{ notAvailable };
 #else
     return new AVFMediaEncoder(recorder);
 #endif
 }
 
-QMaybe<QPlatformImageCapture *> QDarwinIntegration::createImageCapture(QImageCapture *imageCapture)
+q23::expected<QPlatformImageCapture *, QString> QDarwinIntegration::createImageCapture(QImageCapture *imageCapture)
 {
 #if defined(Q_OS_VISIONOS)
     Q_UNUSED(imageCapture);
-    return { unexpect, notAvailable };
+    return q23::unexpected{ notAvailable };
 #else
     return new AVFImageCapture(imageCapture);
 #endif
 }
 
-QMaybe<QPlatformVideoSink *> QDarwinIntegration::createVideoSink(QVideoSink *sink)
+q23::expected<QPlatformVideoSink *, QString> QDarwinIntegration::createVideoSink(QVideoSink *sink)
 {
     return new AVFVideoSink(sink);
 }

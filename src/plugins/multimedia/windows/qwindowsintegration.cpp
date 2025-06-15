@@ -54,37 +54,37 @@ QPlatformVideoDevices *QWindowsMediaIntegration::createVideoDevices()
     return new QWindowsVideoDevices(this);
 }
 
-QMaybe<QPlatformMediaCaptureSession *> QWindowsMediaIntegration::createCaptureSession()
+q23::expected<QPlatformMediaCaptureSession *, QString> QWindowsMediaIntegration::createCaptureSession()
 {
     return new QWindowsMediaCaptureService();
 }
 
-QMaybe<QPlatformAudioDecoder *> QWindowsMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
+q23::expected<QPlatformAudioDecoder *, QString> QWindowsMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new MFAudioDecoderControl(decoder);
 }
 
-QMaybe<QPlatformMediaPlayer *> QWindowsMediaIntegration::createPlayer(QMediaPlayer *parent)
+q23::expected<QPlatformMediaPlayer *, QString> QWindowsMediaIntegration::createPlayer(QMediaPlayer *parent)
 {
     return new MFPlayerControl(parent);
 }
 
-QMaybe<QPlatformCamera *> QWindowsMediaIntegration::createCamera(QCamera *camera)
+q23::expected<QPlatformCamera *, QString> QWindowsMediaIntegration::createCamera(QCamera *camera)
 {
     return new QWindowsCamera(camera);
 }
 
-QMaybe<QPlatformMediaRecorder *> QWindowsMediaIntegration::createRecorder(QMediaRecorder *recorder)
+q23::expected<QPlatformMediaRecorder *, QString> QWindowsMediaIntegration::createRecorder(QMediaRecorder *recorder)
 {
     return new QWindowsMediaEncoder(recorder);
 }
 
-QMaybe<QPlatformImageCapture *> QWindowsMediaIntegration::createImageCapture(QImageCapture *imageCapture)
+q23::expected<QPlatformImageCapture *, QString> QWindowsMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return new QWindowsImageCapture(imageCapture);
 }
 
-QMaybe<QPlatformVideoSink *> QWindowsMediaIntegration::createVideoSink(QVideoSink *sink)
+q23::expected<QPlatformVideoSink *, QString> QWindowsMediaIntegration::createVideoSink(QVideoSink *sink)
 {
     return new MFEvrVideoWindowControl(sink);
 }

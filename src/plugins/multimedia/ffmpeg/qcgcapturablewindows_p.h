@@ -26,7 +26,7 @@ public:
 
     bool isWindowValid(const QCapturableWindowPrivate &window) const override;
 
-    QMaybe<QCapturableWindow> fromQWindow(QWindow *) const override;
+    q23::expected<QCapturableWindow, QString> fromQWindow(QWindow *) const override;
 };
 
 QT_END_NAMESPACE

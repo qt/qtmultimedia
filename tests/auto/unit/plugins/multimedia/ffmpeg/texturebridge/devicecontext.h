@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <QtMultimedia/private/qmaybe_p.h>
 #include <QtCore/private/qcomptr_p.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtGui/qcolor.h>
 #include <QtCore/qsize.h>
 #include <vector>
@@ -12,7 +12,7 @@
 #include <d3d11_1.h>
 
 template <typename T>
-using ComResult = QMaybe<T, HRESULT>;
+using ComResult = q23::expected<T, HRESULT>;
 
 struct DeviceContext
 {

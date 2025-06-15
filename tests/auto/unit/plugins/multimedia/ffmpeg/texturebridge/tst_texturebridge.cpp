@@ -6,7 +6,6 @@
 #include <QtTest/QtTest>
 #include <QtCore/qobject.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_d3d11_p.h>
-#include <QtMultimedia/private/qmaybe_p.h>
 #include <QtGui/qcolor.h>
 #include <QtCore/private/qsystemerror_p.h>
 
@@ -14,9 +13,11 @@ using namespace std::chrono_literals;
 
 QT_USE_NAMESPACE
 
-// Helper macro to verify QMaybe<T, HRESULT>
+// Helper macro to verify q23::expected<T, HRESULT>
 #define QVERIFYCOMRESULT(comresult) \
-    QVERIFY2(comresult, qPrintable(QSystemError::windowsComString((comresult).error())))
+    QVERIFY2(comresult,             \
+             comresult ? "no error" \
+                       : qPrintable(QSystemError::windowsComString((comresult).error())))
 
 QSize getTextureSize(const ComPtr<ID3D11Texture2D> &tex)
 {

@@ -27,11 +27,12 @@ CodecContext::Data::Data(AVCodecContextUPtr context, AVStream *avStream,
         pixelAspectRatio = av_guess_sample_aspect_ratio(formatContext, stream, nullptr);
 }
 
-QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *formatContext,
-                                          const QPlaybackOptions &options)
+q23::expected<CodecContext, QString> CodecContext::create(AVStream *stream,
+                                                          AVFormatContext *formatContext,
+                                                          const QPlaybackOptions &options)
 {
     if (!stream)
-        return QUnexpected{ u"Invalid stream"_s };
+        return q23::unexpected{ u"Invalid stream"_s };
 
     if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
         auto hwCodec = create(stream, formatContext, options, Hw);
@@ -55,9 +56,10 @@ AVRational CodecContext::pixelAspectRatio(AVFrame *frame) const
                                                               : frame->sample_aspect_ratio;
 }
 
-QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *formatContext,
-                                          const QPlaybackOptions &options,
-                                          VideoCodecCreationPolicy videoCodecPolicy)
+q23::expected<CodecContext, QString> CodecContext::create(AVStream *stream,
+                                                          AVFormatContext *formatContext,
+                                                          const QPlaybackOptions &options,
+                                                          VideoCodecCreationPolicy videoCodecPolicy)
 {
     Q_ASSERT(stream);
 
@@ -73,7 +75,7 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
         decoder = QFFmpeg::findAVDecoder(stream->codecpar->codec_id);
 
     if (!decoder)
-        return QUnexpected{
+        return q23::unexpected{
             QString(u"No %1 decoder found").arg(videoCodecPolicy == Hw ? "HW" : "SW")
         };
 
@@ -82,7 +84,7 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
 
     AVCodecContextUPtr context(avcodec_alloc_context3(decoder->get()));
     if (!context)
-        return QUnexpected{ u"Failed to allocate a FFmpeg codec context"_s };
+        return q23::unexpected{ u"Failed to allocate a FFmpeg codec context"_s };
 
     // Use HW decoding even if the codec level doesn't match the reported capabilities
     // of the hardware. FFmpeg documentation recommendeds setting this flag by default.
@@ -101,12 +103,12 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
 
     if (context->codec_type != AVMEDIA_TYPE_AUDIO && context->codec_type != AVMEDIA_TYPE_VIDEO
         && context->codec_type != AVMEDIA_TYPE_SUBTITLE) {
-        return QUnexpected{ u"Unknown codec type"_s };
+        return q23::unexpected{ u"Unknown codec type"_s };
     }
 
     int ret = avcodec_parameters_to_context(context.get(), stream->codecpar);
     if (ret < 0)
-        return QUnexpected{
+        return q23::unexpected{
             QStringLiteral("Failed to set FFmpeg codec parameters: %1").arg(err2str(ret))
         };
 
@@ -126,7 +128,7 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
     ret = avcodec_open2(context.get(), decoder->get(), opts);
 
     if (ret < 0)
-        return QUnexpected{
+        return q23::unexpected{
             QStringLiteral("Failed to open FFmpeg codec context: %1").arg(err2str(ret))
         };
 

@@ -60,15 +60,15 @@ void finishStateChangeOnElements(QSpan<const QGstElement> elements)
 
 } // namespace
 
-QMaybe<QPlatformMediaCaptureSession *> QGstreamerMediaCaptureSession::create()
+q23::expected<QPlatformMediaCaptureSession *, QString> QGstreamerMediaCaptureSession::create()
 {
     auto videoOutput = QGstreamerVideoOutput::create();
     if (!videoOutput)
-        return QUnexpected{ videoOutput.error() };
+        return q23::unexpected{ videoOutput.error() };
 
     static const auto error = qGstErrorMessageIfElementsNotAvailable("tee", "capsfilter");
     if (error)
-        return QUnexpected{ *error };
+        return q23::unexpected{ *error };
 
     return new QGstreamerMediaCaptureSession(videoOutput.value());
 }

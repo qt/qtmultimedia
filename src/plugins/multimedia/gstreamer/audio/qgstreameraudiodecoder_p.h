@@ -22,6 +22,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
+#include <QtCore/private/qexpected_p.h>
 
 #include <common/qgst_p.h>
 #include <common/qgst_bus_observer_p.h>
@@ -38,7 +39,7 @@ class QGstreamerAudioDecoder final : public QPlatformAudioDecoder, public QGstre
     Q_OBJECT
 
 public:
-    static QMaybe<QPlatformAudioDecoder *> create(QAudioDecoder *parent);
+    static q23::expected<QPlatformAudioDecoder *, QString> create(QAudioDecoder *parent);
     ~QGstreamerAudioDecoder() override;
 
     QUrl source() const override;

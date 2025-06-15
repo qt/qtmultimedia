@@ -31,15 +31,15 @@ public:
     QWindowsMediaIntegration();
     ~QWindowsMediaIntegration();
 
-    QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
+    q23::expected<QPlatformMediaCaptureSession *, QString> createCaptureSession() override;
 
-    QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *decoder) override;
-    QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *parent) override;
-    QMaybe<QPlatformCamera *> createCamera(QCamera *camera) override;
-    QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *recorder) override;
-    QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *imageCapture) override;
+    q23::expected<QPlatformAudioDecoder *, QString> createAudioDecoder(QAudioDecoder *decoder) override;
+    q23::expected<QPlatformMediaPlayer *, QString> createPlayer(QMediaPlayer *parent) override;
+    q23::expected<QPlatformCamera *, QString> createCamera(QCamera *camera) override;
+    q23::expected<QPlatformMediaRecorder *, QString> createRecorder(QMediaRecorder *recorder) override;
+    q23::expected<QPlatformImageCapture *, QString> createImageCapture(QImageCapture *imageCapture) override;
 
-    QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *sink) override;
+    q23::expected<QPlatformVideoSink *, QString> createVideoSink(QVideoSink *sink) override;
 
 protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;

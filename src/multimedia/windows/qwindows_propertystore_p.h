@@ -17,8 +17,8 @@
 
 #include <QtCore/qglobal.h>
 #include <QtCore/private/qcomptr_p.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtCore/private/qsystemerror_p.h>
-#include <QtMultimedia/private/qmaybe_p.h>
 
 struct IMMDevice;
 struct IPropertyStore;
@@ -32,7 +32,7 @@ class PropertyStoreHelper
 {
 public:
     explicit PropertyStoreHelper(ComPtr<IPropertyStore>);
-    static QMaybe<PropertyStoreHelper> open(const ComPtr<IMMDevice> &);
+    static q23::expected<PropertyStoreHelper, QString> open(const ComPtr<IMMDevice> &);
 
     std::optional<QString> getString(const PROPERTYKEY &);
     std::optional<uint32_t> getUInt32(const PROPERTYKEY &);

@@ -63,39 +63,48 @@ std::unique_ptr<QPlatformAudioDevices> QMockIntegration::createAudioDevices()
     return std::make_unique<QMockAudioDevices>();
 }
 
-QMaybe<QPlatformAudioDecoder *> QMockIntegration::createAudioDecoder(QAudioDecoder *decoder)
+q23::expected<QPlatformAudioDecoder *, QString> QMockIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     if (m_flags & NoAudioDecoderInterface)
         m_lastAudioDecoderControl = nullptr;
     else
         m_lastAudioDecoderControl = new QMockAudioDecoder(decoder);
-    return m_lastAudioDecoderControl;
+    if (m_lastAudioDecoderControl)
+        return m_lastAudioDecoderControl;
+    else
+        return q23::unexpected{ QStringLiteral("No audio decoder") };
 }
 
-QMaybe<QPlatformMediaPlayer *> QMockIntegration::createPlayer(QMediaPlayer *parent)
+q23::expected<QPlatformMediaPlayer *, QString> QMockIntegration::createPlayer(QMediaPlayer *parent)
 {
     if (m_flags & NoPlayerInterface)
         m_lastPlayer = nullptr;
     else
         m_lastPlayer = new QMockMediaPlayer(parent);
-    return m_lastPlayer;
+    if (m_lastPlayer)
+        return m_lastPlayer;
+    else
+        return q23::unexpected{ QStringLiteral("No media player") };
 }
 
-QMaybe<QPlatformCamera *> QMockIntegration::createCamera(QCamera *parent)
+q23::expected<QPlatformCamera *, QString> QMockIntegration::createCamera(QCamera *parent)
 {
     if (m_flags & NoCaptureInterface)
         m_lastCamera = nullptr;
     else
         m_lastCamera = new QMockCamera(parent);
-    return m_lastCamera;
+    if (m_lastCamera)
+        return m_lastCamera;
+    else
+        return q23::unexpected{ QStringLiteral("No camera") };
 }
 
-QMaybe<QPlatformImageCapture *> QMockIntegration::createImageCapture(QImageCapture *capture)
+q23::expected<QPlatformImageCapture *, QString> QMockIntegration::createImageCapture(QImageCapture *capture)
 {
     return new QMockImageCapture(capture);
 }
 
-QMaybe<QPlatformMediaRecorder *> QMockIntegration::createRecorder(QMediaRecorder *recorder)
+q23::expected<QPlatformMediaRecorder *, QString> QMockIntegration::createRecorder(QMediaRecorder *recorder)
 {
     return new QMockMediaEncoder(recorder);
 }
@@ -120,22 +129,25 @@ QPlatformSurfaceCapture *QMockIntegration::createWindowCapture(QWindowCapture *)
     return m_lastWindowCapture;
 }
 
-QMaybe<QPlatformMediaCaptureSession *> QMockIntegration::createCaptureSession()
+q23::expected<QPlatformMediaCaptureSession *, QString> QMockIntegration::createCaptureSession()
 {
     if (m_flags & NoCaptureInterface)
         m_lastCaptureService = nullptr;
     else
         m_lastCaptureService = new QMockMediaCaptureSession();
-    return m_lastCaptureService;
+    if (m_lastCaptureService)
+        return m_lastCaptureService;
+    else
+        return q23::unexpected{ QStringLiteral("No media capture session") };
 }
 
-QMaybe<QPlatformVideoSink *> QMockIntegration::createVideoSink(QVideoSink *sink)
+q23::expected<QPlatformVideoSink *, QString> QMockIntegration::createVideoSink(QVideoSink *sink)
 {
     m_lastVideoSink = new QMockVideoSink(sink);
     return m_lastVideoSink;
 }
 
-QMaybe<QPlatformAudioOutput *> QMockIntegration::createAudioOutput(QAudioOutput *q)
+q23::expected<QPlatformAudioOutput *, QString> QMockIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QMockAudioOutput(q);
 }

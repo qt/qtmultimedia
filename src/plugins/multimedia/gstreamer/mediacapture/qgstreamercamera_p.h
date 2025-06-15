@@ -17,6 +17,7 @@
 
 #include <private/qplatformcamera_p.h>
 #include <private/qmultimediautils_p.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtCore/private/quniquehandle_types_p.h>
 
 #include <mediacapture/qgstreamermediacapturesession_p.h>
@@ -36,7 +37,7 @@ public:
 class QGstreamerCamera : public QGstreamerCameraBase
 {
 public:
-    static QMaybe<QPlatformCamera *> create(QCamera *camera);
+    static q23::expected<QPlatformCamera *, QString> create(QCamera *camera);
 
     ~QGstreamerCamera() override;
 

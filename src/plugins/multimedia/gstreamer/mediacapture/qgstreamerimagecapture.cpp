@@ -105,12 +105,12 @@ void QGstreamerImageCapture::runInThreadPool(Functor fn)
     m_pendingFutures.emplace(futureId, std::move(future));
 }
 
-QMaybe<QPlatformImageCapture *> QGstreamerImageCapture::create(QImageCapture *parent)
+q23::expected<QPlatformImageCapture *, QString> QGstreamerImageCapture::create(QImageCapture *parent)
 {
     static const auto error = qGstErrorMessageIfElementsNotAvailable(
             "queue", "capsfilter", "videoconvert", "jpegenc", "jifmux", "fakesink");
     if (error)
-        return QUnexpected{ *error };
+        return q23::unexpected{ *error };
 
     return new QGstreamerImageCapture(parent);
 }

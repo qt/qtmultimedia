@@ -44,32 +44,32 @@ QPlatformVideoDevices *QQnxMediaIntegration::createVideoDevices()
     return new QQnxVideoDevices(this);
 }
 
-QMaybe<QPlatformVideoSink *> QQnxMediaIntegration::createVideoSink(QVideoSink *sink)
+q23::expected<QPlatformVideoSink *, QString> QQnxMediaIntegration::createVideoSink(QVideoSink *sink)
 {
     return new QQnxVideoSink(sink);
 }
 
-QMaybe<QPlatformMediaPlayer *> QQnxMediaIntegration::createPlayer(QMediaPlayer *parent)
+q23::expected<QPlatformMediaPlayer *, QString> QQnxMediaIntegration::createPlayer(QMediaPlayer *parent)
 {
     return new QQnxMediaPlayer(parent);
 }
 
-QMaybe<QPlatformMediaCaptureSession *> QQnxMediaIntegration::createCaptureSession()
+q23::expected<QPlatformMediaCaptureSession *, QString> QQnxMediaIntegration::createCaptureSession()
 {
     return new QQnxMediaCaptureSession();
 }
 
-QMaybe<QPlatformMediaRecorder *> QQnxMediaIntegration::createRecorder(QMediaRecorder *parent)
+q23::expected<QPlatformMediaRecorder *, QString> QQnxMediaIntegration::createRecorder(QMediaRecorder *parent)
 {
     return new QQnxMediaRecorder(parent);
 }
 
-QMaybe<QPlatformCamera *> QQnxMediaIntegration::createCamera(QCamera *parent)
+q23::expected<QPlatformCamera *, QString> QQnxMediaIntegration::createCamera(QCamera *parent)
 {
     return new QQnxPlatformCamera(parent);
 }
 
-QMaybe<QPlatformImageCapture *> QQnxMediaIntegration::createImageCapture(QImageCapture *parent)
+q23::expected<QPlatformImageCapture *, QString> QQnxMediaIntegration::createImageCapture(QImageCapture *parent)
 {
     return new QQnxImageCapture(parent);
 }

@@ -17,6 +17,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <common/qgst_p.h>
@@ -32,7 +33,7 @@ class QGstreamerVideoOutput : public QObject, QAbstractSubtitleObserver
     Q_OBJECT
 
 public:
-    static QMaybe<QGstreamerVideoOutput *> create(QObject *parent = nullptr);
+    static q23::expected<QGstreamerVideoOutput *, QString> create(QObject *parent = nullptr);
     ~QGstreamerVideoOutput() override;
 
     void setVideoSink(QVideoSink *sink);

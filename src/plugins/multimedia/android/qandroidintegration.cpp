@@ -64,7 +64,7 @@ public:
 
 QAndroidIntegration::QAndroidIntegration() : QPlatformMediaIntegration(QLatin1String("android")) { }
 
-QMaybe<QPlatformAudioDecoder *> QAndroidIntegration::createAudioDecoder(QAudioDecoder *decoder)
+q23::expected<QPlatformAudioDecoder *, QString> QAndroidIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new QAndroidAudioDecoder(decoder);
 }
@@ -74,42 +74,42 @@ QPlatformMediaFormatInfo *QAndroidIntegration::createFormatInfo()
     return new QAndroidFormatInfo;
 }
 
-QMaybe<QPlatformMediaCaptureSession *> QAndroidIntegration::createCaptureSession()
+q23::expected<QPlatformMediaCaptureSession *, QString> QAndroidIntegration::createCaptureSession()
 {
     return new QAndroidMediaCaptureSession();
 }
 
-QMaybe<QPlatformMediaPlayer *> QAndroidIntegration::createPlayer(QMediaPlayer *player)
+q23::expected<QPlatformMediaPlayer *, QString> QAndroidIntegration::createPlayer(QMediaPlayer *player)
 {
     return new QAndroidMediaPlayer(player);
 }
 
-QMaybe<QPlatformCamera *> QAndroidIntegration::createCamera(QCamera *camera)
+q23::expected<QPlatformCamera *, QString> QAndroidIntegration::createCamera(QCamera *camera)
 {
     return new QAndroidCamera(camera);
 }
 
-QMaybe<QPlatformMediaRecorder *> QAndroidIntegration::createRecorder(QMediaRecorder *recorder)
+q23::expected<QPlatformMediaRecorder *, QString> QAndroidIntegration::createRecorder(QMediaRecorder *recorder)
 {
     return new QAndroidMediaEncoder(recorder);
 }
 
-QMaybe<QPlatformImageCapture *> QAndroidIntegration::createImageCapture(QImageCapture *imageCapture)
+q23::expected<QPlatformImageCapture *, QString> QAndroidIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return new QAndroidImageCapture(imageCapture);
 }
 
-QMaybe<QPlatformAudioOutput *> QAndroidIntegration::createAudioOutput(QAudioOutput *q)
+q23::expected<QPlatformAudioOutput *, QString> QAndroidIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QAndroidAudioOutput(q);
 }
 
-QMaybe<QPlatformAudioInput *> QAndroidIntegration::createAudioInput(QAudioInput *audioInput)
+q23::expected<QPlatformAudioInput *, QString> QAndroidIntegration::createAudioInput(QAudioInput *audioInput)
 {
     return new QAndroidAudioInput(audioInput);
 }
 
-QMaybe<QPlatformVideoSink *> QAndroidIntegration::createVideoSink(QVideoSink *sink)
+q23::expected<QPlatformVideoSink *, QString> QAndroidIntegration::createVideoSink(QVideoSink *sink)
 {
     return new QAndroidVideoSink(sink);
 }
