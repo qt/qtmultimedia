@@ -194,22 +194,22 @@ const QGstreamerFormatInfo *QGstreamerIntegration::gstFormatsInfo()
     return static_cast<const QGstreamerFormatInfo *>(formatInfo());
 }
 
-QMaybe<QPlatformAudioDecoder *> QGstreamerIntegration::createAudioDecoder(QAudioDecoder *decoder)
+q23::expected<QPlatformAudioDecoder *, QString> QGstreamerIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return QGstreamerAudioDecoder::create(decoder);
 }
 
-QMaybe<QPlatformMediaCaptureSession *> QGstreamerIntegration::createCaptureSession()
+q23::expected<QPlatformMediaCaptureSession *, QString> QGstreamerIntegration::createCaptureSession()
 {
     return QGstreamerMediaCaptureSession::create();
 }
 
-QMaybe<QPlatformMediaPlayer *> QGstreamerIntegration::createPlayer(QMediaPlayer *player)
+q23::expected<QPlatformMediaPlayer *, QString> QGstreamerIntegration::createPlayer(QMediaPlayer *player)
 {
     return QGstreamerMediaPlayer::create(player);
 }
 
-QMaybe<QPlatformCamera *> QGstreamerIntegration::createCamera(QCamera *camera)
+q23::expected<QPlatformCamera *, QString> QGstreamerIntegration::createCamera(QCamera *camera)
 {
     if (inCustomCameraConstruction) {
         QGstElement element = std::exchange(pendingCameraElement, {});
@@ -220,27 +220,27 @@ QMaybe<QPlatformCamera *> QGstreamerIntegration::createCamera(QCamera *camera)
     return QGstreamerCamera::create(camera);
 }
 
-QMaybe<QPlatformMediaRecorder *> QGstreamerIntegration::createRecorder(QMediaRecorder *recorder)
+q23::expected<QPlatformMediaRecorder *, QString> QGstreamerIntegration::createRecorder(QMediaRecorder *recorder)
 {
     return new QGstreamerMediaRecorder(recorder);
 }
 
-QMaybe<QPlatformImageCapture *> QGstreamerIntegration::createImageCapture(QImageCapture *imageCapture)
+q23::expected<QPlatformImageCapture *, QString> QGstreamerIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return QGstreamerImageCapture::create(imageCapture);
 }
 
-QMaybe<QPlatformVideoSink *> QGstreamerIntegration::createVideoSink(QVideoSink *sink)
+q23::expected<QPlatformVideoSink *, QString> QGstreamerIntegration::createVideoSink(QVideoSink *sink)
 {
     return new QGstreamerVideoSink(sink);
 }
 
-QMaybe<QPlatformAudioInput *> QGstreamerIntegration::createAudioInput(QAudioInput *q)
+q23::expected<QPlatformAudioInput *, QString> QGstreamerIntegration::createAudioInput(QAudioInput *q)
 {
     return QGstreamerAudioInput::create(q);
 }
 
-QMaybe<QPlatformAudioOutput *> QGstreamerIntegration::createAudioOutput(QAudioOutput *q)
+q23::expected<QPlatformAudioOutput *, QString> QGstreamerIntegration::createAudioOutput(QAudioOutput *q)
 {
     return QGstreamerAudioOutput::create(q);
 }

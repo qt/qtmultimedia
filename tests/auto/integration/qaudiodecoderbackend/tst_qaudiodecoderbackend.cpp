@@ -66,7 +66,7 @@ private:
 #endif
 
     MediaFileSelector m_mediaSelector;
-    MaybeUrl m_wavFile = MaybeUrl{ QUnexpect{} };
+    MaybeUrl m_wavFile = MaybeUrl{ q23::unexpect };
 };
 
 void tst_QAudioDecoderBackend::init()

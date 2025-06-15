@@ -21,12 +21,13 @@ PropertyStoreHelper::PropertyStoreHelper(ComPtr<IPropertyStore> props) : m_props
 {
 }
 
-QMaybe<PropertyStoreHelper> PropertyStoreHelper::open(const ComPtr<IMMDevice> &device)
+q23::expected<PropertyStoreHelper, QString>
+PropertyStoreHelper::open(const ComPtr<IMMDevice> &device)
 {
     ComPtr<IPropertyStore> props;
     HRESULT hr = device->OpenPropertyStore(STGM_READ, props.GetAddressOf());
     if (!SUCCEEDED(hr)) {
-        return QUnexpected{ QSystemError::windowsComString(hr) };
+        return q23::unexpected{ QSystemError::windowsComString(hr) };
     }
     return PropertyStoreHelper(std::move(props));
 }

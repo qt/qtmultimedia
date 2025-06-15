@@ -45,7 +45,7 @@ class QGstreamerMediaPlayer : public QObject,
     using QGstPlayHandle = QGstImpl::QGstHandleHelper<GstPlay>::SharedHandle;
 
 public:
-    static QMaybe<QPlatformMediaPlayer *> create(QMediaPlayer *parent = nullptr);
+    static q23::expected<QPlatformMediaPlayer *, QString> create(QMediaPlayer *parent = nullptr);
     ~QGstreamerMediaPlayer() override;
 
     qint64 duration() const override;

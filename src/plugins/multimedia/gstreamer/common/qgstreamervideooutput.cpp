@@ -24,7 +24,7 @@ static QGstElement makeVideoConvertScale(const char *name)
                                                   /*ghostUnlinkedPads=*/true);
 }
 
-QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
+q23::expected<QGstreamerVideoOutput *, QString> QGstreamerVideoOutput::create(QObject *parent)
 {
     QGstElementFactoryHandle factory = QGstElement::findFactory("videoconvertscale");
 
@@ -41,7 +41,7 @@ QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
     }();
 
     if (elementCheck)
-        return QUnexpected{ *elementCheck };
+        return q23::unexpected{ *elementCheck };
 
     return new QGstreamerVideoOutput(parent);
 }

@@ -80,7 +80,6 @@ qt_internal_add_module(Multimedia
         qvideotransformation.cpp qvideotransformation_p.h
         qmediaframeinput.cpp qmediaframeinput_p.h
         qmultimedia_assume_p.h
-        qmaybe_p.h
         qtmultimediaglobal.h qtmultimediaglobal_p.h
         qerrorinfo_p.h
         qcachedvalue_p.h

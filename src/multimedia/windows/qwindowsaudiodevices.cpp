@@ -231,7 +231,7 @@ QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mo
         if (!deviceId)
             continue;
 
-        QMaybe<PropertyStoreHelper> props = PropertyStoreHelper::open(device);
+        q23::expected<PropertyStoreHelper, QString> props = PropertyStoreHelper::open(device);
         if (!props) {
             qWarning() << "OpenPropertyStore failed" << props.error();
             continue;

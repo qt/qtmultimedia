@@ -97,8 +97,8 @@ QCapturableWindow::QCapturableWindow() = default;
 */
 QCapturableWindow::QCapturableWindow(QWindow *window) noexcept
 {
-    QMaybe<QCapturableWindow> capturableWindow =
-        QPlatformMediaIntegration::instance()->capturableWindowFromQWindow(window);
+    q23::expected<QCapturableWindow, QString> capturableWindow =
+            QPlatformMediaIntegration::instance()->capturableWindowFromQWindow(window);
     if (capturableWindow)
         *this = std::move(capturableWindow.value());
 }

@@ -47,8 +47,8 @@ private:
     void addMediaPlayerFrameTestData(F &&f);
 
 private:
-    MaybeUrl m_oneRedFrameVideo{ QUnexpect{} };
-    MaybeUrl m_colorsVideo{ QUnexpect{} };
+    MaybeUrl m_oneRedFrameVideo{ q23::unexpect };
+    MaybeUrl m_colorsVideo{ q23::unexpect };
     MediaFileSelector m_mediaSelector;
 };
 

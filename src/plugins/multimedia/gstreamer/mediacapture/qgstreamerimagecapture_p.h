@@ -20,6 +20,7 @@
 
 #include <QtCore/qmutex.h>
 #include <QtCore/qqueue.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtConcurrent/QtConcurrentRun>
 
 #include <common/qgst_p.h>
@@ -36,7 +37,7 @@ class QGstreamerImageCapture : public QPlatformImageCapture, private QGstreamerB
     Q_OBJECT
 
 public:
-    static QMaybe<QPlatformImageCapture *> create(QImageCapture *parent);
+    static q23::expected<QPlatformImageCapture *, QString> create(QImageCapture *parent);
     ~QGstreamerImageCapture() override;
 
     bool isReadyForCapture() const override;

@@ -20,12 +20,12 @@
 
 QT_BEGIN_NAMESPACE
 
-QMaybe<QPlatformCamera *> QGstreamerCamera::create(QCamera *camera)
+q23::expected<QPlatformCamera *, QString> QGstreamerCamera::create(QCamera *camera)
 {
     static const auto error = qGstErrorMessageIfElementsNotAvailable(
             "videotestsrc", "capsfilter", "videoconvert", "videoscale", "identity");
     if (error)
-        return QUnexpected{ *error };
+        return q23::unexpected{ *error };
 
     return new QGstreamerCamera(camera);
 }

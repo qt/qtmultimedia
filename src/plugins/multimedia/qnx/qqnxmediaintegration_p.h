@@ -27,17 +27,17 @@ class QQnxMediaIntegration : public QPlatformMediaIntegration
 public:
     QQnxMediaIntegration();
 
-    QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *sink) override;
+    q23::expected<QPlatformVideoSink *, QString> createVideoSink(QVideoSink *sink) override;
 
-    QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *parent) override;
+    q23::expected<QPlatformMediaPlayer *, QString> createPlayer(QMediaPlayer *parent) override;
 
-    QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
+    q23::expected<QPlatformMediaCaptureSession *, QString> createCaptureSession() override;
 
-    QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *parent) override;
+    q23::expected<QPlatformMediaRecorder *, QString> createRecorder(QMediaRecorder *parent) override;
 
-    QMaybe<QPlatformCamera *> createCamera(QCamera *parent) override;
+    q23::expected<QPlatformCamera *, QString> createCamera(QCamera *parent) override;
 
-    QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *parent) override;
+    q23::expected<QPlatformImageCapture *, QString> createImageCapture(QImageCapture *parent) override;
 
 protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;

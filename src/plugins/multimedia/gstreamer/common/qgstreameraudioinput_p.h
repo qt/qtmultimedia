@@ -16,6 +16,7 @@
 //
 
 #include <QtCore/qobject.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtMultimedia/private/qplatformaudioinput_p.h>
 
 #include <common/qgst_p.h>
@@ -27,7 +28,7 @@ class QAudioDevice;
 class QGstreamerAudioInput : public QObject, public QPlatformAudioInput
 {
 public:
-    static QMaybe<QPlatformAudioInput *> create(QAudioInput *parent);
+    static q23::expected<QPlatformAudioInput *, QString> create(QAudioInput *parent);
     ~QGstreamerAudioInput() override;
 
     void setAudioDevice(const QAudioDevice &) override;

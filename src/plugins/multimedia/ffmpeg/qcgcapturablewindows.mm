@@ -47,17 +47,17 @@ bool QCGCapturableWindows::isWindowValid(const QCapturableWindowPrivate &window)
     return CFArrayGetCount(windowList) > 0;
 }
 
-QMaybe<QCapturableWindow> QCGCapturableWindows::fromQWindow(QWindow *window) const
+q23::expected<QCapturableWindow, QString> QCGCapturableWindows::fromQWindow(QWindow *window) const
 {
     auto* nsView = reinterpret_cast<NSView*>(window->winId());
 
     NSWindow* nsWindow = [nsView window];
     if (nsWindow == nullptr)
-        return QUnexpected{ QStringLiteral("NSView had no associated NSWindow") };
+        return q23::unexpected{ QStringLiteral("NSView had no associated NSWindow") };
 
     const auto cgWindowId = (CGWindowID)[nsWindow windowNumber];
     if (cgWindowId == kCGNullWindowID)
-        return QUnexpected{ QStringLiteral("NSWindow has no CGWindowID") };
+        return q23::unexpected{ QStringLiteral("NSWindow has no CGWindowID") };
 
     return QCapturableWindowPrivate::create(
         static_cast<QCapturableWindowPrivate::Id>(cgWindowId),

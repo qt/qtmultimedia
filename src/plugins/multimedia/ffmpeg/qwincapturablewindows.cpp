@@ -72,7 +72,7 @@ bool QWinCapturableWindows::isWindowValid(const QCapturableWindowPrivate &window
     return isTopLevelWindow(hwnd) && canCaptureWindow(hwnd);
 }
 
-QMaybe<QCapturableWindow> QWinCapturableWindows::fromQWindow(QWindow *window) const
+q23::expected<QCapturableWindow, QString> QWinCapturableWindows::fromQWindow(QWindow *window) const
 {
     const auto hwnd = reinterpret_cast<HWND>(window->winId());
     return QCapturableWindowPrivate::create(

@@ -308,11 +308,11 @@ void QGstreamerMediaPlayer::disconnectDecoderHandlers()
         handler->disconnect();
 }
 
-QMaybe<QPlatformMediaPlayer *> QGstreamerMediaPlayer::create(QMediaPlayer *parent)
+q23::expected<QPlatformMediaPlayer *, QString> QGstreamerMediaPlayer::create(QMediaPlayer *parent)
 {
     auto videoOutput = QGstreamerVideoOutput::create();
     if (!videoOutput)
-        return QUnexpected{ videoOutput.error() };
+        return q23::unexpected{ videoOutput.error() };
 
     return new QGstreamerMediaPlayer(videoOutput.value(), parent);
 }

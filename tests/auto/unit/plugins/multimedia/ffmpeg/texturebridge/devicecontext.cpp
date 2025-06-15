@@ -19,7 +19,7 @@ ComResult<QColor> DeviceContext::getFirstPixelColor(const ComPtr<ID3D11Texture2D
     ComPtr<ID3D11Texture2D> stagingTexture;
     HRESULT hr = device->CreateTexture2D(&stagingDesc, nullptr, &stagingTexture);
     if (hr != S_OK)
-        return { unexpect, hr };
+        return q23::unexpected{ hr };
 
     // Copy the texture data to the staging texture
     context->CopyResource(stagingTexture.Get(), texture.Get());
@@ -28,7 +28,7 @@ ComResult<QColor> DeviceContext::getFirstPixelColor(const ComPtr<ID3D11Texture2D
     D3D11_MAPPED_SUBRESOURCE mappedResource{};
     hr = context->Map(stagingTexture.Get(), 0, D3D11_MAP_READ, 0, &mappedResource);
     if (hr != S_OK)
-        return { unexpect, hr };
+        return q23::unexpected{ hr };
 
     // Get the value of the first pixel (top-left corner)
     unsigned char *data = static_cast<unsigned char *>(mappedResource.pData);
@@ -60,11 +60,11 @@ DeviceContext::createTextureArray(QSize size, const std::vector<QColor> &colors)
     HRESULT hr = device->CreateTexture2D(&texDesc, nullptr, tex.GetAddressOf());
 
     if (hr != S_OK)
-        return { unexpect, hr };
+        return q23::unexpected{ hr };
 
     hr = fillTextureWithColors(tex, colors);
     if (hr != S_OK)
-        return { unexpect, hr };
+        return q23::unexpected{ hr };
 
     return tex;
 }
@@ -127,11 +127,11 @@ ComResult<DeviceContext> createDeviceContext()
                                    D3D11_SDK_VERSION, srcDev.GetAddressOf(), nullptr,
                                    devContext.context.GetAddressOf());
     if (hr != S_OK)
-        return { unexpect, hr };
+        return q23::unexpected{ hr };
 
     hr = srcDev.As(&devContext.device);
     if (hr != S_OK)
-        return { unexpect, hr };
+        return q23::unexpected{ hr };
 
     return devContext;
 }

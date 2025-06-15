@@ -16,7 +16,6 @@
 //
 
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/private/qmaybe_p.h>
 #include <QtMultimedia/private/qvideotransformation_p.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qurl.h>

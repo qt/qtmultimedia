@@ -19,8 +19,8 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
 
-#include <QtMultimedia/private/qmaybe_p.h>
 #include <QtCore/qshareddata.h>
+#include <QtCore/private/qexpected_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -42,7 +42,7 @@ class CodecContext
     };
 
 public:
-    static QMaybe<CodecContext> create(AVStream *stream, AVFormatContext *formatContext,
+    static q23::expected<CodecContext, QString> create(AVStream *stream, AVFormatContext *formatContext,
                                        const QPlaybackOptions &options);
 
     AVRational pixelAspectRatio(AVFrame *frame) const;
@@ -67,7 +67,7 @@ private:
         Sw,
     };
 
-    static QMaybe<CodecContext> create(AVStream *stream, AVFormatContext *formatContext,
+    static q23::expected<CodecContext, QString> create(AVStream *stream, AVFormatContext *formatContext,
                                        const QPlaybackOptions &playbackOptions,
                                        VideoCodecCreationPolicy videoCodecPolicy);
     CodecContext(Data *data) : d(data) { }

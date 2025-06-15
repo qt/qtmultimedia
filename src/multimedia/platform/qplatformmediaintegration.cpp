@@ -118,18 +118,18 @@ void QPlatformMediaIntegration::resetInstance()
     s_instanceHolder->init(); // tests only
 }
 
-QMaybe<std::unique_ptr<QPlatformAudioResampler>>
+q23::expected<std::unique_ptr<QPlatformAudioResampler>, QString>
 QPlatformMediaIntegration::createAudioResampler(const QAudioFormat &, const QAudioFormat &)
 {
-    return QUnexpected(notAvailable);
+    return q23::unexpected(notAvailable);
 }
 
-QMaybe<QPlatformAudioInput *> QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
+q23::expected<QPlatformAudioInput *, QString> QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
 {
     return new QPlatformAudioInput(q);
 }
 
-QMaybe<QPlatformAudioOutput *> QPlatformMediaIntegration::createAudioOutput(QAudioOutput *q)
+q23::expected<QPlatformAudioOutput *, QString> QPlatformMediaIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QPlatformAudioOutput(q);
 }
@@ -146,15 +146,15 @@ bool QPlatformMediaIntegration::isCapturableWindowValid(const QCapturableWindowP
     return capturableWindows && capturableWindows->isWindowValid(window);
 }
 
-QMaybe<QCapturableWindow> QPlatformMediaIntegration::capturableWindowFromQWindow(QWindow *window)
+q23::expected<QCapturableWindow, QString> QPlatformMediaIntegration::capturableWindowFromQWindow(QWindow *window)
 {
     const auto capturableWindows = this->capturableWindows();
     if (!capturableWindows)
-        return QUnexpected{ QStringLiteral("No windowcapture platform implementation") };
+        return q23::unexpected{ QStringLiteral("No windowcapture platform implementation") };
     if (window == nullptr)
-        return QUnexpected{ QStringLiteral("QWindow is nullptr") };
+        return q23::unexpected{ QStringLiteral("QWindow is nullptr") };
     if (!window->isTopLevel())
-        return QUnexpected{ QStringLiteral("QWindow is not top-level.") };
+        return q23::unexpected{ QStringLiteral("QWindow is not top-level.") };
     return capturableWindows->fromQWindow(window);
 }
 

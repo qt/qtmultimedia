@@ -68,12 +68,12 @@ void pulseVersionSanityCheck()
 
 } // namespace
 
-QMaybe<QPlatformAudioOutput *> QGstreamerAudioOutput::create(QAudioOutput *parent)
+q23::expected<QPlatformAudioOutput *, QString> QGstreamerAudioOutput::create(QAudioOutput *parent)
 {
     static const auto error = qGstErrorMessageIfElementsNotAvailable(
             "audioconvert", "audioresample", "volume", "autoaudiosink");
     if (error)
-        return QUnexpected{ *error };
+        return q23::unexpected{ *error };
 
     return new QGstreamerAudioOutput(parent);
 }

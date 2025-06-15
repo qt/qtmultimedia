@@ -258,35 +258,35 @@ private:
     void detectVlcCommand();
 
     // one second local wav file
-    MaybeUrl m_localWavFile{ QUnexpect{} };
-    MaybeUrl m_localWavFile2{ QUnexpect{} };
-    MaybeUrl m_localVideoFile{ QUnexpect{} };
-    MaybeUrl m_localVideoFile2{ QUnexpect{} };
-    MaybeUrl m_localVideoFile1Sec{ QUnexpect{} };
-    MaybeUrl m_av1File{ QUnexpect{} };
-    MaybeUrl m_videoDimensionTestFile{ QUnexpect{} };
-    MaybeUrl m_localCompressedSoundFile{ QUnexpect{} };
-    MaybeUrl m_localMp3FileWithMetadataAndEmbeddedThumbnail{ QUnexpect{} };
-    MaybeUrl m_localVideoFile3ColorsWithSound{ QUnexpect{} };
-    MaybeUrl m_videoFileWithJpegThumbnail{ QUnexpect{} };
-    MaybeUrl m_videoFileWithPngThumbnail{ QUnexpect{} };
-    MaybeUrl m_oneRedFrameVideo{ QUnexpect{} };
-    MaybeUrl m_192x108_PAR_2_3_Video{ QUnexpect{} };
-    MaybeUrl m_192x108_PAR_3_2_Video{ QUnexpect{} };
-    MaybeUrl m_colorMatrixVideo{ QUnexpect{} };
-    MaybeUrl m_colorMatrixMirroredVideo{ QUnexpect{} };
-    MaybeUrl m_colorMatrix90degClockwiseVideo{ QUnexpect{} };
-    MaybeUrl m_colorMatrix90degClockwiseMirroredVideo{ QUnexpect{} };
-    MaybeUrl m_colorMatrix180degClockwiseVideo{ QUnexpect{} };
-    MaybeUrl m_colorMatrix180degClockwiseMirroredVideo{ QUnexpect{} };
-    MaybeUrl m_colorMatrix270degClockwiseVideo{ QUnexpect{} };
-    MaybeUrl m_colorMatrix270degClockwiseMirroredVideo{ QUnexpect{} };
-    MaybeUrl m_hdrVideo{ QUnexpect{} };
-    MaybeUrl m_15sVideo{ QUnexpect{} };
-    MaybeUrl m_subtitleVideo{ QUnexpect{} };
-    MaybeUrl m_multitrackVideo{ QUnexpect{} };
-    MaybeUrl m_multitrackSubtitleStartsAtZeroVideo{ QUnexpect{} };
-    MaybeUrl m_oggEndingWithInvalidTiming{ QUnexpect{} };
+    MaybeUrl m_localWavFile{ q23::unexpect };
+    MaybeUrl m_localWavFile2{ q23::unexpect };
+    MaybeUrl m_localVideoFile{ q23::unexpect };
+    MaybeUrl m_localVideoFile2{ q23::unexpect };
+    MaybeUrl m_localVideoFile1Sec{ q23::unexpect };
+    MaybeUrl m_av1File{ q23::unexpect };
+    MaybeUrl m_videoDimensionTestFile{ q23::unexpect };
+    MaybeUrl m_localCompressedSoundFile{ q23::unexpect };
+    MaybeUrl m_localMp3FileWithMetadataAndEmbeddedThumbnail{ q23::unexpect };
+    MaybeUrl m_localVideoFile3ColorsWithSound{ q23::unexpect };
+    MaybeUrl m_videoFileWithJpegThumbnail{ q23::unexpect };
+    MaybeUrl m_videoFileWithPngThumbnail{ q23::unexpect };
+    MaybeUrl m_oneRedFrameVideo{ q23::unexpect };
+    MaybeUrl m_192x108_PAR_2_3_Video{ q23::unexpect };
+    MaybeUrl m_192x108_PAR_3_2_Video{ q23::unexpect };
+    MaybeUrl m_colorMatrixVideo{ q23::unexpect };
+    MaybeUrl m_colorMatrixMirroredVideo{ q23::unexpect };
+    MaybeUrl m_colorMatrix90degClockwiseVideo{ q23::unexpect };
+    MaybeUrl m_colorMatrix90degClockwiseMirroredVideo{ q23::unexpect };
+    MaybeUrl m_colorMatrix180degClockwiseVideo{ q23::unexpect };
+    MaybeUrl m_colorMatrix180degClockwiseMirroredVideo{ q23::unexpect };
+    MaybeUrl m_colorMatrix270degClockwiseVideo{ q23::unexpect };
+    MaybeUrl m_colorMatrix270degClockwiseMirroredVideo{ q23::unexpect };
+    MaybeUrl m_hdrVideo{ q23::unexpect };
+    MaybeUrl m_15sVideo{ q23::unexpect };
+    MaybeUrl m_subtitleVideo{ q23::unexpect };
+    MaybeUrl m_multitrackVideo{ q23::unexpect };
+    MaybeUrl m_multitrackSubtitleStartsAtZeroVideo{ q23::unexpect };
+    MaybeUrl m_oggEndingWithInvalidTiming{ q23::unexpect };
 
     MediaFileSelector m_mediaSelector;
 
@@ -4627,7 +4627,7 @@ void tst_QMediaPlayerBackend::makeStressTestCases()
     QTest::addColumn<MaybeUrl>("media");
     QTest::addColumn<bool>("play");
 
-    QTest::newRow("no media") << MaybeUrl{ QUnexpect{} } << false;
+    QTest::newRow("no media") << MaybeUrl{ q23::unexpect } << false;
     QTest::newRow("audio, not playing") << m_localWavFile << false;
     QTest::newRow("audio, playing") << m_localWavFile << true;
     QTest::newRow("video, not playing") << m_localVideoFile << false;

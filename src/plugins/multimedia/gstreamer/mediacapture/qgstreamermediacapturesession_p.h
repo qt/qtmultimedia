@@ -15,6 +15,8 @@
 // We mean it.
 //
 
+#include <QtCore/private/qexpected_p.h>
+
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
@@ -36,7 +38,7 @@ class QGstreamerMediaCaptureSession final : public QPlatformMediaCaptureSession,
                                             QGstreamerBusMessageFilter
 {
 public:
-    static QMaybe<QPlatformMediaCaptureSession *> create();
+    static q23::expected<QPlatformMediaCaptureSession *, QString> create();
     ~QGstreamerMediaCaptureSession() override;
 
     QPlatformCamera *camera() override;

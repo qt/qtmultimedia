@@ -39,11 +39,11 @@ typedef enum {
 } GstPlayFlags;
 
 
-QMaybe<QPlatformAudioDecoder *> QGstreamerAudioDecoder::create(QAudioDecoder *parent)
+q23::expected<QPlatformAudioDecoder *, QString> QGstreamerAudioDecoder::create(QAudioDecoder *parent)
 {
     static const auto error = qGstErrorMessageIfElementsNotAvailable("audioconvert", "playbin");
     if (error)
-        return QUnexpected{ *error };
+        return q23::unexpected{ *error };
 
     return new QGstreamerAudioDecoder(parent);
 }

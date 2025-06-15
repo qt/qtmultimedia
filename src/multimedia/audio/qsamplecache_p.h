@@ -23,8 +23,8 @@
 #include <QtCore/qfuture.h>
 #include <QtCore/qurl.h>
 #include <QtCore/private/qglobal_p.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/private/qmaybe_p.h>
 
 #include <memory>
 #include <optional>
@@ -42,7 +42,7 @@ public:
         Error,
         Ready,
     };
-    using SharedSamplePromise = QSharedPointer<QPromise<QMaybe<QSample *, QSample::State>>>;
+    using SharedSamplePromise = QSharedPointer<QPromise<q23::expected<QSample *, QSample::State>>>;
     ~QSample();
 
     State state() const;
