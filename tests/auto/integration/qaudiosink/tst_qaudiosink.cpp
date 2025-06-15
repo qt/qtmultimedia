@@ -25,8 +25,6 @@
 
 QT_WARNING_DISABLE_DEPRECATED; // Tests use QWaveDecoder
 
-#define AUDIO_BUFFER 192000
-
 using AudioSinkInitializer = bool (*)(QAudioSink &);
 
 class AudioPullSource : public QIODevice
