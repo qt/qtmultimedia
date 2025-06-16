@@ -88,7 +88,7 @@ class QtCamera2 {
         // automatic exposure.
         // QCamera::FlashMode::FlashAuto maps to CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH.
         // QCamera::FlashMode::FlashOn maps to CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH.
-        private int mFlashMode = DEFAULT_FLASH_MODE;
+        private int mStillPhotoFlashMode = DEFAULT_FLASH_MODE;
 
         // Not to be confused with QCamera::TorchMode.
         // This controls the currently desired CaptureRequest.FLASH_MODE
@@ -121,7 +121,7 @@ class QtCamera2 {
     @UsedFromNativeCode
     public void resetControlProperties() {
         synchronized (mSyncedMembers) {
-            mSyncedMembers.mFlashMode = DEFAULT_FLASH_MODE;
+            mSyncedMembers.mStillPhotoFlashMode = DEFAULT_FLASH_MODE;
             mSyncedMembers.mTorchMode = DEFAULT_TORCH_MODE;
             mSyncedMembers.mAFMode = DEFAULT_AF_MODE;
             mSyncedMembers.mFocusDistance = DEFAULT_FOCUS_DISTANCE;
@@ -445,7 +445,7 @@ class QtCamera2 {
 
                 applyFocusSettingsToCaptureRequestBuilder(mPreviewRequestBuilder);
 
-                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, mSyncedMembers.mFlashMode);
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
                 mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mSyncedMembers.mTorchMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
@@ -544,7 +544,7 @@ class QtCamera2 {
         int aeMode = 0;
         float zoomFactor = 0.f;
         synchronized (mSyncedMembers) {
-            aeMode = mSyncedMembers.mFlashMode;
+            aeMode = mSyncedMembers.mStillPhotoFlashMode;
             zoomFactor = mSyncedMembers.mZoomFactor;
         }
 
@@ -711,25 +711,12 @@ class QtCamera2 {
     void setFlashMode(String flashMode)
     {
         synchronized (mSyncedMembers) {
-
             int flashModeValue = mVideoDeviceManager.stringToControlAEMode(flashMode);
             if (flashModeValue < 0) {
                 Log.w("QtCamera2", "Unknown flash mode");
                 return;
             }
-            mSyncedMembers.mFlashMode = flashModeValue;
-
-            if (!mSyncedMembers.mIsStarted)
-                return;
-
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, mSyncedMembers.mFlashMode);
-            mPreviewRequest = mPreviewRequestBuilder.build();
-
-            try {
-                mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
-            } catch (Exception exception) {
-                Log.w("QtCamera2", "Failed to set flash mode:" + exception);
-            }
+            mSyncedMembers.mStillPhotoFlashMode = flashModeValue;
         }
     }
 
