@@ -29,12 +29,12 @@ qt_internal_add_plugin(QDarwinMediaPlugin
         Qt::MultimediaPrivate
         Qt::CorePrivate
         ${FWAudioToolbox}
+        ${FWAVFoundation}
         ${FWCoreMedia}
         ${FWCoreVideo}
         ${FWFoundation}
         ${FWMetal}
         ${FWQuartzCore}
-        AVFoundation::AVFoundation
     COMPILE_OPTIONS
         -Wno-c++20-extensions
 )
