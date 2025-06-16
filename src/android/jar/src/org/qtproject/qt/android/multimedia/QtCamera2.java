@@ -432,7 +432,7 @@ class QtCamera2 {
     }
 
     @UsedFromNativeCode
-    boolean start(int template) {
+    boolean start() {
 
         if (mCameraDevice == null)
             return false;
@@ -442,7 +442,7 @@ class QtCamera2 {
 
         synchronized (mSyncedMembers) {
             try {
-                mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(template);
+                mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
                 mPreviewRequestBuilder.addTarget(mPreviewImageReader.getSurface());
 
                 applyFocusSettingsToCaptureRequestBuilder(mPreviewRequestBuilder);
