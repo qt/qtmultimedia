@@ -3,6 +3,7 @@
 
 #include "qsoundeffect.h"
 
+#include <QtCore/qapplicationstatic.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qfuture.h>
 #include <QtMultimedia/qaudiobuffer.h>
@@ -24,7 +25,7 @@ Q_STATIC_LOGGING_CATEGORY(qLcSoundEffect, "qt.multimedia.soundeffect")
 
 QT_BEGIN_NAMESPACE
 
-Q_GLOBAL_STATIC(QSampleCache, sampleCache)
+Q_APPLICATION_STATIC(QSampleCache, sampleCache)
 
 class QSoundEffectPrivate : public QIODevice
 {
