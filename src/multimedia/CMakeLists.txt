@@ -11,7 +11,7 @@ qt_internal_add_module(Multimedia
     PLUGIN_TYPES multimedia
     SOURCES
         audio/qautoresetevent_p.h
-
+        audio/q_pmr_emulation_p.h
         audio/qtaudio.cpp audio/qtaudio.h audio/qaudio.h
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h
         audio/qaudiobuffer_support_p.h
