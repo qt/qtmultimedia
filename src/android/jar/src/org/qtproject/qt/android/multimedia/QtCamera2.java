@@ -35,7 +35,7 @@ class QtCamera2 {
     QtVideoDeviceManager mVideoDeviceManager = null;
     HandlerThread mBackgroundThread;
     Handler mBackgroundHandler;
-    ImageReader mImageReader = null;
+    ImageReader mPreviewImageReader = null;
     ImageReader mCapturedPhotoReader = null;
     CameraManager mCameraManager;
     CameraCaptureSession mCaptureSession;
@@ -359,8 +359,10 @@ class QtCamera2 {
                     // Remember current used camera ID, because stopAndClose will clear the value
                     String cameraId = mCameraId;
                     stopAndClose();
-                    addImageReader(mImageReader.getWidth(), mImageReader.getHeight(),
-                                   mImageReader.getImageFormat());
+                    addImageReader(
+                        mPreviewImageReader.getWidth(),
+                        mPreviewImageReader.getHeight(),
+                        mPreviewImageReader.getImageFormat());
                     open(cameraId);
                 }
             }
@@ -376,15 +378,15 @@ class QtCamera2 {
 
     private void addImageReader(int width, int height, int format) {
 
-        if (mImageReader != null)
-            removeSurface(mImageReader.getSurface());
+        if (mPreviewImageReader != null)
+            removeSurface(mPreviewImageReader.getSurface());
 
         if (mCapturedPhotoReader != null)
             removeSurface(mCapturedPhotoReader.getSurface());
 
-        mImageReader = ImageReader.newInstance(width, height, format, MaxNumberFrames);
-        mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
-        addSurface(mImageReader.getSurface());
+        mPreviewImageReader = ImageReader.newInstance(width, height, format, MaxNumberFrames);
+        mPreviewImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
+        addSurface(mPreviewImageReader.getSurface());
 
         mCapturedPhotoReader = ImageReader.newInstance(width, height, format, MaxNumberFrames);
         mCapturedPhotoReader.setOnImageAvailableListener(mOnPhotoAvailableListener, mBackgroundHandler);
@@ -441,7 +443,7 @@ class QtCamera2 {
         synchronized (mSyncedMembers) {
             try {
                 mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(template);
-                mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
+                mPreviewRequestBuilder.addTarget(mPreviewImageReader.getSurface());
 
                 applyFocusSettingsToCaptureRequestBuilder(mPreviewRequestBuilder);
 
