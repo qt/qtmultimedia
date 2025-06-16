@@ -676,7 +676,7 @@ void QAndroidCamera::onApplicationStateChanged()
 // Called by Java-side processing background thread.
 void QAndroidCamera::onCaptureSessionConfigured()
 {
-    bool canStart = m_jniCamera.callMethod<jboolean>("start", 3);
+    bool canStart = m_jniCamera.callMethod<jboolean>("start");
     setState(canStart ? State::WaitingStart : State::Closed);
 }
 
