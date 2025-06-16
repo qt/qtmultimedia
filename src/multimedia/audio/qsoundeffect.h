@@ -90,7 +90,10 @@ public Q_SLOTS:
 
 private:
     Q_DISABLE_COPY(QSoundEffect)
-    QSoundEffectPrivate *d = nullptr;
+    Q_DECLARE_PRIVATE(QSoundEffect)
+
+    // ### Qt7: remove unused member
+    QT6_ONLY(Q_DECL_UNUSED_MEMBER void *unused = nullptr;) // for ABI compatibility
 };
 
 QT_END_NAMESPACE

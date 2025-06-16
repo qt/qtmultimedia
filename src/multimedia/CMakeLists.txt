@@ -37,6 +37,8 @@ qt_internal_add_module(Multimedia
         audio/qaudio_rtsan_support_p.h
         audio/qsamplecache_p.cpp audio/qsamplecache_p.h
         audio/qsoundeffect.cpp audio/qsoundeffect.h
+        audio/qsoundeffectsynchronous.cpp audio/qsoundeffectsynchronous_p.h
+        audio/qsoundeffect_p.h
         audio/qwavedecoder.cpp audio/qwavedecoder.h
         camera/qcamera.cpp camera/qcamera.h camera/qcamera_p.h
         camera/qcameradevice.cpp camera/qcameradevice.h camera/qcameradevice_p.h
