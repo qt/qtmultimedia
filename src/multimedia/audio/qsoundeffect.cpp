@@ -10,7 +10,6 @@
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
-#include <QtMultimedia/private/qmaybe_p.h>
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
 #include <QtMultimedia/private/qplatformaudioresampler_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
