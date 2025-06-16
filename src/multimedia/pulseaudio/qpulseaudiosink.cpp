@@ -143,10 +143,8 @@ void QPulseAudioSinkStream::stop(ShutdownPolicy policy)
                     int status =
                             pa_stream_write(m_stream.get(), writeRegion.data(), writeRegion.size(),
                                             /*free_cb= */ nullptr, /*offset=*/0, PA_SEEK_RELATIVE);
-                    if (status != 0) {
-                        handleIOError(m_parent);
+                    if (status != 0)
                         writeFailed = true;
-                    }
                 });
             });
 
