@@ -10,7 +10,6 @@
 #### Libraries
 
 qt_find_package(ALSA PROVIDED_TARGETS ALSA::ALSA MODULE_NAME multimedia QMAKE_LIB alsa)
-qt_find_package(AVFoundation PROVIDED_TARGETS AVFoundation::AVFoundation MODULE_NAME multimedia QMAKE_LIB avfoundation)
 qt_find_package(GStreamer 1.20
     PROVIDED_TARGETS GStreamer::GStreamer
     MODULE_NAME multimedia
@@ -141,15 +140,15 @@ qt_feature("alsa" PUBLIC PRIVATE
 )
 qt_feature("avfoundation" PUBLIC PRIVATE
     LABEL "AVFoundation"
-    CONDITION AVFoundation_FOUND
+    CONDITION APPLE
 )
 qt_feature("coreaudio" PUBLIC PRIVATE
     LABEL "CoreAudio"
-    CONDITION AVFoundation_FOUND
+    CONDITION APPLE
 )
 qt_feature("videotoolbox" PUBLIC PRIVATE
     LABEL "VideoToolbox"
-    CONDITION AVFoundation_FOUND
+    CONDITION APPLE
 )
 
 qt_feature("gstreamer" PRIVATE

@@ -144,11 +144,11 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
         ../darwin/camera
     LIBRARIES
         ${FWAudioToolbox}
+        ${FWAVFoundation}
         ${FWCoreMedia}
         ${FWCoreVideo}
         ${FWVideoToolbox}
         ${FWSecurity}
-        AVFoundation::AVFoundation
 )
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION MACOS
