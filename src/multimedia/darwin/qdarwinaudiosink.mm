@@ -128,7 +128,7 @@ bool QCoreAudioSinkStream::start(QIODevice *device)
 
 QIODevice *QCoreAudioSinkStream::start()
 {
-    QIODevice *reader = createRingbufferReaderDevice();
+    QIODevice *reader = createRingbufferWriterDevice();
 
     bool success = start(reader);
     if (success)

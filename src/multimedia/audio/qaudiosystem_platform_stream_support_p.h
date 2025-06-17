@@ -135,7 +135,7 @@ protected:
     virtual void updateStreamIdle(bool) = 0;
 
     // iodevice
-    QIODevice *createRingbufferReaderDevice();
+    QIODevice *createRingbufferWriterDevice();
     void setQIODevice(QIODevice *device);
     void createQIODeviceConnections(QIODevice *device);
     void disconnectQIODeviceConnections();
@@ -184,7 +184,7 @@ private:
     QMetaObject::Connection m_ringbufferHasSpaceConnection;
     QMetaObject::Connection m_iodeviceHasNewDataConnection;
 
-    std::unique_ptr<QIODevice> m_ringbufferReaderDevice;
+    std::unique_ptr<QIODevice> m_ringbufferWriterDevice;
 
     // stats
     std::atomic_int64_t m_totalFrameCount{};
