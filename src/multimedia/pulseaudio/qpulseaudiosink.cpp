@@ -100,7 +100,7 @@ bool QPulseAudioSinkStream::start(AudioCallback &&callback)
 
 QIODevice *QPulseAudioSinkStream::start()
 {
-    QIODevice *device = createRingbufferReaderDevice();
+    QIODevice *device = createRingbufferWriterDevice();
 
     setIdleState(true);
     bool started = start(device);
