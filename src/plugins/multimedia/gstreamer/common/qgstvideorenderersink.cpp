@@ -138,7 +138,7 @@ QT_WARNING_POP
 
 void QGstVideoRenderer::handleNewBuffer(RenderBufferState state)
 {
-    auto videoBuffer = std::make_unique<QGstVideoBuffer>(state.buffer, m_videoInfo, m_sink,
+    auto videoBuffer = std::make_unique<QGstVideoBuffer>(state.buffer, state.videoInfo, m_sink,
                                                          state.format, state.memoryFormat);
     QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(videoBuffer), state.format);
     QGstUtils::setFrameTimeStampsFromBuffer(&frame, state.buffer.get());
@@ -220,6 +220,7 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
     RenderBufferState state{
         QGstBufferHandle{ buffer, QGstBufferHandle::NeedsRef },
         m_format,
+        m_videoInfo,
         m_memoryFormat,
     };
 
