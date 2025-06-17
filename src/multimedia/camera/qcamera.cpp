@@ -888,6 +888,11 @@ void QCamera::zoomTo(float factor, float rate)
 
     Gets or sets a certain flash mode if the camera has a flash.
 
+    Assigning an unsupported mode to this property has no effect.
+
+    This property only has an effect when capturing images using
+    \l ImageCapture
+
     \value Camera.FlashOff      Flash is Off.
     \value Camera.FlashOn       Flash is On.
     \value Camera.FlashAuto     Automatic flash.
@@ -900,6 +905,11 @@ void QCamera::zoomTo(float factor, float rate)
     \brief The flash mode being used.
 
     Enables a certain flash mode if the camera has a flash.
+
+    Assigning an unsupported mode to this property has no effect.
+
+    This property only has an effect when capturing images using
+    \l QImageCapture
 
     \sa QCamera::FlashMode, QCamera::isFlashModeSupported, QCamera::isFlashReady
 */
