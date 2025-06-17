@@ -6,6 +6,8 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QFFmpeg {
+
 QAndroidImageCapture::QAndroidImageCapture(QImageCapture *parent)
     : QFFmpegImageCapture(parent)
 {
@@ -44,3 +46,5 @@ void QAndroidImageCapture::updateExif(int id, const QString &filename)
     if (androidCamera)
         androidCamera->updateExif(filename);
 }
+
+} // namespace QFFmpeg
