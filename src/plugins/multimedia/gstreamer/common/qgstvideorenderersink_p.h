@@ -74,6 +74,7 @@ class QGstVideoRenderer : public QObject
     {
         QGstBufferHandle buffer;
         QVideoFrameFormat format;
+        GstVideoInfo videoInfo;
         QGstCaps::MemoryFormat memoryFormat;
 
         bool operator==(const RenderBufferState &rhs) const
