@@ -101,7 +101,7 @@ bool QPipewireAudioSinkStream::start(QIODevice *device)
 
 QIODevice *QPipewireAudioSinkStream::start()
 {
-    QIODevice *device = createRingbufferReaderDevice();
+    QIODevice *device = createRingbufferWriterDevice();
 
     setIdleState(true);
     bool started = start(device);

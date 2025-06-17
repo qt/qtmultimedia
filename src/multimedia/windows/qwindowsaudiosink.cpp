@@ -67,7 +67,7 @@ QIODevice *QWASAPIAudioSinkStream::start()
     if (!clientOpen)
         return nullptr;
 
-    QIODevice *ioDevice = createRingbufferReaderDevice();
+    QIODevice *ioDevice = createRingbufferWriterDevice();
 
     m_parent->updateStreamIdle(true, QWindowsAudioSink::EmitStateSignal::False);
 

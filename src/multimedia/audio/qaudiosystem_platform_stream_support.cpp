@@ -250,15 +250,15 @@ void QPlatformAudioSinkStream::disconnectQIODeviceConnections()
     QObject::disconnect(m_iodeviceHasNewDataConnection);
 }
 
-QIODevice *QPlatformAudioSinkStream::createRingbufferReaderDevice()
+QIODevice *QPlatformAudioSinkStream::createRingbufferWriterDevice()
 {
-    m_ringbufferReaderDevice = visitRingbuffer([&](auto &ringbuffer) -> std::unique_ptr<QIODevice> {
+    m_ringbufferWriterDevice = visitRingbuffer([&](auto &ringbuffer) -> std::unique_ptr<QIODevice> {
         using SampleType = typename std::decay_t<decltype(ringbuffer)>::ValueType;
         return std::make_unique<QtPrivate::QIODeviceRingBufferWriter<SampleType>>(&ringbuffer);
     });
 
-    m_ringbufferReaderDevice->open(QIODevice::WriteOnly | QIODevice::Unbuffered);
-    return m_ringbufferReaderDevice.get();
+    m_ringbufferWriterDevice->open(QIODevice::WriteOnly | QIODevice::Unbuffered);
+    return m_ringbufferWriterDevice.get();
 }
 
 void QPlatformAudioSinkStream::setQIODevice(QIODevice *device)
