@@ -292,7 +292,7 @@ QMaybe<QPlatformMediaRecorder *> QFFmpegMediaIntegration::createRecorder(QMediaR
 QMaybe<QPlatformImageCapture *> QFFmpegMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
 #if defined(Q_OS_ANDROID)
-    return new QAndroidImageCapture(imageCapture);
+    return new QFFmpeg::QAndroidImageCapture(imageCapture);
 #else
     return new QFFmpegImageCapture(imageCapture);
 #endif
