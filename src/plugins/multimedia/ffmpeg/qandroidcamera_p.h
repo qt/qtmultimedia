@@ -15,10 +15,12 @@
 // We mean it.
 //
 
-#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include <QtMultimedia/private/qplatformcamera_p.h>
-#include <QObject>
-#include <QJniObject>
+
+#include <QtCore/qjniobject.h>
+#include <QtCore/qobject.h>
+
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 
 QT_BEGIN_NAMESPACE
 
