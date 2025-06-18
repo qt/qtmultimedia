@@ -40,6 +40,8 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
+    void cancelPendingImage(QImageCapture::Error error, const QString &errorMsg);
+
 protected:
     virtual int doCapture(const QString &fileName);
     virtual void setupVideoSourceConnections();

@@ -20,6 +20,8 @@
 #include <QtCore/qjniobject.h>
 #include <QtCore/qobject.h>
 
+#include <QtMultimedia/qimagecapture.h>
+
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -81,9 +83,11 @@ public slots:
     void onCaptureSessionFailed(int reason, long frameNumber);
     void onSessionActive();
     void onSessionClosed();
+    void onStillPhotoCaptureFailed();
 
-Q_SIGNALS:
+signals:
     void onStillPhotoCaptured(const QVideoFrame&);
+    void onImageCaptureFailed(QImageCapture::Error error, const QString &errMsg);
 
 private:
     bool isActivating() const { return m_state != State::Closed; }
