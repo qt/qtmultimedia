@@ -39,7 +39,19 @@ void QAndroidImageCapture::setupVideoSourceConnections()
             &QAndroidCamera::onStillPhotoCaptured,
             this,
             &QAndroidImageCapture::newVideoFrame);
-    } else
+
+        // The backend might call onImageCaptureFailed before the call to
+        // QAndroidImageCapture::doCapture() is finished and returns the request id to the user.
+        // Therefore we want to use queued connection for this to make sure any errors are raised
+        // after that function ends.
+        connect(
+            androidCamera,
+            &QAndroidCamera::onImageCaptureFailed,
+            this,
+            &QFFmpegImageCapture::cancelPendingImage,
+            Qt::QueuedConnection);
+    }
+    else
         QFFmpegImageCapture::setupVideoSourceConnections();
 }
 

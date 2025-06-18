@@ -135,6 +135,22 @@ void QFFmpegImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sessio
     onVideoSourceChanged();
 }
 
+void QFFmpegImageCapture::cancelPendingImage(QImageCapture::Error error, const QString &errorMsg)
+{
+    if (m_pendingImages.empty()) {
+        qCDebug(qLcImageCapture) <<
+            "QImageCapture backend received an event to cancel a pending capture, "
+            "but no captures are pending. Most likely an internal Qt bug.";
+        return;
+    }
+
+    PendingImage cancelledImage = m_pendingImages.dequeue();
+
+    emit QPlatformImageCapture::error(cancelledImage.id, error, errorMsg);
+
+    updateReadyForCapture();
+}
+
 void QFFmpegImageCapture::updateReadyForCapture()
 {
     const bool ready = m_session && m_pendingImages.size() < MaxPendingImagesCount && m_videoSource

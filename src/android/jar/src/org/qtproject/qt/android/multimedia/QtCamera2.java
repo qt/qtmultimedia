@@ -30,6 +30,12 @@ import org.qtproject.qt.android.UsedFromNativeCode;
 
 @TargetApi(23)
 class QtCamera2 {
+    // Should be called if an on-going still photo capture has failed to finish.
+    // This lets us submit an appropriate error and notify QImageCapture that there will
+    // be no photo emitted.
+    // TODO: In the future we should send a more descriptive error message to QImageCapture, and
+    // and pass it as a parameter here.
+    native void onStillPhotoCaptureFailed(String cameraId);
 
     CameraDevice mCameraDevice = null;
     QtVideoDeviceManager mVideoDeviceManager = null;
@@ -446,7 +452,7 @@ class QtCamera2 {
         private void onCaptureFailureEvent() {
             mShouldProcessIncomingEvents = false;
 
-            // TODO: Signal to QImageCapture that the capture failed.
+            onStillPhotoCaptureFailed(mCameraId);
 
             synchronized (mSyncedMembers) {
                 mSyncedMembers.mIsTakingStillPhoto = false;
@@ -560,7 +566,7 @@ class QtCamera2 {
             CaptureRequest request,
             CaptureFailure failure)
         {
-            // TODO: Signal to QImageCapture that the capture failed
+            onStillPhotoCaptureFailed(mCameraId);
             synchronized (mSyncedMembers) {
                 mSyncedMembers.mIsTakingStillPhoto = false;
             }
@@ -672,8 +678,10 @@ class QtCamera2 {
             submitNewStillPhotoCapture(cameraSettings);
         } catch (CameraAccessException e) {
             Log.w("QtCamera2", "Cannot get access to the camera: " + e);
-            // TODO: If we fail to start the still photo capture, then we should report back to the
-            // QImageCapture to signal an error on the capture ID, and try to return to previewing.
+            e.printStackTrace();
+            onStillPhotoCaptureFailed(mCameraId);
+            // TODO: Try to go back to previewing if applicable. If that fails too, shut down
+            // camera session and report QCamera as inactive.
         }
     }
 
