@@ -36,12 +36,15 @@ extern "C" {
 QT_BEGIN_NAMESPACE
 static Q_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera");
 
-typedef QMap<QString, QAndroidCamera *> QAndroidCameraMap;
+// TODO: Should be reworked to just pass a pointer of the QAndroidCamera object into the QtCamera2
+// Java instance.
+typedef QMap<QString, QFFmpeg::QAndroidCamera *> QAndroidCameraMap;
 Q_GLOBAL_STATIC(QAndroidCameraMap, g_qcameras)
 Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
 
 namespace {
 
+// TODO: Unify format selection with cross-platform layer
 QCameraFormat getDefaultCameraFormat(const QCameraDevice & cameraDevice)
 {
     // default settings
@@ -154,6 +157,8 @@ int sensorOrientation(QString cameraId)
 }
 
 } // namespace
+
+namespace QFFmpeg {
 
 // QAndroidCamera
 
@@ -745,6 +750,8 @@ void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
                         .arg(reason));
 }
 
+} // namespace QFFmpeg
+
 // JNI logic
 // The following static functions can only be called by the Java-side processing background
 // thread.
@@ -756,7 +763,7 @@ void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
     qCWarning(qLCAndroidCamera) << "Calling back a QtCamera2 after being destroyed."; \
     return;                                                                           \
   }                                                                                   \
-  QAndroidCamera *camera = g_qcameras->find(key).value();
+  QFFmpeg::QAndroidCamera *camera = g_qcameras->find(key).value();
 
 static void onFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
                              QtJniTypes::Image image)
@@ -862,7 +869,7 @@ static void onCaptureSessionFailed(JNIEnv *env, jobject obj, jstring cameraId, j
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCaptureSessionFailed)
 
-bool QAndroidCamera::registerNativeMethods()
+bool QFFmpeg::QAndroidCamera::registerNativeMethods()
 {
     static const bool registered = []() {
         return QJniEnvironment().registerNativeMethods(

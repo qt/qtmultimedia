@@ -204,7 +204,7 @@ QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 #ifdef Q_OS_DARWIN
     return new QAVFCamera(camera);
 #elif defined(Q_OS_ANDROID)
-    return new QAndroidCamera(camera);
+    return new QFFmpeg::QAndroidCamera(camera);
 #elif QT_CONFIG(linux_v4l)
     return new QV4L2Camera(camera);
 #elif defined(Q_OS_WINDOWS)
@@ -367,7 +367,7 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     if (av_jni_set_java_vm(vm, nullptr))
         return JNI_ERR;
 
-    if (!QAndroidCamera::registerNativeMethods()
+    if (!QFFmpeg::QAndroidCamera::registerNativeMethods()
             ||!QAndroidScreenCapture::registerNativeMethods()) {
         return JNI_ERR;
     }
