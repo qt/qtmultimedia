@@ -4,27 +4,30 @@
 #include "qandroidcamera_p.h"
 
 #include <jni.h>
-#include <QMediaFormat>
+
 #include <memory>
 #include <optional>
-#include <qmediadevices.h>
-#include <qguiapplication.h>
-#include <qscreen.h>
-#include <QDebug>
-#include <qloggingcategory.h>
-#include <QtCore/qcoreapplication.h>
-#include <QtCore/qpermissions.h>
-#include <QtCore/private/qandroidextras_p.h>
-#include <private/qcameradevice_p.h>
-#include <QReadWriteLock>
-#include <private/qvideoframe_p.h>
-#include <private/qvideoframeconverter_p.h>
-#include <private/qvideotexturehelper_p.h>
-#include <qffmpegvideobuffer_p.h>
-#include <qandroidvideoframefactory_p.h>
-
-#include <QMetaEnum>
 #include <utility>
+
+#include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qmetaobject.h>
+#include <QtCore/qpermissions.h>
+#include <QtCore/qreadwritelock.h>
+#include <QtCore/private/qandroidextras_p.h>
+
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qscreen.h>
+
+#include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtMultimedia/private/qvideoframeconverter_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
+
+#include <qandroidvideoframefactory_p.h>
+#include <qffmpegvideobuffer_p.h>
 
 extern "C" {
 #include "libavutil/hwcontext.h"
