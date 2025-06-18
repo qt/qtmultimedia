@@ -27,6 +27,8 @@ QT_BEGIN_NAMESPACE
 class QVideoFrame;
 class QAndroidVideoFrameFactory;
 
+namespace QFFmpeg {
+
 class QAndroidCamera : public QPlatformCamera
 {
     Q_OBJECT
@@ -108,6 +110,8 @@ private:
 
     bool m_waitingForFirstFrame = false;
 };
+
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
