@@ -152,6 +152,21 @@ QMediaCaptureSession *QImageCapture::captureSession() const
 }
 
 /*!
+    \qmlproperty enumeration QtMultimedia::ImageCapture::error
+
+    This property holds the last error type that occurred. It can be one of the following.
+
+    \value ImageCapture.NoError                     No esrrors.
+    \value ImageCapture.NotReadyError               The service is not ready for capture yet.
+    \value ImageCapture.ResourceError               Device is not ready or not available.
+    \value ImageCapture.OutOfSpaceError             No space left on device.
+    \value ImageCapture.NotSupportedFeatureError    Device does not support stillimages capture.
+    \value ImageCapture.FormatError                 Current format is not supported.
+
+    \sa errorString
+*/
+
+/*!
     \property QImageCapture::error
 
     Returns the current error state.
@@ -165,6 +180,14 @@ QImageCapture::Error QImageCapture::error() const
 }
 
 /*!
+    \qmlproperty string QtMultimedia::ImageCapture::errorString
+
+    This property holds the last error message that occurred.
+
+    \sa error
+*/
+
+/*!
     \property QImageCapture::errorString
 
     Returns a string describing the current error state.
@@ -176,6 +199,12 @@ QString QImageCapture::errorString() const
 {
     return d_func()->errorString;
 }
+
+/*!
+    \qmlproperty mediaMetaData QtMultimedia::ImageCapture::metaData
+
+    This property holds the metadata that wil be embedded into the image.
+*/
 
 /*!
     \property QImageCapture::metaData
@@ -361,6 +390,18 @@ int QImageCapture::capture()
     \omitvalue LastFileFormat
 */
 
+/*!
+    \qmlproperty enumeration QtMultimedia::ImageCapture::fileFormat
+
+    This property holds the file format for which the image will be
+    written. It can be one of the following.
+
+    \value UnspecifiedFormat    No format specified
+    \value JPEG                 \c .jpg or \c .jpeg format
+    \value PNG                  \c .png format
+    \value WebP                 \c .webp format
+    \value Tiff                 \c .tiff format
+*/
 
 /*!
     \property QImageCapture::fileFormat
@@ -513,6 +554,19 @@ void QImageCapture::setResolution(int width, int height)
     \value NormalQuality
     \value HighQuality
     \value VeryHighQuality
+*/
+
+/*!
+    \qmlproperty enumeration QtMultimedia::ImageCapture::quality
+
+    This property holds the quality hint when storing the captured
+    image. It can be one of the following values.
+
+    \value VeryLowQuality   Very low
+    \value LowQuality       Low
+    \value NormalQuality    Normal
+    \value HighQuality      High
+    \value VeryHighQuality  Very high
 */
 
 /*!
