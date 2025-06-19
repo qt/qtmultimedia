@@ -540,8 +540,8 @@ class QtCamera2 {
         }
     }
 
-    // Can be called from C++ thread through 'takePhoto()' or directly by CameraCaptureCallback
-    // on background thread in order to finalize a still photo capture.
+    // Can be called from C++ thread through 'beginStillPhotoCapture()' or directly by
+    // PreviewCaptureSessionCallback on background thread in order to finalize a still photo capture.
     private void capturePhoto() {
         int aeMode = 0;
         float zoomFactor = 0.f;
@@ -573,7 +573,7 @@ class QtCamera2 {
     // If auto-focus is enabled, will initiate the still photo precapture routine by adjusting
     // focusing and exposure. Otherwise, will finalize a still photo immediately.
     @UsedFromNativeCode
-    void takePhoto() {
+    void beginStillPhotoCapture() {
         // Load copies of synced members before applying.
         int afMode = 0;
         synchronized (mSyncedMembers) {

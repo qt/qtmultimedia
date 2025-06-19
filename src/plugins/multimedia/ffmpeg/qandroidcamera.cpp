@@ -732,7 +732,7 @@ void QAndroidCamera::onSessionClosed()
 
 void QAndroidCamera::capture()
 {
-    m_jniCamera.callMethod<void>("takePhoto");
+    m_jniCamera.callMethod<void>("beginStillPhotoCapture");
 }
 
 void QAndroidCamera::updateExif(const QString &filename)
