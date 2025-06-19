@@ -53,8 +53,12 @@ QPipeWireInstance::QPipeWireInstance()
 
 QPipeWireInstance::~QPipeWireInstance()
 {
-    if (pw_check_library_version(0, 3, 49))
-        pw_deinit();
+    constexpr bool deinitPipeWire = false;
+    // QTBUG-137586: pw_deinit may lead to a crash on exit for now we disable it
+    if constexpr (deinitPipeWire) {
+        if (pw_check_library_version(0, 3, 49))
+            pw_deinit();
+    }
 }
 
 } // namespace QtPipeWire
