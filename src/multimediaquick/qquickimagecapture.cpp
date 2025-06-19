@@ -153,6 +153,8 @@ void QQuickImageCapture::_q_imageCaptured(int id, const QImage &preview)
     This signal is emitted when an error occurs during capture with requested \a id.
     \a error is an enumeration of type ImageCapture::Error.
     A descriptive message is available in \a errorString.
+
+    \sa error errorString
 */
 
 /*!
