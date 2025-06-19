@@ -11,7 +11,7 @@ This page covers the availability of Qt Multimedia features on WebAssembly.
 \section1 Limitations
 
 \list
-\li Due to it's asynchronous nature, some features such as getting the list of
+\li Due to its asynchronous nature, some features such as getting the list of
 QMediaDevices, will not be readily available and may take some time to request permissions and
 gather the list of devices. The audioInputsChanged, audioOutputsChanged and
 videoInputChanged signals from QMediaDevices class will be emitted when they are available.

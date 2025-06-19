@@ -51,7 +51,7 @@
     physical output device to be used, muting the channel, and changing the
     channel's volume.
 
-    \note On WebAssembly platform, due to it's asynchronous nature,
+    \note On WebAssembly platform, due to its asynchronous nature,
     QMediaDevices::audioOutputsChanged() signal is emitted when the list of
     audio outputs is ready. User permissions are required. Works only on secure https contexts.
 
