@@ -31,6 +31,10 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QtPrivate {
+class QIODeviceRingBufferWriterBase;
+}
+
 namespace QtMultimediaPrivate {
 
 class QPlatformAudioIOStream
@@ -184,7 +188,7 @@ private:
     QMetaObject::Connection m_ringbufferHasSpaceConnection;
     QMetaObject::Connection m_iodeviceHasNewDataConnection;
 
-    std::unique_ptr<QIODevice> m_ringbufferWriterDevice;
+    std::unique_ptr<QtPrivate::QIODeviceRingBufferWriterBase> m_ringbufferWriterDevice;
 
     // stats
     std::atomic_int64_t m_totalFrameCount{};

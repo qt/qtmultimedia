@@ -24,6 +24,7 @@
 #include <QtMultimedia/private/qaudio_alignment_support_p.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
+#include <QtMultimedia/private/qautoresetevent_p.h>
 
 #include <deque>
 #include <mutex>
@@ -32,22 +33,47 @@ QT_BEGIN_NAMESPACE
 
 namespace QtPrivate {
 
+class QIODeviceRingBufferWriterBase : public QIODevice
+{
+public:
+    explicit QIODeviceRingBufferWriterBase(QObject *parent = nullptr) : QIODevice(parent)
+    {
+        setOpenMode(QIODevice::WriteOnly | QIODevice::Unbuffered);
+
+        m_bytesConsumed.callOnActivated([&] {
+            qint64 bytes = m_bytesConsumedFromRingbuffer.exchange(0, std::memory_order_relaxed);
+            if (bytes > 0)
+                emit bytesWritten(bytes);
+        });
+    }
+
+    void bytesConsumedFromRingbuffer(qint64 bytes)
+    {
+        m_bytesConsumedFromRingbuffer.fetch_add(bytes, std::memory_order_relaxed);
+        m_bytesConsumed.set();
+    }
+
+    bool isSequential() const override { return true; }
+
+private:
+    QtPrivate::QAutoResetEvent m_bytesConsumed;
+    std::atomic<qint64> m_bytesConsumedFromRingbuffer{ 0 };
+};
+
 // QIODevice writing to a QAudioRingBuffer
 template <typename SampleType>
-class QIODeviceRingBufferWriter : public QIODevice
+class QIODeviceRingBufferWriter final : public QIODeviceRingBufferWriterBase
 {
 public:
     using Ringbuffer = QtPrivate::QAudioRingBuffer<SampleType>;
 
     explicit QIODeviceRingBufferWriter(Ringbuffer *rb, QObject *parent = nullptr)
-        : QIODevice(parent), m_ringbuffer(rb)
+        : QIODeviceRingBufferWriterBase(parent), m_ringbuffer(rb)
     {
         Q_ASSERT(rb);
     }
 
-private:
     qint64 readData(char * /*data*/, qint64 /*maxlen*/) override { return -1; }
-
     qint64 writeData(const char *data, qint64 len) override
     {
         using namespace QtMultimediaPrivate; // take/drop
@@ -59,21 +85,22 @@ private:
             qsizetype(usableLength / sizeof(SampleType)),
         };
 
-        qint64 totalBytesWritten = m_ringbuffer->write(readRegion) * sizeof(SampleType);
-        if (totalBytesWritten)
+        qint64 bytesWritten = m_ringbuffer->write(readRegion) * sizeof(SampleType);
+        if (bytesWritten)
             emit readyRead();
 
-        return totalBytesWritten;
+        return bytesWritten;
     }
 
     qint64 bytesToWrite() const override { return m_ringbuffer->free() * sizeof(SampleType); }
 
-    Ringbuffer *m_ringbuffer;
+private:
+    Ringbuffer *const m_ringbuffer;
 };
 
 // QIODevice reading from a QAudioRingBuffer
 template <typename SampleType>
-class QIODeviceRingBufferReader : public QIODevice
+class QIODeviceRingBufferReader final : public QIODevice
 {
 public:
     using Ringbuffer = QtPrivate::QAudioRingBuffer<SampleType>;
@@ -84,7 +111,6 @@ public:
         Q_ASSERT(rb);
     }
 
-private:
     qint64 readData(char *data, qint64 maxlen) override
     {
         using namespace QtMultimediaPrivate; // drop
@@ -106,12 +132,14 @@ private:
 
     qint64 writeData(const char * /*data*/, qint64 /*len*/) override { return -1; }
     qint64 bytesAvailable() const override { return m_ringbuffer->used() * sizeof(SampleType); }
+    bool isSequential() const override { return true; }
 
-    Ringbuffer *m_ringbuffer;
+private:
+    Ringbuffer *const m_ringbuffer;
 };
 
 // QIODevice backed by a std::deque
-class QDequeIODevice : public QIODevice
+class QDequeIODevice final : public QIODevice
 {
 public:
     using Deque = std::deque<char>;
