@@ -107,19 +107,19 @@ void MainWindow::doCamera()
 
 void MainWindow::on_startButton_clicked()
 {
-    m_camera.data()->start();
+    m_camera->start();
 }
 
 void MainWindow::on_stopButton_clicked()
 {
-    m_camera.data()->stop();
+    m_camera->stop();
 }
 
 void MainWindow::on_captureButton_clicked()
 {
-    connect(m_camera.data(), &QCamera::errorOccurred,
+    connect(m_camera.get(), &QCamera::errorOccurred,
             [](QCamera::Error error, const QString &errorString) {
-                qWarning() << "Error occurred" << error << errorString;
+        qWarning() << "Error occurred" << error << errorString;
     });
 
     QImageCapture *m_imageCapture = new QImageCapture(this);
@@ -189,7 +189,7 @@ void MainWindow::on_camerasComboBox_textActivated(const QString &arg1)
                     [this]() {
                         enableButtons(true);
                     });
-            m_captureSession->setCamera(m_camera.data());
+            m_captureSession->setCamera(m_camera.get());
             break;
         }
     }
