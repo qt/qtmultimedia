@@ -116,7 +116,7 @@ QMaybe<CodecContext> CodecContext::create(AVStream *stream, AVFormatContext *for
 
     /* Init the decoder, with reference counting and threading */
     AVDictionaryHolder opts;
-    if (options.playbackIntent() == QPlaybackOptions::LowLatencyStreaming)
+    if (options.playbackIntent() == QPlaybackOptions::PlaybackIntent::LowLatencyStreaming)
         av_dict_set(opts, "flags", "low_delay", 0);
 
     av_dict_set(opts, "refcounted_frames", "1", 0);

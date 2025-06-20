@@ -245,7 +245,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     if (!protocolWhitelist.isNull())
         av_dict_set(dict, "protocol_whitelist", protocolWhitelist.data(), 0);
 
-    if (playbackOptions.playbackIntent() == QPlaybackOptions::LowLatencyStreaming) {
+    if (playbackOptions.playbackIntent() == QPlaybackOptions::PlaybackIntent::LowLatencyStreaming) {
         av_dict_set(dict, "fflags", "nobuffer", 0);
         av_dict_set_int(dict, "flush_packets", 1, 0);
         qCDebug(qLcMediaDataHolder) << "Enabled low latency streaming";

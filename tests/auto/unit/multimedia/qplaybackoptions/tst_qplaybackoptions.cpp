@@ -54,8 +54,8 @@ private slots:
                                         QString{ "lhs(t=%1,i=%3,p=%5), rhs(t=%2,i=%4,p=%6)" }
                                                 .arg(lhsTimeout)
                                                 .arg(rhsTimeout)
-                                                .arg(lhsIntent)
-                                                .arg(rhsIntent)
+                                                .arg(qToUnderlying(lhsIntent))
+                                                .arg(qToUnderlying(rhsIntent))
                                                 .arg(lhsProbeSize)
                                                 .arg(rhsProbeSize)))
                                         << lhs << rhs;
@@ -127,7 +127,7 @@ private slots:
     {
         QPlaybackOptions options;
 
-        options.setPlaybackIntent(QPlaybackOptions::LowLatencyStreaming);
+        options.setPlaybackIntent(QPlaybackOptions::PlaybackIntent::LowLatencyStreaming);
         options.resetPlaybackIntent();
 
         QCOMPARE_EQ(options.playbackIntent(), QPlaybackOptions::PlaybackIntent::Playback);
