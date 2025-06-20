@@ -26,10 +26,10 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     // Qt 7: rename to device
-    Q_PROPERTY(QCameraDevice cameraDevice READ cameraDevice WRITE setCameraDevice RESET resetCameraDevice NOTIFY cameraDeviceChanged)
+    Q_PROPERTY(QCameraDevice cameraDevice READ cameraDevice WRITE setCameraDevice NOTIFY cameraDeviceChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
-    Q_PROPERTY(QCameraFormat cameraFormat READ cameraFormat WRITE setCameraFormat RESET resetCameraFormat NOTIFY cameraFormatChanged)
+    Q_PROPERTY(QCameraFormat cameraFormat READ cameraFormat WRITE setCameraFormat NOTIFY cameraFormatChanged)
 
     Q_PROPERTY(FocusMode focusMode READ focusMode WRITE setFocusMode NOTIFY focusModeChanged)
     Q_PROPERTY(QPointF focusPoint READ focusPoint NOTIFY focusPointChanged)
@@ -260,9 +260,6 @@ private:
     Q_DISABLE_COPY(QCamera)
     Q_DECLARE_PRIVATE(QCamera)
     friend class QCameraDevice;
-
-    void resetCameraDevice();
-    void resetCameraFormat();
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::Features)
