@@ -179,6 +179,11 @@ QPlatformAudioSinkStream::process(QSpan<std::byte> hostBuffer, qsizetype totalNu
         });
     });
 
+    if (m_ringbufferWriterDevice) {
+        qint64 bytes = samplesConsumedFromRingbuffer * m_format.bytesPerSample();
+        m_ringbufferWriterDevice->bytesConsumedFromRingbuffer(bytes);
+    }
+
     if (!isStopRequested()) {
         if (notificationThresholdBytes == 0 || bytesFree() > notificationThresholdBytes)
             m_ringbufferHasSpace.set();
@@ -252,12 +257,12 @@ void QPlatformAudioSinkStream::disconnectQIODeviceConnections()
 
 QIODevice *QPlatformAudioSinkStream::createRingbufferWriterDevice()
 {
-    m_ringbufferWriterDevice = visitRingbuffer([&](auto &ringbuffer) -> std::unique_ptr<QIODevice> {
+    m_ringbufferWriterDevice = visitRingbuffer(
+            [&](auto &ringbuffer) -> std::unique_ptr<QtPrivate::QIODeviceRingBufferWriterBase> {
         using SampleType = typename std::decay_t<decltype(ringbuffer)>::ValueType;
         return std::make_unique<QtPrivate::QIODeviceRingBufferWriter<SampleType>>(&ringbuffer);
     });
 
-    m_ringbufferWriterDevice->open(QIODevice::WriteOnly | QIODevice::Unbuffered);
     return m_ringbufferWriterDevice.get();
 }
 
