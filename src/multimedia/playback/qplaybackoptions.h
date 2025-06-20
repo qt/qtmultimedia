@@ -13,6 +13,8 @@
 QT_BEGIN_NAMESPACE
 
 class QPlaybackOptionsPrivate;
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QPlaybackOptionsPrivate)
+
 class Q_MULTIMEDIA_EXPORT QPlaybackOptions
 {
     Q_GADGET
@@ -32,7 +34,7 @@ public:
     QPlaybackOptions();
     QPlaybackOptions(const QPlaybackOptions &);
     QPlaybackOptions &operator=(const QPlaybackOptions &);
-    QPlaybackOptions(QPlaybackOptions &&) noexcept;
+    QPlaybackOptions(QPlaybackOptions &&) noexcept = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QPlaybackOptions)
     ~QPlaybackOptions();
 
