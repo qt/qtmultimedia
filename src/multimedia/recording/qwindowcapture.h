@@ -17,7 +17,7 @@ class Q_MULTIMEDIA_EXPORT QWindowCapture : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
-    Q_PROPERTY(QCapturableWindow window READ window WRITE setWindow RESET resetWindow NOTIFY windowChanged)
+    Q_PROPERTY(QCapturableWindow window READ window WRITE setWindow NOTIFY windowChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 public:
@@ -60,8 +60,6 @@ Q_SIGNALS:
 private:
     void setCaptureSession(QMediaCaptureSession *captureSession);
     QPlatformSurfaceCapture *platformWindowCapture() const;
-
-    void resetWindow();
 
     friend class QMediaCaptureSession;
     Q_DISABLE_COPY(QWindowCapture)
