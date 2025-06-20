@@ -34,6 +34,8 @@ public:
     int m_probeSizeBytes = -1;
 };
 
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QPlaybackOptionsPrivate)
+
 /*!
     \class QPlaybackOptions
     \brief The QPlaybackOptions class enables low-level control of media playback options.
@@ -81,7 +83,6 @@ public:
 QPlaybackOptions::QPlaybackOptions() : d{ new QPlaybackOptionsPrivate } { }
 QPlaybackOptions::QPlaybackOptions(const QPlaybackOptions &) = default;
 QPlaybackOptions &QPlaybackOptions::operator=(const QPlaybackOptions &) = default;
-QPlaybackOptions::QPlaybackOptions(QPlaybackOptions &&) noexcept = default;
 QPlaybackOptions::~QPlaybackOptions() = default;
 
 void QPlaybackOptions::swap(QPlaybackOptions &other) noexcept
