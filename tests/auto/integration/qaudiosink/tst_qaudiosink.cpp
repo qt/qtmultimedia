@@ -17,6 +17,7 @@
 #include <qwavedecoder.h>
 
 #include <private/multimedia_debug_support_p.h>
+#include <private/osdetection_p.h>
 #include <private/qmockiodevice_p.h>
 
 #include <memory>
@@ -749,6 +750,7 @@ void tst_QAudioSink::push()
     audioFile->seek(QWaveDecoder::headerLength());
 
     QIODevice *feed = audioSink.start();
+    QSignalSpy dataWrittenToDeviceSpy(feed, &QIODevice::bytesWritten);
 
     // Check that QAudioSink immediately transitions to IdleState
     QTRY_VERIFY2((stateSignal.size() == 1),
@@ -812,7 +814,18 @@ void tst_QAudioSink::push()
     QVERIFY2((audioSink.elapsedUSecs() == (qint64)0),
              "elapsedUSecs() not equal to zero in StoppedState");
 
-    audioFile->close();
+    if (isWindows || isMacOS || isPulseAudioBackend() || isPipewireBackend()) {
+        QVERIFY(!dataWrittenToDeviceSpy.empty());
+        auto allBytesWritten = [&] {
+            qint64 total = 0;
+            for (const auto &params : dataWrittenToDeviceSpy) {
+                total += params.at(0).toLongLong();
+            }
+            return total;
+        }();
+
+        QCOMPARE_EQ(allBytesWritten, audioFile->pos() - QWaveDecoder::headerLength());
+    }
 }
 
 void tst_QAudioSink::pushSuspendResume()
