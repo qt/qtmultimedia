@@ -25,9 +25,9 @@ class QPlaybackOptions
     Q_PROPERTY(int probeSize READ probeSize WRITE setProbeSize RESET resetProbeSize)
 
 public:
-    enum PlaybackIntent {
+    enum class PlaybackIntent {
         Playback,
-        LowLatencyStreaming
+        LowLatencyStreaming,
     };
     Q_ENUM(PlaybackIntent)
 
