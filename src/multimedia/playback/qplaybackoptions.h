@@ -15,9 +15,9 @@ QT_BEGIN_NAMESPACE
 class QPlaybackOptionsPrivate;
 QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QPlaybackOptionsPrivate)
 
-class Q_MULTIMEDIA_EXPORT QPlaybackOptions
+class QPlaybackOptions
 {
-    Q_GADGET
+    Q_GADGET_EXPORT(Q_MULTIMEDIA_EXPORT)
     Q_PROPERTY(int networkTimeoutMs READ networkTimeoutMs WRITE setNetworkTimeoutMs RESET
                        resetNetworkTimeoutMs FINAL)
     Q_PROPERTY(PlaybackIntent playbackIntent READ playbackIntent WRITE setPlaybackIntent RESET
@@ -31,26 +31,26 @@ public:
     };
     Q_ENUM(PlaybackIntent)
 
-    QPlaybackOptions();
-    QPlaybackOptions(const QPlaybackOptions &);
-    QPlaybackOptions &operator=(const QPlaybackOptions &);
+    Q_MULTIMEDIA_EXPORT QPlaybackOptions();
+    Q_MULTIMEDIA_EXPORT QPlaybackOptions(const QPlaybackOptions &);
+    Q_MULTIMEDIA_EXPORT QPlaybackOptions &operator=(const QPlaybackOptions &);
     QPlaybackOptions(QPlaybackOptions &&) noexcept = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QPlaybackOptions)
-    ~QPlaybackOptions();
+    Q_MULTIMEDIA_EXPORT ~QPlaybackOptions();
 
-    void swap(QPlaybackOptions &other) noexcept;
+    Q_MULTIMEDIA_EXPORT void swap(QPlaybackOptions &other) noexcept;
 
-    int networkTimeoutMs() const;
-    void setNetworkTimeoutMs(int timeout);
-    void resetNetworkTimeoutMs();
+    Q_MULTIMEDIA_EXPORT int networkTimeoutMs() const;
+    Q_MULTIMEDIA_EXPORT void setNetworkTimeoutMs(int timeout);
+    Q_MULTIMEDIA_EXPORT void resetNetworkTimeoutMs();
 
-    PlaybackIntent playbackIntent() const;
-    void setPlaybackIntent(PlaybackIntent intent);
-    void resetPlaybackIntent();
+    Q_MULTIMEDIA_EXPORT PlaybackIntent playbackIntent() const;
+    Q_MULTIMEDIA_EXPORT void setPlaybackIntent(PlaybackIntent intent);
+    Q_MULTIMEDIA_EXPORT void resetPlaybackIntent();
 
-    int probeSize() const;
-    void setProbeSize(int probeSizeBytes);
-    void resetProbeSize();
+    Q_MULTIMEDIA_EXPORT int probeSize() const;
+    Q_MULTIMEDIA_EXPORT void setProbeSize(int probeSizeBytes);
+    Q_MULTIMEDIA_EXPORT void resetProbeSize();
 
 private:
     friend Q_MULTIMEDIA_EXPORT bool comparesEqual(const QPlaybackOptions &lhs,
