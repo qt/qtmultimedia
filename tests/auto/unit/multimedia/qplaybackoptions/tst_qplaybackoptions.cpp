@@ -5,6 +5,8 @@
 #include <QtMultimedia/qplaybackoptions.h>
 #include <tuple>
 
+using namespace std::chrono_literals;
+
 QT_USE_NAMESPACE
 
 class tst_qplaybackoptions : public QObject
@@ -18,13 +20,13 @@ private slots:
         QPlaybackOptions lhs;
         QPlaybackOptions rhs;
 
-        lhs.setNetworkTimeoutMs(1000);
-        rhs.setNetworkTimeoutMs(2000);
+        lhs.setNetworkTimeout(1s);
+        rhs.setNetworkTimeout(2s);
 
         swap(lhs, rhs);
 
-        QCOMPARE_EQ(lhs.networkTimeoutMs(), 2000);
-        QCOMPARE_EQ(rhs.networkTimeoutMs(), 1000);
+        QCOMPARE_EQ(lhs.networkTimeout(), 2s);
+        QCOMPARE_EQ(rhs.networkTimeout(), 1s);
     }
 
     void comparison_comparesLikeTuple_data()
@@ -46,14 +48,14 @@ private slots:
                     lhs.setPlaybackIntent(lhsIntent);
                     for (QPlaybackOptions::PlaybackIntent rhsIntent : intents) {
                         rhs.setPlaybackIntent(rhsIntent);
-                        for (int lhsTimeout : { 0, 1 }) {
-                            lhs.setNetworkTimeoutMs(lhsTimeout);
-                            for (int rhsTimeout : { 0, 1 }) {
-                                rhs.setNetworkTimeoutMs(rhsTimeout);
+                        for (auto lhsTimeout : { 0ms, 1ms }) {
+                            lhs.setNetworkTimeout(lhsTimeout);
+                            for (auto rhsTimeout : { 0ms, 1ms }) {
+                                rhs.setNetworkTimeout(rhsTimeout);
                                 QTest::newRow(qPrintable(
                                         QString{ "lhs(t=%1,i=%3,p=%5), rhs(t=%2,i=%4,p=%6)" }
-                                                .arg(lhsTimeout)
-                                                .arg(rhsTimeout)
+                                                .arg(lhsTimeout.count())
+                                                .arg(rhsTimeout.count())
                                                 .arg(qToUnderlying(lhsIntent))
                                                 .arg(qToUnderlying(rhsIntent))
                                                 .arg(lhsProbeSize)
@@ -71,8 +73,8 @@ private slots:
         QFETCH(QPlaybackOptions, lhs);
         QFETCH(QPlaybackOptions, rhs);
 
-        const auto lhsTuple = std::make_tuple(lhs.networkTimeoutMs(), lhs.playbackIntent(), lhs.probeSize());
-        const auto rhsTuple = std::make_tuple(rhs.networkTimeoutMs(), rhs.playbackIntent(), rhs.probeSize());
+        const auto lhsTuple = std::make_tuple(lhs.networkTimeout(), lhs.playbackIntent(), lhs.probeSize());
+        const auto rhsTuple = std::make_tuple(rhs.networkTimeout(), rhs.playbackIntent(), rhs.probeSize());
 
         QCOMPARE_EQ(lhs == rhs, lhsTuple == rhsTuple);
         QCOMPARE_EQ(lhs != rhs, lhsTuple != rhsTuple);
@@ -82,31 +84,31 @@ private slots:
         QCOMPARE_EQ(lhs >= rhs, lhsTuple >= rhsTuple);
     }
 
-    void networkTimeoutMs_returns5seconds_byDefault()
+    void networkTimeout_returns5seconds_byDefault()
     {
         QPlaybackOptions options;
-        QCOMPARE_EQ(options.networkTimeoutMs(), 5'000);
+        QCOMPARE_EQ(options.networkTimeout(), 5s);
     }
 
-    void setNetworkTimeoutMs_changesTimeout()
+    void setNetworkTimeout_changesTimeout()
     {
         QPlaybackOptions options;
 
-        const int defaultTimeout = options.networkTimeoutMs();
-        options.setNetworkTimeoutMs(defaultTimeout + 1);
+        const std::chrono::milliseconds defaultTimeout = options.networkTimeout();
+        options.setNetworkTimeout(defaultTimeout + 1ms);
 
-        QCOMPARE_EQ(options.networkTimeoutMs(), defaultTimeout + 1);
+        QCOMPARE_EQ(options.networkTimeout(), defaultTimeout + 1ms);
     }
 
-    void resetNetworkTimeoutMs_resetsTimeout()
+    void resetNetworkTimeout_resetsTimeout()
     {
         QPlaybackOptions options;
 
-        const int defaultTimeout = options.networkTimeoutMs();
-        options.setNetworkTimeoutMs(defaultTimeout + 1);
-        options.resetNetworkTimeoutMs();
+        const std::chrono::milliseconds defaultTimeout = options.networkTimeout();
+        options.setNetworkTimeout(defaultTimeout + 1ms);
+        options.resetNetworkTimeout();
 
-        QCOMPARE_EQ(options.networkTimeoutMs(), defaultTimeout);
+        QCOMPARE_EQ(options.networkTimeout(), defaultTimeout);
     }
     void playbackIntent_returnsPlayback_byDefault()
     {

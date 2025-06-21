@@ -10,6 +10,8 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qshareddata.h>
 
+#include <chrono>
+
 QT_BEGIN_NAMESPACE
 
 class QPlaybackOptionsPrivate;
@@ -18,8 +20,8 @@ QT_DECLARE_QESDP_SPECIALIZATION_DTOR(QPlaybackOptionsPrivate)
 class QPlaybackOptions
 {
     Q_GADGET_EXPORT(Q_MULTIMEDIA_EXPORT)
-    Q_PROPERTY(int networkTimeoutMs READ networkTimeoutMs WRITE setNetworkTimeoutMs RESET
-                       resetNetworkTimeoutMs FINAL)
+    Q_PROPERTY(std::chrono::milliseconds networkTimeout READ networkTimeout WRITE setNetworkTimeout RESET
+                       resetNetworkTimeout FINAL)
     Q_PROPERTY(PlaybackIntent playbackIntent READ playbackIntent WRITE setPlaybackIntent RESET
                        resetPlaybackIntent)
     Q_PROPERTY(int probeSize READ probeSize WRITE setProbeSize RESET resetProbeSize)
@@ -40,9 +42,9 @@ public:
 
     Q_MULTIMEDIA_EXPORT void swap(QPlaybackOptions &other) noexcept;
 
-    Q_MULTIMEDIA_EXPORT int networkTimeoutMs() const;
-    Q_MULTIMEDIA_EXPORT void setNetworkTimeoutMs(int timeout);
-    Q_MULTIMEDIA_EXPORT void resetNetworkTimeoutMs();
+    Q_MULTIMEDIA_EXPORT std::chrono::milliseconds networkTimeout() const;
+    Q_MULTIMEDIA_EXPORT void setNetworkTimeout(std::chrono::milliseconds timeout);
+    Q_MULTIMEDIA_EXPORT void resetNetworkTimeout();
 
     Q_MULTIMEDIA_EXPORT PlaybackIntent playbackIntent() const;
     Q_MULTIMEDIA_EXPORT void setPlaybackIntent(PlaybackIntent intent);

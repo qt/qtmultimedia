@@ -18,6 +18,8 @@
 #include "qaudiooutput.h"
 #include <QtMultimedia/qplaybackoptions.h>
 
+using namespace std::chrono_literals;
+
 QT_USE_NAMESPACE
 
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
@@ -887,12 +889,12 @@ void tst_QMediaPlayer::setPlaybackOptions_setsPlaybackOptions()
     QSignalSpy spy{ player, &QMediaPlayer::playbackOptionsChanged };
 
     QPlaybackOptions options;
-    const int defaultNetworkTimeout = options.networkTimeoutMs();
-    options.setNetworkTimeoutMs(defaultNetworkTimeout + 1);
+    const std::chrono::milliseconds defaultNetworkTimeout = options.networkTimeout();
+    options.setNetworkTimeout(defaultNetworkTimeout + 1ms);
 
     player->setPlaybackOptions(options);
 
-    QCOMPARE_NE(player->playbackOptions().networkTimeoutMs(), defaultNetworkTimeout);
+    QCOMPARE_NE(player->playbackOptions().networkTimeout(), defaultNetworkTimeout);
 
     QCOMPARE_EQ(spy.size(), 1);
 }
@@ -909,7 +911,7 @@ void tst_QMediaPlayer::setPlaybackOptions_doesNotEmitChangeSignal_whenOptionsDid
 void tst_QMediaPlayer::resetPlaybackOptions_resetsPlaybackOptionsToDefault()
 {
     auto options = player->playbackOptions();
-    options.setNetworkTimeoutMs(options.networkTimeoutMs() + 1);
+    options.setNetworkTimeout(options.networkTimeout() + 1ms);
     player->setPlaybackOptions(options);
 
     player->resetPlaybackOptions();

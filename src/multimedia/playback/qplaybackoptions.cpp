@@ -104,17 +104,17 @@ Qt::strong_ordering compareThreeWay(const QPlaybackOptions &lhs, const QPlayback
 }
 
 /*!
-    \property QPlaybackOptions::networkTimeoutMs
+    \property QPlaybackOptions::networkTimeout
     \since 6.10
 
-    Determines the network timeout (in milliseconds) used for socket I/O operations with some
+    Determines the network timeout used for socket I/O operations with some
     network formats.
 
     This option is only supported with the FFmpeg media backend.
 */
 
 /*!
-    \qmlproperty int playbackOptions::networkTimeoutMs
+    \qmlproperty qint64 playbackOptions::networkTimeoutMs
     \since 6.10
 
     Determines the network timeout (in milliseconds) used for socket I/O operations with some
@@ -123,18 +123,18 @@ Qt::strong_ordering compareThreeWay(const QPlaybackOptions &lhs, const QPlayback
     This option is only supported with the FFmpeg media backend.
 */
 
-int QPlaybackOptions::networkTimeoutMs() const
+std::chrono::milliseconds QPlaybackOptions::networkTimeout() const
 {
-    return static_cast<int>(d->m_networkTimeout.count());
+    return d->m_networkTimeout;
 }
 
-void QPlaybackOptions::setNetworkTimeoutMs(int timeout)
+void QPlaybackOptions::setNetworkTimeout(std::chrono::milliseconds timeout)
 {
     d.detach();
-    d->m_networkTimeout = std::chrono::milliseconds{ timeout };
+    d->m_networkTimeout = timeout;
 }
 
-void QPlaybackOptions::resetNetworkTimeoutMs()
+void QPlaybackOptions::resetNetworkTimeout()
 {
     d.detach();
     d->m_networkTimeout = QPlaybackOptionsPrivate{}.m_networkTimeout;

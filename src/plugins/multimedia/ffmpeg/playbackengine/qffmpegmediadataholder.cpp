@@ -223,7 +223,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
 
     AVDictionaryHolder dict;
     {
-        const auto timeout = milliseconds(playbackOptions.networkTimeoutMs());
+        const milliseconds timeout = playbackOptions.networkTimeout();
         av_dict_set_int(dict, "timeout", duration_cast<microseconds>(timeout).count(), 0);
         qCDebug(qLcMediaDataHolder) << "Using custom network timeout:" << timeout;
     }
