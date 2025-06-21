@@ -240,3 +240,5 @@ void QPlaybackOptions::resetProbeSize()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qplaybackoptions.cpp"
