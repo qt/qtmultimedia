@@ -65,7 +65,7 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
 
     Q_REVISION(6, 10)
     Q_PROPERTY(QPlaybackOptions playbackOptions READ playbackOptions WRITE setPlaybackOptions NOTIFY
-                       playbackOptionsChanged RESET resetPlaybackOptions FINAL)
+                       playbackOptionsChanged RESET resetPlaybackOptions)
 
 public:
     enum PlaybackState
