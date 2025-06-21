@@ -9,6 +9,9 @@ TestCase {
 
     property playbackOptions options
 
+    property playbackOptions optionsA
+    property playbackOptions optionsB
+
     function test_networkTimeoutMs_returns5sec_byDefault() {
         compare(options.networkTimeoutMs, 5000)
     }
@@ -54,4 +57,9 @@ TestCase {
         compare(options.probeSize, -1)
     }
 
+    function test_assignment() {
+        optionsA.networkTimeoutMs = 1
+        optionsB = optionsA
+        compare(optionsB.networkTimeoutMs, 1)
+    }
 }

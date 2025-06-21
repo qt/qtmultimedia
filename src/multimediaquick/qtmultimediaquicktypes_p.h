@@ -190,12 +190,22 @@ struct QWindowCaptureForeign
     QML_NAMED_ELEMENT(WindowCapture)
 };
 
-struct QPlaybackOptionsForeign
+class QPlaybackOptionsDerived : public QPlaybackOptions
 {
+    Q_PROPERTY(qint64 networkTimeoutMs READ networkTimeoutMs WRITE setNetworkTimeoutMs RESET resetNetworkTimeoutMs FINAL)
+
     Q_GADGET
     QML_FOREIGN(QPlaybackOptions)
     QML_VALUE_TYPE(playbackOptions)
+    QML_EXTENDED(QPlaybackOptionsDerived)
     QML_ADDED_IN_VERSION(6, 10)
+
+public:
+    qint64 networkTimeoutMs() const { return networkTimeout().count(); }
+
+    void setNetworkTimeoutMs(qint64 timeout) { setNetworkTimeout(std::chrono::milliseconds(timeout)); }
+
+    void resetNetworkTimeoutMs() { resetNetworkTimeout(); }
 };
 
 namespace QPlaybackOptionsNamespaceForeign {
