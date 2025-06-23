@@ -25,6 +25,8 @@ private slots:
 
     void checkSizes();
     void checkSizes_data();
+
+    void defaultChannelConfigForChannelCount();
 };
 
 void tst_QAudioFormat::checkNull()
@@ -257,6 +259,17 @@ void tst_QAudioFormat::checkSizes_data()
     QTest::newRow("2ch_16b_8k_signed_8000_duration2") << f << 4 << 8000 << qrtr << 2000 << 8000 << qrtr + 124 << 8000 << 2000;
     QTest::newRow("2ch_16b_8k_signed_8000_duration3") << f << 4 << 8000 << qrtr << 2000 << 8000 << qrtr + 125 << 8004 << 2001;
     QTest::newRow("2ch_16b_8k_signed_8000_duration4") << f << 4 << 8000 << qrtr << 2000 << 8000 << qrtr + 126 << 8004 << 2001;
+}
+
+void tst_QAudioFormat::defaultChannelConfigForChannelCount()
+{
+    QCOMPARE(QAudioFormat::defaultChannelConfigForChannelCount(1), QAudioFormat::ChannelConfigMono);
+    QCOMPARE(QAudioFormat::defaultChannelConfigForChannelCount(2),
+             QAudioFormat::ChannelConfigStereo);
+    QCOMPARE(QAudioFormat::defaultChannelConfigForChannelCount(8),
+             QAudioFormat::ChannelConfigSurround7Dot1);
+
+    QCOMPARE(qPopulationCount(QAudioFormat::defaultChannelConfigForChannelCount(16)), 16);
 }
 
 QTEST_MAIN(tst_QAudioFormat)
