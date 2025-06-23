@@ -62,8 +62,10 @@ QAudioContextManager::QAudioContextManager():
 
 QAudioContextManager::~QAudioContextManager()
 {
-    if (isConnected())
+    if (isConnected()) {
         stopEventLoop();
+        stopActiveStreams();
+    }
 
     m_deviceMonitor.reset();
     m_registry.reset();
@@ -394,9 +396,10 @@ int QAudioContextManager::handleMetadata(const MetadataRecord &record)
 
 void QAudioContextManager::stopActiveStreams()
 {
-    for (const auto &stream : m_activeStreams)
-        stream->m_self.reset();
-    m_activeStreams.clear();
+    auto streams = std::exchange(m_activeStreams, {});
+
+    for (const auto &stream : streams)
+        stream->resetStream();
 }
 
 void QAudioContextManager::startDeviceMonitor()

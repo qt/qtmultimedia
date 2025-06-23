@@ -37,9 +37,7 @@ QPipewireAudioStream::QPipewireAudioStream(const QAudioFormat &format) : m_forma
 
 QPipewireAudioStream::~QPipewireAudioStream()
 {
-    QAudioContextManager::withEventLoopLock([&] {
-        m_stream = {};
-    });
+    resetStream();
 }
 
 void QPipewireAudioStream::createStream(QSpan<spa_dict_item> extraProperties,
@@ -154,6 +152,14 @@ void QPipewireAudioStream::disconnectStream()
     });
     if (status < 0)
         qWarning() << "pw_stream_disconnect failed" << make_error_code(-status).message();
+}
+
+void QPipewireAudioStream::resetStream()
+{
+    QAudioContextManager::withEventLoopLock([&] {
+        m_stream = {};
+        m_self = {};
+    });
 }
 
 bool QPipewireAudioStream::hasStream() const
