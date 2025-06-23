@@ -451,8 +451,7 @@ class QtCamera2 {
                 mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mSyncedMembers.mTorchMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
-                if (mSyncedMembers.mZoomFactor != 1.0f)
-                    updateZoom(mPreviewRequestBuilder, mSyncedMembers.mZoomFactor);
+                updateZoom(mPreviewRequestBuilder, mSyncedMembers.mZoomFactor);
                 if (mFpsRange != null)
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange);
                 mPreviewRequest = mPreviewRequestBuilder.build();
@@ -558,8 +557,7 @@ class QtCamera2 {
             applyFocusSettingsToCaptureRequestBuilder(captureBuilder);
 
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, aeMode);
-            if (zoomFactor != 1.0f)
-                updateZoom(captureBuilder, zoomFactor);
+            updateZoom(captureBuilder, zoomFactor);
 
             final StillPhotoCaptureSessionCallback captureCallback =
                 new StillPhotoCaptureSessionCallback();
