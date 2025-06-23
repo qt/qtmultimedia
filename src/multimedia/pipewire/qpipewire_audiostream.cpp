@@ -181,6 +181,13 @@ void QPipewireAudioStream::unregisterDeviceObserver()
 
 void QPipewireAudioStream::performXRunDetection(uint64_t framesPerBuffer) noexcept QT_MM_NONBLOCKING
 {
+    // XRun detection does not work well with pause/resume.
+    // disabling for now, since we don't have any public API for notifying the application about
+    // xruns
+    constexpr bool runXRunDetection = false;
+    if (!runXRunDetection)
+        return;
+
     struct pw_time time_info = {};
     int status = pw_stream_get_time_n(m_stream.get(), &time_info, sizeof(pw_time));
     if (status < 0) {
