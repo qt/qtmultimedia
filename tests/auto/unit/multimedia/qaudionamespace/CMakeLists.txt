@@ -9,6 +9,5 @@ qt_internal_add_test(tst_qaudionamespace
     SOURCES
         tst_qaudionamespace.cpp
     LIBRARIES
-        Qt::Gui
         Qt::MultimediaPrivate
 )

@@ -11,7 +11,7 @@ qt_internal_add_test(tst_qscreencapture
     INCLUDE_DIRECTORIES
         ../../mockbackend
     LIBRARIES
-        Qt::Gui
+        Qt::Core
         Qt::MultimediaPrivate
         Qt::MockMultimediaPlugin
 )

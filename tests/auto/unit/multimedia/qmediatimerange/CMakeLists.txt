@@ -9,6 +9,6 @@ qt_internal_add_test(tst_qmediatimerange
     SOURCES
         tst_qmediatimerange.cpp
     LIBRARIES
-        Qt::Gui
+        Qt::Core
         Qt::MultimediaPrivate
 )
