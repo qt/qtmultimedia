@@ -9,6 +9,5 @@ qt_internal_add_test(tst_qvideoframeformat
     SOURCES
         tst_qvideoframeformat.cpp
     LIBRARIES
-        Qt::Gui
         Qt::MultimediaPrivate
 )

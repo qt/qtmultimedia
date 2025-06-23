@@ -3,11 +3,8 @@
 
 
 #include <QtTest/QtTest>
-#include <QtCore/qlocale.h>
-#include <qaudioformat.h>
 
-#include <QStringList>
-#include <QList>
+#include <QtMultimedia/qaudioformat.h>
 
 class tst_QAudioFormat : public QObject
 {

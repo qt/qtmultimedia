@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/QtTest>
+#include <QtCore/qatomic.h>
+#include <QtCore/qstring.h>
 #include <QtCore/qthread.h>
 #include <QtMultimedia/qsoundeffect.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qatomic.h>
 #include <array>
 #include <chrono>
 

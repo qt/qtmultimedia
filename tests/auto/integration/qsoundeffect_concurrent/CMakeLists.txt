@@ -5,7 +5,7 @@ qt_internal_add_test(tst_qsoundeffect_concurrent
     SOURCES
         tst_qsoundeffect_concurrent.cpp
     LIBRARIES
-        Qt::Gui
+        Qt::Core
         Qt::MultimediaPrivate
     TESTDATA "double-drop.wav"
     BUILTIN_TESTDATA

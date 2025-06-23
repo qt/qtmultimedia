@@ -9,7 +9,7 @@ qt_internal_add_test(tst_qsoundeffect
     SOURCES
         tst_qsoundeffect.cpp
     LIBRARIES
-        Qt::Gui
+        Qt::Core
         Qt::MultimediaPrivate
     TESTDATA
         "test.wav"
