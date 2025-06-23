@@ -115,6 +115,8 @@ private slots:
     void callbackAPI();
     void callbackAPI_startFailsWithWrongType();
 
+    void destroy_while_running(); // should be last test to catch crash on exit
+
 private:
     using FilePtr = std::shared_ptr<QFile>;
 
@@ -1232,6 +1234,17 @@ void tst_QAudioSink::callbackAPI_startFailsWithWrongType()
     platformSink->start([&](QSpan<int32_t>) {
     });
     QCOMPARE(audioSink.error(), QAudio::Error::OpenError);
+}
+
+void tst_QAudioSink::destroy_while_running()
+{
+    AudioPullSource src;
+    src.open(QIODeviceBase::ReadOnly);
+    src.available = 44100 * 10; // 10 seconds of audio
+
+    QAudioSink sink(audioDevice, audioDevice.preferredFormat());
+
+    sink.start(&src);
 }
 
 QTEST_MAIN(tst_QAudioSink)

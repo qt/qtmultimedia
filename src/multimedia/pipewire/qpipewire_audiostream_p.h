@@ -51,6 +51,8 @@ protected:
     bool connectStream(ObjectSerial target, spa_direction);
     void disconnectStream();
 
+    void resetStream();
+
 public:
     void suspend();
     void resume();
