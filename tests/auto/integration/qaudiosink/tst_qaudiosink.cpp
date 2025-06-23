@@ -2,20 +2,18 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/QtTest>
-#include <QtCore/qlocale.h>
-#include <QtCore/QTemporaryDir>
+#include <QtCore/qtemporarydir.h>
 
-#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qwavedecoder.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 #include <private/audiogenerationutils_p.h>
-#include <qaudiosink.h>
-#include <qaudiodevice.h>
-#include <qaudioformat.h>
-#include <qaudio.h>
-#include <qmediadevices.h>
-#include <qwavedecoder.h>
-
 #include <private/mediabackendutils_p.h>
 #include <private/multimedia_debug_support_p.h>
 #include <private/osdetection_p.h>

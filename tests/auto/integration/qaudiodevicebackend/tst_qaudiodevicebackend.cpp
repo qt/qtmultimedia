@@ -3,13 +3,11 @@
 
 
 #include <QtTest/QtTest>
-#include <QtCore/qlocale.h>
-#include <qaudiodevice.h>
 
-#include <QStringList>
-#include <QList>
-#include <QMediaDevices>
-
+#include <QtCore/qstringlist.h>
+#include <QtCore/qlist.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qaudiodevice.h>
 
 #include <private/mediabackendutils_p.h>
 #include <private/osdetection_p.h>

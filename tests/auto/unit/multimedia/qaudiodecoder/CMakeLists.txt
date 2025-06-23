@@ -11,7 +11,6 @@ qt_internal_add_test(tst_qaudiodecoder
     INCLUDE_DIRECTORIES
         ../../mockbackend
     LIBRARIES
-        Qt::Gui
         Qt::Multimedia
         Qt::MultimediaPrivate
         Qt::MockMultimediaPlugin

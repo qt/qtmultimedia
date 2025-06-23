@@ -7,7 +7,6 @@ qt_internal_add_test(tst_qmediadevices
     INCLUDE_DIRECTORIES
         ../../mockbackend
     LIBRARIES
-        Qt::Gui
         Qt::MultimediaPrivate
         Qt::MockMultimediaPlugin
 )

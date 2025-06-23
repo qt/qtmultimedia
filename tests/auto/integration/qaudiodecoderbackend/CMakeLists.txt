@@ -18,7 +18,7 @@ qt_internal_add_test(tst_qaudiodecoderbackend
     INCLUDE_DIRECTORIES
         ../../../../src/multimedia/audio
     LIBRARIES
-        Qt::Gui
+        Qt::Core
         Qt::Multimedia
         Qt::MultimediaPrivate
         Qt::MultimediaTestLibPrivate
