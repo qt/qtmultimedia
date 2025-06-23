@@ -428,7 +428,7 @@ QAudioFormat::ChannelConfig QAudioFormat::defaultChannelConfigForChannelCount(in
         break;
     default:
         // give up, simply use the first n channels
-        config = QAudioFormat::ChannelConfig((1 << (channelCount + 1)) - 1);
+        config = QAudioFormat::ChannelConfig((1 << channelCount) - 1);
     }
     return config;
 }
