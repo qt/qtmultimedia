@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 function(qt_internal_multimedia_set_ffmpeg_link_directory directory)
-    foreach (lib ${ffmpeg_libs} FFmpeg)
+    foreach (lib ${ffmpeg_libs})
         set_target_properties(${lib} PROPERTIES INTERFACE_LINK_DIRECTORIES ${directory})
     endforeach()
 endfunction()
