@@ -9,7 +9,7 @@ qt_internal_add_test(tst_qaudiosource
     SOURCES
         tst_qaudiosource.cpp
     LIBRARIES
-        Qt::Gui
+        Qt::Core
         Qt::MultimediaPrivate
         Qt::MultimediaTestLibPrivate
 )

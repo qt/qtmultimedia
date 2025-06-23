@@ -16,7 +16,6 @@ qt_internal_add_test(tst_qsamplecache
     SOURCES
         tst_qsamplecache.cpp
     LIBRARIES
-        Qt::Gui
         Qt::MultimediaPrivate
     TESTDATA ${test_data}
 )

@@ -17,7 +17,7 @@ qt_internal_add_test(tst_qwavedecoder
         tst_qwavedecoder.cpp
         data/gendata.sh
     LIBRARIES
-        Qt::Gui
+        Qt::Core
         Qt::MultimediaPrivate
         Qt::Network
         Qt::MultimediaTestLibPrivate

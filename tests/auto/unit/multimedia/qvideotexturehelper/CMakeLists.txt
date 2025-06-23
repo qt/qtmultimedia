@@ -5,6 +5,6 @@ qt_internal_add_test(tst_qvideotexturehelper
     SOURCES
         tst_qvideotexturehelper.cpp
     LIBRARIES
-        Qt::Gui
+        Qt::Core
         Qt::MultimediaPrivate
 )
