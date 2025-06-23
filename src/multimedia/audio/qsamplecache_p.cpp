@@ -45,8 +45,10 @@ QSampleCache::QSampleCache(QObject *parent)
 
 QSampleCache::~QSampleCache()
 {
+#if QT_CONFIG(thread)
     m_threadPool.clear();
     m_threadPool.waitForDone();
+#endif
 
     for (auto &entry : m_loadedSamples) {
         auto samplePtr = entry.second.lock();
