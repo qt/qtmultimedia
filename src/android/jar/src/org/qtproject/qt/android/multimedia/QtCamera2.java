@@ -498,7 +498,10 @@ class QtCamera2 {
     // Used for finalizing a still photo capture. Will reset mState and preview-request back to
     // default when capture is done. This should be used for a singular capture-call, not a
     // repeating request.
-    class StillPhotoCaptureSessionCallback extends CameraCaptureSession.CaptureCallback {
+    class StillPhotoFinalizerCallback extends CameraCaptureSession.CaptureCallback {
+        // TODO: Implement failure case where we tell QImageCapture that cancel this pending
+        // image and then try to reset our camera to preview if applicable.
+
         @Override
         public void onCaptureCompleted(
             CameraCaptureSession session,
@@ -553,10 +556,10 @@ class QtCamera2 {
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, cameraSettings.mStillPhotoFlashMode);
             applyZoomSettingsToRequestBuilder(captureBuilder, cameraSettings.mZoomFactor);
 
-            final StillPhotoCaptureSessionCallback captureCallback =
-                new StillPhotoCaptureSessionCallback();
-
-            mCaptureSession.capture(captureBuilder.build(), captureCallback, mBackgroundHandler);
+            mCaptureSession.capture(
+                captureBuilder.build(),
+                new StillPhotoFinalizerCallback(),
+                mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
