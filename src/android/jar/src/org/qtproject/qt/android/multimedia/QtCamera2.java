@@ -226,7 +226,10 @@ class QtCamera2 {
         }
     }
 
-    CameraCaptureSession.CaptureCallback mCaptureCallback = new PreviewCaptureSessionCallback();
+    // Callback that is being used for error-handling when doing preview.
+    // TODO: The variable can be removed in the future, and instead just recreate the object
+    // every time we go into previewing.
+    PreviewCaptureSessionCallback mPreviewCaptureCallback = new PreviewCaptureSessionCallback();
 
     QtCamera2(Context context) {
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -649,6 +652,9 @@ class QtCamera2 {
                 return;
             }
 
+            // TODO: In the future we can call .setRepeatingRequestToPreview() directly,
+            // which will recreate the request builder as necessary and apply it with all
+            // settings consistently.
             applyZoomSettingsToRequestBuilder(mPreviewRequestBuilder, factor);
             mPreviewRequest = mPreviewRequestBuilder.build();
 
@@ -656,7 +662,10 @@ class QtCamera2 {
             // a still photo capture, in which case we don't want to override the current
             // capture-request and instead let the still photo routine set it once it's done.
             try {
-                mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+                mCaptureSession.setRepeatingRequest(
+                    mPreviewRequest,
+                    mPreviewCaptureCallback,
+                    mBackgroundHandler);
             } catch (Exception exception) {
                 Log.w("QtCamera2", "Failed to set zoom:" + exception);
             }
@@ -713,7 +722,10 @@ class QtCamera2 {
             mPreviewRequest = mPreviewRequestBuilder.build();
 
             try {
-                mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+                mCaptureSession.setRepeatingRequest(
+                    mPreviewRequest,
+                    mPreviewCaptureCallback,
+                    mBackgroundHandler);
             } catch (Exception exception) {
                 Log.w("QtCamera2", "Failed to set focus mode:" + exception);
             }
@@ -770,7 +782,10 @@ class QtCamera2 {
                 mPreviewRequest = mPreviewRequestBuilder.build();
 
                 try {
-                    mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+                    mCaptureSession.setRepeatingRequest(
+                        mPreviewRequest,
+                        mPreviewCaptureCallback,
+                        mBackgroundHandler);
                 } catch (Exception exception) {
                     Log.w("QtCamera2", "Failed to set focus distance:" + exception);
                 }
@@ -794,7 +809,10 @@ class QtCamera2 {
                 mPreviewRequest = mPreviewRequestBuilder.build();
 
                 try {
-                    mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+                    mCaptureSession.setRepeatingRequest(
+                        mPreviewRequest,
+                        mPreviewCaptureCallback,
+                        mBackgroundHandler);
                 } catch (Exception exception) {
                     Log.w("QtCamera2", "Failed to set flash mode:" + exception);
                 }
@@ -815,7 +833,10 @@ class QtCamera2 {
                 mSyncedMembers.mCameraSettings);
 
             mPreviewRequest = mPreviewRequestBuilder.build();
-            mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+            mCaptureSession.setRepeatingRequest(
+                mPreviewRequest,
+                mPreviewCaptureCallback,
+                mBackgroundHandler);
         }
     }
 
