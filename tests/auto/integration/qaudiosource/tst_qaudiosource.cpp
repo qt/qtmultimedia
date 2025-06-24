@@ -19,10 +19,19 @@
 
 #define RANGE_ERR 0.5
 
+namespace {
+
 template<typename T> inline bool qTolerantCompare(T value, T expected)
 {
     return qAbs(value - expected) < (RANGE_ERR * expected);
 }
+
+bool isPulseAudioBackend()
+{
+    return QPlatformMediaIntegration::audioBackendName() == "PulseAudio";
+}
+
+} // namespace
 
 using AudioSourceInitializer = bool (*)(QAudioSource &);
 
@@ -442,13 +451,17 @@ void tst_QAudioSource::pull()
 
     stateSignal.clear();
 
-    qint64 processedUs = audioSource.processedUSecs();
-    QVERIFY2(qTolerantCompare(processedUs, 3000000LL),
-             QStringLiteral(
-                     "processedUSecs() doesn't fall in acceptable range, should be 3000000 (%1)")
-                     .arg(processedUs)
-                     .toUtf8()
-                     .constData());
+    if (!isPulseAudioBackend()) {
+        // QTBUG-138000 ... pulseaudio has a rather odd timing behaviour
+        qint64 processedUs = audioSource.processedUSecs();
+        QVERIFY2(
+                qTolerantCompare(processedUs, 3000000LL),
+                QStringLiteral(
+                        "processedUSecs() doesn't fall in acceptable range, should be 3000000 (%1)")
+                        .arg(processedUs)
+                        .toUtf8()
+                        .constData());
+    }
 
     audioSource.stop();
     QTRY_VERIFY2(
@@ -539,16 +552,21 @@ void tst_QAudioSource::pullSuspendResume()
     stateSignal.clear();
 
     // Check that only 'elapsed', and not 'processed' increases while suspended
-    qint64 elapsedUs = audioSource.elapsedUSecs();
-    qint64 processedUs = audioSource.processedUSecs();
-    QVERIFY2(qTolerantCompare(processedUs, 3000000LL),
-             QStringLiteral(
-                     "processedUSecs() doesn't fall in acceptable range, should be 3000000 (%1)")
-                     .arg(processedUs)
-                     .toUtf8()
-                     .constData());
-    QTRY_COMPARE_GT(audioSource.elapsedUSecs(), elapsedUs);
-    QCOMPARE(audioSource.processedUSecs(), processedUs);
+    if (!isPulseAudioBackend()) {
+        // QTBUG-138000 ... pulseaudio has a rather odd timing behaviour
+
+        qint64 elapsedUs = audioSource.elapsedUSecs();
+        qint64 processedUs = audioSource.processedUSecs();
+        QVERIFY2(
+                qTolerantCompare(processedUs, 3000000LL),
+                QStringLiteral(
+                        "processedUSecs() doesn't fall in acceptable range, should be 3000000 (%1)")
+                        .arg(processedUs)
+                        .toUtf8()
+                        .constData());
+        QTRY_COMPARE_GT(audioSource.elapsedUSecs(), elapsedUs);
+        QCOMPARE(audioSource.processedUSecs(), processedUs);
+    }
 
     audioSource.resume();
 
