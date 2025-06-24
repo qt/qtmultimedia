@@ -115,7 +115,7 @@ private:
     QAudioFormat m_sinkFormat;
 
     BufferedDataWithOffset m_bufferedData;
-    QIODevice *m_ioDevice = nullptr;
+    QPointer<QIODevice> m_ioDevice;
 
     bool m_lastFramePushDone = true;
 
