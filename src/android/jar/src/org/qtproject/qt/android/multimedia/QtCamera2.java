@@ -569,7 +569,7 @@ class QtCamera2 {
             applyFocusSettingsToCaptureRequestBuilder(captureBuilder, cameraSettings);
 
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, cameraSettings.mStillPhotoFlashMode);
-            updateZoom(captureBuilder, cameraSettings.mZoomFactor);
+            applyZoomSettingsToRequestBuilder(captureBuilder, cameraSettings.mZoomFactor);
 
             final StillPhotoCaptureSessionCallback captureCallback =
                 new StillPhotoCaptureSessionCallback();
@@ -627,7 +627,7 @@ class QtCamera2 {
                              activePixels.height() - croppedHeight/2);
     }
 
-    private void updateZoom(CaptureRequest.Builder requBuilder, float zoomFactor)
+    private void applyZoomSettingsToRequestBuilder(CaptureRequest.Builder requBuilder, float zoomFactor)
     {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) {
             requBuilder.set(CaptureRequest.SCALER_CROP_REGION, getScalerCropRegion(zoomFactor));
@@ -647,7 +647,7 @@ class QtCamera2 {
                 return;
             }
 
-            updateZoom(mPreviewRequestBuilder, factor);
+            applyZoomSettingsToRequestBuilder(mPreviewRequestBuilder, factor);
             mPreviewRequest = mPreviewRequestBuilder.build();
 
             // TODO: We need to implement a check here that sees if we are currently performing
@@ -814,7 +814,7 @@ class QtCamera2 {
         requestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
         requestBuilder.set(CaptureRequest.FLASH_MODE, cameraSettings.mTorchMode);
 
-        updateZoom(requestBuilder, cameraSettings.mZoomFactor);
+        applyZoomSettingsToRequestBuilder(requestBuilder, cameraSettings.mZoomFactor);
         if (cameraSettings.mFpsRange != null) {
             requestBuilder.set(
                 CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
