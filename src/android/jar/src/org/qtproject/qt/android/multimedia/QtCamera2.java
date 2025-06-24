@@ -416,13 +416,20 @@ class QtCamera2 {
     // waiting for the auto-focus and auto-exposure calibration to lock in. Once done,
     // it will finalize the still photo and then return the camera to previewing.
     class StillPhotoPrecaptureCallback extends CameraCaptureSession.CaptureCallback {
+        // Holds a copy of the camera settings that were to be used when the still photo
+        // was started.
+        CameraSettings mCameraSettings = null;
+        StillPhotoPrecaptureCallback(CameraSettings cameraSettings) {
+            this.mCameraSettings = cameraSettings;
+        }
+
         // TODO: Implement failure case where we cancel the pending image in QImageCapture
         // and try to go back to regular preview if applicable.
 
         private void handleCaptureFocusLock(CaptureResult result) {
             final Integer afStateObj = result.get(CaptureResult.CONTROL_AF_STATE);
             if (afStateObj == null) {
-                capturePhoto();
+                finalizeStillPhoto(mCameraSettings);
                 return;
             }
             final int afState = afStateObj;
@@ -438,7 +445,7 @@ class QtCamera2 {
                 Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                 if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
                     mState = STATE_PICTURE_TAKEN;
-                    capturePhoto();
+                    finalizeStillPhoto(mCameraSettings);
                 } else {
                     // Focusing phase is finished, transition to exposure calibration for
                     // pre-capture.
@@ -472,7 +479,7 @@ class QtCamera2 {
             Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
             if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
                 mState = STATE_PICTURE_TAKEN;
-                capturePhoto();
+                finalizeStillPhoto(mCameraSettings);
             }
         }
 
@@ -560,9 +567,11 @@ class QtCamera2 {
     }
 
     // Can be called from C++ thread through 'beginStillPhotoCapture()' or directly by
-    // PreviewCaptureSessionCallback on background thread in order to finalize a still photo capture.
-    private void capturePhoto() {
-        final CameraSettings cameraSettings = atomicCameraSettingsCopy();
+    // StillPhotoPrecaptureCallback on background thread in order to finalize a still photo capture.
+    //
+    // TODO: If we fail to perform the request to finalize the still photo, we should cancel the
+    // pending image and try to return to preview mode.
+    private void finalizeStillPhoto(CameraSettings cameraSettings) {
         try {
             final CaptureRequest.Builder captureBuilder =
                 mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
@@ -600,10 +609,10 @@ class QtCamera2 {
                 mState = STATE_WAITING_FOCUS_LOCK;
                 mCaptureSession.capture(
                     mPreviewRequestBuilder.build(),
-                    new StillPhotoPrecaptureCallback(),
+                    new StillPhotoPrecaptureCallback(cameraSettings),
                     mBackgroundHandler);
             } else {
-                capturePhoto();
+                finalizeStillPhoto(cameraSettings);
             }
         } catch (CameraAccessException e) {
             Log.w("QtCamera2", "Cannot get access to the camera: " + e);
