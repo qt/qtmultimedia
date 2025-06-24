@@ -302,6 +302,7 @@ bool QCoreAudioSinkStream::addDisconnectListener(AudioObjectID id)
         // a way to re-synchronize the audio stream. so we explicitly stop the audio unit
 
         stopAudioUnit();
+        requestStop();
         handleIOError(m_parent);
     });
 
