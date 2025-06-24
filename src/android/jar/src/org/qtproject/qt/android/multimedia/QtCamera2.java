@@ -468,20 +468,10 @@ class QtCamera2 {
                 mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
                 mPreviewRequestBuilder.addTarget(mPreviewImageReader.getSurface());
 
-                applyFocusSettingsToCaptureRequestBuilder(
+                applyPreviewSettingsToCaptureRequestBuilder(
                     mPreviewRequestBuilder,
                     mSyncedMembers.mCameraSettings);
 
-                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
-                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mSyncedMembers.mCameraSettings.mTorchMode);
-                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
-                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
-                updateZoom(mPreviewRequestBuilder, mSyncedMembers.mCameraSettings.mZoomFactor);
-                if (mSyncedMembers.mCameraSettings.mFpsRange != null) {
-                    mPreviewRequestBuilder.set(
-                        CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
-                        mSyncedMembers.mCameraSettings.mFpsRange);
-                }
                 mPreviewRequest = mPreviewRequestBuilder.build();
                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
                 mSyncedMembers.mIsStarted = true;
@@ -808,6 +798,37 @@ class QtCamera2 {
                 }
             }
         }
+    }
+
+    private void applyPreviewSettingsToCaptureRequestBuilder(
+        CaptureRequest.Builder requestBuilder,
+        CameraSettings cameraSettings)
+    {
+        requestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
+
+        applyFocusSettingsToCaptureRequestBuilder(
+            requestBuilder,
+            cameraSettings);
+
+        // TODO: Check if AE_MODE_ON is available
+        requestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+        requestBuilder.set(CaptureRequest.FLASH_MODE, cameraSettings.mTorchMode);
+
+        updateZoom(requestBuilder, cameraSettings.mZoomFactor);
+        if (cameraSettings.mFpsRange != null) {
+            requestBuilder.set(
+                CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
+                cameraSettings.mFpsRange);
+        }
+
+        // TODO: This should likely not be set because trigger-events should only be submitted
+        // once. Meanwhile, this request will be used for preview which is repeating.
+        mPreviewRequestBuilder.set(
+            CaptureRequest.CONTROL_AF_TRIGGER,
+            CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
+        mPreviewRequestBuilder.set(
+            CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+            CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
     }
 
     // This function is, under some circumstances, invoked indirectly on the C++ thread.
