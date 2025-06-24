@@ -109,6 +109,8 @@ class QtCamera2 {
         // This matches the current QCamera::zoomFactor of the C++ QCamera object.
         public float mZoomFactor = DEFAULT_ZOOM_FACTOR;
 
+        Range<Integer> mFpsRange = null;
+
         public CameraSettings() { }
 
         public CameraSettings(CameraSettings other) {
@@ -117,6 +119,10 @@ class QtCamera2 {
             this.mAFMode = other.mAFMode;
             this.mFocusDistance = other.mFocusDistance;
             this.mZoomFactor = other.mZoomFactor;
+            if (other.mFpsRange != null) {
+                this.mFpsRange = new Range<Integer>(other.mFpsRange.getLower(), other.mFpsRange.getUpper());
+            }
+
         }
     }
 
@@ -146,7 +152,6 @@ class QtCamera2 {
         }
     }
 
-    private Range<Integer> mFpsRange = null;
     private QtExifDataHandler mExifDataHandler = null;
 
     native void onCameraOpened(String cameraId);
@@ -411,11 +416,12 @@ class QtCamera2 {
     }
 
     private void setFrameRate(int minFrameRate, int maxFrameRate) {
-
-        if (minFrameRate <= 0 || maxFrameRate <= 0)
-            mFpsRange = null;
-        else
-            mFpsRange = new Range<>(minFrameRate, maxFrameRate);
+        synchronized (mSyncedMembers) {
+            if (minFrameRate <= 0 || maxFrameRate <= 0)
+                mSyncedMembers.mCameraSettings.mFpsRange = null;
+            else
+                mSyncedMembers.mCameraSettings.mFpsRange = new Range<>(minFrameRate, maxFrameRate);
+        }
     }
 
     boolean addSurface(Surface surface) {
@@ -471,8 +477,11 @@ class QtCamera2 {
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
                 updateZoom(mPreviewRequestBuilder, mSyncedMembers.mCameraSettings.mZoomFactor);
-                if (mFpsRange != null)
-                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange);
+                if (mSyncedMembers.mCameraSettings.mFpsRange != null) {
+                    mPreviewRequestBuilder.set(
+                        CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
+                        mSyncedMembers.mCameraSettings.mFpsRange);
+                }
                 mPreviewRequest = mPreviewRequestBuilder.build();
                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
                 mSyncedMembers.mIsStarted = true;
