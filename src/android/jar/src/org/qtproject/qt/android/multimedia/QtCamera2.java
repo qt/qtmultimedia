@@ -456,32 +456,22 @@ class QtCamera2 {
 
     @UsedFromNativeCode
     boolean start() {
-
         if (mCameraDevice == null)
             return false;
 
         if (mCaptureSession == null)
             return false;
 
-        synchronized (mSyncedMembers) {
-            try {
-                mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-                mPreviewRequestBuilder.addTarget(mPreviewImageReader.getSurface());
-
-                applyPreviewSettingsToCaptureRequestBuilder(
-                    mPreviewRequestBuilder,
-                    mSyncedMembers.mCameraSettings);
-
-                mPreviewRequest = mPreviewRequestBuilder.build();
-                mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+        try {
+            synchronized (mSyncedMembers) {
+                setRepeatingRequestToPreview();
                 mSyncedMembers.mIsStarted = true;
-                return true;
-
-            } catch (Exception exception) {
-                Log.w("QtCamera2", "Failed to start preview:" + exception);
             }
-            return false;
+            return true;
+        } catch (CameraAccessException exception) {
+            Log.w("QtCamera2", "Failed to start preview:" + exception);
         }
+        return false;
     }
 
     @UsedFromNativeCode
@@ -517,21 +507,13 @@ class QtCamera2 {
         {
             try {
                 mExifDataHandler = new QtExifDataHandler(result);
-                // Reset the focus/flash and go back to the normal state of preview.
-                mPreviewRequestBuilder.set(
-                    CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
-                mPreviewRequestBuilder.set(
-                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
-                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
-                mPreviewRequest = mPreviewRequestBuilder.build();
                 mState = STATE_PREVIEW;
                 synchronized (mSyncedMembers) {
-                    if (mSyncedMembers.mIsStarted)
-                        mCaptureSession.setRepeatingRequest(
-                            mPreviewRequest,
-                            mCaptureCallback,
-                            mBackgroundHandler);
+                    // If mIsStarted is true, it's an indication the QCamera is active and wants
+                    // to keep receiving preview frames.
+                    if (mSyncedMembers.mIsStarted) {
+                        setRepeatingRequestToPreview();
+                    }
                 }
             } catch (CameraAccessException e) {
                 e.printStackTrace();
@@ -797,6 +779,23 @@ class QtCamera2 {
                     Log.w("QtCamera2", "Failed to set flash mode:" + exception);
                 }
             }
+        }
+    }
+
+    // Called indirectly from C++ when the QCamera goes active.
+    // Called again from Java camera background thread when a still photo is done.
+    @UsedFromNativeCode
+    private void setRepeatingRequestToPreview() throws CameraAccessException {
+        synchronized (mSyncedMembers) {
+            mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+            mPreviewRequestBuilder.addTarget(mPreviewImageReader.getSurface());
+
+            applyPreviewSettingsToCaptureRequestBuilder(
+                mPreviewRequestBuilder,
+                mSyncedMembers.mCameraSettings);
+
+            mPreviewRequest = mPreviewRequestBuilder.build();
+            mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
         }
     }
 
