@@ -17,7 +17,7 @@ QAudioDevices::QAudioDevices()
     Q_ASSERT(isSupported());
 
     QAudioDeviceMonitor::DeviceLists deviceLists =
-            QAudioContextManager::deviceMonitor().getDeviceLists();
+            QAudioContextManager::deviceMonitor().getDeviceLists(/*verifyThreading=*/false);
 
     m_sourceDeviceList = std::move(deviceLists.sources);
     m_sinkDeviceList = std::move(deviceLists.sinks);

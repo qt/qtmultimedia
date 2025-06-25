@@ -90,7 +90,7 @@ public:
         QList<QAudioDevice> sources;
         QList<QAudioDevice> sinks;
     };
-    DeviceLists getDeviceLists();
+    DeviceLists getDeviceLists(bool verifyThreading = true);
 
 signals:
     void audioSinksChanged(QList<QAudioDevice>);
@@ -150,7 +150,7 @@ private:
     void startCompressionTimer();
 
     // Device list updates
-    void audioDevicesChanged();
+    void audioDevicesChanged(bool verifyThreading = true);
     void updateSources(std::list<PendingNodeRecord> addedNodes,
                        QSpan<const ObjectSerial> removedObjects);
     void updateSinks(std::list<PendingNodeRecord> addedNodes,
