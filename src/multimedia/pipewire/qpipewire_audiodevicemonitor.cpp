@@ -189,9 +189,13 @@ void QAudioDeviceMonitor::setDefaultAudioSource(
     startCompressionTimer();
 }
 
-void QAudioDeviceMonitor::audioDevicesChanged()
+void QAudioDeviceMonitor::audioDevicesChanged(bool verifyThreading)
 {
-    Q_ASSERT(this->thread()->isCurrentThread());
+    // Note: we don't want to assert here if we're called from the QtPipeWire::QAudioDevices()
+    // constructor, as that might run on a worker thread (which pushed the instance to the app
+    // thread)
+    if (verifyThreading)
+        Q_ASSERT(this->thread()->isCurrentThread());
 
     PendingRecords pendingRecords = [&] {
         std::lock_guard guard{ m_pendingRecordsMutex };
@@ -443,7 +447,7 @@ void QAudioDeviceMonitor::unregisterObserver(const SharedObjectRemoveObserver &o
     q20::erase(m_objectRemoveObserver, observer);
 }
 
-QAudioDeviceMonitor::DeviceLists QAudioDeviceMonitor::getDeviceLists()
+QAudioDeviceMonitor::DeviceLists QAudioDeviceMonitor::getDeviceLists(bool verifyThreading)
 {
     // force initial device enumeration
     QAudioContextManager::instance()->syncRegistry();
@@ -471,7 +475,7 @@ QAudioDeviceMonitor::DeviceLists QAudioDeviceMonitor::getDeviceLists()
     }
 
     // now all formats have been resolved and we can update the device list
-    audioDevicesChanged();
+    audioDevicesChanged(verifyThreading);
 
     QReadLocker lock{ &m_mutex };
     return {
