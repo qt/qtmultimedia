@@ -27,7 +27,7 @@ You can get the FFmpeg source code in these ways:
         FFmpeg sources to \c{C:\FFmpeg\ffmpeg}.
 
         \badcode
-            C:\FFmpeg> git clone --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg
+            git clone --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg
         \endcode
 \endlist
 
@@ -86,13 +86,13 @@ For MinGW-w64 installed under \c{C:\Qt\Tools\mingw1310_64\bin}, you can add it
 to the \c PATH by exporting the PATH environment variable.
 
 \badcode
-$ export PATH=/c/Qt/Tools/mingw1310_64/bin:$PATH
+export PATH=/c/Qt/Tools/mingw1310_64/bin:$PATH
 \endcode
 
 Note that it is also possible to install MinGW-w64 using pacman.
 
 \badcode
-$ pacman -S mingw-w64-x86_64-toolchain
+pacman -S mingw-w64-x86_64-toolchain
 \endcode
 
 \section2 Preparing the MSYS2 environment for the MSVC
@@ -122,7 +122,7 @@ This launches a new shell window where you can verify that the MSVC compiler is
 available.
 
 \badcode
-$ which cl.exe
+which cl.exe
 \endcode
 
 \section1 Configuring and building FFmpeg
@@ -132,20 +132,20 @@ directory, create a \c{build} directory which will contain the FFmpeg build
 artifacts, and navigate into it.
 
 \badcode
-$ cd /c/FFmpeg/build
+cd /c/FFmpeg/build
 \endcode
 
 To configure FFmpeg for building with MinGW-w64, run:
 
 \badcode
-$ ../ffmpeg/configure --prefix=../install --disable-doc --enable-network --enable-shared
+../ffmpeg/configure --prefix=../install --disable-doc --enable-network --enable-shared
 \endcode
 
 To configure FFmpeg for building with MSVC, specify the toolchain in addition to
 the other command line options:
 
 \badcode
-$ ../ffmpeg/configure --prefix=../install --disable-doc --enable-network --enable-shared --toolchain=msvc
+../ffmpeg/configure --prefix=../install --disable-doc --enable-network --enable-shared --toolchain=msvc
 \endcode
 
 The \c{--prefix} argument specifies a path where the FFmpeg development
@@ -157,7 +157,7 @@ Once the \c configure command finishes, build and install FFmpeg using the
 \c make command.
 
 \badcode
-$ make -j install
+make -j install
 \endcode
 
 If the build completes without errors, FFmpeg development libraries are
