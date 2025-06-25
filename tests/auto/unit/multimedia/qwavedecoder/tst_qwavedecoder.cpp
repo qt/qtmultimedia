@@ -9,6 +9,8 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 
+QT_WARNING_DISABLE_DEPRECATED; // QWaveDecoder is deprecated
+
 class tst_QWaveDecoder : public QObject
 {
     Q_OBJECT
