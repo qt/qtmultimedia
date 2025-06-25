@@ -27,7 +27,7 @@ You can get the FFmpeg source code in these ways:
         FFmpeg sources to \c{~/ffmpeg}.
 
         \badcode
-        $ git clone --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg
+        git clone --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg
         \endcode
 \endlist
 
@@ -51,14 +51,14 @@ To build FFmpeg, these tools and packages are required:
 To install the required packages (including Yasm for FFmpeg), run:
 
 \badcode
-$ apt-get install yasm
+apt-get install yasm
 \endcode
 
 Additionally, if you're enabling a security backend, you need the corresponding
 developer package, for example:
 
 \badcode
-$ apt-get install libssl-dev
+apt-get install libssl-dev
 \endcode
 
 For other backends, install the relevant packages:
@@ -75,14 +75,14 @@ For other backends, install the relevant packages:
 Create a \c build directory inside the \c{~/ffmpeg} directory and navigate into it:
 
 \badcode
-$ mkdir ~/ffmpeg/build
-$ cd ~/ffmpeg/build
+mkdir ~/ffmpeg/build
+cd ~/ffmpeg/build
 \endcode
 
 To configure FFmpeg, run:
 
 \badcode
-$ ../configure --prefix=/usr/local/ffmpeg --disable-doc --enable-network --enable-shared
+../configure --prefix=/usr/local/ffmpeg --disable-doc --enable-network --enable-shared
 \endcode
 
 The \c{--prefix} argument specifies a path where the FFmpeg development
@@ -93,10 +93,10 @@ the \c{--enable-shared} option.
 If you're building FFmpeg with a security backend, choose the appropriate option:
 
 \badcode
-$ ../configure --enable-openssl # For OpenSSL
-$ ../configure --enable-gnutls # For GnuTLS
-$ ../configure --enable-libtls # For LibreSSL (libtls)
-$ ../configure --enable-mbedtls # For MbedTLS
+../configure --enable-openssl # For OpenSSL
+../configure --enable-gnutls # For GnuTLS
+../configure --enable-libtls # For LibreSSL (libtls)
+../configure --enable-mbedtls # For MbedTLS
 \endcode
 
 Make sure you have the corresponding developer package installed as mentioned earlier.
@@ -108,7 +108,7 @@ are installed. For better performance, especially on systems with GPU support, i
 recommended to install VAAPI development packages:
 
 \badcode
-$ apt-get install libva-dev
+apt-get install libva-dev
 \endcode
 
 This will enable FFmpeg to detect VAAPI support during configuration.
@@ -120,12 +120,12 @@ headers. These can be downloaded from the following repository:
 To build and install the headers, run the following commands:
 
 \badcode
-$ mkdir ~/nv-codec-headers
-$ cd ~/nv-codec-headers
-$ git clone https://github.com/FFmpeg/nv-codec-headers.git
-$ mkdir build
-$ cd build
-$ make -j install
+mkdir ~/nv-codec-headers
+cd ~/nv-codec-headers
+git clone https://github.com/FFmpeg/nv-codec-headers.git
+mkdir build
+cd build
+make -j install
 \endcode
 
 Make sure to check the compatibility of the \c nv-codec-headers with your NVIDIA driver
@@ -139,7 +139,7 @@ This includes hardware acceleration and security backends. If you want to disabl
 (for example, to avoid compiling unnecessary dependencies), you can use:
 
 \badcode
-$ ../configure --disable-autodetect
+../configure --disable-autodetect
 \endcode
 
 If you are building FFmpeg with any additional dependencies (like a security backend or
@@ -159,7 +159,7 @@ On Linux, FFmpeg uses both RPATH and RUNPATH metadata sections to manage library
 We recommend using the \c patchelf utility to set the correct runpath:
 
 \badcode
-$ patchelf --set-rpath "new/runpath" lib.so
+patchelf --set-rpath "new/runpath" lib.so
 \endcode
 
 By default, \c patchelf modifies the RUNPATH, as RPATH is considered obsolete on Linux.
@@ -167,7 +167,7 @@ To set a relative runpath, you can use the \c $ORIGIN variable, which makes the 
 to the location of the executable:
 
 \badcode
-$ patchelf --set-rpath "$ORIGIN/../lib" lib.so
+patchelf --set-rpath "$ORIGIN/../lib" lib.so
 \endcode
 
 This approach ensures portability by linking libraries based on their relative locations.
@@ -177,7 +177,7 @@ This approach ensures portability by linking libraries based on their relative l
 Once you've configured FFmpeg with your desired options, you can build and install it:
 
 \badcode
-$ make -j install
+make -j install
 \endcode
 
 If the build completes without errors, FFmpeg development libraries will be installed
