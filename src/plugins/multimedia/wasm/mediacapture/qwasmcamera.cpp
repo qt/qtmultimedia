@@ -28,20 +28,6 @@ QWasmCamera::QWasmCamera(QCamera *camera)
       m_cameraOutput(new QWasmVideoOutput),
       m_cameraIsReady(false)
 {
-    QPlatformVideoDevices *videoDevices = QPlatformMediaIntegration::instance()->videoDevices();
-
-    connect(videoDevices, &QPlatformVideoDevices::videoInputsChanged, this, [&]() {
-        const QList<QCameraDevice> cameras = videoDevices->videoInputs();
-
-        if (!cameras.isEmpty()) {
-            if (m_cameraDev.id().isEmpty())
-                setCamera(cameras.at(0)); // default camera
-            else
-                setCamera(m_cameraDev);
-            return;
-        }
-    });
-
     connect(this, &QWasmCamera::cameraIsReady, this, [this]() {
         m_cameraIsReady = true;
         if (m_cameraShouldStartActive) {
