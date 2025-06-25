@@ -50,7 +50,7 @@ private Q_SLOTS:
         }
 
         for (size_t i = 0; i < threadCount; ++i)
-            QVERIFY(threads[i]->wait());
+            QTRY_VERIFY(threads[i]->wait(10ms));
 
         QVERIFY(success);
 
