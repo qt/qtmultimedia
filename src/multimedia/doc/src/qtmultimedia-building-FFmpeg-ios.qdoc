@@ -39,8 +39,8 @@ You can get the FFmpeg source code in these ways:
 \li Clone from git. For example, these commands clone the version 7.1.1 of the
 FFmpeg sources to \c{~/ffmpeg/ffmpeg_src}.
 \badcode
-% cd ~/ffmpeg/
-% git clone --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg_src
+cd ~/ffmpeg/
+git clone --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg_src
 \endcode
 \endlist
 
@@ -53,15 +53,15 @@ Create a \c build and \c installed directories inside the \c{~/ffmpeg} directory
 navigate into \c build:
 
 \badcode
-% mkdir ~/ffmpeg/build
-% mkdir ~/ffmpeg/installed
-% cd ~/ffmpeg/build
+mkdir ~/ffmpeg/build
+mkdir ~/ffmpeg/installed
+cd ~/ffmpeg/build
 \endcode
 
 To configure FFmpeg, run:
 
 \badcode
- % ../ffmpeg_src/configure --disable-programs --disable-doc --enable-network --enable-shared --disable-static \
+../ffmpeg_src/configure --disable-programs --disable-doc --enable-network --enable-shared --disable-static \
     --sysroot="$(xcrun --sdk iphoneos --show-sdk-path)" \
     --enable-cross-compile \
     --arch=arm64 \
@@ -90,13 +90,13 @@ FFmpeg to be built as libraries suitable for iOS simulator.
 
 To get help on other configuration options, run:
 \badcode
-% ../ffmpeg_src/configure --help
+../ffmpeg_src/configure --help
 \endcode
 
 After configuration is complete, build FFmpeg libraries:
 
 \badcode
-% make -j install
+make -j install
 \endcode
 
 \section1 Creating iOS frameworks from FFmpeg libraries
@@ -121,7 +121,7 @@ fixing library identification names and dependencies in our dynamic libraries.
 The \c otool utility helps us to find such names. For example:
 
 \badcode
-%otool -L ../installed/lib/libavcodec.dylib
+otool -L ../installed/lib/libavcodec.dylib
 \endcode
 
 gives us these names (we only show FFmpeg-related names):
@@ -240,7 +240,7 @@ and \c {~/ffmpeg/installed/arm64-simulator} directories, the utility arguments l
 like follows:
 
 \badcode
-%xcodebuild -create-xcframework -framework ../installed/arm64/libavcodec.framework -framework ../installed/arm64-simulator/libavcodec.framework -output ../installed/framework/libavcodec.xcframework
+xcodebuild -create-xcframework -framework ../installed/arm64/libavcodec.framework -framework ../installed/arm64-simulator/libavcodec.framework -output ../installed/framework/libavcodec.xcframework
 \endcode
 
 \section1 Embedding frameworks
