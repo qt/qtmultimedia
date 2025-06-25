@@ -28,7 +28,7 @@ You can get the FFmpeg source code in these ways:
         FFmpeg sources to \c{~/ffmpeg}.
 
         \badcode
-            % git clone --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg
+            git clone --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg
         \endcode
 \endlist
 
@@ -55,7 +55,7 @@ For information on how to setup these tools, refer to \l {Getting Started with Q
 To install Homebrew, run:
 
 \badcode
-% /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 \endcode
 
 \section2 Installing Homebrew packages
@@ -63,7 +63,7 @@ To install Homebrew, run:
 To install Homebrew package Yasm, run:
 
 \badcode
-% brew install yasm
+brew install yasm
 \endcode
 
 \section1 Set environment variables
@@ -75,7 +75,7 @@ The following command assumes that Andorid SDK is installed to
 \c{~/Library/Android/sdk} and Android NDK version is 26.1.10909125.
 
 \badcode
-    % export ANDROID_NDK_ROOT=~/Library/Android/sdk/ndk/26.1.10909125
+    export ANDROID_NDK_ROOT=~/Library/Android/sdk/ndk/26.1.10909125
 \endcode
 
 It is recommended to use the same NDK version as documented in the \l {Getting Started with Qt for Android}.
@@ -94,27 +94,27 @@ Setup architecture-specific variables:
 \list
     \li aarch64
         \badcode
-            % export ARCH=aarch64
-            % export TOOLCHAIN_ARCH=aarch64-linux-android
-            % export CPU=armv8-a
+            export ARCH=aarch64
+            export TOOLCHAIN_ARCH=aarch64-linux-android
+            export CPU=armv8-a
         \endcode
     \li armv7
         \badcode
-            % export ARCH=armv7
-            % export TOOLCHAIN_ARCH=armv7a-linux-androideabi
-            % export CPU=armv7-a
+            export ARCH=armv7
+            export TOOLCHAIN_ARCH=armv7a-linux-androideabi
+            export CPU=armv7-a
         \endcode
     \li x86
         \badcode
-            % export ARCH=x86
-            % export TOOLCHAIN_ARCH=i686-linux-android
-            % export CPU=i686
+            export ARCH=x86
+            export TOOLCHAIN_ARCH=i686-linux-android
+            export CPU=i686
         \endcode
     \li x86_64
         \badcode
-            % export ARCH=x86_64
-            % export TOOLCHAIN_ARCH=x86_64-linux-android
-            % export CPU=x86-64
+            export ARCH=x86_64
+            export TOOLCHAIN_ARCH=x86_64-linux-android
+            export CPU=x86-64
         \endcode
 \endlist
 
@@ -123,14 +123,14 @@ Setup architecture-specific variables:
 Create a \c{build-android} directory inside the \c{~/ffmpeg} directory and navigate into it:
 
 \badcode
-    % mkdir ~/ffmpeg/build-android
-    % cd ~/ffmpeg/build-android
+    mkdir ~/ffmpeg/build-android
+    cd ~/ffmpeg/build-android
 \endcode
 
 To configure FFmpeg, run:
 
 \badcode
-    % ../configure --prefix=../install-android --disable-doc --enable-network --enable-shared \
+    ../configure --prefix=../install-android --disable-doc --enable-network --enable-shared \
         --host-os=darwin-x86_64 --target-os=android \
         --enable-cross-compile --arch=${ARCH} --cpu=${CPU} \
         --enable-jni --enable-mediacodec \
@@ -151,10 +151,10 @@ as when building for Linux) but only OpenSSL is tested by QtMultimedia maintaine
 Choose the appropriate option and add it during FFmpeg configuration:
 
 \badcode
-    % --enable-openssl # For OpenSSL
-    % --enable-gnutls # For GnuTLS
-    % --enable-libtls # For LibreSSL (libtls)
-    % --enable-mbedtls # For MbedTLS
+    --enable-openssl # For OpenSSL
+    --enable-gnutls # For GnuTLS
+    --enable-libtls # For LibreSSL (libtls)
+    --enable-mbedtls # For MbedTLS
 \endcode
 
 If you're using OpenSSL you also need to add following options during FFmpeg configuration.
@@ -162,7 +162,7 @@ Don't forget to replace \c{<ANDROID_OPENSSL_INCLUDE_DIR>} and \c{<ANDROID_OPENSS
 paths.
 
 \badcode
-    % --extra-cflags=-I<ANDROID_OPENSSL_INCLUDE_DIR> --extra-ldflags=-L<ANDROID_OPENSSL_LIBS_DIR>
+    --extra-cflags=-I<ANDROID_OPENSSL_INCLUDE_DIR> --extra-ldflags=-L<ANDROID_OPENSSL_LIBS_DIR>
 \endcode
 
 If security backend is included, you should take care about its delivery yourself, ensuring correct
@@ -175,7 +175,7 @@ Once the \c configure command finishes, build and install FFmpeg using the
 \c make command.
 
 \badcode
-    % make -j install
+    make -j install
 \endcode
 
 If the build completes without errors, FFmpeg development libraries are

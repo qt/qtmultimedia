@@ -27,7 +27,7 @@ You can get the FFmpeg source code in these ways:
         FFmpeg sources to \c{~/ffmpeg}.
 
         \badcode
-        % git clone --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg
+        git clone --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg
         \endcode
 \endlist
 
@@ -51,7 +51,7 @@ To build FFmpeg, these tools and packages are required:
 To install Homebrew, run:
 
 \badcode
-% /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 \endcode
 
 \section2 Installing Homebrew packages
@@ -59,7 +59,7 @@ To install Homebrew, run:
 To install Homebrew package Yasm, run:
 
 \badcode
-% brew install yasm
+brew install yasm
 \endcode
 
 \section1 Configuring and building FFmpeg
@@ -67,14 +67,14 @@ To install Homebrew package Yasm, run:
 Create a \c build directory inside the \c{~/ffmpeg} directory and navigate into it:
 
 \badcode
-% mkdir ~/ffmpeg/build
-% cd ~/ffmpeg/build
+mkdir ~/ffmpeg/build
+cd ~/ffmpeg/build
 \endcode
 
 To configure FFmpeg, run:
 
 \badcode
-% ../configure --prefix=/usr/local/ffmpeg --disable-doc --enable-network --enable-shared
+../configure --prefix=/usr/local/ffmpeg --disable-doc --enable-network --enable-shared
 \endcode
 
 The \c{--prefix} argument specifies a path where the FFmpeg development
@@ -94,7 +94,7 @@ Once the \c configure command finishes, build and install FFmpeg using the
 \c make command.
 
 \badcode
-% make -j install
+make -j install
 \endcode
 
 If the build completes without errors, FFmpeg development libraries are
@@ -110,15 +110,15 @@ follow these steps:
 \list
     \li Configure and build FFmpeg for arm64 architecture:
         \badcode
-        % ../configure --prefix=/usr/local/ffmpeg/arm64 --disable-doc --enable-network \
+        ../configure --prefix=/usr/local/ffmpeg/arm64 --disable-doc --enable-network \
             --enable-shared --enable-cross-compile --arch=arm64 --cc="clang -arch arm64"
-        % make -j install
+        make -j install
         \endcode
     \li Configure and build FFmpeg for x86_64 architecture:
         \badcode
-        % ../configure --prefix=/usr/local/ffmpeg/x86_64 --disable-doc --enable-network \
+        ../configure --prefix=/usr/local/ffmpeg/x86_64 --disable-doc --enable-network \
             --enable-shared --enable-cross-compile --arch=x86_64 --cc="clang -arch x86_64"
-        % make -j install
+        make -j install
         \endcode
     \li Combine the builds into a universal binary
         using \l{https://www.unix.com/man-page/osx/1/lipo/}{lipo}.
