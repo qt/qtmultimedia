@@ -37,9 +37,11 @@ namespace QtMultimediaPrivate {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum class AudioEndpointRole : uint8_t {
+enum class AudioEndpointRole : uint8_t
+{
     MediaPlayback,
     SoundEffect,
+    Accessibility,
     Other,
 };
 

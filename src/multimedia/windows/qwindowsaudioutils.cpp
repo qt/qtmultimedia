@@ -342,6 +342,9 @@ bool audioClientSetRole(const ComPtr<IAudioClient3> &client, AudioEndpointRole r
     case AudioEndpointRole::SoundEffect:
         properties.eCategory = AudioCategory_SoundEffects;
         break;
+    case AudioEndpointRole::Accessibility:
+        properties.eCategory = AudioCategory_Speech;
+        break;
     case AudioEndpointRole::Other:
         properties.eCategory = AudioCategory_Other;
         break;
