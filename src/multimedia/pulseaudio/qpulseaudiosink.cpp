@@ -53,6 +53,8 @@ QPulseAudioSinkStream::QPulseAudioSinkStream(QAudioDevice device, const QAudioFo
             return "music";
         case AudioEndpointRole::SoundEffect:
             return "event";
+        case AudioEndpointRole::Accessibility:
+            return "a11y";
         case AudioEndpointRole::Other:
             return nullptr;
         default:
