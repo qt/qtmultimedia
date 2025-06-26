@@ -224,6 +224,7 @@ std::chrono::microseconds QPlatformAudioSinkStream::processedDuration() const
 
 void QPlatformAudioSinkStream::pullFromQIODevice()
 {
+    Q_ASSERT(thread()->isCurrentThread());
     Q_ASSERT(m_device);
 
     visitRingbuffer([&](auto &ringbuffer) {
@@ -279,6 +280,13 @@ void QPlatformAudioSinkStream::setIdleState(bool x)
 void QPlatformAudioSinkStream::stopIdleDetection()
 {
     QObject::disconnect(m_streamIdleDetectionConnection);
+}
+
+QThread *QPlatformAudioSinkStream::thread() const
+{
+    // QPlatformAudioSinkStream is not a QObject, but still has a notion of an application thread
+    // where it lives on.
+    return m_streamIdleDetectionNotifier.thread();
 }
 
 // we limit alloca calls to 0.5MB. it's good enough for virtually all use cases (i.e. buffers
@@ -360,6 +368,8 @@ uint64_t QPlatformAudioSourceStream::process(
 
 void QPlatformAudioSourceStream::pushToIODevice()
 {
+    Q_ASSERT(thread()->isCurrentThread());
+
     qsizetype bytesPushed = visitRingbuffer([&](auto &ringbuffer) {
         return QtPrivate::pushToQIODeviceFromRingbuffer(*m_device, ringbuffer);
     });
@@ -394,6 +404,13 @@ void QPlatformAudioSourceStream::emptyRingbuffer()
         ringbuffer.consumeAll([](auto &) {
         });
     });
+}
+
+QThread *QPlatformAudioSourceStream::thread() const
+{
+    // QPlatformAudioSourceStream is not a QObject, but still has a notion of an application thread
+    // where it lives on.
+    return m_ringbufferHasData.thread();
 }
 
 qsizetype QPlatformAudioSourceStream::bytesReady() const

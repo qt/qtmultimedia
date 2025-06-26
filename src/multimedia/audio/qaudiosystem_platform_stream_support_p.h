@@ -166,13 +166,15 @@ protected:
     void handleIOError(ParentType *parent)
     {
         if (parent) {
-            Q_ASSERT(parent->thread()->isCurrentThread());
+            Q_ASSERT(thread()->isCurrentThread());
             parent->setError(QAudio::IOError);
             parent->updateStreamState(QtAudio::State::StoppedState);
 
             parent->m_stream = {};
         }
     }
+
+    QThread *thread() const;
 
 private:
     // qiodevice
@@ -237,7 +239,7 @@ protected:
     void handleIOError(ParentType *parent)
     {
         if (parent) {
-            Q_ASSERT(parent->thread()->isCurrentThread());
+            Q_ASSERT(thread()->isCurrentThread());
             parent->setError(QAudio::IOError);
             parent->updateStreamState(QtAudio::State::StoppedState);
 
@@ -249,6 +251,8 @@ protected:
                 parent->m_stream = {};
         }
     }
+
+    QThread *thread() const;
 
 private:
     // qiodevice
