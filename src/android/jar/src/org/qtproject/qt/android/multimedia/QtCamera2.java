@@ -116,6 +116,8 @@ class QtCamera2 {
     class SyncedMembers {
         private boolean mIsStarted = false;
 
+        private boolean mIsTakingStillPhoto = false;
+
         private CameraSettings mCameraSettings = new CameraSettings();
     }
     private final SyncedMembers mSyncedMembers = new SyncedMembers();
@@ -392,6 +394,7 @@ class QtCamera2 {
                 Log.w("QtCamera2", "Failed to stop and close:" + exception);
             }
             mSyncedMembers.mIsStarted = false;
+            mSyncedMembers.mIsTakingStillPhoto = false;
         }
     }
 
@@ -500,9 +503,9 @@ class QtCamera2 {
                         setRepeatingRequestToPreview();
                     }
 
-                    // TODO: Set a value in SyncedMembers that we are no longer in the process
-                    // of taking still photo. If we implement queueing of multiple photos,
-                    // we should start the processing of capturing the next photo here.
+                    // TODO: If we implement queueing of multiple photos, we should start the
+                    // process of capturing the next photo here.
+                    mSyncedMembers.mIsTakingStillPhoto = false;
                 }
             } catch (CameraAccessException e) {
                 e.printStackTrace();
@@ -569,6 +572,14 @@ class QtCamera2 {
     //      we transition back into regular previewing.
     @UsedFromNativeCode
     void beginStillPhotoCapture() {
+        synchronized (mSyncedMembers) {
+            if (mSyncedMembers.mIsTakingStillPhoto) {
+                // Queuing multiple still photos is not implemented.
+                // TODO: We might have to signal to QImageCapture here that capturing failed.
+                return;
+            }
+        }
+
         final CameraSettings cameraSettings = atomicCameraSettingsCopy();
 
         try {
@@ -621,8 +632,9 @@ class QtCamera2 {
                 null,
                 mBackgroundHandler);
 
-            // TODO: Assign to some data in SyncedMembers that tells us that we are currently
-            // taking a still photo, and should not overwrite the repeating request.
+            synchronized (mSyncedMembers) {
+                mSyncedMembers.mIsTakingStillPhoto = true;
+            }
 
         } catch (CameraAccessException e) {
             Log.w("QtCamera2", "Cannot get access to the camera: " + e);
@@ -679,9 +691,11 @@ class QtCamera2 {
             applyZoomSettingsToRequestBuilder(mPreviewRequestBuilder, factor);
             mPreviewRequest = mPreviewRequestBuilder.build();
 
-            // TODO: We need to implement a check here that sees if we are currently performing
-            // a still photo capture, in which case we don't want to override the current
-            // capture-request and instead let the still photo routine set it once it's done.
+            if (mSyncedMembers.mIsTakingStillPhoto) {
+                // Don't set any request if we are in the middle of taking a still photo.
+                // The setting will be applied to the preview after the still photo routine is done.
+                return;
+            }
             try {
                 mCaptureSession.setRepeatingRequest(
                     mPreviewRequest,
@@ -742,6 +756,11 @@ class QtCamera2 {
             applyFocusSettingsToCaptureRequestBuilder(mPreviewRequestBuilder, mSyncedMembers.mCameraSettings);
             mPreviewRequest = mPreviewRequestBuilder.build();
 
+            if (mSyncedMembers.mIsTakingStillPhoto) {
+                // Don't set any request if we are in the middle of taking a still photo.
+                // The setting will be applied to the preview after the still photo routine is done.
+                return;
+            }
             try {
                 mCaptureSession.setRepeatingRequest(
                     mPreviewRequest,
@@ -802,6 +821,12 @@ class QtCamera2 {
 
                 mPreviewRequest = mPreviewRequestBuilder.build();
 
+                if (mSyncedMembers.mIsTakingStillPhoto) {
+                    // Don't set any request if we are in the middle of taking a still photo.
+                    // The setting will be applied to the preview after the still photo routine is done.
+                    return;
+                }
+
                 try {
                     mCaptureSession.setRepeatingRequest(
                         mPreviewRequest,
@@ -828,6 +853,12 @@ class QtCamera2 {
             if (mSyncedMembers.mIsStarted) {
                 mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mSyncedMembers.mCameraSettings.mTorchMode);
                 mPreviewRequest = mPreviewRequestBuilder.build();
+
+                if (mSyncedMembers.mIsTakingStillPhoto) {
+                    // Don't set any request if we are in the middle of taking a still photo.
+                    // The setting will be applied to the preview after the still photo routine is done.
+                    return;
+                }
 
                 try {
                     mCaptureSession.setRepeatingRequest(
