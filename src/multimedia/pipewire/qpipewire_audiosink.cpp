@@ -175,6 +175,8 @@ void QPipewireAudioSinkStream::createStream(StreamType streamType)
         case AudioEndpointRole::MediaPlayback:
         case AudioEndpointRole::Other:
             return "Music";
+        case AudioEndpointRole::Accessibility:
+            return "Accessibility";
         case AudioEndpointRole::SoundEffect:
             return "Notification";
         default:
