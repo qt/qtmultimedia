@@ -602,7 +602,7 @@ class QtCamera2 {
             // This will make the focus make an additional attempt to lock focus on the subject
             // before capturing the photo.
             if (cameraSettings.mAFMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
-                && isAfModeSupported(cameraSettings.mAFMode))
+                && isAfModeAvailable(cameraSettings.mAFMode))
             {
                 applyFocusSettingsToCaptureRequestBuilder(mPreviewRequestBuilder, cameraSettings);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
@@ -706,11 +706,11 @@ class QtCamera2 {
             return;
         }
 
-        // TODO: Ideally this should check if newAfMode is supported through isAfModeSupported()
-        // but in some situation, mCameraId will be null and therefore isAfModeSupported will always
+        // TODO: Ideally this should check if newAfMode is supported through isAfModeAvailable()
+        // but in some situation, mCameraId will be null and therefore isAfModeAvailable will always
         // return false. One example of this is during QCamera::setCameraDevice.
         /*
-        if (!isAfModeSupported(newAfMode)) {
+        if (!isAfModeAvailable(newAfMode)) {
             Log.d(
                 "QtCamera2",
                 "received a QCamera::FocusMode from native code that is not reported as supported. " +
@@ -885,14 +885,13 @@ class QtCamera2 {
         CaptureRequest.Builder requestBuilder,
         CameraSettings cameraSettings)
     {
-        if (!isAfModeSupported(cameraSettings.mAFMode)) {
+        if (!isAfModeAvailable(cameraSettings.mAFMode)) {
             // If we don't support our desired AF_MODE, fallback to AF_MODE_OFF if that is
             // available. Otherwise don't set any focus-mode, leave it as default and
             // undefined state.
-            //
-            // NOTE! Setting CONTROL_AF_MODE to null is illegal and will cause an exception
+            // Note: Setting CONTROL_AF_MODE to null is illegal and will cause an exception
             // thrown.
-            if (isAfModeSupported(CaptureRequest.CONTROL_AF_MODE_OFF)) {
+            if (isAfModeAvailable(CaptureRequest.CONTROL_AF_MODE_OFF)) {
                 requestBuilder.set(
                     CaptureRequest.CONTROL_AF_MODE,
                     CaptureRequest.CONTROL_AF_MODE_OFF);
@@ -938,10 +937,10 @@ class QtCamera2 {
     }
 
     // Helper function to check if a given CaptureRequest.CONTROL_AF_MODE is supported on this
-    // device, and we have a working implementation for it.
-    private boolean isAfModeSupported(int afMode) {
+    // device
+    private boolean isAfModeAvailable(int afMode) {
         if (mVideoDeviceManager == null || mCameraId == null || mCameraId.isEmpty())
             return false;
-        return mVideoDeviceManager.isAfModeSupported(mCameraId, afMode);
+        return mVideoDeviceManager.isAfModeAvailable(mCameraId, afMode);
     }
 }
