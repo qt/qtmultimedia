@@ -83,7 +83,7 @@ public slots:
     void onSessionClosed();
 
 Q_SIGNALS:
-    void onCaptured(const QVideoFrame&);
+    void onStillPhotoCaptured(const QVideoFrame&);
 
 private:
     bool isActivating() const { return m_state != State::Closed; }
