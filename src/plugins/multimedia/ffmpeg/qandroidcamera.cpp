@@ -261,7 +261,7 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     if (!takePhoto)
         emit newVideoFrame(videoFrame);
     else
-        emit onCaptured(videoFrame);
+        emit onStillPhotoCaptured(videoFrame);
 }
 
 QtVideo::Rotation QAndroidCamera::rotation() const
@@ -764,7 +764,7 @@ void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
   }                                                                                   \
   QFFmpeg::QAndroidCamera *camera = g_qcameras->find(key).value();
 
-static void onFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
+static void onPreviewFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
                              QtJniTypes::Image image)
 {
     Q_UNUSED(env);
@@ -773,9 +773,9 @@ static void onFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
 
     camera->frameAvailable(QJniObject(image));
 }
-Q_DECLARE_JNI_NATIVE_METHOD(onFrameAvailable)
+Q_DECLARE_JNI_NATIVE_METHOD(onPreviewFrameAvailable)
 
-static void onPhotoAvailable(JNIEnv *env, jobject obj, jstring cameraId,
+static void onStillPhotoAvailable(JNIEnv *env, jobject obj, jstring cameraId,
                              QtJniTypes::Image image)
 {
     Q_UNUSED(env);
@@ -784,7 +784,7 @@ static void onPhotoAvailable(JNIEnv *env, jobject obj, jstring cameraId,
 
     camera->frameAvailable(QJniObject(image), true);
 }
-Q_DECLARE_JNI_NATIVE_METHOD(onPhotoAvailable)
+Q_DECLARE_JNI_NATIVE_METHOD(onStillPhotoAvailable)
 
 
 static void onCameraOpened(JNIEnv *env, jobject obj, jstring cameraId)
@@ -880,8 +880,8 @@ bool QFFmpeg::QAndroidCamera::registerNativeMethods()
                         Q_JNI_NATIVE_METHOD(onCaptureSessionConfigured),
                         Q_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed),
                         Q_JNI_NATIVE_METHOD(onCaptureSessionFailed),
-                        Q_JNI_NATIVE_METHOD(onFrameAvailable),
-                        Q_JNI_NATIVE_METHOD(onPhotoAvailable),
+                        Q_JNI_NATIVE_METHOD(onPreviewFrameAvailable),
+                        Q_JNI_NATIVE_METHOD(onStillPhotoAvailable),
                         Q_JNI_NATIVE_METHOD(onSessionActive),
                         Q_JNI_NATIVE_METHOD(onSessionClosed),
                 });
