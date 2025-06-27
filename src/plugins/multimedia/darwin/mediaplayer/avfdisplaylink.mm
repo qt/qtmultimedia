@@ -4,6 +4,8 @@
 #include "avfdisplaylink_p.h"
 #include <QtCore/qcoreapplication.h>
 
+#include <mutex>
+
 #ifdef QT_DEBUG_AVF
 #include <QtCore/qdebug.h>
 #endif
