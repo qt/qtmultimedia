@@ -33,9 +33,13 @@ int QAndroidImageCapture::doCapture(const QString &fileName)
 void QAndroidImageCapture::setupVideoSourceConnections()
 {
     auto androidCamera = qobject_cast<QAndroidCamera *>(videoSource());
-    if (androidCamera)
-        connect(androidCamera, &QAndroidCamera::onCaptured, this, &QAndroidImageCapture::newVideoFrame);
-    else
+    if (androidCamera) {
+        connect(
+            androidCamera,
+            &QAndroidCamera::onStillPhotoCaptured,
+            this,
+            &QAndroidImageCapture::newVideoFrame);
+    } else
         QFFmpegImageCapture::setupVideoSourceConnections();
 }
 
