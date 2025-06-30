@@ -14,12 +14,12 @@ qt_internal_find_apple_system_framework(FWVideoToolbox VideoToolbox)
 
 
 add_subdirectory(3rdparty/tlsf)
-add_subdirectory(resonance-audio)
 add_subdirectory(multimedia)
 if(ANDROID)
     add_subdirectory(android)
 endif()
 if(QT_FEATURE_spatialaudio)
+    add_subdirectory(resonance-audio)
     add_subdirectory(spatialaudio)
 endif()
 
