@@ -206,9 +206,13 @@ void AudioRecorder::setOutputLocation()
     }
 
 #ifdef Q_OS_ANDROID
+    QMediaFormat format = selectedMediaFormat();
+    if (format.fileFormat() == QMediaFormat::UnspecifiedFormat)
+        format.resolveForEncoding(QMediaFormat::NoFlags);
+
     QString fileName = QFileDialog::getSaveFileName(
             this, tr("Save Recording"),
-            "output." + selectedMediaFormat().mimeType().preferredSuffix());
+            "output." + format.mimeType().preferredSuffix());
 #else
     QString fileName = QFileDialog::getSaveFileName();
 #endif
