@@ -795,7 +795,10 @@ class QtCamera2 {
             if (!mSyncedMembers.mIsStarted)
                 return;
 
-            applyFocusSettingsToCaptureRequestBuilder(mPreviewRequestBuilder, mSyncedMembers.mCameraSettings);
+            applyFocusSettingsToCaptureRequestBuilder(
+                mPreviewRequestBuilder,
+                mSyncedMembers.mCameraSettings,
+                false);
             mPreviewRequest = mPreviewRequestBuilder.build();
 
             if (mSyncedMembers.mIsTakingStillPhoto) {
@@ -859,7 +862,8 @@ class QtCamera2 {
             if (mSyncedMembers.mCameraSettings.mAFMode == CaptureRequest.CONTROL_AF_MODE_OFF) {
                 applyFocusSettingsToCaptureRequestBuilder(
                     mPreviewRequestBuilder,
-                    mSyncedMembers.mCameraSettings);
+                    mSyncedMembers.mCameraSettings,
+                    false);
 
                 mPreviewRequest = mPreviewRequestBuilder.build();
 
@@ -954,19 +958,10 @@ class QtCamera2 {
 
         applyZoomSettingsToRequestBuilder(requestBuilder, cameraSettings.mZoomFactor);
 
-        // If the camera settings is set to CONTINUOUS_PICTURE, this is an indication
-        // that we are in QCamera::FocusModeAuto. In which case we should be using
-        // AF_MODE_AUTO, which lets us lock in focus once and keep it there until still photo
-        // is done.
-        //
-        // TODO: Handle manual focus, where we are manually controlling lens focus.
-        if (cameraSettings.mAFMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
-            && isAfModeAvailable(CaptureRequest.CONTROL_AF_MODE_AUTO))
-        {
-            requestBuilder.set(
-                CaptureRequest.CONTROL_AF_MODE,
-                CaptureRequest.CONTROL_AF_MODE_AUTO);
-        }
+        applyFocusSettingsToCaptureRequestBuilder(
+            requestBuilder,
+            cameraSettings,
+            true);
 
         // Ideally we would pass AE_MODE_ON_ALWAYS_FLASH straight to the camera and let it
         // control the flash unit. This has proven unreliable during testing. Instead we use
@@ -993,7 +988,8 @@ class QtCamera2 {
 
         applyFocusSettingsToCaptureRequestBuilder(
             requestBuilder,
-            cameraSettings);
+            cameraSettings,
+            false);
 
         // TODO: Check if AE_MODE_ON is available
         requestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
@@ -1016,17 +1012,27 @@ class QtCamera2 {
             CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
     }
 
-    // This function is, under some circumstances, invoked indirectly on the C++ thread.
-    private void applyFocusSettingsToCaptureRequestBuilder(
-        CaptureRequest.Builder requestBuilder,
-        CameraSettings cameraSettings)
+    // If taking still photo, remember to trigger auto-focus calibration if CONTROL_AF_MODE is set
+    // to CONTROL_AF_MODE_AUTO.
+    void applyFocusSettingsToCaptureRequestBuilder(
+         CaptureRequest.Builder requestBuilder,
+         CameraSettings cameraSettings,
+         boolean stillPhoto)
     {
-        if (!isAfModeAvailable(cameraSettings.mAFMode)) {
+        int desiredAfMode = cameraSettings.mAFMode;
+        // During still photo, If the camera settings is set to CONTINUOUS_PICTURE, this is an
+        // indication that we are in QCamera::FocusModeAuto. In which case we should be using
+        // AF_MODE_AUTO, which lets us lock in focus once and keep it there until still photo
+        // is done.
+        if (stillPhoto && desiredAfMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
+            desiredAfMode = CaptureRequest.CONTROL_AF_MODE_AUTO;
+        }
+
+        if (!isAfModeAvailable(desiredAfMode)) {
             // If we don't support our desired AF_MODE, fallback to AF_MODE_OFF if that is
             // available. Otherwise don't set any focus-mode, leave it as default and
-            // undefined state.
-            // Note: Setting CONTROL_AF_MODE to null is illegal and will cause an exception
-            // thrown.
+            // undefined state. Note: Setting CONTROL_AF_MODE to null is illegal and will cause an
+            // exception thrown.
             if (isAfModeAvailable(CaptureRequest.CONTROL_AF_MODE_OFF)) {
                 requestBuilder.set(
                     CaptureRequest.CONTROL_AF_MODE,
@@ -1037,17 +1043,17 @@ class QtCamera2 {
             return;
         }
 
-        requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, cameraSettings.mAFMode);
+        requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, desiredAfMode);
 
         // Set correct lens focus distance if we are in QCamera::FocusModeManual
-        if (cameraSettings.mAFMode == CaptureRequest.CONTROL_AF_MODE_OFF) {
+        if (desiredAfMode == CaptureRequest.CONTROL_AF_MODE_OFF) {
             final float lensFocusDistance = calcLensFocusDistanceFromQCameraFocusDistance(
                 cameraSettings.mFocusDistance);
             if (lensFocusDistance < 0) {
                 Log.w(
                     "QtCamera2",
-                    "Tried to apply FocusModeManual on a camera that doesn't support " +
-                    "setting lens distance. Likely Qt developer bug. Ignoring.");
+                    "Tried to apply FocusModeManual on a camera that doesn't support "
+                    + "setting lens distance. Likely Qt developer bug. Ignoring.");
             } else {
                 requestBuilder.set(CaptureRequest.LENS_FOCUS_DISTANCE, lensFocusDistance);
             }
