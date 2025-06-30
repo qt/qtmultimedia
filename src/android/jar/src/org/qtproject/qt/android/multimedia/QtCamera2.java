@@ -348,6 +348,8 @@ class QtCamera2 {
             return false;
 
         try {
+            // TODO: This API is deprecated and we should transition to the more modern method
+            // overload. See QTBUG-134750.
             mCameraDevice.createCaptureSession(mTargetSurfaces, mCaptureStateCallback, mBackgroundHandler);
             return true;
         } catch (Exception exception) {
@@ -424,8 +426,24 @@ class QtCamera2 {
         // events.
         boolean mShouldProcessIncomingEvents = true;
 
-        // TODO: Implement failure case where we cancel the pending image in QImageCapture
-        // and try to go back to regular preview if applicable.
+        // If capture fails, try to return to previewing.
+        @Override
+        public void onCaptureFailed(
+            CameraCaptureSession session,
+            CaptureRequest request,
+            CaptureFailure failure)
+        {
+            // TODO: Signal to QImageCapture that the capture failed
+            synchronized (mSyncedMembers) {
+                mSyncedMembers.mIsTakingStillPhoto = false;
+            }
+            try {
+                setRepeatingRequestToPreview();
+            } catch (CameraAccessException e) {
+                // TODO: If we fail here, we can clean up the camera session and set the QCamera
+                // to unactive.
+            }
+        }
 
         // Returns true if we should finalize the still photo capture.
         //
@@ -488,6 +506,25 @@ class QtCamera2 {
         // TODO: Implement failure case where we tell QImageCapture that cancel this pending
         // image and then try to reset our camera to preview if applicable.
 
+        // If capture fails, try to return to previewing.
+        @Override
+        public void onCaptureFailed(
+            CameraCaptureSession session,
+            CaptureRequest request,
+            CaptureFailure failure)
+        {
+            // TODO: Signal to QImageCapture that the capture failed
+            synchronized (mSyncedMembers) {
+                mSyncedMembers.mIsTakingStillPhoto = false;
+            }
+            try {
+                setRepeatingRequestToPreview();
+            } catch (CameraAccessException e) {
+                // TODO: If we fail here, we can clean up the camera session and set the QCamera
+                // to unactive.
+            }
+        }
+
         @Override
         public void onCaptureCompleted(
             CameraCaptureSession session,
@@ -531,11 +568,10 @@ class QtCamera2 {
         }
     }
 
-    // Can be called from C++ thread through 'beginStillPhotoCapture()' or directly by
-    // StillPhotoPrecaptureCallback on background thread in order to finalize a still photo capture.
-    //
+    // Can by StillPhotoPrecaptureCallback on background thread in order to finalize a still photo
+    // capture.
     // TODO: If we fail to perform the request to finalize the still photo, we should cancel the
-    // pending image and try to return to preview mode.
+    // pending image in QImageCapture and try to return to preview mode.
     private void finalizeStillPhoto(CameraSettings cameraSettings) {
         try {
             final CaptureRequest.Builder requestBuilder =
@@ -644,7 +680,7 @@ class QtCamera2 {
         } catch (CameraAccessException e) {
             Log.w("QtCamera2", "Cannot get access to the camera: " + e);
             // TODO: If we fail to start the still photo capture, then we should report back to the
-            // QImageCapture to signal an error on the capture ID.
+            // QImageCapture to signal an error on the capture ID, and try to return to previewing.
         }
     }
 
