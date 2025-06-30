@@ -91,7 +91,11 @@ public:
     Q_MULTIMEDIA_EXPORT void setChannelConfig(ChannelConfig config) noexcept;
     constexpr ChannelConfig channelConfig() const noexcept { return m_channelConfig; }
 
-    constexpr void setChannelCount(int channelCount) noexcept { m_channelConfig = ChannelConfigUnknown; m_channelCount = channelCount; }
+    constexpr void setChannelCount(int channelCount) noexcept
+    {
+        m_channelConfig = ChannelConfigUnknown;
+        m_channelCount = short(channelCount);
+    }
     constexpr int channelCount() const noexcept { return m_channelCount; }
 
     Q_MULTIMEDIA_EXPORT int channelOffset(AudioChannelPosition channel) const noexcept;
