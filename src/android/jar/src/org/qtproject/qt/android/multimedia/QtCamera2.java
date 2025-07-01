@@ -406,6 +406,12 @@ class QtCamera2 {
         }
     }
 
+    enum StillPhotoPrecaptureOperation {
+        FINALIZE_CAPTURE,
+        RESUBMIT_WITH_FORCED_FLASH,
+        WAIT
+    }
+
     // This callback class is meant to be used a repeating request during still photo capture, when
     // waiting for the auto-focus and auto-exposure calibration to lock in. Once done,
     // it will finalize the still photo and then return the camera to previewing.
@@ -432,60 +438,77 @@ class QtCamera2 {
         // events.
         boolean mShouldProcessIncomingEvents = true;
 
-        // If capture fails, try to return to previewing.
+        boolean capturingWithAutoFlash() {
+            return mWaitForAutoExposure
+                && mCameraSettings.mStillPhotoFlashMode == CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH;
+        }
+
+        private void onCaptureFailureEvent() {
+            mShouldProcessIncomingEvents = false;
+
+            // TODO: Signal to QImageCapture that the capture failed.
+
+            synchronized (mSyncedMembers) {
+                mSyncedMembers.mIsTakingStillPhoto = false;
+            }
+
+            // Try to reset our camera to regular preview
+            try {
+                setRepeatingRequestToPreview();
+            } catch (CameraAccessException e) {
+                // TODO: If we fail to go back into preview, we can clean up the camera session and
+                // set the QCamera to inactive.
+            }
+        }
+
         @Override
         public void onCaptureFailed(
             CameraCaptureSession session,
             CaptureRequest request,
             CaptureFailure failure)
         {
-            // TODO: Signal to QImageCapture that the capture failed
-            synchronized (mSyncedMembers) {
-                mSyncedMembers.mIsTakingStillPhoto = false;
-            }
-            try {
-                setRepeatingRequestToPreview();
-            } catch (CameraAccessException e) {
-                // TODO: If we fail here, we can clean up the camera session and set the QCamera
-                // to unactive.
-            }
+            onCaptureFailureEvent();
         }
 
-        // Returns true if we should finalize the still photo capture.
-        //
-        // TODO: Under some scenarios, multiple values can be interpretted as a "locked in" state.
-        // Make helper functions to determine whether a value is considered "locked in".
-        private boolean process(CaptureResult result) {
-            if (!mWaitForAutoFocus && !mWaitForAutoExposure) {
-                return true;
-            }
-
+        // Returns the operation we should do as a result of processing the result.
+        private StillPhotoPrecaptureOperation determinePrecaptureOperation(CaptureResult result) {
             Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
             Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+
+            // If we are calibrating with auto flash and we receive FLASH_REQUIRED,
+            // we don't have to care about auto focus. Just transition straight to resubmitting
+            // the still photo request with flash forced on.
+            if (capturingWithAutoFlash() && aeState == CaptureResult.CONTROL_AE_STATE_FLASH_REQUIRED) {
+                return StillPhotoPrecaptureOperation.RESUBMIT_WITH_FORCED_FLASH;
+            }
+
+            // If we're not waiting for anything, finalize still photo immediately
+            if (!mWaitForAutoFocus && !mWaitForAutoExposure) {
+                return StillPhotoPrecaptureOperation.FINALIZE_CAPTURE;
+            }
 
             // Wait for focus only
             if (mWaitForAutoFocus && QtCamera2.afStateIsReadyForCapture(afState)
                 && !mWaitForAutoExposure)
             {
-                return true;
+                return StillPhotoPrecaptureOperation.FINALIZE_CAPTURE;
             }
 
             // Wait for exposure only
             if (!mWaitForAutoFocus
-                && mWaitForAutoExposure
-                && aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED)
+                && mWaitForAutoExposure && QtCamera2.aeStateIsReadyForCapture(aeState))
             {
-                return true;
+                return StillPhotoPrecaptureOperation.FINALIZE_CAPTURE;
             }
 
             // Wait for focus and exposure
             if (mWaitForAutoFocus && QtCamera2.afStateIsReadyForCapture(afState)
-                && mWaitForAutoExposure && aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED)
+                && mWaitForAutoExposure && QtCamera2.aeStateIsReadyForCapture(aeState))
             {
-                return true;
+                return StillPhotoPrecaptureOperation.FINALIZE_CAPTURE;
             }
 
-            return false;
+            return StillPhotoPrecaptureOperation.WAIT;
         }
 
         @Override
@@ -497,9 +520,27 @@ class QtCamera2 {
             if (!mShouldProcessIncomingEvents)
                 return;
 
-            final boolean shouldFinalize = process(result);
-            if (shouldFinalize) {
-                finalizeStillPhoto(mCameraSettings);
+            final StillPhotoPrecaptureOperation operation = determinePrecaptureOperation(result);
+            try {
+                switch (operation) {
+                    case FINALIZE_CAPTURE:
+                        finalizeStillPhoto(mCameraSettings);
+                        break;
+                    case RESUBMIT_WITH_FORCED_FLASH:
+                        // Submit a new still photo capture as if we were forcing flash on.
+                        CameraSettings newCameraSettings = new CameraSettings(mCameraSettings);
+                        newCameraSettings.mStillPhotoFlashMode = CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH;
+                        submitNewStillPhotoCapture(newCameraSettings);
+                        break;
+                    default:
+                        // Do nothing; wait for next result
+                        break;
+                }
+            } catch (CameraAccessException e) {
+                onCaptureFailureEvent();
+            }
+
+            if (operation != StillPhotoPrecaptureOperation.WAIT) {
                 mShouldProcessIncomingEvents = false;
             }
         }
@@ -576,28 +617,23 @@ class QtCamera2 {
 
     // Can by StillPhotoPrecaptureCallback on background thread in order to finalize a still photo
     // capture.
-    // TODO: If we fail to perform the request to finalize the still photo, we should cancel the
-    // pending image in QImageCapture and try to return to preview mode.
-    private void finalizeStillPhoto(CameraSettings cameraSettings) {
-        try {
-            final CaptureRequest.Builder requestBuilder =
-                mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
-            requestBuilder.addTarget(mStillPhotoImageReader.getSurface());
-            requestBuilder.set(
-                CaptureRequest.CONTROL_CAPTURE_INTENT,
-                CaptureRequest.CONTROL_CAPTURE_INTENT_STILL_CAPTURE);
+    private void finalizeStillPhoto(CameraSettings cameraSettings) throws CameraAccessException
+    {
+        final CaptureRequest.Builder requestBuilder =
+            mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+        requestBuilder.addTarget(mStillPhotoImageReader.getSurface());
+        requestBuilder.set(
+            CaptureRequest.CONTROL_CAPTURE_INTENT,
+            CaptureRequest.CONTROL_CAPTURE_INTENT_STILL_CAPTURE);
 
-            applyStillPhotoSettingsToCaptureRequestBuilder(
-                requestBuilder,
-                cameraSettings);
+        applyStillPhotoSettingsToCaptureRequestBuilder(
+            requestBuilder,
+            cameraSettings);
 
-            mCaptureSession.capture(
-                requestBuilder.build(),
-                new StillPhotoFinalizerCallback(),
-                mBackgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
+        mCaptureSession.capture(
+            requestBuilder.build(),
+            new StillPhotoFinalizerCallback(),
+            mBackgroundHandler);
     }
 
     // This function starts the process of taking a still photo. The final outputted image will
@@ -612,6 +648,10 @@ class QtCamera2 {
     // -    When the auto-focus and/or auto-exposure has settled, the StillPhotoPrecaptureCallback
     //      will submit a final request to finalize the photo. When the photo is finalized,
     //      we transition back into regular previewing.
+    // -    Supporting auto flash is a corner case. When running auto-flash, we might get the result
+    //      that no flash is needed, in which case we continue to finalizing the still photo
+    //      as usual. If we receive the result that flash is required, we resubmit the still photo
+    //      capture commands all over again as if we are using QCamera::FlashModeOn.
     @UsedFromNativeCode
     void beginStillPhotoCapture() {
         synchronized (mSyncedMembers) {
@@ -623,65 +663,70 @@ class QtCamera2 {
         }
 
         final CameraSettings cameraSettings = atomicCameraSettingsCopy();
-
         try {
-            CaptureRequest.Builder requestBuilder = mCameraDevice.createCaptureRequest(
-                CameraDevice.TEMPLATE_STILL_CAPTURE);
-            // Any in-between frames gathered while waiting for still photo, can be sent into
-            // the preview ImageReader.
-            requestBuilder.addTarget(mPreviewImageReader.getSurface());
-
-            applyStillPhotoSettingsToCaptureRequestBuilder(
-                requestBuilder,
-                cameraSettings);
-
-            // We need to trigger the auto-focus and auto-exposure mechanism in a single capture
-            // request, but waiting for it to settle happens in the repeating request.
-            // If configuration ended up with AF_MODE_AUTO, this implies we should trigger the
-            // auto focus to lock in.
-            final boolean triggerAutoFocus = requestBuilder.get(CaptureRequest.CONTROL_AF_MODE)
-                == CaptureResult.CONTROL_AF_MODE_AUTO;
-
-            final Integer aeMode = requestBuilder.get(CaptureRequest.CONTROL_AE_MODE);
-            boolean triggerAutoExposure = aeMode != null
-                && aeMode != CaptureResult.CONTROL_AE_MODE_OFF;
-
-            mCaptureSession.setRepeatingRequest(
-                requestBuilder.build(),
-                new StillPhotoPrecaptureCallback(
-                    cameraSettings,
-                    triggerAutoFocus,
-                    triggerAutoExposure),
-                mBackgroundHandler);
-
-            // Once we have prepared the repeating request that will wait, we re-use the
-            // request-builder and modify it to include the trigger commands, and then submit
-            // it as a one-time request.
-            if (triggerAutoFocus) {
-                requestBuilder.set(
-                    CaptureRequest.CONTROL_AF_TRIGGER,
-                    CaptureRequest.CONTROL_AF_TRIGGER_START);
-            }
-            if (triggerAutoExposure) {
-                requestBuilder.set(
-                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
-                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            }
-
-            // TODO: We should have a callback here that can track if still photo fails
-            mCaptureSession.capture(
-                requestBuilder.build(),
-                null,
-                mBackgroundHandler);
-
-            synchronized (mSyncedMembers) {
-                mSyncedMembers.mIsTakingStillPhoto = true;
-            }
-
+            submitNewStillPhotoCapture(cameraSettings);
         } catch (CameraAccessException e) {
             Log.w("QtCamera2", "Cannot get access to the camera: " + e);
             // TODO: If we fail to start the still photo capture, then we should report back to the
             // QImageCapture to signal an error on the capture ID, and try to return to previewing.
+        }
+    }
+
+    void submitNewStillPhotoCapture(CameraSettings cameraSettings) throws CameraAccessException
+    {
+        CaptureRequest.Builder requestBuilder = mCameraDevice.createCaptureRequest(
+            CameraDevice.TEMPLATE_STILL_CAPTURE);
+        // Any in-between frames gathered while waiting for still photo, can be sent into
+        // the preview ImageReader.
+        requestBuilder.addTarget(mPreviewImageReader.getSurface());
+
+        applyStillPhotoSettingsToCaptureRequestBuilder(
+            requestBuilder,
+            cameraSettings);
+
+        // We need to trigger the auto-focus and auto-exposure mechanism in a single capture
+        // request, but waiting for it to settle happens in the repeating request.
+        // If configuration ended up with AF_MODE_AUTO, this implies we should trigger the
+        // auto focus to lock in.
+        final boolean triggerAutoFocus = requestBuilder.get(CaptureRequest.CONTROL_AF_MODE)
+            == CaptureResult.CONTROL_AF_MODE_AUTO;
+
+        final Integer aeMode = requestBuilder.get(CaptureRequest.CONTROL_AE_MODE);
+        boolean triggerAutoExposure = aeMode != null
+            && aeMode != CaptureResult.CONTROL_AE_MODE_OFF;
+
+        final StillPhotoPrecaptureCallback precaptureCallback = new StillPhotoPrecaptureCallback(
+            cameraSettings,
+            triggerAutoFocus,
+            triggerAutoExposure);
+
+        mCaptureSession.setRepeatingRequest(
+            requestBuilder.build(),
+            precaptureCallback,
+            mBackgroundHandler);
+
+        // Once we have prepared the repeating request that will wait, we re-use the
+        // request-builder and modify it to include the trigger commands, and then submit
+        // it as a one-time request.
+        if (triggerAutoFocus) {
+            requestBuilder.set(
+                CaptureRequest.CONTROL_AF_TRIGGER,
+                CaptureRequest.CONTROL_AF_TRIGGER_START);
+        }
+        if (triggerAutoExposure) {
+            requestBuilder.set(
+                CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+        }
+
+        // TODO: We should have a callback here that can track if still photo fails
+        mCaptureSession.capture(
+            requestBuilder.build(),
+            null,
+            mBackgroundHandler);
+
+        synchronized (mSyncedMembers) {
+            mSyncedMembers.mIsTakingStillPhoto = true;
         }
     }
 
@@ -966,17 +1011,21 @@ class QtCamera2 {
         // Ideally we would pass AE_MODE_ON_ALWAYS_FLASH straight to the camera and let it
         // control the flash unit. This has proven unreliable during testing. Instead we use
         // regular CONTROL_AE_MODE_ON and force the flash on.
-        //
-        // TODO: Handle auto flash, where we let the camera device handle whether flash is
-        // necessary.
-        if (cameraSettings.mStillPhotoFlashMode == CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH)
-        {
+        if (cameraSettings.mStillPhotoFlashMode == CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH) {
             requestBuilder.set(
                 CaptureRequest.CONTROL_AE_MODE,
                 CaptureRequest.CONTROL_AE_MODE_ON);
+            // Ideally, this should be set to SINGLE, only when we are finalizing the capture.
+            // However, this causes an issue on some Motorola devices where the flash will have
+            // wrong timing compared to the capture, and we will end up with no flash in the final
+            // photo.
             requestBuilder.set(
                 CaptureRequest.FLASH_MODE,
                 CaptureRequest.FLASH_MODE_TORCH);
+        } else if (cameraSettings.mStillPhotoFlashMode == CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH) {
+            requestBuilder.set(
+                CaptureRequest.CONTROL_AE_MODE,
+                CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
         }
     }
 
@@ -1092,5 +1141,11 @@ class QtCamera2 {
         return afState == null
             || afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED
             || afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED;
+    }
+
+    static boolean aeStateIsReadyForCapture(Integer aeState) {
+        return aeState == null
+            || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED
+            || aeState == CaptureResult.CONTROL_AE_STATE_FLASH_REQUIRED;
     }
 }
