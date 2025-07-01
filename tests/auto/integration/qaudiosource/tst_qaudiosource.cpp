@@ -85,6 +85,9 @@ private slots:
 
     void stateChanged_stringBasedConnect();
 
+    void start_withSamplingRate_data();
+    void start_withSamplingRate();
+
 private:
     using FilePtr = std::shared_ptr<QFile>;
 
@@ -1024,6 +1027,28 @@ void tst_QAudioSource::stateChanged_stringBasedConnect()
 
     audioSource.start();
     QTRY_VERIFY(!stateSignal.empty());
+}
+
+void tst_QAudioSource::start_withSamplingRate_data()
+{
+    QTest::addColumn<int>("rate");
+
+    QTest::newRow("minimum") << audioDevice.minimumSampleRate();
+    QTest::newRow("preferred") << audioDevice.preferredFormat().sampleRate();
+    QTest::newRow("maximum") << audioDevice.maximumSampleRate();
+}
+
+void tst_QAudioSource::start_withSamplingRate()
+{
+    QFETCH(int, rate);
+
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleRate(rate);
+
+    QAudioSource audioSource(format, this);
+    audioSource.start();
+
+    QTRY_COMPARE(audioSource.state(), QAudio::State::IdleState);
 }
 
 QTEST_MAIN(tst_QAudioSource)
