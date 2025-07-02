@@ -26,10 +26,17 @@ using AudioSinkInitializer = bool (*)(QAudioSink &);
 class AudioPullSource : public QIODevice
 {
 public:
+    AudioPullSource(bool isContinuous = false)
+        : available(isContinuous ? std::numeric_limits<qint64>::max() : 0),
+          m_isContinuous(isContinuous)
+    {
+    }
+
     qint64 readData(char *data, qint64 len) override
     {
         qint64 read = qMin(len, available);
-        available -= read;
+        if (!m_isContinuous)
+            available -= read;
         memset(data, 0, read);
         return read;
     }
@@ -41,6 +48,9 @@ public:
 
     qint64 available = 0;
     bool signalEnd = false;
+
+private:
+    bool m_isContinuous;
 };
 
 static bool isPipewireBackend()
@@ -116,6 +126,11 @@ private slots:
     void callbackAPI();
     void callbackAPI_startFailsWithWrongType();
 
+    void multipleSinks_data() { generate_multiple_sinks_testrows(); }
+    void multipleSinks();
+    void start_afterStopAndReset_data() { generate_multiple_sinks_testrows(); }
+    void start_afterStopAndReset();
+
     void destroy_while_running(); // should be last test to catch crash on exit
 
 private:
@@ -132,8 +147,10 @@ private:
                                     bool checkOnlyFirst = false);
 
     void generate_audiofile_testrows();
+    void generate_multiple_sinks_testrows();
 
     QAudioDevice audioDevice;
+    std::optional<QAudioDevice> secondDevice;
     QList<QAudioFormat> testFormats;
     QList<FilePtr> audioFiles;
     std::unique_ptr<QTemporaryDir> m_temporaryDir;
@@ -213,6 +230,21 @@ void tst_QAudioSink::generate_audiofile_testrows()
     }
 }
 
+void tst_QAudioSink::generate_multiple_sinks_testrows()
+{
+    QTest::addColumn<QAudioDevice>("firstSinkDevice");
+    QTest::addColumn<QAudioDevice>("secondSinkDevice");
+
+    QTest::newRow("Primary device only") << audioDevice << audioDevice;
+    if (secondDevice) {
+        QTest::newRow("Secondary device started after primary device")
+                << audioDevice << *secondDevice;
+        QTest::newRow("Primary device started after secondary device")
+                << *secondDevice << audioDevice;
+        QTest::newRow("Secondary device only") << *secondDevice << *secondDevice;
+    }
+}
+
 void tst_QAudioSink::initTestCase()
 {
     const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
@@ -223,6 +255,12 @@ void tst_QAudioSink::initTestCase()
 
     audioDevice = QMediaDevices::defaultAudioOutput();
 
+    // Some tests use a second device as well
+    if (devices.size() > 1) {
+        for (auto device : devices)
+            if (!device.isDefault())
+                secondDevice = device;
+    }
 
     QAudioFormat format;
 
@@ -1255,6 +1293,74 @@ void tst_QAudioSink::callbackAPI_startFailsWithWrongType()
     platformSink->start([&](QSpan<int32_t>) {
     });
     QCOMPARE(audioSink.error(), QAudio::Error::OpenError);
+}
+
+void tst_QAudioSink::multipleSinks()
+{
+#ifdef Q_OS_MACOS
+    QSKIP("QTBUG-138952: Crashing on macOS");
+#endif
+
+    QFETCH(QAudioDevice, firstSinkDevice);
+    QFETCH(QAudioDevice, secondSinkDevice);
+
+    auto format1 = firstSinkDevice.preferredFormat();
+    auto sink1 = std::make_unique<QAudioSink>(firstSinkDevice, format1, this);
+    AudioPullSource source1(true);
+    source1.open(QIODeviceBase::ReadOnly);
+
+    auto format2 = secondSinkDevice.preferredFormat();
+    auto sink2 = std::make_unique<QAudioSink>(secondSinkDevice, format2, this);
+    AudioPullSource source2(true);
+    source2.open(QIODeviceBase::ReadOnly);
+
+    sink1->start(&source1);
+    QTRY_COMPARE_GT(sink1->processedUSecs(), 0);
+
+    sink2->start(&source2);
+    QTRY_COMPARE_GT(sink2->processedUSecs(), 0);
+
+    QTest::qWait(1000);
+
+    // Check both sinks are active
+    QCOMPARE(sink1->state(), QAudio::State::ActiveState);
+    QCOMPARE(sink2->state(), QAudio::State::ActiveState);
+    QCOMPARE(sink1->error(), QAudio::Error::NoError);
+    QCOMPARE(sink2->error(), QAudio::Error::NoError);
+
+    // Stop sink1
+    sink1->stop();
+
+    // Check sink2 is still active after sink1 stopped
+    QTest::qWait(1000);
+    QCOMPARE(sink2->state(), QAudio::State::ActiveState);
+    QCOMPARE(sink2->error(), QAudio::Error::NoError);
+}
+
+void tst_QAudioSink::start_afterStopAndReset()
+{
+#ifdef Q_OS_MACOS
+    QSKIP("QTBUG-138952: Crashing on macOS");
+#endif
+
+    QFETCH(QAudioDevice, firstSinkDevice);
+    QFETCH(QAudioDevice, secondSinkDevice);
+
+    auto format1 = firstSinkDevice.preferredFormat();
+    auto sink = std::make_unique<QAudioSink>(firstSinkDevice, format1, this);
+    AudioPullSource source1(true);
+    source1.open(QIODeviceBase::ReadOnly);
+    sink->start(&source1);
+    QTRY_COMPARE_GT(sink->processedUSecs(), 0);
+
+    sink->stop();
+    // Reset immediately
+    auto format2 = secondSinkDevice.preferredFormat();
+    sink.reset(new QAudioSink(secondSinkDevice, format2, this));
+    AudioPullSource source2(true);
+    source2.open(QIODeviceBase::ReadOnly);
+    sink->start(&source2);
+    QTRY_COMPARE_GT(sink->processedUSecs(), 0);
 }
 
 void tst_QAudioSink::destroy_while_running()
