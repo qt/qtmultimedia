@@ -9,8 +9,6 @@
 #include <QString>
 #include <QTextStream>
 
-#include <stdio.h>
-
 static QString formatToString(QAudioFormat::SampleFormat sampleFormat)
 {
     switch (sampleFormat) {
@@ -59,6 +57,11 @@ static void printAudioDeviceInfo(QTextStream &out, const QAudioDevice &deviceInf
     out.setFieldWidth(30);
     out << "Preferred Channels: " << preferredFormat.channelCount() << qSetFieldWidth(0)
         << Qt::endl;
+    out.setFieldWidth(30);
+    out.setIntegerBase(16);
+    out << "Preferred Channel Config: " << preferredFormat.channelConfig() << qSetFieldWidth(0)
+        << Qt::endl;
+    out.setIntegerBase(10);
     out.setFieldWidth(30);
     out << "Supported Formats: ";
     for (auto &format : supportedFormats)
