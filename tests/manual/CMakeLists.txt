@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 add_subdirectory(audiodecoder)
-add_subdirectory(devices)
+add_subdirectory(mediadevices)
 add_subdirectory(mediaformats)
 add_subdirectory(media-metadata)
 add_subdirectory(minimal-audio-recorder)
