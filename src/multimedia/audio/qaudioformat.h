@@ -143,7 +143,7 @@ private:
     short m_channelCount = 0;
     ChannelConfig m_channelConfig = ChannelConfigUnknown;
     int m_sampleRate = 0;
-    quint64 reserved = 0;
+    Q_DECL_UNUSED_MEMBER quint64 reserved = 0;
 };
 
 #ifndef QT_NO_DEBUG_STREAM
