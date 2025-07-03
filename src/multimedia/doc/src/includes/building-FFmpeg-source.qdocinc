@@ -1,0 +1,62 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [windows]
+
+    \include building-FFmpeg-source.qdocinc {common} {\ffmpegversion} {\ffmpegreponame} {C:\\FFmpeg\\}
+
+//! [windows]
+
+//! [macos]
+
+    \include building-FFmpeg-source.qdocinc {common} {\ffmpegversion} {\ffmpegreponame} {~/}
+
+//! [macos]
+
+//! [linux]
+
+    \include building-FFmpeg-source.qdocinc {common} {\ffmpegversion} {\ffmpegreponame} {~/}
+
+//! [linux]
+
+//! [android-windows]
+
+    \include building-FFmpeg-source.qdocinc {common} {\ffmpegversion} {\ffmpegreponame} {C:\\FFmpeg\\}
+
+//! [android-windows]
+
+//! [android-macos]
+
+    \include building-FFmpeg-source.qdocinc {common} {\ffmpegversion} {\ffmpegreponame} {~/}
+
+//! [android-macos]
+
+//! [android-linux]
+
+    \include building-FFmpeg-source.qdocinc {common} {\ffmpegversion} {\ffmpegreponame} {~/}
+
+//! [android-linux]
+
+// \1 is always "\ffmpegversion"
+// \2 is always "\ffmpegreponame".
+// \3 is the directory where you want to clone FFmpeg repository (e.g. "C:\\FFmpeg\\", "~/").
+//! [common]
+
+    \section1 Get the FFmpeg source code
+
+    You can get the FFmpeg source code in these ways:
+
+    \list
+        \li Download from the \l{https://ffmpeg.org/download.html#get-sources}{FFmpeg download page}.
+        \li Clone from git. For example, this command clones the version \1 of the FFmpeg sources to \c{\3\2}.
+
+            \badcode
+                git clone --branch n\1 https://git.ffmpeg.org/ffmpeg.git \2
+            \endcode
+    \endlist
+
+    It is recommended to use the same FFmpeg version as documented in the \l{Qt Multimedia}{Qt Multimedia main page}.
+
+    The following paragraphs assumes that you store the FFmpeg source code under \c{\3\2}.
+
+//! [common]

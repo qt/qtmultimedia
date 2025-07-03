@@ -16,26 +16,7 @@ This involves:
 \li Build the development libraries.
 \endlist
 
-\section1 Get the FFmpeg source code
-
-You can get the FFmpeg source code in these ways:
-
-\list
-    \li Download from the
-        \l{https://ffmpeg.org/download.html#get-sources}{FFmpeg download page}.
-    \li Clone from git. For example, this command clones the version 7.1.1 of the
-        FFmpeg sources to \c{C:\FFmpeg\ffmpeg}.
-
-        \badcode
-            git clone --branch n7.1.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg
-        \endcode
-\endlist
-
-It is recommended to use the same FFmpeg version as documented in the
-\l{Qt Multimedia}{Qt Multimedia main page}.
-
-The following paragraphs assumes that you store the FFmpeg source code under
-\c{C:\FFmpeg\ffmpeg}.
+\include building-FFmpeg-source.qdocinc {windows}
 
 \section1 Prerequisites
 
