@@ -324,7 +324,15 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         ksuser
         propsys
         winmm
-)
+    NO_UNITY_BUILD_SOURCES
+        # audioclient.h causes problems with mingw
+        windows/qwindows_wasapi_warmup_client.cpp
+        windows/qwindowsaudiodevice.cpp
+        windows/qwindowsaudiodevices.cpp
+        windows/qwindowsaudiosink.cpp
+        windows/qwindowsaudiosource.cpp
+        windows/qwindowsaudioutils.cpp
+    )
 
 # define INITGUID for unity builds to ensure guids are emitted in the translation units
 target_compile_definitions(Multimedia
