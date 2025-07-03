@@ -270,7 +270,7 @@ void tst_QAudioFormat::defaultChannelConfigForChannelCount()
              QAudioFormat::ChannelConfigSurround7Dot1);
 
     QCOMPARE(qPopulationCount(QAudioFormat::defaultChannelConfigForChannelCount(16)), 16);
-    QCOMPARE(QAudioFormat::defaultChannelConfigForChannelCount(16), 0b1'1111'1111'1111'1110);
+    QCOMPARE(QAudioFormat::defaultChannelConfigForChannelCount(16), 0b1'1111'1111'1111'1110u);
 }
 
 QTEST_MAIN(tst_QAudioFormat)
