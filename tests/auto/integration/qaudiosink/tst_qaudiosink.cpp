@@ -636,7 +636,11 @@ void tst_QAudioSink::pullSuspendResume()
     qint64 processedUs = audioSink.processedUSecs();
     QTest::qWait(100);
     QVERIFY(audioSink.elapsedUSecs() > elapsedUs);
-    QVERIFY(audioSink.processedUSecs() == processedUs);
+    if (isPulseAudioBackend())
+        // suspend is asynchronous on pulseaudio, so we give it 50ms to stop
+        QCOMPARE_LE(audioSink.processedUSecs(), processedUs + 50'000);
+    else
+        QCOMPARE(audioSink.processedUSecs(), processedUs);
 
     audioSink.resume();
 
@@ -913,7 +917,11 @@ void tst_QAudioSink::pushSuspendResume()
     const qint64 processedUs = audioSink.processedUSecs();
     QTest::qWait(100);
     QCOMPARE_GT(audioSink.elapsedUSecs(), elapsedUs);
-    QCOMPARE(audioSink.processedUSecs(), processedUs);
+    if (isPulseAudioBackend())
+        // suspend is asynchronous on pulseaudio, so we give it 50ms to stop
+        QCOMPARE_LE(audioSink.processedUSecs(), processedUs + 50'000);
+    else
+        QCOMPARE(audioSink.processedUSecs(), processedUs);
 
     audioSink.resume();
 
