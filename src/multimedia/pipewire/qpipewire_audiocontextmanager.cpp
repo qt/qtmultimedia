@@ -362,6 +362,13 @@ int QAudioContextManager::handleMetadata(const MetadataRecord &record)
 
     qDebug(lcPipewireRegistry) << "metadata:" << record.key << record.type << record.value;
 
+    if (record.key == nullptr) {
+        // "NULL clears all metadata for the subject"
+        m_deviceMonitor->setDefaultAudioSource(QAudioDeviceMonitor::NoDefaultDevice);
+        m_deviceMonitor->setDefaultAudioSink(QAudioDeviceMonitor::NoDefaultDevice);
+        return 0;
+    }
+
     auto extractName = [&]() -> std::optional<QByteArray> {
         if (record.type != "Spa:String:JSON"sv)
             return std::nullopt;
