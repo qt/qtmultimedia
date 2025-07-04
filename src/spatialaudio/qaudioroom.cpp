@@ -43,7 +43,7 @@ inline void toFloats(QQuaternion q, QSpan<float, 4> f)
 // We define both occlusion and dampening constants to be able to tune the
 // sound. Dampening only reduces the level of the sound without affecting its
 // tone, while occlusion will dampen higher frequencies more than lower ones
-struct {
+constexpr struct {
     float occlusion;
     float dampening;
 } occlusionAndDampening[] = {
