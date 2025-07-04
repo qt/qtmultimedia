@@ -16,7 +16,6 @@
 #include <qtspatialaudioglobal_p.h>
 #include <qaudioroom.h>
 #include <qaudioengine_p.h>
-#include <QtGui/qquaternion.h>
 
 #include <resonance_audio.h>
 #include "platforms/common/room_effects_utils.h"
