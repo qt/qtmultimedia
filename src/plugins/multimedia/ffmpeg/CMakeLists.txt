@@ -187,6 +187,10 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_cpp_
         windowsapp
 )
 
+if(QT_FEATURE_cpp_winrt)
+    qt_internal_set_exceptions_flags(FFmpegMediaPluginImplPrivate ON)
+endif()
+
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_xlib
     SOURCES
         qx11surfacecapture.cpp qx11surfacecapture_p.h
