@@ -16,7 +16,7 @@ inline QVector3D toVector(QSpan<const float, 3> f)
     return QVector3D(f[0], f[1], f[2]);
 }
 
-inline void toFloats(const QVector3D &v, QSpan<float, 3> f)
+inline void toFloats(QVector3D v, QSpan<float, 3> f)
 {
     f[0] = v.x();
     f[1] = v.y();
@@ -29,7 +29,7 @@ inline QQuaternion toQuaternion(QSpan<const float, 4> f)
     return QQuaternion(f[3], f[0], f[1], f[2]);
 }
 
-inline void toFloats(const QQuaternion &q, QSpan<float, 4> f)
+inline void toFloats(QQuaternion q, QSpan<float, 4> f)
 {
     f[0] = q.x();
     f[1] = q.y();
