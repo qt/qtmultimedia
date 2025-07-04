@@ -346,7 +346,7 @@ QDebug operator<<(QDebug dbg, const AVDictionary &dict)
 {
     char *buffer = 0;
     auto freeBuffer = QScopeGuard([&] {
-        std::free(buffer);
+        av_free(buffer);
     });
 
     int status = av_dict_get_string(&dict, &buffer, '=', ',');
