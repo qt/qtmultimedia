@@ -46,6 +46,7 @@ qt_internal_add_plugin(QWindowsMediaPlugin
         QT_NO_CAST_TO_ASCII
         QT_NO_CONTEXTLESS_CONNECT
         QT_NO_QPAIR
+        QT_USE_NODISCARD_FILE_OPEN
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
