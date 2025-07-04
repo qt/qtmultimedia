@@ -17,7 +17,6 @@
 #include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtSpatialAudio/private/qaudioengine_p.h>
 #include <QtCore/private/qobject_p.h>
-#include <QtGui/qquaternion.h>
 
 #include <resonance_audio.h>
 #include "platforms/common/room_properties.h"
