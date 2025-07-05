@@ -183,9 +183,13 @@ protected:
         return ::operator new(bytes, static_cast<std::align_val_t>(alignment));
     }
 
-    void do_deallocate(void *p, size_t bytes, size_t alignment) override
+    void do_deallocate(void *p, [[maybe_unused]] size_t bytes, size_t alignment) override
     {
+#  ifdef __cpp_sized_deallocation
         ::operator delete(p, bytes, static_cast<std::align_val_t>(alignment));
+#  else
+        ::operator delete(p, static_cast<std::align_val_t>(alignment));
+#  endif
     }
 
     bool do_is_equal(const memory_resource &other) const noexcept override
