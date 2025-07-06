@@ -68,6 +68,11 @@ parseSamplingRates(const spa_pod &pod)
     if (res < 0)
         return std::nullopt;
 
+    if (!rate_pod) {
+        qWarning() << "parseSamplingRates: parse error" << pod;
+        return std::nullopt;
+    }
+
     if (spa_pod_is_choice(rate_pod)) {
         switch (SPA_POD_CHOICE_TYPE(rate_pod)) {
         case SPA_CHOICE_Range: {
