@@ -26,7 +26,9 @@ QT_BEGIN_NAMESPACE
     \value OpenError       An error occurred opening the audio device
     \value IOError         An error occurred during read/write of audio device. This can happen when
                            e.g. an external audio interface is disconnected.
-    \value UnderrunError   Audio data is not being fed to the audio device at a fast enough rate
+    \value UnderrunError   \e{This value has been deprecated in Qt-6.11 and is not emitted from Qt. Observe
+                           QtAudio::State::IdleState instead.}.
+                           Audio data is not being fed to the audio device at a fast enough rate.
     \value FatalError      A non-recoverable error has occurred, the audio device is not usable at this time.
 */
 
@@ -189,9 +191,12 @@ QDebug operator<<(QDebug dbg, QAudio::Error error)
         case QAudio::IOError:
             dbg << "IOError";
             break;
+            QT_WARNING_PUSH;
+            QT_WARNING_DISABLE_DEPRECATED;
         case QAudio::UnderrunError:
             dbg << "UnderrunError";
             break;
+            QT_WARNING_POP;
         case QAudio::FatalError:
             dbg << "FatalError";
             break;

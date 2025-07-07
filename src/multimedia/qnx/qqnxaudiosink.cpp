@@ -159,7 +159,7 @@ void QQnxAudioSink::updateState()
         return;
 
     if (state() == QAudio::ActiveState && status->underrun > 0)
-        changeState(QAudio::IdleState, QAudio::UnderrunError);
+        changeState(QAudio::IdleState, QAudio::NoError);
     else if (state() == QAudio::IdleState && status->underrun == 0)
         changeState(QAudio::ActiveState, QAudio::NoError);
 }

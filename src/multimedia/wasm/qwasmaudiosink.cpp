@@ -349,11 +349,7 @@ void QWasmAudioSink::updateState()
         return;
     m_state = current;
 
-    if (m_state == QAudio::IdleState && m_running && m_device->bytesAvailable() == 0)
-        setError(QAudio::UnderrunError);
-
     emit stateChanged(m_state);
-
 }
 
 void QWasmAudioSink::setError(QAudio::Error error)

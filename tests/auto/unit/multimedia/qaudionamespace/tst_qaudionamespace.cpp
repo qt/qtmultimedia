@@ -35,7 +35,10 @@ void tst_QAudioNamespace::debugError_data()
     ADD_ENUM_TEST(NoError);
     ADD_ENUM_TEST(OpenError);
     ADD_ENUM_TEST(IOError);
+    QT_WARNING_PUSH;
+    QT_WARNING_DISABLE_DEPRECATED;
     ADD_ENUM_TEST(UnderrunError);
+    QT_WARNING_POP;
     ADD_ENUM_TEST(FatalError);
 }
 

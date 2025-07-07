@@ -804,8 +804,12 @@ void tst_QAudioSink::pullResumeFromUnderrun()
 
     QTRY_COMPARE(stateSignal.size(), 1);
     QCOMPARE(audioSink.state(), QAudio::IdleState);
+    QT_WARNING_PUSH;
+    QT_WARNING_DISABLE_DEPRECATED;
     if (underrunIsAnError())
         QCOMPARE(audioSink.error(), QAudio::UnderrunError);
+    QT_WARNING_POP;
+
     stateSignal.clear();
 
     QTest::qWait(300);
@@ -1185,9 +1189,13 @@ void tst_QAudioSink::pushUnderrun()
                      .toUtf8()
                      .constData());
     QVERIFY2((audioSink.state() == QAudio::IdleState), "didn't transition to IdleState, no data");
-    if (underrunIsAnError())
+    if (underrunIsAnError()) {
+        QT_WARNING_PUSH;
+        QT_WARNING_DISABLE_DEPRECATED;
         QVERIFY2((audioSink.error() == QAudio::UnderrunError),
                  "error state is not equal to QAudio::UnderrunError, no data");
+        QT_WARNING_POP;
+    }
     stateSignal.clear();
 
     // Play rest of the clip

@@ -24,7 +24,8 @@ enum Error
     NoError,
     OpenError,
     IOError,
-    UnderrunError,
+    UnderrunError QT_DEPRECATED_VERSION_X_6_11(
+            "QtAudio::UnderrunError is deprecated, it is not emitted from Qt"),
     FatalError,
 };
 enum State
@@ -56,7 +57,11 @@ using VolumeScale = QAudio::VolumeScale;
 inline constexpr auto NoError = QAudio::NoError;
 inline constexpr auto OpenError = QAudio::OpenError;
 inline constexpr auto IOError = QAudio::IOError;
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+QT_DEPRECATED_VERSION_X_6_11("QtAudio::UnderrunError is deprecated, it is not emitted from Qt")
 inline constexpr auto UnderrunError = QAudio::UnderrunError;
+QT_WARNING_POP
 inline constexpr auto FatalError = QAudio::FatalError;
 inline constexpr auto ActiveState = QAudio::ActiveState;
 inline constexpr auto SuspendedState = QAudio::SuspendedState;
