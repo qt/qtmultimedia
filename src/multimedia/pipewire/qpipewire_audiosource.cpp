@@ -206,7 +206,7 @@ void QPipewireAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
     pw_stream_queue_buffer(m_stream.get(), b);
 }
 
-void QPipewireAudioSourceStream::processCallback() noexcept
+void QPipewireAudioSourceStream::processCallback() noexcept QT_MM_NONBLOCKING
 {
     using namespace QtMultimediaPrivate;
     struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
