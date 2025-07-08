@@ -44,3 +44,6 @@ endif()
 add_subdirectory(qvideotransformation)
 add_subdirectory(qrhivaluemapper)
 
+if(WIN32)
+    add_subdirectory(qwindowsresampler)
+endif()
