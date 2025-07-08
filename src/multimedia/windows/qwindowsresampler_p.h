@@ -16,12 +16,13 @@
 // We mean it.
 //
 
-#include <qbytearray.h>
-#include <qbytearrayview.h>
-#include <qaudioformat.h>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qbytearrayview.h>
 #include <QtCore/private/qcomptr_p.h>
-#include <private/qwindowsmediafoundation_p.h>
-#include <private/qcominitializer_p.h>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/private/qwindowsmediafoundation_p.h>
+#include <QtMultimedia/private/qcominitializer_p.h>
+
 #include <mftransform.h>
 
 struct IMFSample;
@@ -40,7 +41,7 @@ public:
     bool setup(const QAudioFormat &in, const QAudioFormat &out);
 
     QByteArray resample(const QByteArrayView &in);
-    QByteArray resample(IMFSample *sample);
+    QByteArray resample(const ComPtr<IMFSample> &sample);
 
     QAudioFormat inputFormat() const { return m_inputFormat; }
     QAudioFormat outputFormat() const { return m_outputFormat; }

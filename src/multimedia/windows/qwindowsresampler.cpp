@@ -4,7 +4,7 @@
 #include "qwindowsresampler_p.h"
 
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/quuid.h>
+#include <QtCore/private/qsystemerror_p.h>
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
 
 #include <wmcodecdsp.h>
@@ -13,15 +13,12 @@
 
 QT_BEGIN_NAMESPACE
 
-QUuid qIID_IMFTransform(0xbf94c121, 0x5b05, 0x4e6f, 0x80,0x00, 0xba,0x59,0x89,0x61,0x41,0x4d);
-QUuid qCLSID_CResamplerMediaObject("f447b69e-1884-4a7e-8055-346f74d6edb3");
-
 Q_STATIC_LOGGING_CATEGORY(qLcAudioResampler, "qt.multimedia.audioresampler");
 
 QWindowsResampler::QWindowsResampler()
 {
-    CoCreateInstance(qCLSID_CResamplerMediaObject, nullptr, CLSCTX_INPROC_SERVER,
-                     qIID_IMFTransform, (LPVOID*)(m_resampler.GetAddressOf()));
+    CoCreateInstance(__uuidof(CResamplerMediaObject), nullptr, CLSCTX_INPROC_SERVER,
+                     IID_PPV_ARGS(&m_resampler));
     if (m_resampler)
         m_resampler->AddInputStreams(1, &m_inputStreamID);
 }
@@ -145,14 +142,15 @@ QByteArray QWindowsResampler::resample(const QByteArrayView &in)
             hr = processOutput(out);
 
         if (FAILED(hr))
-            qCWarning(qLcAudioResampler) << "Resampling failed" << hr;
+            qCWarning(qLcAudioResampler)
+                    << "Resampling failed" << QSystemError::windowsComString(hr);
 
         m_totalOutputBytes += out.size();
         return out;
     }
 }
 
-QByteArray QWindowsResampler::resample(IMFSample *sample)
+QByteArray QWindowsResampler::resample(const ComPtr<IMFSample> &sample)
 {
     Q_ASSERT(sample);
 
@@ -178,12 +176,13 @@ QByteArray QWindowsResampler::resample(IMFSample *sample)
     } else {
         Q_ASSERT(m_resampler && m_wmf);
 
-        hr = m_resampler->ProcessInput(m_inputStreamID, sample, 0);
+        hr = m_resampler->ProcessInput(m_inputStreamID, sample.Get(), 0);
         if (SUCCEEDED(hr))
             hr = processOutput(out);
 
         if (FAILED(hr))
-            qCWarning(qLcAudioResampler) << "Resampling failed" << hr;
+            qCWarning(qLcAudioResampler)
+                    << "Resampling failed" << QSystemError::windowsComString(hr);
     }
 
     m_totalOutputBytes += out.size();
@@ -213,20 +212,23 @@ bool QWindowsResampler::setup(const QAudioFormat &fin, const QAudioFormat &fout)
 
     HRESULT hr = m_resampler->SetInputType(m_inputStreamID, min.Get(), 0);
     if (FAILED(hr)) {
-        qCWarning(qLcAudioResampler) << "Failed to set input type" << hr;
+        qCWarning(qLcAudioResampler)
+                << "Failed to set input type" << QSystemError::windowsComString(hr);
         return false;
     }
 
     hr = m_resampler->SetOutputType(0, mout.Get(), 0);
     if (FAILED(hr)) {
-        qCWarning(qLcAudioResampler) << "Failed to set output type" << hr;
+        qCWarning(qLcAudioResampler)
+                << "Failed to set output type" << QSystemError::windowsComString(hr);
         return false;
     }
 
     MFT_OUTPUT_STREAM_INFO streamInfo;
     hr = m_resampler->GetOutputStreamInfo(0, &streamInfo);
     if (FAILED(hr)) {
-        qCWarning(qLcAudioResampler) << "Could not obtain stream info" << hr;
+        qCWarning(qLcAudioResampler)
+                << "Could not obtain stream info" << QSystemError::windowsComString(hr);
         return false;
     }
 
