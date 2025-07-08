@@ -60,6 +60,8 @@ private:
     QWindowsMediaFoundation *m_wmf{ QWindowsMediaFoundation::instance() };
     QMFRuntimeInit m_wmfRuntime{ m_wmf };
     ComPtr<IMFTransform> m_resampler;
+    ComPtr<IMFSample> m_inputSample;
+    ComPtr<IMFSample> m_outputSample;
 
     bool m_resamplerNeedsSampleBuffer = false;
     quint64 m_totalInputBytes = 0;

@@ -21,6 +21,16 @@ QWindowsResampler::QWindowsResampler()
                      IID_PPV_ARGS(&m_resampler));
     if (m_resampler)
         m_resampler->AddInputStreams(1, &m_inputStreamID);
+
+    for (ComPtr<IMFSample> &sample : { std::ref(m_inputSample), std::ref(m_outputSample) }) {
+        HRESULT hr = m_wmf->mfCreateSample(sample.GetAddressOf());
+        if (FAILED(hr)) {
+            qCWarning(qLcAudioResampler) << "Failed to create sample for resampling:"
+                                         << QSystemError::windowsComString(hr);
+            m_resampler = nullptr;
+            return;
+        }
+    }
 }
 
 QWindowsResampler::~QWindowsResampler() = default;
@@ -43,13 +53,8 @@ quint64 QWindowsResampler::inputBufferSize(quint64 outputBufferSize) const
 
 HRESULT QWindowsResampler::processInput(const QByteArrayView &in)
 {
-    ComPtr<IMFSample> sample;
-    HRESULT hr = m_wmf->mfCreateSample(sample.GetAddressOf());
-    if (FAILED(hr))
-        return hr;
-
     ComPtr<IMFMediaBuffer> buffer;
-    hr = m_wmf->mfCreateMemoryBuffer(in.size(), buffer.GetAddressOf());
+    HRESULT hr = m_wmf->mfCreateMemoryBuffer(in.size(), buffer.GetAddressOf());
     if (FAILED(hr))
         return hr;
 
@@ -70,29 +75,32 @@ HRESULT QWindowsResampler::processInput(const QByteArrayView &in)
     if (FAILED(hr))
         return hr;
 
-    hr = sample->AddBuffer(buffer.Get());
+    hr = m_inputSample->RemoveAllBuffers();
     if (FAILED(hr))
         return hr;
 
-    return m_resampler->ProcessInput(m_inputStreamID, sample.Get(), 0);
+    hr = m_inputSample->AddBuffer(buffer.Get());
+    if (FAILED(hr))
+        return hr;
+
+    return m_resampler->ProcessInput(m_inputStreamID, m_inputSample.Get(), 0);
 }
 
 HRESULT QWindowsResampler::processOutput(QByteArray &out)
 {
-    ComPtr<IMFSample> sample;
     ComPtr<IMFMediaBuffer> buffer;
 
     if (m_resamplerNeedsSampleBuffer) {
-        HRESULT hr = m_wmf->mfCreateSample(sample.GetAddressOf());
-        if (FAILED(hr))
-            return hr;
-
         auto expectedOutputSize = outputBufferSize(m_totalInputBytes) - m_totalOutputBytes;
-        hr = m_wmf->mfCreateMemoryBuffer(expectedOutputSize, buffer.GetAddressOf());
+        HRESULT hr = m_wmf->mfCreateMemoryBuffer(expectedOutputSize, buffer.GetAddressOf());
         if (FAILED(hr))
             return hr;
 
-        hr = sample->AddBuffer(buffer.Get());
+        hr = m_outputSample->RemoveAllBuffers();
+        if (FAILED(hr))
+            return hr;
+
+        hr = m_outputSample->AddBuffer(buffer.Get());
         if (FAILED(hr))
             return hr;
     }
@@ -104,7 +112,7 @@ HRESULT QWindowsResampler::processOutput(QByteArray &out)
     do {
         outputDataBuffer.pEvents = nullptr;
         outputDataBuffer.dwStatus = 0;
-        outputDataBuffer.pSample = m_resamplerNeedsSampleBuffer ? sample.Get() : nullptr;
+        outputDataBuffer.pSample = m_resamplerNeedsSampleBuffer ? m_outputSample.Get() : nullptr;
         DWORD status = 0;
         hr = m_resampler->ProcessOutput(0, 1, &outputDataBuffer, &status);
         if (SUCCEEDED(hr)) {
