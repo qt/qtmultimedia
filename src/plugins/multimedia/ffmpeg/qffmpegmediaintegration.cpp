@@ -214,7 +214,7 @@ q23::expected<QPlatformCamera *, QString> QFFmpegMediaIntegration::createCamera(
     return new QWindowsCamera(camera);
 #else
     Q_UNUSED(camera);
-    return { unexpect, notAvailable };
+    return q23::unexpected{ notAvailable };
 #endif
 }
 
