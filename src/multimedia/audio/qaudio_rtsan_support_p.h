@@ -36,9 +36,14 @@ namespace QtPrivate {
 #if defined(__has_feature) && __has_feature(realtime_sanitizer)
 using ScopedRTSanDisabler = __rtsan::ScopedDisabler;
 #else
-struct [[maybe_unused]] ScopedRTSanDisabler
+struct ScopedRTSanDisabler
 {
-    ScopedRTSanDisabler() = default;
+    ScopedRTSanDisabler()
+    {
+        // silence unused/unreferenced local variable warning
+        // NB: declaring the struct as [[maybe_unused]] does not work for cl.exe
+        (void)this;
+    }
     ~ScopedRTSanDisabler() = default;
     Q_DISABLE_COPY_MOVE(ScopedRTSanDisabler)
 };
