@@ -7,6 +7,7 @@
 #include <QtCore/private/qsystemerror_p.h>
 #include <QtMultimedia/private/qaudio_alignment_support_p.h>
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
+#include <QtMultimedia/private/qwmf_support_p.h>
 
 #include <wmcodecdsp.h>
 #include <mftransform.h>
@@ -72,18 +73,13 @@ HRESULT QWindowsResampler::processInput(const QByteArrayView &in)
     if (FAILED(hr))
         return hr;
 
-    BYTE *data = nullptr;
-    DWORD maxLen = 0;
-    DWORD currentLen = 0;
-    hr = buffer->Lock(&data, &maxLen, &currentLen);
-    if (FAILED(hr))
-        return hr;
+    auto result = QWMF::withLockedBuffer(buffer, [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
+        std::copy_n(in.data(), in.size(), data.data());
+        return true;
+    });
 
-    memcpy(data, in.data(), in.size());
-
-    hr = buffer->Unlock();
-    if (FAILED(hr))
-        return hr;
+    if (!result)
+        return result.error();
 
     hr = buffer->SetCurrentLength(in.size());
     if (FAILED(hr))
@@ -128,12 +124,14 @@ HRESULT QWindowsResampler::processOutput(QByteArray &out)
         if (SUCCEEDED(hr)) {
             ComPtr<IMFMediaBuffer> outputBuffer;
             outputDataBuffer.pSample->ConvertToContiguousBuffer(outputBuffer.GetAddressOf());
-            DWORD len = 0;
-            BYTE *data = nullptr;
-            hr = outputBuffer->Lock(&data, nullptr, &len);
-            if (SUCCEEDED(hr))
-                out.push_back(QByteArray(reinterpret_cast<char *>(data), len));
-            outputBuffer->Unlock();
+            auto result = QWMF::withLockedBuffer(outputBuffer,
+                                                 [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
+                out.append(reinterpret_cast<const char *>(data.data()), data.size());
+                return true;
+            });
+
+            if (!result)
+                hr = result.error();
         }
     } while (SUCCEEDED(hr));
 
@@ -184,13 +182,12 @@ QByteArray QWindowsResampler::resample(const ComPtr<IMFSample> &sample)
     if (m_inputFormat == m_outputFormat) {
         ComPtr<IMFMediaBuffer> outputBuffer;
         sample->ConvertToContiguousBuffer(outputBuffer.GetAddressOf());
-        DWORD len = 0;
-        BYTE *data = nullptr;
-        hr = outputBuffer->Lock(&data, nullptr, &len);
-        if (SUCCEEDED(hr))
-            out.push_back(QByteArray(reinterpret_cast<char *>(data), len));
-        outputBuffer->Unlock();
 
+        std::ignore =
+                QWMF::withLockedBuffer(outputBuffer, [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
+            out.push_back(data);
+            return true;
+        });
     } else {
         Q_ASSERT(m_resampler && m_wmf);
 
