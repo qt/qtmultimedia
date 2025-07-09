@@ -4,7 +4,9 @@
 #include "qwindowsaudiosink_p.h"
 
 #include <QtCore/private/qsystemerror_p.h>
+#include <QtCore/private/qfunctions_win_p.h>
 #include <QtMultimedia/private/qwindowsaudiodevice_p.h>
+#include <QtMultimedia/private/qwindowsresampler_p.h>
 
 #include <audioclient.h>
 #include <mmdeviceapi.h>
@@ -15,6 +17,31 @@ namespace QtWASAPI {
 
 using QWindowsAudioUtils::audioClientErrorString;
 using namespace std::chrono_literals;
+
+namespace {
+
+QAudioFormat makeHostFormatForSink(const QAudioDevice &device, const QAudioFormat &format)
+{
+    const QWindowsAudioDevice *winDevice = QAudioDevicePrivate::handle<QWindowsAudioDevice>(device);
+
+    QAudioFormat hostFormat = format;
+    const int requestedChannelCount = format.channelCount();
+    auto [minProbedChannels, maxProbedChannels] = winDevice->m_probedChannelCountRange;
+
+    if (requestedChannelCount < device.minimumChannelCount()) {
+        hostFormat.setChannelCount(minProbedChannels);
+        hostFormat.setChannelConfig(
+                QAudioFormat::defaultChannelConfigForChannelCount(minProbedChannels));
+    } else if (requestedChannelCount > device.maximumChannelCount()) {
+        hostFormat.setChannelCount(maxProbedChannels);
+        hostFormat.setChannelConfig(
+                QAudioFormat::defaultChannelConfigForChannelCount(maxProbedChannels));
+    }
+
+    return hostFormat;
+}
+
+} // namespace
 
 QWASAPIAudioSinkStream::QWASAPIAudioSinkStream(QAudioDevice device, const QAudioFormat &format, std::optional<qsizetype> ringbufferSize,
                                                QWindowsAudioSink *parent, float volume, std::optional<int32_t> hardwareBufferFrames, AudioEndpointRole role):
@@ -33,6 +60,9 @@ QWASAPIAudioSinkStream::QWASAPIAudioSinkStream(QAudioDevice device, const QAudio
     },
     m_parent{
         parent
+    },
+    m_hostFormat {
+        makeHostFormatForSink(m_audioDevice, format),
     }
 {
 }
@@ -145,7 +175,7 @@ bool QWASAPIAudioSinkStream::openAudioClient(ComPtr<IMMDevice> device, AudioEndp
     using namespace QWindowsAudioUtils;
 
     std::optional<AudioClientCreationResult> clientData =
-            createAudioClient(device, m_format, m_hardwareBufferFrames, m_wasapiHandle, role);
+            createAudioClient(device, m_hostFormat, m_hardwareBufferFrames, m_wasapiHandle, role);
 
     if (!clientData)
         return false;
@@ -161,8 +191,8 @@ bool QWASAPIAudioSinkStream::openAudioClient(ComPtr<IMMDevice> device, AudioEndp
         return false;
     }
 
-    if (m_audioDevice.preferredFormat().sampleRate() != m_format.sampleRate())
-        audioClientSetRate(m_audioClient, m_format.sampleRate());
+    if (m_audioDevice.preferredFormat().sampleRate() != m_hostFormat.sampleRate())
+        audioClientSetRate(m_audioClient, m_hostFormat.sampleRate());
 
     return true;
 }
@@ -173,6 +203,13 @@ bool QWASAPIAudioSinkStream::startAudioClient(StreamType streamType)
     m_workerThread.reset(QThread::create([this, streamType] {
         setMCSSForPeriodSize(m_periodSize);
         fillInitialHostBuffer();
+        std::optional<QComHelper> m_comHelper;
+
+        if (m_hostFormat != m_format) {
+            m_comHelper.emplace();
+            m_resampler = std::make_unique<QWindowsResampler>();
+            m_resampler->setup(m_format, m_hostFormat);
+        }
 
         switch (streamType) {
         case StreamType::Ringbuffer:
@@ -274,6 +311,7 @@ bool QWASAPIAudioSinkStream::visitAudioClientBuffer(Functor &&f)
     }
 
     const uint32_t requiredFrames = m_audioClientFrames - numFramesPadding;
+
     if (requiredFrames == 0)
         return true;
 
@@ -287,11 +325,38 @@ bool QWASAPIAudioSinkStream::visitAudioClientBuffer(Functor &&f)
 
     QSpan<std::byte> hostBufferSpan{
         reinterpret_cast<std::byte *>(hostBuffer),
-        m_format.bytesForFrames(requiredFrames),
+        m_hostFormat.bytesForFrames(requiredFrames),
     };
 
-    const uint64_t consumedFrames = f(hostBufferSpan, requiredFrames);
+    uint64_t consumedFrames;
+    if (m_resampler) {
+        Q_UNLIKELY_BRANCH;
+
+        // resample into a temporary buffer
+        // FIXME: this is not real-time safe due to the memory allocations
+        QtPrivate::ScopedRTSanDisabler disableRTSan;
+
+        QByteArray resampleBuffer{
+            m_format.bytesForFrames(requiredFrames),
+            Qt::Uninitialized,
+        };
+
+        consumedFrames = f(as_writable_bytes(QSpan{ resampleBuffer }), requiredFrames);
+
+        QByteArray resampledBuffer = m_resampler->resample(std::move(resampleBuffer));
+
+        auto resampledBufferSpan = as_bytes(QSpan{
+                resampledBuffer.constData(),
+                resampledBuffer.size(),
+        });
+        Q_ASSERT(resampledBufferSpan.size() == hostBufferSpan.size());
+        std::copy_n(resampledBufferSpan.data(), resampledBuffer.size(), hostBufferSpan.data());
+    } else {
+        consumedFrames = f(hostBufferSpan, requiredFrames);
+    }
+
     const DWORD flags = consumedFrames != 0 ? 0 : AUDCLNT_BUFFERFLAGS_SILENT;
+
     hr = m_renderClient->ReleaseBuffer(requiredFrames, flags);
     if (FAILED(hr)) {
         qWarning() << "IAudioRenderClient::ReleaseBuffer failed" << audioClientErrorString(hr);
