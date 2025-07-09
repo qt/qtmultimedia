@@ -22,6 +22,7 @@
 #include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
 #include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
+#include <QtMultimedia/private/qwindowsresampler_p.h>
 
 #include <atomic>
 #include <memory>
@@ -92,6 +93,9 @@ private:
 
     std::optional<AudioCallback> m_audioCallback;
     QWindowsAudioSource *m_parent;
+
+    QAudioFormat m_hostFormat;
+    std::unique_ptr<QWindowsResampler> m_resampler;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
