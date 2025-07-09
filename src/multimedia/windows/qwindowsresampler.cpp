@@ -5,6 +5,7 @@
 
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/private/qsystemerror_p.h>
+#include <QtMultimedia/private/qaudio_alignment_support_p.h>
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
 
 #include <wmcodecdsp.h>
@@ -92,6 +93,10 @@ HRESULT QWindowsResampler::processOutput(QByteArray &out)
 
     if (m_resamplerNeedsSampleBuffer) {
         auto expectedOutputSize = outputBufferSize(m_totalInputBytes) - m_totalOutputBytes;
+        // we may have some rounding errors, so we over-allocate by 10ms
+        expectedOutputSize += m_outputFormat.bytesForDuration(10000);
+        expectedOutputSize = QtMultimediaPrivate::alignUp(expectedOutputSize, 1024);
+
         HRESULT hr = m_wmf->mfCreateMemoryBuffer(expectedOutputSize, buffer.GetAddressOf());
         if (FAILED(hr))
             return hr;
