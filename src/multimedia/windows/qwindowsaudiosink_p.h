@@ -30,6 +30,8 @@ struct IAudioRenderClient;
 
 QT_BEGIN_NAMESPACE
 
+class QWindowsResampler;
+
 namespace QtWASAPI {
 
 class QWindowsAudioSink;
@@ -105,6 +107,9 @@ private:
     AudioCallback m_audioCallback;
 
     QWindowsAudioSink *m_parent;
+
+    QAudioFormat m_hostFormat;
+    std::unique_ptr<QWindowsResampler> m_resampler;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

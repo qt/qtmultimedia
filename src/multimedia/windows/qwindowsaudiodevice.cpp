@@ -304,16 +304,18 @@ QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev
         // wasapi does sample format conversion for us: AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM
         supportedSampleFormats = qAllSupportedSampleFormats();
 
-        if (mode == QAudioDevice::Mode::Output) {
-            minimumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.front();
-            maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
-        } else {
-            minimumSampleRate = probedFormats->sampleRateRange.first;
-            maximumSampleRate = probedFormats->sampleRateRange.second;
-        }
+        // this is a bit of a lie:
+        // for sources, WASAPI only supports a single sample rate, but we inject a resampler
+        // for sinks, WASAPI resamples internally
+        minimumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.front();
+        maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
 
-        minimumChannelCount = probedFormats->channelCountRange.first;
+        minimumChannelCount = 1; // we are lying here, but expect the QWASAPIAudioSinkStream to
+                                 // perform format conversion
         maximumChannelCount = probedFormats->channelCountRange.second;
+
+        m_probedChannelCountRange = probedFormats->channelCountRange;
+        m_probedSampleRateRange = probedFormats->sampleRateRange;
     }
 
     if (!preferredFormat.isValid()) {
