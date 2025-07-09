@@ -15,7 +15,8 @@
 #include <QtMultimedia/private/qwindowsaudiosource_p.h>
 #include <QtMultimedia/private/qwindows_propertystore_p.h>
 
-#ifndef INITGUID
+#if defined(Q_CC_MINGW) && !defined(INITGUID)
+// mingw's uuid.lib does not contain PKEY_Device_FriendlyName and friends, so we need to define them
 #  include <initguid.h>
 #endif
 #include <audioclient.h>
