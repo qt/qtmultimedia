@@ -9,6 +9,7 @@
 #include <private/qwindowsmultimediautils_p.h>
 #include <private/qvideoframe_p.h>
 #include <private/qcomobject_p.h>
+#include <private/qwmf_support_p.h>
 
 #include <QtCore/private/qsystemerror_p.h>
 
@@ -197,10 +198,9 @@ public:
             ComPtr<IMFMediaBuffer> mediaBuffer;
             if (SUCCEEDED(sample->ConvertToContiguousBuffer(mediaBuffer.GetAddressOf()))) {
 
-                DWORD bufLen = 0;
-                BYTE *buffer = nullptr;
-                if (SUCCEEDED(mediaBuffer->Lock(&buffer, nullptr, &bufLen))) {
-                    QByteArray bytes(reinterpret_cast<char*>(buffer), qsizetype(bufLen));
+                auto result = QWMF::withLockedBuffer(mediaBuffer,
+                                                     [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
+                    QByteArray bytes(data);
                     auto buffer = std::make_unique<QMemoryVideoBuffer>(std::move(bytes),
                                                                        m_videoFrameStride);
                     QVideoFrame frame =
@@ -213,9 +213,11 @@ public:
                     if (SUCCEEDED(sample->GetSampleDuration(&duration)))
                         frame.setEndTime((timestamp + duration) / 10);
 
-                    emit m_windowsCamera.newVideoFrame(frame);
-                    mediaBuffer->Unlock();
-                }
+                    return frame;
+                });
+
+                if (result)
+                    emit m_windowsCamera.newVideoFrame(result.value());
             }
         }
 
