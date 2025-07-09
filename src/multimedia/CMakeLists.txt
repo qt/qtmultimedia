@@ -371,6 +371,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         avrt
         ksuser
         propsys
+        uuid
         winmm
     NO_UNITY_BUILD_SOURCES
         # audioclient.h causes problems with mingw
