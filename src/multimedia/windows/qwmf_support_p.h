@@ -25,6 +25,8 @@
 
 #include <mfobjects.h>
 
+#include <memory_resource>
+
 QT_BEGIN_NAMESPACE
 
 namespace QWMF {
@@ -105,6 +107,49 @@ public:
     QByteArrayMFMediaBuffer &operator=(const QByteArrayMFMediaBuffer &) = delete;
     QByteArrayMFMediaBuffer(QByteArrayMFMediaBuffer &&) = delete;
     QByteArrayMFMediaBuffer &operator=(QByteArrayMFMediaBuffer &&) = delete;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+class QPmrMediaBuffer final : public QComObject<IMFMediaBuffer>
+{
+public:
+    static HRESULT CreateInstance(QSpan<const std::byte>, std::pmr::memory_resource *,
+                                  IMFMediaBuffer **ppBuffer);
+    static HRESULT CreateInstance(qsizetype capacity, std::pmr::memory_resource *,
+                                  IMFMediaBuffer **ppBuffer);
+
+    // --- IUnknown Methods ---
+    // Note: we cannot access the reference count from QComObject (yet), we override all reference
+    // count methods
+    STDMETHODIMP_(ULONG) AddRef() override;
+    STDMETHODIMP_(ULONG) Release() override;
+
+    // --- IMFMediaBuffer Methods ---
+    STDMETHODIMP Lock(BYTE **ppbBuffer, DWORD *pcbMaxLength, DWORD *pcbCurrentLength) override;
+    STDMETHODIMP Unlock() override;
+    STDMETHODIMP GetCurrentLength(DWORD *pcbCurrentLength) override;
+    STDMETHODIMP SetCurrentLength(DWORD cbCurrentLength) override;
+    STDMETHODIMP GetMaxLength(DWORD *pcbMaxLength) override;
+
+private:
+    // Protected constructor to enforce creation via CreateInstance factory method.
+    QPmrMediaBuffer(QSpan<const std::byte>, std::pmr::memory_resource *);
+    QPmrMediaBuffer(qsizetype capacity, std::pmr::memory_resource *);
+    ~QPmrMediaBuffer();
+
+    // Member variables
+    std::atomic_flag m_isLocked = ATOMIC_FLAG_INIT;
+    std::pmr::memory_resource *m_memoryResource;
+
+    DWORD m_currentLength{ 0 };
+    DWORD m_maxLength;
+    std::byte *const m_buffer;
+
+    std::atomic<LONG> m_referenceCount = 1;
+
+public:
+    Q_DISABLE_COPY_MOVE(QPmrMediaBuffer)
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
