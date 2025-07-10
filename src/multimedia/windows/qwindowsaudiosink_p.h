@@ -25,6 +25,7 @@
 
 #include <atomic>
 #include <memory>
+#include <memory_resource>
 
 struct IAudioRenderClient;
 
@@ -109,6 +110,9 @@ private:
     QWindowsAudioSink *m_parent;
 
     QAudioFormat m_hostFormat;
+    std::unique_ptr<char[]> m_preallocatedBuffer;
+    std::unique_ptr<std::pmr::memory_resource> m_pmrBufferResource;
+    std::unique_ptr<std::pmr::memory_resource> m_pmrPoolResource;
     std::unique_ptr<QWindowsResampler> m_resampler;
 };
 
