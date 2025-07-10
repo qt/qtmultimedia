@@ -58,11 +58,14 @@ void tst_QWindowsResampler::resample_QByteArray_mono_to_stereo()
         0.1f, 0.1f, 0.2f, 0.2f, 0.3f, 0.3f, 0.4f, 0.4f, 0.5f, 0.5f,
     };
 
-    auto result = dut->resample(as_bytes(QSpan(monoData)));
+    for (int i = 0; i != 4; ++i) {
+        auto result = dut->resample(as_bytes(QSpan(monoData)));
 
-    QCOMPARE(size_t(result.size()), size_t(formatStereo.bytesForFrames(qint32(monoData.size()))));
-    QCOMPARE(asByteSpan(result).size(), asByteSpan(stereoData).size());
-    QVERIFY(ranges::equal(asByteSpan(result), asByteSpan(stereoData), std::equal_to<>{}));
+        QCOMPARE(size_t(result.size()),
+                 size_t(formatStereo.bytesForFrames(qint32(monoData.size()))));
+        QCOMPARE(asByteSpan(result).size(), asByteSpan(stereoData).size());
+        QVERIFY(ranges::equal(asByteSpan(result), asByteSpan(stereoData), std::equal_to<>{}));
+    }
 }
 
 void tst_QWindowsResampler::resample_QByteArray_stereo_to_mono()
@@ -79,12 +82,14 @@ void tst_QWindowsResampler::resample_QByteArray_stereo_to_mono()
         0.1f, 0.1f, 0.2f, 0.2f, 0.3f, 0.3f, 0.4f, 0.4f, 0.5f, 0.5f,
     };
 
-    auto result = dut->resample(as_bytes(QSpan(stereoData)));
+    for (int i = 0; i != 4; ++i) {
+        auto result = dut->resample(as_bytes(QSpan(stereoData)));
 
-    QCOMPARE(size_t(result.size()),
-             size_t(formatMono.bytesForFrames(qint32(stereoData.size() / 2))));
-    QCOMPARE(asByteSpan(result).size(), asByteSpan(monoData).size());
-    QVERIFY(ranges::equal(asByteSpan(result), asByteSpan(monoData), std::equal_to<>{}));
+        QCOMPARE(size_t(result.size()),
+                 size_t(formatMono.bytesForFrames(qint32(stereoData.size() / 2))));
+        QCOMPARE(asByteSpan(result).size(), asByteSpan(monoData).size());
+        QVERIFY(ranges::equal(asByteSpan(result), asByteSpan(monoData), std::equal_to<>{}));
+    }
 }
 
 QTEST_MAIN(tst_QWindowsResampler)
