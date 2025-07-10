@@ -16,6 +16,19 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcAudioResampler, "qt.multimedia.audioresampler");
 
+namespace {
+
+HRESULT replaceBuffer(const ComPtr<IMFSample> &sample, const ComPtr<IMFMediaBuffer> &buffer)
+{
+    HRESULT hr = sample->RemoveAllBuffers();
+    if (FAILED(hr))
+        return hr;
+
+    return sample->AddBuffer(buffer.Get());
+}
+
+} // namespace
+
 QWindowsResampler::QWindowsResampler()
 {
     CoCreateInstance(__uuidof(CResamplerMediaObject), nullptr, CLSCTX_INPROC_SERVER,
@@ -76,11 +89,7 @@ HRESULT QWindowsResampler::processInput(const QByteArrayView &in)
     if (FAILED(hr))
         return hr;
 
-    hr = m_inputSample->RemoveAllBuffers();
-    if (FAILED(hr))
-        return hr;
-
-    hr = m_inputSample->AddBuffer(buffer.Get());
+    hr = replaceBuffer(m_inputSample, buffer);
     if (FAILED(hr))
         return hr;
 
@@ -101,11 +110,7 @@ HRESULT QWindowsResampler::processOutput(QByteArray &out)
         if (FAILED(hr))
             return hr;
 
-        hr = m_outputSample->RemoveAllBuffers();
-        if (FAILED(hr))
-            return hr;
-
-        hr = m_outputSample->AddBuffer(buffer.Get());
+        hr = replaceBuffer(m_outputSample, buffer);
         if (FAILED(hr))
             return hr;
     }
