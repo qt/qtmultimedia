@@ -22,6 +22,7 @@
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/private/qwindowsmediafoundation_p.h>
 #include <QtMultimedia/private/qcominitializer_p.h>
+#include <QtMultimedia/private/qmaybe_p.h>
 
 #include <mftransform.h>
 
@@ -40,8 +41,9 @@ public:
 
     bool setup(const QAudioFormat &in, const QAudioFormat &out);
 
-    QByteArray resample(const QByteArrayView &in);
-    QByteArray resample(const ComPtr<IMFSample> &sample);
+    QByteArray resample(QByteArray);
+    QByteArray resample(const QByteArrayView &);
+    QByteArray resample(const ComPtr<IMFSample> &);
 
     QAudioFormat inputFormat() const { return m_inputFormat; }
     QAudioFormat outputFormat() const { return m_outputFormat; }
@@ -53,8 +55,8 @@ public:
     quint64 totalOutputBytes() const { return m_totalOutputBytes; }
 
 private:
-    HRESULT processInput(const QByteArrayView &in);
-    HRESULT processOutput(QByteArray &out);
+    HRESULT processInput(QByteArray);
+    QMaybe<QByteArray, HRESULT> processOutput();
 
     QComInitializer m_comInitializer;
     QWindowsMediaFoundation *m_wmf{ QWindowsMediaFoundation::instance() };
@@ -63,7 +65,6 @@ private:
     ComPtr<IMFSample> m_inputSample;
     ComPtr<IMFSample> m_outputSample;
 
-    bool m_resamplerNeedsSampleBuffer = false;
     quint64 m_totalInputBytes = 0;
     quint64 m_totalOutputBytes = 0;
     QAudioFormat m_inputFormat;

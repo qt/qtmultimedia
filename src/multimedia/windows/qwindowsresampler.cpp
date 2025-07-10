@@ -66,96 +66,73 @@ quint64 QWindowsResampler::inputBufferSize(quint64 outputBufferSize) const
         return 0;
 }
 
-HRESULT QWindowsResampler::processInput(const QByteArrayView &in)
+HRESULT QWindowsResampler::processInput(QByteArray in)
 {
     ComPtr<IMFMediaBuffer> buffer;
-    HRESULT hr = m_wmf->mfCreateMemoryBuffer(in.size(), buffer.GetAddressOf());
-    if (FAILED(hr))
-        return hr;
+    // we always do out-of-place transformations, so read-only will prevent the buffer to detach()
+    QWMF::QByteArrayMFMediaBuffer::CreateInstance(std::move(in), buffer.GetAddressOf(),
+                                                  /*isReadOnly=*/true);
 
-    auto result = QWMF::withLockedBuffer(buffer, [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
-        std::copy_n(in.data(), in.size(), data.data());
-        return true;
-    });
-
-    if (!result)
-        return result.error();
-
-    hr = buffer->SetCurrentLength(in.size());
-    if (FAILED(hr))
-        return hr;
-
-    hr = replaceBuffer(m_inputSample, buffer);
+    HRESULT hr = replaceBuffer(m_inputSample, buffer);
     if (FAILED(hr))
         return hr;
 
     return m_resampler->ProcessInput(m_inputStreamID, m_inputSample.Get(), 0);
 }
 
-HRESULT QWindowsResampler::processOutput(QByteArray &out)
+QMaybe<QByteArray, HRESULT> QWindowsResampler::processOutput()
 {
+    using namespace QWMF;
+
+    auto expectedOutputSize = outputBufferSize(m_totalInputBytes) - m_totalOutputBytes;
+    // we may have some rounding errors, so we over-allocate by 10ms
+    expectedOutputSize += m_outputFormat.bytesForDuration(10000);
+    expectedOutputSize = QtMultimediaPrivate::alignUp(expectedOutputSize, 1024);
+
     ComPtr<IMFMediaBuffer> buffer;
+    QByteArrayMFMediaBuffer::CreateInstance(qsizetype(expectedOutputSize), buffer.GetAddressOf());
 
-    if (m_resamplerNeedsSampleBuffer) {
-        auto expectedOutputSize = outputBufferSize(m_totalInputBytes) - m_totalOutputBytes;
-        // we may have some rounding errors, so we over-allocate by 10ms
-        expectedOutputSize += m_outputFormat.bytesForDuration(10000);
-        expectedOutputSize = QtMultimediaPrivate::alignUp(expectedOutputSize, 1024);
-
-        HRESULT hr = m_wmf->mfCreateMemoryBuffer(expectedOutputSize, buffer.GetAddressOf());
-        if (FAILED(hr))
-            return hr;
-
-        hr = replaceBuffer(m_outputSample, buffer);
-        if (FAILED(hr))
-            return hr;
-    }
-
-    HRESULT hr = S_OK;
+    HRESULT hr = replaceBuffer(m_outputSample, buffer);
+    if (FAILED(hr))
+        return QUnexpected{ hr };
 
     MFT_OUTPUT_DATA_BUFFER outputDataBuffer;
     outputDataBuffer.dwStreamID = 0;
-    do {
-        outputDataBuffer.pEvents = nullptr;
-        outputDataBuffer.dwStatus = 0;
-        outputDataBuffer.pSample = m_resamplerNeedsSampleBuffer ? m_outputSample.Get() : nullptr;
-        DWORD status = 0;
-        hr = m_resampler->ProcessOutput(0, 1, &outputDataBuffer, &status);
-        if (SUCCEEDED(hr)) {
-            ComPtr<IMFMediaBuffer> outputBuffer;
-            outputDataBuffer.pSample->ConvertToContiguousBuffer(outputBuffer.GetAddressOf());
-            auto result = QWMF::withLockedBuffer(outputBuffer,
-                                                 [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
-                out.append(reinterpret_cast<const char *>(data.data()), data.size());
-                return true;
-            });
+    outputDataBuffer.pEvents = nullptr;
+    outputDataBuffer.dwStatus = 0;
+    outputDataBuffer.pSample = m_outputSample.Get();
+    DWORD status = 0;
+    hr = m_resampler->ProcessOutput(0, 1, &outputDataBuffer, &status);
+    if (FAILED(hr))
+        return QUnexpected{ hr };
 
-            if (!result)
-                hr = result.error();
-        }
-    } while (SUCCEEDED(hr));
-
-    if (hr == MF_E_TRANSFORM_NEED_MORE_INPUT)
-        hr = S_OK;
-
-    return hr;
+    return withLockedBuffer(buffer, [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
+        auto *byteArrayBuffer = static_cast<QByteArrayMFMediaBuffer *>(buffer.Get());
+        QByteArray out = byteArrayBuffer->takeByteArray();
+        out.truncate(data.size());
+        return out;
+    });
 }
 
-QByteArray QWindowsResampler::resample(const QByteArrayView &in)
+QByteArray QWindowsResampler::resample(QByteArray in)
 {
     m_totalInputBytes += in.size();
 
     if (m_inputFormat == m_outputFormat) {
         m_totalOutputBytes += in.size();
-        return {in.data(), in.size()};
-
+        return in;
     } else {
         Q_ASSERT(m_resampler && m_wmf);
 
         QByteArray out;
-        HRESULT hr = processInput(in);
-        if (SUCCEEDED(hr))
-            hr = processOutput(out);
+        HRESULT hr = processInput(std::move(in));
+        if (SUCCEEDED(hr)) {
+            auto result = processOutput();
+            if (result)
+                out = std::move(result.value());
+            else
+                hr = result.error();
+        }
 
         if (FAILED(hr))
             qCWarning(qLcAudioResampler)
@@ -164,6 +141,11 @@ QByteArray QWindowsResampler::resample(const QByteArrayView &in)
         m_totalOutputBytes += out.size();
         return out;
     }
+}
+
+QByteArray QWindowsResampler::resample(const QByteArrayView &in)
+{
+    return QWindowsResampler::resample(QByteArray(in));
 }
 
 QByteArray QWindowsResampler::resample(const ComPtr<IMFSample> &sample)
@@ -192,8 +174,13 @@ QByteArray QWindowsResampler::resample(const ComPtr<IMFSample> &sample)
         Q_ASSERT(m_resampler && m_wmf);
 
         hr = m_resampler->ProcessInput(m_inputStreamID, sample.Get(), 0);
-        if (SUCCEEDED(hr))
-            hr = processOutput(out);
+        if (SUCCEEDED(hr)) {
+            auto result = processOutput();
+            if (result)
+                out = std::move(result.value());
+            else
+                hr = result.error();
+        }
 
         if (FAILED(hr))
             qCWarning(qLcAudioResampler)
@@ -246,9 +233,6 @@ bool QWindowsResampler::setup(const QAudioFormat &fin, const QAudioFormat &fout)
                 << "Could not obtain stream info" << QSystemError::windowsComString(hr);
         return false;
     }
-
-    m_resamplerNeedsSampleBuffer = (streamInfo.dwFlags
-             & (MFT_OUTPUT_STREAM_PROVIDES_SAMPLES | MFT_OUTPUT_STREAM_CAN_PROVIDE_SAMPLES)) == 0;
 
     m_inputFormat = fin;
     m_outputFormat = fout;
