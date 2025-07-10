@@ -26,6 +26,8 @@
 
 #include <mftransform.h>
 
+#include <memory_resource>
+
 struct IMFSample;
 struct IMFTransform;
 
@@ -45,6 +47,10 @@ public:
     QByteArray resample(const QByteArrayView &);
     QByteArray resample(const ComPtr<IMFSample> &);
 
+    // Caveat: the memory resource needs outlive the QWindowsResampler instance (the IMFTransform
+    // API does not rule out that the input buffers are kept alive)
+    std::pmr::vector<std::byte> resample(QSpan<const std::byte>, std::pmr::memory_resource *);
+
     QAudioFormat inputFormat() const { return m_inputFormat; }
     QAudioFormat outputFormat() const { return m_outputFormat; }
 
@@ -55,7 +61,11 @@ public:
     quint64 totalOutputBytes() const { return m_totalOutputBytes; }
 
 private:
-    HRESULT processInput(QByteArray);
+    qsizetype overAllocatedOutputBufferSize();
+    template <typename Functor>
+    auto processOutput(ComPtr<IMFMediaBuffer> buffer, Functor &&f)
+            -> std::invoke_result_t<Functor, const ComPtr<IMFMediaBuffer> &>;
+
     QMaybe<QByteArray, HRESULT> processOutput();
 
     QComInitializer m_comInitializer;

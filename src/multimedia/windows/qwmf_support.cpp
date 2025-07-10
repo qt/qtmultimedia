@@ -134,6 +134,144 @@ QByteArray QByteArrayMFMediaBuffer::takeByteArray()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+HRESULT QPmrMediaBuffer::CreateInstance(QSpan<const std::byte> data,
+                                        std::pmr::memory_resource *resource,
+                                        IMFMediaBuffer **ppBuffer)
+{
+    if (!ppBuffer || !resource)
+        return E_POINTER;
+
+    *ppBuffer = nullptr;
+
+    auto *buffer = resource->allocate(sizeof(QPmrMediaBuffer), alignof(QPmrMediaBuffer));
+    if (!buffer)
+        return E_OUTOFMEMORY;
+
+    QPmrMediaBuffer *pBuffer = new (buffer) QPmrMediaBuffer(data, resource);
+
+    HRESULT hr =
+            pBuffer->QueryInterface(__uuidof(IMFMediaBuffer), reinterpret_cast<void **>(ppBuffer));
+
+    pBuffer->Release();
+
+    return hr;
+}
+
+HRESULT QPmrMediaBuffer::CreateInstance(qsizetype capacity, std::pmr::memory_resource *resource,
+                                        IMFMediaBuffer **ppBuffer)
+{
+    if (!ppBuffer || !resource)
+        return E_POINTER;
+
+    *ppBuffer = nullptr;
+    void *buffer = resource->allocate(sizeof(QPmrMediaBuffer), alignof(QPmrMediaBuffer));
+    QPmrMediaBuffer *pBuffer = new (buffer) QPmrMediaBuffer(capacity, resource);
+    if (!pBuffer)
+        return E_OUTOFMEMORY;
+
+    HRESULT hr =
+            pBuffer->QueryInterface(__uuidof(IMFMediaBuffer), reinterpret_cast<void **>(ppBuffer));
+    pBuffer->Release();
+    return hr;
+}
+
+ULONG QPmrMediaBuffer::AddRef()
+{
+    return m_referenceCount.fetch_add(1, std::memory_order_relaxed) + 1;
+}
+
+ULONG QPmrMediaBuffer::Release()
+{
+    const LONG referenceCount = m_referenceCount.fetch_sub(1, std::memory_order_release) - 1;
+    if (referenceCount == 0) {
+        // This acquire fence synchronizes with the release operation in other threads.
+        // It ensures that all memory writes made to this object by other threads
+        // are visible to this thread before we proceed to delete it.
+        std::atomic_thread_fence(std::memory_order_acquire);
+
+        std::pmr::memory_resource *resource = m_memoryResource;
+
+        this->~QPmrMediaBuffer();
+        resource->deallocate(this, sizeof(QPmrMediaBuffer), alignof(QPmrMediaBuffer));
+    }
+
+    return referenceCount;
+}
+
+STDMETHODIMP QPmrMediaBuffer::Lock(BYTE **ppbBuffer, DWORD *pcbMaxLength, DWORD *pcbCurrentLength)
+{
+    if (!ppbBuffer)
+        return E_POINTER;
+
+    if (m_isLocked.test_and_set(std::memory_order_acquire))
+        return MF_E_INVALIDREQUEST;
+
+    *ppbBuffer = reinterpret_cast<BYTE *>(m_buffer);
+
+    if (pcbMaxLength)
+        *pcbMaxLength = m_maxLength;
+
+    if (pcbCurrentLength)
+        *pcbCurrentLength = m_currentLength;
+
+    return S_OK;
+}
+
+STDMETHODIMP QPmrMediaBuffer::Unlock()
+{
+    m_isLocked.clear(std::memory_order_release);
+    return S_OK;
+}
+
+STDMETHODIMP QPmrMediaBuffer::GetCurrentLength(DWORD *pcbCurrentLength)
+{
+    if (!pcbCurrentLength)
+        return E_POINTER;
+
+    *pcbCurrentLength = m_currentLength;
+    return S_OK;
+}
+
+STDMETHODIMP QPmrMediaBuffer::SetCurrentLength(DWORD cbCurrentLength)
+{
+    if (cbCurrentLength > m_maxLength)
+        return E_INVALIDARG;
+
+    m_currentLength = cbCurrentLength;
+    return S_OK;
+}
+
+STDMETHODIMP QPmrMediaBuffer::GetMaxLength(DWORD *pcbMaxLength)
+{
+    if (!pcbMaxLength)
+        return E_POINTER;
+
+    *pcbMaxLength = m_maxLength;
+    return S_OK;
+}
+
+static constexpr auto mfBufferAlignment = 16;
+
+QPmrMediaBuffer::QPmrMediaBuffer(QSpan<const std::byte> data, std::pmr::memory_resource *resource)
+    : QPmrMediaBuffer(data.size(), resource)
+{
+    m_currentLength = data.size(), std::copy(data.begin(), data.end(), m_buffer);
+}
+
+QPmrMediaBuffer::QPmrMediaBuffer(qsizetype capacity, std::pmr::memory_resource *resource)
+    : m_memoryResource(resource),
+      m_maxLength(DWORD(capacity)),
+      m_buffer(static_cast<std::byte *>(resource->allocate(capacity, mfBufferAlignment)))
+{
+}
+
+QPmrMediaBuffer::~QPmrMediaBuffer()
+{
+    m_memoryResource->deallocate(m_buffer, m_maxLength, mfBufferAlignment);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace QWMF
 
 QT_END_NAMESPACE
