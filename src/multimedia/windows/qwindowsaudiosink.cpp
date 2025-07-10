@@ -209,6 +209,18 @@ bool QWASAPIAudioSinkStream::startAudioClient(StreamType streamType)
             m_comHelper.emplace();
             m_resampler = std::make_unique<QWindowsResampler>();
             m_resampler->setup(m_format, m_hostFormat);
+
+            m_preallocatedBuffer = std::make_unique<char[]>(512 * 1024); // 512 KiB
+
+            m_pmrBufferResource = std::make_unique<std::pmr::monotonic_buffer_resource>(
+                    m_preallocatedBuffer.get(), 512 * 1024, std::pmr::get_default_resource());
+
+            std::pmr::pool_options poolOptions{
+                /*.largest_required_pool_block =*/256 * 1024,
+                /*.min_blocks_per_chunk        =*/2,
+            };
+            m_pmrPoolResource = std::make_unique<std::pmr::unsynchronized_pool_resource>(
+                    poolOptions, m_pmrBufferResource.get());
         }
 
         switch (streamType) {
@@ -311,7 +323,6 @@ bool QWASAPIAudioSinkStream::visitAudioClientBuffer(Functor &&f)
     }
 
     const uint32_t requiredFrames = m_audioClientFrames - numFramesPadding;
-
     if (requiredFrames == 0)
         return true;
 
@@ -332,25 +343,16 @@ bool QWASAPIAudioSinkStream::visitAudioClientBuffer(Functor &&f)
     if (m_resampler) {
         Q_UNLIKELY_BRANCH;
 
-        // resample into a temporary buffer
-        // FIXME: this is not real-time safe due to the memory allocations
-        QtPrivate::ScopedRTSanDisabler disableRTSan;
-
-        QByteArray resampleBuffer{
-            m_format.bytesForFrames(requiredFrames),
-            Qt::Uninitialized,
+        std::pmr::vector<std::byte> resampleBuffer{
+            size_t(m_format.bytesForFrames(requiredFrames)),
+            m_pmrPoolResource.get(),
         };
-
         consumedFrames = f(as_writable_bytes(QSpan{ resampleBuffer }), requiredFrames);
 
-        QByteArray resampledBuffer = m_resampler->resample(std::move(resampleBuffer));
+        auto resampledBuffer = m_resampler->resample(resampleBuffer, m_pmrPoolResource.get());
 
-        auto resampledBufferSpan = as_bytes(QSpan{
-                resampledBuffer.constData(),
-                resampledBuffer.size(),
-        });
-        Q_ASSERT(resampledBufferSpan.size() == hostBufferSpan.size());
-        std::copy_n(resampledBufferSpan.data(), resampledBuffer.size(), hostBufferSpan.data());
+        Q_ASSERT(resampledBuffer.size() == size_t(hostBufferSpan.size()));
+        std::copy_n(resampledBuffer.data(), resampledBuffer.size(), hostBufferSpan.data());
     } else {
         consumedFrames = f(hostBufferSpan, requiredFrames);
     }
