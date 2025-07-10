@@ -203,6 +203,18 @@ bool QWASAPIAudioSourceStream::startAudioClient()
             m_comHelper.emplace();
             m_resampler = std::make_unique<QWindowsResampler>();
             m_resampler->setup(m_hostFormat, m_format);
+
+            m_preallocatedBuffer = std::make_unique<char[]>(512 * 1024); // 512 KiB
+
+            m_pmrBufferResource = std::make_unique<std::pmr::monotonic_buffer_resource>(
+                    m_preallocatedBuffer.get(), 512 * 1024, std::pmr::get_default_resource());
+
+            std::pmr::pool_options poolOptions{
+                /*.largest_required_pool_block =*/256 * 1024,
+                /*.min_blocks_per_chunk        =*/2,
+            };
+            m_pmrPoolResource = std::make_unique<std::pmr::unsynchronized_pool_resource>(
+                    poolOptions, m_pmrBufferResource.get());
         }
 
         runProcessLoop();
@@ -267,13 +279,10 @@ bool QWASAPIAudioSourceStream::visitAudioClientBuffer(Functor &&f)
 
         if (m_resampler) {
             Q_UNLIKELY_BRANCH;
-            // resample into a temporary buffer
-            // FIXME: this is not real-time safe due to the memory allocations
-            QtPrivate::ScopedRTSanDisabler disableRTSan;
-
-            QByteArray resampleBuffer{ hostBufferSpan };
-            QByteArray resampledBuffer = m_resampler->resample(std::move(resampleBuffer));
-            f(as_bytes(QSpan(resampledBuffer)), hostBufferFrames);
+            auto resampledBuffer =
+                    m_resampler->resample(as_bytes(hostBufferSpan), m_pmrPoolResource.get());
+            QPlatformAudioSourceStream::process(resampledBuffer,
+                                                m_format.framesForBytes(resampledBuffer.size()));
         } else {
             f(as_bytes(hostBufferSpan), hostBufferFrames);
         }
