@@ -35,6 +35,8 @@ private slots:
     void resample_QByteArray_mono_to_stereo();
     void resample_QByteArray_stereo_to_mono();
 
+    void resample_QByteArray_mono_to_stereo_pmr();
+
 private:
     std::unique_ptr<QWindowsResampler> dut;
 };
@@ -89,6 +91,30 @@ void tst_QWindowsResampler::resample_QByteArray_stereo_to_mono()
                  size_t(formatMono.bytesForFrames(qint32(stereoData.size() / 2))));
         QCOMPARE(asByteSpan(result).size(), asByteSpan(monoData).size());
         QVERIFY(ranges::equal(asByteSpan(result), asByteSpan(monoData), std::equal_to<>{}));
+    }
+}
+
+void tst_QWindowsResampler::resample_QByteArray_mono_to_stereo_pmr()
+{
+    auto formatMono = makeAudioFormat(44100, 1, QAudioFormat::Float);
+    auto formatStereo = makeAudioFormat(44100, 2, QAudioFormat::Float);
+
+    dut->setup(formatMono, formatStereo);
+
+    constexpr std::array monoData{
+        0.1f, 0.2f, 0.3f, 0.4f, 0.5f,
+    };
+    constexpr std::array stereoData{
+        0.1f, 0.1f, 0.2f, 0.2f, 0.3f, 0.3f, 0.4f, 0.4f, 0.5f, 0.5f,
+    };
+
+    for (int i = 0; i != 4; ++i) {
+        auto result = dut->resample(as_bytes(QSpan(monoData)), std::pmr::get_default_resource());
+
+        QCOMPARE(size_t(result.size()),
+                 size_t(formatStereo.bytesForFrames(qint32(monoData.size()))));
+        QCOMPARE(asByteSpan(result).size(), asByteSpan(stereoData).size());
+        QVERIFY(ranges::equal(asByteSpan(result), asByteSpan(stereoData), std::equal_to<>{}));
     }
 }
 

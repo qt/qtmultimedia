@@ -66,32 +66,19 @@ quint64 QWindowsResampler::inputBufferSize(quint64 outputBufferSize) const
         return 0;
 }
 
-HRESULT QWindowsResampler::processInput(QByteArray in)
+qsizetype QWindowsResampler::overAllocatedOutputBufferSize()
 {
-    ComPtr<IMFMediaBuffer> buffer;
-    // we always do out-of-place transformations, so read-only will prevent the buffer to detach()
-    QWMF::QByteArrayMFMediaBuffer::CreateInstance(std::move(in), buffer.GetAddressOf(),
-                                                  /*isReadOnly=*/true);
-
-    HRESULT hr = replaceBuffer(m_inputSample, buffer);
-    if (FAILED(hr))
-        return hr;
-
-    return m_resampler->ProcessInput(m_inputStreamID, m_inputSample.Get(), 0);
-}
-
-q23::expected<QByteArray, HRESULT> QWindowsResampler::processOutput()
-{
-    using namespace QWMF;
-
     auto expectedOutputSize = outputBufferSize(m_totalInputBytes) - m_totalOutputBytes;
     // we may have some rounding errors, so we over-allocate by 10ms
     expectedOutputSize += m_outputFormat.bytesForDuration(10000);
     expectedOutputSize = QtMultimediaPrivate::alignUp(expectedOutputSize, 1024);
+    return expectedOutputSize;
+}
 
-    ComPtr<IMFMediaBuffer> buffer;
-    QByteArrayMFMediaBuffer::CreateInstance(qsizetype(expectedOutputSize), buffer.GetAddressOf());
-
+template <typename Functor>
+auto QWindowsResampler::processOutput(ComPtr<IMFMediaBuffer> buffer, Functor &&f)
+        -> std::invoke_result_t<Functor, const ComPtr<IMFMediaBuffer> &>
+{
     HRESULT hr = replaceBuffer(m_outputSample, buffer);
     if (FAILED(hr))
         return q23::unexpected{ hr };
@@ -106,11 +93,26 @@ q23::expected<QByteArray, HRESULT> QWindowsResampler::processOutput()
     if (FAILED(hr))
         return q23::unexpected{ hr };
 
-    return withLockedBuffer(buffer, [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
-        auto *byteArrayBuffer = static_cast<QByteArrayMFMediaBuffer *>(buffer.Get());
-        QByteArray out = byteArrayBuffer->takeByteArray();
-        out.truncate(data.size());
-        return out;
+    return f(buffer);
+}
+
+q23::expected<QByteArray, HRESULT> QWindowsResampler::processOutput()
+{
+    using namespace QWMF;
+
+    ComPtr<IMFMediaBuffer> buffer;
+    HRESULT hr = QByteArrayMFMediaBuffer::CreateInstance(overAllocatedOutputBufferSize(),
+                                                         buffer.GetAddressOf());
+    if (FAILED(hr))
+        return q23::unexpected{ hr };
+
+    return processOutput(std::move(buffer), [&](const ComPtr<IMFMediaBuffer> &buffer) {
+        return withLockedBuffer(buffer, [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
+            auto *byteArrayBuffer = static_cast<QByteArrayMFMediaBuffer *>(buffer.Get());
+            QByteArray out = byteArrayBuffer->takeByteArray();
+            out.truncate(data.size());
+            return out;
+        });
     });
 }
 
@@ -121,26 +123,37 @@ QByteArray QWindowsResampler::resample(QByteArray in)
     if (m_inputFormat == m_outputFormat) {
         m_totalOutputBytes += in.size();
         return in;
-    } else {
-        Q_ASSERT(m_resampler && m_wmf);
-
-        QByteArray out;
-        HRESULT hr = processInput(std::move(in));
-        if (SUCCEEDED(hr)) {
-            auto result = processOutput();
-            if (result)
-                out = std::move(result.value());
-            else
-                hr = result.error();
-        }
-
-        if (FAILED(hr))
-            qCWarning(qLcAudioResampler)
-                    << "Resampling failed" << QSystemError::windowsComString(hr);
-
-        m_totalOutputBytes += out.size();
-        return out;
     }
+
+    Q_ASSERT(m_resampler && m_wmf);
+
+    // process input
+    ComPtr<IMFMediaBuffer> buffer;
+    // we always do out-of-place transformations, so read-only will prevent the buffer to detach()
+    QWMF::QByteArrayMFMediaBuffer::CreateInstance(std::move(in), buffer.GetAddressOf(),
+                                                  /*isReadOnly=*/true);
+
+    HRESULT hr = replaceBuffer(m_inputSample, buffer);
+    if (FAILED(hr))
+        return {};
+
+    hr = m_resampler->ProcessInput(m_inputStreamID, m_inputSample.Get(), 0);
+    if (FAILED(hr)) {
+        qCWarning(qLcAudioResampler)
+                << "Failed to process input" << QSystemError::windowsComString(hr);
+        return {};
+    }
+
+    // process output
+    auto result = processOutput();
+    if (result) {
+        m_totalOutputBytes += result.value().size();
+        return result.value();
+    }
+
+    qCWarning(qLcAudioResampler) << "Resampling failed"
+                                 << QSystemError::windowsComString(result.error());
+    return {};
 }
 
 QByteArray QWindowsResampler::resample(const QByteArrayView &in)
@@ -150,6 +163,8 @@ QByteArray QWindowsResampler::resample(const QByteArrayView &in)
 
 QByteArray QWindowsResampler::resample(const ComPtr<IMFSample> &sample)
 {
+    using namespace QWMF;
+
     Q_ASSERT(sample);
 
     DWORD totalLength = 0;
@@ -159,36 +174,94 @@ QByteArray QWindowsResampler::resample(const ComPtr<IMFSample> &sample)
 
     m_totalInputBytes += totalLength;
 
-    QByteArray out;
-
     if (m_inputFormat == m_outputFormat) {
         ComPtr<IMFMediaBuffer> outputBuffer;
         sample->ConvertToContiguousBuffer(outputBuffer.GetAddressOf());
 
-        std::ignore =
-                QWMF::withLockedBuffer(outputBuffer, [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
-            out.push_back(data);
+        auto result = withLockedBuffer(outputBuffer, [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
+            return QByteArray(data);
         });
-    } else {
-        Q_ASSERT(m_resampler && m_wmf);
-
-        hr = m_resampler->ProcessInput(m_inputStreamID, sample.Get(), 0);
-        if (SUCCEEDED(hr)) {
-            auto result = processOutput();
-            if (result)
-                out = std::move(result.value());
-            else
-                hr = result.error();
+        if (result) {
+            m_totalOutputBytes += result.value().size();
+            return result.value();
         }
-
-        if (FAILED(hr))
-            qCWarning(qLcAudioResampler)
-                    << "Resampling failed" << QSystemError::windowsComString(hr);
+        qCWarning(qLcAudioResampler) << "Failed to convert sample to contiguous buffer"
+                                     << QSystemError::windowsComString(result.error());
+        return {};
     }
 
-    m_totalOutputBytes += out.size();
+    Q_ASSERT(m_resampler && m_wmf);
 
-    return out;
+    // process input
+    hr = m_resampler->ProcessInput(m_inputStreamID, sample.Get(), 0);
+    if (FAILED(hr)) {
+        qCWarning(qLcAudioResampler)
+                << "Failed to process input sample" << QSystemError::windowsComString(hr);
+        return {};
+    }
+
+    // process output
+    auto result = processOutput();
+    if (result) {
+        m_totalOutputBytes += result.value().size();
+        return result.value();
+    }
+    qCWarning(qLcAudioResampler) << "Resampling failed" << QSystemError::windowsComString(hr);
+    return {};
+}
+
+std::pmr::vector<std::byte> QWindowsResampler::resample(QSpan<const std::byte> in,
+                                                        std::pmr::memory_resource *mr)
+{
+    using namespace QWMF;
+
+    m_totalInputBytes += in.size_bytes();
+    if (m_inputFormat == m_outputFormat) {
+        m_totalOutputBytes += in.size();
+        return std::pmr::vector<std::byte>{ in.begin(), in.end(), mr };
+    }
+
+    // process input
+    ComPtr<IMFMediaBuffer> inputBuffer;
+    HRESULT hr = QPmrMediaBuffer::CreateInstance(in, mr, inputBuffer.GetAddressOf());
+    if (FAILED(hr))
+        return {};
+
+    hr = replaceBuffer(m_inputSample, inputBuffer);
+    if (FAILED(hr))
+        return {};
+
+    hr = m_resampler->ProcessInput(m_inputStreamID, m_inputSample.Get(), 0);
+    if (FAILED(hr))
+        return {};
+
+    // process output
+    ComPtr<IMFMediaBuffer> outputBuffer;
+    hr = QPmrMediaBuffer::CreateInstance(overAllocatedOutputBufferSize(), mr,
+                                         outputBuffer.GetAddressOf());
+    if (FAILED(hr)) {
+        qCWarning(qLcAudioResampler)
+                << "Failed to create output buffer" << QSystemError::windowsComString(hr);
+        return {};
+    }
+
+    auto result = processOutput(std::move(outputBuffer), [&](const ComPtr<IMFMediaBuffer> &buffer) {
+        return withLockedBuffer(buffer, [&](QSpan<BYTE> data, QSpan<BYTE> /*max*/) {
+            return std::pmr::vector<std::byte>{
+                reinterpret_cast<std::byte *>(data.begin()),
+                reinterpret_cast<std::byte *>(data.end()),
+                mr,
+            };
+        });
+    });
+
+    if (!result) {
+        qCWarning(qLcAudioResampler)
+                << "Resampling failed" << QSystemError::windowsComString(result.error());
+        return {};
+    }
+    m_totalOutputBytes += result->size();
+    return result.value();
 }
 
 bool QWindowsResampler::setup(const QAudioFormat &fin, const QAudioFormat &fout)
