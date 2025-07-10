@@ -9,6 +9,7 @@
 #include <QtCore/private/quniquehandle_types_p.h>
 #include <QtMultimedia/private/qaudioformat_p.h>
 #include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
+#include <QtMultimedia/private/qmemory_resource_tlsf_p.h>
 #include <QtMultimedia/private/qwindowsaudiodevice_p.h>
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
 
@@ -204,17 +205,7 @@ bool QWASAPIAudioSourceStream::startAudioClient()
             m_resampler = std::make_unique<QWindowsResampler>();
             m_resampler->setup(m_hostFormat, m_format);
 
-            m_preallocatedBuffer = std::make_unique<char[]>(512 * 1024); // 512 KiB
-
-            m_pmrBufferResource = std::make_unique<std::pmr::monotonic_buffer_resource>(
-                    m_preallocatedBuffer.get(), 512 * 1024, std::pmr::get_default_resource());
-
-            std::pmr::pool_options poolOptions{
-                /*.largest_required_pool_block =*/256 * 1024,
-                /*.min_blocks_per_chunk        =*/2,
-            };
-            m_pmrPoolResource = std::make_unique<std::pmr::unsynchronized_pool_resource>(
-                    poolOptions, m_pmrBufferResource.get());
+            m_memoryResource = std::make_unique<QTlsfMemoryResource>(512 * 1024);
         }
 
         runProcessLoop();
@@ -280,7 +271,7 @@ bool QWASAPIAudioSourceStream::visitAudioClientBuffer(Functor &&f)
         if (m_resampler) {
             Q_UNLIKELY_BRANCH;
             auto resampledBuffer =
-                    m_resampler->resample(as_bytes(hostBufferSpan), m_pmrPoolResource.get());
+                    m_resampler->resample(as_bytes(hostBufferSpan), m_memoryResource.get());
             QPlatformAudioSourceStream::process(resampledBuffer,
                                                 m_format.framesForBytes(resampledBuffer.size()));
         } else {
