@@ -367,7 +367,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h
         windows/qwindowsresampler.cpp windows/qwindowsresampler_p.h
         windows/qwindowsvideodevices.cpp windows/qwindowsvideodevices_p.h
-        windows/qwmf_support_p.h
+        windows/qwmf_support.cpp windows/qwmf_support_p.h
     LIBRARIES
         avrt
         ksuser

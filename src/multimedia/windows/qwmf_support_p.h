@@ -18,7 +18,9 @@
 #include <QtMultimedia/qtmultimediaexports.h>
 #include <QtCore/qtconfigmacros.h>
 #include <QtCore/qspan.h>
+#include <QtCore/qbytearray.h>
 #include <QtCore/private/qexpected_p.h>
+#include <QtCore/private/qcomobject_p.h>
 #include <QtCore/private/qcomptr_p.h>
 
 #include <mfobjects.h>
@@ -27,9 +29,10 @@ QT_BEGIN_NAMESPACE
 
 namespace QWMF {
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename Functor>
-using IMFBufferReaderReturnType =
-        decltype(std::declval<Functor>()(std::declval<QSpan<BYTE>>(), std::declval<QSpan<BYTE>>()));
+using IMFBufferReaderReturnType = std::invoke_result_t<Functor, QSpan<BYTE>, QSpan<BYTE>>;
 
 template <typename Functor>
 [[nodiscard]]
@@ -65,6 +68,46 @@ auto withLockedBuffer(const ComPtr<IMFMediaBuffer> &buffer, Functor &&f)
 {
     return withLockedBuffer(buffer.Get(), std::forward<Functor>(f));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+class QByteArrayMFMediaBuffer final : public QComObject<IMFMediaBuffer>
+{
+public:
+    static HRESULT CreateInstance(QByteArray data, IMFMediaBuffer **ppBuffer,
+                                  bool isReadOnly = false);
+    static HRESULT CreateInstance(qsizetype capacity, IMFMediaBuffer **ppBuffer);
+
+    // --- IMFMediaBuffer Methods ---
+    STDMETHODIMP Lock(BYTE **ppbBuffer, DWORD *pcbMaxLength, DWORD *pcbCurrentLength) override;
+    STDMETHODIMP Unlock() override;
+    STDMETHODIMP GetCurrentLength(DWORD *pcbCurrentLength) override;
+    STDMETHODIMP SetCurrentLength(DWORD cbCurrentLength) override;
+    STDMETHODIMP GetMaxLength(DWORD *pcbMaxLength) override;
+
+    QByteArray takeByteArray();
+
+private:
+    // Protected constructor to enforce creation via CreateInstance factory method.
+    explicit QByteArrayMFMediaBuffer(QByteArray &&data, bool isReadOnly);
+    ~QByteArrayMFMediaBuffer() = default;
+
+    DWORD GetMaxLengthInternal() const;
+
+    // Member variables
+    std::atomic_flag m_isLocked = ATOMIC_FLAG_INIT;
+    DWORD m_currentLength{ 0 };
+    QByteArray m_byteArray;
+    const bool m_isReadOnly{};
+
+public:
+    QByteArrayMFMediaBuffer(const QByteArrayMFMediaBuffer &) = delete;
+    QByteArrayMFMediaBuffer &operator=(const QByteArrayMFMediaBuffer &) = delete;
+    QByteArrayMFMediaBuffer(QByteArrayMFMediaBuffer &&) = delete;
+    QByteArrayMFMediaBuffer &operator=(QByteArrayMFMediaBuffer &&) = delete;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace QWMF
 
