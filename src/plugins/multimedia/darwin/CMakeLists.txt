@@ -42,7 +42,6 @@ qt_internal_add_plugin(QDarwinMediaPlugin
 
 qt_internal_extend_target(QDarwinMediaPlugin CONDITION NOT TVOS AND NOT VISIONOS
     SOURCES
-        camera/qavfcamerabase.mm camera/qavfcamerabase_p.h
         camera/avfcamera.mm camera/avfcamera_p.h
         camera/avfaudiopreviewdelegate.mm camera/avfaudiopreviewdelegate_p.h
         camera/avfcamerarenderer.mm camera/avfcamerarenderer_p.h

@@ -24,7 +24,7 @@ QT_BEGIN_NAMESPACE
 
 // The purpose of this class is to provide camera controls on
 // both the old native Darwin backend and the FFmpeg backend.
-class QAVFCameraBase : public QPlatformCamera
+class Q_MULTIMEDIA_EXPORT QAVFCameraBase : public QPlatformCamera
 {
 Q_OBJECT
 public:
