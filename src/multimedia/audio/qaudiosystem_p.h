@@ -246,14 +246,14 @@ public:
     virtual qsizetype bytesFree() const = 0;
     virtual void setBufferSize(qsizetype value) = 0;
     virtual qsizetype bufferSize() const = 0;
-    virtual void setHardwareBufferFrames(int32_t) { };
-    virtual int32_t hardwareBufferFrames() { return -1; };
+    virtual void setHardwareBufferFrames(int32_t) { }
+    virtual int32_t hardwareBufferFrames() { return -1; }
     virtual qint64 processedUSecs() const = 0;
 
     using AudioCallback = QtMultimediaPrivate::AudioSinkCallback;
 
     virtual void start(AudioCallback &&) { }
-    virtual bool hasCallbackAPI() { return false; };
+    virtual bool hasCallbackAPI() { return false; }
 
     QElapsedTimer elapsedTime;
 
@@ -275,15 +275,15 @@ public:
     virtual void resume() = 0;
     virtual qsizetype bytesReady() const = 0;
     virtual void setBufferSize(qsizetype value) = 0;
-    virtual void setHardwareBufferFrames(int32_t) { };
-    virtual int32_t hardwareBufferFrames() { return -1; };
+    virtual void setHardwareBufferFrames(int32_t) { }
+    virtual int32_t hardwareBufferFrames() { return -1; }
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
 
     using AudioCallback = QtMultimediaPrivate::AudioSourceCallback;
 
     virtual void start(AudioCallback &&) { }
-    virtual bool hasCallbackAPI() { return false; };
+    virtual bool hasCallbackAPI() { return false; }
 
     QElapsedTimer elapsedTime;
 
