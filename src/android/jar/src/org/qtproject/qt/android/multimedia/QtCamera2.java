@@ -576,6 +576,11 @@ class QtCamera2 {
             if (mSyncedMembers.mIsTakingStillPhoto) {
                 // Queuing multiple still photos is not implemented.
                 // TODO: We might have to signal to QImageCapture here that capturing failed.
+                Log.w(
+                    "QtCamera2",
+                    "beginStillPhotoCapture() was called on camera backend while there " +
+                    "is already a still photo in progress. This is not supported. Likely Qt " +
+                    "developer bug.");
                 return;
             }
         }
