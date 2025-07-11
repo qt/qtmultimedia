@@ -166,7 +166,13 @@ SwrContextUPtr createResampleContext(const AVAudioFormat &inputFormat,
 
 #endif
 
-    swr_init(resampler);
+    auto error = QFFmpeg::AVError{
+        swr_init(resampler),
+    };
+    if (error != QFFmpeg::AVError::Success) {
+        qCWarning(qLcFFmpegUtils) << "Failed to initialize audio resampler:" << error;
+        return nullptr;
+    }
     return SwrContextUPtr(resampler);
 }
 

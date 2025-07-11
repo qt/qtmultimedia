@@ -186,7 +186,11 @@ QMaybe<std::unique_ptr<QPlatformAudioResampler>>
 QFFmpegMediaIntegration::createAudioResampler(const QAudioFormat &inputFormat,
                                               const QAudioFormat &outputFormat)
 {
-    return { std::make_unique<QFFmpegResampler>(inputFormat, outputFormat) };
+    auto ffmpegResampler = QFFmpegResampler::createFromInputFormat(inputFormat, outputFormat);
+    if (ffmpegResampler)
+        return QMaybe<std::unique_ptr<QPlatformAudioResampler>>{std::move(ffmpegResampler)};
+
+    return QUnexpected{ notAvailable };
 }
 
 QMaybe<QPlatformMediaCaptureSession *> QFFmpegMediaIntegration::createCaptureSession()
