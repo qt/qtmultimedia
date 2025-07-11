@@ -187,7 +187,11 @@ q23::expected<std::unique_ptr<QPlatformAudioResampler>, QString>
 QFFmpegMediaIntegration::createAudioResampler(const QAudioFormat &inputFormat,
                                               const QAudioFormat &outputFormat)
 {
-    return std::make_unique<QFFmpegResampler>(inputFormat, outputFormat);
+    auto ffmpegResampler = QFFmpegResampler::createFromInputFormat(inputFormat, outputFormat);
+    if (ffmpegResampler)
+        return ffmpegResampler;
+
+    return q23::unexpected{ notAvailable };
 }
 
 q23::expected<QPlatformMediaCaptureSession *, QString>

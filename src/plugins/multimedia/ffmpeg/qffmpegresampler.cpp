@@ -50,6 +50,36 @@ QFFmpegResampler::QFFmpegResampler(const CodecContext *codecContext,
                                     << "us. From: " << inputAvFormat << " to: " << outputAvFormat;
 }
 
+template <typename... Args>
+std::unique_ptr<QFFmpegResampler> QFFmpegResampler::createImpl(Args... args)
+{
+    std::unique_ptr<QFFmpegResampler> resampler{
+        new QFFmpegResampler(std::forward<Args>(args)...),
+    };
+    if (resampler->isInitialized())
+        return resampler;
+    return nullptr;
+}
+
+std::unique_ptr<QFFmpegResampler>
+QFFmpegResampler::createFromInputFormat(const QAudioFormat &inputFormat,
+                                        const QAudioFormat &outputFormat, qint64 startTime)
+{
+    return createImpl(inputFormat, outputFormat, startTime);
+}
+
+std::unique_ptr<QFFmpegResampler>
+QFFmpegResampler::createFromCodecContext(const CodecContext *codecContext,
+                                         const QAudioFormat &outputFormat, qint64 startTime)
+{
+    return createImpl(codecContext, outputFormat, startTime);
+}
+
+bool QFFmpegResampler::isInitialized() const
+{
+    return m_resampler != nullptr;
+}
+
 QFFmpegResampler::~QFFmpegResampler() = default;
 
 QAudioBuffer QFFmpegResampler::resample(const char* data, size_t size)
