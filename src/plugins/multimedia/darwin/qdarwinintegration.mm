@@ -9,7 +9,6 @@
 #include <QtMultimedia/private/qavfvideodevices_p.h>
 #include <avfimagecapture_p.h>
 #include <avfmediaencoder_p.h>
-#include <qavfcamerabase_p.h>
 #endif
 #include <qdarwinformatsinfo_p.h>
 #include <avfvideosink_p.h>
