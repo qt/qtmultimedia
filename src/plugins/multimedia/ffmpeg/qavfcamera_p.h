@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "qavfcamerabase_p.h"
+#include <QtMultimedia/private/qavfcamerabase_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 #define AVMediaType XAVMediaType

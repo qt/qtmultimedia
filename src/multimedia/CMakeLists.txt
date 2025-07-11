@@ -321,6 +321,7 @@ qt_internal_extend_target(Multimedia CONDITION MACOS OR IOS
         darwin/qavfcameradebug_p.h
         darwin/qavfcamerautility_p.h darwin/qavfcamerautility.mm
         darwin/qavfvideodevices.mm darwin/qavfvideodevices_p.h
+        darwin/qavfcamerabase.mm darwin/qavfcamerabase_p.h
     LIBRARIES
         ${FWCoreMedia}
         ${FWAVFoundation}
