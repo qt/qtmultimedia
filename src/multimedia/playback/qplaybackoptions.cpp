@@ -202,7 +202,7 @@ void QPlaybackOptions::resetPlaybackIntent()
 */
 
 /*!
-    \qmlproperty int PlaybackOptions::probeSize
+    \qmlproperty qsizetype PlaybackOptions::probeSize
     \since 6.10
 
     Probesize defines the amount of data (in bytes) to analyze in order to gather stream
@@ -218,15 +218,15 @@ void QPlaybackOptions::resetPlaybackIntent()
     This option is only supported with the FFmpeg media backend.
 */
 
-int QPlaybackOptions::probeSize() const
+qsizetype QPlaybackOptions::probeSize() const
 {
     return d->m_probeSizeBytes;
 }
 
-void QPlaybackOptions::setProbeSize(int probeSizeBytes)
+void QPlaybackOptions::setProbeSize(qsizetype probeSizeBytes)
 {
     d.detach();
-    d->m_probeSizeBytes = probeSizeBytes;
+    d->m_probeSizeBytes = static_cast<int>(probeSizeBytes);
 }
 
 void QPlaybackOptions::resetProbeSize()

@@ -40,9 +40,9 @@ private slots:
         const auto intents = { QPlaybackOptions::PlaybackIntent::Playback,
                                QPlaybackOptions::PlaybackIntent::LowLatencyStreaming };
 
-        for (int lhsProbeSize : { 0, 1 }) {
+        for (qsizetype lhsProbeSize : { 0, 1 }) {
             lhs.setProbeSize(lhsProbeSize);
-            for (int rhsProbeSize : { 0, 1 }) {
+            for (qsizetype rhsProbeSize : { 0, 1 }) {
                 rhs.setProbeSize(rhsProbeSize);
                 for (QPlaybackOptions::PlaybackIntent lhsIntent : intents) {
                     lhs.setPlaybackIntent(lhsIntent);
