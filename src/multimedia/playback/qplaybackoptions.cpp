@@ -85,11 +85,6 @@ QPlaybackOptions::QPlaybackOptions(const QPlaybackOptions &) = default;
 QPlaybackOptions &QPlaybackOptions::operator=(const QPlaybackOptions &) = default;
 QPlaybackOptions::~QPlaybackOptions() = default;
 
-void QPlaybackOptions::swap(QPlaybackOptions &other) noexcept
-{
-    d.swap(other.d);
-}
-
 bool comparesEqual(const QPlaybackOptions &lhs, const QPlaybackOptions &rhs)
 {
     if (lhs.d == rhs.d)

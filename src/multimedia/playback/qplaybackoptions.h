@@ -40,7 +40,7 @@ public:
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QPlaybackOptions)
     Q_MULTIMEDIA_EXPORT ~QPlaybackOptions();
 
-    Q_MULTIMEDIA_EXPORT void swap(QPlaybackOptions &other) noexcept;
+    void swap(QPlaybackOptions &other) noexcept { d.swap(other.d); }
 
     Q_MULTIMEDIA_EXPORT std::chrono::milliseconds networkTimeout() const;
     Q_MULTIMEDIA_EXPORT void setNetworkTimeout(std::chrono::milliseconds timeout);
