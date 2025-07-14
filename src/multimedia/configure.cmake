@@ -243,6 +243,13 @@ qt_feature("ffmpeg" PRIVATE
               AND QT_FEATURE_thread
 )
 
+# Caveat: FEATURE_ffmpeg_stubs cannot really be used to disable stubbing, it is just used to inform
+# downstream targets that stubbed ffmpeg is used
+qt_feature("ffmpeg_stubs" PRIVATE
+    LABEL     "FFmpeg stubs"
+    CONDITION QT_FEATURE_ffmpeg AND FFMPEG_STUBS
+)
+
 qt_configure_add_summary_section(NAME "Qt Multimedia")
 qt_configure_add_summary_entry(ARGS "spatialaudio")
 qt_configure_add_summary_entry(ARGS "spatialaudio_quick3d")
