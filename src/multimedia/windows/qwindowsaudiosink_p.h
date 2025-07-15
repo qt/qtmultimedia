@@ -76,6 +76,9 @@ private:
     bool openAudioClient(ComPtr<IMMDevice>, AudioEndpointRole);
     bool startAudioClient(StreamType);
 
+    template <typename Functor>
+    bool visitAudioClientBuffer(Functor &&f);
+
     void fillInitialHostBuffer();
     void runProcessRingbufferLoop();
     void runProcessCallbackLoop();
