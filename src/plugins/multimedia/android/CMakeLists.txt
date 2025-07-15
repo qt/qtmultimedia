@@ -61,8 +61,16 @@ set_property(TARGET QAndroidMediaPlugin APPEND PROPERTY QT_ANDROID_BUNDLED_JAR_D
 set_property(TARGET QAndroidMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
     ${INSTALL_PLUGINSDIR}/multimedia/libplugins_multimedia_androidmediaplugin.so
 )
-set_property(TARGET QAndroidMediaPlugin APPEND PROPERTY QT_ANDROID_PERMISSIONS
-    android.permission.CAMERA android.permission.RECORD_AUDIO
-    android.permission.BLUETOOTH
-    android.permission.MODIFY_AUDIO_SETTINGS
+
+qt_internal_add_android_permission(QAndroidMediaPlugin
+    NAME android.permission.CAMERA
+)
+qt_internal_add_android_permission(QAndroidMediaPlugin
+    NAME android.permission.RECORD_AUDIO
+)
+qt_internal_add_android_permission(QAndroidMediaPlugin
+    NAME android.permission.BLUETOOTH
+)
+qt_internal_add_android_permission(QAndroidMediaPlugin
+    NAME android.permission.MODIFY_AUDIO_SETTINGS
 )

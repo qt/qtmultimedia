@@ -307,10 +307,16 @@ if (ANDROID)
         ${INSTALL_PLUGINSDIR}/multimedia/libplugins_multimedia_ffmpegmediaplugin.so
     )
 
-    set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_PERMISSIONS
-        android.permission.CAMERA
-        android.permission.RECORD_AUDIO
-        android.permission.BLUETOOTH
-        android.permission.MODIFY_AUDIO_SETTINGS
+    qt_internal_add_android_permission(QFFmpegMediaPlugin
+        NAME android.permission.CAMERA
+    )
+    qt_internal_add_android_permission(QFFmpegMediaPlugin
+        NAME android.permission.RECORD_AUDIO
+    )
+    qt_internal_add_android_permission(QFFmpegMediaPlugin
+        NAME android.permission.BLUETOOTH
+    )
+    qt_internal_add_android_permission(QFFmpegMediaPlugin
+        NAME android.permission.MODIFY_AUDIO_SETTINGS
     )
 endif()
