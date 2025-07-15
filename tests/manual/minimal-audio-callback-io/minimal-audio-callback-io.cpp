@@ -7,6 +7,7 @@
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
 #include <QtCore/QUuid>
+#include <QtCore/private/qexpected_p.h>
 #include <QtMultimedia/QAudioDevice>
 #include <QtMultimedia/QAudioSink>
 #include <QtMultimedia/QAudioSource>
@@ -26,20 +27,36 @@
 
 using namespace Qt::Literals;
 
+QTextStream &operator<<(QTextStream &os, const QAudioFormat &fmt)
+{
+    QString str;
+    QDebug dbg(&str);
+    dbg << fmt;
+    os << str;
+    return os;
+}
+
 namespace {
 
 namespace CLI {
 
-struct Output
+struct IOConfiguration
 {
     int deviceIndex;
     int bufferSize = 1024;
+
+    std::optional<int> numberOfChannels;
+    std::optional<int> sampleRate;
+};
+
+struct Output
+{
+    IOConfiguration config;
 };
 
 struct Input
 {
-    int deviceIndex;
-    int bufferSize = 1024;
+    IOConfiguration config;
 };
 
 struct ListDevices
@@ -69,8 +86,24 @@ Arguments parseArguments(const QCoreApplication &app)
         "0",
     };
 
+    QCommandLineOption samplerate{
+        { u"s"_s, u"samplerate"_s },
+        "Specify the sample rate. Used by 'input' and 'output' commands.",
+        "samplerate",
+        "-1",
+    };
+
+    QCommandLineOption channels{
+        { u"c"_s, u"channels"_s },
+        "Specify the number of channels rate. Used by 'input' and 'output' commands.",
+        "channels",
+        "-1",
+    };
+
     parser.addOption(bufferSizeOption);
     parser.addOption(deviceIndexOption);
+    parser.addOption(samplerate);
+    parser.addOption(channels);
     parser.addPositionalArgument("command", "The command to execute: list-devices, input, output.");
     parser.process(app);
 
@@ -87,35 +120,68 @@ Arguments parseArguments(const QCoreApplication &app)
     if (command == u"list-devices"_s)
         return ListDevices{};
 
-    auto parseBufferSize = [&]() -> int {
-        QString bufferSizeStr = parser.value(bufferSizeOption);
-        bool bufferSizeOk = false;
-        int bufferSize = bufferSizeStr.toInt(&bufferSizeOk);
-        if (!bufferSizeOk || bufferSize <= 0) {
-            qCritical() << "Error: Invalid buffer size '" << bufferSizeStr
-                        << "'. Must be a positive integer.";
-            parser.showHelp(1);
-        }
-        return bufferSize;
+    auto parseOptionalString = [&](const QCommandLineOption &option)
+            -> q23::expected<std::optional<int>, std::error_code> {
+        if (!parser.isSet(option))
+            return std::nullopt;
+
+        QString str = parser.value(option);
+        bool ok = false;
+        int value = str.toInt(&ok);
+        if (!ok)
+            return q23::unexpected(std::make_error_code(std::errc::invalid_argument));
+
+        if (value == -1)
+            return std::nullopt;
+        return value;
     };
 
-    auto parseDeviceIndex = [&]() -> int {
-        QString deviceIndexStr = parser.value(deviceIndexOption);
-        bool deviceIndexOk = false;
-        int deviceIndex = deviceIndexStr.toInt(&deviceIndexOk);
-        if (!deviceIndexOk || deviceIndex < 0) {
-            qCritical() << "Error: Invalid buffer size '" << deviceIndexStr
-                        << "'. Must be a non-negative integer.";
-            parser.showHelp(1);
-        }
-        return deviceIndex;
+    auto bufferSize = parseOptionalString(bufferSizeOption);
+    auto deviceIndex = parseOptionalString(deviceIndexOption);
+    auto sampleRate = parseOptionalString(samplerate);
+    auto channelCount = parseOptionalString(channels);
+
+    if (!bufferSize || !deviceIndex || !sampleRate || !channelCount) {
+        qCritical() << "Error: Invalid command line arguments.";
+        parser.showHelp(1);
+    }
+
+    if (*bufferSize && *bufferSize <= 0) {
+        qCritical() << "Error: Invalid buffer size '" << **bufferSize
+                    << "'. Must be a positive integer.";
+        parser.showHelp(1);
+    }
+
+    if (*deviceIndex && *deviceIndex < 0) {
+        qCritical() << "Error: Invalid device'" << **deviceIndex
+                    << "'. Must be a non-negative integer.";
+        parser.showHelp(1);
+    }
+
+    if (*sampleRate && *sampleRate <= 0) {
+        qCritical() << "Error: Invalid sample rate '" << **sampleRate
+                    << "'. Must be a positive integer.";
+        parser.showHelp(1);
+    }
+
+    if (*channelCount && *channelCount <= 0) {
+        qCritical() << "Error: Invalid channel count '" << **channelCount
+                    << "'. Must be a positive integer.";
+        parser.showHelp(1);
+    }
+
+    IOConfiguration conf{
+        .deviceIndex = *deviceIndex.value_or(0),
+        .bufferSize = (*bufferSize).value_or(1024),
+        .numberOfChannels = *channelCount,
+        .sampleRate = *sampleRate,
     };
 
     if (command == u"input"_s)
-        return Input{ parseDeviceIndex(), parseBufferSize() };
+        return Input{ conf };
 
     if (command == u"output"_s)
-        return Output{ parseDeviceIndex(), parseBufferSize() };
+        return Output{ conf };
 
     qCritical() << "Error: Unknown command '" << command << "'.";
     parser.showHelp(1);
@@ -153,24 +219,39 @@ int runCommand(CLI::ListDevices)
     return 0;
 }
 
+QAudioFormat makeAudioFormat(const QAudioDevice &device, const CLI::IOConfiguration &cfg)
+{
+    QAudioFormat format = device.preferredFormat();
+    format.setSampleFormat(QAudioFormat::Float);
+    if (cfg.sampleRate)
+        format.setSampleRate(*cfg.sampleRate);
+    if (cfg.numberOfChannels) {
+        format.setChannelCount(*cfg.numberOfChannels);
+        format.setChannelConfig(
+                QAudioFormat::defaultChannelConfigForChannelCount(*cfg.numberOfChannels));
+    }
+
+    return format;
+}
+
 int runCommand(const CLI::Input &input)
 {
     QTextStream out(stdout);
 
-    QAudioDevice device = QMediaDevices::audioInputs().value(input.deviceIndex, QAudioDevice{});
+    QAudioDevice device =
+            QMediaDevices::audioInputs().value(input.config.deviceIndex, QAudioDevice{});
     if (device.isNull()) {
-        qCritical() << "Error: Invalid input device index" << input.deviceIndex;
+        qCritical() << "Error: Invalid input device index" << input.config.deviceIndex;
         return 1;
     };
 
-    QAudioFormat format = device.preferredFormat();
-    format.setSampleFormat(QAudioFormat::Float);
+    QAudioFormat format = makeAudioFormat(device, input.config);
+
+    out << "Opening " << device.description() << " with " << format << "\n";
+
     QAudioSource source(device, format);
-
-    out << "Opening " << device.description() << "\n";
-
     QPlatformAudioSource *platformSource = QPlatformAudioSource::get(source);
-    platformSource->setHardwareBufferFrames(input.bufferSize);
+    platformSource->setHardwareBufferFrames(input.config.bufferSize);
 
     using namespace QtPrivate;
     drwav_data_format wavFormat{
@@ -230,18 +311,18 @@ int runCommand(const CLI::Input &input)
 
 int runCommand(const CLI::Output &output)
 {
-    QAudioDevice device = QMediaDevices::audioOutputs().value(output.deviceIndex, QAudioDevice{});
+    QAudioDevice device =
+            QMediaDevices::audioOutputs().value(output.config.deviceIndex, QAudioDevice{});
     if (device.isNull()) {
-        qCritical() << "Error: Invalid output device index" << output.deviceIndex;
+        qCritical() << "Error: Invalid output device index" << output.config.deviceIndex;
         return 1;
     };
 
-    QAudioFormat format = device.preferredFormat();
-    format.setSampleFormat(QAudioFormat::Float);
+    QAudioFormat format = makeAudioFormat(device, output.config);
     QAudioSink sink(device, format);
 
     QPlatformAudioSink *platformSink = QPlatformAudioSink::get(sink);
-    platformSink->setHardwareBufferFrames(output.bufferSize);
+    platformSink->setHardwareBufferFrames(output.config.bufferSize);
 
     float phaseIncrement = 2 * M_PI * 220.f / format.sampleRate(); // 220 Hz tone
     platformSink->start([&, phase = 0.f](QSpan<float> output) mutable {
@@ -252,8 +333,8 @@ int runCommand(const CLI::Output &output)
 
             output = std::views::drop(output, channels);
             phase += phaseIncrement;
-            if (phase >= 2 * M_PI)
-                phase -= 2 * M_PI; // Wrap phase
+            if (phase >= 2 * float(M_PI))
+                phase -= 2 * float(M_PI); // Wrap phase
         }
     });
 
