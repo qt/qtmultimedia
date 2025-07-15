@@ -175,11 +175,6 @@ HRESULT QPmrMediaBuffer::CreateInstance(qsizetype capacity, std::pmr::memory_res
     return hr;
 }
 
-ULONG QPmrMediaBuffer::AddRef()
-{
-    return m_referenceCount.fetch_add(1, std::memory_order_relaxed) + 1;
-}
-
 ULONG QPmrMediaBuffer::Release()
 {
     const LONG referenceCount = m_referenceCount.fetch_sub(1, std::memory_order_release) - 1;

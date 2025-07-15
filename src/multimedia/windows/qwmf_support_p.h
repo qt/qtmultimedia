@@ -120,9 +120,7 @@ public:
                                   IMFMediaBuffer **ppBuffer);
 
     // --- IUnknown Methods ---
-    // Note: we cannot access the reference count from QComObject (yet), we override all reference
-    // count methods
-    STDMETHODIMP_(ULONG) AddRef() override;
+    // we override QComObject::Release to free via the memory_resource
     STDMETHODIMP_(ULONG) Release() override;
 
     // --- IMFMediaBuffer Methods ---
@@ -145,8 +143,6 @@ private:
     DWORD m_currentLength{ 0 };
     DWORD m_maxLength;
     std::byte *const m_buffer;
-
-    std::atomic<LONG> m_referenceCount = 1;
 
 public:
     Q_DISABLE_COPY_MOVE(QPmrMediaBuffer)
