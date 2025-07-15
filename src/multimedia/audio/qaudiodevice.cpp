@@ -330,16 +330,11 @@ QAudioDevice::QAudioDevice(QAudioDevicePrivate *p) : d(p) { }
 
 /*!
     \qmlproperty enumeration QtMultimedia::audioDevice::mode
+    \qmlenumeratorsfrom [AudioDevice] QAudioDevice::Mode
 
-   Holds whether this device is an input or output device.
+    Holds whether this device is an input or output device.
 
     The returned value can be one of the following:
-
-
-    \value audioDevice.Null A null device.
-    \value audioDevice.Input input device.
-    \value audioDevice.Output An output device.
-
 */
 
 /*!
