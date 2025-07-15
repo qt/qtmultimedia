@@ -272,7 +272,7 @@ void QAudioSource::resume()
     set is the actual buffer size used, calling bufferSize() anytime after start()
     will return the actual buffer size being used.
 
-    \sa setBufferFrames
+    \sa setBufferFrameCount
     \since 6.10
 */
 
@@ -285,13 +285,13 @@ void QAudioSource::setBufferSize(qsizetype value)
 /*!
     Returns the audio buffer size in bytes.
 
-    If called before start(), returns platform default value.
-    If called before start() but setBufferSize() or setBufferFrames() was called prior, returns
-    value set by setBufferSize() or setBufferFrames(). If called after start(), returns the actual
+    If called before \l start(), returns platform default value.
+    If called before \c start() but \l setBufferSize() or \l setBufferFrameCount() was called prior, returns
+    value set by \c setBufferSize() or \c setBufferFrameCount(). If called after \c start(), returns the actual
     buffer size being used. This may not be what was set previously by
-    setBufferSize() or setBufferFrames().
+    \c setBufferSize() or \c setBufferFrameCount().
 
-    \sa bufferFrames
+    \sa bufferFrameCount
     \since 6.10
 */
 
@@ -301,17 +301,17 @@ qsizetype QAudioSource::bufferSize() const
 }
 
 /*!
-    Sets the audio buffer size to \a value in frames.
+    Sets the audio buffer size to \a value in frame count.
 
     \note This function can be called anytime before start().  Calls to this
     are ignored after start(). It should not be assumed that the buffer size
-    set is the actual buffer size used - call bufferFrames() anytime after start()
-    to return the actual buffer size being used.
+    set is the actual buffer size used - call bufferFrameCount() anytime
+    after start() to return the actual buffer size being used.
 
     \sa setBufferSize
 */
 
-void QAudioSource::setBufferFrames(qsizetype value)
+void QAudioSource::setBufferFrameCount(qsizetype value)
 {
     if (d)
         setBufferSize(d->format().bytesForFrames(value));
@@ -320,16 +320,16 @@ void QAudioSource::setBufferFrames(qsizetype value)
 /*!
     Returns the audio buffer size in frames.
 
-    If called before start(), returns platform default value.
-    If called before start() but setBufferSize() or setBufferFrames() was called prior, returns
-    value set by setBufferSize() or setBufferFrames(). If called after start(), returns the actual
+    If called before \l start(), returns platform default value.
+    If called before \c start() but \l setBufferSize() or \l setBufferFrameCount() was called prior, returns
+    value set by \c setBufferSize() or \c setBufferFrameCount(). If called after \c start(), returns the actual
     buffer size being used. This may not be what was set previously by
-    setBufferSize() or setBufferFrames().
+    \c setBufferSize() or \c setBufferFrameCount().
 
     \sa bufferSize
 */
 
-qsizetype QAudioSource::bufferFrames() const
+qsizetype QAudioSource::bufferFrameCount() const
 {
     return d ? d->format().framesForBytes(bufferSize()) : 0;
 }
