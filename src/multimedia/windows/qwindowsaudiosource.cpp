@@ -197,7 +197,8 @@ void QWASAPIAudioSourceStream::runProcessLoop()
     }
 }
 
-bool QWASAPIAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+template <typename Functor>
+bool QWASAPIAudioSourceStream::visitAudioClientBuffer(Functor &&f)
 {
     for (;;) {
         unsigned char *hostBuffer;
@@ -212,77 +213,40 @@ bool QWASAPIAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
             return false;
         }
 
+        // Note: when starting the capture client, we an initial wakeup, despite no buffer being
+        // available
+        if (hostBufferFrames == 0)
+            return true;
+
         QSpan hostBufferSpan{
             hostBuffer,
             m_format.bytesForFrames(hostBufferFrames),
         };
 
-        uint64_t framesWritten =
-                QPlatformAudioSourceStream::process(as_bytes(hostBufferSpan), hostBufferFrames);
-        if (framesWritten != hostBufferFrames)
-            updateStreamIdle(true);
-
+        f(as_bytes(hostBufferSpan), hostBufferFrames);
         hr = m_captureClient->ReleaseBuffer(hostBufferFrames);
         if (FAILED(hr)) {
             qWarning() << "IAudioCaptureClient::ReleaseBuffer failed" << audioClientErrorString(hr);
             return false;
         }
-
-        uint32_t framesInNextPacket;
-        hr = m_captureClient->GetNextPacketSize(&framesInNextPacket);
-
-        if (FAILED(hr)) {
-            qWarning() << "IAudioCaptureClient::GetNextPacketSize failed"
-                       << audioClientErrorString(hr);
-            return false;
-        }
-
-        if (framesInNextPacket == 0)
-            return true;
     }
+}
+
+bool QWASAPIAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+{
+    return visitAudioClientBuffer(
+            [&](QSpan<const std::byte> hostBuffer, uint32_t hostBufferFrames) {
+        uint64_t framesWritten = QPlatformAudioSourceStream::process(hostBuffer, hostBufferFrames);
+        if (framesWritten != hostBufferFrames)
+            updateStreamIdle(true);
+    });
 }
 
 bool QWASAPIAudioSourceStream::processCallback() noexcept QT_MM_NONBLOCKING
 {
-    using namespace QtMultimediaPrivate;
-
-    for (;;) {
-        unsigned char *hostBuffer;
-        uint32_t hostBufferFrames;
-        DWORD flags;
-        uint64_t devicePosition;
-        uint64_t QPCPosition;
-        HRESULT hr = m_captureClient->GetBuffer(&hostBuffer, &hostBufferFrames, &flags,
-                                                &devicePosition, &QPCPosition);
-        if (FAILED(hr)) {
-            qWarning() << "IAudioCaptureClient::GetBuffer failed" << audioClientErrorString(hr);
-            return false;
-        }
-
-        QSpan hostBufferSpan{
-            hostBuffer,
-            m_format.bytesForFrames(hostBufferFrames),
-        };
-
-        runAudioCallback(*m_audioCallback, as_bytes(hostBufferSpan), m_format);
-
-        hr = m_captureClient->ReleaseBuffer(hostBufferFrames);
-        if (FAILED(hr)) {
-            qWarning() << "IAudioCaptureClient::ReleaseBuffer failed" << audioClientErrorString(hr);
-            return false;
-        }
-
-        uint32_t framesInNextPacket;
-        hr = m_captureClient->GetNextPacketSize(&framesInNextPacket);
-        if (FAILED(hr)) {
-            qWarning() << "IAudioCaptureClient::GetNextPacketSize failed"
-                       << audioClientErrorString(hr);
-            return false;
-        }
-
-        if (framesInNextPacket == 0)
-            return true;
-    }
+    return visitAudioClientBuffer([&](QSpan<const std::byte> hostBuffer, uint32_t) {
+        runAudioCallback(*m_audioCallback, as_bytes(hostBuffer), m_format);
+    });
 }
 
 void QWASAPIAudioSourceStream::handleAudioClientError()

@@ -69,6 +69,9 @@ private:
     bool openAudioClient(ComPtr<IMMDevice> device);
     bool startAudioClient();
 
+    template <typename Functor>
+    bool visitAudioClientBuffer(Functor &&);
+
     void runProcessLoop();
     bool processRingbuffer() noexcept QT_MM_NONBLOCKING;
     bool processCallback() noexcept QT_MM_NONBLOCKING;
