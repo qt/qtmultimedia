@@ -491,8 +491,10 @@ QDebug operator<<(QDebug dbg, QAudioFormat::SampleFormat type)
 
 QDebug operator<<(QDebug dbg, const QAudioFormat &f)
 {
-    dbg << "QAudioFormat(" << f.sampleRate() << "Hz, " << f.channelCount() << "Channels, "
-        << f.sampleFormat() << "Format )";
+    QDebugStateSaver s(dbg);
+    dbg.nospace();
+    dbg << "QAudioFormat(" << f.sampleRate() << "Hz, " << f.channelCount() << " Channels, "
+        << f.sampleFormat() << "Format)";
     return dbg;
 }
 #endif
