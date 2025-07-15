@@ -263,7 +263,8 @@ void QWASAPIAudioSinkStream::runProcessCallbackLoop()
     }
 }
 
-bool QWASAPIAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+template <typename Functor>
+bool QWASAPIAudioSinkStream::visitAudioClientBuffer(Functor &&f)
 {
     uint32_t numFramesPadding;
     HRESULT hr = m_audioClient->GetCurrentPadding(&numFramesPadding);
@@ -272,45 +273,7 @@ bool QWASAPIAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
         return false;
     }
 
-    uint32_t requiredFrames = m_audioClientFrames - numFramesPadding;
-    if (requiredFrames == 0)
-        return true;
-
-    // Grab the next empty buffer from the audio device.
-    unsigned char *hostBuffer{};
-    hr = m_renderClient->GetBuffer(requiredFrames, &hostBuffer);
-    if (FAILED(hr)) {
-        qWarning() << "IAudioRenderClient::getBuffer failed" << audioClientErrorString(hr);
-        return false;
-    }
-
-    uint32_t requiredDataSize = m_format.bytesForFrames(requiredFrames);
-    auto hostBufferSpan = as_writable_bytes(QSpan{ hostBuffer, qsizetype(requiredDataSize) });
-    uint64_t consumedFrames = QPlatformAudioSinkStream::process(hostBufferSpan, requiredFrames);
-
-    DWORD flags = consumedFrames != 0 ? 0 : AUDCLNT_BUFFERFLAGS_SILENT;
-
-    hr = m_renderClient->ReleaseBuffer(requiredFrames, flags);
-    if (FAILED(hr)) {
-        qWarning() << "IAudioRenderClient::ReleaseBuffer failed" << audioClientErrorString(hr);
-        return false;
-    }
-
-    return true;
-}
-
-bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
-{
-    using namespace QtMultimediaPrivate;
-
-    uint32_t numFramesPadding;
-    HRESULT hr = m_audioClient->GetCurrentPadding(&numFramesPadding);
-    if (FAILED(hr)) {
-        qWarning() << "IAudioClient3::GetCurrentPadding failed" << audioClientErrorString(hr);
-        return false;
-    }
-
-    uint32_t requiredFrames = m_audioClientFrames - numFramesPadding;
+    const uint32_t requiredFrames = m_audioClientFrames - numFramesPadding;
     if (requiredFrames == 0)
         return true;
 
@@ -327,9 +290,8 @@ bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
         m_format.bytesForFrames(requiredFrames),
     };
 
-    runAudioCallback(m_audioCallback, hostBufferSpan, m_format);
-
-    constexpr DWORD flags = 0;
+    const uint64_t consumedFrames = f(hostBufferSpan, requiredFrames);
+    const DWORD flags = consumedFrames != 0 ? 0 : AUDCLNT_BUFFERFLAGS_SILENT;
     hr = m_renderClient->ReleaseBuffer(requiredFrames, flags);
     if (FAILED(hr)) {
         qWarning() << "IAudioRenderClient::ReleaseBuffer failed" << audioClientErrorString(hr);
@@ -337,6 +299,22 @@ bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
     }
 
     return true;
+}
+
+bool QWASAPIAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+{
+    return visitAudioClientBuffer([&](QSpan<std::byte> hostBuffer, uint32_t requiredFrames) {
+        uint64_t consumedFrames = QPlatformAudioSinkStream::process(hostBuffer, requiredFrames);
+        return consumedFrames;
+    });
+}
+
+bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
+{
+    return visitAudioClientBuffer([&](QSpan<std::byte> hostBuffer, uint32_t requiredFrames) {
+        runAudioCallback(m_audioCallback, hostBuffer, m_format);
+        return requiredFrames;
+    });
 }
 
 void QWASAPIAudioSinkStream::handleAudioClientError()
