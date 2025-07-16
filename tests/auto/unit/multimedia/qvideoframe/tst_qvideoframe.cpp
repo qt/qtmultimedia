@@ -1133,6 +1133,9 @@ void tst_QVideoFrame::qImageFromVideoFrame_badJPEG()
             std::move(memoryBuffer),
             QVideoFrameFormat(QSize(144, 110), QVideoFrameFormat::Format_Jpeg));
 
+    QTest::ignoreMessage(QtMsgType::QtWarningMsg,
+                         QRegularExpression(u".*JPEG data does not contain EOI marker.*"_s));
+
     QImage img = qImageFromVideoFrame(frame, false);
     QCOMPARE(img.isNull(), true);
 }
