@@ -60,6 +60,12 @@ inline bool isRhiRenderingSupported()
             QPlatformIntegration::RhiBasedRendering);
 }
 
+inline bool isOpenGLSupported()
+{
+    return QGuiApplicationPrivate::platformIntegration()->hasCapability(
+            QPlatformIntegration::OpenGL);
+}
+
 inline bool isCI()
 {
     return qEnvironmentVariable("QTEST_ENVIRONMENT").toLower().split(u' ').contains(u"ci"_s);

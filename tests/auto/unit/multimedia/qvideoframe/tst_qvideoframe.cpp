@@ -14,6 +14,7 @@
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
 #include "private/qvideoframeconverter_p.h"
 #include <private/mediabackendutils_p.h>
+#include <private/osdetection_p.h>
 
 // Adds an enum, and the stringized version
 #define ADD_ENUM_TEST(x) \
@@ -1040,9 +1041,13 @@ void tst_QVideoFrame::qImageFromVideoFrame_doesNotCrash_whenCalledWithEvenAndOdd
                 cpuChoices.push_back(false); // Only run tests on GPU if RHI is supported
 
             for (const bool forceCpu : cpuChoices) {
+                if (pixelFormat == QVideoFrameFormat::Format_YUV420P10) {
+                    if (forceCpu)
+                        continue; // TODO: Cpu conversion not implemented
 
-                if (pixelFormat == QVideoFrameFormat::Format_YUV420P10 && forceCpu)
-                    continue; // TODO: Cpu conversion not implemented
+                    if (isMacOS && !isOpenGLSupported())
+                        continue; // QTBUG-138507: We would fall back to software rendering
+                }
 
                 QString name = QStringLiteral("%1x%2_%3%4")
                                .arg(size.width())
