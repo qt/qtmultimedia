@@ -48,6 +48,7 @@ public:
 
 protected:
     QList<QCameraDevice> findVideoInputs() const override;
+    void connectNotify(const QMetaMethod &signal) override;
 
 private:
     // weak
@@ -71,6 +72,7 @@ public:
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;
+    void connectNotify(const QMetaMethod &signal) override;
 
 };
 

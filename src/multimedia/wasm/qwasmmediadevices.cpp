@@ -29,6 +29,12 @@ QList<QCameraDevice> QWasmCameraDevices::findVideoInputs() const
     return QWasmMediaDevices::instance() ? QWasmMediaDevices::instance()->videoInputs() : QList<QCameraDevice>();
 }
 
+void QWasmCameraDevices::connectNotify(const QMetaMethod &signal)
+{
+    Q_ASSERT(QThread::isMainThread());
+    QWasmMediaDevices::instance();
+}
+
 QWasmAudioDevices::QWasmAudioDevices() = default;
 
 QPlatformAudioSource *QWasmAudioDevices::createAudioSource(const QAudioDevice &deviceInfo,
@@ -53,6 +59,12 @@ QList<QAudioDevice> QWasmAudioDevices::findAudioInputs() const
 QList<QAudioDevice> QWasmAudioDevices::findAudioOutputs() const
 {
     return QWasmMediaDevices::instance() ? QWasmMediaDevices::instance()->audioOutputs() : QList<QAudioDevice>();
+}
+
+void QWasmAudioDevices::connectNotify(const QMetaMethod &signal)
+{
+    Q_ASSERT(QThread::isMainThread());
+    QWasmMediaDevices::instance();
 }
 
 QWasmMediaDevices::QWasmMediaDevices()

@@ -41,6 +41,7 @@ is discouraged because of the limited size of local file storage.
 
 \li Issues may exist when using the Firefox browser on any platform.
 
+\li Due to platform limitations, QMediaDevices must be run on the main thread.
 \endlist
 
  */
