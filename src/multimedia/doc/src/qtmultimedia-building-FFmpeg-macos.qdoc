@@ -17,31 +17,7 @@ This involves:
 \endlist
 
 \include building-FFmpeg-source.qdocinc {macos}
-
-\section1 Prerequisites
-
-To build FFmpeg, these tools and packages are required:
-
-\list
-    \li \l{https://brew.sh/}{Homebrew}
-    \li Homebrew packages (yasm).
-\endlist
-
-\section2 Installing Homebrew
-
-To install Homebrew, run:
-
-\badcode
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-\endcode
-
-\section2 Installing Homebrew packages
-
-To install Homebrew package Yasm, run:
-
-\badcode
-brew install yasm
-\endcode
+\include building-FFmpeg-prerequisites.qdocinc {macos}
 
 \section1 Configuring and building FFmpeg
 

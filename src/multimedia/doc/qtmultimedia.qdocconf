@@ -92,3 +92,4 @@ warninglimit = 0
 
 macro.ffmpegversion = "7.1.1"
 macro.ffmpegreponame = "ffmpeg"
+macro.androidndkversion = "26.1.10909125"
