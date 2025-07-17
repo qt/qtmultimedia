@@ -32,6 +32,7 @@
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
 #    include <gst/allocators/gstdmabuf.h>
+#    include <drm_fourcc.h>
 #  endif
 #endif
 
@@ -39,31 +40,14 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcGstVideoBuffer, "qt.multimedia.gstreamer.videobuffer");
 
-// keep things building without drm_fourcc.h
-#define fourcc_code(a, b, c, d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | \
-                                 ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
-
-#define DRM_FORMAT_RGBA8888     fourcc_code('R', 'A', '2', '4') /* [31:0] R:G:B:A 8:8:8:8 little endian */
-#define DRM_FORMAT_RGB888       fourcc_code('R', 'G', '2', '4') /* [23:0] R:G:B little endian */
-#define DRM_FORMAT_RG88         fourcc_code('R', 'G', '8', '8') /* [15:0] R:G 8:8 little endian */
-#define DRM_FORMAT_ABGR8888     fourcc_code('A', 'B', '2', '4') /* [31:0] A:B:G:R 8:8:8:8 little endian */
-#define DRM_FORMAT_BGR888       fourcc_code('B', 'G', '2', '4') /* [23:0] B:G:R little endian */
-#define DRM_FORMAT_GR88         fourcc_code('G', 'R', '8', '8') /* [15:0] G:R 8:8 little endian */
-#define DRM_FORMAT_R8           fourcc_code('R', '8', ' ', ' ') /* [7:0] R */
-#define DRM_FORMAT_R16          fourcc_code('R', '1', '6', ' ') /* [15:0] R little endian */
-#define DRM_FORMAT_RGB565       fourcc_code('R', 'G', '1', '6') /* [15:0] R:G:B 5:6:5 little endian */
-#define DRM_FORMAT_RG1616       fourcc_code('R', 'G', '3', '2') /* [31:0] R:G 16:16 little endian */
-#define DRM_FORMAT_GR1616       fourcc_code('G', 'R', '3', '2') /* [31:0] G:R 16:16 little endian */
-#define DRM_FORMAT_BGRA1010102  fourcc_code('B', 'A', '3', '0') /* [31:0] B:G:R:A 10:10:10:2 little endian */
-
 QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &info,
                                  QGstreamerVideoSink *sink, const QVideoFrameFormat &frameFormat,
-                                 QGstCaps::MemoryFormat format)
-    : QHwVideoBuffer((sink && sink->rhi() && format != QGstCaps::CpuMemory)
+                                 QGstCaps::MemoryFormat memoryFormat)
+    : QHwVideoBuffer((sink && sink->rhi() && memoryFormat != QGstCaps::CpuMemory)
                              ? QVideoFrame::RhiTextureHandle
                              : QVideoFrame::NoHandle,
                      sink ? sink->rhi() : nullptr),
-      m_memoryFormat(format),
+      m_memoryFormat(memoryFormat),
       m_frameFormat(frameFormat),
       m_rhi(sink ? sink->rhi() : nullptr),
       m_videoInfo(info),
@@ -128,23 +112,32 @@ void QGstVideoBuffer::unmap()
     m_mode = QVideoFrame::NotMapped;
 }
 
+bool QGstVideoBuffer::isDmaBuf() const
+{
+    return m_memoryFormat == QGstCaps::DMABuf;
+}
+
 #if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+
 static int
-fourccFromVideoInfo(const GstVideoInfo * info, int plane)
+fourccFromVideoInfo(const GstVideoInfo * info, int plane, bool singleEGLImage)
 {
     GstVideoFormat format = GST_VIDEO_INFO_FORMAT (info);
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
+    const gint argb_fourcc = DRM_FORMAT_ARGB8888;
     const gint rgba_fourcc = DRM_FORMAT_ABGR8888;
     const gint rgb_fourcc = DRM_FORMAT_BGR888;
     const gint rg_fourcc = DRM_FORMAT_GR88;
 #else
+    const gint argb_fourcc = DRM_FORMAT_BGRA8888;
     const gint rgba_fourcc = DRM_FORMAT_RGBA8888;
     const gint rgb_fourcc = DRM_FORMAT_RGB888;
     const gint rg_fourcc = DRM_FORMAT_RG88;
 #endif
 
-    GST_DEBUG ("Getting DRM fourcc for %s plane %i",
-              gst_video_format_to_string (format), plane);
+    qCDebug(qLcGstVideoBuffer) << "Getting DRM fourcc for"
+                               << gst_video_format_to_string(format)
+                               << "plane" << plane;
 
     switch (format) {
     case GST_VIDEO_FORMAT_RGB16:
@@ -155,38 +148,56 @@ fourccFromVideoInfo(const GstVideoInfo * info, int plane)
     case GST_VIDEO_FORMAT_BGR:
         return rgb_fourcc;
 
-    case GST_VIDEO_FORMAT_RGBA:
-    case GST_VIDEO_FORMAT_RGBx:
-    case GST_VIDEO_FORMAT_BGRA:
     case GST_VIDEO_FORMAT_BGRx:
+    case GST_VIDEO_FORMAT_BGRA:
+        return argb_fourcc;
+
+    case GST_VIDEO_FORMAT_AYUV:
+        if (singleEGLImage) return DRM_FORMAT_AYUV;
+        [[fallthrough]];
+    case GST_VIDEO_FORMAT_RGBx:
+    case GST_VIDEO_FORMAT_RGBA:
     case GST_VIDEO_FORMAT_ARGB:
     case GST_VIDEO_FORMAT_xRGB:
     case GST_VIDEO_FORMAT_ABGR:
     case GST_VIDEO_FORMAT_xBGR:
-    case GST_VIDEO_FORMAT_AYUV:
-#if GST_CHECK_PLUGINS_BASE_VERSION(1,16,0)
-    case GST_VIDEO_FORMAT_VUYA:
-#endif
         return rgba_fourcc;
 
     case GST_VIDEO_FORMAT_GRAY8:
         return DRM_FORMAT_R8;
 
     case GST_VIDEO_FORMAT_YUY2:
+        return DRM_FORMAT_YUYV;
+
     case GST_VIDEO_FORMAT_UYVY:
+        return DRM_FORMAT_UYVY;
+
     case GST_VIDEO_FORMAT_GRAY16_LE:
     case GST_VIDEO_FORMAT_GRAY16_BE:
+        if (singleEGLImage) return DRM_FORMAT_R16;
         return rg_fourcc;
 
     case GST_VIDEO_FORMAT_NV12:
+        if (singleEGLImage) return DRM_FORMAT_NV12;
+        [[fallthrough]];
     case GST_VIDEO_FORMAT_NV21:
+        if (singleEGLImage) return DRM_FORMAT_NV21;
         return plane == 0 ? DRM_FORMAT_R8 : rg_fourcc;
 
     case GST_VIDEO_FORMAT_I420:
+        if (singleEGLImage) return DRM_FORMAT_YUV420;
+        [[fallthrough]];
     case GST_VIDEO_FORMAT_YV12:
+        if (singleEGLImage) return DRM_FORMAT_YVU420;
+        [[fallthrough]];
     case GST_VIDEO_FORMAT_Y41B:
+        if (singleEGLImage) return DRM_FORMAT_YUV411;
+        [[fallthrough]];
     case GST_VIDEO_FORMAT_Y42B:
+        if (singleEGLImage) return DRM_FORMAT_YUV422;
+        [[fallthrough]];
     case GST_VIDEO_FORMAT_Y444:
+        if (singleEGLImage) return DRM_FORMAT_YUV444;
         return DRM_FORMAT_R8;
 
 #if GST_CHECK_PLUGINS_BASE_VERSION(1,16,0)
@@ -194,21 +205,13 @@ fourccFromVideoInfo(const GstVideoInfo * info, int plane)
         return DRM_FORMAT_BGRA1010102;
 #endif
 
-//    case GST_VIDEO_FORMAT_RGB10A2_LE:
-//        return DRM_FORMAT_RGBA1010102;
-
     case GST_VIDEO_FORMAT_P010_10LE:
-//    case GST_VIDEO_FORMAT_P012_LE:
-//    case GST_VIDEO_FORMAT_P016_LE:
-        return plane == 0 ? DRM_FORMAT_R16 : DRM_FORMAT_GR1616;
-
     case GST_VIDEO_FORMAT_P010_10BE:
-//    case GST_VIDEO_FORMAT_P012_BE:
-//    case GST_VIDEO_FORMAT_P016_BE:
+        if (singleEGLImage) return DRM_FORMAT_P010;
         return plane == 0 ? DRM_FORMAT_R16 : DRM_FORMAT_RG1616;
 
     default:
-        GST_ERROR ("Unsupported format for DMABuf.");
+        qWarning() << "Unsupported format for DMABuf:" << gst_video_format_to_string(format);
         return -1;
     }
 }
@@ -225,14 +228,30 @@ struct GlTextures
 class QGstQVideoFrameTextures : public QVideoFrameTextures
 {
 public:
-    QGstQVideoFrameTextures(QRhi *rhi, QSize size, QVideoFrameFormat::PixelFormat format, GlTextures &textures)
+    QGstQVideoFrameTextures(QRhi *rhi,
+                            QSize size,
+                            QVideoFrameFormat::PixelFormat format,
+                            GlTextures &textures,
+                            QGstCaps::MemoryFormat memoryFormat)
         : m_rhi(rhi)
         , m_glTextures(textures)
     {
+        QRhiTexture::Flags textureFlags = {};
+        if (QVideoTextureHelper::forceGlTextureExternalOesIsSet()
+            && m_rhi && rhi->backend() == QRhi::OpenGLES2)
+            textureFlags = {QRhiTexture::ExternalOES};
+
+        bool isDmaBuf = memoryFormat == QGstCaps::DMABuf;
+        auto fallbackPolicy = isDmaBuf
+                ? QVideoTextureHelper::TextureDescription::FallbackPolicy::Disable
+                : QVideoTextureHelper::TextureDescription::FallbackPolicy::Enable;
+
         auto desc = QVideoTextureHelper::textureDescription(format);
         for (uint i = 0; i < textures.count; ++i) {
-            QSize planeSize = desc->rhiPlaneSize(size, i, rhi);
-            m_textures[i].reset(rhi->newTexture(desc->rhiTextureFormat(i, m_rhi), planeSize, 1, {}));
+            // Pass nullptr to rhiPlaneSize to disable fallback in its call to rhiTextureFormat
+            QSize planeSize = desc->rhiPlaneSize(size, i, isDmaBuf ? nullptr : m_rhi);
+            QRhiTexture::Format format = desc->rhiTextureFormat(i, m_rhi, fallbackPolicy);
+            m_textures[i].reset(rhi->newTexture(format, planeSize, 1, textureFlags));
             m_textures[i]->createFrom({textures.names[i], 0});
         }
     }
@@ -298,7 +317,8 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
                                    GstVideoFrame &frame, GstVideoInfo &videoInfo,
                                    Qt::HANDLE eglDisplay, QFunctionPointer eglImageTargetTexture2D)
 {
-    qCDebug(qLcGstVideoBuffer) << "mapFromDmaBuffer";
+    qCDebug(qLcGstVideoBuffer) << "mapFromDmaBuffer, glGetError returns" << Qt::hex << glGetError()
+                               << ", eglGetError() returns" << eglGetError();
 
     GstBuffer *buffer = bufferHandle.get();
 
@@ -314,66 +334,129 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
     }
 
     if (!gst_video_frame_map(&frame, &videoInfo, buffer, GstMapFlags(GST_MAP_READ))) {
-        qDebug() << "Couldn't map DMA video frame";
+        qWarning() << "gst_video_frame_map failed, couldn't map DMA video frame";
         return {};
     }
+
+    constexpr int maxPlanes = 4;
+    const int nPlanes = GST_VIDEO_FRAME_N_PLANES(&frame);
+    const int nMemoryBlocks = gst_buffer_n_memory(buffer);
+    const bool externalOes =
+            QVideoTextureHelper::forceGlTextureExternalOesIsSet();
+    static const bool singleEGLImage =
+            externalOes || qEnvironmentVariableIsSet("QT_GSTREAMER_FORCE_SINGLE_EGLIMAGE");
+
+    qCDebug(qLcGstVideoBuffer) << "nPlanes:" << nPlanes
+                               << "nMemoryBlocks:" << nMemoryBlocks
+                               << "externalOes:" << externalOes
+                               << "singleEGLImage:" << singleEGLImage;
+    Q_ASSERT(nPlanes >= 1
+             && nPlanes <= maxPlanes
+             && (nMemoryBlocks == 1 || nMemoryBlocks == nPlanes));
 
     GlTextures textures = {};
     textures.owned = true;
-    textures.count = GST_VIDEO_FRAME_N_PLANES(&frame);
-    //        int width = GST_VIDEO_FRAME_WIDTH(&frame);
-    //        int height = GST_VIDEO_FRAME_HEIGHT(&frame);
-    if (textures.count != gst_buffer_n_memory(buffer)) {
-        qCDebug(qLcGstVideoBuffer) << "mapFromDmaBuffer: Unsupported memory layout, creating "
-                                      "textures from system memory instead. Will be fixed by "
-                                      "https://codereview.qt-project.org/c/qt/qtmultimedia/+/662143";
-        return {};
-    }
-    Q_ASSERT(GST_VIDEO_FRAME_N_PLANES(&frame) == gst_buffer_n_memory(buffer));
+    textures.count = singleEGLImage ? 1 : nPlanes;
 
     QOpenGLFunctions functions(glContext);
     functions.glGenTextures(int(textures.count), textures.names.data());
+    qCDebug(qLcGstVideoBuffer) << "called glGenTextures, glGetError returns"
+                               << Qt::hex << glGetError();
 
-    //        qDebug() << Qt::hex << "glGenTextures: glerror" << glGetError() << "egl error" << eglGetError();
-    //        qDebug() << "converting DMA buffer nPlanes=" << nPlanes << m_textures[0] << m_textures[1] << m_textures[2];
+    std::array<int, maxPlanes> fds{-1, -1, -1, -1};
+    for (int i = 0; i < nMemoryBlocks && i < maxPlanes; ++i) {
+        fds[i] = gst_dmabuf_memory_get_fd(gst_buffer_peek_memory(buffer, i));
+    }
+    auto fdForPlane = [&](int plane) {
+        if (plane < 0 || plane >= maxPlanes || plane >= nMemoryBlocks)
+            return fds[0];
+        return (fds[plane] >= 0) ? fds[plane] : fds[0];
+    };
 
-    for (int i = 0; i < int(textures.count); ++i) {
-        auto offset = GST_VIDEO_FRAME_PLANE_OFFSET(&frame, i);
-        auto stride = GST_VIDEO_FRAME_PLANE_STRIDE(&frame, i);
-        int planeWidth = GST_VIDEO_FRAME_COMP_WIDTH(&frame, i);
-        int planeHeight = GST_VIDEO_FRAME_COMP_HEIGHT(&frame, i);
-        auto mem = gst_buffer_peek_memory(buffer, i);
-        int fd = gst_dmabuf_memory_get_fd(mem);
+    int nEGLImages = singleEGLImage ? 1 : nPlanes;
+    for (int plane = 0; plane < nEGLImages; ++plane) {
+        constexpr int maxAttrCount = 31;
+        std::array<EGLAttrib, maxAttrCount> attr;
+        int i = 0;
 
-        //            qDebug() << "    plane" << i << "size" << width << height << "stride" << stride << "offset" << offset << "fd=" << fd;
-        // ### do we need to open/close the fd?
-        // ### can we convert several planes at once?
-        // Get the correct DRM_FORMATs from the texture format in the description
-        EGLAttrib const attribute_list[] = {
-            EGL_WIDTH, planeWidth,
-            EGL_HEIGHT, planeHeight,
-            EGL_LINUX_DRM_FOURCC_EXT, fourccFromVideoInfo(&videoInfo, i),
-            EGL_DMA_BUF_PLANE0_FD_EXT, fd,
-            EGL_DMA_BUF_PLANE0_OFFSET_EXT, (EGLAttrib)offset,
-            EGL_DMA_BUF_PLANE0_PITCH_EXT, stride,
-            EGL_NONE
-        };
+        gint width = singleEGLImage ? GST_VIDEO_FRAME_WIDTH(&frame)
+                                    : GST_VIDEO_FRAME_COMP_WIDTH(&frame, plane);
+        gint height = singleEGLImage ? GST_VIDEO_FRAME_HEIGHT(&frame)
+                                     : GST_VIDEO_FRAME_COMP_HEIGHT(&frame, plane);
+        attr[i++] = EGL_WIDTH;
+        attr[i++] = width;
+        attr[i++] = EGL_HEIGHT;
+        attr[i++] = height;
+        attr[i++] = EGL_LINUX_DRM_FOURCC_EXT;
+        attr[i++] = fourccFromVideoInfo(&videoInfo, plane, singleEGLImage);
+
+        attr[i++] = EGL_DMA_BUF_PLANE0_FD_EXT;
+        attr[i++] = fdForPlane(plane);
+        attr[i++] = EGL_DMA_BUF_PLANE0_OFFSET_EXT;
+        attr[i++] = (EGLAttrib)(GST_VIDEO_FRAME_PLANE_OFFSET(&frame, plane));
+        attr[i++] = EGL_DMA_BUF_PLANE0_PITCH_EXT;
+        attr[i++] = (EGLAttrib)(GST_VIDEO_FRAME_PLANE_STRIDE(&frame, plane));
+
+        if (singleEGLImage && nPlanes > 1) {
+            attr[i++] = EGL_DMA_BUF_PLANE1_FD_EXT;
+            attr[i++] = fdForPlane(1);
+            attr[i++] = EGL_DMA_BUF_PLANE1_OFFSET_EXT;
+            attr[i++] = (EGLAttrib)(GST_VIDEO_FRAME_PLANE_OFFSET(&frame, 1));
+            attr[i++] = EGL_DMA_BUF_PLANE1_PITCH_EXT;
+            attr[i++] = (EGLAttrib)(GST_VIDEO_FRAME_PLANE_STRIDE(&frame, 1));
+        }
+
+        if (singleEGLImage && nPlanes > 2) {
+            attr[i++] = EGL_DMA_BUF_PLANE2_FD_EXT;
+            attr[i++] = fdForPlane(2);
+            attr[i++] = EGL_DMA_BUF_PLANE2_OFFSET_EXT;
+            attr[i++] = (EGLAttrib)(GST_VIDEO_FRAME_PLANE_OFFSET(&frame, 2));
+            attr[i++] = EGL_DMA_BUF_PLANE2_PITCH_EXT;
+            attr[i++] = (EGLAttrib)(GST_VIDEO_FRAME_PLANE_STRIDE(&frame, 2));
+        }
+
+        if (singleEGLImage && nPlanes > 3) {
+            attr[i++] = EGL_DMA_BUF_PLANE3_FD_EXT;
+            attr[i++] = fdForPlane(3);
+            attr[i++] = EGL_DMA_BUF_PLANE3_OFFSET_EXT;
+            attr[i++] = (EGLAttrib)(GST_VIDEO_FRAME_PLANE_OFFSET(&frame, 3));
+            attr[i++] = EGL_DMA_BUF_PLANE3_PITCH_EXT;
+            attr[i++] = (EGLAttrib)(GST_VIDEO_FRAME_PLANE_STRIDE(&frame, 3));
+        }
+
+        attr[i++] = EGL_NONE;
+        Q_ASSERT(i <= maxAttrCount);
+
         EGLImage image = eglCreateImage(eglDisplay,
                                         EGL_NO_CONTEXT,
                                         EGL_LINUX_DMA_BUF_EXT,
                                         nullptr,
-                                        attribute_list);
+                                        attr.data());
         if (image == EGL_NO_IMAGE_KHR) {
-            qWarning() << "could not create EGL image for plane" << i << Qt::hex << eglGetError();
+            qWarning() << "could not create EGL image for plane" << plane
+                       << ", eglError"<< Qt::hex << eglGetError();
+            continue;
         }
-        //            qDebug() << Qt::hex << "eglCreateImage: glerror" << glGetError() << "egl error" << eglGetError();
-        functions.glBindTexture(GL_TEXTURE_2D, textures.names[i]);
-        //            qDebug() << Qt::hex << "bind texture: glerror" << glGetError() << "egl error" << eglGetError();
+        qCDebug(qLcGstVideoBuffer) << "called eglCreateImage, glGetError returns"
+                                   << Qt::hex << glGetError()
+                                   << ", eglGetError() returns" << eglGetError();
+
+        #ifdef GL_OES_EGL_image_external
+                GLenum target = externalOes ? GL_TEXTURE_EXTERNAL_OES : GL_TEXTURE_2D;
+        #else
+                GLenum target = GL_TEXTURE_2D;
+        #endif
+        functions.glBindTexture(target, textures.names[plane]);
+
         auto EGLImageTargetTexture2D = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)eglImageTargetTexture2D;
-        EGLImageTargetTexture2D(GL_TEXTURE_2D, image);
-        //            qDebug() << Qt::hex << "glerror" << glGetError() << "egl error" << eglGetError();
+        EGLImageTargetTexture2D(target, image);
+        qCDebug(qLcGstVideoBuffer) << "called glEGLImageTargetTexture2DOES, glGetError returns"
+                                   << Qt::hex << glGetError()
+                                   << ", eglGetError() returns" << eglGetError();
+
         eglDestroyImage(eglDisplay, image);
     }
+
     gst_video_frame_unmap(&frame);
 
     return textures;
@@ -389,14 +472,14 @@ QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTextu
         textures = mapFromGlTexture(m_buffer, m_frame, m_videoInfo);
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
-    else if (m_memoryFormat == QGstCaps::DMABuf)
+    else if (m_memoryFormat == QGstCaps::DMABuf && eglDisplay)
         textures = mapFromDmaBuffer(m_rhi, m_buffer, m_frame, m_videoInfo, eglDisplay,
                                     eglImageTargetTexture2D);
 
 #  endif
     if (textures.count > 0)
         return std::make_unique<QGstQVideoFrameTextures>(&rhi, QSize{m_videoInfo.width, m_videoInfo.height},
-                                                         m_frameFormat.pixelFormat(), textures);
+                                                         m_frameFormat.pixelFormat(), textures, m_memoryFormat);
 #endif
     return {};
 }

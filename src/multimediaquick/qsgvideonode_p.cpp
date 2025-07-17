@@ -11,6 +11,10 @@
 #include <private/qhwvideobuffer_p.h>
 #include <private/qvideoframetexturepool_p.h>
 
+#if QT_CONFIG(opengles2)
+#include <private/qshaderdescription_p.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 /* Helpers */
@@ -50,10 +54,15 @@ public:
         , m_hdrInfo(hdrInfo)
     {
         setShaderFileName(VertexStage, QVideoTextureHelper::vertexShaderFileName(m_videoFormat));
-        setShaderFileName(FragmentStage,
-                          QVideoTextureHelper::fragmentShaderFileName(
-                                  m_videoFormat, rhi, m_surfaceFormat));
+        if (QVideoTextureHelper::forceGlTextureExternalOesIsSet()
+            && rhi && rhi->backend() == QRhi::OpenGLES2)
+            setupExternalOESShader();
+        else
+            setShaderFileName(FragmentStage, QVideoTextureHelper::fragmentShaderFileName(
+                                                     m_videoFormat, rhi, m_surfaceFormat));
     }
+
+    void setupExternalOESShader();
 
     bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,
                            QSGMaterial *oldMaterial) override;
@@ -66,6 +75,57 @@ protected:
     QRhiSwapChain::Format m_surfaceFormat;
     QRhiSwapChainHdrInfo m_hdrInfo;
 };
+
+void QSGVideoMaterialRhiShader::setupExternalOESShader()
+{
+#if QT_CONFIG(opengles2)
+    qDebug() << "QSGVideoMaterialRhiShader: Setting up external OES shader for OpenGLES2";
+
+    using namespace Qt::Literals::StringLiterals;
+    QByteArray fragmentShader = R"(
+        #extension GL_OES_EGL_image_external : require
+        precision highp float;
+        varying vec2 texCoord;
+        uniform samplerExternalOES tex0;
+        void main()
+        {
+            gl_FragColor = texture2D(tex0, texCoord);
+        }
+      )"_ba;
+
+    QShaderDescription desc;
+    QShaderDescriptionPrivate *descData = QShaderDescriptionPrivate::get(&desc);
+
+    QShaderDescription::InOutVariable texCoordInput;
+    texCoordInput.name = "texCoord";
+    texCoordInput.type = QShaderDescription::Vec2;
+    texCoordInput.location = 0;
+
+    descData->inVars = { texCoordInput };
+
+    QShaderDescription::InOutVariable fragColorOutput;
+    fragColorOutput.name = "gl_FragColor";
+    fragColorOutput.type = QShaderDescription::Vec4;
+    fragColorOutput.location = 0;
+
+    descData->outVars = { fragColorOutput };
+
+    QShaderDescription::InOutVariable samplerTex0;
+    samplerTex0.name = "tex0";
+    samplerTex0.type = QShaderDescription::SamplerExternalOES;
+    samplerTex0.binding = 1;
+
+    descData->combinedImageSamplers = { samplerTex0 };
+
+    QShader shaderPack;
+    shaderPack.setStage(QShader::FragmentStage);
+    shaderPack.setDescription(desc);
+    shaderPack.setShader(QShaderKey(QShader::GlslShader, QShaderVersion(100, QShaderVersion::GlslEs)),
+                         QShaderCode(fragmentShader));
+
+    setShader(FragmentStage, shaderPack);
+#endif
+}
 
 class QSGVideoMaterial : public QSGMaterial
 {
