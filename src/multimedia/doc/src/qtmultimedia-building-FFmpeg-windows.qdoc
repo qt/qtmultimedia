@@ -9,45 +9,6 @@
 \include building-FFmpeg-contents.qdocinc {windows}
 \include building-FFmpeg-source.qdocinc {windows}
 \include building-FFmpeg-prerequisites.qdocinc {windows}
-
-\section1 Configuring and building FFmpeg
-
-From the prepared MSYS2 shell, navigate to the \c{/c/FFmpeg} directory. In this
-directory, create a \c{build} directory which will contain the FFmpeg build
-artifacts, and navigate into it.
-
-\badcode
-cd /c/FFmpeg/build
-\endcode
-
-To configure FFmpeg for building with MinGW-w64, run:
-
-\badcode
-../ffmpeg/configure --prefix=../install --disable-doc --enable-network --enable-shared
-\endcode
-
-To configure FFmpeg for building with MSVC, specify the toolchain in addition to
-the other command line options:
-
-\badcode
-../ffmpeg/configure --prefix=../install --disable-doc --enable-network --enable-shared --toolchain=msvc
-\endcode
-
-The \c{--prefix} argument specifies a path where the FFmpeg development
-libraries are installed after building. The documentation is not needed, but
-network features should be enabled. To build FFmpeg as static libraries, omit
-the \c{--enable-shared} option.
-
-Once the \c configure command finishes, build and install FFmpeg using the
-\c make command.
-
-\badcode
-make -j install
-\endcode
-
-If the build completes without errors, FFmpeg development libraries are
-installed in the \c{C:\FFmpeg\install} directory. If you build Qt Multimedia,
-this path is stored in the \c FFMPEG_DIR variable used when configuring Qt
-Multimedia.
+\include building-FFmpeg-configure.qdocinc {windows}
 
 */
