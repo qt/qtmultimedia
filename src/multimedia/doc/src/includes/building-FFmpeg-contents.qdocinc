@@ -1,0 +1,72 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [windows]
+
+    \include building-FFmpeg-contents.qdocinc {common-header} {Windows}
+    \include building-FFmpeg-contents.qdocinc {common-list}
+
+//! [windows]
+
+//! [macos]
+
+    \include building-FFmpeg-contents.qdocinc {common-header} {macOS}
+    \include building-FFmpeg-contents.qdocinc {common-list}
+
+//! [macos]
+
+//! [linux]
+
+    \include building-FFmpeg-contents.qdocinc {common-header} {Linux}
+    \include building-FFmpeg-contents.qdocinc {common-list}
+
+//! [linux]
+
+//! [android-windows]
+
+    \include building-FFmpeg-contents.qdocinc {common-header-android} {Windows}
+    \include building-FFmpeg-contents.qdocinc {common-list}
+
+//! [android-windows]
+
+//! [android-macos]
+
+    \include building-FFmpeg-contents.qdocinc {common-header-android} {macOS}
+    \include building-FFmpeg-contents.qdocinc {common-list}
+
+//! [android-macos]
+
+//! [android-linux]
+
+    \include building-FFmpeg-contents.qdocinc {common-header-android} {Linux}
+    \include building-FFmpeg-contents.qdocinc {common-list}
+
+//! [android-linux]
+
+//! [common-list]
+
+    \list
+        \li Get the FFmpeg source code.
+        \li Install the required dependencies.
+        \li Configure FFmpeg from the command line.
+        \li Build the development libraries.
+    \endlist
+
+//! [common-list]
+
+// \1 is the host OS.
+//! [common-header]
+
+    This page explains how to configure and build \l{FFmpeg} on \1.
+    The required steps are:
+
+//! [common-header]
+
+// \1 is the host OS.
+//! [common-header-android]
+
+    This page explains how to configure and build \l{FFmpeg} for Android.
+    Compilation for Android is a cross-compilation and presumes using \1 as a host system.
+    The required steps are:
+
+//! [common-header-android]

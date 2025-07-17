@@ -6,16 +6,7 @@
 \title Building FFmpeg from source on Linux
 \brief This document describes how to build FFmpeg from source code.
 
-This page explains how to configure and build \l{FFmpeg} on Linux.
-This involves:
-
-\list
-\li Get the FFmpeg source code.
-\li Install the required dependencies.
-\li Configure FFmpeg from the command line.
-\li Build the development libraries.
-\endlist
-
+\include building-FFmpeg-contents.qdocinc {linux}
 \include building-FFmpeg-source.qdocinc {linux}
 \include building-FFmpeg-prerequisites.qdocinc {linux}
 

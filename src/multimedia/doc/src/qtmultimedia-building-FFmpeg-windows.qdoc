@@ -6,16 +6,7 @@
 \title Building FFmpeg from source on Windows
 \brief This document describes how to build FFmpeg from source code.
 
-This page explains how to configure and build \l{FFmpeg} on Windows.
-This involves:
-
-\list
-\li Get the FFmpeg source code.
-\li Install the required dependencies.
-\li Configure FFmpeg from the command line for MSVC or for MinGW-w64.
-\li Build the development libraries.
-\endlist
-
+\include building-FFmpeg-contents.qdocinc {windows}
 \include building-FFmpeg-source.qdocinc {windows}
 \include building-FFmpeg-prerequisites.qdocinc {windows}
 
