@@ -51,7 +51,14 @@ struct Q_MULTIMEDIA_EXPORT TextureDescription
         RG_16,
     };
 
-    QRhiTexture::Format rhiTextureFormat(int plane, QRhi *rhi) const;
+    enum class FallbackPolicy {
+        Disable,
+        Enable
+    };
+
+    QRhiTexture::Format rhiTextureFormat(int plane,
+                                         QRhi *rhi,
+                                         FallbackPolicy policy = FallbackPolicy::Enable) const;
 
     inline int strideForWidth(int width) const { return (width*strideFactor + 15) & ~15; }
     inline int bytesForSize(QSize s) const { return bytesRequired(strideForWidth(s.width()), s.height()); }
@@ -148,6 +155,9 @@ resolvedRhiTextureFormat(QRhiTexture::Format format, QRhi *rhi);
 
 Q_MULTIMEDIA_EXPORT void
 setExcludedRhiTextureFormats(QList<QRhiTexture::Format> formats); // for tests only
+
+Q_MULTIMEDIA_EXPORT bool
+forceGlTextureExternalOesIsSet();
 
 struct UniformData {
     float transformMatrix[4][4];

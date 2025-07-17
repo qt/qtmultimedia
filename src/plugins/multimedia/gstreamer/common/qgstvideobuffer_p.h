@@ -36,6 +36,8 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
+    bool isDmaBuf() const override;
+
     QVideoFrameTexturesUPtr mapTextures(QRhi &, QVideoFrameTexturesUPtr& /*oldTextures*/) override;
 
 private:

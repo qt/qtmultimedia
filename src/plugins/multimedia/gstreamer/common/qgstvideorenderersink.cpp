@@ -84,24 +84,7 @@ QGstCaps QGstVideoRenderer::createSurfaceCaps([[maybe_unused]] QGstreamerVideoSi
         caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_GL_MEMORY);
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
         if (sink->eglDisplay() && sink->eglImageTargetTexture2D()) {
-            // We currently do not handle planar DMA buffers, as it's somewhat unclear how to
-            // convert the planar EGLImage into something we can use from OpenGL
-            auto singlePlaneFormats = QList<QVideoFrameFormat::PixelFormat>()
-                           << QVideoFrameFormat::Format_UYVY
-                           << QVideoFrameFormat::Format_YUYV
-                           << QVideoFrameFormat::Format_AYUV
-                           << QVideoFrameFormat::Format_XRGB8888
-                           << QVideoFrameFormat::Format_XBGR8888
-                           << QVideoFrameFormat::Format_RGBX8888
-                           << QVideoFrameFormat::Format_BGRX8888
-                           << QVideoFrameFormat::Format_ARGB8888
-                           << QVideoFrameFormat::Format_ABGR8888
-                           << QVideoFrameFormat::Format_RGBA8888
-                           << QVideoFrameFormat::Format_BGRA8888
-                           << QVideoFrameFormat::Format_Y8
-                           << QVideoFrameFormat::Format_Y16
-                ;
-            caps.addPixelFormats(singlePlaneFormats, GST_CAPS_FEATURE_MEMORY_DMABUF);
+            caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_DMABUF);
         }
 #  endif
     }
@@ -189,9 +172,39 @@ void QGstVideoRenderer::unlock()
     qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::unlock";
 }
 
-bool QGstVideoRenderer::proposeAllocation(GstQuery *)
+bool QGstVideoRenderer::proposeAllocation(GstQuery *query)
 {
-    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::proposeAllocation";
+    if (!query || GST_QUERY_TYPE(query) != GST_QUERY_ALLOCATION)
+        return false;
+
+    GstCaps *queryCaps = nullptr;
+    gboolean needPool = false;
+    gst_query_parse_allocation(query, &queryCaps, &needPool);
+    GstVideoInfo info;
+    int size = 0;
+    if (queryCaps && gst_video_info_from_caps(&info, queryCaps)) {
+        size = info.size;
+    } else {
+        qWarning(qLcGstVideoRenderer) << "QGstVideoRenderer::proposeAllocation failed to "
+                                          "get size from query caps";
+        return true;
+    }
+
+    constexpr int defaultMinBuffers = 3;
+    static const int env
+            = qEnvironmentVariableIntValue("QT_GSTREAMER_PROPOSE_ALLOCATION_MIN_BUFFERS");
+    static const int minBuffers = env ? env : defaultMinBuffers;
+    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::proposeAllocation: "
+                                    "needPool:" << needPool
+                                 << "size:" << size
+                                 << "minBuffers:" << minBuffers;
+
+    // This call is needed to avoid enabling of copy threshold by v4l2 decoders, which can result
+    // in a mix of dmabuf and system memory buffers. The query sender should use its own buffer
+    // pool, and will only take the size value and our suggested minimum buffers into account.
+    // The driver can force a higher minimum if minBuffers is set too low, making 3 sufficient.
+    gst_query_add_allocation_pool(query, nullptr, size, minBuffers, 0);
+
     return true;
 }
 
@@ -235,9 +248,33 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
         return QGstCaps::CpuMemory;
     }();
 
+    qCDebug(qLcGstVideoRenderer) << "m_capsMemoryFormat" << m_capsMemoryFormat
+                                 << "bufferMemoryFormat" << bufferMemoryFormat;
+
+    QVideoFrameFormat bufferVideoFrameFormat = m_format;
+
+    if (m_sink->eglDisplay()) {
+        // EGL seems to do implicit YUV->RGB conversion for UYVY and YUYV (YUY2), so we change the
+        // pixel format to Format_RGBA8888 to select an appropriate shader.
+        const bool setFormat_RGBA8888 =
+                (bufferMemoryFormat == QGstCaps::DMABuf
+                 && (m_format.pixelFormat() == QVideoFrameFormat::Format_UYVY
+                     || m_format.pixelFormat() == QVideoFrameFormat::Format_YUYV));
+        if (setFormat_RGBA8888) {
+            // TODO: Replace with new private setter of pixel format.
+            qCDebug(qLcGstVideoRenderer) << "Setting pixel format to Format_RGBA8888";
+            bufferVideoFrameFormat = QVideoFrameFormat(m_format.frameSize(),
+                                                       QVideoFrameFormat::Format_RGBA8888);
+            bufferVideoFrameFormat.setStreamFrameRate(m_format.streamFrameRate());
+            bufferVideoFrameFormat.setColorRange(m_format.colorRange());
+            bufferVideoFrameFormat.setColorTransfer(m_format.colorTransfer());
+            bufferVideoFrameFormat.setColorSpace(m_format.colorSpace());
+        }
+    }
+
     RenderBufferState state{
         QGstBufferHandle{ buffer, QGstBufferHandle::NeedsRef },
-        m_format,
+        bufferVideoFrameFormat,
         m_videoInfo,
         bufferMemoryFormat,
     };

@@ -98,6 +98,8 @@ public:
 
     virtual void initTextureConverter(QRhi &) { }
 
+    virtual bool isDmaBuf() const { return false; }
+
 protected:
     QVideoFrame::HandleType m_type;
     QRhi *m_rhi = nullptr;

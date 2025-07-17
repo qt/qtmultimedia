@@ -20,6 +20,12 @@ Q_STATIC_LOGGING_CATEGORY(qLcVideoTextureHelper, "qt.multimedia.video.texturehel
 namespace QVideoTextureHelper
 {
 
+bool forceGlTextureExternalOesIsSet() {
+    static const bool isSet =
+            qEnvironmentVariableIsSet("QT_MULTIMEDIA_FORCE_GL_TEXTURE_EXTERNAL_OES");
+    return isSet;
+}
+
 static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] = {
     //  Format_Invalid
     { 0, 0,
@@ -238,7 +244,7 @@ static bool isRhiTextureFormatSupported(const QRhi *rhi, QRhiTexture::Format for
     return rhi->isTextureFormatSupported(format);
 }
 
-QRhiTexture::Format TextureDescription::rhiTextureFormat(int plane, QRhi *rhi) const
+QRhiTexture::Format TextureDescription::rhiTextureFormat(int plane, QRhi *rhi, FallbackPolicy policy) const
 {
     QRhiTexture::Format preferredFormat = QRhiTexture::UnknownFormat;
 
@@ -266,6 +272,8 @@ QRhiTexture::Format TextureDescription::rhiTextureFormat(int plane, QRhi *rhi) c
         default:
             Q_UNREACHABLE();
     }
+    if (policy == FallbackPolicy::Disable)
+        return preferredFormat;
 
     return resolvedRhiTextureFormat(preferredFormat, rhi);
 }
@@ -435,6 +443,7 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *,
 
     Q_ASSERT_X(QFile::exists(shaderFile), Q_FUNC_INFO,
                QStringLiteral("Shader file %1 does not exist").arg(shaderFile).toLatin1());
+    qCDebug(qLcVideoTextureHelper) << "fragmentShaderFileName returns" << shaderFile;
     return shaderFile;
 }
 
@@ -677,16 +686,24 @@ void updateUniformData(QByteArray *dst, QRhi *rhi, const QVideoFrameFormat &form
     ud->maxLum = fromLinear(float(maxNits)/100.f);
     const TextureDescription* desc = textureDescription(format.pixelFormat());
 
+    const bool isDmaBuf = QVideoFramePrivate::hasDmaBuf(frame);
+    using FallbackPolicy = QVideoTextureHelper::TextureDescription::FallbackPolicy;
+    auto fallbackPolicy = isDmaBuf
+            ? FallbackPolicy::Disable
+            : FallbackPolicy::Enable;
+
     // Let's consider using the red component if Red_8 is not used,
     // it's useful for compatibility the shaders with 16bit formats.
 
     const bool useRedComponent =
-            !desc->hasTextureFormat(TextureDescription::Red_8) ||
-            isRhiTextureFormatSupported(rhi, QRhiTexture::R8) ||
-            rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed);
+            !desc->hasTextureFormat(TextureDescription::Red_8)
+            || isRhiTextureFormatSupported(rhi, QRhiTexture::R8)
+            || rhi->isFeatureSupported(QRhi::RedOrAlpha8IsRed)
+            || isDmaBuf;
     ud->redOrAlphaIndex = useRedComponent ? 0 : 3; // r:0 g:1 b:2 a:3
+
     for (int plane = 0; plane < desc->nplanes; ++plane)
-        ud->planeFormats[plane] = desc->rhiTextureFormat(plane, rhi);
+        ud->planeFormats[plane] = desc->rhiTextureFormat(plane, rhi, fallbackPolicy);
 }
 
 enum class UpdateTextureWithMapResult : uint8_t {
@@ -839,6 +856,7 @@ static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi 
                                                         QRhiResourceUpdateBatch &rub,
                                                         QVideoFrameTexturesUPtr &oldTextures)
 {
+    qCDebug(qLcVideoTextureHelper) << "createTexturesFromMemory, pixelFormat:" << frame.pixelFormat();
     if (!frame.map(QVideoFrame::ReadOnly)) {
         qWarning() << "Cannot map a video frame in ReadOnly mode!";
         return {};
