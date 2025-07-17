@@ -18,67 +18,6 @@ This involves:
 
 \include building-FFmpeg-source.qdocinc {macos}
 \include building-FFmpeg-prerequisites.qdocinc {macos}
-
-\section1 Configuring and building FFmpeg
-
-Create a \c build directory inside the \c{~/ffmpeg} directory and navigate into it:
-
-\badcode
-mkdir ~/ffmpeg/build
-cd ~/ffmpeg/build
-\endcode
-
-To configure FFmpeg, run:
-
-\badcode
-../configure --prefix=/usr/local/ffmpeg --disable-doc --enable-network --enable-shared
-\endcode
-
-The \c{--prefix} argument specifies a path where the FFmpeg development
-libraries are installed after building. The documentation is not needed, but
-network features should be enabled. To build FFmpeg as static libraries, omit
-the \c{--enable-shared} option.
-
-In the previous code snippet, an absolute path was used for \c{--prefix} argument intentionally.
-If you specify a relative path (for example, \c{../install}), the dependencies will be referenced
-using this relative path and not the correct one using \c{@rpath}. Using absolute paths makes
-an FFmpeg build non-portable.
-To use relative paths and make FFmpeg build portable, you need to manually fix
-dependencies
-using \l{https://www.unix.com/man-page/osx/1/otool/}{otool}.
-
-Once the \c configure command finishes, build and install FFmpeg using the
-\c make command.
-
-\badcode
-make -j install
-\endcode
-
-If the build completes without errors, FFmpeg development libraries are
-installed in the \c{/usr/local/ffmpeg} directory. If you build Qt Multimedia,
-this path is stored in the \c FFMPEG_DIR variable used when configuring Qt
-Multimedia.
-
-\section2 Configuring and Building FFmpeg Universal Binaries
-
-To create universal binaries on macOS (for example, for both x86_64 and arm64 architectures),
-follow these steps:
-
-\list
-    \li Configure and build FFmpeg for arm64 architecture:
-        \badcode
-        ../configure --prefix=/usr/local/ffmpeg/arm64 --disable-doc --enable-network \
-            --enable-shared --enable-cross-compile --arch=arm64 --cc="clang -arch arm64"
-        make -j install
-        \endcode
-    \li Configure and build FFmpeg for x86_64 architecture:
-        \badcode
-        ../configure --prefix=/usr/local/ffmpeg/x86_64 --disable-doc --enable-network \
-            --enable-shared --enable-cross-compile --arch=x86_64 --cc="clang -arch x86_64"
-        make -j install
-        \endcode
-    \li Combine the builds into a universal binary
-        using \l{https://www.unix.com/man-page/osx/1/lipo/}{lipo}.
-\endlist
+\include building-FFmpeg-configure.qdocinc {macos}
 
 */
