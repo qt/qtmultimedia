@@ -1,15 +1,17 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qavfscreencapture_p.h"
-#include "qavfsamplebufferdelegate_p.h"
-#include "qffmpegsurfacecapturegrabber_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qavfscreencapture_p.h>
 
-#include <qscreen.h>
+#include <QtGui/qscreen.h>
+
+#include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegsurfacecapturegrabber_p.h>
+#define AVMediaType XAVMediaType
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+#undef AVMediaType
 
 #define AVMediaType XAVMediaType
-#include "qffmpeghwaccel_p.h"
-
 extern "C" {
 #include <libavutil/hwcontext_videotoolbox.h>
 #include <libavutil/hwcontext.h>
