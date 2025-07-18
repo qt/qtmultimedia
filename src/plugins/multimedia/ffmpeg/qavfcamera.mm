@@ -395,14 +395,6 @@ void QAVFCamera::clearRotationTracking() {
 // Will always return a result that is divisible by 90.
 int QAVFCamera::getCurrentRotationAngleDegrees() const
 {
-#ifdef Q_OS_IOS
-    if (!m_rotationCoordinator && m_receivingUiDeviceOrientationNotifications)
-        return 0;
-#else
-    if (!m_rotationCoordinator)
-        return 0;
-#endif
-
     if (@available(macOS 14.0, iOS 17.0, *)) {
         // This code assumes that AVCaptureDeviceRotationCoordinator.videoRotationAngleForHorizonLevelCapture
         // returns degrees that are divisible by 90. This has been the case during testing.
