@@ -137,7 +137,6 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
 
     NO_UNITY_BUILD_SOURCES
         qffmpeghwaccel_videotoolbox.mm # AVMediaType clash between libavformat and AVFoundation
-        qavfcamera.mm # warning: 'AVCaptureDeviceRotationCoordinator' is only available on macOS 14.0
 
     INCLUDE_DIRECTORIES
         ../darwin
