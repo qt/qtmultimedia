@@ -1,9 +1,11 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qcgcapturablewindows_p.h"
-#include "private/qcapturablewindow_p.h"
-#include "QtCore/private/qcore_mac_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qcgcapturablewindows_p.h>
+
+#include <QtCore/private/qcore_mac_p.h>
+
+#include <QtMultimedia/private/qcapturablewindow_p.h>
 
 #import <AppKit/NSWindow.h>
 

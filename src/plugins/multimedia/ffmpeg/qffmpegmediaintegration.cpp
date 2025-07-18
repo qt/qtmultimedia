@@ -19,14 +19,14 @@
 #ifdef Q_OS_MACOS
 #include <VideoToolbox/VideoToolbox.h>
 
-#include "qcgcapturablewindows_p.h"
-#include "qcgwindowcapture_p.h"
-#include "qavfscreencapture_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qcgcapturablewindows_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qcgwindowcapture_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qavfscreencapture_p.h>
 #endif
 
 #ifdef Q_OS_DARWIN
-#include "qavfcamera_p.h"
-#include "QtMultimedia/private/qavfvideodevices_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qavfcamera_p.h>
+#include <QtMultimedia/private/qavfvideodevices_p.h>
 
 #elif defined(Q_OS_WINDOWS)
 #  include <QtMultimedia/private/qwindowsvideodevices_p.h>

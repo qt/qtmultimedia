@@ -16,11 +16,12 @@
 //
 
 #include <QtMultimedia/private/qavfcamerabase_p.h>
-#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 #define AVMediaType XAVMediaType
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
+
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
 
 #include <dispatch/dispatch.h>
 

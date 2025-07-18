@@ -18,12 +18,13 @@
 #import <AVFoundation/AVFoundation.h>
 #import <CoreVideo/CoreVideo.h>
 
-#include <qtconfigmacros.h>
-#include <qtypes.h>
+#include <QtCore/qtconfigmacros.h>
+#include <QtCore/qtypes.h>
+
 #include <QtMultimedia/private/qvideotransformation_p.h>
 
-#include <memory>
 #include <functional>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
