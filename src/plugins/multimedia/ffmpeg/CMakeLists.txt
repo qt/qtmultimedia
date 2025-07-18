@@ -138,9 +138,6 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
     NO_UNITY_BUILD_SOURCES
         qffmpeghwaccel_videotoolbox.mm # AVMediaType clash between libavformat and AVFoundation
 
-    INCLUDE_DIRECTORIES
-        ../darwin
-        ../darwin/camera
     LIBRARIES
         ${FWAudioToolbox}
         ${FWAVFoundation}
