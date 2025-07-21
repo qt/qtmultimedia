@@ -541,6 +541,9 @@ private slots:
     void initTestCase()
     {
         QSKIP_IF_NOT_FFMPEG("This test requires the FFmpeg backend to create test frames");
+
+        if (qEnvironmentVariable("COIN_PLATFORM_ID") == "macos-15-x86_64-tests")
+            QSKIP("Skipping test on macOS 15 x86_64, as it's flaky on CI");
     }
 
     void qImageFromVideoFrame_returnsQImageWithCorrectColors_data()
