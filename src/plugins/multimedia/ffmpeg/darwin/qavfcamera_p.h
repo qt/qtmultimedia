@@ -20,14 +20,19 @@
 #include <QtCore/private/qexpected_p.h>
 
 #include <QtFFmpegMediaPluginImpl/private/qavfcamerarotationtracker_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qavfcapturephotooutputdelegate_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
 #define AVMediaType XAVMediaType
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
-#include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
 
 #include <QtMultimedia/private/qavfcamerautility_p.h>
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
+#include <QtMultimedia/qimagecapture.h>
 
 #import <dispatch/dispatch.h>
+
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -49,6 +54,12 @@ public:
                                QVideoFrameFormat::ColorRange colorRange) const override;
 
     QVideoFrameFormat frameFormat() const override;
+
+    [[nodiscard]] q23::expected<void, QString> requestStillPhotoCapture();
+
+signals:
+    void stillPhotoSucceeded(QVideoFrame image);
+    void stillPhotoFailed(QImageCapture::Error error, QString errorMsg);
 
 protected:
     void onActiveChanged(bool active) override;
@@ -78,12 +89,16 @@ private:
         AVCaptureDeviceFormat *,
         const QCameraFormat &);
 
+    void onStillPhotoDelegateSucceeded(const QVideoFrame &image);
+    void onStillPhotoDelegateFailed(QImageCapture::Error errType, const QString &errMsg);
+
     [[nodiscard]] QSize adjustedResolution(const QCameraFormat& format) const;
 
     [[nodiscard]] int getCurrentRotationAngleDegrees() const;
 
     QMediaCaptureSession *m_qMediaCaptureSession = nullptr;
     AVCaptureSession *m_avCaptureSession = nullptr;
+    AVFScopedPointer<AVCapturePhotoOutput> m_avCapturePhotoOutput;
     AVCaptureDeviceInput *m_avCaptureDeviceVideoInput = nullptr;
     AVCaptureVideoDataOutput *m_avCaptureVideoDataOutput = nullptr;
     QAVFSampleBufferDelegate *m_qAvfSampleBufferDelegate = nullptr;
@@ -94,6 +109,18 @@ private:
     uint32_t m_cvPixelFormat = 0;
 
     std::optional<QFFmpeg::AvfCameraRotationTracker> m_qAvfCameraRotationTracker;
+
+    // Will be non-null whenever a still photo is in progress.
+    //
+    // TODO: It can be problematic if we change QMediaCaptureSession in the midst of a capture.
+    // We might end up signaling a different QImageCapture than the one that requested
+    // the capture. We should likely cancel any on-going still photo captures when this
+    // happens.
+    AVFScopedPointer<QT_MANGLE_NAMESPACE(QAVFCapturePhotoOutputDelegate)> m_qAvfCapturePhotoOutputDelegate;
+    [[nodiscard]] bool stillPhotoCaptureInProgress() const
+    {
+        return m_qAvfCapturePhotoOutputDelegate.data();
+    }
 
     AVFScopedPointer<dispatch_queue_t> m_delegateQueue;
 };

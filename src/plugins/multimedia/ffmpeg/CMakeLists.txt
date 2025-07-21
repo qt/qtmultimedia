@@ -134,6 +134,9 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
         darwin/qavfcamera.mm darwin/qavfcamera_p.h darwin/qavfcamerafactory_p.h
         darwin/qcvimagevideobuffer.cpp darwin/qcvimagevideobuffer_p.h
         darwin/qavfsamplebufferdelegate.mm darwin/qavfsamplebufferdelegate_p.h
+        darwin/qavfimagecapture.mm darwin/qavfimagecapture_p.h
+        darwin/qavfstillphotonotifier.cpp darwin/qavfstillphotonotifier_p.h
+        darwin/qavfcapturephotooutputdelegate.mm darwin/qavfcapturephotooutputdelegate_p.h
 
     NO_UNITY_BUILD_SOURCES
         darwin/qffmpeghwaccel_videotoolbox.mm # AVMediaType clash between libavformat and AVFoundation

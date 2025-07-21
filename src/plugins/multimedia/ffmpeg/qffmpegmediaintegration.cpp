@@ -26,6 +26,7 @@
 
 #ifdef Q_OS_DARWIN
 #include <QtFFmpegMediaPluginImpl/private/qavfcamerafactory_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qavfimagecapture_p.h>
 #include <QtMultimedia/private/qdarwinintegrationfactory_p.h>
 #endif
 
@@ -312,6 +313,8 @@ QFFmpegMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
 #if defined(Q_OS_ANDROID)
     return new QFFmpeg::QAndroidImageCapture(imageCapture);
+#elif defined(Q_OS_DARWIN)
+    return new QFFmpeg::QAVFImageCapture(imageCapture);
 #else
     return new QFFmpegImageCapture(imageCapture);
 #endif

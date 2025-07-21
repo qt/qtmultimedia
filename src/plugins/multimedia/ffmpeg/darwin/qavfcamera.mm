@@ -7,6 +7,7 @@
 #include <QtCore/private/qcore_mac_p.h>
 
 #include <QtFFmpegMediaPluginImpl/private/qavfcamerafactory_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qavfcapturephotooutputdelegate_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
 
 #include <QtMultimedia/private/qavfcameradebug_p.h>
@@ -22,11 +23,37 @@ extern "C" {
 }
 #undef AVMediaType
 
+QT_NAMESPACE_ALIAS_OBJC_CLASS(QAVFCapturePhotoOutputDelegate);
+
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
 namespace {
+
+[[nodiscard]] AVCaptureFlashMode toAvfFlashMode(QCamera::FlashMode flashMode)
+{
+    switch (flashMode) {
+    case QCamera::FlashMode::FlashOff:
+        return AVCaptureFlashModeOff;
+    case QCamera::FlashMode::FlashAuto:
+        return AVCaptureFlashModeAuto;
+    case QCamera::FlashMode::FlashOn:
+        return AVCaptureFlashModeOn;
+    }
+    return AVCaptureFlashModeOff;
+}
+
+[[nodiscard]] bool checkAvCapturePhotoFormatSupport(AVCapturePhotoOutput *output, int cvPixelFormat)
+{
+    Q_ASSERT(output);
+    NSArray<NSNumber *> *supportedFormats = output.availablePhotoPixelFormatTypes;
+    for (NSNumber *format : supportedFormats) {
+        if (format.intValue == cvPixelFormat)
+            return true;
+    }
+    return false;
+}
 
 [[nodiscard]] QAVFSampleBufferDelegateTransform surfaceTransform(
     const QFFmpeg::AvfCameraRotationTracker *rotationTracker,
@@ -142,7 +169,7 @@ namespace {
     return [bestFormat unsignedIntValue];
 }
 
-}
+} // Anonymous namespace
 
 std::unique_ptr<QPlatformCamera> makeQAvfCamera(QCamera &parent)
 {
@@ -155,16 +182,36 @@ QAVFCamera::QAVFCamera(QCamera &parent)
     m_avCaptureSession = [[AVCaptureSession alloc] init];
     m_delegateQueue = AVFScopedPointer<dispatch_queue_t>{
         dispatch_queue_create("qt_camera_queue", DISPATCH_QUEUE_SERIAL) };
+
+    m_avCapturePhotoOutput = AVFScopedPointer([AVCapturePhotoOutput new]);
+
+    // TODO: Handle error where we cannot add AVCapturePhotoOutput to session,
+    // and report back to QImageCapture that we are unable to take a photo.
+    if ([m_avCaptureSession canAddOutput:m_avCapturePhotoOutput])
+        [m_avCaptureSession addOutput:m_avCapturePhotoOutput];
 }
 
 QAVFCamera::~QAVFCamera()
 {
+    using namespace Qt::Literals::StringLiterals;
+
     [m_avCaptureSession stopRunning];
 
     clearAvCaptureSessionInputDevice();
     // Clearing the output will flush jobs on the dispatch queue running on a worker threadpool.
     clearAvCaptureVideoDataOutput();
     clearRotationTracking();
+
+    // If there is currently an on-going still photo capture, we will
+    // automatically discard any future results when this QCamera object
+    // is destroyed and the connection to the QAVFStillPhotoNotifier is
+    // removed. We emit a signal that still-photo capture failed, so
+    // that QImageCapture can cancel any pending still-photo capture jobs.
+    if (stillPhotoCaptureInProgress()) {
+        emit stillPhotoFailed(
+            QImageCapture::Error::ResourceError,
+            u"Camera object was destroyed before still photo capture was completed"_s);
+    }
 
     [m_avCaptureSession release];
 }
@@ -683,6 +730,97 @@ int QAVFCamera::getCurrentRotationAngleDegrees() const
         return m_qAvfCameraRotationTracker->rotationDegrees();
     else
         return 0;
+}
+
+// The still photo finishing will be invoked on a background thread not
+// controlled by us, on the QAvfCapturePhotoOutputDelegate object.
+// Without proper synchronization, we can therefore end up in a
+// situation where the callback is invoked after the QAVFCamera object
+// is destroyed. The current approach is to have a thread-safe call that
+// tells the QAvfCameraPhotoOutputDelegate to discard the results.
+q23::expected<void, QString> QAVFCamera::requestStillPhotoCapture()
+{
+    Q_ASSERT(thread()->isCurrentThread());
+    Q_ASSERT(isActive());
+    Q_ASSERT(!stillPhotoCaptureInProgress());
+    Q_ASSERT(m_avCapturePhotoOutput);
+    // We must have an AVCaptureDeviceVideoInput hooked up to our AVCaptureSession
+    // in order for the AVCapturePhotoOutput to be populated with correct values.
+    Q_ASSERT(m_avCaptureDeviceVideoInput);
+
+    using namespace Qt::Literals::StringLiterals;
+
+    // TODO: We can potentially match the current QCameraFormat here,
+    // which might help us save some bandwidth with i.e YUV420
+    int captureFormat = kCVPixelFormatType_32BGRA;
+    if (!checkAvCapturePhotoFormatSupport(m_avCapturePhotoOutput, captureFormat)) {
+        qCWarning(qLcCamera) << "Attempted to take a still photo with an AVCapturePhotoOutput that "
+                                "does not support output with 32BGRA format.";
+        return q23::unexpected{ u"Internal camera configuration error"_s };
+    }
+
+    NSDictionary *formatDict =
+        [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedInt:captureFormat]
+                                    forKey:(id)kCVPixelBufferPixelFormatTypeKey];
+
+    // Set the settings for this capture.
+    //
+    // TODO: In the future we should try to respect the size set by QImageCapture here.
+    // For now, we use the same size as whatever the AVCaptureDevice is currently using.
+    AVCapturePhotoSettings *settings = [AVCapturePhotoSettings photoSettingsWithFormat:formatDict];
+    settings.flashMode = toAvfFlashMode(flashMode());
+
+    AVCaptureDevice *avCaptureDevice = [m_avCaptureDeviceVideoInput device];
+    Q_ASSERT(avCaptureDevice);
+
+    auto capturePhotoDelegate = AVFScopedPointer([[QAVFCapturePhotoOutputDelegate alloc]
+        init:avCaptureDevice]);
+
+    // If we mistakenly use settings that are not supported, captureWithSettings will
+    // throw an exception.
+    @try {
+        [m_avCapturePhotoOutput capturePhotoWithSettings:settings
+                                                delegate:capturePhotoDelegate];
+    }
+    @catch (NSException *exception) {
+        QString errMsg =
+            u"Attempted to start still photo capture with "
+            "capture-settings that are not supported by AVCapturePhotoOutput: '%1'"_s
+            .arg(QString::fromNSString(exception.description));
+        qCWarning(qLcCamera) << errMsg;
+
+        return q23::unexpected{ u"Internal camera configuration error"_s };
+    }
+    @finally {}
+
+    QObject::connect(
+        &capturePhotoDelegate.data().notifier,
+        &QAVFStillPhotoNotifier::succeeded,
+        this,
+        &QAVFCamera::onStillPhotoDelegateSucceeded);
+    QObject::connect(
+        &capturePhotoDelegate.data().notifier,
+        &QAVFStillPhotoNotifier::failed,
+        this,
+        &QAVFCamera::onStillPhotoDelegateFailed);
+
+    m_qAvfCapturePhotoOutputDelegate = std::move(capturePhotoDelegate);
+
+    return {};
+}
+
+void QAVFCamera::onStillPhotoDelegateSucceeded(const QVideoFrame &image)
+{
+    Q_ASSERT(stillPhotoCaptureInProgress());
+    m_qAvfCapturePhotoOutputDelegate.reset();
+    emit stillPhotoSucceeded(image);
+}
+
+void QAVFCamera::onStillPhotoDelegateFailed(QImageCapture::Error errType, const QString &errMsg)
+{
+    Q_ASSERT(stillPhotoCaptureInProgress());
+    m_qAvfCapturePhotoOutputDelegate.reset();
+    emit stillPhotoFailed(errType, errMsg);
 }
 
 } // namespace QFFmpeg
