@@ -6,6 +6,8 @@
 #include <QtCore/qmath.h>
 #include <QtCore/QDebug>
 
+QT_BEGIN_NAMESPACE
+
 QSineWaveValidator::QSineWaveValidator(float notchFrequency, float sampleRate)
 {
     using namespace std;
@@ -59,3 +61,5 @@ float QSineWaveValidator::notchPeak() const
         qWarning() << "notchPeak during initial frames. Result will not be accurate";
     return accumNotchPeak;
 }
+
+QT_END_NAMESPACE
