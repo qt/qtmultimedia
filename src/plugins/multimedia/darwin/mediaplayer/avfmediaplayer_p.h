@@ -77,6 +77,8 @@ public:
                                        QtVideo::Rotation &angle,
                                        bool &mirrored);
 
+    PitchCompensationAvailability pitchCompensationAvailability() const override;
+
 public Q_SLOTS:
     void setPlaybackRate(qreal rate) override;
     void nativeSizeChanged(QSize size);

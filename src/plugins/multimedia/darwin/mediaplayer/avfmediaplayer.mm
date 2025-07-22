@@ -1287,4 +1287,10 @@ void AVFMediaPlayer::videoOrientationForAssetTrack(AVAssetTrack *videoTrack,
     }
 }
 
+QPlatformMediaPlayer::PitchCompensationAvailability
+AVFMediaPlayer::pitchCompensationAvailability() const
+{
+    return QPlatformMediaPlayer::PitchCompensationAvailability::PitchCompensationAlwaysOn;
+}
+
 #include "moc_avfmediaplayer_p.cpp"
