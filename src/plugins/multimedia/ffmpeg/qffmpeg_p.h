@@ -22,12 +22,12 @@
 #include <qstring.h>
 #include <optional>
 
-inline bool operator==(const AVRational &lhs, const AVRational &rhs)
+[[maybe_unused]] static inline bool operator==(const AVRational &lhs, const AVRational &rhs)
 {
     return lhs.num == rhs.num && lhs.den == rhs.den;
 }
 
-inline bool operator!=(const AVRational &lhs, const AVRational &rhs)
+[[maybe_unused]] static inline bool operator!=(const AVRational &lhs, const AVRational &rhs)
 {
     return !(lhs == rhs);
 }

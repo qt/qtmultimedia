@@ -19,12 +19,14 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
-inline bool operator==(const AVChannelLayout &lhs, const AVChannelLayout &rhs)
+[[maybe_unused]] static inline bool operator==(const AVChannelLayout &lhs,
+                                               const AVChannelLayout &rhs)
 {
     return lhs.order == rhs.order && lhs.nb_channels == rhs.nb_channels && lhs.u.mask == rhs.u.mask;
 }
 
-inline bool operator!=(const AVChannelLayout &lhs, const AVChannelLayout &rhs)
+[[maybe_unused]] static inline bool operator!=(const AVChannelLayout &lhs,
+                                               const AVChannelLayout &rhs)
 {
     return !(lhs == rhs);
 }
