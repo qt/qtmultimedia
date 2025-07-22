@@ -78,6 +78,8 @@ public:
                                        bool &mirrored);
 
     PitchCompensationAvailability pitchCompensationAvailability() const override;
+    void setPitchCompensation(bool enabled) override;
+    bool pitchCompensation() const override;
 
 public Q_SLOTS:
     void setPlaybackRate(qreal rate) override;
@@ -122,6 +124,7 @@ private:
     void setVideoAvailable(bool available);
     void setSeekable(bool seekable);
     void resetStream(QIODevice *stream = nullptr);
+    void applyPitchCompensation(bool enabled);
 
     void orientationChanged(QtVideo::Rotation rotation, bool mirrored);
 
@@ -142,6 +145,7 @@ private:
     bool m_videoAvailable;
     bool m_audioAvailable;
     bool m_seekable;
+    bool m_pitchCompensationEnabled{ false };
 
     AVFMediaPlayerObserver *m_observer;
 

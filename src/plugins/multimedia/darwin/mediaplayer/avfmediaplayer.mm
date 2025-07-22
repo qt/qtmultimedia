@@ -999,6 +999,8 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState
 
         AVPlayerItem *playerItem = [m_observer playerItem];
 
+        applyPitchCompensation(m_pitchCompensationEnabled);
+
         // get the meta data
         m_metaData = AVFMetaData::fromAsset(playerItem.asset);
         metaDataChanged();
@@ -1235,6 +1237,17 @@ void AVFMediaPlayer::resetStream(QIODevice *stream)
     }
 }
 
+void AVFMediaPlayer::applyPitchCompensation(bool enabled)
+{
+    AVPlayerItem *playerItem = [m_observer playerItem];
+    if (playerItem) {
+        if (enabled)
+            playerItem.audioTimePitchAlgorithm = AVAudioTimePitchAlgorithmSpectral;
+        else
+            playerItem.audioTimePitchAlgorithm = AVAudioTimePitchAlgorithmVarispeed;
+    }
+}
+
 void AVFMediaPlayer::nativeSizeChanged(QSize size)
 {
     if (!m_videoSink)
@@ -1287,10 +1300,26 @@ void AVFMediaPlayer::videoOrientationForAssetTrack(AVAssetTrack *videoTrack,
     }
 }
 
+void AVFMediaPlayer::setPitchCompensation(bool enabled)
+{
+    if (m_pitchCompensationEnabled == enabled)
+        return;
+
+    applyPitchCompensation(enabled);
+
+    m_pitchCompensationEnabled = enabled;
+    pitchCompensationChanged(enabled);
+}
+
+bool AVFMediaPlayer::pitchCompensation() const
+{
+    return m_pitchCompensationEnabled;
+}
+
 QPlatformMediaPlayer::PitchCompensationAvailability
 AVFMediaPlayer::pitchCompensationAvailability() const
 {
-    return QPlatformMediaPlayer::PitchCompensationAvailability::PitchCompensationAlwaysOn;
+    return QPlatformMediaPlayer::PitchCompensationAvailability::PitchCompensationAvailable;
 }
 
 #include "moc_avfmediaplayer_p.cpp"
