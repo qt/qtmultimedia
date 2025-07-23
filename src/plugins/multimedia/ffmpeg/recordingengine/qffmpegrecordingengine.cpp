@@ -189,11 +189,10 @@ void RecordingEngine::EncodingFinalizer::run()
     if (m_writeTrailer) {
         const int res = av_write_trailer(m_recordingEngine.avFormatContext());
         if (res < 0) {
-            const auto errorDescription = err2str(res);
-            qCWarning(qLcFFmpegEncoder) << "could not write trailer" << res << errorDescription;
+            qCWarning(qLcFFmpegEncoder) << "could not write trailer" << res << AVError(res);
             emit m_recordingEngine.sessionError(QMediaRecorder::FormatError,
                                                 QLatin1String("Cannot write trailer: ")
-                                                        + errorDescription);
+                                                        + err2str(res));
         }
     }
     // else ffmpeg might crash
@@ -288,7 +287,7 @@ void RecordingEngine::handleEncoderInitialization()
 
     const int res = avformat_write_header(avFormatContext(), nullptr);
     if (res < 0) {
-        qWarning() << "could not write header, error:" << res << err2str(res);
+        qWarning() << "could not write header, error:" << res << AVError(res);
         emit sessionError(QMediaRecorder::ResourceError,
                           QLatin1StringView("Cannot start writing the stream"));
         return;

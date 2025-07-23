@@ -40,7 +40,7 @@ Q_STATIC_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
 void logGetCodecConfigError(const AVCodec *codec, AVCodecConfig config, int error)
 {
     qCWarning(qLcFFmpegUtils) << "Failed to retrieve config" << config << "for codec" << codec->name
-                              << "with error" << error << err2str(error);
+                              << "with error" << error << AVError(error);
 }
 
 template <typename T>

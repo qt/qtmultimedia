@@ -329,7 +329,7 @@ bool VideoFrameEncoder::open()
     const int res = avcodec_open2(m_codecContext.get(), m_codec.get(), opts);
     if (res < 0) {
         qCWarning(qLcVideoFrameEncoder)
-                << "Couldn't open video encoder" << m_codec.name() << "; result:" << err2str(res);
+                << "Couldn't open video encoder" << m_codec.name() << "; result:" << AVError(res);
         return false;
     }
     qCDebug(qLcVideoFrameEncoder) << "video codec opened" << res << "time base"
@@ -365,7 +365,7 @@ struct FrameConverter
         int err = av_hwframe_transfer_data(cpuFrame.get(), currentFrame(), 0);
         if (err < 0) {
             qCDebug(qLcVideoFrameEncoder)
-                    << "Error transferring frame data to surface." << err2str(err);
+                    << "Error transferring frame data to surface." << AVError(err);
             return err;
         }
 
@@ -406,7 +406,7 @@ struct FrameConverter
 
         int err = av_hwframe_get_buffer(hwFramesContext, hwFrame.get(), 0);
         if (err < 0) {
-            qCDebug(qLcVideoFrameEncoder) << "Error getting HW buffer" << err2str(err);
+            qCDebug(qLcVideoFrameEncoder) << "Error getting HW buffer" << AVError(err);
             return err;
         } else {
             qCDebug(qLcVideoFrameEncoder) << "got HW buffer";
@@ -418,7 +418,7 @@ struct FrameConverter
         err = av_hwframe_transfer_data(hwFrame.get(), currentFrame(), 0);
         if (err < 0) {
             qCDebug(qLcVideoFrameEncoder)
-                    << "Error transferring frame data to surface." << err2str(err);
+                    << "Error transferring frame data to surface." << AVError(err);
             return err;
         }
 
@@ -529,7 +529,7 @@ AVPacketUPtr VideoFrameEncoder::retrievePacket()
         const int ret = avcodec_receive_packet(m_codecContext.get(), packet.get());
         if (ret < 0) {
             if (ret != AVERROR(EOF) && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
-                qCDebug(qLcVideoFrameEncoder) << "Error receiving packet" << ret << err2str(ret);
+                qCDebug(qLcVideoFrameEncoder) << "Error receiving packet" << ret << AVError(ret);
             return AVPacketUPtr{};
         }
         auto ts = timeStampMs(packet->pts, m_stream->time_base);
