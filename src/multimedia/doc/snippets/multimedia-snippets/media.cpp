@@ -78,7 +78,7 @@ void MediaExample::MediaPlayer()
     player->setAudioOutput(audioOutput);
     connect(player, &QMediaPlayer::positionChanged, this, &MediaExample::positionChanged);
     player->setSource(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
-    audioOutput->setVolume(50);
+    audioOutput->setVolume(0.5);
     player->play();
     //! [Player]
 
@@ -88,7 +88,7 @@ void MediaExample::MediaPlayer()
     player->setAudioOutput(audioOutput);
     // ...
     player->setSource(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
-    audioOutput->setVolume(50);
+    audioOutput->setVolume(0.5);
     player->play();
     //! [Local playback]
 }
