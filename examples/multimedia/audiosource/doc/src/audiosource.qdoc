@@ -13,6 +13,7 @@
     \e{Audio Source} demonstrates the basic use cases of QAudioSource.
 
     \image audiosource-example.png
+           {UI showing real-time audio waveform and control buttons}
 
     Qt provides the QAudioSource class to enable audio functionality within
     a standard application user interface.

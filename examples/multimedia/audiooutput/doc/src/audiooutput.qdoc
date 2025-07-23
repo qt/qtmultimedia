@@ -13,6 +13,7 @@
     \e{Audio Output} demonstrates the basic use cases of QAudioSink.
 
     \image audiooutput-example.png
+           {UI with playback controls and audio output mode selection}
 
     This example provides a tone generator to supply continuous audio playback.
     The first button allows pause and resume of the playback, and the second

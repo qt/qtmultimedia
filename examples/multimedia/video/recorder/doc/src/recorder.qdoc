@@ -12,6 +12,7 @@
     \meta {tag} {quick}
 
     \image qmlrecorder.jpg
+           {Media recorder interface with live preview and recording controls}
 
     \e{QML Recorder} demonstrates a simple application that can record
     audio and video separate or together, using a microphone, a camera, or
@@ -24,7 +25,8 @@
     \l{Getting Started Programming with Qt Quick}. This documentation is focused
     on how this example uses the \l{Qt Multimedia QML Types}.
 
-    \image qml-recorder-overview.gif "Animation cycling through qml objects declared in main.qml"
+    \image qml-recorder-overview.gif
+           {Animation cycling through QML objects declared in main.qml}
 
     The example uses the QML \l Camera and \l AudioInput types connected to a
     \l CaptureSession. A \l MediaRecorder object is then used to record the
@@ -70,6 +72,7 @@
     \section2 controls
 
     \image qml-recorder-control-bar-overview.gif
+           {Animation cycling through column layouts in control panel}
 
     These are defined in \c Controls.qml and declared in main.qml.
 
