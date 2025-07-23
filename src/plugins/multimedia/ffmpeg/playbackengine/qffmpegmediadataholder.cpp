@@ -274,7 +274,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
             code = QMediaPlayer::FormatError;
 
         qCWarning(qLcMediaDataHolder)
-                << "Could not open media. FFmpeg error description:" << err2str(ret);
+                << "Could not open media. FFmpeg error description:" << AVError(ret);
 
         return q23::unexpected{
             MediaDataHolder::ContextError{ code, QMediaPlayer::tr("Could not open file") },

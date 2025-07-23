@@ -10,6 +10,7 @@
 extern "C" {
 #include <libavutil/pixdesc.h>
 #include <libavutil/samplefmt.h>
+#include <libavutil/error.h>
 
 #ifdef Q_OS_DARWIN
 #include <libavutil/hwcontext_videotoolbox.h>
@@ -364,6 +365,13 @@ QDebug operator<<(QDebug dbg, const QFFmpeg::AVDictionaryHolder &dict)
         return dbg << *rawDict;
     else
         return dbg << "Empty AVDictionaryHolder";
+}
+
+QDebug operator<<(QDebug dbg, QFFmpeg::AVError error)
+{
+    char errBuf[AV_ERROR_MAX_STRING_SIZE];
+    dbg << av_make_error_string(errBuf, AV_ERROR_MAX_STRING_SIZE, qToUnderlying(error));
+    return dbg;
 }
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
