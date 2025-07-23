@@ -118,7 +118,7 @@ void Demuxer::doNextStep()
     }
 
     if (demuxStatus < 0) {
-        qCWarning(qLcDemuxer) << "Demuxing failed" << demuxStatus << err2str(demuxStatus);
+        qCWarning(qLcDemuxer) << "Demuxing failed" << demuxStatus << AVError(demuxStatus);
 
         if (demuxStatus == AVERROR(EAGAIN) && m_demuxerRetryCount != s_maxDemuxerRetries) {
             // When demuxer reports EAGAIN, we can try to recover by calling av_read_frame again.

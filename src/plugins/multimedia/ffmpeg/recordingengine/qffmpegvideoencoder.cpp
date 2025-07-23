@@ -221,7 +221,7 @@ void VideoEncoder::processOne()
             << ">>> sending frame" << avFrame->pts << time << m_lastFrameTime;
     int ret = m_frameEncoder->sendFrame(std::move(avFrame));
     if (ret < 0) {
-        qCDebug(qLcFFmpegVideoEncoder) << "error sending frame" << ret << err2str(ret);
+        qCDebug(qLcFFmpegVideoEncoder) << "error sending frame" << ret << AVError(ret);
         emit m_recordingEngine.sessionError(QMediaRecorder::ResourceError, err2str(ret));
     }
 }

@@ -63,7 +63,7 @@ bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
 
     if (res != 0) {
         qCWarning(qLcFFmpegAudioEncoder)
-                << "Cannot open audio codec" << codec.name() << "; result:" << err2str(res);
+                << "Cannot open audio codec" << codec.name() << "; result:" << AVError(res);
         return false;
     }
 
