@@ -30,6 +30,11 @@ HRESULT replaceBuffer(const ComPtr<IMFSample> &sample, const ComPtr<IMFMediaBuff
 
 } // namespace
 
+bool QWindowsResampler::isAvailable()
+{
+    return QWindowsMediaFoundation::instance();
+}
+
 QWindowsResampler::QWindowsResampler()
 {
     CoCreateInstance(__uuidof(CResamplerMediaObject), nullptr, CLSCTX_INPROC_SERVER,
@@ -210,6 +215,25 @@ QByteArray QWindowsResampler::resample(const ComPtr<IMFSample> &sample)
     return {};
 }
 
+QAudioBuffer QWindowsResampler::resample(const char *data, size_t size)
+{
+    quint64 elapsedBytesAtStart = m_totalOutputBytes;
+
+    QByteArray resampled = resample(QSpan{
+            reinterpret_cast<const std::byte *>(data),
+            qsizetype(size),
+    });
+
+    if (resampled.isEmpty())
+        return {};
+
+    return QAudioBuffer{
+        std::move(resampled),
+        m_outputFormat,
+        m_outputFormat.durationForBytes(elapsedBytesAtStart) + m_startTimeOffset.count(),
+    };
+}
+
 std::pmr::vector<std::byte> QWindowsResampler::resample(QSpan<const std::byte> in,
                                                         std::pmr::memory_resource *mr)
 {
@@ -310,6 +334,11 @@ bool QWindowsResampler::setup(const QAudioFormat &fin, const QAudioFormat &fout)
     m_outputFormat = fout;
 
     return true;
+}
+
+void QWindowsResampler::setStartTimeOffset(std::chrono::microseconds startTime)
+{
+    m_startTimeOffset = startTime;
 }
 
 QT_END_NAMESPACE

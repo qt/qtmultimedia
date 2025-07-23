@@ -29,6 +29,7 @@
 #include <QtMultimedia/private/qavfvideodevices_p.h>
 
 #elif defined(Q_OS_WINDOWS)
+#  include <QtMultimedia/private/qwindowsresampler_p.h>
 #  include <QtMultimedia/private/qwindowsvideodevices_p.h>
 #  include "qwindowscamera_p.h"
 #  include "qffmpegscreencapture_dxgi_p.h"
@@ -189,6 +190,13 @@ QFFmpegMediaIntegration::createAudioResampler(const QAudioFormat &inputFormat,
     auto ffmpegResampler = QFFmpegResampler::createFromInputFormat(inputFormat, outputFormat);
     if (ffmpegResampler)
         return QMaybe<std::unique_ptr<QPlatformAudioResampler>>{std::move(ffmpegResampler)};
+
+#ifdef Q_OS_WINDOWS
+    auto windowsResampler = std::make_unique<QWindowsResampler>();
+    if (windowsResampler->setup(inputFormat, outputFormat))
+        return QMaybe<std::unique_ptr<QPlatformAudioResampler>>{std::move(windowsResampler)};
+
+#endif
 
     return QUnexpected{ notAvailable };
 }

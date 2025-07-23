@@ -20,9 +20,10 @@
 #include <QtCore/qbytearrayview.h>
 #include <QtCore/private/qcomptr_p.h>
 #include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/private/qwindowsmediafoundation_p.h>
 #include <QtMultimedia/private/qcominitializer_p.h>
 #include <QtMultimedia/private/qmaybe_p.h>
+#include <QtMultimedia/private/qplatformaudioresampler_p.h>
+#include <QtMultimedia/private/qwindowsmediafoundation_p.h>
 
 #include <mftransform.h>
 
@@ -35,17 +36,22 @@ QT_BEGIN_NAMESPACE
 
 class QWindowsMediaFoundation;
 
-class Q_MULTIMEDIA_EXPORT QWindowsResampler
+class Q_MULTIMEDIA_EXPORT QWindowsResampler : public QPlatformAudioResampler
 {
 public:
+    static bool isAvailable();
+
     QWindowsResampler();
     ~QWindowsResampler();
 
     bool setup(const QAudioFormat &in, const QAudioFormat &out);
+    void setStartTimeOffset(std::chrono::microseconds); // for QPlatformAudioResampler
 
     QByteArray resample(QByteArray);
     QByteArray resample(const QByteArrayView &);
     QByteArray resample(const ComPtr<IMFSample> &);
+
+    QAudioBuffer resample(const char *data, size_t size) override;
 
     // Caveat: the memory resource needs outlive the QWindowsResampler instance (the IMFTransform
     // API does not rule out that the input buffers are kept alive)
@@ -81,6 +87,8 @@ private:
     QAudioFormat m_outputFormat;
 
     DWORD m_inputStreamID = 0;
+
+    std::chrono::microseconds m_startTimeOffset;
 };
 
 QT_END_NAMESPACE
