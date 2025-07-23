@@ -16,6 +16,7 @@
     with a \l{QPushButton}{button}.
 
     \image screencapture.jpg
+           {UI showing list of screens together with the screenshotted image}
 
     \include examples-run.qdocinc
 

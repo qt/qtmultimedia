@@ -12,6 +12,7 @@
 still image or video.
 
 \image qml-camera.png
+       {Camera app in landscape mode showing live preview and capture controls}
 
 This example demonstrates how to access camera functions via QML.
 It shows how to change settings and capture images or video.
@@ -44,6 +45,7 @@ To support debugging, a message about layout state change is logged.
 Here is the portrait layout:
 
 \image qml-declarative-portrait.png
+       {Camera app in portrait mode showing live preview and capture controls}
 
 You can see the \c state property is initially set as \c PhotoCapture.
 
@@ -86,9 +88,11 @@ listed top to bottom, the following controls:
     \enddiv
     \div {class="doc-column"}
         \inlineimage CaptureControls.png
+                     {Photo capture control panel}
     \enddiv
     \div {class="doc-column"}
         \inlineimage VideoCaptureControls.png
+                     {Video capture control panel}
     \enddiv
 \enddiv
 
@@ -116,6 +120,7 @@ PhotoCaptureControls:
     \enddiv
     \div {class="doc-column"}
         \inlineimage ZoomControl.png
+                     {Adjustable zoom level bar}
     \enddiv
 \enddiv
 
@@ -134,6 +139,7 @@ calculated \c target value, as well as updating the ZoomControl bar.
 \section1 Flash and torch control
 
 \image FlashControls.png
+       {Toggle between Flash and Torch mode}
 
 Defined in \c FlashControl.qml this enables flash mode selection and torch
 functionality to be toggled via a Switch. As with the zoom control, the switches

@@ -13,6 +13,7 @@
     QVideoWidget.
 
     \image video-videowidget.png
+           {Video interface with control panel}
 
     \include examples-run.qdocinc
 */

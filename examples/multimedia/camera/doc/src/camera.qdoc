@@ -12,6 +12,7 @@
 \brief Shows how to capture a still image or record video.
 
 \image camera-example.png
+       {Camera application interface with image and video capture controls}
 
 The Camera Example demonstrates how you can use \l{Qt Multimedia} to implement
 some basic Camera functionality to take still images and record video clips
