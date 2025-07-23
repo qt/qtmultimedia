@@ -22,6 +22,7 @@ which creates a dummy overlay item (just a semi-transparent \l{Rectangle}),
 which moves across the \l{VideoOutput} item.
 
 \image qmlvideo-overlay.jpg
+       {Video player with semi-transparent overlay}
 
 \include examples-run.qdocinc
 
@@ -41,6 +42,7 @@ The \c Main.qml file creates a UI which includes the following items:
 \endlist
 
 \image qmlvideo-menu.jpg
+       {Scene selection panel showing list of video and camera mode scenes}
 
 Each scene in the flickable list is implemented in its own QML file - for
 example the video-basic scene (which just displays a static \l{VideoOutput}
@@ -126,6 +128,7 @@ called FrequencyItem, like this:
 The result looks like this:
 
 \image video-qml-paint-rate.png
+       {62.5 Hz instantaneous frequency and 53.15 Hz average frequency}
 
 All that remains is to connect the afterRendering() signal of the QQuickView
 object to a JavaScript function, which will eventually call

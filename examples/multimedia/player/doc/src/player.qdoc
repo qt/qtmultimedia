@@ -11,6 +11,7 @@
     \meta {tag} {widgets}
 
     \image mediaplayerex.jpg
+           {Media player showing video playback and control panel}
 
     \e{Media Player} demonstrates a simple multimedia player that can play
     audio and video files using various codecs.

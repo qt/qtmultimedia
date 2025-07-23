@@ -11,6 +11,7 @@
     \meta {tag} {quick}
     \meta {tag} {player}
     \image qtmultimedia-examples-qml-media-player.png
+           {Video player showing playback controls and video preview area}
 
     This example demonstrates a simple multimedia player that can play
     audio and video files using various codecs.
@@ -118,6 +119,7 @@
     playback rate. This \c Popup is defined in \c SettingsPopup.qml.
 
     \image qtmultimedia-examples-qml-media-player-settings.png
+           {User-selectable playback settings and metadata information}
 
     The metadata is contained in its own component file, \c MetadataInfo.qml. It contains a \c ListModel,
     a function to clear it, \c {clear()}, and a function to populate it, \c {read(MediaMetadata metadata)}.

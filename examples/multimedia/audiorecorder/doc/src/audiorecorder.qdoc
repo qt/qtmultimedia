@@ -14,6 +14,7 @@
     supported codecs, and the use of QAudioRecorder class.
 
     \image audiorecorder.png
+           {Settings panel for choosing audio input, codec, and format type}
 
     \include examples-run.qdocinc
 

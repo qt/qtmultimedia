@@ -15,6 +15,7 @@
     target device or desktop PC.
 
     \image audiodevices.png
+           {UI consisting of audio configuration drop-downs and controls}
 
     \include examples-run.qdocinc
 */
