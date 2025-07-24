@@ -25,14 +25,14 @@ enum Error
     OpenError,
     IOError,
     UnderrunError,
-    FatalError
+    FatalError,
 };
 enum State
 {
     ActiveState,
     SuspendedState,
     StoppedState,
-    IdleState
+    IdleState,
 };
 
 enum VolumeScale
@@ -40,7 +40,7 @@ enum VolumeScale
     LinearVolumeScale,
     CubicVolumeScale,
     LogarithmicVolumeScale,
-    DecibelVolumeScale
+    DecibelVolumeScale,
 };
 
 Q_MULTIMEDIA_EXPORT float convertVolume(float volume, VolumeScale from, VolumeScale to);
