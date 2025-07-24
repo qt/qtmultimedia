@@ -589,7 +589,7 @@ void QAVFCameraBase::setFlashMode(QCamera::FlashMode mode)
     if (flashMode() == mode)
         return;
 
-    if (isActive() && !isFlashModeSupported(mode)) {
+    if (!isFlashModeSupported(mode)) {
         qCDebug(qLcCamera) << Q_FUNC_INFO << "unsupported mode" << mode;
         return;
     }
