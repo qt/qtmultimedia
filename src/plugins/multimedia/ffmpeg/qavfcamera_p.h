@@ -71,11 +71,11 @@ private:
 
     bool isFrontCamera() const;
 
-    QMediaCaptureSession *m_session = nullptr;
-    AVCaptureSession *m_captureSession = nullptr;
-    AVCaptureDeviceInput *m_videoInput = nullptr;
-    AVCaptureVideoDataOutput *m_videoDataOutput = nullptr;
-    QAVFSampleBufferDelegate *m_sampleBufferDelegate = nullptr;
+    QMediaCaptureSession *m_qMediaCaptureSession = nullptr;
+    AVCaptureSession *m_avCaptureSession = nullptr;
+    AVCaptureDeviceInput *m_avCaptureDeviceVideoInput = nullptr;
+    AVCaptureVideoDataOutput *m_avCaptureVideoDataOutput = nullptr;
+    QAVFSampleBufferDelegate *m_qAvfSampleBufferDelegate = nullptr;
     dispatch_queue_t m_delegateQueue;
     AVPixelFormat m_hwPixelFormat = AV_PIX_FMT_NONE;
     // The current CVPixelFormat used by the AVCaptureVideoDataOutput.
@@ -88,7 +88,7 @@ private:
     //
     // Gives us rotational information about the camera-device.
     API_AVAILABLE(macos(14.0), ios(17.0))
-    AVCaptureDeviceRotationCoordinator *m_rotationCoordinator = nullptr;
+    AVCaptureDeviceRotationCoordinator *m_avRotationCoordinator = nullptr;
 #ifdef Q_OS_IOS
     // If running iOS 16 or older, we use the UIDeviceOrientation
     // and the AVCaptureCameraPosition to apply rotation metadata

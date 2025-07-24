@@ -27,35 +27,35 @@ using namespace QFFmpeg;
 QAVFCamera::QAVFCamera(QCamera *parent)
     : QAVFCameraBase(parent)
 {
-    m_captureSession = [[AVCaptureSession alloc] init];
+    m_avCaptureSession = [[AVCaptureSession alloc] init];
 
     auto frameHandler = [this](QVideoFrame frame) {
         frame.setMirrored(isFrontCamera()); // presentation mirroring
         emit newVideoFrame(frame);
     };
 
-    m_sampleBufferDelegate = [[QAVFSampleBufferDelegate alloc] initWithFrameHandler:frameHandler];
+    m_qAvfSampleBufferDelegate = [[QAVFSampleBufferDelegate alloc] initWithFrameHandler:frameHandler];
 
-    [m_sampleBufferDelegate setTransformationProvider:[this] { return surfaceTransform(); }];
+    [m_qAvfSampleBufferDelegate setTransformationProvider:[this] { return surfaceTransform(); }];
 
     // Configure video output
-    m_videoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
+    m_avCaptureVideoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
     m_delegateQueue = dispatch_queue_create("vf_queue", nullptr);
-    [m_videoDataOutput setSampleBufferDelegate:m_sampleBufferDelegate
+    [m_avCaptureVideoDataOutput setSampleBufferDelegate:m_qAvfSampleBufferDelegate
                                          queue:m_delegateQueue];
 
     // Hook output object to our capture session.
-    [m_captureSession beginConfiguration];
-    [m_captureSession addOutput:m_videoDataOutput];
-    [m_captureSession commitConfiguration];
+    [m_avCaptureSession beginConfiguration];
+    [m_avCaptureSession addOutput:m_avCaptureVideoDataOutput];
+    [m_avCaptureSession commitConfiguration];
 }
 
 QAVFCamera::~QAVFCamera()
 {
-    [m_sampleBufferDelegate release];
-    [m_videoInput release];
-    [m_videoDataOutput release];
-    [m_captureSession release];
+    [m_qAvfSampleBufferDelegate release];
+    [m_avCaptureDeviceVideoInput release];
+    [m_avCaptureVideoDataOutput release];
+    [m_avCaptureSession release];
     dispatch_release(m_delegateQueue);
 
     clearRotationTracking();
@@ -67,27 +67,27 @@ void QAVFCamera::refreshAvCaptureSessionInputDevice()
     // Only the user should request permissions.
     Q_ASSERT(checkCameraPermission());
 
-    [m_captureSession beginConfiguration];
+    [m_avCaptureSession beginConfiguration];
     const QScopeGuard endConfigGuard{ [&]() {
-        [m_captureSession commitConfiguration];
+        [m_avCaptureSession commitConfiguration];
     }};
 
-    if (m_videoInput) {
-        [m_captureSession removeInput:m_videoInput];
-        [m_videoInput release];
-        m_videoInput = nullptr;
+    if (m_avCaptureDeviceVideoInput) {
+        [m_avCaptureSession removeInput:m_avCaptureDeviceVideoInput];
+        [m_avCaptureDeviceVideoInput release];
+        m_avCaptureDeviceVideoInput = nullptr;
     }
 
     AVCaptureDevice *videoDevice = device();
     if (!videoDevice)
         return;
 
-    m_videoInput = [AVCaptureDeviceInput
+    m_avCaptureDeviceVideoInput = [AVCaptureDeviceInput
                     deviceInputWithDevice:videoDevice
                     error:nil];
-    if (m_videoInput && [m_captureSession canAddInput:m_videoInput]) {
-        [m_videoInput retain];
-        [m_captureSession addInput:m_videoInput];
+    if (m_avCaptureDeviceVideoInput && [m_avCaptureSession canAddInput:m_avCaptureDeviceVideoInput]) {
+        [m_avCaptureDeviceVideoInput retain];
+        [m_avCaptureSession addInput:m_avCaptureDeviceVideoInput];
     } else {
         qWarning() << "Failed to create video device input";
     }
@@ -111,11 +111,11 @@ void QAVFCamera::onActiveChanged(bool active)
         // According to the doc, the capture device must be locked before
         // startRunning to prevent the format we set to be overridden by the
         // session preset.
-        [m_videoInput.device lockForConfiguration:nil];
-        [m_captureSession startRunning];
-        [m_videoInput.device unlockForConfiguration];
+        [m_avCaptureDeviceVideoInput.device lockForConfiguration:nil];
+        [m_avCaptureSession startRunning];
+        [m_avCaptureDeviceVideoInput.device unlockForConfiguration];
     } else {
-        [m_captureSession stopRunning];
+        [m_avCaptureSession stopRunning];
     }
 
     // If the camera becomes active, we want to start tracking the rotation of the camera
@@ -124,7 +124,7 @@ void QAVFCamera::onActiveChanged(bool active)
 
 void QAVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
-    m_session = session ? session->captureSession() : nullptr;
+    m_qMediaCaptureSession = session ? session->captureSession() : nullptr;
 }
 
 void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &device)
@@ -203,8 +203,8 @@ void QAVFCamera::updateCameraFormat(const QCameraFormat &newFormat)
         m_hwPixelFormat = AV_PIX_FMT_NONE;
     }
 
-    [m_sampleBufferDelegate setHWAccel:std::move(hwAccel)];
-    [m_sampleBufferDelegate setVideoFormatFrameRate:newFormat.maxFrameRate()];
+    [m_qAvfSampleBufferDelegate setHWAccel:std::move(hwAccel)];
+    [m_qAvfSampleBufferDelegate setVideoFormatFrameRate:newFormat.maxFrameRate()];
 }
 
 void QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFormat,
@@ -214,7 +214,7 @@ void QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFormat
 
     auto bestScore = MinAVScore;
     NSNumber *bestFormat = nullptr;
-    for (NSNumber *cvPixFmtNumber in m_videoDataOutput.availableVideoCVPixelFormatTypes) {
+    for (NSNumber *cvPixFmtNumber in m_avCaptureVideoDataOutput.availableVideoCVPixelFormatTypes) {
         auto cvPixFmt = [cvPixFmtNumber unsignedIntValue];
         const auto pixFmt = QAVFHelpers::fromCVPixelFormat(cvPixFmt);
         if (pixFmt == QVideoFrameFormat::Format_Invalid)
@@ -256,7 +256,7 @@ void QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFormat
         (NSString *)kCVPixelBufferPixelFormatTypeKey : bestFormat,
         (NSString *)kCVPixelBufferMetalCompatibilityKey : @true
     };
-    m_videoDataOutput.videoSettings = outputSettings;
+    m_avCaptureVideoDataOutput.videoSettings = outputSettings;
 
     m_cvPixelFormat = [bestFormat unsignedIntValue];
 }
@@ -268,7 +268,7 @@ QSize QAVFCamera::adjustedResolution(const QCameraFormat& newFormat) const
 #else
     // Check, that we have matching dimesnions.
     QSize resolution = newFormat.resolution();
-    AVCaptureConnection *connection = [m_videoDataOutput connectionWithMediaType:AVMediaTypeVideo];
+    AVCaptureConnection *connection = [m_avCaptureVideoDataOutput connectionWithMediaType:AVMediaTypeVideo];
     if (!connection.supportsVideoOrientation)
         return resolution;
 
@@ -322,8 +322,8 @@ VideoTransformation QAVFCamera::surfaceTransform() const
     // This code assumes that AVCaptureConnection.videoRotationAngle returns degrees
     // that are divisible by 90. This has been the case during testing.
     int connectionAngle = 0;
-    const AVCaptureConnection *connection = m_videoDataOutput ?
-        [m_videoDataOutput connectionWithMediaType:AVMediaTypeVideo] :
+    const AVCaptureConnection *connection = m_avCaptureVideoDataOutput ?
+        [m_avCaptureVideoDataOutput connectionWithMediaType:AVMediaTypeVideo] :
         nullptr;
     if (connection) {
         if (@available(macOS 14.0, iOS 17.0, *))
@@ -351,15 +351,15 @@ void QAVFCamera::updateRotationTracking()
     if (isActive()) {
         // Use RotationCoordinator if we can.
         if (@available(macOS 14.0, iOS 17.0, *)) {
-            if (m_rotationCoordinator)
-                [m_rotationCoordinator release];
-            m_rotationCoordinator = nullptr;
+            if (m_avRotationCoordinator)
+                [m_avRotationCoordinator release];
+            m_avRotationCoordinator = nullptr;
 
             AVCaptureDevice* captureDevice = device();
             if (!captureDevice) {
                 qCDebug(qLcCamera) << "attempted to setup AVCaptureDeviceRotationCoordinator without any AVCaptureDevice";
             } else {
-                m_rotationCoordinator = [[AVCaptureDeviceRotationCoordinator alloc]
+                m_avRotationCoordinator = [[AVCaptureDeviceRotationCoordinator alloc]
                     initWithDevice:captureDevice
                     previewLayer:nil];
             }
@@ -379,9 +379,9 @@ void QAVFCamera::updateRotationTracking()
 
 void QAVFCamera::clearRotationTracking() {
     if (@available(macOS 14.0, iOS 17.0, *)) {
-        if (m_rotationCoordinator)
-            [m_rotationCoordinator release];
-        m_rotationCoordinator = nullptr;
+        if (m_avRotationCoordinator)
+            [m_avRotationCoordinator release];
+        m_avRotationCoordinator = nullptr;
     }
 
 #ifdef Q_OS_IOS
@@ -404,9 +404,9 @@ int QAVFCamera::getCurrentRotationAngleDegrees() const
         // iPhones not being allowed to have an upside-down window). This usage of the
         // rotation coordinator will still return it as a valid preview rotation, and
         // might cause bugs on iPhone previews.
-        if (m_rotationCoordinator)
+        if (m_avRotationCoordinator)
             return static_cast<int>(std::round(
-                m_rotationCoordinator.videoRotationAngleForHorizonLevelCapture));
+                m_avRotationCoordinator.videoRotationAngleForHorizonLevelCapture));
     }
 #ifdef Q_OS_IOS
     else {
