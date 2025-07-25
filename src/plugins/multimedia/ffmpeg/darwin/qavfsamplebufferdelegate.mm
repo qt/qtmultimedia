@@ -6,6 +6,7 @@
 #include <QtMultimedia/private/qavfhelpers_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 
+#include <QtFFmpegMediaPluginImpl/private/qcvimagevideobuffer_p.h>
 #define AVMediaType XAVMediaType
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
@@ -14,74 +15,6 @@
 #include <optional>
 
 QT_USE_NAMESPACE
-
-namespace {
-
-class CVImageVideoBuffer : public QAbstractVideoBuffer
-{
-public:
-    CVImageVideoBuffer(QAVFHelpers::QSharedCVPixelBuffer &&pixelBuffer) : m_buffer(pixelBuffer)
-    {
-    }
-
-    ~CVImageVideoBuffer()
-    {
-        Q_ASSERT(m_mode == QVideoFrame::NotMapped);
-    }
-
-    CVImageVideoBuffer::MapData map(QVideoFrame::MapMode mode) override
-    {
-        MapData mapData;
-
-        if (m_mode == QVideoFrame::NotMapped) {
-            CVPixelBufferLockBaseAddress(
-                m_buffer.get(),
-                mode == QVideoFrame::ReadOnly ? kCVPixelBufferLock_ReadOnly : 0);
-            m_mode = mode;
-        }
-
-        mapData.planeCount = CVPixelBufferGetPlaneCount(m_buffer.get());
-        Q_ASSERT(mapData.planeCount <= 3);
-
-        if (!mapData.planeCount) {
-            // single plane
-            mapData.bytesPerLine[0] = CVPixelBufferGetBytesPerRow(m_buffer.get());
-            mapData.data[0] = static_cast<uchar *>(CVPixelBufferGetBaseAddress(m_buffer.get()));
-            mapData.dataSize[0] = CVPixelBufferGetDataSize(m_buffer.get());
-            mapData.planeCount = mapData.data[0] ? 1 : 0;
-            return mapData;
-        }
-
-        // For a bi-planar or tri-planar format we have to set the parameters correctly:
-        for (int i = 0; i < mapData.planeCount; ++i) {
-            mapData.bytesPerLine[i] = CVPixelBufferGetBytesPerRowOfPlane(m_buffer.get(), i);
-            mapData.dataSize[i] =
-                mapData.bytesPerLine[i] * CVPixelBufferGetHeightOfPlane(m_buffer.get(), i);
-            mapData.data[i] =
-                static_cast<uchar *>(CVPixelBufferGetBaseAddressOfPlane(m_buffer.get(), i));
-        }
-
-        return mapData;
-    }
-
-    void unmap() override
-    {
-        if (m_mode != QVideoFrame::NotMapped) {
-            CVPixelBufferUnlockBaseAddress(
-                m_buffer.get(),
-                m_mode == QVideoFrame::ReadOnly ? kCVPixelBufferLock_ReadOnly : 0);
-            m_mode = QVideoFrame::NotMapped;
-        }
-    }
-
-    QVideoFrameFormat format() const override { return {}; }
-
-private:
-    QAVFHelpers::QSharedCVPixelBuffer m_buffer;
-    QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-};
-
-}
 
 // Make sure this is compatible with the layout used in ffmpeg's hwcontext_videotoolbox
 static QFFmpeg::AVFrameUPtr allocHWFrame(
@@ -236,7 +169,7 @@ static QVideoFrame createHwVideoFrame(
     auto frame = createHwVideoFrame(*self, pixelBuffer, format);
     if (!frame.isValid())
         frame = QVideoFramePrivate::createFrame(
-            std::make_unique<CVImageVideoBuffer>(std::move(pixelBuffer)),
+            std::make_unique<QFFmpeg::CVImageVideoBuffer>(std::move(pixelBuffer)),
             std::move(format));
 
     if (transform.has_value()) {
