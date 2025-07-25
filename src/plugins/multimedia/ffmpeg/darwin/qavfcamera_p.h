@@ -17,6 +17,7 @@
 
 #include <QtMultimedia/private/qavfcamerabase_p.h>
 
+#include <QtFFmpegMediaPluginImpl/private/qavfcamerarotationtracker_p.h>
 #define AVMediaType XAVMediaType
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
@@ -83,18 +84,7 @@ private:
     // used by the camera.
     uint32_t m_cvPixelFormat = 0;
 
-    // If running iOS 17+, we use AVCaptureDeviceRotationCoordinator
-    // to get the camera rotation directly from the camera-device.
-    //
-    // Gives us rotational information about the camera-device.
-    API_AVAILABLE(macos(14.0), ios(17.0))
-    AVCaptureDeviceRotationCoordinator *m_avRotationCoordinator = nullptr;
-#ifdef Q_OS_IOS
-    // If running iOS 16 or older, we use the UIDeviceOrientation
-    // and the AVCaptureCameraPosition to apply rotation metadata
-    // to the cameras frames.
-    bool m_receivingUiDeviceOrientationNotifications = false;
-#endif
+    std::optional<QFFmpeg::AvfCameraRotationTracker> m_qAvfCameraRotationTracker;
 };
 
 QT_END_NAMESPACE
