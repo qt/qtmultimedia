@@ -49,6 +49,7 @@ tst_*
 !tst_*.cpp
 !tst_*.qml
 tests/auto/cmake/build
+tests/manual/*/build
 
 # Generated static plugin import sources
 *_plugin_import.cpp
