@@ -1,8 +1,8 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QAVFCAMERA_H
-#define QAVFCAMERA_H
+#ifndef QAVFCAMERA_P_H
+#define QAVFCAMERA_P_H
 
 //
 //  W A R N I N G
@@ -100,5 +100,4 @@ private:
 QT_END_NAMESPACE
 
 
-#endif  // QFFMPEGCAMERA_H
-
+#endif // QAVFCAMERA_P_H
