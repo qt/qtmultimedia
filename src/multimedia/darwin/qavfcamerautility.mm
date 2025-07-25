@@ -711,17 +711,4 @@ QList<UInt32> qt_supported_channel_layout_tags_for_format(int codecId, int noCha
     return result;
 }
 
-#ifdef Q_OS_IOS
-int qt_ui_device_orientation_to_rotation_angle_degrees(UIDeviceOrientation orientation)
-{
-    switch (orientation) {
-    case UIDeviceOrientationLandscapeLeft: return 0;
-    case UIDeviceOrientationPortrait: return 90;
-    case UIDeviceOrientationLandscapeRight: return 180;
-    case UIDeviceOrientationPortraitUpsideDown: return 270;
-    default: return 0;
-    }
-}
-#endif
-
 QT_END_NAMESPACE

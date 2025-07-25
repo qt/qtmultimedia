@@ -349,46 +349,19 @@ void QAVFCamera::updateRotationTracking()
     // If the camera is active, it should have either a RotationCoordinator
     // or start listening for UIDeviceOrientation changes.
     if (isActive()) {
-        // Use RotationCoordinator if we can.
-        if (@available(macOS 14.0, iOS 17.0, *)) {
-            if (m_avRotationCoordinator)
-                [m_avRotationCoordinator release];
-            m_avRotationCoordinator = nullptr;
-
-            AVCaptureDevice* captureDevice = device();
-            if (!captureDevice) {
-                qCDebug(qLcCamera) << "attempted to setup AVCaptureDeviceRotationCoordinator without any AVCaptureDevice";
-            } else {
-                m_avRotationCoordinator = [[AVCaptureDeviceRotationCoordinator alloc]
-                    initWithDevice:captureDevice
-                    previewLayer:nil];
-            }
-        }
-#ifdef Q_OS_IOS
-        else {
-            // If we're running iOS 16 or older, we need to register for UIDeviceOrientation changes.
-            if (!m_receivingUiDeviceOrientationNotifications)
-                [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-            m_receivingUiDeviceOrientationNotifications = true;
-        }
-#endif
-    } else {
+        AVCaptureDevice *captureDevice = device();
+        if (captureDevice)
+            m_qAvfCameraRotationTracker = QFFmpeg::AvfCameraRotationTracker(captureDevice);
+        else
+            qCDebug(qLcCamera)
+                << "Attempted to setup AVCaptureDeviceRotationCoordinator without any "
+                   "AVCaptureDevice";
+    } else
         clearRotationTracking();
-    }
 }
 
 void QAVFCamera::clearRotationTracking() {
-    if (@available(macOS 14.0, iOS 17.0, *)) {
-        if (m_avRotationCoordinator)
-            [m_avRotationCoordinator release];
-        m_avRotationCoordinator = nullptr;
-    }
-
-#ifdef Q_OS_IOS
-    if (m_receivingUiDeviceOrientationNotifications)
-        [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
-    m_receivingUiDeviceOrientationNotifications = false;
-#endif
+    m_qAvfCameraRotationTracker = std::nullopt;
 }
 
 // Gets the current rotationfor this QAVFCamera.
@@ -396,43 +369,10 @@ void QAVFCamera::clearRotationTracking() {
 // Will always return a result that is divisible by 90.
 int QAVFCamera::getCurrentRotationAngleDegrees() const
 {
-    if (@available(macOS 14.0, iOS 17.0, *)) {
-        // This code assumes that AVCaptureDeviceRotationCoordinator.videoRotationAngleForHorizonLevelCapture
-        // returns degrees that are divisible by 90. This has been the case during testing.
-        //
-        // TODO: Some rotations are not valid for preview on some devices (such as
-        // iPhones not being allowed to have an upside-down window). This usage of the
-        // rotation coordinator will still return it as a valid preview rotation, and
-        // might cause bugs on iPhone previews.
-        if (m_avRotationCoordinator)
-            return static_cast<int>(std::round(
-                m_avRotationCoordinator.videoRotationAngleForHorizonLevelCapture));
-    }
-#ifdef Q_OS_IOS
-    else {
-        AVCaptureDevice *captureDevice = device();
-        if (captureDevice && m_receivingUiDeviceOrientationNotifications) {
-            // TODO: The new orientation can be FlatFaceDown or FlatFaceUp, neither of
-            // which should trigger a camera re-orientation. We can't store the previously
-            // valid orientation because this method has to be const. Currently
-            // this means orientation of the camera might be incorrect when laying the device
-            // down flat. Ideally we might want to store this orientation as a global
-            // variable somewhere.
-            const UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-
-            const AVCaptureDevicePosition captureDevicePosition = captureDevice.position;
-
-            // If the position is set to PositionUnspecified, it's a good indication that
-            // this is an external webcam. In which case, don't apply any rotation.
-            if (captureDevicePosition == AVCaptureDevicePositionBack)
-                return qt_ui_device_orientation_to_rotation_angle_degrees(orientation);
-            else if (captureDevicePosition == AVCaptureDevicePositionFront)
-                return 360 - qt_ui_device_orientation_to_rotation_angle_degrees(orientation);
-        }
-    }
-#endif
-
-    return 0;
+    if (m_qAvfCameraRotationTracker.has_value())
+        return m_qAvfCameraRotationTracker.value().rotationDegrees();
+    else
+        return 0;
 }
 
 QT_END_NAMESPACE

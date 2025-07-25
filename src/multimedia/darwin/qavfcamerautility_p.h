@@ -164,11 +164,6 @@ Q_MULTIMEDIA_EXPORT QList<AudioValueRange> qt_supported_bit_rates_for_format(int
 Q_MULTIMEDIA_EXPORT std::optional<QList<UInt32>> qt_supported_channel_counts_for_format(int codecId);
 Q_MULTIMEDIA_EXPORT QList<UInt32> qt_supported_channel_layout_tags_for_format(int codecId, int noChannels);
 
-#ifdef Q_OS_IOS
-// Returns a rotation, measured in angles, 0 to 360 depending on the UIDeviceOrientation.
-Q_MULTIMEDIA_EXPORT int qt_ui_device_orientation_to_rotation_angle_degrees(UIDeviceOrientation orientation);
-#endif
-
 QT_END_NAMESPACE
 
 #endif // QAVFCAMERAUTILITY_P_H
