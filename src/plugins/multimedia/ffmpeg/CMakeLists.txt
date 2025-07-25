@@ -132,8 +132,8 @@ endif()
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
     SOURCES
         qffmpeghwaccel_videotoolbox.mm qffmpeghwaccel_videotoolbox_p.h
-        qavfcamera.mm qavfcamera_p.h
-        qavfsamplebufferdelegate.mm qavfsamplebufferdelegate_p.h
+        darwin/qavfcamera.mm darwin/qavfcamera_p.h
+        darwin/qavfsamplebufferdelegate.mm darwin/qavfsamplebufferdelegate_p.h
 
     NO_UNITY_BUILD_SOURCES
         qffmpeghwaccel_videotoolbox.mm # AVMediaType clash between libavformat and AVFoundation
@@ -149,9 +149,9 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION MACOS
     SOURCES
-        qavfscreencapture.mm qavfscreencapture_p.h
-        qcgwindowcapture.mm qcgwindowcapture_p.h
-        qcgcapturablewindows.mm qcgcapturablewindows_p.h
+        darwin/qavfscreencapture.mm darwin/qavfscreencapture_p.h
+        darwin/qcgwindowcapture.mm darwin/qcgwindowcapture_p.h
+        darwin/qcgcapturablewindows.mm darwin/qcgcapturablewindows_p.h
     LIBRARIES
         ${FWAppKit}
 )
