@@ -270,7 +270,7 @@ void QPulseAudioSourceStream::readCallbackAudioCallback([[maybe_unused]] size_t 
         qsizetype(nBytes),
     };
 
-    runAudioCallback(*m_audioCallback, hostBuffer, m_format);
+    runAudioCallback(*m_audioCallback, hostBuffer, m_format, volume());
 
     status = pa_stream_drop(m_stream.get());
     if (status < 0) {

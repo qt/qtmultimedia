@@ -227,7 +227,7 @@ void QPipewireAudioSourceStream::processCallback() noexcept QT_MM_NONBLOCKING
     };
     int numberOfFrames = m_format.framesForBytes(buffer.size());
 
-    runAudioCallback(*m_audioCallback, buffer, m_format);
+    runAudioCallback(*m_audioCallback, buffer, m_format, volume());
 
     addFramesHandled(numberOfFrames);
     pw_stream_queue_buffer(m_stream.get(), b);

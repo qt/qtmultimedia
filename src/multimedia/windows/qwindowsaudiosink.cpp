@@ -370,7 +370,7 @@ bool QWASAPIAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
 bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
 {
     return visitAudioClientBuffer([&](QSpan<std::byte> hostBuffer, uint32_t requiredFrames) {
-        runAudioCallback(m_audioCallback, hostBuffer, m_format);
+        runAudioCallback(m_audioCallback, hostBuffer, m_format, volume());
         return requiredFrames;
     });
 }
