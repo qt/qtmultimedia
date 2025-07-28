@@ -1,7 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/QtTest>
+#include <QtTest/qtest.h>
 
 #include <qvideoframe.h>
 #include <qvideoframeformat.h>
@@ -11,6 +11,7 @@
 #include "private/qvideoframe_p.h"
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
+#include <QtCore/qset.h>
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
 #include "private/qvideoframeconverter_p.h"
 #include <private/mediabackendutils_p.h>

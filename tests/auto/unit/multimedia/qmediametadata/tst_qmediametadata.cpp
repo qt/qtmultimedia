@@ -1,10 +1,11 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/QtTest>
+#include <QtTest/qtest.h>
 
 #include <QtCore/qdebug.h>
-#include <QtCore/QString>
+#include <QtCore/qset.h>
+#include <QtCore/qstring.h>
 
 #include <QtMultimedia/qmediametadata.h>
 

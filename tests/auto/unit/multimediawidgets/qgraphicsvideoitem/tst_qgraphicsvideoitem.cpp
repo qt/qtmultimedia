@@ -3,7 +3,9 @@
 
 #include <qtmultimediaglobal.h>
 #include "qgraphicsvideoitem.h"
-#include <QtTest/QtTest>
+#include <QtTest/qtest.h>
+#include <QtTest/qtesteventloop.h>
+#include <QtTest/qsignalspy.h>
 
 #include <qvideosink.h>
 #include <qvideoframeformat.h>
