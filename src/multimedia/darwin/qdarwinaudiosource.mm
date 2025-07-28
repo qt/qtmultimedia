@@ -287,7 +287,7 @@ OSStatus QCoreAudioSourceStream::processAudioCallback(AudioUnitRenderActionFlags
     };
 
     using namespace QtMultimediaPrivate;
-    runAudioCallback(*m_audioCallback, inputSpan, m_format);
+    runAudioCallback(*m_audioCallback, inputSpan, m_format, volume());
 
     return noErr;
 }

@@ -20,12 +20,15 @@
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qmultimedia_assume_p.h>
 
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qspan.h>
 #include <QtCore/private/qglobal_p.h>
 
+#include <array>
 #include <functional>
 #include <variant>
 
@@ -173,15 +176,55 @@ inline void runAudioCallback(
 }
 
 inline void runAudioCallback(const AudioSinkCallback &audioCallback, QSpan<std::byte> hostBuffer,
-                             const QAudioFormat &format)
+                             const QAudioFormat &format, float volume)
 {
-    return runAudioCallback<true>(audioCallback, hostBuffer, format);
+    runAudioCallback<true>(audioCallback, hostBuffer, format);
+    QAudioHelperInternal::applyVolume(volume, format, hostBuffer, hostBuffer);
 }
 
+// NB: we we provide two overloads for running audio callbacks based on the host buffer:
+// * if the host buffer is immutable, we need to apply the volume on a temporary buffer
+// * if the host buffer is mutable, we can apply the volume in-place (currently unused)
 inline void runAudioCallback(const AudioSourceCallback &audioCallback,
-                             QSpan<const std::byte> hostBuffer, const QAudioFormat &format)
+                             QSpan<const std::byte> hostBuffer, const QAudioFormat &format,
+                             float volume)
 {
-    return runAudioCallback<false>(audioCallback, hostBuffer, format);
+    if (volume == 1.0f) {
+        runAudioCallback<false>(audioCallback, hostBuffer, format);
+    } else {
+        // if the host buffer is reasonably small (64kb, big enougth for 16 channels, 1024 frames,
+        // float32) we can use a stack-allocated temporary buffer.
+        // otherwise we allocate a heap buffer.
+
+        constexpr qsizetype sizeEstimate = 1024 * 16 * sizeof(float);
+        if (hostBuffer.size() <= sizeEstimate) {
+            std::array<std::byte, sizeEstimate> stackBuffer;
+            QSpan<std::byte> stackBufferSpan{
+                stackBuffer.data(),
+                hostBuffer.size(),
+            };
+
+            QAudioHelperInternal::applyVolume(volume, format, hostBuffer, stackBufferSpan);
+            runAudioCallback<false>(audioCallback, stackBufferSpan, format);
+        } else {
+            QtPrivate::ScopedRTSanDisabler allowAllocations;
+
+            auto buffer = q20::make_unique_for_overwrite<std::byte[]>(hostBuffer.size());
+            auto heapBufferSpan = QSpan{
+                buffer.get(),
+                hostBuffer.size(),
+            };
+            QAudioHelperInternal::applyVolume(volume, format, hostBuffer, heapBufferSpan);
+            runAudioCallback<false>(audioCallback, heapBufferSpan, format);
+        }
+    }
+}
+
+inline void runAudioCallback(const AudioSourceCallback &audioCallback, QSpan<std::byte> hostBuffer,
+                             const QAudioFormat &format, float volume)
+{
+    QAudioHelperInternal::applyVolume(volume, format, hostBuffer, hostBuffer);
+    runAudioCallback<false>(audioCallback, hostBuffer, format);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

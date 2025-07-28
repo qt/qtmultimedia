@@ -265,7 +265,7 @@ OSStatus QCoreAudioSinkStream::processAudioCallback(uint32_t numberOfFrames,
         ioData->mBuffers[0].mDataByteSize,
     };
 
-    runAudioCallback(m_audioCallback, inputSpan, m_format);
+    runAudioCallback(m_audioCallback, inputSpan, m_format, volume());
 
     return noErr;
 }

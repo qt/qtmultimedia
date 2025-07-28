@@ -300,7 +300,7 @@ bool QWASAPIAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
 bool QWASAPIAudioSourceStream::processCallback() noexcept QT_MM_NONBLOCKING
 {
     return visitAudioClientBuffer([&](QSpan<const std::byte> hostBuffer, uint32_t) {
-        runAudioCallback(*m_audioCallback, as_bytes(hostBuffer), m_format);
+        runAudioCallback(*m_audioCallback, as_bytes(hostBuffer), m_format, volume());
     });
 }
 
