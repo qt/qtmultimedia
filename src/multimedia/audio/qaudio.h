@@ -43,12 +43,12 @@ enum VolumeScale
     DecibelVolumeScale,
 };
 
-Q_MULTIMEDIA_EXPORT float convertVolume(float volume, VolumeScale from, VolumeScale to);
-
 } // namespace QtAudio
 
-#if !defined(Q_QDOC)
+
 namespace QtAudio {
+
+#if !defined(Q_QDOC)
 using Error = QAudio::Error;
 using State = QAudio::State;
 using VolumeScale = QAudio::VolumeScale;
@@ -66,10 +66,22 @@ inline constexpr auto LinearVolumeScale = QAudio::LinearVolumeScale;
 inline constexpr auto CubicVolumeScale = QAudio::CubicVolumeScale;
 inline constexpr auto LogarithmicVolumeScale = QAudio::LogarithmicVolumeScale;
 inline constexpr auto DecibelVolumeScale = QAudio::DecibelVolumeScale;
+#endif
 
 Q_MULTIMEDIA_EXPORT float convertVolume(float volume, VolumeScale from, VolumeScale to);
 
 } // namespace QtAudio
+
+
+#if !defined(Q_QDOC)
+namespace QAudio
+{
+#if QT_CORE_REMOVED_SINCE(6, 10)
+Q_MULTIMEDIA_EXPORT float convertVolume(float volume, VolumeScale from, VolumeScale to);
+#elif !defined(QT_MULTIMEDIA_BUILD_REMOVED_API)
+using QtAudio::convertVolume;
+#endif
+} // namespace QAudio
 #endif
 
 #ifndef QT_NO_DEBUG_STREAM
