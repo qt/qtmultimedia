@@ -29,6 +29,7 @@ qt_internal_add_plugin(QDarwinMediaPlugin
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
+        Qt::Concurrent
         ${FWAudioToolbox}
         ${FWAVFoundation}
         ${FWCoreMedia}

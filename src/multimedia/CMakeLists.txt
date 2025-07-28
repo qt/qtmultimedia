@@ -127,6 +127,7 @@ qt_internal_add_module(Multimedia
         Qt::CorePrivate
         Qt::GuiPrivate
         Qt::BundledTLSF
+        Qt::Concurrent
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::Gui
