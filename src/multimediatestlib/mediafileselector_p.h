@@ -23,6 +23,9 @@
 #include <qfileinfo.h>
 #include <qtest.h>
 #include <private/qmultimediautils_p.h>
+#ifdef Q_OS_ANDROID
+#include <QtCore/qtemporaryfile.h>
+#endif
 
 #include <unordered_map>
 
