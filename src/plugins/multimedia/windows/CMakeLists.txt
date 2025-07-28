@@ -50,6 +50,7 @@ qt_internal_add_plugin(QWindowsMediaPlugin
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
+        Qt::Concurrent
         uuid
         WMF::WMF
         d3d9
