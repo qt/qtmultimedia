@@ -1,15 +1,16 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/QtTest>
-#include <QtCore/qdebug.h>
-#include <QtCore/qprocess.h>
-#include <QtCore/qcoreapplication.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qmetaobject.h>
-#include <QtMultimedia/qsoundeffect.h>
-#include <QtMultimedia/qmediadevices.h>
+#include <QtTest/qtest.h>
 #include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qsoundeffect.h>
+#include <QtCore/qcommandlineparser.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qmetaobject.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qstring.h>
 
 using namespace Qt::StringLiterals;
 

@@ -4,7 +4,7 @@
 #ifndef TST_GSTREAMER_BACKEND_H
 #define TST_GSTREAMER_BACKEND_H
 
-#include <QtTest/QtTest>
+#include <QtTest/qtest.h>
 
 #include <QtGstreamerMediaPluginImpl/private/qgstreamerintegration_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgst_handle_types_p.h>

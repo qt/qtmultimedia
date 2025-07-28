@@ -3,7 +3,8 @@
 
 
 #include <QtCore/QString>
-#include <QtTest/QtTest>
+#include <QtTest/qtest.h>
+#include <QtTest/qsignalspy.h>
 
 #include "qaudiodecoder.h"
 #include "qmockaudiodecoder.h"

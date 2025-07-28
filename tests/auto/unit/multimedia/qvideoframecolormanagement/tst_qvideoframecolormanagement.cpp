@@ -1,7 +1,7 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/QtTest>
+#include <QtTest/qtest.h>
 
 #include <qvideoframe.h>
 #include <qvideoframeformat.h>
@@ -18,6 +18,7 @@
 #include <QtGui/QColorSpace>
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
+#include <QtCore/qset.h>
 
 #include <private/mediabackendutils_p.h>
 

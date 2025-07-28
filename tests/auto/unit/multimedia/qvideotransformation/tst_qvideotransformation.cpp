@@ -3,7 +3,7 @@
 
 // TESTED_COMPONENT=src/multimedia
 
-#include <QtTest/QtTest>
+#include <QtTest/qtest.h>
 #include <private/qvideotransformation_p.h>
 #include <map>
 
