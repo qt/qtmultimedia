@@ -5,12 +5,19 @@
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 
-QT_USE_NAMESPACE
+#if QT_MULTIMEDIA_REMOVED_SINCE(6, 10) && !defined(Q_QDOC)
 
-#if QT_MULTIMEDIA_REMOVED_SINCE(6, 7)
+#include "qaudio.h"
 
-// #include "qotherheader.h"
-// // implement removed functions from qotherheader.h
-// order sections alphabetically
+QT_BEGIN_NAMESPACE
 
-#endif // QT_MULTIMEDIA_REMOVED_SINCE(6, 7)
+namespace QAudio {
+float convertVolume(float volume, VolumeScale from, VolumeScale to)
+{
+    return QtAudio::convertVolume(volume, from, to);
+}
+} // namespace QAudio
+
+QT_END_NAMESPACE
+
+#endif // QT_MULTIMEDIA_REMOVED_SINCE(6, 10) && !defined(Q_QDOC)

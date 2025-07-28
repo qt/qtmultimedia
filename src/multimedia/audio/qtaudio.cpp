@@ -174,21 +174,6 @@ float convertVolume(float volume, VolumeScale from, VolumeScale to)
 
 } // namespace QtAudio
 
-#if !defined(Q_QDOC)
-
-// Qt7
-namespace QAudio {
-
-// ### Qt7 remove this implementation
-float convertVolume(float volume, VolumeScale from, VolumeScale to)
-{
-    return QtAudio::convertVolume(volume, from, to);
-}
-
-} // namespace QAudio
-
-#endif
-
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QAudio::Error error)
 {
