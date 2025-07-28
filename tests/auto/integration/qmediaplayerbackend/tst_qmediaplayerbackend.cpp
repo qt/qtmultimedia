@@ -369,6 +369,9 @@ bool tst_QMediaPlayerBackend::canCreateRtpStream() const
 
 void tst_QMediaPlayerBackend::initTestCase()
 {
+    if (qEnvironmentVariable("COIN_PLATFORM_ID") == "macos-15-x86_64-tests")
+        QSKIP("Skipping test on macOS 15 x86_64, as it's flaky on CI");
+
     QMediaPlayer player;
     if (!player.isAvailable())
         QSKIP("Media player service is not available");
