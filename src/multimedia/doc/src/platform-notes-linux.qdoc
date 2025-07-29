@@ -10,9 +10,10 @@ This page discusses considerations for using Qt Multimedia on Linux.
 
 \section1 Audio backend requirements
 
-Qt Multimedia audio features on Linux requires PulseAudio. The experimental ALSA backend will be
-deprecated in future versions of Qt. Until then, community contributions are required to fix issues
-with this backend.
+Qt Multimedia audio features on Linux require PipeWire or PulseAudio. PipeWire is the recommended
+backend on all modern Linux distributions, but PulseAudio will be used if PipeWire is not available.
+The experimental ALSA backend will be deprecated in future versions of Qt. Until then, community
+contributions are required to fix issues with this backend.
 
 For applications that use the GStreamer backend on embedded Linux, see
 \l{Qt Multimedia GStreamer backend} for additional PulseAudio requirements.
