@@ -87,7 +87,8 @@ void applyVolume(float volume,
     Q_ASSERT(source.size() == destination.size());
 
     if (Q_LIKELY(volume == 1.f)) {
-        std::copy(source.begin(), source.end(), destination.begin());
+        if (source.data() != destination.data())
+            std::copy(source.begin(), source.end(), destination.begin());
     } else if (volume == 0) {
         std::byte zero =
                 format.sampleFormat() == QAudioFormat::UInt8 ? std::byte{ 0x80 } : std::byte{ 0 };
