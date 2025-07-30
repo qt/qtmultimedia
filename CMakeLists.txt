@@ -14,7 +14,20 @@ project(QtMultimedia
 )
 
 find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS BuildInternals Core)
-find_package(Qt6 ${PROJECT_VERSION} QUIET CONFIG OPTIONAL_COMPONENTS Gui Network Svg Widgets Quick Qml Test QuickTest QuickControls2 Quick3D OpenGLPrivate)
+find_package(Qt6 ${PROJECT_VERSION} QUIET CONFIG
+    OPTIONAL_COMPONENTS
+        Gui
+        Network
+        Svg
+        Widgets
+        Quick
+        Qml
+        Test
+        QuickTest
+        QuickControls2
+        Quick3D
+        OpenGLPrivate
+        Concurrent)
 qt_internal_project_setup()
 
 if(NOT TARGET Qt::Gui)
