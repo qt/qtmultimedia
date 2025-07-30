@@ -20,7 +20,20 @@ find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS BuildInternals)
 qt_internal_project_setup()
 
 find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED Core)
-find_package(Qt6 ${PROJECT_VERSION} QUIET CONFIG OPTIONAL_COMPONENTS Gui Network Svg Widgets Quick Qml Test QuickTest QuickControls2 Quick3D OpenGLPrivate)
+find_package(Qt6 ${PROJECT_VERSION} QUIET CONFIG
+    OPTIONAL_COMPONENTS
+        Gui
+        Network
+        Svg
+        Widgets
+        Quick
+        Qml
+        Test
+        QuickTest
+        QuickControls2
+        Quick3D
+        OpenGLPrivate
+        Concurrent)
 
 if(NOT TARGET Qt::Gui)
     message(NOTICE "Skipping the build as the condition \"TARGET Qt::Gui\" is not met.")
