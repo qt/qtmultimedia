@@ -1,8 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QOPENSLESDEVICEINFO_H
-#define QOPENSLESDEVICEINFO_H
+#ifndef QANDROIDAUDIODEVICE_H
+#define QANDROIDAUDIODEVICE_H
 
 //
 //  W A R N I N G
@@ -15,26 +15,20 @@
 // We mean it.
 //
 
-#include <private/qaudiosystem_p.h>
 #include <private/qaudiodevice_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QOpenSLESEngine;
-
-class QOpenSLESDeviceInfo : public QAudioDevicePrivate
+class QAndroidAudioDevice : public QAudioDevicePrivate
 {
 public:
-    QOpenSLESDeviceInfo(QByteArray device,
+    QAndroidAudioDevice(QByteArray device,
                         QString desc,
                         QAudioDevice::Mode mode,
                         bool isDefaultDevice = false);
-    ~QOpenSLESDeviceInfo() {}
-
-private:
-    QOpenSLESEngine *m_engine;
+    ~QAndroidAudioDevice() {}
 };
 
 QT_END_NAMESPACE
 
-#endif // QOPENSLESDEVICEINFO_H
+#endif // QANDROIDAUDIODEVICE_H

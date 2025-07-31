@@ -3,40 +3,45 @@
 
 #include "qandroidaudiodevice_p.h"
 
-#include "qopenslesengine_p.h"
-#include <algorithm>
+#include <qaudioformat_p.h>
+#include <qjniobject.h>
 
 QT_BEGIN_NAMESPACE
 
-QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(QByteArray device,
-                                         QString desc,
-                                         QAudioDevice::Mode mode,
+QAndroidAudioDevice::QAndroidAudioDevice(QByteArray device, QString desc, QAudioDevice::Mode mode,
                                          bool isDefaultDevice)
     : QAudioDevicePrivate(std::move(device), mode, std::move(desc))
-    , m_engine(QOpenSLESEngine::instance())
 {
     isDefault = isDefaultDevice;
 
-    auto channels = m_engine->supportedChannelCounts(mode);
-    if (channels.size()) {
-        minimumChannelCount = channels.first();
-        maximumChannelCount = channels.last();
-    }
+    // Report support for everything that Qt supports, as Android should be able to resample and
+    // up/downmix if needed
+    minimumChannelCount = 1;
+    maximumChannelCount = 32;
+    minimumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.front();
+    maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
+    supportedSampleFormats = QList<QAudioFormat::SampleFormat>{
+        QtMultimediaPrivate::allSupportedSampleFormats.begin(),
+        QtMultimediaPrivate::allSupportedSampleFormats.end()
+    };
 
-    auto sampleRates = m_engine->supportedSampleRates(mode);
-    if (sampleRates.size()) {
-        minimumSampleRate = sampleRates.first();
-        maximumSampleRate = sampleRates.last();
-    }
+    QJniObject deviceInfo = QJniObject::callStaticObjectMethod(
+            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
+            mode == QAudioDevice::Input ? "getInputDeviceInfo" : "getOutputDeviceInfo",
+            "(I)Landroid/media/AudioDeviceInfo;", QString::fromUtf8(id).toInt());
 
-    supportedSampleFormats = m_engine->supportedSampleFormats(mode);
+    // Set preferred channel count based on what device reports, with default set to stereo
+    preferredFormat.setChannelCount(QJniObject::callStaticMethod<jint>(
+            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", "getClampedChannelCount",
+            "(Landroid/media/AudioDeviceInfo;I)I", deviceInfo, 2));
 
-    preferredFormat.setChannelCount(std::clamp(2, minimumChannelCount, maximumChannelCount));
-    preferredFormat.setSampleRate(std::clamp(48000, minimumSampleRate, maximumSampleRate));
-    QAudioFormat::SampleFormat f = QAudioFormat::Int16;
-    if (!supportedSampleFormats.contains(f))
-        f = supportedSampleFormats.value(0, QAudioFormat::Unknown);
-    preferredFormat.setSampleFormat(f);
+    // Get optimal sample rate from AudioManager
+    preferredFormat.setSampleRate(QJniObject::callStaticMethod<jint>(
+            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", "getDefaultSampleRate",
+            "()I"));
+
+    preferredFormat.setSampleFormat(QAudioFormat::Float);
 }
 
 QT_END_NAMESPACE
+

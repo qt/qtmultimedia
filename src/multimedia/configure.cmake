@@ -212,8 +212,8 @@ qt_feature("pulseaudio" PUBLIC PRIVATE
     DISABLE INPUT_pulseaudio STREQUAL 'no'
     CONDITION WrapPulseAudio_FOUND
 )
-qt_feature("opensles" PRIVATE
-    LABEL "Open SLES (Android)"
+qt_feature("aaudio" PRIVATE
+    LABEL "AAudio (Android)"
     CONDITION ANDROID
 )
 qt_feature("wasm" PRIVATE
@@ -257,7 +257,7 @@ qt_configure_add_summary_entry(ARGS "pulseaudio")
 qt_configure_add_summary_entry(ARGS "pipewire")
 qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "coreaudio")
-qt_configure_add_summary_entry(ARGS "opensles")
+qt_configure_add_summary_entry(ARGS "aaudio")
 qt_configure_add_summary_entry(ARGS "wasm")
 qt_configure_add_summary_entry(ARGS "wasapi")
 qt_configure_end_summary_section()

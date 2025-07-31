@@ -267,12 +267,10 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         android/qandroidaudiosource.cpp android/qandroidaudiosource_p.h
         android/qandroidaudiosink.cpp android/qandroidaudiosink_p.h
         android/qandroidaudiodevice.cpp android/qandroidaudiodevice_p.h
-        android/qopenslesengine.cpp android/qopenslesengine_p.h
         android/qandroidaudiodevices.cpp android/qandroidaudiodevices_p.h
         android/qandroidaudioutil.cpp android/qandroidaudioutil_p.h
         android/qaaudiostream.cpp android/qaaudiostream_p.h
     LIBRARIES
-        OpenSLES
         aaudio
 )
 
