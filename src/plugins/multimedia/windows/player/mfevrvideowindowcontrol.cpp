@@ -5,6 +5,8 @@
 
 #include <qdebug.h>
 
+QT_BEGIN_NAMESPACE
+
 MFEvrVideoWindowControl::MFEvrVideoWindowControl(QVideoSink *parent)
     : EvrVideoWindowControl(parent)
     , m_currentActivate(NULL)
@@ -53,3 +55,5 @@ void MFEvrVideoWindowControl::releaseActivate()
 {
     clear();
 }
+
+QT_END_NAMESPACE
