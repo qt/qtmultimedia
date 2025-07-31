@@ -85,7 +85,7 @@ void QFFmpegVideoBuffer::initTextureConverter(QRhi &rhi)
     ensureTextureConverter(rhi);
 
     // the type is to be clarified in the method mapTextures
-    m_type = m_hwFrame && TextureConverter::isBackendAvailable(*m_hwFrame)
+    m_type = m_hwFrame && TextureConverter::isBackendAvailable(*m_hwFrame, rhi)
             ? QVideoFrame::RhiTextureHandle
             : QVideoFrame::NoHandle;
 }
