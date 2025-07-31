@@ -243,7 +243,6 @@ if (ANDROID)
             ${FFMPEG_DIR}/include
             ../android/wrappers/jni/
         LIBRARIES
-            OpenSLES
             mediandk
             android
     )
