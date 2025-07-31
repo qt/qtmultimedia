@@ -76,7 +76,6 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
         recordingengine/qffmpegvideoframeencoder.cpp
     NO_GENERATE_CPP_EXPORTS
     DEFINES
-        QT_COMPILING_FFMPEG
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
     PUBLIC_LIBRARIES
