@@ -129,15 +129,6 @@ QString tst_QAudioSource::formatToFileName(const QAudioFormat &format)
 
 void tst_QAudioSource::initTestCase()
 {
-#ifdef Q_OS_ANDROID
-    // The test might fail because libOpenSLES cannot create AudioRecorder for that emulator. The
-    // Android documentation states that the emulator doesn't support this at all all
-    // https://developer.android.com/media/platform/mediarecorder. However, in practice this test
-    // fails only prior to Android 10.
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < __ANDROID_API_Q__)
-        QSKIP("Emulated Android version doesn't support audio recording");
-#endif
-
     if (m_inCISystem)
         QSKIP("SKIP initTestCase on CI. To be fixed");
 
