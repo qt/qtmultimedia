@@ -33,7 +33,8 @@ template <typename Converter>
 using ConverterTypeIdentity = q20::type_identity<Converter>;
 
 template <typename ConverterTypeHandler>
-void applyConverterTypeByPixelFormat(AVPixelFormat fmt, ConverterTypeHandler &&handler)
+void applyConverterTypeByPixelFormat(AVPixelFormat fmt, const QRhi &rhi,
+                                     ConverterTypeHandler &&handler)
 {
     if (!TextureConverter::hwTextureConversionEnabled())
         return;
@@ -51,7 +52,8 @@ void applyConverterTypeByPixelFormat(AVPixelFormat fmt, ConverterTypeHandler &&h
 #endif
 #if QT_CONFIG(wmf)
     case AV_PIX_FMT_D3D11:
-        handler(ConverterTypeIdentity<D3D11TextureConverter>{});
+        if (rhi.backend() == QRhi::Implementation::D3D11)
+            handler(ConverterTypeIdentity<D3D11TextureConverter>{});
         break;
 #endif
 #ifdef Q_OS_ANDROID
@@ -61,6 +63,7 @@ void applyConverterTypeByPixelFormat(AVPixelFormat fmt, ConverterTypeHandler &&h
 #endif
     default:
         Q_UNUSED(handler)
+        Q_UNUSED(rhi)
         break;
     }
 }
@@ -105,7 +108,7 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
     m_backend = nullptr;
     m_format = fmt; // should be saved even if m_backend is not created
 
-    applyConverterTypeByPixelFormat(m_format, [this](auto converterTypeIdentity) {
+    applyConverterTypeByPixelFormat(m_format, m_rhi, [this](auto converterTypeIdentity) {
         using ConverterType = typename decltype(converterTypeIdentity)::type;
         m_backend = std::make_shared<ConverterType>(&m_rhi);
     });
@@ -140,10 +143,10 @@ void TextureConverter::applyDecoderPreset(const AVPixelFormat format, AVCodecCon
 #endif
 }
 
-bool TextureConverter::isBackendAvailable(AVFrame &hwFrame)
+bool TextureConverter::isBackendAvailable(AVFrame &hwFrame, const QRhi &rhi)
 {
     bool result = false;
-    applyConverterTypeByPixelFormat(AVPixelFormat(hwFrame.format), [&result](auto) {
+    applyConverterTypeByPixelFormat(AVPixelFormat(hwFrame.format), rhi, [&result](auto) {
         result = true;
     });
     return result;
