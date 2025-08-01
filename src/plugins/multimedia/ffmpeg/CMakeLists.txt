@@ -160,8 +160,10 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION WIN32
         qwincapturablewindows.cpp qwincapturablewindows_p.h
     LIBRARIES
         Qt::MultimediaPrivate
-        WMF::WMF
+        mf
+        mfplat
         mfreadwrite
+        mfuuid
 )
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_cpp_winrt
