@@ -58,7 +58,6 @@ qt_add_qmake_lib_dependency(gstreamer_gl_x11_1_0 gstreamer_1_0)
 qt_find_package(MMRendererCore PROVIDED_TARGETS MMRendererCore::MMRendererCore MODULE_NAME multimedia QMAKE_LIB mmrndcore)
 qt_find_package(MMRenderer PROVIDED_TARGETS MMRenderer::MMRenderer MODULE_NAME multimedia QMAKE_LIB mmrndclient)
 qt_find_package(WrapPulseAudio PROVIDED_TARGETS WrapPulseAudio::WrapPulseAudio MODULE_NAME multimedia QMAKE_LIB pulseaudio)
-qt_find_package(WMF PROVIDED_TARGETS WMF::WMF MODULE_NAME multimedia QMAKE_LIB wmf)
 if(TARGET EGL::EGL)
     qt_internal_disable_find_package_global_promotion(EGL::EGL)
 endif()
@@ -224,7 +223,7 @@ qt_feature("wasm" PRIVATE
 
 qt_feature("wmf" PRIVATE
     LABEL "Windows Media Foundation"
-    CONDITION WIN32 AND WMF_FOUND
+    CONDITION WIN32
 )
 
 qt_feature("spatialaudio" PRIVATE
