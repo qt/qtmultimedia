@@ -17,8 +17,6 @@
 #include "qffmpegconverter_p.h"
 
 #ifdef Q_OS_MACOS
-#include <VideoToolbox/VideoToolbox.h>
-
 #include <QtFFmpegMediaPluginImpl/private/qcgcapturablewindows_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qcgwindowcapture_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qavfscreencapture_p.h>
