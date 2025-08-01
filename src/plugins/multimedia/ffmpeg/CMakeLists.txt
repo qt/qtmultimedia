@@ -162,8 +162,6 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION WIN32
         qgdiwindowcapture.cpp qgdiwindowcapture_p.h
         qffmpegscreencapture_dxgi.cpp qffmpegscreencapture_dxgi_p.h
         qwincapturablewindows.cpp qwincapturablewindows_p.h
-    INCLUDE_DIRECTORIES
-        ../windows
     LIBRARIES
         Qt::MultimediaPrivate
         WMF::WMF
@@ -173,8 +171,6 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION WIN32
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_cpp_winrt
     SOURCES
         qffmpegwindowcapture_uwp.cpp qffmpegwindowcapture_uwp_p.h
-    INCLUDE_DIRECTORIES
-        ../windows
     LIBRARIES
         Dwmapi
         Dxva2
