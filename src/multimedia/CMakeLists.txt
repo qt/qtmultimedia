@@ -335,9 +335,18 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         windows/qwindowsaudioutils.cpp
     )
 
-# define INITGUID for unity builds to ensure guids are emitted in the translation units
-target_compile_definitions(Multimedia
-    PRIVATE $<$<BOOL:$<TARGET_PROPERTY:Multimedia,UNITY_BUILD>>:INITGUID>)
+set(source_with_init_guid
+    windows/qwindows_wasapi_warmup_client.cpp
+    windows/qwindowsmuldimediautils.cpp
+    windows/qwindowsvideodevices.cpp
+)
+if(MINGW)
+    # mingw's uuid.lib does not contain PKEY_Device_FriendlyName and friends
+    list(APPEND source_with_init_guid windows/qwindowsaudiodevices.cpp)
+endif()
+
+set_source_files_properties(${source_with_init_guid} PROPERTIES COMPILE_DEFINITIONS INITGUID)
+
 
 qt_internal_extend_target(Multimedia CONDITION WASM
     SOURCES

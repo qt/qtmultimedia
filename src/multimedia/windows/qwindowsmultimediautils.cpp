@@ -1,18 +1,11 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#if defined(WINVER) && WINVER < _WIN32_WINNT_WIN10
-#  undef WINVER
-#endif
-#if !defined(WINVER)
-#  define WINVER _WIN32_WINNT_WIN10  // Enables newer audio formats.
-#endif
+#include <QtCore/qt_windows.h>
+static_assert(WINVER >= _WIN32_WINNT_WIN10, "Win10 required for newer audio formats.");
 
 #include "qwindowsmultimediautils_p.h"
 
-#ifndef INITGUID
-#  include <initguid.h>
-#endif
 #include <mfapi.h>
 #include <mfidl.h>
 
