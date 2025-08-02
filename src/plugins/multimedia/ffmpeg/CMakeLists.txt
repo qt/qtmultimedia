@@ -79,9 +79,6 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
         QT_COMPILING_FFMPEG
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
-        QT_NO_CONTEXTLESS_CONNECT
-        QT_NO_QPAIR
-        QT_USE_NODISCARD_FILE_OPEN
     PUBLIC_LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
