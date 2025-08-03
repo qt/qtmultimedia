@@ -58,6 +58,14 @@ using AudioSinkCallbackType = std::function<void(QSpan<SampleType>)>;
 template <typename SampleType>
 using AudioSourceCallbackType = std::function<void(QSpan<const SampleType>)>;
 
+#if __cpp_lib_move_only_function
+template <typename SampleType>
+using AudioSinkMoveOnlyCallbackType = std::move_only_function<void(QSpan<SampleType>)>;
+
+template <typename SampleType>
+using AudioSourceMoveOnlyCallbackType = std::move_only_function<void(QSpan<const SampleType>)>;
+#endif
+
 template <typename>
 struct GetSampleTypeImpl;
 
@@ -98,6 +106,20 @@ struct GetSampleTypeImpl<AudioSourceCallbackType<T>> : GetSampleTypeImpl<T>
 {
 };
 
+#if __cpp_lib_move_only_function
+
+template <typename T>
+struct GetSampleTypeImpl<AudioSinkMoveOnlyCallbackType<T>> : GetSampleTypeImpl<T>
+{
+};
+
+template <typename T>
+struct GetSampleTypeImpl<AudioSourceMoveOnlyCallbackType<T>> : GetSampleTypeImpl<T>
+{
+};
+
+#endif
+
 template <typename SampleTypeOrCallbackType>
 using GetSampleType = typename GetSampleTypeImpl<SampleTypeOrCallbackType>::type;
 
@@ -107,12 +129,23 @@ static constexpr QAudioFormat::SampleFormat getSampleFormat()
     return GetSampleTypeImpl<SampleTypeOrCallbackType>::sample_format;
 }
 
+#if __cpp_lib_move_only_function
+using AudioSinkCallback =
+        std::variant<AudioSinkMoveOnlyCallbackType<float>, AudioSinkMoveOnlyCallbackType<uint8_t>,
+                     AudioSinkMoveOnlyCallbackType<int16_t>,
+                     AudioSinkMoveOnlyCallbackType<int32_t>>;
+using AudioSourceCallback = std::variant<
+        AudioSourceMoveOnlyCallbackType<float>, AudioSourceMoveOnlyCallbackType<uint8_t>,
+        AudioSourceMoveOnlyCallbackType<int16_t>, AudioSourceMoveOnlyCallbackType<int32_t>>;
+#else
 using AudioSinkCallback =
         std::variant<AudioSinkCallbackType<float>, AudioSinkCallbackType<uint8_t>,
                      AudioSinkCallbackType<int16_t>, AudioSinkCallbackType<int32_t>>;
 using AudioSourceCallback =
         std::variant<AudioSourceCallbackType<float>, AudioSourceCallbackType<uint8_t>,
                      AudioSourceCallbackType<int16_t>, AudioSourceCallbackType<int32_t>>;
+
+#endif
 
 template <typename AnyAudioCallback>
 constexpr bool validateAudioCallbackImpl(const AnyAudioCallback &audioCallback,
@@ -145,10 +178,10 @@ constexpr bool validateAudioCallback(const AudioSourceCallback &audioCallback,
 }
 
 template <bool IsSink>
-inline void runAudioCallback(
-        const std::conditional_t<IsSink, AudioSinkCallback, AudioSourceCallback> &audioCallback,
-        QSpan<std::conditional_t<IsSink, std::byte, const std::byte>> hostBuffer,
-        const QAudioFormat &format)
+inline void
+runAudioCallback(std::conditional_t<IsSink, AudioSinkCallback, AudioSourceCallback> &audioCallback,
+                 QSpan<std::conditional_t<IsSink, std::byte, const std::byte>> hostBuffer,
+                 const QAudioFormat &format)
 {
     Q_ASSERT(!hostBuffer.empty());
 
@@ -157,7 +190,7 @@ inline void runAudioCallback(
 
     int numberOfSamples = format.framesForBytes(hostBuffer.size()) * format.channelCount();
 
-    std::visit([&](const auto &callback) {
+    std::visit([&](auto &callback) {
         using FunctorType = std::decay_t<decltype(callback)>;
         Q_ASSERT(getSampleFormat<FunctorType>() == format.sampleFormat());
 
@@ -175,7 +208,7 @@ inline void runAudioCallback(
     }, audioCallback);
 }
 
-inline void runAudioCallback(const AudioSinkCallback &audioCallback, QSpan<std::byte> hostBuffer,
+inline void runAudioCallback(AudioSinkCallback &audioCallback, QSpan<std::byte> hostBuffer,
                              const QAudioFormat &format, float volume)
 {
     runAudioCallback<true>(audioCallback, hostBuffer, format);
@@ -185,9 +218,8 @@ inline void runAudioCallback(const AudioSinkCallback &audioCallback, QSpan<std::
 // NB: we we provide two overloads for running audio callbacks based on the host buffer:
 // * if the host buffer is immutable, we need to apply the volume on a temporary buffer
 // * if the host buffer is mutable, we can apply the volume in-place (currently unused)
-inline void runAudioCallback(const AudioSourceCallback &audioCallback,
-                             QSpan<const std::byte> hostBuffer, const QAudioFormat &format,
-                             float volume)
+inline void runAudioCallback(AudioSourceCallback &audioCallback, QSpan<const std::byte> hostBuffer,
+                             const QAudioFormat &format, float volume)
 {
     if (volume == 1.0f) {
         runAudioCallback<false>(audioCallback, hostBuffer, format);
@@ -220,7 +252,7 @@ inline void runAudioCallback(const AudioSourceCallback &audioCallback,
     }
 }
 
-inline void runAudioCallback(const AudioSourceCallback &audioCallback, QSpan<std::byte> hostBuffer,
+inline void runAudioCallback(AudioSourceCallback &audioCallback, QSpan<std::byte> hostBuffer,
                              const QAudioFormat &format, float volume)
 {
     QAudioHelperInternal::applyVolume(volume, format, hostBuffer, hostBuffer);
