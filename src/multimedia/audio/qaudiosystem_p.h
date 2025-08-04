@@ -28,7 +28,6 @@
 #include <QtCore/private/qglobal_p.h>
 
 #include <array>
-#include <functional>
 #include <variant>
 
 QT_BEGIN_NAMESPACE
@@ -38,6 +37,40 @@ class QAudioSink;
 class QAudioSource;
 
 namespace QtMultimediaPrivate {
+
+using QtAudioPrivate::AudioSinkCallbackType;
+using QtAudioPrivate::AudioSourceCallbackType;
+
+#if __cpp_lib_move_only_function
+
+template <typename SampleType>
+using AudioSinkMoveOnlyCallbackType = std::move_only_function<void(QSpan<SampleType>)>;
+
+template <typename SampleType>
+using AudioSourceMoveOnlyCallbackType = std::move_only_function<void(QSpan<const SampleType>)>;
+
+using AudioSinkMoveOnlyCallback =
+        std::variant<AudioSinkMoveOnlyCallbackType<float>, AudioSinkMoveOnlyCallbackType<uint8_t>,
+                     AudioSinkMoveOnlyCallbackType<int16_t>,
+                     AudioSinkMoveOnlyCallbackType<int32_t>>;
+
+using AudioSourceMoveOnlyCallback = std::variant<
+        AudioSourceMoveOnlyCallbackType<float>, AudioSourceMoveOnlyCallbackType<uint8_t>,
+        AudioSourceMoveOnlyCallbackType<int16_t>, AudioSourceMoveOnlyCallbackType<int32_t>>;
+
+template <typename V1, typename V2>
+struct variant_cat;
+
+template <typename... Ts1, typename... Ts2>
+struct variant_cat<std::variant<Ts1...>, std::variant<Ts2...>>
+{
+    using type = std::variant<Ts1..., Ts2...>;
+};
+
+template <typename V1, typename V2>
+using variant_cat_t = typename variant_cat<V1, V2>::type;
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -50,20 +83,6 @@ enum class AudioEndpointRole : uint8_t
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename SampleType>
-using AudioSinkCallbackType = std::function<void(QSpan<SampleType>)>;
-
-template <typename SampleType>
-using AudioSourceCallbackType = std::function<void(QSpan<const SampleType>)>;
-
-#if __cpp_lib_move_only_function
-template <typename SampleType>
-using AudioSinkMoveOnlyCallbackType = std::move_only_function<void(QSpan<SampleType>)>;
-
-template <typename SampleType>
-using AudioSourceMoveOnlyCallbackType = std::move_only_function<void(QSpan<const SampleType>)>;
-#endif
 
 template <typename>
 struct GetSampleTypeImpl;
@@ -130,21 +149,36 @@ static constexpr QAudioFormat::SampleFormat getSampleFormat()
 
 #if __cpp_lib_move_only_function
 using AudioSinkCallback =
-        std::variant<AudioSinkMoveOnlyCallbackType<float>, AudioSinkMoveOnlyCallbackType<uint8_t>,
-                     AudioSinkMoveOnlyCallbackType<int16_t>,
-                     AudioSinkMoveOnlyCallbackType<int32_t>>;
-using AudioSourceCallback = std::variant<
-        AudioSourceMoveOnlyCallbackType<float>, AudioSourceMoveOnlyCallbackType<uint8_t>,
-        AudioSourceMoveOnlyCallbackType<int16_t>, AudioSourceMoveOnlyCallbackType<int32_t>>;
-#else
-using AudioSinkCallback =
-        std::variant<AudioSinkCallbackType<float>, AudioSinkCallbackType<uint8_t>,
-                     AudioSinkCallbackType<int16_t>, AudioSinkCallbackType<int32_t>>;
+        variant_cat_t<QtAudioPrivate::AudioSinkCallback, AudioSinkMoveOnlyCallback>;
 using AudioSourceCallback =
-        std::variant<AudioSourceCallbackType<float>, AudioSourceCallbackType<uint8_t>,
-                     AudioSourceCallbackType<int16_t>, AudioSourceCallbackType<int32_t>>;
-
+        variant_cat_t<QtAudioPrivate::AudioSourceCallback, AudioSourceMoveOnlyCallback>;
+#else
+using AudioSinkCallback = QtAudioPrivate::AudioSinkCallback;
+using AudioSourceCallback = QtAudioPrivate::AudioSourceCallback;
 #endif
+
+template <typename Callback>
+inline AudioSinkCallback asAudioSinkCallback(Callback &&cb)
+{
+    if constexpr (std::is_same_v<Callback, AudioSinkCallback>) {
+        return std::forward<Callback>(cb);
+    } else {
+        return std::visit([](auto &&arg) -> AudioSinkCallback {
+            return arg;
+        }, std::forward<Callback>(cb));
+    }
+}
+template <typename Callback>
+inline AudioSourceCallback asAudioSourceCallback(Callback &&cb)
+{
+    if constexpr (std::is_same_v<Callback, AudioSourceCallback>) {
+        return std::forward<Callback>(cb);
+    } else {
+        return std::visit([](auto &&arg) -> AudioSourceCallback {
+            return arg;
+        }, std::forward<Callback>(cb));
+    }
+}
 
 template <typename AnyAudioCallback>
 constexpr bool validateAudioCallbackImpl(const AnyAudioCallback &audioCallback,

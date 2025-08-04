@@ -95,3 +95,14 @@ warninglimit = 0
 macro.ffmpegversion = "7.1.2"
 macro.ffmpegreponame = "ffmpeg"
 macro.androidndkversion = "26.1.10909125"
+
+macro.qtmmaudiocallbacksupportednote = "\\note This API is only available on platforms that support\
+    the callback API: Apple's CoreAudio (macOS, iOS, etc), Windows, Linux (using the PulseAudio or \
+    PipeWire backend) and Android."
+
+macro.qtmmaudiocallbacknote = "\\note The callback will be called on a soft-realtime audio thread. \
+    It is important to ensure that the callback does not block, as this can cause audio glitches or\
+    dropouts. This includes performing blocking IO, locking mutexes, allocating memories or any \
+    other operations that may block. For best practices consult Ross Bencina's article\
+    \\l{Real-time audio programming 101: time waits for nothing}. Also consider using clang's\
+    \\l{Realtime sanitizer} to validate the audio callback."

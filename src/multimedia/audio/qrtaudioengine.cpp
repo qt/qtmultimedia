@@ -132,12 +132,12 @@ QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &f
     // SoundEffect can prevent the stream from appear in an OS mixer
     platformSink->setRole(QtMultimediaPrivate::AudioEndpointRole::SoundEffect);
 
-    platformSink->start([this](QSpan<float> outputBuffer) {
+    m_sink.start([this](QSpan<float> outputBuffer) {
         audioCallback(outputBuffer);
     });
 
     // we start suspended
-    platformSink->suspend();
+    m_sink.suspend();
 }
 
 QRtAudioEngine::~QRtAudioEngine()

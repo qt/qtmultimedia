@@ -27,8 +27,8 @@ public Q_SLOTS:
 
 private:
     //! [Audio input class members]
-    QFile destinationFile;   // Class member
-    QAudioSource* audio; // Class member
+    QFile destinationFile; // Class member
+    QAudioSource* audio;   // Class member
     //! [Audio input class members]
 };
 
@@ -103,7 +103,7 @@ public Q_SLOTS:
 
 private:
     //! [Audio output class members]
-    QFile sourceFile;   // class member.
+    QFile sourceFile;  // class member.
     QAudioSink* audio; // class member.
     //! [Audio output class members]
 };
@@ -164,6 +164,116 @@ void AudioOutputExample::handleStateChanged(QtAudio::State newState)
     }
 }
 //! [Audio output state changed]
+
+class AudioOutputWithCallbackExample : public QObject
+{
+    Q_OBJECT
+public:
+    void setupPlaySine();
+
+private:
+    //! [Audio callback output class members]
+    QAudioSink* audio; // class member.
+    float phase;       // class member.
+    //! [Audio callback output class members]
+};
+
+
+void AudioOutputWithCallbackExample::setupPlaySine()
+//! [Audio callback output setup sine]
+{
+    QAudioFormat format;
+    // Set up the format, eg.
+    format.setSampleRate(44100);
+    format.setChannelCount(2);
+    format.setSampleFormat(QAudioFormat::Float);
+
+    QAudioDevice info(QMediaDevices::defaultAudioOutput());
+    if (!info.isFormatSupported(format)) {
+        qWarning() << "Raw audio format not supported by backend, cannot play audio.";
+        return;
+    }
+
+    audio = new QAudioSink(format, this);
+    float phaseIncrement = 2 * M_PI * 220.0 / format.sampleRate(); // 220 Hz sine wave
+    audio->start([&phase, phaseIncrement] (QSpan<float> interleavedAudioBuffer) {
+        // The audio callback should not call any functions that may potentially be blocking
+
+        // Fill the audio buffer with a sine wave
+        const int sampleCount = interleavedAudioBuffer.size() / 2; // Stereo, so divide by 2
+        for (int i = 0; i < sampleCount; ++i) {
+            float sample = std::sin(phase);
+            interleavedAudioBuffer[i * 2] = sample;     // Left channel
+            interleavedAudioBuffer[i * 2 + 1] = sample; // Right channel
+            phase += phaseIncrement;                    // Increment phase for next sample
+        }
+    });
+
+    if (!audio->error() == QtAudio::Error::NoError) {
+        // in addition to the other start() signatures, starting the audio callback will fail if
+        // * the backend does not implement callback-based IO (the API is available on all major
+        //   platforms)
+        // * the signature of the audio callback does not match format.sampleFormat()
+
+        qWarning() << "Error starting audio output:" << audio->errorString();
+    }
+}
+//! [Audio callback output setup sine]
+
+class AudioInputWithCallbackExample : public QObject
+{
+    Q_OBJECT
+public:
+    void setupPeakMeter();
+
+private:
+    //! [Audio callback capture class members]
+    QAudioSource* audio;          // class member.
+    std::atomic<float> peakLevel; // class member.
+    //! [Audio callback capture class members]
+};
+
+
+void AudioInputWithCallbackExample::setupPeakMeter()
+//! [Audio callback capture setup peak meter]
+{
+    QAudioFormat format;
+    // Set up the format, eg.
+    format.setSampleRate(44100);
+    format.setChannelCount(2);
+    format.setSampleFormat(QAudioFormat::Float);
+
+    QAudioDevice info(QMediaDevices::defaultAudioOutput());
+    if (!info.isFormatSupported(format)) {
+        qWarning() << "Raw audio format not supported by backend, cannot capture audio.";
+        return;
+    }
+
+    audio = new QAudioSource(format, this);
+    audio->start([&peakLevel] (QSpan<float> interleavedAudioBuffer) {
+        float level = peakLevel.load();
+
+        for (float sample : interleavedAudioBuffer) {
+            // Calculate the peak level from the audio samples
+            level = std::max(level, std::abs(sample));
+        }
+
+        peakLevel.store(level);
+        // Note: care needs to be taken if the application thread needs to be notified, as the
+        // audio callback should not use any potentially blocking system calls.
+        // Good options are autoreset events (windows), eventfd (linux) or kqueue/EVFILT_USER on macos.
+    });
+
+    if (!audio->error() == QtAudio::Error::NoError) {
+        // in addition to the other start() signatures, starting the audio callback will fail if
+        // * the backend does not implement callback-based IO (the API is available on all major
+        //   platforms)
+        // * the signature of the audio callback does not match format.sampleFormat()
+
+        qWarning() << "Error starting audio output:" << audio->errorString();
+    }
+}
+//! [Audio callback capture setup peak meter]
 
 void AudioDeviceInfo()
 {

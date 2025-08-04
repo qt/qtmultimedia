@@ -14,7 +14,8 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QAudioSource
-    \brief The QAudioSource class provides an interface for receiving audio data from an audio input device.
+    \brief The QAudioSource class provides an interface for receiving audio data from an audio input
+   device.
 
     \inmodule QtMultimedia
     \ingroup multimedia
@@ -27,7 +28,13 @@ QT_BEGIN_NAMESPACE
     QAudioFormat to be used for the recording (see the QAudioFormat
     class description for details).
 
-    To record to a file:
+    QAudioSink can be used in two different modes:
+    \list
+        \li Using a QIODevice from an application thread
+        \li Using a callback-based interface from the audio thread
+    \endlist
+
+    \section1 QIODevice interface
 
     QAudioSource lets you record audio with an audio input device. The
     default constructor of this class will use the systems default
@@ -53,10 +60,7 @@ QT_BEGIN_NAMESPACE
 
     At any point in time, QAudioSource will be in one of four states:
     active, suspended, stopped, or idle. These states are specified by
-    the QtAudio::State enum. You can request a state change directly through
-    suspend(), resume(), stop(), reset(), and start(). The current
-    state is reported by state(). QAudioSink will also signal you
-    when the state changes (stateChanged()).
+    the QtAudio::State enum.
 
     QAudioSource provides several ways of measuring the time that has
     passed since the start() of the recording. The \c processedUSecs()
@@ -65,11 +69,45 @@ QT_BEGIN_NAMESPACE
     The elapsedUSecs() function returns the time elapsed since start() was called regardless of
     which states the QAudioSource has been in.
 
-    If an error should occur, you can fetch its reason with error().
-    The possible error reasons are described by the QtAudio::Error
-    enum. The QAudioSource will enter the \l{QtAudio::}{StoppedState} when
-    an error is encountered. Connect to the stateChanged() signal to
-    handle the error:
+    \section2 Threading model and buffering
+
+    The QIODevice interface is designed to be used from the application thread.
+    A wait-free ringbuffer is used to communicate to the audio thread. The size
+    of this ringbuffer can be configured with setBufferSize() and defaults to
+    250ms. The state of this buffer can be queried with bytesFree(). If the
+    ringbuffer is full because the application does not read from the QIODevice in time,
+    the state will change to QtAudio::IdleState and resume to QtAudio::ActiveState
+    once the application has read data from the QIODevice. Note that this state change will drop
+    audio data, so you should always read from the QIODevice as fast as possible to avoid dropouts.
+
+    \section1 Callback interface
+
+    The preferred way to achieve low audio latencies is to use the callback based interface.
+    It allows you to read audio data directly from the audio device without having to go through
+    a QIODevice. This is done by calling start() with a callback function that will be called
+    from the audio thread. This callback function will be called with a QSpan<const SampleType>
+    whenever the audio backend produces data.
+
+    \snippet multimedia-snippets/audio.cpp Audio callback capture class members
+    \snippet multimedia-snippets/audio.cpp Audio callback capture setup peak meter
+
+    Unlike the QIODevice-based interface, the QAudioSource can only be in the states active,
+    suspendend and stopped. The setBufferSize() API is not available when using the callback,
+    the size of the callback argument is determined by the audio backend.
+
+    \qtmmaudiocallbacksupportednote
+    \qtmmaudiocallbacknote
+
+
+    \section1 State and error handling
+
+    State changes are reported through the stateChanged() signal.  You can request a state change
+    directly through suspend(), resume(), stop(), reset(), and start().
+
+    The QAudioSource will enter the \l{QtAudio::}{StoppedState} when an error is encountered.
+    The \l{QtAudio::Error}{error type} can be retrieved error() function. Please see the
+    QtAudio::Error enum for a description of the possible errors that are reported. Calling stop()
+    or reset() will reset the error state to \l{QtAudio::Error}{NoError}.
 
     \snippet multimedia-snippets/audio.cpp Audio input state changed
 
@@ -149,7 +187,7 @@ static bool validateFormatAtStart(QPlatformAudioSource *d)
     If a problem occurs during this process, error() returns QtAudio::OpenError,
     state() returns QtAudio::StoppedState and the stateChanged() signal is emitted.
 
-    \sa QIODevice
+    \sa QIODevice {QAudioSource#Callback interface}{QIODevice interface}
 */
 
 void QAudioSource::start(QIODevice* device)
@@ -187,7 +225,7 @@ void QAudioSource::start(QIODevice* device)
     If a problem occurs during this process, error() returns QtAudio::OpenError,
     state() returns QtAudio::StoppedState and the stateChanged() signal is emitted.
 
-    \sa QIODevice
+    \sa QIODevice {QAudioSource#Callback interface}{QIODevice interface}
 */
 
 QIODevice* QAudioSource::start()
@@ -202,6 +240,56 @@ QIODevice* QAudioSource::start()
 
     d->elapsedTime.start();
     return d->start();
+}
+
+/*!
+    \fn template <typename Callback, QtAudio::if_audio_source_callback<Callback> = true> void QAudioSource::start(Callback &&)
+
+    Starts the QAudioSource with a callback function that will be called on a soft-realtime audio
+    thread. The callback is a callable that takes a QSpan<const SampleType> as an argument,
+    SampleType has to match the QAudioFormat::SampleFormat of the QAudioSource's format. The span
+    contains the interleaved audio data.
+
+    If the QAudioSource is able to successfully start, error() returns QtAudio::NoError.
+
+    If a problem occurs during this process, error() returns QtAudio::OpenError, state() returns
+    QtAudio::StoppedState and the stateChanged() signal is emitted.
+
+    \qtmmaudiocallbacksupportednote
+    \qtmmaudiocallbacknote
+
+    \sa {QAudioSource#Callback interface}{Callback interface}
+    \since 6.11
+ */
+
+template <typename T>
+void QAudioSource::startImpl(T &&callback)
+{
+    if (!d)
+        return;
+
+    if (!d->hasCallbackAPI()) {
+        qWarning() << "QAudioSource::start: Callback API not supported on this platform";
+        d->setError(QAudio::OpenError);
+        return;
+    }
+
+    using namespace QtMultimediaPrivate;
+    if (!validateAudioCallback(callback, format())) {
+        d->setError(QAudio::OpenError);
+        return;
+    }
+
+    if (!validateFormatAtStart(d))
+        return;
+
+    d->elapsedTime.start();
+    d->start(std::forward<T>(callback));
+}
+
+void QAudioSource::startABIImpl(QtAudioPrivate::AudioSourceCallback &&callback)
+{
+    return QAudioSource::startImpl(QtMultimediaPrivate::asAudioSourceCallback(std::move(callback)));
 }
 
 /*!

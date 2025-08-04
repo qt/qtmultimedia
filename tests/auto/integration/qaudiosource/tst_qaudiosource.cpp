@@ -96,6 +96,7 @@ private slots:
 
     void callbackAPI();
     void callbackAPI_startFailsWithWrongType();
+    void callbackAPI_startWithMoveOnlyFunctor();
 
 private:
     using FilePtr = std::shared_ptr<QFile>;
@@ -1082,7 +1083,7 @@ void tst_QAudioSource::callbackAPI()
 
     QSemaphore sync;
 
-    platformSource->start([&](QSpan<const float> outputBuffer) {
+    audioSource.start([&](QSpan<const float> outputBuffer) {
         QCOMPARE_GT(outputBuffer.size(), 0);
         sync.release();
     });
@@ -1105,9 +1106,35 @@ void tst_QAudioSource::callbackAPI_startFailsWithWrongType()
     if (!platformSource->hasCallbackAPI())
         QSKIP("Callback API not supported by this backend");
 
-    platformSource->start([&](QSpan<const int32_t>) {
+    audioSource.start([&](QSpan<const int32_t>) {
     });
     QCOMPARE(audioSource.error(), QAudio::Error::OpenError);
+}
+
+void tst_QAudioSource::callbackAPI_startWithMoveOnlyFunctor()
+{
+#if QT_CONFIG(thread)
+    using namespace std::chrono_literals;
+
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleFormat(QAudioFormat::SampleFormat::Float);
+
+    QAudioSource audioSource(audioDevice, format);
+    QPlatformAudioSource *platformSource = QPlatformAudioSource::get(audioSource);
+    if (!platformSource->hasCallbackAPI())
+        QSKIP("Callback API not supported by this backend");
+
+    QSemaphore sync;
+
+    audioSource.start([&, dummy = std::make_unique<int>(1)](QSpan<const float> outputBuffer) {
+        QCOMPARE_GT(outputBuffer.size(), 0);
+        sync.release();
+    });
+    QCOMPARE(audioSource.error(), QAudio::Error::NoError);
+
+    bool callbackExecuted = sync.try_acquire_for(1s);
+    QVERIFY(callbackExecuted);
+#endif
 }
 
 QTEST_MAIN(tst_QAudioSource)

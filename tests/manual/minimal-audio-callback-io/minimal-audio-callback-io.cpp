@@ -296,7 +296,7 @@ int runCommand(const CLI::Input &input)
         });
     });
 
-    platformSource->start([&](QSpan<const float> output) mutable {
+    source.start([&](QSpan<const float> output) mutable {
         ringBuffer.write(output);
         bufferReadyEvent.set();
     });
@@ -325,7 +325,7 @@ int runCommand(const CLI::Output &output)
     platformSink->setHardwareBufferFrames(output.config.bufferSize);
 
     float phaseIncrement = 2 * M_PI * 220.f / format.sampleRate(); // 220 Hz tone
-    platformSink->start([&, phase = 0.f](QSpan<float> output) mutable {
+    sink.start([&, phase = 0.f](QSpan<float> output) mutable {
         int channels = format.channelCount();
 
         while (!output.isEmpty()) {

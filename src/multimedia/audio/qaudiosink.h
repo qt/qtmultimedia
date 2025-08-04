@@ -9,14 +9,11 @@
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 
-#include <QtMultimedia/qtaudio.h>
-#include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qaudiodevice.h>
-
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qtaudio.h>
 
 QT_BEGIN_NAMESPACE
-
-
 
 class QPlatformAudioSink;
 
@@ -35,6 +32,23 @@ public:
 
     void start(QIODevice *device);
     QIODevice* start();
+
+    template <typename Callback, QtAudio::if_audio_sink_callback<Callback> = true>
+    void start(Callback &&cb)
+    {
+        Q_ASSERT(QtAudioPrivate::isNonnullFunction(cb));
+
+        if constexpr (!std::is_copy_constructible_v<Callback>) {
+            // poor man's move-only function
+            using CallbackType = typename QtAudioPrivate::GetSampleType<Callback>::type;
+            auto callback = std::make_shared<Callback>(std::forward<Callback>(cb));
+            start([callback = std::move(callback)](QSpan<CallbackType> arg) {
+                (*callback)(arg);
+            });
+        } else {
+            startABIImpl(QtAudioPrivate::AudioSinkCallback(std::forward<Callback>(cb)));
+        }
+    }
 
     void stop();
     void reset();
@@ -68,6 +82,11 @@ Q_SIGNALS:
 #endif
 
 private:
+    template <typename T>
+    void startImpl(T &&callback);
+
+    void startABIImpl(QtAudioPrivate::AudioSinkCallback &&);
+
     Q_DISABLE_COPY(QAudioSink)
 
     friend class QPlatformAudioSink;

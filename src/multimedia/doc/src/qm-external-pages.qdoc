@@ -240,3 +240,13 @@
     \externalpage https://android-developers.googleblog.com/2025/05/prepare-play-apps-for-devices-with-16kb-page-size.html
     \title Google Play 16 KB page size compatibility requirement
 */
+
+/*!
+    \externalpage http://www.rossbencina.com/code/real-time-audio-programming-101-time-waits-for-nothing
+    \title Real-time audio programming 101: time waits for nothing
+*/
+
+/*!
+    \externalpage https://clang.llvm.org/docs/RealtimeSanitizer.html
+    \title Realtime sanitizer
+*/

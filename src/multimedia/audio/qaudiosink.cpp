@@ -28,7 +28,13 @@ QT_BEGIN_NAMESPACE
     the QAudioFormat to be used for the playback (see
     the QAudioFormat class description for details).
 
-    To play a file:
+    QAudioSink can be used in two different modes:
+    \list
+        \li Using a QIODevice from an application thread
+        \li Using a callback-based interface from the audio thread
+    \endlist
+
+    \section1 QIODevice interface
 
     Starting to play an audio stream is simply a matter of calling
     start() with a QIODevice. QAudioSink will then fetch the data it
@@ -50,16 +56,47 @@ QT_BEGIN_NAMESPACE
     At any given time, the QAudioSink will be in one of four states:
     active, suspended, stopped, or idle. These states are described
     by the QtAudio::State enum.
+
+    \section2 Threading model and buffering
+
+    The QIODevice interface is designed to be used from the application thread.
+    A wait-free ringbuffer is used to communicate to the audio thread. The size
+    of this ringbuffer can be configured with setBufferSize() and defaults to
+    250ms. The state of this buffer can be queried with bytesFree(). If the
+    ringbuffer runs out of data, the audio thread will send silence to the audio
+    device and the state will change to QtAudio::IdleState and resume to QtAudio::ActiveState
+    when more data is available from the QIODevice.
+
+    \section1 Callback interface
+
+    The preferred way to achieve low audio latency is to use the callback-based interface.
+    It allows you to write audio data directly to the audio device without having to go through
+    a QIODevice. This is done by calling start() with a callback function that will be called
+    from the audio thread. This callback function will be called with a QSpan<SampleType> whenever
+    the audio backend requires data.
+
+    \snippet multimedia-snippets/audio.cpp Audio callback output class members
+    \snippet multimedia-snippets/audio.cpp Audio callback output setup sine
+
+    Unlike the QIODevice-based interface, the QAudioSink can only be in the states active,
+    suspendend and stopped. The setBufferSize() API is not available when using the callback,
+    the size of the callback argument is determined by the audio backend.
+
+    \qtmmaudiocallbacksupportednote
+    \qtmmaudiocallbacknote
+
+    \section1 State and error handling
+
     State changes are reported through the stateChanged() signal. You
     can use this signal to, for instance, update the GUI of the
     application; the mundane example here being changing the state of
     a \c { play/pause } button. You request a state change directly
     with suspend(), stop(), reset(), resume(), and start().
 
-    If an error occurs, you can fetch the \l{QtAudio::Error}{error
-    type} with the error() function. Please see the QtAudio::Error enum
-    for a description of the possible errors that are reported. The QAudioSink
-    will enter the \l{QtAudio::}{StoppedState} when an error is encountered.
+    The QAudioSink will enter the \l{QtAudio::}{StoppedState} when an error is encountered.
+    The \l{QtAudio::Error}{error type} can be retrieved with the error() function. Please see the
+    QtAudio::Error enum for a description of the possible errors that are reported. Calling stop()
+    or reset() will reset the error state to \l{QtAudio::Error}{NoError}.
 
     You can check for errors by connecting to the stateChanged()
     signal:
@@ -151,7 +188,7 @@ static bool validateFormatAtStart(QPlatformAudioSink *d)
     If a problem occurs during this process, error() returns QtAudio::OpenError,
     state() returns QtAudio::StoppedState and the stateChanged() signal is emitted.
 
-    \sa QIODevice
+    \sa QIODevice, {QAudioSink#Callback interface}{QIODevice interface}
 */
 void QAudioSink::start(QIODevice* device)
 {
@@ -188,7 +225,7 @@ void QAudioSink::start(QIODevice* device)
     If a problem occurs during this process, error() returns QtAudio::OpenError,
     state() returns QtAudio::StoppedState and the stateChanged() signal is emitted.
 
-    \sa QIODevice
+    \sa QIODevice, {QAudioSink#Callback interface}{QIODevice interface}
 */
 QIODevice* QAudioSink::start()
 {
@@ -202,6 +239,56 @@ QIODevice* QAudioSink::start()
 
     d->elapsedTime.start();
     return d->start();
+}
+
+/*!
+    \fn template <typename Callback, QtAudio::if_audio_sink_callback<Callback> = true> void QAudioSink::start(Callback &&)
+
+    Starts the QAudioSink with a callback function that will be called on a soft-realtime audio
+    thread. The callback is a callable that takes a QSpan<SampleType> as an argument, SampleType has
+    to match the QAudioFormat::SampleFormat of the QAudioSink's format. The span needs to be filled
+    with interleaved audio data.
+
+    If the QAudioSink is able to successfully start, error() returns QtAudio::NoError.
+
+    If a problem occurs during this process, error() returns QtAudio::OpenError, state() returns
+    QtAudio::StoppedState and the stateChanged() signal is emitted.
+
+    \qtmmaudiocallbacksupportednote
+    \qtmmaudiocallbacknote
+
+    \sa {QAudioSink#Callback interface}{Callback interface}
+    \since 6.11
+*/
+
+template <typename T>
+void QAudioSink::startImpl(T &&callback)
+{
+    if (!d)
+        return;
+
+    if (!d->hasCallbackAPI()) {
+        qWarning() << "QAudioSink::start: Callback API not supported on this platform";
+        d->setError(QAudio::OpenError);
+        return;
+    }
+
+    using namespace QtMultimediaPrivate;
+    if (!validateAudioCallback(callback, format())) {
+        d->setError(QAudio::OpenError);
+        return;
+    }
+
+    if (!validateFormatAtStart(d))
+        return;
+
+    d->elapsedTime.start();
+    d->start(std::forward<T>(callback));
+}
+
+void QAudioSink::startABIImpl(QtAudioPrivate::AudioSinkCallback &&callback)
+{
+    return QAudioSink::startImpl(QtMultimediaPrivate::asAudioSinkCallback(std::move(callback)));
 }
 
 /*!

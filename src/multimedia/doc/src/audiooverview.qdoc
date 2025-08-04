@@ -87,7 +87,7 @@ You can adjust the:
 \endlist
 
 \target raw access
-\section2 Low Level Audio Playback and Recording
+\section2 Low Level Audio Input and Output
 
 The C++ API of Qt Multimedia offers classes for raw access to audio input and output
 facilities, allowing applications to receive raw data from devices like
@@ -99,17 +99,37 @@ The QAudioSink class offers raw audio data output, while QAudioSource
 offers raw audio data input. The available hardware
 determines what audio outputs and inputs are available.
 
-\section3 Push and Pull
+\section3 Push and Pull using QIODevice
 The low level audio classes can operate in two modes - \c push and \c pull.
 In \c pull mode, the audio device is started by giving it a QIODevice.  For
 an output device, the QAudioSink class will pull data from the QIODevice
-(using \l QIODevice::read()) when more audio data is required.  Conversely,
+(using \l QIODevice::read()) when more audio data is required. Conversely,
 for \c pull mode with QAudioSource, when audio data is available then the
 data will be written directly to the QIODevice.
 
 In \c push mode, the audio device provides a QIODevice instance that
-can be written or read to as needed. Typically, this results in simpler
-code but more buffering, which may affect latency.
+can be written or read to as needed.
+
+    \note The QIODevice does not immediately access the audio device, but
+          instead buffers the data internally. This means that the QIODevice
+          can be used to write or read data at any time from the application
+          thread and buffering of typically 250ms is added. If the application
+          is not delivering audio data to the QIODevice quickly enough (for QAudioSink)
+          or is not reading the QIODevice quickly enough, audio dropouts will occur.
+
+
+\section3 Callback-based Interface
+
+In addition to using a QIODevice based interface, the low level audio classes provide
+a callback-based interface that allows users to register a callback which is called
+on the audio thread whenever the audio device needs or delivers more data. This allows
+much lower latency audio processing, as the application can process the data directly
+on the audio thread.
+
+\snippet multimedia-snippets/audio.cpp Audio callback output setup sine
+
+\qtmmaudiocallbacksupportednote
+\qtmmaudiocallbacknote
 
 \section2 Decoding Compressed Audio to Memory
 

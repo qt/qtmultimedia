@@ -34,6 +34,23 @@ public:
     void start(QIODevice *device);
     QIODevice* start();
 
+    template <typename Callback, QtAudio::if_audio_source_callback<Callback> = true>
+    void start(Callback &&cb)
+    {
+        Q_ASSERT(QtAudioPrivate::isNonnullFunction(cb));
+
+        if constexpr (!std::is_copy_constructible_v<Callback>) {
+            // poor man's move-only function
+            using CallbackType = typename QtAudioPrivate::GetSampleType<Callback>::type;
+            auto callback = std::make_shared<Callback>(std::forward<Callback>(cb));
+            start([callback = std::move(callback)](QSpan<const CallbackType> arg) {
+                (*callback)(arg);
+            });
+        } else {
+            startABIImpl(QtAudioPrivate::AudioSourceCallback(std::forward<Callback>(cb)));
+        }
+    }
+
     void stop();
     void reset();
     void suspend();
@@ -66,6 +83,11 @@ Q_SIGNALS:
 #endif
 
 private:
+    template <typename T>
+    void startImpl(T &&);
+
+    void startABIImpl(QtAudioPrivate::AudioSourceCallback &&);
+
     Q_DISABLE_COPY(QAudioSource)
     friend class QPlatformAudioSource;
 

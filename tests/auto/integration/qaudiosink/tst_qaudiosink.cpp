@@ -1334,7 +1334,7 @@ void tst_QAudioSink::callbackAPI()
 
     QSemaphore sync;
 
-    platformSink->start([&](QSpan<float> outputBuffer) {
+    audioSink.start([&](QSpan<float> outputBuffer) {
         QCOMPARE_GT(outputBuffer.size(), 0);
         sync.release();
     });
@@ -1359,14 +1359,14 @@ void tst_QAudioSink::callbackAPI_startFailsWithWrongType()
     if (!platformSink->hasCallbackAPI())
         QSKIP("Callback API not supported by this backend");
 
-    platformSink->start([&](QSpan<int32_t>) {
+    audioSink.start([&](QSpan<int32_t>) {
     });
     QCOMPARE(audioSink.error(), QAudio::Error::OpenError);
 }
 
 void tst_QAudioSink::callbackAPI_startWithMoveOnlyFunctor()
 {
-#if QT_CONFIG(thread) && defined(__cpp_lib_move_only_function)
+#if QT_CONFIG(thread)
     using namespace std::chrono_literals;
 
     QAudioFormat format = audioDevice.preferredFormat();
@@ -1379,7 +1379,7 @@ void tst_QAudioSink::callbackAPI_startWithMoveOnlyFunctor()
 
     QSemaphore sync;
 
-    platformSink->start([&, dummy = std::make_unique<int>(1)](QSpan<float> outputBuffer) {
+    audioSink.start([&, dummy = std::make_unique<int>(1)](QSpan<float> outputBuffer) {
         QCOMPARE_GT(outputBuffer.size(), 0);
         sync.release();
     });
