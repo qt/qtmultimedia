@@ -93,7 +93,7 @@
     Furthermore, Qt Spatial Audio in Qt \QtVersion contains third party
     modules under the following permissive licenses:
 
-    \generatelist{groupsbymodule attributions-qtspatialaudio}
+    \annotatedlist attributions-qtspatialaudio
 
     \section1 Reference and Examples
     \list
