@@ -16,9 +16,11 @@ Camera {
     id: myCamera
     // Determines if we should clear all properties whenever we change the device.
     property bool clearPropertiesUponDeviceChange: false
+
     onActiveChanged: () => {
         console.log("Camera.onActiveChanged signal fired: " + active)
     }
+
     onCameraDeviceChanged: () => {
         console.log("Camera.onCameraDeviceChanged signal fired: " + cameraDevice)
         supportedFocusModes = allFocusModes.filter(item => isFocusModeSupported(item))
@@ -32,37 +34,47 @@ Camera {
             focusDistance = 1
         }
     }
+
     onErrorOccurred: (error, msg) => {
         console.log("Camera.errorOccurred signal fired: " + msg)
     }
+
     onCameraFormatChanged: () => {
         console.log("Camera.onCameraFormatChanged signal fired: " + cameraFormat)
     }
+
     onCustomFocusPointChanged: () => {
         console.log(
             "Camera.onCustomFocusPointChanged signal fired: " + customFocusPoint)
     }
+
     onFocusModeChanged: () => {
         console.log(
             "Camera.onFocusModeChanged signal fired: " + focusModeToString(focusMode))
     }
+
     onFocusDistanceChanged: () => {
         console.log(
             "Camera.onFocusDistanceChanged signal fired: " + focusDistance.toFixed(2))
     }
+
     onExposureModeChanged: () => {
         console.log(
             "Camera.onExposureModeChanged signal fired: " + exposureMode)
     }
+
     onExposureTimeChanged: () => {
         console.log(
             "Camera.onExposureTimeChanged signal fired: " + exposureTime)
     }
+
     onExposureCompensationChanged: () => {
         console.log(
             "Camera.onExposureCompensationChanged signal fired: " + exposureCompensation)
     }
+
     readonly property var allFocusModes: [Camera.FocusModeAuto, Camera.FocusModeManual]
+
     function focusModeToString(mode) {
         if (mode === Camera.FocusModeAuto)
             return "Auto"
@@ -71,11 +83,14 @@ Camera {
         return "unrecognized focus mode"
     }
     property var supportedFocusModes: allFocusModes.filter(item => isFocusModeSupported(item))
+
     property bool currentFocusModeIsSupported: isFocusModeSupported(focusMode)
+
     readonly property var allFlashModes: [
         Camera.FlashOff,
         Camera.FlashOn,
         Camera.FlashAuto]
+
     function flashModeToString(mode) {
         switch (mode) {
         case Camera.FlashOff: return "Off";
@@ -84,10 +99,15 @@ Camera {
         default: return "Unrecognized flash mode";
         }
     }
+
     property var supportedFlashModes: allFlashModes.filter(item => isFlashModeSupported(item))
+
     property bool currentFlashModeIsSupported: isFlashModeSupported(flashMode)
+
     readonly property var allTorchModes: [Camera.TorchOff, Camera.TorchOn, Camera.TorchAuto]
+
     property var supportedTorchModes: allTorchModes.filter(item => isTorchModeSupported(item))
+
     function torchModeToString(mode) {
         switch (mode) {
         case Camera.TorchOff: return "Off"
@@ -96,14 +116,17 @@ Camera {
         default: return "Unrecognized torch mode"
         }
     }
+
     readonly property var allFeatureFlags: [
         Camera.ColorTemperature,
         Camera.CustomFocusPoint,
         Camera.ExposureCompensation,
         Camera.FocusDistance,
     ]
+
     property var supportedFeaturesList: allFeatureFlags
         .filter(item => supportedFeatures & item)
+
     function featureFlagToString(flag) {
         switch (flag) {
         case Camera.ColorTemperature: return "ColorTemperature"
@@ -113,6 +136,7 @@ Camera {
         default: return "Unrecognized feature flag"
         }
     }
+
     function pixelFormatToString(input) {
         // TODO: PixelFormat enum is not exposed to QML
         switch (input) {
@@ -123,11 +147,13 @@ Camera {
         }
         return "Unrecognized pixel format (" + input + ")"
     }
+
     function isCameraFormatNull(format): boolean {
         // TODO: There is no QML equivalent of checking if a format is null or default-constructed..
         // This is a dirty workaround.
         return format.resolution.width <= 0
     }
+
     function cameraFormatToString(format) {
         if (isCameraFormatNull(format))
             return "null format"
@@ -142,6 +168,7 @@ Camera {
             + "-"
             + format.maxFrameRate.toFixed(0)
     }
+
     // Describes how we want to sort two given formats.
     function customCameraFormatSortDelegate(a, b) {
         if (a.resolution.width !== b.resolution.width) {

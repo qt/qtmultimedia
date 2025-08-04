@@ -8,10 +8,13 @@ import QtMultimedia
 // storing all media devices that have been connected so far.
 MediaDevices {
     id: mediaDevices
+
     // Holds all camera devices reported so far in the app session.
     // DeviceID -> { connected: bool, device: cameraDevice }
     readonly property var allCameraDevicesSoFarDict: privateAllCameraDevicesSoFarDict
+
     property var privateAllCameraDevicesSoFarDict: ({})
+
     // Takes a list<cameraDevice>
     function privateUpdateAllCameraDevicesSoFar(currentDevices) {
         // We need to do a deep copy and reassign the property in order to trigger
@@ -20,6 +23,7 @@ MediaDevices {
         for (let key in allCameraDevicesSoFarDict) {
             newDeviceDict[key] = allCameraDevicesSoFarDict[key];
         }
+
         for (let device of currentDevices) {
             // If not here, insert the object
             newDeviceDict[String(device.id)] = {
@@ -27,6 +31,7 @@ MediaDevices {
                 connected: true,
             };
         }
+
         // For any items in the Dict that are not in current devices, it means that device
         // is not connected.
         for (let deviceId in newDeviceDict) {
@@ -34,16 +39,21 @@ MediaDevices {
         }
         privateAllCameraDevicesSoFarDict = newDeviceDict;
     }
+
     onVideoInputsChanged: () => {
         privateUpdateAllCameraDevicesSoFar(videoInputs)
     }
+
     function isCameraDeviceConnected(cameraDeviceId): bool {
         return videoInputs.some(device => String(device.id) === String(cameraDeviceId))
     }
+
     // Holds all audio input devices reported so far in the app session.
     // DeviceID -> { connected: bool, device: audioDevice }
     readonly property var allAudioInputsSoFarDict: privateAllAudioInputsSoFarDict
+
     property var privateAllAudioInputsSoFarDict: ({})
+
     // Takes a list<audioDevice>
     function privateUpdateAllAudioInputsSoFar(currentDevices) {
         // We need to do a deep copy and reassign the property in order to trigger
@@ -66,16 +76,21 @@ MediaDevices {
         }
         privateAllAudioInputsSoFarDict = newDeviceDict;
     }
+
     onAudioInputsChanged: () => {
         privateUpdateAllAudioInputsSoFar(audioInputs)
     }
+
     function isAudioInputConnected(audioDeviceId): bool {
         return audioInputs.some(device => String(device.id) === String(audioDeviceId))
     }
+
     // Holds all audio output devices reported so far in the app session.
     // DeviceID -> { connected: bool, device: audioDevice }
     readonly property var allAudioOutputsSoFarDict: privateAllAudioOutputsSoFarDict
+
     property var privateAllAudioOutputsSoFarDict: ({})
+
     // Takes a list<audioDevice>
     function privateUpdateAllAudioOutputsSoFar(currentDevices) {
         // We need to do a deep copy and reassign the property in order to trigger
@@ -98,12 +113,15 @@ MediaDevices {
         }
         privateAllAudioOutputsSoFarDict = newDeviceDict;
     }
+
     onAudioOutputsChanged: () => {
         privateUpdateAllAudioOutputsSoFar(audioOutputs)
     }
+
     function isAudioOutputConnected(audioDeviceId): bool {
         return audioOutputs.some(device => String(device.id) === String(audioDeviceId))
     }
+
     Component.onCompleted: () => {
         privateUpdateAllCameraDevicesSoFar(videoInputs);
         privateUpdateAllAudioInputsSoFar(audioInputs);
