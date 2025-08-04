@@ -224,4 +224,19 @@ ColumnLayout {
             onClicked: imageCapture.fileFormat = undefined
         }
     }
+
+    RowLayout {
+        Label {
+            text: "Error: "
+                + top.camera.errorEnumToString(top.camera.error)
+                + " ("
+                + top.camera.error
+                + ")"
+        }
+    }
+    RowLayout {
+        Label {
+            text: "Error string: '" + top.camera.errorString + "'"
+        }
+    }
 }

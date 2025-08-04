@@ -179,4 +179,12 @@ Camera {
         }
         return 0;
     }
+
+    function errorEnumToString(errorEnum) {
+        switch (errorEnum) {
+        case Camera.NoError: return "NoError"
+        case Camera.CameraError: return "CameraError"
+        }
+        return "Unrecognized error enum"
+    }
 }
