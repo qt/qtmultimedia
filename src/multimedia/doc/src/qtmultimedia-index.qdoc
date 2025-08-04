@@ -180,7 +180,7 @@
     Furthermore, Qt Multimedia in Qt \QtVersion may contain third-party modules
     under the following permissive licenses:
 
-    \generatelist{groupsbymodule attributions-qtmultimedia}
+    \annotatedlist attributions-qtmultimedia
 
     Note that video compression standards, such as the H.264 media compression
     standard, may be covered by patents and can incur royalty fees. This can
