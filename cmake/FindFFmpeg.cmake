@@ -284,10 +284,12 @@ function(__ffmpeg_internal_set_dependencies _component)
 
         set(prefix_l "(^| )\\-l")
         set(suffix_lib "\\.lib($| )")
+        set(framework_regex "-framework [A-Za-z0-9_]*")
 
         string(REGEX REPLACE ".*Libs:([^\n\r]+).*" "\\1" out "${pcfile}")
         string(REGEX MATCHALL "${prefix_l}[^ ]+" libs_dependency ${out})
         string(REGEX MATCHALL "[^ ]+${suffix_lib}" libs_dependency_lib ${out})
+        string(REGEX MATCHALL "${framework_regex}" framework_dependencies ${out})
 
         foreach(dependency IN LISTS libs_dependency)
             string(REGEX REPLACE ${prefix_l} "" dependency ${dependency})
@@ -307,6 +309,10 @@ function(__ffmpeg_internal_set_dependencies _component)
         foreach(dependency IN LISTS libs_private_dependency)
             string(REGEX REPLACE ${prefix_l} "" dependency ${dependency})
             qt_internal_multimedia_try_add_dynamic_resolve_dependency(${_component} ${dependency})
+        endforeach()
+
+        foreach(dependency IN LISTS framework_dependencies)
+            target_link_libraries(FFmpeg::${lib} INTERFACE "${dependency}")
         endforeach()
     else()
         message(WARNING "FFmpeg pc file ${PC_FILE} is not found")
