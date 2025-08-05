@@ -78,6 +78,7 @@ public:
 #endif
 
     AVCaptureDevice *device() const;
+    [[nodiscard]] static AVCaptureDevice* tryGetAvCaptureDevice(const QCameraDevice &device);
 
 protected:
     // Called by setActive() when the active status is successfully changed.
