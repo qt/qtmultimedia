@@ -205,7 +205,7 @@ qt_feature("native_android_backend" PUBLIC PRIVATE
 qt_feature("native_windows_backend" PUBLIC PRIVATE
     LABEL "Native Windows backend (deprecated)"
     AUTODETECT true # It is still found and built by default
-    CONDITION QT_FEATURE_wmf
+    CONDITION WIN32
 )
 qt_feature("pulseaudio" PUBLIC PRIVATE
     LABEL "PulseAudio"
@@ -220,9 +220,8 @@ qt_feature("wasm" PRIVATE
     LABEL "Web Assembly"
     CONDITION WASM
 )
-
-qt_feature("wmf" PRIVATE
-    LABEL "Windows Media Foundation"
+qt_feature("wasapi" PRIVATE
+    LABEL "WASAPI (Windows Audio Session API)"
     CONDITION WIN32
 )
 
@@ -260,7 +259,7 @@ qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "coreaudio")
 qt_configure_add_summary_entry(ARGS "opensles")
 qt_configure_add_summary_entry(ARGS "wasm")
-qt_configure_add_summary_entry(ARGS "wmf")
+qt_configure_add_summary_entry(ARGS "wasapi")
 qt_configure_end_summary_section()
 qt_configure_add_summary_section(NAME "Plugin")
 qt_configure_add_summary_entry(ARGS "gstreamer")

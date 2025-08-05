@@ -352,7 +352,7 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         asound
 )
 
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
+qt_internal_extend_target(Multimedia CONDITION WIN32
     SOURCES
         windows/qcominitializer.cpp windows/qcominitializer_p.h
         windows/qcomtaskresource_p.h
