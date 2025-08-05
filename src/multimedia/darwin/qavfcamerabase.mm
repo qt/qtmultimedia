@@ -2,17 +2,19 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qavfcamerabase_p.h"
-#include <QtMultimedia/private/qavfcameradebug_p.h>
-#include <QtMultimedia/private/qavfcamerautility_p.h>
-#include <QtMultimedia/private/qavfhelpers_p.h>
-#include <QtMultimedia/private/qcameradevice_p.h>
-#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qpermissions.h>
 #include <QtCore/qset.h>
 #include <QtCore/qsystemdetection.h>
+#include <QtCore/private/qcore_mac_p.h>
+
+#include <QtMultimedia/private/qavfcameradebug_p.h>
+#include <QtMultimedia/private/qavfcamerautility_p.h>
+#include <QtMultimedia/private/qavfhelpers_p.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 QT_USE_NAMESPACE
 
@@ -167,14 +169,21 @@ bool QAVFCameraBase::setCameraFormat(const QCameraFormat &newFormat)
 
 AVCaptureDevice *QAVFCameraBase::device() const
 {
-    AVCaptureDevice *device = nullptr;
-    QByteArray deviceId = m_cameraDevice.id();
-    if (!deviceId.isEmpty()) {
-        device = [AVCaptureDevice deviceWithUniqueID:
-                    [NSString stringWithUTF8String:
-                        deviceId.constData()]];
-    }
-    return device;
+    return tryGetAvCaptureDevice(m_cameraDevice);
+}
+
+AVCaptureDevice *QAVFCameraBase::tryGetAvCaptureDevice(const QCameraDevice &device)
+{
+    QByteArray deviceId = device.id();
+    if (deviceId.isEmpty())
+        return nullptr;
+
+    QMacAutoReleasePool autoReleasePool;
+
+    NSString *nsString = [NSString stringWithUTF8String:deviceId.constData()];
+    if (nsString == nullptr)
+        return nullptr;
+    return [AVCaptureDevice deviceWithUniqueID:nsString];
 }
 
 namespace
