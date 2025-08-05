@@ -219,14 +219,21 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
 
     // Some gst elements, like v4l2h264dec, can provide Direct Memory Access buffers (DMA-BUF)
     // without specifying it in their caps. So we check the memory format manually:
-    QGstCaps::MemoryFormat bufferMemoryFormat = m_capsMemoryFormat;
-    if (m_capsMemoryFormat == QGstCaps::CpuMemory) {
-        GstMemory* mem = gst_buffer_peek_memory(buffer, 0);
+    QGstCaps::MemoryFormat bufferMemoryFormat = [&] {
+        if (m_capsMemoryFormat != QGstCaps::CpuMemory)
+            return m_capsMemoryFormat;
+
+        [[maybe_unused]] GstMemory *mem = gst_buffer_peek_memory(buffer, 0);
+#if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
         if (gst_is_dmabuf_memory(mem))
-            bufferMemoryFormat = QGstCaps::DMABuf;
-        else if (gst_is_gl_memory(mem))
-            bufferMemoryFormat = QGstCaps::GLTexture;
-    }
+            return QGstCaps::DMABuf;
+#endif
+#if QT_CONFIG(gstreamer_gl)
+        if (gst_is_gl_memory(mem))
+            return QGstCaps::GLTexture;
+#endif
+        return QGstCaps::CpuMemory;
+    }();
 
     RenderBufferState state{
         QGstBufferHandle{ buffer, QGstBufferHandle::NeedsRef },
