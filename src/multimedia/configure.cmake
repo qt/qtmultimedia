@@ -223,7 +223,10 @@ qt_feature("wasm" PRIVATE
     LABEL "Web Assembly"
     CONDITION WASM
 )
-
+qt_feature("wasapi" PRIVATE
+    LABEL "WASAPI (Windows Audio Session API)"
+    CONDITION WIN32
+)
 qt_feature("wmf" PRIVATE
     LABEL "Windows Media Foundation"
     CONDITION WIN32
@@ -254,6 +257,7 @@ qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "coreaudio")
 qt_configure_add_summary_entry(ARGS "opensles")
 qt_configure_add_summary_entry(ARGS "wasm")
+qt_configure_add_summary_entry(ARGS "wasapi")
 qt_configure_end_summary_section()
 qt_configure_add_summary_section(NAME "Plugin")
 qt_configure_add_summary_entry(ARGS "gstreamer")

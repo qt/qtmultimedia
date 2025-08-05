@@ -21,7 +21,7 @@
 #include <d3d11.h>
 #include <d3d11_1.h>
 
-#if QT_CONFIG(wmf)
+#ifdef Q_OS_WINDOWS
 
 QT_BEGIN_NAMESPACE
 
