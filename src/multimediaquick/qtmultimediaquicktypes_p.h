@@ -15,9 +15,25 @@
 // We mean it.
 //
 
-#include <QtQml/qqml.h>
-#include <QtMultimedia/QtMultimedia>
-#include <private/qtmultimediaquickglobal_p.h>
+#include <QtMultimediaQuick/private/qtmultimediaquickglobal_p.h>
+
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudioinput.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qcapturablewindow.h>
+#include <QtMultimedia/qimagecapture.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/qmediametadata.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qplaybackoptions.h>
+#include <QtMultimedia/qscreencapture.h>
+#include <QtMultimedia/qwindowcapture.h>
+
+#include <QtQml/qqmlregistration.h>
 
 QT_BEGIN_NAMESPACE
 
