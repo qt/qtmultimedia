@@ -176,6 +176,13 @@ protected:
 
     QThread *thread() const;
 
+    template <typename Functor>
+    void invokeOnAppThread(Functor &&f)
+    {
+        // note: this is not a QObject, so we use the first QObject member of the stream as context
+        QMetaObject::invokeMethod(&m_streamIdleDetectionNotifier, std::move(f));
+    }
+
 private:
     // qiodevice
     QIODevice *m_device = nullptr;
@@ -254,6 +261,13 @@ protected:
     }
 
     QThread *thread() const;
+
+    template <typename Functor>
+    void invokeOnAppThread(Functor &&f)
+    {
+        // note: this is not a QObject, so we use the first QObject member of the stream as context
+        QMetaObject::invokeMethod(&m_ringbufferHasData, std::forward<Functor>(f));
+    }
 
 private:
     // qiodevice
