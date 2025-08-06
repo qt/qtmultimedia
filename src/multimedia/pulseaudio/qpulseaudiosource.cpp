@@ -228,7 +228,7 @@ void QPulseAudioSourceStream::readCallbackRingbuffer([[maybe_unused]] size_t byt
     size_t nBytes{};
     int status = pa_stream_peek(m_stream.get(), &data, &nBytes);
     if (status < 0) {
-        QMetaObject::invokeMethod(m_parent, [this] {
+        invokeOnAppThread([this] {
             handleIOError(m_parent);
         });
         return;
@@ -246,7 +246,7 @@ void QPulseAudioSourceStream::readCallbackRingbuffer([[maybe_unused]] size_t byt
     status = pa_stream_drop(m_stream.get());
     if (status < 0) {
         if (!isStopRequested()) {
-            QMetaObject::invokeMethod(m_parent, [this] {
+            invokeOnAppThread([this] {
                 handleIOError(m_parent);
             });
         }
