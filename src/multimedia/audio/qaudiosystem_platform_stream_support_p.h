@@ -64,7 +64,7 @@ protected:
     Q_DISABLE_COPY_MOVE(QPlatformAudioIOStream)
 
     void setVolume(float);
-    float volume() const { return m_volume.load(std::memory_order_relaxed); };
+    float volume() const { return m_volume.load(std::memory_order_relaxed); }
 
     template <typename Functor>
     auto visitRingbuffer(Functor &&f)
@@ -157,9 +157,9 @@ protected:
     void stopIdleDetection();
 
     template <typename Functor>
-    auto connectIdleHandler(Functor f)
+    auto connectIdleHandler(Functor &&f)
     {
-        return m_streamIdleDetectionNotifier.callOnActivated(std::move(f));
+        return m_streamIdleDetectionNotifier.callOnActivated(std::forward<Functor>(f));
     }
 
     template <typename ParentType>
