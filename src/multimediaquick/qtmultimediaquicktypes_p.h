@@ -21,6 +21,8 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QtMultimediaPrivate {
+
 struct QMediaCaptureSessionForeign
 {
     Q_GADGET
@@ -214,6 +216,8 @@ namespace QPlaybackOptionsNamespaceForeign {
     QML_FOREIGN_NAMESPACE(QPlaybackOptions)
     QML_ADDED_IN_VERSION(6, 10)
 }
+
+} // namespace QtMultimediaPrivate
 
 QT_END_NAMESPACE
 
