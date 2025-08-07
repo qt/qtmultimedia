@@ -141,9 +141,16 @@ Camera {
         // TODO: PixelFormat enum is not exposed to QML
         switch (input) {
         case 13: return "YUV420P"
+        case 14: return "YUV422P"
+        case 15: return "YV12"
+        case 16: return "UYVY"
         case 17: return "YUYV"
         case 18: return "NV12"
         case 19: return "NV21"
+        case 26: return "P010"
+        case 27: return "P016"
+        case 29: return "Jpeg"
+        case 31: return "YUV420P10"
         }
         return "Unrecognized pixel format (" + input + ")"
     }
