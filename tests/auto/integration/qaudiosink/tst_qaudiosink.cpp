@@ -1277,10 +1277,6 @@ void tst_QAudioSink::callbackAPI_startFailsWithWrongType()
 
 void tst_QAudioSink::multipleSinks()
 {
-#ifdef Q_OS_MACOS
-    QSKIP("QTBUG-138952: Crashing on macOS");
-#endif
-
     QFETCH(QAudioDevice, firstSinkDevice);
     QFETCH(QAudioDevice, secondSinkDevice);
 
@@ -1319,10 +1315,6 @@ void tst_QAudioSink::multipleSinks()
 
 void tst_QAudioSink::start_afterStopAndReset()
 {
-#ifdef Q_OS_MACOS
-    QSKIP("QTBUG-138952: Crashing on macOS");
-#endif
-
     QFETCH(QAudioDevice, firstSinkDevice);
     QFETCH(QAudioDevice, secondSinkDevice);
 

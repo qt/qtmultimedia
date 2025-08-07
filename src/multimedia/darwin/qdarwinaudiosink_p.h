@@ -48,8 +48,8 @@ public:
     QIODevice *start();
     bool start(AudioCallback cb);
     void stop(ShutdownPolicy policy);
-    void stop();
-    void reset();
+    void stopStreamWhenBufferDrained();
+    void stopStream();
 
     void suspend();
     void resume();
@@ -83,9 +83,8 @@ private:
     bool m_audioUnitRunning{};
 
     QDarwinAudioSink *m_parent;
-    std::shared_ptr<QCoreAudioSinkStream> m_self;
 
-    AudioCallback m_audioCallback;
+    std::optional<AudioCallback> m_audioCallback;
 };
 
 class QDarwinAudioSink final
