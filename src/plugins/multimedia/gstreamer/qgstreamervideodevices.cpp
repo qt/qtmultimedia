@@ -6,6 +6,7 @@
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qset.h>
 #include <QtCore/private/quniquehandle_types_p.h>
 
 #include <common/qgst_p.h>
