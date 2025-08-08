@@ -15,11 +15,11 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
-
-#include <memory>
+#include <private/qaudio_platform_implementation_support_p.h>
 
 #include "qaaudiostream_p.h"
+
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
