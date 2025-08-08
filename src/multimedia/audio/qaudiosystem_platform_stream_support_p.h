@@ -180,7 +180,7 @@ protected:
     void invokeOnAppThread(Functor &&f)
     {
         // note: this is not a QObject, so we use the first QObject member of the stream as context
-        QMetaObject::invokeMethod(&m_streamIdleDetectionNotifier, std::move(f));
+        QMetaObject::invokeMethod(&m_streamIdleDetectionNotifier, std::forward<Functor>(f));
     }
 
 private:
