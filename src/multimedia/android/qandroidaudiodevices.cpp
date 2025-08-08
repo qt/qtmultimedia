@@ -2,17 +2,14 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qandroidaudiodevices_p.h"
-#include "qmediadevices.h"
-#include "private/qcameradevice_p.h"
 
-#include "qandroidaudiosource_p.h"
-#include "qandroidaudiosink_p.h"
 #include "qandroidaudiodevice_p.h"
-#include "private/qplatformmediaintegration_p.h"
+#include "qandroidaudiosink_p.h"
+#include "qandroidaudiosource_p.h"
 
-#include <qjnienvironment.h>
-#include <QJniObject>
-#include <QCoreApplication>
+#include <private/qplatformmediaintegration_p.h>
+
+#include <QtCore/qjniobject.h>
 
 QT_BEGIN_NAMESPACE
 

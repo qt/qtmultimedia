@@ -3,8 +3,9 @@
 
 #include "qandroidaudiodevice_p.h"
 
-#include <qaudioformat_p.h>
-#include <qjniobject.h>
+#include <private/qaudioformat_p.h>
+
+#include <QtCore/qjniobject.h>
 
 QT_BEGIN_NAMESPACE
 

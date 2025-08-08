@@ -16,7 +16,6 @@
 //
 
 #include <private/qplatformaudiodevices_p.h>
-#include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 

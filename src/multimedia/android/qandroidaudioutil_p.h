@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include "qaudiodevice.h"
-#include "qtmultimediaexports.h"
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qtmultimediaexports.h>
 
 QT_BEGIN_NAMESPACE
 

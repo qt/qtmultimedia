@@ -15,8 +15,9 @@
 // We mean it.
 //
 
-#include <aaudio/AAudio.h>
 #include <QtMultimedia/qaudioformat.h>
+
+#include <aaudio/AAudio.h>
 
 QT_BEGIN_NAMESPACE
 

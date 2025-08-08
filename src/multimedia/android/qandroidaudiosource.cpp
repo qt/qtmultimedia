@@ -5,8 +5,6 @@
 
 #include "qandroidaudioutil_p.h"
 
-#include <qassert.h>
-
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qpermissions.h>
 
