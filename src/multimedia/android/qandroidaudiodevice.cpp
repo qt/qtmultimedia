@@ -10,10 +10,13 @@
 QT_BEGIN_NAMESPACE
 
 QAndroidAudioDevice::QAndroidAudioDevice(QByteArray device, QString desc, QAudioDevice::Mode mode,
+                                         QAudioFormat format, bool isBluetoothDevice,
                                          bool isDefaultDevice)
-    : QAudioDevicePrivate(std::move(device), mode, std::move(desc))
+    : QAudioDevicePrivate(std::move(device), mode, std::move(desc)),
+      m_isBluetoothDevice(isBluetoothDevice)
 {
     isDefault = isDefaultDevice;
+    preferredFormat = format;
 
     // Report support for everything that Qt supports, as Android should be able to resample and
     // up/downmix if needed
@@ -25,24 +28,11 @@ QAndroidAudioDevice::QAndroidAudioDevice(QByteArray device, QString desc, QAudio
         QtMultimediaPrivate::allSupportedSampleFormats.begin(),
         QtMultimediaPrivate::allSupportedSampleFormats.end()
     };
+}
 
-    QJniObject deviceInfo = QJniObject::callStaticObjectMethod(
-            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
-            mode == QAudioDevice::Input ? "getInputDeviceInfo" : "getOutputDeviceInfo",
-            "(I)Landroid/media/AudioDeviceInfo;", QString::fromUtf8(id).toInt());
-
-    // Set preferred channel count based on what device reports, with default set to stereo
-    preferredFormat.setChannelCount(QJniObject::callStaticMethod<jint>(
-            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", "getClampedChannelCount",
-            "(Landroid/media/AudioDeviceInfo;I)I", deviceInfo, 2));
-
-    // Get optimal sample rate from AudioManager
-    preferredFormat.setSampleRate(QJniObject::callStaticMethod<jint>(
-            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", "getDefaultSampleRate",
-            "()I"));
-
-    preferredFormat.setSampleFormat(QAudioFormat::Float);
+bool QAndroidAudioDevice::isBluetoothDevice() const
+{
+    return m_isBluetoothDevice;
 }
 
 QT_END_NAMESPACE
-

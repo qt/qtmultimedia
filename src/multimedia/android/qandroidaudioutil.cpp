@@ -3,6 +3,8 @@
 
 #include "qandroidaudioutil_p.h"
 
+#include "qandroidaudiodevice_p.h"
+
 QT_BEGIN_NAMESPACE
 
 namespace QAndroidAudioUtil {
@@ -37,20 +39,9 @@ bool supportsLowLatency()
     return lowLatencyIsSupported;
 }
 
-bool isBluetoothDevice(const QAudioDevice &device)
+bool isDefaultBluetoothDevice(const QAudioDevice &device)
 {
-    // clang-format off
-    QJniObject deviceInfo = QJniObject::callStaticObjectMethod(
-            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
-            device.mode() == QAudioDevice::Input ? "getInputDeviceInfo" : "getOutputDeviceInfo",
-            "(I)Landroid/media/AudioDeviceInfo;",
-            QString::fromUtf8(device.id()).toInt());
-    return QJniObject::callStaticMethod<bool>(
-            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
-            "isBluetoothDevice",
-            "(Landroid/media/AudioDeviceInfo;)Z",
-            deviceInfo.object());
-    // clang-format on
+    return device.isDefault() && QAudioDevicePrivate::handle<QAndroidAudioDevice>(device)->isBluetoothDevice();
 }
 
 } // namespace QAndroidAudioUtil

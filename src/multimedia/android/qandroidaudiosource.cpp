@@ -29,7 +29,7 @@ QAndroidAudioSourceStream::QAndroidAudioSourceStream(QAudioDevice device,
                                    << ", description:" << m_audioDevice.description();
 
     // NOTE: Don't set device when creating a stream for the default bluetooth device
-    if (!m_audioDevice.isDefault() || !QAndroidAudioUtil::isBluetoothDevice(m_audioDevice))
+    if (!QAndroidAudioUtil::isDefaultBluetoothDevice(m_audioDevice))
         builder.deviceId = m_audioDevice.id().toInt();
 
     // Set buffer parameters

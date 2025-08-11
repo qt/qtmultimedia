@@ -25,8 +25,15 @@ public:
     QAndroidAudioDevice(QByteArray device,
                         QString desc,
                         QAudioDevice::Mode mode,
+                        QAudioFormat preferredFormat,
+                        bool isBluetoothDevice,
                         bool isDefaultDevice = false);
     ~QAndroidAudioDevice() {}
+
+    bool isBluetoothDevice() const;
+
+private:
+    bool m_isBluetoothDevice;
 };
 
 QT_END_NAMESPACE
