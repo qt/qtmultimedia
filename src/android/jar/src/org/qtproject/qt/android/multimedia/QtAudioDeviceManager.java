@@ -41,8 +41,6 @@ class QtAudioDeviceManager
     static private final int m_audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     static private final int m_bufferSize = AudioRecord.getMinBufferSize(m_sampleRate, m_channels, m_audioFormat);
     static private int m_currentOutputId = -1;
-    static private AudioDeviceInfo[] m_inputDevices = null;
-    static private AudioDeviceInfo[] m_outputDevices = null;
 
     static native void onAudioInputDevicesUpdated();
     static native void onAudioOutputDevicesUpdated();
@@ -82,45 +80,14 @@ class QtAudioDeviceManager
         m_audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
     }
 
-    static AudioDeviceInfo[] getUpdatedAudioOutputDevices()
+    static AudioDeviceInfo[] getAudioOutputDevices()
     {
         return getAudioDevices(AudioManager.GET_DEVICES_OUTPUTS);
     }
 
-    static AudioDeviceInfo[] getUpdatedAudioInputDevices()
+    static AudioDeviceInfo[] getAudioInputDevices()
     {
         return getAudioDevices(AudioManager.GET_DEVICES_INPUTS);
-    }
-
-    static AudioDeviceInfo getOutputDeviceInfo(int id)
-    {
-        for (AudioDeviceInfo device : m_audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) {
-            if (device.getId() == id)
-                return device;
-        }
-        return null;
-    }
-
-    static AudioDeviceInfo getInputDeviceInfo(int id)
-    {
-        for (AudioDeviceInfo device : m_audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)) {
-            if (device.getId() == id)
-                return device;
-        }
-        return null;
-    }
-
-    @UsedFromNativeCode
-    static int getClampedChannelCount(AudioDeviceInfo deviceInfo, int defaultValue)
-    {
-        Range<Integer> range = null;
-        for (int channelCount : deviceInfo.getChannelCounts()) {
-            if (range == null)
-                range = new Range<>(channelCount, channelCount);
-            else
-                range.extend(channelCount);
-        }
-        return range == null ? defaultValue : range.clamp(defaultValue);
     }
 
     @UsedFromNativeCode

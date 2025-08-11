@@ -15,42 +15,63 @@ QT_BEGIN_NAMESPACE
 
 Q_DECLARE_JNI_CLASS(QtAudioDeviceManager,
                     "org/qtproject/qt/android/multimedia/QtAudioDeviceManager");
+Q_DECLARE_JNI_CLASS(AudioDeviceInfo, "android/media/AudioDeviceInfo");
+
+using namespace QtJniTypes;
 
 namespace {
 
+QAudioFormat preferredFormatForDevice(const QtJniTypes::AudioDeviceInfo &deviceInfo)
+{
+    QAudioFormat preferredFormat;
+
+    // Set preferred channel count based on what device reports, with default set to stereo (2)
+    QJniArray<jint> channelCounts = deviceInfo.callMethod<QJniArray<jint>>("getChannelCounts");
+    if (channelCounts.isEmpty()) {
+        preferredFormat.setChannelCount(2);
+    } else {
+        const auto [minIt, maxIt] = std::minmax_element(channelCounts.begin(), channelCounts.end());
+        preferredFormat.setChannelCount(std::clamp(2, *minIt, *maxIt));
+    }
+
+    // Get optimal sample rate from AudioManager
+    preferredFormat.setSampleRate(
+            QtAudioDeviceManager::callStaticMethod<jint>("getDefaultSampleRate"));
+
+    // Using Float avoids conversions for processing, so we should prefer that instead of whatever
+    // the device uses natively
+    preferredFormat.setSampleFormat(QAudioFormat::Float);
+
+    return preferredFormat;
+};
+
 QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
 {
+    if (mode == QAudioDevice::Null)
+        return {};
+
     QList<QAudioDevice> devices;
-    QJniObject deviceInfos;
-    if (mode == QAudioDevice::Input) {
-        deviceInfos = QJniObject::callStaticObjectMethod(
-                "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", "getUpdatedAudioInputDevices",
-                "()[Landroid/media/AudioDeviceInfo;");
-    } else if (mode == QAudioDevice::Output) {
-        deviceInfos = QJniObject::callStaticObjectMethod(
-                "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", "getUpdatedAudioOutputDevices",
-                "()[Landroid/media/AudioDeviceInfo;");
+    const char *getMethod =
+            mode == QAudioDevice::Input ? "getAudioInputDevices" : "getAudioOutputDevices";
+    auto deviceInfos =
+            QtAudioDeviceManager::callStaticMethod<QJniArray<AudioDeviceInfo>>(getMethod);
+
+    if (!deviceInfos.isValid())
+        return {};
+
+    for (int i = 0; i < deviceInfos.size(); ++i) {
+        AudioDeviceInfo deviceInfo = deviceInfos.at(i);
+        int id = deviceInfo.callMethod<jint>("getId");
+        jint deviceType = deviceInfo.callMethod<jint>("getType");
+        auto description = QtAudioDeviceManager::callStaticMethod<QString>(
+                "audioDeviceTypeToString", deviceType);
+        bool isBluetoothDevice =
+                QtAudioDeviceManager::callStaticMethod<jboolean>("isBluetoothDevice", deviceInfo);
+        devices << QAudioDevicePrivate::createQAudioDevice(std::make_unique<QAndroidAudioDevice>(
+                QString::number(id).toUtf8(), description, mode,
+                preferredFormatForDevice(deviceInfo), isBluetoothDevice, i == 0));
     }
-    if (deviceInfos.isValid()) {
-        QJniEnvironment env;
-        jobjectArray deviceInfosArray = static_cast<jobjectArray>(deviceInfos.object());
-        const jint size = env->GetArrayLength(deviceInfosArray);
-        for (int i = 0; i < size; ++i) {
-            auto dev = env->GetObjectArrayElement(deviceInfosArray, i);
-            QJniObject deviceInfo(dev);
-            int id = deviceInfo.callMethod<jint>("getId", "()I");
-            jint deviceType = deviceInfo.callMethod<jint>("getType", "()I");
-            auto description =
-                    QJniObject::callStaticObjectMethod(
-                            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
-                            "audioDeviceTypeToString", "(I)Ljava/lang/String;", deviceType)
-                            .toString();
-            env->DeleteLocalRef(dev);
-            devices << QAudioDevicePrivate::createQAudioDevice(
-                    std::make_unique<QAndroidAudioDevice>(QString::number(id).toUtf8(), description,
-                                                          mode, i == 0));
-        }
-    }
+
     return devices;
 }
 
@@ -58,7 +79,7 @@ QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
 
 QAndroidAudioDevices::QAndroidAudioDevices() : QPlatformAudioDevices()
 {
-    QtJniTypes::QtAudioDeviceManager::callStaticMethod<void>("registerAudioHeadsetStateReceiver");
+    QtAudioDeviceManager::callStaticMethod<void>("registerAudioHeadsetStateReceiver");
 }
 
 QAndroidAudioDevices::~QAndroidAudioDevices()
@@ -66,7 +87,7 @@ QAndroidAudioDevices::~QAndroidAudioDevices()
     // Object of QAndroidAudioDevices type is static. Unregistering will happend only when closing
     // the application. In such case it is probably not needed, but let's leave it for
     // compatibility with Android documentation
-    QtJniTypes::QtAudioDeviceManager::callStaticMethod<void>("unregisterAudioHeadsetStateReceiver");
+    QtAudioDeviceManager::callStaticMethod<void>("unregisterAudioHeadsetStateReceiver");
 }
 
 QList<QAudioDevice> QAndroidAudioDevices::findAudioInputs() const
@@ -124,7 +145,7 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
         return JNI_ERR;
 
     const auto context = QNativeInterface::QAndroidApplication::context();
-    QtJniTypes::QtAudioDeviceManager::callStaticMethod<void>("setContext", context);
+    QtAudioDeviceManager::callStaticMethod<void>("setContext", context);
 
     const JNINativeMethod methods[] = {
         { "onAudioInputDevicesUpdated", "()V", (void *)onAudioInputDevicesUpdated },
