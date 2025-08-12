@@ -39,8 +39,8 @@ struct Stream
     void pause();
     void flush();
 
-    bool isOpen();
-    bool areStreamParametersRespected();
+    bool isOpen() const;
+    bool areStreamParametersRespected() const;
 
 private:
     void close();
