@@ -82,9 +82,6 @@ bool QAndroidAudioSinkStream::open()
         return false;
     }
 
-    if (!m_stream->areFormatParametersRespected())
-        qCritical() << "AAudio Stream opened for incorrect format";
-
     if (!m_stream->areStreamParametersRespected())
         qCWarning(qLcAndroidAudioSink) << "Stream parameters not correct";
 

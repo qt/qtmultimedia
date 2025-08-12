@@ -40,7 +40,6 @@ struct Stream
     void flush();
 
     bool isOpen();
-    bool areFormatParametersRespected();
     bool areStreamParametersRespected();
 
 private:
@@ -53,15 +52,7 @@ private:
 
     // stream members
     AAudioStream *m_stream{ nullptr };
-    bool m_areFormatParametersRespected{ false };
     bool m_areStreamParametersRespected{ false };
-};
-
-struct FormatParameterSet
-{
-    int32_t sampleRate{ AAUDIO_UNSPECIFIED };
-    int32_t channelCount{ AAUDIO_UNSPECIFIED };
-    aaudio_format_t sampleFormat{ AAUDIO_UNSPECIFIED };
 };
 
 struct StreamParameterSet
@@ -81,8 +72,6 @@ struct StreamBuilder
     ~StreamBuilder();
 
     Q_DISABLE_COPY_MOVE(StreamBuilder)
-
-    static FormatParameterSet parseFormat(const QAudioFormat &format);
 
     QAudioFormat format;
     AAudioStream_dataCallback callback;
