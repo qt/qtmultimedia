@@ -73,15 +73,6 @@ StreamBuilder::~StreamBuilder()
     AAudioStreamBuilder_delete(m_builder);
 }
 
-FormatParameterSet StreamBuilder::parseFormat(const QAudioFormat &format)
-{
-    FormatParameterSet set;
-    set.sampleRate = format.sampleRate();
-    set.sampleFormat = aaudioFormat(format.sampleFormat());
-    set.channelCount = format.channelCount();
-    return set;
-}
-
 void StreamBuilder::setupBuilder()
 {
     // Set device
@@ -146,10 +137,9 @@ Stream::Stream(const StreamBuilder &builder)
         return;
     }
 
-    if (AAudioStream_getSampleRate(m_stream) == builder.format.sampleRate()
-        && AAudioStream_getChannelCount(m_stream) == builder.format.channelCount()
-        && AAudioStream_getFormat(m_stream) == aaudioFormat(builder.format.sampleFormat()))
-        m_areFormatParametersRespected = true;
+    Q_ASSERT(AAudioStream_getSampleRate(m_stream) == builder.format.sampleRate()
+             && AAudioStream_getChannelCount(m_stream) == builder.format.channelCount()
+             && AAudioStream_getFormat(m_stream) == aaudioFormat(builder.format.sampleFormat()));
 
     StreamParameterSet defaultParams;
     if ((builder.params.sharingMode == defaultParams.sharingMode
@@ -200,11 +190,6 @@ void Stream::flush()
 bool Stream::isOpen()
 {
     return static_cast<bool>(m_stream);
-}
-
-bool Stream::areFormatParametersRespected()
-{
-    return m_areFormatParametersRespected;
 }
 
 bool Stream::areStreamParametersRespected()
