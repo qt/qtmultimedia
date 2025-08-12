@@ -187,12 +187,12 @@ void Stream::flush()
     requestWithExpectedState(AAudioStream_requestFlush, AAUDIO_STREAM_STATE_FLUSHED);
 }
 
-bool Stream::isOpen()
+bool Stream::isOpen() const
 {
     return static_cast<bool>(m_stream);
 }
 
-bool Stream::areStreamParametersRespected()
+bool Stream::areStreamParametersRespected() const
 {
     return m_areStreamParametersRespected;
 }
