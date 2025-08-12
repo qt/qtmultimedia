@@ -486,8 +486,7 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
 #endif
 #if QT_CONFIG(wmf)
     case AV_PIX_FMT_D3D11:
-        // Comment out to test CI
-        //if (d->rhi.backend() == QRhi::Implementation::D3D11)
+        if (d->rhi->backend() == QRhi::Implementation::D3D11)
             d->backend = std::make_unique<D3D11TextureConverter>(d->rhi);
         break;
 #endif
