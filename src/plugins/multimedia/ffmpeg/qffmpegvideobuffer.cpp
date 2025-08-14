@@ -98,8 +98,6 @@ QFFmpeg::TextureConverter &QFFmpegVideoBuffer::ensureTextureConverter(QRhi &rhi)
     TextureConverter *converter = frameContextData.textureConverterMapper.get(rhi);
 
     if (!converter) {
-        TextureConverter newConverter(rhi);
-
         bool added = false;
         std::tie(converter, added) =
                 frameContextData.textureConverterMapper.tryMap(rhi, TextureConverter(rhi));
