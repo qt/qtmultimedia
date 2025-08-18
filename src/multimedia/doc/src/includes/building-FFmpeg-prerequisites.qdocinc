@@ -135,7 +135,7 @@
     and use it to install the necessary libraries.
 
     \badcode
-        pacman -S --noconfirm make yasm
+        pacman -S --noconfirm make yasm diffutils
     \endcode
 
     Before building FFmpeg, MSYS2 must have a compiler in its \c PATH. This is done
