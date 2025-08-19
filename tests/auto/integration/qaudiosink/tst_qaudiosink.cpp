@@ -1255,6 +1255,8 @@ void tst_QAudioSink::callbackAPI()
 
     bool callbackExecuted = sync.try_acquire_for(1s);
     QVERIFY(callbackExecuted);
+#else
+    QSKIP("Threading not configured");
 #endif
 }
 
