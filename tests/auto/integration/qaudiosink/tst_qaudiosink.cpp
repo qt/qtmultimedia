@@ -1276,6 +1276,8 @@ void tst_QAudioSink::callbackAPI()
 
     bool callbackExecuted = sync.try_acquire_for(1s);
     QVERIFY(callbackExecuted);
+#else
+    QSKIP("Threading not configured");
 #endif
 }
 
@@ -1319,6 +1321,8 @@ void tst_QAudioSink::callbackAPI_startWithMoveOnlyFunctor()
 
     bool callbackExecuted = sync.try_acquire_for(1s);
     QVERIFY(callbackExecuted);
+#else
+    QSKIP("Threading not configured or move-only functions not available");
 #endif
 }
 
