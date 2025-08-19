@@ -91,10 +91,8 @@ void StreamBuilder::setupBuilder()
     AAudioStreamBuilder_setDataCallback(m_builder, callback, userData);
     AAudioStreamBuilder_setErrorCallback(m_builder, errorCallback, userData);
 
-    if (QAndroidAudioUtil::supportsLowLatency()) {
-        AAudioStreamBuilder_setPerformanceMode(m_builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-        setMMapPolicy(2); // Also set MMap policy to AUTO
-    }
+    AAudioStreamBuilder_setPerformanceMode(m_builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+    setMMapPolicy(2); // Also set MMap policy to AUTO
 
     // Set other parameters if not default
     StreamParameterSet defaultParams;
@@ -151,6 +149,9 @@ Stream::Stream(const StreamBuilder &builder)
         && (builder.params.outputContentType == defaultParams.outputContentType
             || AAudioStream_getContentType(m_stream) == builder.params.outputContentType))
         m_areStreamParametersRespected = true;
+
+    if (AAudioStream_getPerformanceMode(m_stream) != AAUDIO_PERFORMANCE_MODE_LOW_LATENCY)
+        qCWarning(qLcAAudioStream) << "Low latency performance mode not set";
 
     // Set buffer size
     auto burstSize = AAudioStream_getFramesPerBurst(m_stream);
