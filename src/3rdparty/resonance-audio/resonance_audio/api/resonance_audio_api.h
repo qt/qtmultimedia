@@ -130,7 +130,7 @@ class ResonanceAudioApi;
 // @param num_channels Number of channels of audio output.
 // @param frames_per_buffer Number of frames per buffer.
 // @param sample_rate_hz System sample rate.
-extern "C" EXPORT_API ResonanceAudioApi* CreateResonanceAudioApi(
+EXPORT_API ResonanceAudioApi* CreateResonanceAudioApi(
     size_t num_channels, size_t frames_per_buffer, int sample_rate_hz);
 
 // The ResonanceAudioApi library renders high-quality spatial audio. It provides

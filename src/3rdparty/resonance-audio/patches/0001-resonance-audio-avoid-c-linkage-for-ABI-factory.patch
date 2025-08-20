@@ -1,0 +1,39 @@
+From 9e425fdad55f372cdea2a2186281db03d584ef9b Mon Sep 17 00:00:00 2001
+From: Tim Blechmann <tim.blechmann@qt.io>
+Date: Wed, 20 Aug 2025 16:09:37 +0800
+Subject: [PATCH] resonance audio: avoid c linkage for ABI factory
+
+---
+ .../resonance-audio/resonance_audio/api/resonance_audio_api.cc  | 2 +-
+ .../resonance-audio/resonance_audio/api/resonance_audio_api.h   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/3rdparty/resonance-audio/resonance_audio/api/resonance_audio_api.cc b/src/3rdparty/resonance-audio/resonance_audio/api/resonance_audio_api.cc
+index d7b9ccfdd..633107951 100644
+--- a/src/3rdparty/resonance-audio/resonance_audio/api/resonance_audio_api.cc
++++ b/src/3rdparty/resonance-audio/resonance_audio/api/resonance_audio_api.cc
+@@ -21,7 +21,7 @@ limitations under the License.
+ 
+ namespace vraudio {
+ 
+-extern "C" EXPORT_API ResonanceAudioApi* CreateResonanceAudioApi(
++EXPORT_API ResonanceAudioApi* CreateResonanceAudioApi(
+     size_t num_channels, size_t frames_per_buffer, int sample_rate_hz) {
+   return new ResonanceAudioApiImpl(num_channels, frames_per_buffer,
+                                    sample_rate_hz);
+diff --git a/src/3rdparty/resonance-audio/resonance_audio/api/resonance_audio_api.h b/src/3rdparty/resonance-audio/resonance_audio/api/resonance_audio_api.h
+index f734dbee9..e3199925b 100644
+--- a/src/3rdparty/resonance-audio/resonance_audio/api/resonance_audio_api.h
++++ b/src/3rdparty/resonance-audio/resonance_audio/api/resonance_audio_api.h
+@@ -130,7 +130,7 @@ class ResonanceAudioApi;
+ // @param num_channels Number of channels of audio output.
+ // @param frames_per_buffer Number of frames per buffer.
+ // @param sample_rate_hz System sample rate.
+-extern "C" EXPORT_API ResonanceAudioApi* CreateResonanceAudioApi(
++EXPORT_API ResonanceAudioApi* CreateResonanceAudioApi(
+     size_t num_channels, size_t frames_per_buffer, int sample_rate_hz);
+ 
+ // The ResonanceAudioApi library renders high-quality spatial audio. It provides
+-- 
+2.50.1
+
