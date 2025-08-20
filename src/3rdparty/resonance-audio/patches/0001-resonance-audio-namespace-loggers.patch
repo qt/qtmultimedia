@@ -1,0 +1,33 @@
+From 61b4bffdb187574ef6ea2821456e1cbdca68ca4a Mon Sep 17 00:00:00 2001
+From: Tim Blechmann <tim.blechmann@qt.io>
+Date: Wed, 20 Aug 2025 16:04:25 +0800
+Subject: [PATCH] resonance audio: namespace loggers
+
+The loggers have not been namespaced, but they should.
+---
+ src/3rdparty/resonance-audio/resonance_audio/base/logging.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/3rdparty/resonance-audio/resonance_audio/base/logging.h b/src/3rdparty/resonance-audio/resonance_audio/base/logging.h
+index 63dd00431..5c5d48ed0 100644
+--- a/src/3rdparty/resonance-audio/resonance_audio/base/logging.h
++++ b/src/3rdparty/resonance-audio/resonance_audio/base/logging.h
+@@ -40,6 +40,8 @@ limitations under the License.
+ #undef CHECK_NOTNULL
+ #undef LOG
+ 
++namespace vraudio {
++
+ // This class is used to disable logging, while still allowing for log messages
+ // to contain '<<' expressions.
+ class NullLogger {
+@@ -105,4 +107,6 @@ T CheckNotNull(T&& t) {
+ 
+ #define LOG(severity) NullLogger().GetStream()
+ 
++} // namespace vraudio
++
+ #endif  // RESONANCE_AUDIO_PLATFORM_LOGGING_H_
+-- 
+2.50.1
+

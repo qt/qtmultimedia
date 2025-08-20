@@ -40,6 +40,8 @@ limitations under the License.
 #undef CHECK_NOTNULL
 #undef LOG
 
+namespace vraudio {
+
 // This class is used to disable logging, while still allowing for log messages
 // to contain '<<' expressions.
 class NullLogger {
@@ -104,5 +106,7 @@ T CheckNotNull(T&& t) {
 #define CHECK_NOTNULL(val) CheckNotNull(val)
 
 #define LOG(severity) NullLogger().GetStream()
+
+} // namespace vraudio
 
 #endif  // RESONANCE_AUDIO_PLATFORM_LOGGING_H_
