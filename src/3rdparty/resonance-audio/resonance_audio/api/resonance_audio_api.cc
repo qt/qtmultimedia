@@ -21,7 +21,7 @@ limitations under the License.
 
 namespace vraudio {
 
-extern "C" EXPORT_API ResonanceAudioApi* CreateResonanceAudioApi(
+EXPORT_API ResonanceAudioApi* CreateResonanceAudioApi(
     size_t num_channels, size_t frames_per_buffer, int sample_rate_hz) {
   return new ResonanceAudioApiImpl(num_channels, frames_per_buffer,
                                    sample_rate_hz);
