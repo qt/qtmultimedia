@@ -29,7 +29,7 @@ class AudioPullSource : public QIODevice
 {
 public:
     AudioPullSource(bool isContinuous = false)
-        : available(isContinuous ? std::numeric_limits<qint64>::max() : 0),
+        : available(isContinuous ? std::numeric_limits<int>::max() : 0),
           m_isContinuous(isContinuous)
     {
     }
