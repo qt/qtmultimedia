@@ -112,7 +112,7 @@ static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, const CVPixelBu
 @implementation QAVFSampleBufferDelegate {
 @private
     std::function<void(const QVideoFrame &)> frameHandler;
-    std::function<VideoTransformation()> transformationProvider;
+    QFFmpeg::QAVFSampleBufferDelegateTransformProvider transformationProvider;
     AVBufferRef *hwFramesContext;
     std::unique_ptr<QFFmpeg::HWAccel> m_accel;
     qint64 startTime;
@@ -165,7 +165,8 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
     return self;
 }
 
-- (void)setTransformationProvider:(std::function<VideoTransformation()>)provider
+- (void)setTransformationProvider:
+    (const QFFmpeg::QAVFSampleBufferDelegateTransformProvider &)provider
 {
     transformationProvider = std::move(provider);
 }
@@ -202,10 +203,12 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
         return;
     }
 
+    std::optional<QFFmpeg::QAVFSampleBufferDelegateTransform> transform;
     if (transformationProvider) {
-        const VideoTransformation transform = transformationProvider();
-        format.setRotation(transform.rotation);
-        format.setMirrored(transform.mirroredHorizontallyAfterRotation);
+        transform = transformationProvider();
+        const VideoTransformation &surfaceTransform = transform.value().surfaceTransform;
+        format.setRotation(surfaceTransform.rotation);
+        format.setMirrored(surfaceTransform.mirroredHorizontallyAfterRotation);
     }
 
     format.setStreamFrameRate(frameRate);
@@ -214,6 +217,12 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
     if (!frame.isValid())
         frame = QVideoFramePrivate::createFrame(std::make_unique<CVImageVideoBuffer>(imageBuffer),
                                                 std::move(format));
+
+    if (transform.has_value()) {
+        const VideoTransformation &presentationTransform = transform.value().presentationTransform;
+        frame.setRotation(presentationTransform.rotation);
+        frame.setMirrored(presentationTransform.mirroredHorizontallyAfterRotation);
+    }
 
     frame.setStartTime(startTime - *baseTime);
     frame.setEndTime(frameTime - *baseTime);
