@@ -32,6 +32,14 @@ class QAVSampleBufferDelegateFrameHandler;
 class QVideoFrame;
 namespace QFFmpeg {
 class HWAccel;
+
+struct QAVFSampleBufferDelegateTransform {
+    VideoTransformation surfaceTransform;
+    VideoTransformation presentationTransform;
+};
+
+using QAVFSampleBufferDelegateTransformProvider = std::function<QAVFSampleBufferDelegateTransform()>;
+
 }
 
 QT_END_NAMESPACE
@@ -49,7 +57,8 @@ QT_END_NAMESPACE
 
 // Allows the object to update the QVideoFrame metadata based on rotatation and mirroring.
 // This does NOT rotate the pixel buffer.
-- (void)setTransformationProvider:(std::function<VideoTransformation()>)provider;
+- (void)setTransformationProvider:
+    (const QT_PREPEND_NAMESPACE(QFFmpeg::QAVFSampleBufferDelegateTransformProvider) &)provider;
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
         didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer

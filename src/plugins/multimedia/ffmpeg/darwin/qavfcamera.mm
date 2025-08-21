@@ -24,19 +24,72 @@ QT_BEGIN_NAMESPACE
 
 using namespace QFFmpeg;
 
+namespace {
+
+[[nodiscard]] QAVFSampleBufferDelegateTransform surfaceTransform(
+    const QFFmpeg::AvfCameraRotationTracker *rotationTracker,
+    const AVCaptureOutput *avCaptureOutput)
+{
+    QAVFSampleBufferDelegateTransform transform = {};
+
+    int captureAngle = 0;
+
+    if (rotationTracker != nullptr) {
+        captureAngle = rotationTracker->rotationDegrees();
+
+        bool cameraIsFrontFacing =
+            rotationTracker->avCaptureDevice() != nullptr
+            && rotationTracker->avCaptureDevice().position == AVCaptureDevicePositionFront;
+        if (cameraIsFrontFacing)
+            transform.presentationTransform.mirroredHorizontallyAfterRotation = true;
+    }
+
+    // In some situations, AVFoundation can set the AVCaptureConnection.videoRotationAgngle
+    // implicity and start rotating the pixel buffer before handing it back
+    // to us. In this case we want to account for this during preview and capture.
+    //
+    // This code assumes that AVCaptureConnection.videoRotationAngle returns degrees
+    // that are divisible by 90. This has been the case during testing.
+    int connectionAngle = 0;
+    const AVCaptureConnection *connection = avCaptureOutput ?
+        [avCaptureOutput connectionWithMediaType:AVMediaTypeVideo] :
+        nullptr;
+    if (connection) {
+        if (@available(macOS 14.0, iOS 17.0, *))
+            connectionAngle = std::lround(connection.videoRotationAngle);
+
+        if (connection.videoMirrored)
+            transform.surfaceTransform.mirroredHorizontallyAfterRotation = true;
+    }
+
+    transform.surfaceTransform.rotation = qVideoRotationFromDegrees(captureAngle - connectionAngle);
+
+    return transform;
+}
+
+}
+
 QAVFCamera::QAVFCamera(QCamera *parent)
     : QAVFCameraBase(parent)
 {
     m_avCaptureSession = [[AVCaptureSession alloc] init];
 
     auto frameHandler = [this](QVideoFrame frame) {
-        frame.setMirrored(isFrontCamera()); // presentation mirroring
         emit newVideoFrame(frame);
     };
 
     m_qAvfSampleBufferDelegate = [[QAVFSampleBufferDelegate alloc] initWithFrameHandler:frameHandler];
 
-    [m_qAvfSampleBufferDelegate setTransformationProvider:[this] { return surfaceTransform(); }];
+    [m_qAvfSampleBufferDelegate setTransformationProvider:
+        [this]() {
+            const AvfCameraRotationTracker *rotationTracker = nullptr;
+            if (m_qAvfCameraRotationTracker.has_value())
+                rotationTracker = &m_qAvfCameraRotationTracker.value();
+
+            return surfaceTransform(
+                rotationTracker,
+                m_avCaptureVideoDataOutput);
+        }];
 
     // Configure video output
     m_avCaptureVideoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
@@ -300,47 +353,19 @@ QVideoFrameFormat QAVFCamera::frameFormat() const
 {
     QVideoFrameFormat result = QPlatformCamera::frameFormat();
 
-    const VideoTransformation transform = surfaceTransform();
-    result.setRotation(transform.rotation);
-    result.setMirrored(transform.mirroredHorizontallyAfterRotation);
+    const AvfCameraRotationTracker *rotationTracker = nullptr;
+    if (m_qAvfCameraRotationTracker.has_value())
+        rotationTracker = &m_qAvfCameraRotationTracker.value();
+
+    const QAVFSampleBufferDelegateTransform transform = surfaceTransform(
+        rotationTracker,
+        m_avCaptureVideoDataOutput);
+    result.setRotation(transform.surfaceTransform.rotation);
+    result.setMirrored(transform.surfaceTransform.mirroredHorizontallyAfterRotation);
 
     result.setColorRange(QAVFHelpers::colorRangeForCVPixelFormat(m_cvPixelFormat));
 
     return result;
-}
-
-VideoTransformation QAVFCamera::surfaceTransform() const
-{
-    VideoTransformation transform;
-
-    int captureAngle = getCurrentRotationAngleDegrees();
-
-    // In some situations, AVFoundation can set the AVCaptureConnection.videoRotationAgngle
-    // implicity and start rotating the pixel buffer before handing it back
-    // to us. In this case we want to account for this during preview and capture.
-    //
-    // This code assumes that AVCaptureConnection.videoRotationAngle returns degrees
-    // that are divisible by 90. This has been the case during testing.
-    int connectionAngle = 0;
-    const AVCaptureConnection *connection = m_avCaptureVideoDataOutput ?
-        [m_avCaptureVideoDataOutput connectionWithMediaType:AVMediaTypeVideo] :
-        nullptr;
-    if (connection) {
-        if (@available(macOS 14.0, iOS 17.0, *))
-            connectionAngle = static_cast<int>(std::round(connection.videoRotationAngle));
-
-        transform.mirroredHorizontallyAfterRotation = connection.videoMirrored;
-    }
-
-    transform.rotation = qVideoRotationFromDegrees(captureAngle - connectionAngle);
-
-    return transform;
-}
-
-bool QAVFCamera::isFrontCamera() const
-{
-    AVCaptureDevice *captureDevice = device();
-    return captureDevice && captureDevice.position == AVCaptureDevicePositionFront;
 }
 
 // Clears or sets up rotation tracking based on isActive()

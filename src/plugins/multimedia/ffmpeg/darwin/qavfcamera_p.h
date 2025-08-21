@@ -64,13 +64,10 @@ private:
     void refreshAvCaptureSessionInputDevice();
     void setPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat, uint32_t inputCvPixFormat);
     [[nodiscard]] QSize adjustedResolution(const QCameraFormat& format) const;
-    VideoTransformation surfaceTransform() const;
 
     void updateRotationTracking();
     void clearRotationTracking();
     int getCurrentRotationAngleDegrees() const;
-
-    bool isFrontCamera() const;
 
     QMediaCaptureSession *m_qMediaCaptureSession = nullptr;
     AVCaptureSession *m_avCaptureSession = nullptr;
