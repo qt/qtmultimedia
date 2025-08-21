@@ -154,7 +154,7 @@ void QAndroidAudioSinkStream::stop(ShutdownPolicy policy)
 
 void QAndroidAudioSinkStream::stop()
 {
-    if (isIdle())
+    if (isIdle() || m_audioCallback)
         return reset();
 
     stopIdleDetection();
