@@ -5,22 +5,21 @@ if(MINGW AND CMAKE_SIZEOF_VOID_P EQUAL 4)
     set(NO_SIMD_DEFINES PFFFT_SIMD_DISABLE DISABLE_SIMD)
 endif()
 
-set(PFFFT_DIR "../3rdparty/pffft/" CACHE PATH "Path to pffft library")
+set(PFFFT_DIR "../3rdparty/pffft/")
 set(PFFFT_INCLUDE_DIR ${PFFFT_DIR})
 set(PFFFT_SOURCE
         ${PFFFT_DIR}/pffft.c
         ${PFFFT_DIR}/pffft.h
         )
 
-set(SADIE_HRTFS_DIR "../3rdparty/resonance-audio/third_party/SADIE_hrtf_database/generated/" CACHE PATH "Path to SADIE_hrtf_database library")
+set(SADIE_HRTFS_DIR "../3rdparty/resonance-audio/third_party/SADIE_hrtf_database/generated/")
 set(SADIE_HRTFS_INCLUDE_DIR ${SADIE_HRTFS_DIR})
 set(SADIE_HRTFS_SOURCE
         ${SADIE_HRTFS_DIR}/hrtf_assets.cc
         ${SADIE_HRTFS_DIR}/hrtf_assets.h
         )
-add_library(SadieHrtfsObj OBJECT ${SADIE_HRTFS_SOURCE})
 
-set(RA_TOPLEVEL_DIR "../3rdparty/resonance-audio" CACHE PATH "Path to resonance audio top level dir")
+set(RA_TOPLEVEL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/resonance-audio")
 set(RA_SOURCE_DIR "${RA_TOPLEVEL_DIR}/resonance_audio")
 
 # Build Resonance Audio.
@@ -207,16 +206,22 @@ qt_internal_add_3rdparty_library(BundledResonanceAudio
         ${PFFFT_SOURCE}
         ${SADIE_HRTFS_SOURCE}
         resonance_audio.h resonance_audio.cpp
+    PUBLIC_INCLUDE_DIRECTORIES
+        $<BUILD_INTERFACE:${RA_TOPLEVEL_DIR}>
+        $<BUILD_INTERFACE:${RA_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/eigen>
     INCLUDE_DIRECTORIES
-        ${RA_TOPLEVEL_DIR}
-        ${RA_SOURCE_DIR}
         ${PFFFT_DIR}
         ${SADIE_HRTFS_DIR}
-        ../3rdparty/eigen
     ATTRIBUTION_FILE_DIR_PATHS
         ${RA_TOPLEVEL_DIR}
         ${PFFFT_DIR}
         ../3rdparty/eigen
+)
+
+set_target_properties(BundledResonanceAudio PROPERTIES
+    UNITY_BUILD ON
 )
 
 # Required by pffft on certain PowerPC archs
