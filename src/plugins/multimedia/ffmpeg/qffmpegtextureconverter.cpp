@@ -52,8 +52,10 @@ void applyConverterTypeByPixelFormat(AVPixelFormat fmt, const QRhi &rhi,
 #endif
 #ifdef Q_OS_WINDOWS
     case AV_PIX_FMT_D3D11:
-        if (rhi.backend() == QRhi::Implementation::D3D11)
-            handler(ConverterTypeIdentity<D3D11TextureConverter>{});
+        if (rhi.backend() == QRhi::Implementation::D3D11) {
+            if (rhi.driverInfo().deviceType != QRhiDriverInfo::CpuDevice)
+                handler(ConverterTypeIdentity<D3D11TextureConverter>{});
+        }
         break;
 #endif
 #ifdef Q_OS_ANDROID
