@@ -100,7 +100,7 @@ QSampleCache::SampleLoadResult QSampleCache::loadSample(QByteArray data)
     };
 }
 
-#if QT_CONFIG(thread) && QT_CONFIG(network)
+#if QT_CONFIG(network)
 
 namespace {
 
@@ -220,7 +220,9 @@ QFuture<QSampleCache::SampleLoadResult> QSampleCache::loadSampleAsync(const QUrl
         fulfilPromise(loadSample(std::move(data)));
         return future;
     }
+
 #if QT_CONFIG(network)
+
     QNetworkReply *reply = threadLocalNetworkAccessManager().get(QNetworkRequest(url));
 
     if (reply->error() != QNetworkReply::NoError) {

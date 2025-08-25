@@ -45,11 +45,6 @@ if(QNX AND CMAKE_SYSTEM_VERSION GREATER_EQUAL 800)
     return()
 endif()
 
-if(NOT QT_FEATURE_thread)
-    message(NOTICE "Skipping the build of QtMultimedia as it is not supported without threads")
-    return()
-endif()
-
 include(src/multimedia/Qt6MultimediaMacros.cmake)
 
 set(QT_BUILD_EXTRA_IDE_FILE_PATTERNS
