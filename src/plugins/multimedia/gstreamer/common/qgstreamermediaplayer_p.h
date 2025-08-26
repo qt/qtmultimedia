@@ -27,6 +27,7 @@
 #include <common/qgst_discoverer_p.h>
 #include <common/qgst_p.h>
 #include <common/qgstpipeline_p.h>
+#include <common/qgstreamervideosink_p.h>
 
 #include <gst/play/gstplay.h>
 
@@ -163,6 +164,8 @@ private:
     void updateVideoTrackEnabled();
     void updateAudioTrackEnabled();
     void updateSubtitleTrackEnabled();
+
+    QGstreamerRelayVideoSink *m_gstVideoSink = nullptr;
 };
 
 QT_END_NAMESPACE

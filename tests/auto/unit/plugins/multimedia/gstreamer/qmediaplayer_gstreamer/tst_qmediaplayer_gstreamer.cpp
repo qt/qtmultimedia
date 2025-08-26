@@ -95,6 +95,8 @@ void tst_QMediaPlayerGStreamer::videoSink_constructor_overridesConversionElement
         "identity name=myConverter",
     };
 
+    player.reset(new QMediaPlayer);
+
     QVideoSink sink;
     player->setVideoSink(&sink);
     player->setSource(QUrl("qrc:/testdata/color_matrix.mp4"));
@@ -117,6 +119,8 @@ void tst_QMediaPlayerGStreamer::
         "QT_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT",
         "identity name=myConverter ! identity name=myConverter2",
     };
+
+    player.reset(new QMediaPlayer);
 
     QVideoSink sink;
     player->setVideoSink(&sink);

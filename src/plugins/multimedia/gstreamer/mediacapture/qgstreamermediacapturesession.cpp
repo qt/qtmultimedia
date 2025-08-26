@@ -11,6 +11,8 @@
 #include <common/qgstreamervideooutput_p.h>
 #include <common/qgst_debug_p.h>
 
+#include <QtMultimedia/private/qthreadlocalrhi_p.h>
+
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/private/quniquehandle_p.h>
 
@@ -91,6 +93,13 @@ QGstreamerMediaCaptureSession::QGstreamerMediaCaptureSession(QGstreamerVideoOutp
       gstVideoOutput(videoOutput)
 {
     gstVideoOutput->setParent(this);
+
+    // NOTE: Creating a GStreamer video sink to be owned by the capture session, any sink created by
+    // user would be a pluggable sink connected to this
+    m_gstVideoSink = new QGstreamerRelayVideoSink(this);
+    m_gstVideoSink->setRhi(qEnsureThreadLocalRhi());
+    gstVideoOutput->setVideoSink(m_gstVideoSink);
+
     gstVideoOutput->setIsPreview();
 
     capturePipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
@@ -450,12 +459,16 @@ void QGstreamerMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
 
 void QGstreamerMediaCaptureSession::setVideoPreview(QVideoSink *sink)
 {
-    auto *gstSink = sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
-    if (gstSink)
-        gstSink->setAsync(false);
+    // Disconnect previous sink
+    m_gstVideoSink->disconnectPluggableVideoSink();
 
-    gstVideoOutput->setVideoSink(sink);
-    capturePipeline.dumpGraph("setVideoPreview");
+    if (!sink)
+        return;
+
+    // Connect pluggable sink to native sink
+    auto pluggableSink = dynamic_cast<QGstreamerPluggableVideoSink *>(sink->platformVideoSink());
+    Q_ASSERT(pluggableSink);
+    m_gstVideoSink->connectPluggableVideoSink(pluggableSink);
 }
 
 void QGstreamerMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
@@ -494,7 +507,7 @@ void QGstreamerMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
     }
 }
 
-QGstreamerVideoSink *QGstreamerMediaCaptureSession::gstreamerVideoSink() const
+QGstreamerRelayVideoSink *QGstreamerMediaCaptureSession::gstreamerVideoSink() const
 {
     return gstVideoOutput ? gstVideoOutput->gstreamerVideoSink() : nullptr;
 }

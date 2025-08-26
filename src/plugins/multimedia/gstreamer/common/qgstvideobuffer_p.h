@@ -23,13 +23,13 @@
 
 QT_BEGIN_NAMESPACE
 class QVideoFrameFormat;
-class QGstreamerVideoSink;
+class QGstreamerRelayVideoSink;
 class QOpenGLContext;
 
 class QGstVideoBuffer final : public QHwVideoBuffer
 {
 public:
-    QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &info, QGstreamerVideoSink *sink,
+    QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &info, QGstreamerRelayVideoSink *sink,
                     const QVideoFrameFormat &frameFormat, QGstCaps::MemoryFormat format);
     ~QGstVideoBuffer() override;
 

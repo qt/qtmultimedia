@@ -35,8 +35,27 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcGstVideoSink, "qt.multimedia.gstvideosink");
 
-QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
-    : QPlatformVideoSink{
+QGstreamerPluggableVideoSink::QGstreamerPluggableVideoSink(QVideoSink *parent)
+    : QPlatformVideoSink{ parent }
+{
+}
+
+void QGstreamerPluggableVideoSink::setRhi(QRhi *rhi)
+{
+    if (m_rhi == rhi)
+        return;
+
+    m_rhi = rhi;
+    emit rhiChanged();
+}
+
+QRhi* QGstreamerPluggableVideoSink::rhi() const
+{
+    return m_rhi;
+}
+
+QGstreamerRelayVideoSink::QGstreamerRelayVideoSink(QObject *parent)
+    : QObject{
           parent,
       },
       m_sinkBin{
@@ -121,14 +140,14 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     }
 }
 
-QGstreamerVideoSink::~QGstreamerVideoSink()
+QGstreamerRelayVideoSink::~QGstreamerRelayVideoSink()
 {
     emit aboutToBeDestroyed();
 
     unrefGstContexts();
 }
 
-QGstElement QGstreamerVideoSink::gstSink()
+QGstElement QGstreamerRelayVideoSink::gstSink()
 {
     if (!m_gstVideoSink) {
         if (!m_gstQtSink)
@@ -140,7 +159,7 @@ QGstElement QGstreamerVideoSink::gstSink()
     return m_sinkBin;
 }
 
-void QGstreamerVideoSink::setActive(bool isActive)
+void QGstreamerRelayVideoSink::setActive(bool isActive)
 {
     if (m_isActive == isActive)
         return;
@@ -150,12 +169,12 @@ void QGstreamerVideoSink::setActive(bool isActive)
         m_gstQtSink.setActive(isActive);
 }
 
-void QGstreamerVideoSink::setAsync(bool isAsync)
+void QGstreamerRelayVideoSink::setAsync(bool isAsync)
 {
     m_sinkIsAsync = isAsync;
 }
 
-void QGstreamerVideoSink::setRhi(QRhi *rhi)
+void QGstreamerRelayVideoSink::setRhi(QRhi *rhi)
 {
     if (rhi && rhi->backend() != QRhi::OpenGLES2)
         rhi = nullptr;
@@ -163,7 +182,7 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
         return;
 
     m_rhi = rhi;
-    updateGstContexts();
+    updateGstContexts(m_rhi);
     if (m_gstQtSink) {
         QGstVideoRendererSinkElement oldSink = std::move(m_gstQtSink);
 
@@ -173,7 +192,56 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
     }
 }
 
-void QGstreamerVideoSink::createQtSink()
+void QGstreamerRelayVideoSink::connectPluggableVideoSink(QGstreamerPluggableVideoSink *pluggableSink)
+{
+    Q_ASSERT(pluggableSink);
+    m_pluggableVideoSink = pluggableSink;
+    m_pluggableVideoSink->setVideoFrame(m_currentVideoFrame);
+    m_pluggableVideoSink->setSubtitleText(m_currentSubtitleText);
+    m_pluggableVideoSink->setNativeSize(m_currentNativeSize);
+    connect(this, &QGstreamerRelayVideoSink::videoFrameChanged,
+            m_pluggableVideoSink, &QPlatformVideoSink::setVideoFrame);
+    connect(this, &QGstreamerRelayVideoSink::subtitleTextChanged,
+            m_pluggableVideoSink, &QPlatformVideoSink::setSubtitleText);
+    connect(this, &QGstreamerRelayVideoSink::nativeSizeChanged,
+            m_pluggableVideoSink, &QPlatformVideoSink::setNativeSize);
+
+    // Update pipeline contexts using the rendering rhi
+    updateGstContexts(m_pluggableVideoSink->rhi());
+}
+
+void QGstreamerRelayVideoSink::disconnectPluggableVideoSink()
+{
+    if (m_pluggableVideoSink) {
+        disconnect(this, &QGstreamerRelayVideoSink::videoFrameChanged,
+                   m_pluggableVideoSink, &QPlatformVideoSink::setVideoFrame);
+        disconnect(this, &QGstreamerRelayVideoSink::subtitleTextChanged,
+                   m_pluggableVideoSink, &QPlatformVideoSink::setSubtitleText);
+        disconnect(this, &QGstreamerRelayVideoSink::nativeSizeChanged,
+                   m_pluggableVideoSink, &QPlatformVideoSink::setNativeSize);
+        m_pluggableVideoSink = nullptr;
+    }
+}
+
+void QGstreamerRelayVideoSink::setVideoFrame(const QVideoFrame &frame)
+{
+    emit videoFrameChanged(frame);
+    m_currentVideoFrame = frame;
+}
+
+void QGstreamerRelayVideoSink::setSubtitleText(const QString &subtitleText)
+{
+    emit subtitleTextChanged(subtitleText);
+    m_currentSubtitleText = subtitleText;
+}
+
+void QGstreamerRelayVideoSink::setNativeSize(QSize size)
+{
+    emit nativeSizeChanged(size);
+    m_currentNativeSize = size;
+}
+
+void QGstreamerRelayVideoSink::createQtSink()
 {
     Q_ASSERT(!m_gstQtSink);
 
@@ -183,7 +251,7 @@ void QGstreamerVideoSink::createQtSink()
     m_gstQtSink.setActive(m_isActive);
 }
 
-void QGstreamerVideoSink::updateSinkElement(QGstVideoRendererSinkElement newSink)
+void QGstreamerRelayVideoSink::updateSinkElement(QGstVideoRendererSinkElement newSink)
 {
     if (newSink == m_gstVideoSink)
         return;
@@ -203,7 +271,7 @@ void QGstreamerVideoSink::updateSinkElement(QGstVideoRendererSinkElement newSink
     m_sinkBin.dumpPipelineGraph("updateSinkElement");
 }
 
-void QGstreamerVideoSink::unrefGstContexts()
+void QGstreamerRelayVideoSink::unrefGstContexts()
 {
     m_gstGlDisplayContext.reset();
     m_gstGlLocalContext.reset();
@@ -211,17 +279,17 @@ void QGstreamerVideoSink::unrefGstContexts()
     m_eglImageTargetTexture2D = nullptr;
 }
 
-void QGstreamerVideoSink::updateGstContexts()
+void QGstreamerRelayVideoSink::updateGstContexts(QRhi *rhi)
 {
     using namespace Qt::Literals;
 
     unrefGstContexts();
 
 #if QT_CONFIG(gstreamer_gl)
-    if (!m_rhi || m_rhi->backend() != QRhi::OpenGLES2)
+    if (!rhi || rhi->backend() != QRhi::OpenGLES2)
         return;
 
-    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(m_rhi->nativeHandles());
+    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
     auto glContext = nativeHandles->context;
     Q_ASSERT(glContext);
 

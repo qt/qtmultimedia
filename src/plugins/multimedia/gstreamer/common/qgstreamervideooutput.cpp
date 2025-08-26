@@ -77,23 +77,22 @@ QGstreamerVideoOutput::~QGstreamerVideoOutput()
     m_outputBin.setStateSync(GST_STATE_NULL);
 }
 
-void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
+void QGstreamerVideoOutput::setVideoSink(QGstreamerRelayVideoSink *sink)
 {
     using namespace std::chrono_literals;
 
-    auto *gstSink = sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
-    if (gstSink == m_platformVideoSink)
+    if (sink == m_gstVideoSink)
         return;
 
-    m_platformVideoSink = gstSink;
-    if (m_platformVideoSink) {
-        m_platformVideoSink->setActive(m_isActive);
+    m_gstVideoSink = sink;
+    if (m_gstVideoSink) {
+        m_gstVideoSink->setActive(m_isActive);
         if (m_nativeSize.isValid())
-            m_platformVideoSink->setNativeSize(m_nativeSize);
+            m_gstVideoSink->setNativeSize(m_nativeSize);
     }
     QGstElement videoSink;
-    if (m_platformVideoSink) {
-        videoSink = m_platformVideoSink->gstSink();
+    if (m_gstVideoSink) {
+        videoSink = m_gstVideoSink->gstSink();
     } else {
         videoSink = QGstElement::createFromFactory("fakesink", "fakevideosink");
         Q_ASSERT(videoSink);
@@ -136,16 +135,16 @@ void QGstreamerVideoOutput::setActive(bool isActive)
         return;
 
     m_isActive = isActive;
-    if (m_platformVideoSink)
-        m_platformVideoSink->setActive(isActive);
+    if (m_gstVideoSink)
+        m_gstVideoSink->setActive(isActive);
 }
 
 void QGstreamerVideoOutput::updateNativeSize()
 {
-    if (!m_platformVideoSink)
+    if (!m_gstVideoSink)
         return;
 
-    m_platformVideoSink->setNativeSize(qRotatedFrameSize(m_nativeSize, m_rotation));
+    m_gstVideoSink->setNativeSize(qRotatedFrameSize(m_nativeSize, m_rotation));
 }
 
 void QGstreamerVideoOutput::setIsPreview()

@@ -69,7 +69,7 @@ Q_STATIC_LOGGING_CATEGORY(qLcGstVideoBuffer, "qt.multimedia.gstreamer.videobuffe
 #define DRM_FORMAT_YUV444       fourcc_code('Y', 'U', '2', '4') /* non-subsampled Cb (1) and Cr (2) planes */
 
 QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &info,
-                                 QGstreamerVideoSink *sink, const QVideoFrameFormat &frameFormat,
+                                 QGstreamerRelayVideoSink *sink, const QVideoFrameFormat &frameFormat,
                                  QGstCaps::MemoryFormat memoryFormat)
     : QHwVideoBuffer((sink && sink->rhi() && memoryFormat != QGstCaps::CpuMemory)
                              ? QVideoFrame::RhiTextureHandle
@@ -353,6 +353,7 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
     Q_ASSERT(eglDisplay);
     Q_ASSERT(eglImageTargetTexture2D);
     Q_ASSERT(QGuiApplication::platformName() == QLatin1String("eglfs"));
+    Q_ASSERT(rhi);
 
     auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
     auto glContext = nativeHandles->context;

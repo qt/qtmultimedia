@@ -23,15 +23,30 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoSink : public QPlatformVideoSink
+class QGstreamerPluggableVideoSink : public QPlatformVideoSink
 {
     Q_OBJECT
 
 public:
-    explicit QGstreamerVideoSink(QVideoSink *parent = nullptr);
-    ~QGstreamerVideoSink() override;
+    explicit QGstreamerPluggableVideoSink(QVideoSink *parent = nullptr);
 
     void setRhi(QRhi *rhi) override;
+    QRhi *rhi() const;
+
+private:
+    QRhi *m_rhi = nullptr;
+};
+
+class QGstreamerRelayVideoSink : public QObject
+{
+    Q_OBJECT
+    friend class QGstreamerPluggableVideoSink;
+
+public:
+    explicit QGstreamerRelayVideoSink(QObject *parent = nullptr);
+    ~QGstreamerRelayVideoSink();
+
+    void setRhi(QRhi *rhi);
     QRhi *rhi() const { return m_rhi; }
 
     QGstElement gstSink();
@@ -44,15 +59,24 @@ public:
     void setActive(bool);
     void setAsync(bool);
 
+    void connectPluggableVideoSink(QGstreamerPluggableVideoSink *pluggableSink);
+    void disconnectPluggableVideoSink();
+    void setVideoFrame(const QVideoFrame &frame);
+    void setSubtitleText(const QString &subtitleText);
+    void setNativeSize(QSize size);
+
 Q_SIGNALS:
     void aboutToBeDestroyed();
+    void videoFrameChanged(const QVideoFrame &frame);
+    void subtitleTextChanged(const QString &subtitleText);
+    void nativeSizeChanged(QSize size);
 
 private:
     void createQtSink();
     void updateSinkElement(QGstVideoRendererSinkElement newSink);
 
     void unrefGstContexts();
-    void updateGstContexts();
+    void updateGstContexts(QRhi *rhi);
 
     QGstBin m_sinkBin;
     QGstElement m_gstPreprocess;
@@ -69,6 +93,12 @@ private:
 
     QGstContextHandle m_gstGlLocalContext;
     QGstContextHandle m_gstGlDisplayContext;
+
+    QVideoFrame m_currentVideoFrame;
+    QString m_currentSubtitleText;
+    QSize m_currentNativeSize;
+
+    QGstreamerPluggableVideoSink *m_pluggableVideoSink = nullptr;
 };
 
 QT_END_NAMESPACE
