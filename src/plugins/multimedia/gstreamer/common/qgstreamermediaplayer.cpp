@@ -17,6 +17,7 @@
 #include <uri_handler/qgstreamer_qiodevice_handler_p.h>
 #include <qgstreamerformatinfo_p.h>
 
+#include <QtMultimedia/private/qthreadlocalrhi_p.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qiodevice.h>
@@ -368,6 +369,12 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
 #endif
 
     gstVideoOutput->setParent(this);
+
+    // NOTE: Creating a GStreamer video sink to be owned by the media player, any sink created by
+    // user would be a pluggable sink connected to this
+    m_gstVideoSink = new QGstreamerRelayVideoSink(this);
+    m_gstVideoSink->setRhi(qEnsureThreadLocalRhi());
+    gstVideoOutput->setVideoSink(m_gstVideoSink);
 
     m_playbin.set("video-sink", gstVideoOutput->gstElement());
     m_playbin.set("text-sink", gstVideoOutput->gstSubtitleElement());
@@ -992,23 +999,16 @@ QMediaMetaData QGstreamerMediaPlayer::metaData() const
 
 void QGstreamerMediaPlayer::setVideoSink(QVideoSink *sink)
 {
-    if (isCustomSource()) {
-        qWarning() << "QMediaPlayer::setVideoSink not supported when using custom sources";
+    // Disconnect previous sink
+    m_gstVideoSink->disconnectPluggableVideoSink();
+
+    if (!sink)
         return;
-    }
 
-    auto *gstSink = sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
-    if (gstSink)
-        gstSink->setAsync(false);
-
-    gstVideoOutput->setVideoSink(sink);
-    updateVideoTrackEnabled();
-
-    if (sink && state() == QMediaPlayer::PausedState) {
-        // FIXME: we want to get a the existing frame, but gst_play does not have such capabilities.
-        // seeking to the current position is a rather bad hack, but it's the best we can do for now
-        seekToCurrentPosition();
-    }
+    // Connect pluggable sink to native sink
+    auto pluggableSink = dynamic_cast<QGstreamerPluggableVideoSink *>(sink->platformVideoSink());
+    Q_ASSERT(pluggableSink);
+    m_gstVideoSink->connectPluggableVideoSink(pluggableSink);
 }
 
 int QGstreamerMediaPlayer::trackCount(QPlatformMediaPlayer::TrackType type)

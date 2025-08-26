@@ -36,8 +36,8 @@ public:
     static q23::expected<QGstreamerVideoOutput *, QString> create(QObject *parent = nullptr);
     ~QGstreamerVideoOutput() override;
 
-    void setVideoSink(QVideoSink *sink);
-    QGstreamerVideoSink *gstreamerVideoSink() const { return m_platformVideoSink; }
+    void setVideoSink(QGstreamerRelayVideoSink *sink);
+    QGstreamerRelayVideoSink *gstreamerVideoSink() const { return m_gstVideoSink; }
 
     QGstElement gstElement() const { return m_outputBin; }
     QGstElement gstSubtitleElement() const { return m_subtitleSink; }
@@ -60,7 +60,7 @@ private:
 
     void updateNativeSize();
 
-    QPointer<QGstreamerVideoSink> m_platformVideoSink;
+    QPointer<QGstreamerRelayVideoSink> m_gstVideoSink;
 
     // Gst elements
     QGstBin m_outputBin;

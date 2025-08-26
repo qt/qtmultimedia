@@ -32,7 +32,7 @@ class QGstreamerMediaRecorder;
 class QGstreamerAudioInput;
 class QGstreamerAudioOutput;
 class QGstreamerVideoOutput;
-class QGstreamerVideoSink;
+class QGstreamerRelayVideoSink;
 
 class QGstreamerMediaCaptureSession final : public QPlatformMediaCaptureSession,
                                             QGstreamerBusMessageFilter
@@ -58,7 +58,7 @@ public:
 
     const QGstPipeline &pipeline() const;
 
-    QGstreamerVideoSink *gstreamerVideoSink() const;
+    QGstreamerRelayVideoSink *gstreamerVideoSink() const;
 
     struct RecorderElements
     {
@@ -112,6 +112,8 @@ private:
 
     QGstreamerMediaRecorder *m_mediaRecorder = nullptr;
     QGstreamerImageCapture *m_imageCapture = nullptr;
+
+    QGstreamerRelayVideoSink *m_gstVideoSink = nullptr;
 };
 
 QT_END_NAMESPACE

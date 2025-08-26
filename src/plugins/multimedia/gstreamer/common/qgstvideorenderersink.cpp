@@ -39,11 +39,11 @@ Q_STATIC_LOGGING_CATEGORY(qLcGstVideoRenderer, "qt.multimedia.gstvideorenderer")
 
 QT_BEGIN_NAMESPACE
 
-QGstVideoRenderer::QGstVideoRenderer(QGstreamerVideoSink *sink)
+QGstVideoRenderer::QGstVideoRenderer(QGstreamerRelayVideoSink *sink)
     : m_sink(sink), m_surfaceCaps(createSurfaceCaps(sink))
 {
     QObject::connect(
-            sink, &QGstreamerVideoSink::aboutToBeDestroyed, this,
+            sink, &QGstreamerRelayVideoSink::aboutToBeDestroyed, this,
             [this] {
                 QMutexLocker locker(&m_sinkMutex);
                 m_sink = nullptr;
@@ -53,7 +53,7 @@ QGstVideoRenderer::QGstVideoRenderer(QGstreamerVideoSink *sink)
 
 QGstVideoRenderer::~QGstVideoRenderer() = default;
 
-QGstCaps QGstVideoRenderer::createSurfaceCaps([[maybe_unused]] QGstreamerVideoSink *sink)
+QGstCaps QGstVideoRenderer::createSurfaceCaps([[maybe_unused]] QGstreamerRelayVideoSink *sink)
 {
     QGstCaps caps = QGstCaps::create();
 
@@ -399,11 +399,11 @@ void QGstVideoRenderer::gstEventHandleFlushStop(GstEvent *)
 }
 
 static GstVideoSinkClass *gvrs_sink_parent_class;
-static thread_local QGstreamerVideoSink *gvrs_current_sink;
+static thread_local QGstreamerRelayVideoSink *gvrs_current_sink;
 
 #define VO_SINK(s) QGstVideoRendererSink *sink(reinterpret_cast<QGstVideoRendererSink *>(s))
 
-QGstVideoRendererSinkElement QGstVideoRendererSink::createSink(QGstreamerVideoSink *sink)
+QGstVideoRendererSinkElement QGstVideoRendererSink::createSink(QGstreamerRelayVideoSink *sink)
 {
     setSink(sink);
     QGstVideoRendererSink *gstSink = reinterpret_cast<QGstVideoRendererSink *>(
@@ -415,7 +415,7 @@ QGstVideoRendererSinkElement QGstVideoRendererSink::createSink(QGstreamerVideoSi
     };
 }
 
-void QGstVideoRendererSink::setSink(QGstreamerVideoSink *sink)
+void QGstVideoRendererSink::setSink(QGstreamerRelayVideoSink *sink)
 {
     gvrs_current_sink = sink;
 }
