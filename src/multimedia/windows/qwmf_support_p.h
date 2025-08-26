@@ -57,10 +57,10 @@ auto withLockedBuffer(IMFMediaBuffer *buffer, Functor &&f)
     });
 
     if constexpr (std::is_void_v<IMFBufferReaderReturnType<Functor>>) {
-        f(QSpan{ data, currentLength }, QSpan{ data, maxLength });
+        f(QSpan{ data, qsizetype(currentLength) }, QSpan{ data, qsizetype(maxLength) });
         return {};
     } else
-        return f(QSpan{ data, currentLength }, QSpan{ data, maxLength });
+        return f(QSpan{ data, qsizetype(currentLength) }, QSpan{ data, qsizetype(maxLength) });
 }
 
 template <typename Functor>
