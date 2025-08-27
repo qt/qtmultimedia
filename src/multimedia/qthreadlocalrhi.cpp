@@ -51,7 +51,6 @@ public:
 #if QT_CONFIG(opengl)
             if (!m_rhi && (referenceBackend == QRhi::OpenGLES2 || referenceBackend == QRhi::Null)) {
                 if (qpa->hasCapability(QPlatformIntegration::OpenGL)
-                    && qpa->hasCapability(QPlatformIntegration::RasterGLSurface)
                     && !QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets)) {
 
                     m_fallbackSurface.reset(QRhiGles2InitParams::newFallbackSurface());
