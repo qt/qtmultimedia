@@ -106,7 +106,7 @@ public:
     };
     Q_ENUM(Loops)
 
-    enum PitchCompensationAvailability
+    enum class PitchCompensationAvailability
     {
         PitchCompensationAlwaysOn,
         PitchCompensationAvailable,

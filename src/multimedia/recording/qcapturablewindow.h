@@ -24,7 +24,7 @@ class QCapturableWindow
     Q_PROPERTY(bool isValid READ isValid CONSTANT)
 public:
     Q_MULTIMEDIA_EXPORT QCapturableWindow();
-    Q_MULTIMEDIA_EXPORT Q_INVOKABLE Q_REVISION(6,10) explicit QCapturableWindow(QWindow *window) noexcept;
+    Q_MULTIMEDIA_EXPORT Q_INVOKABLE Q_REVISION(6, 10) explicit QCapturableWindow(QWindow *window);
 
     Q_MULTIMEDIA_EXPORT ~QCapturableWindow();
 

@@ -25,7 +25,7 @@ class QPlaybackOptions
     Q_PROPERTY(PlaybackIntent playbackIntent READ playbackIntent WRITE setPlaybackIntent RESET
                        resetPlaybackIntent)
     Q_PROPERTY(qsizetype probeSize READ probeSize WRITE setProbeSize RESET resetProbeSize)
-
+    Q_CLASSINFO("RegisterEnumClassesUnscoped", "false")
 public:
     enum class PlaybackIntent {
         Playback,
@@ -56,10 +56,10 @@ public:
 
 private:
     friend Q_MULTIMEDIA_EXPORT bool comparesEqual(const QPlaybackOptions &lhs,
-                                                  const QPlaybackOptions &rhs);
+                                                  const QPlaybackOptions &rhs) noexcept;
     friend Q_MULTIMEDIA_EXPORT Qt::strong_ordering compareThreeWay(const QPlaybackOptions &lhs,
-                                                                   const QPlaybackOptions &rhs);
-    Q_DECLARE_STRONGLY_ORDERED_NON_NOEXCEPT(QPlaybackOptions)
+                                                                   const QPlaybackOptions &rhs) noexcept;
+    Q_DECLARE_STRONGLY_ORDERED(QPlaybackOptions)
 
     friend class QPlaybackOptionsPrivate;
     QExplicitlySharedDataPointer<QPlaybackOptionsPrivate> d;
