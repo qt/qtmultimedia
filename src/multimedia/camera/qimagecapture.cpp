@@ -447,6 +447,11 @@ void QImageCapture::setFileFormat(QImageCapture::FileFormat format)
 */
 
 /*!
+    \property QImageCapture::supportedFormats
+    \brief a list of supported file formats.
+*/
+
+/*!
     Returns a list of supported file formats.
 
     \sa {QImageCapture::}{FileFormat}
