@@ -145,11 +145,10 @@ bool operator==(const QCapturableWindow &lhs, const QCapturableWindow &rhs) noex
 */
 
 /*!
-    Identifies whether a window information is valid.
+    \property QCapturableWindow::isValid
+    \brief whether information about the window is valid.
 
     An invalid window information refers to non-existing window or doesn't refer to any one.
-
-    Returns true if the window is valid, and false if it is not.
 */
 bool QCapturableWindow::isValid() const
 {
@@ -159,11 +158,15 @@ bool QCapturableWindow::isValid() const
 /*!
     \qmlproperty string QtMultimedia::CapturableWindow::description
 
-    This property holds the description of the reffered window.
+    This property holds the description of the window.
+    In most cases it represents the window title.
 */
 
 /*!
-    Returns a description of the window. In most cases it represents the window title.
+    \property QCapturableWindow::description
+    \brief a description of the window.
+
+    In most cases it represents the window title.
 */
 QString QCapturableWindow::description() const
 {
