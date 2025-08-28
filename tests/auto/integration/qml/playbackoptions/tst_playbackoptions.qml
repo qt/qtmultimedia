@@ -28,18 +28,18 @@ TestCase {
     }
 
     function test_playbackIntent_returnsPlayBack_byDefault() {
-        compare(options.playbackIntent, PlaybackOptions.Playback)
+        compare(options.playbackIntent, PlaybackOptions.PlaybackIntent.Playback)
     }
 
     function test_settingPlaybackIntent_changesPlaybackIntent() {
-        options.playbackIntent = PlaybackOptions.LowLatencyStreaming
-        compare(options.playbackIntent, PlaybackOptions.LowLatencyStreaming)
+        options.playbackIntent = PlaybackOptions.PlaybackIntent.LowLatencyStreaming
+        compare(options.playbackIntent, PlaybackOptions.PlaybackIntent.LowLatencyStreaming)
     }
 
     function test_resettingPlaybackIntent_resetsToDefault() {
         options.playbackIntent = PlaybackOptions.LowLatencyStreaming
         options.playbackIntent = undefined
-        compare(options.playbackIntent, PlaybackOptions.Playback)
+        compare(options.playbackIntent, PlaybackOptions.PlaybackIntent.Playback)
     }
 
     function test_probeSize_returnsMinusOneBack_byDefault() {

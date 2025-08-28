@@ -95,7 +95,7 @@ QCapturableWindow::QCapturableWindow() = default;
 
     \since 6.11
 */
-QCapturableWindow::QCapturableWindow(QWindow *window) noexcept
+QCapturableWindow::QCapturableWindow(QWindow *window)
 {
     q23::expected<QCapturableWindow, QString> capturableWindow =
             QPlatformMediaIntegration::instance()->capturableWindowFromQWindow(window);

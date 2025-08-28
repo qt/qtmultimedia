@@ -85,7 +85,7 @@ QPlaybackOptions::QPlaybackOptions(const QPlaybackOptions &) = default;
 QPlaybackOptions &QPlaybackOptions::operator=(const QPlaybackOptions &) = default;
 QPlaybackOptions::~QPlaybackOptions() = default;
 
-bool comparesEqual(const QPlaybackOptions &lhs, const QPlaybackOptions &rhs)
+bool comparesEqual(const QPlaybackOptions &lhs, const QPlaybackOptions &rhs) noexcept
 {
     if (lhs.d == rhs.d)
         return true;
@@ -93,7 +93,7 @@ bool comparesEqual(const QPlaybackOptions &lhs, const QPlaybackOptions &rhs)
     return comparesEqual(*lhs.d, *rhs.d);
 }
 
-Qt::strong_ordering compareThreeWay(const QPlaybackOptions &lhs, const QPlaybackOptions &rhs)
+Qt::strong_ordering compareThreeWay(const QPlaybackOptions &lhs, const QPlaybackOptions &rhs) noexcept
 {
     return compareThreeWay(*lhs.d, *rhs.d);
 }
