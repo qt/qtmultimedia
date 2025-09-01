@@ -28,7 +28,7 @@ namespace {
 
 [[nodiscard]] QAVFSampleBufferDelegateTransform surfaceTransform(
     const QFFmpeg::AvfCameraRotationTracker *rotationTracker,
-    const AVCaptureOutput *avCaptureOutput)
+    const AVCaptureConnection *connection)
 {
     QAVFSampleBufferDelegateTransform transform = {};
 
@@ -51,9 +51,6 @@ namespace {
     // This code assumes that AVCaptureConnection.videoRotationAngle returns degrees
     // that are divisible by 90. This has been the case during testing.
     int connectionAngle = 0;
-    const AVCaptureConnection *connection = avCaptureOutput ?
-        [avCaptureOutput connectionWithMediaType:AVMediaTypeVideo] :
-        nullptr;
     if (connection) {
         if (@available(macOS 14.0, iOS 17.0, *))
             connectionAngle = std::lround(connection.videoRotationAngle);
@@ -81,14 +78,14 @@ QAVFCamera::QAVFCamera(QCamera *parent)
     m_qAvfSampleBufferDelegate = [[QAVFSampleBufferDelegate alloc] initWithFrameHandler:frameHandler];
 
     [m_qAvfSampleBufferDelegate setTransformationProvider:
-        [this]() {
+        [this](const AVCaptureConnection *connection) {
             const AvfCameraRotationTracker *rotationTracker = nullptr;
             if (m_qAvfCameraRotationTracker.has_value())
                 rotationTracker = &m_qAvfCameraRotationTracker.value();
 
             return surfaceTransform(
                 rotationTracker,
-                m_avCaptureVideoDataOutput);
+                connection);
         }];
 
     // Configure video output
@@ -357,9 +354,13 @@ QVideoFrameFormat QAVFCamera::frameFormat() const
     if (m_qAvfCameraRotationTracker.has_value())
         rotationTracker = &m_qAvfCameraRotationTracker.value();
 
+    const AVCaptureConnection *connection = m_avCaptureVideoDataOutput ?
+        [m_avCaptureVideoDataOutput connectionWithMediaType:AVMediaTypeVideo] :
+        nullptr;
+
     const QAVFSampleBufferDelegateTransform transform = surfaceTransform(
         rotationTracker,
-        m_avCaptureVideoDataOutput);
+        connection);
     result.setRotation(transform.surfaceTransform.rotation);
     result.setMirrored(transform.surfaceTransform.mirroredHorizontallyAfterRotation);
 
