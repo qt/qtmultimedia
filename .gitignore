@@ -64,3 +64,6 @@ CMakeUserPresets.json
 # Build artifacts
 build-*-Debug
 build-*-Release
+
+# Ignore build artifacts from example
+examples/multimedia/*/build
