@@ -175,7 +175,6 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
         didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
                fromConnection:(AVCaptureConnection *)connection
 {
-    Q_UNUSED(connection);
     Q_UNUSED(captureOutput);
 
     // NB: on iOS captureOutput/connection can be nil (when recording a video -
@@ -205,7 +204,7 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
 
     std::optional<QFFmpeg::QAVFSampleBufferDelegateTransform> transform;
     if (transformationProvider) {
-        transform = transformationProvider();
+        transform = transformationProvider(connection);
         const VideoTransformation &surfaceTransform = transform.value().surfaceTransform;
         format.setRotation(surfaceTransform.rotation);
         format.setMirrored(surfaceTransform.mirroredHorizontallyAfterRotation);

@@ -38,7 +38,8 @@ struct QAVFSampleBufferDelegateTransform {
     VideoTransformation presentationTransform;
 };
 
-using QAVFSampleBufferDelegateTransformProvider = std::function<QAVFSampleBufferDelegateTransform()>;
+using QAVFSampleBufferDelegateTransformProvider = std::function<QAVFSampleBufferDelegateTransform(
+    const AVCaptureConnection *)>;
 
 }
 
