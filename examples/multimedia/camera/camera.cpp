@@ -95,8 +95,6 @@ void Camera::init()
     connect(ui->captureWidget, &QTabWidget::currentChanged, this, &Camera::updateCaptureMode);
 
     connect(ui->metaDataButton, &QPushButton::clicked, this, &Camera::showMetaDataDialog);
-    connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this,
-            &Camera::setExposureCompensation);
 
     setCamera(QMediaDevices::defaultVideoInput());
 }
@@ -301,11 +299,6 @@ void Camera::updateRecorderState(QMediaRecorder::RecorderState state)
         ui->metaDataButton->setEnabled(false);
         break;
     }
-}
-
-void Camera::setExposureCompensation(int index)
-{
-    m_camera->setExposureCompensation(index * 0.5);
 }
 
 void Camera::displayRecorderError()
