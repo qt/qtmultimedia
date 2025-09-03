@@ -139,18 +139,18 @@ Player::Player(QWidget *parent) : QWidget(parent)
     m_pitchCompensationButton = new QPushButton(tr("Pitch compensation"), this);
     m_pitchCompensationButton->setCheckable(true);
     switch (m_player->pitchCompensationAvailability()) {
-    case QMediaPlayer::PitchCompensationAvailability::PitchCompensationAlwaysOn:
+    case QMediaPlayer::PitchCompensationAvailability::AlwaysOn:
         m_pitchCompensationButton->setEnabled(false);
         m_pitchCompensationButton->setChecked(true);
         m_pitchCompensationButton->setToolTip(
                 u"Pitch compensation always enabled on this backend"_s);
         break;
-    case QMediaPlayer::PitchCompensationAvailability::PitchCompensationUnavailable:
+    case QMediaPlayer::PitchCompensationAvailability::Unavailable:
         m_pitchCompensationButton->setEnabled(false);
         m_pitchCompensationButton->setChecked(false);
         m_pitchCompensationButton->setToolTip(u"Pitch compensation unavailable on this backend"_s);
         break;
-    case QMediaPlayer::PitchCompensationAvailability::PitchCompensationAvailable:
+    case QMediaPlayer::PitchCompensationAvailability::Available:
         m_pitchCompensationButton->setEnabled(true);
         m_pitchCompensationButton->setChecked(m_player->pitchCompensation());
         break;

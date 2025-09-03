@@ -427,7 +427,7 @@ bool QFFmpegMediaPlayer::pitchCompensation() const
 QPlatformMediaPlayer::PitchCompensationAvailability
 QFFmpegMediaPlayer::pitchCompensationAvailability() const
 {
-    return PitchCompensationAvailability::PitchCompensationAvailable;
+    return PitchCompensationAvailability::Available;
 }
 
 QT_END_NAMESPACE

@@ -785,7 +785,7 @@ bool QGstreamerMediaPlayer::pitchCompensation() const
 QPlatformMediaPlayer::PitchCompensationAvailability
 QGstreamerMediaPlayer::pitchCompensationAvailability() const
 {
-    return PitchCompensationAvailability::PitchCompensationAlwaysOn;
+    return PitchCompensationAvailability::AlwaysOn;
 }
 
 QUrl QGstreamerMediaPlayer::media() const
