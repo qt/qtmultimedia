@@ -39,7 +39,7 @@ void QPlatformMediaPlayer::error(QMediaPlayer::Error error, const QString &error
 QPlatformMediaPlayer::PitchCompensationAvailability
 QPlatformMediaPlayer::pitchCompensationAvailability() const
 {
-    return PitchCompensationAvailability::PitchCompensationUnavailable;
+    return PitchCompensationAvailability::Unavailable;
 }
 
 void QPlatformMediaPlayer::setPitchCompensation(bool /*enabled*/)

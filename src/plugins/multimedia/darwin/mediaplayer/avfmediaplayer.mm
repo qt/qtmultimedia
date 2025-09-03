@@ -1319,7 +1319,7 @@ bool AVFMediaPlayer::pitchCompensation() const
 QPlatformMediaPlayer::PitchCompensationAvailability
 AVFMediaPlayer::pitchCompensationAvailability() const
 {
-    return QPlatformMediaPlayer::PitchCompensationAvailability::PitchCompensationAvailable;
+    return QPlatformMediaPlayer::PitchCompensationAvailability::Available;
 }
 
 #include "moc_avfmediaplayer_p.cpp"

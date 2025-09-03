@@ -108,9 +108,9 @@ public:
 
     enum class PitchCompensationAvailability
     {
-        PitchCompensationAlwaysOn,
-        PitchCompensationAvailable,
-        PitchCompensationUnavailable,
+        AlwaysOn,
+        Available,
+        Unavailable,
     };
     Q_ENUM(PitchCompensationAvailability)
 
