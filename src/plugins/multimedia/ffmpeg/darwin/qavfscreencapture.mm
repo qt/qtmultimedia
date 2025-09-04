@@ -83,8 +83,19 @@ public:
         if (m_captureSession)
             [m_captureSession stopRunning];
 
-        if (m_dispatchQueue)
+        if (m_dispatchQueue) {
+            // Push a blocking job to the background frame thread,
+            // so we guarantee future frames are discarded. This
+            // causes the frameHandler to be destroyed, and the reference
+            // to this QAVFScreenCapture is cleared.
+            dispatch_sync(
+                m_dispatchQueue,
+                [this]() {
+                    [m_sampleBufferDelegate discardFutureSamples];
+                });
+
             dispatch_release(m_dispatchQueue);
+        }
 
         [m_sampleBufferDelegate release];
         [m_screenInput release];

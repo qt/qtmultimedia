@@ -165,6 +165,11 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
     return self;
 }
 
+- (void)discardFutureSamples
+{
+    frameHandler = nullptr;
+}
+
 - (void)setTransformationProvider:
     (const QFFmpeg::QAVFSampleBufferDelegateTransformProvider &)provider
 {
@@ -176,6 +181,9 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
                fromConnection:(AVCaptureConnection *)connection
 {
     Q_UNUSED(captureOutput);
+
+    if (!frameHandler)
+        return;
 
     // NB: on iOS captureOutput/connection can be nil (when recording a video -
     // avfmediaassetwriter).
