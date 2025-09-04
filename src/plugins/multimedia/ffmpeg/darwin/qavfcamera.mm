@@ -147,12 +147,15 @@ QAVFCamera::QAVFCamera(QCamera *parent)
     : QAVFCameraBase(parent)
 {
     m_avCaptureSession = [[AVCaptureSession alloc] init];
-    m_delegateQueue = dispatch_queue_create("qt_camera_queue", nullptr);
+    m_delegateQueue = dispatch_queue_create("qt_camera_queue", DISPATCH_QUEUE_SERIAL);
 }
 
 QAVFCamera::~QAVFCamera()
 {
+    [m_avCaptureSession stopRunning];
+
     clearAvCaptureSessionInputDevice();
+    // Clearing the output will flush jobs on the dispatch queue running on a worker threadpool.
     clearAvCaptureVideoDataOutput();
     clearRotationTracking();
 
@@ -204,6 +207,8 @@ void QAVFCamera::clearAvCaptureSessionInputDevice()
     return {};
 }
 
+// If there is any current delegate, we block the background thread
+// and set the delegate to discard future frames.
 void QAVFCamera::clearAvCaptureVideoDataOutput()
 {
     if (m_avCaptureVideoDataOutput != nullptr) {
@@ -212,6 +217,17 @@ void QAVFCamera::clearAvCaptureVideoDataOutput()
         m_avCaptureVideoDataOutput = nullptr;
     }
     if (m_qAvfSampleBufferDelegate != nullptr) {
+        // Push a blocking job to the background frame thread,
+        // so we guarantee future frames are discarded. This
+        // causes the frameHandler to be destroyed, and the reference
+        // to this QAVFCamera is cleared.
+        Q_ASSERT(m_delegateQueue);
+        dispatch_sync(
+            m_delegateQueue,
+            [this]() {
+                [m_qAvfSampleBufferDelegate discardFutureSamples];
+            });
+
         [m_qAvfSampleBufferDelegate release];
         m_qAvfSampleBufferDelegate = nullptr;
     }
@@ -227,7 +243,12 @@ q23::expected<void, QString> QAVFCamera::setupAvCaptureVideoDataOutput(
     QMacAutoReleasePool autoReleasePool;
 
     // Setup the delegate object for which we receive video frames.
+    // This is called by the background thread. The frameHandler must
+    // be cleared on the Delegate when destroying the QAVFCamera,
+    // to avoid any remaining enqueued frame-jobs from reading this QAVFCamera
+    // reference.
     auto frameHandler = [this](QVideoFrame frame) {
+        dispatch_assert_queue(m_delegateQueue);
         emit newVideoFrame(frame);
     };
 
