@@ -288,7 +288,7 @@ bool AndroidMediaPlayer::setAudioOutput(const QByteArray &deviceId)
 {
     const bool ret = QJniObject::callStaticMethod<jboolean>(
                                     "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
-                                    "setAudioOutput",
+                                    "prepareAudioOutput",
                                     "(I)Z",
                                     deviceId.toInt());
 

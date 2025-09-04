@@ -3,8 +3,6 @@
 
 #include "qaaudiostream_p.h"
 
-#include "qandroidaudioutil_p.h"
-
 #include <chrono>
 #include <dlfcn.h>
 

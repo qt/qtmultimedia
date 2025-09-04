@@ -10,6 +10,9 @@
 
 QT_BEGIN_NAMESPACE
 
+Q_DECLARE_JNI_CLASS(QtAudioDeviceManager,
+                    "org/qtproject/qt/android/multimedia/QtAudioDeviceManager");
+
 namespace QtAAudio {
 
 Q_STATIC_LOGGING_CATEGORY(qLcAndroidAudioSource, "qt.multimedia.android.audiosource")
@@ -28,9 +31,7 @@ QAndroidAudioSourceStream::QAndroidAudioSourceStream(QAudioDevice device,
     qCDebug(qLcAndroidAudioSource) << "Creating source for device id:" << m_audioDevice.id()
                                    << ", description:" << m_audioDevice.description();
 
-    // NOTE: Don't set device when creating a stream for the default bluetooth device
-    if (!QAndroidAudioUtil::isDefaultBluetoothDevice(m_audioDevice))
-        builder.deviceId = m_audioDevice.id().toInt();
+    builder.deviceId = m_audioDevice.id().toInt();
 
     // Set buffer parameters
     builder.bufferCapacity = m_hardwareBufferFrames ? *m_hardwareBufferFrames : 1024;
@@ -59,7 +60,18 @@ QAndroidAudioSourceStream::QAndroidAudioSourceStream(QAudioDevice device,
     };
 
     builder.setupBuilder();
+
+    if (!QtJniTypes::QtAudioDeviceManager::callStaticMethod<jboolean>("prepareAudioInput",
+                                                                      m_audioDevice.id().toInt()))
+        qCWarning(qLcAndroidAudioSource) << "Preparation failed for device:" << m_audioDevice.id().toInt();
+
     m_stream = std::make_unique<QtAAudio::Stream>(builder);
+}
+
+QAndroidAudioSourceStream::~QAndroidAudioSourceStream()
+{
+    QtJniTypes::QtAudioDeviceManager::callStaticMethod<void>("releaseAudioDevice",
+                                                             m_audioDevice.id().toInt());
 }
 
 bool QAndroidAudioSourceStream::open()
