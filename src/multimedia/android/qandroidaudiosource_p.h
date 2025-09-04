@@ -35,6 +35,7 @@ public:
                                        QAndroidAudioSource *parent, float volume,
                                        std::optional<int32_t> hardwareBufferFrames);
     Q_DISABLE_COPY_MOVE(QAndroidAudioSourceStream)
+    ~QAndroidAudioSourceStream();
 
     bool open();
 
