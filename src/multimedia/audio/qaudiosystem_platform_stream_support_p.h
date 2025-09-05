@@ -24,6 +24,7 @@
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
+#include <QtCore/qscopedvaluerollback.h>
 #include <QtCore/qthread.h>
 
 #include <optional>
@@ -205,6 +206,29 @@ private:
 
     void convertToNative(QSpan<const std::byte> internal, QSpan<std::byte> native, float volume,
                          NativeSampleFormat) noexcept QT_MM_NONBLOCKING;
+
+    // pullFromQIODeviceToRingbuffer is not reentrant. however we might end up in situations where a
+    // QIODevice emits readReady from within QIODevice::readData. We protect against this using a
+    // reentrancy guard and queue invocations if we detect a reentrant call
+    template <typename Functor>
+    void withPullIODeviceReentrancyGuard(Functor f)
+    {
+        if (!m_pullIODeviceReentrancyGuard) {
+            QScopedValueRollback<bool> guard{
+                m_pullIODeviceReentrancyGuard,
+                true,
+            };
+            f();
+        } else {
+            QMetaObject::invokeMethod(&m_streamIdleDetectionNotifier,
+                                      [this, f = std::move(f)]() mutable {
+                withPullIODeviceReentrancyGuard(std::move(f));
+            }, Qt::QueuedConnection);
+        }
+    }
+    bool m_pullIODeviceReentrancyGuard = false;
+
+    void pullFromQIODeviceImpl();
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
