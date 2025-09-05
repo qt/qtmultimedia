@@ -132,6 +132,16 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
     if (!control)
         return;
 
+    auto setErrorFn = [&](
+        QMediaPlayer::MediaStatus status,
+        QMediaPlayer::Error err,
+        const QString &errString)
+    {
+        control->setMedia(QUrl(), nullptr);
+        control->mediaStatusChanged(status);
+        control->error(err, errString);
+    };
+
     std::unique_ptr<QFile> file;
 
     // Back ends can't play qrc files directly.
@@ -144,9 +154,10 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
         file.reset(new QFile(QLatin1Char(':') + media.path()));
         if (!file->open(QFile::ReadOnly)) {
             file.reset();
-            control->setMedia(QUrl(), nullptr);
-            control->mediaStatusChanged(QMediaPlayer::InvalidMedia);
-            control->error(QMediaPlayer::ResourceError, QMediaPlayer::tr("Attempting to play invalid Qt resource"));
+            setErrorFn(
+                QMediaPlayer::InvalidMedia,
+                QMediaPlayer::ResourceError,
+                QMediaPlayer::tr("Attempting to play invalid Qt resource"));
 
         } else if (control->streamPlaybackSupported()) {
             control->setMedia(media, file.get());
@@ -155,17 +166,23 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
 #if defined(Q_OS_ANDROID)
             QString tempFileName = QDir::tempPath() + media.path();
             QDir().mkpath(QFileInfo(tempFileName).path());
-            QTemporaryFile *tempFile = QTemporaryFile::createNativeFile(*file);
-            if (tempFile == nullptr) {
-                control->setMedia(QUrl(), nullptr);
-                control->mediaStatusChanged(QMediaPlayer::InvalidMedia);
-                control->error(QMediaPlayer::ResourceError, QMediaPlayer::tr("Failed to establish temporary file during playback"));
+            std::unique_ptr<QTemporaryFile> tempFile { QTemporaryFile::createNativeFile(*file) };
+            if (tempFile.get() == nullptr) {
+                setErrorFn(
+                    QMediaPlayer::InvalidMedia,
+                    QMediaPlayer::ResourceError,
+                    QMediaPlayer::tr("Failed to establish temporary file during playback"));
                 return;
             }
-            if (!tempFile->rename(tempFileName))
-                qWarning() << "Could not rename temporary file to:" << tempFileName;
+            if (!tempFile->rename(tempFileName)) {
+                setErrorFn(
+                    QMediaPlayer::InvalidMedia,
+                    QMediaPlayer::ResourceError,
+                    QStringLiteral("Could not rename temporary file to: %1").arg(tempFileName));
+                return;
+            }
 #else
-            QTemporaryFile *tempFile = new QTemporaryFile;
+            std::unique_ptr<QTemporaryFile> tempFile = std::make_unique<QTemporaryFile>();
 
             // Preserve original file extension, some back ends might not load the file if it doesn't
             // have an extension.
@@ -175,10 +192,10 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
 
             // Copy the qrc data into the temporary file
             if (!tempFile->open()) {
-                control->setMedia(QUrl(), nullptr);
-                control->mediaStatusChanged(QMediaPlayer::InvalidMedia);
-                control->error(QMediaPlayer::ResourceError, tempFile->errorString());
-                delete tempFile;
+                setErrorFn(
+                    QMediaPlayer::InvalidMedia,
+                    QMediaPlayer::ResourceError,
+                    tempFile->errorString());
                 qrcFile.reset();
                 return;
             }
@@ -191,7 +208,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
             }
             tempFile->close();
 #endif
-            file.reset(tempFile);
+            file = std::move(tempFile);
             control->setMedia(QUrl(QUrl::fromLocalFile(file->fileName())), nullptr);
 #else
             qWarning("Qt was built with -no-feature-temporaryfile: playback from resource file is not supported!");
