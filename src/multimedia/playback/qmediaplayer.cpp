@@ -156,6 +156,12 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
             QString tempFileName = QDir::tempPath() + media.path();
             QDir().mkpath(QFileInfo(tempFileName).path());
             QTemporaryFile *tempFile = QTemporaryFile::createNativeFile(*file);
+            if (tempFile == nullptr) {
+                control->setMedia(QUrl(), nullptr);
+                control->mediaStatusChanged(QMediaPlayer::InvalidMedia);
+                control->error(QMediaPlayer::ResourceError, QMediaPlayer::tr("Failed to establish temporary file during playback"));
+                return;
+            }
             if (!tempFile->rename(tempFileName))
                 qWarning() << "Could not rename temporary file to:" << tempFileName;
 #else
