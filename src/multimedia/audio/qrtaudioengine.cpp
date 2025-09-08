@@ -290,7 +290,8 @@ void QRtAudioEngine::runRtCommand(PlayCommand cmd) noexcept QT_MM_NONBLOCKING
 void QRtAudioEngine::runRtCommand(StopCommand cmd) noexcept QT_MM_NONBLOCKING
 {
     auto it = m_rtVoiceRegistry.find(cmd.voiceId);
-    Q_ASSERT(it != m_rtVoiceRegistry.end());
+    if (it == m_rtVoiceRegistry.end())
+        return;
 
     SharedVoice voice = *it;
     m_rtVoiceRegistry.erase(it);
@@ -305,7 +306,8 @@ void QRtAudioEngine::runRtCommand(StopCommand cmd) noexcept QT_MM_NONBLOCKING
 void QRtAudioEngine::runRtCommand(VisitCommand cmd) noexcept QT_MM_NONBLOCKING
 {
     auto it = m_rtVoiceRegistry.find(cmd.voiceId);
-    Q_ASSERT(it != m_rtVoiceRegistry.end());
+    if (it == m_rtVoiceRegistry.end())
+        return;
 
     cmd.callback(**it);
 
@@ -320,7 +322,8 @@ void QRtAudioEngine::runRtCommand(VisitCommand cmd) noexcept QT_MM_NONBLOCKING
 void QRtAudioEngine::runRtCommand(VisitCommandTrivial cmd) noexcept QT_MM_NONBLOCKING
 {
     auto it = m_rtVoiceRegistry.find(cmd.voiceId);
-    Q_ASSERT(it != m_rtVoiceRegistry.end());
+    if (it == m_rtVoiceRegistry.end())
+        return;
 
     cmd.callback(**it);
 }
