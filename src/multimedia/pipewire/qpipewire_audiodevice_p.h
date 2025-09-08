@@ -44,6 +44,7 @@ private:
     void setPreferredSamplingRate(const SpaRange<int> &);
 
     void setPreferredSampleFormats(spa_audio_format);
+    void setPreferredSampleFormats(spa_audio_iec958_codec);
     void setPreferredSampleFormats(const SpaEnum<spa_audio_format> &);
 
     QByteArray m_sysfsPath;

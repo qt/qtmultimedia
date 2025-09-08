@@ -346,6 +346,21 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
             continue;
         }
 
+        const bool isIEC61937EncapsulatedDevice = std::visit([](const auto &format) {
+            if constexpr (std::is_same_v<std::decay_t<decltype(format)>, spa_audio_iec958_codec>) {
+                // we only support PCM devices
+                return format != SPA_AUDIO_IEC958_CODEC_PCM;
+            } else
+                return false;
+        }, sinkOrSource.format.sampleTypes);
+
+        if (isIEC61937EncapsulatedDevice) {
+            qDebug(lcPipewireDeviceMonitor)
+                    << "Skipping IEC958 device with IEC61937-encapsulated bitstream"
+                    << sinkOrSource.serial;
+            continue;
+        }
+
         std::optional<std::string_view> nodeName = getNodeName(sinkOrSource.properties);
         bool isDefault = (defaultSinkOrSourceNodeName == nodeName);
 

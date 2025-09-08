@@ -22,6 +22,11 @@
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qpipewire_spa_pod_parser_support_p.h>
 
+#if __has_include(<spa/param/audio/iec958.h>)
+#  include <spa/param/audio/iec958.h>
+#else
+#  include "qpipewire_spa_compat_p.h"
+#endif
 #include <spa/param/audio/raw.h>
 #include <spa/pod/pod.h>
 
@@ -36,7 +41,7 @@ struct SpaObjectAudioFormat
 
     int channelCount = 0;
     std::variant<int, std::vector<int>, SpaRange<int>> rates;
-    std::variant<spa_audio_format, SpaEnum<spa_audio_format>> sampleTypes;
+    std::variant<spa_audio_format, SpaEnum<spa_audio_format>, spa_audio_iec958_codec> sampleTypes;
     std::optional<QList<spa_audio_channel>> channelPositions; // COW-able
 };
 
