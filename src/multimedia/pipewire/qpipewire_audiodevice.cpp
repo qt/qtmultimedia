@@ -151,6 +151,15 @@ void QPipewireAudioDevicePrivate::setPreferredSampleFormats(spa_audio_format arg
     preferredFormat.setSampleFormat(fmt);
 }
 
+void QPipewireAudioDevicePrivate::setPreferredSampleFormats(spa_audio_iec958_codec codec)
+{
+    Q_ASSERT(codec == SPA_AUDIO_IEC958_CODEC_PCM);
+
+    // technically iec958 would be 20 or 24 bit PCM, but pipewire will do software mixing, so float
+    // is our preferred option here
+    preferredFormat.setSampleFormat(QAudioFormat::Float);
+}
+
 void QPipewireAudioDevicePrivate::setPreferredSampleFormats(const SpaEnum<spa_audio_format> &fmt)
 {
     for (spa_audio_format f : fmt.values()) {
