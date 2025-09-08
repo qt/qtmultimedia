@@ -124,8 +124,13 @@ std::optional<SpaObjectAudioFormat> SpaObjectAudioFormat::parse(const spa_pod_ob
         result.rates = std::move(*optionalSamplingRates);
     }
 
-    for (int channelIndex = 0; channelIndex != result.channelCount; ++channelIndex)
-        result.channelPositions.push_back(spa_audio_channel(info.position[channelIndex]));
+    if (!SPA_FLAG_IS_SET(info.flags, SPA_AUDIO_FLAG_UNPOSITIONED)) {
+        result.channelPositions = QList<spa_audio_channel>();
+        for (int channelIndex = 0; channelIndex != result.channelCount; ++channelIndex)
+            result.channelPositions->push_back(spa_audio_channel(info.position[channelIndex]));
+    } else {
+        // unpositionioned
+    }
 
     return result;
 }
