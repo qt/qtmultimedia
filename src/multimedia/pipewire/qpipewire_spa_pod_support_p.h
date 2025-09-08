@@ -103,7 +103,7 @@ struct SpaObjectAudioFormat
     int channelCount = 0;
     std::variant<int, std::vector<int>, SpaRange<int>> rates;
     std::variant<spa_audio_format, SpaEnum<spa_audio_format>> sampleTypes;
-    QList<spa_audio_channel> channelPositions; // COW-able
+    std::optional<QList<spa_audio_channel>> channelPositions; // COW-able
 };
 
 spa_audio_info_raw asSpaAudioInfoRaw(const QAudioFormat &);

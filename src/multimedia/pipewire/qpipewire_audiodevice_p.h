@@ -49,7 +49,7 @@ private:
     QByteArray m_sysfsPath;
     QByteArray m_nodeName;
 
-    QList<spa_audio_channel> m_channelPositions;
+    std::optional<QList<spa_audio_channel>> m_channelPositions;
 };
 
 } // namespace QtPipeWire

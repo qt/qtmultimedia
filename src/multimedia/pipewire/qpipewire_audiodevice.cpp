@@ -86,26 +86,32 @@ QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &n
     maximumChannelCount = formats.channelCount;
 
     m_channelPositions = formats.channelPositions;
-    if (channelPositionsEqual(m_channelPositions, channelPositionsMono)) {
-        channelConfiguration = QAudioFormat::ChannelConfigMono;
-    } else if (channelPositionsEqual(m_channelPositions, channelPositionsStereo)) {
-        channelConfiguration = QAudioFormat::ChannelConfigStereo;
-    } else if (channelPositionsEqual(m_channelPositions, channelPositions2Dot1)) {
-        channelConfiguration = QAudioFormat::ChannelConfig2Dot1;
-    } else if (channelPositionsEqual(m_channelPositions, channelPositions3Dot0)) {
-        channelConfiguration = QAudioFormat::ChannelConfig3Dot0;
-    } else if (channelPositionsEqual(m_channelPositions, channelPositions3Dot1)) {
-        channelConfiguration = QAudioFormat::ChannelConfig3Dot1;
-    } else if (channelPositionsEqual(m_channelPositions, channelPositions5Dot0)) {
-        channelConfiguration = QAudioFormat::ChannelConfigSurround5Dot0;
-    } else if (channelPositionsEqual(m_channelPositions, channelPositions5Dot1)) {
-        channelConfiguration = QAudioFormat::ChannelConfigSurround5Dot1;
-    } else if (channelPositionsEqual(m_channelPositions, channelPositions7Dot0)) {
-        channelConfiguration = QAudioFormat::ChannelConfigSurround7Dot0;
-    } else if (channelPositionsEqual(m_channelPositions, channelPositions7Dot1)) {
-        channelConfiguration = QAudioFormat::ChannelConfigSurround7Dot1;
+    if (m_channelPositions) {
+        if (channelPositionsEqual(*m_channelPositions, channelPositionsMono)) {
+            channelConfiguration = QAudioFormat::ChannelConfigMono;
+        } else if (channelPositionsEqual(*m_channelPositions, channelPositionsStereo)) {
+            channelConfiguration = QAudioFormat::ChannelConfigStereo;
+        } else if (channelPositionsEqual(*m_channelPositions, channelPositions2Dot1)) {
+            channelConfiguration = QAudioFormat::ChannelConfig2Dot1;
+        } else if (channelPositionsEqual(*m_channelPositions, channelPositions3Dot0)) {
+            channelConfiguration = QAudioFormat::ChannelConfig3Dot0;
+        } else if (channelPositionsEqual(*m_channelPositions, channelPositions3Dot1)) {
+            channelConfiguration = QAudioFormat::ChannelConfig3Dot1;
+        } else if (channelPositionsEqual(*m_channelPositions, channelPositions5Dot0)) {
+            channelConfiguration = QAudioFormat::ChannelConfigSurround5Dot0;
+        } else if (channelPositionsEqual(*m_channelPositions, channelPositions5Dot1)) {
+            channelConfiguration = QAudioFormat::ChannelConfigSurround5Dot1;
+        } else if (channelPositionsEqual(*m_channelPositions, channelPositions7Dot0)) {
+            channelConfiguration = QAudioFormat::ChannelConfigSurround7Dot0;
+        } else if (channelPositionsEqual(*m_channelPositions, channelPositions7Dot1)) {
+            channelConfiguration = QAudioFormat::ChannelConfigSurround7Dot1;
+        } else {
+            // now we need to guess
+            channelConfiguration =
+                    QAudioFormat::defaultChannelConfigForChannelCount(formats.channelCount);
+        }
     } else {
-        // now we need to guess
+        // we again need to guess
         channelConfiguration =
                 QAudioFormat::defaultChannelConfigForChannelCount(formats.channelCount);
     }
