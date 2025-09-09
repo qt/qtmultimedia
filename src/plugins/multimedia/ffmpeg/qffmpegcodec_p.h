@@ -23,7 +23,7 @@
 #include <vector>
 
 extern "C" {
-#include <libavcodec/codec.h>
+#include <libavcodec/avcodec.h>
 }
 
 QT_BEGIN_NAMESPACE
