@@ -16,6 +16,8 @@
 //
 
 #include <QtCore/qglobal.h>
+#include <QtCore/qsemaphore.h>
+#include <QtCore/private/qexpected_p.h>
 
 #include "qpipewire_support_p.h"
 
@@ -30,6 +32,7 @@ namespace QtPipeWire {
 struct SpaListenerBase
 {
     explicit SpaListenerBase();
+    Q_DISABLE_COPY_MOVE(SpaListenerBase)
 
     int sequenceNumber() const { return m_sequenceNumber; }
 
@@ -64,6 +67,35 @@ private:
     static void onInfo(void *userData, const struct pw_node_info *);
     static void onParam(void *userData, int seq, uint32_t id, uint32_t index, uint32_t next,
                         const struct spa_pod *);
+};
+
+struct CoreEventListener : SpaListenerBase
+{
+protected:
+    CoreEventListener();
+    ~CoreEventListener();
+
+    pw_core_events coreEvents{};
+};
+
+struct CoreEventDoneListener : CoreEventListener
+{
+    CoreEventDoneListener();
+    q23::expected<void, int> asyncWait(pw_core *coreConnection, std::function<void()> handler);
+
+private:
+    int m_seqnum = -1;
+    std::function<void()> m_handler;
+};
+
+struct CoreEventSyncHelper : CoreEventDoneListener
+{
+    CoreEventSyncHelper();
+    q23::expected<bool, int> sync(pw_core *coreConnection,
+                                  std::optional<std::chrono::nanoseconds> timeout = {});
+
+private:
+    QSemaphore m_semaphore;
 };
 
 } // namespace QtPipeWire
