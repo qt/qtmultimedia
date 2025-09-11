@@ -66,6 +66,8 @@ public:
     void registerStreamReference(std::shared_ptr<QPipewireAudioStream>);
     void unregisterStreamReference(const std::shared_ptr<QPipewireAudioStream> &);
 
+    const PwCoreConnectionHandle &coreConnection() const;
+
 private:
     std::shared_ptr<QPipeWireInstance> m_libraryInstance;
 

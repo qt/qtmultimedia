@@ -112,6 +112,7 @@ private:
         ObjectSerial deviceSerial;
         PwPropertyDict properties;
         std::unique_ptr<NodeEventListener> enumFormatListener;
+        std::unique_ptr<CoreEventDoneListener> enumFormatDoneListener;
         QFuture<std::optional<SpaObjectAudioFormat>> formatFuture;
     };
 

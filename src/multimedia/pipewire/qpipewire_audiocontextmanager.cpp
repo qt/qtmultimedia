@@ -142,6 +142,11 @@ void QAudioContextManager::unregisterStreamReference(
     m_activeStreams.erase(stream);
 }
 
+const PwCoreConnectionHandle &QAudioContextManager::coreConnection() const
+{
+    return m_coreConnection;
+}
+
 void QAudioContextManager::prepareEventLoop()
 {
     m_eventLoop = PwThreadLoopHandle{
