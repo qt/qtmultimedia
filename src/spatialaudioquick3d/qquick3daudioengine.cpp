@@ -114,6 +114,26 @@ float QQuick3DAudioEngine::masterVolume() const
     return globalEngine->masterVolume();
 }
 
+/*!
+    \property QAudioEngine::distanceScale
+
+    Defines the scale of the coordinate system being used by the spatial audio engine.
+    By default, all units are in centimeters, in line with the default units being
+    used by Qt Quick 3D.
+
+    Set the distance scale to 100 to get units in meters.
+*/
+void QQuick3DAudioEngine::setDistanceScale(float volume)
+{
+    globalEngine->setDistanceScale(volume);
+}
+
+float QQuick3DAudioEngine::distanceScale() const
+{
+    return globalEngine->distanceScale();
+}
+
+
 QAudioEngine *QQuick3DAudioEngine::getEngine()
 {
     if (!globalEngine) {
@@ -122,6 +142,7 @@ QAudioEngine *QQuick3DAudioEngine::getEngine()
     }
     return globalEngine;
 }
+
 
 QT_END_NAMESPACE
 
