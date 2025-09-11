@@ -47,6 +47,8 @@ qhp.QtSpatialAudio.subprojects.overview.title = Overview
 qhp.QtSpatialAudio.subprojects.overview.indexTitle = Spatial Audio Overview
 qhp.QtSpatialAudio.subprojects.overview.selectors = group:none
 
+tagfile = qtspatialaudio.tags
+
 exampledirs += ../../../examples/spatialaudio \
                snippets
 
