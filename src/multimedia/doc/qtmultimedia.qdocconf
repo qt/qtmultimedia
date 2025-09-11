@@ -52,6 +52,8 @@ qhp.QtMultimedia.subprojects.manual.title = Qt Multimedia
 qhp.QtMultimedia.subprojects.manual.indexTitle = Qt Multimedia module topics
 qhp.QtMultimedia.subprojects.manual.type = manual
 
+tagfile = qtmultimedia.tags
+
 exampledirs += ../../../examples/multimedia \
                ../../../examples/multimediawidgets \
                snippets \
