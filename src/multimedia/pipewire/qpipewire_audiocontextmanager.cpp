@@ -115,47 +115,18 @@ PwNodeHandle QAudioContextManager::bindNode(ObjectId id)
 
 void QAudioContextManager::syncRegistry()
 {
-    QSemaphore sync;
+    using namespace std::chrono_literals;
+    CoreEventSyncHelper syncHelper;
 
-    int seqnum{};
-
-    auto handler = [&](uint32_t id, int seq) {
-        Q_ASSERT(isInPwThreadLoop());
-        if (id == PW_ID_CORE && seq == seqnum)
-            sync.release();
-    };
-
-    pw_core_events coreEvents = {};
-    spa_hook coreListener = {};
-    coreEvents.version = PW_VERSION_CORE_EVENTS;
-
-    coreEvents.done = [](void *object, uint32_t id, int seq) {
-        Q_ASSERT(isInPwThreadLoop());
-        (*reinterpret_cast<std::add_pointer_t<decltype(handler)>>(object))(id, seq);
-    };
-
-    bool syncStarted = withEventLoopLock([&] {
-        int status =
-                pw_core_add_listener(m_coreConnection.get(), &coreListener, &coreEvents, &handler);
-        if (status < 0) {
-            qFatal() << "pw_core_add_listener failed" << make_error_code(-status).message();
-            return false;
-        }
-
-        status = pw_core_sync(m_coreConnection.get(), PW_ID_CORE, 0);
-        if (status < 0) {
-            qFatal() << "pw_core_sync failed" << make_error_code(-status).message();
-            return false;
-        }
-
-        seqnum = status;
-        return true;
-    });
-
-    if (syncStarted)
-        sync.acquire();
-
-    spa_hook_remove(&coreListener);
+    auto syncOrErr = syncHelper.sync(m_coreConnection.get(), 3s);
+    if (syncOrErr == true)
+        return;
+    if (syncOrErr == false)
+        qWarning() << "pw_core_sync timed out";
+    else if (syncOrErr.error()) {
+        int err = syncOrErr.error();
+        qWarning() << "CoreEventSyncHelper::sync failed:" << make_error_code(err).message();
+    }
 }
 
 void QAudioContextManager::registerStreamReference(std::shared_ptr<QPipewireAudioStream> stream)
