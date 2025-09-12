@@ -91,15 +91,14 @@ void StreamBuilder::setupBuilder()
     AAudioStreamBuilder_setDataCallback(m_builder, callback, userData);
     AAudioStreamBuilder_setErrorCallback(m_builder, errorCallback, userData);
 
-    AAudioStreamBuilder_setPerformanceMode(m_builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-    setMMapPolicy(2); // Also set MMap policy to AUTO
-
     // Set other parameters if not default
     StreamParameterSet defaultParams;
     if (params.sharingMode != defaultParams.sharingMode)
         AAudioStreamBuilder_setSharingMode(m_builder, params.sharingMode);
     // Set performance mode to low latency if mmap policy cannot be set
     if (params.direction == AAUDIO_DIRECTION_OUTPUT) {
+        AAudioStreamBuilder_setPerformanceMode(m_builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+        setMMapPolicy(2); // Also set MMap policy to AUTO
         if (params.outputUsage != defaultParams.outputUsage)
             AAudioStreamBuilder_setUsage(m_builder, params.outputUsage);
         if (params.outputContentType != defaultParams.outputContentType)
@@ -150,7 +149,8 @@ Stream::Stream(const StreamBuilder &builder)
             || AAudioStream_getContentType(m_stream) == builder.params.outputContentType))
         m_areStreamParametersRespected = true;
 
-    if (AAudioStream_getPerformanceMode(m_stream) != AAUDIO_PERFORMANCE_MODE_LOW_LATENCY)
+    if (builder.params.direction == AAUDIO_DIRECTION_OUTPUT
+        && AAudioStream_getPerformanceMode(m_stream) != AAUDIO_PERFORMANCE_MODE_LOW_LATENCY)
         qCWarning(qLcAAudioStream) << "Low latency performance mode not set";
 
     // Set buffer size
