@@ -79,6 +79,8 @@ struct StringResolver
 #define QT_MM_DEFINE_QDEBUG_ENUM(EnumType)                                     \
     QDebug operator<<(QDebug dbg, EnumType arg)                                \
     {                                                                          \
+        QDebugStateSaver saver(dbg);                                           \
+        dbg.noquote();                                                         \
         std::optional<QString> resolved =                                      \
                 QtMultimediaPrivate::StringResolver<EnumType>::toQString(arg); \
         if (resolved)                                                          \
@@ -86,7 +88,8 @@ struct StringResolver
         else                                                                   \
             dbg << "Unknown Enum value";                                       \
         return dbg;                                                            \
-    }
+    }                                                                          \
+    static_assert(true, "force semicolon")
 
 QT_END_NAMESPACE
 
