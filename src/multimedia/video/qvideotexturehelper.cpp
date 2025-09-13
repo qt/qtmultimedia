@@ -585,7 +585,6 @@ void updateUniformData(QByteArray *dst, QRhi *rhi, const QVideoFrameFormat &form
     case QVideoFrameFormat::Format_Invalid:
         return;
 
-    case QVideoFrameFormat::Format_Jpeg:
     case QVideoFrameFormat::Format_ARGB8888:
     case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
     case QVideoFrameFormat::Format_XRGB8888:
@@ -595,8 +594,24 @@ void updateUniformData(QByteArray *dst, QRhi *rhi, const QVideoFrameFormat &form
     case QVideoFrameFormat::Format_ABGR8888:
     case QVideoFrameFormat::Format_XBGR8888:
     case QVideoFrameFormat::Format_RGBA8888:
-    case QVideoFrameFormat::Format_RGBX8888:
+    case QVideoFrameFormat::Format_RGBX8888: {
+        if (format.colorRange() == QVideoFrameFormat::ColorRange_Video) {
+            constexpr float scale = 255.0f / 219.0f; // (255 - 0) / (235 - 16)
+            constexpr float offset = -16.0f / 219.0f; // -16 / (235 - 16)
+            // clang-format off
+            cmat = QMatrix4x4 {
+                scale, 0.f,   0.f, offset,
+                0.f, scale,   0.f, offset,
+                0.f,   0.f, scale, offset,
+                0.f,   0.f,   0.f, 1.f,
+            };
+            // clang-format on
+        }
 
+        break;
+    }
+
+    case QVideoFrameFormat::Format_Jpeg:
     case QVideoFrameFormat::Format_Y8:
     case QVideoFrameFormat::Format_Y16:
         break;
