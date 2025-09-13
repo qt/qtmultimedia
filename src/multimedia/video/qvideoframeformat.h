@@ -214,6 +214,8 @@ QT_DEPRECATED_VERSION_X_6_4("Use QVideoFrameFormat::ColorSpace")
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::YCbCrColorSpace);
 #endif
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::ColorSpace);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::ColorTransfer);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::ColorRange);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::PixelFormat);
 #endif
 
