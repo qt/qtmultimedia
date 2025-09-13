@@ -53,17 +53,17 @@ public:
         // else hwVideoBuffer == nullptr
     }
 
-    static QVideoFramePrivate *handle(QVideoFrame &frame) { return frame.d.get(); };
+    static QVideoFramePrivate *handle(QVideoFrame &frame) { return frame.d.get(); }
 
     static QHwVideoBuffer *hwBuffer(const QVideoFrame &frame)
     {
         return frame.d ? frame.d->hwVideoBuffer : nullptr;
-    };
+    }
 
     static QAbstractVideoBuffer *buffer(const QVideoFrame &frame)
     {
         return frame.d ? frame.d->videoBuffer.get() : nullptr;
-    };
+    }
 
     QVideoFrame adoptThisByVideoFrame()
     {
