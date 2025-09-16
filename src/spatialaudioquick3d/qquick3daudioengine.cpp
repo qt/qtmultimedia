@@ -47,6 +47,7 @@ QQuick3DAudioEngine::QQuick3DAudioEngine()
     connect(e, &QAudioEngine::outputModeChanged, this, &QQuick3DAudioEngine::outputModeChanged);
     connect(e, &QAudioEngine::outputDeviceChanged, this, &QQuick3DAudioEngine::outputDeviceChanged);
     connect(e, &QAudioEngine::masterVolumeChanged, this, &QQuick3DAudioEngine::masterVolumeChanged);
+    connect(e, &QAudioEngine::distanceScaleChanged, this, &QQuick3DAudioEngine::distanceScaleChanged);
 }
 
 QQuick3DAudioEngine::~QQuick3DAudioEngine()
@@ -112,6 +113,26 @@ void QQuick3DAudioEngine::setMasterVolume(float volume)
 float QQuick3DAudioEngine::masterVolume() const
 {
     return globalEngine->masterVolume();
+}
+
+/*!
+    \qmlproperty real QAudioEngine::distanceScale
+    \since 6.11
+
+    Defines the scale of the coordinate system being used by the spatial audio engine.
+    By default, all units are in centimeters, in line with the default units being
+    used by Qt Quick 3D.
+
+    Set the distance scale to 100 to get units in meters.
+*/
+void QQuick3DAudioEngine::setDistanceScale(float scale)
+{
+    globalEngine->setDistanceScale(scale);
+}
+
+float QQuick3DAudioEngine::distanceScale() const
+{
+    return globalEngine->distanceScale();
 }
 
 QAudioEngine *QQuick3DAudioEngine::getEngine()

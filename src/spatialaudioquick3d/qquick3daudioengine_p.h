@@ -29,6 +29,7 @@ class QQuick3DAudioEngine : public QObject
     Q_PROPERTY(OutputMode outputMode READ outputMode WRITE setOutputMode NOTIFY outputModeChanged)
     Q_PROPERTY(QAudioDevice outputDevice READ outputDevice WRITE setOutputDevice NOTIFY outputDeviceChanged)
     Q_PROPERTY(float masterVolume READ masterVolume WRITE setMasterVolume NOTIFY masterVolumeChanged)
+    Q_PROPERTY(float distanceScale READ distanceScale WRITE setDistanceScale NOTIFY distanceScaleChanged)
 
 public:
     // Keep in sync with QAudioEngine::OutputMode
@@ -51,12 +52,16 @@ public:
     void setMasterVolume(float volume);
     float masterVolume() const;
 
+    void setDistanceScale(float scale);
+    float distanceScale() const;
+
     static QAudioEngine *getEngine();
 
 Q_SIGNALS:
     void outputModeChanged();
     void outputDeviceChanged();
     void masterVolumeChanged();
+    void distanceScaleChanged();
 };
 
 QT_END_NAMESPACE
