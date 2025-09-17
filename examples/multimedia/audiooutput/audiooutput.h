@@ -62,6 +62,7 @@ private:
     QTimer *m_pushTimer = nullptr;
 
     // Owned by layout
+    QComboBox *m_formatBox = nullptr;
     QPushButton *m_modeButton = nullptr;
     QPushButton *m_suspendResumeButton = nullptr;
     QComboBox *m_deviceBox = nullptr;
@@ -75,6 +76,7 @@ private:
     void restartAudioStream();
 
 private slots:
+    void sampleFormatChanged(int index);
     void toggleMode();
     void toggleSuspendResume();
     void deviceChanged(int index);

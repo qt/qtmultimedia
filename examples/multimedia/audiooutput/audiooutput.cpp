@@ -27,6 +27,17 @@ void Generator::stop()
     close();
 }
 
+static QString sampleFormatToString(QAudioFormat::SampleFormat f)
+{
+    switch (f) {
+    case QAudioFormat::UInt8:  return "UInt8";
+    case QAudioFormat::Int16:  return "Int16";
+    case QAudioFormat::Int32:  return "Int32";
+    case QAudioFormat::Float:  return "Float";
+    default:                   return "Unknown";
+    }
+}
+
 void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int sampleRate)
 {
     const int channelBytes = format.bytesPerSample();
@@ -142,6 +153,26 @@ void AudioTest::initializeWindow()
     volumeBox->addWidget(m_volumeSlider);
     layout->addLayout(volumeBox);
 
+    // Sample Format selector
+    QHBoxLayout *formatBox = new QHBoxLayout;
+    QLabel *formatLabel = new QLabel;
+    formatLabel->setText(tr("Sample Format:"));
+    m_formatBox = new QComboBox(this);
+
+   // Clear and repopulate the sample format combo box
+   // supportedSampleFormats returns int so we cast it to string.
+    m_formatBox->clear();
+    for (QAudioFormat::SampleFormat fmt : defaultDeviceInfo.supportedSampleFormats()) {
+        m_formatBox->addItem(sampleFormatToString(fmt), QVariant::fromValue(fmt));
+    }
+
+    connect(m_formatBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &AudioTest::sampleFormatChanged);
+
+    formatBox->addWidget(formatLabel);
+    formatBox->addWidget(m_formatBox);
+    layout->addLayout(formatBox);
+
     window->setLayout(layout);
 
     setCentralWidget(window);
@@ -202,6 +233,17 @@ void AudioTest::volumeChanged(int value)
                                                QAudio::LinearVolumeScale);
 
     m_audioSink->setVolume(linearVolume);
+}
+
+void AudioTest::sampleFormatChanged(int index)
+{
+    QAudioDevice device = m_deviceBox->currentData().value<QAudioDevice>();
+    QAudioFormat newFormat = m_audioSink->format();
+
+    newFormat.setSampleFormat(static_cast<QAudioFormat::SampleFormat>(
+            m_formatBox->itemData(index).toInt()));
+
+    applyAudioFormat(device, newFormat);
 }
 
 void AudioTest::updateAudioDevices()
