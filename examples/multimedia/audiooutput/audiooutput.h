@@ -56,7 +56,7 @@ signals:
 private:
     void initializeWindow();
     void initializeAudio(const QAudioDevice &deviceInfo);
-
+    void applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFormat &format);
 private:
     QMediaDevices *m_devices = nullptr;
     QTimer *m_pushTimer = nullptr;
