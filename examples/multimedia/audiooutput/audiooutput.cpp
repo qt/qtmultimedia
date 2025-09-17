@@ -159,7 +159,11 @@ void AudioTest::initializeWindow()
 void AudioTest::initializeAudio(const QAudioDevice &deviceInfo)
 {
     QAudioFormat format = deviceInfo.preferredFormat();
+    applyAudioFormat(deviceInfo, format);
+}
 
+void AudioTest::applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFormat &format)
+{
     const int durationSeconds = 1;
     const int toneSampleRateHz = 600;
     m_generator.reset(new Generator(format, durationSeconds * 1000000, toneSampleRateHz));
