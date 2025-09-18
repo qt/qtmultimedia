@@ -64,6 +64,30 @@ namespace {
     return transform;
 }
 
+// This function may return a nullptr if no suitable format was found.
+// The format may not be supported by FFmpeg.
+[[nodiscard]] static AVCaptureDeviceFormat* findSuitableAvCaptureDeviceFormat(
+    AVCaptureDevice *avCaptureDevice,
+    const QCameraFormat &format)
+{
+    Q_ASSERT(avCaptureDevice != nullptr);
+    Q_ASSERT(!format.isNull());
+
+    // First we try to find a device format equivalent to QCameraFormat
+    // that is supported by FFmpeg.
+    AVCaptureDeviceFormat *newDeviceFormat = qt_convert_to_capture_device_format(
+        avCaptureDevice,
+        format,
+        &QFFmpeg::isCVFormatSupported);
+
+    // If we can't find a AVCaptureDeviceFormat supported by FFmpeg,
+    // fall back to one not supported by FFmpeg.
+    if (!newDeviceFormat)
+        newDeviceFormat = qt_convert_to_capture_device_format(avCaptureDevice, format);
+
+    return newDeviceFormat;
+}
+
 }
 
 QAVFCamera::QAVFCamera(QCamera *parent)
@@ -206,15 +230,9 @@ void QAVFCamera::updateCameraFormat(const QCameraFormat &newFormat)
     if (!captureDevice)
         return;
 
-    AVCaptureDeviceFormat *newDeviceFormat = qt_convert_to_capture_device_format(
+    AVCaptureDeviceFormat *newDeviceFormat = findSuitableAvCaptureDeviceFormat(
         captureDevice,
-        newFormat,
-        &QFFmpeg::isCVFormatSupported);
-
-    // If we can't find a AVCaptureDeviceFormat supported by FFmpeg,
-    // fall back to one not supported by FFmpeg.
-    if (!newDeviceFormat)
-        newDeviceFormat = qt_convert_to_capture_device_format(captureDevice, newFormat);
+        newFormat);
 
     if (newDeviceFormat) {
         qt_set_active_format(captureDevice, newDeviceFormat, false);
