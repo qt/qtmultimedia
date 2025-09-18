@@ -32,6 +32,7 @@ Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureSession);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceInput);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoDataOutput);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceFormat);
 Q_FORWARD_DECLARE_OBJC_CLASS(QAVFSampleBufferDelegate);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceRotationCoordinator);
 
@@ -64,6 +65,10 @@ protected:
 private:
     void clearAvCaptureSessionInputDevice();
     [[nodiscard]] q23::expected<void, QString> setupAvCaptureSessionInputDevice(AVCaptureDevice *);
+    [[nodiscard]] q23::expected<void, QString> tryApplyFormatToCaptureSession(
+        AVCaptureDevice *,
+        AVCaptureDeviceFormat *,
+        const QCameraFormat &);
 
     void updateCameraFormat(const QCameraFormat&);
     [[nodiscard]] QSize adjustedResolution(const QCameraFormat& format) const;

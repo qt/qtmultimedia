@@ -233,6 +233,87 @@ void QAVFCamera::clearAvCaptureSessionInputDevice()
     return {};
 }
 
+// This function writes to the AVCaptureVideoDataOutput and QAVFSampleBufferDelegate
+// objects directly. Don't use this function if these objects are already
+// connected to a running AVCaptureSession.
+q23::expected<void, QString> QAVFCamera::tryApplyFormatToCaptureSession(
+    AVCaptureDevice *avCaptureDevice,
+    AVCaptureDeviceFormat *avCaptureDeviceFormat,
+    const QCameraFormat &newCameraFormat)
+{
+    Q_ASSERT(avCaptureDevice != nullptr);
+    Q_ASSERT(avCaptureDeviceFormat != nullptr);
+    Q_ASSERT(!newCameraFormat.isNull());
+
+    const CvPixelFormat captureDeviceCvFormat = CMVideoFormatDescriptionGetCodecType(
+        avCaptureDeviceFormat.formatDescription);
+
+    // We cannot always use the AVCaptureDeviceFormat directly,
+    // so we look for a pixel format that we can use for the output.
+    // The AVFoundation internals will take care of converting the
+    // pixel formats to what we require.
+    q23::expected<CvPixelFormat, QString> outputPixelFormatResult =
+        tryFindVideoDataOutputPixelFormat(
+            newCameraFormat.pixelFormat(),
+            captureDeviceCvFormat,
+            m_avCaptureVideoDataOutput);
+    if (!outputPixelFormatResult)
+        return q23::unexpected{ std::move(outputPixelFormatResult.error()) };
+
+    const CvPixelFormat outputCvPixelFormat = *outputPixelFormatResult;
+
+    // If the input AVCaptureDevice pixel format does not match
+    // the output pixel format, the AVFoundation internals will perform
+    // the conversion for us. This likely incurs performance overhead.
+    if (captureDeviceCvFormat != outputCvPixelFormat) {
+        qCWarning(qLcCamera) << "Output CV format differs with capture device format!"
+                             << outputCvPixelFormat << cvFormatToString(outputCvPixelFormat)
+                             << "vs"
+                             << captureDeviceCvFormat << cvFormatToString(captureDeviceCvFormat);
+    }
+
+    const AVPixelFormat avPixelFormat = av_map_videotoolbox_format_to_pixfmt(outputCvPixelFormat);
+
+    HWAccelUPtr hwAccel;
+
+    if (avPixelFormat == AV_PIX_FMT_NONE) {
+        qCWarning(qLcCamera) << "Videotoolbox doesn't support cvPixelFormat:" << outputCvPixelFormat
+                             << cvFormatToString(outputCvPixelFormat)
+                             << "Camera pix format:" << newCameraFormat.pixelFormat();
+    } else {
+        hwAccel = HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
+        qCDebug(qLcCamera) << "Create VIDEOTOOLBOX hw context" << hwAccel.get() << "for camera";
+    }
+
+    // Apply the format to our capture session and QAVFCamera.
+
+    if (hwAccel) {
+        hwAccel->createFramesContext(avPixelFormat, adjustedResolution(newCameraFormat));
+        m_hwPixelFormat = hwAccel->hwFormat();
+    } else {
+        m_hwPixelFormat = AV_PIX_FMT_NONE;
+    }
+
+    Q_ASSERT(m_avCaptureVideoDataOutput != nullptr);
+    [m_qAvfSampleBufferDelegate setHWAccel:std::move(hwAccel)];
+    [m_qAvfSampleBufferDelegate setVideoFormatFrameRate:newCameraFormat.maxFrameRate()];
+
+    Q_ASSERT(m_avCaptureVideoDataOutput != nullptr);
+    NSDictionary *outputSettings = @{
+        (NSString *)kCVPixelBufferPixelFormatTypeKey
+            : [NSNumber numberWithUnsignedInt:outputCvPixelFormat],
+        (NSString *)kCVPixelBufferMetalCompatibilityKey : @true
+    };
+    m_avCaptureVideoDataOutput.videoSettings = outputSettings;
+
+    qt_set_active_format(avCaptureDevice, avCaptureDeviceFormat, false);
+
+    m_framePixelFormat = QAVFHelpers::fromCVPixelFormat(outputCvPixelFormat);
+    m_cvPixelFormat = outputCvPixelFormat;
+
+    return {};
+}
+
 void QAVFCamera::onActiveChanged(bool active)
 {
     if (active) {
@@ -353,75 +434,16 @@ void QAVFCamera::updateCameraFormat(const QCameraFormat &newFormat)
         return;
     }
 
-    const CvPixelFormat captureDeviceCvFormat =
-        CMVideoFormatDescriptionGetCodecType(avCaptureDeviceFormat.formatDescription);
-
-    // We cannot always use the AVCaptureDeviceFormat directly,
-    // so we look for a pixel format that we can use for the output.
-    // The AVFoundation internals will take care of converting the
-    // pixel formats to what we require.
-    q23::expected<CvPixelFormat, QString> outputPixelFormatResult =
-        tryFindVideoDataOutputPixelFormat(
-            newFormat.pixelFormat(),
-            captureDeviceCvFormat,
-            m_avCaptureVideoDataOutput);
-    if (!outputPixelFormatResult) {
+    q23::expected<void, QString> applyFormatResult = tryApplyFormatToCaptureSession(
+        avCaptureDevice,
+        avCaptureDeviceFormat,
+        newFormat);
+    if (!applyFormatResult) {
         qWarning()
-            << "QAVFCamera::updateCameraFormat: Unable to find suitable output CvPixelFormat when "
-               "applying QCameraFormat:"
-            << outputPixelFormatResult.error();
-        return;
+            << "QAVFCamera::updateCameraFormat: Failed to apply QCameraFormat to "
+               "AVCaptureSession:"
+            << applyFormatResult.error();
     }
-
-    const CvPixelFormat outputCvPixelFormat = *outputPixelFormatResult;
-
-    // If the input AVCaptureDevice pixel format does not match
-    // the output pixel format, the AVFoundation internals will perform
-    // the conversion for us. This likely incurs performance overhead.
-    if (captureDeviceCvFormat != outputCvPixelFormat) {
-        qCWarning(qLcCamera) << "Output CV format differs with capture device format!"
-                             << outputCvPixelFormat << cvFormatToString(outputCvPixelFormat)
-                             << "vs"
-                             << captureDeviceCvFormat << cvFormatToString(captureDeviceCvFormat);
-    }
-
-    const AVPixelFormat avPixelFormat = av_map_videotoolbox_format_to_pixfmt(outputCvPixelFormat);
-
-    HWAccelUPtr hwAccel;
-
-    if (avPixelFormat == AV_PIX_FMT_NONE) {
-        qCWarning(qLcCamera) << "Videotoolbox doesn't support cvPixelFormat:" << outputCvPixelFormat
-                             << cvFormatToString(outputCvPixelFormat)
-                             << "Camera pix format:" << newFormat.pixelFormat();
-    } else {
-        hwAccel = HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
-        qCDebug(qLcCamera) << "Create VIDEOTOOLBOX hw context" << hwAccel.get() << "for camera";
-    }
-
-    if (hwAccel) {
-        hwAccel->createFramesContext(avPixelFormat, adjustedResolution(newFormat));
-        m_hwPixelFormat = hwAccel->hwFormat();
-    } else {
-        m_hwPixelFormat = AV_PIX_FMT_NONE;
-    }
-
-    // Apply the format to the AVCaptureDevice.
-    qt_set_active_format(avCaptureDevice, avCaptureDeviceFormat, false);
-
-    Q_ASSERT(m_avCaptureVideoDataOutput);
-    NSDictionary *outputSettings = @{
-        (NSString *)kCVPixelBufferPixelFormatTypeKey
-            : [NSNumber numberWithUnsignedInteger:outputCvPixelFormat],
-        (NSString *)kCVPixelBufferMetalCompatibilityKey : @true
-    };
-    m_avCaptureVideoDataOutput.videoSettings = outputSettings;
-
-    Q_ASSERT(m_qAvfSampleBufferDelegate);
-    [m_qAvfSampleBufferDelegate setHWAccel:std::move(hwAccel)];
-    [m_qAvfSampleBufferDelegate setVideoFormatFrameRate:newFormat.maxFrameRate()];
-
-    m_cvPixelFormat = outputCvPixelFormat;
-    m_framePixelFormat = QAVFHelpers::fromCVPixelFormat(outputCvPixelFormat);
 }
 
 QSize QAVFCamera::adjustedResolution(const QCameraFormat& newFormat) const
