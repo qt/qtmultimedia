@@ -93,7 +93,7 @@ QCapturableWindow::QCapturableWindow() = default;
     If given a window that is not top-level, this method will return an instance will never become
     valid.
 
-    \since 6.11
+    \since 6.10
 */
 QCapturableWindow::QCapturableWindow(QWindow *window)
 {
