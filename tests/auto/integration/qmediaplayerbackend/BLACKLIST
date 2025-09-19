@@ -17,3 +17,4 @@ rhel-8.10 ci
 # QTBUG-137343
 [setActiveSubtitleTrack_switchesSubtitles]
 rhel-8.10 ci
+macos-26 ci # QTBUG-140398
