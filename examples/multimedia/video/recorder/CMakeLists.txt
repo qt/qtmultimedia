@@ -1,11 +1,9 @@
-# Copyright (C) 2022 The Qt Company Ltd.
+# Copyright (C) 2025 The Qt Company Ltd.
 # SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 cmake_minimum_required(VERSION 3.16)
 
 project(recorder LANGUAGES CXX)
-
-set(CMAKE_AUTOMOC ON)
 
 if(NOT DEFINED INSTALL_EXAMPLESDIR)
     set(INSTALL_EXAMPLESDIR "examples")
@@ -15,16 +13,21 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/recorder")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Multimedia Quick)
 
+qt_standard_project_setup(REQUIRES 6.8)
+
 qt_add_executable(recorder
     main.cpp
 )
 
 qt_add_ios_ffmpeg_libraries(recorder)
 
-set(resource_files
-    "main.qml"
-    "main_no_permissions.qml"
-    "qmldir"
+set_source_files_properties(Style.qml PROPERTIES
+    QT_QML_SINGLETON_TYPE TRUE
+)
+
+set(qml_files
+    "Main.qml"
+    "Main_no_permissions.qml"
     "MediaList.qml"
     "AudioInputSelect.qml"
     "VideoSourceSelect.qml"
@@ -39,11 +42,10 @@ set(resource_files
     "Playback.qml"
 )
 
-qt_add_resources(recorder "recorder"
-    PREFIX
-        "/"
-    FILES
-        ${resource_files}
+qt_add_qml_module(recorder
+    URI RecorderExample
+    QML_FILES
+        ${qml_files}
 )
 
 target_link_libraries(recorder PRIVATE
