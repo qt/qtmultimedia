@@ -645,7 +645,7 @@ void VideoFrameEncoder::updateConversions()
                 << "video source and encoder use different formats:" << m_sourceSWFormat
                 << m_targetSWFormat << "or sizes:" << m_sourceSize << m_targetSize;
 
-        const int conversionType = getScaleConversionType(m_sourceSize, m_targetSize);
+        const ScaleConversion conversionType = getScaleConversionType(m_sourceSize, m_targetSize);
 
         m_scaleContext = createSwsContext(m_sourceSize, m_sourceSWFormat, m_targetSize,
                                           m_targetSWFormat, conversionType);

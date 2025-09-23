@@ -48,6 +48,8 @@ extern "C" {
     (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(60, 11, 100)) // since FFmpeg n6.1
 #define QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG \
     (LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(59, 39, 100)) // since FFmpeg n7.1
+#define QT_FFMPEG_HAS_SWS_FLAGS_ENUM \
+    (LIBSWSCALE_VERSION_INT >= AV_VERSION_INT(9, 1, 100)) // since FFmpeg n8.0
 
 QT_BEGIN_NAMESPACE
 
@@ -57,6 +59,12 @@ namespace QFFmpeg {
 using ChannelLayoutT = AVChannelLayout;
 #else
 using ChannelLayoutT = uint64_t;
+#endif
+
+#if QT_FFMPEG_HAS_SWS_FLAGS_ENUM
+using ScaleConversion = SwsFlags;
+#else
+using ScaleConversion = int;
 #endif
 
 } // namespace QFFmpeg
