@@ -3,7 +3,6 @@
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 import QtMultimedia
 
 Row {
@@ -32,8 +31,8 @@ Row {
         width: recordButton.width
         RecordButton {
             id: recordButton
-            recording: recorder.recorderState === MediaRecorder.RecordingState
-            onClicked: recording ? recorder.stop() : recorder.record()
+            recording: root.recorder.recorderState === MediaRecorder.RecordingState
+            onClicked: recording ? root.recorder.stop() : root.recorder.record()
         }
         Text {
             id: recordingTime
@@ -66,7 +65,7 @@ Row {
             height: Style.height
             width: Style.widthMedium
             background: StyleRectangle { anchors.fill: parent }
-            onClicked: settingsVisible = !settingsVisible
+            onClicked: root.settingsVisible = !root.settingsVisible
             text: "Settings"
             font.pointSize: Style.fontSize
         }
@@ -75,8 +74,8 @@ Row {
     Timer {
         running: true; interval: 100; repeat: true
         onTriggered: {
-            var m = Math.floor(recorder.duration / 60000)
-            var ms = (recorder.duration / 1000 - m * 60).toFixed(1)
+            var m = Math.floor(root.recorder.duration / 60000)
+            var ms = (root.recorder.duration / 1000 - m * 60).toFixed(1)
             recordingTime.text = `${m}:${ms.padStart(4, 0)}`
         }
     }

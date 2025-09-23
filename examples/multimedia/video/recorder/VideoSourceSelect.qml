@@ -1,6 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtMultimedia
@@ -33,17 +34,17 @@ Row {
 
     Camera {
         id: camera
-        active: cameraAvailable
+        active: root.cameraAvailable
     }
 
     ScreenCapture {
         id: screenCapture
-        active: screenAvailable
+        active: root.screenAvailable
     }
 
     WindowCapture {
         id: windowCapture
-        active: windowAvailable
+        active: root.windowAvailable
     }
 
     MediaDevices { id: mediaDevices
@@ -133,6 +134,7 @@ Row {
         }
 
         delegate: ItemDelegate {
+            id: delegate
             property bool isToggler: value.type === 'toggler'
             text: model[comboBox.textRole]
             width: comboBox.width
@@ -147,10 +149,10 @@ Row {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    if (isToggler)
-                        videoSourceModel.toggleEnabledSource(value.sourceType)
+                    if (delegate.isToggler)
+                        videoSourceModel.toggleEnabledSource(delegate.value.sourceType)
                     else {
-                        comboBox.currentIndex = index
+                        comboBox.currentIndex = delegate.index
                         comboBox.popup.close()
                     }
                 }

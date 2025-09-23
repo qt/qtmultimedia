@@ -24,9 +24,9 @@ ColumnLayout {
         function onMetaDataChanged() {
             metaDataModel.clear()
             for (var key of root.recorder.metaData.keys()) {
-                if (recorder.metaData.stringValue(key))
+                if (root.recorder.metaData.stringValue(key))
                     metaDataModel.append(
-                                { text: recorder.metaData.metaDataKeyToString(key)
+                                { text: root.recorder.metaData.metaDataKeyToString(key)
                                 , value: key })
             }
         }
@@ -74,7 +74,7 @@ ColumnLayout {
                 clip: true
                 onAccepted: {
                     root.recorder.metaData.insert(metaDataType.currentValue, text)
-                    recorder.metaDataChanged()
+                    root.recorder.metaDataChanged()
                     text = ""
                     textInput.deselect()
                 }
@@ -138,7 +138,7 @@ ColumnLayout {
                 text: "del"
                 font.pointSize: Style.fontSize
                 background: StyleRectangle { anchors.fill: parent }
-                onClicked: { root.recorder.metaData.remove(r.value); recorder.metaDataChanged() }
+                onClicked: { root.recorder.metaData.remove(r.value); root.recorder.metaDataChanged() }
             }
         }
     }

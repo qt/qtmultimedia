@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
-import QtQuick.Layouts
-import QtQuick.Controls
 import QtMultimedia
 
 Column {
@@ -20,7 +18,7 @@ Column {
     }
 
     Connections {
-        target: recorder
+        target: root.recorder
         function onMediaFormatChanged() { root.populateModels() }
     }
 
@@ -38,24 +36,24 @@ Column {
             ListElement { text: "high"; value: MediaRecorder.HighQuality }
             ListElement { text: "very high"; value: MediaRecorder.VeryHighQuality }
         }
-        onActivated: (v) => { recorder.quality = v }
+        onActivated: (v) => { root.recorder.quality = v }
     }
 
     StyleParameter {
         id: audioCodecSelect
         label: "Audio codec"
         model: audioCodecModel
-        onActivated: (v) => { recorder.mediaFormat.audioCodec = v }
+        onActivated: (v) => { root.recorder.mediaFormat.audioCodec = v }
 
         ListModel {
             id: audioCodecModel
             function populate() {
                 audioCodecModel.clear()
                 audioCodecModel.append({"text": "Unspecifed", "value": MediaFormat.AudioCodec.Unspecified})
-                var cs = recorder.mediaFormat.supportedAudioCodecs(MediaFormat.Encode)
+                var cs = root.recorder.mediaFormat.supportedAudioCodecs(MediaFormat.Encode)
                 for (var c of cs)
-                    audioCodecModel.append({"text": recorder.mediaFormat.audioCodecName(c), "value": c})
-                audioCodecSelect.currentIndex = cs.indexOf(recorder.mediaFormat.audioCodec) + 1
+                    audioCodecModel.append({"text": root.recorder.mediaFormat.audioCodecName(c), "value": c})
+                audioCodecSelect.currentIndex = cs.indexOf(root.recorder.mediaFormat.audioCodec) + 1
             }
         }
     }
@@ -66,7 +64,7 @@ Column {
         id: videoCodecSelect
         label: "Video codec"
         model: videoCodecModel
-        onActivated: (v) => { recorder.mediaFormat.videoCodec = v }
+        onActivated: (v) => { root.recorder.mediaFormat.videoCodec = v }
 
         ListModel {
             id: videoCodecModel
@@ -85,7 +83,7 @@ Column {
         id: fileFormatSelect
         label: "File format"
         model: fileFormatModel
-        onActivated: (v) => { recorder.mediaFormat.fileFormat = v }
+        onActivated: (v) => { root.recorder.mediaFormat.fileFormat = v }
 
         ListModel {
             id: fileFormatModel

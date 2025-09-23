@@ -1,9 +1,9 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
-import QtMultimedia
 import QtQuick.Layouts
 
 Item {
@@ -31,6 +31,7 @@ Item {
         spacing: Style.intraSpacing
 
         delegate: Frame {
+            id: frame
             padding: Style.intraSpacing
             width: root.height
             height: root.height
@@ -45,14 +46,14 @@ Item {
                     id: image
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    source: thumbnail
+                    source: frame.thumbnail
                     fillMode: Image.PreserveAspectFit
                 }
 
                 Text {
                     Layout.fillWidth: true
                     elide: Text.ElideLeft
-                    text: url
+                    text: frame.url
                 }
             }
             RoundButton {
@@ -60,7 +61,7 @@ Item {
                 width: 30
                 height: 30
                 text: "\u25B6";
-                onClicked: { playback.playUrl(url) }
+                onClicked: { root.playback.playUrl(frame.url) }
             }
         }
     }
