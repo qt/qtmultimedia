@@ -41,11 +41,9 @@ namespace QFFmpeg {
 
 struct AVAudioFormat
 {
-    AVAudioFormat(const AVCodecContext *context);
-
-    AVAudioFormat(const AVCodecParameters *codecPar);
-
-    AVAudioFormat(const QAudioFormat &audioFormat);
+    explicit AVAudioFormat(const AVCodecContext *context);
+    explicit AVAudioFormat(const AVCodecParameters *codecPar);
+    explicit AVAudioFormat(const QAudioFormat &audioFormat);
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     AVChannelLayout channelLayout;
