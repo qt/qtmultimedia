@@ -309,7 +309,7 @@ AVHWDeviceContext* avFrameDeviceContext(const AVFrame* frame) {
 }
 
 SwsContextUPtr createSwsContext(const QSize &srcSize, AVPixelFormat srcPixFmt, const QSize &dstSize,
-                                AVPixelFormat dstPixFmt, int conversionType)
+                                AVPixelFormat dstPixFmt, ScaleConversion conversionType)
 {
 
     SwsContext *result =

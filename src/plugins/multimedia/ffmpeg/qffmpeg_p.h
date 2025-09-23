@@ -303,7 +303,8 @@ AVColorRange toAvColorRange(QVideoFrameFormat::ColorRange colorRange);
 AVHWDeviceContext *avFrameDeviceContext(const AVFrame *frame);
 
 SwsContextUPtr createSwsContext(const QSize &srcSize, AVPixelFormat srcPixFmt, const QSize &dstSize,
-                                AVPixelFormat dstPixFmt, int conversionType = SWS_BICUBIC);
+                                AVPixelFormat dstPixFmt,
+                                ScaleConversion conversionType = SWS_BICUBIC);
 
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t format);

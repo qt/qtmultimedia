@@ -9,6 +9,8 @@
 
 QT_USE_NAMESPACE
 
+using namespace QFFmpeg;
+
 class tst_QFFmpegVideoEncoderUtils : public QObject
 {
     Q_OBJECT
@@ -22,12 +24,12 @@ void tst_QFFmpegVideoEncoderUtils::getScaleConversionType_returnsCorrectConversi
 {
     QTest::addColumn<QSize>("sourceSize");
     QTest::addColumn<QSize>("targetSize");
-    QTest::addColumn<int>("expectedConversionType");
+    QTest::addColumn<ScaleConversion>("expectedConversionType");
 
 #ifdef Q_OS_ANDROID
-    int expectedConversionTypeForUpscaling = SWS_BICUBIC;
+    ScaleConversion expectedConversionTypeForUpscaling = SWS_BICUBIC;
 #else
-    int expectedConversionTypeForUpscaling = SWS_FAST_BILINEAR;
+    ScaleConversion expectedConversionTypeForUpscaling = SWS_FAST_BILINEAR;
 #endif
 
     QTest::newRow("Sizes are equal")
@@ -55,10 +57,11 @@ void tst_QFFmpegVideoEncoderUtils::getScaleConversionType_returnsCorrectConversi
     // Arrange
     QFETCH(QSize, sourceSize);
     QFETCH(QSize, targetSize);
-    QFETCH(int, expectedConversionType);
+    QFETCH(ScaleConversion, expectedConversionType);
 
     // Act
-    const int actualConversionType = QFFmpeg::getScaleConversionType(sourceSize, targetSize);
+    const ScaleConversion actualConversionType =
+            QFFmpeg::getScaleConversionType(sourceSize, targetSize);
 
     // Assert
     QCOMPARE(actualConversionType, expectedConversionType);
