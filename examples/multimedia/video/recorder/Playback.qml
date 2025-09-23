@@ -44,7 +44,7 @@ Item {
     RoundButton {
         width: 50
         height: 50
-        opacity: hover.hovered && active ? 1.0 : 0.0
+        opacity: hover.hovered && root.active ? 1.0 : 0.0
         anchors.centerIn: root
         radius: 25
         text: "\u25A0";

@@ -37,7 +37,6 @@ set(qml_files
     "StyleRectangle.qml"
     "SettingsMetaData.qml"
     "SettingsEncoder.qml"
-    "StyleSlider.qml"
     "Style.qml"
     "Playback.qml"
 )

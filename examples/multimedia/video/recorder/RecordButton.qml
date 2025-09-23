@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
-import QtQuick.Controls
-import QtMultimedia
 
 Item {
     id: root
@@ -19,7 +17,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: outerRadius
+        radius: root.outerRadius
         opacity: 0.5
         border.color: "black"
         border.width: 1
@@ -27,9 +25,9 @@ Item {
 
     Rectangle {
         anchors.centerIn: parent
-        width: recording ? innerRadius * 2 - 15 : innerRadius * 2
-        height: recording ? innerRadius * 2 - 15 : innerRadius * 2
-        radius: recording ? 2 : innerRadius
+        width: root.recording ? root.innerRadius * 2 - 15 : root.innerRadius * 2
+        height: root.recording ? root.innerRadius * 2 - 15 : root.innerRadius * 2
+        radius: root.recording ? 2 : root.innerRadius
         color: "red"
 
         Behavior on width { NumberAnimation { duration: 100 }}
