@@ -87,11 +87,11 @@ void Renderer::render(Frame frame)
     if (isFrameOutdated) {
         qCDebug(qLcRenderer) << "frame outdated! absEnd:" << frame.absoluteEnd().get() << "absPts"
                              << frame.absolutePts().get() << "seekPos:" << seekPosition().get();
-        emit frameProcessed(frame);
+        emit frameProcessed(std::move(frame));
         return;
     }
 
-    m_frames.enqueue(frame);
+    m_frames.enqueue(std::move(frame));
 
     if (m_frames.size() == 1)
         scheduleNextStep();
