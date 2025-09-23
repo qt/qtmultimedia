@@ -323,6 +323,12 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
     textures.count = GST_VIDEO_FRAME_N_PLANES(&frame);
     //        int width = GST_VIDEO_FRAME_WIDTH(&frame);
     //        int height = GST_VIDEO_FRAME_HEIGHT(&frame);
+    if (textures.count != gst_buffer_n_memory(buffer)) {
+        qCDebug(qLcGstVideoBuffer) << "mapFromDmaBuffer: Unsupported memory layout, creating "
+                                      "textures from system memory instead. Will be fixed by "
+                                      "https://codereview.qt-project.org/c/qt/qtmultimedia/+/662143";
+        return {};
+    }
     Q_ASSERT(GST_VIDEO_FRAME_N_PLANES(&frame) == gst_buffer_n_memory(buffer));
 
     QOpenGLFunctions functions(glContext);
