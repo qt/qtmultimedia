@@ -63,6 +63,7 @@ private:
     // QPlatformAudioSinkStream overrides
     void updateStreamIdle(bool arg) override;
 
+    QSpan<std::byte> getHostSpan(void *audioData, int numFrames) const noexcept QT_MM_NONBLOCKING;
     aaudio_data_callback_result_t processRingbuffer(void *audioData,
                                                     int numFrames) noexcept QT_MM_NONBLOCKING;
     aaudio_data_callback_result_t processCallback(void *audioData,

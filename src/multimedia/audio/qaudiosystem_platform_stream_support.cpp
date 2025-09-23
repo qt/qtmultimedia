@@ -168,14 +168,20 @@ QPlatformAudioSinkStream::process(QSpan<std::byte> hostBuffer, qsizetype totalNu
 
     int samplesConsumedFromRingbuffer = visitRingbuffer([&](auto &ringbuffer) {
         return ringbuffer.consume(totalNumberOfSamples, [&](auto ringbufferRange) {
-            QSpan byteRange = as_bytes(ringbufferRange);
-            QSpan outputByteRange = take(hostBuffer, byteRange.size());
-            hostBuffer = drop(hostBuffer, byteRange.size());
+            if (nativeFormat) {
+                // Amount of bytes in output range differ from ringbuffer range
+                const qsizetype samplesInChunk = ringbufferRange.size();
+                const qsizetype bytesInChunk = samplesInChunk * bytesPerSample(*nativeFormat);
 
-            if (nativeFormat)
-                convertToNative(byteRange, outputByteRange, vol, *nativeFormat);
-            else
-                QAudioHelperInternal::applyVolume(vol, m_format, byteRange, outputByteRange);
+                QSpan<std::byte> outputByteRange = take(hostBuffer, bytesInChunk);
+                hostBuffer = drop(hostBuffer, bytesInChunk);
+                convertToNative(as_bytes(ringbufferRange), outputByteRange, vol, *nativeFormat);
+            } else {
+                QSpan<std::byte> outputByteRange = take(hostBuffer, ringbufferRange.size_bytes());
+                hostBuffer = drop(hostBuffer, ringbufferRange.size_bytes());
+                QAudioHelperInternal::applyVolume(vol, m_format, as_bytes(ringbufferRange),
+                                                  outputByteRange);
+            }
         });
     });
 
@@ -352,19 +358,27 @@ uint64_t QPlatformAudioSourceStream::process(
     uint64_t totalSamplesWritten = visitRingbuffer([&](auto &rb) {
         using SampleType = typename std::decay_t<decltype(rb)>::ValueType;
 
-        return rb.produceSome([&](QSpan<SampleType> writeRegion) {
-            QSpan<const std::byte> inputChunk = take(hostBuffer, writeRegion.size_bytes());
-            hostBuffer = drop(hostBuffer, writeRegion.size_bytes());
+        // clang-format off
+        return rb.produceSome([&](QSpan<SampleType> ringbufferRange) {
+            if (nativeFormat) {
+                // Amount of bytes in input range differ from ringbuffer range
+                const qsizetype samplesInChunk = ringbufferRange.size();
+                const qsizetype bytesInChunk = samplesInChunk * bytesPerSample(*nativeFormat);
 
-            writeRegion = take(writeRegion, inputChunk.size() / sizeof(SampleType));
-
-            if (nativeFormat)
-                convertFromNative(inputChunk, as_writable_bytes(writeRegion), vol, *nativeFormat);
-            else
-                QAudioHelperInternal::applyVolume(vol, m_format, inputChunk,
-                                                  as_writable_bytes(writeRegion));
-            return writeRegion;
+                QSpan<const std::byte> inputByteRange = take(hostBuffer, bytesInChunk);
+                hostBuffer = drop(hostBuffer, bytesInChunk);
+                convertFromNative(inputByteRange, as_writable_bytes(ringbufferRange), vol,
+                                  *nativeFormat);
+            } else {
+                QSpan<const std::byte> inputByteRange =
+                        take(hostBuffer, ringbufferRange.size_bytes());
+                hostBuffer = drop(hostBuffer, ringbufferRange.size_bytes());
+                QAudioHelperInternal::applyVolume(vol, m_format, inputByteRange,
+                                                  as_writable_bytes(ringbufferRange));
+            }
+            return ringbufferRange;
         }, remainingNumberOfSamples);
+        // clang-format on
     });
 
     if (totalSamplesWritten)
