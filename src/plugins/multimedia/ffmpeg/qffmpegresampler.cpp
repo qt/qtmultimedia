@@ -41,7 +41,7 @@ QFFmpegResampler::QFFmpegResampler(const CodecContext *codecContext,
         // want the native format
         m_outputFormat = QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(*audioStream->codecpar);
 
-    const auto inputAvFormat = AVAudioFormat(audioStream->codecpar);
+    const auto inputAvFormat = AVAudioFormat(codecContext->context());
     const auto outputAvFormat = AVAudioFormat(m_outputFormat);
 
     m_resampler = createResampleContext(inputAvFormat, outputAvFormat);
