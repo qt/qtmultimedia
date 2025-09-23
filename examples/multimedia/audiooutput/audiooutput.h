@@ -11,13 +11,11 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QMediaDevices>
+#include <QMessageBox>
 #include <QObject>
 #include <QPushButton>
 #include <QSlider>
 #include <QTimer>
-
-#include <math.h>
-#include <memory>
 
 class Generator : public QIODevice
 {
@@ -62,6 +60,9 @@ private:
     QTimer *m_pushTimer = nullptr;
 
     // Owned by layout
+    QComboBox *m_channelsBox = nullptr;
+    QComboBox *m_rateBox = nullptr;
+    QComboBox *m_formatBox = nullptr;
     QPushButton *m_modeButton = nullptr;
     QPushButton *m_suspendResumeButton = nullptr;
     QComboBox *m_deviceBox = nullptr;
@@ -75,6 +76,9 @@ private:
     void restartAudioStream();
 
 private slots:
+    void channelCountChanged(int index);
+    void sampleRateChanged(int index);
+    void sampleFormatChanged(int index);
     void toggleMode();
     void toggleSuspendResume();
     void deviceChanged(int index);
