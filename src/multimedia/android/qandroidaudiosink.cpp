@@ -5,6 +5,8 @@
 
 #include "qandroidaudioutil_p.h"
 
+#include <QtMultimedia/private/qaudiohelpers_p.h>
+
 QT_BEGIN_NAMESPACE
 
 namespace QtAAudio {
@@ -186,14 +188,23 @@ void QAndroidAudioSinkStream::updateStreamIdle(bool arg)
         m_parent->updateStreamIdle(arg);
 }
 
+QSpan<std::byte>
+QAndroidAudioSinkStream::getHostSpan(void *audioData,
+                                     int numFrames) const noexcept QT_MM_NONBLOCKING
+{
+    qsizetype byteAmount = m_nativeSampleFormat
+            ? (QAudioHelperInternal::bytesPerSample(*m_nativeSampleFormat) * m_format.channelCount()
+               * numFrames)
+            : m_format.bytesForFrames(numFrames);
+    return QSpan<std::byte>{ reinterpret_cast<std::byte *>(audioData), byteAmount };
+}
+
 aaudio_data_callback_result_t
 QAndroidAudioSinkStream::processRingbuffer(void *audioData,
                                            int numFrames) noexcept QT_MM_NONBLOCKING
 {
-    QSpan<std::byte> audioSpan{ reinterpret_cast<std::byte *>(audioData),
-                                m_format.bytesForFrames(numFrames) };
-    auto consumedFrames =
-            QPlatformAudioSinkStream::process(audioSpan, numFrames, m_nativeSampleFormat);
+    auto consumedFrames = QPlatformAudioSinkStream::process(getHostSpan(audioData, numFrames),
+                                                            numFrames, m_nativeSampleFormat);
     if (consumedFrames != static_cast<uint64_t>(numFrames) && isStopRequested())
         return AAUDIO_CALLBACK_RESULT_STOP;
 
@@ -206,9 +217,8 @@ QAndroidAudioSinkStream::processCallback(void *audioData, int numFrames) noexcep
     if (isStopRequested())
         return AAUDIO_CALLBACK_RESULT_STOP;
 
-    QSpan<std::byte> audioSpan{ reinterpret_cast<std::byte *>(audioData),
-                                m_format.bytesForFrames(numFrames) };
-    QtMultimediaPrivate::runAudioCallback(*m_audioCallback, audioSpan, m_format, volume());
+    QtMultimediaPrivate::runAudioCallback(*m_audioCallback, getHostSpan(audioData, numFrames),
+                                          m_format, volume());
     return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
 
