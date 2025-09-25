@@ -17,6 +17,8 @@
 
 #include <QtMultimedia/private/qavfcamerabase_p.h>
 
+#include <QtCore/private/qexpected_p.h>
+
 #include <QtFFmpegMediaPluginImpl/private/qavfcamerarotationtracker_p.h>
 #define AVMediaType XAVMediaType
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
@@ -60,8 +62,10 @@ protected:
     bool tryApplyCameraFormat(const QCameraFormat&) override;
 
 private:
+    void clearAvCaptureSessionInputDevice();
+    [[nodiscard]] q23::expected<void, QString> setupAvCaptureSessionInputDevice(AVCaptureDevice *);
+
     void updateCameraFormat(const QCameraFormat&);
-    void refreshAvCaptureSessionInputDevice();
     [[nodiscard]] QSize adjustedResolution(const QCameraFormat& format) const;
 
     void updateRotationTracking();
