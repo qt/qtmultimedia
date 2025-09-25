@@ -71,12 +71,12 @@ private:
         AVCaptureDevice *,
         AVCaptureDeviceFormat *,
         const QCameraFormat &);
+    void clearRotationTracking();
+    void setupRotationTracking(AVCaptureDevice *);
 
     [[nodiscard]] QSize adjustedResolution(const QCameraFormat& format) const;
 
-    void updateRotationTracking();
-    void clearRotationTracking();
-    int getCurrentRotationAngleDegrees() const;
+    [[nodiscard]] int getCurrentRotationAngleDegrees() const;
 
     QMediaCaptureSession *m_qMediaCaptureSession = nullptr;
     AVCaptureSession *m_avCaptureSession = nullptr;
