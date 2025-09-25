@@ -73,6 +73,17 @@ private:
         const QCameraFormat &);
     void clearRotationTracking();
     void setupRotationTracking(AVCaptureDevice *);
+    void clearCaptureSessionConfiguration();
+    [[nodiscard]] q23::expected<void, QString> tryConfigureCaptureSession(
+        const QCameraDevice &,
+        const QCameraFormat &);
+    [[nodiscard]] q23::expected<void, QString> tryConfigureCaptureSession(
+        AVCaptureDevice *,
+        const QCameraFormat &);
+    [[nodiscard]] q23::expected<void, QString> tryConfigureCaptureSession(
+        AVCaptureDevice *,
+        AVCaptureDeviceFormat *,
+        const QCameraFormat &);
 
     [[nodiscard]] QSize adjustedResolution(const QCameraFormat& format) const;
 
