@@ -363,6 +363,17 @@ q23::expected<void, QString> QAVFCamera::tryApplyFormatToCaptureSession(
     return {};
 }
 
+void QAVFCamera::clearRotationTracking()
+{
+    m_qAvfCameraRotationTracker = std::nullopt;
+}
+
+void QAVFCamera::setupRotationTracking(AVCaptureDevice *avCaptureDevice)
+{
+    Q_ASSERT(avCaptureDevice != nullptr);
+    m_qAvfCameraRotationTracker = QFFmpeg::AvfCameraRotationTracker(avCaptureDevice);
+}
+
 void QAVFCamera::onActiveChanged(bool active)
 {
     if (active) {
@@ -407,16 +418,16 @@ void QAVFCamera::onActiveChanged(bool active)
             return;
         }
 
+        setupRotationTracking(avCaptureDevice);
+
         [m_avCaptureSession startRunning];
     } else {
         [m_avCaptureSession stopRunning];
 
         clearAvCaptureSessionInputDevice();
         clearAvCaptureVideoDataOutput();
+        clearRotationTracking();
     }
-
-    // If the camera becomes active, we want to start tracking the rotation of the camera
-    updateRotationTracking();
 }
 
 void QAVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
@@ -436,6 +447,7 @@ void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &newCameraDevice)
 
     clearAvCaptureSessionInputDevice();
     clearAvCaptureVideoDataOutput();
+    clearRotationTracking();
 
     // If the new QCameraDevice does not point to any physical device,
     // make sure we clear resources and shut down the capture-session.
@@ -468,11 +480,8 @@ void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &newCameraDevice)
             return;
         }
 
+        setupRotationTracking(avCaptureDevice);
     }
-
-    // When we change camera, we need to clear up the existing
-    // rotation tracker state and set up the new one.
-    updateRotationTracking();
 }
 
 bool QAVFCamera::tryApplyCameraFormat(const QCameraFormat &newCameraFormat)
@@ -611,34 +620,13 @@ QVideoFrameFormat QAVFCamera::frameFormat() const
     return result;
 }
 
-// Clears or sets up rotation tracking based on isActive()
-void QAVFCamera::updateRotationTracking()
-{
-    // If the camera is active, it should have either a RotationCoordinator
-    // or start listening for UIDeviceOrientation changes.
-    if (isActive()) {
-        AVCaptureDevice *captureDevice = device();
-        if (captureDevice)
-            m_qAvfCameraRotationTracker = QFFmpeg::AvfCameraRotationTracker(captureDevice);
-        else
-            qCDebug(qLcCamera)
-                << "Attempted to setup AVCaptureDeviceRotationCoordinator without any "
-                   "AVCaptureDevice";
-    } else
-        clearRotationTracking();
-}
-
-void QAVFCamera::clearRotationTracking() {
-    m_qAvfCameraRotationTracker = std::nullopt;
-}
-
 // Gets the current rotationfor this QAVFCamera.
 // Returns the result in degrees, 0 to 360.
 // Will always return a result that is divisible by 90.
 int QAVFCamera::getCurrentRotationAngleDegrees() const
 {
-    if (m_qAvfCameraRotationTracker.has_value())
-        return m_qAvfCameraRotationTracker.value().rotationDegrees();
+    if (m_qAvfCameraRotationTracker)
+        return m_qAvfCameraRotationTracker->rotationDegrees();
     else
         return 0;
 }
