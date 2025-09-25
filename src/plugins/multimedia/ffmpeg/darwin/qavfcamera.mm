@@ -4,6 +4,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qavfcamera_p.h>
 
 #include <QtCore/qscopeguard.h>
+#include <QtCore/private/qexpected_p.h>
 
 #include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
 
@@ -86,6 +87,58 @@ namespace {
         newDeviceFormat = qt_convert_to_capture_device_format(avCaptureDevice, format);
 
     return newDeviceFormat;
+}
+
+[[nodiscard]] static q23::expected<CvPixelFormat, QString> tryFindVideoDataOutputPixelFormat(
+    QVideoFrameFormat::PixelFormat cameraPixelFormat,
+    CvPixelFormat inputCvPixFormat,
+    AVCaptureVideoDataOutput *avCaptureVideoDataOutput)
+{
+    Q_ASSERT(cameraPixelFormat != QVideoFrameFormat::PixelFormat::Format_Invalid);
+    Q_ASSERT(inputCvPixFormat != CvPixelFormatInvalid);
+    Q_ASSERT(avCaptureVideoDataOutput != nullptr);
+
+    using namespace Qt::Literals::StringLiterals;
+
+    if (avCaptureVideoDataOutput.availableVideoCVPixelFormatTypes.count == 0)
+        return q23::unexpected{
+            u"AVCaptureVideoDataOutput.availableVideoCVPixelFormatTypes is empty"_s };
+
+    auto bestScore = MinAVScore;
+    NSNumber *bestFormat = nullptr;
+    for (NSNumber *cvPixFmtNumber in avCaptureVideoDataOutput.availableVideoCVPixelFormatTypes) {
+        const CvPixelFormat cvPixFmt = [cvPixFmtNumber unsignedIntValue];
+        const QVideoFrameFormat::PixelFormat pixFmt = QAVFHelpers::fromCVPixelFormat(cvPixFmt);
+        if (pixFmt == QVideoFrameFormat::Format_Invalid)
+            continue;
+
+        auto score = DefaultAVScore;
+        if (cvPixFmt == inputCvPixFormat)
+            score += 100;
+        if (pixFmt == cameraPixelFormat)
+            score += 10;
+        // if (cvPixFmt == kCVPixelFormatType_32BGRA)
+        //     score += 1;
+
+        // This flag determines priorities of using ffmpeg hw frames or
+        // the exact camera format match.
+        // Maybe configure more, e.g. by some env var?
+        constexpr bool ShouldSuppressNotSupportedByFFmpeg = false;
+
+        if (!isCVFormatSupported(cvPixFmt))
+            score -= ShouldSuppressNotSupportedByFFmpeg ? 100000 : 5;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestFormat = cvPixFmtNumber;
+        }
+    }
+
+    if (bestScore < DefaultAVScore)
+        qWarning() << "QAVFCamera::tryFindVideoDataOutputPixelFormat: "
+                      "Cannot find hw FFmpeg supported cv pix format";
+
+    return [bestFormat unsignedIntValue];
 }
 
 }
@@ -275,58 +328,34 @@ void QAVFCamera::updateCameraFormat(const QCameraFormat &newFormat)
     [m_qAvfSampleBufferDelegate setVideoFormatFrameRate:newFormat.maxFrameRate()];
 }
 
-void QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFormat,
-                                uint32_t inputCvPixFormat)
+void QAVFCamera::setPixelFormat(
+    QVideoFrameFormat::PixelFormat cameraPixelFormat,
+    uint32_t inputCvPixFormat)
 {
     m_cvPixelFormat = CvPixelFormatInvalid;
 
-    auto bestScore = MinAVScore;
-    NSNumber *bestFormat = nullptr;
-    for (NSNumber *cvPixFmtNumber in m_avCaptureVideoDataOutput.availableVideoCVPixelFormatTypes) {
-        auto cvPixFmt = [cvPixFmtNumber unsignedIntValue];
-        const auto pixFmt = QAVFHelpers::fromCVPixelFormat(cvPixFmt);
-        if (pixFmt == QVideoFrameFormat::Format_Invalid)
-            continue;
-
-        auto score = DefaultAVScore;
-        if (cvPixFmt == inputCvPixFormat)
-            score += 100;
-        if (pixFmt == cameraPixelFormat)
-            score += 10;
-        // if (cvPixFmt == kCVPixelFormatType_32BGRA)
-        //     score += 1;
-
-        // This flag determines priorities of using ffmpeg hw frames or
-        // the exact camera format match.
-        // Maybe configure more, e.g. by some env var?
-        constexpr bool ShouldSuppressNotSupportedByFFmpeg = false;
-
-        if (!isCVFormatSupported(cvPixFmt))
-            score -= ShouldSuppressNotSupportedByFFmpeg ? 100000 : 5;
-
-        // qDebug() << "----FMT:" << pixFmt << cvPixFmt << score;
-
-        if (score > bestScore) {
-            bestScore = score;
-            bestFormat = cvPixFmtNumber;
-        }
-    }
-
-    if (!bestFormat) {
-        qWarning() << "QCamera::setCameraFormat: availableVideoCVPixelFormatTypes empty";
+    q23::expected<CvPixelFormat, QString> outputFormatResult = tryFindVideoDataOutputPixelFormat(
+        cameraPixelFormat,
+        inputCvPixFormat,
+        m_avCaptureVideoDataOutput);
+    if (!outputFormatResult) {
+        qWarning()
+            << "QAVFCamera::setPixelFormat: Unable to find suitable output CvPixelFormat when "
+               "applying QCameraFormat:"
+            << outputFormatResult.error();
         return;
     }
 
-    if (bestScore < DefaultAVScore)
-        qWarning() << "QCamera::setCameraFormat: Cannot find hw FFmpeg supported cv pix format";
+    const CvPixelFormat outputFormat = *outputFormatResult;
 
     NSDictionary *outputSettings = @{
-        (NSString *)kCVPixelBufferPixelFormatTypeKey : bestFormat,
+        (NSString *)kCVPixelBufferPixelFormatTypeKey
+            : [NSNumber numberWithUnsignedInteger:outputFormat],
         (NSString *)kCVPixelBufferMetalCompatibilityKey : @true
     };
     m_avCaptureVideoDataOutput.videoSettings = outputSettings;
 
-    m_cvPixelFormat = [bestFormat unsignedIntValue];
+    m_cvPixelFormat = outputFormat;
 }
 
 QSize QAVFCamera::adjustedResolution(const QCameraFormat& newFormat) const
