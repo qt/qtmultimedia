@@ -147,46 +147,17 @@ QAVFCamera::QAVFCamera(QCamera *parent)
     : QAVFCameraBase(parent)
 {
     m_avCaptureSession = [[AVCaptureSession alloc] init];
-
-    auto frameHandler = [this](QVideoFrame frame) {
-        emit newVideoFrame(frame);
-    };
-
-    m_qAvfSampleBufferDelegate = [[QAVFSampleBufferDelegate alloc] initWithFrameHandler:frameHandler];
-
-    [m_qAvfSampleBufferDelegate setTransformationProvider:
-        [this](const AVCaptureConnection *connection) {
-            const AvfCameraRotationTracker *rotationTracker = nullptr;
-            if (m_qAvfCameraRotationTracker.has_value())
-                rotationTracker = &m_qAvfCameraRotationTracker.value();
-
-            return surfaceTransform(
-                rotationTracker,
-                connection);
-        }];
-
-    // Configure video output
-    m_avCaptureVideoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
-    m_delegateQueue = dispatch_queue_create("vf_queue", nullptr);
-    [m_avCaptureVideoDataOutput setSampleBufferDelegate:m_qAvfSampleBufferDelegate
-                                         queue:m_delegateQueue];
-
-    // Hook output object to our capture session.
-    [m_avCaptureSession beginConfiguration];
-    [m_avCaptureSession addOutput:m_avCaptureVideoDataOutput];
-    [m_avCaptureSession commitConfiguration];
+    m_delegateQueue = dispatch_queue_create("qt_camera_queue", nullptr);
 }
 
 QAVFCamera::~QAVFCamera()
 {
     clearAvCaptureSessionInputDevice();
+    clearAvCaptureVideoDataOutput();
+    clearRotationTracking();
 
-    [m_qAvfSampleBufferDelegate release];
-    [m_avCaptureVideoDataOutput release];
     [m_avCaptureSession release];
     dispatch_release(m_delegateQueue);
-
-    clearRotationTracking();
 }
 
 void QAVFCamera::clearAvCaptureSessionInputDevice()
@@ -229,6 +200,63 @@ void QAVFCamera::clearAvCaptureSessionInputDevice()
     [m_avCaptureSession addInput:deviceInput];
 
     m_avCaptureDeviceVideoInput = deviceInput;
+
+    return {};
+}
+
+void QAVFCamera::clearAvCaptureVideoDataOutput()
+{
+    if (m_avCaptureVideoDataOutput != nullptr) {
+        [m_avCaptureSession removeOutput:m_avCaptureVideoDataOutput];
+        [m_avCaptureVideoDataOutput release];
+        m_avCaptureVideoDataOutput = nullptr;
+    }
+    if (m_qAvfSampleBufferDelegate != nullptr) {
+        [m_qAvfSampleBufferDelegate release];
+        m_qAvfSampleBufferDelegate = nullptr;
+    }
+}
+
+q23::expected<void, QString> QAVFCamera::setupAvCaptureVideoDataOutput(
+    AVCaptureDevice *avCaptureDevice)
+{
+    Q_ASSERT(avCaptureDevice);
+
+    using namespace Qt::Literals::StringLiterals;
+
+    QMacAutoReleasePool autoReleasePool;
+
+    // Setup the delegate object for which we receive video frames.
+    auto frameHandler = [this](QVideoFrame frame) {
+        emit newVideoFrame(frame);
+    };
+
+    QAVFSampleBufferDelegate *sampleBufferDelegate = [[[QAVFSampleBufferDelegate alloc]
+        initWithFrameHandler:frameHandler]
+        autorelease];
+    // The transformProvider callable needs to be copyable, so we use a shared-ptr here.
+    auto rotationTracker = std::make_shared<QFFmpeg::AvfCameraRotationTracker>(avCaptureDevice);
+    [sampleBufferDelegate setTransformationProvider:
+        [rotationTracker](const AVCaptureConnection *connection) {
+            return surfaceTransform(
+                rotationTracker.get(),
+                connection);
+        }];
+
+    // Create the AVCaptureOutput object with our delegate object and background-thread.
+    AVCaptureVideoDataOutput *avCaptureVideoDataOutput = [[[AVCaptureVideoDataOutput alloc]
+        init]
+        autorelease];
+    [avCaptureVideoDataOutput setSampleBufferDelegate:sampleBufferDelegate
+                                                queue:m_delegateQueue];
+
+    if (![m_avCaptureSession canAddOutput:avCaptureVideoDataOutput])
+        return q23::unexpected{
+            u"Unable to connect AVCaptureVideoDataOutput to AVCaptureSession"_s };
+
+    [m_avCaptureSession addOutput:avCaptureVideoDataOutput];
+    m_qAvfSampleBufferDelegate = [sampleBufferDelegate retain];
+    m_avCaptureVideoDataOutput = [avCaptureVideoDataOutput retain];
 
     return {};
 }
@@ -339,6 +367,15 @@ void QAVFCamera::onActiveChanged(bool active)
             return;
         }
 
+        q23::expected<void, QString> setupOutputResult = setupAvCaptureVideoDataOutput(
+            avCaptureDevice);
+        if (!setupOutputResult) {
+            qWarning()
+                << "QAVFCamera::onActiveChanged: Failed to go establish output:"
+                << setupOutputResult.error();
+            return;
+        }
+
         // According to the doc, the capture device must be locked before
         // startRunning to prevent the format we set to be overridden by the
         // session preset.
@@ -354,6 +391,7 @@ void QAVFCamera::onActiveChanged(bool active)
         [m_avCaptureSession stopRunning];
 
         clearAvCaptureSessionInputDevice();
+        clearAvCaptureVideoDataOutput();
     }
 
     // If the camera becomes active, we want to start tracking the rotation of the camera
@@ -376,6 +414,7 @@ void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &newCameraDevice)
     } };
 
     clearAvCaptureSessionInputDevice();
+    clearAvCaptureVideoDataOutput();
 
     // If the new QCameraDevice does not point to any physical device,
     // make sure we clear resources and shut down the capture-session.
@@ -398,6 +437,16 @@ void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &newCameraDevice)
                 << setupInputResult.error();
             return;
         }
+
+        q23::expected<void, QString> setupOutputResult = setupAvCaptureVideoDataOutput(
+            avCaptureDevice);
+        if (!setupOutputResult) {
+            qWarning()
+                << "QAVFCamera::onCameraDeviceChanged: Failed to go active:"
+                << setupOutputResult.error();
+            return;
+        }
+
     }
 
     // When we change camera, we need to clear up the existing
@@ -427,11 +476,47 @@ bool QAVFCamera::tryApplyCameraFormat(const QCameraFormat &newCameraFormat)
         return false;
     }
 
-    // TODO: There is a race condition here where we are writing directly
-    // to the sample-buffer-delegate of an on-going AVCaptureSession with no
-    // locks. In the future, we should determine if we should accept the format
-    // ahead of time. If we are in an-ongoing capture-session, we should
-    // restart the current session with the new format.
+    // If we are not currently active, we don't need to do anything. We will apply the format
+    // to the capture-session when we try to go active later.
+    //
+    // TODO: Determine if the incoming QCameraFormat resolves to the same formats
+    // that we are already using, in which case this function can be a no-op.
+    if (![m_avCaptureSession isRunning])
+        return true;
+
+    // We are active, so we need to reconfigure the entire capture-session with the
+    // new format.
+    AVFConfigurationLock avCaptureDeviceLock { avCaptureDevice };
+    if (!avCaptureDeviceLock) {
+        qWarning() << "Failed to lock AVCaptureDevice when trying to go active.";
+        return false;
+    }
+    [m_avCaptureSession beginConfiguration];
+    QScopeGuard endConfigGuard { [this]() {
+        [m_avCaptureSession commitConfiguration];
+    } };
+
+    clearAvCaptureSessionInputDevice();
+    clearAvCaptureVideoDataOutput();
+
+    q23::expected<void, QString> setupInputResult = setupAvCaptureSessionInputDevice(
+        avCaptureDevice);
+    if (!setupInputResult) {
+        qWarning()
+            << "Failed to apply QCameraFormat to active AVCaptureSession: "
+            << setupInputResult.error();
+        return false;
+    }
+
+    q23::expected<void, QString> setupOutputResult = setupAvCaptureVideoDataOutput(
+        avCaptureDevice);
+    if (!setupOutputResult) {
+        qWarning()
+            << "Failed to apply QCameraFormat to active AVCaptureSession: "
+            << setupOutputResult.error();
+        return false;
+    }
+
     q23::expected<void, QString> applyFormatResult = tryApplyFormatToCaptureSession(
         avCaptureDevice,
         avCaptureDeviceFormat,
