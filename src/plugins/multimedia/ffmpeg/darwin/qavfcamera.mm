@@ -4,7 +4,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qavfcamera_p.h>
 
 #include <QtCore/qscopeguard.h>
-#include <QtCore/private/qexpected_p.h>
+#include <QtCore/private/qcore_mac_p.h>
 
 #include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
 
@@ -179,8 +179,9 @@ QAVFCamera::QAVFCamera(QCamera *parent)
 
 QAVFCamera::~QAVFCamera()
 {
+    clearAvCaptureSessionInputDevice();
+
     [m_qAvfSampleBufferDelegate release];
-    [m_avCaptureDeviceVideoInput release];
     [m_avCaptureVideoDataOutput release];
     [m_avCaptureSession release];
     dispatch_release(m_delegateQueue);
@@ -188,36 +189,48 @@ QAVFCamera::~QAVFCamera()
     clearRotationTracking();
 }
 
-void QAVFCamera::refreshAvCaptureSessionInputDevice()
+void QAVFCamera::clearAvCaptureSessionInputDevice()
 {
-    // AVCaptureDeviceInput deviceInputWithDevice will implicitly ask for permission.
-    // Only the user should request permissions.
-    Q_ASSERT(checkCameraPermission());
-
-    [m_avCaptureSession beginConfiguration];
-    const QScopeGuard endConfigGuard{ [&]() {
-        [m_avCaptureSession commitConfiguration];
-    }};
-
     if (m_avCaptureDeviceVideoInput) {
         [m_avCaptureSession removeInput:m_avCaptureDeviceVideoInput];
         [m_avCaptureDeviceVideoInput release];
         m_avCaptureDeviceVideoInput = nullptr;
     }
+}
 
-    AVCaptureDevice *videoDevice = device();
-    if (!videoDevice)
-        return;
+[[nodiscard]] q23::expected<void, QString> QAVFCamera::setupAvCaptureSessionInputDevice(
+    AVCaptureDevice *avCaptureDevice)
+{
+    // AVCaptureDeviceInput.deviceInputWithDevice will implicitly ask for permission
+    // and present a dialogue to the end-user.
+    // Permission should only be requested explicitly through QPermission API.
+    Q_ASSERT(checkCameraPermission());
+    Q_ASSERT(avCaptureDevice != nullptr);
+    Q_ASSERT(m_avCaptureSession != nullptr);
+    Q_ASSERT(m_avCaptureDeviceVideoInput == nullptr);
 
-    m_avCaptureDeviceVideoInput = [AVCaptureDeviceInput
-                    deviceInputWithDevice:videoDevice
-                    error:nil];
-    if (m_avCaptureDeviceVideoInput && [m_avCaptureSession canAddInput:m_avCaptureDeviceVideoInput]) {
-        [m_avCaptureDeviceVideoInput retain];
-        [m_avCaptureSession addInput:m_avCaptureDeviceVideoInput];
-    } else {
-        qWarning() << "Failed to create video device input";
-    }
+    using namespace Qt::Literals::StringLiterals;
+
+    QMacAutoReleasePool autoReleasePool;
+
+    NSError* creationError = nullptr;
+    AVCaptureDeviceInput *deviceInput = [AVCaptureDeviceInput
+        deviceInputWithDevice:avCaptureDevice
+                        error:&creationError];
+    if (creationError != nullptr)
+        return q23::unexpected(QString::fromNSString(creationError.localizedDescription));
+
+    if (![m_avCaptureSession canAddInput:deviceInput])
+        return q23::unexpected{
+            u"Cannot attach AVCaptureDeviceInput to AVCaptureSession"_s };
+
+    [deviceInput retain];
+
+    [m_avCaptureSession addInput:deviceInput];
+
+    m_avCaptureDeviceVideoInput = deviceInput;
+
+    return {};
 }
 
 void QAVFCamera::onActiveChanged(bool active)
@@ -230,10 +243,20 @@ void QAVFCamera::onActiveChanged(bool active)
         // QPermissions.
         Q_ASSERT(checkCameraPermission());
 
-        // The AVCaptureSession might not yet have been configured with the
-        // AVCaptureDevice, if camera permissions was not granted when applying
-        // the device to this QCamera. Set it up now.
-        refreshAvCaptureSessionInputDevice();
+        // TODO: Tear down any open resources if we fail to go active,
+        // and propagate error upwards so we can properly signal errorOcurred.
+        AVCaptureDevice *avCaptureDevice = QAVFCameraBase::tryGetAvCaptureDevice(m_cameraDevice);
+        if (avCaptureDevice == nullptr)
+            return;
+
+        q23::expected<void, QString> setupInputResult = setupAvCaptureSessionInputDevice(
+            avCaptureDevice);
+        if (!setupInputResult) {
+            qWarning()
+                << "QAVFCamera::onActiveChanged: Failed to go active:"
+                << setupInputResult.error();
+            return;
+        }
 
         // According to the doc, the capture device must be locked before
         // startRunning to prevent the format we set to be overridden by the
@@ -243,6 +266,8 @@ void QAVFCamera::onActiveChanged(bool active)
         [m_avCaptureDeviceVideoInput.device unlockForConfiguration];
     } else {
         [m_avCaptureSession stopRunning];
+
+        clearAvCaptureSessionInputDevice();
     }
 
     // If the camera becomes active, we want to start tracking the rotation of the camera
@@ -254,12 +279,40 @@ void QAVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     m_qMediaCaptureSession = session ? session->captureSession() : nullptr;
 }
 
-void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &device)
+void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &newCameraDevice)
 {
-    if (device.isNull() || !checkCameraPermission())
+    // Using this configuration transaction, we can clear up resources and establish new ones
+    // without having to do slow and synchronous calls to AVCaptureSession.stopRunning and
+    // startRunning.
+    [m_avCaptureSession beginConfiguration];
+    QScopeGuard endConfigGuard{ [&] {
+        [m_avCaptureSession commitConfiguration];
+    } };
+
+    clearAvCaptureSessionInputDevice();
+
+    // If the new QCameraDevice does not point to any physical device,
+    // make sure we clear resources and shut down the capture-session.
+    if (newCameraDevice.isNull() || !checkCameraPermission())
         return;
 
-    refreshAvCaptureSessionInputDevice();
+    if ([m_avCaptureSession isRunning]) {
+        // TODO: Tear down any open resources if we fail to go active,
+        // and propagate error upwards so we can properly signal errorOcurred.
+        // Also shut down the AVCaptureSession.
+        AVCaptureDevice *avCaptureDevice = QAVFCameraBase::tryGetAvCaptureDevice(newCameraDevice);
+        if (avCaptureDevice == nullptr)
+            return;
+
+        q23::expected<void, QString> setupInputResult = setupAvCaptureSessionInputDevice(
+            avCaptureDevice);
+        if (!setupInputResult) {
+            qWarning()
+                << "QAVFCamera::onCameraDeviceChanged: Failed to go active:"
+                << setupInputResult.error();
+            return;
+        }
+    }
 
     // When we change camera, we need to clear up the existing
     // rotation tracker state and set up the new one.
