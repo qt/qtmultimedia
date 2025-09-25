@@ -342,9 +342,14 @@ void QAVFCamera::onActiveChanged(bool active)
         // According to the doc, the capture device must be locked before
         // startRunning to prevent the format we set to be overridden by the
         // session preset.
-        [m_avCaptureDeviceVideoInput.device lockForConfiguration:nil];
+        AVFConfigurationLock avCaptureDeviceLock { avCaptureDevice };
+        if (!avCaptureDeviceLock) {
+            qWarning() << "QAVFCamera::onActiveChanged: Failed to lock AVCaptureDevice when trying "
+                          "to go active";
+            return;
+        }
+
         [m_avCaptureSession startRunning];
-        [m_avCaptureDeviceVideoInput.device unlockForConfiguration];
     } else {
         [m_avCaptureSession stopRunning];
 
