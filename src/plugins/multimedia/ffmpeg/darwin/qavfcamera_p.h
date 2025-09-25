@@ -70,7 +70,6 @@ private:
         AVCaptureDeviceFormat *,
         const QCameraFormat &);
 
-    void updateCameraFormat(const QCameraFormat&);
     [[nodiscard]] QSize adjustedResolution(const QCameraFormat& format) const;
 
     void updateRotationTracking();

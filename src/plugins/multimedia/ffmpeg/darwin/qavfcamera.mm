@@ -400,50 +400,46 @@ void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &newCameraDevice)
     updateRotationTracking();
 }
 
-bool QAVFCamera::tryApplyCameraFormat(const QCameraFormat &format)
+bool QAVFCamera::tryApplyCameraFormat(const QCameraFormat &newCameraFormat)
 {
-    // TODO: In the future, we should be able to return false if we failed
-    // to apply the format.
-    //
+    m_framePixelFormat = QVideoFrameFormat::Format_Invalid;
+    m_cvPixelFormat = CvPixelFormatInvalid;
+
+    // TODO: It's currently unclear whether we should accept the QCameraFormat
+    // if the QCameraDevice is currently not connected.
+    AVCaptureDevice *avCaptureDevice = device();
+    if (!avCaptureDevice)
+        return false;
+
+    AVCaptureDeviceFormat *avCaptureDeviceFormat = findSuitableAvCaptureDeviceFormat(
+        avCaptureDevice,
+        newCameraFormat);
+    // If we can't find any suitable AVCaptureDeviceFormat,
+    // then we cannot apply this QCameraFormat.
+    if (!avCaptureDeviceFormat) {
+        qWarning() << "QAVFCamera::tryApplyCameraFormat: Unable to find any suitable "
+                      "AVCaptureDeviceFormat when attempting to apply QCameraFormat";
+        return false;
+    }
+
     // TODO: There is a race condition here where we are writing directly
     // to the sample-buffer-delegate of an on-going AVCaptureSession with no
     // locks. In the future, we should determine if we should accept the format
     // ahead of time. If we are in an-ongoing capture-session, we should
     // restart the current session with the new format.
-    updateCameraFormat(format);
-    return true;
-}
-
-void QAVFCamera::updateCameraFormat(const QCameraFormat &newFormat)
-{
-    m_framePixelFormat = QVideoFrameFormat::Format_Invalid;
-    m_cvPixelFormat = CvPixelFormatInvalid;
-
-    AVCaptureDevice *avCaptureDevice = device();
-    if (!avCaptureDevice)
-        return;
-
-    AVCaptureDeviceFormat *avCaptureDeviceFormat = findSuitableAvCaptureDeviceFormat(
-        avCaptureDevice,
-        newFormat);
-    // If we can't find any suitable AVCaptureDeviceFormat,
-    // then we cannot apply this QCameraFormat.
-    if (!avCaptureDeviceFormat) {
-        qWarning() << "QAVFCamera::updateCameraFormat: Unable to find any suitable "
-                      "AVCaptureDeviceFormat when attempting to apply QCameraFormat";
-        return;
-    }
-
     q23::expected<void, QString> applyFormatResult = tryApplyFormatToCaptureSession(
         avCaptureDevice,
         avCaptureDeviceFormat,
-        newFormat);
+        newCameraFormat);
     if (!applyFormatResult) {
         qWarning()
             << "QAVFCamera::updateCameraFormat: Failed to apply QCameraFormat to "
                "AVCaptureSession:"
             << applyFormatResult.error();
+        return false;
     }
+
+    return true;
 }
 
 QSize QAVFCamera::adjustedResolution(const QCameraFormat& newFormat) const
