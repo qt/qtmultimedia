@@ -65,6 +65,8 @@ protected:
 private:
     void clearAvCaptureSessionInputDevice();
     [[nodiscard]] q23::expected<void, QString> setupAvCaptureSessionInputDevice(AVCaptureDevice *);
+    void clearAvCaptureVideoDataOutput();
+    [[nodiscard]] q23::expected<void, QString> setupAvCaptureVideoDataOutput(AVCaptureDevice *);
     [[nodiscard]] q23::expected<void, QString> tryApplyFormatToCaptureSession(
         AVCaptureDevice *,
         AVCaptureDeviceFormat *,
