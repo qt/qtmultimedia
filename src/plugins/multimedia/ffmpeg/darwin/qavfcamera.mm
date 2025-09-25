@@ -374,6 +374,80 @@ void QAVFCamera::setupRotationTracking(AVCaptureDevice *avCaptureDevice)
     m_qAvfCameraRotationTracker = QFFmpeg::AvfCameraRotationTracker(avCaptureDevice);
 }
 
+void QAVFCamera::clearCaptureSessionConfiguration()
+{
+    clearAvCaptureSessionInputDevice();
+    clearAvCaptureVideoDataOutput();
+    clearRotationTracking();
+}
+
+[[nodiscard]] q23::expected<void, QString> QAVFCamera::tryConfigureCaptureSession(
+    const QCameraDevice &cameraDevice,
+    const QCameraFormat &cameraFormat)
+{
+    using namespace Qt::Literals::StringLiterals;
+
+    AVCaptureDevice *avCaptureDevice = QAVFCameraBase::tryGetAvCaptureDevice(cameraDevice);
+    if (avCaptureDevice == nullptr)
+        return q23::unexpected{ u"AVCaptureDevice not available"_s };
+
+    return tryConfigureCaptureSession(
+        avCaptureDevice,
+        cameraFormat);
+}
+
+[[nodiscard]] q23::expected<void, QString> QAVFCamera::tryConfigureCaptureSession(
+    AVCaptureDevice *avCaptureDevice,
+    const QCameraFormat &cameraFormat)
+{
+    using namespace Qt::Literals::StringLiterals;
+
+    AVCaptureDeviceFormat *avCaptureDeviceFormat = findSuitableAvCaptureDeviceFormat(
+        avCaptureDevice,
+        cameraFormat);
+    // If we can't find any suitable AVCaptureDeviceFormat,
+    // then we cannot apply this QCameraFormat.
+    if (avCaptureDeviceFormat == nullptr)
+        return q23::unexpected{
+            u"Unable to find any suitable AVCaptureDeviceFormat when attempting to "
+            "apply QCameraFormat"_s };
+
+    return tryConfigureCaptureSession(
+        avCaptureDevice,
+        avCaptureDeviceFormat,
+        cameraFormat);
+}
+
+[[nodiscard]] q23::expected<void, QString> QAVFCamera::tryConfigureCaptureSession(
+    AVCaptureDevice *avCaptureDevice,
+    AVCaptureDeviceFormat *avCaptureDeviceFormat,
+    const QCameraFormat &cameraFormat)
+{
+    Q_ASSERT(avCaptureDevice != nullptr);
+    Q_ASSERT(avCaptureDeviceFormat != nullptr);
+
+    q23::expected<void, QString> setupInputResult = setupAvCaptureSessionInputDevice(
+        avCaptureDevice);
+    if (!setupInputResult)
+        return q23::unexpected{ std::move(setupInputResult.error()) };
+
+    q23::expected<void, QString> setupOutputResult = setupAvCaptureVideoDataOutput(
+        avCaptureDevice);
+    if (!setupOutputResult)
+        return q23::unexpected{ std::move(setupOutputResult.error()) };
+
+    q23::expected<void, QString> applyFormatResult = tryApplyFormatToCaptureSession(
+        avCaptureDevice,
+        avCaptureDeviceFormat,
+        cameraFormat);
+    if (!applyFormatResult)
+        return q23::unexpected{ std::move(applyFormatResult.error()) };
+
+    setupRotationTracking(avCaptureDevice);
+
+    return {};
+}
+
 void QAVFCamera::onActiveChanged(bool active)
 {
     if (active) {
@@ -384,49 +458,38 @@ void QAVFCamera::onActiveChanged(bool active)
         // QPermissions.
         Q_ASSERT(checkCameraPermission());
 
-        // TODO: Tear down any open resources if we fail to go active,
-        // and propagate error upwards so we can properly signal errorOcurred.
         AVCaptureDevice *avCaptureDevice = QAVFCameraBase::tryGetAvCaptureDevice(m_cameraDevice);
-        if (avCaptureDevice == nullptr)
-            return;
-
-        q23::expected<void, QString> setupInputResult = setupAvCaptureSessionInputDevice(
-            avCaptureDevice);
-        if (!setupInputResult) {
-            qWarning()
-                << "QAVFCamera::onActiveChanged: Failed to go active:"
-                << setupInputResult.error();
+        if (avCaptureDevice == nullptr) {
+            qWarning() << "QAVFCamera::onActiveChanged: Device not available";
             return;
         }
 
-        q23::expected<void, QString> setupOutputResult = setupAvCaptureVideoDataOutput(
-            avCaptureDevice);
-        if (!setupOutputResult) {
-            qWarning()
-                << "QAVFCamera::onActiveChanged: Failed to go establish output:"
-                << setupOutputResult.error();
-            return;
-        }
-
-        // According to the doc, the capture device must be locked before
-        // startRunning to prevent the format we set to be overridden by the
-        // session preset.
+        // The AVCaptureDevice must be locked when we call AVCaptureSession.startRunning,
+        // in order to not have the AVCaptureDeviceFormat be overriden by the AVCaptureSession's
+        // quality preset. Additionally, we apply the format inside tryConfigureCaptureSession,
+        // so it's beneficial to keep the device locked during the entire config stage.
         AVFConfigurationLock avCaptureDeviceLock { avCaptureDevice };
         if (!avCaptureDeviceLock) {
-            qWarning() << "QAVFCamera::onActiveChanged: Failed to lock AVCaptureDevice when trying "
-                          "to go active";
+            qWarning() << "QAVFCamera::onActiveChanged: Failed to lock AVCaptureDevice";
             return;
         }
 
-        setupRotationTracking(avCaptureDevice);
+        q23::expected<void, QString> configureResult = tryConfigureCaptureSession(
+            avCaptureDevice,
+            cameraFormat());
+        if (configureResult) {
+            [m_avCaptureSession startRunning];
+        } else {
+            qWarning()
+                << "QAVFCamera::onActiveChanged: Error when trying to activate camera:"
+                << configureResult.error();
+            clearCaptureSessionConfiguration();
+        }
 
-        [m_avCaptureSession startRunning];
     } else {
         [m_avCaptureSession stopRunning];
 
-        clearAvCaptureSessionInputDevice();
-        clearAvCaptureVideoDataOutput();
-        clearRotationTracking();
+        clearCaptureSessionConfiguration();
     }
 }
 
@@ -445,42 +508,27 @@ void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &newCameraDevice)
         [m_avCaptureSession commitConfiguration];
     } };
 
-    clearAvCaptureSessionInputDevice();
-    clearAvCaptureVideoDataOutput();
-    clearRotationTracking();
+    clearCaptureSessionConfiguration();
 
     // If the new QCameraDevice does not point to any physical device,
     // make sure we clear resources and shut down the capture-session.
     if (newCameraDevice.isNull() || !checkCameraPermission())
         return;
 
-    if ([m_avCaptureSession isRunning]) {
-        // TODO: Tear down any open resources if we fail to go active,
-        // and propagate error upwards so we can properly signal errorOcurred.
-        // Also shut down the AVCaptureSession.
-        AVCaptureDevice *avCaptureDevice = QAVFCameraBase::tryGetAvCaptureDevice(newCameraDevice);
-        if (avCaptureDevice == nullptr)
-            return;
+    // If we are not currently active, then we can just accept the new property
+    // value and return.
+    if (![m_avCaptureSession isRunning])
+        return;
 
-        q23::expected<void, QString> setupInputResult = setupAvCaptureSessionInputDevice(
-            avCaptureDevice);
-        if (!setupInputResult) {
-            qWarning()
-                << "QAVFCamera::onCameraDeviceChanged: Failed to go active:"
-                << setupInputResult.error();
-            return;
-        }
-
-        q23::expected<void, QString> setupOutputResult = setupAvCaptureVideoDataOutput(
-            avCaptureDevice);
-        if (!setupOutputResult) {
-            qWarning()
-                << "QAVFCamera::onCameraDeviceChanged: Failed to go active:"
-                << setupOutputResult.error();
-            return;
-        }
-
-        setupRotationTracking(avCaptureDevice);
+    q23::expected<void, QString> configureResult = tryConfigureCaptureSession(
+        m_cameraDevice,
+        cameraFormat());
+    if (!configureResult) {
+        qWarning()
+            << "Error when trying to activate new camera-device: "
+            << configureResult.error();
+        [m_avCaptureSession stopRunning];
+        clearCaptureSessionConfiguration();
     }
 }
 
@@ -491,7 +539,7 @@ bool QAVFCamera::tryApplyCameraFormat(const QCameraFormat &newCameraFormat)
 
     // TODO: It's currently unclear whether we should accept the QCameraFormat
     // if the QCameraDevice is currently not connected.
-    AVCaptureDevice *avCaptureDevice = device();
+    AVCaptureDevice *avCaptureDevice = QAVFCameraBase::tryGetAvCaptureDevice(m_cameraDevice);
     if (!avCaptureDevice)
         return false;
 
@@ -518,44 +566,30 @@ bool QAVFCamera::tryApplyCameraFormat(const QCameraFormat &newCameraFormat)
     // new format.
     AVFConfigurationLock avCaptureDeviceLock { avCaptureDevice };
     if (!avCaptureDeviceLock) {
-        qWarning() << "Failed to lock AVCaptureDevice when trying to go active.";
+        qWarning() << "QAVFCamera::tryApplyCameraFormat: Failed to lock AVCaptureDevice when "
+                      "trying to apply new QCameraFormat.";
         return false;
     }
+
     [m_avCaptureSession beginConfiguration];
     QScopeGuard endConfigGuard { [this]() {
         [m_avCaptureSession commitConfiguration];
     } };
 
-    clearAvCaptureSessionInputDevice();
-    clearAvCaptureVideoDataOutput();
+    clearCaptureSessionConfiguration();
 
-    q23::expected<void, QString> setupInputResult = setupAvCaptureSessionInputDevice(
-        avCaptureDevice);
-    if (!setupInputResult) {
-        qWarning()
-            << "Failed to apply QCameraFormat to active AVCaptureSession: "
-            << setupInputResult.error();
-        return false;
-    }
-
-    q23::expected<void, QString> setupOutputResult = setupAvCaptureVideoDataOutput(
-        avCaptureDevice);
-    if (!setupOutputResult) {
-        qWarning()
-            << "Failed to apply QCameraFormat to active AVCaptureSession: "
-            << setupOutputResult.error();
-        return false;
-    }
-
-    q23::expected<void, QString> applyFormatResult = tryApplyFormatToCaptureSession(
+    q23::expected<void, QString> configureResult = tryConfigureCaptureSession(
         avCaptureDevice,
         avCaptureDeviceFormat,
         newCameraFormat);
-    if (!applyFormatResult) {
+    if (!configureResult) {
         qWarning()
-            << "QAVFCamera::updateCameraFormat: Failed to apply QCameraFormat to "
-               "AVCaptureSession:"
-            << applyFormatResult.error();
+            << "Error when trying to activate camera with new format: "
+            << configureResult.error();
+
+        [m_avCaptureSession stopRunning];
+        clearCaptureSessionConfiguration();
+
         return false;
     }
 
