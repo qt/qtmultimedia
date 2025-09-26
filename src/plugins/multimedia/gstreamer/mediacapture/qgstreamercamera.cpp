@@ -87,9 +87,9 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 
     m_cameraDevice = camera;
 
-    QGstElement gstNewCamera;
+    QGstElement newGstCamera;
     if (camera.isNull()) {
-        gstNewCamera = QGstElement::createFromFactory("videotestsrc");
+        newGstCamera = QGstElement::createFromFactory("videotestsrc");
     } else {
         auto *integration = static_cast<QGstreamerIntegration *>(QGstreamerIntegration::instance());
         GstDevice *device = integration->videoDevice(camera.id());
@@ -101,7 +101,7 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
             return;
         }
 
-        gstNewCamera = QGstElement::createFromDevice(device, "camerasrc");
+        newGstCamera = QGstElement::createFromDevice(device, "camerasrc");
         QUniqueGstStructureHandle properties{
             gst_device_get_properties(device),
         };
@@ -114,24 +114,27 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
     }
 
     QCameraFormat f = findBestCameraFormat(camera);
-    auto caps = QGstCaps::fromCameraFormat(f);
-    auto gstNewDecode = QGstElement::createFromFactory(
-            f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
-
     m_currentCameraFormat = f;
 
+    QGstElement newGstDecode;
+    if (f.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
+        newGstDecode = QGstElement::createFromFactory(
+                QGstElement::findFactory("v4l2jpegdec") ? "v4l2jpegdec" : "jpegdec");
+    } else
+        newGstDecode = QGstElement::createFromFactory("identity");
+
+    auto caps = QGstCaps::fromCameraFormat(f);
     updateCamera([&] {
         qUnlinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
         gstCameraBin.stopAndRemoveElements(gstCamera, gstDecode);
 
         gstCapsFilter.set("caps", caps);
 
-        gstCamera = std::move(gstNewCamera);
-        gstDecode = std::move(gstNewDecode);
+        gstCamera = std::move(newGstCamera);
+        gstDecode = std::move(newGstDecode);
 
         gstCameraBin.add(gstCamera, gstDecode);
         qLinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
-
         gstCameraBin.syncChildrenState();
     });
 
@@ -152,11 +155,14 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
 
     m_currentCameraFormat = f;
 
+    QGstElement newGstDecode;
+    if (f.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
+        newGstDecode = QGstElement::createFromFactory(
+                QGstElement::findFactory("v4l2jpegdec") ? "v4l2jpegdec" : "jpegdec");
+    } else
+        newGstDecode = QGstElement::createFromFactory("identity");
+
     auto caps = QGstCaps::fromCameraFormat(f);
-
-    auto newGstDecode = QGstElement::createFromFactory(
-            f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
-
     updateCamera([&] {
         qUnlinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
         gstCameraBin.stopAndRemoveElements(gstDecode);
