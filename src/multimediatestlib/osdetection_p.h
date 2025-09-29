@@ -16,6 +16,7 @@
 //
 
 #include <QtCore/qsystemdetection.h>
+#include <QtCore/qtconfigmacros.h>
 
 QT_BEGIN_NAMESPACE
 
