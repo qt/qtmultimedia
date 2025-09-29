@@ -209,6 +209,14 @@ QUtf8StringView currentError(const pa_stream *stream)
     return currentError(pa_stream_get_context(stream));
 }
 
+PAOperationHandle streamCork(const PAStreamHandle &stream, bool corkStream)
+{
+    return PAOperationHandle{
+        pa_stream_cork(stream.get(), corkStream ? 1 : 0, nullptr, nullptr),
+        PAOperationHandle::HasRef,
+    };
+}
+
 } // namespace QPulseAudioInternal
 
 static QLatin1StringView stateToQStringView(pa_stream_state_t state)
