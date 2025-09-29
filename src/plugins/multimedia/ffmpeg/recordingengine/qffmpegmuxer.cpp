@@ -43,6 +43,8 @@ void Muxer::cleanup()
 {
     while (!m_packetQueue.empty())
         processOne();
+
+    av_interleaved_write_frame(m_encoder->avFormatContext(), nullptr);
 }
 
 bool QFFmpeg::Muxer::hasData() const
