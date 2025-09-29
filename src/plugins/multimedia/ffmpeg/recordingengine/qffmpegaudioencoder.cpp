@@ -217,11 +217,10 @@ void AudioEncoder::retrievePackets()
         if (ret < 0) {
             if (ret != AVERROR(EOF))
                 break;
-            if (ret != AVERROR(EAGAIN)) {
-                char errStr[1024];
-                av_strerror(ret, errStr, 1024);
-                qCDebug(qLcFFmpegAudioEncoder) << "receive packet" << ret << errStr;
-            }
+            if (ret != AVERROR(EAGAIN))
+                qCDebug(qLcFFmpegAudioEncoder)
+                        << "receive packet" << ret << QFFmpeg::AVError{ ret };
+
             break;
         }
 
@@ -387,11 +386,8 @@ void AudioEncoder::sendPendingFrameToAVCodec()
                                        << m_codecContext->frame_size << m_avFrame->pts;
 
     int ret = avcodec_send_frame(m_codecContext.get(), m_avFrame.get());
-    if (ret < 0) {
-        char errStr[AV_ERROR_MAX_STRING_SIZE];
-        av_strerror(ret, errStr, AV_ERROR_MAX_STRING_SIZE);
-        qCDebug(qLcFFmpegAudioEncoder) << "error sending frame" << ret << errStr;
-    }
+    if (ret < 0)
+        qCDebug(qLcFFmpegAudioEncoder) << "error sending frame" << ret << QFFmpeg::AVError(ret);
 
     m_avFrame = nullptr;
     m_avFrameSamplesOffset = 0;
