@@ -11,6 +11,8 @@
 #include <UIKit/UIKit.h>
 #endif // Q_OS_IOS
 
+#include <cmath>
+
 QT_BEGIN_NAMESPACE
 
 namespace {
