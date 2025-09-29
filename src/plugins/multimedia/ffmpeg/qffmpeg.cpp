@@ -375,6 +375,11 @@ QDebug operator<<(QDebug dbg, const QFFmpeg::AVDictionaryHolder &dict)
 
 QDebug operator<<(QDebug dbg, QFFmpeg::AVError error)
 {
+    if (error == QFFmpeg::AVError::Success) {
+        dbg << "Success";
+        return dbg;
+    }
+
     char errBuf[AV_ERROR_MAX_STRING_SIZE];
     dbg << av_make_error_string(errBuf, AV_ERROR_MAX_STRING_SIZE, qToUnderlying(error));
     return dbg;
