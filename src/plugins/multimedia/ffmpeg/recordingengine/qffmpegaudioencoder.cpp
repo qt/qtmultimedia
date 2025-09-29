@@ -16,6 +16,7 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg {
 
 Q_STATIC_LOGGING_CATEGORY(qLcFFmpegAudioEncoder, "qt.multimedia.ffmpeg.audioencoder");
+static constexpr bool audioEncoderExtendedTracing = false;
 
 namespace {
 void setupStreamParameters(AVStream *stream, const Codec &codec,
@@ -224,8 +225,9 @@ void AudioEncoder::retrievePackets()
             break;
         }
 
-        // qCDebug(qLcFFmpegEncoder) << "writing audio packet" << packet->size << packet->pts <<
-        // packet->dts;
+        if constexpr (audioEncoderExtendedTracing)
+            qCDebug(qLcFFmpegAudioEncoder)
+                    << "writing audio packet" << packet->size << packet->pts << packet->dts;
         packet->stream_index = m_stream->id;
         m_recordingEngine.getMuxer()->addPacket(std::move(packet));
     }
@@ -236,8 +238,10 @@ void AudioEncoder::processOne()
     QAudioBuffer buffer = takeBuffer();
     Q_ASSERT(buffer.isValid());
 
-    //    qCDebug(qLcFFmpegEncoder) << "new audio buffer" << buffer.byteCount() << buffer.format()
-    //    << buffer.frameCount() << codec->frame_size;
+    if constexpr (audioEncoderExtendedTracing)
+        qCDebug(qLcFFmpegAudioEncoder)
+                << "new audio buffer" << buffer.byteCount() << buffer.format()
+                << buffer.frameCount() << m_codecContext->frame_size;
 
     if (buffer.format() != m_sourceFormat && !updateResampler(buffer.format()))
         return;
@@ -378,8 +382,9 @@ void AudioEncoder::sendPendingFrameToAVCodec()
             m_samplesWritten * m_sourceFormat.sampleRate() / m_codecContext->sample_rate);
     m_recordingEngine.newTimeStamp(time / 1000);
 
-    // qCDebug(qLcFFmpegEncoder) << "sending audio frame" << buffer.byteCount() << frame->pts <<
-    //   ((double)buffer.frameCount()/frame->sample_rate);
+    if constexpr (audioEncoderExtendedTracing)
+        qCDebug(qLcFFmpegAudioEncoder) << "sendPendingFrameToAVCodec" << m_avFrame->nb_samples
+                                       << m_codecContext->frame_size << m_avFrame->pts;
 
     int ret = avcodec_send_frame(m_codecContext.get(), m_avFrame.get());
     if (ret < 0) {
