@@ -5,6 +5,8 @@
 #include <QtTest/qsignalspy.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
 
+#include <thread>
+
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 
 using namespace std::chrono_literals;
