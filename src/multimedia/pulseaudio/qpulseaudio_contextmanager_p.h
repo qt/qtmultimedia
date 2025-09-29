@@ -58,6 +58,7 @@ public:
     }
 
     bool waitForAsyncOperation(pa_operation *op);
+    bool waitForAsyncOperation(const PAOperationHandle &);
 
     bool isInMainLoop() const
     {

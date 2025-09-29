@@ -121,7 +121,7 @@ void QPulseAudioSinkStream::stop(ShutdownPolicy policy)
 
     uninstallCallbacks();
     // Note: we need to cork to ensure that the stream is stopped immediately
-    pa_stream_cork(m_stream.get(), 1, nullptr, nullptr);
+    std::ignore = streamCork(m_stream, true);
 
     if (m_audioCallback) {
         switch (policy) {
@@ -167,7 +167,7 @@ void QPulseAudioSinkStream::suspend()
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     std::lock_guard engineLock{ *pulseEngine };
 
-    pa_stream_cork(m_stream.get(), 1, nullptr, nullptr);
+    std::ignore = streamCork(m_stream, true);
 }
 
 void QPulseAudioSinkStream::resume()
@@ -175,7 +175,7 @@ void QPulseAudioSinkStream::resume()
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     std::lock_guard engineLock{ *pulseEngine };
 
-    pa_stream_cork(m_stream.get(), 0, nullptr, nullptr);
+    std::ignore = streamCork(m_stream, false);
 }
 
 bool QPulseAudioSinkStream::open() const

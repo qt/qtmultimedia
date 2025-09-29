@@ -551,10 +551,15 @@ bool QPulseAudioContextManager::waitForAsyncOperation(pa_operation *op)
         PAOperationHandle::HasRef,
     };
 
-    if (!operation)
+    return waitForAsyncOperation(operation);
+}
+
+bool QPulseAudioContextManager::waitForAsyncOperation(const PAOperationHandle &op)
+{
+    if (!op)
         return false;
 
-    wait(operation);
+    wait(op);
     return true;
 }
 

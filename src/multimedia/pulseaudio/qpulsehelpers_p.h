@@ -79,6 +79,8 @@ QAudioFormat::ChannelConfig channelConfigFromMap(const pa_channel_map &map);
 QUtf8StringView currentError(const pa_context *);
 QUtf8StringView currentError(const pa_stream *);
 
+[[nodiscard]] PAOperationHandle streamCork(const PAStreamHandle &, bool);
+
 } // namespace QPulseAudioInternal
 
 QDebug operator<<(QDebug, pa_stream_state_t);
