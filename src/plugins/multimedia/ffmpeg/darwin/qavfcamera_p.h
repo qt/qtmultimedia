@@ -40,6 +40,8 @@ QT_BEGIN_NAMESPACE
 
 struct VideoTransformation;
 
+namespace QFFmpeg {
+
 class QAVFCamera : public QAVFCameraBase
 {
     Q_OBJECT
@@ -104,7 +106,8 @@ private:
     std::optional<QFFmpeg::AvfCameraRotationTracker> m_qAvfCameraRotationTracker;
 };
 
-QT_END_NAMESPACE
+} // namespace QFFmpeg
 
+QT_END_NAMESPACE
 
 #endif // QAVFCAMERA_P_H

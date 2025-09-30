@@ -23,7 +23,7 @@ extern "C" {
 
 QT_BEGIN_NAMESPACE
 
-using namespace QFFmpeg;
+namespace QFFmpeg {
 
 namespace {
 
@@ -664,6 +664,8 @@ int QAVFCamera::getCurrentRotationAngleDegrees() const
     else
         return 0;
 }
+
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
