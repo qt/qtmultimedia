@@ -162,18 +162,12 @@ void QPipewireAudioDevicePrivate::setPreferredSampleFormats(spa_audio_iec958_cod
 
 void QPipewireAudioDevicePrivate::setPreferredSampleFormats(const SpaEnum<spa_audio_format> &fmt)
 {
-    for (spa_audio_format f : fmt.values()) {
-        auto qtFormat = toSampleFormat(f);
-        if (qtFormat != QAudioFormat::Unknown)
-            supportedSampleFormats.push_back(qtFormat);
-    }
-
     QAudioFormat::SampleFormat sampleFormat = toSampleFormat(fmt.defaultValue());
     if (sampleFormat != QAudioFormat::Unknown) {
         preferredFormat.setSampleFormat(sampleFormat);
     } else {
         if (!supportedSampleFormats.empty())
-            preferredFormat.setSampleFormat(supportedSampleFormats.front());
+            preferredFormat.setSampleFormat(QAudioFormat::Float);
         else
             qWarning() << "No sample format supported found for device" << nodeName();
     }
