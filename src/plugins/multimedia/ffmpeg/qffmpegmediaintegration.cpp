@@ -1,20 +1,22 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediaintegration_p.h>
+
+#include <QtFFmpegMediaPluginImpl/private/qffmpegaudiodecoder_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegaudioinput_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegconverter_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegimagecapture_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediacapturesession_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediaformatinfo_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediaplayer_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediarecorder_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegresampler_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegvideosink_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qgrabwindowsurfacecapture_p.h>
+
 #include <QtMultimedia/private/qplatformmediaplugin_p.h>
-#include <qcameradevice.h>
-#include "qffmpegmediaintegration_p.h"
-#include "qffmpegmediaformatinfo_p.h"
-#include "qffmpegmediaplayer_p.h"
-#include "qffmpegvideosink_p.h"
-#include "qffmpegmediacapturesession_p.h"
-#include "qffmpegmediarecorder_p.h"
-#include "qffmpegimagecapture_p.h"
-#include "qffmpegaudioinput_p.h"
-#include "qffmpegaudiodecoder_p.h"
-#include "qffmpegresampler_p.h"
-#include "qgrabwindowsurfacecapture_p.h"
-#include "qffmpegconverter_p.h"
+#include <QtMultimedia/qcameradevice.h>
 
 #ifdef Q_OS_MACOS
 #include <QtFFmpegMediaPluginImpl/private/qcgcapturablewindows_p.h>
@@ -25,8 +27,9 @@
 #ifdef Q_OS_DARWIN
 #include <QtFFmpegMediaPluginImpl/private/qavfcamera_p.h>
 #include <QtMultimedia/private/qavfvideodevices_p.h>
+#endif
 
-#elif defined(Q_OS_WINDOWS)
+#ifdef Q_OS_WINDOWS
 #  include <QtMultimedia/private/qwindowsresampler_p.h>
 #  include <QtMultimedia/private/qwindowsvideodevices_p.h>
 #  include "qwindowscamera_p.h"
