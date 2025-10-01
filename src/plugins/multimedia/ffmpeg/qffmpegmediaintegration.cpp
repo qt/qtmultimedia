@@ -25,7 +25,7 @@
 #endif
 
 #ifdef Q_OS_DARWIN
-#include <QtFFmpegMediaPluginImpl/private/qavfcamera_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qavfcamerafactory_p.h>
 #include <QtMultimedia/private/qavfvideodevices_p.h>
 #endif
 
@@ -218,7 +218,7 @@ QFFmpegMediaIntegration::createPlayer(QMediaPlayer *player)
 q23::expected<QPlatformCamera *, QString> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 {
 #ifdef Q_OS_DARWIN
-    return new QFFmpeg::QAVFCamera(camera);
+    return QFFmpeg::makeQAvfCamera(camera).release();
 #elif defined(Q_OS_ANDROID)
     return new QFFmpeg::QAndroidCamera(camera);
 #elif QT_CONFIG(linux_v4l)
