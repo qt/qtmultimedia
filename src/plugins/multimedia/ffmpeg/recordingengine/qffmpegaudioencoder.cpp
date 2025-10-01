@@ -214,14 +214,15 @@ void AudioEncoder::retrievePackets()
     while (true) {
         AVPacketUPtr packet(av_packet_alloc());
         int ret = avcodec_receive_packet(m_codecContext.get(), packet.get());
-        if (ret < 0) {
-            if (ret != AVERROR(EOF))
-                break;
-            if (ret != AVERROR(EAGAIN))
-                qCDebug(qLcFFmpegAudioEncoder)
-                        << "receive packet" << ret << QFFmpeg::AVError{ ret };
-
+        switch (ret) {
+        case 0:
             break;
+        case AVERROR(EAGAIN):
+        case AVERROR(EOF):
+            return;
+        default:
+            qCDebug(qLcFFmpegAudioEncoder) << "receive packet" << ret << QFFmpeg::AVError{ ret };
+            return;
         }
 
         if constexpr (audioEncoderExtendedTracing)
