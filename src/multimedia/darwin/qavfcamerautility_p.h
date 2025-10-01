@@ -19,18 +19,16 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qsize.h>
-#include <QtMultimedia/qtmultimediaexports.h>
+#include <QtCore/qtclasshelpermacros.h>
 
-#include "qcameradevice.h"
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qtmultimediaexports.h>
 
 #include <AVFoundation/AVFoundation.h>
 
 #ifdef Q_OS_IOS
 #import <UIKit/UIDevice.h>
 #endif
-
-// In case we have SDK below 10.7/7.0:
-@class AVCaptureDeviceFormat;
 
 QT_BEGIN_NAMESPACE
 
@@ -101,11 +99,21 @@ class AVFScopedPointer<dispatch_queue_t>
 public:
     AVFScopedPointer() : m_queue(nullptr) {}
     explicit AVFScopedPointer(dispatch_queue_t q) : m_queue(q) {}
+    AVFScopedPointer(AVFScopedPointer &&other) noexcept :
+        m_queue{ std::exchange(other.m_queue, nullptr) }
+    {}
+
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_MOVE_AND_SWAP(AVFScopedPointer)
 
     ~AVFScopedPointer()
     {
         if (m_queue)
             dispatch_release(m_queue);
+    }
+
+    void swap(AVFScopedPointer &other)
+    {
+        std::swap(m_queue, other.m_queue);
     }
 
     operator dispatch_queue_t() const
