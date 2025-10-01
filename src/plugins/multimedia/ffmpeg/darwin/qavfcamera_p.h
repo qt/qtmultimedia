@@ -30,8 +30,6 @@
 
 QT_BEGIN_NAMESPACE
 
-struct VideoTransformation;
-
 namespace QFFmpeg {
 
 class QAVFCamera : public QAVFCameraBase
