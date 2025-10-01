@@ -3,10 +3,10 @@ dependencies:
     ref: db3b8e36c9084ddaba6ae6ecc36dbcc846c4c649
     required: true
   ../qtdeclarative:
-    ref: da7f7e19f8fdf074f83d069ddd7abc64d0718e50
+    ref: ed5a70f518319131a71646508fe3fcf26e612c07
     required: false
   ../qtquick3d:
-    ref: cd5e8e90d70e74149fd802f758ea99c57185a963
+    ref: 161b3af428d4c5c565911734449e7c8862771fdc
     required: false
   ../qtshadertools:
     ref: f2ec78c16a69fb22b6806a47ef4751933d0c90fc
