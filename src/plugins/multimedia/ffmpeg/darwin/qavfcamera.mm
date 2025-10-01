@@ -6,6 +6,7 @@
 #include <QtCore/qscopeguard.h>
 #include <QtCore/private/qcore_mac_p.h>
 
+#include <QtFFmpegMediaPluginImpl/private/qavfcamerafactory_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
 
 #include <QtMultimedia/private/qavfcameradebug_p.h>
@@ -141,6 +142,11 @@ namespace {
     return [bestFormat unsignedIntValue];
 }
 
+}
+
+std::unique_ptr<QPlatformCamera> makeQAvfCamera(QCamera *parent)
+{
+    return std::make_unique<QAVFCamera>(parent);
 }
 
 QAVFCamera::QAVFCamera(QCamera *parent)
