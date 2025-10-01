@@ -25,6 +25,8 @@
 #undef AVMediaType
 #include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
 
+#include <QtMultimedia/private/qavfcamerautility_p.h>
+
 #import <AVFoundation/AVFoundation.h>
 #include <dispatch/dispatch.h>
 
@@ -86,7 +88,6 @@ private:
     AVCaptureDeviceInput *m_avCaptureDeviceVideoInput = nullptr;
     AVCaptureVideoDataOutput *m_avCaptureVideoDataOutput = nullptr;
     QAVFSampleBufferDelegate *m_qAvfSampleBufferDelegate = nullptr;
-    dispatch_queue_t m_delegateQueue;
     AVPixelFormat m_hwPixelFormat = AV_PIX_FMT_NONE;
     // The current CVPixelFormat used by the AVCaptureVideoDataOutput.
     // This can in some cases be different from the AVCaptureDeviceFormat
@@ -94,6 +95,8 @@ private:
     uint32_t m_cvPixelFormat = 0;
 
     std::optional<QFFmpeg::AvfCameraRotationTracker> m_qAvfCameraRotationTracker;
+
+    AVFScopedPointer<dispatch_queue_t> m_delegateQueue;
 };
 
 } // namespace QFFmpeg

@@ -153,7 +153,8 @@ QAVFCamera::QAVFCamera(QCamera &parent)
     : QAVFCameraBase(&parent)
 {
     m_avCaptureSession = [[AVCaptureSession alloc] init];
-    m_delegateQueue = dispatch_queue_create("qt_camera_queue", DISPATCH_QUEUE_SERIAL);
+    m_delegateQueue = AVFScopedPointer<dispatch_queue_t>{
+        dispatch_queue_create("qt_camera_queue", DISPATCH_QUEUE_SERIAL) };
 }
 
 QAVFCamera::~QAVFCamera()
@@ -166,7 +167,6 @@ QAVFCamera::~QAVFCamera()
     clearRotationTracking();
 
     [m_avCaptureSession release];
-    dispatch_release(m_delegateQueue);
 }
 
 void QAVFCamera::clearAvCaptureSessionInputDevice()
