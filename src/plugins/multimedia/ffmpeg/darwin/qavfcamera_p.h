@@ -23,18 +23,10 @@
 #define AVMediaType XAVMediaType
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
+#include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
 
-#include <QtMultimedia/private/qplatformmediacapture_p.h>
-
+#import <AVFoundation/AVFoundation.h>
 #include <dispatch/dispatch.h>
-
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureSession);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceInput);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoDataOutput);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceFormat);
-Q_FORWARD_DECLARE_OBJC_CLASS(QAVFSampleBufferDelegate);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceRotationCoordinator);
 
 QT_BEGIN_NAMESPACE
 
