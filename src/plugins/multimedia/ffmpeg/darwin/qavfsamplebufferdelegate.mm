@@ -102,9 +102,6 @@ static QVideoFrame createHwVideoFrame(
     Q_ASSERT(handler);
 
     frameHandler = std::move(handler);
-    hwFramesContext = nullptr;
-    startTime = 0;
-    frameRate = 0.;
     return self;
 }
 
