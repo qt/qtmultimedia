@@ -34,28 +34,30 @@ std::set<QMediaFormat::VideoCodec> supportedVideoEncoders(QMediaFormat::FileForm
         videoEncoders[QMediaFormat::FileFormat::WMV] = {
             QMediaFormat::VideoCodec::MPEG1,      QMediaFormat::VideoCodec::MPEG2,
             QMediaFormat::VideoCodec::MPEG4,      QMediaFormat::VideoCodec::H264,
-            QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::MotionJPEG, QMediaFormat::VideoCodec::AV1,
         };
         videoEncoders[QMediaFormat::FileFormat::AVI] = {
             QMediaFormat::VideoCodec::MPEG1,      QMediaFormat::VideoCodec::MPEG2,
             QMediaFormat::VideoCodec::MPEG4,      QMediaFormat::VideoCodec::H264,
-            QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::MotionJPEG, QMediaFormat::VideoCodec::AV1,
         };
         videoEncoders[QMediaFormat::FileFormat::Matroska] = {
-            QMediaFormat::VideoCodec::MPEG1,
-            QMediaFormat::VideoCodec::MPEG2,
-            QMediaFormat::VideoCodec::MPEG4,
-            QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::MPEG1, QMediaFormat::VideoCodec::MPEG2,
+            QMediaFormat::VideoCodec::MPEG4, QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::AV1,
         };
         videoEncoders[QMediaFormat::FileFormat::MPEG4] = {
             QMediaFormat::VideoCodec::MPEG1,      QMediaFormat::VideoCodec::MPEG2,
             QMediaFormat::VideoCodec::MPEG4,      QMediaFormat::VideoCodec::H264,
-            QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::MotionJPEG, QMediaFormat::VideoCodec::AV1,
         };
         videoEncoders[QMediaFormat::FileFormat::QuickTime] = {
             QMediaFormat::VideoCodec::MPEG1,      QMediaFormat::VideoCodec::MPEG2,
             QMediaFormat::VideoCodec::MPEG4,      QMediaFormat::VideoCodec::H264,
-            QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::MotionJPEG, QMediaFormat::VideoCodec::AV1,
+        };
+        videoEncoders[QMediaFormat::FileFormat::WebM] = {
+            QMediaFormat::VideoCodec::AV1,
         };
     } else if constexpr (isAndroid) {
         videoEncoders[QMediaFormat::FileFormat::WMV] = {
@@ -159,30 +161,35 @@ std::set<QMediaFormat::VideoCodec> supportedVideoDecoders(QMediaFormat::FileForm
         videoDecoders[QMediaFormat::FileFormat::WMV] = {
             QMediaFormat::VideoCodec::MPEG1,      QMediaFormat::VideoCodec::MPEG2,
             QMediaFormat::VideoCodec::MPEG4,      QMediaFormat::VideoCodec::H264,
-            QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::MotionJPEG, QMediaFormat::VideoCodec::AV1,
         };
         videoDecoders[QMediaFormat::FileFormat::AVI] = {
             QMediaFormat::VideoCodec::MPEG1,      QMediaFormat::VideoCodec::MPEG2,
             QMediaFormat::VideoCodec::MPEG4,      QMediaFormat::VideoCodec::H264,
-            QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::MotionJPEG, QMediaFormat::VideoCodec::AV1,
         };
         videoDecoders[QMediaFormat::FileFormat::Matroska] = {
             QMediaFormat::VideoCodec::MPEG1, QMediaFormat::VideoCodec::MPEG2,
             QMediaFormat::VideoCodec::MPEG4, QMediaFormat::VideoCodec::H264,
             QMediaFormat::VideoCodec::H265,  QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::AV1,
         };
         videoDecoders[QMediaFormat::FileFormat::MPEG4] = {
             QMediaFormat::VideoCodec::MPEG1, QMediaFormat::VideoCodec::MPEG2,
             QMediaFormat::VideoCodec::MPEG4, QMediaFormat::VideoCodec::H264,
             QMediaFormat::VideoCodec::H265,  QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::AV1,
         };
         videoDecoders[QMediaFormat::FileFormat::Ogg] = {};
         videoDecoders[QMediaFormat::FileFormat::QuickTime] = {
             QMediaFormat::VideoCodec::MPEG1, QMediaFormat::VideoCodec::MPEG2,
             QMediaFormat::VideoCodec::MPEG4, QMediaFormat::VideoCodec::H264,
             QMediaFormat::VideoCodec::H265,  QMediaFormat::VideoCodec::MotionJPEG,
+            QMediaFormat::VideoCodec::AV1,
         };
-        videoDecoders[QMediaFormat::FileFormat::WebM] = {};
+        videoDecoders[QMediaFormat::FileFormat::WebM] = {
+            QMediaFormat::VideoCodec::AV1,
+        };
         videoDecoders[QMediaFormat::FileFormat::Mpeg4Audio] = {};
         videoDecoders[QMediaFormat::FileFormat::AAC] = {
             QMediaFormat::VideoCodec::WMV,
@@ -912,6 +919,13 @@ private slots:
                 && format.fileFormat() != QMediaFormat::UnspecifiedFormat
                 && format.audioCodec() != QMediaFormat::AudioCodec::Unspecified;
 
+        // This check should be removed once FFmpeg starts associating non-experimental
+        // audio codecs with WebM format.
+        if (format.fileFormat() == QMediaFormat::FileFormat::WebM)
+            resolveShouldDoNothing = format.isSupported(QMediaFormat::Encode)
+                    && format.fileFormat() != QMediaFormat::UnspecifiedFormat
+                    && format.audioCodec() == QMediaFormat::AudioCodec::Unspecified;
+
         if (resolveFlags == QMediaFormat::RequiresVideo)
             resolveShouldDoNothing = resolveShouldDoNothing
                     && format.videoCodec() != QMediaFormat::VideoCodec::Unspecified;
@@ -959,7 +973,13 @@ private slots:
         format.resolveForEncoding(resolveFlags);
 
         QCOMPARE_NE(format.fileFormat(), QMediaFormat::FileFormat::UnspecifiedFormat);
-        QCOMPARE_NE(format.audioCodec(), QMediaFormat::AudioCodec::Unspecified);
+        // Currently FFmpeg provides only experimental audio codecs (Opus, Vorbis) for WebM format
+        // that are disabled by default. This check should be removed once FFmpeg starts providing
+        // non-experimental codecs for WebM format.
+        if (format.fileFormat() == QMediaFormat::FileFormat::WebM)
+            QCOMPARE_EQ(format.audioCodec(), QMediaFormat::AudioCodec::Unspecified);
+        else
+            QCOMPARE_NE(format.audioCodec(), QMediaFormat::AudioCodec::Unspecified);
         if (resolveFlags == QMediaFormat::NoFlags)
             QCOMPARE_EQ(format.videoCodec(), QMediaFormat::VideoCodec::Unspecified);
         else
