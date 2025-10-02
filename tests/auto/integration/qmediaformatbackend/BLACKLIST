@@ -1,0 +1,11 @@
+# QTBUG-139714
+[isSupported_returnsTrue_whenFormatAndVideoCodecIsSupported]
+ci
+
+# QTBUG-139714
+[resolveForEncoding_doesNotChangeFormat_whenFormatIsSupported]
+ci
+
+# QTBUG-139714
+[resolveForEncoding_givesSupportedFormat_whenCalledWithAllCodecs]
+ci
