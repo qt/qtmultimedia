@@ -21,7 +21,6 @@ QT_USE_NAMESPACE
 - (id)init
 {
     if (self = [super init]) {
-        m_session = nil;
         m_audioBufferSynchronizer = [[AVSampleBufferRenderSynchronizer alloc] init];
         m_audioRenderer = [[AVSampleBufferAudioRenderer alloc] init];
         [m_audioBufferSynchronizer addRenderer:m_audioRenderer];
