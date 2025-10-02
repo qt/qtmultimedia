@@ -24,12 +24,12 @@ void tst_QFFmpegVideoEncoderUtils::getScaleConversionType_returnsCorrectConversi
 {
     QTest::addColumn<QSize>("sourceSize");
     QTest::addColumn<QSize>("targetSize");
-    QTest::addColumn<ScaleConversion>("expectedConversionType");
+    QTest::addColumn<SwsFlags>("expectedConversionType");
 
 #ifdef Q_OS_ANDROID
-    ScaleConversion expectedConversionTypeForUpscaling = SWS_BICUBIC;
+    SwsFlags expectedConversionTypeForUpscaling = SWS_BICUBIC;
 #else
-    ScaleConversion expectedConversionTypeForUpscaling = SWS_FAST_BILINEAR;
+    SwsFlags expectedConversionTypeForUpscaling = SWS_FAST_BILINEAR;
 #endif
 
     QTest::newRow("Sizes are equal")
@@ -57,11 +57,10 @@ void tst_QFFmpegVideoEncoderUtils::getScaleConversionType_returnsCorrectConversi
     // Arrange
     QFETCH(QSize, sourceSize);
     QFETCH(QSize, targetSize);
-    QFETCH(ScaleConversion, expectedConversionType);
+    QFETCH(SwsFlags, expectedConversionType);
 
     // Act
-    const ScaleConversion actualConversionType =
-            QFFmpeg::getScaleConversionType(sourceSize, targetSize);
+    const SwsFlags actualConversionType = QFFmpeg::getScaleConversionType(sourceSize, targetSize);
 
     // Assert
     QCOMPARE(actualConversionType, expectedConversionType);
