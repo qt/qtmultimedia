@@ -217,8 +217,9 @@ QFFmpegMediaIntegration::createPlayer(QMediaPlayer *player)
 
 q23::expected<QPlatformCamera *, QString> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 {
+    Q_ASSERT(camera);
 #ifdef Q_OS_DARWIN
-    return QFFmpeg::makeQAvfCamera(camera).release();
+    return QFFmpeg::makeQAvfCamera(*camera).release();
 #elif defined(Q_OS_ANDROID)
     return new QFFmpeg::QAndroidCamera(camera);
 #elif QT_CONFIG(linux_v4l)
