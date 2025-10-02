@@ -16,7 +16,6 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/audiorecorder")
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Widgets)
 
 qt_add_executable(audiorecorder
-    audiolevel.cpp audiolevel.h
     audiorecorder.cpp audiorecorder.h audiorecorder.ui
     main.cpp
 )

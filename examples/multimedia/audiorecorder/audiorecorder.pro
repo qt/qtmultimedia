@@ -7,14 +7,10 @@ CONFIG += add_ios_ffmpeg_libraries
 win32:INCLUDEPATH += $$PWD
 
 HEADERS = \
-    audiorecorder.h \
-    audiolevel.h
-
+    audiorecorder.h
 SOURCES = \
     main.cpp \
-    audiorecorder.cpp \
-    audiolevel.cpp
-
+    audiorecorder.cpp
 FORMS += audiorecorder.ui
 
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/audiorecorder

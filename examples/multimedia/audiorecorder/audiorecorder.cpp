@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "audiorecorder.h"
-#include "audiolevel.h"
 #include "ui_audiorecorder.h"
 
 #include <QAudioBuffer>
@@ -20,8 +19,6 @@
 #if QT_CONFIG(permissions)
   #include <QPermission>
 #endif
-
-static QList<qreal> getBufferLevels(const QAudioBuffer &buffer);
 
 AudioRecorder::AudioRecorder() : ui(new Ui::AudioRecorder)
 {
@@ -67,11 +64,6 @@ void AudioRecorder::init()
     m_audioRecorder = new QMediaRecorder(this);
     m_captureSession.setRecorder(m_audioRecorder);
     m_captureSession.setAudioInput(new QAudioInput(this));
-    // ### replace with a monitoring output once we have it.
-    // m_probe = new QAudioProbe(this);
-    // connect(m_probe, &QAudioProbe::audioBufferProbed,
-    //         this, &AudioRecorder::processBuffer);
-    // m_probe->setSource(m_audioRecorder);
 
     // audio devices
     m_mediaDevices = new QMediaDevices(this);
@@ -135,13 +127,11 @@ void AudioRecorder::onStateChanged(QMediaRecorder::RecorderState state)
         ui->pauseButton->setText(tr("Pause"));
         break;
     case QMediaRecorder::PausedState:
-        clearAudioLevels();
         statusMessage = tr("Paused");
         ui->recordButton->setText(tr("Stop"));
         ui->pauseButton->setText(tr("Resume"));
         break;
     case QMediaRecorder::StoppedState:
-        clearAudioLevels();
         statusMessage = tr("Stopped");
         ui->recordButton->setText(tr("Record"));
         ui->pauseButton->setText(tr("Pause"));
@@ -303,12 +293,6 @@ void AudioRecorder::updateFormats()
     m_updatingFormats = false;
 }
 
-void AudioRecorder::clearAudioLevels()
-{
-    for (auto m_audioLevel : std::as_const(m_audioLevels))
-        m_audioLevel->setLevel(0);
-}
-
 QMediaFormat AudioRecorder::selectedMediaFormat() const
 {
     QMediaFormat format;
@@ -316,50 +300,3 @@ QMediaFormat AudioRecorder::selectedMediaFormat() const
     format.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());
     return format;
 }
-
-// returns the audio level for each channel
-QList<qreal> getBufferLevels(const QAudioBuffer &buffer)
-{
-    QList<qreal> values;
-
-    auto format = buffer.format();
-    if (!format.isValid())
-        return values;
-
-    int channels = buffer.format().channelCount();
-    values.fill(0, channels);
-
-    int bytesPerSample = format.bytesPerSample();
-    QList<qreal> max_values;
-    max_values.fill(0, channels);
-
-    const char *data = buffer.constData<char>();
-    for (int i = 0; i < buffer.frameCount(); ++i) {
-        for (int j = 0; j < channels; ++j) {
-            qreal value = qAbs(format.normalizedSampleValue(data));
-            if (value > max_values.at(j))
-                max_values[j] = value;
-            data += bytesPerSample;
-        }
-    }
-
-    return max_values;
-}
-
-void AudioRecorder::processBuffer(const QAudioBuffer &buffer)
-{
-    if (m_audioLevels.count() != buffer.format().channelCount()) {
-        qDeleteAll(m_audioLevels);
-        m_audioLevels.clear();
-        for (int i = 0; i < buffer.format().channelCount(); ++i) {
-            AudioLevel *level = new AudioLevel(ui->centralwidget);
-            m_audioLevels.append(level);
-            ui->levelsLayout->addWidget(level);
-        }
-    }
-
-    QList<qreal> levels = getBufferLevels(buffer);
-    for (int i = 0; i < levels.count(); ++i)
-        m_audioLevels.at(i)->setLevel(levels.at(i));
-}
-
