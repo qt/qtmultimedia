@@ -99,16 +99,6 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         m_delegate = delegate;
         m_setStartTime = true;
         m_state.storeRelaxed(WriterStateIdle);
-        m_startTime = kCMTimeInvalid;
-        m_lastTimeStamp = kCMTimeInvalid;
-        m_lastAudioTimestamp = kCMTimeInvalid;
-        m_lastVideoTimestamp = kCMTimeInvalid;
-        m_timeOffset = kCMTimeInvalid;
-        m_adjustTime = false;
-        m_durationInMs.storeRelaxed(0);
-        m_audioSettings = nil;
-        m_videoSettings = nil;
-        m_writeFirstAudioBuffer = false;
     }
 
     return self;
