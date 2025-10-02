@@ -61,10 +61,8 @@ using ChannelLayoutT = AVChannelLayout;
 using ChannelLayoutT = uint64_t;
 #endif
 
-#if QT_FFMPEG_HAS_SWS_FLAGS_ENUM
-using ScaleConversion = SwsFlags;
-#else
-using ScaleConversion = int;
+#if !QT_FFMPEG_HAS_SWS_FLAGS_ENUM
+using SwsFlags = int;
 #endif
 
 } // namespace QFFmpeg

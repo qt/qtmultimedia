@@ -215,9 +215,9 @@ QSize adjustVideoResolution(const Codec &codec, QSize requestedResolution)
     return requestedResolution;
 }
 
-ScaleConversion getScaleConversionType(const QSize &sourceSize, const QSize &targetSize)
+SwsFlags getScaleConversionType(const QSize &sourceSize, const QSize &targetSize)
 {
-    ScaleConversion conversionType = SWS_FAST_BILINEAR;
+    SwsFlags conversionType = SWS_FAST_BILINEAR;
 
 #ifdef Q_OS_ANDROID
     // On Android, use SWS_BICUBIC for upscaling if least one dimension is upscaled

@@ -59,7 +59,7 @@ AVRational adjustFrameTimeBase(QSpan<const AVRational> supportedRates, AVRationa
 
 QSize adjustVideoResolution(const Codec &codec, QSize requestedResolution);
 
-ScaleConversion getScaleConversionType(const QSize &sourceSize, const QSize &targetSize);
+SwsFlags getScaleConversionType(const QSize &sourceSize, const QSize &targetSize);
 
 } // namespace QFFmpeg
 
