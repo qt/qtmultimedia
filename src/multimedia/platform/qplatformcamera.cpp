@@ -1,13 +1,15 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qplatformcamera_p.h"
-#include "private/qcameradevice_p.h"
+#include <QtMultimedia/private/qplatformcamera_p.h>
+
+#include <QtMultimedia/private/qcameradevice_p.h>
 
 QT_BEGIN_NAMESPACE
 
 QPlatformCamera::QPlatformCamera(QCamera *parent) : QPlatformVideoSource(parent), m_camera(parent)
 {
+    Q_ASSERT(parent);
     qRegisterMetaType<QVideoFrame>();
 }
 
