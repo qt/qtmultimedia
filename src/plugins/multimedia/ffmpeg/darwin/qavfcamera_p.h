@@ -47,7 +47,7 @@ class QAVFCamera : public QAVFCameraBase
     Q_OBJECT
 
 public:
-    explicit QAVFCamera(QCamera *parent);
+    explicit QAVFCamera(QCamera &parent);
     ~QAVFCamera();
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;

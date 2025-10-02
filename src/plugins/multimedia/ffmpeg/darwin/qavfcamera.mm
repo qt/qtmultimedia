@@ -144,13 +144,13 @@ namespace {
 
 }
 
-std::unique_ptr<QPlatformCamera> makeQAvfCamera(QCamera *parent)
+std::unique_ptr<QPlatformCamera> makeQAvfCamera(QCamera &parent)
 {
     return std::make_unique<QAVFCamera>(parent);
 }
 
-QAVFCamera::QAVFCamera(QCamera *parent)
-    : QAVFCameraBase(parent)
+QAVFCamera::QAVFCamera(QCamera &parent)
+    : QAVFCameraBase(&parent)
 {
     m_avCaptureSession = [[AVCaptureSession alloc] init];
     m_delegateQueue = dispatch_queue_create("qt_camera_queue", DISPATCH_QUEUE_SERIAL);

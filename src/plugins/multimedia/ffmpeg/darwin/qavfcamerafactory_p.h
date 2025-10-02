@@ -23,7 +23,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-[[nodiscard]] std::unique_ptr<QPlatformCamera> makeQAvfCamera(QCamera *);
+[[nodiscard]] std::unique_ptr<QPlatformCamera> makeQAvfCamera(QCamera &);
 
 } // namespace QFFmpeg
 
