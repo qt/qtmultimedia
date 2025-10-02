@@ -78,10 +78,6 @@ private:
 
     bool m_needsHorizontalMirroring = false;
 
-#ifdef Q_OS_IOS
-    CVOpenGLESTextureCacheRef m_textureCache = nullptr;
-#endif
-
     QVideoFrame m_lastViewfinderFrame;
     QMutex m_vfMutex;
     dispatch_queue_t m_delegateQueue;
