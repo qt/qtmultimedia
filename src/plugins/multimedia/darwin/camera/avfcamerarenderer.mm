@@ -18,10 +18,6 @@
 
 #import <AVFoundation/AVFoundation.h>
 
-#ifdef Q_OS_IOS
-#include <QtGui/qopengl.h>
-#endif
-
 #include <QtCore/qmetaobject.h>
 #include <QtMultimedia/qvideoframeformat.h>
 
@@ -93,10 +89,6 @@ AVFCameraRenderer::~AVFCameraRenderer()
 
     if (m_delegateQueue)
         dispatch_release(m_delegateQueue);
-#ifdef Q_OS_IOS
-    if (m_textureCache)
-        CFRelease(m_textureCache);
-#endif
 }
 
 void AVFCameraRenderer::reconfigure()
