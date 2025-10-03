@@ -33,6 +33,7 @@ namespace QFFmpeg {
 class AvfCameraRotationTracker
 {
 public:
+    AvfCameraRotationTracker() = default;
     explicit AvfCameraRotationTracker(AVCaptureDevice* avCaptureDevice);
     AvfCameraRotationTracker(AvfCameraRotationTracker &&) noexcept;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_MOVE_AND_SWAP(AvfCameraRotationTracker)
