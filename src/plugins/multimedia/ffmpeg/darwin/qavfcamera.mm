@@ -506,35 +506,49 @@ void QAVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 
 void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &newCameraDevice)
 {
-    // Using this configuration transaction, we can clear up resources and establish new ones
-    // without having to do slow and synchronous calls to AVCaptureSession.stopRunning and
-    // startRunning.
-    [m_avCaptureSession beginConfiguration];
-    QScopeGuard endConfigGuard{ [&] {
-        [m_avCaptureSession commitConfiguration];
-    } };
+    // We cannot call AVCaptureSession.stopRunning() inside a
+    // AVCaptureSession configuration scope, so we wrap that scope in
+    // a lambda and call stopRunning() afterwards if configuration
+    // fails for the new QCameraDevice.
 
-    clearCaptureSessionConfiguration();
+    auto tryChangeDeviceFn = [this, &newCameraDevice]() -> q23::expected<void, QString> {
+        // Using this configuration transaction, we can clear up
+        // resources and establish new ones without having to do slow
+        // and synchronous calls to AVCaptureSession.stopRunning and startRunning.
+        [m_avCaptureSession beginConfiguration];
+        QScopeGuard endConfigGuard{ [&] {
+            [m_avCaptureSession commitConfiguration];
+        } };
 
-    // If the new QCameraDevice does not point to any physical device,
-    // make sure we clear resources and shut down the capture-session.
-    if (newCameraDevice.isNull() || !checkCameraPermission())
-        return;
+        clearCaptureSessionConfiguration();
 
-    // If we are not currently active, then we can just accept the new property
-    // value and return.
-    if (![m_avCaptureSession isRunning])
-        return;
+        // If the new QCameraDevice does not point to any physical device,
+        // make sure we clear resources and shut down the capture-session.
+        if (newCameraDevice.isNull() || !checkCameraPermission())
+            return {};
 
-    q23::expected<void, QString> configureResult = tryConfigureCaptureSession(
-        m_cameraDevice,
-        cameraFormat());
-    if (!configureResult) {
+        // If we are not currently active, then we can just accept the new property
+        // value and return.
+        if (![m_avCaptureSession isRunning])
+            return {};
+
+        q23::expected<void, QString> configureResult = tryConfigureCaptureSession(
+            m_cameraDevice,
+            cameraFormat());
+        if (!configureResult) {
+            clearCaptureSessionConfiguration();
+            return configureResult;
+        }
+
+        return {};
+    };
+
+    q23::expected<void, QString> changeDeviceResult = tryChangeDeviceFn();
+    if (!changeDeviceResult) {
+        [m_avCaptureSession stopRunning];
         qWarning()
             << "Error when trying to activate new camera-device: "
-            << configureResult.error();
-        [m_avCaptureSession stopRunning];
-        clearCaptureSessionConfiguration();
+            << changeDeviceResult.error();
     }
 }
 
