@@ -1,26 +1,28 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qffmpegtextureconverter_p.h"
-#include "qffmpeghwaccel_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qffmpegtextureconverter_p.h>
+
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+
 #include <rhi/qrhi.h>
 
 #include <q20type_traits.h>
 
 #if QT_CONFIG(vaapi)
-#  include "qffmpeghwaccel_vaapi_p.h"
+#  include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_vaapi_p.h>
 #endif
 
 #ifdef Q_OS_DARWIN
-#  include "qffmpeghwaccel_videotoolbox_p.h"
+#  include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_videotoolbox_p.h>
 #endif
 
 #ifdef Q_OS_WINDOWS
-#  include "qffmpeghwaccel_d3d11_p.h"
+#  include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_d3d11_p.h>
 #endif
 
 #ifdef Q_OS_ANDROID
-#  include "qffmpeghwaccel_mediacodec_p.h"
+#  include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_mediacodec_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
