@@ -127,13 +127,13 @@ endif()
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
     SOURCES
-        qffmpeghwaccel_videotoolbox.mm qffmpeghwaccel_videotoolbox_p.h
+        darwin/qffmpeghwaccel_videotoolbox.mm darwin/qffmpeghwaccel_videotoolbox_p.h
         darwin/qavfcamerarotationtracker.mm darwin/qavfcamerarotationtracker_p.h
         darwin/qavfcamera.mm darwin/qavfcamera_p.h darwin/qavfcamerafactory_p.h
         darwin/qavfsamplebufferdelegate.mm darwin/qavfsamplebufferdelegate_p.h
 
     NO_UNITY_BUILD_SOURCES
-        qffmpeghwaccel_videotoolbox.mm # AVMediaType clash between libavformat and AVFoundation
+        darwin/qffmpeghwaccel_videotoolbox.mm # AVMediaType clash between libavformat and AVFoundation
 
     LIBRARIES
         ${FWAudioToolbox}
