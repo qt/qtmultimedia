@@ -82,6 +82,8 @@ void Demuxer::doNextStep()
     AVPacket &avPacket = *packet.avPacket();
 
     const int demuxStatus = av_read_frame(m_context, &avPacket);
+    if (demuxStatus == AVERROR_EXIT)
+        return;
 
     const int streamIndex = avPacket.stream_index;
     auto streamIterator = m_streams.find(streamIndex);
