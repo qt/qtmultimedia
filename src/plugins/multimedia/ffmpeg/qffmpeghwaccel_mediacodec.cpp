@@ -1,10 +1,12 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qffmpeghwaccel_mediacodec_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_mediacodec_p.h>
 
+#include <QtGui/rhi/qrhi.h>
+
+// TODO: This class is reused from the native Android media backend and breaks ODR.
 #include "androidsurfacetexture_p.h"
-#include <rhi/qrhi.h>
 
 extern "C" {
 #include <libavcodec/mediacodec.h>
