@@ -226,20 +226,20 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_linu
 if (ANDROID)
     qt_internal_extend_target(FFmpegMediaPluginImplPrivate
         SOURCES
-            qffmpeghwaccel_mediacodec.cpp qffmpeghwaccel_mediacodec_p.h
-            qandroidcamera_p.h qandroidcamera.cpp
-            qandroidvideodevices.cpp qandroidvideodevices_p.h
-            qandroidvideoframebuffer_p.h  qandroidvideoframebuffer.cpp
-            qandroidvideoframefactory_p.h qandroidvideoframefactory.cpp
-            qandroidimagecapture_p.h qandroidimagecapture.cpp
-            qandroidscreencapture_p.h qandroidscreencapture.cpp
+            android/qffmpeghwaccel_mediacodec.cpp android/qffmpeghwaccel_mediacodec_p.h
+            android/qandroidcamera_p.h android/qandroidcamera.cpp
+            android/qandroidvideodevices.cpp android/qandroidvideodevices_p.h
+            android/qandroidvideoframebuffer_p.h android/qandroidvideoframebuffer.cpp
+            android/qandroidvideoframefactory_p.h android/qandroidvideoframefactory.cpp
+            android/qandroidimagecapture_p.h android/qandroidimagecapture.cpp
+            android/qandroidscreencapture_p.h android/qandroidscreencapture.cpp
             ../android/wrappers/jni/androidsurfacetexture_p.h
             ../android/wrappers/jni/androidsurfacetexture.cpp
         NO_UNITY_BUILD_SOURCES
             # Duplicate declration of JNI Classes using `Q_DECLARE_JNI_CLASS`
-            qandroidcamera.cpp
-            qandroidvideodevices.cpp
-            qandroidvideoframebuffer.cpp
+            android/qandroidcamera.cpp
+            android/qandroidvideodevices.cpp
+            android/qandroidvideoframebuffer.cpp
         INCLUDE_DIRECTORIES
             ${FFMPEG_DIR}/include
             ../android/wrappers/jni/
