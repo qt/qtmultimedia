@@ -1,23 +1,25 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qffmpeghwaccel_videotoolbox_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_videotoolbox_p.h>
 
 #if !defined(Q_OS_DARWIN)
 #error "Configuration error"
 #endif
 
-#include <qvideoframeformat.h>
-#include <qffmpegvideobuffer_p.h>
-#include <qloggingcategory.h>
-#include "private/qvideotexturehelper_p.h"
+#include <QtCore/qloggingcategory.h>
 
-#include <rhi/qrhi.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
+
+#include <QtGui/qopenglcontext.h>
+#include <QtGui/rhi/qrhi.h>
+
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
+#include <QtMultimedia/qvideoframeformat.h>
 
 #include <CoreVideo/CVMetalTexture.h>
 #include <CoreVideo/CVMetalTextureCache.h>
 
-#include <qopenglcontext.h>
 #ifdef Q_OS_MACOS
 #import <AppKit/AppKit.h>
 #endif
