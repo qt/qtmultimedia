@@ -1,11 +1,13 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qandroidvideoframebuffer_p.h"
-#include <jni.h>
-#include <QDebug>
+#include <QtFFmpegMediaPluginImpl/private/qandroidvideoframebuffer_p.h>
+
+#include <QtCore/qdebug.h>
 #include <QtCore/qjnitypes.h>
-#include <QtCore/QLoggingCategory>
+#include <QtCore/qloggingcategory.h>
+
+#include <jni.h>
 
 QT_BEGIN_NAMESPACE
 Q_STATIC_LOGGING_CATEGORY(qLCAndroidCameraFrame, "qt.multimedia.ffmpeg.android.camera.frame");
