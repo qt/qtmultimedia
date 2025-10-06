@@ -39,11 +39,11 @@
 #endif
 
 #ifdef Q_OS_ANDROID
-#    include "jni.h"
-#    include "qandroidvideodevices_p.h"
-#    include "qandroidcamera_p.h"
-#    include "qandroidimagecapture_p.h"
-#    include "qandroidscreencapture_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qandroidcamera_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qandroidimagecapture_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qandroidscreencapture_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qandroidvideodevices_p.h>
+#include <jni.h>
 extern "C" {
 #  include <libavutil/log.h>
 #  include <libavcodec/jni.h>
