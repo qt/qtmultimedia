@@ -13,7 +13,7 @@ TestCase {
     property playbackOptions optionsB
 
     function test_networkTimeoutMs_returns5sec_byDefault() {
-        compare(options.networkTimeoutMs, 5000)
+        compare(options.networkTimeoutMs, 20000)
     }
 
     function test_settingNetworkTimeoutMs_changesNetworkTimeoutMs() {
@@ -24,7 +24,7 @@ TestCase {
     function test_resettingNetworkTimeoutMs_resetsToDefault() {
         options.networkTimeoutMs = 1000
         options.networkTimeoutMs = undefined
-        compare(options.networkTimeoutMs, 5000)
+        compare(options.networkTimeoutMs, 20000)
     }
 
     function test_playbackIntent_returnsPlayBack_byDefault() {
