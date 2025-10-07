@@ -6,6 +6,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace std::chrono_literals;
+
 class QPlaybackOptionsPrivate : public QSharedData
 {
 public:
@@ -29,7 +31,7 @@ public:
         return qCompareThreeWay(lhs.m_probeSizeBytes, rhs.m_probeSizeBytes);
     }
 
-    std::chrono::milliseconds m_networkTimeout{ 5'000 };
+    std::chrono::milliseconds m_networkTimeout = 20s;
     QPlaybackOptions::PlaybackIntent m_playbackIntent = QPlaybackOptions::PlaybackIntent::Playback;
     int m_probeSizeBytes = -1;
 };

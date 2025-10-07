@@ -84,10 +84,10 @@ private slots:
         QCOMPARE_EQ(lhs >= rhs, lhsTuple >= rhsTuple);
     }
 
-    void networkTimeout_returns5seconds_byDefault()
+    void networkTimeout_returns20seconds_byDefault()
     {
         QPlaybackOptions options;
-        QCOMPARE_EQ(options.networkTimeout(), 5s);
+        QCOMPARE_EQ(options.networkTimeout(), 20s);
     }
 
     void setNetworkTimeout_changesTimeout()
