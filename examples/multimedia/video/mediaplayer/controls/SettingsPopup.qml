@@ -11,6 +11,19 @@ Popup {
     focus: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
+    // returns tool tip body, if any
+    function pcTooltip(availability) {
+        switch (availability) {
+        case MediaPlayer.AlwaysOn:
+            return qsTr("Pitch compensation enforced on by this backend")
+        case MediaPlayer.Available:
+            return mediaPlayer.playbackRate === 1 ?
+                        qsTr("Pitch compensation will not have any noticeable effect at normal speed") : ""
+        case MediaPlayer.Unavailable:
+            return qsTr("Pitch compensation is not supported on this backend")
+        }
+    }
+
     required property MetadataInfo metadataInfo
     required property MediaPlayer mediaPlayer
     required property TracksInfo audioTracksInfo
@@ -31,7 +44,7 @@ Popup {
     Flickable {
         id: flickable
         implicitWidth: mainLayout.width
-        implicitHeight: landscapeSettingsPopup ? 200 : 340
+        implicitHeight: landscapeSettingsPopup ? 250 : 340
         contentWidth: mainLayout.width
         contentHeight: mainLayout.height
         flickableDirection: Flickable.VerticalFlick
@@ -98,6 +111,33 @@ Popup {
                     }
 
                     Label {
+                        text: qsTr("Pitch Compensation")
+                        Layout.fillWidth: true
+                        enabled: mediaPlayer.pitchCompensationAvailability === MediaPlayer.Available
+                        font.pixelSize: 14
+                    }
+
+                    Switch {
+                        id: pitchSwitch
+
+                        // initial value for pitchcompensation
+                        checked: mediaPlayer.pitchCompensation
+
+                        // enabled being false means greyed out, uninteractable switch
+                        enabled: mediaPlayer.pitchCompensationAvailability === MediaPlayer.Available
+
+                        ToolTip {
+                            visible: pitchSwitch.hovered && text !== ""
+                            text: pcTooltip(mediaPlayer.pitchCompensationAvailability)
+                        }
+
+                        // sets the backend based on switch status
+                        onToggled: {
+                            settingsController.mediaPlayer.pitchCompensation = checked
+                        }
+                    }
+
+                    Label {
                         text: qsTr("Audio Tracks")
                         enabled: audioCb.enabled
                         Layout.fillWidth: true
@@ -107,7 +147,6 @@ Popup {
                     CustomComboBox {
                         id: audioCb
                         tracksInfo: settingsController.audioTracksInfo
-
                     }
 
                     Label {
@@ -196,5 +235,4 @@ Popup {
             }
         }
     }
-
 }
