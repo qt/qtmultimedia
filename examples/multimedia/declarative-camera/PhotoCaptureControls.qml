@@ -27,12 +27,14 @@ FocusScope {
             anchors.margins: captureControls.buttonsmargin
             flow: captureControls.state === "MobilePortrait"
                   ? GridLayout.LeftToRight : GridLayout.TopToBottom
+            //! [0]
             CameraButton {
                 text: "Capture"
                 implicitWidth: captureControls.buttonsWidth
                 visible: captureControls.captureSession.imageCapture.readyForCapture
                 onClicked: captureControls.captureSession.imageCapture.captureToFile("")
             }
+            //! [0]
 
             CameraPropertyButton {
                 id : wbModesButton
