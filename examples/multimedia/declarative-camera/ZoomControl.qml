@@ -3,6 +3,7 @@
 
 import QtQuick
 
+//! [0]
 Item {
     id : zoomControl
     property real currentZoom : 1
@@ -78,3 +79,4 @@ Item {
         }
     }
 }
+//! [0]

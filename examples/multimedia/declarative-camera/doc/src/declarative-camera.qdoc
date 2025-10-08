@@ -30,15 +30,12 @@ controls.
 The orientation and control layout state logic is encapsulated in a separate
 Item, \c controlLayout like so:
 
-\quotefromfile declarative-camera/declarative-camera.qml
-\skipto Item {
-\printuntil /^    }/
+\snippet declarative-camera/declarative-camera.qml 1
 
 The \c stillControls and \c videoControls objects both bind to the \c state
 and \c buttonsWidth properties of this Item, as shown in \c stillControls:
 
-\skipto PhotoCaptureControls
-\printuntil /^    }/
+\snippet declarative-camera/declarative-camera.qml 2
 
 To support debugging, a message about layout state change is logged.
 
@@ -51,9 +48,7 @@ You can see the \c state property is initially set as \c PhotoCapture.
 
 Then the \c states themselves are defined like so:
 
-\quotefromfile declarative-camera/declarative-camera.qml
-\skipto states: [
-\printuntil /^    ]/
+\snippet declarative-camera/declarative-camera.qml 0
 
 \section1 Controls for capturing
 
@@ -102,9 +97,7 @@ The button that triggers this is defined in CameraButton.qml:
 but its interaction with the camera is in the controls types, lets look at
 PhotoCaptureControls:
 
-\quotefromfile declarative-camera/PhotoCaptureControls.qml
-\skipto CameraButton {
-\printto CameraPropertyButton {
+\snippet declarative-camera/PhotoCaptureControls.qml 0
 
 \section1 Zoom control
 
@@ -124,17 +117,13 @@ PhotoCaptureControls:
     \enddiv
 \enddiv
 
-\quotefromfile declarative-camera/ZoomControl.qml
-\skipto Item {
-\printuntil font.pixelSize: 18
+\snippet declarative-camera/ZoomControl.qml 0
 
 In PhotoCaptureControls.qml and VideoCaptureControls.qml the signal \c zoomTo
 will set the selected camera's \l{Camera::}{zoomFactor} property to the
 calculated \c target value, as well as updating the ZoomControl bar.
 
-\quotefromfile declarative-camera/VideoCaptureControls.qml
-\skipto ZoomControl {
-\printto FlashControl {
+\snippet declarative-camera/VideoCaptureControls.qml 0
 
 \section1 Flash and torch control
 
@@ -148,17 +137,12 @@ these functions.
 
 Here we check if the functions are supported:
 
-\quotefromfile declarative-camera/FlashControl.qml
-\skipto property Camera cameraDevice
-\printline Camera
-\printline FlashOn
-\printline TorchOn
+\snippet declarative-camera/FlashControl.qml 0
 
 Here we implement the \c flashModeControl switch, which also directly controls
 the Camera device.
 
-\skipto Switch {
-\printuntil /^        }/
+\snippet declarative-camera/FlashControl.qml 1
 
 Torch control is implemented in a similar way.
 */

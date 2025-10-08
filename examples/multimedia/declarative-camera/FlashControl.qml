@@ -10,13 +10,16 @@ Item {
 
     height: column.height
 
+    //! [0]
     property Camera cameraDevice
     property bool mIsFlashSupported: (cameraDevice && cameraDevice.active) ? cameraDevice.isFlashModeSupported(Camera.FlashOn) : false
     property bool mIsTorchSupported: (cameraDevice && cameraDevice.active) ? cameraDevice.isTorchModeSupported(Camera.TorchOn) : false
+    //! [0]
 
     Column {
         id: column
 
+        //! [1]
         Switch {
             id: flashModeControl
             visible: flashControl.mIsFlashSupported
@@ -39,6 +42,7 @@ Item {
                 }
             }
         }
+        //! [1]
 
         Switch {
             id: torchModeControl

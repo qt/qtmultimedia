@@ -39,6 +39,7 @@ Rectangle {
             cameraPermission.request()
     }
 
+    //! [0]
     states: [
         State {
             name: "PhotoCapture"
@@ -68,6 +69,7 @@ Rectangle {
             }
         }
     ]
+    //! [0]
 
     CaptureSession {
         id: captureSession
@@ -128,6 +130,7 @@ Rectangle {
         //        autoOrientation: true
     }
 
+    //! [1]
     Item {
         id: controlLayout
 
@@ -154,7 +157,9 @@ Rectangle {
             console.log("State: " + controlLayout.state)
         }
     }
+    //! [1]
 
+    //! [2]
     PhotoCaptureControls {
         id: stillControls
         state: controlLayout.state
@@ -168,6 +173,7 @@ Rectangle {
         onVideoModeSelected: cameraUI.state = "VideoCapture"
         previewAvailable: imageCapture.preview.length !== 0
     }
+    //! [2]
 
     VideoCaptureControls {
         id: videoControls
