@@ -43,7 +43,6 @@ public:
 private:
     const QGstCaps::MemoryFormat m_memoryFormat = QGstCaps::CpuMemory;
     const QVideoFrameFormat m_frameFormat;
-    QRhi *m_rhi = nullptr;
     mutable GstVideoInfo m_videoInfo;
     mutable GstVideoFrame m_frame{};
     const QGstBufferHandle m_buffer;

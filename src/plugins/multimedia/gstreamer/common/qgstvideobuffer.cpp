@@ -49,7 +49,6 @@ QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &in
                      sink ? sink->rhi() : nullptr),
       m_memoryFormat(memoryFormat),
       m_frameFormat(frameFormat),
-      m_rhi(sink ? sink->rhi() : nullptr),
       m_videoInfo(info),
       m_buffer(std::move(buffer))
 {
@@ -473,7 +472,7 @@ QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTextu
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
     else if (m_memoryFormat == QGstCaps::DMABuf && eglDisplay)
-        textures = mapFromDmaBuffer(m_rhi, m_buffer, m_frame, m_videoInfo, eglDisplay,
+        textures = mapFromDmaBuffer(&rhi, m_buffer, m_frame, m_videoInfo, eglDisplay,
                                     eglImageTargetTexture2D);
 
 #  endif
