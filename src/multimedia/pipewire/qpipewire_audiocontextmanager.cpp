@@ -224,7 +224,8 @@ void QAudioContextManager::objectRemovedCb(void *data, uint32_t id)
 
     qCDebug(lcPipewireRegistry) << "objectRemoved" << id;
 
-    reinterpret_cast<QAudioContextManager *>(data)->m_deviceMonitor->objectRemoved(ObjectId{ id });
+    auto *self = reinterpret_cast<QAudioContextManager *>(data);
+    self->objectRemoved(ObjectId{ id });
 }
 
 void QAudioContextManager::objectAdded(ObjectId id, uint32_t permissions, PipewireRegistryType type,
@@ -246,6 +247,11 @@ void QAudioContextManager::objectAdded(ObjectId id, uint32_t permissions, Pipewi
     default:
         return;
     }
+}
+
+void QAudioContextManager::objectRemoved(ObjectId id)
+{
+    m_deviceMonitor->objectRemoved(id);
 }
 
 void QAudioContextManager::startListenDefaultMetadata(ObjectId id, uint32_t version)
