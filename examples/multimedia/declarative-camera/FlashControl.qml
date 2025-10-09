@@ -6,15 +6,27 @@ import QtQuick.Controls
 import QtMultimedia
 
 Item {
-    id: flashControl
+    id: topItem
 
     height: column.height
 
     //! [0]
-    property Camera cameraDevice
-    property bool mIsFlashSupported: (cameraDevice && cameraDevice.active) ? cameraDevice.isFlashModeSupported(Camera.FlashOn) : false
-    property bool mIsTorchSupported: (cameraDevice && cameraDevice.active) ? cameraDevice.isTorchModeSupported(Camera.TorchOn) : false
+    required property Camera camera
+
+    property bool mIsFlashSupported: camera.isFlashModeSupported(Camera.FlashOn)
+    property bool mIsTorchSupported: camera.isTorchModeSupported(Camera.TorchOn)
     //! [0]
+
+    // Because the function 'camera.isFlashModeSupported()' is not a reactive binding
+    // we must explicitly check if the flash mode is still supported when we change
+    // the camera-device.
+    Connections {
+        target: camera
+        function onCameraDeviceChanged() {
+            topItem.mIsFlashSupported = camera.isFlashModeSupported(Camera.FlashOn)
+            topItem.mIsTorchSupported = camera.isTorchModeSupported(Camera.TorchOn)
+        }
+    }
 
     Column {
         id: column
@@ -22,48 +34,35 @@ Item {
         //! [1]
         Switch {
             id: flashModeControl
-            visible: flashControl.mIsFlashSupported
+            visible: topItem.mIsFlashSupported
+            checked: topItem.camera.flashMode === Camera.FlashOn
             opacity: checked ? 0.75 : 0.25
             text: "Flash"
+
             contentItem: Text {
                 text: flashModeControl.text
                 color: "white"
                 leftPadding: flashModeControl.indicator.width + flashModeControl.spacing
             }
 
-            onPositionChanged: {
-                if (position) {
-                    if (torchModeControl.checked)
-                        torchModeControl.toggle();
-                    flashControl.cameraDevice.flashMode = Camera.FlashOn
-
-                } else {
-                    flashControl.cameraDevice.flashMode = Camera.FlashOff
-                }
-            }
+            onClicked: topItem.camera.flashMode = checked ? Camera.FlashOn : Camera.FlashOff
         }
         //! [1]
 
         Switch {
             id: torchModeControl
-            visible: flashControl.mIsTorchSupported
+            visible: topItem.mIsTorchSupported
+            checked: topItem.camera.torchMode === Camera.FlashOn
             opacity: checked ? 0.75 : 0.25
             text: "Torch"
+
             contentItem: Text {
                 text: torchModeControl.text
                 color: "white"
                 leftPadding: torchModeControl.indicator.width + torchModeControl.spacing
             }
 
-            onPositionChanged: {
-                if (position) {
-                    if (flashModeControl.checked)
-                        flashModeControl.toggle();
-                    flashControl.cameraDevice.torchMode = Camera.TorchOn
-                } else {
-                    flashControl.cameraDevice.torchMode = Camera.TorchOff
-                }
-            }
+            onClicked: topItem.camera.torchMode = checked ? Camera.TorchOn : Camera.TorchOff
         }
     }
 }
