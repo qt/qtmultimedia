@@ -112,7 +112,7 @@ FocusScope {
         y : captureControls.state === "MobilePortrait" ?
                 parent.height - (buttonPaneShadow.height + height) : parent.height - height
 
-        cameraDevice: captureControls.captureSession.camera
+        camera: captureControls.captureSession.camera
     }
 
     states: [
