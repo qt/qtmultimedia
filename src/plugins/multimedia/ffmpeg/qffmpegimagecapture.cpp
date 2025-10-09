@@ -71,38 +71,47 @@ int QFFmpegImageCapture::captureToBuffer()
 
 int QFFmpegImageCapture::doCapture(const QString &fileName)
 {
-    qCDebug(qLcImageCapture) << "do capture";
+    using namespace Qt::Literals::StringLiterals;
+
     if (!m_session) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
-        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                  Q_ARG(int, -1),
-                                  Q_ARG(int, QImageCapture::ResourceError),
-                                  Q_ARG(QString, QPlatformImageCapture::msgImageCaptureNotSet()));
-
-        qCDebug(qLcImageCapture) << "error 1";
+        QMetaObject::invokeMethod(
+            this,
+            [this]() {
+                emit error(
+                    -1,
+                    QImageCapture::ResourceError,
+                    QPlatformImageCapture::msgImageCaptureNotSet());
+            });
         return -1;
     }
+
     if (!m_videoSource) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
-        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                  Q_ARG(int, -1),
-                                  Q_ARG(int, QImageCapture::ResourceError),
-                                  Q_ARG(QString,tr("No camera available.")));
-
-        qCDebug(qLcImageCapture) << "error 2";
+        QMetaObject::invokeMethod(
+            this,
+            [this]() {
+                emit error(
+                    -1,
+                    QImageCapture::ResourceError,
+                    u"No camera available."_s);
+            });
         return -1;
     }
+
     if (m_pendingImages.size() >= MaxPendingImagesCount) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
-        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                  Q_ARG(int, -1),
-                                  Q_ARG(int, QImageCapture::NotReadyError),
-                                  Q_ARG(QString, QPlatformImageCapture::msgCameraNotReady()));
-
-        qCDebug(qLcImageCapture) << "error 3";
+        QMetaObject::invokeMethod(
+            this,
+            [this]() {
+                emit error(
+                    -1,
+                    QImageCapture::NotReadyError,
+                    QPlatformImageCapture::msgCameraNotReady());
+            });
         return -1;
     }
 
