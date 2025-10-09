@@ -96,6 +96,7 @@ private:
     static void objectRemovedCb(void *data, uint32_t id);
     void objectAdded(ObjectId id, uint32_t permissions, PipewireRegistryType, uint32_t version,
                      const spa_dict &props);
+    void objectRemoved(ObjectId id);
 
     // default metadata
     void startListenDefaultMetadata(ObjectId, uint32_t version);
