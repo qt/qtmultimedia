@@ -59,7 +59,8 @@ public:
     static bool isInPwThreadLoop();
     static pw_loop *getEventLoop();
 
-    PwNodeHandle bindNode(ObjectId id);
+    PwNodeHandle bindNode(ObjectId);
+    PwMetadataHandle bindMetadata(ObjectId);
 
     void syncRegistry();
 
@@ -98,8 +99,8 @@ private:
                      const spa_dict &props);
     void objectRemoved(ObjectId id);
 
-    // default metadata
-    void startListenDefaultMetadata(ObjectId, uint32_t version);
+    // default metadata object
+    void startListenDefaultMetadataObject(ObjectId, uint32_t version);
     struct MetadataRecord
     {
         const char *key;
@@ -107,10 +108,10 @@ private:
         const char *value;
     };
 
-    int handleMetadata(const MetadataRecord &record);
+    int handleDefaultMetadataObjectEvent(const MetadataRecord &record);
 
-    PwMetadataHandle m_defaultMetadata;
-    struct spa_hook m_defaultMetadataListener{};
+    PwMetadataHandle m_defaultMetadataObject;
+    struct spa_hook m_defaultMetadataObjectListener{};
 
     QMutex m_activeStreamMutex;
     std::set<std::shared_ptr<QPipewireAudioStream>> m_activeStreams;
