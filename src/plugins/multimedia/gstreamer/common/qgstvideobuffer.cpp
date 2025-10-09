@@ -352,6 +352,7 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
     Q_ASSERT(gst_is_dmabuf_memory(gst_buffer_peek_memory(buffer, 0)));
     Q_ASSERT(eglDisplay);
     Q_ASSERT(eglImageTargetTexture2D);
+    Q_ASSERT(QGuiApplication::platformName() == QLatin1String("eglfs"));
 
     auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
     auto glContext = nativeHandles->context;
@@ -494,12 +495,13 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
 QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/)
 {
 #if QT_CONFIG(gstreamer_gl)
+    static const bool isEglfsQPA = QGuiApplication::platformName() == QLatin1String("eglfs");
     GlTextures textures = {};
     if (m_memoryFormat == QGstCaps::GLTexture)
         textures = mapFromGlTexture(m_buffer, m_frame, m_videoInfo);
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
-    else if (m_memoryFormat == QGstCaps::DMABuf && eglDisplay)
+    else if (m_memoryFormat == QGstCaps::DMABuf && eglDisplay && isEglfsQPA)
         textures = mapFromDmaBuffer(&rhi, m_buffer, m_frame, m_videoInfo, eglDisplay,
                                     eglImageTargetTexture2D);
 

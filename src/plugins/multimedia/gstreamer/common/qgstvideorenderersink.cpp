@@ -7,6 +7,7 @@
 #include <QtMultimedia/qvideosink.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 #include <QtGui/rhi/qrhi.h>
+#include <QtGui/qguiapplication.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
@@ -253,7 +254,8 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
 
     QVideoFrameFormat bufferVideoFrameFormat = m_format;
 
-    if (m_sink->eglDisplay()) {
+    static const bool isEglfsQPA = QGuiApplication::platformName() == QLatin1String("eglfs");
+    if (m_sink && m_sink->eglDisplay() && isEglfsQPA) {
         // EGL seems to do implicit YUV->RGB conversion for UYVY and YUYV (YUY2), so we change the
         // pixel format to Format_RGBA8888 to select an appropriate shader.
         const bool setFormat_RGBA8888 =
