@@ -182,7 +182,7 @@ private:
     void onRendererSynchronized(const PlaybackEngineObjectID &id, SteadyClock::time_point timePoint,
                                 TrackPosition trackPosition);
 
-    void onRendererFinished();
+    void onRendererFinished(const PlaybackEngineObjectID &id);
 
     void onRendererLoopChanged(const PlaybackEngineObjectID &id, TrackPosition offset,
                                int loopIndex);

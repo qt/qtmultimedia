@@ -76,18 +76,26 @@ void Renderer::start(const TimeController &tc)
     });
 }
 
-void Renderer::onFinalFrameReceived()
+void Renderer::onFinalFrameReceived(PlaybackEngineObjectID sourceID)
 {
-    render({});
+    if (checkSessionID(sourceID.sessionID))
+        render({});
 }
 
 void Renderer::render(Frame frame)
 {
-    const auto isFrameOutdated = frame.isValid() && frame.absoluteEnd() < seekPosition();
+    if (frame.isValid() && !checkSessionID(frame.sourceID().sessionID)) {
+        qCDebug(qLcRenderer) << "Frame session outdated. Source id:" << frame.sourceID() << "current id:" << id();
+        // else don't need to report
+        return;
+    }
 
-    if (isFrameOutdated) {
+    const bool frameOutdated = frame.isValid() && frame.absoluteEnd() < seekPosition();
+
+    if (frameOutdated) {
         qCDebug(qLcRenderer) << "frame outdated! absEnd:" << frame.absoluteEnd().get() << "absPts"
                              << frame.absolutePts().get() << "seekPos:" << seekPosition().get();
+
         emit frameProcessed(std::move(frame));
         return;
     }

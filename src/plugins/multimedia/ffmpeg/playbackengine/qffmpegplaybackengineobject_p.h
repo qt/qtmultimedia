@@ -50,12 +50,12 @@ public:
     quint64 objectID() const { return m_id.objectID; }
 
 signals:
-    void atEnd();
+    void atEnd(PlaybackEngineObjectID id);
 
     void error(QMediaPlayer::Error, const QString &errorString);
 
 protected:
-    bool checkSessionID(quint64 id) const { return id == m_id.sessionID; }
+    bool checkSessionID(quint64 sessionID) const { return sessionID == m_id.sessionID; }
 
     bool checkID(const PlaybackEngineObjectID &id) const
     {
