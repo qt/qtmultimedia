@@ -44,9 +44,10 @@ QAudioFormat audioFormatFromFrame(const Frame &frame)
 
 } // namespace
 
-AudioRenderer::AudioRenderer(const TimeController &tc, QAudioOutput *output,
-                             QAudioBufferOutput *bufferOutput, bool pitchCompensation)
-    : Renderer(tc),
+AudioRenderer::AudioRenderer(const PlaybackEngineObjectID &id, const TimeController &tc,
+                             QAudioOutput *output, QAudioBufferOutput *bufferOutput,
+                             bool pitchCompensation)
+    : Renderer(id, tc),
       m_output(output),
       m_bufferOutput(bufferOutput),
       m_pitchCompensation(pitchCompensation)

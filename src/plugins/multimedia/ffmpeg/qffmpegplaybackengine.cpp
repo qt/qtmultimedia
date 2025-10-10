@@ -50,7 +50,7 @@ PlaybackEngine::PlaybackEngine(const QPlaybackOptions &options)
     qRegisterMetaType<QFFmpeg::Packet>();
     qRegisterMetaType<QFFmpeg::Frame>();
     qRegisterMetaType<QFFmpeg::TrackPosition>();
-    qRegisterMetaType<QFFmpeg::TrackDuration>();
+    qRegisterMetaType<QFFmpeg::PlaybackEngineObjectID>();
 }
 
 PlaybackEngine::~PlaybackEngine() {
@@ -88,7 +88,8 @@ void PlaybackEngine::onRendererFinished()
     emit endOfStream();
 }
 
-void PlaybackEngine::onRendererLoopChanged(quint64 id, TrackPosition offset, int loopIndex)
+void PlaybackEngine::onRendererLoopChanged(const PlaybackEngineObjectID &id, TrackPosition offset,
+                                           int loopIndex)
 {
     if (!hasRenderer(id))
         return;
@@ -103,9 +104,9 @@ void PlaybackEngine::onRendererLoopChanged(quint64 id, TrackPosition offset, int
     }
 }
 
-void PlaybackEngine::onFirsPacketFound(quint64 id, TrackPosition absSeekPos)
+void PlaybackEngine::onFirsPacketFound(const PlaybackEngineObjectID &id, TrackPosition absSeekPos)
 {
-    if (!m_demuxer || m_demuxer->id() != id)
+    if (!checkObjectID(m_demuxer, id))
         return;
 
     if (m_shouldUpdateTimeOnFirstPacket) {
@@ -123,18 +124,18 @@ void PlaybackEngine::onFirsPacketFound(quint64 id, TrackPosition absSeekPos)
     forEachExistingObject<Renderer>([&](auto &renderer) { renderer->start(m_timeController); });
 }
 
-void PlaybackEngine::onRendererSynchronized(quint64 id, SteadyClock::time_point tp, TrackPosition pos)
+void PlaybackEngine::onRendererSynchronized(const PlaybackEngineObjectID &id,
+                                            SteadyClock::time_point tp, TrackPosition pos)
 {
     if (!hasRenderer(id))
         return;
 
-    Q_ASSERT(m_renderers[QPlatformMediaPlayer::AudioStream]
-             && m_renderers[QPlatformMediaPlayer::AudioStream]->id() == id);
+    Q_ASSERT(checkObjectID(m_renderers[QPlatformMediaPlayer::AudioStream], id));
 
     m_timeController.sync(tp, pos);
 
     forEachExistingObject<Renderer>([&](auto &renderer) {
-        if (id != renderer->id())
+        if (id.objectID != renderer->objectID())
             renderer->syncSoft(tp, pos);
     });
 }
@@ -615,10 +616,10 @@ void PlaybackEngine::finalizeOutputs()
     updateActiveVideoOutput(nullptr, true);
 }
 
-bool PlaybackEngine::hasRenderer(quint64 id) const
+bool PlaybackEngine::hasRenderer(const PlaybackEngineObjectID &id) const
 {
     return std::any_of(m_renderers.begin(), m_renderers.end(),
-                       [id](auto &renderer) { return renderer && renderer->id() == id; });
+                       [&](auto &renderer) { return checkObjectID(renderer, id); });
 }
 
 template <typename AudioOutput>

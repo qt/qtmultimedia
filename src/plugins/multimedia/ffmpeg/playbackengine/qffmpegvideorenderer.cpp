@@ -10,9 +10,9 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-VideoRenderer::VideoRenderer(const TimeController &tc, QVideoSink *sink,
-                             const VideoTransformation &transform)
-    : Renderer(tc), m_sink(sink), m_transform(transform)
+VideoRenderer::VideoRenderer(const PlaybackEngineObjectID &id, const TimeController &tc,
+                             QVideoSink *sink, const VideoTransformation &transform)
+    : Renderer(id, tc), m_sink(sink), m_transform(transform)
 {
 }
 

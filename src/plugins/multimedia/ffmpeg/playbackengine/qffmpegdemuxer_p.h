@@ -30,8 +30,9 @@ class Demuxer : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
-    Demuxer(AVFormatContext *context, TrackPosition initialPosUs, bool seekPending,
-            const LoopOffset &loopOffset, const StreamIndexes &streamIndexes, int loops);
+    Demuxer(const PlaybackEngineObjectID &id, AVFormatContext *context, TrackPosition initialPosUs,
+            bool seekPending, const LoopOffset &loopOffset, const StreamIndexes &streamIndexes,
+            int loops);
 
     using RequestingSignal = void (Demuxer::*)(Packet);
     static RequestingSignal signalByTrackType(QPlatformMediaPlayer::TrackType trackType);
@@ -45,7 +46,7 @@ signals:
     void requestProcessAudioPacket(Packet);
     void requestProcessVideoPacket(Packet);
     void requestProcessSubtitlePacket(Packet);
-    void firstPacketFound(Id id, TrackPosition absSeekPos);
+    void firstPacketFound(PlaybackEngineObjectID id, TrackPosition absSeekPos);
     void packetsBuffered();
 
 protected:

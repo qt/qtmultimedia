@@ -18,6 +18,7 @@
 #include <QtCore/qthread.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackenginedefs_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
 
 #include <chrono>
 
@@ -33,9 +34,8 @@ class PlaybackEngineObject : public QObject
 public:
     using TimePoint = std::chrono::steady_clock::time_point;
     using TimePointOpt = std::optional<TimePoint>;
-    using Id = quint64;
 
-    PlaybackEngineObject();
+    explicit PlaybackEngineObject(const PlaybackEngineObjectID &id);
 
     ~PlaybackEngineObject() override;
 
@@ -47,7 +47,7 @@ public:
 
     void setPaused(bool isPaused);
 
-    Id id() const;
+    quint64 objectID() const { return m_id.objectID; }
 
 signals:
     void atEnd();
@@ -55,6 +55,19 @@ signals:
     void error(QMediaPlayer::Error, const QString &errorString);
 
 protected:
+    bool checkSessionID(quint64 id) const { return id == m_id.sessionID; }
+
+    bool checkID(const PlaybackEngineObjectID &id) const
+    {
+        return checkSessionID(id.sessionID) && id.objectID == objectID();
+    }
+
+    const PlaybackEngineObjectID &id() const
+    {
+        Q_ASSERT(thread()->isCurrentThread());
+        return m_id;
+    }
+
     QTimer &timer();
 
     void scheduleNextStep(bool allowDoImmediatelly = true);
@@ -78,7 +91,7 @@ private:
     QAtomicInteger<bool> m_paused = true;
     QAtomicInteger<bool> m_atEnd = false;
     QAtomicInteger<bool> m_deleting = false;
-    const Id m_id;
+    PlaybackEngineObjectID m_id;
 };
 } // namespace QFFmpeg
 

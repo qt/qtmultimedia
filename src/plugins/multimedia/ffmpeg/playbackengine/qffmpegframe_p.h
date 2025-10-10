@@ -33,11 +33,12 @@ struct Frame
 {
     struct Data
     {
-        Data(const LoopOffset &offset, AVFrameUPtr f, const CodecContext &codecContext, quint64 sourceId)
+        Data(const LoopOffset &offset, AVFrameUPtr f, const CodecContext &codecContext,
+             const PlaybackEngineObjectID &sourceID)
             : loopOffset(offset),
               codecContext(codecContext),
               frame(std::move(f)),
-              sourceId(sourceId)
+              sourceID(sourceID)
         {
             Q_ASSERT(frame);
             if (frame->pts != AV_NOPTS_VALUE)
@@ -66,8 +67,8 @@ struct Frame
             }
         }
         Data(const LoopOffset &offset, const QString &text, TrackPosition pts,
-             TrackDuration duration, quint64 sourceId)
-            : loopOffset(offset), text(text), startTime(pts), duration(duration), sourceId(sourceId)
+             TrackDuration duration, const PlaybackEngineObjectID &sourceID)
+            : loopOffset(offset), text(text), startTime(pts), duration(duration), sourceID(sourceID)
         {
         }
 
@@ -78,18 +79,18 @@ struct Frame
         QString text;
         TrackPosition startTime = 0;
         TrackDuration duration = 0;
-        quint64 sourceId = 0;
+        PlaybackEngineObjectID sourceID;
     };
     Frame() = default;
 
     Frame(const LoopOffset &offset, AVFrameUPtr f, const CodecContext &codecContext,
-          quint64 sourceIndex)
-        : d(new Data(offset, std::move(f), codecContext, sourceIndex))
+          const PlaybackEngineObjectID &sourceId)
+        : d(new Data(offset, std::move(f), codecContext, sourceId))
     {
     }
     Frame(const LoopOffset &offset, const QString &text, TrackPosition pts, TrackDuration duration,
-          quint64 sourceIndex)
-        : d(new Data(offset, text, pts, duration, sourceIndex))
+          const PlaybackEngineObjectID &sourceId)
+        : d(new Data(offset, text, pts, duration, sourceId))
     {
     }
     bool isValid() const { return !!d; }
@@ -104,7 +105,7 @@ struct Frame
     TrackDuration duration() const { return data().duration; }
     TrackPosition endTime() const { return data().startTime + data().duration; }
     QString text() const { return data().text; }
-    quint64 sourceId() const { return data().sourceId; };
+    const PlaybackEngineObjectID &sourceID() const { return data().sourceID; };
     const LoopOffset &loopOffset() const { return data().loopOffset; };
     TrackPosition absolutePts() const
     {

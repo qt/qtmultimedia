@@ -28,7 +28,7 @@ class SubtitleRenderer : public Renderer
 {
     Q_OBJECT
 public:
-    SubtitleRenderer(const TimeController &tc, QVideoSink *sink);
+    SubtitleRenderer(const PlaybackEngineObjectID &id, const TimeController &tc, QVideoSink *sink);
 
     ~SubtitleRenderer() override;
 
