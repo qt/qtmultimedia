@@ -161,7 +161,7 @@ void QPlaybackOptions::resetNetworkTimeout()
 */
 
 /*!
-    \qmlproperty PlaybackOptions::PlaybackIntent PlaybackOptions::playbackIntent
+    \qmlproperty enumeration playbackOptions::playbackIntent
     \since 6.10
 
     Determines if \l MediaPlayer should optimize for robust high quality video playback (default),
