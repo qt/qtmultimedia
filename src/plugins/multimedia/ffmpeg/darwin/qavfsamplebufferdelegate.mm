@@ -20,15 +20,13 @@ namespace {
 class CVImageVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    CVImageVideoBuffer(CVPixelBufferRef pixelBuffer) : m_buffer(pixelBuffer)
+    CVImageVideoBuffer(QAVFHelpers::QSharedCVPixelBuffer &&pixelBuffer) : m_buffer(pixelBuffer)
     {
-        CVPixelBufferRetain(pixelBuffer);
     }
 
     ~CVImageVideoBuffer()
     {
         Q_ASSERT(m_mode == QVideoFrame::NotMapped);
-        CVPixelBufferRelease(m_buffer);
     }
 
     CVImageVideoBuffer::MapData map(QVideoFrame::MapMode mode) override
@@ -37,27 +35,30 @@ public:
 
         if (m_mode == QVideoFrame::NotMapped) {
             CVPixelBufferLockBaseAddress(
-                    m_buffer, mode == QVideoFrame::ReadOnly ? kCVPixelBufferLock_ReadOnly : 0);
+                m_buffer.get(),
+                mode == QVideoFrame::ReadOnly ? kCVPixelBufferLock_ReadOnly : 0);
             m_mode = mode;
         }
 
-        mapData.planeCount = CVPixelBufferGetPlaneCount(m_buffer);
+        mapData.planeCount = CVPixelBufferGetPlaneCount(m_buffer.get());
         Q_ASSERT(mapData.planeCount <= 3);
 
         if (!mapData.planeCount) {
             // single plane
-            mapData.bytesPerLine[0] = CVPixelBufferGetBytesPerRow(m_buffer);
-            mapData.data[0] = static_cast<uchar *>(CVPixelBufferGetBaseAddress(m_buffer));
-            mapData.dataSize[0] = CVPixelBufferGetDataSize(m_buffer);
+            mapData.bytesPerLine[0] = CVPixelBufferGetBytesPerRow(m_buffer.get());
+            mapData.data[0] = static_cast<uchar *>(CVPixelBufferGetBaseAddress(m_buffer.get()));
+            mapData.dataSize[0] = CVPixelBufferGetDataSize(m_buffer.get());
             mapData.planeCount = mapData.data[0] ? 1 : 0;
             return mapData;
         }
 
         // For a bi-planar or tri-planar format we have to set the parameters correctly:
         for (int i = 0; i < mapData.planeCount; ++i) {
-            mapData.bytesPerLine[i] = CVPixelBufferGetBytesPerRowOfPlane(m_buffer, i);
-            mapData.dataSize[i] = mapData.bytesPerLine[i] * CVPixelBufferGetHeightOfPlane(m_buffer, i);
-            mapData.data[i] = static_cast<uchar *>(CVPixelBufferGetBaseAddressOfPlane(m_buffer, i));
+            mapData.bytesPerLine[i] = CVPixelBufferGetBytesPerRowOfPlane(m_buffer.get(), i);
+            mapData.dataSize[i] =
+                mapData.bytesPerLine[i] * CVPixelBufferGetHeightOfPlane(m_buffer.get(), i);
+            mapData.data[i] =
+                static_cast<uchar *>(CVPixelBufferGetBaseAddressOfPlane(m_buffer.get(), i));
         }
 
         return mapData;
@@ -67,7 +68,8 @@ public:
     {
         if (m_mode != QVideoFrame::NotMapped) {
             CVPixelBufferUnlockBaseAddress(
-                    m_buffer, m_mode == QVideoFrame::ReadOnly ? kCVPixelBufferLock_ReadOnly : 0);
+                m_buffer.get(),
+                m_mode == QVideoFrame::ReadOnly ? kCVPixelBufferLock_ReadOnly : 0);
             m_mode = QVideoFrame::NotMapped;
         }
     }
@@ -75,20 +77,25 @@ public:
     QVideoFrameFormat format() const override { return {}; }
 
 private:
-    CVPixelBufferRef m_buffer;
+    QAVFHelpers::QSharedCVPixelBuffer m_buffer;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
 };
 
 }
 
 // Make sure this is compatible with the layout used in ffmpeg's hwcontext_videotoolbox
-static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, CVPixelBufferRef pixbuf)
+static QFFmpeg::AVFrameUPtr allocHWFrame(
+    AVBufferRef *hwContext,
+    QAVFHelpers::QSharedCVPixelBuffer sharedPixBuf)
 {
+    Q_ASSERT(sharedPixBuf);
+
     AVHWFramesContext *ctx = (AVHWFramesContext *)hwContext->data;
     auto frame = QFFmpeg::makeAVFrame();
     frame->hw_frames_ctx = av_buffer_ref(hwContext);
     frame->extended_data = frame->data;
 
+    CVPixelBufferRef pixbuf = sharedPixBuf.release();
     auto releasePixBufFn = [](void* opaquePtr, uint8_t *) {
         CVPixelBufferRelease(static_cast<CVPixelBufferRef>(opaquePtr));
     };
@@ -96,7 +103,6 @@ static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, CVPixelBufferRe
 
     // It is convention to use 4th data plane for hardware frames.
     frame->data[3] = (uint8_t *)pixbuf;
-    CVPixelBufferRetain(pixbuf);
     frame->width = ctx->width;
     frame->height = ctx->height;
     frame->format = AV_PIX_FMT_VIDEOTOOLBOX;
@@ -120,15 +126,19 @@ static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, CVPixelBufferRe
     qreal frameRate;
 }
 
-static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
-                                      CVImageBufferRef imageBuffer, QVideoFrameFormat format)
+static QVideoFrame createHwVideoFrame(
+    QAVFSampleBufferDelegate &delegate,
+    const QAVFHelpers::QSharedCVPixelBuffer &imageBuffer,
+    QVideoFrameFormat format)
 {
     Q_ASSERT(delegate.baseTime);
 
     if (!delegate.m_accel)
         return {};
 
-    auto avFrame = allocHWFrame(delegate.m_accel->hwFramesContextAsBuffer(), imageBuffer);
+    auto avFrame = allocHWFrame(
+        delegate.m_accel->hwFramesContextAsBuffer(),
+        imageBuffer);
     if (!avFrame)
         return {};
 
@@ -194,7 +204,9 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
         return;
     }
 
-    CVPixelBufferRef pixelBuffer = imageBuffer;
+    auto pixelBuffer = QAVFHelpers::QSharedCVPixelBuffer(
+        imageBuffer,
+        QAVFHelpers::QSharedCVPixelBuffer::RefMode::NeedsRef);
 
     const CMTime time = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
     const qint64 frameTime = time.timescale ? time.value * 1000000 / time.timescale : 0;
@@ -203,11 +215,11 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
         startTime = frameTime;
     }
 
-    QVideoFrameFormat format = QAVFHelpers::videoFormatForImageBuffer(pixelBuffer);
+    QVideoFrameFormat format = QAVFHelpers::videoFormatForImageBuffer(pixelBuffer.get());
     if (!format.isValid()) {
         qWarning() << "Cannot get get video format for image buffer"
-                   << CVPixelBufferGetWidth(pixelBuffer) << 'x'
-                   << CVPixelBufferGetHeight(pixelBuffer);
+                   << CVPixelBufferGetWidth(pixelBuffer.get()) << 'x'
+                   << CVPixelBufferGetHeight(pixelBuffer.get());
         return;
     }
 
@@ -223,8 +235,9 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
 
     auto frame = createHwVideoFrame(*self, pixelBuffer, format);
     if (!frame.isValid())
-        frame = QVideoFramePrivate::createFrame(std::make_unique<CVImageVideoBuffer>(pixelBuffer),
-                                                std::move(format));
+        frame = QVideoFramePrivate::createFrame(
+            std::make_unique<CVImageVideoBuffer>(std::move(pixelBuffer)),
+            std::move(format));
 
     if (transform.has_value()) {
         const VideoTransformation &presentationTransform = transform.value().presentationTransform;
