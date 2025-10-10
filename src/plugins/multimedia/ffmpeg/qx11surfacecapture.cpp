@@ -10,6 +10,7 @@
 #include <qdebug.h>
 #include <qguiapplication.h>
 #include <qloggingcategory.h>
+#include <qminmax.h>
 
 #include "private/qcapturablewindow_p.h"
 #include "private/qmemoryvideobuffer_p.h"
@@ -193,32 +194,65 @@ private:
 
     bool update()
     {
-        XWindowAttributes wndattr = {};
-        if (XGetWindowAttributes(m_display.get(), m_xid, &wndattr) == 0) {
+        Window win = m_xid;
+        XWindowAttributes wndattr;
+        int xPos = 0;
+        int yPos = 0;
+        int width = 0;
+        int height = 0;
+        int depth = 0;
+        Visual *visual = nullptr;
+        while (true) {
+            if (!XGetWindowAttributes(m_display.get(), win, &wndattr)) {
+                updateError(QPlatformSurfaceCapture::CaptureFailed,
+                            QStringLiteral("Cannot get window attributes"));
+                return false;
+            }
+            if (win == m_xid) {
+                width = wndattr.width;
+                height = wndattr.height;
+                depth = wndattr.depth;
+                visual = wndattr.visual;
+            }
+            if (win == wndattr.root)
+                break;
+            xPos += wndattr.x;
+            yPos += wndattr.y;
+
+            Window root, *children;
+            unsigned int nchildren;
+            if (!XQueryTree(m_display.get(), win, &root, &win, &children, &nchildren)) {
+                updateError(QPlatformSurfaceCapture::CaptureFailed,
+                            QStringLiteral("Cannot get parent window"));
+                return false;
+            }
+            if (children) XFree(children);
+        }
+
+        m_xOffset = qMax(0, -xPos);
+        m_yOffset = qMax(0, -yPos);
+        width = qMin(width, wndattr.width - xPos) - m_xOffset;
+        height = qMin(height, wndattr.height - yPos) - m_yOffset;
+        if (width <= 0 || height <= 0) {
             updateError(QPlatformSurfaceCapture::CaptureFailed,
-                        QStringLiteral("Cannot get window attributes"));
+                        QStringLiteral("Window is completely out of the screen borders"));
             return false;
         }
 
-        // TODO: if capture windows, we should adjust offsets and size if
-        // the window is out of the screen borders
-        // m_xOffset = ...
-        // m_yOffset = ...
-
         // check window params for the root window as well since
         // it potentially can be changed (e.g. on VM with resizing)
-        if (!m_xImage || wndattr.width != m_xImage->width || wndattr.height != m_xImage->height
-            || wndattr.depth != m_xImage->depth || wndattr.visual->visualid != m_visualID) {
+        if (!m_xImage || width != m_xImage->width || height != m_xImage->height
+            || depth != m_xImage->depth || visual->visualid != m_visualID) {
 
-            qCDebug(qLcX11SurfaceCapture) << "recreate ximage: " << wndattr.width << wndattr.height
-                                          << wndattr.depth << wndattr.visual->visualid;
+            qCDebug(qLcX11SurfaceCapture) << "recreate ximage: " << width << height
+                                          << depth << visual->visualid;
 
             detachShm();
             m_xImage.reset();
 
             m_visualID = wndattr.visual->visualid;
-            m_xImage.reset(XShmCreateImage(m_display.get(), wndattr.visual, wndattr.depth, ZPixmap,
-                                           nullptr, &m_shmInfo, wndattr.width, wndattr.height));
+            m_xImage.reset(XShmCreateImage(m_display.get(), visual, depth, ZPixmap,
+                                           nullptr, &m_shmInfo, width, height));
 
             if (!m_xImage) {
                 updateError(QPlatformSurfaceCapture::CaptureFailed,
@@ -262,7 +296,7 @@ protected:
                           AllPlanes)) {
             updateError(QPlatformSurfaceCapture::CaptureFailed,
                         QStringLiteral(
-                                "Cannot get ximage; the window may be out of the screen borders"));
+                                "Cannot get ximage; the window geometry may be undergoing change"));
             return {};
         }
 
