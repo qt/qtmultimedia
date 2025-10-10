@@ -15,9 +15,9 @@
 
 QT_USE_NAMESPACE
 
-static void releaseHwFrame(void * /*opaque*/, uint8_t *data)
+static void releaseHwFrame(void * /*opaque*/, uint8_t *pixelBuffer)
 {
-    CVPixelBufferRelease(CVPixelBufferRef(data));
+    CVPixelBufferRelease(CVPixelBufferRef(pixelBuffer));
 }
 
 namespace {
@@ -25,9 +25,9 @@ namespace {
 class CVImageVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    CVImageVideoBuffer(CVImageBufferRef imageBuffer) : m_buffer(imageBuffer)
+    CVImageVideoBuffer(CVPixelBufferRef pixelBuffer) : m_buffer(pixelBuffer)
     {
-        CVPixelBufferRetain(imageBuffer);
+        CVPixelBufferRetain(pixelBuffer);
     }
 
     ~CVImageVideoBuffer()
@@ -80,7 +80,7 @@ public:
     QVideoFrameFormat format() const override { return {}; }
 
 private:
-    CVImageBufferRef m_buffer;
+    CVPixelBufferRef m_buffer;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
 };
 
@@ -189,11 +189,12 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
     // avfmediaassetwriter).
 
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
-
-    if (!imageBuffer) {
+    if (!imageBuffer || CFGetTypeID(imageBuffer) != CVPixelBufferGetTypeID()) {
         qWarning() << "Cannot get image buffer from sample buffer";
         return;
     }
+
+    CVPixelBufferRef pixelBuffer = imageBuffer;
 
     const CMTime time = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
     const qint64 frameTime = time.timescale ? time.value * 1000000 / time.timescale : 0;
@@ -202,11 +203,11 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
         startTime = frameTime;
     }
 
-    QVideoFrameFormat format = QAVFHelpers::videoFormatForImageBuffer(imageBuffer);
+    QVideoFrameFormat format = QAVFHelpers::videoFormatForImageBuffer(pixelBuffer);
     if (!format.isValid()) {
         qWarning() << "Cannot get get video format for image buffer"
-                   << CVPixelBufferGetWidth(imageBuffer) << 'x'
-                   << CVPixelBufferGetHeight(imageBuffer);
+                   << CVPixelBufferGetWidth(pixelBuffer) << 'x'
+                   << CVPixelBufferGetHeight(pixelBuffer);
         return;
     }
 
@@ -220,9 +221,9 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
 
     format.setStreamFrameRate(frameRate);
 
-    auto frame = createHwVideoFrame(*self, imageBuffer, format);
+    auto frame = createHwVideoFrame(*self, pixelBuffer, format);
     if (!frame.isValid())
-        frame = QVideoFramePrivate::createFrame(std::make_unique<CVImageVideoBuffer>(imageBuffer),
+        frame = QVideoFramePrivate::createFrame(std::make_unique<CVImageVideoBuffer>(pixelBuffer),
                                                 std::move(format));
 
     if (transform.has_value()) {
