@@ -27,17 +27,17 @@ struct Packet
 {
     struct Data : QSharedData
     {
-        Data(const LoopOffset &offset, AVPacketUPtr p, quint64 sourceId)
-            : loopOffset(offset), packet(std::move(p)), sourceId(sourceId)
+        Data(const LoopOffset &offset, AVPacketUPtr p, const PlaybackEngineObjectID &sourceID)
+            : loopOffset(offset), packet(std::move(p)), sourceID(sourceID)
         {
         }
 
         LoopOffset loopOffset;
         AVPacketUPtr packet;
-        quint64 sourceId;
+        PlaybackEngineObjectID sourceID;
     };
     Packet() = default;
-    Packet(const LoopOffset &offset, AVPacketUPtr p, quint64 sourceId)
+    Packet(const LoopOffset &offset, AVPacketUPtr p, const PlaybackEngineObjectID &sourceId)
         : d(new Data(offset, std::move(p), sourceId))
     {
     }
@@ -45,7 +45,7 @@ struct Packet
     bool isValid() const { return !!d; }
     AVPacket *avPacket() const { return d->packet.get(); }
     const LoopOffset &loopOffset() const { return d->loopOffset; }
-    quint64 sourceId() const { return d->sourceId; }
+    const PlaybackEngineObjectID &sourceID() const { return d->sourceID; }
 
 private:
     QExplicitlySharedDataPointer<Data> d;

@@ -11,8 +11,10 @@ Q_STATIC_LOGGING_CATEGORY(qLcStreamDecoder, "qt.multimedia.ffmpeg.streamdecoder"
 
 namespace QFFmpeg {
 
-StreamDecoder::StreamDecoder(const CodecContext &codecContext, TrackPosition absSeekPos)
-    : m_codecContext(codecContext),
+StreamDecoder::StreamDecoder(const PlaybackEngineObjectID &id, const CodecContext &codecContext,
+                             TrackPosition absSeekPos)
+    : PlaybackEngineObject(id),
+      m_codecContext(codecContext),
       m_absSeekPos(absSeekPos),
       m_trackType(MediaDataHolder::trackTypeFromMediaType(codecContext.context()->codec_type))
 {
@@ -91,7 +93,7 @@ qint32 StreamDecoder::maxQueueSize(QPlatformMediaPlayer::TrackType type)
 
 void StreamDecoder::onFrameProcessed(Frame frame)
 {
-    if (frame.sourceId() != id())
+    if (!checkID(frame.sourceID()))
         return;
 
     --m_pendingFramesCount;

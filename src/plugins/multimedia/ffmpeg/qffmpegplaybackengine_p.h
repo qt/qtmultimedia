@@ -177,14 +177,15 @@ private:
 
     void deleteFreeThreads();
 
-    void onFirsPacketFound(quint64 id, TrackPosition absSeekPos);
+    void onFirsPacketFound(const PlaybackEngineObjectID &id, TrackPosition absSeekPos);
 
-    void onRendererSynchronized(quint64 id, SteadyClock::time_point timePoint,
+    void onRendererSynchronized(const PlaybackEngineObjectID &id, SteadyClock::time_point timePoint,
                                 TrackPosition trackPosition);
 
     void onRendererFinished();
 
-    void onRendererLoopChanged(quint64 id, TrackPosition offset, int loopIndex);
+    void onRendererLoopChanged(const PlaybackEngineObjectID &id, TrackPosition offset,
+                               int loopIndex);
 
     void triggerStepIfNeeded();
 
@@ -198,7 +199,13 @@ private:
 
     void finalizeOutputs();
 
-    bool hasRenderer(quint64 id) const;
+    bool hasRenderer(const PlaybackEngineObjectID &id) const;
+
+    template <typename T>
+    bool checkObjectID(T &object, const PlaybackEngineObjectID &id) const
+    {
+        return object && object->objectID() == id.objectID && id.sessionID == m_currentID.sessionID;
+    }
 
     void updateVideoSinkSize(QVideoSink *prevSink = nullptr);
 
@@ -233,12 +240,14 @@ private:
 
     bool m_pitchCompensation = true;
     QPlaybackOptions m_options;
+    PlaybackEngineObjectID m_currentID{ 1, 1 };
 };
 
 template<typename T, typename... Args>
 PlaybackEngine::ObjectPtr<T> PlaybackEngine::createPlaybackEngineObject(Args &&...args)
 {
-    auto result = ObjectPtr<T>(new T(std::forward<Args>(args)...), { this });
+    ++m_currentID.objectID;
+    auto result = ObjectPtr<T>(new T(m_currentID, std::forward<Args>(args)...), { this });
     registerObject(*result);
     return result;
 }

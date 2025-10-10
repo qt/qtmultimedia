@@ -50,10 +50,13 @@ static bool isPacketWithinStreamDuration(const AVFormatContext *context, const P
     // malformed duration, rework doNextStep to check for eof after that packet.
 }
 
-Demuxer::Demuxer(AVFormatContext *context, TrackPosition initialPosUs, bool seekPending,
-                 const LoopOffset &loopOffset, const StreamIndexes &streamIndexes, int loops)
-    : m_context(context),
-      m_seeked(!seekPending && initialPosUs == TrackPosition{ 0 }), // Don't seek to 0 unless seek requested
+Demuxer::Demuxer(const PlaybackEngineObjectID &id, AVFormatContext *context,
+                 TrackPosition initialPosUs, bool seekPending, const LoopOffset &loopOffset,
+                 const StreamIndexes &streamIndexes, int loops)
+    : PlaybackEngineObject(id),
+      m_context(context),
+      m_seeked(!seekPending
+               && initialPosUs == TrackPosition{ 0 }), // Don't seek to 0 unless seek requested
       m_posInLoopUs{ initialPosUs },
       m_loopOffset(loopOffset),
       m_loops(loops)
@@ -181,7 +184,7 @@ void Demuxer::onPacketProcessed(Packet packet)
 {
     Q_ASSERT(packet.isValid());
 
-    if (packet.sourceId() != id())
+    if (!checkID(packet.sourceID()))
         return;
 
     auto &avPacket = *packet.avPacket();

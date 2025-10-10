@@ -29,7 +29,8 @@ class VideoRenderer : public Renderer
 {
     Q_OBJECT
 public:
-    VideoRenderer(const TimeController &tc, QVideoSink *sink, const VideoTransformation &transform);
+    VideoRenderer(const PlaybackEngineObjectID &id, const TimeController &tc, QVideoSink *sink,
+                  const VideoTransformation &transform);
 
     void setOutput(QVideoSink *sink, bool cleanPrevSink = false);
 

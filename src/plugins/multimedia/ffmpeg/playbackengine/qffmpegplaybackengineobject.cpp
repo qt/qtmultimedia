@@ -10,9 +10,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-static QAtomicInteger<PlaybackEngineObject::Id> PersistentId = 0;
-
-PlaybackEngineObject::PlaybackEngineObject() : m_id(PersistentId.fetchAndAddRelaxed(1)) { }
+PlaybackEngineObject::PlaybackEngineObject(const PlaybackEngineObjectID &id) : m_id{ id } { }
 
 PlaybackEngineObject::~PlaybackEngineObject()
 {
@@ -34,11 +32,6 @@ void PlaybackEngineObject::setAtEnd(bool isAtEnd)
 bool PlaybackEngineObject::isAtEnd() const
 {
     return m_atEnd;
-}
-
-PlaybackEngineObject::Id PlaybackEngineObject::id() const
-{
-    return m_id;
 }
 
 void PlaybackEngineObject::setPaused(bool isPaused)
@@ -106,6 +99,7 @@ void PlaybackEngineObject::scheduleNextStep(bool allowDoImmediatelly)
         timer().stop();
     }
 }
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

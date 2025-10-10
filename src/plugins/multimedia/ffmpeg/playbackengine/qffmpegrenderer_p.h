@@ -33,7 +33,7 @@ class Renderer : public PlaybackEngineObject
 public:
     using TimePoint = SteadyClock::time_point;
 
-    Renderer(const TimeController &tc);
+    Renderer(const PlaybackEngineObjectID &id, const TimeController &tc);
 
     void syncSoft(TimePoint tp, TrackPosition trackPos);
 
@@ -58,11 +58,11 @@ public slots:
 signals:
     void frameProcessed(Frame);
 
-    void synchronized(Id id, TimePoint tp, TrackPosition pos);
+    void synchronized(PlaybackEngineObjectID id, TimePoint tp, TrackPosition pos);
 
     void forceStepDone();
 
-    void loopChanged(Id id, TrackPosition offset, int index);
+    void loopChanged(PlaybackEngineObjectID id, TrackPosition offset, int index);
 
 protected:
     bool setForceStepDone();

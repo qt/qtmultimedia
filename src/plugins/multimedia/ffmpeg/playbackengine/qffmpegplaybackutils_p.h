@@ -18,9 +18,27 @@
 #include <qtypes.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
 
+#include <QtCore/qdebug.h>
+
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
+
+struct PlaybackEngineObjectID
+{
+    quint64 objectID = 0;
+    quint64 sessionID = 0;
+};
+
+#ifndef QT_NO_DEBUG_STREAM
+inline QDebug operator<<(QDebug dbg, const PlaybackEngineObjectID& id)
+{
+    QDebugStateSaver s(dbg);
+    dbg.nospace();
+    dbg << "[session: " << id.sessionID << ", object: " << id.objectID << "]";
+    return dbg;
+}
+#endif
 
 struct LoopOffset
 {

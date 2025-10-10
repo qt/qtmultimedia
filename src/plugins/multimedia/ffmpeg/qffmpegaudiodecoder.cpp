@@ -20,7 +20,10 @@ class SteppingAudioRenderer : public Renderer
 {
     Q_OBJECT
 public:
-    SteppingAudioRenderer(const QAudioFormat &format) : Renderer({}), m_format(format) { }
+    SteppingAudioRenderer(const PlaybackEngineObjectID &id, const QAudioFormat &format)
+        : Renderer(id, {}), m_format(format)
+    {
+    }
 
     RenderingResult renderInternal(Frame frame) override
     {

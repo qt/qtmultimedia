@@ -10,8 +10,9 @@ namespace QFFmpeg {
 
 Q_STATIC_LOGGING_CATEGORY(qLcRenderer, "qt.multimedia.ffmpeg.renderer");
 
-Renderer::Renderer(const TimeController &tc)
-    : m_timeController(tc),
+Renderer::Renderer(const PlaybackEngineObjectID &id, const TimeController &tc)
+    : PlaybackEngineObject(id),
+      m_timeController(tc),
       m_lastFrameEnd(tc.currentPosition()),
       m_lastPosition(m_lastFrameEnd.get()),
       m_seekPos(tc.currentPosition().get())

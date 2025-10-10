@@ -31,7 +31,8 @@ class StreamDecoder : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
-    StreamDecoder(const CodecContext &codecContext, TrackPosition absSeekPos);
+    StreamDecoder(const PlaybackEngineObjectID &id, const CodecContext &codecContext,
+                  TrackPosition absSeekPos);
 
     ~StreamDecoder() override;
 
