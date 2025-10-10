@@ -26,7 +26,7 @@ bool PlaybackEngineObject::isPaused() const
 void PlaybackEngineObject::setAtEnd(bool isAtEnd)
 {
     if (m_atEnd.testAndSetRelease(!isAtEnd, isAtEnd) && isAtEnd)
-        emit atEnd();
+        emit atEnd(id());
 }
 
 bool PlaybackEngineObject::isAtEnd() const

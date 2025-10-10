@@ -28,15 +28,22 @@ StreamDecoder::~StreamDecoder()
     avcodec_flush_buffers(m_codecContext.context());
 }
 
-void StreamDecoder::onFinalPacketReceived()
+void StreamDecoder::onFinalPacketReceived(PlaybackEngineObjectID sourceID)
 {
-    decode({});
+    if (checkSessionID(sourceID.sessionID))
+        decode({});
 }
 
 void StreamDecoder::decode(Packet packet)
 {
-    m_packets.enqueue(packet);
+    if (packet.isValid() && !checkSessionID(packet.sourceID().sessionID)) {
+        qCDebug(qLcStreamDecoder) << "Packet session outdated. Source id:" << packet.sourceID()
+                                  << "current id" << id();
+        // no need to report packetProcessed: demuxer must be cleaned up
+        return;
+    }
 
+    m_packets.enqueue(packet);
     scheduleNextStep();
 }
 

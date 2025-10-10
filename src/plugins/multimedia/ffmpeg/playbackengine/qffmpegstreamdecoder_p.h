@@ -45,7 +45,7 @@ public slots:
 
     void decode(Packet);
 
-    void onFinalPacketReceived();
+    void onFinalPacketReceived(PlaybackEngineObjectID sourceID);
 
     void onFrameProcessed(Frame frame);
 

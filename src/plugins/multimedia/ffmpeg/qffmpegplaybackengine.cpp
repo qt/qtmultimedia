@@ -61,8 +61,11 @@ PlaybackEngine::~PlaybackEngine() {
     deleteFreeThreads();
 }
 
-void PlaybackEngine::onRendererFinished()
+void PlaybackEngine::onRendererFinished(const PlaybackEngineObjectID &id)
 {
+    if (!hasRenderer(id))
+        return;
+
     auto isAtEnd = [this](auto trackType) {
         return !m_renderers[trackType] || m_renderers[trackType]->isAtEnd();
     };

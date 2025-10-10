@@ -51,7 +51,7 @@ public:
 
 public slots:
 
-    void onFinalFrameReceived();
+    void onFinalFrameReceived(PlaybackEngineObjectID sourceID);
 
     void render(Frame);
 
