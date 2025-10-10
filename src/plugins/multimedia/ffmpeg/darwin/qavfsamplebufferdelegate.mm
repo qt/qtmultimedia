@@ -15,11 +15,6 @@
 
 QT_USE_NAMESPACE
 
-static void releaseHwFrame(void * /*opaque*/, uint8_t *pixelBuffer)
-{
-    CVPixelBufferRelease(CVPixelBufferRef(pixelBuffer));
-}
-
 namespace {
 
 class CVImageVideoBuffer : public QAbstractVideoBuffer
@@ -87,14 +82,19 @@ private:
 }
 
 // Make sure this is compatible with the layout used in ffmpeg's hwcontext_videotoolbox
-static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, const CVPixelBufferRef &pixbuf)
+static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, CVPixelBufferRef pixbuf)
 {
     AVHWFramesContext *ctx = (AVHWFramesContext *)hwContext->data;
     auto frame = QFFmpeg::makeAVFrame();
     frame->hw_frames_ctx = av_buffer_ref(hwContext);
     frame->extended_data = frame->data;
 
-    frame->buf[0] = av_buffer_create((uint8_t *)pixbuf, 1, releaseHwFrame, NULL, 0);
+    auto releasePixBufFn = [](void* opaquePtr, uint8_t *) {
+        CVPixelBufferRelease(static_cast<CVPixelBufferRef>(opaquePtr));
+    };
+    frame->buf[0] = av_buffer_create(nullptr, 0, releasePixBufFn, pixbuf, 0);
+
+    // It is convention to use 4th data plane for hardware frames.
     frame->data[3] = (uint8_t *)pixbuf;
     CVPixelBufferRetain(pixbuf);
     frame->width = ctx->width;
