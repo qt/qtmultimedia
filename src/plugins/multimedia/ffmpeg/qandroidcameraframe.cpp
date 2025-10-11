@@ -11,9 +11,20 @@ Q_DECLARE_JNI_CLASS(AndroidImageFormat, "android/graphics/ImageFormat");
 Q_DECLARE_JNI_TYPE(AndroidImage, "Landroid/media/Image;")
 Q_DECLARE_JNI_TYPE(AndroidImagePlaneArray, "[Landroid/media/Image$Plane;")
 Q_DECLARE_JNI_TYPE(JavaByteBuffer, "Ljava/nio/ByteBuffer;")
+Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
+                    "org/qtproject/qt/android/multimedia/QtVideoDeviceManager");
 
 QT_BEGIN_NAMESPACE
 static Q_LOGGING_CATEGORY(qLCAndroidCameraFrame, "qt.multimedia.ffmpeg.android.camera.frame");
+
+namespace {
+bool isWorkaroundForEmulatorNeeded() {
+    const static bool workaroundForEmulator
+                 = QJniObject::callStaticMethod<jboolean>(
+                    QtJniTypes::className<QtJniTypes::QtVideoDeviceManager>(), "isEmulator");
+    return workaroundForEmulator;
+}
+}
 
 bool QAndroidCameraFrame::parse(const QJniObject &frame)
 {
@@ -85,9 +96,12 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
         }
         if (pixelStrides[1] == 1)
             calculedPixelFormat = QVideoFrameFormat::Format_YUV420P;
-        else if (pixelStrides[1] == 2 && abs(buffer[1] - buffer[2]) == 1)
-            // this can be NV21, but it will converted below
-            calculedPixelFormat = QVideoFrameFormat::Format_NV12;
+        else if (pixelStrides[1] == 2) {
+            if (buffer[1] - buffer[2] == -1) // Interleaved UVUV -> NV12
+                calculedPixelFormat = QVideoFrameFormat::Format_NV12;
+            else if (buffer[1] - buffer[2] == 1) // Interleaved VUVU -> NV21
+                calculedPixelFormat = QVideoFrameFormat::Format_NV21;
+        }
         break;
     case AndroidImageFormat::HEIC:
         // QImage cannot parse HEIC
@@ -129,19 +143,44 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
         m_planes[mapIndex].data = buffer[arrayIndex];
     };
 
+    int width = frame.callMethod<jint>("getWidth");
+    int height = frame.callMethod<jint>("getHeight");
+    m_size = QSize(width, height);
+
     switch (calculedPixelFormat) {
     case QVideoFrameFormat::Format_YUV420P:
         m_numberPlanes = 3;
         copyPlane(0, 0);
         copyPlane(1, 1);
         copyPlane(2, 2);
+
+        if (isWorkaroundForEmulatorNeeded()) {
+            for (int i = 0; i < 3; ++i) {
+                const int dataSize = (i == 0) ? width * height : width * height / 4;
+                m_planes[i].data = new uint8_t[dataSize];
+                memcpy(m_planes[i].data, buffer[i], dataSize);
+            }
+        }
+
         m_pixelFormat = QVideoFrameFormat::Format_YUV420P;
         break;
     case QVideoFrameFormat::Format_NV12:
+    case QVideoFrameFormat::Format_NV21:
+        // Y-plane and combined interleaved UV-plane
         m_numberPlanes = 2;
         copyPlane(0, 0);
-        copyPlane(1, 1);
-        m_pixelFormat = QVideoFrameFormat::Format_NV12;
+
+        // Android reports U and V planes as planes[1] and planes[2] respectively, regardless of the
+        // order of interleaved samples. We point to whichever is first in memory.
+        copyPlane(1, calculedPixelFormat == QVideoFrameFormat::Format_NV21 ? 2 : 1);
+
+        // With interleaved UV plane, Android reports the size of each plane as the smallest size
+        // that includes all samples of that plane. For example, if the UV plane is [u, v, u, v],
+        // the size of the U-plane is 3, not 4. With FFmpeg we need to count the total number of
+        // bytes in the UV-plane, which is 1 more than what Android reports.
+        m_planes[1].size++;
+
+        m_pixelFormat = calculedPixelFormat;
         break;
     case QVideoFrameFormat::Format_Jpeg:
         qCWarning(qLCAndroidCameraFrame)
@@ -159,10 +198,6 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
 
     long timestamp = frame.callMethod<jlong>("getTimestamp");
     m_timestamp = timestamp / 1000;
-
-    int width = frame.callMethod<jint>("getWidth");
-    int height = frame.callMethod<jint>("getHeight");
-    m_size = QSize(width, height);
 
     return true;
 }
@@ -192,6 +227,13 @@ QAndroidCameraFrame::~QAndroidCameraFrame()
     QJniEnvironment jniEnv;
     if (m_frame)
         jniEnv->DeleteGlobalRef(m_frame);
+
+    if (isWorkaroundForEmulatorNeeded()) {
+        if (m_pixelFormat == QVideoFrameFormat::Format_YUV420P) {
+            for (int i = 0; i < 3; ++i)
+                delete[] m_planes[i].data;
+        }
+    }
 }
 
 QT_END_NAMESPACE

@@ -66,7 +66,7 @@ private:
 
     int sendAVPacket(Packet);
 
-    void receiveAVFrames();
+    void receiveAVFrames(bool flushPacket = false);
 
 private:
     Codec m_codec;

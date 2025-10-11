@@ -12,6 +12,11 @@ inline bool isGStreamerPlatform()
     return QPlatformMediaIntegration::instance()->name() == "gstreamer";
 }
 
+inline bool isQNXPlatform()
+{
+    return QPlatformMediaIntegration::instance()->name() == "qnx";
+}
+
 inline bool isDarwinPlatform()
 {
     return QPlatformMediaIntegration::instance()->name() == "darwin";
@@ -30,6 +35,11 @@ inline bool isFFMPEGPlatform()
 inline bool isWindowsPlatform()
 {
     return QPlatformMediaIntegration::instance()->name() == "windows";
+}
+
+inline bool isCI()
+{
+    return qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci";
 }
 
 #define QSKIP_GSTREAMER(message) \

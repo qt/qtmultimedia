@@ -192,7 +192,8 @@ void AudioTest::updateAudioDevices()
 void AudioTest::toggleMode()
 {
     m_pushTimer->stop();
-    m_audioOutput->stop();
+    // Reset audiosink
+    m_audioOutput->reset();
     toggleSuspendResume();
 
     if (m_pullMode) {

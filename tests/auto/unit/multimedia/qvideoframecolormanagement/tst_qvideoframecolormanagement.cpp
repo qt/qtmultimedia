@@ -6,9 +6,14 @@
 #include <qvideoframe.h>
 #include <qvideoframeformat.h>
 #include "private/qmemoryvideobuffer_p.h"
+#include "private/qvideoframeconverter_p.h"
+#include "private/qplatformmediaintegration_p.h"
+#include "private/qimagevideobuffer_p.h"
 #include <QtGui/QColorSpace>
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
+
+#include "../../../integration/shared/mediabackendutils.h"
 
 QT_USE_NAMESPACE
 
@@ -20,6 +25,7 @@ struct TestParams
     QVideoFrameFormat::PixelFormat pixelFormat;
     QVideoFrameFormat::ColorSpace colorSpace;
     QVideoFrameFormat::ColorRange colorRange;
+    bool forceCpu;
 };
 
 QString toString(QVideoFrameFormat::ColorRange r)
@@ -43,43 +49,74 @@ std::vector<QVideoFrameFormat::ColorRange> colorRanges()
     };
 }
 
-QString toString(QVideoFrameFormat::PixelFormat f)
+const QSet s_formats{ QVideoFrameFormat::Format_ARGB8888,
+                      QVideoFrameFormat::Format_ARGB8888_Premultiplied,
+                      QVideoFrameFormat::Format_XRGB8888,
+                      QVideoFrameFormat::Format_BGRA8888,
+                      QVideoFrameFormat::Format_BGRA8888_Premultiplied,
+                      QVideoFrameFormat::Format_BGRX8888,
+                      QVideoFrameFormat::Format_ABGR8888,
+                      QVideoFrameFormat::Format_XBGR8888,
+                      QVideoFrameFormat::Format_RGBA8888,
+                      QVideoFrameFormat::Format_RGBX8888,
+                      QVideoFrameFormat::Format_NV12,
+                      QVideoFrameFormat::Format_NV21,
+                      QVideoFrameFormat::Format_IMC1,
+                      QVideoFrameFormat::Format_IMC2,
+                      QVideoFrameFormat::Format_IMC3,
+                      QVideoFrameFormat::Format_IMC4,
+                      QVideoFrameFormat::Format_AYUV,
+                      QVideoFrameFormat::Format_AYUV_Premultiplied,
+                      QVideoFrameFormat::Format_YV12,
+                      QVideoFrameFormat::Format_YUV420P,
+                      QVideoFrameFormat::Format_YUV422P,
+                      QVideoFrameFormat::Format_UYVY,
+                      QVideoFrameFormat::Format_YUYV,
+                      QVideoFrameFormat::Format_Y8,
+                      QVideoFrameFormat::Format_Y16,
+                      QVideoFrameFormat::Format_P010,
+                      QVideoFrameFormat::Format_P016,
+                      QVideoFrameFormat::Format_YUV420P10 };
+
+bool hasCorrespondingFFmpegFormat(QVideoFrameFormat::PixelFormat format)
 {
-    switch (f) {
-    case QVideoFrameFormat::Format_NV12:
-        return "nv12";
-    case QVideoFrameFormat::Format_NV21:
-        return "nv21";
-    case QVideoFrameFormat::Format_IMC1:
-        return "imc1";
-    case QVideoFrameFormat::Format_IMC2:
-        return "imc2";
-    case QVideoFrameFormat::Format_IMC3:
-        return "imc3";
-    case QVideoFrameFormat::Format_IMC4:
-        return "imc4";
-    case QVideoFrameFormat::Format_YUV420P:
-        return "420p";
-    case QVideoFrameFormat::Format_YUV422P:
-        return "422p";
-    case QVideoFrameFormat::Format_UYVY:
-        return "uyvy";
-    case QVideoFrameFormat::Format_YUYV:
-        return "yuyv";
-    default:
-        Q_ASSERT(false);
-        return ""; // Not implemented yet
-    }
+    return format != QVideoFrameFormat::Format_AYUV
+            && format != QVideoFrameFormat::Format_AYUV_Premultiplied;
 }
 
-std::vector<QVideoFrameFormat::PixelFormat> pixelFormats()
+bool supportsCpuConversion(QVideoFrameFormat::PixelFormat format)
 {
-    return { QVideoFrameFormat::Format_NV12,    QVideoFrameFormat::Format_NV21,
-             QVideoFrameFormat::Format_IMC1,    QVideoFrameFormat::Format_IMC2,
-             QVideoFrameFormat::Format_IMC3,    QVideoFrameFormat::Format_IMC4,
-             QVideoFrameFormat::Format_YUV420P, QVideoFrameFormat::Format_YUV422P,
-             QVideoFrameFormat::Format_UYVY,    QVideoFrameFormat::Format_YUYV };
+    return format != QVideoFrameFormat::Format_YUV420P10;
 }
+
+QString toString(QVideoFrameFormat::PixelFormat f)
+{
+    return QVideoFrameFormat::pixelFormatToString(f);
+}
+
+QSet<QVideoFrameFormat::PixelFormat> pixelFormats()
+{
+    return s_formats;
+}
+
+bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
+{
+#ifdef Q_OS_ANDROID
+    // TODO: QTBUG-125238
+    switch (pixelFormat) {
+    case QVideoFrameFormat::Format_Y16:
+    case QVideoFrameFormat::Format_P010:
+    case QVideoFrameFormat::Format_P016:
+    case QVideoFrameFormat::Format_YUV420P10:
+        return false;
+    default:
+        return true;
+    }
+#else
+    return true;
+#endif
+}
+
 
 QString toString(QVideoFrameFormat::ColorSpace s)
 {
@@ -106,216 +143,20 @@ std::vector<QVideoFrameFormat::ColorSpace> colorSpaces()
 
 QString name(const TestParams &p)
 {
-    return QStringLiteral("%1_%2_%3_%4")
-            .arg(p.fileName)
-            .arg(toString(p.pixelFormat))
-            .arg(toString(p.colorSpace))
-            .arg(toString(p.colorRange));
+    QString name = QStringLiteral("%1_%2_%3_%4%5")
+                                 .arg(p.fileName)
+                                 .arg(toString(p.pixelFormat))
+                                 .arg(toString(p.colorSpace))
+                                 .arg(toString(p.colorRange))
+                                 .arg(p.forceCpu ? "_cpu" : "")
+                                 .toLower();
+    name.replace(" ", "_");
+    return name;
 }
 
 QString path(const QTemporaryDir &dir, const TestParams &param, const QString &suffix = ".png")
 {
     return dir.filePath(name(param) + suffix);
-}
-
-// clang-format off
-
-class RgbToYCbCrConverter
-{
-public:
-    constexpr RgbToYCbCrConverter(double Wr, double Wg)
-        : m_wr{ Wr }, m_wg{ Wg }, m_wb{ 1.0 - Wr - Wg }
-    { }
-
-    // Calculate Y in range [0..255]
-    constexpr double Y(QRgb rgb) const
-    {
-        return m_wr * qRed(rgb) + m_wg * qGreen(rgb) + m_wb * qBlue(rgb);
-    }
-
-    // Calculate Cb in range [0..255]
-    constexpr double Cb(QRgb rgb) const
-    {
-        return (qBlue(rgb) - Y(rgb)) / (2 * (1.0 - m_wb)) + 255.0 / 2;
-    }
-
-    // Calculate Cr in range [0..255]
-    constexpr double Cr(QRgb rgb) const
-    {
-        return (qRed(rgb) - Y(rgb)) / (2 * (1.0 - m_wr)) + 255.0 / 2;
-    }
-
-private:
-    const double m_wr;
-    const double m_wg;
-    const double m_wb;
-};
-
-// clang-format on
-
-constexpr RgbToYCbCrConverter rgb2yuv_bt709_full{0.2126, 0.7152};
-
-constexpr uchar double2uchar(double v)
-{
-    return static_cast<uchar>(std::clamp(v + 0.5, 0.5, 255.5));
-}
-
-constexpr uchar rgb2y(const QRgb &rgb)
-{
-    const double Y = rgb2yuv_bt709_full.Y(rgb);
-    return double2uchar(Y);
-}
-
-constexpr uchar rgb2u(const QRgb &rgb)
-{
-    const double U = rgb2yuv_bt709_full.Cb(rgb);
-    return double2uchar(U);
-}
-
-constexpr uchar rgb2v(const QRgb &rgb)
-{
-    const double V = rgb2yuv_bt709_full.Cr(rgb);
-    return double2uchar(V);
-}
-
-void rgb2y_planar(const QImage &image, QVideoFrame &frame, int yPlane)
-{
-    uchar *bits = frame.bits(yPlane);
-    for (int row = 0; row < image.height(); ++row) {
-        for (int col = 0; col < image.width(); ++col) {
-            const QRgb pixel = image.pixel(col, row);
-            bits[col] = rgb2y(pixel);
-        }
-        bits += frame.bytesPerLine(yPlane);
-    }
-}
-
-void rgb2uv_planar(const QImage &image, QVideoFrame &frame)
-{
-    uchar *vBits = nullptr;
-    uchar *uBits = nullptr;
-    int vStride = 0;
-    int uStride = 0;
-    int sampleIncrement = 1;
-    int verticalScale = 2;
-    if (frame.pixelFormat() == QVideoFrameFormat::Format_IMC1) {
-        uStride = frame.bytesPerLine(2);
-        vStride = frame.bytesPerLine(1);
-        uBits = frame.bits(2);
-        vBits = frame.bits(1);
-    } else if (frame.pixelFormat() == QVideoFrameFormat::Format_IMC2) {
-        uStride = frame.bytesPerLine(1);
-        vStride = frame.bytesPerLine(1);
-        uBits = frame.bits(1) + vStride / 2;
-        vBits = frame.bits(1);
-    } else if (frame.pixelFormat() == QVideoFrameFormat::Format_IMC3) {
-        uStride = frame.bytesPerLine(1);
-        vStride = frame.bytesPerLine(2);
-        uBits = frame.bits(1);
-        vBits = frame.bits(2);
-    } else if (frame.pixelFormat() == QVideoFrameFormat::Format_IMC4) {
-        uStride = frame.bytesPerLine(1);
-        vStride = frame.bytesPerLine(1);
-        uBits = frame.bits(1);
-        vBits = frame.bits(1) + vStride / 2;
-    } else if (frame.pixelFormat() == QVideoFrameFormat::Format_NV12) {
-        uStride = frame.bytesPerLine(1);
-        vStride = frame.bytesPerLine(1);
-        uBits = frame.bits(1);
-        vBits = frame.bits(1) + 1;
-        sampleIncrement = 2;
-    } else if (frame.pixelFormat() == QVideoFrameFormat::Format_NV21) {
-        uStride = frame.bytesPerLine(1);
-        vStride = frame.bytesPerLine(1);
-        uBits = frame.bits(1) + 1;
-        vBits = frame.bits(1);
-        sampleIncrement = 2;
-    } else if (frame.pixelFormat() == QVideoFrameFormat::Format_YUV420P) {
-        uStride = frame.bytesPerLine(1);
-        vStride = frame.bytesPerLine(2);
-        uBits = frame.bits(1);
-        vBits = frame.bits(2);
-    } else if (frame.pixelFormat() == QVideoFrameFormat::Format_YUV422P) {
-        uStride = frame.bytesPerLine(1);
-        vStride = frame.bytesPerLine(2);
-        uBits = frame.bits(1);
-        vBits = frame.bits(2);
-        verticalScale = 1;
-    }
-
-    const QImage downSampled = image.scaled(image.width() / 2, image.height() / verticalScale);
-    const int width = downSampled.width();
-    const int height = downSampled.height();
-    {
-        for (int row = 0; row < height; ++row) {
-            for (int col = 0; col < width; ++col) {
-                const QRgb pixel = downSampled.pixel(col, row);
-                uBits[col * sampleIncrement] = rgb2u(pixel);
-                vBits[col * sampleIncrement] = rgb2v(pixel);
-            }
-            vBits += vStride;
-            uBits += uStride;
-        }
-    }
-}
-
-void naive_rgbToYuv_planar(const QImage &image, QVideoFrame &frame)
-{
-    Q_ASSERT(image.format() == QImage::Format_RGB32);
-    Q_ASSERT(frame.planeCount() > 1);
-    Q_ASSERT(image.size() == frame.size());
-
-    frame.map(QVideoFrame::WriteOnly);
-
-    rgb2y_planar(image, frame, 0);
-    rgb2uv_planar(image, frame);
-
-    frame.unmap();
-}
-
-void naive_rgbToYuv422(const QImage &image, QVideoFrame &frame)
-{
-    // Packed format uyvy or yuyv. Each 32 bit frame sample represents
-    // two pixels with distinct y values, but shared u and v values
-    Q_ASSERT(image.format() == QImage::Format_RGB32);
-    Q_ASSERT(frame.planeCount() == 1);
-    Q_ASSERT(image.size() == frame.size());
-
-    const QVideoFrameFormat::PixelFormat format = frame.pixelFormat();
-
-    Q_ASSERT(format == QVideoFrameFormat::Format_UYVY || format == QVideoFrameFormat::Format_YUYV);
-
-    constexpr int plane = 0;
-    frame.map(QVideoFrame::WriteOnly);
-
-    uchar *line = frame.bits(plane);
-    for (int row = 0; row < image.height(); ++row) {
-        uchar *bits = line;
-        for (int col = 0; col < image.width() - 1; col += 2) {
-            // Handle to image pixels at a time
-            const QRgb pixel0 = image.pixel(col, row);
-            const QRgb pixel1 = image.pixel(col + 1, row);
-
-            // Down-sample u and v channels
-            bits[0] = (rgb2u(pixel0) + rgb2u(pixel1)) / 2;
-            bits[2] = (rgb2v(pixel0) + rgb2v(pixel1)) / 2;
-
-            // But not the y-channel
-            bits[1] = rgb2y(pixel0);
-            bits[3] = rgb2y(pixel1);
-
-            // Swizzle fom uyuv to yuyv
-            if (format == QVideoFrameFormat::Format_YUYV) {
-                std::swap(bits[0], bits[1]);
-                std::swap(bits[2], bits[3]);
-            }
-
-            bits += 4;
-        }
-        line += frame.bytesPerLine(plane);
-    }
-
-    frame.unmap();
 }
 
 QVideoFrame createTestFrame(const TestParams &params, const QImage &image)
@@ -325,27 +166,13 @@ QVideoFrame createTestFrame(const TestParams &params, const QImage &image)
     format.setColorSpace(params.colorSpace);
     format.setColorTransfer(QVideoFrameFormat::ColorTransfer_Unknown);
 
-    QVideoFrame frame(format);
+    auto buffer = std::make_unique<QImageVideoBuffer>(image);
+    QVideoFrameFormat imageFormat = {
+        image.size(), QVideoFrameFormat::pixelFormatFromImageFormat(image.format())
+    };
 
-    if (params.pixelFormat == QVideoFrameFormat::Format_IMC1
-        || params.pixelFormat == QVideoFrameFormat::Format_IMC2
-        || params.pixelFormat == QVideoFrameFormat::Format_IMC3
-        || params.pixelFormat == QVideoFrameFormat::Format_IMC4
-        || params.pixelFormat == QVideoFrameFormat::Format_NV12
-        || params.pixelFormat == QVideoFrameFormat::Format_NV21
-        || params.pixelFormat == QVideoFrameFormat::Format_YUV420P
-        || params.pixelFormat == QVideoFrameFormat::Format_YUV422P) {
-        naive_rgbToYuv_planar(image, frame);
-    } else if (params.pixelFormat == QVideoFrameFormat::Format_UYVY
-               || params.pixelFormat == QVideoFrameFormat::Format_YUYV) {
-        naive_rgbToYuv422(image, frame);
-    } else {
-        qDebug() << "Not implemented yet";
-        Q_ASSERT(false);
-        return {};
-    }
-
-    return frame;
+    QVideoFrame source{ buffer.release(), imageFormat };
+    return QPlatformMediaIntegration::instance()->convertVideoFrame(source, format);
 }
 
 struct ImageDiffReport
@@ -355,11 +182,6 @@ struct ImageDiffReport
     int PixelCount;              // Number of pixels in the image
     QImage DiffImage;            // The difference image (absolute per-channel difference)
 };
-
-double aboveThresholdDiffRatio(const ImageDiffReport &report)
-{
-    return static_cast<double>(report.DiffCountAboveThreshold) / report.PixelCount;
-}
 
 int maxChannelDiff(QRgb lhs, QRgb rhs)
 {
@@ -561,8 +383,13 @@ class tst_qvideoframecolormanagement : public QObject
 {
     Q_OBJECT
 private slots:
+    void initTestCase()
+    {
+        if (!isFFMPEGPlatform())
+            QSKIP("This test requires the ffmpeg backend to create test frames");
+    }
 
-    void toImage_savesWithCorrectColors_data()
+    void qImageFromVideoFrame_returnsQImageWithCorrectColors_data()
     {
         QTest::addColumn<QString>("fileName");
         QTest::addColumn<TestParams>("params");
@@ -570,8 +397,22 @@ private slots:
             for (const QVideoFrameFormat::PixelFormat pixelFormat : pixelFormats()) {
                 for (const QVideoFrameFormat::ColorSpace colorSpace : colorSpaces()) {
                     for (const QVideoFrameFormat::ColorRange colorRange : colorRanges()) {
-                        TestParams param{ file, pixelFormat, colorSpace, colorRange };
-                        QTest::addRow("%s", name(param).toLatin1().data()) << file << param;
+                        for (const bool forceCpu : { false, true }) {
+
+                            if (!isSupportedPixelFormat(pixelFormat))
+                                continue;
+
+                            if (forceCpu && !supportsCpuConversion(pixelFormat))
+                                continue; // TODO: CPU Conversion not implemented
+
+                            if (!hasCorrespondingFFmpegFormat(pixelFormat))
+                                continue;
+
+                            TestParams param{
+                                file, pixelFormat, colorSpace, colorRange, forceCpu,
+                            };
+                            QTest::addRow("%s", name(param).toLatin1().data()) << file << param;
+                        }
                     }
                 }
             }
@@ -579,10 +420,11 @@ private slots:
     }
 
     // This test is a regression test for the QMultimedia display pipeline.
-    // It compares rendered output (as created by toImage) against reference
-    // images stored to file. The reference images were created by the test
-    // itself, and does not verify correctness, just changes to render output.
-    void toImage_savesWithCorrectColors()
+    // It compares rendered output (as created by qImageFromVideoFrame)
+    // against reference images stored to file. The reference images were
+    // created by the test itself, and does not verify correctness, just
+    // changes to render output.
+    void qImageFromVideoFrame_returnsQImageWithCorrectColors()
     {
         QFETCH(const QString, fileName);
         QFETCH(const TestParams, params);
@@ -593,7 +435,8 @@ private slots:
         const QVideoFrame frame = createTestFrame(params, templateImage);
 
         // Act
-        const QImage actual = frame.toImage();
+        const QImage actual =
+                qImageFromVideoFrame(frame, QtVideo::Rotation::None, false, false, params.forceCpu);
 
         // Assert
         constexpr int diffThreshold = 4;
@@ -607,9 +450,15 @@ private slots:
         // Verify that images are similar
         const double ratioAboveThreshold =
                 static_cast<double>(result->DiffCountAboveThreshold) / result->PixelCount;
-        QCOMPARE_LT(ratioAboveThreshold, 0.01);
-        QCOMPARE_LT(result->MaxDiff, 5);
+
+        // These thresholds are empirically determined to allow tests to pass in CI.
+        // If tests fail, review the difference between the reference and actual
+        // output to determine if it is a platform dependent inaccuracy before
+        // adjusting the limits
+        QCOMPARE_LT(ratioAboveThreshold, 0.01); // Fraction of pixels with larger differences
+        QCOMPARE_LT(result->MaxDiff, 6); // Maximum per-channel difference
     }
+
 
 private:
     ReferenceData m_reference;

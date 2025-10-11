@@ -13,6 +13,26 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace {
+
+struct free_char
+{
+    void operator()(char *c) const { ::free(c); }
+};
+
+using unique_str = std::unique_ptr<char, free_char>;
+
+bool operator==(const unique_str &str, std::string_view sv)
+{
+    return std::string_view{ str.get() } == sv;
+}
+bool operator!=(const unique_str &str, std::string_view sv)
+{
+    return !(str == sv);
+}
+
+} // namespace
+
 QAlsaMediaDevices::QAlsaMediaDevices()
     : QPlatformMediaDevices()
 {
@@ -22,52 +42,50 @@ static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
 {
     QList<QAudioDevice> devices;
 
-    QByteArray filter;
-
     // Create a list of all current audio devices that support mode
-    void **hints, **n;
-    char *name, *descr, *io;
-    bool hasDefault = false;
-
-    if(snd_device_name_hint(-1, "pcm", &hints) < 0) {
+    void **hints;
+    if (snd_device_name_hint(-1, "pcm", &hints) < 0) {
         qWarning() << "no alsa devices available";
         return devices;
     }
-    n = hints;
 
-    if(mode == QAudioDevice::Input) {
-        filter = "Input";
-    } else {
-        filter = "Output";
-    }
+    std::string_view filter = (mode == QAudioDevice::Input) ? "Input" : "Output";
 
-    QAlsaAudioDeviceInfo* sysdefault = nullptr;
+    QAlsaAudioDeviceInfo *sysdefault = nullptr;
 
-    while (*n != NULL) {
-        name = snd_device_name_get_hint(*n, "NAME");
-        if (name != 0 && qstrcmp(name, "null") != 0) {
-            descr = snd_device_name_get_hint(*n, "DESC");
-            io = snd_device_name_get_hint(*n, "IOID");
+    auto makeDeviceInfo = [&filter, mode](void *entry) -> QAlsaAudioDeviceInfo * {
+        unique_str name{ snd_device_name_get_hint(entry, "NAME") };
+        if (name && name != "null") {
+            unique_str descr{ snd_device_name_get_hint(entry, "DESC") };
+            unique_str io{ snd_device_name_get_hint(entry, "IOID") };
 
-            if ((descr != NULL) && ((io == NULL) || (io == filter))) {
-                auto *infop = new QAlsaAudioDeviceInfo(name, QString::fromUtf8(descr), mode);
-                devices.append(infop->create());
-                if (!hasDefault && strcmp(name, "default") == 0) {
-                    infop->isDefault = true;
-                    hasDefault = true;
-                }
-                else if (!sysdefault && !hasDefault && strcmp(name, "sysdefault") == 0) {
-                    sysdefault = infop;
-                }
+            if (descr && (!io || (io == filter))) {
+                auto *infop = new QAlsaAudioDeviceInfo{
+                    name.get(),
+                    QString::fromUtf8(descr.get()),
+                    mode,
+                };
+                return infop;
             }
-
-            free(descr);
-            free(io);
         }
-        free(name);
-        ++n;
+        return nullptr;
+    };
+
+    bool hasDefault = false;
+    void **n = hints;
+    while (*n != NULL) {
+        QAlsaAudioDeviceInfo *infop = makeDeviceInfo(*n++);
+
+        if (infop) {
+            devices.append(infop->create());
+            if (!hasDefault && infop->id.startsWith("default")) {
+                infop->isDefault = true;
+                hasDefault = true;
+            }
+            if (!sysdefault && infop->id.startsWith("sysdefault"))
+                sysdefault = infop;
+        }
     }
-    snd_device_name_free_hint(hints);
 
     if (!hasDefault && sysdefault) {
         // Make "sysdefault" the default device if there is no "default" device exists
@@ -75,11 +93,15 @@ static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
         hasDefault = true;
     }
     if (!hasDefault && devices.size() > 0) {
-        auto infop = new QAlsaAudioDeviceInfo("default", QString(), QAudioDevice::Output);
-        infop->isDefault = true;
-        devices.prepend(infop->create());
+        // forcefully declare the first device as "default"
+        QAlsaAudioDeviceInfo *infop = makeDeviceInfo(hints[0]);
+        if (infop) {
+            infop->isDefault = true;
+            devices.prepend(infop->create());
+        }
     }
 
+    snd_device_name_free_hint(hints);
     return devices;
 }
 

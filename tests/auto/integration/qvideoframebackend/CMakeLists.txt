@@ -19,14 +19,8 @@ qt_internal_add_test(tst_qvideoframebackend
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
+    BUILTIN_TESTDATA
     TESTDATA ${testdata_resource_files}
     INCLUDE_DIRECTORIES
         ../shared/
-)
-
-qt_internal_add_resource(tst_qvideoframebackend "testdata"
-    PREFIX
-        "/"
-    FILES
-        ${testdata_resource_files}
 )

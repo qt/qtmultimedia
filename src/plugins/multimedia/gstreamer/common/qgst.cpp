@@ -10,6 +10,7 @@
 #include <QtMultimedia/qcameradevice.h>
 
 #include <array>
+#include <thread>
 
 QT_BEGIN_NAMESPACE
 
@@ -127,11 +128,11 @@ std::optional<QGRange<int>> QGValue::toIntRange() const
     return QGRange<int>{ gst_value_get_int_range_min(value), gst_value_get_int_range_max(value) };
 }
 
-QGstStructure QGValue::toStructure() const
+QGstStructureView QGValue::toStructure() const
 {
     if (!value || !GST_VALUE_HOLDS_STRUCTURE(value))
-        return QGstStructure();
-    return QGstStructure(gst_value_get_structure(value));
+        return QGstStructureView(nullptr);
+    return QGstStructureView(gst_value_get_structure(value));
 }
 
 QGstCaps QGValue::toCaps() const
@@ -156,38 +157,52 @@ QGValue QGValue::at(int index) const
     return QGValue{ gst_value_list_get_value(value, index) };
 }
 
-// QGstStructure
+// QGstStructureView
 
-QGstStructure::QGstStructure(const GstStructure *s) : structure(s) { }
+QGstStructureView::QGstStructureView(const GstStructure *s) : structure(s) { }
 
-void QGstStructure::free()
+QGstStructureView::QGstStructureView(const QUniqueGstStructureHandle &handle)
+    : QGstStructureView{ handle.get() }
 {
-    if (structure)
-        gst_structure_free(const_cast<GstStructure *>(structure));
-    structure = nullptr;
 }
 
-bool QGstStructure::isNull() const
+QUniqueGstStructureHandle QGstStructureView::clone() const
+{
+    return QUniqueGstStructureHandle{ gst_structure_copy(structure) };
+}
+
+bool QGstStructureView::isNull() const
 {
     return !structure;
 }
 
-QByteArrayView QGstStructure::name() const
+QByteArrayView QGstStructureView::name() const
 {
     return gst_structure_get_name(structure);
 }
 
-QGValue QGstStructure::operator[](const char *name) const
+QGValue QGstStructureView::operator[](const char *fieldname) const
 {
-    return QGValue{ gst_structure_get_value(structure, name) };
+    return QGValue{ gst_structure_get_value(structure, fieldname) };
 }
 
-QGstStructure QGstStructure::copy() const
+QGstCaps QGstStructureView::caps() const
 {
-    return gst_structure_copy(structure);
+    return operator[]("caps").toCaps();
 }
 
-QSize QGstStructure::resolution() const
+QGstTagListHandle QGstStructureView::tags() const
+{
+    QGValue tags = operator[]("tags");
+    if (tags.isNull())
+        return {};
+
+    QGstTagListHandle tagList;
+    gst_structure_get(structure, "tags", GST_TYPE_TAG_LIST, &tagList, nullptr);
+    return tagList;
+}
+
+QSize QGstStructureView::resolution() const
 {
     QSize size;
 
@@ -201,7 +216,7 @@ QSize QGstStructure::resolution() const
     return size;
 }
 
-QVideoFrameFormat::PixelFormat QGstStructure::pixelFormat() const
+QVideoFrameFormat::PixelFormat QGstStructureView::pixelFormat() const
 {
     QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_Invalid;
 
@@ -224,13 +239,13 @@ QVideoFrameFormat::PixelFormat QGstStructure::pixelFormat() const
     return pixelFormat;
 }
 
-QGRange<float> QGstStructure::frameRateRange() const
+QGRange<float> QGstStructureView::frameRateRange() const
 {
-    float minRate = 0.;
-    float maxRate = 0.;
-
     if (!structure)
         return { 0.f, 0.f };
+
+    std::optional<float> minRate;
+    std::optional<float> maxRate;
 
     auto extractFraction = [](const GValue *v) -> float {
         return (float)gst_value_get_fraction_numerator(v)
@@ -238,9 +253,9 @@ QGRange<float> QGstStructure::frameRateRange() const
     };
     auto extractFrameRate = [&](const GValue *v) {
         auto insert = [&](float min, float max) {
-            if (max > maxRate)
+            if (!maxRate || max > maxRate)
                 maxRate = max;
-            if (min < minRate)
+            if (!minRate || min < minRate)
                 minRate = min;
         };
 
@@ -248,8 +263,8 @@ QGRange<float> QGstStructure::frameRateRange() const
             float rate = extractFraction(v);
             insert(rate, rate);
         } else if (GST_VALUE_HOLDS_FRACTION_RANGE(v)) {
-            auto *min = gst_value_get_fraction_range_max(v);
-            auto *max = gst_value_get_fraction_range_max(v);
+            const GValue *min = gst_value_get_fraction_range_min(v);
+            const GValue *max = gst_value_get_fraction_range_max(v);
             insert(extractFraction(min), extractFraction(max));
         }
     };
@@ -273,17 +288,49 @@ QGRange<float> QGstStructure::frameRateRange() const
         }
     }
 
-    return { minRate, maxRate };
+    if (!minRate || !maxRate)
+        return { 0.f, 0.f };
+
+    return {
+        minRate.value_or(*maxRate),
+        maxRate.value_or(*minRate),
+    };
 }
 
-QGstreamerMessage QGstStructure::getMessage()
+std::optional<QGRange<QSize>> QGstStructureView::resolutionRange() const
+{
+    if (!structure)
+        return std::nullopt;
+
+    const GValue *width = gst_structure_get_value(structure, "width");
+    const GValue *height = gst_structure_get_value(structure, "height");
+
+    if (!width || !height)
+        return std::nullopt;
+
+    for (const GValue *v : { width, height })
+        if (!GST_VALUE_HOLDS_INT_RANGE(v))
+            return std::nullopt;
+
+    int minWidth = gst_value_get_int_range_min(width);
+    int maxWidth = gst_value_get_int_range_max(width);
+    int minHeight = gst_value_get_int_range_min(height);
+    int maxHeight = gst_value_get_int_range_max(height);
+
+    return QGRange<QSize>{
+        QSize(minWidth, minHeight),
+        QSize(maxWidth, maxHeight),
+    };
+}
+
+QGstreamerMessage QGstStructureView::getMessage()
 {
     GstMessage *message = nullptr;
     gst_structure_get(structure, "message", GST_TYPE_MESSAGE, &message, nullptr);
     return QGstreamerMessage(message, QGstreamerMessage::HasRef);
 }
 
-std::optional<Fraction> QGstStructure::pixelAspectRatio() const
+std::optional<Fraction> QGstStructureView::pixelAspectRatio() const
 {
     gint numerator;
     gint denominator;
@@ -297,7 +344,20 @@ std::optional<Fraction> QGstStructure::pixelAspectRatio() const
     return std::nullopt;
 }
 
-QSize QGstStructure::nativeSize() const
+// QTBUG-125249: gstreamer tries "to keep the input height (because of interlacing)". Can we align
+// the behavior between gstreamer and ffmpeg?
+static QSize qCalculateFrameSizeGStreamer(QSize resolution, Fraction par)
+{
+    if (par.numerator == par.denominator || par.numerator < 1 || par.denominator < 1)
+        return resolution;
+
+    return QSize{
+        resolution.width() * par.numerator / par.denominator,
+        resolution.height(),
+    };
+}
+
+QSize QGstStructureView::nativeSize() const
 {
     QSize size = resolution();
     if (!size.isValid()) {
@@ -307,7 +367,7 @@ QSize QGstStructure::nativeSize() const
 
     std::optional<Fraction> par = pixelAspectRatio();
     if (par)
-        size = qCalculateFrameSize(size, *par);
+        size = qCalculateFrameSizeGStreamer(size, *par);
     return size;
 }
 
@@ -505,9 +565,11 @@ int QGstCaps::size() const
     return int(gst_caps_get_size(get()));
 }
 
-QGstStructure QGstCaps::at(int index) const
+QGstStructureView QGstCaps::at(int index) const
 {
-    return gst_caps_get_structure(get(), index);
+    return QGstStructureView{
+        gst_caps_get_structure(get(), index),
+    };
 }
 
 GstCaps *QGstCaps::caps() const
@@ -567,6 +629,11 @@ void QGstObject::set(const char *property, const QGstCaps &c)
     g_object_set(get(), property, c.caps(), nullptr);
 }
 
+void QGstObject::set(const char *property, void *object, GDestroyNotify destroyFunction)
+{
+    g_object_set_data_full(qGstCheckedCast<GObject>(get()), property, object, destroyFunction);
+}
+
 QGString QGstObject::getString(const char *property) const
 {
     char *s = nullptr;
@@ -574,11 +641,11 @@ QGString QGstObject::getString(const char *property) const
     return QGString(s);
 }
 
-QGstStructure QGstObject::getStructure(const char *property) const
+QGstStructureView QGstObject::getStructure(const char *property) const
 {
     GstStructure *s = nullptr;
     g_object_get(get(), property, &s, nullptr);
-    return QGstStructure(s);
+    return QGstStructureView(s);
 }
 
 bool QGstObject::getBool(const char *property) const
@@ -630,11 +697,16 @@ double QGstObject::getDouble(const char *property) const
     return d;
 }
 
-QGstObject QGstObject::getObject(const char *property) const
+QGstObject QGstObject::getGstObject(const char *property) const
 {
     GstObject *o = nullptr;
     g_object_get(get(), property, &o, nullptr);
     return QGstObject(o, HasRef);
+}
+
+void *QGstObject::getObject(const char *property) const
+{
+    return g_object_get_data(qGstCheckedCast<GObject>(get()), property);
 }
 
 QGObjectHandlerConnection QGstObject::connect(const char *name, GCallback callback,
@@ -656,14 +728,23 @@ GType QGstObject::type() const
     return G_OBJECT_TYPE(get());
 }
 
+QLatin1StringView QGstObject::typeName() const
+{
+    return QLatin1StringView{
+        g_type_name(type()),
+    };
+}
+
 GstObject *QGstObject::object() const
 {
     return get();
 }
 
-const char *QGstObject::name() const
+QLatin1StringView QGstObject::name() const
 {
-    return get() ? GST_OBJECT_NAME(get()) : "(null)";
+    using namespace Qt::StringLiterals;
+
+    return get() ? QLatin1StringView{ GST_OBJECT_NAME(get()) } : "(null)"_L1;
 }
 
 // QGObjectHandlerConnection
@@ -731,6 +812,35 @@ QGstCaps QGstPad::queryCaps() const
     return QGstCaps(gst_pad_query_caps(pad(), nullptr), QGstCaps::HasRef);
 }
 
+QGstTagListHandle QGstPad::tags() const
+{
+    QGstTagListHandle tagList;
+    g_object_get(object(), "tags", &tagList, nullptr);
+    return tagList;
+}
+
+QGString QGstPad::streamId() const
+{
+    return QGString{
+        gst_pad_get_stream_id(pad()),
+    };
+}
+
+std::optional<QPlatformMediaPlayer::TrackType> QGstPad::inferTrackTypeFromName() const
+{
+    using namespace Qt::Literals;
+    QLatin1StringView padName = name();
+
+    if (padName.startsWith("video_"_L1))
+        return QPlatformMediaPlayer::TrackType::VideoStream;
+    if (padName.startsWith("audio_"_L1))
+        return QPlatformMediaPlayer::TrackType::AudioStream;
+    if (padName.startsWith("text_"_L1))
+        return QPlatformMediaPlayer::TrackType::SubtitleStream;
+
+    return std::nullopt;
+}
+
 bool QGstPad::isLinked() const
 {
     return gst_pad_is_linked(pad());
@@ -774,6 +884,33 @@ GstEvent *QGstPad::stickyEvent(GstEventType type)
 bool QGstPad::sendEvent(GstEvent *event)
 {
     return gst_pad_send_event(pad(), event);
+}
+
+void QGstPad::sendFlushStartStop(bool resetTime)
+{
+    GstEvent *flushStart = gst_event_new_flush_start();
+    gboolean ret = sendEvent(flushStart);
+    if (!ret) {
+        qWarning("failed to send flush-start event");
+        return;
+    }
+
+    GstEvent *flushStop = gst_event_new_flush_stop(resetTime);
+    ret = sendEvent(flushStop);
+    if (!ret)
+        qWarning("failed to send flush-stop event");
+}
+
+void QGstPad::sendFlushIfPaused()
+{
+    using namespace std::chrono_literals;
+
+    GstState state = parent().state(1s);
+
+    if (state != GST_STATE_PAUSED)
+        return;
+
+    sendFlushStartStop(/*resetTime=*/true);
 }
 
 // QGstClock
@@ -831,6 +968,20 @@ QGstElement QGstElement::createFromFactory(const char *factory, const char *name
     };
 }
 
+QGstElement QGstElement::createFromFactory(GstElementFactory *factory, const char *name)
+{
+    return QGstElement{
+        gst_element_factory_create(factory, name),
+        NeedsRef,
+    };
+}
+
+QGstElement QGstElement::createFromFactory(const QGstElementFactoryHandle &factory,
+                                           const char *name)
+{
+    return createFromFactory(factory.get(), name);
+}
+
 QGstElement QGstElement::createFromDevice(const QGstDeviceHandle &device, const char *name)
 {
     return createFromDevice(device.get(), name);
@@ -842,6 +993,38 @@ QGstElement QGstElement::createFromDevice(GstDevice *device, const char *name)
         gst_device_create_element(device, name),
         QGstElement::NeedsRef,
     };
+}
+
+QGstElement QGstElement::createFromPipelineDescription(const char *str)
+{
+    QUniqueGErrorHandle error;
+    QGstElement element{
+        gst_parse_launch(str, &error),
+        QGstElement::NeedsRef,
+    };
+
+    if (error) // error does not mean that the element could not be constructed
+        qWarning() << "gst_parse_launch error:" << error;
+
+    return element;
+}
+
+QGstElement QGstElement::createFromPipelineDescription(const QByteArray &str)
+{
+    return createFromPipelineDescription(str.constData());
+}
+
+QGstElementFactoryHandle QGstElement::findFactory(const char *name)
+{
+    return QGstElementFactoryHandle{
+        gst_element_factory_find(name),
+        QGstElementFactoryHandle::HasRef,
+    };
+}
+
+QGstElementFactoryHandle QGstElement::findFactory(const QByteArray &name)
+{
+    return findFactory(name.constData());
 }
 
 QGstPad QGstElement::staticPad(const char *name) const
@@ -895,15 +1078,24 @@ GstStateChangeReturn QGstElement::setState(GstState state)
 
 bool QGstElement::setStateSync(GstState state, std::chrono::nanoseconds timeout)
 {
-    GstStateChangeReturn change = gst_element_set_state(element(), state);
-    if (change == GST_STATE_CHANGE_ASYNC) {
-        change = gst_element_get_state(element(), nullptr, &state, timeout.count());
+    if (state == GST_STATE_NULL) {
+        // QTBUG-125251: when changing pipeline state too quickly between NULL->PAUSED->NULL there
+        // may be a pending task to activate pads while we try to switch to NULL. This can cause an
+        // assertion failure in gstreamer. we therefore finish the state change when called on a bin
+        // or pipeline.
+        if (qIsGstObjectOfType<GstBin>(element()))
+            finishStateChange();
     }
-#ifndef QT_NO_DEBUG
-    if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL)
+
+    GstStateChangeReturn change = gst_element_set_state(element(), state);
+    if (change == GST_STATE_CHANGE_ASYNC)
+        change = gst_element_get_state(element(), nullptr, &state, timeout.count());
+
+    if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL) {
         qWarning() << "Could not change state of" << name() << "to" << state << change;
-#endif
-    return change == GST_STATE_CHANGE_SUCCESS;
+        dumpPipelineGraph("setStateSyncFailure");
+    }
+    return change == GST_STATE_CHANGE_SUCCESS || change == GST_STATE_CHANGE_NO_PREROLL;
 }
 
 bool QGstElement::syncStateWithParent()
@@ -918,11 +1110,32 @@ bool QGstElement::finishStateChange(std::chrono::nanoseconds timeout)
     GstStateChangeReturn change =
             gst_element_get_state(element(), &state, &pending, timeout.count());
 
-#ifndef QT_NO_DEBUG
-    if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL)
+    if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL) {
         qWarning() << "Could not finish change state of" << name() << change << state << pending;
-#endif
+        dumpPipelineGraph("finishStateChangeFailure");
+    }
     return change == GST_STATE_CHANGE_SUCCESS;
+}
+
+bool QGstElement::hasAsyncStateChange(std::chrono::nanoseconds timeout) const
+{
+    GstState state;
+    GstStateChangeReturn change =
+            gst_element_get_state(element(), &state, nullptr, timeout.count());
+    return change == GST_STATE_CHANGE_ASYNC;
+}
+
+bool QGstElement::waitForAsyncStateChangeComplete(std::chrono::nanoseconds timeout) const
+{
+    using namespace std::chrono_literals;
+    for (;;) {
+        if (!hasAsyncStateChange())
+            return true;
+        timeout -= 10ms;
+        if (timeout < 0ms)
+            return false;
+        std::this_thread::sleep_for(10ms);
+    }
 }
 
 void QGstElement::lockState(bool locked)
@@ -943,6 +1156,64 @@ void QGstElement::sendEvent(GstEvent *event) const
 void QGstElement::sendEos() const
 {
     sendEvent(gst_event_new_eos());
+}
+
+std::optional<std::chrono::nanoseconds> QGstElement::duration() const
+{
+    gint64 d;
+    if (!gst_element_query_duration(element(), GST_FORMAT_TIME, &d)) {
+        qDebug() << "QGstElement: failed to query duration";
+        return std::nullopt;
+    }
+    return std::chrono::nanoseconds{ d };
+}
+
+std::optional<std::chrono::milliseconds> QGstElement::durationInMs() const
+{
+    using namespace std::chrono;
+    auto dur = duration();
+    if (dur)
+        return round<milliseconds>(*dur);
+    return std::nullopt;
+}
+
+std::optional<std::chrono::nanoseconds> QGstElement::position() const
+{
+    QGstQueryHandle &query = positionQuery();
+
+    gint64 pos;
+    if (gst_element_query(element(), query.get())) {
+        gst_query_parse_position(query.get(), nullptr, &pos);
+        return std::chrono::nanoseconds{ pos };
+    }
+
+    qDebug() << "QGstElement: failed to query position";
+    return std::nullopt;
+}
+
+std::optional<std::chrono::milliseconds> QGstElement::positionInMs() const
+{
+    using namespace std::chrono;
+    auto pos = position();
+    if (pos)
+        return round<milliseconds>(*pos);
+    return std::nullopt;
+}
+
+std::optional<bool> QGstElement::canSeek() const
+{
+    QGstQueryHandle query{
+        gst_query_new_seeking(GST_FORMAT_TIME),
+        QGstQueryHandle::HasRef,
+    };
+    gboolean canSeek = false;
+    gst_query_parse_seeking(query.get(), nullptr, &canSeek, nullptr, nullptr);
+
+    if (gst_element_query(element(), query.get())) {
+        gst_query_parse_seeking(query.get(), nullptr, &canSeek, nullptr, nullptr);
+        return canSeek;
+    }
+    return std::nullopt;
 }
 
 GstClockTime QGstElement::baseTime() const
@@ -985,6 +1256,27 @@ QGstPipeline QGstElement::getPipeline() const
     }
 }
 
+void QGstElement::dumpPipelineGraph(const char *filename) const
+{
+    static const bool dumpEnabled = qEnvironmentVariableIsSet("GST_DEBUG_DUMP_DOT_DIR");
+    if (dumpEnabled) {
+        QGstPipeline pipeline = getPipeline();
+        if (pipeline)
+            pipeline.dumpGraph(filename);
+    }
+}
+
+QGstQueryHandle &QGstElement::positionQuery() const
+{
+    if (Q_UNLIKELY(!m_positionQuery))
+        m_positionQuery = QGstQueryHandle{
+            gst_query_new_position(GST_FORMAT_TIME),
+            QGstQueryHandle::HasRef,
+        };
+
+    return m_positionQuery;
+}
+
 // QGstBin
 
 QGstBin QGstBin::create(const char *name)
@@ -999,6 +1291,36 @@ QGstBin QGstBin::createFromFactory(const char *factory, const char *name)
     return QGstBin{
         GST_BIN(element.release()),
         RefMode::HasRef,
+    };
+}
+
+QGstBin QGstBin::createFromPipelineDescription(const QByteArray &pipelineDescription,
+                                               const char *name, bool ghostUnlinkedPads)
+{
+    return createFromPipelineDescription(pipelineDescription.constData(), name, ghostUnlinkedPads);
+}
+
+QGstBin QGstBin::createFromPipelineDescription(const char *pipelineDescription, const char *name,
+                                               bool ghostUnlinkedPads)
+{
+    QUniqueGErrorHandle error;
+
+    GstElement *element =
+            gst_parse_bin_from_description_full(pipelineDescription, ghostUnlinkedPads,
+                                                /*context=*/nullptr, GST_PARSE_FLAG_NONE, &error);
+
+    if (!element) {
+        qWarning() << "Failed to make element from pipeline description" << pipelineDescription
+                   << error;
+        return QGstBin{};
+    }
+
+    if (name)
+        gst_element_set_name(element, name);
+
+    return QGstBin{
+        element,
+        NeedsRef,
     };
 }
 
@@ -1030,17 +1352,12 @@ bool QGstBin::syncChildrenState()
     return gst_bin_sync_children_states(bin());
 }
 
-void QGstBin::dumpGraph(const char *fileNamePrefix)
+void QGstBin::dumpGraph(const char *fileNamePrefix) const
 {
     if (isNull())
         return;
 
-    GST_DEBUG_BIN_TO_DOT_FILE(bin(),
-                              GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL
-                                                   | GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE
-                                                   | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS
-                                                   | GST_DEBUG_GRAPH_SHOW_STATES),
-                              fileNamePrefix);
+    GST_DEBUG_BIN_TO_DOT_FILE(bin(), GST_DEBUG_GRAPH_SHOW_VERBOSE, fileNamePrefix);
 }
 
 QGstElement QGstBin::findByName(const char *name)
@@ -1051,6 +1368,11 @@ QGstElement QGstBin::findByName(const char *name)
     };
 }
 
+void QGstBin::recalculateLatency()
+{
+    gst_bin_recalculate_latency(bin());
+}
+
 // QGstBaseSink
 
 QGstBaseSink::QGstBaseSink(GstBaseSink *element, RefMode mode)
@@ -1059,6 +1381,11 @@ QGstBaseSink::QGstBaseSink(GstBaseSink *element, RefMode mode)
           mode,
       }
 {
+}
+
+void QGstBaseSink::setSync(bool arg)
+{
+    gst_base_sink_set_sync(baseSink(), arg ? TRUE : FALSE);
 }
 
 GstBaseSink *QGstBaseSink::baseSink() const
@@ -1080,8 +1407,6 @@ GstBaseSrc *QGstBaseSrc::baseSrc() const
 {
     return qGstCheckedCast<GstBaseSrc>(element());
 }
-
-#if QT_CONFIG(gstreamer_app)
 
 // QGstAppSink
 
@@ -1105,6 +1430,18 @@ QGstAppSink QGstAppSink::create(const char *name)
 GstAppSink *QGstAppSink::appSink() const
 {
     return qGstCheckedCast<GstAppSink>(element());
+}
+
+#  if GST_CHECK_VERSION(1, 24, 0)
+void QGstAppSink::setMaxBufferTime(std::chrono::nanoseconds ns)
+{
+    gst_app_sink_set_max_time(appSink(), qGstClockTimeFromChrono(ns));
+}
+#  endif
+
+void QGstAppSink::setMaxBuffers(int n)
+{
+    gst_app_sink_set_max_buffers(appSink(), n);
 }
 
 void QGstAppSink::setCaps(const QGstCaps &caps)
@@ -1161,6 +1498,10 @@ GstFlowReturn QGstAppSrc::pushBuffer(GstBuffer *buffer)
     return gst_app_src_push_buffer(appSrc(), buffer);
 }
 
-#endif
+QString qGstErrorMessageCannotFindElement(std::string_view element)
+{
+    return QStringLiteral("Could not find the %1 GStreamer element")
+            .arg(QLatin1StringView(element));
+}
 
 QT_END_NAMESPACE

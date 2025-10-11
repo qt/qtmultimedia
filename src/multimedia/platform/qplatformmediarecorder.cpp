@@ -15,12 +15,12 @@ QPlatformMediaRecorder::QPlatformMediaRecorder(QMediaRecorder *parent)
 
 void QPlatformMediaRecorder::pause()
 {
-    error(QMediaRecorder::FormatError, QMediaRecorder::tr("Pause not supported"));
+    updateError(QMediaRecorder::FormatError, QMediaRecorder::tr("Pause not supported"));
 }
 
 void QPlatformMediaRecorder::resume()
 {
-    error(QMediaRecorder::FormatError, QMediaRecorder::tr("Resume not supported"));
+    updateError(QMediaRecorder::FormatError, QMediaRecorder::tr("Resume not supported"));
 }
 
 void QPlatformMediaRecorder::stateChanged(QMediaRecorder::RecorderState state)
@@ -47,7 +47,7 @@ void QPlatformMediaRecorder::actualLocationChanged(const QUrl &location)
     emit q->actualLocationChanged(location);
 }
 
-void QPlatformMediaRecorder::error(QMediaRecorder::Error error, const QString &errorString)
+void QPlatformMediaRecorder::updateError(QMediaRecorder::Error error, const QString &errorString)
 {
     m_error.setAndNotify(error, errorString, *q);
 }
@@ -64,7 +64,7 @@ QString QPlatformMediaRecorder::findActualLocation(const QMediaEncoderSettings &
     const auto primaryLocation =
             audioOnly ? QStandardPaths::MusicLocation : QStandardPaths::MoviesLocation;
     const QString suffix = settings.mimeType().preferredSuffix();
-    const QString location = QMediaStorageLocation::generateFileName(
+    QString location = QMediaStorageLocation::generateFileName(
             outputLocation().toString(QUrl::PreferLocalFile), primaryLocation, suffix);
 
     Q_ASSERT(!location.isEmpty());

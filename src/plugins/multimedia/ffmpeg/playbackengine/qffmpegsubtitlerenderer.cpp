@@ -17,8 +17,14 @@ SubtitleRenderer::SubtitleRenderer(const TimeController &tc, QVideoSink *sink)
 
 void SubtitleRenderer::setOutput(QVideoSink *sink, bool cleanPrevSink)
 {
-    setOutputInternal(m_sink, sink, [cleanPrevSink](QVideoSink *prev) {
-        if (prev && cleanPrevSink)
+    setOutputInternal(m_sink, sink, [=](QVideoSink *prev) {
+        if (!prev)
+            return;
+
+        if (sink)
+            sink->setSubtitleText(prev->subtitleText());
+
+        if (cleanPrevSink)
             prev->setSubtitleText({});
     });
 }

@@ -240,11 +240,7 @@ void AVFCameraRenderer::handleViewfinderFrame()
     }
 
     if (m_sink && frame.isValid()) {
-        // ### pass format to surface
-        QVideoFrameFormat format = frame.surfaceFormat();
-        if (m_needsHorizontalMirroring)
-            format.setMirrored(true);
-
+        // frame.setMirroed(m_needsHorizontalMirroring) ?
         m_sink->setVideoFrame(frame);
     }
 }

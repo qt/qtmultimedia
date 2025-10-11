@@ -71,7 +71,11 @@ Q_SIGNALS:
     void audioOutputChanged();
 
 private:
-    QMediaCaptureSessionPrivate *d_ptr;
+    friend class QPlatformMediaCaptureSession;
+
+    // ### Qt7: remove unused member
+    QT6_ONLY(void *unused = nullptr;) // for ABI compatibility
+
     Q_DISABLE_COPY(QMediaCaptureSession)
     Q_DECLARE_PRIVATE(QMediaCaptureSession)
 };

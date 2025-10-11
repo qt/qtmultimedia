@@ -19,6 +19,7 @@
 #include <gst/gstbuffer.h>
 
 #include <QtCore/qglobal.h>
+#include <QtCore/qlocale.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -32,6 +33,8 @@ QAudioFormat audioFormatForCaps(const QGstCaps &caps);
 QGstCaps capsForAudioFormat(const QAudioFormat &format);
 
 void setFrameTimeStampsFromBuffer(QVideoFrame *frame, GstBuffer *buffer);
+
+QLocale::Language codeToLanguage(const gchar *);
 } // namespace QGstUtils
 
 GList *qt_gst_video_sinks();

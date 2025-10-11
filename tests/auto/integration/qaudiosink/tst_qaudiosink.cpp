@@ -24,6 +24,8 @@ public:
 
 private slots:
     void initTestCase();
+    void cleanupTestCase();
+
     void format();
     void invalidFormat_data();
     void invalidFormat();
@@ -284,6 +286,12 @@ void tst_QAudioSink::initTestCase()
         file->close();
         audioFiles.append(file);
     }
+}
+
+void tst_QAudioSink::cleanupTestCase()
+{
+    audioFiles.clear();
+    testFormats.clear();
 }
 
 void tst_QAudioSink::format()

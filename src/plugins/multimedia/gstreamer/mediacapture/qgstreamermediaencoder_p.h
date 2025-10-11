@@ -18,6 +18,7 @@
 
 #include <mediacapture/qgstreamermediacapture_p.h>
 #include <common/qgstreamermetadata_p.h>
+#include <common/qgst_bus_p.h>
 
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <QtCore/qurl.h>
@@ -76,10 +77,10 @@ private:
     void finalize();
 
     QGstreamerMediaCapture *m_session = nullptr;
-    QGstreamerMetaData m_metaData;
+    QMediaMetaData m_metaData;
     QTimer signalDurationChangedTimer;
 
-    QGstPipeline gstPipeline;
+    QGstPipeline capturePipeline;
     QGstBin gstEncoder;
     QGstElement gstFileSink;
 

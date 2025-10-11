@@ -188,9 +188,7 @@ bool isCodecValid(const AVCodec *codec, const std::vector<AVHWDeviceType> &avail
     if (codec->type != AVMEDIA_TYPE_VIDEO)
         return true;
 
-    const auto pixFmts = codec->pix_fmts;
-
-    if (!pixFmts) {
+    if (!codec->pix_fmts) {
 #if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
         // Disable V4L2 M2M codecs for encoding for now,
         // TODO: Investigate on how to get them working
@@ -209,14 +207,14 @@ bool isCodecValid(const AVCodec *codec, const std::vector<AVHWDeviceType> &avail
         // and with v4l2m2m codecs, that is suspicious.
     }
 
-    if (findAVFormat(pixFmts, &isHwPixelFormat) == AV_PIX_FMT_NONE)
+    if (findAVPixelFormat(codec, &isHwPixelFormat) == AV_PIX_FMT_NONE)
         return true;
 
     if ((codec->capabilities & AV_CODEC_CAP_HARDWARE) == 0)
         return true;
 
-    auto checkDeviceType = [pixFmts](AVHWDeviceType type) {
-        return hasAVFormat(pixFmts, pixelFormatForHwDevice(type));
+    auto checkDeviceType = [codec](AVHWDeviceType type) {
+        return isAVFormatSupported(codec, pixelFormatForHwDevice(type));
     };
 
     if (codecAvailableOnDevice && codecAvailableOnDevice->count(codec->id) == 0)
@@ -338,6 +336,9 @@ const char *preferredHwCodecNameSuffix(bool isEncoder, AVHWDeviceType deviceType
         return "_videotoolbox";
     case AV_HWDEVICE_TYPE_D3D11VA:
     case AV_HWDEVICE_TYPE_DXVA2:
+#if QT_FFMPEG_HAS_D3D12VA
+    case AV_HWDEVICE_TYPE_D3D12VA:
+#endif
         return "_mf";
     case AV_HWDEVICE_TYPE_CUDA:
     case AV_HWDEVICE_TYPE_VDPAU:
@@ -386,6 +387,8 @@ const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
                            const std::optional<AVHWDeviceType> &deviceType,
                            const std::optional<PixelOrSampleFormat> &format)
 {
+    // TODO: remove deviceType and use only isAVFormatSupported to check the format
+
     return findAVCodec(codecsType, codecId, [&](const AVCodec *codec) {
         if (format && !isAVFormatSupported(codec, *format))
             return NotSuitableAVScore;
@@ -411,6 +414,7 @@ const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
             // The situation happens mostly with encoders
             // Probably, it's ffmpeg bug: avcodec_get_hw_config returns null even though
             // hw acceleration is supported
+            // To be removed: only isAVFormatSupported should be used.
             if (hasAVFormat(codec->pix_fmts, pixelFormatForHwDevice(*deviceType)))
                 return hwCodecNameScores(codec, *deviceType);
         }
@@ -441,8 +445,10 @@ const AVCodec *findAVEncoder(AVCodecID codecId,
 
 bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format)
 {
-    if (codec->type == AVMEDIA_TYPE_VIDEO)
-        return hasAVFormat(codec->pix_fmts, AVPixelFormat(format));
+    if (codec->type == AVMEDIA_TYPE_VIDEO) {
+        auto checkFormat = [format](AVPixelFormat f) { return f == format; };
+        return findAVPixelFormat(codec, checkFormat) != AV_PIX_FMT_NONE;
+    }
 
     if (codec->type == AVMEDIA_TYPE_AUDIO)
         return hasAVFormat(codec->sample_fmts, AVSampleFormat(format));
@@ -489,6 +495,10 @@ AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)
         return AV_PIX_FMT_QSV;
     case AV_HWDEVICE_TYPE_D3D11VA:
         return AV_PIX_FMT_D3D11;
+#if QT_FFMPEG_HAS_D3D12VA
+    case AV_HWDEVICE_TYPE_D3D12VA:
+        return AV_PIX_FMT_D3D12;
+#endif
     case AV_HWDEVICE_TYPE_DXVA2:
         return AV_PIX_FMT_DXVA2_VLD;
     case AV_HWDEVICE_TYPE_DRM:

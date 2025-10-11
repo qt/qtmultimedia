@@ -1,0 +1,25 @@
+type: Group
+enable_if:
+  condition: or
+  conditions:
+    - condition: runtime
+      env_var: TARGET_OSVERSION_COIN
+      contains_value: ubuntu
+    # Disabling on rhel/opensuse for now due to missing h264 codecs on CI
+    # - condition: runtime
+    #   env_var: TARGET_OSVERSION_COIN
+    #   contains_value: rhel
+    # - condition: runtime
+    #   env_var: TARGET_OSVERSION_COIN
+    #   contains_value: opensuse
+
+instructions:
+  - type: EnvironmentVariable
+    variableName: QT_MEDIA_BACKEND
+    variableValue: gstreamer
+
+  # QTBUG-127927
+  # - type: EnvironmentVariable
+  #   variableName: G_DEBUG
+  #   variableValue: fatal_criticals
+  - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"

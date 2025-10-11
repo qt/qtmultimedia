@@ -12,6 +12,7 @@
 #include <qpointer.h>
 #include <QFileInfo>
 #include <QtCore/qmath.h>
+#include <QtCore/qmutex.h>
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -59,6 +60,12 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 - (BOOL) resourceLoader:(AVAssetResourceLoader *)resourceLoader shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest;
 @end
 
+#ifdef Q_OS_IOS
+// Alas, no such thing as 'class variable', hence globals:
+static unsigned sessionActivationCount;
+static QMutex sessionMutex;
+#endif // Q_OS_IOS
+
 @implementation AVFMediaPlayerObserver
 {
 @private
@@ -70,9 +77,38 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
     BOOL m_bufferIsLikelyToKeepUp;
     NSData *m_data;
     NSString *m_mimeType;
+#ifdef Q_OS_IOS
+    BOOL m_activated;
+#endif
 }
 
 @synthesize m_player, m_playerItem, m_playerLayer, m_session;
+
+#ifdef Q_OS_IOS
+- (void)setSessionActive:(BOOL)active
+{
+    const QMutexLocker lock(&sessionMutex);
+    if (active) {
+        // Don't count the same player twice if already activated,
+        // unless it tried to deactivate first:
+        if (m_activated)
+            return;
+        if (!sessionActivationCount)
+            [AVAudioSession.sharedInstance setActive:YES error:nil];
+        ++sessionActivationCount;
+        m_activated = YES;
+    } else {
+        if (!sessionActivationCount || !m_activated) {
+            qWarning("Unbalanced audio session deactivation, ignoring.");
+            return;
+        }
+        --sessionActivationCount;
+        m_activated = NO;
+        if (!sessionActivationCount)
+            [AVAudioSession.sharedInstance setActive:NO error:nil];
+    }
+}
+#endif // Q_OS_IOS
 
 - (AVFMediaPlayerObserver *) initWithMediaPlayerSession:(AVFMediaPlayer *)session
 {
@@ -152,7 +188,7 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
     if (m_playerLayer)
         m_playerLayer.player = nil;
 #if defined(Q_OS_IOS)
-    [[AVAudioSession sharedInstance] setActive:NO error:nil];
+    [self setSessionActive:NO];
 #endif
 }
 
@@ -241,11 +277,12 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
     m_player = [AVPlayer playerWithPlayerItem:m_playerItem];
     [m_player retain];
 
-    //Set the initial volume on new player object
+    //Set the initial audio ouptut settings on new player object
     if (self.session) {
         auto *audioOutput = m_session->m_audioOutput;
         m_player.volume = (audioOutput ? audioOutput->volume : 1.);
         m_player.muted = (audioOutput ? audioOutput->muted : true);
+        m_session->updateAudioOutputDevice();
     }
 
     //Assign the output layer to the new player
@@ -272,7 +309,7 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
                           context:AVFMediaPlayerObserverCurrentItemDurationObservationContext];
 #if defined(Q_OS_IOS)
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
-    [[AVAudioSession sharedInstance] setActive:YES error:nil];
+    [self setSessionActive:YES];
 #endif
 }
 
@@ -707,12 +744,12 @@ void AVFMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
         m_audioOutput->q->disconnect(this);
     m_audioOutput = output;
     if (m_audioOutput) {
-        connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, &AVFMediaPlayer::audioOutputChanged);
+        connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, &AVFMediaPlayer::updateAudioOutputDevice);
         connect(m_audioOutput->q, &QAudioOutput::volumeChanged, this, &AVFMediaPlayer::setVolume);
         connect(m_audioOutput->q, &QAudioOutput::mutedChanged, this, &AVFMediaPlayer::setMuted);
         //connect(m_audioOutput->q, &QAudioOutput::audioRoleChanged, this, &AVFMediaPlayer::setAudioRole);
     }
-    audioOutputChanged();
+    updateAudioOutputDevice();
     setMuted(m_audioOutput ? m_audioOutput->muted : true);
     setVolume(m_audioOutput ? m_audioOutput->volume : 1.);
 }
@@ -893,7 +930,7 @@ void AVFMediaPlayer::setMuted(bool muted)
         player.muted = muted;
 }
 
-void AVFMediaPlayer::audioOutputChanged()
+void AVFMediaPlayer::updateAudioOutputDevice()
 {
 #ifdef Q_OS_MACOS
     AVPlayer *player = [static_cast<AVFMediaPlayerObserver*>(m_observer) player];

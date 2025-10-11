@@ -186,7 +186,7 @@ public:
     {
         if (FAILED(status)) {
             const std::string msg{ std::system_category().message(status) };
-            emit m_windowsCamera.error(QCamera::CameraError, QString::fromStdString(msg));
+            m_windowsCamera.updateError(QCamera::CameraError, QString::fromStdString(msg));
             return;
         }
 

@@ -18,14 +18,13 @@
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
+#include <common/qgst_bus_p.h>
 #include <common/qgst_p.h>
 #include <common/qgstpipeline_p.h>
 
-#include <qtimer.h>
-
 QT_BEGIN_NAMESPACE
 
-class QGstreamerCamera;
+class QGstreamerCameraBase;
 class QGstreamerImageCapture;
 class QGstreamerMediaEncoder;
 class QGstreamerAudioInput;
@@ -33,7 +32,7 @@ class QGstreamerAudioOutput;
 class QGstreamerVideoOutput;
 class QGstreamerVideoSink;
 
-class QGstreamerMediaCapture final : public QPlatformMediaCaptureSession
+class QGstreamerMediaCapture final : public QPlatformMediaCaptureSession, QGstreamerBusMessageFilter
 {
     Q_OBJECT
 
@@ -59,21 +58,25 @@ public:
     void linkEncoder(QGstPad audioSink, QGstPad videoSink);
     void unlinkEncoder();
 
-    QGstPipeline pipeline() const { return gstPipeline; }
+    const QGstPipeline &pipeline() const;
 
     QGstreamerVideoSink *gstreamerVideoSink() const;
 
 private:
+    bool processBusMessage(const QGstreamerMessage &) override;
+    bool processBusMessageError(const QGstreamerMessage &);
+    bool processBusMessageLatency(const QGstreamerMessage &);
+
     void setCameraActive(bool activate);
 
     explicit QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutput);
 
     friend QGstreamerMediaEncoder;
     // Gst elements
-    QGstPipeline gstPipeline;
+    QGstPipeline capturePipeline;
 
     QGstreamerAudioInput *gstAudioInput = nullptr;
-    QGstreamerCamera *gstCamera = nullptr;
+    QGstreamerCameraBase *gstCamera = nullptr;
     QMetaObject::Connection gstCameraActiveConnection;
 
     QGstElement gstAudioTee;

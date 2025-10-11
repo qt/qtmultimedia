@@ -10,9 +10,11 @@
 #include "server.h"
 #include <qmediametadata.h>
 #include <qaudiobuffer.h>
+#include <qaudiodevice.h>
 #include <qvideosink.h>
 #include <qvideoframe.h>
 #include <qaudiooutput.h>
+#include <qmediadevices.h>
 #include <qprocess.h>
 #include <private/qglobal_p.h>
 #ifdef QT_FEATURE_network
@@ -30,17 +32,20 @@
 
 #include "mediafileselector.h"
 #include "mediabackendutils.h"
+#include "qsequentialfileadaptor.h"
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
 #include "private/qquickvideooutput_p.h"
 
 #include <array>
+
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
 
 QT_USE_NAMESPACE
 
 using namespace Qt::Literals;
 
 namespace {
-static qreal colorDifference(QRgb first, QRgb second)
+qreal colorDifference(QRgb first, QRgb second)
 {
     const auto diffVector = QVector3D(qRed(first), qGreen(first), qBlue(first))
             - QVector3D(qRed(second), qGreen(second), qBlue(second));
@@ -62,7 +67,7 @@ auto findSimilarColorIndex(const Colors &colors, QRgb color)
     return std::distance(std::begin(colors),
                          findSimilarColor(std::begin(colors), std::end(colors), color));
 }
-}
+} // namespace
 
 /*
  This is the backend conformance test.
@@ -92,16 +97,25 @@ private slots:
     void setSource_emitsMediaStatusChange_whenCalledWithInvalidFile();
     void setSource_doesNotEmitPlaybackStateChange_whenCalledWithInvalidFile();
     void setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidFile();
+    void setSource_initializesExpectedDefaultState();
+    void setSource_initializesExpectedDefaultState_data();
     void setSource_silentlyCancelsPreviousCall_whenServerDoesNotRespond();
     void setSource_changesSourceAndMediaStatus_whenCalledWithValidFile();
     void setSource_updatesExpectedAttributes_whenMediaHasLoaded();
     void setSource_stopsAndEntersErrorState_whenPlayerWasPlaying();
     void setSource_loadsAudioTrack_whenCalledWithValidWavFile();
     void setSource_resetsState_whenCalledWithEmptyUrl();
+    void setSource_resetsState_whenCalledWithEmptyUrl_data();
     void setSource_loadsNewMedia_whenPreviousMediaWasFullyLoaded();
     void setSource_loadsCorrectTracks_whenLoadingMediaInSequence();
     void setSource_remainsInStoppedState_whenPlayerWasStopped();
     void setSource_entersStoppedState_whenPlayerWasPlaying();
+    void setSource_updatesTrackProperties_data();
+    void setSource_updatesTrackProperties();
+    void setSource_emitsTracksChanged_data();
+    void setSource_emitsTracksChanged();
+    void setSource_emitsError_whenSdpFileIsLoaded();
+    void setSource_doesNotCrash_whenCalledWithEmptyUrlWhileLoadingMedia();
 
     void setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio_data();
     void setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio();
@@ -109,6 +123,10 @@ private slots:
     void pause_doesNotChangePlayerState_whenInvalidFileLoaded();
     void pause_doesNothing_whenMediaIsNotLoaded();
     void pause_entersPauseState_whenPlayerWasPlaying();
+    void pause_initializesExpectedDefaultState();
+    void pause_initializesExpectedDefaultState_data();
+    void pause_doesNotAdvancePosition();
+    void pause_playback_resumesFromPausedPosition();
 
     void play_resetsErrorState_whenCalledWithInvalidFile();
     void play_resumesPlaying_whenValidMediaIsProvidedAfterInvalidMedia();
@@ -121,13 +139,21 @@ private slots:
     void play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames();
     void play_startsPlayback_withAndWithoutOutputsConnected();
     void play_startsPlayback_withAndWithoutOutputsConnected_data();
+    void play_playsRtpStream_whenSdpFileIsLoaded();
+    void play_succeedsFromSourceDevice();
+    void play_succeedsFromSourceDevice_data();
+    void play_playbackLastsForTheExpectedTime();
+    void play_playbackLastsForTheExpectedTime_data();
 
     void stop_entersStoppedState_whenPlayerWasPaused();
+    void stop_entersStoppedState_whenPlayerWasPaused_data();
     void stop_setsPositionToZero_afterPlayingToEndOfMedia();
 
     void playbackRate_returnsOne_byDefault();
     void setPlaybackRate_changesPlaybackRateAndEmitsSignal_data();
     void setPlaybackRate_changesPlaybackRateAndEmitsSignal();
+    void setPlaybackRate_changesPlaybackDuration();
+    void setPlaybackRate_changesPlaybackDuration_data();
 
     void setVolume_changesVolume_whenVolumeIsInRange();
     void setVolume_clampsToRange_whenVolumeIsOutsideRange();
@@ -138,6 +164,7 @@ private slots:
 
     void processEOS();
     void deleteLaterAtEOS();
+    void playToEOS_finishesWithEmptyFrame();
 
     void volumeAcrossFiles_data();
     void volumeAcrossFiles();
@@ -145,13 +172,16 @@ private slots:
     void seekPauseSeek();
     void seekInStoppedState();
     void subsequentPlayback();
+    void subsequentPlayback_playsForExpectedDuration();
     void surfaceTest();
     void metadata();
     void metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail_data();
     void metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail();
     void playerStateAtEOS();
     void playFromBuffer();
+    void playFromSequentialStream();
     void audioVideoAvailable();
+    void audioVideoAvailable_updatedOnNewMedia();
     void isSeekable();
     void positionAfterSeek();
     void pause_rendersVideoAtCorrectResolution_data();
@@ -165,11 +195,12 @@ private slots:
     void durationDetectionIssues_data();
     void durationDetectionIssues();
     void finiteLoops();
+    void finiteLoops_data();
     void infiniteLoops();
     void seekOnLoops();
     void changeLoopsOnTheFly();
     void seekAfterLoopReset();
-    void changeVideoOutputNoFramesLost();
+
     void cleanSinkAndNoMoreFramesAfterStop();
     void lazyLoadVideo();
     void videoSinkSignals();
@@ -178,11 +209,42 @@ private slots:
     void play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata_data();
     void play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata();
 
+    void setVideoOutput_doesNotStopPlayback_data();
+    void setVideoOutput_doesNotStopPlayback();
+    void setVideoOutput_whilePaused_updatesNewSink();
+    void setVideoOutput_whilePlaying_doesNotDropFrames();
+
+    void setAudioOutput_doesNotStopPlayback_data();
+    void setAudioOutput_doesNotStopPlayback();
+    void swapAudioDevice_doesNotStopPlayback_data();
+    void swapAudioDevice_doesNotStopPlayback();
+
+    void play_readsSubtitle();
+    void multiTrack_validateMetadata();
+    void play_readsSubtitle_fromMultiTrack();
+    void play_readsSubtitle_fromMultiTrack_data();
+
+    void setActiveSubtitleTrack_switchesSubtitles();
+    void setActiveSubtitleTrack_switchesSubtitles_data();
+
+    void setActiveVideoTrack_switchesVideoTrack();
+
+    void disablingAllTracks_doesNotStopPlayback();
+    void disablingAllTracks_beforeTracksChanged_doesNotStopPlayback();
+
+    void makeStressTestCases();
+    void stressTest_setupAndTeardown();
+    void stressTest_setupAndTeardown_data();
+    void stressTest_setupAndTeardown_keepAudioOutput();
+    void stressTest_setupAndTeardown_keepAudioOutput_data();
+    void stressTest_setupAndTeardown_keepVideoOutput();
+    void stressTest_setupAndTeardown_keepVideoOutput_data();
+
 private:
     QUrl selectVideoFile(const QStringList &mediaCandidates);
 
-    bool canCreateRtspStream() const;
-    std::unique_ptr<QProcess> createRtspStreamProcess(QString fileName, QString outputUrl);
+    bool canCreateRtpStream() const;
+    std::unique_ptr<QProcess> createRtpStreamProcess(QString fileName, QString sdpUrl);
     void detectVlcCommand();
 
     // one second local wav file
@@ -190,6 +252,7 @@ private:
     MaybeUrl m_localWavFile2 = QUnexpect{};
     MaybeUrl m_localVideoFile = QUnexpect{};
     MaybeUrl m_localVideoFile2 = QUnexpect{};
+    MaybeUrl m_localVideoFile1Sec = QUnexpect{};
     MaybeUrl m_av1File = QUnexpect{};
     MaybeUrl m_videoDimensionTestFile = QUnexpect{};
     MaybeUrl m_localCompressedSoundFile = QUnexpect{};
@@ -204,6 +267,10 @@ private:
     MaybeUrl m_colorMatrix90degClockwiseVideo = QUnexpect{};
     MaybeUrl m_colorMatrix180degClockwiseVideo = QUnexpect{};
     MaybeUrl m_colorMatrix270degClockwiseVideo = QUnexpect{};
+    MaybeUrl m_15sVideo = QUnexpect{};
+    MaybeUrl m_subtitleVideo = QUnexpect{};
+    MaybeUrl m_multitrackVideo = QUnexpect{};
+    MaybeUrl m_multitrackSubtitleStartsAtZeroVideo = QUnexpect{};
 
     MediaFileSelector m_mediaSelector;
 
@@ -276,7 +343,7 @@ void tst_QMediaPlayerBackend::detectVlcCommand()
         m_vlcCommand.clear();
 }
 
-bool tst_QMediaPlayerBackend::canCreateRtspStream() const
+bool tst_QMediaPlayerBackend::canCreateRtpStream() const
 {
     return !m_vlcCommand.isEmpty();
 }
@@ -284,7 +351,10 @@ bool tst_QMediaPlayerBackend::canCreateRtspStream() const
 void tst_QMediaPlayerBackend::initTestCase()
 {
 #ifdef Q_OS_ANDROID
-     QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
+    // Emulator x86 with API 23 (Android 6) has issue with playing sound
+    // Test should not be run on Emulator with API 23
+    if (QNativeInterface::QAndroidApplication::sdkVersion() <= __ANDROID_API_M__)
+        QSKIP("SKIP initTestCase on API 23");
 #endif
 
     QMediaPlayer player;
@@ -315,6 +385,8 @@ void tst_QMediaPlayerBackend::initTestCase()
     m_localVideoFile2 =
             m_mediaSelector.select("qrc:/testdata/BigBuckBunny.mp4", "qrc:/testdata/busMpeg4.mp4");
 
+    m_localVideoFile1Sec = m_mediaSelector.select("qrc:/testdata/busMpeg4.mp4");
+
     m_videoDimensionTestFile = m_mediaSelector.select("qrc:/testdata/BigBuckBunny.mp4");
 
     m_localCompressedSoundFile =
@@ -334,6 +406,12 @@ void tst_QMediaPlayerBackend::initTestCase()
             m_mediaSelector.select("qrc:/testdata/color_matrix_180_deg_clockwise.mp4");
     m_colorMatrix270degClockwiseVideo =
             m_mediaSelector.select("qrc:/testdata/color_matrix_270_deg_clockwise.mp4");
+
+    m_15sVideo = m_mediaSelector.select("qrc:/testdata/15s.mkv");
+    m_subtitleVideo = m_mediaSelector.select("qrc:/testdata/subtitletest.mkv");
+    m_multitrackVideo = m_mediaSelector.select("qrc:/testdata/multitrack.mkv");
+    m_multitrackSubtitleStartsAtZeroVideo =
+            m_mediaSelector.select("qrc:/testdata/multitrack-subtitle-start-at-zero.mkv");
 
     detectVlcCommand();
 }
@@ -374,7 +452,10 @@ void tst_QMediaPlayerBackend::destructor_emitsOnlyQObjectDestroyedSignal_whenPla
     // Arrange
     m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
     m_fixture->player.play();
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    // Wait for started
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     m_fixture->clearSpies();
 
@@ -490,6 +571,44 @@ void tst_QMediaPlayerBackend::setSource_setsSourceMediaStatusAndError_whenCalled
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
 }
 
+void tst_QMediaPlayerBackend::setSource_initializesExpectedDefaultState()
+{
+    QFETCH(MaybeUrl, url);
+    CHECK_SELECTED_URL(url);
+
+    QMediaPlayer &player = m_fixture->player;
+    player.setSource(*url);
+
+    MediaPlayerState expectedState = MediaPlayerState::defaultState();
+    expectedState.source = *url;
+    expectedState.mediaStatus = QMediaPlayer::LoadingMedia;
+
+    if (isGStreamerPlatform()) {
+        // gstreamer initializes the tracks
+        expectedState.audioTracks = std::nullopt;
+        expectedState.videoTracks = std::nullopt;
+        expectedState.activeAudioTrack = std::nullopt;
+        expectedState.activeVideoTrack = std::nullopt;
+        expectedState.hasAudio = std::nullopt;
+        expectedState.hasVideo = std::nullopt;
+
+        expectedState.isSeekable = true;
+    }
+
+    const MediaPlayerState actualState{ m_fixture->player };
+    COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
+}
+
+void tst_QMediaPlayerBackend::setSource_initializesExpectedDefaultState_data()
+{
+    QTest::addColumn<MaybeUrl>("url");
+
+    QTest::addRow("with wave file") << m_localWavFile;
+    QTest::addRow("with video file") << m_localVideoFile;
+    QTest::addRow("with av1 file") << m_av1File;
+    QTest::addRow("with compressed sound file") << m_localCompressedSoundFile;
+}
+
 void tst_QMediaPlayerBackend::setSource_silentlyCancelsPreviousCall_whenServerDoesNotRespond()
 {
 #ifdef QT_FEATURE_network
@@ -511,10 +630,14 @@ void tst_QMediaPlayerBackend::setSource_silentlyCancelsPreviousCall_whenServerDo
     // Cancellation is silent
     QVERIFY(m_fixture->errorOccurred.empty());
 
-    // Media status is emitted as if only one file was loaded
-    const SignalList expectedMediaStatus = { { QMediaPlayer::LoadingMedia },
-                                             { QMediaPlayer::LoadedMedia } };
-    QCOMPARE_EQ(m_fixture->mediaStatusChanged, expectedMediaStatus);
+    if (!isGStreamerPlatform()) {
+        // QTBUG-124005: gstreamer sees multiple loading/loaded transitions
+
+        // Media status is emitted as if only one file was loaded
+        const SignalList expectedMediaStatus = { { QMediaPlayer::LoadingMedia },
+                                                 { QMediaPlayer::LoadedMedia } };
+        QCOMPARE_EQ(m_fixture->mediaStatusChanged, expectedMediaStatus);
+    }
 
     // Two media source changed signals should be emitted still
     const SignalList expectedSource = { { server.address() }, { *m_localVideoFile } };
@@ -542,6 +665,7 @@ void tst_QMediaPlayerBackend::setSource_changesSourceAndMediaStatus_whenCalledWi
 
     MediaPlayerState actualState{ m_fixture->player };
 
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failures");
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
 }
 
@@ -638,25 +762,31 @@ void tst_QMediaPlayerBackend::setSource_loadsAudioTrack_whenCalledWithValidWavFi
 
 void tst_QMediaPlayerBackend::setSource_resetsState_whenCalledWithEmptyUrl()
 {
-    CHECK_SELECTED_URL(m_localWavFile);
+    QFETCH(MaybeUrl, url);
+    CHECK_SELECTED_URL(url);
+
+    QMediaPlayer &player = m_fixture->player;
 
     // Load valid media and start playing
-    m_fixture->player.setSource(*m_localWavFile);
+    player.setSource(*url);
 
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
-    QVERIFY(m_fixture->player.position() == 0);
-#ifdef Q_OS_QNX
-    // QNX mm-renderer only updates the duration when 'play' is triggered
-    QVERIFY(m_fixture->player.duration() == 0);
-#else
-    QVERIFY(m_fixture->player.duration() > 0);
-#endif
+    QCOMPARE(player.position(), 0);
 
-    m_fixture->player.play();
+    if (isQNXPlatform())
+        // QNX mm-renderer updates the duration when 'play' is triggered
+        QCOMPARE(player.duration(), 0);
+    else
+        QCOMPARE_GT(player.duration(), 0);
 
-    QTRY_VERIFY(m_fixture->player.position() > 0);
-    QVERIFY(m_fixture->player.duration() > 0);
+    player.play();
+
+    QTRY_COMPARE_GT(player.position(), 0);
+    if (isGStreamerPlatform())
+        QTRY_COMPARE_GT(player.duration(), 0); // duration update is asynchronous
+    else
+        QCOMPARE_GT(player.duration(), 0);
 
     // Set empty URL and verify that state is fully reset to default
     m_fixture->clearSpies();
@@ -666,10 +796,20 @@ void tst_QMediaPlayerBackend::setSource_resetsState_whenCalledWithEmptyUrl()
     QVERIFY(!m_fixture->mediaStatusChanged.isEmpty());
     QVERIFY(!m_fixture->sourceChanged.isEmpty());
 
-    const MediaPlayerState expectedState = MediaPlayerState::defaultState();
-    const MediaPlayerState actualState{ m_fixture->player };
+    MediaPlayerState expectedState = MediaPlayerState::defaultState();
+    if (isGStreamerPlatform()) // QTBUG-124005: no buffer progress update
+        expectedState.bufferProgress = std::nullopt;
+    const MediaPlayerState actualState{ player };
 
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
+}
+
+void tst_QMediaPlayerBackend::setSource_resetsState_whenCalledWithEmptyUrl_data()
+{
+    QTest::addColumn<MaybeUrl>("url");
+
+    QTest::addRow("with wave file") << m_localWavFile;
+    QTest::addRow("with video file") << m_localVideoFile;
 }
 
 void tst_QMediaPlayerBackend::setSource_loadsNewMedia_whenPreviousMediaWasFullyLoaded()
@@ -687,7 +827,8 @@ void tst_QMediaPlayerBackend::setSource_loadsNewMedia_whenPreviousMediaWasFullyL
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadingMedia);
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
     m_fixture->player.play();
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     // Load first file again, and wait for it to start loading
     m_fixture->player.setSource(*m_localWavFile2);
@@ -776,12 +917,14 @@ void tst_QMediaPlayerBackend::setSource_entersStoppedState_whenPlayerWasPlaying(
     // Assert
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
     QTRY_COMPARE(m_fixture->mediaStatusChanged,
-                 SignalList({ { QMediaPlayer::LoadedMedia },
-                              { QMediaPlayer::BufferingMedia },
-                              { QMediaPlayer::BufferedMedia },
-                              { QMediaPlayer::LoadedMedia },
-                              { QMediaPlayer::LoadingMedia },
-                              { QMediaPlayer::LoadedMedia } }));
+                 SignalList({
+                         { QMediaPlayer::LoadedMedia },
+                         { QMediaPlayer::BufferingMedia },
+                         { QMediaPlayer::BufferedMedia },
+                         { QMediaPlayer::LoadedMedia },
+                         { QMediaPlayer::LoadingMedia },
+                         { QMediaPlayer::LoadedMedia },
+                 }));
 
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
     QTRY_COMPARE(m_fixture->playbackStateChanged,
@@ -793,6 +936,130 @@ void tst_QMediaPlayerBackend::setSource_entersStoppedState_whenPlayerWasPlaying(
     QCOMPARE(m_fixture->player.position(), 0);
 }
 
+void tst_QMediaPlayerBackend::setSource_updatesTrackProperties_data()
+{
+    QTest::addColumn<MaybeUrl>("url");
+    QTest::addColumn<int>("numberOfVideoTracks");
+    QTest::addColumn<int>("numberOfAudioTracks");
+    QTest::addColumn<int>("numberOfSubtitleTracks");
+
+    QTest::addRow("video file with audio") << m_localVideoFile3ColorsWithSound << 1 << 1 << 0;
+    QTest::addRow("video file without audio") << m_colorMatrixVideo << 1 << 0 << 0;
+    QTest::addRow("uncompressed audio file") << m_localWavFile << 0 << 1 << 0;
+    QTest::addRow("compressed audio file") << m_localCompressedSoundFile << 0 << 1 << 0;
+    QTest::addRow("video with subtitle") << m_subtitleVideo << 1 << 1 << 1;
+    QTest::addRow("video with multiple streams") << m_multitrackVideo << 2 << 2 << 2;
+}
+
+void tst_QMediaPlayerBackend::setSource_updatesTrackProperties()
+{
+    QFETCH(MaybeUrl, url);
+    QFETCH(int, numberOfVideoTracks);
+    QFETCH(int, numberOfAudioTracks);
+    QFETCH(int, numberOfSubtitleTracks);
+
+    QMediaPlayer &player = m_fixture->player;
+
+    CHECK_SELECTED_URL(url);
+
+    player.setSource(*url);
+
+    QTRY_COMPARE(player.videoTracks().size(), numberOfVideoTracks);
+    QTRY_COMPARE(player.audioTracks().size(), numberOfAudioTracks);
+    QTRY_COMPARE(player.subtitleTracks().size(), numberOfSubtitleTracks);
+}
+
+void tst_QMediaPlayerBackend::setSource_emitsTracksChanged_data()
+{
+    QTest::addColumn<MaybeUrl>("url");
+    QTest::addColumn<int>("numberOfVideoTracks");
+    QTest::addColumn<int>("numberOfAudioTracks");
+    QTest::addColumn<int>("numberOfSubtitleTracks");
+
+    QTest::addRow("video file with audio") << m_localVideoFile3ColorsWithSound << 1 << 1 << 0;
+    QTest::addRow("video file without audio") << m_colorMatrixVideo << 1 << 0 << 0;
+    QTest::addRow("uncompressed audio file") << m_localWavFile << 0 << 1 << 0;
+    QTest::addRow("compressed audio file") << m_localCompressedSoundFile << 0 << 1 << 0;
+    QTest::addRow("video with subtitle") << m_subtitleVideo << 1 << 1 << 1;
+    QTest::addRow("video with multiple streams") << m_multitrackVideo << 2 << 2 << 2;
+}
+
+void tst_QMediaPlayerBackend::setSource_emitsTracksChanged()
+{
+    QFETCH(MaybeUrl, url);
+    QFETCH(int, numberOfVideoTracks);
+    QFETCH(int, numberOfAudioTracks);
+    QFETCH(int, numberOfSubtitleTracks);
+
+    QMediaPlayer &player = m_fixture->player;
+
+    CHECK_SELECTED_URL(url);
+
+    QSignalSpy tracksChanged(&player, &QMediaPlayer::tracksChanged);
+    player.setSource(*url);
+
+    QVERIFY(tracksChanged.wait());
+
+    QCOMPARE(player.videoTracks().size(), numberOfVideoTracks);
+    QCOMPARE(player.audioTracks().size(), numberOfAudioTracks);
+    QCOMPARE(player.subtitleTracks().size(), numberOfSubtitleTracks);
+}
+
+void tst_QMediaPlayerBackend::setSource_emitsError_whenSdpFileIsLoaded()
+{
+    // NOTE: This test checks that playing rtp streams using local .sdp file as a source is blocked
+    // by default. For when the user wants to override these defaults, see
+    // play_playsRtpStream_whenSdpFileIsLoaded
+
+    if (!isFFMPEGPlatform())
+        QSKIP("This test is only for FFmpeg backend");
+
+    // Create stream
+    if (!canCreateRtpStream())
+        QSKIP("Rtp stream cannot be created");
+
+    // Make sure the default whitelist is used
+    qunsetenv("QT_FFMPEG_PROTOCOL_WHITELIST");
+
+    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
+    QVERIFY(temporaryFile);
+
+    // Pass a "file:" URL to VLC in order to generate an .sdp file
+    const QUrl sdpUrl = QUrl::fromLocalFile(QFileInfo("test.sdp").absoluteFilePath());
+
+    auto process = createRtpStreamProcess(temporaryFile->fileName(), sdpUrl.toString());
+    QVERIFY2(process, "Cannot start rtp process");
+
+    auto processCloser = qScopeGuard([&process, &sdpUrl]() {
+        // End stream
+        process->close();
+
+        // Remove .sdp file created by VLC
+        QFile(sdpUrl.toLocalFile()).remove();
+    });
+
+    m_fixture->player.setSource(sdpUrl);
+    QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::FormatError);
+}
+
+void tst_QMediaPlayerBackend::setSource_doesNotCrash_whenCalledWithEmptyUrlWhileLoadingMedia()
+{
+    // Added to prevent Q_ASSERT failures in QFFmpegMediaPlayer::setMediaAsync(), like QTBUG-128159
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    // Act
+    m_fixture->player.setSource(*m_localVideoFile); // Loads media in a separate thread
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::LoadingMedia);
+    m_fixture->player.setSource(QUrl("")); // Cancels loading before the thread returns
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::NoMedia);
+
+    // Assert
+    // At this point, due to a waitForFinished() in setMedia(), the loading thread has
+    // finished its invokeMethod() call to transition back to the calling thread.
+    // qWait() triggers the transition immediately, so 10 ms is sufficient.
+    QTest::qWait(10);
+}
+
 void tst_QMediaPlayerBackend::
         setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio_data()
 {
@@ -801,13 +1068,22 @@ void tst_QMediaPlayerBackend::
 
     QTest::addRow("Horizontal expanding (par=3/2)")
             << m_192x108_PAR_3_2_Video << QSize(192 * 3 / 2, 108);
-    QTest::addRow("Vertical expanding (par=2/3)")
-            << m_192x108_PAR_2_3_Video << QSize(192, 108 * 3 / 2);
+
+    if (isGStreamerPlatform())
+        // QTBUG-125249: gstreamer tries "to keep the input height (because of interlacing)"
+        QTest::addRow("Horizontal shrinking (par=2/3)")
+                << m_192x108_PAR_2_3_Video << QSize(192 * 2 / 3, 108);
+    else
+        QTest::addRow("Vertical expanding (par=2/3)")
+                << m_192x108_PAR_2_3_Video << QSize(192, 108 * 3 / 2);
 }
 
 void tst_QMediaPlayerBackend::
         setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio()
 {
+    if (isGStreamerPlatform() && isCI())
+        QSKIP("QTBUG-124005: Fails with gstreamer on CI");
+
     QFETCH(MaybeUrl, url);
     QFETCH(QSize, expectedVideoSize);
 
@@ -839,13 +1115,13 @@ void tst_QMediaPlayerBackend::
     // Video schema:
     //
     //           192
-    // /---------------------\
+    // *---------------------*
     // |   White  |          |
     // |          |          |
     // |----------/          | 108
     // |              Red    |
     // |                     |
-    // \---------------------/
+    // *---------------------*
 
     // clang-format on
 
@@ -907,7 +1183,7 @@ void tst_QMediaPlayerBackend::pause_entersPauseState_whenPlayerWasPlaying()
     // Arrange
     m_fixture->player.setSource(*m_localWavFile);
     m_fixture->player.play();
-    QTRY_VERIFY(m_fixture->player.position() > 100);
+    QTRY_COMPARE_GT(m_fixture->player.position(), 100);
     m_fixture->clearSpies();
     const qint64 positionBeforePause = m_fixture->player.position();
 
@@ -919,9 +1195,123 @@ void tst_QMediaPlayerBackend::pause_entersPauseState_whenPlayerWasPlaying()
     QCOMPARE_EQ(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PausedState } }));
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
+    QTRY_COMPARE_LT(qAbs(m_fixture->player.position() - positionBeforePause), 200);
+
     QTest::qWait(500);
 
-    QTRY_VERIFY(qAbs(m_fixture->player.position() - positionBeforePause) < 150);
+    QTRY_COMPARE_LT(qAbs(m_fixture->player.position() - positionBeforePause), 200);
+}
+
+void tst_QMediaPlayerBackend::pause_initializesExpectedDefaultState()
+{
+    QFETCH(MaybeUrl, url);
+    QFETCH(bool, hasVideo);
+    QFETCH(bool, hasAudio);
+    CHECK_SELECTED_URL(url);
+
+    if (isFFMPEGPlatform() && url->path().contains("Av1"))
+        QSKIP("QTBUG-119711: ffmpeg's binaries on CI do not support av1");
+
+    QMediaPlayer &player = m_fixture->player;
+    player.setSource(*url);
+    player.pause();
+
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::PausedState);
+
+    MediaPlayerState expectedState = MediaPlayerState::defaultState();
+    expectedState.source = *url;
+    expectedState.playbackState = QMediaPlayer::PausedState;
+    expectedState.isSeekable = true;
+
+    expectedState.mediaStatus = std::nullopt;
+    expectedState.duration = std::nullopt;
+    expectedState.bufferProgress = std::nullopt;
+
+    expectedState.audioTracks = std::nullopt;
+    expectedState.videoTracks = std::nullopt;
+    expectedState.metaData = std::nullopt;
+
+    if (hasVideo) {
+        expectedState.activeVideoTrack = 0;
+        expectedState.hasVideo = std::nullopt;
+    }
+
+    if (hasAudio) {
+        expectedState.activeAudioTrack = 0;
+        expectedState.hasAudio = std::nullopt;
+    }
+
+    const MediaPlayerState actualState{ player };
+    COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
+
+    QVERIFY(actualState.mediaStatus == QMediaPlayer::BufferingMedia
+            || actualState.mediaStatus == QMediaPlayer::BufferedMedia);
+
+    if (hasVideo)
+        QCOMPARE(actualState.videoTracks->size(), 1);
+    if (hasAudio)
+        QCOMPARE(actualState.audioTracks->size(), 1);
+
+    QSKIP_GSTREAMER("GStreamer doesn't update bufferProgress while paused");
+
+    QTRY_COMPARE_GT(actualState.bufferProgress, 0);
+}
+
+void tst_QMediaPlayerBackend::pause_initializesExpectedDefaultState_data()
+{
+    QTest::addColumn<MaybeUrl>("url");
+    QTest::addColumn<bool>("hasVideo");
+    QTest::addColumn<bool>("hasAudio");
+
+    QTest::addRow("with wave file") << m_localWavFile << false << true;
+    QTest::addRow("with video file") << m_localVideoFile << true << true;
+    QTest::addRow("with av1 file") << m_av1File << true << false;
+    QTest::addRow("with compressed sound file") << m_localCompressedSoundFile << false << true;
+}
+
+void tst_QMediaPlayerBackend::pause_doesNotAdvancePosition()
+{
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    QMediaPlayer &player = m_fixture->player;
+    player.setSource(*m_localVideoFile);
+
+    player.pause();
+
+    QTest::qWait(1'000);
+
+    QTRY_COMPARE_EQ(player.position(), 0);
+}
+
+void tst_QMediaPlayerBackend::pause_playback_resumesFromPausedPosition()
+{
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    QMediaPlayer &player = m_fixture->player;
+    player.setSource(*m_localVideoFile);
+
+    player.play();
+
+    QTRY_COMPARE_GT(player.position(), 100);
+
+    player.pause();
+
+    qint64 pausePos = player.position();
+    QTest::qWait(1'000);
+
+    QCOMPARE_EQ(player.position(), pausePos);
+
+    player.play();
+
+    // Make sure the media player does not make up for the lost time
+    m_fixture->positionChanged.wait();
+    m_fixture->positionChanged.wait();
+
+    QCOMPARE_LT(player.position(), pausePos + 500);
 }
 
 void tst_QMediaPlayerBackend::play_resetsErrorState_whenCalledWithInvalidFile()
@@ -959,7 +1349,8 @@ void tst_QMediaPlayerBackend::play_resumesPlaying_whenValidMediaIsProvidedAfterI
 
     // Assert
     QTRY_VERIFY(m_fixture->framesCount > 0);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
     QCOMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
     QCOMPARE(m_fixture->player.error(), QMediaPlayer::NoError);
 }
@@ -987,14 +1378,19 @@ void tst_QMediaPlayerBackend::play_setsPlaybackStateAndMediaStatus_whenValidFile
     m_fixture->player.play();
 
     QTRY_COMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE_EQ(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
-    QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
-                    SignalList({ { QMediaPlayer::LoadingMedia },
-                                 { QMediaPlayer::LoadedMedia },
-                                 { QMediaPlayer::BufferingMedia },
-                                 { QMediaPlayer::BufferedMedia } }));
+
+    auto expectedMediaStatus = SignalList{
+        { QMediaPlayer::LoadingMedia },
+        { QMediaPlayer::LoadedMedia },
+        { QMediaPlayer::BufferingMedia },
+        { QMediaPlayer::BufferedMedia },
+    };
+
+    QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged.first(4), expectedMediaStatus);
 
     QTRY_COMPARE_GT(m_fixture->bufferProgressChanged.size(), 0);
     QTRY_COMPARE_NE(m_fixture->bufferProgressChanged.front().front(), 0.f);
@@ -1032,15 +1428,26 @@ void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPla
 
     // Assert
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
-    QCOMPARE_EQ(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
+    QTRY_VERIFY(m_fixture->playbackStateChanged.contains({ QMediaPlayer::PlayingState }));
 
     // Note: Should not go through Loading again when play -> stop -> play
-    QCOMPARE_EQ(m_fixture->mediaStatusChanged,
-                SignalList({
-                        { QMediaPlayer::BufferingMedia },
-                        { QMediaPlayer::BufferedMedia },
-                }));
+    if (!isGStreamerPlatform()) {
+        QCOMPARE_EQ(m_fixture->mediaStatusChanged,
+                    SignalList({
+                            { QMediaPlayer::BufferingMedia },
+                            { QMediaPlayer::BufferedMedia },
+                    }));
+    } else {
+        QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
+                        // gstreamer may see EndOfMedia
+                        SignalList({
+                                { QMediaPlayer::BufferingMedia },
+                                { QMediaPlayer::BufferedMedia },
+                                { QMediaPlayer::EndOfMedia },
+                        }));
+    }
 }
 
 void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayback_whenSetSourceWasCalledWithEmptyUrl()
@@ -1061,12 +1468,25 @@ void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayb
     const MediaPlayerState actualState{ m_fixture->player };
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
 
-    QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
-                    SignalList({ { QMediaPlayer::LoadedMedia },
-                                 { QMediaPlayer::BufferingMedia },
-                                 { QMediaPlayer::BufferedMedia },
-                                 { QMediaPlayer::LoadedMedia },
-                                 { QMediaPlayer::NoMedia } }));
+    QList allowedSignalSequences = {
+        SignalList{
+                { QMediaPlayer::LoadedMedia },
+                { QMediaPlayer::BufferingMedia },
+                { QMediaPlayer::BufferedMedia },
+                { QMediaPlayer::LoadedMedia },
+                { QMediaPlayer::NoMedia },
+        },
+        SignalList{
+                { QMediaPlayer::LoadedMedia },
+                { QMediaPlayer::BufferingMedia },
+                { QMediaPlayer::BufferedMedia },
+                { QMediaPlayer::EndOfMedia }, // EndOfMedia can be reached before setSource({})
+                { QMediaPlayer::LoadedMedia },
+                { QMediaPlayer::NoMedia },
+        },
+    };
+
+    QTRY_VERIFY(allowedSignalSequences.contains(m_fixture->mediaStatusChanged));
 
     QTRY_COMPARE_EQ(m_fixture->playbackStateChanged,
                     SignalList({ { QMediaPlayer::PlayingState }, { QMediaPlayer::StoppedState } }));
@@ -1078,15 +1498,17 @@ void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayb
 void tst_QMediaPlayerBackend::
         play_createsFramesWithExpectedContentAndIncreasingFrameTime_whenPlayingRtspMediaStream()
 {
-    if (!canCreateRtspStream())
+    if (!canCreateRtpStream())
         QSKIP("Rtsp stream cannot be created");
+
+    QSKIP_GSTREAMER("GStreamer tests fail");
 
     auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
     QVERIFY(temporaryFile);
 
     const QString streamUrl = "rtsp://localhost:8083/stream";
 
-    auto process = createRtspStreamProcess(temporaryFile->fileName(), streamUrl);
+    auto process = createRtpStreamProcess(temporaryFile->fileName(), streamUrl);
     QVERIFY2(process, "Cannot start rtsp process");
 
     auto processCloser = qScopeGuard([&process]() { process->close(); });
@@ -1142,6 +1564,9 @@ void tst_QMediaPlayerBackend::
 
 void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames()
 {
+    if (isCI() && isGStreamerPlatform())
+        QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
+
     CHECK_SELECTED_URL(m_oneRedFrameVideo);
 
     m_fixture->surface.setStoreFrames(true);
@@ -1162,7 +1587,7 @@ void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLong
         // QTBUG-124005: GStreamer timing seems to be off
 
         // 1000 is expected
-        QCOMPARE_GT(elapsed, 900);
+        QCOMPARE_GT(elapsed, 850);
         QCOMPARE_LT(elapsed, 1400);
     }
 
@@ -1173,15 +1598,18 @@ void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLong
 
 void tst_QMediaPlayerBackend::play_startsPlayback_withAndWithoutOutputsConnected()
 {
-    QSKIP_GSTREAMER("QTBUG-124501: Fails with gstreamer");
-
     QFETCH(const bool, audioConnected);
     QFETCH(const bool, videoConnected);
 
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
-    if (!videoConnected && !audioConnected)
+    if (!videoConnected && !audioConnected) {
         QSKIP_FFMPEG("FFMPEG backend playback fails when no output is connected");
+        QSKIP_GSTREAMER("GStreamer backend playback fails when no output is connected");
+    }
+
+    if (videoConnected && !audioConnected)
+        QSKIP_GSTREAMER("GStreamer backend playback fails when no video is connected");
 
     // Arrange
     m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
@@ -1219,37 +1647,206 @@ void tst_QMediaPlayerBackend::play_startsPlayback_withAndWithoutOutputsConnected
     QTest::addRow("no output connected") << false << false;
 }
 
+void tst_QMediaPlayerBackend::play_playsRtpStream_whenSdpFileIsLoaded()
+{
+    if (!isFFMPEGPlatform())
+        QSKIP("This test is only for FFmpeg backend");
+
+    // Create stream
+    if (!canCreateRtpStream())
+        QSKIP("Rtp stream cannot be created");
+
+    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
+    QVERIFY(temporaryFile);
+
+    // Pass a "file:" URL to VLC in order to generate an .sdp file
+    const QUrl sdpUrl = QUrl::fromLocalFile(QFileInfo("test.sdp").absoluteFilePath());
+
+    auto process = createRtpStreamProcess(temporaryFile->fileName(), sdpUrl.toString());
+    QVERIFY2(process, "Cannot start rtp process");
+
+    // Set reasonable protocol whitelist that includes rtp and udp
+    qputenv("QT_FFMPEG_PROTOCOL_WHITELIST", "file,crypto,data,rtp,udp");
+
+    auto processCloser = qScopeGuard([&process, &sdpUrl]() {
+        // End stream
+        process->close();
+
+        // Remove .sdp file created by VLC
+        QFile(sdpUrl.toLocalFile()).remove();
+
+        // Unset environment variable
+        qunsetenv("QT_FFMPEG_PROTOCOL_WHITELIST");
+    });
+
+    m_fixture->player.setSource(sdpUrl);
+
+    // Play
+    m_fixture->player.play();
+    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
+}
+
+void tst_QMediaPlayerBackend::play_succeedsFromSourceDevice()
+{
+    QFETCH(const MaybeUrl, mediaUrl);
+    QFETCH(bool, streamOutlivesPlayer);
+
+    CHECK_SELECTED_URL(mediaUrl);
+
+    auto *stream = new QFile(u":"_s + mediaUrl->path());
+
+    QVERIFY(stream->open(QFile::ReadOnly));
+
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSourceDevice(stream);
+
+    player.play();
+    QTRY_COMPARE_GT(player.position(), 100);
+
+    if (streamOutlivesPlayer)
+        stream->setParent(&player);
+    else
+        delete stream;
+}
+
+void tst_QMediaPlayerBackend::play_succeedsFromSourceDevice_data()
+{
+    QTest::addColumn<MaybeUrl>("mediaUrl");
+    QTest::addColumn<bool>("streamOutlivesPlayer");
+
+    QTest::addRow("audio file") << m_localWavFile << true;
+    QTest::addRow("video file") << m_localVideoFile << true;
+
+    // QMediaPlayer crashes when we delete the stream during playback
+    constexpr bool validateStreamDestructionDuringPlayback = false;
+    if constexpr (validateStreamDestructionDuringPlayback) {
+        QTest::addRow("audio file, stream destroyed during playback") << m_localWavFile << false;
+        QTest::addRow("video file, stream destroyed during playback") << m_localVideoFile << false;
+    }
+}
+
+void tst_QMediaPlayerBackend::play_playbackLastsForTheExpectedTime()
+{
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+
+    QFETCH(const QUrl, media);
+    QFETCH(const int, loops);
+    QFETCH(const float, rate);
+    QFETCH(const bool, pauseBeforePlay);
+
+    if (media == *m_localVideoFile1Sec && loops)
+        QSKIP_GSTREAMER("QTBUG-126799: Video looping video files fails with gstreamer");
+
+    if (isGStreamerPlatform() && isCI())
+        QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer (significant startup lag)");
+
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSource(media);
+
+    // wait for preroll
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    if (pauseBeforePlay)
+        player.pause();
+
+    if (loops > 1)
+        player.setLoops(loops);
+
+    if (rate != 1.f)
+        player.setPlaybackRate(rate);
+
+    player.play();
+
+    auto timer = QElapsedTimer();
+    timer.start();
+
+    QTRY_COMPARE_EQ_WITH_TIMEOUT(player.playbackState(), QMediaPlayer::StoppedState, 10'000);
+
+    nanoseconds duration{timer.nsecsElapsed()};
+    nanoseconds expectedDuration = milliseconds{ int(loops / rate * 1000) };
+
+    QVERIFY2(abs(duration - expectedDuration) < 600ms,
+             qPrintable(u"expected duration: %1ms, actual duration: %2ms"_s
+                                .arg(round<milliseconds>(expectedDuration).count())
+                                .arg(round<milliseconds>(duration).count())));
+
+    QCOMPARE_EQ(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+}
+
+void tst_QMediaPlayerBackend::play_playbackLastsForTheExpectedTime_data()
+{
+    QTest::addColumn<QUrl>("media");
+    QTest::addColumn<int>("loops");
+    QTest::addColumn<float>("rate");
+    QTest::addColumn<bool>("pauseBeforePlay");
+
+    for (MaybeUrl maybeUrl : { *m_localWavFile, *m_localVideoFile1Sec }) {
+        if (!maybeUrl)
+            continue;
+
+        for (float rate : { 1.f, 2.f, 0.5f }) {
+            for (bool pauseBeforePlay : { false, true }) {
+                for (int loops : { 1, 2 }) {
+                    auto name = QStringLiteral("file %1, loops %2, rate %3, pause before %4")
+                                        .arg(maybeUrl->toString())
+                                        .arg(loops)
+                                        .arg(rate)
+                                        .arg(pauseBeforePlay);
+                    QTest::addRow("%s", name.toLatin1().constData())
+                            << *maybeUrl << loops << rate << pauseBeforePlay;
+                }
+            }
+        }
+    }
+}
+
 void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
 {
-    CHECK_SELECTED_URL(m_localWavFile);
+    QFETCH(const MaybeUrl, mediaUrl);
+
+    CHECK_SELECTED_URL(mediaUrl);
+    QMediaPlayer &player = m_fixture->player;
 
     // Arrange
-    m_fixture->player.setSource(*m_localWavFile);
-    m_fixture->player.play();
-    QTRY_VERIFY(m_fixture->player.position() > 100);
-    m_fixture->player.pause();
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    player.setSource(*mediaUrl);
+    player.play();
+    QTRY_COMPARE_GT(player.position(), 100);
+    player.pause();
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
     m_fixture->clearSpies();
 
+    if (!isGStreamerPlatform()) // Gstreamer may see EOS already
+        QCOMPARE_GT(player.position(), 100);
+
     // Act
-    m_fixture->player.stop();
+    player.stop();
 
     // Assert
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
     QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::StoppedState } }));
     // it's allowed to emit statusChanged() signal async
     QTRY_COMPARE(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::LoadedMedia } }));
 
-    if (!isGStreamerPlatform())
-        // QTBUG-124517: for some media types gstreamer does not emit buffer progress messages
-        QCOMPARE(m_fixture->bufferProgressChanged, SignalList({ { 0.f } }));
+    QCOMPARE(m_fixture->bufferProgressChanged, SignalList({ { 0.f } }));
 
     QTRY_COMPARE(m_fixture->player.position(), qint64(0));
+
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer - possibly due to EOS?");
     QTRY_VERIFY(!m_fixture->positionChanged.empty());
     QCOMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), qint64(0));
-    QVERIFY(m_fixture->player.duration() > 0);
+    QVERIFY(player.duration() > 0);
+}
+
+void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused_data()
+{
+    QTest::addColumn<MaybeUrl>("mediaUrl");
+
+    QTest::addRow("audio file") << m_localWavFile;
+    QTest::addRow("video file") << m_localVideoFile;
 }
 
 void tst_QMediaPlayerBackend::stop_setsPositionToZero_afterPlayingToEndOfMedia()
@@ -1269,6 +1866,10 @@ void tst_QMediaPlayerBackend::stop_setsPositionToZero_afterPlayingToEndOfMedia()
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
 
     m_fixture->player.play();
+
+    if (isGStreamerPlatform())
+        QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
+
     QVERIFY(m_fixture->surface.waitForFrame().isValid());
 }
 
@@ -1322,6 +1923,68 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackRateAndEmitsSignal(
         QVERIFY(m_fixture->playbackRateChanged.empty());
 
     QCOMPARE_EQ(m_fixture->player.playbackRate(), expectedPlaybackRate);
+}
+
+void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackDuration()
+{
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_15sVideo);
+
+    // speeding up a 15s file by 5 should result in a duration of 3s, but in CI,
+    // time measurements may be quite off. We can therefore only do basic
+    // sanity checking to make sure the playback has a duration greater
+    // than zero, and less than the video duration at normal playback rate
+    auto minDuration = 1s; // Reasonable approximation for zero
+    auto maxDuration = 14s; // Approximation for less than 15 seconds
+    auto playbackRate = 5.0;
+
+    QFETCH(const QLatin1String, testMode);
+
+    QMediaPlayer &player = m_fixture->player;
+
+    if (testMode == "SetRateBeforeSetSource"_L1)
+        player.setPlaybackRate(playbackRate);
+
+    player.setSource(*m_15sVideo);
+
+    QTRY_COMPARE_EQ(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+
+    auto begin = steady_clock::now();
+
+    if (testMode == "SetRateBeforePlay"_L1)
+        player.setPlaybackRate(playbackRate);
+
+    player.play();
+
+    if (testMode == "SetRateAfterPlay"_L1)
+        player.setPlaybackRate(playbackRate);
+
+    if (testMode == "SetRateAfterPlaybackStarted"_L1) {
+        QTRY_COMPARE_GT(player.position(), 50);
+        player.setPlaybackRate(playbackRate);
+    }
+
+    QCOMPARE(player.playbackRate(), playbackRate);
+
+    QTRY_COMPARE_EQ_WITH_TIMEOUT(player.playbackState(), QMediaPlayer::StoppedState, 20'000);
+
+    auto end = steady_clock::now();
+    auto duration = end - begin;
+
+    QCOMPARE_LT(duration, maxDuration);
+    QCOMPARE_GT(duration, minDuration);
+}
+
+void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackDuration_data()
+{
+    QTest::addColumn<QLatin1String>("testMode");
+
+    QTest::addRow("SetRateBeforeSetSource") << "SetRateBeforeSetSource"_L1;
+    QTest::addRow("SetRateBeforePlay") << "SetRateBeforePlay"_L1;
+    QTest::addRow("SetRateAfterPlay") << "SetRateAfterPlay"_L1;
+    QTest::addRow("SetRateAfterPlaybackStarted") << "SetRateAfterPlaybackStarted"_L1;
 }
 
 void tst_QMediaPlayerBackend::setVolume_changesVolume_whenVolumeIsInRange()
@@ -1393,105 +2056,118 @@ void tst_QMediaPlayerBackend::setMuted_doesNotChangeVolume()
 
 void tst_QMediaPlayerBackend::processEOS()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failure with gstreamer");
+
+    QMediaPlayer &player = m_fixture->player;
+    QSignalSpy &mediaStatusChanged = m_fixture->mediaStatusChanged;
+    QSignalSpy &playbackStateChanged = m_fixture->playbackStateChanged;
+    QSignalSpy &positionChanged = m_fixture->positionChanged;
+    QSignalSpy &bufferProgressChanged = m_fixture->bufferProgressChanged;
+
     CHECK_SELECTED_URL(m_localWavFile);
+    player.setSource(*m_localWavFile);
 
-    m_fixture->player.setSource(*m_localWavFile);
-
-    m_fixture->player.play();
-    m_fixture->player.setPosition(900);
+    player.play();
+    player.setPosition(900);
 
     //wait up to 5 seconds for EOS
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
-    QVERIFY(m_fixture->mediaStatusChanged.size() > 0);
-    QCOMPARE(m_fixture->mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::EndOfMedia);
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
-    QCOMPARE(m_fixture->playbackStateChanged.size(), 2);
-    QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::StoppedState);
+    QVERIFY(mediaStatusChanged.size() > 0);
+    QCOMPARE(mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(),
+             QMediaPlayer::EndOfMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(playbackStateChanged.size(), 2);
+    QCOMPARE(playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(),
+             QMediaPlayer::StoppedState);
 
     //at EOS the position stays at the end of file
-    QCOMPARE(m_fixture->player.position(), m_fixture->player.duration());
-    QTRY_VERIFY(m_fixture->positionChanged.size() > 0);
-    QTRY_COMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), m_fixture->player.duration());
+    QCOMPARE(player.position(), player.duration());
+    QTRY_VERIFY(positionChanged.size() > 0);
+    QTRY_COMPARE(positionChanged.last()[0].value<qint64>(), player.duration());
 
-    m_fixture->playbackStateChanged.clear();
-    m_fixture->mediaStatusChanged.clear();
-    m_fixture->positionChanged.clear();
+    playbackStateChanged.clear();
+    mediaStatusChanged.clear();
+    positionChanged.clear();
 
-    m_fixture->player.play();
+    player.play();
 
     //position is reset to start
-    QTRY_VERIFY(m_fixture->player.position() < 100);
-    QTRY_VERIFY(m_fixture->positionChanged.size() > 0);
-    QCOMPARE(m_fixture->positionChanged.first()[0].value<qint64>(), 0);
+    QTRY_COMPARE_LT(player.position(), 500);
+    QTRY_VERIFY(positionChanged.size() > 0);
+    QCOMPARE(positionChanged.first()[0].value<qint64>(), 0);
 
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+    QTRY_VERIFY(player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
-    QCOMPARE(m_fixture->playbackStateChanged.size(), 1);
-    QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::PlayingState);
-    QVERIFY(m_fixture->mediaStatusChanged.size() > 0);
-    QCOMPARE(m_fixture->mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::BufferedMedia);
+    QCOMPARE(playbackStateChanged.size(), 1);
+    QCOMPARE(playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(),
+             QMediaPlayer::PlayingState);
+    QVERIFY(mediaStatusChanged.size() > 0);
+    QCOMPARE(mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(),
+             QMediaPlayer::BufferedMedia);
 
-    m_fixture->positionChanged.clear();
-    QTRY_VERIFY(m_fixture->player.position() > 100);
-    QTRY_VERIFY(m_fixture->positionChanged.size() > 0 && m_fixture->positionChanged.last()[0].value<qint64>() > 100);
-    m_fixture->player.setPosition(900);
+    positionChanged.clear();
+    QTRY_VERIFY(player.position() > 100);
+    QTRY_VERIFY(positionChanged.size() > 0 && positionChanged.last()[0].value<qint64>() > 100);
+    player.setPosition(900);
     //wait up to 5 seconds for EOS
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
-    QVERIFY(m_fixture->mediaStatusChanged.size() > 0);
-    QCOMPARE(m_fixture->mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::EndOfMedia);
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
-    QCOMPARE(m_fixture->playbackStateChanged.size(), 2);
-    QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QVERIFY(mediaStatusChanged.size() > 0);
+    QCOMPARE(mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(),
+             QMediaPlayer::EndOfMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(playbackStateChanged.size(), 2);
+    QCOMPARE(playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(),
+             QMediaPlayer::StoppedState);
 
-    if (!isGStreamerPlatform()) {
-        // QTBUG-124517: for some media types gstreamer does not emit buffer progress messages
-        QCOMPARE_GT(m_fixture->bufferProgressChanged.size(), 1);
-        QCOMPARE(m_fixture->bufferProgressChanged.back().front(), 0.f);
-    }
+    QCOMPARE_GT(bufferProgressChanged.size(), 1);
+    QCOMPARE(bufferProgressChanged.back().front(), 0.f);
 
     // position stays at the end of file
-    QCOMPARE(m_fixture->player.position(), m_fixture->player.duration());
-    QTRY_VERIFY(m_fixture->positionChanged.size() > 0);
-    QTRY_COMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), m_fixture->player.duration());
+    QCOMPARE(player.position(), player.duration());
+    QTRY_VERIFY(positionChanged.size() > 0);
+    QTRY_COMPARE(positionChanged.last()[0].value<qint64>(), player.duration());
 
     //after setPosition EndOfMedia status should be reset to Loaded
-    m_fixture->playbackStateChanged.clear();
-    m_fixture->mediaStatusChanged.clear();
-    m_fixture->player.setPosition(500);
+    playbackStateChanged.clear();
+    mediaStatusChanged.clear();
+    player.setPosition(500);
 
     //this transition can be async, so allow backend to perform it
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
-    QCOMPARE(m_fixture->playbackStateChanged.size(), 0);
-    QTRY_VERIFY(m_fixture->mediaStatusChanged.size() > 0 &&
-        m_fixture->mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>() == QMediaPlayer::LoadedMedia);
+    QCOMPARE(playbackStateChanged.size(), 0);
+    QTRY_VERIFY(mediaStatusChanged.size() > 0
+                && mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>()
+                        == QMediaPlayer::LoadedMedia);
 
-    m_fixture->player.play();
-    m_fixture->player.setPosition(900);
+    player.play();
+    player.setPosition(900);
     //wait up to 5 seconds for EOS
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
-    QCOMPARE(m_fixture->player.position(), m_fixture->player.duration());
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(player.position(), player.duration());
 
-    m_fixture->playbackStateChanged.clear();
-    m_fixture->mediaStatusChanged.clear();
-    m_fixture->positionChanged.clear();
+    playbackStateChanged.clear();
+    mediaStatusChanged.clear();
+    positionChanged.clear();
 
     // pause() should reset position to beginning and status to Buffered
-    m_fixture->player.pause();
+    player.pause();
 
-    QTRY_COMPARE(m_fixture->player.position(), 0);
-    QTRY_VERIFY(m_fixture->positionChanged.size() > 0);
-    QTRY_COMPARE(m_fixture->positionChanged.first()[0].value<qint64>(), 0);
+    QTRY_COMPARE(player.position(), 0);
+    QTRY_VERIFY(positionChanged.size() > 0);
+    QTRY_COMPARE(positionChanged.first()[0].value<qint64>(), 0);
 
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PausedState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::PausedState);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
-    QCOMPARE(m_fixture->playbackStateChanged.size(), 1);
-    QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::PausedState);
-    QVERIFY(m_fixture->mediaStatusChanged.size() > 0);
+    QCOMPARE(playbackStateChanged.size(), 1);
+    QCOMPARE(playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(),
+             QMediaPlayer::PausedState);
+    QVERIFY(mediaStatusChanged.size() > 0);
     QCOMPARE(m_fixture->mediaStatusChanged.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::BufferedMedia);
 }
 
@@ -1549,6 +2225,44 @@ void tst_QMediaPlayerBackend::deleteLaterAtEOS()
     // Verify that the player was destroyed within the event loop.
     // This check will fail without the fix for QTBUG-24927.
     QVERIFY(player.isNull());
+}
+
+void tst_QMediaPlayerBackend::playToEOS_finishesWithEmptyFrame()
+{
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
+    QVector<bool> frameValidState;
+    TestVideoSink surface(false);
+    QObject::connect(&surface, &QVideoSink::videoFrameChanged, &surface,
+                     [&](const QVideoFrame &frame) {
+        frameValidState.append(frame.isValid());
+    });
+
+    QMediaPlayer player;
+    player.setVideoSink(&surface);
+    player.setSource(*m_localVideoFile3ColorsWithSound);
+    player.play();
+
+    // play to end
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QTRY_VERIFY(!frameValidState.isEmpty());
+
+    // ensure that we end with an empty frame
+    QTRY_VERIFY(!frameValidState.back());
+
+    // while all earlier frames are valid
+    frameValidState.pop_back();
+    QVERIFY(std::all_of(frameValidState.begin(), frameValidState.end(), q20::identity{}));
+
+    constexpr int framesInMedia = 77;
+    constexpr int expectedMaxFrameCount = framesInMedia + 1;
+    constexpr bool strictFrameCountValidation = false;
+    if constexpr (strictFrameCountValidation) {
+        QCOMPARE_EQ(surface.m_totalFrames, expectedMaxFrameCount);
+    } else {
+        // the backend may drop frames, so there's no reasonable lower limit
+        QCOMPARE_LE(surface.m_totalFrames, expectedMaxFrameCount);
+    }
 }
 
 void tst_QMediaPlayerBackend::volumeAcrossFiles_data()
@@ -1718,6 +2432,8 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
 void tst_QMediaPlayerBackend::seekInStoppedState()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
+
     CHECK_SELECTED_URL(m_localVideoFile);
 
     TestVideoSink surface(false);
@@ -1756,11 +2472,11 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
     player.play();
 
     QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_VERIFY(player.position() > position);
+    QTRY_COMPARE_GT(player.position(), position);
 
     QTest::qWait(100);
     // Check that it never played from the beginning
-    QVERIFY(player.position() > position);
+    QCOMPARE_GT(player.position(), position);
     for (int i = 0; i < positionSpy.size(); ++i)
         QVERIFY(positionSpy.at(i)[0].value<qint64>() > (position - 200));
 
@@ -1822,20 +2538,23 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
 
     player.play();
     QTRY_COMPARE(player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     positionSpy.clear();
-    QTRY_VERIFY(player.position() > (position - 200));
+    QTRY_COMPARE_GT(player.position(), (position - 200));
 
     QTest::qWait(500);
     // Check that it never played from the beginning
-    QVERIFY(player.position() > (position - 200));
+    QCOMPARE_GT(player.position(), (position - 200));
     for (int i = 0; i < positionSpy.size(); ++i)
         QVERIFY(positionSpy.at(i)[0].value<qint64>() > (position - 200));
 }
 
 void tst_QMediaPlayerBackend::subsequentPlayback()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious seek failures with gstreamer");
+
     CHECK_SELECTED_URL(m_localCompressedSoundFile);
 
     QAudioOutput output;
@@ -1849,11 +2568,11 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
 
     QCOMPARE(player.error(), QMediaPlayer::NoError);
     QTRY_COMPARE(player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::EndOfMedia, 10000);
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     // Could differ by up to 1 compressed frame length
     QVERIFY(qAbs(player.position() - player.duration()) < 100);
-    QVERIFY(player.position() > 0);
+    QCOMPARE_GT(player.position(), 0);
 
     player.play();
     QTRY_COMPARE(player.playbackState(), QMediaPlayer::PlayingState);
@@ -1861,7 +2580,7 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
     player.pause();
     QCOMPARE(player.playbackState(), QMediaPlayer::PausedState);
     // make sure position does not "jump" closer to the end of the file
-    QVERIFY(player.position() > 1000);
+    QCOMPARE_GT(player.position(), 1000);
     // try to seek back to zero
     player.setPosition(0);
     QTRY_COMPARE(player.position(), qint64(0));
@@ -1871,6 +2590,35 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
     player.pause();
     QCOMPARE(player.playbackState(), QMediaPlayer::PausedState);
     QCOMPARE_GT(player.position(), 1000);
+}
+
+void tst_QMediaPlayerBackend::subsequentPlayback_playsForExpectedDuration()
+{
+    using namespace std::chrono_literals;
+    QSKIP_GSTREAMER("QTBUG-127346: subsequent playback finishes almost immediately");
+
+    CHECK_SELECTED_URL(m_localCompressedSoundFile);
+
+    QMediaPlayer &player = m_fixture->player;
+    player.setSource(*m_localCompressedSoundFile);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    player.setPosition(5000);
+    player.play();
+
+    QVERIFY(player.position() >= 5000);
+
+    QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::EndOfMedia, 10'000);
+
+    QElapsedTimer timer;
+    timer.start();
+
+    // playback should take 7 seconds
+    player.play();
+    QCOMPARE_NE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::EndOfMedia, 15'000);
+    std::chrono::nanoseconds duration = std::chrono::nanoseconds(timer.nsecsElapsed());
+    QCOMPARE_GE(duration + 100ms, std::chrono::milliseconds(player.duration()));
+    QCOMPARE_LT(duration, std::chrono::seconds(12));
 }
 
 void tst_QMediaPlayerBackend::multipleMediaPlayback()
@@ -1894,7 +2642,8 @@ void tst_QMediaPlayerBackend::multipleMediaPlayback()
 
     QCOMPARE(player.error(), QMediaPlayer::NoError);
     QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_VERIFY(player.position() > 0);
+    QVERIFY(player.isSeekable());
+    QTRY_COMPARE_GT(player.position(), 0);
     QCOMPARE(player.source(), *m_localVideoFile);
 
     player.stop();
@@ -1910,7 +2659,7 @@ void tst_QMediaPlayerBackend::multipleMediaPlayback()
 
     QCOMPARE(player.error(), QMediaPlayer::NoError);
     QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_VERIFY(player.position() > 0);
+    QTRY_COMPARE_GT(player.position(), 0);
     QCOMPARE(player.source(), *m_localVideoFile2);
 
     player.stop();
@@ -1922,11 +2671,14 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
 {
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
-#ifdef Q_OS_MACOS
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
-        QSKIP("SKIP on macOS CI since multiple fake drawing on macOS CI platform causes UB. To be "
-              "investigated.");
-#endif
+    if (isCI()) {
+        if (isDarwinPlatform())
+            QSKIP("SKIP on macOS CI since multiple fake drawing on macOS CI platform causes UB. To "
+                  "be investigated.");
+    }
+
+    QSKIP_GSTREAMER(
+            "playback rate changes are flushing the pipeline, so this test is not representative");
 
     TestVideoSink surface(false);
     QAudioOutput output;
@@ -1943,24 +2695,35 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
 
     QSignalSpy spy(&player, &QMediaPlayer::playbackStateChanged);
 
-    constexpr qint64 expectedVideoDuration = 3000;
-    constexpr int waitingInterval = 200;
-    constexpr qint64 maxDuration = expectedVideoDuration + 2000;
-    constexpr qint64 minDuration = expectedVideoDuration - 100;
-    constexpr qint64 maxFrameDelay = 2000;
+    using namespace std::chrono_literals;
+    using namespace std::chrono;
+
+    constexpr milliseconds expectedVideoDuration = 3000ms;
+    constexpr milliseconds waitingInterval = 200ms;
+    constexpr milliseconds maxDuration = expectedVideoDuration + 2000ms;
+    constexpr milliseconds minDuration = expectedVideoDuration - 100ms;
+    constexpr milliseconds maxFrameDelay = 2000ms;
 
     surface.m_elapsedTimer.start();
 
-    qint64 duration = 0;
+    nanoseconds duration = 0ns;
 
-    for (int i = 0; !spy.wait(waitingInterval); ++i) {
-        duration += waitingInterval * player.playbackRate();
+    auto waitForPlaybackStateChange = [&]() {
+        QElapsedTimer timer;
+        timer.start();
 
+        QScopeGuard addDuration([&]() {
+            duration += nanoseconds(static_cast<int64_t>(timer.nsecsElapsed() * player.playbackRate()));
+        });
+        return spy.wait(waitingInterval.count());
+    };
+
+    for (int i = 0; !waitForPlaybackStateChange(); ++i) {
         player.setPlaybackRate(0.5 * (i % 4 + 1));
 
         QCOMPARE_LE(duration, maxDuration);
 
-        QVERIFY2(surface.m_elapsedTimer.elapsed() < maxFrameDelay,
+        QVERIFY2(surface.m_elapsedTimer.elapsed() < maxFrameDelay.count(),
                  "If the delay is more than 2s, we consider the video playing is hanging.");
 
         /* Some debug code for windows. Use the code instead of the check above to debug the bug.
@@ -1975,8 +2738,6 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
         }*/
     }
 
-    duration += waitingInterval * player.playbackRate();
-
     QCOMPARE_GT(duration, minDuration);
 
     QCOMPARE(spy.size(), 1);
@@ -1989,6 +2750,8 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
 
 void tst_QMediaPlayerBackend::multipleSeekStressTest()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious test failures with gstreamer");
+
 #ifdef Q_OS_ANDROID
     QSKIP("frame.toImage will return null image because of QTBUG-108446");
 #endif
@@ -2044,8 +2807,8 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
 
         QTRY_VERIFY(positionSpy.size() >= 1);
         int setPosition = positionSpy.first().first().toInt();
-        QCOMPARE_GT(setPosition, pos - 100);
-        QCOMPARE_LT(setPosition, pos + 100);
+        QCOMPARE_GT(setPosition, pos - 120);
+        QCOMPARE_LT(setPosition, pos + 120);
     };
 
     constexpr qint64 posInterval = 10;
@@ -2088,7 +2851,7 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
     QTest::addColumn<bool>("withAudio");
     QTest::addColumn<int>("positionDeviationMs");
 
-    QTest::newRow("Without audio") << false << 150;
+    QTest::newRow("Without audio") << false << 170;
 
     // set greater positionDeviationMs for case with audio due to possible synchronization.
     QTest::newRow("With audio") << true << 200;
@@ -2096,6 +2859,8 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
 
 void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderingTime()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: timing issues");
+
     QFETCH(bool, withAudio);
     QFETCH(int, positionDeviationMs);
 
@@ -2192,6 +2957,8 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
 
 void tst_QMediaPlayerBackend::surfaceTest()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failure, probably asynchronous event delivery");
+
     CHECK_SELECTED_URL(m_localVideoFile);
     // 25 fps video file
 
@@ -2208,6 +2975,10 @@ void tst_QMediaPlayerBackend::surfaceTest()
 
 void tst_QMediaPlayerBackend::metadata()
 {
+    // QTBUG-124380: gstreamer reports CoverArtImage instead of ThumbnailImage
+    QMediaMetaData::Key thumbnailKey =
+            isGStreamerPlatform() ? QMediaMetaData::CoverArtImage : QMediaMetaData::ThumbnailImage;
+
     CHECK_SELECTED_URL(m_localFileWithMetadata);
 
     m_fixture->player.setSource(*m_localFileWithMetadata);
@@ -2219,7 +2990,7 @@ void tst_QMediaPlayerBackend::metadata()
     QCOMPARE(metadata.value(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
     QCOMPARE(metadata.value(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
     QCOMPARE(metadata.value(QMediaMetaData::Duration), QVariant(7704));
-    QVERIFY(!metadata.value(QMediaMetaData::ThumbnailImage).value<QImage>().isNull());
+    QVERIFY(!metadata.value(thumbnailKey).value<QImage>().isNull());
     m_fixture->clearSpies();
 
     m_fixture->player.setSource(QUrl());
@@ -2302,6 +3073,8 @@ void tst_QMediaPlayerBackend::playerStateAtEOS()
 
 void tst_QMediaPlayerBackend::playFromBuffer()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failure, probably asynchronous event delivery");
+
     CHECK_SELECTED_URL(m_localVideoFile);
 
     TestVideoSink surface(false);
@@ -2314,6 +3087,38 @@ void tst_QMediaPlayerBackend::playFromBuffer()
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
     QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QStringLiteral("Expected >= 25, got %1").arg(surface.m_totalFrames)));
+}
+
+void tst_QMediaPlayerBackend::playFromSequentialStream()
+{
+    using namespace std::chrono_literals;
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    QSequentialFileAdaptor file(u":"_s + m_localVideoFile->toEncoded(QUrl::RemoveScheme));
+
+    QSKIP_GSTREAMER("QGstAppSource misbehaves on sequential streams");
+
+    QObject::connect(&player, &QMediaPlayer::errorOccurred, &player, [] {
+        QFAIL("playFromSequentialStream: error occurred");
+    });
+
+    QVERIFY(file.open(QIODevice::ReadOnly));
+
+    player.setSourceDevice(&file, *m_localVideoFile);
+    QCOMPARE(player.isSeekable(), false);
+    player.play();
+    QTRY_COMPARE_GE(player.position(), 1000);
+
+    QSKIP_FFMPEG("QTBUG-128802: media is not seekable, but isSeekable return `true`");
+    QCOMPARE(player.isSeekable(), false);
+
+    player.setPosition(0);
+    QCOMPARE_GE(player.position(), 1000);
+    QTest::qWait(200);
+    QTRY_COMPARE_GE(player.position(), 1000);
 }
 
 void tst_QMediaPlayerBackend::audioVideoAvailable()
@@ -2337,6 +3142,46 @@ void tst_QMediaPlayerBackend::audioVideoAvailable()
     QTRY_VERIFY(!player.hasAudio());
     QCOMPARE(hasVideoSpy.size(), 2);
     QCOMPARE(hasAudioSpy.size(), 2);
+}
+
+void tst_QMediaPlayerBackend::audioVideoAvailable_updatedOnNewMedia()
+{
+    CHECK_SELECTED_URL(m_localVideoFile);
+    CHECK_SELECTED_URL(m_localWavFile);
+
+    TestVideoSink surface(false);
+    QAudioOutput output;
+    QMediaPlayer player;
+    QSignalSpy hasVideoSpy(&player, &QMediaPlayer::hasVideoChanged);
+    QSignalSpy hasAudioSpy(&player, &QMediaPlayer::hasAudioChanged);
+    player.setVideoOutput(&surface);
+    player.setAudioOutput(&output);
+    player.setSource(*m_localVideoFile);
+    QTRY_VERIFY(player.hasVideo());
+    QTRY_VERIFY(player.hasAudio());
+    QCOMPARE(hasVideoSpy.size(), 1);
+    QCOMPARE(hasAudioSpy.size(), 1);
+
+    hasVideoSpy.clear();
+    hasAudioSpy.clear();
+
+    player.setSource(*m_localWavFile);
+
+    auto expectedHasVideoSignals = SignalList{
+        { false },
+    };
+    QTRY_COMPARE(hasVideoSpy, expectedHasVideoSignals);
+
+    if (isGStreamerPlatform()) {
+        // GStreamer unsets hasAudio/hasVideo on new URIs
+        auto expectedHasAudioSignals = SignalList{
+            { false },
+            { true },
+        };
+        QTRY_COMPARE(hasAudioSpy, expectedHasAudioSignals);
+    } else {
+        QCOMPARE(hasAudioSpy.size(), 0);
+    }
 }
 
 void tst_QMediaPlayerBackend::isSeekable()
@@ -2363,15 +3208,15 @@ void tst_QMediaPlayerBackend::positionAfterSeek()
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
     player.pause();
     player.setPosition(500);
-    QTRY_VERIFY(player.position() == 500);
+    QTRY_COMPARE(player.position(), 500);
     player.setPosition(700);
     QVERIFY(player.position() != 0);
-    QTRY_VERIFY(player.position() == 700);
+    QTRY_COMPARE(player.position(), 700);
     player.play();
-    QTRY_VERIFY(player.position() > 700);
+    QTRY_COMPARE_GT(player.position(), 700);
     player.setPosition(200);
     QVERIFY(player.position() != 0);
-    QTRY_VERIFY(player.position() < 700);
+    QTRY_COMPARE_LT(player.position(), 700);
 }
 
 void tst_QMediaPlayerBackend::pause_rendersVideoAtCorrectResolution_data()
@@ -2401,9 +3246,12 @@ void tst_QMediaPlayerBackend::pause_rendersVideoAtCorrectResolution()
 
     // Act
     player.pause();
-
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
-        QEXPECT_FAIL("av1", "QTBUG-119711: AV1 decoding requires HW support", Abort);
+#ifndef Q_OS_ANDROID
+    // isCI() does not work on Android (variable is set on host instead of device where tests are run)
+    if (isCI() && isFFMPEGPlatform())
+#endif
+        QEXPECT_FAIL("av1", "QTBUG-119711: AV1 decoding requires HW support in the FFMPEG backend",
+                     Abort);
 
     QTRY_COMPARE(surface.m_totalFrames, 1);
 
@@ -2427,17 +3275,32 @@ void tst_QMediaPlayerBackend::position()
 
     player.play();
     player.setPosition(1000);
-    QVERIFY(player.position() > 950);
-    QVERIFY(player.position() < 1050);
-    QTRY_VERIFY(player.position() > 1050);
+    QCOMPARE_GT(player.position(), 950);
+    QCOMPARE_LT(player.position(), 1050);
+    QTRY_COMPARE_GT(player.position(), 1050);
 
     player.pause();
     player.setPosition(500);
-    QVERIFY(player.position() > 450);
-    QVERIFY(player.position() < 550);
+    QCOMPARE_GT(player.position(), 450);
+    QCOMPARE_LT(player.position(), 550);
     QTest::qWait(200);
-    QVERIFY(player.position() > 450);
-    QVERIFY(player.position() < 550);
+    QCOMPARE_GT(player.position(), 450);
+    QCOMPARE_LT(player.position(), 550);
+
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+
+    // colors.mp4 is 25fps
+    // ffmpeg will round down the start time of the frame fo 480ms, while gstreamer will set a
+    // reduced frame time
+    const QVideoFrame &lastFrame = surface.m_frameList.back();
+    if (isGStreamerPlatform()) {
+        QCOMPARE_EQ(microseconds(lastFrame.startTime()), 500ms);
+        QCOMPARE_EQ(microseconds(lastFrame.endTime()), 520ms);
+    } else {
+        QCOMPARE_EQ(microseconds(lastFrame.startTime()), 480ms);
+        QCOMPARE_EQ(microseconds(lastFrame.endTime()), 520ms);
+    }
 }
 
 void tst_QMediaPlayerBackend::durationDetectionIssues_data()
@@ -2450,14 +3313,17 @@ void tst_QMediaPlayerBackend::durationDetectionIssues_data()
     QTest::addColumn<QVariant>("expectedAudioTrackDuration");
 
     // clang-format off
+    if (!isGStreamerPlatform()) {
+        QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
 
-    QTest::newRow("stream-duration-in-metadata")
+        QTest::newRow("stream-duration-in-metadata")
             << QString{ "qrc:/testdata/duration_issues.webm" }
             << 400ll        // Total media duration
             << 1            // Number of video tracks in file
             << 400ll        // Video stream duration
             << 0            // Number of audio tracks in file
             << QVariant{};  // Audio stream duration (unused)
+    }
 
     QTest::newRow("no-stream-duration-in-metadata")
             << QString{ "qrc:/testdata/nokia-tune.mkv" }
@@ -2472,6 +3338,9 @@ void tst_QMediaPlayerBackend::durationDetectionIssues_data()
 
 void tst_QMediaPlayerBackend::durationDetectionIssues()
 {
+    if (isGStreamerPlatform() && isCI())
+        QSKIP("QTBUG-124005: Fails with gstreamer on CI");
+
     QFETCH(QString, mediaFile);
     QFETCH(qint64, expectedDuration);
     QFETCH(int, expectedVideoTrackCount);
@@ -2526,9 +3395,15 @@ struct LoopIteration {
 static std::vector<LoopIteration> loopIterations(const QSignalSpy &positionSpy)
 {
     std::vector<LoopIteration> result;
+
+    static constexpr bool dumpPositions = false;
+    static constexpr bool dumpLoops = false;
+
     // Loops through all positions emitted by QMediaPlayer::positionChanged
     for (auto &params : positionSpy) {
         const auto pos = params.front().value<qint64>();
+        if constexpr (dumpPositions)
+            qDebug() << pos;
 
         // Adds new LoopIteration struct to result if position is lower than previous position
         if (result.empty() || pos < result.back().endPos) {
@@ -2540,12 +3415,22 @@ static std::vector<LoopIteration> loopIterations(const QSignalSpy &positionSpy)
             result.back().endPos = pos;
         }
     }
+
+    if constexpr (dumpLoops)
+        for (auto &element : result)
+            qDebug() << element.startPos << element.endPos << element.posCount;
+
     return result;
 }
 
 void tst_QMediaPlayerBackend::finiteLoops()
 {
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
+    QFETCH(bool, pauseDuringPlayback);
+    QFETCH(bool, rateChange);
+    if (pauseDuringPlayback)
+        QSKIP_GSTREAMER("Spurious test failures on CI");
 
 #ifdef Q_OS_MACOS
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
@@ -2558,52 +3443,70 @@ void tst_QMediaPlayerBackend::finiteLoops()
     QCOMPARE(m_fixture->player.loops(), 3);
 
     m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
-    m_fixture->player.setPlaybackRate(5);
+    if (rateChange)
+        m_fixture->player.setPlaybackRate(5);
     QCOMPARE(m_fixture->player.loops(), 3);
 
     m_fixture->player.play();
     m_fixture->surface.waitForFrame();
 
-    // check pause doesn't affect looping
-    {
+    if (pauseDuringPlayback) {
+        // check pause doesn't affect looping
         QTest::qWait(static_cast<int>(m_fixture->player.duration() * 3
                                       * 0.6 /*relative pos*/ / m_fixture->player.playbackRate()));
         m_fixture->player.pause();
         m_fixture->player.play();
     }
 
-    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE_WITH_TIMEOUT(m_fixture->player.playbackState(), QMediaPlayer::StoppedState, 15'000);
 
     // Check for expected number of loop iterations and startPos, endPos and posCount per iteration
     std::vector<LoopIteration> iterations = loopIterations(m_fixture->positionChanged);
     QCOMPARE(iterations.size(), 3u);
     QCOMPARE_GT(iterations[0].startPos, 0);
     QCOMPARE(iterations[0].endPos, m_fixture->player.duration());
-    QCOMPARE_GT(iterations[0].posCount, 10);
     QCOMPARE(iterations[1].startPos, 0);
     QCOMPARE(iterations[1].endPos, m_fixture->player.duration());
-    QCOMPARE_GT(iterations[1].posCount, 10);
     QCOMPARE(iterations[2].startPos, 0);
     QCOMPARE(iterations[2].endPos, m_fixture->player.duration());
-    QCOMPARE_GT(iterations[2].posCount, 10);
+    if (isFFMPEGPlatform()) {
+        QCOMPARE_GT(iterations[0].posCount, 10);
+        QCOMPARE_GT(iterations[1].posCount, 10);
+        QCOMPARE_GT(iterations[2].posCount, 10);
+    }
 
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
-    // Check that loop counter is reset when playback is restarted.
-    {
-        m_fixture->positionChanged.clear();
-        m_fixture->player.play();
-        m_fixture->player.setPlaybackRate(10);
-        m_fixture->surface.waitForFrame();
+    if constexpr (QT_CONFIG(pulseaudio))
+        QSKIP_GSTREAMER(
+                "StoppedState is never reached, with pulseaudio. Possibly related to QTBUG-124372");
 
-        QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
-        QCOMPARE(loopIterations(m_fixture->positionChanged).size(), 3u);
-        QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
-    }
+    // Check that loop counter is reset when playback is restarted.
+    m_fixture->positionChanged.clear();
+    m_fixture->player.play();
+    m_fixture->player.setPlaybackRate(10);
+    m_fixture->surface.waitForFrame();
+
+    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(loopIterations(m_fixture->positionChanged).size(), 3u);
+    QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
+}
+
+void tst_QMediaPlayerBackend::finiteLoops_data()
+{
+    QTest::addColumn<bool>("pauseDuringPlayback");
+    QTest::addColumn<bool>("rateChange");
+
+    QTest::newRow("No pause, default rate") << false << false;
+    QTest::newRow("No pause, fast rate") << false << true;
+    QTest::newRow("Pause, default rate") << true << false;
+    QTest::newRow("Pause, fast rate") << true << true;
 }
 
 void tst_QMediaPlayerBackend::infiniteLoops()
 {
+    QSKIP_GSTREAMER("QTBUG-123056(?): spuriously failures of the gstreamer backend");
+
     CHECK_SELECTED_URL(m_localVideoFile2);
 
 #ifdef Q_OS_MACOS
@@ -2638,7 +3541,8 @@ void tst_QMediaPlayerBackend::infiniteLoops()
         QCOMPARE(iterations.front().endPos, m_fixture->player.duration());
     }
 
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     m_fixture->player.stop(); // QMediaPlayer::stop stops whether or not looping is infinite
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
@@ -2653,6 +3557,8 @@ void tst_QMediaPlayerBackend::infiniteLoops()
 
 void tst_QMediaPlayerBackend::seekOnLoops()
 {
+    QSKIP_GSTREAMER("QTBUG-123056(?): spuriously failures of the gstreamer backend");
+
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
@@ -2704,6 +3610,8 @@ void tst_QMediaPlayerBackend::seekOnLoops()
 
 void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
 {
+    QSKIP_GSTREAMER("QTBUG-123056(?): spuriously failures of the gstreamer backend");
+
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
 #ifdef Q_OS_MACOS
@@ -2777,8 +3685,10 @@ void tst_QMediaPlayerBackend::seekAfterLoopReset()
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
 }
 
-void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
+void tst_QMediaPlayerBackend::setVideoOutput_whilePlaying_doesNotDropFrames()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: gstreamer will lose frames, possibly due to buffering");
+
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
     QVideoSink sinks[4];
@@ -2795,32 +3705,37 @@ void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
     player.setVideoOutput(&sinks[0]);
     player.setSource(*m_localVideoFile3ColorsWithSound);
     player.play();
-    QTRY_VERIFY(!player.isPlaying());
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
     player.setPlaybackRate(4);
     player.setVideoOutput(&sinks[1]);
     player.play();
 
-    QTRY_VERIFY(framesCount[1] >= framesCount[0] / 4);
+    QTRY_COMPARE_GE(framesCount[1], framesCount[0] / 4);
     player.setVideoOutput(&sinks[2]);
     const int savedFrameNumber1 = framesCount[1];
 
-    QTRY_VERIFY(framesCount[2] >= (framesCount[0] - savedFrameNumber1) / 2);
+    QTRY_COMPARE_GE(framesCount[2], (framesCount[0] - savedFrameNumber1) / 2);
     player.setVideoOutput(&sinks[3]);
     const int savedFrameNumber2 = framesCount[2];
 
-    QTRY_VERIFY(!player.isPlaying());
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
     // check if no frames sent to old sinks
     QCOMPARE(framesCount[1], savedFrameNumber1);
     QCOMPARE(framesCount[2], savedFrameNumber2);
 
+    constexpr int videoOutputChanges = 2; // video frame goes from the previous sink.
+
     // no frames lost
-    QCOMPARE(framesCount[1] + framesCount[2] + framesCount[3], framesCount[0]);
+    QCOMPARE(framesCount[1] + framesCount[2] + framesCount[3], framesCount[0] + videoOutputChanges);
 }
 
 void tst_QMediaPlayerBackend::cleanSinkAndNoMoreFramesAfterStop()
 {
+    QSKIP_GSTREAMER(
+            "QTBUG-124005: spurious failures on gstreamer, probably due to asynchronous play()");
+
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
     QVideoSink sink;
@@ -2851,6 +3766,9 @@ void tst_QMediaPlayerBackend::cleanSinkAndNoMoreFramesAfterStop()
         framesCount = 0;
 
         QTest::qWait(30);
+
+        if (isGStreamerPlatform())
+            continue; // QTBUG-124005: stop() is asynchronous in gstreamer
 
         // check if nothing changed after short waiting
         QCOMPARE(framesCount, 0);
@@ -2943,7 +3861,8 @@ void tst_QMediaPlayerBackend::nonAsciiFileName()
     m_fixture->player.setSource(temporaryFile->fileName());
     m_fixture->player.play();
 
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     QCOMPARE(m_fixture->errorOccurred.size(), 0);
 }
@@ -2975,8 +3894,8 @@ void tst_QMediaPlayerBackend::setMedia_setsVideoSinkSize_beforePlaying()
     QCOMPARE(spy2.size(), 1);
 }
 
-std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtspStreamProcess(QString fileName,
-                                                                           QString outputUrl)
+std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtpStreamProcess(QString fileName,
+                                                                          QString sdpUrl)
 {
     Q_ASSERT(!m_vlcCommand.isEmpty());
 
@@ -2985,22 +3904,22 @@ std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtspStreamProcess(QStri
     fileName.replace('/', '\\');
 #endif
 
-    // clang-format off
-    QStringList vlcParams =
-    {
-        "-vvv", fileName,
-        "--sout", QLatin1String("#rtp{sdp=%1}").arg(outputUrl),
-        "--intf", "dummy"
-    };
-    // clang-format on
+    QStringList vlcParams = { "-vvv",   fileName,
+                              "--sout", QStringLiteral("#rtp{dst=localhost,sdp=%1}").arg(sdpUrl),
+                              "--intf", "dummy" };
 
     process->start(m_vlcCommand, vlcParams);
     if (!process->waitForStarted())
         return nullptr;
 
-    // rtsp stream might be with started some delay after the vlc process starts.
-    // Ideally, we should wait for open connections, it requires some extra work + QNetwork dependency.
-    QTest::qWait(500);
+    // rtp stream might be with started some delay after the vlc process starts.
+    // Ideally, we should wait for open connections, it requires some extra work + QNetwork
+    // dependency.
+    int timeout = 500;
+#ifdef Q_OS_MACOS
+    timeout = 2000;
+#endif
+    QTest::qWait(timeout);
 
     return process;
 }
@@ -3037,6 +3956,9 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
 
 void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata()
 {
+    if (isGStreamerPlatform() && isCI())
+        QSKIP("QTBUG-124005: Fails with gstreamer on CI");
+
     // This test uses 4 video files with a 2x2 color matrix consisting of
     // red (upper left), blue (lower left), yellow (lower right) and green (upper right).
     // The files are identical, except that three of them contain
@@ -3075,16 +3997,637 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
     QVideoFrame videoFrame = m_fixture->surface.waitForFrame();
     QVERIFY(videoFrame.isValid());
     QCOMPARE(QtVideo::Rotation(videoFrame.rotationAngle()), expectedRotationAngle);
+#ifdef Q_OS_ANDROID
+    QSKIP("frame.toImage will return null image because of QTBUG-108446");
+#endif
     QImage image = videoFrame.toImage();
     QVERIFY(!image.isNull());
     QRgb upperLeftColor = image.pixel(5, 5);
 
     QCOMPARE_LT(colorDifference(upperLeftColor, expectedColor), 0.005);
 
+    QSKIP_GSTREAMER("QTBUG-124005: surface.videoSize() not updated with rotation");
+
     // Compare videoSize of the output video sink with the expected value after getting a frame
     QCOMPARE(m_fixture->surface.videoSize(), videoSize);
 }
 
+void tst_QMediaPlayerBackend::setVideoOutput_doesNotStopPlayback()
+{
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_15sVideo);
+
+    QFETCH(QMediaPlayer::PlaybackState, playbackState);
+
+    TestVideoSink surface(false);
+    QAudioOutput audioOut;
+
+    QMediaPlayer player;
+    player.setAudioOutput(&audioOut);
+    player.setSource(*m_15sVideo);
+
+    switch (playbackState) {
+    case QMediaPlayer::StoppedState:
+        break;
+    case QMediaPlayer::PausedState:
+        player.pause();
+        break;
+    case QMediaPlayer::PlayingState:
+        QSKIP_GSTREAMER("QTBUG-124005: Test failure with the gstreamer backend");
+        player.play();
+        break;
+    }
+
+    // set video output
+    QTest::qWait(1'000);
+    player.setVideoOutput(&surface);
+
+    if (playbackState == QMediaPlayer::PlayingState) {
+        QVideoFrame frame = surface.waitForFrame();
+        QCOMPARE(frame.size(), QSize(20, 20));
+    }
+
+    // unset video output
+    QTest::qWait(1'000);
+    player.setVideoOutput(nullptr);
+
+    // wait for play until end
+    if (playbackState != QMediaPlayer::PlayingState)
+        player.play();
+
+    player.setPlaybackRate(5);
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+}
+
+void tst_QMediaPlayerBackend::setVideoOutput_doesNotStopPlayback_data()
+{
+    QTest::addColumn<QMediaPlayer::PlaybackState>("playbackState");
+    QTest::newRow("StoppedState") << QMediaPlayer::StoppedState;
+    QTest::newRow("PausedState") << QMediaPlayer::PausedState;
+    QTest::newRow("PlayingState") << QMediaPlayer::PlayingState;
+}
+
+void tst_QMediaPlayerBackend::setVideoOutput_whilePaused_updatesNewSink()
+{
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_15sVideo);
+
+    TestVideoSink surface1(/*storeFrames=*/false);
+    TestVideoSink surface2(/*storeFrames=*/false);
+
+    QAudioOutput audioOut;
+
+    QMediaPlayer player;
+    player.setAudioOutput(&audioOut);
+    player.setVideoOutput(&surface1);
+    player.setSource(*m_15sVideo);
+
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    player.play();
+    QTRY_COMPARE_GT(player.position(), 100);
+
+#ifndef Q_OS_ANDROID // fails with android/ffmpeg
+    QCOMPARE(surface1.videoFrame().toImage().pixelColor(10, 10), QColorConstants::White);
+#endif
+
+    player.pause();
+
+    QTest::qWait(100/*ms*/); // pause() may be asynchronous
+
+    player.setVideoOutput(&surface2);
+
+    // new frame is delivered asynchronously
+    QTRY_COMPARE_EQ(surface2.m_totalFrames, 1);
+
+#ifndef Q_OS_ANDROID // fails with android/ffmpeg
+    QCOMPARE(surface2.videoFrame().toImage().pixelColor(10, 10), QColorConstants::White);
+#endif
+
+    if (isFFMPEGPlatform())
+        QCOMPARE(surface1.videoFrame(), surface2.videoFrame());
+    else if (isGStreamerPlatform())
+        // timestamps differ, so we only compare pixels
+        QCOMPARE(surface1.videoFrame().toImage(), surface2.videoFrame().toImage());
+}
+
+void tst_QMediaPlayerBackend::setAudioOutput_doesNotStopPlayback()
+{
+    QSKIP_FFMPEG("QTBUG-126014: Test failure with the ffmpeg backend");
+
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_15sVideo);
+    QFETCH(QMediaPlayer::PlaybackState, playbackState);
+
+    TestVideoSink surface(false);
+    QAudioOutput audioOut;
+
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    player.setSource(*m_15sVideo);
+
+    switch (playbackState) {
+    case QMediaPlayer::StoppedState:
+        break;
+    case QMediaPlayer::PausedState:
+        player.pause();
+        break;
+    case QMediaPlayer::PlayingState:
+        player.play();
+        break;
+    }
+
+    // set audio output
+    QTest::qWait(1'000);
+    player.setAudioOutput(&audioOut);
+
+    // unset audio output
+    QTest::qWait(1'000);
+    player.setAudioOutput(nullptr);
+
+    // wait for play until end
+    if (playbackState != QMediaPlayer::PlayingState)
+        player.play();
+    player.setPlaybackRate(5);
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+}
+
+void tst_QMediaPlayerBackend::setAudioOutput_doesNotStopPlayback_data()
+{
+    QTest::addColumn<QMediaPlayer::PlaybackState>("playbackState");
+    QTest::newRow("StoppedState") << QMediaPlayer::StoppedState;
+    QTest::newRow("PausedState") << QMediaPlayer::PausedState;
+    QTest::newRow("PlayingState") << QMediaPlayer::PlayingState;
+}
+
+void tst_QMediaPlayerBackend::swapAudioDevice_doesNotStopPlayback()
+{
+    using namespace std::chrono_literals;
+
+    const QList<QAudioDevice> outputDevices = QMediaDevices::audioOutputs();
+
+    if (outputDevices.size() < 2)
+        QSKIP("swapAudioDevice_doesNotStopPlayback requires two audio output devices");
+
+    QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer");
+
+    CHECK_SELECTED_URL(m_15sVideo);
+    QFETCH(QMediaPlayer::PlaybackState, playbackState);
+
+    TestVideoSink surface(false);
+    QAudioOutput audioOut;
+
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    player.setAudioOutput(&audioOut);
+    player.setSource(*m_15sVideo);
+    switch (playbackState) {
+    case QMediaPlayer::StoppedState:
+        break;
+    case QMediaPlayer::PausedState:
+        player.pause();
+        break;
+    case QMediaPlayer::PlayingState:
+        player.play();
+        break;
+    }
+
+    // swap output device
+    QTest::qWait(1'000);
+    audioOut.setDevice(outputDevices[0]);
+
+    QTest::qWait(1'000);
+    audioOut.setDevice(outputDevices[1]);
+
+    QTest::qWait(1'000);
+    audioOut.setDevice(outputDevices[0]);
+
+    // wait for play until end
+    if (playbackState != QMediaPlayer::PlayingState)
+        player.play();
+    player.setPlaybackRate(5);
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+}
+
+void tst_QMediaPlayerBackend::swapAudioDevice_doesNotStopPlayback_data()
+{
+    QTest::addColumn<QMediaPlayer::PlaybackState>("playbackState");
+    QTest::newRow("StoppedState") << QMediaPlayer::StoppedState;
+    QTest::newRow("PausedState") << QMediaPlayer::PausedState;
+    QTest::newRow("PlayingState") << QMediaPlayer::PlayingState;
+}
+
+void tst_QMediaPlayerBackend::play_readsSubtitle()
+{
+    using namespace std::chrono_literals;
+    CHECK_SELECTED_URL(m_subtitleVideo);
+
+    QVideoSink &sink = m_fixture->surface;
+    QMediaPlayer &player = m_fixture->player;
+
+    TestSubtitleSink subtitleSink;
+    QObject::connect(&sink, &QVideoSink::subtitleTextChanged, &subtitleSink,
+                     &TestSubtitleSink::addSubtitle);
+
+    player.setSource(*m_subtitleVideo);
+    QTRY_COMPARE(player.subtitleTracks().size(), 1);
+    if (!isGStreamerPlatform()) {
+        // QTBUG-124005: spurious failures with gstreamer
+        QCOMPARE_EQ(player.subtitleTracks()[0].value(QMediaMetaData::Duration), 3000);
+    }
+
+    player.setActiveSubtitleTrack(0);
+
+    if (!isGStreamerPlatform()) // FIXME: spurious deadlocks
+        player.setPlaybackRate(5.f);
+
+    player.play();
+
+    QSKIP_GSTREAMER("QTBUG-124005: gstreamer sometimes reports more than 4 subtitle events");
+
+    QStringList expectedSubtitleList = {
+        u"Hello"_s,
+        u""_s,
+        u"World"_s,
+        u""_s,
+    };
+
+    QTRY_COMPARE(subtitleSink.subtitles, expectedSubtitleList);
+}
+
+void tst_QMediaPlayerBackend::multiTrack_validateMetadata()
+{
+    CHECK_SELECTED_URL(m_multitrackVideo);
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSource(*m_multitrackVideo);
+
+    QTRY_COMPARE(player.videoTracks().size(), 2);
+    QTRY_COMPARE(player.audioTracks().size(), 2);
+    QTRY_COMPARE(player.subtitleTracks().size(), 2);
+
+    QSKIP_GSTREAMER("GStreamer does not provide correct track order");
+
+    QCOMPARE(player.videoTracks()[0][QMediaMetaData::Title], u"One"_s);
+    QCOMPARE(player.videoTracks()[1][QMediaMetaData::Title], u"Two"_s);
+
+    QCOMPARE(player.audioTracks()[0][QMediaMetaData::Language], QLocale::Language::English);
+    QCOMPARE(player.audioTracks()[1][QMediaMetaData::Language], QLocale::Language::Spanish);
+    QCOMPARE(player.subtitleTracks()[0][QMediaMetaData::Language], QLocale::Language::English);
+    QCOMPARE(player.subtitleTracks()[1][QMediaMetaData::Language], QLocale::Language::Spanish);
+}
+
+void tst_QMediaPlayerBackend::play_readsSubtitle_fromMultiTrack()
+{
+    using namespace std::chrono_literals;
+    CHECK_SELECTED_URL(m_multitrackVideo);
+
+    QFETCH(int, track);
+    QFETCH(const QStringList, expectedSubtitles);
+
+    QVideoSink &sink = m_fixture->surface;
+    QMediaPlayer &player = m_fixture->player;
+
+    TestSubtitleSink subtitleSink;
+    QObject::connect(&sink, &QVideoSink::subtitleTextChanged, &subtitleSink,
+                     &TestSubtitleSink::addSubtitle);
+
+    player.setSource(*m_multitrackVideo);
+
+    QTRY_COMPARE(player.subtitleTracks().size(), 2);
+
+    if (track != -1) {
+        if (isGStreamerPlatform())
+            QCOMPARE(player.subtitleTracks()[0].value(QMediaMetaData::Duration), 4000);
+        if (isFFMPEGPlatform())
+            QCOMPARE(player.subtitleTracks()[0].value(QMediaMetaData::Duration), 15046);
+    }
+
+    if (isGStreamerPlatform()) {
+        bool swapTracks =
+                player.subtitleTracks()[0][QMediaMetaData::Language] == QLocale::Language::Spanish;
+
+        if (swapTracks && track == 1)
+            track = 0;
+        if (swapTracks && track == 0)
+            track = 1;
+    }
+
+    player.setActiveSubtitleTrack(track);
+    if (!isGStreamerPlatform())
+        player.setPlaybackRate(5.f);
+    player.play();
+
+    if (expectedSubtitles.isEmpty())
+        QTRY_COMPARE_GT(player.position(), 2000);
+
+    QTRY_COMPARE(subtitleSink.subtitles, expectedSubtitles);
+}
+
+void tst_QMediaPlayerBackend::play_readsSubtitle_fromMultiTrack_data()
+{
+    QSKIP_GSTREAMER("GStreamer does not provide consistent track order");
+
+    QTest::addColumn<int>("track");
+    QTest::addColumn<QStringList>("expectedSubtitles");
+
+    QTest::addRow("track 0") << 0
+                             << QStringList{
+                                    u"1s track 1"_s,
+                                    u""_s,
+                                    u"3s track 1"_s,
+                                    u""_s,
+                                };
+    QTest::addRow("track 1") << 1
+                             << QStringList{
+                                    u"1s track 2"_s,
+                                    u""_s,
+                                    u"3s track 2"_s,
+                                    u""_s,
+                                };
+
+    QTest::addRow("no subtitles") << -1 << QStringList{};
+}
+
+void tst_QMediaPlayerBackend::setActiveSubtitleTrack_switchesSubtitles()
+{
+    QVideoSink &sink = m_fixture->surface;
+    QMediaPlayer &player = m_fixture->player;
+
+    QFETCH(const QUrl, media);
+    QFETCH(const int, positionToSwapTrack);
+    QFETCH(const QLatin1String, testMode);
+    QFETCH(const QStringList, expectedSubtitles);
+
+    TestSubtitleSink subtitleSink;
+    QObject::connect(&sink, &QVideoSink::subtitleTextChanged, &subtitleSink,
+                     &TestSubtitleSink::addSubtitle);
+
+    player.setSource(media);
+
+    QTRY_COMPARE(player.subtitleTracks().size(), 2);
+
+    int track0 = 0;
+    int track1 = 1;
+    if (isGStreamerPlatform()) {
+        bool swapTracks =
+                player.subtitleTracks()[0][QMediaMetaData::Language] == QLocale::Language::Spanish;
+
+        if (swapTracks) {
+            track1 = 0;
+            track0 = 1;
+        }
+    }
+
+    player.setActiveSubtitleTrack(track0);
+
+    player.play();
+    QTRY_COMPARE_GT(player.position(), positionToSwapTrack);
+
+    if (testMode == "setWhilePaused"_L1) {
+        player.pause();
+        player.setActiveSubtitleTrack(track1);
+        player.play();
+    } else if (testMode == "setWhilePlaying"_L1) {
+        player.setActiveSubtitleTrack(track1);
+    } else {
+        QFAIL("should not reach");
+    }
+
+    QTRY_COMPARE(subtitleSink.subtitles, expectedSubtitles);
+}
+
+void tst_QMediaPlayerBackend::setActiveSubtitleTrack_switchesSubtitles_data()
+{
+    QSKIP_GSTREAMER("GStreamer does not provide consistent track order");
+
+    QTest::addColumn<QUrl>("media");
+    QTest::addColumn<QLatin1String>("testMode");
+    QTest::addColumn<int>("positionToSwapTrack");
+    QTest::addColumn<QStringList>("expectedSubtitles");
+
+    QTest::addRow("while paused") << *m_multitrackVideo << "setWhilePaused"_L1 << 2100
+                                  << QStringList{
+                                         u"1s track 1"_s,
+                                         u""_s,
+                                         u"3s track 2"_s,
+                                         u""_s,
+                                     };
+    QTest::addRow("while playing") << *m_multitrackVideo << "setWhilePlaying"_L1 << 2100
+                                   << QStringList{
+                                          u"1s track 1"_s,
+                                          u""_s,
+                                          u"3s track 2"_s,
+                                          u""_s,
+                                      };
+
+    QTest::addRow("while paused, subtitles start at zero")
+            << *m_multitrackSubtitleStartsAtZeroVideo << "setWhilePaused"_L1 << 1100
+            << QStringList{
+                   u"0s track 1"_s,
+                   u""_s,
+                   u"2s track 2"_s,
+                   u""_s,
+               };
+    QTest::addRow("while playing, subtitles start at zero")
+            << *m_multitrackSubtitleStartsAtZeroVideo << "setWhilePlaying"_L1 << 1100
+            << QStringList{
+                   u"0s track 1"_s,
+                   u""_s,
+                   u"2s track 2"_s,
+                   u""_s,
+               };
+}
+
+void tst_QMediaPlayerBackend::setActiveVideoTrack_switchesVideoTrack()
+{
+    using namespace std::chrono_literals;
+    QSKIP_GSTREAMER("GStreamer does not provide consistent track order");
+
+    TestVideoSink &sink = m_fixture->surface;
+    sink.setStoreFrames();
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSource(*m_multitrackVideo);
+
+    QTRY_COMPARE(player.videoTracks().size(), 2);
+
+    int track0 = 0;
+    int track1 = 1;
+    if (isGStreamerPlatform()) {
+        bool swapTracks = player.subtitleTracks()[0][QMediaMetaData::Title] != u"One"_s;
+
+        if (swapTracks) {
+            track0 = 1;
+            track1 = 0;
+        }
+    }
+
+    player.setActiveVideoTrack(track0);
+    player.play();
+
+    sink.waitForFrame();
+
+    QTest::qWait(500);
+    sink.waitForFrame();
+    QCOMPARE(QColor{ sink.m_frameList.back().toImage().pixel(10, 10) }, QColor(0xff, 0x80, 0x7f));
+
+    player.setActiveVideoTrack(track1);
+
+    QTest::qWait(500);
+    sink.waitForFrame();
+    QCOMPARE(QColor{ sink.m_frameList.back().toImage().pixel(10, 10) }, QColor(0x80, 0x80, 0xff));
+}
+
+void tst_QMediaPlayerBackend::disablingAllTracks_doesNotStopPlayback()
+{
+    QSKIP_GSTREAMER("position does not advance in GStreamer");
+
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSource(*m_multitrackVideo);
+
+    // CAVEAT: we cannot set active tracks before tracksChanged is emitted
+    QTRY_COMPARE(player.videoTracks().size(), 2);
+
+    player.setActiveVideoTrack(-1);
+    player.setActiveAudioTrack(-1);
+
+    player.play();
+    QTRY_COMPARE_GT(player.position(), 1000);
+
+    QCOMPARE(m_fixture->surface.m_totalFrames, 0);
+}
+
+void tst_QMediaPlayerBackend::disablingAllTracks_beforeTracksChanged_doesNotStopPlayback()
+{
+    QSKIP_GSTREAMER("position does not advance in GStreamer");
+    QSKIP_FFMPEG("setActiveXXXTrack(-1) only works after tracksChanged");
+
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSource(*m_multitrackVideo);
+
+    player.setActiveVideoTrack(-1);
+    player.setActiveAudioTrack(-1);
+
+    player.play();
+    QTRY_COMPARE_GT(player.position(), 1000);
+
+    QCOMPARE(m_fixture->surface.m_totalFrames, 0);
+}
+
+void tst_QMediaPlayerBackend::makeStressTestCases()
+{
+    QTest::addColumn<MaybeUrl>("media");
+    QTest::addColumn<bool>("play");
+
+    QTest::newRow("no media") << MaybeUrl{ unexpect } << false;
+    QTest::newRow("audio, not playing") << m_localWavFile << false;
+    QTest::newRow("audio, playing") << m_localWavFile << true;
+    QTest::newRow("video, not playing") << m_localVideoFile << false;
+    QTest::newRow("video, playing") << m_localVideoFile << true;
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown()
+{
+#ifdef Q_OS_MACOS
+    QSKIP_FFMPEG("QTBUG-127137: Crashes on CI");
+#endif
+
+    QFETCH(MaybeUrl, media);
+    QFETCH(bool, play);
+    QRandomGenerator rng;
+
+    for (int i = 0; i < 50; i++) {
+        QMediaPlayer player;
+        QAudioOutput output;
+        TestVideoSink videoSink;
+
+        player.setAudioOutput(&output);
+        player.setVideoOutput(&videoSink);
+
+        if (media) {
+            player.setSource(*media);
+            if (play) {
+                player.play();
+                QTRY_COMPARE_GT(player.position(), 10);
+            }
+        }
+        QTest::qWait(rng.bounded(200));
+    }
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown_data()
+{
+    makeStressTestCases();
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown_keepAudioOutput()
+{
+    QFETCH(MaybeUrl, media);
+    QFETCH(bool, play);
+    QRandomGenerator rng;
+
+    QAudioOutput output;
+
+    for (int i = 0; i < 50; i++) {
+        QMediaPlayer player;
+        TestVideoSink videoSink;
+
+        player.setAudioOutput(&output);
+        player.setVideoOutput(&videoSink);
+
+        if (media) {
+            player.setSource(*media);
+            if (play) {
+                player.play();
+                QTRY_COMPARE_GT(player.position(), 10);
+            }
+        }
+        QTest::qWait(rng.bounded(200));
+    }
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown_keepAudioOutput_data()
+{
+    makeStressTestCases();
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown_keepVideoOutput()
+{
+    QFETCH(MaybeUrl, media);
+    QFETCH(bool, play);
+    QRandomGenerator rng;
+
+    TestVideoSink videoSink;
+
+    for (int i = 0; i < 50; i++) {
+        QMediaPlayer player;
+        QAudioOutput output;
+
+        player.setAudioOutput(&output);
+        player.setVideoOutput(&videoSink);
+
+        if (media) {
+            player.setSource(*media);
+            if (play) {
+                player.play();
+                QTRY_COMPARE_GT(player.position(), 10);
+            }
+        }
+        QTest::qWait(rng.bounded(200));
+    }
+}
+
+void tst_QMediaPlayerBackend::stressTest_setupAndTeardown_keepVideoOutput_data()
+{
+    makeStressTestCases();
+}
+
 QTEST_MAIN(tst_QMediaPlayerBackend)
+
 #include "tst_qmediaplayerbackend.moc"
 

@@ -32,7 +32,7 @@ bool QFFmpegMediaRecorder::isLocationWritable(const QUrl &) const
 
 void QFFmpegMediaRecorder::handleSessionError(QMediaRecorder::Error code, const QString &description)
 {
-    error(code, description);
+    updateError(code, description);
     stop();
 }
 
@@ -46,7 +46,7 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     const auto hasAudio = m_session->audioInput() != nullptr;
 
     if (!hasVideo && !hasAudio) {
-        error(QMediaRecorder::ResourceError, QMediaRecorder::tr("No video or audio input"));
+        updateError(QMediaRecorder::ResourceError, QMediaRecorder::tr("No video or audio input"));
         return;
     }
 
@@ -61,8 +61,8 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     formatContext->openAVIO(actualLocation);
 
     if (!formatContext->isAVIOOpen()) {
-        error(QMediaRecorder::LocationNotWritable,
-              QMediaRecorder::tr("Cannot open the output location for writing"));
+        updateError(QMediaRecorder::LocationNotWritable,
+                    QMediaRecorder::tr("Cannot open the output location for writing"));
         return;
     }
 
@@ -72,25 +72,24 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
             &QFFmpegMediaRecorder::newDuration);
     connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::finalizationDone, this,
             &QFFmpegMediaRecorder::finalizationDone);
-    connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::error, this,
+    connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::sessionError, this,
             &QFFmpegMediaRecorder::handleSessionError);
 
-    auto *audioInput = m_session->audioInput();
-    if (audioInput) {
-        if (audioInput->device.isNull())
-            qWarning() << "Audio input device is null; cannot encode audio";
-        else
-            m_recordingEngine->addAudioInput(static_cast<QFFmpegAudioInput *>(audioInput));
-    }
+    auto handleStreamInitializationError = [this](QMediaRecorder::Error code,
+                                                  const QString &description) {
+        qCWarning(qLcMediaEncoder) << "Stream initialization error:" << description;
+        updateError(code, description);
+    };
 
-    for (auto source : videoSources)
-        m_recordingEngine->addVideoSource(source);
+    connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::streamInitializationError, this,
+            handleStreamInitializationError);
 
     durationChanged(0);
     stateChanged(QMediaRecorder::RecordingState);
     actualLocationChanged(QUrl::fromLocalFile(actualLocation));
 
-    m_recordingEngine->start();
+    m_recordingEngine->initialize(static_cast<QFFmpegAudioInput *>(m_session->audioInput()),
+                                  videoSources);
 }
 
 void QFFmpegMediaRecorder::pause()

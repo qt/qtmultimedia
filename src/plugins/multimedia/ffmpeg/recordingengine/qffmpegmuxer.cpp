@@ -18,7 +18,7 @@ Muxer::Muxer(RecordingEngine *encoder) : m_encoder(encoder)
 void Muxer::addPacket(AVPacketUPtr packet)
 {
     {
-        QMutexLocker locker(&m_queueMutex);
+        QMutexLocker locker = lockLoopData();
         m_packetQueue.push(std::move(packet));
     }
 
@@ -28,7 +28,7 @@ void Muxer::addPacket(AVPacketUPtr packet)
 
 AVPacketUPtr Muxer::takePacket()
 {
-    QMutexLocker locker(&m_queueMutex);
+    QMutexLocker locker = lockLoopData();
     return dequeueIfPossible(m_packetQueue);
 }
 
@@ -37,11 +37,14 @@ void Muxer::init()
     qCDebug(qLcFFmpegMuxer) << "Muxer::init started thread.";
 }
 
-void Muxer::cleanup() { }
+void Muxer::cleanup()
+{
+    while (!m_packetQueue.empty())
+        processOne();
+}
 
 bool QFFmpeg::Muxer::hasData() const
 {
-    QMutexLocker locker(&m_queueMutex);
     return !m_packetQueue.empty();
 }
 

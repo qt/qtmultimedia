@@ -23,8 +23,11 @@
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
 
 #include <gst/gst.h>
+#include <gst/app/gstappsink.h>
+#include <gst/app/gstappsrc.h>
 #include <gst/video/video-info.h>
 
 #include "qgst_handle_types_p.h"
@@ -37,10 +40,6 @@
 #  undef GST_USE_UNSTABLE_API
 #endif
 
-#if QT_CONFIG(gstreamer_app)
-#  include <gst/app/gstappsink.h>
-#  include <gst/app/gstappsrc.h>
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -79,6 +78,29 @@ struct GstObjectTraits
     };                                                  \
     static_assert(true, "ensure semicolon")
 
+#define QGST_DEFINE_CAST_TRAITS_FOR_INTERFACE(ClassName, MACRO_LABEL) \
+  template <>                                                         \
+  struct GstObjectTraits<ClassName>                                   \
+  {                                                                   \
+    using Type = ClassName;                                           \
+    template <typename U>                                             \
+    static bool isObjectOfType(U *arg)                                \
+    {                                                                 \
+      return GST_IS_##MACRO_LABEL(arg);                               \
+    }                                                                 \
+    template <typename U>                                             \
+    static Type *cast(U *arg)                                         \
+    {                                                                 \
+      return checked_cast(arg);                                       \
+    }                                                                 \
+    template <typename U>                                             \
+    static Type *checked_cast(U *arg)                                 \
+    {                                                                 \
+      return GST_##MACRO_LABEL(arg);                                  \
+    }                                                                 \
+  };                                                                  \
+  static_assert(true, "ensure semicolon")
+
 QGST_DEFINE_CAST_TRAITS(GstBin, BIN);
 QGST_DEFINE_CAST_TRAITS(GstClock, CLOCK);
 QGST_DEFINE_CAST_TRAITS(GstElement, ELEMENT);
@@ -87,11 +109,11 @@ QGST_DEFINE_CAST_TRAITS(GstPad, PAD);
 QGST_DEFINE_CAST_TRAITS(GstPipeline, PIPELINE);
 QGST_DEFINE_CAST_TRAITS(GstBaseSink, BASE_SINK);
 QGST_DEFINE_CAST_TRAITS(GstBaseSrc, BASE_SRC);
-
-#if QT_CONFIG(gstreamer_app)
 QGST_DEFINE_CAST_TRAITS(GstAppSink, APP_SINK);
 QGST_DEFINE_CAST_TRAITS(GstAppSrc, APP_SRC);
-#endif
+
+QGST_DEFINE_CAST_TRAITS_FOR_INTERFACE(GstTagSetter, TAG_SETTER);
+
 
 template <>
 struct GstObjectTraits<GObject>
@@ -115,8 +137,16 @@ struct GstObjectTraits<GObject>
 };
 
 #undef QGST_DEFINE_CAST_TRAITS
+#undef QGST_DEFINE_CAST_TRAITS_FOR_INTERFACE
 
 } // namespace QGstImpl
+
+template <typename DestinationType, typename SourceType>
+bool qIsGstObjectOfType(SourceType *arg)
+{
+    using Traits = QGstImpl::GstObjectTraits<DestinationType>;
+    return arg && Traits::isObjectOfType(arg);
+}
 
 template <typename DestinationType, typename SourceType>
 DestinationType *qGstSafeCast(SourceType *arg)
@@ -137,7 +167,7 @@ DestinationType *qGstCheckedCast(SourceType *arg)
 }
 
 class QSize;
-class QGstStructure;
+class QGstStructureView;
 class QGstCaps;
 class QGstPipelinePrivate;
 class QCameraFormat;
@@ -146,6 +176,15 @@ template <typename T> struct QGRange
 {
     T min;
     T max;
+
+#ifdef __cpp_impl_three_way_comparison
+    auto operator<=> (const QGRange &) const = default;
+#else
+    bool operator==(const QGRange &rhs) const
+    {
+        return std::tie(min, max) == std::tie(rhs.min, rhs.max);
+    }
+#endif
 };
 
 struct QGString : QUniqueGStringHandle
@@ -153,7 +192,47 @@ struct QGString : QUniqueGStringHandle
     using QUniqueGStringHandle::QUniqueGStringHandle;
 
     QLatin1StringView asStringView() const { return QLatin1StringView{ get() }; }
+    QByteArrayView asByteArrayView() const { return QByteArrayView{ get() }; }
     QString toQString() const { return QString::fromUtf8(get()); }
+
+    bool operator==(const QGString &str) const { return asStringView() == str.asStringView(); }
+    bool operator==(const QLatin1StringView str) const { return asStringView() == str; }
+    bool operator==(const QByteArrayView str) const { return asByteArrayView() == str; }
+
+    bool operator!=(const QGString &str) const { return asStringView() != str.asStringView(); }
+    bool operator!=(const QLatin1StringView str) const { return asStringView() != str; }
+    bool operator!=(const QByteArrayView str) const { return asByteArrayView() != str; }
+
+    friend bool operator<(const QGString &lhs, const QGString &rhs)
+    {
+        return lhs.asStringView() < rhs.asStringView();
+    }
+    friend bool operator<(const QGString &lhs, const QLatin1StringView rhs)
+    {
+        return lhs.asStringView() < rhs;
+    }
+    friend bool operator<(const QGString &lhs, const QByteArrayView rhs)
+    {
+        return lhs.asByteArrayView() < rhs;
+    }
+    friend bool operator<(const QLatin1StringView lhs, const QGString &rhs)
+    {
+        return lhs < rhs.asStringView();
+    }
+    friend bool operator<(const QByteArrayView lhs, const QGString &rhs)
+    {
+        return lhs < rhs.asByteArrayView();
+    }
+
+    explicit operator QByteArrayView() const { return asByteArrayView(); }
+    explicit operator QByteArray() const
+    {
+        QByteArrayView view{ asByteArrayView() };
+        return QByteArray{
+            view.data(),
+            view.size(),
+        };
+    }
 };
 
 class QGValue
@@ -178,7 +257,7 @@ public:
     std::optional<QGRange<float>> getFractionRange() const;
     std::optional<QGRange<int>> toIntRange() const;
 
-    QGstStructure toStructure() const;
+    QGstStructureView toStructure() const;
     QGstCaps toCaps() const;
 
     bool isList() const;
@@ -276,27 +355,29 @@ protected:
 
 class QGstreamerMessage;
 
-class QGstStructure
+class QGstStructureView
 {
 public:
     const GstStructure *structure = nullptr;
-    QGstStructure() = default;
-    QGstStructure(const GstStructure *s);
-    void free();
+    explicit QGstStructureView(const GstStructure *);
+    explicit QGstStructureView(const QUniqueGstStructureHandle &);
+
+    QUniqueGstStructureHandle clone() const;
 
     bool isNull() const;
-
     QByteArrayView name() const;
-    QGValue operator[](const char *name) const;
+    QGValue operator[](const char *fieldname) const;
+
+    QGstCaps caps() const;
+    QGstTagListHandle tags() const;
 
     QSize resolution() const;
     QVideoFrameFormat::PixelFormat pixelFormat() const;
     QGRange<float> frameRateRange() const;
+    std::optional<QGRange<QSize>> resolutionRange() const;
     QGstreamerMessage getMessage();
     std::optional<Fraction> pixelAspectRatio() const;
     QSize nativeSize() const;
-
-    QGstStructure copy() const;
 };
 
 template <>
@@ -320,7 +401,7 @@ public:
     enum MemoryFormat { CpuMemory, GLTexture, DMABuf };
 
     int size() const;
-    QGstStructure at(int index) const;
+    QGstStructureView at(int index) const;
     GstCaps *caps() const;
 
     MemoryFormat memoryFormat() const;
@@ -366,9 +447,28 @@ public:
     void set(const char *property, double d);
     void set(const char *property, const QGstObject &o);
     void set(const char *property, const QGstCaps &c);
+    void set(const char *property, void *object, GDestroyNotify destroyFunction);
+
+    template <typename Object>
+    void set(const char *property, Object *object, GDestroyNotify destroyFunction)
+    {
+        set(property, static_cast<void *>(object), destroyFunction);
+    }
+
+    template <typename Object>
+    void set(const char *property, std::unique_ptr<Object> object)
+    {
+        set(property, static_cast<void *>(object.release()), qDeleteFromVoidPointer<Object>);
+    }
+
+    template <typename T>
+    static void qDeleteFromVoidPointer(void *ptr)
+    {
+        delete reinterpret_cast<T *>(ptr);
+    }
 
     QGString getString(const char *property) const;
-    QGstStructure getStructure(const char *property) const;
+    QGstStructureView getStructure(const char *property) const;
     bool getBool(const char *property) const;
     uint getUInt(const char *property) const;
     int getInt(const char *property) const;
@@ -376,14 +476,23 @@ public:
     qint64 getInt64(const char *property) const;
     float getFloat(const char *property) const;
     double getDouble(const char *property) const;
-    QGstObject getObject(const char *property) const;
+    QGstObject getGstObject(const char *property) const;
+    void *getObject(const char *property) const;
+
+    template <typename T>
+    T *getObject(const char *property) const
+    {
+        void *rawObject = getObject(property);
+        return reinterpret_cast<T *>(rawObject);
+    }
 
     QGObjectHandlerConnection connect(const char *name, GCallback callback, gpointer userData);
     void disconnect(gulong handlerId);
 
     GType type() const;
+    QLatin1StringView typeName() const;
     GstObject *object() const;
-    const char *name() const;
+    QLatin1StringView name() const;
 };
 
 class QGObjectHandlerConnection
@@ -444,6 +553,12 @@ public:
     QGstCaps currentCaps() const;
     QGstCaps queryCaps() const;
 
+    QGstTagListHandle tags() const;
+    QGString streamId() const;
+
+    std::optional<QPlatformMediaPlayer::TrackType>
+    inferTrackTypeFromName() const; // for decodebin3 etc
+
     bool isLinked() const;
     bool link(const QGstPad &sink) const;
     bool unlink(const QGstPad &sink) const;
@@ -455,6 +570,7 @@ public:
 
     GstEvent *stickyEvent(GstEventType type);
     bool sendEvent(GstEvent *event);
+    void sendFlushStartStop(bool resetTime);
 
     template<auto Member, typename T>
     void addProbe(T *instance, GstPadProbeType type) {
@@ -500,6 +616,11 @@ public:
 
         gst_pad_add_probe(pad(), GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, callback, instance, nullptr);
     }
+
+    template <typename Functor>
+    void modifyPipelineInIdleProbe(Functor &&f);
+
+    void sendFlushIfPaused();
 };
 
 class QGstClock : public QGstObject
@@ -527,8 +648,16 @@ public:
 
     explicit QGstElement(GstElement *element, RefMode mode);
     static QGstElement createFromFactory(const char *factory, const char *name = nullptr);
+    static QGstElement createFromFactory(GstElementFactory *, const char *name = nullptr);
+    static QGstElement createFromFactory(const QGstElementFactoryHandle &,
+                                         const char *name = nullptr);
     static QGstElement createFromDevice(const QGstDeviceHandle &, const char *name = nullptr);
     static QGstElement createFromDevice(GstDevice *, const char *name = nullptr);
+    static QGstElement createFromPipelineDescription(const char *);
+    static QGstElement createFromPipelineDescription(const QByteArray &);
+
+    static QGstElementFactoryHandle findFactory(const char *);
+    static QGstElementFactoryHandle findFactory(const QByteArray &name);
 
     QGstPad staticPad(const char *name) const;
     QGstPad src() const;
@@ -541,12 +670,21 @@ public:
     bool setStateSync(GstState state, std::chrono::nanoseconds timeout = std::chrono::seconds(1));
     bool syncStateWithParent();
     bool finishStateChange(std::chrono::nanoseconds timeout = std::chrono::seconds(5));
+    bool hasAsyncStateChange(std::chrono::nanoseconds timeout = std::chrono::seconds(0)) const;
+    bool waitForAsyncStateChangeComplete(
+            std::chrono::nanoseconds timeout = std::chrono::seconds(5)) const;
 
     void lockState(bool locked);
     bool isStateLocked() const;
 
     void sendEvent(GstEvent *event) const;
     void sendEos() const;
+
+    std::optional<std::chrono::nanoseconds> duration() const;
+    std::optional<std::chrono::milliseconds> durationInMs() const;
+    std::optional<std::chrono::nanoseconds> position() const;
+    std::optional<std::chrono::milliseconds> positionInMs() const;
+    std::optional<bool> canSeek() const;
 
     template <auto Member, typename T>
     QGObjectHandlerConnection onPadAdded(T *instance)
@@ -597,7 +735,41 @@ public:
 
     QGstElement getParent() const;
     QGstPipeline getPipeline() const;
+    void dumpPipelineGraph(const char *filename) const;
+
+private:
+    QGstQueryHandle &positionQuery() const;
+    mutable QGstQueryHandle m_positionQuery;
 };
+
+template <typename Functor>
+void QGstPad::modifyPipelineInIdleProbe(Functor &&f)
+{
+    using namespace std::chrono_literals;
+
+    GstPadDirection direction = gst_pad_get_direction(pad());
+
+    switch (direction) {
+    case GstPadDirection::GST_PAD_SINK: {
+        // modifying a source: we need to flush the sink pad before we can modify downstream
+        // elements
+        sendFlushIfPaused();
+        doInIdleProbe(f);
+        return;
+    }
+    case GstPadDirection::GST_PAD_SRC: {
+        // modifying a sink: we need to use the idle probes iff the pipeline is playing
+        if (parent().state(1s) == GstState::GST_STATE_PLAYING)
+            doInIdleProbe(f);
+        else
+            f();
+        return;
+    }
+
+    default:
+        Q_UNREACHABLE();
+    }
+}
 
 template <typename... Ts>
 std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), void>
@@ -640,6 +812,12 @@ public:
     explicit QGstBin(GstBin *bin, RefMode mode = NeedsRef);
     static QGstBin create(const char *name);
     static QGstBin createFromFactory(const char *factory, const char *name);
+    static QGstBin createFromPipelineDescription(const QByteArray &pipelineDescription,
+                                                 const char *name = nullptr,
+                                                 bool ghostUnlinkedPads = false);
+    static QGstBin createFromPipelineDescription(const char *pipelineDescription,
+                                                 const char *name = nullptr,
+                                                 bool ghostUnlinkedPads = false);
 
     template <typename... Ts>
     std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), void> add(const Ts &...ts)
@@ -675,9 +853,11 @@ public:
 
     bool syncChildrenState();
 
-    void dumpGraph(const char *fileNamePrefix);
+    void dumpGraph(const char *fileNamePrefix) const;
 
     QGstElement findByName(const char *);
+
+    void recalculateLatency();
 };
 
 class QGstBaseSink : public QGstElement
@@ -691,6 +871,8 @@ public:
     QGstBaseSink(QGstBaseSink &&) noexcept = default;
     QGstBaseSink &operator=(const QGstBaseSink &) = default;
     QGstBaseSink &operator=(QGstBaseSink &&) noexcept = default;
+
+    void setSync(bool);
 
     GstBaseSink *baseSink() const;
 };
@@ -710,7 +892,6 @@ public:
     GstBaseSrc *baseSrc() const;
 };
 
-#if QT_CONFIG(gstreamer_app)
 class QGstAppSink : public QGstBaseSink
 {
 public:
@@ -726,6 +907,11 @@ public:
     static QGstAppSink create(const char *name);
 
     GstAppSink *appSink() const;
+
+    void setMaxBuffers(int);
+#  if GST_CHECK_VERSION(1, 24, 0)
+    void setMaxBufferTime(std::chrono::nanoseconds);
+#  endif
 
     void setCaps(const QGstCaps &caps);
     void setCallbacks(GstAppSinkCallbacks &callbacks, gpointer user_data, GDestroyNotify notify);
@@ -754,14 +940,54 @@ public:
     GstFlowReturn pushBuffer(GstBuffer *); // take ownership
 };
 
-#endif
-
-inline QString errorMessageCannotFindElement(std::string_view element)
+inline GstClockTime qGstClockTimeFromChrono(std::chrono::nanoseconds ns)
 {
-    return QStringLiteral("Could not find the %1 GStreamer element")
-            .arg(QLatin1StringView(element));
+    return ns.count();
+}
+
+QString qGstErrorMessageCannotFindElement(std::string_view element);
+
+template <typename Arg, typename... Args>
+std::optional<QString> qGstErrorMessageIfElementsNotAvailable(const Arg &arg, Args... args)
+{
+    QGstElementFactoryHandle factory = QGstElement::findFactory(arg);
+    if (!factory)
+        return qGstErrorMessageCannotFindElement(arg);
+
+    if constexpr (sizeof...(args) != 0)
+        return qGstErrorMessageIfElementsNotAvailable(args...);
+    else
+        return std::nullopt;
+}
+
+template <typename Functor>
+void qForeachStreamInCollection(GstStreamCollection *collection, Functor &&f)
+{
+    guint size = gst_stream_collection_get_size(collection);
+    for (guint index = 0; index != size; ++index)
+        f(gst_stream_collection_get_stream(collection, index));
+}
+
+template <typename Functor>
+void qForeachStreamInCollection(const QGstStreamCollectionHandle &collection, Functor &&f)
+{
+    qForeachStreamInCollection(collection.get(), std::forward<Functor>(f));
 }
 
 QT_END_NAMESPACE
+
+namespace std {
+
+template <>
+struct hash<QT_PREPEND_NAMESPACE(QGstElement)>
+{
+    using argument_type = QT_PREPEND_NAMESPACE(QGstElement);
+    using result_type = size_t;
+    result_type operator()(const argument_type &e) const noexcept
+    {
+        return std::hash<void *>{}(e.element());
+    }
+};
+} // namespace std
 
 #endif

@@ -210,7 +210,9 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
         UInt32 size = 0;
         if (format.isValid()) {
             auto layout = CoreAudioUtils::toAudioChannelLayout(format, &size);
-            [settings setObject:[NSData dataWithBytes:layout.get() length:sizeof(AudioChannelLayout)] forKey:AVChannelLayoutKey];
+            UInt32 layoutSize = offsetof(AudioChannelLayout, mChannelDescriptions)
+                    + layout->mNumberChannelDescriptions * sizeof(AudioChannelDescription);
+            [settings setObject:[NSData dataWithBytes:layout.get() length:layoutSize] forKey:AVChannelLayoutKey];
         } else {
             // finally default to setting channel count to 1
             [settings setObject:[NSNumber numberWithInt:1] forKey:AVNumberOfChannelsKey];
@@ -479,7 +481,7 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
 
     if (!cameraControl && !audioInput) {
         qWarning() << Q_FUNC_INFO << "Cannot record without any inputs";
-        Q_EMIT error(QMediaRecorder::ResourceError, tr("No inputs specified"));
+        updateError(QMediaRecorder::ResourceError, tr("No inputs specified"));
         return;
     }
 
@@ -491,8 +493,8 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
     if (!audioOnly) {
         if (!cameraControl || !cameraControl->isActive()) {
             qCDebug(qLcCamera) << Q_FUNC_INFO << "can not start record while camera is not active";
-            Q_EMIT error(QMediaRecorder::ResourceError,
-                         QMediaRecorderPrivate::msgFailedStartRecording());
+            updateError(QMediaRecorder::ResourceError,
+                        QMediaRecorderPrivate::msgFailedStartRecording());
             return;
         }
     }
@@ -506,13 +508,13 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
     NSURL *nsFileURL = fileURL.toNSURL();
     if (!nsFileURL) {
         qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL;
-        Q_EMIT error(QMediaRecorder::ResourceError, tr("Invalid output file URL"));
+        updateError(QMediaRecorder::ResourceError, tr("Invalid output file URL"));
         return;
     }
     if (!qt_is_writable_file_URL(nsFileURL)) {
         qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL
                     << "(the location is not writable)";
-        Q_EMIT error(QMediaRecorder::ResourceError, tr("Non-writeable file location"));
+        updateError(QMediaRecorder::ResourceError, tr("Non-writeable file location"));
         return;
     }
     if (qt_file_exists(nsFileURL)) {
@@ -520,7 +522,7 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
         // Objective-C exception, which is not good at all.
         qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL
                     << "(file already exists)";
-        Q_EMIT error(QMediaRecorder::ResourceError, tr("File already exists"));
+        updateError(QMediaRecorder::ResourceError, tr("File already exists"));
         return;
     }
 
@@ -555,8 +557,7 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
         [m_writer start];
     } else {
         [session startRunning];
-        Q_EMIT error(QMediaRecorder::FormatError,
-                     QMediaRecorderPrivate::msgFailedStartRecording());
+        updateError(QMediaRecorder::FormatError, QMediaRecorderPrivate::msgFailedStartRecording());
     }
 }
 
@@ -632,7 +633,7 @@ void AVFMediaEncoder::assetWriterFinished()
 
 void AVFMediaEncoder::assetWriterError(QString err)
 {
-    Q_EMIT error(QMediaRecorder::FormatError, err);
+    updateError(QMediaRecorder::FormatError, err);
     if (m_state != QMediaRecorder::StoppedState)
         stopWriter();
 }

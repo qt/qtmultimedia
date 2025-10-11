@@ -607,7 +607,7 @@ void tst_QCamera::testErrorSignal()
     QSignalSpy spyError(&camera, &QCamera::errorOccurred);
 
     /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("Camera Error"));
+    service->mockCameraControl->updateError(QCamera::CameraError, QStringLiteral("Camera Error"));
 
     QVERIFY(spyError.size() == 1);
     QCamera::Error err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
@@ -616,7 +616,8 @@ void tst_QCamera::testErrorSignal()
     spyError.clear();
 
     /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("InvalidRequestError Error"));
+    service->mockCameraControl->updateError(QCamera::CameraError,
+                                            QStringLiteral("InvalidRequestError Error"));
     QVERIFY(spyError.size() == 1);
     err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
     QVERIFY(err == QCamera::CameraError);
@@ -624,7 +625,8 @@ void tst_QCamera::testErrorSignal()
     spyError.clear();
 
     /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("NotSupportedFeatureError Error"));
+    service->mockCameraControl->updateError(QCamera::CameraError,
+                                            QStringLiteral("NotSupportedFeatureError Error"));
     QVERIFY(spyError.size() == 1);
     err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
     QVERIFY(err == QCamera::CameraError);
@@ -640,15 +642,17 @@ void tst_QCamera::testError()
     auto *service = QMockIntegration::instance()->lastCaptureService();
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("Camera Error"));
+    service->mockCameraControl->updateError(QCamera::CameraError, QStringLiteral("Camera Error"));
     QVERIFY(camera.error() == QCamera::CameraError);
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("InvalidRequestError Error"));
+    service->mockCameraControl->updateError(QCamera::CameraError,
+                                            QStringLiteral("InvalidRequestError Error"));
     QVERIFY(camera.error() == QCamera::CameraError);
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("CameraError Error"));
+    service->mockCameraControl->updateError(QCamera::CameraError,
+                                            QStringLiteral("CameraError Error"));
     QVERIFY(camera.error() == QCamera::CameraError);
 
 }
@@ -662,15 +666,17 @@ void tst_QCamera::testErrorString()
     auto *service = QMockIntegration::instance()->lastCaptureService();
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("Camera Error"));
+    service->mockCameraControl->updateError(QCamera::CameraError, QStringLiteral("Camera Error"));
     QVERIFY(camera.errorString() == QStringLiteral("Camera Error"));
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("InvalidRequestError Error"));
+    service->mockCameraControl->updateError(QCamera::CameraError,
+                                            QStringLiteral("InvalidRequestError Error"));
     QVERIFY(camera.errorString() == QStringLiteral("InvalidRequestError Error"));
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("CameraError Error"));
+    service->mockCameraControl->updateError(QCamera::CameraError,
+                                            QStringLiteral("CameraError Error"));
     QVERIFY(camera.errorString() == QStringLiteral("CameraError Error"));
 }
 

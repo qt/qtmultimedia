@@ -16,7 +16,7 @@
 //
 
 #include "qplatformvideosource_p.h"
-
+#include "private/qerrorinfo_p.h"
 #include <QtMultimedia/qcamera.h>
 
 QT_BEGIN_NAMESPACE
@@ -110,8 +110,13 @@ public:
 
     static int colorTemperatureForWhiteBalance(QCamera::WhiteBalanceMode mode);
 
+    QCamera::Error error() const { return m_error.code(); }
+    QString errorString() const final { return m_error.description(); }
+
+    void updateError(QCamera::Error error, const QString &errorString);
+
 Q_SIGNALS:
-    void error(int error, const QString &errorString);
+    void errorOccurred(QCamera::Error error, const QString &errorString);
 
 protected:
     explicit QPlatformCamera(QCamera *parent);
@@ -150,6 +155,7 @@ private:
     float m_maxExposureTime = -1.;
     QCamera::WhiteBalanceMode m_whiteBalance = QCamera::WhiteBalanceAuto;
     int m_colorTemperature = 0;
+    QErrorInfo<QCamera::Error> m_error;
 };
 
 QT_END_NAMESPACE

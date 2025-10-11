@@ -49,6 +49,39 @@ QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(GstDevice *d, const QByteAr
     preferredFormat.setSampleFormat(f);
 }
 
-QGStreamerAudioDeviceInfo::~QGStreamerAudioDeviceInfo() = default;
+QGStreamerCustomAudioDeviceInfo::QGStreamerCustomAudioDeviceInfo(
+        const QByteArray &gstreamerPipeline, QAudioDevice::Mode mode)
+    : QAudioDevicePrivate{
+          gstreamerPipeline,
+          mode,
+      }
+{
+}
+
+QAudioDevice qMakeCustomGStreamerAudioInput(const QByteArray &gstreamerPipeline)
+{
+    auto deviceInfo = std::make_unique<QGStreamerCustomAudioDeviceInfo>(gstreamerPipeline,
+                                                                        QAudioDevice::Mode::Input);
+
+    return deviceInfo.release()->create();
+}
+
+QAudioDevice qMakeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline)
+{
+    auto deviceInfo = std::make_unique<QGStreamerCustomAudioDeviceInfo>(gstreamerPipeline,
+                                                                        QAudioDevice::Mode::Output);
+
+    return deviceInfo.release()->create();
+}
+
+bool isCustomAudioDevice(const QAudioDevicePrivate *device)
+{
+    return dynamic_cast<const QGStreamerCustomAudioDeviceInfo *>(device);
+}
+
+bool isCustomAudioDevice(const QAudioDevice &device)
+{
+    return isCustomAudioDevice(device.handle());
+}
 
 QT_END_NAMESPACE

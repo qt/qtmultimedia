@@ -151,6 +151,10 @@ QSample* QSampleCache::requestSample(const QUrl& url)
 #endif
     } else {
         sample = *it;
+        if (sample->state() == QSample::Error && needsThreadStart) {
+            m_loadingThread.wait();
+            m_loadingThread.start();
+        }
     }
 
     sample->addRef();
@@ -219,7 +223,7 @@ void QSampleCache::refresh(qint64 usageChange)
              << "new usage =" << m_usage;
 
     if (m_usage > m_capacity)
-        qWarning() << "QSampleCache: usage[" << m_usage << " out of limit[" << m_capacity << "]";
+        qWarning() << "QSampleCache: usage" << m_usage << "out of limit" << m_capacity;
 }
 
 // Called in both threads
@@ -247,9 +251,9 @@ void QSample::loadIfNecessary()
     QMutexLocker locker(&m_mutex);
     if (m_state == QSample::Error || m_state == QSample::Creating) {
         m_state = QSample::Loading;
-        QMetaObject::invokeMethod(this, "load", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, &QSample::load, Qt::QueuedConnection);
     } else {
-        qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
+        m_parent->loadingRelease();
     }
 }
 
@@ -357,12 +361,13 @@ void QSample::load()
     Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
 #endif
     qCDebug(qLcSampleCache) << "QSample: load [" << m_url << "]";
-    m_stream = m_parent->networkAccessManager().get(QNetworkRequest(m_url));
-    connect(m_stream, SIGNAL(errorOccurred(QNetworkReply::NetworkError)), SLOT(loadingError(QNetworkReply::NetworkError)));
+    QNetworkReply *reply = m_parent->networkAccessManager().get(QNetworkRequest(m_url));
+    m_stream = reply;
+    connect(reply, &QNetworkReply::errorOccurred, this, &QSample::loadingError);
     m_waveDecoder = new QWaveDecoder(m_stream);
-    connect(m_waveDecoder, SIGNAL(formatKnown()), SLOT(decoderReady()));
-    connect(m_waveDecoder, SIGNAL(parsingError()), SLOT(decoderError()));
-    connect(m_waveDecoder, SIGNAL(readyRead()), SLOT(readSample()));
+    connect(m_waveDecoder, &QWaveDecoder::formatKnown, this, &QSample::decoderReady);
+    connect(m_waveDecoder, &QWaveDecoder::parsingError, this, &QSample::decoderError);
+    connect(m_waveDecoder, &QIODevice::readyRead, this, &QSample::readSample);
 
     m_waveDecoder->open(QIODevice::ReadOnly);
 }
@@ -376,8 +381,8 @@ void QSample::loadingError(QNetworkReply::NetworkError errorCode)
     qCDebug(qLcSampleCache) << "QSample: loading error" << errorCode;
     cleanup();
     m_state = QSample::Error;
-    qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
-    emit error();
+    m_parent->loadingRelease();
+    emit error(this);
 }
 
 // Called in loading thread
@@ -390,8 +395,8 @@ void QSample::decoderError()
     qCDebug(qLcSampleCache) << "QSample: decoder error";
     cleanup();
     m_state = QSample::Error;
-    qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
-    emit error();
+    m_parent->loadingRelease();
+    emit error(this);
 }
 
 // Called in loading thread from decoder when sample is done. Locked already.
@@ -404,8 +409,8 @@ void QSample::onReady()
     qCDebug(qLcSampleCache) << "QSample: load ready format:" << m_audioFormat;
     cleanup();
     m_state = QSample::Ready;
-    qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
-    emit ready();
+    m_parent->loadingRelease();
+    emit ready(this);
 }
 
 // Called in application thread, then moved to loader thread

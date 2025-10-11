@@ -10,6 +10,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qstandardpaths.h>
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qloggingcategory.h>
 
 #include <common/qgstreamermetadata_p.h>
@@ -20,37 +21,96 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcImageCaptureGst, "qt.multimedia.imageCapture")
+namespace {
+Q_LOGGING_CATEGORY(qLcImageCaptureGst, "qt.multimedia.imageCapture")
+
+struct ThreadPoolSingleton
+{
+    QObject m_context;
+    QMutex m_poolMutex;
+    QThreadPool *m_instance{};
+    bool m_appUnderDestruction = false;
+
+    QThreadPool *get(const QMutexLocker<QMutex> &)
+    {
+        if (m_instance)
+            return m_instance;
+        if (m_appUnderDestruction || !qApp)
+            return nullptr;
+
+        using namespace std::chrono;
+
+        m_instance = new QThreadPool(qApp);
+        m_instance->setMaxThreadCount(1); // 1 thread;
+        static constexpr auto expiryTimeout = minutes(5);
+        m_instance->setExpiryTimeout(round<milliseconds>(expiryTimeout).count());
+
+        QObject::connect(qApp, &QCoreApplication::aboutToQuit, &m_context, [&] {
+            // we need to make sure that thread-local QRhi is destroyed before the application to
+            // prevent QTBUG-124189
+            QMutexLocker guard(&m_poolMutex);
+            delete m_instance;
+            m_instance = {};
+            m_appUnderDestruction = true;
+        });
+
+        QObject::connect(qApp, &QCoreApplication::destroyed, &m_context, [&] {
+            m_appUnderDestruction = false;
+        });
+        return m_instance;
+    }
+
+    template <typename Functor>
+    QFuture<void> run(Functor &&f)
+    {
+        QMutexLocker guard(&m_poolMutex);
+        QThreadPool *pool = get(guard);
+        if (!pool)
+            return QFuture<void>{};
+
+        return QtConcurrent::run(pool, std::forward<Functor>(f));
+    }
+};
+
+ThreadPoolSingleton s_threadPoolSingleton;
+
+}; // namespace
 
 QMaybe<QPlatformImageCapture *> QGstreamerImageCapture::create(QImageCapture *parent)
 {
-    QGstElement videoconvert =
-            QGstElement::createFromFactory("videoconvert", "imageCaptureConvert");
-    if (!videoconvert)
-        return errorMessageCannotFindElement("videoconvert");
+    static const auto error = qGstErrorMessageIfElementsNotAvailable(
+            "queue", "capsfilter", "videoconvert", "jpegenc", "jifmux", "fakesink");
+    if (error)
+        return *error;
 
-    QGstElement jpegenc = QGstElement::createFromFactory("jpegenc", "jpegEncoder");
-    if (!jpegenc)
-        return errorMessageCannotFindElement("jpegenc");
-
-    QGstElement jifmux = QGstElement::createFromFactory("jifmux", "jpegMuxer");
-    if (!jifmux)
-        return errorMessageCannotFindElement("jifmux");
-
-    return new QGstreamerImageCapture(videoconvert, jpegenc, jifmux, parent);
+    return new QGstreamerImageCapture(parent);
 }
 
-QGstreamerImageCapture::QGstreamerImageCapture(QGstElement videoconvert, QGstElement jpegenc,
-                                               QGstElement jifmux, QImageCapture *parent)
+QGstreamerImageCapture::QGstreamerImageCapture(QImageCapture *parent)
     : QPlatformImageCapture(parent),
       QGstreamerBufferProbe(ProbeBuffers),
-      videoConvert(std::move(videoconvert)),
-      encoder(std::move(jpegenc)),
-      muxer(std::move(jifmux))
+      bin{
+          QGstBin::create("imageCaptureBin"),
+      },
+      queue{
+          QGstElement::createFromFactory("queue", "imageCaptureQueue"),
+      },
+      filter{
+          QGstElement::createFromFactory("capsfilter", "filter"),
+      },
+      videoConvert{
+          QGstElement::createFromFactory("videoconvert", "imageCaptureConvert"),
+      },
+      encoder{
+          QGstElement::createFromFactory("jpegenc", "jpegEncoder"),
+      },
+      muxer{
+          QGstElement::createFromFactory("jifmux", "jpegMuxer"),
+      },
+      sink{
+          QGstElement::createFromFactory("fakesink", "imageCaptureSink"),
+      }
 {
-    bin = QGstBin::create("imageCaptureBin");
-
-    queue = QGstElement::createFromFactory("queue", "imageCaptureQueue");
     // configures the queue to be fast, lightweight and non blocking
     queue.set("leaky", 2 /*downstream*/);
     queue.set("silent", true);
@@ -58,8 +118,6 @@ QGstreamerImageCapture::QGstreamerImageCapture(QGstElement videoconvert, QGstEle
     queue.set("max-size-bytes", uint(0));
     queue.set("max-size-time", quint64(0));
 
-    sink = QGstElement::createFromFactory("fakesink", "imageCaptureSink");
-    filter = QGstElement::createFromFactory("capsfilter", "filter");
     // imageCaptureSink do not wait for a preroll buffer when going READY -> PAUSED
     // as no buffer will arrive until capture() is called
     sink.set("async", false);
@@ -77,10 +135,20 @@ QGstreamerImageCapture::QGstreamerImageCapture(QGstElement videoconvert, QGstEle
 QGstreamerImageCapture::~QGstreamerImageCapture()
 {
     bin.setStateSync(GST_STATE_NULL);
+
+    // wait for pending futures
+    auto pendingFutures = [&] {
+        QMutexLocker guard(&m_mutex);
+        return std::move(m_pendingFutures);
+    }();
+
+    for (QFuture<void> &pendingImage : pendingFutures)
+        pendingImage.waitForFinished();
 }
 
 bool QGstreamerImageCapture::isReadyForCapture() const
 {
+    QMutexLocker guard(&m_mutex);
     return m_session && !passImage && cameraActive;
 }
 
@@ -101,43 +169,40 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
 {
     qCDebug(qLcImageCaptureGst) << "do capture";
 
-    // emit error in the next event loop,
-    // so application can associate it with returned request id.
-    auto invokeDeferred = [&](auto &&fn) {
-        QMetaObject::invokeMethod(this, std::forward<decltype(fn)>(fn), Qt::QueuedConnection);
-    };
+    {
+        QMutexLocker guard(&m_mutex);
+        if (!m_session) {
+            invokeDeferred([this] {
+                emit error(-1, QImageCapture::ResourceError,
+                           QPlatformImageCapture::msgImageCaptureNotSet());
+            });
 
-    if (!m_session) {
-        invokeDeferred([this] {
-            emit error(-1, QImageCapture::ResourceError,
-                       QPlatformImageCapture::msgImageCaptureNotSet());
-        });
+            qCDebug(qLcImageCaptureGst) << "error 1";
+            return -1;
+        }
+        if (!m_session->camera()) {
+            invokeDeferred([this] {
+                emit error(-1, QImageCapture::ResourceError, tr("No camera available."));
+            });
 
-        qCDebug(qLcImageCaptureGst) << "error 1";
-        return -1;
+            qCDebug(qLcImageCaptureGst) << "error 2";
+            return -1;
+        }
+        if (passImage) {
+            invokeDeferred([this] {
+                emit error(-1, QImageCapture::NotReadyError,
+                           QPlatformImageCapture::msgCameraNotReady());
+            });
+
+            qCDebug(qLcImageCaptureGst) << "error 3";
+            return -1;
+        }
+        m_lastId++;
+
+        pendingImages.enqueue({ m_lastId, fileName, QMediaMetaData{} });
+        // let one image pass the pipeline
+        passImage = true;
     }
-    if (!m_session->camera()) {
-        invokeDeferred([this] {
-            emit error(-1, QImageCapture::ResourceError, tr("No camera available."));
-        });
-
-        qCDebug(qLcImageCaptureGst) << "error 2";
-        return -1;
-    }
-    if (passImage) {
-        invokeDeferred([this] {
-            emit error(-1, QImageCapture::NotReadyError,
-                       QPlatformImageCapture::msgCameraNotReady());
-        });
-
-        qCDebug(qLcImageCaptureGst) << "error 3";
-        return -1;
-    }
-    m_lastId++;
-
-    pendingImages.enqueue({m_lastId, fileName, QMediaMetaData{}});
-    // let one image pass the pipeline
-    passImage = true;
 
     emit readyForCaptureChanged(false);
     return m_lastId;
@@ -159,8 +224,17 @@ void QGstreamerImageCapture::setResolution(const QSize &resolution)
     filter.set("caps", caps);
 }
 
+// HACK: gcc-10 and earlier reject [=,this] when building with c++17
+#if __cplusplus >= 202002L
+#  define EQ_THIS_CAPTURE =, this
+#else
+#  define EQ_THIS_CAPTURE =
+#endif
+
 bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 {
+    QMutexLocker guard(&m_mutex);
+
     if (!passImage)
         return false;
     qCDebug(qLcImageCaptureGst) << "probe buffer";
@@ -172,7 +246,10 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 
     passImage = false;
 
-    emit readyForCaptureChanged(isReadyForCapture());
+    bool ready = isReadyForCapture();
+    invokeDeferred([this, ready] {
+        emit readyForCaptureChanged(ready);
+    });
 
     QGstCaps caps = bin.staticPad("sink").currentCaps();
     auto memoryFormat = caps.memoryFormat();
@@ -183,42 +260,61 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
     if (optionalFormatAndVideoInfo)
         std::tie(fmt, previewInfo) = std::move(*optionalFormatAndVideoInfo);
 
-    auto *sink = m_session->gstreamerVideoSink();
-    auto *gstBuffer = new QGstVideoBuffer{
-        std::move(bufferHandle), previewInfo, sink, fmt, memoryFormat,
-    };
-    QVideoFrame frame(gstBuffer, fmt);
-    QImage img = frame.toImage();
-    if (img.isNull()) {
-        qDebug() << "received a null image";
+    int futureId = futureIDAllocator += 1;
+
+    // ensure QVideoFrame::toImage is executed on a worker thread that is joined before the
+    // qApplication is destroyed
+    QFuture<void> future = s_threadPoolSingleton.run([EQ_THIS_CAPTURE]() mutable {
+        QMutexLocker guard(&m_mutex);
+        auto scopeExit = qScopeGuard([&] {
+            m_pendingFutures.remove(futureId);
+        });
+
+        if (!m_session) {
+            qDebug() << "QGstreamerImageCapture::probeBuffer: no session";
+            return;
+        }
+
+        auto *sink = m_session->gstreamerVideoSink();
+        auto *gstBuffer = new QGstVideoBuffer{
+            std::move(bufferHandle), previewInfo, sink, fmt, memoryFormat,
+        };
+        QVideoFrame frame(gstBuffer, fmt);
+
+        QImage img = frame.toImage();
+        if (img.isNull()) {
+            qDebug() << "received a null image";
+            return;
+        }
+
+        QMediaMetaData imageMetaData = metaData();
+        imageMetaData.insert(QMediaMetaData::Resolution, frame.size());
+        pendingImages.head().metaData = std::move(imageMetaData);
+        PendingImage pendingImage = pendingImages.head();
+
+        invokeDeferred([this, pendingImage = std::move(pendingImage), frame = std::move(frame),
+                        img = std::move(img)]() mutable {
+            emit imageExposed(pendingImage.id);
+            qCDebug(qLcImageCaptureGst) << "Image available!";
+            emit imageAvailable(pendingImage.id, frame);
+            emit imageCaptured(pendingImage.id, img);
+            emit imageMetadataAvailable(pendingImage.id, pendingImage.metaData);
+        });
+    });
+
+    if (!future.isValid()) // during qApplication shutdown the threadpool becomes unusable
         return true;
-    }
 
-    auto &imageData = pendingImages.head();
-
-    emit imageExposed(imageData.id);
-
-    qCDebug(qLcImageCaptureGst) << "Image available!";
-    emit imageAvailable(imageData.id, frame);
-
-    emit imageCaptured(imageData.id, img);
-
-    QMediaMetaData metaData = this->metaData();
-    metaData.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
-    metaData.insert(QMediaMetaData::Resolution, frame.size());
-    imageData.metaData = metaData;
-
-    // ensure taginject injects this metaData
-    const auto &md = static_cast<const QGstreamerMetaData &>(metaData);
-    md.setMetaData(muxer.element());
-
-    emit imageMetadataAvailable(imageData.id, metaData);
+    m_pendingFutures.insert(futureId, future);
 
     return true;
 }
 
+#undef EQ_THIS_CAPTURE
+
 void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
+    QMutexLocker guard(&m_mutex);
     QGstreamerMediaCapture *captureSession = static_cast<QGstreamerMediaCapture *>(session);
     if (m_session == captureSession)
         return;
@@ -244,6 +340,17 @@ void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *ses
     onCameraChanged();
 }
 
+void QGstreamerImageCapture::setMetaData(const QMediaMetaData &m)
+{
+    {
+        QMutexLocker guard(&m_mutex);
+        QPlatformImageCapture::setMetaData(m);
+    }
+
+    // ensure taginject injects this metaData
+    applyMetaDataToTagSetter(m, muxer);
+}
+
 void QGstreamerImageCapture::cameraActiveChanged(bool active)
 {
     qCDebug(qLcImageCaptureGst) << "cameraActiveChanged" << cameraActive << active;
@@ -256,9 +363,11 @@ void QGstreamerImageCapture::cameraActiveChanged(bool active)
 
 void QGstreamerImageCapture::onCameraChanged()
 {
+    QMutexLocker guard(&m_mutex);
     if (m_session->camera()) {
         cameraActiveChanged(m_session->camera()->isActive());
-        connect(m_session->camera(), &QPlatformCamera::activeChanged, this, &QGstreamerImageCapture::cameraActiveChanged);
+        connect(m_session->camera(), &QPlatformCamera::activeChanged, this,
+                &QGstreamerImageCapture::cameraActiveChanged);
     } else {
         cameraActiveChanged(false);
     }
@@ -273,33 +382,51 @@ gboolean QGstreamerImageCapture::saveImageFilter(GstElement *, GstBuffer *buffer
 
 void QGstreamerImageCapture::saveBufferToImage(GstBuffer *buffer)
 {
+    QMutexLocker guard(&m_mutex);
     passImage = false;
 
     if (pendingImages.isEmpty())
         return;
 
-    auto imageData = pendingImages.dequeue();
+    PendingImage imageData = pendingImages.dequeue();
     if (imageData.filename.isEmpty())
         return;
 
-    qCDebug(qLcImageCaptureGst) << "saving image as" << imageData.filename;
+    int id = futureIDAllocator++;
+    QGstBufferHandle bufferHandle{
+        buffer,
+        QGstBufferHandle::NeedsRef,
+    };
 
-    QFile f(imageData.filename);
-    if (!f.open(QFile::WriteOnly)) {
-        qCDebug(qLcImageCaptureGst) << "   could not open image file for writing";
-        return;
-    }
+    QFuture<void> saveImageFuture = QtConcurrent::run([this, imageData, bufferHandle,
+                                                       id]() mutable {
+        auto cleanup = qScopeGuard([&] {
+            QMutexLocker guard(&m_mutex);
+            m_pendingFutures.remove(id);
+        });
 
-    GstMapInfo info;
-    if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
-        f.write(reinterpret_cast<const char *>(info.data), info.size);
-        gst_buffer_unmap(buffer, &info);
-    }
-    f.close();
+        qCDebug(qLcImageCaptureGst) << "saving image as" << imageData.filename;
 
-    QMetaObject::invokeMethod(this, [this, imageData = std::move(imageData)]() mutable {
-        imageSaved(imageData.id, imageData.filename);
+        QFile f(imageData.filename);
+        if (!f.open(QFile::WriteOnly)) {
+            qCDebug(qLcImageCaptureGst) << "   could not open image file for writing";
+            return;
+        }
+
+        GstMapInfo info;
+        GstBuffer *buffer = bufferHandle.get();
+        if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
+            f.write(reinterpret_cast<const char *>(info.data), info.size);
+            gst_buffer_unmap(buffer, &info);
+        }
+        f.close();
+
+        QMetaObject::invokeMethod(this, [this, imageData = std::move(imageData)]() mutable {
+            emit imageSaved(imageData.id, imageData.filename);
+        });
     });
+
+    m_pendingFutures.insert(id, saveImageFuture);
 }
 
 QImageEncoderSettings QGstreamerImageCapture::imageSettings() const

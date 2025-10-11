@@ -16,5 +16,5 @@ qt_internal_add_test(tst_qimagecapture
         # Remove: L${CMAKE_CURRENT_SOURCE_DIR}
         Qt::Gui
         Qt::MultimediaPrivate
-        MockMultimediaPlugin
+        Qt::MockMultimediaPlugin
 )

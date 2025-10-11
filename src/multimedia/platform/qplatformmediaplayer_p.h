@@ -20,6 +20,7 @@
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qmediametadata.h>
 
+#include <QtCore/qobject.h>
 #include <QtCore/qpair.h>
 #include <QtCore/private/qglobal_p.h>
 #include <private/qtvideo_p.h>
@@ -69,15 +70,19 @@ public:
 
     virtual void setVideoSink(QVideoSink * /*sink*/) = 0;
 
+    virtual bool canPlayQrc() const { return false; }
+
     // media streams
-    enum TrackType { VideoStream, AudioStream, SubtitleStream, NTrackTypes };
+    enum TrackType : uint8_t { VideoStream, AudioStream, SubtitleStream, NTrackTypes };
 
     virtual int trackCount(TrackType) { return 0; };
     virtual QMediaMetaData trackMetaData(TrackType /*type*/, int /*streamNumber*/) { return QMediaMetaData(); }
     virtual int activeTrack(TrackType) { return -1; }
     virtual void setActiveTrack(TrackType, int /*streamNumber*/) {}
 
+    void durationChanged(std::chrono::milliseconds ms) { durationChanged(ms.count()); }
     void durationChanged(qint64 duration) { emit player->durationChanged(duration); }
+    void positionChanged(std::chrono::milliseconds ms) { positionChanged(ms.count()); }
     void positionChanged(qint64 position) {
         if (m_position == position)
             return;
@@ -116,7 +121,7 @@ public:
     bool doLoop() {
         return isSeekable() && (m_loops < 0 || ++m_currentLoop < m_loops);
     }
-    int loops() { return m_loops; }
+    int loops() const { return m_loops; }
     virtual void setLoops(int loops)
     {
         if (m_loops == loops)
@@ -124,11 +129,6 @@ public:
         m_loops = loops;
         Q_EMIT player->loopsChanged();
     }
-
-    virtual void *nativePipeline() { return nullptr; }
-
-    // private API, the purpose is getting GstPipeline
-    static void *nativePipeline(QMediaPlayer *player);
 
 protected:
     explicit QPlatformMediaPlayer(QMediaPlayer *parent = nullptr);
@@ -144,6 +144,25 @@ private:
     int m_currentLoop = 0;
     qint64 m_position = 0;
 };
+
+#ifndef QT_NO_DEBUG_STREAM
+inline QDebug operator<<(QDebug dbg, QPlatformMediaPlayer::TrackType type)
+{
+    QDebugStateSaver save(dbg);
+    dbg.nospace();
+
+    switch (type) {
+    case QPlatformMediaPlayer::TrackType::AudioStream:
+        return dbg << "AudioStream";
+    case QPlatformMediaPlayer::TrackType::VideoStream:
+        return dbg << "VideoStream";
+    case QPlatformMediaPlayer::TrackType::SubtitleStream:
+        return dbg << "SubtitleStream";
+    default:
+        Q_UNREACHABLE_RETURN(dbg);
+    }
+}
+#endif
 
 QT_END_NAMESPACE
 

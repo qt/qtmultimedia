@@ -16,20 +16,18 @@
 //
 
 #include <QtCore/qobject.h>
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qmultimediautils_p.h>
+#include <QtCore/qpointer.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <common/qgst_p.h>
-#include <common/qgstpipeline_p.h>
 #include <common/qgstreamervideosink_p.h>
-#include <qwaitcondition.h>
-#include <qmutex.h>
-#include <qpointer.h>
+#include <common/qgstsubtitlesink_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QVideoSink;
 
-class QGstreamerVideoOutput : public QObject
+class QGstreamerVideoOutput : public QObject, QAbstractSubtitleObserver
 {
     Q_OBJECT
 
@@ -38,13 +36,12 @@ public:
     ~QGstreamerVideoOutput();
 
     void setVideoSink(QVideoSink *sink);
-    QGstreamerVideoSink *gstreamerVideoSink() const { return m_videoSink; }
+    QGstreamerVideoSink *gstreamerVideoSink() const { return m_platformVideoSink; }
 
-    void setPipeline(const QGstPipeline &pipeline);
+    QGstElement gstElement() const { return m_outputBin; }
+    QGstElement gstSubtitleElement() const { return m_subtitleSink; }
 
-    QGstElement gstElement() const { return gstVideoOutput; }
-    void linkSubtitleStream(QGstElement subtitleSrc);
-    void unlinkSubtitleStream();
+    void setActive(bool);
 
     void setIsPreview();
     void flushSubtitles();
@@ -52,29 +49,31 @@ public:
     void setNativeSize(QSize);
     void setRotation(QtVideo::Rotation);
 
-private:
-    QGstreamerVideoOutput(QGstElement videoConvert, QGstElement videoScale, QGstElement videoSink,
-                          QObject *parent);
+    void updateSubtitle(QString) override;
 
-    void doLinkSubtitleStream();
+signals:
+    void subtitleChanged(QString);
+
+private:
+    explicit QGstreamerVideoOutput(QObject *parent);
+
     void updateNativeSize();
 
-    QPointer<QGstreamerVideoSink> m_videoSink;
+    QPointer<QGstreamerVideoSink> m_platformVideoSink;
 
     // Gst elements
-    QGstPipeline gstPipeline;
+    QGstBin m_outputBin;
+    QGstElement m_videoQueue;
+    QGstElement m_videoConvertScale;
+    QGstElement m_videoSink;
 
-    QGstBin gstVideoOutput;
-    QGstElement videoQueue;
-    QGstElement videoConvert;
-    QGstElement videoScale;
-    QGstElement videoSink;
+    QGstElement m_subtitleSink;
+    QMetaObject::Connection m_subtitleConnection;
+    QString m_lastSubtitleString;
 
-    QGstElement subtitleSrc;
-    QGstElement subtitleSink;
-
-    QSize nativeSize;
-    QtVideo::Rotation rotation{};
+    bool m_isActive{ false };
+    QSize m_nativeSize;
+    QtVideo::Rotation m_rotation{};
 };
 
 QT_END_NAMESPACE

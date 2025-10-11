@@ -15,25 +15,18 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qplatformvideosink_p.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 
+#include <common/qgstvideorenderersink_p.h>
 #include <common/qgstpipeline_p.h>
-#include <common/qgstreamervideooverlay_p.h>
-#include <QtGui/qcolor.h>
-#include <qvideosink.h>
-
-#if QT_CONFIG(gstreamer_gl)
-#include <gst/gl/gl.h>
-#endif
 
 QT_BEGIN_NAMESPACE
-class QGstreamerVideoRenderer;
-class QVideoWindow;
 
 class QGstreamerVideoSink : public QPlatformVideoSink
 {
     Q_OBJECT
+
 public:
     explicit QGstreamerVideoSink(QVideoSink *parent = nullptr);
     ~QGstreamerVideoSink();
@@ -42,33 +35,32 @@ public:
     QRhi *rhi() const { return m_rhi; }
 
     QGstElement gstSink();
-    QGstElement subtitleSink() const { return gstSubtitleSink; }
-
-    void setPipeline(QGstPipeline pipeline);
-    bool inStoppedState() const;
 
     GstContext *gstGlDisplayContext() const { return m_gstGlDisplayContext.get(); }
     GstContext *gstGlLocalContext() const { return m_gstGlLocalContext.get(); }
     Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
     QFunctionPointer eglImageTargetTexture2D() const { return m_eglImageTargetTexture2D; }
 
+    void setActive(bool);
+
+Q_SIGNALS:
+    void aboutToBeDestroyed();
+
 private:
     void createQtSink();
-    void updateSinkElement();
+    void updateSinkElement(QGstVideoRendererSinkElement newSink);
 
     void unrefGstContexts();
     void updateGstContexts();
 
-    QGstPipeline gstPipeline;
-    QGstBin sinkBin;
-    QGstElement gstQueue;
-    QGstElement gstPreprocess;
-    QGstElement gstCapsFilter;
-    QGstElement gstVideoSink;
-    QGstElement gstQtSink;
-    QGstElement gstSubtitleSink;
+    QGstBin m_sinkBin;
+    QGstElement m_gstPreprocess;
+    QGstElement m_gstCapsFilter;
+    QGstElement m_gstVideoSink;
+    QGstVideoRendererSinkElement m_gstQtSink;
 
     QRhi *m_rhi = nullptr;
+    bool m_isActive = true;
 
     Qt::HANDLE m_eglDisplay = nullptr;
     QFunctionPointer m_eglImageTargetTexture2D = nullptr;

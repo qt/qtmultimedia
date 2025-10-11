@@ -163,6 +163,28 @@ struct QUniqueGErrorHandleTraits
     }
 };
 
+struct QUniqueGDateHandleTraits
+{
+    using Type = GDate *;
+    static constexpr Type invalidValue() noexcept { return nullptr; }
+    static bool close(Type handle) noexcept
+    {
+        g_date_free(handle);
+        return true;
+    }
+};
+
+struct QUniqueGstDateTimeHandleTraits
+{
+    using Type = GstDateTime *;
+    static constexpr Type invalidValue() noexcept { return nullptr; }
+    static bool close(Type handle) noexcept
+    {
+        gst_date_time_unref(handle);
+        return true;
+    }
+};
+
 struct QFileDescriptorHandleTraits
 {
     using Type = int;
@@ -213,7 +235,8 @@ struct QGstMiniObjectHandleHelper
 
         static Type ref(Type handle) noexcept
         {
-            gst_mini_object_ref(GST_MINI_OBJECT_CAST(handle));
+            if (GST_MINI_OBJECT_CAST(handle))
+                gst_mini_object_ref(GST_MINI_OBJECT_CAST(handle));
             return handle;
         }
     };
@@ -226,10 +249,12 @@ struct QGstMiniObjectHandleHelper
 
 using QGstClockHandle = QGstImpl::QGstHandleHelper<GstClock>::UniqueHandle;
 using QGstElementHandle = QGstImpl::QGstHandleHelper<GstElement>::UniqueHandle;
-using QGstElementFactoryHandle = QGstImpl::QGstHandleHelper<GstElementFactory>::UniqueHandle;
+using QGstElementFactoryHandle = QGstImpl::QGstHandleHelper<GstElementFactory>::SharedHandle;
 using QGstDeviceHandle = QGstImpl::QGstHandleHelper<GstDevice>::SharedHandle;
 using QGstDeviceMonitorHandle = QGstImpl::QGstHandleHelper<GstDeviceMonitor>::UniqueHandle;
-using QGstBusHandle = QGstImpl::QGstHandleHelper<GstBus>::UniqueHandle;
+using QGstBusHandle = QGstImpl::QGstHandleHelper<GstBus>::SharedHandle;
+using QGstStreamCollectionHandle = QGstImpl::QGstHandleHelper<GstStreamCollection>::SharedHandle;
+using QGstStreamHandle = QGstImpl::QGstHandleHelper<GstStream>::SharedHandle;
 
 using QGstTagListHandle = QGstImpl::QSharedHandle<QGstImpl::QGstTagListHandleTraits>;
 using QGstSampleHandle = QGstImpl::QSharedHandle<QGstImpl::QGstSampleHandleTraits>;
@@ -237,10 +262,14 @@ using QGstSampleHandle = QGstImpl::QSharedHandle<QGstImpl::QGstSampleHandleTrait
 using QUniqueGstStructureHandle = QUniqueHandle<QGstImpl::QUniqueGstStructureHandleTraits>;
 using QUniqueGStringHandle = QUniqueHandle<QGstImpl::QUniqueGStringHandleTraits>;
 using QUniqueGErrorHandle = QUniqueHandle<QGstImpl::QUniqueGErrorHandleTraits>;
+using QUniqueGDateHandle = QUniqueHandle<QGstImpl::QUniqueGDateHandleTraits>;
+using QUniqueGstDateTimeHandle = QUniqueHandle<QGstImpl::QUniqueGstDateTimeHandleTraits>;
 using QFileDescriptorHandle = QUniqueHandle<QGstImpl::QFileDescriptorHandleTraits>;
 using QGstBufferHandle = QGstImpl::QGstMiniObjectHandleHelper<GstBuffer>::SharedHandle;
 using QGstContextHandle = QGstImpl::QGstMiniObjectHandleHelper<GstContext>::UniqueHandle;
 using QGstGstDateTimeHandle = QGstImpl::QGstMiniObjectHandleHelper<GstDateTime>::SharedHandle;
+using QGstPluginFeatureHandle = QGstImpl::QGstHandleHelper<GstPluginFeature>::SharedHandle;
+using QGstQueryHandle = QGstImpl::QGstMiniObjectHandleHelper<GstQuery>::SharedHandle;
 
 #if QT_CONFIG(gstreamer_gl)
 using QGstGLContextHandle = QGstImpl::QGstHandleHelper<GstGLContext>::UniqueHandle;

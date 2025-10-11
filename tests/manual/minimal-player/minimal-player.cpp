@@ -12,47 +12,107 @@
 using namespace std::chrono_literals;
 using namespace Qt::Literals;
 
-int mainToggleWidgets(QString filename)
+struct CLIArgs
 {
+    bool loop;
+    bool noAudio;
+    bool toggleWidgets;
+    QString media;
+    bool playAfterEndOfMediaOption;
+};
+
+std::optional<CLIArgs> parseArgs(QCoreApplication &app)
+{
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Minimal Player");
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addPositionalArgument("media", "File to play");
+
+    QCommandLineOption toggleWidgetsOption{
+        "toggle-widgets",
+        "Toggle between widgets.",
+    };
+    parser.addOption(toggleWidgetsOption);
+
+    QCommandLineOption playAfterEndOfMediaOption{
+        "play-after-end-of-media",
+        "Play after end of media.",
+    };
+    parser.addOption(playAfterEndOfMediaOption);
+
+    QCommandLineOption disableAudioOption{
+        "no-audio",
+        "Disable audio output.",
+    };
+    parser.addOption(disableAudioOption);
+
+    QCommandLineOption loopOption{
+        "loop",
+        "Loop.",
+    };
+    parser.addOption(loopOption);
+
+    parser.process(app);
+
+    if (parser.positionalArguments().isEmpty()) {
+        qInfo() << "Please specify a media source";
+        return std::nullopt;
+    }
+
+    QString filename = parser.positionalArguments()[0];
+
+    return CLIArgs{
+        parser.isSet(loopOption),
+        parser.isSet(disableAudioOption),
+        parser.isSet(toggleWidgetsOption),
+        filename,
+        parser.isSet(playAfterEndOfMediaOption),
+    };
+}
+
+int run(const CLIArgs &args)
+{
+    QTimer toggleOutput;
+    bool toggled = {};
+
     QMediaPlayer player;
     QVideoWidget widget1;
     QVideoWidget widget2;
     QAudioOutput audioOutput;
     player.setVideoOutput(&widget1);
-    player.setAudioOutput(&audioOutput);
-    player.setSource(filename);
-
-    QTimer toggleOutput;
-    bool toggled = {};
-
-    toggleOutput.callOnTimeout([&] {
-        toggled = !toggled;
-        if (toggled)
-            player.setVideoOutput(&widget2);
-        else
-            player.setVideoOutput(&widget1);
-    });
-
-    toggleOutput.setInterval(1s);
-    toggleOutput.start();
+    if (args.noAudio)
+        player.setAudioOutput(nullptr);
+    else
+        player.setAudioOutput(&audioOutput);
+    player.setSource(args.media);
 
     widget1.show();
-    widget2.show();
-    player.play();
-    return QApplication::exec();
-}
 
-int mainSimple(QString filename)
-{
-    QMediaPlayer player;
-    QVideoWidget widget1;
-    QAudioOutput audioOutput;
-    player.setVideoOutput(&widget1);
-    player.setAudioOutput(&audioOutput);
-    player.setSource(filename);
+    if (args.toggleWidgets) {
+        toggleOutput.callOnTimeout([&] {
+            toggled = !toggled;
+            if (toggled)
+                player.setVideoOutput(&widget2);
+            else
+                player.setVideoOutput(&widget1);
+        });
 
-    widget1.show();
+        toggleOutput.setInterval(1s);
+        toggleOutput.start();
+        widget2.show();
+    }
+
     player.play();
+
+    if (args.playAfterEndOfMediaOption) {
+        QObject::connect(&player, &QMediaPlayer::mediaStatusChanged, &player,
+                         [&](QMediaPlayer::MediaStatus status) {
+            if (status == QMediaPlayer::MediaStatus::EndOfMedia)
+                player.play();
+        });
+    }
+
     return QApplication::exec();
 }
 
@@ -60,26 +120,9 @@ int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    QCommandLineParser parser;
-    parser.setApplicationDescription("Minimal Player");
-    parser.addHelpOption();
-    parser.addVersionOption();
-    parser.addPositionalArgument("media", "File to play");
+    std::optional<CLIArgs> args = parseArgs(app);
+    if (!args)
+        return 1;
 
-    QCommandLineOption toggleWidgetsOption{ "toggle-widgets", "Toggle between widgets." };
-    parser.addOption(toggleWidgetsOption);
-
-    parser.process(app);
-
-    if (parser.positionalArguments().isEmpty()) {
-        qInfo() << "Please specify a video source";
-        return 0;
-    }
-
-    QString filename = parser.positionalArguments()[0];
-
-    if (parser.isSet(toggleWidgetsOption))
-        return mainToggleWidgets(filename);
-
-    return mainSimple(filename);
+    return run(*args);
 }

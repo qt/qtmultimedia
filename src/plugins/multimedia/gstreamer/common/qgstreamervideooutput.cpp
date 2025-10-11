@@ -4,7 +4,6 @@
 #include <QtMultimedia/qvideosink.h>
 
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/qthread.h>
 
 #include <common/qgstreamervideooutput_p.h>
 #include <common/qgstreamervideosink_p.h>
@@ -14,197 +13,158 @@ static Q_LOGGING_CATEGORY(qLcMediaVideoOutput, "qt.multimedia.videooutput")
 
 QT_BEGIN_NAMESPACE
 
-QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
+static QGstElement makeVideoConvertScale(const char *name)
 {
-    QGstElement videoConvert;
-    QGstElement videoScale;
+    QGstElementFactoryHandle factory = QGstElement::findFactory("videoconvertscale");
+    if (factory) // videoconvertscale is only available in gstreamer 1.20
+        return QGstElement::createFromFactory(factory, name);
 
-    QGstElementFactoryHandle factory = QGstElementFactoryHandle{
-        gst_element_factory_find("videoconvertscale"),
-    };
-
-    if (factory) { // videoconvertscale is only available in gstreamer 1.20
-        videoConvert = QGstElement{
-            gst_element_factory_create(factory.get(), "videoConvertScale"),
-            QGstElement::NeedsRef,
-        };
-    } else {
-        videoConvert = QGstElement::createFromFactory("videoconvert", "videoConvert");
-        if (!videoConvert)
-            return errorMessageCannotFindElement("videoconvert");
-
-        videoScale = QGstElement::createFromFactory("videoscale", "videoScale");
-        if (!videoScale)
-            return errorMessageCannotFindElement("videoscale");
-    }
-
-    QGstElement videoSink = QGstElement::createFromFactory("fakesink", "fakeVideoSink");
-    if (!videoSink)
-        return errorMessageCannotFindElement("fakesink");
-    videoSink.set("sync", true);
-
-    return new QGstreamerVideoOutput(videoConvert, videoScale, videoSink, parent);
+    return QGstBin::createFromPipelineDescription("videoconvert ! videoscale", name,
+                                                  /*ghostUnlinkedPads=*/true);
 }
 
-QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement scale,
-                                             QGstElement sink, QObject *parent)
-    : QObject(parent),
-      gstVideoOutput(QGstBin::create("videoOutput")),
-      videoConvert(std::move(convert)),
-      videoScale(std::move(scale)),
-      videoSink(std::move(sink))
+QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
 {
-    videoQueue = QGstElement::createFromFactory("queue", "videoQueue");
+    QGstElementFactoryHandle factory = QGstElement::findFactory("videoconvertscale");
 
-    videoSink.set("sync", true);
-    videoSink.set("async", false); // no asynchronous state changes
+    static std::optional<QString> elementCheck = []() -> std::optional<QString> {
+        std::optional<QString> error = qGstErrorMessageIfElementsNotAvailable("fakesink", "queue");
+        if (error)
+            return error;
 
-    if (videoScale) {
-        gstVideoOutput.add(videoQueue, videoConvert, videoScale, videoSink);
-        qLinkGstElements(videoQueue, videoConvert, videoScale, videoSink);
-    } else {
-        gstVideoOutput.add(videoQueue, videoConvert, videoSink);
-        qLinkGstElements(videoQueue, videoConvert, videoSink);
-    }
+        QGstElementFactoryHandle factory = QGstElement::findFactory("videoconvertscale");
+        if (factory)
+            return std::nullopt;
 
-    gstVideoOutput.addGhostPad(videoQueue, "sink");
+        return qGstErrorMessageIfElementsNotAvailable("videoconvert", "videoscale");
+    }();
+
+    if (elementCheck)
+        return *elementCheck;
+
+    return new QGstreamerVideoOutput(parent);
+}
+
+QGstreamerVideoOutput::QGstreamerVideoOutput(QObject *parent)
+    : QObject(parent),
+      m_outputBin{
+          QGstBin::create("videoOutput"),
+      },
+      m_videoQueue{
+          QGstElement::createFromFactory("queue", "videoQueue"),
+      },
+      m_videoConvertScale{
+          makeVideoConvertScale("videoConvertScale"),
+      },
+      m_videoSink{
+          QGstElement::createFromFactory("fakesink", "fakeVideoSink"),
+      }
+{
+    m_videoSink.set("sync", true);
+    m_videoSink.set("async", false); // no asynchronous state changes
+
+    m_outputBin.add(m_videoQueue, m_videoConvertScale, m_videoSink);
+    qLinkGstElements(m_videoQueue, m_videoConvertScale, m_videoSink);
+
+    m_subtitleSink = QGstSubtitleSink::createSink(this);
+
+    m_outputBin.addGhostPad(m_videoQueue, "sink");
 }
 
 QGstreamerVideoOutput::~QGstreamerVideoOutput()
 {
-    gstVideoOutput.setStateSync(GST_STATE_NULL);
+    QObject::disconnect(m_subtitleConnection);
+    m_outputBin.setStateSync(GST_STATE_NULL);
 }
 
 void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 {
-    auto *gstVideoSink = sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
-    if (gstVideoSink == m_videoSink)
+    using namespace std::chrono_literals;
+
+    auto *gstVideoSink =
+            sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
+    if (gstVideoSink == m_platformVideoSink)
         return;
 
-    if (m_videoSink)
-        m_videoSink->setPipeline({});
-
-    m_videoSink = gstVideoSink;
-    if (m_videoSink) {
-        m_videoSink->setPipeline(gstPipeline);
-        if (nativeSize.isValid())
-            m_videoSink->setNativeSize(nativeSize);
+    m_platformVideoSink = gstVideoSink;
+    if (m_platformVideoSink) {
+        m_platformVideoSink->setActive(m_isActive);
+        if (m_nativeSize.isValid())
+            m_platformVideoSink->setNativeSize(m_nativeSize);
     }
-    QGstElement gstSink;
-    if (m_videoSink) {
-        gstSink = m_videoSink->gstSink();
+    QGstElement videoSink;
+    if (m_platformVideoSink) {
+        videoSink = m_platformVideoSink->gstSink();
     } else {
-        gstSink = QGstElement::createFromFactory("fakesink", "fakevideosink");
-        Q_ASSERT(gstSink);
-        gstSink.set("sync", true);
-        gstSink.set("async", false); // no asynchronous state changes
+        videoSink = QGstElement::createFromFactory("fakesink", "fakevideosink");
+        Q_ASSERT(videoSink);
+        videoSink.set("sync", true);
+        videoSink.set("async", false); // no asynchronous state changes
     }
 
-    if (videoSink == gstSink)
+    QObject::disconnect(m_subtitleConnection);
+    if (sink) {
+        m_subtitleConnection = QObject::connect(this, &QGstreamerVideoOutput::subtitleChanged, sink,
+                                                [sink](const QString &subtitle) {
+            sink->setSubtitleText(subtitle);
+        });
+        sink->setSubtitleText(m_lastSubtitleString);
+    }
+
+    if (m_videoSink == videoSink)
         return;
 
-    gstPipeline.modifyPipelineWhileNotRunning([&] {
-        if (!videoSink.isNull())
-            gstVideoOutput.stopAndRemoveElements(videoSink);
+    m_videoConvertScale.src().modifyPipelineInIdleProbe([&] {
+        if (m_videoSink)
+            m_outputBin.stopAndRemoveElements(m_videoSink);
 
-        videoSink = gstSink;
-        gstVideoOutput.add(videoSink);
+        m_videoSink = std::move(videoSink);
+        m_outputBin.add(m_videoSink);
 
-        if (videoScale)
-            qLinkGstElements(videoScale, videoSink);
-        else
-            qLinkGstElements(videoConvert, videoSink);
+        qLinkGstElements(m_videoConvertScale, m_videoSink);
 
         GstEvent *event = gst_event_new_reconfigure();
-        gst_element_send_event(videoSink.element(), event);
-        videoSink.syncStateWithParent();
-
-        doLinkSubtitleStream();
+        gst_element_send_event(m_videoSink.element(), event);
+        m_videoSink.syncStateWithParent();
     });
 
-    qCDebug(qLcMediaVideoOutput) << "sinkChanged" << gstSink.name();
-
-    GST_DEBUG_BIN_TO_DOT_FILE(gstPipeline.bin(),
-                              GstDebugGraphDetails(/*GST_DEBUG_GRAPH_SHOW_ALL |*/ GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE |
-                                                   GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
-                              videoSink.name());
-
+    qCDebug(qLcMediaVideoOutput) << "sinkChanged" << m_videoSink.name();
+    m_videoConvertScale.dumpPipelineGraph(m_videoSink.name().constData());
 }
 
-void QGstreamerVideoOutput::setPipeline(const QGstPipeline &pipeline)
+void QGstreamerVideoOutput::setActive(bool isActive)
 {
-    gstPipeline = pipeline;
-    if (m_videoSink)
-        m_videoSink->setPipeline(gstPipeline);
-}
-
-void QGstreamerVideoOutput::linkSubtitleStream(QGstElement src)
-{
-    qCDebug(qLcMediaVideoOutput) << "link subtitle stream" << src.isNull();
-    if (src == subtitleSrc)
+    if (m_isActive == isActive)
         return;
 
-    gstPipeline.modifyPipelineWhileNotRunning([&] {
-        subtitleSrc = src;
-        doLinkSubtitleStream();
-    });
-}
-
-void QGstreamerVideoOutput::unlinkSubtitleStream()
-{
-    if (subtitleSrc.isNull())
-        return;
-    qCDebug(qLcMediaVideoOutput) << "unlink subtitle stream";
-    subtitleSrc = {};
-    if (!subtitleSink.isNull()) {
-        gstPipeline.modifyPipelineWhileNotRunning([&] {
-            gstPipeline.stopAndRemoveElements(subtitleSink);
-            return;
-        });
-        subtitleSink = {};
-    }
-    if (m_videoSink)
-        m_videoSink->setSubtitleText({});
-}
-
-void QGstreamerVideoOutput::doLinkSubtitleStream()
-{
-    if (!subtitleSink.isNull()) {
-        gstPipeline.stopAndRemoveElements(subtitleSink);
-        subtitleSink = {};
-    }
-    if (!m_videoSink || subtitleSrc.isNull())
-        return;
-    if (subtitleSink.isNull()) {
-        subtitleSink = m_videoSink->subtitleSink();
-        gstPipeline.add(subtitleSink);
-    }
-    qLinkGstElements(subtitleSrc, subtitleSink);
+    m_isActive = isActive;
+    if (m_platformVideoSink)
+        m_platformVideoSink->setActive(isActive);
 }
 
 void QGstreamerVideoOutput::updateNativeSize()
 {
-    if (!m_videoSink)
+    if (!m_platformVideoSink)
         return;
 
-    m_videoSink->setNativeSize(qRotatedFrameSize(nativeSize, rotation));
+    m_platformVideoSink->setNativeSize(qRotatedFrameSize(m_nativeSize, m_rotation));
 }
 
 void QGstreamerVideoOutput::setIsPreview()
 {
     // configures the queue to be fast and lightweight for camera preview
     // also avoids blocking the queue in case we have an encodebin attached to the tee as well
-    videoQueue.set("leaky", 2 /*downstream*/);
-    videoQueue.set("silent", true);
-    videoQueue.set("max-size-buffers", uint(1));
-    videoQueue.set("max-size-bytes", uint(0));
-    videoQueue.set("max-size-time", quint64(0));
+    m_videoQueue.set("leaky", 2 /*downstream*/);
+    m_videoQueue.set("silent", true);
+    m_videoQueue.set("max-size-buffers", uint(1));
+    m_videoQueue.set("max-size-bytes", uint(0));
+    m_videoQueue.set("max-size-time", quint64(0));
 }
 
 void QGstreamerVideoOutput::flushSubtitles()
 {
-    if (!subtitleSink.isNull()) {
-        auto pad = subtitleSink.staticPad("sink");
+    if (!m_subtitleSink.isNull()) {
+        auto pad = m_subtitleSink.staticPad("sink");
         auto *event = gst_event_new_flush_start();
         pad.sendEvent(event);
         event = gst_event_new_flush_stop(false);
@@ -214,14 +174,24 @@ void QGstreamerVideoOutput::flushSubtitles()
 
 void QGstreamerVideoOutput::setNativeSize(QSize sz)
 {
-    nativeSize = sz;
+    m_nativeSize = sz;
     updateNativeSize();
 }
 
 void QGstreamerVideoOutput::setRotation(QtVideo::Rotation rot)
 {
-    rotation = rot;
+    m_rotation = rot;
     updateNativeSize();
+}
+
+void QGstreamerVideoOutput::updateSubtitle(QString string)
+{
+    // GStreamer thread
+
+    QMetaObject::invokeMethod(this, [this, string = std::move(string)]() mutable {
+        m_lastSubtitleString = string;
+        Q_EMIT subtitleChanged(std::move(string));
+    });
 }
 
 QT_END_NAMESPACE

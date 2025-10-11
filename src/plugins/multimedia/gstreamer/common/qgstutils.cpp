@@ -56,7 +56,7 @@ QAudioFormat QGstUtils::audioFormatForSample(GstSample *sample)
 QAudioFormat QGstUtils::audioFormatForCaps(const QGstCaps &caps)
 {
     QAudioFormat format;
-    QGstStructure s = caps.at(0);
+    QGstStructureView s = caps.at(0);
     if (s.name() != "audio/x-raw")
         return format;
 
@@ -136,6 +136,11 @@ GList *qt_gst_video_sinks()
     return gst_element_factory_list_get_elements(GST_ELEMENT_FACTORY_TYPE_SINK
                                                          | GST_ELEMENT_FACTORY_TYPE_MEDIA_VIDEO,
                                                  GST_RANK_MARGINAL);
+}
+
+QLocale::Language QGstUtils::codeToLanguage(const gchar *lang)
+{
+    return QLocale::codeToLanguage(QString::fromUtf8(lang), QLocale::AnyLanguageCode);
 }
 
 QT_END_NAMESPACE

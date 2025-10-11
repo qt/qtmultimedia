@@ -15,15 +15,11 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qmultimediautils_p.h>
-#include <qaudioformat.h>
-
 #include <QtCore/qobject.h>
 #include <QtCore/qiodevice.h>
-#include <QtCore/private/qringbuffer_p.h>
-#include <QtCore/qatomic.h>
 #include <QtCore/qmutex.h>
+
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 #include <common/qgst_p.h>
 #include <gst/app/gstappsrc.h>
@@ -34,34 +30,20 @@ class QGstAppSource : public QObject
 {
     Q_OBJECT
 public:
-    static QMaybe<QGstAppSource *> create(QObject *parent = nullptr);
+    explicit QGstAppSource(GstAppSrc *owner, QIODevice *, qint64 offset = 0);
     ~QGstAppSource();
 
-    bool setup(QIODevice *stream = nullptr, qint64 offset = 0);
-    void setAudioFormat(const QAudioFormat &f);
-
-    void setExternalAppSrc(QGstAppSrc);
-    QGstElement element() const;
-
-    void write(const char *data, qsizetype size);
-
-    bool canAcceptMoreData() const;
-
-    void suspend();
-    void resume();
-
-Q_SIGNALS:
-    void bytesProcessed(int bytes);
-    void noMoreData();
+    static void attachQIODeviceToGstAppSrc(GstAppSrc *, QIODevice *);
 
 private Q_SLOTS:
-    void pushData();
-    bool doSeek(qint64);
     void onDataReady();
-
     void streamDestroyed();
+
 private:
-    QGstAppSource(QGstAppSrc appsrc, QObject *parent);
+    bool setup(QIODevice *stream = nullptr, qint64 offset = 0);
+
+    bool doSeek(qint64 streamPosition);
+    void pushData(qint64 bytesToRead);
 
     bool setStream(QIODevice *, qint64 offset);
     bool isStreamValid() const;
@@ -71,24 +53,18 @@ private:
     static void on_need_data(GstAppSrc *element, uint arg0, gpointer userdata);
 
     void sendEOS();
-    void eosOrIdle();
 
     mutable QMutex m_mutex;
 
     QIODevice *m_stream = nullptr;
-    QRingBuffer m_buffer;
-    QAudioFormat m_format;
 
-    QGstAppSrc m_appSrc;
+    GstAppSrc *m_owningAppSrc = nullptr; // QGstAppSource is owned by this GstAppSrc.
     bool m_sequential = true;
-    bool m_suspended = false;
-    bool m_noMoreData = false;
-    GstAppStreamType m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
     qint64 m_offset = 0;
-    qint64 m_maxBytes = 0;
     qint64 bytesReadSoFar = 0;
-    QAtomicInteger<unsigned int> m_dataRequestSize = 0;
-    int streamedSamples = 0;
+    bool m_dataNeeded = false;
+
+    static constexpr qint64 maxBytes = 64 * 1024;
 };
 
 QT_END_NAMESPACE

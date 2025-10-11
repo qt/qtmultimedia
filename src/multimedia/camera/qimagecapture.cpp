@@ -92,18 +92,15 @@ QImageCapture::QImageCapture(QObject *parent)
     }
 
     d->control = maybeControl.value();
-    connect(d->control, SIGNAL(imageExposed(int)),
-            this, SIGNAL(imageExposed(int)));
-    connect(d->control, SIGNAL(imageCaptured(int,QImage)),
-            this, SIGNAL(imageCaptured(int,QImage)));
-    connect(d->control, SIGNAL(imageMetadataAvailable(int,QMediaMetaData)),
-            this, SIGNAL(imageMetadataAvailable(int,QMediaMetaData)));
-    connect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
-            this, SIGNAL(imageAvailable(int,QVideoFrame)));
-    connect(d->control, SIGNAL(imageSaved(int,QString)),
-            this, SIGNAL(imageSaved(int,QString)));
-    connect(d->control, SIGNAL(readyForCaptureChanged(bool)),
-            this, SIGNAL(readyForCaptureChanged(bool)));
+    connect(d->control, &QPlatformImageCapture::imageExposed, this, &QImageCapture::imageExposed);
+    connect(d->control, &QPlatformImageCapture::imageCaptured, this, &QImageCapture::imageCaptured);
+    connect(d->control, &QPlatformImageCapture::imageMetadataAvailable, this,
+            &QImageCapture::imageMetadataAvailable);
+    connect(d->control, &QPlatformImageCapture::imageAvailable, this,
+            &QImageCapture::imageAvailable);
+    connect(d->control, &QPlatformImageCapture::imageSaved, this, &QImageCapture::imageSaved);
+    connect(d->control, &QPlatformImageCapture::readyForCaptureChanged, this,
+            &QImageCapture::readyForCaptureChanged);
     connect(d->control, SIGNAL(error(int,int,QString)),
             this, SLOT(_q_error(int,int,QString)));
 }

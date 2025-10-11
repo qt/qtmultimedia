@@ -27,22 +27,12 @@ set_target_properties(audiorecorder PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
 
-target_include_directories(audiorecorder PUBLIC
-    ../shared
-)
-
 target_link_libraries(audiorecorder PUBLIC
     Qt::Core
     Qt::Gui
     Qt::Multimedia
     Qt::Widgets
 )
-
-if(WIN32)
-    target_include_directories(audiorecorder PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-endif()
 
 install(TARGETS audiorecorder
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"

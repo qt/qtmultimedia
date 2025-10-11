@@ -5,6 +5,7 @@
 
 #include <QtMultimedia/qcameradevice.h>
 #include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtCore/qdebug.h>
 
 #include <common/qgst_debug_p.h>
@@ -21,36 +22,35 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QPlatformCamera *> QGstreamerCamera::create(QCamera *camera)
 {
-    QGstElement videotestsrc = QGstElement::createFromFactory("videotestsrc");
-    if (!videotestsrc)
-        return errorMessageCannotFindElement("videotestsrc");
+    static const auto error = qGstErrorMessageIfElementsNotAvailable(
+            "videotestsrc", "capsfilter", "videoconvert", "videoscale", "identity");
+    if (error)
+        return *error;
 
-    QGstElement capsFilter = QGstElement::createFromFactory("capsfilter", "videoCapsFilter");
-    if (!capsFilter)
-        return errorMessageCannotFindElement("capsfilter");
-
-    QGstElement videoconvert = QGstElement::createFromFactory("videoconvert", "videoConvert");
-    if (!videoconvert)
-        return errorMessageCannotFindElement("videoconvert");
-
-    QGstElement videoscale = QGstElement::createFromFactory("videoscale", "videoScale");
-    if (!videoscale)
-        return errorMessageCannotFindElement("videoscale");
-
-    return new QGstreamerCamera(videotestsrc, capsFilter, videoconvert, videoscale, camera);
+    return new QGstreamerCamera(camera);
 }
 
-QGstreamerCamera::QGstreamerCamera(QGstElement videotestsrc, QGstElement capsFilter,
-                                   QGstElement videoconvert, QGstElement videoscale,
-                                   QCamera *camera)
-    : QPlatformCamera(camera),
-      gstCamera(std::move(videotestsrc)),
-      gstCapsFilter(std::move(capsFilter)),
-      gstVideoConvert(std::move(videoconvert)),
-      gstVideoScale(std::move(videoscale))
+QGstreamerCamera::QGstreamerCamera(QCamera *camera)
+    : QGstreamerCameraBase(camera),
+      gstCameraBin{
+          QGstBin::create("camerabin"),
+      },
+      gstCamera{
+          QGstElement::createFromFactory("videotestsrc"),
+      },
+      gstCapsFilter{
+          QGstElement::createFromFactory("capsfilter", "videoCapsFilter"),
+      },
+      gstDecode{
+          QGstElement::createFromFactory("identity"),
+      },
+      gstVideoConvert{
+          QGstElement::createFromFactory("videoconvert", "videoConvert"),
+      },
+      gstVideoScale{
+          QGstElement::createFromFactory("videoscale", "videoScale"),
+      }
 {
-    gstDecode = QGstElement::createFromFactory("identity");
-    gstCameraBin = QGstBin::create("camerabin");
     gstCameraBin.add(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert, gstVideoScale);
     qLinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert, gstVideoScale);
     gstCameraBin.addGhostPad(gstVideoScale, "src");
@@ -80,6 +80,8 @@ void QGstreamerCamera::setActive(bool active)
 
 void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 {
+    using namespace Qt::Literals;
+
     if (m_cameraDevice == camera)
         return;
 
@@ -90,12 +92,24 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
         gstNewCamera = QGstElement::createFromFactory("videotestsrc");
     } else {
         auto *integration = static_cast<QGstreamerIntegration *>(QGstreamerIntegration::instance());
-        auto *device = integration->videoDevice(camera.id());
+        GstDevice *device = integration->videoDevice(camera.id());
+
+        if (!device) {
+            updateError(QCamera::Error::CameraError,
+                        u"Failed to create GstDevice for camera: "_s
+                                + QString::fromUtf8(camera.id()));
+            return;
+        }
+
         gstNewCamera = QGstElement::createFromDevice(device, "camerasrc");
-        if (QGstStructure properties = gst_device_get_properties(device); !properties.isNull()) {
-            if (properties.name() == "v4l2deviceprovider")
-                m_v4l2DevicePath = QString::fromUtf8(properties["device.path"].toString());
-            properties.free();
+        QUniqueGstStructureHandle properties{
+            gst_device_get_properties(device),
+        };
+
+        if (properties) {
+            QGstStructureView propertiesView{ properties };
+            if (propertiesView.name() == "v4l2deviceprovider")
+                m_v4l2DevicePath = QString::fromUtf8(propertiesView["device.path"].toString());
         }
     }
 
@@ -104,7 +118,7 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
     auto gstNewDecode = QGstElement::createFromFactory(
             f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
 
-    QGstPipeline::modifyPipelineWhileNotRunning(gstCamera.getPipeline(), [&] {
+    gstVideoConvert.sink().modifyPipelineInIdleProbe([&] {
         qUnlinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
         gstCameraBin.stopAndRemoveElements(gstCamera, gstDecode);
 
@@ -136,9 +150,7 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
     auto newGstDecode = QGstElement::createFromFactory(
             f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
 
-    QGstPipeline::modifyPipelineWhileNotRunning(gstCamera.getPipeline(), [&] {
-        newGstDecode.syncStateWithParent();
-
+    gstVideoConvert.sink().modifyPipelineInIdleProbe([&] {
         qUnlinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
         gstCameraBin.stopAndRemoveElements(gstDecode);
 
@@ -703,8 +715,53 @@ int QGstreamerCamera::getV4L2Parameter(quint32 id) const
     });
 }
 
-#endif
+#endif // QT_CONFIG(linux_v4l)
+
+QGstreamerCustomCamera::QGstreamerCustomCamera(QCamera *camera)
+    : QGstreamerCameraBase{
+          camera,
+      },
+      m_userProvidedGstElement{
+          false,
+      }
+{
+}
+
+QGstreamerCustomCamera::QGstreamerCustomCamera(QCamera *camera, QGstElement element)
+    : QGstreamerCameraBase{
+          camera,
+      },
+      gstCamera{
+          std::move(element),
+      },
+      m_userProvidedGstElement{
+          true,
+      }
+{
+}
+
+void QGstreamerCustomCamera::setCamera(const QCameraDevice &device)
+{
+    if (m_userProvidedGstElement)
+        return;
+
+    gstCamera = QGstBin::createFromPipelineDescription(device.id(), /*name=*/nullptr,
+                                                       /* ghostUnlinkedPads=*/true);
+}
+
+bool QGstreamerCustomCamera::isActive() const
+{
+    return m_active;
+}
+
+void QGstreamerCustomCamera::setActive(bool active)
+{
+    if (m_active == active)
+        return;
+
+    m_active = active;
+
+    emit activeChanged(active);
+}
 
 QT_END_NAMESPACE
-
-#include "moc_qgstreamercamera_p.cpp"

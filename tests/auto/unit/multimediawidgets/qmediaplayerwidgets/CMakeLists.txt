@@ -19,5 +19,5 @@ qt_internal_add_test(tst_qmediaplayerwidgets
         Qt::MultimediaWidgetsPrivate
         Qt::Network
         Qt::Widgets
-        MockMultimediaPlugin
+        Qt::MockMultimediaPlugin
 )

@@ -64,7 +64,6 @@ public:
 
     virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
 
-    virtual QByteArray underlyingByteArray(int /*plane*/) const { return {}; }
 protected:
     QVideoFrame::HandleType m_type;
     QRhi *m_rhi = nullptr;

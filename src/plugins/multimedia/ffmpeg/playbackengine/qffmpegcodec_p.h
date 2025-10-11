@@ -51,6 +51,13 @@ public:
     qint64 toUs(qint64 ts) const { return timeStampUs(ts, d->stream->time_base).value_or(0); }
 
 private:
+    enum VideoCodecCreationPolicy {
+        Hw,
+        Sw,
+    };
+
+    static QMaybe<Codec> create(AVStream *stream, AVFormatContext *formatContext,
+                                VideoCodecCreationPolicy videoCodecPolicy);
     Codec(Data *data) : d(data) { }
     QExplicitlySharedDataPointer<Data> d;
 };

@@ -17,5 +17,5 @@ qt_internal_add_test(tst_qgraphicsvideoitem
         Qt::MultimediaPrivate
         Qt::MultimediaWidgetsPrivate
         Qt::Widgets
-        MockMultimediaPlugin
+        Qt::MockMultimediaPlugin
 )

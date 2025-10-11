@@ -18,7 +18,9 @@
 #include <QtMultimedia/private/qplatformimagecapture_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 
+#include <QtCore/qmutex.h>
 #include <QtCore/qqueue.h>
+#include <QtConcurrent/QtConcurrentRun>
 
 #include <common/qgst_p.h>
 #include <common/qgstreamerbufferprobe_p.h>
@@ -28,9 +30,9 @@
 QT_BEGIN_NAMESPACE
 
 class QGstreamerImageCapture : public QPlatformImageCapture, private QGstreamerBufferProbe
-
 {
     Q_OBJECT
+
 public:
     static QMaybe<QPlatformImageCapture *> create(QImageCapture *parent);
     virtual ~QGstreamerImageCapture();
@@ -48,13 +50,14 @@ public:
 
     QGstElement gstElement() const { return bin; }
 
+    void setMetaData(const QMediaMetaData &m) override;
+
 public Q_SLOTS:
     void cameraActiveChanged(bool active);
     void onCameraChanged();
 
 private:
-    QGstreamerImageCapture(QGstElement videoconvert, QGstElement jpegenc, QGstElement jifmux,
-                           QImageCapture *parent);
+    QGstreamerImageCapture(QImageCapture *parent);
 
     void setResolution(const QSize &resolution);
     int doCapture(const QString &fileName);
@@ -63,6 +66,8 @@ private:
 
     void saveBufferToImage(GstBuffer *buffer);
 
+    mutable QRecursiveMutex
+            m_mutex; // guard all elements accessed from probeBuffer/saveBufferToImage
     QGstreamerMediaCapture *m_session = nullptr;
     int m_lastId = 0;
     QImageEncoderSettings m_settings;
@@ -88,6 +93,15 @@ private:
     bool cameraActive = false;
 
     QGObjectHandlerScopedConnection m_handoffConnection;
+
+    QMap<int, QFuture<void>> m_pendingFutures;
+    int futureIDAllocator = 0;
+
+    template <typename Functor>
+    void invokeDeferred(Functor &&fn)
+    {
+        QMetaObject::invokeMethod(this, std::forward<decltype(fn)>(fn), Qt::QueuedConnection);
+    };
 };
 
 QT_END_NAMESPACE

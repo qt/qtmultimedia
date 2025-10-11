@@ -7,6 +7,7 @@
 #include <qdebug.h>
 
 #include "mediafileselector.h"
+#include "mediabackendutils.h"
 #include "testvideosink.h"
 #include "private/qvideotexturehelper_p.h"
 #include "private/qvideowindow_p.h"
@@ -78,6 +79,11 @@ void tst_QVideoFrameBackend::addMediaPlayerFrameTestData(F &&f)
     if (!m_oneRedFrameVideo) {
         qWarning() << "Skipping test data with mediaplayer as the source cannot be open."
                       "\nSee the test case 'testMediaFilesAreSupported' for details";
+        return;
+    }
+
+    if (isGStreamerPlatform()) {
+        qWarning() << "createMediaPlayerFrame spuriously fails with gstreamer";
         return;
     }
 

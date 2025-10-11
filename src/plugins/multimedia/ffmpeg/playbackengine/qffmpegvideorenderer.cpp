@@ -16,8 +16,14 @@ VideoRenderer::VideoRenderer(const TimeController &tc, QVideoSink *sink, QtVideo
 
 void VideoRenderer::setOutput(QVideoSink *sink, bool cleanPrevSink)
 {
-    setOutputInternal(m_sink, sink, [cleanPrevSink](QVideoSink *prev) {
-        if (prev && cleanPrevSink)
+    setOutputInternal(m_sink, sink, [=](QVideoSink *prev) {
+        if (!prev)
+            return;
+
+        if (sink)
+            sink->setVideoFrame(prev->videoFrame());
+
+        if (cleanPrevSink)
             prev->setVideoFrame({});
     });
 }

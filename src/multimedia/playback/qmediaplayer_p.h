@@ -40,6 +40,11 @@ class QMediaPlayerPrivate : public QObjectPrivate
     Q_DECLARE_PUBLIC(QMediaPlayer)
 
 public:
+    static QMediaPlayerPrivate *get(QMediaPlayer *session)
+    {
+        return reinterpret_cast<QMediaPlayerPrivate *>(QObjectPrivate::get(session));
+    }
+
     QMediaPlayerPrivate() = default;
     QPlatformMediaPlayer *control = nullptr;
 

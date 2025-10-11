@@ -146,7 +146,7 @@ void QFFmpegMediaPlayer::setPlaybackRate(qreal rate)
     if (m_playbackEngine)
         m_playbackEngine->setPlaybackRate(effectiveRate);
 
-    emit playbackRateChanged(effectiveRate);
+    playbackRateChanged(effectiveRate);
 }
 
 QUrl QFFmpegMediaPlayer::media() const
@@ -209,8 +209,6 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 void QFFmpegMediaPlayer::setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaDataHolder,
                                        const std::shared_ptr<QFFmpeg::CancelToken> &cancelToken)
 {
-    Q_ASSERT(mediaStatus() == QMediaPlayer::LoadingMedia);
-
     // If loading was cancelled, we do not emit any signals about failing
     // to load media (or any other events). The rationale is that cancellation
     // either happens during destruction, where the signals are no longer
@@ -220,6 +218,8 @@ void QFFmpegMediaPlayer::setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaData
     if (cancelToken->isCancelled()) {
         return;
     }
+
+    Q_ASSERT(mediaStatus() == QMediaPlayer::LoadingMedia);
 
     if (!mediaDataHolder) {
         const auto [code, description] = mediaDataHolder.error();

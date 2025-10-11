@@ -16,7 +16,6 @@
 #include <QtCore/qvarlengtharray.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include "qalsaaudiosource_p.h"
-#include "qalsaaudiodevice_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -45,13 +44,13 @@ QAlsaAudioSource::QAlsaAudioSource(const QByteArray &device, QObject *parent)
     m_device = device;
 
     timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(userFeed()));
+    connect(timer, &QTimer::timeout, this, &QAlsaAudioSource::userFeed);
 }
 
 QAlsaAudioSource::~QAlsaAudioSource()
 {
     close();
-    disconnect(timer, SIGNAL(timeout()));
+    disconnect(timer, &QTimer::timeout, this, &QAlsaAudioSource::userFeed);
     QCoreApplication::processEvents();
     delete timer;
 }
@@ -143,21 +142,22 @@ int QAlsaAudioSource::setFormat()
         break;
     case QAudioFormat::Int16:
         if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
-            pcmformat = SND_PCM_FORMAT_S16_LE;
-        else
             pcmformat = SND_PCM_FORMAT_S16_BE;
+        else
+            pcmformat = SND_PCM_FORMAT_S16_LE;
         break;
     case QAudioFormat::Int32:
         if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
-            pcmformat = SND_PCM_FORMAT_S32_LE;
-        else
             pcmformat = SND_PCM_FORMAT_S32_BE;
+        else
+            pcmformat = SND_PCM_FORMAT_S32_LE;
         break;
     case QAudioFormat::Float:
         if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
-            pcmformat = SND_PCM_FORMAT_FLOAT_LE;
-        else
             pcmformat = SND_PCM_FORMAT_FLOAT_BE;
+        else
+            pcmformat = SND_PCM_FORMAT_FLOAT_LE;
+        break;
     default:
         break;
     }
@@ -370,7 +370,7 @@ bool QAlsaAudioSource::open()
     bytesAvailable = checkBytesReady();
 
     if(pullMode)
-        connect(audioSource,SIGNAL(readyRead()),this,SLOT(userFeed()));
+        connect(audioSource, &QIODevice::readyRead, this, &QAlsaAudioSource::userFeed);
 
     // Step 6: Start audio processing
     chunks = buffer_size/period_size;

@@ -93,6 +93,11 @@ static bool precheckDriver(AVHWDeviceType type)
     if (type == AV_HWDEVICE_TYPE_D3D11VA)
         return QSystemLibrary(QLatin1String("d3d11.dll")).load();
 
+#if QT_FFMPEG_HAS_D3D12VA
+    if (type == AV_HWDEVICE_TYPE_D3D12VA)
+        return QSystemLibrary(QLatin1String("d3d12.dll")).load();
+#endif
+
     if (type == AV_HWDEVICE_TYPE_DXVA2)
         return QSystemLibrary(QLatin1String("d3d9.dll")).load();
 
@@ -122,6 +127,9 @@ static bool checkHwType(AVHWDeviceType type)
     if (type == AV_HWDEVICE_TYPE_MEDIACODEC ||
         type == AV_HWDEVICE_TYPE_VIDEOTOOLBOX ||
         type == AV_HWDEVICE_TYPE_D3D11VA ||
+#if QT_FFMPEG_HAS_D3D12VA
+        type == AV_HWDEVICE_TYPE_D3D12VA ||
+#endif
         type == AV_HWDEVICE_TYPE_DXVA2)
         return true; // Don't waste time; it's expected to work fine of the precheck is OK
 
@@ -143,10 +151,11 @@ static const std::vector<AVHWDeviceType> &deviceTypes()
         std::unordered_set<AVPixelFormat> hwPixFormats;
         void *opaque = nullptr;
         while (auto codec = av_codec_iterate(&opaque)) {
-            if (auto pixFmt = codec->pix_fmts)
-                for (; *pixFmt != AV_PIX_FMT_NONE; ++pixFmt)
-                    if (isHwPixelFormat(*pixFmt))
-                        hwPixFormats.insert(*pixFmt);
+            findAVPixelFormat(codec, [&](AVPixelFormat format) {
+                if (isHwPixelFormat(format))
+                    hwPixFormats.insert(format);
+                return false;
+            });
         }
 
         // create a device types list
@@ -291,7 +300,9 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *sugge
             const bool shouldCheckCodecFormats = config->pix_fmt == AV_PIX_FMT_NONE;
 
             auto scoresGettor = [&](AVPixelFormat format) {
-                if (shouldCheckCodecFormats && !isAVFormatSupported(codecContext->codec, format))
+                // check in supported codec->pix_fmts;
+                // no reason to use findAVPixelFormat as we're already in the hw_config loop
+                if (shouldCheckCodecFormats && !hasAVFormat(codecContext->codec->pix_fmts, format))
                     return NotSuitableAVScore;
 
                 if (!shouldCheckCodecFormats && config->pix_fmt != format)

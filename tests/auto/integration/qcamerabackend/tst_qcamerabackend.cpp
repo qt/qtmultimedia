@@ -106,9 +106,6 @@ public Q_SLOTS:
 
 void tst_QCameraBackend::initTestCase()
 {
-#ifdef Q_OS_ANDROID
-    QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
-#endif
     QCamera camera;
     noCamera = !camera.isAvailable();
 }
@@ -218,7 +215,7 @@ void tst_QCameraBackend::testCameraActive()
     QCOMPARE(camera.error(), QCamera::NoError);
 
     camera.start();
-    QCOMPARE(camera.isActive(), true);
+    QTRY_COMPARE(camera.isActive(), true);
     QTRY_COMPARE(activeChangedSignal.size(), 1);
     QCOMPARE(activeChangedSignal.last().first().value<bool>(), true);
 
@@ -436,6 +433,12 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
 
     camera.setFlashMode(QCamera::FlashOff);
 
+    QMediaMetaData referenceMetaData;
+    referenceMetaData.insert(QMediaMetaData::Title, QStringLiteral("Title"));
+    referenceMetaData.insert(QMediaMetaData::Language, QVariant::fromValue(QLocale::German));
+    referenceMetaData.insert(QMediaMetaData::Description, QStringLiteral("Description"));
+    imageCapture.setMetaData(referenceMetaData);
+
     QSignalSpy metadataSignal(&imageCapture, &QImageCapture::imageMetadataAvailable);
     QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
 
@@ -448,7 +451,19 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
     int id = imageCapture.captureToFile(tmpFile);
     QTRY_VERIFY(!savedSignal.isEmpty());
     QVERIFY(!metadataSignal.isEmpty());
+
     QCOMPARE(metadataSignal.first().first().toInt(), id);
+    QMediaMetaData receivedMetaData = metadataSignal.first()[1].value<QMediaMetaData>();
+
+    if (isGStreamerPlatform()) {
+        for (auto key : {
+                     QMediaMetaData::Title,
+                     QMediaMetaData::Language,
+                     QMediaMetaData::Description,
+             })
+            QCOMPARE(receivedMetaData[key], referenceMetaData[key]);
+        QVERIFY(receivedMetaData[QMediaMetaData::Resolution].isValid());
+    }
 }
 
 void tst_QCameraBackend::testExposureCompensation()
@@ -515,7 +530,7 @@ void tst_QCameraBackend::testExposureMode()
     camera.setExposureMode(QCamera::ExposureAuto);
     QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
     camera.start();
-    QVERIFY(camera.isActive());
+    QTRY_VERIFY(camera.isActive());
     QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
 
     // Manual
@@ -538,9 +553,10 @@ void tst_QCameraBackend::testVideoRecording_data()
     QTest::addColumn<QCameraDevice>("device");
 
     const auto devices = QMediaDevices::videoInputs();
+    int i = 0;
 
     for (const auto &device : devices)
-        QTest::newRow(device.description().toUtf8()) << device;
+        QTest::addRow("%d - %s", i++, device.description().toUtf8().constData()) << device;
 
     if (devices.isEmpty())
         QTest::newRow("Null device") << QCameraDevice();
@@ -675,8 +691,6 @@ void tst_QCameraBackend::testNativeMetadata()
     QVERIFY(!fileName.isEmpty());
     QVERIFY(QFileInfo(fileName).size() > 0);
 
-    QSKIP_GSTREAMER("QTBUG-124182: spurious failure while retrieving the metadata");
-
     // QMediaRecorder::metaData() can only test that QMediaMetaData is set properly on the recorder.
     // Use QMediaPlayer to test that the native metadata is properly set on the track
     QAudioOutput output;
@@ -688,15 +702,20 @@ void tst_QCameraBackend::testNativeMetadata()
     player.setSource(QUrl::fromLocalFile(fileName));
     player.play();
 
-    QTRY_VERIFY(metadataChangedSpy.size() > 0);
+    int metadataChangedRequiredCount = isGStreamerPlatform() ? 2 : 1;
 
-    QCOMPARE(player.metaData().value(QMediaMetaData::Title).toString(), metaData.value(QMediaMetaData::Title).toString());
+    QTRY_VERIFY(metadataChangedSpy.size() >= metadataChangedRequiredCount);
+
+    QCOMPARE(player.metaData().value(QMediaMetaData::Title).toString(),
+             metaData.value(QMediaMetaData::Title).toString());
     auto lang = player.metaData().value(QMediaMetaData::Language).value<QLocale::Language>();
     if (lang != QLocale::AnyLanguage)
         QCOMPARE(lang, metaData.value(QMediaMetaData::Language).value<QLocale::Language>());
     QCOMPARE(player.metaData().value(QMediaMetaData::Description).toString(), metaData.value(QMediaMetaData::Description).toString());
+    QVERIFY(player.metaData().value(QMediaMetaData::Resolution).isValid());
 
-    metadataChangedSpy.clear();
+    if (isGStreamerPlatform())
+        QVERIFY(player.metaData().value(QMediaMetaData::Date).isValid());
 
     player.stop();
     player.setSource({});

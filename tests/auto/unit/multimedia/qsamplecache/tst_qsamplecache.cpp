@@ -17,6 +17,7 @@ private slots:
     void testEnoughCapacity();
     void testNotEnoughCapacity();
     void testInvalidFile();
+    void testIncompatibleFile();
 
 private:
 
@@ -96,6 +97,7 @@ void tst_QSampleCache::testEnoughCapacity()
 
 void tst_QSampleCache::testNotEnoughCapacity()
 {
+    using namespace Qt::Literals;
     QSampleCache cache;
 
     QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
@@ -108,6 +110,8 @@ void tst_QSampleCache::testNotEnoughCapacity()
 
     QVERIFY(!cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
 
+    QTest::ignoreMessage(QtMsgType::QtWarningMsg,
+                         QRegularExpression("QSampleCache: usage .* out of limit .*"));
     sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
     QVERIFY(cache.isLoading());
@@ -117,7 +121,10 @@ void tst_QSampleCache::testNotEnoughCapacity()
     QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
 
     // load another sample to force sample cache to destroy first sample
-    QSample* sampleOther = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test2.wav")));
+    QTest::ignoreMessage(QtMsgType::QtWarningMsg,
+                         QRegularExpression("QSampleCache: usage .* out of limit .*"));
+    QSample *sampleOther =
+            cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test2.wav")));
     QVERIFY(sampleOther);
     QVERIFY(cache.isLoading());
     QTRY_VERIFY(!cache.isLoading());
@@ -137,6 +144,25 @@ void tst_QSampleCache::testInvalidFile()
     sample->release();
 
     QVERIFY(!cache.isCached(QUrl::fromLocalFile("invalid")));
+}
+
+void tst_QSampleCache::testIncompatibleFile()
+{
+    QSampleCache cache;
+    cache.setCapacity(10024);
+
+    // Load a sample that is known to fail and verify that
+    // it remains in the cache with an error status.
+    const QUrl corruptedWavUrl = QUrl::fromLocalFile(QFINDTESTDATA("testdata/corrupted.wav"));
+    for (int i = 0; i < 3; ++i) {
+        QSample* sample = cache.requestSample(corruptedWavUrl);
+        QVERIFY(sample);
+        QTRY_VERIFY(!cache.isLoading());
+        QCOMPARE(sample->state(), QSample::Error);
+        sample->release();
+
+        QVERIFY(cache.isCached(corruptedWavUrl));
+    }
 }
 
 QTEST_MAIN(tst_QSampleCache)

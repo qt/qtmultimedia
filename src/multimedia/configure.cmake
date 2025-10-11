@@ -103,29 +103,20 @@ qt_feature("evr" PUBLIC PRIVATE
     LABEL "evr.h"
     CONDITION WIN32 AND TEST_evr
 )
-qt_feature("gstreamer_1_0" PRIVATE
-    LABEL "GStreamer 1.0"
-    CONDITION GStreamer_FOUND
-)
-qt_feature("gstreamer_app" PRIVATE
-    LABEL "GStreamer App"
-    CONDITION ( QT_FEATURE_gstreamer_1_0 AND GStreamer_App_FOUND )
-)
-qt_feature("gstreamer_photography" PRIVATE
-    LABEL "GStreamer Photography"
-    CONDITION ( QT_FEATURE_gstreamer_1_0 AND GStreamer_Photography_FOUND )
-)
-qt_feature("gstreamer_gl" PRIVATE
-    LABEL "GStreamer OpenGL"
-    CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer_1_0 AND GStreamer_Gl_FOUND AND EGL_FOUND
-)
 qt_feature("gstreamer" PRIVATE
     LABEL "QtMM GStreamer plugin"
-    CONDITION (QT_FEATURE_gstreamer_1_0 AND QT_FEATURE_gstreamer_app)
+    CONDITION GStreamer_FOUND AND GStreamer_App_FOUND
     ENABLE INPUT_gstreamer STREQUAL 'yes'
     DISABLE INPUT_gstreamer STREQUAL 'no'
 )
-
+qt_feature("gstreamer_photography" PRIVATE
+    LABEL "GStreamer Photography"
+    CONDITION QT_FEATURE_gstreamer AND GStreamer_Photography_FOUND
+)
+qt_feature("gstreamer_gl" PRIVATE
+    LABEL "GStreamer OpenGL"
+    CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer AND GStreamer_Gl_FOUND AND EGL_FOUND
+)
 qt_feature("gpu_vivante" PRIVATE
     LABEL "Vivante GPU"
     CONDITION QT_FEATURE_gui AND QT_FEATURE_opengles2 AND TEST_gpu_vivante
@@ -191,7 +182,7 @@ qt_configure_add_summary_entry(ARGS "opensles")
 qt_configure_add_summary_entry(ARGS "wasm")
 qt_configure_end_summary_section()
 qt_configure_add_summary_section(NAME "Plugin")
-qt_configure_add_summary_entry(ARGS "gstreamer_1_0")
+qt_configure_add_summary_entry(ARGS "gstreamer")
 qt_configure_add_summary_entry(ARGS "ffmpeg")
 qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "avfoundation")
@@ -209,4 +200,10 @@ qt_configure_add_report_entry(
     TYPE WARNING
     MESSAGE "No backend for low level audio found."
     CONDITION NOT QT_FEATURE_alsa AND NOT QT_FEATURE_pulseaudio AND NOT QT_FEATURE_mmrenderer AND NOT QT_FEATURE_coreaudio AND NOT QT_FEATURE_wmsdk AND NOT ANDROID AND NOT WASM
+)
+
+qt_configure_add_report_entry(
+    TYPE WARNING
+    MESSAGE "No media backend found"
+    CONDITION LINUX AND NOT (QT_FEATURE_gstreamer OR QT_FEATURE_ffmpeg)
 )

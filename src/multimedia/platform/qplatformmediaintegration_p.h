@@ -49,6 +49,13 @@ class QAudioOutput;
 class QPlatformAudioInput;
 class QPlatformAudioOutput;
 class QPlatformVideoDevices;
+class QVideoFrame;
+
+class Q_MULTIMEDIA_EXPORT QAbstractPlatformSpecificInterface
+{
+public:
+    virtual ~QAbstractPlatformSpecificInterface() = default;
+};
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration : public QObject
 {
@@ -85,6 +92,11 @@ public:
 
     static QStringList availableBackends();
     QLatin1String name(); // for unit tests
+
+    // Convert a QVideoFrame to the destination format
+    virtual QVideoFrame convertVideoFrame(QVideoFrame &, const QVideoFrameFormat &);
+
+    virtual QAbstractPlatformSpecificInterface *platformSpecificInterface() { return nullptr; }
 
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();

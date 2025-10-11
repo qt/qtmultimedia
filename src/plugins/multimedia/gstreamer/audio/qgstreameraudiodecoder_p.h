@@ -23,12 +23,9 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
 
-#include <common/qgstpipeline_p.h>
 #include <common/qgst_p.h>
-
-#if QT_CONFIG(gstreamer_app)
-#  include <common/qgstappsource_p.h>
-#endif
+#include <common/qgst_bus_p.h>
+#include <common/qgstpipeline_p.h>
 
 #include <gst/app/gstappsink.h>
 
@@ -64,42 +61,50 @@ public:
     // GStreamerBusMessageFilter interface
     bool processBusMessage(const QGstreamerMessage &message) override;
 
+    bool canReadQrc() const override;
+
 private slots:
     void updateDuration();
 
 private:
-    QGstreamerAudioDecoder(QGstPipeline playbin, QGstElement audioconvert, QAudioDecoder *parent);
+    explicit QGstreamerAudioDecoder(QAudioDecoder *parent);
 
-#if QT_CONFIG(gstreamer_app)
     static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);
     GstFlowReturn newSample(GstAppSink *sink);
 
     static void configureAppSrcElement(GObject *, GObject *, GParamSpec *,
                                        QGstreamerAudioDecoder *_this);
-#endif
 
     void setAudioFlags(bool wantNativeAudio);
     void addAppSink();
     void removeAppSink();
 
-    bool handlePlaybinMessage(const QGstreamerMessage &);
-
     void processInvalidMedia(QAudioDecoder::Error errorCode, const QString &errorString);
-    static qint64 getPositionFromBuffer(GstBuffer* buffer);
+    static std::chrono::nanoseconds getPositionFromBuffer(GstBuffer *buffer);
+
+    bool processBusMessageError(const QGstreamerMessage &);
+    bool processBusMessageDuration(const QGstreamerMessage &);
+    bool processBusMessageWarning(const QGstreamerMessage &);
+    bool processBusMessageInfo(const QGstreamerMessage &);
+    bool processBusMessageEOS(const QGstreamerMessage &);
+    bool processBusMessageStateChanged(const QGstreamerMessage &);
+    bool processBusMessageStreamsSelected(const QGstreamerMessage &);
 
     QGstPipeline m_playbin;
     QGstBin m_outputBin;
     QGstElement m_audioConvert;
     QGstAppSink m_appSink;
-    QGstAppSource *m_appSrc = nullptr;
 
     QUrl mSource;
     QIODevice *mDevice = nullptr;
     QAudioFormat mFormat;
 
     int m_buffersAvailable = 0;
-    qint64 m_position = -1;
-    qint64 m_duration = -1;
+
+    static constexpr auto invalidDuration = std::chrono::milliseconds{ -1 };
+    static constexpr auto invalidPosition = std::chrono::milliseconds{ -1 };
+    std::chrono::milliseconds m_position{ invalidPosition };
+    std::chrono::milliseconds m_duration{ invalidDuration };
 
     int m_durationQueries = 0;
 

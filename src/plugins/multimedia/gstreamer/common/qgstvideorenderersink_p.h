@@ -15,100 +15,150 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtCore/qcoreevent.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qpointer.h>
+#include <QtCore/qqueue.h>
+#include <QtCore/qwaitcondition.h>
+
 #include <gst/video/gstvideosink.h>
 #include <gst/video/video.h>
 
-#include <QtCore/qlist.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qqueue.h>
-#include <QtCore/qpointer.h>
-#include <QtCore/qwaitcondition.h>
-#include <qvideoframeformat.h>
-#include <qvideoframe.h>
 #include <common/qgstvideobuffer_p.h>
 #include <common/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
-class QVideoSink;
+
+namespace QGstUtils {
+
+template <typename T>
+class QConcurrentQueue
+{
+public:
+    qsizetype enqueue(T value)
+    {
+        QMutexLocker locker(&mutex);
+        queue.append(std::move(value));
+        return queue.size();
+    }
+
+    std::optional<T> dequeue()
+    {
+        QMutexLocker locker(&mutex);
+        if (queue.isEmpty())
+            return std::nullopt;
+
+        return queue.takeFirst();
+    }
+
+    void clear()
+    {
+        QMutexLocker locker(&mutex);
+        queue.clear();
+    }
+
+private:
+    QMutex mutex;
+    QList<T> queue;
+};
+
+} // namespace QGstUtils
 
 class QGstVideoRenderer : public QObject
 {
+    struct RenderBufferState
+    {
+        QGstBufferHandle buffer;
+        QVideoFrameFormat format;
+        QGstCaps::MemoryFormat memoryFormat;
+        bool mirrored;
+        QtVideo::Rotation rotationAngle;
+
+        bool operator==(const RenderBufferState &rhs) const
+        {
+            return std::tie(buffer, format, memoryFormat, mirrored, rotationAngle)
+                    == std::tie(rhs.buffer, rhs.format, rhs.memoryFormat, rhs.mirrored,
+                                rhs.rotationAngle);
+        }
+    };
+
+    static constexpr QEvent::Type renderFramesEvent = static_cast<QEvent::Type>(QEvent::User + 100);
+    static constexpr QEvent::Type stopEvent = static_cast<QEvent::Type>(QEvent::User + 101);
+
 public:
-    explicit QGstVideoRenderer(QGstreamerVideoSink *sink);
+    explicit QGstVideoRenderer(QGstreamerVideoSink *);
     ~QGstVideoRenderer();
 
     const QGstCaps &caps();
 
-    bool start(const QGstCaps& caps);
+    bool start(const QGstCaps &);
     void stop();
     void unlock();
-    bool proposeAllocation(GstQuery *query);
+    bool proposeAllocation(GstQuery *);
+    GstFlowReturn render(GstBuffer *);
+    bool query(GstQuery *);
+    void gstEvent(GstEvent *);
 
-    void flush();
-
-    GstFlowReturn render(GstBuffer *buffer);
-
-    bool event(QEvent *event) override;
-    bool query(GstQuery *query);
-    void gstEvent(GstEvent *event);
-
-private slots:
-    bool handleEvent(QMutexLocker<QMutex> *locker);
+    void setActive(bool);
 
 private:
+    void updateCurrentVideoFrame(QVideoFrame);
+
     void notify();
-    bool waitForAsyncEvent(QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time);
     static QGstCaps createSurfaceCaps(QGstreamerVideoSink *);
+
+    void customEvent(QEvent *) override;
+    void handleNewBuffer(RenderBufferState);
 
     void gstEventHandleTag(GstEvent *);
     void gstEventHandleEOS(GstEvent *);
+    void gstEventHandleFlushStart(GstEvent *);
+    void gstEventHandleFlushStop(GstEvent *);
 
-    QPointer<QGstreamerVideoSink> m_sink;
+    QMutex m_sinkMutex;
+    QGstreamerVideoSink *m_sink = nullptr; // written only from qt thread. so only readers on
+                                           // worker threads need to acquire the lock
 
-    QMutex m_mutex;
-    QWaitCondition m_setupCondition;
-    QWaitCondition m_renderCondition;
-
-    // --- accessed from multiple threads, need to hold mutex to access
-    GstFlowReturn m_renderReturn = GST_FLOW_OK;
-    bool m_active = false;
-
+    // --- only accessed from gstreamer thread
     const QGstCaps m_surfaceCaps;
-
-    QGstCaps m_startCaps;
-    QGstBufferHandle m_renderBuffer;
-
-    bool m_notified = false;
-    bool m_stop = false;
-    bool m_flush = false;
+    QVideoFrameFormat m_format;
+    GstVideoInfo m_videoInfo{};
+    QGstCaps::MemoryFormat m_memoryFormat = QGstCaps::CpuMemory;
     bool m_frameMirrored = false;
     QtVideo::Rotation m_frameRotationAngle = QtVideo::Rotation::None;
 
-    // --- only accessed from one thread
-    QVideoFrameFormat m_format;
-    GstVideoInfo m_videoInfo{};
-    bool m_flushed = true;
-    QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
+    // --- only accessed from qt thread
+    QVideoFrame m_currentPipelineFrame;
+    QVideoFrame m_currentVideoFrame;
+    bool m_isActive{ false };
+
+    RenderBufferState m_currentState;
+    QGstUtils::QConcurrentQueue<RenderBufferState> m_bufferQueue;
+    bool m_flushing{ false };
 };
+
+class QGstVideoRendererSinkElement;
 
 class QGstVideoRendererSink
 {
 public:
     GstVideoSink parent{};
 
-    static QGstVideoRendererSink *createSink(QGstreamerVideoSink *surface);
-    static void setSink(QGstreamerVideoSink *surface);
+    static QGstVideoRendererSinkElement createSink(QGstreamerVideoSink *surface);
 
 private:
+    static void setSink(QGstreamerVideoSink *surface);
+
     static GType get_type();
     static void class_init(gpointer g_class, gpointer class_data);
     static void base_init(gpointer g_class);
     static void instance_init(GTypeInstance *instance, gpointer g_class);
 
     static void finalize(GObject *object);
-
-    static void handleShowPrerollChange(GObject *o, GParamSpec *p, gpointer d);
 
     static GstStateChangeReturn change_state(GstElement *element, GstStateChange transition);
 
@@ -123,17 +173,34 @@ private:
 
     static GstFlowReturn show_frame(GstVideoSink *sink, GstBuffer *buffer);
     static gboolean query(GstBaseSink *element, GstQuery *query);
-    static gboolean event(GstBaseSink *element, GstEvent * event);
+    static gboolean event(GstBaseSink *element, GstEvent *event);
 
-private:
+    friend class QGstVideoRendererSinkElement;
+
     QGstVideoRenderer *renderer = nullptr;
 };
-
 
 class QGstVideoRendererSinkClass
 {
 public:
     GstVideoSinkClass parent_class;
+};
+
+class QGstVideoRendererSinkElement : public QGstBaseSink
+{
+public:
+    using QGstBaseSink::QGstBaseSink;
+
+    explicit QGstVideoRendererSinkElement(QGstVideoRendererSink *, RefMode);
+
+    QGstVideoRendererSinkElement(const QGstVideoRendererSinkElement &) = default;
+    QGstVideoRendererSinkElement(QGstVideoRendererSinkElement &&) noexcept = default;
+    QGstVideoRendererSinkElement &operator=(const QGstVideoRendererSinkElement &) = default;
+    QGstVideoRendererSinkElement &operator=(QGstVideoRendererSinkElement &&) noexcept = default;
+
+    void setActive(bool);
+
+    QGstVideoRendererSink *qGstVideoRendererSink() const;
 };
 
 QT_END_NAMESPACE
