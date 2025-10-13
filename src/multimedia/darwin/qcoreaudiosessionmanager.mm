@@ -1,11 +1,12 @@
 // Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qcoreaudiosessionmanager_p.h"
+#include <QtMultimedia/private/qcoreaudiosessionmanager_p.h>
+
 #import <AVFoundation/AVAudioSession.h>
 #import <Foundation/Foundation.h>
 
-QT_BEGIN_NAMESPACE
+QT_USE_NAMESPACE
 
 @interface CoreAudioSessionObserver : NSObject
 {
@@ -419,7 +420,5 @@ QDebug operator<<(QDebug dbg, CoreAudioSessionManager::AudioSessionModes mode)
     return output;
 }
 #endif
-
-QT_END_NAMESPACE
 
 #include "moc_qcoreaudiosessionmanager_p.cpp"
