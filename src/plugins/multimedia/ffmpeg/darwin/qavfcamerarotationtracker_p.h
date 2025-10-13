@@ -22,8 +22,7 @@
 
 #include <os/availability.h>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceRotationCoordinator);
+#include <AVFoundation/AVFoundation.h>
 
 QT_BEGIN_NAMESPACE
 

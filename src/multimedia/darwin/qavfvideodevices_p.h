@@ -15,13 +15,15 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qtmultimediaexports.h>
 #include <QtMultimedia/private/qplatformvideodevices_p.h>
+
 #include <QtCore/private/qcore_mac_p.h>
+
+#include <QtMultimedia/qtmultimediaexports.h>
 
 #include <functional>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
+#import <AVFoundation/AVFoundation.h>
 
 QT_BEGIN_NAMESPACE
 

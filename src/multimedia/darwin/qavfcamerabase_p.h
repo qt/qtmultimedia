@@ -15,10 +15,11 @@
 // We mean it.
 //
 
-#include <QtCore/qobject.h>
 #include <QtMultimedia/private/qplatformcamera_p.h>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
+#include <QtCore/qobject.h>
+
+#import <AVFoundation/AVFoundation.h>
 
 QT_BEGIN_NAMESPACE
 
