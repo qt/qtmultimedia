@@ -15,6 +15,7 @@
 #include <gst/base/gstbasesrc.h>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <utility>
 
 QT_BEGIN_NAMESPACE
@@ -165,7 +166,6 @@ struct QGstQIODeviceSrc
 {
     void getProperty(guint propId, GValue *value, const GParamSpec *pspec) const;
     void setProperty(guint propId, const GValue *value, const GParamSpec *pspec);
-    auto lockObject() const;
 
     bool start();
     bool stop();
@@ -175,6 +175,10 @@ struct QGstQIODeviceSrc
     GstFlowReturn fill(guint64 offset, guint length, GstBuffer *buf);
     void getURI(GValue *value) const;
     bool setURI(const char *location, GError **err = nullptr);
+
+    // lockable
+    void lock() const { GST_OBJECT_LOCK(&baseSrc); }
+    void unlock() const { GST_OBJECT_UNLOCK(&baseSrc); }
 
     GstBaseSrc baseSrc;
     QIODeviceRegistry::SharedRecord record;
@@ -204,18 +208,9 @@ void QGstQIODeviceSrc::setProperty(guint propId, const GValue *value, const GPar
     }
 }
 
-auto QGstQIODeviceSrc::lockObject() const
-{
-    GST_OBJECT_LOCK(this);
-    return qScopeGuard([this] {
-        GST_OBJECT_UNLOCK(this);
-    });
-}
-
 bool QGstQIODeviceSrc::start()
 {
-    auto lock = lockObject();
-
+    std::lock_guard guard{ *this };
     return record && record->isValid();
 }
 
@@ -226,7 +221,7 @@ bool QGstQIODeviceSrc::stop()
 
 bool QGstQIODeviceSrc::isSeekable()
 {
-    auto lock = lockObject();
+    std::lock_guard guard{ *this };
     return record->runWhileLocked([&](QIODevice *device) {
         return !device->isSequential();
     });
@@ -234,7 +229,7 @@ bool QGstQIODeviceSrc::isSeekable()
 
 std::optional<guint64> QGstQIODeviceSrc::size()
 {
-    auto lock = lockObject();
+    std::lock_guard guard{ *this };
     if (!record)
         return std::nullopt;
 
@@ -249,14 +244,14 @@ std::optional<guint64> QGstQIODeviceSrc::size()
 
 GstFlowReturn QGstQIODeviceSrc::fill(guint64 offset, guint length, GstBuffer *buf)
 {
-    auto lock = lockObject();
-
+    std::unique_lock guard{ *this };
     if (!record)
         return GST_FLOW_ERROR;
 
     GstMapInfo info;
     if (!gst_buffer_map(buf, &info, GST_MAP_WRITE)) {
-        GST_ELEMENT_ERROR(this, RESOURCE, WRITE, (nullptr), ("Can't map buffer for writing"));
+        guard.unlock();
+        GST_ELEMENT_ERROR(&baseSrc, RESOURCE, WRITE, (nullptr), ("Can't map buffer for writing"));
         return GST_FLOW_ERROR;
     }
 
@@ -278,7 +273,8 @@ GstFlowReturn QGstQIODeviceSrc::fill(guint64 offset, guint length, GstBuffer *bu
                 if (device->atEnd()) {
                     return GST_FLOW_EOS;
                 }
-                GST_ELEMENT_ERROR(this, RESOURCE, READ, (nullptr), GST_ERROR_SYSTEM);
+                guard.unlock();
+                GST_ELEMENT_ERROR(&baseSrc, RESOURCE, READ, (nullptr), GST_ERROR_SYSTEM);
                 return GST_FLOW_ERROR;
             }
 
@@ -307,7 +303,7 @@ GstFlowReturn QGstQIODeviceSrc::fill(guint64 offset, guint length, GstBuffer *bu
 
 void QGstQIODeviceSrc::getURI(GValue *value) const
 {
-    auto lock = lockObject();
+    std::lock_guard guard{ *this };
     if (record)
         g_value_set_string(value, record->id);
     else
@@ -319,8 +315,9 @@ bool QGstQIODeviceSrc::setURI(const char *location, GError **err)
     Q_ASSERT(QLatin1StringView(location).startsWith("qiodevice:/"_L1));
 
     {
-        auto lock = lockObject();
+        std::lock_guard guard{ *this };
         GstState state = GST_STATE(this);
+
         if (state != GST_STATE_READY && state != GST_STATE_NULL) {
             g_warning(
                     "Changing the `uri' property on qiodevicesrc when the resource is open is not "
@@ -336,7 +333,7 @@ bool QGstQIODeviceSrc::setURI(const char *location, GError **err)
     auto newRecord = gQIODeviceRegistry->findRecord(QByteArrayView{ location });
 
     {
-        auto lock = lockObject();
+        std::lock_guard guard{ *this };
         record = std::move(newRecord);
     }
 
@@ -467,7 +464,7 @@ void qGstInitQIODeviceURIHandler(gpointer g_handlerInterface, gpointer)
     };
     iface->get_uri = [](GstURIHandler *handler) -> gchar * {
         QGstQIODeviceSrc *src = asQGstQIODeviceSrc(handler);
-        auto lock = src->lockObject();
+        std::lock_guard guard{ *src };
         if (src->record)
             return g_strdup(src->record->id.constData());
         return nullptr;

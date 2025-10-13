@@ -10,6 +10,8 @@
 
 #include <gst/base/gstbasesrc.h>
 
+#include <mutex>
+
 QT_BEGIN_NAMESPACE
 
 namespace {
@@ -43,7 +45,6 @@ struct QGstQrcSrc
 {
     void getProperty(guint propId, GValue *value, const GParamSpec *pspec) const;
     void setProperty(guint propId, const GValue *value, const GParamSpec *pspec);
-    auto lockObject() const;
 
     bool start();
     bool stop();
@@ -52,6 +53,10 @@ struct QGstQrcSrc
     GstFlowReturn fill(guint64 offset, guint length, GstBuffer *buf);
     void getURI(GValue *value) const;
     bool setURI(const char *location, GError **err = nullptr);
+
+    // lockable
+    void lock() const { GST_OBJECT_LOCK(&baseSrc); }
+    void unlock() const { GST_OBJECT_UNLOCK(&baseSrc); }
 
     GstBaseSrc baseSrc;
     QFile file;
@@ -81,26 +86,20 @@ void QGstQrcSrc::setProperty(guint propId, const GValue *value, const GParamSpec
     }
 }
 
-auto QGstQrcSrc::lockObject() const
-{
-    GST_OBJECT_LOCK(this);
-    return qScopeGuard([this] {
-        GST_OBJECT_UNLOCK(this);
-    });
-}
-
 bool QGstQrcSrc::start()
 {
-    auto lock = lockObject();
+    std::unique_lock lock{ *this };
     if (file.fileName().isEmpty()) {
-        GST_ELEMENT_ERROR(this, RESOURCE, NOT_FOUND, ("No resource name specified for reading."),
-                          (nullptr));
+        lock.unlock();
+        GST_ELEMENT_ERROR(&baseSrc, RESOURCE, NOT_FOUND,
+                          ("No resource name specified for reading."), (nullptr));
         return false;
     }
 
     bool opened = file.open(QIODevice::ReadOnly);
     if (!opened) {
-        GST_ELEMENT_ERROR(this, RESOURCE, NOT_FOUND, (nullptr),
+        lock.unlock();
+        GST_ELEMENT_ERROR(&baseSrc, RESOURCE, NOT_FOUND, (nullptr),
                           ("No such resource \"%s\"", file.fileName().toUtf8().constData()));
         return false;
     }
@@ -113,14 +112,14 @@ bool QGstQrcSrc::start()
 
 bool QGstQrcSrc::stop()
 {
-    auto lock = lockObject();
+    std::lock_guard guard{ *this };
     file.close();
     return true;
 }
 
 std::optional<guint64> QGstQrcSrc::size()
 {
-    auto lock = lockObject();
+    std::lock_guard guard{ *this };
     if (!file.isOpen())
         return std::nullopt;
     return file.size();
@@ -128,7 +127,7 @@ std::optional<guint64> QGstQrcSrc::size()
 
 GstFlowReturn QGstQrcSrc::fill(guint64 offset, guint length, GstBuffer *buf)
 {
-    auto lock = lockObject();
+    std::unique_lock guard{ *this };
 
     if (!file.isOpen())
         return GST_FLOW_ERROR;
@@ -136,14 +135,16 @@ GstFlowReturn QGstQrcSrc::fill(guint64 offset, guint length, GstBuffer *buf)
     if (G_UNLIKELY(offset != guint64(-1) && guint64(file.pos()) != offset)) {
         bool success = file.seek(int64_t(offset));
         if (!success) {
-            GST_ELEMENT_ERROR(this, RESOURCE, READ, (nullptr), GST_ERROR_SYSTEM);
+            guard.unlock();
+            GST_ELEMENT_ERROR(&baseSrc, RESOURCE, READ, (nullptr), GST_ERROR_SYSTEM);
             return GST_FLOW_ERROR;
         }
     }
 
     GstMapInfo info;
     if (!gst_buffer_map(buf, &info, GST_MAP_WRITE)) {
-        GST_ELEMENT_ERROR(this, RESOURCE, WRITE, (nullptr), ("Can't map buffer for writing"));
+        guard.unlock();
+        GST_ELEMENT_ERROR(&baseSrc, RESOURCE, WRITE, (nullptr), ("Can't map buffer for writing"));
         return GST_FLOW_ERROR;
     }
 
@@ -157,7 +158,8 @@ GstFlowReturn QGstQrcSrc::fill(guint64 offset, guint length, GstBuffer *buf)
                 gst_buffer_resize(buf, 0, 0);
                 return GST_FLOW_EOS;
             }
-            GST_ELEMENT_ERROR(this, RESOURCE, READ, (nullptr), GST_ERROR_SYSTEM);
+            guard.unlock();
+            GST_ELEMENT_ERROR(&baseSrc, RESOURCE, READ, (nullptr), GST_ERROR_SYSTEM);
             gst_buffer_unmap(buf, &info);
             gst_buffer_resize(buf, 0, 0);
             return GST_FLOW_ERROR;
@@ -179,7 +181,7 @@ GstFlowReturn QGstQrcSrc::fill(guint64 offset, guint length, GstBuffer *buf)
 
 void QGstQrcSrc::getURI(GValue *value) const
 {
-    auto lock = lockObject();
+    std::lock_guard guard{ *this };
     std::optional<QUrl> url = qQrcPathToQUrl(file.fileName());
     if (url)
         g_value_set_string(value, url->toString().toUtf8().constData());
@@ -192,7 +194,7 @@ bool QGstQrcSrc::setURI(const char *location, GError **err)
     Q_ASSERT(QLatin1StringView(location).startsWith("qrc:/"_L1));
 
     {
-        auto lock = lockObject();
+        std::lock_guard guard{ *this };
         GstState state = GST_STATE(this);
         if (state != GST_STATE_READY && state != GST_STATE_NULL) {
             g_warning("Changing the `uri' property on qrcsrc when the resource is open is not "
@@ -208,7 +210,7 @@ bool QGstQrcSrc::setURI(const char *location, GError **err)
     std::optional<QString> path = qQUrlToQrcPath(QString::fromUtf8(location));
 
     {
-        auto lock = lockObject();
+        std::lock_guard guard{ *this };
         file.close();
         file.setFileName(path.value_or(u""_s));
     }
@@ -336,7 +338,7 @@ void qGstInitURIHandler(gpointer g_handlerInterface, gpointer)
     };
     iface->get_uri = [](GstURIHandler *handler) -> gchar * {
         QGstQrcSrc *src = asQGstQrcSrc(handler);
-        auto lock = src->lockObject();
+        std::lock_guard guard{ *src };
         std::optional<QUrl> url = qQrcPathToQUrl(src->file.fileName());
         if (url)
             return g_strdup(url->toString().toUtf8().constData());
