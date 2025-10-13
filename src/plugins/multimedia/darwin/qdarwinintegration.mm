@@ -6,7 +6,7 @@
 #if !defined(Q_OS_VISIONOS)
 #include <avfcameraservice_p.h>
 #include <avfcamera_p.h>
-#include <QtMultimedia/private/qavfvideodevices_p.h>
+#include <QtMultimedia/private/qdarwinintegrationfactory_p.h>
 #include <avfimagecapture_p.h>
 #include <avfmediaencoder_p.h>
 #endif
@@ -53,7 +53,7 @@ QPlatformVideoDevices *QDarwinIntegration::createVideoDevices()
 #if defined(Q_OS_VISIONOS)
     return nullptr;
 #else
-    return new QAVFVideoDevices(this);
+    return makeQAvfVideoDevices(*this).release();
 #endif
 }
 

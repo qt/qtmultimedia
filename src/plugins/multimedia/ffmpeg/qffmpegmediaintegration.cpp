@@ -26,7 +26,7 @@
 
 #ifdef Q_OS_DARWIN
 #include <QtFFmpegMediaPluginImpl/private/qavfcamerafactory_p.h>
-#include <QtMultimedia/private/qavfvideodevices_p.h>
+#include <QtMultimedia/private/qdarwinintegrationfactory_p.h>
 #endif
 
 #ifdef Q_OS_WINDOWS
@@ -347,9 +347,9 @@ QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
 #elif QT_CONFIG(linux_v4l)
     return new QV4L2CameraDevices(this);
 #elif defined Q_OS_DARWIN
-    return new QAVFVideoDevices(
-        this,
-        &QFFmpeg::isCVFormatSupported);
+    return makeQAvfVideoDevices(
+        *this,
+        &QFFmpeg::isCVFormatSupported).release();
 #elif defined(Q_OS_WINDOWS)
     return new QWindowsVideoDevices(this);
 #else
