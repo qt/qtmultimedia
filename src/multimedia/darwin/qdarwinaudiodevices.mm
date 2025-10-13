@@ -172,10 +172,10 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
 
         // TODO: Support Bluetooth and USB devices
         AVCaptureDeviceDiscoverySession *captureDeviceDiscoverySession =
-                [AVCaptureDeviceDiscoverySession
-                        discoverySessionWithDeviceTypes:@[ AVCaptureDeviceTypeBuiltInMicrophone ]
-                                              mediaType:AVMediaTypeAudio
-                                               position:AVCaptureDevicePositionUnspecified];
+            [AVCaptureDeviceDiscoverySession
+                discoverySessionWithDeviceTypes:@[ AVCaptureDeviceTypeMicrophone ]
+                                      mediaType:AVMediaTypeAudio
+                                       position:AVCaptureDevicePositionUnspecified];
 
         NSArray *captureDevices = [captureDeviceDiscoverySession devices];
         for (AVCaptureDevice *device in captureDevices) {
