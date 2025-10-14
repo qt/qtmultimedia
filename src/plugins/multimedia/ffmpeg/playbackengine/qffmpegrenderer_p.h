@@ -71,7 +71,7 @@ protected:
 
     bool canDoNextStep() const override;
 
-    std::chrono::milliseconds timerInterval() const override;
+    TimePoint nextTimePoint() const override;
 
     virtual void onPlaybackRateChanged() { }
 

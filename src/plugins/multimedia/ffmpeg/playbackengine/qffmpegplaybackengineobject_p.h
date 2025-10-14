@@ -21,6 +21,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
 
 #include <chrono>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -70,13 +71,13 @@ protected:
 
     QChronoTimer &timer();
 
-    void scheduleNextStep(bool allowDoImmediatelly = true);
+    void scheduleNextStep();
 
     virtual void onPauseChanged();
 
     virtual bool canDoNextStep() const;
 
-    virtual std::chrono::milliseconds timerInterval() const;
+    virtual TimePoint nextTimePoint() const;
 
     void setAtEnd(bool isAtEnd);
 
@@ -86,12 +87,20 @@ private slots:
     void onTimeout();
 
 private:
+    enum class StepType : uint8_t { None, Timeout, Immediate };
+
+    void doNextStep(StepType type);
+
     std::unique_ptr<QChronoTimer> m_timer;
 
     QAtomicInteger<bool> m_paused = true;
     QAtomicInteger<bool> m_atEnd = false;
     QAtomicInteger<bool> m_deleting = false;
     PlaybackEngineObjectID m_id;
+
+    TimePointOpt m_nextTimePoint;
+    TimePointOpt m_timePoint;
+    StepType m_stepType = StepType::None;
 };
 } // namespace QFFmpeg
 

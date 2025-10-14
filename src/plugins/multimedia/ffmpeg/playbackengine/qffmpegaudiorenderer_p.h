@@ -87,7 +87,7 @@ protected:
 
     void onPlaybackRateChanged() override;
 
-    std::chrono::milliseconds timerInterval() const override;
+    TimePoint nextTimePoint() const override;
 
     void onPauseChanged() override;
 

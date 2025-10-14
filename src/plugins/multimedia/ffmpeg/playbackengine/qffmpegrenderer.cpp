@@ -23,7 +23,7 @@ void Renderer::syncSoft(TimePoint tp, TrackPosition trackPos)
 {
     QMetaObject::invokeMethod(this, [this, tp, trackPos]() {
         m_timeController.syncSoft(tp, trackPos);
-        scheduleNextStep(true);
+        scheduleNextStep();
     });
 }
 
@@ -128,30 +128,23 @@ float Renderer::playbackRate() const
     return m_timeController.playbackRate();
 }
 
-std::chrono::milliseconds Renderer::timerInterval() const
+Renderer::TimePoint Renderer::nextTimePoint() const
 {
     using namespace std::chrono_literals;
 
     if (m_frames.empty())
-        return 0ms;
-
-    auto calculateInterval = [](const TimePoint &nextTime) {
-        using namespace std::chrono;
-
-        const milliseconds delay = duration_cast<milliseconds>(nextTime - SteadyClock::now());
-        return std::max(0ms, std::chrono::duration_cast<milliseconds>(delay));
-    };
+        return PlaybackEngineObject::nextTimePoint();
 
     if (m_explicitNextFrameTime)
-        return calculateInterval(*m_explicitNextFrameTime);
+        return *m_explicitNextFrameTime;
 
     if (m_frames.front().isValid())
-        return calculateInterval(m_timeController.timeFromPosition(m_frames.front().absolutePts()));
+        return m_timeController.timeFromPosition(m_frames.front().absolutePts());
 
     if (m_lastFrameEnd > TrackPosition(0))
-        return calculateInterval(m_timeController.timeFromPosition(m_lastFrameEnd));
+        return m_timeController.timeFromPosition(m_lastFrameEnd);
 
-    return 0ms;
+    return PlaybackEngineObject::nextTimePoint();
 }
 
 bool Renderer::setForceStepDone()
@@ -170,7 +163,7 @@ void Renderer::doNextStep()
 
     if (setForceStepDone()) {
         // if (frame.isValid() && frame.pts() > m_forceStepMaxPos) {
-        //    scheduleNextStep(false);
+        //    scheduleNextStep();
         //    return;
         // }
     }
@@ -204,7 +197,7 @@ void Renderer::doNextStep()
 
     setAtEnd(result.done && !frame.isValid());
 
-    scheduleNextStep(false);
+    scheduleNextStep();
 }
 
 std::chrono::microseconds Renderer::frameDelay(const Frame &frame, TimePoint timePoint) const

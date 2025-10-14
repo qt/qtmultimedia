@@ -5,6 +5,7 @@
 
 #include "QtCore/qchronotimer.h"
 #include "QtCore/qdebug.h"
+#include "QtCore/qscopedvaluerollback.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -67,14 +68,16 @@ QChronoTimer &PlaybackEngineObject::timer()
 
 void PlaybackEngineObject::onTimeout()
 {
+    Q_ASSERT(m_timePoint && !m_nextTimePoint && m_stepType == StepType::None);
+
+    m_timePoint.reset();
     if (!m_deleting && canDoNextStep())
-        doNextStep();
+        doNextStep(StepType::Timeout);
 }
 
-std::chrono::milliseconds PlaybackEngineObject::timerInterval() const
+PlaybackEngineObject::TimePoint PlaybackEngineObject::nextTimePoint() const
 {
-    using namespace std::chrono_literals;
-    return 0ms;
+    return TimePoint::min();
 }
 
 void PlaybackEngineObject::onPauseChanged()
@@ -82,23 +85,49 @@ void PlaybackEngineObject::onPauseChanged()
     scheduleNextStep();
 }
 
-void PlaybackEngineObject::scheduleNextStep(bool allowDoImmediatelly)
+void PlaybackEngineObject::scheduleNextStep()
 {
     using std::chrono::milliseconds;
     using namespace std::chrono_literals;
 
-    if (!m_deleting && canDoNextStep()) {
-        const milliseconds interval = timerInterval();
-        if (interval == 0ms && allowDoImmediatelly) {
-            timer().stop();
-            doNextStep();
-        } else {
-            timer().setInterval(interval);
+    if (!m_deleting && canDoNextStep())
+        m_nextTimePoint = nextTimePoint();
+    else
+        m_nextTimePoint.reset();
+
+    if (m_stepType == StepType::Immediate)
+        return;
+
+    std::optional<TimePoint> now;
+
+    if (m_stepType == StepType::None && m_nextTimePoint) {
+        if (now = SteadyClock::now(); *m_nextTimePoint <= *now) {
+            m_nextTimePoint.reset();
+            doNextStep(StepType::Immediate);
+            now.reset(); // doNextStep() may take some time, 'now' is not valid anymore
+        }
+    }
+
+    if (m_nextTimePoint) {
+        if (!now)
+            now = SteadyClock::now();
+        *m_nextTimePoint = std::max(*m_nextTimePoint, *now);
+        if (!m_timePoint || *m_nextTimePoint != std::max(*m_timePoint, *now)) {
+            timer().setInterval(*m_nextTimePoint - *now);
             timer().start();
         }
-    } else {
+    } else if (m_timePoint) {
         timer().stop();
     }
+
+    m_timePoint = std::exchange(m_nextTimePoint, std::nullopt);
+}
+
+void PlaybackEngineObject::doNextStep(StepType type)
+{
+    Q_ASSERT(m_stepType == StepType::None && type != StepType::None);
+    QScopedValueRollback rollback(m_stepType, type);
+    doNextStep();
 }
 
 } // namespace QFFmpeg

@@ -189,17 +189,26 @@ void AudioRenderer::onPlaybackRateChanged()
     m_audioFrameConverter.reset();
 }
 
-std::chrono::milliseconds AudioRenderer::timerInterval() const
+AudioRenderer::TimePoint AudioRenderer::nextTimePoint() const
 {
+    const TimePoint timePoint = Renderer::nextTimePoint();
+
+    // if the first frame is expected, don't force the immediate job
+    if (m_firstFrameToSink)
+        return timePoint;
+
+    // if the sink is active, don't force the immediate job
+    if (!m_sink || m_sink->state() != QAudio::IdleState)
+        return timePoint;
+
+    // if the waiting interval is out of a heuristic fixable range,
+    // don't force the immediate job.
     constexpr auto MaxFixableInterval = 50ms;
+    if (timePoint == TimePoint::min() ||
+        timePoint - std::chrono::steady_clock::now() > MaxFixableInterval)
+        return timePoint;
 
-    const auto interval = Renderer::timerInterval();
-
-    if (m_firstFrameToSink || !m_sink || m_sink->state() != QAudio::IdleState
-        || interval > MaxFixableInterval)
-        return interval;
-
-    return 0ms;
+    return TimePoint::min(); // do the job now
 }
 
 void AudioRenderer::onPauseChanged()
