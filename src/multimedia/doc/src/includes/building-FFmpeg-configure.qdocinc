@@ -305,4 +305,13 @@
     guarantee that libraries are of the same ABI version as OpenSSL headers FFmpeg was compiled with.
     For more information, see \l{Adding OpenSSL Support for Android}.
 
+    Google Play requires 16KB page sizes, to build compatible FFmpeg binaries, add the following
+    configuration options to FFmpeg.
+
+    \badcode
+         --extra-ldflags=-Wl,-z,max-page-size=16384
+    \endcode
+
+    For Google Play requirements, see \l{Google Play 16 KB page size compatibility requirement}.
+
 //! [android-configure]
