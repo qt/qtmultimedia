@@ -73,7 +73,7 @@ void AudioRenderer::setOutput(QAudioBufferOutput *bufferOutput)
 
 void AudioRenderer::setPitchCompensation(bool enabled)
 {
-    QMetaObject::invokeMethod(this, [this, enabled] {
+    invokePriorityMethod([this, enabled] {
         if (m_pitchCompensation == enabled)
             return;
 

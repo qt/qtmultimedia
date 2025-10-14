@@ -21,7 +21,7 @@ Renderer::Renderer(const PlaybackEngineObjectID &id, const TimeController &tc)
 
 void Renderer::syncSoft(TimePoint tp, TrackPosition trackPos)
 {
-    QMetaObject::invokeMethod(this, [this, tp, trackPos]() {
+    invokePriorityMethod([this, tp, trackPos]() {
         m_timeController.syncSoft(tp, trackPos);
         scheduleNextStep();
     });
@@ -39,7 +39,7 @@ TrackPosition Renderer::lastPosition() const
 
 void Renderer::setPlaybackRate(float rate)
 {
-    QMetaObject::invokeMethod(this, [this, rate]() {
+    invokePriorityMethod([this, rate]() {
         m_timeController.setPlaybackRate(rate);
         onPlaybackRateChanged();
         scheduleNextStep();
@@ -49,7 +49,7 @@ void Renderer::setPlaybackRate(float rate)
 void Renderer::doForceStep()
 {
     if (m_isStepForced.testAndSetOrdered(false, true))
-        QMetaObject::invokeMethod(this, [this]() {
+        invokePriorityMethod([this]() {
             // maybe set m_forceStepMaxPos
 
             if (isAtEnd()) {
@@ -69,7 +69,7 @@ bool Renderer::isStepForced() const
 
 void Renderer::start(const TimeController &tc)
 {
-    QMetaObject::invokeMethod(this, [this, tc]() {
+    invokePriorityMethod([this, tc]() {
         m_timeController = tc;
         m_started = true;
         scheduleNextStep();

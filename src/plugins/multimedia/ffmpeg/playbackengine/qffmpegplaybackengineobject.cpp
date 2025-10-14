@@ -38,7 +38,7 @@ bool PlaybackEngineObject::isAtEnd() const
 void PlaybackEngineObject::setPaused(bool isPaused)
 {
     if (m_paused.testAndSetRelease(!isPaused, isPaused))
-        QMetaObject::invokeMethod(this, &PlaybackEngineObject::onPauseChanged);
+        invokePriorityMethod([this]() { onPauseChanged(); });
 }
 
 void PlaybackEngineObject::kill()
@@ -128,6 +128,17 @@ void PlaybackEngineObject::doNextStep(StepType type)
     Q_ASSERT(m_stepType == StepType::None && type != StepType::None);
     QScopedValueRollback rollback(m_stepType, type);
     doNextStep();
+}
+
+bool PlaybackEngineObject::event(QEvent *e)
+{
+    if (e->type() == FuncEventType) {
+        e->accept();
+        static_cast<FuncEvent *>(e)->invoke();
+        return true;
+    }
+
+    return QObject::event(e);
 }
 
 } // namespace QFFmpeg
