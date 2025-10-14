@@ -176,7 +176,7 @@ void Demuxer::doNextStep()
         }
 
         auto signal = signalByTrackType(streamData.trackType);
-        emit (this->*signal)(packet);
+        emit (this->*signal)(std::move(packet));
     }
 
     scheduleNextStep();

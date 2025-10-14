@@ -153,7 +153,7 @@ bool Renderer::setForceStepDone()
 
 void Renderer::doNextStep()
 {
-    auto frame = m_frames.front();
+    Frame frame = m_frames.front();
 
     if (setForceStepDone()) {
         // if (frame.isValid() && frame.pts() > m_forceStepMaxPos) {
@@ -163,12 +163,13 @@ void Renderer::doNextStep()
     }
 
     const auto result = renderInternal(frame);
+    const bool frameIsValid = frame.isValid();
 
     if (result.done) {
         m_explicitNextFrameTime.reset();
         m_frames.dequeue();
 
-        if (frame.isValid()) {
+        if (frameIsValid) {
             m_lastPosition.storeRelease(std::max(frame.absolutePts(), lastPosition()).get());
 
             // TODO: get rid of m_lastFrameEnd or m_seekPos
@@ -181,7 +182,7 @@ void Renderer::doNextStep()
                 emit loopChanged(id(), frame.loopOffset().loopStartTimeUs, m_loopIndex);
             }
 
-            emit frameProcessed(frame);
+            emit frameProcessed(std::move(frame));
         } else {
             m_lastPosition.storeRelease(std::max(m_lastFrameEnd, lastPosition()).get());
         }
@@ -189,7 +190,7 @@ void Renderer::doNextStep()
         m_explicitNextFrameTime = SteadyClock::now() + result.recheckInterval;
     }
 
-    setAtEnd(result.done && !frame.isValid());
+    setAtEnd(result.done && !frameIsValid);
 
     scheduleNextStep();
 }
