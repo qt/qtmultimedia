@@ -210,3 +210,15 @@ void camerafocus()
     camera->setZoomFactor(3.0);
     //! [Camera zoom]
 }
+
+void camerapermission()
+{
+    //! [Camera permission]
+    qApp->requestPermission(
+        QCameraPermission{},
+        [](const QPermission &permission) {
+            if (permission.status() == Qt::PermissionStatus::Granted)
+                camera->setActive(true);
+        });
+    //! [Camera permission]
+}

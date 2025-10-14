@@ -62,6 +62,15 @@ QT_BEGIN_NAMESPACE
     For more information on image processing of camera frames, see
     \l {camera_image_processing}{Camera Image Processing}.
 
+    Most platforms require that the end-user grants permissions before a
+    camera can be activated. It is therefore strongly recommended that
+    application developers utilize the \l QCameraPermission class when
+    working with cameras. The following is a short example that requests
+    permissions from the end-user when the application starts, and then
+    activates the camera if permissions are granted.
+
+    \snippet multimedia-snippets/camera.cpp Camera permission
+
     See the \l{Camera Overview}{camera overview} for more information.
 
     \note On WebAssembly platform, due to it's asynchronous nature,
@@ -152,6 +161,25 @@ QT_BEGIN_NAMESPACE
 
     For more information on image processing of camera frames, see
     \l {camera_image_processing}{Camera Image Processing}.
+
+    Most platforms require that the end-user grants permissions before a
+    camera can be activated. It is therefore strongly recommended that
+    application developers utilize the \l CameraPermission component when
+    working with cameras. The following is a short example that requests
+    permissions from the end-user when the application starts, and then
+    activates the camera if permissions are granted.
+
+    \qml
+    CameraPermission {
+        id: cameraPermission
+    }
+
+    Camera {
+        active: cameraPermission.status === Qt.PermissionStatus.Granted
+    }
+
+    Component.onCompleted: cameraPermission.request()
+    \endqml
 
     See the \l{Camera Overview}{camera overview} for more information.
 */
