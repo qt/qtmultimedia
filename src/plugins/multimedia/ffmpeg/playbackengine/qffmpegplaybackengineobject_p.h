@@ -16,6 +16,8 @@
 
 #include <QtCore/qatomic.h>
 #include <QtCore/qthread.h>
+#include <QtCore/qcoreevent.h>
+#include <QtCore/qcoreapplication.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackenginedefs_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
@@ -32,6 +34,26 @@ namespace QFFmpeg {
 class PlaybackEngineObject : public QObject
 {
     Q_OBJECT
+
+    static constexpr QEvent::Type FuncEventType = QEvent::User;
+    class FuncEvent : public QEvent
+    {
+    public:
+        FuncEvent() : QEvent(FuncEventType) { }
+        virtual void invoke() = 0;
+    };
+
+    template <typename F>
+    class FuncEventImpl final : public FuncEvent
+    {
+    public:
+        explicit FuncEventImpl(F &&f) : m_func(std::forward<F>(f)) { }
+        void invoke() override { m_func(); }
+
+    private:
+        std::decay_t<F> m_func;
+    };
+
 public:
     using TimePoint = std::chrono::steady_clock::time_point;
     using TimePointOpt = std::optional<TimePoint>;
@@ -56,6 +78,8 @@ signals:
     void error(QMediaPlayer::Error, const QString &errorString);
 
 protected:
+    bool event(QEvent *e) override;
+
     bool checkSessionID(quint64 sessionID) const { return sessionID == m_id.sessionID; }
 
     bool checkID(const PlaybackEngineObjectID &id) const
@@ -67,6 +91,15 @@ protected:
     {
         Q_ASSERT(thread()->isCurrentThread());
         return m_id;
+    }
+
+    template <typename F>
+    void invokePriorityMethod(F &&f)
+    {
+        Q_ASSERT(!thread()->isCurrentThread());
+        // Note, that the event loop takes ownership of the event
+        QCoreApplication::postEvent(this, new FuncEventImpl<F>(std::forward<F>(f)),
+                                    Qt::HighEventPriority);
     }
 
     QChronoTimer &timer();
