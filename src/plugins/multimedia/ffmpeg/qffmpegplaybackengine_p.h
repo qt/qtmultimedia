@@ -177,7 +177,7 @@ private:
 
     void deleteFreeThreads();
 
-    void onFirsPacketFound(const PlaybackEngineObjectID &id, TrackPosition absSeekPos);
+    void onFirstPacketFound(const PlaybackEngineObjectID &id, TrackPosition absSeekPos);
 
     void onRendererSynchronized(const PlaybackEngineObjectID &id, SteadyClock::time_point timePoint,
                                 TrackPosition trackPosition);
@@ -231,7 +231,6 @@ private:
     std::array<StreamPtr, QPlatformMediaPlayer::NTrackTypes> m_streams;
     std::array<RendererPtr, QPlatformMediaPlayer::NTrackTypes> m_renderers;
 
-    bool m_shouldUpdateTimeOnFirstPacket = false;
     bool m_seekPending = false;
 
     std::array<std::optional<CodecContext>, QPlatformMediaPlayer::NTrackTypes> m_codecContexts;

@@ -45,11 +45,16 @@ public:
 
     TrackPosition currentPosition(SteadyClock::duration offset = SteadyClock::duration{ 0 }) const;
 
+    void start();
     void setPaused(bool paused);
+    void deactivate();
 
-    TrackPosition positionFromTime(TimePoint tp, bool ignorePause = false) const;
+    TrackPosition positionFromTime(TimePoint tp, bool ignoreInactive = false) const;
 
-    TimePoint timeFromPosition(TrackPosition pos, bool ignorePause = false) const;
+    TimePoint timeFromPosition(TrackPosition pos, bool ignoreInactive = false) const;
+
+    bool isStarted() const { return m_started; }
+    bool isActive() const { return m_active; }
 
 private:
     struct SoftSyncData
@@ -61,6 +66,8 @@ private:
         TrackPosition dstPosition = 0;
         PlaybackRate internalRate = 1;
     };
+
+    void updateActive();
 
     SoftSyncData makeSoftSyncData(const TimePoint &srcTp, const TrackPosition &srcPos,
                                   const TimePoint &dstTp) const;
@@ -78,6 +85,8 @@ private:
 
 private:
     bool m_paused = true;
+    bool m_started = false;
+    bool m_active = false; // derived from m_paused and m_started
     PlaybackRate m_playbackRate = 1;
     TrackPosition m_position = 0;
     TimePoint m_timePoint;

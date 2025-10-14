@@ -35,8 +35,6 @@ public:
 
     Renderer(const PlaybackEngineObjectID &id, const TimeController &tc);
 
-    void syncSoft(TimePoint tp, TrackPosition trackPos);
-
     TrackPosition seekPosition() const;
 
     TrackPosition lastPosition() const;
@@ -47,7 +45,7 @@ public:
 
     bool isStepForced() const;
 
-    void start(const TimeController &tc);
+    void setTimeController(const TimeController &tc);
 
 public slots:
 
@@ -116,7 +114,6 @@ private:
     QQueue<Frame> m_frames;
 
     QAtomicInteger<bool> m_isStepForced = false;
-    bool m_started = false;
     std::optional<TimePoint> m_explicitNextFrameTime;
 };
 

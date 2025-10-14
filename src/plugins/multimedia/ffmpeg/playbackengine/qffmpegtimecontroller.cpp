@@ -64,19 +64,39 @@ TrackPosition TimeController::currentPosition(SteadyClock::duration offset) cons
 {
     return positionFromTime(SteadyClock::now() + offset);
 }
+void TimeController::start()
+{
+    m_started = true;
+    updateActive();
+}
+
+void TimeController::deactivate()
+{
+    m_started = false;
+    m_paused = true;
+    updateActive();
+}
 
 void TimeController::setPaused(bool paused)
 {
-    if (m_paused == paused)
+    m_paused = paused;
+    updateActive();
+}
+
+void TimeController::updateActive()
+{
+    const bool active = !m_paused && m_started;
+    if (m_active == active)
         return;
 
     scrollTimeTillNow();
-    m_paused = paused;
+
+    m_active = active;
 }
 
-TrackPosition TimeController::positionFromTime(TimePoint tp, bool ignorePause) const
+TrackPosition TimeController::positionFromTime(TimePoint tp, bool ignoreInactive) const
 {
-    tp = m_paused && !ignorePause ? m_timePoint : tp;
+    tp = !m_active && !ignoreInactive ? m_timePoint : tp;
 
     if (m_softSyncData && tp < m_softSyncData->dstTimePoint) {
         const PlaybackRate rate =
@@ -90,9 +110,9 @@ TrackPosition TimeController::positionFromTime(TimePoint tp, bool ignorePause) c
 }
 
 TimeController::TimePoint TimeController::timeFromPosition(TrackPosition pos,
-                                                           bool ignorePause) const
+                                                           bool ignoreInactive) const
 {
-    auto position = m_paused && !ignorePause ? m_position : TrackPosition(pos);
+    auto position = !m_active && !ignoreInactive ? m_position : TrackPosition(pos);
 
     if (m_softSyncData && position < m_softSyncData->dstPosition) {
         const auto rate = position > m_softSyncData->srcPosition ? m_softSyncData->internalRate
@@ -134,7 +154,7 @@ TimeController::TimePoint TimeController::timeFromPositionInternal(const TrackPo
 void TimeController::scrollTimeTillNow()
 {
     const auto now = SteadyClock::now();
-    if (!m_paused) {
+    if (m_active) {
         m_position = positionFromTimeInternal(now);
 
         // let's forget outdated syncronizations
