@@ -43,15 +43,15 @@ void StreamDecoder::decode(Packet packet)
         return;
     }
 
-    m_packets.enqueue(packet);
+    m_packets.enqueue(std::move(packet));
     scheduleNextStep();
 }
 
 void StreamDecoder::doNextStep()
 {
-    auto packet = m_packets.dequeue();
+    Packet packet = m_packets.dequeue();
 
-    auto decodePacket = [this](Packet packet) {
+    auto decodePacket = [this](const Packet &packet) {
         if (trackType() == QPlatformMediaPlayer::SubtitleStream)
             decodeSubtitle(packet);
         else
@@ -73,7 +73,7 @@ void StreamDecoder::doNextStep()
     setAtEnd(!packet.isValid());
 
     if (packet.isValid())
-        emit packetProcessed(packet);
+        emit packetProcessed(std::move(packet));
 
     scheduleNextStep();
 }
@@ -127,7 +127,7 @@ void StreamDecoder::onFrameFound(Frame frame)
     emit requestHandleFrame(frame);
 }
 
-void StreamDecoder::decodeMedia(Packet packet)
+void StreamDecoder::decodeMedia(const Packet &packet)
 {
     auto sendPacketResult = sendAVPacket(packet);
 
@@ -148,7 +148,7 @@ void StreamDecoder::decodeMedia(Packet packet)
         receiveAVFrames(!packet.isValid());
 }
 
-int StreamDecoder::sendAVPacket(Packet packet)
+int StreamDecoder::sendAVPacket(const Packet &packet)
 {
     return avcodec_send_packet(m_codecContext.context(), packet.isValid() ? packet.avPacket() : nullptr);
 }
@@ -191,7 +191,7 @@ void StreamDecoder::receiveAVFrames(bool flushPacket)
     }
 }
 
-void StreamDecoder::decodeSubtitle(Packet packet)
+void StreamDecoder::decodeSubtitle(const Packet &packet)
 {
     if (!packet.isValid())
         return;

@@ -60,13 +60,13 @@ protected:
     void doNextStep() override;
 
 private:
-    void decodeMedia(Packet);
+    void decodeMedia(const Packet &packet);
 
-    void decodeSubtitle(Packet);
+    void decodeSubtitle(const Packet &packet);
 
     void onFrameFound(Frame frame);
 
-    int sendAVPacket(Packet);
+    int sendAVPacket(const Packet &packet);
 
     void receiveAVFrames(bool flushPacket = false);
 
