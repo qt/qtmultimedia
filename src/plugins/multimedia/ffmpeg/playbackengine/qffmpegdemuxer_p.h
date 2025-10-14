@@ -34,6 +34,8 @@ public:
             bool seekPending, const LoopOffset &loopOffset, const StreamIndexes &streamIndexes,
             int loops);
 
+    void seek(quint64 sessionId, TrackPosition initialPosUs, const LoopOffset &loopOffset);
+
     using RequestingSignal = void (Demuxer::*)(Packet);
     static RequestingSignal signalByTrackType(QPlatformMediaPlayer::TrackType trackType);
 

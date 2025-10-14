@@ -28,6 +28,17 @@ StreamDecoder::~StreamDecoder()
     avcodec_flush_buffers(m_codecContext.context());
 }
 
+void StreamDecoder::seek(quint64 sessionID, TrackPosition pos, const LoopOffset &offset)
+{
+    updateSession(sessionID, [this, pos, offset]() {
+        m_absSeekPos = offset.loopStartTimeUs.asDuration() + pos;
+        m_packets.clear();
+        m_pendingFramesCount = 0;
+        m_offset = offset;
+        avcodec_flush_buffers(m_codecContext.context());
+    });
+}
+
 void StreamDecoder::onFinalPacketReceived(PlaybackEngineObjectID sourceID)
 {
     if (checkSessionID(sourceID.sessionID))

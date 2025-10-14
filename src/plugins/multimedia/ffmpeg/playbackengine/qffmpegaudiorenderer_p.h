@@ -79,6 +79,8 @@ protected:
         const char *data() const { return buffer.constData<char>() + offset; }
     };
 
+    void seekInternal() override;
+
     RenderingResult renderInternal(Frame frame) override;
 
     RenderingResult pushFrameToOutput(const Frame &frame);

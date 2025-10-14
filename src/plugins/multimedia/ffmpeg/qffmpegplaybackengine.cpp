@@ -229,9 +229,11 @@ void PlaybackEngine::forEachExistingObject(Action &&action)
                 action(object);
     };
 
-    handleNotNullObject(m_demuxer);
-    std::for_each(m_streams.begin(), m_streams.end(), handleNotNullObject);
+    // The order Renderers => Demuxer is required for seek().
+    // For other cases, it doesn't make any difference.
     std::for_each(m_renderers.begin(), m_renderers.end(), handleNotNullObject);
+    std::for_each(m_streams.begin(), m_streams.end(), handleNotNullObject);
+    handleNotNullObject(m_demuxer);
 }
 
 template<typename Action>
@@ -244,11 +246,26 @@ void PlaybackEngine::seek(TrackPosition pos)
 {
     pos = boundPosition(pos);
 
-    m_timeController.deactivate();
     m_timeController.sync(m_currentLoopOffset.loopStartTimeUs.asDuration() + pos);
-    m_seekPending = true;
+    if (!m_demuxer || !m_media.avContext()) {
+        m_seekPending = true;
+        return;
+    }
 
-    forceUpdate();
+    m_seekPending = false;
+    ++m_currentID.sessionID;
+
+    m_timeController.deactivate();
+    m_timeController.setPaused(m_state != QMediaPlayer::PlayingState);
+
+    forEachExistingObject([&](auto &object) {
+        if constexpr (std::is_same_v<decltype(*object), Renderer &>)
+            object->seek(m_currentID.sessionID, m_timeController, m_currentLoopOffset);
+        else
+            object->seek(m_currentID.sessionID, pos, m_currentLoopOffset);
+    });
+
+    triggerStepIfNeeded();
 }
 
 void PlaybackEngine::setLoops(int loops)
@@ -508,20 +525,23 @@ TrackPosition PlaybackEngine::currentPosition(bool topPos) const
 {
     std::optional<TrackPosition> pos;
 
-    for (size_t i = 0; i < m_renderers.size(); ++i) {
-        const auto &renderer = m_renderers[i];
-        if (!renderer)
-            continue;
+    if (m_timeController.isStarted()) {
+        for (size_t i = 0; i < m_renderers.size(); ++i) {
+            const auto &renderer = m_renderers[i];
+            if (!renderer)
+                continue;
 
-        // skip subtitle stream for finding lower rendering position
-        if (!topPos && i == QPlatformMediaPlayer::SubtitleStream && hasMediaStream())
-            continue;
+            // skip subtitle stream for finding lower rendering position
+            if (!topPos && i == QPlatformMediaPlayer::SubtitleStream && hasMediaStream())
+                continue;
 
-        const auto rendererPos = renderer->lastPosition();
-        pos = !pos       ? rendererPos
-                : topPos ? std::max(*pos, rendererPos)
-                         : std::min(*pos, rendererPos);
+            const auto rendererPos = renderer->lastPosition();
+            pos = !pos       ? rendererPos
+                    : topPos ? std::max(*pos, rendererPos)
+                             : std::min(*pos, rendererPos);
+        }
     }
+    // else we cannot reliably (without RC) getthe current renderers position after seeking
 
     if (!pos)
         pos = m_timeController.currentPosition();
