@@ -108,7 +108,7 @@ private:
         const char *value;
     };
 
-    int handleDefaultMetadataObjectEvent(const MetadataRecord &record);
+    int handleDefaultMetadataObjectEvent(ObjectId subject, const MetadataRecord &);
 
     PwMetadataHandle m_defaultMetadataObject;
     struct spa_hook m_defaultMetadataObjectListener{};

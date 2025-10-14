@@ -281,16 +281,18 @@ void QAudioContextManager::startListenDefaultMetadataObject(ObjectId id, uint32_
         .version = PW_VERSION_METADATA_EVENTS,
         .property = [](void *data, uint32_t subject, const char *key, const char *type,
                        const char *value) -> int {
-        Q_ASSERT(subject == PW_ID_CORE);
-
         auto *self = reinterpret_cast<QAudioContextManager *>(data);
 
         Q_ASSERT(key);
-        return self->handleDefaultMetadataObjectEvent(MetadataRecord{
-                .key = key,
-                .type = type,
-                .value = value,
-        });
+        return self->handleDefaultMetadataObjectEvent(
+                ObjectId{
+                        subject,
+                },
+                MetadataRecord{
+                        .key = key,
+                        .type = type,
+                        .value = value,
+                });
     },
     };
 
@@ -353,11 +355,16 @@ std::optional<QByteArray> jsonParseObjectName(const char *json_str)
 
 } // namespace
 
-int QAudioContextManager::handleDefaultMetadataObjectEvent(const MetadataRecord &record)
+int QAudioContextManager::handleDefaultMetadataObjectEvent(ObjectId subject,
+                                                           const MetadataRecord &record)
 {
     using namespace std::string_view_literals;
 
-    qDebug(lcPipewireRegistry) << "metadata:" << record.key << record.type << record.value;
+    qDebug(lcPipewireRegistry) << "metadata for" << subject << " - " << record.key << record.type
+                               << record.value;
+
+    if (subject != ObjectId{ PW_ID_CORE })
+        return 0;
 
     if (record.key == nullptr) {
         // "NULL clears all metadata for the subject"
