@@ -47,6 +47,8 @@ public:
 
     void setTimeController(const TimeController &tc);
 
+    void seek(quint64 sessionId, const TimeController &tc, const LoopOffset &offset);
+
 public slots:
 
     void onFinalFrameReceived(PlaybackEngineObjectID sourceID);
@@ -70,6 +72,8 @@ protected:
     bool canDoNextStep() const override;
 
     TimePoint nextTimePoint() const override;
+
+    virtual void seekInternal() { }
 
     virtual void onPlaybackRateChanged() { }
 

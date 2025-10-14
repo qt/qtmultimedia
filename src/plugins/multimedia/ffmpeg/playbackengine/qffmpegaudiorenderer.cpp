@@ -98,6 +98,31 @@ void AudioRenderer::onDeviceChanged()
     m_deviceChanged = true;
 }
 
+void AudioRenderer::seekInternal()
+{
+    // TODO: play with what to clean: we may find better config.
+    constexpr bool shouldResetSink = true;
+    constexpr bool shouldResetConverters = true;
+
+    if constexpr (shouldResetSink) {
+        if (m_sink)
+            m_sink->reset();
+        m_ioDevice = nullptr;
+        m_bufferLoadingInfo = {};
+    }
+
+    if constexpr (shouldResetConverters) {
+        m_audioFrameConverter.reset();
+        m_bufferOutputResampler.reset();
+    }
+
+    // change AudioRenderer caches
+    m_bufferedData = {};
+    m_lastFramePushDone = true;
+    m_drained = false;
+    //  don't touch m_deviceChanged here
+}
+
 Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
 {
     if (frame.isValid())
@@ -281,8 +306,6 @@ void AudioRenderer::updateOutputs(const Frame &frame)
         m_sink = std::make_unique<QAudioSink>(m_output->device(), m_sinkFormat);
         updateVolume();
         m_sink->setBufferSize(m_sinkFormat.bytesForDuration(DesiredBufferTime.count()));
-        m_ioDevice = m_sink->start();
-        m_firstFrameToSink = true;
 
         connect(m_sink.get(), &QAudioSink::stateChanged, this,
                 &AudioRenderer::onAudioSinkStateChanged);
@@ -294,6 +317,11 @@ void AudioRenderer::updateOutputs(const Frame &frame)
 
         Q_ASSERT(DurationBias < m_timings.minSoundDelay
                  && m_timings.maxSoundDelay < m_timings.actualBufferDuration);
+    }
+
+    if (!m_ioDevice) {
+        m_ioDevice = m_sink->start();
+        m_firstFrameToSink = true;
     }
 
     if (!m_audioFrameConverter)

@@ -77,6 +77,25 @@ Demuxer::Demuxer(const PlaybackEngineObjectID &id, AVFormatContext *context,
     }
 }
 
+void Demuxer::seek(quint64 sessionId, TrackPosition initialPosUs, const LoopOffset &loopOffset)
+{
+    updateSession(sessionId, [this, initialPosUs, loopOffset]() {
+        m_posInLoopUs = initialPosUs;
+        m_loopOffset = loopOffset;
+        m_seeked = false;
+        m_firstPacketFound = false;
+        m_maxPacketsEndPos = TrackPosition(0);
+        m_buffered = false;
+        m_demuxerRetryCount = 0;
+        m_failTimePoint.reset();
+
+        for (auto &[id, streamData] : m_streams)
+            streamData = StreamData{ streamData.trackType };
+
+        scheduleNextStep();
+    });
+}
+
 void Demuxer::doNextStep()
 {
     ensureSeeked();

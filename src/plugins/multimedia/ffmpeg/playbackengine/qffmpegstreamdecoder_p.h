@@ -36,6 +36,8 @@ public:
 
     ~StreamDecoder() override;
 
+    void seek(quint64 sessionID, TrackPosition pos, const LoopOffset &offset);
+
     QPlatformMediaPlayer::TrackType trackType() const;
 
     // Maximum number of frames that we are allowed to keep in render queue

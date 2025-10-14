@@ -68,6 +68,24 @@ void Renderer::setTimeController(const TimeController &tc)
     });
 }
 
+void Renderer::seek(quint64 sessionId, const TimeController &tc, const LoopOffset &offset)
+{
+    updateSession(sessionId, [this, tc, offset]() {
+        m_timeController = tc;
+        m_lastFrameEnd = tc.currentPosition();
+        m_lastPosition = m_lastFrameEnd.get();
+        m_seekPos = m_lastFrameEnd.get();
+        m_frames.clear();
+        m_loopIndex = offset.loopIndex;
+
+        m_explicitNextFrameTime = {};
+
+        // don't clean m_isStepForced, otherwise a single frame might not be forced on pause
+
+        seekInternal();
+    });
+}
+
 void Renderer::onFinalFrameReceived(PlaybackEngineObjectID sourceID)
 {
     if (checkSessionID(sourceID.sessionID))

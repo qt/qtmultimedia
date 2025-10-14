@@ -94,6 +94,22 @@ protected:
     }
 
     template <typename F>
+    void updateSession(quint64 newID, F &&f)
+    {
+        m_invalidateCounter.fetch_add(1, std::memory_order_relaxed);
+        invokePriorityMethod([f = std::forward<F>(f), this, newID]() {
+            const int count = m_invalidateCounter.fetch_sub(1, std::memory_order_relaxed) - 1;
+            Q_ASSERT(count >= 0);
+            if (count)
+                return;
+
+            m_id.sessionID = newID;
+            setAtEnd(false);
+            f();
+        });
+    }
+
+    template <typename F>
     void invokePriorityMethod(F &&f)
     {
         Q_ASSERT(!thread()->isCurrentThread());
