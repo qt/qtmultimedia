@@ -19,14 +19,6 @@ Renderer::Renderer(const PlaybackEngineObjectID &id, const TimeController &tc)
 {
 }
 
-void Renderer::syncSoft(TimePoint tp, TrackPosition trackPos)
-{
-    invokePriorityMethod([this, tp, trackPos]() {
-        m_timeController.syncSoft(tp, trackPos);
-        scheduleNextStep();
-    });
-}
-
 TrackPosition Renderer::seekPosition() const
 {
     return TrackPosition(m_seekPos);
@@ -67,11 +59,11 @@ bool Renderer::isStepForced() const
     return m_isStepForced;
 }
 
-void Renderer::start(const TimeController &tc)
+void Renderer::setTimeController(const TimeController &tc)
 {
+    Q_ASSERT(tc.isStarted());
     invokePriorityMethod([this, tc]() {
         m_timeController = tc;
-        m_started = true;
         scheduleNextStep();
     });
 }
@@ -116,9 +108,11 @@ bool Renderer::canDoNextStep() const
 {
     if (m_frames.empty())
         return false;
+    // do the step even if the TC is not started;
+    // may be changed if the case is found.
     if (m_isStepForced)
         return true;
-    if (!m_started)
+    if (!m_timeController.isStarted())
         return false;
     return PlaybackEngineObject::canDoNextStep();
 }
