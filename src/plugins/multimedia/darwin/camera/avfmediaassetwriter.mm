@@ -533,12 +533,12 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
 - (void)updateDuration:(CMTime)newTimeStamp
 {
-    Q_ASSERT(CMTimeCompare(m_startTime, kCMTimeInvalid));
-    Q_ASSERT(CMTimeCompare(m_lastTimeStamp, kCMTimeInvalid));
+    Q_ASSERT(CMTIME_IS_VALID(m_startTime));
+    Q_ASSERT(CMTIME_IS_VALID(m_lastTimeStamp));
     if (CMTimeCompare(newTimeStamp, m_lastTimeStamp) > 0) {
 
         const CMTime duration = CMTimeSubtract(newTimeStamp, m_startTime);
-        if (!CMTimeCompare(duration, kCMTimeInvalid))
+        if (CMTIME_IS_INVALID(duration))
             return;
 
         m_durationInMs.storeRelease(CMTimeGetSeconds(duration) * 1000);
