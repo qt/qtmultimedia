@@ -31,15 +31,6 @@ inline static Array defaultObjectsArray()
     return { T{ {}, {} }, T{ {}, {} }, T{ {}, {} } };
 }
 
-// TODO: investigate what's better: profile and try network case
-// Most likely, shouldPauseStreams = false is better because of:
-//     - packet and frame buffers are not big, the saturration of the is pretty fast.
-//     - after any pause a user has some preloaded buffers, so the playback is
-//       supposed to be more stable in cases with a weak processor or bad internet.
-//     - the code is simplier, usage is more convenient.
-//
-static constexpr bool shouldPauseStreams = false;
-
 PlaybackEngine::PlaybackEngine(const QPlaybackOptions &options)
     : m_demuxer({}, {}),
       m_streams(defaultObjectsArray<decltype(m_streams)>()),
@@ -168,28 +159,14 @@ void PlaybackEngine::setState(QMediaPlayer::PlaybackState state) {
 
 void PlaybackEngine::updateObjectsPausedState()
 {
-    const auto paused = m_state != QMediaPlayer::PlayingState;
+    const bool paused = m_state != QMediaPlayer::PlayingState;
     m_timeController.setPaused(paused);
 
     forEachExistingObject([&](auto &object) {
-        bool objectPaused = false;
-
         if constexpr (std::is_same_v<decltype(*object), Renderer &>)
-            objectPaused = paused;
-        else if constexpr (shouldPauseStreams) {
-            auto streamPaused = [](bool p, auto &r) {
-                const auto needMoreFrames = r && r->stepInProgress();
-                return p && !needMoreFrames;
-            };
-
-            if constexpr (std::is_same_v<decltype(*object), StreamDecoder &>)
-                objectPaused = streamPaused(paused, renderer(object->trackType()));
-            else
-                objectPaused = std::accumulate(m_renderers.begin(), m_renderers.end(), paused,
-                                               streamPaused);
-        }
-
-        object->setPaused(objectPaused);
+            object->setPaused(paused);
+        else
+            object->setPaused(false);
     });
 }
 
@@ -369,10 +346,6 @@ void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType tra
 
         connect(renderer.get(), &Renderer::loopChanged, this,
                 &PlaybackEngine::onRendererLoopChanged);
-
-        if constexpr (shouldPauseStreams)
-            connect(renderer.get(), &Renderer::forceStepDone, this,
-                    &PlaybackEngine::updateObjectsPausedState);
 
         connect(renderer.get(), &PlaybackEngineObject::atEnd, this,
                 &PlaybackEngine::onRendererFinished);
