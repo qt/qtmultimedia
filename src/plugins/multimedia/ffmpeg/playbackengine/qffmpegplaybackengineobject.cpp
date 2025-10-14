@@ -43,7 +43,7 @@ void PlaybackEngineObject::setPaused(bool isPaused)
 
 void PlaybackEngineObject::kill()
 {
-    m_deleting.storeRelease(true);
+    m_invalidateCounter.fetch_add(1, std::memory_order_relaxed);
 
     disconnect();
     deleteLater();
@@ -71,7 +71,7 @@ void PlaybackEngineObject::onTimeout()
     Q_ASSERT(m_timePoint && !m_nextTimePoint && m_stepType == StepType::None);
 
     m_timePoint.reset();
-    if (!m_deleting && canDoNextStep())
+    if (isValid() && canDoNextStep())
         doNextStep(StepType::Timeout);
 }
 
@@ -90,7 +90,7 @@ void PlaybackEngineObject::scheduleNextStep()
     using std::chrono::milliseconds;
     using namespace std::chrono_literals;
 
-    if (!m_deleting && canDoNextStep())
+    if (isValid() && canDoNextStep())
         m_nextTimePoint = nextTimePoint();
     else
         m_nextTimePoint.reset();
