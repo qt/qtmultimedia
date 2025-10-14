@@ -124,11 +124,13 @@ private:
 
     void doNextStep(StepType type);
 
+    bool isValid() const { return m_invalidateCounter.load(std::memory_order_relaxed) == 0; }
+
     std::unique_ptr<QChronoTimer> m_timer;
 
     QAtomicInteger<bool> m_paused = true;
     QAtomicInteger<bool> m_atEnd = false;
-    QAtomicInteger<bool> m_deleting = false;
+    std::atomic_int m_invalidateCounter = 0;
     PlaybackEngineObjectID m_id;
 
     TimePointOpt m_nextTimePoint;
