@@ -116,7 +116,7 @@ void Demuxer::doNextStep()
             qCDebug(qLcDemuxer) << "Demuxer loops changed. Index:" << m_loopOffset.loopIndex
                                 << "Offset:" << m_loopOffset.loopStartTimeUs.get();
 
-            scheduleNextStep(false);
+            scheduleNextStep();
         }
 
         return;
@@ -131,10 +131,11 @@ void Demuxer::doNextStep()
             // tool does this, see input_thread() function in ffmpeg_demux.c. There, the response
             // is to sleep for 10 ms before trying again. NOTE: We do not have any known way of
             // reproducing this in our tests.
+            m_failTimePoint = std::chrono::steady_clock::now();
             ++m_demuxerRetryCount;
 
             qCDebug(qLcDemuxer) << "Retrying";
-            scheduleNextStep(false);
+            scheduleNextStep();
         } else {
             // av_read_frame reports another error. This could for example happen if network is
             // disconnected while playing a network stream, where av_read_frame may return
@@ -148,6 +149,7 @@ void Demuxer::doNextStep()
     }
 
     m_demuxerRetryCount = 0;
+    m_failTimePoint.reset();
 
     if (streamIsRelevant) {
         auto &streamData = streamIterator->second;
@@ -177,7 +179,7 @@ void Demuxer::doNextStep()
         emit (this->*signal)(packet);
     }
 
-    scheduleNextStep(false);
+    scheduleNextStep();
 }
 
 void Demuxer::onPacketProcessed(Packet packet)
@@ -212,10 +214,11 @@ void Demuxer::onPacketProcessed(Packet packet)
     scheduleNextStep();
 }
 
-std::chrono::milliseconds Demuxer::timerInterval() const
+Demuxer::TimePoint Demuxer::nextTimePoint() const
 {
-    using namespace std::chrono_literals;
-    return m_demuxerRetryCount != 0 ? s_demuxerRetryInterval : PlaybackEngineObject::timerInterval();
+    Q_ASSERT(m_failTimePoint.has_value() == !!m_demuxerRetryCount);
+    return m_failTimePoint ? *m_failTimePoint + s_demuxerRetryInterval
+                           : PlaybackEngineObject::nextTimePoint();
 }
 
 bool Demuxer::canDoNextStep() const

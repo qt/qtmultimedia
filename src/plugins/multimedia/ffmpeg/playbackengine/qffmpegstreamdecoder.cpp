@@ -75,7 +75,7 @@ void StreamDecoder::doNextStep()
     if (packet.isValid())
         emit packetProcessed(packet);
 
-    scheduleNextStep(false);
+    scheduleNextStep();
 }
 
 QPlatformMediaPlayer::TrackType StreamDecoder::trackType() const
