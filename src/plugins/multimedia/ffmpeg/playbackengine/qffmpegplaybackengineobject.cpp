@@ -3,8 +3,8 @@
 
 #include "playbackengine/qffmpegplaybackengineobject_p.h"
 
-#include "qtimer.h"
-#include "qdebug.h"
+#include "QtCore/qchronotimer.h"
+#include "QtCore/qdebug.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -53,13 +53,13 @@ bool PlaybackEngineObject::canDoNextStep() const
     return !m_paused;
 }
 
-QTimer &PlaybackEngineObject::timer()
+QChronoTimer &PlaybackEngineObject::timer()
 {
     if (!m_timer) {
-        m_timer = std::make_unique<QTimer>();
+        m_timer = std::make_unique<QChronoTimer>();
         m_timer->setTimerType(Qt::PreciseTimer);
         m_timer->setSingleShot(true);
-        connect(m_timer.get(), &QTimer::timeout, this, &PlaybackEngineObject::onTimeout);
+        connect(m_timer.get(), &QChronoTimer::timeout, this, &PlaybackEngineObject::onTimeout);
     }
 
     return *m_timer;
@@ -93,7 +93,8 @@ void PlaybackEngineObject::scheduleNextStep(bool allowDoImmediatelly)
             timer().stop();
             doNextStep();
         } else {
-            timer().start(static_cast<int>(interval.count()));
+            timer().setInterval(interval);
+            timer().start();
         }
     } else {
         timer().stop();

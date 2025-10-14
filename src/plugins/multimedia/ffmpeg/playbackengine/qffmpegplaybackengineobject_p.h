@@ -24,7 +24,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QTimer;
+class QChronoTimer;
 
 namespace QFFmpeg {
 
@@ -68,7 +68,7 @@ protected:
         return m_id;
     }
 
-    QTimer &timer();
+    QChronoTimer &timer();
 
     void scheduleNextStep(bool allowDoImmediatelly = true);
 
@@ -86,7 +86,7 @@ private slots:
     void onTimeout();
 
 private:
-    std::unique_ptr<QTimer> m_timer;
+    std::unique_ptr<QChronoTimer> m_timer;
 
     QAtomicInteger<bool> m_paused = true;
     QAtomicInteger<bool> m_atEnd = false;
