@@ -492,6 +492,16 @@ void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
     semi-planar NV12/NV21. This depends on the codec implemented by the device
     OEM.
 
+    \note On macOS, camera-devices are shared across multiple
+    applications on the operating system. This means that another
+    application may override the format set by this property.
+    Application developers should account for receiving video frames
+    that have a different resolution, pixel format and framerate than
+    what is described by this property. This property does not change
+    when the device's format is modified by another application. The
+    format described by this property can be re-applied to the device
+    by re-activating the \l Camera.
+
     \sa cameraDevice::videoFormats
 */
 
@@ -504,6 +514,16 @@ void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
     \b YUV420P format, you will receive either a fully planar 4:2:0 YUV420P or a
     semi-planar NV12/NV21. This depends on the codec implemented by the device
     OEM.
+
+    \note On macOS, camera-devices are shared across multiple
+    applications on the operating system. This means that another
+    application may override the format set by this property.
+    Application developers should account for receiving video frames
+    that have a different resolution, pixel format and framerate than
+    what is described by this property. This property does not change
+    when the device's format is modified by another application. The
+    format described by this property can be re-applied to the device
+    by re-activating the \l QCamera.
 
     \sa QCameraDevice::videoFormats
 */
