@@ -247,6 +247,12 @@ private slots:
     }
 };
 
+// QTEST_MAIN defines main, but we want to override it, so ensure that it emits
+// `testlib_main` instead of `main`
+#define main testlib_main
+QTEST_MAIN(tst_QWindowCaptureBackend)
+#undef main
+
 int main(int argc, char *argv[])
 {
     QCommandLineParser cmd;
@@ -261,16 +267,9 @@ int main(int argc, char *argv[])
         const QString windowTitle = cmd.value(showTestWidget);
         const bool result = showCaptureWindow(windowTitle);
         return result ? 0 : 1;
+    } else {
+        return testlib_main(argc, argv);
     }
-
-    // If no special arguments are set, enter the regular QTest main routine
-    TESTLIB_SELFCOVERAGE_START("tst_QWindowCaptureatioBackend")
-    QT_PREPEND_NAMESPACE(QTest::Internal::callInitMain)<tst_QWindowCaptureBackend>();
-    QApplication app(argc, argv);
-    app.setAttribute(Qt::AA_Use96Dpi, true);
-    tst_QWindowCaptureBackend tc;
-    QTEST_SET_MAIN_SOURCE_PATH return QTest::qExec(&tc, argc, argv);
-
 }
 
 #include "tst_qwindowcapturebackend.moc"
