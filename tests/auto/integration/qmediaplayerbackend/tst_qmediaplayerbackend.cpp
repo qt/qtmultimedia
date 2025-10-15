@@ -98,11 +98,17 @@ private slots:
     void getters_returnExpectedValues_whenCalledWithDefaultConstructedPlayer_data() const;
     void getters_returnExpectedValues_whenCalledWithDefaultConstructedPlayer() const;
 
-    void setSource_emitsSourceChanged_whenCalledWithInvalidFile();
-    void setSource_emitsError_whenCalledWithInvalidFile();
-    void setSource_emitsMediaStatusChange_whenCalledWithInvalidFile();
-    void setSource_doesNotEmitPlaybackStateChange_whenCalledWithInvalidFile();
-    void setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidFile();
+    void makeInvalidMediaCase();
+    void setSource_emitsSourceChanged_whenCalledWithInvalidMedia_data();
+    void setSource_emitsSourceChanged_whenCalledWithInvalidMedia();
+    void setSource_emitsError_whenCalledWithInvalidMedia_data();
+    void setSource_emitsError_whenCalledWithInvalidMedia();
+    void setSource_emitsMediaStatusChange_whenCalledWithInvalidMedia_data();
+    void setSource_emitsMediaStatusChange_whenCalledWithInvalidMedia();
+    void setSource_doesNotEmitPlaybackStateChange_whenCalledWithInvalidMedia_data();
+    void setSource_doesNotEmitPlaybackStateChange_whenCalledWithInvalidMedia();
+    void setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidMedia_data();
+    void setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidMedia();
     void setSource_initializesExpectedDefaultState();
     void setSource_initializesExpectedDefaultState_data();
     void setSource_silentlyCancelsPreviousCall_whenServerDoesNotRespond();
@@ -542,48 +548,89 @@ void tst_QMediaPlayerBackend::getters_returnExpectedValues_whenCalledWithDefault
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
 }
 
-void tst_QMediaPlayerBackend::setSource_emitsSourceChanged_whenCalledWithInvalidFile()
+void tst_QMediaPlayerBackend::makeInvalidMediaCase()
 {
-    m_fixture->player.setSource({ "Some not existing media" });
-    QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
+    QTest::addColumn<QUrl>("invalidMedia");
 
-    QCOMPARE_EQ(m_fixture->sourceChanged, SignalList({ { QUrl("Some not existing media") } }));
+    QTest::newRow("invalidFile") << QUrl("some_not_existing_file.mp4");
+    QTest::newRow("invalidQrcResource") << QUrl("qrc:/some_not_existing_qrc_resource.mp4");
+    QTest::newRow("invalidHttpsAddress") << QUrl("https://qt.io/invalid_https_address.mp4");
 }
 
-void tst_QMediaPlayerBackend::setSource_emitsError_whenCalledWithInvalidFile()
+void tst_QMediaPlayerBackend::setSource_emitsSourceChanged_whenCalledWithInvalidMedia_data()
 {
-    m_fixture->player.setSource({ "Some not existing media" });
+    makeInvalidMediaCase();
+}
+
+void tst_QMediaPlayerBackend::setSource_emitsSourceChanged_whenCalledWithInvalidMedia()
+{
+    QFETCH(QUrl, invalidMedia);
+    m_fixture->player.setSource(invalidMedia);
+    QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
+
+    QCOMPARE_EQ(m_fixture->sourceChanged, SignalList({ { invalidMedia } }));
+}
+
+void tst_QMediaPlayerBackend::setSource_emitsError_whenCalledWithInvalidMedia_data()
+{
+    makeInvalidMediaCase();
+}
+
+void tst_QMediaPlayerBackend::setSource_emitsError_whenCalledWithInvalidMedia()
+{
+    QFETCH(QUrl, invalidMedia);
+    m_fixture->player.setSource(invalidMedia);
     QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
 
     QCOMPARE_EQ(m_fixture->errorOccurred[0][0], QMediaPlayer::ResourceError);
 }
 
-void tst_QMediaPlayerBackend::setSource_emitsMediaStatusChange_whenCalledWithInvalidFile()
+void tst_QMediaPlayerBackend::setSource_emitsMediaStatusChange_whenCalledWithInvalidMedia_data()
 {
-    m_fixture->player.setSource({ "Some not existing media" });
+    makeInvalidMediaCase();
+}
+
+void tst_QMediaPlayerBackend::setSource_emitsMediaStatusChange_whenCalledWithInvalidMedia()
+{
+    QFETCH(QUrl, invalidMedia);
+    if (invalidMedia == QUrl("qrc:/some_not_existing_qrc_resource.mp4"))
+        QSKIP_FFMPEG("FFmpeg: Doesn`t emit QMediaPlayer::LoadingMedia...");
+
+    m_fixture->player.setSource(invalidMedia);
     QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
 
     QCOMPARE_EQ(m_fixture->mediaStatusChanged,
                 SignalList({ { QMediaPlayer::LoadingMedia }, { QMediaPlayer::InvalidMedia } }));
 }
 
-void tst_QMediaPlayerBackend::setSource_doesNotEmitPlaybackStateChange_whenCalledWithInvalidFile()
+void tst_QMediaPlayerBackend::setSource_doesNotEmitPlaybackStateChange_whenCalledWithInvalidMedia_data()
 {
-    m_fixture->player.setSource({ "Some not existing media" });
+    makeInvalidMediaCase();
+}
+
+void tst_QMediaPlayerBackend::setSource_doesNotEmitPlaybackStateChange_whenCalledWithInvalidMedia()
+{
+    QFETCH(QUrl, invalidMedia);
+    m_fixture->player.setSource(invalidMedia);
     QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
 
     QVERIFY(m_fixture->playbackStateChanged.empty());
 }
 
-void tst_QMediaPlayerBackend::setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidFile()
+void tst_QMediaPlayerBackend::setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidMedia_data()
 {
-    const QUrl invalidFile{ "Some not existing media" };
+    makeInvalidMediaCase();
+}
 
-    m_fixture->player.setSource(invalidFile);
+void tst_QMediaPlayerBackend::setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidMedia()
+{
+    QFETCH(QUrl, invalidMedia);
+
+    m_fixture->player.setSource(invalidMedia);
     QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
 
     MediaPlayerState expectedState = MediaPlayerState::defaultState();
-    expectedState.source = invalidFile;
+    expectedState.source = invalidMedia;
     expectedState.mediaStatus = QMediaPlayer::InvalidMedia;
     expectedState.error = QMediaPlayer::ResourceError;
 
