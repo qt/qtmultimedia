@@ -91,6 +91,9 @@ private slots:
     void invalidFormat();
     void nullFormat();
 
+    void start_withSupportedSampleFormats_data();
+    void start_withSupportedSampleFormats();
+
     void bufferSize_data();
     void bufferSize();
     void bufferSize_getValidDefault();
@@ -419,6 +422,38 @@ void tst_QAudioSink::nullFormat()
         QAudioSink audioSink(audioDevice);
         QCOMPARE(audioSink.format(), audioDevice.preferredFormat());
     }
+}
+
+void tst_QAudioSink::start_withSupportedSampleFormats_data()
+{
+    QTest::addColumn<QAudioFormat::SampleFormat>("sampleFormat");
+    for (auto sampleFormat : audioDevice.supportedSampleFormats()) {
+        QTest::newRow(QStringLiteral("Sample format: %1").arg(sampleFormat).toUtf8().constData())
+                      << sampleFormat;
+    }
+}
+
+void tst_QAudioSink::start_withSupportedSampleFormats()
+{
+    // Arrange
+    AudioPullSource source(true);
+    source.open(QIODevice::ReadOnly);
+
+    QFETCH(QAudioFormat::SampleFormat, sampleFormat);
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleFormat(sampleFormat);
+    QAudioSink sink(audioDevice, format);
+
+    QSignalSpy stateSignal(&sink, &QAudioSink::stateChanged);
+
+    // Act
+    sink.start(&source);
+
+    // Assert
+    QTRY_COMPARE(stateSignal.count(), 1);
+    QCOMPARE(sink.state(), QAudio::ActiveState);
+    QCOMPARE(sink.error(), QAudio::NoError);
+    QTRY_COMPARE_GT(sink.processedUSecs(), 0);
 }
 
 void tst_QAudioSink::bufferSize_data()
