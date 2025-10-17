@@ -9,8 +9,6 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qset.h>
 
-#import <AVFoundation/AVFoundation.h>
-
 QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcAvfVideoDevices, "qt.multimedia.avfvideodevices");

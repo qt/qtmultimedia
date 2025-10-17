@@ -20,7 +20,7 @@ extern "C" {
 
 #import <AppKit/NSScreen.h>
 
-#include <dispatch/dispatch.h>
+#import <dispatch/dispatch.h>
 
 namespace {
 

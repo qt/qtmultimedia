@@ -23,7 +23,7 @@
 
 #include <functional>
 
-#import <AVFoundation/AVFoundation.h>
+#import <AVFoundation/AVCaptureDevice.h>
 
 QT_BEGIN_NAMESPACE
 

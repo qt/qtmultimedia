@@ -11,8 +11,8 @@
 #include <QtMultimedia/private/qavfcamerautility_p.h>
 #include <avfvideosink_p.h>
 
-#include <CoreFoundation/CoreFoundation.h>
-#include <Foundation/Foundation.h>
+#import <CoreFoundation/CoreFoundation.h>
+#import <Foundation/Foundation.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdatetime.h>

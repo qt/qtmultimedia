@@ -26,7 +26,7 @@
 #include <QtCore/qglobal.h>
 #include <QtCore/qurl.h>
 
-#include <AVFoundation/AVFoundation.h>
+#import <AVFoundation/AVFoundation.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -24,11 +24,8 @@
 #include <QtMultimedia/qcameradevice.h>
 #include <QtMultimedia/qtmultimediaexports.h>
 
-#include <AVFoundation/AVFoundation.h>
-
-#ifdef Q_OS_IOS
-#import <UIKit/UIDevice.h>
-#endif
+#import <AVFoundation/AVCaptureDevice.h>
+#import <AVFoundation/AVCaptureSession.h>
 
 QT_BEGIN_NAMESPACE
 

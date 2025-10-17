@@ -14,10 +14,10 @@
 #include <QtMultimedia/qvideoframe.h>
 
 #if __has_include(<AppKit/AppKit.h>)
-#include <AppKit/AppKit.h>
+#import <AppKit/AppKit.h>
 #endif
 
-#include <CoreFoundation/CoreFoundation.h>
+#import <CoreFoundation/CoreFoundation.h>
 
 QT_USE_NAMESPACE
 
