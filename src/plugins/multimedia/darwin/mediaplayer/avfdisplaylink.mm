@@ -13,20 +13,11 @@
 #if defined(QT_PLATFORM_UIKIT)
 #import <QuartzCore/CADisplayLink.h>
 #import <Foundation/NSRunLoop.h>
-#define _m_displayLink static_cast<DisplayLinkObserver*>(m_displayLink)
-#else
 #endif
 
 QT_USE_NAMESPACE
 
 #if defined(QT_PLATFORM_UIKIT)
-@interface DisplayLinkObserver : NSObject
-
-- (void)start;
-- (void)stop;
-- (void)displayLinkNotification:(CADisplayLink *)sender;
-
-@end
 
 @implementation DisplayLinkObserver
 {
@@ -115,7 +106,7 @@ AVFDisplayLink::~AVFDisplayLink()
     if (m_displayLink) {
         stop();
 #if defined(QT_PLATFORM_UIKIT)
-        [_m_displayLink release];
+        [m_displayLink release];
 #else
         CVDisplayLinkRelease(m_displayLink);
 #endif
@@ -137,7 +128,7 @@ void AVFDisplayLink::start()
 {
     if (m_displayLink && !m_isActive) {
 #if defined(QT_PLATFORM_UIKIT)
-        [_m_displayLink start];
+        [m_displayLink start];
 #else
         CVDisplayLinkStart(m_displayLink);
 #endif
@@ -149,7 +140,7 @@ void AVFDisplayLink::stop()
 {
     if (m_displayLink && m_isActive) {
 #if defined(QT_PLATFORM_UIKIT)
-        [_m_displayLink stop];
+        [m_displayLink stop];
 #else
         CVDisplayLinkStop(m_displayLink);
 #endif
