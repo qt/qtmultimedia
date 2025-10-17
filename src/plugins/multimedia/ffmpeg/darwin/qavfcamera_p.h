@@ -27,8 +27,7 @@
 
 #include <QtMultimedia/private/qavfcamerautility_p.h>
 
-#import <AVFoundation/AVFoundation.h>
-#include <dispatch/dispatch.h>
+#import <dispatch/dispatch.h>
 
 QT_BEGIN_NAMESPACE
 

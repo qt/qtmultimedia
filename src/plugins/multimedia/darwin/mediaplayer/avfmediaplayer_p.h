@@ -26,10 +26,9 @@
 #include <QtMultimedia/QMediaPlayer>
 #include <QtMultimedia/QVideoFrame>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemTrack);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVFMediaPlayerObserver);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVAssetTrack);
+#import <AvFoundation/AVFoundation.h>
+
+@class AVFMediaPlayerObserver;
 
 QT_BEGIN_NAMESPACE
 

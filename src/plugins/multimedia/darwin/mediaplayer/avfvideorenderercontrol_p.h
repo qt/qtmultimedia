@@ -25,9 +25,8 @@
 #include <CoreVideo/CVBase.h>
 #include <CoreVideo/CVPixelBuffer.h>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemVideoOutput);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemLegibleOutput);
+#import <AvFoundation/AVFoundation.h>
+
 Q_FORWARD_DECLARE_OBJC_CLASS(SubtitleDelegate);
 
 QT_BEGIN_NAMESPACE

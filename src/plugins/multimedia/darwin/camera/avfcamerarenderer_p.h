@@ -29,10 +29,10 @@
 #include <CoreVideo/CVOpenGLESTextureCache.h>
 #endif
 
-#include <dispatch/dispatch.h>
+#import <dispatch/dispatch.h>
+#import <AvFoundation/AVFoundation.h>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVFCaptureFramesDelegate);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoDataOutput);
+@class AVFCaptureFramesDelegate;
 
 QT_BEGIN_NAMESPACE
 

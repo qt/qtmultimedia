@@ -14,6 +14,8 @@
 #include <limits>
 #include <tuple>
 
+#include <AudioToolbox/AudioToolbox.h>
+
 QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qLcCamera, "qt.multimedia.camera")

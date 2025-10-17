@@ -6,7 +6,7 @@
 #include <rhi/qrhi.h>
 #include <QtGui/qopenglcontext.h>
 
-#include <AVFoundation/AVFoundation.h>
+#import <AVFoundation/AVFoundation.h>
 #import <QuartzCore/CATransaction.h>
 
 #include <Foundation/Foundation.h>

@@ -22,7 +22,7 @@
 
 #include <os/availability.h>
 
-#include <AVFoundation/AVFoundation.h>
+#include <AVFoundation/AVCaptureDevice.h>
 
 QT_BEGIN_NAMESPACE
 

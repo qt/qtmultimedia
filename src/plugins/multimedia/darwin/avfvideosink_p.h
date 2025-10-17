@@ -19,16 +19,13 @@
 
 #include <QtCore/private/qcore_mac_p.h>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerLayer);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoPreviewLayer);
-
 #include <CoreVideo/CVBase.h>
 #include <CoreVideo/CVImageBuffer.h>
 #include <CoreVideo/CVPixelBuffer.h>
 
-#import "Metal/Metal.h"
-#import "MetalKit/MetalKit.h"
+#import <AvFoundation/AVFoundation.h>
+#import <Metal/Metal.h>
+#import <MetalKit/MetalKit.h>
 
 QT_BEGIN_NAMESPACE
 

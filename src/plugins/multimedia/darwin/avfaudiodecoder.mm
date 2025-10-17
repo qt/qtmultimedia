@@ -12,7 +12,7 @@
 
 #include "private/qcoreaudioutils_p.h"
 
-#include <AVFoundation/AVFoundation.h>
+#import <AVFoundation/AVFoundation.h>
 
 QT_USE_NAMESPACE
 

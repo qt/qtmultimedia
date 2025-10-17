@@ -17,8 +17,6 @@
 
 #include <private/qplatformmediaintegration_p.h>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(NSObject);
-
 QT_BEGIN_NAMESPACE
 
 class QDarwinIntegration : public QPlatformMediaIntegration
