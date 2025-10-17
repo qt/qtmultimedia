@@ -20,6 +20,12 @@
 
 #if defined(QT_PLATFORM_UIKIT)
 #include <CoreVideo/CVBase.h>
+
+@interface DisplayLinkObserver : NSObject
+- (void)start;
+- (void)stop;
+- (void)displayLinkNotification:(CADisplayLink *)sender;
+@end
 #else
 #include <QuartzCore/CVDisplayLink.h>
 #endif
@@ -52,7 +58,7 @@ protected:
 
 private:
 #if defined(QT_PLATFORM_UIKIT)
-    void *m_displayLink{};
+    DisplayLinkObserver *m_displayLink{};
 #else
     CVDisplayLinkRef m_displayLink{};
 #endif
