@@ -15,6 +15,7 @@ qt_internal_add_plugin(QDarwinMediaPlugin
         avfvideobuffer.mm avfvideobuffer_p.h
         qdarwinformatsinfo.mm qdarwinformatsinfo_p.h
         qdarwinintegration.mm qdarwinintegration_p.h
+        darwin_pch.h
     INCLUDE_DIRECTORIES
         audio
         camera
@@ -36,6 +37,8 @@ qt_internal_add_plugin(QDarwinMediaPlugin
         ${FWQuartzCore}
     COMPILE_OPTIONS
         -Wno-c++20-extensions
+    PRECOMPILED_HEADER
+       $<$<COMPILE_LANGUAGE:OBJCXX>:darwin_pch.h>
 )
 
 qt_internal_extend_target(QDarwinMediaPlugin CONDITION NOT TVOS AND NOT VISIONOS

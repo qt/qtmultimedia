@@ -7,7 +7,9 @@ qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VAAPI MODULE_NAM
 qt_internal_add_module(FFmpegMediaPluginImplPrivate
     STATIC
     INTERNAL_MODULE
+    PRECOMPILED_HEADER ffmpeg_pch.h
     SOURCES
+        ffmpeg_pch.h
         qffmpeg.cpp qffmpeg_p.h
         qffmpegdefs_p.h
         qffmpegcodecstorage.cpp qffmpegcodecstorage_p.h
