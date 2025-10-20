@@ -30,8 +30,8 @@ class Q_MULTIMEDIA_EXPORT QPipewireAudioDevicePrivate : public QAudioDevicePriva
 {
 public:
     QPipewireAudioDevicePrivate(const PwPropertyDict &nodeProperties,
-                                const PwPropertyDict &deviceProperties,
-                                const SpaObjectAudioFormat &, QAudioDevice::Mode, bool isDefault);
+                                std::optional<QByteArray> sysfsPath, const SpaObjectAudioFormat &,
+                                QAudioDevice::Mode, bool isDefault);
     ~QPipewireAudioDevicePrivate() override;
 
     Q_DISABLE_COPY_MOVE(QPipewireAudioDevicePrivate)
@@ -47,7 +47,7 @@ private:
     void setPreferredSampleFormats(spa_audio_iec958_codec);
     void setPreferredSampleFormats(const SpaEnum<spa_audio_format> &);
 
-    QByteArray m_sysfsPath;
+    std::optional<QByteArray> m_sysfsPath; // nullopt for virtual devices
     QByteArray m_nodeName;
 
     std::optional<QList<spa_audio_channel>> m_channelPositions;

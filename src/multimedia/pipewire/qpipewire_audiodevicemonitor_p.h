@@ -105,11 +105,11 @@ private:
 
     struct PendingNodeRecord
     {
-        PendingNodeRecord(ObjectId, ObjectSerial serial, ObjectSerial deviceSerial,
+        PendingNodeRecord(ObjectId, ObjectSerial serial, std::optional<ObjectSerial> deviceSerial,
                           PwPropertyDict properties);
 
         ObjectSerial serial;
-        ObjectSerial deviceSerial;
+        std::optional<ObjectSerial> deviceSerial; // may be nullopt for virtual nodes
         PwPropertyDict properties;
         std::unique_ptr<NodeEventListener> enumFormatListener;
         std::unique_ptr<CoreEventDoneListener> enumFormatDoneListener;
@@ -119,7 +119,7 @@ private:
     struct NodeRecord
     {
         ObjectSerial serial;
-        ObjectSerial deviceSerial;
+        std::optional<ObjectSerial> deviceSerial; // may be nullopt for virtual nodes
         PwPropertyDict properties;
         SpaObjectAudioFormat format;
     };

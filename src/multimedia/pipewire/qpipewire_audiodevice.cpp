@@ -46,7 +46,7 @@ bool channelPositionsEqual(const Lhs &lhs, const Rhs &rhs)
 } // namespace
 
 QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &nodeProperties,
-                                                         const PwPropertyDict &deviceProperties,
+                                                         std::optional<QByteArray> sysfsPath,
                                                          const SpaObjectAudioFormat &formats,
                                                          QAudioDevice::Mode mode, bool isDefault)
     : QAudioDevicePrivate{
@@ -65,8 +65,8 @@ QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &n
     supportedSampleFormats = allSampleFormats;
     this->isDefault = isDefault;
 
-    if (auto path = getDeviceSysfsPath(deviceProperties))
-        m_sysfsPath.assign(*path);
+    if (sysfsPath)
+        m_sysfsPath = std::move(sysfsPath);
 
     if (auto nodeName = getNodeName(nodeProperties))
         m_nodeName.assign(*nodeName);
