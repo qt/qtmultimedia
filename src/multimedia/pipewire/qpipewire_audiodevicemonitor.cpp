@@ -94,10 +94,21 @@ void QAudioDeviceMonitor::objectAdded(ObjectId id, uint32_t /*permissions*/,
         // for nodes we need to enumerate the formats
 
         auto addPendingNode = [&](std::list<PendingNodeRecord> &pendingRecords) {
-            std::optional<ObjectId> deviceId = getDeviceId(props);
-            if (!deviceId) {
+            std::optional<std::string_view> nodeName = getNodeName(props);
+            if (!nodeName) {
+                qCWarning(lcPipewireDeviceMonitor) << "node without name (ignoring):" << props;
+                return;
+            }
+
+            if (nodeName == "auto_null") {
                 // pipewire will create a dummy output in case theres' no physical output. We want
                 // to filter that out
+                qCWarning(lcPipewireDeviceMonitor) << "Ignoring dummy output:" << props;
+                return;
+            }
+
+            std::optional<ObjectId> deviceId = getDeviceId(props);
+            if (!deviceId) {
                 qCDebug(lcPipewireDeviceMonitor) << "no device ID in node (ignoring):" << props;
                 return;
             }
