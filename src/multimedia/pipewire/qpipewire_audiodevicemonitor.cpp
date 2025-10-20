@@ -357,7 +357,7 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
                     std::move(*results[0]),
             });
         } else {
-            qDebug(lcPipewireDeviceMonitor)
+            qCDebug(lcPipewireDeviceMonitor)
                     << "Could not resolve audio format for" << record.serial;
         }
     }
@@ -392,7 +392,7 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
 
             auto deviceIt = m_devices.find(*deviceSerial);
             if (deviceIt == m_devices.end()) {
-                qDebug(lcPipewireDeviceMonitor) << "No device for device id" << *deviceSerial;
+                qCDebug(lcPipewireDeviceMonitor) << "No device for device id" << *deviceSerial;
                 return std::nullopt;
             }
 
@@ -415,7 +415,7 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
 
         newDeviceList.push_back(device);
 
-        qDebug(lcPipewireDeviceMonitor) << "adding device" << sysFsPath;
+        qCDebug(lcPipewireDeviceMonitor) << "adding device" << sysFsPath;
     }
 
     // sort by description
@@ -432,7 +432,7 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
     });
 
     if (!deviceListsEqual) {
-        qDebug(lcPipewireDeviceMonitor) << "updated device list";
+        qCDebug(lcPipewireDeviceMonitor) << "updated device list";
 
         if constexpr (Mode == Direction::sink) {
             m_sinkDeviceList = newDeviceList;

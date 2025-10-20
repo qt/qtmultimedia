@@ -359,8 +359,8 @@ int QAudioContextManager::handleDefaultMetadataObjectEvent(ObjectId subject,
 {
     using namespace std::string_view_literals;
 
-    qDebug(lcPipewireRegistry) << "metadata for" << subject << " - " << record.key << record.type
-                               << record.value;
+    qCDebug(lcPipewireRegistry) << "metadata for" << subject << " - " << record.key << record.type
+                                << record.value;
 
     if (subject != ObjectId{ PW_ID_CORE })
         return 0;
