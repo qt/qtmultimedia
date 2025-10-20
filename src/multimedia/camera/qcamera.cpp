@@ -1015,10 +1015,10 @@ bool QCamera::isTorchModeSupported(QCamera::TorchMode mode) const
 */
 
 /*!
-  \property QCamera::exposureMode
-  \brief The exposure mode being used.
+    \property QCamera::exposureMode
+    \brief The exposure mode being used.
 
-  \sa QCamera::isExposureModeSupported
+    \sa QCamera::isExposureModeSupported
 */
 QCamera::ExposureMode QCamera::exposureMode() const
 {
