@@ -283,7 +283,6 @@ void QAudioContextManager::startListenDefaultMetadataObject(ObjectId id, uint32_
                        const char *value) -> int {
         auto *self = reinterpret_cast<QAudioContextManager *>(data);
 
-        Q_ASSERT(key);
         return self->handleDefaultMetadataObjectEvent(
                 ObjectId{
                         subject,
