@@ -668,8 +668,6 @@ QPointF QCamera::focusPoint() const
     coordinates. This means that QPointF(0,0) points to the top-left corner
     of the frame, and QPointF(0.5,0.5) points to the center of the frame.
 
-    Custom focus point is used only in \c FocusPointCustom focus mode.
-
     You can check whether custom focus points are supported by querying
     supportedFeatures() with the Feature.CustomFocusPoint flag.
 */
@@ -679,8 +677,6 @@ QPointF QCamera::focusPoint() const
 
     This property represents the position of the custom focus point, in relative frame coordinates:
     QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
-
-    The custom focus point property is used only in \c FocusPointCustom focus mode.
 
     You can check whether custom focus points are supported by querying
     supportedFeatures() with the Feature.CustomFocusPoint flag.
