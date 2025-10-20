@@ -1054,11 +1054,11 @@ bool QCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 */
 
 /*!
-  \property QCamera::exposureCompensation
-  \brief Exposure compensation in EV units.
+    \property QCamera::exposureCompensation
+    \brief Exposure compensation in EV units.
 
-  Exposure compensation property allows to adjust the automatically calculated
-  exposure.
+    Exposure compensation property allows to adjust the automatically calculated
+    exposure.
 */
 float QCamera::exposureCompensation() const
 {
