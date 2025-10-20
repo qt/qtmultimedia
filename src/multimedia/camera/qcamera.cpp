@@ -32,21 +32,12 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/camera.cpp Camera selection
 
-    On hardware that supports it, QCamera lets you adjust the focus
-    and zoom. This also includes functionality such as a
-    "Macro" mode for close up work (e.g. reading barcodes, or
-    recognizing letters), or "touch to focus" - indicating an
-    interesting area of the image for the hardware to attempt
-    to focus on.
-
-    \snippet multimedia-snippets/camera.cpp Camera custom focus
-
-    The \l minimumZoomFactor() and \l maximumZoomFactor() methods provide the
-    range of supported zoom factors. The \l zoomTo() method allows changing
-    the zoom factor.
+    On hardware that supports it, \l QCamera lets you adjust the focus
+    and zoom. The \l minimumZoomFactor and \l maximumZoomFactor
+    properties provide the range of supported zoom factors. The
+    \l zoomFactor property allows changing the zoom factor.
 
     \snippet multimedia-snippets/camera.cpp Camera zoom
-
 
     After capturing the raw data for a camera frame, the camera hardware and
     software performs various image processing tasks to produce the final
@@ -103,39 +94,9 @@ QT_BEGIN_NAMESPACE
     \endqml
 
     On hardware that supports it, \l Camera lets you adjust the focus
-    and zoom. This also includes functionality such as a
-    "Macro" mode for close up work (e.g. reading barcodes, or
-    recognizing letters), or "touch to focus" - indicating an
-    interesting area of the image for the hardware to attempt
-    to focus on.
-
-    \qml
-
-    Item {
-        width: 640
-        height: 360
-
-        CaptureSession {
-            camera: Camera {
-                id: camera
-
-                focusMode: Camera.FocusModeAutoNear
-                customFocusPoint: Qt.point(0.2, 0.2) // Focus relative to top-left corner
-            }
-            videoOutput: videoOutput
-        }
-
-        VideoOutput {
-            id: videoOutput
-            anchors.fill: parent
-        }
-    }
-
-    \endqml
-
-    The \l minimumZoomFactor and \l maximumZoomFactor properties provide the
-    range of supported zoom factors. The \l zoomFactor property allows changing
-    the zoom factor.
+    and zoom. The \l minimumZoomFactor and \l maximumZoomFactor
+    properties provide the range of supported zoom factors. The
+    \l zoomFactor property allows changing the zoom factor.
 
     \qml
     Camera {

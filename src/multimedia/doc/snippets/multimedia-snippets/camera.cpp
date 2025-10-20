@@ -201,11 +201,6 @@ void cameraimageprocessing()
 
 void camerafocus()
 {
-    //! [Camera custom focus]
-    camera->setFocusPointMode(QCamera::FocusModeManual);
-    camera->setCustomFocusPoint(QPointF(0.25f, 0.75f)); // A point near the bottom left, 25% away from the corner, near that shiny vase
-    //! [Camera custom focus]
-
     //! [Camera zoom]
     camera->setZoomFactor(3.0);
     //! [Camera zoom]
