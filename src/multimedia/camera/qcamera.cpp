@@ -281,13 +281,15 @@ void QCamera::setActive(bool active)
 
     Returns the error state of the camera.
 
-    \sa QCamera::Error
+    \qmlenumeratorsfrom QCamera::Error
 */
 
 /*!
     \property QCamera::error
 
     Returns the error state of the camera.
+
+    \sa QCamera::Error
 */
 
 QCamera::Error QCamera::error() const
@@ -337,9 +339,12 @@ QString QCamera::errorString() const
 
 /*!
     \qmlproperty Features QtMultimedia::Camera::supportedFeatures
-    Returns the features supported by this camera.
 
-    \sa QCamera::Feature
+    Returns the features supported by this camera. The value is bitmask
+    that may contain any of the following flags. It stores an OR
+    combination of Feature values.
+
+    \qmlenumeratorsfrom QCamera::Feature
 */
 
 /*!
@@ -887,9 +892,7 @@ void QCamera::zoomTo(float factor, float rate)
     This property only has an effect when capturing images using
     \l ImageCapture
 
-    \value Camera.FlashOff      Flash is Off.
-    \value Camera.FlashOn       Flash is On.
-    \value Camera.FlashAuto     Automatic flash.
+    \qmlenumeratorsfrom QCamera::FlashMode
 
     \sa isFlashModeSupported, isFlashReady
 */
@@ -951,7 +954,7 @@ bool QCamera::isFlashReady() const
 }
 
 /*!
-    \qmlproperty Camera::TorchMode Camera::torchMode
+    \qmlproperty enumeration Camera::torchMode
 
     Gets or sets the torch mode being used.
 
@@ -959,7 +962,9 @@ bool QCamera::isFlashReady() const
     low light conditions. Enabling torch mode will usually override any currently set
     flash mode.
 
-    \sa QCamera::TorchMode, Camera::isTorchModeSupported(), Camera::flashMode
+    \qmlenumeratorsfrom QCamera::TorchMode
+
+    \sa Camera::isTorchModeSupported(), Camera::flashMode
 */
 
 /*!
@@ -1001,10 +1006,12 @@ bool QCamera::isTorchModeSupported(QCamera::TorchMode mode) const
 }
 
 /*!
-    \qmlproperty ExposureMode QtMultimedia::Camera::exposureMode
+    \qmlproperty enumeration QtMultimedia::Camera::exposureMode
     \brief The exposure mode being used.
 
-    \sa QCamera::ExposureMode, Camera::isExposureModeSupported()
+    \qmlenumeratorsfrom QCamera::ExposureMode
+
+    \sa Camera::isExposureModeSupported()
 */
 
 /*!
@@ -1312,11 +1319,13 @@ void QCamera::setAutoExposureTime()
 
 
 /*!
-    \qmlproperty WhiteBalanceMode QtMultimedia::Camera::whiteBalanceMode
+    \qmlproperty enumeration QtMultimedia::Camera::whiteBalanceMode
 
     Gets or sets the white balance mode being used.
 
-    \sa QCamera::WhiteBalanceMode
+    \qmlenumeratorsfrom QCamera::WhiteBalanceMode
+
+    \sa isWhiteBalanceModeSupported()
 */
 
 /*!
