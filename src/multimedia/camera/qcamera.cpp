@@ -951,7 +951,7 @@ void QCamera::zoomTo(float factor, float rate)
 
     \qmlenumeratorsfrom QCamera::FlashMode
 
-    \sa isFlashModeSupported, isFlashReady
+    \sa isFlashModeSupported(), isFlashReady(), flashReady
 */
 
 /*!
@@ -1021,7 +1021,7 @@ bool QCamera::isFlashReady() const
 
     \qmlenumeratorsfrom QCamera::TorchMode
 
-    \sa Camera::isTorchModeSupported(), Camera::flashMode
+    \sa isTorchModeSupported(), flashMode
 */
 
 /*!
@@ -1068,7 +1068,7 @@ bool QCamera::isTorchModeSupported(QCamera::TorchMode mode) const
 
     \qmlenumeratorsfrom QCamera::ExposureMode
 
-    \sa Camera::isExposureModeSupported()
+    \sa isExposureModeSupported()
 */
 
 /*!
