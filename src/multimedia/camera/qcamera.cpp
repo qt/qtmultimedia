@@ -327,7 +327,7 @@ QString QCamera::errorString() const
 */
 
 /*!
-    \qmlproperty Features QtMultimedia::Camera::supportedFeatures
+    \qmlproperty enumeration QtMultimedia::Camera::supportedFeatures
 
     Returns the features supported by this camera. The value is bitmask
     that may contain any of the following flags. It stores an OR
