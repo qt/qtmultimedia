@@ -1301,27 +1301,7 @@ void QMediaPlayer::resetPlaybackOptions()
 
     This property holds the status of media loading. It can be one of the following:
 
-    \table
-    \header
-        \li Property value
-        \li Description
-    \row \li NoMedia
-        \li No media has been set.
-    \row \li LoadingMedia
-        \li The media is currently being loaded.
-    \row \li LoadedMedia
-        \li The media has been loaded.
-    \row \li BufferingMedia
-        \li The media is buffering data.
-    \row \li StalledMedia
-        \li Playback has been interrupted while the media is buffering data.
-    \row \li BufferedMedia
-        \li The media has buffered data.
-    \row \li EndOfMedia
-        \li The media has played to the end.
-    \row \li InvalidMedia
-        \li The media cannot be played.
-    \endtable
+    \qmlenumeratorsfrom QMediaPlayer::MediaStatus
 */
 
 /*!
@@ -1329,19 +1309,7 @@ void QMediaPlayer::resetPlaybackOptions()
 
     This property holds the error state of the audio. It can be one of the following.
 
-    \table
-    \header \li Value \li Description
-    \row \li NoError
-        \li There is no current error.
-    \row \li ResourceError
-        \li The audio cannot be played due to a problem allocating resources.
-    \row \li FormatError
-        \li The audio format is not supported.
-    \row \li NetworkError
-        \li The audio cannot be played due to network issues.
-    \row \li AccessDeniedError
-        \li The audio cannot be played due to insufficient permissions.
-    \endtable
+    \qmlenumeratorsfrom QMediaPlayer::Error
 */
 
 /*!
