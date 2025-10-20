@@ -107,36 +107,38 @@ void QAudioDeviceMonitor::objectAdded(ObjectId id, uint32_t /*permissions*/,
                 return;
             }
 
+            // Note: virtual devices have neither deviceId, nor deviceSerial. Physical devices have both
             std::optional<ObjectId> deviceId = getDeviceId(props);
-            if (!deviceId) {
-                qCDebug(lcPipewireDeviceMonitor) << "no device ID in node (ignoring):" << props;
-                return;
-            }
+            std::optional<ObjectSerial> deviceSerial =
+                    deviceId ? findObjectSerial(*deviceId) : std::nullopt;
 
-            std::optional<ObjectSerial> deviceSerial = findObjectSerial(*deviceId);
-            if (!deviceSerial) {
+            if (deviceId && !deviceSerial) {
                 qCInfo(lcPipewireDeviceMonitor) << "Cannot add node: device removed";
                 return;
             }
 
             std::lock_guard guard{ m_pendingRecordsMutex };
 
-            qCDebug(lcPipewireDeviceMonitor)
-                    << "added node for device " << *serial << *deviceSerial;
+            qCDebug(lcPipewireDeviceMonitor) << "added node for device " << serial << deviceSerial;
 
             // enumerating the audio format is asynchronous: we enumerate the formats asynchronously
             // and wait for the result before updating the device list
-            pendingRecords.emplace_back(id, *serial, *deviceSerial, std::move(props));
+            pendingRecords.emplace_back(id, *serial, deviceSerial, std::move(props));
             pendingRecords.back().formatFuture.then(
                     &m_compressionTimer, [this](std::optional<SpaObjectAudioFormat> const &) {
                 startCompressionTimer();
             });
         };
 
-        if (mediaClass == "Audio/Source")
+        if (mediaClass == "Audio/Source" || mediaClass == "Audio/Source/Virtual") {
             addPendingNode(m_pendingRecords.m_sources);
-        else if (mediaClass == "Audio/Sink")
+            return;
+        }
+        if (mediaClass == "Audio/Sink" || mediaClass == "Audio/Sink/Virtual") {
             addPendingNode(m_pendingRecords.m_sinks);
+            return;
+        }
+
         break;
     }
     default:
@@ -380,26 +382,40 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
 
     // we brute-force re-create the device list ... not smart and it can certainly be improved
     for (NodeRecord &sinkOrSource : sinksOrSources) {
-        ObjectSerial deviceSerial = sinkOrSource.deviceSerial;
-
-        auto deviceIt = m_devices.find(deviceSerial);
-        if (deviceIt == m_devices.end()) {
-            qDebug(lcPipewireDeviceMonitor) << "No device for device id" << deviceSerial;
-            continue;
-        }
-
+        std::optional<ObjectSerial> deviceSerial = sinkOrSource.deviceSerial;
         std::optional<std::string_view> nodeName = getNodeName(sinkOrSource.properties);
         bool isDefault = (defaultSinkOrSourceNodeName == nodeName);
 
+        std::optional<QByteArray> sysFsPath = [&]() -> std::optional<QByteArray> {
+            if (!deviceSerial)
+                return std::nullopt;
+
+            auto deviceIt = m_devices.find(*deviceSerial);
+            if (deviceIt == m_devices.end()) {
+                qDebug(lcPipewireDeviceMonitor) << "No device for device id" << *deviceSerial;
+                return std::nullopt;
+            }
+
+            std::optional<std::string_view> deviceSysfsPath =
+                    getDeviceSysfsPath(deviceIt->second.properties);
+
+            if (!deviceSysfsPath)
+                return std::nullopt;
+
+            return QByteArray{
+                *deviceSysfsPath,
+            };
+        }();
+
         auto devicePrivate = std::make_unique<QPipewireAudioDevicePrivate>(
-                sinkOrSource.properties, deviceIt->second.properties, sinkOrSource.format,
-                QAudioDevice::Mode::Output, isDefault);
+                sinkOrSource.properties, sysFsPath, sinkOrSource.format, QAudioDevice::Mode::Output,
+                isDefault);
 
         QAudioDevice device = QAudioDevicePrivate::createQAudioDevice(std::move(devicePrivate));
 
         newDeviceList.push_back(device);
 
-        qDebug(lcPipewireDeviceMonitor) << "adding device" << deviceIt->second.properties;
+        qDebug(lcPipewireDeviceMonitor) << "adding device" << sysFsPath;
     }
 
     // sort by description
@@ -536,7 +552,7 @@ void QAudioDeviceMonitor::startCompressionTimer()
 }
 
 QAudioDeviceMonitor::PendingNodeRecord::PendingNodeRecord(ObjectId object, ObjectSerial serial,
-                                                          ObjectSerial deviceSerial,
+                                                          std::optional<ObjectSerial> deviceSerial,
                                                           PwPropertyDict properties):
     serial{
         serial,
