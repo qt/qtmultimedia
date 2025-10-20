@@ -102,7 +102,7 @@ QT_BEGIN_NAMESPACE
     }
     \endqml
 
-    On hardware that supports it, QCamera lets you adjust the focus
+    On hardware that supports it, \l Camera lets you adjust the focus
     and zoom. This also includes functionality such as a
     "Macro" mode for close up work (e.g. reading barcodes, or
     recognizing letters), or "touch to focus" - indicating an
@@ -453,8 +453,8 @@ QPlatformCamera *QCamera::platformCamera()
 
     Gets or sets the currently active camera device.
 
-    When switching camera devices, the QCamera's capabilities are updated.
-    Additionally, the QCamera's control properties (such as \l focusMode,
+    When switching camera devices, the \l Camera's capabilities are updated.
+    Additionally, the \l Camera's control properties (such as \l focusMode,
     \l flashMode, \l focusDistance, \l zoomFactor) are updated as follows:
 
     \list
@@ -471,6 +471,19 @@ QPlatformCamera *QCamera::platformCamera()
     \property QCamera::cameraDevice
 
     Returns the QCameraDevice object associated with this camera.
+
+    When switching camera devices, the \l QCamera's capabilities are updated.
+    Additionally, the \l QCamera's control properties (such as \l focusMode,
+    \l flashMode, \l focusDistance, \l zoomFactor) are updated as follows:
+
+    \list
+        \li If a property is supported on the new device, the property value is applied to the
+            camera device.
+        \li If a property is supported but its range of valid values was changed, the property
+            is clamped to the new range and applied to the camera device.
+        \li If the new camera device does not support a property, the property value is reset
+            to default, and no changes are made to the camera device.
+    \endlist
  */
 QCameraDevice QCamera::cameraDevice() const
 {
