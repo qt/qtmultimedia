@@ -95,7 +95,7 @@ protected:
 
     bool checkCameraPermission();
 
-    void updateCameraConfiguration();
+    void updateCameraConfiguration(const QCameraDevice &);
     void updateSupportedFeatures(const QCameraDevice &);
     void applyFlashSettings();
 
