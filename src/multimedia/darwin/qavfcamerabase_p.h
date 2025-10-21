@@ -96,7 +96,7 @@ protected:
     bool checkCameraPermission();
 
     void updateCameraConfiguration();
-    void updateSupportedFeatures();
+    void updateSupportedFeatures(const QCameraDevice &);
     void applyFlashSettings();
 
     // Applies the focusDistance to the AVCaptureDevice.

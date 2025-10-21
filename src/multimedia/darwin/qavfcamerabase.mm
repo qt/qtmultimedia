@@ -143,7 +143,7 @@ void QAVFCameraBase::setCamera(const QCameraDevice &camera)
     // Setting camera format and properties must happen after the
     // backend applies backend specific device changes.
     setCameraFormat({});
-    updateSupportedFeatures();
+    updateSupportedFeatures(camera);
     updateCameraConfiguration();
 }
 
@@ -510,12 +510,10 @@ void QAVFCameraBase::updateCameraConfiguration()
 #endif // Q_OS_IOS
 }
 
-// Updates the supportedFeatures() flags based on the current
-// AVCaptureDevice.
-void QAVFCameraBase::updateSupportedFeatures()
+void QAVFCameraBase::updateSupportedFeatures(const QCameraDevice &cameraDevice)
 {
     QCamera::Features features;
-    AVCaptureDevice *captureDevice = device();
+    AVCaptureDevice *captureDevice = tryGetAvCaptureDevice(cameraDevice);
 
     if (captureDevice) {
         if ([captureDevice isFocusPointOfInterestSupported])
