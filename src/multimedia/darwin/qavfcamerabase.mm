@@ -144,7 +144,7 @@ void QAVFCameraBase::setCamera(const QCameraDevice &camera)
     // backend applies backend specific device changes.
     setCameraFormat({});
     updateSupportedFeatures(camera);
-    updateCameraConfiguration();
+    updateCameraConfiguration(camera);
 }
 
 bool QAVFCameraBase::setCameraFormat(const QCameraFormat &newFormat)
@@ -367,9 +367,14 @@ void QAVFCameraBase::setFocusDistance(float distance)
     focusDistanceChanged(distance);
 }
 
-void QAVFCameraBase::updateCameraConfiguration()
+void QAVFCameraBase::updateCameraConfiguration(const QCameraDevice &cameraDevice)
 {
-    AVCaptureDevice *captureDevice = device();
+    // TODO: Several of these properties should only be applied to the physical
+    // device if we are currently active.
+
+    AVCaptureDevice *captureDevice = tryGetAvCaptureDevice(cameraDevice);
+    // TODO: If the new incoming device is not connected, should reset
+    // existing capabilities.
     if (!captureDevice) {
         qCDebug(qLcCamera) << Q_FUNC_INFO << "capture device is nil when trying to update QAVFCamera";
         return;
