@@ -96,6 +96,8 @@ private:
 bool QCameraDevice::operator!=(const QCameraDevice &other) const { return !operator==(other); }
 
 #ifndef QT_NO_DEBUG_STREAM
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QCameraFormat&);
+
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QCameraDevice&);
 #endif
 

@@ -7,6 +7,7 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
 
 /*!
     \class QCameraFormat
@@ -463,9 +464,32 @@ QCameraDevice& QCameraDevice::operator=(const QCameraDevice& other) = default;
 */
 
 #ifndef QT_NO_DEBUG_STREAM
+QDebug operator<<(QDebug d, const QCameraFormat &format)
+{
+    if (format.isNull())
+        d.maybeSpace() << u"QCameraFormat(null)"_s;
+    else {
+        const char *pixelFormatCharPtr = QMetaEnum::fromType<QVideoFrameFormat::PixelFormat>()
+            .valueToKey(format.pixelFormat());
+        QString pixelFormatString = pixelFormatCharPtr
+            ? QString::fromUtf8(pixelFormatCharPtr)
+            : u"Invalid"_s;
+
+        d.maybeSpace()
+            << u"QCameraFormat(resolution=%1x%2, pixelFormat=%3, minFrameRate=%4, maxFrameRate=%5"_s
+            .arg(format.resolution().width())
+            .arg(format.resolution().height())
+            .arg(pixelFormatString)
+            .arg(format.minFrameRate())
+            .arg(format.maxFrameRate());
+    }
+
+    return d.space();
+}
+
 QDebug operator<<(QDebug d, const QCameraDevice &camera)
 {
-    d.maybeSpace() << QStringLiteral("QCameraDevice(name=%1, id=%2, position=%3)")
+    d.maybeSpace() << u"QCameraDevice(name=%1, id=%2, position=%3)"_s
                               .arg(camera.description())
                               .arg(QLatin1StringView(camera.id()))
                               .arg(QLatin1StringView(
