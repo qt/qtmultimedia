@@ -17,11 +17,14 @@
 
 #include <QtMultimedia/qtmultimediaexports.h>
 
+#include <QtGui/rhi/qrhi.h>
+
 QT_BEGIN_NAMESPACE
 
-class QRhi;
-
 Q_MULTIMEDIA_EXPORT QRhi *qEnsureThreadLocalRhi(QRhi *referenceRhi = nullptr);
+
+// Used only for testing
+Q_MULTIMEDIA_EXPORT void qSetPreferredThreadLocalRhiBackend(QRhi::Implementation backend);
 
 QT_END_NAMESPACE
 

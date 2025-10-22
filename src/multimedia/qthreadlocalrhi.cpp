@@ -8,7 +8,6 @@
 #include <QtGui/private/qguiapplication_p.h>
 #include <QtGui/qoffscreensurface.h>
 #include <QtGui/qpa/qplatformintegration.h>
-#include <QtGui/rhi/qrhi.h>
 
 #if defined(Q_OS_ANDROID)
 #  include <QtCore/qmetaobject.h>
@@ -35,21 +34,21 @@ public:
         if (qpa && qpa->hasCapability(QPlatformIntegration::RhiBasedRendering)) {
 
 #if QT_CONFIG(metal)
-            if (referenceBackend == QRhi::Metal || referenceBackend == QRhi::Null) {
+            if (canUseRhiImpl(QRhi::Metal, referenceBackend)) {
                 QRhiMetalInitParams params;
                 m_rhi.reset(QRhi::create(QRhi::Metal, &params));
             }
 #endif
 
 #if defined(Q_OS_WIN)
-            if (referenceBackend == QRhi::D3D11 || referenceBackend == QRhi::Null) {
+            if (!m_rhi && canUseRhiImpl(QRhi::D3D11, referenceBackend)) {
                 QRhiD3D11InitParams params;
                 m_rhi.reset(QRhi::create(QRhi::D3D11, &params));
             }
 #endif
 
 #if QT_CONFIG(opengl)
-            if (!m_rhi && (referenceBackend == QRhi::OpenGLES2 || referenceBackend == QRhi::Null)) {
+            if (!m_rhi && canUseRhiImpl(QRhi::OpenGLES2, referenceBackend)) {
                 if (qpa->hasCapability(QPlatformIntegration::OpenGL)
                     && qpa->hasCapability(QPlatformIntegration::RasterGLSurface)
                     && !QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets)) {
@@ -93,6 +92,12 @@ public:
         return m_rhi.get();
     }
 
+    void setPreferredBackend(QRhi::Implementation backend)
+    {
+        m_preferredBackend = backend;
+        resetRhi();
+    }
+
 private:
     void resetRhi()
     {
@@ -103,7 +108,23 @@ private:
         m_cpuOnly = false;
     }
 
+    bool canUseRhiImpl(const QRhi::Implementation implementation,
+                       const QRhi::Implementation reference)
+    {
+        // First priority goes to reference backend
+        if (reference != QRhi::Null)
+            return implementation == reference;
+
+        // If no reference, but preference exists, compare to that
+        if (m_preferredBackend != QRhi::Null)
+            return implementation == m_preferredBackend;
+
+        // Can use (assuming platform and configuration allow)
+        return true;
+    }
+
 private:
+    QRhi::Implementation m_preferredBackend = QRhi::Null;
     std::unique_ptr<QRhi> m_rhi;
 #if QT_CONFIG(opengl)
     std::unique_ptr<QOffscreenSurface> m_fallbackSurface;
@@ -137,6 +158,11 @@ QRhi *qEnsureThreadLocalRhi(QRhi *referenceRhi)
         g_threadLocalRhiHolder.emplace();
 
     return g_threadLocalRhiHolder->ensureRhi(referenceRhi);
+}
+
+void qSetPreferredThreadLocalRhiBackend(QRhi::Implementation backend)
+{
+    g_threadLocalRhiHolder->setPreferredBackend(backend);
 }
 
 QT_END_NAMESPACE
