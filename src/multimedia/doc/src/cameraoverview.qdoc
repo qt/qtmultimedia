@@ -259,12 +259,6 @@ These settings include:
 Most cameras support automatic settings for all of these, so you shouldn't need
 to adjust them unless the user wants a specific setting.
 
-\section3 Canceling Asynchronous Operations
-
-Various operations, such as image capture and auto focusing, occur asynchronously.
-These operations can often be canceled by the start of a new operation, as long
-as this is supported by the camera.
-
 \section1 Examples
 
 There are both C++ and QML examples available.
