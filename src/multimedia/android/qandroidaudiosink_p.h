@@ -28,7 +28,7 @@ namespace QtAAudio {
 class QAndroidAudioSink;
 
 class QAndroidAudioSinkStream final : public std::enable_shared_from_this<QAndroidAudioSinkStream>,
-                                      QtMultimediaPrivate::QPlatformAudioSinkStream
+                                      public QtMultimediaPrivate::QPlatformAudioSinkStream
 {
     using QPlatformAudioSinkStream = QtMultimediaPrivate::QPlatformAudioSinkStream;
     using AudioEndpointRole = QtMultimediaPrivate::AudioEndpointRole;

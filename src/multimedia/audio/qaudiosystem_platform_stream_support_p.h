@@ -123,6 +123,8 @@ public:
     using QPlatformAudioIOStream::ShutdownPolicy;
     using AudioCallback = QPlatformAudioSink::AudioCallback;
 
+    using QPlatformAudioIOStream::requestStop;
+
 protected:
     QPlatformAudioSinkStream(QAudioDevice, const QAudioFormat &, std::optional<int> ringbufferSize,
                              std::optional<int32_t> hardwareBufferFrames, float volume);
@@ -238,6 +240,8 @@ class QPlatformAudioSourceStream : protected QPlatformAudioIOStream
 public:
     using QPlatformAudioIOStream::ShutdownPolicy;
     using AudioCallback = QPlatformAudioSource::AudioCallback;
+
+    using QPlatformAudioIOStream::requestStop;
 
 protected:
     QPlatformAudioSourceStream(QAudioDevice, const QAudioFormat &,

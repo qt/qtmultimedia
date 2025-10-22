@@ -23,7 +23,7 @@ QT_BEGIN_NAMESPACE
 
 class QDarwinAudioSource;
 
-class QCoreAudioSourceStream final : QtMultimediaPrivate::QPlatformAudioSourceStream
+class QCoreAudioSourceStream final : public QtMultimediaPrivate::QPlatformAudioSourceStream
 {
     using QPlatformAudioSourceStream = QtMultimediaPrivate::QPlatformAudioSourceStream;
 
