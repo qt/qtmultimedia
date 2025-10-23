@@ -6,6 +6,11 @@ accept_configuration:
 
 instructions:
   Build:
+    # In Qt Multimedia we want CI to always build manual tests to avoid bitrot.
+    - type: AppendToEnvironmentVariable
+      variableName: COMMON_TEST_CMAKE_ARGS
+      variableValue: " -DQT_BUILD_MANUAL_TESTS=ON"
+
     - !include "{{qt/qtmultimedia}}/configure_tests_environment_for_ffmpeg_backend.yaml"
     - type: EnvironmentVariable
       variableName: VERIFY_SOURCE_SBOM
