@@ -136,13 +136,29 @@ void QAVFCameraBase::setCamera(const QCameraDevice &camera)
 {
     if (m_cameraDevice == camera)
         return;
+
+    // TODO: At the time of writing, a quirk in the QCamera code is that
+    // device-changes are implemented as setCamera() + setCameraFormat({}).
+    // This means that camera-changes always involve resetting the format
+    // to what is default for the new device. In the future, we should
+    // ideally pass down the new format as a parameter, and perform
+    // the two operations as a single atomic one.
+    //
+    // onCameraDeviceChanged() is allowed to shut down the camera session
+    // and clean up resources if configuration fails for the new device.
+    // This causes QTBUG-141376. Until we improve the architecture, this
+    // code will apply camera-device and format as one atomic operation.
+    QCameraFormat newFormat = findBestCameraFormat(camera);
+    Q_ASSERT(!newFormat.isNull());
+
+    // TODO: onCameraDeviceChanged can fail to keep the camera-session active
+    // if we are switching to a camera-device that is not available. In the
+    // future this should return a q23::expected and let us handle the error.
+    onCameraDeviceChanged(camera, newFormat);
+
     m_cameraDevice = camera;
+    m_cameraFormat = newFormat;
 
-    onCameraDeviceChanged(camera);
-
-    // Setting camera format and properties must happen after the
-    // backend applies backend specific device changes.
-    setCameraFormat({});
     updateSupportedFeatures(camera);
     updateCameraConfiguration(camera);
 }

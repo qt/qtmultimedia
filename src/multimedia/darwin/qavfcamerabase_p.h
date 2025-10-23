@@ -87,7 +87,9 @@ protected:
     // guaranteed to have been granted already.
     virtual void onActiveChanged(bool active) = 0;
     // Called by setCamera() when the camera is successfully changed.
-    virtual void onCameraDeviceChanged(const QCameraDevice &device) = 0;
+    virtual void onCameraDeviceChanged(
+        const QCameraDevice &,
+        const QCameraFormat &) = 0;
     // Should be implemented by the backend to apply the camera-format
     // to the physical camera if possible.
     // Returns true if the format was successfully applied.

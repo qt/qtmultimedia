@@ -63,7 +63,7 @@ signals:
 
 protected:
     void onActiveChanged(bool active) override;
-    void onCameraDeviceChanged(const QCameraDevice &device) override;
+    void onCameraDeviceChanged(const QCameraDevice &, const QCameraFormat &) override;
     bool tryApplyCameraFormat(const QCameraFormat&) override;
 
 private:

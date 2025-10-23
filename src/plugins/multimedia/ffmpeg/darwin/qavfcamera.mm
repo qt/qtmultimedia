@@ -551,14 +551,19 @@ void QAVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     m_qMediaCaptureSession = session ? session->captureSession() : nullptr;
 }
 
-void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &newCameraDevice)
+void QAVFCamera::onCameraDeviceChanged(
+    const QCameraDevice &newCameraDevice,
+    const QCameraFormat &newFormat)
 {
+    // The incoming format should never be null if the incoming device is not null.
+    Q_ASSERT(newCameraDevice.isNull() || !newFormat.isNull());
+
     // We cannot call AVCaptureSession.stopRunning() inside a
     // AVCaptureSession configuration scope, so we wrap that scope in
     // a lambda and call stopRunning() afterwards if configuration
     // fails for the new QCameraDevice.
 
-    auto tryChangeDeviceFn = [this, &newCameraDevice]() -> q23::expected<void, QString> {
+    auto tryChangeDeviceFn = [&]() -> q23::expected<void, QString> {
         // Using this configuration transaction, we can clear up
         // resources and establish new ones without having to do slow
         // and synchronous calls to AVCaptureSession.stopRunning and startRunning.
@@ -581,7 +586,7 @@ void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &newCameraDevice)
 
         q23::expected<void, QString> configureResult = tryConfigureCaptureSession(
             newCameraDevice,
-            cameraFormat());
+            newFormat);
         if (!configureResult) {
             clearCaptureSessionConfiguration();
             return configureResult;
