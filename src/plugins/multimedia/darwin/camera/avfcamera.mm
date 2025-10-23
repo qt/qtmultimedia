@@ -25,13 +25,23 @@ void AVFCamera::onActiveChanged(bool active)
         m_session->setActive(active);
 }
 
-void AVFCamera::onCameraDeviceChanged(const QCameraDevice &device)
+void AVFCamera::onCameraDeviceChanged(
+    const QCameraDevice &newCameraDevice,
+    const QCameraFormat &newFormat)
 {
-    if (device.isNull() || !checkCameraPermission())
+    // The incoming format should never be null if the incoming device is not null.
+    Q_ASSERT(newCameraDevice.isNull() || !newFormat.isNull());
+
+    if (newCameraDevice.isNull() || !checkCameraPermission())
         return;
 
-    if (m_session)
-        m_session->setActiveCamera(device);
+    if (m_session) {
+        // TODO: In the future, we should pass the new format into setActiveCamera,
+        // and determine if we can keep the camera-stream active with the new
+        // device + format. Then we should propagate any errors up the call stack.
+        m_session->setActiveCamera(newCameraDevice);
+        m_session->setCameraFormat(newFormat);
+    }
 }
 
 bool AVFCamera::tryApplyCameraFormat(const QCameraFormat &newFormat)
