@@ -533,7 +533,7 @@ void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &newCameraDevice)
             return {};
 
         q23::expected<void, QString> configureResult = tryConfigureCaptureSession(
-            m_cameraDevice,
+            newCameraDevice,
             cameraFormat());
         if (!configureResult) {
             clearCaptureSessionConfiguration();
