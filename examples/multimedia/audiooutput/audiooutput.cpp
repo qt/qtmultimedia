@@ -350,7 +350,7 @@ void AudioTest::sampleFormatChanged(int index)
     applyAudioFormat(device, newFormat);
 }
 
-void AudioTest::sampleRateChanged(int index)
+void AudioTest::sampleRateChanged([[maybe_unused]] int index)
 {
     QAudioDevice device = m_deviceBox->currentData().value<QAudioDevice>();
     QAudioFormat newFormat = m_audioSink->format();
@@ -360,7 +360,7 @@ void AudioTest::sampleRateChanged(int index)
     applyAudioFormat(device, newFormat);
 }
 
-void AudioTest::channelCountChanged(int index)
+void AudioTest::channelCountChanged([[maybe_unused]] int index)
 {
     QAudioDevice device = m_deviceBox->currentData().value<QAudioDevice>();
     QAudioFormat newFormat = m_audioSink->format();
