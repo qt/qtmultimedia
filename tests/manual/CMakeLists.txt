@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 add_subdirectory(audiodecoder)
-add_subdirectory(mediadevices)
-add_subdirectory(mediaformats)
 add_subdirectory(media-metadata)
 add_subdirectory(minimal-audio-recorder)
 add_subdirectory(minimal-audio-callback-io)
@@ -11,6 +9,11 @@ add_subdirectory(minimal-player)
 add_subdirectory(minimal-screen-recorder)
 add_subdirectory(wasm)
 add_subdirectory(mediaframeinputs)
+
+if (NOT ANDROID AND NOT IOS)
+    add_subdirectory(mediadevices)
+    add_subdirectory(mediaformats)
+endif()
 
 if(QT_FEATURE_gstreamer)
     add_subdirectory(gstreamer-custom-camera)
