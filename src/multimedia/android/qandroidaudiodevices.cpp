@@ -1,21 +1,18 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qandroidaudiodevices_p.h"
+#include <QtMultimedia/private/qandroidaudiodevices_p.h>
 
-#include "qandroidaudiodevice_p.h"
-#include "qandroidaudiosink_p.h"
-#include "qandroidaudiosource_p.h"
+#include <QtMultimedia/private/qandroidaudiodevice_p.h>
+#include <QtMultimedia/private/qandroidaudiojnitypes_p.h>
+#include <QtMultimedia/private/qandroidaudiosink_p.h>
+#include <QtMultimedia/private/qandroidaudiosource_p.h>
 
-#include <private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 #include <QtCore/qjniobject.h>
 
 QT_BEGIN_NAMESPACE
-
-Q_DECLARE_JNI_CLASS(QtAudioDeviceManager,
-                    "org/qtproject/qt/android/multimedia/QtAudioDeviceManager");
-Q_DECLARE_JNI_CLASS(AudioDeviceInfo, "android/media/AudioDeviceInfo");
 
 using namespace QtJniTypes;
 
