@@ -14,7 +14,7 @@
 //
 // We mean it.
 //
-#include "private/qplatformaudiodecoder_p.h"
+#include <QtMultimedia/private/qplatformaudiodecoder_p.h>
 
 #include <QtCore/qurl.h>
 #include <QThread>
@@ -24,8 +24,7 @@
 #include "media/NdkMediaFormat.h"
 #include "media/NdkMediaError.h"
 
-
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class Decoder : public QObject
 {
