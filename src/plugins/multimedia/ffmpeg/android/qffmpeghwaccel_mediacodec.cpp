@@ -17,6 +17,8 @@ extern "C" {
 #    error "Configuration error"
 #endif
 
+QT_BEGIN_NAMESPACE
+
 namespace QFFmpeg {
 
 namespace {
@@ -139,3 +141,6 @@ MediaCodecTextureConverter::createTextureHandles(AVFrame *frame,
                                                       externalTexture->nativeTexture().object);
 }
 }
+
+QT_END_NAMESPACE
+

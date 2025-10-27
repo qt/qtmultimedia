@@ -18,6 +18,10 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include <memory>
 
+#include <QtCore/qtconfigmacros.h>
+
+QT_BEGIN_NAMESPACE
+
 namespace QFFmpeg {
 struct Frame;
 
@@ -38,4 +42,7 @@ private:
     quint64 m_currentSurfaceIndex = 0;
 };
 }
+
+QT_END_NAMESPACE
+
 #endif // QFFMPEGHWACCEL_MEDIACODEC_P_H
