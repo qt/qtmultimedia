@@ -21,6 +21,10 @@
 #include <QJniObject>
 #include <QtCore/qjnitypes.h>
 
+#include <QtCore/qtconfigmacros.h>
+
+QT_BEGIN_NAMESPACE
+
 Q_DECLARE_JNI_CLASS(QtCamera2, "org/qtproject/qt/android/multimedia/QtCamera2")
 Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
                     "org/qtproject/qt/android/multimedia/QtVideoDeviceManager")
@@ -87,5 +91,7 @@ private:
         HEIC = 1212500294
     };
 };
+
+QT_END_NAMESPACE
 
 #endif // QANDROIDVIDEOFRAMEBUFFER_P_H
