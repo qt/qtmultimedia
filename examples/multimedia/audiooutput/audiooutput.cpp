@@ -206,14 +206,11 @@ void AudioTest::initializeWindow()
     const QAudioFormat pref = defaultDeviceInfo.preferredFormat();
     syncFormatGui(m_formatBox, m_channelsBox, m_rateBox, pref);
 
-    connect(m_channelsBox, &QComboBox::activated,
-            this, &AudioTest::channelCountChanged);
-
-    connect(m_rateBox, &QComboBox::activated,
-            this, &AudioTest::sampleRateChanged);
-
-    connect(m_formatBox, &QComboBox::activated,
-            this, &AudioTest::sampleFormatChanged);
+    for (auto box : {m_channelsBox, m_rateBox, m_formatBox}) {
+        connect(box, &QComboBox::activated, this, [this, box]() {
+            formatChanged(box);
+        });
+    }
 
     // add all to the same row
     formatBox->addWidget(formatLabel);
@@ -339,32 +336,20 @@ void AudioTest::volumeChanged(int value)
     m_audioSink->setVolume(linearVolume);
 }
 
-void AudioTest::sampleFormatChanged(int index)
+void AudioTest::formatChanged(QComboBox *box)
 {
     QAudioDevice device = m_deviceBox->currentData().value<QAudioDevice>();
     QAudioFormat newFormat = m_audioSink->format();
 
-    newFormat.setSampleFormat(static_cast<QAudioFormat::SampleFormat>(
-            m_formatBox->itemData(index).toInt()));
+    if (box == m_formatBox) {
+        newFormat.setSampleFormat(
+            static_cast<QAudioFormat::SampleFormat>(box->currentData().toInt()));
+    } else if (box == m_rateBox) {
+        newFormat.setSampleRate(box->currentData().toInt());
+    } else if (box == m_channelsBox) {
+        newFormat.setChannelCount(box->currentData().toInt());
+    }
 
-    applyAudioFormat(device, newFormat);
-}
-
-void AudioTest::sampleRateChanged([[maybe_unused]] int index)
-{
-    QAudioDevice device = m_deviceBox->currentData().value<QAudioDevice>();
-    QAudioFormat newFormat = m_audioSink->format();
-
-    newFormat.setSampleRate(m_rateBox->currentData().toInt());
-
-    applyAudioFormat(device, newFormat);
-}
-
-void AudioTest::channelCountChanged([[maybe_unused]] int index)
-{
-    QAudioDevice device = m_deviceBox->currentData().value<QAudioDevice>();
-    QAudioFormat newFormat = m_audioSink->format();
-    newFormat.setChannelCount(m_channelsBox->currentData().toInt());
     applyAudioFormat(device, newFormat);
 }
 
