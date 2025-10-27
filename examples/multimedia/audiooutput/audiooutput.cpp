@@ -178,9 +178,9 @@ void AudioTest::initializeWindow()
 
     // populate the sample format combo box
     // supportedSampleFormats returns enum so we cast it to string.
-    for (QAudioFormat::SampleFormat fmt : defaultDeviceInfo.supportedSampleFormats()) {
+    const auto formats = defaultDeviceInfo.supportedSampleFormats();
+    for (const QAudioFormat::SampleFormat fmt : formats)
         m_formatBox->addItem(sampleFormatToString(fmt), QVariant::fromValue(fmt));
-    }
 
     //Sample rate button
     QLabel *rateLabel = new QLabel;
@@ -317,13 +317,13 @@ void AudioTest::deviceChanged(int index)
 
     QAudioDevice dev = m_deviceBox->itemData(index).value<QAudioDevice>();
 
-    // formats (per device)
+    // formats
     m_formatBox->clear();
-    for (QAudioFormat::SampleFormat sf : dev.supportedSampleFormats())
+    const auto formats = dev.supportedSampleFormats();
+    for (const QAudioFormat::SampleFormat sf : formats)
         m_formatBox->addItem(sampleFormatToString(sf), QVariant::fromValue(sf));
 
-
-    // channels (per device)
+    // channels
     m_channelsBox->clear();
     for (int ch = dev.minimumChannelCount(); ch <= dev.maximumChannelCount(); ++ch)
         m_channelsBox->addItem(QString::number(ch), ch);
@@ -404,7 +404,7 @@ void AudioTest::restartAudioStream()
         auto io = m_audioSink->start();
         m_pushTimer->disconnect();
 
-        connect(m_pushTimer, &QTimer::timeout, [this, io]() {
+        connect(m_pushTimer, &QTimer::timeout, this, [this, io]() {
             if (m_audioSink->state() == QAudio::StoppedState)
                 return;
 
