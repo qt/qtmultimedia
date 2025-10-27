@@ -1,17 +1,15 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qandroidaudiosource_p.h"
-
-#include "qandroidaudioutil_p.h"
+#include <QtMultimedia/private/qandroidaudiosource_p.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qpermissions.h>
 
-QT_BEGIN_NAMESPACE
+#include <QtMultimedia/private/qandroidaudiojnitypes_p.h>
+#include <QtMultimedia/private/qandroidaudioutil_p.h>
 
-Q_DECLARE_JNI_CLASS(QtAudioDeviceManager,
-                    "org/qtproject/qt/android/multimedia/QtAudioDeviceManager");
+QT_BEGIN_NAMESPACE
 
 namespace QtAAudio {
 
