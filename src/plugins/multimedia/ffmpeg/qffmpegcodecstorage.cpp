@@ -24,14 +24,11 @@ extern "C" {
 #  include <QtCore/qjniobject.h>
 #  include <QtCore/qjniarray.h>
 #  include <QtCore/qjnitypes.h>
+
+#  include <QtFFmpegMediaPluginImpl/private/qandroidvideojnitypes_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
-
-#ifdef Q_OS_ANDROID
-Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
-                    "org/qtproject/qt/android/multimedia/QtVideoDeviceManager")
-#endif // Q_OS_ANDROID
 
 Q_STATIC_LOGGING_CATEGORY(qLcCodecStorage, "qt.multimedia.ffmpeg.codecstorage");
 
