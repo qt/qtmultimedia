@@ -234,6 +234,7 @@ if (ANDROID)
         SOURCES
             android/qffmpeghwaccel_mediacodec.cpp android/qffmpeghwaccel_mediacodec_p.h
             android/qandroidcamera_p.h android/qandroidcamera.cpp
+            android/qandroidvideojnitypes_p.h
             android/qandroidvideodevices.cpp android/qandroidvideodevices_p.h
             android/qandroidvideoframebuffer_p.h android/qandroidvideoframebuffer.cpp
             android/qandroidvideoframefactory_p.h android/qandroidvideoframefactory.cpp
