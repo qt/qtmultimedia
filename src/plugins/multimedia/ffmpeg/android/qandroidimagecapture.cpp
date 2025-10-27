@@ -65,3 +65,6 @@ void QAndroidImageCapture::updateExif(int id, const QString &filename)
 }
 
 } // namespace QFFmpeg
+
+QT_END_NAMESPACE
+
