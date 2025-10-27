@@ -14,6 +14,7 @@
 // We mean it.
 //
 
+#include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
 #include <QtCore/private/qexpected_p.h>
 
@@ -38,7 +39,6 @@ class QImageCapture;
 class QMediaDevices;
 class QMediaPlayer;
 class QMediaRecorder;
-class QObject;
 class QPlatformAudioDecoder;
 class QPlatformAudioDevices;
 class QPlatformAudioInput;
