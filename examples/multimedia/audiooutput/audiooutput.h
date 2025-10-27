@@ -76,9 +76,7 @@ private:
     void restartAudioStream();
 
 private slots:
-    void channelCountChanged(int index);
-    void sampleRateChanged(int index);
-    void sampleFormatChanged(int index);
+    void formatChanged(QComboBox *box);
     void toggleMode();
     void toggleSuspendResume();
     void deviceChanged(int index);
