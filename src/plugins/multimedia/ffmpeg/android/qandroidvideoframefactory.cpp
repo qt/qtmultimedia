@@ -49,3 +49,5 @@ void QAndroidVideoFrameFactory::onFrameReleased()
     const int currentCounter = m_framesCounter.fetch_sub(1, std::memory_order_relaxed);
     Q_ASSERT(currentCounter >= 0);
 }
+
+QT_END_NAMESPACE

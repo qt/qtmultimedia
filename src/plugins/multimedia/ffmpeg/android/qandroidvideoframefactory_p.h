@@ -18,6 +18,10 @@
 #include <QtFFmpegMediaPluginImpl/private/qandroidvideoframebuffer_p.h>
 #include <memory>
 
+#include <QtCore/qtconfigmacros.h>
+
+QT_BEGIN_NAMESPACE
+
 class QAndroidVideoFrameFactory : public QAndroidVideoFrameBuffer::FrameReleaseDelegate
                                 , public std::enable_shared_from_this<QAndroidVideoFrameFactory>
 {
@@ -38,5 +42,7 @@ private:
     std::atomic_int m_framesCounter = 0;
     qint64 m_lastTimestamp = 0;
 };
+
+QT_END_NAMESPACE
 
 #endif // QANDROIDVIDEOFRAMEFACTORY_H
