@@ -103,14 +103,14 @@ in your application. To perform this check in C++, use the
 Access a camera using the \l QCamera class in C++ or the \l Camera
 type in QML.
 
-When multiple cameras are available, you can specify which one to use.
+When multiple camera-devices are available, you can specify which one to use.
 
 In C++:
 
      \snippet multimedia-snippets/camera.cpp Camera selection
 
 In QML, you can select the camera by setting the \l{Camera::cameraDevice} property.
-You can also select a camera by its physical position on the system rather than
+In C++, you can also select a camera-device by its physical orientation rather than
 by camera info. This is useful on mobile devices, which often have a
 front-facing and a back-facing camera.
 
@@ -118,25 +118,18 @@ In C++:
 
     \snippet multimedia-snippets/camera.cpp Camera overview position
 
+If no QCameraDevice is specified, the default device will be used. The
+default device is chosen based on information provided by the operating
+system. On desktop platforms, the default camera is commonly set by the
+end-user in the system settings. On a mobile device, the back-facing
+camera is usually the default camera-device. You can get the default
+camera-device with \l QMediaDevices::defaultVideoInput() in C++, or
+\l MediaDevices.defaultVideoInput in QML.
 
-In QML, you can set the \c Camera \l{Camera::cameraDevice}{cameraDevice} property.
-Available cameras can be retrieved with MediaDevices.videoInputs
-
-In QML:
-
-\qml
-Camera {
-    position: Camera.FrontFace
-}
-\endqml
-
-
-If both QCameraDevice and position aren't specified, the default camera
-will be used. On desktop platforms, the default camera is set by the
-user in the system settings. On a mobile device, the back-facing camera
-is usually the default camera. You can get the default camera with
-QMediaDevices::defaultVideoInput() or MediaDevices.defaultVideoInput
-in QML.
+The default camera-device may change over time, i.e as a result of the
+end-user disconnecting the current default camera-device. Application
+developers may track the change by querying the default camera-device
+again when the signal \l QMediaDevices::videoInputsChanged is emitted.
 
 \section2 Preview
 
