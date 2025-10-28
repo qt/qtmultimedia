@@ -33,7 +33,7 @@ QT_BEGIN_NAMESPACE
     \ingroup qmlvaluetypes
     \inqmlmodule QtMultimedia
     \since 6.2
-    //! \nativetype QCameraFormat
+    \nativetype QCameraFormat
     \brief Describes a video format supported by a camera device.
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
@@ -226,7 +226,7 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
     \ingroup qmlvaluetypes
     \inqmlmodule QtMultimedia
     \since 6.2
-    //! \nativetype QCameraDevice
+    \nativetype QCameraDevice
     \brief Describes a camera device.
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
