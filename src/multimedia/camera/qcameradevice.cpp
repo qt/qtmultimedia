@@ -239,6 +239,10 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
     modified. To keep track of updated properties, the user should load new instances
     of cameraDevice from \l{MediaDevices} when the relevant signals are fired.
 
+    Two cameraDevice instances can be compared for equality. They are
+    considered equal if they represent the same physical device,
+    regardless of whether their properties are equal or up-to-date.
+
     The list of camera devices can be queried from the \l{MediaDevices}
     type. To select a certain camera device set it as the device
     on \l{Camera}.
@@ -271,7 +275,11 @@ QCameraDevice::QCameraDevice(const QCameraDevice &other) = default;
 QCameraDevice::~QCameraDevice() = default;
 
 /*!
-    Returns true if this QCameraDevice represents the same device as \a other.
+    Returns true if this \l QCameraDevice represents the same device as \a other.
+
+    Due to the behavior of the properties in QCameraDevice, two
+    QCameraDevice instances can be considered equal even if not
+    all the properties are equal.
 */
 bool QCameraDevice::operator==(const QCameraDevice &other) const
 {
@@ -289,7 +297,7 @@ bool QCameraDevice::isNull() const
 /*!
     \qmlproperty string QtMultimedia::cameraDevice::id
 
-   Holds he device id of the camera
+    Holds the device id of the camera
 
     This is a unique ID to identify the camera and may not be human-readable.
 */
@@ -459,7 +467,8 @@ QCameraDevice& QCameraDevice::operator=(const QCameraDevice& other) = default;
 /*!
     \fn QCameraDevice::operator!=(const QCameraDevice &other) const
 
-    Returns true if this QCameraDevice is different from \a other.
+    Returns true if this QCameraDevice does not represent the same
+    device as \a other.
 */
 
 #ifndef QT_NO_DEBUG_STREAM
