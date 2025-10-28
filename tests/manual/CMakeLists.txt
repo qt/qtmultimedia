@@ -1,10 +1,21 @@
 # Copyright (C) 2024 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
+include(CheckCXXSourceCompiles)
+
+check_cxx_source_compiles("
+    #include <ranges>
+    int main() { return 0; }
+" COMPILER_SUPPORTS_STD_RANGES)
+
 add_subdirectory(audiodecoder)
 add_subdirectory(media-metadata)
 add_subdirectory(minimal-audio-recorder)
-add_subdirectory(minimal-audio-callback-io)
+# minimal-audio-callback-io relies on <ranges>. At the time of writing,
+# some targets in CI run compilers that do not support this.
+if (COMPILER_SUPPORTS_STD_RANGES)
+    add_subdirectory(minimal-audio-callback-io)
+endif()
 add_subdirectory(minimal-player)
 add_subdirectory(minimal-screen-recorder)
 add_subdirectory(wasm)
