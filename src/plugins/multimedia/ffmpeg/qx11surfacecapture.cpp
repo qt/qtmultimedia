@@ -121,7 +121,7 @@ private:
 
         if (!m_display)
             updateError(QPlatformSurfaceCapture::InternalError,
-                        QLatin1String("Cannot open X11 display"));
+                        QStringLiteral("Cannot open X11 display"));
 
         return m_display != nullptr;
     }
@@ -137,7 +137,7 @@ private:
     bool init(QScreen *screen)
     {
         if (!screen) {
-            updateError(QPlatformSurfaceCapture::NotFound, QLatin1String("Screen Not Found"));
+            updateError(QPlatformSurfaceCapture::NotFound, QStringLiteral("Screen Not Found"));
             return false;
         }
 
@@ -196,7 +196,7 @@ private:
         XWindowAttributes wndattr = {};
         if (XGetWindowAttributes(m_display.get(), m_xid, &wndattr) == 0) {
             updateError(QPlatformSurfaceCapture::CaptureFailed,
-                        QLatin1String("Cannot get window attributes"));
+                        QStringLiteral("Cannot get window attributes"));
             return false;
         }
 
@@ -222,7 +222,7 @@ private:
 
             if (!m_xImage) {
                 updateError(QPlatformSurfaceCapture::CaptureFailed,
-                            QLatin1String("Cannot create image"));
+                            QStringLiteral("Cannot create image"));
                 return false;
             }
 
@@ -231,7 +231,7 @@ private:
             // TODO: probably, add a converter instead
             if (pixelFormat == QVideoFrameFormat::Format_Invalid) {
                 updateError(QPlatformSurfaceCapture::CaptureFailed,
-                            QLatin1String("Not handled pixel format, bpp=")
+                            QStringLiteral("Not handled pixel format, bpp=")
                                     + QString::number(m_xImage->bits_per_pixel));
                 return false;
             }
@@ -240,7 +240,7 @@ private:
 
             if (!m_attached) {
                 updateError(QPlatformSurfaceCapture::CaptureFailed,
-                            QLatin1String("Cannot attach shared memory"));
+                            QStringLiteral("Cannot attach shared memory"));
                 return false;
             }
 
@@ -261,7 +261,7 @@ protected:
         if (!XShmGetImage(m_display.get(), m_xid, m_xImage.get(), m_xOffset, m_yOffset,
                           AllPlanes)) {
             updateError(QPlatformSurfaceCapture::CaptureFailed,
-                        QLatin1String(
+                        QStringLiteral(
                                 "Cannot get ximage; the window may be out of the screen borders"));
             return {};
         }
