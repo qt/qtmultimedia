@@ -20,6 +20,8 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QFFmpeg {
+
 class ActiveCamera;
 
 class QWindowsCamera : public QPlatformCamera
@@ -39,6 +41,8 @@ private:
     QCameraDevice m_cameraDevice;
     std::unique_ptr<ActiveCamera> m_active;
 };
+
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

@@ -186,7 +186,7 @@ QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 #elif QT_CONFIG(linux_v4l)
     return new QV4L2Camera(camera);
 #elif defined(Q_OS_WINDOWS)
-    return new QWindowsCamera(camera);
+    return new QFFmpeg::QWindowsCamera(camera);
 #else
     Q_UNUSED(camera);
     return nullptr;//new QFFmpegCamera(camera);
