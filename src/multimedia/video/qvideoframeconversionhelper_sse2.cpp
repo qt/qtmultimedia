@@ -89,7 +89,7 @@ void QT_FASTCALL qt_copy_pixels_with_mask_sse2(uint32_t *dst, const uint32_t *sr
     QT_MEDIA_ALIGN(16, dst, x, size)
         *(dst++) = *(src++) | mask;
 
-    for (; x < size - (4 * 4 - 1); x += 4 * 4) {
+    for (; x + 4 * 4 <= size; x += 4 * 4) {
         const auto srcData0 = _mm_loadu_si128(reinterpret_cast<const __m128i *>(src));
         const auto srcData1 = _mm_loadu_si128(reinterpret_cast<const __m128i *>(src += 4));
         const auto srcData2 = _mm_loadu_si128(reinterpret_cast<const __m128i *>(src += 4));
@@ -104,7 +104,7 @@ void QT_FASTCALL qt_copy_pixels_with_mask_sse2(uint32_t *dst, const uint32_t *sr
         dst += 4;
     }
 
-    for (; x < size - 3; x += 4) {
+    for (; x + 4 <= size; x += 4) {
         const auto srcData = _mm_loadu_si128(reinterpret_cast<const __m128i *>(src));
 
         _mm_store_si128(reinterpret_cast<__m128i *>(dst), _mm_or_si128(srcData, mask128));
