@@ -46,7 +46,7 @@ private:
 };
 
 static ComPtr<IMFSourceReader> createCameraReader(IMFMediaSource *mediaSource,
-                                                             const ComPtr<CameraReaderCallback> &callback)
+                                                  const ComPtr<CameraReaderCallback> &callback)
 {
     ComPtr<IMFSourceReader> sourceReader;
     ComPtr<IMFAttributes> readerAttributes;
@@ -117,8 +117,7 @@ static bool setCameraReaderFormat(IMFSourceReader *sourceReader, IMFMediaType *v
     return SUCCEEDED(hr);
 }
 
-static ComPtr<IMFMediaType> findVideoType(IMFSourceReader *reader,
-                                                     const QCameraFormat &format)
+static ComPtr<IMFMediaType> findVideoType(IMFSourceReader *reader, const QCameraFormat &format)
 {
     for (DWORD i = 0;; ++i) {
         ComPtr<IMFMediaType> candidate;
@@ -238,7 +237,7 @@ public:
     }
 
 private:
-    explicit ActiveCamera(QWindowsCamera &wc) : m_windowsCamera(wc), m_flushWait(0) {};
+    explicit ActiveCamera(QWindowsCamera &wc) : m_windowsCamera(wc), m_flushWait(0) { }
 
     void flush()
     {
