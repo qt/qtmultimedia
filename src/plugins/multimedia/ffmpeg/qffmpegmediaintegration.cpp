@@ -226,7 +226,7 @@ q23::expected<QPlatformCamera *, QString> QFFmpegMediaIntegration::createCamera(
 #elif QT_CONFIG(linux_v4l)
     return new QV4L2Camera(camera);
 #elif defined(Q_OS_WINDOWS)
-    return new QWindowsCamera(camera);
+    return new QFFmpeg::QWindowsCamera(camera);
 #else
     Q_UNUSED(camera);
     return q23::unexpected{ notAvailable };
