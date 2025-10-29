@@ -675,8 +675,7 @@ void QWasmVideoOutput::doElementCallbacks()
         emit stateChanged(QWasmMediaPlayer::Started);
         if (m_toBePaused || !m_shouldStop) { // paused
             m_toBePaused = false;
-
-            videoFrameTimerCallback(); // get the ball rolling
+            QMetaObject::invokeMethod(this, &QWasmVideoOutput::videoFrameTimerCallback, Qt::QueuedConnection);
         }
     };
     m_playingChangeEvent.reset(new QWasmEventHandler(m_video, "playing", playingCallback));
