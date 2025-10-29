@@ -102,7 +102,7 @@ void QT_FASTCALL qt_copy_pixels_with_mask_avx2(uint32_t *dst, const uint32_t *sr
     QT_MEDIA_ALIGN(32, dst, x, size)
         *(dst++) = *(src++) | mask;
 
-    for (; x < size - (8 * 4 + 1); x += 8 * 4) {
+    for (; x + 8 * 4 <= size; x += 8 * 4) {
         const auto srcData1 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(src));
         const auto srcData2 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(src += 8));
         const auto srcData3 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(src += 8));
@@ -118,7 +118,7 @@ void QT_FASTCALL qt_copy_pixels_with_mask_avx2(uint32_t *dst, const uint32_t *sr
     }
 
     // leftovers
-    for (; x < size - 7; x += 8) {
+    for (; x + 8 <= size; x += 8) {
         const auto srcData = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(src));
         _mm256_store_si256(reinterpret_cast<__m256i *>(dst), _mm256_or_si256(srcData, mask256));
 
