@@ -23,7 +23,13 @@ public:
     template <typename... Callback>
     void addFrameReceivedCallback(Callback &&...callback)
     {
+// Implicit copy of 'this' has been deprecated in C++20, but this needs
+// to compile in C++17.
+#if __cplusplus >= 202002L
         m_timer.callOnTimeout([=, this]() {
+#else
+        m_timer.callOnTimeout([=]() {
+#endif
             auto frame = m_generator.generate();
             if (!frame.isValid())
                 m_timer.stop();
