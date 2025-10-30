@@ -142,14 +142,13 @@ void QPlatformAudioSinkImplementation<StreamType, DerivedType>::start(QIODevice 
                                             static_cast<ConcreteSinkType *>(this), volume(),
                                             m_hardwareBufferFrames, m_role);
 
-    if (!m_stream->open()) {
-        m_stream->requestStop();
-        setError(QAudio::OpenError);
-        m_stream = {};
-        return;
-    }
+    if (!m_stream->open())
+        return handleStreamOpenError();
 
-    m_stream->start(device);
+    bool started = m_stream->start(device);
+    if (!started)
+        return handleStreamOpenError();
+
     updateStreamState(QAudio::ActiveState);
 }
 
@@ -209,6 +208,11 @@ QIODevice *QPlatformAudioSinkImplementation<StreamType, DerivedType>::start()
     }
 
     QIODevice *device = m_stream->start();
+    if (!device) {
+        handleStreamOpenError();
+        return nullptr;
+    }
+
     QObject::connect(device, &QIODevice::readyRead, this, [this] {
         updateStreamIdle(false);
     });
@@ -449,7 +453,10 @@ void QPlatformAudioSourceImplementation<StreamType, DerivedType>::start(QIODevic
     if (!m_stream->open())
         return handleStreamOpenError();
 
-    m_stream->start(device);
+    bool started = m_stream->start(device);
+    if (!started)
+        return handleStreamOpenError();
+
     updateStreamState(QAudio::ActiveState);
 }
 
@@ -471,6 +478,11 @@ QIODevice *QPlatformAudioSourceImplementation<StreamType, DerivedType>::start()
     }
 
     QIODevice *device = m_stream->start();
+    if (!device) {
+        handleStreamOpenError();
+        return nullptr;
+    }
+
     QObject::connect(device, &QIODevice::readyRead, this, [this] {
         updateStreamIdle(false);
     });
