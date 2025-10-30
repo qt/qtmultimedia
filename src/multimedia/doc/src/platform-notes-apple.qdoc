@@ -34,7 +34,17 @@ When using QMake, add the following to your \c{.pro} file:
 CONFIG += add_ios_ffmpeg_libraries
 \endcode
 
-\note The FFmpeg binaries from the online installer are built for arm64 and arm64-simulator to ensure they
+\note The FFmpeg binaries from the online installer are built for arm64 and x86_64-simulator to ensure they
 pass validation with Apple Store Connect and can be used when running the iOS simulator.
+
+\note A limitation in Qt Multimedia builds that include FFmpeg support,
+is that FFmpeg libraries must be provided at link-time when building
+iOS applications. Failing to do so will result in linker errors. This
+includes the Qt Multimedia builds supplied by Qt Maintenance Tool.
+Applications that use such builds are required to call
+\l{qt_add_ios_ffmpeg_libraries}, or otherwise link their own FFmpeg
+libraries. As a consequence, application developers that wish to
+deploy iOS applications without FFmpeg, must build their own build
+of Qt Multimedia without FFmpeg support.
 
 */
