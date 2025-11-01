@@ -142,7 +142,7 @@ void QQuickImageCapture::_q_imageCaptured(int id, const QImage &preview)
 {
     QString previewId = QStringLiteral("preview_%1").arg(id);
     QQuickImagePreviewProvider::registerPreview(previewId, preview);
-    m_capturedImagePath = QStringLiteral("image://camera/%2").arg(previewId);
+    m_capturedImagePath = QStringLiteral("image://QtMultimediaCameraPreviewImageProvider/%2").arg(previewId);
     m_lastImage = preview;
     emit previewChanged();
 }

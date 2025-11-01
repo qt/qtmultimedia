@@ -31,8 +31,9 @@ public:
 
     void initializeEngine(QQmlEngine *engine, const char *uri) override
     {
+        using namespace Qt::Literals;
         Q_UNUSED(uri);
-        engine->addImageProvider("camera", new QQuickImagePreviewProvider);
+        engine->addImageProvider(u"QtMultimediaCameraPreviewImageProvider"_s, new QQuickImagePreviewProvider);
     }
 };
 
