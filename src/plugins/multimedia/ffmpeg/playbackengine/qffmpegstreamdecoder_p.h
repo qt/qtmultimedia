@@ -74,14 +74,18 @@ private:
 
 private:
     CodecContext m_codecContext;
-    TrackPosition m_absSeekPos = TrackPosition(0);
+
     const QPlatformMediaPlayer::TrackType m_trackType;
 
-    qint32 m_pendingFramesCount = 0;
+    struct SessionContext
+    {
+        TrackPosition absSeekPos = TrackPosition(0);
+        qint32 pendingFramesCount = 0;
+        LoopOffset offset = {};
+        QQueue<Packet> packets = {};
+    };
 
-    LoopOffset m_offset;
-
-    QQueue<Packet> m_packets;
+    SessionContext m_sessionCtx;
 };
 
 } // namespace QFFmpeg

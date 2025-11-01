@@ -120,19 +120,26 @@ private:
     std::unique_ptr<QFFmpegResampler> m_bufferOutputResampler;
     QAudioFormat m_sinkFormat;
 
-    BufferedDataWithOffset m_bufferedData;
     QPointer<QIODevice> m_ioDevice;
-
-    bool m_lastFramePushDone = true;
 
     bool m_deviceChanged = false;
     bool m_bufferOutputChanged = false;
-    bool m_drained = false;
+
     bool m_firstFrameToSink = true;
 
     // pitch compensation
     bool m_pitchCompensation = false;
     std::unique_ptr<AbstractAudioFrameConverter> m_audioFrameConverter;
+
+    struct SessionContext
+    {
+        // TODO: add other members after clarifying the best session cleanup strategy
+        BufferedDataWithOffset bufferedData;
+        bool lastFramePushDone = true;
+        bool drained = false;
+    };
+
+    SessionContext m_sessionCtx;
 };
 
 } // namespace QFFmpeg

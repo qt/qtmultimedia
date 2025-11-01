@@ -101,6 +101,8 @@ void AudioRenderer::onDeviceChanged()
 void AudioRenderer::seekInternal()
 {
     // TODO: play with what to clean: we may find better config.
+    // If we reset sink and converters, move m_ioDevice, m_ioDevice,
+    // m_audioFrameConverter, m_bufferOutputResampler to m_sessionCtx.
     constexpr bool shouldResetSink = true;
     constexpr bool shouldResetConverters = true;
 
@@ -117,9 +119,7 @@ void AudioRenderer::seekInternal()
     }
 
     // change AudioRenderer caches
-    m_bufferedData = {};
-    m_lastFramePushDone = true;
-    m_drained = false;
+    m_sessionCtx = {};
     //  don't touch m_deviceChanged here
 }
 
@@ -132,11 +132,11 @@ Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
     // for QAudioBufferOutput
     const RenderingResult result = pushFrameToOutput(frame);
 
-    if (m_lastFramePushDone)
+    if (m_sessionCtx.lastFramePushDone)
         pushFrameToBufferOutput(frame);
     // else // skip pushing the same data to QAudioBufferOutput
 
-    m_lastFramePushDone = result.done;
+    m_sessionCtx.lastFramePushDone = result.done;
 
     return result;
 }
@@ -151,11 +151,11 @@ AudioRenderer::RenderingResult AudioRenderer::pushFrameToOutput(const Frame &fra
     auto firstFrameFlagGuard = qScopeGuard([&]() { m_firstFrameToSink = false; });
 
     const SynchronizationStamp syncStamp{ m_sink->state(), m_sink->bytesFree(),
-                                          m_bufferedData.offset, SteadyClock::now() };
+                                          m_sessionCtx.bufferedData.offset, SteadyClock::now() };
 
-    if (!m_bufferedData.isValid()) {
+    if (!m_sessionCtx.bufferedData.isValid()) {
         if (!frame.isValid()) {
-            if (std::exchange(m_drained, true))
+            if (std::exchange(m_sessionCtx.drained, true))
                 return {};
 
             const auto time = bufferLoadingTime(syncStamp);
@@ -165,26 +165,27 @@ AudioRenderer::RenderingResult AudioRenderer::pushFrameToOutput(const Frame &fra
             return { time.count() == 0, time };
         }
 
-        m_bufferedData = {
+        m_sessionCtx.bufferedData = {
             m_audioFrameConverter->convert(frame.avFrame()),
         };
     }
 
-    if (m_bufferedData.isValid()) {
+    if (m_sessionCtx.bufferedData.isValid()) {
         // synchronize after "QIODevice::write" to deliver audio data to the sink ASAP.
         auto syncGuard = qScopeGuard([&]() { updateSynchronization(syncStamp, frame); });
 
-        const auto bytesWritten = m_ioDevice->write(m_bufferedData.data(), m_bufferedData.size());
+        const auto bytesWritten = m_ioDevice->write(m_sessionCtx.bufferedData.data(),
+                                                    m_sessionCtx.bufferedData.size());
 
-        m_bufferedData.offset += bytesWritten;
+        m_sessionCtx.bufferedData.offset += bytesWritten;
 
-        if (m_bufferedData.size() <= 0) {
-            m_bufferedData = {};
+        if (m_sessionCtx.bufferedData.size() <= 0) {
+            m_sessionCtx.bufferedData = {};
 
             return {};
         }
 
-        const auto remainingDuration = durationForBytes(m_bufferedData.size());
+        const auto remainingDuration = durationForBytes(m_sessionCtx.bufferedData.size());
 
         return { false,
                  std::min(remainingDuration + DurationBias, m_timings.actualBufferDuration / 2) };
@@ -265,7 +266,7 @@ void AudioRenderer::freeOutput()
 
     m_ioDevice = nullptr;
 
-    m_bufferedData = {};
+    m_sessionCtx.bufferedData = {};
     m_deviceChanged = false;
     m_sinkFormat = {};
     m_timings = {};
