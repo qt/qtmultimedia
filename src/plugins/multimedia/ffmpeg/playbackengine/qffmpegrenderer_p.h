@@ -109,16 +109,19 @@ private:
     void doNextStep() override;
 
 private:
-    TimeController m_timeController;
-    TrackPosition m_lastFrameEnd = TrackPosition(0);
-    QAtomicInteger<qint64> m_lastPosition = 0;
-    QAtomicInteger<qint64> m_seekPos = 0;
+    struct SessionContext
+    {
+        TimeController timeController;
+        int loopIndex = 0;
+        TrackPosition lastFrameEnd = timeController.currentPosition();
+        QAtomicInteger<qint64> lastPosition = lastFrameEnd.get();
+        QAtomicInteger<qint64> seekPos = lastFrameEnd.get();
+        QQueue<Frame> frames = {};
+        std::optional<TimePoint> explicitNextFrameTime = {};
+    };
 
-    int m_loopIndex = 0;
-    QQueue<Frame> m_frames;
-
+    SessionContext m_sessionCtx;
     QAtomicInteger<bool> m_isStepForced = false;
-    std::optional<TimePoint> m_explicitNextFrameTime;
 };
 
 } // namespace QFFmpeg

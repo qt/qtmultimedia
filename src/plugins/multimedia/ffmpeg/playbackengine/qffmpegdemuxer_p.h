@@ -78,16 +78,24 @@ private:
 
 private:
     AVFormatContext *m_context = nullptr;
-    bool m_seeked = false;
-    bool m_firstPacketFound = false;
+
+    struct SessionContext
+    {
+        TrackPosition posInLoopUs = TrackPosition(0); // Position in current loop in [0, duration()]
+        LoopOffset loopOffset = {};
+        bool seeked = false;
+        bool firstPacketFound = false;
+        bool buffered = false;
+        TrackPosition maxPacketsEndPos = TrackPosition(0);
+
+        qsizetype demuxerRetryCount = 0;
+        std::optional<TimePoint> failTimePoint = {};
+    };
+
+    SessionContext m_sessionCtx;
     std::unordered_map<int, StreamData> m_streams;
-    TrackPosition m_posInLoopUs = TrackPosition(0); // Position in current loop in [0, duration()]
-    LoopOffset m_loopOffset;
-    TrackPosition m_maxPacketsEndPos = TrackPosition(0);
     QAtomicInt m_loops = QMediaPlayer::Once;
-    bool m_buffered = false;
-    qsizetype m_demuxerRetryCount = 0;
-    std::optional<TimePoint> m_failTimePoint;
+
     static constexpr qsizetype s_maxDemuxerRetries = 10; // Arbitrarily chosen
     static constexpr std::chrono::milliseconds s_demuxerRetryInterval = std::chrono::milliseconds(10);
 };

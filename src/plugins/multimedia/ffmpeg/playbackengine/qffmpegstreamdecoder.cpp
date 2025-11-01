@@ -15,8 +15,8 @@ StreamDecoder::StreamDecoder(const PlaybackEngineObjectID &id, const CodecContex
                              TrackPosition absSeekPos)
     : PlaybackEngineObject(id),
       m_codecContext(codecContext),
-      m_absSeekPos(absSeekPos),
-      m_trackType(MediaDataHolder::trackTypeFromMediaType(codecContext.context()->codec_type))
+      m_trackType(MediaDataHolder::trackTypeFromMediaType(codecContext.context()->codec_type)),
+      m_sessionCtx{ absSeekPos }
 {
     qCDebug(qLcStreamDecoder) << "Create stream decoder, trackType" << m_trackType
                               << "absSeekPos:" << absSeekPos.get();
@@ -31,10 +31,7 @@ StreamDecoder::~StreamDecoder()
 void StreamDecoder::seek(quint64 sessionID, TrackPosition pos, const LoopOffset &offset)
 {
     updateSession(sessionID, [this, pos, offset]() {
-        m_absSeekPos = offset.loopStartTimeUs.asDuration() + pos;
-        m_packets.clear();
-        m_pendingFramesCount = 0;
-        m_offset = offset;
+        m_sessionCtx = { offset.loopStartTimeUs.asDuration() + pos };
         avcodec_flush_buffers(m_codecContext.context());
     });
 }
@@ -54,13 +51,13 @@ void StreamDecoder::decode(Packet packet)
         return;
     }
 
-    m_packets.enqueue(std::move(packet));
+    m_sessionCtx.packets.enqueue(std::move(packet));
     scheduleNextStep();
 }
 
 void StreamDecoder::doNextStep()
 {
-    Packet packet = m_packets.dequeue();
+    Packet packet = m_sessionCtx.packets.dequeue();
 
     auto decodePacket = [this](const Packet &packet) {
         if (trackType() == QPlatformMediaPlayer::SubtitleStream)
@@ -69,14 +66,14 @@ void StreamDecoder::doNextStep()
             decodeMedia(packet);
     };
 
-    if (packet.isValid() && packet.loopOffset().loopIndex != m_offset.loopIndex) {
+    if (packet.isValid() && packet.loopOffset().loopIndex != m_sessionCtx.offset.loopIndex) {
         decodePacket({});
 
         qCDebug(qLcStreamDecoder) << "flush buffers due to new loop:"
                                   << packet.loopOffset().loopIndex;
 
         avcodec_flush_buffers(m_codecContext.context());
-        m_offset = packet.loopOffset();
+        m_sessionCtx.offset = packet.loopOffset();
     }
 
     decodePacket(packet);
@@ -114,8 +111,8 @@ void StreamDecoder::onFrameProcessed(Frame frame)
     if (!checkID(frame.sourceID()))
         return;
 
-    --m_pendingFramesCount;
-    Q_ASSERT(m_pendingFramesCount >= 0);
+    --m_sessionCtx.pendingFramesCount;
+    Q_ASSERT(m_sessionCtx.pendingFramesCount >= 0);
 
     scheduleNextStep();
 }
@@ -124,17 +121,17 @@ bool StreamDecoder::canDoNextStep() const
 {
     const qint32 maxCount = maxQueueSize(m_trackType);
 
-    return !m_packets.empty() && m_pendingFramesCount < maxCount
+    return !m_sessionCtx.packets.empty() && m_sessionCtx.pendingFramesCount < maxCount
             && PlaybackEngineObject::canDoNextStep();
 }
 
 void StreamDecoder::onFrameFound(Frame frame)
 {
-    if (frame.isValid() && frame.absoluteEnd() < m_absSeekPos)
+    if (frame.isValid() && frame.absoluteEnd() < m_sessionCtx.absSeekPos)
         return;
 
-    Q_ASSERT(m_pendingFramesCount >= 0);
-    ++m_pendingFramesCount;
+    Q_ASSERT(m_sessionCtx.pendingFramesCount >= 0);
+    ++m_sessionCtx.pendingFramesCount;
     emit requestHandleFrame(frame);
 }
 
@@ -198,7 +195,7 @@ void StreamDecoder::receiveAVFrames(bool flushPacket)
         if (m_trackType == QPlatformMediaPlayer::VideoStream)
             avFrame = copyFromHwPool(std::move(avFrame));
 
-        onFrameFound({ m_offset, std::move(avFrame), m_codecContext, id() });
+        onFrameFound({ m_sessionCtx.offset, std::move(avFrame), m_codecContext, id() });
     }
 }
 
@@ -263,10 +260,10 @@ void StreamDecoder::decodeSubtitle(const Packet &packet)
     if (text.endsWith(QLatin1Char('\n')))
         text.chop(1);
 
-    onFrameFound({ m_offset, text, start, end - start, id() });
+    onFrameFound({ m_sessionCtx.offset, text, start, end - start, id() });
 
     // TODO: maybe optimize
-    onFrameFound({ m_offset, QString(), end, TrackDuration(0), id() });
+    onFrameFound({ m_sessionCtx.offset, QString(), end, TrackDuration(0), id() });
 }
 } // namespace QFFmpeg
 
