@@ -1,6 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+import QtCore
 import QtQuick
 import QtQuick.Controls
 
@@ -77,7 +78,27 @@ Rectangle {
                 }
             }
 
+            CameraPermission {
+                id: cameraPermission
+            }
+
+            // Using a Pane with no background gives us nice default margins
+            Pane {
+                visible: cameraPermission.status !== Qt.PermissionStatus.Granted
+                background: null
+                Column {
+                    Label {
+                        text: "Camera permissions not granted"
+                    }
+                    Button {
+                        text: "Press to request permissions"
+                        onClicked: cameraPermission.request()
+                    }
+                }
+            }
+
             Column {
+                visible: cameraPermission.status === Qt.PermissionStatus.Granted
                 Repeater {
                     model: cameralist
                     delegate: buttonDelegate
