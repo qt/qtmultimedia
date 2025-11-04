@@ -140,4 +140,29 @@ Window {
            }
         }
     }
+
+    Pane {
+        anchors.fill: parent
+        visible:
+            PermissionHelper.cameraStatus !== Qt.PermissionStatus.Granted
+            && PermissionHelper.microphoneStatus !== Qt.PermissionStatus.Granted
+
+        ColumnLayout {
+            anchors.centerIn: parent
+            Label {
+                Layout.alignment: Qt.AlignHCenter
+                text: "Camera and microphone permissions must be granted to use this example"
+            }
+            Button {
+                Layout.alignment: Qt.AlignHCenter
+                text: "Press to request permissions"
+                onClicked: {
+                    if (PermissionHelper.cameraStatus !== Qt.PermissionStatus.Granted)
+                        PermissionHelper.requestCamera()
+                    if (PermissionHelper.microphoneStatus !== Qt.PermissionStatus.Granted)
+                        PermissionHelper.requestMicrophone()
+                }
+            }
+        }
+    }
 }

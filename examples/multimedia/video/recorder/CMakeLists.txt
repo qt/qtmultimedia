@@ -21,13 +21,17 @@ qt_add_executable(recorder
 
 qt_add_ios_ffmpeg_libraries(recorder)
 
-set_source_files_properties(Style.qml PROPERTIES
+set(qml_singleton_files
+    Style.qml
+    PermissionHelper.qml)
+set_source_files_properties(
+    ${qml_singleton_files}
+    PROPERTIES
     QT_QML_SINGLETON_TYPE TRUE
 )
 
 set(qml_files
     "Main.qml"
-    "Main_no_permissions.qml"
     "MediaList.qml"
     "AudioInputSelect.qml"
     "VideoSourceSelect.qml"
@@ -38,6 +42,7 @@ set(qml_files
     "SettingsMetaData.qml"
     "SettingsEncoder.qml"
     "Style.qml"
+    "PermissionHelper.qml"
     "Playback.qml"
 )
 
