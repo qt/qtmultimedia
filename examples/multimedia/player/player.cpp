@@ -321,8 +321,8 @@ void Player::metaDataChanged()
 {
     auto metaData = m_player->metaData();
     setTrackInfo(QStringLiteral("%1 - %2")
-                         .arg(metaData.value(QMediaMetaData::AlbumArtist).toString())
-                         .arg(metaData.value(QMediaMetaData::Title).toString()));
+                         .arg(metaData.value(QMediaMetaData::AlbumArtist).toString(),
+                              metaData.value(QMediaMetaData::Title).toString()));
 
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     for (int i = 0; i < QMediaMetaData::NumMetaData; i++) {
@@ -358,7 +358,9 @@ void Player::metaDataChanged()
     const int currentVideoTrack = m_player->activeVideoTrack();
     if (currentVideoTrack >= 0 && currentVideoTrack < tracks.size()) {
         const QMediaMetaData track = tracks.value(currentVideoTrack);
-        for (const QMediaMetaData::Key &key : track.keys()) {
+
+        const QList<QMediaMetaData::Key> trackKeys = track.keys();
+        for (const QMediaMetaData::Key &key : std::as_const(trackKeys)) {
             if (QLineEdit *field = qobject_cast<QLineEdit *>(m_metaDataFields[key])) {
                 QString stringValue = track.stringValue(key);
                 field->setText(stringValue);
@@ -385,7 +387,7 @@ QString Player::trackName(const QMediaMetaData &metaData, int index)
         if (lang == QLocale::Language::AnyLanguage)
             name = title;
         else
-            name = QStringLiteral("%1 - [%2]").arg(title).arg(QLocale::languageToString(lang));
+            name = QStringLiteral("%1 - [%2]").arg(title, QLocale::languageToString(lang));
     }
     return name;
 }
@@ -540,7 +542,7 @@ void Player::setTrackInfo(const QString &info)
         m_statusLabel->setText(m_statusInfo);
     } else {
         if (!m_statusInfo.isEmpty())
-            setWindowTitle(QStringLiteral("%1 | %2").arg(m_trackInfo).arg(m_statusInfo));
+            setWindowTitle(QStringLiteral("%1 | %2").arg(m_trackInfo, m_statusInfo));
         else
             setWindowTitle(m_trackInfo);
     }
@@ -555,7 +557,7 @@ void Player::setStatusInfo(const QString &info)
         m_statusLabel->setText(m_statusInfo);
     } else {
         if (!m_statusInfo.isEmpty())
-            setWindowTitle(QStringLiteral("%1 | %2").arg(m_trackInfo).arg(m_statusInfo));
+            setWindowTitle(QStringLiteral("%1 | %2").arg(m_trackInfo, m_statusInfo));
         else
             setWindowTitle(m_trackInfo);
     }

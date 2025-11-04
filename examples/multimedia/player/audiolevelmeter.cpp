@@ -188,7 +188,8 @@ void AudioLevelMeter::resetPeakLabel()
 // Clears internal data used to calculate RMS values
 void AudioLevelMeter::clearAllRmsData()
 {
-    for (MeterChannel *channel : m_channels)
+    const QList<MeterChannel *> meterChannels = m_channels;
+    for (MeterChannel *channel : std::as_const(meterChannels))
         channel->clearRmsData();
 }
 

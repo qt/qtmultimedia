@@ -85,7 +85,7 @@ void PlayerControls::setState(QMediaPlayer::PlaybackState state, bool force)
 
         QColor baseColor = palette().color(QPalette::Base);
         QString inactiveStyleSheet = QStringLiteral("background-color: %1").arg(baseColor.name());
-        QString defaultStyleSheet = QStringLiteral("");
+        QString defaultStyleSheet = QString();
 
         switch (state) {
         case QMediaPlayer::StoppedState:
