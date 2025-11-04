@@ -58,7 +58,7 @@ public:
 
 private:
     void handleNewAudioBuffer(QAudioBuffer);
-    void startReading();
+    void startReading(QAudioFormat);
 
     void processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString);
     void initAssetReader();

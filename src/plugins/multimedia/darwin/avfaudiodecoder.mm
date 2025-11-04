@@ -20,21 +20,24 @@ Q_STATIC_LOGGING_CATEGORY(qLcAVFAudioDecoder, "qt.multimedia.darwin.AVFAudioDeco
 constexpr static int MAX_BUFFERS_IN_QUEUE = 5;
 using namespace Qt::Literals;
 
-static QAudioBuffer handleNextSampleBuffer(CMSampleBufferRef sampleBuffer)
+static QAudioBuffer handleNextSampleBuffer(QAudioFormat qtFormat, CMSampleBufferRef sampleBuffer)
 {
     if (!sampleBuffer)
         return {};
 
     // Check format
-    CMFormatDescriptionRef formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer);
-    if (!formatDescription)
-        return {};
-    const AudioStreamBasicDescription* const asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
-    QAudioFormat qtFormat = QCoreAudioUtils::toQAudioFormat(*asbd);
-    if (qtFormat.sampleFormat() == QAudioFormat::Unknown && asbd->mBitsPerChannel == 8)
-        qtFormat.setSampleFormat(QAudioFormat::UInt8);
-    if (!qtFormat.isValid())
-        return {};
+    auto validateFormat = [&] {
+        CMFormatDescriptionRef formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer);
+        if (!formatDescription)
+            return false;
+        const AudioStreamBasicDescription *const asbd =
+                CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
+        if (!asbd)
+            return false;
+        return qtFormat == QCoreAudioUtils::toPreferredQAudioFormat(*asbd);
+    };
+
+    Q_ASSERT(validateFormat());
 
     // Get the required size to allocate to audioBufferList
     size_t audioBufferListSize = 0;
@@ -171,16 +174,10 @@ NSDictionary *av_audio_settings_for_format(const QAudioFormat &format)
 
 QAudioFormat qt_format_for_audio_track(AVAssetTrack *track)
 {
-    QAudioFormat format;
     CMFormatDescriptionRef desc =  (__bridge CMFormatDescriptionRef)track.formatDescriptions[0];
     const AudioStreamBasicDescription* const asbd =
         CMAudioFormatDescriptionGetStreamBasicDescription(desc);
-    format = QCoreAudioUtils::toQAudioFormat(*asbd);
-    // AudioStreamBasicDescription's mBitsPerChannel is 0 for compressed formats
-    // In this case set default Int16 sample format
-    if (asbd->mBitsPerChannel == 0)
-        format.setSampleFormat(QAudioFormat::Int16);
-    return format;
+    return QCoreAudioUtils::toPreferredQAudioFormat(*asbd);
 }
 
 } // namespace
@@ -445,7 +442,7 @@ void AVFAudioDecoder::initAssetReaderImpl(AVAssetTrack *track, NSError *error)
     m_decodingContext->m_reader = reader;
     m_decodingContext->m_readerOutput = readerOutput;
 
-    startReading();
+    startReading(format);
 }
 
 void AVFAudioDecoder::initAssetReader()
@@ -472,7 +469,7 @@ void AVFAudioDecoder::initAssetReader()
 
 }
 
-void AVFAudioDecoder::startReading()
+void AVFAudioDecoder::startReading(QAudioFormat format)
 {
     Q_ASSERT(m_decodingContext);
     Q_ASSERT(m_decodingContext->m_reader);
@@ -504,7 +501,7 @@ void AVFAudioDecoder::startReading()
 
         dispatch_async(m_decodingQueue, [=, this]() {
             if (!weakContext.expired() && CMSampleBufferDataIsReady(sampleBuffer)) {
-                auto audioBuffer = handleNextSampleBuffer(sampleBuffer);
+                auto audioBuffer = handleNextSampleBuffer(format, sampleBuffer);
 
                 if (audioBuffer.isValid())
                     invokeWithDecodingContext(weakContext, [=, this]() {
