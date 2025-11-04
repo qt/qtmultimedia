@@ -41,6 +41,7 @@ qreal AudioInfo::calculateLevel(const char *data, qint64 len) const
 {
     const int channelBytes = m_format.bytesPerSample();
     const int sampleBytes = m_format.bytesPerFrame();
+    Q_ASSERT(m_format.bytesPerFrame() != 0); // divide by 0
     const int numSamples = len / sampleBytes;
 
     float maxValue = 0;
@@ -200,7 +201,7 @@ void InputTest::restartAudioStream()
         if (!io)
             return;
 
-        connect(io, &QIODevice::readyRead, [this, io]() {
+        connect(io, &QIODevice::readyRead, this, [this, io]() {
             static const qint64 BufferSize = 4096;
             const qint64 len = qMin(m_audioSource->bytesAvailable(), BufferSize);
 
