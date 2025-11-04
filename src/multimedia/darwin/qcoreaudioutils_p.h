@@ -42,8 +42,7 @@ struct QFreeDeleter
     }
 };
 
-Q_MULTIMEDIA_EXPORT QAudioFormat toQAudioFormat(const AudioStreamBasicDescription &);
-QAudioFormat toPreferredQAudioFormat(const AudioStreamBasicDescription &);
+Q_MULTIMEDIA_EXPORT QAudioFormat toPreferredQAudioFormat(const AudioStreamBasicDescription &);
 AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const &);
 
 Q_MULTIMEDIA_EXPORT std::unique_ptr<AudioChannelLayout, QFreeDeleter>
