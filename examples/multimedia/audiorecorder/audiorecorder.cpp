@@ -236,7 +236,9 @@ void AudioRecorder::updateDevices()
     ui->audioDeviceBox->clear();
 
     ui->audioDeviceBox->addItem(tr("Default"), {});
-    for (const auto &device : m_mediaDevices->audioInputs()) {
+
+    const QList<QAudioDevice> audioInputs = m_mediaDevices->audioInputs();
+    for (const auto &device : audioInputs) {
         const auto name = device.description();
         ui->audioDeviceBox->addItem(name, QVariant::fromValue(device));
 
@@ -262,7 +264,9 @@ void AudioRecorder::updateFormats()
     ui->containerBox->clear();
     ui->containerBox->addItem(tr("Default file format"),
                               QVariant::fromValue(QMediaFormat::UnspecifiedFormat));
-    for (auto container : format.supportedFileFormats(QMediaFormat::Encode)) {
+
+    const QList<QMediaFormat::FileFormat> supportedFormats = format.supportedFileFormats(QMediaFormat::Encode);
+    for (auto container : supportedFormats) {
         if (container < QMediaFormat::Mpeg4Audio) // Skip video formats
             continue;
         if (container == format.fileFormat())
@@ -282,7 +286,9 @@ void AudioRecorder::updateFormats()
     ui->audioCodecBox->clear();
     ui->audioCodecBox->addItem(tr("Default audio codec"),
                                QVariant::fromValue(QMediaFormat::AudioCodec::Unspecified));
-    for (auto codec : format.supportedAudioCodecs(QMediaFormat::Encode)) {
+
+    const QList<QMediaFormat::AudioCodec> supportedCodecs = format.supportedAudioCodecs(QMediaFormat::Encode);
+    for (auto codec : supportedCodecs) {
         if (codec == currentCodec)
             currentIndex = ui->audioCodecBox->count();
         ui->audioCodecBox->addItem(QMediaFormat::audioCodecDescription(codec),
