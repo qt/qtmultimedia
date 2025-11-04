@@ -42,7 +42,26 @@ QAudioFormat toQAudioFormat(AudioStreamBasicDescription const& sf)
     default:
         break;
     }
+}
 
+QAudioFormat toPreferredQAudioFormat(AudioStreamBasicDescription const &sf)
+{
+    // coreaudio will do the format conversions for us, we only need to give the best match
+    const QAudioFormat::SampleFormat format = [&] {
+        const bool isFloat = sf.mFormatFlags & kAudioFormatFlagIsFloat;
+        switch (sf.mBitsPerChannel) {
+        case 8:
+            return QAudioFormat::UInt8;
+        case 16:
+            return QAudioFormat::Int16;
+        case 32:
+            return isFloat ? QAudioFormat::Float : QAudioFormat::Int32;
+        default:
+            return QAudioFormat::Float;
+        }
+    }();
+
+    QAudioFormat audioFormat;
     audioFormat.setSampleFormat(format);
     audioFormat.setSampleRate(sf.mSampleRate);
     audioFormat.setChannelCount(sf.mChannelsPerFrame);
