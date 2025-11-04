@@ -34,7 +34,9 @@ Row {
 
     Camera {
         id: camera
-        active: root.cameraAvailable
+        active:
+            root.cameraAvailable
+            && PermissionHelper.cameraStatus === Qt.PermissionStatus.Granted
     }
 
     ScreenCapture {

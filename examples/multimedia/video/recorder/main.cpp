@@ -19,29 +19,7 @@ int main(int argc, char *argv[])
             },
             Qt::QueuedConnection);
 
-#if QT_CONFIG(permissions)
-    // If the permissions are not granted, display another main window, which
-    // simply contains the error message.
-    QCameraPermission cameraPermission;
-    qApp->requestPermission(cameraPermission, [&](const QPermission &permission) {
-        if (permission.status() != Qt::PermissionStatus::Granted) {
-            qWarning("Camera permission is not granted!");
-            engine.loadFromModule("RecorderExample", "Main_no_permissions");
-            return;
-        }
-        QMicrophonePermission micPermission;
-        qApp->requestPermission(micPermission, [&](const QPermission &permission) {
-            if (permission.status() != Qt::PermissionStatus::Granted) {
-                qWarning("Microphone permission is not granted!");
-                engine.loadFromModule("RecorderExample", "Main_no_permissions");
-            } else {
-                engine.loadFromModule("RecorderExample", "Main");
-            }
-        });
-    });
-#else
     engine.loadFromModule("RecorderExample", "Main");
-#endif
 
     return app.exec();
 }
