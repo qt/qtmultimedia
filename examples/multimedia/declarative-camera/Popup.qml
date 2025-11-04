@@ -31,7 +31,7 @@ Rectangle {
     }
 
     function toggle() {
-        if (state == "visible")
+        if (state === "visible")
             state = "invisible";
         else
             state = "visible";
