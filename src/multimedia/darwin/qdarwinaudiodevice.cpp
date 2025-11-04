@@ -48,20 +48,25 @@ namespace {
     using namespace QCoreAudioUtils;
 
     const auto audioDevicePropertyStreamsAddress =
-        makePropertyAddress(kAudioDevicePropertyStreams, mode);
-
-    if (auto streamIDs = getAudioPropertyList<AudioStreamID>(deviceId, audioDevicePropertyStreamsAddress)) {
-        const auto audioDevicePhysicalFormatPropertyAddress =
+            makePropertyAddress(kAudioDevicePropertyStreams, mode);
+    const auto audioDevicePhysicalFormatPropertyAddress =
             makePropertyAddress(kAudioStreamPropertyPhysicalFormat, mode);
 
-        for (auto streamID : *streamIDs) {
-            if (auto streamDescription = getAudioProperty<AudioStreamBasicDescription>(
-                        streamID, audioDevicePhysicalFormatPropertyAddress)) {
-                return QCoreAudioUtils::toQAudioFormat(*streamDescription);
-            }
-        }
-    }
+    auto streamIDs =
+            getAudioPropertyList<AudioStreamID>(deviceId, audioDevicePropertyStreamsAddress);
+    if (!streamIDs || streamIDs->empty())
+        return std::nullopt;
 
+    for (auto streamID : *streamIDs) {
+        auto streamDescription = getAudioProperty<AudioStreamBasicDescription>(
+                streamID, audioDevicePhysicalFormatPropertyAddress);
+        if (!streamDescription)
+            continue;
+
+        QAudioFormat fmt = QCoreAudioUtils::toPreferredQAudioFormat(*streamDescription);
+        if (fmt.isValid())
+            return fmt;
+    }
     return std::nullopt;
 }
 
