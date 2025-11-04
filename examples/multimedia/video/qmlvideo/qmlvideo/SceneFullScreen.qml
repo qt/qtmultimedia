@@ -46,7 +46,7 @@ Scene {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: content.state = (content.state == "fullScreen") ? "baseState" : "fullScreen"
+            onClicked: content.state = (content.state === "fullScreen") ? "baseState" : "fullScreen"
         }
 
         onVideoFramePainted: root.videoFramePainted()
