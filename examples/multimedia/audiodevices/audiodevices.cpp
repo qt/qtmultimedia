@@ -172,7 +172,8 @@ void AudioTest::populateTable()
 {
     int row = 0;
 
-    for (auto sampleFormat : m_deviceInfo.supportedSampleFormats()) {
+    const QList<QAudioFormat::SampleFormat> formats = m_deviceInfo.supportedSampleFormats();
+    for (auto sampleFormat : formats) {
         allFormatsTable->setRowCount(row + 1);
 
         QTableWidgetItem *sampleTypeItem = new QTableWidgetItem(toString(sampleFormat));
