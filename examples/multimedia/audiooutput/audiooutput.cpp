@@ -58,7 +58,8 @@ static void syncFormatGui(QComboBox *m_formatBox,
 void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int sampleRate)
 {
     const int channelBytes = format.bytesPerSample();
-    const int sampleBytes = format.channelCount() * channelBytes;
+    [[maybe_unused]] const int sampleBytes = format.channelCount() * channelBytes;
+    Q_ASSERT(sampleBytes != 0);
     qint64 length = format.bytesForDuration(durationUs);
     Q_ASSERT(length % sampleBytes == 0);
     Q_UNUSED(sampleBytes); // suppress warning in release builds
