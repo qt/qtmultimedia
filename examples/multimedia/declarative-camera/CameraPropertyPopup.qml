@@ -22,7 +22,7 @@ Popup {
 
     function indexForValue(value) {
         for (var i = 0; i < view.count; i++) {
-            if (model.get(i).value == value) {
+            if (model.get(i).value === value) {
                 return i;
             }
         }
