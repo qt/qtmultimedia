@@ -59,7 +59,10 @@ QQuickImageCapture::QQuickImageCapture(QObject *parent)
     connect(this, &QImageCapture::imageCaptured, this, &QQuickImageCapture::_q_imageCaptured);
 }
 
-QQuickImageCapture::~QQuickImageCapture() = default;
+QQuickImageCapture::~QQuickImageCapture()
+{
+    QQuickImagePreviewProvider::cleanupInstance(m_instanceId);
+}
 
 /*!
     \qmlproperty bool QtMultimedia::ImageCapture::readyForCapture
@@ -140,8 +143,9 @@ void QQuickImageCapture::saveToFile(const QUrl &location) const
 
 void QQuickImageCapture::_q_imageCaptured(int id, const QImage &preview)
 {
-    QString previewId = QStringLiteral("preview_%1").arg(id);
-    QQuickImagePreviewProvider::registerPreview(previewId, preview);
+    QString previewId =
+            QStringLiteral("preview_%1_%2").arg(m_instanceId.toString(QUuid::Id128)).arg(id);
+    QQuickImagePreviewProvider::registerPreview(m_instanceId, previewId, preview);
     m_capturedImagePath = QStringLiteral("image://QtMultimediaCameraPreviewImageProvider/%2").arg(previewId);
     m_lastImage = preview;
     emit previewChanged();
