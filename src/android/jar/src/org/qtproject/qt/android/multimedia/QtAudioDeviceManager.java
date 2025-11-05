@@ -96,6 +96,19 @@ class QtAudioDeviceManager
     }
 
     @UsedFromNativeCode
+    static AudioDeviceInfo getAudioInputDeviceInfo(int id)
+    {
+        final AudioDeviceInfo[] audioDevices = m_audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
+
+        for (AudioDeviceInfo deviceInfo : audioDevices) {
+            if (deviceInfo.getId() == id)
+                return deviceInfo;
+        }
+
+        return null;
+    }
+
+    @UsedFromNativeCode
     static int getDefaultSampleRate()
     {
         String sampleRate = m_audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
@@ -114,9 +127,6 @@ class QtAudioDeviceManager
         }
     }
 
-    // FIXME: It's quite misleading to "set" audio input/output when no MediaRecorder is used. We
-    // should more likely be "preparing" Android for the use of a specific audio device in a
-    // desired mode
     @UsedFromNativeCode
     static boolean prepareAudioInput(int id)
     {
