@@ -496,7 +496,9 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
 QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/)
 {
 #if QT_CONFIG(gstreamer_gl)
+#  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
     static const bool isEglfsQPA = QGuiApplication::platformName() == QLatin1String("eglfs");
+#  endif
     GlTextures textures = {};
     if (m_memoryFormat == QGstCaps::GLTexture)
         textures = mapFromGlTexture(m_buffer, m_frame, m_videoInfo);
