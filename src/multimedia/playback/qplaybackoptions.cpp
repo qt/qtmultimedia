@@ -60,7 +60,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QPlaybackOptionsPrivate)
 */
 
 /*!
-    \qmltype playbackOptions
+    \qmltype PlaybackOptions
     \nativetype QPlaybackOptions
     \brief Low level media playback options.
 
@@ -71,7 +71,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QPlaybackOptionsPrivate)
     \since 6.10
 
     Playback options gives low-level control of media playback options. Although we strongly
-    recommend to rely on the default settings of \l MediaPlayer, playbackOptions can be used to
+    recommend to rely on the default settings of \l MediaPlayer, PlaybackOptions can be used to
     optimize media playback to specific use cases where the default options are not ideal.
 
     Note that options are hints to the media backend, and may be ignored if they are not supported
@@ -111,7 +111,7 @@ Qt::strong_ordering compareThreeWay(const QPlaybackOptions &lhs, const QPlayback
 */
 
 /*!
-    \qmlproperty qint64 playbackOptions::networkTimeoutMs
+    \qmlproperty qint64 PlaybackOptions::networkTimeoutMs
     \since 6.10
 
     Determines the network timeout (in milliseconds) used for socket I/O operations with some
@@ -161,7 +161,7 @@ void QPlaybackOptions::resetNetworkTimeout()
 */
 
 /*!
-    \qmlproperty enumeration playbackOptions::playbackIntent
+    \qmlproperty enumeration PlaybackOptions::playbackIntent
     \since 6.10
 
     Determines if \l MediaPlayer should optimize for robust high quality video playback (default),
