@@ -8,5 +8,14 @@
     \list
         \li \1WindowCapture is only supported with the FFmpeg backend.
     \endlist
+    The following limitations apply when using \c QWindowCapture on X11 systems:
+    \list
+        \li On Linux X11 systems, when a window is moved partially outside
+            the visible screen area, only the visible region is captured.
+            As a result, the emitted video frames may have a size smaller
+            than the window’s geometry.
+        \li Windows that are outside the visible screen area cannot be captured,
+            and an error signal is emitted in that case.
+    \endlist
     //! [content]
 */
