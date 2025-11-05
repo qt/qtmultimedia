@@ -962,6 +962,14 @@ void QMediaRecorder::setQuality(Quality quality)
     on what is available from the video source and the limitations of the codec.
 */
 
+/*!
+    \property QMediaRecorder::videoResolution
+    \since 6.6
+    \brief the resolution of the encoded video.
+
+    An empty QSize indicates the recorder will choose an optimal resolution based
+    on what is available from the video source and the limitations of the codec.
+*/
 
 /*!
     Returns the resolution of the encoded video.
@@ -1009,6 +1017,15 @@ void QMediaRecorder::setVideoResolution(const QSize &size)
 */
 
 /*!
+    \property QMediaRecorder::videoFrameRate
+    \since 6.6
+    \brief the video frame rate.
+
+    A value of 0 indicates the recorder should make an optimal choice based on what is available
+    from the video source and the limitations of the codec.
+*/
+
+/*!
     Returns the video frame rate.
 */
 qreal QMediaRecorder::videoFrameRate() const
@@ -1041,6 +1058,12 @@ void QMediaRecorder::setVideoFrameRate(qreal frameRate)
     \qmlproperty int QtMultimedia::MediaRecorder::videoBitRate
     \since 6.6
     \brief This property holds the bit rate of the compressed video stream in bits per second.
+*/
+
+/*!
+    \property QMediaRecorder::videoBitRate
+    \since 6.6
+    \brief the bit rate of the compressed video stream in bits per second.
 */
 
 /*!
