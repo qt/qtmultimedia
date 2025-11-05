@@ -17,6 +17,10 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(lcMediaRecorder, "qt.multimedia.mediarecorder.android");
 
+Q_DECLARE_JNI_CLASS(QtAudioDeviceManager,
+                    "org/qtproject/qt/android/multimedia/QtAudioDeviceManager");
+Q_DECLARE_JNI_CLASS(AudioDeviceInfo, "android/media/AudioDeviceInfo");
+
 typedef QMap<QString, QJniObject> CamcorderProfiles;
 Q_GLOBAL_STATIC(CamcorderProfiles, g_camcorderProfiles)
 
@@ -216,12 +220,17 @@ bool AndroidMediaRecorder::isAudioSourceSet() const
 
 bool AndroidMediaRecorder::setAudioInput(const QByteArray &id)
 {
-    const bool ret = QJniObject::callStaticMethod<jboolean>(
-                "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
-                "setAudioInput",
-                "(Landroid/media/MediaRecorder;I)Z",
-                m_mediaRecorder.object(),
-                id.toInt());
+    using namespace QtJniTypes;
+
+    AudioDeviceInfo deviceInfo = QtAudioDeviceManager::callStaticMethod<AudioDeviceInfo>(
+            "getAudioInputDeviceInfo", id.toInt());
+
+    if (!m_mediaRecorder.callMethod<jboolean>("setPreferredDevice", deviceInfo))
+        return false;
+
+    const bool ret =
+            QtAudioDeviceManager::callStaticMethod<jboolean>("prepareAudioInput", id.toInt());
+
     if (!ret)
         qCWarning(lcMediaRecorder) << "No default input device was set.";
 
