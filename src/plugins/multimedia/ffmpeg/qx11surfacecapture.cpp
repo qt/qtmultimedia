@@ -289,16 +289,8 @@ private:
 protected:
     QVideoFrame grabFrame() override
     {
-        if (!update())
+        if (!grabXImage())
             return {};
-
-        if (!XShmGetImage(m_display.get(), m_xid, m_xImage.get(), m_xOffset, m_yOffset,
-                          AllPlanes)) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
-                        QStringLiteral(
-                                "Cannot get ximage; the window geometry may be undergoing change"));
-            return {};
-        }
 
         QByteArray data(m_xImage->bytes_per_line * m_xImage->height, Qt::Uninitialized);
 
@@ -315,6 +307,22 @@ protected:
     }
 
 private:
+    bool grabXImage()
+    {
+        for (int i = 0; i < 10; i++) {
+            if (!update())
+                return false;
+            if (XShmGetImage(m_display.get(), m_xid, m_xImage.get(),
+                             m_xOffset, m_yOffset, AllPlanes))
+                return true;
+        }
+
+        updateError(QPlatformSurfaceCapture::CaptureFailed,
+                    QStringLiteral(
+                        "Cannot get ximage; the window geometry may be undergoing change"));
+        return false;
+    }
+
     std::optional<QPlatformSurfaceCapture::Error> m_prevGrabberError;
     XID m_xid = None;
     int m_xOffset = 0;
