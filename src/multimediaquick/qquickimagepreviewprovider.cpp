@@ -26,22 +26,25 @@ struct QQuickImagePreviewProviderPrivate
 
     QImage getImage(const QString &id, QSize *size, const QSize &requestedSize)
     {
-        std::lock_guard guard(mutex);
-
-        for (const auto &record : records) {
-            if (record.second.id == id) {
-                QImage res = record.second.image;
-                if (requestedSize.isValid())
-                    res = res.scaled(requestedSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-                if (size)
-                    *size = res.size();
-
-                return res;
+        QImage preview = [&] {
+            std::lock_guard guard(mutex);
+            for (const auto &record : records) {
+                if (record.second.id == id)
+                    return record.second.image;
             }
-        }
+            return QImage();
+        }();
 
-        return QImage();
+        if (preview.isNull())
+            return QImage();
+
+        if (requestedSize.isValid())
+            preview = preview.scaled(requestedSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+        if (size)
+            *size = preview.size();
+
+        return preview;
     }
 
     void cleanupInstance(QUuid instance)
