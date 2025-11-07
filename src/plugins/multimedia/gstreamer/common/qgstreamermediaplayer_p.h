@@ -144,6 +144,11 @@ private:
     QGstPipeline m_playbin;
     QGstBusObserver m_gstPlayBus;
 
+    // GstPlay bus message counting to achieve STOPPED state before destruction
+    int m_expectedStoppedMessages = 0; // from gst_play_stop calls and after reaching EOS
+    bool m_playOrPauseCalledSinceLastStateChangedOrEosMessage = false; // handles EOS edge case
+    bool m_callStopInDestructor = false; // true after gst_play_play/pause calls, false when stopped
+
     // metadata
     QMediaMetaData m_metaData;
     std::array<std::vector<QMediaMetaData>, 3> m_trackMetaData;
