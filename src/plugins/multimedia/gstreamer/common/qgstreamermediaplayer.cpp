@@ -21,6 +21,7 @@
 #include <QtMultimedia/private/qthreadlocalrhi_p.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtConcurrent/qtconcurrentrun.h>
+#include <QtCore/qdeadlinetimer.h>
 #include <QtCore/qdebug.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtCore/qiodevice.h>
@@ -71,6 +72,7 @@ void QGstreamerMediaPlayer::handleDiscoverResult(const DiscoverResult &discovery
 
     if (discoveryResult) {
         // Make sure GstPlay is ready if play() is called from slots during discovery
+        qCDebug(qLcMediaPlayer) << "gst_play_set_uri";
         gst_play_set_uri(m_gstPlay.get(), url.toEncoded().constData());
 
         m_trackMetaData.fill({});
@@ -306,6 +308,7 @@ void QGstreamerMediaPlayer::updateNativeSizeOnVideoOutput()
 
 void QGstreamerMediaPlayer::seekToCurrentPosition()
 {
+    qCDebug(qLcMediaPlayer) << "gst_play_seek";
     gst_play_seek(m_gstPlay.get(), gst_play_get_position(m_gstPlay.get()));
 }
 
@@ -431,12 +434,56 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
 
 QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
 {
+    using namespace std::chrono_literals;
+    using namespace std::chrono;
+    qCDebug(qLcMediaPlayer) << "~QGstreamerMediaPlayer" << m_callStopInDestructor
+                            << m_expectedStoppedMessages << state();
+
     if (customPipeline)
         cleanupCustomPipeline();
 
     m_gstPlayBus.removeMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
-    gst_bus_set_flushing(m_gstPlayBus.get(), TRUE);
-    gst_play_stop(m_gstPlay.get());
+
+    if (m_callStopInDestructor) {
+        m_expectedStoppedMessages += 1;
+        qCDebug(qLcMediaPlayer) << "gst_play_stop";
+        gst_play_stop(m_gstPlay.get());
+    }
+
+    if (m_expectedStoppedMessages) {
+        auto processNextMessage = [this](nanoseconds timeout) {
+            QGstreamerMessage message{
+                gst_bus_timed_pop_filtered(m_gstPlayBus.get(), timeout.count(),
+                                           GST_MESSAGE_APPLICATION), QGstreamerMessage::HasRef
+            };
+            if (!message || !gst_play_is_play_message(message.message()))
+                return;
+            GstPlayMessage type;
+            gst_play_message_parse_type(message.message(), &type);
+            qCDebug(qLcMediaPlayer) << QGstPlayMessageAdaptor{ message };
+            if (type == GST_PLAY_MESSAGE_END_OF_STREAM) {
+                m_expectedStoppedMessages += 1;
+                return;
+            }
+            if (type == GST_PLAY_MESSAGE_STATE_CHANGED) {
+                GstPlayState state;
+                gst_play_message_parse_state_changed(message.message(), &state);
+                if (state == GST_PLAY_STATE_STOPPED) {
+                    if (m_expectedStoppedMessages > 0)
+                        m_expectedStoppedMessages -= 1;
+                }
+            }
+        };
+
+        constexpr auto timeout = 200ms;
+        QDeadlineTimer deadline{timeout};
+        while (!deadline.hasExpired() && m_expectedStoppedMessages)
+            processNextMessage(deadline.remainingTimeAsDuration());
+
+        if (m_expectedStoppedMessages)
+            qWarning() << "Did not receive expected STOPPED state change messages from GstPlay "
+                          "in QGstreamerMediaPlayer destructor:" << m_expectedStoppedMessages;
+    }
 
     // NOTE: gst_play_stop is not sufficient, un-reffing m_gstPlay can deadlock
     m_playbin.setStateSync(GST_STATE_NULL);
@@ -444,6 +491,8 @@ QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
     m_playbin.set("video-sink", QGstElement::createFromPipelineDescription("fakesink"));
     m_playbin.set("text-sink", QGstElement::createFromPipelineDescription("fakesink"));
     m_playbin.set("audio-sink", QGstElement::createFromPipelineDescription("fakesink"));
+
+    gst_bus_set_flushing(m_gstPlayBus.get(), TRUE);
 }
 
 void QGstreamerMediaPlayer::updatePositionFromPipeline()
@@ -547,11 +596,15 @@ bool QGstreamerMediaPlayer::processBusMessageApplication(const QGstreamerMessage
         return false;
     }
     case GST_PLAY_MESSAGE_STATE_CHANGED: {
+        m_playOrPauseCalledSinceLastStateChangedOrEosMessage = false;
         GstPlayState state;
         gst_play_message_parse_state_changed(message.message(), &state);
 
         switch (state) {
         case GstPlayState::GST_PLAY_STATE_STOPPED:
+            if (m_expectedStoppedMessages > 0)
+                m_expectedStoppedMessages -= 1;
+
             if (stateChangeToSkip) {
                 qCDebug(qLcMediaPlayer) << "    skipping StoppedState transition";
 
@@ -599,9 +652,17 @@ bool QGstreamerMediaPlayer::processBusMessageApplication(const QGstreamerMessage
         return false;
     }
     case GST_PLAY_MESSAGE_END_OF_STREAM: {
+        m_expectedStoppedMessages += 1;
+        // Set m_callStopInDestructor to false except in the edge case where play or pause is called
+        // after reaching EOS, but before we've processed this EOS message
+        if (!m_playOrPauseCalledSinceLastStateChangedOrEosMessage)
+            m_callStopInDestructor = false;
+        m_playOrPauseCalledSinceLastStateChangedOrEosMessage = false;
+
         if (doLoop()) {
             positionChanged(m_duration);
-            qCDebug(qLcMediaPlayer) << "EOS: restarting loop";
+            m_callStopInDestructor = true;
+            qCDebug(qLcMediaPlayer) << "EOS: restarting loop (gst_play_play)";
             gst_play_play(m_gstPlay.get());
             positionChanged(0ms);
 
@@ -758,12 +819,15 @@ void QGstreamerMediaPlayer::play()
     }
 
     if (m_pendingSeek) {
+        qCDebug(qLcMediaPlayer) << "gst_play_seek";
         gst_play_seek(m_gstPlay.get(), m_pendingSeek->count());
         m_pendingSeek = std::nullopt;
     }
 
-    qCDebug(qLcMediaPlayer) << "gst_play_play";
     gstVideoOutput->setActive(true);
+    m_callStopInDestructor = true;
+    m_playOrPauseCalledSinceLastStateChangedOrEosMessage = true;
+    qCDebug(qLcMediaPlayer) << "gst_play_play";
     gst_play_play(m_gstPlay.get());
     stateChanged(QMediaPlayer::PlayingState);
 }
@@ -788,6 +852,8 @@ void QGstreamerMediaPlayer::pause()
 
     gstVideoOutput->setActive(true);
 
+    m_callStopInDestructor = true;
+    m_playOrPauseCalledSinceLastStateChangedOrEosMessage = true;
     qCDebug(qLcMediaPlayer) << "gst_play_pause";
     gst_play_pause(m_gstPlay.get());
 
@@ -819,8 +885,10 @@ void QGstreamerMediaPlayer::stop()
         return;
     }
 
-    qCDebug(qLcMediaPlayer) << "gst_play_stop";
     gstVideoOutput->setActive(false);
+    m_expectedStoppedMessages += 1;
+    m_callStopInDestructor = false;
+    qCDebug(qLcMediaPlayer) << "gst_play_stop";
     gst_play_stop(m_gstPlay.get());
 
     stateChanged(QMediaPlayer::StoppedState);
