@@ -99,6 +99,7 @@ private slots:
     void bufferSize_updatedAfterStart();
 
     void stopWhileStopped();
+    void stopWhileSuspended();
     void suspendWhileStopped();
     void resumeWhileStopped();
 
@@ -539,6 +540,22 @@ void tst_QAudioSink::stopWhileStopped()
     QVERIFY2((stateSignal.size() == 0), "stop() while stopped is emitting a signal and it shouldn't");
     QVERIFY2((audioSink.error() == QAudio::NoError),
              "error() was not set to QAudio::NoError after stop()");
+}
+
+void tst_QAudioSink::stopWhileSuspended()
+{
+    using namespace std::chrono_literals;
+
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+    audioSink.start();
+    QTest::qWait(10ms); // give WASAPI worker thread a bit of time to arrive at WaitForSingleObject
+
+    audioSink.suspend();
+    QTRY_COMPARE_EQ(audioSink.state(), QAudio::SuspendedState);
+    QTest::qWait(10ms); // give WASAPI worker thread a bit of time to arrive at WaitForSingleObject
+
+    audioSink.stop();
+    QTRY_COMPARE_EQ(audioSink.state(), QAudio::StoppedState);
 }
 
 void tst_QAudioSink::suspendWhileStopped()
