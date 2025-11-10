@@ -152,9 +152,9 @@ void QWASAPIAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
 
     requestStop();
     disconnectQIODeviceConnections();
-
     QWindowsAudioUtils::audioClientStop(m_audioClient);
-    m_workerThread->wait();
+
+    joinWorkerThread();
     QWindowsAudioUtils::audioClientReset(m_audioClient);
 
     finalizeQIODevice(shutdownPolicy);
@@ -214,7 +214,13 @@ bool QWASAPIAudioSourceStream::startAudioClient()
     m_workerThread->setObjectName(u"QWASAPIAudioSourceStream");
     m_workerThread->start();
 
-    return audioClientStart(m_audioClient);
+    bool clientStarted = audioClientStart(m_audioClient);
+    if (!clientStarted) {
+        joinWorkerThread();
+        return false;
+    }
+
+    return true;
 }
 
 void QWASAPIAudioSourceStream::runProcessLoop()
@@ -314,6 +320,14 @@ void QWASAPIAudioSourceStream::handleAudioClientError()
     invokeOnAppThread([this] {
         handleIOError(m_parent);
     });
+}
+
+void QWASAPIAudioSourceStream::joinWorkerThread()
+{
+    requestStop();
+    ::SetEvent(m_wasapiHandle.get()); // force wakeup
+    m_workerThread->wait();
+    m_workerThread = {};
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

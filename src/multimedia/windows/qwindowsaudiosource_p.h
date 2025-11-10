@@ -78,6 +78,7 @@ private:
     bool processRingbuffer() noexcept QT_MM_NONBLOCKING;
     bool processCallback() noexcept QT_MM_NONBLOCKING;
     void handleAudioClientError();
+    void joinWorkerThread();
 
     ComPtr<IAudioClient3> m_audioClient;
     ComPtr<IAudioCaptureClient> m_captureClient;
