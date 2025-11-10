@@ -83,6 +83,8 @@ QWASAPIAudioSourceStream::~QWASAPIAudioSourceStream() = default;
 bool QWASAPIAudioSourceStream::start(QIODevice *ioDevice)
 {
     auto immDevice = QAudioDevicePrivate::handle<QWindowsAudioDevice>(m_audioDevice)->open();
+    if (!immDevice)
+        return false;
 
     bool clientOpen = openAudioClient(std::move(immDevice));
     if (!clientOpen)
@@ -101,6 +103,8 @@ bool QWASAPIAudioSourceStream::start(QIODevice *ioDevice)
 QIODevice *QWASAPIAudioSourceStream::start()
 {
     auto immDevice = QAudioDevicePrivate::handle<QWindowsAudioDevice>(m_audioDevice)->open();
+    if (!immDevice)
+        return nullptr;
 
     bool clientOpen = openAudioClient(std::move(immDevice));
     if (!clientOpen)
@@ -123,6 +127,8 @@ QIODevice *QWASAPIAudioSourceStream::start()
 bool QWASAPIAudioSourceStream::start(AudioCallback &&cb)
 {
     auto immDevice = QAudioDevicePrivate::handle<QWindowsAudioDevice>(m_audioDevice)->open();
+    if (!immDevice)
+        return false;
 
     bool clientOpen = openAudioClient(std::move(immDevice));
     if (!clientOpen)
