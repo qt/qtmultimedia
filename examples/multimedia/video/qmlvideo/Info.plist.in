@@ -35,13 +35,10 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 
-	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
-
-        <key>NSCameraUsageDescription</key>
-        <string>Qt Multimedia Example</string>
-        <key>NSMicrophoneUsageDescription</key>
-        <string>Qt Multimedia Example</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Qt Multimedia Example</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Qt Multimedia Example</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
 </dict>
