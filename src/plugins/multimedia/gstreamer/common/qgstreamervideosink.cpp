@@ -358,7 +358,7 @@ void QGstreamerRelayVideoSink::updateGstContexts(QRhi *rhi)
     gst_gl_context_fill_info(appContext.get(), &error);
     if (error) {
         qWarning() << "Could not fill context info:" << error;
-        error = {};
+        error.reset();
     }
 
     QGstGLContextHandle displayContext;
