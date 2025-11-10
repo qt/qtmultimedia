@@ -5,6 +5,8 @@
 #define PLAYLISTMODEL_H
 
 #include <QAbstractItemModel>
+#include <QMap>
+#include <QVariant>
 
 #include <memory>
 
