@@ -89,6 +89,7 @@ private:
     bool processCallback() noexcept QT_MM_NONBLOCKING;
 
     void handleAudioClientError();
+    void joinWorkerThread();
 
     ComPtr<IAudioClient3> m_audioClient;
     ComPtr<IAudioRenderClient> m_renderClient;
