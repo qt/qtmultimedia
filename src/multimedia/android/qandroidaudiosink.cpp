@@ -74,6 +74,11 @@ QAndroidAudioSinkStream::QAndroidAudioSinkStream(QAudioDevice device, const QAud
 
     builder.setupBuilder();
     m_stream = std::make_unique<QtAAudio::Stream>(builder);
+    if (builder.format.sampleFormat() != format.sampleFormat()) {
+        // Original sample format unsupported, so doing sample format conversion
+        Q_ASSERT(builder.format.sampleFormat() == QAudioFormat::Float);
+        m_nativeSampleFormat = NativeSampleFormat::float32_t;
+    }
 }
 
 bool QAndroidAudioSinkStream::open()

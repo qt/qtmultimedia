@@ -29,7 +29,7 @@ struct StreamBuilder;
 
 struct Stream
 {
-    explicit Stream(const StreamBuilder &builder);
+    explicit Stream(StreamBuilder &builder);
     ~Stream();
 
     Q_DISABLE_COPY_MOVE(Stream)

@@ -64,6 +64,11 @@ QAndroidAudioSourceStream::QAndroidAudioSourceStream(QAudioDevice device,
         qCWarning(qLcAndroidAudioSource) << "Preparation failed for device:" << m_audioDevice.id().toInt();
 
     m_stream = std::make_unique<QtAAudio::Stream>(builder);
+    if (builder.format.sampleFormat() != format.sampleFormat()) {
+        // Original sample format unsupported, so doing sample format conversion
+        Q_ASSERT(builder.format.sampleFormat() == QAudioFormat::Float);
+        m_nativeSampleFormat = NativeSampleFormat::float32_t;
+    }
 }
 
 QAndroidAudioSourceStream::~QAndroidAudioSourceStream()
