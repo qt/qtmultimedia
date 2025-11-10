@@ -217,6 +217,63 @@ PAOperationHandle streamCork(const PAStreamHandle &stream, bool corkStream)
     };
 }
 
+PulseaudioServerType pulseaudioDetectServerType()
+{
+    using namespace Qt::StringLiterals;
+
+    auto ml = std::unique_ptr<pa_mainloop, PaMainLoopDeleter>(pa_mainloop_new());
+    pa_mainloop_api *api = pa_mainloop_get_api(ml.get());
+    PAContextHandle ctx{
+        pa_context_new(api, "pipewire-check"),
+        PAContextHandle::HasRef,
+    };
+
+    struct ContextData
+    {
+        bool ready = false;
+        bool is_pipewire = false;
+    };
+    ContextData data;
+
+    pa_context_set_state_callback(ctx.get(), [](pa_context *ctx, void *userdata) {
+        auto *data = static_cast<ContextData *>(userdata);
+        switch (pa_context_get_state(ctx)) {
+        case PA_CONTEXT_READY:
+        case PA_CONTEXT_FAILED:
+        case PA_CONTEXT_TERMINATED:
+            data->ready = true;
+            break;
+        default:
+            break;
+        }
+    }, &data);
+    pa_context_connect(ctx.get(), nullptr, PA_CONTEXT_NOAUTOSPAWN, nullptr);
+    auto disconnect = qScopeGuard([&] {
+        pa_context_disconnect(ctx.get());
+    });
+
+    while (!data.ready)
+        pa_mainloop_iterate(ml.get(), 1, nullptr);
+
+    if (pa_context_get_state(ctx.get()) != PA_CONTEXT_READY)
+        return PulseaudioServerType::NotConnected;
+
+    PAOperationHandle op{
+        pa_context_get_server_info(ctx.get(),
+                                   [](pa_context *, const pa_server_info *info, void *userdata) {
+        auto *data = static_cast<ContextData *>(userdata);
+        if (info && info->server_name)
+            data->is_pipewire = QLatin1StringView(info->server_name).contains("PipeWire"_L1);
+    }, &data),
+        PAOperationHandle::HasRef,
+    };
+
+    while (pa_operation_get_state(op.get()) == PA_OPERATION_RUNNING)
+        pa_mainloop_iterate(ml.get(), 1, nullptr);
+
+    return data.is_pipewire ? PulseaudioServerType::Pipewire : PulseaudioServerType::Pulseaudio;
+}
+
 } // namespace QPulseAudioInternal
 
 static QLatin1StringView stateToQStringView(pa_stream_state_t state)
