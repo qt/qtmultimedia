@@ -84,11 +84,7 @@ bool QWASAPIAudioSinkStream::start(QIODevice *ioDevice)
     createQIODeviceConnections(ioDevice);
     pullFromQIODevice();
 
-    bool started = startAudioClient(StreamType::Ringbuffer);
-    if (!started)
-        return false;
-
-    return true;
+    return startAudioClient(StreamType::Ringbuffer);
 }
 
 QIODevice *QWASAPIAudioSinkStream::start()
@@ -106,10 +102,7 @@ QIODevice *QWASAPIAudioSinkStream::start()
     createQIODeviceConnections(ioDevice);
 
     bool started = startAudioClient(StreamType::Ringbuffer);
-    if (!started)
-        return nullptr;
-
-    return ioDevice;
+    return started ? ioDevice : nullptr;
 }
 
 bool QWASAPIAudioSinkStream::start(AudioCallback audioCallback)
