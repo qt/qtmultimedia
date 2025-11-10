@@ -108,10 +108,19 @@ void StreamBuilder::setupBuilder()
     }
 }
 
-Stream::Stream(const StreamBuilder &builder)
+Stream::Stream(StreamBuilder &builder)
 {
     // Request stream open
     auto result = AAudioStreamBuilder_openStream(builder.m_builder, &m_stream);
+    if (result == AAUDIO_ERROR_INVALID_FORMAT && builder.format.sampleFormat() != QAudioFormat::Float) {
+        // Try opening with a float sample format, which is more likely to be supported
+        // NOTE: We should check sample format after opening in sink/source to adjust
+        // nativeSampleFormat
+        builder.format.setSampleFormat(QAudioFormat::Float);
+        builder.setupBuilder();
+        result = AAudioStreamBuilder_openStream(builder.m_builder, &m_stream);
+    }
+
     if (result != AAUDIO_OK) {
         qCWarning(qLcAAudioStream)
                 << "Opening stream failed:" << AAudio_convertResultToText(result);
