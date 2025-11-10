@@ -43,6 +43,13 @@ target_link_libraries(qmlvideoexample PRIVATE
     frequencymonitor
 )
 
+# Temporary workaround for QML module linker issues on static builds
+# (Includes official iOS binaries)
+# See QTBUG-141857
+if (QT_FEATURE_static)
+    target_link_libraries(qmlvideoexample PRIVATE qmlvideoplugin)
+endif()
+
 install(TARGETS qmlvideoexample
     BUNDLE DESTINATION .
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
