@@ -209,6 +209,11 @@ private:
                 return false;
             }
             if (win == m_xid) {
+                if (wndattr.map_state != IsViewable) {
+                    updateError(QPlatformSurfaceCapture::CaptureFailed,
+                                QStringLiteral("Window is not viewable"));
+                    return false;
+                }
                 width = wndattr.width;
                 height = wndattr.height;
                 depth = wndattr.depth;
