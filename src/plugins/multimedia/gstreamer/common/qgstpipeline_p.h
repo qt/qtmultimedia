@@ -31,7 +31,7 @@ class QGstPipeline : public QGstBin
     static constexpr auto defaultQueryTimeout = std::chrono::seconds{ 5 };
 
 public:
-    constexpr QGstPipeline() = default;
+    QGstPipeline() = default;
     QGstPipeline(const QGstPipeline &) = default;
     QGstPipeline(QGstPipeline &&) = default;
     QGstPipeline &operator=(const QGstPipeline &) = default;
