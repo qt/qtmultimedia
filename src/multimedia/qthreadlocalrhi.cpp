@@ -17,6 +17,8 @@ QT_BEGIN_NAMESPACE
 
 namespace {
 
+static thread_local QRhi::Implementation s_preferredBackend = QRhi::Null;
+
 class ThreadLocalRhiHolder
 {
 public:
@@ -92,13 +94,6 @@ public:
         return m_rhi.get();
     }
 
-    void setPreferredBackend(QRhi::Implementation backend)
-    {
-        m_preferredBackend = backend;
-        resetRhi();
-    }
-
-private:
     void resetRhi()
     {
         m_rhi.reset();
@@ -116,15 +111,14 @@ private:
             return implementation == reference;
 
         // If no reference, but preference exists, compare to that
-        if (m_preferredBackend != QRhi::Null)
-            return implementation == m_preferredBackend;
+        if (s_preferredBackend != QRhi::Null)
+            return implementation == s_preferredBackend;
 
         // Can use (assuming platform and configuration allow)
         return true;
     }
 
 private:
-    QRhi::Implementation m_preferredBackend = QRhi::Null;
     std::unique_ptr<QRhi> m_rhi;
 #if QT_CONFIG(opengl)
     std::unique_ptr<QOffscreenSurface> m_fallbackSurface;
@@ -162,7 +156,9 @@ QRhi *qEnsureThreadLocalRhi(QRhi *referenceRhi)
 
 void qSetPreferredThreadLocalRhiBackend(QRhi::Implementation backend)
 {
-    g_threadLocalRhiHolder->setPreferredBackend(backend);
+    s_preferredBackend = backend;
+    if (g_threadLocalRhiHolder)
+        g_threadLocalRhiHolder->resetRhi();
 }
 
 QT_END_NAMESPACE
