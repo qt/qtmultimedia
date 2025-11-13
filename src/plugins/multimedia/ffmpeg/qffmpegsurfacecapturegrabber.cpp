@@ -3,6 +3,7 @@
 
 #include "qffmpegsurfacecapturegrabber_p.h"
 
+#include <qchronotimer.h>
 #include <qelapsedtimer.h>
 #include <qloggingcategory.h>
 #include <qthread.h>
@@ -49,7 +50,7 @@ private:
 struct QFFmpegSurfaceCaptureGrabber::GrabbingContext
 {
     GrabbingProfiler profiler;
-    QTimer timer;
+    QChronoTimer timer;
     QElapsedTimer elapsedTimer;
     qint64 lastFrameTime = 0;
 };
@@ -138,10 +139,13 @@ void QFFmpegSurfaceCaptureGrabber::updateError(QPlatformSurfaceCapture::Error er
 
 void QFFmpegSurfaceCaptureGrabber::updateTimerInterval()
 {
+    using namespace std::chrono;
+
     const qreal rate = m_prevError && *m_prevError != QPlatformSurfaceCapture::NoError
             ? MinScreenCaptureFrameRate
             : m_rate;
-    const int interval = static_cast<int>(1000 / rate);
+    const auto interval = round<nanoseconds>(1s / rate);
+
     if (m_context && m_context->timer.interval() != interval)
         m_context->timer.setInterval(interval);
 }
