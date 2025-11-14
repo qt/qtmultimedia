@@ -16,6 +16,10 @@
             than the window’s geometry.
         \li Windows that are outside the visible screen area cannot be captured,
             and an error signal is emitted in that case.
+        \li The behavior of minimized windows or those located on an invisible
+            virtual workspace depends on the window manager. For example,
+            such windows can be captured on GNOME, whereas on WindowMaker or Xfwm
+            such capturing is not allowed, and the window capture instance emits an error.
     \endlist
     //! [content]
 */
