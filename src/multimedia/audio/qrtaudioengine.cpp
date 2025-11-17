@@ -264,7 +264,7 @@ void QRtAudioEngine::cleanupRetiredVoices() noexcept QT_MM_NONBLOCKING
             if (!voiceIsActive)
                 notifyApp = sendRtToAppNotification(StopNotification{ voice });
 
-            return false;
+            return !voiceIsActive;
         });
     });
 
