@@ -129,6 +129,9 @@ QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &f
 
     QPlatformAudioSink *platformSink = QPlatformAudioSink::get(m_sink);
 
+    // SoundEffect can prevent the stream from appear in an OS mixer
+    platformSink->setRole(QtMultimediaPrivate::AudioEndpointRole::SoundEffect);
+
     platformSink->start([this](QSpan<float> outputBuffer) {
         audioCallback(outputBuffer);
     });
