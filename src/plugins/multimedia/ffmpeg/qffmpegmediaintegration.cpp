@@ -197,8 +197,7 @@ QFFmpegMediaIntegration::createAudioResampler(const QAudioFormat &inputFormat,
 #ifdef Q_OS_WINDOWS
     auto windowsResampler = std::make_unique<QWindowsResampler>();
     if (windowsResampler->setup(inputFormat, outputFormat))
-        return std::move(windowsResampler);
-
+        return windowsResampler;
 #endif
 
     return q23::unexpected{ notAvailable };
