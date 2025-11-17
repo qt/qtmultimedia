@@ -22,7 +22,6 @@
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudio_rtsan_support_p.h>
-#include <QtMultimedia/private/qmultimedia_assume_p.h>
 
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qspan.h>
@@ -186,7 +185,7 @@ runAudioCallback(std::conditional_t<IsSink, AudioSinkCallback, AudioSourceCallba
     Q_ASSERT(!hostBuffer.empty());
 
     bool callbackIsValid = validateAudioCallback(audioCallback, format);
-    QT_MM_ASSUME(callbackIsValid);
+    Q_PRESUME(callbackIsValid);
 
     int numberOfSamples = format.framesForBytes(hostBuffer.size()) * format.channelCount();
 
@@ -197,7 +196,7 @@ runAudioCallback(std::conditional_t<IsSink, AudioSinkCallback, AudioSourceCallba
         using SampleType = GetSampleType<FunctorType>;
 
         bool audioCallbackIsValid = bool(callback);
-        QT_MM_ASSUME(audioCallbackIsValid);
+        Q_PRESUME(audioCallbackIsValid);
         using HostBufferType = std::conditional_t<IsSink, SampleType, const SampleType>;
 
         auto buffer = QSpan<HostBufferType>{

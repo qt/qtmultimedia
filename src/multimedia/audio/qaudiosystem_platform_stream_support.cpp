@@ -6,7 +6,6 @@
 #include <QtCore/qdebug.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
-#include <QtMultimedia/private/qmultimedia_assume_p.h>
 
 #include <stdlib.h>
 #if __has_include(<alloca.h>)
@@ -95,7 +94,7 @@ QPlatformAudioIOStream::inferRingbufferFrames(const std::optional<int> &ringbuff
                                               const QAudioFormat &format)
 {
     int bytesPerFrame = format.bytesPerFrame();
-    QT_MM_ASSUME(bytesPerFrame > 0);
+    Q_PRESUME(bytesPerFrame > 0);
 
     return inferRingbufferBytes(ringbufferSize, hardwareBufferFrames, format) / bytesPerFrame;
 }

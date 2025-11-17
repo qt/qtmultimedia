@@ -4,7 +4,6 @@
 #include "qaudioformat.h"
 
 #include <QtCore/qdebug.h>
-#include <QtMultimedia/private/qmultimedia_assume_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -279,8 +278,8 @@ qint64 QAudioFormat::durationForBytes(qint32 bytes) const
 
     const int bytesPerFrame = this->bytesPerFrame();
     const int sampleRate = this->sampleRate();
-    QT_MM_ASSUME(bytesPerFrame > 0);
-    QT_MM_ASSUME(sampleRate > 0);
+    Q_PRESUME(bytesPerFrame > 0);
+    Q_PRESUME(sampleRate > 0);
     return qint64(1000000LL * (bytes / bytesPerFrame)) / sampleRate;
 }
 
