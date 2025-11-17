@@ -14,7 +14,6 @@ QWasmAudioInput::QWasmAudioInput(QAudioInput *parent)
     : QObject(parent), QPlatformAudioInput(parent)
 {
     m_wasMuted = false;
-    setDeviceSourceStream("");
 }
 
 QWasmAudioInput::~QWasmAudioInput()

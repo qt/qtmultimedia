@@ -382,30 +382,28 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
 
     emscripten::val constraints = emscripten::val::object();
     if (m_needsAudio) {
-        emscripten::val audioConstraints = emscripten::val::object();
-        audioConstraints.set("audio", m_needsVideo); // formatting?
-        emscripten::val exactDeviceId = emscripten::val::object();
-        exactDeviceId.set("exact", id);
-        audioConstraints.set("deviceId", exactDeviceId);
-        constraints.set("audio", audioConstraints);
+        if (!id.empty() && !m_needsVideo) {
+            emscripten::val audioConstraints = emscripten::val::object();
+            emscripten::val exactDeviceId = emscripten::val::object();
+            exactDeviceId.set("exact", id);
+            audioConstraints.set("deviceId", exactDeviceId);
+            constraints.set("audio", audioConstraints);
+        } else {
+            constraints.set("audio", true);
+        }
     }
 
     if (m_needsVideo) {
         emscripten::val videoContraints = emscripten::val::object();
         emscripten::val exactDeviceId = emscripten::val::object();
-        exactDeviceId.set("exact", id);
-        videoContraints.set("deviceId", exactDeviceId);
+
+        if (!id.empty()) {
+            exactDeviceId.set("exact", id);
+            videoContraints.set("deviceId", exactDeviceId);
+        }
         videoContraints.set("resizeMode", std::string("crop-and-scale"));
         constraints.set("video", videoContraints);
     }
-
-    // ???
-    // if (!id.empty()) {
-    //     emscripten::val exactDeviceId = emscripten::val::object();
-    //     exactDeviceId.set("exact", id);
-    //     constraints.set("deviceId", exactDeviceId);
-    // }
-
     // we do it this way as this prompts user for permissions
     qstdweb::Promise::make(mediaDevices, QStringLiteral("getUserMedia"),
                            std::move(getUserMediaCallback), constraints);
