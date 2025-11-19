@@ -3,12 +3,14 @@
 
 #include "playercontrols.h"
 
-#include <QAudio>
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QSlider>
 #include <QStyle>
 #include <QToolButton>
+#include <QtAudio>
+
+using namespace Qt::StringLiterals;
 
 PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent)
 {
@@ -50,17 +52,16 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent)
             &PlayerControls::onVolumeSliderValueChanged);
 
     m_rateBox = new QComboBox(this);
-    m_rateBox->addItem("0.5x", QVariant(0.5));
-    m_rateBox->addItem("1.0x", QVariant(1.0));
-    m_rateBox->addItem("2.0x", QVariant(2.0));
+    m_rateBox->addItem(u"0.5x"_s, QVariant(0.5));
+    m_rateBox->addItem(u"1.0x"_s, QVariant(1.0));
+    m_rateBox->addItem(u"2.0x"_s, QVariant(2.0));
     m_rateBox->setCurrentIndex(1);
 
-    connect(m_rateBox, QOverload<int>::of(&QComboBox::activated), this,
-            &PlayerControls::updateRate);
+    connect(m_rateBox, &QComboBox::activated, this, &PlayerControls::updateRate);
 
     setState(QMediaPlayer::StoppedState, /*force=*/true);
 
-    QBoxLayout *layout = new QHBoxLayout;
+    QBoxLayout *layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(m_stopButton);
     layout->addWidget(m_previousButton);
@@ -70,7 +71,6 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent)
     layout->addWidget(m_muteButton);
     layout->addWidget(m_volumeSlider);
     layout->addWidget(m_rateBox);
-    setLayout(layout);
 }
 
 QMediaPlayer::PlaybackState PlayerControls::state() const
@@ -84,7 +84,7 @@ void PlayerControls::setState(QMediaPlayer::PlaybackState state, bool force)
         m_playerState = state;
 
         QColor baseColor = palette().color(QPalette::Base);
-        QString inactiveStyleSheet = QStringLiteral("background-color: %1").arg(baseColor.name());
+        QString inactiveStyleSheet = "background-color: "_L1 + baseColor.name();
         QString defaultStyleSheet = QString();
 
         switch (state) {
@@ -110,16 +110,16 @@ void PlayerControls::setState(QMediaPlayer::PlaybackState state, bool force)
 float PlayerControls::volume() const
 {
     qreal linearVolume =
-            QAudio::convertVolume(m_volumeSlider->value() / qreal(100),
-                                  QAudio::LogarithmicVolumeScale, QAudio::LinearVolumeScale);
+            QtAudio::convertVolume(m_volumeSlider->value() / qreal(100),
+                                   QtAudio::LogarithmicVolumeScale, QtAudio::LinearVolumeScale);
 
     return linearVolume;
 }
 
 void PlayerControls::setVolume(float volume)
 {
-    qreal logarithmicVolume = QAudio::convertVolume(volume, QAudio::LinearVolumeScale,
-                                                    QAudio::LogarithmicVolumeScale);
+    qreal logarithmicVolume = QtAudio::convertVolume(volume, QtAudio::LinearVolumeScale,
+                                                     QtAudio::LogarithmicVolumeScale);
 
     m_volumeSlider->setValue(qRound(logarithmicVolume * 100));
 }

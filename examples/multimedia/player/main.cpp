@@ -9,29 +9,31 @@
 #include <QDir>
 #include <QUrl>
 
+using namespace Qt::StringLiterals;
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    QCoreApplication::setApplicationName("Player Example");
-    QCoreApplication::setOrganizationName("QtProject");
-    QCoreApplication::setApplicationVersion(QT_VERSION_STR);
+    QCoreApplication::setApplicationName(u"Player Example"_s);
+    QCoreApplication::setOrganizationName(u"QtProject"_s);
+    QCoreApplication::setApplicationVersion(QLatin1StringView(QT_VERSION_STR));
     QCommandLineParser parser;
-    parser.setApplicationDescription("Qt MultiMedia Player Example");
+    parser.setApplicationDescription(u"Qt MultiMedia Player Example"_s);
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.addPositionalArgument("url", "The URL(s) to open.");
+    parser.addPositionalArgument(u"url"_s, u"The URL(s) to open."_s);
     parser.process(app);
 
     Player player;
 
     if (!parser.positionalArguments().isEmpty() && player.isPlayerAvailable()) {
         QList<QUrl> urls;
-        for (auto &a : parser.positionalArguments())
+        for (const auto &a : parser.positionalArguments())
             urls.append(QUrl::fromUserInput(a, QDir::currentPath()));
         player.addToPlaylist(urls);
     }
 
     player.show();
-    return app.exec();
+    return QCoreApplication::exec();
 }

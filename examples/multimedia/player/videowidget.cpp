@@ -5,6 +5,7 @@
 
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QOperatingSystemVersion>
 
 VideoWidget::VideoWidget(QWidget *parent) : QVideoWidget(parent)
 {
@@ -14,9 +15,8 @@ VideoWidget::VideoWidget(QWidget *parent) : QVideoWidget(parent)
     p.setColor(QPalette::Window, Qt::black);
     setPalette(p);
 
-#ifndef Q_OS_ANDROID // QTBUG-95723
-    setAttribute(Qt::WA_OpaquePaintEvent);
-#endif
+    if constexpr (QOperatingSystemVersion::currentType() != QOperatingSystemVersion::Android) // QTBUG-95723
+        setAttribute(Qt::WA_OpaquePaintEvent);
 }
 
 void VideoWidget::keyPressEvent(QKeyEvent *event)

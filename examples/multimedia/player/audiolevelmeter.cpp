@@ -9,12 +9,14 @@
 #include <QToolButton>
 #include <QBoxLayout>
 
+using namespace Qt::StringLiterals;
+
 // Converts a float sample value to dB and clamps it between DB_MIN and DB_MAX
-static float floatToDb(float f) {
+static float amplitudeToDb(float f)
+{
     if (f <= 0)
         return DB_MIN;
-    else
-        return std::clamp(float(20.0) * std::log10(f), DB_MIN, DB_MAX);
+    return std::clamp(float(20.0) * std::log10(f), DB_MIN, DB_MAX);
 }
 
 AudioLevelMeter::AudioLevelMeter(QWidget *parent) : QWidget(parent)
@@ -42,7 +44,7 @@ AudioLevelMeter::AudioLevelMeter(QWidget *parent) : QWidget(parent)
     mainLayout->addLayout(meterChannelLayout);
 
     // Peak label
-    m_peakLabel = new QLabel("-", this);
+    m_peakLabel = new QLabel(u"-"_s, this);
     m_peakLabel->setAlignment(Qt::AlignCenter);
     QFont font = QApplication::font();
     font.setPointSize(10);
@@ -54,7 +56,7 @@ AudioLevelMeter::AudioLevelMeter(QWidget *parent) : QWidget(parent)
     m_onOffButton = new QToolButton(this);
     mainLayout->addWidget(m_onOffButton);
     m_onOffButton->setMaximumWidth(WIDGET_WIDTH);
-    m_onOffButton->setText("On");
+    m_onOffButton->setText(u"On"_s);
     m_onOffButton->setCheckable(true);
     m_onOffButton->setChecked(true);
     connect(m_onOffButton, &QToolButton::clicked, this, &AudioLevelMeter::toggleOnOff);
@@ -168,7 +170,7 @@ void AudioLevelMeter::updatePeakLabel(float peak)
         return;
 
     m_highestPeak = peak;
-    float dB = floatToDb(m_highestPeak);
+    float dB = amplitudeToDb(m_highestPeak);
     m_peakLabel->setText(QString::number(dB, 'f', 1));
 }
 
@@ -177,7 +179,7 @@ void AudioLevelMeter::resetPeakLabel()
 {
     if (!m_isOn) {
         m_highestPeak = 0.0f;
-        m_peakLabel->setText("");
+        m_peakLabel->setText({});
         return;
     }
 
@@ -230,7 +232,7 @@ void AudioLevelMeter::toggleOnOff()
         deactivate();
     else
         activate();
-    m_onOffButton->setText(m_isOn ? "On" : "Off");
+    m_onOffButton->setText(m_isOn ? u"On"_s : u"Off"_s);
 }
 
 // Updates the number of visible MeterChannel widgets
@@ -304,7 +306,7 @@ void MeterChannel::decayRms()
 // Updates m_peak and resets m_peakDecayRate if sampleValue > m_peak
 void MeterChannel::updatePeak(float sampleValue)
 {
-    float dB = floatToDb(sampleValue);
+    float dB = amplitudeToDb(sampleValue);
     if (dB > m_peak) {
         m_peakDecayRate = 0;
         m_peak = dB;
@@ -331,7 +333,7 @@ void MeterChannel::updateRms(float sumOfSquaresForOneBuffer, milliseconds durati
     // Calculate the new RMS value
     if (m_sumOfSquares > 0 && m_sumOfSquaresQueue.size() > 0) {
         float newRms = std::sqrt(m_sumOfSquares / (frameCount * m_sumOfSquaresQueue.size()));
-        float dB = floatToDb(newRms);
+        float dB = amplitudeToDb(newRms);
         if (dB > m_rms) {
             m_rmsDecayRate = 0;
             m_rms = dB;

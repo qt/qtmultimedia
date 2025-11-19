@@ -7,9 +7,10 @@
 #include <QFileInfo>
 #include <QUrl>
 
-PlaylistModel::PlaylistModel(QObject *parent) : QAbstractItemModel(parent)
+PlaylistModel::PlaylistModel(QObject *parent) :
+    QAbstractItemModel(parent),
+    m_playlist(std::make_unique<QMediaPlaylist>())
 {
-    m_playlist.reset(new QMediaPlaylist);
     connect(m_playlist.get(), &QMediaPlaylist::mediaAboutToBeInserted, this,
             &PlaylistModel::beginInsertItems);
     connect(m_playlist.get(), &QMediaPlaylist::mediaInserted, this, &PlaylistModel::endInsertItems);
@@ -43,7 +44,7 @@ QModelIndex PlaylistModel::parent(const QModelIndex &child) const
 {
     Q_UNUSED(child);
 
-    return QModelIndex();
+    return {};
 }
 
 QVariant PlaylistModel::data(const QModelIndex &index, int role) const
@@ -57,7 +58,7 @@ QVariant PlaylistModel::data(const QModelIndex &index, int role) const
 
         return value;
     }
-    return QVariant();
+    return {};
 }
 
 QMediaPlaylist *PlaylistModel::playlist() const
