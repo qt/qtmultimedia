@@ -33,7 +33,7 @@ class Player : public QWidget
 
 public:
     explicit Player(QWidget *parent = nullptr);
-    ~Player() = default;
+    ~Player() override = default;
 
     bool isPlayerAvailable() const;
 
