@@ -369,8 +369,7 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
         // default
         .thenFunc =
         [this](emscripten::val stream) {
-                m_mediaStream = std::move(stream);
-                emit mediaStreamReady();
+            setupMediaStream(stream);
             },
         .catchFunc =
         [](emscripten::val error) {
@@ -414,8 +413,7 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
 
 void JsMediaInputStream::setupMediaStream(emscripten::val mStream)
 {
-    m_mediaStream = mStream;
-
+    m_mediaStream = mStream.call<emscripten::val>("clone");
     auto activeStreamCallback = [=](emscripten::val event) {
         m_active = true;
         emit activated(m_active);
@@ -427,6 +425,7 @@ void JsMediaInputStream::setupMediaStream(emscripten::val mStream)
         emit activated(m_active);
     };
     m_inactiveStreamEvent.reset(new qstdweb::EventCallback(m_mediaStream, "inactive", inactiveStreamCallback));
+    emit mediaStreamReady();
 }
 
 QT_END_NAMESPACE

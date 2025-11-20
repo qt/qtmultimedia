@@ -240,8 +240,7 @@ void QWasmVideoOutput::updateVideoElementSource(const QString &src)
 void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
 {
     m_cameraIsReady = false;
-
-    m_mediaInputStream.reset(new JsMediaInputStream());
+    m_mediaInputStream.reset(new JsMediaInputStream(this));
 
     m_mediaInputStream->setUseAudio(m_hasAudio);
     m_mediaInputStream->setUseVideo(true);
