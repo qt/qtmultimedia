@@ -38,6 +38,7 @@ qt_internal_add_qml_module(MultimediaQuickPrivate
         ${qml_files}
     PUBLIC_LIBRARIES
         Qt::Core
+        Qt::Multimedia
         Qt::MultimediaPrivate
         Qt::Quick
         Qt::QuickPrivate

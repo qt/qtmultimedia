@@ -53,9 +53,11 @@ qt_internal_add_module(GstreamerMediaPluginImplPrivate
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
     PUBLIC_LIBRARIES
-        Qt::MultimediaPrivate
-        Qt::CorePrivate
         Qt::Concurrent
+        Qt::Core
+        Qt::CorePrivate
+        Qt::Multimedia
+        Qt::MultimediaPrivate
         GStreamer::GStreamer
         GStreamer::App
         GStreamer::Play
