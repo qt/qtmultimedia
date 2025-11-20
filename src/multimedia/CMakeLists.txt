@@ -118,6 +118,8 @@ qt_internal_add_module(Multimedia
         playback
         recording
         video
+    PRECOMPILED_HEADER
+        qtmultimedia_pch_p.h
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
@@ -397,7 +399,10 @@ if(MINGW)
     list(APPEND source_with_init_guid windows/qwindowsaudiodevices.cpp)
 endif()
 
-set_source_files_properties(${source_with_init_guid} PROPERTIES COMPILE_DEFINITIONS INITGUID)
+set_source_files_properties(${source_with_init_guid} PROPERTIES
+    COMPILE_DEFINITIONS     INITGUID
+    SKIP_PRECOMPILE_HEADERS TRUE
+)
 
 
 qt_internal_extend_target(Multimedia CONDITION WASM
