@@ -5,6 +5,8 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qdebug.h>
 
+#include <mutex>
+
 QT_BEGIN_NAMESPACE
 
 namespace {
