@@ -92,6 +92,6 @@ manifestmeta.highlighted.names += "QtMultimedia/QML Camera Application"
 # Fail the documentation build if there are more warnings than the limit
 warninglimit = 0
 
-macro.ffmpegversion = "7.1.2"
+macro.ffmpegversion = "7.1.3"
 macro.ffmpegreponame = "ffmpeg"
 macro.androidndkversion = "26.1.10909125"
