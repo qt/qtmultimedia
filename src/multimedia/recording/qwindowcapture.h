@@ -20,6 +20,8 @@ class Q_MULTIMEDIA_EXPORT QWindowCapture : public QObject
     Q_PROPERTY(QCapturableWindow window READ window WRITE setWindow NOTIFY windowChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
+    Q_PROPERTY(std::optional<qreal> frameRate READ frameRate WRITE setFrameRate RESET resetFrameRate NOTIFY frameRateChanged)
+
 public:
     enum Error {
         NoError = 0,
@@ -46,6 +48,10 @@ public:
     Error error() const;
     QString errorString() const;
 
+    void setFrameRate(std::optional<qreal> frameRate);
+    std::optional<qreal> frameRate() const;
+    void resetFrameRate();
+
 public Q_SLOTS:
     void setActive(bool active);
     void start() { setActive(true); }
@@ -56,6 +62,7 @@ Q_SIGNALS:
     void windowChanged(QCapturableWindow window);
     void errorChanged();
     void errorOccurred(QWindowCapture::Error error, const QString &errorString);
+    void frameRateChanged();
 
 private:
     void setCaptureSession(QMediaCaptureSession *captureSession);

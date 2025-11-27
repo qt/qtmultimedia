@@ -57,7 +57,7 @@ void tst_QQuickScreenCaptureBackend::initTestCase()
 void tst_QQuickScreenCaptureBackend::ensureQmlScreen_returnsObjectWithNullQScreen_whenQmlScreenIsDefault()
 {
     // Arrange
-    QQuickScreenCatpure capture;
+    QQuickScreenCapture capture;
 
     // Act
     QQuickScreenInfo *qmlScreen = capture.ensureQmlScreen();
@@ -70,7 +70,7 @@ void tst_QQuickScreenCaptureBackend::ensureQmlScreen_returnsObjectWithNullQScree
 void tst_QQuickScreenCaptureBackend::ensureQmlScreen_returnsObject_whenPreviousQmlScreenIsDeleted()
 {
     // Arrange
-    QQuickScreenCatpure capture;
+    QQuickScreenCapture capture;
 
     {
         QQuickScreenInfo qmlScreen(nullptr, m_primaryScreen);
@@ -90,15 +90,15 @@ void tst_QQuickScreenCaptureBackend::qmlSetScreen_reusesAssignedQmlScreen()
     // Arrange
     QFETCH(QScreen *, screen);
 
-    QQuickScreenCatpure capture;
+    QQuickScreenCapture capture;
     QQuickScreenInfo assignedQmlScreen1(nullptr, screen);
     QQuickScreenInfo assignedQmlScreen2(nullptr, screen);
 
     capture.qmlSetScreen(&assignedQmlScreen1);
     QQuickScreenInfo *qmlScreen = capture.ensureQmlScreen();
 
-    QSignalSpy screenChangedSpy(&capture, &QQuickScreenCatpure::screenChanged);
-    QSignalSpy qmlScreenChangedSpy(&capture, &QQuickScreenCatpure::qmlScreenChanged);
+    QSignalSpy screenChangedSpy(&capture, &QQuickScreenCapture::screenChanged);
+    QSignalSpy qmlScreenChangedSpy(&capture, &QQuickScreenCapture::qmlScreenChanged);
 
     // Act
     capture.qmlSetScreen(&assignedQmlScreen2);
@@ -117,12 +117,12 @@ void tst_QQuickScreenCaptureBackend::setScreen_changesQmlScreen_whenInvokedFromC
     // Arrange
     QFETCH(QScreen *, screen);
 
-    QQuickScreenCatpure capture;
+    QQuickScreenCapture capture;
     capture.setScreen(screen ? nullptr : m_primaryScreen);
 
     QPointer<QQuickScreenInfo> oldScreenInfo = capture.ensureQmlScreen();
-    QSignalSpy qmlScreenChangedSpy(&capture, &QQuickScreenCatpure::qmlScreenChanged);
-    QSignalSpy screenChangedSpy(&capture, &QQuickScreenCatpure::screenChanged);
+    QSignalSpy qmlScreenChangedSpy(&capture, &QQuickScreenCapture::qmlScreenChanged);
+    QSignalSpy screenChangedSpy(&capture, &QQuickScreenCapture::screenChanged);
 
     // Act
     capture.setScreen(screen);

@@ -96,6 +96,9 @@ QScreenCapture::QScreenCapture(QObject *parent)
                         &QPlatformSurfaceCapture::sourceChanged),
                 this, &QScreenCapture::screenChanged);
 
+        connect(platformCapture, &QPlatformSurfaceCapture::frameRateChanged, this,
+                &QScreenCapture::frameRateChanged);
+
         d->platformScreenCapture.reset(platformCapture);
     }
 }
@@ -232,6 +235,38 @@ QString QScreenCapture::errorString() const
     return d->platformScreenCapture ? d->platformScreenCapture->errorString()
                                     : QLatin1StringView("Capturing is not support on this platform");
 }
+
+/*!
+    \since 6.12
+    \property QScreenCapture::frameRate
+    \brief The target screen capture framerate.
+
+    Actual frame rate depends on the platform. For platforms with fixed rate capture, this
+    frame rate is followed. For platforms with variable rate capture, this frame rate is either
+    used as the polling rate (maximum frame rate) or completely ignored.
+
+    If left unset, a platform-dependent default is used.
+*/
+void QScreenCapture::setFrameRate(std::optional<qreal> frameRate)
+{
+    Q_D(QScreenCapture);
+
+    if (d->platformScreenCapture)
+        d->platformScreenCapture->setFrameRate(frameRate);
+}
+
+std::optional<qreal> QScreenCapture::frameRate() const
+{
+    Q_D(const QScreenCapture);
+
+    return d->platformScreenCapture ? d->platformScreenCapture->frameRate() : std::nullopt;
+}
+
+void QScreenCapture::resetFrameRate()
+{
+    setFrameRate(std::nullopt);
+}
+
 /*!
     \fn void QScreenCapture::start()
 

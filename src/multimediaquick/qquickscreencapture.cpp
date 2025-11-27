@@ -5,19 +5,19 @@
 
 QT_BEGIN_NAMESPACE
 
-QQuickScreenCatpure::QQuickScreenCatpure(QObject *parent) : QScreenCapture(parent)
+QQuickScreenCapture::QQuickScreenCapture(QObject *parent) : QScreenCapture(parent)
 {
     connect(this, &QScreenCapture::screenChanged, this, [this] {
         emit qmlScreenChanged(ensureQmlScreen());
     });
 }
 
-void QQuickScreenCatpure::qmlSetScreen(QQuickScreenInfo *qmlScreen)
+void QQuickScreenCapture::qmlSetScreen(QQuickScreenInfo *qmlScreen)
 {
     setScreen(qmlScreen ? qmlScreen->wrappedScreen() : nullptr);
 }
 
-QQuickScreenInfo *QQuickScreenCatpure::ensureQmlScreen()
+QQuickScreenInfo *QQuickScreenCapture::ensureQmlScreen()
 {
     // Note QQuickApplication may recreate QQuickScreenInfo
     // so we implement creating our own instance.
@@ -28,6 +28,32 @@ QQuickScreenInfo *QQuickScreenCatpure::ensureQmlScreen()
     }
 
     return m_qmlScreen;
+}
+
+/*!
+    \since 6.12
+    \qmlproperty real QtMultimedia::ScreenCapture::frameRate
+
+    The target screen capture framerate.
+
+    Actual frame rate depends on the platform. For platforms with fixed rate capture, this
+    frame rate is followed. For platforms with variable rate capture, this frame rate is either
+    used as the polling rate (maximum frame rate) or completely ignored.
+
+    If -1, a platform-dependent default is used.
+*/
+
+void QQuickScreenCapture::qmlSetFrameRate(qreal frameRate)
+{
+    if (qFuzzyCompare(frameRate, static_cast<qreal>(-1.f)))
+        setFrameRate(std::nullopt);
+    else if (frameRate > 0.f)
+        setFrameRate(frameRate);
+}
+
+qreal QQuickScreenCapture::qmlFrameRate() const
+{
+    return frameRate().value_or(-1.f);
 }
 
 QT_END_NAMESPACE

@@ -23,18 +23,22 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_MULTIMEDIAQUICK_EXPORT QQuickScreenCatpure : public QScreenCapture
+class Q_MULTIMEDIAQUICK_EXPORT QQuickScreenCapture : public QScreenCapture
 {
     Q_OBJECT
     Q_PROPERTY(QQuickScreenInfo *screen READ ensureQmlScreen WRITE qmlSetScreen NOTIFY qmlScreenChanged)
+    Q_PROPERTY(qreal frameRate READ qmlFrameRate WRITE qmlSetFrameRate RESET resetFrameRate NOTIFY frameRateChanged)
     QML_NAMED_ELEMENT(ScreenCapture)
 
 public:
-    QQuickScreenCatpure(QObject *parent = nullptr);
+    QQuickScreenCapture(QObject *parent = nullptr);
 
     void qmlSetScreen(QQuickScreenInfo *newQmlScreen);
 
     QQuickScreenInfo *ensureQmlScreen();
+
+    void qmlSetFrameRate(qreal);
+    qreal qmlFrameRate() const;
 
 Q_SIGNALS:
     void qmlScreenChanged(QQuickScreenInfo *);

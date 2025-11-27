@@ -94,6 +94,9 @@ QWindowCapture::QWindowCapture(QObject *parent) : QObject(*new QWindowCapturePri
                 qOverload<QCapturableWindow>(&QPlatformSurfaceCapture::sourceChanged), this,
                 &QWindowCapture::windowChanged);
 
+        connect(platformCapture, &QPlatformSurfaceCapture::frameRateChanged, this,
+                &QWindowCapture::frameRateChanged);
+
         d->platformWindowCapture.reset(platformCapture);
     }
 }
@@ -186,6 +189,37 @@ void QWindowCapture::setActive(bool active)
 
     if (d->platformWindowCapture)
         d->platformWindowCapture->setActive(active);
+}
+
+/*!
+    \since 6.12
+    \property QWindowCapture::frameRate
+    \brief The target window capture framerate.
+
+    Actual frame rate depends on the platform. For platforms with fixed rate capture, this
+    frame rate is followed. For platforms with variable rate capture, this frame rate is either
+    used as the polling rate (maximum frame rate) or completely ignored.
+
+    If left unset, a platform-dependent default is used.
+*/
+void QWindowCapture::setFrameRate(std::optional<qreal> frameRate)
+{
+    Q_D(QWindowCapture);
+
+    if (d->platformWindowCapture)
+        d->platformWindowCapture->setFrameRate(frameRate);
+}
+
+std::optional<qreal> QWindowCapture::frameRate() const
+{
+    Q_D(const QWindowCapture);
+
+    return d->platformWindowCapture ? d->platformWindowCapture->frameRate() : std::nullopt;
+}
+
+void QWindowCapture::resetFrameRate()
+{
+    setFrameRate(std::nullopt);
 }
 
 /*!
