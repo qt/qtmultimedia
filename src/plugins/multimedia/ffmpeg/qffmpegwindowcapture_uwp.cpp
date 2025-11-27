@@ -7,6 +7,7 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qscopeguard.h>
 #include <QtCore/qthread.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtCore/private/qfactorycacheregistration_p.h>
 #include <QtCore/private/qsystemerror_p.h>
 #include <QtGui/qguiapplication.h>
@@ -298,20 +299,22 @@ class QFFmpegWindowCaptureUwp::Grabber : public QFFmpegSurfaceCaptureGrabber
 {
 public:
     Grabber(QFFmpegWindowCaptureUwp &capture, HWND hwnd)
-        : m_hwnd(hwnd),
+        : QFFmpegSurfaceCaptureGrabber(),
+          m_hwnd(hwnd),
           m_format(QVideoFrameFormat(asQSize(getWindowSize(hwnd)),
                                      QVideoFrameFormat::Format_RGBX8888))
     {
         const HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL);
         m_adapter = getAdapter(monitor);
 
-        const qreal refreshRate = getMonitorRefreshRateHz(monitor);
-
-        m_format.setStreamFrameRate(refreshRate);
-        setFrameRate(refreshRate);
-
-        addFrameCallback(capture, &QFFmpegWindowCaptureUwp::newVideoFrame);
+        addFrameCallback(&capture, &QFFmpegWindowCaptureUwp::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &capture, &QFFmpegWindowCaptureUwp::updateError);
+
+        const auto refreshRate = getMonitorRefreshRateHz(monitor);
+        const auto defaultRate = refreshRate ? qMin(*refreshRate, DefaultScreenCaptureFrameRate)
+                                             : DefaultScreenCaptureFrameRate;
+        setFrameRate(capture.frameRate().value_or(defaultRate));
+        m_format.setStreamFrameRate(frameRate());
     }
 
     ~Grabber() override { stop(); }
@@ -354,6 +357,9 @@ protected:
             const QSize size = getTextureSize(texture);
 
             m_format.setFrameSize(size);
+
+            if (m_format.streamFrameRate() != frameRate())
+                m_format.setStreamFrameRate(frameRate());
 
             return QVideoFramePrivate::createFrame(
                     std::make_unique<QUwpTextureVideoBuffer>(std::move(texture)), m_format);
@@ -401,8 +407,11 @@ private:
         return { static_cast<int>(desc.Width), static_cast<int>(desc.Height) };
     }
 
-    static qreal getMonitorRefreshRateHz(HMONITOR handle)
+    static q23::expected<qreal, QString> getMonitorRefreshRateHz(HMONITOR handle)
     {
+        if (!handle)
+            return q23::unexpected{ u"No monitor"_s };
+
         DWORD count = 0;
         if (GetNumberOfPhysicalMonitorsFromHMONITOR(handle, &count)) {
             std::vector<PHYSICAL_MONITOR> monitors{ count };
@@ -421,7 +430,7 @@ private:
                 }
             }
         }
-        return DefaultScreenCaptureFrameRate;
+        return q23::unexpected{ u"Couldn't get monitor refresh rate"_s };
     }
 
     HWND m_hwnd{};

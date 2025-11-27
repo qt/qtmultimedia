@@ -63,6 +63,9 @@ public:
     Error error() const;
     QString errorString() const final;
 
+    void setFrameRate(std::optional<qreal>);
+    [[nodiscard]] std::optional<qreal> frameRate() const;
+
 protected:
     virtual bool setActiveInternal(bool) = 0;
 
@@ -75,8 +78,10 @@ Q_SIGNALS:
     void sourceChanged(WindowSource);
     void sourceChanged(ScreenSource);
     void errorOccurred(Error error, QString errorString);
+    void frameRateChanged();
 
 private:
+    std::optional<qreal> m_frameRate;
     QErrorInfo<Error> m_error;
     Source m_source;
     bool m_active = false;

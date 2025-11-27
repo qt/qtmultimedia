@@ -62,13 +62,19 @@ public:
 
 private:
     Grabber(QGdiWindowCapture &capture, HWND hWnd, HDC hdcWindow, HDC hdcMem)
-        : m_hwnd(hWnd), m_hdcWindow(hdcWindow), m_hdcMem(hdcMem)
+        : QFFmpegSurfaceCaptureGrabber(),
+          m_hwnd(hWnd),
+          m_hdcWindow(hdcWindow),
+          m_hdcMem(hdcMem)
     {
-        if (auto rate = GetDeviceCaps(hdcWindow, VREFRESH); rate > 0)
-            setFrameRate(rate);
-
-        addFrameCallback(capture, &QGdiWindowCapture::newVideoFrame);
+        addFrameCallback(&capture, &QGdiWindowCapture::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &capture, &QGdiWindowCapture::updateError);
+
+        const auto vrefresh = GetDeviceCaps(hdcWindow, VREFRESH);
+        const auto defaultRate = vrefresh > 0
+                ? qMin(static_cast<qreal>(vrefresh), DefaultScreenCaptureFrameRate)
+                : DefaultScreenCaptureFrameRate;
+        setFrameRate(capture.frameRate().value_or(defaultRate));
     }
 
     bool update()

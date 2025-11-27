@@ -31,7 +31,7 @@ public:
 
     QVideoFrameFormat frameFormat() const override;
 
-private:
+protected:
     bool setActiveInternal(bool active) override;
 
 private:

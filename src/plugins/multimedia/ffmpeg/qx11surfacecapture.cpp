@@ -85,7 +85,7 @@ QVideoFrameFormat::PixelFormat xImagePixelFormat(const XImage &image)
 
 } // namespace
 
-class QX11SurfaceCapture::Grabber : private QFFmpegSurfaceCaptureGrabber
+class QX11SurfaceCapture::Grabber : public QFFmpegSurfaceCaptureGrabber
 {
 public:
     static std::unique_ptr<Grabber> create(QX11SurfaceCapture &capture, QScreen *screen)
@@ -110,10 +110,12 @@ public:
     const QVideoFrameFormat &format() const { return m_format; }
 
 private:
-    Grabber(QX11SurfaceCapture &capture)
+    Grabber(QX11SurfaceCapture &capture) : QFFmpegSurfaceCaptureGrabber()
     {
-        addFrameCallback(capture, &QX11SurfaceCapture::newVideoFrame);
+        addFrameCallback(&capture, &QX11SurfaceCapture::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &capture, &QX11SurfaceCapture::updateError);
+
+        m_userFrameRate = capture.frameRate();
     }
 
     bool createDisplay()
@@ -130,8 +132,11 @@ private:
 
     bool init(WId wid)
     {
-        if (auto screen = QGuiApplication::primaryScreen())
-            setFrameRate(screen->refreshRate());
+        const auto defaultRate = QGuiApplication::primaryScreen()
+                ? qMin(QGuiApplication::primaryScreen()->refreshRate(),
+                       DefaultScreenCaptureFrameRate)
+                : DefaultScreenCaptureFrameRate;
+        setFrameRate(m_userFrameRate.value_or(defaultRate));
 
         return createDisplay() && initWithXID(static_cast<XID>(wid));
     }
@@ -151,7 +156,8 @@ private:
         if (screenNumber < 0)
             return false;
 
-        setFrameRate(screen->refreshRate());
+        setFrameRate(m_userFrameRate.value_or(
+                qMin(screen->refreshRate(), DefaultScreenCaptureFrameRate)));
 
         return initWithXID(RootWindow(m_display.get(), screenNumber));
     }
@@ -339,6 +345,7 @@ private:
     bool m_attached = false;
     VisualID m_visualID = None;
     QVideoFrameFormat m_format;
+    std::optional<qreal> m_userFrameRate;
 };
 
 QX11SurfaceCapture::QX11SurfaceCapture(Source initialSource)

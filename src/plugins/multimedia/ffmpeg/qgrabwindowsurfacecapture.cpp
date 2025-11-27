@@ -66,13 +66,16 @@ private:
                 QGuiApplication::platformName() == QLatin1String("eglfs")
                         ? QFFmpegSurfaceCaptureGrabber::UseCurrentThread
                         : QFFmpegSurfaceCaptureGrabber::CreateGrabbingThread),
-          m_capture(capture),
           m_screen(screen),
           m_window(std::move(window))
     {
         connect(qApp, &QGuiApplication::screenRemoved, this, &Grabber::onScreenRemoved);
-        addFrameCallback(m_capture, &QGrabWindowSurfaceCapture::newVideoFrame);
-        connect(this, &Grabber::errorUpdated, &m_capture, &QGrabWindowSurfaceCapture::updateError);
+        addFrameCallback(&capture, &QGrabWindowSurfaceCapture::newVideoFrame);
+        connect(this, &Grabber::errorUpdated, &capture, &QGrabWindowSurfaceCapture::updateError);
+
+        const auto defaultRate = screen ? qMin(screen->refreshRate(), DefaultScreenCaptureFrameRate)
+                                        : DefaultScreenCaptureFrameRate;
+        setFrameRate(capture.frameRate().value_or(defaultRate));
     }
 
     void onScreenRemoved(QScreen *screen)
@@ -135,15 +138,13 @@ private:
             return {};
         }
 
-        setFrameRate(screen->refreshRate());
-
         QPixmap p = screen->grabWindow(wid);
         auto buffer = std::make_unique<QImageVideoBuffer>(p.toImage());
         const auto img = buffer->underlyingImage();
 
         QVideoFrameFormat format(img.size(),
                                  QVideoFrameFormat::pixelFormatFromImageFormat(img.format()));
-        format.setStreamFrameRate(screen->refreshRate());
+        format.setStreamFrameRate(frameRate());
         updateFormat(format);
 
         if (!format.isValid()) {
@@ -156,7 +157,6 @@ private:
     }
 
 private:
-    QGrabWindowSurfaceCapture &m_capture;
     QPointer<QScreen> m_screen;
     WindowUPtr m_window;
 

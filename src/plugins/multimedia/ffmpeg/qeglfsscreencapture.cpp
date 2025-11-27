@@ -26,11 +26,11 @@ public:
     Grabber(QEglfsScreenCapture &screenCapture, QScreen *screen)
         : QFFmpegSurfaceCaptureGrabber(QFFmpegSurfaceCaptureGrabber::UseCurrentThread)
     {
-        addFrameCallback(screenCapture, &QEglfsScreenCapture::newVideoFrame);
+        addFrameCallback(&screenCapture, &QEglfsScreenCapture::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &screenCapture, &QEglfsScreenCapture::updateError);
-        // Limit frame rate to 30 fps for performance reasons,
-        // to be reviewed at the next optimization round
-        setFrameRate(std::min(screen->refreshRate(), qreal(30.0)));
+
+        Q_ASSERT(screen);
+        setFrameRate(screenCapture.frameRate().value_or(qMin(screen->refreshRate(), 30.f)));
     }
 
     ~Grabber() override { stop(); }
@@ -58,9 +58,12 @@ protected:
 
         if (!m_format.isValid()) {
             auto image = videoBuffer->ensureImageBuffer().underlyingImage();
-            m_format = { image.size(), QVideoFrameFormat::pixelFormatFromImageFormat(image.format()) };
-            m_format.setStreamFrameRate(frameRate());
+            m_format = { image.size(),
+                         QVideoFrameFormat::pixelFormatFromImageFormat(image.format()) };
         }
+
+        if (m_format.streamFrameRate() != frameRate())
+            m_format.setStreamFrameRate(frameRate());
 
         return QVideoFramePrivate::createFrame(std::move(videoBuffer), m_format);
     }
@@ -96,8 +99,10 @@ protected:
         if (!m_format.isValid()) {
             m_format = { image.size(),
                          QVideoFrameFormat::pixelFormatFromImageFormat(image.format()) };
-            m_format.setStreamFrameRate(frameRate());
         }
+
+        if (m_format.streamFrameRate() != frameRate())
+            m_format.setStreamFrameRate(frameRate());
 
         return QVideoFramePrivate::createFrame(
                 std::make_unique<QImageVideoBuffer>(std::move(image)), m_format);

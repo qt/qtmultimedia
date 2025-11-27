@@ -77,13 +77,17 @@ private:
 class QCGWindowCapture::Grabber : public QFFmpegSurfaceCaptureGrabber
 {
 public:
-    Grabber(QCGWindowCapture &capture, CGWindowID wid) : m_capture(capture), m_wid(wid)
+    Grabber(QCGWindowCapture &capture, CGWindowID wid)
+        : QFFmpegSurfaceCaptureGrabber(), m_capture(capture), m_wid(wid)
     {
-        addFrameCallback(*this, &Grabber::onNewFrame);
+        addFrameCallback(this, &Grabber::onNewFrame);
         connect(this, &Grabber::errorUpdated, &capture, &QCGWindowCapture::updateError);
 
-        if (auto screen = QGuiApplication::primaryScreen())
-            setFrameRate(screen->refreshRate());
+        const auto defaultFrameRate = QGuiApplication::primaryScreen()
+                ? qMin(QGuiApplication::primaryScreen()->refreshRate(),
+                       DefaultScreenCaptureFrameRate)
+                : DefaultScreenCaptureFrameRate;
+        setFrameRate(capture.frameRate().value_or(defaultFrameRate));
 
         start();
     }

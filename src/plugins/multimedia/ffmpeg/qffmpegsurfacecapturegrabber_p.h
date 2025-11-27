@@ -25,14 +25,8 @@ QT_BEGIN_NAMESPACE
 
 class QThread;
 
-static constexpr qreal DefaultScreenCaptureFrameRate = 60.;
-
-// Mac screens often support 120 frames per sec; it looks, this is not
-// needed for the capturing now since it just affects CPI without valuable
-// advantages. In the future, the frame rate should be customized by
-// user's API.
-static constexpr qreal MaxScreenCaptureFrameRate = 60.;
-static constexpr qreal MinScreenCaptureFrameRate = 1.;
+static constexpr qreal DefaultScreenCaptureFrameRate = 60.f;
+static constexpr qreal MinScreenCaptureFrameRate = 1.f;
 
 class QFFmpegSurfaceCaptureGrabber : public QObject
 {
@@ -43,32 +37,31 @@ public:
         CreateGrabbingThread,
     };
 
-    QFFmpegSurfaceCaptureGrabber(ThreadPolicy threadPolicy = CreateGrabbingThread);
-
     ~QFFmpegSurfaceCaptureGrabber() override;
 
     void start();
     void stop();
 
     template<typename Object, typename Method>
-    void addFrameCallback(Object &object, Method method)
+    void addFrameCallback(Object *object, Method method)
     {
-        connect(this, &QFFmpegSurfaceCaptureGrabber::frameGrabbed,
-                &object, method, Qt::DirectConnection);
+        connect(this, &QFFmpegSurfaceCaptureGrabber::frameGrabbed, object, method,
+                Qt::DirectConnection);
     }
+
+    void setFrameRate(std::optional<qreal>);
+    qreal frameRate() const;
 
 signals:
     void frameGrabbed(const QVideoFrame&);
     void errorUpdated(QPlatformSurfaceCapture::Error error, const QString &description);
 
 protected:
+    QFFmpegSurfaceCaptureGrabber(ThreadPolicy threadPolicy = CreateGrabbingThread);
+
     void updateError(QPlatformSurfaceCapture::Error error, const QString &description = {});
 
     virtual QVideoFrame grabFrame() = 0;
-
-    void setFrameRate(qreal rate);
-
-    qreal frameRate() const;
 
     void updateTimerInterval();
 
@@ -83,9 +76,10 @@ private:
     class GrabbingThread;
 
     std::unique_ptr<GrabbingContext> m_context;
-    qreal m_rate = 0;
     std::optional<QPlatformSurfaceCapture::Error> m_prevError;
     std::unique_ptr<QThread> m_thread;
+
+    qreal m_rate{ DefaultScreenCaptureFrameRate };
 };
 
 QT_END_NAMESPACE

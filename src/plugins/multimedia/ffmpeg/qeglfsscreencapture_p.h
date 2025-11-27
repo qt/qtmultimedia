@@ -31,7 +31,7 @@ public:
 
     static bool isSupported();
 
-private:
+protected:
     bool setActiveInternal(bool active) override;
 
 private:

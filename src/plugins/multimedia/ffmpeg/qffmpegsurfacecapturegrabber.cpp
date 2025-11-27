@@ -96,14 +96,20 @@ void QFFmpegSurfaceCaptureGrabber::start()
 
 QFFmpegSurfaceCaptureGrabber::~QFFmpegSurfaceCaptureGrabber() = default;
 
-void QFFmpegSurfaceCaptureGrabber::setFrameRate(qreal rate)
+void QFFmpegSurfaceCaptureGrabber::setFrameRate(std::optional<qreal> rate)
 {
-    rate = qBound(MinScreenCaptureFrameRate, rate, MaxScreenCaptureFrameRate);
-    if (std::exchange(m_rate, rate) != rate) {
-        qCDebug(qLcScreenCaptureGrabber) << "Screen capture rate has been changed:" << m_rate;
+    if (!rate)
+        rate = DefaultScreenCaptureFrameRate;
 
-        updateTimerInterval();
-    }
+    // Bound to a minimum
+    if (*rate < MinScreenCaptureFrameRate)
+        rate = MinScreenCaptureFrameRate;
+
+    if (m_rate == *rate)
+        return;
+
+    m_rate = *rate;
+    qCDebug(qLcScreenCaptureGrabber) << "Screen capture rate has been changed:" << m_rate;
 }
 
 qreal QFFmpegSurfaceCaptureGrabber::frameRate() const

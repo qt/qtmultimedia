@@ -349,7 +349,6 @@ q23::expected<QVideoFrameFormat, ComStatus> getFrameFormat(const QScreen *screen
 
     QVideoFrameFormat format = { *screenSize, QVideoFrameFormat::Format_BGRA8888 };
     format.setRotation(*rotation);
-    format.setStreamFrameRate(static_cast<int>(screen->refreshRate()));
 
     return format;
 }
@@ -361,12 +360,14 @@ class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegSurfaceCaptureGrabber
 public:
     Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen,
             const QVideoFrameFormat &format)
-        : m_screen(screen)
-        , m_format(format)
+        : QFFmpegSurfaceCaptureGrabber(), m_screen(screen), m_format(format)
     {
-        setFrameRate(screen->refreshRate());
-        addFrameCallback(screenCapture, &QFFmpegScreenCaptureDxgi::newVideoFrame);
+        addFrameCallback(&screenCapture, &QFFmpegScreenCaptureDxgi::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &screenCapture, &QFFmpegScreenCaptureDxgi::updateError);
+
+        Q_ASSERT(screen);
+        setFrameRate(screenCapture.frameRate().value_or(
+                qMin(screen->refreshRate(), DefaultScreenCaptureFrameRate)));
     }
 
     ~Grabber() {
@@ -399,6 +400,9 @@ public:
             const QSize bufSize = buffer->getSize();
             if (bufSize != m_format.frameSize())
                 m_format.setFrameSize(bufSize);
+
+            if (m_format.streamFrameRate() != frameRate())
+                m_format.setStreamFrameRate(frameRate());
 
             frame = QVideoFramePrivate::createFrame(std::move(buffer), format());
         } else {

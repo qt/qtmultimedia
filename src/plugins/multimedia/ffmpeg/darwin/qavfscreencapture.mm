@@ -70,7 +70,8 @@ public:
 
         [m_sampleBufferDelegate setHWAccel:std::move(hwAccel)];
 
-        const auto frameRate = std::min(screen->refreshRate(), MaxScreenCaptureFrameRate);
+        Q_ASSERT(screen);
+        const auto frameRate = capture.frameRate().value_or(screen->refreshRate());
         [m_sampleBufferDelegate setVideoFormatFrameRate:frameRate];
 
         m_screenInput = [[AVCaptureScreenInput alloc] initWithDisplayID:screenID];

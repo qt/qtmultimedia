@@ -66,6 +66,20 @@ QString QPlatformSurfaceCapture::errorString() const
     return m_error.description();
 }
 
+void QPlatformSurfaceCapture::setFrameRate(std::optional<qreal> frameRate)
+{
+    if (m_frameRate == frameRate)
+        return;
+
+    m_frameRate = frameRate;
+    emit frameRateChanged();
+}
+
+std::optional<qreal> QPlatformSurfaceCapture::frameRate() const
+{
+    return m_frameRate;
+}
+
 void QPlatformSurfaceCapture::updateError(Error error, const QString &errorString)
 {
     m_error.setAndNotify(error, errorString, *this);
