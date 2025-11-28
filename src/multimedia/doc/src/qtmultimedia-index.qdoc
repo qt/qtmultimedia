@@ -296,11 +296,11 @@
     The following pages list issues for specific target platforms.
 
     \list
-      \li \l{Qt Multimedia GStreamer Backend}{Embedded Linux and GStreamer}
-      \li \l{Qt Multimedia on Linux}{Linux}
       \li \l{Qt Multimedia on macOS and iOS}{macOS and iOS}
       \li \l{Qt Multimedia on WebAssembly}{WebAssembly}
       \li \l{Qt Multimedia on Windows}{Windows}
+      \li \l{Qt Multimedia on Linux}{Linux}
+      \li \l{Qt Multimedia GStreamer Backend}{GStreamer backend for embedded Linux}
     \endlist
 
     \section1 Permissions

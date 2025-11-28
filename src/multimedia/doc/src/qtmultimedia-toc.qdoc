@@ -13,12 +13,13 @@
     \li \l {Audio Overview}
     \li \l {Video Overview}
     \li \l {Camera Overview}
-    \li \l {Qt Multimedia GStreamer backend}{GStreamer backend}
     \li \l {Qt Multimedia Widgets}
     \li \l {Qt Multimedia on macOS and iOS}{Platform Notes - macOS and iOS}
-    \li \l {Qt Multimedia on Linux}{Platform Notes - Linux}
-    \li \l {Qt Multimedia on Windows}{Platform Notes - Windows}
     \li \l {Qt Multimedia on WebAssembly}{Platform Notes - WebAssembly}
+    \li \l {Qt Multimedia on Windows}{Platform Notes - Windows}
+    \li \l {Qt Multimedia on Linux}{Platform Notes - Linux}
+    \li \l {Qt Multimedia GStreamer backend}{GStreamer backend for embedded Linux}
+    \li \l {Advanced FFmpeg Configuration}
     \li \l {Building Qt Multimedia from sources}{Building from sources}
         \list
             \li \l {Building FFmpeg from source}{Building FFmpeg}
@@ -30,7 +31,6 @@
                     \li \l {Building FFmpeg from source for Android on Windows}{Building FFmpeg for Android on Windows}
                     \li \l {Building FFmpeg from source for Android on macOS}{Building FFmpeg for Android on macOS}
                     \li \l {Building FFmpeg from source for Android on Linux}{Building FFmpeg for Android on Linux}
-                    \li \l {Advanced FFmpeg Configuration}
                     \li \l {FFmpeg stub libraries on Linux and Android}
                 \endlist
         \endlist

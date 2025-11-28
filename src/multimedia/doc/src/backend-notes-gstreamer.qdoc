@@ -6,7 +6,25 @@
 \title Qt Multimedia GStreamer backend
 \brief Platform notes for the GStreamer backend
 
-This page covers the limitations of the GStreamer backend of Qt Multimedia.
+This page covers limitations and customization points of the GStreamer backend
+of Qt Multimedia, the default media backend on embedded Linux.
+
+\section1 Architectural Considerations
+
+GStreamer is the default media backend on embedded Linux mainly because it is
+the framework most embedded board vendors prioritize for hardware accelerated
+media support. FFmpeg may also be suitable on some platforms, so users are
+encouraged to experiment with both media backends to find out which works
+best for them.
+
+Qt Multimedia is not a general purpose streaming framework and not necessarily
+the architecturally best way to use GStreamer with Qt. Developers, who need a
+high degree of control over the GStreamer pipeline, but only want to show the
+video output Qt, may want to consider using GStreamer's
+\l{https://gstreamer.freedesktop.org/documentation/qml6/index.html}{qml6glsink}.
+
+
+
 
 \section1 Limitations and Known Issues
 
@@ -27,13 +45,124 @@ GStreamer is not bundled with Qt, but it is typically deployed with the Linux di
 \li Seeking, playback rates, loop, switching sinks have known bugs.
 \li Audio features requires PulseAudio. See \l{Qt Multimedia on Linux}{Linux platform notes}
   for details.
+\li Some embedded boards needs individual configurations to solve pipeline
+negotiation/linking issues and improve performance. We recommend developers to
+experiment with the environment variables listed under \l{Customization points}
+when facing such problems. Qt's Yocto meta layer files contain recommended
+configurations for certain combinations of boards, BSPs and Boot to Qt
+versions. Here are links to the dev branch versions:
+  \list
+    \li NXP i.MX 6/8/9: \l{https://code.qt.io/cgit/yocto/meta-boot2qt.git/tree/meta-boot2qt-distro/dynamic-layers/freescale-layer/recipes-qt/boot2qt-addons/default-qt-envs.bbappend?h=dev}
+    \li Raspberry Pi 4/5: \l{https://code.qt.io/cgit/yocto/meta-boot2qt.git/tree/meta-boot2qt-distro/dynamic-layers/raspberrypi/recipes-qt/boot2qt-addons/default-qt-envs.bbappend?h=dev}
+  \endlist
+\li Video playback or camera streaming using system memory video frames or
+software conversion can result in dropped frames and unresponsiveness due to
+heavy CPU load. If the GStreamer decoder or camera device outputs DMA-BUF- or
+GLMemory-backed video frames in one of our supported pixel formats, Qt can
+render them without additional conversion or copying. GStreamer selects a
+format and memory type based on the capabilities of its pipeline elements.
+Different ways of controlling which elements are added to the pipeline are
+described under \l{Customization points}.
 \endlist
+
+
+
 
 \section1 Customization points
 
-Qt Multimedia provides certain customization points to allow access to the underlying GStreamer
-pipeline. These customization points are considered private APIs and may be subject to change. The
-entry point is \c{class QGStreamerPlatformSpecificInterface}.
+Qt Multimedia provides certain customization points to allow access to the
+underlying GStreamer pipeline. The entry point is \c{class
+QGStreamerPlatformSpecificInterface}. Additional customizations can be done by
+setting environment variables.
+
+\warning The customization points and Qt specific environment variables listed
+here, are considered as private APIs and may be subject to change. Be aware
+that environment variables are by default inherited by child processes and can
+have unintended consequences.
+
+
+\section2 External OpenGL texture rendering
+
+Qt imports DMA-BUF-backed video frames into the OpenGL graphics pipeline by
+binding the underlying buffer as an EGL image and exposing it to shaders as an
+OpenGL texture. By default, Qt samples these textures using the GL_TEXTURE_2D
+texture target and standard shader code. Some embedded boards performs better
+with the GL_TEXTURE_EXTERNAL_OES texture target instead, together with a
+dedicated fragment shader. This behavior can be enabled by setting the
+following environment variable:
+
+\code
+    QT_MULTIMEDIA_FORCE_GL_TEXTURE_EXTERNAL_OES=1
+\endcode
+
+
+\section2 Selecting specific GStreamer elements
+
+A GStreamer distribution can include multiple different plugins that can
+potentially perform the same task in the media pipeline. GStreamer
+automatically selects elements like decoders and demuxers based on their
+feature rank, which can be overridden via a GStreamer environment variable.
+Here's an example that ranks the v4l2h264dec hardware decoder higher than any
+H.264 software decoder, while also making sure the aiurdemux demuxer isn't
+selected:
+
+\code
+    GST_PLUGIN_FEATURE_RANK=v4l2h264dec:MAX,aiurdemux:NONE
+\endcode
+
+To inspect which elements are being created during runtime, enable debug logging
+level 4 for GstElementFactory:
+
+\code
+    GST_DEBUG=GST_ELEMENT_FACTORY:4
+\endcode
+
+Furthermore, you can visually inspect the whole GStreamer pipeline by
+specifying a folder for \c {.dot} graph files that will be dumped at
+various events, for example, changes in playback state:
+
+\code
+    GST_DEBUG_DUMP_DOT_DIR=/root/graphs
+\endcode
+
+Read more about these environment variables in the GStreamer documentation:
+
+\list
+    \li \l{https://gstreamer.freedesktop.org/documentation/gstreamer/running.html?gi-language=c#:~:text=GST_PLUGIN_FEATURE_RANK}{Environment variables - GST_PLUGIN_FEATURE_RANK}
+    \li \l{https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html?gi-language=c#the-debug-log}{Basic tutorial - The debug log}
+    \li \l{https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html?gi-language=c#getting-pipeline-graphs}{Basic tutorial - Getting pipeline graphs}
+\endlist
+
+\section3 Specifying hardware conversion elements
+
+If the media source of a GStreamer pipeline cannot provide video buffers in a
+pixel format supported by Qt Multimedia, the pipeline will use software
+conversion unless it contains a suitable hardware accelerated video conversion
+element. To specify a hardware conversion element to be used, set it as a
+\l{https://gstreamer.freedesktop.org/documentation/tutorials/basic/gstreamer-tools.html#elements}
+{GStreamer pipeline description} to the following environment variable:
+
+\code
+    QT_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT
+\endcode
+
+Some vendor specific conversion elements (imxvideoconvert_g2d, nvvidconv) are
+added to the pipeline by default if available. This can cause unnecessary
+conversion if they aren't needed, and can be disabled by specifying a GStreamer
+\l{https://gstreamer.freedesktop.org/documentation/coreelements/identity.html}
+{identity} element using the same environment variable:
+
+\code
+    QT_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT=identity
+\endcode
+
+GStreamer can also perform format conversion with OpenGL elements, providing Qt
+with GLMemory-backed video frames:
+
+\code
+    QT_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT=glupload ! glcolorconvert
+\endcode
+
 
 \section2 Raw pipeline access
 
@@ -53,6 +182,7 @@ QMediaCaptureSession session;
 GstPipeline *pipeline = QGSreamerPlatformSpecificInterface::instance()->gstPipeline(&session);
 \endcode
 
+
 \section2 Custom GStreamer elements as sinks and sources
 
 It is possible to create GStreamer elements from a GStreamer pipeline decription and wrap them
@@ -71,6 +201,7 @@ QCamera *cam = QGStreamerPlatformSpecificInterface::instance()->makeCustomGStrea
          pipelineString, &session);
 session.setCamera(cam);
 \endcode
+
 
 \section2 QMediaPlayer: custom sources
 
@@ -92,12 +223,4 @@ for application code: for arbitrary video sources, the \c{QMediaCaptureSession} 
 (see above) is the preferred choice. For arbitrarily complex pipelines that only want to draw into a
 Qt/QML GUI, GStreamer's \c{qml6glsink} (see below) may be a more robust choice.
 
-\section1 Architectural Considerations.
-
-Qt Multimedia is not a general purpose streaming framework and not necessarily the architecturally
-best way to use GStreamer with Qt. Developers, who need a high degree of control over the GStreamer
-pipeline, but only want to show the video output Qt, may want to consider using GStreamer's
-\l{https://gstreamer.freedesktop.org/documentation/qml6/index.html}{qml6glsink}.
-
-
- */
+*/
