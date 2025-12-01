@@ -514,10 +514,9 @@ void QPlaylistFileParser::start(QIODevice *stream, const QString &mimeType)
     d->handleData();
 }
 
-void QPlaylistFileParser::start(const QUrl &request, const QString &mimeType)
+void QPlaylistFileParser::start(const QUrl &url, const QString &mimeType)
 {
     Q_D(QPlaylistFileParser);
-    const QUrl &url = request.url();
 
     if (url.isLocalFile() && !QFile::exists(url.toLocalFile())) {
         emit error(QMediaPlaylist::AccessDeniedError,
@@ -527,14 +526,14 @@ void QPlaylistFileParser::start(const QUrl &request, const QString &mimeType)
 
     if (d->m_currentParser) {
         abort();
-        d->m_pendingJob = { nullptr, request, mimeType };
+        d->m_pendingJob = { nullptr, url, mimeType };
         return;
     }
 
     d->reset();
     d->m_root = url;
     d->m_mimeType = mimeType;
-    d->m_source.reset(d->m_mgr.get(QNetworkRequest(request)));
+    d->m_source.reset(d->m_mgr.get(QNetworkRequest(url)));
     d->m_stream = d->m_source.get();
     connect(d->m_source.get(), SIGNAL(readyRead()), this, SLOT(handleData()));
     connect(d->m_source.get(), SIGNAL(finished()), this, SLOT(handleData()));
