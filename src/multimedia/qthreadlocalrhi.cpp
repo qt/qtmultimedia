@@ -42,7 +42,8 @@ public:
         if (m_rhi || m_cpuOnly)
             return m_rhi.get();
 
-        QRhi::Implementation referenceBackend = referenceRhi ? referenceRhi->backend() : QRhi::Null;
+        [[maybe_unused]] QRhi::Implementation referenceBackend =
+                referenceRhi ? referenceRhi->backend() : QRhi::Null;
         const QPlatformIntegration *qpa = QGuiApplicationPrivate::platformIntegration();
 
         if (qpa && qpa->hasCapability(QPlatformIntegration::RhiBasedRendering)) {

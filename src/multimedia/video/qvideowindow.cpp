@@ -112,7 +112,7 @@ void QVideoWindowPrivate::initRhi()
     if (m_graphicsApi == QRhi::Null)
         return;
 
-    QRhi::Flags rhiFlags = {};//QRhi::EnableDebugMarkers | QRhi::EnableProfiling;
+    [[maybe_unused]] QRhi::Flags rhiFlags = {};//QRhi::EnableDebugMarkers | QRhi::EnableProfiling;
 
 #if QT_CONFIG(opengl)
     if (m_graphicsApi == QRhi::OpenGLES2) {
