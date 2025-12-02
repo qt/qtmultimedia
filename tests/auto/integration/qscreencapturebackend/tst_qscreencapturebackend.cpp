@@ -141,6 +141,29 @@ public:
         return spy.wait() ? spy.at(0).at(0).value<QVideoFrame>() : QVideoFrame{};
     }
 
+    std::chrono::milliseconds durationBetweenFrames(qsizetype frameCount)
+    {
+        Q_ASSERT(frameCount > 0);
+
+        QElapsedTimer timer;
+        qsizetype framesReceived = 0;
+
+        QObject context;
+        connect(this, &QVideoSink::videoFrameChanged, &context, [&] {
+            if (framesReceived++ == 0)
+                timer.start();
+        });
+
+        auto allFramesAreReceived = [&]() {
+            return framesReceived > frameCount;
+        };
+
+        using namespace std::chrono;
+        return QTest::qWaitFor(allFramesAreReceived, seconds(10))
+                ? milliseconds(timer.elapsed() / frameCount)
+                : milliseconds(0);
+    }
+
 signals:
     void videoFrameChangedSync(QVideoFrame frame);
 
@@ -168,6 +191,8 @@ class tst_QScreenCaptureBackend : public QObject
 private slots:
     void initTestCase();
     void setActive_startsAndStopsCapture();
+    void setFrameRate_setsFrameRate();
+
     void setScreen_selectsScreen_whenCalledWithWidgetsScreen();
     void constructor_selectsPrimaryScreenAsDefault();
     void setScreen_selectsSecondaryScreen_whenCalledWithSecondaryScreen();
@@ -234,6 +259,64 @@ void tst_QScreenCaptureBackend::setActive_startsAndStopsCapture()
         QCOMPARE(activeStateSpy.size(), 0);
         QCOMPARE(errorsSpy.size(), 0);
     }
+}
+
+void tst_QScreenCaptureBackend::setFrameRate_setsFrameRate()
+{
+#ifdef Q_OS_ANDROID
+    QSKIP("Framerate setting not implemented on Android");
+#endif
+#ifdef Q_OS_LINUX
+    if (QGuiApplication::platformName() == u"wayland"_s)
+        QSKIP("Framerate setting not implemented on Wayland");
+#endif
+
+    TestVideoSink sink;
+    QScreenCapture capture;
+
+    QSignalSpy errorsSpy(&capture, &QScreenCapture::errorOccurred);
+    QSignalSpy frameRateSpy(&capture, &QScreenCapture::frameRateChanged);
+
+    QMediaCaptureSession session;
+
+    session.setScreenCapture(&capture);
+    session.setVideoSink(&sink);
+
+    auto frameRateEquals = [](std::optional<qreal> frameRate, float value) {
+        return frameRate && qFuzzyCompare(*frameRate, static_cast<qreal>(value));
+    };
+
+    // No preferred frame rate, not started
+    QVERIFY(!capture.frameRate());
+
+    // Set new frame rate
+    float newFrameRate = 1.f;
+    capture.setFrameRate(newFrameRate);
+
+    QTRY_COMPARE(frameRateSpy.size(), 1);
+    QVERIFY(frameRateEquals(capture.frameRate(), newFrameRate));
+
+    capture.setActive(true);
+    QVERIFY(capture.isActive());
+
+#ifndef Q_OS_WIN // QTBUG-147051
+    // Check framerate is roughly 1fps
+    using namespace std::chrono;
+    auto durationBetweenFrames = sink.durationBetweenFrames(3);
+    QTEST_ASSERT(durationBetweenFrames > 0ms);
+    const qreal actualFps = 1000.0 / durationBetweenFrames.count();
+    QCOMPARE_GT(actualFps, newFrameRate * 0.9);
+    QCOMPARE_LT(actualFps, newFrameRate * 1.1);
+#endif
+
+    // Reset frame rate
+    capture.setActive(false);
+    capture.resetFrameRate();
+
+    QTRY_COMPARE(frameRateSpy.size(), 2);
+    QVERIFY(!capture.frameRate());
+
+    QVERIFY(errorsSpy.empty());
 }
 
 void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawingOffset,

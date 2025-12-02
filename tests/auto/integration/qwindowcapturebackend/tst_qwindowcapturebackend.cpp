@@ -80,6 +80,54 @@ private slots:
         QVERIFY(fixture.m_errors.empty());
     }
 
+    void setFrameRate_setsFrameRate()
+    {
+#ifdef Q_OS_ANDROID // QTBUG-141824
+        QSKIP("Framerate setting not implemented on Android");
+#endif
+#ifdef Q_OS_LINUX
+        if (QGuiApplication::platformName() == u"wayland"_s)
+            QSKIP("Framerate setting not implemented on Wayland");
+#endif
+
+        WindowCaptureWithWidgetFixture fixture;
+
+        auto frameRateEquals = [](std::optional<qreal> frameRate, float value){
+            return frameRate && qFuzzyCompare(*frameRate, static_cast<qreal>(value));
+        };
+
+        // No preferred frame rate, not started
+        QVERIFY(!fixture.m_capture.frameRate());
+
+        // Set new frame rate
+        float newFrameRate = 1.f;
+        fixture.m_capture.setFrameRate(newFrameRate);
+
+        QTRY_COMPARE(fixture.m_frameRates.size(), 1);
+        QVERIFY(frameRateEquals(fixture.m_capture.frameRate(), newFrameRate));
+
+        QVERIFY(fixture.start());
+
+#ifndef Q_OS_WIN // QTBUG-147051
+        // Check framerate is roughly 1fps
+        using namespace std::chrono;
+        auto durationBetweenFrames = fixture.m_grabber.durationBetweenFrames(3);
+        QTEST_ASSERT(durationBetweenFrames > 0ms);
+        const qreal actualFps = 1000.0 / durationBetweenFrames.count();
+        QCOMPARE_GT(actualFps, newFrameRate * 0.9);
+        QCOMPARE_LT(actualFps, newFrameRate * 1.1);
+#endif
+
+        // Reset frame rate
+        fixture.m_capture.setActive(false);
+        fixture.m_capture.resetFrameRate();
+
+        QTRY_COMPARE(fixture.m_frameRates.size(), 2);
+        QVERIFY(!fixture.m_capture.frameRate());
+
+        QVERIFY(fixture.m_errors.empty());
+    }
+
     void capturedImage_equals_imageFromGrab_data()
     {
         QTest::addColumn<QSize>("windowSize");

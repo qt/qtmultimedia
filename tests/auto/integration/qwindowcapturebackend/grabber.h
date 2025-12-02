@@ -4,6 +4,7 @@
 #ifndef WINDOW_CAPTURE_GRABBER_H
 #define WINDOW_CAPTURE_GRABBER_H
 
+#include <chrono>
 #include <qvideosink.h>
 #include <vector>
 
@@ -29,6 +30,8 @@ public:
         elapsed.
     */
     std::vector<QVideoFrame> waitAndTakeFrames(size_t minCount, qint64 noOlderThanTime = 0);
+
+    std::chrono::milliseconds durationBetweenFrames(qsizetype frameCount = 1);
 
     bool isStopped() const;
 

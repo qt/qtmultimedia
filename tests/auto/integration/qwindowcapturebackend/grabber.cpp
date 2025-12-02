@@ -7,6 +7,7 @@
 #include <qtest.h>
 #include <qvideoframe.h>
 #include <q20vector.h>
+#include <qelapsedtimer.h>
 
 FrameGrabber::FrameGrabber()
 {
@@ -48,6 +49,29 @@ std::vector<QVideoFrame> FrameGrabber::waitAndTakeFrames(size_t minCount, qint64
         return {};
 
     return std::move(m_frames);
+}
+
+std::chrono::milliseconds FrameGrabber::durationBetweenFrames(qsizetype frameCount)
+{
+    Q_ASSERT(frameCount > 0);
+
+    QElapsedTimer timer;
+    qsizetype framesReceived = 0;
+
+    QObject context;
+    connect(this, &QVideoSink::videoFrameChanged, &context, [&]() {
+        if (framesReceived++ == 0)
+            timer.start();
+    });
+
+    auto allFramesAreReceived = [&]() {
+        return framesReceived > frameCount;
+    };
+
+    using namespace std::chrono;
+    return QTest::qWaitFor(allFramesAreReceived)
+            ? milliseconds(timer.elapsed() / frameCount)
+            : milliseconds(0);
 }
 
 bool FrameGrabber::isStopped() const
