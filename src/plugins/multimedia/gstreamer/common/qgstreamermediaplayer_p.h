@@ -22,6 +22,7 @@
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qtimer.h>
 #include <QtCore/qurl.h>
+#include <QtCore/qfuture.h>
 
 #include <common/qgst_bus_observer_p.h>
 #include <common/qgst_discoverer_p.h>
@@ -124,8 +125,6 @@ private:
     void disconnectDecoderHandlers();
     QGObjectHandlerScopedConnection sourceSetup;
 
-    bool discover(const QUrl &);
-
     // custom sources
     void decoderPadAddedCustomSource(const QGstElement &src, const QGstPad &pad);
     void decoderPadRemovedCustomSource(const QGstElement &src, const QGstPad &pad);
@@ -166,6 +165,16 @@ private:
     void updateSubtitleTrackEnabled();
 
     QGstreamerRelayVideoSink *m_gstVideoSink = nullptr;
+
+    // asynchronous discovery
+    using DiscoverResult = q23::expected<QGst::QGstDiscovererInfo, QUniqueGErrorHandle>;
+    QFuture<DiscoverResult> discover(QUrl);
+    void handleDiscoverResult(const DiscoverResult &, const QUrl &playerUrl);
+
+    QFuture<DiscoverResult> m_discoverFuture;
+    QFuture<void> m_discoveryHandler;
+    bool m_hasPendingMedia = false;
+    std::optional<QMediaPlayer::PlaybackState> m_requestedPlaybackState = std::nullopt;
 };
 
 QT_END_NAMESPACE

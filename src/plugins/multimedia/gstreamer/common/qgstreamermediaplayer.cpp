@@ -19,6 +19,7 @@
 
 #include <QtMultimedia/private/qthreadlocalrhi_p.h>
 #include <QtMultimedia/qaudiodevice.h>
+#include <QtConcurrent/qtconcurrentrun.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qloggingcategory.h>
@@ -50,14 +51,21 @@ std::optional<QGstreamerMediaPlayer::TrackType> toTrackType(const QGstCaps &caps
 
 } // namespace
 
-bool QGstreamerMediaPlayer::discover(const QUrl &url)
+QFuture<QGstreamerMediaPlayer::DiscoverResult> QGstreamerMediaPlayer::discover(QUrl url)
 {
-    QGst::QGstDiscoverer discoverer;
+    return QtConcurrent::run([url = std::move(url)] {
+        QGst::QGstDiscoverer discoverer;
+        return discoverer.discover(url);
+    });
+}
 
+void QGstreamerMediaPlayer::handleDiscoverResult(const DiscoverResult &discoveryResult,
+                                                 const QUrl &url)
+{
+    using namespace Qt::Literals;
     using namespace std::chrono;
     using namespace std::chrono_literals;
 
-    auto discoveryResult = discoverer.discover(url);
     if (discoveryResult) {
         // Make sure GstPlay is ready if play() is called from slots during discovery
         gst_play_set_uri(m_gstPlay.get(), url.toEncoded().constData());
@@ -133,9 +141,31 @@ bool QGstreamerMediaPlayer::discover(const QUrl &url)
         updateVideoTrackEnabled();
         updateAudioTrackEnabled();
         updateNativeSizeOnVideoOutput();
-    }
+        positionChanged(0ms);
 
-    return bool(discoveryResult);
+        // Handle the last play/pause/stop call made during async media loading.
+        m_hasPendingMedia = false;
+        if (m_requestedPlaybackState) {
+            switch (*m_requestedPlaybackState) {
+            case QMediaPlayer::PlayingState:
+                play();
+                break;
+            case QMediaPlayer::PausedState:
+                pause();
+                break;
+            default:
+                break;
+            }
+        }
+
+    } else {
+        qCDebug(qLcMediaPlayer) << "Discovery error:" << discoveryResult.error();
+        m_resourceErrorState = ResourceErrorState::ErrorOccurred;
+        error(QMediaPlayer::Error::ResourceError, u"Resource cannot be discovered"_s);
+        m_hasPendingMedia = false;
+        mediaStatusChanged(QMediaPlayer::InvalidMedia);
+        resetStateForEmptyOrInvalidMedia();
+    };
 }
 
 void QGstreamerMediaPlayer::decoderPadAddedCustomSource(const QGstElement &src, const QGstPad &pad)
@@ -678,13 +708,17 @@ void QGstreamerMediaPlayer::setPosition(std::chrono::milliseconds pos)
 
         customPipeline.setPosition(pos);
         return;
-    } else {
-        qCDebug(qLcMediaPlayer) << "gst_play_seek" << pos;
-        gst_play_seek(m_gstPlay.get(), nanoseconds(pos).count());
-
-        if (mediaStatus() == QMediaPlayer::EndOfMedia)
-            mediaStatusChanged(QMediaPlayer::LoadedMedia);
     }
+
+    if (m_hasPendingMedia) {
+        return;
+    }
+
+    qCDebug(qLcMediaPlayer) << "gst_play_seek" << pos;
+    gst_play_seek(m_gstPlay.get(), nanoseconds(pos).count());
+
+    if (mediaStatus() == QMediaPlayer::EndOfMedia)
+        mediaStatusChanged(QMediaPlayer::LoadedMedia);
     positionChanged(pos);
 }
 
@@ -694,6 +728,13 @@ void QGstreamerMediaPlayer::play()
         gstVideoOutput->setActive(true);
         customPipeline.setState(GST_STATE_PLAYING);
         stateChanged(QMediaPlayer::PlayingState);
+        return;
+    }
+
+    if (m_hasPendingMedia) {
+        // Async media loading in progress via QGstDiscoverer, m_discoveryHandler will fulfill the
+        // last requested playback state later.
+        m_requestedPlaybackState = QMediaPlayer::PlayingState;
         return;
     }
 
@@ -729,6 +770,11 @@ void QGstreamerMediaPlayer::pause()
         return;
     }
 
+    if (m_hasPendingMedia) {
+        m_requestedPlaybackState = QMediaPlayer::PausedState;
+        return;
+    }
+
     if (state() == QMediaPlayer::PausedState || !hasMedia()
         || m_resourceErrorState != ResourceErrorState::NoError)
         return;
@@ -748,6 +794,11 @@ void QGstreamerMediaPlayer::stop()
         customPipeline.setState(GST_STATE_READY);
         stateChanged(QMediaPlayer::StoppedState);
         gstVideoOutput->setActive(false);
+        return;
+    }
+
+    if (m_hasPendingMedia) {
+        m_requestedPlaybackState = QMediaPlayer::StoppedState;
         return;
     }
 
@@ -841,16 +892,17 @@ void QGstreamerMediaPlayer::sourceSetupCallback([[maybe_unused]] GstElement *pla
 
 void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 {
-    using namespace Qt::Literals;
-    using namespace std::chrono;
-    using namespace std::chrono_literals;
-
     if (customPipeline)
         cleanupCustomPipeline();
 
     m_resourceErrorState = ResourceErrorState::NoError;
     m_url = content;
     m_stream = stream;
+
+    // cancel any pending discovery continuations
+    m_discoveryHandler.cancel();
+    m_discoverFuture.cancel();
+
     QUrl streamURL;
     if (stream)
         streamURL = qGstRegisterQIODevice(stream);
@@ -865,20 +917,16 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         setMediaCustomSource(content);
     } else {
         mediaStatusChanged(QMediaPlayer::LoadingMedia);
+        m_hasPendingMedia = true;
+        m_requestedPlaybackState = std::nullopt;
+
         const QUrl &playUrl = stream ? streamURL : content;
+        m_discoverFuture = discover(playUrl);
 
-        // LATER: discover is synchronous, but we would be way more friendly to make it
-        // asynchronous.
-        bool mediaDiscovered = discover(playUrl);
-        if (!mediaDiscovered) {
-            m_resourceErrorState = ResourceErrorState::ErrorOccurred;
-            error(QMediaPlayer::Error::ResourceError, u"Resource cannot be discovered"_s);
-            mediaStatusChanged(QMediaPlayer::InvalidMedia);
-            resetStateForEmptyOrInvalidMedia();
-            return;
-        }
-
-        positionChanged(0ms);
+        m_discoveryHandler =
+                m_discoverFuture.then(this,[this, playUrl](const DiscoverResult &result) {
+                    handleDiscoverResult(result, playUrl);
+                });
     }
 }
 
