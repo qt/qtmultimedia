@@ -405,7 +405,16 @@ AVHWFramesContext *HWAccel::hwFramesContext() const
 
 static void deleteHwFrameContextData(AVHWFramesContext *context)
 {
-    delete reinterpret_cast<HwFrameContextData *>(context->user_opaque);
+    std::unique_ptr<HwFrameContextData> contextData(
+            static_cast<HwFrameContextData *>(context->user_opaque));
+    Q_ASSERT(contextData);
+
+    if (contextData->avDeleter) {
+        context->user_opaque = contextData->avUserOpaque;
+        context->free = contextData->avDeleter;
+
+        context->free(context);
+    }
 }
 
 HwFrameContextData &HwFrameContextData::ensure(AVFrame &hwFrame)
@@ -413,15 +422,19 @@ HwFrameContextData &HwFrameContextData::ensure(AVFrame &hwFrame)
     Q_ASSERT(hwFrame.hw_frames_ctx && hwFrame.hw_frames_ctx->data);
 
     auto context = reinterpret_cast<AVHWFramesContext *>(hwFrame.hw_frames_ctx->data);
-    if (!context->user_opaque) {
-        context->user_opaque = new HwFrameContextData;
-        Q_ASSERT(!context->free);
+
+    if (context->free != deleteHwFrameContextData) {
+        // In most cases, we expect null context->free and context->user_opaque.
+        // However, FFmpeg decoding implementations for specific graphic card backends
+        // may set a custom deleter. Let's save the deleter and its data (user_opaque)
+        // to invoke it in deleteHwFrameContextData.
+        context->user_opaque = new HwFrameContextData{ context->free, context->user_opaque };
         context->free = deleteHwFrameContextData;
     } else {
-        Q_ASSERT(context->free == deleteHwFrameContextData);
+        Q_ASSERT(context->user_opaque);
     }
 
-    return *reinterpret_cast<HwFrameContextData *>(context->user_opaque);
+    return *static_cast<HwFrameContextData *>(context->user_opaque);
 }
 
 AVFrameUPtr copyFromHwPool(AVFrameUPtr frame)
