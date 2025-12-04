@@ -101,8 +101,6 @@ struct QGstDiscovererInfo
     std::vector<QGstDiscovererContainerInfo> containerStreams;
 };
 
-// For now we only perform synchronous discovery. Our future selves may want to perform the
-// discovery asynchronously.
 class QGstDiscoverer
 {
 public:
