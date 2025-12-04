@@ -47,7 +47,11 @@ using HWAccelUPtr = std::unique_ptr<HWAccel>;
  */
 struct HwFrameContextData
 {
-    QRhiValueMapper<TextureConverter> textureConverterMapper;
+    using AVHWFramesContextDeleter = void (*)(struct AVHWFramesContext *ctx);
+    AVHWFramesContextDeleter avDeleter = nullptr;
+    void *avUserOpaque = nullptr;
+
+    QRhiValueMapper<TextureConverter> textureConverterMapper = {};
 
     /**
      * @brief gets or creates an instance of the class, associated with
