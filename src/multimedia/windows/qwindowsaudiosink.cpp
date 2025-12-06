@@ -392,6 +392,7 @@ void QWASAPIAudioSinkStream::joinWorkerThread()
 void QWASAPIAudioSinkStream::handleAudioClientError()
 {
     using namespace QWindowsAudioUtils;
+    requestStop();
     audioClientStop(m_audioClient);
     audioClientReset(m_audioClient);
 
