@@ -116,7 +116,7 @@ float QQuick3DAudioEngine::masterVolume() const
 }
 
 /*!
-    \qmlproperty real QAudioEngine::distanceScale
+    \qmlproperty real AudioEngine::distanceScale
     \since 6.11
 
     Defines the scale of the coordinate system being used by the spatial audio engine.

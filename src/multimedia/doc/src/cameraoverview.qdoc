@@ -124,7 +124,8 @@ system. On desktop platforms, the default camera is commonly set by the
 end-user in the system settings. On a mobile device, the back-facing
 camera is usually the default camera-device. You can get the default
 camera-device with \l QMediaDevices::defaultVideoInput() in C++, or
-\l MediaDevices.defaultVideoInput in QML.
+\l{QtMultimedia::MediaDevices::defaultVideoInput}{MediaDevices.defaultVideoInput}
+in QML.
 
 The default camera-device may change over time, i.e as a result of the
 end-user disconnecting the current default camera-device. Application
