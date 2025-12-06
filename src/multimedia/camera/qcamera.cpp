@@ -125,10 +125,11 @@ QT_BEGIN_NAMESPACE
 
     Most platforms require that the end-user grants permissions before a
     camera can be activated. It is therefore strongly recommended that
-    application developers utilize the \l CameraPermission component when
-    working with cameras. The following is a short example that requests
-    permissions from the end-user when the application starts, and then
-    activates the camera if permissions are granted.
+    application developers utilize the \l CameraPermission
+    component when working with cameras. The following is a short
+    example that requests permissions from the end-user when the
+    application starts, and then activates the camera if permissions are
+    granted.
 
     \qml
     CameraPermission {
