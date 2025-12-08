@@ -9,7 +9,7 @@ SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0 AND Apache-2.0"
 [[annotations]]
 path = ["Eigen/**", "INSTALL"]
 precedence = "closest"
-SPDX-FileCopyrightText = "Copyright Mozilla."
+SPDX-FileCopyrightText = "Copyright (C) The Eigen Authors"
 SPDX-License-Identifier = "MPL-2.0"
 
 [[annotations]]

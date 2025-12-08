@@ -6,25 +6,29 @@ Copyright (c) 2014-2016 Benoit Steiner (benoit.steiner.goog@gmail.com)
 Copyright (c) 16 BfToF32Even (c) Packet4f
 Copyright (c) 16 BfToF32Odd (c) Packet4f
 Copyright (c) 2021 C. Antonio Sanchez <cantonios@google.com>
-Copyright (c) 2021 Chip Kerchner (chip.kerchner@ibm.com)
+Copyright (c) 2023-2025 Charlie Schlosser <cs.schlosser@gmail.com>
+Copyright (c) 2021, 2023 Chip Kerchner (chip.kerchner@ibm.com)
 Copyright (c) 2009 Claire Maurice
 Copyright (c) 2017 Codeplay Software Limited
-Copyright (c) 2016 Eugene Brevdo <ebrevdo@gmail.com>
+Copyright (c) 2018 Deven Desai <deven.desai.amd@gmail.com>
+Copyright (c) 2016 Dmitry Vyukov <dvyukov@google.com>
+Copyright (c) 2021 Erik Schultheis <erik.schultheis@aalto.fi>
 Copyright (c) 2020 Everton Constantino (everton.constantino@ibm.com)
 Copyright (c) 2016 Fabian Giesen
 Copyright (c) 2008-2019 Gael Guennebaud <gael.guennebaud@inria.fr>
 Copyright (c) 2013 Gauthier Brun <brun.gauthier@gmail.com>
-Copyright (c) 2010-2013 Hauke Heibel <hauke.heibel@gmail.com>
-Copyright (c) 2009 Hauke Heibel <hauke.heibel@gmail.com>
-Copyright (c) 2001, 2010, 2011 Intel Corporation
+Copyright (c) 2009-2013 Hauke Heibel <hauke.heibel@gmail.com>
+Copyright (c) 2001, 2010-2011, 2022 Intel Corporation
 Copyright (c) 2013 Jean Ceccato <jean.ceccato@ensimag.fr>
-Copyright (c) 2010-2012 Jitse Niesen <jitse@maths.leeds.ac.uk>
-Copyright (c) 2013 Jitse Niesen <jitse@maths.leeds.ac.uk>
+Copyright (c) 2010-2013 Jitse Niesen <jitse@maths.leeds.ac.uk>
 Copyright (c) 2007 Julien Pommier
+Copyright (c) 2023 Juraj Oršulić, University of Zagreb <juraj.orsulic@fer.hr>
 Copyright (c) 2009 Keir Mierle <mierle@gmail.com>
 Copyright (c) 2009 Kenneth Riddile <kfriddile@yahoo.com>
 Copyright (c) 2008-2016 Konstantinos Margaritis <markos@freevec.org>
+Copyright (c) 2017 Kyle Macfarlan <kyle.macfarlan@gmail.com>
 Copyright (c) 2009 Mathieu Gautier <mathieu.gautier@cea.fr>
+Copyright (c) 2022 Melven Roehrig-Zoellner <Melven.Roehrig-Zoellner@DLR.de>
 Copyright (c) 2007 Michael Olbrich <michael.olbrich@gmx.net>
 Copyright (c) 2021 NVIDIA CORPORATION.
 Copyright (c) 2013 Nicolas Carre <nicolas.carre@ensimag.fr>
@@ -35,11 +39,16 @@ Copyright (c) 2013 Pierre Zoppitelli <pierre.zoppitelli@ensimag.fr>
 Copyright (c) 2016, 2018, 2019 Rasmus Munk Larsen (rmlarsen@google.com)
 Copyright (c) 2009 Ricard Marxer <email@ricardmarxer.com>
 Copyright (c) 2009 Rohit Garg <rpg.314@gmail.com>
+Copyright (c) 2025 The Eigen Authors.
+Copyright (c) 2021 The Eigen Team
 Copyright (c) 2017 The TensorFlow Authors
 Copyright (c) 2010 Thomas Capricelli <orzel@freehackers.org>
 Copyright (c) 2011 Timothy E. Holy tim.holy@gmail.com
 Copyright (c) 2016 Tobias Wood <tobias@spinicist.org.uk>
 Copyright (c) 2010 Vincent Lejeune
 Copyright (c) 2018 Wave Computing, Inc.
+Copyright (c) 2025 Weiwei Kong <weiweikong@google.com>
 Copyright (c) 2011-2014 Willow Garage, Inc.
+Copyright (c) 2024 XiWei Gu <guxiwei-hf@loongson.cn>
 Copyright (c) 2014 yoco <peter.xiau@gmail.com>
+Copyright (c) 2023 Zang Ruochen <zangruochen@loongson.cn>
