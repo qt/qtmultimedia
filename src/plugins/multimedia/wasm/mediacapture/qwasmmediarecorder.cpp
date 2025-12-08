@@ -341,7 +341,7 @@ void QWasmMediaRecorder::setUpFileSink()
     }
     if (m_targetFileName.isEmpty()) {
         m_targetFileName =  QDir::homePath() + u"/tmp."_s + suffix;
-        QPlatformMediaRecorder::setOutputLocation(m_targetFileName);
+        QPlatformMediaRecorder::setOutputLocation(QUrl::fromLocalFile(m_targetFileName));
     }
 
     m_outputTarget = new QFile(m_targetFileName, this);
