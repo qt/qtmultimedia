@@ -376,15 +376,6 @@ microseconds AudioRenderer::bufferLoadingTime(const SynchronizationStamp &syncSt
         return microseconds(0);
 
     const auto bytes = qMax(m_sink->bufferSize() - syncStamp.audioSinkBytesFree, 0);
-
-#ifdef Q_OS_ANDROID
-    // The hack has been added due to QAndroidAudioSink issues (QTBUG-118609).
-    // The method QAndroidAudioSink::bytesFree returns 0 or bufferSize, intermediate values are not
-    // available now; to be fixed.
-    if (bytes == 0)
-        return m_timings.minSoundDelay + MinDesiredBufferTime;
-#endif
-
     return durationForBytes(bytes);
 }
 
