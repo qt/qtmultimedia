@@ -69,7 +69,7 @@ sourcedirs += .. \
               ../../multimediawidgets \
               ../../multimediaquick
 
-depends                 += qtcore qtdoc qtgui qtquick qtqml qtwidgets qtnetwork qmake qtcmake qtquickcontrols qtspatialaudio
+depends                 += qtcore qtdoc qtgui qtquick qtqml qtwidgets qtnetwork qmake qtcmake qtquickcontrols qtspatialaudio qtqmlcore
 
 # Ignore \since commands for versions earlier than 6.3
 ignoresince = 6.3
