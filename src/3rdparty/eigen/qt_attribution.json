@@ -7,8 +7,8 @@
     "SecurityCritical": false,
 
     "Homepage": "https://eigen.tuxfamily.org/",
-    "Version": "3.4.0",
-    "DownloadLocation": "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.bz2",
+    "Version": "5.1.0",
+    "DownloadLocation": "https://gitlab.com/libeigen/eigen/-/archive/5.0.1/eigen-5.0.1.tar.bz2",
     "PURL": [
         "pkg:github/eigen-mirror/eigen@$<VERSION>"
     ],
@@ -18,6 +18,8 @@
     "LicenseId": "MPL-2.0 AND BSD-3-Clause",
     "CopyrightFile": "COPYRIGHTS",
     "LicenseFiles": [
+        "COPYING.APACHE",
+        "COPYING.MINPACK",
         "COPYING.MPL2",
         "COPYING.BSD"
     ]
