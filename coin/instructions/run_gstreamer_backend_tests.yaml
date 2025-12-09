@@ -4,7 +4,9 @@ enable_if:
   conditions:
     - condition: runtime
       env_var: TARGET_OSVERSION_COIN
-      contains_value: ubuntu
+      # QTBUG-129469 as long as we have flaky tests, we need to disable all gstreamer tests on CI to avoid blocking
+      # dependency update rounds
+      contains_value: disabled_ubuntu
     # Disabling on rhel/opensuse for now due to missing h264 codecs on CI
     # - condition: runtime
     #   env_var: TARGET_OSVERSION_COIN

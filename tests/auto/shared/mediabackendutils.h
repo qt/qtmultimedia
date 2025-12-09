@@ -6,6 +6,8 @@
 
 #include <QtTest/qtestcase.h>
 #include <private/qplatformmediaintegration_p.h>
+#include <QtGui/private/qguiapplication_p.h>
+#include <QtGui/qpa/qplatformintegration.h>
 
 inline bool isGStreamerPlatform()
 {
@@ -37,9 +39,18 @@ inline bool isWindowsPlatform()
     return QPlatformMediaIntegration::instance()->name() == "windows";
 }
 
+inline bool isRhiRenderingSupported()
+{
+    return QGuiApplicationPrivate::platformIntegration()->hasCapability(
+            QPlatformIntegration::RhiBasedRendering);
+}
+
 inline bool isCI()
 {
-    return qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci";
+    return qEnvironmentVariable("QTEST_ENVIRONMENT")
+            .toLower()
+            .split(' ')
+            .contains(QStringLiteral("ci"));
 }
 
 #define QSKIP_GSTREAMER(message) \

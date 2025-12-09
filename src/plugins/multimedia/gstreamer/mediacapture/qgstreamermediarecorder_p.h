@@ -1,9 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-
-#ifndef QGSTREAMERENCODERCONTROL_H
-#define QGSTREAMERENCODERCONTROL_H
+#ifndef QGSTREAMERMEDIARECORDER_H
+#define QGSTREAMERMEDIARECORDER_H
 
 //
 //  W A R N I N G
@@ -16,14 +15,11 @@
 // We mean it.
 //
 
-#include <mediacapture/qgstreamermediacapture_p.h>
+#include <mediacapture/qgstreamermediacapturesession_p.h>
 #include <common/qgstreamermetadata_p.h>
-#include <common/qgst_bus_p.h>
 
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <QtCore/qurl.h>
-#include <QtCore/qdir.h>
-#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qtimer.h>
 
 QT_BEGIN_NAMESPACE
@@ -31,11 +27,11 @@ QT_BEGIN_NAMESPACE
 class QMediaMetaData;
 class QGstreamerMessage;
 
-class QGstreamerMediaEncoder : public QPlatformMediaRecorder, QGstreamerBusMessageFilter
+class QGstreamerMediaRecorder : public QPlatformMediaRecorder
 {
 public:
-    explicit QGstreamerMediaEncoder(QMediaRecorder *parent);
-    virtual ~QGstreamerMediaEncoder();
+    explicit QGstreamerMediaRecorder(QMediaRecorder *parent);
+    virtual ~QGstreamerMediaRecorder();
 
     bool isLocationWritable(const QUrl &sink) const override;
 
@@ -51,9 +47,7 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-    QGstElement getEncoder() { return gstEncoder; }
-private:
-    bool processBusMessage(const QGstreamerMessage& message) override;
+    void processBusMessage(const QGstreamerMessage &message);
 
 private:
     struct PauseControl {
@@ -76,17 +70,13 @@ private:
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
     void finalize();
 
-    QGstreamerMediaCapture *m_session = nullptr;
+    QGstreamerMediaCaptureSession *m_session = nullptr;
     QMediaMetaData m_metaData;
     QTimer signalDurationChangedTimer;
-
-    QGstPipeline capturePipeline;
-    QGstBin gstEncoder;
-    QGstElement gstFileSink;
 
     bool m_finalizing = false;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERENCODERCONTROL_H
+#endif // QGSTREAMERMEDIARECORDER_H

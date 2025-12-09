@@ -71,15 +71,20 @@ QString QMediaStorageLocation::generateFileName(const QString &requestedName,
 
     QString path = requestedName;
 
-    if (QFileInfo(path).isRelative() && QUrl(path).isRelative())
+    const QFileInfo fileInfo{ path };
+
+    if (fileInfo.isRelative() && QUrl(path).isRelative())
         path = defaultDirectory(type).absoluteFilePath(path);
 
-    if (QFileInfo(path).isDir())
+    if (fileInfo.isDir())
         return generateFileName(QDir(path), prefix, extension);
 
-    if (!path.endsWith(extension))
-        path.append(QStringLiteral(".%1").arg(extension));
-
+    if (fileInfo.suffix().isEmpty() && !extension.isEmpty()) {
+        // File does not have an extension, so add the suggested one
+        if (!path.endsWith(u'.'))
+            path.append(u'.');
+        path.append(extension);
+    }
     return path;
 }
 

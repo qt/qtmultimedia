@@ -12,8 +12,9 @@
 #include <qaudioformat.h>
 #include <qaudio.h>
 #include <qmediadevices.h>
-
 #include <qwavedecoder.h>
+
+#include "mediabackendutils.h"
 
 #define RANGE_ERR 0.5
 
@@ -76,7 +77,7 @@ private:
     QScopedPointer<QByteArray> m_byteArray;
     QScopedPointer<QBuffer> m_buffer;
 
-    bool m_inCISystem = false;
+    bool m_inCISystem = isCI();
 };
 
 void tst_QAudioSource::generate_audiofile_testrows()
@@ -104,7 +105,6 @@ QString tst_QAudioSource::formatToFileName(const QAudioFormat &format)
 
 void tst_QAudioSource::initTestCase()
 {
-    m_inCISystem = qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci";
 #ifdef Q_OS_ANDROID
     // QTEST_ENVIRONMENT is only set on the host system. When running the test on an Android device,
     // we are unable to confirm that it is running on CI. Test fails on Android 6 (x86) because

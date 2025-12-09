@@ -415,6 +415,19 @@ QPlatformCamera *QCamera::platformCamera()
 /*! \qmlproperty cameraDevice QtMultimedia::Camera::cameraDevice
 
     Gets or sets the currently active camera device.
+
+    When switching camera devices, the QCamera's capabilities are updated.
+    Additionally, the QCamera's control properties (such as \l focusMode,
+    \l flashMode, \l focusDistance, \l zoomFactor) are updated as follows:
+
+    \list
+        \li If a property is supported on the new device, the property value is applied to the
+            camera device.
+        \li If a property is supported but its range of valid values was changed, the property
+            is clamped to the new range and applied to the camera device.
+        \li If the new camera device does not support a property, the property value is reset
+            to default, and no changes are made to the camera device.
+    \endlist
 */
 
 /*!
@@ -432,6 +445,19 @@ QCameraDevice QCamera::cameraDevice() const
     Connects the camera object to the physical camera device described by
     \a cameraDevice. Using a default constructed QCameraDevice object as
     \a cameraDevice will connect the camera to the system default camera device.
+
+    When switching camera devices, the QCamera's capabilities are updated.
+    Additionally, the QCamera's control properties (such as \l focusMode,
+    \l flashMode, \l focusDistance, \l zoomFactor) are updated as follows:
+
+    \list
+        \li If a property is supported on the new device, the property value is applied to the
+            camera device.
+        \li If a property is supported but its range of valid values was changed, the property
+            is clamped to the new range and applied to the camera device.
+        \li If the new camera device does not support a property, the property value is reset
+            to default, and no changes are made to the camera device.
+    \endlist
 */
 void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
 {
@@ -523,7 +549,8 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
 /*!
     \qmlproperty enumeration Camera::focusMode
 
-    This property holds the current camera focus mode.
+    This property holds the value that controls focus mode for the camera device.
+    In all autofocus modes, the camera device keeps focusing continuously.
 
     \note In automatic focusing modes and where supported, the \l focusPoint property provides
     information and control over the area of the image that is being focused.
@@ -537,9 +564,15 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
         depth of field achieved. All objects at distances from half of this
         distance out to infinity will be acceptably sharp.
     \value Camera.FocusModeInfinity Focus strictly to infinity.
-    \value Camera.FocusModeManual Manual or fixed focus mode.
+    \value Camera.FocusModeManual The lens focus distance is set to a value specified by \l focusDistance.
 
-    If a certain focus mode is not supported, setting it will have no effect.
+    To check whether the camera device supports a particular focus mode, pass the corresponding
+    \l FocusMode value to the \l isFocusModeSupported function as a parameter. The function
+    returns false if the focus mode value is not supported. Assigning this mode to the
+    \l focusMode property has no effect.
+
+    If you set the focusMode property to \l Camera.FocusModeManual, the lens
+    locks to the focus according to \l focusDistance.
 
     \sa isFocusModeSupported
 */
@@ -548,9 +581,16 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
     \property QCamera::focusMode
     \brief the current camera focus mode.
 
-    Sets up different focus modes for the camera. All auto focus modes will focus continuously.
-    Locking the focus is possible by setting the focus mode to \l FocusModeManual. This will keep
-    the current focus and stop any automatic focusing.
+    This property holds the value that controls focus mode for the camera device.
+    In all autofocus modes, the camera device keeps focusing continuously.
+
+    To check whether the camera device supports a particular focus mode, pass the corresponding
+    \l FocusMode value to the \l isFocusModeSupported function as a parameter. The function
+    returns false if the focus mode value is not supported. Assigning this mode to the
+    \l focusMode property has no effect.
+
+    If you set the focusMode property to \l Camera.FocusModeManual, the lens
+    locks to the focus according to \l focusDistance.
 
     \sa isFocusModeSupported
 */
@@ -571,17 +611,22 @@ void QCamera::setFocusMode(QCamera::FocusMode mode)
     if (!d->control || d->control->focusMode() == mode)
         return;
     d->control->setFocusMode(mode);
-    emit focusModeChanged();
 }
 
 /*!
     \qmlmethod bool Camera::isFocusModeSupported(FocusMode mode)
 
     Returns true if the focus \a mode is supported by the camera.
+
+    If \l FocusModeManual is reported as supported, the feature
+    \l Feature::FocusDistance is implied to be supported as well.
 */
 
 /*!
     Returns true if the focus \a mode is supported by the camera.
+
+    If \l FocusModeManual is reported as supported, the feature
+    \l Feature::FocusDistance is implied to be supported as well.
 */
 bool QCamera::isFocusModeSupported(FocusMode mode) const
 {
@@ -646,36 +691,66 @@ void QCamera::setCustomFocusPoint(const QPointF &point)
 /*!
     \qmlproperty float QtMultimedia::Camera::focusDistance
 
-    This property return an approximate focus distance of the camera. The value reported
-    is between 0 and 1, 0 being the closest possible focus distance, 1 being as far away
-    as possible. Note that 1 is often, but not always infinity.
+    This property defines the lens focus distance when the camera device works in
+    manual focus mode. Valid values range from 0 to 1, where 0 is the closest
+    possible focus distance, and 1 is the farthest. The farthest point is
+    typically at infinity, but this may not be the case for all devices.
 
-    Setting the focus distance will be ignored unless the focus mode is set to
-    \l {focusMode}{FocusModeManual}.
+    This property is applied to the device only when \l focusMode is set to
+    \l Camera.FocusModeManual, and \l supportedFeatures includes the
+    \l Camera.FocusDistance flag.
+
+    If you assign a value to this property while \l focusMode is not
+    set to \l Camera.FocusModeManual, the property stores the value but does
+    not affect the device until \l Camera.FocusModeManual is active.
+
+    Assigning a value outside the valid range [0, 1] has no effect on this property.
+
+    If \l supportedFeatures does not include the \l Camera.FocusDistance flag,
+    any attempt to set this property is ignored.
+
+    This property will not be updated by the camera when it is in an automatic focus mode.
+
+    The default value is 1.
 */
 
 /*!
     \property QCamera::focusDistance
 
-    This property return an approximate focus distance of the camera. The value reported
-    is between 0 and 1, 0 being the closest possible focus distance, 1 being as far away
-    as possible. Note that 1 is often, but not always infinity.
+    This property defines the lens focus distance when the camera device works in
+    manual focus mode. Valid values range from 0 to 1, where 0 is the closest
+    possible focus distance, and 1 is the farthest. The farthest point is
+    typically at infinity, but this may not be the case for all devices.
 
-    Setting the focus distance will be ignored unless the focus mode is set to
-    \l FocusModeManual.
+    This property is applied to the device only when \l focusMode is set to
+    \l FocusModeManual, and \l supportedFeatures includes the
+    \l Feature::FocusDistance flag.
+
+    If you assign a value to this property while \l focusMode is not
+    set to \l Camera.FocusModeManual, the property stores the value but does
+    not affect the device until \l Camera.FocusModeManual is active.
+
+    Assigning a value outside the valid range [0, 1] has no effect on this property.
+
+    If \l supportedFeatures does not include the \l FocusDistance flag,
+    any attempt to set this property is ignored.
+
+    This property will not be updated by the camera when it is in an automatic focus mode.
+
+    The default value is 1.
 */
-void QCamera::setFocusDistance(float d)
+void QCamera::setFocusDistance(float distance)
 {
-    if (!d_func()->control || focusMode() != FocusModeManual)
+    if (!d_func()->control)
         return;
-    d_func()->control->setFocusDistance(d);
+    d_func()->control->setFocusDistance(distance);
 }
 
 float QCamera::focusDistance() const
 {
-    if (d_func()->control && focusMode() == FocusModeManual)
+    if (d_func()->control)
         return d_func()->control->focusDistance();
-    return 0.;
+    return 0.f;
 }
 
 /*!
@@ -794,7 +869,7 @@ void QCamera::zoomTo(float factor, float rate)
                                 All objects at distances from half of this
                                 distance out to infinity will be acceptably sharp.
     \value FocusModeInfinity    Focus strictly to infinity.
-    \value FocusModeManual      Manual or fixed focus mode.
+    \value FocusModeManual      Camera lens focus distance is locked according to \l focusDistance.
 */
 
 /*!

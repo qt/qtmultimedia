@@ -1,7 +1,6 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include <qavfcamera_p.h>
-#include <qpointer.h>
 #include <qmediacapturesession.h>
 #include <private/qplatformmediacapture_p.h>
 #include "avfcamerautility_p.h"
@@ -18,8 +17,6 @@ extern "C" {
 #include <libavutil/hwcontext.h>
 }
 #undef AVMediaType
-
-static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatusNotDetermined;
 
 QT_BEGIN_NAMESPACE
 
@@ -41,55 +38,8 @@ QAVFCamera::~QAVFCamera()
     [m_captureSession release];
 }
 
-void QAVFCamera::requestCameraPermissionIfNeeded()
-{
-    if (m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized)
-        return;
-
-    switch ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo])
-    {
-        case AVAuthorizationStatusAuthorized:
-        {
-            m_cameraAuthorizationStatus = AVAuthorizationStatusAuthorized;
-            break;
-        }
-        case AVAuthorizationStatusNotDetermined:
-        {
-            m_cameraAuthorizationStatus = AVAuthorizationStatusNotDetermined;
-            QPointer<QAVFCamera> guard(this);
-            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    if (guard)
-                        cameraAuthorizationChanged(granted);
-                });
-            }];
-            break;
-        }
-        case AVAuthorizationStatusDenied:
-        case AVAuthorizationStatusRestricted:
-        {
-            m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
-            return;
-        }
-    }
-}
-
-void QAVFCamera::cameraAuthorizationChanged(bool authorized)
-{
-    if (authorized) {
-        m_cameraAuthorizationStatus = AVAuthorizationStatusAuthorized;
-    } else {
-        m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
-        qWarning() << "User has denied access to camera";
-    }
-}
-
 void QAVFCamera::updateVideoInput()
 {
-    requestCameraPermissionIfNeeded();
-    if (m_cameraAuthorizationStatus != AVAuthorizationStatusAuthorized)
-        return;
-
     [m_captureSession beginConfiguration];
 
     attachVideoInputDevice();
@@ -141,6 +91,9 @@ void QAVFCamera::deviceOrientationChanged(int angle)
 
 void QAVFCamera::attachVideoInputDevice()
 {
+    if (!checkCameraPermission())
+        return;
+
     if (m_videoInput) {
         [m_captureSession removeInput:m_videoInput];
         [m_videoInput release];
@@ -173,21 +126,8 @@ AVCaptureDevice *QAVFCamera::device() const
     return m_videoInput ? m_videoInput.device : nullptr;
 }
 
-bool QAVFCamera::isActive() const
+void QAVFCamera::onActiveChanged(bool active)
 {
-    return m_active;
-}
-
-void QAVFCamera::setActive(bool active)
-{
-    if (m_active == active)
-        return;
-    requestCameraPermissionIfNeeded();
-    if (m_cameraAuthorizationStatus != AVAuthorizationStatusAuthorized)
-        return;
-
-    m_active = active;
-
     if (active) {
         // According to the doc, the capture device must be locked before
         // startRunning to prevent the format we set to be overridden by the
@@ -198,8 +138,6 @@ void QAVFCamera::setActive(bool active)
     } else {
         [m_captureSession stopRunning];
     }
-
-    emit activeChanged(active);
 }
 
 void QAVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
@@ -207,17 +145,13 @@ void QAVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     m_session = session ? session->captureSession() : nullptr;
 }
 
-void QAVFCamera::setCamera(const QCameraDevice &camera)
+void QAVFCamera::onCameraDeviceChanged(const QCameraDevice &device)
 {
-    if (m_cameraDevice == camera)
+    if (device.isNull())
         return;
 
-    m_cameraDevice = camera;
-
-    requestCameraPermissionIfNeeded();
-    if (m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized)
-        updateVideoInput();
-    setCameraFormat({});
+    // updateVideoInput must be called before setCameraFormat.
+    updateVideoInput();
 }
 
 bool QAVFCamera::setCameraFormat(const QCameraFormat &format)

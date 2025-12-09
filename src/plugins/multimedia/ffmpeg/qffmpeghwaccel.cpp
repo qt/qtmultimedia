@@ -300,9 +300,11 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *sugge
             const bool shouldCheckCodecFormats = config->pix_fmt == AV_PIX_FMT_NONE;
 
             auto scoresGettor = [&](AVPixelFormat format) {
-                // check in supported codec->pix_fmts;
-                // no reason to use findAVPixelFormat as we're already in the hw_config loop
-                if (shouldCheckCodecFormats && !hasAVFormat(codecContext->codec->pix_fmts, format))
+                // check in supported codec->pix_fmts (avcodec_get_supported_config with
+                // AV_CODEC_CONFIG_PIX_FORMAT since n7.1); no reason to use findAVPixelFormat as
+                // we're already in the hw_config loop
+                const auto pixelFormats = getCodecPixelFormats(codecContext->codec);
+                if (shouldCheckCodecFormats && !hasAVFormat(pixelFormats, format))
                     return NotSuitableAVScore;
 
                 if (!shouldCheckCodecFormats && config->pix_fmt != format)

@@ -61,7 +61,6 @@ QGstreamerVideoOutput::QGstreamerVideoOutput(QObject *parent)
       }
 {
     m_videoSink.set("sync", true);
-    m_videoSink.set("async", false); // no asynchronous state changes
 
     m_outputBin.add(m_videoQueue, m_videoConvertScale, m_videoSink);
     qLinkGstElements(m_videoQueue, m_videoConvertScale, m_videoSink);
@@ -99,7 +98,6 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         videoSink = QGstElement::createFromFactory("fakesink", "fakevideosink");
         Q_ASSERT(videoSink);
         videoSink.set("sync", true);
-        videoSink.set("async", false); // no asynchronous state changes
     }
 
     QObject::disconnect(m_subtitleConnection);
@@ -156,9 +154,9 @@ void QGstreamerVideoOutput::setIsPreview()
     // also avoids blocking the queue in case we have an encodebin attached to the tee as well
     m_videoQueue.set("leaky", 2 /*downstream*/);
     m_videoQueue.set("silent", true);
-    m_videoQueue.set("max-size-buffers", uint(1));
-    m_videoQueue.set("max-size-bytes", uint(0));
-    m_videoQueue.set("max-size-time", quint64(0));
+    m_videoQueue.set("max-size-buffers", int(1));
+    m_videoQueue.set("max-size-bytes", unsigned(0));
+    m_videoQueue.set("max-size-time", uint64_t(0));
 }
 
 void QGstreamerVideoOutput::flushSubtitles()

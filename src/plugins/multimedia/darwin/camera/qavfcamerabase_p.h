@@ -44,26 +44,36 @@ private:
     QList<QCameraDevice> m_cameraDevices;
 };
 
-
+// The purpose of this class is to provide camera controls on
+// both the old native Darwin backend and the FFmpeg backend.
 class QAVFCameraBase : public QPlatformCamera
-{;
+{
 Q_OBJECT
 public:
     QAVFCameraBase(QCamera *camera);
     ~QAVFCameraBase();
 
     bool isActive() const override;
-    void setActive(bool activce) override;
+    void setActive(bool active) override final;
 
-    void setCamera(const QCameraDevice &camera) override;
+    void setCamera(const QCameraDevice &camera) override final;
     bool setCameraFormat(const QCameraFormat &format) override;
 
     void setFocusMode(QCamera::FocusMode mode) override;
+
+    // FocusModeAuto maps to AVCaptureFocusModeContinuousFocusMode.
+    //
+    // FocusModeManual does not map to any specific AVCaptureFocusMode
+    // value, but rather to the setting setFocusModeLockedWithLensPosition.
+    // This setting doesn't actually change the AVCaptureFocusMode but puts it
+    // into a state where the AVCaptureFocusMode no longer applies.
+    // You can go back into autofocus mode by setting the AVCaptureDevice
+    // focus mode.
     bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
     void setCustomFocusPoint(const QPointF &point) override;
 
-    void setFocusDistance(float d) override;
+    void setFocusDistance(float distance) override;
     void zoomTo(float factor, float rate) override;
 
     void setFlashMode(QCamera::FlashMode mode) override;
@@ -92,9 +102,22 @@ public:
     AVCaptureDevice *device() const;
 
 protected:
+    // Called by setActive() when the active status is successfully changed.
+    virtual void onActiveChanged(bool active) = 0;
+    // Called by setCamera() when the camera is successfully changed.
+    virtual void onCameraDeviceChanged(const QCameraDevice &device) = 0;
+
+    bool checkCameraPermission();
+
+    void requestCameraPermissionIfNeeded();
+    void cameraAuthorizationChanged(bool authorized);
     void updateCameraConfiguration();
-    void updateCameraProperties();
+    void updateSupportedFeatures();
     void applyFlashSettings();
+
+    // Applies the focusDistance to the AVCaptureDevice.
+    // Does NOT trigger focusDistanceChanged
+    void applyFocusDistanceToAVCaptureDevice(float distance);
 
     QCameraDevice m_cameraDevice;
     bool m_active = false;
@@ -103,6 +126,9 @@ private:
     bool isFlashAutoSupported = false;
     bool isTorchSupported = false;
     bool isTorchAutoSupported = false;
+
+    void forceSetFocusMode(QCamera::FocusMode mode);
+    void forceZoomTo(float factor, float rate);
 };
 
 QT_END_NAMESPACE

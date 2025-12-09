@@ -40,7 +40,7 @@ struct ThreadPoolSingleton
 
         using namespace std::chrono;
 
-        m_instance = new QThreadPool(qApp);
+        m_instance = new QThreadPool;
         m_instance->setMaxThreadCount(1); // 1 thread;
         static constexpr auto expiryTimeout = minutes(5);
         m_instance->setExpiryTimeout(round<milliseconds>(expiryTimeout).count());
@@ -114,13 +114,9 @@ QGstreamerImageCapture::QGstreamerImageCapture(QImageCapture *parent)
     // configures the queue to be fast, lightweight and non blocking
     queue.set("leaky", 2 /*downstream*/);
     queue.set("silent", true);
-    queue.set("max-size-buffers", uint(1));
-    queue.set("max-size-bytes", uint(0));
-    queue.set("max-size-time", quint64(0));
-
-    // imageCaptureSink do not wait for a preroll buffer when going READY -> PAUSED
-    // as no buffer will arrive until capture() is called
-    sink.set("async", false);
+    queue.set("max-size-buffers", int(1));
+    queue.set("max-size-bytes", int(0));
+    queue.set("max-size-time", uint64_t(0));
 
     bin.add(queue, filter, videoConvert, encoder, muxer, sink);
     qLinkGstElements(queue, filter, videoConvert, encoder, muxer, sink);
@@ -129,6 +125,7 @@ QGstreamerImageCapture::QGstreamerImageCapture(QImageCapture *parent)
     addProbeToPad(queue.staticPad("src").pad(), false);
 
     sink.set("signal-handoffs", true);
+    sink.set("async", false);
     m_handoffConnection = sink.connect("handoff", G_CALLBACK(&saveImageFilter), this);
 }
 
@@ -315,7 +312,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
     QMutexLocker guard(&m_mutex);
-    QGstreamerMediaCapture *captureSession = static_cast<QGstreamerMediaCapture *>(session);
+    QGstreamerMediaCaptureSession *captureSession = static_cast<QGstreamerMediaCaptureSession *>(session);
     if (m_session == captureSession)
         return;
 

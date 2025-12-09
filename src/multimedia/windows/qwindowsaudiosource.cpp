@@ -32,6 +32,7 @@ QT_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(qLcAudioSource, "qt.multimedia.audiosource")
 
 using namespace QWindowsMultimediaUtils;
+using namespace QWindowsAudioUtils;
 
 class OurSink : public QIODevice
 {
@@ -167,8 +168,8 @@ QByteArray QWindowsAudioSource::readCaptureClientBuffer()
 
 void QWindowsAudioSource::schedulePull()
 {
-    auto allocated = QWindowsAudioUtils::audioClientFramesAllocated(m_audioClient.Get());
-    auto inUse = QWindowsAudioUtils::audioClientFramesInUse(m_audioClient.Get());
+    auto allocated = allocatedFrames(m_audioClient.Get());
+    auto inUse = usedFrames(m_audioClient.Get());
 
     if (!allocated || !inUse) {
         deviceStateChange(QAudio::IdleState, QAudio::IOError);
@@ -268,7 +269,7 @@ bool QWindowsAudioSource::open()
         return false;
     }
 
-    if (!m_resampler.setup(QWindowsAudioUtils::waveFormatExToFormat(*pwfx), m_format)) {
+    if (!m_resampler.setup(waveFormatExToFormat(*pwfx), m_format)) {
         qCWarning(qLcAudioSource) << "Failed to set up resampler";
         return false;
     }
@@ -286,7 +287,7 @@ bool QWindowsAudioSource::open()
         return false;
     }
 
-    auto framesAllocated = QWindowsAudioUtils::audioClientFramesAllocated(m_audioClient.Get());
+    auto framesAllocated = allocatedFrames(m_audioClient.Get());
     if (!framesAllocated) {
         qCWarning(qLcAudioSource) << "Failed to get audio client buffer size";
         return false;
@@ -295,7 +296,7 @@ bool QWindowsAudioSource::open()
     m_bufferSize = m_format.bytesForDuration(
             m_resampler.inputFormat().durationForFrames(*framesAllocated));
 
-    hr = m_audioClient->GetService(__uuidof(IAudioCaptureClient), (void**)m_captureClient.GetAddressOf());
+    hr = m_audioClient->GetService(IID_PPV_ARGS(m_captureClient.GetAddressOf()));
     if (FAILED(hr)) {
         qCWarning(qLcAudioSource) << "Failed to obtain audio client rendering service" << errorString(hr);
         return false;
@@ -323,7 +324,7 @@ qsizetype QWindowsAudioSource::bytesReady() const
     if (m_deviceState == QAudio::StoppedState || m_deviceState == QAudio::SuspendedState)
         return 0;
 
-    auto frames = QWindowsAudioUtils::audioClientFramesInUse(m_audioClient.Get());
+    auto frames = usedFrames(m_audioClient.Get());
     if (frames) {
         auto clientBufferSize = m_resampler.outputFormat().bytesForDuration(
                 m_resampler.inputFormat().durationForFrames(*frames));

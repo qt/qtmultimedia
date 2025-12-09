@@ -13,6 +13,7 @@
 #include "qmocksurfacecapture.h"
 #include <private/qcameradevice_p.h>
 #include <private/qplatformvideodevices_p.h>
+#include <private/qplatformmediaformatinfo_p.h>
 
 #include "qmockmediadevices.h"
 
@@ -98,6 +99,13 @@ private:
 
 QMockIntegration::QMockIntegration() : QPlatformMediaIntegration(QLatin1String("mock")) { }
 QMockIntegration::~QMockIntegration() = default;
+
+QPlatformMediaFormatInfo *QMockIntegration::getWritableFormatInfo()
+{
+    // In tests, we want to populate the format info before running tests.
+    // We can therefore allow casting away const here, to make unit testing easier.
+    return const_cast<QPlatformMediaFormatInfo *>(formatInfo());
+}
 
 QPlatformVideoDevices *QMockIntegration::createVideoDevices()
 {

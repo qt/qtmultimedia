@@ -83,7 +83,7 @@ signals:
     void loadFailed();
 
 private:
-    QMediaPlaylistPrivate *d_ptr;
+    QMediaPlaylistPrivate *d_ptr = nullptr;
     Q_DECLARE_PRIVATE(QMediaPlaylist)
 };
 

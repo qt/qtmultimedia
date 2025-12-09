@@ -24,7 +24,7 @@
 
 #include <common/qgst_p.h>
 #include <common/qgstreamerbufferprobe_p.h>
-#include <mediacapture/qgstreamermediacapture_p.h>
+#include <mediacapture/qgstreamermediacapturesession_p.h>
 #include <gst/video/video.h>
 
 QT_BEGIN_NAMESPACE
@@ -68,7 +68,7 @@ private:
 
     mutable QRecursiveMutex
             m_mutex; // guard all elements accessed from probeBuffer/saveBufferToImage
-    QGstreamerMediaCapture *m_session = nullptr;
+    QGstreamerMediaCaptureSession *m_session = nullptr;
     int m_lastId = 0;
     QImageEncoderSettings m_settings;
 

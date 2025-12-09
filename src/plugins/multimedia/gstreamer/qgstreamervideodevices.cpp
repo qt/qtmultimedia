@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qgstreamervideodevices_p.h"
+
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtCore/qloggingcategory.h>
 
 #include <common/qgst_p.h>
+#include <common/qgst_debug_p.h>
 #include <common/qgstutils_p.h>
 #include <common/qglist_helper_p.h>
 
@@ -16,12 +19,14 @@
 
 QT_BEGIN_NAMESPACE
 
+static Q_LOGGING_CATEGORY(ltVideoDevices, "qt.multimedia.gstreamer.videodevices");
+
 QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration),
       m_deviceMonitor{
           gst_device_monitor_new(),
       },
-      m_bus{
+      m_busObserver{
           QGstBusHandle{
                   gst_device_monitor_get_bus(m_deviceMonitor.get()),
                   QGstBusHandle::HasRef,
@@ -30,7 +35,7 @@ QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integr
 {
     gst_device_monitor_add_filter(m_deviceMonitor.get(), "Video/Source", nullptr);
 
-    m_bus.installMessageFilter(this);
+    m_busObserver.installMessageFilter(this);
     gst_device_monitor_start(m_deviceMonitor.get());
 
     GList *devices = gst_device_monitor_get_devices(m_deviceMonitor.get());
@@ -88,6 +93,11 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
                 auto pixelFormat = cap.pixelFormat();
                 auto frameRate = cap.frameRateRange();
 
+                if (pixelFormat == QVideoFrameFormat::PixelFormat::Format_Invalid) {
+                    qCDebug(ltVideoDevices) << "pixel format not supported:" << cap;
+                    continue; // skip pixel formats that we don't support
+                }
+
                 auto addFormatForResolution = [&](QSize resolution) {
                     auto *f = new QCameraFormatPrivate{
                         QSharedData(), pixelFormat, resolution, frameRate.min, frameRate.max,
@@ -128,19 +138,47 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
         QFileDescriptorHandle fd{
             qt_safe_open(p, O_RDONLY),
         };
+
+        if (!fd) {
+            qCDebug(ltVideoDevices) << "Cannot open v4l2 device:" << p;
+            return;
+        }
+
+        struct v4l2_capability cap;
+        if (::ioctl(fd.get(), VIDIOC_QUERYCAP, &cap) < 0) {
+            qCWarning(ltVideoDevices)
+                    << "ioctl failed: VIDIOC_QUERYCAP" << qt_error_string(errno) << p;
+            return;
+        }
+
+        if (cap.device_caps & V4L2_CAP_META_CAPTURE) {
+            qCDebug(ltVideoDevices) << "V4L2_CAP_META_CAPTURE device detected" << p;
+            return;
+        }
+        if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
+            qCDebug(ltVideoDevices) << "not a V4L2_CAP_VIDEO_CAPTURE device" << p;
+            return;
+        }
+        if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
+            qCDebug(ltVideoDevices) << "not a V4L2_CAP_STREAMING device" << p;
+            return;
+        }
+
         int index;
         if (::ioctl(fd.get(), VIDIOC_G_INPUT, &index) < 0) {
             switch (errno) {
-            case ENOTTY: // no video inputs
-            case EINVAL: // ioctl is not supported. E.g. the Broadcom Image Signal Processor
-                         // available on Raspberry Pi
+            case ENOTTY:
+                qCDebug(ltVideoDevices) << "device does not have video inputs" << p;
                 return;
 
             default:
-                qWarning() << "ioctl failed: VIDIOC_G_INPUT" << qt_error_string(errno) << p;
+                qCWarning(ltVideoDevices)
+                        << "ioctl failed: VIDIOC_G_INPUT" << qt_error_string(errno) << p;
                 return;
             }
         }
+    } else {
+        qCDebug(ltVideoDevices) << "Video device not a v4l2 device:" << structureHandle;
     }
 #endif
 

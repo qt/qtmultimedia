@@ -25,6 +25,11 @@ QDebug operator<<(QDebug dbg, const QGstStructureView &structure)
     return dbg << structure.structure;
 }
 
+QDebug operator<<(QDebug dbg, const QUniqueGstStructureHandle &structure)
+{
+    return dbg << QGstStructureView{structure};
+}
+
 QDebug operator<<(QDebug dbg, const QGValue &value)
 {
     return dbg << value.value;

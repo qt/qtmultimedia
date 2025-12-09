@@ -42,20 +42,42 @@ public class QtCamera2 {
     String mCameraId;
     List<Surface> mTargetSurfaces = new ArrayList<>();
 
+    // The following constants are used during the capturePhoto routine.
+    // It should happen in the following order:
+    // 1. Acquire focus
+    // 2. Calibrate auto-exposure for pre-capture
+    // 3. Calibrate auto-exposure for capture
+    // 4. Capture the photo
     private static final int STATE_PREVIEW = 0;
-    private static final int STATE_WAITING_LOCK = 1;
-    private static final int STATE_WAITING_PRECAPTURE = 2;
-    private static final int STATE_WAITING_NON_PRECAPTURE = 3;
+    // We are waiting for focus lock
+    private static final int STATE_WAITING_FOCUS_LOCK = 1;
+    // We are waiting for exposure calibration
+    private static final int STATE_WAITING_EXPOSURE_PRECAPTURE = 2;
+    private static final int STATE_WAITING_EXPOSURE_NON_PRECAPTURE = 3;
+    // The picture is ready to be read into an image object.
     private static final int STATE_PICTURE_TAKEN = 4;
 
     private int mState = STATE_PREVIEW;
     private Object mStartMutex = new Object();
     private boolean mIsStarted = false;
     private static int MaxNumberFrames = 12;
-    private int mFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
-    private int mTorchMode = CameraMetadata.FLASH_MODE_OFF;
-    private int mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
-    private float mZoomFactor = 1.0f;
+
+    private static final int defaultFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
+    private int mFlashMode = defaultFlashMode;
+    private static final int defaultTorchMode = CameraMetadata.FLASH_MODE_OFF;
+    private int mTorchMode = defaultTorchMode;
+    private static final int defaultAfMode =  CaptureRequest.CONTROL_AF_MODE_OFF;
+    private int mAFMode = defaultAfMode;
+    private static final float defaultZoomFactor = 1.0f;
+    private float mZoomFactor = defaultZoomFactor;
+    // Assumes that the mStartMutex is locked already.
+    private void resetControls() {
+        mFlashMode = defaultFlashMode;
+        mTorchMode = defaultTorchMode;
+        mAFMode = defaultAfMode;
+        mZoomFactor = defaultZoomFactor;
+    }
+
     private Range<Integer> mFpsRange = null;
     private QtExifDataHandler mExifDataHandler = null;
 
@@ -122,50 +144,71 @@ public class QtCamera2 {
             onCaptureSessionFailed(mCameraId, failure.getReason(), failure.getFrameNumber());
         }
 
+        private void handleCaptureFocusLock(CaptureResult result) {
+            final Integer afStateObj = result.get(CaptureResult.CONTROL_AF_STATE);
+            if (afStateObj == null) {
+                capturePhoto();
+                return;
+            }
+            final int afState = afStateObj;
+            // The focus can get locked either with or without focus, depending on whether
+            // the camera-device was able to find the focus target. Either way,
+            // we want to continue to the next step once it stops scanning for focus target.
+            final boolean focusLocked =
+                afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED
+                || afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED;
+            if (focusLocked) {
+                // If exposure is already converged, or unavailable entirely, we go
+                // straight to capturing the photo.
+                Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                if (aeState == null ||  aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
+                    mState = STATE_PICTURE_TAKEN;
+                    capturePhoto();
+                } else {
+                    // Focusing phase is finished, transition to exposure calibration for
+                    // pre-capture.
+                    try {
+                        mPreviewRequestBuilder.set(
+                            CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                            CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+                        mState = STATE_WAITING_EXPOSURE_PRECAPTURE;
+                        mCaptureSession.capture(mPreviewRequestBuilder.build(),
+                            mCaptureCallback,
+                            mBackgroundHandler);
+                    } catch (CameraAccessException e) {
+                        Log.w("QtCamera2", "Cannot get access to the camera: " + e);
+                    }
+                }
+            }
+        }
+
+        private void handleCaptureExposurePrecapture(CaptureResult result) {
+            Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+            if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
+                mState = STATE_WAITING_EXPOSURE_NON_PRECAPTURE;
+            }
+        }
+
+        private void handleCaptureExposureNonPrecapture(CaptureResult result) {
+            Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+            if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
+                mState = STATE_PICTURE_TAKEN;
+                capturePhoto();
+            }
+        }
+
+        // Dispatches to state handlers based on the current state in the photo-capture routine.
         private void process(CaptureResult result) {
             switch (mState) {
-                case STATE_WAITING_LOCK: {
-                    Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
-                    if (afState == null) {
-                        capturePhoto();
-                    } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState ||
-                        CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState) {
-                        Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                        if (aeState == null ||
-                                aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
-                            mState = STATE_PICTURE_TAKEN;
-                            capturePhoto();
-                        } else {
-                            try {
-                                mPreviewRequestBuilder.set(
-                                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
-                                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-                                mState = STATE_WAITING_PRECAPTURE;
-                                mCaptureSession.capture(mPreviewRequestBuilder.build(),
-                                                        mCaptureCallback,
-                                                        mBackgroundHandler);
-                            } catch (CameraAccessException e) {
-                                Log.w("QtCamera2", "Cannot get access to the camera: " + e);
-                            }
-                        }
-                    }
+                case STATE_WAITING_FOCUS_LOCK:
+                    handleCaptureFocusLock(result);
                     break;
-                }
-                case STATE_WAITING_PRECAPTURE: {
-                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                    if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
-                        mState = STATE_WAITING_NON_PRECAPTURE;
-                    }
+                case STATE_WAITING_EXPOSURE_PRECAPTURE:
+                    handleCaptureExposurePrecapture(result);
                     break;
-                }
-                case STATE_WAITING_NON_PRECAPTURE: {
-                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                    if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
-                        mState = STATE_PICTURE_TAKEN;
-                        capturePhoto();
-                    }
+                case STATE_WAITING_EXPOSURE_NON_PRECAPTURE:
+                    handleCaptureExposureNonPrecapture(result);
                     break;
-                }
                 default:
                     break;
             }
@@ -374,6 +417,10 @@ public class QtCamera2 {
                 Log.w("QtCamera2", "Failed to stop and close:" + exception);
             }
             mIsStarted = false;
+
+            // In the case that we are switching camera-device the controls will be
+            // repopulated by QAndroidCamera.
+            resetControls();
         }
     }
 
@@ -419,7 +466,7 @@ public class QtCamera2 {
         try {
             if (mAFMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
-                mState = STATE_WAITING_LOCK;
+                mState = STATE_WAITING_FOCUS_LOCK;
                 mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
             } else {
                 capturePhoto();
@@ -464,7 +511,7 @@ public class QtCamera2 {
             mZoomFactor = factor;
 
             if (!mIsStarted) {
-                Log.w("QtCamera2", "Cannot set zoom on invalid camera");
+                // Camera capture has not begun. Zoom will be applied during start().
                 return;
             }
 

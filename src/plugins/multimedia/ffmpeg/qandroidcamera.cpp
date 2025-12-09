@@ -50,18 +50,56 @@ namespace {
 QCameraFormat getDefaultCameraFormat(const QCameraDevice & cameraDevice)
 {
     // default settings
+    const auto defaultFrameFormat = QVideoFrameFormat::Format_YUV420P;
+    const auto defaultResolution = QSize(1920, 1080);
     QCameraFormatPrivate *defaultFormat = new QCameraFormatPrivate{
-        .pixelFormat = QVideoFrameFormat::Format_YUV420P,
-        .resolution = { 1920, 1080 },
+        .pixelFormat = defaultFrameFormat,
+        .resolution = defaultResolution,
         .minFrameRate = 12,
         .maxFrameRate = 30,
     };
-    QCameraFormat format = defaultFormat->create();
 
-    if (!cameraDevice.videoFormats().empty() && !cameraDevice.videoFormats().contains(format))
-        return cameraDevice.videoFormats().first();
+    QCameraFormat resultFormat = defaultFormat->create();
+    const auto &supportedFormats = cameraDevice.videoFormats();
 
-    return format;
+    if (supportedFormats.empty() || supportedFormats.contains(resultFormat))
+        return resultFormat;
+
+    auto pixelCount = [](const QSize& resolution) {
+        Q_ASSERT(resolution.isValid());
+        return resolution.width() * resolution.height();
+    };
+
+    const int defaultPixelCount = pixelCount(defaultResolution);
+
+    // The lower the score, the better the format suits
+    int differenceScore = std::numeric_limits<int>::max();
+
+    auto calcDifferenceScore = [defaultPixelCount, pixelCount](const QCameraFormat& format) {
+        const int pixelDifference = pixelCount(format.resolution()) - defaultPixelCount;
+        // prefer:
+        // 1. 'pixels count >= default' over 'pixels count < default'
+        // 2. lower abs(pixelDifference)
+        return pixelDifference < 0
+                  ? -pixelDifference
+                  : std::numeric_limits<int>::min() + pixelDifference;
+    };
+
+    for (const auto &supportedFormat : supportedFormats) {
+        if (supportedFormat.pixelFormat() == defaultFrameFormat) {
+            if (supportedFormat.resolution() == defaultResolution)
+                return supportedFormat;
+
+            const int currentDifferenceScore = calcDifferenceScore(supportedFormat);
+
+            if (currentDifferenceScore < differenceScore) {
+                differenceScore = currentDifferenceScore;
+                resultFormat = supportedFormat;
+            }
+        }
+    }
+
+    return resultFormat;
 }
 
 bool checkAndRequestCameraPermission()
@@ -130,15 +168,15 @@ QAndroidCamera::~QAndroidCamera()
 
 void QAndroidCamera::setCamera(const QCameraDevice &camera)
 {
-    const bool active = isActive();
-    if (active)
+    const bool oldActive = isActive();
+    if (oldActive)
         setActive(false);
 
     m_cameraDevice = camera;
     updateCameraCharacteristics();
     m_cameraFormat = getDefaultCameraFormat(camera);
 
-    if (active)
+    if (oldActive)
         setActive(true);
 }
 
@@ -374,33 +412,29 @@ void QAndroidCamera::updateCameraCharacteristics()
     }
 
     QJniEnvironment jniEnv;
-    float maxZoom = 1.0;
-    float minZoom = 1.0;
-    QJniObject zoomRangeObj = deviceManager.callMethod<jfloatArray>(
-                "getZoomRange", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
-    jfloatArray zoomRange = zoomRangeObj.object<jfloatArray>();
 
+    // Gather capabilities.
+    float newMaxZoom = 1.f;
+    float newMinZoom = 1.f;
+    QJniObject zoomRangeObj = deviceManager.callMethod<jfloatArray>(
+        "getZoomRange", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
+        jfloatArray zoomRange = zoomRangeObj.object<jfloatArray>();
     if (jniEnv->GetArrayLength(zoomRange) == 2) {
         jfloat jfloatZoomRange[2];
         jniEnv->GetFloatArrayRegion(zoomRange, 0, 2, jfloatZoomRange);
-        minZoom = jfloatZoomRange[0];
-        maxZoom = jfloatZoomRange[1];
+        newMinZoom = jfloatZoomRange[0];
+        newMaxZoom = jfloatZoomRange[1];
+    } else {
+        qCDebug(qLCAndroidCamera) <<
+            "received invalid float array when querying zoomRange from Android Camera2. "
+            "Likely Qt developer bug";
     }
-
-    maximumZoomFactorChanged(maxZoom);
-    minimumZoomFactorChanged(minZoom);
-    if (maxZoom < zoomFactor()) {
-        zoomTo(1.0, -1.0);
-    }
-
-    m_TorchModeSupported = deviceManager.callMethod<jboolean>(
-            "isTorchModeSupported", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
 
     m_supportedFlashModes.clear();
     m_supportedFlashModes.append(QCamera::FlashOff);
     QJniObject flashModesObj = deviceManager.callMethod<QtJniTypes::StringArray>(
-            "getSupportedFlashModes",
-            QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
+        "getSupportedFlashModes",
+        QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
     jobjectArray flashModes = flashModesObj.object<jobjectArray>();
     int size = jniEnv->GetArrayLength(flashModes);
     for (int i = 0; i < size; ++i) {
@@ -411,8 +445,40 @@ void QAndroidCamera::updateCameraCharacteristics()
         else if (flashMode == QLatin1String("on"))
             m_supportedFlashModes.append(QCamera::FlashOn);
     }
+
+    m_TorchModeSupported = deviceManager.callMethod<jboolean>(
+            "isTorchModeSupported", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
+
+    minimumZoomFactorChanged(newMinZoom);
+    maximumZoomFactorChanged(newMaxZoom);
+
+
+    // Apply properties
+    if (minZoomFactor() < maxZoomFactor()) {
+        // New device supports zooming. Clamp it and apply it to new camera device.
+        const float newZoomFactor = qBound(zoomFactor(), minZoomFactor(), maxZoomFactor());
+        zoomTo(newZoomFactor, -1);
+    }
+
+    if (isFlashModeSupported(flashMode()))
+        setFlashMode(flashMode());
+
+    if (isTorchModeSupported(torchMode()))
+        setTorchMode(torchMode());
+
+
+    // Reset properties if needed.
+    if (minZoomFactor() >= maxZoomFactor())
+        zoomFactorChanged(defaultZoomFactor());
+
+    if (!isFlashModeSupported(flashMode()))
+        flashModeChanged(defaultFlashMode());
+
+    if (!isTorchModeSupported(torchMode()))
+        torchModeChanged(defaultTorchMode());
 }
 
+// Should only be called when the camera device is set to null.
 void QAndroidCamera::cleanCameraCharacteristics()
 {
     maximumZoomFactorChanged(1.0);
@@ -494,7 +560,10 @@ void QAndroidCamera::setTorchMode(QCamera::TorchMode mode)
 void QAndroidCamera::zoomTo(float factor, float rate)
 {
     Q_UNUSED(rate);
-    m_jniCamera.callMethod<void>("zoomTo", factor);
+
+    if (!m_cameraDevice.id().isEmpty()) {
+        m_jniCamera.callMethod<void>("zoomTo", factor);
+    }
     zoomFactorChanged(factor);
 }
 

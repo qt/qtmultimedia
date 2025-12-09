@@ -24,7 +24,7 @@
 #include <QtCore/qurl.h>
 
 #include <common/qgst_p.h>
-#include <common/qgst_bus_p.h>
+#include <common/qgst_bus_observer_p.h>
 #include <common/qgstpipeline_p.h>
 
 #include <gst/app/gstappsink.h>
@@ -71,9 +71,6 @@ private:
 
     static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);
     GstFlowReturn newSample(GstAppSink *sink);
-
-    static void configureAppSrcElement(GObject *, GObject *, GParamSpec *,
-                                       QGstreamerAudioDecoder *_this);
 
     void setAudioFlags(bool wantNativeAudio);
     void addAppSink();

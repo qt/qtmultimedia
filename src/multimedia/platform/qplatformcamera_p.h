@@ -26,15 +26,63 @@ class Q_MULTIMEDIA_EXPORT QPlatformCamera : public QPlatformVideoSource
     Q_OBJECT
 
 public:
+    // If the new camera-device is the same as the old camera-device,
+    // do nothing.
+    //
+    // The implementation needs to handle other camera properties during a successful
+    // camera-device-change. This should be done for every property, i.e focusMode,
+    // flashMode, focusDistance, zoom etc.
+    //
+    // The properties should be handled in the following way:
+    //  - If property is supported on new device, apply the property to the device immediately.
+    //  - If property is supported on new device, but range of valid values has changed,
+    //    clamp the property and apply it to the camera-device.
+    //  - If property is NOT supported on new device, reset the value to default and do
+    //    nothing to the camera-device.
+    //
+    // TODO: There is currently no rules on the order of how each signal should be triggered.
+    // In the future we might want to add a rule that requires the implementation
+    // to update all properties at once, then trigger all relevant signals.
+    //
+    // TODO: There are currently no rules in the public API on how we should handle
+    // devices being disconnected or the user passing in an invalid device-id.
     virtual void setCamera(const QCameraDevice &camera) = 0;
     virtual bool setCameraFormat(const QCameraFormat &/*format*/) { return false; }
     QCameraFormat cameraFormat() const { return m_cameraFormat; }
 
+    // FocusModeManual should only be reported as supported if the camera
+    // backend is also able to apply the focusDistance setting.
+    // This effectively means the backend should also report Feature::FocusDistance
+    // as supported if this is the case.
     virtual bool isFocusModeSupported(QCamera::FocusMode mode) const { return mode == QCamera::FocusModeAuto; }
+
+    // If the focusMode is the same as the current, ignore the function call.
+    //
+    // If the new focusMode is reported as unsupported, send a warning
+    // and do nothing.
+    //
+    // FocusModeAuto should map to continuous autofocus mode in the backend.
+    // FocusModeManual should be treated as fixed lens position
+    // in the backend.
+    //
+    // If the new mode is FocusModeManual, apply the focusDistance setting.
     virtual void setFocusMode(QCamera::FocusMode /*mode*/) {}
 
     virtual void setCustomFocusPoint(const QPointF &/*point*/) {}
 
+    // If the new distance is the same as previous, ignore the function call.
+    //
+    // If supportedFeatures does not include the FocusDistance flag,
+    // send a warning and do nothing.
+    //
+    // If the incoming value is out of bounds (outside [0,1]),
+    // send a warning and do nothing.
+    //
+    // If focusMode is set to Manual, apply this focusDistance to the camera.
+    // If not, accept the value but don't apply it to the camera.
+    //
+    // The value 0 maps to the distance closest to the camera.
+    // The value 1 maps to the distance furthest away from the camera.
     virtual void setFocusDistance(float) {}
 
     // smaller 0: zoom instantly, rate in power-of-two/sec
@@ -61,6 +109,9 @@ public:
 
     QVideoFrameFormat frameFormat() const override;
 
+    // Note: Because FocusModeManual effectively cannot function without
+    // being able to set FocusDistance, this feature flag is redundant.
+    // Should be considered for deprecation in the future.
     QCamera::Features supportedFeatures() const { return m_supportedFeatures; }
 
     QCamera::FocusMode focusMode() const { return m_focusMode; }
@@ -131,30 +182,46 @@ protected:
     QCameraFormat m_cameraFormat;
     QVideoFrameFormat::PixelFormat m_framePixelFormat = QVideoFrameFormat::Format_Invalid;
 
+    // Helper functions to allow backends to reset properties to default values.
+    // i.e using focusModeChanged(defaultFocusMode());
+    static constexpr int defaultColorTemperature() { return 0; }
+    static constexpr QPointF defaultCustomFocusPoint() { return { -1, -1 }; }
+    static constexpr float defaultExposureCompensation() { return 0.f; }
+    static constexpr QCamera::ExposureMode defaultExposureMode() { return QCamera::ExposureAuto; }
+    static constexpr float defaultExposureTime() { return -1.f; }
+    static constexpr QCamera::FlashMode defaultFlashMode() { return QCamera::FlashOff; }
+    static constexpr bool defaultFlashReady() { return false; }
+    static constexpr float defaultFocusDistance() { return 1.f; }
+    static constexpr QCamera::FocusMode defaultFocusMode() { return QCamera::FocusModeAuto; }
+    static constexpr int defaultIso() { return -1; }
+    static constexpr QCamera::TorchMode defaultTorchMode() { return QCamera::TorchOff; }
+    static constexpr QCamera::WhiteBalanceMode defaultWhiteBalanceMode() { return QCamera::WhiteBalanceAuto; }
+    static constexpr float defaultZoomFactor() { return 1.f; }
+
 private:
     QCamera *m_camera = nullptr;
     QCamera::Features m_supportedFeatures = {};
-    QCamera::FocusMode m_focusMode = QCamera::FocusModeAuto;
+    QCamera::FocusMode m_focusMode = defaultFocusMode();
     float m_minZoom = 1.;
     float m_maxZoom = 1.;
-    float m_zoomFactor = 1.;
-    float m_focusDistance = 1.;
-    QPointF m_customFocusPoint{-1, -1};
-    bool m_flashReady = false;
-    QCamera::FlashMode m_flashMode = QCamera::FlashOff;
-    QCamera::TorchMode m_torchMode = QCamera::TorchOff;
-    QCamera::ExposureMode m_exposureMode = QCamera::ExposureAuto;
-    float m_exposureCompensation = 0.;
+    float m_zoomFactor = defaultZoomFactor();
+    float m_focusDistance = defaultFocusDistance();
+    QPointF m_customFocusPoint = defaultCustomFocusPoint();
+    bool m_flashReady = defaultFlashReady();
+    QCamera::FlashMode m_flashMode = defaultFlashMode();
+    QCamera::TorchMode m_torchMode = defaultTorchMode();
+    QCamera::ExposureMode m_exposureMode = defaultExposureMode();
+    float m_exposureCompensation = defaultExposureCompensation();
     float m_minExposureCompensation = 0.;
     float m_maxExposureCompensation = 0.;
-    int m_iso = -1;
+    int m_iso = defaultIso();
     int m_minIso = -1;
     int m_maxIso = -1;
-    float m_exposureTime = -1.;
+    float m_exposureTime = defaultExposureTime();
     float m_minExposureTime = -1.;
     float m_maxExposureTime = -1.;
-    QCamera::WhiteBalanceMode m_whiteBalance = QCamera::WhiteBalanceAuto;
-    int m_colorTemperature = 0;
+    QCamera::WhiteBalanceMode m_whiteBalance = defaultWhiteBalanceMode();
+    int m_colorTemperature = defaultColorTemperature();
     QErrorInfo<QCamera::Error> m_error;
 };
 

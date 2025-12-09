@@ -123,7 +123,8 @@ void dumpCodecInfo(const AVCodec *codec)
                             << "capabilities:"
                             << flagsToString(codec->capabilities, capabilitiesNames);
 
-    if (codec->pix_fmts) {
+    const auto pixelFormats = getCodecPixelFormats(codec);
+    if (pixelFormats) {
         static const FlagNames flagNames = {
             { AV_PIX_FMT_FLAG_BE, "BE" },
             { AV_PIX_FMT_FLAG_PAL, "PAL" },
@@ -137,7 +138,7 @@ void dumpCodecInfo(const AVCodec *codec)
         };
 
         qCDebug(qLcFFmpegUtils) << "  pix_fmts:";
-        for (auto f = codec->pix_fmts; *f != AV_PIX_FMT_NONE; ++f) {
+        for (auto f = pixelFormats; *f != AV_PIX_FMT_NONE; ++f) {
             auto desc = av_pix_fmt_desc_get(*f);
             qCDebug(qLcFFmpegUtils)
                     << "    id:" << *f << desc->name << "depth:" << desc->comp[0].depth
@@ -147,9 +148,10 @@ void dumpCodecInfo(const AVCodec *codec)
         qCDebug(qLcFFmpegUtils) << "  pix_fmts: null";
     }
 
-    if (codec->sample_fmts) {
+    const auto sampleFormats = getCodecSampleFormats(codec);
+    if (sampleFormats) {
         qCDebug(qLcFFmpegUtils) << "  sample_fmts:";
-        for (auto f = codec->sample_fmts; *f != AV_SAMPLE_FMT_NONE; ++f) {
+        for (auto f = sampleFormats; *f != AV_SAMPLE_FMT_NONE; ++f) {
             const auto name = av_get_sample_fmt_name(*f);
             qCDebug(qLcFFmpegUtils) << "    id:" << *f << (name ? name : "unknown")
                                     << "bytes_per_sample:" << av_get_bytes_per_sample(*f)
@@ -188,7 +190,8 @@ bool isCodecValid(const AVCodec *codec, const std::vector<AVHWDeviceType> &avail
     if (codec->type != AVMEDIA_TYPE_VIDEO)
         return true;
 
-    if (!codec->pix_fmts) {
+    const auto pixelFormats = getCodecPixelFormats(codec);
+    if (!pixelFormats) {
 #if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
         // Disable V4L2 M2M codecs for encoding for now,
         // TODO: Investigate on how to get them working
@@ -396,8 +399,9 @@ const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
         if (!deviceType)
             return BestAVScore; // find any codec with the id
 
+        const auto pixelFormats = getCodecPixelFormats(codec);
         if (*deviceType == AV_HWDEVICE_TYPE_NONE
-            && findAVFormat(codec->pix_fmts, &isSwPixelFormat) != AV_PIX_FMT_NONE)
+            && findAVFormat(pixelFormats, &isSwPixelFormat) != AV_PIX_FMT_NONE)
             return BestAVScore;
 
         if (*deviceType != AV_HWDEVICE_TYPE_NONE) {
@@ -415,7 +419,7 @@ const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
             // Probably, it's ffmpeg bug: avcodec_get_hw_config returns null even though
             // hw acceleration is supported
             // To be removed: only isAVFormatSupported should be used.
-            if (hasAVFormat(codec->pix_fmts, pixelFormatForHwDevice(*deviceType)))
+            if (hasAVFormat(pixelFormats, pixelFormatForHwDevice(*deviceType)))
                 return hwCodecNameScores(codec, *deviceType);
         }
 
@@ -450,8 +454,10 @@ bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format)
         return findAVPixelFormat(codec, checkFormat) != AV_PIX_FMT_NONE;
     }
 
-    if (codec->type == AVMEDIA_TYPE_AUDIO)
-        return hasAVFormat(codec->sample_fmts, AVSampleFormat(format));
+    if (codec->type == AVMEDIA_TYPE_AUDIO) {
+        const auto sampleFormats = getCodecSampleFormats(codec);
+        return hasAVFormat(sampleFormats, AVSampleFormat(format));
+    }
 
     return false;
 }
@@ -531,17 +537,7 @@ SwrContextUPtr createResampleContext(const AVAudioFormat &inputFormat,
                                      const AVAudioFormat &outputFormat)
 {
     SwrContext *resampler = nullptr;
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-    resampler = swr_alloc_set_opts(nullptr,
-                                   outputFormat.channelLayoutMask,
-                                   outputFormat.sampleFormat,
-                                   outputFormat.sampleRate,
-                                   inputFormat.channelLayoutMask,
-                                   inputFormat.sampleFormat,
-                                   inputFormat.sampleRate,
-                                   0,
-                                   nullptr);
-#else
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 
 #if QT_FFMPEG_SWR_CONST_CH_LAYOUT
     using AVChannelLayoutPrm = const AVChannelLayout*;
@@ -558,6 +554,19 @@ SwrContextUPtr createResampleContext(const AVAudioFormat &inputFormat,
                         inputFormat.sampleRate,
                         0,
                         nullptr);
+
+#else
+
+    resampler = swr_alloc_set_opts(nullptr,
+                                   outputFormat.channelLayoutMask,
+                                   outputFormat.sampleFormat,
+                                   outputFormat.sampleRate,
+                                   inputFormat.channelLayoutMask,
+                                   inputFormat.sampleFormat,
+                                   inputFormat.sampleRate,
+                                   0,
+                                   nullptr);
+
 #endif
 
     swr_init(resampler);
@@ -578,6 +587,14 @@ std::string cvFormatToString(uint32_t cvFormat)
 
 #endif
 
+#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
+void logGetCodecConfigError(const AVCodec *codec, AVCodecConfig config, int error)
+{
+    qCWarning(qLcFFmpegUtils) << "Failed to retrieve config" << config << "for codec" << codec->name
+                              << "with error" << error << err2str(error);
+}
+#endif
+
 } // namespace QFFmpeg
 
 QDebug operator<<(QDebug dbg, const AVRational &value)
@@ -585,5 +602,57 @@ QDebug operator<<(QDebug dbg, const AVRational &value)
     dbg << value.num << "/" << value.den;
     return dbg;
 }
+
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
+QDebug operator<<(QDebug dbg, const AVChannelLayout &layout)
+{
+    dbg << '[';
+    dbg << "nb_channels:" << layout.nb_channels;
+    dbg << ", order:" << layout.order;
+
+    if (layout.order == AV_CHANNEL_ORDER_NATIVE || layout.order == AV_CHANNEL_ORDER_AMBISONIC)
+        dbg << ", mask:" << Qt::bin << layout.u.mask << Qt::dec;
+    else if (layout.order == AV_CHANNEL_ORDER_CUSTOM && layout.u.map)
+        dbg << ", id: " << layout.u.map->id;
+
+    dbg << ']';
+
+    return dbg;
+}
+#endif
+
+#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
+QDebug operator<<(QDebug dbg, const AVCodecConfig value)
+{
+    switch (value) {
+    case AV_CODEC_CONFIG_CHANNEL_LAYOUT:
+        dbg << "AV_CODEC_CONFIG_CHANNEL_LAYOUT";
+        break;
+    case AV_CODEC_CONFIG_COLOR_RANGE:
+        dbg << "AV_CODEC_CONFIG_COLOR_RANGE";
+        break;
+    case AV_CODEC_CONFIG_COLOR_SPACE:
+        dbg << "AV_CODEC_CONFIG_COLOR_SPACE";
+        break;
+    case AV_CODEC_CONFIG_FRAME_RATE:
+        dbg << "AV_CODEC_CONFIG_FRAME_RATE";
+        break;
+    case AV_CODEC_CONFIG_PIX_FORMAT:
+        dbg << "AV_CODEC_CONFIG_PIX_FORMAT";
+        break;
+    case AV_CODEC_CONFIG_SAMPLE_FORMAT:
+        dbg << "AV_CODEC_CONFIG_SAMPLE_FORMAT";
+        break;
+    case AV_CODEC_CONFIG_SAMPLE_RATE:
+        dbg << "AV_CODEC_CONFIG_SAMPLE_RATE";
+        break;
+    default:
+        dbg << "<UNKNOWN_CODEC_CONFIG>";
+        break;
+    }
+
+    return dbg;
+}
+#endif
 
 QT_END_NAMESPACE

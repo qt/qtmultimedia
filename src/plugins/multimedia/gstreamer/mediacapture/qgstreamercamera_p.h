@@ -18,7 +18,7 @@
 #include <private/qplatformcamera_p.h>
 #include <private/qmultimediautils_p.h>
 
-#include <mediacapture/qgstreamermediacapture_p.h>
+#include <mediacapture/qgstreamermediacapturesession_p.h>
 #include <common/qgst_p.h>
 #include <common/qgstpipeline_p.h>
 
@@ -127,6 +127,23 @@ private:
 
     bool m_active = false;
     QString m_v4l2DevicePath;
+
+    std::optional<QCameraFormat> m_currentCameraFormat;
+
+    template <typename Functor>
+    void updateCamera(Functor &&f)
+    {
+        QGstPipeline pipeline = gstVideoConvert.getPipeline();
+        if (pipeline)
+            pipeline.setState(GstState::GST_STATE_READY);
+
+        gstVideoConvert.sink().modifyPipelineInIdleProbe([&] {
+            f();
+        });
+
+        if (pipeline)
+            pipeline.setState(GstState::GST_STATE_PLAYING);
+    }
 };
 
 class QGstreamerCustomCamera : public QGstreamerCameraBase

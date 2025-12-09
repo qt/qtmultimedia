@@ -97,6 +97,79 @@ inline int64_t getAVFrameDuration(const AVFrame &frame)
 #endif
 }
 
+#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
+void logGetCodecConfigError(const AVCodec *codec, AVCodecConfig config, int error);
+
+template <typename T>
+inline const T *getCodecConfig(const AVCodec *codec, AVCodecConfig config)
+{
+    const T *result = nullptr;
+    const auto error = avcodec_get_supported_config(
+            nullptr, codec, config, 0u, reinterpret_cast<const void **>(&result), nullptr);
+    if (error != 0) {
+        logGetCodecConfigError(codec, config, error);
+        return nullptr;
+    }
+    return result;
+}
+#endif
+
+inline const AVPixelFormat *getCodecPixelFormats(const AVCodec *codec)
+{
+#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
+    return getCodecConfig<AVPixelFormat>(codec, AV_CODEC_CONFIG_PIX_FORMAT);
+#else
+    return codec->pix_fmts;
+#endif
+}
+
+inline const AVSampleFormat *getCodecSampleFormats(const AVCodec *codec)
+{
+#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
+    return getCodecConfig<AVSampleFormat>(codec, AV_CODEC_CONFIG_SAMPLE_FORMAT);
+#else
+    return codec->sample_fmts;
+#endif
+}
+
+inline const int *getCodecSampleRates(const AVCodec *codec)
+{
+#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
+    return getCodecConfig<int>(codec, AV_CODEC_CONFIG_SAMPLE_RATE);
+#else
+    return codec->supported_samplerates;
+#endif
+}
+
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
+
+inline const AVChannelLayout *getCodecChannelLayouts(const AVCodec *codec)
+{
+#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
+    return getCodecConfig<AVChannelLayout>(codec, AV_CODEC_CONFIG_CHANNEL_LAYOUT);
+#else
+    return codec->ch_layouts;
+#endif
+}
+
+#else
+
+inline const uint64_t *getCodecChannelLayouts(const AVCodec *codec)
+{
+    return codec->channel_layouts;
+}
+
+#endif
+
+inline const AVRational *getCodecFrameRates(const AVCodec *codec)
+{
+#if QT_FFMPEG_HAS_AVCODEC_GET_SUPPORTED_CONFIG
+    return getCodecConfig<AVRational>(codec, AV_CODEC_CONFIG_FRAME_RATE);
+#else
+    return codec->supported_framerates;
+#endif
+}
+
 struct AVDictionaryHolder
 {
     AVDictionary *opts = nullptr;
@@ -202,7 +275,8 @@ const AVCodecHWConfig *findHwConfig(const AVCodec *codec, const Predicate &predi
 template <typename Predicate>
 AVPixelFormat findAVPixelFormat(const AVCodec *codec, const Predicate &predicate)
 {
-    const AVPixelFormat format = findAVFormat(codec->pix_fmts, predicate);
+    const auto pixelFormats = getCodecPixelFormats(codec);
+    const AVPixelFormat format = findAVFormat(pixelFormats, predicate);
     if (format != AV_PIX_FMT_NONE)
         return format;
 
@@ -269,6 +343,10 @@ std::string cvFormatToString(uint32_t format);
 }
 
 QDebug operator<<(QDebug, const AVRational &);
+
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
+QDebug operator<<(QDebug, const AVChannelLayout &);
+#endif
 
 QT_END_NAMESPACE
 

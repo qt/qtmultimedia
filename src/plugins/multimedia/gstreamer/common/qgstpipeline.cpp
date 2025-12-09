@@ -1,10 +1,11 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qloggingcategory.h>
 
 #include "qgstpipeline_p.h"
-#include "qgst_bus_p.h"
+#include "qgst_bus_observer_p.h"
 
 #include <thread>
 
@@ -19,23 +20,36 @@ static constexpr GstSeekFlags rateChangeSeekFlags =
         GST_SEEK_FLAG_FLUSH;
 #endif
 
-class QGstPipelinePrivate : public QGstBus
+struct QGstPipelinePrivate
 {
-public:
-    mutable std::chrono::nanoseconds m_position{};
-
-    double m_rate = 1.;
-    int m_configCounter = 0;
-    GstState m_savedState = GST_STATE_NULL;
-
     explicit QGstPipelinePrivate(QGstBusHandle);
+    ~QGstPipelinePrivate();
+
+    std::chrono::nanoseconds m_position{};
+    double m_rate = 1.;
+    std::unique_ptr<QGstBusObserver> m_busObserver;
 };
 
 QGstPipelinePrivate::QGstPipelinePrivate(QGstBusHandle bus)
-    : QGstBus{
-          std::move(bus),
+    : m_busObserver{
+          std::make_unique<QGstBusObserver>(std::move(bus)),
       }
 {
+}
+
+QGstPipelinePrivate::~QGstPipelinePrivate()
+{
+    m_busObserver->close();
+
+    if (m_busObserver->currentThreadIsNotifierThread())
+        return;
+
+    // The QGstPipelinePrivate is owned the the GstPipeline and can be destroyed from a gstreamer
+    // thread. In this case we cannot destroy the object immediately, but need to marshall it
+    // through the event loop of the main thread
+    QMetaObject::invokeMethod(qApp, [bus = std::move(m_busObserver)] {
+        // nothing to do, we just extend the lifetime of the bus
+    });
 }
 
 // QGstPipeline
@@ -81,25 +95,25 @@ QGstPipeline::~QGstPipeline() = default;
 void QGstPipeline::installMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
     QGstPipelinePrivate *d = getPrivate();
-    d->installMessageFilter(filter);
+    d->m_busObserver->installMessageFilter(filter);
 }
 
 void QGstPipeline::removeMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
     QGstPipelinePrivate *d = getPrivate();
-    d->removeMessageFilter(filter);
+    d->m_busObserver->removeMessageFilter(filter);
 }
 
 void QGstPipeline::installMessageFilter(QGstreamerBusMessageFilter *filter)
 {
     QGstPipelinePrivate *d = getPrivate();
-    d->installMessageFilter(filter);
+    d->m_busObserver->installMessageFilter(filter);
 }
 
 void QGstPipeline::removeMessageFilter(QGstreamerBusMessageFilter *filter)
 {
     QGstPipelinePrivate *d = getPrivate();
-    d->removeMessageFilter(filter);
+    d->m_busObserver->removeMessageFilter(filter);
 }
 
 GstStateChangeReturn QGstPipeline::setState(GstState state)
@@ -110,66 +124,12 @@ GstStateChangeReturn QGstPipeline::setState(GstState state)
 bool QGstPipeline::processNextPendingMessage(GstMessageType types, std::chrono::nanoseconds timeout)
 {
     QGstPipelinePrivate *d = getPrivate();
-    return d->processNextPendingMessage(types, timeout);
+    return d->m_busObserver->processNextPendingMessage(types, timeout);
 }
 
 bool QGstPipeline::processNextPendingMessage(std::chrono::nanoseconds timeout)
 {
     return processNextPendingMessage(GST_MESSAGE_ANY, timeout);
-}
-
-void QGstPipeline::beginConfig()
-{
-    QGstPipelinePrivate *d = getPrivate();
-    Q_ASSERT(!isNull());
-
-    ++d->m_configCounter;
-    if (d->m_configCounter > 1)
-        return;
-
-    GstState state;
-    GstState pending;
-    GstStateChangeReturn stateChangeReturn = gst_element_get_state(element(), &state, &pending, 0);
-    switch (stateChangeReturn) {
-    case GST_STATE_CHANGE_ASYNC: {
-        if (state == GST_STATE_PLAYING) {
-            // playing->paused transition in progress. wait for it to finish
-            bool stateChangeSuccessful = this->finishStateChange();
-            if (!stateChangeSuccessful)
-                qWarning() << "QGstPipeline::beginConfig: timeout when waiting for state change";
-        }
-
-        state = pending;
-        break;
-    }
-    case GST_STATE_CHANGE_FAILURE: {
-        qDebug() << "QGstPipeline::beginConfig: state change failure";
-        dumpGraph("beginConfigFailure");
-        break;
-    }
-
-    case GST_STATE_CHANGE_NO_PREROLL:
-    case GST_STATE_CHANGE_SUCCESS:
-        break;
-    }
-
-    d->m_savedState = state;
-    if (d->m_savedState == GST_STATE_PLAYING)
-        setStateSync(GST_STATE_PAUSED);
-}
-
-void QGstPipeline::endConfig()
-{
-    QGstPipelinePrivate *d = getPrivate();
-    Q_ASSERT(!isNull());
-
-    --d->m_configCounter;
-    if (d->m_configCounter)
-        return;
-
-    if (d->m_savedState == GST_STATE_PLAYING)
-        setState(GST_STATE_PLAYING);
-    d->m_savedState = GST_STATE_NULL;
 }
 
 void QGstPipeline::flush()

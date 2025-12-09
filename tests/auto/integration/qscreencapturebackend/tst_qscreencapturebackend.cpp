@@ -12,6 +12,8 @@
 #include <qmediarecorder.h>
 #include <qmediaplayer.h>
 
+#include "mediabackendutils.h"
+
 #include <vector>
 
 QT_USE_NAMESPACE
@@ -221,11 +223,12 @@ void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawi
 
     QVERIFY(sc.isActive());
 
+#ifdef Q_OS_LINUX
     // In some cases, on Linux the window seems to be of a wrong color after appearance,
     // the delay helps.
     // TODO: remove the delay
-    QTest::qWait(300);
-
+    QTest::qWait(2000);
+#endif
     // Let's wait for the first frame to address a potential initialization delay.
     // In practice, the delay varies between the platform and may randomly get increased.
     {
@@ -310,8 +313,7 @@ void tst_QScreenCaptureBackend::initTestCase()
     QSKIP("grabWindow() no longer supported on Android adding child windows support: QTBUG-118849");
 #endif
 #if defined(Q_OS_LINUX)
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci" &&
-        qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
+    if (isCI() && qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
         QSKIP("Skip on wayland; to be fixed");
 #endif
 
@@ -368,7 +370,7 @@ void tst_QScreenCaptureBackend::setScreen_selectsSecondaryScreen_whenCalledWithS
 void tst_QScreenCaptureBackend::capture_capturesToFile_whenConnectedToMediaRecorder()
 {
 #ifdef Q_OS_LINUX
-    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+    if (isCI())
         QSKIP("QTBUG-116671: SKIP on linux CI to avoid crashes in ffmpeg. To be fixed.");
 #endif
 

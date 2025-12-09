@@ -32,6 +32,7 @@ QT_BEGIN_NAMESPACE
 static Q_LOGGING_CATEGORY(qLcAudioOutput, "qt.multimedia.audiooutput")
 
 using namespace QWindowsMultimediaUtils;
+using namespace QWindowsAudioUtils;
 
 class OutputPrivate : public QIODevice
 {
@@ -47,21 +48,182 @@ private:
     QWindowsAudioSink &audioDevice;
 };
 
-std::optional<quint32> audioClientFramesAvailable(IAudioClient *client)
+
+std::unique_ptr<AudioClient> AudioClient::create(const ComPtr<IMMDevice> &device,
+                                                 const QAudioFormat &format, qsizetype &bufferSize)
 {
-    auto framesAllocated = QWindowsAudioUtils::audioClientFramesAllocated(client);
-    auto framesInUse = QWindowsAudioUtils::audioClientFramesInUse(client);
+    std::unique_ptr<AudioClient> client{ //
+        new AudioClient{ device, format }
+    }; // No make_unique with private ctor
+
+    if (client->create(bufferSize))
+        return client;
+
+    return {};
+}
+
+AudioClient::AudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format)
+    : m_device{ device }, m_inputFormat{ format }
+{
+}
+
+bool AudioClient::create(qsizetype &bufferSize)
+{
+    HRESULT hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
+                                    reinterpret_cast<void**>(m_audioClient.GetAddressOf()));
+    if (FAILED(hr)) {
+        qCWarning(qLcAudioOutput) << "Failed to activate audio device" << errorString(hr);
+        return false;
+    }
+
+    QComTaskResource<WAVEFORMATEX> mixFormat;
+    hr = m_audioClient->GetMixFormat(mixFormat.address());
+    if (FAILED(hr)) {
+        qCWarning(qLcAudioOutput) << "Format unsupported" << errorString(hr);
+        return false;
+    }
+
+    m_outputFormat = waveFormatExToFormat(*mixFormat);
+
+    if (!resetResampler())
+        return false;
+
+    if (bufferSize == 0)
+        bufferSize = m_inputFormat.sampleRate() * m_inputFormat.bytesPerFrame() / 2;
+
+    REFERENCE_TIME requestedDuration =
+            m_inputFormat.durationForBytes(static_cast<qint32>(bufferSize)) * 10;
+
+    hr = m_audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, requestedDuration, 0, mixFormat.get(),
+                                   nullptr);
+
+    if (FAILED(hr)) {
+        qCWarning(qLcAudioOutput) << "Failed to initialize audio client" << errorString(hr);
+        return false;
+    }
+
+    auto framesAllocated = allocatedFrames(m_audioClient.Get());
+    if (!framesAllocated) {
+        qCWarning(qLcAudioOutput) << "Failed to get audio client buffer size";
+        return false;
+    }
+
+    bufferSize = m_inputFormat.bytesForDuration(
+            m_outputFormat.durationForFrames(static_cast<qint32>(*framesAllocated)));
+
+    hr = m_audioClient->GetService(IID_PPV_ARGS(m_renderClient.GetAddressOf()));
+    if (FAILED(hr)) {
+        qCWarning(qLcAudioOutput) << "Failed to obtain audio client rendering service"
+                                  << errorString(hr);
+        return false;
+    }
+
+    return true;
+}
+
+std::chrono::microseconds AudioClient::remainingPlayTime()
+{
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+
+    std::optional<quint32> framesInUse = usedFrames(m_audioClient.Get());
+    if (!framesInUse)
+        return 0us;
+
+    const qint32 frameCount = static_cast<qint32>(*framesInUse);
+    const qint64 durationUs = m_outputFormat.durationForFrames(frameCount);
+    return microseconds{ durationUs };
+}
+
+void AudioClient::start()
+{
+    m_audioClient->Start();
+}
+
+void AudioClient::stop()
+{
+    m_audioClient->Stop();
+}
+
+std::optional<quint32> AudioClient::availableFrameCount() const
+{
+    const auto framesAllocated = allocatedFrames(m_audioClient.Get());
+    const auto framesInUse = usedFrames(m_audioClient.Get());
 
     if (framesAllocated && framesInUse)
         return *framesAllocated - *framesInUse;
     return {};
 }
 
+bool AudioClient::resetResampler()
+{
+    const bool success = m_resampler.setup(m_inputFormat, m_outputFormat);
+    if (!success)
+        qCWarning(qLcAudioOutput) << "Failed to set up resampler";
+    return success;
+}
+
+quint64 AudioClient::bytesFree() const
+{
+    if (!m_audioClient)
+        return 0;
+
+    const auto framesAvailable = availableFrameCount();
+    if (framesAvailable)
+        return m_resampler.inputBufferSize(*framesAvailable * m_outputFormat.bytesPerFrame());
+    return 0;
+}
+
+quint64 AudioClient::totalInputBytes() const
+{
+    return m_resampler.totalInputBytes();
+}
+
+qint64 AudioClient::render(const QAudioFormat &format, qreal volume, const char *data, qint64 len)
+{
+    Q_ASSERT(m_audioClient);
+    Q_ASSERT(m_renderClient);
+
+    qCDebug(qLcAudioOutput) << "render()" << len;
+
+    auto framesAvailable = availableFrameCount();
+    if (!framesAvailable)
+        return -1;
+
+    auto maxBytesCanWrite =
+            format.bytesForDuration(m_outputFormat.durationForFrames(*framesAvailable));
+    qsizetype writeSize = qMin(maxBytesCanWrite, len);
+
+    QByteArray writeBytes = m_resampler.resample({ data, writeSize });
+    qint32 writeFramesNum = m_outputFormat.framesForBytes(writeBytes.size());
+
+    quint8 *buffer = nullptr;
+    HRESULT hr = m_renderClient->GetBuffer(writeFramesNum, &buffer);
+    if (FAILED(hr)) {
+        qCWarning(qLcAudioOutput) << "Failed to get buffer" << errorString(hr);
+        return -1;
+    }
+
+    if (volume < qreal(1.0))
+        QAudioHelperInternal::qMultiplySamples(volume, m_outputFormat, writeBytes.data(), buffer,
+                                               writeBytes.size());
+    else
+        std::memcpy(buffer, writeBytes.data(), writeBytes.size());
+
+    DWORD flags = writeBytes.isEmpty() ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
+    hr = m_renderClient->ReleaseBuffer(writeFramesNum, flags);
+    if (FAILED(hr)) {
+        qCWarning(qLcAudioOutput) << "Failed to return buffer" << errorString(hr);
+        return -1;
+    }
+    return writeSize;
+};
+
 QWindowsAudioSink::QWindowsAudioSink(ComPtr<IMMDevice> device, QObject *parent) :
     QPlatformAudioSink(parent),
     m_timer(new QTimer(this)),
     m_pushSource(new OutputPrivate(*this)),
-    m_device(std::move(device))
+    m_device{ std::move(device) }
 {
     m_pushSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
     m_timer->setSingleShot(true);
@@ -73,22 +235,16 @@ QWindowsAudioSink::~QWindowsAudioSink()
     close();
 }
 
-qint64 QWindowsAudioSink::remainingPlayTimeUs()
-{
-    auto framesInUse = QWindowsAudioUtils::audioClientFramesInUse(m_audioClient.Get());
-    return m_resampler.outputFormat().durationForFrames(framesInUse ? *framesInUse : 0);
-}
-
 void QWindowsAudioSink::deviceStateChange(QAudio::State state, QAudio::Error error)
 {
     if (state != deviceState) {
         if (state == QAudio::ActiveState) {
-            m_audioClient->Start();
+            m_client->start();
             qCDebug(qLcAudioOutput) << "Audio client started";
 
         } else if (deviceState == QAudio::ActiveState) {
             m_timer->stop();
-            m_audioClient->Stop();
+            m_client->stop();
             qCDebug(qLcAudioOutput) << "Audio client stopped";
         }
 
@@ -112,34 +268,52 @@ QAudioFormat QWindowsAudioSink::format() const
 
 void QWindowsAudioSink::setFormat(const QAudioFormat& fmt)
 {
-    if (deviceState == QAudio::StoppedState)
+    if (deviceState == QAudio::StoppedState) {
         m_format = fmt;
+        m_recreateClient = true;
+    }
 }
 
+/*!
+Pull data from audio source and render through WASAPI audio client.
+
+A timer is used to call pullSource periodically. When the source has
+no more data, pullSource will set the sink's state to idle.
+*/
 void QWindowsAudioSink::pullSource()
 {
+    using namespace std::chrono_literals;
+    using namespace std::chrono;
+
     qCDebug(qLcAudioOutput) << "Pull source";
     if (!m_pullSource)
         return;
 
-    auto bytesAvailable = m_pullSource->isOpen() ? qsizetype(m_pullSource->bytesAvailable()) : 0;
-    auto readLen = qMin(bytesFree(), bytesAvailable);
+    const qint64 bytesAvailable = m_pullSource->isOpen() ? m_pullSource->bytesAvailable() : 0;
+    const qint64 readLen = qMin(bytesFree(), bytesAvailable);
     if (readLen > 0) {
-        QByteArray samples = m_pullSource->read(readLen);
-        if (samples.size() == 0) {
+        const QByteArray samples = m_pullSource->read(readLen);
+        if (samples.isEmpty()) {
+            // Unexpected end of stream or IO error
             deviceStateChange(QAudio::IdleState, QAudio::IOError);
             return;
-        } else {
-            write(samples.data(), samples.size());
         }
+
+        Q_ASSERT(m_client);
+
+        m_client->render(m_format, m_volume, samples.data(), samples.size());
     }
 
-    auto playTimeUs = remainingPlayTimeUs();
-    if (playTimeUs == 0) {
+    const microseconds playTime = m_client->remainingPlayTime();
+    if (playTime == 0us) {
         deviceStateChange(QAudio::IdleState, m_pullSource->atEnd() ? QAudio::NoError : QAudio::UnderrunError);
     } else {
+        // Note: deviceStateChange starts WASAPI audio client when transitioning into ActiveState
+        // This is done after calling render, to ensure that the audio client has data to play.
         deviceStateChange(QAudio::ActiveState, QAudio::NoError);
-        m_timer->start(playTimeUs / 2000);
+
+        // Schedule next call to pullSource
+        m_timer->start(duration_cast<milliseconds>(playTime / 2));
     }
 }
 
@@ -168,16 +342,20 @@ void QWindowsAudioSink::start(QIODevice* device)
 
 qint64 QWindowsAudioSink::push(const char *data, qint64 len)
 {
+    using namespace std::chrono;
+
     if (deviceState == QAudio::StoppedState)
         return -1;
 
-    qint64 written = write(data, len);
-    if (written > 0) {
+    Q_ASSERT(m_client);
+
+    qint64 bytesRendered = m_client->render(m_format, m_volume, data, len);
+    if (bytesRendered > 0) {
         deviceStateChange(QAudio::ActiveState, QAudio::NoError);
-        m_timer->start(remainingPlayTimeUs() /1000);
+        m_timer->start(duration_cast<milliseconds>(m_client->remainingPlayTime()));
     }
 
-    return written;
+    return bytesRendered;
 }
 
 QIODevice* QWindowsAudioSink::start()
@@ -204,62 +382,19 @@ QIODevice* QWindowsAudioSink::start()
 
 bool QWindowsAudioSink::open()
 {
-    if (m_audioClient)
+    if (m_recreateClient) {
+        m_client = nullptr;
+        m_recreateClient = false;
+    }
+
+    if (m_client) {
+        m_client->resetResampler();
         return true;
-
-    HRESULT hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER,
-                            nullptr, (void**)m_audioClient.GetAddressOf());
-    if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to activate audio device" << errorString(hr);
-        return false;
     }
 
-    auto resetClient = qScopeGuard([this](){ m_audioClient.Reset(); });
+    m_client = AudioClient::create(m_device, m_format, m_bufferSize);
 
-    QComTaskResource<WAVEFORMATEX> pwfx;
-    hr = m_audioClient->GetMixFormat(pwfx.address());
-    if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Format unsupported" << errorString(hr);
-        return false;
-    }
-
-    if (!m_resampler.setup(m_format, QWindowsAudioUtils::waveFormatExToFormat(*pwfx))) {
-        qCWarning(qLcAudioOutput) << "Failed to set up resampler";
-        return false;
-    }
-
-    if (m_bufferSize == 0)
-        m_bufferSize = m_format.sampleRate() * m_format.bytesPerFrame() / 2;
-
-    REFERENCE_TIME requestedDuration = m_format.durationForBytes(m_bufferSize) * 10;
-
-    hr = m_audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, requestedDuration, 0, pwfx.get(),
-                                   nullptr);
-
-    if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to initialize audio client" << errorString(hr);
-        return false;
-    }
-
-    auto framesAllocated = QWindowsAudioUtils::audioClientFramesAllocated(m_audioClient.Get());
-    if (!framesAllocated) {
-        qCWarning(qLcAudioOutput) << "Failed to get audio client buffer size";
-        return false;
-    }
-
-    m_bufferSize = m_format.bytesForDuration(
-            m_resampler.outputFormat().durationForFrames(*framesAllocated));
-
-    hr = m_audioClient->GetService(__uuidof(IAudioRenderClient), (void**)m_renderClient.GetAddressOf());
-    if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to obtain audio client rendering service"
-                                  << errorString(hr);
-        return false;
-    }
-
-    resetClient.dismiss();
-
-    return true;
+    return m_client != nullptr;
 }
 
 void QWindowsAudioSink::close()
@@ -272,86 +407,42 @@ void QWindowsAudioSink::close()
 
     if (m_pullSource)
         disconnect(m_pullSource, &QIODevice::readyRead, this, &QWindowsAudioSink::pullSource);
-    m_audioClient.Reset();
-    m_renderClient.Reset();
     m_pullSource = nullptr;
 }
 
 qsizetype QWindowsAudioSink::bytesFree() const
 {
-    if (!m_audioClient)
-        return 0;
-
-    auto framesAvailable = audioClientFramesAvailable(m_audioClient.Get());
-    if (framesAvailable)
-        return m_resampler.inputBufferSize(*framesAvailable * m_resampler.outputFormat().bytesPerFrame());
-    return 0;
+    return static_cast<qsizetype>(m_client->bytesFree());
 }
 
 void QWindowsAudioSink::setBufferSize(qsizetype value)
 {
-    if (!m_audioClient)
+    if (value != m_bufferSize) {
         m_bufferSize = value;
+        m_recreateClient = true;
+    }
 }
 
 qint64 QWindowsAudioSink::processedUSecs() const
 {
-    if (!m_audioClient)
+    if (!m_client)
         return 0;
 
-    return m_format.durationForBytes(m_resampler.totalInputBytes());
-}
-
-qint64 QWindowsAudioSink::write(const char *data, qint64 len)
-{
-    Q_ASSERT(m_audioClient);
-    Q_ASSERT(m_renderClient);
-
-    qCDebug(qLcAudioOutput) << "write()" << len;
-
-    auto framesAvailable = audioClientFramesAvailable(m_audioClient.Get());
-    if (!framesAvailable)
-        return -1;
-
-    auto maxBytesCanWrite = m_format.bytesForDuration(
-            m_resampler.outputFormat().durationForFrames(*framesAvailable));
-    qsizetype writeSize = qMin(maxBytesCanWrite, len);
-
-    QByteArray writeBytes = m_resampler.resample({data, writeSize});
-    qint32 writeFramesNum = m_resampler.outputFormat().framesForBytes(writeBytes.size());
-
-    quint8 *buffer = nullptr;
-    HRESULT hr = m_renderClient->GetBuffer(writeFramesNum, &buffer);
-    if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to get buffer" << errorString(hr);
-        return -1;
-    }
-
-    if (m_volume < qreal(1.0))
-        QAudioHelperInternal::qMultiplySamples(m_volume, m_resampler.outputFormat(), writeBytes.data(), buffer, writeBytes.size());
-    else
-        std::memcpy(buffer, writeBytes.data(), writeBytes.size());
-
-    DWORD flags = writeBytes.isEmpty() ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
-    hr = m_renderClient->ReleaseBuffer(writeFramesNum, flags);
-    if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to return buffer" << errorString(hr);
-        return -1;
-    }
-
-    return writeSize;
+    return m_format.durationForBytes(m_client->totalInputBytes());
 }
 
 void QWindowsAudioSink::resume()
 {
+    using namespace std::chrono_literals;
+
     qCDebug(qLcAudioOutput) << "resume()";
     if (deviceState == QAudio::SuspendedState) {
         if (m_pullSource) {
             pullSource();
         } else {
             deviceStateChange(suspendedInState, QAudio::NoError);
-            if (remainingPlayTimeUs() > 0)
-                m_audioClient->Start();
+            if (m_client->remainingPlayTime() > 0us)
+                m_client->start();
         }
     }
 }
@@ -373,8 +464,8 @@ void QWindowsAudioSink::setVolume(qreal v)
     m_volume = qBound(qreal(0), v, qreal(1));
 }
 
-void QWindowsAudioSink::stop() {
-    // TODO: investigate and find a way to drain and stop instead of closing
+void QWindowsAudioSink::stop()
+{
     close();
 }
 

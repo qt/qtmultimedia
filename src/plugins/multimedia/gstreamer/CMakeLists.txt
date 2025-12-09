@@ -11,10 +11,9 @@ qt_internal_add_module(QGstreamerMediaPluginImplPrivate
         audio/qgstreameraudiodecoder.cpp audio/qgstreameraudiodecoder_p.h
         common/qglist_helper_p.h
         common/qgst.cpp common/qgst_p.h
-        common/qgst_bus.cpp common/qgst_bus_p.h
+        common/qgst_bus_observer.cpp common/qgst_bus_observer_p.h
         common/qgst_debug.cpp common/qgst_debug_p.h
         common/qgst_handle_types_p.h
-        common/qgstappsource.cpp common/qgstappsource_p.h
         common/qgstreameraudioinput.cpp common/qgstreameraudioinput_p.h
         common/qgstreameraudiooutput.cpp common/qgstreameraudiooutput_p.h
         common/qgstreamerbufferprobe.cpp common/qgstreamerbufferprobe_p.h
@@ -34,8 +33,9 @@ qt_internal_add_module(QGstreamerMediaPluginImplPrivate
         qgstreamervideodevices.cpp qgstreamervideodevices_p.h
         mediacapture/qgstreamercamera.cpp mediacapture/qgstreamercamera_p.h
         mediacapture/qgstreamerimagecapture.cpp mediacapture/qgstreamerimagecapture_p.h
-        mediacapture/qgstreamermediacapture.cpp mediacapture/qgstreamermediacapture_p.h
-        mediacapture/qgstreamermediaencoder.cpp mediacapture/qgstreamermediaencoder_p.h
+        mediacapture/qgstreamermediacapturesession.cpp mediacapture/qgstreamermediacapturesession_p.h
+        mediacapture/qgstreamermediarecorder.cpp mediacapture/qgstreamermediarecorder_p.h
+        uri_handler/qgstreamer_qiodevice_handler.cpp uri_handler/qgstreamer_qiodevice_handler_p.h
         uri_handler/qgstreamer_qrc_handler.cpp uri_handler/qgstreamer_qrc_handler_p.h
 
     NO_UNITY_BUILD_SOURCES
@@ -44,6 +44,7 @@ qt_internal_add_module(QGstreamerMediaPluginImplPrivate
         common/qgstreamervideosink.cpp
 
         # preprocessor / internal linkage
+        uri_handler/qgstreamer_qiodevice_handler.cpp
         uri_handler/qgstreamer_qrc_handler.cpp
     NO_GENERATE_CPP_EXPORTS
     DEFINES
@@ -65,6 +66,11 @@ qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_
         GStreamer::Gl
     LIBRARIES
         EGL::EGL
+)
+
+qt_internal_extend_target(QGstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_pulseaudio
+    LIBRARIES
+        WrapPulseAudio::WrapPulseAudio
 )
 
 qt_internal_add_plugin(QGstreamerMediaPlugin

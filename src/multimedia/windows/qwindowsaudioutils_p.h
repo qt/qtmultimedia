@@ -36,8 +36,8 @@ namespace QWindowsAudioUtils
     Q_MULTIMEDIA_EXPORT QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType);
     ComPtr<IMFMediaType> formatToMediaType(QWindowsMediaFoundation &, const QAudioFormat &format);
     QAudioFormat::ChannelConfig maskToChannelConfig(UINT32 mask, int count);
-    std::optional<quint32> audioClientFramesInUse(IAudioClient *client);
-    std::optional<quint32> audioClientFramesAllocated(IAudioClient *client);
+    std::optional<quint32> usedFrames(IAudioClient *client);
+    std::optional<quint32> allocatedFrames(IAudioClient *client);
 }
 
 QT_END_NAMESPACE

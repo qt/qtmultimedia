@@ -42,13 +42,14 @@ AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, QFFmpegAudioInput *
     m_stream->id = recordingEngine.avFormatContext()->nb_streams - 1;
     m_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
     m_stream->codecpar->codec_id = codecID;
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-    m_stream->codecpar->channel_layout =
-            adjustChannelLayout(m_avCodec->channel_layouts, requestedAudioFormat.channelLayoutMask);
-    m_stream->codecpar->channels = qPopulationCount(m_stream->codecpar->channel_layout);
-#else
+    const auto channelLayouts = getCodecChannelLayouts(m_avCodec);
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
     m_stream->codecpar->ch_layout =
-            adjustChannelLayout(m_avCodec->ch_layouts, requestedAudioFormat.channelLayout);
+            adjustChannelLayout(channelLayouts, requestedAudioFormat.channelLayout);
+#else
+    m_stream->codecpar->channel_layout =
+            adjustChannelLayout(channelLayouts, requestedAudioFormat.channelLayoutMask);
+    m_stream->codecpar->channels = qPopulationCount(m_stream->codecpar->channel_layout);
 #endif
     const auto sampleRate =
             adjustSampleRate(m_avCodec->supported_samplerates, requestedAudioFormat.sampleRate);
@@ -174,11 +175,11 @@ void AudioEncoder::processOne()
 
     auto frame = makeAVFrame();
     frame->format = m_codecContext->sample_fmt;
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+#if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
+    frame->ch_layout = m_codecContext->ch_layout;
+#else
     frame->channel_layout = m_codecContext->channel_layout;
     frame->channels = m_codecContext->channels;
-#else
-    frame->ch_layout = m_codecContext->ch_layout;
 #endif
     frame->sample_rate = m_codecContext->sample_rate;
     frame->nb_samples = buffer.frameCount();

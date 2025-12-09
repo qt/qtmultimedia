@@ -5,19 +5,20 @@
 
 #include <audio/qgstreameraudiodevice_p.h>
 #include <common/qgst_debug_p.h>
-#include <common/qgstappsource_p.h>
 #include <common/qgstpipeline_p.h>
 #include <common/qgstreameraudiooutput_p.h>
 #include <common/qgstreamermessage_p.h>
 #include <common/qgstreamermetadata_p.h>
 #include <common/qgstreamervideooutput_p.h>
 #include <common/qgstreamervideosink_p.h>
+#include <uri_handler/qgstreamer_qiodevice_handler_p.h>
 #include <qgstreamerformatinfo_p.h>
 
 #include <QtMultimedia/qaudiodevice.h>
-#include <QtCore/qurl.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qiodevice.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qurl.h>
 #include <QtCore/private/quniquehandle_p.h>
 
 #if QT_CONFIG(gstreamer_gl)
@@ -357,7 +358,8 @@ const QGstPipeline &QGstreamerMediaPlayer::pipeline() const
 
 bool QGstreamerMediaPlayer::canPlayQrc() const
 {
-    return true;
+    return false;
+    // return true;
 }
 
 void QGstreamerMediaPlayer::stopOrEOS(bool eos)
@@ -741,12 +743,12 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
     if (ts.trackCount() == 1) {
         if (streamType == VideoStream) {
             ts.setActiveInputPad(sinkPad);
-            connectTrackSelectorToOutput(ts);
+            connectTrackSelectorToOutput(ts, /*inPadHandler=*/true);
             videoAvailableChanged(true);
         }
         else if (streamType == AudioStream) {
             ts.setActiveInputPad(sinkPad);
-            connectTrackSelectorToOutput(ts);
+            connectTrackSelectorToOutput(ts, /*inPadHandler=*/true);
             audioAvailableChanged(true);
         }
     }
@@ -781,7 +783,7 @@ void QGstreamerMediaPlayer::decoderPadRemoved(const QGstElement &src, const QGst
     ts->removeInputPad(track);
 
     if (ts->trackCount() == 0) {
-        disconnectTrackSelectorFromOutput(*ts);
+        disconnectTrackSelectorFromOutput(*ts, /*inPadHandler=*/true);
         if (ts->type == AudioStream)
             audioAvailableChanged(false);
         else if (ts->type == VideoStream)
@@ -802,31 +804,45 @@ void QGstreamerMediaPlayer::disconnectAllTrackSelectors()
     videoAvailableChanged(false);
 }
 
-void QGstreamerMediaPlayer::connectTrackSelectorToOutput(TrackSelector &ts)
+void QGstreamerMediaPlayer::connectTrackSelectorToOutput(TrackSelector &ts, bool inPadHandler)
 {
     if (ts.isConnected)
         return;
 
-    QGstElement e = getSinkElementForTrackType(ts.type);
-    if (e) {
+    QGstElement sink = getSinkElementForTrackType(ts.type);
+    if (sink) {
         qCDebug(qLcMediaPlayer) << "connecting output for track type" << ts.type;
-        playerPipeline.add(e);
-        qLinkGstElements(ts.inputSelector, e);
-        e.syncStateWithParent();
+
+        if (inPadHandler) {
+            playerPipeline.add(sink);
+            qLinkGstElements(ts.inputSelector, sink);
+            sink.syncStateWithParent();
+        } else {
+            ts.inputSelector.src().modifyPipelineInIdleProbe([&] {
+                playerPipeline.add(sink);
+                qLinkGstElements(ts.inputSelector, sink);
+                sink.syncStateWithParent();
+            });
+        }
     }
 
     ts.isConnected = true;
 }
 
-void QGstreamerMediaPlayer::disconnectTrackSelectorFromOutput(TrackSelector &ts)
+void QGstreamerMediaPlayer::disconnectTrackSelectorFromOutput(TrackSelector &ts, bool inPadHandler)
 {
     if (!ts.isConnected)
         return;
 
-    QGstElement e = getSinkElementForTrackType(ts.type);
-    if (e) {
+    QGstElement sink = getSinkElementForTrackType(ts.type);
+    if (sink) {
         qCDebug(qLcMediaPlayer) << "removing output for track type" << ts.type;
-        playerPipeline.stopAndRemoveElements(e);
+        if (inPadHandler)
+            playerPipeline.stopAndRemoveElements(sink);
+        else
+            ts.inputSelector.src().modifyPipelineInIdleProbe([&] {
+                playerPipeline.stopAndRemoveElements(sink);
+            });
     }
 
     ts.isConnected = false;
@@ -858,12 +874,6 @@ void QGstreamerMediaPlayer::sourceSetupCallback(GstElement *uridecodebin, GstEle
 
     const gchar *typeName = g_type_name_from_instance((GTypeInstance *)source);
     qCDebug(qLcMediaPlayer) << "Setting up source:" << typeName;
-
-    if (typeName == std::string_view("GstAppSrc")) {
-        QGstAppSource::attachQIODeviceToGstAppSrc(qGstCheckedCast<GstAppSrc>(source),
-                                                  self->m_stream);
-        return;
-    }
 
     if (typeName == std::string_view("GstRTSPSrc")) {
         QGstElement s(source, QGstElement::NeedsRef);
@@ -959,6 +969,9 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
     m_url = content;
     m_stream = stream;
+    QUrl streamURL;
+    if (stream)
+        streamURL = qGstRegisterQIODevice(stream);
 
     if (decoder) {
         playerPipeline.stopAndRemoveElements(decoder);
@@ -1009,7 +1022,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
     decoder.set("use-buffering", true);
 
-    constexpr int mb = 1024 * 1024;
+    constexpr guint64 mb = 1024 * 1024;
     decoder.set("ring-buffer-max-size", 2 * mb);
 
     updateBufferProgress(0.f);
@@ -1022,13 +1035,12 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     padAdded = decoder.onPadAdded<&QGstreamerMediaPlayer::decoderPadAdded>(this);
     padRemoved = decoder.onPadRemoved<&QGstreamerMediaPlayer::decoderPadRemoved>(this);
 
+    QUrl uri = m_stream ? streamURL : content;
+    decoder.set("uri", uri.toEncoded().constData());
     if (m_stream) {
-        decoder.set("uri", "appsrc://");
         seekableChanged(!m_stream->isSequential());
     } else {
-        QByteArray contentUri = content.toEncoded();
-        decoder.set("uri", contentUri.constData());
-        if (contentUri.startsWith("qrc:"))
+        if (content.toEncoded().startsWith("qrc:"))
             seekableChanged(true); // qrc resources are seekable
     }
 
@@ -1047,16 +1059,18 @@ void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
     if (gstAudioOutput == output)
         return;
 
+    auto *gstOutput = static_cast<QGstreamerAudioOutput *>(output);
+    if (gstOutput)
+        gstOutput->setAsync(true);
+
     auto &ts = trackSelector(AudioStream);
 
-    playerPipeline.modifyPipelineWhileNotRunning([&] {
-        if (gstAudioOutput)
-            disconnectTrackSelectorFromOutput(ts);
+    if (gstAudioOutput)
+        disconnectTrackSelectorFromOutput(ts);
 
-        gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
-        if (gstAudioOutput)
-            connectTrackSelectorToOutput(ts);
-    });
+    gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
+    if (gstAudioOutput)
+        connectTrackSelectorToOutput(ts);
 }
 
 QMediaMetaData QGstreamerMediaPlayer::metaData() const
@@ -1066,11 +1080,17 @@ QMediaMetaData QGstreamerMediaPlayer::metaData() const
 
 void QGstreamerMediaPlayer::setVideoSink(QVideoSink *sink)
 {
+    auto *gstSink = sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
+    if (gstSink)
+        gstSink->setAsync(false);
+
     using namespace std::chrono_literals;
     gstVideoOutput->setVideoSink(sink);
 
-    if (playerPipeline.state(1s) == GstState::GST_STATE_PAUSED)
+    if (sink && playerPipeline.state(1s) == GstState::GST_STATE_PAUSED)
         playerPipeline.flush(); // ensure that we send the current video frame to the new sink
+
+    playerPipeline.dumpGraph("setVideoSink");
 }
 
 static QGstStructureView endOfChain(const QGstStructureView &s)
@@ -1180,14 +1200,12 @@ void QGstreamerMediaPlayer::setActiveTrack(TrackType type, int index)
 
 void QGstreamerMediaPlayer::setActivePad(TrackSelector &ts, const QGstPad &pad)
 {
-    playerPipeline.modifyPipelineWhileNotRunning([&] {
-        if (pad) {
-            ts.setActiveInputPad(pad);
-            connectTrackSelectorToOutput(ts);
-        } else {
-            disconnectTrackSelectorFromOutput(ts);
-        }
-    });
+    if (pad) {
+        ts.setActiveInputPad(pad);
+        connectTrackSelectorToOutput(ts);
+    } else {
+        disconnectTrackSelectorFromOutput(ts);
+    }
 
     // seek to force an immediate change of the stream
     if (playerPipeline.state() == GST_STATE_PLAYING)
