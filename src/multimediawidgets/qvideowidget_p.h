@@ -16,13 +16,12 @@
 //
 
 #include <QtMultimediaWidgets/qtmultimediawidgetsglobal.h>
-#include <qvideoframe.h>
-#include "qvideowidget.h"
-#include "private/qglobal_p.h"
+
+#include <QtMultimediaWidgets/qvideowidget.h>
+#include <QtMultimedia/qvideoframe.h>
 
 QT_BEGIN_NAMESPACE
 
-class QObject;
 class QVideoWindow;
 
 class QVideoWidgetPrivate
@@ -39,6 +38,5 @@ public:
 };
 
 QT_END_NAMESPACE
-
 
 #endif

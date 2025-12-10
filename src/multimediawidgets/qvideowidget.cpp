@@ -2,30 +2,16 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include <private/qtmultimediaglobal_p.h>
-#include "qvideowidget_p.h"
 
-#include <QtCore/qobject.h>
+#include <QtMultimediaWidgets/private/qvideowidget_p.h>
+
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <qvideosink.h>
-#include <private/qvideowindow_p.h>
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/private/qvideowindow_p.h>
 
-#include <qobject.h>
-#include <qvideoframeformat.h>
-#include <qpainter.h>
-
-#include <qapplication.h>
-#include <qevent.h>
-#include <qboxlayout.h>
-#include <qnamespace.h>
-
-#include <qwindow.h>
-#include <private/qhighdpiscaling_p.h>
-
-#ifdef Q_OS_WIN
-#include <QtCore/qt_windows.h>
-#endif
-
-using namespace Qt;
+#include <QtGui/qevent.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 
