@@ -30,15 +30,12 @@ class QVideoWidgetPrivate
     Q_DECLARE_PUBLIC(QVideoWidget)
 public:
     QVideoWidget *q_ptr = nullptr;
-    Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
     Qt::WindowFlags nonFullScreenFlags;
     bool wasFullScreen = false;
+    QPoint nonFullscreenPos;
 
     QVideoWindow *videoWindow = nullptr;
     QWidget *windowContainer = nullptr;
-    QPoint nonFullscreenPos;
-
-    bool createBackend();
 };
 
 QT_END_NAMESPACE
