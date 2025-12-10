@@ -12,7 +12,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QVideoFrameFormat;
 class QGraphicsVideoItemPrivate;
 class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject
 {
