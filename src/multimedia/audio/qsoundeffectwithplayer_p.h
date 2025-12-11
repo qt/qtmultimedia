@@ -88,7 +88,7 @@ public:
 private:
     void play(std::shared_ptr<QSoundEffectVoice>);
     void setStatus(QSoundEffect::Status status);
-    [[nodiscard]] bool updatePlayer();
+    [[nodiscard]] bool updatePlayer(const SharedSamplePtr &sample);
     std::optional<VoiceId> activeVoice() const;
     static bool formatIsSupported(const QAudioFormat &);
     void setResolvedAudioDevice(QAudioDevice device);
