@@ -34,7 +34,9 @@ public:
     QPoint nonFullscreenPos;
 
     QVideoWindow *videoWindow = nullptr;
+    QVideoSink *fakeVideoSink = nullptr;
     QWidget *windowContainer = nullptr;
+    bool isEglfs = false;
 };
 
 QT_END_NAMESPACE
