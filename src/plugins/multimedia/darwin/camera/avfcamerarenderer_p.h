@@ -30,7 +30,7 @@
 #endif
 
 #import <dispatch/dispatch.h>
-#import <AvFoundation/AVFoundation.h>
+#import <AVFoundation/AVFoundation.h>
 
 @class AVFCaptureFramesDelegate;
 

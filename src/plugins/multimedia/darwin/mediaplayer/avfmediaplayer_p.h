@@ -26,7 +26,7 @@
 #include <QtMultimedia/QMediaPlayer>
 #include <QtMultimedia/QVideoFrame>
 
-#import <AvFoundation/AVFoundation.h>
+#import <AVFoundation/AVFoundation.h>
 
 @class AVFMediaPlayerObserver;
 

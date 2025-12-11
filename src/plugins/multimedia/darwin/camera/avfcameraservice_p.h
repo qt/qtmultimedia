@@ -19,7 +19,7 @@
 #include <QtCore/qset.h>
 #include <private/qplatformmediacapture_p.h>
 
-#import <AvFoundation/AVFoundation.h>
+#import <AVFoundation/AVFoundation.h>
 
 QT_BEGIN_NAMESPACE
 class QPlatformCamera;

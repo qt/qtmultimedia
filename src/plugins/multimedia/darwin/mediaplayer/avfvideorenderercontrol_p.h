@@ -25,7 +25,7 @@
 #include <CoreVideo/CVBase.h>
 #include <CoreVideo/CVPixelBuffer.h>
 
-#import <AvFoundation/AVFoundation.h>
+#import <AVFoundation/AVFoundation.h>
 
 Q_FORWARD_DECLARE_OBJC_CLASS(SubtitleDelegate);
 
