@@ -23,7 +23,7 @@
 #include <CoreVideo/CVImageBuffer.h>
 #include <CoreVideo/CVPixelBuffer.h>
 
-#import <AvFoundation/AVFoundation.h>
+#import <AVFoundation/AVFoundation.h>
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
 
