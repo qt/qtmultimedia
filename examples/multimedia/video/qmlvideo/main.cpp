@@ -62,16 +62,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    QUrl url1, url2;
-    if (sourceIsUrl) {
-        url1 = source1;
-        url2 = source2;
-    } else {
-        if (!source1.isEmpty())
-            url1 = QUrl::fromLocalFile(source1);
-        if (!source2.isEmpty())
-            url2 = QUrl::fromLocalFile(source2);
-    }
+    QUrl url1 = sourceIsUrl ? QUrl{source1} : QUrl::fromLocalFile(source1);
+    QUrl url2 = sourceIsUrl ? QUrl{source2} : QUrl::fromLocalFile(source2);
 
     const QStringList moviesLocation = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation);
     const QUrl videoPath = QUrl::fromLocalFile(moviesLocation.isEmpty() ? app.applicationDirPath()
@@ -80,8 +72,8 @@ int main(int argc, char *argv[])
     QQuickView viewer;
     VideoSingleton* singleton = viewer.engine()->singletonInstance<VideoSingleton*>("qmlvideo", "VideoSingleton");
     singleton->setVideoPath(videoPath);
-    singleton->setSource1(source1);
-    singleton->setSource2(source2);
+    singleton->setSource1(url1);
+    singleton->setSource2(url2);
     singleton->setVolume(volume);
     viewer.loadFromModule("qmlvideo", "Main");
     QObject::connect(viewer.engine(), &QQmlEngine::quit, &viewer, &QQuickView::close);
