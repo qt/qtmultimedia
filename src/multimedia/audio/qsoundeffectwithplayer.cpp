@@ -152,7 +152,7 @@ void QSoundEffectPrivateWithPlayer::setResolvedAudioDevice(QAudioDevice device)
     };
     m_voices.clear();
 
-    bool hasPlayer = updatePlayer();
+    bool hasPlayer = updatePlayer(m_sample);
     if (!hasPlayer)
         return;
 
@@ -202,12 +202,18 @@ bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sam
                 return;
             }
 
+            bool hasPlayer = updatePlayer(result);
+            if (!hasPlayer) {
+                qWarning("QSoundEffect: playback of this format is not supported on the selected "
+                         "audio device");
+                setStatus(QSoundEffect::Error);
+                return;
+            }
+
             m_sample = std::move(result);
             setStatus(QSoundEffect::Ready);
-            bool hasPlayer = updatePlayer();
             if (std::exchange(m_playPending, false)) {
-                if (hasPlayer)
-                    play();
+                play();
             }
         } else {
             qWarning("QSoundEffect: Error decoding source %ls", qUtf16Printable(m_url.toString()));
@@ -363,8 +369,9 @@ void QSoundEffectPrivateWithPlayer::play(std::shared_ptr<QSoundEffectVoice> voic
         emit q_ptr->playingChanged();
 }
 
-bool QSoundEffectPrivateWithPlayer::updatePlayer()
+bool QSoundEffectPrivateWithPlayer::updatePlayer(const SharedSamplePtr &sample)
 {
+    Q_ASSERT(sample);
     Q_ASSERT(m_voices.empty());
     QObject::disconnect(m_voiceFinishedConnection);
 
@@ -372,8 +379,10 @@ bool QSoundEffectPrivateWithPlayer::updatePlayer()
     if (m_resolvedAudioDevice.isNull())
         return false;
 
-    auto player = QRtAudioEngine::getEngineFor(m_resolvedAudioDevice, m_sample->format());
+    auto player = QRtAudioEngine::getEngineFor(m_resolvedAudioDevice, sample->format());
     m_player = player;
+    if (!m_player)
+        return false;
 
     m_voiceFinishedConnection = QObject::connect(m_player.get(), &QRtAudioEngine::voiceFinished,
                                                  this, [this](VoiceId voiceId) {
