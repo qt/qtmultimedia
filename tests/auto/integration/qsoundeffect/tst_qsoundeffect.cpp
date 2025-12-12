@@ -487,7 +487,6 @@ void tst_QSoundEffect::setAudioDevice_emitsSignalsInExpectedOrder()
         return outputs[1];
     }();
 
-    QVERIFY(nonDefaultDevice != outputs.at(1));
     emittedSignals.clear();
 
     // Act
