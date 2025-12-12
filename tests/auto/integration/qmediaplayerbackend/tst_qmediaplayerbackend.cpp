@@ -4790,11 +4790,16 @@ void tst_QMediaPlayerBackend::stressTest_setupAndTeardown_keepVideoOutput_data()
 }
 
 enum DestructionOrder { AVM, AMV, MAV, MVA, VMA, VAM };
-enum MediaPlayerCall { Pause, Stop, SetSource, None };
+enum MediaPlayerCall { Pause, Stop, SetSource, SetSourceNull, SetVideoSink, SetAudioOutput
+                       , SetPlaybackRate, SetPosition, SetPosition_SetPosition, SetAudioOutput_Stop
+                       , SetVideoSink_Stop, Stop_Play, None };
 
 void tst_QMediaPlayerBackend::destruction_doesNotDeadlock_afterMediaPlayerCall()
 {
-    QSKIP_GSTREAMER("QTBUG-140805: Triggers a deadlock between gstPlay thread and Qt main thread");
+    QSKIP_GSTREAMER("Triggers various deadlocks between gstPlay threads and Qt main thread");
+
+    // Example test executable command line argument to specify calls and destruction order, including handy flags:
+    // destruction_doesNotDeadlock_afterMediaPlayerCall:MVA_stop_play -maxwarnings 100000 -repeat 100
 
     QFETCH(DestructionOrder, destructionOrder);
     QFETCH(MediaPlayerCall, mediaPlayerCall);
@@ -4805,30 +4810,34 @@ void tst_QMediaPlayerBackend::destruction_doesNotDeadlock_afterMediaPlayerCall()
     auto videoSink = std::make_unique<QVideoSink>();
     mediaPlayer->setVideoSink(videoSink.get());
     mediaPlayer->setAudioOutput(audioOutput.get());
-    mediaPlayer->setSource(*m_localVideoFile);
+    mediaPlayer->setSource(*m_localVideoFile3ColorsWithSound);
     mediaPlayer->play();
     QTRY_COMPARE_GT(mediaPlayer->position(), 0);
 
     // act
     switch (mediaPlayerCall) {
-    case MediaPlayerCall::Pause: mediaPlayer->pause(); break;
-    case MediaPlayerCall::Stop: mediaPlayer->stop(); break;
-    case MediaPlayerCall::SetSource: mediaPlayer->setSource(QUrl()); break;
+    case MediaPlayerCall::Pause: qDebug() << "...pause..."; mediaPlayer->pause(); break;
+    case MediaPlayerCall::Stop: qDebug() << "...stop..."; mediaPlayer->stop(); break;
+    case MediaPlayerCall::SetSource: qDebug() << "...setSource(*m_localVideoFile)..."; mediaPlayer->setSource(*m_localVideoFile); break;
+    case MediaPlayerCall::SetSourceNull: qDebug() << "...setSource(QUrl())..."; mediaPlayer->setSource(QUrl()); break;
+    case MediaPlayerCall::SetVideoSink: qDebug() << "...setVideoSink(nullptr)..."; mediaPlayer->setVideoSink(nullptr); break;
+    case MediaPlayerCall::SetAudioOutput: qDebug() << "...setAudioOutput(nullptr)..."; mediaPlayer->setAudioOutput(nullptr); break;
+    case MediaPlayerCall::SetPlaybackRate: qDebug() << "...setPlaybackRate(2)..."; mediaPlayer->setPlaybackRate(2); break;
+    case MediaPlayerCall::SetPosition: qDebug() << "...setPosition(1000)..."; mediaPlayer->setPosition(1000); break;
+    case MediaPlayerCall::SetPosition_SetPosition: qDebug() << "...setPosition(1000)..."; mediaPlayer->setPosition(1000); qDebug() << "...setPosition(500)..."; mediaPlayer->setPosition(500); break;
+    case MediaPlayerCall::SetAudioOutput_Stop: qDebug() << "...setAudioOutput(nullptr)..."; mediaPlayer->setAudioOutput(nullptr); qDebug() << "...stop..."; mediaPlayer->stop(); break;
+    case MediaPlayerCall::SetVideoSink_Stop: qDebug() << "...setVideoSink(nullptr)..."; mediaPlayer->setVideoSink(nullptr); qDebug() << "...stop..."; mediaPlayer->stop(); break;
+    case MediaPlayerCall::Stop_Play: qDebug() << "...stop..."; mediaPlayer->stop(); qDebug() << "...play..."; mediaPlayer->play();; break;
     case MediaPlayerCall::None: break;
     }
 
+    qDebug() << "...destruction...";
     switch (destructionOrder) {
-    // Usually doesn`t crash
     case DestructionOrder::AVM: audioOutput.reset(); videoSink.reset(); mediaPlayer.reset(); break;
-    // Usually doesn¨t crash
     case DestructionOrder::AMV: audioOutput.reset(); mediaPlayer.reset(); videoSink.reset(); break;
-    // Crash: ~QGstreamerMediaPlayer() -> m_playbin.setStateSync(GST_STATE_NULL);
     case DestructionOrder::MAV: mediaPlayer.reset(); audioOutput.reset(); videoSink.reset(); break;
-    // Crash: ~QGstreamerMediaPlayer() -> m_playbin.setStateSync(GST_STATE_NULL);
     case DestructionOrder::MVA: mediaPlayer.reset(); videoSink.reset(); audioOutput.reset(); break;
-    // Crash: ~QMediaPlayer() -> setAudioOutput -> m_playbin.set("audio-sink"...
     case DestructionOrder::VMA: videoSink.reset(); mediaPlayer.reset(); audioOutput.reset(); break;
-    // Crash: ~QAudioOutput() -> setAudioOutput -> m_playbin.set("audio-sink"...
     case DestructionOrder::VAM: videoSink.reset(); audioOutput.reset(); mediaPlayer.reset(); break;
     }
 }
@@ -4848,15 +4857,24 @@ void tst_QMediaPlayerBackend::destruction_doesNotDeadlock_afterMediaPlayerCall_d
         };
 
     static const std::pair<const char *, MediaPlayerCall> call[] = {
-        {"none",      MediaPlayerCall::None},
-        {"pause",     MediaPlayerCall::Pause},
-        {"stop",      MediaPlayerCall::Stop},
-        {"setSource", MediaPlayerCall::SetSource},
+        {"none",                    MediaPlayerCall::None},
+        {"pause",                   MediaPlayerCall::Pause},
+        {"stop",                    MediaPlayerCall::Stop},
+        {"setSource",               MediaPlayerCall::SetSource},
+        {"setSourceNull",           MediaPlayerCall::SetSourceNull},
+        {"setVideoSink",            MediaPlayerCall::SetVideoSink},
+        {"setAudioOutput",          MediaPlayerCall::SetAudioOutput},
+        {"setPlaybackRate",         MediaPlayerCall::SetPlaybackRate},
+        {"setPosition",             MediaPlayerCall::SetPosition},
+        {"setPosition_setPosition", MediaPlayerCall::SetPosition_SetPosition},
+        {"setAudioOutput_stop",     MediaPlayerCall::SetAudioOutput_Stop},
+        {"setVideoSink_stop",       MediaPlayerCall::SetVideoSink_Stop},
+        {"stop_play",               MediaPlayerCall::Stop_Play},
         };
 
     for (auto &[orderName, order] : destructionOrders) {
         for (auto &[callName, call] : call) {
-            QTest::addRow("destructionOrder%s_%s", orderName, callName) << order << call;
+            QTest::addRow("%s_%s", orderName, callName) << order << call;
         }
     }
 }
