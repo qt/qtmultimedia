@@ -19,9 +19,9 @@ void QQuickMediaPlayer::qmlSetSource(const QUrl &source)
     if (m_source == source)
         return;
     m_source = source;
-    m_wasMediaLoaded = false;
     const QQmlContext *context = qmlContext(this);
     setSource(context ? context->resolvedUrl(source) : source);
+    m_wasMediaLoaded = false;
     emit qmlSourceChanged(source);
 }
 
