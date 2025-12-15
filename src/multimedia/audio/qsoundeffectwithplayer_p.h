@@ -21,6 +21,7 @@
 #include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/private/qrtaudioengine_p.h>
 #include <QtMultimedia/private/qsoundeffect_p.h>
+#include <QtCore/qchronotimer.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -125,6 +126,9 @@ private:
 
     QMediaDevices m_mediaDevices;
     QAudioDevice m_defaultAudioDevice;
+    QChronoTimer m_playerReleaseTimer{
+        std::chrono::seconds(2),
+    };
 };
 
 } // namespace QtMultimediaPrivate
