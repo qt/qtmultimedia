@@ -172,6 +172,9 @@ QSoundEffectPrivateWithPlayer::QSoundEffectPrivateWithPlayer(QSoundEffect *q,
         if (m_audioDevice.isNull())
             setResolvedAudioDevice(m_defaultAudioDevice);
     });
+
+    m_playerReleaseTimer.setTimerType(Qt::VeryCoarseTimer);
+    m_playerReleaseTimer.setSingleShot(true);
 }
 
 QSoundEffectPrivateWithPlayer::~QSoundEffectPrivateWithPlayer()
@@ -247,9 +250,17 @@ bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sam
         m_sampleLoadFuture = std::nullopt;
     }
 
+    if (m_player) {
+        QObject::disconnect(m_voiceFinishedConnection);
+        m_playerReleaseTimer.callOnTimeout(this, [player = std::move(m_player)] {
+            // we keep the player referenced for a little longer, so that later calls to
+            // QRtAudioEngine::getEngineFor will be able to reuse the existing instance
+        }, Qt::SingleShotConnection);
+        m_playerReleaseTimer.start();
+    }
+
     m_url = url;
     m_sample = {};
-    m_player = {};
 
     if (url.isEmpty()) {
         setStatus(QSoundEffect::Null);
