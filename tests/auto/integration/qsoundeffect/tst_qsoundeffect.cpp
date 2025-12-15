@@ -10,6 +10,8 @@
 #include <QtMultimedia/qsoundeffect.h>
 
 #include <QtMultimedia/private/qsoundeffectsynchronous_p.h>
+#include <QtMultimedia/private/qsoundeffectwithplayer_p.h>
+#include <QtMultimedia/private/qsamplecache_p.h>
 
 using namespace Qt::Literals;
 
@@ -46,11 +48,25 @@ private slots:
     void setAudioDevice_emitsSignalsInExpectedOrder_data();
     void setAudioDevice_emitsSignalsInExpectedOrder();
 
+    void testQSoundEffectVoiceMonoToStereo();
+    void testQSoundEffectVoiceStereoToMono();
+    void testQSoundEffectVoiceSameChannels();
+    void testQSoundEffectVoiceWithVolume();
+    void testQSoundEffectVoiceMuted();
+    void testQSoundEffectVoiceLooping();
+
 private:
     QSoundEffect* sound;
     QUrl url; // test.wav: pcm_s16le, 48000 Hz, stereo, s16
     QUrl url2; // test_tone.wav: pcm_s16le, 44100 Hz, mono
     QUrl urlCorrupted; // test_corrupted.wav: corrupted
+
+    SharedSamplePtr createTestSample(QSpan<const float> floats, const QAudioFormat &format)
+    {
+        QByteArray data(reinterpret_cast<const char *>(floats.data()),
+                        floats.size() * sizeof(float));
+        return std::make_shared<QSample>(data, format);
+    }
 };
 
 void tst_QSoundEffect::init()
@@ -495,6 +511,161 @@ void tst_QSoundEffect::setAudioDevice_emitsSignalsInExpectedOrder()
     // Assert
     QTRY_VERIFY(sound->isPlaying() == while_playing); // Verify that playback state didn't change
     QCOMPARE(emittedSignals, expectedSignals);
+}
+
+using QtMultimediaPrivate::QSoundEffectVoice;
+using QtMultimediaPrivate::VoiceId;
+
+void tst_QSoundEffect::testQSoundEffectVoiceMonoToStereo()
+{
+    std::array<float, 2> sampleData = { 1.0f, 0.5f };
+    QAudioFormat sampleFormat;
+    sampleFormat.setSampleFormat(QAudioFormat::Float);
+    sampleFormat.setChannelCount(1);
+    sampleFormat.setSampleRate(44100);
+    auto sample = createTestSample(sampleData, sampleFormat);
+
+    QAudioFormat engineFormat = sampleFormat;
+    engineFormat.setChannelCount(2);
+
+    QSoundEffectVoice voice(VoiceId{ 0 }, sample, 1.0f, false, 1, engineFormat);
+
+    std::array<float, 4> buffer = { 0.0f, 0.0f, 0.0f, 0.0f };
+    qsizetype played = voice.playVoice(buffer);
+
+    QCOMPARE(played, 2);
+    QCOMPARE(buffer[0], 1.0f);
+    QCOMPARE(buffer[1], 1.0f);
+    QCOMPARE(buffer[2], 0.5f);
+    QCOMPARE(buffer[3], 0.5f);
+}
+
+void tst_QSoundEffect::testQSoundEffectVoiceStereoToMono()
+{
+    std::array<float, 4> sampleData = { 1.0f, 0.2f, 0.5f, 0.3f };
+    QAudioFormat sampleFormat;
+    sampleFormat.setSampleFormat(QAudioFormat::Float);
+    sampleFormat.setChannelCount(2);
+    sampleFormat.setSampleRate(44100);
+    auto sample = createTestSample(sampleData, sampleFormat);
+
+    QAudioFormat engineFormat = sampleFormat;
+    engineFormat.setChannelCount(1);
+
+    QSoundEffectVoice voice(VoiceId{ 0 }, sample, 1.0f, false, 1, engineFormat);
+
+    std::array<float, 2> buffer = { 0.0f, 0.0f };
+    qsizetype played = voice.playVoice(buffer);
+
+    QCOMPARE(played, 2);
+    QCOMPARE(buffer[0], 0.6f);
+    QCOMPARE(buffer[1], 0.4f);
+}
+
+void tst_QSoundEffect::testQSoundEffectVoiceSameChannels()
+{
+    std::array<float, 2> sampleData = { 1.0f, 0.5f };
+    QAudioFormat sampleFormat;
+    sampleFormat.setSampleFormat(QAudioFormat::Float);
+    sampleFormat.setChannelCount(1);
+    sampleFormat.setSampleRate(44100);
+    auto sample = createTestSample(sampleData, sampleFormat);
+
+    QAudioFormat engineFormat = sampleFormat; // Same channels
+
+    QSoundEffectVoice voice(VoiceId{ 0 }, sample, 1.0f, false, 1, engineFormat);
+
+    std::array<float, 2> buffer = { 0.0f, 0.0f };
+    qsizetype played = voice.playVoice(buffer);
+
+    QCOMPARE(played, 2);
+    QCOMPARE(buffer[0], 1.0f);
+    QCOMPARE(buffer[1], 0.5f);
+}
+
+void tst_QSoundEffect::testQSoundEffectVoiceWithVolume()
+{
+    std::array<float, 2> sampleData = { 1.0f, 0.5f };
+    QAudioFormat sampleFormat;
+    sampleFormat.setSampleFormat(QAudioFormat::Float);
+    sampleFormat.setChannelCount(1);
+    sampleFormat.setSampleRate(44100);
+    auto sample = createTestSample(sampleData, sampleFormat);
+
+    QAudioFormat engineFormat = sampleFormat;
+    engineFormat.setChannelCount(2);
+
+    QSoundEffectVoice voice(VoiceId{ 0 }, sample, 0.5f, false, 1, engineFormat);
+
+    std::array<float, 4> buffer = { 0.0f, 0.0f, 0.0f, 0.0f };
+    qsizetype played = voice.playVoice(buffer);
+
+    QCOMPARE(played, 2);
+    QCOMPARE(buffer[0], 0.5f);
+    QCOMPARE(buffer[1], 0.5f);
+    QCOMPARE(buffer[2], 0.25f);
+    QCOMPARE(buffer[3], 0.25f);
+}
+
+void tst_QSoundEffect::testQSoundEffectVoiceMuted()
+{
+    std::array<float, 2> sampleData = { 1.0f, 0.5f };
+    QAudioFormat sampleFormat;
+    sampleFormat.setSampleFormat(QAudioFormat::Float);
+    sampleFormat.setChannelCount(1);
+    sampleFormat.setSampleRate(44100);
+    auto sample = createTestSample(sampleData, sampleFormat);
+
+    QAudioFormat engineFormat = sampleFormat;
+    engineFormat.setChannelCount(2);
+
+    QSoundEffectVoice voice(VoiceId{ 0 }, sample, 1.0f, true, 1, engineFormat);
+
+    std::array<float, 4> buffer = { 1.0f, 1.0f, 1.0f, 1.0f }; // Non-zero to check muting
+    qsizetype played = voice.playVoice(buffer);
+
+    QCOMPARE(played, 2);
+    QCOMPARE(buffer[0], 0.0f);
+    QCOMPARE(buffer[1], 0.0f);
+    QCOMPARE(buffer[2], 0.0f);
+    QCOMPARE(buffer[3], 0.0f);
+}
+
+void tst_QSoundEffect::testQSoundEffectVoiceLooping()
+{
+    std::array<float, 2> sampleData = { 1.0f, 0.5f };
+    QAudioFormat sampleFormat;
+    sampleFormat.setSampleFormat(QAudioFormat::Float);
+    sampleFormat.setChannelCount(1);
+    sampleFormat.setSampleRate(44100);
+    auto sample = createTestSample(sampleData, sampleFormat);
+
+    QAudioFormat engineFormat = sampleFormat;
+
+    QSoundEffectVoice voice(VoiceId{ 0 }, sample, 1.0f, false, 2, engineFormat);
+
+    // Buffer large enough for 2 loops: 2 frames * 1 channel * 2 loops = 4 samples
+    std::array<float, 4> buffer = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+    // Check initial
+    QCOMPARE(voice.loopsRemaining(), 2);
+
+    // Spy on signal
+    using namespace QtMultimediaPrivate;
+    QSignalSpy spy(&voice.m_currentLoopChanged, &QAutoResetEvent::activated);
+
+    // Play
+    VoicePlayResult result = voice.play(buffer);
+
+    QCOMPARE(result, VoicePlayResult::Finished);
+    QCOMPARE(voice.loopsRemaining(), 0);
+    QTRY_VERIFY(spy.size() == 1); // Wait for signal
+
+    // Check buffer: should have the sample repeated
+    QCOMPARE(buffer[0], 1.0f);
+    QCOMPARE(buffer[1], 0.5f);
+    QCOMPARE(buffer[2], 1.0f);
+    QCOMPARE(buffer[3], 0.5f);
 }
 
 QTEST_MAIN(tst_QSoundEffect)

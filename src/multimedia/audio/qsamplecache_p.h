@@ -54,6 +54,10 @@ public:
 
     QSample(QUrl url, QSampleCache *parent);
 
+    // For testing only
+    QSample(QByteArray data, QAudioFormat format)
+        : m_parent(nullptr), m_soundData(std::move(data)), m_audioFormat(format), m_url(), m_state(Ready) {}
+
 private:
     QSample();
 

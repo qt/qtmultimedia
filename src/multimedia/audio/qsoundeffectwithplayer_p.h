@@ -31,20 +31,29 @@ using QtPrivate::QAutoResetEvent;
 class QSoundEffectVoice final : public QRtAudioEngineVoice
 {
 public:
-    QSoundEffectVoice(VoiceId voiceId, std::shared_ptr<const QSample> sample, float volume,
-                      bool muted, int totalLoopCount);
+    Q_MULTIMEDIA_EXPORT QSoundEffectVoice(VoiceId voiceId, std::shared_ptr<const QSample> sample,
+                                          float volume, bool muted, int totalLoopCount,
+                                          QAudioFormat engineFormat);
 
-    VoicePlayResult play(QSpan<float>) noexcept QT_MM_NONBLOCKING override;
+    Q_MULTIMEDIA_EXPORT ~QSoundEffectVoice();
+
+    Q_MULTIMEDIA_EXPORT VoicePlayResult play(QSpan<float>) noexcept QT_MM_NONBLOCKING override;
+
     bool isActive() noexcept QT_MM_NONBLOCKING override;
     const QAudioFormat &format() noexcept override { return m_sample->format(); }
 
     int loopsRemaining() const { return m_loopsRemaining.load(std::memory_order_relaxed); }
-    std::shared_ptr<QSoundEffectVoice> clone() const;
+    std::shared_ptr<QSoundEffectVoice>
+    clone(std::optional<QAudioFormat> newEngineFormat = {}) const;
+
+    Q_MULTIMEDIA_EXPORT qsizetype playVoice(QSpan<float>) noexcept QT_MM_NONBLOCKING;
 
     const std::shared_ptr<const QSample> m_sample;
     const int m_totalFrames{
         m_sample->format().framesForBytes(m_sample->data().size()),
     };
+
+    const QAudioFormat m_engineFormat;
 
     float m_volume{};
     bool m_muted{};
