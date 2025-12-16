@@ -180,6 +180,7 @@ bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sam
 
     m_url = url;
     m_sample = {};
+    m_player = {};
 
     if (url.isEmpty()) {
         setStatus(QSoundEffect::Null);
