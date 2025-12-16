@@ -17,6 +17,7 @@
 
 #include <QtMultimedia/qvideosink.h>
 #include <QtMultimedia/private/qplatformvideosink_p.h>
+#include <QtMultimedia/private/qthreadlocalrhi_p.h>
 
 #include <common/qgstvideorenderersink_p.h>
 #include <common/qgstpipeline_p.h>
@@ -46,8 +47,7 @@ public:
     explicit QGstreamerRelayVideoSink(QObject *parent = nullptr);
     ~QGstreamerRelayVideoSink();
 
-    void setRhi(QRhi *rhi);
-    QRhi *rhi() const { return m_rhi; }
+    QRhi *rhi() const { return m_rhi ? m_rhi : qEnsureThreadLocalRhi(); }
 
     QGstElement gstSink();
 
@@ -76,7 +76,9 @@ private:
     void updateSinkElement(QGstVideoRendererSinkElement newSink);
 
     void unrefGstContexts();
-    void updateGstContexts(QRhi *rhi);
+    void updateGstContexts();
+
+    void renderingRhiChanged(QRhi *rhi);
 
     QGstBin m_sinkBin;
     QGstElement m_gstPreprocess;
@@ -99,6 +101,7 @@ private:
     QSize m_currentNativeSize;
 
     QGstreamerPluggableVideoSink *m_pluggableVideoSink = nullptr;
+    QMetaObject::Connection m_rhiConnection;
 };
 
 QT_END_NAMESPACE

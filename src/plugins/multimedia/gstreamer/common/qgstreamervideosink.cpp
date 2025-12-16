@@ -138,6 +138,8 @@ QGstreamerRelayVideoSink::QGstreamerRelayVideoSink(QObject *parent)
         m_sinkBin.add(m_gstCapsFilter);
         m_sinkBin.addGhostPad(m_gstCapsFilter, "sink");
     }
+
+    updateGstContexts();
 }
 
 QGstreamerRelayVideoSink::~QGstreamerRelayVideoSink()
@@ -174,24 +176,6 @@ void QGstreamerRelayVideoSink::setAsync(bool isAsync)
     m_sinkIsAsync = isAsync;
 }
 
-void QGstreamerRelayVideoSink::setRhi(QRhi *rhi)
-{
-    if (rhi && rhi->backend() != QRhi::OpenGLES2)
-        rhi = nullptr;
-    if (m_rhi == rhi)
-        return;
-
-    m_rhi = rhi;
-    updateGstContexts(m_rhi);
-    if (m_gstQtSink) {
-        QGstVideoRendererSinkElement oldSink = std::move(m_gstQtSink);
-
-        // force creation of a new sink with proper caps.
-        createQtSink();
-        updateSinkElement(m_gstQtSink);
-    }
-}
-
 void QGstreamerRelayVideoSink::connectPluggableVideoSink(QGstreamerPluggableVideoSink *pluggableSink)
 {
     Q_ASSERT(pluggableSink);
@@ -207,7 +191,10 @@ void QGstreamerRelayVideoSink::connectPluggableVideoSink(QGstreamerPluggableVide
             m_pluggableVideoSink, &QPlatformVideoSink::setNativeSize);
 
     // Update pipeline contexts using the rendering rhi
-    updateGstContexts(m_pluggableVideoSink->rhi());
+    renderingRhiChanged(m_pluggableVideoSink->rhi());
+    m_rhiConnection = connect(m_pluggableVideoSink, &QPlatformVideoSink::rhiChanged, this, [this](){
+        renderingRhiChanged(m_pluggableVideoSink->rhi());
+    });
 }
 
 void QGstreamerRelayVideoSink::disconnectPluggableVideoSink()
@@ -219,6 +206,7 @@ void QGstreamerRelayVideoSink::disconnectPluggableVideoSink()
                    m_pluggableVideoSink, &QPlatformVideoSink::setSubtitleText);
         disconnect(this, &QGstreamerRelayVideoSink::nativeSizeChanged,
                    m_pluggableVideoSink, &QPlatformVideoSink::setNativeSize);
+        disconnect(m_rhiConnection);
         m_pluggableVideoSink = nullptr;
     }
 }
@@ -279,17 +267,18 @@ void QGstreamerRelayVideoSink::unrefGstContexts()
     m_eglImageTargetTexture2D = nullptr;
 }
 
-void QGstreamerRelayVideoSink::updateGstContexts(QRhi *rhi)
+void QGstreamerRelayVideoSink::updateGstContexts()
 {
+    QRhi *currentRhi = rhi();
+
     using namespace Qt::Literals;
 
     unrefGstContexts();
 
 #if QT_CONFIG(gstreamer_gl)
-    if (!rhi || rhi->backend() != QRhi::OpenGLES2)
+    if (!currentRhi || currentRhi->backend() != QRhi::OpenGLES2)
         return;
-
-    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(currentRhi->nativeHandles());
     auto glContext = nativeHandles->context;
     Q_ASSERT(glContext);
 
@@ -381,6 +370,12 @@ void QGstreamerRelayVideoSink::updateGstContexts(QRhi *rhi)
     // Note: after updating the context, we switch the sink and send gst_event_new_reconfigure()
     // upstream. this will cause the context to be queried again.
 #endif // #if QT_CONFIG(gstreamer_gl)
+}
+
+void QGstreamerRelayVideoSink::renderingRhiChanged(QRhi *rhi)
+{
+    m_rhi = rhi;
+    updateGstContexts();
 }
 
 QT_END_NAMESPACE
