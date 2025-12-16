@@ -405,7 +405,6 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
     // NOTE: Creating a GStreamer video sink to be owned by the media player, any sink created by
     // user would be a pluggable sink connected to this
     m_gstVideoSink = new QGstreamerRelayVideoSink(this);
-    m_gstVideoSink->setRhi(qEnsureThreadLocalRhi());
     gstVideoOutput->setVideoSink(m_gstVideoSink);
 
     m_playbin.set("video-sink", gstVideoOutput->gstElement());
