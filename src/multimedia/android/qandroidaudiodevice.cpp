@@ -4,6 +4,7 @@
 #include "qandroidaudiodevice_p.h"
 
 #include <private/qaudioformat_p.h>
+#include <private/qaudiodevice_p.h>
 
 #include <QtCore/qjniobject.h>
 
@@ -24,10 +25,7 @@ QAndroidAudioDevice::QAndroidAudioDevice(QByteArray device, QString desc, QAudio
     maximumChannelCount = 32;
     minimumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.front();
     maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
-    supportedSampleFormats = QList<QAudioFormat::SampleFormat>{
-        QtMultimediaPrivate::allSupportedSampleFormats.begin(),
-        QtMultimediaPrivate::allSupportedSampleFormats.end()
-    };
+    supportedSampleFormats = qAllSupportedSampleFormats();
 }
 
 bool QAndroidAudioDevice::isBluetoothDevice() const
