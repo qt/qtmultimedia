@@ -445,7 +445,7 @@ QVideoFrame::MapMode QVideoFrame::mapMode() const
 */
 bool QVideoFrame::map(QVideoFrame::MapMode mode)
 {
-    if (!d || !d->videoBuffer)
+    if (!d || !d->videoBuffer || d->format.frameSize().isEmpty())
         return false;
 
     QMutexLocker lock(&d->mapMutex);
@@ -511,6 +511,7 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             const int height = this->height();
             const int yStride = d->mapData.bytesPerLine[0];
             const int uvHeight = pixelFmt == QVideoFrameFormat::Format_YUV422P ? height : height / 2;
+            Q_ASSERT(uvHeight > 0);
             const int uvSize = d->mapData.dataSize[0] - yStride * height;
             const int uvStride = uvSize / 2 / uvHeight;
 
