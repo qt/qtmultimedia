@@ -925,54 +925,6 @@ QT_MM_MAKE_STRING_RESOLVER(QVideoFrameFormat::PixelFormat, QtMultimediaPrivate::
     (QVideoFrameFormat::Format_SamplerRect,             "SamplerRect")
 );
 
-#ifndef QT_NO_DEBUG_STREAM
-# if QT_DEPRECATED_SINCE(6, 4)
-QT_MM_MAKE_STRING_RESOLVER(QVideoFrameFormat::YCbCrColorSpace, QtMultimediaPrivate::EnumName,
-    (QVideoFrameFormat::YCbCr_Undefined,   "YCbCr_Undefined")
-    (QVideoFrameFormat::YCbCr_BT601,       "YCbCr_BT601")
-    (QVideoFrameFormat::YCbCr_BT709,       "YCbCr_BT709")
-    (QVideoFrameFormat::YCbCr_xvYCC601,    "YCbCr_xvYCC601")
-    (QVideoFrameFormat::YCbCr_xvYCC709,    "YCbCr_xvYCC709")
-    (QVideoFrameFormat::YCbCr_JPEG,        "YCbCr_JPEG")
-    (QVideoFrameFormat::YCbCr_BT2020,      "YCbCr_BT2020")
-);
-QT_MM_DEFINE_QDEBUG_ENUM(QVideoFrameFormat::YCbCrColorSpace);
-# endif // QT_DEPRECATED_SINCE(6, 4)
-
-QT_MM_MAKE_STRING_RESOLVER(QVideoFrameFormat::ColorSpace, QtMultimediaPrivate::EnumName,
-                           (QVideoFrameFormat::ColorSpace_BT601,     "ColorSpace_BT601")
-                           (QVideoFrameFormat::ColorSpace_BT709,     "ColorSpace_BT709")
-                           (QVideoFrameFormat::ColorSpace_AdobeRgb,  "ColorSpace_AdobeRgb")
-                           (QVideoFrameFormat::ColorSpace_BT2020,    "ColorSpace_BT2020")
-                           (QVideoFrameFormat::ColorSpace_Undefined, "ColorSpace_Undefined")
-                           );
-QT_MM_DEFINE_QDEBUG_ENUM(QVideoFrameFormat::ColorSpace);
-
-QT_MM_MAKE_STRING_RESOLVER(QVideoFrameFormat::ColorTransfer, QtMultimediaPrivate::EnumName,
-    (QVideoFrameFormat::ColorTransfer_Unknown,    "ColorTransfer_Unknown")
-    (QVideoFrameFormat::ColorTransfer_BT709,      "ColorTransfer_BT709")
-    (QVideoFrameFormat::ColorTransfer_BT601,      "ColorTransfer_BT601")
-    (QVideoFrameFormat::ColorTransfer_Linear,     "ColorTransfer_Linear")
-    (QVideoFrameFormat::ColorTransfer_Gamma22,    "ColorTransfer_Gamma22")
-    (QVideoFrameFormat::ColorTransfer_Gamma28,    "ColorTransfer_Gamma28")
-    (QVideoFrameFormat::ColorTransfer_ST2084,     "ColorTransfer_ST2084")
-    (QVideoFrameFormat::ColorTransfer_STD_B67,    "ColorTransfer_STD_B67")
-);
-QT_MM_DEFINE_QDEBUG_ENUM(QVideoFrameFormat::ColorTransfer);
-
-QT_MM_MAKE_STRING_RESOLVER(QVideoFrameFormat::ColorRange, QtMultimediaPrivate::EnumName,
-    (QVideoFrameFormat::ColorRange_Unknown,   "ColorRange_Unknown")
-    (QVideoFrameFormat::ColorRange_Video,     "ColorRange_Video")
-    (QVideoFrameFormat::ColorRange_Full,      "ColorRange_Full")
-);
-QT_MM_DEFINE_QDEBUG_ENUM(QVideoFrameFormat::ColorRange);
-
-QT_MM_MAKE_STRING_RESOLVER(QVideoFrameFormat::Direction, QtMultimediaPrivate::EnumName,
-    (QVideoFrameFormat::TopToBottom,    "TopToBottom")
-    (QVideoFrameFormat::BottomToTop,    "BottomToTop")
-);
-QT_MM_DEFINE_QDEBUG_ENUM(QVideoFrameFormat::Direction);
-
 // clang-format off
 
 /*!
@@ -984,6 +936,8 @@ Q_MULTIMEDIA_EXPORT QString QVideoFrameFormat::pixelFormatToString(QVideoFrameFo
     auto str = QtMultimediaPrivate::StringResolver<QVideoFrameFormat::PixelFormat>::toQString(pixelFormat);
     return str.value_or(QString());
 }
+
+#ifndef QT_NO_DEBUG_STREAM
 
 QDebug operator<<(QDebug dbg, const QVideoFrameFormat &f)
 {
@@ -1005,18 +959,6 @@ QDebug operator<<(QDebug dbg, const QVideoFrameFormat &f)
     return dbg;
 }
 
-QDebug operator<<(QDebug dbg, QVideoFrameFormat::PixelFormat pf)
-{
-    QDebugStateSaver saver(dbg);
-    dbg.nospace();
-
-    auto format = QVideoFrameFormat::pixelFormatToString(pf);
-    if (format.isEmpty())
-        return dbg;
-
-    dbg.noquote() << QStringLiteral("Format_") << format;
-    return dbg;
-}
-#endif
+#endif // QT_NO_DEBUG_STREAM
 
 QT_END_NAMESPACE

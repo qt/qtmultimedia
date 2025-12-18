@@ -77,6 +77,7 @@ public:
         TopToBottom,
         BottomToTop
     };
+    Q_ENUM(Direction)
 
 #if QT_DEPRECATED_SINCE(6, 4)
     enum YCbCrColorSpace
@@ -89,6 +90,7 @@ public:
         YCbCr_JPEG = 5,
         YCbCr_BT2020 = 6
     };
+    Q_ENUM(YCbCrColorSpace)
 #endif
 
     // Keep values compatible with YCbCrColorSpace
@@ -100,6 +102,7 @@ public:
         ColorSpace_AdobeRgb = 5,
         ColorSpace_BT2020 = 6
     };
+    Q_ENUM(ColorSpace)
 
     enum ColorTransfer
     {
@@ -112,6 +115,7 @@ public:
         ColorTransfer_ST2084,
         ColorTransfer_STD_B67,
     };
+    Q_ENUM(ColorTransfer)
 
     enum ColorRange
     {
@@ -119,6 +123,7 @@ public:
         ColorRange_Video,
         ColorRange_Full
     };
+    Q_ENUM(ColorRange)
 
     QVideoFrameFormat();
     QVideoFrameFormat(const QSize &size, PixelFormat pixelFormat);
@@ -126,7 +131,7 @@ public:
     ~QVideoFrameFormat();
 
     QVideoFrameFormat(QVideoFrameFormat &&other) noexcept = default;
-    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QVideoFrameFormat);
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QVideoFrameFormat)
     void swap(QVideoFrameFormat &other) noexcept
     { d.swap(other.d); }
 
@@ -208,16 +213,20 @@ Q_DECLARE_SHARED(QVideoFrameFormat)
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrameFormat &);
+#endif
+
+#if QT_MULTIMEDIA_REMOVED_SINCE(6, 11)
+
+#  ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::Direction);
-#if QT_DEPRECATED_SINCE(6, 4)
+#    if QT_DEPRECATED_SINCE(6, 4)
 QT_DEPRECATED_VERSION_X_6_4("Use QVideoFrameFormat::ColorSpace")
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::YCbCrColorSpace);
-#endif
+#    endif
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::ColorSpace);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::ColorTransfer);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::ColorRange);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::PixelFormat);
-#endif
+#  endif // QT_NO_DEBUG_STREAM
+
+#endif // QT_MULTIMEDIA_REMOVED_SINCE(6, 11)
 
 QT_END_NAMESPACE
 
