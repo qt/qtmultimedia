@@ -53,7 +53,7 @@ public:
         }
 
         return S_OK;
-    };
+    }
 
     HRESULT STDMETHODCALLTYPE OnDeviceRemoved(LPCWSTR deviceID) override
     {
