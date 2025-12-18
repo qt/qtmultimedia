@@ -398,18 +398,8 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
     QList<QAudioDevice> oldDeviceList =
             Mode == Direction::sink ? m_sinkDeviceList : m_sourceDeviceList;
 
-    const std::optional<QByteArray> &defaultSinkOrSourceNodeNameBA =
+    const std::optional<QByteArray> &defaultSinkOrSourceNodeName =
             Mode == Direction::sink ? m_defaultSinkName : m_defaultSourceName;
-
-    // revert once QTBUG-134902 is fixed
-    const auto defaultSinkOrSourceNodeName = [&]() -> std::optional<std::string_view> {
-        if (defaultSinkOrSourceNodeNameBA)
-            return std::string_view{
-                defaultSinkOrSourceNodeNameBA->data(),
-                std::size_t(defaultSinkOrSourceNodeNameBA->size()),
-            };
-        return std::nullopt;
-    }();
 
     QList<QAudioDevice> newDeviceList;
 
