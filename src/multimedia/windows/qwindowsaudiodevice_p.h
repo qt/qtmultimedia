@@ -35,7 +35,8 @@ struct WindowsProbeData {
     std::pair<int, int> sampleRateRange;
 };
 
-struct WindowsFormatResult {
+struct WindowsFormatResultFutures
+{
     std::future<QAudioDevicePrivate::AudioDeviceFormat> formatFuture;
     std::future<WindowsProbeData> probeDataFuture;
 };
@@ -48,7 +49,7 @@ public:
     QWindowsAudioDevice(QByteArray deviceId, ComPtr<IMMDevice>, QString description,
                         QAudioDevice::Mode);
     QWindowsAudioDevice(QByteArray deviceId, QString description, QAudioDevice::Mode,
-                        QtWASAPI::WindowsFormatResult);
+                        QtWASAPI::WindowsFormatResultFutures);
     ~QWindowsAudioDevice();
 
     ComPtr<IMMDevice> open() const;

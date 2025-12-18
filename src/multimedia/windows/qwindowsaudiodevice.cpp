@@ -24,6 +24,7 @@
 QT_BEGIN_NAMESPACE
 
 using QtMultimediaPrivate::PropertyStoreHelper;
+using namespace Qt::Literals;
 
 namespace {
 
@@ -267,14 +268,20 @@ std::optional<QAudioFormat> probePreferredFormat(const ComPtr<IAudioClient> &aud
     return std::nullopt;
 }
 
-QtWASAPI::WindowsFormatResult probeWindowsAudioDeviceFormat(ComPtr<IMMDevice> immDev)
+struct WindowsFormatResult
 {
-    std::promise<QAudioDevicePrivate::AudioDeviceFormat> formatPromise;
-    std::promise<QtWASAPI::WindowsProbeData> probePromise;
-
     QAudioDevicePrivate::AudioDeviceFormat format;
-    QtWASAPI::WindowsProbeData probeData{ {1, 2}, {QtMultimediaPrivate::allSupportedSampleRates.front(),
-                                         QtMultimediaPrivate::allSupportedSampleRates.back()} };
+    QtWASAPI::WindowsProbeData probeData;
+};
+
+WindowsFormatResult performFormatProbe(ComPtr<IMMDevice> immDev)
+{
+    QAudioDevicePrivate::AudioDeviceFormat format;
+    QtWASAPI::WindowsProbeData probeData{
+        { 1, 2 },
+        { QtMultimediaPrivate::allSupportedSampleRates.front(),
+          QtMultimediaPrivate::allSupportedSampleRates.back() },
+    };
 
     ComPtr<IAudioClient> audioClient;
     HRESULT hr = immDev->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
@@ -288,18 +295,14 @@ QtWASAPI::WindowsFormatResult probeWindowsAudioDeviceFormat(ComPtr<IMMDevice> im
     } else {
         qWarning() << "QWindowsAudioDeviceInfo: could not activate audio client:"
                    << QSystemError::windowsComString(hr);
-        formatPromise.set_value(format);
-        probePromise.set_value(probeData);
-        return {formatPromise.get_future(), probePromise.get_future()};
+        return {format, probeData};
     }
 
     auto propStoreHelper = PropertyStoreHelper::open(immDev);
     if (!propStoreHelper) {
         qWarning() << "QWindowsAudioDeviceInfo: could not open property store:"
                    << propStoreHelper.error();
-        formatPromise.set_value(format);
-        probePromise.set_value(probeData);
-        return {formatPromise.get_future(), probePromise.get_future()};
+        return {format, probeData};
     }
 
     qCDebug(qLcAudioDeviceProbes) << "probing formats";
@@ -337,9 +340,48 @@ QtWASAPI::WindowsFormatResult probeWindowsAudioDeviceFormat(ComPtr<IMMDevice> im
             ? *config
             : QAudioFormat::defaultChannelConfigForChannelCount(format.maximumChannelCount);
 
-    formatPromise.set_value(format);
-    probePromise.set_value(probeData);
-    return {formatPromise.get_future(), probePromise.get_future()};
+    return {format, probeData};
+}
+
+struct WasapiProbeThreadpool final : public QThreadPool
+{
+    WasapiProbeThreadpool()
+    {
+        setObjectName(u"WasapiProbeThreadpool"_s);
+        setMaxThreadCount(2);
+        setThreadPriority(QThread::LowPriority);
+        setServiceLevel(QThread::QualityOfService::Eco);
+        setExpiryTimeout(500 /*ms*/);
+    }
+
+    ~WasapiProbeThreadpool()
+    {
+        // Ensure all threads submitted tasks are canceled before destruction
+        clear();
+    }
+};
+
+Q_APPLICATION_STATIC(WasapiProbeThreadpool, wasapiProbeThreadpool)
+
+QtWASAPI::WindowsFormatResultFutures probeWindowsAudioDeviceFormatAsync(ComPtr<IMMDevice> immDev)
+{
+    std::promise<QAudioDevicePrivate::AudioDeviceFormat> formatPromise;
+    std::promise<QtWASAPI::WindowsProbeData> probePromise;
+
+    QtWASAPI::WindowsFormatResultFutures ret{
+        formatPromise.get_future(),
+        probePromise.get_future(),
+    };
+
+    wasapiProbeThreadpool->start([immDev = std::move(immDev),
+                                  formatPromise = std::move(formatPromise),
+                                  probePromise = std::move(probePromise)]() mutable {
+        auto result = performFormatProbe(immDev);
+        formatPromise.set_value(result.format);
+        probePromise.set_value(result.probeData);
+    });
+
+    return ret;
 }
 
 } // namespace
@@ -347,12 +389,12 @@ QtWASAPI::WindowsFormatResult probeWindowsAudioDeviceFormat(ComPtr<IMMDevice> im
 QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev, QString desc,
                                          QAudioDevice::Mode mode)
     : QWindowsAudioDevice(std::move(id), std::move(desc), mode,
-                          probeWindowsAudioDeviceFormat(std::move(immDev)))
+                          probeWindowsAudioDeviceFormatAsync(std::move(immDev)))
 {}
 
 QWindowsAudioDevice::QWindowsAudioDevice(QByteArray deviceId, QString description,
                                          QAudioDevice::Mode mode,
-                                         QtWASAPI::WindowsFormatResult result)
+                                         QtWASAPI::WindowsFormatResultFutures result)
     : QAudioDevicePrivate(std::move(deviceId), mode, std::move(description), false,
                           std::move(result.formatFuture)),
       m_probeDataFuture{
