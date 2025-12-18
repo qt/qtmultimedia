@@ -145,9 +145,9 @@ void QWASAPIAudioSinkStream::stop(ShutdownPolicy shutdownPolicy)
     m_parent = nullptr;
     m_shutdownPolicy = shutdownPolicy;
 
+    requestStop();
     switch (shutdownPolicy) {
     case ShutdownPolicy::DiscardRingbuffer: {
-        requestStop();
         audioClientStop(m_audioClient);
         joinWorkerThread();
         audioClientReset(m_audioClient);
