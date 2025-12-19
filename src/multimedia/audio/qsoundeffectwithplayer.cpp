@@ -177,6 +177,8 @@ QSoundEffectPrivateWithPlayer::QSoundEffectPrivateWithPlayer(QSoundEffect *q,
 QSoundEffectPrivateWithPlayer::~QSoundEffectPrivateWithPlayer()
 {
     stop();
+    if (m_sampleLoadFuture)
+        m_sampleLoadFuture->cancelChain();
 }
 
 bool QSoundEffectPrivateWithPlayer::setAudioDevice(QAudioDevice device)
@@ -230,8 +232,10 @@ QAudioDevice QSoundEffectPrivateWithPlayer::audioDevice() const
 
 bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sampleCache)
 {
-    if (m_sampleLoadFuture.isValid())
-        m_sampleLoadFuture.cancel();
+    if (m_sampleLoadFuture) {
+        m_sampleLoadFuture->cancelChain();
+        m_sampleLoadFuture = std::nullopt;
+    }
 
     m_url = url;
     m_sample = {};
