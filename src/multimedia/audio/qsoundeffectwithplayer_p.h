@@ -104,7 +104,7 @@ private:
     void setLoopsRemaining(int);
     int m_loopsRemaining{ 0 };
 
-    QFuture<void> m_sampleLoadFuture;
+    std::optional<QFuture<void>> m_sampleLoadFuture;
     QUrl m_url;
     SharedSamplePtr m_sample;
     float m_volume = 1.f;
