@@ -18,6 +18,7 @@
 
 #include <AudioUnit/AudioUnit.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
+#include <QtMultimedia/private/qdarwinaudiodevices_p.h>
 #ifdef Q_OS_MACOS
 #  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
 #else
