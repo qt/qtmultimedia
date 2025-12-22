@@ -25,10 +25,12 @@ QAudioFormat preferredFormatForDevice(const QtJniTypes::AudioDeviceInfo &deviceI
     // Set preferred channel count based on what device reports, with default set to stereo (2)
     QJniArray<jint> channelCounts = deviceInfo.callMethod<QJniArray<jint>>("getChannelCounts");
     if (channelCounts.isEmpty()) {
-        preferredFormat.setChannelCount(2);
+        preferredFormat.setChannelConfig(QAudioFormat::ChannelConfigStereo);
     } else {
         const auto [minIt, maxIt] = std::minmax_element(channelCounts.begin(), channelCounts.end());
-        preferredFormat.setChannelCount(std::clamp(2, *minIt, *maxIt));
+        const int channelCount = std::clamp(2, *minIt, *maxIt);
+        preferredFormat.setChannelConfig(
+                QAudioFormat::defaultChannelConfigForChannelCount(channelCount));
     }
 
     // Get optimal sample rate from AudioManager

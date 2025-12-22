@@ -28,6 +28,7 @@ QAndroidAudioDevice::QAndroidAudioDevice(QByteArray device, QString desc, QAudio
         QtMultimediaPrivate::allSupportedSampleFormats.begin(),
         QtMultimediaPrivate::allSupportedSampleFormats.end()
     };
+    channelConfiguration = preferredFormat.channelConfig();
 }
 
 bool QAndroidAudioDevice::isBluetoothDevice() const
