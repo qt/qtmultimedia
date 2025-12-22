@@ -260,6 +260,7 @@ void AudioTest::applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFor
     const int toneSampleRateHz = 600;
     m_generator = std::make_unique<Generator>(format, durationSeconds * 1000000, toneSampleRateHz);
     m_audioSink = std::make_unique<QAudioSink>(deviceInfo, format);
+    m_audioSink->setVolume(0.25f); // roughly -12dB
 
     m_generator->start();
 
