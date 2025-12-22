@@ -133,6 +133,7 @@ AudioTest::AudioTest() : m_devices(new QMediaDevices(this)), m_pushTimer(new QTi
 AudioTest::~AudioTest()
 {
     m_pushTimer->stop();
+    cleanupAudioSink();
 }
 
 void AudioTest::initializeWindow()
@@ -309,9 +310,7 @@ void AudioTest::applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFor
 
 void AudioTest::deviceChanged(int index)
 {
-    m_generator->stop();
-    m_audioSink->stop();
-    m_audioSink->disconnect(this);
+    cleanupAudioSink();
 
     QAudioDevice dev = m_deviceBox->itemData(index).value<QAudioDevice>();
 
@@ -418,6 +417,16 @@ void AudioTest::toggleSuspendResume()
     default:
         return;
     }
+}
+
+void AudioTest::cleanupAudioSink()
+{
+    if (m_audioSink) {
+        m_audioSink->stop();
+        m_audioSink->disconnect(this);
+    }
+    m_audioSink.reset();
+    m_generator.reset();
 }
 
 #include "moc_audiooutput.cpp"
