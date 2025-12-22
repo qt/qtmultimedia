@@ -97,69 +97,6 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
     return devices;
 }
 
-static OSStatus audioDeviceChangeListener(AudioObjectID id, UInt32,
-                                          const AudioObjectPropertyAddress *address, void *ptr)
-{
-    Q_ASSERT(address);
-    Q_ASSERT(ptr);
-
-    QDarwinAudioDevices *instance = static_cast<QDarwinAudioDevices *>(ptr);
-
-    qCDebug(qLcDarwinMediaDevices)
-            << "audioDeviceChangeListener: id:" << id << "address: " << address->mSelector
-            << address->mScope << address->mElement;
-
-    switch (address->mSelector) {
-    case kAudioHardwarePropertyDefaultInputDevice:
-        instance->updateAudioInputsCache();
-        break;
-    case kAudioHardwarePropertyDefaultOutputDevice:
-        instance->updateAudioOutputsCache();
-        break;
-    default:
-        instance->updateAudioInputsCache();
-        instance->updateAudioOutputsCache();
-        break;
-    }
-
-    return 0;
-}
-
-static constexpr AudioObjectPropertyAddress listenerAddresses[] = {
-    { kAudioHardwarePropertyDefaultInputDevice, kAudioObjectPropertyScopeGlobal,
-      kAudioObjectPropertyElementMain },
-    { kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyScopeGlobal,
-      kAudioObjectPropertyElementMain },
-    { kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal,
-      kAudioObjectPropertyElementMain }
-};
-
-static void setAudioListeners(QDarwinAudioDevices &instance)
-{
-    for (const auto &address : listenerAddresses) {
-        const auto err = AudioObjectAddPropertyListener(kAudioObjectSystemObject, &address,
-                                                        audioDeviceChangeListener, &instance);
-
-        if (err)
-            qWarning() << "Fail to add listener. mSelector:" << address.mSelector
-                       << "mScope:" << address.mScope << "mElement:" << address.mElement
-                       << "err:" << err;
-    }
-}
-
-static void removeAudioListeners(QDarwinAudioDevices &instance)
-{
-    for (const auto &address : listenerAddresses) {
-        const auto err = AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &address,
-                                                           audioDeviceChangeListener, &instance);
-
-        if (err)
-            qWarning() << "Fail to remove listener. mSelector:" << address.mSelector
-                       << "mScope:" << address.mScope << "mElement:" << address.mElement
-                       << "err:" << err;
-    }
-}
-
 #elif defined(QT_PLATFORM_UIKIT)
 
 static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
@@ -196,24 +133,94 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
 
 #endif
 
+#ifdef Q_OS_MACOS
+
+static constexpr AudioObjectPropertyAddress listenerAddresses[] = {
+    { kAudioHardwarePropertyDefaultInputDevice, kAudioObjectPropertyScopeGlobal,
+      kAudioObjectPropertyElementMain },
+    { kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyScopeGlobal,
+      kAudioObjectPropertyElementMain },
+    { kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal,
+      kAudioObjectPropertyElementMain }
+};
+
+#endif
+
 QDarwinAudioDevices::QDarwinAudioDevices()
 {
     if (!QThread::isMainThread())
         moveToThread(qApp->thread());
 
-#ifdef Q_OS_MACOS // TODO: implement setAudioListeners, removeAudioListeners for Q_OS_IOS, after
-                  // that - remove or modify the define
+#ifdef Q_OS_MACOS
+    m_listenerQueue.reset(
+            dispatch_queue_create("QtAudioDevicesListener", /*dispatch_queue_attr=*/nullptr));
+    dispatch_set_target_queue(m_listenerQueue.get(), dispatch_get_main_queue());
+
+    std::shared_ptr destroyedFlag = m_destroyed; // capture shared_ptr
+    m_deviceListenerBlock = std::make_unique<AudioObjectPropertyListenerBlock>(
+            [this, destroyedFlag](UInt32 numberOfProps, const AudioObjectPropertyAddress *props) {
+        // the block is dispatched via a dispatch queue on the main thread and can be in-flight when
+        // the QDarwinAudioDevices instance is being destroyed. Check the destroyed flag to avoid
+        // accessing deleted memory.
+        if (*destroyedFlag)
+            return;
+
+        Q_ASSERT(QThread::isMainThread());
+
+        auto properties = QSpan{ props, numberOfProps };
+
+        bool updateInputs = false;
+        bool updateOutputs = false;
+
+        for (const AudioObjectPropertyAddress &address : properties) {
+            qCDebug(qLcDarwinMediaDevices)
+                    << "audioDeviceChangeListenerBlock: address: " << address.mSelector
+                    << address.mScope << address.mElement;
+
+            switch (address.mSelector) {
+            case kAudioHardwarePropertyDefaultInputDevice:
+                updateInputs = true;
+                break;
+            case kAudioHardwarePropertyDefaultOutputDevice:
+                updateOutputs = true;
+                break;
+            default:
+                updateInputs = true;
+                updateOutputs = true;
+                break;
+            }
+        }
+
+        if (updateInputs)
+            updateAudioInputsCache();
+        if (updateOutputs)
+            updateAudioOutputsCache();
+    });
+
+    for (const auto &address : listenerAddresses) {
+        const auto err = AudioObjectAddPropertyListenerBlock(
+                kAudioObjectSystemObject, &address, m_listenerQueue.get(), *m_deviceListenerBlock);
+        if (err)
+            qWarning() << "Fail to add listener. mSelector:" << address.mSelector
+                       << "mScope:" << address.mScope << "mElement:" << address.mElement
+                       << "err:" << err;
+    }
+
     updateAudioInputsCache();
     updateAudioOutputsCache();
-
-    setAudioListeners(*this);
 #endif
 }
 
 QDarwinAudioDevices::~QDarwinAudioDevices()
 {
 #ifdef Q_OS_MACOS
-    removeAudioListeners(*this);
+    *m_destroyed = true;
+    for (const auto &address : listenerAddresses) {
+        Q_ASSERT(m_deviceListenerBlock);
+        AudioObjectRemovePropertyListenerBlock(kAudioObjectSystemObject, &address,
+                                               m_listenerQueue.get(), *m_deviceListenerBlock);
+    }
+    m_listenerQueue = {};
 #endif
 }
 
@@ -263,7 +270,8 @@ std::optional<QFuture<void>> DeviceDisconnectMonitor::addDisconnectListener(Audi
     auto disconnectedPromise = std::make_shared<QPromise<void>>();
     QFuture<void> disconnectFuture = disconnectedPromise->future();
 
-    auto listenerBlock = ^(UInt32 numberOfProps, const AudioObjectPropertyAddress *props) {
+    auto listenerBlock = std::make_shared<AudioObjectPropertyListenerBlock>(
+            [disconnectedPromise](UInt32 numberOfProps, const AudioObjectPropertyAddress *props) {
         // Called on HAL thread
         auto properties = QSpan{ props, numberOfProps };
 
@@ -274,11 +282,11 @@ std::optional<QFuture<void>> DeviceDisconnectMonitor::addDisconnectListener(Audi
                 return;
             }
         }
-    };
+    });
 
     OSStatus status =
             AudioObjectAddPropertyListenerBlock(id, &propertyAddressDeviceIsAlive,
-                                                /*inDispatchQueue=*/nullptr, listenerBlock);
+                                                /*inDispatchQueue=*/nullptr, *listenerBlock);
 
     if (status != noErr) {
         qWarning() << "QAudioOutput: Failed to add property listener";
@@ -287,7 +295,7 @@ std::optional<QFuture<void>> DeviceDisconnectMonitor::addDisconnectListener(Audi
 
     m_disconnectFunction = [id, listenerBlock] {
         AudioObjectRemovePropertyListenerBlock(id, &propertyAddressDeviceIsAlive,
-                                               /*inDispatchQueue=*/nullptr, listenerBlock);
+                                               /*inDispatchQueue=*/nullptr, *listenerBlock);
     };
 
     return disconnectFuture;

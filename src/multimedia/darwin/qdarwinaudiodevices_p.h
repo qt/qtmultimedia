@@ -16,9 +16,11 @@
 //
 
 #include <private/qplatformaudiodevices_p.h>
+
 #ifdef Q_OS_MACOS
-#  include <CoreAudio/AudioHardwareBase.h>
 #  include <QtCore/qfuture.h>
+#  include <CoreAudio/AudioHardware.h>
+#  include <dispatch/dispatch.h>
 #  include <optional>
 #endif
 
@@ -43,6 +45,22 @@ public:
 private:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;
+#ifdef Q_OS_MACOS
+    struct DispatchQueueDeleter
+    {
+        void operator()(dispatch_queue_t queue) const
+        {
+            if (queue)
+                dispatch_release(queue);
+        }
+    };
+    using UniqueDispatchQueue =
+            std::unique_ptr<std::remove_pointer_t<dispatch_queue_t>, DispatchQueueDeleter>;
+
+    std::unique_ptr<AudioObjectPropertyListenerBlock> m_deviceListenerBlock;
+    UniqueDispatchQueue m_listenerQueue;
+    std::shared_ptr<bool> m_destroyed = std::make_shared<bool>(false);
+#endif
 };
 
 namespace QCoreAudioUtils {
