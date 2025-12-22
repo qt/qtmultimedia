@@ -170,10 +170,9 @@ protected:
     {
         if (parent) {
             Q_ASSERT(thread()->isCurrentThread());
+            parent->m_stream = {};
             parent->setError(QAudio::IOError);
             parent->updateStreamState(QtAudio::State::StoppedState);
-
-            parent->m_stream = {};
         }
     }
 
@@ -276,8 +275,6 @@ protected:
     {
         if (parent) {
             Q_ASSERT(thread()->isCurrentThread());
-            parent->setError(QAudio::IOError);
-            parent->updateStreamState(QtAudio::State::StoppedState);
 
             if (deviceIsRingbufferReader())
                 // we own the qiodevice, so let's keep it alive to allow users to drain the
@@ -285,6 +282,9 @@ protected:
                 parent->m_retiredStream = std::move(parent->m_stream);
             else
                 parent->m_stream = {};
+
+            parent->setError(QAudio::IOError);
+            parent->updateStreamState(QtAudio::State::StoppedState);
         }
     }
 
