@@ -40,7 +40,7 @@ public:
 
     QLatin1String backendName() const override { return QLatin1String{ "CoreAudio" }; }
 
-protected:
+private:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;
 };
