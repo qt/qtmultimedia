@@ -16,6 +16,11 @@
 //
 
 #include <private/qplatformaudiodevices_p.h>
+#ifdef Q_OS_MACOS
+#  include <CoreAudio/AudioHardwareBase.h>
+#  include <QtCore/qfuture.h>
+#  include <optional>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -39,6 +44,23 @@ protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;
 };
+
+namespace QCoreAudioUtils {
+
+#ifdef Q_OS_MACOS
+class DeviceDisconnectMonitor
+{
+public:
+    ~DeviceDisconnectMonitor();
+    std::optional<QFuture<void>> addDisconnectListener(AudioObjectID);
+    void removeDisconnectListener();
+
+private:
+    std::function<void()> m_disconnectFunction;
+};
+#endif
+
+} // namespace QCoreAudioUtils
 
 QT_END_NAMESPACE
 
