@@ -320,6 +320,13 @@ qt_internal_extend_target(Multimedia CONDITION APPLE
         ${FWCoreVideo}
 )
 
+# we use blocks in qdarwinaudiodevices.mm, so we need to enable ARC
+set_source_files_properties(darwin/qdarwinaudiodevices.mm
+    PROPERTIES
+        COMPILE_FLAGS "-fobjc-arc"
+        SKIP_PRECOMPILE_HEADERS TRUE
+)
+
 qt_internal_extend_target(Multimedia CONDITION MACOS OR IOS
     SOURCES
         darwin/qdarwinintegrationfactory_p.h darwin/qdarwinintegrationfactory.mm

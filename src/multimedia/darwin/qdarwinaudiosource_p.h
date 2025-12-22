@@ -16,6 +16,7 @@
 
 #include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
+#include <QtMultimedia/private/qdarwinaudiodevices_p.h>
 
 #include <AudioUnit/AudioUnit.h>
 

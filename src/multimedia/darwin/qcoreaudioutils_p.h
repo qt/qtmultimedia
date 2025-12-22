@@ -49,32 +49,6 @@ Q_MULTIMEDIA_EXPORT std::unique_ptr<AudioChannelLayout, QFreeDeleter>
 toAudioChannelLayout(const QAudioFormat &format, UInt32 *size);
 QAudioFormat::ChannelConfig fromAudioChannelLayout(const AudioChannelLayout *layout);
 
-#ifdef Q_OS_MACOS
-class DeviceDisconnectMonitor
-{
-public:
-    bool addDisconnectListener(AudioObjectID);
-    void removeDisconnectListener();
-
-    template <typename Functor>
-    auto then(QObject *context, Functor &&f)
-    {
-        return m_disconnectedFuture.then(context, std::forward<Functor>(f));
-    }
-
-private:
-    static OSStatus disconnectCallback(AudioObjectID, UInt32 numberOfAddresses,
-                                       const AudioObjectPropertyAddress *inAddresses, void *self);
-    OSStatus streamDisconnectListener(AudioObjectID,
-                                      QSpan<const AudioObjectPropertyAddress> properties);
-
-    QPromise<void> m_disconnectedPromise;
-    QFuture<void> m_disconnectedFuture;
-
-    AudioObjectID m_currentId;
-};
-#endif
-
 struct AudioUnitHandleTraits
 {
     using Type = AudioUnit;

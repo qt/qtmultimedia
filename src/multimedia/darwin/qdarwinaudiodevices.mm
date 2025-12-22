@@ -242,4 +242,69 @@ QPlatformAudioSink *QDarwinAudioDevices::createAudioSink(const QAudioDevice &inf
     return new QDarwinAudioSink(info, fmt, parent);
 }
 
+namespace QCoreAudioUtils {
+
+#ifdef Q_OS_MACOS
+
+static constexpr AudioObjectPropertyAddress propertyAddressDeviceIsAlive = {
+    kAudioDevicePropertyDeviceIsAlive,
+    kAudioObjectPropertyScopeGlobal,
+    kAudioObjectPropertyElementMain,
+};
+
+// force dtor in a translation unit with ARC enabled
+DeviceDisconnectMonitor::~DeviceDisconnectMonitor()
+{
+    Q_ASSERT(!m_disconnectFunction);
+}
+
+std::optional<QFuture<void>> DeviceDisconnectMonitor::addDisconnectListener(AudioObjectID id)
+{
+    Q_ASSERT(!m_disconnectFunction);
+
+    auto disconnectedPromise = std::make_shared<QPromise<void>>();
+    QFuture<void> disconnectFuture = disconnectedPromise->future();
+
+    auto listenerBlock = ^(UInt32 numberOfProps, const AudioObjectPropertyAddress *props) {
+        // Called on HAL thread
+        auto properties = QSpan{ props, numberOfProps };
+
+        for (const AudioObjectPropertyAddress &address : properties) {
+            if (address.mSelector == kAudioDevicePropertyDeviceIsAlive) {
+                disconnectedPromise->start();
+                disconnectedPromise->finish();
+                return;
+            }
+        }
+    };
+
+    OSStatus status =
+            AudioObjectAddPropertyListenerBlock(id, &propertyAddressDeviceIsAlive,
+                                                /*inDispatchQueue=*/nullptr, listenerBlock);
+
+    if (status != noErr) {
+        qWarning() << "QAudioOutput: Failed to add property listener";
+        return std::nullopt;
+    }
+
+    m_disconnectFunction = [id, listenerBlock] {
+        AudioObjectRemovePropertyListenerBlock(id, &propertyAddressDeviceIsAlive,
+                                               /*inDispatchQueue=*/nullptr, listenerBlock);
+    };
+
+    return disconnectFuture;
+}
+
+void DeviceDisconnectMonitor::removeDisconnectListener()
+{
+    if (!m_disconnectFunction)
+        return;
+    m_disconnectFunction();
+    m_disconnectFunction = nullptr;
+}
+
+#endif
+
+} // namespace QCoreAudioUtils
+
 QT_END_NAMESPACE
