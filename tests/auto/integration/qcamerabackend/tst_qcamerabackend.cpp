@@ -10,6 +10,10 @@
 #include <QVideoSink>
 #include <QMediaPlayer>
 
+#if QT_CONFIG(process)
+#include <QProcess>
+#endif
+
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformimagecapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
@@ -72,7 +76,10 @@ private slots:
     void multipleCameraSet();
 
 private:
+    void callVcam(const QStringList &arguments) const;
     bool noCamera = false;
+    QString m_defaultCameraName = QStringLiteral("VCam1");
+    QByteArray m_vcamPath;
 };
 
 class TestVideoFormat : public QVideoSink
@@ -120,12 +127,45 @@ public Q_SLOTS:
 
 void tst_QCameraBackend::initTestCase()
 {
+    m_vcamPath = qgetenv("VCAM_PATH");
+
+    if (!m_vcamPath.isEmpty()) {
+        QStringList arguments;
+        arguments << "--add" << m_defaultCameraName;
+        arguments << "--format" << "nv12";
+        arguments << "--resolution" << "1920x1080";
+        arguments << "--fps" << "50";
+
+        callVcam(arguments);
+    }
+
     QCamera camera;
     noCamera = !camera.isAvailable();
 }
 
 void tst_QCameraBackend::cleanupTestCase()
 {
+    if (!m_vcamPath.isEmpty())
+        callVcam(QStringList() << "--remove" << m_defaultCameraName);
+}
+
+void tst_QCameraBackend::callVcam(const QStringList &arguments) const
+{
+#if QT_CONFIG(process)
+    QProcess vcamManagerProcess;
+
+    QString program = m_vcamPath + "\\VCamManager.exe";
+
+    vcamManagerProcess.setWorkingDirectory(m_vcamPath);
+
+    vcamManagerProcess.start(program, arguments);
+    vcamManagerProcess.waitForFinished();
+
+    vcamManagerProcess.close();
+#else
+    Q_UNUSED(arguments);
+    QSKIP("VCamManager process cannot be started, process support is disabled.");
+#endif
 }
 
 void tst_QCameraBackend::testCameraDevice()
