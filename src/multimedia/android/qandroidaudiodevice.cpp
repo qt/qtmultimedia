@@ -26,6 +26,7 @@ QAndroidAudioDevice::QAndroidAudioDevice(QByteArray device, QString desc, QAudio
     minimumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.front();
     maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
     supportedSampleFormats = qAllSupportedSampleFormats();
+    channelConfiguration = preferredFormat.channelConfig();
 }
 
 bool QAndroidAudioDevice::isBluetoothDevice() const
