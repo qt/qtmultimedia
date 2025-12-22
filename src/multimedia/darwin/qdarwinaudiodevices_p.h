@@ -16,12 +16,8 @@
 //
 
 #include <private/qplatformaudiodevices_p.h>
-#include <qelapsedtimer.h>
-#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
-
-class QCameraDevice;
 
 class QDarwinAudioDevices : public QPlatformAudioDevices
 {
