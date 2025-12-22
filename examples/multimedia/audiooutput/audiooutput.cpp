@@ -248,12 +248,10 @@ void AudioTest::initializeAudio(const QAudioDevice &deviceInfo)
 void AudioTest::applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFormat &format)
 {
     // keep previous format to roll back if changing the audio format fails
-    QAudioFormat prevFmt;
+    const QAudioFormat prevFmt = m_audioSink ? m_audioSink->format() : deviceInfo.preferredFormat();
 
     if (m_audioSink)
-        prevFmt = m_audioSink->format();
-    else
-        prevFmt = deviceInfo.preferredFormat();
+        m_audioSink->disconnect(this);
 
     // rebuild generator and sink with the requested format
     const int durationSeconds = 1;
