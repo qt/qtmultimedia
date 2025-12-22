@@ -258,8 +258,8 @@ void AudioTest::applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFor
     // rebuild generator and sink with the requested format
     const int durationSeconds = 1;
     const int toneSampleRateHz = 600;
-    m_generator.reset(new Generator(format, durationSeconds * 1000000, toneSampleRateHz));
-    m_audioSink.reset(new QAudioSink(deviceInfo, format));
+    m_generator = std::make_unique<Generator>(format, durationSeconds * 1000000, toneSampleRateHz);
+    m_audioSink = std::make_unique<QAudioSink>(deviceInfo, format);
 
     m_generator->start();
 
