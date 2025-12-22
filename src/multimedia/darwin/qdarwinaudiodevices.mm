@@ -2,21 +2,23 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qdarwinaudiodevices_p.h"
-#include "qmediadevices.h"
-#include "private/qaudiodevice_p.h"
-#include "qdarwinaudiodevice_p.h"
-#include "qdarwinaudiosource_p.h"
-#include "qdarwinaudiosink_p.h"
 
-#include <qloggingcategory.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qaudiodevice_p.h>
+#include <QtMultimedia/private/qdarwinaudiodevice_p.h>
+#include <QtMultimedia/private/qdarwinaudiosink_p.h>
+#include <QtMultimedia/private/qdarwinaudiosource_p.h>
 
-#include <qdebug.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qdebug.h>
 
 #if defined(QT_PLATFORM_UIKIT)
-#include "qcoreaudiosessionmanager_p.h"
-#import <AVFoundation/AVFoundation.h>
+#  include <QtMultimedia/private/qcoreaudiosessionmanager_p.h>
+#  import <AVFoundation/AVFoundation.h>
 #else
-#include "qmacosaudiodatautils_p.h"
+
+#  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
 #endif
 
 #if defined(Q_OS_MACOS)
@@ -25,8 +27,8 @@ Q_STATIC_LOGGING_CATEGORY(qLcDarwinMediaDevices, "qt.multimedia.darwin.mediaDevi
 
 QT_BEGIN_NAMESPACE
 
-template<typename... Args>
-QAudioDevice createAudioDevice(bool isDefault, Args &&...args)
+template <typename... Args>
+static QAudioDevice createAudioDevice(bool isDefault, Args &&...args)
 {
     auto dev = std::make_unique<QCoreAudioDeviceInfo>(std::forward<Args>(args)...);
     dev->isDefault = isDefault;
@@ -37,8 +39,9 @@ QAudioDevice createAudioDevice(bool isDefault, Args &&...args)
 
 static AudioDeviceID defaultAudioDevice(QAudioDevice::Mode mode)
 {
-    const AudioObjectPropertySelector selector = (mode == QAudioDevice::Output) ? kAudioHardwarePropertyDefaultOutputDevice
-                                                                               : kAudioHardwarePropertyDefaultInputDevice;
+    const AudioObjectPropertySelector selector = (mode == QAudioDevice::Output)
+            ? kAudioHardwarePropertyDefaultOutputDevice
+            : kAudioHardwarePropertyDefaultInputDevice;
     const AudioObjectPropertyAddress propertyAddress = {
         selector,
         kAudioObjectPropertyScopeGlobal,
@@ -191,32 +194,27 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
     return devices;
 }
 
-static void setAudioListeners(QDarwinAudioDevices &)
-{
-    // ### This should use the audio session manager
-}
-
-static void removeAudioListeners(QDarwinAudioDevices &)
-{
-    // ### This should use the audio session manager
-}
-
 #endif
 
 QDarwinAudioDevices::QDarwinAudioDevices()
 {
+    if (!QThread::isMainThread())
+        moveToThread(qApp->thread());
+
 #ifdef Q_OS_MACOS // TODO: implement setAudioListeners, removeAudioListeners for Q_OS_IOS, after
                   // that - remove or modify the define
     updateAudioInputsCache();
     updateAudioOutputsCache();
-#endif
 
     setAudioListeners(*this);
+#endif
 }
 
 QDarwinAudioDevices::~QDarwinAudioDevices()
 {
+#ifdef Q_OS_MACOS
     removeAudioListeners(*this);
+#endif
 }
 
 QList<QAudioDevice> QDarwinAudioDevices::findAudioInputs() const
