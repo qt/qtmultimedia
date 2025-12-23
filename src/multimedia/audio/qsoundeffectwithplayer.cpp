@@ -198,24 +198,34 @@ void QSoundEffectPrivateWithPlayer::setResolvedAudioDevice(QAudioDevice device)
 
     m_resolvedAudioDevice = std::move(device);
 
-    if (!m_player)
-        return;
-
-    for (const auto &voice : m_voices)
-        m_player->stop(voice);
+    if (m_player)
+        for (const auto &voice : m_voices)
+            m_player->stop(voice);
 
     std::vector<std::shared_ptr<QSoundEffectVoice>> voices{
         std::make_move_iterator(m_voices.begin()), std::make_move_iterator(m_voices.end())
     };
     m_voices.clear();
 
-    bool hasPlayer = updatePlayer(m_sample);
-    if (!hasPlayer)
-        return;
+    if (m_sample) {
+        bool hasPlayer = updatePlayer(m_sample);
+        if (!hasPlayer) {
+            setStatus(QSoundEffect::Error);
+            return;
+        }
 
-    for (const auto &voice : voices)
-        // we re-allocate a new voice ID and play on the new player
-        play(voice->clone(m_player->audioSink().format()));
+        for (const auto &voice : voices)
+            // we re-allocate a new voice ID and play on the new player
+            play(voice->clone(m_player->audioSink().format()));
+
+        setStatus(QSoundEffect::Ready);
+
+        for (const auto &voice : voices)
+            // we re-allocate a new voice ID and play on the new player
+            play(voice->clone());
+    } else {
+        setStatus(m_sampleLoadFuture ? QSoundEffect::Loading : QSoundEffect::Null);
+    }
 }
 
 void QSoundEffectPrivateWithPlayer::resolveAudioDevice()
@@ -263,6 +273,7 @@ bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sam
             }
 
             bool hasPlayer = updatePlayer(result);
+            m_sample = std::move(result);
             if (!hasPlayer) {
                 qWarning("QSoundEffect: playback of this format is not supported on the selected "
                          "audio device");
@@ -270,7 +281,6 @@ bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sam
                 return;
             }
 
-            m_sample = std::move(result);
             setStatus(QSoundEffect::Ready);
             if (std::exchange(m_playPending, false)) {
                 play();
@@ -381,9 +391,12 @@ void QSoundEffectPrivateWithPlayer::play()
         return;
     }
 
-    // each `play` will start a new voice
+    if (status() != QSoundEffect::Ready)
+        return;
+
     Q_ASSERT(m_player);
 
+    // each `play` will start a new voice
     auto voice = std::make_shared<QSoundEffectVoice>(QRtAudioEngine::allocateVoiceId(), m_sample,
                                                      m_volume, m_muted, m_loopCount,
                                                      m_player->audioSink().format());
