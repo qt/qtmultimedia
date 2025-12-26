@@ -121,7 +121,11 @@ static bool updateTextures(QRhi *rhi,
         *b++ = QRhiShaderResourceBinding::sampledTexture(i + 1, QRhiShaderResourceBinding::FragmentStage,
                                                          videoFrameTextures->texture(i), textureSampler.get());
     shaderResourceBindings->setBindings(bindings, b);
-    shaderResourceBindings->create();
+    if (!shaderResourceBindings->create()) {
+        qCDebug(qLcVideoFrameConverter)
+                << Q_FUNC_INFO << ": failed to create shader resource bindings";
+        return false;
+    }
 
     graphicsPipeline.reset(rhi->newGraphicsPipeline());
     graphicsPipeline->setTopology(QRhiGraphicsPipeline::TriangleStrip);
@@ -151,7 +155,10 @@ static bool updateTextures(QRhi *rhi,
     graphicsPipeline->setVertexInputLayout(inputLayout);
     graphicsPipeline->setShaderResourceBindings(shaderResourceBindings.get());
     graphicsPipeline->setRenderPassDescriptor(renderPass.get());
-    graphicsPipeline->create();
+    if (!graphicsPipeline->create()) {
+        qCDebug(qLcVideoFrameConverter) << Q_FUNC_INFO << ": failed to create graphics pipeline";
+        return false;
+    }
 
     return true;
 }
@@ -275,14 +282,24 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
     const QSize frameSize = qRotatedFrameSize(frame.size(), frame.surfaceFormat().rotation());
 
     vertexBuffer.reset(rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, sizeof(g_quad)));
-    vertexBuffer->create();
+    if (!vertexBuffer->create()) {
+        qCDebug(qLcVideoFrameConverter) << "Failed to create vertex buffer. Using CPU conversion.";
+        return convertCPU(frame, transformation);
+    }
 
     uniformBuffer.reset(rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(QVideoTextureHelper::UniformData)));
-    uniformBuffer->create();
+    if (!uniformBuffer->create()) {
+        qCDebug(qLcVideoFrameConverter) << "Failed to create uniform buffer. Using CPU conversion.";
+        return convertCPU(frame, transformation);
+    }
 
     textureSampler.reset(rhi->newSampler(QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
                                          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge));
-    textureSampler->create();
+    if (!textureSampler->create()) {
+        qCDebug(qLcVideoFrameConverter)
+                << "Failed to create texture sampler. Using CPU conversion.";
+        return convertCPU(frame, transformation);
+    }
 
     shaderResourceBindings.reset(rhi->newShaderResourceBindings());
 
@@ -295,7 +312,10 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
     renderTarget.reset(rhi->newTextureRenderTarget({ { targetTexture.get() } }));
     renderPass.reset(renderTarget->newCompatibleRenderPassDescriptor());
     renderTarget->setRenderPassDescriptor(renderPass.get());
-    renderTarget->create();
+    if (!renderTarget->create()) {
+        qCDebug(qLcVideoFrameConverter) << "Failed to create render target. Using CPU conversion.";
+        return convertCPU(frame, transformation);
+    }
 
     QRhiCommandBuffer *cb = nullptr;
     QRhi::FrameOpResult r = rhi->beginOffscreenFrame(&cb);
