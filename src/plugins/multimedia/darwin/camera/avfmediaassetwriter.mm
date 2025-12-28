@@ -465,14 +465,30 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     if (m_videoQueue)
     {
         Q_ASSERT(session->videoCaptureDevice() && session->videoOutput() && session->videoOutput()->videoDataOutput());
-        m_cameraWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeVideo
-                                                          outputSettings:m_videoSettings
-                                                          sourceFormatHint:session->videoCaptureDevice().activeFormat.formatDescription]);
+        @try {
+            m_cameraWriterInput.reset([[AVAssetWriterInput alloc]
+                    initWithMediaType:AVMediaTypeVideo
+                       outputSettings:m_videoSettings
+                     sourceFormatHint:session->videoCaptureDevice()
+                                              .activeFormat.formatDescription]);
+        } @catch (NSException *exception) {
+            qCWarning(qLcCamera) << Q_FUNC_INFO << "Failed to create video writer input:"
+                                 << QString::fromNSString(exception.reason);
+            m_cameraWriterInput.reset();
+            return false;
+        }
 
-        if (m_cameraWriterInput && [m_assetWriter canAddInput:m_cameraWriterInput]) {
-            [m_assetWriter addInput:m_cameraWriterInput];
-        } else {
-            qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to add camera writer input";
+        @try {
+            if (m_cameraWriterInput && [m_assetWriter canAddInput:m_cameraWriterInput]) {
+                [m_assetWriter addInput:m_cameraWriterInput];
+            } else {
+                qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to add camera writer input";
+                m_cameraWriterInput.reset();
+                return false;
+            }
+        } @catch (NSException *exception) {
+            qCWarning(qLcCamera) << Q_FUNC_INFO << "Failed to add video input:"
+                                 << QString::fromNSString(exception.reason);
             m_cameraWriterInput.reset();
             return false;
         }
@@ -482,22 +498,44 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     m_audioWriterInput.reset();
     if (m_audioQueue) {
-        m_audioWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio
-                                                             outputSettings:m_audioSettings]);
+        @try {
+            m_audioWriterInput.reset([[AVAssetWriterInput alloc]
+                    initWithMediaType:AVMediaTypeAudio
+                       outputSettings:m_audioSettings]);
+        } @catch (NSException *exception) {
+            qCWarning(qLcCamera) << Q_FUNC_INFO << "Failed to create audio writer input:"
+                                 << QString::fromNSString(exception.reason);
+            m_audioWriterInput.reset();
+            // But we still can record video.
+            if (!m_cameraWriterInput)
+                return false;
+        }
         if (!m_audioWriterInput) {
             qWarning() << Q_FUNC_INFO << "failed to create audio writer input";
             // But we still can record video.
             if (!m_cameraWriterInput)
                 return false;
-        } else if ([m_assetWriter canAddInput:m_audioWriterInput]) {
-            [m_assetWriter addInput:m_audioWriterInput];
-            m_audioWriterInput.data().expectsMediaDataInRealTime = YES;
         } else {
-            qWarning() << Q_FUNC_INFO << "failed to add audio writer input";
-            m_audioWriterInput.reset();
-            if (!m_cameraWriterInput)
-                return false;
-            // We can (still) write video though ...
+            @try {
+                if ([m_assetWriter canAddInput:m_audioWriterInput]) {
+                    [m_assetWriter addInput:m_audioWriterInput];
+                    m_audioWriterInput.data().expectsMediaDataInRealTime = YES;
+                } else {
+                    qWarning() << Q_FUNC_INFO << "failed to add audio writer input";
+                    m_audioWriterInput.reset();
+                    if (!m_cameraWriterInput)
+                        return false;
+                    // We can (still) write video though ...
+                }
+            } @catch (NSException *exception) {
+                qCWarning(qLcCamera)
+                        << Q_FUNC_INFO
+                        << "Failed to add audio input:" << QString::fromNSString(exception.reason);
+                m_audioWriterInput.reset();
+                if (!m_cameraWriterInput)
+                    return false;
+                // We can (still) write video though ...
+            }
         }
     }
 
