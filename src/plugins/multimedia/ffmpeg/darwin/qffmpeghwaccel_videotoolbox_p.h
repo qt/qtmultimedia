@@ -18,15 +18,24 @@
 
 #ifdef Q_OS_DARWIN
 
+#include <QtCore/private/qcore_mac_p.h>
+
 #include <CoreVideo/CVBase.h>
+
 #include <CoreVideo/CVPixelBuffer.h>
 #include <CoreVideo/CVImageBuffer.h>
-
 #include <CoreVideo/CVMetalTexture.h>
+#include <CoreVideo/CVMetalTextureCache.h>
 #if defined(Q_OS_MACOS)
 #include <CoreVideo/CVOpenGLTextureCache.h>
 #elif defined(Q_OS_IOS)
 #include <CoreVideo/CVOpenGLESTextureCache.h>
+#endif
+
+// forward-declare CVMetalTextureCacheRef for non-Objective C code
+#if !defined(__OBJC__)
+typedef struct CV_BRIDGED_TYPE(id)
+        __CVMetalTextureCache *CVMetalTextureCacheRef CV_SWIFT_NONSENDABLE;
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -46,12 +55,11 @@ public:
 private:
     void freeTextureCaches();
 
-    // can not forward declare that type from C++ :/
-    void *cvMetalTextureCache = nullptr;
+    QCFType<CVMetalTextureCacheRef> cvMetalTextureCache;
 #if defined(Q_OS_MACOS)
-    CVOpenGLTextureCacheRef cvOpenGLTextureCache = nullptr;
+    QCFType<CVOpenGLTextureCacheRef> cvOpenGLTextureCache;
 #elif defined(Q_OS_IOS)
-    CVOpenGLESTextureCacheRef cvOpenGLESTextureCache = nullptr;
+    QCFType<CVOpenGLESTextureCacheRef> cvOpenGLESTextureCache;
 #endif
 };
 

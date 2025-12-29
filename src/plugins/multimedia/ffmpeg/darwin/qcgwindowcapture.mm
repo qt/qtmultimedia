@@ -15,6 +15,8 @@
 #include <QtMultimedia/private/qcapturablewindow_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 
+#include <QtCore/private/qcore_mac_p.h>
+
 #include <ApplicationServices/ApplicationServices.h>
 #include <IOKit/graphics/IOGraphicsLib.h>
 
@@ -51,8 +53,6 @@ public:
         m_bytesPerLine = CGImageGetBytesPerRow(image);
     }
 
-    ~QCGImageVideoBuffer() override { CFRelease(m_data); }
-
     MapData map(QVideoFrame::MapMode /*mode*/) override
     {
         MapData mapData;
@@ -68,7 +68,7 @@ public:
     QVideoFrameFormat format() const override { return {}; }
 
 private:
-    CFDataRef m_data;
+    QCFType<CFDataRef> m_data;
     size_t m_bytesPerLine = 0;
 };
 
@@ -102,15 +102,14 @@ protected:
         if (auto rate = frameRateForWindow(m_wid))
             setFrameRate(*rate);
 
-        auto imageRef = CGWindowListCreateImage(CGRectNull, kCGWindowListOptionIncludingWindow,
-                                                m_wid, kCGWindowImageBoundsIgnoreFraming);
+        QCFType<CGImageRef> imageRef =
+                CGWindowListCreateImage(CGRectNull, kCGWindowListOptionIncludingWindow, m_wid,
+                                        kCGWindowImageBoundsIgnoreFraming);
         if (!imageRef) {
             updateError(QPlatformSurfaceCapture::CaptureFailed,
                         QLatin1String("Cannot create image by window"));
             return {};
         }
-
-        auto imageDeleter = qScopeGuard([imageRef]() { CGImageRelease(imageRef); });
 
         if (CGImageGetBitsPerPixel(imageRef) != 32
             || CGImageGetPixelFormatInfo(imageRef) != kCGImagePixelFormatPacked
