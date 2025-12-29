@@ -12,6 +12,7 @@
 
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qatomic.h>
+#include <QtCore/private/qcore_mac_p.h>
 
 QT_USE_NAMESPACE
 
@@ -48,7 +49,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 - (bool)addWriterInputs;
 - (void)setQueues;
 - (void)updateDuration:(CMTime)newTimeStamp;
-- (CMSampleBufferRef)adjustTime:(CMSampleBufferRef)sample by:(CMTime)offset;
+- (QCFType<CMSampleBufferRef>)adjustTime:(const QCFType<CMSampleBufferRef> &)sample
+                                      by:(CMTime)offset;
 @end
 
 @implementation QT_MANGLE_NAMESPACE(AVFMediaAssetWriter)
@@ -309,7 +311,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     m_setStartTime = false;
 }
 
-- (CMSampleBufferRef)adjustTime:(CMSampleBufferRef)sample by:(CMTime)offset
+- (QCFType<CMSampleBufferRef>)adjustTime:(const QCFType<CMSampleBufferRef> &)sample
+                                      by:(CMTime)offset
 {
     CMItemCount count;
     CMSampleBufferGetSampleTimingInfoArray(sample, 0, nil, &count);
@@ -359,8 +362,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
-        didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
-        fromConnection:(AVCaptureConnection *)connection
+        didOutputSampleBuffer:(CMSampleBufferRef)buffer
+               fromConnection:(AVCaptureConnection *)connection
 {
     Q_UNUSED(connection);
     Q_ASSERT(m_service && m_service->session());
@@ -381,12 +384,13 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         return;
     }
 
-    if (!CMSampleBufferDataIsReady(sampleBuffer)) {
+    if (!CMSampleBufferDataIsReady(buffer)) {
         qWarning() << Q_FUNC_INFO << "sample buffer is not ready, skipping.";
         return;
     }
 
-    CFRetain(sampleBuffer);
+    // take ownership
+    auto sampleBuffer = QCFType<CMSampleBufferRef>::constructFromGet(buffer);
 
     bool isVideoBuffer = true;
     isVideoBuffer = (captureOutput != m_service->session()->audioOutput());
@@ -414,10 +418,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         }
     }
 
-    if (m_state.loadAcquire() != WriterStateActive) {
-        CFRelease(sampleBuffer);
+    if (m_state.loadAcquire() != WriterStateActive)
         return;
-    }
 
     if (m_adjustTime) {
         CMTime currentTimestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
@@ -439,7 +441,6 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     }
 
     if (m_timeOffset.value > 0) {
-        CFRelease(sampleBuffer);
         sampleBuffer = [self adjustTime:sampleBuffer by:m_timeOffset];
     }
 
@@ -454,13 +455,11 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         dispatch_async(m_writerQueue, ^{
             [self writeVideoSampleBuffer:sampleBuffer];
             m_writeFirstAudioBuffer = true;
-            CFRelease(sampleBuffer);
         });
     } else if (m_writeFirstAudioBuffer) {
         m_lastAudioTimestamp = currentTimestamp;
         dispatch_async(m_writerQueue, ^{
             [self writeAudioSampleBuffer:sampleBuffer];
-            CFRelease(sampleBuffer);
         });
     }
 }
