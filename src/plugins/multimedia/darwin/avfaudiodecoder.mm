@@ -20,7 +20,8 @@ Q_STATIC_LOGGING_CATEGORY(qLcAVFAudioDecoder, "qt.multimedia.darwin.AVFAudioDeco
 constexpr static int MAX_BUFFERS_IN_QUEUE = 5;
 using namespace Qt::Literals;
 
-static QAudioBuffer handleNextSampleBuffer(QAudioFormat qtFormat, CMSampleBufferRef sampleBuffer)
+static QAudioBuffer handleNextSampleBuffer(QAudioFormat qtFormat,
+                                           const QCFType<CMSampleBufferRef> &sampleBuffer)
 {
     if (!sampleBuffer)
         return {};
@@ -52,7 +53,7 @@ static QAudioBuffer handleNextSampleBuffer(QAudioFormat qtFormat, CMSampleBuffer
     if (err != noErr)
         return {};
 
-    CMBlockBufferRef blockBuffer = nullptr;
+    QCFType<CMBlockBufferRef> blockBuffer;
     AudioBufferList* audioBufferList = (AudioBufferList*) malloc(audioBufferListSize);
     // This ensures the buffers placed in audioBufferList are contiguous
     err = CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sampleBuffer,
@@ -76,7 +77,6 @@ static QAudioBuffer handleNextSampleBuffer(QAudioFormat qtFormat, CMSampleBuffer
     }
 
     free(audioBufferList);
-    CFRelease(blockBuffer);
 
     CMTime sampleStartTime = (CMSampleBufferGetPresentationTimeStamp(sampleBuffer));
     float sampleStartTimeSecs = CMTimeGetSeconds(sampleStartTime);
