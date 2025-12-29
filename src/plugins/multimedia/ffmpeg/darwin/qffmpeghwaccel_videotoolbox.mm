@@ -36,7 +36,6 @@ namespace QFFmpeg
 {
 
 namespace {
-CVMetalTextureCacheRef &mtc(void *&cache) { return reinterpret_cast<CVMetalTextureCacheRef &>(cache); }
 
 class VideoToolBoxTextureHandles : public QVideoFrameTexturesHandles
 {
@@ -50,12 +49,12 @@ public:
     CVMetalTextureRef cvMetalTexture[3] = {};
 
 #if defined(Q_OS_MACOS)
-    CVOpenGLTextureRef cvOpenGLTexture = nullptr;
+    CVOpenGLTextureRef cvOpenGLTexture;
 #elif defined(Q_OS_IOS)
-    CVOpenGLESTextureRef cvOpenGLESTexture = nullptr;
+    CVOpenGLESTextureRef cvOpenGLESTexture;
 #endif
 
-    CVImageBufferRef m_buffer = nullptr;
+    CVImageBufferRef m_buffer;
 };
 }
 
@@ -75,7 +74,7 @@ VideoToolBoxTextureConverter::VideoToolBoxTextureConverter(QRhi *targetRhi)
                         nil,
                         (id<MTLDevice>)metal->dev,
                         nil,
-                        &mtc(cvMetalTextureCache)) != kCVReturnSuccess) {
+                        &cvMetalTextureCache) != kCVReturnSuccess) {
             qWarning() << "Metal texture cache creation failed";
             rhi = nullptr;
         }
@@ -124,16 +123,10 @@ VideoToolBoxTextureConverter::~VideoToolBoxTextureConverter()
 
 void VideoToolBoxTextureConverter::freeTextureCaches()
 {
-    if (cvMetalTextureCache)
-        CFRelease(cvMetalTextureCache);
     cvMetalTextureCache = nullptr;
 #if defined(Q_OS_MACOS)
-    if (cvOpenGLTextureCache)
-        CFRelease(cvOpenGLTextureCache);
     cvOpenGLTextureCache = nullptr;
 #elif defined(Q_OS_IOS)
-    if (cvOpenGLESTextureCache)
-        CFRelease(cvOpenGLESTextureCache);
     cvOpenGLESTextureCache = nullptr;
 #endif
 }
@@ -218,7 +211,7 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
             // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
             auto ret = CVMetalTextureCacheCreateTextureFromImage(
                             kCFAllocatorDefault,
-                            mtc(cvMetalTextureCache),
+                            cvMetalTextureCache,
                             buffer, nil,
                             metalPixelFormatForPlane,
                             width, height,
@@ -278,17 +271,6 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
 
 VideoToolBoxTextureHandles::~VideoToolBoxTextureHandles()
 {
-    for (int i = 0; i < 4; ++i)
-        if (cvMetalTexture[i])
-            CFRelease(cvMetalTexture[i]);
-#if defined(Q_OS_MACOS)
-    if (cvOpenGLTexture)
-        CVOpenGLTextureRelease(cvOpenGLTexture);
-#elif defined(Q_OS_IOS)
-    if (cvOpenGLESTexture)
-        CFRelease(cvOpenGLESTexture);
-#endif
-    CVPixelBufferRelease(m_buffer);
 }
 
 quint64 VideoToolBoxTextureHandles::textureHandle(QRhi &, int plane)
