@@ -30,7 +30,7 @@ AVFVideoBuffer::AVFVideoBuffer(AVFVideoSinkInterface *sink, QCFType<CVImageBuffe
     m_format = QAVFHelpers::videoFormatForImageBuffer(m_buffer, rhiIsOpenGL);
 
     if (m_rhi && m_rhi->backend() == QRhi::Metal)
-        metalCache = CVMetalTextureCacheRef(CFRetain(sink->cvMetalTextureCache));
+        metalCache = sink->cvMetalTextureCache;
 }
 
 AVFVideoBuffer::~AVFVideoBuffer()
