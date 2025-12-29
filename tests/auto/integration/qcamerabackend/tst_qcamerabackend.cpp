@@ -9,6 +9,7 @@
 #include <QDebug>
 #include <QVideoSink>
 #include <QMediaPlayer>
+#include <QScopeGuard>
 
 #if QT_CONFIG(process)
 #include <QProcess>
@@ -44,6 +45,14 @@ QT_USE_NAMESPACE
  it may be less stable.
 */
 
+struct VCamParameters
+{
+    QString name;
+    QString format = QStringLiteral("nv12");
+    QSize resolution = QSize(1920, 1080);
+    float fps = 60.0f;
+};
+
 class tst_QCameraBackend: public QObject
 {
     Q_OBJECT
@@ -56,6 +65,9 @@ private slots:
     void testCameraDevice();
     void testCtorWithCameraDevice();
     void testCtorWithPosition();
+
+    void testVirtualCameraAddition();
+    void testVirtualCameraRemoval();
 
     void testCameraActive();
     void testCameraStartParallel();
@@ -76,9 +88,12 @@ private slots:
     void multipleCameraSet();
 
 private:
-    void callVcam(const QStringList &arguments) const;
+    void callVcam(const QString &command, const VCamParameters &parameters) const;
+    void removeVcam(const VCamParameters &parameters) const;
+    static QCameraDevice findCamera(const QString &name);
+
     bool noCamera = false;
-    QString m_defaultCameraName = QStringLiteral("VCam1");
+    VCamParameters m_defaultCamera {"VCam"};
     QByteArray m_vcamPath;
 };
 
@@ -127,16 +142,12 @@ public Q_SLOTS:
 
 void tst_QCameraBackend::initTestCase()
 {
+#if QT_CONFIG(process)
     m_vcamPath = qgetenv("VCAM_PATH");
+#endif
 
     if (!m_vcamPath.isEmpty()) {
-        QStringList arguments;
-        arguments << "--add" << m_defaultCameraName;
-        arguments << "--format" << "nv12";
-        arguments << "--resolution" << "1920x1080";
-        arguments << "--fps" << "50";
-
-        callVcam(arguments);
+        callVcam("--add", m_defaultCamera);
     }
 
     QCamera camera;
@@ -146,10 +157,10 @@ void tst_QCameraBackend::initTestCase()
 void tst_QCameraBackend::cleanupTestCase()
 {
     if (!m_vcamPath.isEmpty())
-        callVcam(QStringList() << "--remove" << m_defaultCameraName);
+        removeVcam(m_defaultCamera);
 }
 
-void tst_QCameraBackend::callVcam(const QStringList &arguments) const
+void tst_QCameraBackend::callVcam(const QString &command, const VCamParameters &parameters) const
 {
 #if QT_CONFIG(process)
     QProcess vcamManagerProcess;
@@ -158,14 +169,43 @@ void tst_QCameraBackend::callVcam(const QStringList &arguments) const
 
     vcamManagerProcess.setWorkingDirectory(m_vcamPath);
 
-    vcamManagerProcess.start(program, arguments);
-    vcamManagerProcess.waitForFinished();
+    QStringList arguments;
+    arguments << command << parameters.name;
+    if (command == "--add") {
+        arguments << "--format" << parameters.format;
+        arguments << "--resolution" << QString::number(parameters.resolution.width()) + "x"
+                                     + QString::number(parameters.resolution.height());
+        arguments << "--fps" << QString::number(parameters.fps);
+    }
 
-    vcamManagerProcess.close();
+    vcamManagerProcess.start(program, arguments);
+
+    vcamManagerProcess.waitForFinished();
 #else
-    Q_UNUSED(arguments);
-    QSKIP("VCamManager process cannot be started, process support is disabled.");
+    Q_UNUSED(command);
+    Q_UNUSED(parameters);
 #endif
+}
+
+void tst_QCameraBackend::removeVcam(const VCamParameters &parameters) const
+{
+    QMediaDevices mediaDevices = QMediaDevices();
+    QSignalSpy removeSignal(&mediaDevices, &QMediaDevices::videoInputsChanged);
+
+    callVcam("--remove", parameters);
+
+    QTRY_COMPARE(removeSignal.size(), 1);
+}
+
+QCameraDevice tst_QCameraBackend::findCamera(const QString &name)
+{
+    const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
+    for (const QCameraDevice &camera : cameras) {
+        if (camera.description().startsWith(name)) {
+            return camera;
+        }
+    }
+    return QCameraDevice();
 }
 
 void tst_QCameraBackend::testCameraDevice()
@@ -247,6 +287,57 @@ void tst_QCameraBackend::testCtorWithPosition()
         // and load the default camera
         QCOMPARE(camera.error(), QCamera::NoError);
     }
+}
+
+void tst_QCameraBackend::testVirtualCameraAddition()
+{
+    if (m_vcamPath.isEmpty())
+        QSKIP("VCAM_PATH environment variable is not set. Skipping camera addition test.");
+
+    int lengthBeforeAdd = QMediaDevices::videoInputs().length();
+    VCamParameters cameraParams {"TestVCam", QStringLiteral("nv12"), QSize(1280, 720), 33.0f};
+    QScopeGuard cleanup([&] { removeVcam(cameraParams); });
+    QMediaDevices mediaDevices = QMediaDevices();
+    QSignalSpy changeSignal(&mediaDevices, &QMediaDevices::videoInputsChanged);
+
+    callVcam("--add", cameraParams);
+
+    QTRY_COMPARE(changeSignal.size(), 1);
+
+    int lengthAfterAdd = QMediaDevices::videoInputs().length();
+    QCOMPARE(lengthAfterAdd, lengthBeforeAdd + 1);
+
+    QCameraDevice addedCamera = findCamera(cameraParams.name);
+
+    QVERIFY(!addedCamera.isNull());
+    QVERIFY(!addedCamera.videoFormats().isEmpty());
+
+    const QCameraFormat format = addedCamera.videoFormats().first();
+    QCOMPARE(format.pixelFormat(), QVideoFrameFormat::Format_NV12);
+    QCOMPARE(format.resolution(), cameraParams.resolution);
+    QCOMPARE(format.maxFrameRate(), cameraParams.fps);
+    QCOMPARE(format.minFrameRate(), 1.0f);
+}
+
+void tst_QCameraBackend::testVirtualCameraRemoval()
+{
+    if (m_vcamPath.isEmpty())
+        QSKIP("VCAM_PATH environment variable is not set. Skipping camera removal test.");
+
+    QMediaDevices mediaDevices = QMediaDevices();
+    QSignalSpy changeSignal(&mediaDevices, &QMediaDevices::videoInputsChanged);
+    int lengthBeforeAdd = QMediaDevices::videoInputs().length();
+    VCamParameters cameraParams {"TestVCamToRemove"};
+
+    callVcam("--add", cameraParams);
+
+    QTRY_COMPARE(changeSignal.size(), 1);
+
+    removeVcam(cameraParams);
+
+    int lengthAfterRemove = QMediaDevices::videoInputs().length();
+    QCOMPARE(lengthAfterRemove, lengthBeforeAdd);
+    QVERIFY(findCamera(cameraParams.name).isNull());
 }
 
 void tst_QCameraBackend::testCameraActive()
