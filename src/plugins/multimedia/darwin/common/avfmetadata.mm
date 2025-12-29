@@ -10,6 +10,7 @@
 #include <QtCore/qdatetime.h>
 #include <QtCore/qlocale.h>
 #include <QtCore/qurl.h>
+#include <QtCore/private/qcore_mac_p.h>
 #include <QImage>
 #include <QtMultimedia/qvideoframe.h>
 
@@ -252,11 +253,9 @@ QMediaMetaData AVFMetaData::fromAssetTrack(AVAssetTrack *asset)
             if (languageCode) {
                 // languageCode is encoded as ISO 639-2, which QLocale does not handle.
                 // Convert it to 639-1 first.
-                auto id = CFLocaleCreateCanonicalLanguageIdentifierFromString(kCFAllocatorDefault,
-                                                                            (__bridge CFStringRef)languageCode);
-                QString lang = QString::fromCFString(id);
-                CFRelease(id);
-                metadata.insert(QMediaMetaData::Language, QLocale::codeToLanguage(lang));
+                QCFString lang = CFLocaleCreateCanonicalLanguageIdentifierFromString(
+                        kCFAllocatorDefault, (__bridge CFStringRef)languageCode);
+                metadata.insert(QMediaMetaData::Language, QLocale::codeToLanguage(QString{ lang }));
             }
         }
     }

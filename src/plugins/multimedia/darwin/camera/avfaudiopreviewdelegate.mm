@@ -5,6 +5,7 @@
 #include "avfaudiopreviewdelegate_p.h"
 
 #include <QtCore/qdebug.h>
+#include <QtCore/private/qcore_mac_p.h>
 
 QT_USE_NAMESPACE
 
@@ -41,11 +42,11 @@ QT_USE_NAMESPACE
         return;
     }
 
-    CFRetain(sampleBuffer);
+    auto buffer = QCFType<CMSampleBufferRef>::constructFromGet(sampleBuffer);
 
     dispatch_async(m_audioPreviewQueue, ^{
-        [self renderAudioSampleBuffer:sampleBuffer];
-        CFRelease(sampleBuffer);
+        [self renderAudioSampleBuffer:buffer];
+        return;
     });
 }
 
