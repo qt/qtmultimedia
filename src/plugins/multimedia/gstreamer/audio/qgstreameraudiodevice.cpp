@@ -15,6 +15,8 @@ QGStreamerCustomAudioDeviceInfo::QGStreamerCustomAudioDeviceInfo(const QByteArra
           gstreamerPipeline,
           mode,
           QString::fromUtf8(gstreamerPipeline),
+          false,
+          std::future<QAudioDevicePrivate::AudioDeviceFormat>{}  // invalid future - format not predetermined
       }
 {
 }

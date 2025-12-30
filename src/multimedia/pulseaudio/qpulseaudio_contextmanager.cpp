@@ -27,16 +27,14 @@ makeQAudioDevicePrivate(const char *device, const char *desc, bool isDef, QAudio
 {
     using namespace QPulseAudioInternal;
 
-    auto deviceInfo = std::make_unique<QPulseAudioDevicePrivate>(device, mode, QString::fromUtf8(desc));
     QAudioFormat::ChannelConfig channelConfig = channelConfigFromMap(map);
 
-    deviceInfo->isDefault = isDef;
-    deviceInfo->channelConfiguration = channelConfig;
+    QAudioDevicePrivate::AudioDeviceFormat format;
 
-    deviceInfo->minimumChannelCount = 1;
-    deviceInfo->maximumChannelCount = PA_CHANNELS_MAX;
-    deviceInfo->minimumSampleRate = 1;
-    deviceInfo->maximumSampleRate = PA_RATE_MAX;
+    format.minimumChannelCount = 1;
+    format.maximumChannelCount = PA_CHANNELS_MAX;
+    format.minimumSampleRate = 1;
+    format.maximumSampleRate = PA_RATE_MAX;
 
     constexpr bool isBigEndian = QSysInfo::ByteOrder == QSysInfo::BigEndian;
 
@@ -53,7 +51,7 @@ makeQAudioDevicePrivate(const char *device, const char *desc, bool isDef, QAudio
 
     for (const auto &f : formatMap) {
         if (pa_sample_format_valid(f.pa_fmt) != 0)
-            deviceInfo->supportedSampleFormats.append(f.qt_fmt);
+            format.supportedSampleFormats.append(f.qt_fmt);
     }
 
     QAudioFormat preferredFormat = sampleSpecToAudioFormat(spec);
@@ -62,15 +60,16 @@ makeQAudioDevicePrivate(const char *device, const char *desc, bool isDef, QAudio
         preferredFormat.setSampleRate(spec.rate ? spec.rate : 48000);
 
         Q_ASSERT(spec.format != PA_SAMPLE_INVALID);
-        if (!deviceInfo->supportedSampleFormats.contains(preferredFormat.sampleFormat()))
+        if (!format.supportedSampleFormats.contains(preferredFormat.sampleFormat()))
             preferredFormat.setSampleFormat(QAudioFormat::Float);
     }
 
-    deviceInfo->preferredFormat = preferredFormat;
-    deviceInfo->preferredFormat.setChannelConfig(channelConfig);
-    Q_ASSERT(deviceInfo->preferredFormat.isValid());
+    format.preferredFormat = preferredFormat;
+    format.preferredFormat.setChannelConfig(channelConfig);
+    format.channelConfiguration = channelConfig;
+    Q_ASSERT(format.preferredFormat.isValid());
 
-    return deviceInfo;
+    return std::make_unique<QPulseAudioDevicePrivate>(QByteArray(device), mode, QString::fromUtf8(desc), isDef, format);
 }
 
 template<typename Info>

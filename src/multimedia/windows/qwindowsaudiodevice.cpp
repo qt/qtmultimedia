@@ -7,6 +7,7 @@
 #include <QtCore/qt_windows.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/private/qsystemerror_p.h>
+#include <future>
 
 #include <QtMultimedia/private/qaudioformat_p.h>
 #include <QtMultimedia/private/qcominitializer_p.h>
@@ -26,7 +27,7 @@ using QtMultimediaPrivate::PropertyStoreHelper;
 
 namespace {
 
-Q_STATIC_LOGGING_CATEGORY(qLcAudioDeviceProbes, "qt.multimedia.audiodevice.probes");
+Q_STATIC_LOGGING_CATEGORY(qLcAudioDeviceProbes, "qt.multimedia.audiodevice.probes")
 
 std::optional<EndpointFormFactor> inferFormFactor(PropertyStoreHelper &propertyStore)
 {
@@ -266,13 +267,14 @@ std::optional<QAudioFormat> probePreferredFormat(const ComPtr<IAudioClient> &aud
     return std::nullopt;
 }
 
-} // namespace
-
-QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev, QString desc,
-                                         QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(std::move(id), mode, std::move(desc))
+QtWASAPI::WindowsFormatResult probeWindowsAudioDeviceFormat(ComPtr<IMMDevice> immDev)
 {
-    Q_ASSERT(immDev);
+    std::promise<QAudioDevicePrivate::AudioDeviceFormat> formatPromise;
+    std::promise<QtWASAPI::WindowsProbeData> probePromise;
+
+    QAudioDevicePrivate::AudioDeviceFormat format;
+    QtWASAPI::WindowsProbeData probeData{ {1, 2}, {QtMultimediaPrivate::allSupportedSampleRates.front(),
+                                         QtMultimediaPrivate::allSupportedSampleRates.back()} };
 
     ComPtr<IAudioClient> audioClient;
     HRESULT hr = immDev->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
@@ -282,54 +284,81 @@ QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev
         QComTaskResource<WAVEFORMATEX> mixFormat;
         hr = audioClient->GetMixFormat(mixFormat.address());
         if (SUCCEEDED(hr))
-            preferredFormat = QWindowsAudioUtils::waveFormatExToFormat(*mixFormat);
+            format.preferredFormat = QWindowsAudioUtils::waveFormatExToFormat(*mixFormat);
     } else {
-        qWarning() << "QWindowsAudioDeviceInfo: could not activate audio client:" << description
+        qWarning() << "QWindowsAudioDeviceInfo: could not activate audio client:"
                    << QSystemError::windowsComString(hr);
-        return;
+        formatPromise.set_value(format);
+        probePromise.set_value(probeData);
+        return {formatPromise.get_future(), probePromise.get_future()};
     }
 
     auto propStoreHelper = PropertyStoreHelper::open(immDev);
     if (!propStoreHelper) {
-        qWarning() << "QWindowsAudioDeviceInfo: could not open property store:" << description
+        qWarning() << "QWindowsAudioDeviceInfo: could not open property store:"
                    << propStoreHelper.error();
-        return;
+        formatPromise.set_value(format);
+        probePromise.set_value(probeData);
+        return {formatPromise.get_future(), probePromise.get_future()};
     }
 
-    qCDebug(qLcAudioDeviceProbes) << "probing formats for" << description;
+    qCDebug(qLcAudioDeviceProbes) << "probing formats";
 
     std::optional<FormatProbeResult> probedFormats =
-            probeFormats(audioClient, *propStoreHelper, preferredFormat);
+            probeFormats(audioClient, *propStoreHelper, format.preferredFormat);
     if (probedFormats) {
         // wasapi does sample format conversion for us: AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM
-        supportedSampleFormats = qAllSupportedSampleFormats();
+        format.supportedSampleFormats = qAllSupportedSampleFormats();
 
         // this is a bit of a lie:
         // for sources, WASAPI only supports a single sample rate, but we inject a resampler
         // for sinks, WASAPI resamples internally
-        minimumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.front();
-        maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
+        format.minimumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.front();
+        format.maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
 
-        minimumChannelCount = 1; // we are lying here, but expect the QWASAPIAudioSinkStream to
-                                 // perform format conversion
-        maximumChannelCount = probedFormats->channelCountRange.second;
+        format.minimumChannelCount = 1; // we are lying here, but expect the QWASAPIAudioSinkStream to
+                                        // perform format conversion
+        format.maximumChannelCount = probedFormats->channelCountRange.second;
 
-        m_probedChannelCountRange = probedFormats->channelCountRange;
-        m_probedSampleRateRange = probedFormats->sampleRateRange;
+        probeData.channelCountRange = probedFormats->channelCountRange;
+        probeData.sampleRateRange = probedFormats->sampleRateRange;
     }
 
-    if (!preferredFormat.isValid()) {
+    if (!format.preferredFormat.isValid()) {
         std::optional<QAudioFormat> probedFormat = probePreferredFormat(audioClient);
         if (probedFormat)
-            preferredFormat = *probedFormat;
+            format.preferredFormat = *probedFormat;
     }
 
     std::optional<QAudioFormat::ChannelConfig> config =
-            inferChannelConfiguration(*propStoreHelper, maximumChannelCount);
+            inferChannelConfiguration(*propStoreHelper, format.maximumChannelCount);
 
-    channelConfiguration = config
+    format.channelConfiguration = config
             ? *config
-            : QAudioFormat::defaultChannelConfigForChannelCount(maximumChannelCount);
+            : QAudioFormat::defaultChannelConfigForChannelCount(format.maximumChannelCount);
+
+    formatPromise.set_value(format);
+    probePromise.set_value(probeData);
+    return {formatPromise.get_future(), probePromise.get_future()};
+}
+
+} // namespace
+
+QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev, QString desc,
+                                         QAudioDevice::Mode mode)
+    : QWindowsAudioDevice(std::move(id), std::move(desc), mode,
+                          probeWindowsAudioDeviceFormat(std::move(immDev)))
+{}
+
+QWindowsAudioDevice::QWindowsAudioDevice(QByteArray deviceId, QString description,
+                                         QAudioDevice::Mode mode,
+                                         QtWASAPI::WindowsFormatResult result)
+    : QAudioDevicePrivate(std::move(deviceId), mode, std::move(description), false,
+                          std::move(result.formatFuture)),
+      m_probeDataFuture{
+          result.probeDataFuture.share(),
+      }
+{
 }
 
 ComPtr<IMMDevice> QWindowsAudioDevice::open() const

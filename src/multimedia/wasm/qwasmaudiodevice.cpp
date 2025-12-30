@@ -11,27 +11,26 @@
 
 QT_BEGIN_NAMESPACE
 
-QWasmAudioDevice::QWasmAudioDevice(const char *device,
-                                   const char *desc,
-                                   bool isDef,
-                                   QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(device, mode, QString::fromUtf8(desc))
+namespace {
+
+QAudioDevicePrivate::AudioDeviceFormat createDefaultWasmAudioDeviceFormat()
 {
-    isDefault = isDef;
-    minimumChannelCount = 1;
-    maximumChannelCount = 2;
-    minimumSampleRate = 8000;
-    maximumSampleRate = 96000; // js AudioContext max according to docs
+    QAudioDevicePrivate::AudioDeviceFormat format;
+
+    format.minimumChannelCount = 1;
+    format.maximumChannelCount = 2;
+    format.minimumSampleRate = 8000;
+    format.maximumSampleRate = 96000; // js AudioContext max according to docs
 
     // native openAL formats
-    supportedSampleFormats.append(QAudioFormat::UInt8);
-    supportedSampleFormats.append(QAudioFormat::Int16);
+    format.supportedSampleFormats.append(QAudioFormat::UInt8);
+    format.supportedSampleFormats.append(QAudioFormat::Int16);
 
     // Browsers use 32bit floats as native, but emscripten reccomends checking for the exension.
     if (alIsExtensionPresent("AL_EXT_float32"))
-        supportedSampleFormats.append(QAudioFormat::Float);
+        format.supportedSampleFormats.append(QAudioFormat::Float);
 
-    preferredFormat.setChannelCount(2);
+    format.preferredFormat.setChannelCount(2);
 
     // FIXME: firefox
     // An AudioContext was prevented from starting automatically.
@@ -44,14 +43,25 @@ QWasmAudioDevice::QWasmAudioDevice(const char *device,
         audioContext.call<void>("resume");
         int sRate = audioContext["sampleRate"].as<int>();
         audioContext.call<void>("close");
-        preferredFormat.setSampleRate(sRate);
+        format.preferredFormat.setSampleRate(sRate);
     }
 
     auto f = QAudioFormat::Float;
 
-    if (!supportedSampleFormats.contains(f))
+    if (!format.supportedSampleFormats.contains(f))
         f = QAudioFormat::Int16;
-    preferredFormat.setSampleFormat(f);
+    format.preferredFormat.setSampleFormat(f);
+
+    return format;
+}
+
+} // namespace
+
+QWasmAudioDevice::QWasmAudioDevice(const char *device, const char *desc, bool isDef,
+                                   QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(device, mode, QString::fromUtf8(desc), isDef,
+                          createDefaultWasmAudioDeviceFormat())
+{
 }
 
 QT_END_NAMESPACE

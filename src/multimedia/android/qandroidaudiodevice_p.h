@@ -28,7 +28,6 @@ public:
                         QAudioFormat preferredFormat,
                         bool isBluetoothDevice,
                         bool isDefaultDevice = false);
-    ~QAndroidAudioDevice() {}
 
     bool isBluetoothDevice() const;
 

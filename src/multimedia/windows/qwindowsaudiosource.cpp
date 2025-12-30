@@ -28,10 +28,23 @@ QAudioFormat makeHostFormatForSource(const QAudioDevice &device, const QAudioFor
 {
     const QWindowsAudioDevice *winDevice = QAudioDevicePrivate::handle<QWindowsAudioDevice>(device);
 
+    auto status = winDevice->m_probeDataFuture.wait_for(QAudioDevicePrivate::formatProbeTimeout);
+    switch (status) {
+    case std::future_status::ready:
+    case std::future_status::deferred:
+        // proceed
+        break;
+    case std::future_status::timeout:
+        return QAudioFormat{};
+    default:
+        Q_UNREACHABLE();
+    }
+
+    auto [minProbedChannels, maxProbedChannels] = winDevice->m_probeDataFuture.get().channelCountRange;
+    auto [minProbedSampleRate, maxProbedSampleRate] = winDevice->m_probeDataFuture.get().sampleRateRange;
+
     QAudioFormat hostFormat = format;
     const int requestedChannelCount = format.channelCount();
-    auto [minProbedChannels, maxProbedChannels] = winDevice->m_probedChannelCountRange;
-
     if (requestedChannelCount < device.minimumChannelCount()) {
         hostFormat.setChannelCount(minProbedChannels);
         hostFormat.setChannelConfig(
@@ -43,8 +56,6 @@ QAudioFormat makeHostFormatForSource(const QAudioDevice &device, const QAudioFor
     }
 
     const int requestedSampleRate = format.sampleRate();
-    auto [minProbedSampleRate, maxProbedSampleRate] = winDevice->m_probedSampleRateRange;
-
     if (requestedSampleRate < device.minimumSampleRate())
         hostFormat.setSampleRate(minProbedSampleRate);
     else if (requestedSampleRate > device.maximumSampleRate())

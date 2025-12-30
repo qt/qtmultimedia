@@ -29,12 +29,6 @@ public:
     QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &description, QAudioDevice::Mode mode);
     Q_DISABLE_COPY_MOVE(QAlsaAudioDeviceInfo)
     ~QAlsaAudioDeviceInfo();
-
-private:
-    void checkSurround();
-    bool surround40{};
-    bool surround51{};
-    bool surround71{};
 };
 
 QT_END_NAMESPACE

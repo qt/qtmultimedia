@@ -80,10 +80,30 @@ void tst_QAudioDevice::basicComparison()
     QFETCH(QAudioDevice::Mode, modeB);
     QFETCH(bool, expected);
 
-    auto privA = std::make_unique<QAudioDevicePrivate>(idA, modeA, u""_s);
+    QAudioDevicePrivate::AudioDeviceFormat formatA;
+    formatA.minimumChannelCount = 1;
+    formatA.maximumChannelCount = 2;
+    formatA.minimumSampleRate = 8000;
+    formatA.maximumSampleRate = 48000;
+    formatA.supportedSampleFormats = { QAudioFormat::Int16 };
+    formatA.preferredFormat.setChannelCount(1);
+    formatA.preferredFormat.setSampleFormat(QAudioFormat::Int16);
+    formatA.preferredFormat.setSampleRate(48000);
+
+    auto privA = std::make_unique<QAudioDevicePrivate>(idA, modeA, u""_s, false, formatA);
     const QAudioDevice a = QAudioDevicePrivate::createQAudioDevice(std::move(privA));
 
-    auto privB = std::make_unique<QAudioDevicePrivate>(idB, modeB, u""_s);
+    QAudioDevicePrivate::AudioDeviceFormat formatB;
+    formatB.minimumChannelCount = 1;
+    formatB.maximumChannelCount = 2;
+    formatB.minimumSampleRate = 8000;
+    formatB.maximumSampleRate = 48000;
+    formatB.supportedSampleFormats = { QAudioFormat::Int16 };
+    formatB.preferredFormat.setChannelCount(1);
+    formatB.preferredFormat.setSampleFormat(QAudioFormat::Int16);
+    formatB.preferredFormat.setSampleRate(48000);
+
+    auto privB = std::make_unique<QAudioDevicePrivate>(idB, modeB, u""_s, false, formatB);
     const QAudioDevice b = QAudioDevicePrivate::createQAudioDevice(std::move(privB));
 
     QCOMPARE(a == b, expected);
@@ -93,11 +113,20 @@ void tst_QAudioDevice::compare_returnsTrue_whenIsDefaultDiffers() {
     const QByteArray id = "ABC"_ba;
     const QAudioDevice::Mode mode = QAudioDevice::Mode::Input;
 
-    auto privA = std::make_unique<QAudioDevicePrivate>(id, mode, u""_s);
-    privA->isDefault = true;
+    QAudioDevicePrivate::AudioDeviceFormat format;
+    format.minimumChannelCount = 1;
+    format.maximumChannelCount = 2;
+    format.minimumSampleRate = 8000;
+    format.maximumSampleRate = 48000;
+    format.supportedSampleFormats = { QAudioFormat::Int16 };
+    format.preferredFormat.setChannelCount(1);
+    format.preferredFormat.setSampleFormat(QAudioFormat::Int16);
+    format.preferredFormat.setSampleRate(48000);
+
+    auto privA = std::make_unique<QAudioDevicePrivate>(id, mode, u""_s, true, format);
     const QAudioDevice a = QAudioDevicePrivate::createQAudioDevice(std::move(privA));
 
-    auto privB = std::make_unique<QAudioDevicePrivate>(id, mode, u""_s);
+    auto privB = std::make_unique<QAudioDevicePrivate>(id, mode, u""_s, false, format);
     privB->isDefault = false;
     const QAudioDevice b = QAudioDevicePrivate::createQAudioDevice(std::move(privB));
 

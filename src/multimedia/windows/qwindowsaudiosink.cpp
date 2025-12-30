@@ -25,10 +25,21 @@ QAudioFormat makeHostFormatForSink(const QAudioDevice &device, const QAudioForma
 {
     const QWindowsAudioDevice *winDevice = QAudioDevicePrivate::handle<QWindowsAudioDevice>(device);
 
+    auto status = winDevice->m_probeDataFuture.wait_for(QAudioDevicePrivate::formatProbeTimeout);
+    switch (status) {
+    case std::future_status::ready:
+    case std::future_status::deferred:
+        break;
+    case std::future_status::timeout:
+        return QAudioFormat{};
+    default:
+        Q_UNREACHABLE();
+    }
+
+    auto [minProbedChannels, maxProbedChannels] = winDevice->m_probeDataFuture.get().channelCountRange;
+
     QAudioFormat hostFormat = format;
     const int requestedChannelCount = format.channelCount();
-    auto [minProbedChannels, maxProbedChannels] = winDevice->m_probedChannelCountRange;
-
     if (requestedChannelCount < device.minimumChannelCount()) {
         hostFormat.setChannelCount(minProbedChannels);
         hostFormat.setChannelConfig(
