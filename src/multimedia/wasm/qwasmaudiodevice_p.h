@@ -23,7 +23,6 @@ class QWasmAudioDevice : public QAudioDevicePrivate
 {
 public:
     QWasmAudioDevice(const char *device, const char *description, bool isDefault, QAudioDevice::Mode mode);
-
 };
 
 QT_END_NAMESPACE

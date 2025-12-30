@@ -10,10 +10,6 @@
 
 QT_BEGIN_NAMESPACE
 
-QAudioDevicePrivate::~QAudioDevicePrivate() = default;
-
-QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDevicePrivate);
-
 /*!
     \class QAudioDevice
     \brief The QAudioDevice class provides an information about audio devices and their
@@ -225,15 +221,8 @@ bool QAudioDevice::isFormatSupported(const QAudioFormat &settings) const
 {
     if (isNull())
         return false;
-    if (settings.sampleRate() < d->minimumSampleRate
-        || settings.sampleRate() > d->maximumSampleRate)
-        return false;
-    if (settings.channelCount() < d->minimumChannelCount
-        || settings.channelCount() > d->maximumChannelCount)
-        return false;
-    if (!d->supportedSampleFormats.contains(settings.sampleFormat()))
-        return false;
-    return true;
+    auto result = d->isFormatSupported(settings);
+    return result ? *result : false;
 }
 
 /*!
@@ -251,7 +240,10 @@ bool QAudioDevice::isFormatSupported(const QAudioFormat &settings) const
 */
 QAudioFormat QAudioDevice::preferredFormat() const
 {
-    return isNull() ? QAudioFormat() : d->preferredFormat;
+    if (isNull())
+        return QAudioFormat();
+    auto fmt = d->preferredFormat();
+    return fmt ? *fmt : QAudioFormat();
 }
 
 /*!
@@ -259,7 +251,10 @@ QAudioFormat QAudioDevice::preferredFormat() const
 */
 int QAudioDevice::minimumSampleRate() const
 {
-    return isNull() ? 0 : d->minimumSampleRate;
+    if (isNull())
+        return 0;
+    auto rate = d->minimumSampleRate();
+    return rate ? *rate : 0;
 }
 
 /*!
@@ -267,7 +262,10 @@ int QAudioDevice::minimumSampleRate() const
 */
 int QAudioDevice::maximumSampleRate() const
 {
-    return isNull() ? 0 : d->maximumSampleRate;
+    if (isNull())
+        return 0;
+    auto rate = d->maximumSampleRate();
+    return rate ? *rate : 0;
 }
 
 /*!
@@ -277,7 +275,10 @@ int QAudioDevice::maximumSampleRate() const
 */
 int QAudioDevice::minimumChannelCount() const
 {
-    return isNull() ? 0 : d->minimumChannelCount;
+    if (isNull())
+        return 0;
+    auto count = d->minimumChannelCount();
+    return count ? *count : 0;
 }
 
 /*!
@@ -287,7 +288,10 @@ int QAudioDevice::minimumChannelCount() const
 */
 int QAudioDevice::maximumChannelCount() const
 {
-    return isNull() ? 0 : d->maximumChannelCount;
+    if (isNull())
+        return 0;
+    auto count = d->maximumChannelCount();
+    return count ? *count : 0;
 }
 
 /*!
@@ -295,7 +299,10 @@ int QAudioDevice::maximumChannelCount() const
 */
 QList<QAudioFormat::SampleFormat> QAudioDevice::supportedSampleFormats() const
 {
-    return isNull() ? QList<QAudioFormat::SampleFormat>() : d->supportedSampleFormats;
+    if (isNull())
+        return QList<QAudioFormat::SampleFormat>();
+    auto formats = d->supportedSampleFormats();
+    return formats ? *formats : QList<QAudioFormat::SampleFormat>();
 }
 
 /*!
@@ -303,7 +310,10 @@ QList<QAudioFormat::SampleFormat> QAudioDevice::supportedSampleFormats() const
 */
 QAudioFormat::ChannelConfig QAudioDevice::channelConfiguration() const
 {
-    return isNull() ? QAudioFormat::ChannelConfigUnknown : d->channelConfiguration;
+    if (isNull())
+        return QAudioFormat::ChannelConfigUnknown;
+    auto config = d->channelConfiguration();
+    return config ? *config : QAudioFormat::ChannelConfigUnknown;
 }
 
 /*!
@@ -367,10 +377,141 @@ QDebug operator<<(QDebug dbg, QAudioDevice::Mode mode)
 }
 #endif
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDevicePrivate)
+
+QAudioDevicePrivate::QAudioDevicePrivate(QByteArray i, QAudioDevice::Mode m, QString description,
+                                         bool isDefault, std::future<AudioDeviceFormat> format)
+    : id(std::move(i)),
+      mode(m),
+      description(std::move(description)),
+      isDefault(isDefault),
+      m_deviceFormat(std::move(format).share())
+{
+}
+
+namespace {
+
+std::future<QAudioDevicePrivate::AudioDeviceFormat>
+makeFuture(QAudioDevicePrivate::AudioDeviceFormat format)
+{
+    std::promise<QAudioDevicePrivate::AudioDeviceFormat> promise;
+    promise.set_value(std::move(format));
+    return promise.get_future();
+}
+
+} // namespace
+
+QAudioDevicePrivate::QAudioDevicePrivate(const QByteArray &i, QAudioDevice::Mode m,
+                                         QString description, bool isDefault,
+                                         AudioDeviceFormat format)
+    : QAudioDevicePrivate(i, m, std::move(description), isDefault, makeFuture(std::move(format)))
+{
+}
+
+QAudioDevicePrivate::~QAudioDevicePrivate() = default;
+
+template <typename F>
+QAudioDeviceExpected<std::invoke_result_t<F, const QAudioDevicePrivate::AudioDeviceFormat &>>
+QAudioDevicePrivate::doWithDeviceFormat(F &&f) const
+{
+    if (m_deviceFormat.valid()) {
+        auto status = m_deviceFormat.wait_for(formatProbeTimeout);
+        switch (status) {
+        case std::future_status::ready:
+        case std::future_status::deferred:
+            return f(m_deviceFormat.get());
+        case std::future_status::timeout:
+            return q23::unexpected{ QAudioDeviceFormatError::Timeout };
+        default:
+            Q_UNREACHABLE_RETURN(q23::unexpected{ QAudioDeviceFormatError::InvalidFuture });
+        }
+    }
+    return q23::unexpected{ QAudioDeviceFormatError::InvalidFuture };
+}
+
+QAudioDeviceExpected<QAudioDevicePrivate::AudioDeviceFormat> QAudioDevicePrivate::format() const
+{
+    return doWithDeviceFormat([](const AudioDeviceFormat &fmt) {
+        return AudioDeviceFormat{ fmt };
+    });
+}
+
+QAudioDeviceExpected<QAudioFormat> QAudioDevicePrivate::preferredFormat() const
+{
+    return doWithDeviceFormat([](const AudioDeviceFormat &fmt) {
+        return fmt.preferredFormat;
+    });
+}
+
+QAudioDeviceExpected<int> QAudioDevicePrivate::minimumSampleRate() const
+{
+    return doWithDeviceFormat([](const AudioDeviceFormat &fmt) {
+        return fmt.minimumSampleRate;
+    });
+}
+
+QAudioDeviceExpected<int> QAudioDevicePrivate::maximumSampleRate() const
+{
+    return doWithDeviceFormat([](const AudioDeviceFormat &fmt) {
+        return fmt.maximumSampleRate;
+    });
+}
+
+QAudioDeviceExpected<int> QAudioDevicePrivate::minimumChannelCount() const
+{
+    return doWithDeviceFormat([](const AudioDeviceFormat &fmt) {
+        return fmt.minimumChannelCount;
+    });
+}
+
+QAudioDeviceExpected<int> QAudioDevicePrivate::maximumChannelCount() const
+{
+    return doWithDeviceFormat([](const AudioDeviceFormat &fmt) {
+        return fmt.maximumChannelCount;
+    });
+}
+
+QAudioDeviceExpected<QList<QAudioFormat::SampleFormat>>
+QAudioDevicePrivate::supportedSampleFormats() const
+{
+    return doWithDeviceFormat([](const AudioDeviceFormat &fmt) {
+        return fmt.supportedSampleFormats;
+    });
+}
+
+QAudioDeviceExpected<QAudioFormat::ChannelConfig> QAudioDevicePrivate::channelConfiguration() const
+{
+    return doWithDeviceFormat([](const AudioDeviceFormat &fmt) {
+        return fmt.channelConfiguration;
+    });
+}
+
+QAudioDeviceExpected<bool> QAudioDevicePrivate::isFormatSupported(const QAudioFormat &format) const
+{
+    return doWithDeviceFormat([&](const AudioDeviceFormat &deviceFormat) {
+        if (format.sampleRate() < deviceFormat.minimumSampleRate
+            || format.sampleRate() > deviceFormat.maximumSampleRate)
+            return false;
+        if (format.channelCount() < deviceFormat.minimumChannelCount
+            || format.channelCount() > deviceFormat.maximumChannelCount)
+            return false;
+        if (!deviceFormat.supportedSampleFormats.contains(format.sampleFormat()))
+            return false;
+        return true;
+    });
+}
+
 QAudioDevice
 QAudioDevicePrivate::createQAudioDevice(std::unique_ptr<QAudioDevicePrivate> devicePrivate)
 {
     return QAudioDevice(devicePrivate.release());
+}
+
+const QAudioDevicePrivate *QAudioDevicePrivate::handle(const QAudioDevice &device)
+{
+    return device.d.get();
 }
 
 QT_END_NAMESPACE

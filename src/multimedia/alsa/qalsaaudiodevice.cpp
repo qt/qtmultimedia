@@ -5,53 +5,62 @@
 
 QT_BEGIN_NAMESPACE
 
-QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &desc,
-                                           QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(dev, mode, desc)
+namespace {
+
+QAudioDevicePrivate::AudioDeviceFormat
+createAlsaAudioDeviceFormatFromDeviceName(const QByteArray &dev, QAudioDevice::Mode mode)
 {
-    checkSurround();
+    QAudioDevicePrivate::AudioDeviceFormat format;
 
-    minimumChannelCount = 1;
-    maximumChannelCount = 2;
+    // Check surround capabilities
+    bool surround40 = false;
+    bool surround51 = false;
+    bool surround71 = false;
+
+    if (mode == QAudioDevice::Output) {
+        if (dev.startsWith(QLatin1String("surround40")))
+            surround40 = true;
+        if (dev.startsWith(QLatin1String("surround51")))
+            surround51 = true;
+        if (dev.startsWith(QLatin1String("surround71")))
+            surround71 = true;
+    }
+
+    format.minimumChannelCount = 1;
+    format.maximumChannelCount = 2;
     if (surround71)
-        maximumChannelCount = 8;
+        format.maximumChannelCount = 8;
     else if (surround40)
-        maximumChannelCount = 4;
+        format.maximumChannelCount = 4;
     else if (surround51)
-        maximumChannelCount = 6;
+        format.maximumChannelCount = 6;
 
-    minimumSampleRate = 8000;
-    maximumSampleRate = 48000;
+    format.minimumSampleRate = 8000;
+    format.maximumSampleRate = 48000;
 
-    supportedSampleFormats = {
+    format.supportedSampleFormats = {
         QAudioFormat::UInt8,
         QAudioFormat::Int16,
         QAudioFormat::Int32,
         QAudioFormat::Float,
     };
 
-    preferredFormat.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
-    preferredFormat.setSampleFormat(QAudioFormat::Float);
-    preferredFormat.setSampleRate(48000);
+    format.preferredFormat.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
+    format.preferredFormat.setSampleFormat(QAudioFormat::Float);
+    format.preferredFormat.setSampleRate(48000);
+
+    return format;
+}
+
+} // namespace
+
+QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &desc,
+                                           QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(dev, mode, desc, false,
+                          createAlsaAudioDeviceFormatFromDeviceName(dev, mode))
+{
 }
 
 QAlsaAudioDeviceInfo::~QAlsaAudioDeviceInfo() = default;
-
-void QAlsaAudioDeviceInfo::checkSurround()
-{
-    if (mode != QAudioDevice::Output)
-        return;
-
-    surround40 = false;
-    surround51 = false;
-    surround71 = false;
-
-    if (id.startsWith(QLatin1String("surround40")))
-        surround40 = true;
-    if (id.startsWith(QLatin1String("surround51")))
-        surround51 = true;
-    if (id.startsWith(QLatin1String("surround71")))
-        surround71 = true;
-}
 
 QT_END_NAMESPACE

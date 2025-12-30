@@ -28,20 +28,32 @@ struct IMMDevice;
 
 QT_BEGIN_NAMESPACE
 
+namespace QtWASAPI {
+
+struct WindowsProbeData {
+    std::pair<int, int> channelCountRange;
+    std::pair<int, int> sampleRateRange;
+};
+
+struct WindowsFormatResult {
+    std::future<QAudioDevicePrivate::AudioDeviceFormat> formatFuture;
+    std::future<WindowsProbeData> probeDataFuture;
+};
+
+} // namespace QtWASAPI
+
 class QWindowsAudioDevice : public QAudioDevicePrivate
 {
 public:
-    QWindowsAudioDevice(QByteArray deviceId, ComPtr<IMMDevice> immdev, QString description,
-                        QAudioDevice::Mode mode);
+    QWindowsAudioDevice(QByteArray deviceId, ComPtr<IMMDevice>, QString description,
+                        QAudioDevice::Mode);
+    QWindowsAudioDevice(QByteArray deviceId, QString description, QAudioDevice::Mode,
+                        QtWASAPI::WindowsFormatResult);
     ~QWindowsAudioDevice();
 
     ComPtr<IMMDevice> open() const;
 
-    std::pair<int, int> m_probedChannelCountRange{ 1, 2 }; // fallback: mono/stereo
-    std::pair<int, int> m_probedSampleRateRange{
-        QtMultimediaPrivate::allSupportedSampleRates.front(),
-        QtMultimediaPrivate::allSupportedSampleRates.back(),
-    }; // fallback: full range
+    std::shared_future<QtWASAPI::WindowsProbeData> m_probeDataFuture;
 };
 
 QT_END_NAMESPACE

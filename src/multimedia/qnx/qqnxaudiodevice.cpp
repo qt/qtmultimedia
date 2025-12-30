@@ -14,48 +14,61 @@ using namespace QnxAudioUtils;
 
 QT_BEGIN_NAMESPACE
 
-QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QByteArray &deviceName, QAudioDevice::Mode mode)
-    : QAudioDevicePrivate(deviceName, mode, QString::fromUtf8(deviceName))
+namespace {
+
+QAudioDevicePrivate::AudioDeviceFormat
+createQnxAudioDeviceFormatFromDeviceName(const QByteArray &deviceName, QAudioDevice::Mode mode)
 {
-    isDefault = id.contains("Preferred");
+    QAudioDevicePrivate::AudioDeviceFormat format;
 
-    preferredFormat.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
+    format.preferredFormat.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
 
-    minimumChannelCount = 1;
-    maximumChannelCount = 2;
+    format.minimumChannelCount = 1;
+    format.maximumChannelCount = 2;
 
-    const std::optional<snd_pcm_channel_info_t> info = pcmChannelInfo(id, mode);
+    const std::optional<snd_pcm_channel_info_t> info = pcmChannelInfo(deviceName, mode);
 
     if (!info)
-        return;
+        return format;
 
-    minimumSampleRate = info->min_rate;
-    maximumSampleRate = info->max_rate;
+    format.minimumSampleRate = info->min_rate;
+    format.maximumSampleRate = info->max_rate;
 
     constexpr std::array sampleRates { 48000, 44100, 22050, 16000, 11025, 8000 };
 
     for (int rate : sampleRates) {
-        if (rate <= maximumSampleRate && rate >= minimumSampleRate) {
-            preferredFormat.setSampleRate(rate);
+        if (rate <= format.maximumSampleRate && rate >= format.minimumSampleRate) {
+            format.preferredFormat.setSampleRate(rate);
             break;
         }
     }
 
     if (info->formats & SND_PCM_FMT_U8) {
-        supportedSampleFormats << QAudioFormat::UInt8;
-        preferredFormat.setSampleFormat(QAudioFormat::UInt8);
+        format.supportedSampleFormats << QAudioFormat::UInt8;
+        format.preferredFormat.setSampleFormat(QAudioFormat::UInt8);
     }
 
     if (info->formats & SND_PCM_FMT_S16) {
-        supportedSampleFormats << QAudioFormat::Int16;
-        preferredFormat.setSampleFormat(QAudioFormat::Int16);
+        format.supportedSampleFormats << QAudioFormat::Int16;
+        format.preferredFormat.setSampleFormat(QAudioFormat::Int16);
     }
 
     if (info->formats & SND_PCM_FMT_S32)
-        supportedSampleFormats << QAudioFormat::Int32;
+        format.supportedSampleFormats << QAudioFormat::Int32;
 
     if (info->formats & SND_PCM_FMT_FLOAT)
-        supportedSampleFormats << QAudioFormat::Float;
+        format.supportedSampleFormats << QAudioFormat::Float;
+
+    return format;
+}
+
+} // namespace
+
+QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QByteArray &deviceName, QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(deviceName, mode, QString::fromUtf8(deviceName),
+                          deviceName.contains("Preferred"),
+                          createQnxAudioDeviceFormatFromDeviceName(deviceName, mode))
+{
 }
 
 QnxAudioDeviceInfo::~QnxAudioDeviceInfo()
