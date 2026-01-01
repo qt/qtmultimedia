@@ -43,7 +43,7 @@ struct WindowsFormatResultFutures
 
 } // namespace QtWASAPI
 
-class QWindowsAudioDevice : public QAudioDevicePrivate
+class QWindowsAudioDevice final : public QAudioDevicePrivate
 {
 public:
     QWindowsAudioDevice(QByteArray deviceId, ComPtr<IMMDevice>, QString description,
@@ -51,6 +51,8 @@ public:
     QWindowsAudioDevice(QByteArray deviceId, QString description, QAudioDevice::Mode,
                         QtWASAPI::WindowsFormatResultFutures);
     ~QWindowsAudioDevice();
+
+    std::unique_ptr<QAudioDevicePrivate> clone() const;
 
     ComPtr<IMMDevice> open() const;
 

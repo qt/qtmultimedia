@@ -236,6 +236,8 @@ private:
 QWindowsAudioDevices::QWindowsAudioDevices()
     : QPlatformAudioDevices()
 {
+    using namespace QtWASAPI;
+
     auto hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
                                IID_PPV_ARGS(&m_deviceEnumerator));
 
@@ -255,12 +257,33 @@ QWindowsAudioDevices::QWindowsAudioDevices()
         onAudioOutputsChanged();
     });
     connect(m_notificationClient.Get(), &QtWASAPI::CMMNotificationClient::audioDeviceRemoved, this,
-            [this] {
+            [this](ComPtr<IMMDevice> device) {
+        {
+            std::lock_guard lock(m_cacheMutex);
+            m_cachedDevices.erase(device);
+        }
         onAudioInputsChanged();
         onAudioOutputsChanged();
     });
     connect(m_notificationClient.Get(), &QtWASAPI::CMMNotificationClient::audioDeviceDefaultChanged,
-            this, [this](QAudioDevice::Mode mode, ComPtr<IMMDevice>) {
+            this, [this](QAudioDevice::Mode mode, ComPtr<IMMDevice> device) {
+        {
+            std::lock_guard lock(m_cacheMutex);
+
+            for (auto &entry : m_cachedDevices) {
+                if (entry.second.mode() != mode)
+                    continue;
+
+                auto handle = QAudioDevicePrivate::handle<QWindowsAudioDevice>(entry.second);
+                Q_PRESUME(handle);
+
+                std::unique_ptr<QAudioDevicePrivate> newPrivate = handle->clone();
+                newPrivate->isDefault = entry.first == device;
+
+                entry.second = QAudioDevicePrivate::createQAudioDevice(std::move(newPrivate));
+            }
+        }
+
         switch (mode) {
         case QAudioDevice::Input:
             onAudioInputsChanged();
@@ -273,7 +296,13 @@ QWindowsAudioDevices::QWindowsAudioDevices()
         }
     });
     connect(m_notificationClient.Get(),
-            &QtWASAPI::CMMNotificationClient::audioDevicePropertyChanged, this, [this] {
+            &QtWASAPI::CMMNotificationClient::audioDevicePropertyChanged, this,
+            [this](ComPtr<IMMDevice> device) {
+        {
+            std::lock_guard lock(m_cacheMutex);
+            m_cachedDevices.erase(device);
+        }
+
         onAudioInputsChanged();
         onAudioOutputsChanged();
     });
@@ -304,9 +333,35 @@ static std::optional<QString> getDeviceId(const ComPtr<IMMDevice> &dev)
     return QString::fromWCharArray(id.get());
 }
 
-QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mode) const
+static std::optional<QAudioDevice> asQAudioDevice(ComPtr<IMMDevice> device, QAudioDevice::Mode mode,
+                                                  std::optional<QString> defaultAudioDeviceID)
 {
     using QtMultimediaPrivate::PropertyStoreHelper;
+
+    std::optional<QString> deviceId = getDeviceId(device);
+    if (!deviceId)
+        return std::nullopt;
+
+    q23::expected<PropertyStoreHelper, QString> props = PropertyStoreHelper::open(device);
+    if (!props) {
+        qWarning() << "OpenPropertyStore failed" << props.error();
+        return std::nullopt;
+    }
+
+    std::optional<QString> friendlyName = props->getString(PKEY_Device_FriendlyName);
+    if (!friendlyName) {
+        qWarning() << "Cannot read property store";
+        return std::nullopt;
+    }
+
+    auto dev =
+            std::make_unique<QWindowsAudioDevice>(deviceId->toUtf8(), device, *friendlyName, mode);
+    dev->isDefault = deviceId == defaultAudioDeviceID;
+    return QAudioDevicePrivate::createQAudioDevice(std::move(dev));
+}
+
+QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mode) const
+{
     if (!m_deviceEnumerator)
         return {};
 
@@ -350,26 +405,23 @@ QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mo
             continue;
         }
 
-        std::optional<QString> deviceId = getDeviceId(device);
-        if (!deviceId)
-            continue;
-
-        q23::expected<PropertyStoreHelper, QString> props = PropertyStoreHelper::open(device);
-        if (!props) {
-            qWarning() << "OpenPropertyStore failed" << props.error();
-            continue;
+        {
+            std::lock_guard lock(m_cacheMutex);
+            auto cachedDevice = m_cachedDevices.find(device);
+            if (cachedDevice != m_cachedDevices.end()) {
+                devices.append(cachedDevice->second);
+                continue;
+            }
         }
 
-        std::optional<QString> friendlyName = props->getString(PKEY_Device_FriendlyName);
-        if (!friendlyName) {
-            qWarning() << "Cannot read property store";
-            continue;
-        }
+        std::optional<QAudioDevice> audioDevice =
+                asQAudioDevice(device, mode, defaultAudioDeviceID);
 
-        auto dev = std::make_unique<QWindowsAudioDevice>(deviceId->toUtf8(), device, *friendlyName,
-                                                         mode);
-        dev->isDefault = deviceId == defaultAudioDeviceID;
-        devices.append(QAudioDevicePrivate::createQAudioDevice(std::move(dev)));
+        if (audioDevice) {
+            devices.append(*audioDevice);
+            std::lock_guard lock(m_cacheMutex);
+            m_cachedDevices.emplace(device, *audioDevice);
+        }
     }
 
     return devices;
