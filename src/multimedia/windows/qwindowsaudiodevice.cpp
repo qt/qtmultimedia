@@ -389,16 +389,25 @@ QtWASAPI::WindowsFormatResultFutures probeWindowsAudioDeviceFormatAsync(ComPtr<I
 } // namespace
 
 QWindowsAudioDevice::QWindowsAudioDevice(QByteArray id, ComPtr<IMMDevice> immDev, QString desc,
+                                         QUuid containerId, EndpointFormFactor formFactor,
                                          QAudioDevice::Mode mode)
-    : QWindowsAudioDevice(std::move(id), std::move(desc), mode,
-                          probeWindowsAudioDeviceFormatAsync(std::move(immDev)))
+    : QWindowsAudioDevice{ std::move(id), std::move(desc),
+                           containerId,   formFactor,
+                           mode,          probeWindowsAudioDeviceFormatAsync(std::move(immDev)) }
 {}
 
 QWindowsAudioDevice::QWindowsAudioDevice(QByteArray deviceId, QString description,
+                                         QUuid containerId, EndpointFormFactor formFactor,
                                          QAudioDevice::Mode mode,
                                          QtWASAPI::WindowsFormatResultFutures result)
     : QAudioDevicePrivate(std::move(deviceId), mode, std::move(description), false,
                           std::move(result.formatFuture)),
+      m_device_ContainerId{
+          containerId,
+      },
+      m_formFactor{
+          formFactor,
+      },
       m_probeDataFuture{
           result.probeDataFuture.share(),
       }

@@ -391,12 +391,9 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
 set(source_with_init_guid
     windows/qwindows_wasapi_warmup_client.cpp
     windows/qwindowsmuldimediautils.cpp
+    windows/qwindowsaudiodevices.cpp
     windows/qwindowsvideodevices.cpp
 )
-if(MINGW)
-    # mingw's uuid.lib does not contain PKEY_Device_FriendlyName and friends
-    list(APPEND source_with_init_guid windows/qwindowsaudiodevices.cpp)
-endif()
 
 set_source_files_properties(${source_with_init_guid} PROPERTIES
     COMPILE_DEFINITIONS     INITGUID

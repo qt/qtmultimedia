@@ -72,6 +72,49 @@ std::optional<uint32_t> PropertyStoreHelper::getUInt32(const PROPERTYKEY &proper
     return std::nullopt;
 }
 
+namespace {
+
+// mingw workaround: PropVariantToGUID does not provide correct signature
+// https://github.com/mingw-w64/mingw-w64/issues/153
+
+template <typename T>
+struct first_arg_is_ptr;
+
+// Function type
+template <typename Result, typename Arg, typename... Args>
+struct first_arg_is_ptr<Result (*)(Arg, Args...)> : std::bool_constant<std::is_pointer_v<Arg>>
+{
+};
+
+auto wrapPropVariantArg(const PROPVARIANT &arg)
+{
+    if constexpr (first_arg_is_ptr<decltype(&PropVariantToGUID)>::value) {
+        return &arg;
+    } else {
+        return arg;
+    }
+}
+
+} // namespace
+
+std::optional<QUuid> PropertyStoreHelper::getGUID(const PROPERTYKEY &property)
+{
+    PROPVARIANT variant;
+    PropVariantInit(&variant);
+
+    if (!SUCCEEDED(m_props->GetValue(property, &variant)))
+        return std::nullopt;
+
+    GUID ret;
+    HRESULT hr = PropVariantToGUID(wrapPropVariantArg(variant), &ret);
+    if (SUCCEEDED(hr))
+        return QUuid{ ret };
+
+    qWarning() << "PropertyStoreHelper::getUInt32: PropVariantToUInt32 failed"
+               << QSystemError::windowsComString(hr);
+    return std::nullopt;
+}
+
 } // namespace QtMultimediaPrivate
 
 QT_END_NAMESPACE
