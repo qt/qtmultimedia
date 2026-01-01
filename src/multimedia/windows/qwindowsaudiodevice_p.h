@@ -17,12 +17,15 @@
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qstring.h>
+#include <QtCore/quuid.h>
 #include <QtCore/private/qcomptr_p.h>
 
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/private/qaudioformat_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudiodevice_p.h>
+
+#include <mmdeviceapi.h>
 
 struct IMMDevice;
 
@@ -47,8 +50,9 @@ class QWindowsAudioDevice final : public QAudioDevicePrivate
 {
 public:
     QWindowsAudioDevice(QByteArray deviceId, ComPtr<IMMDevice>, QString description,
-                        QAudioDevice::Mode);
-    QWindowsAudioDevice(QByteArray deviceId, QString description, QAudioDevice::Mode,
+                        QUuid containerId, EndpointFormFactor, QAudioDevice::Mode);
+    QWindowsAudioDevice(QByteArray deviceId, QString description, QUuid containerId,
+                        EndpointFormFactor, QAudioDevice::Mode,
                         QtWASAPI::WindowsFormatResultFutures);
     ~QWindowsAudioDevice();
 
@@ -56,6 +60,8 @@ public:
 
     ComPtr<IMMDevice> open() const;
 
+    const QUuid m_device_ContainerId;
+    const EndpointFormFactor m_formFactor = EndpointFormFactor::UnknownFormFactor;
     std::shared_future<QtWASAPI::WindowsProbeData> m_probeDataFuture;
 };
 

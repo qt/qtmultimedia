@@ -16,6 +16,7 @@
 //
 
 #include <QtCore/qglobal.h>
+#include <QtCore/quuid.h>
 #include <QtCore/private/qcomptr_p.h>
 #include <QtCore/private/qexpected_p.h>
 #include <QtCore/private/qsystemerror_p.h>
@@ -36,6 +37,7 @@ public:
 
     std::optional<QString> getString(const PROPERTYKEY &);
     std::optional<uint32_t> getUInt32(const PROPERTYKEY &);
+    std::optional<QUuid> getGUID(const PROPERTYKEY &);
 
 private:
     ComPtr<IPropertyStore> m_props;

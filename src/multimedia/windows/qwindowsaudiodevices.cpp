@@ -22,6 +22,12 @@
 
 QT_BEGIN_NAMESPACE
 
+// older mingw does not have PKEY_Device_ContainerId defined
+// https://github.com/mingw-w64/mingw-w64/commit/7e6eca69655c81976acfd7cd6a1ed25e7961e8c7
+// defining it here to avoid depending on the mingw version
+DEFINE_PROPERTYKEY(PKEY_Device_ContainerIdQt, 0x8c7ed206, 0x3f8a, 0x4827, 0xb3, 0xab, 0xae, 0x9e,
+                   0x1f, 0xae, 0xfc, 0x6c, 2);
+
 namespace QtWASAPI {
 
 namespace {
@@ -354,8 +360,21 @@ static std::optional<QAudioDevice> asQAudioDevice(ComPtr<IMMDevice> device, QAud
         return std::nullopt;
     }
 
-    auto dev =
-            std::make_unique<QWindowsAudioDevice>(deviceId->toUtf8(), device, *friendlyName, mode);
+    std::optional<QUuid> deviceContainerId = props->getGUID(PKEY_Device_ContainerIdQt);
+    if (!deviceContainerId) {
+        qWarning() << "Cannot read property store";
+        return std::nullopt;
+    }
+
+    std::optional<uint32_t> formFactor = props->getUInt32(PKEY_AudioEndpoint_FormFactor);
+    if (!formFactor) {
+        qWarning() << "Cannot infer form factor";
+        return std::nullopt;
+    }
+
+    auto dev = std::make_unique<QWindowsAudioDevice>(deviceId->toUtf8(), device, *friendlyName,
+                                                     *deviceContainerId,
+                                                     EndpointFormFactor(*formFactor), mode);
     dev->isDefault = deviceId == defaultAudioDeviceID;
     return QAudioDevicePrivate::createQAudioDevice(std::move(dev));
 }
@@ -424,6 +443,17 @@ QList<QAudioDevice> QWindowsAudioDevices::availableDevices(QAudioDevice::Mode mo
         }
     }
 
+    auto deviceOrder = [](const QAudioDevice &lhs, const QAudioDevice &rhs) {
+        auto lhsHandle = QAudioDevicePrivate::handle<QWindowsAudioDevice>(lhs);
+        auto rhsHandle = QAudioDevicePrivate::handle<QWindowsAudioDevice>(rhs);
+        auto lhsKey = std::tie(lhsHandle->m_device_ContainerId, lhsHandle->m_formFactor,
+                               lhsHandle->description);
+        auto rhsKey = std::tie(rhsHandle->m_device_ContainerId, rhsHandle->m_formFactor,
+                               rhsHandle->description);
+        return lhsKey < rhsKey;
+    };
+
+    std::sort(devices.begin(), devices.end(), deviceOrder);
     return devices;
 }
 
