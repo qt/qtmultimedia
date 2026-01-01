@@ -97,6 +97,9 @@ public:
 
     static constexpr std::chrono::seconds formatProbeTimeout{4};
 
+protected:
+    QAudioDevicePrivate(const QAudioDevicePrivate &) = default;
+
 private:
     template <typename F>
     QAudioDeviceExpected<std::invoke_result_t<F, const AudioDeviceFormat &>>

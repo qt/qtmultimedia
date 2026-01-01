@@ -15,12 +15,13 @@
 // We mean it.
 //
 
-#include <private/qplatformaudiodevices_p.h>
-#include <QtCore/private/qcomptr_p.h>
-#include <private/qcominitializer_p.h>
-#include <private/qwindowsmediafoundation_p.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/private/qcominitializer_p.h>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtMultimedia/private/qwindowsmediafoundation_p.h>
 
-#include <qaudiodevice.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/private/qcomptr_p.h>
 
 struct IAudioClient3;
 struct IMMDevice;
@@ -61,6 +62,9 @@ private:
     ComPtr<QtWASAPI::CMMNotificationClient> m_notificationClient;
 
     friend QtWASAPI::CMMNotificationClient;
+
+    mutable QMutex m_cacheMutex;
+    mutable std::map<ComPtr<IMMDevice>, QAudioDevice> m_cachedDevices;
 };
 
 QT_END_NAMESPACE

@@ -430,4 +430,9 @@ ComPtr<IMMDevice> QWindowsAudioDevice::open() const
 
 QWindowsAudioDevice::~QWindowsAudioDevice() = default;
 
+std::unique_ptr<QAudioDevicePrivate> QWindowsAudioDevice::clone() const
+{
+    return std::unique_ptr<QAudioDevicePrivate>(new QWindowsAudioDevice{ *this });
+}
+
 QT_END_NAMESPACE
