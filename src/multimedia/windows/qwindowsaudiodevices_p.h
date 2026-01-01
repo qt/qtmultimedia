@@ -28,8 +28,9 @@ struct IMMDeviceEnumerator;
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsEngine;
+namespace QtWASAPI {
 class CMMNotificationClient;
+} // namespace QtWASAPI
 
 class QWindowsAudioDevices : public QPlatformAudioDevices
 {
@@ -57,9 +58,9 @@ private:
     QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
 
     ComPtr<IMMDeviceEnumerator> m_deviceEnumerator;
-    ComPtr<CMMNotificationClient> m_notificationClient;
+    ComPtr<QtWASAPI::CMMNotificationClient> m_notificationClient;
 
-    friend CMMNotificationClient;
+    friend QtWASAPI::CMMNotificationClient;
 };
 
 QT_END_NAMESPACE
