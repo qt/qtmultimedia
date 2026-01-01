@@ -21,21 +21,78 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QtWASAPI {
+
+namespace {
+
+enum class DeviceState : uint8_t {
+    active,
+    disabled,
+    notPresent,
+    unplugged,
+};
+
+constexpr DeviceState asDeviceState(DWORD state)
+{
+    switch (state) {
+    case DEVICE_STATE_ACTIVE:
+        return DeviceState::active;
+    case DEVICE_STATE_DISABLED:
+        return DeviceState::disabled;
+    case DEVICE_STATE_NOTPRESENT:
+        return DeviceState::notPresent;
+    case DEVICE_STATE_UNPLUGGED:
+        return DeviceState::unplugged;
+    default:
+        Q_UNREACHABLE_RETURN(DeviceState::notPresent);
+    }
+}
+
+} // namespace
+
 class CMMNotificationClient : public QComObject<IMMNotificationClient>
 {
     ComPtr<IMMDeviceEnumerator> m_enumerator;
     QWindowsAudioDevices *m_windowsMediaDevices;
-    QMap<QString, DWORD> m_deviceState;
+
+    struct DeviceRecord
+    {
+        ComPtr<IMMDevice> device;
+        DeviceState state;
+    };
+
+    QMap<QString, DeviceRecord> m_deviceMap;
 
 public:
     CMMNotificationClient(QWindowsAudioDevices *windowsMediaDevices,
-                          ComPtr<IMMDeviceEnumerator> enumerator,
-                          QMap<QString, DWORD> &&deviceState)
-        : m_enumerator(enumerator),
-          m_windowsMediaDevices(windowsMediaDevices),
-          m_deviceState(deviceState)
-    {}
+                          ComPtr<IMMDeviceEnumerator> enumerator)
+        : m_enumerator(enumerator), m_windowsMediaDevices(windowsMediaDevices)
+    {
+        ComPtr<IMMDeviceCollection> devColl;
+        UINT count = 0;
 
+        if (SUCCEEDED(m_enumerator->EnumAudioEndpoints(EDataFlow::eAll, DEVICE_STATEMASK_ALL,
+                                                       devColl.GetAddressOf()))
+            && SUCCEEDED(devColl->GetCount(&count))) {
+            for (UINT i = 0; i < count; i++) {
+                ComPtr<IMMDevice> device;
+                if (FAILED(devColl->Item(i, device.GetAddressOf())))
+                    continue;
+
+                auto enumerateResult = enumerateDevice(device);
+                if (!enumerateResult)
+                    continue;
+
+                auto idResult = deviceId(enumerateResult->device);
+                if (!idResult)
+                    continue;
+
+                m_deviceMap.insert(std::move(*idResult), std::move(*enumerateResult));
+            }
+        }
+    }
+
+private:
     HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR) override
     {
         if (role == ERole::eMultimedia)
@@ -46,10 +103,16 @@ public:
 
     HRESULT STDMETHODCALLTYPE OnDeviceAdded(LPCWSTR deviceID) override
     {
-        auto it = m_deviceState.find(QString::fromWCharArray(deviceID));
-        if (it == std::end(m_deviceState)) {
-            m_deviceState.insert(QString::fromWCharArray(deviceID), DEVICE_STATE_ACTIVE);
-            emitAudioDevicesChanged(deviceID);
+        auto it = m_deviceMap.find(QString::fromWCharArray(deviceID));
+        if (it == std::end(m_deviceMap)) {
+            auto enumerateResult = enumerateDevice(deviceID);
+            if (!enumerateResult)
+                return S_OK;
+
+            m_deviceMap.insert(QString::fromWCharArray(deviceID), *enumerateResult);
+
+            if (enumerateResult->state == DeviceState::active)
+                emitAudioDevicesChanged(deviceID);
         }
 
         return S_OK;
@@ -58,11 +121,11 @@ public:
     HRESULT STDMETHODCALLTYPE OnDeviceRemoved(LPCWSTR deviceID) override
     {
         auto key = QString::fromWCharArray(deviceID);
-        auto it = m_deviceState.find(key);
-        if (it != std::end(m_deviceState)) {
-            if (it.value() == DEVICE_STATE_ACTIVE)
+        auto it = m_deviceMap.find(key);
+        if (it != std::end(m_deviceMap)) {
+            if (it.value().state == DeviceState::active)
                 emitAudioDevicesChanged(deviceID);
-            m_deviceState.remove(key);
+            m_deviceMap.remove(key);
         }
 
         return S_OK;
@@ -70,12 +133,17 @@ public:
 
     HRESULT STDMETHODCALLTYPE OnDeviceStateChanged(LPCWSTR deviceID, DWORD newState) override
     {
-        if (auto it = m_deviceState.find(QString::fromWCharArray(deviceID)); it != std::end(m_deviceState)) {
+        if (auto it = m_deviceMap.find(QString::fromWCharArray(deviceID));
+            it != std::end(m_deviceMap)) {
             // If either the old state or the new state is active emit device change
-            if ((it.value() == DEVICE_STATE_ACTIVE) != (newState == DEVICE_STATE_ACTIVE)) {
+            auto oldAndNewState = QVector<DeviceState>{
+                it.value().state,
+                asDeviceState(newState),
+            };
+            if (oldAndNewState.contains(DeviceState::active))
                 emitAudioDevicesChanged(deviceID);
-            }
-            it.value() = newState;
+
+            it.value().state = asDeviceState(newState);
         }
 
         return S_OK;
@@ -83,6 +151,7 @@ public:
 
     HRESULT STDMETHODCALLTYPE OnPropertyValueChanged(LPCWSTR, const PROPERTYKEY) override
     {
+        // TODO: re-enumerate
         return S_OK;
     }
 
@@ -110,10 +179,41 @@ public:
         }
     }
 
-private:
+    q23::expected<DeviceRecord, HRESULT> enumerateDevice(LPCWSTR deviceID)
+    {
+        ComPtr<IMMDevice> device;
+        auto deviceStatus = m_enumerator->GetDevice(deviceID, device.GetAddressOf());
+        if (FAILED(deviceStatus))
+            return q23::unexpected{ deviceStatus };
+        return enumerateDevice(device);
+    }
+
+    q23::expected<DeviceRecord, HRESULT> enumerateDevice(const ComPtr<IMMDevice> &device)
+    {
+        DWORD state = 0;
+
+        auto stateStatus = device->GetState(&state);
+        if (FAILED(stateStatus))
+            return q23::unexpected{ stateStatus };
+        return DeviceRecord{
+            device,
+            asDeviceState(state),
+        };
+    }
+    q23::expected<QString, HRESULT> deviceId(const ComPtr<IMMDevice> &device)
+    {
+        QComTaskResource<WCHAR> id;
+        auto idStatus = device->GetId(id.address());
+        if (FAILED(idStatus))
+            return q23::unexpected{ idStatus };
+        return QString::fromWCharArray(id.get());
+    }
+
     // Destructor is not public. Caller should call Release.
     ~CMMNotificationClient() override = default;
 };
+
+} // namespace QtWASAPI
 
 QWindowsAudioDevices::QWindowsAudioDevices()
     : QPlatformAudioDevices()
@@ -128,28 +228,7 @@ QWindowsAudioDevices::QWindowsAudioDevices()
         return;
     }
 
-    QMap<QString, DWORD> devState;
-    ComPtr<IMMDeviceCollection> devColl;
-    UINT count = 0;
-
-    if (SUCCEEDED(m_deviceEnumerator->EnumAudioEndpoints(EDataFlow::eAll, DEVICE_STATEMASK_ALL, devColl.GetAddressOf()))
-        && SUCCEEDED(devColl->GetCount(&count)))
-    {
-        for (UINT i = 0; i < count; i++) {
-            ComPtr<IMMDevice> device;
-            DWORD state = 0;
-            QComTaskResource<WCHAR> id;
-
-            if (SUCCEEDED(devColl->Item(i, device.GetAddressOf()))
-                && SUCCEEDED(device->GetState(&state))
-                && SUCCEEDED(device->GetId(id.address()))) {
-                devState.insert(QString::fromWCharArray(id.get()), state);
-            }
-        }
-    }
-
-
-    m_notificationClient = makeComObject<CMMNotificationClient>(this, m_deviceEnumerator, std::move(devState));
+    m_notificationClient = makeComObject<QtWASAPI::CMMNotificationClient>(this, m_deviceEnumerator);
     m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient.Get());
 }
 
