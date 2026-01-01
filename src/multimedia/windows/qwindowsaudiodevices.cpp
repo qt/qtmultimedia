@@ -4,7 +4,6 @@
 #include "qwindowsaudiodevices_p.h"
 
 #include <QtCore/qdebug.h>
-#include <QtCore/qmap.h>
 #include <QtCore/private/qcomobject_p.h>
 #include <QtCore/private/qsystemerror_p.h>
 
@@ -18,6 +17,8 @@
 #include <audioclient.h>
 #include <functiondiscoverykeys_devpkey.h>
 #include <mmdeviceapi.h>
+
+#include <map>
 
 QT_BEGIN_NAMESPACE
 
@@ -61,7 +62,7 @@ class CMMNotificationClient : public QComObject<IMMNotificationClient>
         DeviceState state;
     };
 
-    QMap<QString, DeviceRecord> m_deviceMap;
+    std::map<QString, DeviceRecord> m_deviceMap;
 
 public:
     CMMNotificationClient(QWindowsAudioDevices *windowsMediaDevices,
@@ -87,7 +88,7 @@ public:
                 if (!idResult)
                     continue;
 
-                m_deviceMap.insert(std::move(*idResult), std::move(*enumerateResult));
+                m_deviceMap.emplace(std::move(*idResult), std::move(*enumerateResult));
             }
         }
     }
@@ -109,7 +110,7 @@ private:
             if (!enumerateResult)
                 return S_OK;
 
-            m_deviceMap.insert(QString::fromWCharArray(deviceID), *enumerateResult);
+            m_deviceMap.emplace(QString::fromWCharArray(deviceID), *enumerateResult);
 
             if (enumerateResult->state == DeviceState::active)
                 emitAudioDevicesChanged(deviceID);
@@ -123,9 +124,9 @@ private:
         auto key = QString::fromWCharArray(deviceID);
         auto it = m_deviceMap.find(key);
         if (it != std::end(m_deviceMap)) {
-            if (it.value().state == DeviceState::active)
+            if (it->second.state == DeviceState::active)
                 emitAudioDevicesChanged(deviceID);
-            m_deviceMap.remove(key);
+            m_deviceMap.erase(key);
         }
 
         return S_OK;
@@ -137,13 +138,13 @@ private:
             it != std::end(m_deviceMap)) {
             // If either the old state or the new state is active emit device change
             auto oldAndNewState = QVector<DeviceState>{
-                it.value().state,
+                it->second.state,
                 asDeviceState(newState),
             };
             if (oldAndNewState.contains(DeviceState::active))
                 emitAudioDevicesChanged(deviceID);
 
-            it.value().state = asDeviceState(newState);
+            it->second.state = asDeviceState(newState);
         }
 
         return S_OK;
