@@ -78,7 +78,7 @@ struct InstanceHolder
         if (!QCoreApplication::instance())
             qCCritical(qLcMediaPlugin()) << "Qt Multimedia requires a QCoreApplication instance";
 
-        const QStringList backends = QPlatformMediaIntegration::availableBackends();
+        QStringList backends = QPlatformMediaIntegration::availableBackends();
         QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND")).toLower();
         if (backend.isEmpty() && !backends.isEmpty())
             backend = defaultBackend(backends);
@@ -87,10 +87,21 @@ struct InstanceHolder
         instance.reset(
                 qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), backend));
 
-        if (!instance) {
-            // No backends found. Use fallback to support basic functionality
-            instance = std::make_unique<QFallbackIntegration>();
+        if (instance)
+            return;
+
+        backends.removeAll(backend);
+
+        for (const QString &backend : std::as_const(backends)) {
+            qCDebug(qLcMediaPlugin) << "Loading alternative backend" << backend;
+            instance.reset(qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(),
+                                                                                        backend));
+            if (instance)
+                return;
         }
+
+        // No backends found. Use fallback to support basic functionality
+        instance = std::make_unique<QFallbackIntegration>();
     }
 
     ~InstanceHolder()
