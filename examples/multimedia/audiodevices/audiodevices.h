@@ -39,7 +39,6 @@ private slots:
     void sampleRateChanged(int idx);
     void channelChanged(int idx);
     void sampleFormatChanged(int idx);
-    void test();
     void populateTable();
 };
 
