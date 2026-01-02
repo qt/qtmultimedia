@@ -7,11 +7,11 @@
     \ingroup multimedia_examples
     \ingroup audio_examples
     \examplecategory {Multimedia}
-    \brief Testing the available audio devices and their configuration.
+    \brief List available audio devices and their configuration.
     \meta {tag} {widgets}
 
     \e{Audio Devices} demonstrates how to create a simple application to list
-    and test the configuration for the various audio devices available on the
+    the configuration for the various audio devices available on the
     target device or desktop PC.
 
     \image audiodevices.png

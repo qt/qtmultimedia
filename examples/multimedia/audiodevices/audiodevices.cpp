@@ -3,13 +3,14 @@
 
 #include "audiodevices.h"
 
-#include <QCameraDevice>
 #include <QMediaDevices>
 #include <QMediaFormat>
 
 #if QT_CONFIG(permissions)
   #include <QPermission>
 #endif
+
+#include <bitset>
 
 using namespace Qt::Literals;
 
@@ -19,16 +20,76 @@ static QString toString(QAudioFormat::SampleFormat sampleFormat)
 {
     switch (sampleFormat) {
     case QAudioFormat::UInt8:
-        return "Unsigned 8 bit";
+        return u"Unsigned 8 bit"_s;
     case QAudioFormat::Int16:
-        return "Signed 16 bit";
+        return u"Signed 16 bit"_s;
     case QAudioFormat::Int32:
-        return "Signed 32 bit";
+        return u"Signed 32 bit"_s;
     case QAudioFormat::Float:
-        return "Float";
+        return u"Float"_s;
     default:
-        return "Unknown";
+        return u"Unknown"_s;
     }
+}
+
+static QString toString(QAudioFormat::ChannelConfig channelConfig)
+{
+    switch (channelConfig) {
+    case QAudioFormat::ChannelConfigMono:
+        return u"Mono"_s;
+    case QAudioFormat::ChannelConfigStereo:
+        return u"Stereo"_s;
+    case QAudioFormat::ChannelConfig2Dot1:
+        return u"2.1"_s;
+    case QAudioFormat::ChannelConfig3Dot0:
+        return u"3.0"_s;
+    case QAudioFormat::ChannelConfigSurround5Dot0:
+        return u"5.0 Surround"_s;
+    case QAudioFormat::ChannelConfigSurround5Dot1:
+        return u"5.1 Surround"_s;
+    case QAudioFormat::ChannelConfigSurround7Dot0:
+        return u"7.0 Surround"_s;
+    case QAudioFormat::ChannelConfigSurround7Dot1:
+        return u"7.1 Surround"_s;
+    default:
+        break;
+    }
+
+    static auto channelLabels = std::array{
+        u"UnknownPosition",
+        u"FrontLeft",
+        u"FrontRight",
+        u"FrontCenter",
+        u"LFE",
+        u"BackLeft",
+        u"BackRight",
+        u"FrontLeftOfCenter",
+        u"FrontRightOfCenter",
+        u"BackCenter",
+        u"SideLeft",
+        u"SideRight",
+        u"TopCenter",
+        u"TopFrontLeft",
+        u"TopFrontCenter",
+        u"TopFrontRight",
+        u"TopBackLeft",
+        u"TopBackCenter",
+        u"TopBackRight",
+        u"LFE2",
+        u"TopSideLeft",
+        u"TopSideRight",
+        u"BottomFrontCenter",
+        u"BottomFrontLeft",
+        u"BottomFrontRight",
+    };
+
+    QStringList labels;
+    std::bitset<QAudioFormat::NChannelPositions> configBits(channelConfig);
+    for (size_t i = 0; i < configBits.size(); ++i) {
+        if (configBits.test(i))
+            labels.emplace_back(channelLabels[i]);
+    }
+    return labels.join(", ");
 }
 
 AudioDevicesBase::AudioDevicesBase(QWidget *parent) : QMainWindow(parent)
@@ -43,21 +104,43 @@ AudioTest::AudioTest(QWidget *parent) : AudioDevicesBase(parent), m_devices(new 
     init();
 }
 
+void AudioTest::updateDevicePropertes()
+{
+    QStringList sampleFormats;
+    for (auto format : m_deviceInfo.supportedSampleFormats())
+        sampleFormats << toString(format);
+    sampleFormatField->setText(sampleFormats.join(", "));
+
+    if (m_deviceInfo.minimumChannelCount() != m_deviceInfo.maximumChannelCount()) {
+        QString channelRange = u"%1 - %2"_s.arg(m_deviceInfo.minimumChannelCount())
+                                       .arg(m_deviceInfo.maximumChannelCount());
+        channelNumberField->setText(channelRange);
+    } else {
+        channelNumberField->setText(QString::number(m_deviceInfo.minimumChannelCount()));
+    }
+
+    QString sampleRateRange = u"%1 - %2 Hz"_s.arg(m_deviceInfo.minimumSampleRate())
+                                      .arg(m_deviceInfo.maximumSampleRate());
+    samplingRatesField->setText(sampleRateRange);
+
+    QString channelConfig = toString(m_deviceInfo.channelConfiguration());
+    channelLayoutField->setText(channelConfig);
+
+    QString preferredFormat = u"%1, %2 Hz, %3 channels (%4)"_s.arg(
+            toString(m_deviceInfo.preferredFormat().sampleFormat()),
+            QString::number(m_deviceInfo.preferredFormat().sampleRate()),
+            QString::number(m_deviceInfo.preferredFormat().channelCount()),
+            toString(m_deviceInfo.preferredFormat().channelConfig()));
+    preferredFormatField->setText(preferredFormat);
+
+    for (QLineEdit *field : { samplingRatesField, channelNumberField, sampleFormatField,
+                              channelLayoutField, preferredFormatField })
+        field->setCursorPosition(0);
+}
+
 void AudioTest::init()
 {
 #if QT_CONFIG(permissions)
-    // camera
-    QCameraPermission cameraPermission;
-    switch (qApp->checkPermission(cameraPermission)) {
-    case Qt::PermissionStatus::Undetermined:
-        qApp->requestPermission(cameraPermission, this, &AudioTest::init);
-        return;
-    case Qt::PermissionStatus::Denied:
-        qWarning("Camera permission is not granted!");
-        return;
-    case Qt::PermissionStatus::Granted:
-        break;
-    }
     // microphone
     QMicrophonePermission microphonePermission;
     switch (qApp->checkPermission(microphonePermission)) {
@@ -71,29 +154,50 @@ void AudioTest::init()
         break;
     }
 #endif
-    m_devices->videoInputs();
-    QMediaFormat().supportedFileFormats(QMediaFormat::Encode);
     connect(modeBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::modeChanged);
     connect(deviceBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::deviceChanged);
-    connect(populateTableButton, &QPushButton::clicked, this, &AudioTest::populateTable);
     connect(m_devices, &QMediaDevices::audioInputsChanged, this, &AudioTest::updateAudioDevices);
     connect(m_devices, &QMediaDevices::audioOutputsChanged, this, &AudioTest::updateAudioDevices);
 
-    modeBox->setCurrentIndex(0);
-    modeChanged(0);
-    deviceBox->setCurrentIndex(0);
-    deviceChanged(0);
+    modeBox->setCurrentIndex(1);
+    updateAudioDevices();
+    updateDevicePropertes();
 }
 
 void AudioTest::updateAudioDevices()
 {
-    deviceBox->clear();
+    QSignalBlocker blockUpdates(deviceBox);
     const auto devices =
             m_mode == QAudioDevice::Input ? m_devices->audioInputs() : m_devices->audioOutputs();
-    for (auto &deviceInfo : devices) {
-        QString description = deviceInfo.description();
-        description.replace(u"\n"_s, u" - "_s);
-        deviceBox->addItem(description, QVariant::fromValue(deviceInfo));
+    {
+        deviceBox->clear();
+        for (auto &deviceInfo : devices) {
+            QString description = deviceInfo.description();
+            description.replace(u"\n"_s, u" - "_s);
+            if (deviceInfo.isDefault())
+                description += " (default)";
+
+            deviceBox->addItem(description, QVariant::fromValue(deviceInfo));
+        }
+    }
+
+    // select previously selected
+    for (int index = 0; index != devices.size(); ++index) {
+        if (devices[index].id() == m_deviceInfo.id()) {
+            deviceBox->setCurrentIndex(index);
+            deviceChanged(index);
+            return;
+        }
+    }
+
+    // select default
+    for (int index = 0; index != devices.size(); ++index) {
+        if (devices[index].isDefault()) {
+            deviceBox->setCurrentIndex(index);
+            deviceChanged(index);
+            m_deviceInfo = devices[index];
+            return;
+        }
     }
 }
 
@@ -107,65 +211,18 @@ void AudioTest::modeChanged(int idx)
 
 void AudioTest::deviceChanged(int idx)
 {
-    if (deviceBox->count() == 0)
+    if (deviceBox->count() == 0) {
+        channelNumberField->clear();
+        sampleFormatField->clear();
+        samplingRatesField->clear();
+        channelLayoutField->clear();
         return;
+    }
 
     // device has changed
     m_deviceInfo = deviceBox->itemData(idx).value<QAudioDevice>();
 
-    int sampleValue =
-            qBound(m_deviceInfo.minimumSampleRate(), 48000, m_deviceInfo.maximumSampleRate());
-    m_settings.setSampleRate(sampleValue);
-
-    const QList<QAudioFormat::SampleFormat> sampleFormats = m_deviceInfo.supportedSampleFormats();
-    if (sampleFormats.size())
-        m_settings.setSampleFormat(sampleFormats.at(0));
-
-    allFormatsTable->clearContents();
-}
-
-void AudioTest::populateTable()
-{
-    int row = 0;
-
-    const QList<QAudioFormat::SampleFormat> formats = m_deviceInfo.supportedSampleFormats();
-    for (auto sampleFormat : formats) {
-        allFormatsTable->setRowCount(row + 1);
-
-        QTableWidgetItem *sampleTypeItem = new QTableWidgetItem(toString(sampleFormat));
-        allFormatsTable->setItem(row, 0, sampleTypeItem);
-
-        QTableWidgetItem *sampleRateItem =
-                new QTableWidgetItem(QStringLiteral("%1 - %2")
-                                             .arg(m_deviceInfo.minimumSampleRate())
-                                             .arg(m_deviceInfo.maximumSampleRate()));
-        allFormatsTable->setItem(row, 1, sampleRateItem);
-
-        QTableWidgetItem *channelsItem =
-                new QTableWidgetItem(QStringLiteral("%1 - %2")
-                                             .arg(m_deviceInfo.minimumChannelCount())
-                                             .arg(m_deviceInfo.maximumChannelCount()));
-        allFormatsTable->setItem(row, 2, channelsItem);
-
-        ++row;
-    }
-}
-
-void AudioTest::sampleRateChanged(int value)
-{
-    // sample rate has changed
-    m_settings.setSampleRate(value);
-}
-
-void AudioTest::channelChanged(int channels)
-{
-    m_settings.setChannelCount(channels);
-}
-
-void AudioTest::sampleFormatChanged(int idx)
-{
-    auto formats = m_deviceInfo.supportedSampleFormats();
-    m_settings.setSampleFormat(formats.at(idx));
+    updateDevicePropertes();
 }
 
 #include "moc_audiodevices.cpp"
