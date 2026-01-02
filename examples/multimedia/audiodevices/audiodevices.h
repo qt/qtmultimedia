@@ -27,19 +27,16 @@ public:
 
 private:
     QAudioDevice m_deviceInfo;
-    QAudioFormat m_settings;
-    QAudioDevice::Mode m_mode = QAudioDevice::Input;
+    QAudioDevice::Mode m_mode = QAudioDevice::Output;
     QMediaDevices *m_devices = nullptr;
+
+    void updateDevicePropertes();
 
 private slots:
     void init();
     void updateAudioDevices();
     void modeChanged(int idx);
     void deviceChanged(int idx);
-    void sampleRateChanged(int idx);
-    void channelChanged(int idx);
-    void sampleFormatChanged(int idx);
-    void populateTable();
 };
 
 #endif
