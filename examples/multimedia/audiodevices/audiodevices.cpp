@@ -73,13 +73,8 @@ void AudioTest::init()
 #endif
     m_devices->videoInputs();
     QMediaFormat().supportedFileFormats(QMediaFormat::Encode);
-    connect(testButton, &QPushButton::clicked, this, &AudioTest::test);
     connect(modeBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::modeChanged);
     connect(deviceBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::deviceChanged);
-    connect(sampleRateSpinBox, &QSpinBox::valueChanged, this, &AudioTest::sampleRateChanged);
-    connect(channelsSpinBox, &QSpinBox::valueChanged, this, &AudioTest::channelChanged);
-    connect(sampleFormatBox, QOverload<int>::of(&QComboBox::activated), this,
-            &AudioTest::sampleFormatChanged);
     connect(populateTableButton, &QPushButton::clicked, this, &AudioTest::populateTable);
     connect(m_devices, &QMediaDevices::audioInputsChanged, this, &AudioTest::updateAudioDevices);
     connect(m_devices, &QMediaDevices::audioOutputsChanged, this, &AudioTest::updateAudioDevices);
@@ -88,28 +83,6 @@ void AudioTest::init()
     modeChanged(0);
     deviceBox->setCurrentIndex(0);
     deviceChanged(0);
-}
-
-void AudioTest::test()
-{
-    // tries to set all the settings picked.
-    testResult->clear();
-
-    if (!m_deviceInfo.isNull()) {
-        if (m_deviceInfo.isFormatSupported(m_settings)) {
-            testResult->setText(tr("Success"));
-            nearestSampleRate->setText("");
-            nearestChannel->setText("");
-            nearestSampleFormat->setText("");
-        } else {
-            QAudioFormat nearest = m_deviceInfo.preferredFormat();
-            testResult->setText(tr("Failed"));
-            nearestSampleRate->setText(QStringLiteral("%1").arg(nearest.sampleRate()));
-            nearestChannel->setText(QStringLiteral("%1").arg(nearest.channelCount()));
-            nearestSampleFormat->setText(toString(nearest.sampleFormat()));
-        }
-    } else
-        testResult->setText(tr("No Device"));
 }
 
 void AudioTest::updateAudioDevices()
@@ -126,7 +99,6 @@ void AudioTest::updateAudioDevices()
 
 void AudioTest::modeChanged(int idx)
 {
-    testResult->clear();
     m_mode = idx == 0 ? QAudioDevice::Input : QAudioDevice::Output;
     updateAudioDevices();
     deviceBox->setCurrentIndex(0);
@@ -135,33 +107,17 @@ void AudioTest::modeChanged(int idx)
 
 void AudioTest::deviceChanged(int idx)
 {
-    testResult->clear();
-
     if (deviceBox->count() == 0)
         return;
 
     // device has changed
     m_deviceInfo = deviceBox->itemData(idx).value<QAudioDevice>();
 
-    sampleRateSpinBox->clear();
-    sampleRateSpinBox->setMinimum(m_deviceInfo.minimumSampleRate());
-    sampleRateSpinBox->setMaximum(m_deviceInfo.maximumSampleRate());
     int sampleValue =
             qBound(m_deviceInfo.minimumSampleRate(), 48000, m_deviceInfo.maximumSampleRate());
-    sampleRateSpinBox->setValue(sampleValue);
     m_settings.setSampleRate(sampleValue);
 
-    channelsSpinBox->clear();
-    channelsSpinBox->setMinimum(m_deviceInfo.minimumChannelCount());
-    channelsSpinBox->setMaximum(m_deviceInfo.maximumChannelCount());
-    int channelValue =
-            qBound(m_deviceInfo.minimumChannelCount(), 2, m_deviceInfo.maximumChannelCount());
-    channelsSpinBox->setValue(channelValue);
-
-    sampleFormatBox->clear();
     const QList<QAudioFormat::SampleFormat> sampleFormats = m_deviceInfo.supportedSampleFormats();
-    for (auto sampleFormat : sampleFormats)
-        sampleFormatBox->addItem(toString(sampleFormat));
     if (sampleFormats.size())
         m_settings.setSampleFormat(sampleFormats.at(0));
 
