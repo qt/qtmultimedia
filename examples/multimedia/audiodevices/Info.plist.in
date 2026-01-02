@@ -38,9 +38,6 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Qt Multimedia Example</string>
 
-	<key>NSCameraUsageDescription</key>
-	<string>Qt Multimedia Example</string>
-
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
 </dict>
