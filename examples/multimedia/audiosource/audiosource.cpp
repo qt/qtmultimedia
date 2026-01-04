@@ -8,13 +8,14 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QLabel>
+#include <QMessageBox>
 #include <QPainter>
 #include <QVBoxLayout>
 #include <QtEndian>
 
 #if QT_CONFIG(permissions)
-  #include <QCoreApplication>
-  #include <QPermission>
+#  include <QCoreApplication>
+#  include <QPermission>
 #endif
 
 #include <math.h>
@@ -159,10 +160,10 @@ void InputTest::initializeAudio(const QAudioDevice &deviceInfo)
     if (!channelCountSupported)
         format.setChannelCount(deviceInfo.preferredFormat().channelCount());
 
-    m_audioInfo.reset(new AudioInfo(format));
+    m_audioInfo = std::make_unique<AudioInfo>(format);
     connect(m_audioInfo.get(), &AudioInfo::levelChanged, m_canvas, &RenderArea::setLevel);
 
-    m_audioSource.reset(new QAudioSource(deviceInfo, format));
+    m_audioSource = std::make_unique<QAudioSource>(deviceInfo, format);
     qreal initialVolume = QAudio::convertVolume(m_audioSource->volume(), QAudio::LinearVolumeScale,
                                                 QAudio::LogarithmicVolumeScale);
     m_volumeSlider->setValue(qRound(initialVolume * 100));
@@ -215,6 +216,11 @@ void InputTest::restartAudioStream()
     } else {
         // push mode: QIODevice pushes data into QIODevice
         m_audioSource->start(m_audioInfo.get());
+    }
+
+    if (m_audioSource->error() != QAudio::NoError) {
+        QMessageBox::warning(this, tr("Audio start failed"),
+                             tr("Device rejected the format or is unavailable."));
     }
 }
 
