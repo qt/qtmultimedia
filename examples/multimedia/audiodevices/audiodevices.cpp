@@ -99,12 +99,13 @@ AudioDevicesBase::AudioDevicesBase(QWidget *parent) : QMainWindow(parent)
 
 AudioDevicesBase::~AudioDevicesBase() = default;
 
-AudioTest::AudioTest(QWidget *parent) : AudioDevicesBase(parent), m_devices(new QMediaDevices(this))
+AudioDevices::AudioDevices(QWidget *parent)
+    : AudioDevicesBase(parent), m_devices(new QMediaDevices(this))
 {
     init();
 }
 
-void AudioTest::updateDevicePropertes()
+void AudioDevices::updateDevicePropertes()
 {
     QStringList sampleFormats;
     for (auto format : m_deviceInfo.supportedSampleFormats())
@@ -138,14 +139,14 @@ void AudioTest::updateDevicePropertes()
         field->setCursorPosition(0);
 }
 
-void AudioTest::init()
+void AudioDevices::init()
 {
 #if QT_CONFIG(permissions)
     // microphone
     QMicrophonePermission microphonePermission;
     switch (qApp->checkPermission(microphonePermission)) {
     case Qt::PermissionStatus::Undetermined:
-        qApp->requestPermission(microphonePermission, this, &AudioTest::init);
+        qApp->requestPermission(microphonePermission, this, &AudioDevices::init);
         return;
     case Qt::PermissionStatus::Denied:
         qWarning("Microphone permission is not granted!");
@@ -154,17 +155,19 @@ void AudioTest::init()
         break;
     }
 #endif
-    connect(modeBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::modeChanged);
-    connect(deviceBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::deviceChanged);
-    connect(m_devices, &QMediaDevices::audioInputsChanged, this, &AudioTest::updateAudioDevices);
-    connect(m_devices, &QMediaDevices::audioOutputsChanged, this, &AudioTest::updateAudioDevices);
+    connect(modeBox, QOverload<int>::of(&QComboBox::activated), this, &AudioDevices::modeChanged);
+    connect(deviceBox, QOverload<int>::of(&QComboBox::activated), this,
+            &AudioDevices::deviceChanged);
+    connect(m_devices, &QMediaDevices::audioInputsChanged, this, &AudioDevices::updateAudioDevices);
+    connect(m_devices, &QMediaDevices::audioOutputsChanged, this,
+            &AudioDevices::updateAudioDevices);
 
     modeBox->setCurrentIndex(1);
     updateAudioDevices();
     updateDevicePropertes();
 }
 
-void AudioTest::updateAudioDevices()
+void AudioDevices::updateAudioDevices()
 {
     QSignalBlocker blockUpdates(deviceBox);
     const auto devices =
@@ -201,7 +204,7 @@ void AudioTest::updateAudioDevices()
     }
 }
 
-void AudioTest::modeChanged(int idx)
+void AudioDevices::modeChanged(int idx)
 {
     m_mode = idx == 0 ? QAudioDevice::Input : QAudioDevice::Output;
     updateAudioDevices();
@@ -209,7 +212,7 @@ void AudioTest::modeChanged(int idx)
     deviceChanged(0);
 }
 
-void AudioTest::deviceChanged(int idx)
+void AudioDevices::deviceChanged(int idx)
 {
     if (deviceBox->count() == 0) {
         channelNumberField->clear();
