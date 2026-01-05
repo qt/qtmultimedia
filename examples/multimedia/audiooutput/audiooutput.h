@@ -40,6 +40,11 @@ private:
     QByteArray m_buffer;
 };
 
+enum class AudioTestMode {
+    Pull,
+    Push,
+};
+
 class AudioTest : public QMainWindow
 {
     Q_OBJECT
@@ -47,9 +52,6 @@ class AudioTest : public QMainWindow
 public:
     AudioTest();
     ~AudioTest();
-
-signals:
-    void pullModeChanged();
 
 private:
     void initializeWindow();
@@ -65,7 +67,7 @@ private:
     QComboBox *m_channelsBox = nullptr;
     QComboBox *m_rateBox = nullptr;
     QComboBox *m_formatBox = nullptr;
-    QPushButton *m_modeButton = nullptr;
+    QComboBox *m_modeBox = nullptr;
     QPushButton *m_suspendResumeButton = nullptr;
     QComboBox *m_deviceBox = nullptr;
     QLabel *m_volumeLabel = nullptr;
@@ -74,12 +76,11 @@ private:
     std::unique_ptr<Generator> m_generator;
     std::unique_ptr<QAudioSink> m_audioSink;
 
-    bool m_pullMode = true;
+    AudioTestMode m_mode = AudioTestMode::Pull;
     void restartAudioStream();
 
 private slots:
     void formatChanged(QComboBox *box);
-    void toggleMode();
     void toggleSuspendResume();
     void deviceChanged(int index);
     void volumeChanged(int);
