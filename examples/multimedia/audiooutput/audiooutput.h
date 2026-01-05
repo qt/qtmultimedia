@@ -77,6 +77,7 @@ private:
     std::unique_ptr<QAudioSink> m_audioSink;
 
     AudioTestMode m_mode = AudioTestMode::Pull;
+    QAudioDevice m_currentDevice;
     void restartAudioStream();
 
 private slots:
