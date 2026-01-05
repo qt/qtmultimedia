@@ -110,11 +110,8 @@ qint64 Generator::readData(char *data, qint64 len)
     return total;
 }
 
-qint64 Generator::writeData(const char *data, qint64 len)
+qint64 Generator::writeData([[maybe_unused]] const char *data, [[maybe_unused]] qint64 len)
 {
-    Q_UNUSED(data);
-    Q_UNUSED(len);
-
     return 0;
 }
 
@@ -159,7 +156,7 @@ static void syncFormatGui(QComboBox *m_formatBox,
 AudioTest::AudioTest() : m_devices(new QMediaDevices(this)), m_pushTimer(new QTimer(this))
 {
     initializeWindow();
-    initializeAudio(m_devices->defaultAudioOutput());
+    initializeAudio(QMediaDevices::defaultAudioOutput());
 }
 
 AudioTest::~AudioTest()
@@ -174,7 +171,7 @@ void AudioTest::initializeWindow()
     QVBoxLayout *layout = new QVBoxLayout;
 
     m_deviceBox = new QComboBox(this);
-    const QAudioDevice &defaultDeviceInfo = m_devices->defaultAudioOutput();
+    const QAudioDevice &defaultDeviceInfo = QMediaDevices::defaultAudioOutput();
     m_deviceBox->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
     for (auto &deviceInfo : m_devices->audioOutputs()) {
         if (deviceInfo != defaultDeviceInfo)
@@ -385,7 +382,7 @@ void AudioTest::formatChanged(QComboBox *box)
 void AudioTest::updateAudioDevices()
 {
     m_deviceBox->clear();
-    const QList<QAudioDevice> devices = m_devices->audioOutputs();
+    const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
     for (const QAudioDevice &deviceInfo : devices)
         m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
 }
@@ -410,7 +407,7 @@ void AudioTest::restartAudioStream()
     }
     case AudioTestMode::Push: {
         // push mode: periodically push to QAudioSink using a timer
-        auto io = m_audioSink->start();
+        auto *io = m_audioSink->start();
         m_pushTimer->disconnect();
 
         connect(m_pushTimer, &QTimer::timeout, this, [this, io]() {
