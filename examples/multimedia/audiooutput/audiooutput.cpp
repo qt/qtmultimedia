@@ -171,12 +171,12 @@ void AudioTest::initializeWindow()
     QVBoxLayout *layout = new QVBoxLayout;
 
     m_deviceBox = new QComboBox(this);
-    const QAudioDevice &defaultDeviceInfo = QMediaDevices::defaultAudioOutput();
-    m_deviceBox->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
-    for (auto &deviceInfo : m_devices->audioOutputs()) {
-        if (deviceInfo != defaultDeviceInfo)
-            m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
-    }
+    QAudioDevice defaultDevice = QMediaDevices::defaultAudioOutput();
+    for (auto &deviceInfo : QMediaDevices::audioOutputs())
+        m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+    auto defaultDeviceIndex = m_deviceBox->findData(QVariant::fromValue(defaultDevice));
+    m_deviceBox->setCurrentIndex(defaultDeviceIndex);
+
     connect(m_deviceBox, &QComboBox::currentIndexChanged, this, &AudioTest::deviceChanged);
     connect(m_devices, &QMediaDevices::audioOutputsChanged, this, &AudioTest::updateAudioDevices);
     layout->addWidget(m_deviceBox);
@@ -215,7 +215,7 @@ void AudioTest::initializeWindow()
 
     // populate the sample format combo box
     // supportedSampleFormats returns enum so we cast it to string.
-    const auto formats = defaultDeviceInfo.supportedSampleFormats();
+    const auto formats = defaultDevice.supportedSampleFormats();
     for (const QAudioFormat::SampleFormat fmt : formats)
         m_formatBox->addItem(sampleFormatToString(fmt), QVariant::fromValue(fmt));
 
@@ -234,16 +234,16 @@ void AudioTest::initializeWindow()
     m_channelsBox = new QComboBox(this);
 
     // populate from device min..max
-    int minCh = defaultDeviceInfo.minimumChannelCount();
-    int maxCh = defaultDeviceInfo.maximumChannelCount();
+    int minCh = defaultDevice.minimumChannelCount();
+    int maxCh = defaultDevice.maximumChannelCount();
     for (int ch = minCh; ch <= maxCh; ++ch)
         m_channelsBox->addItem(QString::number(ch), ch);
 
     // set the value of the boxes to be the initial values of the format.
-    const QAudioFormat pref = defaultDeviceInfo.preferredFormat();
+    const QAudioFormat pref = defaultDevice.preferredFormat();
     syncFormatGui(m_formatBox, m_channelsBox, m_rateBox, pref);
 
-    for (auto box : {m_channelsBox, m_rateBox, m_formatBox}) {
+    for (auto *box : { m_channelsBox, m_rateBox, m_formatBox }) {
         connect(box, &QComboBox::activated, this, [this, box]() {
             formatChanged(box);
         });
@@ -278,7 +278,7 @@ void AudioTest::applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFor
     const QAudioFormat prevFmt = m_audioSink ? m_audioSink->format() : deviceInfo.preferredFormat();
 
     if (m_audioSink)
-        m_audioSink->disconnect(this);
+        cleanupAudioSink();
 
     // rebuild generator and sink with the requested format
     const int durationSeconds = 1;
