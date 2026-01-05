@@ -272,10 +272,10 @@ void AudioTest::initializeAudio(const QAudioDevice &deviceInfo)
     applyAudioFormat(deviceInfo, format);
 }
 
-void AudioTest::applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFormat &format)
+void AudioTest::applyAudioFormat(const QAudioDevice &device, const QAudioFormat &format)
 {
     // keep previous format to roll back if changing the audio format fails
-    const QAudioFormat prevFmt = m_audioSink ? m_audioSink->format() : deviceInfo.preferredFormat();
+    const QAudioFormat prevFmt = m_audioSink ? m_audioSink->format() : device.preferredFormat();
 
     if (m_audioSink)
         cleanupAudioSink();
@@ -284,10 +284,11 @@ void AudioTest::applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFor
     const int durationSeconds = 1;
     const int toneFrequencyInHz = 600;
     m_generator = std::make_unique<Generator>(format, durationSeconds * 1000000, toneFrequencyInHz);
-    m_audioSink = std::make_unique<QAudioSink>(deviceInfo, format);
+    m_audioSink = std::make_unique<QAudioSink>(device, format);
     m_audioSink->setVolume(0.25f); // roughly -12dB
 
     m_generator->start();
+    m_currentDevice = device;
 
     // handle startup/runtime errors and success negotiation
     connect(m_audioSink.get(), &QAudioSink::stateChanged, this,
@@ -335,7 +336,6 @@ void AudioTest::applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFor
 
 void AudioTest::deviceChanged(int index)
 {
-    cleanupAudioSink();
 
     QAudioDevice dev = m_deviceBox->itemData(index).value<QAudioDevice>();
 
@@ -350,7 +350,10 @@ void AudioTest::deviceChanged(int index)
     for (int ch = dev.minimumChannelCount(); ch <= dev.maximumChannelCount(); ++ch)
         m_channelsBox->addItem(QString::number(ch), ch);
 
-    initializeAudio(m_deviceBox->itemData(index).value<QAudioDevice>());
+    if (dev != m_currentDevice) {
+        cleanupAudioSink();
+        initializeAudio(m_deviceBox->itemData(index).value<QAudioDevice>());
+    }
 }
 
 void AudioTest::volumeChanged(int value)
@@ -381,10 +384,23 @@ void AudioTest::formatChanged(QComboBox *box)
 
 void AudioTest::updateAudioDevices()
 {
+    QSignalBlocker blockUpdates(m_deviceBox);
+
     m_deviceBox->clear();
     const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
     for (const QAudioDevice &deviceInfo : devices)
         m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+    const int currentDeviceIndex = m_deviceBox->findData(QVariant::fromValue(m_currentDevice));
+    if (currentDeviceIndex != -1) {
+        // select previous device
+        m_deviceBox->setCurrentIndex(currentDeviceIndex);
+    } else {
+        blockUpdates.unblock();
+        // select default device
+        QAudioDevice defaultDevice = QMediaDevices::defaultAudioOutput();
+        const int defaultDeviceIndex = m_deviceBox->findData(QVariant::fromValue(defaultDevice));
+        m_deviceBox->setCurrentIndex(defaultDeviceIndex);
+    }
 }
 
 
@@ -452,6 +468,7 @@ void AudioTest::cleanupAudioSink()
     }
     m_audioSink.reset();
     m_generator.reset();
+    m_currentDevice = {};
 }
 
 #include "moc_audiooutput.cpp"
