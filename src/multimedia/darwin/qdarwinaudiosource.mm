@@ -17,9 +17,11 @@
 #include <QtMultimedia/private/qdarwinaudiodevices_p.h>
 
 #include <AudioUnit/AudioComponent.h>
+#include <AudioToolbox/AudioConverter.h>
 #ifdef Q_OS_MACOS
 #  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
 #else
+#  import <AVFoundation/AVAudioSession.h>
 #  include <QtMultimedia/private/qcoreaudiosessionmanager_p.h>
 #endif
 
@@ -42,6 +44,8 @@ QCoreAudioSourceStream::QCoreAudioSourceStream(QAudioDevice audioDevice,
 
 QCoreAudioSourceStream::~QCoreAudioSourceStream()
 {
+    if (m_audioConverter)
+        AudioConverterDispose(m_audioConverter);
     free(m_bufferList.mBuffers[0].mData);
 }
 
@@ -69,6 +73,8 @@ bool QCoreAudioSourceStream::open()
         return false;
     }
 
+    AudioStreamBasicDescription streamFormat = toAudioStreamBasicDescription(m_format);
+
 #ifdef Q_OS_MACOS
     // Find the the most recent CoreAudio AudioDeviceID for the current device
     // to start the audio stream.
@@ -91,16 +97,38 @@ bool QCoreAudioSourceStream::open()
     if (bestNominalSamplingRate) {
         if (!audioObjectSetSamplingRate(*nativeDeviceId, *bestNominalSamplingRate))
             return false;
+    } else {
+        qWarning() << "QAudioSource: Device does not support any sampling rate. This should not "
+                      "happen";
+        return false;
     }
 
     if (m_hardwareBufferFrames)
         audioObjectSetFramesPerBuffer(*nativeDeviceId, *m_hardwareBufferFrames);
-#endif
 
-    AudioStreamBasicDescription streamFormat = toAudioStreamBasicDescription(m_format);
+    if (bestNominalSamplingRate != m_format.sampleRate()) {
+        AudioStreamBasicDescription desiredFormat = streamFormat;
+
+        streamFormat.mSampleRate = *bestNominalSamplingRate;
+
+        OSStatus status = AudioConverterNew(&streamFormat, &desiredFormat, &m_audioConverter);
+        if (status != noErr) {
+            qWarning() << "QAudioSource: Failed to create AudioConverter:" << status;
+            return false;
+        }
+    }
 
     audioUnitSetInputStreamFormat(m_audioUnit, 0, streamFormat);
     audioUnitSetOutputStreamFormat(m_audioUnit, 1, streamFormat);
+#else
+
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    double hwRate = session.sampleRate;
+    std::optional<int> bestNominalSamplingRate = int(hwRate);
+
+    audioUnitSetInputStreamFormat(m_audioUnit, 0, streamFormat);
+    audioUnitSetOutputStreamFormat(m_audioUnit, 1, streamFormat);
+#endif
 
     std::optional<int> framesPerBuffer = audioUnitGetFramesPerSlice(m_audioUnit);
 
@@ -109,6 +137,17 @@ bool QCoreAudioSourceStream::open()
     m_bufferList.mBuffers[0].mDataByteSize =
             m_format.bytesForFrames(framesPerBuffer.value_or(2048));
     m_bufferList.mBuffers[0].mData = malloc(m_bufferList.mBuffers[0].mDataByteSize);
+
+    if (m_audioConverter) {
+        size_t outputBufferSize = m_bufferList.mBuffers[0].mDataByteSize * m_format.sampleRate()
+                        / static_cast<float>(*bestNominalSamplingRate)
+                + 128 /*padding*/;
+        m_outputBuffer.resize(outputBufferSize);
+        m_outputBufferList.mNumberBuffers = 1;
+        m_outputBufferList.mBuffers[0].mNumberChannels = m_format.channelCount();
+        m_outputBufferList.mBuffers[0].mDataByteSize = outputBufferSize;
+        m_outputBufferList.mBuffers[0].mData = m_outputBuffer.data();
+    }
 
     return m_audioUnit.initialize();
 }
@@ -218,19 +257,14 @@ OSStatus QCoreAudioSourceStream::inputCallback(void *inRefCon,
                                                AudioBufferList *ioData)
 {
     auto *self = reinterpret_cast<QCoreAudioSourceStream *>(inRefCon);
-    if (self->m_audioCallback)
-        return self->processAudioCallback(ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames,
-                                          ioData);
-    else
-        return self->processRingbuffer(ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames,
-                                       ioData);
+    return self->processInput(ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
 }
 
 OSStatus
-QCoreAudioSourceStream::processRingbuffer(AudioUnitRenderActionFlags *ioActionFlags,
-                                          const AudioTimeStamp *timeStamp, UInt32 inBusNumber,
-                                          UInt32 inNumberFrames,
-                                          AudioBufferList * /*ioData*/) noexcept QT_MM_NONBLOCKING
+QCoreAudioSourceStream::processInput(AudioUnitRenderActionFlags *ioActionFlags,
+                                     const AudioTimeStamp *timeStamp, UInt32 inBusNumber,
+                                     UInt32 inNumberFrames,
+                                     AudioBufferList * /*ioData*/) noexcept QT_MM_NONBLOCKING
 {
     OSStatus status = AudioUnitRender(m_audioUnit.get(), ioActionFlags, timeStamp, inBusNumber,
                                       inNumberFrames, &m_bufferList);
@@ -249,43 +283,68 @@ QCoreAudioSourceStream::processRingbuffer(AudioUnitRenderActionFlags *ioActionFl
         return status;
     }
 
-    QSpan<const std::byte> inputSpan{
-        reinterpret_cast<const std::byte *>(m_bufferList.mBuffers[0].mData),
-        m_bufferList.mBuffers[0].mDataByteSize,
-    };
+    QSpan<const std::byte> inputSpan;
+    if (m_audioConverter) {
+        // convert the data to the desired sample rate
+        struct InputProcState
+        {
+            QCoreAudioSourceStream *self;
+            UInt32 inNumberFrames;
+        };
 
+        InputProcState state{
+            /*self:*/ this,
+            /*inNumberFrames:*/ inNumberFrames,
+        };
+
+        auto inputProc = [](AudioConverterRef, UInt32 *ioNumberDataPackets, AudioBufferList *ioData,
+                            AudioStreamPacketDescription **outDataPacketDescription,
+                            void *inUserData) -> OSStatus {
+            auto *state = static_cast<InputProcState *>(inUserData);
+            *ioNumberDataPackets = state->inNumberFrames;
+            ioData->mNumberBuffers = 1;
+            ioData->mBuffers[0] = state->self->m_bufferList.mBuffers[0];
+            if (outDataPacketDescription)
+                *outDataPacketDescription = nullptr;
+            return noErr;
+        };
+
+        UInt32 outputFrames = m_format.framesForBytes(m_outputBuffer.size());
+        OSStatus convStatus = AudioConverterFillComplexBuffer(
+                m_audioConverter, inputProc, &state, &outputFrames, &m_outputBufferList, nullptr);
+        if (convStatus != noErr) {
+            qDebug() << "AudioConverterFillComplexBuffer failed:" << convStatus;
+            return convStatus;
+        }
+
+        uint32_t outputBytes = m_format.bytesForFrames(outputFrames);
+        inputSpan = QSpan<const std::byte>{
+            reinterpret_cast<const std::byte *>(m_outputBuffer.data()),
+            outputBytes,
+        };
+        inNumberFrames = outputFrames;
+    } else {
+        inputSpan = QSpan<const std::byte>{
+            reinterpret_cast<const std::byte *>(m_bufferList.mBuffers[0].mData),
+            m_bufferList.mBuffers[0].mDataByteSize,
+        };
+    }
+
+    return m_audioCallback ? processAudioCallback(inputSpan)
+                           : processRingbuffer(inputSpan, inNumberFrames);
+}
+
+OSStatus
+QCoreAudioSourceStream::processRingbuffer(QSpan<const std::byte> inputSpan,
+                                          UInt32 inNumberFrames) noexcept QT_MM_NONBLOCKING
+{
     QPlatformAudioSourceStream::process(inputSpan, inNumberFrames);
-
     return noErr;
 }
 
-OSStatus QCoreAudioSourceStream::processAudioCallback(AudioUnitRenderActionFlags *ioActionFlags,
-                                                      const AudioTimeStamp *timeStamp,
-                                                      UInt32 inBusNumber, UInt32 inNumberFrames,
-                                                      AudioBufferList * /*ioData*/) noexcept
+OSStatus QCoreAudioSourceStream::processAudioCallback(QSpan<const std::byte> inputSpan) noexcept
+        QT_MM_NONBLOCKING
 {
-    OSStatus status = AudioUnitRender(m_audioUnit.get(), ioActionFlags, timeStamp, inBusNumber,
-                                      inNumberFrames, &m_bufferList);
-
-    switch (status) {
-    case noErr:
-        break;
-
-    case kAudioUnitErr_CannotDoInCurrentContext:
-        // it seems that during warmup, kAudioUnitErr_CannotDoInCurrentContext can occur for a few
-        // times at startup
-        return status;
-
-    default:
-        qDebug() << "AudioUnitRender failed" << status;
-        return status;
-    }
-
-    QSpan<const std::byte> inputSpan{
-        reinterpret_cast<const std::byte *>(m_bufferList.mBuffers[0].mData),
-        m_bufferList.mBuffers[0].mDataByteSize,
-    };
-
     using namespace QtMultimediaPrivate;
     runAudioCallback(*m_audioCallback, inputSpan, m_format, volume());
 
