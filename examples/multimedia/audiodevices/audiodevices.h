@@ -18,12 +18,12 @@ public:
     virtual ~AudioDevicesBase();
 };
 
-class AudioTest : public AudioDevicesBase
+class AudioDevices : public AudioDevicesBase
 {
     Q_OBJECT
 
 public:
-    explicit AudioTest(QWidget *parent = nullptr);
+    explicit AudioDevices(QWidget *parent = nullptr);
 
 private:
     QAudioDevice m_deviceInfo;
