@@ -10,7 +10,7 @@ int main(int argv, char **args)
     QApplication app(argv, args);
     app.setApplicationName("Audio Device Test");
 
-    AudioTest audio;
+    AudioDevices audio;
     audio.show();
 
     return app.exec();
