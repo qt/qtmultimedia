@@ -5,10 +5,41 @@
 
 #include <QVBoxLayout>
 
-Generator::Generator(const QAudioFormat &format, qint64 durationUs, int sampleRate)
+namespace {
+
+// IIR filter with poles on the unit circle to generate a sine wave
+// https://ccrma.stanford.edu/~jos/pasp/Digital_Sinusoid_Generators.html
+struct SineOscillator
+{
+    SineOscillator(float frequency, float sampleRate)
+    {
+        float omega = 2.0 * M_PI * frequency / sampleRate;
+        b1 = 2.0f * qCos(omega);
+        float initialPhase = 0.0f;
+        y1 = qSin(initialPhase - omega);
+        y2 = qSin(initialPhase - 2.0f * omega);
+    }
+
+    float nextSample()
+    {
+        double y0 = b1 * y1 - y2;
+        y2 = y1;
+        y1 = y0;
+        return float(std::clamp(y0, -1.0, 1.0));
+    }
+
+private:
+    double b1{};
+    double y1{};
+    double y2{};
+};
+
+} // namespace
+
+Generator::Generator(const QAudioFormat &format, qint64 durationUs, int frequency)
 {
     if (format.isValid())
-        generateData(format, durationUs, sampleRate);
+        generateData(format, durationUs, frequency);
 }
 
 void Generator::start()
@@ -20,6 +51,76 @@ void Generator::stop()
 {
     m_pos = 0;
     close();
+}
+
+static QSpan<char> writeFromSampleValue(QSpan<char> buffer, float value,
+                                        QAudioFormat::SampleFormat format)
+{
+    switch (format) {
+    case QAudioFormat::UInt8: {
+        quint8 sample = quint8((1.0 + value) / 2 * 255);
+        *reinterpret_cast<quint8 *>(buffer.data()) = sample;
+        return buffer.subspan(sizeof(quint8));
+    }
+    case QAudioFormat::Int16: {
+        qint16 sample = qint16(value * 32767);
+
+        *reinterpret_cast<qint16 *>(buffer.data()) = sample;
+        return buffer.subspan(sizeof(qint16));
+    }
+    case QAudioFormat::Int32: {
+        qint32 sample = qint32(value * double(std::numeric_limits<qint32>::max()));
+        *reinterpret_cast<qint32 *>(buffer.data()) = sample;
+        return buffer.subspan(sizeof(qint32));
+    }
+    case QAudioFormat::Float: {
+        *reinterpret_cast<float *>(buffer.data()) = value;
+        return buffer.subspan(sizeof(float));
+    }
+    default:
+        Q_UNREACHABLE_RETURN(buffer);
+    }
+}
+
+void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int frequency)
+{
+    qint64 bytes = format.bytesForDuration(durationUs);
+    m_buffer.resize(bytes);
+    QSpan<char> buffer(m_buffer.data(), m_buffer.size());
+    auto osc = SineOscillator(frequency, format.sampleRate());
+
+    while (!buffer.empty()) {
+        const float sampleValue = osc.nextSample(); // Produces value (-1..1)
+        for (int i = 0; i < format.channelCount(); ++i)
+            buffer = writeFromSampleValue(buffer, sampleValue, format.sampleFormat());
+    }
+}
+
+qint64 Generator::readData(char *data, qint64 len)
+{
+    qint64 total = 0;
+    if (!m_buffer.isEmpty()) {
+        while (len - total > 0) {
+            const qint64 chunk = qMin((m_buffer.size() - m_pos), len - total);
+            memcpy(data + total, m_buffer.constData() + m_pos, chunk);
+            m_pos = (m_pos + chunk) % m_buffer.size();
+            total += chunk;
+        }
+    }
+    return total;
+}
+
+qint64 Generator::writeData(const char *data, qint64 len)
+{
+    Q_UNUSED(data);
+    Q_UNUSED(len);
+
+    return 0;
+}
+
+qint64 Generator::bytesAvailable() const
+{
+    return m_buffer.size() + QIODevice::bytesAvailable();
 }
 
 using namespace Qt::Literals::StringLiterals;
@@ -53,75 +154,6 @@ static void syncFormatGui(QComboBox *m_formatBox,
     setCurrentValue(m_formatBox, format.sampleFormat());
     setCurrentValue(m_rateBox, format.sampleRate());
     setCurrentValue(m_channelsBox, format.channelCount());
-}
-
-void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int sampleRate)
-{
-    const int channelBytes = format.bytesPerSample();
-    [[maybe_unused]] const int sampleBytes = format.channelCount() * channelBytes;
-    Q_ASSERT(sampleBytes != 0);
-    qint64 length = format.bytesForDuration(durationUs);
-    Q_ASSERT(length % sampleBytes == 0);
-    Q_UNUSED(sampleBytes); // suppress warning in release builds
-
-    m_buffer.resize(length);
-    unsigned char *ptr = reinterpret_cast<unsigned char *>(m_buffer.data());
-    int sampleIndex = 0;
-
-    while (length) {
-        // Produces value (-1..1)
-        const qreal x = qSin(2 * M_PI * sampleRate * qreal(sampleIndex++ % format.sampleRate())
-                             / format.sampleRate());
-        for (int i = 0; i < format.channelCount(); ++i) {
-            switch (format.sampleFormat()) {
-            case QAudioFormat::UInt8:
-                *reinterpret_cast<quint8 *>(ptr) = static_cast<quint8>((1.0 + x) / 2 * 255);
-                break;
-            case QAudioFormat::Int16:
-                *reinterpret_cast<qint16 *>(ptr) = static_cast<qint16>(x * 32767);
-                break;
-            case QAudioFormat::Int32:
-                *reinterpret_cast<qint32 *>(ptr) =
-                        static_cast<qint32>(x * std::numeric_limits<qint32>::max());
-                break;
-            case QAudioFormat::Float:
-                *reinterpret_cast<float *>(ptr) = x;
-                break;
-            default:
-                break;
-            }
-
-            ptr += channelBytes;
-            length -= channelBytes;
-        }
-    }
-}
-
-qint64 Generator::readData(char *data, qint64 len)
-{
-    qint64 total = 0;
-    if (!m_buffer.isEmpty()) {
-        while (len - total > 0) {
-            const qint64 chunk = qMin((m_buffer.size() - m_pos), len - total);
-            memcpy(data + total, m_buffer.constData() + m_pos, chunk);
-            m_pos = (m_pos + chunk) % m_buffer.size();
-            total += chunk;
-        }
-    }
-    return total;
-}
-
-qint64 Generator::writeData(const char *data, qint64 len)
-{
-    Q_UNUSED(data);
-    Q_UNUSED(len);
-
-    return 0;
-}
-
-qint64 Generator::bytesAvailable() const
-{
-    return m_buffer.size() + QIODevice::bytesAvailable();
 }
 
 AudioTest::AudioTest() : m_devices(new QMediaDevices(this)), m_pushTimer(new QTimer(this))
@@ -253,8 +285,8 @@ void AudioTest::applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFor
 
     // rebuild generator and sink with the requested format
     const int durationSeconds = 1;
-    const int toneSampleRateHz = 600;
-    m_generator = std::make_unique<Generator>(format, durationSeconds * 1000000, toneSampleRateHz);
+    const int toneFrequencyInHz = 600;
+    m_generator = std::make_unique<Generator>(format, durationSeconds * 1000000, toneFrequencyInHz);
     m_audioSink = std::make_unique<QAudioSink>(deviceInfo, format);
     m_audioSink->setVolume(0.25f); // roughly -12dB
 
