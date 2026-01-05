@@ -22,7 +22,7 @@ class Generator : public QIODevice
     Q_OBJECT
 
 public:
-    Generator(const QAudioFormat &format, qint64 durationUs, int sampleRate);
+    Generator(const QAudioFormat &format, qint64 durationUs, int frequency);
 
     void start();
     void stop();
@@ -33,7 +33,7 @@ public:
     qint64 size() const override { return m_buffer.size(); }
 
 private:
-    void generateData(const QAudioFormat &format, qint64 durationUs, int sampleRate);
+    void generateData(const QAudioFormat &format, qint64 durationUs, int frequency);
 
 private:
     qint64 m_pos = 0;
