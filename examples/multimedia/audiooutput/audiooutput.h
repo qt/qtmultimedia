@@ -55,8 +55,7 @@ public:
 
 private:
     void initializeWindow();
-    void initializeAudio(const QAudioDevice &deviceInfo);
-    void applyAudioFormat(const QAudioDevice &deviceInfo, const QAudioFormat &format);
+    void startAudioSink(const QAudioDevice &, const QAudioFormat &);
     void cleanupAudioSink();
 
 private:

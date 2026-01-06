@@ -137,17 +137,17 @@ static constexpr std::array allSupportedSampleRates{
     48'000, 64'000, 88'200, 96'000, 128'000, 176'400, 192'000,
 };
 
-template<typename T>
-static void setCurrentValue(QComboBox *box, const T &value) {
+template <typename T>
+static void setCurrentValue(QComboBox *box, const T &value)
+{
     int idx = box->findData(QVariant::fromValue(value));
     if (idx >= 0)
         box->setCurrentIndex(idx);
 }
 
-static void syncFormatGui(QComboBox *m_formatBox,
-                          QComboBox *m_channelsBox,
-                          QComboBox *m_rateBox,
-                          const QAudioFormat &format) {
+static void syncFormatGui(QComboBox *m_formatBox, QComboBox *m_channelsBox, QComboBox *m_rateBox,
+                          const QAudioFormat &format)
+{
     setCurrentValue(m_formatBox, format.sampleFormat());
     setCurrentValue(m_rateBox, format.sampleRate());
     setCurrentValue(m_channelsBox, format.channelCount());
@@ -156,7 +156,9 @@ static void syncFormatGui(QComboBox *m_formatBox,
 AudioTest::AudioTest() : m_devices(new QMediaDevices(this)), m_pushTimer(new QTimer(this))
 {
     initializeWindow();
-    initializeAudio(QMediaDevices::defaultAudioOutput());
+
+    // deviceChanged will kickstart the QAudioSink
+    deviceChanged(m_deviceBox->currentIndex());
 }
 
 AudioTest::~AudioTest()
@@ -213,35 +215,15 @@ void AudioTest::initializeWindow()
     formatLabel->setText(tr("Sample Format:"));
     m_formatBox = new QComboBox(this);
 
-    // populate the sample format combo box
-    // supportedSampleFormats returns enum so we cast it to string.
-    const auto formats = defaultDevice.supportedSampleFormats();
-    for (const QAudioFormat::SampleFormat fmt : formats)
-        m_formatBox->addItem(sampleFormatToString(fmt), QVariant::fromValue(fmt));
-
     //Sample rate button
     QLabel *rateLabel = new QLabel;
     rateLabel->setText(tr("Sample Rate:"));
     m_rateBox = new QComboBox(this);
 
-    // populate from the hardcoded list in this cpp file
-    for (int rate : allSupportedSampleRates)
-        m_rateBox->addItem(QString::number(rate), rate);
-
     // setting channel count
     QLabel *chLabel = new QLabel;
     chLabel->setText(tr("Channels:"));
     m_channelsBox = new QComboBox(this);
-
-    // populate from device min..max
-    int minCh = defaultDevice.minimumChannelCount();
-    int maxCh = defaultDevice.maximumChannelCount();
-    for (int ch = minCh; ch <= maxCh; ++ch)
-        m_channelsBox->addItem(QString::number(ch), ch);
-
-    // set the value of the boxes to be the initial values of the format.
-    const QAudioFormat pref = defaultDevice.preferredFormat();
-    syncFormatGui(m_formatBox, m_channelsBox, m_rateBox, pref);
 
     for (auto *box : { m_channelsBox, m_rateBox, m_formatBox }) {
         connect(box, &QComboBox::activated, this, [this, box]() {
@@ -266,17 +248,8 @@ void AudioTest::initializeWindow()
     window->show();
 }
 
-void AudioTest::initializeAudio(const QAudioDevice &deviceInfo)
+void AudioTest::startAudioSink(const QAudioDevice &device, const QAudioFormat &format)
 {
-    QAudioFormat format = deviceInfo.preferredFormat();
-    applyAudioFormat(deviceInfo, format);
-}
-
-void AudioTest::applyAudioFormat(const QAudioDevice &device, const QAudioFormat &format)
-{
-    // keep previous format to roll back if changing the audio format fails
-    const QAudioFormat prevFmt = m_audioSink ? m_audioSink->format() : device.preferredFormat();
-
     if (m_audioSink)
         cleanupAudioSink();
 
@@ -290,40 +263,42 @@ void AudioTest::applyAudioFormat(const QAudioDevice &device, const QAudioFormat 
     m_generator->start();
     m_currentDevice = device;
 
+    syncFormatGui(m_formatBox, m_channelsBox, m_rateBox, m_audioSink->format());
+
     // handle startup/runtime errors and success negotiation
-    connect(m_audioSink.get(), &QAudioSink::stateChanged, this,
-            [this, prevFmt](QAudio::State s) {
-                const auto err = m_audioSink->error();
+    connect(m_audioSink.get(), &QAudioSink::stateChanged, this, [this, device](QAudio::State s) {
+        switch (s) {
+        case QAudio::ActiveState:
+            m_suspendResumeButton->setText(tr("Suspend playback"));
+            return;
 
-                // startup failure (format rejected or device unavailable)
-                if (err == QAudio::OpenError && s == QAudio::StoppedState) {
-                    QMessageBox::warning(this, tr("Audio start failed"),
-                                         tr("Device rejected the format or is unavailable."));
-                    auto dev = m_deviceBox->currentData().value<QAudioDevice>();
-                    applyAudioFormat(dev, prevFmt);
-                    return;
-                }
+        case QAudio::SuspendedState:
+            m_suspendResumeButton->setText(tr("Resume playback"));
+            return;
 
-                // runtime I/O or fatal device error (disconnects, etc.)
-                if (err == QAudio::IOError || err == QAudio::FatalError) {
-                    QMessageBox::warning(this, tr("Audio error"),
-                                    tr("Audio device error. Restoring previous format/device."));
-                    auto dev = m_deviceBox->currentData().value<QAudioDevice>();
-                    applyAudioFormat(dev, prevFmt);
-                    return;
-                }
+        default:
+            break;
+        }
 
-                // reflect negotiated format on successful activation
-                if (s == QAudio::ActiveState) {
-                    syncFormatGui(m_formatBox, m_channelsBox, m_rateBox, m_audioSink->format());
-                }
+        const auto err = m_audioSink->error();
 
-                // reset suspend/resume to new audiosink
-                m_suspendResumeButton->setText(tr("Suspend playback"));
-                if (s == QAudio::SuspendedState) {
-                    m_suspendResumeButton->setText(tr("Resume playback"));
-                }
-            });
+        // startup failure (format rejected or device unavailable)
+        if (err == QAudio::OpenError && s == QAudio::StoppedState) {
+            QMessageBox::warning(this, tr("Audio start failed"),
+                                 tr("Device rejected the format or is unavailable."));
+            return;
+        }
+
+        // runtime I/O or fatal device error (disconnects, etc.)
+        if (err == QAudio::IOError || err == QAudio::FatalError) {
+            if (m_currentDevice == device) {
+                m_currentDevice = {};
+                m_deviceBox->setCurrentIndex(-1);
+            }
+            QMessageBox::warning(this, tr("Audio error"), tr("Audio device error."));
+            return;
+        }
+    });
 
     // set initial volume and kick the stream
     qreal initialVolume = QAudio::convertVolume(m_audioSink->volume(),
@@ -336,23 +311,36 @@ void AudioTest::applyAudioFormat(const QAudioDevice &device, const QAudioFormat 
 
 void AudioTest::deviceChanged(int index)
 {
-
     QAudioDevice dev = m_deviceBox->itemData(index).value<QAudioDevice>();
 
     // formats
     m_formatBox->clear();
-    const auto formats = dev.supportedSampleFormats();
-    for (const QAudioFormat::SampleFormat sf : formats)
-        m_formatBox->addItem(sampleFormatToString(sf), QVariant::fromValue(sf));
-
-    // channels
     m_channelsBox->clear();
-    for (int ch = dev.minimumChannelCount(); ch <= dev.maximumChannelCount(); ++ch)
-        m_channelsBox->addItem(QString::number(ch), ch);
+    m_rateBox->clear();
+
+    if (!dev.isNull()) {
+        const auto formats = dev.supportedSampleFormats();
+        for (const QAudioFormat::SampleFormat sf : formats)
+            m_formatBox->addItem(sampleFormatToString(sf), QVariant::fromValue(sf));
+
+        // channels
+        for (int ch = dev.minimumChannelCount(); ch <= dev.maximumChannelCount(); ++ch)
+            m_channelsBox->addItem(QString::number(ch), ch);
+
+        // populate from the hardcoded list in this cpp file
+        for (int rate : allSupportedSampleRates) {
+            if (rate < dev.minimumSampleRate() || rate > dev.maximumSampleRate())
+                continue;
+            m_rateBox->addItem(QString::number(rate), rate);
+        }
+    }
 
     if (dev != m_currentDevice) {
         cleanupAudioSink();
-        initializeAudio(m_deviceBox->itemData(index).value<QAudioDevice>());
+        if (!dev.isNull()) {
+            QAudioFormat format = dev.preferredFormat();
+            startAudioSink(dev, format);
+        }
     }
 }
 
@@ -379,7 +367,7 @@ void AudioTest::formatChanged(QComboBox *box)
         newFormat.setChannelCount(box->currentData().toInt());
     }
 
-    applyAudioFormat(device, newFormat);
+    startAudioSink(device, newFormat);
 }
 
 void AudioTest::updateAudioDevices()
@@ -387,6 +375,7 @@ void AudioTest::updateAudioDevices()
     QSignalBlocker blockUpdates(m_deviceBox);
 
     m_deviceBox->clear();
+
     const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
     for (const QAudioDevice &deviceInfo : devices)
         m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
@@ -399,7 +388,12 @@ void AudioTest::updateAudioDevices()
         // select default device
         QAudioDevice defaultDevice = QMediaDevices::defaultAudioOutput();
         const int defaultDeviceIndex = m_deviceBox->findData(QVariant::fromValue(defaultDevice));
+        const int currentIndex = m_deviceBox->currentIndex();
         m_deviceBox->setCurrentIndex(defaultDeviceIndex);
+        if (defaultDeviceIndex == currentIndex) {
+            // device changed, reinitialize audio
+            deviceChanged(defaultDeviceIndex);
+        }
     }
 }
 
