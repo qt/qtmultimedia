@@ -3,6 +3,7 @@
 
 #include "qpipewire_audiostream_p.h"
 
+#include "qaudiosystem_platform_stream_support_p.h"
 #include "qpipewire_audiocontextmanager_p.h"
 #include "qpipewire_spa_pod_support_p.h"
 
@@ -35,10 +36,7 @@ QPipewireAudioStream::QPipewireAudioStream(const QAudioFormat &format) : m_forma
 {
 }
 
-QPipewireAudioStream::~QPipewireAudioStream()
-{
-    resetStream();
-}
+QPipewireAudioStream::~QPipewireAudioStream() = default;
 
 void QPipewireAudioStream::createStream(QSpan<spa_dict_item> extraProperties,
                                         std::optional<int32_t> hardwareBufferFrames,
@@ -156,7 +154,10 @@ void QPipewireAudioStream::disconnectStream()
 
 void QPipewireAudioStream::resetStream()
 {
+    finalizeStream(); // mark the stream as stopped
     QAudioContextManager::withEventLoopLock([&] {
+        if (m_deviceRemovalObserver)
+            unregisterDeviceObserver();
         m_stream = {};
         m_self = {};
     });

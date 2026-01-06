@@ -46,7 +46,10 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QAudioDevice device, cons
     });
 }
 
-QPipewireAudioSourceStream::~QPipewireAudioSourceStream() = default;
+QPipewireAudioSourceStream::~QPipewireAudioSourceStream()
+{
+    resetStream();
+}
 
 bool QPipewireAudioSourceStream::start(QIODevice *device)
 {
@@ -176,6 +179,11 @@ void QPipewireAudioSourceStream::disconnectStream()
     QPipewireAudioStream::disconnectStream();
 
     QObject::disconnect(m_xrunNotification);
+}
+
+void QPipewireAudioSourceStream::finalizeStream()
+{
+    requestStop();
 }
 
 void QPipewireAudioSourceStream::processRingbuffer() noexcept QT_MM_NONBLOCKING

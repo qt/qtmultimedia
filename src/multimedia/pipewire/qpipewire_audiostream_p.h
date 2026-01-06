@@ -90,6 +90,8 @@ protected:
 
     friend class QAudioContextManager; // to access m_self
     std::shared_ptr<QPipewireAudioStream> m_self;
+
+    virtual void finalizeStream() = 0;
 };
 
 } // namespace QtPipeWire

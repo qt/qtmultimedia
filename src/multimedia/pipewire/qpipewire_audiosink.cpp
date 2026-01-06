@@ -62,6 +62,7 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QAudioDevice device,
 
 QPipewireAudioSinkStream::~QPipewireAudioSinkStream()
 {
+    resetStream();
     Q_ASSERT(!m_deviceRemovalObserver);
 }
 
@@ -331,6 +332,11 @@ void QPipewireAudioSinkStream::stateChanged(pw_stream_state oldState, pw_stream_
         break;
     }
     }
+}
+
+void QPipewireAudioSinkStream::finalizeStream()
+{
+    requestStop();
 }
 
 void QPipewireAudioSinkStream::disconnectStream()
