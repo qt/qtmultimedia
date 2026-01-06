@@ -191,6 +191,8 @@ private slots:
     void metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail();
     void metadata_returnsMetadataWithHasHdrContent_whenMediaHasHdrContent_data();
     void metadata_returnsMetadataWithHasHdrContent_whenMediaHasHdrContent();
+    void metadata_returnsMetadataWithCorrectDate_data();
+    void metadata_returnsMetadataWithCorrectDate();
     void playerStateAtEOS();
     void playFromBuffer();
     void playFromSequentialStream();
@@ -300,6 +302,10 @@ private:
     MaybeUrl m_multitrackVideo{ q23::unexpect };
     MaybeUrl m_multitrackSubtitleStartsAtZeroVideo{ q23::unexpect };
     MaybeUrl m_oggEndingWithInvalidTiming{ q23::unexpect };
+    MaybeUrl m_withDate{ q23::unexpect };
+    MaybeUrl m_withCreationTime{ q23::unexpect };
+    MaybeUrl m_withDateAndCreationTime{ q23::unexpect };
+    MaybeUrl m_withQtDateAndCreationTime{ q23::unexpect };
 
     MediaFileSelector m_mediaSelector;
 
@@ -446,6 +452,10 @@ void tst_QMediaPlayerBackend::initTestCase()
     m_multitrackSubtitleStartsAtZeroVideo =
             m_mediaSelector.select("qrc:/testdata/multitrack-subtitle-start-at-zero.mkv");
     m_oggEndingWithInvalidTiming = m_mediaSelector.select("qrc:/testdata/corrupt_end.ogg");
+    m_withDate = m_mediaSelector.select("qrc:/testdata/with_date.mp4");
+    m_withCreationTime = m_mediaSelector.select("qrc:/testdata/with_creation_time.mp4");
+    m_withDateAndCreationTime = m_mediaSelector.select("qrc:/testdata/with_date_and_creation_time.mp4");
+    m_withQtDateAndCreationTime = m_mediaSelector.select("qrc:/testdata/with_qtdate_and_creation_time.mov");
 
     detectVlcCommand();
 }
@@ -3117,6 +3127,31 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithHasHdrContent_whenMedi
     const bool hdrContent = metadata.value(QMediaMetaData::HasHdrContent).value<bool>();
 
     QCOMPARE_EQ(hasHdrContent, hdrContent);
+}
+
+void tst_QMediaPlayerBackend::metadata_returnsMetadataWithCorrectDate_data()
+{
+    QTest::addColumn<MaybeUrl>("mediaUrl");
+
+    QTest::addRow("With Recorded date") << m_withDate;
+    QTest::addRow("With Encoded date") << m_withCreationTime;
+    QTest::addRow("With Recorded date and Encoded date") << m_withDateAndCreationTime;
+    QTest::addRow("With QuickTime creation date and Encoded date") << m_withQtDateAndCreationTime;
+}
+
+void tst_QMediaPlayerBackend::metadata_returnsMetadataWithCorrectDate()
+{
+    QFETCH(const MaybeUrl, mediaUrl);
+
+    if (mediaUrl == m_withQtDateAndCreationTime)
+        QSKIP("Skipping due to QTBUG-143038");
+
+    m_fixture->player.setSource(*mediaUrl);
+    QTRY_VERIFY(!m_fixture->metadataChanged.empty());
+
+    const QMediaMetaData metadata = m_fixture->player.metaData();
+    QCOMPARE_EQ(metadata.value(QMediaMetaData::Date).value<QDateTime>(),
+                QDateTime::fromString("1995-04-18T00:00:00Z", Qt::ISODate));
 }
 
 void tst_QMediaPlayerBackend::playerStateAtEOS()
