@@ -68,11 +68,13 @@ private:
 
     using QPlatformAudioSourceStream::m_format;
 
+    // QPipewireAudioSourceStream overrides
     void processRingbuffer() noexcept QT_MM_NONBLOCKING override;
     void processCallback() noexcept QT_MM_NONBLOCKING override;
     void handleDeviceRemoved() override;
-
     void stateChanged(pw_stream_state old, pw_stream_state state, const char *error) override;
+    void finalizeStream() override;
+
     void disconnectStream();
 
     QSemaphore m_streamDisconnected;

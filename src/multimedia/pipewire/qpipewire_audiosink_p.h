@@ -70,11 +70,12 @@ private:
     void handleDeviceRemoved() override;
     void processRingbuffer() noexcept QT_MM_NONBLOCKING override;
     void processCallback() noexcept QT_MM_NONBLOCKING override;
-    template <typename Functor>
-    void processHelper(Functor &&f);
-
     void stateChanged(pw_stream_state /*old*/, pw_stream_state state,
                       const char * /*error*/) override;
+    void finalizeStream() override;
+
+    template <typename Functor>
+    void processHelper(Functor &&f);
 
     void disconnectStream();
     QSemaphore m_disconnectSemaphore;
