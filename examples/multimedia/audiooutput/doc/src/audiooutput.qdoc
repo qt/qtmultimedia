@@ -16,8 +16,9 @@
            {UI with playback controls and audio output mode selection}
 
     This example provides a tone generator to supply continuous audio playback.
-    The first button allows pause and resume of the playback, and the second
-    button allows toggling between push and pull modes of operation.
+    The UI allows the user to select the audio output device, pause and resume playback,
+    switch between different modes of operation, adjust the volume and
+    change the audio format parameters.
 
     \include examples-run.qdocinc
 */
