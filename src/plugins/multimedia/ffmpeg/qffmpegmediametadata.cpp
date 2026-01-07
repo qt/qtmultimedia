@@ -28,8 +28,6 @@ constexpr ffmpegTagToMetaDataKey ffmpegTagToMetaDataKey[] = {
     { "description", QMediaMetaData::Description },
     { "genre", QMediaMetaData::Genre },
     { "date", QMediaMetaData::Date },
-    { "year", QMediaMetaData::Date },
-    { "creation_time", QMediaMetaData::Date },
 
     { "language", QMediaMetaData::Language },
 
