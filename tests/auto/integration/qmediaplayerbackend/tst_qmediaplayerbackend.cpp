@@ -3144,7 +3144,7 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithCorrectDate()
     QFETCH(const MaybeUrl, mediaUrl);
 
     if (mediaUrl == m_withQtDateAndCreationTime)
-        QSKIP("Skipping due to QTBUG-143038");
+        QSKIP_GSTREAMER("GStreamer doesn't expose com.apple.quicktime.creationdate");
 
     m_fixture->player.setSource(*mediaUrl);
     QTRY_VERIFY(!m_fixture->metadataChanged.empty());
