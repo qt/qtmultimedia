@@ -73,6 +73,7 @@ static QDateTime getRecordingTime(const AVDictionary *tags)
 {
     constexpr std::array prioritizedDateTags = {
         "date",                             // Time of work creation provided by FFmpeg
+        "com.apple.quicktime.creationdate", // QuickTime creation time
         "year",                             // Year of work, prioritized after more specific times
         "creation_time",                    // Time of file creation or encoding, prioritized last
     };
