@@ -43,6 +43,7 @@ private:
 enum class AudioTestMode {
     Pull,
     Push,
+    Callback,
 };
 
 class AudioTest : public QMainWindow
