@@ -313,11 +313,11 @@ i*/
 */
 /*!
     \typedef QAudioBuffer::U8S
-    This is a predifined specialization for an unsiged 8 bit stereo sample.
+    This is a predifined specialization for an unsigned 8 bit stereo sample.
 */
 /*!
     \typedef QAudioBuffer::S32S
-    This is a predifined specialization for a siged 32 bit stereo sample.
+    This is a predifined specialization for a signed 32 bit stereo sample.
 */
 /*!
     \typedef QAudioBuffer::F32S
