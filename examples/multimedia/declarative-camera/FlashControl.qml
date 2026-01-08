@@ -21,10 +21,10 @@ Item {
     // we must explicitly check if the flash mode is still supported when we change
     // the camera-device.
     Connections {
-        target: camera
+        target: topItem.camera
         function onCameraDeviceChanged() {
-            topItem.mIsFlashSupported = camera.isFlashModeSupported(Camera.FlashOn)
-            topItem.mIsTorchSupported = camera.isTorchModeSupported(Camera.TorchOn)
+            topItem.mIsFlashSupported = topItem.camera.isFlashModeSupported(Camera.FlashOn)
+            topItem.mIsTorchSupported = topItem.camera.isTorchModeSupported(Camera.TorchOn)
         }
     }
 
