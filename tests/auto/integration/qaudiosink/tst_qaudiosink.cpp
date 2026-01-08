@@ -1340,6 +1340,12 @@ void tst_QAudioSink::callbackAPI()
     });
     QCOMPARE(audioSink.error(), QAudio::Error::NoError);
 
+    QTRY_COMPARE(audioSink.state(), QAudio::State::ActiveState);
+
+    // ensure that we won't end up "idle", that does not make sense with the callback API
+    QTest::qWait(2s);
+    QCOMPARE_NE(audioSink.state(), QAudio::State::IdleState);
+
     bool callbackExecuted = sync.try_acquire_for(1s);
     QVERIFY(callbackExecuted);
 #else

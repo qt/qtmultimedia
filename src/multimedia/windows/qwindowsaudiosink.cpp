@@ -215,7 +215,7 @@ bool QWASAPIAudioSinkStream::startAudioClient(StreamType streamType)
     using namespace QWindowsAudioUtils;
     m_workerThread.reset(QThread::create([this, streamType] {
         setMCSSForPeriodSize(m_periodSize);
-        fillInitialHostBuffer();
+        fillInitialHostBuffer(streamType);
         std::optional<QComHelper> m_comHelper;
 
         if (m_hostFormat != m_format) {
@@ -244,9 +244,20 @@ bool QWASAPIAudioSinkStream::startAudioClient(StreamType streamType)
     return true;
 }
 
-void QWASAPIAudioSinkStream::fillInitialHostBuffer()
+void QWASAPIAudioSinkStream::fillInitialHostBuffer(StreamType streamType)
 {
-    processRingbuffer();
+    switch (streamType) {
+    case StreamType::Ringbuffer: {
+        processRingbuffer();
+        return;
+    }
+    case StreamType::Callback: {
+        processCallback();
+        return;
+    }
+    default:
+        Q_UNREACHABLE_RETURN();
+    }
 }
 
 void QWASAPIAudioSinkStream::runProcessRingbufferLoop()

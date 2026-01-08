@@ -82,7 +82,7 @@ private:
     template <typename Functor>
     bool visitAudioClientBuffer(Functor &&f);
 
-    void fillInitialHostBuffer();
+    void fillInitialHostBuffer(StreamType);
     void runProcessRingbufferLoop();
     void runProcessCallbackLoop();
     bool processRingbuffer() noexcept QT_MM_NONBLOCKING;
