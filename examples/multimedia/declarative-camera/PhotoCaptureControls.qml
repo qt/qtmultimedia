@@ -7,13 +7,13 @@ import QtQuick.Layouts
 
 FocusScope {
     id : captureControls
-    property CaptureSession captureSession
-    property bool previewAvailable : false
+    required property CaptureSession captureSession
+    required property bool previewAvailable
 
     property int buttonsmargin: 8
-    property int buttonsPanelWidth
-    property int buttonsPanelPortraitHeight
-    property int buttonsWidth
+    required property int buttonsPanelWidth
+    required property int buttonsPanelPortraitHeight
+    required property int buttonsWidth
 
     signal previewSelected
     signal videoModeSelected
