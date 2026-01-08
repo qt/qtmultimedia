@@ -27,7 +27,6 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_DECLARE_JNI_CLASS(QtCamera2, "org/qtproject/qt/android/multimedia/QtCamera2")
 Q_DECLARE_JNI_CLASS(Image, "android/media/Image")
 Q_DECLARE_JNI_CLASS(ImageFormat, "android/graphics/ImageFormat")
 Q_DECLARE_JNI_CLASS(ImagePlane, "android/media/Image$Plane")

@@ -36,6 +36,8 @@ extern "C" {
 QT_BEGIN_NAMESPACE
 Q_STATIC_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera");
 
+Q_DECLARE_JNI_CLASS(QtCamera2, "org/qtproject/qt/android/multimedia/QtCamera2");
+
 // TODO: Should be reworked to just pass a pointer of the QAndroidCamera object into the QtCamera2
 // Java instance.
 typedef QMap<QString, QFFmpeg::QAndroidCamera *> QAndroidCameraMap;
