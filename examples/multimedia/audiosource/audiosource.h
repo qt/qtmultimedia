@@ -42,6 +42,11 @@ private:
     qreal m_level = 0.0; // 0.0 <= m_level <= 1.0
 };
 
+enum class AudioTestMode {
+    Pull,
+    Push,
+};
+
 class RenderArea : public QWidget
 {
     Q_OBJECT
@@ -65,9 +70,6 @@ class InputTest : public QWidget
 public:
     InputTest();
 
-signals:
-    void pullModeChanged();
-
 private:
     void initializeWindow();
     void initializeAudio(const QAudioDevice &deviceInfo);
@@ -76,7 +78,6 @@ private:
 
 private slots:
     void init();
-    void toggleMode();
     void toggleSuspend();
     void deviceChanged(int index);
     void sliderChanged(int value);
@@ -85,7 +86,7 @@ private slots:
 private:
     // Owned by layout
     RenderArea *m_canvas = nullptr;
-    QPushButton *m_modeButton = nullptr;
+    QComboBox *m_modeBox = nullptr;
     QPushButton *m_suspendResumeButton = nullptr;
     QComboBox *m_deviceBox = nullptr;
     QSlider *m_volumeSlider = nullptr;
@@ -93,7 +94,7 @@ private:
     QMediaDevices *m_devices = nullptr;
     std::unique_ptr<AudioInfo> m_audioInfo;
     std::unique_ptr<QAudioSource> m_audioSource;
-    bool m_pullMode = true;
+    AudioTestMode m_mode = AudioTestMode::Pull;
 };
 
 #endif // AUDIOINPUT_H

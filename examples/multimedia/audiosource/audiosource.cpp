@@ -125,21 +125,19 @@ void InputTest::initializeWindow()
     connect(m_volumeSlider, &QSlider::valueChanged, this, &InputTest::sliderChanged);
     layout->addWidget(m_volumeSlider);
 
-    m_modeButton = new QPushButton(this);
-    connect(m_modeButton, &QPushButton::clicked, this, &InputTest::toggleMode);
-    layout->addWidget(m_modeButton);
+    m_modeBox = new QComboBox(this);
+    m_modeBox->addItem(tr("Pull Mode"));
+    m_modeBox->addItem(tr("Push Mode"));
+    m_modeBox->setCurrentIndex(qToUnderlying(m_mode));
+    connect(m_modeBox, &QComboBox::currentIndexChanged, this, [this](int index) {
+        m_mode = static_cast<AudioTestMode>(index);
+        restartAudioStream();
+    });
+    layout->addWidget(m_modeBox);
 
     m_suspendResumeButton = new QPushButton(this);
     connect(m_suspendResumeButton, &QPushButton::clicked, this, &InputTest::toggleSuspend);
     layout->addWidget(m_suspendResumeButton);
-
-    connect(this, &InputTest::pullModeChanged, this, [&] {
-        if (m_pullMode)
-            m_modeButton->setText(tr("Enable push mode"));
-        else
-            m_modeButton->setText(tr("Enable pull mode"));
-    });
-    emit pullModeChanged();
 }
 
 void InputTest::initializeAudio(const QAudioDevice &deviceInfo)
@@ -196,7 +194,8 @@ void InputTest::restartAudioStream()
 {
     m_audioSource->stop();
 
-    if (m_pullMode) {
+    switch (m_mode) {
+    case AudioTestMode::Pull: {
         // pull mode: QAudioSource provides a QIODevice to pull from
         auto *io = m_audioSource->start();
         if (!io)
@@ -213,9 +212,15 @@ void InputTest::restartAudioStream()
                 m_canvas->setLevel(level);
             }
         });
-    } else {
+        break;
+    }
+    case AudioTestMode::Push: {
         // push mode: QIODevice pushes data into QIODevice
         m_audioSource->start(m_audioInfo.get());
+        break;
+    }
+    default:
+        Q_UNREACHABLE();
     }
 
     if (m_audioSource->error() != QAudio::NoError) {
@@ -242,14 +247,6 @@ void InputTest::init()
 #endif
     initializeWindow();
     initializeAudio(QMediaDevices::defaultAudioInput());
-}
-
-void InputTest::toggleMode()
-{
-    m_pullMode = !m_pullMode;
-    emit pullModeChanged();
-
-    restartAudioStream();
 }
 
 void InputTest::toggleSuspend()
