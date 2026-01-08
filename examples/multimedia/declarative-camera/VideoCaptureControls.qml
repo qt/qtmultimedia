@@ -8,6 +8,7 @@ import QtQuick.Layouts
 FocusScope {
     id : captureControls
     required property CaptureSession captureSession
+    readonly property Camera camera: captureSession.camera
     property bool previewAvailable : false
 
     property int buttonsmargin: 8
@@ -72,7 +73,7 @@ FocusScope {
 
             CameraListButton {
                 implicitWidth: captureControls.buttonsWidth
-                onValueChanged: captureControls.captureSession.camera.cameraDevice = value
+                onValueChanged: captureControls.camera.cameraDevice = value
                 state: captureControls.state
             }
 
@@ -99,10 +100,10 @@ FocusScope {
         height: parent.height - (flashControl.visible * flashControl.height) -
                 (captureControls.state === "MobilePortrait" ? buttonPaneShadow.height : 0)
 
-        currentZoom: captureControls.captureSession.camera.zoomFactor
-        maximumZoom: captureControls.captureSession.camera.maximumZoomFactor
-        minimumZoom: captureControls.captureSession.camera.minimumZoomFactor
-        onZoomTo: (target) => captureControls.captureSession.camera.zoomFactor = target
+        currentZoom: captureControls.camera.zoomFactor
+        maximumZoom: captureControls.camera.maximumZoomFactor
+        minimumZoom: captureControls.camera.minimumZoomFactor
+        onZoomTo: (target) => captureControls.camera.zoomFactor = target
     }
     //! [0]
 
@@ -112,7 +113,7 @@ FocusScope {
         y : captureControls.state === "MobilePortrait" ?
                 parent.height - (buttonPaneShadow.height + height) : parent.height - height
 
-        camera: captureControls.captureSession.camera
+        camera: captureControls.camera
     }
 
     states: [
