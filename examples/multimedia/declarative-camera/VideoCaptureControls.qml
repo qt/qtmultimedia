@@ -1,8 +1,8 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-import QtQuick
 import QtMultimedia
+import QtQuick
 import QtQuick.Layouts
 
 FocusScope {
@@ -63,6 +63,23 @@ FocusScope {
                              && !stopButton.visible
                 }
             }
+
+            Text {
+                text: "White balance"
+                font.pixelSize: 14
+                font.bold: true
+                color: "white"
+                visible: whiteBalanceComboBox.model.length > 1
+            }
+
+            CameraWhiteBalanceButton {
+                id: whiteBalanceComboBox
+
+                Layout.preferredWidth: captureControls.buttonsWidth
+                camera: captureControls.camera
+
+                visible: model.length > 1
+            }
         }
 
         GridLayout {
@@ -71,10 +88,20 @@ FocusScope {
             flow: captureControls.state === "MobilePortrait"
                   ? GridLayout.LeftToRight : GridLayout.TopToBottom
 
+            Text {
+                text: "Device"
+                font.pixelSize: 14
+                font.bold: true
+                color: "white"
+                visible: cameraDeviceComboBox.model.length > 1
+            }
             CameraListButton {
-                implicitWidth: captureControls.buttonsWidth
-                onValueChanged: captureControls.camera.cameraDevice = value
-                state: captureControls.state
+                id: cameraDeviceComboBox
+
+                Layout.preferredWidth: captureControls.buttonsWidth
+                camera: captureControls.camera
+
+                visible: model.length > 1
             }
 
             CameraButton {

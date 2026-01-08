@@ -1,8 +1,8 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-import QtQuick
 import QtMultimedia
+import QtQuick
 import QtQuick.Layouts
 
 FocusScope {
@@ -37,41 +37,6 @@ FocusScope {
             }
             //! [0]
 
-            CameraPropertyButton {
-                id : wbModesButton
-                implicitWidth: captureControls.buttonsWidth
-                state: captureControls.state
-                value: Camera.WhiteBalanceAuto
-                model: ListModel {
-                    ListElement {
-                        icon: "images/camera_auto_mode.png"
-                        value: Camera.WhiteBalanceAuto
-                        text: "Auto"
-                    }
-                    ListElement {
-                        icon: "images/camera_white_balance_sunny.png"
-                        value: Camera.WhiteBalanceSunlight
-                        text: "Sunlight"
-                    }
-                    ListElement {
-                        icon: "images/camera_white_balance_cloudy.png"
-                        value: Camera.WhiteBalanceCloudy
-                        text: "Cloudy"
-                    }
-                    ListElement {
-                        icon: "images/camera_white_balance_incandescent.png"
-                        value: Camera.WhiteBalanceTungsten
-                        text: "Tungsten"
-                    }
-                    ListElement {
-                        icon: "images/camera_white_balance_flourescent.png"
-                        value: Camera.WhiteBalanceFluorescent
-                        text: "Fluorescent"
-                    }
-                }
-                onValueChanged: captureControls.camera.whiteBalanceMode = wbModesButton.value
-            }
-
             Item {
                 implicitWidth: captureControls.buttonsWidth
                 implicitHeight: 70
@@ -82,6 +47,23 @@ FocusScope {
                     visible: captureControls.previewAvailable
                 }
             }
+
+            Text {
+                text: "White balance"
+                font.pixelSize: 14
+                font.bold: true
+                color: "white"
+                visible: whiteBalanceComboBox.model.length > 1
+            }
+
+            CameraWhiteBalanceButton {
+                id: whiteBalanceComboBox
+
+                Layout.preferredWidth: captureControls.buttonsWidth
+                camera: captureControls.camera
+
+                visible: model.length > 1
+            }
         }
 
         GridLayout {
@@ -90,10 +72,20 @@ FocusScope {
             flow: captureControls.state === "MobilePortrait"
                   ? GridLayout.LeftToRight : GridLayout.TopToBottom
 
+            Text {
+                text: "Device"
+                font.pixelSize: 14
+                font.bold: true
+                color: "white"
+                visible: cameraDeviceComboBox.model.length > 1
+            }
             CameraListButton {
-                implicitWidth: captureControls.buttonsWidth
-                state: captureControls.state
-                onValueChanged: captureControls.camera.cameraDevice = value
+                id: cameraDeviceComboBox
+
+                Layout.preferredWidth: captureControls.buttonsWidth
+                camera: captureControls.camera
+
+                visible: model.length > 1
             }
 
             CameraButton {
