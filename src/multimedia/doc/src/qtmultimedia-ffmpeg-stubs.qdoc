@@ -94,8 +94,6 @@ This patching is performed automatically as part of the build/distribution proce
             \li \b{OpenSSL 3.x.x} (with symbol versioning \c{@OPENSSL_3.0.0})
             \li \b{VAAPI ABI 0.33} (older ABI 0.32 is explicitly unsupported)
         \endlist
-    \li It is also possible to build Qt Multimedia against \b{OpenSSL 1.x.x}, though compatibility
-        depends on your FFmpeg configuration.
 \endlist
 
 To completely remove the use of stub libraries, there are two options:
