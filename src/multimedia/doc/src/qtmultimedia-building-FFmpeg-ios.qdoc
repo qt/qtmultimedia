@@ -36,7 +36,7 @@ You can get the FFmpeg source code in these ways:
 \list
 \li Download from the
 \l{https://ffmpeg.org/download.html#get-sources}{FFmpeg download page}.
-\li Clone from git. For example, these commands clone the version 7.1.2 of the
+\li Clone from git. For example, these commands clone the version \ffmpegversion of the
 FFmpeg sources to \c{~/ffmpeg/ffmpeg_src}.
 \badcode
 cd ~/ffmpeg/
