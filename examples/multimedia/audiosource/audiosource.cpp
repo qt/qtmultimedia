@@ -114,9 +114,14 @@ void InputTest::initializeWindow()
     layout->addWidget(m_canvas);
 
     m_deviceBox = new QComboBox(this);
+    QAudioDevice defaultDevice = QMediaDevices::defaultAudioInput();
+    for (auto &deviceInfo : QMediaDevices::audioInputs())
+        m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+    auto defaultDeviceIndex = m_deviceBox->findData(QVariant::fromValue(defaultDevice));
+    m_deviceBox->setCurrentIndex(defaultDeviceIndex);
+
     connect(m_deviceBox, &QComboBox::activated, this, &InputTest::deviceChanged);
     connect(m_devices, &QMediaDevices::audioInputsChanged, this, &InputTest::updateAudioDevices);
-    updateAudioDevices();
     layout->addWidget(m_deviceBox);
 
     m_volumeSlider = new QSlider(Qt::Horizontal, this);
@@ -140,45 +145,71 @@ void InputTest::initializeWindow()
     layout->addWidget(m_suspendResumeButton);
 }
 
-void InputTest::initializeAudio(const QAudioDevice &deviceInfo)
+void InputTest::startAudioSource(const QAudioDevice &device)
 {
-    QAudioFormat format;
-    format.setSampleRate(44100);
-    format.setChannelCount(1);
-    format.setSampleFormat(QAudioFormat::Int16);
+    if (m_audioSource)
+        cleanupAudioSource();
 
-    bool sampleRateSupported = format.sampleRate() < deviceInfo.maximumSampleRate()
-            && format.sampleRate() > deviceInfo.minimumSampleRate();
-    bool channelCountSupported = format.channelCount() < deviceInfo.maximumChannelCount()
-            && format.channelCount() > deviceInfo.minimumChannelCount();
+    m_audioSource = std::make_unique<QAudioSource>(device, device.preferredFormat());
 
-    if (!sampleRateSupported)
-        format.setSampleRate(deviceInfo.preferredFormat().sampleRate());
+    m_currentDevice = device;
 
-    if (!channelCountSupported)
-        format.setChannelCount(deviceInfo.preferredFormat().channelCount());
+    connect(m_audioSource.get(), &QAudioSource::stateChanged, this,
+            [this, device](QAudio::State state) {
+        switch (state) {
+        case QAudio::ActiveState:
+            m_suspendResumeButton->setText(tr("Suspend playback"));
+            return;
+        case QAudio::SuspendedState:
+            m_suspendResumeButton->setText(tr("Resume playback"));
+            return;
+        default:
+            break;
+        }
 
+        const auto err = m_audioSource->error();
+
+        // startup failure (format rejected or device unavailable)
+        if (err == QAudio::OpenError && state == QAudio::StoppedState) {
+            QMessageBox::warning(this, tr("Audio start failed"),
+                                    tr("Device rejected the format or is unavailable."));
+            return;
+        }
+
+        // runtime I/O or fatal device error (disconnects, etc.)
+        if (err == QAudio::IOError || err == QAudio::FatalError) {
+            if (m_currentDevice == device) {
+                m_currentDevice = {};
+                m_deviceBox->setCurrentIndex(-1);
+            }
+            QMessageBox::warning(this, tr("Audio error"), tr("Audio device error."));
+            return;
+        }
+    });
+
+    QAudioFormat format = device.preferredFormat();
     m_audioInfo = std::make_unique<AudioInfo>(format);
     connect(m_audioInfo.get(), &AudioInfo::levelChanged, m_canvas, &RenderArea::setLevel);
 
-    m_audioSource = std::make_unique<QAudioSource>(deviceInfo, format);
     qreal initialVolume = QAudio::convertVolume(m_audioSource->volume(), QAudio::LinearVolumeScale,
                                                 QAudio::LogarithmicVolumeScale);
     m_volumeSlider->setValue(qRound(initialVolume * 100));
+
     m_audioInfo->start();
     restartAudioStream();
+}
 
-    m_suspendResumeButton->setText(tr("Suspend playback"));
-    connect(m_audioSource.get(), &QAudioSource::stateChanged, this, [this](QAudio::State state) {
-        switch (state) {
-        case QAudio::SuspendedState:
-            m_suspendResumeButton->setText(tr("Resume playback"));
-            break;
-        default:
-            m_suspendResumeButton->setText(tr("Suspend playback"));
-            break;
-        }
-    });
+void InputTest::cleanupAudioSource()
+{
+    m_audioInfo->stop();
+
+    if (m_audioSource) {
+        m_audioSource->stop();
+        m_audioSource->disconnect(this);
+    }
+
+    m_audioSource.reset();
+    m_currentDevice = {};
 }
 
 void InputTest::initializeErrorWindow()
@@ -246,7 +277,7 @@ void InputTest::init()
     }
 #endif
     initializeWindow();
-    initializeAudio(QMediaDevices::defaultAudioInput());
+    startAudioSource(QMediaDevices::defaultAudioInput());
 }
 
 void InputTest::toggleSuspend()
@@ -267,11 +298,14 @@ void InputTest::toggleSuspend()
 
 void InputTest::deviceChanged(int index)
 {
-    m_audioSource->stop();
-    m_audioSource->disconnect(this);
-    m_audioInfo->stop();
+    QAudioDevice dev = m_deviceBox->itemData(index).value<QAudioDevice>();
 
-    initializeAudio(m_deviceBox->itemData(index).value<QAudioDevice>());
+    if (dev != m_currentDevice) {
+        cleanupAudioSource();
+        if (!dev.isNull()) {
+            startAudioSource(m_deviceBox->itemData(index).value<QAudioDevice>());
+        }
+    }
 }
 
 void InputTest::sliderChanged(int value)
@@ -284,12 +318,28 @@ void InputTest::sliderChanged(int value)
 
 void InputTest::updateAudioDevices()
 {
+    QSignalBlocker blockUpdates(m_deviceBox);
+
     m_deviceBox->clear();
-    const QAudioDevice &defaultDeviceInfo = QMediaDevices::defaultAudioInput();
-    m_deviceBox->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
-    for (auto &deviceInfo : m_devices->audioInputs()) {
-        if (deviceInfo != defaultDeviceInfo)
-            m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+
+    const QList<QAudioDevice> devices = QMediaDevices::audioInputs();
+    for (const QAudioDevice &deviceInfo : devices)
+        m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+    const int currentDeviceIndex = m_deviceBox->findData(QVariant::fromValue(m_currentDevice));
+    if (currentDeviceIndex != -1) {
+        // select previous device
+        m_deviceBox->setCurrentIndex(currentDeviceIndex);
+    } else {
+        blockUpdates.unblock();
+        // select default device
+        QAudioDevice defaultDevice = QMediaDevices::defaultAudioInput();
+        const int defaultDeviceIndex = m_deviceBox->findData(QVariant::fromValue(defaultDevice));
+        const int currentIndex = m_deviceBox->currentIndex();
+        m_deviceBox->setCurrentIndex(defaultDeviceIndex);
+        if (defaultDeviceIndex == currentIndex) {
+            // device changed, reinitialize audio
+            deviceChanged(defaultDeviceIndex);
+        }
     }
 }
 
