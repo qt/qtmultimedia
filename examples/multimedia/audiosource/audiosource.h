@@ -72,7 +72,8 @@ public:
 
 private:
     void initializeWindow();
-    void initializeAudio(const QAudioDevice &deviceInfo);
+    void startAudioSource(const QAudioDevice &deviceInfo);
+    void cleanupAudioSource();
     void initializeErrorWindow();
     void restartAudioStream();
 
@@ -92,6 +93,7 @@ private:
     QSlider *m_volumeSlider = nullptr;
 
     QMediaDevices *m_devices = nullptr;
+    QAudioDevice m_currentDevice;
     std::unique_ptr<AudioInfo> m_audioInfo;
     std::unique_ptr<QAudioSource> m_audioSource;
     AudioTestMode m_mode = AudioTestMode::Pull;
