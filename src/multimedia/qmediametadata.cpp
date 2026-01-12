@@ -31,7 +31,7 @@ QT_BEGIN_NAMESPACE
     \row \li Comment \li A user comment about the media. \li QString
     \row \li Description \li A description of the media.  \li QString
     \row \li Genre \li The genre of the media.  \li QStringList
-    \row \li Date \li The date of the media. \li QDateTime.
+    \row \li Date \li The recording datetime of the media file, or the encoding datetime of the media stream. \li QDateTime.
     \row \li Language \li The language of media. \li QLocale::Language
 
     \row \li Publisher \li The publisher of the media.  \li QString
