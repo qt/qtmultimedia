@@ -19,7 +19,10 @@
     a standard application user interface.
 
     This example calculates the maximum linear value of the input audio from the
-    microphone and displays the output.
+    microphone and displays the output. The UI allows the user to select the
+    audio input device, pause and resume the audio stream, switch between
+    different modes of operation, adjust the volume and change the audio format
+    parameters.
 
     \include examples-run.qdocinc
 */
