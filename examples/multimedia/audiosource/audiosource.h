@@ -74,7 +74,7 @@ public:
 
 private:
     void initializeWindow();
-    void startAudioSource(const QAudioDevice &deviceInfo);
+    void startAudioSource(const QAudioDevice &, const QAudioFormat &);
     void cleanupAudioSource();
     void initializeErrorWindow();
     void restartAudioStream();
@@ -89,6 +89,7 @@ private slots:
     void deviceChanged(int index);
     void sliderChanged(int value);
     void updateAudioDevices();
+    void formatChanged(QComboBox *box);
 
 private:
     // Owned by layout
@@ -97,6 +98,9 @@ private:
     QPushButton *m_suspendResumeButton = nullptr;
     QComboBox *m_deviceBox = nullptr;
     QSlider *m_volumeSlider = nullptr;
+    QComboBox *m_formatBox = nullptr;
+    QComboBox *m_rateBox = nullptr;
+    QComboBox *m_channelsBox = nullptr;
 
     QMediaDevices *m_devices = nullptr;
     QAudioDevice m_currentDevice;

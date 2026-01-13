@@ -47,6 +47,39 @@ float calculateLevel(const char *data, qint64 len,const QAudioFormat &format)
     return maxValue;
 }
 
+using namespace Qt::Literals::StringLiterals;
+QString sampleFormatToString(QAudioFormat::SampleFormat f)
+{
+    switch (f) {
+    case QAudioFormat::UInt8: return u"UInt8"_s;
+    case QAudioFormat::Int16: return u"Int16"_s;
+    case QAudioFormat::Int32: return u"Int32"_s;
+    case QAudioFormat::Float: return u"Float"_s;
+    default:                  return u"Unknown"_s;
+    }
+}
+
+constexpr std::array allSupportedSampleRates{
+    8'000, 11'025, 12'000, 16'000, 22'050, 24'000, 32'000, 44'100,
+    48'000, 64'000, 88'200, 96'000, 128'000, 176'400, 192'000,
+};
+
+template <typename T>
+void setCurrentValue(QComboBox *box, const T &value)
+{
+    int idx = box->findData(QVariant::fromValue(value));
+    if (idx >= 0)
+        box->setCurrentIndex(idx);
+}
+
+void syncFormatGui(QComboBox *m_formatBox, QComboBox *m_channelsBox, QComboBox *m_rateBox,
+                          const QAudioFormat &format)
+{
+    setCurrentValue(m_formatBox, format.sampleFormat());
+    setCurrentValue(m_rateBox, format.sampleRate());
+    setCurrentValue(m_channelsBox, format.channelCount());
+}
+
 }
 
 AudioInfo::AudioInfo(const QAudioFormat &format) : m_format(format) { }
@@ -131,12 +164,6 @@ void InputTest::initializeWindow()
     connect(m_devices, &QMediaDevices::audioInputsChanged, this, &InputTest::updateAudioDevices);
     layout->addWidget(m_deviceBox);
 
-    m_volumeSlider = new QSlider(Qt::Horizontal, this);
-    m_volumeSlider->setRange(0, 100);
-    m_volumeSlider->setValue(100);
-    connect(m_volumeSlider, &QSlider::valueChanged, this, &InputTest::sliderChanged);
-    layout->addWidget(m_volumeSlider);
-
     m_modeBox = new QComboBox(this);
     m_modeBox->addItem(tr("Pull Mode"));
     m_modeBox->addItem(tr("Push Mode"));
@@ -151,16 +178,53 @@ void InputTest::initializeWindow()
     m_suspendResumeButton = new QPushButton(this);
     connect(m_suspendResumeButton, &QPushButton::clicked, this, &InputTest::toggleSuspend);
     layout->addWidget(m_suspendResumeButton);
+
+    m_volumeSlider = new QSlider(Qt::Horizontal, this);
+    m_volumeSlider->setRange(0, 100);
+    m_volumeSlider->setValue(100);
+    connect(m_volumeSlider, &QSlider::valueChanged, this, &InputTest::sliderChanged);
+    layout->addWidget(m_volumeSlider);
+
+    QHBoxLayout *formatBox = new QHBoxLayout;
+
+    // Sample format selector
+    QLabel *formatLabel = new QLabel(tr("Sample Format:"));
+    m_formatBox = new QComboBox(this);
+
+    // Sample rate selector
+    QLabel *rateLabel = new QLabel(tr("Sample Rate:"));
+    m_rateBox = new QComboBox(this);
+
+    // Channel count selector
+    QLabel *chLabel = new QLabel(tr("Channels:"));
+    m_channelsBox = new QComboBox(this);
+
+    for (auto *box : { m_channelsBox, m_rateBox, m_formatBox })
+        connect(box, &QComboBox::activated, this, [this, box]() { formatChanged(box); });
+
+    // add all to the same row
+    formatBox->addWidget(formatLabel);
+    formatBox->addWidget(m_formatBox);
+    formatBox->addSpacing(12);
+    formatBox->addWidget(rateLabel);
+    formatBox->addWidget(m_rateBox);
+    formatBox->addSpacing(12);
+    formatBox->addWidget(chLabel);
+    formatBox->addWidget(m_channelsBox);
+
+    layout->addLayout(formatBox);
 }
 
-void InputTest::startAudioSource(const QAudioDevice &device)
+void InputTest::startAudioSource(const QAudioDevice &device, const QAudioFormat &format)
 {
     if (m_audioSource)
         cleanupAudioSource();
 
-    m_audioSource = std::make_unique<QAudioSource>(device, device.preferredFormat());
+    m_audioSource = std::make_unique<QAudioSource>(device, format);
 
     m_currentDevice = device;
+
+    syncFormatGui(m_formatBox, m_channelsBox, m_rateBox, m_audioSource->format());
 
     connect(m_audioSource.get(), &QAudioSource::stateChanged, this,
             [this, device](QAudio::State state) {
@@ -195,7 +259,6 @@ void InputTest::startAudioSource(const QAudioDevice &device)
         }
     });
 
-    QAudioFormat format = device.preferredFormat();
     m_audioInfo = std::make_unique<AudioInfo>(format);
     connect(m_audioInfo.get(), &AudioInfo::levelChanged, m_canvas, &RenderArea::setLevel);
 
@@ -209,7 +272,8 @@ void InputTest::startAudioSource(const QAudioDevice &device)
 
 void InputTest::cleanupAudioSource()
 {
-    m_audioInfo->stop();
+    if (m_audioInfo)
+        m_audioInfo->stop();
 
     if (m_audioSource) {
         m_audioSource->stop();
@@ -335,7 +399,7 @@ void InputTest::init()
     }
 #endif
     initializeWindow();
-    startAudioSource(QMediaDevices::defaultAudioInput());
+    deviceChanged(m_deviceBox->currentIndex());
 }
 
 void InputTest::toggleSuspend()
@@ -356,12 +420,37 @@ void InputTest::toggleSuspend()
 
 void InputTest::deviceChanged(int index)
 {
-    QAudioDevice dev = m_deviceBox->itemData(index).value<QAudioDevice>();
+    QAudioDevice device = m_deviceBox->itemData(index).value<QAudioDevice>();
 
-    if (dev != m_currentDevice) {
+    // clear format selectors
+    m_formatBox->clear();
+    m_channelsBox->clear();
+    m_rateBox->clear();
+
+    // Populate format selectors
+    if (!device.isNull()) {
+        // sample formats
+        const auto formats = device.supportedSampleFormats();
+        for (const QAudioFormat::SampleFormat sf : formats)
+            m_formatBox->addItem(sampleFormatToString(sf), QVariant::fromValue(sf));
+
+        // channels
+        for (int ch = device.minimumChannelCount(); ch <= device.maximumChannelCount(); ++ch)
+            m_channelsBox->addItem(QString::number(ch), ch);
+
+        // populate from the hardcoded list
+        for (int rate : allSupportedSampleRates) {
+            if (rate < device.minimumSampleRate() || rate > device.maximumSampleRate())
+                continue;
+            m_rateBox->addItem(QString::number(rate), rate);
+        }
+    }
+
+    if (device != m_currentDevice) {
         cleanupAudioSource();
-        if (!dev.isNull()) {
-            startAudioSource(m_deviceBox->itemData(index).value<QAudioDevice>());
+        if (!device.isNull()) {
+            startAudioSource(m_deviceBox->itemData(index).value<QAudioDevice>(),
+                             device.preferredFormat());
         }
     }
 }
@@ -400,5 +489,22 @@ void InputTest::updateAudioDevices()
         }
     }
 }
+
+void InputTest::formatChanged(QComboBox *box)
+{
+    QAudioDevice device = m_deviceBox->currentData().value<QAudioDevice>();
+    QAudioFormat newFormat = m_audioSource->format();
+
+    if (box == m_formatBox) {
+        newFormat.setSampleFormat(QAudioFormat::SampleFormat(box->currentData().toInt()));
+    } else if (box == m_rateBox) {
+        newFormat.setSampleRate(box->currentData().toInt());
+    } else if (box == m_channelsBox) {
+        newFormat.setChannelCount(box->currentData().toInt());
+    }
+
+    startAudioSource(device, newFormat);
+}
+
 
 #include "moc_audiosource.cpp"
