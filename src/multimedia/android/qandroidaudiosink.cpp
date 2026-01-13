@@ -119,6 +119,12 @@ QIODevice *QAndroidAudioSinkStream::start()
 
 bool QAndroidAudioSinkStream::start(AudioCallback cb)
 {
+    if (m_nativeSampleFormat) {
+        qCWarning(qLcAndroidAudioSink)
+                << "Audio callbacks not supported with sample format conversion";
+        return false;
+    }
+
     Q_ASSERT(thread()->isCurrentThread());
     m_audioCallback = std::move(cb);
 
