@@ -21,6 +21,34 @@
 #include <math.h>
 #include <stdlib.h>
 
+namespace {
+
+using namespace std::chrono_literals;
+constexpr auto visualizerUpdateInterval = 16ms;
+
+float calculateLevel(const char *data, qint64 len,const QAudioFormat &format)
+{
+    const int channelBytes = format.bytesPerSample();
+    const int sampleBytes = format.bytesPerFrame();
+    Q_ASSERT(format.bytesPerFrame() != 0); // divide by 0
+    const int numSamples = len / sampleBytes;
+
+    float maxValue = 0;
+    auto *ptr = reinterpret_cast<const unsigned char *>(data);
+
+    for (int i = 0; i < numSamples; ++i) {
+        for (int j = 0; j < format.channelCount(); ++j) {
+            float value = format.normalizedSampleValue(ptr);
+
+            maxValue = qMax(value, maxValue);
+            ptr += channelBytes;
+        }
+    }
+    return maxValue;
+}
+
+}
+
 AudioInfo::AudioInfo(const QAudioFormat &format) : m_format(format) { }
 
 void AudioInfo::start()
@@ -38,30 +66,9 @@ qint64 AudioInfo::readData(char * /* data */, qint64 /* maxlen */)
     return 0;
 }
 
-qreal AudioInfo::calculateLevel(const char *data, qint64 len) const
-{
-    const int channelBytes = m_format.bytesPerSample();
-    const int sampleBytes = m_format.bytesPerFrame();
-    Q_ASSERT(m_format.bytesPerFrame() != 0); // divide by 0
-    const int numSamples = len / sampleBytes;
-
-    float maxValue = 0;
-    auto *ptr = reinterpret_cast<const unsigned char *>(data);
-
-    for (int i = 0; i < numSamples; ++i) {
-        for (int j = 0; j < m_format.channelCount(); ++j) {
-            float value = m_format.normalizedSampleValue(ptr);
-
-            maxValue = qMax(value, maxValue);
-            ptr += channelBytes;
-        }
-    }
-    return maxValue;
-}
-
 qint64 AudioInfo::writeData(const char *data, qint64 len)
 {
-    m_level = calculateLevel(data, len);
+    m_level = calculateLevel(data, len, m_format);
 
     emit levelChanged(m_level);
 
@@ -133,6 +140,7 @@ void InputTest::initializeWindow()
     m_modeBox = new QComboBox(this);
     m_modeBox->addItem(tr("Pull Mode"));
     m_modeBox->addItem(tr("Push Mode"));
+    m_modeBox->addItem(tr("Callback Mode"));
     m_modeBox->setCurrentIndex(qToUnderlying(m_mode));
     connect(m_modeBox, &QComboBox::currentIndexChanged, this, [this](int index) {
         m_mode = static_cast<AudioTestMode>(index);
@@ -225,6 +233,9 @@ void InputTest::restartAudioStream()
 {
     m_audioSource->stop();
 
+    if (m_callbackVisualizerTimer.isActive())
+        m_callbackVisualizerTimer.stop();
+
     switch (m_mode) {
     case AudioTestMode::Pull: {
         // pull mode: QAudioSource provides a QIODevice to pull from
@@ -239,7 +250,7 @@ void InputTest::restartAudioStream()
             QByteArray buffer(len, 0);
             qint64 l = io->read(buffer.data(), len);
             if (l > 0) {
-                const qreal level = m_audioInfo->calculateLevel(buffer.constData(), l);
+                const qreal level = calculateLevel(buffer.constData(), l, m_audioSource->format());
                 m_canvas->setLevel(level);
             }
         });
@@ -250,6 +261,37 @@ void InputTest::restartAudioStream()
         m_audioSource->start(m_audioInfo.get());
         break;
     }
+    case AudioTestMode::Callback: {
+        // callback mode: QAudioSource calls a callback function on audio thread with a buffer to read from
+        QAudioFormat format = m_audioSource->format();
+        switch (format.sampleFormat()) {
+        case QAudioFormat::UInt8:
+            m_audioSource->start([this, format](QSpan<const uint8_t> buffer) {
+                processCallback(buffer, format);
+            });
+            break;
+        case QAudioFormat::Int16:
+            m_audioSource->start([this, format](QSpan<const int16_t> buffer) {
+                processCallback(buffer, format);
+            });
+            break;
+        case QAudioFormat::Int32:
+            m_audioSource->start([this, format](QSpan<const int32_t> buffer) {
+                processCallback(buffer, format);
+            });
+            break;
+        case QAudioFormat::Float:
+            m_audioSource->start( [this, format](QSpan<const float> buffer) {
+                processCallback(buffer, format);
+            });
+            break;
+        default:
+            Q_UNREACHABLE();
+        };
+
+        m_callbackVisualizerTimer.start(visualizerUpdateInterval, Qt::PreciseTimer, this);
+        break;
+    }
     default:
         Q_UNREACHABLE();
     }
@@ -258,6 +300,22 @@ void InputTest::restartAudioStream()
         QMessageBox::warning(this, tr("Audio start failed"),
                              tr("Device rejected the format or is unavailable."));
     }
+}
+
+void InputTest::timerEvent(QTimerEvent *event)
+{
+    if (event->timerId() == m_callbackVisualizerTimer.timerId())
+        m_canvas->setLevel(m_level.exchange(0.f));
+}
+
+template <typename T>
+void InputTest::processCallback(QSpan<const T> buffer, const QAudioFormat &format)
+{
+    float level = calculateLevel(reinterpret_cast<const char *>(buffer.data()), buffer.size_bytes(),
+                                 format);
+    float lastLevel = m_level.load(std::memory_order_relaxed);
+    while (!m_level.compare_exchange_weak(lastLevel, std::max(level, lastLevel)))
+        ;
 }
 
 void InputTest::init()

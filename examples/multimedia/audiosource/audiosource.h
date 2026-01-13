@@ -7,6 +7,8 @@
 #include <QAudioSource>
 #include <QMediaDevices>
 
+#include <QBasicTimer>
+
 #include <QComboBox>
 #include <QPushButton>
 #include <QSlider>
@@ -15,6 +17,7 @@
 #include <QPixmap>
 #include <QByteArray>
 
+#include <atomic>
 #include <memory>
 
 class AudioInfo : public QIODevice
@@ -32,8 +35,6 @@ public:
     qint64 readData(char *data, qint64 maxlen) override;
     qint64 writeData(const char *data, qint64 len) override;
 
-    qreal calculateLevel(const char *data, qint64 len) const;
-
 signals:
     void levelChanged(qreal level);
 
@@ -45,6 +46,7 @@ private:
 enum class AudioTestMode {
     Pull,
     Push,
+    Callback,
 };
 
 class RenderArea : public QWidget
@@ -76,6 +78,10 @@ private:
     void cleanupAudioSource();
     void initializeErrorWindow();
     void restartAudioStream();
+    void timerEvent(QTimerEvent *) override;
+
+    template <typename T>
+    void processCallback(QSpan<const T> buffer, const QAudioFormat &format);
 
 private slots:
     void init();
@@ -97,6 +103,9 @@ private:
     std::unique_ptr<AudioInfo> m_audioInfo;
     std::unique_ptr<QAudioSource> m_audioSource;
     AudioTestMode m_mode = AudioTestMode::Pull;
+
+    QBasicTimer m_callbackVisualizerTimer;
+    std::atomic<float> m_level = 0.f;
 };
 
 #endif // AUDIOINPUT_H
