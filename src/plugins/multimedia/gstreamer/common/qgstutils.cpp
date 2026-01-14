@@ -143,4 +143,22 @@ QLocale::Language QGstUtils::codeToLanguage(const gchar *lang)
     return QLocale::codeToLanguage(QString::fromUtf8(lang), QLocale::AnyLanguageCode);
 }
 
+// QTBUG-125249: gstreamer tries "to keep the input height (because of interlacing)". Can we align
+// the behavior between GStreamer and FFmpeg?
+QSize QGstUtils::qCalculateFrameSizeGStreamer(QSize resolution, Fraction par)
+{
+    if (!resolution.isValid()) {
+        qWarning() << Q_FUNC_INFO << "invalid resolution when calculating frame size";
+        return resolution;
+    }
+
+    if (par.numerator == par.denominator || par.numerator < 1 || par.denominator < 1)
+        return resolution;
+
+    return QSize{
+        resolution.width() * par.numerator / par.denominator,
+        resolution.height(),
+    };
+}
+
 QT_END_NAMESPACE

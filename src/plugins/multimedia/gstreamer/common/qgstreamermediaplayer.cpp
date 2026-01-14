@@ -6,6 +6,7 @@
 #include <audio/qgstreameraudiodevice_p.h>
 #include <common/qglist_helper_p.h>
 #include <common/qgst_debug_p.h>
+#include <common/qgstutils_p.h>
 #include <common/qgst_discoverer_p.h>
 #include <common/qgst_play_p.h>
 #include <common/qgstpipeline_p.h>
@@ -86,8 +87,9 @@ void QGstreamerMediaPlayer::handleDiscoverResult(const DiscoverResult &discovery
         m_nativeSize.clear();
         for (const auto &videoInfo : discoveryResult->videoStreams) {
             m_trackMetaData[0].emplace_back(QGst::toStreamMetadata(videoInfo));
-            QGstStructureView structure = videoInfo.caps.at(0);
-            m_nativeSize.emplace_back(structure.nativeSize());
+            QSize nativeSize = QGstUtils::qCalculateFrameSizeGStreamer(videoInfo.size,
+                                                                       videoInfo.pixelAspectRatio);
+            m_nativeSize.emplace_back(nativeSize);
         }
         for (const auto &audioInfo : discoveryResult->audioStreams)
             m_trackMetaData[1].emplace_back(QGst::toStreamMetadata(audioInfo));
