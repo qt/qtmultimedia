@@ -169,21 +169,27 @@ macro(find_component _component _pkgconfig _library _header)
         unset(${_component}_LIBRARY CACHE)
     endif()
 
-    # Search for the relevant libraries. On iOS we deploy .xcframeworks, which aren't found by
-    # find_library, so we rely on find_path.
-    if (APPLE AND IOS)
+    # On iOS we use .xcframework for shared libraries, but this is not
+    # picked up by standard find_library behavior because .xcframework
+    # files count as directories. We first search for shared libraries
+    # on iOS, then we fallback to regular search if we can't find them.
+    if (IOS)
         find_path(${_component}_LIBRARY
             NAMES lib${_library}${QT_FFMPEG_SHARED_LIBRARY_SUFFIX}
             PATHS
                 ${FFMPEG_DIR}
             PATH_SUFFIXES
-                lib bin framework
+                lib bin
         )
-        # If found, append the path with the file we were looking for.
+        # There is a quirk here where find_path will return the parent
+        # directory of the target file if it's found. We append the
+        # specific filename.
         if (${_component}_LIBRARY)
             set(${_component}_LIBRARY "${${_component}_LIBRARY}/lib${_library}${QT_FFMPEG_SHARED_LIBRARY_SUFFIX}")
         endif()
-    else()
+    endif()
+
+    if (NOT ${_component}_LIBRARY)
         find_library(${_component}_LIBRARY
             NAMES ${PC_${_component}_LIBRARIES} ${_library}
             HINTS
