@@ -49,8 +49,9 @@ QAndroidAudioSourceStream::QAndroidAudioSourceStream(QAudioDevice device,
                           int32_t numFrames) -> int {
         auto *stream = reinterpret_cast<QAndroidAudioSourceStream *>(userData);
         Q_ASSERT(stream);
-        return stream->m_audioCallback ? stream->processCallback(audioData, numFrames)
-                                       : stream->processRingbuffer(audioData, numFrames);
+        auto audioSpan = stream->getHostSpan(audioData, numFrames);
+        return stream->m_audioCallback ? stream->processCallback(audioSpan)
+                                       : stream->processRingbuffer(audioSpan, numFrames);
     };
     builder.errorCallback = [](AAudioStream *, void *userData, aaudio_result_t error) -> void {
         auto *stream = reinterpret_cast<QAndroidAudioSourceStream *>(userData);
@@ -172,7 +173,7 @@ void QAndroidAudioSourceStream::updateStreamIdle(bool idle)
         m_parent->updateStreamIdle(idle);
 }
 
-QSpan<std::byte>
+QSpan<const std::byte>
 QAndroidAudioSourceStream::getHostSpan(void *audioData,
                                        int numFrames) const noexcept QT_MM_NONBLOCKING
 {
@@ -180,14 +181,15 @@ QAndroidAudioSourceStream::getHostSpan(void *audioData,
             ? (QAudioHelperInternal::bytesPerSample(*m_nativeSampleFormat) * m_format.channelCount()
                * numFrames)
             : m_format.bytesForFrames(numFrames);
-    return QSpan<std::byte>{ reinterpret_cast<std::byte *>(audioData), byteAmount };
+    return QSpan{ reinterpret_cast<const std::byte *>(audioData), byteAmount };
 }
 
 aaudio_data_callback_result_t
-QAndroidAudioSourceStream::processRingbuffer(void *audioData, int numFrames) noexcept QT_MM_NONBLOCKING
+QAndroidAudioSourceStream::processRingbuffer(QSpan<const std::byte> audioSpan,
+                                             int numFrames) noexcept QT_MM_NONBLOCKING
 {
-    auto framesWritten = QPlatformAudioSourceStream::process(getHostSpan(audioData, numFrames),
-                                                             numFrames, m_nativeSampleFormat);
+    auto framesWritten =
+            QPlatformAudioSourceStream::process(audioSpan, numFrames, m_nativeSampleFormat);
 
     if (framesWritten != static_cast<uint64_t>(numFrames) && isStopRequested())
         return AAUDIO_CALLBACK_RESULT_STOP;
@@ -196,14 +198,12 @@ QAndroidAudioSourceStream::processRingbuffer(void *audioData, int numFrames) noe
 }
 
 aaudio_data_callback_result_t
-QAndroidAudioSourceStream::processCallback(void *audioData,
-                                           int numFrames) noexcept QT_MM_NONBLOCKING
+QAndroidAudioSourceStream::processCallback(QSpan<const std::byte> audioSpan) noexcept QT_MM_NONBLOCKING
 {
     if (isStopRequested())
         return AAUDIO_CALLBACK_RESULT_STOP;
 
-    QtMultimediaPrivate::runAudioCallback(*m_audioCallback, getHostSpan(audioData, numFrames),
-                                          m_format, volume());
+    QtMultimediaPrivate::runAudioCallback(*m_audioCallback, audioSpan, m_format, volume());
 
     return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
