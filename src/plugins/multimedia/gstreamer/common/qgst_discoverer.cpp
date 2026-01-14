@@ -286,6 +286,12 @@ QMediaMetaData toStreamMetadata(const QGstDiscovererVideoInfo &info)
     extendMetaDataFromCaps(metadata, info.caps);
     addMissingKeysFromTaglist(metadata, info.tags);
 
+    // Get resolution and framerate from info if missing from caps, as seen for mpeg2 format
+    updateMetadata(metadata, Key::Resolution, info.size);
+    if (info.framerate.numerator > 0 && info.framerate.denominator > 0)
+        updateMetadata(metadata, QMediaMetaData::VideoFrameRate,
+                       qreal(info.framerate.numerator) / qreal(info.framerate.denominator));
+
     return metadata;
 }
 

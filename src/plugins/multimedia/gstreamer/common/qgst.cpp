@@ -5,6 +5,7 @@
 #include <common/qgst_debug_p.h>
 #include <common/qgstpipeline_p.h>
 #include <common/qgstreamermessage_p.h>
+#include <common/qgstutils_p.h>
 
 #include <QtCore/qdebug.h>
 #include <QtMultimedia/qcameradevice.h>
@@ -344,19 +345,6 @@ std::optional<Fraction> QGstStructureView::pixelAspectRatio() const
     return std::nullopt;
 }
 
-// QTBUG-125249: gstreamer tries "to keep the input height (because of interlacing)". Can we align
-// the behavior between gstreamer and ffmpeg?
-static QSize qCalculateFrameSizeGStreamer(QSize resolution, Fraction par)
-{
-    if (par.numerator == par.denominator || par.numerator < 1 || par.denominator < 1)
-        return resolution;
-
-    return QSize{
-        resolution.width() * par.numerator / par.denominator,
-        resolution.height(),
-    };
-}
-
 QSize QGstStructureView::nativeSize() const
 {
     QSize size = resolution();
@@ -367,7 +355,7 @@ QSize QGstStructureView::nativeSize() const
 
     std::optional<Fraction> par = pixelAspectRatio();
     if (par)
-        size = qCalculateFrameSizeGStreamer(size, *par);
+        size = QGstUtils::qCalculateFrameSizeGStreamer(size, *par);
     return size;
 }
 
