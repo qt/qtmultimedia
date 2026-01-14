@@ -64,10 +64,9 @@ private:
     void updateStreamIdle(bool arg) override;
 
     QSpan<std::byte> getHostSpan(void *audioData, int numFrames) const noexcept QT_MM_NONBLOCKING;
-    aaudio_data_callback_result_t processRingbuffer(void *audioData,
+    aaudio_data_callback_result_t processRingbuffer(QSpan<std::byte> audioSpan,
                                                     int numFrames) noexcept QT_MM_NONBLOCKING;
-    aaudio_data_callback_result_t processCallback(void *audioData,
-                                                  int numFrames) noexcept QT_MM_NONBLOCKING;
+    aaudio_data_callback_result_t processCallback(QSpan<std::byte> audioSpan) noexcept QT_MM_NONBLOCKING;
     void handleError(aaudio_result_t error);
 
     QAndroidAudioSink *m_parent{ nullptr };
