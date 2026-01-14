@@ -26,6 +26,7 @@ QT_BEGIN_NAMESPACE
 class QAudioFormat;
 class QGstCaps;
 class QVideoFrame;
+class Fraction;
 
 namespace QGstUtils {
 QAudioFormat audioFormatForSample(GstSample *sample);
@@ -33,6 +34,8 @@ QAudioFormat audioFormatForCaps(const QGstCaps &caps);
 QGstCaps capsForAudioFormat(const QAudioFormat &format);
 
 void setFrameTimeStampsFromBuffer(QVideoFrame *frame, GstBuffer *buffer);
+
+QSize qCalculateFrameSizeGStreamer(QSize resolution, Fraction par);
 
 QLocale::Language codeToLanguage(const gchar *);
 } // namespace QGstUtils
