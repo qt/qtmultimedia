@@ -17,6 +17,9 @@ QPlatformAudioEndpointBase::QPlatformAudioEndpointBase(QAudioDevice device,
     Q_ASSERT(parent && "QPlatformAudioEndpointBase requires the QAudioSink/QAudioSource as parent");
 }
 
+QPlatformAudioEndpointBase::~QPlatformAudioEndpointBase()
+    = default;
+
 void QPlatformAudioEndpointBase::setError(QAudio::Error err)
 {
     if (err == m_error)
@@ -85,6 +88,9 @@ QPlatformAudioSink::QPlatformAudioSink(QAudioDevice device, const QAudioFormat &
 {
 }
 
+QPlatformAudioSink::~QPlatformAudioSink()
+    = default;
+
 QPlatformAudioSink *QPlatformAudioSink::get(const QAudioSink &sink)
 {
     return sink.d;
@@ -95,6 +101,9 @@ QPlatformAudioSource::QPlatformAudioSource(QAudioDevice device, const QAudioForm
     : QPlatformAudioEndpointBase(std::move(device), format, parent)
 {
 }
+
+QPlatformAudioSource::~QPlatformAudioSource()
+    = default;
 
 QPlatformAudioSource *QPlatformAudioSource::get(const QAudioSource &source)
 {
