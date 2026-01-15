@@ -311,6 +311,8 @@ private:
 
 class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QPlatformAudioEndpointBase
 {
+    Q_OBJECT
+
 public:
     explicit QPlatformAudioSink(QAudioDevice, const QAudioFormat &, QObject *parent);
     ~QPlatformAudioSink() override;
@@ -343,6 +345,8 @@ public:
 
 class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QPlatformAudioEndpointBase
 {
+    Q_OBJECT
+
 public:
     explicit QPlatformAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
     ~QPlatformAudioSource() override;
