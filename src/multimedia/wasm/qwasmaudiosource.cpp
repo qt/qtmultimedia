@@ -72,6 +72,9 @@ QWasmAudioSource::QWasmAudioSource(QAudioDevice device, const QAudioFormat &fmt,
     m_bufferSize = m_format.bytesForDuration(DEFAULT_BUFFER_DURATION);
 }
 
+QWasmAudioSource::~QWasmAudioSource()
+    = default;
+
 void QWasmAudioSource::start(QIODevice *device)
 {
     m_device = device;

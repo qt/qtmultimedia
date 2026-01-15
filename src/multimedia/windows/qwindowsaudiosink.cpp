@@ -429,6 +429,9 @@ QWindowsAudioSink::QWindowsAudioSink(QAudioDevice audioDevice, const QAudioForma
 {
 }
 
+QWindowsAudioSink::~QWindowsAudioSink()
+    = default;
+
 } // namespace QtWASAPI
 
 QT_END_NAMESPACE

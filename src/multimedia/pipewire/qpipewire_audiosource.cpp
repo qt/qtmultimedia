@@ -271,6 +271,9 @@ QPipewireAudioSource::QPipewireAudioSource(QAudioDevice device, const QAudioForm
 {
 }
 
+QPipewireAudioSource::~QPipewireAudioSource()
+    = default;
+
 void QPipewireAudioSource::reportXRuns(int numberOfXruns)
 {
     qDebug() << "XRuns occurred:" << numberOfXruns;

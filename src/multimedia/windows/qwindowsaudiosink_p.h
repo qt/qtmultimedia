@@ -125,6 +125,7 @@ class QWindowsAudioSink final
 
 public:
     QWindowsAudioSink(QAudioDevice, const QAudioFormat &, QObject *parent);
+    ~QWindowsAudioSink() override;
 };
 
 } // namespace QtWASAPI

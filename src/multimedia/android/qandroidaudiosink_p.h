@@ -90,6 +90,7 @@ class QAndroidAudioSink final
 
 public:
     QAndroidAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent);
+    ~QAndroidAudioSink() override;
 };
 
 }

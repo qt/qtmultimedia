@@ -84,6 +84,7 @@ class QAndroidAudioSource final
 
 public:
     QAndroidAudioSource(QAudioDevice device, const QAudioFormat &format, QObject *parent);
+    ~QAndroidAudioSource() override;
 };
 
 }

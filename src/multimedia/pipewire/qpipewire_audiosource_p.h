@@ -100,6 +100,8 @@ class QPipewireAudioSource final
 
 public:
     QPipewireAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
+    ~QPipewireAudioSource() override;
+
     void reportXRuns(int);
 };
 

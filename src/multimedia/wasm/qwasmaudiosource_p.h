@@ -42,6 +42,7 @@ class QWasmAudioSource : public QPlatformAudioSource
     void writeBuffer();
 public:
     QWasmAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
+    ~QWasmAudioSource() override;
 
 public:
     void start(QIODevice *device) override;

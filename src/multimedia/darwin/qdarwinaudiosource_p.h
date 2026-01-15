@@ -106,6 +106,8 @@ class QDarwinAudioSource final
 
 public:
     QDarwinAudioSource(QAudioDevice device, const QAudioFormat &format, QObject *parent);
+    ~QDarwinAudioSource() override;
+
     void resumeStreamIfNecessary();
 };
 

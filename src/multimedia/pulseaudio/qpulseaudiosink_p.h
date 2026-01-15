@@ -93,6 +93,7 @@ class QPulseAudioSink final
 
 public:
     QPulseAudioSink(QAudioDevice, const QAudioFormat &, QObject *parent);
+    ~QPulseAudioSink() override;
 
     void start(QIODevice *device) override;
     QIODevice *start() override;

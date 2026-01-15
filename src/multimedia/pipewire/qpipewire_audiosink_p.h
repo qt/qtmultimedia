@@ -109,6 +109,7 @@ class QPipewireAudioSink final
 
 public:
     QPipewireAudioSink(QAudioDevice, const QAudioFormat &, QObject *parent);
+    ~QPipewireAudioSink() override;
 
     void reportXRuns(int);
 };
