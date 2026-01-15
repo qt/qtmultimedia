@@ -144,7 +144,7 @@ void QFFmpegSurfaceCaptureGrabber::updateTimerInterval()
     const qreal rate = m_prevError && *m_prevError != QPlatformSurfaceCapture::NoError
             ? MinScreenCaptureFrameRate
             : m_rate;
-    const auto interval = round<nanoseconds>(1s / rate);
+    const auto interval = round<nanoseconds>(nanoseconds(1s) / rate);
 
     if (m_context && m_context->timer.interval() != interval)
         m_context->timer.setInterval(interval);
