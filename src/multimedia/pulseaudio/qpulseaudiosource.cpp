@@ -290,6 +290,9 @@ QPulseAudioSource::QPulseAudioSource(QAudioDevice device, const QAudioFormat &fo
 {
 }
 
+QPulseAudioSource::~QPulseAudioSource()
+    = default;
+
 bool QPulseAudioSource::validatePulseaudio()
 {
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();

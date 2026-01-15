@@ -112,6 +112,7 @@ class QWindowsAudioSource final
 
 public:
     QWindowsAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
+    ~QWindowsAudioSource() override;
 };
 
 } // namespace QtWASAPI

@@ -225,6 +225,9 @@ QAndroidAudioSource::QAndroidAudioSource(QAudioDevice device, const QAudioFormat
 {
 }
 
+QAndroidAudioSource::~QAndroidAudioSource()
+    = default;
+
 } // namespace QtAAudio
 
 QT_END_NAMESPACE

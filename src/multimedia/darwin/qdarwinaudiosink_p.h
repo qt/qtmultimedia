@@ -97,6 +97,8 @@ class QDarwinAudioSink final
 
 public:
     QDarwinAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent);
+    ~QDarwinAudioSink() override;
+
     void resumeStreamIfNecessary();
 };
 

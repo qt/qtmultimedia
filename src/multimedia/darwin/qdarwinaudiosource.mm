@@ -399,6 +399,9 @@ QDarwinAudioSource::QDarwinAudioSource(QAudioDevice device, const QAudioFormat &
 #endif
 }
 
+QDarwinAudioSource::~QDarwinAudioSource()
+    = default;
+
 void QDarwinAudioSource::resumeStreamIfNecessary()
 {
     if (m_stream)

@@ -250,6 +250,9 @@ QAndroidAudioSink::QAndroidAudioSink(QAudioDevice device, const QAudioFormat &fm
 {
 }
 
+QAndroidAudioSink::~QAndroidAudioSink()
+    = default;
+
 } // namespace QtAAudio
 
 QT_END_NAMESPACE

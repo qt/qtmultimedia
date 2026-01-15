@@ -354,6 +354,9 @@ QPulseAudioSink::QPulseAudioSink(QAudioDevice device, const QAudioFormat &format
 {
 }
 
+QPulseAudioSink::~QPulseAudioSink()
+    = default;
+
 bool QPulseAudioSink::validatePulseaudio()
 {
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();

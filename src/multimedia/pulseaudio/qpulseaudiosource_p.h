@@ -91,6 +91,7 @@ class QPulseAudioSource final
 
 public:
     QPulseAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
+    ~QPulseAudioSource() override;
 
     void start(QIODevice *device) override;
     void start(AudioCallback &&) override;

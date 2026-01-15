@@ -378,6 +378,9 @@ QPipewireAudioSink::QPipewireAudioSink(QAudioDevice device, const QAudioFormat &
 {
 }
 
+QPipewireAudioSink::~QPipewireAudioSink()
+    = default;
+
 void QPipewireAudioSink::reportXRuns(int numberOfXruns)
 {
     qDebug() << "XRuns occurred:" << numberOfXruns;

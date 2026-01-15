@@ -348,6 +348,9 @@ QWindowsAudioSource::QWindowsAudioSource(QAudioDevice audioDevice, const QAudioF
 {
 }
 
+QWindowsAudioSource::~QWindowsAudioSource()
+    = default;
+
 } // namespace QtWASAPI
 
 QT_END_NAMESPACE
