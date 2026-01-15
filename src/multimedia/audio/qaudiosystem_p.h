@@ -269,6 +269,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioEndpointBase : public QObject
 
 public:
     explicit QPlatformAudioEndpointBase(QAudioDevice, const QAudioFormat &, QObject *parent);
+    ~QPlatformAudioEndpointBase() override;
 
     // LATER: can we devirtualize these functions
     QAudio::Error error() const { return m_error; }
@@ -312,6 +313,8 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QPlatformAudioEndpointBase
 {
 public:
     explicit QPlatformAudioSink(QAudioDevice, const QAudioFormat &, QObject *parent);
+    ~QPlatformAudioSink() override;
+
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;
@@ -342,6 +345,8 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QPlatformAudioEndpointBa
 {
 public:
     explicit QPlatformAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
+    ~QPlatformAudioSource() override;
+
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;
