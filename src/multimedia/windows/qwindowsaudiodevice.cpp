@@ -4,10 +4,10 @@
 #include "qwindowsaudiodevice_p.h"
 
 #include <QtCore/qdebug.h>
-#include <QtCore/qt_windows.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qthreadpool.h>
+#include <QtCore/qt_windows.h>
 #include <QtCore/private/qsystemerror_p.h>
-#include <future>
 
 #include <QtMultimedia/private/qaudioformat_p.h>
 #include <QtMultimedia/private/qcominitializer_p.h>
@@ -19,6 +19,7 @@
 #include <mmdeviceapi.h>
 #include <propkeydef.h>
 
+#include <future>
 #include <set>
 
 QT_BEGIN_NAMESPACE
