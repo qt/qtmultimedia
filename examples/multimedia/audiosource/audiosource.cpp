@@ -230,10 +230,10 @@ void InputTest::startAudioSource(const QAudioDevice &device, const QAudioFormat 
             [this, device](QAudio::State state) {
         switch (state) {
         case QAudio::ActiveState:
-            m_suspendResumeButton->setText(tr("Suspend playback"));
+            m_suspendResumeButton->setText(tr("Suspend capture"));
             return;
         case QAudio::SuspendedState:
-            m_suspendResumeButton->setText(tr("Resume playback"));
+            m_suspendResumeButton->setText(tr("Resume capture"));
             return;
         default:
             break;
