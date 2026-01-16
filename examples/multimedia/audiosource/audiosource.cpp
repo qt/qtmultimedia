@@ -18,23 +18,21 @@
 #  include <QPermission>
 #endif
 
-#include <math.h>
-#include <stdlib.h>
-
 namespace {
 
 using namespace std::chrono_literals;
 constexpr auto visualizerUpdateInterval = 16ms;
+constexpr int volumeSliderMaximum = 100;
 
-float calculateLevel(const char *data, qint64 len,const QAudioFormat &format)
+float calculateLevel(const char *data, qint64 len, const QAudioFormat &format)
 {
     const int channelBytes = format.bytesPerSample();
     const int sampleBytes = format.bytesPerFrame();
     Q_ASSERT(format.bytesPerFrame() != 0); // divide by 0
-    const int numSamples = len / sampleBytes;
+    const quint64 numSamples = len / sampleBytes;
 
     float maxValue = 0;
-    auto *ptr = reinterpret_cast<const unsigned char *>(data);
+    const auto *ptr = reinterpret_cast<const unsigned char *>(data);
 
     for (int i = 0; i < numSamples; ++i) {
         for (int j = 0; j < format.channelCount(); ++j) {
@@ -60,7 +58,7 @@ QString sampleFormatToString(QAudioFormat::SampleFormat f)
 }
 
 constexpr std::array allSupportedSampleRates{
-    8'000, 11'025, 12'000, 16'000, 22'050, 24'000, 32'000, 44'100,
+    8'000,  11'025, 12'000, 16'000, 22'050,  24'000,  32'000,  44'100,
     48'000, 64'000, 88'200, 96'000, 128'000, 176'400, 192'000,
 };
 
@@ -73,14 +71,14 @@ void setCurrentValue(QComboBox *box, const T &value)
 }
 
 void syncFormatGui(QComboBox *m_formatBox, QComboBox *m_channelsBox, QComboBox *m_rateBox,
-                          const QAudioFormat &format)
+                   const QAudioFormat &format)
 {
     setCurrentValue(m_formatBox, format.sampleFormat());
     setCurrentValue(m_rateBox, format.sampleRate());
     setCurrentValue(m_channelsBox, format.channelCount());
 }
 
-}
+} // namespace
 
 AudioInfo::AudioInfo(const QAudioFormat &format) : m_format(format) { }
 
@@ -135,7 +133,7 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
     painter.fillRect(frame.left() + 1, frame.top() + 1, pos, frame.height() - 1, Qt::red);
 }
 
-void RenderArea::setLevel(qreal value)
+void RenderArea::setLevel(float value)
 {
     m_level = value;
     update();
@@ -148,7 +146,7 @@ InputTest::InputTest() : m_devices(new QMediaDevices(this))
 
 void InputTest::initializeWindow()
 {
-    QVBoxLayout *layout = new QVBoxLayout(this);
+    auto *layout = new QVBoxLayout(this);
 
     m_canvas = new RenderArea(this);
     layout->addWidget(m_canvas);
@@ -170,7 +168,7 @@ void InputTest::initializeWindow()
     m_modeBox->addItem(tr("Callback Mode"));
     m_modeBox->setCurrentIndex(qToUnderlying(m_mode));
     connect(m_modeBox, &QComboBox::currentIndexChanged, this, [this](int index) {
-        m_mode = static_cast<AudioTestMode>(index);
+        m_mode = AudioTestMode(index);
         restartAudioStream();
     });
     layout->addWidget(m_modeBox);
@@ -180,35 +178,36 @@ void InputTest::initializeWindow()
     layout->addWidget(m_suspendResumeButton);
 
     m_volumeSlider = new QSlider(Qt::Horizontal, this);
-    m_volumeSlider->setRange(0, 100);
-    m_volumeSlider->setValue(100);
+    m_volumeSlider->setRange(0, volumeSliderMaximum);
+    m_volumeSlider->setValue(volumeSliderMaximum);
     connect(m_volumeSlider, &QSlider::valueChanged, this, &InputTest::sliderChanged);
     layout->addWidget(m_volumeSlider);
 
-    QHBoxLayout *formatBox = new QHBoxLayout;
+    auto *formatBox = new QHBoxLayout;
 
     // Sample format selector
-    QLabel *formatLabel = new QLabel(tr("Sample Format:"));
+    auto *formatLabel = new QLabel(tr("Sample Format:"));
     m_formatBox = new QComboBox(this);
 
     // Sample rate selector
-    QLabel *rateLabel = new QLabel(tr("Sample Rate:"));
+    auto *rateLabel = new QLabel(tr("Sample Rate:"));
     m_rateBox = new QComboBox(this);
 
     // Channel count selector
-    QLabel *chLabel = new QLabel(tr("Channels:"));
+    auto *chLabel = new QLabel(tr("Channels:"));
     m_channelsBox = new QComboBox(this);
 
     for (auto *box : { m_channelsBox, m_rateBox, m_formatBox })
         connect(box, &QComboBox::activated, this, [this, box]() { formatChanged(box); });
 
     // add all to the same row
+    const int horizontalSpacing = 12;
     formatBox->addWidget(formatLabel);
     formatBox->addWidget(m_formatBox);
-    formatBox->addSpacing(12);
+    formatBox->addSpacing(horizontalSpacing);
     formatBox->addWidget(rateLabel);
     formatBox->addWidget(m_rateBox);
-    formatBox->addSpacing(12);
+    formatBox->addSpacing(horizontalSpacing);
     formatBox->addWidget(chLabel);
     formatBox->addWidget(m_channelsBox);
 
@@ -262,9 +261,10 @@ void InputTest::startAudioSource(const QAudioDevice &device, const QAudioFormat 
     m_audioInfo = std::make_unique<AudioInfo>(format);
     connect(m_audioInfo.get(), &AudioInfo::levelChanged, m_canvas, &RenderArea::setLevel);
 
-    qreal initialVolume = QAudio::convertVolume(m_audioSource->volume(), QAudio::LinearVolumeScale,
-                                                QAudio::LogarithmicVolumeScale);
-    m_volumeSlider->setValue(qRound(initialVolume * 100));
+    float initialVolume =
+            QAudio::convertVolume(float(m_audioSource->volume()), QAudio::LinearVolumeScale,
+                                  QAudio::LogarithmicVolumeScale);
+    m_volumeSlider->setValue(qRound(initialVolume * volumeSliderMaximum));
 
     m_audioInfo->start();
     restartAudioStream();
@@ -286,8 +286,8 @@ void InputTest::cleanupAudioSource()
 
 void InputTest::initializeErrorWindow()
 {
-    QVBoxLayout *layout = new QVBoxLayout(this);
-    QLabel *errorLabel = new QLabel(tr("Microphone permission is not granted!"));
+    auto *layout = new QVBoxLayout(this);
+    auto *errorLabel = new QLabel(tr("Microphone permission is not granted!"));
     errorLabel->setWordWrap(true);
     errorLabel->setAlignment(Qt::AlignCenter);
     layout->addWidget(errorLabel);
@@ -312,9 +312,10 @@ void InputTest::restartAudioStream()
             const qint64 len = qMin(m_audioSource->bytesAvailable(), BufferSize);
 
             QByteArray buffer(len, 0);
-            qint64 l = io->read(buffer.data(), len);
-            if (l > 0) {
-                const qreal level = calculateLevel(buffer.constData(), l, m_audioSource->format());
+            qint64 bytesRead = io->read(buffer.data(), len);
+            if (bytesRead > 0) {
+                const float level =
+                        calculateLevel(buffer.constData(), bytesRead, m_audioSource->format());
                 m_canvas->setLevel(level);
             }
         });
@@ -345,7 +346,7 @@ void InputTest::restartAudioStream()
             });
             break;
         case QAudioFormat::Float:
-            m_audioSource->start( [this, format](QSpan<const float> buffer) {
+            m_audioSource->start([this, format](QSpan<const float> buffer) {
                 processCallback(buffer, format);
             });
             break;
@@ -420,7 +421,7 @@ void InputTest::toggleSuspend()
 
 void InputTest::deviceChanged(int index)
 {
-    QAudioDevice device = m_deviceBox->itemData(index).value<QAudioDevice>();
+    auto device = m_deviceBox->itemData(index).value<QAudioDevice>();
 
     // clear format selectors
     m_formatBox->clear();
@@ -457,8 +458,9 @@ void InputTest::deviceChanged(int index)
 
 void InputTest::sliderChanged(int value)
 {
-    qreal linearVolume = QAudio::convertVolume(value / qreal(100), QAudio::LogarithmicVolumeScale,
-                                               QAudio::LinearVolumeScale);
+    float linearVolume =
+            QAudio::convertVolume(float(value) / float(volumeSliderMaximum),
+                                  QAudio::LogarithmicVolumeScale, QAudio::LinearVolumeScale);
 
     m_audioSource->setVolume(linearVolume);
 }
@@ -492,7 +494,7 @@ void InputTest::updateAudioDevices()
 
 void InputTest::formatChanged(QComboBox *box)
 {
-    QAudioDevice device = m_deviceBox->currentData().value<QAudioDevice>();
+    auto device = m_deviceBox->currentData().value<QAudioDevice>();
     QAudioFormat newFormat = m_audioSource->format();
 
     if (box == m_formatBox) {
@@ -505,6 +507,5 @@ void InputTest::formatChanged(QComboBox *box)
 
     startAudioSource(device, newFormat);
 }
-
 
 #include "moc_audiosource.cpp"

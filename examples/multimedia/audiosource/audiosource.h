@@ -30,20 +30,20 @@ public:
     void start();
     void stop();
 
-    qreal level() const { return m_level; }
+    [[nodiscard]] float level() const { return m_level; }
 
     qint64 readData(char *data, qint64 maxlen) override;
     qint64 writeData(const char *data, qint64 len) override;
 
 signals:
-    void levelChanged(qreal level);
+    void levelChanged(float level);
 
 private:
     const QAudioFormat m_format;
-    qreal m_level = 0.0; // 0.0 <= m_level <= 1.0
+    float m_level = 0.f; // 0.0 <= m_level <= 1.0
 };
 
-enum class AudioTestMode {
+enum class AudioTestMode : uint8_t {
     Pull,
     Push,
     Callback,
@@ -56,13 +56,13 @@ class RenderArea : public QWidget
 public:
     explicit RenderArea(QWidget *parent = nullptr);
 
-    void setLevel(qreal value);
+    void setLevel(float value);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    qreal m_level = 0;
+    float m_level = 0.f;
 };
 
 class InputTest : public QWidget
