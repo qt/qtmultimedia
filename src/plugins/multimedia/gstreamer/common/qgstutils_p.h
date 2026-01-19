@@ -26,7 +26,7 @@ QT_BEGIN_NAMESPACE
 class QAudioFormat;
 class QGstCaps;
 class QVideoFrame;
-class Fraction;
+struct Fraction;
 
 namespace QGstUtils {
 QAudioFormat audioFormatForSample(GstSample *sample);
