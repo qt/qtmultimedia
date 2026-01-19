@@ -248,6 +248,42 @@ inline void runAudioCallback(AudioSinkCallback &audioCallback, QSpan<std::byte> 
     QAudioHelperInternal::applyVolume(volume, format, hostBuffer, hostBuffer);
 }
 
+inline void runAudioCallback(AudioSinkCallback &audioCallback, QSpan<std::byte> hostBuffer,
+                             const QAudioFormat &applicationFormat, float volume,
+                             const QAudioFormat &hostFormat)
+{
+    const int32_t numberOfFrames = hostFormat.framesForBytes(hostBuffer.size());
+    const int32_t applicationBufferSize = applicationFormat.bytesForFrames(numberOfFrames);
+
+    constexpr qsizetype stackSizeLimit = 1024 * 64;
+    if (applicationBufferSize <= stackSizeLimit) {
+        std::array<std::byte, stackSizeLimit * sizeof(float)> stackBuffer;
+        QSpan<std::byte> stackBufferSpan{
+            stackBuffer.data(),
+            applicationBufferSize,
+        };
+        runAudioCallback(audioCallback, stackBufferSpan, applicationFormat, volume);
+
+        QAudioHelperInternal::convertSampleFormat(
+                stackBufferSpan,
+                QAudioHelperInternal::toNativeSampleFormat(applicationFormat.sampleFormat()),
+                hostBuffer, QAudioHelperInternal::toNativeSampleFormat(hostFormat.sampleFormat()));
+    } else {
+        QtPrivate::ScopedRTSanDisabler allowAllocations;
+
+        auto buffer = q20::make_unique_for_overwrite<std::byte[]>(hostBuffer.size());
+        auto heapBufferSpan = QSpan{
+            buffer.get(),
+            hostBuffer.size(),
+        };
+        runAudioCallback(audioCallback, heapBufferSpan, applicationFormat, volume);
+        QAudioHelperInternal::convertSampleFormat(
+                heapBufferSpan,
+                QAudioHelperInternal::toNativeSampleFormat(applicationFormat.sampleFormat()),
+                hostBuffer, QAudioHelperInternal::toNativeSampleFormat(hostFormat.sampleFormat()));
+    }
+}
+
 // NB: we we provide two overloads for running audio callbacks based on the host buffer:
 // * if the host buffer is immutable, we need to apply the volume on a temporary buffer
 // * if the host buffer is mutable, we can apply the volume in-place (currently unused)
@@ -290,6 +326,47 @@ inline void runAudioCallback(AudioSourceCallback &audioCallback, QSpan<std::byte
 {
     QAudioHelperInternal::applyVolume(volume, format, hostBuffer, hostBuffer);
     runAudioCallback<false>(audioCallback, hostBuffer, format);
+}
+
+template <typename HostBufferType>
+inline void runAudioCallback(AudioSourceCallback &audioCallback, QSpan<HostBufferType> hostBuffer,
+                             const QAudioFormat &applicationFormat, float volume,
+                             const QAudioFormat &hostFormat)
+{
+    static_assert(std::is_same_v<HostBufferType, std::byte>
+                  || std::is_same_v<HostBufferType, const std::byte>);
+
+    const int32_t numberOfFrames = hostFormat.framesForBytes(hostBuffer.size());
+    const int32_t applicationBufferSize = applicationFormat.bytesForFrames(numberOfFrames);
+
+    constexpr qsizetype stackSizeLimit = 1024 * 64;
+    if (applicationBufferSize <= stackSizeLimit) {
+        std::array<std::byte, stackSizeLimit * sizeof(float)> stackBuffer;
+        QSpan<std::byte> stackBufferSpan{
+            stackBuffer.data(),
+            applicationBufferSize,
+        };
+
+        QAudioHelperInternal::convertSampleFormat(
+                hostBuffer, QAudioHelperInternal::toNativeSampleFormat(hostFormat.sampleFormat()),
+                stackBufferSpan,
+                QAudioHelperInternal::toNativeSampleFormat(applicationFormat.sampleFormat()));
+        runAudioCallback(audioCallback, stackBufferSpan, applicationFormat, volume);
+    } else {
+        QtPrivate::ScopedRTSanDisabler allowAllocations;
+
+        auto buffer = q20::make_unique_for_overwrite<std::byte[]>(hostBuffer.size());
+        auto heapBufferSpan = QSpan{
+            buffer.get(),
+            hostBuffer.size(),
+        };
+        QAudioHelperInternal::convertSampleFormat(
+                hostBuffer, QAudioHelperInternal::toNativeSampleFormat(hostFormat.sampleFormat()),
+                heapBufferSpan,
+                QAudioHelperInternal::toNativeSampleFormat(applicationFormat.sampleFormat()));
+
+        runAudioCallback(audioCallback, heapBufferSpan, applicationFormat, volume);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
