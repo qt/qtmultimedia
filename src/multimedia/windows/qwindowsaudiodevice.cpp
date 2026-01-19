@@ -8,6 +8,7 @@
 #include <QtCore/qthreadpool.h>
 #include <QtCore/qt_windows.h>
 #include <QtCore/private/qsystemerror_p.h>
+#include <QtCore/qapplicationstatic.h>
 
 #include <QtMultimedia/private/qaudioformat_p.h>
 #include <QtMultimedia/private/qcominitializer_p.h>
