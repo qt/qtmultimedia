@@ -7,18 +7,6 @@
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
 
-#include <stdlib.h>
-#if __has_include(<alloca.h>)
-#  include <alloca.h>
-#endif
-#if __has_include(<malloc.h>)
-#  include <malloc.h>
-#endif
-
-#ifdef Q_CC_MSVC
-#  define alloca _alloca
-#endif
-
 QT_BEGIN_NAMESPACE
 
 namespace QtMultimediaPrivate {
@@ -321,13 +309,12 @@ void QPlatformAudioSinkStream::convertToNative(QSpan<const std::byte> internal,
         return;
     }
 
-    Q_ASSERT(internal.size() <= scratchpadBufferSizeLimit);
-    std::byte *scratchpadMemory = reinterpret_cast<std::byte *>(alloca(internal.size()));
-    QSpan scratchpadBuffer{ scratchpadMemory, internal.size() };
-
-    applyVolume(volume, m_format, internal, scratchpadBuffer);
-    convertSampleFormat(scratchpadBuffer, toNativeSampleFormat(m_format.sampleFormat()), native,
-                        nativeFormat);
+    withTemporaryBuffer<scratchpadBufferSizeLimit>(internal.size(),
+                                                   [&](QSpan<std::byte> scratchpadBuffer) {
+        applyVolume(volume, m_format, internal, scratchpadBuffer);
+        convertSampleFormat(scratchpadBuffer, toNativeSampleFormat(m_format.sampleFormat()), native,
+                            nativeFormat);
+    });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -510,14 +497,12 @@ void QPlatformAudioSourceStream::convertFromNative(
         return;
     }
 
-    Q_ASSERT(internal.size() <= scratchpadBufferSizeLimit);
-    std::byte *scratchpadMemory = reinterpret_cast<std::byte *>(alloca(internal.size()));
-    QSpan scratchpadBuffer{ scratchpadMemory, internal.size() };
-
-    convertSampleFormat(native, nativeFormat, scratchpadBuffer,
-                        QAudioHelperInternal::toNativeSampleFormat(m_format.sampleFormat()));
-
-    applyVolume(volume, m_format, scratchpadBuffer, internal);
+    withTemporaryBuffer<scratchpadBufferSizeLimit>(internal.size(),
+                                                   [&](QSpan<std::byte> scratchpadBuffer) {
+        convertSampleFormat(native, nativeFormat, scratchpadBuffer,
+                            QAudioHelperInternal::toNativeSampleFormat(m_format.sampleFormat()));
+        applyVolume(volume, m_format, scratchpadBuffer, internal);
+    });
 }
 
 } // namespace QtMultimediaPrivate
