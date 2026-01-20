@@ -1,7 +1,7 @@
 # Copyright (C) 2024 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
-# This function is in Technical Preview.
+# This function is in Technology Preview.
 if(NOT QT_NO_CREATE_VERSIONLESS_FUNCTIONS)
     function(qt_add_ios_ffmpeg_libraries target)
         if(QT_DEFAULT_MAJOR_VERSION EQUAL 6)
