@@ -72,7 +72,7 @@ private:
 
     std::unique_ptr<QtAAudio::Stream> m_stream;
 
-    std::optional<NativeSampleFormat> m_nativeSampleFormat;
+    std::optional<QAudioFormat> m_hostFormat;
 };
 
 class QAndroidAudioSource final
