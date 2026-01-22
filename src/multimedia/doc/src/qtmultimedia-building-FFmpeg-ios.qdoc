@@ -68,6 +68,9 @@ To configure FFmpeg, run:
     --prefix=../installed \
     --cc="xcrun --sdk iphoneos clang -arch arm64" \
     --cxx="xcrun --sdk iphoneos clang++ -arch arm64" \
+    --extra-cflags="-miphoneos-version-min=16.0" \
+    --extra-cxxflags="-miphoneos-version-min=16.0" \
+    --extra-objcflags="-miphoneos-version-min=16.0" \
     --extra-ldflags="-miphoneos-version-min=16.0" \
     --install-name-dir='@rpath' \
     --disable-audiotoolbox
