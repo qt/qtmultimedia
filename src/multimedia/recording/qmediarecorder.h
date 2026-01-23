@@ -139,7 +139,7 @@ public Q_SLOTS:
     void stop();
 
 Q_SIGNALS:
-    void recorderStateChanged(RecorderState state);
+    void recorderStateChanged(QMediaRecorder::RecorderState state);
     void durationChanged(qint64 duration);
     void actualLocationChanged(const QUrl &location);
 
@@ -148,7 +148,7 @@ Q_SIGNALS:
     void encoderSettingsChanged();
 #endif
 
-    void errorOccurred(Error error, const QString &errorString);
+    void errorOccurred(QMediaRecorder::Error error, const QString &errorString);
     void errorChanged();
 
     void metaDataChanged();
