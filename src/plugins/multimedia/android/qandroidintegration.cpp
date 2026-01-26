@@ -116,6 +116,21 @@ q23::expected<QPlatformVideoSink *, QString> QAndroidIntegration::createVideoSin
 
 Q_DECLARE_JNI_CLASS(QtMultimediaUtils, "org/qtproject/qt/android/multimedia/QtMultimediaUtils")
 
+bool QAndroidIntegration::registerNativeMethods()
+{
+    static const bool result = []{
+        const auto context = QNativeInterface::QAndroidApplication::context();
+        QtJniTypes::QtMultimediaUtils::callStaticMethod<void>("setContext", context);
+
+        return AndroidCamera::registerNativeMethods()
+            && AndroidMediaRecorder::registerNativeMethods()
+            && AndroidMediaPlayer::registerNativeMethods()
+            && AndroidSurfaceHolder::registerNativeMethods()
+            && AndroidSurfaceTexture::registerNativeMethods();
+    }();
+    return result;
+}
+
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 {
     static bool initialized = false;
@@ -135,16 +150,8 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     if (vm->GetEnv(&uenv.venv, JNI_VERSION_1_6) != JNI_OK)
         return JNI_ERR;
 
-    const auto context = QNativeInterface::QAndroidApplication::context();
-    QtJniTypes::QtMultimediaUtils::callStaticMethod<void>("setContext", context);
-
-    if (!AndroidMediaPlayer::registerNativeMethods()
-            || !AndroidCamera::registerNativeMethods()
-            || !AndroidMediaRecorder::registerNativeMethods()
-            || !AndroidSurfaceHolder::registerNativeMethods()
-            || !AndroidSurfaceTexture::registerNativeMethods()) {
+    if (!QAndroidIntegration::registerNativeMethods())
         return JNI_ERR;
-    }
 
     return JNI_VERSION_1_6;
 }
