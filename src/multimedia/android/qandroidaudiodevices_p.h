@@ -35,6 +35,8 @@ public:
 
     QLatin1String backendName() const override { return QLatin1String{ "Android" }; }
 
+    [[nodiscard]] static bool registerNativeMethods();
+
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;

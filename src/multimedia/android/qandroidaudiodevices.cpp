@@ -117,11 +117,27 @@ static void onAudioInputDevicesUpdated(JNIEnv * /*env*/, jobject /*thiz*/)
     static_cast<QAndroidAudioDevices *>(QPlatformMediaIntegration::instance()->audioDevices())
             ->onAudioInputsChanged();
 }
+Q_DECLARE_JNI_NATIVE_METHOD(onAudioInputDevicesUpdated)
 
 static void onAudioOutputDevicesUpdated(JNIEnv * /*env*/, jobject /*thiz*/)
 {
     static_cast<QAndroidAudioDevices *>(QPlatformMediaIntegration::instance()->audioDevices())
             ->onAudioOutputsChanged();
+}
+Q_DECLARE_JNI_NATIVE_METHOD(onAudioOutputDevicesUpdated)
+
+bool QAndroidAudioDevices::registerNativeMethods()
+{
+    static const bool registered = []{
+        const auto context = QNativeInterface::QAndroidApplication::context();
+        QtAudioDeviceManager::callStaticMethod<void>("setContext", context);
+
+        return QtJniTypes::QtAudioDeviceManager::registerNativeMethods({
+            Q_JNI_NATIVE_METHOD(onAudioInputDevicesUpdated),
+            Q_JNI_NATIVE_METHOD(onAudioOutputDevicesUpdated),
+        });
+    }();
+    return registered;
 }
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
@@ -143,19 +159,7 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     if (vm->GetEnv(&uenv.venv, JNI_VERSION_1_6) != JNI_OK)
         return JNI_ERR;
 
-    const auto context = QNativeInterface::QAndroidApplication::context();
-    QtAudioDeviceManager::callStaticMethod<void>("setContext", context);
-
-    const JNINativeMethod methods[] = {
-        { "onAudioInputDevicesUpdated", "()V", (void *)onAudioInputDevicesUpdated },
-        { "onAudioOutputDevicesUpdated", "()V", (void *)onAudioOutputDevicesUpdated }
-    };
-
-    bool registered = QJniEnvironment().registerNativeMethods(
-            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", methods,
-            std::size(methods));
-
-    if (!registered)
+    if (!QAndroidAudioDevices::registerNativeMethods())
         return JNI_ERR;
 
     return JNI_VERSION_1_6;
