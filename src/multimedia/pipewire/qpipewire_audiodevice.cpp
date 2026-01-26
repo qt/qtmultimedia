@@ -60,17 +60,21 @@ QAudioDevicePrivate::AudioDeviceFormat toAudioDeviceFormat(const SpaObjectAudioF
     format.maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
 
     // Set preferred sample rate
-    std::visit([&](const auto &arg) {
-        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, int>) {
-            format.preferredFormat.setSampleRate(arg);
-        } else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, QSpan<const int>>) {
-            constexpr int defaultPipewireSamplingRate = 48000;
-            format.preferredFormat.setSampleRate(
-                    QtMultimediaPrivate::findClosestSamplingRate(defaultPipewireSamplingRate, arg));
-        } else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, SpaRange<int>>) {
-            format.preferredFormat.setSampleRate(arg.defaultValue);
-        }
-    }, formats.rates);
+    constexpr int defaultPipewireSamplingRate = 48000;
+    if (formats.rates) {
+        std::visit([&](const auto &arg) {
+            if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, int>) {
+                format.preferredFormat.setSampleRate(arg);
+            } else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, QSpan<const int>>) {
+                format.preferredFormat.setSampleRate(QtMultimediaPrivate::findClosestSamplingRate(
+                        defaultPipewireSamplingRate, arg));
+            } else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, SpaRange<int>>) {
+                format.preferredFormat.setSampleRate(arg.defaultValue);
+            }
+        }, *formats.rates);
+    } else {
+        format.preferredFormat.setSampleRate(defaultPipewireSamplingRate);
+    }
 
     // Set preferred sample format
     std::visit([&](const auto &arg) {

@@ -118,11 +118,12 @@ std::optional<SpaObjectAudioFormat> SpaObjectAudioFormat::parse(const spa_pod_ob
         result.rates = int(info.rate);
     } else {
         auto optionalSamplingRates = parseSamplingRates(obj->pod);
-        if (!optionalSamplingRates)
-            return std::nullopt;
-        std::visit([&](auto arg) {
-            result.rates = arg;
-        }, *optionalSamplingRates);
+        // note: some virtual devices don't expose any sampling rate
+        if (optionalSamplingRates) {
+            std::visit([&](auto arg) {
+                result.rates = arg;
+            }, *optionalSamplingRates);
+        }
     }
 
     if (isIec958) {
