@@ -119,7 +119,7 @@ void QAudioDeviceMonitor::objectAdded(ObjectId id, uint32_t /*permissions*/,
 
             std::lock_guard guard{ m_pendingRecordsMutex };
 
-            qCDebug(lcPipewireDeviceMonitor) << "added node for device " << serial << deviceSerial;
+            qCDebug(lcPipewireDeviceMonitor) << "added node for device" << serial << deviceSerial;
 
             // enumerating the audio format is asynchronous: we enumerate the formats asynchronously
             // and wait for the result before updating the device list
