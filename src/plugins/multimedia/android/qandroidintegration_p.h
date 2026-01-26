@@ -38,6 +38,8 @@ public:
 
     q23::expected<QPlatformVideoSink *, QString> createVideoSink(QVideoSink *) override;
 
+    [[nodiscard]] static bool registerNativeMethods();
+
 protected:
     QPlatformVideoDevices *createVideoDevices() override;
     QPlatformMediaFormatInfo *createFormatInfo() override;
