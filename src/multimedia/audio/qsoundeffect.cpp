@@ -98,6 +98,9 @@ QSoundEffectPrivate *makeSoundEffectPrivate(QSoundEffect *fx, const QAudioDevice
 
     \snippet multimedia-snippets/soundeffect.qml complete snippet
 
+    \note QSoundEffect only supports mono or stereo sound files. Using sound files with
+    a sampling rate of 48000hz is recommended, as this is the typical native sampling rate
+    on most platforms (\l QAudioDevice::preferredFormat()).
 */
 
 /*!
