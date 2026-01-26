@@ -74,9 +74,13 @@ QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &n
     minimumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.front();
     maximumSampleRate = QtMultimediaPrivate::allSupportedSampleRates.back();
 
-    std::visit([&](const auto &arg) {
-        setPreferredSamplingRate(arg);
-    }, formats.rates);
+    if (formats.rates) {
+        std::visit([&](const auto &arg) {
+            setPreferredSamplingRate(arg);
+        }, *formats.rates);
+    } else {
+        setPreferredSamplingRate(48'000);
+    }
 
     std::visit([&](const auto &arg) {
         setPreferredSampleFormats(arg);

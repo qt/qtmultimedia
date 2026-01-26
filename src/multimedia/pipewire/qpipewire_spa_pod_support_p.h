@@ -40,7 +40,7 @@ struct SpaObjectAudioFormat
     static std::optional<SpaObjectAudioFormat> parse(const struct spa_pod *pod);
 
     int channelCount = 0;
-    std::variant<int, std::vector<int>, SpaRange<int>> rates;
+    std::optional<std::variant<int, std::vector<int>, SpaRange<int>>> rates;
     std::variant<spa_audio_format, SpaEnum<spa_audio_format>, spa_audio_iec958_codec> sampleTypes;
     std::optional<QList<spa_audio_channel>> channelPositions; // COW-able
 };
