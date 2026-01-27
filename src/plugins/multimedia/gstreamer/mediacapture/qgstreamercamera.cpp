@@ -102,6 +102,15 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
         }
 
         newGstCamera = QGstElement::createFromDevice(device, "camerasrc");
+
+        static const auto ioMode = [] {
+            bool ok = false;
+            int ioMode = qEnvironmentVariableIntValue("QT_GSTREAMER_V4L2SRC_IOMODE", &ok);
+            return ok ? std::optional(ioMode) : std::nullopt;
+        }();
+        if (ioMode && newGstCamera.factoryName() == "v4l2src")
+            newGstCamera.set("io-mode", *ioMode);
+
         QUniqueGstStructureHandle properties{
             gst_device_get_properties(device),
         };
