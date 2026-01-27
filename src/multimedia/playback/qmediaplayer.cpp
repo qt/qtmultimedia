@@ -1186,7 +1186,8 @@ void QMediaPlayer::setPitchCompensation(bool enabled) const
 QMediaPlayer::PitchCompensationAvailability QMediaPlayer::pitchCompensationAvailability() const
 {
     Q_D(const QMediaPlayer);
-    return d->control->pitchCompensationAvailability();
+    return d->control ? d->control->pitchCompensationAvailability()
+                      : PitchCompensationAvailability::Unavailable;
 }
 
 /*!
