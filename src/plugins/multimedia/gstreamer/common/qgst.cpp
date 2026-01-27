@@ -1017,6 +1017,16 @@ QGstElementFactoryHandle QGstElement::findFactory(const QByteArray &name)
     return findFactory(name.constData());
 }
 
+QByteArrayView QGstElement::factoryName() const
+{
+    GstElementFactory *factory = gst_element_get_factory(element());
+    if (!factory)
+        return {};
+
+    const char *name = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory));
+    return name ? QByteArrayView{name} : QByteArrayView{};
+}
+
 QGstPad QGstElement::staticPad(const char *name) const
 {
     return QGstPad(gst_element_get_static_pad(element(), name), HasRef);
