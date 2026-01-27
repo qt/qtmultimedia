@@ -67,7 +67,8 @@ GLMemory-backed video frames in one of our supported pixel formats, Qt can
 render them without additional conversion or copying. GStreamer selects a
 format and memory type based on the capabilities of its pipeline elements.
 Different ways of controlling which elements are added to the pipeline are
-described under \l{Customization points}.
+described under \l{Customization points}. See also
+\l{Specifying I/O mode for v4l2 cameras}.
 \endlist
 
 
@@ -99,6 +100,22 @@ following environment variable:
 \code
     QT_MULTIMEDIA_FORCE_GL_TEXTURE_EXTERNAL_OES=1
 \endcode
+
+\section2 Specifying I/O mode for v4l2 cameras
+
+When using a v4l2 capture device with a QCamera or QML Camera, the
+\l{https://gstreamer.freedesktop.org/documentation/video4linux2/v4l2src.html#v4l2src:io-mode}{io-mode}
+property of the underlying v4l2src GStreamer element affects whether or not it
+outputs DMA-BUF-backed video frames that allows zero-copy rendering. In some
+cases the default auto mode chooses mmap mode even though the camera driver
+supports dmabuf mode. The io-mode property int value can be set explicitly via
+the environment variable below. Here's an example showing how to set io-mode to
+dmabuf with the enum GST_V4L2_IO_DMABUF:
+
+\code
+    QT_GSTREAMER_V4L2SRC_IOMODE=4
+\endcode
+
 
 
 \section2 Selecting specific GStreamer elements

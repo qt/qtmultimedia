@@ -575,6 +575,8 @@ public:
     static QGstElementFactoryHandle findFactory(const char *);
     static QGstElementFactoryHandle findFactory(const QByteArray &name);
 
+    QByteArrayView factoryName() const;
+
     QGstPad staticPad(const char *name) const;
     QGstPad src() const;
     QGstPad sink() const;
