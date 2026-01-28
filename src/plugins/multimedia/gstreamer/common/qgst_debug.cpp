@@ -453,6 +453,9 @@ QDebug operator<<(QDebug dbg, GstStreamType streamType)
 
 QDebug operator<<(QDebug dbg, const GValue *value)
 {
+    if (!value)
+        return dbg << "null";
+
     switch (G_VALUE_TYPE(value)) {
     case G_TYPE_STRING:
         return dbg << g_value_get_string(value);
