@@ -134,10 +134,7 @@ bool AndroidSurfaceTexture::registerNativeMethods()
         {"notifyFrameAvailable", "(J)V", (void *)notifyFrameAvailable}
     };
     const int size = std::size(methods);
-    if (QJniEnvironment().registerNativeMethods(QtSurfaceTextureListenerClassName, methods, size))
-        return false;
-
-    return true;
+    return QJniEnvironment().registerNativeMethods(QtSurfaceTextureListenerClassName, methods, size);
 }
 
 void AndroidSurfaceTexture::setOnFrameAvailableListener(const QJniObject &listener)

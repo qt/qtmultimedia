@@ -141,11 +141,10 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     if (!AndroidMediaPlayer::registerNativeMethods()
             || !AndroidCamera::registerNativeMethods()
             || !AndroidMediaRecorder::registerNativeMethods()
-            || !AndroidSurfaceHolder::registerNativeMethods()) {
+            || !AndroidSurfaceHolder::registerNativeMethods()
+            || !AndroidSurfaceTexture::registerNativeMethods()) {
         return JNI_ERR;
     }
-
-    AndroidSurfaceTexture::registerNativeMethods();
 
     return JNI_VERSION_1_6;
 }
