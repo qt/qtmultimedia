@@ -19,6 +19,10 @@ static float amplitudeToDb(float f)
     return std::clamp(float(20.0) * std::log10(f), DB_MIN, DB_MAX);
 }
 
+static bool isSilent(float db) {
+    return db < DB_SILENCE;
+}
+
 AudioLevelMeter::AudioLevelMeter(QWidget *parent) : QWidget(parent)
 {
     // Layout and background color
@@ -165,10 +169,6 @@ void AudioLevelMeter::updatePeakLabel(float peak)
         return;
 
     m_peakLabelHoldTimer.start(PEAK_LABEL_HOLD_TIME);
-
-    if (qFuzzyCompare(peak, m_highestPeak))
-        return;
-
     m_highestPeak = peak;
     float dB = amplitudeToDb(m_highestPeak);
     m_peakLabel->setText(QString::number(dB, 'f', 1));
@@ -271,7 +271,7 @@ void MeterChannel::clearRmsData()
 void MeterChannel::decayPeak()
 {
     float peak = m_peak;
-    if (qFuzzyCompare(peak, DB_MIN))
+    if (isSilent(peak))
         return;
 
     float cubicEaseInFactor = m_peakDecayRate * m_peakDecayRate * m_peakDecayRate;
@@ -289,7 +289,7 @@ void MeterChannel::decayPeak()
 void MeterChannel::decayRms()
 {
     float rms = m_rms;
-    if (qFuzzyCompare(rms, DB_MIN))
+    if (isSilent(rms))
         return;
 
     float cubicEaseInFactor = m_rmsDecayRate * m_rmsDecayRate * m_rmsDecayRate;
@@ -345,7 +345,7 @@ void MeterChannel::updateRms(float sumOfSquaresForOneBuffer, milliseconds durati
 void MeterChannel::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
-    if (qFuzzyCompare(m_peak, DB_MIN) && qFuzzyCompare(m_rms, DB_MIN))
+    if (isSilent(m_peak) && isSilent(m_rms))
         return; // Nothing to paint
 
     float peakLevel = normalize(m_peak);
