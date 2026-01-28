@@ -176,8 +176,9 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
         if (::ioctl(fd.get(), VIDIOC_G_INPUT, &index) < 0) {
             switch (errno) {
             case ENOTTY:
-                qCDebug(ltVideoDevices) << "device does not have video inputs" << p;
-                return;
+                qCDebug(ltVideoDevices) << "Device does not support VIDIOC_G_INPUT, but it could"
+                                           "still work" << p;
+                break;
 
             default:
                 qCWarning(ltVideoDevices)
