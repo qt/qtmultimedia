@@ -778,7 +778,7 @@ void AVFMediaPlayer::setPlaybackRate(qreal rate)
     qDebug() << Q_FUNC_INFO << rate;
 #endif
 
-    if (qFuzzyCompare(m_rate, rate))
+    if (QtPrivate::fuzzyCompare(m_rate, rate))
         return;
 
     m_rate = rate;
@@ -1290,11 +1290,14 @@ void AVFMediaPlayer::videoOrientationForAssetTrack(AVAssetTrack *videoTrack,
             mirrored = true;
         }
 
-        if (qFuzzyCompare(degrees, qreal(90)) || qFuzzyCompare(degrees, qreal(-270))) {
+        if (QtPrivate::fuzzyCompare(degrees, qreal(90))
+            || QtPrivate::fuzzyCompare(degrees, qreal(-270))) {
             angle = QtVideo::Rotation::Clockwise90;
-        } else if (qFuzzyCompare(degrees, qreal(-90)) || qFuzzyCompare(degrees, qreal(270))) {
+        } else if (QtPrivate::fuzzyCompare(degrees, qreal(-90))
+                   || QtPrivate::fuzzyCompare(degrees, qreal(270))) {
             angle = QtVideo::Rotation::Clockwise270;
-        } else if (qFuzzyCompare(degrees, qreal(180)) || qFuzzyCompare(degrees, qreal(-180))) {
+        } else if (QtPrivate::fuzzyCompare(degrees, qreal(180))
+                   || QtPrivate::fuzzyCompare(degrees, qreal(-180))) {
             angle = QtVideo::Rotation::Clockwise180;
         }
     }

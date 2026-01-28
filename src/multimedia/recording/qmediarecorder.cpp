@@ -500,7 +500,8 @@ QT_WARNING_POP
         if (settings.videoResolution() != d->encoderSettings.videoResolution())
             emit videoResolutionChanged();
 
-        if (!qFuzzyCompare(settings.videoFrameRate(), d->encoderSettings.videoFrameRate()))
+        if (!QtPrivate::fuzzyCompare(settings.videoFrameRate(),
+                                     d->encoderSettings.videoFrameRate()))
             emit videoFrameRateChanged();
 
         if (settings.videoBitRate() != d->encoderSettings.videoBitRate())
