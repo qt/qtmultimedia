@@ -220,7 +220,7 @@ void AudioRenderer::onPauseChanged()
 void AudioRenderer::initAudioFrameConverter(const Frame &frame)
 {
     // We recreate the frame converter whenever format or playback rate is changed
-    if (!m_pitchCompensation || qFuzzyCompare(playbackRate(), 1.0f)) {
+    if (!m_pitchCompensation || QtPrivate::fuzzyCompare(playbackRate(), 1.0f)) {
         m_audioFrameConverter = makeTrivialAudioFrameConverter(frame, m_sinkFormat, playbackRate());
     } else {
         m_audioFrameConverter =

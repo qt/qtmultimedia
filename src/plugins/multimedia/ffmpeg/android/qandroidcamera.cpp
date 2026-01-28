@@ -541,7 +541,7 @@ void QAndroidCamera::cleanCameraCharacteristics()
 
 void QAndroidCamera::setFocusDistance(float distance)
 {
-    if (qFuzzyCompare(focusDistance(), distance))
+    if (QtPrivate::fuzzyCompare(focusDistance(), distance))
         return;
 
     if (!(supportedFeatures() & QCamera::Feature::FocusDistance)) {

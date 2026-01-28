@@ -257,7 +257,7 @@ void QAndroidCameraSession::applyResolution(const QSize &captureSize, bool resta
             for (int i = previewSizes.count() - 1; i >= 0; --i) {
                 const QSize &size = previewSizes.at(i);
                 const qreal sizeAspect = qreal(size.width()) / size.height();
-                if (qFuzzyCompare(captureAspectRatio, sizeAspect)) {
+                if (QtPrivate::fuzzyCompare(captureAspectRatio, sizeAspect)) {
                     adjustedViewfinderResolution = size;
                     break;
                 } else if (minAspectDiff > qAbs(sizeAspect - captureAspectRatio)) {

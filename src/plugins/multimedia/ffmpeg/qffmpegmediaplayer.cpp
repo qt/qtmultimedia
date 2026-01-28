@@ -123,7 +123,7 @@ void QFFmpegMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
             : status == QMediaPlayer::BufferedMedia                       ? 1.f
                                                                           : 0.f;
 
-    if (!qFuzzyCompare(newBufferProgress, m_bufferProgress)) {
+    if (!QtPrivate::fuzzyCompare(newBufferProgress, m_bufferProgress)) {
         m_bufferProgress = newBufferProgress;
         bufferProgressChanged(newBufferProgress);
     }
@@ -145,7 +145,7 @@ void QFFmpegMediaPlayer::setPlaybackRate(qreal rate)
 {
     const float effectiveRate = std::max(static_cast<float>(rate), 0.0f);
 
-    if (qFuzzyCompare(m_playbackRate, effectiveRate))
+    if (QtPrivate::fuzzyCompare(m_playbackRate, effectiveRate))
         return;
 
     m_playbackRate = effectiveRate;
