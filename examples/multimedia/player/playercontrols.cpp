@@ -159,19 +159,6 @@ qreal PlayerControls::playbackRate() const
     return m_rateBox->itemData(m_rateBox->currentIndex()).toDouble();
 }
 
-void PlayerControls::setPlaybackRate(float rate)
-{
-    for (int i = 0; i < m_rateBox->count(); ++i) {
-        if (qFuzzyCompare(rate, float(m_rateBox->itemData(i).toDouble()))) {
-            m_rateBox->setCurrentIndex(i);
-            return;
-        }
-    }
-
-    m_rateBox->addItem(QStringLiteral("%1x").arg(rate), QVariant(rate));
-    m_rateBox->setCurrentIndex(m_rateBox->count() - 1);
-}
-
 void PlayerControls::updateRate()
 {
     emit changeRate(playbackRate());
