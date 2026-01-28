@@ -131,6 +131,13 @@ bool QAndroidIntegration::registerNativeMethods()
     return result;
 }
 
+QPlatformVideoDevices *QAndroidIntegration::createVideoDevices()
+{
+    return new AndroidVideoDevices(this);
+}
+
+QT_END_NAMESPACE
+
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 {
     static bool initialized = false;
@@ -155,12 +162,5 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 
     return JNI_VERSION_1_6;
 }
-
-QPlatformVideoDevices *QAndroidIntegration::createVideoDevices()
-{
-    return new AndroidVideoDevices(this);
-}
-
-QT_END_NAMESPACE
 
 #include "qandroidintegration.moc"

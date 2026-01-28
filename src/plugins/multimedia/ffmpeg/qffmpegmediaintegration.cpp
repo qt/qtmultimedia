@@ -372,6 +372,8 @@ QPlatformCapturableWindows *QFFmpegMediaIntegration::createCapturableWindows()
     return nullptr;
 }
 
+QT_END_NAMESPACE
+
 #ifdef Q_OS_ANDROID
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
@@ -398,5 +400,3 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     return JNI_VERSION_1_6;
 }
 #endif
-
-QT_END_NAMESPACE
