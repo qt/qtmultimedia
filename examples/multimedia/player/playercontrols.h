@@ -29,7 +29,6 @@ public slots:
     void setState(QMediaPlayer::PlaybackState state, bool force = false);
     void setVolume(float volume);
     void setMuted(bool muted);
-    void setPlaybackRate(float rate);
 
 signals:
     void play();

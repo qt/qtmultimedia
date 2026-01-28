@@ -32,7 +32,8 @@ static constexpr float DB_DECAY_PER_SECOND = 20.0f;
 static constexpr float DB_DECAY_PER_UPDATE =
         DB_DECAY_PER_SECOND / (1000 / UPDATE_INTERVAL.count());
 static constexpr float DB_MAX = 0.0f;
-static constexpr float DB_MIN = -60.0f;
+static constexpr float DB_SILENCE = -60.0f;
+static constexpr float DB_MIN = -90.0f;
 
 // A struct used by BufferAnalyzer to emit its results back to AudioLevelMeter
 struct BufferValues {
