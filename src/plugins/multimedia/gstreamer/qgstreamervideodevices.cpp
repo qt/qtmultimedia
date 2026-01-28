@@ -37,6 +37,7 @@ QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integr
       }
 {
     gst_device_monitor_add_filter(m_deviceMonitor.get(), "Video/Source", nullptr);
+    gst_device_monitor_set_show_all_devices(m_deviceMonitor.get(), true);
 
     m_busObserver.installMessageFilter(this);
     gst_device_monitor_start(m_deviceMonitor.get());
@@ -132,11 +133,24 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
     Q_ASSERT(gst_device_has_classes(device.get(), "Video/Source"));
 
 #if QT_CONFIG(linux_v4l)
-    QUniqueGstStructureHandle structureHandle{
+    QUniqueGstStructureHandle propertiesHandle{
         gst_device_get_properties(device.get()),
     };
+    if (!propertiesHandle.isValid()) {
+        qCDebug(ltVideoDevices) << "Skipping device without extra properties:" << device.get();
+        return;
+    }
 
-    const auto *p = QGstStructureView(structureHandle.get())["device.path"].toString();
+    auto properties = QGstStructureView(propertiesHandle.get());
+
+    // Pipewire devices causes infinite futex wait in gst_pipewire_src_change_state after calling
+    // QGstreamerMediaCaptureSession::setCameraActive() with true, so we skip adding them:
+    if (properties.name().contains("pipewire")) {
+        qCDebug(ltVideoDevices) << "Skipping pipewire device:" << device.get();
+        return;
+    }
+
+    const auto *p = properties["device.path"].toString();
     if (p) {
         QUniqueFileDescriptorHandle fd{
             qt_safe_open(p, O_RDONLY),
@@ -187,7 +201,7 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
             }
         }
     } else {
-        qCDebug(ltVideoDevices) << "Video device not a v4l2 device:" << structureHandle;
+        qCDebug(ltVideoDevices) << "Video device not a v4l2 device:" << propertiesHandle;
     }
 #endif
 
