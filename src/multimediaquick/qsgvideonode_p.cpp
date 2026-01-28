@@ -156,7 +156,7 @@ public:
 
     void updateBlending() {
         // ### respect video formats with Alpha
-        setFlag(Blending, !qFuzzyCompare(m_opacity, float(1.0)));
+        setFlag(Blending, !QtPrivate::fuzzyCompare(m_opacity, float(1.0)));
     }
 
     void setSurfaceFormat(const QRhiSwapChain::Format surfaceFormat)

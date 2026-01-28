@@ -146,7 +146,7 @@ DWORD QWindowsMediaDeviceReader::findMediaTypeIndex(const QCameraFormat &reqForm
                             if (!reqFormat.isNull()
                                     && UINT32(reqFormat.resolution().width()) == width
                                     && UINT32(reqFormat.resolution().height()) == height
-                                    && qFuzzyCompare(reqFormat.maxFrameRate(), frameRate)
+                                    && QtPrivate::fuzzyCompare(reqFormat.maxFrameRate(), frameRate)
                                     && reqFormat.pixelFormat() == pixelFormat) {
                                 mediaType->Release();
                                 return index;

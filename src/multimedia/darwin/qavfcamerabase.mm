@@ -63,13 +63,13 @@ bool qt_exposure_duration_equal(AVCaptureDevice *captureDevice, qreal qDuration)
 bool qt_iso_equal(AVCaptureDevice *captureDevice, int iso)
 {
     Q_ASSERT(captureDevice);
-    return qFuzzyCompare(float(iso), captureDevice.ISO);
+    return QtPrivate::fuzzyCompare(float(iso), captureDevice.ISO);
 }
 
 bool qt_exposure_bias_equal(AVCaptureDevice *captureDevice, qreal bias)
 {
     Q_ASSERT(captureDevice);
-    return qFuzzyCompare(bias, qreal(captureDevice.exposureTargetBias));
+    return QtPrivate::fuzzyCompare(bias, qreal(captureDevice.exposureTargetBias));
 }
 
 // Converters:
@@ -357,7 +357,7 @@ void QAVFCameraBase::applyFocusDistanceToAVCaptureDevice(float distance)
 
 void QAVFCameraBase::setFocusDistance(float distance)
 {
-    if (qFuzzyCompare(focusDistance(), distance))
+    if (QtPrivate::fuzzyCompare(focusDistance(), distance))
         return;
 
     if (!(supportedFeatures() & QCamera::Feature::FocusDistance)) {

@@ -350,8 +350,9 @@ bool QWasmVideoOutput::isVideoSeekable()
     if (seekableTimeRange["length"].as<int>() < 1)
         return false;
     if (!seekableTimeRange.isNull() || !seekableTimeRange.isUndefined()) {
-        bool isit = !qFuzzyCompare(seekableTimeRange.call<emscripten::val>("start", 0).as<double>(),
-                                   seekableTimeRange.call<emscripten::val>("end", 0).as<double>());
+        bool isit = !QtPrivate::fuzzyCompare(
+                seekableTimeRange.call<emscripten::val>("start", 0).as<double>(),
+                seekableTimeRange.call<emscripten::val>("end", 0).as<double>());
         return isit;
     }
     return false;
