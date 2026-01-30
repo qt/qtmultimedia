@@ -314,7 +314,7 @@ static void apply_mediacodec(const QMediaEncoderSettings &settings, AVCodecConte
     case QMediaFormat::VideoCodec::H264: {
         const char *levels[] = { "2.2", "3.2", "4.2", "5.2", "6.2" };
         av_dict_set(opts, "level", levels[settings.quality()], 1);
-        codec->profile = FF_PROFILE_H264_HIGH;
+        codec->profile = AV_PROFILE_H264_HIGH;
         break;
     }
     case QMediaFormat::VideoCodec::H265: {
@@ -326,7 +326,7 @@ static void apply_mediacodec(const QMediaEncoderSettings &settings, AVCodecConte
             av_dict_set(opts, "level", levels[settings.quality()], 1);
         }
 
-        codec->profile = FF_PROFILE_HEVC_MAIN;
+        codec->profile = AV_PROFILE_HEVC_MAIN;
         break;
     }
     default:

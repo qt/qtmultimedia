@@ -78,4 +78,11 @@ using AVPixelFormatSet = std::unordered_set<AVPixelFormat>;
 
 QT_END_NAMESPACE
 
+#ifndef AV_PROFILE_H264_HIGH
+#  define AV_PROFILE_H264_HIGH FF_PROFILE_H264_HIGH
+#endif
+#ifndef AV_PROFILE_HEVC_MAIN
+#  define AV_PROFILE_HEVC_MAIN FF_PROFILE_HEVC_MAIN
+#endif
+
 #endif // QFFMPEGDEFS_P_H
