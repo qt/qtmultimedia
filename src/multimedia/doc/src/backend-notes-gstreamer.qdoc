@@ -55,6 +55,11 @@ versions. Here are links to the dev branch versions:
     \li NXP i.MX 6/8/9: \l{https://code.qt.io/cgit/yocto/meta-boot2qt.git/tree/meta-boot2qt-distro/dynamic-layers/freescale-layer/recipes-qt/boot2qt-addons/default-qt-envs.bbappend?h=dev}
     \li Raspberry Pi 4/5: \l{https://code.qt.io/cgit/yocto/meta-boot2qt.git/tree/meta-boot2qt-distro/dynamic-layers/raspberrypi/recipes-qt/boot2qt-addons/default-qt-envs.bbappend?h=dev}
   \endlist
+\l Some NXP i.MX boards expose a v4l2 device named imx-capture, which can cause
+errors when used with v4l2src in GStreamer. To prevent Qt Multimedia from
+adding imx-capture to the list of available camera devices, set the environment
+variable QT_GSTREAMER_SKIP_IMXCAPTURE=1. Note that this is considered as
+private API which will be removed when NXP fixes the problems with imx-capture.
 \li Video playback or camera streaming using system memory video frames or
 software conversion can result in dropped frames and unresponsiveness due to
 heavy CPU load. If the GStreamer decoder or camera device outputs DMA-BUF- or
