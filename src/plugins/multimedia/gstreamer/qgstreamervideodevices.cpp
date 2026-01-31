@@ -150,6 +150,16 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
         return;
     }
 
+    // QTBUG-140092: NXP's CSI video device "imx-capture" may fail. Can be skipped via env var:
+    static const bool skipImxCapture = qEnvironmentVariableIsSet("QT_GSTREAMER_SKIP_IMXCAPTURE");
+    if (skipImxCapture) {
+        const char *name = properties["device.product.name"].toString();
+        if (name && std::strstr(name, "imx-capture")) {
+            qWarning() << Q_FUNC_INFO << "Skipping video device with product name" << name;
+            return;
+        }
+    }
+
     const auto *p = properties["device.path"].toString();
     if (p) {
         QUniqueFileDescriptorHandle fd{
