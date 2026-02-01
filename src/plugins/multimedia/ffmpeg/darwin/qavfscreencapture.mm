@@ -211,6 +211,11 @@ void QAVFScreenCapture::resetCapture()
     m_format = {};
 }
 
+std::unique_ptr<QPlatformSurfaceCapture> makeQAvfScreenCapture()
+{
+    return std::make_unique<QAVFScreenCapture>();
+}
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE
