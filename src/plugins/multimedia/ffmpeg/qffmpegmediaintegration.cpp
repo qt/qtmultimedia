@@ -136,7 +136,7 @@ static QPlatformSurfaceCapture *createScreenCaptureByBackend(QString backend)
         return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS)
     if (backend == u"avf")
-        return new QAVFScreenCapture;
+        return new QFFmpeg::QAVFScreenCapture;
 #endif
     return nullptr;
 }
