@@ -24,6 +24,8 @@ QT_BEGIN_NAMESPACE
 
 class QFFmpegVideoSink;
 
+namespace QFFmpeg {
+
 class QAVFScreenCapture : public QPlatformSurfaceCapture
 {
     Q_OBJECT
@@ -55,6 +57,8 @@ private:
 
     std::unique_ptr<Grabber> m_grabber;
 };
+
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
