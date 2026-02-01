@@ -19,6 +19,8 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QFFmpeg {
+
 class QCGWindowCapture : public QPlatformSurfaceCapture
 {
     Q_OBJECT
@@ -37,6 +39,8 @@ protected:
 private:
     std::unique_ptr<Grabber> m_grabber;
 };
+
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
