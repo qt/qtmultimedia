@@ -20,8 +20,6 @@
 
 #ifdef Q_OS_MACOS
 #include <QtFFmpegMediaPluginImpl/private/qcgcapturablewindows_p.h>
-#include <QtFFmpegMediaPluginImpl/private/qcgwindowcapture_p.h>
-#include <QtFFmpegMediaPluginImpl/private/qavfscreencapture_p.h>
 #endif
 
 #ifdef Q_OS_DARWIN
@@ -136,7 +134,7 @@ static QPlatformSurfaceCapture *createScreenCaptureByBackend(QString backend)
         return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS)
     if (backend == u"avf")
-        return new QFFmpeg::QAVFScreenCapture;
+        return QFFmpeg::makeQAvfScreenCapture().release();
 #endif
     return nullptr;
 }
@@ -158,7 +156,7 @@ static QPlatformSurfaceCapture *createWindowCaptureByBackend(QString backend)
 #endif
 #elif defined(Q_OS_MACOS)
     if (backend == u"cg")
-        return new QFFmpeg::QCGWindowCapture;
+        return QFFmpeg::makeQCgWindowCapture().release();
 #endif
     return nullptr;
 }
@@ -262,7 +260,7 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
 #if defined(Q_OS_WINDOWS)
     return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
-    return new QAVFScreenCapture;
+    return QFFmpeg::makeQAvfScreenCapture().release();
 #elif defined(Q_OS_ANDROID)
     return new QAndroidScreenCapture;
 #else
@@ -295,7 +293,7 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createWindowCapture(QWindowCap
 
     return new QGdiWindowCapture;
 #elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
-    return new QCGWindowCapture;
+    return QFFmpeg::makeQCgWindowCapture().release();
 #else
     return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
 #endif
