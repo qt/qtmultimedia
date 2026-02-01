@@ -25,8 +25,8 @@
 #endif
 
 #ifdef Q_OS_DARWIN
-#include <QtFFmpegMediaPluginImpl/private/qavfcamerafactory_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qavfimagecapture_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegdarwinintegrationfactory_p.h>
 #include <QtMultimedia/private/qdarwinintegrationfactory_p.h>
 #endif
 

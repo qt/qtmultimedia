@@ -129,9 +129,10 @@ endif()
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
     SOURCES
+        darwin/qffmpegdarwinintegrationfactory_p.h
         darwin/qffmpeghwaccel_videotoolbox.mm darwin/qffmpeghwaccel_videotoolbox_p.h
         darwin/qavfcamerarotationtracker.mm darwin/qavfcamerarotationtracker_p.h
-        darwin/qavfcamera.mm darwin/qavfcamera_p.h darwin/qavfcamerafactory_p.h
+        darwin/qavfcamera.mm darwin/qavfcamera_p.h
         darwin/qcvimagevideobuffer.cpp darwin/qcvimagevideobuffer_p.h
         darwin/qavfsamplebufferdelegate.mm darwin/qavfsamplebufferdelegate_p.h
         darwin/qavfimagecapture.mm darwin/qavfimagecapture_p.h

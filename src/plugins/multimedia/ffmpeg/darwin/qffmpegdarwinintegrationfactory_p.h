@@ -1,8 +1,8 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QAVFCAMERAFACTORY_P_H
-#define QAVFCAMERAFACTORY_P_H
+#ifndef QFFMPEGDARWININTEGRATIONFACTORY_P_H
+#define QFFMPEGDARWININTEGRATIONFACTORY_P_H
 
 //
 //  W A R N I N G
@@ -29,4 +29,4 @@ namespace QFFmpeg {
 
 QT_END_NAMESPACE
 
-#endif // QAVFCAMERAFACTORY_P_H
+#endif // QFFMPEGDARWININTEGRATIONFACTORY_P_H
