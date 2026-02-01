@@ -38,11 +38,13 @@ CGDirectDisplayID findDisplayByName(const QString &name)
 
 QT_BEGIN_NAMESPACE
 
+namespace QFFmpeg {
+
 class QAVFScreenCapture::Grabber
 {
 public:
     Grabber(QAVFScreenCapture &capture, QScreen *screen, CGDirectDisplayID screenID,
-            std::unique_ptr<QFFmpeg::HWAccel> hwAccel)
+            std::unique_ptr<HWAccel> hwAccel)
     {
         m_captureSession = [[AVCaptureSession alloc] init];
 
@@ -184,7 +186,7 @@ bool QAVFScreenCapture::initScreenCapture(QScreen *screen)
         return false;
     }
 
-    auto hwAccel = QFFmpeg::HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
+    auto hwAccel = HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
 
     if (!hwAccel) {
         updateError(CaptureFailed, QLatin1String("Couldn't create videotoolbox hw acceleration"));
@@ -208,6 +210,8 @@ void QAVFScreenCapture::resetCapture()
     m_grabber.reset();
     m_format = {};
 }
+
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
