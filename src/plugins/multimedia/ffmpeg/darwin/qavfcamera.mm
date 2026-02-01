@@ -6,9 +6,9 @@
 #include <QtCore/qscopeguard.h>
 #include <QtCore/private/qcore_mac_p.h>
 
-#include <QtFFmpegMediaPluginImpl/private/qavfcamerafactory_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qavfcapturephotooutputdelegate_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegdarwinintegrationfactory_p.h>
 
 #include <QtMultimedia/private/qavfcameradebug_p.h>
 #include <QtMultimedia/private/qavfcamerautility_p.h>
