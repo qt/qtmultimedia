@@ -158,7 +158,7 @@ static QPlatformSurfaceCapture *createWindowCaptureByBackend(QString backend)
 #endif
 #elif defined(Q_OS_MACOS)
     if (backend == u"cg")
-        return new QCGWindowCapture;
+        return new QFFmpeg::QCGWindowCapture;
 #endif
     return nullptr;
 }

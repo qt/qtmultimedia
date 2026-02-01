@@ -43,6 +43,8 @@ std::optional<qreal> frameRateForWindow(CGWindowID /*wid*/)
 
 QT_BEGIN_NAMESPACE
 
+namespace QFFmpeg {
+
 class QCGImageVideoBuffer : public QAbstractVideoBuffer
 {
 public:
@@ -193,6 +195,8 @@ QVideoFrameFormat QCGWindowCapture::frameFormat() const
 {
     return m_grabber ? m_grabber->frameFormat() : QVideoFrameFormat();
 }
+
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
