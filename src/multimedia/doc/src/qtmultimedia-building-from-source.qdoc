@@ -92,8 +92,8 @@ steps described in \l{Building Qt Sources}.
 
 \list
     \li When configuring Qt Multimedia with FFmpeg enabled, the
-        pulseaudio development package is required. Without this
-        package, FFmpeg will not be recognized.
+        pipewire or the pulseaudio development package is required. Without
+        one of these packages, FFmpeg will not be recognized.
     \li When using a version of FFmpeg that is built with VAAPI support,
         we recommend building Qt Multimedia with VAAPI support as well
         to make hardware texture conversion possible. To configure Qt
