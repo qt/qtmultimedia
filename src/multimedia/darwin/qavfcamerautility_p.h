@@ -131,6 +131,13 @@ public:
         m_queue = q;
     }
 
+    // Relinquishes ownership of the dispatch_queue_t and returns the
+    // pointer, without freeing the object.
+    [[nodiscard]] dispatch_queue_t take()
+    {
+        return std::exchange(m_queue, nullptr);
+    }
+
 private:
     dispatch_queue_t m_queue;
 
