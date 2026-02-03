@@ -1,8 +1,8 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QCGWINDOWCAPTURE_H
-#define QCGWINDOWCAPTURE_H
+#ifndef QSCKCAPTURABLEWINDOWS_P_H
+#define QSCKCAPTURABLEWINDOWS_P_H
 
 //
 //  W A R N I N G
@@ -15,33 +15,24 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qplatformsurfacecapture_p.h>
+#include <QtMultimedia/private/qplatformcapturablewindows_p.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-class QCGWindowCapture : public QPlatformSurfaceCapture
+class QSckCapturableWindows : public QPlatformCapturableWindows
 {
-    Q_OBJECT
-
-    class Grabber;
-
 public:
-    explicit QCGWindowCapture();
-    ~QCGWindowCapture() override;
+    QList<QCapturableWindow> windows() const override;
 
-    QVideoFrameFormat frameFormat() const override;
+    bool isWindowValid(const QCapturableWindowPrivate &window) const override;
 
-protected:
-    bool setActiveInternal(bool active) override;
-
-private:
-    std::unique_ptr<Grabber> m_grabber;
+    q23::expected<QCapturableWindow, QString> fromQWindow(QWindow *) const override;
 };
 
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
-#endif // QCGWINDOWCAPTURE_H
+#endif // QSCKCAPTURABLEWINDOWS_P_H
