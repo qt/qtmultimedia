@@ -130,6 +130,7 @@ endif()
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
     SOURCES
         darwin/qffmpegdarwinintegrationfactory_p.h
+        darwin/qffmpegdarwinhwframehelpers.mm darwin/qffmpegdarwinhwframehelpers_p.h
         darwin/qffmpeghwaccel_videotoolbox.mm darwin/qffmpeghwaccel_videotoolbox_p.h
         darwin/qavfcamerarotationtracker.mm darwin/qavfcamerarotationtracker_p.h
         darwin/qavfcamera.mm darwin/qavfcamera_p.h

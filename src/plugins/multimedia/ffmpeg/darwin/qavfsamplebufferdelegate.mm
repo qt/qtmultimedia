@@ -7,6 +7,7 @@
 #include <QtMultimedia/private/qvideoframe_p.h>
 
 #include <QtFFmpegMediaPluginImpl/private/qcvimagevideobuffer_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegdarwinhwframehelpers_p.h>
 #define AVMediaType XAVMediaType
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
@@ -15,38 +16,6 @@
 #include <optional>
 
 QT_USE_NAMESPACE
-
-// Make sure this is compatible with the layout used in ffmpeg's hwcontext_videotoolbox
-static QFFmpeg::AVFrameUPtr allocHWFrame(
-    AVBufferRef *hwContext,
-    QAVFHelpers::QSharedCVPixelBuffer sharedPixBuf)
-{
-    Q_ASSERT(sharedPixBuf);
-
-    AVHWFramesContext *ctx = (AVHWFramesContext *)hwContext->data;
-    auto frame = QFFmpeg::makeAVFrame();
-    frame->hw_frames_ctx = av_buffer_ref(hwContext);
-    frame->extended_data = frame->data;
-
-    CVPixelBufferRef pixbuf = sharedPixBuf.release();
-    auto releasePixBufFn = [](void* opaquePtr, uint8_t *) {
-        CVPixelBufferRelease(static_cast<CVPixelBufferRef>(opaquePtr));
-    };
-    frame->buf[0] = av_buffer_create(nullptr, 0, releasePixBufFn, pixbuf, 0);
-
-    // It is convention to use 4th data plane for hardware frames.
-    frame->data[3] = (uint8_t *)pixbuf;
-    frame->width = ctx->width;
-    frame->height = ctx->height;
-    frame->format = AV_PIX_FMT_VIDEOTOOLBOX;
-    if (frame->width != (int)CVPixelBufferGetWidth(pixbuf)
-        || frame->height != (int)CVPixelBufferGetHeight(pixbuf)) {
-
-        // This can happen while changing camera format
-        return nullptr;
-    }
-    return frame;
-}
 
 @implementation QAVFSampleBufferDelegate {
 @private
@@ -57,41 +26,6 @@ static QFFmpeg::AVFrameUPtr allocHWFrame(
     qint64 startTime;
     std::optional<qint64> baseTime;
     qreal frameRate;
-}
-
-static QVideoFrame createHwVideoFrame(
-    QAVFSampleBufferDelegate &delegate,
-    const QAVFHelpers::QSharedCVPixelBuffer &imageBuffer,
-    QVideoFrameFormat format)
-{
-    Q_ASSERT(delegate.baseTime);
-
-    if (!delegate.m_accel)
-        return {};
-
-    auto avFrame = allocHWFrame(
-        delegate.m_accel->hwFramesContextAsBuffer(),
-        imageBuffer);
-    if (!avFrame)
-        return {};
-
-#ifdef USE_SW_FRAMES
-    {
-        auto swFrame = QFFmpeg::makeAVFrame();
-        /* retrieve data from GPU to CPU */
-        const int ret = av_hwframe_transfer_data(swFrame.get(), avFrame.get(), 0);
-        if (ret < 0) {
-            qWarning() << "Error transferring the data to system memory:" << ret;
-        } else {
-            avFrame = std::move(swFrame);
-        }
-    }
-#endif
-
-    avFrame->pts = delegate.startTime - *delegate.baseTime;
-
-    return QVideoFramePrivate::createFrame(std::make_unique<QFFmpegVideoBuffer>(std::move(avFrame)),
-                                           format);
 }
 
 - (instancetype)initWithFrameHandler:(std::function<void(const QVideoFrame &)>)handler
@@ -163,7 +97,12 @@ static QVideoFrame createHwVideoFrame(
 
     format.setStreamFrameRate(frameRate);
 
-    auto frame = createHwVideoFrame(*self, pixelBuffer, format);
+    Q_ASSERT(self->m_accel);
+    auto frame = QFFmpeg::qVideoFrameFromCvPixelBuffer(
+        *m_accel,
+        startTime - *baseTime,
+        pixelBuffer,
+        format);
     if (!frame.isValid())
         frame = QVideoFramePrivate::createFrame(
             std::make_unique<QFFmpeg::CVImageVideoBuffer>(std::move(pixelBuffer)),
