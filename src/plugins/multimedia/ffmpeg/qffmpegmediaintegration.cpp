@@ -151,7 +151,7 @@ static QPlatformSurfaceCapture *createWindowCaptureByBackend(const QString& back
 #endif
 #elif defined(Q_OS_MACOS)
     if (backend == u"cg")
-        return QFFmpeg::makeQCgWindowCapture().release();
+        return QFFmpeg::makeQSckWindowCapture().release();
 #endif
     return nullptr;
 }
@@ -287,8 +287,8 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createWindowCapture(QWindowCap
 #  endif
 
     return new QGdiWindowCapture;
-#elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
-    return QFFmpeg::makeQCgWindowCapture().release();
+#elif defined(Q_OS_MACOS)
+    return QFFmpeg::makeQSckWindowCapture().release();
 #else
     return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
 #endif
@@ -359,7 +359,7 @@ QPlatformCapturableWindows *QFFmpegMediaIntegration::createCapturableWindows()
     if (QX11SurfaceCapture::isSupported())
         return new QX11CapturableWindows;
 #elif defined Q_OS_MACOS
-    return QFFmpeg::makeQCgCapturableWindows().release();
+    return QFFmpeg::makeQSckCapturableWindows().release();
 #elif defined(Q_OS_WINDOWS)
     return new QWinCapturableWindows;
 #endif

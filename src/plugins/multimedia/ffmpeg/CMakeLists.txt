@@ -158,10 +158,12 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION MACOS
     SOURCES
         darwin/qavfscreencapture.mm darwin/qavfscreencapture_p.h
-        darwin/qcgwindowcapture.mm darwin/qcgwindowcapture_p.h
-        darwin/qcgcapturablewindows.mm darwin/qcgcapturablewindows_p.h
+        darwin/qsckwindowcapture.mm darwin/qsckwindowcapture_p.h
+        darwin/qsckcapturablewindows.mm darwin/qsckcapturablewindows_p.h
+        darwin/qmacscreencapturekit_p.h darwin/qmacscreencapturekit.mm
     LIBRARIES
         ${FWAppKit}
+        ${FWScreenCaptureKit}
 )
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION WIN32
