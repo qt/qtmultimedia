@@ -13,6 +13,8 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QFFmpeg {
+
 QList<QCapturableWindow> QCGCapturableWindows::windows() const
 {
     QList<QCapturableWindow> result;
@@ -66,5 +68,7 @@ q23::expected<QCapturableWindow, QString> QCGCapturableWindows::fromQWindow(QWin
         static_cast<QCapturableWindowPrivate::Id>(cgWindowId),
         window->title());
 }
+
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE

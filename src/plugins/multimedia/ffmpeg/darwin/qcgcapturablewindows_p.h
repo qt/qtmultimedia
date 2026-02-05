@@ -19,6 +19,8 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QFFmpeg {
+
 class QCGCapturableWindows : public QPlatformCapturableWindows
 {
 public:
@@ -28,6 +30,8 @@ public:
 
     q23::expected<QCapturableWindow, QString> fromQWindow(QWindow *) const override;
 };
+
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
