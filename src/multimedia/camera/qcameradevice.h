@@ -10,6 +10,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QDebug;
 class QCameraFormatPrivate;
 class Q_MULTIMEDIA_EXPORT QCameraFormat
 {
