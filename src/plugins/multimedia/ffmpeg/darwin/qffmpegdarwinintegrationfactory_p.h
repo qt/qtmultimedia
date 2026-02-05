@@ -16,6 +16,7 @@
 //
 
 #include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtMultimedia/private/qplatformcapturablewindows_p.h>
 #include <QtMultimedia/private/qplatformsurfacecapture_p.h>
 
 #include <memory>
@@ -26,6 +27,7 @@ namespace QFFmpeg {
 
 [[nodiscard]] std::unique_ptr<QPlatformCamera> makeQAvfCamera(QCamera &);
 [[nodiscard]] std::unique_ptr<QPlatformSurfaceCapture> makeQAvfScreenCapture();
+[[nodiscard]] std::unique_ptr<QPlatformCapturableWindows> makeQCgCapturableWindows();
 [[nodiscard]] std::unique_ptr<QPlatformSurfaceCapture> makeQCgWindowCapture();
 
 } // namespace QFFmpeg
