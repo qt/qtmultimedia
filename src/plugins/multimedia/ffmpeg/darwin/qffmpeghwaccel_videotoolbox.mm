@@ -14,6 +14,7 @@
 #include <QtGui/qopenglcontext.h>
 #include <QtGui/rhi/qrhi.h>
 
+#include <QtMultimedia/private/qavfhelpers_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
 #include <QtMultimedia/qvideoframeformat.h>
 
@@ -54,7 +55,7 @@ public:
     CVOpenGLESTextureRef cvOpenGLESTexture;
 #endif
 
-    CVImageBufferRef m_buffer;
+    QAVFHelpers::QSharedCVPixelBuffer m_buffer;
 };
 }
 
@@ -176,16 +177,18 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
         return nullptr;
     }
 
-    CVPixelBufferRef buffer = (CVPixelBufferRef)frame->data[3];
+    auto cvPixelBufferRef = reinterpret_cast<CVPixelBufferRef>(frame->data[3]);
+    Q_ASSERT(cvPixelBufferRef);
 
     auto textureHandles = std::make_unique<VideoToolBoxTextureHandles>();
     textureHandles->parentConverterBackend = shared_from_this();
-    textureHandles->m_buffer = buffer;
+    textureHandles->m_buffer = QAVFHelpers::QSharedCVPixelBuffer(
+        cvPixelBufferRef,
+        QAVFHelpers::QSharedCVPixelBuffer::RefMode::NeedsRef);
     textureHandles->rhi = rhi;
-    CVPixelBufferRetain(buffer);
 
     auto *textureDescription = QVideoTextureHelper::textureDescription(pixelFormat);
-    int bufferPlanes = CVPixelBufferGetPlaneCount(buffer);
+    int bufferPlanes = CVPixelBufferGetPlaneCount(textureHandles->m_buffer.get());
     //    qDebug() << "XXXXX createTextureHandles" << pixelFormat << bufferPlanes << buffer;
 
     if (rhi->backend() == QRhi::Metal) {
@@ -199,8 +202,8 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
         }
 
         for (int plane = 0; plane < bufferPlanes; ++plane) {
-            size_t width = CVPixelBufferGetWidth(buffer);
-            size_t height = CVPixelBufferGetHeight(buffer);
+            size_t width = CVPixelBufferGetWidth(textureHandles->m_buffer.get());
+            size_t height = CVPixelBufferGetHeight(textureHandles->m_buffer.get());
             width = textureDescription->widthForPlane(width, plane);
             height = textureDescription->heightForPlane(height, plane);
 
@@ -210,13 +213,14 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
 
             // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
             auto ret = CVMetalTextureCacheCreateTextureFromImage(
-                            kCFAllocatorDefault,
-                            cvMetalTextureCache,
-                            buffer, nil,
-                            metalPixelFormatForPlane,
-                            width, height,
-                            plane,
-                            &textureHandles->cvMetalTexture[plane]);
+                kCFAllocatorDefault,
+                cvMetalTextureCache,
+                textureHandles->m_buffer.get(),
+                nil,
+                metalPixelFormatForPlane,
+                width, height,
+                plane,
+                &textureHandles->cvMetalTexture[plane]);
 
             if (ret != kCVReturnSuccess)
                 qWarning() << "texture creation failed" << ret;
@@ -230,11 +234,11 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
         CVOpenGLTextureCacheFlush(cvOpenGLTextureCache, 0);
         // Create a CVPixelBuffer-backed OpenGL texture image from the texture cache.
         const CVReturn cvret = CVOpenGLTextureCacheCreateTextureFromImage(
-                        kCFAllocatorDefault,
-                        cvOpenGLTextureCache,
-                        buffer,
-                        nil,
-                        &textureHandles->cvOpenGLTexture);
+            kCFAllocatorDefault,
+            cvOpenGLTextureCache,
+            textureHandles->m_buffer.get(),
+            nil,
+            &textureHandles->cvOpenGLTexture);
         if (cvret != kCVReturnSuccess) {
             qCWarning(qLcVideotoolbox) << "OpenGL texture creation failed" << cvret;
             return nullptr;
@@ -246,18 +250,18 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
         CVOpenGLESTextureCacheFlush(cvOpenGLESTextureCache, 0);
         // Create a CVPixelBuffer-backed OpenGL texture image from the texture cache.
         const CVReturn cvret = CVOpenGLESTextureCacheCreateTextureFromImage(
-                        kCFAllocatorDefault,
-                        cvOpenGLESTextureCache,
-                        buffer,
-                        nil,
-                        GL_TEXTURE_2D,
-                        GL_RGBA,
-                        CVPixelBufferGetWidth(buffer),
-                        CVPixelBufferGetHeight(buffer),
-                        GL_RGBA,
-                        GL_UNSIGNED_BYTE,
-                        0,
-                        &textureHandles->cvOpenGLESTexture);
+            kCFAllocatorDefault,
+            cvOpenGLESTextureCache,
+            textureHandles->m_buffer.get(),
+            nil,
+            GL_TEXTURE_2D,
+            GL_RGBA,
+            CVPixelBufferGetWidth(textureHandles->m_buffer.get()),
+            CVPixelBufferGetHeight(textureHandles->m_buffer.get()),
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            0,
+            &textureHandles->cvOpenGLESTexture);
         if (cvret != kCVReturnSuccess) {
             qCWarning(qLcVideotoolbox) << "OpenGL ES texture creation failed" << cvret;
             return nullptr;
