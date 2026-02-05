@@ -24,7 +24,7 @@ namespace QFFmpeg {
 class QAVFImageCapture : public QFFmpegImageCapture
 {
 public:
-    QAVFImageCapture(QImageCapture *parent);
+    QAVFImageCapture(QImageCapture &);
     ~QAVFImageCapture() override = default;
 
 protected:
