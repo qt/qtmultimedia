@@ -363,7 +363,7 @@ QPlatformCapturableWindows *QFFmpegMediaIntegration::createCapturableWindows()
     if (QX11SurfaceCapture::isSupported())
         return new QX11CapturableWindows;
 #elif defined Q_OS_MACOS
-    return new QCGCapturableWindows;
+    return new QFFmpeg::QCGCapturableWindows;
 #elif defined(Q_OS_WINDOWS)
     return new QWinCapturableWindows;
 #endif
