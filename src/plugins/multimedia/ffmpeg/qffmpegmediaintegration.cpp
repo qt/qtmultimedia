@@ -18,10 +18,6 @@
 #include <QtMultimedia/private/qplatformmediaplugin_p.h>
 #include <QtMultimedia/qcameradevice.h>
 
-#ifdef Q_OS_MACOS
-#include <QtFFmpegMediaPluginImpl/private/qcgcapturablewindows_p.h>
-#endif
-
 #ifdef Q_OS_DARWIN
 #include <QtFFmpegMediaPluginImpl/private/qavfimagecapture_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegdarwinintegrationfactory_p.h>
@@ -363,7 +359,7 @@ QPlatformCapturableWindows *QFFmpegMediaIntegration::createCapturableWindows()
     if (QX11SurfaceCapture::isSupported())
         return new QX11CapturableWindows;
 #elif defined Q_OS_MACOS
-    return new QFFmpeg::QCGCapturableWindows;
+    return QFFmpeg::makeQCgCapturableWindows().release();
 #elif defined(Q_OS_WINDOWS)
     return new QWinCapturableWindows;
 #endif
