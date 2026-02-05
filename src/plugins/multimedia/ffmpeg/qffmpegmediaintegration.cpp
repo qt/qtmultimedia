@@ -19,7 +19,6 @@
 #include <QtMultimedia/qcameradevice.h>
 
 #ifdef Q_OS_DARWIN
-#include <QtFFmpegMediaPluginImpl/private/qavfimagecapture_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegdarwinintegrationfactory_p.h>
 #include <QtMultimedia/private/qdarwinintegrationfactory_p.h>
 #endif
@@ -304,10 +303,11 @@ QFFmpegMediaIntegration::createRecorder(QMediaRecorder *recorder)
 q23::expected<QPlatformImageCapture *, QString>
 QFFmpegMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
+    Q_ASSERT(imageCapture);
 #if defined(Q_OS_ANDROID)
     return new QFFmpeg::QAndroidImageCapture(imageCapture);
 #elif defined(Q_OS_DARWIN)
-    return new QFFmpeg::QAVFImageCapture(imageCapture);
+    return QFFmpeg::makeQAvfImageCapture(*imageCapture).release();
 #else
     return new QFFmpegImageCapture(imageCapture);
 #endif

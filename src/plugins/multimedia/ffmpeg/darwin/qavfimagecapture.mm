@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include <QtFFmpegMediaPluginImpl/private/qavfimagecapture_p.h>
+
 #include <QtFFmpegMediaPluginImpl/private/qavfcamera_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegdarwinintegrationfactory_p.h>
 
 #include <QtCore/qloggingcategory.h>
 
@@ -12,8 +14,8 @@ Q_LOGGING_CATEGORY(qAvfImageCaptureLc, "qt.multimedia.avfimagecapture");
 
 namespace QFFmpeg {
 
-QAVFImageCapture::QAVFImageCapture(QImageCapture *parent)
-    : QFFmpegImageCapture(parent)
+QAVFImageCapture::QAVFImageCapture(QImageCapture &parent)
+    : QFFmpegImageCapture(&parent)
 {
 }
 
@@ -52,6 +54,11 @@ void QAVFImageCapture::setupVideoSourceConnections()
     else {
         QFFmpegImageCapture::setupVideoSourceConnections();
     }
+}
+
+std::unique_ptr<QPlatformImageCapture> makeQAvfImageCapture(QImageCapture &parent)
+{
+    return std::make_unique<QAVFImageCapture>(parent);
 }
 
 } // namespace QFFmpeg
