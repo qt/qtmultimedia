@@ -41,7 +41,7 @@ public:
         if constexpr (!std::is_copy_constructible_v<Callback>) {
             // poor man's move-only function
             using CallbackType = typename QtAudioPrivate::GetSampleType<Callback>::type;
-            auto callback = std::make_shared<Callback>(std::forward<Callback>(cb));
+            auto callback = std::make_shared<std::decay_t<Callback>>(std::forward<Callback>(cb));
             start([callback = std::move(callback)](QSpan<CallbackType> arg) {
                 (*callback)(arg);
             });
