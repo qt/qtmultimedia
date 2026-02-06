@@ -9,15 +9,17 @@ import QtQml
 import QtMultimedia
 
 GridLayout {
-    id: top
+    id: root
 
     required property bool useLandscapeLayout
+    required property int recorderCaptureTracker
 
     Layout.fillWidth: true
     columns: useLandscapeLayout === true ? 2 : 1
 
     ScreenCapture {
         id: screenCapture
+
         onActiveChanged: () => {
             console.log("QScreenCapture active changed: " + active)
 
@@ -28,21 +30,57 @@ GridLayout {
             else
                 screenCaptureActiveCheckBox.checkState = Qt.Unchecked
         }
+
         onErrorChanged: () => {
             console.log("QScreenCapture error changed: " + error)
         }
+
         onErrorStringChanged: (msg) => {
             console.log("QScreenCapture error string changed: " + errorString)
+        }
+    }
+
+    MediaRecorder {
+        id: mediaRecorder
+
+        quality: MediaRecorder.VeryHighQuality
+
+        outputLocation:
+            StandardPaths.writableLocation(StandardPaths.MoviesLocation)
+            + "/qml-screencapture-advanced-"
+            + root.recorderCaptureTracker
+
+        onActualLocationChanged: () => {
+            console.log("New actual location: " + actualLocation)
+        }
+
+        onErrorOccurred: (error, msg) => {
+            console.log("Media recorder error: " + msg)
         }
     }
 
     CaptureSession {
         screenCapture: screenCapture
         videoOutput: screenCaptureVideoOutput
+        recorder: mediaRecorder
     }
 
     ColumnLayout {
         Layout.alignment: Qt.AlignTop
+
+        Button {
+            text: mediaRecorder.recorderState === MediaRecorder.StoppedState
+                ? "Start recording"
+                : "Stop recording"
+            onClicked: {
+                if (mediaRecorder.recorderState === MediaRecorder.StoppedState) {
+                    root.recorderCaptureTracker += 1
+                    mediaRecorder.record()
+                } else {
+                    mediaRecorder.stop()
+                }
+            }
+        }
 
         CheckBox {
             id: screenCaptureActiveCheckBox
