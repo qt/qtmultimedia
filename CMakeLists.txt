@@ -40,11 +40,6 @@ if(NOT TARGET Qt::Gui)
     return()
 endif()
 
-if(QNX AND CMAKE_SYSTEM_VERSION GREATER_EQUAL 800)
-    message(NOTICE "Skipping the build as multimedia is not supported on QNX8.0.")
-    return()
-endif()
-
 include(src/multimedia/Qt6MultimediaMacros.cmake)
 
 set(QT_BUILD_EXTRA_IDE_FILE_PATTERNS

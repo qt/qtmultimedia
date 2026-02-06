@@ -344,13 +344,15 @@ qt_internal_extend_target(Multimedia CONDITION IOS OR TVOS OR VISIONOS
         ${FWFoundation}
 )
 
-qt_internal_extend_target(Multimedia CONDITION QNX
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_qnx_sound_architecture
     SOURCES
         qnx/qqnxaudiodevice.cpp qnx/qqnxaudiodevice_p.h
         qnx/qqnxaudiosink.cpp qnx/qqnxaudiosink_p.h
         qnx/qqnxaudiosource.cpp qnx/qqnxaudiosource_p.h
         qnx/qqnxaudioutils.cpp qnx/qqnxaudioutils_p.h
         qnx/qqnxaudiodevices.cpp qnx/qqnxaudiodevices_p.h
+    DEFINES
+        QT_MM_QNX_QSA
     INCLUDE_DIRECTORIES
         qnx
     LIBRARIES

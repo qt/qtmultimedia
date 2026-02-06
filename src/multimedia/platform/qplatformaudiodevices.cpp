@@ -27,7 +27,7 @@
 #if QT_CONFIG(pipewire)
 #  include <QtMultimedia/private/qpipewire_audiodevices_p.h>
 #endif
-#if defined(Q_OS_QNX)
+#if defined(Q_OS_QNX) && defined(QT_MM_QNX_QSA)
 #  include <QtMultimedia/private/qqnxaudiodevices_p.h>
 #endif
 #if defined(Q_OS_WASM)
@@ -86,7 +86,7 @@ std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
 #if QT_CONFIG(alsa)
     return std::make_unique<QAlsaAudioDevices>();
 #endif
-#if defined(Q_OS_QNX)
+#if defined(Q_OS_QNX) && defined(QT_MM_QNX_QSA)
     return std::make_unique<QQnxAudioDevices>();
 #endif
 #if defined(Q_OS_WASM)

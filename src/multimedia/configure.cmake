@@ -197,6 +197,11 @@ qt_feature("mmrenderer" PUBLIC PRIVATE
     CONDITION MMRenderer_FOUND AND MMRendererCore_FOUND
     EMIT_IF QNX
 )
+qt_feature("qnx_sound_architecture" PRIVATE
+    LABEL "QNX sound architecture (QSA)"
+    CONDITION QNX AND CMAKE_SYSTEM_VERSION LESS 800
+    EMIT_IF QNX
+)
 qt_feature("native_android_backend" PUBLIC PRIVATE
     LABEL "Native Android backend (deprecated)"
     AUTODETECT true # It is still found and built by default
@@ -255,7 +260,7 @@ qt_configure_add_summary_section(NAME "Low level Audio Backend")
 qt_configure_add_summary_entry(ARGS "alsa")
 qt_configure_add_summary_entry(ARGS "pulseaudio")
 qt_configure_add_summary_entry(ARGS "pipewire")
-qt_configure_add_summary_entry(ARGS "mmrenderer")
+qt_configure_add_summary_entry(ARGS "qnx_sound_architecture")
 qt_configure_add_summary_entry(ARGS "coreaudio")
 qt_configure_add_summary_entry(ARGS "aaudio")
 qt_configure_add_summary_entry(ARGS "wasm")
