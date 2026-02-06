@@ -44,6 +44,10 @@ QCoreAudioSourceStream::QCoreAudioSourceStream(QAudioDevice audioDevice,
 
 QCoreAudioSourceStream::~QCoreAudioSourceStream()
 {
+#ifdef Q_OS_MACOS
+    m_stopOnDisconnected.cancelChain();
+#endif
+
     if (m_audioConverter)
         AudioConverterDispose(m_audioConverter);
     free(m_bufferList.mBuffers[0].mData);

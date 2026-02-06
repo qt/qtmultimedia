@@ -43,6 +43,13 @@ QCoreAudioSinkStream::QCoreAudioSinkStream(QAudioDevice audioDevice, const QAudi
 {
 }
 
+QCoreAudioSinkStream::~QCoreAudioSinkStream()
+{
+#ifdef Q_OS_MACOS
+    m_stopOnDisconnected.cancelChain();
+#endif
+}
+
 bool QCoreAudioSinkStream::open()
 {
     using namespace QCoreAudioUtils;

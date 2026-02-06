@@ -43,6 +43,7 @@ public:
                                   float volume, std::optional<int32_t> hardwareBufferFrames,
                                   AudioEndpointRole);
     Q_DISABLE_COPY_MOVE(QCoreAudioSinkStream)
+    ~QCoreAudioSinkStream();
 
     bool open();
     bool start(QIODevice *device);
