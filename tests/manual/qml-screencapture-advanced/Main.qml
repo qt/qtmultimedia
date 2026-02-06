@@ -9,12 +9,14 @@ import QtQml
 import QtMultimedia
 
 ApplicationWindow {
-    id: topWindow
+    id: root
 
     title: "qml-screencapture-advanced"
     width: 800
     height: 600
     visible: true
+
+    property int recordingTracker: 0
 
     Pane {
         anchors.fill: parent
@@ -58,12 +60,14 @@ ApplicationWindow {
                         currentIndex: tabBar.currentIndex
 
                         WindowCapturePanel {
-                            topWindow: topWindow
+                            topWindow: root
                             useLandscapeLayout: outerScrollView.width / outerScrollView.height > 0.75 ? true : false
+                            recorderCaptureTracker: root.recordingTracker
                         }
 
                         ScreenCapturePanel {
                             useLandscapeLayout: outerScrollView.width / outerScrollView.height > 0.75 ? true : false
+                            recorderCaptureTracker: root.recordingTracker
                         }
                     }
                 }

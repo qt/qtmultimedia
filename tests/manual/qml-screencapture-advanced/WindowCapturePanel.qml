@@ -1,6 +1,8 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+pragma ComponentBehavior: Bound
+
 import QtCore
 import QtQuick
 import QtQuick.Layouts
@@ -9,18 +11,24 @@ import QtQml
 import QtMultimedia
 
 GridLayout {
-    id: top
+    id: root
 
     required property var topWindow
     required property bool useLandscapeLayout
+    required property int recorderCaptureTracker
 
     // There is no signal for tracking when the list of CapturableWindows changed. We store them
     // here as a property so we can track them.
     property var capturableWindowsList: []
     property bool periodicallyRefreshWindows: false
+    function refreshCapturableWindowsList() {
+        capturableWindowsList = windowCapture.capturableWindows()
+            .sort((a, b) => a.description.localeCompare(b.description))
+    }
 
     WindowCapture {
         id: windowCapture
+
         onActiveChanged: () => {
             console.log("QWindowCapture active changed: " + active)
 
@@ -34,26 +42,41 @@ GridLayout {
         onErrorChanged: () => {
             console.log("QWindowCapture error changed: " + error)
         }
-        onErrorStringChanged: (msg) => {
-            console.log("QWindowCapture error string changed: " + errorString)
+    }
+
+    MediaRecorder {
+        id: mediaRecorder
+
+        quality: MediaRecorder.VeryHighQuality
+
+        outputLocation:
+            StandardPaths.writableLocation(StandardPaths.MoviesLocation)
+            + "/qml-screencapture-advanced-"
+            + root.recorderCaptureTracker
+
+        onActualLocationChanged: () => {
+            console.log("New actual location: " + actualLocation)
+        }
+
+        onErrorOccurred: (error, msg) => {
+            console.log("Media recorder error: " + msg)
         }
     }
 
     CaptureSession {
         windowCapture: windowCapture
         videoOutput: windowCaptureVideoOutput
+        recorder: mediaRecorder
     }
 
     // There is no signal for refreshing capturable windows. This
     // timer lets us refresh it frequently.
     Timer {
-        interval: 500
-        running: top.periodicallyRefreshWindows
+        interval: 1000
+        running: root.periodicallyRefreshWindows
         repeat: true
         triggeredOnStart: true
-        onTriggered: () => {
-            top.capturableWindowsList = windowCapture.capturableWindows()
-        }
+        onTriggered: root.refreshCapturableWindowsList()
     }
 
     Layout.fillWidth: true
@@ -65,14 +88,26 @@ GridLayout {
         Button {
             text: "Select app window"
             onClicked: () => {
-                windowCapture.window = topWindow
+                windowCapture.window = root.topWindow
             }
         }
 
         Button {
             text: "Refresh list of windows"
-            onClicked: () => {
-                top.capturableWindowsList = windowCapture.capturableWindows()
+            onClicked: root.refreshCapturableWindowsList()
+        }
+
+        Button {
+            text: mediaRecorder.recorderState === MediaRecorder.StoppedState
+                ? "Start recording"
+                : "Stop recording"
+            onClicked: {
+                if (mediaRecorder.recorderState === MediaRecorder.StoppedState) {
+                    root.recorderCaptureTracker += 1
+                    mediaRecorder.record()
+                } else {
+                    mediaRecorder.stop()
+                }
             }
         }
 
@@ -91,10 +126,10 @@ GridLayout {
 
         CheckBox {
             text: "Periodically refresh windows"
-            checkState: top.periodicallyRefreshWindows === true ? Qt.Checked : Qt.Unchecked
+            checkState: root.periodicallyRefreshWindows === true ? Qt.Checked : Qt.Unchecked
             onClicked: () => {
-                top.periodicallyRefreshWindows = !top.periodicallyRefreshWindows
-                checkState = top.periodicallyRefreshWindows === true ? Qt.Checked : Qt.Unchecked
+                root.periodicallyRefreshWindows = !root.periodicallyRefreshWindows
+                checkState = root.periodicallyRefreshWindows === true ? Qt.Checked : Qt.Unchecked
             }
         }
 
@@ -114,7 +149,7 @@ GridLayout {
                 id: windowsListView
                 anchors.fill: parent
                 clip: true
-                model: top.capturableWindowsList
+                model: root.capturableWindowsList
                     .filter((item) => {
                         if (hideInvalidWindowsCheckbox.checkState === Qt.Unchecked)
                             return true
