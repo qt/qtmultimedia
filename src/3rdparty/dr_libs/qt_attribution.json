@@ -7,7 +7,7 @@
     "SecurityCritical": true,
 
     "Homepage": "https://github.com/mackron/dr_libs",
-    "Version": "0.13.17",
+    "Version": "0.14.4",
     "DownloadLocation": "https://github.com/mackron/dr_libs",
 
     "License": "MIT No Attribution",
@@ -15,5 +15,5 @@
     "LicenseFiles": [
         "LICENSE"
     ],
-    "PURL": "pkg:github/mackron/dr_libs@wav-0.13.17"
+    "PURL": "pkg:github/mackron/dr_libs@wav-0.14.4"
 }
