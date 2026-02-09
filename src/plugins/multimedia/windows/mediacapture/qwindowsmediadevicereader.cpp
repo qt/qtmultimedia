@@ -220,6 +220,17 @@ HRESULT QWindowsMediaDeviceReader::prepareVideoStream(DWORD mediaTypeIndex)
                             m_frameRate = qreal(frameRateNum) / frameRateDen;
 
                             hr = m_sourceReader->SetStreamSelection(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM), TRUE);
+
+                            UINT32 nominalRange = 0;
+
+                            if (SUCCEEDED(m_videoMediaType->GetUINT32(MF_MT_VIDEO_NOMINAL_RANGE, &nominalRange)))
+                                m_colorRange = QWindowsMultimediaUtils::colorRangeFromNominalRange(nominalRange);
+
+                            UINT32 yuvMatrix = 0;
+
+                            if (SUCCEEDED(m_videoMediaType->GetUINT32(MF_MT_YUV_MATRIX, &yuvMatrix))) {
+                                m_colorSpace = QWindowsMultimediaUtils::colorSpaceFromMatrix(yuvMatrix);
+                            }
                         }
                     }
                 }
@@ -960,6 +971,8 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
                     if (SUCCEEDED(mediaBuffer->Lock(&buffer, nullptr, &bufLen))) {
                         auto bytes = QByteArray(reinterpret_cast<char*>(buffer), bufLen);
                         QVideoFrameFormat format(QSize(m_frameWidth, m_frameHeight), m_pixelFormat);
+                        format.setColorRange(m_colorRange);
+                        format.setColorSpace(m_colorSpace);
 
                         QVideoFrame frame = QVideoFramePrivate::createFrame(
                                 std::make_unique<QMemoryVideoBuffer>(std::move(bytes), m_stride),

@@ -147,6 +147,8 @@ private:
     QTimer             m_durationTimer;
     qint64             m_currentDuration = -1;
     qint64             m_lastDuration = -1;
+    QVideoFrameFormat::ColorRange m_colorRange = QVideoFrameFormat::ColorRange_Unknown;
+    QVideoFrameFormat::ColorSpace m_colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
 };
 
 QT_END_NAMESPACE
