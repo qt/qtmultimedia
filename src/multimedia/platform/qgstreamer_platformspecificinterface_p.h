@@ -18,6 +18,7 @@
 
 typedef struct _GstPipeline GstPipeline; // NOLINT (bugprone-reserved-identifier)
 typedef struct _GstElement GstElement; // NOLINT (bugprone-reserved-identifier)
+typedef struct _GstBuffer GstBuffer; // NOLINT (bugprone-reserved-identifier)
 
 QT_BEGIN_NAMESPACE
 
@@ -41,6 +42,8 @@ public:
 
     virtual GstPipeline *gstPipeline(QMediaPlayer *) = 0;
     virtual GstPipeline *gstPipeline(QMediaCaptureSession *) = 0;
+
+    virtual GstBuffer *getRawGstBuffer(QVideoFrame &) = 0; // does not transfer ownership
 };
 
 QT_END_NAMESPACE

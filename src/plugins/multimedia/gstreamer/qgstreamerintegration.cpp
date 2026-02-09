@@ -21,6 +21,7 @@
 #include <QtMultimedia/private/qmediaplayer_p.h>
 #include <QtMultimedia/private/qmediacapturesession_p.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -101,6 +102,15 @@ QGStreamerPlatformSpecificInterfaceImplementation::gstPipeline(QMediaCaptureSess
     QGstreamerMediaCaptureSession *gstreamerCapture =
             dynamic_cast<QGstreamerMediaCaptureSession *>(priv->captureSession.get());
     return gstreamerCapture ? gstreamerCapture->pipeline().pipeline() : nullptr;
+}
+
+GstBuffer *QGStreamerPlatformSpecificInterfaceImplementation::getRawGstBuffer(QVideoFrame &frame)
+{
+    QHwVideoBuffer *hwBuffer = QVideoFramePrivate::hwBuffer(frame);
+    if (!hwBuffer)
+        return nullptr;
+    QGstVideoBuffer *gstBuffer = dynamic_cast<QGstVideoBuffer *>(hwBuffer);
+    return gstBuffer ? gstBuffer->gstBuffer() : nullptr;
 }
 
 Q_STATIC_LOGGING_CATEGORY(lcGstreamer, "qt.multimedia.gstreamer")
