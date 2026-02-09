@@ -5,6 +5,7 @@
 #include "qsemaphore.h"
 #include "qmutex.h"
 
+#include <private/qcameradevice_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qwindowsmultimediautils_p.h>
 #include <private/qvideoframe_p.h>
@@ -182,6 +183,8 @@ public:
         if (videoType) {
             if (setCameraReaderFormat(m_reader.Get(), videoType.Get())) {
                 m_frameFormat = { format.resolution(), format.pixelFormat() };
+                m_frameFormat.setColorRange(QCameraFormatPrivate::getColorRange(format));
+                m_frameFormat.setColorSpace(QCameraFormatPrivate::getColorSpace(format));
                 m_videoFrameStride =
                         calculateVideoFrameStride(videoType.Get(), format.resolution().width());
             }

@@ -130,6 +130,18 @@ static std::optional<QCameraFormat> createCameraFormat(IMFMediaType *mediaFormat
     if (pixelFormat == QVideoFrameFormat::Format_Invalid)
         return {};
 
+    UINT32 nominalRange = 0;
+    auto colorRange = QVideoFrameFormat::ColorRange_Unknown;
+
+    if (SUCCEEDED(mediaFormat->GetUINT32(MF_MT_VIDEO_NOMINAL_RANGE, &nominalRange)))
+         colorRange = QWindowsMultimediaUtils::colorRangeFromNominalRange(nominalRange);
+
+    UINT32 yuvMatrix = 0;
+    auto colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
+
+    if (SUCCEEDED(mediaFormat->GetUINT32(MF_MT_YUV_MATRIX , &yuvMatrix)))
+         colorSpace = QWindowsMultimediaUtils::colorSpaceFromMatrix(yuvMatrix);
+
     UINT32 width = 0u;
     UINT32 height = 0u;
     if (FAILED(MFGetAttributeSize(mediaFormat, MF_MT_FRAME_SIZE, &width, &height)))
@@ -147,7 +159,7 @@ static std::optional<QCameraFormat> createCameraFormat(IMFMediaType *mediaFormat
     if (SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE_RANGE_MAX, &num, &den)))
         maxFr = float(num) / float(den);
 
-    auto *f = new QCameraFormatPrivate{ QSharedData(), pixelFormat, resolution, minFr, maxFr };
+    auto *f = new QCameraFormatPrivate{ QSharedData(), pixelFormat, resolution, minFr, maxFr , colorRange, colorSpace };
     return f->create();
 }
 
