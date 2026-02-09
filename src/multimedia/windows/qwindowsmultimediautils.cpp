@@ -51,6 +51,33 @@ QVideoFrameFormat::PixelFormat QWindowsMultimediaUtils::pixelFormatFromMediaSubt
     return QVideoFrameFormat::Format_Invalid;
 }
 
+QVideoFrameFormat::ColorRange QWindowsMultimediaUtils::colorRangeFromNominalRange(UINT32 nominalRange)
+{
+    switch (nominalRange) {
+    case MFNominalRange_0_255:
+        return QVideoFrameFormat::ColorRange_Full;
+    case MFNominalRange_16_235:
+        return QVideoFrameFormat::ColorRange_Video;
+    default:
+        return QVideoFrameFormat::ColorRange_Unknown;
+    }
+}
+
+QVideoFrameFormat::ColorSpace QWindowsMultimediaUtils::colorSpaceFromMatrix(UINT32 yuvMatrix)
+{
+    switch (yuvMatrix) {
+    case MFVideoTransferMatrix_BT709:
+        return QVideoFrameFormat::ColorSpace_BT709;
+    case MFVideoTransferMatrix_BT601:
+        return QVideoFrameFormat::ColorSpace_BT601;
+    case MFVideoTransferMatrix_BT2020_10:
+    case MFVideoTransferMatrix_BT2020_12:
+        return QVideoFrameFormat::ColorSpace_BT2020;
+    default:
+        return QVideoFrameFormat::ColorSpace_Undefined;
+    }
+}
+
 GUID QWindowsMultimediaUtils::videoFormatForCodec(QMediaFormat::VideoCodec codec)
 {
     switch (codec) {
