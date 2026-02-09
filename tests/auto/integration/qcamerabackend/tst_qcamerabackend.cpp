@@ -68,6 +68,7 @@ private slots:
 
     void testVirtualCameraAddition();
     void testVirtualCameraRemoval();
+    void testVirtualCameraFrameChanging();
 
     void testCameraActive();
     void testCameraStartParallel();
@@ -91,6 +92,7 @@ private:
     void callVcam(const QString &command, const VCamParameters &parameters) const;
     void removeVcam(const VCamParameters &parameters) const;
     static QCameraDevice findCamera(const QString &name);
+    QColor dominantRgbColor(const QColor &color, int tolerance) const;
 
     bool noCamera = false;
     VCamParameters m_defaultCamera {"VCam"};
@@ -206,6 +208,19 @@ QCameraDevice tst_QCameraBackend::findCamera(const QString &name)
         }
     }
     return QCameraDevice();
+}
+
+
+QColor tst_QCameraBackend::dominantRgbColor(const QColor &color, int tolerance) const
+{
+    if (color.red() > 255 - tolerance && color.green() < tolerance && color.blue() < tolerance)
+        return Qt::red;
+    if (color.green() > 255 - tolerance && color.red() < tolerance && color.blue() < tolerance)
+        return Qt::green;
+    if (color.blue()  > 255 - tolerance && color.red() < tolerance && color.green() < tolerance)
+        return Qt::blue;
+
+    return QColor();
 }
 
 void tst_QCameraBackend::testCameraDevice()
@@ -339,6 +354,44 @@ void tst_QCameraBackend::testVirtualCameraRemoval()
     QCOMPARE(lengthAfterRemove, lengthBeforeAdd);
     QVERIFY(findCamera(cameraParams.name).isNull());
 }
+
+void tst_QCameraBackend::testVirtualCameraFrameChanging()
+{
+    if (m_vcamPath.isEmpty())
+        QSKIP("VCAM_PATH environment variable is not set. Skipping camera frame test.");
+
+    QMediaCaptureSession session;
+    QCamera camera;
+    QVideoSink sink;
+    session.setCamera(&camera);
+    camera.setCameraDevice(findCamera(m_defaultCamera.name));
+    session.setVideoOutput(&sink);
+
+    std::vector<QColor> colors;
+    connect(&sink, &QVideoSink::videoFrameChanged, this, [&colors](const QVideoFrame &frame){
+        QVERIFY(frame.isValid());
+        QImage image = frame.toImage();
+        QColor pcolor = image.pixelColor(1,1);
+        colors.push_back(pcolor);
+    });
+
+    camera.start();
+    QTRY_VERIFY(colors.size() >= 3);
+    camera.stop();
+
+    int tolerance = 5;
+    for (int i = 0; i < 3; ++i) {
+        colors[i] = dominantRgbColor(colors[i], tolerance);
+        if (!colors[i].isValid())
+            QFAIL("Captured frame color is not pure red, green or blue");
+    }
+
+    QList<QColor> rgbColors = {Qt::red, Qt::green, Qt::blue};
+    QCOMPARE((rgbColors.indexOf(colors[0]) + 1) % 3, rgbColors.indexOf(colors[1]));
+    QCOMPARE((rgbColors.indexOf(colors[1]) + 1) % 3, rgbColors.indexOf(colors[2]));
+    QCOMPARE((rgbColors.indexOf(colors[2]) + 1) % 3, rgbColors.indexOf(colors[0]));
+}
+
 
 void tst_QCameraBackend::testCameraActive()
 {
