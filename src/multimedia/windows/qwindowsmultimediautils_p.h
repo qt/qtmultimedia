@@ -27,6 +27,10 @@ namespace QWindowsMultimediaUtils {
 
     Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat pixelFormatFromMediaSubtype(const GUID &subtype);
 
+    [[nodiscard]] Q_MULTIMEDIA_EXPORT QVideoFrameFormat::ColorRange colorRangeFromNominalRange(uint32_t nominalRange);
+
+    [[nodiscard]] Q_MULTIMEDIA_EXPORT QVideoFrameFormat::ColorSpace colorSpaceFromMatrix(uint32_t yuvMatrix);
+
     Q_MULTIMEDIA_EXPORT GUID videoFormatForCodec(QMediaFormat::VideoCodec codec);
 
     Q_MULTIMEDIA_EXPORT QMediaFormat::VideoCodec codecForVideoFormat(GUID format);
