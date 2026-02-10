@@ -34,7 +34,7 @@ float calculateLevel(const char *data, qint64 len, const QAudioFormat &format)
     float maxValue = 0;
     const auto *ptr = reinterpret_cast<const unsigned char *>(data);
 
-    for (int i = 0; i < numSamples; ++i) {
+    for (int i = 0; i < int(numSamples); ++i) {
         for (int j = 0; j < format.channelCount(); ++j) {
             float value = format.normalizedSampleValue(ptr);
 
