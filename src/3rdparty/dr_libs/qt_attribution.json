@@ -8,12 +8,12 @@
 
     "Homepage": "https://github.com/mackron/dr_libs",
     "Version": "0.14.4",
-    "DownloadLocation": "https://github.com/mackron/dr_libs",
+    "DownloadLocation": "https://github.com/mackron/dr_libs/releases/wav-0.14.4",
 
-    "License": "MIT No Attribution",
-    "LicenseId": "MIT-0",
+    "License": "The Unlicense or MIT No Attribution",
+    "LicenseId": "Unlicense OR MIT-0",
     "LicenseFiles": [
         "LICENSE"
     ],
-    "PURL": "pkg:github/mackron/dr_libs@wav-0.14.4"
+    "PURL": "pkg:github/mackron/dr_libs@wav-$<VERSION>"
 }
