@@ -34,7 +34,6 @@ bool openGLCapsSupported(const QPlatformIntegration &qpa)
 class ThreadLocalRhiHolder
 {
 public:
-    ThreadLocalRhiHolder();
     ~ThreadLocalRhiHolder() { resetRhi(); }
 
     QRhi *ensureRhi(QRhi *referenceRhi)
@@ -143,33 +142,19 @@ private:
 #endif
 };
 
-Q_CONSTINIT thread_local std::optional<ThreadLocalRhiHolder> g_threadLocalRhiHolder;
+QThreadStorage<ThreadLocalRhiHolder> g_threadLocalRhiHolder;
 
-ThreadLocalRhiHolder::ThreadLocalRhiHolder()
-{
-    if (QThread::isMainThread()) {
-        // ensure cleanup in qApp dtor
-        qAddPostRoutine([] {
-            g_threadLocalRhiHolder.reset();
-        });
-    }
 }
-
-} // namespace
 
 QRhi *qEnsureThreadLocalRhi(QRhi *referenceRhi)
 {
-    if (!g_threadLocalRhiHolder)
-        g_threadLocalRhiHolder.emplace();
-
-    return g_threadLocalRhiHolder->ensureRhi(referenceRhi);
+    return g_threadLocalRhiHolder.localData().ensureRhi(referenceRhi);
 }
 
 void qSetPreferredThreadLocalRhiBackend(QRhi::Implementation backend)
 {
     s_preferredBackend = backend;
-    if (g_threadLocalRhiHolder)
-        g_threadLocalRhiHolder->resetRhi();
+    g_threadLocalRhiHolder.localData().resetRhi();
 }
 
 QT_END_NAMESPACE
