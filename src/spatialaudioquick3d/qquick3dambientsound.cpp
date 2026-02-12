@@ -113,7 +113,7 @@ void QQuick3DAmbientSound::setAutoPlay(bool autoPlay)
 }
 
 /*!
-    \qmlmethod AmbientSound::play()
+    \qmlmethod void AmbientSound::play()
 
     Starts playing back the sound. Does nothing if the sound is already playing.
  */
@@ -123,7 +123,7 @@ void QQuick3DAmbientSound::play()
 }
 
 /*!
-    \qmlmethod AmbientSound::pause()
+    \qmlmethod void AmbientSound::pause()
 
     Pauses sound playback at the current position. Calling play() will continue playback.
  */
@@ -133,7 +133,7 @@ void QQuick3DAmbientSound::pause()
 }
 
 /*!
-    \qmlmethod AmbientSound::stop()
+    \qmlmethod void AmbientSound::stop()
 
     Stops sound playback and resets the current position and loop count to 0. Calling play() will
     begin playback at the beginning of the sound file.

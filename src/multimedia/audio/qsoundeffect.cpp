@@ -389,7 +389,7 @@ bool QSoundEffect::isLoaded() const
 }
 
 /*!
-    \qmlmethod QtMultimedia::SoundEffect::play()
+    \qmlmethod void QtMultimedia::SoundEffect::play()
 
     Start playback of the sound effect, looping the effect for the number of
     times as specified in the loops property.
@@ -470,7 +470,7 @@ QSoundEffect::Status QSoundEffect::status() const
 }
 
 /*!
-  \qmlmethod QtMultimedia::SoundEffect::stop()
+  \qmlmethod void QtMultimedia::SoundEffect::stop()
 
   Stop current playback.
 

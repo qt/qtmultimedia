@@ -290,7 +290,7 @@ void QQuick3DSpatialSound::setAutoPlay(bool autoPlay)
 }
 
 /*!
-    \qmlmethod SpatialSound::play()
+    \qmlmethod void SpatialSound::play()
 
     Starts playing back the sound. Does nothing if the sound is already playing.
  */
@@ -300,7 +300,7 @@ void QQuick3DSpatialSound::play()
 }
 
 /*!
-    \qmlmethod SpatialSound::pause()
+    \qmlmethod void SpatialSound::pause()
 
     Pauses sound playback at the current position. Calling play() will continue playback.
  */
@@ -310,7 +310,7 @@ void QQuick3DSpatialSound::pause()
 }
 
 /*!
-    \qmlmethod SpatialSound::stop()
+    \qmlmethod void SpatialSound::stop()
 
     Stops sound playback and resets the current position and loop count to 0. Calling play() will
     begin playback at the beginning of the sound file.

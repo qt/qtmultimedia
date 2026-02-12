@@ -516,7 +516,7 @@ QString QMediaPlayer::errorString() const
 }
 
 /*!
-    \qmlmethod QtMultimedia::MediaPlayer::play()
+    \qmlmethod void QtMultimedia::MediaPlayer::play()
 
     Starts or resumes playback of the media.
 
@@ -540,7 +540,7 @@ void QMediaPlayer::play()
 }
 
 /*!
-    \qmlmethod QtMultimedia::MediaPlayer::pause()
+    \qmlmethod void QtMultimedia::MediaPlayer::pause()
 
     Pauses playback of the media.
 
@@ -562,7 +562,7 @@ void QMediaPlayer::pause()
 }
 
 /*!
-    \qmlmethod QtMultimedia::MediaPlayer::stop()
+    \qmlmethod void QtMultimedia::MediaPlayer::stop()
 
     Stops playback of the media.
 
