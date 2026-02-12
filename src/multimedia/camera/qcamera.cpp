@@ -1397,7 +1397,7 @@ bool QCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
 }
 
 /*!
-    \qmlmethod QtMultimedia::Camera::colorTemperature
+    \qmlproperty int QtMultimedia::Camera::colorTemperature
 
     Gets or sets the current color temperature.
 

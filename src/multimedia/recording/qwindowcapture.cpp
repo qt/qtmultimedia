@@ -189,7 +189,11 @@ void QWindowCapture::setActive(bool active)
 }
 
 /*!
-    \qmlmethod QtMultimedia::WindowCapture::start
+    \qmlmethod void QtMultimedia::WindowCapture::start()
+
+    Starts capturing the \l window.
+
+    This is equivalent to setting the \l active property to \c true.
 */
 
 /*!
@@ -201,7 +205,11 @@ void QWindowCapture::setActive(bool active)
 */
 
 /*!
-    \qmlmethod QtMultimedia::WindowCapture::stop
+    \qmlmethod void QtMultimedia::WindowCapture::stop()
+
+    Stops capturing.
+
+    This is equivalent to setting the \l active property to \c false.
 */
 
 /*!

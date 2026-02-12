@@ -355,7 +355,7 @@ QRectF QQuickVideoOutput::contentRect() const
     The \c endOfStreamPolicy can be one of:
 
     \value ClearOutput The video output is cleared.
-    \value KeepLastFrame The video output continues displaying the 
+    \value KeepLastFrame The video output continues displaying the
            last frame. Use the method \l clearOutput() to clear the output manually.
 
     The default value is \c ClearOutput.
@@ -375,7 +375,7 @@ void QQuickVideoOutput::setEndOfStreamPolicy(EndOfStreamPolicy policy)
 }
 
 /*!
-    \qmlmethod void QtMultimedia::VideoOutput::clearOutput
+    \qmlmethod void QtMultimedia::VideoOutput::clearOutput()
     \since 6.9
 
     Clears the video output by removing the currently displayed video frame.

@@ -96,7 +96,7 @@ QQuickImageCapture::~QQuickImageCapture()
 */
 
 /*!
-    \qmlmethod QtMultimedia::ImageCapture::capture()
+    \qmlmethod int QtMultimedia::ImageCapture::capture()
 
     Start image capture.  The \l imageCaptured and \l imageSaved signals will
     be emitted when the capture is complete.
@@ -116,12 +116,13 @@ QQuickImageCapture::~QQuickImageCapture()
 */
 
 /*!
-    \qmlmethod QtMultimedia::ImageCapture::captureToFile(location)
+    \qmlmethod int QtMultimedia::ImageCapture::captureToFile(location)
 
-    Does the same as capture() but additionally automatically saves the captured image to the specified
-    \a location.
+    Does the same as capture() but additionally automatically saves the
+    captured image to the specified \a location. Returns the capture
+    requestId parameter.
 
-    \sa capture
+    \sa capture()
 */
 
 QString QQuickImageCapture::preview() const
@@ -130,7 +131,7 @@ QString QQuickImageCapture::preview() const
 }
 
 /*!
-    \qmlmethod QtMultimedia::ImageCapture::saveToFile(location)
+    \qmlmethod void QtMultimedia::ImageCapture::saveToFile(location)
 
     Saves the last captured image to \a location.
 
