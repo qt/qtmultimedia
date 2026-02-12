@@ -98,7 +98,7 @@ void MediaExample::MediaRecorder()
     //! [Media recorder]
     QMediaCaptureSession session;
     QAudioInput audioInput;
-    session.setAudioInput(&input);
+    session.setAudioInput(&audioInput);
     QMediaRecorder recorder;
     session.setRecorder(&recorder);
     recorder.setQuality(QMediaRecorder::HighQuality);
