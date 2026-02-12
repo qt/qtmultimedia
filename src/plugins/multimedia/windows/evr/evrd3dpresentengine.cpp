@@ -119,10 +119,7 @@ public:
        , m_d3d11tex(std::move(d3d11tex))
     {}
 
-    QRhiTexture *texture(uint plane) const override
-    {
-        return plane == 0 ? m_tex.get() : nullptr;
-    };
+    QRhiTexture *texture(uint plane) const override { return plane == 0 ? m_tex.get() : nullptr; }
 
 private:
     std::unique_ptr<QRhiTexture> m_tex;
@@ -188,7 +185,7 @@ class QVideoFrameOpenGlTextures : public QVideoFrameTextures
     };
 
 public:
-    Q_DISABLE_COPY(QVideoFrameOpenGlTextures);
+    Q_DISABLE_COPY(QVideoFrameOpenGlTextures)
 
     QVideoFrameOpenGlTextures(std::unique_ptr<QRhiTexture> &&tex, const WglNvDxInterop &wgl, InterOpHandles &handles)
         : m_tex(std::move(tex))
@@ -272,10 +269,8 @@ public:
         return {};
     }
 
-    QRhiTexture *texture(uint plane) const override
-    {
-        return plane == 0 ? m_tex.get() : nullptr;
-    };
+    QRhiTexture *texture(uint plane) const override { return plane == 0 ? m_tex.get() : nullptr; }
+
 private:
     std::unique_ptr<QRhiTexture> m_tex;
     WglNvDxInterop m_wgl;
