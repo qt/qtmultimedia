@@ -81,7 +81,8 @@ static constexpr struct
     // WMA is the same as WMV
     { QMediaFormat::FLAC, "audio/x-flac", nullptr },
     { QMediaFormat::MP3, "audio/mpeg", "mp3" },
-    { QMediaFormat::Wave, "audio/x-wav", nullptr }
+    { QMediaFormat::Wave, "audio/x-wav", nullptr },
+    { QMediaFormat::Ogg, "audio/ogg", nullptr }
 };
 
 template <typename AVFormat>
