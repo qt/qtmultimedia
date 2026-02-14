@@ -62,7 +62,6 @@ class CMMNotificationClient : public QObject, public QComObject<IMMNotificationC
     Q_OBJECT
 
     ComPtr<IMMDeviceEnumerator> m_enumerator;
-    QWindowsAudioDevices *m_windowsMediaDevices;
 
     struct DeviceRecord
     {
@@ -73,9 +72,8 @@ class CMMNotificationClient : public QObject, public QComObject<IMMNotificationC
     std::map<QString, DeviceRecord> m_deviceMap;
 
 public:
-    CMMNotificationClient(QWindowsAudioDevices *windowsMediaDevices,
-                          ComPtr<IMMDeviceEnumerator> enumerator)
-        : m_enumerator(enumerator), m_windowsMediaDevices(windowsMediaDevices)
+    explicit CMMNotificationClient(ComPtr<IMMDeviceEnumerator> enumerator)
+        : m_enumerator(enumerator)
     {
         ComPtr<IMMDeviceCollection> devColl;
         UINT count = 0;
@@ -254,7 +252,7 @@ QWindowsAudioDevices::QWindowsAudioDevices()
         return;
     }
 
-    m_notificationClient = makeComObject<QtWASAPI::CMMNotificationClient>(this, m_deviceEnumerator);
+    m_notificationClient = makeComObject<QtWASAPI::CMMNotificationClient>(m_deviceEnumerator);
     m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient.Get());
 
     connect(m_notificationClient.Get(), &QtWASAPI::CMMNotificationClient::audioDeviceAdded, this,
