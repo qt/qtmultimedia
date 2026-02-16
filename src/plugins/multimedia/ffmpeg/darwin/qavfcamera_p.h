@@ -116,7 +116,7 @@ private:
     // We might end up signaling a different QImageCapture than the one that requested
     // the capture. We should likely cancel any on-going still photo captures when this
     // happens.
-    AVFScopedPointer<QT_MANGLE_NAMESPACE(QAVFCapturePhotoOutputDelegate)> m_qAvfCapturePhotoOutputDelegate;
+    AVFScopedPointer<QAVFCapturePhotoOutputDelegate> m_qAvfCapturePhotoOutputDelegate;
     [[nodiscard]] bool stillPhotoCaptureInProgress() const
     {
         return m_qAvfCapturePhotoOutputDelegate.data();
