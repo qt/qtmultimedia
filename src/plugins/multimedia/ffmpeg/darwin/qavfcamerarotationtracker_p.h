@@ -15,10 +15,11 @@
 // We mean it.
 //
 
-
 #include <QtCore/qtclasshelpermacros.h>
 #include <QtCore/qtconfigmacros.h>
 #include <QtCore/qdarwinhelpers.h>
+
+#include <QtMultimedia/private/qavfcamerautility_p.h>
 
 #include <os/availability.h>
 
@@ -43,17 +44,17 @@ public:
     // Guaranteed to return rotation in clockwise 90 degree increments.
     [[nodiscard]] int rotationDegrees() const;
 
-    [[nodiscard]] AVCaptureDevice* avCaptureDevice() const { return m_avCaptureDevice; }
+    [[nodiscard]] AVCaptureDevice *avCaptureDevice() const { return m_avCaptureDevice.data(); }
 
 private:
     void clear();
 
-    AVCaptureDevice* m_avCaptureDevice = nullptr;
+    AVFScopedPointer<AVCaptureDevice> m_avCaptureDevice;
 
     // If running iOS 17+ or macOS 14+, we use AVCaptureDeviceRotationCoordinator
     // to get the camera rotation directly from the camera-device.
     API_AVAILABLE(macos(14.0), ios(17.0))
-    AVCaptureDeviceRotationCoordinator *m_avRotationCoordinator = nullptr;
+    AVFScopedPointer<AVCaptureDeviceRotationCoordinator> m_avRotationCoordinator;
 
 #ifdef Q_OS_IOS
     // If running iOS 16 or older, we use the UIDeviceOrientation
