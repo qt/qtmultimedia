@@ -55,11 +55,11 @@ public:
 private:
     void freeTextureCaches();
 
-    QCFType<CVMetalTextureCacheRef> cvMetalTextureCache;
+    QCFType<CVMetalTextureCacheRef> m_cvMetalTextureCache;
 #if defined(Q_OS_MACOS)
-    QCFType<CVOpenGLTextureCacheRef> cvOpenGLTextureCache;
+    QCFType<CVOpenGLTextureCacheRef> m_cvOpenGLTextureCache;
 #elif defined(Q_OS_IOS)
-    QCFType<CVOpenGLESTextureCacheRef> cvOpenGLESTextureCache;
+    QCFType<CVOpenGLESTextureCacheRef> m_cvOpenGLESTextureCache;
 #endif
 };
 
