@@ -122,7 +122,7 @@ namespace {
 {
     Q_ASSERT(cameraPixelFormat != QVideoFrameFormat::PixelFormat::Format_Invalid);
     Q_ASSERT(inputCvPixFormat != CvPixelFormatInvalid);
-    Q_ASSERT(avCaptureVideoDataOutput != nullptr);
+    Q_ASSERT(avCaptureVideoDataOutput);
 
     using namespace Qt::Literals::StringLiterals;
 
@@ -177,11 +177,11 @@ std::unique_ptr<QPlatformCamera> makeQAvfCamera(QCamera &parent)
 QAVFCamera::QAVFCamera(QCamera &parent)
     : QAVFCameraBase(&parent)
 {
-    m_avCaptureSession = [[AVCaptureSession alloc] init];
+    m_avCaptureSession = AVFScopedPointer{ [[AVCaptureSession alloc] init] };
     m_delegateQueue = AVFScopedPointer<dispatch_queue_t>{
         dispatch_queue_create("qt_camera_queue", DISPATCH_QUEUE_SERIAL) };
 
-    m_avCapturePhotoOutput = AVFScopedPointer([AVCapturePhotoOutput new]);
+    m_avCapturePhotoOutput = AVFScopedPointer{ [AVCapturePhotoOutput new] };
 
     // TODO: Handle error where we cannot add AVCapturePhotoOutput to session,
     // and report back to QImageCapture that we are unable to take a photo.
@@ -210,16 +210,13 @@ QAVFCamera::~QAVFCamera()
             QImageCapture::Error::ResourceError,
             u"Camera object was destroyed before still photo capture was completed"_s);
     }
-
-    [m_avCaptureSession release];
 }
 
 void QAVFCamera::clearAvCaptureSessionInputDevice()
 {
     if (m_avCaptureDeviceVideoInput) {
         [m_avCaptureSession removeInput:m_avCaptureDeviceVideoInput];
-        [m_avCaptureDeviceVideoInput release];
-        m_avCaptureDeviceVideoInput = nullptr;
+        m_avCaptureDeviceVideoInput.reset();
     }
 }
 
@@ -231,8 +228,8 @@ void QAVFCamera::clearAvCaptureSessionInputDevice()
     // Permission should only be requested explicitly through QPermission API.
     Q_ASSERT(checkCameraPermission());
     Q_ASSERT(avCaptureDevice != nullptr);
-    Q_ASSERT(m_avCaptureSession != nullptr);
-    Q_ASSERT(m_avCaptureDeviceVideoInput == nullptr);
+    Q_ASSERT(m_avCaptureSession);
+    Q_ASSERT(!m_avCaptureDeviceVideoInput);
 
     using namespace Qt::Literals::StringLiterals;
 
@@ -243,17 +240,16 @@ void QAVFCamera::clearAvCaptureSessionInputDevice()
         deviceInputWithDevice:avCaptureDevice
                         error:&creationError];
     if (creationError != nullptr)
-        return q23::unexpected(QString::fromNSString(creationError.localizedDescription));
+        return q23::unexpected{ QString::fromNSString(creationError.localizedDescription) };
+    Q_ASSERT(deviceInput);
 
     if (![m_avCaptureSession canAddInput:deviceInput])
         return q23::unexpected{
             u"Cannot attach AVCaptureDeviceInput to AVCaptureSession"_s };
 
-    [deviceInput retain];
-
     [m_avCaptureSession addInput:deviceInput];
 
-    m_avCaptureDeviceVideoInput = deviceInput;
+    m_avCaptureDeviceVideoInput = AVFScopedPointer{ [deviceInput retain] };
 
     return {};
 }
@@ -262,12 +258,11 @@ void QAVFCamera::clearAvCaptureSessionInputDevice()
 // and set the delegate to discard future frames.
 void QAVFCamera::clearAvCaptureVideoDataOutput()
 {
-    if (m_avCaptureVideoDataOutput != nullptr) {
+    if (m_avCaptureVideoDataOutput) {
         [m_avCaptureSession removeOutput:m_avCaptureVideoDataOutput];
-        [m_avCaptureVideoDataOutput release];
-        m_avCaptureVideoDataOutput = nullptr;
+        m_avCaptureVideoDataOutput.reset();
     }
-    if (m_qAvfSampleBufferDelegate != nullptr) {
+    if (m_qAvfSampleBufferDelegate) {
         // Push a blocking job to the background frame thread,
         // so we guarantee future frames are discarded. This
         // causes the frameHandler to be destroyed, and the reference
@@ -279,8 +274,7 @@ void QAVFCamera::clearAvCaptureVideoDataOutput()
                 [m_qAvfSampleBufferDelegate discardFutureSamples];
             });
 
-        [m_qAvfSampleBufferDelegate release];
-        m_qAvfSampleBufferDelegate = nullptr;
+        m_qAvfSampleBufferDelegate.reset();
     }
 }
 
@@ -327,8 +321,8 @@ q23::expected<void, QString> QAVFCamera::setupAvCaptureVideoDataOutput(
             u"Unable to connect AVCaptureVideoDataOutput to AVCaptureSession"_s };
 
     [m_avCaptureSession addOutput:avCaptureVideoDataOutput];
-    m_qAvfSampleBufferDelegate = [sampleBufferDelegate retain];
-    m_avCaptureVideoDataOutput = [avCaptureVideoDataOutput retain];
+    m_qAvfSampleBufferDelegate = AVFScopedPointer{ [sampleBufferDelegate retain] };
+    m_avCaptureVideoDataOutput = AVFScopedPointer{ [avCaptureVideoDataOutput retain] };
 
     return {};
 }
@@ -341,8 +335,8 @@ q23::expected<void, QString> QAVFCamera::tryApplyFormatToCaptureSession(
     AVCaptureDeviceFormat *avCaptureDeviceFormat,
     const QCameraFormat &newCameraFormat)
 {
-    Q_ASSERT(avCaptureDevice != nullptr);
-    Q_ASSERT(avCaptureDeviceFormat != nullptr);
+    Q_ASSERT(avCaptureDevice);
+    Q_ASSERT(avCaptureDeviceFormat);
     Q_ASSERT(!newCameraFormat.isNull());
 
     const CvPixelFormat captureDeviceCvFormat = CMVideoFormatDescriptionGetCodecType(
@@ -394,17 +388,17 @@ q23::expected<void, QString> QAVFCamera::tryApplyFormatToCaptureSession(
         m_hwPixelFormat = AV_PIX_FMT_NONE;
     }
 
-    Q_ASSERT(m_avCaptureVideoDataOutput != nullptr);
+    Q_ASSERT(m_avCaptureVideoDataOutput);
     [m_qAvfSampleBufferDelegate setHWAccel:std::move(hwAccel)];
     [m_qAvfSampleBufferDelegate setVideoFormatFrameRate:newCameraFormat.maxFrameRate()];
 
-    Q_ASSERT(m_avCaptureVideoDataOutput != nullptr);
+    Q_ASSERT(m_avCaptureVideoDataOutput);
     NSDictionary *outputSettings = @{
         (NSString *)kCVPixelBufferPixelFormatTypeKey
             : [NSNumber numberWithUnsignedInt:outputCvPixelFormat],
         (NSString *)kCVPixelBufferMetalCompatibilityKey : @true
     };
-    m_avCaptureVideoDataOutput.videoSettings = outputSettings;
+    m_avCaptureVideoDataOutput.data().videoSettings = outputSettings;
 
     qt_set_active_format(avCaptureDevice, avCaptureDeviceFormat, false);
 
@@ -474,8 +468,8 @@ void QAVFCamera::clearCaptureSessionConfiguration()
     AVCaptureDeviceFormat *avCaptureDeviceFormat,
     const QCameraFormat &cameraFormat)
 {
-    Q_ASSERT(avCaptureDevice != nullptr);
-    Q_ASSERT(avCaptureDeviceFormat != nullptr);
+    Q_ASSERT(avCaptureDevice);
+    Q_ASSERT(avCaptureDeviceFormat);
 
     q23::expected<void, QString> setupInputResult = setupAvCaptureSessionInputDevice(
         avCaptureDevice);
