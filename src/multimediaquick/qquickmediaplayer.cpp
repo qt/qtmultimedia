@@ -8,8 +8,6 @@ QT_BEGIN_NAMESPACE
 
 QQuickMediaPlayer::QQuickMediaPlayer(QObject *parent) : QMediaPlayer(parent)
 {
-    connect(this, &QMediaPlayer::positionChanged, this, &QQuickMediaPlayer::onPositionChanged);
-    connect(this, &QMediaPlayer::durationChanged, this, &QQuickMediaPlayer::onDurationChanged);
     connect(this, &QMediaPlayer::mediaStatusChanged, this,
             &QQuickMediaPlayer::onMediaStatusChanged);
 }
@@ -28,31 +26,6 @@ void QQuickMediaPlayer::qmlSetSource(const QUrl &source)
 QUrl QQuickMediaPlayer::qmlSource() const
 {
     return m_source;
-}
-
-void QQuickMediaPlayer::setQmlPosition(int position)
-{
-    setPosition(static_cast<qint64>(position));
-}
-
-int QQuickMediaPlayer::qmlPosition() const
-{
-    return static_cast<int>(position());
-}
-
-int QQuickMediaPlayer::qmlDuration() const
-{
-    return static_cast<int>(duration());
-}
-
-void QQuickMediaPlayer::onPositionChanged(qint64 position)
-{
-    emit qmlPositionChanged(static_cast<int>(position));
-}
-
-void QQuickMediaPlayer::onDurationChanged(qint64 duration)
-{
-    emit qmlDurationChanged(static_cast<int>(duration));
 }
 
 void QQuickMediaPlayer::onMediaStatusChanged(QMediaPlayer::MediaStatus status)
