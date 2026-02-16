@@ -34,4 +34,14 @@
 
 @end
 
+QT_BEGIN_NAMESPACE
+
+namespace QFFmpeg {
+
+using QAVFCapturePhotoOutputDelegate = QT_MANGLE_NAMESPACE(QAVFCapturePhotoOutputDelegate);
+
+} // namespace QFFmpeg
+
+QT_END_NAMESPACE
+
 #endif // QAVFCAPTUREPHOTOOUTPUTDELEGATE_P_H

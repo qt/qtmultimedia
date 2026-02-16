@@ -23,8 +23,6 @@ extern "C" {
 }
 #undef AVMediaType
 
-QT_NAMESPACE_ALIAS_OBJC_CLASS(QAVFCapturePhotoOutputDelegate);
-
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
