@@ -51,19 +51,10 @@ private:
 
     AVFScopedPointer<AVCaptureDevice> m_avCaptureDevice;
 
-    // If running iOS 17+ or macOS 14+, we use AVCaptureDeviceRotationCoordinator
+    // If running iOS or macOS 14+, we use AVCaptureDeviceRotationCoordinator
     // to get the camera rotation directly from the camera-device.
-    API_AVAILABLE(macos(14.0), ios(17.0))
+    API_AVAILABLE(macos(14.0))
     AVFScopedPointer<AVCaptureDeviceRotationCoordinator> m_avRotationCoordinator;
-
-#ifdef Q_OS_IOS
-    // If running iOS 16 or older, we use the UIDeviceOrientation
-    // and the AVCaptureCameraPosition to apply rotation metadata
-    // to the cameras frames.
-    //
-    // TODO: New bug reports implies this approach is not sufficient for iOS 16.
-    bool m_receivingUiDeviceOrientationNotifications = false;
-#endif
 };
 
 } // namespace QFFmpeg

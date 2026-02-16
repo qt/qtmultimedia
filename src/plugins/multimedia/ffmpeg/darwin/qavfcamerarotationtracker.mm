@@ -7,34 +7,11 @@
 
 #include <AVFoundation/AVFoundation.h>
 
-#ifdef Q_OS_IOS
-#include <UIKit/UIKit.h>
-#endif // Q_OS_IOS
-
 #include <cmath>
 
 QT_BEGIN_NAMESPACE
 
-namespace {
-
-#ifdef Q_OS_IOS
-[[nodiscard]] int uiDeviceOrientationToRotationDegrees(UIDeviceOrientation orientation)
-{
-    switch (orientation) {
-    case UIDeviceOrientationLandscapeLeft: return 0;
-    case UIDeviceOrientationPortrait: return 90;
-    case UIDeviceOrientationLandscapeRight: return 180;
-    case UIDeviceOrientationPortraitUpsideDown: return 270;
-    default:
-        Q_ASSERT(false);
-        Q_UNREACHABLE_RETURN(0);
-    }
-}
-#endif
-
-}
-
-namespace QFFmpeg { // namespace QFFmpeg start
+namespace QFFmpeg {
 
 AvfCameraRotationTracker::AvfCameraRotationTracker(AVCaptureDevice *avCaptureDevice)
 {
@@ -48,23 +25,12 @@ AvfCameraRotationTracker::AvfCameraRotationTracker(AVCaptureDevice *avCaptureDev
             initWithDevice:m_avCaptureDevice
               previewLayer:nil] };
     }
-#ifdef Q_OS_IOS
-    else {
-        // If we're running iOS 16 or older, we need to register for UIDeviceOrientation changes.
-        [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-        m_receivingUiDeviceOrientationNotifications = true;
-    }
-#endif
 }
 
 AvfCameraRotationTracker::AvfCameraRotationTracker(AvfCameraRotationTracker &&other) noexcept
     : m_avCaptureDevice{ std::exchange(other.m_avCaptureDevice, {}) }
-#ifdef Q_OS_IOS
-    , m_receivingUiDeviceOrientationNotifications(
-        std::exchange(other.m_receivingUiDeviceOrientationNotifications, false))
-#endif
 {
-    if (@available(macOS 14.0, iOS 17.0, *)) {
+    if (@available(macOS 14.0, *)) {
         m_avRotationCoordinator = std::exchange(other.m_avRotationCoordinator, {});
     }
 }
@@ -80,12 +46,6 @@ void AvfCameraRotationTracker::swap(AvfCameraRotationTracker &other)
     if (@available(macOS 14.0, iOS 17.0, *)) {
         std::swap(m_avRotationCoordinator, other.m_avRotationCoordinator);
     }
-
-#ifdef Q_OS_IOS
-    std::swap(
-        m_receivingUiDeviceOrientationNotifications,
-        other.m_receivingUiDeviceOrientationNotifications);
-#endif
 }
 
 void AvfCameraRotationTracker::clear()
@@ -93,17 +53,11 @@ void AvfCameraRotationTracker::clear()
     if (m_avCaptureDevice)
         m_avCaptureDevice.reset();
 
-    if (@available(macOS 14.0, iOS 17.0, *)) {
+    if (@available(macOS 14.0, *)) {
         if (m_avRotationCoordinator) {
             m_avRotationCoordinator.reset();
         }
     }
-
-#ifdef Q_OS_IOS
-    if (m_receivingUiDeviceOrientationNotifications)
-        [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
-    m_receivingUiDeviceOrientationNotifications = false;
-#endif
 }
 
 int AvfCameraRotationTracker::rotationDegrees() const
@@ -111,7 +65,7 @@ int AvfCameraRotationTracker::rotationDegrees() const
     if (m_avCaptureDevice == nullptr)
         return 0;
 
-    if (@available(macOS 14.0, iOS 17.0, *)) {
+    if (@available(macOS 14.0, *)) {
         // This code assumes that AVCaptureDeviceRotationCoordinator
         // .videoRotationAngleForHorizonLevelCapture returns degrees that are divisible by 90.
         // This has been the case during testing.
@@ -124,25 +78,6 @@ int AvfCameraRotationTracker::rotationDegrees() const
             return std::lround(
                 m_avRotationCoordinator.data().videoRotationAngleForHorizonLevelCapture);
     }
-#ifdef Q_OS_IOS
-    if (m_receivingUiDeviceOrientationNotifications) {
-        // TODO: The new orientation can be FlatFaceDown or FlatFaceUp, neither of
-        // which should trigger a camera re-orientation. We can't store the previously
-        // valid orientation because this method has to be const. Currently
-        // this means orientation of the camera might be incorrect when laying the device
-        // down flat.
-        const UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-
-        const AVCaptureDevicePosition captureDevicePosition = m_avCaptureDevice.data().position;
-
-        // If the position is set to PositionUnspecified, it's a good indication that
-        // this is an external webcam. In which case, don't apply any rotation.
-        if (captureDevicePosition == AVCaptureDevicePositionBack)
-            return uiDeviceOrientationToRotationDegrees(orientation);
-        else if (captureDevicePosition == AVCaptureDevicePositionFront)
-            return 360 - uiDeviceOrientationToRotationDegrees(orientation);
-    }
-#endif
 
     return 0;
 }
