@@ -38,15 +38,15 @@ namespace QFFmpeg { // namespace QFFmpeg start
 
 AvfCameraRotationTracker::AvfCameraRotationTracker(AVCaptureDevice *avCaptureDevice)
 {
-    Q_ASSERT(avCaptureDevice != nullptr);
+    Q_ASSERT(avCaptureDevice);
 
-    m_avCaptureDevice = [avCaptureDevice retain];
+    m_avCaptureDevice = AVFScopedPointer{ [avCaptureDevice retain] };
 
     // Use RotationCoordinator if we can.
     if (@available(macOS 14.0, iOS 17.0, *)) {
-        m_avRotationCoordinator = [[AVCaptureDeviceRotationCoordinator alloc]
+        m_avRotationCoordinator = AVFScopedPointer{ [[AVCaptureDeviceRotationCoordinator alloc]
             initWithDevice:m_avCaptureDevice
-              previewLayer:nil];
+              previewLayer:nil] };
     }
 #ifdef Q_OS_IOS
     else {
@@ -57,15 +57,15 @@ AvfCameraRotationTracker::AvfCameraRotationTracker(AVCaptureDevice *avCaptureDev
 #endif
 }
 
-AvfCameraRotationTracker::AvfCameraRotationTracker(AvfCameraRotationTracker&& other) noexcept :
-    m_avCaptureDevice(std::exchange(other.m_avCaptureDevice, nullptr))
+AvfCameraRotationTracker::AvfCameraRotationTracker(AvfCameraRotationTracker &&other) noexcept
+    : m_avCaptureDevice{ std::exchange(other.m_avCaptureDevice, {}) }
 #ifdef Q_OS_IOS
     , m_receivingUiDeviceOrientationNotifications(
         std::exchange(other.m_receivingUiDeviceOrientationNotifications, false))
 #endif
 {
     if (@available(macOS 14.0, iOS 17.0, *)) {
-        m_avRotationCoordinator = std::exchange(other.m_avRotationCoordinator, nullptr);
+        m_avRotationCoordinator = std::exchange(other.m_avRotationCoordinator, {});
     }
 }
 
@@ -90,15 +90,12 @@ void AvfCameraRotationTracker::swap(AvfCameraRotationTracker &other)
 
 void AvfCameraRotationTracker::clear()
 {
-    if (m_avCaptureDevice != nullptr) {
-        [m_avCaptureDevice release];
-        m_avCaptureDevice = nullptr;
-    }
+    if (m_avCaptureDevice)
+        m_avCaptureDevice.reset();
 
     if (@available(macOS 14.0, iOS 17.0, *)) {
-        if (m_avRotationCoordinator != nullptr) {
-            [m_avRotationCoordinator release];
-            m_avRotationCoordinator = nullptr;
+        if (m_avRotationCoordinator) {
+            m_avRotationCoordinator.reset();
         }
     }
 
@@ -124,7 +121,8 @@ int AvfCameraRotationTracker::rotationDegrees() const
         // rotation coordinator will still return it as a valid preview rotation, and
         // might cause bugs on iPhone previews.
         if (m_avRotationCoordinator != nullptr)
-            return std::lround(m_avRotationCoordinator.videoRotationAngleForHorizonLevelCapture);
+            return std::lround(
+                m_avRotationCoordinator.data().videoRotationAngleForHorizonLevelCapture);
     }
 #ifdef Q_OS_IOS
     if (m_receivingUiDeviceOrientationNotifications) {
@@ -135,7 +133,7 @@ int AvfCameraRotationTracker::rotationDegrees() const
         // down flat.
         const UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
 
-        const AVCaptureDevicePosition captureDevicePosition = m_avCaptureDevice.position;
+        const AVCaptureDevicePosition captureDevicePosition = m_avCaptureDevice.data().position;
 
         // If the position is set to PositionUnspecified, it's a good indication that
         // this is an external webcam. In which case, don't apply any rotation.
