@@ -28,7 +28,7 @@ struct ImageCaptureErrorPair {
 
 [[nodiscard]] static q23::expected<QVideoFrame, ImageCaptureErrorPair> processAvCaptureOutput(
     AVCapturePhoto *,
-    QT_MANGLE_NAMESPACE(QAVFCapturePhotoOutputDelegate) *,
+    QFFmpeg::QAVFCapturePhotoOutputDelegate *,
     NSError *);
 
 @implementation QT_MANGLE_NAMESPACE(QAVFCapturePhotoOutputDelegate) {
@@ -80,7 +80,7 @@ struct ImageCaptureErrorPair {
 
 static q23::expected<QVideoFrame, ImageCaptureErrorPair> processAvCaptureOutput(
     AVCapturePhoto *photo,
-    QT_MANGLE_NAMESPACE(QAVFCapturePhotoOutputDelegate) *captureDelegate,
+    QFFmpeg::QAVFCapturePhotoOutputDelegate *captureDelegate,
     NSError *nsError)
 {
     Q_ASSERT(photo);
