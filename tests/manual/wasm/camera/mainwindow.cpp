@@ -169,6 +169,7 @@ void MainWindow::on_openButton_clicked()
 {
     // open
     QFileDialog *dialog = new QFileDialog(this);
+    dialog->setOption(QFileDialog::DontUseNativeDialog, true);
     dialog->setNameFilter(tr("All Files (*.*)"));
     connect(dialog, &QFileDialog::fileSelected,
             [this](const QString &file) {
