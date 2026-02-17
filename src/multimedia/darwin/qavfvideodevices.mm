@@ -52,7 +52,7 @@ namespace {
 #endif
     ];
 
-    if (@available(macOS 14, iOS 17, *)) {
+    if (@available(macOS 14, *)) {
         discoveryDevices = [discoveryDevices arrayByAddingObjectsFromArray: @[
             AVCaptureDeviceTypeExternal,
             AVCaptureDeviceTypeContinuityCamera
