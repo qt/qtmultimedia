@@ -14,33 +14,24 @@
 #define DR_WAV_NO_WCHAR
 #include "3rdparty/dr_libs/dr_wav.h"
 
-class WavWriter
-{
-public:
-    WavWriter(const QAudioFormat &format, QString fileName);
-    ~WavWriter();
-
-    qint64 writeBytes(QSpan<const std::byte> buffer);
-
-private:
-    drwav m_wav;
-    QString m_fileName;
-};
-
 class AudioRecorder
 {
 public:
     AudioRecorder(const QAudioFormat &format, QString fileName);
-    virtual ~AudioRecorder() = default;
+    virtual ~AudioRecorder();
 
     [[nodiscard]] virtual int progress(int maximum) const;
     [[nodiscard]] virtual bool isDone() const;
 
 protected:
+    qint64 writeBytesToFile(QSpan<const std::byte> buffer);
     [[nodiscard]] virtual quint64 bytesWritten() const = 0;
 
     quint64 m_bytesExpected;
-    WavWriter m_wavWriter;
+
+private:
+    drwav m_wav;
+    QString m_fileName;
 };
 
 // Recorder in pull mode

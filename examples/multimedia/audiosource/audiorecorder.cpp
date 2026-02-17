@@ -12,8 +12,10 @@ constexpr auto recordingDuration = 5s;
 
 } // namespace
 
-WavWriter::WavWriter(const QAudioFormat &format, QString fileName)
-    : m_fileName(fileName)
+AudioRecorder::AudioRecorder(const QAudioFormat &format, QString fileName)
+    : m_bytesExpected(
+              format.bytesForDuration(std::chrono::microseconds(recordingDuration).count())),
+      m_fileName(fileName)
 {
     // Prepare WAV file
     drwav_data_format wavFormat;
@@ -29,29 +31,13 @@ WavWriter::WavWriter(const QAudioFormat &format, QString fileName)
     }
 }
 
-WavWriter::~WavWriter()
+AudioRecorder::~AudioRecorder()
 {
     auto result = drwav_uninit(&m_wav);
     if (result != DRWAV_SUCCESS)
         qWarning() << "Failed to close WAV file:" << result;
     else
         qInfo() << "Wav file written:" << m_fileName;
-}
-
-qint64 WavWriter::writeBytes(QSpan<const std::byte> buffer)
-{
-    qint64 bytesPerFrame = m_wav.channels * m_wav.bitsPerSample / 8;
-    if (bytesPerFrame == 0)
-        return 0;
-    qint64 framesOnBuffer = buffer.size() / bytesPerFrame;
-    quint64 framesWritten = drwav_write_pcm_frames(&m_wav, framesOnBuffer, buffer.data());
-    return qint64(framesWritten) * bytesPerFrame;
-}
-
-AudioRecorder::AudioRecorder(const QAudioFormat &format, QString fileName)
-    : m_wavWriter(format, fileName),
-      m_bytesExpected(format.bytesForDuration(std::chrono::microseconds(recordingDuration).count()))
-{
 }
 
 int AudioRecorder::progress(int maximum) const
@@ -64,9 +50,19 @@ bool AudioRecorder::isDone() const
     return bytesWritten() >= m_bytesExpected;
 }
 
+qint64 AudioRecorder::writeBytesToFile(QSpan<const std::byte> buffer)
+{
+    qint64 bytesPerFrame = m_wav.channels * m_wav.bitsPerSample / 8;
+    if (bytesPerFrame == 0)
+        return 0;
+    qint64 framesOnBuffer = buffer.size() / bytesPerFrame;
+    quint64 framesWritten = drwav_write_pcm_frames(&m_wav, framesOnBuffer, buffer.data());
+    return qint64(framesWritten) * bytesPerFrame;
+}
+
 void PullRecorder::writeSpan(QSpan<const std::byte> data)
 {
-    m_bytesWritten += m_wavWriter.writeBytes(data);
+    m_bytesWritten += writeBytesToFile(data);
 }
 
 quint64 PullRecorder::bytesWritten() const
@@ -76,8 +72,7 @@ quint64 PullRecorder::bytesWritten() const
 
 qint64 PushRecorder::writeData(const char *data, qint64 len)
 {
-    auto bytesWritten =
-            m_wavWriter.writeBytes(QSpan{ reinterpret_cast<const std::byte *>(data), len });
+    auto bytesWritten = writeBytesToFile(QSpan{ reinterpret_cast<const std::byte *>(data), len });
     m_bytesWritten += bytesWritten;
     return bytesWritten;
 }
@@ -97,7 +92,7 @@ CallbackRecorder::CallbackRecorder(const QAudioFormat &format, QString fileName)
 
 CallbackRecorder::~CallbackRecorder()
 {
-    m_wavWriter.writeBytes(m_recordingBuffer);
+    writeBytesToFile(m_recordingBuffer);
 }
 
 void CallbackRecorder::writeSpan(QSpan<const std::byte> data) noexcept
