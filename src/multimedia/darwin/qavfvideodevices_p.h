@@ -22,6 +22,7 @@
 #include <QtMultimedia/qtmultimediaexports.h>
 
 #include <functional>
+#include <vector>
 
 #import <AVFoundation/AVCaptureDevice.h>
 
@@ -62,7 +63,7 @@ private:
     // All modifications and read of m_observedAvCaptureDevices happen by
     // posting jobs the QAVFVideoDevices' thread, and so this doesn't need a
     // lock.
-    QList<ObservedAVCaptureDevice> m_observedAvCaptureDevices;
+    std::vector<ObservedAVCaptureDevice> m_observedAvCaptureDevices;
 };
 
 QT_END_NAMESPACE
