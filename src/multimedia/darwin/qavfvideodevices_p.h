@@ -19,6 +19,7 @@
 
 #include <QtCore/private/qcore_mac_p.h>
 
+#include <QtMultimedia/private/qavfcamerautility_p.h>
 #include <QtMultimedia/qtmultimediaexports.h>
 
 #include <functional>
@@ -54,8 +55,10 @@ private:
     // AVCaptureDevices in order to determine whether they should be exposed as
     // QCameraDevice to the user.
     struct ObservedAVCaptureDevice {
+        AVFScopedPointer<AVCaptureDevice> avCaptureDevice;
+        // Note: Observer holds weak ref to avCaptureDevice, and must
+        // be destroyed before avCaptureDevice.
         QMacKeyValueObserver observer;
-        AVCaptureDevice* avCaptureDevice;
     };
 
     void clearObservedAvCaptureDevices();

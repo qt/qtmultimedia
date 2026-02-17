@@ -217,18 +217,11 @@ QAVFVideoDevices::QAVFVideoDevices(
     rebuildObserveredAvCaptureDevices();
 }
 
-QAVFVideoDevices::~QAVFVideoDevices()
-{
-    clearObservedAvCaptureDevices();
-}
+QAVFVideoDevices::~QAVFVideoDevices() = default;
 
 // Does NOT lock
-void QAVFVideoDevices::clearObservedAvCaptureDevices() {
-    for (ObservedAVCaptureDevice& observedDevice : m_observedAvCaptureDevices) {
-        // Observer must be cleared before the AVCaptureDevice.
-        observedDevice.observer = {};
-        [observedDevice.avCaptureDevice release];
-    }
+void QAVFVideoDevices::clearObservedAvCaptureDevices()
+{
     m_observedAvCaptureDevices.clear();
 }
 
@@ -258,9 +251,7 @@ void QAVFVideoDevices::rebuildObserveredAvCaptureDevices()
 
     for (AVCaptureDevice *captureDevice : avCaptureDevices) {
         ObservedAVCaptureDevice observedDevice;
-
-        observedDevice.avCaptureDevice = captureDevice;
-        [observedDevice.avCaptureDevice retain];
+        observedDevice.avCaptureDevice = AVFScopedPointer{ [captureDevice retain] };
 
         // When the suspended value changes, post an update job to
         // QAVFVideoDevices.
