@@ -277,6 +277,14 @@ void QMediaCaptureSession::setCamera(QCamera *camera)
     QCamera *oldCamera = d->camera;
     if (oldCamera == camera)
         return;
+
+    if (oldCamera
+        && !QPlatformMediaIntegration::instance()->isCameraSwitchingDuringRecordingSupported()
+        && recorder() && recorder()->recorderState() == QMediaRecorder::RecordingState) {
+        qWarning("This media backend does not support camera switching during recording");
+        return;
+    }
+
     d->camera = camera;
     if (d->captureSession)
         d->captureSession->setCamera(nullptr);
