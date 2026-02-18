@@ -84,44 +84,61 @@ void QWasmVideoOutput::start()
             m_shouldBeStarted = true;
         }
 
-        emscripten::val stream = m_video["srcObject"];
-        if (stream.isNull() || stream.isUndefined()) { // camera  device
-            qCDebug(qWasmMediaVideoOutput) << "srcObject ERROR";
-            emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
-            return;
-        } else {
-            emscripten::val videoTracks = stream.call<emscripten::val>("getVideoTracks");
-            if (videoTracks.isNull() || videoTracks.isUndefined()) {
-                qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << "videoTracks is null";
-                emit errorOccured(QMediaPlayer::ResourceError,
-                                  QStringLiteral("video surface error"));
-                return;
-            }
-            if (videoTracks["length"].as<int>() == 0) {
-                qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << "videoTracks count is 0";
-                emit errorOccured(QMediaPlayer::ResourceError,
-                                  QStringLiteral("video surface error"));
-                return;
-            }
-            emscripten::val videoSettings = videoTracks[0].call<emscripten::val>("getSettings");
-            if (!videoSettings.isNull() || !videoSettings.isUndefined()) {
-                const int width = videoSettings["width"].as<int>();
-                const int height = videoSettings["height"].as<int>();
-                updateVideoElementGeometry(QRect(0, 0, width, height));
-            }
-        }
+       if (!m_connection)
+            m_connection = connect(m_mediaInputStream.get(), &JsMediaInputStream::mediaStreamReady, this,
+                [=]( ) {
+                    m_video.set("srcObject", m_mediaInputStream->getMediaStream());
+
+                    emscripten::val stream = m_video["srcObject"];
+                    if (stream.isNull() || stream.isUndefined()) { // camera  device
+                        qCDebug(qWasmMediaVideoOutput) << "srcObject ERROR";
+                        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
+                        return;
+                    } else {
+                        emscripten::val videoTracks = stream.call<emscripten::val>("getVideoTracks");
+                        if (videoTracks.isNull() || videoTracks.isUndefined()) {
+                            qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << "videoTracks is null";
+                            emit errorOccured(QMediaPlayer::ResourceError,
+                                              QStringLiteral("video surface error"));
+                            return;
+                        }
+                        if (videoTracks["length"].as<int>() == 0) {
+                            qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << "videoTracks count is 0";
+                            emit errorOccured(QMediaPlayer::ResourceError,
+                                              QStringLiteral("video surface error"));
+                            return;
+                        }
+                        emscripten::val videoSettings = videoTracks[0].call<emscripten::val>("getSettings");
+                        if (!videoSettings.isNull() || !videoSettings.isUndefined()) {
+                            const int width = videoSettings["width"].as<int>();
+                            const int height = videoSettings["height"].as<int>();
+                            updateVideoElementGeometry(QRect(0, 0, width, height));
+                        }
+                    }
+
+                    m_shouldBeStarted = false;
+                    m_video.call<void>("play");
+
+                    if (m_currentVideoMode == QWasmVideoOutput::Camera
+                        || m_currentVideoMode == QWasmVideoOutput::SurfaceCapture) {
+                            emit readyChanged(true);
+                            if (m_hasVideoFrame)
+                                videoFrameTimerCallback();
+                    }
+
+                });
+
+        m_mediaInputStream->setStreamDevice(m_cameraId);
+
     } break;
     };
 
     m_shouldStop = false;
     m_toBePaused = false;
-    m_video.call<void>("play");
 
-    if (m_currentVideoMode == QWasmVideoOutput::Camera
-        || m_currentVideoMode == QWasmVideoOutput::SurfaceCapture) {
-            emit readyChanged(true);
-            if (m_hasVideoFrame)
-                videoFrameTimerCallback();
+    if (m_currentVideoMode != QWasmVideoOutput::Camera
+        && m_currentVideoMode != QWasmVideoOutput::SurfaceCapture) {
+        m_video.call<void>("play");
     }
 }
 
@@ -137,18 +154,10 @@ void QWasmVideoOutput::stop()
     m_shouldStop = true;
     if (!m_toBePaused) {
         // we are stopped , need to reset
-        m_video.call<void>("pause");
-        emscripten::val stream = m_video["srcObject"];
-        if (!stream.isNull() && !stream.isUndefined() && !stream["getTracks"].isUndefined()) {
-            emscripten::val tracks = stream.call<emscripten::val>("getTracks");
-            if (!tracks.isUndefined() && tracks["length"].as<int>() > 0) {
-                for (int i = 0; i < tracks["length"].as<int>(); i++) {
-                    tracks[i].call<void>("stop");
-                }
-            }
-        }
+        m_mediaInputStream->stopMediaStream();
+
          m_video.set("srcObject", emscripten::val::null());
-         m_video.call<void>("load");
+        disconnect(m_connection);
     } else {
         m_video.call<void>("pause");
     }
@@ -246,20 +255,17 @@ void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
     m_mediaInputStream->setUseVideo(true);
 
     connect(m_mediaInputStream.get(), &JsMediaInputStream::mediaStreamReady, this,
-            [this]() {
-                qCDebug(qWasmMediaVideoOutput) << "mediaStreamReady";
+        [this]() {
+            qCDebug(qWasmMediaVideoOutput) << "mediaStreamReady" << m_shouldBeStarted;
 
-                m_video.set("srcObject", m_mediaInputStream->getMediaStream());
-                m_video.call<void>("load");
+            m_cameraIsReady = true;
+            if (m_shouldBeStarted) {
+                start();
+                m_shouldBeStarted = false;
+            }
+        });
 
-                m_cameraIsReady = true;
-                if (m_shouldBeStarted) {
-                    start();
-                    m_shouldBeStarted = false;
-                }
-            });
-
-    m_mediaInputStream->setStreamDevice(id);
+    m_cameraId = id;
 }
 
 void QWasmVideoOutput::setSource(QIODevice *stream)

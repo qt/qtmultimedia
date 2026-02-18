@@ -96,6 +96,7 @@ public:
     void setUseVideo(bool useVideo) { m_needsVideo = useVideo; }
     void setStreamDevice(const std::string &id);
     emscripten::val getMediaStream() { return m_mediaStream; }
+    void stopMediaStream();
 
 signals:
     void mediaStreamReady();
