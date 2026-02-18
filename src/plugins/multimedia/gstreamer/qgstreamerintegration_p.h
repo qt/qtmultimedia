@@ -70,6 +70,8 @@ public:
 
     QAbstractPlatformSpecificInterface *platformSpecificInterface() override;
 
+    bool isCameraSwitchingDuringRecordingSupported() const override { return false; }
+
 protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;
     QPlatformVideoDevices *createVideoDevices() override;

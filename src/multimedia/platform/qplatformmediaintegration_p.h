@@ -134,6 +134,8 @@ public:
 
     static QLatin1String audioBackendName();
 
+    virtual bool isCameraSwitchingDuringRecordingSupported() const { return true; }
+
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();
 
