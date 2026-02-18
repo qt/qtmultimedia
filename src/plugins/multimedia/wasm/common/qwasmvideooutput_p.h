@@ -164,6 +164,9 @@ private:
     QScopedPointer<QWasmEventHandler> m_progressChangeEvent;
     QScopedPointer<QWasmEventHandler> m_pauseChangeEvent;
     QScopedPointer<QWasmEventHandler> m_beforeUnloadEvent;
+
+    std::string m_cameraId;
+    QMetaObject::Connection m_connection;
 };
 
 QT_END_NAMESPACE

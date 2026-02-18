@@ -411,19 +411,36 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
 
 void JsMediaInputStream::setupMediaStream(emscripten::val mStream)
 {
-    m_mediaStream = mStream.call<emscripten::val>("clone");
-    auto activeStreamCallback = [=](emscripten::val event) {
+    if (!m_mediaStream.isUndefined())
+        return;
+
+    m_mediaStream = mStream;
+
+    auto activeStreamCallback = [=](emscripten::val) {
         m_active = true;
         emit activated(m_active);
     };
     m_activeStreamEvent.reset(new qstdweb::EventCallback(m_mediaStream, "active", activeStreamCallback));
 
-    auto inactiveStreamCallback = [=](emscripten::val event) {
+    auto inactiveStreamCallback = [=](emscripten::val) {
         m_active = false;
         emit activated(m_active);
     };
     m_inactiveStreamEvent.reset(new qstdweb::EventCallback(m_mediaStream, "inactive", inactiveStreamCallback));
     emit mediaStreamReady();
+}
+
+void JsMediaInputStream::stopMediaStream()
+{
+    if (!m_mediaStream.isNull() && !m_mediaStream.isUndefined() && !m_mediaStream["getTracks"].isUndefined()) {
+        emscripten::val tracks = m_mediaStream.call<emscripten::val>("getTracks");
+        if (!tracks.isUndefined() && tracks["length"].as<int>() > 0) {
+            for (int i = 0; i < tracks["length"].as<int>(); i++) {
+                tracks[i].call<void>("stop");
+            }
+        }
+    }
+    m_mediaStream = emscripten::val::undefined();
 }
 
 QT_END_NAMESPACE
