@@ -58,7 +58,7 @@ public:
     QAtomicInteger<bool> m_autoPlay = true;
     QAtomicInteger<bool> m_playing = false;
     QAtomicInt m_loops = 1;
-    bool m_loading = false;
+    QAtomicInteger<bool> m_loading = false;
 
     void play() {
         m_playing = true;
