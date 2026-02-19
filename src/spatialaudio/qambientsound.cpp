@@ -22,6 +22,7 @@ void QAmbientSoundPrivate::load()
     currentBuffer = 0;
     sourceDeviceFile.reset(nullptr);
     bufPos = 0;
+    m_currentLoop = 0;
     m_playing = false;
     m_loading = true;
     auto *ep = QAudioEnginePrivate::get(engine);
