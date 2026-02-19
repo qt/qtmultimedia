@@ -411,8 +411,8 @@ void tst_GStreamer::QGstStructureView_parseCameraFormat()
         QCOMPARE(QGstStructureView(structure).resolution(), QSize(1920, 1080));
         QVERIFY(compareFraction(QGstStructureView(structure).pixelAspectRatio(), expectedFracion));
         QCOMPARE(QGstStructureView(structure).frameRateRange(), expectedFramerateRange);
-        QCOMPARE(QGstStructureView(structure).pixelFormat(),
-                 QVideoFrameFormat::PixelFormat::Format_YUYV);
+        QCOMPARE(QGstStructureView(structure).pixelFormats(),
+                 QList{QVideoFrameFormat::PixelFormat::Format_YUYV});
     }
 
     // multiple frame rates (taken from Logitech Brio 300)
@@ -426,8 +426,8 @@ void tst_GStreamer::QGstStructureView_parseCameraFormat()
         QCOMPARE(QGstStructureView(structure).resolution(), QSize(640, 480));
         QVERIFY(compareFraction(QGstStructureView(structure).pixelAspectRatio(), expectedFracion));
         QCOMPARE(QGstStructureView(structure).frameRateRange(), expectedFramerateRange);
-        QCOMPARE(QGstStructureView(structure).pixelFormat(),
-                 QVideoFrameFormat::PixelFormat::Format_YUYV);
+        QCOMPARE(QGstStructureView(structure).pixelFormats(),
+                 QList{QVideoFrameFormat::PixelFormat::Format_YUYV});
     }
 
     // jpeg (taken from Logitech Brio 300)
@@ -441,8 +441,8 @@ void tst_GStreamer::QGstStructureView_parseCameraFormat()
         QCOMPARE(QGstStructureView(structure).resolution(), QSize(1920, 1080));
         QVERIFY(compareFraction(QGstStructureView(structure).pixelAspectRatio(), expectedFracion));
         QCOMPARE(QGstStructureView(structure).frameRateRange(), expectedFramerateRange);
-        QCOMPARE(QGstStructureView(structure).pixelFormat(),
-                 QVideoFrameFormat::PixelFormat::Format_Jpeg);
+        QCOMPARE(QGstStructureView(structure).pixelFormats(),
+                 QList{QVideoFrameFormat::PixelFormat::Format_Jpeg});
     }
 
     // steped frame rate, undefined frame rate (taken from Raspberry Pi 4, Camera Module v2)
@@ -454,8 +454,8 @@ void tst_GStreamer::QGstStructureView_parseCameraFormat()
 
         QCOMPARE(QGstStructureView(cameraFormat).pixelAspectRatio(), std::nullopt);
         QCOMPARE(QGstStructureView(cameraFormat).frameRateRange(), expectedFramerateRange);
-        QCOMPARE(QGstStructureView(cameraFormat).pixelFormat(),
-                 QVideoFrameFormat::PixelFormat::Format_YUYV);
+        QCOMPARE(QGstStructureView(cameraFormat).pixelFormats(),
+                 QList{QVideoFrameFormat::PixelFormat::Format_YUYV});
     }
 
     // steped frame rate, valid rate range (taken from Raspberry Pi 4, Camera Module v2)
@@ -472,8 +472,8 @@ void tst_GStreamer::QGstStructureView_parseCameraFormat()
         QCOMPARE(QGstStructureView(cameraFormat).resolutionRange(), expectedResolutionRange);
         QCOMPARE(QGstStructureView(cameraFormat).pixelAspectRatio(), std::nullopt);
         QCOMPARE(QGstStructureView(cameraFormat).frameRateRange(), expectedFramerateRange);
-        QCOMPARE(QGstStructureView(cameraFormat).pixelFormat(),
-                 QVideoFrameFormat::PixelFormat::Format_YUYV);
+        QCOMPARE(QGstStructureView(cameraFormat).pixelFormats(),
+                 QList{QVideoFrameFormat::PixelFormat::Format_YUYV});
     }
 }
 

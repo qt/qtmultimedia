@@ -29,8 +29,9 @@ class QOpenGLContext;
 class QGstVideoBuffer final : public QHwVideoBuffer
 {
 public:
-    QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &info, QGstreamerRelayVideoSink *sink,
-                    const QVideoFrameFormat &frameFormat, QGstCaps::MemoryFormat format);
+    QGstVideoBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo,
+                    QGstreamerRelayVideoSink *sink, const QVideoFrameFormat &frameFormat,
+                    QGstCaps::MemoryFormat format);
     ~QGstVideoBuffer() override;
 
     MapData map(QVideoFrame::MapMode mode) override;
@@ -44,7 +45,7 @@ public:
 private:
     const QGstCaps::MemoryFormat m_memoryFormat = QGstCaps::CpuMemory;
     const QVideoFrameFormat m_frameFormat;
-    mutable GstVideoInfo m_videoInfo;
+    QGstVideoInfo m_videoInfo;
     mutable GstVideoFrame m_frame{};
     const QGstBufferHandle m_buffer;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;

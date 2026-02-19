@@ -79,6 +79,7 @@ QGstCaps QGstVideoRenderer::createSurfaceCaps([[maybe_unused]] QGstreamerRelayVi
                    << QVideoFrameFormat::Format_Y8
                    << QVideoFrameFormat::Format_Y16
         ;
+    caps.addPixelFormats(formats);
 #if QT_CONFIG(gstreamer_gl)
     QRhi *rhi = sink->rhi();
     if (rhi && rhi->backend() == QRhi::OpenGLES2) {
@@ -90,7 +91,6 @@ QGstCaps QGstVideoRenderer::createSurfaceCaps([[maybe_unused]] QGstreamerRelayVi
 #  endif
     }
 #endif
-    caps.addPixelFormats(formats);
     return caps;
 }
 

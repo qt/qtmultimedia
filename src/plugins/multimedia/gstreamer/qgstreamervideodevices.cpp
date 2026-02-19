@@ -94,19 +94,22 @@ QList<QCameraDevice> QGstreamerVideoDevices::findVideoInputs() const
             int size = caps.size();
             for (int i = 0; i < size; ++i) {
                 auto cap = caps.at(i);
-                auto pixelFormat = cap.pixelFormat();
+                QList<QVideoFrameFormat::PixelFormat> pixelFormats = cap.pixelFormats();
+
                 auto frameRate = cap.frameRateRange();
 
-                if (pixelFormat == QVideoFrameFormat::PixelFormat::Format_Invalid) {
-                    qCDebug(ltVideoDevices) << "pixel format not supported:" << cap;
+                if (pixelFormats.isEmpty()) {
+                    qCDebug(ltVideoDevices) << "pixel format(s) not supported:" << cap;
                     continue; // skip pixel formats that we don't support
                 }
 
                 auto addFormatForResolution = [&](QSize resolution) {
-                    auto *f = new QCameraFormatPrivate{
-                        QSharedData(), pixelFormat, resolution, frameRate.min, frameRate.max,
-                    };
-                    formats.append(f->create());
+                    for (QVideoFrameFormat::PixelFormat pixelFormat : std::as_const(pixelFormats)){
+                        auto *f = new QCameraFormatPrivate{
+                            QSharedData(), pixelFormat, resolution, frameRate.min, frameRate.max,
+                        };
+                        formats.append(f->create());
+                    }
                     photoResolutions.insert(resolution);
                 };
 
