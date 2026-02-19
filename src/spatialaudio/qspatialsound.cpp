@@ -452,7 +452,7 @@ void QSpatialSound::setDirectivityOrder(float order)
     if (ep)
         ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
 
-    emit directivityChanged();
+    emit directivityOrderChanged();
 }
 
 float QSpatialSound::directivityOrder() const
