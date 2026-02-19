@@ -130,7 +130,6 @@ void QWasmImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
         m_captureSession = captureSession;
     }
     m_captureSession = captureSession;
-    setReadyForCapture(captureSession != nullptr);
 }
 
 QT_END_NAMESPACE
