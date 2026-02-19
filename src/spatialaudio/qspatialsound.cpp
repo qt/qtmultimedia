@@ -70,6 +70,9 @@ QVector3D QSpatialSound::position() const
 {
     Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return {};
+
     return d->pos/ep->distanceScale;
 }
 
@@ -158,6 +161,8 @@ void QSpatialSoundPrivate::updateDistanceModel()
     if (!engine || sourceId < 0)
         return;
     auto *ep = QAudioEnginePrivate::get(engine);
+    if (!ep)
+        return;
 
     vraudio::DistanceRolloffModel dm = vraudio::kLogarithmic;
     switch (distanceModel) {
@@ -297,6 +302,9 @@ void QSpatialSound::setSize(float size)
 {
     Q_D(QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
+
     size *= ep->distanceScale;
     if (d->size == size)
         return;
@@ -310,6 +318,9 @@ float QSpatialSound::size() const
 {
     Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return .1f;
+
     return d->size/ep->distanceScale;
 }
 
@@ -324,6 +335,9 @@ void QSpatialSound::setDistanceCutoff(float cutoff)
 {
     Q_D(QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
+
     cutoff *= ep->distanceScale;
     if (d->distanceCutoff == cutoff)
         return;
@@ -337,6 +351,9 @@ float QSpatialSound::distanceCutoff() const
 {
     Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return 50.f;
+
     return d->distanceCutoff/ep->distanceScale;
 }
 
