@@ -8,6 +8,7 @@
 
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qset.h>
+#include <QtCore/qthread.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -222,6 +223,7 @@ QAVFVideoDevices::~QAVFVideoDevices() = default;
 // Does NOT lock
 void QAVFVideoDevices::clearObservedAvCaptureDevices()
 {
+    Q_ASSERT(thread()->isCurrentThread());
     m_observedAvCaptureDevices.clear();
 }
 
@@ -242,9 +244,10 @@ bool QAVFVideoDevices::isCvPixelFormatSupported(uint32_t cvPixelFormat) const
 }
 
 // Refreshes list of connected AVCaptureDevices and their key-value observers.
-// Thread-safe.
 void QAVFVideoDevices::rebuildObserveredAvCaptureDevices()
 {
+    Q_ASSERT(thread()->isCurrentThread());
+
     const QList<AVCaptureDevice*> avCaptureDevices = qEnumerateAVCaptureDevices();
 
     clearObservedAvCaptureDevices();
