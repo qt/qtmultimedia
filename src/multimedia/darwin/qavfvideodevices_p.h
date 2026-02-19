@@ -30,6 +30,9 @@
 QT_BEGIN_NAMESPACE
 
 class QPlatformMediaIntegration;
+
+// This class is always moved to the main-thread upon construction.
+// All changes and events happens on the main-thread.
 class Q_MULTIMEDIA_EXPORT QAVFVideoDevices : public QPlatformVideoDevices
 {
 public:
@@ -47,8 +50,15 @@ protected:
     QList<QCameraDevice> findVideoInputs() const override;
 
 private:
-    QMacNotificationObserver m_deviceConnectedObserver;
-    QMacNotificationObserver m_deviceDisconnectedObserver;
+    void onAvCaptureDevicesChanged();
+
+private:
+    // In rare cases, m_avDiscoverySession may be null. See QTBUG-144218.
+    AVFScopedPointer<AVCaptureDeviceDiscoverySession> m_avDiscoverySession;
+    // Note: Observer holds weak ref to AVCaptureDeviceDiscoverySession, and must
+    // be destroyed before AVCaptureDeviceDiscoverySession.
+    QMacKeyValueObserver m_avDiscoverySessionObserver;
+
     std::function<bool(uint32_t)> m_isCvPixelFormatSupportedDelegate;
 
     // We need to key-value observe the "suspended" value of all connected
@@ -61,7 +71,6 @@ private:
         QMacKeyValueObserver observer;
     };
 
-    void clearObservedAvCaptureDevices();
     void rebuildObserveredAvCaptureDevices();
     // All modifications and read of m_observedAvCaptureDevices happen by
     // posting jobs the QAVFVideoDevices' thread, and so this doesn't need a
