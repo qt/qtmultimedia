@@ -19,13 +19,16 @@ QT_BEGIN_NAMESPACE
 void QAmbientSoundPrivate::load()
 {
     decoder = std::make_unique<QAudioDecoder>();
-    buffers.clear();
-    currentBuffer = 0;
     sourceDeviceFile.reset(nullptr);
-    bufPos = 0;
-    m_currentLoop = 0;
-    m_playing = false;
-    m_loading = true;
+    {
+        QMutexLocker l(&mutex);
+        buffers.clear();
+        currentBuffer = 0;
+        bufPos = 0;
+        m_currentLoop = 0;
+        m_playing = false;
+        m_loading = true;
+    }
     auto *ep = QAudioEnginePrivate::get(engine);
     QAudioFormat f;
     f.setSampleFormat(QAudioFormat::Float);
