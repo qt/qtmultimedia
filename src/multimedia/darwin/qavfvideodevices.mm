@@ -6,7 +6,9 @@
 #include <QtMultimedia/private/qavfhelpers_p.h>
 #include <QtMultimedia/private/qavfcamerautility_p.h>
 
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtCore/qset.h>
 #include <QtCore/qspan.h>
 #include <QtCore/qthread.h>
@@ -17,7 +19,10 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcAvfVideoDevices, "qt.multimedia.avfvideodevices");
 
+using namespace Qt::Literals::StringLiterals;
+
 namespace {
+
 // Helper function to translate AVCaptureDevicePosition enum to QCameraDevice::Position enum.
 [[nodiscard]] QCameraDevice::Position qAvfToQCameraDevicePosition(AVCaptureDevicePosition input)
 {
@@ -31,8 +36,9 @@ namespace {
     }
 }
 
-// Thread-safe
-[[nodiscard]] std::vector<AVCaptureDevice *> qEnumerateAVCaptureDevices()
+// Error message is not user-facing.
+[[nodiscard]] q23::expected<AVFScopedPointer<AVCaptureDeviceDiscoverySession>, QString>
+createAvCaptureDeviceDiscoverySession()
 {
     // List of all capture device types that we want to discover. Seems that this is the
     // only way to discover all types. This filter is mandatory and has no "unspecified"
@@ -71,29 +77,34 @@ namespace {
     QT_WARNING_POP
 #endif
     }
-    // Create discovery session to discover all possible camera types of the system.
-    // Both "hard" and "soft" types.
-    AVCaptureDeviceDiscoverySession *discoverySession = [AVCaptureDeviceDiscoverySession
-        discoverySessionWithDeviceTypes:discoveryDevices
-                              mediaType:AVMediaTypeVideo
-                               position:AVCaptureDevicePositionUnspecified];
-    std::vector<AVCaptureDevice *> avCaptureDevices;
-    avCaptureDevices.reserve(discoverySession.devices.count);
-    for (AVCaptureDevice *device in discoverySession.devices)
-        avCaptureDevices.push_back(device);
-    return avCaptureDevices;
+
+    @try {
+        // Create discovery session to discover all possible camera types of the system.
+        // Both "hard" and "soft" types.
+        AVCaptureDeviceDiscoverySession *discoverySession = [AVCaptureDeviceDiscoverySession
+            discoverySessionWithDeviceTypes:discoveryDevices
+                                  mediaType:AVMediaTypeVideo
+                                   position:AVCaptureDevicePositionUnspecified];
+        return AVFScopedPointer{ [discoverySession retain] };
+    }
+    @catch (NSException *e) {
+        return q23::unexpected{
+            u"Exception caught when trying to create AVCaptureDeviceDiscoverySession: "_s
+            + QString::fromNSString(e.reason) };
+    }
 }
 
 // Given a list of AVCaptureDevices, returns a list of all the QCameraDevices
 // we want to expose to the user.
 // Thread-safe
-[[nodiscard]] QList<QCameraDevice> qGenerateQCameraDevices(
-    QSpan<const AVCaptureDevice * const> videoDevices,
-    const std::function<bool(CvPixelFormat)>& isCvPixelFormatSupported)
+template <typename FormatChecker>
+[[nodiscard]] QList<QCameraDevice>
+qGenerateQCameraDevices(NSArray<AVCaptureDevice *> *videoDevices,
+                        const FormatChecker &isCvPixelFormatSupported)
 {
     QList<QCameraDevice> cameras;
 
-    for (const AVCaptureDevice *device : videoDevices) {
+    for (AVCaptureDevice *device in videoDevices) {
         if ([device isSuspended])
             continue;
 
@@ -184,62 +195,61 @@ namespace {
     return cameras;
 }
 
-} // Unnamed namespace.
+} // Unnamed namespace
 
+// Can be called by any thread
 QAVFVideoDevices::QAVFVideoDevices(
     QPlatformMediaIntegration *integration,
     std::function<bool(uint32_t)> &&isCvPixelFormatSupportedDelegate)
     : QPlatformVideoDevices(integration),
       m_isCvPixelFormatSupportedDelegate(std::move(isCvPixelFormatSupportedDelegate))
 {
-    m_deviceConnectedObserver = QMacNotificationObserver(
-        nil,
-        AVCaptureDeviceWasConnectedNotification,
-        [this]() {
-            // Ordinarily this callback should be invoked on the same thread as
-            // the one that registered it, but this has been observed to not be
-            // the case on iOS. So we post a job to the correct thread instead.
-            QMetaObject::invokeMethod(
-                this,
-                [this]() {
-                    rebuildObserveredAvCaptureDevices();
-                    QPlatformVideoDevices::onVideoInputsChanged();
-                });
+    Q_ASSERT(QCoreApplication::instance());
+    moveToThread(QCoreApplication::instance()->thread());
+
+    // Calling thread might not have any dispatch_queue or autorelease pool.
+    QMacAutoReleasePool autoReleasePool;
+
+    auto discoverySessionResult = createAvCaptureDeviceDiscoverySession();
+    if (!discoverySessionResult) {
+        qCWarning(qLcAvfVideoDevices) << discoverySessionResult.error();
+        qWarning() << "Failed to establish camera device discovery session. "
+                      "QMediaDevices::videoInputs() will not work.";
+        return;
+    }
+
+    m_avDiscoverySession = std::move(*discoverySessionResult);
+    m_avDiscoverySessionObserver = QMacKeyValueObserver(
+        m_avDiscoverySession,
+        @"devices",
+        [this] {
+            onAvCaptureDevicesChanged();
         });
 
-    m_deviceDisconnectedObserver = QMacNotificationObserver(
-        nil,
-        AVCaptureDeviceWasDisconnectedNotification,
-        [this]() {
-            QMetaObject::invokeMethod(
-                this,
-                [this]() {
-                    rebuildObserveredAvCaptureDevices();
-                    QPlatformVideoDevices::onVideoInputsChanged();
-                });
-        });
-
-    rebuildObserveredAvCaptureDevices();
+    // Setup initial list of observed AVCaptureDevices.
+    QMetaObject::invokeMethod(this, [this]{
+        rebuildObserveredAvCaptureDevices();
+    });
 }
 
 QAVFVideoDevices::~QAVFVideoDevices() = default;
 
-// Does NOT lock
-void QAVFVideoDevices::clearObservedAvCaptureDevices()
-{
-    Q_ASSERT(thread()->isCurrentThread());
-    m_observedAvCaptureDevices.clear();
-}
-
 // Can be called from any thread as result of QMediaDevices::videoInputs()
 QList<QCameraDevice> QAVFVideoDevices::findVideoInputs() const
 {
-    std::vector<AVCaptureDevice *> avCaptureDevices = qEnumerateAVCaptureDevices();
-    return qGenerateQCameraDevices(
-        avCaptureDevices,
-        [this](uint32_t cvPixelFormat) {
-            return isCvPixelFormatSupported(cvPixelFormat);
-        });
+    if (!m_avDiscoverySession)
+        return {};
+
+    // This function can be called from any thread, including
+    // threads with no dispatch_queue, so we need an autorelease pool.
+    QMacAutoReleasePool autoReleasePool;
+
+    NSArray<AVCaptureDevice *> *deviceList = m_avDiscoverySession.data().devices;
+    Q_ASSERT(deviceList);
+
+    return qGenerateQCameraDevices(deviceList, [this](uint32_t cvPixelFormat) {
+        return isCvPixelFormatSupported(cvPixelFormat);
+    });
 }
 
 bool QAVFVideoDevices::isCvPixelFormatSupported(uint32_t cvPixelFormat) const
@@ -250,34 +260,41 @@ bool QAVFVideoDevices::isCvPixelFormatSupported(uint32_t cvPixelFormat) const
 // Refreshes list of connected AVCaptureDevices and their key-value observers.
 void QAVFVideoDevices::rebuildObserveredAvCaptureDevices()
 {
-    Q_ASSERT(thread()->isCurrentThread());
+    Q_ASSERT(QCoreApplication::instance()->thread()->isCurrentThread());
 
-    std::vector<AVCaptureDevice *> avCaptureDevices = qEnumerateAVCaptureDevices();
+    m_observedAvCaptureDevices.clear();
 
-    clearObservedAvCaptureDevices();
+    if (!m_avDiscoverySession)
+        return;
 
-    for (AVCaptureDevice *captureDevice : avCaptureDevices) {
-        ObservedAVCaptureDevice observedDevice;
-        observedDevice.avCaptureDevice = AVFScopedPointer{ [captureDevice retain] };
+    NSArray<AVCaptureDevice *> *deviceList = m_avDiscoverySession.data().devices;
+    Q_ASSERT(deviceList);
 
-        // When the suspended value changes, post an update job to
-        // QAVFVideoDevices.
-        observedDevice.observer = QMacKeyValueObserver(
-            observedDevice.avCaptureDevice,
+    m_observedAvCaptureDevices.reserve(deviceList.count);
+
+    for (AVCaptureDevice *captureDevice in deviceList) {
+        AVFScopedPointer retainedDevice{ [captureDevice retain] };
+
+        // When the suspended value changes, post an update job to QAVFVideoDevices.
+        QMacKeyValueObserver observer(
+            captureDevice,
             @"suspended",
-            [this]() {
-                // Callback can potentially run on another thread. Post a job to
-                // our thread.
-                QMetaObject::invokeMethod(
-                    this,
-                    [this]() {
-                        rebuildObserveredAvCaptureDevices();
-                        QPlatformVideoDevices::onVideoInputsChanged();
-                    });
+            [this] {
+                onAvCaptureDevicesChanged();
             });
 
-        m_observedAvCaptureDevices.push_back(std::move(observedDevice));
+        m_observedAvCaptureDevices.push_back({ std::move(retainedDevice), std::move(observer) });
     }
+}
+
+void QAVFVideoDevices::onAvCaptureDevicesChanged()
+{
+    // Callbacks can potentially get invoked in cocoa threads.
+    // Post a job to the object's thread.
+    QMetaObject::invokeMethod(this, [this] {
+        rebuildObserveredAvCaptureDevices();
+        onVideoInputsChanged();
+    });
 }
 
 QT_END_NAMESPACE
