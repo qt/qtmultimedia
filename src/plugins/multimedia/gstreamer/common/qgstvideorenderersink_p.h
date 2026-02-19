@@ -74,7 +74,7 @@ class QGstVideoRenderer : public QObject
     {
         QGstBufferHandle buffer;
         QVideoFrameFormat format;
-        GstVideoInfo videoInfo;
+        QGstVideoInfo videoInfo;
         QGstCaps::MemoryFormat memoryFormat;
 
         bool operator==(const RenderBufferState &rhs) const
@@ -124,7 +124,7 @@ private:
     // --- only accessed from gstreamer thread
     const QGstCaps m_surfaceCaps;
     QVideoFrameFormat m_format;
-    GstVideoInfo m_videoInfo{};
+    QGstVideoInfo m_videoInfo;
     QGstCaps::MemoryFormat m_capsMemoryFormat = QGstCaps::CpuMemory;
 
     // --- only accessed from qt thread

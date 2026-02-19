@@ -32,6 +32,8 @@
 #include <gst/app/gstappsrc.h>
 #include <gst/video/video-info.h>
 
+#define QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM GST_CHECK_VERSION(1, 24, 0)
+
 #include "qgst_handle_types_p.h"
 
 #include <type_traits>
@@ -176,6 +178,12 @@ class QGstStructureView;
 class QGstCaps;
 class QCameraFormat;
 
+struct QGstVideoInfo
+{
+    GstVideoInfo gstVideoInfo = {};
+    std::optional<guint64> dmaDrmModifier;
+};
+
 template <typename T> struct QGRange
 {
     T min;
@@ -309,7 +317,7 @@ public:
     QGstTagListHandle tags() const;
 
     QSize resolution() const;
-    QVideoFrameFormat::PixelFormat pixelFormat() const;
+    QList<QVideoFrameFormat::PixelFormat> pixelFormats() const;
     QGRange<float> frameRateRange() const;
     std::optional<QGRange<QSize>> resolutionRange() const;
     QGstreamerMessage getMessage();
@@ -347,9 +355,10 @@ public:
     GstCaps *caps() const;
 
     MemoryFormat memoryFormat() const;
-    std::optional<std::pair<QVideoFrameFormat, GstVideoInfo>> formatAndVideoInfo() const;
+    std::optional<std::pair<QVideoFrameFormat, QGstVideoInfo>> formatAndVideoInfo() const;
 
-    void addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier = nullptr);
+    void addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats,
+                         const char* capsFeatures = nullptr);
     void setResolution(QSize);
 
     static QGstCaps create();

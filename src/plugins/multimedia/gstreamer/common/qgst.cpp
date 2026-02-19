@@ -13,6 +13,11 @@
 #include <array>
 #include <thread>
 
+// DMA support
+#if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+#  include <gst/allocators/gstdmabuf.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 namespace {
@@ -67,6 +72,43 @@ int indexOfVideoFormat(GstVideoFormat format)
 
     return -1;
 }
+
+#if QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM
+void appendDmaDrmPixelFormats(QGstCaps &caps, const QList<QVideoFrameFormat::PixelFormat> &formats)
+{
+    GValue drmFormatList = {};
+    g_value_init(&drmFormatList, GST_TYPE_LIST);
+
+    for (QVideoFrameFormat::PixelFormat format : formats) {
+        const int index = indexOfVideoFormat(format);
+        if (index == -1)
+            continue;
+
+        const guint32 fourcc =
+                gst_video_dma_drm_fourcc_from_format(qt_videoFormatLookup[index].gstFormat);
+        if (!fourcc)
+            continue;
+
+        GValue drmFormat = {};
+        g_value_init(&drmFormat, G_TYPE_STRING);
+        g_value_take_string(&drmFormat, gst_video_dma_drm_fourcc_to_string(fourcc, 0));
+        gst_value_list_append_value(&drmFormatList, &drmFormat);
+        g_value_unset(&drmFormat);
+    }
+
+    auto *dmaDrmStructure =
+            gst_structure_new("video/x-raw", "format", G_TYPE_STRING,
+                              gst_video_format_to_string(GST_VIDEO_FORMAT_DMA_DRM),
+                              "framerate", GST_TYPE_FRACTION_RANGE, 0, 1, INT_MAX, 1,
+                              "width", GST_TYPE_INT_RANGE, 1, INT_MAX,
+                              "height", GST_TYPE_INT_RANGE, 1, INT_MAX, nullptr);
+    gst_structure_set_value(dmaDrmStructure, "drm-format", &drmFormatList);
+    gst_caps_append_structure(caps.get(), dmaDrmStructure);
+    gst_caps_set_features(caps.get(), caps.size() - 1,
+                          gst_caps_features_from_string(GST_CAPS_FEATURE_MEMORY_DMABUF));
+    g_value_unset(&drmFormatList);
+}
+#endif
 
 } // namespace
 
@@ -217,27 +259,80 @@ QSize QGstStructureView::resolution() const
     return size;
 }
 
-QVideoFrameFormat::PixelFormat QGstStructureView::pixelFormat() const
+QList<QVideoFrameFormat::PixelFormat> QGstStructureView::pixelFormats() const
 {
-    QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_Invalid;
+    QList<QVideoFrameFormat::PixelFormat> pixelFormats;
 
     if (!structure)
-        return pixelFormat;
+        return pixelFormats;
+
+    auto appendFromGstVideoFormat = [&](GstVideoFormat format) {
+        const int index = indexOfVideoFormat(format);
+        if (index == -1)
+            return;
+
+        const auto pixelFormat = qt_videoFormatLookup[index].pixelFormat;
+        if (!pixelFormats.contains(pixelFormat))
+            pixelFormats.append(pixelFormat);
+    };
 
     if (gst_structure_has_name(structure, "video/x-raw")) {
-        const gchar *s = gst_structure_get_string(structure, "format");
-        if (s) {
-            GstVideoFormat format = gst_video_format_from_string(s);
-            int index = indexOfVideoFormat(format);
+#if QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM
+        if (const GValue *drmFormatValue = gst_structure_get_value(structure, "drm-format")) {
+            auto parseDrmFormat = [&](const GValue *value) {
+                if (!value || !G_VALUE_HOLDS_STRING(value))
+                    return;
 
-            if (index != -1)
-                pixelFormat = qt_videoFormatLookup[index].pixelFormat;
+                const char *drmFormatString = g_value_get_string(value);
+                if (!drmFormatString)
+                    return;
+
+                guint64 modifier = 0;
+                const guint32 fourcc = gst_video_dma_drm_fourcc_from_string(drmFormatString,
+                                                                            &modifier);
+                if (fourcc) {
+                    if (modifier != 0)
+                        qWarning() << "Ignoring drm-format modifier when mapping to Qt PixelFormat:"
+                                   << drmFormatString;
+                    appendFromGstVideoFormat(gst_video_dma_drm_fourcc_to_format(fourcc));
+                }
+            };
+
+            if (GST_VALUE_HOLDS_LIST(drmFormatValue)) {
+                const guint listSize = gst_value_list_get_size(drmFormatValue);
+                for (guint i = 0; i < listSize; ++i)
+                    parseDrmFormat(gst_value_list_get_value(drmFormatValue, i));
+            } else {
+                parseDrmFormat(drmFormatValue);
+            }
+
+            if (!pixelFormats.isEmpty())
+                return pixelFormats; // Skip checking "format" field when "drm-format" succeeds
+        }
+#endif
+        if (const GValue *formatValue = gst_structure_get_value(structure, "format")) {
+            auto parseFormat = [&](const GValue *value) {
+                if (!value || !G_VALUE_HOLDS_STRING(value))
+                    return;
+                const char *formatString = g_value_get_string(value);
+                if (!formatString)
+                    return;
+                appendFromGstVideoFormat(gst_video_format_from_string(formatString));
+            };
+
+            if (GST_VALUE_HOLDS_LIST(formatValue)) {
+                const guint listSize = gst_value_list_get_size(formatValue);
+                for (guint i = 0; i < listSize; ++i)
+                    parseFormat(gst_value_list_get_value(formatValue, i));
+            } else {
+                parseFormat(formatValue);
+            }
         }
     } else if (gst_structure_has_name(structure, "image/jpeg")) {
-        pixelFormat = QVideoFrameFormat::Format_Jpeg;
+        pixelFormats.append(QVideoFrameFormat::Format_Jpeg);
     }
 
-    return pixelFormat;
+    return pixelFormats;
 }
 
 QGRange<float> QGstStructureView::frameRateRange() const
@@ -361,15 +456,28 @@ QSize QGstStructureView::nativeSize() const
 
 // QGstCaps
 
-std::optional<std::pair<QVideoFrameFormat, GstVideoInfo>> QGstCaps::formatAndVideoInfo() const
+std::optional<std::pair<QVideoFrameFormat, QGstVideoInfo>> QGstCaps::formatAndVideoInfo() const
 {
     GstVideoInfo vidInfo;
+    std::optional<guint64> dmaDrmModifier;
 
-    bool success = gst_video_info_from_caps(&vidInfo, get());
-    if (!success)
-        return std::nullopt;
+#if QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM
+    GstVideoInfoDmaDrm videoInfoDmaDrm;
+    if (gst_video_info_dma_drm_from_caps(&videoInfoDmaDrm, get())) {
+        dmaDrmModifier = videoInfoDmaDrm.drm_modifier;
+        // Sets vidInfo‘s format based on drm_fourcc from videoInfoDmaDrm:
+        if (!gst_video_info_dma_drm_to_video_info(&videoInfoDmaDrm, &vidInfo))
+            return std::nullopt;
+    } else
+#endif
+    {
+        if (!gst_video_info_from_caps(&vidInfo, get()))
+            return std::nullopt;
+    }
 
-    int index = indexOfVideoFormat(vidInfo.finfo->format);
+    GstVideoFormat gstFormat = GST_VIDEO_INFO_FORMAT(&vidInfo);
+
+    int index = indexOfVideoFormat(gstFormat);
     if (index == -1)
         return std::nullopt;
 
@@ -456,15 +564,20 @@ std::optional<std::pair<QVideoFrameFormat, GstVideoInfo>> QGstCaps::formatAndVid
 
     return std::pair{
         std::move(format),
-        vidInfo,
+        QGstVideoInfo{vidInfo, dmaDrmModifier},
     };
 }
 
 void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats,
-                               const char *modifier)
+                               const char *capsFeatures)
 {
     if (!gst_caps_is_writable(get()))
         *this = QGstCaps(gst_caps_make_writable(release()), QGstCaps::RefMode::HasRef);
+
+#if QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM
+    if (qstrcmp(capsFeatures, GST_CAPS_FEATURE_MEMORY_DMABUF) == 0)
+        appendDmaDrmPixelFormats(*this, formats);
+#endif
 
     GValue list = {};
     g_value_init(&list, GST_TYPE_LIST);
@@ -489,8 +602,9 @@ void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &form
     gst_caps_append_structure(get(), structure);
     g_value_unset(&list);
 
-    if (modifier)
-        gst_caps_set_features(get(), size() - 1, gst_caps_features_from_string(modifier));
+    if (capsFeatures)
+        gst_caps_set_features(get(), size() - 1,
+                              gst_caps_features_from_string(capsFeatures));
 }
 
 void QGstCaps::setResolution(QSize resolution)
@@ -510,21 +624,55 @@ void QGstCaps::setResolution(QSize resolution)
 QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
 {
     QSize size = format.resolution();
-    GstStructure *structure = nullptr;
-    if (format.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
-        structure = gst_structure_new("image/jpeg", "width", G_TYPE_INT, size.width(), "height",
-                                      G_TYPE_INT, size.height(), nullptr);
-    } else {
-        int index = indexOfVideoFormat(format.pixelFormat());
-        if (index < 0)
-            return {};
-        auto gstFormat = qt_videoFormatLookup[index].gstFormat;
-        structure = gst_structure_new("video/x-raw", "format", G_TYPE_STRING,
-                                      gst_video_format_to_string(gstFormat), "width", G_TYPE_INT,
-                                      size.width(), "height", G_TYPE_INT, size.height(), nullptr);
-    }
     auto caps = QGstCaps::create();
-    gst_caps_append_structure(caps.get(), structure);
+
+    if (format.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
+        auto *jpegStructure = gst_structure_new("image/jpeg",
+                                                "width", G_TYPE_INT, size.width(),
+                                                "height", G_TYPE_INT, size.height(), nullptr);
+        gst_caps_append_structure(caps.get(), jpegStructure);
+        return caps;
+    }
+
+    const int index = indexOfVideoFormat(format.pixelFormat());
+    if (index == -1)
+        return {};
+
+    const auto gstFormat = qt_videoFormatLookup[index].gstFormat;
+
+    auto *rawStructure =
+            gst_structure_new("video/x-raw",
+                              "format", G_TYPE_STRING, gst_video_format_to_string(gstFormat),
+                              "width", G_TYPE_INT, size.width(),
+                              "height", G_TYPE_INT, size.height(), nullptr);
+    gst_caps_append_structure(caps.get(), rawStructure);
+
+#if QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM
+    if (const guint32 fourcc = gst_video_dma_drm_fourcc_from_format(gstFormat)) {
+        if (QGString drmFormat{gst_video_dma_drm_fourcc_to_string(fourcc, 0)}) {
+            auto *drmFormatDmabufRawStructure =
+                    gst_structure_new("video/x-raw", "format", G_TYPE_STRING,
+                                      gst_video_format_to_string(GST_VIDEO_FORMAT_DMA_DRM),
+                                      "drm-format", G_TYPE_STRING, drmFormat.get(),
+                                      "width", G_TYPE_INT, size.width(),
+                                      "height", G_TYPE_INT, size.height(), nullptr);
+            gst_caps_append_structure(caps.get(), drmFormatDmabufRawStructure);
+            gst_caps_set_features(
+                    caps.get(), caps.size() - 1,
+                    gst_caps_features_from_string(GST_CAPS_FEATURE_MEMORY_DMABUF));
+        }
+    }
+#endif
+
+    auto *dmabufRawStructure =
+            gst_structure_new("video/x-raw",
+                              "format", G_TYPE_STRING, gst_video_format_to_string(gstFormat),
+                              "width", G_TYPE_INT, size.width(),
+                              "height", G_TYPE_INT, size.height(), nullptr);
+    gst_caps_append_structure(caps.get(), dmabufRawStructure);
+    gst_caps_set_features(caps.get(), caps.size() - 1,
+                          gst_caps_features_from_string(GST_CAPS_FEATURE_MEMORY_DMABUF));
+
     return caps;
 }
 

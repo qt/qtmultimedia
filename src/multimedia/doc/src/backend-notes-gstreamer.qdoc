@@ -118,7 +118,6 @@ dmabuf with the enum GST_V4L2_IO_DMABUF:
 \endcode
 
 
-
 \section2 Selecting specific GStreamer elements
 
 A GStreamer distribution can include multiple different plugins that can

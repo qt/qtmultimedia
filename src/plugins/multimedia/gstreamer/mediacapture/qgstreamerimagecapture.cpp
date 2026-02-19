@@ -281,7 +281,7 @@ void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveM
         }
         auto memoryFormat = caps.memoryFormat();
 
-        GstVideoInfo previewInfo;
+        QGstVideoInfo previewInfo;
         QVideoFrameFormat fmt;
         auto optionalFormatAndVideoInfo = caps.formatAndVideoInfo();
         if (optionalFormatAndVideoInfo)
@@ -319,7 +319,7 @@ void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveM
 
             auto memoryFormat = caps.memoryFormat();
 
-            GstVideoInfo previewInfo;
+            QGstVideoInfo previewInfo;
             QVideoFrameFormat fmt;
             auto optionalFormatAndVideoInfo = caps.formatAndVideoInfo();
             if (optionalFormatAndVideoInfo)
