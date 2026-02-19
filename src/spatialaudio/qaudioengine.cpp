@@ -134,12 +134,17 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
     QMutexLocker l(&d->mutex);
     d->updateRooms();
 
+    Q_ASSERT(sink);
+    const int bytesPerSample = sink->format().bytesPerSample();
+    if (bytesPerSample <= 0)
+        return 0;
+
     int nChannels = ambisonicDecoder ? ambisonicDecoder->nOutputChannels() : 2;
-    if (len < nChannels*int(sizeof(float))*QAudioEnginePrivate::bufferSize)
+    if (len < nChannels * bytesPerSample * QAudioEnginePrivate::bufferSize)
         return 0;
 
     short *fd = (short *)data;
-    qint64 frames = len / nChannels / sizeof(short);
+    qint64 frames = len / nChannels / bytesPerSample;
     bool ok = true;
     while (frames >= qint64(QAudioEnginePrivate::bufferSize)) {
         // Fill input buffers
