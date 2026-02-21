@@ -22,6 +22,8 @@
 #include <QtCore/qtclasshelpermacros.h>
 #include <QtCore/qmutex.h>
 
+#include <atomic>
+
 namespace vraudio {
 class ResonanceAudio;
 } // namespace vraudio
@@ -65,7 +67,7 @@ public:
 
     QMutex mutex;
     QAudioDevice device;
-    QAtomicInteger<bool> paused = false;
+    std::atomic_bool paused{ false };
 
     QThread audioThread;
     std::unique_ptr<QAudioOutputStream> outputStream;

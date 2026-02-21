@@ -126,7 +126,7 @@ qint64 QAudioOutputStream::writeData(const char *, qint64)
 
 qint64 QAudioOutputStream::readData(char *data, qint64 len)
 {
-    if (d->paused.loadRelaxed())
+    if (d->paused.load(std::memory_order_relaxed))
         return 0;
 
     QMutexLocker l(&d->mutex);
@@ -225,7 +225,7 @@ void QAudioEnginePrivate::stop()
 
 void QAudioEnginePrivate::setPaused(bool paused)
 {
-    bool old = this->paused.fetchAndStoreRelaxed(paused);
+    bool old = this->paused.exchange(paused, std::memory_order_relaxed);
     if (old != paused) {
         if (outputStream)
             outputStream->setPaused(paused);
@@ -558,7 +558,7 @@ void QAudioEngine::setPaused(bool paused)
 
 bool QAudioEngine::paused() const
 {
-    return d->paused.loadRelaxed();
+    return d->paused.load(std::memory_order_relaxed);
 }
 
 /*!
