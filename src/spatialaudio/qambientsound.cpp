@@ -198,13 +198,13 @@ QUrl QAmbientSound::source() const
 int QAmbientSound::loops() const
 {
     Q_D(const QAmbientSound);
-    return d->m_loops.loadRelaxed();
+    return d->m_loops.load(std::memory_order_relaxed);
 }
 
 void QAmbientSound::setLoops(int loops)
 {
     Q_D(QAmbientSound);
-    int oldLoops = d->m_loops.fetchAndStoreRelaxed(loops);
+    int oldLoops = d->m_loops.exchange(loops, std::memory_order_relaxed);
     if (oldLoops != loops)
         emit loopsChanged();
 }
@@ -220,14 +220,14 @@ void QAmbientSound::setLoops(int loops)
 bool QAmbientSound::autoPlay() const
 {
     Q_D(const QAmbientSound);
-    return d->m_autoPlay.loadRelaxed();
+    return d->m_autoPlay.load(std::memory_order_relaxed);
 }
 
 void QAmbientSound::setAutoPlay(bool autoPlay)
 {
     Q_D(QAmbientSound);
 
-    bool old = d->m_autoPlay.fetchAndStoreRelaxed(autoPlay);
+    bool old = d->m_autoPlay.exchange(autoPlay, std::memory_order_relaxed);
     if (old != autoPlay)
         emit autoPlayChanged();
 }

@@ -553,14 +553,14 @@ int QSpatialSound::loops() const
 {
     Q_D(const QSpatialSound);
 
-    return d->m_loops.loadRelaxed();
+    return d->m_loops.load(std::memory_order_relaxed);
 }
 
 void QSpatialSound::setLoops(int loops)
 {
     Q_D(QSpatialSound);
 
-    int oldLoops = d->m_loops.fetchAndStoreRelaxed(loops);
+    int oldLoops = d->m_loops.exchange(loops, std::memory_order_relaxed);
     if (oldLoops != loops)
         emit loopsChanged();
 }
@@ -577,13 +577,13 @@ bool QSpatialSound::autoPlay() const
 {
     Q_D(const QSpatialSound);
 
-    return d->m_autoPlay.loadRelaxed();
+    return d->m_autoPlay.load(std::memory_order_relaxed);
 }
 
 void QSpatialSound::setAutoPlay(bool autoPlay)
 {
     Q_D(QSpatialSound);
-    bool old = d->m_autoPlay.fetchAndStoreRelaxed(autoPlay);
+    bool old = d->m_autoPlay.exchange(autoPlay, std::memory_order_relaxed);
     if (old != autoPlay)
         emit autoPlayChanged();
 }

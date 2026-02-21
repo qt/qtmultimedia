@@ -24,6 +24,9 @@
 #include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qaudiobuffer.h>
 
+#include <atomic>
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 class QAudioEngine;
@@ -55,10 +58,10 @@ public:
     QList<QAudioBuffer> buffers;
     int sourceId = -1; // kInvalidSourceId
 
-    QAtomicInteger<bool> m_autoPlay = true;
-    QAtomicInteger<bool> m_playing = false;
-    QAtomicInt m_loops = 1;
-    QAtomicInteger<bool> m_loading = false;
+    std::atomic_bool m_autoPlay = true;
+    std::atomic_bool m_playing = false;
+    std::atomic_int m_loops = 1;
+    std::atomic_bool m_loading = false;
 
     void play() {
         m_playing = true;
