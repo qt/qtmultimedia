@@ -5,9 +5,7 @@
 
 #include <QtCore/qiodevice.h>
 #include <QtCore/qdebug.h>
-#include <QtCore/qelapsedtimer.h>
 
-#include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qaudiosink.h>
 #ifdef Q_OS_WIN

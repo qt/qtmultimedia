@@ -8,7 +8,6 @@
 #include <qaudiosink.h>
 #include <qurl.h>
 #include <qdebug.h>
-#include <qaudiodecoder.h>
 
 QT_BEGIN_NAMESPACE
 
