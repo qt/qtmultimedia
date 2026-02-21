@@ -27,7 +27,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAudioDecoder;
 class QAudioEnginePrivate;
 
 class QSpatialSoundPrivate : public QAmbientSoundPrivate
