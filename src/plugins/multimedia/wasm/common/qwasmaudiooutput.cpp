@@ -109,6 +109,16 @@ void QWasmAudioOutput::setSource(const QUrl &url)
         m_source = url.toLocalFile();
 
         QFile mediaFile(m_source);
+        if (!mediaFile.exists()) {
+            qCDebug(qWasmMediaAudioOutput) << "Error"
+                                           << "Media file does not exist";
+            QMetaObject::invokeMethod(this, &QWasmAudioOutput::errorOccured, Qt::QueuedConnection,
+                QMediaPlayer::ResourceError,
+                QStringLiteral("Media file does not exist"));
+
+            return;
+        }
+
         if (!mediaFile.open(QIODevice::ReadOnly)) {
             qCDebug(qWasmMediaAudioOutput) << "Error"
                                            << "Media file could not be opened";

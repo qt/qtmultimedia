@@ -46,7 +46,10 @@ void QWasmMediaPlayer::initVideo()
     connect(m_videoOutput, &QWasmVideoOutput::bufferingChanged, this,
             &QWasmMediaPlayer::bufferingChanged);
     connect(m_videoOutput, &QWasmVideoOutput::errorOccured, this,
-            &QWasmMediaPlayer::errorOccured);
+        [=](qint32 code, const QString &message ) {
+        error((QMediaPlayer::Error)code, message);
+     });
+
     connect(m_videoOutput, &QWasmVideoOutput::stateChanged, this,
             &QWasmMediaPlayer::mediaStateChanged);
     connect(m_videoOutput, &QWasmVideoOutput::progressChanged, this,
@@ -75,11 +78,14 @@ void QWasmMediaPlayer::initAudio()
             this, &QWasmMediaPlayer::volumeChanged);
     connect(m_audioOutput->q, &QAudioOutput::mutedChanged,
             this, &QWasmMediaPlayer::mutedChanged);
-
     connect(m_audioOutput, &QWasmAudioOutput::bufferingChanged, this,
             &QWasmMediaPlayer::bufferingChanged);
-    connect(m_audioOutput, &QWasmAudioOutput::errorOccured, this,
-            &QWasmMediaPlayer::errorOccured);
+
+    connect( m_audioOutput, &QWasmAudioOutput::errorOccured, this,
+        [=](qint32 code, const QString &message ) {
+        error((QMediaPlayer::Error)code, message);
+     });
+
     connect(m_audioOutput, &QWasmAudioOutput::progressChanged, this,
             &QWasmMediaPlayer::setPositionChanged);
     connect(m_audioOutput, &QWasmAudioOutput::durationChanged, this,
@@ -266,6 +272,7 @@ void QWasmMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
     if (m_audioOutput)
         m_audioOutput->q->disconnect(this);
     m_audioOutput = static_cast<QWasmAudioOutput *>(output);
+    initAudio();
     setAudioAvailable(true);
 }
 
@@ -284,7 +291,6 @@ void QWasmMediaPlayer::play()
         m_videoOutput->start();
         m_playWhenReady = true;
     } else {
-        initAudio();
         if (isAudioAvailable()) {
             m_audioOutput->start();
         }
