@@ -69,12 +69,12 @@ Q_STATIC_LOGGING_CATEGORY(qLcGstVideoBuffer, "qt.multimedia.gstreamer.videobuffe
 #define DRM_FORMAT_YUV444       fourcc_code('Y', 'U', '2', '4') /* non-subsampled Cb (1) and Cr (2) planes */
 
 QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &info,
-                                 QGstreamerRelayVideoSink *sink, const QVideoFrameFormat &frameFormat,
+                                 QGstreamerRelayVideoSink *sink,
+                                 const QVideoFrameFormat &frameFormat,
                                  QGstCaps::MemoryFormat memoryFormat)
     : QHwVideoBuffer((sink && sink->rhi() && memoryFormat != QGstCaps::CpuMemory)
                              ? QVideoFrame::RhiTextureHandle
-                             : QVideoFrame::NoHandle,
-                     sink ? sink->rhi() : nullptr),
+                             : QVideoFrame::NoHandle),
       m_memoryFormat(memoryFormat),
       m_frameFormat(frameFormat),
       m_videoInfo(info),

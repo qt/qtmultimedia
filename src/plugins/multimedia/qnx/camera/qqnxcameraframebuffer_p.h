@@ -29,7 +29,7 @@ class QRhi;
 class QQnxCameraFrameBuffer : public QHwVideoBuffer
 {
 public:
-    explicit QQnxCameraFrameBuffer(const camera_buffer_t *buffer, QRhi *rhi = nullptr);
+    explicit QQnxCameraFrameBuffer(const camera_buffer_t *buffer);
 
     QQnxCameraFrameBuffer(const QQnxCameraFrameBuffer&) = delete;
     QQnxCameraFrameBuffer& operator=(const QQnxCameraFrameBuffer&) = delete;
@@ -42,8 +42,6 @@ public:
     QSize size() const;
 
 private:
-    QRhi *m_rhi;
-
     QVideoFrameFormat::PixelFormat m_pixelFormat;
 
     std::unique_ptr<unsigned char[]> m_data;

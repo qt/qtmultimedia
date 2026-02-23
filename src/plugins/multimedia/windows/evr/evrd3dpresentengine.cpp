@@ -31,8 +31,8 @@ class IMFSampleVideoBuffer : public QHwVideoBuffer
 {
 public:
     IMFSampleVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, const ComPtr<IMFSample> &sample,
-                         QRhi *rhi, QVideoFrame::HandleType type = QVideoFrame::NoHandle)
-        : QHwVideoBuffer(type, rhi),
+                         QVideoFrame::HandleType type = QVideoFrame::NoHandle)
+        : QHwVideoBuffer(type),
           m_device(device),
           m_sample(sample),
           m_mapMode(QVideoFrame::NotMapped)
@@ -130,8 +130,8 @@ class D3D11TextureVideoBuffer: public IMFSampleVideoBuffer
 {
 public:
     D3D11TextureVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, const ComPtr<IMFSample> &sample,
-                            HANDLE sharedHandle, QRhi *rhi)
-        : IMFSampleVideoBuffer(std::move(device), sample, rhi, QVideoFrame::RhiTextureHandle)
+                            HANDLE sharedHandle)
+        : IMFSampleVideoBuffer(std::move(device), sample, QVideoFrame::RhiTextureHandle)
         , m_sharedHandle(sharedHandle)
     {}
 
@@ -281,8 +281,8 @@ class OpenGlVideoBuffer: public IMFSampleVideoBuffer
 {
 public:
     OpenGlVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, const ComPtr<IMFSample> &sample,
-                      const WglNvDxInterop &wglNvDxInterop, HANDLE sharedHandle, QRhi *rhi)
-        : IMFSampleVideoBuffer(std::move(device), sample, rhi, QVideoFrame::RhiTextureHandle)
+                      const WglNvDxInterop &wglNvDxInterop, HANDLE sharedHandle)
+        : IMFSampleVideoBuffer(std::move(device), sample, QVideoFrame::RhiTextureHandle)
         , m_sharedHandle(sharedHandle)
         , m_wgl(wglNvDxInterop)
     {}
@@ -751,17 +751,17 @@ QVideoFrame D3DPresentEngine::makeVideoFrame(const ComPtr<IMFSample> &sample,
     QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
     if (m_useTextureRendering && sharedHandle && rhi) {
         if (rhi->backend() == QRhi::D3D11) {
-            vb = std::make_unique<D3D11TextureVideoBuffer>(m_device, sample, sharedHandle, rhi);
+            vb = std::make_unique<D3D11TextureVideoBuffer>(m_device, sample, sharedHandle);
 #if QT_CONFIG(opengl)
         } else if (rhi->backend() == QRhi::OpenGLES2) {
             vb = std::make_unique<OpenGlVideoBuffer>(m_device, sample, m_wglNvDxInterop,
-                                                     sharedHandle, rhi);
+                                                     sharedHandle);
 #endif
         }
     }
 
     if (!vb)
-        vb = std::make_unique<IMFSampleVideoBuffer>(m_device, sample, rhi);
+        vb = std::make_unique<IMFSampleVideoBuffer>(m_device, sample);
 
     auto format = m_surfaceFormat;
     format.setRotation(rotation);
