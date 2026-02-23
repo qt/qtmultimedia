@@ -259,9 +259,8 @@ static constexpr QSize frameSize(const camera_buffer_t *buffer)
 
 QT_BEGIN_NAMESPACE
 
-QQnxCameraFrameBuffer::QQnxCameraFrameBuffer(const camera_buffer_t *buffer, QRhi *rhi)
-    : QHwVideoBuffer(rhi ? QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle, rhi),
-      m_rhi(rhi),
+QQnxCameraFrameBuffer::QQnxCameraFrameBuffer(const camera_buffer_t *buffer)
+    : QHwVideoBuffer(QVideoFrame::NoHandle),
       m_pixelFormat(::frameTypeToPixelFormat(buffer->frametype)),
       m_dataSize(::bufferDataSize(buffer))
 {

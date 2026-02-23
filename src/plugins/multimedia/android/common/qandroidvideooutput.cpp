@@ -37,27 +37,11 @@ private:
     std::unique_ptr<QRhiTexture> m_tex;
 };
 
-// QRhiWithThreadGuard keeps QRhi and QThread (that created it) alive to allow proper cleaning
-class QRhiWithThreadGuard : public QObject {
-    Q_OBJECT
-public:
-    QRhiWithThreadGuard(std::shared_ptr<QRhi> r, std::shared_ptr<AndroidTextureThread> t)
-        : m_guardRhi(std::move(r)), m_thread(std::move(t)) {}
-    ~QRhiWithThreadGuard();
-protected:
-    std::shared_ptr<QRhi> m_guardRhi;
-private:
-    std::shared_ptr<AndroidTextureThread> m_thread;
-};
-
-class AndroidTextureVideoBuffer : public QRhiWithThreadGuard, public QHwVideoBuffer
+class AndroidTextureVideoBuffer : public QHwVideoBuffer
 {
 public:
-    AndroidTextureVideoBuffer(std::shared_ptr<QRhi> rhi,
-                              std::shared_ptr<AndroidTextureThread> thread,
-                              std::unique_ptr<QRhiTexture> tex, const QSize &size)
-        : QRhiWithThreadGuard(std::move(rhi), std::move(thread)),
-          QHwVideoBuffer(QVideoFrame::RhiTextureHandle, m_guardRhi.get()),
+    AndroidTextureVideoBuffer(std::unique_ptr<QRhiTexture> tex, const QSize &size)
+        : QHwVideoBuffer(QVideoFrame::RhiTextureHandle),
           m_size(size),
           m_tex(std::move(tex))
     {}
@@ -86,7 +70,7 @@ class ImageFromVideoFrameHelper : public QHwVideoBuffer
 {
 public:
     ImageFromVideoFrameHelper(AndroidTextureVideoBuffer &atvb)
-        : QHwVideoBuffer(QVideoFrame::RhiTextureHandle, atvb.rhi()), m_atvb(atvb)
+        : QHwVideoBuffer(QVideoFrame::RhiTextureHandle), m_atvb(atvb)
     {}
     QVideoFrameTexturesUPtr mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& oldTextures) override
     {
@@ -305,7 +289,7 @@ public slots:
             m_surfaceTexture->updateTexImage();
             auto matrix = extTransformMatrix(m_surfaceTexture.get());
             auto tex = m_textureCopy->copyExternalTexture(m_size, matrix);
-            auto *buffer = new AndroidTextureVideoBuffer(m_rhi, m_videoOutput->getSurfaceThread(), std::move(tex), m_size);
+            auto *buffer = new AndroidTextureVideoBuffer(std::move(tex), m_size);
             QVideoFrame frame(buffer, QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888));
             emit newFrame(frame);
         }
@@ -362,12 +346,6 @@ private:
     std::unique_ptr<TextureCopy> m_textureCopy;
     QSize m_size;
 };
-
-QRhiWithThreadGuard::~QRhiWithThreadGuard() {
-    // It may happen that reseting m_rhi shared_ptr will delete it (if it is the last reference)
-    // QRHI need to be deleted from the thread that created it.
-    QMetaObject::invokeMethod(m_thread.get(), [&]() {m_guardRhi.reset();}, Qt::BlockingQueuedConnection);
-}
 
 QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject *parent)
     : QAndroidVideoOutput(parent)

@@ -83,12 +83,12 @@ class Q_MULTIMEDIA_EXPORT QHwVideoBuffer : public QAbstractVideoBuffer,
                                            public QVideoFrameTexturesHandles
 {
 public:
-    QHwVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi = nullptr);
+    explicit QHwVideoBuffer(QVideoFrame::HandleType type);
 
     ~QHwVideoBuffer() override;
 
     QVideoFrame::HandleType handleType() const { return m_type; }
-    virtual QRhi *rhi() const { return m_rhi; }
+    virtual QRhi *rhi() const { return nullptr; }
 
     QVideoFrameFormat format() const override { return {}; }
 
@@ -105,7 +105,6 @@ public:
 
 protected:
     QVideoFrame::HandleType m_type;
-    QRhi *m_rhi = nullptr;
 };
 
 QT_END_NAMESPACE
