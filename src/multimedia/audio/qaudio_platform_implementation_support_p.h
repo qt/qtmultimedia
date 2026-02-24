@@ -229,6 +229,7 @@ void QPlatformAudioSinkImplementation<StreamType, DerivedType>::stop()
         m_stream = {};
         updateStreamState(QAudio::StoppedState);
     }
+    setError(QtAudio::NoError);
 }
 
 template <STREAM_TYPE_ARG, typename DerivedType>
@@ -239,12 +240,16 @@ void QPlatformAudioSinkImplementation<StreamType, DerivedType>::reset()
         m_stream = {};
         updateStreamState(QAudio::StoppedState);
     }
+    setError(QtAudio::NoError);
 }
 
 template <STREAM_TYPE_ARG, typename DerivedType>
 void QPlatformAudioSinkImplementation<StreamType, DerivedType>::suspend()
 {
     if (m_stream) {
+        if (state() == QAudio::SuspendedState)
+            return;
+
         m_stream->suspend();
         updateStreamState(QAudio::SuspendedState);
     }
@@ -254,6 +259,9 @@ template <STREAM_TYPE_ARG, typename DerivedType>
 void QPlatformAudioSinkImplementation<StreamType, DerivedType>::resume()
 {
     if (m_stream) {
+        if (state() != QAudio::SuspendedState)
+            return;
+
         updateStreamState(QAudio::ActiveState);
         m_stream->resume();
     }
@@ -503,6 +511,7 @@ void QPlatformAudioSourceImplementation<StreamType, DerivedType>::stop()
 
     m_stream->stop(ShutdownPolicy::DrainRingbuffer);
     m_stream = {};
+    setError(QtAudio::NoError);
     updateStreamState(QAudio::StoppedState);
 }
 
@@ -516,6 +525,7 @@ void QPlatformAudioSourceImplementation<StreamType, DerivedType>::reset()
 
     m_stream->stop(ShutdownPolicy::DiscardRingbuffer);
     m_stream = {};
+    setError(QtAudio::NoError);
     updateStreamState(QAudio::StoppedState);
 }
 
