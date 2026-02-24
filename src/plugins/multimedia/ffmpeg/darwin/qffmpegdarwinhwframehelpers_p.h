@@ -26,7 +26,7 @@ namespace QFFmpeg {
 
 [[nodiscard]] QVideoFrame qVideoFrameFromCvPixelBuffer(
     const QFFmpeg::HWAccel &hwAccel,
-    qint64 presentationTimeStamp,
+    std::chrono::microseconds presentationTimeStamp,
     const QAVFHelpers::QSharedCVPixelBuffer &imageBuffer,
     QVideoFrameFormat format);
 

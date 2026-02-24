@@ -14,6 +14,7 @@
 #undef AVMediaType
 
 #include <optional>
+#include <chrono>
 
 QT_USE_NAMESPACE
 
@@ -23,8 +24,8 @@ QT_USE_NAMESPACE
     QFFmpeg::QAVFSampleBufferDelegateTransformProvider transformationProvider;
     AVBufferRef *hwFramesContext;
     std::unique_ptr<QFFmpeg::HWAccel> m_accel;
-    qint64 startTime;
-    std::optional<qint64> baseTime;
+    std::chrono::microseconds startTime;
+    std::optional<std::chrono::microseconds> baseTime;
     qreal frameRate;
 }
 
@@ -59,9 +60,6 @@ QT_USE_NAMESPACE
     if (!frameHandler)
         return;
 
-    // NB: on iOS captureOutput/connection can be nil (when recording a video -
-    // avfmediaassetwriter).
-
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
     if (!imageBuffer || CFGetTypeID(imageBuffer) != CVPixelBufferGetTypeID()) {
         qWarning() << "Cannot get image buffer from sample buffer";
@@ -72,8 +70,8 @@ QT_USE_NAMESPACE
         imageBuffer,
         QAVFHelpers::QSharedCVPixelBuffer::RefMode::NeedsRef);
 
-    const CMTime time = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
-    const qint64 frameTime = time.timescale ? time.value * 1000000 / time.timescale : 0;
+    std::chrono::microseconds frameTime =
+        QAVFHelpers::CMTimeToMicroseconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer));
     if (!baseTime) {
         baseTime = frameTime;
         startTime = frameTime;
@@ -98,7 +96,7 @@ QT_USE_NAMESPACE
     format.setStreamFrameRate(frameRate);
 
     Q_ASSERT(self->m_accel);
-    auto frame = QFFmpeg::qVideoFrameFromCvPixelBuffer(
+    QVideoFrame frame = QFFmpeg::qVideoFrameFromCvPixelBuffer(
         *m_accel,
         startTime - *baseTime,
         pixelBuffer,
@@ -114,8 +112,8 @@ QT_USE_NAMESPACE
         frame.setMirrored(presentationTransform.mirroredHorizontallyAfterRotation);
     }
 
-    frame.setStartTime(startTime - *baseTime);
-    frame.setEndTime(frameTime - *baseTime);
+    frame.setStartTime((startTime - *baseTime).count());
+    frame.setEndTime((frameTime - *baseTime).count());
     startTime = frameTime;
 
     frameHandler(frame);
