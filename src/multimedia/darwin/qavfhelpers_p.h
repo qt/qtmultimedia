@@ -18,9 +18,12 @@
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideoframeformat.h>
 
+#include <CoreMedia/CoreMedia.h>
 #include <CoreVideo/CVBase.h>
 #include <CoreVideo/CVPixelBuffer.h>
 #include <CoreVideo/CVImageBuffer.h>
+
+#include <chrono>
 
 QT_BEGIN_NAMESPACE
 
@@ -53,6 +56,9 @@ Q_MULTIMEDIA_EXPORT CvPixelFormat toCVPixelFormat(QVideoFrameFormat::PixelFormat
                               QVideoFrameFormat::ColorRange colorRange);
 
 Q_MULTIMEDIA_EXPORT QVideoFrameFormat videoFormatForImageBuffer(CVImageBufferRef buffer, bool openGL = false);
+
+[[nodiscard]] Q_MULTIMEDIA_EXPORT std::chrono::microseconds CMTimeToMicroseconds(const CMTime &);
+
 };
 
 QT_END_NAMESPACE

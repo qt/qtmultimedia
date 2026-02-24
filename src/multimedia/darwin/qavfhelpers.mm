@@ -140,4 +140,12 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
     return format;
 }
 
+std::chrono::microseconds QAVFHelpers::CMTimeToMicroseconds(const CMTime &time)
+{
+    if (!CMTIME_IS_NUMERIC(time) || time.timescale == 0)
+        return {};
+
+    return std::chrono::microseconds((time.value * 1'000'000) / time.timescale);
+}
+
 QT_END_NAMESPACE

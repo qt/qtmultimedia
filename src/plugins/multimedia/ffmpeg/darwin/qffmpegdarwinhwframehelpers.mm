@@ -52,7 +52,7 @@ namespace {
 
 QVideoFrame qVideoFrameFromCvPixelBuffer(
     const QFFmpeg::HWAccel &hwAccel,
-    qint64 presentationTimeStamp,
+    std::chrono::microseconds presentationTimeStamp,
     const QAVFHelpers::QSharedCVPixelBuffer &imageBuffer,
     QVideoFrameFormat format)
 {
@@ -75,7 +75,7 @@ QVideoFrame qVideoFrameFromCvPixelBuffer(
     }
 #endif
 
-    avFrame->pts = presentationTimeStamp;
+    avFrame->pts = presentationTimeStamp.count();
 
     return QVideoFramePrivate::createFrame(
         std::make_unique<QFFmpegVideoBuffer>(std::move(avFrame)),
