@@ -41,7 +41,7 @@ struct QAVFSampleBufferDelegateTransform {
 using QAVFSampleBufferDelegateTransformProvider = std::function<QAVFSampleBufferDelegateTransform(
     const AVCaptureConnection *)>;
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
