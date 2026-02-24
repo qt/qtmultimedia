@@ -41,7 +41,6 @@ QWasmAudioDevice::QWasmAudioDevice(const char *device,
         audioContext = emscripten::val::global("window")["webkitAudioContext"].new_();
 
     if (audioContext != emscripten::val::undefined()) {
-        audioContext.call<void>("resume");
         int sRate = audioContext["sampleRate"].as<int>();
         audioContext.call<void>("close");
         preferredFormat.setSampleRate(sRate);
