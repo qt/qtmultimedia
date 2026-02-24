@@ -324,8 +324,7 @@ void QAudioSink::reset()
 /*!
     Stops processing audio data, preserving buffered audio data.
 
-    Sets error() to QtAudio::NoError, state() to QtAudio::SuspendedState and
-    emits stateChanged() signal.
+    Sets state() to QtAudio::SuspendedState and emits stateChanged() signal.
 */
 void QAudioSink::suspend()
 {
@@ -336,9 +335,8 @@ void QAudioSink::suspend()
 /*!
     Resumes processing audio data after a suspend().
 
-    Sets state() to the state the sink had when suspend() was called, and sets
-    error() to QAudioError::NoError. This function does nothing if the audio sink's
-    state is not QtAudio::SuspendedState.
+    Sets state() to the state the sink had when suspend() was called. This function does nothing if
+    the audio sink's state is not QtAudio::SuspendedState.
 */
 void QAudioSink::resume()
 {

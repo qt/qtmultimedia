@@ -340,10 +340,8 @@ void QAudioSource::suspend()
 /*!
     Resumes processing audio data after a suspend().
 
-    Sets error() to QtAudio::NoError.
-    Sets state() to QtAudio::ActiveState if you previously called start(QIODevice*).
-    Sets state() to QtAudio::IdleState if you previously called start().
-    emits stateChanged() signal.
+    Sets state() to the state the sink had when suspend() was called. This function does nothing if
+    the audio sink's state is not QtAudio::SuspendedState.
 */
 
 void QAudioSource::resume()
