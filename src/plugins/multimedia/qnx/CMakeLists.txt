@@ -37,6 +37,7 @@ qt_internal_add_plugin(QQnxMediaPlugin
         Qt::MultimediaPrivate
         Qt::CorePrivate
         MMRenderer::MMRenderer
+        screen
         strm
         camapi
 )
