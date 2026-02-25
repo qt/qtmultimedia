@@ -79,7 +79,12 @@ QPulseAudioSinkStream::QPulseAudioSinkStream(QAudioDevice device, const QAudioFo
     }
 }
 
-QPulseAudioSinkStream::~QPulseAudioSinkStream() = default;
+QPulseAudioSinkStream::~QPulseAudioSinkStream()
+{
+    QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
+    std::lock_guard engineLock{ *pulseEngine };
+    m_stream = {};
+}
 
 bool QPulseAudioSinkStream::start(QIODevice *device)
 {
