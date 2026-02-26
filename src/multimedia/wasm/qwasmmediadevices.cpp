@@ -134,13 +134,17 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
         emscripten::val mediaDevice = devices[i];
 
         const std::string deviceKind = mediaDevice["kind"].as<std::string>();
-        const std::string label = mediaDevice["label"].as<std::string>();
-        const std::string deviceId = mediaDevice["deviceId"].as<std::string>();
+        std::string label = mediaDevice["label"].as<std::string>();
+        std::string deviceId = mediaDevice["deviceId"].as<std::string>();
 
         qCDebug(qWasmMediaDevices) << QString::fromStdString(deviceKind)
                                    << QString::fromStdString(deviceId)
                                    << QString::fromStdString(label);
 
+        if (deviceId.empty()) { // no permissions we'll use System;
+            label = "System " + deviceKind;
+            deviceId = label;
+        }
         if (deviceKind.empty())
             continue;
         bool isDefault = false;

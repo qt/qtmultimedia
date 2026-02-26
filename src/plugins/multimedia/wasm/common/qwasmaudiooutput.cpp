@@ -215,6 +215,17 @@ void QWasmAudioOutput::createAudioElement(const std::string &id)
     emscripten::val document = emscripten::val::global("document");
     m_audio = document.call<emscripten::val>("createElement", std::string("audio"));
 
+    if (id == "System output") { // defaul output, no perms needed
+        emscripten::val audioContext = emscripten::val::global("window")["AudioContext"].new_();
+        emscripten::val sourceNode = audioContext.call<emscripten::val>("createMediaElementSource", m_audio);
+
+       sourceNode.call<void>("connect", audioContext["destination"]);
+// or control volume // is this needed?
+        // emscripten::val volumeNode = audioContext.call<emscripten::val>("createGain");
+        // sourceNode.call<void>("connect", volumeNode);
+        // volumeNode.call<void>("connect", audioContext["destination"]);
+    }
+
     // only works in chrome and firefox.
     // Firefox this feature is behind media.setsinkid.enabled preferences
     // allows user to choose audio output device
@@ -224,7 +235,7 @@ void QWasmAudioOutput::createAudioElement(const std::string &id)
     }
 
     std::string usableId = id;
-    if (usableId.empty())
+    if (usableId.empty() || usableId == "System output")
         usableId = QMediaDevices::defaultAudioOutput().id();
 
     qstdweb::PromiseCallbacks sinkIdCallbacks{

@@ -365,6 +365,10 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
         return;
     }
 
+    std::string deviceIdString = id;
+    if (deviceIdString.find("System") != std::string::npos)
+        deviceIdString.clear(); // no id is default/any device
+
     qstdweb::PromiseCallbacks getUserMediaCallback{
         // default
         .thenFunc =
