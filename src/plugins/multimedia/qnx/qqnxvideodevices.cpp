@@ -23,8 +23,10 @@ static QVideoFrameFormat::PixelFormat fromCameraFrametype(camera_frametype_t typ
         return QVideoFrameFormat::Format_NV12;
     case CAMERA_FRAMETYPE_RGB8888:
         return QVideoFrameFormat::Format_ARGB8888;
+#if _NTO_VERSION < 800
     case CAMERA_FRAMETYPE_JPEG:
-         return QVideoFrameFormat::Format_Jpeg;
+        return QVideoFrameFormat::Format_Jpeg;
+#endif
     case CAMERA_FRAMETYPE_GRAY8:
         return QVideoFrameFormat::Format_Y8;
     case CAMERA_FRAMETYPE_CBYCRY:
