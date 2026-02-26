@@ -188,7 +188,8 @@ void QWasmMediaRecorder::initUserMedia()
                 return;
             }
         }
-    } else {
+    }
+    if (m_session->hasAudio()) {
         qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << "has audio";
         stream = static_cast<QWasmAudioInput *>(m_session->audioInput())->mediaStream();
 
@@ -196,7 +197,7 @@ void QWasmMediaRecorder::initUserMedia()
             qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << "Audio input stream not found";
             return;
         }
-        m_jsMediaRecorderDevice->setNeedsAudio(true);
+        m_jsMediaRecorderDevice->setNeedsAudio(m_session->hasAudio());
     }
     if (stream.isNull() || stream.isUndefined()) {
          qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << "No input stream found";
