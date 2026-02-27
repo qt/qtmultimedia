@@ -98,22 +98,34 @@ void PlaybackEngineObject::scheduleNextStep()
     if (m_stepType == StepType::Immediate)
         return;
 
-    std::optional<TimePoint> now;
+    std::optional<TimePoint> nowCached;
+    auto now = [&nowCached, this]() {
+        Q_ASSERT(m_nextTimePoint);
+
+        if (!nowCached) {
+            Q_ASSERT(m_nextTimePoint);
+            if (*m_nextTimePoint == TimePoint::min())
+                // 2 optimizations: reduce invoking SteadyClock::now() and timer's restarts
+                nowCached = TimePoint::min();
+            else
+                nowCached = SteadyClock::now();
+        }
+
+        return *nowCached;
+    };
 
     if (m_stepType == StepType::None && m_nextTimePoint) {
-        if (now = SteadyClock::now(); *m_nextTimePoint <= *now) {
+        if (*m_nextTimePoint <= now()) {
             m_nextTimePoint.reset();
             doNextStep(StepType::Immediate);
-            now.reset(); // doNextStep() may take some time, 'now' is not valid anymore
+            nowCached.reset(); // doNextStep() may take some time, 'now' is not valid anymore
         }
     }
 
     if (m_nextTimePoint) {
-        if (!now)
-            now = SteadyClock::now();
-        *m_nextTimePoint = std::max(*m_nextTimePoint, *now);
-        if (!m_timePoint || *m_nextTimePoint != std::max(*m_timePoint, *now)) {
-            timer().setInterval(*m_nextTimePoint - *now);
+        *m_nextTimePoint = std::max(*m_nextTimePoint, now());
+        if (!m_timePoint || *m_nextTimePoint != std::max(*m_timePoint, now())) {
+            timer().setInterval(*m_nextTimePoint - now());
             timer().start();
         }
     } else if (m_timePoint) {
