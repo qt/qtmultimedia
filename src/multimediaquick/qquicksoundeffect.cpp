@@ -2,26 +2,17 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qquicksoundeffect_p.h"
-#include <QtQml/qqmlcontext.h>
+
+#include <QtMultimedia/private/qsoundeffect_p.h>
+#include <QtMultimediaQuick/private/qqmlcontext_source_resolver_p.h>
 
 QT_BEGIN_NAMESPACE
 
-QQuickSoundEffect::QQuickSoundEffect(QObject *parent) : QSoundEffect(parent) { }
-
-void QQuickSoundEffect::qmlSetSource(const QUrl &source)
+QQuickSoundEffect::QQuickSoundEffect(QObject *parent) : QSoundEffect(parent)
 {
-    if (m_source == source)
-        return;
-
-    m_source = source;
-    const QQmlContext *context = qmlContext(this);
-    setSource(context ? context->resolvedUrl(source) : source);
-    emit sourceChanged(source);
-}
-
-QUrl QQuickSoundEffect::qmlSource() const
-{
-    return m_source;
+    auto *fxPrivate = QSoundEffectPrivate::get(this);
+    fxPrivate->m_sourceResolver =
+            std::make_unique<QMultimediaPrivate::QQmlContextSourceResolver>(this);
 }
 
 QT_END_NAMESPACE

@@ -23,6 +23,7 @@
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/private/qsamplecache_p.h>
+#include <QtMultimedia/private/qmultimedia_source_resolver_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -33,8 +34,9 @@ class QSoundEffectPrivate : public QObjectPrivate
 public:
     virtual bool setAudioDevice(QAudioDevice device) = 0;
     virtual QAudioDevice audioDevice() const = 0;
-    virtual bool setSource(const QUrl &, QSampleCache &) = 0;
-    virtual QUrl url() const = 0;
+
+    void resolveAndSetSource(const QUrl &, QSampleCache &);
+    QUrl url() const;
 
     virtual QSoundEffect::Status status() const = 0;
 
@@ -52,6 +54,16 @@ public:
     virtual bool playing() const = 0;
 
     static Q_MULTIMEDIA_EXPORT QSoundEffectPrivate *get(QSoundEffect *);
+
+    using AbstractSourceResolver = QMultimediaPrivate::AbstractSourceResolver;
+    using TrivialSourceResolver = QMultimediaPrivate::TrivialSourceResolver;
+
+    QUrl m_unresolvedUrl;
+    std::unique_ptr<const AbstractSourceResolver> m_sourceResolver =
+            std::make_unique<TrivialSourceResolver>();
+
+private:
+    virtual void setSource(QUrl, QSampleCache &) = 0;
 };
 
 QT_END_NAMESPACE

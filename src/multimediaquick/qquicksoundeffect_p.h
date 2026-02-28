@@ -25,21 +25,10 @@ QT_BEGIN_NAMESPACE
 class Q_MULTIMEDIAQUICK_EXPORT QQuickSoundEffect : public QSoundEffect
 {
     Q_OBJECT
-    Q_PROPERTY(QUrl source READ qmlSource WRITE qmlSetSource NOTIFY sourceChanged)
     QML_NAMED_ELEMENT(SoundEffect)
 
 public:
     QQuickSoundEffect(QObject *parent = nullptr);
-
-    void qmlSetSource(const QUrl &source);
-
-    QUrl qmlSource() const;
-
-Q_SIGNALS:
-    void sourceChanged(const QUrl &source);
-
-private:
-    QUrl m_source;
 };
 
 QT_END_NAMESPACE

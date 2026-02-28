@@ -185,11 +185,11 @@ void QSoundEffect::setSource(const QUrl &url)
     qCDebug(qLcSoundEffect) << this << "setSource current=" << d->url() << ", to=" << url;
     if (d->url() == url)
         return;
-
     stop();
 
-    if (d->setSource(url, *sampleCache()))
-        emit sourceChanged();
+    d->resolveAndSetSource(url, *sampleCache());
+
+    emit sourceChanged();
 }
 
 /*!
@@ -575,6 +575,18 @@ void QSoundEffect::stop()
 
     The \c statusChanged signal is emitted when the status property has changed.
 */
+
+void QSoundEffectPrivate::resolveAndSetSource(const QUrl &url, QSampleCache &cache)
+{
+    m_unresolvedUrl = url;
+    QUrl resolvedUrl = m_sourceResolver->resolve(url);
+    setSource(std::move(resolvedUrl), cache);
+}
+
+QUrl QSoundEffectPrivate::url() const
+{
+    return m_unresolvedUrl;
+}
 
 QSoundEffectPrivate *QSoundEffectPrivate::get(QSoundEffect *sfx)
 {

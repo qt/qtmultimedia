@@ -26,7 +26,6 @@ QT_BEGIN_NAMESPACE
 class Q_MULTIMEDIAQUICK_EXPORT QQuickMediaPlayer : public QMediaPlayer
 {
     Q_OBJECT
-    Q_PROPERTY(QUrl source READ qmlSource WRITE qmlSetSource NOTIFY qmlSourceChanged FINAL)
 
     Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged FINAL)
 
@@ -35,9 +34,6 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickMediaPlayer : public QMediaPlayer
 public:
     QQuickMediaPlayer(QObject *parent = nullptr);
 
-    void qmlSetSource(const QUrl &source);
-    QUrl qmlSource() const;
-
     bool autoPlay() const;
     void setAutoPlay(bool autoPlay);
 
@@ -45,11 +41,9 @@ private:
     void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
 
 Q_SIGNALS:
-    void qmlSourceChanged(const QUrl &source);
     void autoPlayChanged(bool autoPlay);
 
 private:
-    QUrl m_source;
     bool m_autoPlay = false;
     bool m_wasMediaLoaded = false;
 };

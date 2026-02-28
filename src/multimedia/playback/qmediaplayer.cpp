@@ -125,12 +125,14 @@ void QMediaPlayerPrivate::setError(QMediaPlayer::Error error, const QString &err
     this->error.setAndNotify(error, errorString, *q);
 }
 
-void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
+void QMediaPlayerPrivate::setMedia(QUrl media, QIODevice *stream)
 {
     setError(QMediaPlayer::NoError, {});
 
     if (!control)
         return;
+
+    media = m_sourceResolver->resolve(media);
 
     auto setErrorFn = [&](
         QMediaPlayer::MediaStatus status,

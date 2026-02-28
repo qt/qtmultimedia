@@ -243,7 +243,7 @@ QAudioDevice QSoundEffectPrivateWithPlayer::audioDevice() const
     return m_audioDevice;
 }
 
-bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sampleCache)
+void QSoundEffectPrivateWithPlayer::setSource(QUrl url, QSampleCache &sampleCache)
 {
     if (m_sampleLoadFuture) {
         m_sampleLoadFuture->cancelChain();
@@ -259,23 +259,22 @@ bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sam
         m_playerReleaseTimer.start();
     }
 
-    m_url = url;
     m_sample = {};
 
     if (url.isEmpty()) {
         setStatus(QSoundEffect::Null);
-        return false;
+        return;
     }
 
     if (!url.isValid()) {
         setStatus(QSoundEffect::Error);
-        return false;
+        return;
     }
 
     setStatus(QSoundEffect::Loading);
 
     m_sampleLoadFuture =
-            sampleCache.requestSampleFuture(url).then(this, [this](SharedSamplePtr result) {
+            sampleCache.requestSampleFuture(url).then(this, [this, url](SharedSamplePtr result) {
         if (result) {
             if (!formatIsSupported(result->format())) {
                 qWarning("QSoundEffect: QSoundEffect only supports mono or stereo files");
@@ -297,17 +296,10 @@ bool QSoundEffectPrivateWithPlayer::setSource(const QUrl &url, QSampleCache &sam
                 play();
             }
         } else {
-            qWarning("QSoundEffect: Error decoding source %ls", qUtf16Printable(m_url.toString()));
+            qWarning("QSoundEffect: Error decoding source %ls", qUtf16Printable(url.toString()));
             setStatus(QSoundEffect::Error);
         }
     });
-
-    return true;
-}
-
-QUrl QSoundEffectPrivateWithPlayer::url() const
-{
-    return m_url;
 }
 
 void QSoundEffectPrivateWithPlayer::setStatus(QSoundEffect::Status status)

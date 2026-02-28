@@ -66,10 +66,9 @@ public:
 
     bool setAudioDevice(QAudioDevice device) override;
 
-    bool setSource(const QUrl &url, QSampleCache &sampleCache) override;
+    void setSource(QUrl, QSampleCache &) override;
 
     QSoundEffect::Status status() const override;
-    QUrl url() const override;
     QAudioDevice audioDevice() const override;
 
 private:
@@ -89,7 +88,7 @@ private:
     qint64 m_offset = 0;
 
     QFuture<void> m_sampleLoadFuture;
-    QUrl m_url;
+    QUrl m_url; // unresolved url
     QSoundEffect::Status m_status = QSoundEffect::Null;
     bool m_sampleReady = false;
 };

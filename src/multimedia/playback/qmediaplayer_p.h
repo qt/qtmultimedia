@@ -23,6 +23,7 @@
 #include <QtMultimedia/qplaybackoptions.h>
 #include <QtMultimedia/private/qplatformmediaplayer_p.h>
 #include <QtMultimedia/private/qerrorinfo_p.h>
+#include <QtMultimedia/private/qmultimedia_source_resolver_p.h>
 
 #include <QtCore/qobject.h>
 #include <QtCore/qpointer.h>
@@ -63,7 +64,7 @@ public:
     QMediaPlayer::PlaybackState state = QMediaPlayer::StoppedState;
     QErrorInfo<QMediaPlayer::Error> error;
 
-    void setMedia(const QUrl &media, QIODevice *stream = nullptr);
+    void setMedia(QUrl media, QIODevice *stream = nullptr);
 
     QList<QMediaMetaData> trackMetaData(QPlatformMediaPlayer::TrackType s) const;
 
@@ -85,6 +86,11 @@ public:
             control->setVideoSink(sink);
         emit q->videoOutputChanged();
     }
+
+    using AbstractSourceResolver = QMultimediaPrivate::AbstractSourceResolver;
+    using TrivialSourceResolver = QMultimediaPrivate::TrivialSourceResolver;
+    std::unique_ptr<const AbstractSourceResolver> m_sourceResolver =
+            std::make_unique<TrivialSourceResolver>();
 };
 
 QT_END_NAMESPACE

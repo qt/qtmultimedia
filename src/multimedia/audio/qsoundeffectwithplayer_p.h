@@ -81,8 +81,7 @@ public:
     // QSoundEffectPrivate interface
     bool setAudioDevice(QAudioDevice device) override;
     QAudioDevice audioDevice() const override;
-    bool setSource(const QUrl &, QSampleCache &) override;
-    QUrl url() const override;
+    void setSource(QUrl, QSampleCache &) override;
     QSoundEffect::Status status() const override;
     int loopCount() const override;
     bool setLoopCount(int) override;
@@ -115,7 +114,6 @@ private:
     int m_loopsRemaining{ 0 };
 
     std::optional<QFuture<void>> m_sampleLoadFuture;
-    QUrl m_url;
     SharedSamplePtr m_sample;
     float m_volume = 1.f;
     bool m_muted = false;

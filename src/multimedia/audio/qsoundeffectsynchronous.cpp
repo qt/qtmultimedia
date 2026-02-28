@@ -350,7 +350,7 @@ bool QSoundEffectPrivateSynchronous::setAudioDevice(QAudioDevice device)
     return true;
 }
 
-bool QSoundEffectPrivateSynchronous::setSource(const QUrl &url, QSampleCache &sampleCache)
+void QSoundEffectPrivateSynchronous::setSource(QUrl url, QSampleCache &sampleCache)
 {
     if (m_sampleLoadFuture.isValid())
         m_sampleLoadFuture.cancel();
@@ -360,12 +360,12 @@ bool QSoundEffectPrivateSynchronous::setSource(const QUrl &url, QSampleCache &sa
 
     if (url.isEmpty()) {
         setStatus(QSoundEffect::Null);
-        return false;
+        return;
     }
 
     if (!url.isValid()) {
         setStatus(QSoundEffect::Error);
-        return false;
+        return;
     }
 
     setStatus(QSoundEffect::Loading);
@@ -385,17 +385,12 @@ bool QSoundEffectPrivateSynchronous::setSource(const QUrl &url, QSampleCache &sa
             decoderError();
     });
 
-    return true;
+    return;
 }
 
 QSoundEffect::Status QSoundEffectPrivateSynchronous::status() const
 {
     return m_status;
-}
-
-QUrl QSoundEffectPrivateSynchronous::url() const
-{
-    return m_url;
 }
 
 QAudioDevice QSoundEffectPrivateSynchronous::audioDevice() const

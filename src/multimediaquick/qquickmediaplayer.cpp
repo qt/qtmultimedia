@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qquickmediaplayer_p.h"
-#include <QtQml/qqmlcontext.h>
+
+#include <QtMultimedia/private/qmediaplayer_p.h>
+#include <QtMultimediaQuick/private/qqmlcontext_source_resolver_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -10,22 +12,10 @@ QQuickMediaPlayer::QQuickMediaPlayer(QObject *parent) : QMediaPlayer(parent)
 {
     connect(this, &QMediaPlayer::mediaStatusChanged, this,
             &QQuickMediaPlayer::onMediaStatusChanged);
-}
 
-void QQuickMediaPlayer::qmlSetSource(const QUrl &source)
-{
-    if (m_source == source)
-        return;
-    m_source = source;
-    const QQmlContext *context = qmlContext(this);
-    setSource(context ? context->resolvedUrl(source) : source);
-    m_wasMediaLoaded = false;
-    emit qmlSourceChanged(source);
-}
-
-QUrl QQuickMediaPlayer::qmlSource() const
-{
-    return m_source;
+    auto *playerPrivate = QMediaPlayerPrivate::get(this);
+    playerPrivate->m_sourceResolver =
+            std::make_unique<QMultimediaPrivate::QQmlContextSourceResolver>(this);
 }
 
 void QQuickMediaPlayer::onMediaStatusChanged(QMediaPlayer::MediaStatus status)
