@@ -16,14 +16,9 @@
 //
 
 #include <QtSpatialAudio/qspatialsound.h>
+
 #include <QtSpatialAudio/private/qambientsound_p.h>
-#include <QtSpatialAudio/private/qaudioengine_p.h>
-#include <QtCore/qurl.h>
-#include <QtCore/qmutex.h>
-#include <QtGui/qquaternion.h>
-#include <QtGui/qvector3d.h>
-#include <QtMultimedia/qaudiobuffer.h>
-#include <QtMultimedia/qaudiodevice.h>
+#include <QtCore/private/qobject_p.h>
 
 QT_BEGIN_NAMESPACE
 

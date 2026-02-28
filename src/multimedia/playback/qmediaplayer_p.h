@@ -16,20 +16,20 @@
 //
 
 #include "qmediaplayer.h"
-#include "qmediametadata.h"
-#include "qvideosink.h"
-#include "qaudiooutput.h"
-#include "qaudiobufferoutput.h"
-#include "qplaybackoptions.h"
-#include <private/qplatformmediaplayer_p.h>
-#include <private/qerrorinfo_p.h>
+#include <QtMultimedia/qmediametadata.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qaudiobufferoutput.h>
+#include <QtMultimedia/qplaybackoptions.h>
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
+#include <QtMultimedia/private/qerrorinfo_p.h>
 
-#include "private/qobject_p.h"
 #include <QtCore/qobject.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qtimer.h>
+#include <QtCore/private/qobject_p.h>
 
 #include <memory>
 

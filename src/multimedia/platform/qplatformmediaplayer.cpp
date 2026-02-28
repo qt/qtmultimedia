@@ -4,7 +4,6 @@
 #include "qplatformmediaplayer_p.h"
 #include <private/qmediaplayer_p.h>
 #include "qmediaplayer.h"
-#include "qplatformaudiodevices_p.h"
 #include "qplatformmediaintegration_p.h"
 
 QT_BEGIN_NAMESPACE
