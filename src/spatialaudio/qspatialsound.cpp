@@ -512,9 +512,9 @@ void QSpatialSound::setSource(const QUrl &url)
 {
     Q_D(QSpatialSound);
 
-    if (d->url == url)
+    if (d->url() == url)
         return;
-    d->url = url;
+    d->setUrl(url);
 
     d->load();
     emit sourceChanged();
@@ -524,7 +524,7 @@ QUrl QSpatialSound::source() const
 {
     Q_D(const QSpatialSound);
 
-    return d->url;
+    return d->url();
 }
 
 /*!

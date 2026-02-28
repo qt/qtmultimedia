@@ -15,6 +15,11 @@
 
 QT_BEGIN_NAMESPACE
 
+void QAmbientSoundPrivate::setUrl(const QUrl &url)
+{
+    m_url = url;
+}
+
 void QAmbientSoundPrivate::load()
 {
     decoder = std::make_unique<QAudioDecoder>();
@@ -34,6 +39,8 @@ void QAmbientSoundPrivate::load()
     f.setSampleRate(ep->sampleRate());
     f.setChannelConfig(nchannels == 2 ? QAudioFormat::ChannelConfigStereo : QAudioFormat::ChannelConfigMono);
     decoder->setAudioFormat(f);
+
+    QUrl url = m_sourceResolver->resolve(m_url);
     if (url.scheme().compare(u"qrc", Qt::CaseInsensitive) == 0) {
         auto qrcFile = std::make_unique<QFile>(u':' + url.path());
         if (!qrcFile->open(QFile::ReadOnly))
@@ -85,7 +92,7 @@ void QAmbientSoundPrivate::getBuffer(float *buf, int nframes, int channels)
             } else {
                 // no more data available
                 if (m_loading)
-                    qDebug() << "underrun" << frames << "frames when loading" << url;
+                    qDebug() << "underrun" << frames << "frames when loading" << url();
                 memset(ff, 0, frames * channels * sizeof(float));
                 ff += frames * channels;
                 frames = 0;
@@ -160,9 +167,9 @@ float QAmbientSound::volume() const
 void QAmbientSound::setSource(const QUrl &url)
 {
     Q_D(QAmbientSound);
-    if (d->url == url)
+    if (d->url() == url)
         return;
-    d->url = url;
+    d->setUrl(url);
 
     d->load();
     emit sourceChanged();
@@ -176,7 +183,7 @@ void QAmbientSound::setSource(const QUrl &url)
 QUrl QAmbientSound::source() const
 {
     Q_D(const QAmbientSound);
-    return d->url;
+    return d->url();
 }
 /*!
     \enum QAmbientSound::Loops

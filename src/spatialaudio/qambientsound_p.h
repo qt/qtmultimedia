@@ -23,6 +23,7 @@
 #include <QtCore/private/qobject_p.h>
 #include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/private/qmultimedia_source_resolver_p.h>
 
 #include <atomic>
 #include <memory>
@@ -44,7 +45,13 @@ public:
         return soundSource ? soundSource->d_func() : nullptr;
     }
 
-    QUrl url;
+    QUrl url() const { return m_url; }
+    void setUrl(const QUrl &url);
+
+private:
+    QUrl m_url; // unresolved URL
+
+public:
     float volume = 1.;
     int nchannels = 2;
     std::unique_ptr<QAudioDecoder> decoder;
@@ -79,6 +86,11 @@ public:
 
     void load();
     void getBuffer(float *buf, int frames, int channels);
+
+    using AbstractSourceResolver = QMultimediaPrivate::AbstractSourceResolver;
+    using TrivialSourceResolver = QMultimediaPrivate::TrivialSourceResolver;
+    std::unique_ptr<const AbstractSourceResolver> m_sourceResolver =
+            std::make_unique<TrivialSourceResolver>();
 };
 
 QT_END_NAMESPACE

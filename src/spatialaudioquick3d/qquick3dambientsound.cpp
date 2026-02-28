@@ -3,12 +3,10 @@
 
 #include "qquick3dambientsound_p.h"
 
+#include <QtQuick3DSpatialAudio/private/qqml_or_current_path_source_resolver_p.h>
 #include <QtQuick3DSpatialAudio/private/qquick3daudioengine_p.h>
 #include <QtSpatialAudio/qambientsound.h>
-
-#include <QtCore/qdir.h>
-#include <QtQml/qqmlcontext.h>
-#include <QtQml/qqmlfile.h>
+#include <QtSpatialAudio/private/qambientsound_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -33,6 +31,10 @@ QQuick3DAmbientSound::QQuick3DAmbientSound()
     connect(m_sound, &QAmbientSound::volumeChanged, this, &QQuick3DAmbientSound::volumeChanged);
     connect(m_sound, &QAmbientSound::loopsChanged, this, &QQuick3DAmbientSound::loopsChanged);
     connect(m_sound, &QAmbientSound::autoPlayChanged, this, &QQuick3DAmbientSound::autoPlayChanged);
+
+    auto *soundPrivate = QAmbientSoundPrivate::get(m_sound);
+    soundPrivate->m_sourceResolver =
+            std::make_unique<QMultimediaPrivate::QQmlContextOrCurrentPathSourceResolver>(this);
 }
 
 QQuick3DAmbientSound::~QQuick3DAmbientSound()
@@ -52,15 +54,7 @@ QUrl QQuick3DAmbientSound::source() const
 
 void QQuick3DAmbientSound::setSource(QUrl source)
 {
-    const QQmlContext *context = qmlContext(this);
-    QUrl url;
-    if (context) {
-        url = context->resolvedUrl(source);
-    } else {
-        url = QUrl::fromLocalFile(QDir::currentPath() + u"/");
-        url = url.resolved(source);
-    }
-    m_sound->setSource(url);
+    m_sound->setSource(source);
 }
 
 /*!
