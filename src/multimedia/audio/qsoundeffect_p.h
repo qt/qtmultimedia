@@ -19,7 +19,6 @@
 #include <QtCore/private/qobject_p.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qsoundeffect.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
