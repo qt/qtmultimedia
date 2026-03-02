@@ -60,6 +60,10 @@ void QSpatialSound::setPosition(QVector3D pos)
     if (!ep)
         return;
 
+    if (pos == d->unscaledPosition)
+        return;
+
+    d->unscaledPosition = pos;
     pos *= ep->distanceScale();
     d->pos = pos;
     ep->resonanceAudio->api->SetSourcePosition(d->sourceId, pos.x(), pos.y(), pos.z());
@@ -81,6 +85,8 @@ QVector3D QSpatialSound::position() const
 void QSpatialSound::setRotation(const QQuaternion &q)
 {
     Q_D(QSpatialSound);
+    if (d->rotation == q)
+        return;
 
     d->rotation = q;
     auto *ep = QAudioEnginePrivate::get(d->engine);
