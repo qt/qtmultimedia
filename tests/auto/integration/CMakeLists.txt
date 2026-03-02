@@ -39,6 +39,9 @@ if(TARGET Qt::Quick)
 
     if(NOT UIKIT AND NOT ANDROID AND NOT QNX AND NOT VXWORKS) # FIXME: Add support for cross-compiled platforms by adding qml files as resources
         add_subdirectory(qml)
+        if (QT_FEATURE_spatialaudio_quick3d)
+            add_subdirectory(spatialaudio_qml)
+        endif()
     endif()
 
 endif()
