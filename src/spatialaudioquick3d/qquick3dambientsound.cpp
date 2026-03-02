@@ -3,7 +3,7 @@
 
 #include "qquick3dambientsound_p.h"
 
-#include <QtQuick3DSpatialAudio/private/qqml_or_current_path_source_resolver_p.h>
+#include <QtMultimediaQuick/private/qqmlcontext_source_resolver_p.h>
 #include <QtQuick3DSpatialAudio/private/qquick3daudioengine_p.h>
 #include <QtSpatialAudio/qambientsound.h>
 #include <QtSpatialAudio/private/qambientsound_p.h>
@@ -34,7 +34,7 @@ QQuick3DAmbientSound::QQuick3DAmbientSound()
 
     auto *soundPrivate = QAmbientSoundPrivate::get(m_sound);
     soundPrivate->m_sourceResolver =
-            std::make_unique<QMultimediaPrivate::QQmlContextOrCurrentPathSourceResolver>(this);
+            std::make_unique<QMultimediaPrivate::QQmlContextSourceResolver>(this);
 }
 
 QQuick3DAmbientSound::~QQuick3DAmbientSound()

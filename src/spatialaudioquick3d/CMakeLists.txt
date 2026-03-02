@@ -23,7 +23,6 @@ qt_internal_add_qml_module(Quick3DSpatialAudioPrivate
         qquick3daudioengine.cpp qquick3daudioengine_p.h
         qtquick3daudioglobal_p.h
         qtquick3daudiotypes_p.h
-        qqml_or_current_path_source_resolver.cpp qqml_or_current_path_source_resolver_p.h
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII

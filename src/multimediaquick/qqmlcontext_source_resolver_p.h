@@ -22,7 +22,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QMultimediaPrivate {
 
-class Q_MULTIMEDIAQUICK_EXPORT QQmlContextSourceResolver : public AbstractSourceResolver
+class Q_MULTIMEDIAQUICK_EXPORT QQmlContextSourceResolver final : public AbstractSourceResolver
 {
 public:
     explicit QQmlContextSourceResolver(QObject *objectForContext);
