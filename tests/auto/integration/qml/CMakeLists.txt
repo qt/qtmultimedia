@@ -10,6 +10,5 @@ qt_internal_add_test(tst_multimedia_qml
         soundeffect/tst_soundeffect.qml
     LIBRARIES
         Qt6::Quick
-        Qt6::Multimedia
         Qt6::QuickTest
 )
