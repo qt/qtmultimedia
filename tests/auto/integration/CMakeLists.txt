@@ -42,6 +42,10 @@ if(TARGET Qt::Quick)
     endif()
 
 endif()
+if(QT_FEATURE_spatialaudio)
+    add_subdirectory(qspatialaudio)
+endif()
+
 
 if(QT_FEATURE_static)
     add_subdirectory(static_linking)
