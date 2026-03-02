@@ -106,6 +106,7 @@ private:
     emscripten::val m_jsMediaDevicesInterface = emscripten::val::undefined();
     bool m_initDone = false;
     bool m_firstInit = false;
+    emscripten::val devicesList;
 };
 
 QT_END_NAMESPACE

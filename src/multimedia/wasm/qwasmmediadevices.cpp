@@ -234,17 +234,30 @@ void QWasmMediaDevices::getMediaDevices()
         return;
     }
 
-    if (qstdweb::haveAsyncify()) {
-#ifdef QT_HAVE_EMSCRIPTEN_ASYNCIFY
-        emscripten::val devicesList = m_jsMediaDevicesInterface.call<emscripten::val>("enumerateDevices").await();
-        if (devicesList.isNull() || devicesList.isUndefined()) {
-            qWarning() << "devices list error";
-            return;
-        }
+        if (qstdweb::haveAsyncify()) {
 
-        parseDevices(devicesList);
+#ifdef QT_HAVE_EMSCRIPTEN_ASYNCIFY
+        auto asyncEnumerate = [](void *arg){
+            QWasmMediaDevices *mediaDevices = static_cast<QWasmMediaDevices *>(arg);
+            mediaDevices->devicesList = mediaDevices->m_jsMediaDevicesInterface.call<emscripten::val>("enumerateDevices").await();
+            if (mediaDevices->devicesList.isNull() || mediaDevices->devicesList.isUndefined()) {
+                qWarning() << "devices list error";
+                return;
+            }
+            mediaDevices->parseDevices(mediaDevices->devicesList);
+        };
+
+        asyncEnumerate(this);
+
+        m_deviceChangedCallback = std::make_unique<qstdweb::EventCallback>(
+                m_jsMediaDevicesInterface, "devicechange",
+                [this, asyncEnumerate](emscripten::val) {
+                    asyncEnumerate(this);
+                });
 #endif
+
     } else {
+
         qstdweb::PromiseCallbacks enumerateDevicesCallback{
             .thenFunc =
             [&](emscripten::val devices) {
