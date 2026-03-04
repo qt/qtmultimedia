@@ -125,7 +125,7 @@ void QAudioDeviceMonitor::objectAdded(ObjectId id, uint32_t /*permissions*/,
             // and wait for the result before updating the device list
             pendingRecords.emplace_back(id, *serial, deviceSerial, std::move(props));
             pendingRecords.back().formatFuture.then(
-                    &m_compressionTimer, [this](std::optional<SpaObjectAudioFormat> const &) {
+                    &m_compressionTimer, [this](std::vector<SpaObjectAudioFormat> const &) {
                 startCompressionTimer();
             });
         };
@@ -317,12 +317,9 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
     }
 
     for (PendingNodeRecord &record : addedNodes) {
-        QList<std::optional<SpaObjectAudioFormat>> results = record.formatFuture.results();
-        results.removeIf([](std::optional<SpaObjectAudioFormat> const &arg) {
-            return !arg.has_value();
-        });
+        std::vector<SpaObjectAudioFormat> results = record.formatFuture.result();
 
-        results.removeIf([](std::optional<SpaObjectAudioFormat> const &arg) {
+        q20::erase_if(results, [](SpaObjectAudioFormat const &arg) {
             const bool isIEC61937EncapsulatedDevice = std::visit([](const auto &format) {
                 if constexpr (std::is_same_v<std::decay_t<decltype(format)>,
                                              spa_audio_iec958_codec>) {
@@ -330,16 +327,15 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
                     return format != SPA_AUDIO_IEC958_CODEC_PCM;
                 } else
                     return false;
-            }, arg->sampleTypes);
+            }, arg.sampleTypes);
             return isIEC61937EncapsulatedDevice;
         });
 
         // sort to list non-iec958 devices first
         std::sort(results.begin(), results.end(),
-                  [](std::optional<SpaObjectAudioFormat> const &lhs,
-                     std::optional<SpaObjectAudioFormat> const &rhs) {
-            auto lhs_has_iec958 = std::holds_alternative<spa_audio_iec958_codec>(lhs->sampleTypes);
-            auto rhs_has_iec958 = std::holds_alternative<spa_audio_iec958_codec>(rhs->sampleTypes);
+                  [](SpaObjectAudioFormat const &lhs, SpaObjectAudioFormat const &rhs) {
+            auto lhs_has_iec958 = std::holds_alternative<spa_audio_iec958_codec>(lhs.sampleTypes);
+            auto rhs_has_iec958 = std::holds_alternative<spa_audio_iec958_codec>(rhs.sampleTypes);
             return lhs_has_iec958 < rhs_has_iec958;
         });
 
@@ -354,7 +350,7 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
                     record.serial,
                     record.deviceSerial,
                     std::move(record.properties),
-                    std::move(*results[0]),
+                    std::move(results.front()),
             });
         } else {
             qCDebug(lcPipewireDeviceMonitor)
@@ -566,14 +562,16 @@ QAudioDeviceMonitor::PendingNodeRecord::PendingNodeRecord(ObjectId object, Objec
 {
     Q_ASSERT(QAudioContextManager::isInPwThreadLoop());
 
-    auto promise = std::make_shared<QPromise<std::optional<SpaObjectAudioFormat>>>();
+    auto promise = std::make_shared<QPromise<std::vector<SpaObjectAudioFormat>>>();
     formatFuture = promise->future();
-    promise->start();
 
-    auto onParam = [promise](int /*seq*/, uint32_t /*id*/, uint32_t /*index*/, uint32_t /*next*/,
-                             const struct spa_pod *param) mutable {
+    auto shared_results = std::make_shared<std::vector<SpaObjectAudioFormat>>();
+
+    auto onParam = [shared_results](int /*seq*/, uint32_t /*id*/, uint32_t /*index*/,
+                                    uint32_t /*next*/, const struct spa_pod *param) mutable {
         std::optional<SpaObjectAudioFormat> format = SpaObjectAudioFormat::parse(param);
-        promise->addResult(format);
+        if (format)
+            shared_results->emplace_back(*format);
     };
 
     QAudioContextManager::withEventLoopLock([&] {
@@ -592,7 +590,10 @@ QAudioDeviceMonitor::PendingNodeRecord::PendingNodeRecord(ObjectId object, Objec
         // multiple formats. e.g. hdmi devices potentially report "raw" pcm and iec958. so we sync
         // with the pipewire server, to act as barrier.
         enumFormatDoneListener = std::make_unique<CoreEventDoneListener>();
-        enumFormatDoneListener->asyncWait(context->coreConnection().get(), [promise] {
+        enumFormatDoneListener->asyncWait(context->coreConnection().get(),
+                                          [promise, shared_results] {
+            promise->start();
+            promise->emplaceResult(std::move(*shared_results));
             promise->finish();
         });
     });
