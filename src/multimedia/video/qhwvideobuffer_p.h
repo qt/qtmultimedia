@@ -88,7 +88,10 @@ public:
     ~QHwVideoBuffer() override;
 
     QVideoFrame::HandleType handleType() const { return m_type; }
-    virtual QRhi *rhi() const { return nullptr; }
+
+    // returns rhi in the current thread that has been associated with the frame
+    // during texture mapping or texture converter initialization.
+    virtual QRhi *associatedCurrentThreadRhi() const { return nullptr; }
 
     QVideoFrameFormat format() const override { return {}; }
 

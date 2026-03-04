@@ -48,7 +48,7 @@ public:
 
     void initTextureConverter(QRhi &rhi) override;
 
-    QRhi *rhi() const override;
+    QRhi *associatedCurrentThreadRhi() const override;
 
     QVideoFrameFormat::ColorSpace colorSpace() const;
     QVideoFrameFormat::ColorTransfer colorTransfer() const;
