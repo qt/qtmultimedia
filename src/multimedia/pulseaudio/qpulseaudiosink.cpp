@@ -126,7 +126,8 @@ void QPulseAudioSinkStream::stop(ShutdownPolicy policy)
 
     uninstallCallbacks();
     // Note: we need to cork to ensure that the stream is stopped immediately
-    std::ignore = streamCork(m_stream, true);
+    auto op = streamCork(m_stream, true);
+    pulseEngine->waitForAsyncOperation(op);
 
     if (m_audioCallback) {
         switch (policy) {
