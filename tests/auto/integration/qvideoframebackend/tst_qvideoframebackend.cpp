@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtCore/qdebug.h>
+#include <QtCore/qthreadpool.h>
 #include <QtGui/rhi/qrhi.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qvideoframe.h>
@@ -14,7 +15,7 @@
 #include <private/qvideowindow_p.h>
 #include <private/testvideosink_p.h>
 
-#include <thread>
+#include <list>
 
 QT_USE_NAMESPACE
 
@@ -258,31 +259,39 @@ void tst_QVideoFrameBackend::toImage_returnsImage_whenCalledFromSeparateThreadAn
     player.setVideoOutput(&window);
 
     const QVideoSink *sink = window.videoSink();
-    std::vector<QImage> images;
+    std::list<QImage> images;
+
+    QThreadPool threadPool;
+    threadPool.setMaxThreadCount(4);
 
     // act
     connect(sink, &QVideoSink::videoFrameChanged, sink, [&](const QVideoFrame &frame) {
-        // Run toImage on separate thread to exercise special code path
-        QImage image;
-        auto t = std::thread([&] {
-            // Set thread-local QRhi implementation to use
+        if (!frame.isValid())
+            return; // ignore last frame
+
+        images.push_back({});
+
+        threadPool.start([it = std::prev(images.end()), frame, backend]() {
             qSetPreferredThreadLocalRhiBackend(backend);
-
-            image = frame.toImage();
+            *it = frame.toImage();
         });
-        t.join();
-
-        if (!image.isNull())
-            images.push_back(image);
     });
 
     // Arrange some more
     player.setSource(*m_colorsVideo);
-    player.setLoops(10);
+    player.setLoops(5);
+    player.setPlaybackRate(5.f);
     player.play();
 
-    // assert
-    QTRY_COMPARE_GE_WITH_TIMEOUT(images.size(), 10u, std::chrono::seconds(60) );
+    QTRY_COMPARE_GE_WITH_TIMEOUT(images.size(), 25, std::chrono::seconds(60));
+    player.stop();
+
+    QVERIFY(threadPool.waitForDone(std::chrono::seconds(60)));
+
+    const size_t validImagesCount = std::count_if(
+            images.begin(), images.end(), [](const QImage &image) { return !image.isNull(); });
+
+    QCOMPARE(validImagesCount, images.size());
 }
 
 QTEST_MAIN(tst_QVideoFrameBackend)
