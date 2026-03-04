@@ -386,10 +386,10 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
 
     emscripten::val constraints = emscripten::val::object();
     if (m_needsAudio) {
-        if (!id.empty() && !m_needsVideo) {
+        if (!deviceIdString.empty() && !m_needsVideo) {
             emscripten::val audioConstraints = emscripten::val::object();
             emscripten::val exactDeviceId = emscripten::val::object();
-            exactDeviceId.set("exact", id);
+            exactDeviceId.set("exact", deviceIdString);
             audioConstraints.set("deviceId", exactDeviceId);
             constraints.set("audio", audioConstraints);
         } else {
@@ -401,8 +401,8 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
         emscripten::val videoContraints = emscripten::val::object();
         emscripten::val exactDeviceId = emscripten::val::object();
 
-        if (!id.empty()) {
-            exactDeviceId.set("exact", id);
+        if (!deviceIdString.empty()) {
+            exactDeviceId.set("exact", deviceIdString);
             videoContraints.set("deviceId", exactDeviceId);
         }
         videoContraints.set("resizeMode", std::string("crop-and-scale"));
