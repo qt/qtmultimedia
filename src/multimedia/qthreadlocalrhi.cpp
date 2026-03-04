@@ -147,8 +147,10 @@ QRhi *qEnsureThreadLocalRhi(QRhi::Implementation backend)
 
 void qSetPreferredThreadLocalRhiBackend(QRhi::Implementation backend)
 {
-    s_preferredBackend = backend;
-    g_threadLocalRhiHolder.localData().resetRhi();
+    if (s_preferredBackend != backend) {
+        s_preferredBackend = backend;
+        g_threadLocalRhiHolder.localData().resetRhi();
+    }
 }
 
 QT_END_NAMESPACE
