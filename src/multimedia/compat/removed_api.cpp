@@ -7,9 +7,7 @@
 
 #if QT_MULTIMEDIA_REMOVED_SINCE(6, 10) && !defined(Q_QDOC)
 
-#include <QtCore/qdebug.h>
-
-#include "qaudio.h"
+#  include "qaudio.h"
 
 QT_BEGIN_NAMESPACE
 
