@@ -21,7 +21,11 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_MULTIMEDIA_EXPORT QRhi *qEnsureThreadLocalRhi(QRhi *referenceRhi = nullptr);
+// backends priority (from top):
+// - the parameter-specified backend
+// - the test-only preferred backend (see qSetPreferredThreadLocalRhiBackend)
+// - the default backend according to the platfrom
+Q_MULTIMEDIA_EXPORT QRhi *qEnsureThreadLocalRhi(QRhi::Implementation backend = QRhi::Implementation::Null);
 
 // Used only for testing
 Q_MULTIMEDIA_EXPORT void qSetPreferredThreadLocalRhiBackend(QRhi::Implementation backend);
