@@ -68,10 +68,6 @@ public:
                     m_fallbackSurface.reset(QRhiGles2InitParams::newFallbackSurface());
                     QRhiGles2InitParams params;
                     params.fallbackSurface = m_fallbackSurface.get();
-                    if (referenceBackend == QRhi::OpenGLES2)
-                        params.shareContext = static_cast<const QRhiGles2NativeHandles *>(
-                                                      referenceRhi->nativeHandles())
-                                                      ->context;
                     m_rhi.reset(QRhi::create(QRhi::OpenGLES2, &params));
 
 #  if defined(Q_OS_ANDROID)
