@@ -269,13 +269,15 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
     QRhi *rhi = nullptr;
 
     if (QHwVideoBuffer *buffer = QVideoFramePrivate::hwBuffer(frame))
-        rhi = buffer->rhi();
+        rhi = buffer->associatedCurrentThreadRhi();
 
-    if (!rhi || !rhi->thread()->isCurrentThread())
-        rhi = qEnsureThreadLocalRhi(rhi);
+    if (!rhi)
+        rhi = qEnsureThreadLocalRhi();
 
     if (!rhi || rhi->isRecordingFrame())
         return convertCPU(frame, transformation);
+
+    Q_ASSERT(rhi->thread()->isCurrentThread());
 
     // Do conversion using shaders
 

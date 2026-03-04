@@ -109,7 +109,7 @@ QFFmpeg::TextureConverter &QFFmpegVideoBuffer::ensureTextureConverter(QRhi &rhi)
     return *converter;
 }
 
-QRhi *QFFmpegVideoBuffer::rhi() const
+QRhi *QFFmpegVideoBuffer::associatedCurrentThreadRhi() const
 {
     if (!m_hwFrame)
         return nullptr;
