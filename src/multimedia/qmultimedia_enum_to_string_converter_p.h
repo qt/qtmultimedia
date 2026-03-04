@@ -15,8 +15,9 @@
 // We mean it.
 //
 
-#include <QtCore/private/qglobal_p.h>
+#include <QtCore/qdebug.h>
 #include <QtCore/qstring.h>
+#include <QtCore/private/qglobal_p.h>
 
 #include <optional>
 
