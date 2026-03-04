@@ -36,33 +36,31 @@ class ThreadLocalRhiHolder
 public:
     ~ThreadLocalRhiHolder() { resetRhi(); }
 
-    QRhi *ensureRhi(QRhi *referenceRhi)
+    QRhi *ensureRhi([[maybe_unused]] QRhi::Implementation backend)
     {
         if (m_rhi || m_cpuOnly)
             return m_rhi.get();
 
-        [[maybe_unused]] QRhi::Implementation referenceBackend =
-                referenceRhi ? referenceRhi->backend() : QRhi::Null;
         const QPlatformIntegration *qpa = QGuiApplicationPrivate::platformIntegration();
 
         if (qpa && qpa->hasCapability(QPlatformIntegration::RhiBasedRendering)) {
 
 #if QT_CONFIG(metal)
-            if (canUseRhiImpl(QRhi::Metal, referenceBackend)) {
+            if (canUseRhiImpl(QRhi::Metal, backend)) {
                 QRhiMetalInitParams params;
                 m_rhi.reset(QRhi::create(QRhi::Metal, &params));
             }
 #endif
 
 #if defined(Q_OS_WIN)
-            if (!m_rhi && canUseRhiImpl(QRhi::D3D11, referenceBackend)) {
+            if (!m_rhi && canUseRhiImpl(QRhi::D3D11, backend)) {
                 QRhiD3D11InitParams params;
                 m_rhi.reset(QRhi::create(QRhi::D3D11, &params));
             }
 #endif
 
 #if QT_CONFIG(opengl)
-            if (!m_rhi && canUseRhiImpl(QRhi::OpenGLES2, referenceBackend)) {
+            if (!m_rhi && canUseRhiImpl(QRhi::OpenGLES2, backend)) {
                 if (openGLCapsSupported(*qpa)) {
 
                     m_fallbackSurface.reset(QRhiGles2InitParams::newFallbackSurface());
@@ -142,9 +140,9 @@ QThreadStorage<ThreadLocalRhiHolder> g_threadLocalRhiHolder;
 
 }
 
-QRhi *qEnsureThreadLocalRhi(QRhi *referenceRhi)
+QRhi *qEnsureThreadLocalRhi(QRhi::Implementation backend)
 {
-    return g_threadLocalRhiHolder.localData().ensureRhi(referenceRhi);
+    return g_threadLocalRhiHolder.localData().ensureRhi(backend);
 }
 
 void qSetPreferredThreadLocalRhiBackend(QRhi::Implementation backend)

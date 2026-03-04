@@ -271,8 +271,13 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
     if (QHwVideoBuffer *buffer = QVideoFramePrivate::hwBuffer(frame))
         rhi = buffer->associatedCurrentThreadRhi();
 
-    if (!rhi)
-        rhi = qEnsureThreadLocalRhi();
+    if (!rhi) {
+        // TODO: if a case with more the one available preferred backends appears,
+        // e.g. vulkan vs opengl, then we should:
+        //   1. Implement QHwVideoBuffer::preferredRhiBackend
+        //   2. Implement a map backend=>rhi inside qEnsureThreadLocalRhi
+        rhi = qEnsureThreadLocalRhi(/*buffer->preferredRhiBackend()*/);
+    }
 
     if (!rhi || rhi->isRecordingFrame())
         return convertCPU(frame, transformation);
