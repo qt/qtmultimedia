@@ -113,7 +113,7 @@ private:
         PwPropertyDict properties;
         std::unique_ptr<NodeEventListener> enumFormatListener;
         std::unique_ptr<CoreEventDoneListener> enumFormatDoneListener;
-        QFuture<std::optional<SpaObjectAudioFormat>> formatFuture;
+        QFuture<std::vector<SpaObjectAudioFormat>> formatFuture;
     };
 
     struct NodeRecord
