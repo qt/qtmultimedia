@@ -95,7 +95,8 @@ void QPulseAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
     }
 
     // Note: we need to cork the stream before disconnecting to prevent pulseaudio from deadlocking
-    std::ignore = streamCork(m_stream, true);
+    auto op = streamCork(m_stream, true);
+    pulseEngine->waitForAsyncOperation(op);
 
     pa_stream_disconnect(m_stream.get());
 
