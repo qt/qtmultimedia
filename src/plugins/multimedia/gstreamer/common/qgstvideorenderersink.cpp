@@ -206,6 +206,9 @@ bool QGstVideoRenderer::proposeAllocation(GstQuery *query)
     // The driver can force a higher minimum if minBuffers is set too low, making 3 sufficient.
     gst_query_add_allocation_pool(query, nullptr, size, minBuffers, 0);
 
+    // Advertise GstVideoMeta support, often needed for DMA buffer negotiation.
+    gst_query_add_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);
+
     return true;
 }
 
