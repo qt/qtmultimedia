@@ -543,6 +543,19 @@ QPulseAudioContextManager *QPulseAudioContextManager::instance()
     return pulseEngine();
 }
 
+void QPulseAudioContextManager::wait(const PAOperationHandle &op)
+{
+    pa_operation_set_state_callback(op.get(), [](pa_operation *, void *userdata) {
+        auto *self = reinterpret_cast<QPulseAudioContextManager *>(userdata);
+        pa_threaded_mainloop_signal(self->mainloop(), 0);
+    }, this);
+
+    while (m_mainLoop && pa_operation_get_state(op.get()) == PA_OPERATION_RUNNING)
+        pa_threaded_mainloop_wait(m_mainLoop.get());
+
+    pa_operation_set_state_callback(op.get(), nullptr, nullptr);
+}
+
 bool QPulseAudioContextManager::waitForAsyncOperation(pa_operation *op)
 {
     PAOperationHandle operation{

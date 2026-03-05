@@ -51,11 +51,7 @@ public:
             pa_threaded_mainloop_unlock(m_mainLoop.get());
     }
 
-    void wait(const PAOperationHandle &op)
-    {
-        while (m_mainLoop && pa_operation_get_state(op.get()) == PA_OPERATION_RUNNING)
-            pa_threaded_mainloop_wait(m_mainLoop.get());
-    }
+    void wait(const PAOperationHandle &op);
 
     bool waitForAsyncOperation(pa_operation *op);
     bool waitForAsyncOperation(const PAOperationHandle &);
