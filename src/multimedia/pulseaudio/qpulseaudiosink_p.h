@@ -71,12 +71,8 @@ private:
     void updateStreamIdle(bool) override;
 
     // PulseAudio callbacks
-    void underflowCallback() { }
-    void overflowCallback() { }
-    void stateCallback() { }
     void writeCallbackRingbuffer(size_t requestedBytes);
     void writeCallbackAudioCallback(size_t requestedBytes);
-    void latencyUpdateCallback() { }
 
     QPulseAudioSink *m_parent;
     PAStreamHandle m_stream;
