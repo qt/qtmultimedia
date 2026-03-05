@@ -125,8 +125,15 @@ void QAudioDeviceMonitor::objectAdded(ObjectId id, uint32_t /*permissions*/,
             // and wait for the result before updating the device list
             pendingRecords.emplace_back(id, *serial, deviceSerial, std::move(props));
             pendingRecords.back().formatFuture.then(
-                    &m_compressionTimer, [this](std::vector<SpaObjectAudioFormat> const &) {
-                startCompressionTimer();
+                    &m_compressionTimer,
+                    [this, weakResults = std::weak_ptr{ pendingRecords.back().formatResults }](
+                            std::vector<SpaObjectAudioFormat> formats) {
+                // we do not handle the formats immediately, but coalesce multiple format updates, reduces the number
+                // of changes to the device list
+                if (auto ptr = weakResults.lock()) {
+                    *ptr = std::move(formats);
+                    startCompressionTimer();
+                }
             });
         };
 
@@ -224,7 +231,10 @@ void QAudioDeviceMonitor::audioDevicesChanged(bool verifyThreading)
                                            std::list<PendingNodeRecord> &resolved) {
             auto it = toResolve.begin();
             while (it != toResolve.end()) {
-                if (it->formatFuture.isFinished()) {
+                // we do not only need the future to be resolved, but the continuation needs to
+                // have run (just checking for the future being ready is not sufficient)
+                const bool isFullyResolved = it->formatResults->has_value();
+                if (isFullyResolved) {
                     auto next = std::next(it);
                     resolved.splice(resolved.end(), toResolve, it);
                     it = next;
@@ -317,7 +327,8 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
     }
 
     for (PendingNodeRecord &record : addedNodes) {
-        std::vector<SpaObjectAudioFormat> results = record.formatFuture.result();
+        Q_ASSERT(record.formatResults && record.formatResults->has_value());
+        std::vector<SpaObjectAudioFormat> &results = **record.formatResults;
 
         q20::erase_if(results, [](SpaObjectAudioFormat const &arg) {
             const bool isIEC61937EncapsulatedDevice = std::visit([](const auto &format) {
@@ -558,6 +569,9 @@ QAudioDeviceMonitor::PendingNodeRecord::PendingNodeRecord(ObjectId object, Objec
     },
     properties{
         std::move(properties),
+    },
+    formatResults{
+        std::make_shared<std::optional<std::vector<SpaObjectAudioFormat>>>()
     }
 {
     Q_ASSERT(QAudioContextManager::isInPwThreadLoop());

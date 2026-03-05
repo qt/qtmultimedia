@@ -114,6 +114,10 @@ private:
         std::unique_ptr<NodeEventListener> enumFormatListener;
         std::unique_ptr<CoreEventDoneListener> enumFormatDoneListener;
         QFuture<std::vector<SpaObjectAudioFormat>> formatFuture;
+
+        // owned by he instance, updated in the formatFuture's continuation (we capture a weak reference in the
+        // continuation to avoid lifetime issues
+        const std::shared_ptr<std::optional<std::vector<SpaObjectAudioFormat>>> formatResults;
     };
 
     struct NodeRecord
