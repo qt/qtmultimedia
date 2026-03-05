@@ -7,8 +7,8 @@
     "SecurityCritical": true,
 
     "Homepage": "https://github.com/mackron/dr_libs",
-    "Version": "0.14.4",
-    "DownloadLocation": "https://github.com/mackron/dr_libs/releases/wav-0.14.4",
+    "Version": "0.14.5",
+    "DownloadLocation": "https://github.com/mackron/dr_libs/releases/wav-0.14.5",
 
     "License": "The Unlicense or MIT No Attribution",
     "LicenseId": "Unlicense OR MIT-0",
