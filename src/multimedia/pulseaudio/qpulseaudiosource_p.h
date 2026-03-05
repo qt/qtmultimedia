@@ -72,12 +72,8 @@ private:
     std::optional<AudioCallback> m_audioCallback;
 
     // PulseAudio callbacks
-    void underflowCallback() { }
-    void overflowCallback() { }
-    void stateCallback() { }
     void readCallbackRingbuffer(size_t bytesToRead);
     void readCallbackAudioCallback(size_t bytesToRead);
-    void latencyUpdateCallback() { }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
