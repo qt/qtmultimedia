@@ -181,17 +181,17 @@ care is required when using this API.
 #include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
 
 [...]
-QMediaMediaPlayer player;
+QMediaPlayer player;
 GstPipeline *pipeline = QGStreamerPlatformSpecificInterface::instance()->gstPipeline(&player);
 [...]
 QMediaCaptureSession session;
-GstPipeline *pipeline = QGSreamerPlatformSpecificInterface::instance()->gstPipeline(&session);
+GstPipeline *pipeline = QGStreamerPlatformSpecificInterface::instance()->gstPipeline(&session);
 \endcode
 
 
 \section2 Custom GStreamer elements as sinks and sources
 
-It is possible to create GStreamer elements from a GStreamer pipeline decription and wrap them
+It is possible to create GStreamer elements from a GStreamer pipeline description and wrap them
 inside a \c{QCamera} or \c{QAudioDevice}:
 
 \code
@@ -211,7 +211,7 @@ session.setCamera(cam);
 
 \section2 QMediaPlayer: custom sources
 
-The \c{QMediaPlayer} accepts a GStreamer pipeline decription as source URI:
+The \c{QMediaPlayer} accepts a GStreamer pipeline description as source URI:
 
 \code
 QMediaPlayer player;
