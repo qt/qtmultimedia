@@ -188,8 +188,7 @@ void QWasmMediaRecorder::initUserMedia()
                 return;
             }
         }
-    }
-    if (m_session->hasAudio()) {
+    } else if (m_session->hasAudio()) {
         qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << "has audio";
         stream = static_cast<QWasmAudioInput *>(m_session->audioInput())->mediaStream();
 
