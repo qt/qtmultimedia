@@ -3841,6 +3841,12 @@ DRWAV_PRIVATE drwav_bool32 drwav_init__internal(drwav* pWav, drwav_chunk_proc on
 
             /* We decode two samples per byte. There will be blockCount headers in the data chunk. This is enough to know how to calculate the total PCM frame count. */
             totalBlockHeaderSizeInBytes = blockCount * (6*fmt.channels);
+
+            if (dataChunkSize < totalBlockHeaderSizeInBytes) {
+                drwav_free(pWav->pMetadata, &pWav->allocationCallbacks);
+                return DRWAV_FALSE; /* Invalid file. */
+            }
+
             pWav->totalPCMFrameCount = ((dataChunkSize - totalBlockHeaderSizeInBytes) * 2) / fmt.channels;
         }
         if (pWav->translatedFormatTag == DR_WAVE_FORMAT_DVI_ADPCM) {
