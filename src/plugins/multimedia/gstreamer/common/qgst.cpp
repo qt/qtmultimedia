@@ -85,14 +85,14 @@ void appendDmaDrmPixelFormats(QGstCaps &caps, const QList<QVideoFrameFormat::Pix
         g_value_unset(&drmFormat);
     }
 
-    auto *dmaDrmStructure =
-            gst_structure_new("video/x-raw", "format", G_TYPE_STRING,
-                              gst_video_format_to_string(GST_VIDEO_FORMAT_DMA_DRM),
-                              "framerate", GST_TYPE_FRACTION_RANGE, 0, 1, INT_MAX, 1,
-                              "width", GST_TYPE_INT_RANGE, 1, INT_MAX,
-                              "height", GST_TYPE_INT_RANGE, 1, INT_MAX, nullptr);
-    gst_structure_set_value(dmaDrmStructure, "drm-format", &drmFormatList);
-    gst_caps_append_structure(caps.get(), dmaDrmStructure);
+    QGstStructure dmaDrmStructure{ "video/x-raw" };
+    dmaDrmStructure.setString("format", gst_video_format_to_string(GST_VIDEO_FORMAT_DMA_DRM));
+    dmaDrmStructure.setFractionRange("framerate", Fraction{ 0, 1 }, Fraction{ INT_MAX, 1 });
+    dmaDrmStructure.setIntRange("width", 1, INT_MAX);
+    dmaDrmStructure.setIntRange("height", 1, INT_MAX);
+    dmaDrmStructure.setValue("drm-format", &drmFormatList);
+
+    gst_caps_append_structure(caps.get(), dmaDrmStructure.release());
     gst_caps_set_features(caps.get(), caps.size() - 1,
                           gst_caps_features_from_string(GST_CAPS_FEATURE_MEMORY_DMABUF));
     g_value_unset(&drmFormatList);
@@ -510,11 +510,13 @@ void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &form
         g_value_unset(&item);
     }
 
-    auto *structure = gst_structure_new("video/x-raw", "framerate", GST_TYPE_FRACTION_RANGE, 0, 1,
-                                        INT_MAX, 1, "width", GST_TYPE_INT_RANGE, 1, INT_MAX,
-                                        "height", GST_TYPE_INT_RANGE, 1, INT_MAX, nullptr);
-    gst_structure_set_value(structure, "format", &list);
-    gst_caps_append_structure(get(), structure);
+    QGstStructure structure{ "video/x-raw" };
+    structure.setFractionRange("framerate", Fraction{ 0, 1 }, Fraction{ INT_MAX, 1 });
+    structure.setIntRange("width", 1, INT_MAX);
+    structure.setIntRange("height", 1, INT_MAX);
+    structure.setValue("format", &list);
+
+    gst_caps_append_structure(get(), structure.release());
     g_value_unset(&list);
 
     if (capsFeatures)
@@ -542,10 +544,11 @@ QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
     auto caps = QGstCaps::create();
 
     if (format.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
-        auto *jpegStructure = gst_structure_new("image/jpeg",
-                                                "width", G_TYPE_INT, size.width(),
-                                                "height", G_TYPE_INT, size.height(), nullptr);
-        gst_caps_append_structure(caps.get(), jpegStructure);
+        QGstStructure jpegStructure("image/jpeg");
+        jpegStructure.setInt("width", size.width());
+        jpegStructure.setInt("height", size.height());
+
+        gst_caps_append_structure(caps.get(), jpegStructure.release());
         return caps;
     }
 
@@ -553,23 +556,24 @@ QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
     if (gstFormat == GST_VIDEO_FORMAT_UNKNOWN)
         return {};
 
-    auto *rawStructure =
-            gst_structure_new("video/x-raw",
-                              "format", G_TYPE_STRING, gst_video_format_to_string(gstFormat),
-                              "width", G_TYPE_INT, size.width(),
-                              "height", G_TYPE_INT, size.height(), nullptr);
-    gst_caps_append_structure(caps.get(), rawStructure);
+    QGstStructure rawStructure("video/x-raw");
+    rawStructure.setString("format", gst_video_format_to_string(gstFormat));
+    rawStructure.setInt("width", size.width());
+    rawStructure.setInt("height", size.height());
+
+    gst_caps_append_structure(caps.get(), rawStructure.release());
 
 #if QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM
     if (const guint32 fourcc = gst_video_dma_drm_fourcc_from_format(gstFormat)) {
         if (QGString drmFormat{gst_video_dma_drm_fourcc_to_string(fourcc, 0)}) {
-            auto *drmFormatDmabufRawStructure =
-                    gst_structure_new("video/x-raw", "format", G_TYPE_STRING,
-                                      gst_video_format_to_string(GST_VIDEO_FORMAT_DMA_DRM),
-                                      "drm-format", G_TYPE_STRING, drmFormat.get(),
-                                      "width", G_TYPE_INT, size.width(),
-                                      "height", G_TYPE_INT, size.height(), nullptr);
-            gst_caps_append_structure(caps.get(), drmFormatDmabufRawStructure);
+            QGstStructure drmFormatDmabufRawStructure("video/x-raw");
+            drmFormatDmabufRawStructure.setString(
+                    "format", gst_video_format_to_string(GST_VIDEO_FORMAT_DMA_DRM));
+            drmFormatDmabufRawStructure.setString("drm-format", drmFormat.get());
+            drmFormatDmabufRawStructure.setInt("width", size.width());
+            drmFormatDmabufRawStructure.setInt("height", size.height());
+
+            gst_caps_append_structure(caps.get(), drmFormatDmabufRawStructure.release());
             gst_caps_set_features(
                     caps.get(), caps.size() - 1,
                     gst_caps_features_from_string(GST_CAPS_FEATURE_MEMORY_DMABUF));
@@ -578,12 +582,12 @@ QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
 #endif
 
 #if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
-    auto *dmabufRawStructure =
-            gst_structure_new("video/x-raw",
-                              "format", G_TYPE_STRING, gst_video_format_to_string(gstFormat),
-                              "width", G_TYPE_INT, size.width(),
-                              "height", G_TYPE_INT, size.height(), nullptr);
-    gst_caps_append_structure(caps.get(), dmabufRawStructure);
+    QGstStructure dmabufRawStructure("video/x-raw");
+    dmabufRawStructure.setString("format", gst_video_format_to_string(gstFormat));
+    dmabufRawStructure.setInt("width", size.width());
+    dmabufRawStructure.setInt("height", size.height());
+
+    gst_caps_append_structure(caps.get(), dmabufRawStructure.release());
     gst_caps_set_features(caps.get(), caps.size() - 1,
                           gst_caps_features_from_string(GST_CAPS_FEATURE_MEMORY_DMABUF));
 #endif

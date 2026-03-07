@@ -191,6 +191,42 @@ struct QGstVideoInfo
     std::optional<guint64> dmaDrmModifier;
 };
 
+struct QGstStructure : QUniqueGstStructureHandle
+{
+    using QUniqueGstStructureHandle::QUniqueGstStructureHandle;
+
+    explicit QGstStructure(const char *name)
+        : QUniqueGstStructureHandle{ gst_structure_new_empty(name) }
+    {
+    }
+
+    void setInt(const char *field, int value)
+    {
+        gst_structure_set(get(), field, G_TYPE_INT, value, nullptr);
+    }
+
+    void setString(const char *field, const char *value)
+    {
+        gst_structure_set(get(), field, G_TYPE_STRING, value, nullptr);
+    }
+
+    void setIntRange(const char *field, int min, int max)
+    {
+        gst_structure_set(get(), field, GST_TYPE_INT_RANGE, min, max, nullptr);
+    }
+
+    void setFractionRange(const char *field, Fraction min, Fraction max)
+    {
+        gst_structure_set(get(), field, GST_TYPE_FRACTION_RANGE, min.numerator,
+                          min.denominator, max.numerator, max.denominator, nullptr);
+    }
+
+    void setValue(const char *field, const GValue *value)
+    {
+        gst_structure_set_value(get(), field, value);
+    }
+};
+
 template <typename T> struct QGRange
 {
     T min;
