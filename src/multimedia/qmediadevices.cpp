@@ -41,7 +41,7 @@ QT_BEGIN_NAMESPACE
     \snippet multimedia-snippets/devices.cpp Media Audio Input Device Enumeration
 
     Similarly, the QMediaDevices::videoInputs will return a list of all connected cameras.
-    In this example we list all connected cameras and their identifier, description, and
+    In this example, we list all connected cameras and their identifier, description, and
     if it is the default camera or not.
 
     \snippet multimedia-snippets/devices.cpp Media Video Input Device Enumeration
@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
     playing back or recording multimedia, there is often a need to explicitly
     select the device to be used.
 
-    QMediaDevices is a singleton object and all getters are thread-safe.
+    QMediaDevices’ static methods are thread-safe and refer to an underlying singleton object.
 
     \note On WebAssembly platform, due to its asynchronous nature,
     the lists of devices will only be available after audioInputsChanged,
