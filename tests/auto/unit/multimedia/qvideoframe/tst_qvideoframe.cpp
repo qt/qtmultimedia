@@ -1069,7 +1069,13 @@ void tst_QVideoFrame::qImageFromVideoFrame_doesNotCrash_whenCalledWithEvenAndOdd
     QFETCH(const bool, forceCpuConversion);
 
     const QVideoFrameFormat format{ size, pixelFormat };
-    const QVideoFrame frame{ format };
+    QVideoFrame frame{ format };
+    frame.map(QVideoFrame::MapMode::ReadWrite);
+
+    for (int plane = 0; plane < frame.planeCount(); ++plane)
+        std::fill_n(frame.bits(plane), frame.mappedBytes(plane), 0);
+    frame.unmap();
+
     const QImage actual = qImageFromVideoFrame(frame, forceCpuConversion);
 
     QCOMPARE_EQ(actual.isNull(), size.isEmpty());
@@ -1458,7 +1464,8 @@ void tst_QVideoFrame::constructor_createsFrameWithCorrectFormat_whenCalledWithSu
     QFETCH(const QImage::Format, imageFormat);
     QFETCH(QVideoFrameFormat::PixelFormat, expectedFrameFormat);
 
-    const QImage image{ { 1, 1 }, imageFormat };
+    QImage image{ { 1, 1 }, imageFormat };
+    image.fill(Qt::black);
     const QVideoFrame frame{ image };
 
     QVERIFY(frame.isValid());
