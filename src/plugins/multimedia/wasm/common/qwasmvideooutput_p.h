@@ -100,7 +100,7 @@ public:
 
     std::string m_videoSurfaceId;
 
-    static QVideoFrameFormat::PixelFormat fromJsPixelFormat(std::string videoFormat);
+    static QVideoFrameFormat::PixelFormat fromJsPixelFormat(std::string_view videoFormat);
 
     void removeCurrentVideoElement();
 
