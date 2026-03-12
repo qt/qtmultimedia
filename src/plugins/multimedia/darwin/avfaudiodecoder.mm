@@ -92,6 +92,8 @@ static QAudioBuffer handleNextSampleBuffer(QAudioFormat qtFormat,
 - (BOOL)resourceLoader:(AVAssetResourceLoader *)resourceLoader
         shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest;
 
+- (void)clearDecoder;
+
 @end
 
 @implementation AVFResourceReaderDelegate
@@ -114,9 +116,9 @@ static QAudioBuffer handleNextSampleBuffer(QAudioFormat qtFormat,
     if (![loadingRequest.request.URL.scheme isEqualToString:@"iodevice"])
         return NO;
 
-    QMutexLocker locker(&m_mutex);
+    std::lock_guard locker(m_mutex);
 
-    QIODevice *device = m_decoder->sourceDevice();
+    QIODevice *device = m_decoder ? m_decoder->sourceDevice() : nullptr;
     if (!device)
         return NO;
 
@@ -146,6 +148,12 @@ static QAudioBuffer handleNextSampleBuffer(QAudioFormat qtFormat,
     }
 
     return YES;
+}
+
+- (void)clearDecoder
+{
+    std::lock_guard locker(m_mutex);
+    m_decoder = nullptr;
 }
 
 @end
@@ -205,13 +213,16 @@ AVFAudioDecoder::AVFAudioDecoder(QAudioDecoder *parent)
     m_decodingQueue = dispatch_queue_create("decoder_queue", DISPATCH_QUEUE_SERIAL);
 
     m_readerDelegate = [[AVFResourceReaderDelegate alloc] initWithDecoder:this];
+    Q_ASSERT(m_readerDelegate);
 }
 
 AVFAudioDecoder::~AVFAudioDecoder()
 {
     stop();
 
+    [m_readerDelegate clearDecoder];
     [m_readerDelegate release];
+
     [m_asset release];
 
     dispatch_release(m_readingQueue);
