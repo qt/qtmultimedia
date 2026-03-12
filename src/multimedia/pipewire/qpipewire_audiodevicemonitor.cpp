@@ -10,6 +10,8 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/private/qcoreapplication_p.h>
+#include <QtCore/private/qthread_p.h>
 #include <QtCore/private/qflatmap_p.h>
 
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
@@ -37,11 +39,9 @@ ObjectSerial ObjectRemoveObserver::serial() const
 
 QAudioDeviceMonitor::QAudioDeviceMonitor()
 {
-    if (!QThread::isMainThread()) {
+    if (!QThread::isMainThread())
         // ensure that device monitor runs on application thread
         moveToThread(qApp->thread());
-        m_compressionTimer.moveToThread(qApp->thread());
-    }
 
     constexpr auto compressionTime = std::chrono::milliseconds(50);
 
@@ -52,6 +52,34 @@ QAudioDeviceMonitor::QAudioDeviceMonitor()
     m_compressionTimer.callOnTimeout(this, [this] {
         audioDevicesChanged();
     });
+
+    m_compressionTimerThread.setObjectName("PWDevMon");
+    m_compressionTimerThread.setServiceLevel(QThread::QualityOfService::Eco);
+    m_compressionTimerThread.setStackSize(1024 * 1024); // 1MB should be enough
+    m_compressionTimerThread.start();
+    m_compressionTimerThread.setPriority(QThread::Priority::LowPriority);
+    m_compressionTimer.moveToThread(&m_compressionTimerThread);
+
+    qAddPostRoutine([] {
+        QAudioDeviceMonitor &monitor = QAudioContextManager::deviceMonitor();
+        QMetaObject::invokeMethod(&monitor.m_compressionTimer, [&] {
+            monitor.m_compressionTimer.stop();
+            monitor.m_compressionTimer.moveToThread(qApp->thread());
+        }, Qt::BlockingQueuedConnection);
+    });
+}
+
+QAudioDeviceMonitor::~QAudioDeviceMonitor()
+{
+    if (m_compressionTimer.thread() != thread()) {
+        QMetaObject::invokeMethod(&m_compressionTimer, [this] {
+            m_compressionTimer.stop();
+            m_compressionTimer.moveToThread(thread());
+        }, Qt::BlockingQueuedConnection);
+    }
+
+    m_compressionTimerThread.quit();
+    m_compressionTimerThread.wait();
 }
 
 void QAudioDeviceMonitor::objectAdded(ObjectId id, uint32_t /*permissions*/,
@@ -517,8 +545,15 @@ QAudioDeviceMonitor::DeviceLists QAudioDeviceMonitor::getDeviceLists(bool verify
             break;
     }
 
-    // now all formats have been resolved and we can update the device list
-    audioDevicesChanged(verifyThreading);
+    // HACK: getDeviceLists is synchronous, so we need to wait for all the pending format have
+    // been populated force the continuations posted on &m_compressionTimer to be executed (compare
+    // QAudioDeviceMonitor::objectAdded)
+    // LATER: can we asynchronously resolve the format, similar to std::future<AudioDeviceFormat>?
+    QMetaObject::invokeMethod(&m_compressionTimer, [&] {
+        QCoreApplication::sendPostedEvents(&m_compressionTimer, QEvent::MetaCall);
+        audioDevicesChanged(verifyThreading);
+        m_compressionTimer.stop();
+    }, Qt::BlockingQueuedConnection);
 
     QReadLocker lock{ &m_mutex };
     return {
@@ -529,7 +564,7 @@ QAudioDeviceMonitor::DeviceLists QAudioDeviceMonitor::getDeviceLists(bool verify
 
 void QAudioDeviceMonitor::startCompressionTimer()
 {
-    QMetaObject::invokeMethod(this, [this] {
+    QMetaObject::invokeMethod(&m_compressionTimer, [this] {
         if (m_compressionTimer.isActive())
             return;
         m_compressionTimer.start();

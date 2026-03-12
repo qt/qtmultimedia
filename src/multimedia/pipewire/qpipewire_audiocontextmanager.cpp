@@ -8,6 +8,7 @@
 #include "qpipewire_propertydict_p.h"
 #include "qpipewire_support_p.h"
 
+#include <QtCore/qapplicationstatic.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qsemaphore.h>
@@ -33,7 +34,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
-Q_GLOBAL_STATIC(QAudioContextManager, s_audioContextInstance)
+Q_APPLICATION_STATIC(QAudioContextManager, s_audioContextInstance)
 Q_STATIC_LOGGING_CATEGORY(lcPipewireRegistry, "qt.multimedia.pipewire.registry")
 
 QAudioContextManager::QAudioContextManager():

@@ -21,7 +21,7 @@
 #include "qpipewire_spa_pod_support_p.h"
 
 #include <QtCore/qfuture.h>
-#include <QtCore/qtimer.h>
+#include <QtCore/qchronotimer.h>
 #include <QtCore/qreadwritelock.h>
 #include <QtMultimedia/qaudiodevice.h>
 
@@ -63,6 +63,8 @@ class QAudioDeviceMonitor : public QObject
 
 public:
     QAudioDeviceMonitor();
+    ~QAudioDeviceMonitor();
+
     void objectAdded(ObjectId, uint32_t permissions, PipewireRegistryType, uint32_t version,
                      const spa_dict &props);
     void objectRemoved(ObjectId);
@@ -151,7 +153,8 @@ private:
     std::optional<QByteArray> m_defaultSourceName;
     std::optional<QByteArray> m_defaultSinkName;
 
-    QTimer m_compressionTimer;
+    QThread m_compressionTimerThread{ this };
+    QChronoTimer m_compressionTimer;
     void startCompressionTimer();
 
     // Device list updates
