@@ -87,6 +87,8 @@ public:
         NetworkManager,
     };
 
+    static QSampleCache *instance();
+
     explicit QSampleCache(QObject *parent = nullptr);
     ~QSampleCache() override;
 

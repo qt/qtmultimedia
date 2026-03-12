@@ -3,7 +3,6 @@
 
 #include "qsoundeffect.h"
 
-#include <QtCore/qapplicationstatic.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qfuture.h>
 #include <QtMultimedia/qaudiobuffer.h>
@@ -18,7 +17,6 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_APPLICATION_STATIC(QSampleCache, sampleCache)
 Q_LOGGING_CATEGORY(qLcSoundEffect, "qt.multimedia.soundeffect")
 
 namespace {
@@ -188,7 +186,7 @@ void QSoundEffect::setSource(const QUrl &url)
 
     stop();
 
-    if (d->setSource(url, *sampleCache()))
+    if (d->setSource(url, *QSampleCache::instance()))
         emit sourceChanged();
 }
 
