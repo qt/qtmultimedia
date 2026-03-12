@@ -35,6 +35,7 @@ QSampleCache::QSampleCache(QObject *parent)
 #if QT_CONFIG(thread)
     // we limit the number of loader threads to avoid thread explosion
     static constexpr int loaderThreadLimit = 8;
+    m_threadPool.setObjectName("QSampleCachePool");
     m_threadPool.setMaxThreadCount(loaderThreadLimit);
     m_threadPool.setExpiryTimeout(15);
     m_threadPool.setThreadPriority(QThread::LowPriority);
