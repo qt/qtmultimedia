@@ -13,6 +13,7 @@ qt_internal_add_test(tst_qmediaplayer
     LIBRARIES
         Qt::Core
         Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
         Qt::MockMultimediaPlugin
 )
 

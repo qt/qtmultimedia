@@ -11,6 +11,7 @@ qt_internal_add_test(tst_qsoundeffect
     LIBRARIES
         Qt::Core
         Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
     TESTDATA
         "test.wav"
         "test_corrupted.wav"

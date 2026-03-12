@@ -13,6 +13,8 @@
 #include <QtMultimedia/private/qsoundeffectwithplayer_p.h>
 #include <QtMultimedia/private/qsamplecache_p.h>
 
+#include <QtMultimediaTestLib/private/qmockresolvers_p.h>
+
 using namespace Qt::Literals;
 
 class tst_QSoundEffect : public QObject
@@ -54,6 +56,8 @@ private slots:
     void testQSoundEffectVoiceWithVolume();
     void testQSoundEffectVoiceMuted();
     void testQSoundEffectVoiceLooping();
+
+    void testSourceResolver();
 
 private:
     QSoundEffect* sound;
@@ -666,6 +670,30 @@ void tst_QSoundEffect::testQSoundEffectVoiceLooping()
     QCOMPARE(buffer[1], 0.5f);
     QCOMPARE(buffer[2], 1.0f);
     QCOMPARE(buffer[3], 0.5f);
+}
+
+void tst_QSoundEffect::testSourceResolver()
+{
+    using namespace QtMultimediaTest;
+
+    QSoundEffect sound;
+    auto *d = QSoundEffectPrivate::get(&sound);
+
+    auto mock = std::make_unique<MockSourceResolver>(QUrl(u"mock://resolved"_s));
+    MockSourceResolver *mockPtr = mock.get();
+    d->m_sourceResolver = std::move(mock);
+
+    QTest::ignoreMessage(QtWarningMsg, "QSoundEffect: Error decoding source mock://resolved");
+
+    sound.setSource(QUrl(u"original://test"_s));
+
+    QCOMPARE(mockPtr->m_callCount, 1);
+    QCOMPARE(mockPtr->m_lastInput, QUrl(u"original://test"_s));
+
+    // wait for loader thread to finish
+    QTRY_COMPARE_NE(sound.status(), QSoundEffect::Loading);
+
+    QCOMPARE(sound.source(), QUrl(u"original://test"_s));
 }
 
 QTEST_MAIN(tst_QSoundEffect)

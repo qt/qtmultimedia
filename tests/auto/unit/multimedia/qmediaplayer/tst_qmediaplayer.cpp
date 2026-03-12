@@ -10,6 +10,7 @@
 #include <qvideosink.h>
 #include <qmediaplayer.h>
 #include <private/qplatformmediaplayer_p.h>
+#include <private/qmediaplayer_p.h>
 #include <qobject.h>
 
 #include "qmockintegration.h"
@@ -18,6 +19,8 @@
 #include "qvideosink.h"
 #include "qaudiooutput.h"
 #include <QtMultimedia/qplaybackoptions.h>
+
+#include <QtMultimediaTestLib/private/qmockresolvers_p.h>
 
 using namespace std::chrono_literals;
 
@@ -107,6 +110,8 @@ private slots:
     void setPlaybackOptions_setsPlaybackOptions();
     void setPlaybackOptions_doesNotEmitChangeSignal_whenOptionsDidNotChange();
     void resetPlaybackOptions_resetsPlaybackOptionsToDefault();
+
+    void testSourceResolver();
 
 private:
     void setupCommonTestData();
@@ -919,6 +924,25 @@ void tst_QMediaPlayer::resetPlaybackOptions_resetsPlaybackOptionsToDefault()
 
     player->resetPlaybackOptions();
     QCOMPARE_EQ(player->playbackOptions(), QPlaybackOptions{});
+}
+
+void tst_QMediaPlayer::testSourceResolver()
+{
+    using namespace QtMultimediaTest;
+
+    QMediaPlayer player;
+    auto *d = QMediaPlayerPrivate::get(&player);
+
+    auto mock = std::make_unique<MockSourceResolver>(QUrl(u"mock://resolved"_s));
+    MockSourceResolver *mockPtr = mock.get();
+    d->m_sourceResolver = std::move(mock);
+
+    player.setSource(QUrl(u"original://test"_s));
+
+    QCOMPARE(mockPtr->m_callCount, 1);
+    QCOMPARE(mockPtr->m_lastInput, QUrl(u"original://test"_s));
+
+    QCOMPARE(player.source(), QUrl(u"original://test"_s));
 }
 
 QTEST_GUILESS_MAIN(tst_QMediaPlayer)
