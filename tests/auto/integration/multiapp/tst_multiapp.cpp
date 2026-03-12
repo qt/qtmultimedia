@@ -35,6 +35,7 @@ class tst_multiapp : public QObject
 private slots:
     void mediaDevices_doesNotCrash_whenRecreatingApplication();
     void soundEffect_doesNotCrash_whenRecreatingApplication();
+    void soundEffect_doesNotCrash_whenDestroyingApplication();
 };
 
 void tst_multiapp::mediaDevices_doesNotCrash_whenRecreatingApplication()
@@ -75,6 +76,14 @@ void tst_multiapp::soundEffect_doesNotCrash_whenRecreatingApplication()
             qApp->exec();
         });
     }
+}
+
+void tst_multiapp::soundEffect_doesNotCrash_whenDestroyingApplication()
+{
+    withQCoreApplication([] {
+        QSoundEffect sound;
+        sound.setSource(QUrl(u"yada://test"_s)); // force loading via QNetworkAccessManager
+    });
 }
 
 QTEST_APPLESS_MAIN(tst_multiapp)
