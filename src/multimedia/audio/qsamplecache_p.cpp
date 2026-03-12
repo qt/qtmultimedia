@@ -4,6 +4,7 @@
 #include "qsamplecache_p.h"
 
 #include <QtConcurrent/qtconcurrentrun.h>
+#include <QtCore/qapplicationstatic.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qeventloop.h>
@@ -29,8 +30,14 @@ Q_STATIC_LOGGING_CATEGORY(qLcSampleCache, "qt.multimedia.samplecache")
 
 QT_BEGIN_NAMESPACE
 
-QSampleCache::QSampleCache(QObject *parent)
-    : QObject(parent)
+Q_APPLICATION_STATIC(QSampleCache, sampleCache)
+
+QSampleCache *QSampleCache::instance()
+{
+    return sampleCache();
+}
+
+QSampleCache::QSampleCache(QObject *parent) : QObject(parent)
 {
 #if QT_CONFIG(thread)
     // we limit the number of loader threads to avoid thread explosion
@@ -45,6 +52,18 @@ QSampleCache::QSampleCache(QObject *parent)
         this->moveToThread(qApp->thread());
         m_threadPool.moveToThread(qApp->thread());
     }
+
+    qAddPostRoutine([] {
+        // HACK: we need to stop the thread pool before qApp is nulled, otherwise some threads might still try construct
+        // some Q_APPLICATION_STATIC instances, causing assertion failures inside QNetworkAccessManager
+        Q_ASSERT(qApp && "QApplication is still valid");
+
+        QSampleCache *instance = sampleCache();
+
+        instance->m_threadPool.clear();
+        instance->m_threadPool.waitForDone();
+    });
+
 #endif
 }
 
