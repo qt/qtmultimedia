@@ -274,9 +274,14 @@ void AVFAudioDecoder::setSourceDevice(QIODevice *device)
     if (m_device) {
         const QString ext = QMimeDatabase().mimeTypeForData(m_device).preferredSuffix();
         const QString url = u"iodevice:///iodevice."_s + ext;
-        NSString *urlString = url.toNSString();
+        NSString *_Nonnull urlString = url.toNSString();
         NSURL *nsURL = [NSURL URLWithString:urlString];
 
+        if (nsURL == nil) {
+            processInvalidMedia(QAudioDecoder::FormatError,
+                                tr("Failed to create URL for the device"));
+            return;
+        }
         m_asset = [[AVURLAsset alloc] initWithURL:nsURL options:nil];
 
         // use decoding queue instead of reading queue in order to fix random stucks.
