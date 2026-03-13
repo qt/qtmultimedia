@@ -456,7 +456,7 @@ QSize QGstStructureView::nativeSize() const
 
 // QGstCaps
 
-std::optional<std::pair<QVideoFrameFormat, QGstVideoInfo>> QGstCaps::formatAndVideoInfo() const
+std::optional<QGstVideoInfo> QGstCaps::videoInfo() const
 {
     GstVideoInfo vidInfo;
     std::optional<guint64> dmaDrmModifier;
@@ -475,97 +475,7 @@ std::optional<std::pair<QVideoFrameFormat, QGstVideoInfo>> QGstCaps::formatAndVi
             return std::nullopt;
     }
 
-    GstVideoFormat gstFormat = GST_VIDEO_INFO_FORMAT(&vidInfo);
-
-    int index = indexOfVideoFormat(gstFormat);
-    if (index == -1)
-        return std::nullopt;
-
-    QVideoFrameFormat format(QSize(vidInfo.width, vidInfo.height),
-                             qt_videoFormatLookup[index].pixelFormat);
-
-    if (vidInfo.fps_d > 0)
-        format.setStreamFrameRate(qreal(vidInfo.fps_n) / vidInfo.fps_d);
-
-    QVideoFrameFormat::ColorRange range = QVideoFrameFormat::ColorRange_Unknown;
-    switch (vidInfo.colorimetry.range) {
-    case GST_VIDEO_COLOR_RANGE_UNKNOWN:
-        break;
-    case GST_VIDEO_COLOR_RANGE_0_255:
-        range = QVideoFrameFormat::ColorRange_Full;
-        break;
-    case GST_VIDEO_COLOR_RANGE_16_235:
-        range = QVideoFrameFormat::ColorRange_Video;
-        break;
-    }
-    format.setColorRange(range);
-
-    QVideoFrameFormat::ColorSpace colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
-    switch (vidInfo.colorimetry.matrix) {
-    case GST_VIDEO_COLOR_MATRIX_UNKNOWN:
-    case GST_VIDEO_COLOR_MATRIX_RGB:
-    case GST_VIDEO_COLOR_MATRIX_FCC:
-        break;
-    case GST_VIDEO_COLOR_MATRIX_BT709:
-        colorSpace = QVideoFrameFormat::ColorSpace_BT709;
-        break;
-    case GST_VIDEO_COLOR_MATRIX_BT601:
-        colorSpace = QVideoFrameFormat::ColorSpace_BT601;
-        break;
-    case GST_VIDEO_COLOR_MATRIX_SMPTE240M:
-        colorSpace = QVideoFrameFormat::ColorSpace_AdobeRgb;
-        break;
-    case GST_VIDEO_COLOR_MATRIX_BT2020:
-        colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
-        break;
-    }
-    format.setColorSpace(colorSpace);
-
-    QVideoFrameFormat::ColorTransfer transfer = QVideoFrameFormat::ColorTransfer_Unknown;
-    switch (vidInfo.colorimetry.transfer) {
-    case GST_VIDEO_TRANSFER_UNKNOWN:
-        break;
-    case GST_VIDEO_TRANSFER_GAMMA10:
-        transfer = QVideoFrameFormat::ColorTransfer_Linear;
-        break;
-    case GST_VIDEO_TRANSFER_GAMMA22:
-    case GST_VIDEO_TRANSFER_SMPTE240M:
-    case GST_VIDEO_TRANSFER_SRGB:
-    case GST_VIDEO_TRANSFER_ADOBERGB:
-        transfer = QVideoFrameFormat::ColorTransfer_Gamma22;
-        break;
-    case GST_VIDEO_TRANSFER_GAMMA18:
-    case GST_VIDEO_TRANSFER_GAMMA20:
-        // not quite, but best fit
-    case GST_VIDEO_TRANSFER_BT709:
-    case GST_VIDEO_TRANSFER_BT2020_12:
-        transfer = QVideoFrameFormat::ColorTransfer_BT709;
-        break;
-    case GST_VIDEO_TRANSFER_GAMMA28:
-        transfer = QVideoFrameFormat::ColorTransfer_Gamma28;
-        break;
-    case GST_VIDEO_TRANSFER_LOG100:
-    case GST_VIDEO_TRANSFER_LOG316:
-        break;
-    case GST_VIDEO_TRANSFER_SMPTE2084:
-        transfer = QVideoFrameFormat::ColorTransfer_ST2084;
-        break;
-    case GST_VIDEO_TRANSFER_ARIB_STD_B67:
-        transfer = QVideoFrameFormat::ColorTransfer_STD_B67;
-        break;
-    case GST_VIDEO_TRANSFER_BT2020_10:
-        transfer = QVideoFrameFormat::ColorTransfer_BT709;
-        break;
-    case GST_VIDEO_TRANSFER_BT601:
-        transfer = QVideoFrameFormat::ColorTransfer_BT601;
-        break;
-    }
-    format.setColorTransfer(transfer);
-
-    return std::pair{
-        std::move(format),
-        QGstVideoInfo{vidInfo, dmaDrmModifier},
-    };
+    return QGstVideoInfo{vidInfo, dmaDrmModifier};
 }
 
 void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats,
@@ -1686,6 +1596,99 @@ QString qGstErrorMessageCannotFindElement(std::string_view element)
 {
     return QStringLiteral("Could not find the %1 GStreamer element")
             .arg(QLatin1StringView(element));
+}
+
+QVideoFrameFormat qVideoFrameFormatFromGstVideoInfo(const QGstVideoInfo &qtVideoInfo)
+{
+    auto &vidInfo = qtVideoInfo.gstVideoInfo;
+    GstVideoFormat gstFormat = GST_VIDEO_INFO_FORMAT(&vidInfo);
+
+    int index = indexOfVideoFormat(gstFormat);
+    if (index == -1)
+        return QVideoFrameFormat();
+
+    QVideoFrameFormat format(QSize(vidInfo.width, vidInfo.height),
+                             qt_videoFormatLookup[index].pixelFormat);
+
+    if (vidInfo.fps_d > 0)
+        format.setStreamFrameRate(qreal(vidInfo.fps_n) / vidInfo.fps_d);
+
+    QVideoFrameFormat::ColorRange range = QVideoFrameFormat::ColorRange_Unknown;
+    switch (vidInfo.colorimetry.range) {
+    case GST_VIDEO_COLOR_RANGE_UNKNOWN:
+        break;
+    case GST_VIDEO_COLOR_RANGE_0_255:
+        range = QVideoFrameFormat::ColorRange_Full;
+        break;
+    case GST_VIDEO_COLOR_RANGE_16_235:
+        range = QVideoFrameFormat::ColorRange_Video;
+        break;
+    }
+    format.setColorRange(range);
+
+    QVideoFrameFormat::ColorSpace colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
+    switch (vidInfo.colorimetry.matrix) {
+    case GST_VIDEO_COLOR_MATRIX_UNKNOWN:
+    case GST_VIDEO_COLOR_MATRIX_RGB:
+    case GST_VIDEO_COLOR_MATRIX_FCC:
+        break;
+    case GST_VIDEO_COLOR_MATRIX_BT709:
+        colorSpace = QVideoFrameFormat::ColorSpace_BT709;
+        break;
+    case GST_VIDEO_COLOR_MATRIX_BT601:
+        colorSpace = QVideoFrameFormat::ColorSpace_BT601;
+        break;
+    case GST_VIDEO_COLOR_MATRIX_SMPTE240M:
+        colorSpace = QVideoFrameFormat::ColorSpace_AdobeRgb;
+        break;
+    case GST_VIDEO_COLOR_MATRIX_BT2020:
+        colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
+        break;
+    }
+    format.setColorSpace(colorSpace);
+
+    QVideoFrameFormat::ColorTransfer transfer = QVideoFrameFormat::ColorTransfer_Unknown;
+    switch (vidInfo.colorimetry.transfer) {
+    case GST_VIDEO_TRANSFER_UNKNOWN:
+        break;
+    case GST_VIDEO_TRANSFER_GAMMA10:
+        transfer = QVideoFrameFormat::ColorTransfer_Linear;
+        break;
+    case GST_VIDEO_TRANSFER_GAMMA22:
+    case GST_VIDEO_TRANSFER_SMPTE240M:
+    case GST_VIDEO_TRANSFER_SRGB:
+    case GST_VIDEO_TRANSFER_ADOBERGB:
+        transfer = QVideoFrameFormat::ColorTransfer_Gamma22;
+        break;
+    case GST_VIDEO_TRANSFER_GAMMA18:
+    case GST_VIDEO_TRANSFER_GAMMA20:
+        // not quite, but best fit
+    case GST_VIDEO_TRANSFER_BT709:
+    case GST_VIDEO_TRANSFER_BT2020_12:
+        transfer = QVideoFrameFormat::ColorTransfer_BT709;
+        break;
+    case GST_VIDEO_TRANSFER_GAMMA28:
+        transfer = QVideoFrameFormat::ColorTransfer_Gamma28;
+        break;
+    case GST_VIDEO_TRANSFER_LOG100:
+    case GST_VIDEO_TRANSFER_LOG316:
+        break;
+    case GST_VIDEO_TRANSFER_SMPTE2084:
+        transfer = QVideoFrameFormat::ColorTransfer_ST2084;
+        break;
+    case GST_VIDEO_TRANSFER_ARIB_STD_B67:
+        transfer = QVideoFrameFormat::ColorTransfer_STD_B67;
+        break;
+    case GST_VIDEO_TRANSFER_BT2020_10:
+        transfer = QVideoFrameFormat::ColorTransfer_BT709;
+        break;
+    case GST_VIDEO_TRANSFER_BT601:
+        transfer = QVideoFrameFormat::ColorTransfer_BT601;
+        break;
+    }
+    format.setColorTransfer(transfer);
+
+    return format;
 }
 
 QT_END_NAMESPACE

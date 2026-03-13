@@ -146,9 +146,10 @@ bool QGstVideoRenderer::start(const QGstCaps& caps)
 {
     qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::start" << caps;
 
-    auto optionalFormatAndVideoInfo = caps.formatAndVideoInfo();
-    if (optionalFormatAndVideoInfo) {
-        std::tie(m_format, m_videoInfo) = std::move(*optionalFormatAndVideoInfo);
+    auto optionalVideoInfo = caps.videoInfo();
+    if (optionalVideoInfo) {
+        m_videoInfo = std::move(*optionalVideoInfo);
+        m_format = qVideoFrameFormatFromGstVideoInfo(m_videoInfo);
     } else {
         m_format = {};
         m_videoInfo = {};

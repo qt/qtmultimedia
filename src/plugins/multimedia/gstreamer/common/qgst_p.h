@@ -355,7 +355,7 @@ public:
     GstCaps *caps() const;
 
     MemoryFormat memoryFormat() const;
-    std::optional<std::pair<QVideoFrameFormat, QGstVideoInfo>> formatAndVideoInfo() const;
+    std::optional<QGstVideoInfo> videoInfo() const;
 
     void addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats,
                          const char* capsFeatures = nullptr);
@@ -982,6 +982,8 @@ void qForeachStreamInCollection(const QGstStreamCollectionHandle &collection, Fu
 {
     qForeachStreamInCollection(collection.get(), std::forward<Functor>(f));
 }
+
+QVideoFrameFormat qVideoFrameFormatFromGstVideoInfo(const QGstVideoInfo &vidInfo);
 
 QT_END_NAMESPACE
 

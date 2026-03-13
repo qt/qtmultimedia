@@ -283,9 +283,11 @@ void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveM
 
         QGstVideoInfo previewInfo;
         QVideoFrameFormat fmt;
-        auto optionalFormatAndVideoInfo = caps.formatAndVideoInfo();
-        if (optionalFormatAndVideoInfo)
-            std::tie(fmt, previewInfo) = std::move(*optionalFormatAndVideoInfo);
+        auto optionalVideoInfo = caps.videoInfo();
+        if (optionalVideoInfo) {
+            previewInfo = std::move(*optionalVideoInfo);
+            fmt = qVideoFrameFormatFromGstVideoInfo(previewInfo);
+        }
 
         auto *sink = m_session->gstreamerVideoSink();
         auto gstBuffer = std::make_unique<QGstVideoBuffer>(std::move(buffer), previewInfo, sink,
@@ -321,9 +323,11 @@ void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveM
 
             QGstVideoInfo previewInfo;
             QVideoFrameFormat fmt;
-            auto optionalFormatAndVideoInfo = caps.formatAndVideoInfo();
-            if (optionalFormatAndVideoInfo)
-                std::tie(fmt, previewInfo) = std::move(*optionalFormatAndVideoInfo);
+            auto optionalVideoInfo = caps.videoInfo();
+            if (optionalVideoInfo) {
+                previewInfo = std::move(*optionalVideoInfo);
+                fmt = qVideoFrameFormatFromGstVideoInfo(previewInfo);
+            }
 
             auto *sink = m_session->gstreamerVideoSink();
             auto gstBuffer = std::make_unique<QGstVideoBuffer>(std::move(buffer), previewInfo, sink,
