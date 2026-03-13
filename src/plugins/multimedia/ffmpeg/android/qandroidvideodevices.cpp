@@ -19,10 +19,6 @@ QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
 
-Q_DECLARE_JNI_CLASS(
-    QtCameraAvailabilityListener,
-    "org/qtproject/qt/android/multimedia/QtCameraAvailabilityListener");
-
 namespace QFFmpeg {
 
 Q_STATIC_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.videoDevices");
@@ -31,7 +27,7 @@ Q_STATIC_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.
 QAndroidVideoDevices::QAndroidVideoDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration)
 {
-    m_javaCameraAvailabilityListener = QtJniTypes::QtCameraAvailabilityListener(
+    m_javaCameraAvailabilityListener = QJavaCameraAvailabilityListener(
         QtAndroidPrivate::activity(),
         static_cast<jlong>(reinterpret_cast<size_t>(this)));
 }
@@ -60,8 +56,8 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
 {
     QList<QCameraDevice> devices;
 
-    QJniObject deviceManager(QtJniTypes::Traits<QtJniTypes::QtVideoDeviceManager>::className(),
-                             QNativeInterface::QAndroidApplication::context());
+    QtJniTypes::QtVideoDeviceManager deviceManager {
+        QNativeInterface::QAndroidApplication::context() };
 
     if (!deviceManager.isValid()) {
         qCWarning(qLCAndroidVideoDevices) << "Failed to connect to Qt Video Device Manager.";
@@ -180,7 +176,7 @@ static void onCameraUnavailableNative(
 Q_DECLARE_JNI_NATIVE_METHOD(onCameraUnavailableNative)
 
 bool QFFmpeg::QAndroidVideoDevices::registerNativeMethods() {
-    return QtJniTypes::QtCameraAvailabilityListener::registerNativeMethods({
+    return QJavaCameraAvailabilityListener::registerNativeMethods({
         Q_JNI_NATIVE_METHOD(onCameraAvailableNative),
         Q_JNI_NATIVE_METHOD(onCameraUnavailableNative),
     });

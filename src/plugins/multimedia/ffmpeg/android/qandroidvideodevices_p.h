@@ -22,7 +22,13 @@
 
 QT_BEGIN_NAMESPACE
 
+Q_DECLARE_JNI_CLASS(
+    QtCameraAvailabilityListener,
+    "org/qtproject/qt/android/multimedia/QtCameraAvailabilityListener");
+
 namespace QFFmpeg {
+
+using QJavaCameraAvailabilityListener = QtJniTypes::QtCameraAvailabilityListener;
 
 class QAndroidVideoDevices : public QPlatformVideoDevices
 {
@@ -39,7 +45,7 @@ protected:
     QList<QCameraDevice> findVideoInputs() const override;
 
 private:
-    QJniObject m_javaCameraAvailabilityListener;
+    QJavaCameraAvailabilityListener m_javaCameraAvailabilityListener;
 };
 
 } // namespace QFFmpeg
