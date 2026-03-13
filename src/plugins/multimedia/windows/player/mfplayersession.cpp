@@ -806,6 +806,16 @@ void MFPlayerSession::pause()
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "pause";
 #endif
+
+    // Pause() may technically succeed during loading, but the session
+    // is not yet fully initialized (no topology/clock), so the pause
+    // has no real effect. Defer it until the topology is fully resolved
+    // (MF_TOPOSTATUS_READY), when the session is in a stable stopped state.
+    if (status() == QMediaPlayer::LoadingMedia) {
+        m_deferredPause = true;
+        return;
+    }
+
     if (m_pendingState != NoPending) {
         m_request.setCommand(CmdPause);
     } else {
@@ -1490,6 +1500,11 @@ void MFPlayerSession::handleSessionEvent(const ComPtr<IMFMediaEvent> &sessionEve
 
                     m_updatingTopology = false;
                     stop();
+
+                    if (m_deferredPause) {
+                        m_deferredPause = false;
+                        pause();
+                    }
                 }
             }
         }
@@ -1565,6 +1580,7 @@ void MFPlayerSession::clear()
 #endif
     m_mediaTypes = 0;
     m_canScrub = false;
+    m_deferredPause = false;
 
     m_pendingState = NoPending;
     m_state.command = CmdStop;

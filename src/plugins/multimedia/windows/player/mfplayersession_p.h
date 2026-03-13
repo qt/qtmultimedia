@@ -163,6 +163,7 @@ private:
     ComPtr<SourceResolver> m_sourceResolver;
     EventHandle m_hCloseEvent;
     bool m_closing;
+    bool m_deferredPause = false;
 
     enum MediaType
     {
