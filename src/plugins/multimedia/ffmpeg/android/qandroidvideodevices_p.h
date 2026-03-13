@@ -33,13 +33,13 @@ public:
 
     using QPlatformVideoDevices::onVideoInputsChanged;
 
+    [[nodiscard]] static bool registerNativeMethods();
+
 protected:
     QList<QCameraDevice> findVideoInputs() const override;
 
 private:
     QJniObject m_javaCameraAvailabilityListener;
-
-    static void registerNativeMethods();
 };
 
 } // namespace QFFmpeg
