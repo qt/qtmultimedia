@@ -339,7 +339,7 @@ QPlatformMediaFormatInfo *QFFmpegMediaIntegration::createFormatInfo()
 QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
 {
 #if defined(Q_OS_ANDROID)
-    return new QAndroidVideoDevices(this);
+    return new QFFmpeg::QAndroidVideoDevices(this);
 #elif QT_CONFIG(linux_v4l)
     return new QV4L2CameraDevices(this);
 #elif defined Q_OS_DARWIN
