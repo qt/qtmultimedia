@@ -31,8 +31,6 @@ Q_STATIC_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.
 QAndroidVideoDevices::QAndroidVideoDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration)
 {
-    registerNativeMethods();
-
     m_javaCameraAvailabilityListener = QtJniTypes::QtCameraAvailabilityListener(
         QtAndroidPrivate::activity(),
         static_cast<jlong>(reinterpret_cast<size_t>(this)));
@@ -181,13 +179,11 @@ static void onCameraUnavailableNative(
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCameraUnavailableNative)
 
-void QFFmpeg::QAndroidVideoDevices::registerNativeMethods() {
-    QJniEnvironment().registerNativeMethods(
-        QtJniTypes::Traits<QtJniTypes::QtCameraAvailabilityListener>::className(),
-        {
-            Q_JNI_NATIVE_METHOD(onCameraAvailableNative),
-            Q_JNI_NATIVE_METHOD(onCameraUnavailableNative),
-        });
+bool QFFmpeg::QAndroidVideoDevices::registerNativeMethods() {
+    return QtJniTypes::QtCameraAvailabilityListener::registerNativeMethods({
+        Q_JNI_NATIVE_METHOD(onCameraAvailableNative),
+        Q_JNI_NATIVE_METHOD(onCameraUnavailableNative),
+    });
 }
 
 QT_END_NAMESPACE

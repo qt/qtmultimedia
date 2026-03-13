@@ -387,7 +387,8 @@ extern "C" Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/
         return JNI_ERR;
 
     if (!QFFmpeg::QAndroidCamera::registerNativeMethods()
-            ||!QAndroidScreenCapture::registerNativeMethods()) {
+        || !QAndroidScreenCapture::registerNativeMethods()
+        || !QFFmpeg::QAndroidVideoDevices::registerNativeMethods()) {
         return JNI_ERR;
     }
 
