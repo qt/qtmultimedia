@@ -19,12 +19,15 @@ QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
 
-Q_STATIC_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.videoDevices");
-
 Q_DECLARE_JNI_CLASS(
     QtCameraAvailabilityListener,
     "org/qtproject/qt/android/multimedia/QtCameraAvailabilityListener");
 
+namespace QFFmpeg {
+
+Q_STATIC_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.videoDevices");
+
+// Can be called from any thread
 QAndroidVideoDevices::QAndroidVideoDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration)
 {
@@ -54,6 +57,7 @@ QCameraFormat createCameraFormat(int width, int height, int fpsMin, int fpsMax)
     return format->create();
 }
 
+// Can be called from any thread
 QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
 {
     QList<QCameraDevice> devices;
@@ -151,29 +155,33 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
     return devices;
 }
 
-// Called from main looper thread in Android
+} // namespace QFFmpeg
+
+// Called from background looper thread in Android
 static void onCameraAvailableNative(
     JNIEnv*,
     jobject,
     jlong nativePtr)
 {
+    using namespace QFFmpeg;
     auto* videoDevices = reinterpret_cast<QAndroidVideoDevices*>(static_cast<size_t>(nativePtr));
     videoDevices->onVideoInputsChanged();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCameraAvailableNative)
 
-// Called from main looper thread in Android
+// Called from background looper thread in Android
 static void onCameraUnavailableNative(
     JNIEnv*,
     jobject,
     jlong nativePtr)
 {
+    using namespace QFFmpeg;
     auto* videoDevices = reinterpret_cast<QAndroidVideoDevices*>(static_cast<size_t>(nativePtr));
     videoDevices->onVideoInputsChanged();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCameraUnavailableNative)
 
-void QAndroidVideoDevices::registerNativeMethods() {
+void QFFmpeg::QAndroidVideoDevices::registerNativeMethods() {
     QJniEnvironment().registerNativeMethods(
         QtJniTypes::Traits<QtJniTypes::QtCameraAvailabilityListener>::className(),
         {
