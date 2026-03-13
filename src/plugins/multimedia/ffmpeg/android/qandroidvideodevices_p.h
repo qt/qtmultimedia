@@ -22,6 +22,8 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QFFmpeg {
+
 class QAndroidVideoDevices : public QPlatformVideoDevices
 {
     Q_OBJECT
@@ -39,6 +41,8 @@ private:
 
     static void registerNativeMethods();
 };
+
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
