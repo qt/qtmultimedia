@@ -76,29 +76,34 @@ QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
 
 } // namespace
 
+// Called by any C++ thread
 QAndroidAudioDevices::QAndroidAudioDevices() : QPlatformAudioDevices()
 {
-    QtAudioDeviceManager::callStaticMethod<void>("registerAudioHeadsetStateReceiver");
+    QtAudioDeviceManager::callStaticMethod<void>(
+        "qAndroidAudioDevicesConstructed",
+        static_cast<jlong>(reinterpret_cast<size_t>(this)));
 }
 
 QAndroidAudioDevices::~QAndroidAudioDevices()
 {
-    // Object of QAndroidAudioDevices type is static. Unregistering will happend only when closing
-    // the application. In such case it is probably not needed, but let's leave it for
-    // compatibility with Android documentation
-    QtAudioDeviceManager::callStaticMethod<void>("unregisterAudioHeadsetStateReceiver");
+    // Performs a blocking call to unregister QAndroidAudioDevices from receiving
+    // any more callbacks, and flushes remaining callbacks.
+    QtAudioDeviceManager::callStaticMethod<void>("qAndroidAudioDevicesDestroyed");
 }
 
+// Called by any C++ thread
 QList<QAudioDevice> QAndroidAudioDevices::findAudioInputs() const
 {
     return availableDevices(QAudioDevice::Input);
 }
 
+// Called by any C++ thread
 QList<QAudioDevice> QAndroidAudioDevices::findAudioOutputs() const
 {
     return availableDevices(QAudioDevice::Output);
 }
 
+// Called by any C++ thread
 QPlatformAudioSource *QAndroidAudioDevices::createAudioSource(const QAudioDevice &deviceInfo,
                                                               const QAudioFormat &fmt,
                                                               QObject *parent)
@@ -106,23 +111,34 @@ QPlatformAudioSource *QAndroidAudioDevices::createAudioSource(const QAudioDevice
     return new QtAAudio::QAndroidAudioSource(deviceInfo, fmt, parent);
 }
 
+// Called by any C++ thread
 QPlatformAudioSink *QAndroidAudioDevices::createAudioSink(const QAudioDevice &deviceInfo,
                                                           const QAudioFormat &fmt, QObject *parent)
 {
     return new QtAAudio::QAndroidAudioSink(deviceInfo, fmt, parent);
 }
 
-static void onAudioInputDevicesUpdated(JNIEnv * /*env*/, jobject /*thiz*/)
+// Invoked by background Java Handler thread
+static void onAudioInputDevicesUpdated(
+    JNIEnv * /*env*/,
+    jobject /*thiz*/,
+    jlong nativePtr)
 {
-    static_cast<QAndroidAudioDevices *>(QPlatformMediaIntegration::instance()->audioDevices())
-            ->onAudioInputsChanged();
+    auto *audioDevices = reinterpret_cast<QAndroidAudioDevices*>(static_cast<size_t>(nativePtr));
+    Q_ASSERT(!audioDevices->thread()->isCurrentThread());
+    audioDevices->onAudioInputsChanged();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onAudioInputDevicesUpdated)
 
-static void onAudioOutputDevicesUpdated(JNIEnv * /*env*/, jobject /*thiz*/)
+// Invoked by background Java Handler thread
+static void onAudioOutputDevicesUpdated(
+    JNIEnv * /*env*/,
+    jobject /*thiz*/,
+    jlong nativePtr)
 {
-    static_cast<QAndroidAudioDevices *>(QPlatformMediaIntegration::instance()->audioDevices())
-            ->onAudioOutputsChanged();
+    auto *audioDevices = reinterpret_cast<QAndroidAudioDevices*>(static_cast<size_t>(nativePtr));
+    Q_ASSERT(!audioDevices->thread()->isCurrentThread());
+    audioDevices->onAudioOutputsChanged();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onAudioOutputDevicesUpdated)
 

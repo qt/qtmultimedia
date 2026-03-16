@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import android.content.Context;
 import android.media.AudioDeviceCallback;
@@ -47,37 +48,83 @@ class QtAudioDeviceManager
     static private AtomicInteger m_speakerphoneCounter = new AtomicInteger();
     static private int m_currentCommunicationDeviceId = -1;
 
-    static native void onAudioInputDevicesUpdated();
-    static native void onAudioOutputDevicesUpdated();
+    // Holds the pointer to the QAndroidAudioDevices instance.
+    //
+    // This is always assigned with callbacks registered, from a
+    // C++ thread. Assignment only happens when QAndroidAudioDevices
+    // is constructed. It is always cleared from the Handler thread, using
+    // blocking job from the C++ thread.
+    static private long m_qAudioDevicesNativePtr = 0;
+
+    static native void onAudioInputDevicesUpdated(long qAudioDeviceNativePtr);
+    static native void onAudioOutputDevicesUpdated(long qAudioDeviceNativePtr);
 
     static private void updateDeviceList() {
+        assert(handler.getLooper().isCurrentThread());
+        // Make sure we never get a callback when we are unregistered.
+        assert(m_qAudioDevicesNativePtr != 0);
+
         if (m_currentOutputId != -1)
             prepareAudioOutput(m_currentOutputId);
-        onAudioInputDevicesUpdated();
-        onAudioOutputDevicesUpdated();
+        onAudioInputDevicesUpdated(m_qAudioDevicesNativePtr);
+        onAudioOutputDevicesUpdated(m_qAudioDevicesNativePtr);
     }
 
     private static class AudioDevicesReceiver extends AudioDeviceCallback {
         @Override
         public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
+            assert(handler.getLooper().isCurrentThread());
             updateDeviceList();
         }
 
         @Override
         public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
+            assert(handler.getLooper().isCurrentThread());
             updateDeviceList();
         }
     }
 
-
-    static void registerAudioHeadsetStateReceiver()
+    @UsedFromNativeCode
+    static void qAndroidAudioDevicesConstructed(long nativePtr)
     {
+        assert(nativePtr != 0);
+        m_qAudioDevicesNativePtr = nativePtr;
         m_audioManager.registerAudioDeviceCallback(m_audioDevicesReceiver, handler);
     }
 
-    static void unregisterAudioHeadsetStateReceiver()
+    @UsedFromNativeCode
+    static void qAndroidAudioDevicesDestroyed()
     {
-        m_audioManager.unregisterAudioDeviceCallback(m_audioDevicesReceiver);
+        assert(!handler.getLooper().isCurrentThread());
+
+        // Perform cleanup on the same thread that we receive callbacks, then wait for cleanup job
+        // to finish. No need for locks.
+        final CountDownLatch latch = new CountDownLatch(1);
+        final boolean postSuccess = handler.post(() -> {
+            m_audioManager.unregisterAudioDeviceCallback(m_audioDevicesReceiver);
+            assert(m_qAudioDevicesNativePtr != 0);
+            m_qAudioDevicesNativePtr = 0;
+            latch.countDown(); // Signal that the task is done
+        });
+
+        if (!postSuccess) {
+            Log.w(
+                TAG,
+                "Unable to post cleanup job to corresponding thread during " +
+                "QAndroidAudioDevices cleanup.");
+            return;
+        }
+
+        try {
+            latch.await();
+        } catch (Exception e) {
+            Log.w(
+                TAG,
+                "Unable to wait for cleanup job to finish on corresponding thread during" +
+                "QAndroidAudioDevices cleanup.");
+        }
+
+        // After waiting, QAndroidAudioDevices can now be safely destroyed.
     }
 
     static void setContext(Context context)
