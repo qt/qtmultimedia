@@ -40,6 +40,20 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcGstVideoBuffer, "qt.multimedia.gstreamer.videobuffer");
 
+#if QT_CONFIG(gstreamer_gl) && QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+Qt::HANDLE getEglDisplay() {
+    using namespace Qt::StringLiterals;
+    return qGuiApp
+            ? qGuiApp->platformNativeInterface()->nativeResourceForIntegration("egldisplay"_ba)
+            : nullptr;
+}
+
+Q_APPLICATION_STATIC(Qt::HANDLE, s_eglDisplay, getEglDisplay());
+
+Q_GLOBAL_STATIC(QFunctionPointer, g_eglImageTargetTexture2D,
+                eglGetProcAddress("glEGLImageTargetTexture2DOES"));
+#endif
+
 // keep things building without drm_fourcc.h
 #define fourcc_code(a, b, c, d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | \
                                  ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
@@ -70,26 +84,20 @@ Q_STATIC_LOGGING_CATEGORY(qLcGstVideoBuffer, "qt.multimedia.gstreamer.videobuffe
 #define DRM_FORMAT_YUV444       fourcc_code('Y', 'U', '2', '4') /* non-subsampled Cb (1) and Cr (2) planes */
 
 QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo,
-                                 QGstreamerRelayVideoSink *sink,
                                  const QVideoFrameFormat &frameFormat,
                                  QGstCaps::MemoryFormat memoryFormat)
-    : QHwVideoBuffer((sink && sink->rhi() && memoryFormat != QGstCaps::CpuMemory)
-                             ? QVideoFrame::RhiTextureHandle
-                             : QVideoFrame::NoHandle),
+    : QHwVideoBuffer(memoryFormat != QGstCaps::CpuMemory ? QVideoFrame::RhiTextureHandle
+                                                         : QVideoFrame::NoHandle),
       m_memoryFormat(memoryFormat),
       m_frameFormat(frameFormat),
       m_videoInfo(videoInfo),
       m_buffer(std::move(buffer))
 {
-#if QT_CONFIG(gstreamer_gl_egl)
-    if (sink) {
-        eglDisplay =  sink->eglDisplay();
-        eglImageTargetTexture2D = sink->eglImageTargetTexture2D();
-    }
+#if QT_CONFIG(gstreamer_gl) && QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+    m_eglDisplay = *s_eglDisplay();
+    if (m_eglDisplay)
+        m_eglImageTargetTexture2D = *g_eglImageTargetTexture2D();
 #endif
-    Q_UNUSED(m_memoryFormat);
-    Q_UNUSED(eglDisplay);
-    Q_UNUSED(eglImageTargetTexture2D);
 }
 
 QGstVideoBuffer::~QGstVideoBuffer()
@@ -557,9 +565,9 @@ QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTextu
         textures = mapFromGlTexture(m_buffer, m_frame, m_videoInfo.gstVideoInfo);
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
-    else if (m_memoryFormat == QGstCaps::DMABuf && eglDisplay && isEglfsQPA)
-        textures = mapFromDmaBuffer(&rhi, m_buffer, m_videoInfo, eglDisplay,
-                                    eglImageTargetTexture2D);
+    else if (m_memoryFormat == QGstCaps::DMABuf && m_eglDisplay && isEglfsQPA)
+        textures = mapFromDmaBuffer(&rhi, m_buffer, m_videoInfo, m_eglDisplay,
+                                    m_eglImageTargetTexture2D);
 
 #  endif
     if (textures.count > 0)
