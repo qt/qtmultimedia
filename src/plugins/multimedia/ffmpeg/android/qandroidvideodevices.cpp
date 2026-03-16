@@ -158,7 +158,8 @@ static void onCameraAvailableNative(
     jlong nativePtr)
 {
     using namespace QFFmpeg;
-    auto* videoDevices = reinterpret_cast<QAndroidVideoDevices*>(static_cast<size_t>(nativePtr));
+    auto *videoDevices = reinterpret_cast<QAndroidVideoDevices*>(static_cast<size_t>(nativePtr));
+    Q_ASSERT(!videoDevices->thread()->isCurrentThread());
     videoDevices->onVideoInputsChanged();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCameraAvailableNative)
@@ -170,7 +171,8 @@ static void onCameraUnavailableNative(
     jlong nativePtr)
 {
     using namespace QFFmpeg;
-    auto* videoDevices = reinterpret_cast<QAndroidVideoDevices*>(static_cast<size_t>(nativePtr));
+    auto *videoDevices = reinterpret_cast<QAndroidVideoDevices*>(static_cast<size_t>(nativePtr));
+    Q_ASSERT(!videoDevices->thread()->isCurrentThread());
     videoDevices->onVideoInputsChanged();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCameraUnavailableNative)

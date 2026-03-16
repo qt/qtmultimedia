@@ -6,6 +6,7 @@ package org.qtproject.qt.android.multimedia;
 import android.app.Activity;
 import android.hardware.camera2.CameraManager;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import org.qtproject.qt.android.UsedFromNativeCode;
@@ -22,10 +23,12 @@ class QtCameraAvailabilityListener extends CameraManager.AvailabilityCallback {
 
     CameraManager mCameraManager = null;
     // Holds the pointer to the QAndroidVideoDevices instance.
+    // Should only ever be accessed from mAvailabilityCallbackHandler thread.
     long mVideoDevicesNativePtr = 0;
 
     Handler mAvailabilityCallbackHandler = null;
 
+    // Called from any native C++ thread.
     @UsedFromNativeCode
     QtCameraAvailabilityListener(Activity activity, long videoDevicesNativePtr) {
         mCameraManager = (CameraManager)activity.getSystemService(Activity.CAMERA_SERVICE);
@@ -46,13 +49,20 @@ class QtCameraAvailabilityListener extends CameraManager.AvailabilityCallback {
         mCameraManager.registerAvailabilityCallback(this, mAvailabilityCallbackHandler);
     }
 
+    // Called by QAndroidVideoDevices destructor.
+    // Posts a blocking job to background thread to clear the
+    // reference to QAndroidVideoDevices, then returns after
+    // reference is cleared.
     @UsedFromNativeCode
     void cleanup() {
+        assert(!mAvailabilityCallbackHandler.getLooper().isCurrentThread());
+
         // Perform cleanup on the same thread that we receive callbacks, then wait for cleanup job
         // to finish. No need for locks.
         final CountDownLatch latch = new CountDownLatch(1);
         final boolean postSuccess = mAvailabilityCallbackHandler.post(() -> {
             mCameraManager.unregisterAvailabilityCallback(this);
+            assert(mVideoDevicesNativePtr != 0);
             mVideoDevicesNativePtr = 0;
             latch.countDown(); // Signal that the task is done
         });
@@ -67,7 +77,7 @@ class QtCameraAvailabilityListener extends CameraManager.AvailabilityCallback {
 
         try {
             latch.await();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             Log.w(
                 LOG_TAG,
                 "Unable to wait for cleanup job to finish on corresponding thread during" +
@@ -83,6 +93,7 @@ class QtCameraAvailabilityListener extends CameraManager.AvailabilityCallback {
     // is attached to the Android CameraManager.
     @Override
     public void onCameraAvailable(String cameraId) {
+        assert(mAvailabilityCallbackHandler.getLooper().isCurrentThread());
         assert(mVideoDevicesNativePtr != 0);
         onCameraAvailableNative(mVideoDevicesNativePtr);
     }
@@ -91,6 +102,7 @@ class QtCameraAvailabilityListener extends CameraManager.AvailabilityCallback {
 
     @Override
     public void onCameraUnavailable(String cameraId) {
+        assert(mAvailabilityCallbackHandler.getLooper().isCurrentThread());
         assert(mVideoDevicesNativePtr != 0);
         onCameraUnavailableNative(mVideoDevicesNativePtr);
     }
