@@ -68,6 +68,8 @@ private:
 
 } // namespace QGstUtils
 
+class QGstreamerRelayVideoSink;
+
 class QGstVideoRenderer : public QObject
 {
     struct RenderBufferState
