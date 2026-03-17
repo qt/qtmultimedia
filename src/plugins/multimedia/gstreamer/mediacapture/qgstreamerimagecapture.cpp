@@ -318,8 +318,6 @@ void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveM
                 return;
             }
 
-            auto memoryFormat = caps.memoryFormat();
-
             QGstVideoInfo previewInfo;
             QVideoFrameFormat fmt;
             auto optionalVideoInfo = caps.videoInfo();
@@ -328,8 +326,7 @@ void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveM
                 fmt = qVideoFrameFormatFromGstVideoInfo(previewInfo);
             }
 
-            auto gstBuffer = std::make_unique<QGstVideoBuffer>(std::move(buffer), previewInfo, fmt,
-                                                               memoryFormat);
+            auto gstBuffer = std::make_unique<QGstVideoBuffer>(std::move(buffer), previewInfo, fmt);
 
             QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(gstBuffer), fmt);
             QImage img = frame.toImage();
