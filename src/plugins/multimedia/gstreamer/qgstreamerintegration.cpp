@@ -103,6 +103,39 @@ QGStreamerPlatformSpecificInterfaceImplementation::gstPipeline(QMediaCaptureSess
     return gstreamerCapture ? gstreamerCapture->pipeline().pipeline() : nullptr;
 }
 
+QVideoFrame QGStreamerPlatformSpecificInterfaceImplementation::createFrameFromGstBuffer(
+        GstBuffer *buffer, const GstVideoInfo &videoInfo)
+{
+    if (!buffer)
+        return QVideoFrame();
+
+    QGstVideoInfo qtVideoInfo{ videoInfo, std::nullopt };
+
+    return qCreateFrameFromGstBuffer(QGstBufferHandle{ buffer, QGstBufferHandle::NeedsRef },
+                                     qtVideoInfo);
+}
+
+QVideoFrame QGStreamerPlatformSpecificInterfaceImplementation::createFrameFromGstBuffer(
+        GstBuffer *buffer, const GstVideoInfoDmaDrm &videoInfoDmaDrm)
+{
+#if !QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM
+    Q_UNUSED(buffer);
+    Q_UNUSED(videoInfoDmaDrm);
+    qWarning() << QStringLiteral("GstVideoInfoDmaDrm unsupported, minimum GStreamer version required: 1.24");
+    return QVideoFrame();
+#else
+    if (!buffer)
+        return QVideoFrame();
+
+    QGstVideoInfo qtVideoInfo{ { }, videoInfoDmaDrm.drm_modifier };
+    if (!gst_video_info_dma_drm_to_video_info(&videoInfoDmaDrm, &qtVideoInfo.gstVideoInfo))
+        qWarning() << "Failed to create QGstVideoInfo from GstVideoInfoDmaDrm";
+
+    return qCreateFrameFromGstBuffer(QGstBufferHandle{ buffer, QGstBufferHandle::NeedsRef },
+                                     qtVideoInfo);
+#endif
+}
+
 Q_STATIC_LOGGING_CATEGORY(lcGstreamer, "qt.multimedia.gstreamer")
 
 namespace {

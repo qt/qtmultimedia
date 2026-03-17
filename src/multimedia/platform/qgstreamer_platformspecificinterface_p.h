@@ -16,8 +16,13 @@
 
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
-typedef struct _GstPipeline GstPipeline; // NOLINT (bugprone-reserved-identifier)
-typedef struct _GstElement GstElement; // NOLINT (bugprone-reserved-identifier)
+// NOLINTBEGIN (bugprone-reserved-identifier)
+typedef struct _GstPipeline GstPipeline;
+typedef struct _GstElement GstElement;
+typedef struct _GstBuffer GstBuffer;
+typedef struct _GstVideoInfo GstVideoInfo;
+typedef struct _GstVideoInfoDmaDrm GstVideoInfoDmaDrm;
+// NOLINTEND (bugprone-reserved-identifier)
 
 QT_BEGIN_NAMESPACE
 
@@ -41,6 +46,12 @@ public:
 
     virtual GstPipeline *gstPipeline(QMediaPlayer *) = 0;
     virtual GstPipeline *gstPipeline(QMediaCaptureSession *) = 0;
+
+    // NOTE: Ownership of GstBuffer is not transferred
+    virtual QVideoFrame createFrameFromGstBuffer(GstBuffer *buffer,
+                                                 const GstVideoInfo &videoInfo) = 0;
+    virtual QVideoFrame createFrameFromGstBuffer(GstBuffer *buffer,
+                                                 const GstVideoInfoDmaDrm &videoInfo) = 0;
 };
 
 QT_END_NAMESPACE
