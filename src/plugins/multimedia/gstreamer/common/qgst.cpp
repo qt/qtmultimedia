@@ -1723,8 +1723,7 @@ QGstCaps::MemoryFormat qMemoryFormatFromGstBuffer(GstBuffer *buffer)
 QVideoFrame qCreateFrameFromGstBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo)
 {
     auto format = qVideoFrameFormatFromGstVideoInfo(videoInfo);
-    auto memoryFormat = qMemoryFormatFromGstBuffer(buffer.get());
-    auto videoBuffer = std::make_unique<QGstVideoBuffer>(buffer, videoInfo, format, memoryFormat);
+    auto videoBuffer = std::make_unique<QGstVideoBuffer>(buffer, videoInfo, format);
     return QVideoFramePrivate::createFrame(std::move(videoBuffer), format);
 }
 

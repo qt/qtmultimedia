@@ -84,15 +84,15 @@ Q_GLOBAL_STATIC(QFunctionPointer, g_eglImageTargetTexture2D,
 #define DRM_FORMAT_YUV444       fourcc_code('Y', 'U', '2', '4') /* non-subsampled Cb (1) and Cr (2) planes */
 
 QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo,
-                                 const QVideoFrameFormat &frameFormat,
-                                 QGstCaps::MemoryFormat memoryFormat)
-    : QHwVideoBuffer(memoryFormat != QGstCaps::CpuMemory ? QVideoFrame::RhiTextureHandle
-                                                         : QVideoFrame::NoHandle),
-      m_memoryFormat(memoryFormat),
+                                 const QVideoFrameFormat &frameFormat)
+    : QHwVideoBuffer(QVideoFrame::NoHandle),
+      m_memoryFormat(qMemoryFormatFromGstBuffer(buffer.get())),
       m_frameFormat(frameFormat),
       m_videoInfo(videoInfo),
       m_buffer(std::move(buffer))
 {
+    m_type = m_memoryFormat != QGstCaps::CpuMemory ? QVideoFrame::RhiTextureHandle
+                                                   : QVideoFrame::NoHandle;
 #if QT_CONFIG(gstreamer_gl) && QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
     m_eglDisplay = *s_eglDisplay();
     if (m_eglDisplay)
