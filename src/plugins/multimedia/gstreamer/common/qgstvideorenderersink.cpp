@@ -241,16 +241,7 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
         if (m_capsMemoryFormat != QGstCaps::CpuMemory)
             return m_capsMemoryFormat;
 
-        [[maybe_unused]] GstMemory *mem = gst_buffer_peek_memory(buffer, 0);
-#if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
-        if (gst_is_dmabuf_memory(mem))
-            return QGstCaps::DMABuf;
-#endif
-#if QT_CONFIG(gstreamer_gl)
-        if (gst_is_gl_memory(mem))
-            return QGstCaps::GLTexture;
-#endif
-        return QGstCaps::CpuMemory;
+        return qMemoryFormatFromGstBuffer(buffer);
     }();
 
     qCDebug(qLcGstVideoRenderer) << "m_capsMemoryFormat" << m_capsMemoryFormat

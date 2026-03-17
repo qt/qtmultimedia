@@ -10,6 +10,10 @@
 #include <QtCore/qdebug.h>
 #include <QtMultimedia/qcameradevice.h>
 
+#if QT_CONFIG(gstreamer_gl)
+#  include <gst/gl/gstglmemory.h>
+#endif
+
 #include <array>
 #include <thread>
 
@@ -1689,6 +1693,26 @@ QVideoFrameFormat qVideoFrameFormatFromGstVideoInfo(const QGstVideoInfo &qtVideo
     format.setColorTransfer(transfer);
 
     return format;
+}
+
+QGstCaps::MemoryFormat qMemoryFormatFromGstBuffer(GstBuffer *buffer)
+{
+    QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
+
+    if (!buffer)
+        return memoryFormat;
+
+    [[maybe_unused]] GstMemory *mem = gst_buffer_peek_memory(buffer, 0);
+
+#if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+    if (gst_is_dmabuf_memory(mem))
+        memoryFormat = QGstCaps::DMABuf;
+#endif
+#if QT_CONFIG(gstreamer_gl)
+    if (gst_is_gl_memory(mem))
+        memoryFormat = QGstCaps::GLTexture;
+#endif
+    return memoryFormat;
 }
 
 QT_END_NAMESPACE
