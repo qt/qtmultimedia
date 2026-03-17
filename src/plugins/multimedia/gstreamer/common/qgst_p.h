@@ -984,6 +984,7 @@ void qForeachStreamInCollection(const QGstStreamCollectionHandle &collection, Fu
 }
 
 QVideoFrameFormat qVideoFrameFormatFromGstVideoInfo(const QGstVideoInfo &vidInfo);
+QGstCaps::MemoryFormat qMemoryFormatFromGstBuffer(GstBuffer *buffer);
 
 QT_END_NAMESPACE
 
