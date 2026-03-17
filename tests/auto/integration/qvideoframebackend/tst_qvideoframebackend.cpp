@@ -283,7 +283,7 @@ void tst_QVideoFrameBackend::toImage_returnsImage_whenCalledFromSeparateThreadAn
     player.setPlaybackRate(5.f);
     player.play();
 
-    QTRY_COMPARE_GE_WITH_TIMEOUT(images.size(), 25, std::chrono::seconds(60));
+    QTRY_COMPARE_GE_WITH_TIMEOUT(images.size(), 25u, std::chrono::seconds(60));
     player.stop();
 
     QVERIFY(threadPool.waitForDone(std::chrono::seconds(60)));
