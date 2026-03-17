@@ -2,12 +2,15 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include <common/qgst_p.h>
+
 #include <common/qgst_debug_p.h>
 #include <common/qgstpipeline_p.h>
 #include <common/qgstreamermessage_p.h>
 #include <common/qgstutils_p.h>
+#include <common/qgstvideobuffer_p.h>
 
 #include <QtCore/qdebug.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
 #include <QtMultimedia/qcameradevice.h>
 
 #if QT_CONFIG(gstreamer_gl)
@@ -1710,6 +1713,14 @@ QGstCaps::MemoryFormat qMemoryFormatFromGstBuffer(GstBuffer *buffer)
         memoryFormat = QGstCaps::GLTexture;
 #endif
     return memoryFormat;
+}
+
+QVideoFrame qCreateFrameFromGstBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo)
+{
+    auto format = qVideoFrameFormatFromGstVideoInfo(videoInfo);
+    auto memoryFormat = qMemoryFormatFromGstBuffer(buffer.get());
+    auto videoBuffer = std::make_unique<QGstVideoBuffer>(buffer, videoInfo, format, memoryFormat);
+    return QVideoFramePrivate::createFrame(std::move(videoBuffer), format);
 }
 
 QT_END_NAMESPACE

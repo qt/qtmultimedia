@@ -40,6 +40,10 @@ public:
     GstPipeline *gstPipeline(QMediaCaptureSession *) override;
 
     GstBuffer *getRawGstBuffer(QVideoFrame &) override;
+
+    QVideoFrame createFrameFromGstBuffer(GstBuffer *buffer, const GstVideoInfo &videoInfo) override;
+    QVideoFrame createFrameFromGstBuffer(GstBuffer *buffer,
+                                         const GstVideoInfoDmaDrm &videoInfo) override;
 };
 
 class QGstreamerIntegration : public QPlatformMediaIntegration
