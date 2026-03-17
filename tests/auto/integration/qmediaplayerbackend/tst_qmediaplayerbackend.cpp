@@ -138,6 +138,8 @@ private slots:
     void pause_entersPauseState_whenPlayerWasPlaying();
     void pause_doesNotAdvancePosition();
     void pause_playback_resumesFromPausedPosition();
+    void pause_triggersTheFirstFrame_whenPlayerIsNotPlaying_data();
+    void pause_triggersTheFirstFrame_whenPlayerIsNotPlaying();
 
     void play_doesNotResetErrorState_whenCalledWithInvalidFile();
     void play_resumesPlaying_whenValidMediaIsProvidedAfterInvalidMedia();
@@ -1327,6 +1329,55 @@ void tst_QMediaPlayerBackend::pause_playback_resumesFromPausedPosition()
     m_fixture->positionChanged.wait();
 
     QCOMPARE_LT(player.position(), pausePos + 500);
+}
+
+void tst_QMediaPlayerBackend::pause_triggersTheFirstFrame_whenPlayerIsNotPlaying_data()
+{
+    QTest::addColumn<float>("playbackRate");
+    QTest::addColumn<bool>("waitForLoad");
+
+    // provoking any RC by setting different playback rates
+    for (float rate : { 0.1f, 1.f, 10.f }) {
+        // invoking pause during or after loading may affect the flow
+        // because of differences in managing pending state
+        for (bool waitForLoad : { false, true })
+            QTest::addRow("playbackRate=%f, waitForLoad=%s", rate, waitForLoad ? "yes" : "no")
+                    << rate << waitForLoad;
+    }
+}
+
+void tst_QMediaPlayerBackend::pause_triggersTheFirstFrame_whenPlayerIsNotPlaying()
+{
+    QFETCH(const float, playbackRate);
+    QFETCH(const bool, waitForLoad);
+
+    using namespace std::chrono_literals;
+
+    CHECK_SELECTED_URL(m_localVideoFile);
+
+    // Arrange
+    QMediaPlayer &player = m_fixture->player;
+    player.setSource(*m_localVideoFile);
+    player.setPlaybackRate(playbackRate);
+    QTRY_VERIFY(!waitForLoad || player.mediaStatus() == QMediaPlayer::LoadedMedia);
+
+    // Act
+    player.pause();
+
+    // Assert
+    QVERIFY(!player.isPlaying());
+    QVideoFrame frame = m_fixture->surface.waitForFrame();
+
+    QVERIFY(frame.isValid());
+    QCOMPARE(frame.startTime(), 0);
+
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::PausedState);
+    QTRY_COMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PausedState } }));
+
+    // wait a bit to check that no more frames arrived
+    QTest::qWait(300ms);
+
+    QCOMPARE(m_fixture->surface.m_totalFrames, 1);
 }
 
 void tst_QMediaPlayerBackend::play_doesNotResetErrorState_whenCalledWithInvalidFile()
