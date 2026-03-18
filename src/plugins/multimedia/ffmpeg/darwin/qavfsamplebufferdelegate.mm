@@ -3,6 +3,14 @@
 
 #include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
 
+#define AVMediaType XAVMediaType
+extern "C" {
+#include <libavutil/hwcontext_videotoolbox.h>
+} // extern "C"
+#undef AVMediaType
+
+#include <QtCore/qsize.h>
+
 #include <QtMultimedia/private/qavfhelpers_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 
@@ -13,8 +21,10 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
 
-#include <optional>
 #include <chrono>
+#include <optional>
+
+using namespace Qt::StringLiterals;
 
 QT_USE_NAMESPACE
 
@@ -22,7 +32,6 @@ QT_USE_NAMESPACE
 @private
     std::function<void(const QVideoFrame &)> frameHandler;
     QFFmpeg::QAVFSampleBufferDelegateTransformProvider transformationProvider;
-    AVBufferRef *hwFramesContext;
     std::unique_ptr<QFFmpeg::HWAccel> m_accel;
     std::chrono::microseconds startTime;
     std::optional<std::chrono::microseconds> baseTime;
@@ -70,6 +79,17 @@ QT_USE_NAMESPACE
         imageBuffer,
         QAVFHelpers::QSharedCVPixelBuffer::RefMode::NeedsRef);
 
+    QSize incomingFrameSize {
+        static_cast<int>(CVPixelBufferGetWidth(pixelBuffer.get())),
+        static_cast<int>(CVPixelBufferGetHeight(pixelBuffer.get())) };
+    Q_ASSERT(!incomingFrameSize.isEmpty());
+    CvPixelFormat incomingCvPixelFormat = CVPixelBufferGetPixelFormatType(pixelBuffer.get());
+
+    Q_ASSERT(m_accel);
+    m_accel->updateFramesContext(
+        av_map_videotoolbox_format_to_pixfmt(incomingCvPixelFormat),
+        incomingFrameSize);
+
     std::chrono::microseconds frameTime =
         QAVFHelpers::CMTimeToMicroseconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer));
     if (!baseTime) {
@@ -95,7 +115,6 @@ QT_USE_NAMESPACE
 
     format.setStreamFrameRate(frameRate);
 
-    Q_ASSERT(self->m_accel);
     QVideoFrame frame = QFFmpeg::qVideoFrameFromCvPixelBuffer(
         *m_accel,
         startTime - *baseTime,
@@ -119,6 +138,8 @@ QT_USE_NAMESPACE
     frameHandler(frame);
 }
 
+// Sets the initial HWAccel. Should only be called once during
+// initialization.
 - (void)setHWAccel:(std::unique_ptr<QFFmpeg::HWAccel> &&)accel
 {
     m_accel = std::move(accel);

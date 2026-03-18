@@ -87,6 +87,7 @@ public:
     bool matchesSizeContraints(QSize size) const;
 
     void createFramesContext(AVPixelFormat swFormat, const QSize &size);
+    void updateFramesContext(AVPixelFormat swFormat, const QSize &size);
     AVBufferRef *hwFramesContextAsBuffer() const { return m_hwFramesContext.get(); }
     AVHWFramesContext *hwFramesContext() const;
 
