@@ -18,7 +18,7 @@
 
 QT_USE_NAMESPACE
 
-@implementation QAVFSampleBufferDelegate {
+@implementation QT_MANGLE_NAMESPACE(QAVFSampleBufferDelegate) {
 @private
     std::function<void(const QVideoFrame &)> frameHandler;
     QFFmpeg::QAVFSampleBufferDelegateTransformProvider transformationProvider;
