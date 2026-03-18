@@ -155,6 +155,9 @@ macro(find_component _component _pkgconfig _library _header)
         PATH_SUFFIXES
             ffmpeg include
     )
+    if (${_component}_INCLUDE_DIR)
+        mark_as_advanced(${_component}_INCLUDE_DIR)
+    endif()
 
     if (shared_libs_desired AND NOT WIN32)
         set(CMAKE_FIND_LIBRARY_SUFFIXES "${QT_FFMPEG_SHARED_LIBRARY_SUFFIX};${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -178,7 +181,7 @@ macro(find_component _component _pkgconfig _library _header)
                 lib bin
         )
         # There is a quirk here where find_path will return the parent
-        # directory of the target file if it's found. We append the
+        # directory of the target directory if it's found. We append the
         # specific filename.
         if (${_component}_LIBRARY)
             set(${_component}_LIBRARY "${${_component}_LIBRARY}/lib${_library}${QT_FFMPEG_SHARED_LIBRARY_SUFFIX}")
@@ -213,16 +216,19 @@ macro(find_component _component _pkgconfig _library _header)
             find_shared_libs_for_component(${_component})
         endif()
 
+        mark_as_advanced(${_component}_LIBRARY)
     endif()
 
     set(${_component}_CFLAGS ${PC_${_component}_CFLAGS} ${PC_${_component}_CFLAGS_OTHER})
-    set_component_found(${_component})
 
-    mark_as_advanced(${_component}_LIBRARY)
+    if (${_component}_INCLUDE_DIR AND ${_component}_LIBRARY)
+        set_component_found(${_component})
+    endif()
 endmacro()
 
 # Clear the previously cached variables, because they are recomputed every time
 # the Find script is included.
+unset(FFMPEG_INCLUDE_DIRS CACHE)
 unset(FFMPEG_SHARED_LIBRARIES CACHE)
 unset(FFMPEG_STUBS CACHE)
 
@@ -356,9 +362,11 @@ message(STATUS "FFmpeg shared libs: ${FFMPEG_SHARED_LIBRARIES}")
 message(STATUS "FFmpeg stubs: ${FFMPEG_STUBS}")
 
 # cache the vars.
+set(FFMPEG_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} CACHE STRING "The FFmpeg include directories." FORCE)
 set(FFMPEG_SHARED_LIBRARIES ${FFMPEG_SHARED_LIBRARIES} CACHE STRING "The FFmpeg dynamic libraries." FORCE)
 set(FFMPEG_STUBS ${FFMPEG_STUBS} CACHE STRING "The FFmpeg stubs." FORCE)
 
+mark_as_advanced(FFMPEG_INCLUDE_DIRS)
 mark_as_advanced(FFMPEG_SHARED_LIBRARIES)
 mark_as_advanced(FFMPEG_STUBS)
 
