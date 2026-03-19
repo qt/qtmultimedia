@@ -4,10 +4,15 @@
 #include <QAudioDevice>
 #include <QAudioFormat>
 #include <QCameraDevice>
+#include <QCommandLineOption>
+#include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QMediaDevices>
 #include <QString>
 #include <QTextStream>
+#include <QThread>
+
+using namespace Qt::Literals;
 
 static QString formatToString(QAudioFormat::SampleFormat sampleFormat)
 {
@@ -119,12 +124,9 @@ static void printVideoDeviceInfo(QTextStream &out, const QCameraDevice &cameraDe
     out << Qt::endl;
 }
 
-int main(int argc, char *argv[])
+void listDevices()
 {
-    QCoreApplication app(argc, argv); // QtMultimedia needs an application singleton
-
     QTextStream out(stdout);
-
     const auto audioInputDevices = QMediaDevices::audioInputs();
     const auto audioOutputDevices = QMediaDevices::audioOutputs();
     const auto videoInputDevices = QMediaDevices::videoInputs();
@@ -140,4 +142,33 @@ int main(int argc, char *argv[])
     out << Qt::endl << "Video devices detected: " << Qt::endl;
     for (auto &cameraDevice : videoInputDevices)
         printVideoDeviceInfo(out, cameraDevice);
+}
+
+int main(int argc, char *argv[])
+{
+    QCoreApplication app(argc, argv); // QtMultimedia needs an application singleton
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription(u"List multimedia devices"_s);
+    parser.addHelpOption();
+    parser.addOption(QCommandLineOption(u"list-devices-in-thread"_s,
+                                        u"List devices from a worker thread"_s));
+    parser.process(app);
+    const bool listInThread = parser.isSet(u"list-devices-in-thread"_s);
+
+    if (listInThread) {
+        QThread t;
+        t.start();
+        QObject o;
+        o.moveToThread(&t);
+
+        QMetaObject::invokeMethod(&o, [] {
+            listDevices();
+        }, Qt::BlockingQueuedConnection);
+
+        t.quit();
+        t.wait();
+    } else {
+        listDevices();
+    }
 }
