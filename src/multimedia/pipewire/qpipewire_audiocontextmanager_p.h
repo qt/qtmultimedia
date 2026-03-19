@@ -88,7 +88,7 @@ private:
 
     // device monitor
     PwRegistryHandle m_registry;
-    struct spa_hook m_registryListener{};
+    spa_hook m_registryListener{};
     std::unique_ptr<QAudioDeviceMonitor> m_deviceMonitor;
 
     void startDeviceMonitor();
@@ -111,7 +111,7 @@ private:
     int handleDefaultMetadataObjectEvent(ObjectId subject, const MetadataRecord &);
 
     PwMetadataHandle m_defaultMetadataObject;
-    struct spa_hook m_defaultMetadataObjectListener{};
+    spa_hook m_defaultMetadataObjectListener{};
 
     QMutex m_activeStreamMutex;
     std::set<std::shared_ptr<QPipewireAudioStream>> m_activeStreams;

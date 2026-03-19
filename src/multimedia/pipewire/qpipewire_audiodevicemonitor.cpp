@@ -23,7 +23,7 @@ namespace QtPipeWire {
 
 using namespace QtMultimediaPrivate;
 
-Q_STATIC_LOGGING_CATEGORY(lcPipewireDeviceMonitor, "qt.multimedia.pipewire.devicemonitor");
+Q_STATIC_LOGGING_CATEGORY(lcPipewireDeviceMonitor, "qt.multimedia.pipewire.devicemonitor")
 
 ObjectRemoveObserver::ObjectRemoveObserver(ObjectSerial objectSerial)
     : m_observedSerial(objectSerial)
