@@ -33,9 +33,8 @@ QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
-Q_GLOBAL_STATIC(QAudioContextManager, s_audioContextInstance);
-
-Q_STATIC_LOGGING_CATEGORY(lcPipewireRegistry, "qt.multimedia.pipewire.registry");
+Q_GLOBAL_STATIC(QAudioContextManager, s_audioContextInstance)
+Q_STATIC_LOGGING_CATEGORY(lcPipewireRegistry, "qt.multimedia.pipewire.registry")
 
 QAudioContextManager::QAudioContextManager():
     m_libraryInstance{
