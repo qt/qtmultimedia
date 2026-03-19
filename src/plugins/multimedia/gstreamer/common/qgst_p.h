@@ -177,6 +177,9 @@ DestinationType *qGstCheckedCast(SourceType *arg)
     return Traits::cast(arg);
 }
 
+GstVideoFormat qGstVideoFormatFromPixelFormat(QVideoFrameFormat::PixelFormat format);
+QVideoFrameFormat::PixelFormat qPixelFormatFromGstVideoFormat(GstVideoFormat format);
+
 class QSize;
 class QGstStructureView;
 class QGstCaps;
