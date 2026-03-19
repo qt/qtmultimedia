@@ -925,7 +925,8 @@ void AVFMediaPlayer::play()
     if (m_state == QMediaPlayer::PlayingState)
         return;
 
-    resetCurrentLoop();
+    if (m_state != QMediaPlayer::PausedState)
+        resetCurrentLoop();
 
     if (m_videoOutput && m_videoSink)
         m_videoOutput->setLayer([m_observer playerLayer]);
@@ -1040,6 +1041,7 @@ void AVFMediaPlayer::updateAudioOutputDevice()
 void AVFMediaPlayer::processEOS()
 {
     if (doLoop()) {
+        positionChanged(duration());
         setPosition(0);
         [[m_observer player] setRate:m_rate];
         return;
