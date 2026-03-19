@@ -806,19 +806,18 @@ QMediaTimeRange AVFMediaPlayer::availablePlaybackRanges() const
 {
     AVPlayerItem *playerItem = [m_observer playerItem];
 
-    if (playerItem) {
-        QMediaTimeRange timeRanges;
+    if (!playerItem)
+        return {};
 
-        NSArray *ranges = [playerItem loadedTimeRanges];
-        for (NSValue *timeRange in ranges) {
-            CMTimeRange currentTimeRange = [timeRange CMTimeRangeValue];
-            qint64 startTime = qint64(float(currentTimeRange.start.value) / currentTimeRange.start.timescale * 1000.0);
-            timeRanges.addInterval(startTime, startTime + qint64(float(currentTimeRange.duration.value) / currentTimeRange.duration.timescale * 1000.0));
-        }
-        if (!timeRanges.isEmpty())
-            return timeRanges;
+    QMediaTimeRange timeRanges;
+
+    NSArray *ranges = [playerItem loadedTimeRanges];
+    for (NSValue *timeRange in ranges) {
+        CMTimeRange currentTimeRange = [timeRange CMTimeRangeValue];
+        qint64 startTime = qint64(float(currentTimeRange.start.value) / currentTimeRange.start.timescale * 1000.0);
+        timeRanges.addInterval(startTime, startTime + qint64(float(currentTimeRange.duration.value) / currentTimeRange.duration.timescale * 1000.0));
     }
-    return QMediaTimeRange(0, duration());
+    return timeRanges;
 }
 
 qreal AVFMediaPlayer::playbackRate() const
