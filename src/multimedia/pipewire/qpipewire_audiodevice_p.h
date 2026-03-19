@@ -29,8 +29,7 @@ namespace QtPipeWire {
 class Q_MULTIMEDIA_EXPORT QPipewireAudioDevicePrivate : public QAudioDevicePrivate
 {
 public:
-    QPipewireAudioDevicePrivate(const PwPropertyDict &nodeProperties,
-                                std::optional<QByteArray> sysfsPath, const SpaObjectAudioFormat &,
+    QPipewireAudioDevicePrivate(const PwPropertyDict &nodeProperties, const SpaObjectAudioFormat &,
                                 QAudioDevice::Mode, bool isDefault);
     ~QPipewireAudioDevicePrivate() override;
 
@@ -39,7 +38,6 @@ public:
     QByteArray nodeName() const { return m_nodeName; }
 
 private:
-    std::optional<QByteArray> m_sysfsPath; // nullopt for virtual devices
     QByteArray m_nodeName;
 
     std::optional<QList<spa_audio_channel>> m_channelPositions;

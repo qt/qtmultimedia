@@ -389,40 +389,18 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
 
     // we brute-force re-create the device list ... not smart and it can certainly be improved
     for (NodeRecord &sinkOrSource : sinksOrSources) {
-        std::optional<ObjectSerial> deviceSerial = sinkOrSource.deviceSerial;
         std::optional<std::string_view> nodeName = getNodeName(sinkOrSource.properties);
         bool isDefault = (defaultSinkOrSourceNodeName == nodeName);
 
-        std::optional<QByteArray> sysFsPath = [&]() -> std::optional<QByteArray> {
-            if (!deviceSerial)
-                return std::nullopt;
-
-            auto deviceIt = m_devices.find(*deviceSerial);
-            if (deviceIt == m_devices.end()) {
-                qCDebug(lcPipewireDeviceMonitor) << "No device for device id" << *deviceSerial;
-                return std::nullopt;
-            }
-
-            std::optional<std::string_view> deviceSysfsPath =
-                    getDeviceSysfsPath(deviceIt->second.properties);
-
-            if (!deviceSysfsPath)
-                return std::nullopt;
-
-            return QByteArray{
-                *deviceSysfsPath,
-            };
-        }();
-
         auto devicePrivate = std::make_unique<QPipewireAudioDevicePrivate>(
-                sinkOrSource.properties, sysFsPath, sinkOrSource.format, QAudioDevice::Mode::Output,
+                sinkOrSource.properties, sinkOrSource.format, QAudioDevice::Mode::Output,
                 isDefault);
 
         QAudioDevice device = QAudioDevicePrivate::createQAudioDevice(std::move(devicePrivate));
 
         newDeviceList.push_back(device);
 
-        qCDebug(lcPipewireDeviceMonitor) << "adding device" << sysFsPath;
+        qCDebug(lcPipewireDeviceMonitor) << "adding device" << nodeName;
     }
 
     // sort by description
