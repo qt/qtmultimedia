@@ -381,9 +381,14 @@ struct GuardedPlatformPlayer
 
 -(void) assetFailedToPrepareForPlayback:(NSError *)error
 {
-    Q_UNUSED(error);
-    m_platformPlayer.invokeWithPlatformPlayer([](AVFMediaPlayer *platformPlayer) {
-        platformPlayer->processMediaLoadError();
+    QMediaPlayer::Error errorCode = QMediaPlayer::FormatError;
+    if (error) {
+        NSError *underlyingError = error.userInfo[NSUnderlyingErrorKey];
+        if (underlyingError && ![underlyingError.domain isEqualToString:AVFoundationErrorDomain])
+            errorCode = QMediaPlayer::ResourceError;
+    }
+    m_platformPlayer.invokeWithPlatformPlayer([errorCode](AVFMediaPlayer *platformPlayer) {
+        platformPlayer->processMediaLoadError(errorCode);
     });
 
 #ifdef QT_DEBUG_AVF
@@ -1176,7 +1181,7 @@ void AVFMediaPlayer::processPositionChange()
     positionChanged(position());
 }
 
-void AVFMediaPlayer::processMediaLoadError()
+void AVFMediaPlayer::processMediaLoadError(QMediaPlayer::Error errorCode)
 {
     if (m_requestedPosition != -1) {
         m_requestedPosition = -1;
@@ -1185,7 +1190,7 @@ void AVFMediaPlayer::processMediaLoadError()
 
     mediaStatusChanged((m_mediaStatus = QMediaPlayer::InvalidMedia));
 
-    error(QMediaPlayer::FormatError, tr("Failed to load media"));
+    error(errorCode, tr("Failed to load media"));
 }
 
 void AVFMediaPlayer::streamReady()
