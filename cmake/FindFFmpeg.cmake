@@ -4,7 +4,7 @@
 # FindFFmpeg
 # ----------
 #
-# Try to find the required ffmpeg components (default: AVFORMAT, AVUTIL, AVCODEC)
+# Try to find the required ffmpeg components (AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE)
 #
 # Next variables can be used to hint FFmpeg libs search:
 #
@@ -24,17 +24,7 @@
 #
 # For each of the components it will additionally set.
 #
-# ::
-#
-#   AVCODEC
-#   AVDEVICE
-#   AVFORMAT
-#   AVFILTER
-#   AVUTIL
-#   POSTPROC
-#   SWSCALE
-#
-# the following variables will be defined
+# The following variables will be defined
 #
 # ::
 #
@@ -61,9 +51,8 @@
 
 include(FindPackageHandleStandardArgs)
 
-# The default components were taken from a survey over other FindFFMPEG.cmake files
 if (NOT FFmpeg_FIND_COMPONENTS)
-    set(FFmpeg_FIND_COMPONENTS AVCODEC AVFORMAT AVUTIL)
+    set(FFmpeg_FIND_COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE)
 endif ()
 
 if (QT_DEPLOY_FFMPEG AND BUILD_SHARED_LIBS)
