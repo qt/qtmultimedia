@@ -241,6 +241,18 @@ QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
     const qint64 duration =  static_cast<qint64>(float(time.value) / float(time.timescale) * 1000.0f);
     metadata.insert(QMediaMetaData::Duration, duration);
 
+    // add orientation from the first video track
+#if !defined(Q_OS_VISIONOS)
+    NSArray *videoTracks = [asset tracksWithMediaType:AVMediaTypeVideo];
+    if (videoTracks.count > 0) {
+        AVAssetTrack *videoTrack = videoTracks[0];
+        QtVideo::Rotation angle = QtVideo::Rotation::None;
+        bool mirrored = false;
+        AVFMediaPlayer::videoOrientationForAssetTrack(videoTrack, angle, mirrored);
+        metadata.insert(QMediaMetaData::Orientation, int(angle));
+    }
+#endif
+
     return metadata;
 }
 
