@@ -155,10 +155,10 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     //    CVPixelBufferGetPixelFormatType(pixelBuffer);
     auto buffer = std::make_unique<AVFVideoBuffer>(this, std::move(pixelBuffer));
 
-    const auto format = buffer->videoFormat();
+    auto format = buffer->videoFormat();
+    format.setRotation(m_rotation);
+    format.setMirrored(m_mirrored);
     frame = QVideoFramePrivate::createFrame(std::move(buffer), format);
-    frame.setRotation(m_rotation);
-    frame.setMirrored(m_mirrored);
     m_sink->setVideoFrame(frame);
 }
 

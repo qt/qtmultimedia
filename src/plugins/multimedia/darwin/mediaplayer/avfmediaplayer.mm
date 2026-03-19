@@ -1361,26 +1361,24 @@ void AVFMediaPlayer::videoOrientationForAssetTrack(AVAssetTrack *videoTrack,
                                                    bool &mirrored)
 {
     angle = QtVideo::Rotation::None;
+    mirrored = false;
     if (videoTrack) {
         CGAffineTransform transform = videoTrack.preferredTransform;
         if (CGAffineTransformIsIdentity(transform))
             return;
-        qreal delta = transform.a * transform.d - transform.b * transform.c;
-        qreal radians = qAtan2(transform.b, transform.a);
-        qreal degrees = qRadiansToDegrees(radians);
-        qreal scaleX = (transform.a/qAbs(transform.a)) * qSqrt(qPow(transform.a, 2) + qPow(transform.c, 2));
-        qreal scaleY = (transform.d/abs(transform.d)) * qSqrt(qPow(transform.b, 2) + qPow(transform.d, 2));
 
-        if (delta < 0.0) { // flipped
-            if (scaleX < 0.0) {
-                // vertical flip
-                degrees = -degrees;
-            } else if (scaleY < 0.0) {
-                // horizontal flip
-                degrees = (180 + (int)degrees) % 360;
-            }
-            mirrored = true;
-        }
+        // determinant < 0 means the transform includes a reflection (mirror)
+        qreal det = transform.a * transform.d - transform.b * transform.c;
+        mirrored = (det < 0.0);
+
+        // Factor out mirror before computing rotation angle.
+        // Negating the first column of a mirrored matrix yields a pure rotation.
+        qreal ra = mirrored ? -transform.a : transform.a;
+        qreal rb = mirrored ? -transform.b : transform.b;
+
+        qreal degrees = qRadiansToDegrees(qAtan2(rb, ra));
+        if (degrees < 0)
+            degrees += 360.0;
 
         if (QtPrivate::fuzzyCompare(degrees, qreal(90))
             || QtPrivate::fuzzyCompare(degrees, qreal(-270))) {
