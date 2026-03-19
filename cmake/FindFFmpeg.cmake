@@ -131,22 +131,13 @@ endif()
 # include directories.
 #
 macro(find_component _component _pkgconfig _library _header)
-    # use pkg-config to get the directories and then use these values
-    # in the FIND_PATH() and FIND_LIBRARY() calls
-    if (PKG_CONFIG_FOUND AND NOT FFMPEG_DIR)
-        pkg_check_modules(PC_${_component} ${_pkgconfig})
-    endif ()
-
-    if (FFMPEG_DIR OR FFMPEG_ROOT)
-        set(__find_ffmpeg_backup_root_dir "${CMAKE_FIND_ROOT_PATH}")
-    endif()
-
-    if(FFMPEG_DIR)
+    if (FFMPEG_DIR)
+        set(backup_cmake_find_root_path "${CMAKE_FIND_ROOT_PATH}")
         list(APPEND CMAKE_FIND_ROOT_PATH "${FFMPEG_DIR}")
-    endif()
-
-    if(FFMPEG_ROOT)
-        list(APPEND CMAKE_FIND_ROOT_PATH "${FFMPEG_ROOT}")
+    elseif(PKG_CONFIG_FOUND)
+        # use pkg-config to get the directories and then use these values
+        # in the FIND_PATH() and FIND_LIBRARY() calls
+        pkg_check_modules(PC_${_component} ${_pkgconfig})
     endif()
 
     if (${_component}_INCLUDE_DIR AND NOT EXISTS ${${_component}_INCLUDE_DIR})
@@ -208,8 +199,8 @@ macro(find_component _component _pkgconfig _library _header)
         )
     endif()
 
-    if(FFMPEG_DIR OR FFMPEG_ROOT)
-        set(CMAKE_FIND_ROOT_PATH "${__find_ffmpeg_backup_root_dir}")
+    if(FFMPEG_DIR)
+        set(CMAKE_FIND_ROOT_PATH "${backup_cmake_find_root_path}")
     endif()
 
     if (${_component}_LIBRARY)
