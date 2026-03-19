@@ -3,6 +3,15 @@
 
 include(FindPackageHandleStandardArgs)
 
+find_package(PkgConfig QUIET)
+if (NOT PKG_CONFIG_FOUND AND NOT FFMPEG_DIR)
+    return()
+elseif (FFMPEG_DIR)
+    if(NOT IS_DIRECTORY "${FFMPEG_DIR}")
+        message(FATAL_ERROR "Explicitly set FFmpeg directory '${FFMPEG_DIR}' is invalid")
+    endif()
+endif()
+
 if (NOT FFmpeg_FIND_COMPONENTS)
     set(FFmpeg_FIND_COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE)
 endif ()
@@ -56,15 +65,6 @@ macro(set_component_found _component)
     endif ()
 endmacro()
 
-find_package(PkgConfig QUIET)
-if (FFMPEG_DIR)
-    if(NOT EXISTS "${FFMPEG_DIR}" OR NOT IS_DIRECTORY "${FFMPEG_DIR}")
-        message(FATAL_ERROR "Explicitly set FFmpeg directory '${FFMPEG_DIR}' is invalid")
-    endif()
-endif()
-if (NOT PKG_CONFIG_FOUND AND NOT FFMPEG_DIR)
-    set(FFMPEG_DIR "/usr/local")
-endif()
 #
 ### Macro: find_component
 #
