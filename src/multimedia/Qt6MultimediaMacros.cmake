@@ -21,14 +21,25 @@ function(qt6_add_ios_ffmpeg_libraries target)
         message(FATAL_ERROR "qt_add_ios_ffmpeg_libraries() requires CMake version 3.28 or later.")
     endif()
 
-    file (GLOB ffmpeg_frameworks "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_LIBS}/ffmpeg/*.xcframework")
-    if(NOT ffmpeg_frameworks)
-        message(
-            WARNING
-            "CMake script explicitly links against Qt deployed FFmpeg libraries, "
-            "but none were found in the Qt build.")
-        return()
+    # TODO: These values should be pulled from somewhere in Qt Multimedia config.
+    set(wanted_ffmpeg_components avcodec avformat avutil swresample swscale)
+    set(ffmpeg_frameworks "")
+    set(missing_frameworks "")
+    foreach(component ${wanted_ffmpeg_components})
+        # Find the corresponding shared library that was installed
+        set(path "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_LIBS}/ffmpeg/lib${component}.xcframework")
+        list(APPEND ffmpeg_frameworks "${path}")
+        if(NOT EXISTS "${path}")
+            list(APPEND missing_frameworks ${path})
+        endif()
+    endforeach()
+    if (missing_frameworks)
+        message(FATAL_ERROR "CMake script links against deployed FFmpeg libraries, but the following files were missing: ${missing_frameworks}")
     endif()
+    if (NOT ffmpeg_frameworks)
+        message(FATAL_ERROR "CMake script links against deployed FFmpeg libraries, but none were found")
+    endif()
+
     set_property(TARGET ${target} APPEND PROPERTY XCODE_EMBED_FRAMEWORKS "${ffmpeg_frameworks}")
 
     set_property(TARGET ${target} APPEND PROPERTY
