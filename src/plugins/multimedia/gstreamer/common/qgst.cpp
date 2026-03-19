@@ -62,24 +62,6 @@ constexpr std::array<VideoFormat, 19> qt_videoFormatLookup{ {
 #endif
 } };
 
-int indexOfVideoFormat(QVideoFrameFormat::PixelFormat format)
-{
-    for (size_t i = 0; i < qt_videoFormatLookup.size(); ++i)
-        if (qt_videoFormatLookup[i].pixelFormat == format)
-            return int(i);
-
-    return -1;
-}
-
-int indexOfVideoFormat(GstVideoFormat format)
-{
-    for (size_t i = 0; i < qt_videoFormatLookup.size(); ++i)
-        if (qt_videoFormatLookup[i].gstFormat == format)
-            return int(i);
-
-    return -1;
-}
-
 #if QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM
 void appendDmaDrmPixelFormats(QGstCaps &caps, const QList<QVideoFrameFormat::PixelFormat> &formats)
 {
@@ -87,12 +69,12 @@ void appendDmaDrmPixelFormats(QGstCaps &caps, const QList<QVideoFrameFormat::Pix
     g_value_init(&drmFormatList, GST_TYPE_LIST);
 
     for (QVideoFrameFormat::PixelFormat format : formats) {
-        const int index = indexOfVideoFormat(format);
-        if (index == -1)
+        const GstVideoFormat gstFormat = qGstVideoFormatFromPixelFormat(format);
+        if (gstFormat == GST_VIDEO_FORMAT_UNKNOWN)
             continue;
 
         const guint32 fourcc =
-                gst_video_dma_drm_fourcc_from_format(qt_videoFormatLookup[index].gstFormat);
+                gst_video_dma_drm_fourcc_from_format(gstFormat);
         if (!fourcc)
             continue;
 
@@ -118,6 +100,24 @@ void appendDmaDrmPixelFormats(QGstCaps &caps, const QList<QVideoFrameFormat::Pix
 #endif
 
 } // namespace
+
+GstVideoFormat qGstVideoFormatFromPixelFormat(QVideoFrameFormat::PixelFormat format)
+{
+    for (const VideoFormat &formatPair : qt_videoFormatLookup)
+        if (formatPair.pixelFormat == format)
+            return formatPair.gstFormat;
+
+    return GST_VIDEO_FORMAT_UNKNOWN;
+}
+
+QVideoFrameFormat::PixelFormat qPixelFormatFromGstVideoFormat(GstVideoFormat format)
+{
+    for (const VideoFormat &formatPair : qt_videoFormatLookup)
+        if (formatPair.gstFormat == format)
+            return formatPair.pixelFormat;
+
+    return QVideoFrameFormat::Format_Invalid;
+}
 
 // QGValue
 
@@ -274,11 +274,10 @@ QList<QVideoFrameFormat::PixelFormat> QGstStructureView::pixelFormats() const
         return pixelFormats;
 
     auto appendFromGstVideoFormat = [&](GstVideoFormat format) {
-        const int index = indexOfVideoFormat(format);
-        if (index == -1)
+        const QVideoFrameFormat::PixelFormat pixelFormat = qPixelFormatFromGstVideoFormat(format);
+        if (pixelFormat == QVideoFrameFormat::Format_Invalid)
             return;
 
-        const auto pixelFormat = qt_videoFormatLookup[index].pixelFormat;
         if (!pixelFormats.contains(pixelFormat))
             pixelFormats.append(pixelFormat);
     };
@@ -500,14 +499,13 @@ void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &form
     g_value_init(&list, GST_TYPE_LIST);
 
     for (QVideoFrameFormat::PixelFormat format : formats) {
-        int index = indexOfVideoFormat(format);
-        if (index == -1)
+        const GstVideoFormat gstFormat = qGstVideoFormatFromPixelFormat(format);
+        if (gstFormat == GST_VIDEO_FORMAT_UNKNOWN)
             continue;
         GValue item = {};
 
         g_value_init(&item, G_TYPE_STRING);
-        g_value_set_string(&item,
-                           gst_video_format_to_string(qt_videoFormatLookup[index].gstFormat));
+        g_value_set_string(&item, gst_video_format_to_string(gstFormat));
         gst_value_list_append_value(&list, &item);
         g_value_unset(&item);
     }
@@ -551,11 +549,9 @@ QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
         return caps;
     }
 
-    const int index = indexOfVideoFormat(format.pixelFormat());
-    if (index == -1)
+    const GstVideoFormat gstFormat = qGstVideoFormatFromPixelFormat(format.pixelFormat());
+    if (gstFormat == GST_VIDEO_FORMAT_UNKNOWN)
         return {};
-
-    const auto gstFormat = qt_videoFormatLookup[index].gstFormat;
 
     auto *rawStructure =
             gst_structure_new("video/x-raw",
@@ -1612,12 +1608,11 @@ QVideoFrameFormat qVideoFrameFormatFromGstVideoInfo(const QGstVideoInfo &qtVideo
     auto &vidInfo = qtVideoInfo.gstVideoInfo;
     GstVideoFormat gstFormat = GST_VIDEO_INFO_FORMAT(&vidInfo);
 
-    int index = indexOfVideoFormat(gstFormat);
-    if (index == -1)
+    auto pixelFormat = qPixelFormatFromGstVideoFormat(gstFormat);
+    if (pixelFormat == QVideoFrameFormat::Format_Invalid)
         return QVideoFrameFormat();
 
-    QVideoFrameFormat format(QSize(vidInfo.width, vidInfo.height),
-                             qt_videoFormatLookup[index].pixelFormat);
+    QVideoFrameFormat format(QSize(vidInfo.width, vidInfo.height), pixelFormat);
 
     if (vidInfo.fps_d > 0)
         format.setStreamFrameRate(qreal(vidInfo.fps_n) / vidInfo.fps_d);
