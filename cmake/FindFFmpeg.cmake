@@ -1,11 +1,5 @@
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
-#
-# Copyright (c) 2006, Matthias Kretz, <kretz@kde.org>
-# Copyright (c) 2008, Alexander Neundorf, <neundorf@kde.org>
-# Copyright (c) 2011, Michael Jansen, <kde@michael-jansen.biz>
-# Copyright (c) 2017, Alexander Drozdov, <adrozdoff@gmail.com>
-#
 
 include(FindPackageHandleStandardArgs)
 
