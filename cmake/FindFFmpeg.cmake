@@ -133,7 +133,7 @@ endif()
 macro(find_component _component _pkgconfig _library _header)
     if (FFMPEG_DIR)
         set(backup_cmake_find_root_path "${CMAKE_FIND_ROOT_PATH}")
-        list(APPEND CMAKE_FIND_ROOT_PATH "${FFMPEG_DIR}")
+        list(PREPEND CMAKE_FIND_ROOT_PATH "${FFMPEG_DIR}")
     elseif(PKG_CONFIG_FOUND)
         # use pkg-config to get the directories and then use these values
         # in the FIND_PATH() and FIND_LIBRARY() calls
