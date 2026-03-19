@@ -142,7 +142,6 @@ QAudioDevicePrivate::AudioDeviceFormat toAudioDeviceFormat(const SpaObjectAudioF
 } // namespace
 
 QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &nodeProperties,
-                                                         std::optional<QByteArray> sysfsPath,
                                                          const SpaObjectAudioFormat &formats,
                                                          QAudioDevice::Mode mode, bool isDefault)
     : QAudioDevicePrivate{
@@ -153,9 +152,6 @@ QPipewireAudioDevicePrivate::QPipewireAudioDevicePrivate(const PwPropertyDict &n
           toAudioDeviceFormat(formats),
       }
 {
-    if (sysfsPath)
-        m_sysfsPath = std::move(sysfsPath);
-
     if (auto nodeName = getNodeName(nodeProperties))
         m_nodeName.assign(*nodeName);
 
