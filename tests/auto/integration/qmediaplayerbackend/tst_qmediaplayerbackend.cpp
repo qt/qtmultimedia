@@ -3082,9 +3082,10 @@ void tst_QMediaPlayerBackend::surfaceTest()
 
 void tst_QMediaPlayerBackend::metadata()
 {
-    // QTBUG-124380: gstreamer reports CoverArtImage instead of ThumbnailImage
-    QMediaMetaData::Key thumbnailKey =
-            isGStreamerPlatform() ? QMediaMetaData::CoverArtImage : QMediaMetaData::ThumbnailImage;
+    // QTBUG-124380: gstreamer and darwin report CoverArtImage instead of ThumbnailImage
+    QMediaMetaData::Key thumbnailKey = (isGStreamerPlatform() || isDarwinPlatform())
+            ? QMediaMetaData::CoverArtImage
+            : QMediaMetaData::ThumbnailImage;
 
     CHECK_SELECTED_URL(m_localMp3FileWithMetadataAndEmbeddedThumbnail);
 
@@ -3120,9 +3121,10 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHas
 
 void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail()
 {
-    // QTBUG-124380: gstreamer reports CoverArtImage instead of ThumbnailImage
-    QMediaMetaData::Key key =
-            isGStreamerPlatform() ? QMediaMetaData::CoverArtImage : QMediaMetaData::ThumbnailImage;
+    // QTBUG-124380: gstreamer and darwin report CoverArtImage instead of ThumbnailImage
+    QMediaMetaData::Key key = (isGStreamerPlatform() || isDarwinPlatform())
+            ? QMediaMetaData::CoverArtImage
+            : QMediaMetaData::ThumbnailImage;
 
     // Arrange
     QFETCH(const MaybeUrl, mediaUrl);

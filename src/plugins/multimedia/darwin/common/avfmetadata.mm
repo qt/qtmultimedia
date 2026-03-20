@@ -165,6 +165,8 @@ static std::optional<QMediaMetaData::Key> toKey(AVMetadataItem *item)
             return QMediaMetaData::Author;
         } else if ([commonKey isEqualToString:AVMetadataCommonKeyArtist]) {
             return QMediaMetaData::ContributingArtist;
+        } else if ([commonKey isEqualToString:AVMetadataCommonKeyArtwork]) {
+            return QMediaMetaData::CoverArtImage;
         }
     }
 
@@ -224,6 +226,18 @@ static QMediaMetaData fromAVMetadata(NSArray *metadataItems)
         auto key = toKey(item);
         if (!key)
             continue;
+
+        // Handle artwork (binary image data)
+        if (*key == QMediaMetaData::ThumbnailImage || *key == QMediaMetaData::CoverArtImage) {
+            NSData *data = [item dataValue];
+            if (data) {
+                QImage image;
+                image.loadFromData(QByteArray::fromNSData(data));
+                if (!image.isNull())
+                    metadata.insert(*key, image);
+            }
+            continue;
+        }
 
         // Handle dates — prefer dateValue over stringValue, as some
         // items (e.g. creation time from MP4 mvhd) have no stringValue
