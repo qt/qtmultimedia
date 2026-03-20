@@ -78,8 +78,8 @@ public:
     std::optional<ObjectSerial> findSourceNodeSerial(std::string_view nodeName) const;
 
     // ObjectId/ObjectSerial mapping
-    std::optional<ObjectId> findObjectId(ObjectSerial);
-    std::optional<ObjectSerial> findObjectSerial(ObjectId);
+    std::optional<ObjectId> findObjectId(ObjectSerial) const;
+    std::optional<ObjectSerial> findObjectSerial(ObjectId) const;
 
     [[nodiscard]] bool registerObserver(SharedObjectRemoveObserver);
     void unregisterObserver(const SharedObjectRemoveObserver &);
