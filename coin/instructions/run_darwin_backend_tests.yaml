@@ -1,0 +1,18 @@
+type: Group
+enable_if:
+  condition: or
+  conditions:
+    - condition: runtime
+      env_var: TARGET_OSVERSION_COIN
+      contains_value: macos_26
+
+instructions:
+  - type: EnvironmentVariable
+    variableName: QT_MEDIA_BACKEND
+    variableValue: darwin
+
+  - type: AppendToEnvironmentVariable
+    variableName: CTEST_ARGS
+    variableValue: " -R tst_qmediaplayerbackend"
+
+  - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"
