@@ -16,6 +16,7 @@
 #include <QtMultimediaTestLib/private/qmockresolvers_p.h>
 
 using namespace Qt::Literals;
+using namespace std::chrono_literals;
 
 class tst_QSoundEffect : public QObject
 {
@@ -58,6 +59,8 @@ private slots:
     void testQSoundEffectVoiceLooping();
 
     void testSourceResolver();
+
+    void changeDeviceBetweenPlay();
 
 private:
     QSoundEffect* sound;
@@ -694,6 +697,26 @@ void tst_QSoundEffect::testSourceResolver()
     QTRY_COMPARE_NE(sound.status(), QSoundEffect::Loading);
 
     QCOMPARE(sound.source(), QUrl(u"original://test"_s));
+}
+
+void tst_QSoundEffect::changeDeviceBetweenPlay()
+{
+    QList outputs = QMediaDevices::audioOutputs();
+    if (outputs.size() < 2)
+        QSKIP("Needs at least 2 audioOuputs");
+
+    sound->setAudioDevice(outputs[0]);
+
+    sound->setSource(url);
+    // wait for async load before playing
+    QTRY_COMPARE(sound->status(), QSoundEffect::Ready);
+    sound->play();
+    QTest::qWait(20ms); // give the engine a bit of time to start playback
+    sound->stop();
+
+    sound->setAudioDevice(outputs[1]);
+    sound->setSource(url2);
+    sound->play();
 }
 
 QTEST_MAIN(tst_QSoundEffect)
