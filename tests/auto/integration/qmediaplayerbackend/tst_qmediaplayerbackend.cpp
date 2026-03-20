@@ -6,6 +6,7 @@
 #include <QtCore/qtimer.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qrandom.h>
+#include <QtCore/qoperatingsystemversion.h>
 #include "qmediaplayer.h"
 #include "mediaplayerstate.h"
 #include "fake.h"
@@ -2669,6 +2670,9 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
 {
     QSKIP_GSTREAMER("QTBUG-124005: spurious seek failures with gstreamer");
 
+    if (isDarwinPlatform() && isCI() && QSysInfo::currentCpuArchitecture() == "x86_64")
+        QSKIP("AVFoundation playback unreliable on x86_64 CI machines");
+
     CHECK_SELECTED_URL(m_localCompressedSoundFile);
 
     QAudioOutput output;
@@ -2710,6 +2714,9 @@ void tst_QMediaPlayerBackend::subsequentPlayback_playsForExpectedDuration()
 {
     using namespace std::chrono_literals;
     QSKIP_GSTREAMER("QTBUG-127346: subsequent playback finishes almost immediately");
+
+    if (isDarwinPlatform() && isCI() && QSysInfo::currentCpuArchitecture() == "x86_64")
+        QSKIP("AVFoundation playback unreliable on x86_64 CI machines");
 
     CHECK_SELECTED_URL(m_localCompressedSoundFile);
 
@@ -3077,6 +3084,9 @@ void tst_QMediaPlayerBackend::surfaceTest()
 {
     QSKIP_GSTREAMER("QTBUG-124005: spurious failure, probably asynchronous event delivery");
 
+    if (isDarwinPlatform() && isCI())
+        QSKIP("Flaky on CI: frame count depends on system load");
+
     CHECK_SELECTED_URL(m_localVideoFile);
     // 25 fps video file
 
@@ -3106,6 +3116,13 @@ void tst_QMediaPlayerBackend::metadata()
     QCOMPARE(metadata.value(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
     QCOMPARE(metadata.value(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
     QCOMPARE(metadata.value(QMediaMetaData::Duration), QVariant(7704));
+
+    // macOS 15 and earlier: AVFoundation does not return ID3 artwork (APIC)
+    // for MP3 files through any metadata API
+    if (isDarwinPlatform()
+        && QOperatingSystemVersion::current() <= QOperatingSystemVersion::MacOSSequoia) {
+        QEXPECT_FAIL("", "APIC metadata unavailable for MP3 on macOS <= 15", Continue);
+    }
     QVERIFY(!metadata.value(coverArtKey).value<QImage>().isNull());
     m_fixture->clearSpies();
 
@@ -3242,6 +3259,9 @@ void tst_QMediaPlayerBackend::playerStateAtEOS()
 void tst_QMediaPlayerBackend::playFromBuffer()
 {
     QSKIP_GSTREAMER("QTBUG-124005: spurious failure, probably asynchronous event delivery");
+
+    if (isDarwinPlatform() && isCI())
+        QSKIP("Flaky on CI: frame count depends on system load");
 
     CHECK_SELECTED_URL(m_localVideoFile);
 
