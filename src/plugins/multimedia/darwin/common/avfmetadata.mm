@@ -288,6 +288,17 @@ QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
         bool mirrored = false;
         AVFMediaPlayer::videoOrientationForAssetTrack(videoTrack, angle, mirrored);
         metadata.insert(QMediaMetaData::Orientation, int(angle));
+
+        // add resolution (coded frame size, without PAR adjustment)
+        NSArray *formatDescriptions = [videoTrack formatDescriptions];
+        if (formatDescriptions.count > 0) {
+            CMVideoFormatDescriptionRef desc =
+                    (__bridge CMVideoFormatDescriptionRef)formatDescriptions[0];
+            CMVideoDimensions dims = CMVideoFormatDescriptionGetDimensions(desc);
+            if (dims.width > 0 && dims.height > 0)
+                metadata.insert(QMediaMetaData::Resolution,
+                                QSize(dims.width, dims.height));
+        }
     }
 #endif
 
