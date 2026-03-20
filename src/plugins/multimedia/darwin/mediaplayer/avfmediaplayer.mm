@@ -9,6 +9,7 @@
 #include "qaudiooutput.h"
 #include "private/qplatformaudiooutput_p.h"
 
+#include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qmath.h>
@@ -657,16 +658,20 @@ QIODevice *AVFMediaPlayer::mediaStream() const
     return m_mediaStream;
 }
 
-static void setURL(AVFMediaPlayerObserver *observer, const QByteArray &url, const QString &mimeType = QString())
+static void setURL(AVFMediaPlayerObserver *observer, const QUrl &url, const QString &mimeType = QString())
 {
-    NSString *urlString = [NSString stringWithUTF8String:url.constData()];
-    NSURL *nsurl = [NSURL URLWithString:urlString];
+    QUrl resolvedUrl = url;
+    // AVFoundation cannot handle file URLs with a relative path
+    if (url.isLocalFile() && !QDir::isAbsolutePath(url.path()))
+        resolvedUrl = QUrl::fromLocalFile(QFileInfo(url.path()).absoluteFilePath());
+    NSURL *nsurl = resolvedUrl.toNSURL();
     [observer setURL:nsurl mimeType:[NSString stringWithUTF8String:mimeType.toLatin1().constData()]];
 }
 
 static void setStreamURL(AVFMediaPlayerObserver *observer, const QByteArray &url)
 {
-    setURL(observer, QByteArrayLiteral("iodevice://") + url, QFileInfo(QString::fromUtf8(url)).suffix());
+    setURL(observer, QUrl(QStringLiteral("iodevice://") + QString::fromUtf8(url)),
+           QFileInfo(QString::fromUtf8(url)).suffix());
 }
 
 void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
@@ -731,7 +736,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     } else {
         //Load AVURLAsset
         //initialize asset using content's URL
-        setURL(m_observer, m_resources.toEncoded());
+        setURL(m_observer, m_resources);
     }
 
     m_state = QMediaPlayer::StoppedState;
