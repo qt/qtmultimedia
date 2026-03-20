@@ -32,6 +32,8 @@ class QAndroidAudioSourceStream final : public QtMultimediaPrivate::QPlatformAud
     using QPlatformAudiosourceStream = QtMultimediaPrivate::QPlatformAudioSourceStream;
 
 public:
+    using SourceType = QAndroidAudioSource;
+
     explicit QAndroidAudioSourceStream(QAudioDevice device, const QAudioFormat &format,
                                        std::optional<int> ringbufferSize,
                                        QAndroidAudioSource *parent, float volume,
