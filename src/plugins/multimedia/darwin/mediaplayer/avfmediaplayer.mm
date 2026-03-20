@@ -1071,10 +1071,8 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState
                 }
             }
 
-            if (m_requestedPosition != -1) {
+            if (m_requestedPosition != -1)
                 setPosition(m_requestedPosition);
-                m_requestedPosition = -1;
-            }
         }
 
         QMediaPlayer::MediaStatus newStatus = (newState != QMediaPlayer::StoppedState)
