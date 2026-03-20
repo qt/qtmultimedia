@@ -118,6 +118,7 @@ public:
 private:
     void resetStream(QIODevice *stream = nullptr);
     void applyPitchCompensation(bool enabled);
+    void resetBufferProgress();
 
     void orientationChanged(QtVideo::Rotation rotation, bool mirrored);
 

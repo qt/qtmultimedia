@@ -689,10 +689,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         m_metaData.clear();
         metaDataChanged();
     }
-    if (m_bufferProgress != 0) {
-        m_bufferProgress = 0;
-        bufferProgressChanged(0);
-    }
+    resetBufferProgress();
     for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
         tracks[i].clear();
         nativeTracks[i].clear();
@@ -773,6 +770,9 @@ QMediaTimeRange AVFMediaPlayer::availablePlaybackRanges() const
     AVPlayerItem *playerItem = [m_observer playerItem];
 
     if (!playerItem)
+        return {};
+
+    if (m_state == QMediaPlayer::StoppedState)
         return {};
 
     QMediaTimeRange timeRanges;
@@ -958,10 +958,7 @@ void AVFMediaPlayer::stop()
     if (m_videoOutput)
         m_videoOutput->setLayer(nullptr);
 
-    if (m_bufferProgress != 0) {
-        m_bufferProgress = 0;
-        bufferProgressChanged(0);
-    }
+    resetBufferProgress();
 
     if (m_mediaStatus == QMediaPlayer::BufferedMedia
         || m_mediaStatus == QMediaPlayer::EndOfMedia)
@@ -1031,6 +1028,8 @@ void AVFMediaPlayer::processEOS()
 
     if (m_videoOutput)
         m_videoOutput->setLayer(nullptr);
+
+    resetBufferProgress();
 
     mediaStatusChanged(m_mediaStatus);
     stateChanged(m_state);
@@ -1104,6 +1103,9 @@ void AVFMediaPlayer::processLoadStateFailure()
 
 void AVFMediaPlayer::processBufferStateChange(int bufferProgress)
 {
+    if (m_state == QMediaPlayer::StoppedState)
+        return;
+
     if (bufferProgress == m_bufferProgress)
         return;
 
@@ -1310,6 +1312,14 @@ void AVFMediaPlayer::applyPitchCompensation(bool enabled)
             playerItem.audioTimePitchAlgorithm = AVAudioTimePitchAlgorithmSpectral;
         else
             playerItem.audioTimePitchAlgorithm = AVAudioTimePitchAlgorithmVarispeed;
+    }
+}
+
+void AVFMediaPlayer::resetBufferProgress()
+{
+    if (m_bufferProgress != 0) {
+        m_bufferProgress = 0;
+        bufferProgressChanged(0);
     }
 }
 
