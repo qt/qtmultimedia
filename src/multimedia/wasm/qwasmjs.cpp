@@ -8,6 +8,8 @@
 QT_BEGIN_NAMESPACE
 
 
+Q_GLOBAL_STATIC(JsMediaInputStream, s_wasmMediaInputStreamInstance);
+
 JsMediaRecorder::JsMediaRecorder() = default;
 
 bool JsMediaRecorder::open(QIODevice::OpenMode mode)
@@ -355,6 +357,111 @@ JsMediaInputStream::JsMediaInputStream(QObject *parent)
 {
 }
 
+JsMediaInputStream::~JsMediaInputStream() = default;
+
+JsMediaInputStream *JsMediaInputStream::instance()
+{
+    return s_wasmMediaInputStreamInstance();
+}
+
+void JsMediaInputStream::setAudioStreamDevice(const std::string &id)
+{
+    if (!m_mediaStream.isUndefined() && !m_mediaStream.isNull()) {
+        if (!m_mediaStream.isNull() && !m_mediaStream.isUndefined()
+        && !m_mediaStream["getTracks"].isUndefined() && m_mediaStream["active"].as<bool>()) {
+            m_needsVideo = false;
+            m_needsAudio = true;
+            replaceMediaTrack(id);
+       }
+    }
+}
+
+void JsMediaInputStream::replaceMediaTrack(const std::string &id)
+{
+    qstdweb::PromiseCallbacks getUserMediaCallback{
+    // default
+    .thenFunc =
+    [this, id](emscripten::val newStream) {
+
+        std::string getTracksCommand;
+        if (m_needsAudio)
+            getTracksCommand = "getAudioTracks";
+        else
+            getTracksCommand = "getVideoTracks";
+
+        emscripten::val currentTracks = m_mediaStream.call<emscripten::val>(getTracksCommand.c_str());
+
+        if (!currentTracks.isUndefined() && currentTracks["length"].as<int>() > 0) {
+            emscripten::val currentTrackForType = currentTracks[0];
+            emscripten::val settings = currentTrackForType.call<emscripten::val>("getSettings");
+
+            if (!settings.isNull() && !settings.isUndefined()) {
+                if (settings["deviceId"].as<std::string>() != id) {
+                    m_mediaStream.call<void>("removeTrack", currentTrackForType);
+                    currentTrackForType.call<void>("stop");
+
+                    emscripten::val newTracks = newStream.call<emscripten::val>(getTracksCommand.c_str());
+
+                    m_mediaStream.call<void>("addTrack", newTracks[0]);
+
+                  // stopMediaStream(stream); stopping this stream causes the track  to stop :(
+                  if (m_needsAudio)
+                      emit mediaAudioStreamReady();
+                  else
+                      emit mediaVideoStreamReady();
+                }
+            }
+        } else { // we still need to add this track
+            qWarning() << " we still need to add this track";
+        }
+    },
+    .catchFunc =
+    [](emscripten::val error) {
+            qWarning()
+            << "replaceTrack getUserMedia failed."
+            << error["name"].as<std::string>()
+            << error["message"].as<std::string>();
+        }
+    };
+
+    emscripten::val mediaDevices = emscripten::val::global("navigator")["mediaDevices"];
+    qstdweb::Promise::make(mediaDevices, QStringLiteral("getUserMedia"),
+                           std::move(getUserMediaCallback), setDeviceConstraints(id));
+}
+
+emscripten::val JsMediaInputStream::setDeviceConstraints(const std::string &id)
+{
+    std::string deviceIdString = id;
+    if (deviceIdString.find("System") != std::string::npos)
+        deviceIdString.clear(); // no id is default/any device
+
+    emscripten::val constraints = emscripten::val::object();
+    if (m_needsAudio) {
+        emscripten::val audioConstraints = emscripten::val::object();
+        audioConstraints.set("audio", m_needsAudio);
+        if (!deviceIdString.empty()) {
+            emscripten::val exactDeviceId = emscripten::val::object();
+            exactDeviceId.set("exact", deviceIdString);
+            audioConstraints.set("deviceId", exactDeviceId);
+        }
+        constraints.set("audio", audioConstraints);
+    } else {
+        constraints.set("audio", false);
+    }
+
+    if (m_needsVideo) {
+        emscripten::val videoContraints = emscripten::val::object();
+        if (!deviceIdString.empty()) {
+            emscripten::val exactDeviceId = emscripten::val::object();
+            exactDeviceId.set("exact", deviceIdString);
+            videoContraints.set("deviceId", exactDeviceId);
+        }
+        videoContraints.set("resizeMode", std::string("crop-and-scale"));
+        constraints.set("video", videoContraints);
+    }
+    return constraints;
+}
+
 void JsMediaInputStream::setStreamDevice(const std::string &id)
 {
     emscripten::val navigator = emscripten::val::global("navigator");
@@ -365,9 +472,15 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
         return;
     }
 
-    std::string deviceIdString = id;
-    if (deviceIdString.find("System") != std::string::npos)
-        deviceIdString.clear(); // no id is default/any device
+    // decide if we need to replace a track here
+
+    if (!m_mediaStream.isNull() && !m_mediaStream.isUndefined())
+        m_active = m_mediaStream["active"].as<bool>();
+
+    if (m_active) { // if media stream is already active, we need to replace
+        replaceMediaTrack(id);
+        return;
+    }
 
     qstdweb::PromiseCallbacks getUserMediaCallback{
         // default
@@ -384,41 +497,15 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
             }
     };
 
-    emscripten::val constraints = emscripten::val::object();
-    if (m_needsAudio) {
-        if (!deviceIdString.empty() && !m_needsVideo) {
-            emscripten::val audioConstraints = emscripten::val::object();
-            emscripten::val exactDeviceId = emscripten::val::object();
-            exactDeviceId.set("exact", deviceIdString);
-            audioConstraints.set("deviceId", exactDeviceId);
-            constraints.set("audio", audioConstraints);
-        } else {
-            constraints.set("audio", true);
-        }
-    }
-
-    if (m_needsVideo) {
-        emscripten::val videoContraints = emscripten::val::object();
-        emscripten::val exactDeviceId = emscripten::val::object();
-
-        if (!deviceIdString.empty()) {
-            exactDeviceId.set("exact", deviceIdString);
-            videoContraints.set("deviceId", exactDeviceId);
-        }
-        videoContraints.set("resizeMode", std::string("crop-and-scale"));
-        constraints.set("video", videoContraints);
-    }
-    // we do it this way as this prompts user for permissions
+    // this prompts user for permissions
     qstdweb::Promise::make(mediaDevices, QStringLiteral("getUserMedia"),
-                           std::move(getUserMediaCallback), constraints);
+                           std::move(getUserMediaCallback), setDeviceConstraints(id));
 }
 
 void JsMediaInputStream::setupMediaStream(emscripten::val mStream)
 {
-    if (!m_mediaStream.isUndefined())
-        return;
-
     m_mediaStream = mStream;
+    m_active = mStream["active"].as<bool>();
 
     auto activeStreamCallback = [=](emscripten::val) {
         m_active = true;
@@ -431,20 +518,22 @@ void JsMediaInputStream::setupMediaStream(emscripten::val mStream)
         emit activated(m_active);
     };
     m_inactiveStreamEvent.reset(new qstdweb::EventCallback(m_mediaStream, "inactive", inactiveStreamCallback));
-    emit mediaStreamReady();
+
+    emit mediaVideoStreamReady();
 }
 
-void JsMediaInputStream::stopMediaStream()
+void JsMediaInputStream::stopMediaStream(emscripten::val mediaStream)
 {
-    if (!m_mediaStream.isNull() && !m_mediaStream.isUndefined() && !m_mediaStream["getTracks"].isUndefined()) {
-        emscripten::val tracks = m_mediaStream.call<emscripten::val>("getTracks");
+    if (!mediaStream.isNull() && !mediaStream.isUndefined() && !mediaStream["getTracks"].isUndefined()) {
+        emscripten::val tracks = mediaStream.call<emscripten::val>("getTracks");
         if (!tracks.isUndefined() && tracks["length"].as<int>() > 0) {
             for (int i = 0; i < tracks["length"].as<int>(); i++) {
                 tracks[i].call<void>("stop");
             }
         }
     }
-    m_mediaStream = emscripten::val::undefined();
-}
+    mediaStream = emscripten::val::undefined();
+    m_active = false;
+   }
 
 QT_END_NAMESPACE

@@ -85,7 +85,7 @@ void QWasmVideoOutput::start()
         }
 
        if (!m_connection)
-            m_connection = connect(m_mediaInputStream.get(), &JsMediaInputStream::mediaStreamReady, this,
+            m_connection = connect(m_mediaInputStream, &JsMediaInputStream::mediaVideoStreamReady, this,
                 [=]( ) {
                     m_video.set("srcObject", m_mediaInputStream->getMediaStream());
 
@@ -116,7 +116,6 @@ void QWasmVideoOutput::start()
                         }
                     }
 
-                    m_shouldBeStarted = false;
                     m_video.call<void>("play");
 
                     if (m_currentVideoMode == QWasmVideoOutput::Camera
@@ -127,7 +126,8 @@ void QWasmVideoOutput::start()
                     }
 
                 });
-
+        m_mediaInputStream->setUseAudio(false);
+        m_shouldBeStarted = true;
         m_mediaInputStream->setStreamDevice(m_cameraId);
 
     } break;
@@ -154,10 +154,13 @@ void QWasmVideoOutput::stop()
     m_shouldStop = true;
     if (!m_toBePaused) {
         // we are stopped , need to reset
-        m_mediaInputStream->stopMediaStream();
+        m_mediaInputStream->stopMediaStream(m_mediaInputStream->getMediaStream());
 
          m_video.set("srcObject", emscripten::val::null());
         disconnect(m_connection);
+
+        m_video.call<void>("remove");
+
     } else {
         m_video.call<void>("pause");
     }
@@ -249,14 +252,14 @@ void QWasmVideoOutput::updateVideoElementSource(const QString &src)
 void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
 {
     m_cameraIsReady = false;
-    m_mediaInputStream.reset(new JsMediaInputStream(this));
+    m_mediaInputStream = JsMediaInputStream::instance();
 
     m_mediaInputStream->setUseAudio(m_hasAudio);
     m_mediaInputStream->setUseVideo(true);
 
-    connect(m_mediaInputStream.get(), &JsMediaInputStream::mediaStreamReady, this,
+    connect(m_mediaInputStream, &JsMediaInputStream::mediaVideoStreamReady, this,
         [this]() {
-            qCDebug(qWasmMediaVideoOutput) << "mediaStreamReady" << m_shouldBeStarted;
+            qCDebug(qWasmMediaVideoOutput) << "mediaVideoStreamReady" << m_shouldBeStarted;
 
             m_cameraIsReady = true;
             if (m_shouldBeStarted) {

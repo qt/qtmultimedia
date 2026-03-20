@@ -10,9 +10,12 @@
 #include "qwasmcamera_p.h"
 #include "qwasmscreencapture_p.h"
 #include "qwasmwindowcapture_p.h"
-
+#include "qwasmaudioinput_p.h"
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qwasmmediadevices_p.h>
+
+#include <private/qplatformaudioinput_p.h>
+#include <QAudioDevice>
 
 
 Q_LOGGING_CATEGORY(qWasmMediaCaptureSession, "qt.multimedia.wasm.capturesession")
@@ -188,7 +191,6 @@ void QWasmMediaCaptureSession::setVideoSource(std::string surfacetype)
         qWarning() << "No media devices found";
         return;
     }
-
     m_videoOutput = std::make_unique<QWasmVideoOutput>();
     m_videoOutput->setVideoMode(QWasmVideoOutput::SurfaceCapture);
 
