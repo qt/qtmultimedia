@@ -46,37 +46,16 @@ bool QWasmAudioInput::isMuted() const
 
 void QWasmAudioInput::setAudioDevice(const QAudioDevice &audioDevice)
 {
-    if (device == audioDevice)
-        return;
-
-    device = audioDevice;
-    setDeviceSourceStream(device.id().toStdString());
+    if (m_deviceId != audioDevice.id().toStdString()) {
+            m_deviceId = audioDevice.id().toStdString();
+            JsMediaInputStream::instance()->setAudioStreamDevice(m_deviceId);
+    }
 }
 
 void QWasmAudioInput::setVolume(float volume)
 {
     Q_UNUSED(volume)
   // TODO seems no easy way to set input volume
-}
-
-void QWasmAudioInput::setDeviceSourceStream(const std::string &id)
-{
-    qCDebug(qWasmAudioInput) << Q_FUNC_INFO << id;
-
-    m_mediaInputStream.reset(new JsMediaInputStream());
-
-    m_mediaInputStream->setUseAudio(true);
-    m_mediaInputStream->setUseVideo(false);
-
-    connect(m_mediaInputStream.get(), &JsMediaInputStream::mediaStreamReady, this,
-        [this]() {
-            qCDebug(qWasmAudioInput) << "mediaStreamReady";
-
-            m_mediaStream = m_mediaInputStream->getMediaStream();
-
-        });
-
-    m_mediaInputStream->setStreamDevice(id);
 }
 
 emscripten::val QWasmAudioInput::mediaStream()

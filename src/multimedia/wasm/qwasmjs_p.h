@@ -89,17 +89,26 @@ class JsMediaInputStream : public QObject
     Q_OBJECT
 public:
     explicit JsMediaInputStream(QObject *parent = nullptr);
+    ~JsMediaInputStream();
+    static JsMediaInputStream *instance();
 
     bool isActive() { return m_active; }
 
     void setUseAudio(bool useAudio) { m_needsAudio = useAudio; }
     void setUseVideo(bool useVideo) { m_needsVideo = useVideo; }
     void setStreamDevice(const std::string &id);
+
+    void setAudioStreamDevice(const std::string &id);
+    void replaceMediaTrack(const std::string &id);
+    emscripten::val setDeviceConstraints(const std::string &id);
+
     emscripten::val getMediaStream() { return m_mediaStream; }
-    void stopMediaStream();
+    void stopMediaStream(emscripten::val stream);
 
 signals:
     void mediaStreamReady();
+    void mediaAudioStreamReady();
+    void mediaVideoStreamReady();
     void activated(bool active);
 
 private:

@@ -49,9 +49,8 @@ Q_SIGNALS:
 
 private:
     bool m_wasMuted = false;
-    void setDeviceSourceStream(const std::string &id);
     emscripten::val m_mediaStream;
-    std::unique_ptr<JsMediaInputStream> m_mediaInputStream;
+    std::string m_deviceId;
 };
 
 QT_END_NAMESPACE

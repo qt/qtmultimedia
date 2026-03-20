@@ -48,6 +48,8 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
+    emscripten::val activeMediaStream() { return m_mediaStream; }
+
 private:
 
     bool hasCamera() const;

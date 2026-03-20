@@ -13,6 +13,8 @@
 #include <QMap>
 #include <QDebug>
 
+#include <emscripten.h>
+
 QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qWasmMediaDevices, "qt.multimedia.wasm.mediadevices")
@@ -276,7 +278,7 @@ void QWasmMediaDevices::getMediaDevices()
                                QStringLiteral("enumerateDevices"),
                                std::move(enumerateDevicesCallback));
 
-               // setup devicechange monitor
+        // setup devicechange monitor
         m_deviceChangedCallback = std::make_unique<qstdweb::EventCallback>(
                 m_jsMediaDevicesInterface, "devicechange",
                 [this, enumerateDevicesCallback](emscripten::val) {
