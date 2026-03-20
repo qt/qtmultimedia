@@ -514,6 +514,11 @@ const QAudioDevicePrivate *QAudioDevicePrivate::handle(const QAudioDevice &devic
     return device.d.get();
 }
 
+QAudioDevicePrivate *QAudioDevicePrivate::handle(QAudioDevice &device)
+{
+    return device.d.get();
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qaudiodevice.cpp"
