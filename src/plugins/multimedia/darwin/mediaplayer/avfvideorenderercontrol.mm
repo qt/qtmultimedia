@@ -148,22 +148,43 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
 
     QVideoFrame frame;
     size_t width, height;
-    QCFType<CVPixelBufferRef> pixelBuffer = copyPixelBufferFromLayer(width, height);
+    qint64 startTime = -1;
+    QCFType<CVPixelBufferRef> pixelBuffer = copyPixelBufferFromLayer(width, height, startTime);
     if (!pixelBuffer)
         return;
     //    qDebug() << "Got pixelbuffer with format" << fmt << Qt::hex <<
     //    CVPixelBufferGetPixelFormatType(pixelBuffer);
+
     auto buffer = std::make_unique<AVFVideoBuffer>(this, std::move(pixelBuffer));
 
     auto format = buffer->videoFormat();
     format.setRotation(m_rotation);
     format.setMirrored(m_mirrored);
     frame = QVideoFramePrivate::createFrame(std::move(buffer), format);
+
+    if (startTime >= 0) {
+        frame.setStartTime(startTime);
+
+        // Estimate end time from video track's nominal frame rate
+        AVPlayerItem *playerItem = [layer.player currentItem];
+        if (playerItem) {
+            float fps = 0;
+            for (AVPlayerItemTrack *track in playerItem.tracks) {
+                if ([track.assetTrack.mediaType isEqualToString:AVMediaTypeVideo]) {
+                    fps = track.assetTrack.nominalFrameRate;
+                    break;
+                }
+            }
+            if (fps > 0)
+                frame.setEndTime(startTime + qint64(1000000.0 / fps));
+        }
+    }
+
     m_sink->setVideoFrame(frame);
 }
 
-QCFType<CVPixelBufferRef> AVFVideoRendererControl::copyPixelBufferFromLayer(size_t &width,
-                                                                            size_t &height)
+QCFType<CVPixelBufferRef>
+AVFVideoRendererControl::copyPixelBufferFromLayer(size_t &width, size_t &height, qint64 &startTime)
 {
     AVPlayerLayer *layer = playerLayer();
     //Is layer valid
@@ -202,8 +223,10 @@ QCFType<CVPixelBufferRef> AVFVideoRendererControl::copyPixelBufferFromLayer(size
     if (![m_videoOutput hasNewPixelBufferForItemTime:currentCMFrameTime])
         return nullptr;
 
-    CVPixelBufferRef pixelBuffer = [m_videoOutput copyPixelBufferForItemTime:currentCMFrameTime
-                                                   itemTimeForDisplay:nil];
+    CMTime outItemTimeForDisplay = kCMTimeInvalid;
+    CVPixelBufferRef pixelBuffer =
+            [m_videoOutput copyPixelBufferForItemTime:currentCMFrameTime
+                                   itemTimeForDisplay:&outItemTimeForDisplay];
     if (!pixelBuffer) {
 #ifdef QT_DEBUG_AVF
         qWarning("copyPixelBufferForItemTime returned nil");
@@ -211,6 +234,10 @@ QCFType<CVPixelBufferRef> AVFVideoRendererControl::copyPixelBufferFromLayer(size
 #endif
         return nullptr;
     }
+
+    CMTime pts =
+            CMTIME_IS_VALID(outItemTimeForDisplay) ? outItemTimeForDisplay : currentCMFrameTime;
+    startTime = qint64(qreal(pts.value) / pts.timescale * 1000000.0);
 
     width = CVPixelBufferGetWidth(pixelBuffer);
     height = CVPixelBufferGetHeight(pixelBuffer);
