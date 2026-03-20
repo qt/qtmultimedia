@@ -59,10 +59,6 @@ public:
 
     float bufferProgress() const override;
 
-    bool isAudioAvailable() const override;
-    bool isVideoAvailable() const override;
-
-    bool isSeekable() const override;
     QMediaTimeRange availablePlaybackRanges() const override;
 
     qreal playbackRate() const override;
@@ -120,9 +116,6 @@ public:
     QList<AVPlayerItemTrack *> nativeTracks[QPlatformMediaPlayer::NTrackTypes];
 
 private:
-    void setAudioAvailable(bool available);
-    void setVideoAvailable(bool available);
-    void setSeekable(bool seekable);
     void resetStream(QIODevice *stream = nullptr);
     void applyPitchCompensation(bool enabled);
 
@@ -142,9 +135,6 @@ private:
 
     qint64 m_duration;
     int m_bufferProgress;
-    bool m_videoAvailable;
-    bool m_audioAvailable;
-    bool m_seekable;
     bool m_pitchCompensationEnabled{ false };
 
     AVFMediaPlayerObserver *m_observer;
