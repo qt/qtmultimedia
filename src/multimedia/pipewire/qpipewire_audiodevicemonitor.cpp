@@ -452,7 +452,7 @@ std::optional<ObjectSerial> QAudioDeviceMonitor::findDeviceSerial(std::string_vi
     return it->first;
 }
 
-std::optional<ObjectId> QAudioDeviceMonitor::findObjectId(ObjectSerial serial)
+std::optional<ObjectId> QAudioDeviceMonitor::findObjectId(ObjectSerial serial) const
 {
     QReadLocker lock{ &m_objectDictMutex };
 
@@ -462,7 +462,7 @@ std::optional<ObjectId> QAudioDeviceMonitor::findObjectId(ObjectSerial serial)
     return std::nullopt;
 }
 
-std::optional<ObjectSerial> QAudioDeviceMonitor::findObjectSerial(ObjectId id)
+std::optional<ObjectSerial> QAudioDeviceMonitor::findObjectSerial(ObjectId id) const
 {
     QReadLocker lock{ &m_objectDictMutex };
 
