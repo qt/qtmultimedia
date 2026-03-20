@@ -991,7 +991,8 @@ void AVFMediaPlayer::stop()
     qDebug() << Q_FUNC_INFO << "currently: " << m_state;
 #endif
 
-    if (m_state == QMediaPlayer::StoppedState)
+    if (m_state == QMediaPlayer::StoppedState
+        && m_mediaStatus != QMediaPlayer::EndOfMedia)
         return;
 
     // AVPlayer doesn't have stop(), only pause() and play().
@@ -1001,10 +1002,17 @@ void AVFMediaPlayer::stop()
     if (m_videoOutput)
         m_videoOutput->setLayer(nullptr);
 
-    if (m_mediaStatus == QMediaPlayer::BufferedMedia)
+    if (m_bufferProgress != 0) {
+        m_bufferProgress = 0;
+        bufferProgressChanged(0);
+    }
+
+    if (m_mediaStatus == QMediaPlayer::BufferedMedia
+        || m_mediaStatus == QMediaPlayer::EndOfMedia)
         mediaStatusChanged((m_mediaStatus = QMediaPlayer::LoadedMedia));
 
-    stateChanged((m_state = QMediaPlayer::StoppedState));
+    if (m_state != QMediaPlayer::StoppedState)
+        stateChanged((m_state = QMediaPlayer::StoppedState));
     m_playbackTimer.stop();
 }
 
