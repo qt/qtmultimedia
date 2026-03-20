@@ -4544,6 +4544,8 @@ void tst_QMediaPlayerBackend::setActiveSubtitleTrack_switchesSubtitles()
 void tst_QMediaPlayerBackend::setActiveSubtitleTrack_switchesSubtitles_data()
 {
     QSKIP_GSTREAMER("GStreamer does not provide consistent track order");
+    CHECK_SELECTED_URL(m_multitrackVideo);
+    CHECK_SELECTED_URL(m_multitrackSubtitleStartsAtZeroVideo);
 
     QTest::addColumn<QUrl>("media");
     QTest::addColumn<QLatin1String>("testMode");
@@ -4587,6 +4589,7 @@ void tst_QMediaPlayerBackend::setActiveVideoTrack_switchesVideoTrack()
 {
     using namespace std::chrono_literals;
     QSKIP_GSTREAMER("GStreamer does not provide consistent track order");
+    CHECK_SELECTED_URL(m_multitrackVideo);
 
     TestVideoSink &sink = m_fixture->surface;
     sink.setStoreFrames();
@@ -4631,6 +4634,7 @@ void tst_QMediaPlayerBackend::setActiveVideoTrack_switchesVideoTrack()
 void tst_QMediaPlayerBackend::disablingAllTracks_doesNotStopPlayback()
 {
     QSKIP_GSTREAMER("position does not advance in GStreamer");
+    CHECK_SELECTED_URL(m_multitrackVideo);
 
     QMediaPlayer &player = m_fixture->player;
 
@@ -4652,6 +4656,7 @@ void tst_QMediaPlayerBackend::disablingAllTracks_beforeTracksChanged_doesNotStop
 {
     QSKIP_GSTREAMER("position does not advance in GStreamer");
     QSKIP_FFMPEG("setActiveXXXTrack(-1) only works after tracksChanged");
+    CHECK_SELECTED_URL(m_multitrackVideo);
 
     QMediaPlayer &player = m_fixture->player;
 
