@@ -584,10 +584,7 @@ AVFMediaPlayer::AVFMediaPlayer(QMediaPlayer *player)
       m_rate(1.0),
       m_requestedPosition(-1),
       m_duration(0),
-      m_bufferProgress(0),
-      m_videoAvailable(false),
-      m_audioAvailable(false),
-      m_seekable(false)
+      m_bufferProgress(0)
 {
     m_observer = [[AVFMediaPlayerObserver alloc] initWithMediaPlayerSession:this];
     connect(&m_playbackTimer, &QTimer::timeout, this, &AVFMediaPlayer::processPositionChange);
@@ -681,9 +678,6 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     m_resources = content;
     resetStream(stream);
 
-    setAudioAvailable(false);
-    setVideoAvailable(false);
-    setSeekable(false);
     m_requestedPosition = -1;
     orientationChanged(QtVideo::Rotation::None, false);
     positionChanged(position());
@@ -709,6 +703,10 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     const QMediaPlayer::PlaybackState oldState = m_state;
 
     if (!m_mediaStream && content.isEmpty()) {
+        seekableChanged(false);
+        audioAvailableChanged(false);
+        videoAvailableChanged(false);
+
         m_mediaStatus = QMediaPlayer::NoMedia;
         if (m_mediaStatus != oldMediaStatus)
             mediaStatusChanged(m_mediaStatus);
@@ -768,48 +766,6 @@ float AVFMediaPlayer::bufferProgress() const
     qDebug() << Q_FUNC_INFO;
 #endif
     return m_bufferProgress/100.;
-}
-
-void AVFMediaPlayer::setAudioAvailable(bool available)
-{
-    if (m_audioAvailable == available)
-        return;
-
-    m_audioAvailable = available;
-    audioAvailableChanged(available);
-}
-
-bool AVFMediaPlayer::isAudioAvailable() const
-{
-    return m_audioAvailable;
-}
-
-void AVFMediaPlayer::setVideoAvailable(bool available)
-{
-    if (m_videoAvailable == available)
-        return;
-
-    m_videoAvailable = available;
-    videoAvailableChanged(available);
-}
-
-bool AVFMediaPlayer::isVideoAvailable() const
-{
-    return m_videoAvailable;
-}
-
-bool AVFMediaPlayer::isSeekable() const
-{
-    return m_seekable;
-}
-
-void AVFMediaPlayer::setSeekable(bool seekable)
-{
-    if (m_seekable == seekable)
-        return;
-
-    m_seekable = seekable;
-    seekableChanged(seekable);
 }
 
 QMediaTimeRange AVFMediaPlayer::availablePlaybackRanges() const
@@ -1103,7 +1059,7 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState
         updateTracks();
 
         if (playerItem) {
-            setSeekable([[playerItem seekableTimeRanges] count] > 0);
+            seekableChanged([[playerItem seekableTimeRanges] count] > 0);
 
             // Get the native size of the video, and reset the bounds of the player layer
             AVPlayerLayer *playerLayer = [m_observer playerLayer];
@@ -1232,6 +1188,8 @@ void AVFMediaPlayer::updateTracks()
         tracks[i].clear();
         nativeTracks[i].clear();
     }
+    bool hasAudio = false;
+    bool hasVideo = false;
     AVPlayerItem *playerItem = [m_observer playerItem];
     if (playerItem) {
         // Check each track for audio and video content
@@ -1242,10 +1200,10 @@ void AVFMediaPlayer::updateTracks()
                 int qtTrack = -1;
                 if ([assetTrack.mediaType isEqualToString:AVMediaTypeAudio]) {
                     qtTrack = QPlatformMediaPlayer::AudioStream;
-                    setAudioAvailable(true);
+                    hasAudio = true;
                 } else if ([assetTrack.mediaType isEqualToString:AVMediaTypeVideo]) {
                     qtTrack = QPlatformMediaPlayer::VideoStream;
-                    setVideoAvailable(true);
+                    hasVideo = true;
                     if (m_observer.videoTrack != track) {
                         m_observer.videoTrack = track;
                         bool isMirrored = false;
@@ -1268,6 +1226,8 @@ void AVFMediaPlayer::updateTracks()
         if (firstLoad)
             setActiveTrack(SubtitleStream, -1);
     }
+    audioAvailableChanged(hasAudio);
+    videoAvailableChanged(hasVideo);
     tracksChanged();
 }
 
