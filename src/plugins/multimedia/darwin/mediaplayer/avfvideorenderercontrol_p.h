@@ -56,7 +56,8 @@ private Q_SLOTS:
 
 private:
     AVPlayerLayer *playerLayer() const { return static_cast<AVPlayerLayer *>(m_layer); }
-    QCFType<CVPixelBufferRef> copyPixelBufferFromLayer(size_t &width, size_t &height);
+    QCFType<CVPixelBufferRef> copyPixelBufferFromLayer(size_t &width, size_t &height,
+                                                       qint64 &startTime);
 
     QMutex m_mutex;
     AVFDisplayLink *m_displayLink = nullptr;
