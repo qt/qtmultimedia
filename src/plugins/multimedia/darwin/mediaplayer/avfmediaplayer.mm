@@ -11,6 +11,7 @@
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
+#include <QtCore/qmimedatabase.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qmath.h>
 #include <QtCore/qmutex.h>
@@ -668,11 +669,6 @@ static void setURL(AVFMediaPlayerObserver *observer, const QUrl &url, const QStr
     [observer setURL:nsurl mimeType:[NSString stringWithUTF8String:mimeType.toLatin1().constData()]];
 }
 
-static void setStreamURL(AVFMediaPlayerObserver *observer, const QByteArray &url)
-{
-    setURL(observer, QUrl(QStringLiteral("iodevice://") + QString::fromUtf8(url)),
-           QFileInfo(QString::fromUtf8(url)).suffix());
-}
 
 void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 {
@@ -732,7 +728,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         // If there is a data, try to load it,
         // otherwise wait for readyRead.
         if (m_mediaStream->size())
-            setStreamURL(m_observer, m_resources.toEncoded());
+            loadMediaStream();
     } else {
         //Load AVURLAsset
         //initialize asset using content's URL
@@ -1200,7 +1196,18 @@ void AVFMediaPlayer::processMediaLoadError(QMediaPlayer::Error errorCode)
 
 void AVFMediaPlayer::streamReady()
 {
-    setStreamURL(m_observer, m_resources.toEncoded());
+    loadMediaStream();
+}
+
+void AVFMediaPlayer::loadMediaStream()
+{
+    QString suffix;
+    if (!m_resources.isEmpty())
+        suffix = QFileInfo(m_resources.path()).suffix();
+    if (suffix.isEmpty() && m_mediaStream)
+        suffix = QMimeDatabase().mimeTypeForData(m_mediaStream).preferredSuffix();
+    const QString url = QStringLiteral("iodevice:///iodevice.") + suffix;
+    setURL(m_observer, QUrl(url), suffix);
 }
 
 void AVFMediaPlayer::streamDestroyed()
