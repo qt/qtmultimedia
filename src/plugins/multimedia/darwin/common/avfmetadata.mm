@@ -222,6 +222,30 @@ static QMediaMetaData fromAVMetadata(NSArray *metadataItems)
         if (!key)
             continue;
 
+        // Handle dates — prefer dateValue over stringValue, as some
+        // items (e.g. creation time from MP4 mvhd) have no stringValue
+        if (*key == QMediaMetaData::Date) {
+            NSDate *dateValue = [item dateValue];
+            if (dateValue) {
+                QDateTime dt = QDateTime::fromNSDate(dateValue);
+                if (dt.isValid()) {
+                    metadata.insert(*key, dt);
+                    continue;
+                }
+            }
+            // Fall through to try stringValue as ISO 8601
+            const QString str = QString::fromNSString([item stringValue]);
+            if (!str.isNull()) {
+                QDateTime dt = QDateTime::fromString(str, Qt::ISODate);
+                if (dt.isValid()) {
+                    metadata.insert(*key, dt);
+                    continue;
+                }
+                metadata.insert(*key, str);
+            }
+            continue;
+        }
+
         const QString value = QString::fromNSString([item stringValue]);
         if (!value.isNull())
             metadata.insert(*key, value);
@@ -240,6 +264,20 @@ QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
     const CMTime time = [asset duration];
     const qint64 duration =  static_cast<qint64>(float(time.value) / float(time.timescale) * 1000.0f);
     metadata.insert(QMediaMetaData::Duration, duration);
+
+    // add creation date from asset if not already extracted from metadata items
+    // (e.g. MP4 mvhd creation_time is only available via asset.creationDate)
+    if (metadata.value(QMediaMetaData::Date).isNull()) {
+        AVMetadataItem *creationDate = asset.creationDate;
+        if (creationDate) {
+            NSDate *dateValue = creationDate.dateValue;
+            if (dateValue) {
+                QDateTime dt = QDateTime::fromNSDate(dateValue);
+                if (dt.isValid())
+                    metadata.insert(QMediaMetaData::Date, dt);
+            }
+        }
+    }
 
     // add orientation from the first video track
 #if !defined(Q_OS_VISIONOS)
