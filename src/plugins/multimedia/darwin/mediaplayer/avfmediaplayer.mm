@@ -689,6 +689,10 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         m_metaData.clear();
         metaDataChanged();
     }
+    if (m_bufferProgress != 0) {
+        m_bufferProgress = 0;
+        bufferProgressChanged(0);
+    }
     for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
         tracks[i].clear();
         nativeTracks[i].clear();
