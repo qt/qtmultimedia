@@ -108,6 +108,7 @@ public Q_SLOTS:
 
     void streamReady();
     void streamDestroyed();
+    void loadMediaStream();
     void updateTracks();
     void setActiveTrack(QPlatformMediaPlayer::TrackType type, int index) override;
     int activeTrack(QPlatformMediaPlayer::TrackType type) override;
