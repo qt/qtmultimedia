@@ -962,7 +962,7 @@ void AVFMediaPlayer::pause()
     qDebug() << Q_FUNC_INFO << "currently: " << m_state;
 #endif
 
-    if (m_mediaStatus == QMediaPlayer::NoMedia)
+    if (m_mediaStatus == QMediaPlayer::NoMedia || m_mediaStatus == QMediaPlayer::InvalidMedia)
         return;
 
     if (m_state == QMediaPlayer::PausedState)
