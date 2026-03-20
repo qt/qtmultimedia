@@ -277,7 +277,8 @@ QMediaMetaData AVFMetaData::fromAssetTrack(AVAssetTrack *asset)
             for (id formatDescription in formatDescriptions) {
                 NSDictionary *extensions = (__bridge NSDictionary *)CMFormatDescriptionGetExtensions((CMFormatDescriptionRef)formatDescription);
                 NSString *transferFunction = extensions[(__bridge NSString *)kCMFormatDescriptionExtension_TransferFunction];
-                if ([transferFunction isEqualToString:(__bridge NSString *)kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ]) {
+                if ([transferFunction isEqualToString:(__bridge NSString *)kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ]
+                    || [transferFunction isEqualToString:(__bridge NSString *)kCVImageBufferTransferFunction_ITU_R_2100_HLG]) {
                     hasHdrContent = true;
                     break;
                 }
