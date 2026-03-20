@@ -87,6 +87,7 @@ public:
     static QAudioDevice createQAudioDevice(std::unique_ptr<QAudioDevicePrivate> devicePrivate);
 
     static const QAudioDevicePrivate *handle(const QAudioDevice &device);
+    static QAudioDevicePrivate *handle(QAudioDevice &device);
 
     template <typename Derived>
     static const Derived *handle(const QAudioDevice &device)
