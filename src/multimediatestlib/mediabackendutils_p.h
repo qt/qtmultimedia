@@ -90,6 +90,9 @@ using namespace BackendUtilsImpl;
 #define QSKIP_FFMPEG(/*messageOpt*/...) \
     QSKIP_IF(isFFMPEGPlatform(), "The feature is not supported on FFmpeg", __VA_ARGS__)
 
+#define QSKIP_DARWIN(/*messageOpt*/...) \
+    QSKIP_IF(isDarwinPlatform(), "The feature is not supported on Darwin", __VA_ARGS__)
+
 #define QEXPECT_FAIL_GSTREAMER(dataIndex, comment, mode) \
   do {                                                   \
     if (isGStreamerPlatform())                           \
