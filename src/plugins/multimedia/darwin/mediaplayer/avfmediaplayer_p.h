@@ -47,9 +47,6 @@ public:
     void setVideoOutput(AVFVideoRendererControl *output);
     AVAsset *currentAssetHandle();
 
-    QMediaPlayer::PlaybackState state() const override;
-    QMediaPlayer::MediaStatus mediaStatus() const override;
-
     QUrl media() const override;
     QIODevice *mediaStream() const override;
     void setMedia(const QUrl &content, QIODevice *stream) override;
@@ -125,8 +122,6 @@ private:
     AVFVideoRendererControl *m_videoOutput = nullptr;
     AVFVideoSink *m_videoSink = nullptr;
 
-    QMediaPlayer::PlaybackState m_state;
-    QMediaPlayer::MediaStatus m_mediaStatus;
     QIODevice *m_mediaStream;
     QUrl m_resources;
     QMediaMetaData m_metaData;
