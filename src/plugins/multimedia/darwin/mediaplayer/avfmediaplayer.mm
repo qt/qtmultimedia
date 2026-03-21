@@ -1078,8 +1078,18 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState
                 ? QMediaPlayer::BufferedMedia
                 : QMediaPlayer::LoadedMedia;
 
-        if (newStatus != m_mediaStatus)
+        if (newStatus != m_mediaStatus) {
+            if (newStatus == QMediaPlayer::BufferedMedia
+                && m_mediaStatus == QMediaPlayer::LoadingMedia) {
+                // Emit intermediate transitions to match expected signal sequence
+                mediaStatusChanged((m_mediaStatus = QMediaPlayer::LoadedMedia));
+                mediaStatusChanged((m_mediaStatus = QMediaPlayer::BufferingMedia));
+            } else if (newStatus == QMediaPlayer::BufferedMedia
+                       && m_mediaStatus == QMediaPlayer::LoadedMedia) {
+                mediaStatusChanged((m_mediaStatus = QMediaPlayer::BufferingMedia));
+            }
             mediaStatusChanged((m_mediaStatus = newStatus));
+        }
     }
 
     if (newState == QMediaPlayer::PlayingState && [m_observer player]) {
