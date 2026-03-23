@@ -20,6 +20,8 @@
 
 #include <tlsf.h>
 
+#include <new>
+
 QT_BEGIN_NAMESPACE
 
 namespace QtMultimediaPrivate {
