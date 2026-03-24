@@ -17,7 +17,11 @@ function(qt6_add_ios_ffmpeg_libraries target)
         return()
     endif()
 
-    if (CMAKE_VERSION VERSION_LESS 3.28)
+    if(NOT TARGET ${target})
+        message(FATAL_ERROR "'${target}' is not a target")
+    endif()
+
+    if(CMAKE_VERSION VERSION_LESS 3.28)
         message(FATAL_ERROR "qt_add_ios_ffmpeg_libraries() requires CMake version 3.28 or later.")
     endif()
 
@@ -33,21 +37,28 @@ function(qt6_add_ios_ffmpeg_libraries target)
             list(APPEND missing_frameworks ${path})
         endif()
     endforeach()
-    if (missing_frameworks)
+    if(missing_frameworks)
         message(FATAL_ERROR "CMake script links against deployed FFmpeg libraries, but the following files were missing: ${missing_frameworks}")
     endif()
-    if (NOT ffmpeg_frameworks)
+    if(NOT ffmpeg_frameworks)
         message(FATAL_ERROR "CMake script links against deployed FFmpeg libraries, but none were found")
     endif()
 
-    set_property(TARGET ${target} APPEND PROPERTY XCODE_EMBED_FRAMEWORKS "${ffmpeg_frameworks}")
+    get_target_property(target_type ${target} TYPE)
+    if(${target_type} STREQUAL "EXECUTABLE")
+        set_property(TARGET ${target} APPEND PROPERTY XCODE_EMBED_FRAMEWORKS "${ffmpeg_frameworks}")
+        set_property(TARGET ${target}
+            APPEND PROPERTY XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/Frameworks")
 
-    set_property(TARGET ${target} APPEND PROPERTY
-                 XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/Frameworks")
+        if(NOT QT_NO_FFMPEG_XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY)
+            set_property(TARGET ${target} PROPERTY XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY ON)
+        endif()
 
-    if(NOT QT_NO_FFMPEG_XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY)
-        set_property(TARGET ${target} PROPERTY XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY ON)
+        target_link_libraries(${target} PRIVATE ${ffmpeg_frameworks})
+    else()
+        message(
+            FATAL_ERROR
+            "CMake function qt_add_ios_ffmpeg_libraries should only be used on executable targets")
     endif()
 
-    target_link_libraries(${target} PRIVATE ${ffmpeg_frameworks})
 endfunction()
