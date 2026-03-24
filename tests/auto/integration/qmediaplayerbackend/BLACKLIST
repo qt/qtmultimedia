@@ -17,3 +17,7 @@ rhel-8.10 ci
 # QTBUG-137343
 [setActiveSubtitleTrack_switchesSubtitles]
 rhel-8.10 ci
+
+# QTBUG-145178
+[play_threeMediaPlayers]
+android ci
