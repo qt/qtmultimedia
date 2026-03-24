@@ -49,6 +49,7 @@ INIT_FUNC(vaEndPicture);
 
 INIT_FUNC(vaCreateBuffer);
 INIT_FUNC(vaMapBuffer);
+INIT_OPT_FUNC(vaMapBuffer2);
 INIT_FUNC(vaUnmapBuffer);
 #if VA_CHECK_VERSION(1, 9, 0)
 INIT_FUNC(vaSyncBuffer);
@@ -146,6 +147,20 @@ DEFINE_FUNC(vaSetDriverName, 2, VA_STATUS_ERROR_OPERATION_FAILED);
 
 DEFINE_FUNC(vaAcquireBufferHandle, 3, VA_STATUS_ERROR_OPERATION_FAILED);
 DEFINE_FUNC(vaReleaseBufferHandle, 2, VA_STATUS_ERROR_OPERATION_FAILED);
+
+// HACK: vaMapBuffer2 is a new function added in libva 2.21.0 and FFmpeg will
+// use it when compiled against headers that declare it.
+// However we expect our binaries to run on older libva versions as well.
+extern "C" EXPORT_FUNC VAStatus vaMapBuffer2(VADisplay dpy, VABufferID buf_id,
+                                             void **pbuf, uint32_t flags)
+{
+    const auto f = reinterpret_cast<decltype(::vaMapBuffer2)*>(
+        SymbolsResolverImpl::instance().vaMapBuffer2);
+    if (f)
+        return f(dpy, buf_id, pbuf, flags);
+    else
+        return vaMapBuffer(dpy, buf_id, pbuf);
+}
 
 #endif
 
