@@ -25,9 +25,15 @@ qt_add_ios_ffmpeg_libraries(target)
 
 \section1 Description
 
- FFmpeg binaries from the online installer must be embedded into the application's
- bundle. To embed FFmpeg binaries, you can add the \c qt_add_ios_ffmpeg_libraries command
- to the app's CMakeLists.txt file.
+ FFmpeg binaries from the online installer must be embedded into the
+ application's bundle. To embed FFmpeg binaries, you can add the
+ \c qt_add_ios_ffmpeg_libraries command to an executable target within the
+ project's CMakeLists.txt file.
+
+ The function must be called on an executable target. It cannot be used on
+ library targets or interface targets. If your project is a library that
+ links to Qt Multimedia, the executable that it is linked into must
+ call this function.
 
  This command will set several properties for the application target:
 
