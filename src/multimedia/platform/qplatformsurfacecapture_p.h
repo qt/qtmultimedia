@@ -54,7 +54,8 @@ public:
 
     template<typename Type>
     Type source() const {
-        return *q_check_ptr(std::get_if<Type>(&m_source));
+        Q_ASSERT(std::holds_alternative<Type>(m_source));
+        return *std::get_if<Type>(&m_source);
     }
 
     Source source() const { return m_source; }
