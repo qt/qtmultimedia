@@ -6,6 +6,7 @@
 #include <private/qvideotexturehelper_p.h>
 #include <qpa/qplatformnativeinterface.h>
 #include <qguiapplication.h>
+#include <QtCore/qapplicationstatic.h>
 #include <QtCore/qloggingcategory.h>
 
 #include <gst/video/video.h>
