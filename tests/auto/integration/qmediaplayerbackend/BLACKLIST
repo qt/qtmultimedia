@@ -21,3 +21,7 @@ macos-26 ci # QTBUG-140398
 
 [play_playsTransformedVideoOutput_whenVideoFileHasTransformationMetadata]
 wayland
+
+# QTBUG-145178
+[play_threeMediaPlayers]
+android ci
