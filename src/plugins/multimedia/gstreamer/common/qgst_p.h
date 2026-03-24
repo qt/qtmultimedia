@@ -32,7 +32,11 @@
 #include <gst/app/gstappsrc.h>
 #include <gst/video/video-info.h>
 
-#define QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM GST_CHECK_VERSION(1, 24, 0)
+#if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+#  define QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM GST_CHECK_VERSION(1, 24, 0)
+#else
+#  define QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM 0
+#endif
 
 #include "qgst_handle_types_p.h"
 

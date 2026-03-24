@@ -46,8 +46,10 @@ private:
     mutable GstVideoFrame m_frame{};
     const QGstBufferHandle m_buffer;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
+#if QT_CONFIG(gstreamer_gl_egl)
     Qt::HANDLE m_eglDisplay = nullptr;
     QFunctionPointer m_eglImageTargetTexture2D = nullptr;
+#endif
 };
 
 QT_END_NAMESPACE
