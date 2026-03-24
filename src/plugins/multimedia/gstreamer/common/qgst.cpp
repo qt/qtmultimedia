@@ -578,6 +578,7 @@ QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
     }
 #endif
 
+#if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
     auto *dmabufRawStructure =
             gst_structure_new("video/x-raw",
                               "format", G_TYPE_STRING, gst_video_format_to_string(gstFormat),
@@ -586,6 +587,7 @@ QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
     gst_caps_append_structure(caps.get(), dmabufRawStructure);
     gst_caps_set_features(caps.get(), caps.size() - 1,
                           gst_caps_features_from_string(GST_CAPS_FEATURE_MEMORY_DMABUF));
+#endif
 
     return caps;
 }
