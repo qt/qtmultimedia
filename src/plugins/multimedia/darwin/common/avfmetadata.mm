@@ -203,7 +203,7 @@ static std::optional<QMediaMetaData::Key> toKey(AVMetadataItem *item)
             idForKey = keyToAVMetaDataID[key].isoUserData;
             break;
         default:
-            break;
+            continue;
         }
 
         if ([identifier isEqualToString:idForKey])
