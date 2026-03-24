@@ -7,19 +7,27 @@ QT_BEGIN_NAMESPACE
 
 QQuickScreenCatpure::QQuickScreenCatpure(QObject *parent) : QScreenCapture(parent)
 {
-    connect(this, &QScreenCapture::screenChanged, this, [this](QScreen *screen) {
-        emit QQuickScreenCatpure::screenChanged(new QQuickScreenInfo(this, screen));
+    connect(this, &QScreenCapture::screenChanged, this, [this] {
+        emit qmlScreenChanged(ensureQmlScreen());
     });
 }
 
-void QQuickScreenCatpure::qmlSetScreen(const QQuickScreenInfo *info)
+void QQuickScreenCatpure::qmlSetScreen(QQuickScreenInfo *qmlScreen)
 {
-    setScreen(info ? info->wrappedScreen() : nullptr);
+    setScreen(qmlScreen ? qmlScreen->wrappedScreen() : nullptr);
 }
 
-QQuickScreenInfo *QQuickScreenCatpure::qmlScreen()
+QQuickScreenInfo *QQuickScreenCatpure::ensureQmlScreen()
 {
-    return new QQuickScreenInfo(this, screen());
+    // Note QQuickApplication may recreate QQuickScreenInfo
+    // so we implement creating our own instance.
+    // TODO: perhaps, we should return null QQuickScreenInfo for null QScreen
+    if (!m_qmlScreen || m_qmlScreen->wrappedScreen() != screen()) {
+        m_ownQmlScreen = std::make_unique<QQuickScreenInfo>(this, screen());
+        m_qmlScreen = m_ownQmlScreen.get();
+    }
+
+    return m_qmlScreen;
 }
 
 QT_END_NAMESPACE

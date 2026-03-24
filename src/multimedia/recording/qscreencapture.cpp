@@ -164,11 +164,17 @@ bool QScreenCapture::isActive() const
 /*!
     \qmlproperty Screen QtMultimedia::ScreenCapture::screen
     Describes the screen for capturing.
+
+    If null \c Screen is set, the primary screen will be selected
+    when the \c ScreenCapture instance gets activated.
 */
 
 /*!
     \property QScreenCapture::screen
     \brief the screen for capturing.
+
+    If null \l QScreen is set, \l QGuiApplication::primaryScreen will be selected
+    when the \c QScreenCapture instance gets activated.
 */
 
 void QScreenCapture::setScreen(QScreen *screen)

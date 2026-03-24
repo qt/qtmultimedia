@@ -19,24 +19,29 @@
 #include <qtmultimediaquickexports.h>
 #include <private/qglobal_p.h>
 #include <private/qquickscreen_p.h>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
 class Q_MULTIMEDIAQUICK_EXPORT QQuickScreenCatpure : public QScreenCapture
 {
     Q_OBJECT
-    Q_PROPERTY(QQuickScreenInfo *screen READ qmlScreen WRITE qmlSetScreen NOTIFY screenChanged)
+    Q_PROPERTY(QQuickScreenInfo *screen READ ensureQmlScreen WRITE qmlSetScreen NOTIFY qmlScreenChanged)
     QML_NAMED_ELEMENT(ScreenCapture)
 
 public:
     QQuickScreenCatpure(QObject *parent = nullptr);
 
-    void qmlSetScreen(const QQuickScreenInfo *info);
+    void qmlSetScreen(QQuickScreenInfo *newQmlScreen);
 
-    QQuickScreenInfo *qmlScreen();
+    QQuickScreenInfo *ensureQmlScreen();
 
 Q_SIGNALS:
-    void screenChanged(QQuickScreenInfo *);
+    void qmlScreenChanged(QQuickScreenInfo *);
+
+private:
+    QPointer<QQuickScreenInfo> m_qmlScreen;
+    std::unique_ptr<QQuickScreenInfo> m_ownQmlScreen;
 };
 
 QT_END_NAMESPACE
