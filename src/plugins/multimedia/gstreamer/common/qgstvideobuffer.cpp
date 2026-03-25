@@ -86,7 +86,8 @@ Q_GLOBAL_STATIC(QFunctionPointer, g_eglImageTargetTexture2D,
 QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo,
                                  const QVideoFrameFormat &frameFormat)
     : QHwVideoBuffer(QVideoFrame::NoHandle),
-      m_memoryFormat(qMemoryFormatFromGstBuffer(buffer.get())),
+      m_memoryFormat(buffer.isValid() ? qMemoryFormatFromGstBuffer(buffer.get())
+                                      : QGstCaps::CpuMemory),
       m_frameFormat(frameFormat),
       m_videoInfo(videoInfo),
       m_buffer(std::move(buffer))
@@ -572,7 +573,7 @@ QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTextu
 #  endif
     if (textures.count > 0)
         return std::make_unique<QGstQVideoFrameTextures>(
-                &rhi, QSize{m_videoInfo.gstVideoInfo.width, m_videoInfo.gstVideoInfo.height},
+                &rhi, QSize{ m_videoInfo.gstVideoInfo.width, m_videoInfo.gstVideoInfo.height },
                 m_frameFormat.pixelFormat(), textures, m_memoryFormat);
 #endif
     return {};

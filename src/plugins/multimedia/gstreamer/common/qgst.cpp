@@ -1697,10 +1697,9 @@ QVideoFrameFormat qVideoFrameFormatFromGstVideoInfo(const QGstVideoInfo &qtVideo
 
 QGstCaps::MemoryFormat qMemoryFormatFromGstBuffer(GstBuffer *buffer)
 {
-    QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
+    Q_ASSERT(buffer);
 
-    if (!buffer)
-        return memoryFormat;
+    QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
 
     [[maybe_unused]] GstMemory *mem = gst_buffer_peek_memory(buffer, 0);
 
