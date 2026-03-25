@@ -217,8 +217,11 @@ QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicOrder ambisonicOrder, const QAudio
 QAmbisonicDecoder::~QAmbisonicDecoder()
 {
     if (simpleDecoderFactors) {
+        Q_ASSERT(!filters);
         delete[] simpleDecoderFactors;
         delete[] reverbFactors;
+    } else {
+        delete[] filters;
     }
 }
 
@@ -279,6 +282,8 @@ void QAmbisonicDecoder::processBufferWithReverb(const float *input[], const floa
         }
         return;
     }
+
+    Q_ASSERT(filters);
 
     //    qDebug() << "XXX" << inputChannels << outputChannels;
     const float *matrix_hi = decoderData->hf[order - 1];
