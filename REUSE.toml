@@ -39,8 +39,9 @@ SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
 SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
 
 [[annotations]]
-path = ["util/macos_test_audio_config/README", "**.qdocconf", "**.qdocinc", "src/multimedia/doc/src/classic.css",
-        "**/doc/src/images/**", "config_help.txt"]
+path = ["**/doc/src/images/**", "**.qdocconf", "**.qdocinc", "src/multimedia/doc/src/classic.css",
+        "CONTRIBUTING.md", "util/macos_test_audio_config/README",
+        "config_help.txt"]
 comment = "documentation"
 precedence = "closest"
 SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
