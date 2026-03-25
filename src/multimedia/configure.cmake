@@ -121,6 +121,22 @@ int main(int, char **)
 }
 ")
 
+qt_config_compile_test(qnx_version_800
+    LABEL "QNX __QNX__ >= 800"
+    CODE
+"// __QNX__ is defined by qcc; its value is the API release version with the
+// decimal points removed (e.g. 801 == 8.0.1). It supersedes the deprecated
+// _NTO_VERSION from <sys/neutrino.h>.
+#if !defined(__QNX__) || __QNX__ < 800
+#  error __QNX__ is less than 800
+#endif
+
+int main(int, char **)
+{
+    return 0;
+}
+")
+
 #### Features
 
 qt_feature("pipewire" PRIVATE
@@ -206,9 +222,14 @@ qt_feature("mmrenderer" PUBLIC PRIVATE
     CONDITION MMRenderer_FOUND AND MMRendererCore_FOUND
     EMIT_IF QNX
 )
-qt_feature("qnx_sound_architecture" PRIVATE
-    LABEL "QNX sound architecture (QSA)"
-    CONDITION QNX AND CMAKE_SYSTEM_VERSION LESS 800
+qt_feature("qnx_io_audio" PRIVATE
+    LABEL "QNX io-audio (<qnx-8.0)"
+    CONDITION QNX AND NOT TEST_qnx_version_800
+    EMIT_IF QNX
+)
+qt_feature("qnx_io_snd" PRIVATE
+    LABEL "QNX io-snd (>=qnx-8.0)"
+    CONDITION QNX AND TEST_qnx_version_800
     EMIT_IF QNX
 )
 qt_feature("native_android_backend" PUBLIC PRIVATE
@@ -288,7 +309,8 @@ qt_configure_add_summary_section(NAME "Low level Audio Backend")
 qt_configure_add_summary_entry(ARGS "alsa")
 qt_configure_add_summary_entry(ARGS "pulseaudio")
 qt_configure_add_summary_entry(ARGS "pipewire")
-qt_configure_add_summary_entry(ARGS "qnx_sound_architecture")
+qt_configure_add_summary_entry(ARGS "qnx_io_audio")
+qt_configure_add_summary_entry(ARGS "qnx_io_snd")
 qt_configure_add_summary_entry(ARGS "coreaudio")
 qt_configure_add_summary_entry(ARGS "aaudio")
 qt_configure_add_summary_entry(ARGS "ohaudio")
@@ -325,7 +347,7 @@ qt_configure_add_report_entry(
     MESSAGE "No backend for low level audio found."
     CONDITION NOT QT_FEATURE_alsa AND NOT QT_FEATURE_pulseaudio AND NOT QT_FEATURE_mmrenderer AND NOT QT_FEATURE_coreaudio
               AND NOT WIN32 AND NOT ANDROID AND NOT WASM AND NOT QT_FEATURE_pipewire
-              AND NOT QT_FEATURE_ohaudio
+              AND NOT QT_FEATURE_ohaudio AND NOT QT_FEATURE_qnx_io_snd
 )
 
 qt_configure_add_report_entry(

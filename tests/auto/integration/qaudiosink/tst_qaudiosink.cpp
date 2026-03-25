@@ -77,13 +77,18 @@ static bool isPulseAudioBackend()
     return QPlatformMediaIntegration::audioBackendName() == "PulseAudio";
 }
 
+static bool isQnxSndBackend()
+{
+    return QPlatformMediaIntegration::audioBackendName() == "QNX-snd";
+}
+
 static bool underrunIsAnError()
 {
 #if defined(Q_OS_APPLE) || defined(Q_OS_ANDROID) || defined(Q_OS_OHOS)
     return false;
 #endif
 
-    return !(isPipewireBackend() || isPulseAudioBackend());
+    return !(isPipewireBackend() || isPulseAudioBackend() || isQnxSndBackend());
 }
 
 class tst_QAudioSink : public QObject
