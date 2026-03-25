@@ -385,7 +385,7 @@ qt_internal_extend_target(Multimedia CONDITION IOS OR TVOS OR VISIONOS
         ${FWFoundation}
 )
 
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_qnx_sound_architecture
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_qnx_io_audio
     SOURCES
         qnx/qqnxaudiodevice.cpp qnx/qqnxaudiodevice_p.h
         qnx/qqnxaudiosink.cpp qnx/qqnxaudiosink_p.h
@@ -393,9 +393,24 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_qnx_sound_architecture
         qnx/qqnxaudioutils.cpp qnx/qqnxaudioutils_p.h
         qnx/qqnxaudiodevices.cpp qnx/qqnxaudiodevices_p.h
     DEFINES
-        QT_MM_QNX_QSA
+        QT_MM_QNX_IO_AUDIO
     INCLUDE_DIRECTORIES
         qnx
+    LIBRARIES
+        asound
+)
+
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_qnx_io_snd
+    SOURCES
+        qnx-iosnd/qqnxsndaudiodevice.cpp qnx-iosnd/qqnxsndaudiodevice_p.h
+        qnx-iosnd/qqnxsndaudiosink.cpp qnx-iosnd/qqnxsndaudiosink_p.h
+        qnx-iosnd/qqnxsndaudiosource.cpp qnx-iosnd/qqnxsndaudiosource_p.h
+        qnx-iosnd/qqnxsndaudiodevices.cpp qnx-iosnd/qqnxsndaudiodevices_p.h
+        qnx-iosnd/qqnxsndhelpers.cpp qnx-iosnd/qqnxsndhelpers_p.h
+    DEFINES
+        QT_MM_QNX_IO_SND
+    INCLUDE_DIRECTORIES
+        qnx-iosnd
     LIBRARIES
         asound
 )
