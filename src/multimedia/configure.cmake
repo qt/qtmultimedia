@@ -212,6 +212,11 @@ qt_feature("native_windows_backend" PUBLIC PRIVATE
     AUTODETECT true # It is still found and built by default
     CONDITION WIN32
 )
+qt_feature("native_darwin_backend" PUBLIC PRIVATE
+    LABEL "Native Darwin (AVFoundation) backend"
+    AUTODETECT true # It is still found and built by default
+    CONDITION APPLE
+)
 qt_feature("pulseaudio" PUBLIC PRIVATE
     LABEL "PulseAudio"
     DISABLE INPUT_pulseaudio STREQUAL 'no'
@@ -276,6 +281,7 @@ qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "avfoundation")
 qt_configure_add_summary_entry(ARGS "native_android_backend")
 qt_configure_add_summary_entry(ARGS "native_windows_backend")
+qt_configure_add_summary_entry(ARGS "native_darwin_backend")
 qt_configure_end_summary_section()
 qt_configure_add_summary_section(NAME "Hardware acceleration and features")
 qt_configure_add_summary_entry(ARGS "linux_v4l")
@@ -297,7 +303,8 @@ qt_configure_add_report_entry(
     MESSAGE "No media backend found"
     CONDITION ((LINUX AND NOT (QT_FEATURE_gstreamer OR QT_FEATURE_ffmpeg)) OR
                (ANDROID AND NOT (QT_FEATURE_native_android_backend OR QT_FEATURE_ffmpeg)) OR
-               (WIN32 AND NOT (QT_FEATURE_native_windows_backend OR QT_FEATURE_ffmpeg))
+               (WIN32 AND NOT (QT_FEATURE_native_windows_backend OR QT_FEATURE_ffmpeg)) OR
+               (APPLE AND NOT (QT_FEATURE_native_darwin_backend OR QT_FEATURE_ffmpeg))
               )
 )
 
