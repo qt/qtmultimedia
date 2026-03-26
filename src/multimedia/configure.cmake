@@ -295,20 +295,12 @@ qt_configure_add_report_entry(
 qt_configure_add_report_entry(
     TYPE WARNING
     MESSAGE "No media backend found"
-    CONDITION LINUX AND NOT (QT_FEATURE_gstreamer OR QT_FEATURE_ffmpeg)
+    CONDITION ((LINUX AND NOT (QT_FEATURE_gstreamer OR QT_FEATURE_ffmpeg)) OR
+               (ANDROID AND NOT (QT_FEATURE_native_android_backend OR QT_FEATURE_ffmpeg)) OR
+               (WIN32 AND NOT (QT_FEATURE_native_windows_backend OR QT_FEATURE_ffmpeg))
+              )
 )
 
-qt_configure_add_report_entry(
-    TYPE WARNING
-    MESSAGE "No media backend found"
-    CONDITION ANDROID AND NOT (QT_FEATURE_native_android_backend OR QT_FEATURE_ffmpeg)
-)
-
-qt_configure_add_report_entry(
-    TYPE WARNING
-    MESSAGE "No media backend found"
-    CONDITION WIN32 AND NOT (QT_FEATURE_native_windows_backend OR QT_FEATURE_ffmpeg)
-)
 
 qt_configure_add_report_entry(
     TYPE ERROR
