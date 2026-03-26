@@ -97,7 +97,7 @@ public:
 
     void setPlayerControl(MFPlayerControl *playerControl) { m_playerControl = playerControl; }
 
-    void statusChanged() { if (m_playerControl) m_playerControl->handleStatusChanged(); }
+    void statusChanged(QMediaPlayer::MediaStatus status) { if (m_playerControl) m_playerControl->handleStatusChanged(status); }
     void tracksChanged() { if (m_playerControl) m_playerControl->handleTracksChanged(); }
     void audioAvailable() { if (m_playerControl) m_playerControl->handleAudioAvailable(); }
     void videoAvailable() { if (m_playerControl) m_playerControl->handleVideoAvailable(); }
@@ -208,7 +208,6 @@ private:
     };
     TrackInfo m_trackInfo[QPlatformMediaPlayer::NTrackTypes];
 
-    QMediaPlayer::MediaStatus m_status;
     bool m_canScrub;
     float m_volume = 1.;
     bool m_muted = false;

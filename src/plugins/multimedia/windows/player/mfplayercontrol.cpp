@@ -6,16 +6,7 @@
 #include "mfvideorenderercontrol_p.h"
 #include <qdebug.h>
 
-//#define DEBUG_MEDIAFOUNDATION
-
-MFPlayerControl::MFPlayerControl(QMediaPlayer *player)
-    : QPlatformMediaPlayer(player)
-    , m_state(QMediaPlayer::StoppedState)
-    , m_stateDirty(false)
-    , m_videoAvailable(false)
-    , m_audioAvailable(false)
-    , m_duration(0)
-    , m_seekable(false)
+MFPlayerControl::MFPlayerControl(QMediaPlayer *player) : QPlatformMediaPlayer(player)
 {
     m_session = new MFPlayerSession(this);
 }
@@ -29,12 +20,6 @@ MFPlayerControl::~MFPlayerControl()
 
 void MFPlayerControl::setMedia(const QUrl &media, QIODevice *stream)
 {
-    if (m_state != QMediaPlayer::StoppedState) {
-        changeState(QMediaPlayer::StoppedState);
-        m_session->stop(true);
-        refreshState();
-    }
-
     m_media = media;
     m_stream = stream;
     resetAudioVideoAvailable();
@@ -45,7 +30,7 @@ void MFPlayerControl::setMedia(const QUrl &media, QIODevice *stream)
 
 void MFPlayerControl::play()
 {
-    if (m_state == QMediaPlayer::PlayingState)
+    if (state() == QMediaPlayer::PlayingState)
         return;
     resetCurrentLoop();
     if (QMediaPlayer::InvalidMedia == m_session->status())
@@ -59,37 +44,34 @@ void MFPlayerControl::play()
     case QMediaPlayer::BufferingMedia:
     case QMediaPlayer::BufferedMedia:
     case QMediaPlayer::EndOfMedia:
-        changeState(QMediaPlayer::PlayingState);
+        stateChanged(QMediaPlayer::PlayingState);
         m_session->start();
         break;
     default: //Loading/Stalled
-        changeState(QMediaPlayer::PlayingState);
+        stateChanged(QMediaPlayer::PlayingState);
         break;
     }
-    refreshState();
 }
 
 void MFPlayerControl::pause()
 {
-    if (m_state == QMediaPlayer::PausedState)
+    if (state() == QMediaPlayer::PausedState)
         return;
 
     if (m_session->status() == QMediaPlayer::NoMedia ||
         m_session->status() == QMediaPlayer::InvalidMedia)
         return;
 
-    changeState(QMediaPlayer::PausedState);
+    stateChanged(QMediaPlayer::PausedState);
     m_session->pause();
-    refreshState();
 }
 
 void MFPlayerControl::stop()
 {
-    if (m_state == QMediaPlayer::StoppedState)
+    if (state() == QMediaPlayer::StoppedState)
         return;
-    changeState(QMediaPlayer::StoppedState);
+    stateChanged(QMediaPlayer::StoppedState);
     m_session->stop();
-    refreshState();
 }
 
 QMediaMetaData MFPlayerControl::metaData() const
@@ -107,35 +89,18 @@ void MFPlayerControl::setVideoSink(QVideoSink *sink)
     m_session->setVideoSink(sink);
 }
 
-void MFPlayerControl::changeState(QMediaPlayer::PlaybackState state)
+void MFPlayerControl::handleStatusChanged(QMediaPlayer::MediaStatus status)
 {
-    if (m_state == state)
+    if (status == mediaStatus())
         return;
-    m_state = state;
-    m_stateDirty = true;
-}
 
-void MFPlayerControl::refreshState()
-{
-    if (!m_stateDirty)
-        return;
-    m_stateDirty = false;
-#ifdef DEBUG_MEDIAFOUNDATION
-    qDebug() << "MFPlayerControl::emit stateChanged" << m_state;
-#endif
-    stateChanged(m_state);
-}
-
-void MFPlayerControl::handleStatusChanged()
-{
-    QMediaPlayer::MediaStatus status = m_session->status();
     switch (status) {
     case QMediaPlayer::EndOfMedia:
         if (doLoop()) {
             setPosition(0);
             m_session->start();
         } else {
-            changeState(QMediaPlayer::StoppedState);
+            stateChanged(QMediaPlayer::StoppedState);
         }
         break;
     case QMediaPlayer::InvalidMedia:
@@ -143,14 +108,13 @@ void MFPlayerControl::handleStatusChanged()
     case QMediaPlayer::LoadedMedia:
     case QMediaPlayer::BufferingMedia:
     case QMediaPlayer::BufferedMedia:
-        if (m_state == QMediaPlayer::PlayingState)
+        if (state() == QMediaPlayer::PlayingState)
             m_session->start();
         break;
     default:
         break;
     }
-    mediaStatusChanged(m_session->status());
-    refreshState();
+    mediaStatusChanged(status);
 }
 
 void MFPlayerControl::handleTracksChanged()
@@ -205,15 +169,7 @@ void MFPlayerControl::handleSeekableUpdate(bool seekable)
     seekableChanged(m_seekable);
 }
 
-QMediaPlayer::PlaybackState MFPlayerControl::state() const
-{
-    return m_state;
-}
 
-QMediaPlayer::MediaStatus MFPlayerControl::mediaStatus() const
-{
-    return m_session->status();
-}
 
 qint64 MFPlayerControl::duration() const
 {
@@ -303,4 +259,3 @@ QMediaMetaData MFPlayerControl::trackMetaData(TrackType type, int trackNumber)
 {
     return m_session->trackMetaData(type, trackNumber);
 }
-

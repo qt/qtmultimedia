@@ -43,8 +43,7 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
       m_restoreRate(1),
       m_closing(false),
       m_mediaTypes(0),
-      m_pendingRate(1),
-      m_status(QMediaPlayer::NoMedia)
+      m_pendingRate(1)
 
 {
     connect(this, &MFPlayerSession::sessionEvent, this, &MFPlayerSession::handleSessionEvent);
@@ -139,7 +138,7 @@ void MFPlayerSession::load(const QUrl &url, QIODevice *stream)
 #endif
     clear();
 
-    if (m_status == QMediaPlayer::LoadingMedia && m_sourceResolver)
+    if (status() == QMediaPlayer::LoadingMedia && m_sourceResolver)
         m_sourceResolver->cancel();
 
     if (url.isEmpty() && !stream) {
@@ -197,7 +196,7 @@ void MFPlayerSession::handleSourceError(long hr)
 
 void MFPlayerSession::handleMediaSourceReady()
 {
-    if (QMediaPlayer::LoadingMedia != m_status || !m_sourceResolver
+    if (QMediaPlayer::LoadingMedia != status() || !m_sourceResolver
         || m_sourceResolver.Get() != sender())
         return;
 #ifdef DEBUG_MEDIAFOUNDATION
@@ -746,7 +745,7 @@ void MFPlayerSession::stop(bool immediate)
 
             m_state.setCommand(CmdStop);
             m_pendingState = CmdPending;
-            if (m_status != QMediaPlayer::EndOfMedia) {
+            if (status() != QMediaPlayer::EndOfMedia) {
                 m_position = 0;
                 positionChanged(0);
             }
@@ -763,7 +762,7 @@ void MFPlayerSession::start()
         updateOutputRouting();
     }
 
-    if (m_status == QMediaPlayer::EndOfMedia) {
+    if (status() == QMediaPlayer::EndOfMedia) {
         m_position = 0; // restart from the beginning
         positionChanged(0);
     }
@@ -819,7 +818,7 @@ void MFPlayerSession::pause()
         } else {
             error(QMediaPlayer::ResourceError, tr("Failed to pause."), false);
         }
-        if (m_status == QMediaPlayer::EndOfMedia) {
+        if (status() == QMediaPlayer::EndOfMedia) {
             setPosition(0);
             positionChanged(0);
         }
@@ -828,18 +827,20 @@ void MFPlayerSession::pause()
 
 void MFPlayerSession::changeStatus(QMediaPlayer::MediaStatus newStatus)
 {
-    if (m_status == newStatus)
+    if (!m_playerControl)
         return;
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "MFPlayerSession::changeStatus" << newStatus;
 #endif
-    m_status = newStatus;
-    statusChanged();
+    // notify the control to run its session-specific handling
+    statusChanged(newStatus);
 }
 
 QMediaPlayer::MediaStatus MFPlayerSession::status() const
 {
-    return m_status;
+    if (!m_playerControl)
+        return QMediaPlayer::NoMedia;
+    return m_playerControl->mediaStatus();
 }
 
 bool MFPlayerSession::createSession()
@@ -910,7 +911,7 @@ void MFPlayerSession::setPosition(qint64 position)
 
 void MFPlayerSession::setPositionInternal(qint64 position, Command requestCmd)
 {
-    if (m_status == QMediaPlayer::EndOfMedia)
+    if (status() == QMediaPlayer::EndOfMedia)
         changeStatus(QMediaPlayer::LoadedMedia);
     if (m_state.command == CmdStop && requestCmd != CmdSeekResume) {
         m_position = position * 10000;
@@ -1369,8 +1370,8 @@ void MFPlayerSession::handleSessionEvent(const ComPtr<IMFMediaEvent> &sessionEve
             updatePendingCommands(CmdStart);
         break;
     case MESessionStarted:
-        if (m_status == QMediaPlayer::EndOfMedia
-                || m_status == QMediaPlayer::LoadedMedia) {
+        if (status() == QMediaPlayer::EndOfMedia
+                || status() == QMediaPlayer::LoadedMedia) {
             // If the session started, then enough data is buffered to play
             changeStatus(QMediaPlayer::BufferedMedia);
         }
@@ -1384,12 +1385,12 @@ void MFPlayerSession::handleSessionEvent(const ComPtr<IMFMediaEvent> &sessionEve
         m_signalPositionChangeTimer.start();
         break;
     case MESessionStopped:
-        if (m_status != QMediaPlayer::EndOfMedia) {
+        if (status() != QMediaPlayer::EndOfMedia) {
             m_position = 0;
 
             // Reset to Loaded status unless we are loading a new media
             // or changing the playback rate to negative values (stop required)
-            if (m_status != QMediaPlayer::LoadingMedia && m_request.command != CmdSeekResume)
+            if (status() != QMediaPlayer::LoadingMedia && m_request.command != CmdSeekResume)
                 changeStatus(QMediaPlayer::LoadedMedia);
         }
         updatePendingCommands(CmdStop);
@@ -1399,7 +1400,7 @@ void MFPlayerSession::handleSessionEvent(const ComPtr<IMFMediaEvent> &sessionEve
         m_position = position() * 10000;
         updatePendingCommands(CmdPause);
         m_signalPositionChangeTimer.stop();
-        if (m_status == QMediaPlayer::LoadedMedia)
+        if (status() == QMediaPlayer::LoadedMedia)
             setPosition(position());
         break;
     case MEReconnectStart:
