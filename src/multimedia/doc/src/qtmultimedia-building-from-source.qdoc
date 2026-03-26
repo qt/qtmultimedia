@@ -41,6 +41,15 @@ lib, and bin directories. To build Qt Multimedia without FFmpeg, omit
 the \c{<FFMPEG_DIR>} variable and specify the \c{-no-feature-ffmpeg}
 configure option.
 
+To build Qt Multimedia without native media backends, use
+\c{-no-feature-xxx} to exclude the corresponding features, such as
+\c gstreamer, \c native_windows_backend, \c native_darwin_backend or
+\c native_android_backend.
+
+\badcode
+qt-source/configure -no-feature-gstreamer
+\endcode
+
 If you prefer not to build all Qt's submodules, you can reduce configure
 and build times using the \c{-submodules} configure option. This will
 configure a build that only builds Qt Multimedia and its dependencies.
