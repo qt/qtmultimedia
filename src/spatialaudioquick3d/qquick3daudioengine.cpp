@@ -3,9 +3,11 @@
 #include <qquick3daudioengine_p.h>
 #include <qaudiodevice.h>
 
+#include <QtCore/qcoreapplication.h>
+
 QT_BEGIN_NAMESPACE
 
-static QAudioEngine *globalEngine = nullptr;
+static std::unique_ptr<QAudioEngine> globalEngine;
 
 /*!
     \qmltype AudioEngine
@@ -138,10 +140,14 @@ float QQuick3DAudioEngine::distanceScale() const
 QAudioEngine *QQuick3DAudioEngine::getEngine()
 {
     if (!globalEngine) {
-        globalEngine = new QAudioEngine;
+        globalEngine = std::make_unique<QAudioEngine>();
         globalEngine->start();
+        qAddPostRoutine([] {
+            // ensure to destroy it before any Q_APPLICATION_STATIC that manages the connection to the audio backend
+            globalEngine = {};
+        });
     }
-    return globalEngine;
+    return globalEngine.get();
 }
 
 QT_END_NAMESPACE
