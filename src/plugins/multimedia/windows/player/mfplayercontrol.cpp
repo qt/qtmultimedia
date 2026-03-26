@@ -234,7 +234,7 @@ void MFPlayerControl::setPosition(qint64 position)
 
 float MFPlayerControl::bufferProgress() const
 {
-    return m_session->bufferProgress() / 100.;
+    return m_session->bufferProgress();
 }
 
 bool MFPlayerControl::isAudioAvailable() const
