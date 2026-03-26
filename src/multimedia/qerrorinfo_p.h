@@ -45,7 +45,7 @@ public:
     }
 
     ErrorCode code() const { return m_code; }
-    QString description() const { return m_description; };
+    QString description() const { return m_description; }
 
 private:
     ErrorCode m_code;

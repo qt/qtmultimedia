@@ -75,7 +75,7 @@ public:
     // media streams
     enum TrackType : uint8_t { VideoStream, AudioStream, SubtitleStream, NTrackTypes };
 
-    virtual int trackCount(TrackType) { return 0; };
+    virtual int trackCount(TrackType) { return 0; }
     virtual QMediaMetaData trackMetaData(TrackType /*type*/, int /*streamNumber*/) { return QMediaMetaData(); }
     virtual int activeTrack(TrackType) { return -1; }
     virtual void setActiveTrack(TrackType, int /*streamNumber*/) {}
