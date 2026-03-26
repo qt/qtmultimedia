@@ -32,8 +32,8 @@ class Q_MULTIMEDIA_EXPORT QPlatformMediaPlayer
 {
 public:
     virtual ~QPlatformMediaPlayer();
-    virtual QMediaPlayer::PlaybackState state() const { return m_state; }
-    virtual QMediaPlayer::MediaStatus mediaStatus() const { return m_status; };
+    QMediaPlayer::PlaybackState state() const { return m_state; }
+    QMediaPlayer::MediaStatus mediaStatus() const { return m_status; }
 
     virtual qint64 duration() const = 0;
 
@@ -179,4 +179,3 @@ QT_END_NAMESPACE
 
 
 #endif  // QMEDIAPLAYERCONTROL_H
-

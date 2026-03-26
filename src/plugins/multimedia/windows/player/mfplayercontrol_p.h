@@ -30,9 +30,6 @@ public:
     MFPlayerControl(QMediaPlayer *player);
     ~MFPlayerControl();
 
-    QMediaPlayer::PlaybackState state() const override;
-
-    QMediaPlayer::MediaStatus mediaStatus() const override;
 
     qint64 duration() const override;
 
@@ -72,7 +69,7 @@ public:
     int trackCount(TrackType type) override;
     QMediaMetaData trackMetaData(TrackType type, int trackNumber) override;
 
-    void handleStatusChanged();
+    void handleStatusChanged(QMediaPlayer::MediaStatus);
     void handleTracksChanged();
     void handleVideoAvailable();
     void handleAudioAvailable();
@@ -81,21 +78,16 @@ public:
     void handleError(QMediaPlayer::Error errorCode, const QString& errorString, bool isFatal);
 
 private:
-    void changeState(QMediaPlayer::PlaybackState state);
     void resetAudioVideoAvailable();
-    void refreshState();
 
-    QMediaPlayer::PlaybackState m_state;
-    bool m_stateDirty;
+    bool m_videoAvailable{};
+    bool m_audioAvailable{};
+    qint64 m_duration{};
+    bool m_seekable{};
 
-    bool     m_videoAvailable;
-    bool     m_audioAvailable;
-    qint64   m_duration;
-    bool     m_seekable;
-
-    QIODevice *m_stream;
+    QIODevice *m_stream{};
     QUrl m_media;
-    MFPlayerSession *m_session;
+    MFPlayerSession *m_session{};
 };
 
 QT_END_NAMESPACE
