@@ -11,6 +11,7 @@
 #include <QtCore/qlocale.h>
 #include <QtCore/qurl.h>
 #include <QtCore/private/qcore_mac_p.h>
+#include <QtCore/qsemaphore.h>
 #include <QImage>
 #include <QtMultimedia/qvideoframe.h>
 
@@ -21,6 +22,8 @@
 #import <CoreFoundation/CoreFoundation.h>
 
 QT_USE_NAMESPACE
+
+using namespace std::chrono_literals;
 
 struct AVMetadataIDs {
     AVMetadataIdentifier common;
@@ -279,28 +282,44 @@ QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
         }
     }
 
-    // add orientation from the first video track
-#if !defined(Q_OS_VISIONOS)
-    NSArray *videoTracks = [asset tracksWithMediaType:AVMediaTypeVideo];
-    if (videoTracks.count > 0) {
-        AVAssetTrack *videoTrack = videoTracks[0];
-        QtVideo::Rotation angle = QtVideo::Rotation::None;
-        bool mirrored = false;
-        AVFMediaPlayer::videoOrientationForAssetTrack(videoTrack, angle, mirrored);
-        metadata.insert(QMediaMetaData::Orientation, int(angle));
+    std::optional<QtVideo::Rotation> rotationData;
+    std::optional<QSize> resolutionData;
+    QSemaphore sem(0);
+    [asset loadTracksWithMediaType:AVMediaTypeVideo
+                 completionHandler:[&](NSArray<AVAssetTrack *> *tracks, NSError *error) {
+        if (!error && tracks && tracks.count > 0) {
+            // only check the first video track
+            AVAssetTrack *videoTrack = tracks[0];
 
-        // add resolution (coded frame size, without PAR adjustment)
-        NSArray *formatDescriptions = [videoTrack formatDescriptions];
-        if (formatDescriptions.count > 0) {
-            CMVideoFormatDescriptionRef desc =
-                    (__bridge CMVideoFormatDescriptionRef)formatDescriptions[0];
-            CMVideoDimensions dims = CMVideoFormatDescriptionGetDimensions(desc);
-            if (dims.width > 0 && dims.height > 0)
-                metadata.insert(QMediaMetaData::Resolution,
-                                QSize(dims.width, dims.height));
+            // add orientation
+            QtVideo::Rotation rotation;
+            bool mirrored = false;
+            AVFMediaPlayer::videoOrientationForAssetTrack(videoTrack, rotation, mirrored);
+            rotationData = rotation;
+
+            // add resolution (coded frame size, without PAR adjustment)
+            NSArray *formatDescriptions = [videoTrack formatDescriptions];
+            if (formatDescriptions.count > 0) {
+                const auto *desc = (__bridge CMVideoFormatDescriptionRef)formatDescriptions[0];
+                CMVideoDimensions dims = CMVideoFormatDescriptionGetDimensions(desc);
+                if (dims.width > 0 && dims.height > 0)
+                    resolutionData = QSize(dims.width, dims.height);
+            }
         }
+        sem.release();
+    }];
+
+    if (!sem.try_acquire_for(5s)) {
+        qWarning() << "Timed out waiting for video tracks to load, proceeding without orientation "
+                      "metadata.";
+        return metadata;
     }
-#endif
+
+    if (rotationData)
+        metadata.insert(QMediaMetaData::Orientation, int(*rotationData));
+
+    if (resolutionData)
+        metadata.insert(QMediaMetaData::Resolution, *resolutionData);
 
     return metadata;
 }
@@ -459,4 +478,3 @@ NSMutableArray<AVMetadataItem *> *AVFMetaData::toAVMetadataForFormat(QMediaMetaD
     }
     return avMetaDataArr;
 }
-
