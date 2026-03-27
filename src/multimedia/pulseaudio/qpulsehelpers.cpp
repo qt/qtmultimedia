@@ -35,7 +35,7 @@ pa_sample_spec audioFormatToSampleSpec(const QAudioFormat &format)
 
 pa_channel_map channelMapForAudioFormat(const QAudioFormat &format)
 {
-    pa_channel_map map;
+    pa_channel_map map{};
     map.channels = 0;
 
     auto config = format.channelConfig();
