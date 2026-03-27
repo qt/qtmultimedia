@@ -31,7 +31,7 @@ QAutoResetEventEventFD::QAutoResetEventEventFD(QObject *parent)
     connect(&m_notifier, &QSocketNotifier::activated, this, [this] {
         uint64_t payload;
 
-        qt_safe_read(m_fd, &payload, sizeof(payload));
+        std::ignore = qt_safe_read(m_fd, &payload, sizeof(payload));
 
         emit activated();
     });
