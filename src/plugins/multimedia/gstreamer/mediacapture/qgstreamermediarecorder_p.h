@@ -53,7 +53,7 @@ private:
     struct PauseControl {
         explicit PauseControl(QPlatformMediaRecorder &encoder) : encoder(encoder) { }
 
-        GstPadProbeReturn processBuffer(QGstPad pad, GstPadProbeInfo *info);
+        GstPadProbeReturn processBuffer(const QGstPad& pad, GstPadProbeInfo *info);
         void installOn(QGstPad pad);
         void reset();
 

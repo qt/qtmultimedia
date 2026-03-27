@@ -37,7 +37,7 @@ protected:
 private:
     void activate(ScreenSource);
 
-    void activate(WindowSource);
+    void activate(const WindowSource &);
 
 private:
     std::unique_ptr<Grabber> m_grabber;

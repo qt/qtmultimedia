@@ -87,9 +87,9 @@ QScreenCapture::QScreenCapture(QObject *parent)
         connect(platformCapture, &QPlatformSurfaceCapture::errorChanged, this,
                 &QScreenCapture::errorChanged);
         connect(platformCapture, &QPlatformSurfaceCapture::errorOccurred, this,
-                [this](QPlatformSurfaceCapture::Error error, QString errorString) {
-                    emit errorOccurred(toScreenCaptureError(error), errorString);
-                });
+                [this](QPlatformSurfaceCapture::Error error, const QString &errorString) {
+            emit errorOccurred(toScreenCaptureError(error), errorString);
+        });
 
         connect(platformCapture,
                 qOverload<QPlatformSurfaceCapture::ScreenSource>(

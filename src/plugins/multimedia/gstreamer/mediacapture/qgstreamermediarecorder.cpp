@@ -211,7 +211,7 @@ void QGstreamerMediaRecorder::PauseControl::installOn(QGstPad pad)
                                                                         GST_PAD_PROBE_TYPE_BUFFER);
 }
 
-GstPadProbeReturn QGstreamerMediaRecorder::PauseControl::processBuffer(QGstPad,
+GstPadProbeReturn QGstreamerMediaRecorder::PauseControl::processBuffer(const QGstPad &,
                                                                        GstPadProbeInfo *info)
 {
     auto buffer = GST_PAD_PROBE_INFO_BUFFER(info);

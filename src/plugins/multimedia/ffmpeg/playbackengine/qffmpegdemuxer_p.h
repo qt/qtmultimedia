@@ -42,7 +42,7 @@ public:
     void setLoops(int loopsCount);
 
 public slots:
-    void onPacketProcessed(Packet);
+    void onPacketProcessed(const Packet &);
 
 signals:
     void requestProcessAudioPacket(Packet);

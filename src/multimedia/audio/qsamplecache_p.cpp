@@ -87,12 +87,12 @@ QSampleCache::~QSampleCache()
     }
 }
 
-QSampleCache::SampleLoadResult QSampleCache::loadSample(QByteArray data)
+QSampleCache::SampleLoadResult QSampleCache::loadSample(QSpan<const char> data)
 {
     using namespace QtPrivate;
 
     drwav wavParser;
-    bool success = drwav_init_memory(&wavParser, data.constData(), data.size(), nullptr);
+    bool success = drwav_init_memory(&wavParser, data.data(), data.size(), nullptr);
     if (!success)
         return std::nullopt;
 
@@ -199,7 +199,7 @@ QSampleCache::loadSample(const QUrl &url, std::optional<SampleSourceType> forceS
     if (data.isEmpty() || errorOccurred)
         return std::nullopt;
 
-    return loadSample(std::move(data));
+    return loadSample(data);
 }
 
 #endif
@@ -237,7 +237,7 @@ QFuture<QSampleCache::SampleLoadResult> QSampleCache::loadSampleAsync(const QUrl
             return future;
         }
 
-        fulfilPromise(loadSample(std::move(data)));
+        fulfilPromise(loadSample(data));
         return future;
     }
 
@@ -265,7 +265,7 @@ QFuture<QSampleCache::SampleLoadResult> QSampleCache::loadSampleAsync(const QUrl
         if (data.isEmpty())
             promise->addResult(std::nullopt);
         else
-            promise->addResult(loadSample(std::move(data)));
+            promise->addResult(loadSample(data));
         promise->finish();
         reply->deleteLater(); // we cannot delete immediately
     });

@@ -111,7 +111,7 @@ static void setupFFmpegLogger()
     av_log_set_callback(&qffmpegLogCallback);
 }
 
-static QPlatformSurfaceCapture *createScreenCaptureByBackend(QString backend)
+static QPlatformSurfaceCapture *createScreenCaptureByBackend(const QString& backend)
 {
     if (backend == u"grabwindow")
         return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
@@ -134,7 +134,7 @@ static QPlatformSurfaceCapture *createScreenCaptureByBackend(QString backend)
     return nullptr;
 }
 
-static QPlatformSurfaceCapture *createWindowCaptureByBackend(QString backend)
+static QPlatformSurfaceCapture *createWindowCaptureByBackend(const QString& backend)
 {
     if (backend == u"grabwindow")
         return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::WindowSource{});

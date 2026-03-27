@@ -50,7 +50,7 @@ QUrl QQuick3DAmbientSound::source() const
     return m_sound->source();
 }
 
-void QQuick3DAmbientSound::setSource(QUrl source)
+void QQuick3DAmbientSound::setSource(const QUrl& source)
 {
     const QQmlContext *context = qmlContext(this);
     QUrl url;

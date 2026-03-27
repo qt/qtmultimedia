@@ -195,7 +195,7 @@ void Demuxer::doNextStep()
     scheduleNextStep();
 }
 
-void Demuxer::onPacketProcessed(Packet packet)
+void Demuxer::onPacketProcessed(const Packet &packet)
 {
     Q_ASSERT(packet.isValid());
 

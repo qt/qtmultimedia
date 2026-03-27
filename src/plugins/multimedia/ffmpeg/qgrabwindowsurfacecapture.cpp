@@ -20,6 +20,8 @@
 
 #include <QtCore/qloggingcategory.h>
 
+#include <utility>
+
 QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
@@ -168,7 +170,7 @@ private:
 };
 
 QGrabWindowSurfaceCapture::QGrabWindowSurfaceCapture(Source initialSource)
-    : QPlatformSurfaceCapture(initialSource)
+    : QPlatformSurfaceCapture(std::move(initialSource))
 {
 }
 
@@ -190,7 +192,7 @@ bool QGrabWindowSurfaceCapture::setActiveInternal(bool active)
     if (m_grabber)
         m_grabber.reset();
     else
-        std::visit([this](auto source) { activate(source); }, source());
+        std::visit([this](auto source) { activate(std::move(source)); }, source());
 
     return static_cast<bool>(m_grabber) == active;
 }
@@ -204,7 +206,7 @@ void QGrabWindowSurfaceCapture::activate(ScreenSource screen)
     m_grabber->start();
 }
 
-void QGrabWindowSurfaceCapture::activate(WindowSource window)
+void QGrabWindowSurfaceCapture::activate(const WindowSource& window)
 {
     auto handle = QCapturableWindowPrivate::handle(window);
     auto wid = handle ? handle->id : 0;

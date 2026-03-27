@@ -71,7 +71,7 @@ QSize qRotatedFramePresentationSize(const QVideoFrame &frame)
     return qRotatedFrameSize(frame.size(), rotation);
 }
 
-QUrl qMediaFromUserInput(QUrl url)
+QUrl qMediaFromUserInput(const QUrl &url)
 {
     return QUrl::fromUserInput(url.toString(), QDir::currentPath(), QUrl::AssumeLocalFile);
 }

@@ -42,7 +42,7 @@ public:
     QQuick3DSpatialSound();
     ~QQuick3DSpatialSound() override;
 
-    void setSource(QUrl source);
+    void setSource(const QUrl &source);
     QUrl source() const;
 
     void setVolume(float volume);
