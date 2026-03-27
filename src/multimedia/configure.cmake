@@ -312,6 +312,18 @@ qt_configure_add_report_entry(
               )
 )
 
+qt_configure_add_report_entry(
+    TYPE ERROR
+    MESSAGE "QT_DEFAULT_MEDIA_BACKEND is not available on the platform or the corresponding feature is disabled."
+    CONDITION
+        (DEFINED QT_DEFAULT_MEDIA_BACKEND AND
+         ((QT_DEFAULT_MEDIA_BACKEND STREQUAL "ffmpeg" AND NOT QT_FEATURE_ffmpeg) OR
+          (QT_DEFAULT_MEDIA_BACKEND STREQUAL "gstreamer" AND NOT QT_FEATURE_gstreamer) OR
+          (QT_DEFAULT_MEDIA_BACKEND STREQUAL "windows" AND NOT QT_FEATURE_native_windows_backend) OR
+          (QT_DEFAULT_MEDIA_BACKEND STREQUAL "darwin" AND NOT QT_FEATURE_native_darwin_backend) OR
+          (QT_DEFAULT_MEDIA_BACKEND STREQUAL "android" AND NOT QT_FEATURE_native_android_backend)
+        ))
+)
 
 qt_configure_add_report_entry(
     TYPE ERROR
