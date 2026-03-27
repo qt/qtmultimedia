@@ -13,7 +13,7 @@ class QSGVideoTexturePrivate
 
 private:
     QSGVideoTexture *q_ptr = nullptr;
-    QRhiTexture::Format m_format;
+    QRhiTexture::Format m_format{};
     QSize m_size;
     QByteArray m_data;
     QRhiTexture *m_texture = nullptr;

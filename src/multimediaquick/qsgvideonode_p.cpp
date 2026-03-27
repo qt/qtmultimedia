@@ -174,7 +174,7 @@ public:
     QVideoFrameFormat m_videoFormat;
     QRhiSwapChain::Format m_surfaceFormat = QRhiSwapChain::SDR;
     float m_opacity = 1.0f;
-    QRhiSwapChainHdrInfo m_hdrInfo;
+    QRhiSwapChainHdrInfo m_hdrInfo{};
 
     QVideoFrameTexturePoolPtr m_texturePool = std::make_shared<QVideoFrameTexturePool>();
     std::array<QSGVideoTexture, 3> m_textures;
