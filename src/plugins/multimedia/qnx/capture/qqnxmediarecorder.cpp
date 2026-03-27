@@ -44,13 +44,13 @@ void QQnxMediaRecorder::record(QMediaEncoderSettings &settings)
         startVideoRecording(settings);
     } else {
         QObject::connect(&m_audioRecorder, &QQnxAudioRecorder::durationChanged,
-                [this](qint64 d) { durationChanged(d); });
+            &m_audioRecorder, [this](qint64 d) { durationChanged(d); });
 
         QObject::connect(&m_audioRecorder, &QQnxAudioRecorder::stateChanged,
-                [this](QMediaRecorder::RecorderState s) { stateChanged(s); });
+            &m_audioRecorder, [this](QMediaRecorder::RecorderState s) { stateChanged(s); });
 
         QObject::connect(&m_audioRecorder, &QQnxAudioRecorder::actualLocationChanged,
-                [this](const QUrl &l) { actualLocationChanged(l); });
+            &m_audioRecorder, [this](const QUrl &l) { actualLocationChanged(l); });
 
         startAudioRecording(settings);
     }

@@ -99,7 +99,7 @@ void QFFmpegMetaData::addEntry(QMediaMetaData &metaData, AVDictionaryEntry *entr
 {
     qCDebug(qLcMetaData) << "   checking:" << entry->key << entry->value;
     QByteArray tag(entry->key);
-    QMediaMetaData::Key key = tagToKey(tag.toLower());
+    QMediaMetaData::Key key = tagToKey(tag.toLower().constData());
     if (key == QMediaMetaData::Key(-1))
         return;
     qCDebug(qLcMetaData) << "       adding" << key;

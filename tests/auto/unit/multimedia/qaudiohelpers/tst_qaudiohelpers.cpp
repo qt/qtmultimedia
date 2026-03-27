@@ -147,20 +147,23 @@ void tst_QAudioHelpers::applyVolume_data()
             return rowName.toUtf8();
         };
 
-        QTest::newRow(makeRowName("basic, 1.0")) << fmt << 1.0f << 0.5f << 0.5f;
-        QTest::newRow(makeRowName("basic, 0.5")) << fmt << 0.5f << 0.5f << 0.25f;
-        QTest::newRow(makeRowName("basic, -0.5")) << fmt << -0.5f << 0.5f << -0.25f;
-        QTest::newRow(makeRowName("basic, -1.0")) << fmt << -1.f << 0.5f << -0.5f;
+        QTest::newRow(makeRowName("basic, 1.0").constData()) << fmt << 1.0f << 0.5f << 0.5f;
+        QTest::newRow(makeRowName("basic, 0.5").constData()) << fmt << 0.5f << 0.5f << 0.25f;
+        QTest::newRow(makeRowName("basic, -0.5").constData()) << fmt << -0.5f << 0.5f << -0.25f;
+        QTest::newRow(makeRowName("basic, -1.0").constData()) << fmt << -1.f << 0.5f << -0.5f;
 
         if (fmt == SampleFormat::Float)
-            QTest::newRow(makeRowName("volume is not clamped for floating point samples"))
-                << fmt << 0.5f << 2.0f << 1.f;
+            QTest::newRow(
+                    makeRowName("volume is not clamped for floating point samples").constData())
+                    << fmt << 0.5f << 2.0f << 1.f;
         else
-            QTest::newRow(makeRowName("volume is clamped to 1.0 when using integer samples"))
-                << fmt << 0.5f << 2.0f << 0.5f;
+            QTest::newRow(
+                    makeRowName("volume is clamped to 1.0 when using integer samples").constData())
+                    << fmt << 0.5f << 2.0f << 0.5f;
 
-        QTest::newRow(makeRowName("volume 1 (noop)")) << fmt << 0.5f << 1.0f << 0.5f;
-        QTest::newRow(makeRowName("volume 0 (results in silence)")) << fmt << 0.5f << 0.0f << 0.0f;
+        QTest::newRow(makeRowName("volume 1 (noop)").constData()) << fmt << 0.5f << 1.0f << 0.5f;
+        QTest::newRow(makeRowName("volume 0 (results in silence)").constData())
+                << fmt << 0.5f << 0.0f << 0.0f;
     };
 
     makeEntriesFor("int16", SampleFormat::Int16);

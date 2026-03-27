@@ -215,7 +215,7 @@ void QWasmMediaRecorder::initUserMedia()
 
             m_durationMs = m_durationTimer->elapsed();
             if (m_outputTarget->isOpen())
-                m_outputTarget->write(mediaData, mediaData.length());
+                m_outputTarget->write(mediaData.constData(), mediaData.length());
             // we've read everything
             if (m_durationMs > 0) {
                 emit durationChanged(m_durationMs);

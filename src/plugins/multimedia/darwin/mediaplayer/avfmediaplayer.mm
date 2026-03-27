@@ -559,7 +559,7 @@ struct GuardedPlatformPlayer
                 if (len < 1)
                     break;
 
-                [loadingRequest.dataRequest respondWithData:[NSData dataWithBytes:buffer
+                [loadingRequest.dataRequest respondWithData:[NSData dataWithBytes:buffer.constData()
                                                                            length:len]];
                 submitted += len;
             }

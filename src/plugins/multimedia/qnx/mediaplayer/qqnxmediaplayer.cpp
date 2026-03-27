@@ -169,7 +169,7 @@ void QQnxMediaPlayer::openConnection()
     m_id = idCounter++;
     m_contextName = QString::fromLatin1("QQnxMediaPlayer_%1_%2").arg(m_id)
                                                          .arg(QCoreApplication::applicationPid());
-    m_context = mmr_context_create(m_connection, m_contextName.toLatin1(),
+    m_context = mmr_context_create(m_connection, m_contextName.toLatin1().constData(),
                                    0, S_IRWXU|S_IRWXG|S_IRWXO);
     if (!m_context) {
         emitPError(QString::fromLatin1("Unable to create context"));
@@ -388,7 +388,7 @@ bool QQnxMediaPlayer::attachVideoOutput()
     const QString videoDeviceUrl = QStringLiteral("screen:?winid=%1&wingrp=%2&initflags=invisible&nodstviewport=1")
         .arg(windowName, QString::fromLatin1(windowGroupId));
 
-    m_videoId = mmr_output_attach(m_context, videoDeviceUrl.toLatin1(), "video");
+    m_videoId = mmr_output_attach(m_context, videoDeviceUrl.toLatin1().constData(), "video");
 
     if (m_videoId == -1) {
         qWarning() << "mmr_output_attach() for video failed";
@@ -544,7 +544,7 @@ void QQnxMediaPlayer::setPositionInternal(qint64 position)
     if (!m_context || !m_metaData.isSeekable() || mediaStatus() == QMediaPlayer::NoMedia)
         return;
 
-    if (mmr_seek(m_context, QString::number(position).toLatin1()) != 0)
+    if (mmr_seek(m_context, QString::number(position).toLatin1().constData()) != 0)
         emitMmError("Seeking failed");
 }
 

@@ -442,8 +442,9 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *,
 
     shaderFile.append(u".frag.qsb");
 
-    Q_ASSERT_X(QFile::exists(shaderFile), Q_FUNC_INFO,
-               QStringLiteral("Shader file %1 does not exist").arg(shaderFile).toLatin1());
+    Q_ASSERT_X(
+            QFile::exists(shaderFile), Q_FUNC_INFO,
+            QStringLiteral("Shader file %1 does not exist").arg(shaderFile).toLatin1().constData());
     qCDebug(qLcVideoTextureHelper) << "fragmentShaderFileName returns" << shaderFile;
     return shaderFile;
 }

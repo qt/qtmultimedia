@@ -128,7 +128,7 @@ void QQnxPlatformCamera::setCamera(const QCameraDevice &camera)
     m_qnxCamera = std::make_unique<QQnxCamera>(cameraUnit);
 
     connect(m_qnxCamera.get(), &QQnxCamera::focusModeChanged,
-            [this](camera_focusmode_t mode) { Q_EMIT focusModeChanged(qtFocusMode(mode)); });
+            this, [this](camera_focusmode_t mode) { Q_EMIT focusModeChanged(qtFocusMode(mode)); });
     connect(m_qnxCamera.get(), &QQnxCamera::customFocusPointChanged,
             this, &QQnxPlatformCamera::customFocusPointChanged);
     connect(m_qnxCamera.get(), &QQnxCamera::frameAvailable,
