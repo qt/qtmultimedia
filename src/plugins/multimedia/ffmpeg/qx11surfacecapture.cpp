@@ -334,7 +334,7 @@ private:
     int m_yOffset = 0;
     std::unique_ptr<Display, decltype(&XCloseDisplay)> m_display{ nullptr, &XCloseDisplay };
     std::unique_ptr<XImage, decltype(&destroyXImage)> m_xImage{ nullptr, &destroyXImage };
-    XShmSegmentInfo m_shmInfo;
+    XShmSegmentInfo m_shmInfo{};
     bool m_attached = false;
     VisualID m_visualID = None;
     QVideoFrameFormat m_format;
