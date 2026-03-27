@@ -259,7 +259,7 @@ void tst_QMediaRecorderBackend::record_writesVideo_whenInputFrameShrinksOverTime
 
     QVERIFY(f.waitForRecorderStopped(60s));
     QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
-             f.m_recorder.errorString().toLatin1());
+             f.m_recorder.errorString().toLatin1().constData());
 
     auto info = MediaInfo::create(f.m_recorder.actualLocation());
 
@@ -294,7 +294,7 @@ void tst_QMediaRecorderBackend::record_writesVideo_whenInputFrameGrowsOverTime()
 
     QVERIFY(f.waitForRecorderStopped(60s));
     QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
-             f.m_recorder.errorString().toLatin1());
+             f.m_recorder.errorString().toLatin1().constData());
 
     auto info = MediaInfo::create(f.m_recorder.actualLocation());
 
@@ -336,19 +336,19 @@ void tst_QMediaRecorderBackend::record_stopsRecording_whenInputsReportedEndOfStr
         f.m_audioInput.sendAudioBuffer({});
         QVERIFY(!f.waitForRecorderStopped(300ms)); // Should not stop until both streams stopped
         QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
-                 f.m_recorder.errorString().toLatin1());
+                 f.m_recorder.errorString().toLatin1().constData());
         f.m_videoInput.sendVideoFrame({});
     } else {
         f.m_videoInput.sendVideoFrame({});
         QVERIFY(!f.waitForRecorderStopped(300ms)); // Should not stop until both streams stopped
         QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
-                 f.m_recorder.errorString().toLatin1());
+                 f.m_recorder.errorString().toLatin1().constData());
         f.m_audioInput.sendAudioBuffer({});
     }
 
     QVERIFY(f.waitForRecorderStopped(60s));
     QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
-             f.m_recorder.errorString().toLatin1());
+             f.m_recorder.errorString().toLatin1().constData());
 
     // check if the file has been written
 
@@ -391,7 +391,7 @@ void tst_QMediaRecorderBackend::record_writesVideo_withoutTransforms_whenPresent
     f.start(RunMode::Pull, AutoStop::EmitEmpty);
     QVERIFY(f.waitForRecorderStopped(60s));
     QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
-             f.m_recorder.errorString().toLatin1());
+             f.m_recorder.errorString().toLatin1().constData());
 
     const auto info = MediaInfo::create(f.m_recorder.actualLocation());
     QCOMPARE_EQ(info->m_colors.size(), 3u);
@@ -439,7 +439,7 @@ void tst_QMediaRecorderBackend::record_writesVideo_withCorrectColors()
 
     QVERIFY(f.waitForRecorderStopped(60s));
     QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
-             f.m_recorder.errorString().toLatin1());
+             f.m_recorder.errorString().toLatin1().constData());
 
     const auto info = MediaInfo::create(f.m_recorder.actualLocation(), /*keep frames */ true);
 

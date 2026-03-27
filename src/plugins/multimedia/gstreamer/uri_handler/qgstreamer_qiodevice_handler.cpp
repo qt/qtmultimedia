@@ -305,7 +305,7 @@ void QGstQIODeviceSrc::getURI(GValue *value) const
 {
     std::lock_guard guard{ *this };
     if (record)
-        g_value_set_string(value, record->id);
+        g_value_set_string(value, record->id.constData());
     else
         g_value_set_string(value, nullptr);
 }
