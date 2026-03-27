@@ -283,7 +283,7 @@ void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveM
         QGstVideoInfo previewInfo;
         auto optionalVideoInfo = caps.videoInfo();
         if (optionalVideoInfo)
-            previewInfo = std::move(*optionalVideoInfo);
+            previewInfo = *optionalVideoInfo;
         QVideoFrame frame = qCreateFrameFromGstBuffer(buffer, previewInfo);
 
         metadata.insert(QMediaMetaData::Resolution, frame.size());
@@ -315,7 +315,7 @@ void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveM
             QVideoFrameFormat fmt;
             auto optionalVideoInfo = caps.videoInfo();
             if (optionalVideoInfo) {
-                previewInfo = std::move(*optionalVideoInfo);
+                previewInfo = *optionalVideoInfo;
                 fmt = qVideoFrameFormatFromGstVideoInfo(previewInfo);
             }
 
