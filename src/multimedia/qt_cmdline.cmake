@@ -7,3 +7,6 @@ qt_commandline_option(pulseaudio TYPE boolean)
 
 qt_commandline_option(ffmpeg-dir TYPE path CMAKE_VARIABLE FFMPEG_DIR)
 qt_commandline_option(ffmpeg-deploy TYPE boolean CMAKE_VARIABLE QT_DEPLOY_FFMPEG)
+
+set(allowed_media_backends "ffmpeg" "gstreamer" "windows" "darwin" "android")
+qt_commandline_option(default-media-backend TYPE optionalString CMAKE_VARIABLE QT_DEFAULT_MEDIA_BACKEND VALUES ${allowed_media_backends})
