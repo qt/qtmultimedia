@@ -8,6 +8,7 @@
 #include <QtMultimedia/private/qvideoframe_p.h>
 #include <QtGui/rhi/qrhi.h>
 #include <QtGui/qguiapplication.h>
+#include <QtGui/qopenglcontext.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
@@ -249,24 +250,36 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
 
     QVideoFrameFormat bufferVideoFrameFormat = m_format;
 
-    static const bool isEglfsQPA = QGuiApplication::platformName() == QLatin1String("eglfs");
-    if (m_sink && m_sink->eglDisplay() && isEglfsQPA) {
-        // EGL seems to do implicit YUV->RGB conversion for UYVY and YUYV (YUY2), so we change the
-        // pixel format to Format_RGBA8888 to select an appropriate shader.
-        const bool setFormat_RGBA8888 =
-                (bufferMemoryFormat == QGstCaps::DMABuf
-                 && (m_format.pixelFormat() == QVideoFrameFormat::Format_UYVY
-                     || m_format.pixelFormat() == QVideoFrameFormat::Format_YUYV));
-        if (setFormat_RGBA8888) {
-            // TODO: Replace with new private setter of pixel format.
-            qCDebug(qLcGstVideoRenderer) << "Setting pixel format to Format_RGBA8888";
-            bufferVideoFrameFormat = QVideoFrameFormat(m_format.frameSize(),
-                                                       QVideoFrameFormat::Format_RGBA8888);
-            bufferVideoFrameFormat.setStreamFrameRate(m_format.streamFrameRate());
-            bufferVideoFrameFormat.setColorRange(m_format.colorRange());
-            bufferVideoFrameFormat.setColorTransfer(m_format.colorTransfer());
-            bufferVideoFrameFormat.setColorSpace(m_format.colorSpace());
+    // When rendering DMAbuf frames with OpenGLES, EGL seems to do implicit YUV->RGB conversion for
+    // UYVY and YUYV (YUY2), so we need to change the pixel format to Format_RGBA8888 to select the
+    // correct shader.
+    const bool setFormat_RGBA8888 = [&] {
+#if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+        if ((m_format.pixelFormat() == QVideoFrameFormat::Format_UYVY
+             || m_format.pixelFormat() == QVideoFrameFormat::Format_YUYV)
+            && bufferMemoryFormat == QGstCaps::DMABuf
+            && m_sink && m_sink->eglDisplay() && m_sink->eglImageTargetTexture2D()) {
+
+            QRhi *rhi = m_sink->rhi();
+            if (!rhi || rhi->backend() != QRhi::OpenGLES2)
+                return false;
+
+            auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+            QOpenGLContext *glContext = nativeHandles ? nativeHandles->context : nullptr;
+            return glContext && glContext->isOpenGLES();
         }
+#endif
+        return false;
+    }();
+    if (setFormat_RGBA8888) {
+        // TODO: Replace with new private setter of pixel format.
+        qCDebug(qLcGstVideoRenderer) << "Setting pixel format to Format_RGBA8888";
+        bufferVideoFrameFormat = QVideoFrameFormat(m_format.frameSize(),
+                                                   QVideoFrameFormat::Format_RGBA8888);
+        bufferVideoFrameFormat.setStreamFrameRate(m_format.streamFrameRate());
+        bufferVideoFrameFormat.setColorRange(m_format.colorRange());
+        bufferVideoFrameFormat.setColorTransfer(m_format.colorTransfer());
+        bufferVideoFrameFormat.setColorSpace(m_format.colorSpace());
     }
 
     RenderBufferState state{

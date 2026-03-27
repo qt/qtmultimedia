@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qgstvideobuffer_p.h"
-#include "qgstreamervideosink_p.h"
 #include <private/qvideotexturehelper_p.h>
 #include <qpa/qplatformnativeinterface.h>
 #include <qguiapplication.h>
@@ -370,8 +369,8 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
     Q_ASSERT(gst_is_dmabuf_memory(gst_buffer_peek_memory(buffer, 0)));
     Q_ASSERT(eglDisplay);
     Q_ASSERT(eglImageTargetTexture2D);
-    Q_ASSERT(QGuiApplication::platformName() == QLatin1String("eglfs"));
     Q_ASSERT(rhi);
+    Q_ASSERT(rhi->backend() == QRhi::OpenGLES2);
 
     auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
     auto glContext = nativeHandles->context;
@@ -558,15 +557,13 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
 QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/)
 {
 #if QT_CONFIG(gstreamer_gl)
-#  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
-    static const bool isEglfsQPA = QGuiApplication::platformName() == QLatin1String("eglfs");
-#  endif
     GlTextures textures = {};
     if (m_memoryFormat == QGstCaps::GLTexture)
         textures = mapFromGlTexture(m_buffer, m_frame, m_videoInfo.gstVideoInfo);
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
-    else if (m_memoryFormat == QGstCaps::DMABuf && m_eglDisplay && isEglfsQPA)
+    else if (m_memoryFormat == QGstCaps::DMABuf && m_eglDisplay && m_eglImageTargetTexture2D
+        && rhi.backend() == QRhi::OpenGLES2)
         textures = mapFromDmaBuffer(&rhi, m_buffer, m_videoInfo, m_eglDisplay,
                                     m_eglImageTargetTexture2D);
 
