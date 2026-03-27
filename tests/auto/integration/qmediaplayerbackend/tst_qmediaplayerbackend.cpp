@@ -1919,22 +1919,26 @@ void tst_QMediaPlayerBackend::play_threeMediaPlayers()
 
     QMediaPlayer player2, player3;
     QVideoSink sink2, sink3;
+    QSignalSpy spy2(&player2, &QMediaPlayer::playbackStateChanged);
+    QSignalSpy spy3(&player3, &QMediaPlayer::playbackStateChanged);
 
     player2.setVideoOutput(&sink2);
     player3.setVideoOutput(&sink3);
+
+    m_fixture->clearSpies();
 
     m_fixture->player.setSource(*m_localVideoFile);
     player2.setSource(*m_localVideoFile);
     player3.setSource(*m_localVideoFile3ColorsWithSound);
 
-
     m_fixture->player.play();
     player2.play();
     player3.play();
 
-    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(player2.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(player3.playbackState(), QMediaPlayer::PlayingState);
+    QTRY_VERIFY(m_fixture->playbackStateChanged.contains(
+            QList{ QVariant::fromValue(QMediaPlayer::PlayingState) }));
+    QTRY_VERIFY(spy2.contains(QList{ QVariant::fromValue(QMediaPlayer::PlayingState) }));
+    QTRY_VERIFY(spy3.contains(QList{ QVariant::fromValue(QMediaPlayer::PlayingState) }));
 
     QCOMPARE(m_fixture->player.error(), QMediaPlayer::NoError);
     QCOMPARE(player2.error(), QMediaPlayer::NoError);
