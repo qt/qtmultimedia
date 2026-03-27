@@ -79,10 +79,11 @@ int AVFImageCapture::doCapture(const QString &fileName)
     m_captureRequests.enqueue(request);
     m_requestsMutex.unlock();
 
-    // Obj-C block functions don't capture local reference variables as copies. Make one explicitly.
-    QString fileNameCopy = fileName;
-    [m_stillImageOutput captureStillImageAsynchronouslyFromConnection:m_videoConnection
-                        completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
+    [m_stillImageOutput
+            captureStillImageAsynchronouslyFromConnection:m_videoConnection
+                                        completionHandler:[=, this](CMSampleBufferRef
+                                                                            imageSampleBuffer,
+                                                                    NSError *error) {
         if (error) {
             QStringList messageParts;
             messageParts << QString::fromUtf8([[error localizedDescription] UTF8String]);
@@ -126,12 +127,12 @@ int AVFImageCapture::doCapture(const QString &fileName)
                                           Q_ARG(int, request.captureId),
                                           Q_ARG(QVideoFrame, frame));
             } else {
-                QFile f(fileNameCopy);
+                QFile f(fileName);
                 if (f.open(QFile::WriteOnly)) {
                     if (f.write(jpgData) != -1) {
                         QMetaObject::invokeMethod(this, "imageSaved", Qt::QueuedConnection,
                                                   Q_ARG(int, request.captureId),
-                                                  Q_ARG(QString, fileNameCopy));
+                                                  Q_ARG(QString, fileName));
                     } else {
                         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                                   Q_ARG(int, request.captureId),
@@ -139,7 +140,7 @@ int AVFImageCapture::doCapture(const QString &fileName)
                                                   Q_ARG(QString, f.errorString()));
                     }
                 } else {
-                    QString errorMessage = tr("Could not open destination file:\n%1").arg(fileNameCopy);
+                    QString errorMessage = tr("Could not open destination file:\n%1").arg(fileName);
                     QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                               Q_ARG(int, request.captureId),
                                               Q_ARG(int, QImageCapture::ResourceError),
