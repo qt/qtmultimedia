@@ -66,7 +66,7 @@ QUrl QQuick3DSpatialSound::source() const
     return m_sound->source();
 }
 
-void QQuick3DSpatialSound::setSource(QUrl source)
+void QQuick3DSpatialSound::setSource(const QUrl& source)
 {
     m_sound->setSource(source);
 }

@@ -35,7 +35,7 @@ public:
     QQuick3DAmbientSound();
     ~QQuick3DAmbientSound() override;
 
-    void setSource(QUrl source);
+    void setSource(const QUrl &source);
     QUrl source() const;
 
     void setVolume(float volume);

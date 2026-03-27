@@ -49,7 +49,7 @@ public slots:
 
     void onFinalPacketReceived(PlaybackEngineObjectID sourceID);
 
-    void onFrameProcessed(Frame frame);
+    void onFrameProcessed(const Frame &frame);
 
 signals:
     void requestHandleFrame(Frame frame);
@@ -66,7 +66,7 @@ private:
 
     void decodeSubtitle(const Packet &packet);
 
-    void onFrameFound(Frame frame);
+    void onFrameFound(const Frame &frame);
 
     int sendAVPacket(const Packet &packet);
 

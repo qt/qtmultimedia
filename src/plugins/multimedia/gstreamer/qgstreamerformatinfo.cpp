@@ -218,8 +218,8 @@ getCodecsList(bool decode)
 
 QList<QGstreamerFormatInfo::CodecMap>
 QGstreamerFormatInfo::getCodecMaps(QMediaFormat::ConversionMode conversionMode,
-                                   QList<QMediaFormat::AudioCodec> supportedAudioCodecs,
-                                   QList<QMediaFormat::VideoCodec> supportedVideoCodecs)
+                                   const QList<QMediaFormat::AudioCodec> &supportedAudioCodecs,
+                                   const QList<QMediaFormat::VideoCodec> &supportedVideoCodecs)
 {
     QList<QGstreamerFormatInfo::CodecMap> maps;
 

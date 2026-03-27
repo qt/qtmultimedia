@@ -47,7 +47,7 @@ inline QSize qRotatedFrameSize(QSize size, QtVideo::Rotation rotation)
 
 Q_MULTIMEDIA_EXPORT QSize qRotatedFramePresentationSize(const QVideoFrame &frame);
 
-Q_MULTIMEDIA_EXPORT QUrl qMediaFromUserInput(QUrl fileName);
+Q_MULTIMEDIA_EXPORT QUrl qMediaFromUserInput(const QUrl &fileName);
 
 Q_MULTIMEDIA_EXPORT bool qIsAutoHdrEnabled();
 

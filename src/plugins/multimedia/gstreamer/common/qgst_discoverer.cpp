@@ -244,7 +244,7 @@ QMediaMetaData toContainerMetadata(const QGstDiscovererInfo &info)
     else
         extendMetaDataFromTagList(metadata, info.tags);
 
-    auto updateMetadata = [&](Key key, auto value) {
+    auto updateMetadata = [&](Key key, const auto &value) {
         QVariant currentValue = metadata.value(key);
         if (!currentValue.isValid() || currentValue != value)
             metadata.insert(key, value);

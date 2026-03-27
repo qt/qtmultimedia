@@ -106,7 +106,7 @@ qint32 StreamDecoder::maxQueueSize(QPlatformMediaPlayer::TrackType type)
     }
 }
 
-void StreamDecoder::onFrameProcessed(Frame frame)
+void StreamDecoder::onFrameProcessed(const Frame &frame)
 {
     if (!checkID(frame.sourceID()))
         return;
@@ -125,7 +125,7 @@ bool StreamDecoder::canDoNextStep() const
             && PlaybackEngineObject::canDoNextStep();
 }
 
-void StreamDecoder::onFrameFound(Frame frame)
+void StreamDecoder::onFrameFound(const Frame &frame)
 {
     if (frame.isValid() && frame.absoluteEnd() < m_sessionCtx.absSeekPos)
         return;

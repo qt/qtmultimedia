@@ -117,7 +117,7 @@ private:
 
     using SampleLoadResult = std::optional<std::pair<QByteArray, QAudioFormat>>;
 
-    static SampleLoadResult loadSample(QByteArray);
+    static SampleLoadResult loadSample(QSpan<const char>);
 
 #if QT_CONFIG(thread)
     static SampleLoadResult

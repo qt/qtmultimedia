@@ -10,7 +10,9 @@ QT_BEGIN_NAMESPACE
 
 QPlatformSurfaceCapture::QPlatformSurfaceCapture(Source initialSource) : m_source(initialSource)
 {
-    Q_ASSERT(std::visit([](auto source) { return source == decltype(source){}; }, initialSource));
+    Q_ASSERT(std::visit([](const auto &source) {
+        return source == decltype(source){};
+    }, initialSource));
     qRegisterMetaType<QVideoFrame>();
 }
 
@@ -41,14 +43,16 @@ void QPlatformSurfaceCapture::setSource(Source source)
     if (m_active)
         setActiveInternal(false);
 
-    m_source = source;
+    m_source = std::move(source);
 
     if (m_active && !setActiveInternal(true)) {
         m_active = false;
         emit activeChanged(false);
     }
 
-    std::visit([this](auto source) { emit sourceChanged(source); }, m_source);
+    std::visit([this](const auto &source) {
+        emit sourceChanged(source);
+    }, m_source);
 }
 
 QPlatformSurfaceCapture::Error QPlatformSurfaceCapture::error() const

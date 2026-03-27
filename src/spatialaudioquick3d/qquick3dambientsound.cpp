@@ -52,7 +52,7 @@ QUrl QQuick3DAmbientSound::source() const
     return m_sound->source();
 }
 
-void QQuick3DAmbientSound::setSource(QUrl source)
+void QQuick3DAmbientSound::setSource(const QUrl& source)
 {
     m_sound->setSource(source);
 }
