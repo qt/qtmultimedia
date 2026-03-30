@@ -59,7 +59,13 @@ struct TrivialAudioFrameConverter : AbstractAudioFrameConverter
         m_converter = createResampler(frame, outputFormat);
     }
 
-    QAudioBuffer convert(AVFrame *frame) override { return m_converter->resample(frame); }
+    QAudioBuffer convert(AVFrame *frame) override
+    {
+        if (!m_converter)
+            return { };
+
+        return m_converter->resample(frame);
+    }
 
 private:
     std::unique_ptr<QFFmpegResampler> m_converter;
@@ -96,6 +102,9 @@ struct PitchShiftingAudioFrameConverter : AbstractAudioFrameConverter
 
     QAudioBuffer convert(AVFrame *frame) override
     {
+        if (!m_toPCMDecoder || !m_toOutputFormatConverter)
+            return { };
+
         using namespace QtPrivate;
 
         // convert to pcm buffer
