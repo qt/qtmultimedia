@@ -70,7 +70,7 @@ static constexpr QAmbisonicDecoderData decoderMap[] = {
       reverb_x_1 }
 };
 
-// Implements a split second order IIR filter
+// Implements a split second order IIR filter (TDF-II)
 // The audio data is split into a phase synced low and high frequency part
 // This allows us to apply different factors to both parts for better sound
 // localization when converting from ambisonic formats
@@ -82,15 +82,17 @@ public:
     QAmbisonicDecoderFilter() = default;
     void configure(float sampleRate, float cutoffFrequency = 380)
     {
-        double k = tan(M_PI*cutoffFrequency/sampleRate);
-        a1 = float(2.*(k*k - 1.)/(k*k + 2*k + 1.));
-        a2 = float((k*k - 2*k + 1.)/(k*k + 2*k + 1.));
+        double k = std::tan(M_PI * cutoffFrequency / sampleRate);
+        double denom = k * k + 2.0 * k + 1.0;
 
-        b0_lf = float(k*k/(k*k + 2*k + 1));
-        b1_lf = 2.f*b0_lf;
+        a1 = 2.0 * (k * k - 1.0) / denom;
+        a2 = (k * k - 2.0 * k + 1.0) / denom;
 
-        b0_hf = float(1./(k*k + 2*k + 1));
-        b1_hf = -2.f*b0_hf;
+        b0_lf = (k * k) / denom;
+        b1_lf = 2.0 * b0_lf;
+
+        b0_hf = 1.0 / denom;
+        b1_hf = -2.0 * b0_hf;
     }
 
     struct Output
@@ -101,38 +103,38 @@ public:
 
     Output next(float x)
     {
-        float r_lf = x*b0_lf +
-                  prevX[0]*b1_lf +
-                  prevX[1]*b0_lf -
-                  prevR_lf[0]*a1 -
-                  prevR_lf[1]*a2;
-        float r_hf = x*b0_hf +
-                  prevX[0]*b1_hf +
-                  prevX[1]*b0_hf -
-                  prevR_hf[0]*a1 -
-                  prevR_hf[1]*a2;
-        prevX[1] = prevX[0];
-        prevX[0] = x;
-        prevR_lf[1] = prevR_lf[0];
-        prevR_lf[0] = r_lf;
-        prevR_hf[1] = prevR_hf[0];
-        prevR_hf[0] = r_hf;
-        return { r_lf, r_hf };
+#ifdef Q_PROCESSOR_X86
+        // tiny DC offset to prevent denormals, which can cause severe performance degradation on x86 CPUs
+        x += 1e-18;
+#endif
+        // Process LF
+        double r_lf = x * b0_lf + s1_lf;
+        s1_lf = x * b1_lf - r_lf * a1 + s2_lf;
+        s2_lf = x * b0_lf - r_lf * a2;
+
+        // Process HF
+        double r_hf = x * b0_hf + s1_hf;
+        s1_hf = x * b1_hf - r_hf * a1 + s2_hf;
+        s2_hf = x * b0_hf - r_hf * a2;
+
+        return Output{
+            float(r_lf),
+            float(r_hf),
+        };
     }
 
 private:
-    float a1 = 0.;
-    float a2 = 0.;
+    // coefficients
+    double a1 = 0.;
+    double a2 = 0.;
+    double b0_hf = 0.;
+    double b1_hf = 0.;
+    double b0_lf = 0.;
+    double b1_lf = 0.;
 
-    float b0_hf = 0.;
-    float b1_hf = 0.;
-
-    float b0_lf = 0.;
-    float b1_lf = 0.;
-
-    float prevX[2] = {};
-    float prevR_lf[2] = {};
-    float prevR_hf[2] = {};
+    // state
+    double s1_lf = 0.0, s2_lf = 0.0;
+    double s1_hf = 0.0, s2_hf = 0.0;
 };
 
 QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicOrder ambisonicOrder, const QAudioFormat &format)
