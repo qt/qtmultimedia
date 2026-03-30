@@ -7,6 +7,7 @@
 #include <QtCore/qurl.h>
 #include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtSpatialAudio/private/qambientsound_p.h>
 #include <QtSpatialAudio/private/qaudioengine_p.h>
 
@@ -58,26 +59,38 @@ void QAmbientSoundPrivate::load()
     decoder->start();
 }
 
-void QAmbientSoundPrivate::getBuffer(float *buf, int nframes, int channels)
+void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int nframes, int channels)
 {
     Q_ASSERT(channels == nchannels);
+    Q_ASSERT(output.size() == channels * nframes);
+
     QMutexLocker l(&mutex);
+
     if (!m_playing || currentBuffer >= buffers.size()) {
-        memset(buf, 0, channels * nframes * sizeof(float));
+        std::fill(output.begin(), output.end(), 0.f);
     } else {
+        using QtMultimediaPrivate::drop;
+        using QtMultimediaPrivate::take;
+
         int frames = nframes;
-        float *ff = buf;
         while (frames) {
             if (currentBuffer < buffers.size()) {
                 const QAudioBuffer &b = buffers.at(currentBuffer);
-                //            qDebug() << s << b.format().sampleRate() << b.format().channelCount() << b.format().sampleFormat();
-                auto *f = b.constData<float>() + bufPos*nchannels;
-                int toCopy = qMin(b.frameCount() - bufPos, frames);
-                memcpy(ff, f, toCopy*sizeof(float)*nchannels);
-                ff += toCopy*nchannels;
-                frames -= toCopy;
-                bufPos += toCopy;
+                const float *sourceData = b.constData<float>() + bufPos * nchannels;
+
+                // Copy frames
+                int framesToCopy = qMin(b.frameCount() - bufPos, frames);
+                QSpan<const float> source(sourceData, framesToCopy * nchannels);
+                QSpan<float> destination = take(output, framesToCopy * nchannels);
+                std::copy(source.begin(), source.end(), destination.begin());
+
+                // Advance output span
+                output = drop(output, framesToCopy * nchannels);
+
+                frames -= framesToCopy;
+                bufPos += framesToCopy;
                 Q_ASSERT(bufPos <= b.frameCount());
+
                 if (bufPos == b.frameCount()) {
                     ++currentBuffer;
                     bufPos = 0;
@@ -86,8 +99,10 @@ void QAmbientSoundPrivate::getBuffer(float *buf, int nframes, int channels)
                 // no more data available
                 if (m_loading)
                     qDebug() << "underrun" << frames << "frames when loading" << url;
-                memset(ff, 0, frames * channels * sizeof(float));
-                ff += frames * channels;
+
+                // Fill remaining with silence
+                std::fill(output.begin(), output.end(), 0.f);
+
                 frames = 0;
             }
             if (!m_loading) {
@@ -101,7 +116,7 @@ void QAmbientSoundPrivate::getBuffer(float *buf, int nframes, int channels)
                 }
             }
         }
-        Q_ASSERT(ff - buf == channels*nframes);
+        Q_ASSERT(output.size() == 0);
     }
 }
 

@@ -10,6 +10,7 @@
 #include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #ifdef Q_OS_WIN
 #  include <QtMultimedia/private/qwindows_wasapi_warmup_client_p.h>
 #endif
@@ -123,70 +124,87 @@ qint64 QAudioOutputStream::writeData(const char *, qint64)
     return 0;
 }
 
-qint64 QAudioOutputStream::readData(char *data, qint64 len)
+qint64 QAudioOutputStream::readData(char *data, const qint64 len)
 {
     if (d->m_paused.loadRelaxed())
         return 0;
 
-    constexpr auto bufferSize = QAudioEngineThreaded::bufferSize;
+    constexpr auto framesPerBuffer = QAudioEngineThreaded::framesPerBuffer;
+    QSpan<short> outputBuffer((short *)data, len / sizeof(short));
 
     QMutexLocker l(&d->mutex);
     d->updateRooms();
 
     int nChannels = ambisonicDecoder ? ambisonicDecoder->nOutputChannels() : 2;
-    if (len < nChannels * int(sizeof(float)) * bufferSize)
+    if (outputBuffer.size() < nChannels * framesPerBuffer)
         return 0;
 
-    short *fd = (short *)data;
-    qint64 frames = len / nChannels / sizeof(short);
+    using QtMultimediaPrivate::drop;
+    using QtMultimediaPrivate::take;
+
     bool ok = true;
-    while (frames >= qint64(bufferSize)) {
+    while (outputBuffer.size() >= nChannels * framesPerBuffer) {
         // Fill input buffers
         for (auto *source : std::as_const(d->sources)) {
             auto *sp = QSpatialSoundPrivate::get(source);
             if (!sp)
                 continue;
-            std::array<float, bufferSize> buf;
-            sp->getBuffer(buf.data(), bufferSize, 1);
-            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 1, bufferSize);
+            std::array<float, framesPerBuffer> buf;
+            sp->getBuffer(buf, framesPerBuffer, 1);
+            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 1,
+                                                         framesPerBuffer);
         }
         for (auto *source : std::as_const(d->stereoSources)) {
             auto *sp = QAmbientSoundPrivate::get(source);
             if (!sp)
                 continue;
-            std::array<float, 2 * bufferSize> buf;
-            sp->getBuffer(buf.data(), bufferSize, 2);
-            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 2, bufferSize);
+            std::array<float, 2 * framesPerBuffer> buf;
+            sp->getBuffer(buf, framesPerBuffer, 2);
+            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 2,
+                                                         framesPerBuffer);
         }
 
         if (ambisonicDecoder && d->m_outputMode == QAudioEngine::Surround) {
             std::array<const float *, QAmbisonicDecoder::maxAmbisonicChannels> channels;
-            std::array<const float *, 2> reverbBuffers;
+            std::array<const float *, 2> reverbBuffers{};
             int nSamples = d->resonanceAudio->getAmbisonicOutput(
                     channels.data(), reverbBuffers.data(), ambisonicDecoder->nInputChannels());
+
+            if (nSamples < 0) {
+                // If we get here, it means that resonanceAudio did not actually fill the buffer.
+                // Sometimes this is expected, for example if resonanceAudio does not have any sources.
+                // In this case we just fill the buffer with silence.
+                std::fill(outputBuffer.begin(), outputBuffer.end(), 0);
+                break;
+            }
+
             Q_ASSERT(ambisonicDecoder->nOutputChannels() <= 8);
+            QSpan<short> currentOutput = take(outputBuffer, ambisonicDecoder->outputSize(nSamples));
             ambisonicDecoder->processBufferWithReverb(
                     QSpan{ channels.data(), ambisonicDecoder->nInputChannels() }, reverbBuffers,
-                    QSpan{ fd, ambisonicDecoder->outputSize(nSamples) });
+                    currentOutput);
+            outputBuffer = drop(outputBuffer, ambisonicDecoder->outputSize(nSamples));
         } else {
-            ok = d->resonanceAudio->api->FillInterleavedOutputBuffer(2, bufferSize, fd);
+            QSpan<short> currentOutput = take(outputBuffer, nChannels * framesPerBuffer);
+            ok = d->resonanceAudio->api->FillInterleavedOutputBuffer(2, framesPerBuffer,
+                                                                     currentOutput.data());
             if (!ok) {
                 // If we get here, it means that resonanceAudio did not actually fill the buffer.
                 // Sometimes this is expected, for example if resonanceAudio does not have any sources.
                 // In this case we just fill the buffer with silence.
                 if (d->sources.isEmpty() && d->stereoSources.isEmpty()) {
-                    memset(fd, 0, nChannels * bufferSize * sizeof(short));
+                    std::fill(currentOutput.begin(), currentOutput.end(), 0);
                 } else {
                     // If we get here, it means that something unexpected happened, so bail.
                     qWarning() << "    Reading failed!";
                     break;
                 }
             }
+            outputBuffer = drop(outputBuffer, nChannels * framesPerBuffer);
         }
-        fd += nChannels * bufferSize;
-        frames -= bufferSize;
     }
-    const int bytesProcessed = ((char *)fd - data);
+
+    qint64 bytesProcessed = len - outputBuffer.size_bytes();
     m_pos += bytesProcessed;
     return bytesProcessed;
 }

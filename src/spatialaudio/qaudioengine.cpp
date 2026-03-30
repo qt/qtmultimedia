@@ -15,7 +15,7 @@ QT_BEGIN_NAMESPACE
 QAudioEnginePrivate::QAudioEnginePrivate(int sampleRate)
     : m_sampleRate(sampleRate),
       resonanceAudio{
-          std::make_unique<vraudio::ResonanceAudio>(2, bufferSize, sampleRate),
+          std::make_unique<vraudio::ResonanceAudio>(2, framesPerBuffer, sampleRate),
       }
 {
 }

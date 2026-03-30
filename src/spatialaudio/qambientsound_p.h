@@ -78,7 +78,7 @@ public:
     }
 
     void load();
-    void getBuffer(float *buf, int frames, int channels);
+    void getBuffer(QSpan<float> buf, int frames, int channels);
 };
 
 QT_END_NAMESPACE
