@@ -47,7 +47,7 @@ public:
     ~QAudioEnginePrivate() override;
 
     int sampleRate() const { return m_sampleRate; }
-    static constexpr int bufferSize = 128;
+    static constexpr int framesPerBuffer = 128;
 
     void setDistanceScale(float scale);
     float distanceScale() const;

@@ -85,7 +85,7 @@ public:
     }
 
     void load();
-    void getBuffer(float *buf, int frames, int channels);
+    void getBuffer(QSpan<float> buf, int frames, int channels);
 
     using AbstractSourceResolver = QMultimediaPrivate::AbstractSourceResolver;
     using TrivialSourceResolver = QMultimediaPrivate::TrivialSourceResolver;
