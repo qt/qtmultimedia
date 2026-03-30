@@ -123,6 +123,109 @@ void QMediaCaptureSessionPrivate::setVideoSink(QVideoSink *sink)
     typically in the Component.onCompleted handler.
 */
 
+template <>
+struct QMediaCaptureSession::ObjectTraits<QCamera>
+{
+    static constexpr auto Member = &QMediaCaptureSessionPrivate::camera;
+    static constexpr auto Setter = &QMediaCaptureSession::setCamera;
+    static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setCamera;
+    static constexpr auto PlatformObjectProvider = &QCamera::platformCamera;
+    static constexpr auto ChangeNotifier = &QMediaCaptureSession::cameraChanged;
+};
+
+template <>
+struct QMediaCaptureSession::ObjectTraits<QScreenCapture>
+{
+    static constexpr auto Member = &QMediaCaptureSessionPrivate::screenCapture;
+    static constexpr auto Setter = &QMediaCaptureSession::setScreenCapture;
+    static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setScreenCapture;
+    static constexpr auto PlatformObjectProvider = &QScreenCapture::platformScreenCapture;
+    static constexpr auto ChangeNotifier = &QMediaCaptureSession::screenCaptureChanged;
+};
+
+template <>
+struct QMediaCaptureSession::ObjectTraits<QWindowCapture>
+{
+    static constexpr auto Member = &QMediaCaptureSessionPrivate::windowCapture;
+    static constexpr auto Setter = &QMediaCaptureSession::setWindowCapture;
+    static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setWindowCapture;
+    static constexpr auto PlatformObjectProvider = &QWindowCapture::platformWindowCapture;
+    static constexpr auto ChangeNotifier = &QMediaCaptureSession::windowCaptureChanged;
+};
+
+template <>
+struct QMediaCaptureSession::ObjectTraits<QVideoFrameInput>
+{
+    static constexpr auto Member = &QMediaCaptureSessionPrivate::videoFrameInput;
+    static constexpr auto Setter = &QMediaCaptureSession::setVideoFrameInput;
+    static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setVideoFrameInput;
+    static constexpr auto PlatformObjectProvider = &QVideoFrameInput::platformVideoFrameInput;
+    static constexpr auto ChangeNotifier = &QMediaCaptureSession::videoFrameInputChanged;
+};
+
+template <>
+struct QMediaCaptureSession::ObjectTraits<QAudioBufferInput>
+{
+    static constexpr auto Member = &QMediaCaptureSessionPrivate::audioBufferInput;
+    static constexpr auto Setter = &QMediaCaptureSession::setAudioBufferInput;
+    static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setAudioBufferInput;
+    static constexpr auto PlatformObjectProvider = &QAudioBufferInput::platformAudioBufferInput;
+    static constexpr auto ChangeNotifier = &QMediaCaptureSession::audioBufferInputChanged;
+};
+
+template <>
+struct QMediaCaptureSession::ObjectTraits<QImageCapture>
+{
+    static constexpr auto Member = &QMediaCaptureSessionPrivate::imageCapture;
+    static constexpr auto Setter = &QMediaCaptureSession::setImageCapture;
+    static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setImageCapture;
+    static constexpr auto PlatformObjectProvider = &QImageCapture::platformImageCapture;
+    static constexpr auto ChangeNotifier = &QMediaCaptureSession::imageCaptureChanged;
+};
+
+template <>
+struct QMediaCaptureSession::ObjectTraits<QMediaRecorder>
+{
+    static constexpr auto Member = &QMediaCaptureSessionPrivate::recorder;
+    static constexpr auto Setter = &QMediaCaptureSession::setRecorder;
+    static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setMediaRecorder;
+    static constexpr auto PlatformObjectProvider = &QMediaRecorder::platformRecoder;
+    static constexpr auto ChangeNotifier = &QMediaCaptureSession::recorderChanged;
+};
+
+template <typename Object>
+void QMediaCaptureSession::setObject(Object *object) {
+    Q_D(QMediaCaptureSession);
+
+    using Traits = QMediaCaptureSession::ObjectTraits<Object>;
+
+    Object *oldObject = d->*Traits::Member;
+    if (oldObject == object)
+        return;
+
+    d->*Traits::Member = object;
+
+    if (d->captureSession)
+        std::invoke(Traits::PlatformSetter, d->captureSession, nullptr);
+
+    if (oldObject) {
+        if (oldObject->captureSession() && oldObject->captureSession() != this)
+            std::invoke(Traits::Setter, oldObject->captureSession(), nullptr);
+        oldObject->setCaptureSession(nullptr);
+    }
+
+    if (object) {
+        if (auto *otherSession = object->captureSession())
+            std::invoke(Traits::Setter, otherSession, nullptr);
+        if (d->captureSession)
+            std::invoke(Traits::PlatformSetter, d->captureSession,
+                        std::invoke(Traits::PlatformObjectProvider, object));
+        object->setCaptureSession(this);
+    }
+
+    emit (this->*Traits::ChangeNotifier)();
+}
+
 /*!
     Creates a session for media capture from the \a parent object.
  */
@@ -193,6 +296,7 @@ void QMediaCaptureSession::setAudioInput(QAudioInput *input)
     // from recursive setAudioInput(nullptr) call.
     d->audioInput = nullptr;
 
+    // TODO: check if it's possible to reuse setObject(input)
     if (d->captureSession)
         d->captureSession->setAudioInput(nullptr);
     if (oldInput)
@@ -221,28 +325,7 @@ QAudioBufferInput *QMediaCaptureSession::audioBufferInput() const
 
 void QMediaCaptureSession::setAudioBufferInput(QAudioBufferInput *input)
 {
-    Q_D(QMediaCaptureSession);
-
-    // TODO: come up with an unification of the captures setup
-    QAudioBufferInput *oldInput = d->audioBufferInput;
-    if (oldInput == input)
-        return;
-    d->audioBufferInput = input;
-    if (d->captureSession)
-        d->captureSession->setAudioBufferInput(nullptr);
-    if (oldInput) {
-        if (oldInput->captureSession() && oldInput->captureSession() != this)
-            oldInput->captureSession()->setAudioBufferInput(nullptr);
-        oldInput->setCaptureSession(nullptr);
-    }
-    if (input) {
-        if (input->captureSession())
-            input->captureSession()->setAudioBufferInput(nullptr);
-        if (d->captureSession)
-            d->captureSession->setAudioBufferInput(input->platformAudioBufferInput());
-        input->setCaptureSession(this);
-    }
-    emit audioBufferInputChanged();
+    setObject(input);
 }
 
 /*!
@@ -265,7 +348,6 @@ void QMediaCaptureSession::setAudioBufferInput(QAudioBufferInput *input)
 QCamera *QMediaCaptureSession::camera() const
 {
     Q_D(const QMediaCaptureSession);
-
     return d->camera;
 }
 
@@ -273,34 +355,15 @@ void QMediaCaptureSession::setCamera(QCamera *camera)
 {
     Q_D(QMediaCaptureSession);
 
-    // TODO: come up with an unification of the captures setup
-    QCamera *oldCamera = d->camera;
-    if (oldCamera == camera)
-        return;
-
-    if (oldCamera
+    if (d->camera
+        && d->camera != camera
         && !QPlatformMediaIntegration::instance()->isCameraSwitchingDuringRecordingSupported()
         && recorder() && recorder()->recorderState() == QMediaRecorder::RecordingState) {
         qWarning("This media backend does not support camera switching during recording");
         return;
     }
 
-    d->camera = camera;
-    if (d->captureSession)
-        d->captureSession->setCamera(nullptr);
-    if (oldCamera) {
-        if (oldCamera->captureSession() && oldCamera->captureSession() != this)
-            oldCamera->captureSession()->setCamera(nullptr);
-        oldCamera->setCaptureSession(nullptr);
-    }
-    if (camera) {
-        if (camera->captureSession())
-            camera->captureSession()->setCamera(nullptr);
-        if (d->captureSession)
-            d->captureSession->setCamera(camera->platformCamera());
-        camera->setCaptureSession(this);
-    }
-    emit cameraChanged();
+    setObject(camera);
 }
 
 /*!
@@ -325,34 +388,12 @@ void QMediaCaptureSession::setCamera(QCamera *camera)
 QScreenCapture *QMediaCaptureSession::screenCapture()
 {
     Q_D(QMediaCaptureSession);
-
     return d->screenCapture;
 }
 
 void QMediaCaptureSession::setScreenCapture(QScreenCapture *screenCapture)
 {
-    Q_D(QMediaCaptureSession);
-
-    // TODO: come up with an unification of the captures setup
-    QScreenCapture *oldScreenCapture = d->screenCapture;
-    if (oldScreenCapture == screenCapture)
-        return;
-    d->screenCapture = screenCapture;
-    if (d->captureSession)
-        d->captureSession->setScreenCapture(nullptr);
-    if (oldScreenCapture) {
-        if (oldScreenCapture->captureSession() && oldScreenCapture->captureSession() != this)
-            oldScreenCapture->captureSession()->setScreenCapture(nullptr);
-        oldScreenCapture->setCaptureSession(nullptr);
-    }
-    if (screenCapture) {
-        if (screenCapture->captureSession())
-            screenCapture->captureSession()->setScreenCapture(nullptr);
-        if (d->captureSession)
-            d->captureSession->setScreenCapture(screenCapture->platformScreenCapture());
-        screenCapture->setCaptureSession(this);
-    }
-    emit screenCaptureChanged();
+    setObject(screenCapture);
 }
 
 /*!
@@ -382,28 +423,7 @@ QWindowCapture *QMediaCaptureSession::windowCapture()
 
 void QMediaCaptureSession::setWindowCapture(QWindowCapture *windowCapture)
 {
-    Q_D(QMediaCaptureSession);
-
-    // TODO: come up with an unification of the captures setup
-    QWindowCapture *oldCapture = d->windowCapture;
-    if (oldCapture == windowCapture)
-        return;
-    d->windowCapture = windowCapture;
-    if (d->captureSession)
-        d->captureSession->setWindowCapture(nullptr);
-    if (oldCapture) {
-        if (oldCapture->captureSession() && oldCapture->captureSession() != this)
-            oldCapture->captureSession()->setWindowCapture(nullptr);
-        oldCapture->setCaptureSession(nullptr);
-    }
-    if (windowCapture) {
-        if (windowCapture->captureSession())
-            windowCapture->captureSession()->setWindowCapture(nullptr);
-        if (d->captureSession)
-            d->captureSession->setWindowCapture(windowCapture->platformWindowCapture());
-        windowCapture->setCaptureSession(this);
-    }
-    emit windowCaptureChanged();
+    setObject(windowCapture);
 }
 
 /*!
@@ -421,27 +441,7 @@ QVideoFrameInput *QMediaCaptureSession::videoFrameInput() const
 
 void QMediaCaptureSession::setVideoFrameInput(QVideoFrameInput *input)
 {
-    Q_D(QMediaCaptureSession);
-    // TODO: come up with an unification of the captures setup
-    QVideoFrameInput *oldInput = d->videoFrameInput;
-    if (oldInput == input)
-        return;
-    d->videoFrameInput = input;
-    if (d->captureSession)
-        d->captureSession->setVideoFrameInput(nullptr);
-    if (oldInput) {
-        if (oldInput->captureSession() && oldInput->captureSession() != this)
-            oldInput->captureSession()->setVideoFrameInput(nullptr);
-        oldInput->setCaptureSession(nullptr);
-    }
-    if (input) {
-        if (input->captureSession())
-            input->captureSession()->setVideoFrameInput(nullptr);
-        if (d->captureSession)
-            d->captureSession->setVideoFrameInput(input->platformVideoFrameInput());
-        input->setCaptureSession(this);
-    }
-    emit videoFrameInputChanged();
+    setObject(input);
 }
 
 /*!
@@ -463,34 +463,12 @@ void QMediaCaptureSession::setVideoFrameInput(QVideoFrameInput *input)
 QImageCapture *QMediaCaptureSession::imageCapture()
 {
     Q_D(QMediaCaptureSession);
-
     return d->imageCapture;
 }
 
 void QMediaCaptureSession::setImageCapture(QImageCapture *imageCapture)
 {
-    Q_D(QMediaCaptureSession);
-
-    // TODO: come up with an unification of the captures setup
-    QImageCapture *oldImageCapture = d->imageCapture;
-    if (oldImageCapture == imageCapture)
-        return;
-    d->imageCapture = imageCapture;
-    if (d->captureSession)
-        d->captureSession->setImageCapture(nullptr);
-    if (oldImageCapture) {
-        if (oldImageCapture->captureSession() && oldImageCapture->captureSession() != this)
-            oldImageCapture->captureSession()->setImageCapture(nullptr);
-        oldImageCapture->setCaptureSession(nullptr);
-    }
-    if (imageCapture) {
-        if (imageCapture->captureSession())
-            imageCapture->captureSession()->setImageCapture(nullptr);
-        if (d->captureSession)
-            d->captureSession->setImageCapture(imageCapture->platformImageCapture());
-        imageCapture->setCaptureSession(this);
-    }
-    emit imageCaptureChanged();
+    setObject(imageCapture);
 }
 /*!
     \qmlproperty MediaRecorder QtMultimedia::CaptureSession::recorder
@@ -517,26 +495,7 @@ QMediaRecorder *QMediaCaptureSession::recorder()
 
 void QMediaCaptureSession::setRecorder(QMediaRecorder *recorder)
 {
-    Q_D(QMediaCaptureSession);
-    QMediaRecorder *oldRecorder = d->recorder;
-    if (oldRecorder == recorder)
-        return;
-    d->recorder = recorder;
-    if (d->captureSession)
-        d->captureSession->setMediaRecorder(nullptr);
-    if (oldRecorder) {
-        if (oldRecorder->captureSession() && oldRecorder->captureSession() != this)
-            oldRecorder->captureSession()->setRecorder(nullptr);
-        oldRecorder->setCaptureSession(nullptr);
-    }
-    if (recorder) {
-        if (recorder->captureSession())
-            recorder->captureSession()->setRecorder(nullptr);
-        if (d->captureSession)
-            d->captureSession->setMediaRecorder(recorder->platformRecoder());
-        recorder->setCaptureSession(this);
-    }
-    emit recorderChanged();
+    setObject(recorder);
 }
 /*!
     \qmlproperty VideoOutput QtMultimedia::CaptureSession::videoOutput

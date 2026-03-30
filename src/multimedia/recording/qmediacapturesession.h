@@ -94,6 +94,12 @@ Q_SIGNALS:
 private:
     friend class QPlatformMediaCaptureSession;
 
+    template <typename>
+    struct ObjectTraits;
+
+    template <typename Object>
+    void setObject(Object *);
+
     // ### Qt7: remove unused member
     QT6_ONLY(Q_DECL_UNUSED_MEMBER void *unused = nullptr;) // for ABI compatibility
 
