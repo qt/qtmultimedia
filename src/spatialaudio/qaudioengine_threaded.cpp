@@ -165,7 +165,9 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
             int nSamples = d->resonanceAudio->getAmbisonicOutput(
                     channels.data(), reverbBuffers.data(), ambisonicDecoder->nInputChannels());
             Q_ASSERT(ambisonicDecoder->nOutputChannels() <= 8);
-            ambisonicDecoder->processBufferWithReverb(channels.data(), reverbBuffers, fd, nSamples);
+            ambisonicDecoder->processBufferWithReverb(
+                    QSpan{ channels.data(), ambisonicDecoder->nInputChannels() }, reverbBuffers,
+                    QSpan{ fd, ambisonicDecoder->outputSize(nSamples) });
         } else {
             ok = d->resonanceAudio->api->FillInterleavedOutputBuffer(2, bufferSize, fd);
             if (!ok) {
