@@ -191,7 +191,6 @@ void QGstreamerMediaCaptureSession::setCameraActive(bool activate)
     QGstElement videoOutputElement = m_gstVideoOutput->gstElement();
 
     if (activate) {
-        m_gstCamera->setCaptureSession(this);
         m_capturePipeline.add(m_gstVideoTee);
 
         executeWhilePadsAreIdle(padsToSync, [&] {
@@ -223,8 +222,6 @@ void QGstreamerMediaCaptureSession::setCameraActive(bool activate)
                 pad.unlinkPeer();
         });
         m_capturePipeline.stopAndRemoveElements(cameraElement, m_gstVideoTee, videoOutputElement);
-
-        m_gstCamera->setCaptureSession(nullptr);
     }
 
     m_capturePipeline.dumpGraph("camera");
