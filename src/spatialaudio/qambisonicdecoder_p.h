@@ -18,6 +18,8 @@
 #include <QtMultimedia/qaudioformat.h>
 #include <QtCore/qspan.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 struct QAmbisonicDecoderData;
@@ -45,11 +47,11 @@ public:
     int outputSize(int nSamples) const { return outputChannels * nSamples; }
 
     // input is planar, output interleaved
-    void processBuffer(const float *input[], float *output, int nSamples);
-    void processBuffer(const float *input[], short *output, int nSamples);
+    void processBuffer(QSpan<const float *> input, QSpan<float> output);
+    void processBuffer(QSpan<const float *> input, QSpan<short> output);
 
-    void processBufferWithReverb(const float *input[], QSpan<const float *, 2> reverb,
-                                 short *output, int nSamples);
+    void processBufferWithReverb(QSpan<const float *> input, QSpan<const float *, 2> reverb,
+                                 QSpan<short> output);
 
     static constexpr int maxAmbisonicChannels = 16;
     static constexpr int maxAmbisonicOrder = 3;
@@ -60,9 +62,11 @@ private:
     int inputChannels = 0;
     int outputChannels = 0;
     const QAmbisonicDecoderData *decoderData = nullptr;
-    QAmbisonicDecoderFilter *filters = nullptr;
-    float *simpleDecoderFactors = nullptr;
+    std::unique_ptr<QAmbisonicDecoderFilter[]> filters;
+    std::unique_ptr<float[]> simpleDecoderFactors;
+
     const float *reverbFactors = nullptr;
+    std::unique_ptr<float[]> m_reverbFactorsOwned;
 };
 
 
