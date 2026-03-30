@@ -6,6 +6,7 @@
 #include <QtCore/qdebug.h>
 #include <QtSpatialAudio/private/qambisonicdecoderdata_p.h>
 
+#include <array>
 #include <cmath>
 
 QT_BEGIN_NAMESPACE
@@ -24,10 +25,10 @@ QT_BEGIN_NAMESPACE
 
 struct QAmbisonicDecoderData
 {
-    QAudioFormat::ChannelConfig config;
-    const float *lf[3];
-    const float *hf[3];
-    const float *reverb;
+    const QAudioFormat::ChannelConfig config;
+    const std::array<const float *, 3> lf;
+    const std::array<const float *, 3> hf;
+    const float *const reverb;
 };
 
 constexpr float reverb_x_0[] = {
@@ -53,20 +54,20 @@ constexpr float reverb_x_1[] = {
 
 static constexpr QAmbisonicDecoderData decoderMap[] = {
     { QAudioFormat::ChannelConfigSurround5Dot0,
-      { decoderMatrix_5dot0_1_lf, decoderMatrix_5dot0_2_lf, decoderMatrix_5dot0_3_lf },
-      { decoderMatrix_5dot0_1_hf, decoderMatrix_5dot0_2_hf, decoderMatrix_5dot0_3_hf },
+      {{ decoderMatrix_5dot0_1_lf, decoderMatrix_5dot0_2_lf, decoderMatrix_5dot0_3_lf }},
+      {{ decoderMatrix_5dot0_1_hf, decoderMatrix_5dot0_2_hf, decoderMatrix_5dot0_3_hf }},
       reverb_x_0 },
     { QAudioFormat::ChannelConfigSurround5Dot1,
-      { decoderMatrix_5dot1_1_lf, decoderMatrix_5dot1_2_lf, decoderMatrix_5dot1_3_lf },
-      { decoderMatrix_5dot1_1_hf, decoderMatrix_5dot1_2_hf, decoderMatrix_5dot1_3_hf },
+      {{ decoderMatrix_5dot1_1_lf, decoderMatrix_5dot1_2_lf, decoderMatrix_5dot1_3_lf }},
+      {{ decoderMatrix_5dot1_1_hf, decoderMatrix_5dot1_2_hf, decoderMatrix_5dot1_3_hf }},
       reverb_x_1 },
     { QAudioFormat::ChannelConfigSurround7Dot0,
-      { decoderMatrix_7dot0_1_lf, decoderMatrix_7dot0_2_lf, decoderMatrix_7dot0_3_lf },
-      { decoderMatrix_7dot0_1_hf, decoderMatrix_7dot0_2_hf, decoderMatrix_7dot0_3_hf },
+      {{ decoderMatrix_7dot0_1_lf, decoderMatrix_7dot0_2_lf, decoderMatrix_7dot0_3_lf }},
+      {{ decoderMatrix_7dot0_1_hf, decoderMatrix_7dot0_2_hf, decoderMatrix_7dot0_3_hf }},
       reverb_x_0 },
     { QAudioFormat::ChannelConfigSurround7Dot1,
-      { decoderMatrix_7dot1_1_lf, decoderMatrix_7dot1_2_lf, decoderMatrix_7dot1_3_lf },
-      { decoderMatrix_7dot1_1_hf, decoderMatrix_7dot1_2_hf, decoderMatrix_7dot1_3_hf },
+      {{ decoderMatrix_7dot1_1_lf, decoderMatrix_7dot1_2_lf, decoderMatrix_7dot1_3_lf }},
+      {{ decoderMatrix_7dot1_1_hf, decoderMatrix_7dot1_2_hf, decoderMatrix_7dot1_3_hf }},
       reverb_x_1 }
 };
 
@@ -246,7 +247,7 @@ void QAmbisonicDecoder::processBuffer(const float *input[], float *output, int n
     const float *matrix_hi = decoderData->hf[order - 1];
     const float *matrix_lo = decoderData->lf[order - 1];
     for (int i = 0; i < nSamples; ++i) {
-        QAmbisonicDecoderFilter::Output buf[maxAmbisonicChannels];
+        std::array<QAmbisonicDecoderFilter::Output, maxAmbisonicChannels> buf;
         for (int j = 0; j < inputChannels; ++j)
             buf[j] = filters[j].next(input[j][i]);
         for (int j = 0; j < inputChannels; ++j) {
@@ -259,15 +260,17 @@ void QAmbisonicDecoder::processBuffer(const float *input[], float *output, int n
 
 void QAmbisonicDecoder::processBuffer(const float *input[], short *output, int nSamples)
 {
-    const float *reverb[] = { nullptr, nullptr };
+    std::array<const float *, 2> reverb = { nullptr, nullptr };
     return processBufferWithReverb(input, reverb, output, nSamples);
 }
 
-void QAmbisonicDecoder::processBufferWithReverb(const float *input[], const float *reverb[2], short *output, int nSamples)
+void QAmbisonicDecoder::processBufferWithReverb(const float *input[],
+                                                QSpan<const float *, 2> reverb, short *output,
+                                                int nSamples)
 {
     if (simpleDecoderFactors) {
         for (int i = 0; i < nSamples; ++i) {
-            float o[4] = {};
+            std::array<float, 4> o = {};
             for (int k = 0; k < outputChannels; ++k) {
                 for (int j = 0; j < 4; ++j)
                     o[k] += simpleDecoderFactors[k*4 + j]*input[j][i];
@@ -291,10 +294,10 @@ void QAmbisonicDecoder::processBufferWithReverb(const float *input[], const floa
     const float *matrix_hi = decoderData->hf[order - 1];
     const float *matrix_lo = decoderData->lf[order - 1];
     for (int i = 0; i < nSamples; ++i) {
-        QAmbisonicDecoderFilter::Output buf[maxAmbisonicChannels];
+        std::array<QAmbisonicDecoderFilter::Output, maxAmbisonicChannels> buf;
         for (int j = 0; j < inputChannels; ++j)
             buf[j] = filters[j].next(input[j][i]);
-        float o[32] = {}; // we can't support more than 32 channels from our API
+        std::array<float, 32> o = {};
         for (int j = 0; j < inputChannels; ++j) {
             for (int k = 0; k < outputChannels; ++k)
                 o[k] += matrix_lo[k*inputChannels + j]*buf[j].lf + matrix_hi[k*inputChannels + j]*buf[j].hf;

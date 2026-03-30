@@ -10,6 +10,8 @@
 #include <qdebug.h>
 #include <qaudiodecoder.h>
 
+#include <array>
+
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -224,11 +226,11 @@ void QSpatialSoundPrivate::updateRoomEffects()
         // Very rough approximation, use the size of the source plus twice the size of our head.
         // One could probably improve upon this.
         const float transitionDistance = size + 0.4;
-        QAudioRoom::Wall walls[3];
+        std::array<QAudioRoom::Wall, 3> walls;
         walls[X] = direction.x() > 0 ? QAudioRoom::RightWall : QAudioRoom::LeftWall;
         walls[Y] = direction.y() > 0 ? QAudioRoom::FrontWall : QAudioRoom::BackWall;
         walls[Z] = direction.z() > 0 ? QAudioRoom::Ceiling : QAudioRoom::Floor;
-        float factors[3] = { 0., 0., 0. };
+        std::array<float, 3> factors = {};
         bool foundWall = false;
         if (direction.x() != 0) {
             float sign = direction.x() > 0 ? 1.f : -1.f;
