@@ -21,6 +21,8 @@
 #include <resonance_audio.h>
 #include "platforms/common/room_properties.h"
 
+#include <array>
+
 QT_BEGIN_NAMESPACE
 
 class QAudioRoomPrivate : public QObjectPrivate
@@ -35,8 +37,8 @@ public:
     vraudio::ReverbProperties reverb;
     vraudio::ReflectionProperties reflections;
 
-    float m_wallOcclusion[6] = { -1.f, -1.f, -1.f, -1.f, -1.f, -1.f };
-    float m_wallDampening[6] = { -1.f, -1.f, -1.f, -1.f, -1.f, -1.f };
+    std::array<float, 6> m_wallOcclusion = { -1.f, -1.f, -1.f, -1.f, -1.f, -1.f };
+    std::array<float, 6> m_wallDampening = { -1.f, -1.f, -1.f, -1.f, -1.f, -1.f };
 
     float wallOcclusion(QAudioRoom::Wall wall) const;
     float wallDampening(QAudioRoom::Wall wall) const;

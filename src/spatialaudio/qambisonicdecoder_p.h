@@ -16,6 +16,7 @@
 
 #include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtCore/qspan.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -47,7 +48,8 @@ public:
     void processBuffer(const float *input[], float *output, int nSamples);
     void processBuffer(const float *input[], short *output, int nSamples);
 
-    void processBufferWithReverb(const float *input[], const float *reverb[2], short *output, int nSamples);
+    void processBufferWithReverb(const float *input[], QSpan<const float *, 2> reverb,
+                                 short *output, int nSamples);
 
     static constexpr int maxAmbisonicChannels = 16;
     static constexpr int maxAmbisonicOrder = 3;

@@ -146,25 +146,26 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
             auto *sp = QSpatialSoundPrivate::get(source);
             if (!sp)
                 continue;
-            float buf[bufferSize];
-            sp->getBuffer(buf, bufferSize, 1);
-            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf, 1, bufferSize);
+            std::array<float, bufferSize> buf;
+            sp->getBuffer(buf.data(), bufferSize, 1);
+            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 1, bufferSize);
         }
         for (auto *source : std::as_const(d->stereoSources)) {
             auto *sp = QAmbientSoundPrivate::get(source);
             if (!sp)
                 continue;
-            float buf[2 * bufferSize];
-            sp->getBuffer(buf, bufferSize, 2);
-            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf, 2, bufferSize);
+            std::array<float, 2 * bufferSize> buf;
+            sp->getBuffer(buf.data(), bufferSize, 2);
+            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 2, bufferSize);
         }
 
         if (ambisonicDecoder && d->m_outputMode == QAudioEngine::Surround) {
-            const float *channels[QAmbisonicDecoder::maxAmbisonicChannels];
-            const float *reverbBuffers[2];
-            int nSamples = d->resonanceAudio->getAmbisonicOutput(channels, reverbBuffers, ambisonicDecoder->nInputChannels());
+            std::array<const float *, QAmbisonicDecoder::maxAmbisonicChannels> channels;
+            std::array<const float *, 2> reverbBuffers;
+            int nSamples = d->resonanceAudio->getAmbisonicOutput(
+                    channels.data(), reverbBuffers.data(), ambisonicDecoder->nInputChannels());
             Q_ASSERT(ambisonicDecoder->nOutputChannels() <= 8);
-            ambisonicDecoder->processBufferWithReverb(channels, reverbBuffers, fd, nSamples);
+            ambisonicDecoder->processBufferWithReverb(channels.data(), reverbBuffers, fd, nSamples);
         } else {
             ok = d->resonanceAudio->api->FillInterleavedOutputBuffer(2, bufferSize, fd);
             if (!ok) {
