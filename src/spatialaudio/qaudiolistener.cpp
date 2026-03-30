@@ -109,7 +109,7 @@ void QAudioListener::setEngine(QAudioEngine *engine)
     if (d->engine) {
         auto *ed = QAudioEnginePrivate::get(d->engine);
         bool hasListener = ed->listenerPosition().has_value();
-        if (!hasListener) {
+        if (hasListener) {
             qWarning() << "Ignoring attempt to add a second listener to the spatial audio engine.";
             d->engine = nullptr;
             return;
