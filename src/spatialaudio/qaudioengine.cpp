@@ -79,7 +79,7 @@ QAudioEnginePrivate::findSmallestRoomForListener(QSpan<QAudioRoom *> rooms) cons
     for (QAudioRoom *r : std::as_const(rooms)) {
         QVector3D dim2 = r->dimensions() / 2.;
         float vol = dim2.x() * dim2.y() * dim2.z();
-        if (roomVolume || vol > roomVolume)
+        if (roomVolume && vol > roomVolume)
             continue;
         QVector3D dist = r->position() - *listenerPos;
         // transform into room coordinates
