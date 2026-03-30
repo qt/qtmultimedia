@@ -48,6 +48,9 @@
 
 #endif
 
+#include <map>
+#include <vector>
+
 QT_BEGIN_NAMESPACE
 
 namespace QtMultimediaPrivate::pmr {
@@ -212,6 +215,12 @@ inline memory_resource *get_default_resource() noexcept
 }
 
 #endif
+
+template <typename T>
+using vector = std::vector<T, polymorphic_allocator<T>>;
+
+template <typename K, typename V, typename C = std::less<K>>
+using map = std::map<K, V, C, polymorphic_allocator<std::pair<const K, V>>>;
 
 } // namespace QtMultimediaPrivate::pmr
 

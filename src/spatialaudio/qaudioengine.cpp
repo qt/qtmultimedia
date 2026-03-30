@@ -6,8 +6,15 @@
 
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtSpatialAudio/private/qaudioengine_threaded_p.h>
+#include <QtSpatialAudio/private/qaudioengine_withplayer_p.h>
 #include <QtSpatialAudio/private/qaudioroom_p.h>
 #include <QtCore/qspan.h>
+
+#include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 #include <q20vector.h>
 
@@ -18,7 +25,7 @@ QT_BEGIN_NAMESPACE
 QAudioEnginePrivate::QAudioEnginePrivate(int sampleRate)
     : m_sampleRate(sampleRate),
       resonanceAudio{
-          std::make_unique<vraudio::ResonanceAudio>(2, framesPerBuffer, sampleRate),
+          std::make_unique<vraudio::ResonanceAudio>(2, qToUnderlying(framesPerBuffer), sampleRate),
       }
 {
     resonanceAudio->api->SetStereoSpeakerMode(outputMode() != QAudioEngine::Headphone);
@@ -194,6 +201,19 @@ QAudioEnginePrivate::findSmallestRoomForListener(QSpan<QAudioRoom *> rooms) cons
     };
 }
 
+namespace {
+
+QAudioEnginePrivate *makeAudioEnginePrivate(int sampleRate)
+{
+    bool hasCallbackApi = QPlatformMediaIntegration::instance()->audioDevices()->hasCallbackApi();
+    if (hasCallbackApi)
+        return new QAudioEngineWithPlayer(sampleRate);
+    else
+        return new QAudioEngineThreaded(sampleRate);
+}
+
+} // namespace
+
 /*!
     \class QAudioEngine
     \inmodule QtSpatialAudio
@@ -255,7 +275,7 @@ QAudioEnginePrivate::findSmallestRoomForListener(QSpan<QAudioRoom *> rooms) cons
     avoid some CPU overhead for resampling.
  */
 QAudioEngine::QAudioEngine(int sampleRate, QObject *parent)
-    : QObject(*new QAudioEngineThreaded(sampleRate), parent)
+    : QObject(*makeAudioEnginePrivate(sampleRate), parent)
 {
 }
 

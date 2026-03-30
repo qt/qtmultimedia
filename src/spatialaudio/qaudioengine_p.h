@@ -16,6 +16,7 @@
 //
 
 #include <QtSpatialAudio/qaudioengine.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtGui/qvectornd.h>
 #include <QtCore/private/qobject_p.h>
 
@@ -49,7 +50,7 @@ public:
     ~QAudioEnginePrivate() override;
 
     int sampleRate() const { return m_sampleRate; }
-    static constexpr int framesPerBuffer = 128;
+    static constexpr QtMultimediaPrivate::NativePeriodFrames framesPerBuffer{ 128 };
 
     void setDistanceScale(float scale);
     float distanceScale() const;
@@ -70,7 +71,7 @@ public:
     bool roomEffectsEnabled() const;
 
     // output mode
-    void setOutputMode(QAudioEngine::OutputMode);
+    virtual void setOutputMode(QAudioEngine::OutputMode);
     QAudioEngine::OutputMode outputMode() const;
 
     // rooms
@@ -116,7 +117,7 @@ private:
     QAudioRoom *m_currentRoom = nullptr;
 
 public:
-    const std::unique_ptr<vraudio::ResonanceAudio> resonanceAudio;
+    const std::shared_ptr<vraudio::ResonanceAudio> resonanceAudio;
 };
 
 QT_END_NAMESPACE

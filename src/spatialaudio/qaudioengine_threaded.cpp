@@ -122,14 +122,15 @@ qint64 QAudioOutputStream::writeData(const char *, qint64)
     return 0;
 }
 
-static constexpr std::array<float, 2 * QAudioEngineThreaded::framesPerBuffer> nullBuffer{};
 
 qint64 QAudioOutputStream::readData(char *data, const qint64 len)
 {
+    constexpr int framesPerBuffer = qToUnderlying(QAudioEnginePrivate::framesPerBuffer);
+    static constexpr std::array<float, 2 * framesPerBuffer> nullBuffer{};
+
     if (d->m_paused.loadRelaxed())
         return 0;
 
-    constexpr auto framesPerBuffer = QAudioEngineThreaded::framesPerBuffer;
     QSpan<short> outputBuffer((short *)data, len / sizeof(short));
 
     QMutexLocker l(&d->mutex);

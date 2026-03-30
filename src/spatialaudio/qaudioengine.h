@@ -73,6 +73,7 @@ public Q_SLOTS:
 private:
     Q_DECLARE_PRIVATE(QAudioEngine)
     friend class QAudioEngineThreaded;
+    friend class QAudioEngineWithPlayer;
 
     // ### Qt7: remove unused member
     QT6_ONLY(void *unused = nullptr;) // for ABI compatibility
