@@ -138,12 +138,24 @@ void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int nframes, int chann
  */
 QAmbientSound::QAmbientSound(QAudioEngine *engine) : QObject(*new QAmbientSoundPrivate())
 {
-    setEngine(engine);
+    Q_D(QAmbientSound);
+
+    d->engine = engine;
+    auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (ep) {
+        ep->addStereoSound(this);
+        ep->resonanceAudio->api->SetSourceVolume(d->sourceId, d->volume);
+    }
 }
 
 QAmbientSound::~QAmbientSound()
 {
-    setEngine(nullptr);
+    Q_D(QAmbientSound);
+
+    auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (ep)
+        ep->removeStereoSound(this);
+    d->engine = nullptr;
 }
 
 /*!
@@ -273,31 +285,6 @@ void QAmbientSound::stop()
 {
     Q_D(QAmbientSound);
     d->stop();
-}
-
-/*!
-    \internal
- */
-void QAmbientSound::setEngine(QAudioEngine *engine)
-{
-    Q_D(QAmbientSound);
-
-    if (d->engine == engine)
-        return;
-
-    // Remove self from old engine (if necessary)
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->removeStereoSound(this);
-
-    d->engine = engine;
-
-    // Add self to new engine if necessary
-    ep = QAudioEnginePrivate::get(d->engine);
-    if (ep) {
-        ep->addStereoSound(this);
-        ep->resonanceAudio->api->SetSourceVolume(d->sourceId, d->volume);
-    }
 }
 
 /*!
