@@ -29,7 +29,6 @@
 #include <QTimer>
 
 #include <emscripten/bind.h>
-#include <emscripten/html5.h>
 #include <emscripten/val.h>
 
 // Upload the current video frame to the already-bound TEXTURE_2D.
@@ -62,9 +61,53 @@ static bool checkForVideoFrame()
     return (!videoFrame.isNull() && !videoFrame.isUndefined());
 }
 
+bool QWasmVideoOutput::isPlatformiOs()
+{
+    emscripten::val platformObject = emscripten::val::global("navigator")["platform"];
+    if (platformObject.call<bool>("includes", emscripten::val("iPhone"))
+        || platformObject.call<bool>("includes", emscripten::val("iPad")))
+        return true;
+    return false;
+}
+
 QWasmVideoOutput::QWasmVideoOutput(QObject *parent) : QObject{ parent }
 {
     m_hasVideoFrame = checkForVideoFrame();
+
+    if (m_hasVideoFrame) {
+        if (isPlatformiOs()) {
+            // iOS has [broken] camera driver
+            connect(this, &QWasmVideoOutput::orientationChanged, this,
+                    [&](int orientationIndex) {
+
+                if (orientationIndex & EMSCRIPTEN_ORIENTATION_PORTRAIT_PRIMARY) {// 1
+                    m_rotateBy = QtVideo::Rotation::Clockwise90;
+                } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_LANDSCAPE_PRIMARY) {// 4
+                    if (m_cameraMode == QWasmVideoOutput::Front) {
+                        m_rotateBy = QtVideo::Rotation::Clockwise180;
+                    } else {
+                        m_rotateBy = QtVideo::Rotation::None;
+                    }
+                } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_PORTRAIT_SECONDARY) {// 2
+                    m_rotateBy = QtVideo::Rotation::Clockwise270;
+                } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_LANDSCAPE_SECONDARY) {// 8
+                    if (m_cameraMode == QWasmVideoOutput::Front) {
+                        m_rotateBy = QtVideo::Rotation::None;
+                    } else {
+                        m_rotateBy = QtVideo::Rotation::Clockwise180;
+                    }
+                }
+            });
+
+            emscripten_set_orientationchange_callback(this,false, &QWasmVideoOutput::orientationchangeCallback);
+
+            //get current status
+            EmscriptenOrientationChangeEvent status;
+            EMSCRIPTEN_RESULT result = emscripten_get_orientation_status(&status);
+            if (result == EMSCRIPTEN_RESULT_SUCCESS)
+                orientationChanged(status.orientationIndex);
+        }
+    }
 }
 
 QWasmVideoOutput::~QWasmVideoOutput() = default;
@@ -76,6 +119,18 @@ void QWasmVideoOutput::setVideoSize(const QSize &newSize)
 
     m_pendingVideoSize = newSize;
     updateVideoElementGeometry(QRect(0, 0, m_pendingVideoSize.width(), m_pendingVideoSize.height()));
+}
+
+bool QWasmVideoOutput::orientationchangeCallback(int eventType,
+                                                 const EmscriptenOrientationChangeEvent *event,
+                                                 void *userData)
+{
+    Q_UNUSED(eventType)
+
+    QWasmVideoOutput *videoOutput = static_cast<QWasmVideoOutput *>(userData);
+    emit videoOutput->orientationChanged(event->orientationIndex);
+
+    return true;
 }
 
 void QWasmVideoOutput::setVideoMode(QWasmVideoOutput::WasmVideoMode mode)
@@ -131,7 +186,7 @@ void QWasmVideoOutput::start()
                             return;
                         }
                         emscripten::val videoSettings = videoTracks[0].call<emscripten::val>("getSettings");
-                        if (!videoSettings.isNull() || !videoSettings.isUndefined()) {
+                        if (!videoSettings.isNull() && !videoSettings.isUndefined()) {
                             const int width = videoSettings["width"].as<int>();
                             const int height = videoSettings["height"].as<int>();
                             updateVideoElementGeometry(QRect(0, 0, width, height));
@@ -854,6 +909,11 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
     QVideoFrameFormat frameFormat =
             QVideoFrameFormat(frameBytesAllocationSize, QVideoFrameFormat::Format_RGBA8888);
 
+    QWasmVideoOutput *wasmVideoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
+
+    if (m_useCameraRotation)
+        frameFormat.setRotation(wasmVideoOutput->m_rotateBy);
+
     auto *textureDescription = QVideoTextureHelper::textureDescription(frameFormat.pixelFormat());
 
     QVideoFrame vFrame = QVideoFramePrivate::createFrame(
@@ -861,7 +921,6 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
                     std::move(frameBytes),
                     textureDescription->strideForWidth(frameFormat.frameWidth())), // width of line with padding
             frameFormat);
-    QWasmVideoOutput *wasmVideoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
 
     if (!wasmVideoOutput->m_wasmSink) {
         qWarning() << "ERROR ALERT!! video sink not set";
@@ -901,7 +960,7 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
             reinterpret_cast<QWasmVideoOutput*>(videoElement["data-qvideocontext"].as<quintptr>());
 
     qstdweb::PromiseCallbacks copyToCallback;
-    copyToCallback.thenFunc = [wasmVideoOutput, oneVideoFrame, frameBuffer,
+    copyToCallback.thenFunc = [this, wasmVideoOutput, oneVideoFrame, frameBuffer,
                                 displayWidth, displayHeight]
             (emscripten::val frameLayout)
     {
@@ -923,6 +982,8 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
         }
         QVideoFrameFormat frameFormat = QVideoFrameFormat(frameSize, pixelFormat);
 
+        if (m_useCameraRotation)
+            frameFormat.setRotation(wasmVideoOutput->m_rotateBy);
         auto buffer = std::make_unique<QMemoryVideoBuffer>(
                 std::move(frameBytes),
                 oneVideoFrame["codedWidth"].as<int>());
@@ -1044,10 +1105,28 @@ void QWasmVideoOutput::videoFrameTimerCallback()
     if (m_hasVideoFrame && !m_hasWebGLContext)
         getWebGLContext();
 
+    if (isPlatformiOs()) {
+        emscripten::val stream = m_video["srcObject"];
+        emscripten::val vTraks = stream.call<emscripten::val>("getVideoTracks");
+
+        if (!vTraks.isUndefined() && vTraks["length"].as<int>() > 0) {
+            emscripten::val trak = vTraks[0];
+            emscripten::val settings = trak.call<emscripten::val>("getSettings");
+
+            if (settings["facingMode"].as<std::string>() == "user")
+                m_cameraMode = QWasmVideoOutput::Front;
+            else
+                m_cameraMode = QWasmVideoOutput::Back;
+
+            m_useCameraRotation = true;
+        }
+    }
+
     // Single-shot callback: re-registers each frame so multiple QWasmVideoOutput
     // instances can coexist. emscripten_request_animation_frame_loop allows only one
     // active loop globally and would cancel another instance.
     static EM_BOOL (*frame)(double, void *) = [](double frameTime, void *context) -> EM_BOOL {
+
         Q_UNUSED(frameTime);
 
         QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);

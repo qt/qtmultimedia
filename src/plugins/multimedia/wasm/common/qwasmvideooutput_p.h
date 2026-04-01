@@ -19,8 +19,11 @@
 
 #include <emscripten/val.h>
 #include <emscripten/html5_webgl.h>
+#include <emscripten/html5.h>
+
 #include <QMediaPlayer>
 #include <QVideoFrame>
+#include <QtMultimedia/qtvideo.h>
 
 #include "qwasmmediaplayer_p.h"
 #include "private/qwasmmediadevices_p.h"
@@ -45,6 +48,7 @@ class QWasmVideoOutput : public QObject
 public:
     using MediaStatus = QMediaPlayer::MediaStatus;
     enum WasmVideoMode { VideoDisplay, Camera, SurfaceCapture };
+    enum WasmCameraMode { Front, Back, Undefined = -1 };
     Q_ENUM(WasmVideoMode)
 
     explicit QWasmVideoOutput(QObject *parent = nullptr);
@@ -123,12 +127,13 @@ Q_SIGNALS:
     void sizeChange(qint32 width, qint32 height);
     void metaDataLoaded();
     void seekableChanged(bool seekable);
+    void orientationChanged(int rotationIndex);
 
 private:
     void checkNetworkState();
     void videoComputeFrame(void *context);
     void getDeviceSettings();
-
+    bool isPlatformiOs();
 
     emscripten::val m_video = emscripten::val::undefined();
     emscripten::val m_videoElementSource = emscripten::val::undefined();
@@ -136,6 +141,9 @@ private:
     QString m_source;
     float m_requestedPosition = 0.0;
     emscripten::val m_offscreen = emscripten::val::undefined();
+    WasmCameraMode m_cameraMode;
+    QtVideo::Rotation m_rotateBy = QtVideo::Rotation::None;
+
 
     bool m_isStopped = false;
     bool m_toBePaused = false;
@@ -144,6 +152,7 @@ private:
     bool m_cameraIsReady = false;
     bool m_shouldBeStarted = false;
     bool m_isSeekable = false;
+    bool m_useCameraRotation = false;
 
     emscripten::val m_offscreenContext = emscripten::val::undefined();
     QSize m_pendingVideoSize;
@@ -177,6 +186,7 @@ private:
     QMetaObject::Connection m_connection;
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_glContextHandle = 0;
     emscripten::val m_glCanvas = emscripten::val::undefined();
+    static bool orientationchangeCallback(int eventType, const EmscriptenOrientationChangeEvent *orientationChangeEvent, void *userData);
 };
 
 QT_END_NAMESPACE
