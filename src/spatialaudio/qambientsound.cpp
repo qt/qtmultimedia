@@ -16,6 +16,13 @@
 
 QT_BEGIN_NAMESPACE
 
+QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine, int nchannels)
+    : nchannels(nchannels), engine(engine)
+{
+}
+
+QAmbientSoundPrivate::~QAmbientSoundPrivate() = default;
+
 void QAmbientSoundPrivate::setUrl(const QUrl &url)
 {
     m_url = url;
@@ -143,11 +150,10 @@ void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int nframes, int chann
 /*!
     Creates a stereo sound source for \a engine.
  */
-QAmbientSound::QAmbientSound(QAudioEngine *engine) : QObject(*new QAmbientSoundPrivate())
+QAmbientSound::QAmbientSound(QAudioEngine *engine) : QObject(*new QAmbientSoundPrivate(engine))
 {
     Q_D(QAmbientSound);
 
-    d->engine = engine;
     auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep) {
         ep->addStereoSound(this);
@@ -162,7 +168,6 @@ QAmbientSound::~QAmbientSound()
     auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep)
         ep->removeStereoSound(this);
-    d->engine = nullptr;
 }
 
 /*!
