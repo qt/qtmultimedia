@@ -4,10 +4,12 @@
 #include "qambientsound.h"
 
 #include <QtCore/qdebug.h>
+#include <QtCore/qfile.h>
 #include <QtCore/qurl.h>
 #include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtSpatialAudio/private/qambientsound_p.h>
 #include <QtSpatialAudio/private/qaudioengine_p.h>
 
@@ -23,11 +25,6 @@ QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine, int nchannels)
 
 QAmbientSoundPrivate::~QAmbientSoundPrivate() = default;
 
-void QAmbientSoundPrivate::setUrl(const QUrl &url)
-{
-    m_url = url;
-}
-
 void QAmbientSoundPrivate::setVolume(float volume)
 {
     m_volume = volume;
@@ -41,10 +38,12 @@ void QAmbientSoundPrivate::applyVolume()
         ep->resonanceAudio->api->SetSourceVolume(sourceId, m_volume);
 }
 
-void QAmbientSoundPrivate::load()
+void QAmbientSoundPrivate::loadUrl(const QUrl &url)
 {
-    decoder = std::make_unique<QAudioDecoder>();
-    sourceDeviceFile.reset(nullptr);
+    m_url = url;
+
+    Q_Q(QAmbientSound);
+
     {
         QMutexLocker l(&mutex);
         buffers.clear();
@@ -52,38 +51,79 @@ void QAmbientSoundPrivate::load()
         bufPos = 0;
         m_currentLoop = 0;
         m_playing = false;
-        m_loading = true;
     }
+    m_loadFuture.cancel();
+
     auto *ep = QAudioEnginePrivate::get(engine);
     QAudioFormat f;
     f.setSampleFormat(QAudioFormat::Float);
     f.setSampleRate(ep->sampleRate());
-    f.setChannelConfig(nchannels == 2 ? QAudioFormat::ChannelConfigStereo : QAudioFormat::ChannelConfigMono);
-    decoder->setAudioFormat(f);
+    f.setChannelConfig(nchannels == 2 ? QAudioFormat::ChannelConfigStereo
+                                      : QAudioFormat::ChannelConfigMono);
 
-    QUrl url = m_sourceResolver->resolve(m_url);
-    if (url.scheme().compare(u"qrc", Qt::CaseInsensitive) == 0) {
-        auto qrcFile = std::make_unique<QFile>(u':' + url.path());
-        if (!qrcFile->open(QFile::ReadOnly))
-            return;
-        sourceDeviceFile = std::move(qrcFile);
-        decoder->setSourceDevice(sourceDeviceFile.get());
-    } else {
-        decoder->setSource(url);
-    }
-    QObject::connect(decoder.get(), &QAudioDecoder::bufferReady, decoder.get(), [this] {
-        Q_PRESUME(this);
-
+    QUrl resolved = m_sourceResolver->resolve(url);
+    m_loadFuture = load(resolved, f).then(q, [this](QAmbientSoundPrivate::LoadResult result) {
         QMutexLocker l(&mutex);
-        auto b = decoder->read();
-        buffers.append(b);
-        if (m_autoPlay)
-            m_playing = true;
+        if (result) {
+            buffers = std::move(*result);
+            if (m_autoPlay)
+                m_playing = true;
+        } else {
+            qWarning() << "QAmbientSound: cannot load file";
+        }
     });
-    QObject::connect(decoder.get(), &QAudioDecoder::finished, decoder.get(), [this] {
-        m_loading = false;
+}
+
+auto QAmbientSoundPrivate::load(QUrl resolvedUrl, QAudioFormat format) -> QFuture<LoadResult>
+{
+    m_loadFuture.cancelChain();
+
+    auto promise = std::make_shared<QPromise<LoadResult>>();
+    auto future = promise->future();
+
+    m_decoder = std::make_unique<QAudioDecoder>();
+    m_decoder->setAudioFormat(format);
+
+    std::shared_ptr<QIODevice> file; // kept alive until decoding is finished
+    if (resolvedUrl.scheme().compare(u"qrc", Qt::CaseInsensitive) == 0) {
+        file = std::make_unique<QFile>(u':' + resolvedUrl.path());
+        if (!file->open(QFile::ReadOnly)) {
+            promise->start();
+            promise->addResult(q23::unexpected{ QAudioDecoder::Error::ResourceError });
+            promise->finish();
+
+            m_decoder = {};
+
+            return future;
+        }
+        m_decoder->setSourceDevice(file.get());
+    } else {
+        m_decoder->setSource(resolvedUrl);
+    }
+
+    auto accum = std::make_shared<QList<QAudioBuffer>>();
+    QObject::connect(m_decoder.get(), &QAudioDecoder::bufferReady, m_decoder.get(), [accum, this] {
+        accum->append(m_decoder->read());
     });
-    decoder->start();
+
+    QObject::connect(
+            m_decoder.get(),
+            static_cast<void (QAudioDecoder::*)(QAudioDecoder::Error)>(&QAudioDecoder::error),
+            m_decoder.get(), [promise, file](QAudioDecoder::Error error) {
+        promise->start();
+        promise->addResult(q23::unexpected{ error });
+        promise->finish();
+    });
+
+    QObject::connect(m_decoder.get(), &QAudioDecoder::finished, m_decoder.get(),
+                     [promise, file, accum] {
+        promise->start();
+        promise->addResult(std::move(*accum));
+        promise->finish();
+    });
+
+    m_decoder->start();
+    return future;
 }
 
 void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int nframes, int channels)
@@ -92,9 +132,10 @@ void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int nframes, int chann
     Q_ASSERT(output.size() == channels * nframes);
 
     QMutexLocker l(&mutex);
+    namespace ranges = QtMultimediaPrivate::ranges;
 
     if (!m_playing || currentBuffer >= buffers.size()) {
-        std::fill(output.begin(), output.end(), 0.f);
+        ranges::fill(output, 0.f);
     } else {
         using QtMultimediaPrivate::drop;
         using QtMultimediaPrivate::take;
@@ -123,24 +164,18 @@ void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int nframes, int chann
                     bufPos = 0;
                 }
             } else {
-                // no more data available
-                if (m_loading)
-                    qDebug() << "underrun" << frames << "frames when loading" << url();
-
                 // Fill remaining with silence
-                std::fill(output.begin(), output.end(), 0.f);
-
-                frames = 0;
+                ranges::fill(output, 0.f);
+                return;
             }
-            if (!m_loading) {
-                if (currentBuffer == buffers.size()) {
-                    currentBuffer = 0;
-                    ++m_currentLoop;
-                }
-                if (m_loops > 0 && m_currentLoop >= m_loops) {
-                    m_playing = false;
-                    m_currentLoop = 0;
-                }
+
+            if (currentBuffer == buffers.size()) {
+                currentBuffer = 0;
+                ++m_currentLoop;
+            }
+            if (m_loops > 0 && m_currentLoop >= m_loops) {
+                m_playing = false;
+                m_currentLoop = 0;
             }
         }
         Q_ASSERT(output.size() == 0);
@@ -211,9 +246,8 @@ void QAmbientSound::setSource(const QUrl &url)
     Q_D(QAmbientSound);
     if (d->url() == url)
         return;
-    d->setUrl(url);
+    d->loadUrl(url);
 
-    d->load();
     emit sourceChanged();
 }
 

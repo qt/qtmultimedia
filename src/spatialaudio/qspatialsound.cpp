@@ -8,7 +8,6 @@
 #include <qaudiosink.h>
 #include <qurl.h>
 #include <qdebug.h>
-#include <qaudiodecoder.h>
 
 #include <array>
 
@@ -539,9 +538,8 @@ void QSpatialSound::setSource(const QUrl &url)
 
     if (d->url() == url)
         return;
-    d->setUrl(url);
+    d->loadUrl(url);
 
-    d->load();
     emit sourceChanged();
 }
 

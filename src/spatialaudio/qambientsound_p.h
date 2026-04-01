@@ -19,10 +19,12 @@
 #include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
-#include <QtCore/qfile.h>
+#include <QtCore/qfuture.h>
 #include <QtCore/private/qobject_p.h>
-#include <QtMultimedia/qaudiodecoder.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/private/qmultimedia_source_resolver_p.h>
 
 #include <atomic>
@@ -31,6 +33,8 @@
 QT_BEGIN_NAMESPACE
 
 class QAudioEngine;
+class QQuick3DSpatialSound;
+class QQuick3DAmbientSound;
 
 class QAmbientSoundPrivate : public QObjectPrivate
 {
@@ -47,54 +51,58 @@ public:
     }
 
     QUrl url() const { return m_url; }
-    void setUrl(const QUrl &url);
+    void loadUrl(const QUrl &url);
+
     void setVolume(float volume);
     float volume() const { return m_volume; }
 
 protected:
     virtual void applyVolume();
 
-private:
-    QUrl m_url; // unresolved URL
-    float m_volume = 1.f;
-
 public:
     const int nchannels = 2;
-    std::unique_ptr<QAudioDecoder> decoder;
-    std::unique_ptr<QFile> sourceDeviceFile;
     QAudioEngine *const engine;
 
-    QMutex mutex;
-    int currentBuffer = 0;
-    int bufPos = 0;
-    int m_currentLoop = 0;
-    QList<QAudioBuffer> buffers;
     int sourceId = -1; // kInvalidSourceId
 
     std::atomic_bool m_autoPlay = true;
     std::atomic_bool m_playing = false;
     std::atomic_int m_loops = 1;
-    std::atomic_bool m_loading = false;
 
-    void play() {
-        m_playing = true;
-    }
-    void pause() {
-        m_playing = false;
-    }
-    void stop() {
+    void play() { m_playing = true; }
+    void pause() { m_playing = false; }
+    void stop()
+    {
         QMutexLocker locker(&mutex);
         m_playing = false;
         currentBuffer = 0;
         bufPos = 0;
         m_currentLoop = 0;
     }
-
-    void load();
     void getBuffer(QSpan<float> buf, int frames, int channels);
 
+private:
+    float m_volume = 1.f;
+
+    std::unique_ptr<QAudioDecoder> m_decoder;
+
+    QMutex mutex;
+    int currentBuffer = 0;
+    int bufPos = 0;
+    int m_currentLoop = 0;
+
+    QList<QAudioBuffer> buffers;
+    QFuture<void> m_loadFuture;
+
+    using LoadResult = q23::expected<QList<QAudioBuffer>, QAudioDecoder::Error>;
+    QFuture<LoadResult> load(QUrl resolvedUrl, QAudioFormat format);
+
+    QUrl m_url; // unresolved URL
     using AbstractSourceResolver = QMultimediaPrivate::AbstractSourceResolver;
     using TrivialSourceResolver = QMultimediaPrivate::TrivialSourceResolver;
+
+    friend class QQuick3DSpatialSound;
+    friend class QQuick3DAmbientSound;
     std::unique_ptr<const AbstractSourceResolver> m_sourceResolver =
             std::make_unique<TrivialSourceResolver>();
 };
