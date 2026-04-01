@@ -96,10 +96,8 @@ CoreEventDoneListener::CoreEventDoneListener()
         CoreEventDoneListener *listener = reinterpret_cast<CoreEventDoneListener *>(self);
         if (id == PW_ID_CORE && listener->m_seqnum == seq) {
             listener->m_seqnum = -1;
-            if (listener->m_handler) {
-                listener->m_handler();
-                listener->m_handler = {};
-            }
+            if (auto handler = std::exchange(listener->m_handler, {}))
+                handler();
         }
     };
 }
