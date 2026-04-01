@@ -212,8 +212,20 @@ if (QT_FEATURE_pipewire)
             pipewire/qpipewire_spa_pod_support.cpp     pipewire/qpipewire_spa_pod_support_p.h
             pipewire/qpipewire_spa_pod_parser_support_p.h
             pipewire/qpipewire_support.cpp             pipewire/qpipewire_support_p.h
-            pipewire/qpipewire_symbolloader.cpp        pipewire/qpipewire_symbolloader_p.h
     )
+
+    if(QT_FEATURE_pipewire_symbolloader)
+        qt_internal_extend_target(Multimedia
+            SOURCES
+                pipewire/qpipewire_symbolloader.cpp pipewire/qpipewire_symbolloader_p.h
+        )
+    else()
+        qt_internal_extend_target(Multimedia
+            LIBRARIES
+                ${PipeWire_LIBRARIES}
+        )
+    endif()
+
 
     if (QT_FEATURE_pipewire_screencapture)
         qt_internal_extend_target(Multimedia

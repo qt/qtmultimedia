@@ -3,8 +3,12 @@
 
 #include "qpipewire_instance_p.h"
 
-#include "qpipewire_symbolloader_p.h"
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+
 #include "qpipewire_support_p.h"
+#if QT_CONFIG(pipewire_symbolloader)
+#  include "qpipewire_symbolloader_p.h"
+#endif
 
 #include <QtCore/qmutex.h>
 #include <mutex>
@@ -40,7 +44,11 @@ std::shared_ptr<QPipeWireInstance> QPipeWireInstance::instance()
 
 bool QPipeWireInstance::isLoaded()
 {
+#if QT_CONFIG(pipewire_symbolloader)
     return qPipewireIsLoaded();
+#else
+    return 1;
+#endif
 }
 
 QPipeWireInstance::QPipeWireInstance()

@@ -132,6 +132,10 @@ qt_feature("pipewire_screencapture" PRIVATE
     LABEL "PipeWire screen capture"
     CONDITION QT_FEATURE_dbus AND QT_FEATURE_pipewire
 )
+qt_feature("pipewire_symbolloader" PRIVATE
+    LABEL "PipeWire: load pipewire at run-time"
+    CONDITION QT_FEATURE_pipewire
+)
 qt_feature("alsa" PUBLIC PRIVATE
     LABEL "ALSA (experimental)"
     AUTODETECT false
