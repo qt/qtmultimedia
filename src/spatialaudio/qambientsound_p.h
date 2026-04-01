@@ -46,7 +46,16 @@ public:
     }
 
     QUrl url;
-    float volume = 1.;
+    void setVolume(float volume);
+    float volume() const { return m_volume; }
+
+protected:
+    virtual void applyVolume();
+
+private:
+    float m_volume = 1.f;
+
+public:
     const int nchannels = 2;
     std::unique_ptr<QAudioDecoder> decoder;
     std::unique_ptr<QFile> sourceDeviceFile;

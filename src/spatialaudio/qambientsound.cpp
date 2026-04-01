@@ -23,6 +23,19 @@ QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine, int nchannels)
 
 QAmbientSoundPrivate::~QAmbientSoundPrivate() = default;
 
+void QAmbientSoundPrivate::setVolume(float volume)
+{
+    m_volume = volume;
+    applyVolume();
+}
+
+void QAmbientSoundPrivate::applyVolume()
+{
+    auto *ep = QAudioEnginePrivate::get(engine);
+    if (ep)
+        ep->resonanceAudio->api->SetSourceVolume(sourceId, m_volume);
+}
+
 void QAmbientSoundPrivate::load()
 {
     decoder = std::make_unique<QAudioDecoder>();
@@ -150,7 +163,7 @@ QAmbientSound::QAmbientSound(QAudioEngine *engine) : QObject(*new QAmbientSoundP
     auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep) {
         ep->addStereoSound(this);
-        ep->resonanceAudio->api->SetSourceVolume(d->sourceId, d->volume);
+        d->applyVolume();
     }
 }
 
@@ -174,19 +187,16 @@ QAmbientSound::~QAmbientSound()
 void QAmbientSound::setVolume(float volume)
 {
     Q_D(QAmbientSound);
-    if (d->volume == volume)
-        return;
-    d->volume = volume;
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->resonanceAudio->api->SetSourceVolume(d->sourceId, d->volume);
-    emit volumeChanged();
+    if (volume != d->volume()) {
+        d->setVolume(volume);
+        emit volumeChanged();
+    }
 }
 
 float QAmbientSound::volume() const
 {
     Q_D(const QAmbientSound);
-    return d->volume;
+    return d->volume();
 }
 
 void QAmbientSound::setSource(const QUrl &url)
