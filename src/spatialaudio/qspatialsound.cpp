@@ -36,7 +36,19 @@ QT_BEGIN_NAMESPACE
  */
 QSpatialSound::QSpatialSound(QAudioEngine *engine) : QObject(*new QSpatialSoundPrivate)
 {
-    setEngine(engine);
+    Q_D(QSpatialSound);
+
+    d->engine = engine;
+    auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (ep) {
+        ep->addSpatialSound(this);
+        ep->resonanceAudio->api->SetSourcePosition(d->sourceId, d->pos.x(), d->pos.y(), d->pos.z());
+        ep->resonanceAudio->api->SetSourceRotation(d->sourceId, d->rotation.x(), d->rotation.y(), d->rotation.z(), d->rotation.scalar());
+        ep->resonanceAudio->api->SetSourceVolume(d->sourceId, d->volume);
+        ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
+        ep->resonanceAudio->api->SetSoundObjectNearFieldEffectGain(d->sourceId, d->nearFieldGain);
+        d->updateDistanceModel();
+    }
 }
 
 /*!
@@ -44,7 +56,12 @@ QSpatialSound::QSpatialSound(QAudioEngine *engine) : QObject(*new QSpatialSoundP
  */
 QSpatialSound::~QSpatialSound()
 {
-    setEngine(nullptr);
+    Q_D(QSpatialSound);
+
+    auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (ep)
+        ep->removeSpatialSound(this);
+    d->engine = nullptr;
 }
 
 /*!
@@ -613,36 +630,6 @@ void QSpatialSound::stop()
     Q_D(QSpatialSound);
 
     d->stop();
-}
-
-/*!
-    \internal
- */
-void QSpatialSound::setEngine(QAudioEngine *engine)
-{
-    Q_D(QSpatialSound);
-
-    if (d->engine == engine)
-        return;
-
-    // Remove self from old engine (if necessary)
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->removeSpatialSound(this);
-
-    d->engine = engine;
-
-    // Add self to new engine if necessary
-    ep = QAudioEnginePrivate::get(d->engine);
-    if (ep) {
-        ep->addSpatialSound(this);
-        ep->resonanceAudio->api->SetSourcePosition(d->sourceId, d->pos.x(), d->pos.y(), d->pos.z());
-        ep->resonanceAudio->api->SetSourceRotation(d->sourceId, d->rotation.x(), d->rotation.y(), d->rotation.z(), d->rotation.scalar());
-        ep->resonanceAudio->api->SetSourceVolume(d->sourceId, d->volume);
-        ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
-        ep->resonanceAudio->api->SetSoundObjectNearFieldEffectGain(d->sourceId, d->nearFieldGain);
-        d->updateDistanceModel();
-    }
 }
 
 /*!

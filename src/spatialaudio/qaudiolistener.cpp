@@ -36,7 +36,19 @@ public:
  */
 QAudioListener::QAudioListener(QAudioEngine *engine) : QObject(*new QAudioListenerPrivate)
 {
-    setEngine(engine);
+    Q_D(QAudioListener);
+
+    d->engine = engine;
+    if (d->engine) {
+        auto *ed = QAudioEnginePrivate::get(d->engine);
+        bool hasListener = ed->listenerPosition().has_value();
+        if (hasListener) {
+            qWarning() << "Ignoring attempt to add a second listener to the spatial audio engine.";
+            d->engine = nullptr;
+        } else {
+            ed->setListenerPosition(d->pos);
+        }
+    }
 }
 
 /*!
@@ -44,8 +56,13 @@ QAudioListener::QAudioListener(QAudioEngine *engine) : QObject(*new QAudioListen
  */
 QAudioListener::~QAudioListener()
 {
-    // Unregister this listener from the engine
-    setEngine(nullptr);
+    Q_D(QAudioListener);
+
+    if (d->engine) {
+        auto *ed = QAudioEnginePrivate::get(d->engine);
+        ed->setListenerPosition(std::nullopt);
+    }
+    d->engine = nullptr;
 }
 
 /*!
@@ -93,29 +110,6 @@ QQuaternion QAudioListener::rotation() const
 {
     Q_D(const QAudioListener);
     return d->rotation;
-}
-
-/*!
-    \internal
- */
-void QAudioListener::setEngine(QAudioEngine *engine)
-{
-    Q_D(QAudioListener);
-    if (d->engine) {
-        auto *ed = QAudioEnginePrivate::get(d->engine);
-        ed->setListenerPosition(std::nullopt);
-    }
-    d->engine = engine;
-    if (d->engine) {
-        auto *ed = QAudioEnginePrivate::get(d->engine);
-        bool hasListener = ed->listenerPosition().has_value();
-        if (hasListener) {
-            qWarning() << "Ignoring attempt to add a second listener to the spatial audio engine.";
-            d->engine = nullptr;
-            return;
-        }
-        ed->setListenerPosition(d->pos);
-    }
 }
 
 /*!

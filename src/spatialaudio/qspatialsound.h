@@ -116,7 +116,6 @@ public Q_SLOTS:
     void stop();
 
 private:
-    void setEngine(QAudioEngine *engine);
     Q_DECLARE_PRIVATE(QSpatialSound)
     friend class QAmbientSoundPrivate;
 

@@ -28,7 +28,6 @@ public:
     QAudioEngine *engine() const;
 
 private:
-    void setEngine(QAudioEngine *engine);
     Q_DECLARE_PRIVATE(QAudioListener)
 
     // ### Qt7: remove unused member
