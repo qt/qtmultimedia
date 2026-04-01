@@ -25,7 +25,7 @@ QT_BEGIN_NAMESPACE
 
 class QAudioEnginePrivate;
 
-class QSpatialSoundPrivate : public QAmbientSoundPrivate
+class QSpatialSoundPrivate final : public QAmbientSoundPrivate
 {
     Q_DECLARE_PUBLIC(QSpatialSound)
 
@@ -36,6 +36,8 @@ public:
     {
         return soundSource ? soundSource->d_func() : nullptr;
     }
+
+    void applyVolume() override;
 
     QVector3D pos;
     QVector3D unscaledPosition;

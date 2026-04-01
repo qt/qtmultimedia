@@ -48,12 +48,17 @@ public:
 
     QUrl url() const { return m_url; }
     void setUrl(const QUrl &url);
+    void setVolume(float volume);
+    float volume() const { return m_volume; }
+
+protected:
+    virtual void applyVolume();
 
 private:
     QUrl m_url; // unresolved URL
+    float m_volume = 1.f;
 
 public:
-    float volume = 1.;
     const int nchannels = 2;
     std::unique_ptr<QAudioDecoder> decoder;
     std::unique_ptr<QFile> sourceDeviceFile;

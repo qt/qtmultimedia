@@ -43,7 +43,7 @@ QSpatialSound::QSpatialSound(QAudioEngine *engine) : QObject(*new QSpatialSoundP
         ep->addSpatialSound(this);
         ep->resonanceAudio->api->SetSourcePosition(d->sourceId, d->pos.x(), d->pos.y(), d->pos.z());
         ep->resonanceAudio->api->SetSourceRotation(d->sourceId, d->rotation.x(), d->rotation.y(), d->rotation.z(), d->rotation.scalar());
-        ep->resonanceAudio->api->SetSourceVolume(d->sourceId, d->volume);
+        d->applyVolume();
         ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
         ep->resonanceAudio->api->SetSoundObjectNearFieldEffectGain(d->sourceId, d->nearFieldGain);
         d->updateDistanceModel();
@@ -129,19 +129,16 @@ QQuaternion QSpatialSound::rotation() const
 void QSpatialSound::setVolume(float volume)
 {
     Q_D(QSpatialSound);
-    if (d->volume == volume)
-        return;
-    d->volume = volume;
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->resonanceAudio->api->SetSourceVolume(d->sourceId, d->volume*d->wallDampening);
-    emit volumeChanged();
+    if (volume != d->volume()) {
+        d->setVolume(volume);
+        emit volumeChanged();
+    }
 }
 
 float QSpatialSound::volume() const
 {
     Q_D(const QSpatialSound);
-    return d->volume;
+    return d->volume();
 }
 
 /*!
@@ -178,6 +175,13 @@ void QSpatialSound::setDistanceModel(DistanceModel model)
 
 QSpatialSoundPrivate::QSpatialSoundPrivate(QAudioEngine *engine) : QAmbientSoundPrivate(engine, 1)
 {
+}
+
+void QSpatialSoundPrivate::applyVolume()
+{
+    auto *ep = QAudioEnginePrivate::get(engine);
+    if (ep)
+        ep->resonanceAudio->api->SetSourceVolume(sourceId, volume() * wallDampening);
 }
 
 void QSpatialSoundPrivate::updateDistanceModel()
@@ -308,7 +312,7 @@ void QSpatialSoundPrivate::updateRoomEffects()
         ep->resonanceAudio->api->SetSourceRoomEffectsGain(sourceId, 0);
     }
     ep->resonanceAudio->api->SetSoundObjectOcclusionIntensity(sourceId, occlusionIntensity + wallOcclusion);
-    ep->resonanceAudio->api->SetSourceVolume(sourceId, volume*wallDampening);
+    ep->resonanceAudio->api->SetSourceVolume(sourceId, volume() * wallDampening);
 }
 
 QSpatialSound::DistanceModel QSpatialSound::distanceModel() const
