@@ -90,7 +90,10 @@ QRtAudioEngine::getEngineFor(const QAudioDevice &device, const QAudioFormat &for
 
     auto player = std::shared_ptr<QRtAudioEngine>(new QRtAudioEngine{ device, format },
                                                   [](QRtAudioEngine *engine) {
-        engine->deleteLater();
+        if (engine->thread()->isCurrentThread())
+            delete engine;
+        else
+            engine->deleteLater();
     });
     s_playerRegistry.emplace(key, player);
 
