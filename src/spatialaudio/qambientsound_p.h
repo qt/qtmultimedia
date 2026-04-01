@@ -36,7 +36,8 @@ class QAmbientSoundPrivate : public QObjectPrivate
     Q_DECLARE_PUBLIC(QAmbientSound)
 
 public:
-    explicit QAmbientSoundPrivate(int nchannels = 2) : nchannels(nchannels) { }
+    explicit QAmbientSoundPrivate(QAudioEngine *engine, int nchannels = 2);
+    ~QAmbientSoundPrivate();
 
     template <typename T>
     static QAmbientSoundPrivate *get(T *soundSource)
@@ -46,10 +47,10 @@ public:
 
     QUrl url;
     float volume = 1.;
-    int nchannels = 2;
+    const int nchannels = 2;
     std::unique_ptr<QAudioDecoder> decoder;
     std::unique_ptr<QFile> sourceDeviceFile;
-    QAudioEngine *engine = nullptr;
+    QAudioEngine *const engine;
 
     QMutex mutex;
     int currentBuffer = 0;

@@ -34,11 +34,10 @@ QT_BEGIN_NAMESPACE
     Creates a spatial sound source for \a engine. The object can be placed in
     3D space and will be louder the closer to the listener it is.
  */
-QSpatialSound::QSpatialSound(QAudioEngine *engine) : QObject(*new QSpatialSoundPrivate)
+QSpatialSound::QSpatialSound(QAudioEngine *engine) : QObject(*new QSpatialSoundPrivate(engine))
 {
     Q_D(QSpatialSound);
 
-    d->engine = engine;
     auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep) {
         ep->addSpatialSound(this);
@@ -61,7 +60,6 @@ QSpatialSound::~QSpatialSound()
     auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep)
         ep->removeSpatialSound(this);
-    d->engine = nullptr;
 }
 
 /*!
@@ -176,6 +174,10 @@ void QSpatialSound::setDistanceModel(DistanceModel model)
 
     d->updateDistanceModel();
     emit distanceModelChanged();
+}
+
+QSpatialSoundPrivate::QSpatialSoundPrivate(QAudioEngine *engine) : QAmbientSoundPrivate(engine, 1)
+{
 }
 
 void QSpatialSoundPrivate::updateDistanceModel()

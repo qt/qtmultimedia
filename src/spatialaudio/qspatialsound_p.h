@@ -29,7 +29,7 @@ class QSpatialSoundPrivate : public QAmbientSoundPrivate
     Q_DECLARE_PUBLIC(QSpatialSound)
 
 public:
-    QSpatialSoundPrivate() : QAmbientSoundPrivate(1) { }
+    explicit QSpatialSoundPrivate(QAudioEngine *engine);
 
     static QSpatialSoundPrivate *get(QSpatialSound *soundSource)
     {
