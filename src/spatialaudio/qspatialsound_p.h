@@ -31,6 +31,7 @@ class QSpatialSoundPrivate final : public QAmbientSoundPrivate
 
 public:
     explicit QSpatialSoundPrivate(QAudioEngine *engine);
+    ~QSpatialSoundPrivate();
 
     static QSpatialSoundPrivate *get(QSpatialSound *soundSource)
     {

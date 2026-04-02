@@ -326,38 +326,24 @@ void QAudioEngineThreaded::setListenerPosition(std::optional<QVector3D> pos)
 void QAudioEngineThreaded::addSpatialSound(QSpatialSound *sound)
 {
     QMutexLocker l(&mutex);
-    QSpatialSoundPrivate *sd = QSpatialSoundPrivate::get(sound);
-
-    sd->sourceId = resonanceAudio->api->CreateSoundObjectSource(vraudio::kBinauralHighQuality);
     sources.append(sound);
 }
 
 void QAudioEngineThreaded::removeSpatialSound(QSpatialSound *sound)
 {
     QMutexLocker l(&mutex);
-    QSpatialSoundPrivate *sd = QSpatialSoundPrivate::get(sound);
-
-    resonanceAudio->api->DestroySource(sd->sourceId);
-    sd->sourceId = vraudio::ResonanceAudioApi::kInvalidSourceId;
     sources.removeOne(sound);
 }
 
 void QAudioEngineThreaded::addStereoSound(QAmbientSound *sound)
 {
     QMutexLocker l(&mutex);
-    QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
-
-    sd->sourceId = resonanceAudio->api->CreateStereoSource(2);
     stereoSources.append(sound);
 }
 
 void QAudioEngineThreaded::removeStereoSound(QAmbientSound *sound)
 {
     QMutexLocker l(&mutex);
-    QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
-
-    resonanceAudio->api->DestroySource(sd->sourceId);
-    sd->sourceId = vraudio::ResonanceAudioApi::kInvalidSourceId;
     stereoSources.removeOne(sound);
 }
 

@@ -18,7 +18,9 @@
 
 QT_BEGIN_NAMESPACE
 
-static std::optional<QAudioBuffer> joinBuffers(QSpan<const QAudioBuffer> buffers)
+namespace {
+
+std::optional<QAudioBuffer> joinBuffers(QSpan<const QAudioBuffer> buffers)
 {
     if (buffers.empty())
         return {};
@@ -43,12 +45,37 @@ static std::optional<QAudioBuffer> joinBuffers(QSpan<const QAudioBuffer> buffers
     };
 }
 
-QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine, int nchannels)
-    : nchannels(nchannels), engine(engine)
+int addStereoSource(QAudioEngine *engine)
+{
+    auto *ep = QAudioEnginePrivate::get(engine);
+    if (!ep)
+        return -1;
+    return ep->resonanceAudio->api->CreateStereoSource(2);
+}
+
+} // namespace
+
+QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine)
+    : QAmbientSoundPrivate{
+          engine,
+          2,
+          addStereoSource(engine),
+      }
+{
+    applyVolume();
+}
+
+QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine, int nchannels, int sourceId)
+    : nchannels(nchannels), engine(engine), sourceId(sourceId)
 {
 }
 
-QAmbientSoundPrivate::~QAmbientSoundPrivate() = default;
+QAmbientSoundPrivate::~QAmbientSoundPrivate()
+{
+    withResonanceApi([&](vraudio::ResonanceAudioApi *api) {
+        api->DestroySource(sourceId);
+    });
+}
 
 void QAmbientSoundPrivate::setVolume(float volume)
 {
@@ -58,9 +85,9 @@ void QAmbientSoundPrivate::setVolume(float volume)
 
 void QAmbientSoundPrivate::applyVolume()
 {
-    auto *ep = QAudioEnginePrivate::get(engine);
-    if (ep)
-        ep->resonanceAudio->api->SetSourceVolume(sourceId, m_volume);
+    withResonanceApi([&](vraudio::ResonanceAudioApi *api) {
+        api->SetSourceVolume(sourceId, m_volume);
+    });
 }
 
 void QAmbientSoundPrivate::loadUrl(const QUrl &url)
@@ -150,6 +177,14 @@ auto QAmbientSoundPrivate::load(QUrl resolvedUrl, QAudioFormat format) -> QFutur
     return future;
 }
 
+vraudio::ResonanceAudioApi *QAmbientSoundPrivate::getAPI()
+{
+    auto *ep = QAudioEnginePrivate::get(engine);
+    if (!ep)
+        return nullptr;
+    return ep->resonanceAudio->api.get();
+}
+
 void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int channels)
 {
     Q_ASSERT(channels == nchannels);
@@ -232,7 +267,6 @@ QAmbientSound::QAmbientSound(QAudioEngine *engine) : QObject(*new QAmbientSoundP
     auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep) {
         ep->addStereoSound(this);
-        d->applyVolume();
     }
 }
 

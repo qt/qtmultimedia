@@ -30,6 +30,10 @@
 #include <atomic>
 #include <memory>
 
+namespace vraudio {
+class ResonanceAudioApi;
+}
+
 QT_BEGIN_NAMESPACE
 
 class QAudioEngine;
@@ -41,7 +45,8 @@ class QAmbientSoundPrivate : public QObjectPrivate
     Q_DECLARE_PUBLIC(QAmbientSound)
 
 public:
-    explicit QAmbientSoundPrivate(QAudioEngine *engine, int nchannels = 2);
+    explicit QAmbientSoundPrivate(QAudioEngine *engine);
+    QAmbientSoundPrivate(QAudioEngine *engine, int nchannels, int sourceId);
     ~QAmbientSoundPrivate();
 
     template <typename T>
@@ -57,13 +62,27 @@ public:
     float volume() const { return m_volume; }
 
 protected:
+    template <typename Functor>
+    auto withResonanceApi(Functor &&f)
+    {
+        auto *api = getAPI();
+        if (api)
+            f(api);
+        else {
+            using result = std::invoke_result_t<Functor, vraudio::ResonanceAudioApi *>;
+            if constexpr (std::is_void_v<result>)
+                return;
+            else
+                return result{ };
+        }
+    }
+
     virtual void applyVolume();
 
 public:
     const int nchannels = 2;
     QAudioEngine *const engine;
-
-    int sourceId = -1; // kInvalidSourceId
+    const int sourceId;
 
     std::atomic_bool m_autoPlay = true;
     std::atomic_bool m_playing = false;
@@ -103,6 +122,8 @@ private:
     friend class QQuick3DAmbientSound;
     std::unique_ptr<const AbstractSourceResolver> m_sourceResolver =
             std::make_unique<TrivialSourceResolver>();
+
+    vraudio::ResonanceAudioApi *getAPI();
 };
 
 QT_END_NAMESPACE

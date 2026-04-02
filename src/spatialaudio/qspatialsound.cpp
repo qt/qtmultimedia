@@ -40,15 +40,8 @@ QSpatialSound::QSpatialSound(QAudioEngine *engine) : QObject(*new QSpatialSoundP
     Q_D(QSpatialSound);
 
     auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep) {
+    if (ep)
         ep->addSpatialSound(this);
-        ep->resonanceAudio->api->SetSourcePosition(d->sourceId, d->pos.x(), d->pos.y(), d->pos.z());
-        ep->resonanceAudio->api->SetSourceRotation(d->sourceId, d->rotation.x(), d->rotation.y(), d->rotation.z(), d->rotation.scalar());
-        d->applyVolume();
-        ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
-        ep->resonanceAudio->api->SetSoundObjectNearFieldEffectGain(d->sourceId, d->nearFieldGain);
-        d->updateDistanceModel();
-    }
 }
 
 /*!
@@ -174,15 +167,43 @@ void QSpatialSound::setDistanceModel(DistanceModel model)
     emit distanceModelChanged();
 }
 
-QSpatialSoundPrivate::QSpatialSoundPrivate(QAudioEngine *engine) : QAmbientSoundPrivate(engine, 1)
+namespace {
+
+static int addSpatialSound(QAudioEngine *engine)
 {
+    auto *ep = QAudioEnginePrivate::get(engine);
+    if (!ep)
+        return -1;
+    return ep->resonanceAudio->api->CreateSoundObjectSource(vraudio::kBinauralHighQuality);
 }
+
+} // namespace
+
+QSpatialSoundPrivate::QSpatialSoundPrivate(QAudioEngine *engine)
+    : QAmbientSoundPrivate{
+          engine,
+          1,
+          addSpatialSound(engine),
+      }
+{
+    withResonanceApi([&](vraudio::ResonanceAudioApi *api) {
+        api->SetSourcePosition(sourceId, pos.x(), pos.y(), pos.z());
+        api->SetSourceRotation(sourceId, rotation.x(), rotation.y(), rotation.z(),
+                               rotation.scalar());
+        api->SetSoundObjectDirectivity(sourceId, directivity, directivityOrder);
+        api->SetSoundObjectNearFieldEffectGain(sourceId, nearFieldGain);
+        applyVolume();
+        updateDistanceModel();
+    });
+}
+
+QSpatialSoundPrivate::~QSpatialSoundPrivate() = default;
 
 void QSpatialSoundPrivate::applyVolume()
 {
-    auto *ep = QAudioEnginePrivate::get(engine);
-    if (ep)
-        ep->resonanceAudio->api->SetSourceVolume(sourceId, volume() * wallDampening);
+    withResonanceApi([&](vraudio::ResonanceAudioApi *api) {
+        api->SetSourceVolume(sourceId, volume() * wallDampening);
+    });
 }
 
 void QSpatialSoundPrivate::updateDistanceModel()
