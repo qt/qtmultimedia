@@ -97,12 +97,6 @@ public:
         ambisonicDecoder.reset();
     }
 
-    void restartOutput()
-    {
-        stopOutput();
-        startOutput();
-    }
-
     void setPaused(bool paused) {
         if (paused)
             sink->suspend();
@@ -280,9 +274,6 @@ void QAudioEngineThreaded::setOutputMode(QAudioEngine::OutputMode mode)
         return;
     m_outputMode = mode;
     resonanceAudio->api->SetStereoSpeakerMode(mode != QAudioEngine::Headphone);
-
-    QMetaObject::invokeMethod(outputStream.get(), &QAudioOutputStream::restartOutput,
-                              Qt::BlockingQueuedConnection);
 
     Q_Q(QAudioEngine);
     emit q->outputModeChanged();
