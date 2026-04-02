@@ -75,11 +75,10 @@ public:
     {
         QMutexLocker locker(&mutex);
         m_playing = false;
-        currentBuffer = 0;
-        bufPos = 0;
+        m_currentSample = 0;
         m_currentLoop = 0;
     }
-    void getBuffer(QSpan<float> buf, int frames, int channels);
+    void getBuffer(QSpan<float> output, int channels);
 
 private:
     float m_volume = 1.f;
@@ -87,11 +86,10 @@ private:
     std::unique_ptr<QAudioDecoder> m_decoder;
 
     QMutex mutex;
-    int currentBuffer = 0;
-    int bufPos = 0;
+    int m_currentSample = 0;
     int m_currentLoop = 0;
 
-    QList<QAudioBuffer> buffers;
+    std::optional<QAudioBuffer> m_buffer;
     QFuture<void> m_loadFuture;
 
     using LoadResult = q23::expected<QList<QAudioBuffer>, QAudioDecoder::Error>;

@@ -18,6 +18,31 @@
 
 QT_BEGIN_NAMESPACE
 
+static std::optional<QAudioBuffer> joinBuffers(QSpan<const QAudioBuffer> buffers)
+{
+    if (buffers.empty())
+        return {};
+
+    QByteArray data;
+    for (const QAudioBuffer &b : buffers) {
+        if (!b.isValid())
+            return {};
+
+        if (b.format() != buffers.front().format()) {
+            qWarning() << "QAmbientSound: all buffers must have the same format";
+            return {};
+        }
+
+        data.append(b.constData<char>(), b.byteCount());
+    }
+
+    return QAudioBuffer{
+        data,
+        buffers.front().format(),
+        buffers.front().startTime(),
+    };
+}
+
 QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine, int nchannels)
     : nchannels(nchannels), engine(engine)
 {
@@ -46,9 +71,8 @@ void QAmbientSoundPrivate::loadUrl(const QUrl &url)
 
     {
         QMutexLocker l(&mutex);
-        buffers.clear();
-        currentBuffer = 0;
-        bufPos = 0;
+        m_buffer = std::nullopt;
+        m_currentSample = 0;
         m_currentLoop = 0;
         m_playing = false;
     }
@@ -65,7 +89,7 @@ void QAmbientSoundPrivate::loadUrl(const QUrl &url)
     m_loadFuture = load(resolved, f).then(q, [this](QAmbientSoundPrivate::LoadResult result) {
         QMutexLocker l(&mutex);
         if (result) {
-            buffers = std::move(*result);
+            m_buffer = joinBuffers(*result);
             if (m_autoPlay)
                 m_playing = true;
         } else {
@@ -126,59 +150,58 @@ auto QAmbientSoundPrivate::load(QUrl resolvedUrl, QAudioFormat format) -> QFutur
     return future;
 }
 
-void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int nframes, int channels)
+void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int channels)
 {
     Q_ASSERT(channels == nchannels);
-    Q_ASSERT(output.size() == channels * nframes);
+    using QtMultimediaPrivate::drop;
+    using QtMultimediaPrivate::take;
+    namespace ranges = QtMultimediaPrivate::ranges;
 
     QMutexLocker l(&mutex);
     namespace ranges = QtMultimediaPrivate::ranges;
 
-    if (!m_playing || currentBuffer >= buffers.size()) {
+    if (!m_playing || !m_buffer) {
         ranges::fill(output, 0.f);
-    } else {
-        using QtMultimediaPrivate::drop;
-        using QtMultimediaPrivate::take;
+        return;
+    }
 
-        int frames = nframes;
-        while (frames) {
-            if (currentBuffer < buffers.size()) {
-                const QAudioBuffer &b = buffers.at(currentBuffer);
-                const float *sourceData = b.constData<float>() + bufPos * nchannels;
+    QSpan<const float> wholeSampleBuffer{
+        m_buffer->constData<float>(),
+        m_buffer->frameCount() * nchannels,
+    };
 
-                // Copy frames
-                int framesToCopy = qMin(b.frameCount() - bufPos, frames);
-                QSpan<const float> source(sourceData, framesToCopy * nchannels);
-                QSpan<float> destination = take(output, framesToCopy * nchannels);
-                std::copy(source.begin(), source.end(), destination.begin());
+    while (!output.empty()) {
+        QSpan remainingSamples = drop(wholeSampleBuffer, m_currentSample);
+        const QSpan samplesToCopy = take(remainingSamples, output.size());
+        ranges::copy(samplesToCopy, output.begin());
+        output = drop(output, samplesToCopy.size());
+        m_currentSample += samplesToCopy.size();
 
-                // Advance output span
-                output = drop(output, framesToCopy * nchannels);
+        if (output.empty())
+            return;
 
-                frames -= framesToCopy;
-                bufPos += framesToCopy;
-                Q_ASSERT(bufPos <= b.frameCount());
+        // Reached end of buffer
+        Q_ASSERT(m_currentSample == wholeSampleBuffer.size());
+        m_currentSample = 0;
 
-                if (bufPos == b.frameCount()) {
-                    ++currentBuffer;
-                    bufPos = 0;
-                }
-            } else {
-                // Fill remaining with silence
+        switch (m_loops) {
+        case QAmbientSound::Infinite:
+            break; // Continue looping
+        case 0:
+            m_playing = false;
+            m_currentLoop = 0;
+            ranges::fill(output, 0.f);
+            return;
+        default:
+            ++m_currentLoop;
+            if (m_currentLoop >= m_loops) {
+                m_playing = false;
+                m_currentLoop = 0;
                 ranges::fill(output, 0.f);
                 return;
             }
-
-            if (currentBuffer == buffers.size()) {
-                currentBuffer = 0;
-                ++m_currentLoop;
-            }
-            if (m_loops > 0 && m_currentLoop >= m_loops) {
-                m_playing = false;
-                m_currentLoop = 0;
-            }
+            break;
         }
-        Q_ASSERT(output.size() == 0);
     }
 }
 

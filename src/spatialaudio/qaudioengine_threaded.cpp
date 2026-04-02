@@ -150,7 +150,7 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
             if (!sp)
                 continue;
             std::array<float, framesPerBuffer> buf;
-            sp->getBuffer(buf, framesPerBuffer, 1);
+            sp->getBuffer(buf, 1);
             d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 1,
                                                          framesPerBuffer);
         }
@@ -159,7 +159,7 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
             if (!sp)
                 continue;
             std::array<float, 2 * framesPerBuffer> buf;
-            sp->getBuffer(buf, framesPerBuffer, 2);
+            sp->getBuffer(buf, 2);
             d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 2,
                                                          framesPerBuffer);
         }
