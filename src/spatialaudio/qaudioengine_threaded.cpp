@@ -146,22 +146,12 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
     while (outputBuffer.size() >= nChannels * framesPerBuffer) {
         // Fill input buffers
         for (auto *source : std::as_const(d->sources)) {
-            auto *sp = QSpatialSoundPrivate::get(source);
-            if (!sp)
-                continue;
-            std::array<float, framesPerBuffer> buf;
-            sp->getBuffer(buf, 1);
-            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 1,
-                                                         framesPerBuffer);
-        }
-        for (auto *source : std::as_const(d->stereoSources)) {
-            auto *sp = QAmbientSoundPrivate::get(source);
-            if (!sp)
-                continue;
+            Q_ASSERT(source->nchannels <= 2);
             std::array<float, 2 * framesPerBuffer> buf;
-            sp->getBuffer(buf, 2);
-            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf.data(), 2,
-                                                         framesPerBuffer);
+            source->getBuffer(take(QSpan<float>{ buf }, source->nchannels * framesPerBuffer),
+                              source->nchannels);
+            d->resonanceAudio->api->SetInterleavedBuffer(source->sourceId, buf.data(),
+                                                         source->nchannels, framesPerBuffer);
         }
 
         if (ambisonicDecoder && d->m_outputMode == QAudioEngine::Surround) {
@@ -200,7 +190,7 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
                 // If we get here, it means that resonanceAudio did not actually fill the buffer.
                 // Sometimes this is expected, for example if resonanceAudio does not have any sources.
                 // In this case we just fill the buffer with silence.
-                if (d->sources.isEmpty() && d->stereoSources.isEmpty()) {
+                if (d->sources.isEmpty()) {
                     std::fill(currentOutput.begin(), currentOutput.end(), 0);
                 } else {
                     // If we get here, it means that something unexpected happened, so bail.
@@ -323,28 +313,16 @@ void QAudioEngineThreaded::setListenerPosition(std::optional<QVector3D> pos)
     listenerPositionDirty = true;
 }
 
-void QAudioEngineThreaded::addSpatialSound(QSpatialSound *sound)
+void QAudioEngineThreaded::addSound(QAmbientSoundPrivate *sound)
 {
     QMutexLocker l(&mutex);
     sources.append(sound);
 }
 
-void QAudioEngineThreaded::removeSpatialSound(QSpatialSound *sound)
+void QAudioEngineThreaded::removeSound(QAmbientSoundPrivate *sound)
 {
     QMutexLocker l(&mutex);
     sources.removeOne(sound);
-}
-
-void QAudioEngineThreaded::addStereoSound(QAmbientSound *sound)
-{
-    QMutexLocker l(&mutex);
-    stereoSources.append(sound);
-}
-
-void QAudioEngineThreaded::removeStereoSound(QAmbientSound *sound)
-{
-    QMutexLocker l(&mutex);
-    stereoSources.removeOne(sound);
 }
 
 void QAudioEngineThreaded::addRoom(QAudioRoom *room)
@@ -403,12 +381,8 @@ void QAudioEngineThreaded::updateRooms()
     resonanceAudio->api->SetReverbProperties(rp->reverb);
 
     // update room effects for all sound sources
-    for (auto *s : std::as_const(sources)) {
-        auto *sp = QSpatialSoundPrivate::get(s);
-        if (!sp)
-            continue;
-        sp->updateRoomEffects();
-    }
+    for (auto *s : std::as_const(sources))
+        s->updateRoomEffects();
 }
 
 QT_END_NAMESPACE

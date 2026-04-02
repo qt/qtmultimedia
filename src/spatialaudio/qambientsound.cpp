@@ -68,10 +68,17 @@ QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine)
 QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine, int nchannels, int sourceId)
     : nchannels(nchannels), engine(engine), sourceId(sourceId)
 {
+    auto *ep = QAudioEnginePrivate::get(engine);
+    if (ep)
+        ep->addSound(this);
 }
 
 QAmbientSoundPrivate::~QAmbientSoundPrivate()
 {
+    auto *ep = QAudioEnginePrivate::get(engine);
+    if (ep)
+        ep->removeSound(this);
+
     withResonanceApi([&](vraudio::ResonanceAudioApi *api) {
         api->DestroySource(sourceId);
     });
@@ -262,22 +269,9 @@ void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int channels)
  */
 QAmbientSound::QAmbientSound(QAudioEngine *engine) : QObject(*new QAmbientSoundPrivate(engine))
 {
-    Q_D(QAmbientSound);
-
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep) {
-        ep->addStereoSound(this);
-    }
 }
 
-QAmbientSound::~QAmbientSound()
-{
-    Q_D(QAmbientSound);
-
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->removeStereoSound(this);
-}
+QAmbientSound::~QAmbientSound() = default;
 
 /*!
     \property QAmbientSound::volume

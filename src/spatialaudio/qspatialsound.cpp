@@ -37,24 +37,12 @@ QT_BEGIN_NAMESPACE
  */
 QSpatialSound::QSpatialSound(QAudioEngine *engine) : QObject(*new QSpatialSoundPrivate(engine))
 {
-    Q_D(QSpatialSound);
-
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->addSpatialSound(this);
 }
 
 /*!
     Destroys the sound source.
  */
-QSpatialSound::~QSpatialSound()
-{
-    Q_D(QSpatialSound);
-
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->removeSpatialSound(this);
-}
+QSpatialSound::~QSpatialSound() = default;
 
 /*!
     \property QSpatialSound::position

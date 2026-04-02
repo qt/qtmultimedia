@@ -27,8 +27,6 @@ class ResonanceAudio;
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialSound;
-class QAmbientSound;
 class QAudioOutputStream;
 class QAudioRoom;
 class QAudioListener;
@@ -53,10 +51,8 @@ public:
     bool roomEffectsEnabled() const override;
     void setListenerPosition(std::optional<QVector3D> pos) override;
 
-    void addSpatialSound(QSpatialSound *sound) override;
-    void removeSpatialSound(QSpatialSound *sound) override;
-    void addStereoSound(QAmbientSound *sound) override;
-    void removeStereoSound(QAmbientSound *sound) override;
+    void addSound(QAmbientSoundPrivate *) override;
+    void removeSound(QAmbientSoundPrivate *) override;
 
     void addRoom(QAudioRoom *room) override;
     void removeRoom(QAudioRoom *room) override;
@@ -75,8 +71,7 @@ private:
     QThread audioThread;
     std::unique_ptr<QAudioOutputStream> outputStream;
 
-    QList<QSpatialSound *> sources;
-    QList<QAmbientSound *> stereoSources;
+    QList<QAmbientSoundPrivate *> sources;
     QList<QAudioRoom *> rooms;
     mutable bool listenerPositionDirty = true;
     QAudioRoom *m_currentRoom = nullptr;

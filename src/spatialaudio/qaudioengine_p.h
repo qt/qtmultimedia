@@ -28,8 +28,8 @@ class ResonanceAudio;
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialSound;
-class QAmbientSound;
+class QSpatialSoundPrivate;
+class QAmbientSoundPrivate;
 class QAudioRoom;
 class QAudioListener;
 
@@ -74,10 +74,8 @@ public:
     virtual void setRoomEffectsEnabled(bool) = 0;
     virtual bool roomEffectsEnabled() const = 0;
 
-    virtual void addSpatialSound(QSpatialSound *) = 0;
-    virtual void removeSpatialSound(QSpatialSound *) = 0;
-    virtual void addStereoSound(QAmbientSound *) = 0;
-    virtual void removeStereoSound(QAmbientSound *) = 0;
+    virtual void addSound(QAmbientSoundPrivate *) = 0;
+    virtual void removeSound(QAmbientSoundPrivate *) = 0;
 
     virtual void addRoom(QAudioRoom *) = 0;
     virtual void removeRoom(QAudioRoom *) = 0;

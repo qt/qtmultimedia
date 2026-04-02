@@ -55,7 +55,7 @@ public:
     float wallOcclusion = 0.f;
 
     void updateDistanceModel();
-    void updateRoomEffects();
+    void updateRoomEffects() override;
 };
 
 QT_END_NAMESPACE

@@ -61,6 +61,8 @@ public:
     void setVolume(float volume);
     float volume() const { return m_volume; }
 
+    virtual void updateRoomEffects() { }
+
 protected:
     template <typename Functor>
     auto withResonanceApi(Functor &&f)
