@@ -21,6 +21,8 @@
 #include <QtCore/qthread.h>
 #include <QtMultimedia/qaudiodevice.h>
 
+#include <vector>
+
 namespace vraudio {
 class ResonanceAudio;
 } // namespace vraudio
@@ -71,8 +73,8 @@ private:
     QThread audioThread;
     std::unique_ptr<QAudioOutputStream> outputStream;
 
-    QList<QAmbientSoundPrivate *> sources;
-    QList<QAudioRoom *> rooms;
+    std::vector<QAmbientSoundPrivate *> sources;
+    std::vector<QAudioRoom *> rooms;
     mutable bool listenerPositionDirty = true;
     QAudioRoom *m_currentRoom = nullptr;
 };

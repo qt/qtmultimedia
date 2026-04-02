@@ -26,6 +26,7 @@
 #include <resonance_audio.h>
 
 #include <memory>
+#include <q20vector.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -145,7 +146,7 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
     bool ok = true;
     while (outputBuffer.size() >= nChannels * framesPerBuffer) {
         // Fill input buffers
-        for (auto *source : std::as_const(d->sources)) {
+        for (auto *source : d->sources) {
             Q_ASSERT(source->nchannels <= 2);
             std::array<float, 2 * framesPerBuffer> buf;
             source->getBuffer(take(QSpan<float>{ buf }, source->nchannels * framesPerBuffer),
@@ -190,7 +191,7 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
                 // If we get here, it means that resonanceAudio did not actually fill the buffer.
                 // Sometimes this is expected, for example if resonanceAudio does not have any sources.
                 // In this case we just fill the buffer with silence.
-                if (d->sources.isEmpty()) {
+                if (d->sources.empty()) {
                     std::fill(currentOutput.begin(), currentOutput.end(), 0);
                 } else {
                     // If we get here, it means that something unexpected happened, so bail.
@@ -316,25 +317,25 @@ void QAudioEngineThreaded::setListenerPosition(std::optional<QVector3D> pos)
 void QAudioEngineThreaded::addSound(QAmbientSoundPrivate *sound)
 {
     QMutexLocker l(&mutex);
-    sources.append(sound);
+    sources.push_back(sound);
 }
 
 void QAudioEngineThreaded::removeSound(QAmbientSoundPrivate *sound)
 {
     QMutexLocker l(&mutex);
-    sources.removeOne(sound);
+    q20::erase(sources, sound);
 }
 
 void QAudioEngineThreaded::addRoom(QAudioRoom *room)
 {
     QMutexLocker l(&mutex);
-    rooms.append(room);
+    rooms.push_back(room);
 }
 
 void QAudioEngineThreaded::removeRoom(QAudioRoom *room)
 {
     QMutexLocker l(&mutex);
-    rooms.removeOne(room);
+    q20::erase(rooms, room);
 }
 
 // This method is called from the audio thread
@@ -347,7 +348,7 @@ void QAudioEngineThreaded::updateRooms()
     listenerPositionDirty = false;
 
     bool roomDirty = false;
-    for (const auto &room : std::as_const(rooms)) {
+    for (const auto &room : rooms) {
         auto *rd = QAudioRoomPrivate::get(room);
         if (rd->dirty) {
             roomDirty = true;
@@ -381,7 +382,7 @@ void QAudioEngineThreaded::updateRooms()
     resonanceAudio->api->SetReverbProperties(rp->reverb);
 
     // update room effects for all sound sources
-    for (auto *s : std::as_const(sources))
+    for (auto *s : sources)
         s->updateRoomEffects();
 }
 
