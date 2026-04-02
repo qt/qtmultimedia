@@ -32,8 +32,9 @@ public:
 
     QAudioEngine *engine = nullptr;
     vraudio::RoomProperties roomProperties;
-    bool dirty = true;
+    void requestUpdate();
 
+    bool dirty{};
     vraudio::ReverbProperties reverb;
     vraudio::ReflectionProperties reflections;
 

@@ -80,6 +80,7 @@ public:
     virtual void addRoom(QAudioRoom *) = 0;
     virtual void removeRoom(QAudioRoom *) = 0;
     virtual QAudioRoom *currentRoom() const = 0;
+    virtual void updateRooms() = 0;
 
 protected:
     struct SmallestRoomForListenerResult

@@ -133,7 +133,6 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
     QSpan<short> outputBuffer((short *)data, len / sizeof(short));
 
     QMutexLocker l(&d->mutex);
-    d->updateRooms();
 
     int nChannels = ambisonicDecoder ? ambisonicDecoder->nOutputChannels() : 2;
     if (outputBuffer.size() < nChannels * framesPerBuffer)
@@ -311,7 +310,8 @@ void QAudioEngineThreaded::setListenerPosition(std::optional<QVector3D> pos)
         return;
 
     QAudioEnginePrivate::setListenerPosition(pos);
-    listenerPositionDirty = true;
+
+    updateRooms();
 }
 
 void QAudioEngineThreaded::addSound(QAmbientSoundPrivate *sound)
@@ -338,14 +338,10 @@ void QAudioEngineThreaded::removeRoom(QAudioRoom *room)
     q20::erase(rooms, room);
 }
 
-// This method is called from the audio thread
 void QAudioEngineThreaded::updateRooms()
 {
     if (!m_roomEffectsEnabled)
         return;
-
-    bool needUpdate = listenerPositionDirty;
-    listenerPositionDirty = false;
 
     bool roomDirty = false;
     for (const auto &room : rooms) {
@@ -353,12 +349,8 @@ void QAudioEngineThreaded::updateRooms()
         if (rd->dirty) {
             roomDirty = true;
             rd->update();
-            needUpdate = true;
         }
     }
-
-    if (!needUpdate)
-        return;
 
     auto inferredRoom = findSmallestRoomForListener(rooms);
     if (inferredRoom.room != m_currentRoom)

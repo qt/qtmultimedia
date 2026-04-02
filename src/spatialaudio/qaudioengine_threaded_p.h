@@ -59,7 +59,7 @@ public:
     void addRoom(QAudioRoom *room) override;
     void removeRoom(QAudioRoom *room) override;
     QAudioRoom *currentRoom() const override { return m_currentRoom; }
-    void updateRooms();
+    void updateRooms() override;
 
 private:
     friend class QAudioOutputStream;
@@ -75,7 +75,6 @@ private:
 
     std::vector<QAmbientSoundPrivate *> sources;
     std::vector<QAudioRoom *> rooms;
-    mutable bool listenerPositionDirty = true;
     QAudioRoom *m_currentRoom = nullptr;
 };
 
