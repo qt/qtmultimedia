@@ -36,8 +36,8 @@ private slots:
     void test_QSpatialSound_rotation_and_directivityOrder_semantics();
     void test_engine_positionDistanceScale();
     void test_QSpatialSound_signalsEmittedOnChange();
-    void testEngineIntegration_skipIfNoOutputs();
-    void testSetSource_autoPlay_skipIfNoOutputs();
+    void testEngineIntegration();
+    void testSetSource_autoPlay();
     void testQAmbientSound_basic();
     void testQAudioRoom_basic();
     void testQAudioListener_basic();
@@ -237,7 +237,7 @@ void tst_QSpatialAudio::test_QSpatialSound_rotation_and_directivityOrder_semanti
     QCOMPARE(ordAfter, ordSpy.size());
 }
 
-void tst_QSpatialAudio::testEngineIntegration_skipIfNoOutputs()
+void tst_QSpatialAudio::testEngineIntegration()
 {
     QList outputs = QMediaDevices::audioOutputs();
     if (outputs.isEmpty())
@@ -250,7 +250,7 @@ void tst_QSpatialAudio::testEngineIntegration_skipIfNoOutputs()
     eng.stop();
 }
 
-void tst_QSpatialAudio::testSetSource_autoPlay_skipIfNoOutputs()
+void tst_QSpatialAudio::testSetSource_autoPlay()
 {
     QList outputs = QMediaDevices::audioOutputs();
     if (outputs.isEmpty())
