@@ -137,7 +137,6 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
         QMediaPlayer::Error err,
         const QString &errString)
     {
-        control->setMedia(QUrl(), nullptr);
         control->mediaStatusChanged(status);
         control->error(err, errString);
     };
