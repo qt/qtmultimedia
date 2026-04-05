@@ -1133,9 +1133,7 @@ void AVFMediaPlayer::processMediaLoadError(QMediaPlayer::Error errorCode)
         positionChanged(position());
     }
 
-    mediaStatusChanged(QMediaPlayer::InvalidMedia);
-
-    error(errorCode, tr("Failed to load media"));
+    setInvalidMediaWithError(errorCode, tr("Failed to load media"));
 }
 
 void AVFMediaPlayer::streamReady()

@@ -116,6 +116,7 @@ public:
     void stateChanged(QMediaPlayer::PlaybackState newState);
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);
     void error(QMediaPlayer::Error, const QString &errorString);
+    void setInvalidMediaWithError(QMediaPlayer::Error, const QString &errString);
 
     void resetCurrentLoop() { m_currentLoop = 0; }
     bool doLoop() {
