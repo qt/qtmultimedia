@@ -35,6 +35,13 @@ void QPlatformMediaPlayer::error(QMediaPlayer::Error error, const QString &error
     player->d_func()->setError(error, errorString);
 }
 
+void QPlatformMediaPlayer::setInvalidMediaWithError(QMediaPlayer::Error err,
+                                                    const QString &errString)
+{
+    mediaStatusChanged(QMediaPlayer::InvalidMedia);
+    error(err, errString);
+}
+
 QPlatformMediaPlayer::PitchCompensationAvailability
 QPlatformMediaPlayer::pitchCompensationAvailability() const
 {

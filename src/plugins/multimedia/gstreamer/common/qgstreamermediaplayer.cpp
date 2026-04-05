@@ -163,9 +163,9 @@ void QGstreamerMediaPlayer::handleDiscoverResult(const DiscoverResult &discovery
     } else {
         qCDebug(qLcMediaPlayer) << "Discovery error:" << discoveryResult.error();
         m_resourceErrorState = ResourceErrorState::ErrorOccurred;
-        error(QMediaPlayer::Error::ResourceError, u"Resource cannot be discovered"_s);
+        setInvalidMediaWithError(QMediaPlayer::Error::ResourceError,
+                                 u"Resource cannot be discovered"_s);
         m_hasPendingMedia = false;
-        mediaStatusChanged(QMediaPlayer::InvalidMedia);
         resetStateForEmptyOrInvalidMedia();
     };
 }

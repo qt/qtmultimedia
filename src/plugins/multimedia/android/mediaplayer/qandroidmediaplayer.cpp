@@ -491,27 +491,23 @@ void QAndroidMediaPlayer::onError(qint32 what, qint32 extra)
     switch (extra) {
     case AndroidMediaPlayer::MEDIA_ERROR_IO: // Network OR file error
         errorString += QLatin1String(" (I/O operation failed)");
-        error = QMediaPlayer::NetworkError;
-        setMediaStatus(QMediaPlayer::InvalidMedia);
-        break;
+        setInvalidMediaWithError(QMediaPlayer::NetworkError, errorString);
+        return;
     case AndroidMediaPlayer::MEDIA_ERROR_MALFORMED:
         errorString += QLatin1String(" (Malformed bitstream)");
-        error = QMediaPlayer::FormatError;
-        setMediaStatus(QMediaPlayer::InvalidMedia);
-        break;
+        setInvalidMediaWithError(QMediaPlayer::FormatError, errorString);
+        return;
     case AndroidMediaPlayer::MEDIA_ERROR_UNSUPPORTED:
         errorString += QLatin1String(" (Unsupported media)");
-        error = QMediaPlayer::FormatError;
-        setMediaStatus(QMediaPlayer::InvalidMedia);
-        break;
+        setInvalidMediaWithError(QMediaPlayer::FormatError, errorString);
+        return;
     case AndroidMediaPlayer::MEDIA_ERROR_TIMED_OUT:
         errorString += QLatin1String(" (Timed out)");
         break;
     case AndroidMediaPlayer::MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
         errorString += QLatin1String(" (Unable to start progressive playback')");
-        error = QMediaPlayer::FormatError;
-        setMediaStatus(QMediaPlayer::InvalidMedia);
-        break;
+        setInvalidMediaWithError(QMediaPlayer::FormatError, errorString);
+        return;
     case AndroidMediaPlayer::MEDIA_ERROR_BAD_THINGS_ARE_GOING_TO_HAPPEN:
         errorString += mMediaContent.scheme() == QLatin1String("rtsp")
             ? QLatin1String(" (Unknown error/Insufficient resources or RTSP may not be supported)")
