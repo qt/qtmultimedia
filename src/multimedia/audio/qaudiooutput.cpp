@@ -32,8 +32,8 @@
     \endqml
 
     You can use AudioOutput together with a QtMultiMedia::MediaPlayer to play audio content, or you
-   can use it in conjunction with a MultiMedia::CaptureSession to monitor the audio processed by the
-   capture session.
+    can use it in conjunction with a MultiMedia::CaptureSession to monitor the audio processed by the
+    capture session.
 
     \sa VideoOutput, AudioInput
 */
@@ -55,6 +55,7 @@
     QMediaDevices::audioOutputsChanged() signal is emitted when the list of
     audio outputs is ready. User permissions are required. Works only on secure https contexts.
 
+    \sa QAudioInput
 */
 QAudioOutput::QAudioOutput(QObject *parent)
     : QAudioOutput(QMediaDevices::defaultAudioOutput(), parent)
