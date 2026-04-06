@@ -31,7 +31,7 @@ public:
     virtual void setMuted(bool /*muted*/) {}
     virtual void setVolume(float /*volume*/) {}
 
-    QAudioOutput *q = nullptr;
+    QAudioOutput *const q;
     QAudioDevice device;
     float volume = 1.;
     bool muted = false;
