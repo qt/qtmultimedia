@@ -152,6 +152,8 @@ void QMediaPlayerPrivate::setMedia(QUrl media, QIODevice *stream)
         && !control->canPlayQrc()) {
         qrcMedia = media;
 
+        control->mediaStatusChanged(QMediaPlayer::LoadingMedia);
+
         file.reset(new QFile(QLatin1Char(':') + media.path()));
         if (!file->open(QFile::ReadOnly)) {
             file.reset();
