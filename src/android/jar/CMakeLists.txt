@@ -28,9 +28,7 @@ if (QT_FEATURE_ffmpeg)
 endif()
 
 qt_internal_add_jar(Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia
-    INCLUDE_JARS
-        ${QT_ANDROID_JAR}
-        ${QT6_INSTALL_PREFIX}/jar/Qt${QtMultimedia_VERSION_MAJOR}Android.jar
+    INCLUDE_JARS ${QT6_INSTALL_PREFIX}/jar/Qt${QtMultimedia_VERSION_MAJOR}Android.jar
     SOURCES ${java_sources}
     OUTPUT_DIR "${QT_BUILD_DIR}/jar"
 )
@@ -41,4 +39,3 @@ install_jar(Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia
     DESTINATION ${destination}
     COMPONENT Devel
 )
-

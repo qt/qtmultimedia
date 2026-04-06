@@ -1,0 +1,24 @@
+plugins {
+    alias(libs.plugins.android.library)
+}
+
+android {
+    namespace = 'org.qtproject.qt.android.multimedia'
+    compileSdk = (project.findProperty('compileSdk') ?: '36') as int
+
+    defaultConfig {
+        minSdk = (project.findProperty('minSdk') ?: '28') as int
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = ['src']
+        }
+    }
+}
+
+dependencies {
+    if (!findProperty('isQtCMakeBuild')) {
+        compileOnly 'org.qtproject.qt:Qt6Android'
+    }
+}

@@ -1,8 +1,7 @@
 version = 1
 
 [[annotations]]
-path = ["src/android/jar/AndroidManifest.xml",
-        "src/plugins/**"]
+path = ["src/plugins/**"]
 precedence = "closest"
 comment = "source and plugins"
 SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
@@ -18,7 +17,7 @@ SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
 [[annotations]]
 path = ["**.pro", "**.qrc", ".cmake.conf", "**.yaml", "**/ci_config_linux.json",
         "**.cfg", "**BLACKLIST", "**.plist.in", "**.pri", "**.plist", "**/CMakeLists.txt",
-         "coin/instructions/tests_pipewire", ".tag"]
+        "coin/instructions/tests_pipewire", ".tag"]
 precedence = "closest"
 comment = "build system"
 SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
@@ -53,6 +52,15 @@ comment = "infrastructure"
 precedence = "override"
 SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
 SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["src/**/build.gradle", "src/**/settings.gradle",
+        "src/**/gradle.properties", "src/**/libs.versions.toml"]
+precedence = "override"
+comment = "build system"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "BSD-3-Clause"
+
 
 [[annotations]]
 path = ["**/qt_attribution.json"]

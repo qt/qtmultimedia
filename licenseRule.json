@@ -144,6 +144,11 @@
                 "comment": "Library only for Qt tests",
                 "file type": "util",
                 "spdx": ["LicenseRef-Qt-Commercial OR GPL-3.0-only"]
+            },
+            ".*(\\.gradle|gradle\\.properties|libs\\.versions\\.toml)$": {
+                "comment": "Android Gradle build files",
+                "file type": "build system",
+                "spdx": ["BSD-3-Clause"]
             }
         }
     }

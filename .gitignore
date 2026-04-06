@@ -26,6 +26,7 @@ tmp
 *-config.*
 *-config_p.h
 *.version*
+!libs.versions.toml
 .DS_Store
 
 #
@@ -75,3 +76,15 @@ cmake_install.cmake
 tst_*.xml
 CMakeLists.txt.user*
 .xdp_CMakeLists.txt.*
+
+# CLion generated files
+.idea
+
+# Gradle generated files
+.gradle/
+local.properties
+
+# JDTLS generated files
+.project
+.classpath
+.settings/
