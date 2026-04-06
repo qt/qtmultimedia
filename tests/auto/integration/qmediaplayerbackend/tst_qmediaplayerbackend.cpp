@@ -612,8 +612,6 @@ void tst_QMediaPlayerBackend::setSource_emitsMediaStatusChange_whenCalledWithInv
 void tst_QMediaPlayerBackend::setSource_emitsMediaStatusChange_whenCalledWithInvalidMedia()
 {
     QFETCH(QUrl, invalidMedia);
-    if (invalidMedia == QUrl("qrc:/some_not_existing_qrc_resource.mp4"))
-        QSKIP_FFMPEG("FFmpeg: Doesn`t emit QMediaPlayer::LoadingMedia...");
 
     m_fixture->player.setSource(invalidMedia);
     QTRY_COMPARE_EQ_WITH_TIMEOUT(m_fixture->player.error(), QMediaPlayer::ResourceError, 10s);

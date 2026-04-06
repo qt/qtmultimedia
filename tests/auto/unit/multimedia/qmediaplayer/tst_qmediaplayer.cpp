@@ -816,28 +816,28 @@ void tst_QMediaPlayer::debugEnums()
 void tst_QMediaPlayer::testQrc_data()
 {
     QTest::addColumn<QUrl>("mediaContent");
-    QTest::addColumn<QMediaPlayer::MediaStatus>("status");
+    QTest::addColumn<QList<QMediaPlayer::MediaStatus>>("status");
     QTest::addColumn<QMediaPlayer::Error>("error");
     QTest::addColumn<int>("errorCount");
     QTest::addColumn<QString>("backendMediaContentScheme");
     QTest::addColumn<bool>("backendHasStream");
 
     QTest::newRow("invalid") << QUrl(QUrl(QLatin1String("qrc:/invalid.mp3")))
-                             << QMediaPlayer::InvalidMedia
+                             << QList{QMediaPlayer::LoadingMedia, QMediaPlayer::InvalidMedia}
                              << QMediaPlayer::ResourceError
                              << 1 // error count
                              << QString() // backend should not have got any media (empty URL scheme)
                              << false; // backend should not have got any stream
 
     QTest::newRow("valid+nostream") << QUrl(QUrl(QLatin1String("qrc:/testdata/nokia-tune.mp3")))
-                                    << QMediaPlayer::LoadingMedia
+                                    << QList{QMediaPlayer::LoadingMedia}
                                     << QMediaPlayer::NoError
                                     << 0 // error count
                                     << QStringLiteral("file") // backend should have a got a temporary file
                                     << false; // backend should not have got any stream
 
     QTest::newRow("valid+stream") << QUrl(QUrl(QLatin1String("qrc:/testdata/nokia-tune.mp3")))
-                                  << QMediaPlayer::LoadingMedia
+                                  << QList{QMediaPlayer::LoadingMedia}
                                   << QMediaPlayer::NoError
                                   << 0 // error count
                                   << QStringLiteral("qrc")
@@ -847,7 +847,7 @@ void tst_QMediaPlayer::testQrc_data()
 void tst_QMediaPlayer::testQrc()
 {
     QFETCH(QUrl, mediaContent);
-    QFETCH(QMediaPlayer::MediaStatus, status);
+    QFETCH(QList<QMediaPlayer::MediaStatus>, status);
     QFETCH(QMediaPlayer::Error, error);
     QFETCH(int, errorCount);
     QFETCH(QString, backendMediaContentScheme);
@@ -862,9 +862,12 @@ void tst_QMediaPlayer::testQrc()
 
     player->setSource(mediaContent);
 
-    QTRY_COMPARE(player->mediaStatus(), status);
-    QCOMPARE(statusSpy.size(), 1);
-    QCOMPARE(qvariant_cast<QMediaPlayer::MediaStatus>(statusSpy.last().value(0)), status);
+    QTRY_COMPARE(player->mediaStatus(), status.back());
+    QList<QMediaPlayer::MediaStatus> spyStatus;
+    for (const auto &call : statusSpy)
+        spyStatus.append(qvariant_cast<QMediaPlayer::MediaStatus>(call.value(0)));
+
+    QCOMPARE(spyStatus, status);
 
     QCOMPARE(player->source(), mediaContent);
     QCOMPARE(mediaSpy.size(), 1);
