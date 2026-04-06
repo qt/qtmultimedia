@@ -34,7 +34,7 @@
     \endqml
 
     You can use AudioInput together with a QtMultiMedia::CaptureSession to capture audio from an
-   audio input device.
+    audio input device.
 
     \sa Camera, AudioOutput
 */
@@ -53,6 +53,8 @@
     \note On WebAssembly platform, due to its asynchronous nature,
     QMediaDevices::audioInputsChanged() signal is emitted when the list of
     audio inputs is ready. User permissions are required. Works only on secure https contexts.
+
+    \sa QAudioOutput
 */
 
 QAudioInput::QAudioInput(QObject *parent) : QAudioInput(QMediaDevices::defaultAudioInput(), parent)
