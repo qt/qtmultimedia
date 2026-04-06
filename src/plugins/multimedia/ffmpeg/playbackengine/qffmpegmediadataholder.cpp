@@ -251,6 +251,12 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
         qCDebug(qLcMediaDataHolder) << "Enabled low latency streaming";
     }
 
+    // QTBUG-145590: for hls streams, we want to disable http persistent connections to allow FFmpeg
+    // (before FFmpeg 8?) to mix raw and encrypted streams
+    // compare  https://trac.ffmpeg.org/ticket/10599
+    if (avformat_version() < AV_VERSION_INT(62, 12, 100))
+        av_dict_set_int(dict, "http_persistent", 0, 0);
+
     context->interrupt_callback.opaque = cancelToken.get();
     context->interrupt_callback.callback = [](void *opaque) {
         const auto *cancelToken = static_cast<const ICancelToken *>(opaque);
