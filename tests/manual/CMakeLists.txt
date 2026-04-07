@@ -11,6 +11,7 @@ check_cxx_source_compiles("
 add_subdirectory(audiodecoder)
 add_subdirectory(media-metadata)
 add_subdirectory(minimal-audio-recorder)
+add_subdirectory(minimal-camera-recorder)
 # minimal-audio-callback-io relies on <ranges>. At the time of writing,
 # some targets in CI run compilers that do not support this.
 if (COMPILER_SUPPORTS_STD_RANGES)
