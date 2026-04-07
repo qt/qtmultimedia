@@ -473,6 +473,9 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr inputFrame)
     if (!updateSourceFormatAndSize(inputFrame.get()))
         return AVERROR(EINVAL);
 
+    // some codecs require quality to be set on each frame and ignore global_quality
+    inputFrame->quality = m_codecContext->global_quality;
+
     FrameConverter converter{ std::move(inputFrame) };
 
     if (m_downloadFromHW) {
