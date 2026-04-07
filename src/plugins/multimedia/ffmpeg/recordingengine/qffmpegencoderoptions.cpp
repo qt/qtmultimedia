@@ -146,6 +146,8 @@ static void apply_mpeg4(const QMediaEncoderSettings &settings, AVCodecContext *c
             1, // VeryHighQuality
         };
         av_dict_set_int(opts, "qscale", scales[settings.quality()], 0);
+        codec->global_quality = scales[settings.quality()] * FF_QP2LAMBDA;
+        codec->flags |= AV_CODEC_FLAG_QSCALE;
         break;
     }
     case QMediaRecorder::TwoPassEncoding: {
