@@ -18,11 +18,14 @@
 #include <QObject>
 
 #include <emscripten/val.h>
+#include <emscripten/html5_webgl.h>
 #include <QMediaPlayer>
 #include <QVideoFrame>
 
 #include "qwasmmediaplayer_p.h"
 #include "private/qwasmmediadevices_p.h"
+#include "qwasmgltexturevideobuffer_p.h"
+
 #include <private/qwasmjs_p.h>
 
 #include <QtCore/qloggingcategory.h>
@@ -91,6 +94,11 @@ public:
 
     void videoFrameCallback(void *context);
     void videoFrameTimerCallback();
+
+    void webglVideoFrameCallback(void *context);
+    void getWebGLContext();
+    bool m_hasWebGLContext = false;
+
     // mediacapturesession has the videosink
     QVideoSink *m_wasmSink = nullptr;
 
@@ -167,6 +175,8 @@ private:
 
     std::string m_cameraId;
     QMetaObject::Connection m_connection;
+    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_glContextHandle = 0;
+    emscripten::val m_glCanvas = emscripten::val::undefined();
 };
 
 QT_END_NAMESPACE

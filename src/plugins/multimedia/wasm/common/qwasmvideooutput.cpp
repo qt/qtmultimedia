@@ -10,6 +10,14 @@
 #include <QFile>
 #include <QBuffer>
 #include <QMimeDatabase>
+#include <QGuiApplication>
+#include <QOpenGLContext>
+
+#include <QtGui/rhi/qrhi_platform.h>
+#include <qpa/qplatformwindow_p.h>
+
+#include <GLES2/gl2.h>
+
 #include "qwasmvideooutput_p.h"
 
 #include <qvideosink.h>
@@ -24,6 +32,21 @@
 #include <emscripten/html5.h>
 #include <emscripten/val.h>
 
+// Upload the current video frame to the already-bound TEXTURE_2D.
+// The canvas is passed as an EM_VAL handle; Emval.toValue() here refers to
+// Emscripten's internal Emval object, not Module.Emval — no EXPORTED_RUNTIME_METHODS entry needed.
+using emscripten::EM_VAL;
+EM_JS(void, em_texImage2DFromVideo,
+      (EM_VAL canvasHandle, const char *videoId, int *pW, int *pH), {
+    var canvas = Emval.toValue(canvasHandle);
+    var gl     = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    var video  = document.getElementById(UTF8ToString(videoId));
+    var frame  = new VideoFrame(video);
+    HEAP32[pW >> 2] = frame.displayWidth; // write into the C pointer pW
+    HEAP32[pH >> 2] = frame.displayHeight;
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, frame);
+    frame.close();
+});
 
 QT_BEGIN_NAMESPACE
 
@@ -32,7 +55,6 @@ using namespace emscripten;
 using namespace Qt::Literals;
 
 Q_LOGGING_CATEGORY(qWasmMediaVideoOutput, "qt.multimedia.wasm.videooutput")
-
 
 static bool checkForVideoFrame()
 {
@@ -448,7 +470,7 @@ void QWasmVideoOutput::createOffscreenElement(const QSize &offscreenSize)
                             .new_(offscreenSize.width(), offscreenSize.height());
         emscripten::val offscreenAttributes = emscripten::val::array();
         offscreenAttributes.set("willReadFrequently", true);
-        m_offscreenContext = m_offscreen.call<emscripten::val>("getContext", std::string("2d"),
+        m_offscreenContext = m_offscreen.call<emscripten::val>("getContext", std::string("webgl"),
                                                              offscreenAttributes);
     }
     std::string offscreenId = m_videoSurfaceId + "_offscreenOutputSurface";
@@ -847,7 +869,7 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
     wasmVideoOutput->m_wasmSink->setVideoFrame(vFrame);
 }
 
-
+// non webgl context with VideoFrame
 void QWasmVideoOutput::videoFrameCallback(void *context)
 {
     QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
@@ -934,8 +956,95 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
     qstdweb::Promise::make(oneVideoFrame, u"copyTo"_s, std::move(copyToCallback), frameBuffer);
 }
 
+void QWasmVideoOutput::getWebGLContext()
+{
+    QRhi *rhi = m_wasmSink ? m_wasmSink->rhi() : nullptr;
+    if (!rhi || rhi->backend() != QRhi::OpenGLES2)
+        return;
+
+    const auto *nh = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+    if (!nh || !nh->context)
+        return;
+
+    QOpenGLContext *ctx = nh->context;
+
+    // QWasmOpenGLContext::makeCurrent() returns false for any surface other than
+    // the one its WebGL context was created for, so this loop reliably identifies
+    // the correct window without accessing GL or Emval runtime objects.
+    for (QWindow *window : QGuiApplication::allWindows()) {
+        if (!window->handle())
+            continue;
+        if (!ctx->makeCurrent(window))
+            continue;
+
+        auto *wasmIface = window->nativeInterface<QNativeInterface::Private::QWasmWindow>();
+        if (!wasmIface)
+            break;
+
+        // Store the canvas element directly as an emscripten::val so it can be
+        // passed to em_texImage2DFromVideo as an EM_VAL handle — avoids any
+        // document.getElementById lookup and works inside shadow DOMs.
+        m_glCanvas = wasmIface->canvas();
+
+        // Capture the handle now that this context is current, for use in
+        // emscripten_webgl_make_context_current() before the C GL calls.
+        m_glContextHandle = emscripten_webgl_get_current_context();
+        m_hasWebGLContext = (m_glContextHandle > 0);
+        break;
+    }
+
+    if (!m_hasWebGLContext)
+        qWarning() << Q_FUNC_INFO << "could not locate WebGL canvas for the current RHI context";
+}
+
+// framemaker for webgl context
+void QWasmVideoOutput::webglVideoFrameCallback(void *context)
+{
+    QWasmVideoOutput *wasmVideoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
+    if (!wasmVideoOutput || !wasmVideoOutput->isReady())
+        return;
+
+    emscripten_webgl_make_context_current(wasmVideoOutput->m_glContextHandle);
+
+    GLuint rawTexId = 0;
+    glGenTextures(1, &rawTexId);
+    QGlTextureHandle texHandle{ rawTexId };
+
+    glBindTexture(GL_TEXTURE_2D, texHandle.get());
+
+    int w = 0, h = 0;
+    em_texImage2DFromVideo(wasmVideoOutput->m_glCanvas.as_handle(),
+                           wasmVideoOutput->m_videoSurfaceId.c_str(),
+                           &w, &h);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    if (!texHandle || w == 0 || h == 0) {
+        qCWarning(qWasmMediaVideoOutput) << "VideoFrame upload failed";
+        return;
+    }
+
+    std::unique_ptr<QHwVideoBuffer> hwBuffer =
+            std::make_unique<QWasmGLTextureVideoBuffer>(std::move(texHandle), QSize(w, h));
+
+    QVideoFrame vFrame =
+            QVideoFramePrivate::createFrame(std::move(hwBuffer),
+                                            QVideoFrameFormat(QSize(w, h),
+                                            QVideoFrameFormat::Format_RGBA8888));
+
+    wasmVideoOutput->m_wasmSink->setVideoFrame(vFrame);
+}
+
+// default fallback for non VideoFrame
 void QWasmVideoOutput::videoFrameTimerCallback()
 {
+
+    if (m_hasVideoFrame && !m_hasWebGLContext)
+        getWebGLContext();
+
     static auto frame = [](double frameTime, void *context) -> EM_BOOL {
         Q_UNUSED(frameTime);
 
@@ -955,7 +1064,10 @@ void QWasmVideoOutput::videoFrameTimerCallback()
             return false;
 
         if (videoOutput->m_hasVideoFrame) {
-            videoOutput->videoFrameCallback(context);
+            if (videoOutput->m_hasWebGLContext)
+                videoOutput->webglVideoFrameCallback(context);
+            else
+                videoOutput->videoFrameCallback(context);
         } else {
             videoOutput->videoComputeFrame(context);
         }
