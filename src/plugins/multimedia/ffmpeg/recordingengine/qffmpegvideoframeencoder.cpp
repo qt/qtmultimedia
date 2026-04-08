@@ -322,7 +322,7 @@ bool VideoFrameEncoder::open()
     Q_ASSERT(m_codecContext);
 
     AVDictionaryHolder opts;
-    applyVideoEncoderOptions(m_settings, QByteArray{ m_codec.name() }, m_codecContext.get(), opts);
+    applyVideoEncoderOptions(m_settings, m_codec.name(), m_codecContext.get(), opts);
     applyExperimentalCodecOptions(m_codec, opts);
 
     qCDebug(qLcVideoFrameEncoder) << "Opening encoder" << m_codec.name() << "with" << opts;

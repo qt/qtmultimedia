@@ -57,7 +57,7 @@ bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
     Codec codec{ codecContext->codec };
 
     AVDictionaryHolder opts;
-    applyAudioEncoderOptions(settings, QByteArray{ codec.name() }, codecContext, opts);
+    applyAudioEncoderOptions(settings, codec.name(), codecContext, opts);
     applyExperimentalCodecOptions(codec, opts);
 
     const int res = avcodec_open2(codecContext, codec.get(), opts);
