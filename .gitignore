@@ -55,11 +55,7 @@ tests/manual/*/build
 *_plugin_import.cpp
 
 # IDE artifacts
-CMakeLists.txt.user
-CMakeLists.txt.user.*
 .vscode
-.xdp_CMakeLists.txt.*
-CMakeUserPresets.json
 
 # Build artifacts
 build-*-Debug
@@ -67,3 +63,15 @@ build-*-Release
 
 # Ignore build artifacts from example
 examples/multimedia/**/build
+
+# cmake related artifacts
+/build*
+build/
+CMakeFiles
+CTestTestfile.cmake
+CMakeUserPresets.json
+cmake_install.cmake
+*_autogen
+tst_*.xml
+CMakeLists.txt.user*
+.xdp_CMakeLists.txt.*
