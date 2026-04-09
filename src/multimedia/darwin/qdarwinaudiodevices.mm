@@ -294,8 +294,13 @@ std::optional<QFuture<void>> DeviceDisconnectMonitor::addDisconnectListener(Audi
     }
 
     m_disconnectFunction = [id, listenerBlock] {
-        AudioObjectRemovePropertyListenerBlock(id, &propertyAddressDeviceIsAlive,
-                                               /*inDispatchQueue=*/nullptr, *listenerBlock);
+        UInt32 isAlive = 0;
+        UInt32 size = sizeof(isAlive);
+        OSStatus status = AudioObjectGetPropertyData(id, &propertyAddressDeviceIsAlive, 0, nullptr,
+                                                     &size, &isAlive);
+        if (status == noErr)
+            AudioObjectRemovePropertyListenerBlock(id, &propertyAddressDeviceIsAlive,
+                                                   /*inDispatchQueue=*/nullptr, *listenerBlock);
     };
 
     return disconnectFuture;
