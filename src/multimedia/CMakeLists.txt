@@ -72,7 +72,7 @@ qt_internal_add_module(Multimedia
         qmultimedia_enum_to_string_converter_p.h
         qmediadevices.cpp qmediadevices.h
         qmediaformat.cpp  qmediaformat.h
-        qmediametadata.cpp qmediametadata.h
+        qmediametadata.cpp qmediametadata.h qmediametadata_p.h
         qmediastoragelocation.cpp qmediastoragelocation_p.h
         qmediatimerange.cpp qmediatimerange.h
         qmultimediautils.cpp qmultimediautils_p.h

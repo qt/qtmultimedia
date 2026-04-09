@@ -11,8 +11,12 @@
 #include <QtCore/qvariant.h>
 #include <QtGui/qimage.h>
 #include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/private/qmediametadata_p.h>
 
 QT_BEGIN_NAMESPACE
+
+static_assert(QMediaMetaData::Key::CoverArtImage == 25);
+static_assert(QMediaMetaData::NumMetaData == 29);
 
 /*!
     \class QMediaMetaData
@@ -65,8 +69,8 @@ QT_BEGIN_NAMESPACE
     \row \li Composer \li The composer of the media.  \li QStringList
     \row \li LeadPerformer \li The lead performer in the media.  \li QStringList
 
-    \row \li ThumbnailImage \li An embedded thumbnail image if present in metadata. \li QImage
     \row \li CoverArtImage \li An embedded cover art image. \li  QImage
+    \row \li ThumbnailImage \li An embedded thumbnail image. (deprecated since 6.12, use CoverArtImage instead) \li  QImage
 
     \header \li {3,1}
     Image and video attributes
@@ -125,7 +129,9 @@ QMetaType QMediaMetaData::keyType(Key key)
         return QMetaType::fromType<qreal>();
 
 
-    case ThumbnailImage:
+#if QT_DEPRECATED_SINCE(6, 12)
+    case QtMultimediaPrivate::deprecatedThumbnailImage:
+#endif
     case CoverArtImage:
         return QMetaType::fromType<QImage>();
 
@@ -278,7 +284,7 @@ QMetaType QMediaMetaData::keyType(Key key)
     \value TrackNumber
     \value Composer Media composer's info.
     \value LeadPerformer
-    \value ThumbnailImage Media thumbnail image (if embedded in metadata)
+    \value ThumbnailImage Media thumbnail image (deprecated since 6.12, identical to CoverArtImage for backwards compatibility)
     \value CoverArtImage Media cover art
     \value Orientation
     \value Resolution
@@ -412,7 +418,9 @@ QString QMediaMetaData::stringValue(QMediaMetaData::Key key) const
         QSize size = value.toSize();
         return QStringLiteral("%1 x %2").arg(size.width()).arg(size.height());
     }
-    case ThumbnailImage:
+#if QT_DEPRECATED_SINCE(6, 12)
+    case QtMultimediaPrivate::deprecatedThumbnailImage:
+#endif
     case CoverArtImage:
         break;
     }
@@ -477,8 +485,10 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
             return (QCoreApplication::translate("QMediaMetaData", "Track number"));
         case QMediaMetaData::Composer:
             return (QCoreApplication::translate("QMediaMetaData", "Composer"));
-        case QMediaMetaData::ThumbnailImage:
+#if QT_DEPRECATED_SINCE(6, 12)
+        case QtMultimediaPrivate::deprecatedThumbnailImage:
             return (QCoreApplication::translate("QMediaMetaData", "Thumbnail image"));
+#endif
         case QMediaMetaData::CoverArtImage:
             return (QCoreApplication::translate("QMediaMetaData", "Cover art image"));
         case QMediaMetaData::Orientation:

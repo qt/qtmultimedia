@@ -11,6 +11,7 @@
 #include "qloggingcategory.h"
 
 #include <QtMultimedia/qplaybackoptions.h>
+#include <QtMultimedia/private/qmediametadata_p.h>
 
 #include <math.h>
 #include <optional>
@@ -435,8 +436,7 @@ void MediaDataHolder::updateMetaData()
     if (!m_cachedThumbnail.has_value())
         m_cachedThumbnail = getAttachedPicture(m_context.get());
 
-    if (!m_cachedThumbnail->isNull())
-        m_metaData.insert(QMediaMetaData::ThumbnailImage, m_cachedThumbnail.value());
+    QtMultimediaPrivate::setCoverArtImage(m_metaData, *m_cachedThumbnail);
 
     for (auto trackType :
          { QPlatformMediaPlayer::AudioStream, QPlatformMediaPlayer::VideoStream }) {

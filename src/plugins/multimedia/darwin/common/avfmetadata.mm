@@ -5,15 +5,16 @@
 #include <qdarwinformatsinfo_p.h>
 #include <avfmediaplayer_p.h>
 
-#include <QtCore/qbuffer.h>
-#include <QtCore/qiodevice.h>
-#include <QtCore/qdatetime.h>
-#include <QtCore/qlocale.h>
-#include <QtCore/qurl.h>
 #include <QtCore/private/qcore_mac_p.h>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qlocale.h>
 #include <QtCore/qsemaphore.h>
-#include <QImage>
+#include <QtCore/qurl.h>
+#include <QtGui/qimage.h>
 #include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/private/qmediametadata_p.h>
 
 #if __has_include(<AppKit/AppKit.h>)
 #import <AppKit/AppKit.h>
@@ -228,13 +229,12 @@ static QMediaMetaData fromAVMetadata(NSArray *metadataItems)
             continue;
 
         // Handle artwork (binary image data)
-        if (*key == QMediaMetaData::ThumbnailImage || *key == QMediaMetaData::CoverArtImage) {
+        if (*key == QMediaMetaData::CoverArtImage) {
             NSData *data = [item dataValue];
             if (data) {
                 QImage image;
                 image.loadFromData(QByteArray::fromNSData(data));
-                if (!image.isNull())
-                    metadata.insert(*key, image);
+                QtMultimediaPrivate::setCoverArtImage(metadata, image);
             }
             continue;
         }
@@ -396,7 +396,9 @@ static AVMutableMetadataItem *setAVMetadataItemForKey(QMediaMetaData::Key key, c
     item.identifier = identifier;
 
     switch (key) {
-    case QMediaMetaData::ThumbnailImage:
+#if QT_DEPRECATED_SINCE(6, 12)
+    case QtMultimediaPrivate::deprecatedThumbnailImage:
+#endif
     case QMediaMetaData::CoverArtImage: {
 #if defined(Q_OS_MACOS)
         QImage img = value.value<QImage>();

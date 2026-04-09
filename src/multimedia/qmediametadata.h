@@ -49,8 +49,10 @@ public:
         Composer,
         LeadPerformer,
 
-        ThumbnailImage,
-        CoverArtImage,
+#if QT_DEPRECATED_SINCE(6, 12)
+        ThumbnailImage Q_DECL_ENUMERATOR_DEPRECATED_X("Use CoverArtImage instead"),
+#endif
+        CoverArtImage = LeadPerformer + 2,
 
         Orientation,
         Resolution,

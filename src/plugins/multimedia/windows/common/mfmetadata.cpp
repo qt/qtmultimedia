@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include <qmediametadata.h>
-#include <qdatetime.h>
-#include <qtimezone.h>
-#include <qimage.h>
-#include <quuid.h>
+
+#include <QtCore/qdatetime.h>
+#include <QtCore/qtimezone.h>
+#include <QtGui/qimage.h>
+#include <QtCore/quuid.h>
+#include <QtMultimedia/private/qmediametadata_p.h>
+#include <QtMultimedia/private/qwindowsmultimediautils_p.h>
 
 #include <guiddef.h>
 #include <cguid.h>
@@ -14,7 +17,7 @@
 #include <propvarutil.h>
 #include <propkey.h>
 
-#include "private/qwindowsmultimediautils_p.h"
+
 #include "mfmetadata_p.h"
 
 //#define DEBUG_MEDIAFOUNDATION
@@ -202,7 +205,10 @@ QMediaMetaData MFMetaData::fromNative(IMFMediaSource* mediaSource)
             } else if (key == PKEY_Music_Genre) {
                 mediaKey = QMediaMetaData::Genre;
             } else if (key == PKEY_ThumbnailStream) {
-                mediaKey = QMediaMetaData::ThumbnailImage;
+                QVariant val = metaDataValue(content, key);
+                if (val.canConvert<QImage>())
+                    QtMultimediaPrivate::setCoverArtImage(metaData, val.value<QImage>());
+                continue;
             } else if (key == PKEY_Video_FrameHeight) {
                 mediaKey = QMediaMetaData::Resolution;
             } else if (key == PKEY_Video_Orientation) {
@@ -266,7 +272,10 @@ static REFPROPERTYKEY propertyKeyForMetaDataKey(QMediaMetaData::Key key)
         return PKEY_Audio_EncodingBitrate;
     case QMediaMetaData::Key::ContributingArtist:
         return PKEY_Music_Artist;
-    case QMediaMetaData::Key::ThumbnailImage:
+#if QT_DEPRECATED_SINCE(6, 12)
+    case QtMultimediaPrivate::deprecatedThumbnailImage:
+#endif
+    case QMediaMetaData::Key::CoverArtImage:
         return PKEY_ThumbnailStream;
     case QMediaMetaData::Key::Orientation:
         return PKEY_Video_Orientation;
@@ -407,4 +416,3 @@ void MFMetaData::toNative(const QMediaMetaData &metaData, IPropertyStore *conten
         }
     }
 }
-

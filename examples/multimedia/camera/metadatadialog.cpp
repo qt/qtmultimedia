@@ -46,16 +46,6 @@ MetaDataDialog::MetaDataDialog(QWidget *parent) : QDialog(parent)
         m_metaDataFields[key] = lineEdit;
 
         switch (key) {
-        case QMediaMetaData::ThumbnailImage: {
-            QPushButton *openThumbnail = new QPushButton(tr("Open"));
-            connect(openThumbnail, &QPushButton::clicked, this,
-                    &MetaDataDialog::openThumbnailImage);
-            QHBoxLayout *layout = new QHBoxLayout;
-            layout->addWidget(lineEdit);
-            layout->addWidget(openThumbnail);
-            metaDataLayout->addRow(label, layout);
-        }
-        break;
         case QMediaMetaData::CoverArtImage: {
             QPushButton *openCoverArt = new QPushButton(tr("Open"));
             connect(openCoverArt, &QPushButton::clicked, this, &MetaDataDialog::openCoverArtImage);
@@ -86,14 +76,6 @@ MetaDataDialog::MetaDataDialog(QWidget *parent) : QDialog(parent)
 
     connect(buttonBox, &QDialogButtonBox::accepted, this, &MetaDataDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &MetaDataDialog::reject);
-}
-
-void MetaDataDialog::openThumbnailImage()
-{
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), QDir::currentPath(),
-                                                    tr("Image Files (*.png *.jpg *.bmp)"));
-    if (!fileName.isEmpty())
-        m_metaDataFields[QMediaMetaData::ThumbnailImage]->setText(fileName);
 }
 
 void MetaDataDialog::openCoverArtImage()

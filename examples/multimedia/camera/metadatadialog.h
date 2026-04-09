@@ -23,7 +23,6 @@ public:
     QLineEdit *m_metaDataFields[QMediaMetaData::NumMetaData] = {};
 
 private slots:
-    void openThumbnailImage();
     void openCoverArtImage();
 };
 //! [0]

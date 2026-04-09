@@ -9,6 +9,7 @@
 #include <QtCore/qlocale.h>
 #include <QtCore/qtimezone.h>
 #include <QtGui/qimage.h>
+#include <QtMultimedia/private/qmediametadata_p.h>
 
 #include <gst/gstversion.h>
 #include <common/qgst_handle_types_p.h>
@@ -94,7 +95,7 @@ constexpr auto compareByTag = [](const auto &lhs, const auto &rhs) {
 
 constexpr_lookup auto makeLookupTable()
 {
-    std::array<MetadataKeyValuePair, 22> lookupTable{ {
+    std::array<MetadataKeyValuePair, 21> lookupTable{ {
             { GST_TAG_TITLE, QMediaMetaData::Title },
             { GST_TAG_COMMENT, QMediaMetaData::Comment },
             { GST_TAG_DESCRIPTION, QMediaMetaData::Description },
@@ -120,7 +121,6 @@ constexpr_lookup auto makeLookupTable()
             { GST_TAG_ARTIST, QMediaMetaData::ContributingArtist },
             { GST_TAG_TRACK_NUMBER, QMediaMetaData::TrackNumber },
 
-            { GST_TAG_PREVIEW_IMAGE, QMediaMetaData::ThumbnailImage },
             { GST_TAG_IMAGE, QMediaMetaData::CoverArtImage },
 
             // Image/Video
@@ -366,8 +366,8 @@ void addTagToMetaData(const GstTagList *list, const gchar *tag, void *userdata)
             metadata.insert(key, parseDateTime(val));
     } else if (type == GST_TYPE_SAMPLE) {
         QImage image = parseImage(val);
-        if (!image.isNull())
-            metadata.insert(key, image);
+        Q_ASSERT(key == QMediaMetaData::CoverArtImage);
+        QtMultimediaPrivate::setCoverArtImage(metadata, image);
     } else if (type == GST_TYPE_FRACTION) {
         std::optional<double> fraction = parseFractionAsDouble(val);
 

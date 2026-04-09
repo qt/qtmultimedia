@@ -391,11 +391,6 @@ void Camera::saveMetaData()
                 data.insert(key, coverArt);
                 break;
             }
-            case QMediaMetaData::ThumbnailImage: {
-                QImage thumbnail(val);
-                data.insert(key, thumbnail);
-                break;
-            }
             case QMediaMetaData::Date: {
                 QDateTime date = QDateTime::fromString(val);
                 data.insert(key, date);

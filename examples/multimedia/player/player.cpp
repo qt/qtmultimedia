@@ -214,7 +214,7 @@ Player::Player(QWidget *parent) : QWidget(parent)
         for (int j = 0; j < 6; j += 2) {
             m_metaDataLabels[key] = new QLabel(
                     QMediaMetaData::metaDataKeyToString(static_cast<QMediaMetaData::Key>(key)));
-            if (key == QMediaMetaData::ThumbnailImage || key == QMediaMetaData::CoverArtImage) {
+            if (key == QMediaMetaData::CoverArtImage) {
                 m_metaDataFields[key] = new QLabel;
             } else {
                 auto lineEdit = new QLineEdit;
@@ -337,11 +337,6 @@ void Player::metaDataChanged()
             if (QLabel *cover = qobject_cast<QLabel *>(m_metaDataFields[key])) {
                 QImage coverImage = value.value<QImage>();
                 cover->setPixmap(QPixmap::fromImage(coverImage));
-            }
-        } else if (key == QMediaMetaData::ThumbnailImage) {
-            if (QLabel *thumbnail = qobject_cast<QLabel *>(m_metaDataFields[key])) {
-                QImage thumbnailImage = value.value<QImage>();
-                thumbnail->setPixmap(QPixmap::fromImage(thumbnailImage));
             }
         } else if (QLineEdit *field = qobject_cast<QLineEdit *>(m_metaDataFields[key])) {
             QString stringValue = metaData.stringValue(key);

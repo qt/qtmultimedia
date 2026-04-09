@@ -3093,10 +3093,7 @@ void tst_QMediaPlayerBackend::surfaceTest()
 
 void tst_QMediaPlayerBackend::metadata()
 {
-    // QTBUG-124380: gstreamer and darwin report CoverArtImage instead of ThumbnailImage
-    QMediaMetaData::Key thumbnailKey = (isGStreamerPlatform() || isDarwinPlatform())
-            ? QMediaMetaData::CoverArtImage
-            : QMediaMetaData::ThumbnailImage;
+    QMediaMetaData::Key coverArtKey = QMediaMetaData::CoverArtImage;
 
     CHECK_SELECTED_URL(m_localMp3FileWithMetadataAndEmbeddedThumbnail);
 
@@ -3109,7 +3106,7 @@ void tst_QMediaPlayerBackend::metadata()
     QCOMPARE(metadata.value(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
     QCOMPARE(metadata.value(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
     QCOMPARE(metadata.value(QMediaMetaData::Duration), QVariant(7704));
-    QVERIFY(!metadata.value(thumbnailKey).value<QImage>().isNull());
+    QVERIFY(!metadata.value(coverArtKey).value<QImage>().isNull());
     m_fixture->clearSpies();
 
     m_fixture->player.setSource(QUrl());
@@ -3132,10 +3129,7 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHas
 
 void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail()
 {
-    // QTBUG-124380: gstreamer and darwin report CoverArtImage instead of ThumbnailImage
-    QMediaMetaData::Key key = (isGStreamerPlatform() || isDarwinPlatform())
-            ? QMediaMetaData::CoverArtImage
-            : QMediaMetaData::ThumbnailImage;
+    QMediaMetaData::Key key = QMediaMetaData::CoverArtImage;
 
     // Arrange
     QFETCH(const MaybeUrl, mediaUrl);
