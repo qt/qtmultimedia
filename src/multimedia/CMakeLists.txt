@@ -352,6 +352,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE
         coreaudio/qcoreaaudiosink.mm coreaudio/qcoreaaudiosink_p.h
         coreaudio/qcoreaudioutils.cpp coreaudio/qcoreaudioutils_p.h
         coreaudio/qcoreaudiodevices.mm coreaudio/qcoreaudiodevices_p.h
+        darwin/qapple_utils_p.h
         darwin/qavfhelpers.mm darwin/qavfhelpers_p.h
     LIBRARIES
         ${FWCoreAudio}

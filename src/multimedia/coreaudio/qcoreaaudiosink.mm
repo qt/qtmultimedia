@@ -13,6 +13,7 @@
 #include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
+#include <QtMultimedia/private/qapple_utils_p.h>
 #include <QtMultimedia/private/qcoreaudiodevice_p.h>
 #include <QtMultimedia/private/qcoreaudiodevices_p.h>
 
@@ -111,7 +112,7 @@ bool QCoreAudioSinkStream::start(QIODevice *device)
 
     const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
     if (status != noErr) {
-        qDebug() << "AudioOutputUnitStart failed:" << status;
+        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
         return false;
     }
 
@@ -152,7 +153,7 @@ bool QCoreAudioSinkStream::start(AudioCallback cb)
 
     const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
     if (status != noErr) {
-        qDebug() << "AudioOutputUnitStart failed:" << status;
+        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
         return false;
     }
     return true;
@@ -216,7 +217,7 @@ void QCoreAudioSinkStream::suspend()
     if (status == noErr)
         return;
     else
-        qDebug() << "AudioOutputUnitStop failed:" << status;
+        qDebug() << "AudioOutputUnitStop failed:" << QtMultimediaPrivate::QOSStatus(status);
 }
 
 void QCoreAudioSinkStream::resume()
@@ -225,7 +226,7 @@ void QCoreAudioSinkStream::resume()
     if (status == noErr)
         return;
     else
-        qDebug() << "AudioOutputUnitStart failed:" << status;
+        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
 }
 
 void QCoreAudioSinkStream::resumeIfNecessary()
@@ -276,7 +277,7 @@ void QCoreAudioSinkStream::stopAudioUnit()
 {
     const auto status = AudioOutputUnitStop(m_audioUnit.get());
     if (status != noErr)
-        qDebug() << "AudioOutputUnitStop failed:" << status;
+        qDebug() << "AudioOutputUnitStop failed:" << QtMultimediaPrivate::QOSStatus(status);
 
     m_audioUnitRunning = false;
 

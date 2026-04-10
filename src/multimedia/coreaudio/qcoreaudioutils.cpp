@@ -5,6 +5,7 @@
 
 #include <QtCore/qdebug.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
+#include <QtMultimedia/private/qapple_utils_p.h>
 
 #ifdef Q_OS_MACOS
 #  include <CoreAudio/AudioHardware.h>
@@ -306,7 +307,7 @@ bool audioUnitSetInputStreamFormat(AudioUnitHandle &audioUnit, AudioUnitElement 
     OSStatus status = AudioUnitSetProperty(audioUnit.get(), kAudioUnitProperty_StreamFormat,
                                            kAudioUnitScope_Input, element, &format, sizeof(format));
     if (status != noErr) {
-        qWarning() << "AudioUnit: Unable to set stream format" << status;
+        qWarning() << "AudioUnit: Unable to set stream format" << QtMultimediaPrivate::QOSStatus(status);
         return false;
     }
     return true;
@@ -362,7 +363,7 @@ bool audioObjectSetSamplingRate(AudioObjectID id, int samplingRate)
                                                  sizeof(Float64), &sampleRateArg);
 
     if (status != noErr) {
-        qDebug() << "AudioObjectSetPropertyData failed" << status;
+        qDebug() << "AudioObjectSetPropertyData failed" << QtMultimediaPrivate::QOSStatus(status);
         return false;
     }
 
@@ -416,7 +417,7 @@ bool audioObjectSetFramesPerBuffer(AudioObjectID id, int32_t bufferFrames)
                                                  sizeof(int32_t), &bufferFrames);
 
     if (status != noErr) {
-        qDebug() << "AudioObjectSetPropertyData failed" << status;
+        qDebug() << "AudioObjectSetPropertyData failed" << QtMultimediaPrivate::QOSStatus(status);
         return false;
     }
 
@@ -434,7 +435,7 @@ bool audioUnitIsRunning(AudioUnitHandle &audioUnit)
                                            kAudioUnitScope_Global, 0, &isRunning, &size);
 
     if (status != noErr) {
-        qDebug() << "AudioUnitGetProperty failed" << status;
+        qDebug() << "AudioUnitGetProperty failed" << QtMultimediaPrivate::QOSStatus(status);
         return false;
     }
 
@@ -449,7 +450,7 @@ bool audioUnitSetRenderCallback(AudioUnitHandle &audioUnit, AURenderCallbackStru
     if (status != noErr) {
         qWarning() << "AudioUnitSetProperty: Failed to set AudioUnit "
                       "kAudioUnitProperty_SetRenderCallback"
-                   << status;
+                    << QtMultimediaPrivate::QOSStatus(status);
         return false;
     }
     return true;
