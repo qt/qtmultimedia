@@ -67,15 +67,20 @@ private:
 namespace QCoreAudioUtils {
 
 #ifdef Q_OS_MACOS
-class DeviceDisconnectMonitor
+class DeviceDisconnectMonitor final : public QObject
 {
 public:
     ~DeviceDisconnectMonitor();
-    std::optional<QFuture<void>> addDisconnectListener(AudioObjectID);
-    void removeDisconnectListener();
+    std::optional<QFuture<void>> setDisconnectListener(AudioObjectID);
 
 private:
-    std::function<void()> m_disconnectFunction;
+    struct State
+    {
+        AudioObjectID id;
+        std::shared_ptr<AudioObjectPropertyListenerBlock> block;
+    };
+
+    std::optional<State> m_state;
 };
 #endif
 

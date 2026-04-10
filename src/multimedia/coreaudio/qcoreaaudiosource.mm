@@ -88,7 +88,7 @@ bool QCoreAudioSourceStream::open()
                       "given device-id. The device might not be connected.";
         return false;
     }
-    if (!addDisconnectListener(*nativeDeviceId))
+    if (!setDisconnectListener(*nativeDeviceId))
         return false;
 
     // Set Audio Device
@@ -246,7 +246,7 @@ void QCoreAudioSourceStream::stopAudioUnit()
     m_audioUnitRunning = false;
 
 #ifdef Q_OS_MACOS
-    removeDisconnectListener();
+    m_stopOnDisconnected.cancelChain();
 #endif
     m_audioUnit = {};
 }
@@ -353,11 +353,11 @@ OSStatus QCoreAudioSourceStream::processAudioCallback(QSpan<const std::byte> inp
 }
 
 #ifdef Q_OS_MACOS
-bool QCoreAudioSourceStream::addDisconnectListener(AudioObjectID id)
+bool QCoreAudioSourceStream::setDisconnectListener(AudioObjectID id)
 {
-    m_stopOnDisconnected.cancel();
+    m_stopOnDisconnected.cancelChain();
 
-    auto disconnectionFuture = m_disconnectMonitor.addDisconnectListener(id);
+    auto disconnectionFuture = m_disconnectMonitor.setDisconnectListener(id);
     if (!disconnectionFuture)
         return false;
 
@@ -375,12 +375,6 @@ bool QCoreAudioSourceStream::addDisconnectListener(AudioObjectID id)
     });
 
     return true;
-}
-
-void QCoreAudioSourceStream::removeDisconnectListener()
-{
-    m_stopOnDisconnected.cancel();
-    m_disconnectMonitor.removeDisconnectListener();
 }
 #endif
 

@@ -257,21 +257,37 @@ static constexpr AudioObjectPropertyAddress propertyAddressDeviceIsAlive = {
     kAudioObjectPropertyElementMain,
 };
 
+static void removeListenerBlock(AudioObjectID id, AudioObjectPropertyListenerBlock listenerBlock)
+{
+    UInt32 isAlive = 0;
+    UInt32 size = sizeof(isAlive);
+    OSStatus status = AudioObjectGetPropertyData(id, &propertyAddressDeviceIsAlive, 0, nullptr,
+                                                 &size, &isAlive);
+    if (status == noErr)
+        AudioObjectRemovePropertyListenerBlock(id, &propertyAddressDeviceIsAlive,
+                                               /*inDispatchQueue=*/nullptr, listenerBlock);
+}
+
 // force dtor in a translation unit with ARC enabled
 DeviceDisconnectMonitor::~DeviceDisconnectMonitor()
 {
-    Q_ASSERT(!m_disconnectFunction);
+    if (m_state)
+        removeListenerBlock(m_state->id, *m_state->block);
 }
 
-std::optional<QFuture<void>> DeviceDisconnectMonitor::addDisconnectListener(AudioObjectID id)
+std::optional<QFuture<void>> DeviceDisconnectMonitor::setDisconnectListener(AudioObjectID id)
 {
-    Q_ASSERT(!m_disconnectFunction);
+    if (m_state) {
+        removeListenerBlock(m_state->id, *m_state->block);
+        m_state = std::nullopt;
+    }
 
     auto disconnectedPromise = std::make_shared<QPromise<void>>();
-    QFuture<void> disconnectFuture = disconnectedPromise->future();
 
+    auto removeListenerPromise = std::make_shared<QPromise<void>>();
     auto listenerBlock = std::make_shared<AudioObjectPropertyListenerBlock>(
-            [disconnectedPromise](UInt32 numberOfProps, const AudioObjectPropertyAddress *props) {
+            [disconnectedPromise, removeListenerPromise](UInt32 numberOfProps,
+                                                         const AudioObjectPropertyAddress *props) {
         // Called on HAL thread
         auto properties = QSpan{ props, numberOfProps };
 
@@ -279,6 +295,8 @@ std::optional<QFuture<void>> DeviceDisconnectMonitor::addDisconnectListener(Audi
             if (address.mSelector == kAudioDevicePropertyDeviceIsAlive) {
                 disconnectedPromise->start();
                 disconnectedPromise->finish();
+                removeListenerPromise->start();
+                removeListenerPromise->finish();
                 return;
             }
         }
@@ -293,25 +311,16 @@ std::optional<QFuture<void>> DeviceDisconnectMonitor::addDisconnectListener(Audi
         return std::nullopt;
     }
 
-    m_disconnectFunction = [id, listenerBlock] {
-        UInt32 isAlive = 0;
-        UInt32 size = sizeof(isAlive);
-        OSStatus status = AudioObjectGetPropertyData(id, &propertyAddressDeviceIsAlive, 0, nullptr,
-                                                     &size, &isAlive);
-        if (status == noErr)
-            AudioObjectRemovePropertyListenerBlock(id, &propertyAddressDeviceIsAlive,
-                                                   /*inDispatchQueue=*/nullptr, *listenerBlock);
+    removeListenerPromise->future().then(this, [id, listenerBlock] {
+        removeListenerBlock(id, *listenerBlock);
+    });
+
+    m_state = State{
+        id,
+        std::move(listenerBlock),
     };
 
-    return disconnectFuture;
-}
-
-void DeviceDisconnectMonitor::removeDisconnectListener()
-{
-    if (!m_disconnectFunction)
-        return;
-    m_disconnectFunction();
-    m_disconnectFunction = nullptr;
+    return disconnectedPromise->future();
 }
 
 #endif
