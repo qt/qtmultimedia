@@ -76,8 +76,7 @@ private:
     OSStatus processAudioCallback(QSpan<const std::byte> inputSpan) noexcept QT_MM_NONBLOCKING;
 
 #ifdef Q_OS_MACOS
-    bool addDisconnectListener(AudioObjectID id);
-    void removeDisconnectListener();
+    bool setDisconnectListener(AudioObjectID id);
 
     QCoreAudioUtils::DeviceDisconnectMonitor m_disconnectMonitor;
     QFuture<void> m_stopOnDisconnected;

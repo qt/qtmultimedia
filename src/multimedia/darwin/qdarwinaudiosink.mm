@@ -73,7 +73,7 @@ bool QCoreAudioSinkStream::open()
 
 #ifdef Q_OS_MACOS
     // register listener
-    if (!addDisconnectListener(*audioDeviceId))
+    if (!setDisconnectListener(*audioDeviceId))
         return false;
 
     // Set Audio Device
@@ -209,7 +209,7 @@ void QCoreAudioSinkStream::stopStreamWhenBufferDrained()
 void QCoreAudioSinkStream::stopStream()
 {
 #ifdef Q_OS_MACOS
-    removeDisconnectListener();
+    m_stopOnDisconnected.cancelChain();
 #endif
     requestStop();
     stopAudioUnit();
@@ -286,17 +286,17 @@ void QCoreAudioSinkStream::stopAudioUnit()
     m_audioUnitRunning = false;
 
 #ifdef Q_OS_MACOS
-    removeDisconnectListener();
+    m_stopOnDisconnected.cancelChain();
 #endif
     m_audioUnit = {};
 }
 
 #ifdef Q_OS_MACOS
-bool QCoreAudioSinkStream::addDisconnectListener(AudioObjectID id)
+bool QCoreAudioSinkStream::setDisconnectListener(AudioObjectID id)
 {
-    m_stopOnDisconnected.cancel();
+    m_stopOnDisconnected.cancelChain();
 
-    auto disconnectionFuture = m_disconnectMonitor.addDisconnectListener(id);
+    auto disconnectionFuture = m_disconnectMonitor.setDisconnectListener(id);
     if (!disconnectionFuture)
         return false;
 
@@ -312,12 +312,6 @@ bool QCoreAudioSinkStream::addDisconnectListener(AudioObjectID id)
     });
 
     return true;
-}
-
-void QCoreAudioSinkStream::removeDisconnectListener()
-{
-    m_stopOnDisconnected.cancel();
-    m_disconnectMonitor.removeDisconnectListener();
 }
 #endif
 
