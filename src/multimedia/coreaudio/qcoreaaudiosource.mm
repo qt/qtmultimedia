@@ -13,6 +13,7 @@
 #include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
+#include <QtMultimedia/private/qapple_utils_p.h>
 #include <QtMultimedia/private/qcoreaudiodevice_p.h>
 #include <QtMultimedia/private/qcoreaudiodevices_p.h>
 
@@ -121,7 +122,8 @@ bool QCoreAudioSourceStream::open()
 
         OSStatus status = AudioConverterNew(&streamFormat, &desiredFormat, &m_audioConverter);
         if (status != noErr) {
-            qWarning() << "QAudioSource: Failed to create AudioConverter:" << status;
+            qWarning() << "QAudioSource: Failed to create AudioConverter:"
+                       << QtMultimediaPrivate::QOSStatus(status);
             return false;
         }
     }
@@ -166,7 +168,7 @@ bool QCoreAudioSourceStream::start(QIODevice *device)
 
     const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
     if (status != noErr) {
-        qDebug() << "AudioOutputUnitStart failed:" << status;
+        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
         return false;
     }
 
@@ -192,7 +194,7 @@ bool QCoreAudioSourceStream::start(AudioCallback &&cb)
 
     const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
     if (status != noErr) {
-        qDebug() << "AudioOutputUnitStart failed:" << status;
+        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
         return false;
     }
 
@@ -220,7 +222,7 @@ void QCoreAudioSourceStream::suspend()
     if (status == noErr)
         return;
     else
-        qDebug() << "AudioOutputUnitStop failed:" << status;
+        qDebug() << "AudioOutputUnitStop failed:" << QtMultimediaPrivate::QOSStatus(status);
 }
 
 void QCoreAudioSourceStream::resume()
@@ -229,7 +231,7 @@ void QCoreAudioSourceStream::resume()
     if (status == noErr)
         return;
     else
-        qDebug() << "AudioOutputUnitStart failed:" << status;
+        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
 }
 
 void QCoreAudioSourceStream::resumeIfNecessary()
@@ -248,7 +250,7 @@ void QCoreAudioSourceStream::stopAudioUnit()
 {
     const auto status = AudioOutputUnitStop(m_audioUnit.get());
     if (status != noErr)
-        qDebug() << "AudioOutputUnitStop failed:" << status;
+        qDebug() << "AudioOutputUnitStop failed:" << QtMultimediaPrivate::QOSStatus(status);
 
     m_audioUnitRunning = false;
 
@@ -277,7 +279,7 @@ QCoreAudioSourceStream::processInput(AudioUnitRenderActionFlags *ioActionFlags,
         return status;
 
     default:
-        qDebug() << "AudioUnitRender failed" << status;
+        qDebug() << "AudioUnitRender failed" << QtMultimediaPrivate::QOSStatus(status);
         return status;
     }
 

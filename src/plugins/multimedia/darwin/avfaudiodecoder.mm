@@ -11,6 +11,7 @@
 #include <QtCore/private/qcore_mac_p.h>
 
 #include "private/qcoreaudioutils_p.h"
+#include "private/qapple_utils_p.h"
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -322,7 +323,7 @@ void AVFAudioDecoder::start()
                 processInvalidMedia(QAudioDecoder::FormatError,
                                     tr("Could not load media source's tracks"));
         } else if (status != AVKeyValueStatusLoaded) {
-            qWarning() << "Unexpected AVKeyValueStatus:" << status;
+            qWarning() << "Unexpected AVKeyValueStatus:" << QtMultimediaPrivate::QOSStatus(status);
             stop();
         }
         else {
