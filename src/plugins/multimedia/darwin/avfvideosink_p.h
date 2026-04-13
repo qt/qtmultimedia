@@ -25,7 +25,6 @@
 
 #import <AVFoundation/AVFoundation.h>
 #import <Metal/Metal.h>
-#import <MetalKit/MetalKit.h>
 
 QT_BEGIN_NAMESPACE
 
