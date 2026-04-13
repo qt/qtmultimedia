@@ -162,7 +162,7 @@ quint64 AVFVideoBuffer::textureHandle(QRhi &rhi, int plane)
                         nil,
                         &cvOpenGLTexture);
         if (cvret != kCVReturnSuccess)
-            qWarning() << "OpenGL texture creation failed" << cvret;
+            qCWarning(qLcVideoBuffer) << "OpenGL texture creation failed" << cvret;
 
         Q_ASSERT(CVOpenGLTextureGetTarget(cvOpenGLTexture) == GL_TEXTURE_RECTANGLE);
         // Get an OpenGL texture name from the CVPixelBuffer-backed OpenGL texture image.
@@ -185,7 +185,7 @@ quint64 AVFVideoBuffer::textureHandle(QRhi &rhi, int plane)
                         0,
                         &cvOpenGLESTexture);
         if (cvret != kCVReturnSuccess)
-            qWarning() << "OpenGL ES texture creation failed" << cvret;
+            qCWarning(qLcVideoBuffer) << "OpenGL ES texture creation failed" << cvret;
 
         // Get an OpenGL texture name from the CVPixelBuffer-backed OpenGL texture image.
         return CVOpenGLESTextureGetName(cvOpenGLESTexture);
