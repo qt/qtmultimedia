@@ -78,7 +78,7 @@ VideoToolBoxTextureConverter::VideoToolBoxTextureConverter(QRhi *targetRhi)
             nil,
             &outCvMetalTexCacheRef);
         if (cvReturn != kCVReturnSuccess) {
-            qWarning() << "Metal texture cache creation failed";
+            qCWarning(qLcVideotoolbox) << "Metal texture cache creation failed";
             rhi = nullptr;
         }
 
@@ -103,7 +103,7 @@ VideoToolBoxTextureConverter::VideoToolBoxTextureConverter(QRhi *targetRhi)
             nil,
             &outCvGlTexCacheRef);
         if (cvReturn != kCVReturnSuccess) {
-            qWarning() << "OpenGL texture cache creation failed";
+            qCWarning(qLcVideotoolbox) << "OpenGL texture cache creation failed";
             rhi = nullptr;
         }
 
@@ -121,7 +121,7 @@ VideoToolBoxTextureConverter::VideoToolBoxTextureConverter(QRhi *targetRhi)
             nullptr,
             &outCvGlEsTexCacheRef);
         if (cvReturn != kCVReturnSuccess) {
-            qWarning() << "OpenGLES texture cache creation failed";
+            qCWarning(qLcVideotoolbox) << "OpenGLES texture cache creation failed";
             rhi = nullptr;
         }
 
@@ -191,7 +191,6 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
     bool needsConversion = false;
     QVideoFrameFormat::PixelFormat pixelFormat = QFFmpegVideoBuffer::toQtPixelFormat(HWAccel::format(frame), &needsConversion);
     if (needsConversion) {
-        // qDebug() << "XXXXXXXXXXXX pixel format needs conversion" << pixelFormat << HWAccel::format(frame);
         return nullptr;
     }
 
@@ -207,7 +206,6 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
 
     auto *textureDescription = QVideoTextureHelper::textureDescription(pixelFormat);
     int bufferPlanes = CVPixelBufferGetPlaneCount(textureHandles->m_buffer.get());
-    //    qDebug() << "XXXXX createTextureHandles" << pixelFormat << bufferPlanes << buffer;
 
     if (rhi->backend() == QRhi::Metal) {
         // First check that all planes have pixel-formats that we can handle,
@@ -241,7 +239,7 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
                 plane,
                 &outCvMetalTexRef);
             if (ret != kCVReturnSuccess) {
-                qWarning() << "texture creation failed" << ret;
+                qCWarning(qLcVideotoolbox) << "Metal texture creation failed" << ret;
                 return nullptr;
             }
 
@@ -320,6 +318,7 @@ quint64 VideoToolBoxTextureHandles::textureHandle(QRhi &, int plane)
     return CVOpenGLESTextureGetName(m_cvOpenGLESTexture);
 #endif
 #endif
+    return 0;
 }
 
 }
