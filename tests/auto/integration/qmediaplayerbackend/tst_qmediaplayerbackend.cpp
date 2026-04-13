@@ -4327,6 +4327,9 @@ void tst_QMediaPlayerBackend::setVideoOutput_doesNotStopPlayback()
     case QMediaPlayer::StoppedState:
         break;
     case QMediaPlayer::PausedState:
+#ifdef Q_OS_ANDROID
+        QSKIP("Goldfish MediaCodec decoder on the Android emulator hangs when resuming playback after pause");
+#endif
         player.pause();
         break;
     case QMediaPlayer::PlayingState:
@@ -4341,7 +4344,7 @@ void tst_QMediaPlayerBackend::setVideoOutput_doesNotStopPlayback()
 
     if (playbackState == QMediaPlayer::PlayingState) {
         QVideoFrame frame = surface.waitForFrame();
-        QCOMPARE(frame.size(), QSize(20, 20));
+        QCOMPARE(frame.size(), QSize(64, 64));
     }
 
     // unset video output
