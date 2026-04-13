@@ -11,6 +11,10 @@
 
 #include <Foundation/Foundation.h>
 
+#ifdef Q_OS_MACOS
+#import <AppKit/AppKit.h>
+#endif
+
 QT_USE_NAMESPACE
 
 AVFVideoSink::AVFVideoSink(QVideoSink *parent)
