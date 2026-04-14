@@ -277,6 +277,17 @@ QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
 #endif
     QMediaMetaData metadata = fromAVMetadata([asset metadata]);
 
+    // On macOS 15 and below, [asset metadata] returns an empty array for certain
+    // formats (e.g. MP3 with ID3 tags), while [asset commonMetadata] still provides
+    // the data. Merge commonMetadata to fill any gaps.
+    {
+        QMediaMetaData common = fromAVMetadata([asset commonMetadata]);
+        for (auto key : common.keys()) {
+            if (metadata.value(key).isNull())
+                metadata.insert(key, common.value(key));
+        }
+    }
+
     // add duration
     const CMTime time = [asset duration];
     const qint64 duration =  static_cast<qint64>(float(time.value) / float(time.timescale) * 1000.0f);
