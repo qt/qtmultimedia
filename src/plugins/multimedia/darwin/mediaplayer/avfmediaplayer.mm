@@ -248,6 +248,7 @@ struct GuardedPlatformPlayer
         [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_DURATION_KEY];
         [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_KEY];
         [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
+        [m_player replaceCurrentItemWithPlayerItem:nil];
         [m_player release];
         m_player = nullptr;
     }
