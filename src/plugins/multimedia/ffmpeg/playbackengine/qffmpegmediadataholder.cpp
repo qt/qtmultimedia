@@ -16,6 +16,8 @@
 #include <math.h>
 #include <optional>
 
+#include <QtCore/private/qminimalflatset_p.h>
+
 extern "C" {
 #include "libavutil/display.h"
 }
@@ -223,7 +225,8 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     }
 
     AVDictionaryHolder dict;
-    using RtmpProtocols = std::set<std::basic_string_view<char16_t>, std::less<>>;
+    using RtmpProtocols =
+            QMinimalVarLengthFlatSet<std::basic_string_view<char16_t>, 6, std::less<>>;
 
     static const RtmpProtocols rtmpProtocols{
         u"rtmp", u"rtmpe", u"rtmps", u"rtmpt", u"rtmpse", u"rtmpte",
@@ -233,7 +236,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     // https://ffmpeg.org/ffmpeg-protocols.html#rtmp
     // This is not the semantics of QPlaybackOptions::networkTimeout, and will cause failures when
     // opening streams
-    const bool setNetworkTimeout = rtmpProtocols.find(mediaUrl.scheme()) == rtmpProtocols.end();
+    const bool setNetworkTimeout = !rtmpProtocols.contains(mediaUrl.scheme());
 
     if (setNetworkTimeout) {
         const milliseconds timeout = playbackOptions.networkTimeout();
