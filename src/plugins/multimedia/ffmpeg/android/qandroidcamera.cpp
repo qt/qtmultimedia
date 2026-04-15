@@ -891,21 +891,19 @@ Q_DECLARE_JNI_NATIVE_METHOD(onStillPhotoCaptureFailed)
 bool QFFmpeg::QAndroidCamera::registerNativeMethods()
 {
     static const bool registered = []() {
-        return QJniEnvironment().registerNativeMethods(
-            QtJniTypes::Traits<QtJniTypes::QtJniCamera2>::className(),
-            {
-                Q_JNI_NATIVE_METHOD(onCameraOpened),
-                Q_JNI_NATIVE_METHOD(onCameraDisconnect),
-                Q_JNI_NATIVE_METHOD(onCameraError),
-                Q_JNI_NATIVE_METHOD(onCaptureSessionConfigured),
-                Q_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed),
-                Q_JNI_NATIVE_METHOD(onCaptureSessionFailed),
-                Q_JNI_NATIVE_METHOD(onPreviewFrameAvailable),
-                Q_JNI_NATIVE_METHOD(onStillPhotoAvailable),
-                Q_JNI_NATIVE_METHOD(onSessionActive),
-                Q_JNI_NATIVE_METHOD(onSessionClosed),
-                Q_JNI_NATIVE_METHOD(onStillPhotoCaptureFailed),
-            });
+        return QtJniCamera2::registerNativeMethods({
+            Q_JNI_NATIVE_METHOD(onCameraOpened),
+            Q_JNI_NATIVE_METHOD(onCameraDisconnect),
+            Q_JNI_NATIVE_METHOD(onCameraError),
+            Q_JNI_NATIVE_METHOD(onCaptureSessionConfigured),
+            Q_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed),
+            Q_JNI_NATIVE_METHOD(onCaptureSessionFailed),
+            Q_JNI_NATIVE_METHOD(onPreviewFrameAvailable),
+            Q_JNI_NATIVE_METHOD(onStillPhotoAvailable),
+            Q_JNI_NATIVE_METHOD(onSessionActive),
+            Q_JNI_NATIVE_METHOD(onSessionClosed),
+            Q_JNI_NATIVE_METHOD(onStillPhotoCaptureFailed),
+        });
     }();
     return registered;
 }
