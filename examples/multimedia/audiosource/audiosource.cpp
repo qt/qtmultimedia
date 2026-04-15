@@ -157,6 +157,11 @@ InputTest::InputTest()
     init();
 }
 
+InputTest::~InputTest()
+{
+    cleanupAudioSource();
+}
+
 void InputTest::initializeWindow()
 {
     m_layout = new QVBoxLayout(this);
