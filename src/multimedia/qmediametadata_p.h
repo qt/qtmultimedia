@@ -29,7 +29,7 @@ constexpr auto deprecatedThumbnailImage = QMediaMetaData::Key::ThumbnailImage;
 QT_WARNING_POP
 #endif
 
-void setCoverArtImage(QMediaMetaData &metadata, const QImage &image)
+inline void setCoverArtImage(QMediaMetaData &metadata, const QImage &image)
 {
     if (image.isNull())
         return;
