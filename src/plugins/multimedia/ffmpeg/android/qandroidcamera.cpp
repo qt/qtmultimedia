@@ -36,8 +36,6 @@ extern "C" {
 QT_BEGIN_NAMESPACE
 Q_STATIC_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera");
 
-Q_DECLARE_JNI_CLASS(QtCamera2, "org/qtproject/qt/android/multimedia/QtCamera2");
-
 // TODO: Should be reworked to just pass a pointer of the QAndroidCamera object into the QtCamera2
 // Java instance.
 typedef QMap<QString, QFFmpeg::QAndroidCamera *> QAndroidCameraMap;
@@ -164,10 +162,10 @@ namespace QFFmpeg {
 
 // QAndroidCamera
 
-QAndroidCamera::QAndroidCamera(QCamera *camera) : QPlatformCamera(camera)
+QAndroidCamera::QAndroidCamera(QCamera *camera)
+    : QPlatformCamera(camera)
+    , m_jniCamera(QNativeInterface::QAndroidApplication::context())
 {
-    m_jniCamera = QJniObject(QtJniTypes::Traits<QtJniTypes::QtCamera2>::className(),
-                             QNativeInterface::QAndroidApplication::context());
 
     m_hwAccel = QFFmpeg::HWAccel::create(AVHWDeviceType::AV_HWDEVICE_TYPE_MEDIACODEC);
     if (camera) {
@@ -894,7 +892,7 @@ bool QFFmpeg::QAndroidCamera::registerNativeMethods()
 {
     static const bool registered = []() {
         return QJniEnvironment().registerNativeMethods(
-            QtJniTypes::Traits<QtJniTypes::QtCamera2>::className(),
+            QtJniTypes::Traits<QtJniTypes::QtJniCamera2>::className(),
             {
                 Q_JNI_NATIVE_METHOD(onCameraOpened),
                 Q_JNI_NATIVE_METHOD(onCameraDisconnect),

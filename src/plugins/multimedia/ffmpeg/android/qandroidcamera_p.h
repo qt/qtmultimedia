@@ -26,10 +26,14 @@
 
 QT_BEGIN_NAMESPACE
 
+Q_DECLARE_JNI_CLASS(QtJniCamera2, "org/qtproject/qt/android/multimedia/QtCamera2");
+
 class QVideoFrame;
 class QAndroidVideoFrameFactory;
 
 namespace QFFmpeg {
+
+using QtJniCamera2 = QtJniTypes::QtJniCamera2;
 
 class QAndroidCamera : public QPlatformCamera
 {
@@ -99,7 +103,7 @@ private:
 
     State m_state = State::Closed;
     QCameraDevice m_cameraDevice;
-    QJniObject m_jniCamera;
+    QtJniCamera2 m_jniCamera;
 
     std::unique_ptr<QFFmpeg::HWAccel> m_hwAccel;
 
