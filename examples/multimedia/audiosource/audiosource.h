@@ -65,12 +65,13 @@ private:
     float m_level = 0.f;
 };
 
-class InputTest : public QWidget
+class InputTest final : public QWidget
 {
     Q_OBJECT
 
 public:
     InputTest();
+    ~InputTest() override;
 
 private:
     void initializeWindow();

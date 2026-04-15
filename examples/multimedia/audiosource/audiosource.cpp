@@ -144,6 +144,11 @@ InputTest::InputTest() : m_devices(new QMediaDevices(this))
     init();
 }
 
+InputTest::~InputTest()
+{
+    cleanupAudioSource();
+}
+
 void InputTest::initializeWindow()
 {
     auto *layout = new QVBoxLayout(this);
