@@ -21,6 +21,10 @@ qt_add_executable(audiosource
     3rdparty/dr_libs/dr_wav.h
 )
 
+target_include_directories(audiosource SYSTEM PRIVATE
+    3rdparty
+)
+
 qt_add_ios_ffmpeg_libraries(audiosource)
 
 set_target_properties(audiosource PROPERTIES

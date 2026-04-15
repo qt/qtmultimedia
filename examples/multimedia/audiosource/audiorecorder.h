@@ -12,7 +12,7 @@
 #define DRWAV_PRIVATE static
 #define DR_WAV_NO_CONVERSION_API
 #define DR_WAV_NO_WCHAR
-#include "3rdparty/dr_libs/dr_wav.h"
+#include "dr_libs/dr_wav.h"
 
 class AudioRecorder
 {
