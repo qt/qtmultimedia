@@ -18,7 +18,6 @@ import android.view.Display;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
 
-
 class QtScreenGrabber {
     // Lock for synchronization
     private final Object mServiceLock = new Object();
