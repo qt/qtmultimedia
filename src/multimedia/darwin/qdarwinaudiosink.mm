@@ -72,14 +72,6 @@ bool QCoreAudioSinkStream::open()
         return false;
 
 #ifdef Q_OS_MACOS
-    std::optional<int> bestNominalSamplingRate =
-            audioObjectFindBestNominalSampleRate(nativeDeviceId, QAudioDevice::Output, m_format.sampleRate());
-
-    if (bestNominalSamplingRate) {
-        if (!audioObjectSetSamplingRate(nativeDeviceId, *bestNominalSamplingRate))
-            return false;
-    }
-
     // register listener
     if (!addDisconnectListener(*audioDeviceId))
         return false;

@@ -91,6 +91,7 @@ std::optional<int> audioUnitGetFramesPerSlice(AudioUnitHandle &);
 bool audioUnitSetCurrentDevice(AudioUnitHandle &, AudioObjectID);
 std::optional<int> audioUnitGetFramesPerBuffer(AudioUnitHandle &);
 bool audioObjectSetSamplingRate(AudioObjectID, int);
+std::optional<int> audioObjectGetSamplingRate(AudioObjectID);
 std::optional<int> audioObjectFindBestNominalSampleRate(AudioObjectID, QAudioDevice::Mode,
                                                         int rate);
 bool audioObjectSetFramesPerBuffer(AudioObjectID, int32_t bufferFrames);

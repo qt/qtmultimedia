@@ -95,13 +95,9 @@ bool QCoreAudioSourceStream::open()
     if (!audioUnitSetCurrentDevice(m_audioUnit, *nativeDeviceId))
         return false;
 
-    std::optional<int> bestNominalSamplingRate = audioObjectFindBestNominalSampleRate(
-            *nativeDeviceId, QAudioDevice::Input, m_format.sampleRate());
+    std::optional<int> deviceSamplingRate = audioObjectGetSamplingRate(*nativeDeviceId);
 
-    if (bestNominalSamplingRate) {
-        if (!audioObjectSetSamplingRate(*nativeDeviceId, *bestNominalSamplingRate))
-            return false;
-    } else {
+    if (!deviceSamplingRate) {
         qWarning() << "QAudioSource: Device does not support any sampling rate. This should not "
                       "happen";
         return false;
@@ -110,10 +106,10 @@ bool QCoreAudioSourceStream::open()
     if (m_hardwareBufferFrames)
         audioObjectSetFramesPerBuffer(*nativeDeviceId, *m_hardwareBufferFrames);
 
-    if (bestNominalSamplingRate != m_format.sampleRate()) {
+    if (deviceSamplingRate != m_format.sampleRate()) {
         AudioStreamBasicDescription desiredFormat = streamFormat;
 
-        streamFormat.mSampleRate = *bestNominalSamplingRate;
+        streamFormat.mSampleRate = *deviceSamplingRate;
 
         OSStatus status = AudioConverterNew(&streamFormat, &desiredFormat, &m_audioConverter);
         if (status != noErr) {
@@ -128,7 +124,7 @@ bool QCoreAudioSourceStream::open()
 
     AVAudioSession *session = [AVAudioSession sharedInstance];
     double hwRate = session.sampleRate;
-    std::optional<int> bestNominalSamplingRate = int(hwRate);
+    std::optional<int> deviceSamplingRate = int(hwRate);
 
     audioUnitSetInputStreamFormat(m_audioUnit, 0, streamFormat);
     audioUnitSetOutputStreamFormat(m_audioUnit, 1, streamFormat);
@@ -144,7 +140,7 @@ bool QCoreAudioSourceStream::open()
 
     if (m_audioConverter) {
         size_t outputBufferSize = m_bufferList.mBuffers[0].mDataByteSize * m_format.sampleRate()
-                        / static_cast<float>(*bestNominalSamplingRate)
+                        / static_cast<float>(*deviceSamplingRate)
                 + 128 /*padding*/;
         m_outputBuffer.resize(outputBufferSize);
         m_outputBufferList.mNumberBuffers = 1;

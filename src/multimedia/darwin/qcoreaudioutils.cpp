@@ -348,7 +348,7 @@ std::optional<int> audioUnitGetFramesPerBuffer(AudioUnitHandle &audioUnit)
 
 bool audioObjectSetSamplingRate(AudioObjectID id, int samplingRate)
 {
-    AudioObjectPropertyAddress sampleRateAddress = {
+    constexpr AudioObjectPropertyAddress sampleRateAddress = {
         kAudioDevicePropertyNominalSampleRate,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMain,
@@ -365,6 +365,26 @@ bool audioObjectSetSamplingRate(AudioObjectID id, int samplingRate)
     }
 
     return true;
+}
+
+std::optional<int> audioObjectGetSamplingRate(AudioObjectID id)
+{
+    constexpr AudioObjectPropertyAddress sampleRateAddress = {
+        kAudioDevicePropertyNominalSampleRate,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMain,
+    };
+
+    Float64 rate;
+    uint32_t size = sizeof(Float64);
+    OSStatus status = AudioObjectGetPropertyData(id, &sampleRateAddress, 0, nullptr, &size, &rate);
+
+    if (status != noErr) {
+        qDebug() << "AudioObjectGetPropertyData failed" << status;
+        return {};
+    }
+
+    return int(rate);
 }
 
 std::optional<int> audioObjectFindBestNominalSampleRate(AudioObjectID id, QAudioDevice::Mode mode,
@@ -384,7 +404,7 @@ std::optional<int> audioObjectFindBestNominalSampleRate(AudioObjectID id, QAudio
 
 bool audioObjectSetFramesPerBuffer(AudioObjectID id, int32_t bufferFrames)
 {
-    AudioObjectPropertyAddress bufferFrameSizeAddress = {
+    constexpr AudioObjectPropertyAddress bufferFrameSizeAddress = {
         kAudioDevicePropertyBufferFrameSize,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMain,
