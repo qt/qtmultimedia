@@ -12,7 +12,7 @@
 #  include <QtMultimedia/private/qandroidaudiodevices_p.h>
 #endif
 #if defined(Q_OS_DARWIN)
-#  include <QtMultimedia/private/qdarwinaudiodevices_p.h>
+#  include <QtMultimedia/private/qcoreaudiodevices_p.h>
 #endif
 #if defined(Q_OS_WINDOWS)
 #  include <QtMultimedia/private/qwindowsaudiodevices_p.h>
@@ -39,7 +39,7 @@ QT_BEGIN_NAMESPACE
 std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
 {
 #ifdef Q_OS_DARWIN
-    return std::make_unique<QDarwinAudioDevices>();
+    return std::make_unique<QCoreAudioDevices>();
 #endif
 #if defined(Q_OS_WINDOWS)
     return std::make_unique<QWindowsAudioDevices>();

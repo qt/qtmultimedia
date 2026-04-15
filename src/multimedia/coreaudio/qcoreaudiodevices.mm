@@ -1,13 +1,13 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qdarwinaudiodevices_p.h"
+#include "qcoreaudiodevices_p.h"
 
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudiodevice_p.h>
-#include <QtMultimedia/private/qdarwinaudiodevice_p.h>
-#include <QtMultimedia/private/qdarwinaudiosink_p.h>
-#include <QtMultimedia/private/qdarwinaudiosource_p.h>
+#include <QtMultimedia/private/qcoreaudiodevice_p.h>
+#include <QtMultimedia/private/qcoreaaudiosink_p.h>
+#include <QtMultimedia/private/qcoreaaudiosource_p.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qloggingcategory.h>
@@ -146,7 +146,7 @@ static constexpr AudioObjectPropertyAddress listenerAddresses[] = {
 
 #endif
 
-QDarwinAudioDevices::QDarwinAudioDevices()
+QCoreAudioDevices::QCoreAudioDevices()
 {
     if (!QThread::isMainThread())
         moveToThread(qApp->thread());
@@ -160,7 +160,7 @@ QDarwinAudioDevices::QDarwinAudioDevices()
     m_deviceListenerBlock = std::make_unique<AudioObjectPropertyListenerBlock>(
             [this, destroyedFlag](UInt32 numberOfProps, const AudioObjectPropertyAddress *props) {
         // the block is dispatched via a dispatch queue on the main thread and can be in-flight when
-        // the QDarwinAudioDevices instance is being destroyed. Check the destroyed flag to avoid
+        // the QCoreAudioDevices instance is being destroyed. Check the destroyed flag to avoid
         // accessing deleted memory.
         if (*destroyedFlag)
             return;
@@ -211,7 +211,7 @@ QDarwinAudioDevices::QDarwinAudioDevices()
 #endif
 }
 
-QDarwinAudioDevices::~QDarwinAudioDevices()
+QCoreAudioDevices::~QCoreAudioDevices()
 {
 #ifdef Q_OS_MACOS
     *m_destroyed = true;
@@ -224,27 +224,27 @@ QDarwinAudioDevices::~QDarwinAudioDevices()
 #endif
 }
 
-QList<QAudioDevice> QDarwinAudioDevices::findAudioInputs() const
+QList<QAudioDevice> QCoreAudioDevices::findAudioInputs() const
 {
     return availableAudioDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QDarwinAudioDevices::findAudioOutputs() const
+QList<QAudioDevice> QCoreAudioDevices::findAudioOutputs() const
 {
     return availableAudioDevices(QAudioDevice::Output);
 }
 
-QPlatformAudioSource *QDarwinAudioDevices::createAudioSource(const QAudioDevice &info,
+QPlatformAudioSource *QCoreAudioDevices::createAudioSource(const QAudioDevice &info,
                                                              const QAudioFormat &fmt,
                                                              QObject *parent)
 {
-    return new QDarwinAudioSource(info, fmt, parent);
+    return new QCoreAudioSource(info, fmt, parent);
 }
 
-QPlatformAudioSink *QDarwinAudioDevices::createAudioSink(const QAudioDevice &info,
+QPlatformAudioSink *QCoreAudioDevices::createAudioSink(const QAudioDevice &info,
                                                          const QAudioFormat &fmt, QObject *parent)
 {
-    return new QDarwinAudioSink(info, fmt, parent);
+    return new QCoreAudioSink(info, fmt, parent);
 }
 
 namespace QCoreAudioUtils {

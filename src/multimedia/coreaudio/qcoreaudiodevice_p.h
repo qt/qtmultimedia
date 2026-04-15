@@ -1,7 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-#ifndef QDARWINAUDIODEVICE_P_H
-#define QDARWINAUDIODEVICE_P_H
+#ifndef QCOREAUDIODEVICE_P_H
+#define QCOREAUDIODEVICE_P_H
 
 //
 //  W A R N I N G
@@ -34,4 +34,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // QDARWINAUDIODEVICE_P_H
+#endif // QCOREAUDIODEVICE_P_H

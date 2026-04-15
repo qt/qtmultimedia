@@ -320,11 +320,11 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
 
 qt_internal_extend_target(Multimedia CONDITION APPLE
     SOURCES
-        darwin/qdarwinaudiodevice.cpp darwin/qdarwinaudiodevice_p.h
-        darwin/qdarwinaudiosource.mm darwin/qdarwinaudiosource_p.h
-        darwin/qdarwinaudiosink.mm darwin/qdarwinaudiosink_p.h
-        darwin/qcoreaudioutils.cpp darwin/qcoreaudioutils_p.h
-        darwin/qdarwinaudiodevices.mm darwin/qdarwinaudiodevices_p.h
+        coreaudio/qcoreaudiodevice.cpp coreaudio/qcoreaudiodevice_p.h
+        coreaudio/qcoreaaudiosource.mm coreaudio/qcoreaaudiosource_p.h
+        coreaudio/qcoreaaudiosink.mm coreaudio/qcoreaaudiosink_p.h
+        coreaudio/qcoreaudioutils.cpp coreaudio/qcoreaudioutils_p.h
+        coreaudio/qcoreaudiodevices.mm coreaudio/qcoreaudiodevices_p.h
         darwin/qavfhelpers.mm darwin/qavfhelpers_p.h
     LIBRARIES
         ${FWCoreAudio}
@@ -346,12 +346,12 @@ qt_internal_extend_target(Multimedia CONDITION MACOS OR IOS
 
 qt_internal_extend_target(Multimedia CONDITION MACOS
     SOURCES
-        darwin/qmacosaudiodatautils_p.h darwin/qmacosaudiodatautils.cpp
+        coreaudio/qmacosaudiodatautils_p.h coreaudio/qmacosaudiodatautils.cpp
 )
 
 qt_internal_extend_target(Multimedia CONDITION IOS OR TVOS OR VISIONOS
     SOURCES
-        darwin/qcoreaudiosessionmanager.mm darwin/qcoreaudiosessionmanager_p.h
+        coreaudio/qcoreaudiosessionmanager.mm coreaudio/qcoreaudiosessionmanager_p.h
     LIBRARIES
         ${FWAVFoundation}
         ${FWFoundation}

@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QDARWINAUDIODEVICES_H
-#define QDARWINAUDIODEVICES_H
+#ifndef QCOREAUDIODEVICES_H
+#define QCOREAUDIODEVICES_H
 
 //
 //  W A R N I N G
@@ -26,11 +26,11 @@
 
 QT_BEGIN_NAMESPACE
 
-class QDarwinAudioDevices : public QPlatformAudioDevices
+class QCoreAudioDevices : public QPlatformAudioDevices
 {
 public:
-    QDarwinAudioDevices();
-    ~QDarwinAudioDevices() override;
+    QCoreAudioDevices();
+    ~QCoreAudioDevices() override;
 
     QPlatformAudioSource *createAudioSource(const QAudioDevice &, const QAudioFormat &,
                                             QObject *parent) override;
@@ -82,4 +82,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QDARWINAUDIODEVICES_H
+#endif // QCOREAUDIODEVICES_H

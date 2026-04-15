@@ -1,7 +1,7 @@
 // Copyright (C) 2022 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qdarwinaudiosource_p.h"
+#include "qcoreaaudiosource_p.h"
 
 #include <QtCore/qdatastream.h>
 #include <QtCore/qdebug.h>
@@ -13,8 +13,8 @@
 #include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
-#include <QtMultimedia/private/qdarwinaudiodevice_p.h>
-#include <QtMultimedia/private/qdarwinaudiodevices_p.h>
+#include <QtMultimedia/private/qcoreaudiodevice_p.h>
+#include <QtMultimedia/private/qcoreaudiodevices_p.h>
 
 #include <AudioUnit/AudioComponent.h>
 #include <AudioToolbox/AudioConverter.h>
@@ -30,7 +30,7 @@ QT_BEGIN_NAMESPACE
 QCoreAudioSourceStream::QCoreAudioSourceStream(QAudioDevice audioDevice,
                                                const QAudioFormat &format,
                                                std::optional<int> ringbufferSize,
-                                               QDarwinAudioSource *parent, float volume, std::optional<int32_t> hardwareBufferFrames)
+                                               QCoreAudioSource *parent, float volume, std::optional<int32_t> hardwareBufferFrames)
     : QPlatformAudioSourceStream{
           std::move(audioDevice),
           format,
@@ -385,7 +385,7 @@ void QCoreAudioSourceStream::removeDisconnectListener()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QDarwinAudioSource::QDarwinAudioSource(QAudioDevice device, const QAudioFormat &format,
+QCoreAudioSource::QCoreAudioSource(QAudioDevice device, const QAudioFormat &format,
                                        QObject *parent)
     : BaseClass(std::move(device), format, parent)
 {
@@ -399,10 +399,10 @@ QDarwinAudioSource::QDarwinAudioSource(QAudioDevice device, const QAudioFormat &
 #endif
 }
 
-QDarwinAudioSource::~QDarwinAudioSource()
+QCoreAudioSource::~QCoreAudioSource()
     = default;
 
-void QDarwinAudioSource::resumeStreamIfNecessary()
+void QCoreAudioSource::resumeStreamIfNecessary()
 {
     if (m_stream)
         m_stream->resumeIfNecessary();

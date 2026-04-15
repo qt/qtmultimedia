@@ -1,7 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qdarwinaudiodevice_p.h"
+#include "qcoreaudiodevice_p.h"
 
 #include <QtCore/private/qcore_mac_p.h>
 

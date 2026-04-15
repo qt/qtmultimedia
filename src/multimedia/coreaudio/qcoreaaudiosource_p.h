@@ -1,7 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-#ifndef QDARWINAUDIOSOURCE_P_H
-#define QDARWINAUDIOSOURCE_P_H
+#ifndef QCOREAAUDIOSOURCE_P_H
+#define QCOREAAUDIOSOURCE_P_H
 
 //
 //  W A R N I N G
@@ -16,7 +16,7 @@
 
 #include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
-#include <QtMultimedia/private/qdarwinaudiodevices_p.h>
+#include <QtMultimedia/private/qcoreaudiodevices_p.h>
 
 #include <AudioUnit/AudioUnit.h>
 #include <vector>
@@ -25,17 +25,17 @@ typedef struct OpaqueAudioConverter *AudioConverterRef;
 
 QT_BEGIN_NAMESPACE
 
-class QDarwinAudioSource;
+class QCoreAudioSource;
 
 class QCoreAudioSourceStream final : public QtMultimediaPrivate::QPlatformAudioSourceStream
 {
     using QPlatformAudioSourceStream = QtMultimediaPrivate::QPlatformAudioSourceStream;
 
 public:
-    using SourceType = QDarwinAudioSource;
+    using SourceType = QCoreAudioSource;
 
     explicit QCoreAudioSourceStream(QAudioDevice, const QAudioFormat &,
-                                    std::optional<int> ringbufferSize, QDarwinAudioSource *parent,
+                                    std::optional<int> ringbufferSize, QCoreAudioSource *parent,
                                     float volume, std::optional<int32_t> hardwareBufferFrames);
     Q_DISABLE_COPY_MOVE(QCoreAudioSourceStream)
     ~QCoreAudioSourceStream();
@@ -87,7 +87,7 @@ private:
     bool m_audioUnitRunning{};
 
     std::optional<AudioCallback> m_audioCallback;
-    QDarwinAudioSource *m_parent;
+    QCoreAudioSource *m_parent;
 
     AudioBufferList m_bufferList{};
 
@@ -97,20 +97,20 @@ private:
     AudioBufferList m_outputBufferList{};
 };
 
-class QDarwinAudioSource final
+class QCoreAudioSource final
     : public QtMultimediaPrivate::QPlatformAudioSourceImplementationWithCallback<
-              QCoreAudioSourceStream, QDarwinAudioSource>
+              QCoreAudioSourceStream, QCoreAudioSource>
 {
     using BaseClass = QtMultimediaPrivate::QPlatformAudioSourceImplementationWithCallback<
-            QCoreAudioSourceStream, QDarwinAudioSource>;
+            QCoreAudioSourceStream, QCoreAudioSource>;
 
 public:
-    QDarwinAudioSource(QAudioDevice device, const QAudioFormat &format, QObject *parent);
-    ~QDarwinAudioSource() override;
+    QCoreAudioSource(QAudioDevice device, const QAudioFormat &format, QObject *parent);
+    ~QCoreAudioSource() override;
 
     void resumeStreamIfNecessary();
 };
 
 QT_END_NAMESPACE
 
-#endif // QDARWINAUDIOSOURCE_P_H
+#endif // QCOREAAUDIOSOURCE_P_H

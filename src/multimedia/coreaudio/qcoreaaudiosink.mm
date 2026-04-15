@@ -1,7 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qdarwinaudiosink_p.h"
+#include "qcoreaaudiosink_p.h"
 
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qdebug.h>
@@ -14,8 +14,8 @@
 #include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
-#include <QtMultimedia/private/qdarwinaudiodevice_p.h>
-#include <QtMultimedia/private/qdarwinaudiodevices_p.h>
+#include <QtMultimedia/private/qcoreaudiodevice_p.h>
+#include <QtMultimedia/private/qcoreaudiodevices_p.h>
 
 #include <AudioUnit/AudioUnit.h>
 #ifdef Q_OS_MACOS
@@ -33,7 +33,7 @@ QT_BEGIN_NAMESPACE
 
 QCoreAudioSinkStream::QCoreAudioSinkStream(QAudioDevice audioDevice, const QAudioFormat& format,
                                            std::optional<qsizetype> ringbufferSize,
-                                           QDarwinAudioSink *parent, float volume,
+                                           QCoreAudioSink *parent, float volume,
                                            std::optional<int32_t> hardwareBufferFrames,
                                            AudioEndpointRole)
     : QPlatformAudioSinkStream {
@@ -323,7 +323,7 @@ void QCoreAudioSinkStream::removeDisconnectListener()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-QDarwinAudioSink::QDarwinAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent)
+QCoreAudioSink::QCoreAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent)
     : BaseClass(std::move(device), format, parent)
 {
 #ifndef Q_OS_MACOS
@@ -336,10 +336,10 @@ QDarwinAudioSink::QDarwinAudioSink(QAudioDevice device, const QAudioFormat &form
 #endif
 }
 
-QDarwinAudioSink::~QDarwinAudioSink()
+QCoreAudioSink::~QCoreAudioSink()
     = default;
 
-void QDarwinAudioSink::resumeStreamIfNecessary()
+void QCoreAudioSink::resumeStreamIfNecessary()
 {
     if (m_stream)
         m_stream->resumeIfNecessary();
