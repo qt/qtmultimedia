@@ -70,6 +70,7 @@ BEGIN_INIT_FUNCS("ssl", loadLib)
 // ASN1 functions
 
 INIT_FUNC(ASN1_INTEGER_set);
+INIT_FUNC(ASN1_INTEGER_set_uint64);
 
 // BN functions
 
@@ -143,6 +144,8 @@ INIT_FUNC(BIO_meth_set_ctrl);
 INIT_FUNC(BIO_meth_set_create);
 INIT_FUNC(BIO_meth_set_destroy);
 INIT_FUNC(BIO_meth_set_callback_ctrl);
+
+INIT_FUNC(BIO_read_ex);
 
 // DTLS functions
 INIT_FUNC(DTLS_client_method);
@@ -256,6 +259,7 @@ END_INIT_FUNCS()
 // ASN1 functions
 
 DEFINE_FUNC(ASN1_INTEGER_set, 2);
+DEFINE_FUNC(ASN1_INTEGER_set_uint64, 2);
 
 // BN functions
 
@@ -329,6 +333,8 @@ DEFINE_FUNC(BIO_meth_set_ctrl, 2);
 DEFINE_FUNC(BIO_meth_set_create, 2);
 DEFINE_FUNC(BIO_meth_set_destroy, 2);
 DEFINE_FUNC(BIO_meth_set_callback_ctrl, 2);
+
+DEFINE_FUNC(BIO_read_ex, 4, -2);
 
 // DTLS functions
 
