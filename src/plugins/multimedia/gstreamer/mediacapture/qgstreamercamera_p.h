@@ -31,6 +31,10 @@ class QGstreamerCameraBase : public QPlatformCamera
 public:
     using QPlatformCamera::QPlatformCamera;
 
+#if QT_CONFIG(gstreamer_qt_api)
+    GstElement *rawGstElement() const override { return gstElement().element(); }
+#endif
+
     virtual QGstElement gstElement() const = 0;
 };
 

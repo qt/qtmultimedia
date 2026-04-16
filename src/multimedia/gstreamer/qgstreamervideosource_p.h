@@ -19,19 +19,25 @@
 #include <QtMultimedia/qgstreamervideosource.h>
 #include <QtCore/qstring.h>
 
+#include <variant>
+
 QT_BEGIN_NAMESPACE
 
 class QPlatformCamera;
 class QGStreamerVideoSource;
 class QMediaCaptureSession;
 
+using GstElementOrDescription = std::variant<QString, GstElement *>;
+
 class QGStreamerVideoSourcePrivate : public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(QGStreamerVideoSource)
 public:
     QString gstBinDescription;
-    QPlatformCamera *control = nullptr;
+    QPlatformCamera *platformCamera = nullptr;
     QMediaCaptureSession *captureSession = nullptr;
+
+    void createPlatformCamera(QGStreamerVideoSource *source, GstElementOrDescription elementOrDesc);
 };
 
 QT_END_NAMESPACE

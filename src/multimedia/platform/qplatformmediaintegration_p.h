@@ -24,6 +24,11 @@
 
 #include <memory>
 #include <mutex>
+#include <variant>
+
+// NOLINTBEGIN (bugprone-reserved-identifier)
+typedef struct _GstElement GstElement;
+// NOLINTEND (bugprone-reserved-identifier)
 
 QT_BEGIN_NAMESPACE
 
@@ -58,6 +63,8 @@ class QScreenCapture;
 class QVideoFrame;
 class QVideoSink;
 class QWindowCapture;
+
+using GstElementOrDescription = std::variant<QString, GstElement *>;
 
 class Q_MULTIMEDIA_EXPORT QAbstractPlatformSpecificInterface
 {
@@ -115,7 +122,7 @@ public:
     }
 
     virtual q23::expected<QPlatformCamera *, QString>
-    createGStreamerVideoSource(QGStreamerVideoSource *, QString)
+    createGStreamerVideoSource(QGStreamerVideoSource *, const GstElementOrDescription &)
     {
         return q23::unexpected{ notAvailable };
     }

@@ -19,6 +19,10 @@
 #include <QtMultimedia/private/qplatformvideosource_p.h>
 #include <QtMultimedia/qcamera.h>
 
+// NOLINTBEGIN (bugprone-reserved-identifier)
+typedef struct _GstElement GstElement;
+// NOLINTEND (bugprone-reserved-identifier)
+
 QT_BEGIN_NAMESPACE
 
 class Q_MULTIMEDIA_EXPORT QPlatformCamera : public QPlatformVideoSource
@@ -112,6 +116,10 @@ public:
     virtual bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const { return mode == QCamera::WhiteBalanceAuto; }
     virtual void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) {}
     virtual void setColorTemperature(int /*temperature*/) {}
+
+#if QT_CONFIG(gstreamer_qt_api)
+    virtual GstElement *rawGstElement() const { return nullptr; }
+#endif
 
     QVideoFrameFormat frameFormat() const override;
 

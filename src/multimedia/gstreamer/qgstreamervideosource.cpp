@@ -11,23 +11,39 @@
 
 QT_BEGIN_NAMESPACE
 
+void QGStreamerVideoSourcePrivate::createPlatformCamera(QGStreamerVideoSource *source,
+                                                        GstElementOrDescription elementOrDesc)
+{
+    Q_ASSERT(!platformCamera);
+
+    auto maybePlatformCamera = QPlatformMediaIntegration::instance()->createGStreamerVideoSource(
+            source, elementOrDesc);
+    if (!maybePlatformCamera) {
+        qWarning() << "Failed to initialize QGStreamerVideoSource" << maybePlatformCamera.error();
+        return;
+    }
+
+    if (auto gstBinDesc = std::get_if<QString>(&elementOrDesc))
+        gstBinDescription = std::move(*gstBinDesc);
+
+    platformCamera = *maybePlatformCamera;
+
+    QObject::connect(platformCamera, &QPlatformVideoSource::activeChanged, source,
+                     &QGStreamerVideoSource::activeChanged);
+}
+
 QGStreamerVideoSource::QGStreamerVideoSource(const QString &gstBinDescription, QObject *parent)
     : QObject(*new QGStreamerVideoSourcePrivate, parent)
 {
     Q_D(QGStreamerVideoSource);
+    d->createPlatformCamera(this, gstBinDescription);
+}
 
-    auto maybeControl = QPlatformMediaIntegration::instance()->createGStreamerVideoSource(
-            this, gstBinDescription);
-    if (!maybeControl) {
-        qWarning() << "Failed to initialize QGStreamerVideoSource" << maybeControl.error();
-        return;
-    }
-
-    d->gstBinDescription = gstBinDescription;
-    d->control = *maybeControl;
-
-    connect(d->control, &QPlatformVideoSource::activeChanged, this,
-            &QGStreamerVideoSource::activeChanged);
+QGStreamerVideoSource::QGStreamerVideoSource(GstElement *gstElement, QObject *parent)
+    : QObject(*new QGStreamerVideoSourcePrivate, parent)
+{
+    Q_D(QGStreamerVideoSource);
+    d->createPlatformCamera(this, gstElement);
 }
 
 QGStreamerVideoSource::~QGStreamerVideoSource() = default;
@@ -35,7 +51,7 @@ QGStreamerVideoSource::~QGStreamerVideoSource() = default;
 bool QGStreamerVideoSource::isActive() const
 {
     Q_D(const QGStreamerVideoSource);
-    return d->control && d->control->isActive();
+    return d->platformCamera && d->platformCamera->isActive();
 }
 
 QString QGStreamerVideoSource::gstBinDescription() const
@@ -44,17 +60,23 @@ QString QGStreamerVideoSource::gstBinDescription() const
     return d->gstBinDescription;
 }
 
+GstElement *QGStreamerVideoSource::gstElement() const
+{
+    Q_D(const QGStreamerVideoSource);
+    return d->platformCamera ? d->platformCamera->rawGstElement() : nullptr;
+}
+
 void QGStreamerVideoSource::setActive(bool active)
 {
     Q_D(const QGStreamerVideoSource);
-    if (d->control)
-        d->control->setActive(active);
+    if (d->platformCamera)
+        d->platformCamera->setActive(active);
 }
 
 QPlatformCamera *QGStreamerVideoSource::platformVideoSource() const
 {
     Q_D(const QGStreamerVideoSource);
-    return d->control;
+    return d->platformCamera;
 }
 
 QMediaCaptureSession *QGStreamerVideoSource::captureSession() const

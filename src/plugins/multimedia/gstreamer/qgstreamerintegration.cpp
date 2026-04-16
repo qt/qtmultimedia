@@ -293,21 +293,31 @@ q23::expected<QPlatformAudioOutput *, QString> QGstreamerIntegration::createAudi
 
 q23::expected<QPlatformCamera *, QString>
 QGstreamerIntegration::createGStreamerVideoSource(QGStreamerVideoSource *videoSource,
-                                                  QString binDesc)
+                                                  const GstElementOrDescription &elementOrDesc)
 {
 #if QT_CONFIG(gstreamer_qt_api)
-    if (binDesc.isEmpty())
-        return q23::unexpected{ QStringLiteral("Bin description is empty") };
+    using namespace Qt::Literals;
+    auto createImpl = [videoSource](const auto &arg) -> q23::expected<QPlatformCamera *, QString> {
+        QGstElement element;
+        if constexpr (std::is_same_v<decltype(arg), const QString &>) {
+            if (arg.isEmpty())
+                return q23::unexpected{ u"GstBin description is empty"_s };
+            element = QGstBin::createFromPipelineDescription(arg.toUtf8(), /*name=*/nullptr,
+                                                             /* ghostUnlinkedPads=*/true);
+            if (!element)
+                return q23::unexpected{ u"Failed to create GstBin from description"_s };
+        } else {
+            if (!arg)
+                return q23::unexpected{ u"GstElement is null"_s };
 
-    QGstElement element = QGstBin::createFromPipelineDescription(binDesc.toUtf8(), /*name=*/nullptr,
-                                                                 /* ghostUnlinkedPads=*/true);
+            element = QGstElement{ arg, QGstElement::NeedsRef };
+        }
 
-    if (!element)
-        return q23::unexpected{ QStringLiteral("Failed to create GstBin from description") };
-
-    return new QGstreamerCustomCamera(videoSource, std::move(element));
+        return new QGstreamerCustomCamera(videoSource, std::move(element));
+    };
+    return std::visit(createImpl, elementOrDesc);
 #else
-    return QPlatformMediaIntegration::createGStreamerVideoSource(videoSource, binDesc);
+    return QPlatformMediaIntegration::createGStreamerVideoSource(videoSource, elementOrDesc);
 #endif
 }
 

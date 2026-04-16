@@ -16,6 +16,10 @@
 #include <QtCore/qstring.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 
+// NOLINTBEGIN (bugprone-reserved-identifier)
+typedef struct _GstElement GstElement;
+// NOLINTEND (bugprone-reserved-identifier)
+
 QT_BEGIN_NAMESPACE
 
 class QPlatformCamera;
@@ -30,10 +34,12 @@ class Q_MULTIMEDIA_EXPORT QGStreamerVideoSource : public QObject
 
 public:
     explicit QGStreamerVideoSource(const QString &gstBinDescription, QObject *parent = nullptr);
+    explicit QGStreamerVideoSource(GstElement *gstElement, QObject *parent = nullptr);
     ~QGStreamerVideoSource() override;
 
     bool isActive() const;
     QString gstBinDescription() const;
+    GstElement *gstElement() const;
     QMediaCaptureSession *captureSession() const;
 
 public Q_SLOTS:
