@@ -379,10 +379,6 @@ void tst_QMediaPlayerBackend::initTestCase()
     if (qEnvironmentVariable("COIN_PLATFORM_ID") == "macos-15-x86_64-tests")
         QSKIP("Skipping test on macOS 15 x86_64, as it's flaky on CI");
 
-    if (isWMFPlatform() && isCI())
-        QSKIP("Skipping test on WMF backend on CI: virtualized environments (without audio "
-              "device?) are slow and time out");
-
     QMediaPlayer player;
     if (!player.isAvailable())
         QSKIP("Media player service is not available");
@@ -440,7 +436,11 @@ void tst_QMediaPlayerBackend::initTestCase()
     m_colorMatrix270degClockwiseMirroredVideo =
             m_mediaSelector.select("qrc:/testdata/color_matrix_270_deg_clockwise_mirrored.mp4");
 
-    m_hdrVideo = m_mediaSelector.select("qrc:/testdata/h264_avc1_yuv420p10le_tv_bt2020.mov");
+    // On Windows 10, IMFMediaEngine::Shutdown() hangs after loading this file.
+    if (!isWMFPlatform()
+        || QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows11) {
+        m_hdrVideo = m_mediaSelector.select("qrc:/testdata/h264_avc1_yuv420p10le_tv_bt2020.mov");
+    }
     m_15sVideo = m_mediaSelector.select("qrc:/testdata/15s.mkv");
     m_subtitleVideo = m_mediaSelector.select("qrc:/testdata/subtitletest.mkv");
     m_multitrackVideo = m_mediaSelector.select("qrc:/testdata/multitrack.mkv");
@@ -459,6 +459,8 @@ void tst_QMediaPlayerBackend::testMediaFilesAreSupported()
 {
     QSKIP_DARWIN("AVFoundation does not support Matroska/OGG containers");
     QSKIP_OHOS("OHOS demuxer rejects some H.264/HEVC/AV1 profiles used by the test media");
+    QSKIP_WMF("Media Foundation supports Ogg/Matroska only with optional Windows media "
+              "extensions, which may not be installed");
 
     const auto mediaSelectionErrors = m_mediaSelector.dumpErrors();
     if (!mediaSelectionErrors.isEmpty())
@@ -3664,6 +3666,12 @@ void tst_QMediaPlayerBackend::durationDetectionIssues()
     QSKIP_DARWIN("AVFoundation does not support Matroska/WebM containers");
 
     QFETCH(QString, mediaFile);
+
+    if (isWMFPlatform()) {
+        // Matroska/WebM support depends on optional Windows media extensions.
+        const MaybeUrl supported = m_mediaSelector.select(mediaFile);
+        CHECK_SELECTED_URL(supported);
+    }
     QFETCH(qint64, expectedDuration);
     QFETCH(int, expectedVideoTrackCount);
     QFETCH(qint64, expectedVideoTrackDuration);
