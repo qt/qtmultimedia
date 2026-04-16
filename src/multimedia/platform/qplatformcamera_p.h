@@ -176,7 +176,7 @@ Q_SIGNALS:
     void errorOccurred(QCamera::Error error, const QString &errorString);
 
 protected:
-    explicit QPlatformCamera(QCamera *parent);
+    explicit QPlatformCamera(QObject *parent);
 
     virtual int cameraPixelFormatScore(QVideoFrameFormat::PixelFormat /*format*/,
                                        QVideoFrameFormat::ColorRange /*colorRange*/) const

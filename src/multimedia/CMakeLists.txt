@@ -138,6 +138,11 @@ qt_internal_add_module(Multimedia
         compat/removed_api.cpp
 )
 
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer_qt_api
+    SOURCES
+        gstreamer/qgstreamervideosource.cpp gstreamer/qgstreamervideosource.h gstreamer/qgstreamervideosource_p.h
+)
+
 
 # dr_wav preparation
 qt_internal_extend_target(Multimedia
@@ -545,6 +550,5 @@ qt_copy_or_install(FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/../../mkspecs/features/ios/add_ios_ffmpeg_libraries.prf"
     DESTINATION ${ios_prf_install_dir}
 )
-
 
 

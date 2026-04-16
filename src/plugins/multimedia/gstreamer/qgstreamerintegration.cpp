@@ -17,6 +17,9 @@
 #include <uri_handler/qgstreamer_qiodevice_handler_p.h>
 #include <uri_handler/qgstreamer_qrc_handler_p.h>
 
+#if QT_CONFIG(gstreamer_qt_api)
+#  include <QtMultimedia/qgstreamervideosource.h>
+#endif
 #include <QtCore/qloggingcategory.h>
 #include <QtMultimedia/private/qmediaplayer_p.h>
 #include <QtMultimedia/private/qmediacapturesession_p.h>
@@ -289,19 +292,23 @@ q23::expected<QPlatformAudioOutput *, QString> QGstreamerIntegration::createAudi
 }
 
 q23::expected<QPlatformCamera *, QString>
-QGstreamerIntegration::createGStreamerVideoSource(QGStreamerVideoSource * /*videoSource*/,
-                                                  QString elementDesc)
+QGstreamerIntegration::createGStreamerVideoSource(QGStreamerVideoSource *videoSource,
+                                                  QString binDesc)
 {
-    if (elementDesc.isEmpty())
-        return q23::unexpected{ QStringLiteral("Element description is empty") };
+#if QT_CONFIG(gstreamer_qt_api)
+    if (binDesc.isEmpty())
+        return q23::unexpected{ QStringLiteral("Bin description is empty") };
 
-    QGstElement element = QGstBin::createFromPipelineDescription(
-            elementDesc.toUtf8(), /*name=*/nullptr, /* ghostUnlinkedPads=*/true);
+    QGstElement element = QGstBin::createFromPipelineDescription(binDesc.toUtf8(), /*name=*/nullptr,
+                                                                 /* ghostUnlinkedPads=*/true);
 
     if (!element)
-        return q23::unexpected{ QStringLiteral("Failed to create GstElement from description") };
+        return q23::unexpected{ QStringLiteral("Failed to create GstBin from description") };
 
-    return new QGstreamerCustomCamera(nullptr, std::move(element));
+    return new QGstreamerCustomCamera(videoSource, std::move(element));
+#else
+    return QPlatformMediaIntegration::createGStreamerVideoSource(videoSource, binDesc);
+#endif
 }
 
 GstDevice *QGstreamerIntegration::videoDevice(const QByteArray &id)

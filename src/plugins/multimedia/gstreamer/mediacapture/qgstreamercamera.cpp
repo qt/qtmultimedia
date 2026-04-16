@@ -738,25 +738,14 @@ int QGstreamerCamera::getV4L2Parameter(quint32 id) const
 #endif // QT_CONFIG(linux_v4l)
 
 QGstreamerCustomCamera::QGstreamerCustomCamera(QCamera *camera)
-    : QGstreamerCameraBase{
-          camera,
-      },
-      m_userProvidedGstElement{
-          false,
-      }
+    : QGstreamerCameraBase{ camera }, m_userProvidedGstElement{ false }
 {
 }
 
-QGstreamerCustomCamera::QGstreamerCustomCamera(QCamera *camera, QGstElement element)
-    : QGstreamerCameraBase{
-          camera,
-      },
-      gstCamera{
-          std::move(element),
-      },
-      m_userProvidedGstElement{
-          true,
-      }
+QGstreamerCustomCamera::QGstreamerCustomCamera(QObject *camera, QGstElement element)
+    : QGstreamerCameraBase{ camera },
+      gstCamera{ std::move(element) },
+      m_userProvidedGstElement{ true }
 {
 }
 
