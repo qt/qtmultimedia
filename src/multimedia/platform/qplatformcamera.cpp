@@ -12,7 +12,9 @@ namespace ranges = QtMultimediaPrivate::ranges;
 
 QPlatformCamera::QPlatformCamera(QCamera *parent) : QPlatformVideoSource(parent), m_camera(parent)
 {
-    Q_ASSERT(parent);
+    // TODO: create QPlatformGStreamerElement and use it instead of QPlatformCamera
+    // Then, uncomment the assert
+    //Q_ASSERT(parent);
     qRegisterMetaType<QVideoFrame>();
 }
 

@@ -288,6 +288,22 @@ q23::expected<QPlatformAudioOutput *, QString> QGstreamerIntegration::createAudi
     return QGstreamerAudioOutput::create(q);
 }
 
+q23::expected<QPlatformCamera *, QString>
+QGstreamerIntegration::createGStreamerVideoSource(QGStreamerVideoSource * /*videoSource*/,
+                                                  QString elementDesc)
+{
+    if (elementDesc.isEmpty())
+        return q23::unexpected{ QStringLiteral("Element description is empty") };
+
+    QGstElement element = QGstBin::createFromPipelineDescription(
+            elementDesc.toUtf8(), /*name=*/nullptr, /* ghostUnlinkedPads=*/true);
+
+    if (!element)
+        return q23::unexpected{ QStringLiteral("Failed to create GstElement from description") };
+
+    return new QGstreamerCustomCamera(nullptr, std::move(element));
+}
+
 GstDevice *QGstreamerIntegration::videoDevice(const QByteArray &id)
 {
     const auto devices = videoDevices();

@@ -69,6 +69,9 @@ public:
     q23::expected<QPlatformAudioInput *, QString> createAudioInput(QAudioInput *) override;
     q23::expected<QPlatformAudioOutput *, QString> createAudioOutput(QAudioOutput *) override;
 
+    q23::expected<QPlatformCamera *, QString> createGStreamerVideoSource(QGStreamerVideoSource *,
+                                                                         QString) override;
+
     const QGstreamerFormatInfo *gstFormatsInfo();
     GstDevice *videoDevice(const QByteArray &id);
 

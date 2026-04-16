@@ -38,6 +38,7 @@ class QImageCapture;
 class QMediaDevices;
 class QMediaPlayer;
 class QMediaRecorder;
+class QGStreamerVideoSource;
 class QPlatformAudioDecoder;
 class QPlatformAudioDevices;
 class QPlatformAudioInput;
@@ -109,6 +110,12 @@ public:
     virtual q23::expected<QPlatformAudioOutput *, QString> createAudioOutput(QAudioOutput *);
 
     virtual q23::expected<QPlatformVideoSink *, QString> createVideoSink(QVideoSink *)
+    {
+        return q23::unexpected{ notAvailable };
+    }
+
+    virtual q23::expected<QPlatformCamera *, QString>
+    createGStreamerVideoSource(QGStreamerVideoSource *, QString)
     {
         return q23::unexpected{ notAvailable };
     }
