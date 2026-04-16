@@ -72,6 +72,9 @@ void QWasmMediaPlayer::initVideo()
 
 void QWasmMediaPlayer::initAudio()
 {
+    if (!m_audioOutput)
+        return;
+
     connect(m_audioOutput->q, &QAudioOutput::deviceChanged,
             this, &QWasmMediaPlayer::updateAudioDevice);
     connect(m_audioOutput->q, &QAudioOutput::volumeChanged,
@@ -94,7 +97,7 @@ void QWasmMediaPlayer::initAudio()
             &QWasmMediaPlayer::onMediaStatusChanged);
     connect(m_audioOutput, &QWasmAudioOutput::stateChanged, this,
             &QWasmMediaPlayer::mediaStateChanged);
-   setAudioAvailable(true);
+    setAudioAvailable(true);
 }
 
 qint64 QWasmMediaPlayer::duration() const
