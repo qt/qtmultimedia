@@ -17,6 +17,9 @@
 #include "qaudioinput.h"
 #include "qaudiobufferinput.h"
 #include "qaudiooutput.h"
+#if QT_CONFIG(gstreamer_qt_api)
+#  include "qgstreamervideosource.h"
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -126,6 +129,7 @@ void QMediaCaptureSessionPrivate::setVideoSink(QVideoSink *sink)
 template <>
 struct QMediaCaptureSession::ObjectTraits<QCamera>
 {
+    static constexpr bool IsCamera = true;
     static constexpr auto Member = &QMediaCaptureSessionPrivate::camera;
     static constexpr auto Setter = &QMediaCaptureSession::setCamera;
     static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setCamera;
@@ -133,9 +137,23 @@ struct QMediaCaptureSession::ObjectTraits<QCamera>
     static constexpr auto ChangeNotifier = &QMediaCaptureSession::cameraChanged;
 };
 
+#if QT_CONFIG(gstreamer_qt_api)
+template <>
+struct QMediaCaptureSession::ObjectTraits<QGStreamerVideoSource>
+{
+    static constexpr bool IsCamera = true;
+    static constexpr auto Member = &QMediaCaptureSessionPrivate::nativeVideoSource;
+    static constexpr auto Setter = &QMediaCaptureSession::setNativeVideoSource;
+    static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setCamera;
+    static constexpr auto PlatformObjectProvider = &QGStreamerVideoSource::platformVideoSource;
+    static constexpr auto ChangeNotifier = &QMediaCaptureSession::nativeVideoSourceChanged;
+};
+#endif
+
 template <>
 struct QMediaCaptureSession::ObjectTraits<QScreenCapture>
 {
+    static constexpr bool IsCamera = false;
     static constexpr auto Member = &QMediaCaptureSessionPrivate::screenCapture;
     static constexpr auto Setter = &QMediaCaptureSession::setScreenCapture;
     static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setScreenCapture;
@@ -146,6 +164,7 @@ struct QMediaCaptureSession::ObjectTraits<QScreenCapture>
 template <>
 struct QMediaCaptureSession::ObjectTraits<QWindowCapture>
 {
+    static constexpr bool IsCamera = false;
     static constexpr auto Member = &QMediaCaptureSessionPrivate::windowCapture;
     static constexpr auto Setter = &QMediaCaptureSession::setWindowCapture;
     static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setWindowCapture;
@@ -156,6 +175,7 @@ struct QMediaCaptureSession::ObjectTraits<QWindowCapture>
 template <>
 struct QMediaCaptureSession::ObjectTraits<QVideoFrameInput>
 {
+    static constexpr bool IsCamera = false;
     static constexpr auto Member = &QMediaCaptureSessionPrivate::videoFrameInput;
     static constexpr auto Setter = &QMediaCaptureSession::setVideoFrameInput;
     static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setVideoFrameInput;
@@ -166,6 +186,7 @@ struct QMediaCaptureSession::ObjectTraits<QVideoFrameInput>
 template <>
 struct QMediaCaptureSession::ObjectTraits<QAudioBufferInput>
 {
+    static constexpr bool IsCamera = false;
     static constexpr auto Member = &QMediaCaptureSessionPrivate::audioBufferInput;
     static constexpr auto Setter = &QMediaCaptureSession::setAudioBufferInput;
     static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setAudioBufferInput;
@@ -176,6 +197,7 @@ struct QMediaCaptureSession::ObjectTraits<QAudioBufferInput>
 template <>
 struct QMediaCaptureSession::ObjectTraits<QImageCapture>
 {
+    static constexpr bool IsCamera = false;
     static constexpr auto Member = &QMediaCaptureSessionPrivate::imageCapture;
     static constexpr auto Setter = &QMediaCaptureSession::setImageCapture;
     static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setImageCapture;
@@ -186,6 +208,7 @@ struct QMediaCaptureSession::ObjectTraits<QImageCapture>
 template <>
 struct QMediaCaptureSession::ObjectTraits<QMediaRecorder>
 {
+    static constexpr bool IsCamera = false;
     static constexpr auto Member = &QMediaCaptureSessionPrivate::recorder;
     static constexpr auto Setter = &QMediaCaptureSession::setRecorder;
     static constexpr auto PlatformSetter = &QPlatformMediaCaptureSession::setMediaRecorder;
@@ -199,9 +222,17 @@ void QMediaCaptureSession::setObject(Object *object) {
 
     using Traits = QMediaCaptureSession::ObjectTraits<Object>;
 
-    Object *oldObject = d->*Traits::Member;
+    Object *oldObject = qobject_cast<Object *>(d->*Traits::Member);
     if (oldObject == object)
         return;
+
+    if constexpr (Traits::IsCamera) {
+        if (!QPlatformMediaIntegration::instance()->isCameraSwitchingDuringRecordingSupported()
+            && recorder() && recorder()->recorderState() == QMediaRecorder::RecordingState) {
+            qWarning("This media backend does not support camera switching during recording");
+            return;
+        }
+    }
 
     d->*Traits::Member = object;
 
@@ -251,6 +282,7 @@ QMediaCaptureSession::~QMediaCaptureSession()
     Q_D(QMediaCaptureSession);
 
     setCamera(nullptr);
+    setNativeVideoSource(nullptr);
     setRecorder(nullptr);
     setImageCapture(nullptr);
     setScreenCapture(nullptr);
@@ -353,17 +385,48 @@ QCamera *QMediaCaptureSession::camera() const
 
 void QMediaCaptureSession::setCamera(QCamera *camera)
 {
+#if QT_CONFIG(gstreamer_qt_api)
+    Q_D(QMediaCaptureSession);
+    if (d->nativeVideoSource && camera) {
+        // TODO: perhaps, we should relax the limitation
+        qWarning("Setting camera, when gstreamer video source is connected, is not supported");
+        return;
+    }
+#endif
+
+    setObject(camera);
+}
+
+QObject *QMediaCaptureSession::nativeVideoSource() const
+{
+    Q_D(const QMediaCaptureSession);
+    return d->nativeVideoSource;
+}
+
+void QMediaCaptureSession::setNativeVideoSource(QObject *videoSource)
+{
+#if QT_CONFIG(gstreamer_qt_api)
     Q_D(QMediaCaptureSession);
 
-    if (d->camera
-        && d->camera != camera
-        && !QPlatformMediaIntegration::instance()->isCameraSwitchingDuringRecordingSupported()
-        && recorder() && recorder()->recorderState() == QMediaRecorder::RecordingState) {
-        qWarning("This media backend does not support camera switching during recording");
+    auto *gstreamerVideoSource = qobject_cast<QGStreamerVideoSource *>(videoSource);
+
+    if (videoSource && !gstreamerVideoSource) {
+        qCritical() << "Unsupported video source type; QGStreamerVideoSource is expected.";
         return;
     }
 
-    setObject(camera);
+    if (d->camera && gstreamerVideoSource) {
+        // TODO: perhaps, we should relax the limitation
+        qWarning("Setting GStreamer video source, when camera is connected, is not supported");
+        return;
+    }
+
+    setObject(gstreamerVideoSource);
+#else
+    if (videoSource)
+        qCritical() << "Only gstreamer video source is supported";
+
+#endif
 }
 
 /*!

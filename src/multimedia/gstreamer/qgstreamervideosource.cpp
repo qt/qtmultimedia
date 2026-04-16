@@ -57,4 +57,16 @@ QPlatformCamera *QGStreamerVideoSource::platformVideoSource() const
     return d->control;
 }
 
+QMediaCaptureSession *QGStreamerVideoSource::captureSession() const
+{
+    Q_D(const QGStreamerVideoSource);
+    return d->captureSession;
+}
+
+void QGStreamerVideoSource::setCaptureSession(QMediaCaptureSession *session)
+{
+    Q_D(QGStreamerVideoSource);
+    d->captureSession = session;
+}
+
 QT_END_NAMESPACE

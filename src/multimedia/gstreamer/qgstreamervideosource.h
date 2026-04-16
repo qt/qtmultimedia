@@ -20,6 +20,7 @@ QT_BEGIN_NAMESPACE
 
 class QPlatformCamera;
 class QGStreamerVideoSourcePrivate;
+class QMediaCaptureSession;
 
 class Q_MULTIMEDIA_EXPORT QGStreamerVideoSource : public QObject
 {
@@ -33,6 +34,7 @@ public:
 
     bool isActive() const;
     QString gstBinDescription() const;
+    QMediaCaptureSession *captureSession() const;
 
 public Q_SLOTS:
     void setActive(bool active);
@@ -45,9 +47,12 @@ Q_SIGNALS:
 private:
     QPlatformCamera *platformVideoSource() const;
 
+    void setCaptureSession(QMediaCaptureSession *session);
+
 private:
     Q_DISABLE_COPY(QGStreamerVideoSource)
     Q_DECLARE_PRIVATE(QGStreamerVideoSource)
+    friend class QMediaCaptureSession;
 };
 
 QT_END_NAMESPACE

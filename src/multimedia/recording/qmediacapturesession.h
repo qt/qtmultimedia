@@ -31,6 +31,8 @@ class Q_MULTIMEDIA_EXPORT QMediaCaptureSession : public QObject
                        NOTIFY audioBufferInputChanged REVISION(6, 8))
     Q_PROPERTY(QAudioOutput *audioOutput READ audioOutput WRITE setAudioOutput NOTIFY audioOutputChanged)
     Q_PROPERTY(QCamera *camera READ camera WRITE setCamera NOTIFY cameraChanged)
+    Q_PROPERTY(QObject *nativeVideoSource READ nativeVideoSource WRITE setNativeVideoSource NOTIFY
+                       nativeVideoSourceChanged REVISION(6, 12))
     Q_PROPERTY(
             QScreenCapture *screenCapture READ screenCapture WRITE setScreenCapture NOTIFY screenCaptureChanged)
     Q_PROPERTY(QWindowCapture *windowCapture READ windowCapture WRITE setWindowCapture NOTIFY
@@ -52,6 +54,9 @@ public:
 
     QCamera *camera() const;
     void setCamera(QCamera *camera);
+
+    QObject *nativeVideoSource() const;
+    void setNativeVideoSource(QObject *videoSource);
 
     QImageCapture *imageCapture();
     void setImageCapture(QImageCapture *imageCapture);
@@ -83,6 +88,7 @@ Q_SIGNALS:
     void audioInputChanged();
     Q_REVISION(6, 8) void audioBufferInputChanged();
     void cameraChanged();
+    Q_REVISION(6, 12) void nativeVideoSourceChanged();
     void screenCaptureChanged();
     void windowCaptureChanged();
     Q_REVISION(6, 8) void videoFrameInputChanged();

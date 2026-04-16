@@ -23,6 +23,7 @@ QT_BEGIN_NAMESPACE
 
 class QPlatformCamera;
 class QGStreamerVideoSource;
+class QMediaCaptureSession;
 
 class QGStreamerVideoSourcePrivate : public QObjectPrivate
 {
@@ -30,6 +31,7 @@ class QGStreamerVideoSourcePrivate : public QObjectPrivate
 public:
     QString gstBinDescription;
     QPlatformCamera *control = nullptr;
+    QMediaCaptureSession *captureSession = nullptr;
 };
 
 QT_END_NAMESPACE

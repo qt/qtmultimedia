@@ -37,6 +37,7 @@ public:
     QPointer<QAudioBufferInput> audioBufferInput;
     QAudioOutput *audioOutput = nullptr;
     QPointer<QCamera> camera;
+    QPointer<QObject> nativeVideoSource;
     QPointer<QScreenCapture> screenCapture;
     QPointer<QWindowCapture> windowCapture;
     QPointer<QVideoFrameInput> videoFrameInput;
