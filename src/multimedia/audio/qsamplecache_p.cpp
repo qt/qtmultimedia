@@ -37,9 +37,20 @@ QSampleCache *QSampleCache::instance()
     return sampleCache();
 }
 
+#if QT_CONFIG(thread)
+QThreadPool *QSampleCache::threadPool()
+{
+#ifdef Q_OS_WASM
+    return QThreadPool::globalInstance();
+#else
+    return &m_threadPool;
+#endif
+}
+#endif
+
 QSampleCache::QSampleCache(QObject *parent) : QObject(parent)
 {
-#if QT_CONFIG(thread)
+#if QT_CONFIG(thread) && !defined(Q_OS_WASM)
     // we limit the number of loader threads to avoid thread explosion
     static constexpr int loaderThreadLimit = 8;
     m_threadPool.setObjectName("QSampleCachePool");
@@ -49,7 +60,6 @@ QSampleCache::QSampleCache(QObject *parent) : QObject(parent)
     m_threadPool.setServiceLevel(QThread::QualityOfService::Eco);
 
     if (!thread()->isMainThread()) {
-        this->moveToThread(qApp->thread());
         m_threadPool.moveToThread(qApp->thread());
     }
 
@@ -64,6 +74,11 @@ QSampleCache::QSampleCache(QObject *parent) : QObject(parent)
         instance->m_threadPool.waitForDone();
     });
 
+#endif
+#if QT_CONFIG(thread)
+    if (!thread()->isMainThread()) {
+        this->moveToThread(qApp->thread());
+    }
 #endif
 }
 
@@ -313,14 +328,16 @@ QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url)
     SharedSamplePtr sample = std::make_shared<QSample>(url, this);
     m_pendingSamples.emplace(url, std::pair{ sample, QList<SharedSamplePromise>{ promise } });
 
+    QFuture<SampleLoadResult> futureResult;
 #if QT_CONFIG(thread)
-    QFuture<SampleLoadResult> futureResult =
-            QtConcurrent::run(&m_threadPool, [url, type = m_sampleSourceType] {
-        return loadSample(url, type);
-    });
-#else
-    QFuture<SampleLoadResult> futureResult = loadSampleAsync(url);
+    if (threadPool()->maxThreadCount() > 0)
+        futureResult =
+            QtConcurrent::run(threadPool(), [url, type = m_sampleSourceType] {
+                return loadSample(url, type);
+            });
+    else
 #endif
+        futureResult = loadSampleAsync(url);
 
     futureResult.then(this,
                       [this, url, sample = std::move(sample)](SampleLoadResult loadResult) mutable {
