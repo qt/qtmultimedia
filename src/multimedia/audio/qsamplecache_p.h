@@ -104,6 +104,9 @@ public:
 
 private:
     std::unique_ptr<QIODevice> createStreamForSample(QSample &sample);
+#if QT_CONFIG(thread)
+    QThreadPool *threadPool();
+#endif
 
 private:
     using SharedSamplePromise = std::shared_ptr<QPromise<SharedSamplePtr>>;
