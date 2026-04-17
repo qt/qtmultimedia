@@ -108,7 +108,7 @@ public:
     {
 #ifdef Q_PROCESSOR_X86
         // tiny DC offset to prevent denormals, which can cause severe performance degradation on x86 CPUs
-        x += 1e-18;
+        x += 1e-18f;
 #endif
         // Process LF
         double r_lf = x * b0_lf + s1_lf;
