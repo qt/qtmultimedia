@@ -9,8 +9,7 @@ QT_BEGIN_NAMESPACE
 //It is used to delegate invocations from media foundation(through IMFByteStream) to QIODevice.
 
 MFStream::MFStream(QIODevice *stream, bool ownStream)
-    : m_cRef(1)
-    , m_stream(stream)
+    : m_stream(stream)
     , m_ownStream(ownStream)
     , m_currentReadResult(0)
 {
@@ -27,38 +26,6 @@ MFStream::~MFStream()
     if (m_ownStream)
         m_stream->deleteLater();
 }
-
-//from IUnknown
-STDMETHODIMP MFStream::QueryInterface(REFIID riid, LPVOID *ppvObject)
-{
-    if (!ppvObject)
-        return E_POINTER;
-    if (riid == IID_IMFByteStream) {
-        *ppvObject = static_cast<IMFByteStream*>(this);
-    } else if (riid == IID_IUnknown) {
-        *ppvObject = static_cast<IUnknown*>(this);
-    } else {
-        *ppvObject =  NULL;
-        return E_NOINTERFACE;
-    }
-    AddRef();
-    return S_OK;
-}
-
-STDMETHODIMP_(ULONG) MFStream::AddRef(void)
-{
-    return InterlockedIncrement(&m_cRef);
-}
-
-STDMETHODIMP_(ULONG) MFStream::Release(void)
-{
-    LONG cRef = InterlockedDecrement(&m_cRef);
-    if (cRef == 0) {
-        this->deleteLater();
-    }
-    return cRef;
-}
-
 
 //from IMFByteStream
 STDMETHODIMP MFStream::GetCapabilities(DWORD *pdwCapabilities)
@@ -264,42 +231,12 @@ void MFStream::customEvent(QEvent *event)
 //to record some BeginRead parameters, so these parameters could be
 //used later when actually executing the read operation in another thread.
 MFStream::AsyncReadState::AsyncReadState(BYTE *pb, ULONG cb)
-    : m_cRef(1)
-    , m_pb(pb)
+    : m_pb(pb)
     , m_cb(cb)
     , m_cbRead(0)
 {
 }
 
-//from IUnknown
-STDMETHODIMP MFStream::AsyncReadState::QueryInterface(REFIID riid, LPVOID *ppvObject)
-{
-    if (!ppvObject)
-        return E_POINTER;
-
-    if (riid == IID_IUnknown) {
-        *ppvObject = static_cast<IUnknown*>(this);
-    } else {
-        *ppvObject =  NULL;
-        return E_NOINTERFACE;
-    }
-    AddRef();
-    return S_OK;
-}
-
-STDMETHODIMP_(ULONG) MFStream::AsyncReadState::AddRef(void)
-{
-    return InterlockedIncrement(&m_cRef);
-}
-
-STDMETHODIMP_(ULONG) MFStream::AsyncReadState::Release(void)
-{
-    LONG cRef = InterlockedDecrement(&m_cRef);
-    if (cRef == 0)
-        delete this;
-    // For thread safety, return a temporary variable.
-    return cRef;
-}
 
 BYTE* MFStream::AsyncReadState::pb() const
 {

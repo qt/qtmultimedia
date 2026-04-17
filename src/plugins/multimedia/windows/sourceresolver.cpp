@@ -41,34 +41,6 @@ SourceResolver::~SourceResolver()
         m_sourceResolver->Release();
 }
 
-STDMETHODIMP SourceResolver::QueryInterface(REFIID riid, LPVOID *ppvObject)
-{
-    if (!ppvObject)
-        return E_POINTER;
-    if (riid == IID_IUnknown) {
-        *ppvObject = static_cast<IUnknown*>(this);
-    } else if (riid == IID_IMFAsyncCallback) {
-        *ppvObject = static_cast<IMFAsyncCallback*>(this);
-    } else {
-        *ppvObject =  NULL;
-        return E_NOINTERFACE;
-    }
-    AddRef();
-    return S_OK;
-}
-
-STDMETHODIMP_(ULONG) SourceResolver::AddRef(void)
-{
-    return InterlockedIncrement(&m_cRef);
-}
-
-STDMETHODIMP_(ULONG) SourceResolver::Release(void)
-{
-    LONG cRef = InterlockedDecrement(&m_cRef);
-    if (cRef == 0)
-        this->deleteLater();
-    return cRef;
-}
 
 HRESULT STDMETHODCALLTYPE SourceResolver::Invoke(IMFAsyncResult *pAsyncResult)
 {
@@ -251,33 +223,6 @@ SourceResolver::State::~State()
     m_sourceResolver->Release();
 }
 
-STDMETHODIMP SourceResolver::State::QueryInterface(REFIID riid, LPVOID *ppvObject)
-{
-    if (!ppvObject)
-        return E_POINTER;
-    if (riid == IID_IUnknown) {
-        *ppvObject = static_cast<IUnknown*>(this);
-    } else {
-        *ppvObject =  NULL;
-        return E_NOINTERFACE;
-    }
-    AddRef();
-    return S_OK;
-}
-
-STDMETHODIMP_(ULONG) SourceResolver::State::AddRef(void)
-{
-    return InterlockedIncrement(&m_cRef);
-}
-
-STDMETHODIMP_(ULONG) SourceResolver::State::Release(void)
-{
-    LONG cRef = InterlockedDecrement(&m_cRef);
-    if (cRef == 0)
-        delete this;
-    // For thread safety, return a temporary variable.
-    return cRef;
-}
 
 IMFSourceResolver* SourceResolver::State::sourceResolver() const
 {

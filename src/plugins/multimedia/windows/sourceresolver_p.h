@@ -17,20 +17,17 @@
 
 #include "mfstream_p.h"
 #include <QUrl>
+#include <QtCore/private/qcomobject_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class SourceResolver: public QObject, public IMFAsyncCallback
+class SourceResolver : public QObject,
+                       public QComObjectWithDeleteLater<SourceResolver, IMFAsyncCallback>
 {
     Q_OBJECT
 public:
     SourceResolver();
-
     ~SourceResolver();
-
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
-    STDMETHODIMP_(ULONG) AddRef(void) override;
-    STDMETHODIMP_(ULONG) Release(void) override;
 
     HRESULT STDMETHODCALLTYPE Invoke(IMFAsyncResult *pAsyncResult) override;
 
@@ -49,17 +46,11 @@ Q_SIGNALS:
     void mediaSourceReady();
 
 private:
-    class State : public IUnknown
+    class State : public QComObject<IUnknown>
     {
     public:
         State(IMFSourceResolver *sourceResolver, bool fromStream);
         virtual ~State();
-
-        STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
-
-        STDMETHODIMP_(ULONG) AddRef(void) override;
-
-        STDMETHODIMP_(ULONG) Release(void) override;
 
         IMFSourceResolver* sourceResolver() const;
         bool fromStream() const;

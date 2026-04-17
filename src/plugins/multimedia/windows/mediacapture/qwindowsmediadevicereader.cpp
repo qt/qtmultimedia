@@ -777,39 +777,6 @@ bool QWindowsMediaDeviceReader::resumeRecording()
     return true;
 }
 
-//from IUnknown
-STDMETHODIMP QWindowsMediaDeviceReader::QueryInterface(REFIID riid, LPVOID *ppvObject)
-{
-    if (!ppvObject)
-        return E_POINTER;
-    if (riid == IID_IMFSourceReaderCallback) {
-        *ppvObject = static_cast<IMFSourceReaderCallback*>(this);
-    } else if (riid == IID_IMFSinkWriterCallback) {
-        *ppvObject = static_cast<IMFSinkWriterCallback*>(this);
-    } else if (riid == IID_IUnknown) {
-        *ppvObject = static_cast<IUnknown*>(static_cast<IMFSourceReaderCallback*>(this));
-    } else {
-        *ppvObject =  nullptr;
-        return E_NOINTERFACE;
-    }
-    AddRef();
-    return S_OK;
-}
-
-STDMETHODIMP_(ULONG) QWindowsMediaDeviceReader::AddRef(void)
-{
-    return InterlockedIncrement(&m_cRef);
-}
-
-STDMETHODIMP_(ULONG) QWindowsMediaDeviceReader::Release(void)
-{
-    LONG cRef = InterlockedDecrement(&m_cRef);
-    if (cRef == 0) {
-        this->deleteLater();
-    }
-    return cRef;
-}
-
 UINT32 QWindowsMediaDeviceReader::frameWidth() const
 {
     return m_frameWidth;

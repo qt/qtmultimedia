@@ -21,24 +21,17 @@
 #include <QtCore/qiodevice.h>
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/private/qcomobject_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class MFStream : public QObject, public IMFByteStream
+class MFStream : public QObject, public QComObjectWithDeleteLater<MFStream, IMFByteStream>
 {
     Q_OBJECT
 public:
     MFStream(QIODevice *stream, bool ownStream);
 
     ~MFStream();
-
-    //from IUnknown
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
-
-    STDMETHODIMP_(ULONG) AddRef(void) override;
-
-    STDMETHODIMP_(ULONG) Release(void) override;
-
 
     //from IMFByteStream
     STDMETHODIMP GetCapabilities(DWORD *pdwCapabilities) override;
@@ -80,18 +73,10 @@ public:
     STDMETHODIMP Close() override;
 
 private:
-    class AsyncReadState : public IUnknown
+    class AsyncReadState : public QComObject<IUnknown>
     {
     public:
         AsyncReadState(BYTE *pb, ULONG cb);
-        virtual ~AsyncReadState() = default;
-
-        //from IUnknown
-        STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
-
-        STDMETHODIMP_(ULONG) AddRef(void) override;
-
-        STDMETHODIMP_(ULONG) Release(void) override;
 
         BYTE* pb() const;
         ULONG cb() const;
@@ -100,13 +85,11 @@ private:
         void setBytesRead(ULONG cbRead);
 
     private:
-        long m_cRef;
         BYTE *m_pb;
         ULONG m_cb;
         ULONG m_cbRead;
     };
 
-    long m_cRef;
     QPointer<QIODevice> m_stream;
     bool m_ownStream;
     DWORD m_workQueueId;

@@ -24,6 +24,7 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qwaitcondition.h>
 #include <QtCore/qtimer.h>
+#include <QtCore/private/qcomobject_p.h>
 #include <qvideoframe.h>
 #include <qcameradevice.h>
 #include <qmediarecorder.h>
@@ -32,19 +33,15 @@ QT_BEGIN_NAMESPACE
 
 class QVideoSink;
 
-class QWindowsMediaDeviceReader : public QObject,
-        public IMFSourceReaderCallback,
-        public IMFSinkWriterCallback
+class QWindowsMediaDeviceReader
+    : public QObject,
+      public QComObjectWithDeleteLater<QWindowsMediaDeviceReader, IMFSourceReaderCallback,
+                                       IMFSinkWriterCallback>
 {
     Q_OBJECT
 public:
     explicit QWindowsMediaDeviceReader(QObject *parent = nullptr);
     ~QWindowsMediaDeviceReader();
-
-    //from IUnknown
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
-    STDMETHODIMP_(ULONG) AddRef(void) override;
-    STDMETHODIMP_(ULONG) Release(void) override;
 
     //from IMFSourceReaderCallback
     STDMETHODIMP OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
@@ -109,7 +106,6 @@ private:
     void stopStreaming();
     DWORD findMediaTypeIndex(const QCameraFormat &reqFormat);
 
-    long               m_cRef = 1;
     QMutex             m_mutex;
     QWaitCondition     m_hasFinalized;
     IMFMediaSource     *m_videoSource = nullptr;
