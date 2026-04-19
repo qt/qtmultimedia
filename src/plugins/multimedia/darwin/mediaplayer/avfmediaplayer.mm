@@ -249,8 +249,16 @@ struct GuardedPlatformPlayer
         [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_KEY];
         [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
         [m_player replaceCurrentItemWithPlayerItem:nil];
-        [m_player release];
+
+        // Defer the release of AVPlayer to allow CoreMedia/VideoToolbox
+        // dispatch queues to finish pending operations. Releasing the
+        // player synchronously can cause sporadic crashes on macOS 14
+        // when background threads still reference internal resources.
+        AVPlayer *player = m_player;
         m_player = nullptr;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [player release];
+        });
     }
     if (m_playerLayer)
         m_playerLayer.player = nil;
@@ -595,6 +603,11 @@ AVFMediaPlayer::~AVFMediaPlayer()
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;
 #endif
+
+    // Unload media before the C++ side is torn down, so that
+    // CoreMedia/VideoToolbox threads don't outlive our objects.
+    [m_observer unloadMedia];
+
     //Detatch the session from the sessionObserver (which could still be alive trying to communicate with this session).
     [m_observer clearSession];
     [m_observer release];
