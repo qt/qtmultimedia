@@ -3,8 +3,8 @@ enable_if:
   condition: or
   conditions:
     - condition: runtime
-      env_var: TARGET_OSVERSION_COIN
-      contains_value: macos_26
+      env_var: TARGET_OS_COIN
+      contains_value: macos
 
 instructions:
   - type: EnvironmentVariable

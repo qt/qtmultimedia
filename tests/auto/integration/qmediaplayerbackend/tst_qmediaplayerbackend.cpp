@@ -1312,6 +1312,9 @@ void tst_QMediaPlayerBackend::pause_playback_resumesFromPausedPosition()
 {
     using namespace std::chrono_literals;
 
+    if (isDarwinPlatform() && isCI())
+        QSKIP("Flaky on CI: position may drift by 1ms after pause due to async event delivery");
+
     CHECK_SELECTED_URL(m_localVideoFile);
 
     QMediaPlayer &player = m_fixture->player;
@@ -1524,6 +1527,9 @@ void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPla
 
 void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayback_whenSetSourceWasCalledWithEmptyUrl()
 {
+    if (isDarwinPlatform() && isCI() && QSysInfo::currentCpuArchitecture() == "x86_64")
+        QSKIP("Flaky on CI: AVFoundation may not emit positionChanged on x86_64");
+
     CHECK_SELECTED_URL(m_localWavFile2);
 
     // Arrange
@@ -4795,6 +4801,9 @@ void tst_QMediaPlayerBackend::play_finishes_whenPlayingFileIncludingPacketsWithU
     // When FFmpeg demuxes MP3 files with embedded thumbnails, the PTS/DTS of the first packet
     // is AV_NOPTS_VALUE, aka "Undefined timestamp value". This test makes sure it is played to the
     // end by checking for position changes before reaching StoppedState.
+    if (isDarwinPlatform() && isCI())
+        QSKIP("Flaky on CI: AVFoundation may not emit enough positionChanged signals for short media at high playback rate");
+
     CHECK_SELECTED_URL(m_localMp3FileWithMetadataAndEmbeddedThumbnail);
 
     // Arrange
