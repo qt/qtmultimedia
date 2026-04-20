@@ -1178,10 +1178,10 @@ QMediaPlayer::PitchCompensationAvailability QMediaPlayer::pitchCompensationAvail
 }
 
 /*!
-    \qmlproperty playbackOptions MediaPlayer::playbackOptions
+    \qmlproperty PlaybackOptions MediaPlayer::playbackOptions
     \since 6.10
 
-    This property exposes the \l playbackOptions API that gives low-level control of media playback
+    This property exposes the \l PlaybackOptions API that gives low-level control of media playback
     options. Although we strongly recommend to rely on the default settings of \l MediaPlayer,
     this API can be used to optimize media playback for specific use cases where the default
     options are not ideal.
