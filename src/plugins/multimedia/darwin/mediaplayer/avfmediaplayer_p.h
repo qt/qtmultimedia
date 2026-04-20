@@ -92,6 +92,8 @@ public Q_SLOTS:
     void processPositionChange();
     void processMediaLoadError(QMediaPlayer::Error errorCode);
 
+    void seekCompleted();
+
     void processLoadStateChange();
     void processLoadStateFailure();
 

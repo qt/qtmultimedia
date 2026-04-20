@@ -61,7 +61,8 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 - (void) playerItemDidReachEnd:(NSNotification *)notification;
 - (void) observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object
                          change:(NSDictionary *)change context:(void *)context;
-- (void)clearSession;
+- (void) clearSession;
+- (void) notifySeekComplete;
 - (void) dealloc;
 - (BOOL) resourceLoader:(AVAssetResourceLoader *)resourceLoader shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest;
 @end
@@ -516,6 +517,13 @@ struct GuardedPlatformPlayer
     m_platformPlayer.clear();
 }
 
+- (void)notifySeekComplete
+{
+    m_platformPlayer.withPlatformPlayer([](AVFMediaPlayer *player) {
+        player->seekCompleted();
+    });
+}
+
 - (void) dealloc
 {
 #ifdef QT_DEBUG_AVF
@@ -853,10 +861,11 @@ void AVFMediaPlayer::setPosition(qint64 pos)
 
     CMTime newTime = [playerItem currentTime];
     newTime.value = (pos / 1000.0f) * newTime.timescale;
+    AVFMediaPlayerObserver *observer = m_observer;
     [playerItem seekToTime:newTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero
                            completionHandler:^(BOOL finished) {
                                 if (finished)
-                                    m_requestedPosition = -1;
+                                    [observer notifySeekComplete];
                            }];
 
     positionChanged(pos);
@@ -1148,6 +1157,11 @@ void AVFMediaPlayer::processMediaLoadError(QMediaPlayer::Error errorCode)
     }
 
     setInvalidMediaWithError(errorCode, tr("Failed to load media"));
+}
+
+void AVFMediaPlayer::seekCompleted()
+{
+    m_requestedPosition = -1;
 }
 
 void AVFMediaPlayer::streamReady()
