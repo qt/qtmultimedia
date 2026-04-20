@@ -14,6 +14,7 @@ set(java_sources
 
 if (QT_FEATURE_ffmpeg)
     list(APPEND java_sources
+        src/org/qtproject/qt/android/multimedia/qffmpeg/CameraSettings.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtExifDataHandler.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtCamera2.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtCameraAvailabilityListener.java
