@@ -21,7 +21,7 @@ QT_BEGIN_NAMESPACE
 
 Q_DECLARE_JNI_CLASS(
     QtVideoDeviceManager,
-    "org/qtproject/qt/android/multimedia/QtVideoDeviceManager")
+    "org/qtproject/qt/android/multimedia/qffmpeg/QtVideoDeviceManager")
 
 QT_END_NAMESPACE
 

@@ -12,9 +12,9 @@
 QT_BEGIN_NAMESPACE
 
 Q_DECLARE_JNI_CLASS(QtScreenGrabber,
-                    "org/qtproject/qt/android/multimedia/QtScreenGrabber")
+                    "org/qtproject/qt/android/multimedia/qffmpeg/QtScreenGrabber")
 Q_DECLARE_JNI_CLASS(QtScreenCaptureService,
-                    "org/qtproject/qt/android/multimedia/QtScreenCaptureService")
+                    "org/qtproject/qt/android/multimedia/qffmpeg/QtScreenCaptureService")
 Q_DECLARE_JNI_CLASS(Size, "android/util/Size")
 
 
