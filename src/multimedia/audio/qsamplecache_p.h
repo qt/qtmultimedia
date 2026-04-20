@@ -125,7 +125,9 @@ private:
 #if QT_CONFIG(thread)
     static SampleLoadResult
     loadSample(const QUrl &, std::optional<SampleSourceType> forceSourceType = std::nullopt);
-    QThreadPool m_threadPool;
+#  ifndef Q_OS_WASM
+    QThreadPool m_threadPool{ this };
+#  endif
 #endif
     QFuture<SampleLoadResult> loadSampleAsync(const QUrl &);
 
