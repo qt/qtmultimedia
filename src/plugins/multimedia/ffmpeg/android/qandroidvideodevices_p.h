@@ -24,7 +24,7 @@ QT_BEGIN_NAMESPACE
 
 Q_DECLARE_JNI_CLASS(
     QtCameraAvailabilityListener,
-    "org/qtproject/qt/android/multimedia/QtCameraAvailabilityListener");
+    "org/qtproject/qt/android/multimedia/qffmpeg/QtCameraAvailabilityListener");
 
 namespace QFFmpeg {
 

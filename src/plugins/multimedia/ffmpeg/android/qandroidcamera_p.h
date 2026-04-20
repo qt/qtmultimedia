@@ -26,7 +26,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_DECLARE_JNI_CLASS(QtJniCamera2, "org/qtproject/qt/android/multimedia/QtCamera2");
+Q_DECLARE_JNI_CLASS(QtJniCamera2, "org/qtproject/qt/android/multimedia/qffmpeg/QtCamera2");
 
 class QVideoFrame;
 class QAndroidVideoFrameFactory;
