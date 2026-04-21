@@ -14,6 +14,7 @@ set(java_sources
 
 if (QT_FEATURE_ffmpeg)
     list(APPEND java_sources
+        src/org/qtproject/qt/android/multimedia/qffmpeg/CameraCaptureSessionStateCallback.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/CameraDeviceStateCallback.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/CameraSettings.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtExifDataHandler.java

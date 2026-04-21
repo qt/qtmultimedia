@@ -95,38 +95,6 @@ class QtCamera2 {
     native void onCaptureSessionConfigured(String cameraId);
     native void onCaptureSessionConfigureFailed(String cameraId);
 
-    static class CameraCaptureSessionStateCallback extends CameraCaptureSession.StateCallback {
-        private QtCamera2 mMainCameraObject = null;
-
-        CameraCaptureSessionStateCallback(QtCamera2 mainCameraObject) {
-            assert(mainCameraObject != null);
-            mMainCameraObject = mainCameraObject;
-        }
-
-        @Override
-        public void onConfigured(CameraCaptureSession cameraCaptureSession) {
-            mMainCameraObject.mCaptureSession = cameraCaptureSession;
-            mMainCameraObject.onCaptureSessionConfigured(mMainCameraObject.mCameraId);
-        }
-
-        @Override
-        public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
-            mMainCameraObject.onCaptureSessionConfigureFailed(mMainCameraObject.mCameraId);
-        }
-
-        @Override
-        public void onActive(CameraCaptureSession cameraCaptureSession) {
-           super.onActive(cameraCaptureSession);
-           mMainCameraObject.onSessionActive(mMainCameraObject.mCameraId);
-        }
-
-        @Override
-        public void onClosed(CameraCaptureSession cameraCaptureSession) {
-            super.onClosed(cameraCaptureSession);
-            mMainCameraObject.onSessionClosed(mMainCameraObject.mCameraId);
-        }
-    }
-
     CameraCaptureSessionStateCallback mCaptureStateCallback = new CameraCaptureSessionStateCallback(this);
 
     native void onSessionActive(String cameraId);
