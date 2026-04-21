@@ -46,25 +46,14 @@ public:
     bool isPaused() const override;
     void setOutputDevice(const QAudioDevice &device) override;
     QAudioDevice outputDevice() const override { return m_device; }
-    void setOutputMode(QAudioEngine::OutputMode) override;
-    QAudioEngine::OutputMode outputMode() const override { return m_outputMode; };
-
-    void setRoomEffectsEnabled(bool) override;
-    bool roomEffectsEnabled() const override;
-    void setListenerPosition(std::optional<QVector3D> pos) override;
 
     void addSound(QAmbientSoundPrivate *) override;
     void removeSound(QAmbientSoundPrivate *) override;
 
-    void addRoom(QAudioRoom *room) override;
-    void removeRoom(QAudioRoom *room) override;
-    QAudioRoom *currentRoom() const override { return m_currentRoom; }
-    void updateRooms() override;
+    void updateRoomEffects() override;
 
 private:
     friend class QAudioOutputStream;
-    QAudioEngine::OutputMode m_outputMode = QAudioEngine::Surround;
-    bool m_roomEffectsEnabled = true;
 
     QMutex mutex;
     QAudioDevice m_device;
@@ -74,8 +63,6 @@ private:
     std::unique_ptr<QAudioOutputStream> outputStream;
 
     std::vector<QAmbientSoundPrivate *> sources;
-    std::vector<QAudioRoom *> rooms;
-    QAudioRoom *m_currentRoom = nullptr;
 };
 
 QT_END_NAMESPACE

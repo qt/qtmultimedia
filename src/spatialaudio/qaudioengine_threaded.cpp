@@ -65,7 +65,7 @@ public:
     {
         d->mutex.lock();
         Q_ASSERT(!sink);
-        auto channelConfig = d->m_outputMode == QAudioEngine::Surround
+        auto channelConfig = d->outputMode() == QAudioEngine::Surround
                 ? d->m_device.channelConfiguration()
                 : QAudioFormat::ChannelConfigStereo;
 
@@ -154,7 +154,7 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
                                                          source->nchannels, framesPerBuffer);
         }
 
-        if (ambisonicDecoder && d->m_outputMode == QAudioEngine::Surround) {
+        if (ambisonicDecoder && d->outputMode() == QAudioEngine::Surround) {
             std::array<const float *, QAmbisonicDecoder::maxAmbisonicChannels> channels;
             std::array<const float *, 2> reverbBuffers{};
             int nFrames = d->resonanceAudio->getAmbisonicOutput(
@@ -225,9 +225,6 @@ void QAudioEngineThreaded::start()
     if (outputStream)
         return; // already started
 
-    resonanceAudio->api->SetStereoSpeakerMode(m_outputMode != QAudioEngine::Headphone);
-    resonanceAudio->api->SetMasterVolume(masterVolume());
-
     outputStream = std::make_unique<QAudioOutputStream>(this);
     outputStream->moveToThread(&audioThread);
     audioThread.start(QThread::TimeCriticalPriority);
@@ -279,43 +276,6 @@ void QAudioEngineThreaded::setOutputDevice(const QAudioDevice &device)
     emit q->outputDeviceChanged();
 }
 
-void QAudioEngineThreaded::setOutputMode(QAudioEngine::OutputMode mode)
-{
-    if (m_outputMode == mode)
-        return;
-    m_outputMode = mode;
-    resonanceAudio->api->SetStereoSpeakerMode(mode != QAudioEngine::Headphone);
-
-    Q_Q(QAudioEngine);
-    emit q->outputModeChanged();
-}
-
-void QAudioEngineThreaded::setRoomEffectsEnabled(bool enabled)
-{
-    if (m_roomEffectsEnabled == enabled)
-        return;
-    m_roomEffectsEnabled = enabled;
-    resonanceAudio->roomEffectsEnabled = enabled;
-}
-
-/*!
-    Returns true if room effects are enabled.
- */
-bool QAudioEngineThreaded::roomEffectsEnabled() const
-{
-    return m_roomEffectsEnabled;
-}
-
-void QAudioEngineThreaded::setListenerPosition(std::optional<QVector3D> pos)
-{
-    if (listenerPosition() == pos)
-        return;
-
-    QAudioEnginePrivate::setListenerPosition(pos);
-
-    updateRooms();
-}
-
 void QAudioEngineThreaded::addSound(QAmbientSoundPrivate *sound)
 {
     QMutexLocker l(&mutex);
@@ -328,54 +288,9 @@ void QAudioEngineThreaded::removeSound(QAmbientSoundPrivate *sound)
     q20::erase(sources, sound);
 }
 
-void QAudioEngineThreaded::addRoom(QAudioRoom *room)
+void QAudioEngineThreaded::updateRoomEffects()
 {
     QMutexLocker l(&mutex);
-    rooms.push_back(room);
-}
-
-void QAudioEngineThreaded::removeRoom(QAudioRoom *room)
-{
-    QMutexLocker l(&mutex);
-    q20::erase(rooms, room);
-}
-
-void QAudioEngineThreaded::updateRooms()
-{
-    if (!m_roomEffectsEnabled)
-        return;
-
-    bool roomDirty = false;
-    for (const auto &room : rooms) {
-        auto *rd = QAudioRoomPrivate::get(room);
-        if (rd->dirty) {
-            roomDirty = true;
-            rd->update();
-        }
-    }
-
-    auto inferredRoom = findSmallestRoomForListener(rooms);
-    if (inferredRoom.room != m_currentRoom)
-        roomDirty = true;
-    const bool previousRoom = m_currentRoom;
-    m_currentRoom = inferredRoom.room;
-
-    if (!roomDirty)
-        return;
-
-    // apply room to engine
-    if (!m_currentRoom) {
-        resonanceAudio->api->EnableRoomEffects(false);
-        return;
-    }
-    if (!previousRoom)
-        resonanceAudio->api->EnableRoomEffects(true);
-
-    QAudioRoomPrivate *rp = QAudioRoomPrivate::get(m_currentRoom);
-    resonanceAudio->api->SetReflectionProperties(rp->reflections);
-    resonanceAudio->api->SetReverbProperties(rp->reverb);
-
-    // update room effects for all sound sources
     for (auto *s : sources)
         s->updateRoomEffects();
 }

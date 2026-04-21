@@ -59,9 +59,24 @@ public:
 
     // Listener position
     // if set to nullopt, no QAudioListener is registered
-    virtual void setListenerPosition(std::optional<QVector3D>);
+    void setListenerPosition(std::optional<QVector3D>);
     std::optional<QVector3D> listenerPosition() const { return m_position; }
     void setListenerRotation(const QQuaternion &);
+
+    // room effects
+    void setRoomEffectsEnabled(bool);
+    bool roomEffectsEnabled() const;
+
+    // output mode
+    void setOutputMode(QAudioEngine::OutputMode);
+    QAudioEngine::OutputMode outputMode() const;
+
+    // rooms
+    void addRoom(QAudioRoom *);
+    void removeRoom(QAudioRoom *);
+    QAudioRoom *currentRoom() const;
+    void updateRooms();
+    virtual void updateRoomEffects() = 0;
 
     virtual void start() = 0;
     virtual void stop() = 0;
@@ -69,18 +84,9 @@ public:
     virtual bool isPaused() const = 0;
     virtual void setOutputDevice(const QAudioDevice &) = 0;
     virtual QAudioDevice outputDevice() const = 0;
-    virtual void setOutputMode(QAudioEngine::OutputMode) = 0;
-    virtual QAudioEngine::OutputMode outputMode() const = 0;
-    virtual void setRoomEffectsEnabled(bool) = 0;
-    virtual bool roomEffectsEnabled() const = 0;
 
     virtual void addSound(QAmbientSoundPrivate *) = 0;
     virtual void removeSound(QAmbientSoundPrivate *) = 0;
-
-    virtual void addRoom(QAudioRoom *) = 0;
-    virtual void removeRoom(QAudioRoom *) = 0;
-    virtual QAudioRoom *currentRoom() const = 0;
-    virtual void updateRooms() = 0;
 
 protected:
     struct SmallestRoomForListenerResult
@@ -100,6 +106,10 @@ private:
     float m_distanceScale = 0.01f;
 
     std::optional<QVector3D> m_position;
+    QAudioEngine::OutputMode m_outputMode = QAudioEngine::Surround;
+
+    std::vector<QAudioRoom *> rooms;
+    QAudioRoom *m_currentRoom = nullptr;
 
 public:
     const std::unique_ptr<vraudio::ResonanceAudio> resonanceAudio;
