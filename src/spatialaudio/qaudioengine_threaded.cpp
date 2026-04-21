@@ -64,18 +64,22 @@ public:
     {
         d->mutex.lock();
         Q_ASSERT(!sink);
-        QAudioFormat format;
         auto channelConfig = d->m_outputMode == QAudioEngine::Surround
                 ? d->m_device.channelConfiguration()
                 : QAudioFormat::ChannelConfigStereo;
+
+        QAudioFormat format;
         if (channelConfig != QAudioFormat::ChannelConfigUnknown)
             format.setChannelConfig(channelConfig);
         else
             format.setChannelCount(d->m_device.preferredFormat().channelCount());
         format.setSampleRate(d->sampleRate());
         format.setSampleFormat(QAudioFormat::Int16);
-        ambisonicDecoder =
-                std::make_unique<QAmbisonicDecoder>(QAmbisonicDecoder::HighQuality, format);
+
+        ambisonicDecoder = std::make_unique<QAmbisonicDecoder>(
+                QAmbisonicDecoder::AmbisonicOrder::HighQuality, format.sampleRate(),
+                format.channelCount(), format.channelConfig());
+
         sink = std::make_unique<QAudioSink>(d->m_device, format);
         const qsizetype bufferSize = format.bytesForDuration(bufferTimeMs * 1000);
         sink->setBufferSize(bufferSize);

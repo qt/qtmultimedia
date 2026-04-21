@@ -36,10 +36,11 @@ public:
         Ambisonic3rdOrder = 3,
         HighQuality = Ambisonic3rdOrder
     };
-    QAmbisonicDecoder(AmbisonicOrder ambisonicOrder, const QAudioFormat &format);
+    QAmbisonicDecoder(AmbisonicOrder, int sampleRate, int numberOfOutputChannels,
+                      QAudioFormat::ChannelConfig);
     ~QAmbisonicDecoder();
 
-    bool hasValidConfig() const { return outputChannels > 0; }
+    bool hasValidConfig() const { return decoderData != nullptr || simpleDecoderFactors != nullptr; }
 
     int nInputChannels() const { return inputChannels; }
     int nOutputChannels() const { return outputChannels; }
@@ -56,10 +57,10 @@ public:
     static constexpr int maxAmbisonicOrder = 3;
 
 private:
-    QAudioFormat::ChannelConfig channelConfig;
-    AmbisonicOrder order = Ambisonic1stOrder;
-    int inputChannels = 0;
-    int outputChannels = 0;
+    const QAudioFormat::ChannelConfig channelConfig;
+    const AmbisonicOrder order;
+    const int inputChannels;
+    const int outputChannels;
     const QAmbisonicDecoderData *decoderData = nullptr;
     std::unique_ptr<QAmbisonicDecoderFilter[]> filters;
     std::unique_ptr<float[]> simpleDecoderFactors;
