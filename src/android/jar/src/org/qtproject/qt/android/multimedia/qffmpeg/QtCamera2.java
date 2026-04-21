@@ -90,40 +90,6 @@ class QtCamera2 {
     native void onCameraDisconnect(String cameraId);
     native void onCameraError(String cameraId, int error);
 
-    // All events in this class are invoked by the background thread.
-    // TODO: The events in this class access QtCamera2 members directly
-    // without synchronization
-    static class CameraDeviceStateCallback extends CameraDevice.StateCallback {
-        private QtCamera2 mMainCameraObject = null;
-
-        CameraDeviceStateCallback(QtCamera2 mainCameraObject) {
-            assert(mainCameraObject != null);
-            mMainCameraObject = mainCameraObject;
-        }
-
-        @Override
-        public void onOpened(CameraDevice cameraDevice) {
-            if (mMainCameraObject.mCameraDevice != null)
-                mMainCameraObject.mCameraDevice.close();
-            mMainCameraObject.mCameraDevice = cameraDevice;
-            mMainCameraObject.onCameraOpened(mMainCameraObject.mCameraId);
-        }
-        @Override
-        public void onDisconnected(CameraDevice cameraDevice) {
-            cameraDevice.close();
-            if (mMainCameraObject.mCameraDevice == cameraDevice)
-                mMainCameraObject.mCameraDevice = null;
-            mMainCameraObject.onCameraDisconnect(mMainCameraObject.mCameraId);
-        }
-        @Override
-        public void onError(CameraDevice cameraDevice, int error) {
-            cameraDevice.close();
-            if (mMainCameraObject.mCameraDevice == cameraDevice)
-                mMainCameraObject.mCameraDevice = null;
-            mMainCameraObject.onCameraError(mMainCameraObject.mCameraId, error);
-        }
-    }
-
     CameraDeviceStateCallback mStateCallback = new CameraDeviceStateCallback(this);
 
     native void onCaptureSessionConfigured(String cameraId);
