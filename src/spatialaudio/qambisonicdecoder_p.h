@@ -44,14 +44,13 @@ public:
     int nInputChannels() const { return inputChannels; }
     int nOutputChannels() const { return outputChannels; }
 
-    int outputSize(int nSamples) const { return outputChannels * nSamples; }
+    int outputSamples(int nFrames) const { return outputChannels * nFrames; }
 
     // input is planar, output interleaved
     void processBuffer(QSpan<const float *> input, QSpan<float> output);
-    void processBuffer(QSpan<const float *> input, QSpan<short> output);
 
     void processBufferWithReverb(QSpan<const float *> input, QSpan<const float *, 2> reverb,
-                                 QSpan<short> output);
+                                 QSpan<float> output);
 
     static constexpr int maxAmbisonicChannels = 16;
     static constexpr int maxAmbisonicOrder = 3;

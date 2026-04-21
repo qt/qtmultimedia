@@ -11,6 +11,7 @@
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
 #ifdef Q_OS_WIN
 #  include <QtMultimedia/private/qwindows_wasapi_warmup_client_p.h>
 #endif
@@ -135,6 +136,7 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
 
     using QtMultimediaPrivate::drop;
     using QtMultimediaPrivate::take;
+    using namespace QAudioHelperInternal;
 
     bool ok = true;
     while (outputBuffer.size() >= nChannels * framesPerBuffer) {
@@ -161,10 +163,10 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
         if (ambisonicDecoder && d->m_outputMode == QAudioEngine::Surround) {
             std::array<const float *, QAmbisonicDecoder::maxAmbisonicChannels> channels;
             std::array<const float *, 2> reverbBuffers{};
-            int nSamples = d->resonanceAudio->getAmbisonicOutput(
+            int nFrames = d->resonanceAudio->getAmbisonicOutput(
                     channels.data(), reverbBuffers.data(), ambisonicDecoder->nInputChannels());
 
-            if (nSamples < 0) {
+            if (nFrames < 0) {
                 // If we get here, it means that resonanceAudio did not actually fill the buffer.
                 // Sometimes this is expected, for example if resonanceAudio does not have any sources.
                 // In this case we just fill the buffer with silence.
@@ -173,11 +175,19 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
             }
 
             Q_ASSERT(ambisonicDecoder->nOutputChannels() <= 8);
-            QSpan<short> currentOutput = take(outputBuffer, ambisonicDecoder->outputSize(nSamples));
+            int nSamples = ambisonicDecoder->outputSamples(nFrames);
+
+            std::array<float, 2 * framesPerBuffer> reverbFloatBuffers;
+            QSpan<float> reverbOutputSpan = take(QSpan{ reverbFloatBuffers }, nSamples);
+            QSpan<short> currentOutput = take(outputBuffer, nSamples);
+
             ambisonicDecoder->processBufferWithReverb(
                     QSpan{ channels.data(), ambisonicDecoder->nInputChannels() }, reverbBuffers,
-                    currentOutput);
-            outputBuffer = drop(outputBuffer, ambisonicDecoder->outputSize(nSamples));
+                    reverbOutputSpan);
+
+            convertSampleFormat(as_bytes(reverbOutputSpan), NativeSampleFormat::float32_t,
+                                as_writable_bytes(currentOutput), NativeSampleFormat::int16_t);
+            outputBuffer = drop(outputBuffer, nSamples);
         } else {
             QSpan<short> currentOutput = take(outputBuffer, nChannels * framesPerBuffer);
             ok = d->resonanceAudio->api->FillInterleavedOutputBuffer(2, framesPerBuffer,
