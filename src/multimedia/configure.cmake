@@ -184,6 +184,11 @@ qt_feature("gpu_vivante" PRIVATE
     LABEL "Vivante GPU"
     CONDITION QT_FEATURE_gui AND QT_FEATURE_opengles2 AND TEST_gpu_vivante
 )
+qt_feature("gstreamer_qt_api" PUBLIC PRIVATE
+    LABEL "GStreamer-specific Qt API"
+    AUTODETECT false
+    CONDITION QT_FEATURE_gstreamer
+)
 qt_feature("linux_v4l" PRIVATE
     LABEL "Video for Linux"
     CONDITION (UNIX AND NOT ANDROID) AND TEST_linux_v4l
@@ -277,6 +282,9 @@ qt_configure_add_summary_entry(ARGS "wasapi")
 qt_configure_end_summary_section()
 qt_configure_add_summary_section(NAME "Plugin")
 qt_configure_add_summary_entry(ARGS "gstreamer")
+qt_configure_add_summary_section(NAME "GStreamer plugin features")
+qt_configure_add_summary_entry(ARGS "gstreamer_qt_api")
+qt_configure_end_summary_section()
 qt_configure_add_summary_entry(ARGS "ffmpeg")
 qt_configure_add_summary_section(NAME "FFmpeg plugin features")
 qt_configure_add_summary_entry(ARGS "pipewire_screencapture")
