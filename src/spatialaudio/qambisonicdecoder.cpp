@@ -140,17 +140,33 @@ private:
     double s1_hf = 0.0, s2_hf = 0.0;
 };
 
-QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicOrder ambisonicOrder, const QAudioFormat &format)
-    : order(ambisonicOrder)
+namespace {
+
+int inputChannelsForAmbisonicOrder(QAmbisonicDecoder::AmbisonicOrder ambisonicOrder)
 {
+    auto order = qToUnderlying(ambisonicOrder);
     Q_ASSERT(order > 0 && order <= 3);
-    inputChannels = (order + 1) * (order + 1);
-    outputChannels = format.channelCount();
+    return (order + 1) * (order + 1);
+}
 
-    channelConfig = format.channelConfig();
+QAudioFormat::ChannelConfig ambisonicDecoderChannelConfig(QAudioFormat::ChannelConfig channelConfig,
+                                                          int numberOfOutputChannels)
+{
     if (channelConfig == QAudioFormat::ChannelConfigUnknown)
-        channelConfig = QAudioFormat::defaultChannelConfigForChannelCount(format.channelCount());
+        channelConfig = QAudioFormat::defaultChannelConfigForChannelCount(numberOfOutputChannels);
+    return channelConfig;
+}
 
+} // namespace
+
+QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicOrder ambisonicOrder, int sampleRate,
+                                     int numberOfOutputChannels,
+                                     QAudioFormat::ChannelConfig channelCfg)
+    : channelConfig(ambisonicDecoderChannelConfig(channelCfg, numberOfOutputChannels)),
+      order(ambisonicOrder),
+      inputChannels(inputChannelsForAmbisonicOrder(ambisonicOrder)),
+      outputChannels(numberOfOutputChannels)
+{
     if (channelConfig == QAudioFormat::ChannelConfigMono ||
         channelConfig == QAudioFormat::ChannelConfigStereo ||
         channelConfig == QAudioFormat::ChannelConfig2Dot1 ||
@@ -209,15 +225,12 @@ QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicOrder ambisonicOrder, const QAudio
             break;
         }
     }
-    if (!decoderData) {
-        // can't handle this,
-        outputChannels = 0;
+    if (!decoderData)
         return;
-    }
 
     filters = std::make_unique<QAmbisonicDecoderFilter[]>(inputChannels);
     for (int i = 0; i < inputChannels; ++i)
-        filters[i].configure(format.sampleRate());
+        filters[i].configure(sampleRate);
 }
 
 QAmbisonicDecoder::~QAmbisonicDecoder() = default;
