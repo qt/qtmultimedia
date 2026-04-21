@@ -211,7 +211,7 @@ public:
         constexpr bool visitorIsTrivial = std::is_trivially_destructible_v<std::decay_t<Visitor>>
                 && sizeof(Visitor) <= smallBufferOptimizationEstimate;
 
-        auto wrapped = [visitor = std::move(visitor)](QRtAudioEngineVoice &voice) {
+        auto wrapped = [visitor = std::move(visitor)](QRtAudioEngineVoice &voice) mutable {
             visitor(static_cast<visitorArg>(voice));
         };
         visitVoiceRt(id, RtVoiceVisitor{ wrapped }, visitorIsTrivial);
