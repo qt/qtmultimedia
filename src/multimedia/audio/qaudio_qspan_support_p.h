@@ -23,8 +23,8 @@ QT_BEGIN_NAMESPACE
 namespace QtMultimediaPrivate {
 
 // some span utils (poor man's ranges-v3)
-template <typename U>
-inline QSpan<U> drop(QSpan<U> span, qsizetype n) // ranges::drop
+template <typename U, std::size_t E>
+inline QSpan<U> drop(QSpan<U, E> span, qsizetype n) // ranges::drop
 {
     if (n < span.size())
         return span.subspan(n);
@@ -32,8 +32,8 @@ inline QSpan<U> drop(QSpan<U> span, qsizetype n) // ranges::drop
         return {};
 }
 
-template <typename U>
-inline QSpan<U> take(QSpan<U> span, qsizetype n) // ranges::take
+template <typename U, std::size_t E>
+inline QSpan<U> take(QSpan<U, E> span, qsizetype n) // ranges::take
 {
     if (n > span.size())
         return span;
