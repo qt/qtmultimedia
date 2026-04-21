@@ -253,65 +253,50 @@ void QAmbisonicDecoder::processBuffer(QSpan<const float *> input, QSpan<float> o
     }
 }
 
-void QAmbisonicDecoder::processBuffer(QSpan<const float *> input, QSpan<short> output)
-{
-    std::array<const float *, 2> reverb = { nullptr, nullptr };
-    return processBufferWithReverb(input, reverb, output);
-}
-
 void QAmbisonicDecoder::processBufferWithReverb(QSpan<const float *> input,
-                                                QSpan<const float *, 2> reverb, QSpan<short> output)
+                                                QSpan<const float *, 2> reverb, QSpan<float> output)
 {
     Q_ASSERT(outputChannels > 0);
     Q_ASSERT(int(output.size()) % outputChannels == 0);
     const int nSamples = int(output.size()) / outputChannels;
 
-    using QtMultimediaPrivate::drop;
+    std::fill(output.begin(), output.end(), 0.f);
+    float *o = output.data();
 
     if (simpleDecoderFactors) {
-        QSpan out = output;
         for (int i = 0; i < nSamples; ++i) {
-            std::array<float, 4> o = {};
             for (int k = 0; k < outputChannels; ++k) {
                 for (int j = 0; j < 4; ++j)
                     o[k] += simpleDecoderFactors[k*4 + j]*input[j][i];
             }
             if (reverb[0]) {
-                for (int k = 0; k < outputChannels; ++k) {
-                    o[k] += reverb[0][i]*reverbFactors[2*k] + reverb[1][i]*reverbFactors[2*k+1];
-                }
+                for (int k = 0; k < outputChannels; ++k)
+                    o[k] += reverb[0][i] * reverbFactors[2 * k]
+                            + reverb[1][i] * reverbFactors[2 * k + 1];
             }
 
-            for (int k = 0; k < outputChannels; ++k)
-                out[k] = static_cast<short>(o[k] * 32768.);
-            out = drop(out, outputChannels);
+            o += outputChannels;
         }
         return;
     }
 
     Q_ASSERT(filters);
 
-    //    qDebug() << "XXX" << inputChannels << outputChannels;
     const float *matrix_hi = decoderData->hf[order - 1];
     const float *matrix_lo = decoderData->lf[order - 1];
     for (int i = 0; i < nSamples; ++i) {
-        QSpan out = output;
         std::array<QAmbisonicDecoderFilter::Output, maxAmbisonicChannels> buf;
         for (int j = 0; j < inputChannels; ++j)
             buf[j] = filters[j].next(input[j][i]);
-        std::array<float, 32> o = {};
         for (int j = 0; j < inputChannels; ++j) {
             for (int k = 0; k < outputChannels; ++k)
                 o[k] += matrix_lo[k*inputChannels + j]*buf[j].lf + matrix_hi[k*inputChannels + j]*buf[j].hf;
         }
         if (reverb[0]) {
-            for (int k = 0; k < outputChannels; ++k) {
+            for (int k = 0; k < outputChannels; ++k)
                 o[k] += reverb[0][i]*reverbFactors[2*k] + reverb[1][i]*reverbFactors[2*k+1];
-            }
         }
-        for (int k = 0; k < outputChannels; ++k)
-            out[k] = static_cast<short>(o[k] * 32768.);
-        out = drop(out, outputChannels);
+        o += outputChannels;
     }
 }
 
