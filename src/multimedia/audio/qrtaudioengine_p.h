@@ -22,6 +22,7 @@
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/private/qaudio_rtsan_support_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/private/q_pmr_emulation_p.h>
@@ -183,10 +184,8 @@ public:
     using Notification = std::variant<StopNotification, VisitReply>;
 
 public:
-    // we keep a pool of engines with one engine per device/format
-    static std::shared_ptr<QRtAudioEngine> getEngineFor(const QAudioDevice &, const QAudioFormat &);
-
-    QRtAudioEngine(const QAudioDevice &, const QAudioFormat &);
+    QRtAudioEngine(const QAudioDevice &, const QAudioFormat &,
+                   std::optional<AudioEndpointRole> = std::nullopt);
     Q_DISABLE_COPY_MOVE(QRtAudioEngine)
     ~QRtAudioEngine() override;
 
