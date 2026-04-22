@@ -16,23 +16,28 @@
 //
 
 #include <QtCore/qtclasshelpermacros.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/private/q_pmr_emulation_p.h>
-
-#include <tlsf.h>
 
 #include <new>
 
 QT_BEGIN_NAMESPACE
 
+namespace QtPrivate {
+typedef void *tlsf_t;
+}
+
 namespace QtMultimediaPrivate {
 
 struct QTlsfMemoryResource final : pmr::memory_resource
 {
+    Q_MULTIMEDIA_EXPORT
     explicit QTlsfMemoryResource(std::size_t preallocatedBytes,
                                  pmr::memory_resource *upstream = pmr::get_default_resource());
 
     Q_DISABLE_COPY_MOVE(QTlsfMemoryResource)
 
+    Q_MULTIMEDIA_EXPORT
     ~QTlsfMemoryResource() override;
 
 private:
