@@ -185,7 +185,8 @@ public:
 
 public:
     QRtAudioEngine(const QAudioDevice &, const QAudioFormat &,
-                   std::optional<AudioEndpointRole> = std::nullopt);
+                   std::optional<AudioEndpointRole> = std::nullopt,
+                   std::optional<uint32_t> hardwareBufferFrames = std::nullopt);
     Q_DISABLE_COPY_MOVE(QRtAudioEngine)
     ~QRtAudioEngine() override;
 

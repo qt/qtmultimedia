@@ -31,7 +31,8 @@ using namespace std::chrono_literals;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &format,
-                               std::optional<AudioEndpointRole> role)
+                               std::optional<AudioEndpointRole> role,
+                               std::optional<uint32_t> hardwareBufferFrames)
     : m_sink{
           device,
           format,
@@ -65,6 +66,8 @@ QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &f
 
     if (role)
         platformSink->setRole(*role);
+    if (hardwareBufferFrames)
+        platformSink->setHardwareBufferFrames(*hardwareBufferFrames);
 
     m_sink.start([this](QSpan<float> outputBuffer) {
         audioCallback(outputBuffer);
