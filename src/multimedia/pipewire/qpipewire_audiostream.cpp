@@ -69,11 +69,14 @@ void QPipewireAudioStream::createStream(QSpan<spa_dict_item> extraProperties,
     };
     properties.insert(properties.end(), extraProperties.begin(), extraProperties.end());
 
-    if (hardwareBufferFrames)
+    std::string quantumStr;
+    if (hardwareBufferFrames) {
+        quantumStr = std::to_string(*hardwareBufferFrames);
         properties.push_back({
-                PW_KEY_NODE_FORCE_QUANTUM,
-                std::to_string(*hardwareBufferFrames).data(),
+            PW_KEY_NODE_FORCE_QUANTUM,
+            quantumStr.data(),
         });
+    }
 
     QAudioContextManager::withEventLoopLock([&] {
         m_stream = PwStreamHandle{
