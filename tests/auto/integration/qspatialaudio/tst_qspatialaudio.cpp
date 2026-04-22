@@ -41,6 +41,7 @@ private slots:
     void testQAmbientSound_basic();
     void testQAudioRoom_basic();
     void testQAudioListener_basic();
+    void testSwitchAudioDevice();
 
 private:
     std::unique_ptr<QSpatialSound> sound;
@@ -372,6 +373,41 @@ void tst_QSpatialAudio::testQAudioListener_basic()
     QAudioListener listener(&eng);
     listener.setPosition({0,0,0});
     QCOMPARE(listener.position(), QVector3D(0,0,0));
+}
+
+void tst_QSpatialAudio::testSwitchAudioDevice()
+{
+    // Skip if less than 2 audio devices are available
+    QList outputs = QMediaDevices::audioOutputs();
+    if (outputs.size() < 2)
+        QSKIP("Needs at least 2 audio outputs");
+
+    // Get a non-default device
+    QAudioDevice nonDefaultDevice = [&] {
+        if (!outputs[0].isDefault())
+            return outputs[0];
+        return outputs[1];
+    }();
+    QAudioDevice anotherDevice = [&] {
+        return outputs[(outputs.indexOf(nonDefaultDevice) + 1) % outputs.size()];
+    }();
+
+    // Test 1: Switch device when engine is not running (should succeed)
+    engine->setOutputDevice(nonDefaultDevice);
+    QCOMPARE(engine->outputDevice(), nonDefaultDevice);
+
+    // Test 2: Switch device when engine is running (should warn)
+    QAudioDevice originalDevice = engine->outputDevice();
+
+    engine->start();
+
+    QTest::ignoreMessage(QtMsgType::QtWarningMsg,
+                         "Changing device on a running engine not implemented");
+
+    engine->setOutputDevice(anotherDevice);
+    QCOMPARE(engine->outputDevice(), originalDevice);
+
+    engine->stop();
 }
 
 QTEST_MAIN(tst_QSpatialAudio)
