@@ -33,14 +33,9 @@ class QAudioOutputStream;
 class QAudioRoom;
 class QAudioListener;
 
-class QAudioEngineThreaded : public QAudioEnginePrivate
+class QAudioEngineThreaded final : public QAudioEnginePrivate
 {
 public:
-    static QAudioEngineThreaded *get(QAudioEngine *engine)
-    {
-        return engine ? static_cast<QAudioEngineThreaded *>(engine->d_func()) : nullptr;
-    }
-
     explicit QAudioEngineThreaded(int sampleRate);
     Q_DISABLE_COPY_MOVE(QAudioEngineThreaded)
     ~QAudioEngineThreaded() override;

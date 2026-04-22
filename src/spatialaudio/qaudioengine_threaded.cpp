@@ -225,14 +225,13 @@ QAudioEngineThreaded::QAudioEngineThreaded(int sampleRate) : QAudioEnginePrivate
 
 QAudioEngineThreaded::~QAudioEngineThreaded()
 {
-    resonanceAudio = {};
+    stop();
 }
 
 void QAudioEngineThreaded::start()
 {
     if (outputStream)
-        // already started
-        return;
+        return; // already started
 
     resonanceAudio->api->SetStereoSpeakerMode(m_outputMode != QAudioEngine::Headphone);
     resonanceAudio->api->SetMasterVolume(masterVolume());
@@ -246,6 +245,9 @@ void QAudioEngineThreaded::start()
 
 void QAudioEngineThreaded::stop()
 {
+    if (!outputStream)
+        return; // already stopped
+
     QMetaObject::invokeMethod(outputStream.get(), &QAudioOutputStream::stopOutput,
                               Qt::BlockingQueuedConnection);
     outputStream.reset();
@@ -255,6 +257,9 @@ void QAudioEngineThreaded::stop()
 
 void QAudioEngineThreaded::setPaused(bool paused)
 {
+    if (!outputStream)
+        return; // can't pause if not started
+
     bool old = m_paused.fetchAndStoreRelaxed(paused);
     if (old != paused) {
         if (outputStream)

@@ -103,7 +103,7 @@ private:
     std::optional<QVector3D> m_position;
 
 public:
-    std::unique_ptr<vraudio::ResonanceAudio> resonanceAudio;
+    const std::unique_ptr<vraudio::ResonanceAudio> resonanceAudio;
 };
 
 QT_END_NAMESPACE
