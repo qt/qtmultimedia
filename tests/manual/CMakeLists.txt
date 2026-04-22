@@ -41,6 +41,10 @@ if(TARGET Qt::Quick)
     add_subdirectory(qml-camera-advanced)
     add_subdirectory(qml-screencapture-advanced)
 
+    if(QT_FEATURE_gstreamer_qt_api)
+        add_subdirectory(qml-minimal-gstreamer-video-source)
+    endif()
+
     if(QT_FEATURE_gstreamer)
         add_subdirectory(qml-gstreamer-pipeline)
         add_subdirectory(qml-gstreamer-rtp)
