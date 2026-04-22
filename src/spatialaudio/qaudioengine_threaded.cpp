@@ -273,7 +273,7 @@ void QAudioEngineThreaded::setOutputDevice(const QAudioDevice &device)
 {
     if (m_device == device)
         return;
-    if (resonanceAudio->api) {
+    if (outputStream) {
         qWarning() << "Changing device on a running engine not implemented";
         return;
     }
