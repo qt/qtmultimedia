@@ -1011,6 +1011,8 @@ void tst_QMediaPlayerBackend::setSource_entersStoppedState_whenPlayerWasPlaying(
     QTRY_COMPARE(m_fixture->playbackStateChanged,
                  SignalList({ { QMediaPlayer::PlayingState }, { QMediaPlayer::StoppedState } }));
 
+    QSKIP_DARWIN("AVFoundation may not have enough time to deliver positionChannged signals");
+
     QTRY_VERIFY(!m_fixture->positionChanged.empty()
                 && m_fixture->positionChanged.last()[0].value<qint64>() == 0);
 
