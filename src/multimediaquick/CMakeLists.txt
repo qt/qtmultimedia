@@ -9,6 +9,8 @@ set(qml_files
     "Video.qml"
 )
 
+
+
 qt_internal_add_qml_module(MultimediaQuick
     URI "QtMultimedia"
     VERSION "${PROJECT_VERSION}"
@@ -47,9 +49,15 @@ qt_internal_add_qml_module(MultimediaQuick
         Qt::QuickPrivate
 )
 
+qt_internal_extend_target(MultimediaQuick CONDITION QT_FEATURE_gstreamer_qt_api
+    SOURCES
+        qquickgstreamervideosource.cpp qquickgstreamervideosource_p.h
+)
+
 qt_internal_extend_target(quickmultimediaplugin
     SOURCES
         multimedia_plugin.cpp
     LIBRARIES
         Qt::MultimediaQuickPrivate
 )
+

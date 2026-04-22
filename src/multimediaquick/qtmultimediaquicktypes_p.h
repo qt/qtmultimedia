@@ -23,6 +23,9 @@
 #include <QtMultimedia/qcamera.h>
 #include <QtMultimedia/qcameradevice.h>
 #include <QtMultimedia/qcapturablewindow.h>
+#if QT_CONFIG(gstreamer_qt_api)
+#  include <QtMultimedia/qgstreamervideosource.h>
+#endif
 #include <QtMultimedia/qimagecapture.h>
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/qmediadevices.h>
@@ -59,6 +62,15 @@ struct QImageCaptureForeign
     QML_ANONYMOUS
     QML_FOREIGN(QImageCapture)
 };
+
+#if QT_CONFIG(gstreamer_qt_api)
+struct QGStreamerVideoSourceForeign
+{
+    Q_GADGET
+    QML_ANONYMOUS
+    QML_FOREIGN(QGStreamerVideoSource)
+};
+#endif
 
 struct QScreenCaptureForeign
 {

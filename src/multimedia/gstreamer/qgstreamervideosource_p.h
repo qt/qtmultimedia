@@ -37,7 +37,15 @@ public:
     QPlatformCamera *platformCamera = nullptr;
     QMediaCaptureSession *captureSession = nullptr;
 
-    void createPlatformCamera(QGStreamerVideoSource *source, GstElementOrDescription elementOrDesc);
+    static QGStreamerVideoSourcePrivate *get(QGStreamerVideoSource *source)
+    {
+        return static_cast<QGStreamerVideoSourcePrivate *>(QObjectPrivate::get(source));
+    }
+
+    // export to use in QQuickGStreamerVideoSource
+    Q_MULTIMEDIA_EXPORT void createPlatformCamera(QGStreamerVideoSource *source,
+                                                  GstElementOrDescription elementOrDesc,
+                                                  bool active = false);
 };
 
 QT_END_NAMESPACE

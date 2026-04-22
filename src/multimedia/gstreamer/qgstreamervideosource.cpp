@@ -12,7 +12,8 @@
 QT_BEGIN_NAMESPACE
 
 void QGStreamerVideoSourcePrivate::createPlatformCamera(QGStreamerVideoSource *source,
-                                                        GstElementOrDescription elementOrDesc)
+                                                        GstElementOrDescription elementOrDesc,
+                                                        bool active)
 {
     Q_ASSERT(!platformCamera);
 
@@ -28,22 +29,30 @@ void QGStreamerVideoSourcePrivate::createPlatformCamera(QGStreamerVideoSource *s
 
     platformCamera = *maybePlatformCamera;
 
+    if (active)
+        platformCamera->setActive(true);
+
     QObject::connect(platformCamera, &QPlatformVideoSource::activeChanged, source,
                      &QGStreamerVideoSource::activeChanged);
 }
 
 QGStreamerVideoSource::QGStreamerVideoSource(const QString &gstBinDescription, QObject *parent)
-    : QObject(*new QGStreamerVideoSourcePrivate, parent)
+    : QGStreamerVideoSource(parent)
 {
     Q_D(QGStreamerVideoSource);
     d->createPlatformCamera(this, gstBinDescription);
 }
 
 QGStreamerVideoSource::QGStreamerVideoSource(GstElement *gstElement, QObject *parent)
-    : QObject(*new QGStreamerVideoSourcePrivate, parent)
+    : QGStreamerVideoSource(parent)
 {
     Q_D(QGStreamerVideoSource);
     d->createPlatformCamera(this, gstElement);
+}
+
+QGStreamerVideoSource::QGStreamerVideoSource(QObject *parent)
+    : QObject(*new QGStreamerVideoSourcePrivate, parent)
+{
 }
 
 QGStreamerVideoSource::~QGStreamerVideoSource() = default;

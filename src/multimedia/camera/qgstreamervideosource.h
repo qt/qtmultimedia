@@ -4,14 +4,6 @@
 #ifndef QGSTREAMERVIDEOSOURCE_H
 #define QGSTREAMERVIDEOSOURCE_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is part of the QtMM GStreamer API, with limited compatibility guarantees.
-// Usage of this API may make your code source and binary incompatible with future versions of Qt.
-//
-
 #include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
@@ -23,19 +15,19 @@ typedef struct _GstElement GstElement;
 QT_BEGIN_NAMESPACE
 
 class QPlatformCamera;
-class QGStreamerVideoSourcePrivate;
+class QGstreamerVideoSourcePrivate;
 class QMediaCaptureSession;
 
-class Q_MULTIMEDIA_EXPORT QGStreamerVideoSource : public QObject
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoSource : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(QString gstBinDescription READ gstBinDescription CONSTANT)
 
 public:
-    explicit QGStreamerVideoSource(const QString &gstBinDescription, QObject *parent = nullptr);
-    explicit QGStreamerVideoSource(GstElement *gstElement, QObject *parent = nullptr);
-    ~QGStreamerVideoSource() override;
+    explicit QGstreamerVideoSource(const QString &gstBinDescription, QObject *parent = nullptr);
+    explicit QGstreamerVideoSource(GstElement *gstElement, QObject *parent = nullptr);
+    ~QGstreamerVideoSource() override;
 
     bool isActive() const;
     QString gstBinDescription() const;
@@ -51,16 +43,14 @@ Q_SIGNALS:
     void activeChanged(bool active);
 
 protected:
-    explicit QGStreamerVideoSource(QObject *parent);
+    explicit QGstreamerVideoSource(QObject *parent);
 
 private:
     QPlatformCamera *platformVideoSource() const;
-
     void setCaptureSession(QMediaCaptureSession *session);
 
-private:
-    Q_DISABLE_COPY(QGStreamerVideoSource)
-    Q_DECLARE_PRIVATE(QGStreamerVideoSource)
+    Q_DISABLE_COPY(QGstreamerVideoSource)
+    Q_DECLARE_PRIVATE(QGstreamerVideoSource)
     friend class QMediaCaptureSession;
 };
 
