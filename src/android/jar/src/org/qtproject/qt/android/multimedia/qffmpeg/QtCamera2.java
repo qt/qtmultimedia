@@ -315,16 +315,10 @@ class QtCamera2 {
     // This callback class is meant to be used a repeating request during still photo capture, when
     // waiting for the auto-focus and auto-exposure calibration to lock in. Once done,
     // it will finalize the still photo and then return the camera to previewing.
-    class StillPhotoPrecaptureCallback extends CameraCaptureSession.CaptureCallback {
-        StillPhotoPrecaptureCallback(
-            CameraSettings cameraSettings,
-            boolean waitForAutoFocus,
-            boolean waitForAutoExposure)
-        {
-            this.mCameraSettings = cameraSettings;
-            this.mWaitForAutoFocus = waitForAutoFocus;
-            this.mWaitForAutoExposure = waitForAutoExposure;
-        }
+    //
+    // All the events here are invoked from the background processing thread.
+    static class StillPhotoPrecaptureCallback extends CameraCaptureSession.CaptureCallback {
+        QtCamera2 mMainCameraObject = null;
 
         // Holds a copy of the camera settings that were to be used when the still photo
         // was started.
@@ -338,6 +332,21 @@ class QtCamera2 {
         // events.
         boolean mShouldProcessIncomingEvents = true;
 
+        StillPhotoPrecaptureCallback(
+            QtCamera2 mainCameraObject,
+            CameraSettings cameraSettings,
+            boolean waitForAutoFocus,
+            boolean waitForAutoExposure)
+        {
+            assert(mainCameraObject != null);
+            assert(cameraSettings != null);
+
+            mMainCameraObject = mainCameraObject;
+            mCameraSettings = cameraSettings;
+            mWaitForAutoFocus = waitForAutoFocus;
+            mWaitForAutoExposure = waitForAutoExposure;
+        }
+
         boolean capturingWithAutoFlash() {
             return mWaitForAutoExposure
                 && mCameraSettings.mStillPhotoFlashMode == CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH;
@@ -346,15 +355,15 @@ class QtCamera2 {
         private void onCaptureFailureEvent() {
             mShouldProcessIncomingEvents = false;
 
-            onStillPhotoCaptureFailed(mCameraId);
+            mMainCameraObject.onStillPhotoCaptureFailed(mMainCameraObject.mCameraId);
 
-            synchronized (mSyncedMembers) {
-                mSyncedMembers.mIsTakingStillPhoto = false;
+            synchronized (mMainCameraObject.mSyncedMembers) {
+                mMainCameraObject.mSyncedMembers.mIsTakingStillPhoto = false;
             }
 
             // Try to reset our camera to regular preview
             try {
-                setRepeatingRequestToPreview();
+                mMainCameraObject.setRepeatingRequestToPreview();
             } catch (CameraAccessException e) {
                 // TODO: If we fail to go back into preview, we can clean up the camera session and
                 // set the QCamera to inactive.
@@ -424,13 +433,13 @@ class QtCamera2 {
             try {
                 switch (operation) {
                     case FINALIZE_CAPTURE:
-                        finalizeStillPhoto(mCameraSettings);
+                        mMainCameraObject.finalizeStillPhoto(mCameraSettings);
                         break;
                     case RESUBMIT_WITH_FORCED_FLASH:
                         // Submit a new still photo capture as if we were forcing flash on.
                         CameraSettings newCameraSettings = new CameraSettings(mCameraSettings);
                         newCameraSettings.mStillPhotoFlashMode = CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH;
-                        submitNewStillPhotoCapture(newCameraSettings);
+                        mMainCameraObject.submitNewStillPhotoCapture(newCameraSettings);
                         break;
                     default:
                         // Do nothing; wait for next result
@@ -603,6 +612,7 @@ class QtCamera2 {
             && aeMode != CaptureResult.CONTROL_AE_MODE_OFF;
 
         final StillPhotoPrecaptureCallback precaptureCallback = new StillPhotoPrecaptureCallback(
+            this,
             cameraSettings,
             triggerAutoFocus,
             triggerAutoExposure);
