@@ -1,11 +1,17 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:critical reason:data-parser
 
 #include <qmediametadata.h>
-#include <qdatetime.h>
-#include <qtimezone.h>
-#include <qimage.h>
-#include <quuid.h>
+
+#include <QtCore/qdatetime.h>
+#include <QtCore/qtimezone.h>
+#include <QtCore/quuid.h>
+#include <QtCore/private/qcomptr_p.h>
+#include <QtCore/private/qflatmap_p.h>
+#include <QtCore/qvarlengtharray.h>
+#include <QtGui/qimage.h>
+#include <QtMultimedia/private/qwindowsmultimediautils_p.h>
 
 #include <guiddef.h>
 #include <cguid.h>
@@ -13,6 +19,7 @@
 #include <mfidl.h>
 #include <propvarutil.h>
 #include <propkey.h>
+#include <wmsdkidl.h>
 
 #include "private/qwindowsmultimediautils_p.h"
 #include "mfmetadata_p.h"
@@ -27,6 +34,9 @@ static QVariant convertValue(const PROPVARIANT& var)
     switch (var.vt) {
     case VT_LPWSTR:
         value = QString::fromUtf16(reinterpret_cast<const char16_t *>(var.pwszVal));
+        break;
+    case VT_I4:
+        value = int(var.lVal);
         break;
     case VT_UI4:
         value = uint(var.ulVal);
@@ -128,11 +138,139 @@ QMediaMetaData MFMetaData::fromNative(IMFMediaSource* mediaSource)
 {
     QMediaMetaData metaData;
 
-    IPropertyStore  *content = nullptr;
-    if (!SUCCEEDED(MFGetService(mediaSource, MF_PROPERTY_HANDLER_SERVICE, IID_PPV_ARGS(&content))))
+    // Shell property handler first — provides the richest metadata
+    // (thumbnails, duration, codecs, resolution, bitrates, etc.)
+    // but only works for file:// sources.
+    ComPtr<IPropertyStore> content;
+    if (SUCCEEDED(MFGetService(mediaSource, MF_PROPERTY_HANDLER_SERVICE, IID_PPV_ARGS(&content))))
+        metaData = fromNative(content.Get());
+
+    // IMFMetadataProvider fallback — works for all source types
+    // including byte streams (qrc://, QIODevice). Fills in any keys
+    // not already provided by IPropertyStore.
+    ComPtr<IMFMetadataProvider> provider;
+    if (SUCCEEDED(MFGetService(mediaSource, MF_METADATA_PROVIDER_SERVICE, IID_PPV_ARGS(&provider)))) {
+        ComPtr<IMFPresentationDescriptor> pd;
+        if (SUCCEEDED(mediaSource->CreatePresentationDescriptor(&pd))) {
+            ComPtr<IMFMetadata> metadata;
+            if (SUCCEEDED(provider->GetMFMetadata(pd.Get(), 0, 0, &metadata))) {
+                const QMediaMetaData mfData = fromNative(metadata.Get());
+                for (const auto &[key, value] : mfData.asKeyValueRange()) {
+                    if (!metaData.value(key).isValid())
+                        metaData.insert(key, value);
+                }
+            }
+        }
+    }
+
+    return metaData;
+}
+
+static QImage imageFromAsfFlatPicture(const BLOB &blob)
+{
+    if (blob.cbSize <= sizeof(ASF_FLAT_PICTURE))
+        return {};
+
+    const auto *pic = reinterpret_cast<const ASF_FLAT_PICTURE *>(blob.pBlobData);
+    const BYTE *p = blob.pBlobData + sizeof(ASF_FLAT_PICTURE);
+    const BYTE *end = blob.pBlobData + blob.cbSize;
+
+    // Skip MIME type (null-terminated UTF-16)
+    while (p + 1 < end && (p[0] || p[1]))
+        p += 2;
+    p += 2;
+    if (p > end)
+        return {};
+
+    // Skip description (null-terminated UTF-16)
+    while (p + 1 < end && (p[0] || p[1]))
+        p += 2;
+    p += 2;
+    if (p > end || pic->dwDataLen > static_cast<DWORD>(end - p))
+        return {};
+
+    QImage img;
+    img.loadFromData(p, pic->dwDataLen);
+    return img;
+}
+
+QMediaMetaData MFMetaData::fromNative(IMFMetadata *metadata)
+{
+    if (!metadata)
+        return {};
+
+    PROPVARIANT names;
+    PropVariantInit(&names);
+    if (FAILED(metadata->GetAllPropertyNames(&names))) {
+        PropVariantClear(&names);
+        return {};
+    }
+
+    QMediaMetaData metaData;
+
+    // Property name strings match the Windows SDK g_wszWM* constants from
+    // wmsdkidl.h but are hardcoded here as they are missing in older MinGW
+    // variants of the Windows SDK.
+    static const QVarLengthFlatMap<QStringView, QMediaMetaData::Key, 12> nameToKey({
+        { u"Title", QMediaMetaData::Title },
+        { u"Author", QMediaMetaData::ContributingArtist },
+        { u"WM/AlbumTitle", QMediaMetaData::AlbumTitle },
+        { u"WM/AlbumArtist", QMediaMetaData::AlbumArtist },
+        { u"WM/Composer", QMediaMetaData::Composer },
+        { u"WM/Genre", QMediaMetaData::Genre },
+        { u"WM/TrackNumber", QMediaMetaData::TrackNumber },
+        { u"Description", QMediaMetaData::Description },
+        { u"Copyright", QMediaMetaData::Copyright },
+        { u"WM/Publisher", QMediaMetaData::Publisher },
+        { u"WM/Language", QMediaMetaData::Language },
+        { u"WM/AuthorURL", QMediaMetaData::Url },
+    });
+
+    if (names.vt == (VT_VECTOR | VT_LPWSTR)) {
+        for (ULONG i = 0; i < names.calpwstr.cElems; ++i) {
+            const QStringView name(names.calpwstr.pElems[i]);
+
+            // WM/Picture blob: ASF_FLAT_PICTURE header followed by
+            // MIME type string, description string, and image data.
+            if (name == u"WM/Picture") {
+                PROPVARIANT value;
+                PropVariantInit(&value);
+                if (SUCCEEDED(metadata->GetProperty(names.calpwstr.pElems[i], &value))
+                    && value.vt == VT_BLOB) {
+                    QImage img = imageFromAsfFlatPicture(value.blob);
+                    if (!img.isNull())
+                        metaData.insert(QMediaMetaData::CoverArtImage, img);
+                }
+                PropVariantClear(&value);
+                continue;
+            }
+
+            auto it = nameToKey.find(name);
+            if (it == nameToKey.end())
+                continue;
+
+            PROPVARIANT value;
+            PropVariantInit(&value);
+            if (SUCCEEDED(metadata->GetProperty(names.calpwstr.pElems[i], &value))) {
+                QVariant v = convertValue(value);
+                if (v.isValid())
+                    metaData.insert(it.value(), v);
+            }
+            PropVariantClear(&value);
+        }
+    }
+
+    PropVariantClear(&names);
+    return metaData;
+}
+
+QMediaMetaData MFMetaData::fromNative(IPropertyStore *content)
+{
+    QMediaMetaData metaData;
+
+    if (!content)
         return metaData;
 
-    Q_ASSERT(content);
     DWORD cProps;
     if (SUCCEEDED(content->GetCount(&cProps))) {
         for (DWORD i = 0; i < cProps; i++)
@@ -223,8 +361,6 @@ QMediaMetaData MFMetaData::fromNative(IMFMediaSource* mediaSource)
             metaData.insert(mediaKey, metaDataValue(content, key));
         }
     }
-
-    content->Release();
 
     return metaData;
 }
