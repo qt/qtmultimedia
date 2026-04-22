@@ -30,77 +30,8 @@ using namespace std::chrono_literals;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace {
-struct AudioDeviceFormatLess
-{
-    bool operator()(const std::pair<QAudioDevice, QAudioFormat> &lhs,
-                    const std::pair<QAudioDevice, QAudioFormat> &rhs) const
-    {
-        auto cmp = qCompareThreeWay(lhs.first.id(), rhs.first.id());
-        if (cmp == Qt::strong_ordering::less)
-            return true;
-        if (cmp == Qt::strong_ordering::greater)
-            return false;
-
-        return std::tuple(lhs.second.sampleRate(), lhs.second.sampleFormat(),
-                          lhs.second.channelCount())
-                < std::tuple(rhs.second.sampleRate(), rhs.second.sampleFormat(),
-                             rhs.second.channelCount());
-    }
-};
-} // namespace
-
-std::shared_ptr<QRtAudioEngine>
-QRtAudioEngine::getEngineFor(const QAudioDevice &device, const QAudioFormat &format)
-{
-    if (device.isNull()) {
-        qWarning() << "QRtAudioEngine needs to be called with a valid device";
-        return nullptr;
-    }
-
-    if (format.sampleFormat() != QAudioFormat::Float) {
-        qWarning() << "QRtAudioEngine requires floating point samples";
-        return nullptr;
-    }
-
-    if (!device.isFormatSupported(format)) {
-        qWarning() << "QRtAudioEngine needs to be called with a supported fromat";
-        return nullptr;
-    }
-
-    static QMutex s_playerRegistryMutex;
-    static std::map<std::pair<QAudioDevice, QAudioFormat>, std::weak_ptr<QRtAudioEngine>,
-                    AudioDeviceFormatLess>
-            s_playerRegistry;
-
-    auto guard = std::lock_guard{ s_playerRegistryMutex };
-
-    auto key = std::pair{ device, format };
-    auto found = s_playerRegistry.find(key);
-    if (found != s_playerRegistry.end()) {
-        auto player = found->second.lock();
-        if (player)
-            return player;
-    }
-
-    // lazy clean up
-    q20::erase_if(s_playerRegistry, [](auto &&keyValuePair) {
-        return keyValuePair.second.expired();
-    });
-
-    auto player = std::shared_ptr<QRtAudioEngine>(new QRtAudioEngine{ device, format },
-                                                  [](QRtAudioEngine *engine) {
-        if (engine->thread()->isCurrentThread())
-            delete engine;
-        else
-            engine->deleteLater();
-    });
-    s_playerRegistry.emplace(key, player);
-
-    return player;
-}
-
-QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &format)
+QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &format,
+                               std::optional<AudioEndpointRole> role)
     : m_sink{
           device,
           format,
@@ -132,8 +63,8 @@ QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &f
 
     QPlatformAudioSink *platformSink = QPlatformAudioSink::get(m_sink);
 
-    // SoundEffect can prevent the stream from appear in an OS mixer
-    platformSink->setRole(QtMultimediaPrivate::AudioEndpointRole::SoundEffect);
+    if (role)
+        platformSink->setRole(*role);
 
     m_sink.start([this](QSpan<float> outputBuffer) {
         audioCallback(outputBuffer);

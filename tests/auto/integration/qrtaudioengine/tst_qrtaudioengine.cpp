@@ -85,10 +85,6 @@ private slots:
               "supported");
     }
 
-    void getPlaybackEngine();
-    void getPlaybackEngine_nullDevice();
-    void getPlaybackEngine_invalidFormat();
-
     void play_visit_and_stop_voice();
     void play_and_stop_byInactive();
     void play_and_stop_byPlaybackStatus();
@@ -112,7 +108,7 @@ private:
 
     static std::shared_ptr<QRtAudioEngine> makeEngine()
     {
-        return QRtAudioEngine::getEngineFor(QMediaDevices::defaultAudioOutput(), getFormat());
+        return std::make_shared<QRtAudioEngine>(QMediaDevices::defaultAudioOutput(), getFormat());
     }
 
     static std::shared_ptr<NullMockVoice> makeMockVoice(QAudioFormat fmt)
@@ -121,36 +117,6 @@ private:
         return voice;
     }
 };
-
-void tst_QRtAudioEngine::getPlaybackEngine()
-{
-    std::shared_ptr<QRtAudioEngine> engine = makeEngine();
-    std::shared_ptr<QRtAudioEngine> engine2 = makeEngine();
-
-    QCOMPARE(engine, engine2);
-
-    // the sink starts suspended
-    QCOMPARE(engine->audioSink().state(), QAudio::SuspendedState);
-}
-
-void tst_QRtAudioEngine::getPlaybackEngine_nullDevice()
-{
-    QTest::ignoreMessage(QtMsgType::QtWarningMsg,
-                         "QRtAudioEngine needs to be called with a valid device");
-
-    std::shared_ptr<QRtAudioEngine> engine =
-            QRtAudioEngine::getEngineFor(QAudioDevice(), QAudioFormat());
-    QCOMPARE(engine, nullptr);
-}
-
-void tst_QRtAudioEngine::getPlaybackEngine_invalidFormat()
-{
-    QTest::ignoreMessage(QtMsgType::QtWarningMsg, "QRtAudioEngine requires floating point samples");
-
-    std::shared_ptr<QRtAudioEngine> engine =
-            QRtAudioEngine::getEngineFor(QMediaDevices::defaultAudioOutput(), QAudioFormat());
-    QCOMPARE(engine, nullptr);
-}
 
 void tst_QRtAudioEngine::play_visit_and_stop_voice()
 {

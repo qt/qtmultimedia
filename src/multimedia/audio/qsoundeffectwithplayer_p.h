@@ -74,6 +74,9 @@ public:
 class QSoundEffectPrivateWithPlayer final : public QObject, public QSoundEffectPrivate
 {
 public:
+    Q_MULTIMEDIA_EXPORT
+    static std::shared_ptr<QRtAudioEngine> getEngineFor(const QAudioDevice &, const QAudioFormat &);
+
     QSoundEffectPrivateWithPlayer(QSoundEffect *q, QAudioDevice audioDevice);
     Q_DISABLE_COPY_MOVE(QSoundEffectPrivateWithPlayer)
     ~QSoundEffectPrivateWithPlayer() override;
