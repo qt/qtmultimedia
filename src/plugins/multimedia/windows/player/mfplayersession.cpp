@@ -18,6 +18,7 @@
 #include "mfvideorenderercontrol_p.h"
 #include <mfmetadata_p.h>
 #include <private/qwindowsaudioutils_p.h>
+#include <private/qwindows_scopedpropvariant_p.h>
 
 #include "mfplayersession_p.h"
 #include <mferror.h>
@@ -788,16 +789,15 @@ void MFPlayerSession::start()
                 m_restorePosition = -1;
         }
 
-        PROPVARIANT varStart;
-        InitPropVariantFromInt64(m_position, &varStart);
+        QtMultimediaPrivate::ScopedPropVariant varStart;
+        InitPropVariantFromInt64(m_position, varStart.get());
 
-        if (SUCCEEDED(m_session->Start(&GUID_NULL, &varStart))) {
+        if (SUCCEEDED(m_session->Start(&GUID_NULL, varStart.get()))) {
             m_state.setCommand(CmdStart);
             m_pendingState = CmdPending;
         } else {
             error(QMediaPlayer::ResourceError, tr("failed to start playback"), true);
         }
-        PropVariantClear(&varStart);
     }
 }
 
@@ -938,11 +938,10 @@ void MFPlayerSession::setPositionInternal(qint64 position, Command requestCmd)
     qDebug() << "setPositionInternal";
 #endif
 
-    PROPVARIANT varStart;
-    varStart.vt = VT_I8;
-    varStart.hVal.QuadPart = LONGLONG(position * 10000);
-    if (SUCCEEDED(m_session->Start(NULL, &varStart))) {
-        PropVariantClear(&varStart);
+    QtMultimediaPrivate::ScopedPropVariant varStart;
+    varStart->vt = VT_I8;
+    varStart->hVal.QuadPart = LONGLONG(position * 10000);
+    if (SUCCEEDED(m_session->Start(NULL, varStart.get()))) {
         // Store the pending state.
         m_state.setCommand(CmdStart);
         m_state.start = position;
@@ -1184,18 +1183,16 @@ float MFPlayerSession::bufferProgress()
 {
     if (!m_netsourceStatistics)
         return 0;
-    PROPVARIANT var;
-    PropVariantInit(&var);
+
     PROPERTYKEY key;
     key.fmtid = MFNETSOURCE_STATISTICS;
     key.pid = MFNETSOURCE_BUFFERPROGRESS_ID;
     int progress = -1;
     // GetValue returns S_FALSE if the property is not available, which has
     // a value > 0. We therefore can't use the SUCCEEDED macro here.
-    if (m_netsourceStatistics->GetValue(key, &var) == S_OK) {
-        progress = var.lVal;
-        PropVariantClear(&var);
-    }
+    QtMultimediaPrivate::ScopedPropVariant var;
+    if (m_netsourceStatistics->GetValue(key, var.get()) == S_OK)
+        progress = var->lVal;
 
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "bufferProgress: progress = " << progress;
@@ -1211,22 +1208,18 @@ QMediaTimeRange MFPlayerSession::availablePlaybackRanges()
     qint64 end = qint64(m_duration / 10000);
 
     if (m_netsourceStatistics) {
-        PROPVARIANT var;
-        PropVariantInit(&var);
         PROPERTYKEY key;
         key.fmtid = MFNETSOURCE_STATISTICS;
         key.pid = MFNETSOURCE_SEEKRANGESTART_ID;
         // GetValue returns S_FALSE if the property is not available, which has
         // a value > 0. We therefore can't use the SUCCEEDED macro here.
-        if (m_netsourceStatistics->GetValue(key, &var) == S_OK) {
-            start = qint64(var.uhVal.QuadPart / 10000);
-            PropVariantClear(&var);
-            PropVariantInit(&var);
+        QtMultimediaPrivate::ScopedPropVariant startVar;
+        if (m_netsourceStatistics->GetValue(key, startVar.get()) == S_OK) {
+            start = qint64(startVar->uhVal.QuadPart / 10000);
             key.pid = MFNETSOURCE_SEEKRANGEEND_ID;
-            if (m_netsourceStatistics->GetValue(key, &var) == S_OK) {
-                end = qint64(var.uhVal.QuadPart / 10000);
-                PropVariantClear(&var);
-            }
+            QtMultimediaPrivate::ScopedPropVariant endVar;
+            if (m_netsourceStatistics->GetValue(key, endVar.get()) == S_OK)
+                end = qint64(endVar->uhVal.QuadPart / 10000);
         }
     }
 
@@ -1319,11 +1312,9 @@ void MFPlayerSession::handleSessionEvent(const ComPtr<IMFMediaEvent> &sessionEve
 
     switch (meType) {
     case MENonFatalError: {
-            PROPVARIANT var;
-            PropVariantInit(&var);
-            sessionEvent->GetValue(&var);
-            qWarning() << "handleSessionEvent: non fatal error = " << var.ulVal;
-            PropVariantClear(&var);
+            QtMultimediaPrivate::ScopedPropVariant var;
+            sessionEvent->GetValue(var.get());
+            qWarning() << "handleSessionEvent: non fatal error = " << var->ulVal;
             error(QMediaPlayer::ResourceError, tr("Media session non-fatal error."), false);
         }
         break;
@@ -1367,11 +1358,9 @@ void MFPlayerSession::handleSessionEvent(const ComPtr<IMFMediaEvent> &sessionEve
         // If the rate change succeeded, we've already got the rate
         // cached. If it failed, try to get the actual rate.
         if (FAILED(hrStatus)) {
-            PROPVARIANT var;
-            PropVariantInit(&var);
-            if (SUCCEEDED(sessionEvent->GetValue(&var)) && (var.vt == VT_R4))    {
-                m_state.rate = var.fltVal;
-            }
+            QtMultimediaPrivate::ScopedPropVariant var;
+            if (SUCCEEDED(sessionEvent->GetValue(var.get())) && (var->vt == VT_R4))
+                m_state.rate = var->fltVal;
             playbackRateChanged(playbackRate());
         }
         break;

@@ -11,6 +11,7 @@
 #include <QtCore/private/qflatmap_p.h>
 #include <QtCore/qvarlengtharray.h>
 #include <QtGui/qimage.h>
+#include <QtMultimedia/private/qwindows_scopedpropvariant_p.h>
 #include <QtMultimedia/private/qwindowsmultimediautils_p.h>
 
 #include <guiddef.h>
@@ -83,54 +84,50 @@ static QVariant convertValue(const PROPVARIANT& var)
 
 static QVariant metaDataValue(IPropertyStore *content, const PROPERTYKEY &key)
 {
-    QVariant value;
+    if (!content)
+        return {};
 
-    PROPVARIANT var;
-    PropVariantInit(&var);
-    HRESULT hr = S_FALSE;
-    if (content)
-        hr = content->GetValue(key, &var);
+    QtMultimediaPrivate::ScopedPropVariant pv;
+    if (FAILED(content->GetValue(key, pv.get())))
+        return {};
 
-    if (SUCCEEDED(hr)) {
-        value = convertValue(var);
+    QVariant value = convertValue(pv.var);
+    if (!value.isValid())
+        return value;
 
-        // some metadata needs to be reformatted
-        if (value.isValid() && content) {
-            if (key == PKEY_Media_ClassPrimaryID /*QMediaMetaData::MediaType*/) {
-                QString v = value.toString();
-                if (v == QLatin1String("{D1607DBC-E323-4BE2-86A1-48A42A28441E}"))
-                    value = QStringLiteral("Music");
-                else if (v == QLatin1String("{DB9830BD-3AB3-4FAB-8A37-1A995F7FF74B}"))
-                    value = QStringLiteral("Video");
-                else if (v == QLatin1String("{01CD0F29-DA4E-4157-897B-6275D50C4F11}"))
-                    value = QStringLiteral("Audio");
-                else if (v == QLatin1String("{FCF24A76-9A57-4036-990D-E35DD8B244E1}"))
-                    value = QStringLiteral("Other");
-            } else if (key == PKEY_Media_Duration) {
-                // duration is provided in 100-nanosecond units, convert to milliseconds
-                value = (value.toLongLong() + 10000) / 10000;
-            } else if (key == PKEY_Video_Compression) {
-                value = int(QWindowsMultimediaUtils::codecForVideoFormat(value.toUuid()));
-            } else if (key == PKEY_Audio_Format) {
-                value = int(QWindowsMultimediaUtils::codecForAudioFormat(value.toUuid()));
-            } else if (key == PKEY_Video_FrameHeight /*Resolution*/) {
-                QSize res;
-                res.setHeight(value.toUInt());
-                if (content && SUCCEEDED(content->GetValue(PKEY_Video_FrameWidth, &var)))
-                    res.setWidth(convertValue(var).toUInt());
-                value = res;
-            } else if (key == PKEY_Video_Orientation) {
-                uint orientation = 0;
-                if (content && SUCCEEDED(content->GetValue(PKEY_Video_Orientation, &var)))
-                    orientation = convertValue(var).toUInt();
-                value = orientation;
-            } else if (key == PKEY_Video_FrameRate) {
-                value = value.toReal() / 1000.f;
-            }
-        }
+    // some metadata needs to be reformatted
+    if (key == PKEY_Media_ClassPrimaryID /*QMediaMetaData::MediaType*/) {
+        QString v = value.toString();
+        if (v == QLatin1String("{D1607DBC-E323-4BE2-86A1-48A42A28441E}"))
+            value = QStringLiteral("Music");
+        else if (v == QLatin1String("{DB9830BD-3AB3-4FAB-8A37-1A995F7FF74B}"))
+            value = QStringLiteral("Video");
+        else if (v == QLatin1String("{01CD0F29-DA4E-4157-897B-6275D50C4F11}"))
+            value = QStringLiteral("Audio");
+        else if (v == QLatin1String("{FCF24A76-9A57-4036-990D-E35DD8B244E1}"))
+            value = QStringLiteral("Other");
+    } else if (key == PKEY_Media_Duration) {
+        // duration is provided in 100-nanosecond units, convert to milliseconds
+        value = (value.toLongLong() + 10000) / 10000;
+    } else if (key == PKEY_Video_Compression) {
+        value = int(QWindowsMultimediaUtils::codecForVideoFormat(value.toUuid()));
+    } else if (key == PKEY_Audio_Format) {
+        value = int(QWindowsMultimediaUtils::codecForAudioFormat(value.toUuid()));
+    } else if (key == PKEY_Video_FrameHeight /*Resolution*/) {
+        QSize res;
+        res.setHeight(value.toUInt());
+        if (SUCCEEDED(content->GetValue(PKEY_Video_FrameWidth, pv.get())))
+            res.setWidth(convertValue(pv.var).toUInt());
+        value = res;
+    } else if (key == PKEY_Video_Orientation) {
+        uint orientation = 0;
+        if (SUCCEEDED(content->GetValue(PKEY_Video_Orientation, pv.get())))
+            orientation = convertValue(pv.var).toUInt();
+        value = orientation;
+    } else if (key == PKEY_Video_FrameRate) {
+        value = value.toReal() / 1000.f;
     }
 
-    PropVariantClear(&var);
     return value;
 }
 
@@ -199,12 +196,9 @@ QMediaMetaData MFMetaData::fromNative(IMFMetadata *metadata)
     if (!metadata)
         return {};
 
-    PROPVARIANT names;
-    PropVariantInit(&names);
-    if (FAILED(metadata->GetAllPropertyNames(&names))) {
-        PropVariantClear(&names);
+    QtMultimediaPrivate::ScopedPropVariant names;
+    if (FAILED(metadata->GetAllPropertyNames(names.get())))
         return {};
-    }
 
     QMediaMetaData metaData;
 
@@ -226,22 +220,20 @@ QMediaMetaData MFMetaData::fromNative(IMFMetadata *metadata)
         { u"WM/AuthorURL", QMediaMetaData::Url },
     });
 
-    if (names.vt == (VT_VECTOR | VT_LPWSTR)) {
-        for (ULONG i = 0; i < names.calpwstr.cElems; ++i) {
-            const QStringView name(names.calpwstr.pElems[i]);
+    if (names->vt == (VT_VECTOR | VT_LPWSTR)) {
+        for (ULONG i = 0; i < names->calpwstr.cElems; ++i) {
+            const QStringView name(names->calpwstr.pElems[i]);
 
             // WM/Picture blob: ASF_FLAT_PICTURE header followed by
             // MIME type string, description string, and image data.
             if (name == u"WM/Picture") {
-                PROPVARIANT value;
-                PropVariantInit(&value);
-                if (SUCCEEDED(metadata->GetProperty(names.calpwstr.pElems[i], &value))
-                    && value.vt == VT_BLOB) {
-                    QImage img = imageFromAsfFlatPicture(value.blob);
+                QtMultimediaPrivate::ScopedPropVariant value;
+                if (SUCCEEDED(metadata->GetProperty(names->calpwstr.pElems[i], value.get()))
+                    && value->vt == VT_BLOB) {
+                    QImage img = imageFromAsfFlatPicture(value->blob);
                     if (!img.isNull())
                         metaData.insert(QMediaMetaData::CoverArtImage, img);
                 }
-                PropVariantClear(&value);
                 continue;
             }
 
@@ -249,18 +241,15 @@ QMediaMetaData MFMetaData::fromNative(IMFMetadata *metadata)
             if (it == nameToKey.end())
                 continue;
 
-            PROPVARIANT value;
-            PropVariantInit(&value);
-            if (SUCCEEDED(metadata->GetProperty(names.calpwstr.pElems[i], &value))) {
-                QVariant v = convertValue(value);
+            QtMultimediaPrivate::ScopedPropVariant value;
+            if (SUCCEEDED(metadata->GetProperty(names->calpwstr.pElems[i], value.get()))) {
+                QVariant v = convertValue(value.var);
                 if (v.isValid())
                     metaData.insert(it.value(), v);
             }
-            PropVariantClear(&value);
         }
     }
 
-    PropVariantClear(&names);
     return metaData;
 }
 
@@ -419,41 +408,37 @@ static REFPROPERTYKEY propertyKeyForMetaDataKey(QMediaMetaData::Key key)
 
 static void setStringProperty(IPropertyStore *content, REFPROPERTYKEY key, const QString &value)
 {
-    PROPVARIANT propValue = {};
-    if (SUCCEEDED(InitPropVariantFromString(reinterpret_cast<LPCWSTR>(value.utf16()), &propValue))) {
-        if (SUCCEEDED(PSCoerceToCanonicalValue(key, &propValue)))
-            content->SetValue(key, propValue);
-        PropVariantClear(&propValue);
+    QtMultimediaPrivate::ScopedPropVariant propValue;
+    if (SUCCEEDED(InitPropVariantFromString(reinterpret_cast<LPCWSTR>(value.utf16()), propValue.get()))) {
+        if (SUCCEEDED(PSCoerceToCanonicalValue(key, propValue.get())))
+            content->SetValue(key, propValue.var);
     }
 }
 
 static void setUInt32Property(IPropertyStore *content, REFPROPERTYKEY key, quint32 value)
 {
-    PROPVARIANT propValue = {};
-    if (SUCCEEDED(InitPropVariantFromUInt32(ULONG(value), &propValue))) {
-        if (SUCCEEDED(PSCoerceToCanonicalValue(key, &propValue)))
-            content->SetValue(key, propValue);
-        PropVariantClear(&propValue);
+    QtMultimediaPrivate::ScopedPropVariant propValue;
+    if (SUCCEEDED(InitPropVariantFromUInt32(ULONG(value), propValue.get()))) {
+        if (SUCCEEDED(PSCoerceToCanonicalValue(key, propValue.get())))
+            content->SetValue(key, propValue.var);
     }
 }
 
 static void setUInt64Property(IPropertyStore *content, REFPROPERTYKEY key, quint64 value)
 {
-    PROPVARIANT propValue = {};
-    if (SUCCEEDED(InitPropVariantFromUInt64(ULONGLONG(value), &propValue))) {
-        if (SUCCEEDED(PSCoerceToCanonicalValue(key, &propValue)))
-            content->SetValue(key, propValue);
-        PropVariantClear(&propValue);
+    QtMultimediaPrivate::ScopedPropVariant propValue;
+    if (SUCCEEDED(InitPropVariantFromUInt64(ULONGLONG(value), propValue.get()))) {
+        if (SUCCEEDED(PSCoerceToCanonicalValue(key, propValue.get())))
+            content->SetValue(key, propValue.var);
     }
 }
 
 static void setFileTimeProperty(IPropertyStore *content, REFPROPERTYKEY key, const FILETIME *ft)
 {
-    PROPVARIANT propValue = {};
-    if (SUCCEEDED(InitPropVariantFromFileTime(ft, &propValue))) {
-        if (SUCCEEDED(PSCoerceToCanonicalValue(key, &propValue)))
-            content->SetValue(key, propValue);
-        PropVariantClear(&propValue);
+    QtMultimediaPrivate::ScopedPropVariant propValue;
+    if (SUCCEEDED(InitPropVariantFromFileTime(ft, propValue.get()))) {
+        if (SUCCEEDED(PSCoerceToCanonicalValue(key, propValue.get())))
+            content->SetValue(key, propValue.var);
     }
 }
 
