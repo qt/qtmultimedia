@@ -64,7 +64,7 @@ void QMediaCaptureSessionPrivate::setVideoSink(QVideoSink *sink)
    session, and record audio/video using a QMediaRecorder.
 
     \sa QCamera, QAudioDevice, QMediaRecorder, QImageCapture, QScreenCapture, QWindowCapture,
-   QVideoFrameInput, QMediaRecorder, QGraphicsVideoItem
+   QVideoFrameInput, QGStreamerVideoSource, QMediaRecorder, QGraphicsVideoItem
 */
 
 /*!
@@ -121,7 +121,8 @@ void QMediaCaptureSessionPrivate::setVideoSink(QVideoSink *sink)
     }
 \endqml
 
-    \sa Camera, MediaDevices, MediaRecorder, ImageCapture, ScreenCapture, WindowCapture, AudioInput, VideoOutput
+    \sa Camera, MediaDevices, MediaRecorder, ImageCapture, ScreenCapture, WindowCapture,
+    GStreamerVideoSource, AudioInput, VideoOutput
     \note To ensure the camera starts capturing video frames on all platforms, explicitly call camera.start(),
     typically in the Component.onCompleted handler.
 */
@@ -396,6 +397,32 @@ void QMediaCaptureSession::setCamera(QCamera *camera)
 
     setObject(camera);
 }
+
+/*!
+    \qmlproperty GStreamerVideoSource QtMultimedia::CaptureSession::nativeVideoSource
+    \since 6.12
+
+    \brief The native video source used to capture video.
+
+    For now, it is only possible to set GStreamerVideoSource as the native video source.
+    A capture session can have either \l Camera or \l GStreamerVideoSource set
+    at a time.
+
+    \sa GStreamerVideoSource, Camera
+*/
+
+/*!
+    \property QMediaCaptureSession::nativeVideoSource
+    \since 6.12
+
+    \brief The native video source used to capture video.
+
+    For now, it is only possible to set QGStreamerVideoSource as the native video source.
+    A capture session can have either \l QCamera or \l QGStreamerVideoSource set
+    at a time.
+
+    \sa QGStreamerVideoSource, QCamera
+*/
 
 QObject *QMediaCaptureSession::nativeVideoSource() const
 {
@@ -692,6 +719,12 @@ QPlatformMediaCaptureSession *QMediaCaptureSession::platformSession() const
     \qmlsignal QtMultimedia::CaptureSession::cameraChanged()
     This signal is emitted when the selected camera has changed.
     \sa CaptureSession::camera
+*/
+
+/*!
+    \qmlsignal QtMultimedia::CaptureSession::nativeVideoSourceChanged()
+    This signal is emitted when the selected native video source has changed.
+    \sa CaptureSession::nativeVideoSource
 */
 
 /*!

@@ -38,7 +38,8 @@ QT_BEGIN_NAMESPACE
     \l QMediaCaptureSession. You can generate:
     \list
         \li Audio. Use \l QAudioInput or \l QAudioBufferInput.
-        \li Video. Use \l QCamera, \l QScreenCapture, \l QWindowCapture, or \l QVideoFrameInput.
+        \li Video. Use \l QCamera, \l QScreenCapture, \l QWindowCapture, \l QVideoFrameInput,
+            or \l QGStreamerVideoSource (on embedded Linux with the \c gstreamer media backend).
     \endlist
 
     To record media, connect a generator to a corresponding media capture session.

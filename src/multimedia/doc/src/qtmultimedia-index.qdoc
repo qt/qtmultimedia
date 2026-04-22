@@ -106,6 +106,9 @@
     \row
      \li \l {QtMultimedia::WindowCapture}{WindowCapture}
      \li Captures a top-level window.
+    \row
+     \li \l {QtMultimedia::GStreamerVideoSource}{GStreamerVideoSource}
+     \li Custom GStreamer video source (with the GStreamer media backend).
     \endtable
 
     \section1 C++ classes
@@ -158,6 +161,9 @@
     \row
      \li QAudioBufferInput
      \li Supports playing or recording audio from memory buffers.
+    \row
+     \li QGStreamerVideoSource
+     \li Custom GStreamer video source (with the GStreamer media backend).
 
     \endtable
 
