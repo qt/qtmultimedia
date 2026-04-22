@@ -20,10 +20,14 @@
 
 QT_USE_NAMESPACE
 
+struct IMFMetadata;
+
 class MFMetaData
 {
 public:
     static QMediaMetaData fromNative(IMFMediaSource* mediaSource);
+    static QMediaMetaData fromNative(IPropertyStore *content);
+    static QMediaMetaData fromNative(IMFMetadata *metadata);
     static void toNative(const QMediaMetaData &metaData, IPropertyStore *content);
 };
 
