@@ -309,7 +309,16 @@ class QtCamera2 {
     // Used for finalizing a still photo capture. Will reset mState and preview-request back to
     // default when capture is done. This should be used for a singular capture-call, not a
     // repeating request.
-    class StillPhotoFinalizerCallback extends CameraCaptureSession.CaptureCallback {
+    //
+    // All the events here are invoked from the background processing thread.
+    static class StillPhotoFinalizerCallback extends CameraCaptureSession.CaptureCallback {
+        QtCamera2 mMainCameraObject = null;
+
+        StillPhotoFinalizerCallback(QtCamera2 mainCameraObject) {
+            assert(mainCameraObject != null);
+            mMainCameraObject = mainCameraObject;
+        }
+
         // TODO: Implement failure case where we tell QImageCapture that cancel this pending
         // image and then try to reset our camera to preview if applicable.
 
@@ -320,12 +329,12 @@ class QtCamera2 {
             CaptureRequest request,
             CaptureFailure failure)
         {
-            onStillPhotoCaptureFailed(mCameraId);
-            synchronized (mSyncedMembers) {
-                mSyncedMembers.mIsTakingStillPhoto = false;
+            mMainCameraObject.onStillPhotoCaptureFailed(mMainCameraObject.mCameraId);
+            synchronized (mMainCameraObject.mSyncedMembers) {
+                mMainCameraObject.mSyncedMembers.mIsTakingStillPhoto = false;
             }
             try {
-                setRepeatingRequestToPreview();
+                mMainCameraObject.setRepeatingRequestToPreview();
             } catch (CameraAccessException e) {
                 // TODO: If we fail here, we can clean up the camera session and set the QCamera
                 // to unactive.
@@ -339,17 +348,17 @@ class QtCamera2 {
             TotalCaptureResult result)
         {
             try {
-                mExifDataHandler = new QtExifDataHandler(result);
-                synchronized (mSyncedMembers) {
+                mMainCameraObject.mExifDataHandler = new QtExifDataHandler(result);
+                synchronized (mMainCameraObject.mSyncedMembers) {
                     // If mIsStarted is true, it's an indication the QCamera is active and wants
                     // to keep receiving preview frames.
-                    if (mSyncedMembers.mIsStarted) {
-                        setRepeatingRequestToPreview();
+                    if (mMainCameraObject.mSyncedMembers.mIsStarted) {
+                        mMainCameraObject.setRepeatingRequestToPreview();
                     }
 
                     // TODO: If we implement queueing of multiple photos, we should start the
                     // process of capturing the next photo here.
-                    mSyncedMembers.mIsTakingStillPhoto = false;
+                    mMainCameraObject.mSyncedMembers.mIsTakingStillPhoto = false;
                 }
             } catch (CameraAccessException e) {
                 e.printStackTrace();
@@ -392,7 +401,7 @@ class QtCamera2 {
 
         mCaptureSession.capture(
             requestBuilder.build(),
-            new StillPhotoFinalizerCallback(),
+            new StillPhotoFinalizerCallback(this),
             mBackgroundHandler);
     }
 
