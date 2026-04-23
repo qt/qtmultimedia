@@ -21,6 +21,7 @@
 #include <QtMultimedia/private/qwindowsmediafoundation_p.h>
 
 #include <QtCore/qmutex.h>
+#include <QtCore/qchronotimer.h>
 #include <QtCore/private/qcomptr_p.h>
 
 struct IAudioClient3;
@@ -54,12 +55,18 @@ protected:
     QList<QAudioDevice> findAudioOutputs() const override;
 
 private:
+    void scheduleAudioInputsChanged();
+    void scheduleAudioOutputsChanged();
+
     QComInitializer m_comInitializer;
     QMFRuntimeInit m_wmfRuntime{ QWindowsMediaFoundation::instance() };
     QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
 
     ComPtr<IMMDeviceEnumerator> m_deviceEnumerator;
     ComPtr<QtWASAPI::CMMNotificationClient> m_notificationClient;
+
+    QChronoTimer m_audioInputsDebounce;
+    QChronoTimer m_audioOutputsDebounce;
 
     friend QtWASAPI::CMMNotificationClient;
 
