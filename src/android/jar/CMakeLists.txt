@@ -17,6 +17,7 @@ if (QT_FEATURE_ffmpeg)
         src/org/qtproject/qt/android/multimedia/qffmpeg/CameraCaptureSessionStateCallback.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/CameraDeviceStateCallback.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/CameraSettings.java
+        src/org/qtproject/qt/android/multimedia/qffmpeg/CameraStillPhotoFinalizerCallback.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/CameraStillPhotoPrecaptureCallback.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtExifDataHandler.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtCamera2.java
