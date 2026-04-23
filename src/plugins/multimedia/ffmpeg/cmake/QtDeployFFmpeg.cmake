@@ -1,12 +1,6 @@
 # Copyright (C) 2023 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
-function(qt_internal_multimedia_set_ffmpeg_link_directory directory)
-    foreach (lib ${ffmpeg_libs})
-        set_target_properties(${lib} PROPERTIES INTERFACE_LINK_DIRECTORIES ${directory})
-    endforeach()
-endfunction()
-
 function(qt_internal_multimedia_validate_ffmpeg_shared_libs libs)
     if (NOT libs)
         message(FATAL_ERROR "Attempted to install FFmpeg shared libraries but the list is empty")
@@ -52,13 +46,6 @@ function(qt_internal_multimedia_copy_or_install_ffmpeg)
                 file(COPY ${lib_path} DESTINATION ${ffmpeg_output_dir})
             endif()
         endforeach()
-
-        # On Windows, shared linking goes through 'integration' static libs,
-        # otherwise we should link the directory with copied libs
-        # On iOS we are using frameworks, not shared libraries.
-        if (NOT WIN32 AND NOT UIKIT)
-            qt_internal_multimedia_set_ffmpeg_link_directory(${ffmpeg_output_dir})
-        endif()
     endif()
 
     # Should we set the compile definition for the plugin or for the QtMM module?
