@@ -286,6 +286,20 @@ if (QT_DEPLOY_FFMPEG AND FFMPEG_SHARED_LIBRARIES AND (BUILD_SHARED_LIBS OR UIKIT
     qt_internal_multimedia_copy_or_install_ffmpeg()
 endif()
 
+# In static builds, consumer projects must re-find FFmpeg at configure
+# time to recreate the FFmpeg::av* imported targets referenced by
+# FFmpegMediaPluginImplPrivate's link interface. Record the build-time
+# FFMPEG_DIR so that consumers don't have to pass -DFFMPEG_DIR=...
+# See QTBUG-145034.
+if(NOT BUILD_SHARED_LIBS AND DEFINED FFMPEG_DIR)
+    set_target_properties(FFmpegMediaPluginImplPrivate PROPERTIES
+        _qt_third_party_deps_extra_code
+        "set(__qt_initially_configured_ffmpeg_dir \"${FFMPEG_DIR}\")
+if(NOT DEFINED FFMPEG_DIR AND EXISTS \"\${__qt_initially_configured_ffmpeg_dir}\")
+    set(FFMPEG_DIR \"\${__qt_initially_configured_ffmpeg_dir}\")
+endif()")
+endif()
+
 if( NOT (UIKIT AND FFMPEG_SHARED_LIBRARIES) )
     qt_internal_extend_target(FFmpegMediaPluginImplPrivate PUBLIC_LIBRARIES ${ffmpeg_libs})
 else()
