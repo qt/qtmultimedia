@@ -242,6 +242,23 @@ QWindowsAudioDevices::QWindowsAudioDevices()
 {
     using namespace QtWASAPI;
 
+    // Debounce device change notifications. Bluetooth devices (and some USB
+    // devices) may generate rapid bursts of IMMNotificationClient callbacks
+    // during a single connect/disconnect cycle. Without coalescing, each
+    // callback invalidates the device cache and notifies consumers, which
+    // may trigger re-enumeration involving synchronous COM RPC calls
+    // (EnumAudioEndpoints, OpenPropertyStore) that may stall while the
+    // Windows Audio Service is still processing the change.
+    constexpr auto kDebounceInterval = std::chrono::milliseconds{200};
+
+    m_audioInputsDebounce.setSingleShot(true);
+    m_audioInputsDebounce.setInterval(kDebounceInterval);
+    m_audioInputsDebounce.callOnTimeout(this, &QWindowsAudioDevices::onAudioInputsChanged);
+
+    m_audioOutputsDebounce.setSingleShot(true);
+    m_audioOutputsDebounce.setInterval(kDebounceInterval);
+    m_audioOutputsDebounce.callOnTimeout(this, &QWindowsAudioDevices::onAudioOutputsChanged);
+
     auto hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
                                IID_PPV_ARGS(&m_deviceEnumerator));
 
@@ -257,8 +274,8 @@ QWindowsAudioDevices::QWindowsAudioDevices()
 
     connect(m_notificationClient.Get(), &QtWASAPI::CMMNotificationClient::audioDeviceAdded, this,
             [this] {
-        onAudioInputsChanged();
-        onAudioOutputsChanged();
+        scheduleAudioInputsChanged();
+        scheduleAudioOutputsChanged();
     });
     connect(m_notificationClient.Get(), &QtWASAPI::CMMNotificationClient::audioDeviceRemoved, this,
             [this](ComPtr<IMMDevice> device) {
@@ -266,8 +283,8 @@ QWindowsAudioDevices::QWindowsAudioDevices()
             std::lock_guard lock(m_cacheMutex);
             m_cachedDevices.erase(device);
         }
-        onAudioInputsChanged();
-        onAudioOutputsChanged();
+        scheduleAudioInputsChanged();
+        scheduleAudioOutputsChanged();
     });
     connect(m_notificationClient.Get(), &QtWASAPI::CMMNotificationClient::audioDeviceDefaultChanged,
             this, [this](QAudioDevice::Mode mode, ComPtr<IMMDevice> device) {
@@ -290,10 +307,10 @@ QWindowsAudioDevices::QWindowsAudioDevices()
 
         switch (mode) {
         case QAudioDevice::Input:
-            onAudioInputsChanged();
+            scheduleAudioInputsChanged();
             break;
         case QAudioDevice::Output:
-            onAudioOutputsChanged();
+            scheduleAudioOutputsChanged();
             break;
         default:
             break;
@@ -307,9 +324,19 @@ QWindowsAudioDevices::QWindowsAudioDevices()
             m_cachedDevices.erase(device);
         }
 
-        onAudioInputsChanged();
-        onAudioOutputsChanged();
+        scheduleAudioInputsChanged();
+        scheduleAudioOutputsChanged();
     });
+}
+
+void QWindowsAudioDevices::scheduleAudioInputsChanged()
+{
+    m_audioInputsDebounce.start();
+}
+
+void QWindowsAudioDevices::scheduleAudioOutputsChanged()
+{
+    m_audioOutputsDebounce.start();
 }
 
 QWindowsAudioDevices::~QWindowsAudioDevices()
