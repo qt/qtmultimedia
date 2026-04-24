@@ -20,21 +20,21 @@ class CameraDeviceStateCallback extends CameraDevice.StateCallback {
         if (mMainCameraObject.mCameraDevice != null)
             mMainCameraObject.mCameraDevice.close();
         mMainCameraObject.mCameraDevice = cameraDevice;
-        mMainCameraObject.onCameraOpened(mMainCameraObject.mCameraId);
+        mMainCameraObject.onCameraOpened(mMainCameraObject.getQAndroidCameraPtr());
     }
     @Override
     public void onDisconnected(CameraDevice cameraDevice) {
         cameraDevice.close();
         if (mMainCameraObject.mCameraDevice == cameraDevice)
             mMainCameraObject.mCameraDevice = null;
-        mMainCameraObject.onCameraDisconnect(mMainCameraObject.mCameraId);
+        mMainCameraObject.onCameraDisconnect(mMainCameraObject.getQAndroidCameraPtr());
     }
     @Override
     public void onError(CameraDevice cameraDevice, int error) {
         cameraDevice.close();
         if (mMainCameraObject.mCameraDevice == cameraDevice)
             mMainCameraObject.mCameraDevice = null;
-        mMainCameraObject.onCameraError(mMainCameraObject.mCameraId, error);
+        mMainCameraObject.onCameraError(mMainCameraObject.getQAndroidCameraPtr(), error);
     }
     @Override
     public void onClosed(CameraDevice cameraDevice) {

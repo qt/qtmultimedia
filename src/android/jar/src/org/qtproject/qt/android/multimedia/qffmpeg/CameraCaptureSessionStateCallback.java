@@ -4,6 +4,7 @@ package org.qtproject.qt.android.multimedia.qffmpeg;
 
 import android.hardware.camera2.CameraCaptureSession;
 
+// The events on this object are invoked from the background processing threads.
 class CameraCaptureSessionStateCallback extends CameraCaptureSession.StateCallback {
     private QtCamera2 mMainCameraObject = null;
 
@@ -21,7 +22,7 @@ class CameraCaptureSessionStateCallback extends CameraCaptureSession.StateCallba
         if (isSuperseded())
             return;
         mMainCameraObject.mCaptureSession = cameraCaptureSession;
-        mMainCameraObject.onCaptureSessionConfigured(mMainCameraObject.mCameraId);
+        mMainCameraObject.onCaptureSessionConfigured(mMainCameraObject.getQAndroidCameraPtr());
         mMainCameraObject.onSessionReconfigured(true);
     }
 
@@ -37,7 +38,7 @@ class CameraCaptureSessionStateCallback extends CameraCaptureSession.StateCallba
        super.onActive(cameraCaptureSession);
        if (isSuperseded())
            return;
-       mMainCameraObject.onSessionActive(mMainCameraObject.mCameraId);
+       mMainCameraObject.onSessionActive(mMainCameraObject.getQAndroidCameraPtr());
     }
 
     @Override
@@ -45,6 +46,6 @@ class CameraCaptureSessionStateCallback extends CameraCaptureSession.StateCallba
         super.onClosed(cameraCaptureSession);
         if (isSuperseded())
             return;
-        mMainCameraObject.onSessionClosed(mMainCameraObject.mCameraId);
+        mMainCameraObject.onSessionClosed(mMainCameraObject.getQAndroidCameraPtr());
     }
 }
