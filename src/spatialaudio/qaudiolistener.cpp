@@ -33,6 +33,8 @@ public:
 
 /*!
     Creates a listener for the spatial audio engine for \a engine.
+
+    \note Must be called with a valid QAudioEngine
  */
 QAudioListener::QAudioListener(QAudioEngine *engine) : QObject(*new QAudioListenerPrivate)
 {
