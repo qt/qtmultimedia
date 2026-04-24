@@ -18,6 +18,87 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QSpatialAudioPrivate {
+
+QSpatialAudioPlaybackState::QSpatialAudioPlaybackState(const QAudioBuffer &buffer, bool playing,
+                                                       int loops)
+    : m_playing(playing), m_loops(loops), m_buffer(std::move(buffer))
+{
+}
+
+void QSpatialAudioPlaybackState::getBuffer(QSpan<float> output)
+{
+    using QtMultimediaPrivate::drop;
+    using QtMultimediaPrivate::take;
+    namespace ranges = QtMultimediaPrivate::ranges;
+
+    if (!m_playing.load(std::memory_order_relaxed)) {
+        ranges::fill(output, 0.f);
+        return;
+    }
+
+    QSpan<const float> wholeSampleBuffer{
+        m_buffer.constData<float>(),
+        m_buffer.sampleCount(),
+    };
+
+    while (!output.empty()) {
+        QSpan remainingSamples = drop(wholeSampleBuffer, m_currentSample);
+        const QSpan samplesToCopy = take(remainingSamples, output.size());
+        ranges::copy(samplesToCopy, output.begin());
+        output = drop(output, samplesToCopy.size());
+        m_currentSample += samplesToCopy.size();
+
+        if (output.empty())
+            return;
+
+        // Reached end of buffer
+        Q_ASSERT(m_currentSample == wholeSampleBuffer.size());
+        m_currentSample = 0;
+
+        switch (m_loops) {
+        case QAmbientSound::Infinite:
+            break; // Continue looping
+        case 0:
+            m_playing = false;
+            m_currentLoop = 0;
+            ranges::fill(output, 0.f);
+            return;
+        default:
+            ++m_currentLoop;
+            if (m_currentLoop >= m_loops) {
+                m_playing = false;
+                m_currentLoop = 0;
+                ranges::fill(output, 0.f);
+                return;
+            }
+            break;
+        }
+    }
+}
+
+void QSpatialAudioPlaybackState::resume()
+{
+    m_playing = true;
+}
+
+void QSpatialAudioPlaybackState::setLoops(int loops)
+{
+    m_loops = loops;
+}
+
+QAudioFormat QSpatialAudioPlaybackState::format() const
+{
+    return m_buffer.format();
+}
+
+void QSpatialAudioPlaybackState::pause()
+{
+    m_playing = false;
+}
+
+} // namespace QSpatialAudioPrivate
+
 namespace {
 
 std::optional<QAudioBuffer> joinBuffers(QSpan<const QAudioBuffer> buffers)
@@ -90,11 +171,82 @@ void QAmbientSoundPrivate::setVolume(float volume)
     applyVolume();
 }
 
+void QAmbientSoundPrivate::setLoops(int loops)
+{
+    m_loops = loops;
+    if (m_playbackState)
+        m_playbackState->setLoops(loops);
+}
+
+void QAmbientSoundPrivate::setAutoPlay(bool enabled)
+{
+    m_autoPlay = enabled;
+}
+
 void QAmbientSoundPrivate::applyVolume()
 {
     withResonanceApi([&](vraudio::ResonanceAudioApi *api) {
         api->SetSourceVolume(sourceId, m_volume);
     });
+}
+
+void QAmbientSoundPrivate::play()
+{
+    switch (m_state) {
+    case State::Stopped: {
+        m_state = State::Playing;
+        if (m_buffer) {
+            setState(std::make_shared<QSpatialAudioPlaybackState>(*m_buffer, /*playing=*/true,
+                                                                  m_loops));
+        }
+        return;
+    }
+    case State::Paused:
+    case State::Playing: {
+        m_state = State::Playing;
+        if (m_playbackState)
+            m_playbackState->resume();
+        return;
+    }
+    }
+}
+
+void QAmbientSoundPrivate::pause()
+{
+    switch (m_state) {
+    case State::Stopped: {
+        m_state = State::Paused;
+        setState(std::make_shared<QSpatialAudioPlaybackState>(*m_buffer, /*playing=*/false,
+                                                              m_loops));
+        return;
+    }
+    case State::Paused: {
+        return;
+    }
+    case State::Playing: {
+        m_state = State::Paused;
+        setState(nullptr);
+
+        if (m_playbackState)
+            m_playbackState->pause();
+        return;
+    }
+    }
+}
+
+void QAmbientSoundPrivate::stop()
+{
+    switch (m_state) {
+    case State::Stopped: {
+        return;
+    }
+    case State::Paused:
+    case State::Playing: {
+        m_state = State::Stopped;
+        setState({});
+        return;
+    }
+    }
 }
 
 void QAmbientSoundPrivate::loadUrl(const QUrl &url)
@@ -103,14 +255,9 @@ void QAmbientSoundPrivate::loadUrl(const QUrl &url)
 
     Q_Q(QAmbientSound);
 
-    {
-        QMutexLocker l(&mutex);
-        m_buffer = std::nullopt;
-        m_currentSample = 0;
-        m_currentLoop = 0;
-        m_playing = false;
-    }
     m_loadFuture.cancel();
+
+    setState(nullptr);
 
     auto *ep = QAudioEnginePrivate::get(engine);
     QAudioFormat f;
@@ -121,11 +268,22 @@ void QAmbientSoundPrivate::loadUrl(const QUrl &url)
 
     QUrl resolved = m_sourceResolver->resolve(url);
     m_loadFuture = load(resolved, f).then(q, [this](QAmbientSoundPrivate::LoadResult result) {
-        QMutexLocker l(&mutex);
         if (result) {
             m_buffer = joinBuffers(*result);
-            if (m_autoPlay)
-                m_playing = true;
+            if (!m_buffer) {
+                qWarning() << "QAmbientSound: failed to join audio buffers";
+                return;
+            }
+
+            bool startingPlayback = m_autoPlay || m_state != State::Stopped;
+            if (!startingPlayback)
+                return;
+            bool startPaused = (m_state == State::Paused) && !m_autoPlay;
+            setState(std::make_shared<QSpatialAudioPlaybackState>(
+                    *m_buffer, /*playing=*/!startPaused, m_loops));
+
+            m_state = startPaused ? State::Paused : State::Playing;
+
         } else {
             qWarning() << "QAmbientSound: cannot load file";
         }
@@ -192,58 +350,12 @@ vraudio::ResonanceAudioApi *QAmbientSoundPrivate::getAPI()
     return ep->resonanceAudio->api.get();
 }
 
-void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int channels)
+void QAmbientSoundPrivate::setState(SharedPlaybackState state)
 {
-    Q_ASSERT(channels == nchannels);
-    using QtMultimediaPrivate::drop;
-    using QtMultimediaPrivate::take;
-    namespace ranges = QtMultimediaPrivate::ranges;
-
-    QMutexLocker l(&mutex);
-
-    if (!m_playing || !m_buffer) {
-        ranges::fill(output, 0.f);
-        return;
-    }
-
-    QSpan<const float> wholeSampleBuffer{
-        m_buffer->constData<float>(),
-        m_buffer->frameCount() * nchannels,
-    };
-
-    while (!output.empty()) {
-        QSpan remainingSamples = drop(wholeSampleBuffer, m_currentSample);
-        const QSpan samplesToCopy = take(remainingSamples, output.size());
-        ranges::copy(samplesToCopy, output.begin());
-        output = drop(output, samplesToCopy.size());
-        m_currentSample += samplesToCopy.size();
-
-        if (output.empty())
-            return;
-
-        // Reached end of buffer
-        Q_ASSERT(m_currentSample == wholeSampleBuffer.size());
-        m_currentSample = 0;
-
-        switch (m_loops) {
-        case QAmbientSound::Infinite:
-            break; // Continue looping
-        case 0:
-            m_playing = false;
-            m_currentLoop = 0;
-            ranges::fill(output, 0.f);
-            return;
-        default:
-            ++m_currentLoop;
-            if (m_currentLoop >= m_loops) {
-                m_playing = false;
-                m_currentLoop = 0;
-                ranges::fill(output, 0.f);
-                return;
-            }
-            break;
-        }
-    }
+    auto *ep = QAudioEnginePrivate::get(engine);
+    if (ep)
+        ep->setSoundPlaybackData(this, state);
+    m_playbackState = std::move(state);
 }
 
 /*!
@@ -336,15 +448,16 @@ QUrl QAmbientSound::source() const
 int QAmbientSound::loops() const
 {
     Q_D(const QAmbientSound);
-    return d->m_loops.load(std::memory_order_relaxed);
+    return d->loops();
 }
 
 void QAmbientSound::setLoops(int loops)
 {
     Q_D(QAmbientSound);
-    int oldLoops = d->m_loops.exchange(loops, std::memory_order_relaxed);
-    if (oldLoops != loops)
+    if (loops != d->loops()) {
+        d->setLoops(loops);
         emit loopsChanged();
+    }
 }
 
 /*!
@@ -358,16 +471,16 @@ void QAmbientSound::setLoops(int loops)
 bool QAmbientSound::autoPlay() const
 {
     Q_D(const QAmbientSound);
-    return d->m_autoPlay.load(std::memory_order_relaxed);
+    return d->autoPlay();
 }
 
 void QAmbientSound::setAutoPlay(bool autoPlay)
 {
     Q_D(QAmbientSound);
-
-    bool old = d->m_autoPlay.exchange(autoPlay, std::memory_order_relaxed);
-    if (old != autoPlay)
+    if (autoPlay != d->autoPlay()) {
+        d->setAutoPlay(autoPlay);
         emit autoPlayChanged();
+    }
 }
 
 /*!

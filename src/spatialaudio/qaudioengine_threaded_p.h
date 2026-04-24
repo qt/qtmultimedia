@@ -21,7 +21,7 @@
 #include <QtCore/qthread.h>
 #include <QtMultimedia/qaudiodevice.h>
 
-#include <vector>
+#include <map>
 
 namespace vraudio {
 class ResonanceAudio;
@@ -32,6 +32,10 @@ QT_BEGIN_NAMESPACE
 class QAudioOutputStream;
 class QAudioRoom;
 class QAudioListener;
+
+namespace QSpatialAudioPrivate {
+class QSpatialAudioPlaybackState;
+} // namespace QSpatialAudioPrivate
 
 class QAudioEngineThreaded final : public QAudioEnginePrivate
 {
@@ -50,6 +54,9 @@ public:
     void addSound(QAmbientSoundPrivate *) override;
     void removeSound(QAmbientSoundPrivate *) override;
 
+    using SharedPlaybackState = std::shared_ptr<QSpatialAudioPrivate::QSpatialAudioPlaybackState>;
+    void setSoundPlaybackData(QAmbientSoundPrivate *, SharedPlaybackState) override;
+
     void updateRoomEffects() override;
 
 private:
@@ -62,7 +69,7 @@ private:
     QThread audioThread;
     std::unique_ptr<QAudioOutputStream> outputStream;
 
-    std::vector<QAmbientSoundPrivate *> sources;
+    std::map<QAmbientSoundPrivate *, SharedPlaybackState> playbackStates;
 };
 
 QT_END_NAMESPACE

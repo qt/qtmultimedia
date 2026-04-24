@@ -17,7 +17,6 @@
 
 #include <QtSpatialAudio/qambientsound.h>
 #include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
-#include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qfuture.h>
 #include <QtCore/private/qobject_p.h>
@@ -40,6 +39,35 @@ class QAudioEngine;
 class QQuick3DSpatialSound;
 class QQuick3DAmbientSound;
 
+namespace QSpatialAudioPrivate {
+
+class QSpatialAudioPlaybackState
+{
+public:
+    explicit QSpatialAudioPlaybackState(const QAudioBuffer &buffer, bool playing, int loops);
+
+    void getBuffer(QSpan<float> output);
+
+    void pause();
+    void resume();
+    void setLoops(int);
+
+    QAudioFormat format() const;
+
+private:
+    // controls
+    std::atomic_bool m_playing = false;
+    std::atomic_int m_loops = 1;
+
+    // state
+    int m_currentSample = 0;
+    int m_currentLoop = 0;
+
+    const QAudioBuffer m_buffer;
+};
+
+} // namespace QSpatialAudioPrivate
+
 class QAmbientSoundPrivate : public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(QAmbientSound)
@@ -61,7 +89,20 @@ public:
     void setVolume(float volume);
     float volume() const { return m_volume; }
 
+    int loops() const { return m_loops; }
+    void setLoops(int);
+    bool autoPlay() const { return m_autoPlay; }
+    void setAutoPlay(bool);
+
     virtual void updateRoomEffects() { }
+
+    void play();
+    void pause();
+    void stop();
+
+    const int nchannels = 2;
+    QAudioEngine *const engine;
+    const int sourceId;
 
 protected:
     template <typename Functor>
@@ -81,34 +122,19 @@ protected:
 
     virtual void applyVolume();
 
-public:
-    const int nchannels = 2;
-    QAudioEngine *const engine;
-    const int sourceId;
-
-    std::atomic_bool m_autoPlay = true;
-    std::atomic_bool m_playing = false;
-    std::atomic_int m_loops = 1;
-
-    void play() { m_playing = true; }
-    void pause() { m_playing = false; }
-    void stop()
-    {
-        QMutexLocker locker(&mutex);
-        m_playing = false;
-        m_currentSample = 0;
-        m_currentLoop = 0;
-    }
-    void getBuffer(QSpan<float> output, int channels);
-
 private:
+    enum class State : uint8_t {
+        Stopped,
+        Playing,
+        Paused,
+    };
+    State m_state = State::Stopped;
+    bool m_autoPlay = true;
+
     float m_volume = 1.f;
+    int m_loops = 1;
 
     std::unique_ptr<QAudioDecoder> m_decoder;
-
-    QMutex mutex;
-    int m_currentSample = 0;
-    int m_currentLoop = 0;
 
     std::optional<QAudioBuffer> m_buffer;
     QFuture<void> m_loadFuture;
@@ -126,6 +152,13 @@ private:
             std::make_unique<TrivialSourceResolver>();
 
     vraudio::ResonanceAudioApi *getAPI();
+
+    // playback state
+    using QSpatialAudioPlaybackState = QSpatialAudioPrivate::QSpatialAudioPlaybackState;
+    using SharedPlaybackState = std::shared_ptr<QSpatialAudioPrivate::QSpatialAudioPlaybackState>;
+    SharedPlaybackState m_playbackState;
+
+    void setState(SharedPlaybackState);
 };
 
 QT_END_NAMESPACE

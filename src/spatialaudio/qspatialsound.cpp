@@ -580,17 +580,16 @@ QUrl QSpatialSound::source() const
 int QSpatialSound::loops() const
 {
     Q_D(const QSpatialSound);
-
-    return d->m_loops.load(std::memory_order_relaxed);
+    return d->loops();
 }
 
 void QSpatialSound::setLoops(int loops)
 {
     Q_D(QSpatialSound);
-
-    int oldLoops = d->m_loops.exchange(loops, std::memory_order_relaxed);
-    if (oldLoops != loops)
+    if (loops != d->loops()) {
+        d->setLoops(loops);
         emit loopsChanged();
+    }
 }
 
 /*!
@@ -604,16 +603,16 @@ void QSpatialSound::setLoops(int loops)
 bool QSpatialSound::autoPlay() const
 {
     Q_D(const QSpatialSound);
-
-    return d->m_autoPlay.load(std::memory_order_relaxed);
+    return d->autoPlay();
 }
 
 void QSpatialSound::setAutoPlay(bool autoPlay)
 {
     Q_D(QSpatialSound);
-    bool old = d->m_autoPlay.exchange(autoPlay, std::memory_order_relaxed);
-    if (old != autoPlay)
+    if (autoPlay != d->autoPlay()) {
+        d->setAutoPlay(autoPlay);
         emit autoPlayChanged();
+    }
 }
 
 /*!

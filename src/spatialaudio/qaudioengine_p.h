@@ -28,7 +28,10 @@ class ResonanceAudio;
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialSoundPrivate;
+namespace QSpatialAudioPrivate {
+class QSpatialAudioPlaybackState;
+} // namespace QSpatialAudioPrivate
+
 class QAmbientSoundPrivate;
 class QAudioRoom;
 class QAudioListener;
@@ -87,6 +90,8 @@ public:
 
     virtual void addSound(QAmbientSoundPrivate *) = 0;
     virtual void removeSound(QAmbientSoundPrivate *) = 0;
+    using SharedPlaybackState = std::shared_ptr<QSpatialAudioPrivate::QSpatialAudioPlaybackState>;
+    virtual void setSoundPlaybackData(QAmbientSoundPrivate *, SharedPlaybackState) = 0;
 
 protected:
     struct SmallestRoomForListenerResult

@@ -124,6 +124,8 @@ qint64 QAudioOutputStream::writeData(const char *, qint64)
     return 0;
 }
 
+static constexpr std::array<float, 2 * QAudioEngineThreaded::framesPerBuffer> nullBuffer{};
+
 qint64 QAudioOutputStream::readData(char *data, const qint64 len)
 {
     if (d->m_paused.loadRelaxed())
@@ -142,16 +144,27 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
     using QtMultimediaPrivate::take;
     using namespace QAudioHelperInternal;
 
+    const std::unique_ptr<vraudio::ResonanceAudioApi> &api = d->resonanceAudio->api;
+
     bool ok = true;
     while (outputBuffer.size() >= nChannels * framesPerBuffer) {
+
         // Fill input buffers
-        for (auto *source : d->sources) {
+        for (auto &&[source, playbackState] : d->playbackStates) {
             Q_ASSERT(source->nchannels <= 2);
-            std::array<float, 2 * framesPerBuffer> buf;
-            source->getBuffer(take(QSpan<float>{ buf }, source->nchannels * framesPerBuffer),
-                              source->nchannels);
-            d->resonanceAudio->api->SetInterleavedBuffer(source->sourceId, buf.data(),
-                                                         source->nchannels, framesPerBuffer);
+            if (playbackState) {
+                Q_ASSERT(playbackState->format().channelCount() <= 2);
+                std::array<float, 2 * framesPerBuffer> buf;
+
+                playbackState->getBuffer(
+                        take(QSpan<float>{ buf },
+                             playbackState->format().channelCount() * framesPerBuffer));
+                api->SetInterleavedBuffer(source->sourceId, buf.data(), source->nchannels,
+                                          framesPerBuffer);
+            } else {
+                api->SetInterleavedBuffer(source->sourceId, nullBuffer.data(), source->nchannels,
+                                          framesPerBuffer);
+            }
         }
 
         if (ambisonicDecoder && d->outputMode() == QAudioEngine::Surround) {
@@ -192,7 +205,7 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
                 // If we get here, it means that resonanceAudio did not actually fill the buffer.
                 // Sometimes this is expected, for example if resonanceAudio does not have any sources.
                 // In this case we just fill the buffer with silence.
-                if (d->sources.empty()) {
+                if (d->playbackStates.empty()) {
                     std::fill(currentOutput.begin(), currentOutput.end(), 0);
                 } else {
                     // If we get here, it means that something unexpected happened, so bail.
@@ -278,21 +291,28 @@ void QAudioEngineThreaded::setOutputDevice(const QAudioDevice &device)
 
 void QAudioEngineThreaded::addSound(QAmbientSoundPrivate *sound)
 {
-    QMutexLocker l(&mutex);
-    sources.push_back(sound);
+    std::lock_guard l(mutex);
+    playbackStates.emplace(sound, nullptr);
 }
 
 void QAudioEngineThreaded::removeSound(QAmbientSoundPrivate *sound)
 {
-    QMutexLocker l(&mutex);
-    q20::erase(sources, sound);
+    std::lock_guard l(mutex);
+    playbackStates.erase(sound);
+}
+
+void QAudioEngineThreaded::setSoundPlaybackData(QAmbientSoundPrivate *sound,
+                                                SharedPlaybackState state)
+{
+    std::lock_guard l(mutex);
+    playbackStates.insert_or_assign(sound, std::move(state));
 }
 
 void QAudioEngineThreaded::updateRoomEffects()
 {
-    QMutexLocker l(&mutex);
-    for (auto *s : sources)
-        s->updateRoomEffects();
+    std::lock_guard l(mutex);
+    for (auto [sound, key] : playbackStates)
+        sound->updateRoomEffects();
 }
 
 QT_END_NAMESPACE
