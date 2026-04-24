@@ -155,6 +155,8 @@ void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int nframes, int chann
 
 /*!
     Creates a stereo sound source for \a engine.
+
+    \note Must be called with a valid QAudioEngine
  */
 QAmbientSound::QAmbientSound(QAudioEngine *engine) : QObject(*new QAmbientSoundPrivate(engine))
 {

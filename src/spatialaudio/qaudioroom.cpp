@@ -126,6 +126,8 @@ void QAudioRoomPrivate::update()
 
 /*!
     Constructs a QAudioRoom for \a engine.
+
+    \note Must be called with a valid QAudioEngine
  */
 QAudioRoom::QAudioRoom(QAudioEngine *engine) : QObject(*new QAudioRoomPrivate)
 {

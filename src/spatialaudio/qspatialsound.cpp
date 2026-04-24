@@ -33,6 +33,8 @@ QT_BEGIN_NAMESPACE
 /*!
     Creates a spatial sound source for \a engine. The object can be placed in
     3D space and will be louder the closer to the listener it is.
+
+    \note Must be called with a valid QAudioEngine
  */
 QSpatialSound::QSpatialSound(QAudioEngine *engine) : QObject(*new QSpatialSoundPrivate(engine))
 {
