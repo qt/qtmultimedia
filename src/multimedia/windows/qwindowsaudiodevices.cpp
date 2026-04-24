@@ -180,9 +180,9 @@ private:
             if (it->second.state == newState)
                 return S_OK;
 
-            if (newState == DeviceState::active)
+            if (newState == DeviceState::active && it->second.state != DeviceState::active)
                 emit audioDeviceAdded(it->second.device);
-            else if (newState == DeviceState::active && it->second.state != DeviceState::active)
+            else if (newState != DeviceState::active && it->second.state == DeviceState::active)
                 emit audioDeviceRemoved(it->second.device);
 
             it->second.state = newState;
