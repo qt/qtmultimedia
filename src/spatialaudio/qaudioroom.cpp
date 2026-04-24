@@ -88,6 +88,8 @@ void QAudioRoomPrivate::requestUpdate()
 {
     dirty = true;
     auto ep = QAudioEnginePrivate::get(engine);
+    if (!ep)
+        return;
     ep->updateRooms();
 }
 
@@ -138,10 +140,16 @@ void QAudioRoomPrivate::update()
  */
 QAudioRoom::QAudioRoom(QAudioEngine *engine) : QObject(*new QAudioRoomPrivate)
 {
-    Q_ASSERT(engine);
+    if (!engine) {
+        qWarning() << "Cannot create QAudioRoom without a valid QAudioEngine";
+        return;
+    }
+
     Q_D(QAudioRoom);
     d->engine = engine;
     auto *ep = QAudioEnginePrivate::get(engine);
+    if (!ep)
+        return;
     ep->addRoom(this);
 }
 
@@ -213,6 +221,9 @@ void QAudioRoom::setPosition(QVector3D pos)
 {
     Q_D(QAudioRoom);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
+
     pos *= ep->distanceScale();
     if (toVector(d->roomProperties.position) == pos)
         return;
@@ -225,6 +236,9 @@ QVector3D QAudioRoom::position() const
 {
     Q_D(const QAudioRoom);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return {};
+
     auto pos = toVector(d->roomProperties.position);
     pos /= ep->distanceScale();
     return pos;
@@ -242,6 +256,9 @@ void QAudioRoom::setDimensions(QVector3D dim)
 {
     Q_D(QAudioRoom);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
+
     dim *= ep->distanceScale();
     if (toVector(d->roomProperties.dimensions) == dim)
         return;
@@ -253,8 +270,10 @@ void QAudioRoom::setDimensions(QVector3D dim)
 QVector3D QAudioRoom::dimensions() const
 {
     Q_D(const QAudioRoom);
-
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return {};
+
     auto dim = toVector(d->roomProperties.dimensions);
     dim /= ep->distanceScale();
     return dim;

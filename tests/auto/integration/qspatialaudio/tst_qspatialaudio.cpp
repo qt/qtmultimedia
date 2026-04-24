@@ -42,6 +42,7 @@ private slots:
     void testQAudioRoom_basic();
     void testQAudioListener_basic();
     void testSwitchAudioDevice();
+    void test_nullEngine_behaviour();
 
 private:
     std::unique_ptr<QSpatialSound> sound;
@@ -408,6 +409,76 @@ void tst_QSpatialAudio::testSwitchAudioDevice()
     QCOMPARE(engine->outputDevice(), originalDevice);
 
     engine->stop();
+}
+
+
+void tst_QSpatialAudio::test_nullEngine_behaviour()
+{
+    // Ensure constructing objects with a nullptr engine doesn't crash
+    QTest::ignoreMessage(QtWarningMsg, "Cannot create QSpatialSound without a valid QAudioEngine");
+    QSpatialSound nullSound(nullptr);
+
+    QVector3D pos(1, 2, 3);
+    nullSound.setPosition(pos);
+    QCOMPARE(nullSound.position(), QVector3D{});
+
+    nullSound.setSize(2.5f);
+    QCOMPARE(nullSound.size(), 0.f);
+
+    nullSound.setDistanceCutoff(3.5f);
+    QCOMPARE(nullSound.distanceCutoff(), 0.f);
+
+    nullSound.setRotation(QQuaternion(1, 0, 0, 0));
+    QVERIFY(!nullSound.rotation().isNull());
+
+    nullSound.setManualAttenuation(0.4f);
+    QCOMPARE(nullSound.manualAttenuation(), 0.f);
+
+    nullSound.setOcclusionIntensity(0.2f);
+    QCOMPARE(nullSound.occlusionIntensity(), 0.f);
+
+    nullSound.setDirectivity(0.1f);
+    QCOMPARE(nullSound.directivity(), 0.f);
+
+    nullSound.setNearFieldGain(0.5f);
+    QCOMPARE(nullSound.nearFieldGain(), 0.f);
+
+    // play/pause/stop should not crash
+    nullSound.play();
+    nullSound.pause();
+    nullSound.stop();
+
+    // AmbientSound with nullptr engine
+    QTest::ignoreMessage(QtWarningMsg, "Cannot create QAmbientSound without a valid QAudioEngine");
+    QAmbientSound nullAmbient(nullptr);
+    nullAmbient.setVolume(0.3f);
+    QCOMPARE(nullAmbient.volume(), 0.3f);
+    nullAmbient.play();
+    nullAmbient.pause();
+    nullAmbient.stop();
+
+    // QAudioListener with nullptr engine
+    QTest::ignoreMessage(QtWarningMsg, "Cannot create QAudioListener without a valid QAudioEngine");
+    QAudioListener nullListener(nullptr);
+    nullListener.setPosition({0,0,0});
+    QCOMPARE(nullListener.position(), QVector3D(0,0,0));
+    nullListener.setRotation(QQuaternion(1,0,0,0));
+    QCOMPARE(nullListener.engine(), nullptr);
+
+    // QAudioRoom with nullptr engine - mirror expectations for null-engine behaviour
+    QTest::ignoreMessage(QtWarningMsg, "Cannot create QAudioRoom without a valid QAudioEngine");
+    QAudioRoom nullRoom(nullptr);
+
+    nullRoom.setPosition(pos);
+    QCOMPARE(nullRoom.position(), QVector3D{});
+
+    nullRoom.setDimensions(QVector3D(10.0f, 11.0f, 12.0f));
+    QCOMPARE(nullRoom.dimensions(), QVector3D{});
+
+    nullRoom.setRotation(QQuaternion(1.0f, 0.0f, 0.0f, 0.0f));
+
+    nullRoom.setWallMaterial(QAudioRoom::LeftWall, QAudioRoom::BrickPainted);
+    QCOMPARE(nullRoom.wallMaterial(QAudioRoom::LeftWall), QAudioRoom::BrickPainted);
 }
 
 QTEST_MAIN(tst_QSpatialAudio)

@@ -4,7 +4,6 @@
 #include "qspatialsound_p.h"
 #include "qaudiolistener.h"
 #include "qaudioengine_p.h"
-#include "resonance_audio.h"
 #include <qaudiosink.h>
 #include <qurl.h>
 #include <qdebug.h>
@@ -37,6 +36,8 @@ QT_BEGIN_NAMESPACE
  */
 QSpatialSound::QSpatialSound(QAudioEngine *engine) : QObject(*new QSpatialSoundPrivate(engine))
 {
+    if (!engine)
+        qWarning() << "Cannot create QSpatialSound without a valid QAudioEngine";
 }
 
 /*!
@@ -73,6 +74,9 @@ QVector3D QSpatialSound::position() const
 {
     Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return {};
+
     return d->pos / ep->distanceScale();
 }
 
@@ -84,13 +88,15 @@ QVector3D QSpatialSound::position() const
 void QSpatialSound::setRotation(const QQuaternion &q)
 {
     Q_D(QSpatialSound);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
+
     if (d->rotation == q)
         return;
 
     d->rotation = q;
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->resonanceAudio->api->SetSourceRotation(d->sourceId, q.x(), q.y(), q.z(), q.scalar());
+    ep->resonanceAudio->api->SetSourceRotation(d->sourceId, q.x(), q.y(), q.z(), q.scalar());
     emit rotationChanged();
 }
 
@@ -199,6 +205,7 @@ void QSpatialSoundPrivate::updateDistanceModel()
     if (!engine || sourceId < 0)
         return;
     auto *ep = QAudioEnginePrivate::get(engine);
+    Q_ASSERT(ep);
 
     vraudio::DistanceRolloffModel dm = vraudio::kLogarithmic;
     switch (distanceModel) {
@@ -220,6 +227,8 @@ void QSpatialSoundPrivate::updateRoomEffects()
     if (!engine || sourceId < 0)
         return;
     auto *ep = QAudioEnginePrivate::get(engine);
+    Q_ASSERT(ep);
+
     if (!ep->currentRoom())
         return;
     auto *rp = QAudioRoomPrivate::get(ep->currentRoom());
@@ -342,6 +351,9 @@ void QSpatialSound::setSize(float size)
 {
     Q_D(QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
+
     size *= ep->distanceScale();
     if (d->size == size)
         return;
@@ -355,6 +367,9 @@ float QSpatialSound::size() const
 {
     Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return {};
+
     return d->size / ep->distanceScale();
 }
 
@@ -369,6 +384,9 @@ void QSpatialSound::setDistanceCutoff(float cutoff)
 {
     Q_D(QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
+
     cutoff *= ep->distanceScale();
     if (d->distanceCutoff == cutoff)
         return;
@@ -382,6 +400,9 @@ float QSpatialSound::distanceCutoff() const
 {
     Q_D(const QSpatialSound);
     auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return {};
+
     return d->distanceCutoff / ep->distanceScale();
 }
 
@@ -394,12 +415,14 @@ float QSpatialSound::distanceCutoff() const
 void QSpatialSound::setManualAttenuation(float attenuation)
 {
     Q_D(QSpatialSound);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
+
     if (d->manualAttenuation == attenuation)
         return;
     d->manualAttenuation = attenuation;
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->resonanceAudio->api->SetSourceDistanceAttenuation(d->sourceId, d->manualAttenuation);
+    ep->resonanceAudio->api->SetSourceDistanceAttenuation(d->sourceId, d->manualAttenuation);
     emit manualAttenuationChanged();
 }
 
@@ -428,13 +451,14 @@ float QSpatialSound::manualAttenuation() const
 void QSpatialSound::setOcclusionIntensity(float occlusion)
 {
     Q_D(QSpatialSound);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
 
     if (d->occlusionIntensity == occlusion)
         return;
     d->occlusionIntensity = occlusion;
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->resonanceAudio->api->SetSoundObjectOcclusionIntensity(d->sourceId, d->occlusionIntensity + d->wallOcclusion);
+    ep->resonanceAudio->api->SetSoundObjectOcclusionIntensity(d->sourceId, d->occlusionIntensity + d->wallOcclusion);
     emit occlusionIntensityChanged();
 }
 
@@ -457,15 +481,16 @@ float QSpatialSound::occlusionIntensity() const
 void QSpatialSound::setDirectivity(float alpha)
 {
     Q_D(QSpatialSound);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
 
     alpha = qBound(0., alpha, 1.);
     if (alpha == d->directivity)
         return;
     d->directivity = alpha;
 
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
+    ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
 
     emit directivityChanged();
 }
@@ -487,15 +512,16 @@ float QSpatialSound::directivity() const
 void QSpatialSound::setDirectivityOrder(float order)
 {
     Q_D(QSpatialSound);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
 
     order = qMax(order, 1.);
     if (order == d->directivityOrder)
         return;
     d->directivityOrder = order;
 
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
+    ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
 
     emit directivityOrderChanged();
 }
@@ -517,15 +543,16 @@ float QSpatialSound::directivityOrder() const
 void QSpatialSound::setNearFieldGain(float gain)
 {
     Q_D(QSpatialSound);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
+    if (!ep)
+        return;
 
     gain = qBound(0., gain, 1.);
     if (gain == d->nearFieldGain)
         return;
     d->nearFieldGain = gain;
 
-    auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep)
-        ep->resonanceAudio->api->SetSoundObjectNearFieldEffectGain(d->sourceId, d->nearFieldGain*9.f);
+    ep->resonanceAudio->api->SetSoundObjectNearFieldEffectGain(d->sourceId, d->nearFieldGain*9.f);
 
     emit nearFieldGainChanged();
 

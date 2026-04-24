@@ -150,8 +150,9 @@ QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine, int nchannels, 
     : nchannels(nchannels), engine(engine), sourceId(sourceId)
 {
     auto *ep = QAudioEnginePrivate::get(engine);
-    if (ep)
-        ep->addSound(this);
+    if (!ep)
+        return;
+    ep->addSound(this);
 }
 
 QAmbientSoundPrivate::~QAmbientSoundPrivate()
@@ -253,13 +254,16 @@ void QAmbientSoundPrivate::loadUrl(const QUrl &url)
 {
     m_url = url;
 
+    auto *ep = QAudioEnginePrivate::get(engine);
+    if (!ep)
+        return;
+
     Q_Q(QAmbientSound);
 
     m_loadFuture.cancel();
 
     setState(nullptr);
 
-    auto *ep = QAudioEnginePrivate::get(engine);
     QAudioFormat f;
     f.setSampleFormat(QAudioFormat::Float);
     f.setSampleRate(ep->sampleRate());
@@ -381,6 +385,8 @@ void QAmbientSoundPrivate::setState(SharedPlaybackState state)
  */
 QAmbientSound::QAmbientSound(QAudioEngine *engine) : QObject(*new QAmbientSoundPrivate(engine))
 {
+    if (!engine)
+        qWarning() << "Cannot create QAmbientSound without a valid QAudioEngine";
 }
 
 QAmbientSound::~QAmbientSound() = default;

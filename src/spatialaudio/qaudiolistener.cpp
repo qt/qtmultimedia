@@ -39,17 +39,19 @@ public:
 QAudioListener::QAudioListener(QAudioEngine *engine) : QObject(*new QAudioListenerPrivate)
 {
     Q_D(QAudioListener);
+    if (!engine) {
+        qWarning() << "Cannot create QAudioListener without a valid QAudioEngine";
+        return;
+    }
 
     d->engine = engine;
-    if (d->engine) {
-        auto *ed = QAudioEnginePrivate::get(d->engine);
-        bool hasListener = ed->listenerPosition().has_value();
-        if (hasListener) {
-            qWarning() << "Ignoring attempt to add a second listener to the spatial audio engine.";
-            d->engine = nullptr;
-        } else {
-            ed->setListenerPosition(d->pos);
-        }
+    auto *ed = QAudioEnginePrivate::get(d->engine);
+    bool hasListener = ed->listenerPosition().has_value();
+    if (hasListener) {
+        qWarning() << "Ignoring attempt to add a second listener to the spatial audio engine.";
+        d->engine = nullptr;
+    } else {
+        ed->setListenerPosition(d->pos);
     }
 }
 
@@ -59,12 +61,11 @@ QAudioListener::QAudioListener(QAudioEngine *engine) : QObject(*new QAudioListen
 QAudioListener::~QAudioListener()
 {
     Q_D(QAudioListener);
+    if (!d->engine)
+        return;
 
-    if (d->engine) {
-        auto *ed = QAudioEnginePrivate::get(d->engine);
-        ed->setListenerPosition(std::nullopt);
-    }
-    d->engine = nullptr;
+    auto *ed = QAudioEnginePrivate::get(d->engine);
+    ed->setListenerPosition(std::nullopt);
 }
 
 /*!
@@ -76,12 +77,11 @@ QAudioListener::~QAudioListener()
 void QAudioListener::setPosition(QVector3D pos)
 {
     Q_D(QAudioListener);
-
     d->pos = pos;
+
     auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (!ep)
-        return;
-    ep->setListenerPosition(pos);
+    if (ep)
+        ep->setListenerPosition(pos);
 }
 
 /*!
