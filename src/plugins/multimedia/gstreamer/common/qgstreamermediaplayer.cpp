@@ -379,6 +379,11 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
     // QTBUG-131300: nxp deliberately reverted to an old gst-play API before the gst-play API
     // stabilized. compare:
     // https://github.com/nxp-imx/gst-plugins-bad/commit/ff04fa9ca1b79c98e836d8cdb26ac3502dafba41
+
+    // Update: Looks like first unaffected Yocto release series is 5.3 Whinlatter, so this hack can
+    // likely be removed when we drop Boot to Qt support for the LTS 5.0 Scarthgap (EOL April 2028).
+    // Link to first unaffected nxp gstreamer branch:
+    // https://github.com/nxp-imx/gst-plugins-bad/blame/MM_04.10.0_2505_L6.12.20/gst-libs/gst/play/gstplay.c#L4690C9-L4690C9
     constexpr bool useNxpWorkaround = std::is_same_v<decltype(&gst_play_config_set_seek_accurate),
                                                      void (*)(GstPlay *, gboolean)>;
 
