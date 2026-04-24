@@ -5,15 +5,13 @@
 
 #include <jni.h>
 
-#include <memory>
+#include <limits>
 #include <optional>
-#include <utility>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qpermissions.h>
-#include <QtCore/qreadwritelock.h>
 #include <QtCore/private/qandroidextras_p.h>
 
 #include <QtGui/qguiapplication.h>
@@ -22,13 +20,8 @@
 #include <QtFFmpegMediaPluginImpl/private/qandroidvideoframefactory_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
 
-#include <QtMultimedia/qmediaformat.h>
-#include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
-#include <QtMultimedia/private/qvideoframe_p.h>
-#include <QtMultimedia/private/qvideoframeconverter_p.h>
-#include <QtMultimedia/private/qvideotexturehelper_p.h>
 
 extern "C" {
 #include "libavutil/hwcontext.h"
@@ -36,12 +29,6 @@ extern "C" {
 
 QT_BEGIN_NAMESPACE
 Q_STATIC_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera");
-
-// TODO: Should be reworked to just pass a pointer of the QAndroidCamera object into the QtCamera2
-// Java instance.
-typedef QMap<QString, QFFmpeg::QAndroidCamera *> QAndroidCameraMap;
-Q_GLOBAL_STATIC(QAndroidCameraMap, g_qcameras)
-Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
 
 namespace {
 
@@ -165,7 +152,9 @@ namespace QFFmpeg {
 
 QAndroidCamera::QAndroidCamera(QCamera *camera)
     : QPlatformCamera(camera)
-    , m_jniCamera(QNativeInterface::QAndroidApplication::context())
+    , m_jniCamera(
+        static_cast<jlong>(reinterpret_cast<uintptr_t>(this)),
+        QNativeInterface::QAndroidApplication::context())
 {
 
     m_hwAccel = QFFmpeg::HWAccel::create(AVHWDeviceType::AV_HWDEVICE_TYPE_MEDIACODEC);
@@ -184,17 +173,10 @@ QAndroidCamera::QAndroidCamera(QCamera *camera)
 
 QAndroidCamera::~QAndroidCamera()
 {
-    // stopAndClose() waits for onClosed(), possibly queued behind other calls
-    // which need rwLock
-    m_jniCamera.callMethod<void>("stopAndClose");
+    // Flush queued events / frames and clear the reference back to this
+    // this instance. Blocking call.
+    m_jniCamera.callMethod<void>("destroy");
     setState(State::Closed);
-
-    {
-        QWriteLocker locker(rwLock);
-        g_qcameras->remove(QString::fromUtf8(m_cameraDevice.id()));
-    }
-
-    m_jniCamera.callMethod<void>("stopBackgroundThread");
 }
 
 void QAndroidCamera::setCamera(const QCameraDevice &camera)
@@ -327,7 +309,6 @@ void QAndroidCamera::setActive(bool active)
         return;
     }
 
-    QWriteLocker locker(rwLock);
     QString cameraId = QString::fromUtf8(m_cameraDevice.id());
     int width = m_cameraFormat.resolution().width();
     int height = m_cameraFormat.resolution().height();
@@ -342,7 +323,6 @@ void QAndroidCamera::setActive(bool active)
     m_stillReaderSize = stillResolution();
 
     setState(State::WaitingOpen);
-    g_qcameras->insert(cameraId, this);
 
     // Create frameFactory when ImageReader is created;
     m_frameFactory = QAndroidVideoFrameFactory::create();
@@ -361,7 +341,6 @@ void QAndroidCamera::setActive(bool active)
     bool canOpen = m_jniCamera.callMethod<jboolean>("open", cameraId);
 
     if (!canOpen) {
-        g_qcameras->remove(cameraId);
         setState(State::Closed);
         updateError(QCamera::CameraError,
                     QString(u"Failed to start camera: ").append(m_cameraDevice.description()));
@@ -847,138 +826,103 @@ void QAndroidCamera::onStillPhotoCaptureFailed()
 
 // JNI logic
 // The following static functions can only be called by the Java-side processing background
-// thread.
+// thread. They all assume that we are currently holding the mutex protecting the
+// QAndroidCamera reference on the Java-side.
 
-#define GET_CAMERA(cameraId)                                                          \
-  QString key = QJniObject(cameraId).toString();                                      \
-  QReadLocker locker(rwLock);                                                         \
-  if (!g_qcameras->contains(key)) {                                                   \
-    qCWarning(qLCAndroidCamera) << "Calling back a QtCamera2 after being destroyed."; \
-    return;                                                                           \
-  }                                                                                   \
-  QFFmpeg::QAndroidCamera *camera = g_qcameras->find(key).value();
+namespace {
 
-static void onPreviewFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
-                             QtJniTypes::Image image)
+[[nodiscard]] QFFmpeg::QAndroidCamera& jLongToQAndroidCamera(jlong input)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
+    Q_ASSERT(input != 0);
+    return *reinterpret_cast<QFFmpeg::QAndroidCamera *>(static_cast<uintptr_t>(input));
+}
 
-    camera->frameAvailable(QJniObject(image));
+} // Anonymous namespace
+
+static void onPreviewFrameAvailable(JNIEnv *, jobject, jlong qAndroidCameraPtr,
+                                    QtJniTypes::Image image)
+{
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.frameAvailable(QJniObject(image));
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onPreviewFrameAvailable)
 
-static void onStillPhotoAvailable(JNIEnv *env, jobject obj, jstring cameraId,
-                             QtJniTypes::Image image)
+static void onStillPhotoAvailable(JNIEnv *, jobject, jlong qAndroidCameraPtr,
+                                  QtJniTypes::Image image)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->frameAvailable(QJniObject(image), true);
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.frameAvailable(QJniObject(image), true);
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onStillPhotoAvailable)
 
-
-static void onCameraOpened(JNIEnv *env, jobject obj, jstring cameraId)
+static void onCameraOpened(JNIEnv *, jobject, jlong qAndroidCameraPtr)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->onCameraOpened();
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.onCameraOpened();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCameraOpened)
 
-static void onCameraDisconnect(JNIEnv *env, jobject obj, jstring cameraId)
+static void onCameraDisconnect(JNIEnv *, jobject, jlong qAndroidCameraPtr)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->onCameraDisconnect();
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.onCameraDisconnect();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCameraDisconnect)
 
-static void onCameraError(JNIEnv *env, jobject obj, jstring cameraId, jint error)
+static void onCameraError(JNIEnv *, jobject, jlong qAndroidCameraPtr, jint error)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->onCameraError(error);
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.onCameraError(error);
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCameraError)
 
-static void onCaptureSessionConfigured(JNIEnv *env, jobject obj, jstring cameraId)
+static void onCaptureSessionConfigured(JNIEnv *, jobject, jlong qAndroidCameraPtr)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->onCaptureSessionConfigured();
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.onCaptureSessionConfigured();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCaptureSessionConfigured)
 
-static void onCaptureSessionConfigureFailed(JNIEnv *env, jobject obj, jstring cameraId)
+static void onCaptureSessionConfigureFailed(JNIEnv *, jobject, jlong qAndroidCameraPtr)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->onCaptureSessionConfigureFailed();
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.onCaptureSessionConfigureFailed();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed)
 
-static void onStillReaderSwapFailed(JNIEnv *env, jobject obj, jstring cameraId)
+static void onStillReaderSwapFailed(JNIEnv *, jobject, jlong qAndroidCameraPtr)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->onStillReaderSwapFailed();
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.onStillReaderSwapFailed();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onStillReaderSwapFailed)
 
-static void onSessionActive(JNIEnv *env, jobject obj, jstring cameraId)
+static void onSessionActive(JNIEnv *, jobject, jlong qAndroidCameraPtr)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->onSessionActive();
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.onSessionActive();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onSessionActive)
 
-static void onSessionClosed(JNIEnv *env, jobject obj, jstring cameraId)
+static void onSessionClosed(JNIEnv *, jobject, jlong qAndroidCameraPtr)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->onSessionClosed();
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.onSessionClosed();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onSessionClosed)
 
-static void onCaptureSessionFailed(JNIEnv *env, jobject obj, jstring cameraId, jint reason,
+static void onCaptureSessionFailed(JNIEnv *, jobject, jlong qAndroidCameraPtr, jint reason,
                                    jlong framenumber)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->onCaptureSessionFailed(reason, framenumber);
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.onCaptureSessionFailed(reason, framenumber);
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCaptureSessionFailed)
 
-static void onStillPhotoCaptureFailed(JNIEnv *env, jobject obj, jstring cameraId)
+static void onStillPhotoCaptureFailed(JNIEnv *, jobject, jlong qAndroidCameraPtr)
 {
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->onStillPhotoCaptureFailed();
+    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
+    camera.onStillPhotoCaptureFailed();
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onStillPhotoCaptureFailed)
 

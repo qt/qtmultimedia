@@ -33,7 +33,7 @@ class CameraStillPhotoFinalizerCallback extends CameraCaptureSession.CaptureCall
         CaptureRequest request,
         CaptureFailure failure)
     {
-        mMainCameraObject.onStillPhotoCaptureFailed(mMainCameraObject.mCameraId);
+        mMainCameraObject.onStillPhotoCaptureFailed(mMainCameraObject.getQAndroidCameraPtr());
         synchronized (mMainCameraObject.mSyncedMembers) {
             mMainCameraObject.mSyncedMembers.endStillPhoto();
         }

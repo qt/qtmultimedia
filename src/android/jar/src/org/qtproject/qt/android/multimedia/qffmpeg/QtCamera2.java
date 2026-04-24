@@ -41,8 +41,12 @@ class QtCamera2 {
     // be no photo emitted.
     // TODO: In the future we should send a more descriptive error message to QImageCapture, and
     // and pass it as a parameter here.
-    native void onStillPhotoCaptureFailed(String cameraId);
+    native void onStillPhotoCaptureFailed(long qAndroidCameraPtr);
 
+    // The pointer to the associated QAndroidCamera object. If this is
+    // null, it implies we are shutting down.
+    // Don't use directly.
+    private long mQAndroidCameraPtr = 0;
     CameraDevice mCameraDevice = null;
     // Counted down by CameraDeviceStateCallback.onClosed(), awaited in stopAndClose()
     volatile CountDownLatch mDeviceClosedLatch = null;
@@ -107,6 +111,14 @@ class QtCamera2 {
         }
     }
 
+    long getQAndroidCameraPtr() {
+        // We always assume the QAndroidCamera instance is assigned when constructing
+        // this class, and we assume that we never invoke any QAndroidCamera methods
+        // after it has been destroyed.
+        assert(mQAndroidCameraPtr != 0);
+        return mQAndroidCameraPtr;
+    }
+
     // Returns a deep copy of the CameraSettings instance. Thread-safe.
     private CameraSettings atomicCameraSettingsCopy() {
         synchronized (mSyncedMembers) {
@@ -116,23 +128,24 @@ class QtCamera2 {
 
     QtExifDataHandler mExifDataHandler = null;
 
-    native void onCameraOpened(String cameraId);
-    native void onCameraDisconnect(String cameraId);
-    native void onCameraError(String cameraId, int error);
+    native void onCameraOpened(long qAndroidCameraPtr);
+    native void onCameraDisconnect(long qAndroidCameraPtr);
+    native void onCameraError(long qAndroidCameraPtr, int error);
 
     CameraDeviceStateCallback mStateCallback = new CameraDeviceStateCallback(this);
 
-    native void onCaptureSessionConfigured(String cameraId);
-    native void onCaptureSessionConfigureFailed(String cameraId);
-    native void onStillReaderSwapFailed(String cameraId);
+    native void onCaptureSessionConfigured(long qAndroidCameraPtr);
+    native void onCaptureSessionConfigureFailed(long qAndroidCameraPtr);
+    native void onStillReaderSwapFailed(long qAndroidCameraPtr);
 
 
-    native void onSessionActive(String cameraId);
-    native void onSessionClosed(String cameraId);
-    native void onCaptureSessionFailed(String cameraId, int reason, long frameNumber);
+    native void onSessionActive(long qAndroidCameraPtr);
+    native void onSessionClosed(long qAndroidCameraPtr);
+    native void onCaptureSessionFailed(long qAndroidCameraPtr, int reason, long frameNumber);
 
     // This callback is used when doing normal preview. The only purpose is to detect if something
     // goes wrong, so we can report back to QCamera.
+    // The events in this class are invoked from the background processing thread.
     class PreviewCaptureSessionCallback extends CameraCaptureSession.CaptureCallback {
         @Override
         public void onCaptureFailed(
@@ -141,7 +154,10 @@ class QtCamera2 {
             CaptureFailure failure)
         {
             super.onCaptureFailed(session, request, failure);
-            onCaptureSessionFailed(mCameraId, failure.getReason(), failure.getFrameNumber());
+            onCaptureSessionFailed(
+                getQAndroidCameraPtr(),
+                failure.getReason(),
+                failure.getFrameNumber());
         }
     }
 
@@ -150,7 +166,11 @@ class QtCamera2 {
     // every time we go into previewing.
     PreviewCaptureSessionCallback mPreviewCaptureCallback = new PreviewCaptureSessionCallback();
 
-    QtCamera2(Context context) {
+    QtCamera2(long qAndroidCameraPtr, Context context) {
+        assert(qAndroidCameraPtr != 0);
+        assert(context != null);
+
+        mQAndroidCameraPtr = qAndroidCameraPtr;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         mVideoDeviceManager = new QtVideoDeviceManager(context);
         startBackgroundThread();
@@ -187,33 +207,38 @@ class QtCamera2 {
         return false;
     }
 
-    native void onStillPhotoAvailable(String cameraId, Image frame);
+    native void onStillPhotoAvailable(long qAndroidCameraPtr, Image frame);
 
     // Callback for when we receive a finalized still photo in mStillPhotoImageReader.
     ImageReader.OnImageAvailableListener mOnStillPhotoAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            QtCamera2.this.onStillPhotoAvailable(mCameraId, reader.acquireLatestImage());
+            QtCamera2.this.onStillPhotoAvailable(getQAndroidCameraPtr(), reader.acquireLatestImage());
         }
     };
 
-    native void onPreviewFrameAvailable(String cameraId, Image frame);
+    native void onPreviewFrameAvailable(long qAndroidCameraPtr, Image frame);
 
     // Callback for when we receive a preview/video frame in the associated mPreviewImageReader.
+    // Events for this object are invokved on the background processing thread.
     ImageReader.OnImageAvailableListener mOnPreviewImageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
             try {
                 Image img = reader.acquireLatestImage();
                 if (img != null)
-                    QtCamera2.this.onPreviewFrameAvailable(mCameraId, img);
+                    QtCamera2.this.onPreviewFrameAvailable(getQAndroidCameraPtr(), img);
+
             } catch (IllegalStateException e) {
                 // It seems that ffmpeg is processing images for too long (and does not close it)
                 // Give it a little more time. Restarting the camera session if it doesn't help
                 Log.e(LOG_TAG, "Image processing taking too long. Let's wait 0,5s more " + e);
                 try {
                     Thread.sleep(500);
-                    QtCamera2.this.onPreviewFrameAvailable(mCameraId, reader.acquireLatestImage());
+                    QtCamera2.this.onPreviewFrameAvailable(
+                        getQAndroidCameraPtr(),
+                        reader.acquireLatestImage());
+
                 } catch (IllegalStateException | InterruptedException e2) {
                     Log.e(LOG_TAG, "Will not wait anymore. Restart camera session. " + e2);
                     // Remember current used camera ID, because stopAndClose will clear the value
@@ -300,9 +325,9 @@ class QtCamera2 {
             isStillReaderSwap = mSyncedMembers.mState == SyncedMembers.State.Reconfiguring;
         }
         if (isStillReaderSwap)
-            onStillReaderSwapFailed(mCameraId);
+            onStillReaderSwapFailed(getQAndroidCameraPtr());
         else
-            onCaptureSessionConfigureFailed(mCameraId);
+            onCaptureSessionConfigureFailed(getQAndroidCameraPtr());
         onSessionReconfigured(false);
     }
 
@@ -320,7 +345,7 @@ class QtCamera2 {
         if (success)
             beginStillPhotoCapture();
         else
-            onStillPhotoCaptureFailed(mCameraId);
+            onStillPhotoCaptureFailed(getQAndroidCameraPtr());
     }
 
     private void setFrameRate(int minFrameRate, int maxFrameRate) {
@@ -398,12 +423,12 @@ class QtCamera2 {
         CountDownLatch closedLatch = null;
 
         // Report in-flight still capture as failed
-        String abortedStillPhotoCameraId = null;
+        boolean abortedStillPhoto = false;
 
         synchronized (mSyncedMembers) {
             try {
                 if (mSyncedMembers.isTakingStillPhoto() || mSyncedMembers.mStillCaptureDeferred)
-                    abortedStillPhotoCameraId = mCameraId;
+                    abortedStillPhoto = true;
                 if (null != mCaptureSession) {
                     mCaptureSession.close();
                     mCaptureSession = null;
@@ -423,8 +448,8 @@ class QtCamera2 {
             mSyncedMembers.mStillCaptureDeferred = false;
         }
 
-        if (abortedStillPhotoCameraId != null)
-            onStillPhotoCaptureFailed(abortedStillPhotoCameraId);
+        if (abortedStillPhoto)
+            onStillPhotoCaptureFailed(getQAndroidCameraPtr());
 
         // Wait for onClosed() so background thread can be stopped
         if (closedLatch != null) {
@@ -436,6 +461,21 @@ class QtCamera2 {
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    // Called by QAndroidCamera destructor. We should shut down everything and clean
+    // up resources. Any pending jobs on the background threads are flushed.
+    @UsedFromNativeCode
+    void destroy() {
+        assert(mBackgroundThread != null);
+        assert(Thread.currentThread() != mBackgroundThread);
+
+        // stopAndClose() waits for CameraDevice.onClosed(), which is delivered on the
+        // background thread, so the background thread must be stopped afterwards.
+        stopAndClose();
+        // Blocks this thread until all events are flushed.
+        stopBackgroundThread();
+        mQAndroidCameraPtr = 0;
     }
 
     // Can by StillPhotoPrecaptureCallback on background thread in order to finalize a still photo
@@ -504,7 +544,7 @@ class QtCamera2 {
         }
 
         if (abortCapture) {
-            onStillPhotoCaptureFailed(mCameraId);
+            onStillPhotoCaptureFailed(getQAndroidCameraPtr());
             return;
         }
 
@@ -517,7 +557,7 @@ class QtCamera2 {
             synchronized (mSyncedMembers) {
                 mSyncedMembers.endStillPhoto();
             }
-            onStillPhotoCaptureFailed(mCameraId);
+            onStillPhotoCaptureFailed(getQAndroidCameraPtr());
             // TODO: Try to go back to previewing if applicable. If that fails too, shut down
             // camera session and report QCamera as inactive.
         }
