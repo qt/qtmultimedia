@@ -236,11 +236,11 @@ QSoundEffectPrivateWithPlayer::QSoundEffectPrivateWithPlayer(QSoundEffect *q,
     resolveAudioDevice();
 
     QObject::connect(&m_mediaDevices, &QMediaDevices::audioOutputsChanged, this, [this] {
-        QAudioDevice defaultAudioDevice = QMediaDevices::defaultAudioOutput();
+        const QAudioDevice defaultAudioDevice = QMediaDevices::defaultAudioOutput();
         if (defaultAudioDevice == m_defaultAudioDevice)
             return;
 
-        m_defaultAudioDevice = QMediaDevices::defaultAudioOutput();
+        m_defaultAudioDevice = defaultAudioDevice;
         if (m_audioDevice.isNull())
             setResolvedAudioDevice(m_defaultAudioDevice);
     });
