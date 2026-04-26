@@ -61,8 +61,9 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     AVFScopedPointer<AVAssetWriterInput> m_cameraWriterInput;
     AVFScopedPointer<AVAssetWriterInput> m_audioWriterInput;
 
-    // Expected audio format description for validating incoming buffers:
-    QCFType<CMFormatDescriptionRef> m_audioFormatDescription;
+    // Pending audio buffer waiting for format stabilization:
+    QCFType<CMSampleBufferRef> m_pendingAudioBuffer;
+    bool m_audioFormatStabilized;
 
     // Queue to write sample buffers:
     AVFScopedPointer<dispatch_queue_t> m_writerQueue;
@@ -190,6 +191,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     [self setQueues];
 
     m_setStartTime = true;
+    m_audioFormatStabilized = false;
+    m_pendingAudioBuffer = nullptr;
 
     m_state.storeRelease(WriterStateActive);
 
@@ -348,32 +351,41 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
             [self setStartTimeFrom:sampleBuffer];
 
         // On macOS, AVCaptureSession may deliver the first audio buffer(s) in a
-        // different format (e.g. 24-bit) than subsequent ones (e.g. 32-bit) when
-        // using external microphones. Appending a buffer with a mismatched format
-        // causes AudioConverter errors (-12737) or noise in the output file.
-        // Drop buffers whose format doesn't match the expected one.
+        // transient format that differs from the stable format the device settles
+        // on shortly after. Appending a transient-format buffer configures
+        // AVAssetWriterInput's internal AudioConverter for the wrong format,
+        // causing error -12737 or audible noise once subsequent buffers arrive in
+        // the real (stable) format. This has been observed with built-in, USB,
+        // and Bluetooth microphones.
+        // To avoid this, we wait for format stabilization: the first buffer whose
+        // CMFormatDescription matches the previous one is considered stable.
+        // At that point we append both the held buffer and the current one.
         // See: QTBUG-127444, FB16500782.
-        if (m_audioFormatDescription) {
-            CMFormatDescriptionRef bufferFormat = CMSampleBufferGetFormatDescription(sampleBuffer);
-            if (bufferFormat && !CMFormatDescriptionEqual(bufferFormat, m_audioFormatDescription)) {
-                // Check if the ASBD (sample rate, channels, bit depth) differs.
-                const AudioStreamBasicDescription *expected =
-                        CMAudioFormatDescriptionGetStreamBasicDescription(m_audioFormatDescription);
-                const AudioStreamBasicDescription *actual =
-                        CMAudioFormatDescriptionGetStreamBasicDescription(bufferFormat);
-                if (expected && actual
-                    && (expected->mBitsPerChannel != actual->mBitsPerChannel
-                        || expected->mBytesPerPacket != actual->mBytesPerPacket
-                        || expected->mFormatFlags != actual->mFormatFlags)) {
-                    qCDebug(qLcCamera) << "Discarding audio buffer with mismatched format:"
-                                       << actual->mBitsPerChannel << "bit, expected"
-                                       << expected->mBitsPerChannel << "bit";
-                    // Update expected format to the new (stable) format so that
-                    // subsequent buffers in this format are accepted.
-                    m_audioFormatDescription =
-                            QCFType<CMFormatDescriptionRef>::constructFromGet(bufferFormat);
-                    return;
+        if (!m_audioFormatStabilized) {
+            if (!m_pendingAudioBuffer) {
+                m_pendingAudioBuffer = QCFType<CMSampleBufferRef>::constructFromGet(sampleBuffer);
+                return;
+            }
+
+            CMFormatDescriptionRef pendingFormat =
+                    CMSampleBufferGetFormatDescription(m_pendingAudioBuffer);
+            CMFormatDescriptionRef currentFormat = CMSampleBufferGetFormatDescription(sampleBuffer);
+
+            if (pendingFormat && currentFormat
+                && CMFormatDescriptionEqual(pendingFormat, currentFormat)) {
+                m_audioFormatStabilized = true;
+                // Append the held buffer first, then fall through to append
+                // the current one.
+                if (m_audioWriterInput.data().readyForMoreMediaData) {
+                    [self updateDuration:CMSampleBufferGetPresentationTimeStamp(
+                                                 m_pendingAudioBuffer)];
+                    [m_audioWriterInput appendSampleBuffer:m_pendingAudioBuffer];
                 }
+                m_pendingAudioBuffer = nullptr;
+            } else {
+                qCDebug(qLcCamera) << "Audio format changed, discarding pending buffer";
+                m_pendingAudioBuffer = QCFType<CMSampleBufferRef>::constructFromGet(sampleBuffer);
+                return;
             }
         }
 
@@ -530,23 +542,11 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     }
 
     m_audioWriterInput.reset();
-    m_audioFormatDescription = nullptr;
     if (m_audioQueue) {
-        // Get the audio format description from the capture device to use as
-        // sourceFormatHint. This prevents AVAssetWriter from misconfiguring its
-        // AudioConverter when the first CMSampleBuffer arrives in a different
-        // format than subsequent buffers (observed with external/USB/Bluetooth
-        // microphones on Intel Macs). See also: QTBUG-127444, FB16500782.
-        CMFormatDescriptionRef audioHint = nil;
-        AVCaptureDevice *audioDevice = session->audioCaptureDevice();
-        if (audioDevice)
-            audioHint = audioDevice.activeFormat.formatDescription;
-
         @try {
-            m_audioWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio
-                                                                    outputSettings:m_audioSettings
-                                                                  sourceFormatHint:audioHint]);
-            m_audioFormatDescription = QCFType<CMFormatDescriptionRef>::constructFromGet(audioHint);
+            m_audioWriterInput.reset([[AVAssetWriterInput alloc]
+                    initWithMediaType:AVMediaTypeAudio
+                       outputSettings:m_audioSettings]);
         } @catch (NSException *exception) {
             qCWarning(qLcCamera) << Q_FUNC_INFO << "Failed to create audio writer input:"
                                  << QString::fromNSString(exception.reason);
