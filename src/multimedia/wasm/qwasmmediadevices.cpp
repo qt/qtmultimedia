@@ -236,7 +236,7 @@ void QWasmMediaDevices::getMediaDevices()
         return;
     }
 
-        if (qstdweb::haveAsyncify()) {
+    if (qstdweb::haveAsyncify()) {
 
 #ifdef QT_HAVE_EMSCRIPTEN_ASYNCIFY
         auto asyncEnumerate = [](void *arg){
@@ -296,7 +296,7 @@ void QWasmMediaDevices::getOpenALAudioDevices()
     // It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
     auto capture = alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
     // present even if there is no capture device
-    if (capture && !m_audioOutputs.contains(capture)) {
+    if (capture && !m_audioInputs.contains(capture)) {
         m_audioInputs.insert(
                 capture,
                 QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
