@@ -173,6 +173,7 @@ QAudioEngine::~QAudioEngine()
 /*! \enum QAudioEngine::OutputMode
     \value Surround Map the sounds to the loudspeaker configuration of the output device.
         This is normally a stereo or surround speaker setup.
+        \note OutputMode::Surround will disable playback of QAmbientSound
     \value Stereo Map the sounds to the stereo loudspeaker configuration of the output device.
         This will ignore any additional speakers and only use the left and right channels
         to create a stero rendering of the sound field.

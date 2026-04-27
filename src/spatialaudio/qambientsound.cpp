@@ -215,6 +215,9 @@ void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int channels)
     QAmbientSound represents a position and orientation independent sound.
     It's commonly used for background sounds (e.g. music) that is supposed to be independent
     of the listeners position and orientation.
+
+    \note QAmbientSound is only active when the QAudioEngine is using OutputMode::Stereo or
+          OutputMode::Headphone.
   */
 
 /*!
