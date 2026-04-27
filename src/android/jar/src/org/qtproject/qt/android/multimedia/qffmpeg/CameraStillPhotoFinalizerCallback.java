@@ -75,7 +75,7 @@ class CameraStillPhotoFinalizerCallback extends CameraCaptureSession.CaptureCall
             // Either way, user has evidence this is happening, and catching this exception
             // stops us from crashing the program.
             Log.e(
-                "QtCamera2",
+                QtCamera2.LOG_TAG,
                 "Null-pointer access exception thrown when finalizing still photo capture. " +
                 "This should not be possible.");
             e.printStackTrace();
@@ -83,7 +83,7 @@ class CameraStillPhotoFinalizerCallback extends CameraCaptureSession.CaptureCall
             // See QTBUG-136227:
             // According to the Bug description, it may happen that we are trying to call
             // setRepeatingRequest on not active session
-            Log.w("QtCamera2", "Session is no longer active.");
+            Log.w(QtCamera2.LOG_TAG, "Session is no longer active.");
             e.printStackTrace();
         }
     }

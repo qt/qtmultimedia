@@ -30,6 +30,8 @@ import org.qtproject.qt.android.UsedFromNativeCode;
 
 @TargetApi(23)
 class QtCamera2 {
+    static final String LOG_TAG = "QtCamera2";
+
     // Should be called if an on-going still photo capture has failed to finish.
     // This lets us submit an appropriate error and notify QImageCapture that there will
     // be no photo emitted.
@@ -151,7 +153,7 @@ class QtCamera2 {
             mCameraManager.openCamera(cameraId,mStateCallback,mBackgroundHandler);
             return true;
         } catch (Exception e){
-            Log.w("QtCamera2", "Failed to open camera:" + e);
+            Log.w(LOG_TAG, "Failed to open camera:" + e);
         }
 
         return false;
@@ -180,12 +182,12 @@ class QtCamera2 {
             } catch (IllegalStateException e) {
                 // It seems that ffmpeg is processing images for too long (and does not close it)
                 // Give it a little more time. Restarting the camera session if it doesn't help
-                Log.e("QtCamera2", "Image processing taking too long. Let's wait 0,5s more " + e);
+                Log.e(LOG_TAG, "Image processing taking too long. Let's wait 0,5s more " + e);
                 try {
                     Thread.sleep(500);
                     QtCamera2.this.onPreviewFrameAvailable(mCameraId, reader.acquireLatestImage());
                 } catch (IllegalStateException | InterruptedException e2) {
-                    Log.e("QtCamera2", "Will not wait anymore. Restart camera session. " + e2);
+                    Log.e(LOG_TAG, "Will not wait anymore. Restart camera session. " + e2);
                     // Remember current used camera ID, because stopAndClose will clear the value
                     String cameraId = mCameraId;
                     stopAndClose();
@@ -259,7 +261,7 @@ class QtCamera2 {
             mCameraDevice.createCaptureSession(mTargetSurfaces, mCaptureStateCallback, mBackgroundHandler);
             return true;
         } catch (Exception exception) {
-            Log.w("QtCamera2", "Failed to create a capture session:" + exception);
+            Log.w(LOG_TAG, "Failed to create a capture session:" + exception);
         }
         return false;
     }
@@ -279,7 +281,7 @@ class QtCamera2 {
             }
             return true;
         } catch (CameraAccessException exception) {
-            Log.w("QtCamera2", "Failed to start preview:" + exception);
+            Log.w(LOG_TAG, "Failed to start preview:" + exception);
         }
         return false;
     }
@@ -299,7 +301,7 @@ class QtCamera2 {
                 mCameraId = "";
                 mTargetSurfaces.clear();
             } catch (Exception exception) {
-                Log.w("QtCamera2", "Failed to stop and close:" + exception);
+                Log.w(LOG_TAG, "Failed to stop and close:" + exception);
             }
             mSyncedMembers.mIsStarted = false;
             mSyncedMembers.mIsTakingStillPhoto = false;
@@ -350,7 +352,7 @@ class QtCamera2 {
                 // Queuing multiple still photos is not implemented.
                 // TODO: We might have to signal to QImageCapture here that capturing failed.
                 Log.w(
-                    "QtCamera2",
+                    LOG_TAG,
                     "beginStillPhotoCapture() was called on camera backend while there " +
                     "is already a still photo in progress. This is not supported. Likely Qt " +
                     "developer bug.");
@@ -362,7 +364,7 @@ class QtCamera2 {
         try {
             submitNewStillPhotoCapture(cameraSettings);
         } catch (CameraAccessException e) {
-            Log.w("QtCamera2", "Cannot get access to the camera: " + e);
+            Log.w(LOG_TAG, "Cannot get access to the camera: " + e);
             e.printStackTrace();
             onStillPhotoCaptureFailed(mCameraId);
             // TODO: Try to go back to previewing if applicable. If that fails too, shut down
@@ -436,7 +438,7 @@ class QtCamera2 {
         if (mExifDataHandler != null)
             mExifDataHandler.save(path);
         else
-            Log.e("QtCamera2", "No Exif data that could be saved to " + path);
+            Log.e(LOG_TAG, "No Exif data that could be saved to " + path);
     }
 
     private Rect getScalerCropRegion(float zoomFactor)
@@ -489,7 +491,7 @@ class QtCamera2 {
                     mPreviewCaptureCallback,
                     mBackgroundHandler);
             } catch (Exception exception) {
-                Log.w("QtCamera2", "Failed to set zoom:" + exception);
+                Log.w(LOG_TAG, "Failed to set zoom:" + exception);
             }
         }
     }
@@ -513,7 +515,7 @@ class QtCamera2 {
             newAfMode = CaptureRequest.CONTROL_AF_MODE_OFF;
         else {
             Log.d(
-                "QtCamera2",
+                LOG_TAG,
                 "received a QCamera::FocusMode from native code that is not recognized. " +
                 "Likely Qt developer bug. Ignoring.");
             return;
@@ -525,7 +527,7 @@ class QtCamera2 {
         /*
         if (!isAfModeAvailable(newAfMode)) {
             Log.d(
-                "QtCamera2",
+                LOG_TAG,
                 "received a QCamera::FocusMode from native code that is not reported as supported. " +
                 "Likely Qt developer bug. Ignoring.");
             return;
@@ -557,7 +559,7 @@ class QtCamera2 {
                     mPreviewCaptureCallback,
                     mBackgroundHandler);
             } catch (Exception exception) {
-                Log.w("QtCamera2", "Failed to set focus mode:" + exception);
+                Log.w(LOG_TAG, "Failed to set focus mode:" + exception);
             }
         }
     }
@@ -568,7 +570,7 @@ class QtCamera2 {
         synchronized (mSyncedMembers) {
             int flashModeValue = mVideoDeviceManager.stringToControlAEMode(flashMode);
             if (flashModeValue < 0) {
-                Log.w("QtCamera2", "Unknown flash mode");
+                Log.w(LOG_TAG, "Unknown flash mode");
                 return;
             }
             mSyncedMembers.mCameraSettings.mStillPhotoFlashMode = flashModeValue;
@@ -585,7 +587,7 @@ class QtCamera2 {
     {
         if (distanceInput < 0.f || distanceInput > 1.f) {
             Log.w(
-                "QtCamera2",
+                LOG_TAG,
                 "received out-of-bounds value when setting camera focus-distance. " +
                 "Likely Qt developer bug. Ignoring.");
             return;
@@ -624,7 +626,7 @@ class QtCamera2 {
                         mPreviewCaptureCallback,
                         mBackgroundHandler);
                 } catch (Exception exception) {
-                    Log.w("QtCamera2", "Failed to set focus distance:" + exception);
+                    Log.w(LOG_TAG, "Failed to set focus distance:" + exception);
                 }
             }
         }
@@ -657,7 +659,7 @@ class QtCamera2 {
                         mPreviewCaptureCallback,
                         mBackgroundHandler);
                 } catch (Exception exception) {
-                    Log.w("QtCamera2", "Failed to set flash mode:" + exception);
+                    Log.w(LOG_TAG, "Failed to set flash mode:" + exception);
                 }
             }
         }
@@ -800,7 +802,7 @@ class QtCamera2 {
                 cameraSettings.mFocusDistance);
             if (lensFocusDistance < 0) {
                 Log.w(
-                    "QtCamera2",
+                    LOG_TAG,
                     "Tried to apply FocusModeManual on a camera that doesn't support "
                     + "setting lens distance. Likely Qt developer bug. Ignoring.");
             } else {
