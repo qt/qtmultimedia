@@ -23,7 +23,6 @@ Q_LOGGING_CATEGORY(qWasmMediaCaptureSession, "qt.multimedia.wasm.capturesession"
 QWasmMediaCaptureSession::QWasmMediaCaptureSession() :
       QPlatformMediaCaptureSession()
 {
-    QWasmMediaDevices::instance()->initDevices();
 }
 
 QWasmMediaCaptureSession::~QWasmMediaCaptureSession() = default;
@@ -138,7 +137,9 @@ void QWasmMediaCaptureSession::setScreenCapture(QPlatformSurfaceCapture *surface
         m_displaySurface = "";
         if (m_videoOutput && !m_videoOutput->currentVideoElement().isUndefined()) {
             m_videoOutput->stop();
+            m_videoOutput->removeCurrentVideoElement();
         }
+        m_mediaCaptureStream = emscripten::val::undefined();
     } else {
         m_displaySurface = "browser";
         QWasmScreenCapture *wasmScreenCapture =
@@ -182,6 +183,7 @@ void QWasmMediaCaptureSession::setVideoSource(std::string surfacetype)
             m_videoOutput->stop();
             m_videoOutput->removeCurrentVideoElement();
         }
+        m_mediaCaptureStream = emscripten::val::undefined();
         return;
     }
     emscripten::val navigator = emscripten::val::global("navigator");

@@ -17,8 +17,6 @@ QWasmCapturableWindows::QWasmCapturableWindows()
     m_capurableWindows.push_back(QCapturableWindowPrivate::create(
         static_cast<QCapturableWindowPrivate::Id>(111),
         QStringLiteral("Any Window")));
-
-    getDisplayMedia();
 }
 
 QList<QCapturableWindow> QWasmCapturableWindows::windows() const
@@ -58,7 +56,6 @@ void QWasmCapturableWindows::getDisplayMedia()
         [](emscripten::val) {
         }
     };
-
     qstdweb::Promise::make(mediaDevices, QStringLiteral("getDisplayMedia"),
                            std::move(getDisplayMediaCallback), constraints);
 }

@@ -159,7 +159,7 @@ private:
     QWasmVideoOutput::WasmVideoMode m_currentVideoMode = QWasmVideoOutput::VideoDisplay;
     QMediaPlayer::MediaStatus m_currentMediaStatus;
     qreal m_currentBufferedValue;
-    JsMediaInputStream *m_mediaInputStream;
+    JsMediaInputStream *m_mediaInputStream = nullptr;
 
     QScopedPointer<QWasmEventHandler> m_timeUpdateEvent;
     QScopedPointer<QWasmEventHandler> m_playEvent;

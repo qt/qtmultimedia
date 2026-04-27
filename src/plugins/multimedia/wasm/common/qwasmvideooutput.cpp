@@ -155,7 +155,12 @@ void QWasmVideoOutput::start()
         if (!isReady())
             m_video.call<void>("load");
     } break;
-    case QWasmVideoOutput::SurfaceCapture:
+    case QWasmVideoOutput::SurfaceCapture: {
+        m_video.call<void>("play");
+        emit readyChanged(true);
+        if (m_hasVideoFrame)
+            videoFrameTimerCallback();
+    } break;
     case QWasmVideoOutput::Camera: {
         if (!m_cameraIsReady) {
             m_shouldBeStarted = true;
@@ -195,12 +200,9 @@ void QWasmVideoOutput::start()
 
                     m_video.call<void>("play");
 
-                    if (m_currentVideoMode == QWasmVideoOutput::Camera
-                        || m_currentVideoMode == QWasmVideoOutput::SurfaceCapture) {
-                            emit readyChanged(true);
-                            if (m_hasVideoFrame)
-                                videoFrameTimerCallback();
-                    }
+                    emit readyChanged(true);
+                    if (m_hasVideoFrame)
+                        videoFrameTimerCallback();
 
                 });
         m_mediaInputStream->setUseAudio(false);
@@ -230,9 +232,17 @@ void QWasmVideoOutput::stop()
     }
     m_isStopped = true;
     if (!m_toBePaused) {
-        if (m_mediaInputStream && m_mediaInputStream->isActive())
+        if (m_currentVideoMode == QWasmVideoOutput::SurfaceCapture) {
+            emscripten::val stream = m_video["srcObject"];
+            if (!stream.isNull() && !stream.isUndefined()) {
+                emscripten::val tracks = stream.call<emscripten::val>("getTracks");
+                const int count = tracks["length"].as<int>();
+                for (int i = 0; i < count; ++i)
+                    tracks[i].call<void>("stop");
+            }
+        } else if (m_mediaInputStream && m_mediaInputStream->isActive()) {
             m_mediaInputStream->stopMediaStream(m_mediaInputStream->getMediaStream());
-
+        }
         m_video.set("srcObject", emscripten::val::null());
         disconnect(m_connection);
         m_video.call<void>("remove");
@@ -1171,8 +1181,8 @@ void QWasmVideoOutput::videoFrameTimerCallback()
         emscripten_request_animation_frame(frame, context);
         return true;
     };
-
-    if ((!m_isStopped && m_video["className"].as<std::string>() == "Camera" && m_cameraIsReady)
+    if ((!m_isStopped  && m_video["className"].as<std::string>() == "Camera" && m_cameraIsReady)
+        || (!m_isStopped  && m_currentVideoMode == QWasmVideoOutput::SurfaceCapture)
         || isReady())
         emscripten_request_animation_frame(frame, this);
 }
