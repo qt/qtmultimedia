@@ -41,6 +41,7 @@ public:
     using QPlatformAudioDevices::updateAudioOutputsCache;
 
     QLatin1String backendName() const override { return QLatin1String{ "CoreAudio" }; }
+    bool hasCallbackApi() const override { return true; }
 
 private:
     QList<QAudioDevice> findAudioInputs() const override;

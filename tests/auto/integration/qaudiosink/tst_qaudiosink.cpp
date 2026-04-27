@@ -13,6 +13,7 @@
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qwavedecoder.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 #include <private/audiogenerationutils_p.h>
@@ -132,6 +133,7 @@ private slots:
     void stateChanged_stringBasedConnect();
 
     void callbackAPI();
+    void callbackAPI_availabilityCheck();
     void callbackAPI_startFailsWithWrongType();
     void callbackAPI_startWithMoveOnlyFunctor();
 
@@ -1351,6 +1353,17 @@ void tst_QAudioSink::callbackAPI()
 #else
     QSKIP("Threading not configured");
 #endif
+}
+
+void tst_QAudioSink::callbackAPI_availabilityCheck()
+{
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleFormat(QAudioFormat::SampleFormat::Float);
+
+    QAudioSink audioSink(audioDevice, format);
+    QPlatformAudioSink *platformSink = QPlatformAudioSink::get(audioSink);
+    QCOMPARE(QPlatformMediaIntegration::instance()->audioDevices()->hasCallbackApi(),
+             platformSink->hasCallbackAPI());
 }
 
 void tst_QAudioSink::callbackAPI_startFailsWithWrongType()

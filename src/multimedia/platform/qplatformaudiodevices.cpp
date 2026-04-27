@@ -4,6 +4,8 @@
 #include "qplatformaudiodevices_p.h"
 
 #include <QtCore/qdebug.h>
+#include <QtCore/qvarlengtharray.h>
+#include <QtCore/private/qminimalflatset_p.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
@@ -36,6 +38,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::Literals;
+
 std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
 {
 #ifdef Q_OS_DARWIN
@@ -48,7 +52,6 @@ std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
     return std::make_unique<QAndroidAudioDevices>();
 #endif
 #if QT_CONFIG(pipewire)
-    using namespace Qt::Literals;
     QByteArray requestedBackend = qgetenv("QT_AUDIO_BACKEND");
     const bool pipewireRequested = requestedBackend == "pipewire"_ba;
 
@@ -183,6 +186,11 @@ QPlatformAudioSink *QPlatformAudioDevices::audioOutputDevice(QAudioFormat format
         format = device.preferredFormat();
 
     return createAudioSink(device, format, parent);
+}
+
+bool QPlatformAudioDevices::hasCallbackApi() const
+{
+    return false;
 }
 
 QT_END_NAMESPACE

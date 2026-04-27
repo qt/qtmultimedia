@@ -34,6 +34,7 @@ public:
     using QPlatformAudioDevices::onAudioOutputsChanged;
 
     QLatin1String backendName() const override { return QLatin1String{ "Android" }; }
+    bool hasCallbackApi() const override { return true; }
 
     [[nodiscard]] static bool registerNativeMethods();
 
