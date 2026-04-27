@@ -158,7 +158,6 @@ void QAmbientSoundPrivate::getBuffer(QSpan<float> output, int channels)
     namespace ranges = QtMultimediaPrivate::ranges;
 
     QMutexLocker l(&mutex);
-    namespace ranges = QtMultimediaPrivate::ranges;
 
     if (!m_playing || !m_buffer) {
         ranges::fill(output, 0.f);
