@@ -122,11 +122,11 @@ QAudioEnginePrivate::findSmallestRoomForListener(QSpan<QAudioRoom *> rooms) cons
     Perception of sound localization is driven mainly by two factors. The first factor is timing
     differences of the sound waves between left and right ear. The second factor comes from various
     ways how sounds coming from different direcations create different types of reflections from our
-    ears and heads. See https://en.wikipedia.org/wiki/Sound_localization for more details.
+    ears and heads. See \l{https://en.wikipedia.org/wiki/Sound_localization} for more details.
 
     The spatial audio engine emulates those timing differences and reflections through
     Head related transfer functions (HRTF, see
-    https://en.wikipedia.org/wiki/Head-related_transfer_function). The functions used emulates those
+    \l{https://en.wikipedia.org/wiki/Head-related_transfer_function}). The functions used emulates those
     effects for an average persons ears and head. It provides a good and immersive 3D sound localization
     experience for most persons when using headphones.
 
