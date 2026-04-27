@@ -210,7 +210,7 @@ bool QSoundEffectPrivateSynchronous::updateAudioOutput()
 
 void QSoundEffectPrivateSynchronous::decoderError()
 {
-    qWarning("QSoundEffect(qaudio): Error decoding source %ls", qUtf16Printable(m_url.toString()));
+    qWarning("QSoundEffect: Error decoding source %ls", qUtf16Printable(m_url.toString()));
 
     m_playing = false;
     setStatus(QSoundEffect::Error);

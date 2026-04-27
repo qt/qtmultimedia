@@ -42,6 +42,8 @@ public:
 
     QLatin1String backendName() const override { return QLatin1String{ "PipeWire" }; }
 
+    bool hasCallbackApi() const override { return true; }
+
 private:
     QList<QAudioDevice> m_sourceDeviceList;
     QList<QAudioDevice> m_sinkDeviceList;

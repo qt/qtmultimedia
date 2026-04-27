@@ -38,6 +38,7 @@ public:
     using QPlatformAudioDevices::onAudioOutputsChanged;
 
     QLatin1String backendName() const override { return QLatin1String{ "PulseAudio" }; }
+    bool hasCallbackApi() const override { return true; }
 
 protected:
     QList<QAudioDevice> findAudioInputs() const override;

@@ -10,6 +10,8 @@
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtMultimedia/private/qsamplecache_p.h>
 #include <QtMultimedia/private/qsoundeffectsynchronous_p.h>
 #include <QtMultimedia/private/qsoundeffectwithplayer_p.h>
@@ -23,14 +25,8 @@ namespace {
 
 QSoundEffectPrivate *makeSoundEffectPrivate(QSoundEffect *fx, const QAudioDevice &audioDevice)
 {
-#if defined(Q_OS_MACOS) && defined(Q_OS_WIN)
-    return new QtMultimediaPrivate::QSoundEffectPrivateWithPlayer(fx, audioDevice);
-#endif
-
-    QAudioSink dummySink(audioDevice.isNull() ? QMediaDevices::defaultAudioOutput() : audioDevice);
-    auto platformSink = QPlatformAudioSink::get(dummySink);
-
-    if (platformSink && platformSink->hasCallbackAPI())
+    bool hasCallbackApi = QPlatformMediaIntegration::instance()->audioDevices()->hasCallbackApi();
+    if (hasCallbackApi)
         return new QtMultimediaPrivate::QSoundEffectPrivateWithPlayer(fx, audioDevice);
     else
         return new QSoundEffectPrivateSynchronous(fx, audioDevice);
