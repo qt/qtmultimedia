@@ -935,11 +935,22 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
     if (!videoOutput || !videoOutput->isReady())
         return;
     emscripten::val videoElement = videoOutput->currentVideoElement();
-    emscripten::val oneVideoFrame = val::global("VideoFrame").new_(videoElement);
+
+    // The VideoFrame constructor throws InvalidStateError when the browser compositor
+    // has not yet committed the first decoded frame, even if readyState == 4 and
+    // videoWidth > 0. Use a JS try-catch so the exception does not propagate into
+    // the wasm runtime and abort the application.
+    emscripten::val oneVideoFrame = emscripten::val::take_ownership(
+            (EM_VAL)EM_ASM_INT({
+                try {
+                    return Emval.toHandle(new VideoFrame(Emval.toValue($0)));
+                } catch(e) {
+                    return Emval.toHandle(null);
+                }
+            }, videoElement.as_handle()));
 
     if (oneVideoFrame.isNull() || oneVideoFrame.isUndefined()) {
-        qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO
-                                       << "ERROR" << "failed to construct VideoFrame";
+        qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << "VideoFrame not ready yet, skipping";
         return;
     }
 
