@@ -1041,43 +1041,50 @@ void QWasmVideoOutput::webglVideoFrameCallback(void *context)
 // default fallback for non VideoFrame
 void QWasmVideoOutput::videoFrameTimerCallback()
 {
-
     if (m_hasVideoFrame && !m_hasWebGLContext)
         getWebGLContext();
 
-    static auto frame = [](double frameTime, void *context) -> EM_BOOL {
+    // Single-shot callback: re-registers each frame so multiple QWasmVideoOutput
+    // instances can coexist. emscripten_request_animation_frame_loop allows only one
+    // active loop globally and would cancel another instance.
+    static EM_BOOL (*frame)(double, void *) = [](double frameTime, void *context) -> EM_BOOL {
         Q_UNUSED(frameTime);
 
         QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-        if (!videoOutput || videoOutput->m_currentMediaStatus != MediaStatus::LoadedMedia)
+        if (!videoOutput || videoOutput->m_shouldStop)
             return false;
-        if (videoOutput->m_shouldStop)
-            return false;
-        emscripten::val videoElement = videoOutput->currentVideoElement();
 
-        if (videoElement.isNull() || videoElement.isUndefined()) {
-            qWarning() << "no video element";
+        if (videoOutput->m_currentMediaStatus != MediaStatus::LoadedMedia) {
+            emscripten_request_animation_frame(frame, context);
+            return true;
         }
 
-        if (videoElement["paused"].as<bool>() || videoElement["ended"].as<bool>()
-            || videoElement["readyState"].as<int>() != 4)
+        emscripten::val videoElement = videoOutput->currentVideoElement();
+        if (videoElement.isNull() || videoElement.isUndefined())
             return false;
 
+        if (videoElement["paused"].as<bool>() || videoElement["ended"].as<bool>()
+            || videoElement["readyState"].as<int>() < 2) {
+            emscripten_request_animation_frame(frame, context);
+            return true;
+        }
+
         if (videoOutput->m_hasVideoFrame) {
-            if (videoOutput->m_hasWebGLContext)
+            if (videoOutput->m_glContextHandle)
                 videoOutput->webglVideoFrameCallback(context);
             else
                 videoOutput->videoFrameCallback(context);
         } else {
             videoOutput->videoComputeFrame(context);
         }
+
+        emscripten_request_animation_frame(frame, context);
         return true;
     };
 
     if ((!m_shouldStop && m_video["className"].as<std::string>() == "Camera" && m_cameraIsReady)
         || isReady())
-        emscripten_request_animation_frame_loop(frame, this);
-    // about 60 fps
+        emscripten_request_animation_frame(frame, this);
 }
 
 QVideoFrameFormat::PixelFormat QWasmVideoOutput::fromJsPixelFormat(std::string_view videoFormat)
