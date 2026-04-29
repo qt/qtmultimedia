@@ -144,23 +144,21 @@ void QWasmVideoOutput::start()
 
 void QWasmVideoOutput::stop()
 {
+    if (m_shouldStop)
+        return;
     qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO;
-
     if (m_video.isUndefined() || m_video.isNull()) {
-        // error
         emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
         return;
     }
     m_shouldStop = true;
     if (!m_toBePaused) {
-        // we are stopped , need to reset
-        m_mediaInputStream->stopMediaStream(m_mediaInputStream->getMediaStream());
+        if (m_mediaInputStream && m_mediaInputStream->isActive())
+            m_mediaInputStream->stopMediaStream(m_mediaInputStream->getMediaStream());
 
-         m_video.set("srcObject", emscripten::val::null());
+        m_video.set("srcObject", emscripten::val::null());
         disconnect(m_connection);
-
         m_video.call<void>("remove");
-
     } else {
         m_video.call<void>("pause");
     }
@@ -492,8 +490,6 @@ void QWasmVideoOutput::doElementCallbacks()
         qCDebug(qWasmMediaVideoOutput) << "ended";
         m_currentMediaStatus = MediaStatus::EndOfMedia;
         emit statusChanged(m_currentMediaStatus);
-        m_shouldStop = true;
-        stop();
     };
     m_endedEvent.reset(new QWasmEventHandler(m_video, "ended", endedCallback));
 
