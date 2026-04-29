@@ -609,8 +609,8 @@ void JsMediaInputStream::stopMediaStream(emscripten::val mediaStream)
             }
         }
     }
-    mediaStream = emscripten::val::undefined();
+    m_mediaStream = emscripten::val::null();
     m_active = false;
-   }
+}
 
 QT_END_NAMESPACE
