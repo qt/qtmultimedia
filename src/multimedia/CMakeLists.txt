@@ -424,19 +424,21 @@ set_source_files_properties(${source_with_init_guid} PROPERTIES
 qt_internal_extend_target(Multimedia CONDITION WASM
     SOURCES
         wasm/qwasmmediadevices.cpp wasm/qwasmmediadevices_p.h
-        wasm/qwasmaudiosource.cpp wasm/qwasmaudiosource_p.h
+        wasm/qwasmwebaudiosource.cpp wasm/qwasmwebaudiosource_p.h
         wasm/qwasmaudiosink.cpp wasm/qwasmaudiosink_p.h
         wasm/qwasmaudiodevice.cpp wasm/qwasmaudiodevice_p.h
         wasm/qwasmjs.cpp wasm/qwasmjs_p.h
-
     INCLUDE_DIRECTORIES
         wasm
     PUBLIC_LIBRARIES
         openal
-    NO_UNITY_BUILD_SOURCES
-        wasm/qwasmaudiosink.cpp
-        # To avoid collision between symbols defined in wasm/qwasmaudiosource.cpp.
 )
+
+if(WASM AND QT_FEATURE_thread)
+    target_link_options(Multimedia PUBLIC -sAUDIO_WORKLET=1 -sWASM_WORKERS=1)
+    target_compile_options(Multimedia PUBLIC -sWASM_WORKERS=1)
+endif()
+
 
 set(VIDEO_VERTEX_SHADERS
     "shaders/vertex.vert"

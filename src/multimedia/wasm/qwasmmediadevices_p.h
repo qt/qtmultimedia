@@ -91,7 +91,6 @@ public:
 private:
     void updateCameraDevices();
     void getMediaDevices();
-    void getOpenALAudioDevices();
     void parseDevices(emscripten::val devices);
 
     QMap <std::string, QAudioDevice> m_audioOutputs;
@@ -105,7 +104,6 @@ private:
     bool m_audioOutputsAdded = false;
     emscripten::val m_jsMediaDevicesInterface = emscripten::val::undefined();
     bool m_initDone = false;
-    bool m_firstInit = false;
     emscripten::val devicesList;
 };
 

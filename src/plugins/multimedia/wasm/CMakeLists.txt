@@ -31,4 +31,5 @@ qt_internal_add_plugin(QWasmMediaPlugin
         Qt::CorePrivate
 )
 
+
 target_link_libraries(QWasmMediaPlugin PUBLIC embind)

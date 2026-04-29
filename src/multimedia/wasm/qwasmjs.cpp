@@ -519,7 +519,10 @@ void JsMediaInputStream::setupMediaStream(emscripten::val mStream)
     };
     m_inactiveStreamEvent.reset(new qstdweb::EventCallback(m_mediaStream, "inactive", inactiveStreamCallback));
 
-    emit mediaVideoStreamReady();
+    if (m_needsAudio)
+        emit mediaAudioStreamReady();
+    if (m_needsVideo)
+        emit mediaVideoStreamReady();
 }
 
 void JsMediaInputStream::stopMediaStream(emscripten::val mediaStream)

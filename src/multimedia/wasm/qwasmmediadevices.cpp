@@ -4,11 +4,9 @@
 #include "qwasmmediadevices_p.h"
 #include "private/qcameradevice_p.h"
 #include "private/qplatformmediaintegration_p.h"
-#include "qwasmaudiosource_p.h"
+#include "qwasmwebaudiosource_p.h"
 #include "qwasmaudiosink_p.h"
 #include "qwasmaudiodevice_p.h"
-#include <AL/al.h>
-#include <AL/alc.h>
 
 #include <QMap>
 #include <QDebug>
@@ -85,7 +83,6 @@ void QWasmMediaDevices::initDevices()
         return;
 
     m_initDone = true;
-    getOpenALAudioDevices();
     getMediaDevices(); // asynchronous
 }
 
@@ -115,16 +112,10 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
     QList<std::string> audioOutputsToRemove;
     QList<std::string> audioInputsToRemove;
 
-    if (m_firstInit) {
-        m_firstInit = false;
-        qWarning() << "m_audioInputs count" << m_audioInputs.count();
-
-    } else {
-        audioOutputsToRemove = m_audioOutputs.keys();
-        audioInputsToRemove = m_audioInputs.keys();
-        m_audioInputsAdded = false;
-        m_audioOutputsAdded = false;
-    }
+    audioOutputsToRemove = m_audioOutputs.keys();
+    audioInputsToRemove = m_audioInputs.keys();
+    m_audioInputsAdded = false;
+    m_audioOutputsAdded = false;
     m_videoInputsAdded = false;
 
     bool m_videoInputsRemoved = false;
@@ -189,10 +180,7 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
         // if permissions are given label will hold the actual
         // camera name, such as "Live! Cam Sync 1080p (041e:409d)"
     }
-    if (!m_firstInit)
-        getOpenALAudioDevices();
-
-           // any left here were removed
+    // any left here were removed
     int j = 0;
     for (; j < cameraDevicesToRemove.count(); j++) {
         m_cameraDevices.remove(cameraDevicesToRemove.at(j));
@@ -221,8 +209,6 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
         auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
         audioDevices->onAudioOutputsChanged();
     }
-
-    m_firstInit = false;
 
 }
 
@@ -288,36 +274,6 @@ void QWasmMediaDevices::getMediaDevices()
                 });
     }
 
-}
-
-void QWasmMediaDevices::getOpenALAudioDevices()
-{
-    // VM3959:4 The AudioContext was not allowed to start.
-    // It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
-    auto capture = alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
-    // present even if there is no capture device
-    if (capture && !m_audioInputs.contains(capture)) {
-        m_audioInputs.insert(
-                capture,
-                QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
-                        capture, "WebAssembly audio capture device", true, QAudioDevice::Input)));
-        m_audioInputsAdded = true;
-        auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
-        audioDevices->onAudioInputsChanged();
-    }
-
-    auto playback = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
-    // present even if there is no playback device
-    if (playback && !m_audioOutputs.contains(capture)) {
-        m_audioOutputs.insert(
-                playback,
-                QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
-                        playback, "WebAssembly audio playback device", true,
-                        QAudioDevice::Output)));
-       auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
-       audioDevices->onAudioOutputsChanged();
-    }
-    m_firstInit = true;
 }
 
 QT_END_NAMESPACE
