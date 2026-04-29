@@ -22,6 +22,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
         qsequentialfileadaptor_p.h
         qsinewavevalidator_p.h qsinewavevalidator.cpp
         qmockiodevice_p.h
+        qmessagespy_p.h
         qmockresolvers_p.h
     PUBLIC_LIBRARIES
         Qt::Core
