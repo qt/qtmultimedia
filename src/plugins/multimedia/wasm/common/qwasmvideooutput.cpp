@@ -155,7 +155,7 @@ void QWasmVideoOutput::start()
     } break;
     };
 
-    m_shouldStop = false;
+    m_isStopped = false;
     m_toBePaused = false;
 
     if (m_currentVideoMode != QWasmVideoOutput::Camera
@@ -166,14 +166,14 @@ void QWasmVideoOutput::start()
 
 void QWasmVideoOutput::stop()
 {
-    if (m_shouldStop)
+    if (m_isStopped)
         return;
     qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO;
     if (m_video.isUndefined() || m_video.isNull()) {
         emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
         return;
     }
-    m_shouldStop = true;
+    m_isStopped = true;
     if (!m_toBePaused) {
         if (m_mediaInputStream && m_mediaInputStream->isActive())
             m_mediaInputStream->stopMediaStream(m_mediaInputStream->getMediaStream());
@@ -195,7 +195,7 @@ void QWasmVideoOutput::pause()
         emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return;
     }
-    m_shouldStop = false;
+    m_isStopped = false;
     m_toBePaused = true;
     m_video.call<void>("pause");
 }
@@ -577,7 +577,7 @@ void QWasmVideoOutput::doElementCallbacks()
         qCDebug(qWasmMediaVideoOutput) << "load started";
         m_currentMediaStatus = MediaStatus::LoadingMedia;
         emit statusChanged(m_currentMediaStatus);
-        m_shouldStop = false;
+        m_isStopped = false;
     };
     m_loadStartChangeEvent.reset(new QWasmEventHandler(m_video, "loadstart", loadStartCallback));
 
@@ -589,7 +589,7 @@ void QWasmVideoOutput::doElementCallbacks()
         qCDebug(qWasmMediaVideoOutput) << "can play"
                                        << "m_requestedPosition" << m_requestedPosition;
 
-        if (!m_shouldStop)
+        if (!m_isStopped)
             emit readyChanged(true); // sets video available
     };
     m_canPlayChangeEvent.reset(new QWasmEventHandler(m_video, "canplay", canPlayCallback));
@@ -598,7 +598,7 @@ void QWasmVideoOutput::doElementCallbacks()
     auto canPlayThroughCallback = [=](emscripten::val event) {
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "can play through"
-                                       << "m_shouldStop" << m_shouldStop;
+                                       << "m_isStopped" << m_isStopped;
 
         if (m_currentMediaStatus == MediaStatus::EndOfMedia)
             return;
@@ -607,7 +607,7 @@ void QWasmVideoOutput::doElementCallbacks()
             m_isSeekable = seekable;
             emit seekableChanged(m_isSeekable);
         }
-        if (!m_isSeeking && !m_shouldStop) {
+        if (!m_isSeeking && !m_isStopped) {
             emscripten::val timeRanges = m_video["buffered"];
             if ((!timeRanges.isNull() || !timeRanges.isUndefined())
                     && timeRanges["length"].as<int>() == 1) {
@@ -626,7 +626,7 @@ void QWasmVideoOutput::doElementCallbacks()
                 videoFrameTimerCallback();
             }
         } else {
-            m_shouldStop = false;
+            m_isStopped = false;
         }
     };
     m_canPlayThroughChangeEvent.reset(
@@ -687,7 +687,7 @@ void QWasmVideoOutput::doElementCallbacks()
         if (m_isSeeking)
             return;
         emit stateChanged(QWasmMediaPlayer::Started);
-        if (m_toBePaused || !m_shouldStop) { // paused
+        if (m_toBePaused || !m_isStopped) { // paused
             m_toBePaused = false;
             QMetaObject::invokeMethod(this, &QWasmVideoOutput::videoFrameTimerCallback, Qt::QueuedConnection);
         }
@@ -734,7 +734,7 @@ void QWasmVideoOutput::doElementCallbacks()
 
         const double currentTime = m_video["currentTime"].as<double>(); // in seconds
         const double duration = m_video["duration"].as<double>(); // in seconds
-        if ((currentTime > 0 && currentTime < duration) && (!m_shouldStop && m_toBePaused)) {
+        if ((currentTime > 0 && currentTime < duration) && (!m_isStopped && m_toBePaused)) {
             emit stateChanged(QWasmMediaPlayer::Paused);
         } else {
             // stop this crazy thing!
@@ -1051,7 +1051,7 @@ void QWasmVideoOutput::videoFrameTimerCallback()
         Q_UNUSED(frameTime);
 
         QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-        if (!videoOutput || videoOutput->m_shouldStop)
+        if (!videoOutput || videoOutput->m_isStopped)
             return false;
 
         if (videoOutput->m_currentMediaStatus != MediaStatus::LoadedMedia) {
@@ -1082,7 +1082,7 @@ void QWasmVideoOutput::videoFrameTimerCallback()
         return true;
     };
 
-    if ((!m_shouldStop && m_video["className"].as<std::string>() == "Camera" && m_cameraIsReady)
+    if ((!m_isStopped && m_video["className"].as<std::string>() == "Camera" && m_cameraIsReady)
         || isReady())
         emscripten_request_animation_frame(frame, this);
 }

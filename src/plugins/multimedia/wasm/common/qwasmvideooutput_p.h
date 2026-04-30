@@ -137,7 +137,7 @@ private:
     float m_requestedPosition = 0.0;
     emscripten::val m_offscreen = emscripten::val::undefined();
 
-    bool m_shouldStop = false;
+    bool m_isStopped = false;
     bool m_toBePaused = false;
     bool m_isSeeking = false;
     bool m_hasAudio = false;
