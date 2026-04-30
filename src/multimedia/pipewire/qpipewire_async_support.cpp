@@ -82,7 +82,9 @@ CoreEventListener::CoreEventListener()
 
 CoreEventListener::~CoreEventListener()
 {
-    removeHooks();
+    QAudioContextManager::withEventLoopLock([&] {
+        removeHooks();
+    });
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
