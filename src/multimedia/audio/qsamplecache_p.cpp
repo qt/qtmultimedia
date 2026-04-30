@@ -258,7 +258,7 @@ QFuture<QSampleCache::SampleLoadResult> QSampleCache::loadSampleAsync(const QUrl
 
     if (reply->error() != QNetworkReply::NoError) {
         fulfilPromise(std::nullopt);
-        delete reply;
+        reply->deleteLater();
         return future;
     }
 
