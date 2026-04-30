@@ -181,7 +181,9 @@ qint64 QAudioOutputStream::readData(char *data, const qint64 len)
             Q_ASSERT(ambisonicDecoder->nOutputChannels() <= 8);
             int nSamples = ambisonicDecoder->outputSamples(nFrames);
 
-            std::array<float, 2 * framesPerBuffer> reverbFloatBuffers;
+            constexpr size_t reverbBufferSize =
+                    framesPerBuffer * QAmbisonicDecoder::maxAmbisonicChannels;
+            std::array<float, reverbBufferSize> reverbFloatBuffers;
             QSpan<float> reverbOutputSpan = take(QSpan{ reverbFloatBuffers }, nSamples);
             QSpan<short> currentOutput = take(outputBuffer, nSamples);
 
