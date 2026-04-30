@@ -183,8 +183,9 @@ void QAudioContextManager::stopEventLoop()
 
 void QAudioContextManager::prepareContext()
 {
+    auto applicaionName = qApp->applicationName().toUtf8();
     PwPropertiesHandle props = makeProperties({
-            { PW_KEY_APP_NAME, qApp->applicationName().toUtf8().data() },
+            { PW_KEY_APP_NAME, applicaionName.data() },
     });
 
     Q_ASSERT(m_eventLoop);
