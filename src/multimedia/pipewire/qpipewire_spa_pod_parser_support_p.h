@@ -136,10 +136,8 @@ auto spaVisitChoice(const spa_pod &pod, unsigned spaObjectType, unsigned objectP
     if (res < 0)
         return std::nullopt;
 
-    if (!format_pod) {
-        qWarning() << "spaVisitChoice: parse error" << pod;
+    if (!format_pod)
         return std::nullopt;
-    }
 
     return v(*format_pod);
 }
