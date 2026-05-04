@@ -4,11 +4,9 @@
 #ifndef QMLVIDEOSINGLETON_H
 #define QMLVIDEOSINGLETON_H
 
-#include "qmlvideo_global.h"
-
 #include <QtQml/qqml.h>
 
-class QMLVIDEO_LIB_EXPORT VideoSingleton : public QObject
+class VideoSingleton : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source1 READ source1 WRITE setSource1 NOTIFY source1Changed FINAL)

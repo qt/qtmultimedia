@@ -10,10 +10,10 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/qmlvideo/qmlvide
 qt_add_qml_module(qmlvideo
     URI qmlvideo
     VERSION 1.0
+    STATIC
     SOURCES
         videosingleton.cpp
         videosingleton.h
-        qmlvideo_global.h
     QML_FILES
         "CameraBasic.qml"
         "CameraDrag.qml"
