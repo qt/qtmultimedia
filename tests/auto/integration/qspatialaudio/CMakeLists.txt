@@ -8,7 +8,10 @@ qt_internal_multimedia_add_test(tst_qspatialaudio
     LIBRARIES
         Qt::Core
         Qt::SpatialAudio
+        Qt::SpatialAudioPrivate
         Qt::Multimedia
+        Qt::MultimediaTestLibPrivate
     TESTDATA
         "test.wav"
+        "test2.wav"
 )

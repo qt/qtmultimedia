@@ -16,10 +16,17 @@
 #include <QtSpatialAudio/qaudioroom.h>
 #include <QtSpatialAudio/qaudiolistener.h>
 #include <QtSpatialAudio/qambientsound.h>
+#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
+
+#include <QtMultimediaTestLib/private/qmessagespy_p.h>
 
 #include <memory>
 
 using namespace Qt::Literals;
+using namespace std::chrono_literals;
+
+using QtMultimediaPrivate::QLoggingCategoryEnabler;
+using QtMultimediaPrivate::QMessageSpy;
 
 class tst_QSpatialAudio : public QObject
 {
@@ -44,22 +51,32 @@ private slots:
     void testSwitchAudioDevice();
     void test_nullEngine_behaviour();
 
+    void testPlaybackControls();
+    void testFileLoading_replaceDuringPlayback();
+    void testFileLoading_loadInvalidFile();
+    void testAutoPlayTransitions();
+
 private:
     std::unique_ptr<QSpatialSound> sound;
     std::unique_ptr<QAudioEngine> engine;
+    std::optional<QLoggingCategoryEnabler> logEnabler;
+
     QUrl url;
+    QUrl url2;
 };
 
 void tst_QSpatialAudio::init()
 {
     engine = std::make_unique<QAudioEngine>();
     sound = std::make_unique<QSpatialSound>(engine.get());
+    logEnabler.emplace(qLcSpatialAudioEngine());
 }
 
 void tst_QSpatialAudio::cleanup()
 {
     sound.reset();
     engine.reset();
+    logEnabler.reset();
 }
 
 void tst_QSpatialAudio::initTestCase()
@@ -69,6 +86,11 @@ void tst_QSpatialAudio::initTestCase()
     QString fullPath = QFINDTESTDATA(testFileName);
     if (!fullPath.isEmpty())
         url = QUrl::fromLocalFile(fullPath);
+
+    QString testFileName2 = QStringLiteral("test2.wav");
+    QString fullPath2 = QFINDTESTDATA(testFileName2);
+    if (!fullPath2.isEmpty())
+        url2 = QUrl::fromLocalFile(fullPath2);
 }
 
 void tst_QSpatialAudio::test_QSpatialSound_basicProperties()
@@ -402,15 +424,15 @@ void tst_QSpatialAudio::testSwitchAudioDevice()
 
     engine->start();
 
-    QTest::ignoreMessage(QtMsgType::QtWarningMsg,
-                         "Changing device on a running engine not implemented");
-
+    QMessageSpy warnSpy;
+    auto expectWarn =
+            warnSpy.expect(QtWarningMsg, "Changing device on a running engine not implemented");
     engine->setOutputDevice(anotherDevice);
+    QVERIFY(expectWarn.wait());
     QCOMPARE(engine->outputDevice(), originalDevice);
 
     engine->stop();
 }
-
 
 void tst_QSpatialAudio::test_nullEngine_behaviour()
 {
@@ -479,6 +501,109 @@ void tst_QSpatialAudio::test_nullEngine_behaviour()
 
     nullRoom.setWallMaterial(QAudioRoom::LeftWall, QAudioRoom::BrickPainted);
     QCOMPARE(nullRoom.wallMaterial(QAudioRoom::LeftWall), QAudioRoom::BrickPainted);
+}
+
+void tst_QSpatialAudio::testPlaybackControls()
+{
+    QList outputs = QMediaDevices::audioOutputs();
+    if (outputs.isEmpty())
+        QSKIP("No audio outputs available");
+
+    engine->start();
+
+    sound->setAutoPlay(false);
+
+    QMessageSpy playSpy(qLcSpatialAudioEngine());
+    auto expectLoading = playSpy.expect(QtDebugMsg, QRegularExpression("Loading sound: .*"));
+    auto expectLoaded = playSpy.expect(QtDebugMsg, "Sound loaded");
+    sound->setSource(url);
+    QVERIFY(expectLoading.wait());
+    QVERIFY(expectLoaded.wait());
+
+    auto expectPlay = playSpy.expect(QtDebugMsg, "Playing sound");
+    sound->play();
+    QVERIFY(expectPlay.wait());
+
+    auto expectPause = playSpy.expect(QtDebugMsg, "Pausing sound");
+    sound->pause();
+    QVERIFY(expectPause.wait());
+
+    auto expectPlay2 = playSpy.expect(QtDebugMsg, "Playing sound");
+    sound->play();
+    QVERIFY(expectPlay2.wait());
+
+    auto expectStop = playSpy.expect(QtDebugMsg, "Stopping sound");
+    sound->stop();
+    QVERIFY(expectStop.wait());
+}
+
+void tst_QSpatialAudio::testFileLoading_replaceDuringPlayback()
+{
+    QList outputs = QMediaDevices::audioOutputs();
+    if (outputs.isEmpty())
+        QSKIP("No audio outputs available");
+
+    engine->start();
+
+    sound->setAutoPlay(false);
+
+    QMessageSpy spy(qLcSpatialAudioEngine());
+    auto expectLoad1 = spy.expect(QtDebugMsg, QRegularExpression("Loading sound: QUrl\\(.*test\\.wav.*\\)"));
+    auto expectLoaded1 = spy.expect(QtDebugMsg, "Sound loaded");
+    sound->setSource(url);
+    QVERIFY(expectLoad1.wait());
+    QVERIFY(expectLoaded1.wait());
+
+    auto expectPlay = spy.expect(QtDebugMsg, "Playing sound");
+    sound->play();
+    QVERIFY(expectPlay.wait());
+
+    // Replace the sound mid-playback
+    auto expectLoad2 = spy.expect(QtDebugMsg, QRegularExpression("Loading sound: QUrl\\(.*test2\\.wav.*\\)"));
+    auto expectLoaded2 = spy.expect(QtDebugMsg, "Sound loaded");
+    auto expectPlaybackStarted = spy.expect(QtDebugMsg, "Sound playback started: playing");
+    sound->setSource(url2);
+    QVERIFY(expectLoad2.wait());
+    QVERIFY(expectLoaded2.wait());
+    QVERIFY(expectPlaybackStarted.wait());
+
+    auto expectStop = spy.expect(QtDebugMsg, "Stopping sound");
+    sound->stop();
+    QVERIFY(expectStop.wait());
+}
+
+void tst_QSpatialAudio::testFileLoading_loadInvalidFile()
+{
+    QList outputs = QMediaDevices::audioOutputs();
+    if (outputs.isEmpty())
+        QSKIP("No audio outputs available");
+
+    engine->start();
+
+    QMessageSpy spy(qLcSpatialAudioEngine());
+    auto expectLoadInvalid = spy.expect(QtDebugMsg, QRegularExpression("Loading sound: .*"));
+    auto expectWarnInvalid = spy.expect(QtWarningMsg, "QAmbientSound: cannot load file");
+    sound->setSource(QUrl("qrc://invalid_resource"));
+    QVERIFY(expectLoadInvalid.wait());
+    QVERIFY(expectWarnInvalid.wait());
+}
+
+void tst_QSpatialAudio::testAutoPlayTransitions()
+{
+    QList outputs = QMediaDevices::audioOutputs();
+    if (outputs.isEmpty())
+        QSKIP("No audio outputs available");
+
+    sound->setAutoPlay(true);
+
+    QMessageSpy spy(qLcSpatialAudioEngine());
+    auto expectLoadAuto = spy.expect(QtDebugMsg, QRegularExpression("Loading sound: .*"));
+    auto expectLoadedAuto = spy.expect(QtDebugMsg, "Sound loaded");
+    auto expectPlaybackAuto = spy.expect(QtDebugMsg, "Sound playback started: playing");
+    sound->setSource(url);
+    QVERIFY(expectLoadAuto.wait());
+    QVERIFY(expectLoadedAuto.wait());
+    QVERIFY(expectPlaybackAuto.wait());
 }
 
 QTEST_MAIN(tst_QSpatialAudio)
