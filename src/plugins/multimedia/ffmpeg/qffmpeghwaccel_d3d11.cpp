@@ -2,10 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpeghwaccel_d3d11_p.h"
-#include "playbackengine/qffmpegstreamdecoder_p.h"
 
 #include <qvideoframeformat.h>
-#include "qffmpegvideobuffer_p.h"
 
 #include <private/qvideotexturehelper_p.h>
 #include <QtCore/private/qcomptr_p.h>
