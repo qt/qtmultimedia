@@ -203,6 +203,13 @@ bool QFFmpegSurfaceCaptureGrabber::isGrabbingContextInitialized() const
     return m_context != nullptr;
 }
 
+void QFFmpegSurfaceCaptureGrabber::injectContextToGrabbingThread(QObject *context)
+{
+    Q_ASSERT(m_thread);
+    Q_ASSERT(QThread::currentThread() == context->thread());
+    context->moveToThread(m_thread.get());
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qffmpegsurfacecapturegrabber_p.cpp"

@@ -70,6 +70,8 @@ protected:
 
     bool isGrabbingContextInitialized() const;
 
+    void injectContextToGrabbingThread(QObject *context);
+
 private:
     class GrabbingProfiler;
     struct GrabbingContext;
