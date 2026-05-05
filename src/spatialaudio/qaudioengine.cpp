@@ -22,6 +22,8 @@
 
 QT_BEGIN_NAMESPACE
 
+Q_LOGGING_CATEGORY(qLcSpatialAudioEngine, "qt.spatialaudio.engine")
+
 QAudioEnginePrivate::QAudioEnginePrivate(int sampleRate)
     : m_sampleRate(sampleRate),
       resonanceAudio{

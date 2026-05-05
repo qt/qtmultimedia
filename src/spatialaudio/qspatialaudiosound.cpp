@@ -146,6 +146,7 @@ void QSpatialAudioSoundPrivate::applyVolume()
 
 void QSpatialAudioSoundPrivate::play()
 {
+    qCDebug(qLcSpatialAudioEngine) << "Playing sound";
     switch (m_state) {
     case State::Stopped: {
         m_state = State::Playing;
@@ -167,6 +168,7 @@ void QSpatialAudioSoundPrivate::play()
 
 void QSpatialAudioSoundPrivate::pause()
 {
+    qCDebug(qLcSpatialAudioEngine) << "Pausing sound";
     switch (m_state) {
     case State::Stopped: {
         m_state = State::Paused;
@@ -190,6 +192,7 @@ void QSpatialAudioSoundPrivate::pause()
 
 void QSpatialAudioSoundPrivate::stop()
 {
+    qCDebug(qLcSpatialAudioEngine) << "Stopping sound";
     switch (m_state) {
     case State::Stopped: {
         return;
@@ -205,6 +208,7 @@ void QSpatialAudioSoundPrivate::stop()
 
 void QSpatialAudioSoundPrivate::loadUrl(const QUrl &url)
 {
+    qCDebug(qLcSpatialAudioEngine) << "Loading sound:" << url;
     m_url = url;
 
     auto *ep = QAudioEnginePrivate::get(engine);
@@ -220,7 +224,7 @@ void QSpatialAudioSoundPrivate::loadUrl(const QUrl &url)
                            ->requestSampleFuture(m_sourceResolver->resolve(url), ep->sampleRate())
                            .then(q_ptr, [this](SharedSamplePtr sample) {
         if (!sample) {
-            qWarning() << "QAmbientSound: cannot load file";
+            qCWarning(qLcSpatialAudioEngine) << "QAmbientSound: cannot load file";
             return;
         }
 
@@ -259,6 +263,8 @@ void QSpatialAudioSoundPrivate::loadUrl(const QUrl &url)
             outFmt,
         };
 
+        qCDebug(qLcSpatialAudioEngine) << "Sound loaded";
+
         const bool startingPlayback = m_autoPlay || m_state != State::Stopped;
         if (!startingPlayback)
             return;
@@ -267,6 +273,8 @@ void QSpatialAudioSoundPrivate::loadUrl(const QUrl &url)
                                                               m_loops));
 
         m_state = startPaused ? State::Paused : State::Playing;
+        qCDebug(qLcSpatialAudioEngine)
+                << "Sound playback started:" << (startPaused ? "paused" : "playing");
     });
 }
 

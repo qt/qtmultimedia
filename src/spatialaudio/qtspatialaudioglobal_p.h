@@ -15,7 +15,13 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtSpatialAudio/qtspatialaudioglobal.h>
+#include <QtCore/qloggingcategory.h>
+
+QT_BEGIN_NAMESPACE
+
+QT_DECLARE_EXPORTED_QT_LOGGING_CATEGORY(qLcSpatialAudioEngine, Q_SPATIALAUDIO_EXPORT)
+
+QT_END_NAMESPACE
 
 #endif // QTQMLGLOBAL_P_H
