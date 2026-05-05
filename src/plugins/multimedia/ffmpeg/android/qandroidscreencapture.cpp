@@ -8,6 +8,7 @@
 
 #include <QtFFmpegMediaPluginImpl/private/qandroidvideoframefactory_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegsurfacecapturegrabber_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -23,15 +24,21 @@ QAtomicInteger<int> idCounter = 0;
 constexpr int REQUEST_CODE_MEDIA_PROJECTION = 24680; // Arbitrary
 constexpr int RESULT_CANCEL = 0;
 constexpr int RESULT_OK = -1;
+
 }
 
-class QAndroidScreenCapture::Grabber : public QtAndroidPrivate::ActivityResultListener
+class QAndroidScreenCapture::Grabber : public QtAndroidPrivate::ActivityResultListener,
+                                       public QFFmpegSurfaceCaptureGrabber
 {
 public:
     Grabber(QAndroidScreenCapture & screenCapture)
         : m_activityRequestCode(REQUEST_CODE_MEDIA_PROJECTION + idCounter.fetchAndAddRelaxed(1))
         , m_screenCapture(screenCapture)
     {
+        injectContextToGrabbingThread(&m_resourceContext);
+
+        addFrameCallback(&screenCapture, &QAndroidScreenCapture::newVideoFrame);
+
         using namespace QtJniTypes;
         const auto sizeObj = QtScreenGrabber::callStaticMethod<Size>(
                                             "getScreenCaptureSize", QtAndroidPrivate::activity());
@@ -47,6 +54,14 @@ public:
                             .arg(m_format.frameHeight())
                             .arg(m_format.frameWidth()));
         }
+
+        setFrameRate(screenCapture.frameRate().value_or(DefaultScreenCaptureFrameRate));
+        m_format.setStreamFrameRate(frameRate());
+    }
+
+    QVideoFrame grabFrame() override
+    {
+        return m_resourceContext.latestFrame();
     }
 
     bool handleActivityResult(jint requestCode, jint resultCode, jobject data) override
@@ -71,13 +86,20 @@ public:
         return true;
     }
 
-    ~Grabber()
+    ~Grabber() override
     {
+        stop();
         QtAndroidPrivate::unregisterActivityResultListener(this);
         m_jniGrabber.callMethod<bool>("stopScreenCaptureService");
     }
 
     QVideoFrameFormat format() const { return m_format; }
+
+    void onNewFrameReceived(QtJniTypes::Image image)
+    {
+        QMetaObject::invokeMethod(&m_resourceContext, &ResourceContext::updateLatestImageRef,
+                                  image);
+    }
 
 private:
     void updateError(const QString &errorString)
@@ -93,6 +115,33 @@ private:
     const int m_activityRequestCode;
     QAndroidScreenCapture & m_screenCapture;
     QVideoFrameFormat m_format;
+
+    class ResourceContext : public QObject
+    {
+    public:
+        ResourceContext() : m_frameFactory(QAndroidVideoFrameFactory::create()) { }
+        ~ResourceContext() override { updateLatestImageRef({ }); }
+        Q_DISABLE_COPY_MOVE(ResourceContext)
+
+        void updateLatestImageRef(QJniObject newImage)
+        {
+            auto oldImage = std::exchange(m_latestImage, newImage);
+            if (oldImage.isValid())
+                oldImage.callMethod<void>("close");
+        }
+
+        QVideoFrame latestFrame()
+        {
+            Q_ASSERT(m_frameFactory);
+            return m_latestImage.isValid()
+                    ? m_frameFactory->createVideoFrame(std::move(m_latestImage))
+                    : QVideoFrame();
+        }
+
+    private:
+        QJniObject m_latestImage;
+        std::shared_ptr<QAndroidVideoFrameFactory> m_frameFactory;
+    } m_resourceContext;
 };
 
 QAndroidScreenCapture::QAndroidScreenCapture()
@@ -116,33 +165,27 @@ bool QAndroidScreenCapture::setActiveInternal(bool active)
 
     if (m_grabber) {
         m_grabber.reset();
-        m_frameFactory.reset();
     } else {
         m_grabber = std::make_unique<Grabber>(*this);
-        m_frameFactory = QAndroidVideoFrameFactory::create();
+        m_grabber->start();
     }
 
-    return static_cast<bool>(m_grabber) == active;
+    return bool(m_grabber) == active;
 }
 
 void QAndroidScreenCapture::onNewFrameReceived(QtJniTypes::Image image)
 {
-    if (!isActive() || m_frameFactory == nullptr) {
-        if (image.isValid())
-            image.callMethod<void>("close");
-        return;
-    }
-
-    QVideoFrame videoFrame = m_frameFactory->createVideoFrame(image);
-    if (videoFrame.isValid())
-        emit newVideoFrame(videoFrame);
+    if (m_grabber)
+        m_grabber->onNewFrameReceived(image);
+    else if (image.isValid())
+        image.callMethod<void>("close");
 }
 
 static void onScreenFrameAvailable(JNIEnv *env, jobject obj, QtJniTypes::Image image, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(obj);
-    auto cppObj = reinterpret_cast<QAndroidScreenCapture*>(id);
+    auto *cppObj = reinterpret_cast<QAndroidScreenCapture*>(id);
     cppObj->onNewFrameReceived(image);
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onScreenFrameAvailable)

@@ -36,12 +36,12 @@ public:
 
     static bool registerNativeMethods();
     void onNewFrameReceived(QtJniTypes::Image image);
+
 protected:
     bool setActiveInternal(bool active) override;
 
 private:
     std::unique_ptr<Grabber> m_grabber;
-    std::shared_ptr<QAndroidVideoFrameFactory> m_frameFactory;
 };
 
 QT_END_NAMESPACE
