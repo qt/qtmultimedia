@@ -32,9 +32,10 @@
     }
     \endqml
 
-    You can use AudioOutput together with a QtMultiMedia::MediaPlayer to play audio content, or you
-    can use it in conjunction with a MultiMedia::CaptureSession to monitor the audio processed by the
-    capture session.
+    You can use AudioOutput together with a \l{QtMultimedia::MediaPlayer}{MediaPlayer} to play audio
+    content, or you can use it in conjunction with a
+    \l{QtMultimedia::CaptureSession}{CaptureSession} to monitor the audio processed by the capture
+    session.
 
     \sa VideoOutput, AudioInput
 */
@@ -180,13 +181,13 @@ void QAudioOutput::setMuted(bool muted)
 */
 
 /*!
-    \qmlproperty AudioDevice QtMultimedia::AudioOutput::device
+    \qmlproperty audioDevice QtMultimedia::AudioOutput::device
 
     This property describes the audio device connected to this output.
 
     The device property represents the audio device this output is connected to.
     This property can be used to select an output device from the
-    QtMultimedia::MediaDevices::audioOutputs() list.
+    \l{QtMultimedia::MediaDevices::audioOutputs}{MediaDevices.audioOutputs} list.
 */
 
 /*!
@@ -195,7 +196,7 @@ void QAudioOutput::setMuted(bool muted)
 
     The device property represents the audio device this output is connected to.
     This property can be used to select an output device from the
-    QMediaDevices::audioOutputs() list.
+    \l{QMediaDevices::audioOutputs} list.
     You can select the system default audio output by setting this property to
     a default constructed QAudioDevice object.
 */
