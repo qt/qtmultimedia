@@ -62,7 +62,7 @@ QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine)
           addStereoSource(engine),
       }
 {
-    applyVolume();
+    QAmbientSoundPrivate::applyVolume();
 }
 
 QAmbientSoundPrivate::QAmbientSoundPrivate(QAudioEngine *engine, int nchannels, int sourceId)
