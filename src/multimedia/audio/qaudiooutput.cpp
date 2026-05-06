@@ -83,6 +83,12 @@ QAudioOutput::~QAudioOutput()
 }
 
 /*!
+    \qmlsignal void QtMultimedia::AudioOutput::volumeChanged()
+
+    This signal is emitted when the \l{volume} property is changed.
+*/
+
+/*!
     \qmlproperty real QtMultimedia::AudioOutput::volume
 
     This property holds the volume of the audio output.
@@ -133,6 +139,12 @@ void QAudioOutput::setVolume(float volume)
 }
 
 /*!
+    \qmlsignal void QtMultimedia::AudioOutput::mutedChanged()
+
+    This signal is emitted when the \l{muted} property is changed.
+*/
+
+/*!
     \qmlproperty bool QtMultimedia::AudioOutput::muted
 
     This property holds whether the audio output is muted.
@@ -159,6 +171,12 @@ void QAudioOutput::setMuted(bool muted)
     d->setMuted(muted);
     emit mutedChanged(muted);
 }
+
+/*!
+    \qmlsignal void QtMultimedia::AudioOutput::deviceChanged()
+
+    This signal is emitted when the \l{device} property is changed.
+*/
 
 /*!
     \qmlproperty AudioDevice QtMultimedia::AudioOutput::device
