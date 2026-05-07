@@ -130,48 +130,40 @@ struct AVDictionaryHolder
     }
 };
 
-template<typename FunctionType, FunctionType F>
+template <auto F>
 struct AVDeleter
 {
-    template <typename T, std::invoke_result_t<FunctionType, T **> * = nullptr>
+    template <typename T>
     void operator()(T *object) const
     {
-        if (object)
-            F(&object);
-    }
+        using FunctionType = decltype(F);
 
-    template <typename T, std::invoke_result_t<FunctionType, T *> * = nullptr>
-    void operator()(T *object) const
-    {
-        F(object);
+        static_assert(std::is_invocable_v<FunctionType, T *>
+                              || std::is_invocable_v<FunctionType, T **>,
+                      "F must be invocable with either T* or T**");
+
+        if constexpr (std::is_invocable_v<FunctionType, T **>) {
+            if (object)
+                F(&object);
+        } else
+            F(object);
     }
 };
 
-using AVFrameUPtr = std::unique_ptr<AVFrame, AVDeleter<decltype(&av_frame_free), &av_frame_free>>;
+using AVFrameUPtr = std::unique_ptr<AVFrame, AVDeleter<av_frame_free>>;
 
 inline AVFrameUPtr makeAVFrame()
 {
     return AVFrameUPtr(av_frame_alloc());
 }
 
-using AVPacketUPtr =
-        std::unique_ptr<AVPacket, AVDeleter<decltype(&av_packet_free), &av_packet_free>>;
-
-using AVCodecContextUPtr =
-        std::unique_ptr<AVCodecContext,
-                        AVDeleter<decltype(&avcodec_free_context), &avcodec_free_context>>;
-
-using AVBufferUPtr =
-        std::unique_ptr<AVBufferRef, AVDeleter<decltype(&av_buffer_unref), &av_buffer_unref>>;
-
-using AVHWFramesConstraintsUPtr = std::unique_ptr<
-        AVHWFramesConstraints,
-        AVDeleter<decltype(&av_hwframe_constraints_free), &av_hwframe_constraints_free>>;
-
-using SwrContextUPtr = std::unique_ptr<SwrContext, AVDeleter<decltype(&swr_free), &swr_free>>;
-
-using SwsContextUPtr =
-        std::unique_ptr<SwsContext, AVDeleter<decltype(&sws_freeContext), &sws_freeContext>>;
+using AVPacketUPtr = std::unique_ptr<AVPacket, AVDeleter<av_packet_free>>;
+using AVCodecContextUPtr = std::unique_ptr<AVCodecContext, AVDeleter<avcodec_free_context>>;
+using AVBufferUPtr = std::unique_ptr<AVBufferRef, AVDeleter<av_buffer_unref>>;
+using AVHWFramesConstraintsUPtr =
+        std::unique_ptr<AVHWFramesConstraints, AVDeleter<av_hwframe_constraints_free>>;
+using SwrContextUPtr = std::unique_ptr<SwrContext, AVDeleter<swr_free>>;
+using SwsContextUPtr = std::unique_ptr<SwsContext, AVDeleter<sws_freeContext>>;
 
 bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format);
 

@@ -36,7 +36,7 @@ struct ICancelToken
     virtual bool isCancelled() const = 0;
 };
 
-using AVFormatContextUPtr = std::unique_ptr<AVFormatContext, AVDeleter<decltype(&avformat_close_input), &avformat_close_input>>;
+using AVFormatContextUPtr = std::unique_ptr<AVFormatContext, AVDeleter<avformat_close_input>>;
 
 class MediaDataHolder
 {
