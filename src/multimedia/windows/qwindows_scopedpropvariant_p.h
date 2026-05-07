@@ -33,6 +33,7 @@ struct ScopedPropVariant
 
     PROPVARIANT *get() { return &var; }
     PROPVARIANT *operator->() { return &var; }
+    PROPVARIANT &operator*() { return var; }
 };
 
 } // namespace QtMultimediaPrivate
