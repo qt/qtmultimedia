@@ -3,11 +3,11 @@
 
 #include "qwindows_propertystore_p.h"
 
-#include <QtCore/qscopeguard.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/private/qsystemerror_p.h>
 #include <QtMultimedia/private/qcomtaskresource_p.h>
+#include <QtMultimedia/private/qwindows_scopedpropvariant_p.h>
 
 #include <mmdeviceapi.h>
 #include <propsys.h>
@@ -34,20 +34,15 @@ PropertyStoreHelper::open(const ComPtr<IMMDevice> &device)
 
 std::optional<QString> PropertyStoreHelper::getString(const PROPERTYKEY &property)
 {
-    PROPVARIANT variant;
-    PropVariantInit(&variant);
+    ScopedPropVariant variant;
 
-    auto cleanup = qScopeGuard([&] {
-        PropVariantClear(&variant);
-    });
-
-    if (!SUCCEEDED(m_props->GetValue(property, &variant)))
+    if (!SUCCEEDED(m_props->GetValue(property, variant.get())))
         return std::nullopt;
 
     QComTaskResource<WCHAR> str;
-    HRESULT hr = PropVariantToStringAlloc(variant, str.address());
+    HRESULT hr = PropVariantToStringAlloc(*variant, str.address());
     if (SUCCEEDED(hr))
-        return QString::fromWCharArray(variant.pwszVal);
+        return QString::fromWCharArray(variant->pwszVal);
 
     qWarning() << "PropertyStoreHelper::getString: PropVariantToStringAlloc failed"
                << QSystemError::windowsComString(hr);
@@ -56,14 +51,13 @@ std::optional<QString> PropertyStoreHelper::getString(const PROPERTYKEY &propert
 
 std::optional<uint32_t> PropertyStoreHelper::getUInt32(const PROPERTYKEY &property)
 {
-    PROPVARIANT variant;
-    PropVariantInit(&variant);
+    ScopedPropVariant variant;
 
-    if (!SUCCEEDED(m_props->GetValue(property, &variant)))
+    if (!SUCCEEDED(m_props->GetValue(property, variant.get())))
         return std::nullopt;
 
     ULONG ret;
-    HRESULT hr = PropVariantToUInt32(variant, &ret);
+    HRESULT hr = PropVariantToUInt32(*variant, &ret);
     if (SUCCEEDED(hr))
         return uint32_t{ ret };
 
@@ -99,14 +93,13 @@ auto wrapPropVariantArg(const PROPVARIANT &arg)
 
 std::optional<QUuid> PropertyStoreHelper::getGUID(const PROPERTYKEY &property)
 {
-    PROPVARIANT variant;
-    PropVariantInit(&variant);
+    ScopedPropVariant variant;
 
-    if (!SUCCEEDED(m_props->GetValue(property, &variant)))
+    if (!SUCCEEDED(m_props->GetValue(property, variant.get())))
         return std::nullopt;
 
     GUID ret;
-    HRESULT hr = PropVariantToGUID(wrapPropVariantArg(variant), &ret);
+    HRESULT hr = PropVariantToGUID(wrapPropVariantArg(*variant), &ret);
     if (SUCCEEDED(hr))
         return QUuid{ ret };
 
