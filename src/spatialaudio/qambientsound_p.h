@@ -44,7 +44,7 @@ namespace QSpatialAudioPrivate {
 class QSpatialAudioPlaybackState
 {
 public:
-    explicit QSpatialAudioPlaybackState(const QAudioBuffer &buffer, bool playing, int loops);
+    explicit QSpatialAudioPlaybackState(QAudioBuffer buffer, bool playing, int loops);
 
     void getBuffer(QSpan<float> output);
 

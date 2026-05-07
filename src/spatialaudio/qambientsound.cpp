@@ -20,8 +20,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QSpatialAudioPrivate {
 
-QSpatialAudioPlaybackState::QSpatialAudioPlaybackState(const QAudioBuffer &buffer, bool playing,
-                                                       int loops)
+QSpatialAudioPlaybackState::QSpatialAudioPlaybackState(QAudioBuffer buffer, bool playing, int loops)
     : m_playing(playing), m_loops(loops), m_buffer(std::move(buffer))
 {
 }
