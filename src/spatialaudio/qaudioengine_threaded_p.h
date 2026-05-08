@@ -15,11 +15,11 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qaudiodevice.h>
 #include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtSpatialAudio/private/qaudioengine_p.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qthread.h>
-#include <QtMultimedia/qaudiodevice.h>
 
 #include <map>
 

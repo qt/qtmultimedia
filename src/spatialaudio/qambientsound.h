@@ -5,8 +5,8 @@
 
 #include <QtSpatialAudio/qtspatialaudioglobal.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/QUrl>
-#include <QtCore/QObject>
+#include <QtCore/qurl.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 

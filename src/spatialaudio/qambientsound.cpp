@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
 
 #include "qambientsound.h"
+#include "qambientsound_p.h"
 
-#include <QtCore/qdebug.h>
-#include <QtCore/qfile.h>
-#include <QtCore/qurl.h>
 #include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
-#include <QtSpatialAudio/private/qambientsound_p.h>
 #include <QtSpatialAudio/private/qaudioengine_p.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qurl.h>
 
 #include <resonance_audio.h>
 #include <memory>

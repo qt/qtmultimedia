@@ -3,10 +3,6 @@
 
 #include "qaudioengine_threaded_p.h"
 
-#include <QtCore/qiodevice.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/qelapsedtimer.h>
-
 #include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qaudiosink.h>
@@ -15,13 +11,15 @@
 #ifdef Q_OS_WIN
 #  include <QtMultimedia/private/qwindows_wasapi_warmup_client_p.h>
 #endif
-
+#include <QtSpatialAudio/qambientsound.h>
+#include <QtSpatialAudio/qaudiolistener.h>
 #include <QtSpatialAudio/private/qambientsound_p.h>
 #include <QtSpatialAudio/private/qspatialsound_p.h>
 #include <QtSpatialAudio/private/qaudioroom_p.h>
 #include <QtSpatialAudio/private/qambisonicdecoder_p.h>
-#include <QtSpatialAudio/qambientsound.h>
-#include <QtSpatialAudio/qaudiolistener.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qelapsedtimer.h>
 
 #include <resonance_audio.h>
 

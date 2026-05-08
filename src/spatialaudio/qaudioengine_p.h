@@ -15,10 +15,9 @@
 // We mean it.
 //
 
+#include <QtSpatialAudio/qaudioengine.h>
 #include <QtGui/qvectornd.h>
 #include <QtCore/private/qobject_p.h>
-#include <QtGui/qvectornd.h>
-#include <QtSpatialAudio/qaudioengine.h>
 
 #include <optional>
 

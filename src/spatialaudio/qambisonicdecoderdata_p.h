@@ -3,7 +3,7 @@
 #ifndef QAMBISONICDECODERDATA_P_H
 #define QAMBISONICDECODERDATA_P_H
 
-#include <qtspatialaudioglobal_p.h>
+#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 
 //  W A R N I N G
 //  -------------

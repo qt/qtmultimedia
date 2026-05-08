@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
 
 #include "qaudioengine.h"
+#include "qaudioengine_p.h"
 
-#include <QtCore/qspan.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
-#include <QtSpatialAudio/private/qaudioengine_p.h>
 #include <QtSpatialAudio/private/qaudioengine_threaded_p.h>
 #include <QtSpatialAudio/private/qaudioroom_p.h>
+#include <QtCore/qspan.h>
 
 #include <q20vector.h>
 

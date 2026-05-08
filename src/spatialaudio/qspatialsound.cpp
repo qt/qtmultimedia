@@ -1,12 +1,15 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
-#include "qaudioroom_p.h"
+
+#include "qspatialsound.h"
 #include "qspatialsound_p.h"
-#include "qaudiolistener.h"
-#include "qaudioengine_p.h"
-#include <qaudiosink.h>
-#include <qurl.h>
-#include <qdebug.h>
+
+#include <QtMultimedia/qaudiosink.h>
+#include <QtSpatialAudio/qaudiolistener.h>
+#include <QtSpatialAudio/private/qaudioroom_p.h>
+#include <QtSpatialAudio/private/qaudioengine_p.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qurl.h>
 
 #include <array>
 

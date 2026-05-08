@@ -14,8 +14,8 @@
 // We mean it.
 //
 
-#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtCore/qspan.h>
 
 #include <memory>

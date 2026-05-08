@@ -3,8 +3,8 @@
 
 #include "qaudiolistener.h"
 
-#include <QtSpatialAudio/private/qaudioengine_p.h>
 #include <QtMultimedia/qaudiosink.h>
+#include <QtSpatialAudio/private/qaudioengine_p.h>
 #include <QtCore/private/qobject_p.h>
 
 

@@ -4,9 +4,9 @@
 #define QSPATIALSOUND_H
 
 #include <QtSpatialAudio/qtspatialaudioglobal.h>
-#include <QtCore/QObject>
 #include <QtGui/qvector3d.h>
 #include <QtGui/qquaternion.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 
