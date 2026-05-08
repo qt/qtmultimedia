@@ -69,10 +69,10 @@ using SwsFlags = int;
 
 using PixelOrSampleFormat = int;
 using AVScore = int;
-constexpr AVScore BestAVScore = std::numeric_limits<AVScore>::max();
-constexpr AVScore DefaultAVScore = 0;
-constexpr AVScore NotSuitableAVScore = std::numeric_limits<AVScore>::min();
-constexpr AVScore MinAVScore = NotSuitableAVScore + 1;
+inline constexpr AVScore BestAVScore = std::numeric_limits<AVScore>::max();
+inline constexpr AVScore DefaultAVScore = 0;
+inline constexpr AVScore NotSuitableAVScore = std::numeric_limits<AVScore>::min();
+inline constexpr AVScore MinAVScore = NotSuitableAVScore + 1;
 
 using AVPixelFormatSet = std::unordered_set<AVPixelFormat>;
 
