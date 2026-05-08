@@ -388,7 +388,12 @@ QAmbientSound::QAmbientSound(QAudioEngine *engine) : QObject(*new QAmbientSoundP
         qWarning() << "Cannot create QAmbientSound without a valid QAudioEngine";
 }
 
-QAmbientSound::~QAmbientSound() = default;
+QAmbientSound::~QAmbientSound()
+{
+    Q_D(QAmbientSound);
+    if (d->state() != QAmbientSoundPrivate::State::Stopped)
+        d->stop();
+}
 
 /*!
     \property QAmbientSound::volume

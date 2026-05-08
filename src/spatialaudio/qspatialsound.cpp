@@ -43,7 +43,12 @@ QSpatialSound::QSpatialSound(QAudioEngine *engine) : QObject(*new QSpatialSoundP
 /*!
     Destroys the sound source.
  */
-QSpatialSound::~QSpatialSound() = default;
+QSpatialSound::~QSpatialSound()
+{
+    Q_D(QSpatialSound);
+    if (d->state() != QSpatialSoundPrivate::State::Stopped)
+        d->stop();
+}
 
 /*!
     \property QSpatialSound::position

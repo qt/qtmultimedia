@@ -104,6 +104,13 @@ public:
     QAudioEngine *const engine;
     const int sourceId;
 
+    enum class State : uint8_t {
+        Stopped,
+        Playing,
+        Paused,
+    };
+    State state() const { return m_state; }
+
 protected:
     template <typename Functor>
     auto withResonanceApi(Functor &&f)
@@ -123,11 +130,6 @@ protected:
     virtual void applyVolume();
 
 private:
-    enum class State : uint8_t {
-        Stopped,
-        Playing,
-        Paused,
-    };
     State m_state = State::Stopped;
     bool m_autoPlay = true;
 
