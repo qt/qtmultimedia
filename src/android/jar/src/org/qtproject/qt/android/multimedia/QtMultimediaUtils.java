@@ -14,6 +14,9 @@ import android.content.ContentResolver;
 import android.os.Environment;
 import android.media.MediaScannerConnection;
 import java.lang.String;
+
+import org.qtproject.qt.android.UsedFromNativeCode;
+
 import java.io.File;
 import android.util.Log;
 
@@ -115,6 +118,7 @@ class QtMultimediaUtils
         c2.android.opus.encoder
         OMX.google.opus.decoder
     */
+    @UsedFromNativeCode
     private static String[] getMediaCodecs()
     {
         final MediaCodecList codecList = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
@@ -146,4 +150,3 @@ class QtMultimediaUtils
         return type;
     }
 }
-

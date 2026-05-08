@@ -6,7 +6,6 @@ package org.qtproject.qt.android.multimedia.qffmpeg;
 import android.app.Activity;
 import android.hardware.camera2.CameraManager;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import org.qtproject.qt.android.UsedFromNativeCode;
