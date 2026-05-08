@@ -324,11 +324,11 @@ AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevi
 
     const qreal epsilon = 0.1;
 
-    QVector<AVCaptureDeviceFormat *>sorted(qt_unique_device_formats(captureDevice, filter));
+    QVector<AVCaptureDeviceFormat *> sorted(qt_unique_device_formats(captureDevice, filter));
     // Sort formats by their resolution in decreasing order:
     std::sort(sorted.begin(), sorted.end(), ByResolution<std::greater>());
     // We can use only formats with framerate ranges:
-    sorted.erase(std::remove_if(sorted.begin(), sorted.end(), FormatHasNoFPSRange()), sorted.end());
+    sorted.removeIf(FormatHasNoFPSRange());
 
     if (!sorted.size())
         return nil;

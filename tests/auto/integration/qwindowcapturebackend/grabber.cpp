@@ -6,6 +6,7 @@
 
 #include <qtest.h>
 #include <qvideoframe.h>
+#include <q20vector.h>
 
 FrameGrabber::FrameGrabber()
 {
@@ -32,11 +33,9 @@ std::vector<QVideoFrame> FrameGrabber::waitAndTakeFrames(size_t minCount, qint64
 
         if (noOlderThanTime > 0) {
             // Reject frames older than noOlderThanTime
-            const auto newEnd = std::remove_if(m_frames.begin(), m_frames.end(),
-                                               [noOlderThanTime](const QVideoFrame &frame) {
-                                                   return frame.startTime() <= noOlderThanTime;
-                                               });
-            m_frames.erase(newEnd, m_frames.end());
+            q20::erase_if(m_frames, [noOlderThanTime](const QVideoFrame &frame) {
+                return frame.startTime() <= noOlderThanTime;
+            });
         }
 
         return m_frames.size() >= minCount;
