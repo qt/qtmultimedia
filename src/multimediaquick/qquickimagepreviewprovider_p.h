@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaquickglobal_p.h>
+#include <QtMultimediaQuick/private/qtmultimediaquickglobal_p.h>
 #include <QtQuick/qquickimageprovider.h>
 #include <QtCore/quuid.h>
 

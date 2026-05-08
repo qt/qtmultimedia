@@ -1,19 +1,20 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // Copyright (C) 2016 Research In Motion
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
 #include "qquickvideooutput_p.h"
 
-#include <private/qvideooutputorientationhandler_p.h>
-#include <private/qvideoframetexturepool_p.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediacapturesession.h>
-#include <private/qfactoryloader_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qvideoframetexturepool_p.h>
+#include <QtMultimedia/private/qvideooutputorientationhandler_p.h>
+#include <QtQuick/qquickwindow.h>
+#include <QtQuick/private/qquickwindow_p.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtQuick/QQuickWindow>
-#include <private/qquickwindow_p.h>
-#include <private/qmultimediautils_p.h>
-#include <qsgvideonode_p.h>
 #include <QtCore/qrunnable.h>
+#include <QtCore/private/qfactoryloader_p.h>
+#include <QtMultimediaQuick/private/qsgvideonode_p.h>
 
 QT_BEGIN_NAMESPACE
 

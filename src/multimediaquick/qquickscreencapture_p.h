@@ -15,10 +15,10 @@
 // We mean it.
 //
 
-#include <QScreenCapture>
-#include <qtmultimediaquickexports.h>
-#include <private/qglobal_p.h>
-#include <private/qquickscreen_p.h>
+#include <QtMultimedia/qscreencapture.h>
+#include <QtMultimediaQuick/qtmultimediaquickexports.h>
+#include <QtQuick/private/qquickscreen_p.h>
+#include <QtCore/private/qglobal_p.h>
 #include <memory>
 
 QT_BEGIN_NAMESPACE

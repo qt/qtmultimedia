@@ -15,13 +15,12 @@
 // We mean it.
 //
 
-#include <QtQuick/qsgnode.h>
-#include <private/qtmultimediaquickglobal_p.h>
-#include "private/qvideotexturehelper_p.h"
-#include "private/qmultimediautils_p.h"
-
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
+#include <QtMultimediaQuick/private/qtmultimediaquickglobal_p.h>
+#include <QtQuick/qsgnode.h>
 #include <QtGui/qopenglfunctions.h>
 
 QT_BEGIN_NAMESPACE
