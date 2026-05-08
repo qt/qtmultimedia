@@ -14,10 +14,10 @@
 // We mean it.
 //
 
-#include <private/qquick3dnode_p.h>
+#include <QtQuick3D/private/qquick3dnode_p.h>
 #include <QtGui/qvector3d.h>
 
-#include <qaudiolistener.h>
+#include <QtSpatialAudio/qaudiolistener.h>
 
 QT_BEGIN_NAMESPACE
 

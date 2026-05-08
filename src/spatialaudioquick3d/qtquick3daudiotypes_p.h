@@ -16,7 +16,7 @@
 //
 
 #include <QtQml/qqml.h>
-#include <private/qtquick3daudioglobal_p.h>
+#include <QtQuick3DSpatialAudio/private/qtquick3daudioglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 

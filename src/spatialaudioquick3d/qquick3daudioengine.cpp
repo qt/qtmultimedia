@@ -1,8 +1,8 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
-#include <qquick3daudioengine_p.h>
-#include <qaudiodevice.h>
+#include "qquick3daudioengine_p.h"
 
+#include <QtMultimedia/qaudiodevice.h>
 #include <QtCore/qcoreapplication.h>
 
 QT_BEGIN_NAMESPACE
