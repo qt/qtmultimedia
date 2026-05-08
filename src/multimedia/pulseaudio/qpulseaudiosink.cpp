@@ -237,7 +237,8 @@ bool QPulseAudioSinkStream::startStream(StreamType streamType)
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
     std::lock_guard engineLock{ *pulseEngine };
 
-    int status = pa_stream_connect_playback(m_stream.get(), m_audioDevice.id().data(), &attr, flags,
+    const auto id = m_audioDevice.id();
+    int status = pa_stream_connect_playback(m_stream.get(), id.data(), &attr, flags,
                                             nullptr, nullptr);
 
     if (status != 0) {

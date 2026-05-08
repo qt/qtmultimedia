@@ -157,7 +157,8 @@ bool QPulseAudioSourceStream::startStream(StreamType streamType)
     std::lock_guard engineLock{ *pulseEngine };
     installCallbacks(streamType);
 
-    int status = pa_stream_connect_record(m_stream.get(), m_audioDevice.id().data(), &attr, flags);
+    const auto id = m_audioDevice.id();
+    int status = pa_stream_connect_record(m_stream.get(), id.data(), &attr, flags);
     if (status != 0) {
         qCWarning(qLcPulseAudioOut) << "pa_stream_connect_record() failed!";
         m_stream = {};
