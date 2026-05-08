@@ -49,6 +49,7 @@ public:
     [[nodiscard]] QSpan<const ChannelLayoutT> channelLayouts() const noexcept;
     [[nodiscard]] QSpan<const AVRational> frameRates() const noexcept;
     [[nodiscard]] std::vector<const AVCodecHWConfig *> hwConfigs() const noexcept;
+    [[nodiscard]] const AVCodecHWConfig *hwConfigForPixelFormat(AVPixelFormat) const noexcept;
 
 private:
     const AVCodec *m_codec = nullptr;

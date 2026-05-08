@@ -8,6 +8,7 @@
 #include "qffmpegcodecstorage_p.h"
 
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/private/qexpected_p.h>
 
 extern "C" {
@@ -16,7 +17,9 @@ extern "C" {
 }
 
 QT_BEGIN_NAMESPACE
+
 namespace ranges = QtMultimediaPrivate::ranges;
+using namespace Qt::Literals;
 
 Q_STATIC_LOGGING_CATEGORY(qLcVideoFrameEncoder, "qt.multimedia.ffmpeg.videoencoder");
 
@@ -73,6 +76,24 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
         auto findDeviceType = [&](const Codec &codec) {
             std::optional<AVPixelFormat> pixelFormat = findAVPixelFormat(codec, &isHwPixelFormat);
             if (!pixelFormat)
+                return deviceTypes.end();
+
+#ifdef Q_OS_APPLE
+            if (QOperatingSystemVersion::current() < QOperatingSystemVersion::MacOSSequoia
+                && codec.name() == "hevc_videotoolbox"_L1) {
+                return ranges::find_if(deviceTypes, [&](AVHWDeviceType deviceType) {
+                    return pixelFormatForHwDevice(deviceType) == pixelFormat;
+                });
+            }
+#endif
+
+            const AVCodecHWConfig *cfg = codec.hwConfigForPixelFormat(*pixelFormat);
+            if (!cfg)
+                return deviceTypes.end();
+
+            bool supportsHwDeviceContext =
+                    (cfg->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) != 0;
+            if (!supportsHwDeviceContext)
                 return deviceTypes.end();
 
             return ranges::find_if(deviceTypes, [&](AVHWDeviceType deviceType) {

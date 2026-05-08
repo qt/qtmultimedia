@@ -266,6 +266,17 @@ std::vector<const AVCodecHWConfig *> Codec::hwConfigs() const noexcept
     return configs;
 }
 
+const AVCodecHWConfig *Codec::hwConfigForPixelFormat(AVPixelFormat pix) const noexcept
+{
+    Q_ASSERT(m_codec);
+
+    for (int index = 0; auto config = avcodec_get_hw_config(m_codec, index); ++index) {
+        if (config->pix_fmt == pix)
+            return config;
+    }
+    return nullptr;
+}
+
 CodecIterator CodecIterator::begin()
 {
     CodecIterator iterator;
