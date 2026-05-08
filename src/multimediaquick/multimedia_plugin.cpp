@@ -1,10 +1,9 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
+#include <QtMultimediaQuick/private/qtmultimediaquickglobal_p.h>
+#include <QtMultimediaQuick/private/qquickimagepreviewprovider_p.h>
 #include <QtQml/qqmlextensionplugin.h>
-
-#include <private/qtmultimediaquickglobal_p.h>
-#include <private/qquickimagepreviewprovider_p.h>
 
 QT_BEGIN_NAMESPACE
 

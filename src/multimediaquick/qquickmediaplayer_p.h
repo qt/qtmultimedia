@@ -15,11 +15,11 @@
 // We mean it.
 //
 
-#include <QMediaPlayer>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimediaQuick/qtmultimediaquickexports.h>
 #include <QtQml/qqml.h>
-#include <qtmultimediaquickexports.h>
-#include <qurl.h>
-#include <private/qglobal_p.h>
+#include <QtCore/qurl.h>
+#include <QtCore/private/qglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 

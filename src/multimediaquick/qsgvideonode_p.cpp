@@ -2,18 +2,20 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qsgvideonode_p.h"
-#include <QtQuick/qsgmaterial.h>
-#include "qsgvideotexture_p.h"
+
+#include <QtMultimedia/private/qhwvideobuffer_p.h>
+#include <QtMultimedia/private/qvideoframetexturepool_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
-#include <private/qsginternaltextnode_p.h>
-#include <private/qquickitem_p.h>
-#include <private/qquickvideooutput_p.h>
-#include <private/qhwvideobuffer_p.h>
-#include <private/qvideoframetexturepool_p.h>
+#include <QtMultimediaQuick/private/qquickvideooutput_p.h>
+#include <QtQuick/qsgmaterial.h>
+#include <QtQuick/private/qquickitem_p.h>
+#include <QtQuick/private/qsginternaltextnode_p.h>
 
 #if QT_CONFIG(opengles2)
-#include <private/qshaderdescription_p.h>
+#include <QtGui/private/qshaderdescription_p.h>
 #endif
+
+#include "qsgvideotexture_p.h"
 
 QT_BEGIN_NAMESPACE
 

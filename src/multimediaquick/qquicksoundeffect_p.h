@@ -15,10 +15,10 @@
 // We mean it.
 //
 
-#include <QSoundEffect>
+#include <QtMultimedia/qsoundeffect.h>
+#include <QtMultimediaQuick/qtmultimediaquickexports.h>
 #include <QtQml/qqml.h>
-#include <qtmultimediaquickexports.h>
-#include <qurl.h>
+#include <QtCore/qurl.h>
 
 QT_BEGIN_NAMESPACE
 
