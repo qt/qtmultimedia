@@ -4,9 +4,9 @@
 #ifndef QGRAPHICSVIDEOITEM_H
 #define QGRAPHICSVIDEOITEM_H
 
-#include <QtWidgets/qgraphicsitem.h>
-
 #include <QtMultimediaWidgets/qvideowidget.h>
+
+#include <QtWidgets/qgraphicsitem.h>
 
 #if QT_CONFIG(graphicsview)
 

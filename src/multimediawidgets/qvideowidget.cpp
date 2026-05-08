@@ -1,10 +1,10 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <private/qtmultimediaglobal_p.h>
+#include "qvideowidget.h"
+#include "qvideowidget_p.h"
 
-#include <QtMultimediaWidgets/private/qvideowidget_p.h>
-
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/qvideosink.h>
