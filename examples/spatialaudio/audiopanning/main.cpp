@@ -56,7 +56,6 @@ private:
 };
 
 AudioWidget::AudioWidget()
-    : QWidget()
 {
     setMinimumSize(400, 300);
     auto *form = new QFormLayout(this);
@@ -190,10 +189,8 @@ void AudioWidget::openFileDialog()
         const QString dir = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
         fileDialog = new QFileDialog(this, tr("Open Audio File"), dir);
         fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
-        const QStringList mimeTypes{"audio/mpeg", "audio/aac", "audio/x-ms-wma",
-                                    "audio/x-flac+ogg", "audio/x-wav"};
-        fileDialog->setMimeTypeFilters(mimeTypes);
-        fileDialog->selectMimeTypeFilter(mimeTypes.constFirst());
+        const QStringList nameFilters{tr("Audio Files (*.mp3 *.aac *.wma *.flac *.ogg *.wav)")};
+        fileDialog->setNameFilters(nameFilters);
     }
 
     if (fileDialog->exec() == QDialog::Accepted)
