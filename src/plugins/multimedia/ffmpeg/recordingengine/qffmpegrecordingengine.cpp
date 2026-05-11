@@ -18,6 +18,7 @@
 #include "qloggingcategory.h"
 
 QT_BEGIN_NAMESPACE
+namespace ranges = QtMultimediaPrivate::ranges;
 
 Q_STATIC_LOGGING_CATEGORY(qLcFFmpegEncoder, "qt.multimedia.ffmpeg.encoder");
 
@@ -321,8 +322,8 @@ bool RecordingEngine::allOfEncoders(F &&f) const
 {
     auto predicate = [&f](const auto &encoder) { return std::invoke(f, encoder.get()); };
 
-    return std::all_of(m_audioEncoders.cbegin(), m_audioEncoders.cend(), predicate)
-            && std::all_of(m_videoEncoders.cbegin(), m_videoEncoders.cend(), predicate);
+    return ranges::all_of(m_audioEncoders, predicate)
+            && ranges::all_of(m_videoEncoders, predicate);
 }
 } // namespace QFFmpeg
 

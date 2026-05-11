@@ -4,6 +4,7 @@
 #include "qcoreaudioutils_p.h"
 
 #include <QtCore/qdebug.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #ifdef Q_OS_MACOS
 #  include <CoreAudio/AudioHardware.h>
@@ -14,6 +15,8 @@
 QT_BEGIN_NAMESPACE
 
 namespace QCoreAudioUtils {
+
+namespace ranges = QtMultimediaPrivate::ranges;
 
 QAudioFormat toPreferredQAudioFormat(AudioStreamBasicDescription const &sf)
 {
@@ -214,8 +217,7 @@ QAudioFormat::ChannelConfig fromAudioChannelLayout(const AudioChannelLayout *lay
                 continue;
             }
 
-            const auto found = std::find_if(channelMap, std::end(channelMap),
-                                            [channelLabel](const auto &labelWithPos) {
+            const auto found = ranges::find_if(channelMap, [&](const auto &labelWithPos) {
                 return labelWithPos.label == channelLabel;
             });
 

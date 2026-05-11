@@ -17,6 +17,7 @@
 
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #include <array>
 
@@ -40,8 +41,9 @@ template <typename T>
 int findClosestSamplingRate(int rate, QSpan<const T> supportedRates)
 {
     Q_ASSERT(!supportedRates.empty());
+    namespace ranges = QtMultimediaPrivate::ranges;
 
-    auto exactMatchIt = std::find(supportedRates.begin(), supportedRates.end(), T(rate));
+    auto exactMatchIt = ranges::find(supportedRates, T(rate));
     if (exactMatchIt != supportedRates.end())
         return int(*exactMatchIt);
 
@@ -51,7 +53,7 @@ int findClosestSamplingRate(int rate, QSpan<const T> supportedRates)
         return arg > rate ? float(arg) / rate : rate / float(arg);
     };
 
-    return *std::min_element(supportedRates.begin(), supportedRates.end(), [&](auto lhs, auto rhs) {
+    return ranges::min(supportedRates, [&](auto lhs, auto rhs) {
         return ratioToRate(lhs) < ratioToRate(rhs);
     });
 }

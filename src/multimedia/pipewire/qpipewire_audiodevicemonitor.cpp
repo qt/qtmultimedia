@@ -18,6 +18,7 @@
 #include <mutex>
 
 QT_BEGIN_NAMESPACE
+namespace ranges = QtMultimediaPrivate::ranges;
 
 namespace QtPipeWire {
 
@@ -316,7 +317,7 @@ QAudioDeviceMonitor::findNodeSerialForNodeName(std::string_view nodeName) const
     QReadLocker guard(&m_mutex);
 
     QSpan records = Mode == Direction::sink ? QSpan{ m_sinks } : QSpan{ m_sources };
-    auto it = std::find_if(records.begin(), records.end(), [&](const NodeRecord &sink) {
+    auto it = ranges::find_if(records, [&](const NodeRecord &sink) {
         return getNodeName(sink.properties) == nodeName;
     });
 
@@ -369,8 +370,7 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
         });
 
         // sort to list non-iec958 devices first
-        std::sort(results.begin(), results.end(),
-                  [](SpaObjectAudioFormat const &lhs, SpaObjectAudioFormat const &rhs) {
+        ranges::sort(results, [](SpaObjectAudioFormat const &lhs, SpaObjectAudioFormat const &rhs) {
             auto lhs_has_iec958 = std::holds_alternative<spa_audio_iec958_codec>(lhs.sampleTypes);
             auto rhs_has_iec958 = std::holds_alternative<spa_audio_iec958_codec>(rhs.sampleTypes);
             return lhs_has_iec958 < rhs_has_iec958;
@@ -430,8 +430,7 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
     }
 
     // sort by description
-    std::sort(newDeviceList.begin(), newDeviceList.end(),
-              [](const QAudioDevice &lhs, const QAudioDevice &rhs) {
+    ranges::sort(newDeviceList, [](const QAudioDevice &lhs, const QAudioDevice &rhs) {
         return lhs.description() < rhs.description();
     });
 
@@ -470,7 +469,7 @@ void QAudioDeviceMonitor::updateSources(std::list<PendingNodeRecord> addedNodes,
 std::optional<ObjectSerial> QAudioDeviceMonitor::findDeviceSerial(std::string_view deviceName) const
 {
     QReadLocker guard(&m_mutex);
-    auto it = std::find_if(m_devices.begin(), m_devices.end(), [&](auto const &entry) {
+    auto it = ranges::find_if(m_devices, [&](auto const &entry) {
         return getDeviceName(entry.second.properties) == deviceName;
     });
     if (it == m_devices.end())
@@ -533,7 +532,7 @@ QAudioDeviceMonitor::DeviceLists QAudioDeviceMonitor::getDeviceLists(bool verify
             m_pendingRecords.removeRecordsForObject(removed);
 
         auto allFormatsResolved = [](const std::list<PendingNodeRecord> &list) {
-            return std::all_of(list.begin(), list.end(), [](const PendingNodeRecord &record) {
+            return ranges::all_of(list, [](const PendingNodeRecord &record) {
                 return record.formatFuture.isFinished();
             });
         };

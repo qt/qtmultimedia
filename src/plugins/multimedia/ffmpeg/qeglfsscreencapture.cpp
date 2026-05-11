@@ -9,6 +9,7 @@
 #include "private/qimagevideobuffer_p.h"
 #include "private/qvideoframe_p.h"
 
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtOpenGL/private/qopenglcompositor_p.h>
 #include <QtOpenGL/private/qopenglframebufferobject_p.h>
 
@@ -17,6 +18,7 @@
 #endif
 
 QT_BEGIN_NAMESPACE
+namespace ranges = QtMultimediaPrivate::ranges;
 
 class QEglfsScreenCapture::Grabber : public QFFmpegSurfaceCaptureGrabber
 {
@@ -165,7 +167,7 @@ std::unique_ptr<QEglfsScreenCapture::Grabber> QEglfsScreenCapture::createGrabber
 #ifndef QT_NO_QUICK
     // Check for QQuickWindow
     auto windows = QGuiApplication::topLevelWindows();
-    auto it = std::find_if(windows.begin(), windows.end(), [screen](QWindow *window) {
+    auto it = ranges::find_if(windows, [screen](QWindow *window) {
         auto quickWindow = qobject_cast<QQuickWindow *>(window);
         if (!quickWindow)
             return false;

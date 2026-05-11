@@ -5,6 +5,7 @@
 #include <QtMultimedia/qmediametadata.h>
 #include <QtMultimedia/qtvideo.h>
 #include <QtCore/qdebug.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qlocale.h>
 #include <QtCore/qtimezone.h>
@@ -16,6 +17,7 @@
 #include <qgstreamerformatinfo_p.h>
 
 QT_BEGIN_NAMESPACE
+namespace ranges = QtMultimediaPrivate::ranges;
 
 RotationResult parseRotationTag(std::string_view tag)
 {
@@ -134,17 +136,16 @@ constexpr_lookup auto makeLookupTable()
             { GST_TAG_PERFORMER, QMediaMetaData::LeadPerformer },
     } };
 
-    std::sort(lookupTable.begin(), lookupTable.end(),
-              [](const MetadataKeyValuePair &lhs, const MetadataKeyValuePair &rhs) {
-                  return std::string_view(lhs.tag) < std::string_view(rhs.tag);
-              });
+    ranges::sort(lookupTable, [](const MetadataKeyValuePair &lhs, const MetadataKeyValuePair &rhs) {
+        return std::string_view(lhs.tag) < std::string_view(rhs.tag);
+    });
     return lookupTable;
 }
 
 constexpr_lookup auto gstTagToMetaDataKey = makeLookupTable();
 constexpr_lookup auto metaDataKeyToGstTag = [] {
     auto array = gstTagToMetaDataKey;
-    std::sort(array.begin(), array.end(), compareByKey);
+    ranges::sort(array, compareByKey);
     return array;
 }();
 

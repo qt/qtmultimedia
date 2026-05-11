@@ -9,6 +9,7 @@
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qvideotexturehelper_p.h>
 #include <private/qwasmmediadevices_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #include "qwasmmediacapturesession_p.h"
 #include <common/qwasmvideooutput_p.h>
@@ -22,6 +23,8 @@
 #include <private/qstdweb_p.h>
 
 Q_LOGGING_CATEGORY(qWasmCamera, "qt.multimedia.wasm.camera")
+
+namespace ranges = QtMultimediaPrivate::ranges;
 
 QWasmCamera::QWasmCamera(QCamera *camera)
     : QPlatformCamera(camera),
@@ -109,7 +112,7 @@ void QWasmCamera::setCamera(const QCameraDevice &camera)
 
     const auto cameras = QMediaDevices::videoInputs();
 
-    if (std::find(cameras.begin(), cameras.end(), camera) != cameras.end()) {
+    if (ranges::contains(cameras, camera)) {
         m_cameraDev = camera;
         createCamera(m_cameraDev);
         emit cameraIsReady();
@@ -179,16 +182,15 @@ bool QWasmCamera::isFocusModeSupported(QCamera::FocusMode mode) const
     bool found = false;
     switch (mode) {
     case QCamera::FocusModeAuto:
-        return std::find(focalModes.begin(), focalModes.end(), "continuous") != focalModes.end()
-                || std::find(focalModes.begin(), focalModes.end(), "single-shot")
-                        != focalModes.end();
+        return ranges::contains(focalModes, "continuous")
+                || ranges::contains(focalModes, "single-shot");
     case QCamera::FocusModeAutoNear:
     case QCamera::FocusModeAutoFar:
     case QCamera::FocusModeHyperfocal:
     case QCamera::FocusModeInfinity:
         break;
     case QCamera::FocusModeManual:
-        found = std::find(focalModes.begin(), focalModes.end(), "manual") != focalModes.end();
+        found = ranges::contains(focalModes, "manual");
     };
     return found;
 }
@@ -287,12 +289,10 @@ bool QWasmCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
     bool found = false;
     switch (mode) {
     case QCamera::ExposureAuto:
-        found = std::find(exposureModes.begin(), exposureModes.end(), "continuous")
-                != exposureModes.end();
+        found = ranges::contains(exposureModes, "continuous");
         break;
     case QCamera::ExposureManual:
-        found = std::find(exposureModes.begin(), exposureModes.end(), "manual")
-                != exposureModes.end();
+        found = ranges::contains(exposureModes, "manual");
         break;
     default:
         break;

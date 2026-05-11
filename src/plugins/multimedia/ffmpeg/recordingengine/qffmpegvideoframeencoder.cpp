@@ -16,6 +16,7 @@ extern "C" {
 }
 
 QT_BEGIN_NAMESPACE
+namespace ranges = QtMultimediaPrivate::ranges;
 
 Q_STATIC_LOGGING_CATEGORY(qLcVideoFrameEncoder, "qt.multimedia.ffmpeg.videoencoder");
 
@@ -74,10 +75,9 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
             if (!pixelFormat)
                 return deviceTypes.end();
 
-            return std::find_if(deviceTypes.begin(), deviceTypes.end(),
-                                [pixelFormat](AVHWDeviceType deviceType) {
-                                    return pixelFormatForHwDevice(deviceType) == pixelFormat;
-                                });
+            return ranges::find_if(deviceTypes, [&](AVHWDeviceType deviceType) {
+                return pixelFormatForHwDevice(deviceType) == pixelFormat;
+            });
         };
 
         findAndOpenAVEncoder(

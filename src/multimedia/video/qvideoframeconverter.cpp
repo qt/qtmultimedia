@@ -28,6 +28,8 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace ranges = QtMultimediaPrivate::ranges;
+
 Q_STATIC_LOGGING_CATEGORY(qLcVideoFrameConverter, "qt.multimedia.video.frameconverter")
 
 // clang-format off
@@ -181,7 +183,7 @@ static QImage convertJPEG(const QVideoFrame &frame, const VideoTransformation &t
     };
 
     constexpr std::array<uchar, 2> soiMarker{ uchar(0xff), uchar(0xd8) };
-    if (!QtMultimediaPrivate::ranges::equal(jpegData.first(2), soiMarker, std::equal_to<void>{})) {
+    if (!ranges::equal(jpegData.first(2), soiMarker, std::equal_to<void>{})) {
         qCDebug(qLcVideoFrameConverter)
                 << Q_FUNC_INFO << ": JPEG data does not start with SOI marker";
         return QImage{};
@@ -191,7 +193,7 @@ static QImage convertJPEG(const QVideoFrame &frame, const VideoTransformation &t
 
     // some JPEG cameras contain extra data after the JPEG marker. If so, we drop it to make
     // libjpeg happy.
-    if (!QtMultimediaPrivate::ranges::equal(jpegData.last(2), eoiMarker, std::equal_to<void>{})) {
+    if (!ranges::equal(jpegData.last(2), eoiMarker, std::equal_to<void>{})) {
         qCDebug(qLcVideoFrameConverter)
                 << Q_FUNC_INFO << ": JPEG data does not end with EOI marker";
 

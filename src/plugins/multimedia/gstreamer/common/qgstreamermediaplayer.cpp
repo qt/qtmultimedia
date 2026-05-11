@@ -22,6 +22,7 @@
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <QtCore/qdebug.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qthread.h>
@@ -31,6 +32,7 @@
 Q_STATIC_LOGGING_CATEGORY(qLcMediaPlayer, "qt.multimedia.player");
 
 QT_BEGIN_NAMESPACE
+namespace ranges = QtMultimediaPrivate::ranges;
 
 namespace {
 
@@ -235,11 +237,11 @@ void QGstreamerMediaPlayer::decoderPadRemovedCustomSource(const QGstElement &src
     qCDebug(qLcMediaPlayer) << "Removed pad" << pad.name() << "from" << src.name() << "for stream"
                             << pad.streamId();
 
-    auto found = std::find(customPipelinePads.begin(), customPipelinePads.end(), pad);
+    auto found = ranges::find(customPipelinePads, pad);
     if (found == customPipelinePads.end())
         return;
 
-    TrackType type = TrackType(std::distance(customPipelinePads.begin(), found));
+    TrackType type = TrackType(found - customPipelinePads.cbegin());
 
     switch (type) {
     case VideoStream:
@@ -263,8 +265,7 @@ void QGstreamerMediaPlayer::resetStateForEmptyOrInvalidMedia()
     m_nativeSize.clear();
 
     bool metadataNeedsSignal = !m_metaData.isEmpty();
-    bool tracksNeedsSignal =
-            std::any_of(m_trackMetaData.begin(), m_trackMetaData.end(), [](const auto &container) {
+    bool tracksNeedsSignal = ranges::any_of(m_trackMetaData, [](const auto &container) {
         return !container.empty();
     });
 
