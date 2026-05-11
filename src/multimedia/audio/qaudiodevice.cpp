@@ -1,11 +1,11 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qaudiosystem_p.h"
 #include "qaudiodevice_p.h"
-#include <private/qplatformaudiodevices_p.h>
-#include <private/qplatformmediaintegration_p.h>
 
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtCore/qmap.h>
 
 QT_BEGIN_NAMESPACE

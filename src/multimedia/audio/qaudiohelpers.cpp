@@ -3,9 +3,9 @@
 
 #include "qaudiohelpers_p.h"
 
-#include <QtCore/qdebug.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qmultimedia_enum_to_string_converter_p.h>
+#include <QtCore/qdebug.h>
 
 #include <limits>
 

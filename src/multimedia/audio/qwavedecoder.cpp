@@ -4,10 +4,11 @@
 
 #include "qwavedecoder.h"
 
-#include <QtCore/qtimer.h>
+#include <QtCore/qdebug.h>
 #include <QtCore/qendian.h>
+#include <QtCore/qtimer.h>
+
 #include <limits.h>
-#include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
 

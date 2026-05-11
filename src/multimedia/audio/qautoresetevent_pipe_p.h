@@ -15,8 +15,9 @@
 #ifndef QAUTORESETEVENT_PIPE_P_H
 #define QAUTORESETEVENT_PIPE_P_H
 
-#include <QtCore/qsocketnotifier.h>
 #include <QtMultimedia/qtmultimediaexports.h>
+#include <QtCore/qsocketnotifier.h>
+
 #include <atomic>
 
 QT_BEGIN_NAMESPACE

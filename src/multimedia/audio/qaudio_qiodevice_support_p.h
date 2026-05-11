@@ -15,16 +15,15 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qaudio_alignment_support_p.h>
+#include <QtMultimedia/private/qaudio_qspan_support_p.h>
+#include <QtMultimedia/private/qaudioringbuffer_p.h>
+#include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qspan.h>
-
-#include <QtMultimedia/private/qaudio_alignment_support_p.h>
-#include <QtMultimedia/private/qaudio_qspan_support_p.h>
-#include <QtMultimedia/private/qaudioringbuffer_p.h>
-#include <QtMultimedia/private/qautoresetevent_p.h>
 
 #include <deque>
 #include <mutex>

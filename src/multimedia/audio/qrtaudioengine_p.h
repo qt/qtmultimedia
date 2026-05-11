@@ -15,17 +15,16 @@
 // We mean it.
 //
 
-#include <QtCore/qtclasshelpermacros.h>
-#include <QtCore/qtimer.h>
-#include <QtCore/qmutex.h>
-
+#include <QtMultimedia/private/q_pmr_emulation_p.h>
+#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
+#include <QtMultimedia/private/qaudioringbuffer_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
-#include <QtMultimedia/private/qaudiosystem_p.h>
-#include <QtMultimedia/private/qaudioringbuffer_p.h>
-#include <QtMultimedia/private/qautoresetevent_p.h>
-#include <QtMultimedia/private/q_pmr_emulation_p.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qtclasshelpermacros.h>
+#include <QtCore/qtimer.h>
 
 #include <cstdint>
 #include <deque>

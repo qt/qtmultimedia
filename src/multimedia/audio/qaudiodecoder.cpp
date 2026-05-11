@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qaudiodecoder.h"
+#include "qaudiodecoder_p.h"
 
-#include <private/qaudiodecoder_p.h>
-#include <private/qmultimediautils_p.h>
-#include <private/qplatformaudiodecoder_p.h>
-#include <private/qplatformmediaintegration_p.h>
-
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qplatformaudiodecoder_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qmetaobject.h>

@@ -4,8 +4,8 @@
 #ifndef QAUDIOBUFFERINPUT_H
 #define QAUDIOBUFFERINPUT_H
 
-#include <QtMultimedia/qtmultimediaexports.h>
 #include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qtmultimediaexports.h>
 #include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE

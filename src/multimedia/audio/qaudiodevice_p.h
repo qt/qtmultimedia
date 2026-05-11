@@ -17,8 +17,8 @@
 //
 
 #include <QtMultimedia/qaudiodevice.h>
-#include <QtCore/private/qglobal_p.h>
 #include <QtCore/private/qexpected_p.h>
+#include <QtCore/private/qglobal_p.h>
 
 #include <future>
 #include <chrono>

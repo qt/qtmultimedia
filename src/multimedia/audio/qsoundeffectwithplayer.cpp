@@ -3,8 +3,8 @@
 
 #include "qsoundeffectwithplayer_p.h"
 
-#include <QtCore/qmutex.h>
 #include <QtCore/q20map.h>
+#include <QtCore/qmutex.h>
 
 #include <utility>
 

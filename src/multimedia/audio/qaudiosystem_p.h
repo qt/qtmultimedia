@@ -15,17 +15,15 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-
+#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/private/qaudiohelpers_p.h>
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
-
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/private/qglobal_p.h>
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qspan.h>
-#include <QtCore/private/qglobal_p.h>
 
 #include <array>
 #include <variant>

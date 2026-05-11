@@ -4,8 +4,8 @@
 #ifndef QAUDIODECODER_H
 #define QAUDIODECODER_H
 
-#include <QtCore/qobject.h>
 #include <QtMultimedia/qaudiobuffer.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 

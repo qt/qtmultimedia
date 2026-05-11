@@ -3,12 +3,12 @@
 
 #include "qaudiosink.h"
 
-#include <QtMultimedia/qaudio.h>
-#include <QtMultimedia/qaudiodevice.h>
-#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodevice.h>
 
 QT_BEGIN_NAMESPACE
 

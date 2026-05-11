@@ -3,12 +3,6 @@
 
 #include "qsoundeffect.h"
 
-#include <QtCore/qloggingcategory.h>
-#include <QtCore/qfuture.h>
-#include <QtMultimedia/qaudiobuffer.h>
-#include <QtMultimedia/qaudiodevice.h>
-#include <QtMultimedia/qaudiosink.h>
-#include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
@@ -16,6 +10,12 @@
 #include <QtMultimedia/private/qsoundeffectsynchronous_p.h>
 #include <QtMultimedia/private/qsoundeffectwithplayer_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtCore/qfuture.h>
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 

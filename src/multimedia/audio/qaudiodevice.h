@@ -5,16 +5,14 @@
 #ifndef QAUDIODEVICEINFO_H
 #define QAUDIODEVICEINFO_H
 
-#include <QtCore/qobject.h>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qtaudio.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qbytearray.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
-#include <QtCore/qlist.h>
-
-#include <QtMultimedia/qtmultimediaglobal.h>
-
-#include <QtMultimedia/qtaudio.h>
-#include <QtMultimedia/qaudioformat.h>
 
 QT_BEGIN_NAMESPACE
 

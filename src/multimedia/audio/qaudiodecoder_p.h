@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <QtCore/private/qobject_p.h>
 #include <QtMultimedia/private/qplatformaudiodecoder_p.h>
+#include <QtCore/private/qobject_p.h>
 
 #include <memory.h>
 

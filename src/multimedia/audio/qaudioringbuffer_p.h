@@ -15,9 +15,9 @@
 #ifndef QAUDIORINGBUFFER_P_H
 #define QAUDIORINGBUFFER_P_H
 
+#include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtCore/qspan.h>
 #include <QtCore/qtclasshelpermacros.h>
-#include <QtMultimedia/private/qaudio_qspan_support_p.h>
 
 #include <algorithm>
 #include <atomic>

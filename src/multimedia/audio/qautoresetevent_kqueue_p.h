@@ -15,8 +15,8 @@
 #ifndef QAUTORESETEVENT_KQUEUE_P_H
 #define QAUTORESETEVENT_KQUEUE_P_H
 
-#include <QtCore/qsocketnotifier.h>
 #include <QtMultimedia/qtmultimediaexports.h>
+#include <QtCore/qsocketnotifier.h>
 
 #include <sys/event.h>
 

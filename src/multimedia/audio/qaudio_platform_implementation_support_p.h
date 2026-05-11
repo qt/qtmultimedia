@@ -15,10 +15,9 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 
 QT_BEGIN_NAMESPACE
 

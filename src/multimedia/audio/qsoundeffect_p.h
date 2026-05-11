@@ -15,15 +15,15 @@
 // We mean it.
 //
 
-#include <QtCore/qobject.h>
-#include <QtCore/private/qobject_p.h>
-#include <QtCore/qurl.h>
-#include <QtCore/qloggingcategory.h>
-#include <QtMultimedia/qsoundeffect.h>
-#include <QtMultimedia/qaudiodevice.h>
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/private/qsamplecache_p.h>
 #include <QtMultimedia/private/qmultimedia_source_resolver_p.h>
+#include <QtMultimedia/private/qsamplecache_p.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qsoundeffect.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/private/qobject_p.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qurl.h>
 
 QT_BEGIN_NAMESPACE
 

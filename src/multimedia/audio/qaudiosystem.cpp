@@ -3,10 +3,10 @@
 
 #include "qaudiosystem_p.h"
 
-#include <QtCore/qdebug.h>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/qaudiosource.h>
-#include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
