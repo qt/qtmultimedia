@@ -17,11 +17,13 @@
 #include <QtCore/qreadwritelock.h>
 #include <QtCore/qmutex.h>
 #include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtCore/qcoreapplication.h>
 
 #include <mutex>
 
 QT_BEGIN_NAMESPACE
+namespace ranges = QtMultimediaPrivate::ranges;
 
 Q_STATIC_LOGGING_CATEGORY(lcAndroidCamera, "qt.multimedia.android.camera");
 
@@ -1022,7 +1024,7 @@ QList<QSize> AndroidCameraPrivate::getSupportedPreviewSizes(QJniObject &paramete
             list.append(QSize(size.getField<jint>("width"), size.getField<jint>("height")));
         }
 
-        std::sort(list.begin(), list.end(), qt_sizeLessThan);
+        ranges::sort(list, qt_sizeLessThan);
     }
 
     return list;
@@ -1607,7 +1609,7 @@ QList<QSize> AndroidCameraPrivate::getSupportedPictureSizes()
             list.append(QSize(size.getField<jint>("width"), size.getField<jint>("height")));
         }
 
-        std::sort(list.begin(), list.end(), qt_sizeLessThan);
+        ranges::sort(list, qt_sizeLessThan);
     }
 
     return list;
@@ -1630,7 +1632,7 @@ QList<QSize> AndroidCameraPrivate::getSupportedVideoSizes()
             if (size.isValid())
                 list.append(QSize(size.getField<jint>("width"), size.getField<jint>("height")));
         }
-        std::sort(list.begin(), list.end(), qt_sizeLessThan);
+        ranges::sort(list, qt_sizeLessThan);
     }
 
     return list;

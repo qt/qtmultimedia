@@ -17,6 +17,7 @@
 #include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
+namespace ranges = QtMultimediaPrivate::ranges;
 
 namespace QFFmpeg {
 
@@ -621,8 +622,9 @@ void PlaybackEngine::finalizeOutputs()
 
 bool PlaybackEngine::hasRenderer(const PlaybackEngineObjectID &id) const
 {
-    return std::any_of(m_renderers.begin(), m_renderers.end(),
-                       [&](auto &renderer) { return checkObjectID(renderer, id); });
+    return ranges::any_of(m_renderers, [&](auto &renderer) {
+        return checkObjectID(renderer, id);
+    });
 }
 
 template <typename AudioOutput>

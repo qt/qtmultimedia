@@ -16,10 +16,12 @@
 #include <private/qplatformaudiooutput_p.h>
 #include <private/qmediarecorder_p.h>
 #include <private/qmediastoragelocation_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #include <algorithm>
 
 QT_BEGIN_NAMESPACE
+namespace ranges = QtMultimediaPrivate::ranges;
 
 QAndroidCaptureSession::QAndroidCaptureSession()
     : QObject()
@@ -401,8 +403,8 @@ void QAndroidCaptureSession::onCameraOpened()
         }
     }
 
-    std::sort(m_supportedResolutions.begin(), m_supportedResolutions.end(), qt_sizeLessThan);
-    std::sort(m_supportedFramerates.begin(), m_supportedFramerates.end());
+    ranges::sort(m_supportedResolutions, qt_sizeLessThan);
+    ranges::sort(m_supportedFramerates);
 
     QMediaEncoderSettings defaultSettings;
     applySettings(defaultSettings);

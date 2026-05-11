@@ -18,6 +18,7 @@ extern "C" {
 }
 
 QT_BEGIN_NAMESPACE
+namespace ranges = QtMultimediaPrivate::ranges;
 
 Q_STATIC_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
 
@@ -125,7 +126,7 @@ const AVPacketSideData *streamSideData(const AVStream *stream, AVPacketSideDataT
 #else
     auto checkType = [type](const auto &item) { return item.type == type; };
     const auto end = stream->side_data + stream->nb_side_data;
-    const auto found = std::find_if(stream->side_data, end, checkType);
+    const auto found = ranges::find_if(stream->side_data, end, checkType);
     return found == end ? nullptr : found;
 #endif
 }

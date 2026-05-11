@@ -16,6 +16,7 @@
 //
 
 #include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #include <qreadwritelock.h>
 
@@ -137,9 +138,11 @@ public:
     {
         QReadLocker locker(&m_data->lock);
         auto &storage = m_data->storage;
+        namespace ranges = QtMultimediaPrivate::ranges;
 
-        auto it = std::find_if(storage.begin(), storage.end(),
-                               [&p](auto &rhiItem) { return p(*rhiItem.first); });
+        auto it = ranges::find_if(storage, [&](auto &rhiItem) {
+            return p(*rhiItem.first);
+        });
         return it == storage.end() ? nullptr : it->first;
     }
 

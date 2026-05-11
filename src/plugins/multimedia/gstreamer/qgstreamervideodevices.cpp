@@ -5,6 +5,7 @@
 
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qset.h>
 #include <QtCore/private/quniquehandle_types_p.h>
@@ -20,6 +21,8 @@
 #endif
 
 QT_BEGIN_NAMESPACE
+
+namespace ranges = QtMultimediaPrivate::ranges;
 
 Q_STATIC_LOGGING_CATEGORY(ltVideoDevices, "qt.multimedia.gstreamer.videodevices");
 
@@ -218,8 +221,9 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
     }
 #endif
 
-    auto it = std::find_if(m_videoSources.begin(), m_videoSources.end(),
-                           [&](const QGstRecordDevice &a) { return a.gstDevice == device; });
+    auto it = ranges::find_if(m_videoSources, [&](const QGstRecordDevice &a) {
+        return a.gstDevice == device;
+    });
 
     if (it != m_videoSources.end())
         return;
@@ -236,8 +240,9 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
 
 void QGstreamerVideoDevices::removeDevice(QGstDeviceHandle device)
 {
-    auto it = std::find_if(m_videoSources.begin(), m_videoSources.end(),
-                           [&](const QGstRecordDevice &a) { return a.gstDevice == device; });
+    auto it = ranges::find_if(m_videoSources, [&](const QGstRecordDevice &a) {
+        return a.gstDevice == device;
+    });
 
     if (it != m_videoSources.end()) {
         m_videoSources.erase(it);
@@ -267,8 +272,9 @@ bool QGstreamerVideoDevices::processBusMessage(const QGstreamerMessage &message)
 
 GstDevice *QGstreamerVideoDevices::videoDevice(const QByteArray &id) const
 {
-    auto it = std::find_if(m_videoSources.begin(), m_videoSources.end(),
-                           [&](const QGstRecordDevice &a) { return a.id == id; });
+    auto it = ranges::find_if(m_videoSources, [&](const QGstRecordDevice &a) {
+        return a.id == id;
+    });
     return it != m_videoSources.end() ? it->gstDevice.get() : nullptr;
 }
 

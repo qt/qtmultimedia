@@ -34,6 +34,8 @@ Q_STATIC_LOGGING_CATEGORY(qLcCodecStorage, "qt.multimedia.ffmpeg.codecstorage");
 
 namespace QFFmpeg {
 
+namespace ranges = QtMultimediaPrivate::ranges;
+
 namespace {
 
 enum CodecStorageType {
@@ -223,8 +225,7 @@ bool isCodecValid(const Codec &codec, const std::vector<AVHWDeviceType> &availab
         return isAVFormatSupported(codec, pixelFormatForHwDevice(type));
     };
 
-    return std::any_of(availableHwDeviceTypes.begin(), availableHwDeviceTypes.end(),
-                       checkDeviceType);
+    return ranges::any_of(availableHwDeviceTypes, checkDeviceType);
 }
 
 std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecStorageType type)
@@ -308,7 +309,7 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
             storage.shrink_to_fit();
 
             // we should ensure the original order
-            std::stable_sort(storage.begin(), storage.end(), CodecsComparator{});
+            ranges::stable_sort(storage, CodecsComparator{});
         }
 
         // It print pretty much logs, so let's print it only for special case
@@ -347,14 +348,14 @@ bool findAndOpenCodec(CodecStorageType codecsType, AVCodecID codecId,
     }
 
     if (scoreGetter) {
-        std::stable_sort(
-                codecsToScores.begin(), codecsToScores.end(),
-                [](const CodecToScore &a, const CodecToScore &b) { return a.second > b.second; });
+        ranges::stable_sort(codecsToScores, [](const CodecToScore &a, const CodecToScore &b) {
+            return a.second > b.second;
+        });
     }
 
     auto open = [&opener](const CodecToScore &codecToScore) { return opener(codecToScore.first); };
 
-    return std::any_of(codecsToScores.begin(), codecsToScores.end(), open);
+    return ranges::any_of(codecsToScores, open);
 }
 
 std::optional<Codec> findAVCodec(CodecStorageType codecsType, AVCodecID codecId,

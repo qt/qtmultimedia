@@ -18,6 +18,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpegcodec_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegavaudioformat_p.h>
 #include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #include <qstring.h>
 #include <optional>
@@ -36,6 +37,8 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg
 {
+
+namespace ranges = QtMultimediaPrivate::ranges;
 
 inline std::optional<qint64> mul(qint64 a, AVRational b)
 {
@@ -171,7 +174,7 @@ bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format);
 template <typename Value>
 bool hasValue(QSpan<const Value> range, Value value)
 {
-    return std::find(range.begin(), range.end(), value) != range.end();
+    return ranges::contains(range, value);
 }
 
 // Search for the first element in the range that satisfies the predicate
@@ -181,7 +184,7 @@ bool hasValue(QSpan<const Value> range, Value value)
 template <typename Value, typename Predicate>
 std::optional<Value> findIf(QSpan<const Value> range, const Predicate &predicate)
 {
-    const auto value = std::find_if(range.begin(), range.end(), predicate);
+    const auto value = ranges::find_if(range, predicate);
     if (value == range.end())
         return {};
     return *value;
