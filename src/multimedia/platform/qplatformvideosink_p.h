@@ -16,15 +16,15 @@
 //
 
 #include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtGui/qwindowdefs.h>
+#include <QtCore/private/qglobal_p.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qmutex.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qrect.h>
 #include <QtCore/qsize.h>
-#include <QtCore/qmutex.h>
-#include <QtGui/qwindowdefs.h>
-#include <qvideosink.h>
-#include <qvideoframe.h>
-#include <qdebug.h>
-#include <private/qglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -17,8 +17,8 @@
 
 #include <QtMultimedia/qaudiobuffer.h>
 #include <QtMultimedia/qaudiodecoder.h>
-#include <QtCore/qurl.h>
 #include <QtCore/private/qglobal_p.h>
+#include <QtCore/qurl.h>
 
 QT_BEGIN_NAMESPACE
 

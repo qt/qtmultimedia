@@ -15,11 +15,10 @@
 #ifndef QMEDIAPLAYERCONTROL_H
 #define QMEDIAPLAYERCONTROL_H
 
-#include <QtMultimedia/qmediaplayer.h>
-#include <QtMultimedia/qmediatimerange.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qmediametadata.h>
-
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qmediatimerange.h>
 #include <QtCore/private/qglobal_p.h>
 #include <QtCore/qobject.h>
 

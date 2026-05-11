@@ -14,8 +14,8 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <qaudiodevice.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/qaudiodevice.h>
 
 #include <functional>
 

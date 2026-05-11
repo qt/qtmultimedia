@@ -14,12 +14,11 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <qmediarecorder.h>
-#include <qcameradevice.h>
-#include <qobject.h>
-
-#include <private/qcachedvalue_p.h>
+#include <QtMultimedia/private/qcachedvalue_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 

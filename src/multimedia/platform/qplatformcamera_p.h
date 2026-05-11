@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include "qplatformvideosource_p.h"
-#include "private/qerrorinfo_p.h"
+#include <QtMultimedia/private/qerrorinfo_p.h>
+#include <QtMultimedia/private/qplatformvideosource_p.h>
 #include <QtMultimedia/qcamera.h>
 
 QT_BEGIN_NAMESPACE

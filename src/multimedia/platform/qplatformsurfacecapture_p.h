@@ -15,11 +15,11 @@
 // We mean it.
 //
 
-#include <QtCore/qpointer.h>
-#include <QtGui/qscreen.h>
-#include <QtMultimedia/qcapturablewindow.h>
 #include <QtMultimedia/private/qerrorinfo_p.h>
 #include <QtMultimedia/private/qplatformvideosource_p.h>
+#include <QtMultimedia/qcapturablewindow.h>
+#include <QtGui/qscreen.h>
+#include <QtCore/qpointer.h>
 
 #include <variant>
 

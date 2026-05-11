@@ -3,18 +3,6 @@
 
 #include "qplatformmediaintegration_p.h"
 
-#include <QtCore/qapplicationstatic.h>
-#include <QtCore/qatomic.h>
-#include <QtCore/qcoreapplication.h>
-#include <QtCore/qloggingcategory.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/private/qcoreapplication_p.h>
-#include <QtCore/private/qfactoryloader_p.h>
-
-#include <QtGui/qwindow.h>
-
-#include <QtMultimedia/qcameradevice.h>
-#include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
 #include <QtMultimedia/private/qplatformaudioinput_p.h>
 #include <QtMultimedia/private/qplatformaudiooutput_p.h>
@@ -24,6 +12,16 @@
 #include <QtMultimedia/private/qplatformmediaplugin_p.h>
 #include <QtMultimedia/private/qplatformvideodevices_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtGui/qwindow.h>
+#include <QtCore/private/qcoreapplication_p.h>
+#include <QtCore/private/qfactoryloader_p.h>
+#include <QtCore/qapplicationstatic.h>
+#include <QtCore/qatomic.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qmutex.h>
 
 namespace {
 
