@@ -15,11 +15,10 @@
 // We mean it.
 //
 
-#include "private/qtmultimediaglobal_p.h"
-#include "qcapturablewindow.h"
-
-#include <QtCore/qlist.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/qcapturablewindow.h>
 #include <QtCore/private/qexpected_p.h>
+#include <QtCore/qlist.h>
 
 QT_BEGIN_NAMESPACE
 

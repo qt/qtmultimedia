@@ -4,9 +4,9 @@
 #ifndef QPLATFORMVIDEOFRAMEINPUT_P_H
 #define QPLATFORMVIDEOFRAMEINPUT_P_H
 
-#include "qplatformvideosource_p.h"
-#include "qmetaobject.h"
-#include "qpointer.h"
+#include <QtMultimedia/private/qplatformvideosource_p.h>
+#include <QtCore/qmetaobject.h>
+#include <QtCore/qpointer.h>
 
 //
 //  W A R N I N G

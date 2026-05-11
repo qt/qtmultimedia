@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qplatformmediaplayer_p.h"
-#include <private/qmediaplayer_p.h>
-#include "qmediaplayer.h"
-#include "qplatformmediaintegration_p.h"
+
+#include <QtMultimedia/private/qmediaplayer_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/qmediaplayer.h>
 
 QT_BEGIN_NAMESPACE
 

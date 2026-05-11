@@ -15,19 +15,18 @@
 #ifndef QPLATFORMMEDIARECORDER_H
 #define QPLATFORMMEDIARECORDER_H
 
-#include <QtCore/qurl.h>
 #include <QtCore/qsize.h>
+#include <QtCore/qurl.h>
 #if QT_CONFIG(mimetype)
 #include <QtCore/qmimetype.h>
 #endif
-#include <QtCore/qpointer.h>
-#include <QtCore/qiodevice.h>
-
-#include <QtMultimedia/qmediarecorder.h>
-#include <QtMultimedia/qmediametadata.h>
-#include <QtMultimedia/qmediaformat.h>
 #include <QtMultimedia/private/qerrorinfo_p.h>
+#include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/qmediametadata.h>
+#include <QtMultimedia/qmediarecorder.h>
 #include <QtCore/private/qglobal_p.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qpointer.h>
 
 QT_BEGIN_NAMESPACE
 

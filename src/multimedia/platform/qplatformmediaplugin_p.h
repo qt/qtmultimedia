@@ -16,9 +16,9 @@
 #define QPLATFORMMEDIAPLUGIN_P_H
 
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/qplugin.h>
-#include <QtCore/qfactoryinterface.h>
 #include <QtCore/private/qglobal_p.h>
+#include <QtCore/qfactoryinterface.h>
+#include <QtCore/qplugin.h>
 
 QT_BEGIN_NAMESPACE
 

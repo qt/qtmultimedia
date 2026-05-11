@@ -3,12 +3,12 @@
 
 #include "qplatformaudiodevices_p.h"
 
-#include <QtCore/qdebug.h>
-#include <QtCore/qvarlengtharray.h>
-#include <QtCore/private/qminimalflatset_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qmediadevices.h>
-#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtCore/private/qminimalflatset_p.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qvarlengtharray.h>
 
 #if defined(Q_OS_ANDROID)
 #  include <QtMultimedia/private/qandroidaudiodevices_p.h>

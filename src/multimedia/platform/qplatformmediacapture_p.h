@@ -14,7 +14,7 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE

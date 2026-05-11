@@ -15,11 +15,10 @@
 // We mean it.
 //
 
-#include "qvideoframeformat.h"
-
-#include <QtCore/qobject.h>
-#include <QtCore/qnativeinterface.h>
+#include <QtMultimedia/qvideoframeformat.h>
 #include <QtCore/private/qglobal_p.h>
+#include <QtCore/qnativeinterface.h>
+#include <QtCore/qobject.h>
 
 #include <optional>
 

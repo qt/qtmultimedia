@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <qaudiobuffer.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/qaudiobuffer.h>
 
 QT_BEGIN_NAMESPACE
 

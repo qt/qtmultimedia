@@ -12,7 +12,7 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
+#include "qgstreamer_platformspecificinterface_p.h"
 
 QT_BEGIN_NAMESPACE
 
