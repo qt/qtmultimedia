@@ -3,16 +3,16 @@
 
 #include "qpipewire_audiostream_p.h"
 
-#include "qaudiosystem_platform_stream_support_p.h"
-#include "qpipewire_audiocontextmanager_p.h"
-#include "qpipewire_spa_pod_support_p.h"
+#include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
+#include <QtMultimedia/private/qpipewire_audiocontextmanager_p.h>
+#include <QtMultimedia/private/qpipewire_spa_pod_support_p.h>
 
 #include <spa/pod/builder.h>
 
 #if __has_include(<spa/param/audio/raw-utils.h>)
 #  include <spa/param/audio/raw-utils.h>
 #else
-#  include "qpipewire_spa_compat_p.h"
+#  include <QtMultimedia/private/qpipewire_spa_compat_p.h>
 #endif
 
 

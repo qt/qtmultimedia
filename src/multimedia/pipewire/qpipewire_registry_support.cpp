@@ -3,8 +3,8 @@
 
 #include "qpipewire_registry_support_p.h"
 
-#include <QtCore/qdebug.h>
 #include <QtCore/private/qflatmap_p.h>
+#include <QtCore/qdebug.h>
 
 #if __has_include(<pipewire/extensions/security-context.h>)
 #  include <pipewire/extensions/security-context.h>

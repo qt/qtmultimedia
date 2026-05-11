@@ -15,11 +15,10 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qpipewire_audiodevicemonitor_p.h>
+#include <QtMultimedia/private/qpipewire_registry_support_p.h>
+#include <QtMultimedia/private/qpipewire_support_p.h>
 #include <QtCore/qglobal.h>
-
-#include "qpipewire_audiodevicemonitor_p.h"
-#include "qpipewire_support_p.h"
-#include "qpipewire_registry_support_p.h"
 
 #include <pipewire/pipewire.h>
 

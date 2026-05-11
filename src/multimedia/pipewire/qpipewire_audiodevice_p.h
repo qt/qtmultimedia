@@ -15,12 +15,11 @@
 // We mean it.
 //
 
-#include <QtCore/qlist.h>
-#include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/private/qaudiodevice_p.h>
-
-#include "qpipewire_propertydict_p.h"
-#include "qpipewire_spa_pod_support_p.h"
+#include <QtMultimedia/private/qpipewire_propertydict_p.h>
+#include <QtMultimedia/private/qpipewire_spa_pod_support_p.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtCore/qlist.h>
 
 QT_BEGIN_NAMESPACE
 

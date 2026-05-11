@@ -3,8 +3,8 @@
 
 #include "qpipewire_support_p.h"
 
-#include <QtCore/qspan.h>
 #include <QtMultimedia/private/qmultimedia_enum_to_string_converter_p.h>
+#include <QtCore/qspan.h>
 
 #include <pipewire/version.h>
 #include <spa/debug/pod.h>

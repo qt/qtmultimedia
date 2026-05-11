@@ -3,10 +3,9 @@
 
 #include "qpipewire_audiosink_p.h"
 
-#include "qpipewire_audiocontextmanager_p.h"
-#include "qpipewire_audiodevice_p.h"
-#include "qpipewire_support_p.h"
-
+#include <QtMultimedia/private/qpipewire_audiocontextmanager_p.h>
+#include <QtMultimedia/private/qpipewire_audiodevice_p.h>
+#include <QtMultimedia/private/qpipewire_support_p.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>

@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <QtCore/qglobal.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qglobal.h>
 
 #include <memory>
 #include <pipewire/extensions/metadata.h>
