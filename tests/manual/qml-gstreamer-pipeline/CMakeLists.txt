@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 cmake_minimum_required(VERSION 3.16)
-project(sidepanel LANGUAGES CXX)
+project(qml-gstreamer-pipeline LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 
