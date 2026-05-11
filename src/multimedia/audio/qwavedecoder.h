@@ -5,8 +5,8 @@
 #ifndef WAVEDECODER_H
 #define WAVEDECODER_H
 
-#include <QtCore/qiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtCore/qiodevice.h>
 
 
 QT_BEGIN_NAMESPACE

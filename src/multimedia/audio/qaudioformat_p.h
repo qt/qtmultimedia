@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 
 #include <array>
 

@@ -4,11 +4,11 @@
 #ifndef QSOUNDEFFECT_H
 #define QSOUNDEFFECT_H
 
-#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qobject.h>
-#include <QtCore/qurl.h>
 #include <QtCore/qstringlist.h>
+#include <QtCore/qurl.h>
 
 
 QT_BEGIN_NAMESPACE

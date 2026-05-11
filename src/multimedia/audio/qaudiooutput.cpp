@@ -1,11 +1,12 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <qaudiooutput.h>
-#include <qaudiodevice.h>
-#include <qmediadevices.h>
-#include <private/qplatformaudiooutput_p.h>
-#include <private/qplatformmediaintegration_p.h>
+#include "qaudiooutput.h"
+
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qmediadevices.h>
 
 /*!
     \qmltype AudioOutput

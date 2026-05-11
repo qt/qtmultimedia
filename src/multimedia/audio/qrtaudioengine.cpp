@@ -3,16 +3,15 @@
 
 #include "qrtaudioengine_p.h"
 
+#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qmemory_resource_tlsf_p.h>
+#include <QtCore/q20map.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qthread.h>
 
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
-#include <QtMultimedia/private/qaudiosystem_p.h>
-#include <QtMultimedia/private/qmemory_resource_tlsf_p.h>
-
-#include <QtCore/q20map.h>
 #include <mutex>
 
 #ifdef Q_CC_MINGW

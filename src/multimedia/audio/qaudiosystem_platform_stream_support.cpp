@@ -3,9 +3,9 @@
 
 #include "qaudiosystem_platform_stream_support_p.h"
 
-#include <QtCore/qdebug.h>
-#include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
 

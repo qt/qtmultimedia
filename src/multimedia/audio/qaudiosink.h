@@ -5,13 +5,11 @@
 #ifndef QAUDIOOUTPUT_H
 #define QAUDIOOUTPUT_H
 
-#include <QtCore/qiodevice.h>
-
-#include <QtMultimedia/qtmultimediaglobal.h>
-
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qtaudio.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/qiodevice.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -15,16 +15,16 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qaudioformat.h>
+#include <QtCore/private/qexpected_p.h>
+#include <QtCore/private/qglobal_p.h>
+#include <QtCore/qfuture.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qset.h>
 #include <QtCore/qthread.h>
-#include <QtCore/qfuture.h>
 #include <QtCore/qurl.h>
-#include <QtCore/private/qglobal_p.h>
-#include <QtCore/private/qexpected_p.h>
-#include <QtMultimedia/qaudioformat.h>
 
 #include <memory>
 #include <optional>

@@ -15,10 +15,10 @@
 // We mean it.
 //
 
-#include <QtCore/qspan.h>
-#include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/private/qaudio_rtsan_support_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtCore/qspan.h>
 
 QT_BEGIN_NAMESPACE
 

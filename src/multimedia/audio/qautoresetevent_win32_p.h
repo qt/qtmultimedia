@@ -15,8 +15,8 @@
 #ifndef QAUTORESETEVENT_WIN32_P_H
 #define QAUTORESETEVENT_WIN32_P_H
 
-#include <QtCore/qwineventnotifier.h>
 #include <QtMultimedia/qtmultimediaexports.h>
+#include <QtCore/qwineventnotifier.h>
 
 QT_BEGIN_NAMESPACE
 

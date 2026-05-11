@@ -3,9 +3,9 @@
 
 #include "qautoresetevent_linux_p.h"
 
+#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtCore/private/qcore_unix_p.h>
 #include <QtCore/qdebug.h>
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 
 #include <sys/eventfd.h>
 #include <cstdint>

@@ -15,9 +15,9 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiobufferoutput.h>
 #include <QtCore/private/qobject_p.h>
-#include "qaudiobuffer.h"
-#include "qaudiobufferoutput.h"
 
 QT_BEGIN_NAMESPACE
 

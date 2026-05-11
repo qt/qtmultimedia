@@ -15,10 +15,10 @@
 // We mean it.
 //
 
-#include <QtCore/qiodevice.h>
+#include <QtMultimedia/private/qsoundeffect_p.h>
 #include <QtMultimedia/qaudiobuffer.h>
 #include <QtMultimedia/qaudiosink.h>
-#include <QtMultimedia/private/qsoundeffect_p.h>
+#include <QtCore/qiodevice.h>
 
 QT_BEGIN_NAMESPACE
 

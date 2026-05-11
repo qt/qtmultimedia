@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <QtCore/qtconfigmacros.h>
 #include <QtCore/qtclasshelpermacros.h>
+#include <QtCore/qtconfigmacros.h>
 
 #if defined(__has_feature) && __has_feature(realtime_sanitizer)
 #  include <sanitizer/rtsan_interface.h>

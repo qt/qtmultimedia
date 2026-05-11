@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qaudiobufferinput.h"
-#include "qplatformaudiobufferinput_p.h"
-#include "qmediainputencoderinterface_p.h"
-#include "qmediaframeinput_p.h"
+
+#include <QtMultimedia/private/qmediaframeinput_p.h>
+#include <QtMultimedia/private/qmediainputencoderinterface_p.h>
+#include <QtMultimedia/private/qplatformaudiobufferinput_p.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -15,8 +15,8 @@
 #ifndef QAUTORESETEVENT_LINUX_P_H
 #define QAUTORESETEVENT_LINUX_P_H
 
-#include <QtCore/qsocketnotifier.h>
 #include <QtMultimedia/qtmultimediaexports.h>
+#include <QtCore/qsocketnotifier.h>
 
 QT_BEGIN_NAMESPACE
 

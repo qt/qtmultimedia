@@ -4,9 +4,9 @@
 #ifndef QAUDIOOUTPUTDEVICE_H
 #define QAUDIOOUTPUTDEVICE_H
 
-#include <QtCore/qobject.h>
-#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qtaudio.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/qobject.h>
 
 #include <functional>
 

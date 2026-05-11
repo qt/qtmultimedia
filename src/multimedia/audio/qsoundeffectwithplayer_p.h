@@ -15,12 +15,12 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qaudiosink.h>
-#include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
 #include <QtMultimedia/private/qrtaudioengine_p.h>
 #include <QtMultimedia/private/qsoundeffect_p.h>
+#include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/qmediadevices.h>
 #include <QtCore/qchronotimer.h>
 
 QT_BEGIN_NAMESPACE

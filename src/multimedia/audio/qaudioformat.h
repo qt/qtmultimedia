@@ -5,10 +5,9 @@
 #ifndef QAUDIOFORMAT_H
 #define QAUDIOFORMAT_H
 
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qshareddata.h>
-
-#include <QtMultimedia/qtmultimediaglobal.h>
 
 QT_BEGIN_NAMESPACE
 

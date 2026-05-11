@@ -3,8 +3,8 @@
 
 #include "qaudiobuffer.h"
 
-#include <QObject>
-#include <QDebug>
+#include <QtCore/qdebug.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 

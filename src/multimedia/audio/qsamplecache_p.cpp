@@ -3,7 +3,6 @@
 
 #include "qsamplecache_p.h"
 
-#include <QtConcurrent/qtconcurrentrun.h>
 #include <QtCore/qapplicationstatic.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
@@ -11,6 +10,7 @@
 #include <QtCore/qfile.h>
 #include <QtCore/qfuturewatcher.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtConcurrent/qtconcurrentrun.h>
 
 #if QT_CONFIG(network)
 #  include <QtNetwork/qnetworkaccessmanager.h>

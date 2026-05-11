@@ -3,8 +3,8 @@
 
 #include "qautoresetevent_win32_p.h"
 
-#include <QtCore/qt_windows.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qt_windows.h>
 
 QT_BEGIN_NAMESPACE
 

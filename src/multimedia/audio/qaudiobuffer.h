@@ -4,12 +4,10 @@
 #ifndef QAUDIOBUFFER_H
 #define QAUDIOBUFFER_H
 
-#include <QtCore/qshareddata.h>
-
-#include <QtMultimedia/qtmultimediaglobal.h>
-
-#include <QtMultimedia/qtaudio.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qtaudio.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
 

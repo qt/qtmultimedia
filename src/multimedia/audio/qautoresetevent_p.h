@@ -20,7 +20,7 @@
 
 // TODO: kqueue based implementation
 #ifdef Q_OS_LINUX
-#  include "qautoresetevent_linux_p.h"
+#  include <QtMultimedia/private/qautoresetevent_linux_p.h>
 
 QT_BEGIN_NAMESPACE
 namespace QtPrivate {
@@ -47,7 +47,7 @@ using QAutoResetEvent = QAutoResetEventKQueue;
 QT_END_NAMESPACE
 
 #else
-#  include "qautoresetevent_pipe_p.h"
+#  include <QtMultimedia/private/qautoresetevent_pipe_p.h>
 
 QT_BEGIN_NAMESPACE
 namespace QtPrivate {
