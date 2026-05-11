@@ -359,7 +359,6 @@ void QAudioSource::resume()
     will return the actual buffer size being used.
 
     \sa setBufferFrameCount
-    \since 6.10
 */
 
 void QAudioSource::setBufferSize(qsizetype value)
@@ -378,7 +377,6 @@ void QAudioSource::setBufferSize(qsizetype value)
     \c setBufferSize() or \c setBufferFrameCount().
 
     \sa bufferFrameCount
-    \since 6.10
 */
 
 qsizetype QAudioSource::bufferSize() const
@@ -395,6 +393,7 @@ qsizetype QAudioSource::bufferSize() const
     after start() to return the actual buffer size being used.
 
     \sa setBufferSize
+    \since 6.10
 */
 
 void QAudioSource::setBufferFrameCount(qsizetype value)
@@ -413,6 +412,7 @@ void QAudioSource::setBufferFrameCount(qsizetype value)
     \c setBufferSize() or \c setBufferFrameCount().
 
     \sa bufferSize
+    \since 6.10
 */
 
 qsizetype QAudioSource::bufferFrameCount() const
