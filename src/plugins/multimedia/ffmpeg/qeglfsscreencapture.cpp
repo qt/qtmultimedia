@@ -153,7 +153,7 @@ std::unique_ptr<QEglfsScreenCapture::Grabber> QEglfsScreenCapture::createGrabber
 
     QOpenGLCompositor *compositor = QOpenGLCompositor::instance();
 
-    if (compositor->context()) {
+    if (compositor->context() && QOpenGLContext::currentContext()) {
         // Create OpenGL grabber
         if (!compositor->targetWindow()) {
             updateError(Error::CaptureFailed,
