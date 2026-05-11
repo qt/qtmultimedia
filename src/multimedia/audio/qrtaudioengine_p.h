@@ -230,7 +230,11 @@ public:
     QAudioSink &audioSink() { return m_sink; }
     const auto &voices() const { return m_voices; }
 
+    // will return QtAudio::Stopped sink cannot be started or an error occurred
+    QtAudio::State audioState() const;
+
 Q_SIGNALS:
+    void stateChanged(QtAudio::State);
     void voiceFinished(VoiceId);
 
 private:

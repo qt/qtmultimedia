@@ -27,6 +27,20 @@ namespace QtMultimediaPrivate {
 using namespace QtPrivate;
 using namespace std::chrono_literals;
 
+static QtAudio::State sinkStateToEngineState(QtAudio::State state)
+{
+    switch (state) {
+    case QtAudio::ActiveState:
+    case QtAudio::IdleState:
+    case QtAudio::SuspendedState:
+        return QtAudio::ActiveState;
+    case QtAudio::StoppedState:
+        return QtAudio::StoppedState;
+    default:
+        Q_UNREACHABLE_RETURN(QtAudio::StoppedState);
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &format,
@@ -74,6 +88,10 @@ QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &f
 
     // we start suspended
     m_sink.suspend();
+
+    QObject::connect(&m_sink, &QAudioSink::stateChanged, this, [&](QtAudio::State state) {
+        emit stateChanged(sinkStateToEngineState(state));
+    });
 }
 
 QRtAudioEngine::~QRtAudioEngine()
@@ -137,6 +155,11 @@ VoiceId QRtAudioEngine::allocateVoiceId()
 {
     static std::atomic_uint64_t allocator{ 0 };
     return VoiceId{ allocator.fetch_add(1, std::memory_order_relaxed) };
+}
+
+QtAudio::State QRtAudioEngine::audioState() const
+{
+    return sinkStateToEngineState(m_sink.state());
 }
 
 void QRtAudioEngine::audioCallback(QSpan<float> outputBuffer) noexcept QT_MM_NONBLOCKING
