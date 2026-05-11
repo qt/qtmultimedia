@@ -15,9 +15,9 @@
 // We mean it.
 //
 
-#include <QtCore/qlist.h>
-#include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtCore/qlist.h>
 
 QT_BEGIN_NAMESPACE
 

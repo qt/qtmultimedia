@@ -15,17 +15,17 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qaudio_qspan_support_p.h>
+#include <QtMultimedia/private/qpipewire_spa_pod_parser_support_p.h>
+#include <QtMultimedia/qaudioformat.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qspan.h>
-#include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/private/qaudio_qspan_support_p.h>
-#include <QtMultimedia/private/qpipewire_spa_pod_parser_support_p.h>
 
 #if __has_include(<spa/param/audio/iec958.h>)
 #  include <spa/param/audio/iec958.h>
 #else
-#  include "qpipewire_spa_compat_p.h"
+#  include <QtMultimedia/private/qpipewire_spa_compat_p.h>
 #endif
 #include <spa/param/audio/raw.h>
 #include <spa/pod/pod.h>

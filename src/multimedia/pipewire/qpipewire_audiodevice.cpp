@@ -3,8 +3,8 @@
 
 #include "qpipewire_audiodevice_p.h"
 
-#include <QtCore/qdebug.h>
 #include <QtMultimedia/private/qaudioformat_p.h>
+#include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
 

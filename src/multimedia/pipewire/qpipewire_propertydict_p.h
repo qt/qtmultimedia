@@ -15,8 +15,7 @@
 // We mean it.
 //
 
-#include "qpipewire_support_p.h"
-
+#include <QtMultimedia/private/qpipewire_support_p.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qspan.h>
 

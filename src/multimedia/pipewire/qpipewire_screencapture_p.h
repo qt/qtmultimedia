@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "private/qplatformsurfacecapture_p.h"
+#include <QtMultimedia/private/qplatformsurfacecapture_p.h>
 
 QT_BEGIN_NAMESPACE
 

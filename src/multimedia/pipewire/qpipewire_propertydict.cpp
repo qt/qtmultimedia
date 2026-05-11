@@ -3,9 +3,9 @@
 
 #include "qpipewire_propertydict_p.h"
 
-#include <pipewire/extensions/metadata.h>
-
 #include <QtCore/qspan.h>
+
+#include <pipewire/extensions/metadata.h>
 
 #include <cstdint>
 

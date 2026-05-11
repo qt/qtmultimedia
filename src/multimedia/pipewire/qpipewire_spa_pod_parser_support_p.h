@@ -15,11 +15,11 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qaudio_qspan_support_p.h>
+#include <QtMultimedia/private/qpipewire_support_p.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qspan.h>
 #include <QtCore/qtconfigmacros.h>
-#include <QtMultimedia/private/qaudio_qspan_support_p.h>
-#include <QtMultimedia/private/qpipewire_support_p.h>
 
 #include <spa/pod/pod.h>
 #include <spa/pod/parser.h>

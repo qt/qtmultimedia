@@ -3,10 +3,12 @@
 
 #include "qpipewire_instance_p.h"
 
-#include "qpipewire_symbolloader_p.h"
-#include "qpipewire_support_p.h"
+#include <QtMultimedia/private/qpipewire_support_p.h>
+#include <QtMultimedia/private/qpipewire_symbolloader_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 #include <QtCore/qmutex.h>
+
 #include <mutex>
 
 QT_BEGIN_NAMESPACE

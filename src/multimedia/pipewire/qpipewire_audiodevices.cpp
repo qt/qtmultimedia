@@ -3,10 +3,10 @@
 
 #include "qpipewire_audiodevices_p.h"
 
-#include "qpipewire_audiocontextmanager_p.h"
-#include "qpipewire_instance_p.h"
-#include "qpipewire_audiosink_p.h"
-#include "qpipewire_audiosource_p.h"
+#include <QtMultimedia/private/qpipewire_audiocontextmanager_p.h>
+#include <QtMultimedia/private/qpipewire_audiosink_p.h>
+#include <QtMultimedia/private/qpipewire_audiosource_p.h>
+#include <QtMultimedia/private/qpipewire_instance_p.h>
 
 QT_BEGIN_NAMESPACE
 

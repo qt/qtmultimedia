@@ -15,12 +15,11 @@
 // We mean it.
 //
 
-#include <QtCore/qglobal.h>
-#include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/private/qaudio_rtsan_support_p.h>
-
-#include "qpipewire_audiodevicemonitor_p.h"
-#include "qpipewire_support_p.h"
+#include <QtMultimedia/private/qpipewire_audiodevicemonitor_p.h>
+#include <QtMultimedia/private/qpipewire_support_p.h>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtCore/qglobal.h>
 
 #include <pipewire/stream.h>
 

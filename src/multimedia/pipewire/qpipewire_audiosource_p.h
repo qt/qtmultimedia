@@ -15,13 +15,12 @@
 // We mean it.
 //
 
-#include <QtCore/qsemaphore.h>
-#include <QtCore/qtclasshelpermacros.h>
-
 #include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
 #include <QtMultimedia/private/qpipewire_audiostream_p.h>
+#include <QtCore/qsemaphore.h>
+#include <QtCore/qtclasshelpermacros.h>
 
 QT_BEGIN_NAMESPACE
 

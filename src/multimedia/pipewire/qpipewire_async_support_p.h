@@ -15,11 +15,10 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qpipewire_support_p.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qsemaphore.h>
-#include <QtCore/private/qexpected_p.h>
-
-#include "qpipewire_support_p.h"
 
 #include <spa/utils/hook.h>
 

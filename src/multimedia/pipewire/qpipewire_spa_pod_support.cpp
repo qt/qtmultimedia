@@ -12,13 +12,13 @@
 #if __has_include(<spa/param/audio/raw-utils.h>)
 #  include <spa/param/audio/raw-utils.h>
 #else
-#  include "qpipewire_spa_compat_p.h"
+#  include <QtMultimedia/private/qpipewire_spa_compat_p.h>
 #endif
 
 #if PW_CHECK_VERSION(0, 3, 44)
 #  include <spa/param/audio/iec958.h>
 #else
-#  include "qpipewire_spa_compat_p.h"
+#  include <QtMultimedia/private/qpipewire_spa_compat_p.h>
 static constexpr spa_format SPA_FORMAT_AUDIO_iec958Codec = spa_format(65542);
 static constexpr spa_media_subtype SPA_MEDIA_SUBTYPE_iec958 = spa_media_subtype(3);
 #endif

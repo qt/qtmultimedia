@@ -3,11 +3,10 @@
 
 #include "qpipewire_audiocontextmanager_p.h"
 
-#include "qpipewire_audiostream_p.h"
-#include "qpipewire_instance_p.h"
-#include "qpipewire_propertydict_p.h"
-#include "qpipewire_support_p.h"
-
+#include <QtMultimedia/private/qpipewire_audiostream_p.h>
+#include <QtMultimedia/private/qpipewire_instance_p.h>
+#include <QtMultimedia/private/qpipewire_propertydict_p.h>
+#include <QtMultimedia/private/qpipewire_support_p.h>
 #include <QtCore/qapplicationstatic.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>

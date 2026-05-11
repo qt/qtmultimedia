@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qpipewire_screencapture_p.h"
-#include "qpipewire_screencapturehelper_p.h"
+
+#include <QtMultimedia/private/qpipewire_screencapturehelper_p.h>
 
 #include <utility>
 
