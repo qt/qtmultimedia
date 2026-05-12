@@ -110,7 +110,7 @@ QGstreamerRelayVideoSink::QGstreamerRelayVideoSink(QObject *parent)
     }
 
     bool disablePixelAspectRatio =
-            qEnvironmentVariableIsSet("QT_GSTREAMER_DISABLE_PIXEL_ASPECT_RATIO");
+            qEnvironmentVariableIntValue("QT_GSTREAMER_DISABLE_PIXEL_ASPECT_RATIO") != 0;
     if (disablePixelAspectRatio) {
         // Enabling the pixel aspect ratio may expose a gstreamer bug on cameras that don't expose a
         // pixel-aspect-ratio via `VIDIOC_CROPCAP`. This can cause the caps negotiation to fail.
