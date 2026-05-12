@@ -74,6 +74,10 @@ After configuring Qt Multimedia, carefully review the configure summary
 under the "Plugin" section. Then follow the regular build and install
 steps described in \l{Building Qt Sources}.
 
+\note When building Qt Multimedia statically, the path to the FFmpeg libraries
+is baked into \c{libQt6FFmpegMediaPluginImpl.prl}. You will need to patch the
+path if your Qt is supposed to be used on a different machine.
+
 \section1 Platform Notes
 
 \section2 iOS
