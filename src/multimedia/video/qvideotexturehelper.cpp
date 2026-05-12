@@ -23,7 +23,7 @@ namespace QVideoTextureHelper
 
 bool forceGlTextureExternalOesIsSet() {
     static const bool isSet =
-            qEnvironmentVariableIsSet("QT_MULTIMEDIA_FORCE_GL_TEXTURE_EXTERNAL_OES");
+            qEnvironmentVariableIntValue("QT_MULTIMEDIA_FORCE_GL_TEXTURE_EXTERNAL_OES") != 0;
     return isSet;
 }
 

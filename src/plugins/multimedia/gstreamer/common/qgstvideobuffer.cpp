@@ -401,7 +401,7 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
     const int nMemoryBlocks = gst_buffer_n_memory(buffer);
     static const bool externalOes = QVideoTextureHelper::forceGlTextureExternalOesIsSet();
     static const bool singleEGLImage =
-            externalOes || qEnvironmentVariableIsSet("QT_GSTREAMER_FORCE_SINGLE_EGLIMAGE");
+            externalOes || qEnvironmentVariableIntValue("QT_GSTREAMER_FORCE_SINGLE_EGLIMAGE") != 0;
 
     qCDebug(qLcGstVideoBuffer) << "format:" << gst_video_format_to_string(format)
                                << "nPlanes:" << nPlanes
