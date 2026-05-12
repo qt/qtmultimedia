@@ -22,6 +22,7 @@
 #endif
 
 #include <algorithm>
+#include <functional>
 #include <utility>
 
 QT_BEGIN_NAMESPACE
