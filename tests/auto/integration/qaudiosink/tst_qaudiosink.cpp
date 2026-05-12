@@ -136,6 +136,13 @@ private slots:
     void volume_data();
     void volume();
 
+    void nativePeriodFrameCount_getReturnsMinusOneWhenUnset();
+    void nativePeriodFrameCount_setValidValues();
+    void nativePeriodFrameCount_getReturnsSet();
+    void nativePeriodFrameCount_setInvalidValues();
+    void nativePeriodFrameCount_rejectWhenNotStopped();
+    void nativePeriodFrameCount_setMinusOneUnsets();
+
     void stop_stopsAudioSink_whenInvokedUponFirstStateChange_data();
     void stop_stopsAudioSink_whenInvokedUponFirstStateChange();
 
@@ -1273,6 +1280,78 @@ void tst_QAudioSink::volume()
     // Wait a while to see if this changes
     QTest::qWait(500);
     QTRY_VERIFY(qRound(audioSink.volume() * 10.0f) == expectedInt);
+}
+
+void tst_QAudioSink::nativePeriodFrameCount_getReturnsMinusOneWhenUnset()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), -1);
+}
+
+void tst_QAudioSink::nativePeriodFrameCount_setValidValues()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+    QCOMPARE(audioSink.state(), QAudio::StoppedState);
+
+    // Test valid power-of-2 values
+    const auto validValues = { 32, 64, 128, 256, 512, 1024, 2048, 4096 };
+    for (int value : validValues) {
+        audioSink.setNativePeriodFrameCount(value);
+        QCOMPARE(audioSink.nativePeriodFrameCount(), value);
+    }
+}
+
+void tst_QAudioSink::nativePeriodFrameCount_getReturnsSet()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), -1);
+
+    audioSink.setNativePeriodFrameCount(256);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), 256);
+
+    audioSink.setNativePeriodFrameCount(1024);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), 1024);
+}
+
+void tst_QAudioSink::nativePeriodFrameCount_setInvalidValues()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+
+    // Test invalid values - these should not be set
+    const auto invalidValues = { 33, 31, 4093, 8192 };
+    for (int value : invalidValues) {
+        QTest::ignoreMessage(QtWarningMsg,
+                             QRegularExpression("QAudioSink::setNativePeriodFrameCount:.*"));
+        audioSink.setNativePeriodFrameCount(value);
+        QCOMPARE(audioSink.nativePeriodFrameCount(), -1);
+    }
+}
+
+void tst_QAudioSink::nativePeriodFrameCount_rejectWhenNotStopped()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+
+    // Try to set when in active state - should be rejected
+    audioSink.start();
+    QTRY_VERIFY(audioSink.state() != QAudio::StoppedState);
+
+    QTest::ignoreMessage(QtWarningMsg,
+                         QRegularExpression("QAudioSink::setNativePeriodFrameCount:.*can only be set when stopped.*"));
+    audioSink.setNativePeriodFrameCount(256);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), -1);
+
+    audioSink.stop();
+}
+
+void tst_QAudioSink::nativePeriodFrameCount_setMinusOneUnsets()
+{
+    QAudioSink audioSink(audioDevice.preferredFormat(), this);
+
+    audioSink.setNativePeriodFrameCount(512);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), 512);
+
+    audioSink.setNativePeriodFrameCount(-1);
+    QCOMPARE(audioSink.nativePeriodFrameCount(), -1);
 }
 
 void tst_QAudioSink::stop_stopsAudioSink_whenInvokedUponFirstStateChange_data()

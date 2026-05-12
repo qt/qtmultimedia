@@ -59,6 +59,9 @@ public:
     void setBufferFrameCount(qsizetype framesCount);
     qsizetype bufferFrameCount() const;
 
+    void setNativePeriodFrameCount(int frameCount);
+    int nativePeriodFrameCount() const;
+
     qsizetype bytesFree() const;
     qsizetype framesFree() const;
 

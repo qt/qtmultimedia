@@ -3,6 +3,8 @@
 
 #include "qaudiosink.h"
 
+#include <QtMultimedia/private/qaudio_alignment_support_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
@@ -380,6 +382,9 @@ qsizetype QAudioSink::framesFree() const
     set is the actual buffer size used - call bufferSize() anytime after start()
     to return the actual buffer size being used.
 
+    The bufferFrameCount() and bufferSize() properties denote the ringbuffer size
+    when using the QIODevice APIs. The native period size is controlled via setNativePeriodFrameCount().
+
     \sa setBufferFrameCount
 */
 void QAudioSink::setBufferSize(qsizetype value)
@@ -412,6 +417,9 @@ qsizetype QAudioSink::bufferSize() const
     set is the actual buffer size used - call bufferFrameCount() anytime after
     start() to return the actual buffer size being used.
 
+    The bufferFrameCount() and bufferSize() properties denote the ringbuffer size
+    when using the QIODevice APIs. The native period size is controlled via setNativePeriodFrameCount().
+
     \sa setBufferSize
     \since 6.10
 */
@@ -438,6 +446,65 @@ void QAudioSink::setBufferFrameCount(qsizetype value)
 qsizetype QAudioSink::bufferFrameCount() const
 {
     return d ? d->format().framesForBytes(bufferSize()) : 0;
+}
+
+/*!
+    Sets the native period frame count to \a frameCount.
+
+    Tunes the audio buffer size used by the operating system and hardware. By default (when not set),
+    the system uses a platform-dependent value, typically 1024 frames (~23ms at 44100 Hz).
+
+    Use smaller values (64-256) to reduce latency, or larger values (2048-4096) to reduce the risk of
+    buffer underruns (dropouts).
+
+    Valid values are powers of 2 between 32 and 4096 (inclusive), or -1 to unset. Can only be called
+    when the audio sink is stopped.
+
+    Maps to platform-specific settings: \c{kAudioDevicePropertyBufferFrameSize} (macOS),
+    \c{IAudioClient::bufferDuration} (Windows), \c{PW_KEY_NODE_FORCE_QUANTUM} (PipeWire/Linux),
+    and \c{AAudioStreamBuilder_setBufferCapacityInFrames} (Android).
+
+    \note This is separate from the ringbuffer configured with setBufferSize() or setBufferFrameCount().
+
+    \since 6.12
+    \sa nativePeriodFrameCount
+*/
+void QAudioSink::setNativePeriodFrameCount(int frameCount)
+{
+    if (!d)
+        return;
+
+    // Allow -1 as special case (unset)
+    if (frameCount != -1) {
+        if (state() != QAudio::StoppedState) {
+            qWarning("QAudioSink::setNativePeriodFrameCount: can only be set when stopped");
+            return;
+        }
+
+        if (frameCount < 32 || frameCount > 4096
+            || !QtMultimediaPrivate::isPowerOfTwo(frameCount)) {
+            qWarning("QAudioSink::setNativePeriodFrameCount: invalid frame count %d "
+                     "(must be -1 or a power of 2 between 32 and 4096)",
+                     frameCount);
+            return;
+        }
+    }
+
+    d->setHardwareBufferFrames(frameCount);
+}
+
+/*!
+    Returns the native period frame count.
+
+    Returns -1 if not set, otherwise returns the value previously set with
+    setNativePeriodFrameCount().
+
+    \since 6.12
+    \sa setNativePeriodFrameCount
+*/
+int QAudioSink::nativePeriodFrameCount() const
+{
+    return d ? d->hardwareBufferFrames() : -1;
 }
 
 /*!

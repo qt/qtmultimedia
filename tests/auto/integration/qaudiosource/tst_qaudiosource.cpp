@@ -83,6 +83,13 @@ private slots:
     void volume_data(){generate_audiofile_testrows();}
     void volume();
 
+    void nativePeriodFrameCount_getReturnsMinusOneWhenUnset();
+    void nativePeriodFrameCount_setValidValues();
+    void nativePeriodFrameCount_getReturnsSet();
+    void nativePeriodFrameCount_setInvalidValues();
+    void nativePeriodFrameCount_rejectWhenNotStopped();
+    void nativePeriodFrameCount_setMinusOneUnsets();
+
     void stop_finishesPushMode_whenInvokedUponReadyReadSignal();
 
     void stop_stopsAudioSource_whenInvokedUponFirstStateChange_data();
@@ -950,6 +957,78 @@ void tst_QAudioSource::volume()
     QTRY_VERIFY(qRound(audioSource.volume() * 10.0f) == 10);
 
     audioSource.setVolume(volume);
+}
+
+void tst_QAudioSource::nativePeriodFrameCount_getReturnsMinusOneWhenUnset()
+{
+    QAudioSource audioSource(audioDevice.preferredFormat(), this);
+    QCOMPARE(audioSource.nativePeriodFrameCount(), -1);
+}
+
+void tst_QAudioSource::nativePeriodFrameCount_setValidValues()
+{
+    QAudioSource audioSource(audioDevice.preferredFormat(), this);
+    QCOMPARE(audioSource.state(), QAudio::StoppedState);
+
+    // Test valid power-of-2 values
+    const auto validValues = { 32, 64, 128, 256, 512, 1024, 2048, 4096 };
+    for (int value : validValues) {
+        audioSource.setNativePeriodFrameCount(value);
+        QCOMPARE(audioSource.nativePeriodFrameCount(), value);
+    }
+}
+
+void tst_QAudioSource::nativePeriodFrameCount_getReturnsSet()
+{
+    QAudioSource audioSource(audioDevice.preferredFormat(), this);
+    QCOMPARE(audioSource.nativePeriodFrameCount(), -1);
+
+    audioSource.setNativePeriodFrameCount(256);
+    QCOMPARE(audioSource.nativePeriodFrameCount(), 256);
+
+    audioSource.setNativePeriodFrameCount(1024);
+    QCOMPARE(audioSource.nativePeriodFrameCount(), 1024);
+}
+
+void tst_QAudioSource::nativePeriodFrameCount_setInvalidValues()
+{
+    QAudioSource audioSource(audioDevice.preferredFormat(), this);
+
+    // Test invalid values - these should not be set
+    const auto invalidValues = { 33, 31, 4093, 8192 };
+    for (int value : invalidValues) {
+        QTest::ignoreMessage(QtWarningMsg,
+                             QRegularExpression("QAudioSource::setNativePeriodFrameCount:.*"));
+        audioSource.setNativePeriodFrameCount(value);
+        QCOMPARE(audioSource.nativePeriodFrameCount(), -1);
+    }
+}
+
+void tst_QAudioSource::nativePeriodFrameCount_rejectWhenNotStopped()
+{
+    QAudioSource audioSource(audioDevice.preferredFormat(), this);
+
+    // Try to set when in active state - should be rejected
+    audioSource.start();
+    QTRY_VERIFY(audioSource.state() != QAudio::StoppedState);
+
+    QTest::ignoreMessage(QtWarningMsg,
+                         QRegularExpression("QAudioSource::setNativePeriodFrameCount:.*can only be set when stopped.*"));
+    audioSource.setNativePeriodFrameCount(256);
+    QCOMPARE(audioSource.nativePeriodFrameCount(), -1);
+
+    audioSource.stop();
+}
+
+void tst_QAudioSource::nativePeriodFrameCount_setMinusOneUnsets()
+{
+    QAudioSource audioSource(audioDevice.preferredFormat(), this);
+
+    audioSource.setNativePeriodFrameCount(512);
+    QCOMPARE(audioSource.nativePeriodFrameCount(), 512);
+
+    audioSource.setNativePeriodFrameCount(-1);
+    QCOMPARE(audioSource.nativePeriodFrameCount(), -1);
 }
 
 void tst_QAudioSource::stop_finishesPushMode_whenInvokedUponReadyReadSignal()
