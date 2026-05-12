@@ -5,8 +5,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     message(FATAL_ERROR "This module is part of the 'qmlvideo' example, and should not be built independently.")
 endif()
 
-set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/qmlvideo/qmlvideo")
-
 qt_add_qml_module(qmlvideo
     URI qmlvideo
     VERSION 1.0
@@ -69,14 +67,4 @@ target_link_libraries(qmlvideo PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Quick
-)
-
-install(TARGETS qmlvideo
-    RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
-    BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
-    LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
-)
-
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qmldir
-    DESTINATION "${INSTALL_EXAMPLEDIR}"
 )
