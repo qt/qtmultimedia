@@ -190,8 +190,12 @@ QPlatformAudioSinkStream::process(QSpan<std::byte> hostBuffer, qsizetype totalNu
             m_streamIdleDetectionNotifier.set();
         }
     }
-    if (!hostBuffer.empty())
-        std::fill_n(hostBuffer.data(), hostBuffer.size(), std::byte{});
+    if (!hostBuffer.empty()) {
+        if (nativeFormat)
+            QAudioHelperInternal::fillSilence(hostBuffer, *nativeFormat);
+        else
+            QAudioHelperInternal::fillSilence(hostBuffer, m_format);
+    }
 
     uint64_t consumedFrames = samplesConsumedFromRingbuffer / m_format.channelCount();
     m_processedFrameCount += consumedFrames;

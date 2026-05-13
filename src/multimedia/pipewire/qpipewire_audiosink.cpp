@@ -271,7 +271,7 @@ void QPipewireAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
 
     if (stopRequested && shutdownPolicy == ShutdownPolicy::DiscardRingbuffer) {
         // discarding ringbuffer: we silence the last block and exit early
-        ::memset(writeBuffer.data(), 0, writeBuffer.size());
+        QAudioHelperInternal::fillSilence(writeBuffer, m_format);
         queueBuffer(b, requestedSamples);
 
         if constexpr (pipewireRealtimeTracing)
