@@ -76,6 +76,9 @@ constexpr size_t bytesPerSample(NativeSampleFormat fmt) noexcept QT_MM_NONBLOCKI
 
 std::optional<float> sanitizeVolume(float volume, float lastVolume);
 
+void fillSilence(QSpan<std::byte>, NativeSampleFormat) noexcept QT_MM_NONBLOCKING;
+void fillSilence(QSpan<std::byte>, QAudioFormat) noexcept QT_MM_NONBLOCKING;
+
 } // namespace QAudioHelperInternal
 
 Q_MULTIMEDIA_EXPORT

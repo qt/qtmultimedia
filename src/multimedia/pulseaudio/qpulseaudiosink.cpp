@@ -279,7 +279,7 @@ void QPulseAudioSinkStream::writeCallbackRingbuffer(size_t requestedBytes)
     const uint64_t consumedFrames = process(hostBuffer, requestedFrames);
     if (consumedFrames != requestedFrames) {
         auto remainder = drop(hostBuffer, m_format.bytesForFrames(consumedFrames));
-        std::fill(remainder.begin(), remainder.end(), std::byte{});
+        QAudioHelperInternal::fillSilence(remainder, m_format);
     }
     status = pa_stream_write(m_stream.get(), hostBuffer.data(), nbytes,
                              /*free_cb= */ nullptr, /*offset=*/0, PA_SEEK_RELATIVE);

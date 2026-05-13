@@ -4,6 +4,7 @@
 #include "qaudiohelpers_p.h"
 
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qmultimedia_enum_to_string_converter_p.h>
 #include <QtCore/qdebug.h>
 
@@ -456,6 +457,18 @@ std::optional<float> sanitizeVolume(float volume, float lastValue)
         return std::nullopt;
 
     return volume;
+}
+
+void fillSilence(QSpan<std::byte> buffer, NativeSampleFormat sampleFormat) noexcept
+{
+    namespace ranges = QtMultimediaPrivate::ranges;
+    ranges::fill(buffer,
+                 sampleFormat == NativeSampleFormat::uint8_t ? std::byte{ 0x80 } : std::byte{ 0 });
+}
+
+void fillSilence(QSpan<std::byte> buffer, QAudioFormat fmt) noexcept
+{
+    fillSilence(buffer, toNativeSampleFormat(fmt.sampleFormat()));
 }
 
 } // namespace QAudioHelperInternal
