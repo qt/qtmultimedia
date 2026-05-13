@@ -471,7 +471,7 @@ void tst_QAudioSink::start_withSupportedSampleFormats()
 void tst_QAudioSink::bufferSize_data()
 {
     QTest::addColumn<int>("bufferSize");
-    QTest::newRow("Buffer size 512") << 512;
+    QTest::newRow("Buffer size 1024") << 1024;
     QTest::newRow("Buffer size 4096") << 4096;
     QTest::newRow("Buffer size 8192") << 8192;
 }
