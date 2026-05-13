@@ -782,13 +782,12 @@ void tst_QAudioSink::pullSuspendResume()
 
 void tst_QAudioSink::pullResumeFromUnderrun()
 {
-    constexpr int chunkSize = 128;
-
     QAudioDevice output = QMediaDevices::defaultAudioOutput();
     if (output.isNull())
         QSKIP("no audio output detected");
 
     QAudioFormat format = output.preferredFormat();
+    const int chunkSize = format.bytesForFrames(128);
 
     AudioPullSource audioSource;
     QAudioSink audioSink(format, this);
