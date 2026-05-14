@@ -45,6 +45,15 @@ static std::optional<TrackDuration> streamDuration(const AVStream &stream)
     return {};
 }
 
+static std::optional<TrackPosition> streamStart(const AVStream &stream,
+                                                const AVFormatContextUPtr &context)
+{
+    if (stream.start_time != AV_NOPTS_VALUE)
+        return toTrackPosition(AVStreamPosition(stream.start_time), &stream, context.get());
+    else
+        return {};
+}
+
 static QTransform displayMatrixToTransform(const int32_t *displayMatrix)
 {
     // displayMatrix is stored as
@@ -338,6 +347,8 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
     m_context = std::move(context);
     m_isSeekable = !(m_context->ctx_flags & AVFMTCTX_UNSEEKABLE);
 
+    std::optional<TrackDuration> mediaDuration;
+
     for (unsigned int i = 0; i < m_context->nb_streams; ++i) {
 
         const auto *stream = m_context->streams[i];
@@ -366,19 +377,53 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
                 m_requestedStreams[trackType] = m_streamMap[trackType].size();
         }
 
-        if (auto duration = streamDuration(*stream)) {
-            m_duration = qMax(m_duration, *duration);
+        if (auto duration = streamDuration(*stream))
             metaData.insert(QMediaMetaData::Duration, toUserDuration(*duration).get());
-        }
 
         m_streamMap[trackType].append({ (int)i, isDefault, metaData });
     }
 
     // With some media files, streams may be lacking duration info. Let's
     // get it from ffmpeg's duration estimation instead.
-    if (m_duration == TrackDuration(0) && m_context->duration > 0ll) {
-        m_duration = toTrackDuration(AVContextDuration(m_context->duration));
+    if (m_context->duration > 0ll)
+        mediaDuration = toTrackDuration(AVContextDuration(m_context->duration));
+
+    if (!mediaDuration) {
+        std::optional<AVContextDuration> contextStart = contextStartOffset(m_context.get());
+
+        std::optional<TrackPosition> startPosition = [&]() -> std::optional<TrackPosition> {
+            if (contextStart)
+                return toTrackDuration(*contextStart).asTimePoint();
+            return std::nullopt;
+        }();
+
+        std::optional<TrackPosition> endPosition;
+
+        QSpan streams{ m_context->streams, qsizetype(m_context->nb_streams) };
+        for (const AVStream *stream : streams) {
+            std::optional<TrackPosition> currentStreamStartPosition = streamStart(*stream, context);
+            std::optional<TrackDuration> currentStreamDuration = streamDuration(*stream);
+            std::optional<TrackPosition> currentStreamEndPosition =
+                    [&]() -> std::optional<TrackPosition> {
+                if (currentStreamStartPosition && currentStreamDuration)
+                    return *currentStreamStartPosition + *currentStreamDuration;
+                return std::nullopt;
+            }();
+
+            if (startPosition)
+                startPosition = std::min(*startPosition,
+                                         currentStreamStartPosition.value_or(*startPosition));
+            else
+                startPosition = currentStreamStartPosition;
+
+            endPosition = std::max(endPosition, currentStreamEndPosition);
+        }
+
+        if (endPosition && startPosition)
+            mediaDuration = *endPosition - *startPosition;
     }
+
+    m_duration = mediaDuration.value_or(TrackDuration::zero());
 
     for (auto trackType :
          { QPlatformMediaPlayer::VideoStream, QPlatformMediaPlayer::AudioStream }) {
