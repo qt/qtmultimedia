@@ -77,6 +77,8 @@ public:
         return lhs;
     }
 
+    static constexpr ThisType zero() { return ThisType(ValueType{}); }
+
 private:
     ValueType m_value;
 };
