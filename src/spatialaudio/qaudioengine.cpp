@@ -54,6 +54,9 @@ float QAudioEnginePrivate::masterVolume() const
 void QAudioEnginePrivate::setListenerPosition(std::optional<QVector3D> pos)
 {
     m_position = pos;
+
+    QVector3D posValue = pos.value_or(QVector3D{});
+    resonanceAudio->api->SetHeadPosition(posValue.x(), posValue.y(), posValue.z());
 }
 
 void QAudioEnginePrivate::setListenerRotation(const QQuaternion &rotation)
