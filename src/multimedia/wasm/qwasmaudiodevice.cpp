@@ -6,12 +6,33 @@
 #include <emscripten/val.h>
 #include <emscripten/bind.h>
 
-#include <AL/al.h>
-#include <AL/alc.h>
-
 QT_BEGIN_NAMESPACE
 
 namespace {
+
+// Probe the hardware sample rate once and cache it. The rate is the same for
+// all devices, so creating a temporary AudioContext per enumerated device is
+// wasteful and can cause browser device errors from overlapping contexts.
+int probeHardwareSampleRate()
+{
+    static int cachedRate = 0;
+    if (cachedRate > 0)
+        return cachedRate;
+
+    // FIXME: firefox
+    // An AudioContext was prevented from starting automatically.
+    // It must be created or resumed after a user gesture on the page.
+    emscripten::val ctx = emscripten::val::global("window")["AudioContext"].new_();
+    if (ctx == emscripten::val::undefined())
+        ctx = emscripten::val::global("window")["webkitAudioContext"].new_();
+
+    if (ctx != emscripten::val::undefined()) {
+        cachedRate = ctx["sampleRate"].as<int>();
+        ctx.call<void>("close");
+    }
+
+    return cachedRate;
+}
 
 QAudioDevicePrivate::AudioDeviceFormat createDefaultWasmAudioDeviceFormat()
 {
@@ -22,34 +43,18 @@ QAudioDevicePrivate::AudioDeviceFormat createDefaultWasmAudioDeviceFormat()
     format.minimumSampleRate = 8000;
     format.maximumSampleRate = 96000; // js AudioContext max according to docs
 
-    // native openAL formats
+    // WebAudio natively supports all these formats via AudioWorklet.
     format.supportedSampleFormats.append(QAudioFormat::UInt8);
     format.supportedSampleFormats.append(QAudioFormat::Int16);
-
-    // Browsers use 32bit floats as native, but emscripten reccomends checking for the exension.
-    if (alIsExtensionPresent("AL_EXT_float32"))
-        format.supportedSampleFormats.append(QAudioFormat::Float);
+    format.supportedSampleFormats.append(QAudioFormat::Int32);
+    format.supportedSampleFormats.append(QAudioFormat::Float);
 
     format.preferredFormat.setChannelCount(2);
 
-    // FIXME: firefox
-    // An AudioContext was prevented from starting automatically.
-    // It must be created or resumed after a user gesture on the page.
-    emscripten::val audioContext = emscripten::val::global("window")["AudioContext"].new_();
-    if (audioContext == emscripten::val::undefined())
-        audioContext = emscripten::val::global("window")["webkitAudioContext"].new_();
-
-    if (audioContext != emscripten::val::undefined()) {
-        int sRate = audioContext["sampleRate"].as<int>();
-        audioContext.call<void>("close");
+    if (int sRate = probeHardwareSampleRate(); sRate > 0)
         format.preferredFormat.setSampleRate(sRate);
-    }
 
-    auto f = QAudioFormat::Float;
-
-    if (!format.supportedSampleFormats.contains(f))
-        f = QAudioFormat::Int16;
-    format.preferredFormat.setSampleFormat(f);
+    format.preferredFormat.setSampleFormat(QAudioFormat::Float);
 
     return format;
 }

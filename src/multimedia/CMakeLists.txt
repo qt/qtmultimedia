@@ -425,7 +425,7 @@ qt_internal_extend_target(Multimedia CONDITION WASM
     SOURCES
         wasm/qwasmmediadevices.cpp wasm/qwasmmediadevices_p.h
         wasm/qwasmwebaudiosource.cpp wasm/qwasmwebaudiosource_p.h
-        wasm/qwasmaudiosink.cpp wasm/qwasmaudiosink_p.h
+        wasm/qwasmwebaudiosink.cpp wasm/qwasmwebaudiosink_p.h
         wasm/qwasmaudiodevice.cpp wasm/qwasmaudiodevice_p.h
         wasm/qwasmjs.cpp wasm/qwasmjs_p.h
     INCLUDE_DIRECTORIES

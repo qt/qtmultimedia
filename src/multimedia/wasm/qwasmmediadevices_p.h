@@ -87,10 +87,10 @@ public:
     QList<QAudioDevice> audioOutputs() const;
 
     void initDevices();
+    void getMediaDevices();
 
 private:
     void updateCameraDevices();
-    void getMediaDevices();
     void parseDevices(emscripten::val devices);
 
     QMap <std::string, QAudioDevice> m_audioOutputs;

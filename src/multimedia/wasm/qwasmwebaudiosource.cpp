@@ -135,6 +135,10 @@ EM_JS(void, qt_mt_setupWorkletPort, (EM_VAL nodeHandle, int callbackId), {
 
 // Single-threaded: load a JS worklet that sends frames via MessagePort.
 
+    // qWarning() << "single threaded";
+
+// qWarning() << "Single-threaded";
+
 EM_JS(void, qt_st_loadWorkletModule, (EM_VAL ctxHandle, int instanceId), {
     var ctx = Emval.toValue(ctxHandle);
     if (!Module._qtAudioData) Module._qtAudioData = {};

@@ -5,7 +5,7 @@
 #include "private/qcameradevice_p.h"
 #include "private/qplatformmediaintegration_p.h"
 #include "qwasmwebaudiosource_p.h"
-#include "qwasmaudiosink_p.h"
+#include "qwasmwebaudiosink_p.h"
 #include "qwasmaudiodevice_p.h"
 
 #include <QMap>
@@ -18,6 +18,52 @@ QT_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(qWasmMediaDevices, "qt.multimedia.wasm.mediadevices")
 
 Q_GLOBAL_STATIC(QWasmMediaDevices, s_wasmMediaDevicesInstance);
+
+bool isFirefox() {
+    return !emscripten::val::global("InstallTrigger").isUndefined();
+}
+
+
+// Firefox only as it limits enumerateDevices to inputs only when no permissions are given
+extern "C" {
+EMSCRIPTEN_KEEPALIVE void qtMediaDevicesOnAudioOutputSelected()
+{
+    if (QWasmMediaDevices *instance = QWasmMediaDevices::instance())
+        instance->getMediaDevices();
+}
+} // extern "C"
+
+EM_JS(void, setupAudioOutputSelector, (), {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = 'background:white;padding:24px;border-radius:8px;text-align:center;font-family:sans-serif;min-width:240px;';
+
+    const message = document.createElement('p');
+    message.textContent = 'Select an audio output device to continue.';
+    message.style.cssText = 'margin:0 0 16px 0;font-size:14px;';
+
+    const button = document.createElement('button');
+    button.textContent = 'Select Audio Output';
+    button.style.cssText = 'padding:8px 16px;font-size:14px;cursor:pointer;';
+
+    button.addEventListener('click', async () => {
+        document.body.removeChild(overlay);
+        try {
+            const deviceInfo = await navigator.mediaDevices.selectAudioOutput();
+            console.log("Selected device: ", deviceInfo.label);
+            Module._qtMediaDevicesOnAudioOutputSelected();
+        } catch (err) {
+            console.error(err);
+        }
+    }, { once: true });
+
+    dialog.appendChild(message);
+    dialog.appendChild(button);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+});
 
 QWasmCameraDevices::QWasmCameraDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration)
@@ -83,7 +129,10 @@ void QWasmMediaDevices::initDevices()
         return;
 
     m_initDone = true;
-    getMediaDevices(); // asynchronous
+    if (isFirefox())
+        setupAudioOutputSelector();
+    else
+        getMediaDevices(); // asynchronous
 }
 
 QList<QCameraDevice> QWasmMediaDevices::videoInputs() const
@@ -171,7 +220,6 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
                         deviceId,
                         QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
                                 deviceId.c_str(), label.c_str(), isDefault, QAudioDevice::Output)));
-                ;
 
                 m_audioOutputsAdded = true;
             }
@@ -204,6 +252,17 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
     if (m_audioInputsAdded || m_audioInputsRemoved) {
         auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
         audioDevices->onAudioInputsChanged();
+    }
+    if (!m_audioOutputsAdded) {
+        // Firefox and Safari require mic or camera permissions
+        // (or selectAudioOutput for Firefox)
+        // to enumerate output devices, so we just fake one.
+        // The device actually does not require perms to play.
+        m_audioOutputs.insert(
+                "",
+                QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
+                        "", "System output", true, QAudioDevice::Output)));
+        m_audioOutputsAdded = true;
     }
     if (m_audioOutputsAdded || m_audioOutputsRemoved) {
         auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());

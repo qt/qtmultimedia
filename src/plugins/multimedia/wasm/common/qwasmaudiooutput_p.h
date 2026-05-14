@@ -20,7 +20,7 @@
 
 #include <emscripten/val.h>
 #include <private/qstdweb_p.h>
-#include <private/qwasmaudiosink_p.h>
+#include <private/qwasmwebaudiosink_p.h>
 #include <QIODevice>
 #include <QObject>
 
