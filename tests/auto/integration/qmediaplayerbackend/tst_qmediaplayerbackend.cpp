@@ -3120,7 +3120,13 @@ void tst_QMediaPlayerBackend::metadata()
     QCOMPARE(metadata.value(QMediaMetaData::Title).toString(), QStringLiteral("Nokia Tune"));
     QCOMPARE(metadata.value(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
     QCOMPARE(metadata.value(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
-    QCOMPARE(metadata.value(QMediaMetaData::Duration), QVariant(7704));
+    static QList allowedDurations{
+        QVariant(7680), // FFmpeg-8
+        QVariant(7704), // FFmpeg-7 and earlier, avfoundation
+    };
+    const QVariant durationVar = metadata.value(QMediaMetaData::Duration);
+    QVERIFY2(allowedDurations.contains(durationVar),
+             qPrintable(u"Unexpected duration: "_s + durationVar.toString()));
 
     // macOS 15 and earlier: AVFoundation does not return ID3 artwork (APIC)
     // for MP3 files through any metadata API
@@ -5023,4 +5029,3 @@ void tst_QMediaPlayerBackend::destruction_doesNotDeadlock_afterMediaPlayerCall_d
 QTEST_MAIN(tst_QMediaPlayerBackend)
 
 #include "tst_qmediaplayerbackend.moc"
-
