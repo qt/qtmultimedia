@@ -17,6 +17,7 @@
 
 #include "qglobal.h"
 
+#include <QtCore/qdebug.h>
 #include <QtMultimedia/private/qtaggedtime_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 
@@ -103,6 +104,36 @@ inline AVContextPosition toContextPosition(TrackPosition trackPosition,
 
     return AVContextPosition(trackPosition.get() * AV_TIME_BASE / 1'000'000)
             + contextStartOffset(formatContext);
+}
+
+inline QDebug operator<<(QDebug debug, const TrackPosition &position)
+{
+    return debug << "TrackPosition{" << position.get() << "us}";
+}
+
+inline QDebug operator<<(QDebug debug, const TrackDuration &duration)
+{
+    return debug << "TrackDuration{" << duration.get() << "us}";
+}
+
+inline QDebug operator<<(QDebug debug, const UserTrackPosition &position)
+{
+    return debug << "UserTrackPosition{" << position.get() << "ms}";
+}
+
+inline QDebug operator<<(QDebug debug, const UserTrackDuration &duration)
+{
+    return debug << "UserTrackDuration{" << duration.get() << "ms}";
+}
+
+inline QDebug operator<<(QDebug debug, const AVStreamPosition &position)
+{
+    return debug << "AVStreamPosition{" << position.get() << "stream units}";
+}
+
+inline QDebug operator<<(QDebug debug, const AVStreamDuration &duration)
+{
+    return debug << "AVStreamDuration{" << duration.get() << "stream units}";
 }
 
 } // namespace QFFmpeg
