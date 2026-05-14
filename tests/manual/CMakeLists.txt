@@ -46,3 +46,7 @@ if(TARGET Qt::Quick)
         add_subdirectory(qml-gstreamer-rtp)
     endif()
 endif()
+
+if(TARGET Qt::Quick3DSpatialAudio)
+    add_subdirectory(quick3d-spatialaudio)
+endif()
