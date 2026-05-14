@@ -18,10 +18,6 @@
 
 #include <QtCore/private/qminimalflatset_p.h>
 
-extern "C" {
-#include "libavutil/display.h"
-}
-
 QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcMediaDataHolder, "qt.multimedia.ffmpeg.mediadataholder")
