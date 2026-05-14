@@ -53,11 +53,11 @@ using AVContextDuration = QTaggedDuration<qint64, AVContextTimeTag>;
 
 using SteadyClock = std::chrono::steady_clock;
 
-inline AVContextDuration contextStartOffset(const AVFormatContext *formatContext)
-
+inline std::optional<AVContextDuration> contextStartOffset(const AVFormatContext *formatContext)
 {
-    return AVContextDuration(
-            formatContext->start_time == AV_NOPTS_VALUE ? 0 : formatContext->start_time);
+    if (formatContext->start_time == AV_NOPTS_VALUE)
+        return std::nullopt;
+    return AVContextDuration(formatContext->start_time);
 }
 
 inline UserTrackPosition toUserPosition(TrackPosition trackPosition)
@@ -93,17 +93,21 @@ inline TrackDuration toTrackDuration(AVStreamDuration streamDuration, const AVSt
 inline TrackPosition toTrackPosition(AVStreamPosition streamPosition, const AVStream *avStream,
                                      const AVFormatContext *formatContext)
 {
-    const auto duration = toTrackDuration(streamPosition.asDuration(), avStream)
-            - toTrackDuration(contextStartOffset(formatContext));
+    auto duration = toTrackDuration(streamPosition.asDuration(), avStream);
+    if (formatContext) {
+        std::optional contextStart = contextStartOffset(formatContext);
+        if (contextStart)
+            duration -= toTrackDuration(*contextStart);
+    }
+
     return duration.asTimePoint();
 }
 
 inline AVContextPosition toContextPosition(TrackPosition trackPosition,
                                            const AVFormatContext *formatContext)
 {
-
     return AVContextPosition(trackPosition.get() * AV_TIME_BASE / 1'000'000)
-            + contextStartOffset(formatContext);
+            + contextStartOffset(formatContext).value_or(AVContextDuration::zero());
 }
 
 inline QDebug operator<<(QDebug debug, const TrackPosition &position)
