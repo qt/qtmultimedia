@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <array>
 #include <future>
+#include <set>
+#include <string>
 #include <unordered_set>
 #include <vector>
 
@@ -314,6 +316,98 @@ struct CodecStoreSingleton
 {
     std::shared_future<std::array<CodecsStorage, 2>> codecStoreFuture;
 
+    static bool isExcludedEncoder(QLatin1String codecName)
+    {
+        static const std::set<std::string, std::less<>> excludeSet = [] {
+            std::set<std::string, std::less<>> s;
+            const QByteArray excludeEnv = qgetenv("QT_FFMPEG_EXCLUDE_ENCODERS");
+            if (excludeEnv.isEmpty())
+                return s;
+            const QStringList parts = QString::fromUtf8(excludeEnv).split(u',', Qt::SkipEmptyParts);
+            for (const QString &p : parts) {
+                const QString t = p.trimmed().toLower();
+                if (!t.isEmpty())
+                    s.insert(t.toStdString());
+            }
+            return s;
+        }();
+
+        std::string_view codecNameView{ codecName.data(), size_t(codecName.size()) };
+
+        if (excludeSet.count(codecNameView)) {
+            qCDebug(qLcCodecStorage)
+                    << "Skip encoder" << codecName << "due to QT_FFMPEG_EXCLUDE_ENCODERS";
+            return true;
+        }
+        return false;
+    }
+
+    static std::array<CodecsStorage, 2> enumerateCodecs()
+    {
+        std::array<CodecsStorage, 2> result;
+        const auto platformHwEncoders = availableHWCodecs(Encoders);
+        const auto platformHwDecoders = availableHWCodecs(Decoders);
+
+        for (const Codec codec : CodecEnumerator()) {
+            // TODO: to be investigated
+            // FFmpeg functions avcodec_find_decoder/avcodec_find_encoder
+            // find experimental codecs in the last order,
+            // now we don't consider them at all since they are supposed to
+            // be not stable, maybe we shouldn't.
+            // Currently, it's possible to turn them on for testing purposes.
+
+            static const auto experimentalCodecsEnabled =
+                    qEnvironmentVariableIntValue("QT_ENABLE_EXPERIMENTAL_CODECS");
+
+            if (!experimentalCodecsEnabled && codec.isExperimental()) {
+                qCDebug(qLcCodecStorage) << "Skip experimental codec" << codec.name();
+                continue;
+            }
+
+            if (codec.isDecoder()) {
+                if (isCodecValid(codec, HWAccel::decodingDeviceTypes(), platformHwDecoders))
+                    result[Decoders].emplace_back(codec);
+                else
+                    qCDebug(qLcCodecStorage) << "Skip decoder" << codec.name()
+                                             << "due to disabled matching hw acceleration, or "
+                                                "dysfunctional codec";
+            }
+
+            if (codec.isEncoder()) {
+                if (isExcludedEncoder(codec.name()))
+                    continue;
+
+                if (isCodecValid(codec, HWAccel::encodingDeviceTypes(), platformHwEncoders))
+                    result[Encoders].emplace_back(codec);
+                else
+                    qCDebug(qLcCodecStorage) << "Skip encoder" << codec.name()
+                                             << "due to disabled matching hw acceleration, or "
+                                                "dysfunctional codec";
+            }
+        }
+
+        for (auto &storage : result) {
+            storage.shrink_to_fit();
+
+            // we should ensure the original order
+            ranges::stable_sort(storage, CodecsComparator{});
+        }
+
+        // It print pretty much logs, so let's print it only for special case
+        const bool shouldDumpCodecsInfo = qLcCodecStorage().isEnabled(QtDebugMsg)
+                && qEnvironmentVariableIsSet("QT_FFMPEG_DEBUG");
+
+        if (shouldDumpCodecsInfo) {
+            qCDebug(qLcCodecStorage) << "Advanced FFmpeg codecs info:";
+            for (auto &storage : result) {
+                for (auto &codec : storage)
+                    dumpCodecInfo(codec);
+                qCDebug(qLcCodecStorage) << "---------------------------";
+            }
+        }
+        return result;
+    }
+
     CodecStoreSingleton()
     {
 #ifdef Q_OS_WINDOWS
@@ -326,65 +420,7 @@ struct CodecStoreSingleton
 #endif
 
         codecStoreFuture = std::async(launchPolicy, [] {
-            std::array<CodecsStorage, 2> result;
-            const auto platformHwEncoders = availableHWCodecs(Encoders);
-            const auto platformHwDecoders = availableHWCodecs(Decoders);
-
-            for (const Codec codec : CodecEnumerator()) {
-                // TODO: to be investigated
-                // FFmpeg functions avcodec_find_decoder/avcodec_find_encoder
-                // find experimental codecs in the last order,
-                // now we don't consider them at all since they are supposed to
-                // be not stable, maybe we shouldn't.
-                // Currently, it's possible to turn them on for testing purposes.
-
-                static const auto experimentalCodecsEnabled =
-                        qEnvironmentVariableIntValue("QT_ENABLE_EXPERIMENTAL_CODECS");
-
-                if (!experimentalCodecsEnabled && codec.isExperimental()) {
-                    qCDebug(qLcCodecStorage) << "Skip experimental codec" << codec.name();
-                    continue;
-                }
-
-                if (codec.isDecoder()) {
-                    if (isCodecValid(codec, HWAccel::decodingDeviceTypes(), platformHwDecoders))
-                        result[Decoders].emplace_back(codec);
-                    else
-                        qCDebug(qLcCodecStorage) << "Skip decoder" << codec.name()
-                                                 << "due to disabled matching hw acceleration, or "
-                                                    "dysfunctional codec";
-                }
-
-                if (codec.isEncoder()) {
-                    if (isCodecValid(codec, HWAccel::encodingDeviceTypes(), platformHwEncoders))
-                        result[Encoders].emplace_back(codec);
-                    else
-                        qCDebug(qLcCodecStorage) << "Skip encoder" << codec.name()
-                                                 << "due to disabled matching hw acceleration, or "
-                                                    "dysfunctional codec";
-                }
-            }
-
-            for (auto &storage : result) {
-                storage.shrink_to_fit();
-
-                // we should ensure the original order
-                ranges::stable_sort(storage, CodecsComparator{});
-            }
-
-            // It print pretty much logs, so let's print it only for special case
-            const bool shouldDumpCodecsInfo = qLcCodecStorage().isEnabled(QtDebugMsg)
-                    && qEnvironmentVariableIsSet("QT_FFMPEG_DEBUG");
-
-            if (shouldDumpCodecsInfo) {
-                qCDebug(qLcCodecStorage) << "Advanced FFmpeg codecs info:";
-                for (auto &storage : result) {
-                    for (auto &codec : storage)
-                        dumpCodecInfo(codec);
-                    qCDebug(qLcCodecStorage) << "---------------------------";
-                }
-            }
-            return result;
+            return enumerateCodecs();
         }).share();
     }
 };
