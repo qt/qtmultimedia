@@ -785,6 +785,17 @@ QAudioOutput *QMediaPlayer::audioOutput() const
 }
 
 /*!
+    \qmlsignal QtMultimedia::MediaPlayer::tracksChanged()
+
+    This signal is emitted when the \l{audioTracks}, \l{subtitleTracks}
+    or \l{videoTracks} properties are changed.
+*/
+
+/*!
+    \fn QMediaPlayer::tracksChanged()
+*/
+
+/*!
     \qmlproperty list<mediaMetaData> QtMultimedia::MediaPlayer::audioTracks
 
     This property holds a list of metadata.
@@ -793,6 +804,8 @@ QAudioOutput *QMediaPlayer::audioOutput() const
     The metadata holds properties describing the individual tracks. For
     audio tracks the \l{QMediaMetaData}{Language} is usually the most
     important property.
+
+    This property emits the \l{tracksChanged} signal when modified.
 
     \sa mediaMetaData
 */
@@ -821,6 +834,8 @@ QList<QMediaMetaData> QMediaPlayer::audioTracks() const
 
     The metadata holds properties describing the individual tracks.
 
+    This property emits the \l{tracksChanged} signal when modified.
+
     \sa mediaMetaData
 */
 
@@ -847,6 +862,8 @@ QList<QMediaMetaData> QMediaPlayer::videoTracks() const
     The metadata holds properties describing the individual tracks. For
     subtitle tracks the \l{QMediaMetaData}{Language} is usually the most
     important property.
+
+    This property emits the \l{tracksChanged} signal when modified.
 
     \sa mediaMetaData
 */
