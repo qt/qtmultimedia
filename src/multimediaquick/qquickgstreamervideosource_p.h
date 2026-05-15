@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qgstreamervideosource.h>
+#include <QtMultimedia/spi/qgstreamervideosource.h>
 #include <QtMultimediaQuick/private/qtmultimediaquickglobal_p.h>
 #include <QtQml/qqml.h>
 

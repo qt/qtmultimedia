@@ -28,7 +28,7 @@ QT_BEGIN_NAMESPACE
     has been developed against. However, incompatible changes are aimed to be kept
     at a minimum and will only be made in minor releases.
     To use the class in an application, link to \c Qt::MultimediaPrivate (if using CMake),
-    and include the header #include <gstreamer/qgstreamervideosource.h>.
+    and include the header #include <spi/qgstreamervideosource.h>.
 
     Construct QGStreamerVideoSource from a GStreamer bin description
     or from an existing \c GstElement and attach it to

@@ -18,7 +18,7 @@
 #include "qaudiobufferinput.h"
 #include "qaudiooutput.h"
 #if QT_CONFIG(gstreamer_qt_api)
-#  include "qgstreamervideosource.h"
+#  include <QtMultimedia/spi/qgstreamervideosource.h>
 #endif
 
 QT_BEGIN_NAMESPACE

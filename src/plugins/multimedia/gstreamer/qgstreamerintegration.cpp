@@ -18,7 +18,7 @@
 #include <uri_handler/qgstreamer_qrc_handler_p.h>
 
 #if QT_CONFIG(gstreamer_qt_api)
-#  include <QtMultimedia/qgstreamervideosource.h>
+#  include <QtMultimedia/spi/qgstreamervideosource.h>
 #endif
 #include <QtCore/qloggingcategory.h>
 #include <QtMultimedia/private/qmediaplayer_p.h>
