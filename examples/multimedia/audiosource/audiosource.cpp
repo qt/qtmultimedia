@@ -412,7 +412,7 @@ void InputTest::startPullMode(bool record)
             return;
 
         pullRecorder->writeSpan(
-                { reinterpret_cast<const std::byte *>(buffer.constData()), bytesRead });
+                { reinterpret_cast<const std::byte *>(buffer.constData()), (qsizetype)bytesRead });
     });
 }
 

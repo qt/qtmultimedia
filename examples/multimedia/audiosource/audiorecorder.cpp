@@ -72,7 +72,8 @@ quint64 PullRecorder::bytesWritten() const
 
 qint64 PushRecorder::writeData(const char *data, qint64 len)
 {
-    auto bytesWritten = writeBytesToFile(QSpan{ reinterpret_cast<const std::byte *>(data), len });
+    auto bytesWritten =
+            writeBytesToFile(QSpan{ reinterpret_cast<const std::byte *>(data), (qsizetype)len });
     m_bytesWritten += bytesWritten;
     return bytesWritten;
 }
