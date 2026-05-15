@@ -24,7 +24,7 @@
 #include <QtMultimedia/qcameradevice.h>
 #include <QtMultimedia/qcapturablewindow.h>
 #if QT_CONFIG(gstreamer_qt_api)
-#  include <QtMultimedia/qgstreamervideosource.h>
+#  include <QtMultimedia/spi/qgstreamervideosource.h>
 #endif
 #include <QtMultimedia/qimagecapture.h>
 #include <QtMultimedia/qmediacapturesession.h>

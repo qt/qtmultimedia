@@ -16,7 +16,7 @@
 //
 
 #include "private/qobject_p.h"
-#include <QtMultimedia/qgstreamervideosource.h>
+#include <QtMultimedia/spi/qgstreamervideosource.h>
 #include <QtCore/qstring.h>
 
 #include <variant>

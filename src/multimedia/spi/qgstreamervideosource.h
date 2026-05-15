@@ -8,7 +8,7 @@
 //  W A R N I N G
 //  -------------
 //
-// This file is part of the QtMM GStreamer API, with limited compatibility guarantees.
+// This file is part of the QtMM semi-private API (SPI), with limited compatibility guarantees.
 // Usage of this API may make your code source and binary incompatible with future versions of Qt.
 //
 

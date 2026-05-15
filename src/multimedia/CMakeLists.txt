@@ -7,6 +7,12 @@
 
 find_package(Qt6 COMPONENTS ShaderTools)
 
+
+if (QT_FEATURE_gstreamer_qt_api OR FEATURE_gstreamer_qt_api)
+    # TODO: implement SPI_HEADER_FILTERS for qt_internal_extend_target
+    set(spi_headers_regex "(^|/)qgstreamervideosource\\.h$")
+endif()
+
 qt_internal_add_module(Multimedia
     PLUGIN_TYPES multimedia
     SOURCES
@@ -136,11 +142,13 @@ qt_internal_add_module(Multimedia
         Qt::GuiPrivate
     NO_PCH_SOURCES
         compat/removed_api.cpp
+    SPI_HEADER_FILTERS
+        "${spi_headers_regex}"
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer_qt_api
     SOURCES
-        gstreamer/qgstreamervideosource.cpp gstreamer/qgstreamervideosource.h gstreamer/qgstreamervideosource_p.h
+        spi/qgstreamervideosource.cpp spi/qgstreamervideosource.h spi/qgstreamervideosource_p.h
 )
 
 
