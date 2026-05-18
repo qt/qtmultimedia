@@ -4,12 +4,13 @@
 #include "qwindowsaudiodevices_p.h"
 
 #include <QtCore/qdebug.h>
-#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtCore/private/qcomobject_p.h>
+#include <QtCore/private/qfunctions_win_p.h>
 #include <QtCore/private/qsystemerror_p.h>
 
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qcomtaskresource_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qwindowsaudiodevice_p.h>
 #include <QtMultimedia/private/qwindowsaudiosink_p.h>
 #include <QtMultimedia/private/qwindowsaudiosource_p.h>
@@ -240,8 +241,9 @@ private:
 } // namespace QtWASAPI
 
 QWindowsAudioDevices::QWindowsAudioDevices()
-    : QPlatformAudioDevices()
 {
+    qt_win_ensureComInitializedOnThisThread();
+
     using namespace QtWASAPI;
 
     // Debounce device change notifications. Bluetooth devices (and some USB

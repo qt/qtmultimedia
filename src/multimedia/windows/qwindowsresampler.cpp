@@ -4,6 +4,7 @@
 #include "qwindowsresampler_p.h"
 
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/private/qfunctions_win_p.h>
 #include <QtCore/private/qsystemerror_p.h>
 #include <QtMultimedia/private/qaudio_alignment_support_p.h>
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
@@ -37,6 +38,8 @@ bool QWindowsResampler::isAvailable()
 
 QWindowsResampler::QWindowsResampler()
 {
+    qt_win_ensureComInitializedOnThisThread();
+
     CoCreateInstance(__uuidof(CResamplerMediaObject), nullptr, CLSCTX_INPROC_SERVER,
                      IID_PPV_ARGS(&m_resampler));
     if (m_resampler)

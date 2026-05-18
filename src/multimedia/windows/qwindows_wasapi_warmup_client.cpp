@@ -10,8 +10,8 @@
 #include <QtCore/qthread.h>
 #include <QtCore/qtimer.h>
 #include <QtCore/quuid.h>
+#include <QtCore/private/qfunctions_win_p.h>
 #include <QtCore/private/qsystemerror_p.h>
-#include <QtMultimedia/private/qcominitializer_p.h>
 #include <QtMultimedia/private/qcomtaskresource_p.h>
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
 
@@ -45,7 +45,7 @@ private:
 QWasapiWarmupClient::QWasapiWarmupClient()
 {
     using namespace QWindowsAudioUtils;
-    ensureComInitializedOnThisThread();
+    qt_win_ensureComInitializedOnThisThread();
 
     ComPtr<IMMDeviceEnumerator> deviceEnumerator;
     HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,

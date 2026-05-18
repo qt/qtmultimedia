@@ -16,7 +16,6 @@
 //
 
 #include <QtMultimedia/private/qplatformvideodevices_p.h>
-#include <QtMultimedia/private/qcominitializer_p.h>
 #include <QtMultimedia/private/qwindowsmediafoundation_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -34,7 +33,6 @@ protected:
     QList<QCameraDevice> findVideoInputs() const override;
 
 private:
-    QComInitializer m_comInitializer;
     HWND m_videoDeviceMsgWindow = nullptr;
     HDEVNOTIFY m_videoDeviceNotification = nullptr;
 
