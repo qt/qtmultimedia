@@ -13,6 +13,8 @@
 #include <mfevrvideowindowcontrol_p.h>
 #include <private/qplatformmediaplugin_p.h>
 
+#include <QtCore/private/qfunctions_win_p.h>
+
 QT_BEGIN_NAMESPACE
 
 class QWindowsMediaPlugin : public QPlatformMediaPlugin
@@ -36,6 +38,7 @@ public:
 QWindowsMediaIntegration::QWindowsMediaIntegration()
     : QPlatformMediaIntegration(QLatin1String("windows"))
 {
+    qt_win_ensureComInitializedOnThisThread();
     MFStartup(MF_VERSION);
 }
 

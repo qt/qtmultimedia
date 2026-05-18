@@ -15,7 +15,6 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qcominitializer_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtMultimedia/private/qwindowsvideodevices_p.h>
 
@@ -45,9 +44,6 @@ protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;
 
     QPlatformVideoDevices *createVideoDevices() override;
-
-private:
-    QComInitializer m_comInitializer;
 };
 
 QT_END_NAMESPACE

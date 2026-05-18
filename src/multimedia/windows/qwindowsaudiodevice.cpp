@@ -7,11 +7,11 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qthreadpool.h>
 #include <QtCore/qt_windows.h>
+#include <QtCore/private/qfunctions_win_p.h>
 #include <QtCore/private/qsystemerror_p.h>
 #include <QtCore/qapplicationstatic.h>
 
 #include <QtMultimedia/private/qaudioformat_p.h>
-#include <QtMultimedia/private/qcominitializer_p.h>
 #include <QtMultimedia/private/qcomtaskresource_p.h>
 #include <QtMultimedia/private/qwindows_propertystore_p.h>
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
@@ -416,7 +416,7 @@ QWindowsAudioDevice::QWindowsAudioDevice(QByteArray deviceId, QString descriptio
 
 ComPtr<IMMDevice> QWindowsAudioDevice::open() const
 {
-    QComInitializer init;
+    qt_win_ensureComInitializedOnThisThread();
     ComPtr<IMMDeviceEnumerator> deviceEnumerator;
     HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
                                   IID_PPV_ARGS(&deviceEnumerator));

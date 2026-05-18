@@ -16,7 +16,6 @@
 //
 
 #include <QtMultimedia/qaudiodevice.h>
-#include <QtMultimedia/private/qcominitializer_p.h>
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
 #include <QtMultimedia/private/qwindowsmediafoundation_p.h>
 
@@ -59,7 +58,6 @@ private:
     void scheduleAudioInputsChanged();
     void scheduleAudioOutputsChanged();
 
-    QComInitializer m_comInitializer;
     QMFRuntimeInit m_wmfRuntime{ QWindowsMediaFoundation::instance() };
     QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
 

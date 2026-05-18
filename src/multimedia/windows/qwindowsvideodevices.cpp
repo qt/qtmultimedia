@@ -5,6 +5,7 @@
 
 #include <QtCore/quuid.h>
 #include <QtCore/private/qcomptr_p.h>
+#include <QtCore/private/qfunctions_win_p.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtMultimedia/private/qcomtaskresource_p.h>
 #include <QtMultimedia/private/qwindowsmultimediautils_p.h>
@@ -84,6 +85,8 @@ HWND createMessageOnlyWindow()
 QWindowsVideoDevices::QWindowsVideoDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration)
 {
+    qt_win_ensureComInitializedOnThisThread();
+
     m_videoDeviceMsgWindow = createMessageOnlyWindow();
     if (m_videoDeviceMsgWindow) {
         SetWindowLongPtr(m_videoDeviceMsgWindow, GWLP_USERDATA, (LONG_PTR)this);

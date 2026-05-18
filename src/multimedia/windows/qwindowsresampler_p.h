@@ -21,7 +21,6 @@
 #include <QtCore/private/qcomptr_p.h>
 #include <QtCore/private/qexpected_p.h>
 #include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/private/qcominitializer_p.h>
 #include <QtMultimedia/private/qplatformaudioresampler_p.h>
 #include <QtMultimedia/private/qwindowsmediafoundation_p.h>
 
@@ -74,7 +73,6 @@ private:
 
     q23::expected<QByteArray, HRESULT> processOutput();
 
-    QComInitializer m_comInitializer;
     QWindowsMediaFoundation *m_wmf{ QWindowsMediaFoundation::instance() };
     QMFRuntimeInit m_wmfRuntime{ m_wmf };
     ComPtr<IMFTransform> m_resampler;
