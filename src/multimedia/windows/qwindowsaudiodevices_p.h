@@ -58,7 +58,7 @@ private:
     void scheduleAudioInputsChanged();
     void scheduleAudioOutputsChanged();
 
-    QMFRuntimeInit m_wmfRuntime{ QWindowsMediaFoundation::instance() };
+    QMFRuntimeInit m_wmfRuntime;
     QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
 
     ComPtr<IMMDeviceEnumerator> m_deviceEnumerator;

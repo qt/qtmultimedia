@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwindowsmediafoundation_p.h"
+
 #include <QtCore/qdebug.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/private/qfunctions_win_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -58,8 +61,21 @@ bool QWindowsMediaFoundation::valid() const
     return m_valid;
 }
 
+QMFRuntimeInit::QMFRuntimeInit()
+    : QMFRuntimeInit{
+          QWindowsMediaFoundation::instance(),
+      }
+{
+}
+
+static HRESULT startupMediaFoundation(QWindowsMediaFoundation *wmf)
+{
+    qt_win_ensureComInitializedOnThisThread();
+    return wmf ? wmf->mfStartup(MF_VERSION, MFSTARTUP_FULL) : E_FAIL;
+}
+
 QMFRuntimeInit::QMFRuntimeInit(QWindowsMediaFoundation *wmf)
-    : m_wmf{ wmf }, m_initResult{ wmf ? m_wmf->mfStartup(MF_VERSION, MFSTARTUP_FULL) : E_FAIL }
+    : m_wmf{ wmf }, m_initResult{ startupMediaFoundation(wmf) }
 {
     if (m_initResult != S_OK)
         qErrnoWarning(m_initResult, "Failed to initialize Windows Media Foundation");
