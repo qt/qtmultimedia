@@ -50,7 +50,7 @@ private:
     bool m_valid = false;
 };
 
-class QMFRuntimeInit
+class Q_MULTIMEDIA_EXPORT QMFRuntimeInit
 {
     Q_DISABLE_COPY_MOVE(QMFRuntimeInit)
 

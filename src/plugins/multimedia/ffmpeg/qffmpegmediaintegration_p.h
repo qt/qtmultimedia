@@ -17,6 +17,10 @@
 
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
+#ifdef Q_OS_WIN
+#  include <QtMultimedia/private/qwindowsmediafoundation_p.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 extern bool thread_local FFmpegLogsEnabledInThread;
@@ -54,6 +58,13 @@ protected:
     QPlatformVideoDevices *createVideoDevices() override;
 
     QPlatformCapturableWindows *createCapturableWindows() override;
+
+private:
+#ifdef Q_OS_WIN
+    // We keep the WMF runtime initialized, as frequent MFStartup/MFShutdown calls can cause issues
+    // with COM deinitialization (causing crashes on exit).
+    QMFRuntimeInit m_wmfRuntime;
+#endif
 };
 
 QT_END_NAMESPACE
