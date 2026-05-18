@@ -5,14 +5,16 @@
 #include "androidsurfacetexture_p.h"
 
 #include <rhi/qrhi.h>
+#if QT_CONFIG(opengl)
 #include <QtGui/private/qopenglextensions_p.h>
+#include <qopenglcontext.h>
+#include <qopenglfunctions.h>
+#endif
 #include <private/qhwvideobuffer_p.h>
 #include <private/qvideoframeconverter_p.h>
 #include <private/qplatformvideosink_p.h>
 #include <private/qvideoframe_p.h>
 #include <qvideosink.h>
-#include <qopenglcontext.h>
-#include <qopenglfunctions.h>
 #include <qvideoframeformat.h>
 #include <qthread.h>
 #include <qfile.h>
@@ -146,7 +148,9 @@ public:
         Q_ASSERT(m_fragmentShader.isValid());
     }
 
-    std::unique_ptr<QRhiTexture> copyExternalTexture(QSize size, const QMatrix4x4 &externalTexMatrix);
+#if QT_CONFIG(opengl)
+    std::unique_ptr<QRhiTexture> copyExternalGlTexture(QSize size, const QMatrix4x4 &externalTexMatrix);
+#endif
 
 private:
     QRhi *m_rhi = nullptr;
@@ -158,6 +162,7 @@ private:
     QShader m_fragmentShader;
 };
 
+#if QT_CONFIG(opengl)
 static std::unique_ptr<QRhiGraphicsPipeline> newGraphicsPipeline(QRhi *rhi,
                                                                  QRhiShaderResourceBindings *shaderResourceBindings,
                                                                  QRhiRenderPassDescriptor *renderPassDescriptor,
@@ -186,7 +191,7 @@ static std::unique_ptr<QRhiGraphicsPipeline> newGraphicsPipeline(QRhi *rhi,
     return gp;
 }
 
-std::unique_ptr<QRhiTexture> TextureCopy::copyExternalTexture(QSize size, const QMatrix4x4 &externalTexMatrix)
+std::unique_ptr<QRhiTexture> TextureCopy::copyExternalGlTexture(QSize size, const QMatrix4x4 &externalTexMatrix)
 {
     std::unique_ptr<QRhiTexture> tex(m_rhi->newTexture(QRhiTexture::RGBA8, size, 1, QRhiTexture::RenderTarget));
     if (!tex->create()) {
@@ -249,6 +254,8 @@ static QMatrix4x4 extTransformMatrix(AndroidSurfaceTexture *surfaceTexture)
     return m;
 }
 
+#endif
+
 class AndroidTextureThread : public QThread
 {
     Q_OBJECT
@@ -272,6 +279,7 @@ public:
         moveToThread(this);
     }
 
+#if QT_CONFIG(opengl)
     void initRhi(QOpenGLContext *context)
     {
         QRhiGles2InitParams params;
@@ -279,6 +287,7 @@ public:
         params.fallbackSurface = QRhiGles2InitParams::newFallbackSurface();
         m_rhi.reset(QRhi::create(QRhi::OpenGLES2, &params));
     }
+#endif
 
 public slots:
     void onFrameAvailable(quint64 index)
@@ -286,12 +295,14 @@ public slots:
         // Check if 'm_surfaceTexture' is not reset and if the current index is the same that
         // was used for creating connection because there can be pending frames in queue.
         if (m_surfaceTexture && m_surfaceTexture->index() == index) {
+#if QT_CONFIG(opengl)
             m_surfaceTexture->updateTexImage();
             auto matrix = extTransformMatrix(m_surfaceTexture.get());
-            auto tex = m_textureCopy->copyExternalTexture(m_size, matrix);
+            auto tex = m_textureCopy->copyExternalGlTexture(m_size, matrix);
             auto *buffer = new AndroidTextureVideoBuffer(std::move(tex), m_size);
             QVideoFrame frame(buffer, QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888));
             emit newFrame(frame);
+#endif
         }
     }
 
@@ -307,11 +318,12 @@ public slots:
         m_rhi.reset();
     }
 
-    AndroidSurfaceTexture *createSurfaceTexture(QRhi *rhi)
+    AndroidSurfaceTexture *createSurfaceTexture([[maybe_unused]] QRhi *rhi)
     {
         if (m_surfaceTexture)
             return m_surfaceTexture.get();
 
+#if QT_CONFIG(opengl)
         QOpenGLContext *ctx = rhi
                 ? static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles())->context
                 : nullptr;
@@ -333,6 +345,13 @@ public slots:
         }
 
         return m_surfaceTexture.get();
+#else
+        qCritical()
+            << "Attempting to use Qt Multimedia VideoOutput on a Qt build without OpenGL support. "
+            << "This is not supported by the native Android media backend.";
+        m_rhi.reset(QRhi::create(QRhi::Null, nullptr));
+        return nullptr;
+#endif
     }
 
 signals:
