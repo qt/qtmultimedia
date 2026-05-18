@@ -49,6 +49,7 @@ qt_internal_add_plugin(QAndroidMediaPlugin
         Qt::MultimediaPrivate
         Qt::CorePrivate
         Qt::Concurrent
+        Qt::Gui
         mediandk
 )
 
