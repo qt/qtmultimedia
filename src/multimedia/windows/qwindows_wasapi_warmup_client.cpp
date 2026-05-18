@@ -4,11 +4,11 @@
 #include "qwindows_wasapi_warmup_client_p.h"
 
 #include <QtCore/qapplicationstatic.h>
+#include <QtCore/qchronotimer.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qspan.h>
 #include <QtCore/qthread.h>
-#include <QtCore/qtimer.h>
 #include <QtCore/quuid.h>
 #include <QtCore/private/qfunctions_win_p.h>
 #include <QtCore/private/qsystemerror_p.h>
@@ -254,10 +254,14 @@ public:
             m_cleanupTimer.moveToThread(qApp->thread());
 
         QObject::connect(qApp, &QCoreApplication::aboutToQuit, qApp, [this] {
+            m_cleanupTimer.stop();
+            m_inShutdown = true;
             m_warmupClient = {};
+            m_sleepTimeoutMonitor = std::nullopt;
         });
 
-        QObject::connect(&m_sleepTimeoutMonitor, &SleepTimeoutMonitor::sleepTimeoutChanged,
+        m_sleepTimeoutMonitor.emplace();
+        QObject::connect(&*m_sleepTimeoutMonitor, &SleepTimeoutMonitor::sleepTimeoutChanged,
                          &m_cleanupTimer, [this](std::chrono::seconds sleepTimeout) {
             m_cleanupTimer.setInterval(std::min<std::chrono::milliseconds>(sleepTimeout / 2, 5min));
         });
@@ -266,6 +270,8 @@ public:
     void refresh()
     {
         Q_ASSERT(QThread::isMainThread());
+        if (m_inShutdown)
+            return;
 
         if (!m_warmupClient)
             m_warmupClient = std::make_unique<QWasapiWarmupClient>();
@@ -274,9 +280,10 @@ public:
     }
 
 private:
-    QTimer m_cleanupTimer;
-    SleepTimeoutMonitor m_sleepTimeoutMonitor;
+    QChronoTimer m_cleanupTimer;
+    std::optional<SleepTimeoutMonitor> m_sleepTimeoutMonitor;
     std::unique_ptr<QWasapiWarmupClient> m_warmupClient;
+    bool m_inShutdown{};
 };
 
 Q_APPLICATION_STATIC(QWasapiWarmupClientHelper, warmupClient);
