@@ -77,6 +77,7 @@ AudioLevelMeter::AudioLevelMeter(QWidget *parent) : QWidget(parent)
     m_peakLabelHoldTimer.setSingleShot(true);
 
     // Buffer analyzer and worker thread that analyzes incoming buffers
+    m_analyzerThread.setObjectName("AnalyzerThread");
     m_bufferAnalyzer = new BufferAnalyzer;
     m_bufferAnalyzer->moveToThread(&m_analyzerThread);
     connect(&m_analyzerThread, &QThread::finished, m_bufferAnalyzer, &QObject::deleteLater);
