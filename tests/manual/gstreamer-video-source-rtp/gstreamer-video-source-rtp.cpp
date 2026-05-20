@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtMultimedia/QAudioOutput>
-#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
+#include <QtMultimedia/spi/qgstreamervideosource.h>
 #include <QtMultimediaWidgets/QtMultimediaWidgets>
 #include <QtWidgets/QApplication>
 #include <QtCore/QCommandLineParser>
@@ -48,10 +48,9 @@ int main(int argc, char **argv)
     QMediaCaptureSession session;
     session.setVideoSink(wid.videoSink());
 
-    QCamera *cam = QGStreamerPlatformSpecificInterface::instance()->makeCustomGStreamerCamera(
-            pipelineString, &session);
-    session.setCamera(cam);
-    cam->start();
+    auto *source = new QGStreamerVideoSource(pipelineString, &session);
+    session.setNativeVideoSource(source);
+    source->start();
 
     return QApplication::exec();
 }
