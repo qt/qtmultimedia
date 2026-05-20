@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 cmake_minimum_required(VERSION 3.16)
-project(gstreamer-custom-camera-rtp LANGUAGES CXX)
+project(gstreamer-video-source LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -10,32 +10,30 @@ if(NOT DEFINED INSTALL_EXAMPLESDIR)
     set(INSTALL_EXAMPLESDIR "examples")
 endif()
 
-set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/gstreamer-custom-camera-rtp")
+set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/gstreamer-video-source")
 
 if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
-    find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets GstreamerMediaPluginImplPrivate)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets)
 endif()
 
-qt_add_executable( gstreamer-custom-camera-rtp WIN32 MACOSX_BUNDLE
-    gstreamer-custom-camera-rtp.cpp
+qt_add_executable(gstreamer-video-source WIN32 MACOSX_BUNDLE
+    gstreamer-video-source.cpp
     Info.plist.in
 )
 
-target_link_libraries( gstreamer-custom-camera-rtp PUBLIC
+target_link_libraries(gstreamer-video-source PUBLIC
     Qt::Widgets
     Qt::Multimedia
     Qt::MultimediaPrivate
     Qt::MultimediaWidgets
-
-    Qt::GstreamerMediaPluginImplPrivate
 )
 
-install(TARGETS gstreamer-custom-camera-rtp
+install(TARGETS gstreamer-video-source
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
     LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
 )
 
-set_target_properties( gstreamer-custom-camera-rtp PROPERTIES
+set_target_properties(gstreamer-video-source PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )

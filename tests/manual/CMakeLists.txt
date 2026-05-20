@@ -27,9 +27,9 @@ if (NOT ANDROID AND NOT IOS)
     add_subdirectory(mediaformats)
 endif()
 
-if(QT_FEATURE_gstreamer)
-    add_subdirectory(gstreamer-custom-camera)
-    add_subdirectory(gstreamer-custom-camera-rtp)
+if(QT_FEATURE_gstreamer_qt_api)
+    add_subdirectory(gstreamer-video-source)
+    add_subdirectory(gstreamer-video-source-rtp)
 endif()
 
 if(QT_FEATURE_multimedia_quick)

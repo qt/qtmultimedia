@@ -1,3 +1,5 @@
 add_subdirectory(gstreamer_backend)
-add_subdirectory(qmediacapture_gstreamer)
+if (QT_FEATURE_gstreamer_qt_api)
+    add_subdirectory(qmediacapture_gstreamer)
+endif()
 add_subdirectory(qmediaplayer_gstreamer)
