@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include "qvideoframe.h"
-#include "qhwvideobuffer_p.h"
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/private/qhwvideobuffer_p.h>
 
 #include <array>
 #include <optional>
@@ -33,7 +33,8 @@ class QRhiResourceUpdateBatch;
  *        to complete the texture presentaton.
  *        The strategy of slots filling is based on QRhi::currentFrameSlot results.
  */
-class Q_MULTIMEDIA_EXPORT QVideoFrameTexturePool {
+class Q_MULTIMEDIA_EXPORT QVideoFrameTexturePool
+{
     static constexpr size_t MaxSlotsCount = 4;
 public:
     /**
