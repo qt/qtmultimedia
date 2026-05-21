@@ -267,9 +267,9 @@ int main(int argc, char *argv[])
         const QString windowTitle = cmd.value(showTestWidget);
         const bool result = showCaptureWindow(windowTitle);
         return result ? 0 : 1;
-    } else {
-        return testlib_main(argc, argv);
     }
+
+    return testlib_main(argc, argv);
 }
 
 #include "tst_qwindowcapturebackend.moc"
