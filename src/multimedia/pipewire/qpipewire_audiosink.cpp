@@ -32,7 +32,7 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QAudioDevice device,
                                                    std::optional<qsizetype> ringbufferSize,
                                                    QPipewireAudioSink *parent,
                                                    float volume,
-                                                   std::optional<int32_t> hardwareBufferFrames,
+                                                   std::optional<NativePeriodFrames> nativePeriodFrames,
                                                    AudioEndpointRole role
                                                    ):
     QPipewireAudioStream {
@@ -42,7 +42,7 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QAudioDevice device,
         std::move(device),
         format,
         ringbufferSize,
-        hardwareBufferFrames,
+        nativePeriodFrames,
         volume,
     },
     m_role {
@@ -193,7 +193,7 @@ void QPipewireAudioSinkStream::createStream(StreamType streamType)
     if (applicationName.isNull())
         applicationName = u"QPipewireAudioSink"_s;
 
-    QPipewireAudioStream::createStream(extraProperties, m_hardwareBufferFrames,
+    QPipewireAudioStream::createStream(extraProperties, m_nativePeriodFrames,
                                        applicationName.toUtf8().constData(), streamType);
 }
 

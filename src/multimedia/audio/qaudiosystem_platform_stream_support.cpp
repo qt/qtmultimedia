@@ -15,7 +15,7 @@ using namespace std::chrono_literals;
 
 QPlatformAudioIOStream::QPlatformAudioIOStream(QAudioDevice m_audioDevice, QAudioFormat m_format,
                                                std::optional<int> ringbufferSize,
-                                               std::optional<int32_t> hardwareBufferFrames,
+                                               std::optional<NativePeriodFrames> nativePeriodFrames,
                                                float volume)
     : m_audioDevice{
           std::move(m_audioDevice),
@@ -23,8 +23,8 @@ QPlatformAudioIOStream::QPlatformAudioIOStream(QAudioDevice m_audioDevice, QAudi
       m_format{
           m_format,
       },
-      m_hardwareBufferFrames{
-          hardwareBufferFrames,
+      m_nativePeriodFrames{
+          nativePeriodFrames,
       },
       m_volume{
           volume,
@@ -48,7 +48,7 @@ void QPlatformAudioIOStream::prepareRingbuffer(std::optional<int> ringbufferSize
     using SampleFormat = QAudioFormat::SampleFormat;
 
     // Warning: QAudioSink::setBufferSize is measured in *bytes* not in *frames*
-    int ringbufferElements = inferRingbufferFrames(ringbufferSize, m_hardwareBufferFrames, m_format)
+    int ringbufferElements = inferRingbufferFrames(ringbufferSize, m_nativePeriodFrames, m_format)
             * m_format.channelCount();
 
     switch (m_format.sampleFormat()) {
@@ -78,22 +78,24 @@ void QPlatformAudioIOStream::requestStop()
 
 qsizetype
 QPlatformAudioIOStream::inferRingbufferFrames(const std::optional<int> &ringbufferSize,
-                                              const std::optional<int32_t> &hardwareBufferFrames,
+                                              const std::optional<NativePeriodFrames> &nativePeriodFrames,
                                               const QAudioFormat &format)
 {
     int bytesPerFrame = format.bytesPerFrame();
     Q_PRESUME(bytesPerFrame > 0);
 
-    return inferRingbufferBytes(ringbufferSize, hardwareBufferFrames, format) / bytesPerFrame;
+    return inferRingbufferBytes(ringbufferSize, nativePeriodFrames, format) / bytesPerFrame;
 }
 
 qsizetype
 QPlatformAudioIOStream::inferRingbufferBytes(const std::optional<int> &ringbufferSize,
-                                             const std::optional<int32_t> &hardwareBufferFrames,
+                                             const std::optional<NativePeriodFrames> &nativePeriodFrames,
                                              const QAudioFormat &format)
 {
     // ensure to a sane minimum ringbuffer size of twice the hw buffer size or 32 frames
-    const int minimumRingbufferFrames = hardwareBufferFrames ? *hardwareBufferFrames * 2 : 32;
+    const int minimumRingbufferFrames = nativePeriodFrames
+            ? qToUnderlying(*nativePeriodFrames) * 2
+            : 32;
     const int minimumRingbufferBytes = format.bytesForFrames(minimumRingbufferFrames);
     if (ringbufferSize)
         return ringbufferSize >= minimumRingbufferBytes ? *ringbufferSize : minimumRingbufferBytes;
@@ -117,10 +119,10 @@ int QPlatformAudioIOStream::ringbufferSizeInBytes()
 QPlatformAudioSinkStream::QPlatformAudioSinkStream(QAudioDevice audioDevice,
                                                    const QAudioFormat &format,
                                                    std::optional<int> ringbufferSize,
-                                                   std::optional<int32_t> hardwareBufferFrames,
+                                                   std::optional<NativePeriodFrames> nativePeriodFrames,
                                                    float volume)
     : QPlatformAudioIOStream{
-          std::move(audioDevice), format, ringbufferSize, hardwareBufferFrames, volume,
+          std::move(audioDevice), format, ringbufferSize, nativePeriodFrames, volume,
       }
 {
     m_streamIdleDetectionConnection = m_streamIdleDetectionNotifier.callOnActivated([this] {
@@ -326,10 +328,10 @@ void QPlatformAudioSinkStream::convertToNative(QSpan<const std::byte> internal,
 QPlatformAudioSourceStream::QPlatformAudioSourceStream(QAudioDevice audioDevice,
                                                        const QAudioFormat &format,
                                                        std::optional<int> ringbufferSize,
-                                                       std::optional<int32_t> hardwareBufferFrames,
+                                                       std::optional<NativePeriodFrames> nativePeriodFrames,
                                                        float volume)
     : QPlatformAudioIOStream{
-          std::move(audioDevice), format, ringbufferSize, hardwareBufferFrames, volume,
+          std::move(audioDevice), format, ringbufferSize, nativePeriodFrames, volume,
       }
 {
 }

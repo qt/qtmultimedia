@@ -56,12 +56,12 @@ QAudioFormat makeHostFormatForSink(const QAudioDevice &device, const QAudioForma
 } // namespace
 
 QWASAPIAudioSinkStream::QWASAPIAudioSinkStream(QAudioDevice device, const QAudioFormat &format, std::optional<qsizetype> ringbufferSize,
-                                               QWindowsAudioSink *parent, float volume, std::optional<int32_t> hardwareBufferFrames, AudioEndpointRole role):
+                                               QWindowsAudioSink *parent, float volume, std::optional<NativePeriodFrames> nativePeriodFrames, AudioEndpointRole role):
     QPlatformAudioSinkStream{
         std::move(device),
         format,
         ringbufferSize,
-        hardwareBufferFrames,
+        nativePeriodFrames,
         volume,
     },
     m_role{
@@ -188,7 +188,7 @@ bool QWASAPIAudioSinkStream::openAudioClient(ComPtr<IMMDevice> device, AudioEndp
     using namespace QWindowsAudioUtils;
 
     std::optional<AudioClientCreationResult> clientData =
-            createAudioClient(device, m_hostFormat, m_hardwareBufferFrames, m_wasapiHandle, role);
+            createAudioClient(device, m_hostFormat, m_nativePeriodFrames, m_wasapiHandle, role);
 
     if (!clientData)
         return false;

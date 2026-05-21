@@ -19,9 +19,9 @@ QAndroidAudioSourceStream::QAndroidAudioSourceStream(QAudioDevice device,
                                                      const QAudioFormat &format,
                                                      std::optional<int> ringbufferSize,
                                                      QAndroidAudioSource *parent, float volume,
-                                                     std::optional<int32_t> hardwareBufferFrames)
+                                                     std::optional<NativePeriodFrames> nativePeriodFrames)
     : QtMultimediaPrivate::QPlatformAudioSourceStream(std::move(device), format, ringbufferSize,
-                                                      hardwareBufferFrames, volume),
+                                                      nativePeriodFrames, volume),
       m_parent(parent)
 {
     QtAAudio::StreamBuilder builder(format);
@@ -32,7 +32,9 @@ QAndroidAudioSourceStream::QAndroidAudioSourceStream(QAudioDevice device,
     builder.deviceId = m_audioDevice.id().toInt();
 
     // Set buffer parameters
-    builder.bufferCapacity = m_hardwareBufferFrames ? *m_hardwareBufferFrames : 1024;
+    builder.bufferCapacity = m_nativePeriodFrames
+            ? qToUnderlying(*m_nativePeriodFrames)
+            : 1024;
 
     // NOTE: AAudio doesn't support UINT8, so convert to INT16 if that's requested
     if (format.sampleFormat() == QAudioFormat::UInt8) {

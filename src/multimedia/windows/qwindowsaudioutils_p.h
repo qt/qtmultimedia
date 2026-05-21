@@ -39,6 +39,7 @@ class QWindowsMediaFoundation;
 namespace QWindowsAudioUtils
 {
 using QtMultimediaPrivate::AudioEndpointRole;
+using QtMultimediaPrivate::NativePeriodFrames;
 
 // REFERENCE_TIME helper
 using reference_time = std::chrono::duration<long long, std::ratio<1, 10000000>>;
@@ -62,7 +63,7 @@ struct AudioClientCreationResult
 };
 std::optional<AudioClientCreationResult>
 createAudioClient(const ComPtr<IMMDevice> &, const QAudioFormat &,
-                  std::optional<qsizetype> hardwareBufferFrames,
+                  std::optional<NativePeriodFrames> nativePeriodFrames,
                   const QUniqueWin32NullHandle &wasapiEventHandle,
                   std::optional<AudioEndpointRole> = {});
 

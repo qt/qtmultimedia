@@ -36,7 +36,7 @@ struct QPulseAudioSinkStream final : QPlatformAudioSinkStream
 
     QPulseAudioSinkStream(QAudioDevice, const QAudioFormat &format,
                           std::optional<qsizetype> ringbufferSize, QPulseAudioSink *parent,
-                          float volume, std::optional<int32_t> hardwareBufferSize,
+                          float volume, std::optional<NativePeriodFrames> nativePeriodFrames,
                           AudioEndpointRole);
     ~QPulseAudioSinkStream();
 

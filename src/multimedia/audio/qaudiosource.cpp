@@ -469,7 +469,10 @@ void QAudioSource::setNativePeriodFrameCount(int frameCount)
         }
     }
 
-    d->setHardwareBufferFrames(frameCount);
+    if (frameCount != -1)
+        d->setNativePeriodFrames(QtMultimediaPrivate::NativePeriodFrames(frameCount));
+    else
+        d->setNativePeriodFrames(std::nullopt);
 }
 
 /*!
@@ -483,7 +486,8 @@ void QAudioSource::setNativePeriodFrameCount(int frameCount)
 */
 int QAudioSource::nativePeriodFrameCount() const
 {
-    return d ? d->hardwareBufferFrames() : -1;
+    std::optional hwbf = d ? d->nativePeriodFrames() : std::nullopt;
+    return hwbf ? qToUnderlying(*hwbf) : -1;
 }
 
 /*!

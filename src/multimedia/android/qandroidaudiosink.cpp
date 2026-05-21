@@ -16,10 +16,10 @@ Q_STATIC_LOGGING_CATEGORY(qLcAndroidAudioSink, "qt.multimedia.android.audiosink"
 QAndroidAudioSinkStream::QAndroidAudioSinkStream(QAudioDevice device, const QAudioFormat &format,
                                                  std::optional<qsizetype> ringbufferSize,
                                                  QAndroidAudioSink *parent, float volume,
-                                                 std::optional<int32_t> hardwareBufferFrames,
+                                                 std::optional<NativePeriodFrames> nativePeriodFrames,
                                                  AudioEndpointRole role)
     : QtMultimediaPrivate::QPlatformAudioSinkStream(std::move(device), format, ringbufferSize,
-                                                    hardwareBufferFrames, volume),
+                                                    nativePeriodFrames, volume),
       m_parent(parent),
       m_role(role)
 {
@@ -33,7 +33,9 @@ QAndroidAudioSinkStream::QAndroidAudioSinkStream(QAudioDevice device, const QAud
         builder.deviceId = m_audioDevice.id().toInt();
 
     // Set buffer parameters
-    builder.bufferCapacity = m_hardwareBufferFrames ? *m_hardwareBufferFrames : 1024;
+    builder.bufferCapacity = m_nativePeriodFrames
+            ? qToUnderlying(*m_nativePeriodFrames)
+            : 1024;
 
     // NOTE: AAudio doesn't support UINT8, so convert to INT16 if that's requested
     if (format.sampleFormat() == QAudioFormat::UInt8) {

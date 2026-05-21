@@ -30,12 +30,13 @@ class QAndroidAudioSource;
 class QAndroidAudioSourceStream final : public QtMultimediaPrivate::QPlatformAudioSourceStream
 {
     using QPlatformAudiosourceStream = QtMultimediaPrivate::QPlatformAudioSourceStream;
+    using NativePeriodFrames = QtMultimediaPrivate::NativePeriodFrames;
 
 public:
     explicit QAndroidAudioSourceStream(QAudioDevice device, const QAudioFormat &format,
                                        std::optional<int> ringbufferSize,
                                        QAndroidAudioSource *parent, float volume,
-                                       std::optional<int32_t> hardwareBufferFrames);
+                                       std::optional<NativePeriodFrames> nativePeriodFrames);
     Q_DISABLE_COPY_MOVE(QAndroidAudioSourceStream)
     ~QAndroidAudioSourceStream();
 

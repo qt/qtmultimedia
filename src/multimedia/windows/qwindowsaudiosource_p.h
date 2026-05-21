@@ -46,7 +46,7 @@ struct QWASAPIAudioSourceStream final : std::enable_shared_from_this<QWASAPIAudi
 
     QWASAPIAudioSourceStream(QAudioDevice, const QAudioFormat &,
                              std::optional<qsizetype> ringbufferSize, QWindowsAudioSource *parent,
-                             float volume, std::optional<int32_t> hardwareBufferFrames);
+                             float volume, std::optional<NativePeriodFrames> nativePeriodFrames);
     Q_DISABLE_COPY_MOVE(QWASAPIAudioSourceStream)
     ~QWASAPIAudioSourceStream();
 

@@ -69,12 +69,12 @@ QWASAPIAudioSourceStream::QWASAPIAudioSourceStream(QAudioDevice device, const QA
                                                    std::optional<qsizetype> ringbufferSize,
                                                    QWindowsAudioSource *parent,
                                                    float volume,
-                                                   std::optional<int32_t> hardwareBufferFrames):
+                                                   std::optional<NativePeriodFrames> nativePeriodFrames):
     QPlatformAudioSourceStream{
         std::move(device),
         format,
         ringbufferSize,
-        hardwareBufferFrames,
+        nativePeriodFrames,
         volume,
     },
     m_wasapiHandle {
@@ -183,7 +183,7 @@ bool QWASAPIAudioSourceStream::openAudioClient(ComPtr<IMMDevice> device)
     using namespace QWindowsAudioUtils;
 
     std::optional<AudioClientCreationResult> clientData =
-            createAudioClient(device, m_hostFormat, m_hardwareBufferFrames, m_wasapiHandle);
+            createAudioClient(device, m_hostFormat, m_nativePeriodFrames, m_wasapiHandle);
 
     if (!clientData)
         return false;

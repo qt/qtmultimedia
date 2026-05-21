@@ -25,6 +25,8 @@
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qspan.h>
 
+#include <optional>
+
 #include <array>
 #include <variant>
 
@@ -350,6 +352,8 @@ inline void runAudioCallback(AudioSourceCallback &audioCallback, QSpan<HostBuffe
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+enum class NativePeriodFrames : uint32_t {};
+
 } // namespace QtMultimediaPrivate
 
 class Q_MULTIMEDIA_EXPORT QPlatformAudioEndpointBase : public QObject
@@ -357,6 +361,8 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioEndpointBase : public QObject
     Q_OBJECT
 
 public:
+    using NativePeriodFrames = QtMultimediaPrivate::NativePeriodFrames;
+
     explicit QPlatformAudioEndpointBase(QAudioDevice, const QAudioFormat &, QObject *parent);
     ~QPlatformAudioEndpointBase() override;
 
@@ -415,8 +421,8 @@ public:
     virtual qsizetype bytesFree() const = 0;
     virtual void setBufferSize(qsizetype value) = 0;
     virtual qsizetype bufferSize() const = 0;
-    virtual void setHardwareBufferFrames(int32_t) { }
-    virtual int32_t hardwareBufferFrames() { return -1; }
+    virtual void setNativePeriodFrames(std::optional<NativePeriodFrames>) { }
+    virtual std::optional<NativePeriodFrames> nativePeriodFrames() { return std::nullopt; }
     virtual qint64 processedUSecs() const = 0;
 
     using AudioCallback = QtMultimediaPrivate::AudioSinkCallback;
@@ -448,8 +454,8 @@ public:
     virtual void resume() = 0;
     virtual qsizetype bytesReady() const = 0;
     virtual void setBufferSize(qsizetype value) = 0;
-    virtual void setHardwareBufferFrames(int32_t) { }
-    virtual int32_t hardwareBufferFrames() { return -1; }
+    virtual void setNativePeriodFrames(std::optional<NativePeriodFrames>) { }
+    virtual std::optional<NativePeriodFrames> nativePeriodFrames() { return std::nullopt; }
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
 

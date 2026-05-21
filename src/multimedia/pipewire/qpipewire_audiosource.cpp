@@ -22,7 +22,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QAudioDevice device, cons
                                                        std::optional<qsizetype> ringbufferSize,
                                                        QPipewireAudioSource *parent,
                                                        float volume,
-                                                       std::optional<int32_t> hardwareBufferFrames
+                                                       std::optional<NativePeriodFrames> nativePeriodFrames
                                                        ):
     QPipewireAudioStream {
         format,
@@ -31,7 +31,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QAudioDevice device, cons
         std::move(device),
         format,
         ringbufferSize,
-        hardwareBufferFrames,
+        nativePeriodFrames,
         volume,
     },
     m_parent {
@@ -151,7 +151,7 @@ void QPipewireAudioSourceStream::createStream(StreamType streamType)
     if (applicationName.isNull())
         applicationName = u"QPipewireAudioSource"_s;
 
-    QPipewireAudioStream::createStream(extraProperties, m_hardwareBufferFrames,
+    QPipewireAudioStream::createStream(extraProperties, m_nativePeriodFrames,
                                        applicationName.toUtf8().constData(), streamType);
 }
 

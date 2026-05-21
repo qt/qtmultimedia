@@ -32,12 +32,13 @@ class QAndroidAudioSinkStream final : public std::enable_shared_from_this<QAndro
 {
     using QPlatformAudioSinkStream = QtMultimediaPrivate::QPlatformAudioSinkStream;
     using AudioEndpointRole = QtMultimediaPrivate::AudioEndpointRole;
+    using NativePeriodFrames = QtMultimediaPrivate::NativePeriodFrames;
 
 public:
     explicit QAndroidAudioSinkStream(QAudioDevice, const QAudioFormat &,
                                      std::optional<qsizetype> ringbufferSize,
                                      QAndroidAudioSink *parent, float volume,
-                                     std::optional<int32_t> hardwareBufferFrames,
+                                     std::optional<NativePeriodFrames> nativePeriodFrames,
                                      AudioEndpointRole);
     Q_DISABLE_COPY_MOVE(QAndroidAudioSinkStream)
 

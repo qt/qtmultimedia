@@ -43,7 +43,7 @@ struct QPipewireAudioSourceStream final : QPipewireAudioStream, QPlatformAudioSo
     QPipewireAudioSourceStream(QAudioDevice, const QAudioFormat &,
                                std::optional<qsizetype> ringbufferSize,
                                QPipewireAudioSource *parent, float volume,
-                               std::optional<int32_t> hardwareBufferFrames);
+                               std::optional<NativePeriodFrames> nativePeriodFrames);
     Q_DISABLE_COPY_MOVE(QPipewireAudioSourceStream)
     ~QPipewireAudioSourceStream();
 

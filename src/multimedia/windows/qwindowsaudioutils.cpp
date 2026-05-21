@@ -364,7 +364,7 @@ bool audioClientSetRole(const ComPtr<IAudioClient3> &client, AudioEndpointRole r
 
 std::optional<AudioClientCreationResult>
 createAudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format,
-                  std::optional<qsizetype> hardwareBufferFrames,
+                  std::optional<NativePeriodFrames> nativePeriodFrames,
                   const QUniqueWin32NullHandle &wasapiEventHandle,
                   std::optional<AudioEndpointRole> role)
 {
@@ -383,8 +383,10 @@ createAudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format,
 
     // qCDebug(qLcAudioSource) << devicePeriods->defaultDuration << devicePeriods->minimalDuration;
     reference_time periodSize = devicePeriods->defaultDuration;
-    if (hardwareBufferFrames) {
-        std::chrono::microseconds dur{ format.durationForFrames(*hardwareBufferFrames) };
+    if (nativePeriodFrames) {
+        std::chrono::microseconds dur{
+            format.durationForFrames(qToUnderlying(*nativePeriodFrames))
+        };
         if (dur < devicePeriods->minimalDuration)
             qWarning() << "Requested hardware buffer size to small:" << dur << "minimal duration"
                        << devicePeriods->minimalDuration;

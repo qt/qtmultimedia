@@ -45,7 +45,7 @@ static QtAudio::State sinkStateToEngineState(QtAudio::State state)
 
 QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &format,
                                std::optional<AudioEndpointRole> role,
-                               std::optional<uint32_t> hardwareBufferFrames)
+                               std::optional<NativePeriodFrames> nativePeriodFrames)
     : m_sink{
           device,
           format,
@@ -79,8 +79,8 @@ QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &f
 
     if (role)
         platformSink->setRole(*role);
-    if (hardwareBufferFrames)
-        platformSink->setHardwareBufferFrames(*hardwareBufferFrames);
+    if (nativePeriodFrames)
+        platformSink->setNativePeriodFrames(*nativePeriodFrames);
 
     m_sink.start([this](QSpan<float> outputBuffer) {
         audioCallback(outputBuffer);

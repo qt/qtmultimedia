@@ -36,7 +36,7 @@ public:
 
     explicit QCoreAudioSourceStream(QAudioDevice, const QAudioFormat &,
                                     std::optional<int> ringbufferSize, QCoreAudioSource *parent,
-                                    float volume, std::optional<int32_t> hardwareBufferFrames);
+                                    float volume, std::optional<QtMultimediaPrivate::NativePeriodFrames> nativePeriodFrames);
     Q_DISABLE_COPY_MOVE(QCoreAudioSourceStream)
     ~QCoreAudioSourceStream();
 

@@ -39,7 +39,7 @@ concept QPlatformSinkStream = requires(T t, QIODevice *device,
         std::optional<qsizetype>,
         typename T::SinkType*,
         float,
-        std::optional<int32_t>,
+        std::optional<NativePeriodFrames>,
         AudioEndpointRole
     >;
 
@@ -86,8 +86,8 @@ public:
     qsizetype bytesFree() const override;
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
-    void setHardwareBufferFrames(int32_t) override;
-    int32_t hardwareBufferFrames() override;
+    void setNativePeriodFrames(std::optional<NativePeriodFrames>) override;
+    std::optional<NativePeriodFrames> nativePeriodFrames() override;
     qint64 processedUSecs() const override;
 
     void setVolume(float volume) override;
@@ -102,7 +102,7 @@ protected:
     using ShutdownPolicy = QPlatformAudioIOStream::ShutdownPolicy;
 
     std::optional<int> m_internalBufferSize;
-    std::optional<int32_t> m_hardwareBufferFrames;
+    std::optional<NativePeriodFrames> m_nativePeriodFrames;
     AudioEndpointRole m_role = AudioEndpointRole::Other;
 
     std::shared_ptr<StreamType> m_stream;
@@ -139,7 +139,7 @@ void QPlatformAudioSinkImplementation<StreamType, DerivedType>::start(QIODevice 
 
     m_stream = std::make_shared<StreamType>(m_audioDevice, m_format, m_internalBufferSize,
                                             static_cast<ConcreteSinkType *>(this), volume(),
-                                            m_hardwareBufferFrames, m_role);
+                                            m_nativePeriodFrames, m_role);
 
     if (!m_stream->open())
         return handleStreamOpenError();
@@ -172,7 +172,7 @@ void QPlatformAudioSinkImplementation<StreamType, DerivedType>::start(AudioCallb
 
     m_stream = std::make_shared<StreamType>(m_audioDevice, m_format, m_internalBufferSize,
                                             static_cast<ConcreteSinkType *>(this), volume(),
-                                            m_hardwareBufferFrames, m_role);
+                                            m_nativePeriodFrames, m_role);
 
     if (!m_stream->open())
         return handleStreamOpenError();
@@ -194,7 +194,7 @@ QIODevice *QPlatformAudioSinkImplementation<StreamType, DerivedType>::start()
 
     m_stream = std::make_shared<StreamType>(m_audioDevice, m_format, m_internalBufferSize,
                                             static_cast<ConcreteSinkType *>(this), volume(),
-                                            m_hardwareBufferFrames, m_role);
+                                            m_nativePeriodFrames, m_role);
 
     if (!m_stream->open()) {
         handleStreamOpenError();
@@ -282,22 +282,21 @@ qsizetype QPlatformAudioSinkImplementation<StreamType, DerivedType>::bufferSize(
         return m_stream->ringbufferSizeInBytes();
 
     return QPlatformAudioIOStream::inferRingbufferBytes(m_internalBufferSize,
-                                                        m_hardwareBufferFrames, m_format);
+                                                        m_nativePeriodFrames, m_format);
 }
 
 template <STREAM_TYPE_ARG, typename DerivedType>
-void QPlatformAudioSinkImplementation<StreamType, DerivedType>::setHardwareBufferFrames(int32_t arg)
+void QPlatformAudioSinkImplementation<StreamType, DerivedType>::setNativePeriodFrames(
+        std::optional<NativePeriodFrames> arg)
 {
-    if (arg > 0)
-        m_hardwareBufferFrames = arg;
-    else
-        m_hardwareBufferFrames = std::nullopt;
+    m_nativePeriodFrames = arg;
 }
 
 template <STREAM_TYPE_ARG, typename DerivedType>
-int32_t QPlatformAudioSinkImplementation<StreamType, DerivedType>::hardwareBufferFrames()
+std::optional<NativePeriodFrames>
+QPlatformAudioSinkImplementation<StreamType, DerivedType>::nativePeriodFrames()
 {
-    return m_hardwareBufferFrames.value_or(-1);
+    return m_nativePeriodFrames;
 }
 
 template <STREAM_TYPE_ARG, typename DerivedType>
@@ -346,7 +345,7 @@ concept QPlatformSourceStream = requires(T t, QIODevice *device,
         std::optional<qsizetype>,
         typename T::SourceType*,
         float,
-        std::optional<int32_t>
+        std::optional<NativePeriodFrames>
     >;
 
     { t.open() } -> std::same_as<bool>;
@@ -391,8 +390,8 @@ public:
     qsizetype bytesReady() const override;
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
-    void setHardwareBufferFrames(int32_t) override;
-    int32_t hardwareBufferFrames() override;
+    void setNativePeriodFrames(std::optional<NativePeriodFrames>) override;
+    std::optional<NativePeriodFrames> nativePeriodFrames() override;
     qint64 processedUSecs() const override;
 
     void setVolume(float volume) override;
@@ -405,7 +404,7 @@ protected:
     using ShutdownPolicy = QPlatformAudioIOStream::ShutdownPolicy;
 
     std::optional<int> m_internalBufferSize;
-    std::optional<int32_t> m_hardwareBufferFrames;
+    std::optional<NativePeriodFrames> m_nativePeriodFrames;
 
     std::shared_ptr<StreamType> m_stream;
     std::shared_ptr<StreamType> m_retiredStream;
@@ -450,7 +449,7 @@ void QPlatformAudioSourceImplementation<StreamType, DerivedType>::start(QIODevic
 
     m_stream = std::make_shared<StreamType>(m_audioDevice, m_format, m_internalBufferSize,
                                             static_cast<ConcreteSourceType *>(this), volume(),
-                                            m_hardwareBufferFrames);
+                                            m_nativePeriodFrames);
 
     if (!m_stream->open())
         return handleStreamOpenError();
@@ -472,7 +471,7 @@ QIODevice *QPlatformAudioSourceImplementation<StreamType, DerivedType>::start()
 
     m_stream = std::make_shared<StreamType>(m_audioDevice, m_format, m_internalBufferSize,
                                             static_cast<ConcreteSourceType *>(this), volume(),
-                                            m_hardwareBufferFrames);
+                                            m_nativePeriodFrames);
 
     if (!m_stream->open()) {
         handleStreamOpenError();
@@ -560,23 +559,21 @@ qsizetype QPlatformAudioSourceImplementation<StreamType, DerivedType>::bufferSiz
         return m_stream->ringbufferSizeInBytes();
 
     return QPlatformAudioIOStream::inferRingbufferBytes(m_internalBufferSize,
-                                                        m_hardwareBufferFrames, m_format);
+                                                        m_nativePeriodFrames, m_format);
 }
 
 template <STREAM_TYPE_ARG, typename DerivedType>
-void QPlatformAudioSourceImplementation<StreamType, DerivedType>::setHardwareBufferFrames(
-        int32_t arg)
+void QPlatformAudioSourceImplementation<StreamType, DerivedType>::setNativePeriodFrames(
+        std::optional<NativePeriodFrames> arg)
 {
-    if (arg > 0)
-        m_hardwareBufferFrames = arg;
-    else
-        m_hardwareBufferFrames = std::nullopt;
+    m_nativePeriodFrames = arg;
 }
 
 template <STREAM_TYPE_ARG, typename DerivedType>
-int32_t QPlatformAudioSourceImplementation<StreamType, DerivedType>::hardwareBufferFrames()
+std::optional<NativePeriodFrames>
+QPlatformAudioSourceImplementation<StreamType, DerivedType>::nativePeriodFrames()
 {
-    return m_hardwareBufferFrames.value_or(-1);
+    return m_nativePeriodFrames;
 }
 
 template <STREAM_TYPE_ARG, typename DerivedType>
@@ -620,7 +617,7 @@ void QPlatformAudioSourceImplementationWithCallback<StreamType, DerivedType>::st
     BaseClass::m_stream = std::make_shared<StreamType>(
             BaseClass::m_audioDevice, BaseClass::m_format, BaseClass::m_internalBufferSize,
             static_cast<typename BaseClass::ConcreteSourceType *>(this), BaseClass::volume(),
-            BaseClass::m_hardwareBufferFrames);
+            BaseClass::m_nativePeriodFrames);
 
     if (!BaseClass::m_stream->open())
         return BaseClass::handleStreamOpenError();

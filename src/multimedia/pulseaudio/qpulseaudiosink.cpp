@@ -19,10 +19,10 @@ namespace QPulseAudioInternal {
 QPulseAudioSinkStream::QPulseAudioSinkStream(QAudioDevice device, const QAudioFormat &format,
                                              std::optional<qsizetype> ringbufferSize, QPulseAudioSink *parent,
                                              float volume,
-                                             std::optional<int32_t> hardwareBufferSize,
+                                             std::optional<NativePeriodFrames> nativePeriodFrames,
                                              AudioEndpointRole role)
     : QPlatformAudioSinkStream{
-          std::move(device), format, ringbufferSize, hardwareBufferSize, volume,
+          std::move(device), format, ringbufferSize, nativePeriodFrames, volume,
       },
       m_parent{
           parent,
@@ -222,7 +222,8 @@ void QPulseAudioSinkStream::uninstallCallbacks()
 bool QPulseAudioSinkStream::startStream(StreamType streamType)
 {
     pa_buffer_attr attr{
-        .maxlength = uint32_t(m_format.bytesForFrames(m_hardwareBufferFrames.value_or(1024))),
+        .maxlength = uint32_t(m_format.bytesForFrames(
+                m_nativePeriodFrames ? qToUnderlying(*m_nativePeriodFrames) : 1024)),
         .tlength = uint32_t(-1),
         .prebuf = uint32_t(-1),
         .minreq = uint32_t(-1),

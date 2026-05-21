@@ -16,6 +16,7 @@
 //
 
 #include <QtMultimedia/private/qaudio_rtsan_support_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qpipewire_audiodevicemonitor_p.h>
 #include <QtMultimedia/private/qpipewire_support_p.h>
 #include <QtMultimedia/qaudioformat.h>
@@ -26,6 +27,8 @@
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
+
+using QtMultimediaPrivate::NativePeriodFrames;
 
 struct QPipewireAudioStream : std::enable_shared_from_this<QPipewireAudioStream>
 {
@@ -45,7 +48,7 @@ protected:
 
     // stream control
     void createStream(QSpan<spa_dict_item> extraProperties,
-                      std::optional<int32_t> hardwareBufferFrames, const char *streamName,
+                      std::optional<NativePeriodFrames> nativePeriodFrames, const char *streamName,
                       StreamType = StreamType::Ringbuffer);
     bool connectStream(ObjectSerial target, spa_direction);
     void disconnectStream();

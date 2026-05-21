@@ -40,7 +40,7 @@ public:
 
     explicit QCoreAudioSinkStream(QAudioDevice, const QAudioFormat &,
                                   std::optional<qsizetype> ringbufferSize, QCoreAudioSink *parent,
-                                  float volume, std::optional<int32_t> hardwareBufferFrames,
+                                  float volume, std::optional<QtMultimediaPrivate::NativePeriodFrames> nativePeriodFrames,
                                   AudioEndpointRole);
     Q_DISABLE_COPY_MOVE(QCoreAudioSinkStream)
     ~QCoreAudioSinkStream();

@@ -36,7 +36,7 @@ struct QPulseAudioSourceStream final : QPlatformAudioSourceStream
 
     QPulseAudioSourceStream(QAudioDevice, const QAudioFormat &,
                             std::optional<qsizetype> ringbufferSize, QPulseAudioSource *parent,
-                            float volume, std::optional<int32_t> hardwareBufferSize);
+                            float volume, std::optional<NativePeriodFrames> nativePeriodFrames);
     Q_DISABLE_COPY_MOVE(QPulseAudioSourceStream)
     ~QPulseAudioSourceStream();
 

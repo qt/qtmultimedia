@@ -30,12 +30,12 @@ QT_BEGIN_NAMESPACE
 QCoreAudioSourceStream::QCoreAudioSourceStream(QAudioDevice audioDevice,
                                                const QAudioFormat &format,
                                                std::optional<int> ringbufferSize,
-                                               QCoreAudioSource *parent, float volume, std::optional<int32_t> hardwareBufferFrames)
+                                               QCoreAudioSource *parent, float volume, std::optional<QtMultimediaPrivate::NativePeriodFrames> nativePeriodFrames)
     : QPlatformAudioSourceStream{
           std::move(audioDevice),
           format,
           ringbufferSize,
-          hardwareBufferFrames,
+          nativePeriodFrames,
           volume,
       },
       m_parent(parent)
@@ -103,8 +103,9 @@ bool QCoreAudioSourceStream::open()
         return false;
     }
 
-    if (m_hardwareBufferFrames)
-        audioObjectSetFramesPerBuffer(*nativeDeviceId, *m_hardwareBufferFrames);
+    if (m_nativePeriodFrames)
+        audioObjectSetFramesPerBuffer(*nativeDeviceId,
+                                      qToUnderlying(*m_nativePeriodFrames));
 
     if (deviceSamplingRate != m_format.sampleRate()) {
         AudioStreamBasicDescription desiredFormat = streamFormat;

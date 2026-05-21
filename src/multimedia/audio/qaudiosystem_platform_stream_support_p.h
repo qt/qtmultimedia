@@ -48,10 +48,10 @@ class QPlatformAudioIOStream
 
 public:
     static qsizetype inferRingbufferFrames(const std::optional<int> &ringbufferSize,
-                                           const std::optional<int32_t> &hardwareBufferFrames,
+                                           const std::optional<NativePeriodFrames> &nativePeriodFrames,
                                            const QAudioFormat &);
     static qsizetype inferRingbufferBytes(const std::optional<int> &ringbufferSize,
-                                          const std::optional<int32_t> &hardwareBufferFrames,
+                                          const std::optional<NativePeriodFrames> &nativePeriodFrames,
                                           const QAudioFormat &);
 
 protected:
@@ -60,7 +60,7 @@ protected:
 
     QPlatformAudioIOStream(QAudioDevice m_audioDevice, QAudioFormat m_format,
                            std::optional<int> ringbufferSize,
-                           std::optional<int32_t> hardwareBufferFrames, float volume);
+                           std::optional<NativePeriodFrames> nativePeriodFrames, float volume);
     ~QPlatformAudioIOStream();
     Q_DISABLE_COPY_MOVE(QPlatformAudioIOStream)
 
@@ -92,7 +92,7 @@ protected:
     // members
     const QAudioDevice m_audioDevice;
     const QAudioFormat m_format;
-    const std::optional<int32_t> m_hardwareBufferFrames;
+    const std::optional<NativePeriodFrames> m_nativePeriodFrames;
 
 private:
     std::atomic<float> m_volume{
@@ -127,7 +127,7 @@ public:
 
 protected:
     QPlatformAudioSinkStream(QAudioDevice, const QAudioFormat &, std::optional<int> ringbufferSize,
-                             std::optional<int32_t> hardwareBufferFrames, float volume);
+                             std::optional<NativePeriodFrames> nativePeriodFrames, float volume);
     ~QPlatformAudioSinkStream();
     Q_DISABLE_COPY_MOVE(QPlatformAudioSinkStream)
 
@@ -245,7 +245,7 @@ public:
 protected:
     QPlatformAudioSourceStream(QAudioDevice, const QAudioFormat &,
                                std::optional<int> ringbufferSize,
-                               std::optional<int32_t> hardwareBufferFrames, float volume);
+                               std::optional<NativePeriodFrames> nativePeriodFrames, float volume);
     ~QPlatformAudioSourceStream();
 
     Q_DISABLE_COPY_MOVE(QPlatformAudioSourceStream)

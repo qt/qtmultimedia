@@ -20,9 +20,9 @@ QPulseAudioSourceStream::QPulseAudioSourceStream(QAudioDevice device, const QAud
                                                  std::optional<qsizetype> ringbufferSize,
                                                  QPulseAudioSource *parent,
                                                  float volume,
-                                                 std::optional<int32_t> hardwareBufferSize)
+                                                 std::optional<NativePeriodFrames> nativePeriodFrames)
     : QPlatformAudioSourceStream{
-          std::move(device), format, ringbufferSize, hardwareBufferSize, volume,
+          std::move(device), format, ringbufferSize, nativePeriodFrames, volume,
       },
       m_parent(parent)
 {
@@ -139,7 +139,8 @@ bool QPulseAudioSourceStream::startStream(StreamType streamType)
     }();
 
     pa_buffer_attr attr{
-        .maxlength = uint32_t(m_format.bytesForFrames(m_hardwareBufferFrames.value_or(1024))),
+        .maxlength = uint32_t(m_format.bytesForFrames(
+                m_nativePeriodFrames ? qToUnderlying(*m_nativePeriodFrames) : 1024)),
         .tlength = uint32_t(-1),
         .prebuf = uint32_t(-1),
         .minreq = uint32_t(-1),
@@ -148,7 +149,9 @@ bool QPulseAudioSourceStream::startStream(StreamType streamType)
         // get a single callback every 2-ish seconds.
         .fragsize = serverIsPipewire
                 ? uint32_t(-1)
-                : uint32_t(m_format.bytesForFrames(m_hardwareBufferFrames.value_or(1024))),
+                : uint32_t(m_format.bytesForFrames(
+                           m_nativePeriodFrames ? qToUnderlying(*m_nativePeriodFrames)
+                                                : 1024)),
     };
 
     constexpr pa_stream_flags flags =

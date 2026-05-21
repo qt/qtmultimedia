@@ -34,10 +34,10 @@ QT_BEGIN_NAMESPACE
 QCoreAudioSinkStream::QCoreAudioSinkStream(QAudioDevice audioDevice, const QAudioFormat& format,
                                            std::optional<qsizetype> ringbufferSize,
                                            QCoreAudioSink *parent, float volume,
-                                           std::optional<int32_t> hardwareBufferFrames,
+                                           std::optional<QtMultimediaPrivate::NativePeriodFrames> nativePeriodFrames,
                                            AudioEndpointRole)
     : QPlatformAudioSinkStream {
-          std::move(audioDevice), format, ringbufferSize, hardwareBufferFrames, volume,
+          std::move(audioDevice), format, ringbufferSize, nativePeriodFrames, volume,
       },
       m_parent(parent)
 {
@@ -79,8 +79,9 @@ bool QCoreAudioSinkStream::open()
     // Set Audio Device
     audioUnitSetCurrentDevice(m_audioUnit, nativeDeviceId);
 
-    if (m_hardwareBufferFrames)
-        audioObjectSetFramesPerBuffer(*audioDeviceId, *m_hardwareBufferFrames);
+    if (m_nativePeriodFrames)
+        audioObjectSetFramesPerBuffer(*audioDeviceId,
+                                      qToUnderlying(*m_nativePeriodFrames));
 #endif
 
     // Set stream format

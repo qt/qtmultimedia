@@ -53,7 +53,7 @@ struct QWASAPIAudioSinkStream final : std::enable_shared_from_this<QWASAPIAudioS
 
     QWASAPIAudioSinkStream(QAudioDevice, const QAudioFormat &,
                            std::optional<qsizetype> ringbufferSize, QWindowsAudioSink *parent,
-                           float volume, std::optional<int32_t> hardwareBufferSize,
+                           float volume, std::optional<NativePeriodFrames> nativePeriodFrames,
                            AudioEndpointRole);
     Q_DISABLE_COPY_MOVE(QWASAPIAudioSinkStream)
     ~QWASAPIAudioSinkStream() = default;
