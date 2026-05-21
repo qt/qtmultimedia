@@ -5,6 +5,7 @@
 #include "qffmpegsurfacecapturegrabber_p.h"
 
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qscopeguard.h>
 #include <QtCore/qthread.h>
 #include <QtCore/private/qfactorycacheregistration_p.h>
 #include <QtCore/private/qsystemerror_p.h>
@@ -406,6 +407,9 @@ private:
         if (GetNumberOfPhysicalMonitorsFromHMONITOR(handle, &count)) {
             std::vector<PHYSICAL_MONITOR> monitors{ count };
             if (GetPhysicalMonitorsFromHMONITOR(handle, count, monitors.data())) {
+                const auto cleanup = qScopeGuard([count, &monitors] {
+                    DestroyPhysicalMonitors(count, monitors.data());
+                });
                 for (const auto &monitor : std::as_const(monitors)) {
                     MC_TIMING_REPORT screenTiming = {};
                     if (GetTimingReport(monitor.hPhysicalMonitor, &screenTiming)) {
