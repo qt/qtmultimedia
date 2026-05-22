@@ -63,6 +63,7 @@ class QScreenCapture;
 class QVideoFrame;
 class QVideoSink;
 class QWindowCapture;
+class QGStreamerInterface;
 
 using GstElementOrDescription = std::variant<QString, GstElement *>;
 
@@ -121,12 +122,6 @@ public:
         return q23::unexpected{ notAvailable };
     }
 
-    virtual q23::expected<QPlatformCamera *, QString>
-    createGStreamerVideoSource(QGStreamerVideoSource *, const GstElementOrDescription &)
-    {
-        return q23::unexpected{ notAvailable };
-    }
-
     QList<QCapturableWindow> capturableWindowsList();
     bool isCapturableWindowValid(const QCapturableWindowPrivate &);
     [[nodiscard]] q23::expected<QCapturableWindow, QString> capturableWindowFromQWindow(QWindow *);
@@ -143,11 +138,17 @@ public:
     // Convert a QVideoFrame to the destination format
     virtual QVideoFrame convertVideoFrame(QVideoFrame &, const QVideoFrameFormat &);
 
-    virtual QAbstractPlatformSpecificInterface *platformSpecificInterface() { return nullptr; }
-
     static QLatin1String audioBackendName();
 
     virtual bool isCameraSwitchingDuringRecordingSupported() const { return true; }
+
+    virtual q23::expected<QPlatformCamera *, QString>
+    createGStreamerVideoSource(QGStreamerVideoSource *, const GstElementOrDescription &)
+    {
+        return q23::unexpected{ notAvailable };
+    }
+
+    virtual QGStreamerInterface *gstreamerInterface() { return nullptr; }
 
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();

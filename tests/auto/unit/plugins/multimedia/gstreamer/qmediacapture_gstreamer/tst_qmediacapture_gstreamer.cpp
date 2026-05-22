@@ -7,8 +7,8 @@
 #include <QtMultimedia/QAudioOutput>
 #include <QtMultimedia/QCamera>
 #include <QtMultimedia/QMediaCaptureSession>
-#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
 #include <QtMultimedia/private/qplatformmediacapture_p.h>
+#include <QtMultimedia/spi/qgstreamerinterface.h>
 #include <QtMultimedia/spi/qgstreamervideosource.h>
 #include <QtGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
 
