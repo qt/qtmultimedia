@@ -233,6 +233,20 @@ void InputTest::initializeWindow()
 
     m_layout->addLayout(formatBox);
 
+    // Native period frame count selector
+    QHBoxLayout *periodLayout = new QHBoxLayout;
+    auto *periodLabel = new QLabel(tr("Period Size:"));
+    m_periodBox = new QComboBox(this);
+    m_periodBox->addItem(tr("Default"), -1);
+    for (int v = 32; v <= 4096; v *= 2)
+        m_periodBox->addItem(QString::number(v), v);
+    connect(m_periodBox, &QComboBox::activated, this, [this]() {
+        restartAudioStream(false);
+    });
+    periodLayout->addWidget(periodLabel);
+    periodLayout->addWidget(m_periodBox);
+    m_layout->addLayout(periodLayout);
+
     m_recordButton = new QPushButton(tr("Start 5s Recording"), this);
     connect(m_recordButton, &QPushButton::clicked, this, [this]() {
         if (m_audioSource && !m_currentDevice.isNull())
@@ -253,6 +267,7 @@ void InputTest::startAudioSource(const QAudioDevice &device, const QAudioFormat 
         cleanupAudioSource();
 
     m_audioSource = std::make_unique<QAudioSource>(device, format);
+    m_audioSource->setNativePeriodFrameCount(m_periodBox->currentData().toInt());
 
     m_currentDevice = device;
 
@@ -331,6 +346,7 @@ void InputTest::initializeErrorWindow()
 void InputTest::restartAudioStream(bool record)
 {
     m_audioSource->stop();
+    m_audioSource->setNativePeriodFrameCount(m_periodBox->currentData().toInt());
     setRecorder(nullptr); // Stops possible recording
 
     if (m_callbackVisualizerTimer.isActive())

@@ -254,6 +254,20 @@ void AudioTest::initializeWindow()
 
     layout->addLayout(formatBox);
 
+    // Native period frame count selector
+    QHBoxLayout *periodBox = new QHBoxLayout;
+    QLabel *periodLabel = new QLabel(tr("Period Size (in frames):"));
+    m_periodBox = new QComboBox(this);
+    m_periodBox->addItem(tr("Default"), -1);
+    for (int v = 32; v <= 4096; v *= 2)
+        m_periodBox->addItem(QString::number(v), v);
+    connect(m_periodBox, &QComboBox::activated, this, [this]() {
+        restartAudioStream();
+    });
+    periodBox->addWidget(periodLabel);
+    periodBox->addWidget(m_periodBox);
+    layout->addLayout(periodBox);
+
     window->setLayout(layout);
 
     setCentralWidget(window);
@@ -267,6 +281,7 @@ void AudioTest::startAudioSink(const QAudioDevice &device, const QAudioFormat &f
 
     m_audioSink = std::make_unique<QAudioSink>(device, format);
     m_audioSink->setVolume(0.25f); // roughly -12dB
+    m_audioSink->setNativePeriodFrameCount(m_periodBox->currentData().toInt());
 
     m_currentDevice = device;
 
@@ -411,6 +426,7 @@ void AudioTest::restartAudioStream()
     m_pushTimer->stop();
     // Reset audiosink
     m_audioSink->reset();
+    m_audioSink->setNativePeriodFrameCount(m_periodBox->currentData().toInt());
     m_generator.reset();
 
     qreal initialVolume = QAudio::convertVolume(m_audioSink->volume(), QAudio::LinearVolumeScale,

@@ -70,6 +70,7 @@ private:
     QComboBox *m_modeBox = nullptr;
     QPushButton *m_suspendResumeButton = nullptr;
     QComboBox *m_deviceBox = nullptr;
+    QComboBox *m_periodBox = nullptr;
     QLabel *m_volumeLabel = nullptr;
     QSlider *m_volumeSlider = nullptr;
 
