@@ -43,7 +43,7 @@ namespace CLI {
 struct IOConfiguration
 {
     int deviceIndex;
-    int bufferSize = 1024;
+    std::optional<int> nativePeriodSize;
 
     std::optional<int> numberOfChannels;
     std::optional<int> sampleRate;
@@ -72,11 +72,10 @@ Arguments parseArguments(const QCoreApplication &app)
     parser.addHelpOption();
     parser.addVersionOption();
 
-    QCommandLineOption bufferSizeOption{
-        { u"b"_s, u"buffer-size"_s },
+    QCommandLineOption periodSizeOption{
+        { u"b"_s, u"period-size"_s },
         "Set the hardware buffer size in frames (integer). Used by 'input' and 'output' commands.",
         "size",
-        "1024",
     };
 
     QCommandLineOption deviceIndexOption{
@@ -100,7 +99,7 @@ Arguments parseArguments(const QCoreApplication &app)
         "-1",
     };
 
-    parser.addOption(bufferSizeOption);
+    parser.addOption(periodSizeOption);
     parser.addOption(deviceIndexOption);
     parser.addOption(samplerate);
     parser.addOption(channels);
@@ -136,7 +135,7 @@ Arguments parseArguments(const QCoreApplication &app)
         return value;
     };
 
-    auto bufferSize = parseOptionalString(bufferSizeOption);
+    auto bufferSize = parseOptionalString(periodSizeOption);
     auto deviceIndex = parseOptionalString(deviceIndexOption);
     auto sampleRate = parseOptionalString(samplerate);
     auto channelCount = parseOptionalString(channels);
@@ -172,7 +171,7 @@ Arguments parseArguments(const QCoreApplication &app)
 
     IOConfiguration conf{
         .deviceIndex = *deviceIndex.value_or(0),
-        .bufferSize = (*bufferSize).value_or(1024),
+        .nativePeriodSize = (*bufferSize).value_or(1024),
         .numberOfChannels = *channelCount,
         .sampleRate = *sampleRate,
     };
@@ -250,8 +249,7 @@ int runCommand(const CLI::Input &input)
     out << "Opening " << device.description() << " with " << format << "\n";
 
     QAudioSource source(device, format);
-    QPlatformAudioSource *platformSource = QPlatformAudioSource::get(source);
-    platformSource->setHardwareBufferFrames(input.config.bufferSize);
+    source.setNativePeriodFrameCount(input.config.nativePeriodSize.value_or(-1));
 
     using namespace QtPrivate;
     drwav_data_format wavFormat{
@@ -320,9 +318,7 @@ int runCommand(const CLI::Output &output)
 
     QAudioFormat format = makeAudioFormat(device, output.config);
     QAudioSink sink(device, format);
-
-    QPlatformAudioSink *platformSink = QPlatformAudioSink::get(sink);
-    platformSink->setHardwareBufferFrames(output.config.bufferSize);
+    sink.setNativePeriodFrameCount(output.config.nativePeriodSize.value_or(-1));
 
     float phaseIncrement = 2 * M_PI * 220.f / format.sampleRate(); // 220 Hz tone
     sink.start([&, phase = 0.f](QSpan<float> output) mutable {
