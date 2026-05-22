@@ -10,7 +10,7 @@ find_package(Qt6 COMPONENTS ShaderTools)
 
 if (QT_FEATURE_gstreamer_qt_api OR FEATURE_gstreamer_qt_api)
     # TODO: implement SPI_HEADER_FILTERS for qt_internal_extend_target
-    set(spi_headers_regex "(^|/)qgstreamervideosource\\.h$")
+    set(spi_headers_regex "(^|/)qgstreamer(interface|videosource)\\.h$")
 endif()
 
 qt_internal_add_module(Multimedia
@@ -52,7 +52,6 @@ qt_internal_add_module(Multimedia
         camera/qcameradevice.cpp camera/qcameradevice.h camera/qcameradevice_p.h
         camera/qimagecapture.cpp camera/qimagecapture.h
         compat/removed_api.cpp
-        platform/qgstreamer_platformspecificinterface.cpp platform/qgstreamer_platformspecificinterface_p.h
         platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
         platform/qplatformaudioinput_p.h
         platform/qplatformaudiooutput_p.h
@@ -141,6 +140,8 @@ qt_internal_add_module(Multimedia
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer_qt_api
     SOURCES
         spi/qgstreamervideosource.cpp spi/qgstreamervideosource.h spi/qgstreamervideosource_p.h
+        spi/qgstreamerinterface.cpp spi/qgstreamerinterface.h
+        platform/qgstreamer_platformspecificinterface_p.h
 )
 
 

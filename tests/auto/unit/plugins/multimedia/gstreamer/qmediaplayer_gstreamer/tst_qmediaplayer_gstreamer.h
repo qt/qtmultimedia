@@ -9,7 +9,7 @@
 #include <QtTest/qsignalspy.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
-#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
+#include <QtMultimedia/spi/qgstreamerinterface.h>
 
 #include <memory>
 #include <optional>

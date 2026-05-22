@@ -78,9 +78,8 @@ described under \l{Customization points}. See also
 \section1 Customization points
 
 Qt Multimedia provides certain customization points to allow access to the
-underlying GStreamer pipeline. The entry point is \c{class
-QGStreamerPlatformSpecificInterface}. Additional customizations can be done by
-setting environment variables.
+underlying GStreamer pipeline. The entry point is \l QGStreamerInterface.
+Additional customizations can be done by setting environment variables.
 
 \warning The customization points and Qt specific environment variables listed
 here, are considered as private APIs and may be subject to change. Be aware
@@ -194,36 +193,34 @@ The \c{GstPipeline} underlying the \l{QMediaPlayer} and \l{QMediaCaptureSession}
 care is required when using this API.
 
 \code
-#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
+#include <QtMultimedia/spi/qgstreamerinterface.h>
 
 [...]
 QMediaPlayer player;
-GstPipeline *pipeline = QGStreamerPlatformSpecificInterface::instance()->gstPipeline(&player);
+GstPipeline *pipeline = QGStreamerInterface::instance()->gstPipeline(&player);
 [...]
 QMediaCaptureSession session;
-GstPipeline *pipeline = QGStreamerPlatformSpecificInterface::instance()->gstPipeline(&session);
+GstPipeline *pipeline = QGStreamerInterface::instance()->gstPipeline(&session);
 \endcode
 
 
 \section2 Custom GStreamer elements as sinks and sources
 
 It is possible to create GStreamer elements from a GStreamer pipeline description and wrap them
-inside a \c{QCamera} or \c{QAudioDevice}:
+inside a \l QGStreamerVideoSource or \l QAudioDevice:
 
 \code
-#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
+#include <QtMultimedia/spi/qgstreamerinterface.h>
+#include <QtMultimedia/spi/qgstreamervideosource.h>
 
 [...]
-QByteArray pipelineString = "videotestsrc is-live=true ! gamma gamma=2.0";
-
 QMediaCaptureSession session;
 session.setVideoSink(wid.videoSink());
 
-QCamera *cam = QGStreamerPlatformSpecificInterface::instance()->makeCustomGStreamerCamera(
-         pipelineString, &session);
-session.setCamera(cam);
+QGStreamerVideoSource videoSource(QStringLiteral("videotestsrc is-live=true ! gamma gamma=2.0"));
+session.setNativeVideoSource(&videoSource);
+videoSource.start();
 \endcode
-
 
 \section2 QMediaPlayer: custom sources
 

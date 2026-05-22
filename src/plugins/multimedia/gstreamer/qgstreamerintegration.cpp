@@ -30,25 +30,26 @@ QT_BEGIN_NAMESPACE
 
 static_assert(GST_CHECK_VERSION(1, 20, 0), "Minimum required GStreamer version is 1.20");
 
+#if QT_CONFIG(gstreamer_qt_api)
+
 static thread_local bool inCustomCameraConstruction = false;
 static thread_local QGstElement pendingCameraElement{};
 
-QGStreamerPlatformSpecificInterfaceImplementation::
-        ~QGStreamerPlatformSpecificInterfaceImplementation() = default;
+QGStreamerInterfaceImplementation::~QGStreamerInterfaceImplementation() = default;
 
-QAudioDevice QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStreamerAudioInput(
+QAudioDevice QGStreamerInterfaceImplementation::makeCustomGStreamerAudioInput(
         const QByteArray &gstreamerPipeline)
 {
     return qMakeCustomGStreamerAudioInput(gstreamerPipeline);
 }
 
-QAudioDevice QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStreamerAudioOutput(
+QAudioDevice QGStreamerInterfaceImplementation::makeCustomGStreamerAudioOutput(
         const QByteArray &gstreamerPipeline)
 {
     return qMakeCustomGStreamerAudioOutput(gstreamerPipeline);
 }
 
-QCamera *QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStreamerCamera(
+QCamera *QGStreamerInterfaceImplementation::makeCustomGStreamerCamera(
         const QByteArray &gstreamerPipeline, QObject *parent)
 {
     QCameraDevicePrivate *info = new QCameraDevicePrivate;
@@ -63,9 +64,8 @@ QCamera *QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStreamerC
     return new QCamera(device, parent);
 }
 
-QCamera *
-QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStreamerCamera(GstElement *element,
-                                                                             QObject *parent)
+QCamera *QGStreamerInterfaceImplementation::makeCustomGStreamerCamera(
+        GstElement *element, QObject *parent)
 {
     QCameraDevicePrivate *info = new QCameraDevicePrivate;
     info->id = "Custom Camera from GstElement";
@@ -85,7 +85,7 @@ QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStreamerCamera(Gst
     return new QCamera(device, parent);
 }
 
-GstPipeline *QGStreamerPlatformSpecificInterfaceImplementation::gstPipeline(QMediaPlayer *player)
+GstPipeline *QGStreamerInterfaceImplementation::gstPipeline(QMediaPlayer *player)
 {
     auto *priv = reinterpret_cast<QMediaPlayerPrivate *>(QMediaPlayerPrivate::get(player));
     if (!priv)
@@ -96,7 +96,7 @@ GstPipeline *QGStreamerPlatformSpecificInterfaceImplementation::gstPipeline(QMed
 }
 
 GstPipeline *
-QGStreamerPlatformSpecificInterfaceImplementation::gstPipeline(QMediaCaptureSession *session)
+QGStreamerInterfaceImplementation::gstPipeline(QMediaCaptureSession *session)
 {
     auto *priv = QMediaCaptureSessionPrivate::get(session);
     if (!priv)
@@ -107,7 +107,7 @@ QGStreamerPlatformSpecificInterfaceImplementation::gstPipeline(QMediaCaptureSess
     return gstreamerCapture ? gstreamerCapture->pipeline().pipeline() : nullptr;
 }
 
-GstBuffer *QGStreamerPlatformSpecificInterfaceImplementation::getRawGstBuffer(QVideoFrame &frame)
+GstBuffer *QGStreamerInterfaceImplementation::gstBuffer(const QVideoFrame &frame)
 {
     QHwVideoBuffer *hwBuffer = QVideoFramePrivate::hwBuffer(frame);
     if (!hwBuffer)
@@ -116,7 +116,7 @@ GstBuffer *QGStreamerPlatformSpecificInterfaceImplementation::getRawGstBuffer(QV
     return gstBuffer ? gstBuffer->gstBuffer() : nullptr;
 }
 
-QVideoFrame QGStreamerPlatformSpecificInterfaceImplementation::createFrameFromGstBuffer(
+QVideoFrame QGStreamerInterfaceImplementation::createFrameFromGstBuffer(
         GstBuffer *buffer, const GstVideoInfo &videoInfo)
 {
     if (!buffer)
@@ -128,7 +128,7 @@ QVideoFrame QGStreamerPlatformSpecificInterfaceImplementation::createFrameFromGs
                                      qtVideoInfo);
 }
 
-QVideoFrame QGStreamerPlatformSpecificInterfaceImplementation::createFrameFromGstBuffer(
+QVideoFrame QGStreamerInterfaceImplementation::createFrameFromGstBuffer(
         GstBuffer *buffer, const GstVideoInfoDmaDrm &videoInfoDmaDrm)
 {
 #if !QT_GSTREAMER_SUPPORTS_GST_VIDEO_FORMAT_DMA_DRM
@@ -148,6 +148,8 @@ QVideoFrame QGStreamerPlatformSpecificInterfaceImplementation::createFrameFromGs
                                      qtVideoInfo);
 #endif
 }
+
+#endif
 
 Q_STATIC_LOGGING_CATEGORY(lcGstreamer, "qt.multimedia.gstreamer")
 
@@ -257,11 +259,13 @@ q23::expected<QPlatformMediaPlayer *, QString> QGstreamerIntegration::createPlay
 
 q23::expected<QPlatformCamera *, QString> QGstreamerIntegration::createCamera(QCamera *camera)
 {
+#if QT_CONFIG(gstreamer_qt_api)
     if (inCustomCameraConstruction) {
         QGstElement element = std::exchange(pendingCameraElement, {});
         return element ? new QGstreamerCustomCamera{ camera, std::move(element) }
                        : new QGstreamerCustomCamera{ camera };
     }
+#endif
 
     return QGstreamerCamera::create(camera);
 }
@@ -291,11 +295,17 @@ q23::expected<QPlatformAudioOutput *, QString> QGstreamerIntegration::createAudi
     return QGstreamerAudioOutput::create(q);
 }
 
+GstDevice *QGstreamerIntegration::videoDevice(const QByteArray &id)
+{
+    const auto devices = videoDevices();
+    return devices ? static_cast<QGstreamerVideoDevices *>(devices)->videoDevice(id) : nullptr;
+}
+
+#if QT_CONFIG(gstreamer_qt_api)
 q23::expected<QPlatformCamera *, QString>
 QGstreamerIntegration::createGStreamerVideoSource(QGStreamerVideoSource *videoSource,
                                                   const GstElementOrDescription &elementOrDesc)
 {
-#if QT_CONFIG(gstreamer_qt_api)
     using namespace Qt::Literals;
     auto createImpl = [videoSource](const auto &arg) -> q23::expected<QPlatformCamera *, QString> {
         QGstElement element;
@@ -316,20 +326,12 @@ QGstreamerIntegration::createGStreamerVideoSource(QGStreamerVideoSource *videoSo
         return new QGstreamerCustomCamera(videoSource, std::move(element));
     };
     return std::visit(createImpl, elementOrDesc);
-#else
-    return QPlatformMediaIntegration::createGStreamerVideoSource(videoSource, elementOrDesc);
+}
+
+QGStreamerInterface *QGstreamerIntegration::gstreamerInterface()
+{
+    return &m_gstreamerInterface;
+}
 #endif
-}
-
-GstDevice *QGstreamerIntegration::videoDevice(const QByteArray &id)
-{
-    const auto devices = videoDevices();
-    return devices ? static_cast<QGstreamerVideoDevices *>(devices)->videoDevice(id) : nullptr;
-}
-
-QAbstractPlatformSpecificInterface *QGstreamerIntegration::platformSpecificInterface()
-{
-    return &m_platformSpecificImplementation;
-}
 
 QT_END_NAMESPACE
