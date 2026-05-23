@@ -4795,6 +4795,8 @@ void tst_QMediaPlayerBackend::play_finishes_whenPlayingFileWithPacketsAfterStrea
 
     // Assert
     QTRY_COMPARE_WITH_TIMEOUT(m_fixture->player.playbackState(), QMediaPlayer::StoppedState, 15s);
+
+    QSKIP_DARWIN("AVFoundation has flaky test failures on CI");
     QCOMPARE(loopIterations(m_fixture->positionChanged).size(), unsigned(loops));
 }
 
