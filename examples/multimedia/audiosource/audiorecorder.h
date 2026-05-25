@@ -79,7 +79,7 @@ public:
     // Call writeSpan from audio callback thread
     // This writes data to a pre-allocated buffer
     void writeSpan(QSpan<const std::byte> data) noexcept
-            Q_DECL_NONBLOCKING_FUNCTION;
+        Q_DECL_NONBLOCKING_FUNCTION;
 
 protected:
     [[nodiscard]] quint64 bytesWritten() const override;
