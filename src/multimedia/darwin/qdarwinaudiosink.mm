@@ -93,17 +93,14 @@ bool QCoreAudioSinkStream::open()
 
 bool QCoreAudioSinkStream::start(QIODevice *device)
 {
-    auto renderCallback = [](void *self, [[maybe_unused]] AudioUnitRenderActionFlags *ioActionFlags,
-                             [[maybe_unused]] const AudioTimeStamp *inTimeStamp,
-                             [[maybe_unused]] UInt32 inBusNumber,
-                             [[maybe_unused]] UInt32 inNumberFrames,
-                             AudioBufferList *ioData) -> OSStatus {
+    AURenderCallbackStruct callback{
+        .inputProc = [](void *self, [[maybe_unused]] AudioUnitRenderActionFlags *ioActionFlags,
+                        [[maybe_unused]] const AudioTimeStamp *inTimeStamp,
+                        [[maybe_unused]] UInt32 inBusNumber, UInt32 inNumberFrames,
+                        AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING -> OSStatus {
         return reinterpret_cast<QCoreAudioSinkStream *>(self)->processRingbuffer(inNumberFrames,
                                                                                  ioData);
-    };
-
-    AURenderCallbackStruct callback{
-        .inputProc = renderCallback,
+    },
         .inputProcRefCon = this,
     };
     if (!audioUnitSetRenderCallback(m_audioUnit, callback))
@@ -138,20 +135,18 @@ QIODevice *QCoreAudioSinkStream::start()
 
 bool QCoreAudioSinkStream::start(AudioCallback cb)
 {
-    auto renderCallback = [](void *self, [[maybe_unused]] AudioUnitRenderActionFlags *ioActionFlags,
-                             [[maybe_unused]] const AudioTimeStamp *inTimeStamp,
-                             [[maybe_unused]] UInt32 inBusNumber,
-                             [[maybe_unused]] UInt32 inNumberFrames,
-                             AudioBufferList *ioData) -> OSStatus {
-        return reinterpret_cast<QCoreAudioSinkStream *>(self)->processAudioCallback(inNumberFrames,
-                                                                                    ioData);
-    };
-
     m_audioCallback = std::move(cb);
 
-    AURenderCallbackStruct callback;
-    callback.inputProc = renderCallback;
-    callback.inputProcRefCon = this;
+    AURenderCallbackStruct callback{
+        .inputProc = [](void *self, [[maybe_unused]] AudioUnitRenderActionFlags *ioActionFlags,
+                        [[maybe_unused]] const AudioTimeStamp *inTimeStamp,
+                        [[maybe_unused]] UInt32 inBusNumber, UInt32 inNumberFrames,
+                        AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING -> OSStatus {
+        return reinterpret_cast<QCoreAudioSinkStream *>(self)->processAudioCallback(inNumberFrames,
+                                                                                    ioData);
+    },
+        .inputProcRefCon = this,
+    };
     if (!audioUnitSetRenderCallback(m_audioUnit, callback))
         return false;
 
