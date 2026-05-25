@@ -66,9 +66,16 @@ bool QCoreAudioSourceStream::open()
     audioUnitSetOutputEnabled(m_audioUnit, false);
 
     // register callback
-    AURenderCallbackStruct callback;
-    callback.inputProc = inputCallback;
-    callback.inputProcRefCon = this;
+    AURenderCallbackStruct callback{
+        .inputProc = [](void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags,
+                        const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
+                        UInt32 inNumberFrames,
+                        AudioBufferList *ioData) noexcept Q_DECL_NONBLOCKING_FUNCTION -> OSStatus {
+        return reinterpret_cast<QCoreAudioSourceStream *>(inRefCon)->processInput(
+                ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
+    },
+        .inputProcRefCon = this,
+    };
 
     if (AudioUnitSetProperty(m_audioUnit.get(), kAudioOutputUnitProperty_SetInputCallback,
                              kAudioUnitScope_Global, 0, &callback, sizeof(callback))
@@ -249,16 +256,6 @@ void QCoreAudioSourceStream::stopAudioUnit()
     removeDisconnectListener();
 #endif
     m_audioUnit = {};
-}
-
-OSStatus QCoreAudioSourceStream::inputCallback(void *inRefCon,
-                                               AudioUnitRenderActionFlags *ioActionFlags,
-                                               const AudioTimeStamp *inTimeStamp,
-                                               UInt32 inBusNumber, UInt32 inNumberFrames,
-                                               AudioBufferList *ioData)
-{
-    auto *self = reinterpret_cast<QCoreAudioSourceStream *>(inRefCon);
-    return self->processInput(ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
 }
 
 OSStatus

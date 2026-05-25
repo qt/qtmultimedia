@@ -62,10 +62,6 @@ private:
     void updateStreamIdle(bool idle) override;
     void stopAudioUnit();
 
-    static OSStatus inputCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags,
-                                  const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
-                                  UInt32 inNumberFrames, AudioBufferList *ioData);
-
     OSStatus processInput(AudioUnitRenderActionFlags *ioActionFlags,
                           const AudioTimeStamp *timeStamp, UInt32 inBusNumber,
                           UInt32 inNumberFrames,
