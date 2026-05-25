@@ -32,7 +32,7 @@ if(QT_FEATURE_gstreamer)
     add_subdirectory(gstreamer-custom-camera-rtp)
 endif()
 
-if(TARGET Qt::Quick)
+if(QT_FEATURE_multimedia_quick)
     add_subdirectory(qml-minimal-audio-recorder)
     add_subdirectory(qml-minimal-camera)
     add_subdirectory(qml-minimal-player)

@@ -24,10 +24,10 @@ if(QT_FEATURE_spatialaudio)
 endif()
 
 # special case begin
-if(TARGET Qt::Quick)
+if(QT_FEATURE_multimedia_quick)
     add_subdirectory(multimediaquick)
 endif()
-if(TARGET Qt::Quick3D AND QT_FEATURE_spatialaudio)
+if(QT_FEATURE_spatialaudio_quick3d)
     add_subdirectory(spatialaudioquick3d)
 endif()
 

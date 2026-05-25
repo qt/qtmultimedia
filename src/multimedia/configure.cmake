@@ -244,12 +244,16 @@ qt_feature("wasapi" PRIVATE
     CONDITION WIN32
 )
 
+qt_feature("multimedia-quick" PRIVATE
+    LABEL "Quick/QML support"
+    CONDITION TARGET Qt::Quick
+)
 qt_feature("spatialaudio" PRIVATE
     LABEL "Spatial Audio"
 )
 qt_feature("spatialaudio_quick3d" PRIVATE
     LABEL "Spatial Audio (Quick3D)"
-    CONDITION TARGET Qt::Quick3D AND QT_FEATURE_spatialaudio
+    CONDITION TARGET Qt::Quick3D AND QT_FEATURE_multimedia_quick AND QT_FEATURE_spatialaudio
 )
 qt_feature("ffmpeg" PRIVATE
     LABEL "FFmpeg"
@@ -268,6 +272,7 @@ qt_feature("ffmpeg_stubs" PRIVATE
 )
 
 qt_configure_add_summary_section(NAME "Qt Multimedia")
+qt_configure_add_summary_entry(ARGS "multimedia-quick")
 qt_configure_add_summary_entry(ARGS "spatialaudio")
 qt_configure_add_summary_entry(ARGS "spatialaudio_quick3d")
 qt_configure_add_summary_section(NAME "Low level Audio Backend")
