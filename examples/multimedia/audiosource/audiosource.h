@@ -88,8 +88,8 @@ private:
     void timerEvent(QTimerEvent *) override;
 
     template <typename T>
-    void processCallback(QSpan<const T> buffer, const QAudioFormat &format)
-            Q_DECL_NONBLOCKING_FUNCTION;
+    void processCallback(QSpan<const T> buffer, const QAudioFormat &format) noexcept
+        Q_DECL_NONBLOCKING_FUNCTION;
 
     void startPullMode(bool record);
     void startPushMode(bool record);

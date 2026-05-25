@@ -97,6 +97,7 @@ CallbackRecorder::~CallbackRecorder()
 }
 
 void CallbackRecorder::writeSpan(QSpan<const std::byte> data) noexcept
+    Q_DECL_NONBLOCKING_FUNCTION
 {
     auto bytesToWrite = m_bytesExpected - bytesWritten();
     auto length = qMin(bytesToWrite, quint64(data.size()));

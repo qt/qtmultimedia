@@ -389,7 +389,8 @@ void InputTest::timerEvent(QTimerEvent *event)
 }
 
 template <typename T>
-void InputTest::processCallback(QSpan<const T> buffer, const QAudioFormat &format)
+void InputTest::processCallback(QSpan<const T> buffer, const QAudioFormat &format) noexcept
+    Q_DECL_NONBLOCKING_FUNCTION
 {
     auto *callbackRecorder = static_cast<CallbackRecorder *>(m_recorder.get());
     if (callbackRecorder)
