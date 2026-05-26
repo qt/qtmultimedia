@@ -191,7 +191,7 @@ qt_feature("gstreamer_qt_api" PUBLIC PRIVATE
 )
 qt_feature("linux_v4l" PRIVATE
     LABEL "Video for Linux"
-    CONDITION (UNIX AND NOT ANDROID) AND TEST_linux_v4l
+    CONDITION (UNIX AND NOT ANDROID AND NOT OHOS) AND TEST_linux_v4l
 )
 qt_feature("linux_dmabuf" PRIVATE
     LABEL "Linux DMA buffer support"
