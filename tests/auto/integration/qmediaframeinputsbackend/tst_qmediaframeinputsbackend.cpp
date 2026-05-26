@@ -149,6 +149,7 @@ AudioComparisonResult compareAudioData(QAudioBuffer actual, QAudioBuffer expecte
 void tst_QMediaFrameInputsBackend::initTestCase()
 {
     QSKIP_GSTREAMER("Not implemented in the gstreamer backend");
+    QSKIP_OHOS("OHOS backend does not yet wire QPlatformAudioBufferInput/QPlatformVideoFrameInput into a muxer-based recorder");
 }
 
 void tst_QMediaFrameInputsBackend::mediaRecorderWritesAudio_whenAudioFramesInputSends_data()

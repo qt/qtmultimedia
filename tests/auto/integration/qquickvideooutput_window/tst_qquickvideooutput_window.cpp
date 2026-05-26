@@ -11,6 +11,7 @@
 #include <QtQml/qqmlcomponent.h>
 #include <QtQuick/qquickitem.h>
 #include <QtQuick/qquickview.h>
+#include <private/mediabackendutils_p.h>
 #include <private/qplatformvideosink_p.h>
 #include <qmediaplayer.h>
 

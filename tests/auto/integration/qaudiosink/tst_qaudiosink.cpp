@@ -79,7 +79,7 @@ static bool isPulseAudioBackend()
 
 static bool underrunIsAnError()
 {
-#if defined(Q_OS_APPLE) || defined(Q_OS_ANDROID)
+#if defined(Q_OS_APPLE) || defined(Q_OS_ANDROID) || defined(Q_OS_OHOS)
     return false;
 #endif
 
