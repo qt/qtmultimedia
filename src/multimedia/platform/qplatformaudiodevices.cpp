@@ -13,6 +13,9 @@
 #if defined(Q_OS_ANDROID)
 #  include <QtMultimedia/private/qandroidaudiodevices_p.h>
 #endif
+#if QT_CONFIG(ohaudio)
+#  include <QtMultimedia/private/qohosaudiodevices_p.h>
+#endif
 #if defined(Q_OS_DARWIN)
 #  include <QtMultimedia/private/qcoreaudiodevices_p.h>
 #endif
@@ -50,6 +53,9 @@ std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
 #endif
 #if defined(Q_OS_ANDROID)
     return std::make_unique<QAndroidAudioDevices>();
+#endif
+#if QT_CONFIG(ohaudio)
+    return std::make_unique<QOhosAudioDevices>();
 #endif
 #if QT_CONFIG(pipewire)
     QByteArray requestedBackend = qgetenv("QT_AUDIO_BACKEND");

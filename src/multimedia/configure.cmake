@@ -235,6 +235,10 @@ qt_feature("aaudio" PRIVATE
     LABEL "AAudio (Android)"
     CONDITION ANDROID
 )
+qt_feature("ohaudio" PRIVATE
+    LABEL "OHAudio (HarmonyOS)"
+    CONDITION OHOS
+)
 qt_feature("wasm" PRIVATE
     LABEL "Web Assembly"
     CONDITION WASM
@@ -282,6 +286,7 @@ qt_configure_add_summary_entry(ARGS "pipewire")
 qt_configure_add_summary_entry(ARGS "qnx_sound_architecture")
 qt_configure_add_summary_entry(ARGS "coreaudio")
 qt_configure_add_summary_entry(ARGS "aaudio")
+qt_configure_add_summary_entry(ARGS "ohaudio")
 qt_configure_add_summary_entry(ARGS "wasm")
 qt_configure_add_summary_entry(ARGS "wasapi")
 qt_configure_end_summary_section()
@@ -314,6 +319,7 @@ qt_configure_add_report_entry(
     MESSAGE "No backend for low level audio found."
     CONDITION NOT QT_FEATURE_alsa AND NOT QT_FEATURE_pulseaudio AND NOT QT_FEATURE_mmrenderer AND NOT QT_FEATURE_coreaudio
               AND NOT WIN32 AND NOT ANDROID AND NOT WASM AND NOT QT_FEATURE_pipewire
+              AND NOT QT_FEATURE_ohaudio
 )
 
 qt_configure_add_report_entry(

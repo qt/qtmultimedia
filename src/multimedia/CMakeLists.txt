@@ -301,6 +301,24 @@ if(ANDROID)
     )
 endif()
 
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_ohaudio
+    SOURCES
+        ohos/qohaudiostream.cpp ohos/qohaudiostream_p.h
+        ohos/qohosaudiodevice.cpp ohos/qohosaudiodevice_p.h
+        ohos/qohosaudiodevices.cpp ohos/qohosaudiodevices_p.h
+        ohos/qohosaudiosink.cpp ohos/qohosaudiosink_p.h
+        ohos/qohosaudiosource.cpp ohos/qohosaudiosource_p.h
+    LIBRARIES
+        ohaudio
+)
+
+if(OHOS)
+    qt_internal_add_harmonyos_permission(Multimedia
+        NAME ohos.permission.MICROPHONE
+        REASON "Used to record audio."
+    )
+endif()
+
 qt_internal_extend_target(Multimedia CONDITION LINUX OR ANDROID OR OHOS
     SOURCES
         audio/qautoresetevent_linux_p.h audio/qautoresetevent_linux.cpp
