@@ -301,7 +301,7 @@ if(ANDROID)
     )
 endif()
 
-qt_internal_extend_target(Multimedia CONDITION LINUX OR ANDROID
+qt_internal_extend_target(Multimedia CONDITION LINUX OR ANDROID OR OHOS
     SOURCES
         audio/qautoresetevent_linux_p.h audio/qautoresetevent_linux.cpp
 )
