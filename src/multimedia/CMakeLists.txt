@@ -317,6 +317,10 @@ if(OHOS)
         NAME ohos.permission.MICROPHONE
         REASON "Used to record audio."
     )
+    qt_internal_add_harmonyos_permission(Multimedia
+        NAME ohos.permission.CAMERA
+        REASON "Used to capture camera images and video."
+    )
 endif()
 
 qt_internal_extend_target(Multimedia CONDITION LINUX OR ANDROID OR OHOS
