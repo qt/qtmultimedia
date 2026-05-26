@@ -535,7 +535,7 @@ void QWasmVideoOutput::createOffscreenElement(const QSize &offscreenSize)
                             .new_(offscreenSize.width(), offscreenSize.height());
         emscripten::val offscreenAttributes = emscripten::val::array();
         offscreenAttributes.set("willReadFrequently", true);
-        m_offscreenContext = m_offscreen.call<emscripten::val>("getContext", std::string("webgl"),
+        m_offscreenContext = m_offscreen.call<emscripten::val>("getContext", std::string("2d"),
                                                              offscreenAttributes);
     }
     std::string offscreenId = m_videoSurfaceId + "_offscreenOutputSurface";
@@ -973,6 +973,8 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
     rectOptions.set("width", displayWidth);
     rectOptions.set("height", displayHeight);
     options.set("rect", rectOptions);
+    // Request RGBA so the browser does YUV->RGB; avoids qEnsureThreadLocalRhi / makeCurrent.
+    options.set("format", std::string("RGBA"));
 
     emscripten::val frameBytesAllocationSize = oneVideoFrame.call<emscripten::val>("allocationSize", options);
     emscripten::val frameBuffer =
@@ -996,18 +998,14 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
 
         QByteArray frameBytes = QByteArray::fromEcmaUint8Array(frameBuffer);
 
-        QVideoFrameFormat::PixelFormat pixelFormat = fromJsPixelFormat(oneVideoFrame["format"].as<std::string>());
-        if (pixelFormat == QVideoFrameFormat::Format_Invalid) {
-            qWarning() << "Invalid pixel format";
-            return;
-        }
+        constexpr auto pixelFormat = QVideoFrameFormat::Format_RGBA8888;
         QVideoFrameFormat frameFormat = QVideoFrameFormat(frameSize, pixelFormat);
 
         if (m_useCameraRotation)
             frameFormat.setRotation(wasmVideoOutput->m_rotateBy);
         auto buffer = std::make_unique<QMemoryVideoBuffer>(
                 std::move(frameBytes),
-                oneVideoFrame["codedWidth"].as<int>());
+                frameLayout[0]["stride"].as<int>());
 
         QVideoFrame vFrame =
                 QVideoFramePrivate::createFrame(std::move(buffer), std::move(frameFormat));
@@ -1035,7 +1033,7 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
         return;
     };
 
-    qstdweb::Promise::make(oneVideoFrame, u"copyTo"_s, std::move(copyToCallback), frameBuffer);
+    qstdweb::Promise::make(oneVideoFrame, u"copyTo"_s, std::move(copyToCallback), frameBuffer, options);
 }
 
 void QWasmVideoOutput::getWebGLContext()
@@ -1056,9 +1054,6 @@ void QWasmVideoOutput::getWebGLContext()
     for (QWindow *window : QGuiApplication::allWindows()) {
         if (!window->handle())
             continue;
-        if (!ctx->makeCurrent(window))
-            continue;
-
         auto *wasmIface = window->nativeInterface<QNativeInterface::Private::QWasmWindow>();
         if (!wasmIface)
             break;
@@ -1067,6 +1062,13 @@ void QWasmVideoOutput::getWebGLContext()
         // passed to em_texImage2DFromVideo as an EM_VAL handle — avoids any
         // document.getElementById lookup and works inside shadow DOMs.
         m_glCanvas = wasmIface->canvas();
+
+        std::string contextType = m_glCanvas["constructor"]["name"].as<std::string>();
+        if (contextType == "CanvasRenderingContext2D")
+            continue;  // skip windows with 2D contexts
+
+        if (!ctx->makeCurrent(window))
+            continue;
 
         // Capture the handle now that this context is current, for use in
         // emscripten_webgl_make_context_current() before the C GL calls.
