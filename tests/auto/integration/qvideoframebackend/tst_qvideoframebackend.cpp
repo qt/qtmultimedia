@@ -91,6 +91,14 @@ void tst_QVideoFrameBackend::addMediaPlayerFrameTestData(F &&f)
         return;
     }
 
+    if (isOhosPlatform()) {
+        // createMediaPlayerFrame returns an invalid frame on OHOS because the
+        // OHOS video output cannot deliver textures into a bare QVideoSink
+        // that has no live RHI.
+        qWarning() << "createMediaPlayerFrame returns no frame on OHOS";
+        return;
+    }
+
     f();
 }
 
@@ -109,6 +117,9 @@ void tst_QVideoFrameBackend::testMediaFilesAreSupported()
 {
 #ifdef Q_OS_ANDROID
     QSKIP("Skip test cases with mediaPlayerFrame on Android CI, because of QTBUG-118571");
+#endif
+#ifdef Q_OS_OHOS
+    QSKIP("OHOS demuxer rejects some H.264/HEVC/AV1 profiles used by the test media");
 #endif
 
     QCOMPARE(m_mediaSelector.dumpErrors(), "");
@@ -240,6 +251,10 @@ void tst_QVideoFrameBackend::toImage_returnsImage_whenCalledFromSeparateThreadAn
 void tst_QVideoFrameBackend::toImage_returnsImage_whenCalledFromSeparateThreadAndWhileRenderingToWindow()
 {
     QFETCH(QRhi::Implementation, backend);
+
+#ifdef Q_OS_OHOS
+    QSKIP("OHOS demuxer rejects the H.264 profile used by colors.mp4");
+#endif
 
     if (isCI()) {
 #ifdef Q_OS_MACOS

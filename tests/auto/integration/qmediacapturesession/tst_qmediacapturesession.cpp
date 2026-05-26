@@ -817,6 +817,10 @@ void tst_QMediaCaptureSession::can_change_CameraDevice_on_attached_Camera()
 
 void tst_QMediaCaptureSession::can_change_VideoOutput_with_and_without_camera()
 {
+#ifdef Q_OS_OHOS
+    QSKIP("Phone form factor only allows one top-level window; this test shows two QVideoWidgets simultaneously");
+#endif
+
     QCamera camera;
     if (!camera.isAvailable())
         QSKIP("No video input is available");
@@ -1216,6 +1220,14 @@ void tst_QMediaCaptureSession::can_add_ImageCapture_and_capture_during_recording
 
 void tst_QMediaCaptureSession::testAudioMute()
 {
+#ifdef Q_OS_OHOS
+    // OHOS records the Wave file via OH_AudioCapturer (OH_AVRecorder has no
+    // PCM codec), but the OHOS backend does not yet implement a
+    // QPlatformAudioDecoder, so this test cannot decode the recorded file for
+    // raw sample inspection.
+    QSKIP("OHOS backend has no QAudioDecoder implementation yet");
+#endif
+
     QAudioInput audioInput;
     if (audioInput.device().isNull())
         QSKIP("No audio input available");

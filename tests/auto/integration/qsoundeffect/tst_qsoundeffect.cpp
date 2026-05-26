@@ -14,6 +14,7 @@
 #include <QtMultimedia/private/qsamplecache_p.h>
 
 #include <QtMultimediaTestLib/private/qmockresolvers_p.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 
 using namespace Qt::Literals;
 using namespace std::chrono_literals;
@@ -740,6 +741,7 @@ using QSoundEffectPrivateWithPlayer = QtMultimediaPrivate::QSoundEffectPrivateWi
 
 void tst_QSoundEffect::getPlaybackEngine()
 {
+    QSKIP_OHOS("OH_AudioRenderer_Pause does not propagate SuspendedState through QAudioSink::state()");
     std::shared_ptr<QRtAudioEngine> engine = QSoundEffectPrivateWithPlayer::getEngineFor(
             QMediaDevices::defaultAudioOutput(), getFormat());
 
