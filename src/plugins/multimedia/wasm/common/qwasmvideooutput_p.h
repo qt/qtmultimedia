@@ -87,6 +87,7 @@ public:
     void addCameraSourceElement(const std::string &id);
     void removeSourceElement();
     void setVideoMode(QWasmVideoOutput::WasmVideoMode mode);
+    void setVideoConstraints(QSize resolution, float minFrameRate, float maxFrameRate);
 
     void setHasAudio(bool needsAudio) { m_hasAudio = needsAudio; }
 
@@ -185,6 +186,10 @@ private:
 
     std::string m_cameraId;
     QMetaObject::Connection m_connection;
+    QSize m_videoResolution;
+    float m_minFrameRate = 0;
+    float m_maxFrameRate = 0;
+    float m_streamFrameRate = 0;
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_glContextHandle = 0;
     static bool orientationchangeCallback(int eventType, const EmscriptenOrientationChangeEvent *orientationChangeEvent, void *userData);
 };
