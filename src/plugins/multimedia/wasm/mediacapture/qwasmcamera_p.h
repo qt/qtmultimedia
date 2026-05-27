@@ -72,6 +72,7 @@ Q_SIGNALS:
 private:
     void createCamera(const QCameraDevice &camera);
     void updateCameraFeatures();
+    void updateVideoFormats(const emscripten::val &caps);
 
     QCameraDevice m_cameraDev;
     QWasmMediaCaptureSession *m_CaptureSession = nullptr;

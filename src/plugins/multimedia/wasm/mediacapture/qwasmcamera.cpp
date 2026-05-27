@@ -7,6 +7,7 @@
 #include <private/qplatformvideosink_p.h>
 #include <private/qplatformvideodevices_p.h>
 #include <private/qmemoryvideobuffer_p.h>
+#include <private/qcameradevice_p.h>
 #include <private/qvideotexturehelper_p.h>
 #include <private/qwasmmediadevices_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
@@ -477,4 +478,60 @@ void QWasmCamera::updateCameraFeatures()
         cameraFeatures |= QCamera::Feature::FocusDistance;
 
     supportedFeaturesChanged(cameraFeatures);
+    updateVideoFormats(caps);
 }
+
+void QWasmCamera::updateVideoFormats(const emscripten::val &cababilities)
+{
+    // Use synthetic standard res and framerates. Webaudio
+    // only allows real camera format from a live camera stream
+    // camera constraints are only a suggestion anyway
+    emscripten::val widthCapabilities = cababilities["width"];
+    emscripten::val heightCapabilities = cababilities["height"];
+    emscripten::val frameRateCapabilities = cababilities["frameRate"];
+
+    if (widthCapabilities.isUndefined() || heightCapabilities.isUndefined()
+        || frameRateCapabilities.isUndefined())
+        return;
+
+    const int maxWidth = widthCapabilities["max"].as<int>();
+    const int maxHeight = heightCapabilities["max"].as<int>();
+    const float minFrameRate = frameRateCapabilities["min"].as<double>();
+    const float maxFrameRate = frameRateCapabilities["max"].as<double>();
+
+    static const QSize standardResolutions[] = {
+        { 3840, 2160 }, // 4k
+        { 2560, 1440 }, // 1440p
+        { 2048, 1080 }, // 2k
+        { 1920, 1080 }, // FHD
+        { 1280, 720 }, // HD
+        { 640, 480 }, // SD
+    };
+    static const float standardFrameRates[] = { 15.f, 24.f, 25.f, 29.97f, 30.f,
+                                                60.f, 100.f, 120.f };
+
+    QList<QCameraFormat> formats;
+    for (const QSize &resolution : standardResolutions) {
+        if (resolution.width() > maxWidth || resolution.height() > maxHeight)
+            continue;
+        for (float rate : standardFrameRates) {
+            if (rate < minFrameRate || rate > maxFrameRate + 0.5f)
+                continue;
+            auto *oneFormat = new QCameraFormatPrivate{
+                QSharedData(),
+                QVideoFrameFormat::Format_RGBA8888,
+                resolution,
+                rate, rate
+            };
+            formats << oneFormat->create();
+        }
+    }
+
+    if (formats.isEmpty())
+        return;
+
+    auto *devicePrivate =
+            const_cast<QCameraDevicePrivate *>(QCameraDevicePrivate::handle(m_cameraDev));
+    devicePrivate->videoFormats = formats;
+}
+
