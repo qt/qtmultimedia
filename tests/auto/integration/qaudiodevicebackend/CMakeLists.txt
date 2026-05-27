@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 #####################################################################
-## tst_qaudiodevice Test:
+## tst_qaudiodevicebackend Test:
 #####################################################################
 
-qt_internal_add_test(tst_qaudiodevice
+qt_internal_add_test(tst_qaudiodevicebackend
     SOURCES
-        tst_qaudiodevice.cpp
+        tst_qaudiodevicebackend.cpp
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate

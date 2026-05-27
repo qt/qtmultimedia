@@ -53,7 +53,8 @@ private:
     QSize m_size = {};
     long m_timestamp = 0;
     int m_numberPlanes = 0;
-    Plane m_planes[3]; // 3 max number planes
+    static constexpr int MAX_PLANES = 3;
+    Plane m_planes[MAX_PLANES]; // 3 max number planes
     jobject m_frame = nullptr;
     bool m_parsed = false;
     QImage m_image;

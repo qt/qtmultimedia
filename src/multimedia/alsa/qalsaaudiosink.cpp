@@ -37,7 +37,6 @@ QAlsaAudioSink::~QAlsaAudioSink()
 {
     close();
     disconnect(timer, &QTimer::timeout, this, &QAlsaAudioSink::userFeed);
-    QCoreApplication::processEvents();
     delete timer;
 }
 

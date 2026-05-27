@@ -98,15 +98,13 @@ bool qt_convert_exposure_mode(AVCaptureDevice *captureDevice, QCamera::ExposureM
 #endif // defined(Q_OS_IOS)
 
 // Helper function to translate AVCaptureDevicePosition enum to QCameraDevice::Position enum.
-QCameraDevice::Position qt_AVCaptureDevicePosition_to_QCameraDevicePosition(AVCaptureDevicePosition input)
+[[nodiscard]] QCameraDevice::Position qAvfToQCameraDevicePosition(AVCaptureDevicePosition input)
 {
     switch (input) {
         case AVCaptureDevicePositionFront:
             return QCameraDevice::Position::FrontFace;
         case AVCaptureDevicePositionBack:
             return QCameraDevice::Position::BackFace;
-        case AVCaptureDevicePositionUnspecified:
-            return QCameraDevice::Position::UnspecifiedPosition;
         default:
             return QCameraDevice::Position::UnspecifiedPosition;
     }
@@ -116,8 +114,11 @@ QCameraDevice::Position qt_AVCaptureDevicePosition_to_QCameraDevicePosition(AVCa
 
 
 
-QAVFVideoDevices::QAVFVideoDevices(QPlatformMediaIntegration *integration)
-    : QPlatformVideoDevices(integration)
+QAVFVideoDevices::QAVFVideoDevices(
+    QPlatformMediaIntegration *integration,
+    std::function<bool(uint32_t)> &&isCvPixelFormatSupportedDelegate)
+    : QPlatformVideoDevices(integration),
+      m_isCvPixelFormatSupportedDelegate(std::move(isCvPixelFormatSupportedDelegate))
 {
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     m_deviceConnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasConnectedNotification
@@ -146,6 +147,11 @@ QAVFVideoDevices::~QAVFVideoDevices()
 QList<QCameraDevice> QAVFVideoDevices::videoDevices() const
 {
     return m_cameraDevices;
+}
+
+bool QAVFVideoDevices::isCvPixelFormatSupported(uint32_t cvPixelFormat) const
+{
+    return !m_isCvPixelFormatSupportedDelegate || m_isCvPixelFormatSupportedDelegate(cvPixelFormat);
 }
 
 void QAVFVideoDevices::updateCameraDevices()
@@ -212,7 +218,7 @@ void QAVFVideoDevices::updateCameraDevices()
             info->isDefault = true;
         info->id = QByteArray([[device uniqueID] UTF8String]);
         info->description = QString::fromNSString([device localizedName]);
-        info->position = qt_AVCaptureDevicePosition_to_QCameraDevicePosition([device position]);
+        info->position = qAvfToQCameraDevicePosition([device position]);
 
         qCDebug(qLcCamera) << "Handling camera info" << info->description
                            << (info->isDefault ? "(default)" : "");
@@ -224,24 +230,35 @@ void QAVFVideoDevices::updateCameraDevices()
             if (![format.mediaType isEqualToString:AVMediaTypeVideo])
                 continue;
 
-            auto dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
+            const CMVideoDimensions dimensions =
+                CMVideoFormatDescriptionGetDimensions(format.formatDescription);
             QSize resolution(dimensions.width, dimensions.height);
             photoResolutions.insert(resolution);
 
             float maxFrameRate = 0;
             float minFrameRate = 1.e6;
 
-            auto encoding = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
-            auto pixelFormat = QAVFHelpers::fromCVPixelFormat(encoding);
-            auto colorRange = QAVFHelpers::colorRangeForCVPixelFormat(encoding);
+            const CvPixelFormat cvPixelFormat =
+                CMVideoFormatDescriptionGetCodecType(format.formatDescription);
+
+            // Don't expose formats if the media backend says we can't start a capture session
+            // with it.
+            if (!isCvPixelFormatSupported(cvPixelFormat))
+                continue;
+
+            const QVideoFrameFormat::PixelFormat pixelFormat =
+                QAVFHelpers::fromCVPixelFormat(cvPixelFormat);
+            const QVideoFrameFormat::ColorRange colorRange =
+                QAVFHelpers::colorRangeForCVPixelFormat(cvPixelFormat);
+
             // Ignore pixel formats we can't handle
             if (pixelFormat == QVideoFrameFormat::Format_Invalid) {
-                qCDebug(qLcCamera) << "ignore camera CV format" << encoding
+                qCDebug(qLcCamera) << "ignore camera CV format" << cvPixelFormat
                                    << "as no matching video format found";
                 continue;
             }
 
-            for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
+            for (const AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
                 if (frameRateRange.minFrameRate < minFrameRate)
                     minFrameRate = frameRateRange.minFrameRate;
                 if (frameRateRange.maxFrameRate > maxFrameRate)
@@ -260,7 +277,7 @@ void QAVFVideoDevices::updateCameraDevices()
 #endif
 
             qCDebug(qLcCamera) << "Add camera format. pixelFormat:" << pixelFormat
-                               << "colorRange:" << colorRange << "cvPixelFormat" << encoding
+                               << "colorRange:" << colorRange << "cvPixelFormat" << cvPixelFormat
                                << "resolution:" << resolution << "frameRate: [" << minFrameRate
                                << maxFrameRate << "]";
 

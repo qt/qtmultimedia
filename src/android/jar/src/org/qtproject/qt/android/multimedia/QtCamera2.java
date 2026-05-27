@@ -48,6 +48,10 @@ public class QtCamera2 {
     // 2. Calibrate auto-exposure for pre-capture
     // 3. Calibrate auto-exposure for capture
     // 4. Capture the photo
+    //
+    // Still photo captures should be finalized using a single CameraCaptureSession.capture() call,
+    // but precapture calibration steps (auto-focus, auto-exposure) should be done using the
+    // continuously repeating preview request.
     private static final int STATE_PREVIEW = 0;
     // We are waiting for focus lock
     private static final int STATE_WAITING_FOCUS_LOCK = 1;
@@ -57,25 +61,58 @@ public class QtCamera2 {
     // The picture is ready to be read into an image object.
     private static final int STATE_PICTURE_TAKEN = 4;
 
+    // An mState that is not set to STATE_PREVIEW implies we are currently trying to capture a still
+    // photo.
     private int mState = STATE_PREVIEW;
-    private Object mStartMutex = new Object();
-    private boolean mIsStarted = false;
     private static int MaxNumberFrames = 12;
 
-    private static final int defaultFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
-    private int mFlashMode = defaultFlashMode;
-    private static final int defaultTorchMode = CameraMetadata.FLASH_MODE_OFF;
-    private int mTorchMode = defaultTorchMode;
-    private static final int defaultAfMode =  CaptureRequest.CONTROL_AF_MODE_OFF;
-    private int mAFMode = defaultAfMode;
-    private static final float defaultZoomFactor = 1.0f;
-    private float mZoomFactor = defaultZoomFactor;
-    // Assumes that the mStartMutex is locked already.
-    private void resetControls() {
-        mFlashMode = defaultFlashMode;
-        mTorchMode = defaultTorchMode;
-        mAFMode = defaultAfMode;
-        mZoomFactor = defaultZoomFactor;
+    private static final int DEFAULT_FLASH_MODE = CaptureRequest.CONTROL_AE_MODE_ON;
+    private static final int DEFAULT_TORCH_MODE = CameraMetadata.FLASH_MODE_OFF;
+    private static final int DEFAULT_AF_MODE = CaptureRequest.CONTROL_AF_MODE_OFF;
+    private static final float DEFAULT_ZOOM_FACTOR = 1.0f;
+
+    // The purpose of this class is to gather variables that are accessed across
+    // the C++ QCamera's thread, and the background capture-processing thread.
+    // It also acts as the mutex for these variables.
+    // All access to these variables must happen after locking the instance.
+    class SyncedMembers {
+        private boolean mIsStarted = false;
+
+        // Not to be confused with QCamera::FlashMode.
+        // This controls the currently desired CaptureRequest.CONTROL_AE_MODE.
+        // QCamera::FlashMode::FlashOff maps to CaptureRequest.CONTROL_AE_MODE_ON. This implies regular
+        // automatic exposure.
+        // QCamera::FlashMode::FlashAuto maps to CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH.
+        // QCamera::FlashMode::FlashOn maps to CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH.
+        private int mFlashMode = DEFAULT_FLASH_MODE;
+
+        // Not to be confused with QCamera::TorchMode.
+        // This controls the currently desired CaptureRequest.FLASH_MODE
+        // QCamera::TorchMode::TorchOff maps to CaptureRequest.FLASH_MODE_OFF
+        // QCamera::TorchMode::TorchAuto is not supported.
+        // QCamera::TorhcMode::TorchOn maps to CaptureRequest.FLASH_MODE_TORCH.
+        private int mTorchMode = DEFAULT_TORCH_MODE;
+
+        // Not to be confused with QCamera::FocusMode
+        // This controls the currently desired CaptureRequest.CONTROL_AF_MODE
+        // QCamera::FocusMode::FocusModeAuto maps to CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+        private int mAFMode = DEFAULT_AF_MODE;
+
+        // Not to be confused with CaptureRequest.CONTROL_ZOOM_RATIO
+        // This matches the current QCamera::zoomFactor of the C++ QCamera object.
+        private float mZoomFactor = DEFAULT_ZOOM_FACTOR;
+    }
+    private final SyncedMembers mSyncedMembers = new SyncedMembers();
+
+    // Called from C++.
+    // Resets the control properties of this camera to their default values.
+    public void resetControlProperties() {
+        synchronized (mSyncedMembers) {
+            mSyncedMembers.mFlashMode = DEFAULT_FLASH_MODE;
+            mSyncedMembers.mTorchMode = DEFAULT_TORCH_MODE;
+            mSyncedMembers.mAFMode = DEFAULT_AF_MODE;
+            mSyncedMembers.mZoomFactor = DEFAULT_ZOOM_FACTOR;
+        }
     }
 
     private Range<Integer> mFpsRange = null;
@@ -237,6 +274,7 @@ public class QtCamera2 {
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
     }
 
+    // Used from native code
     void stopBackgroundThread() {
         mBackgroundThread.quitSafely();
         try {
@@ -299,7 +337,7 @@ public class QtCamera2 {
         }
     };
 
-
+    // Used from native code
     public void prepareCamera(int width, int height, int format, int minFps, int maxFps) {
 
         addImageReader(width, height, format);
@@ -342,10 +380,12 @@ public class QtCamera2 {
         return  mTargetSurfaces.remove(surface);
     }
 
+    // Used from native code
     public void clearSurfaces() {
         mTargetSurfaces.clear();
     }
 
+    // Used from native code
     public boolean createSession() {
         if (mCameraDevice == null)
             return false;
@@ -359,6 +399,7 @@ public class QtCamera2 {
         return false;
     }
 
+    // Used from native code
     public boolean start(int template) {
 
         if (mCameraDevice == null)
@@ -367,30 +408,30 @@ public class QtCamera2 {
         if (mCaptureSession == null)
             return false;
 
-        synchronized (mStartMutex) {
+        synchronized (mSyncedMembers) {
             try {
                 mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(template);
                 mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
-                mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
-                for (int mode : mVideoDeviceManager.getSupportedAfModes(mCameraId)) {
+                mSyncedMembers.mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
+                for (int mode : mVideoDeviceManager.getAllAvailableAfModes(mCameraId)) {
                     if (mode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
-                        mAFMode = mode;
+                        mSyncedMembers.mAFMode = mode;
                         break;
                     }
                 }
 
-                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, mFlashMode);
-                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mTorchMode);
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, mSyncedMembers.mFlashMode);
+                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mSyncedMembers.mTorchMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
-                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, mAFMode);
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, mSyncedMembers.mAFMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
-                if (mZoomFactor != 1.0f)
-                    updateZoom(mPreviewRequestBuilder);
+                if (mSyncedMembers.mZoomFactor != 1.0f)
+                    updateZoom(mPreviewRequestBuilder, mSyncedMembers.mZoomFactor);
                 if (mFpsRange != null)
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange);
                 mPreviewRequest = mPreviewRequestBuilder.build();
                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
-                mIsStarted = true;
+                mSyncedMembers.mIsStarted = true;
                 return true;
 
             } catch (Exception exception) {
@@ -400,8 +441,9 @@ public class QtCamera2 {
         }
     }
 
+    // Used from native code
     public void stopAndClose() {
-        synchronized (mStartMutex) {
+        synchronized (mSyncedMembers) {
             try {
                 if (null != mCaptureSession) {
                     mCaptureSession.close();
@@ -416,45 +458,74 @@ public class QtCamera2 {
             } catch (Exception exception) {
                 Log.w("QtCamera2", "Failed to stop and close:" + exception);
             }
-            mIsStarted = false;
-
-            // In the case that we are switching camera-device the controls will be
-            // repopulated by QAndroidCamera.
-            resetControls();
+            mSyncedMembers.mIsStarted = false;
         }
     }
 
+    // Used for finalizing a still photo capture. Will reset mState and preview-request back to
+    // default when capture is done. This should be used for a singular capture-call, not a
+    // repeating request.
+    class StillPhotoCaptureSessionCallback extends CameraCaptureSession.CaptureCallback {
+        @Override
+        public void onCaptureCompleted(
+            CameraCaptureSession session,
+            CaptureRequest request,
+            TotalCaptureResult result)
+        {
+            try {
+                mExifDataHandler = new QtExifDataHandler(result);
+                // Reset the focus/flash and go back to the normal state of preview.
+                mPreviewRequestBuilder.set(
+                    CaptureRequest.CONTROL_AF_TRIGGER,
+                    CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
+                mPreviewRequestBuilder.set(
+                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
+                mPreviewRequest = mPreviewRequestBuilder.build();
+                mState = STATE_PREVIEW;
+                mCaptureSession.setRepeatingRequest(
+                    mPreviewRequest,
+                    mCaptureCallback,
+                    mBackgroundHandler);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            } catch (NullPointerException e) {
+                // See QTBUG-130901:
+                // It should not be possible for mCaptureSession to be null here
+                // because we always call .close() on mCaptureSession and then set it to null.
+                // Calling .close() should flush all pending callbacks, including this one.
+                // Either way, user has evidence this is happening, and catching this exception
+                // stops us from crashing the program.
+                Log.e(
+                    "QtCamera2",
+                    "Null-pointer access exception thrown when finalizing still photo capture. " +
+                    "This should not be possible.");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // Can be called from C++ thread through 'takePhoto()' or directly by CameraCaptureCallback
+    // on background thread in order to finalize a still photo capture.
     private void capturePhoto() {
+        int aeMode = 0;
+        float zoomFactor = 0.f;
+        synchronized (mSyncedMembers) {
+            aeMode = mSyncedMembers.mFlashMode;
+            zoomFactor = mSyncedMembers.mZoomFactor;
+        }
+
         try {
             final CaptureRequest.Builder captureBuilder =
                    mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(mCapturedPhotoReader.getSurface());
-            captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, mFlashMode);
-            if (mZoomFactor != 1.0f)
-                updateZoom(captureBuilder);
 
-            CameraCaptureSession.CaptureCallback captureCallback
-                        = new CameraCaptureSession.CaptureCallback() {
-            @Override
-            public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request,
-                                           TotalCaptureResult result) {
-                    try {
-                        mExifDataHandler = new QtExifDataHandler(result);
-                        // Reset the focus/flash and go back to the normal state of preview.
-                        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                                                   CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
-                        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
-                                                   CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
-                        mPreviewRequest = mPreviewRequestBuilder.build();
-                        mState = STATE_PREVIEW;
-                        mCaptureSession.setRepeatingRequest(mPreviewRequest,
-                                                            mCaptureCallback,
-                                                            mBackgroundHandler);
-                    } catch (CameraAccessException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
+            captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, aeMode);
+            if (zoomFactor != 1.0f)
+                updateZoom(captureBuilder, zoomFactor);
+
+            final StillPhotoCaptureSessionCallback captureCallback =
+                new StillPhotoCaptureSessionCallback();
 
             mCaptureSession.capture(captureBuilder.build(), captureCallback, mBackgroundHandler);
         } catch (CameraAccessException e) {
@@ -462,9 +533,18 @@ public class QtCamera2 {
         }
     }
 
+    // Used from native code
+    // If auto-focus is enabled, will initiate the still photo precapture routine by adjusting
+    // focusing and exposure. Otherwise, will finalize a still photo immediately.
     public void takePhoto() {
+        // Load copies of synced members before applying.
+        int afMode = 0;
+        synchronized (mSyncedMembers) {
+            afMode = mSyncedMembers.mAFMode;
+        }
+
         try {
-            if (mAFMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
+            if (afMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
                 mState = STATE_WAITING_FOCUS_LOCK;
                 mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
@@ -476,6 +556,7 @@ public class QtCamera2 {
         }
     }
 
+    // Used from native code
     public void saveExifToFile(String path)
     {
         if (mExifDataHandler != null)
@@ -484,38 +565,40 @@ public class QtCamera2 {
             Log.e("QtCamera2", "No Exif data that could be saved to " + path);
     }
 
-    private Rect getScalerCropRegion()
+    private Rect getScalerCropRegion(float zoomFactor)
     {
         Rect activePixels = mVideoDeviceManager.getActiveArraySize(mCameraId);
         float zoomRatio = 1.0f;
-        if (mZoomFactor != 0.0f)
-            zoomRatio = 1.0f/mZoomFactor;
+        if (zoomFactor != 0.0f)
+            zoomRatio = 1.0f / zoomFactor;
+
         int croppedWidth = activePixels.width() - (int)(activePixels.width() * zoomRatio);
         int croppedHeight = activePixels.height() - (int)(activePixels.height() * zoomRatio);
         return new Rect(croppedWidth/2, croppedHeight/2, activePixels.width() - croppedWidth/2,
                              activePixels.height() - croppedHeight/2);
     }
 
-    private void updateZoom(CaptureRequest.Builder requBuilder)
+    private void updateZoom(CaptureRequest.Builder requBuilder, float zoomFactor)
     {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) {
-            requBuilder.set(CaptureRequest.SCALER_CROP_REGION, getScalerCropRegion());
+            requBuilder.set(CaptureRequest.SCALER_CROP_REGION, getScalerCropRegion(zoomFactor));
         } else {
-            requBuilder.set(CaptureRequest.CONTROL_ZOOM_RATIO, mZoomFactor);
+            requBuilder.set(CaptureRequest.CONTROL_ZOOM_RATIO, zoomFactor);
         }
     }
 
+    // Used from native code
     public void zoomTo(float factor)
     {
-        synchronized (mStartMutex) {
-            mZoomFactor = factor;
+        synchronized (mSyncedMembers) {
+            mSyncedMembers.mZoomFactor = factor;
 
-            if (!mIsStarted) {
+            if (!mSyncedMembers.mIsStarted) {
                 // Camera capture has not begun. Zoom will be applied during start().
                 return;
             }
 
-            updateZoom(mPreviewRequestBuilder);
+            updateZoom(mPreviewRequestBuilder, factor);
             mPreviewRequest = mPreviewRequestBuilder.build();
 
             try {
@@ -525,21 +608,23 @@ public class QtCamera2 {
             }
         }
     }
+
+    // Used from native code
     public void setFlashMode(String flashMode)
     {
-        synchronized (mStartMutex) {
+        synchronized (mSyncedMembers) {
 
             int flashModeValue = mVideoDeviceManager.stringToControlAEMode(flashMode);
             if (flashModeValue < 0) {
                 Log.w("QtCamera2", "Unknown flash mode");
                 return;
             }
-            mFlashMode = flashModeValue;
+            mSyncedMembers.mFlashMode = flashModeValue;
 
-            if (!mIsStarted)
+            if (!mSyncedMembers.mIsStarted)
                 return;
 
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, mFlashMode);
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, mSyncedMembers.mFlashMode);
             mPreviewRequest = mPreviewRequestBuilder.build();
 
             try {
@@ -555,13 +640,14 @@ public class QtCamera2 {
         return mode ? CameraMetadata.FLASH_MODE_TORCH : CameraMetadata.FLASH_MODE_OFF;
     }
 
+    // Used from native code
     public void setTorchMode(boolean torchMode)
     {
-        synchronized (mStartMutex) {
-            mTorchMode = getTorchModeValue(torchMode);
+        synchronized (mSyncedMembers) {
+            mSyncedMembers.mTorchMode = getTorchModeValue(torchMode);
 
-            if (mIsStarted) {
-                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mTorchMode);
+            if (mSyncedMembers.mIsStarted) {
+                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mSyncedMembers.mTorchMode);
                 mPreviewRequest = mPreviewRequestBuilder.build();
 
                 try {

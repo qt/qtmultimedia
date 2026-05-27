@@ -51,13 +51,14 @@ AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, QFFmpegAudioInput *
             adjustChannelLayout(channelLayouts, requestedAudioFormat.channelLayoutMask);
     m_stream->codecpar->channels = qPopulationCount(m_stream->codecpar->channel_layout);
 #endif
-    const auto sampleRate =
-            adjustSampleRate(m_avCodec->supported_samplerates, requestedAudioFormat.sampleRate);
+    const auto sampleRates = getCodecSampleRates(m_avCodec);
+    const auto sampleRate = adjustSampleRate(sampleRates, requestedAudioFormat.sampleRate);
 
     m_stream->codecpar->sample_rate = sampleRate;
     m_stream->codecpar->frame_size = 1024;
+    const auto sampleFormats = getCodecSampleFormats(m_avCodec);
     m_stream->codecpar->format =
-            adjustSampleFormat(m_avCodec->sample_fmts, requestedAudioFormat.sampleFormat);
+            adjustSampleFormat(sampleFormats, requestedAudioFormat.sampleFormat);
 
     m_stream->time_base = AVRational{ 1, sampleRate };
 
@@ -87,6 +88,8 @@ void AudioEncoder::open()
     qCDebug(qLcFFmpegAudioEncoder) << "audio codec opened" << res;
     qCDebug(qLcFFmpegAudioEncoder) << "audio codec params: fmt=" << m_codecContext->sample_fmt
                               << "rate=" << m_codecContext->sample_rate;
+
+    avcodec_parameters_from_context(m_stream->codecpar, m_codecContext.get());
 
     const AVAudioFormat requestedAudioFormat(m_format);
     const AVAudioFormat codecAudioFormat(m_codecContext.get());

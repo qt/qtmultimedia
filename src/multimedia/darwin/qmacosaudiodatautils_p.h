@@ -42,32 +42,17 @@ void printUnableToReadWarning(const char *logName, AudioObjectID objectID, const
     warn << "\n  If the warning is unexpected use test_audio_config to get comprehensive audio info and report a bug";
 }
 
-inline static AudioObjectPropertyAddress
-makePropertyAddress(AudioObjectPropertySelector selector, QAudioDevice::Mode mode,
-                    AudioObjectPropertyElement element = kAudioObjectPropertyElementMain)
-{
-    return { selector,
-             mode == QAudioDevice::Input ? kAudioDevicePropertyScopeInput
-                                         : kAudioDevicePropertyScopeOutput,
-             element };
-}
+[[nodiscard]] AudioObjectPropertyAddress makePropertyAddress(
+    AudioObjectPropertySelector selector,
+    QAudioDevice::Mode mode,
+    AudioObjectPropertyElement element = kAudioObjectPropertyElementMain);
 
-inline static bool getAudioData(AudioObjectID objectID, const AudioObjectPropertyAddress &address,
-                                void *dst, UInt32 dstSize, const char *logName)
-{
-    UInt32 readBytes = dstSize;
-    const auto res = AudioObjectGetPropertyData(objectID, &address, 0, nullptr, &readBytes, dst);
-
-    if (res != noErr)
-        printUnableToReadWarning(logName, objectID, address, "Err:", res);
-    else if (readBytes != dstSize)
-        printUnableToReadWarning(logName, objectID, address, "Data size", readBytes, "VS", dstSize,
-                                 "expected");
-    else
-        return true;
-
-    return false;
-}
+[[nodiscard]] bool getAudioData(
+    AudioObjectID objectID,
+    const AudioObjectPropertyAddress &address,
+    void *dst,
+    UInt32 dstSize,
+    const char *logName);
 
 template<typename T>
 std::optional<std::vector<T>> getAudioData(AudioObjectID objectID,
@@ -106,6 +91,17 @@ std::optional<T> getAudioObject(AudioObjectID objectID, const AudioObjectPropert
 
     return {};
 }
+
+[[nodiscard]] QByteArray qCoreAudioReadPersistentAudioDeviceID(
+    AudioDeviceID device,
+    QAudioDevice::Mode mode);
+
+[[nodiscard]] std::optional<AudioDeviceID> qCoreAudioFindAudioDeviceId(
+    const QByteArray &id,
+    QAudioDevice::Mode mode);
+
+[[nodiscard]] std::optional<AudioDeviceID> qCoreAudioFindAudioDeviceId(
+    const QAudioDevice &device);
 
 QT_END_NAMESPACE
 

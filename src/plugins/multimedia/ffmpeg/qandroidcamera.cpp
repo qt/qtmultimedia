@@ -172,6 +172,10 @@ void QAndroidCamera::setCamera(const QCameraDevice &camera)
     if (oldActive)
         setActive(false);
 
+    // Reset all our control-members on the Java-side to default
+    // values. Then populate them again during updateCameraCharacteristics()
+    m_jniCamera.callMethod<void>("resetControlProperties");
+
     m_cameraDevice = camera;
     updateCameraCharacteristics();
     m_cameraFormat = getDefaultCameraFormat(camera);
@@ -182,6 +186,12 @@ void QAndroidCamera::setCamera(const QCameraDevice &camera)
 
 std::optional<int> QAndroidCamera::ffmpegHWPixelFormat() const
 {
+    // TODO: m_androidFramePixelFormat is continuously being written to by
+    // the Java-side capture-processing background thread when receiving frame, while this
+    // function is commonly called by the media recording engine on other threads.
+    // A potential solution might include a mutex-lock and/or determining
+    // the pixelFormat ahead of time by checking what format we request
+    // when starting the Android camera capture session.
     return QFFmpegVideoBuffer::toAVPixelFormat(m_androidFramePixelFormat);
 }
 
@@ -195,6 +205,7 @@ static void deleteFrame(void *opaque, uint8_t *data)
         delete frame;
 }
 
+// Called by the Java-side processing background thread.
 void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
 {
     if (!(m_state == State::WaitingStart || m_state == State::Started) && !m_waitingForFirstFrame) {
@@ -212,6 +223,10 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     }
 
     int timestamp = androidFrame->timestamp();
+    // TODO: m_androidFramePixelFormat is written by the Java-side processing
+    // background thread, but read by the QCamera thread during QAndroid::ffmpegHWPixelFormat().
+    // This causes a race condition (not severe). We should eventually implement some
+    // synchronization strategy.
     m_androidFramePixelFormat = androidFrame->format();
     if (m_waitingForFirstFrame) {
         m_waitingForFirstFrame = false;
@@ -343,6 +358,10 @@ void QAndroidCamera::setActive(bool active)
     }
 }
 
+// TODO: setState is currently being used by the C++ thread owning
+// the QCamera object, and the Java-side capture-processing background thread.
+// This can lead to race conditions and the m_state ending up in inconsistent states.
+// We should have a synchronization strategy in the future.
 void QAndroidCamera::setState(QAndroidCamera::State newState)
 {
     if (newState == m_state)
@@ -587,28 +606,33 @@ void QAndroidCamera::onApplicationStateChanged()
     }
 }
 
+// Called by Java-side processing background thread.
 void QAndroidCamera::onCaptureSessionConfigured()
 {
     bool canStart = m_jniCamera.callMethod<jboolean>("start", 3);
     setState(canStart ? State::WaitingStart : State::Closed);
 }
 
+// Called by Java-side processing background thread.
 void QAndroidCamera::onCaptureSessionConfigureFailed()
 {
     setState(State::Closed);
 }
 
+// Called by Java-side processing background thread.
 void QAndroidCamera::onCameraOpened()
 {
     bool canStart = m_jniCamera.callMethod<jboolean>("createSession");
     setState(canStart ? State::WaitingStart : State::Closed);
 }
 
+// Called by Java-side processing background thread.
 void QAndroidCamera::onCameraDisconnect()
 {
     setState(State::Closed);
 }
 
+// Called by Java-side processing background thread.
 void QAndroidCamera::onCameraError(int reason)
 {
     updateError(QCamera::CameraError,
@@ -617,11 +641,13 @@ void QAndroidCamera::onCameraError(int reason)
                         .arg(reason));
 }
 
+// Called by Java-side processing background thread.
 void QAndroidCamera::onSessionActive()
 {
     m_waitingForFirstFrame = true;
 }
 
+// Called by Java-side processing background thread.
 void QAndroidCamera::onSessionClosed()
 {
     m_waitingForFirstFrame = false;
@@ -649,6 +675,8 @@ void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
 }
 
 // JNI logic
+// The following static functions can only be called by the Java-side processing background
+// thread.
 
 #define GET_CAMERA(cameraId)                                                          \
   QString key = QJniObject(cameraId).toString();                                      \

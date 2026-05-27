@@ -48,6 +48,8 @@ Q_MULTIMEDIA_EXPORT QSize qRotatedFrameSize(const QVideoFrame &frame);
 
 Q_MULTIMEDIA_EXPORT QUrl qMediaFromUserInput(QUrl fileName);
 
+Q_MULTIMEDIA_EXPORT bool qUseAlphaShader(QRhi *rhi);
+
 QT_END_NAMESPACE
 
 #endif // QMULTIMEDIAUTILS_P_H

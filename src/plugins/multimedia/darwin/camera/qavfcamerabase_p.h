@@ -20,6 +20,8 @@
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformvideodevices_p.h>
 
+#include <functional>
+
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceFormat);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureConnection);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
@@ -30,16 +32,24 @@ class QPlatformMediaIntegration;
 class QAVFVideoDevices : public QPlatformVideoDevices
 {
 public:
-    QAVFVideoDevices(QPlatformMediaIntegration *integration);
+    // Takes a delegate to check whether a given CvPixelFormat is supported for a capture session.
+    // If given a nullptr, it assumes all formats are supported.
+    QAVFVideoDevices(
+        QPlatformMediaIntegration *integration,
+        std::function<bool(uint32_t)> &&isCvPixelFormatSupportedDelegate = nullptr);
     ~QAVFVideoDevices();
 
     QList<QCameraDevice> videoDevices() const override;
+
+    // Returns true if the given CvPixelFormat is supported for camera capture session.
+    [[nodiscard]] bool isCvPixelFormatSupported(uint32_t cvPixelFormat) const;
 
 private:
     void updateCameraDevices();
 
     NSObject *m_deviceConnectedObserver;
     NSObject *m_deviceDisconnectedObserver;
+    std::function<bool(uint32_t)> m_isCvPixelFormatSupportedDelegate;
 
     QList<QCameraDevice> m_cameraDevices;
 };

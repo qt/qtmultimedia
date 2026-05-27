@@ -306,7 +306,7 @@ bool QOpenSLESEngine::printDebugInfo()
 
 void QOpenSLESEngine::checkSupportedInputFormats()
 {
-    m_supportedInputChannelCounts = QList<int>() << 1;
+    m_supportedInputChannelCounts.clear();
     m_supportedInputSampleRates.clear();
 
     SLAndroidDataFormat_PCM_EX defaultFormat;
@@ -339,9 +339,20 @@ void QOpenSLESEngine::checkSupportedInputFormats()
         SLAndroidDataFormat_PCM_EX format = defaultFormat;
         format.sampleRate = rates[i];
 
+        if (inputFormatIsSupported(format)) {
+            m_supportedInputSampleRates.append(rates[i] / 1000);
+            if (m_supportedInputChannelCounts.empty())
+                // Add one supported channel if any of sample rates supported
+                m_supportedInputChannelCounts.append(1);
+            continue;
+        }
+
+        // If sample rates were not supported, lets check again with numChannels == 2
+        format.numChannels = 2;
+        format.channelMask = SL_ANDROID_MAKE_INDEXED_CHANNEL_MASK(SL_SPEAKER_FRONT_LEFT
+                                                                  | SL_SPEAKER_FRONT_RIGHT);
         if (inputFormatIsSupported(format))
             m_supportedInputSampleRates.append(rates[i] / 1000);
-
     }
 
     // Test if stereo is supported

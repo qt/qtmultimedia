@@ -51,7 +51,6 @@ QAlsaAudioSource::~QAlsaAudioSource()
 {
     close();
     disconnect(timer, &QTimer::timeout, this, &QAlsaAudioSource::userFeed);
-    QCoreApplication::processEvents();
     delete timer;
 }
 

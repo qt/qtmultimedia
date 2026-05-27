@@ -30,10 +30,12 @@ public:
     QMockMediaDevices();
     ~QMockMediaDevices();
 
-    QList<QAudioDevice> audioInputs() const override;
-    QList<QAudioDevice> audioOutputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &info, QObject *parent) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &info, QObject *parent) override;
+
+protected:
+    QList<QAudioDevice> findAudioInputs() const override;
+    QList<QAudioDevice> findAudioOutputs() const override;
 
 private:
     QList<QAudioDevice> m_inputDevices;

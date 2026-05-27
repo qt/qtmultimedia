@@ -38,11 +38,13 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
         return false;
 
     int numberPlanes = jniEnv->GetArrayLength(planes.object<jarray>());
+    Q_ASSERT(numberPlanes <= MAX_PLANES);
+
     // create and populate temporary array structure
-    int pixelStrides[numberPlanes];
-    int rowStrides[numberPlanes];
-    int bufferSize[numberPlanes];
-    uint8_t *buffer[numberPlanes];
+    int pixelStrides[MAX_PLANES];
+    int rowStrides[MAX_PLANES];
+    int bufferSize[MAX_PLANES];
+    uint8_t *buffer[MAX_PLANES];
 
     auto resetPlane = [&](int index) {
         if (index < 0 || index > numberPlanes)

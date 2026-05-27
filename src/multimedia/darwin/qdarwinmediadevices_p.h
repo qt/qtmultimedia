@@ -29,8 +29,6 @@ public:
     QDarwinMediaDevices();
     ~QDarwinMediaDevices() override;
 
-    QList<QAudioDevice> audioInputs() const override;
-    QList<QAudioDevice> audioOutputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &info,
                                             QObject *parent) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &info,
@@ -39,9 +37,13 @@ public:
     void onInputsUpdated();
     void onOutputsUpdated();
 
+protected:
+    QList<QAudioDevice> findAudioInputs() const override;
+    QList<QAudioDevice> findAudioOutputs() const override;
+
 private:
-    QList<QAudioDevice> m_cachedAudioInputs;
-    QList<QAudioDevice> m_cachedAudioOutputs;
+    QList<QAudioDevice> m_cachedAudioInputs; // To be removed
+    QList<QAudioDevice> m_cachedAudioOutputs; // To be removed
 };
 
 QT_END_NAMESPACE

@@ -32,7 +32,8 @@ class QQuickTextNode;
 class QSGVideoNode : public QSGGeometryNode
 {
 public:
-    QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &format);
+    QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &format,
+                 bool useAlphaShader = false);
     ~QSGVideoNode();
 
     QVideoFrameFormat::PixelFormat pixelFormat() const {

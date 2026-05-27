@@ -677,7 +677,7 @@ QString QVideoFrameFormat::vertexShaderFileName() const
 */
 QString QVideoFrameFormat::fragmentShaderFileName() const
 {
-    return QVideoTextureHelper::fragmentShaderFileName(*this);
+    return QVideoTextureHelper::fragmentShaderFileName(*this, false);
 }
 
 /*!

@@ -16,6 +16,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
+#include <private/qcachedvalue_p.h>
 #include <qlist.h>
 #include <qobject.h>
 #include <memory>
@@ -36,8 +37,8 @@ public:
 
     static std::unique_ptr<QPlatformMediaDevices> create();
 
-    virtual QList<QAudioDevice> audioInputs() const;
-    virtual QList<QAudioDevice> audioOutputs() const;
+    QList<QAudioDevice> audioInputs() const;
+    QList<QAudioDevice> audioOutputs() const;
 
     virtual QPlatformAudioSource *createAudioSource(const QAudioDevice &, QObject *parent);
     virtual QPlatformAudioSink *createAudioSink(const QAudioDevice &, QObject *parent);
@@ -51,10 +52,18 @@ public:
 
     void initVideoDevicesConnection();
 
+protected:
+    virtual QList<QAudioDevice> findAudioInputs() const { return {}; }
+    virtual QList<QAudioDevice> findAudioOutputs() const { return {}; }
+
 Q_SIGNALS:
     void audioInputsChanged();
     void audioOutputsChanged();
     void videoInputsChanged();
+
+private:
+    mutable QCachedValue<QList<QAudioDevice>> m_audioInputs;
+    mutable QCachedValue<QList<QAudioDevice>> m_audioOutputs;
 };
 
 QT_END_NAMESPACE

@@ -105,12 +105,12 @@ static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
     return devices;
 }
 
-QList<QAudioDevice> QAlsaMediaDevices::audioInputs() const
+QList<QAudioDevice> QAlsaMediaDevices::findAudioInputs() const
 {
     return availableDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QAlsaMediaDevices::audioOutputs() const
+QList<QAudioDevice> QAlsaMediaDevices::findAudioOutputs() const
 {
     return availableDevices(QAudioDevice::Output);
 }

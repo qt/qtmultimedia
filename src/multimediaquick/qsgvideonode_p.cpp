@@ -40,12 +40,13 @@ class QSGVideoMaterial;
 class QSGVideoMaterialRhiShader : public QSGMaterialShader
 {
 public:
-    QSGVideoMaterialRhiShader(const QSGVideoMaterial *material, const QVideoFrameFormat &format)
-        : m_material(material),
-        m_format(format)
+    QSGVideoMaterialRhiShader(const QSGVideoMaterial *material, const QVideoFrameFormat &format,
+                              bool useAlphaShader = false)
+        : m_material(material), m_format(format)
     {
         setShaderFileName(VertexStage, m_format.vertexShaderFileName());
-        setShaderFileName(FragmentStage, m_format.fragmentShaderFileName());
+        setShaderFileName(FragmentStage,
+                          QVideoTextureHelper::fragmentShaderFileName(m_format, useAlphaShader));
     }
 
     bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,
@@ -62,7 +63,7 @@ protected:
 class QSGVideoMaterial : public QSGMaterial
 {
 public:
-    QSGVideoMaterial(const QVideoFrameFormat &format);
+    QSGVideoMaterial(const QVideoFrameFormat &format, bool useAlphaShader = false);
 
     [[nodiscard]] QSGMaterialType *type() const override {
         static QSGMaterialType type[QVideoFrameFormat::NPixelFormats];
@@ -70,7 +71,7 @@ public:
     }
 
     [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
-        return new QSGVideoMaterialRhiShader(this, m_format);
+        return new QSGVideoMaterialRhiShader(this, m_format, m_useAlphaShader);
     }
 
     int compare(const QSGMaterial *other) const override {
@@ -107,6 +108,8 @@ public:
     QVideoFrame m_videoFrameSlots[NVideoFrameSlots];
     std::array<QSGVideoTexture, 3> m_textures;
     std::unique_ptr<QVideoFrameTextures> m_videoFrameTextures;
+
+    bool m_useAlphaShader = false;
 };
 
 void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
@@ -167,19 +170,19 @@ void QSGVideoMaterialRhiShader::updateSampledImage(RenderState &state, int bindi
     *texture = &m->m_textures[binding - 1];
 }
 
-QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &format) :
-    m_format(format)
+QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &format, bool useAlphaShader)
+    : m_format(format), m_useAlphaShader(useAlphaShader)
 {
     setFlag(Blending, false);
 }
 
-QSGVideoNode::QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &format)
-    : m_parent(parent),
-      m_format(format)
+QSGVideoNode::QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &format,
+                           bool useAlphaShader)
+    : m_parent(parent), m_format(format)
 {
     setFlag(QSGNode::OwnsMaterial);
     setFlag(QSGNode::OwnsGeometry);
-    m_material = new QSGVideoMaterial(format);
+    m_material = new QSGVideoMaterial(format, useAlphaShader);
     setMaterial(m_material);
 }
 

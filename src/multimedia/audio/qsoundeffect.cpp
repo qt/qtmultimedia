@@ -270,7 +270,7 @@ void QSoundEffectPrivate::setPlaying(bool playing)
 {
     qCDebug(qLcSoundEffect) << this << "setPlaying(" << playing << ")" << m_playing;
     if (m_audioSink) {
-        m_audioSink->stop();
+        m_audioSink->reset();
         if (playing && !m_sampleReady)
             return;
     }

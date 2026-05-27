@@ -25,6 +25,7 @@ QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integr
     : QPlatformVideoDevices(integration),
       m_deviceMonitor{
           gst_device_monitor_new(),
+          QGstDeviceMonitorHandle::HasRef,
       },
       m_busObserver{
           QGstBusHandle{

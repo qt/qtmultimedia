@@ -217,8 +217,7 @@ private:
                                     UInt32 inNumberFrames,
                                     AudioBufferList *ioData);
 
-    QAudioDevice m_audioDeviceInfo;
-    QByteArray m_device;
+    QAudioDevice m_audioDevice;
     bool m_isOpen;
     int m_periodSizeBytes;
     int m_internalBufferSize;
@@ -226,9 +225,6 @@ private:
     QAudioFormat m_audioFormat;
     QIODevice *m_audioIO;
     AudioUnit m_audioUnit;
-#if defined(Q_OS_MACOS)
-    AudioDeviceID m_audioDeviceId;
-#endif
     Float64 m_clockFrequency;
     QAudio::Error m_errorCode;
     QAudio::State m_stateCode;

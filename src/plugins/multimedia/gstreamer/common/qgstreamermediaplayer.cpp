@@ -161,6 +161,7 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
 
     QGstClockHandle systemClock{
         gst_system_clock_obtain(),
+        QGstClockHandle::HasRef,
     };
 
     gst_pipeline_use_clock(playerPipeline.pipeline(), systemClock.get());

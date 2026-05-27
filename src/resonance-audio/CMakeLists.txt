@@ -214,6 +214,9 @@ qt_internal_add_3rdparty_library(BundledResonanceAudio
         ../3rdparty/eigen
 )
 
+# Enable math constants in math.h
+set_target_properties(BundledResonanceAudio PROPERTIES C_EXTENSIONS ON)
+
 # Required by pffft on certain PowerPC archs
 qt_internal_extend_target(BundledResonanceAudio CONDITION GCC AND (${CMAKE_SYSTEM_PROCESSOR} MATCHES "(ppc|ppc64)$")
     COMPILE_OPTIONS

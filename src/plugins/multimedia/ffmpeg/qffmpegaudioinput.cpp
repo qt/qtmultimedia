@@ -27,8 +27,8 @@ public:
     {
         // QAudioSource may invoke QIODevice::writeData in the destructor.
         // Let's reset the audio source to get around the case.
-        if (m_src)
-            m_src->reset();
+        if (m_audioSource)
+            m_audioSource->reset();
     }
 
     void setDevice(const QAudioDevice &device)
@@ -73,17 +73,28 @@ protected:
     }
     qint64 writeData(const char *data, qint64 len) override
     {
-        Q_ASSERT(m_src);
+        Q_ASSERT(m_audioSource);
 
         int l = len;
         while (len > 0) {
             const auto bufferSize = m_bufferSize.loadAcquire();
+
+            while (m_pcm.size() > bufferSize) {
+                // bufferSize has been reduced. Send data until m_pcm
+                // can hold more data.
+                sendBuffer(m_pcm.first(bufferSize));
+                m_pcm.remove(0, bufferSize);
+            }
+
+            // Size of m_pcm is always <= bufferSize
             int toAppend = qMin(len, bufferSize - m_pcm.size());
             m_pcm.append(data, toAppend);
             data += toAppend;
             len -= toAppend;
-            if (m_pcm.size() == bufferSize)
-                sendBuffer();
+            if (m_pcm.size() == bufferSize) {
+                sendBuffer(m_pcm);
+                m_pcm.clear();
+            }
         }
 
         return l;
@@ -93,41 +104,40 @@ private Q_SLOTS:
     void updateSource() {
         QMutexLocker locker(&m_mutex);
         m_format = m_device.preferredFormat();
-        if (std::exchange(m_src, nullptr))
+        if (std::exchange(m_audioSource, nullptr))
             m_pcm.clear();
 
-        m_src = std::make_unique<QAudioSource>(m_device, m_format);
+        m_audioSource = std::make_unique<QAudioSource>(m_device, m_format);
         updateVolume();
         if (m_running)
-            m_src->start(this);
+            m_audioSource->start(this);
     }
     void updateVolume()
     {
-        if (m_src)
-            m_src->setVolume(m_muted ? 0. : m_volume);
+        if (m_audioSource)
+            m_audioSource->setVolume(m_muted ? 0. : m_volume);
     }
     void updateRunning()
     {
         QMutexLocker locker(&m_mutex);
         if (m_running) {
-            if (!m_src)
+            if (!m_audioSource)
                 updateSource();
-            m_src->start(this);
+            m_audioSource->start(this);
         } else {
-            m_src->stop();
+            m_audioSource->stop();
         }
     }
 
 private:
 
-    void sendBuffer()
+    void sendBuffer(const QByteArray &pcmData)
     {
-        QAudioFormat fmt = m_src->format();
+        QAudioFormat fmt = m_audioSource->format();
         qint64 time = fmt.durationForBytes(m_processed);
-        QAudioBuffer buffer(m_pcm, fmt, time);
+        QAudioBuffer buffer(pcmData, fmt, time);
         emit m_input->newAudioBuffer(buffer);
-        m_processed += m_pcm.size();
-        m_pcm.clear();
+        m_processed += pcmData.size();
     }
 
     QMutex m_mutex;
@@ -137,7 +147,7 @@ private:
     bool m_running = false;
 
     QFFmpegAudioInput *m_input = nullptr;
-    std::unique_ptr<QAudioSource> m_src;
+    std::unique_ptr<QAudioSource> m_audioSource;
     QAudioFormat m_format;
     QAtomicInt m_bufferSize = DefaultAudioInputBufferSize;
     qint64 m_processed = 0;
@@ -151,49 +161,49 @@ QFFmpegAudioInput::QFFmpegAudioInput(QAudioInput *qq)
 {
     qRegisterMetaType<QAudioBuffer>();
 
-    inputThread = std::make_unique<QThread>();
-    audioIO = new QFFmpeg::AudioSourceIO(this);
-    audioIO->moveToThread(inputThread.get());
-    inputThread->start();
+    m_inputThread = std::make_unique<QThread>();
+    m_audioIO = new QFFmpeg::AudioSourceIO(this);
+    m_audioIO->moveToThread(m_inputThread.get());
+    m_inputThread->start();
 }
 
 QFFmpegAudioInput::~QFFmpegAudioInput()
 {
     // Ensure that COM is uninitialized by nested QWindowsResampler
     // on the same thread that initialized it.
-    audioIO->deleteLater();
-    inputThread->exit();
-    inputThread->wait();
+    m_audioIO->deleteLater();
+    m_inputThread->exit();
+    m_inputThread->wait();
 }
 
 void QFFmpegAudioInput::setAudioDevice(const QAudioDevice &device)
 {
-    audioIO->setDevice(device);
+    m_audioIO->setDevice(device);
 }
 
 void QFFmpegAudioInput::setMuted(bool muted)
 {
-    audioIO->setMuted(muted);
+    m_audioIO->setMuted(muted);
 }
 
 void QFFmpegAudioInput::setVolume(float volume)
 {
-    audioIO->setVolume(volume);
+    m_audioIO->setVolume(volume);
 }
 
 void QFFmpegAudioInput::setFrameSize(int s)
 {
-    audioIO->setFrameSize(s);
+    m_audioIO->setFrameSize(s);
 }
 
 void QFFmpegAudioInput::setRunning(bool b)
 {
-    audioIO->setRunning(b);
+    m_audioIO->setRunning(b);
 }
 
 int QFFmpegAudioInput::bufferSize() const
 {
-    return audioIO->bufferSize();
+    return m_audioIO->bufferSize();
 }
 
 QT_END_NAMESPACE

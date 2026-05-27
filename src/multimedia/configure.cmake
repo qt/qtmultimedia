@@ -123,7 +123,7 @@ qt_feature("gpu_vivante" PRIVATE
 )
 qt_feature("linux_v4l" PRIVATE
     LABEL "Video for Linux"
-    CONDITION UNIX AND TEST_linux_v4l
+    CONDITION (UNIX AND NOT ANDROID) AND TEST_linux_v4l
 )
 qt_feature("linux_dmabuf" PRIVATE
     LABEL "Linux DMA buffer support"

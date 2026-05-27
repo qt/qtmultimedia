@@ -6,6 +6,12 @@
 #include <va/va.h>
 #endif
 
+#ifdef Q_OS_ANDROID
+extern "C" {
+#include <libavcodec/avcodec.h>
+}
+#endif
+
 QT_BEGIN_NAMESPACE
 
 // unfortunately there is no common way to specify options for the encoders. The code here tries to map our settings sensibly
@@ -270,8 +276,14 @@ static void apply_mediacodec(const QMediaEncoderSettings &settings, AVCodecConte
         break;
     }
     case QMediaFormat::VideoCodec::H265: {
-        const char *levels[] = { "h2.1", "h3.1", "h4.1", "h5.1", "h6.1" };
-        av_dict_set(opts, "level", levels[settings.quality()], 1);
+        // Set the level only for FFmpeg versions that correctly recognize level values.
+        // Affected revisions: from n7.1 https://github.com/FFmpeg/FFmpeg/commit/7753a9d62725d5bd8313e2d249acbe1c8af79ab1
+        // up to https://github.com/FFmpeg/FFmpeg/commit/020d9f2b4886aa620252da4db7a4936378d6eb3a
+        if (avcodec_version() < 4000612 || avcodec_version() > 4002660) {
+            const char *levels[] = { "h2.1", "h3.1", "h4.1", "h5.1", "h6.1" };
+            av_dict_set(opts, "level", levels[settings.quality()], 1);
+        }
+
         codec->profile = FF_PROFILE_HEVC_MAIN;
         break;
     }
