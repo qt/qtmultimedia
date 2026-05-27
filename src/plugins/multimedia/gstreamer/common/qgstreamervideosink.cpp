@@ -22,6 +22,7 @@
 #    include <gst/gl/x11/gstgldisplay_x11.h>
 #  endif
 #  if QT_CONFIG(gstreamer_gl_egl)
+#    include <common/qgstreameregldisplay_p.h>
 #    include <gst/gl/egl/gstgldisplay_egl.h>
 #    include <EGL/egl.h>
 #    include <EGL/eglext.h>
@@ -263,8 +264,6 @@ void QGstreamerRelayVideoSink::unrefGstContexts()
 {
     m_gstGlDisplayContext.reset();
     m_gstGlLocalContext.reset();
-    m_eglDisplay = nullptr;
-    m_eglImageTargetTexture2D = nullptr;
 }
 
 void QGstreamerRelayVideoSink::updateGstContexts()
@@ -284,22 +283,19 @@ void QGstreamerRelayVideoSink::updateGstContexts()
 
     const QString platform = QGuiApplication::platformName();
     QPlatformNativeInterface *pni = QGuiApplication::platformNativeInterface();
-    m_eglDisplay = pni->nativeResourceForIntegration("egldisplay"_ba);
-//    qDebug() << "platform is" << platform << m_eglDisplay;
 
     QGstGLDisplayHandle gstGlDisplay;
 
     QByteArray contextName = "eglcontext"_ba;
     GstGLPlatform glPlatform = GST_GL_PLATFORM_EGL;
     // use the egl display if we have one
-    if (m_eglDisplay) {
 #  if QT_CONFIG(gstreamer_gl_egl)
-        gstGlDisplay.reset(
-                GST_GL_DISPLAY_CAST(gst_gl_display_egl_new_with_egl_display(m_eglDisplay)),
-                QGstGLDisplayHandle::HasRef);
-        m_eglImageTargetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
+    if (auto eglDisplay = qGstEglDisplay()) {
+        gstGlDisplay.reset(GST_GL_DISPLAY_CAST(gst_gl_display_egl_new_with_egl_display(eglDisplay)),
+                           QGstGLDisplayHandle::HasRef);
+    } else
 #  endif
-    } else {
+    {
         auto display = pni->nativeResourceForIntegration("display"_ba);
 
         if (display) {
