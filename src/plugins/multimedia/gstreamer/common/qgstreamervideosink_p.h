@@ -53,8 +53,6 @@ public:
 
     GstContext *gstGlDisplayContext() const { return m_gstGlDisplayContext.get(); }
     GstContext *gstGlLocalContext() const { return m_gstGlLocalContext.get(); }
-    Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
-    QFunctionPointer eglImageTargetTexture2D() const { return m_eglImageTargetTexture2D; }
 
     void setActive(bool);
     void setAsync(bool);
@@ -89,9 +87,6 @@ private:
     QRhi *m_rhi = nullptr;
     bool m_isActive = true;
     bool m_sinkIsAsync = true;
-
-    Qt::HANDLE m_eglDisplay = nullptr;
-    QFunctionPointer m_eglImageTargetTexture2D = nullptr;
 
     QGstContextHandle m_gstGlLocalContext;
     QGstContextHandle m_gstGlDisplayContext;

@@ -31,6 +31,7 @@
 
 // DMA support
 #if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+#  include <common/qgstreameregldisplay_p.h>
 #  include <gst/allocators/gstdmabuf.h>
 #endif
 
@@ -86,7 +87,7 @@ QGstCaps QGstVideoRenderer::createSurfaceCaps([[maybe_unused]] QGstreamerRelayVi
     if (rhi && rhi->backend() == QRhi::OpenGLES2) {
         caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_GL_MEMORY);
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
-        if (sink->eglDisplay() && sink->eglImageTargetTexture2D()) {
+        if (qGstEglCanMapDmaBuf()) {
             caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_DMABUF);
         }
 #  endif
@@ -257,8 +258,7 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
 #if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
         if ((m_format.pixelFormat() == QVideoFrameFormat::Format_UYVY
              || m_format.pixelFormat() == QVideoFrameFormat::Format_YUYV)
-            && bufferMemoryFormat == QGstCaps::DMABuf
-            && m_sink && m_sink->eglDisplay() && m_sink->eglImageTargetTexture2D()) {
+            && bufferMemoryFormat == QGstCaps::DMABuf && m_sink && qGstEglCanMapDmaBuf()) {
 
             QRhi *rhi = m_sink->rhi();
             if (!rhi || rhi->backend() != QRhi::OpenGLES2)
