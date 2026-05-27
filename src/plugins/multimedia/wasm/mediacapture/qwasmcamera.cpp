@@ -131,7 +131,7 @@ void QWasmCamera::setCamera(const QCameraDevice &camera)
 bool QWasmCamera::setCameraFormat(const QCameraFormat &format)
 {
     m_cameraFormat = format;
-
+    m_cameraOutput->setVideoConstraints(format.resolution(), format.minFrameRate(), format.maxFrameRate());
     return true;
 }
 

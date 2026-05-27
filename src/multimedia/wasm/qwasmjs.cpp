@@ -364,6 +364,13 @@ JsMediaInputStream *JsMediaInputStream::instance()
     return s_wasmMediaInputStreamInstance();
 }
 
+void JsMediaInputStream::setVideoConstraints(QSize resolution, float minFrameRate, float maxFrameRate)
+{
+    m_videoResolution = resolution;
+    m_minFrameRate = minFrameRate;
+    m_maxFrameRate = maxFrameRate;
+}
+
 void JsMediaInputStream::setAudioStreamDevice(const std::string &id)
 {
     if (!m_mediaStream.isUndefined() && !m_mediaStream.isNull()) {
@@ -457,6 +464,18 @@ emscripten::val JsMediaInputStream::setDeviceConstraints(const std::string &id)
             videoContraints.set("deviceId", exactDeviceId);
         }
         videoContraints.set("resizeMode", std::string("crop-and-scale"));
+        if (m_videoResolution.isValid()) {
+            videoContraints.set("width", emscripten::val(m_videoResolution.width()));
+            videoContraints.set("height", emscripten::val(m_videoResolution.height()));
+        }
+        if (m_minFrameRate > 0 || m_maxFrameRate > 0) {
+            emscripten::val frameRateConstraint = emscripten::val::object();
+            if (m_minFrameRate > 0)
+                frameRateConstraint.set("min", emscripten::val(m_minFrameRate));
+            if (m_maxFrameRate > 0)
+                frameRateConstraint.set("max", emscripten::val(m_maxFrameRate));
+            videoContraints.set("frameRate", frameRateConstraint);
+        }
         constraints.set("video", videoContraints);
     }
     return constraints;

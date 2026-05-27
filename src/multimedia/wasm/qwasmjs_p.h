@@ -16,6 +16,7 @@
 //
 
 #include <QObject>
+#include <QSize>
 
 #include <emscripten.h>
 #include <emscripten/val.h>
@@ -97,6 +98,7 @@ public:
     void setUseAudio(bool useAudio) { m_needsAudio = useAudio; }
     void setUseVideo(bool useVideo) { m_needsVideo = useVideo; }
     void setStreamDevice(const std::string &id);
+    void setVideoConstraints(QSize resolution, float minFrameRate, float maxFrameRate);
 
     void setAudioStreamDevice(const std::string &id);
     void replaceMediaTrack(const std::string &id);
@@ -117,6 +119,9 @@ private:
     bool m_needsAudio = false;
     bool m_needsVideo = false;
     bool m_active = false;
+    QSize m_videoResolution;
+    float m_minFrameRate = 0;
+    float m_maxFrameRate = 0;
 
     QScopedPointer<qstdweb::EventCallback> m_activeStreamEvent;
     QScopedPointer<qstdweb::EventCallback> m_inactiveStreamEvent;

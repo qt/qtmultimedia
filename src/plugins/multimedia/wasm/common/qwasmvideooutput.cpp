@@ -200,6 +200,8 @@ void QWasmVideoOutput::start()
                             const int width = videoSettings["width"].as<int>();
                             const int height = videoSettings["height"].as<int>();
                             updateVideoElementGeometry(QRect(0, 0, width, height));
+                            if (!videoSettings["frameRate"].isUndefined())
+                                m_streamFrameRate = videoSettings["frameRate"].as<double>();
                         }
                     }
 
@@ -212,6 +214,7 @@ void QWasmVideoOutput::start()
                 });
         m_mediaInputStream->setUseAudio(false);
         m_shouldBeStarted = true;
+        m_mediaInputStream->setVideoConstraints(m_videoResolution, m_minFrameRate, m_maxFrameRate);
         m_mediaInputStream->setStreamDevice(m_cameraId);
 
     } break;
@@ -361,6 +364,13 @@ void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
         });
 
     m_cameraId = id;
+}
+
+void QWasmVideoOutput::setVideoConstraints(QSize resolution, float minFrameRate, float maxFrameRate)
+{
+    m_videoResolution = resolution;
+    m_minFrameRate = minFrameRate;
+    m_maxFrameRate = maxFrameRate;
 }
 
 void QWasmVideoOutput::setSource(QIODevice *stream)
@@ -930,6 +940,8 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
 
     if (m_useCameraRotation)
         frameFormat.setRotation(wasmVideoOutput->m_rotateBy);
+    if (m_streamFrameRate > 0)
+        frameFormat.setStreamFrameRate(m_streamFrameRate);
 
     auto *textureDescription = QVideoTextureHelper::textureDescription(frameFormat.pixelFormat());
 
@@ -1010,6 +1022,8 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
 
         if (m_useCameraRotation)
             frameFormat.setRotation(wasmVideoOutput->m_rotateBy);
+        if (m_streamFrameRate > 0)
+            frameFormat.setStreamFrameRate(m_streamFrameRate);
         auto buffer = std::make_unique<QMemoryVideoBuffer>(
                 std::move(frameBytes),
                 frameLayout[0]["stride"].as<int>());
@@ -1110,10 +1124,11 @@ void QWasmVideoOutput::webglVideoFrameCallback(void *context)
     std::unique_ptr<QHwVideoBuffer> hwBuffer =
             std::make_unique<QWasmGLTextureVideoBuffer>(std::move(texHandle), QSize(w, h));
 
+    QVideoFrameFormat frameFormat(QSize(w, h), QVideoFrameFormat::Format_RGBA8888);
+    if (wasmVideoOutput->m_streamFrameRate > 0)
+        frameFormat.setStreamFrameRate(wasmVideoOutput->m_streamFrameRate);
     QVideoFrame vFrame =
-            QVideoFramePrivate::createFrame(std::move(hwBuffer),
-                                            QVideoFrameFormat(QSize(w, h),
-                                            QVideoFrameFormat::Format_RGBA8888));
+            QVideoFramePrivate::createFrame(std::move(hwBuffer), std::move(frameFormat));
 
     wasmVideoOutput->m_wasmSink->setVideoFrame(vFrame);
 }
