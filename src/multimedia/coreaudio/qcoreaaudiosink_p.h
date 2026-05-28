@@ -65,9 +65,9 @@ public:
 
 private:
     OSStatus processRingbuffer(uint32_t numberOfFrames,
-                               AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
+                               AudioBufferList *ioData) noexcept Q_DECL_NONBLOCKING_FUNCTION;
     OSStatus processAudioCallback(uint32_t numberOfFrames,
-                                  AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
+                                  AudioBufferList *ioData) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     void updateStreamIdle(bool arg) override;
     void stopAudioUnit();

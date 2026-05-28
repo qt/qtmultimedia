@@ -36,9 +36,9 @@ struct NullMockVoice : public QRtAudioEngineVoice
     NullMockVoice(QAudioFormat fmt, VoiceId id) : QRtAudioEngineVoice(id), m_format(fmt) { }
     ~NullMockVoice() override = default;
 
-    bool isActive() noexcept QT_MM_NONBLOCKING override { return m_active; }
+    bool isActive() noexcept Q_DECL_NONBLOCKING_FUNCTION override { return m_active; }
     const QAudioFormat &format() noexcept override { return m_format; }
-    VoicePlayResult play(QSpan<float> buffer) noexcept QT_MM_NONBLOCKING override
+    VoicePlayResult play(QSpan<float> buffer) noexcept Q_DECL_NONBLOCKING_FUNCTION override
     {
         m_sampleCount += buffer.size();
         ranges::fill(buffer, 0);

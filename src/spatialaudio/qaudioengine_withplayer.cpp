@@ -26,8 +26,8 @@ public:
     QResonanceAudioPlayer(QAudioEngineWithPlayer *player, VoiceId id);
 
     /// QRtAudioEngineVoice overrides
-    VoicePlayResult play(QSpan<float>) noexcept QT_MM_NONBLOCKING override;
-    bool isActive() noexcept QT_MM_NONBLOCKING override { return true; }
+    VoicePlayResult play(QSpan<float>) noexcept Q_DECL_NONBLOCKING_FUNCTION override;
+    bool isActive() noexcept Q_DECL_NONBLOCKING_FUNCTION override { return true; }
     const QAudioFormat &format() noexcept override { return m_format; }
 
     void addSound(SourceId, int numberOfChannels, SharedPlaybackState = nullptr);
@@ -83,7 +83,7 @@ QResonanceAudioPlayer::QResonanceAudioPlayer(QAudioEngineWithPlayer *player, Voi
 }
 
 QtMultimediaPrivate::QRtAudioEngineVoice::VoicePlayResult
-QResonanceAudioPlayer::play(QSpan<float> outputBuffer) noexcept
+QResonanceAudioPlayer::play(QSpan<float> outputBuffer) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     using namespace QtMultimediaPrivate;
     namespace ranges = QtMultimediaPrivate::ranges;

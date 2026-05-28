@@ -9,6 +9,8 @@
 #include <QAudioSource>
 #include <QMediaDevices>
 
+#include <QtCore/qcompilerdetection.h>
+
 #include <QBasicTimer>
 
 #include <QComboBox>
@@ -87,10 +89,7 @@ private:
 
     template <typename T>
     void processCallback(QSpan<const T> buffer, const QAudioFormat &format)
-#if defined(__has_cpp_attribute) && __has_cpp_attribute(clang::nonblocking)
-            [[clang::nonblocking]]
-#endif
-            ;
+            Q_DECL_NONBLOCKING_FUNCTION;
 
     void startPullMode(bool record);
     void startPushMode(bool record);

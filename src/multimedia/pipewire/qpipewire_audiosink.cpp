@@ -255,7 +255,7 @@ static auto resolveHostBuffer(pw_buffer *b, const QAudioFormat &format)
     };
 }
 
-void QPipewireAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+void QPipewireAudioSinkStream::processRingbuffer() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
     if (!b) {
@@ -298,7 +298,7 @@ void QPipewireAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
     addFramesHandled(samplesWritten);
 }
 
-void QPipewireAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
+void QPipewireAudioSinkStream::processCallback() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     using namespace QtMultimediaPrivate;
     struct pw_buffer *b = pw_stream_dequeue_buffer(m_stream.get());
@@ -347,7 +347,7 @@ void QPipewireAudioSinkStream::disconnectStream()
     QObject::disconnect(m_xrunNotification);
 }
 
-void QPipewireAudioSinkStream::queueBuffer(pw_buffer *b, uint64_t samplesWritten) noexcept QT_MM_NONBLOCKING
+void QPipewireAudioSinkStream::queueBuffer(pw_buffer *b, uint64_t samplesWritten) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     struct spa_buffer *buf = b->buffer;
     buf->datas[0].chunk->offset = 0;

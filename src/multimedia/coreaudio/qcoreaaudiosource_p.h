@@ -69,11 +69,11 @@ private:
     OSStatus processInput(AudioUnitRenderActionFlags *ioActionFlags,
                           const AudioTimeStamp *timeStamp, UInt32 inBusNumber,
                           UInt32 inNumberFrames,
-                          AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
+                          AudioBufferList *ioData) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     OSStatus processRingbuffer(QSpan<const std::byte> inputSpan,
-                               UInt32 inNumberFrames) noexcept QT_MM_NONBLOCKING;
-    OSStatus processAudioCallback(QSpan<const std::byte> inputSpan) noexcept QT_MM_NONBLOCKING;
+                               UInt32 inNumberFrames) noexcept Q_DECL_NONBLOCKING_FUNCTION;
+    OSStatus processAudioCallback(QSpan<const std::byte> inputSpan) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
 #ifdef Q_OS_MACOS
     bool addDisconnectListener(AudioObjectID id);

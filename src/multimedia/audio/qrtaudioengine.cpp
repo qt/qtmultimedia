@@ -162,7 +162,7 @@ QtAudio::State QRtAudioEngine::audioState() const
     return sinkStateToEngineState(m_sink.state());
 }
 
-void QRtAudioEngine::audioCallback(QSpan<float> outputBuffer) noexcept QT_MM_NONBLOCKING
+void QRtAudioEngine::audioCallback(QSpan<float> outputBuffer) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     runRtCommands();
     bool sendNotification = sendPendingAppNotifications();
@@ -199,7 +199,7 @@ void QRtAudioEngine::audioCallback(QSpan<float> outputBuffer) noexcept QT_MM_NON
         m_notificationEvent.set();
 }
 
-void QRtAudioEngine::cleanupRetiredVoices() noexcept QT_MM_NONBLOCKING
+void QRtAudioEngine::cleanupRetiredVoices() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     bool notifyApp = false;
 
@@ -231,7 +231,7 @@ void QRtAudioEngine::cleanupRetiredVoices() noexcept QT_MM_NONBLOCKING
         m_notificationEvent.set();
 }
 
-void QRtAudioEngine::runRtCommands() noexcept QT_MM_NONBLOCKING
+void QRtAudioEngine::runRtCommands() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     m_appToRt.consumeAll([&](QSpan<RtCommand> commands) {
         for (RtCommand &cmd : commands) {
@@ -242,14 +242,14 @@ void QRtAudioEngine::runRtCommands() noexcept QT_MM_NONBLOCKING
     });
 }
 
-void QRtAudioEngine::runRtCommand(PlayCommand cmd) noexcept QT_MM_NONBLOCKING
+void QRtAudioEngine::runRtCommand(PlayCommand cmd) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     withRTSanDisabled([&] {
         m_rtVoiceRegistry.insert(cmd.voice);
     });
 }
 
-void QRtAudioEngine::runRtCommand(StopCommand cmd) noexcept QT_MM_NONBLOCKING
+void QRtAudioEngine::runRtCommand(StopCommand cmd) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     auto it = m_rtVoiceRegistry.find(cmd.voiceId);
     if (it == m_rtVoiceRegistry.end())
@@ -265,7 +265,7 @@ void QRtAudioEngine::runRtCommand(StopCommand cmd) noexcept QT_MM_NONBLOCKING
         m_notificationEvent.set();
 }
 
-void QRtAudioEngine::runRtCommand(VisitCommand cmd) noexcept QT_MM_NONBLOCKING
+void QRtAudioEngine::runRtCommand(VisitCommand cmd) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     auto it = m_rtVoiceRegistry.find(cmd.voiceId);
     if (it == m_rtVoiceRegistry.end())
@@ -281,7 +281,7 @@ void QRtAudioEngine::runRtCommand(VisitCommand cmd) noexcept QT_MM_NONBLOCKING
         m_notificationEvent.set();
 }
 
-void QRtAudioEngine::runRtCommand(VisitCommandTrivial cmd) noexcept QT_MM_NONBLOCKING
+void QRtAudioEngine::runRtCommand(VisitCommandTrivial cmd) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     auto it = m_rtVoiceRegistry.find(cmd.voiceId);
     if (it == m_rtVoiceRegistry.end())

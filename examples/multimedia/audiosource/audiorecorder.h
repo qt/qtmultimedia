@@ -7,6 +7,8 @@
 #include <QIODevice>
 #include <QAudioSource>
 
+#include <QtCore/qcompilerdetection.h>
+
 #define DR_WAV_IMPLEMENTATION
 #define DRWAV_API static
 #define DRWAV_PRIVATE static
@@ -77,10 +79,7 @@ public:
     // Call writeSpan from audio callback thread
     // This writes data to a pre-allocated buffer
     void writeSpan(QSpan<const std::byte> data) noexcept
-#if defined(__has_cpp_attribute) && __has_cpp_attribute(clang::nonblocking)
-            [[clang::nonblocking]]
-#endif
-            ;
+            Q_DECL_NONBLOCKING_FUNCTION;
 
 protected:
     [[nodiscard]] quint64 bytesWritten() const override;

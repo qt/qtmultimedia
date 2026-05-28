@@ -38,16 +38,16 @@ public:
 
     Q_MULTIMEDIA_EXPORT ~QSoundEffectVoice();
 
-    Q_MULTIMEDIA_EXPORT VoicePlayResult play(QSpan<float>) noexcept QT_MM_NONBLOCKING override;
+    Q_MULTIMEDIA_EXPORT VoicePlayResult play(QSpan<float>) noexcept Q_DECL_NONBLOCKING_FUNCTION override;
 
-    bool isActive() noexcept QT_MM_NONBLOCKING override;
+    bool isActive() noexcept Q_DECL_NONBLOCKING_FUNCTION override;
     const QAudioFormat &format() noexcept override { return m_sample->format(); }
 
     int loopsRemaining() const { return m_loopsRemaining.load(std::memory_order_relaxed); }
     std::shared_ptr<QSoundEffectVoice>
     clone(std::optional<QAudioFormat> newEngineFormat = {}) const;
 
-    Q_MULTIMEDIA_EXPORT qsizetype playVoice(QSpan<float>) noexcept QT_MM_NONBLOCKING;
+    Q_MULTIMEDIA_EXPORT qsizetype playVoice(QSpan<float>) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     const std::shared_ptr<const QSample> m_sample;
     const int m_totalFrames{

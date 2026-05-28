@@ -112,7 +112,7 @@ QSoundEffectVoice::QSoundEffectVoice(VoiceId voiceId, std::shared_ptr<const QSam
 
 QSoundEffectVoice::~QSoundEffectVoice() = default;
 
-VoicePlayResult QSoundEffectVoice::play(QSpan<float> outputBuffer) noexcept QT_MM_NONBLOCKING
+VoicePlayResult QSoundEffectVoice::play(QSpan<float> outputBuffer) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     qsizetype playedFrames = playVoice(outputBuffer);
     m_currentFrame += playedFrames;
@@ -137,7 +137,7 @@ VoicePlayResult QSoundEffectVoice::play(QSpan<float> outputBuffer) noexcept QT_M
     return VoicePlayResult::Playing;
 }
 
-qsizetype QSoundEffectVoice::playVoice(QSpan<float> outputBuffer) noexcept QT_MM_NONBLOCKING
+qsizetype QSoundEffectVoice::playVoice(QSpan<float> outputBuffer) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     const QAudioFormat &format = m_sample->format();
     const int totalSamples = m_totalFrames * format.channelCount();
@@ -206,7 +206,7 @@ qsizetype QSoundEffectVoice::playVoice(QSpan<float> outputBuffer) noexcept QT_MM
     return framesToPlay;
 }
 
-bool QSoundEffectVoice::isActive() noexcept QT_MM_NONBLOCKING
+bool QSoundEffectVoice::isActive() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     if (m_currentFrame != m_totalFrames)
         return true;

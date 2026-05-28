@@ -149,7 +149,7 @@ QPlatformAudioSinkStream::~QPlatformAudioSinkStream() = default;
 
 uint64_t
 QPlatformAudioSinkStream::process(QSpan<std::byte> hostBuffer, qsizetype totalNumberOfFrames,
-                                  std::optional<NativeSampleFormat> nativeFormat) noexcept QT_MM_NONBLOCKING
+                                  std::optional<NativeSampleFormat> nativeFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     qsizetype totalNumberOfSamples = totalNumberOfFrames * m_format.channelCount();
 
@@ -305,7 +305,7 @@ static_assert(scratchpadBufferSizeLimit > 4092 * 32 * sizeof(float));
 
 void QPlatformAudioSinkStream::convertToNative(QSpan<const std::byte> internal,
                                                QSpan<std::byte> native, float volume,
-                                               NativeSampleFormat nativeFormat) noexcept QT_MM_NONBLOCKING
+                                               NativeSampleFormat nativeFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     using namespace QAudioHelperInternal;
 
@@ -340,7 +340,7 @@ QPlatformAudioSourceStream::~QPlatformAudioSourceStream() = default;
 
 uint64_t QPlatformAudioSourceStream::process(
         QSpan<const std::byte> hostBuffer, qsizetype numberOfFrames,
-        std::optional<NativeSampleFormat> nativeFormat) noexcept QT_MM_NONBLOCKING
+        std::optional<NativeSampleFormat> nativeFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     qsizetype remainingNumberOfSamples = numberOfFrames * m_format.channelCount();
 
@@ -494,7 +494,7 @@ QIODevice *QPlatformAudioSourceStream::createRingbufferReaderDevice()
 
 void QPlatformAudioSourceStream::convertFromNative(
         QSpan<const std::byte> native, QSpan<std::byte> internal, float volume,
-        NativeSampleFormat nativeFormat) noexcept QT_MM_NONBLOCKING
+        NativeSampleFormat nativeFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     using namespace QAudioHelperInternal;
     if (volume == 1.f) {

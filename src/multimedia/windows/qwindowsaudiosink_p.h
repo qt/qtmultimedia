@@ -85,8 +85,8 @@ private:
     void fillInitialHostBuffer(StreamType);
     void runProcessRingbufferLoop();
     void runProcessCallbackLoop();
-    bool processRingbuffer() noexcept QT_MM_NONBLOCKING;
-    bool processCallback() noexcept QT_MM_NONBLOCKING;
+    bool processRingbuffer() noexcept Q_DECL_NONBLOCKING_FUNCTION;
+    bool processCallback() noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     void handleAudioClientError();
     void joinWorkerThread();

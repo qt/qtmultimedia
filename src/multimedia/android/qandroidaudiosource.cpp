@@ -173,7 +173,7 @@ void QAndroidAudioSourceStream::updateStreamIdle(bool idle)
 
 QSpan<const std::byte>
 QAndroidAudioSourceStream::getHostSpan(void *audioData,
-                                       int numFrames) const noexcept QT_MM_NONBLOCKING
+                                       int numFrames) const noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     qsizetype byteAmount = m_hostFormat ? m_hostFormat->bytesForFrames(numFrames)
                                         : m_format.bytesForFrames(numFrames);
@@ -182,7 +182,7 @@ QAndroidAudioSourceStream::getHostSpan(void *audioData,
 
 aaudio_data_callback_result_t
 QAndroidAudioSourceStream::processRingbuffer(QSpan<const std::byte> audioSpan,
-                                             int numFrames) noexcept QT_MM_NONBLOCKING
+                                             int numFrames) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     auto framesWritten = m_hostFormat
             ? QPlatformAudioSourceStream::process(
@@ -197,7 +197,7 @@ QAndroidAudioSourceStream::processRingbuffer(QSpan<const std::byte> audioSpan,
 }
 
 aaudio_data_callback_result_t
-QAndroidAudioSourceStream::processCallback(QSpan<const std::byte> audioSpan) noexcept QT_MM_NONBLOCKING
+QAndroidAudioSourceStream::processCallback(QSpan<const std::byte> audioSpan) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     if (isStopRequested())
         return AAUDIO_CALLBACK_RESULT_STOP;

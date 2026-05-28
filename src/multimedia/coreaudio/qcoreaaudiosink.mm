@@ -8,7 +8,6 @@
 #include <QtGui/qguiapplication.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
 #include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
@@ -241,7 +240,7 @@ void QCoreAudioSinkStream::resumeIfNecessary()
 }
 
 OSStatus QCoreAudioSinkStream::processRingbuffer(uint32_t numberOfFrames,
-                                                 AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING
+                                                 AudioBufferList *ioData) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     Q_ASSERT(int64_t(ioData->mBuffers[0].mDataByteSize) == m_format.bytesForFrames(numberOfFrames));
 
@@ -256,7 +255,7 @@ OSStatus QCoreAudioSinkStream::processRingbuffer(uint32_t numberOfFrames,
 }
 
 OSStatus QCoreAudioSinkStream::processAudioCallback(uint32_t numberOfFrames,
-                                                    AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING
+                                                    AudioBufferList *ioData) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     using namespace QtMultimediaPrivate;
 
