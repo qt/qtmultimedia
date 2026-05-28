@@ -5,13 +5,6 @@
 ## tst_qvideoframebackend Test:
 #####################################################################
 
-# Collect test data
-file(GLOB_RECURSE test_data
-    CONFIGURE_DEPENDS
-    RELATIVE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-    testdata/*)
-
 qt_internal_add_test(tst_qvideoframebackend
     SOURCES
         tst_qvideoframebackend.cpp
@@ -20,5 +13,7 @@ qt_internal_add_test(tst_qvideoframebackend
         Qt::MultimediaPrivate
         Qt::MultimediaTestLibPrivate
     BUILTIN_TESTDATA
-    TESTDATA ${test_data}
+    TESTDATA
+        testdata/colors.mp4
+        testdata/one_red_frame.mp4
 )

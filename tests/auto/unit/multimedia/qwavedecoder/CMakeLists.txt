@@ -5,13 +5,6 @@
 ## tst_qwavedecoder Test:
 #####################################################################
 
-# Collect test data
-file(GLOB_RECURSE test_data
-    CONFIGURE_DEPENDS
-    RELATIVE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-    data/*)
-
 qt_internal_add_test(tst_qwavedecoder
     SOURCES
         tst_qwavedecoder.cpp
@@ -21,5 +14,36 @@ qt_internal_add_test(tst_qwavedecoder
         Qt::MultimediaPrivate
         Qt::Network
         Qt::MultimediaTestLibPrivate
-    TESTDATA ${test_data}
+    TESTDATA
+        data/corrupt_datadesc_1_16_8000.le.wav
+        data/corrupt_fmtdesc_1_16_8000.le.wav
+        data/corrupt_fmtstring_1_16_8000.le.wav
+        data/empty.wav
+        data/gendata.sh
+        data/isawav_1_16_44100_le.wav
+        data/isawav_1_16_44100_le_2.wav
+        data/isawav_1_16_8000_le.wav
+        data/isawav_1_24_44100_le.wav
+        data/isawav_1_24_8000_le.wav
+        data/isawav_1_32_44100_le.wav
+        data/isawav_1_32_8000_le.wav
+        data/isawav_1_8_44100.wav
+        data/isawav_1_8_8000.wav
+        data/isawav_1_8_8000_even_bext.wav
+        data/isawav_1_8_8000_odd_bext.wav
+        data/isawav_1_f32_44100_le.wav
+        data/isawav_1_f32_8000_le.wav
+        data/isawav_2_16_44100_be.wav
+        data/isawav_2_16_8000_be.wav
+        data/isawav_2_24_44100_be.wav
+        data/isawav_2_24_8000_be.wav
+        data/isawav_2_32_44100_be.wav
+        data/isawav_2_32_8000_be.wav
+        data/isawav_2_8_44100.wav
+        data/isawav_2_8_8000.wav
+        data/isawav_2_f32_44100_be.wav
+        data/isawav_2_f32_8000_be.wav
+        data/notawav.wav
+        data/nosampledata.wav
+        data/onebyte.wav
 )
