@@ -57,6 +57,7 @@ if(QT_FEATURE_spatialaudio)
     add_subdirectory(qspatialaudio)
 endif()
 
+add_subdirectory(shutdown)
 
 if(QT_FEATURE_static)
     add_subdirectory(static_linking)
