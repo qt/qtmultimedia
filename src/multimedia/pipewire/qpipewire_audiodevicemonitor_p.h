@@ -84,6 +84,7 @@ public:
 
     [[nodiscard]] bool registerObserver(SharedObjectRemoveObserver);
     void unregisterObserver(const SharedObjectRemoveObserver &);
+    void clearAllObservers();
 
     // Obtaining device lists
     struct DeviceLists

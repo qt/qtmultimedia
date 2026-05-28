@@ -148,8 +148,13 @@ void QPipewireAudioStream::resume()
 
 void QPipewireAudioStream::disconnectStream()
 {
+    if (!m_stream)
+        return;
+
     int status = QAudioContextManager::withEventLoopLock([&] {
-        return pw_stream_disconnect(m_stream.get());
+        int status = pw_stream_disconnect(m_stream.get());
+        m_stream = {};
+        return status;
     });
     if (status < 0)
         qWarning() << "pw_stream_disconnect failed" << make_error_code(-status).message();
@@ -158,10 +163,16 @@ void QPipewireAudioStream::disconnectStream()
 void QPipewireAudioStream::resetStream()
 {
     finalizeStream(); // mark the stream as stopped
+    disconnectStream();
+
+    if (!m_deviceRemovalObserver) {
+        m_self = {};
+        return;
+    }
+
     QAudioContextManager::withEventLoopLock([&] {
         if (m_deviceRemovalObserver)
             unregisterDeviceObserver();
-        m_stream = {};
         m_self = {};
     });
 }
