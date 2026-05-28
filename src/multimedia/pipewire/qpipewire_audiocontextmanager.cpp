@@ -421,8 +421,10 @@ void QAudioContextManager::stopActiveStreams()
 {
     auto streams = std::exchange(m_activeStreams, {});
 
-    for (const auto &stream : streams)
+    for (const auto &stream : streams) {
+        stream->disconnectStream();
         stream->resetStream();
+    }
 }
 
 void QAudioContextManager::startDeviceMonitor()
@@ -455,6 +457,8 @@ void QAudioContextManager::stopDeviceMonitor()
         return;
 
     withEventLoopLock([&] {
+        m_deviceMonitor->clearAllObservers();
+
         spa_hook_remove(&m_registryListener);
         m_registry.reset();
     });
