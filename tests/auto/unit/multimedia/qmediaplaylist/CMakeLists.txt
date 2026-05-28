@@ -7,17 +7,17 @@
 ## tst_qmediaplaylist Test:
 #####################################################################
 
-# Collect test data
-file(GLOB_RECURSE test_data_glob
-    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
-    testdata/*)
-list(APPEND test_data ${test_data_glob})
-
 qt_internal_add_test(tst_qmediaplaylist
     SOURCES
         tst_qmediaplaylist.cpp
     LIBRARIES
         Qt::Core
         Qt::MultimediaPrivate
-    TESTDATA ${test_data}
+    TESTDATA
+        testdata/empty.pls
+        testdata/test.m3u
+        testdata/test.pls
+        testdata/testfile
+        testdata/testfile2#suffix
+        testdata/totem-pl-example.pls
 )

@@ -5,17 +5,15 @@
 ## tst_qsamplecache Test:
 #####################################################################
 
-# Collect test data
-file(GLOB_RECURSE test_data
-    CONFIGURE_DEPENDS
-    RELATIVE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-    testdata/*)
-
 qt_internal_add_test(tst_qsamplecache
     SOURCES
         tst_qsamplecache.cpp
     LIBRARIES
         Qt::MultimediaPrivate
-    TESTDATA ${test_data}
+    TESTDATA
+        testdata/corrupted.wav
+        testdata/drwav_heap-buffer-overflow.wav
+        testdata/drwav_integer-underflow.wav
+        testdata/test.wav
+        testdata/test2.wav
 )
