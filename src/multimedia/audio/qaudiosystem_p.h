@@ -226,7 +226,7 @@ constexpr bool validateAudioCallback(const AudioSourceCallback &audioCallback,
 // float32) we can use a stack-allocated temporary buffer.
 // otherwise we allocate a heap buffer.
 template <size_t limit = 1024 * 64, typename Functor>
-inline auto withTemporaryBuffer(size_t bufferSize, Functor &&f) noexcept QT_MM_NONBLOCKING
+inline auto withTemporaryBuffer(size_t bufferSize, Functor &&f) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     if (bufferSize <= limit) Q_LIKELY_BRANCH {
 #ifdef alloca

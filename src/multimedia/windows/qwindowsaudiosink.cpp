@@ -387,7 +387,7 @@ bool QWASAPIAudioSinkStream::visitAudioClientBuffer(Functor &&f)
     return true;
 }
 
-bool QWASAPIAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+bool QWASAPIAudioSinkStream::processRingbuffer() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     return visitAudioClientBuffer([&](QSpan<std::byte> hostBuffer, uint32_t requiredFrames) {
         uint64_t consumedFrames = QPlatformAudioSinkStream::process(hostBuffer, requiredFrames);
@@ -395,7 +395,7 @@ bool QWASAPIAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
     });
 }
 
-bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
+bool QWASAPIAudioSinkStream::processCallback() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     return visitAudioClientBuffer([&](QSpan<std::byte> hostBuffer, uint32_t requiredFrames) {
         runAudioCallback(m_audioCallback, hostBuffer, m_format, volume());

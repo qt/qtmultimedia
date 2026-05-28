@@ -15,7 +15,6 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/qaudioformat.h>
 #include <QtCore/qspan.h>
@@ -27,13 +26,13 @@ Q_MULTIMEDIA_EXPORT void qMultiplySamples(float factor,
                                           const QAudioFormat &format,
                                           const void *src,
                                           void *dest,
-                                          int len) noexcept QT_MM_NONBLOCKING;
+                                          int len) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
 Q_MULTIMEDIA_EXPORT
 void applyVolume(float volume,
                  const QAudioFormat &,
                  QSpan<const std::byte> source,
-                 QSpan<std::byte> destination) noexcept QT_MM_NONBLOCKING;
+                 QSpan<std::byte> destination) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
 enum class NativeSampleFormat : uint8_t {
     uint8_t,
@@ -47,7 +46,7 @@ enum class NativeSampleFormat : uint8_t {
 Q_MULTIMEDIA_EXPORT
 void convertSampleFormat(QSpan<const std::byte> source, NativeSampleFormat sourceFormat,
                          QSpan<std::byte> destination,
-                         NativeSampleFormat destinationFormat) noexcept QT_MM_NONBLOCKING;
+                         NativeSampleFormat destinationFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
 Q_MULTIMEDIA_EXPORT
 NativeSampleFormat bestNativeSampleFormat(const QAudioFormat &fmt,
@@ -56,7 +55,7 @@ QAudioFormat::SampleFormat bestSampleFormat(NativeSampleFormat);
 
 NativeSampleFormat toNativeSampleFormat(QAudioFormat::SampleFormat);
 
-constexpr size_t bytesPerSample(NativeSampleFormat fmt) noexcept QT_MM_NONBLOCKING
+constexpr size_t bytesPerSample(NativeSampleFormat fmt) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     switch (fmt) {
     case NativeSampleFormat::uint8_t:
@@ -76,8 +75,8 @@ constexpr size_t bytesPerSample(NativeSampleFormat fmt) noexcept QT_MM_NONBLOCKI
 
 std::optional<float> sanitizeVolume(float volume, float lastVolume);
 
-void fillSilence(QSpan<std::byte>, NativeSampleFormat) noexcept QT_MM_NONBLOCKING;
-void fillSilence(QSpan<std::byte>, QAudioFormat) noexcept QT_MM_NONBLOCKING;
+void fillSilence(QSpan<std::byte>, NativeSampleFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION;
+void fillSilence(QSpan<std::byte>, QAudioFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
 } // namespace QAudioHelperInternal
 

@@ -189,7 +189,7 @@ void QPipewireAudioStream::unregisterDeviceObserver()
     m_deviceRemovalObserver = {};
 }
 
-void QPipewireAudioStream::performXRunDetection(uint64_t framesPerBuffer) noexcept QT_MM_NONBLOCKING
+void QPipewireAudioStream::performXRunDetection(uint64_t framesPerBuffer) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     // XRun detection does not work well with pause/resume.
     // disabling for now, since we don't have any public API for notifying the application about

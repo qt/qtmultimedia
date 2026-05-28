@@ -15,7 +15,6 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qpipewire_audiodevicemonitor_p.h>
 #include <QtMultimedia/private/qpipewire_support_p.h>
@@ -80,7 +79,7 @@ protected:
     // xrun detector
     // CAVEAT: has to be called at the beginning of a render callback
     // streams will have to increment m_totalNumberOfFrames internally
-    void performXRunDetection(uint64_t framesPerBuffer) noexcept QT_MM_NONBLOCKING;
+    void performXRunDetection(uint64_t framesPerBuffer) noexcept Q_DECL_NONBLOCKING_FUNCTION;
     virtual void xrunOccurred(int xrunCount) = 0;
     uint64_t m_expectedNextTick{};
     std::atomic_bool m_skipNextTickDiscontinuity{ true };

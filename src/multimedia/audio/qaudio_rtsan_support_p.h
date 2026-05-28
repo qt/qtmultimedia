@@ -15,18 +15,12 @@
 // We mean it.
 //
 
+#include <QtCore/qcompilerdetection.h>
 #include <QtCore/qtclasshelpermacros.h>
 #include <QtCore/qtconfigmacros.h>
 
 #if defined(__has_feature) && __has_feature(realtime_sanitizer)
 #  include <sanitizer/rtsan_interface.h>
-#endif
-
-// rtsan
-#if defined(__has_cpp_attribute) && __has_cpp_attribute(clang::nonblocking)
-#  define QT_MM_NONBLOCKING [[clang::nonblocking]]
-#else
-#  define QT_MM_NONBLOCKING
 #endif
 
 QT_BEGIN_NAMESPACE

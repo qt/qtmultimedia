@@ -265,7 +265,7 @@ OSStatus
 QCoreAudioSourceStream::processInput(AudioUnitRenderActionFlags *ioActionFlags,
                                      const AudioTimeStamp *timeStamp, UInt32 inBusNumber,
                                      UInt32 inNumberFrames,
-                                     AudioBufferList * /*ioData*/) noexcept QT_MM_NONBLOCKING
+                                     AudioBufferList * /*ioData*/) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     OSStatus status = AudioUnitRender(m_audioUnit.get(), ioActionFlags, timeStamp, inBusNumber,
                                       inNumberFrames, &m_bufferList);
@@ -337,14 +337,14 @@ QCoreAudioSourceStream::processInput(AudioUnitRenderActionFlags *ioActionFlags,
 
 OSStatus
 QCoreAudioSourceStream::processRingbuffer(QSpan<const std::byte> inputSpan,
-                                          UInt32 inNumberFrames) noexcept QT_MM_NONBLOCKING
+                                          UInt32 inNumberFrames) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     QPlatformAudioSourceStream::process(inputSpan, inNumberFrames);
     return noErr;
 }
 
 OSStatus QCoreAudioSourceStream::processAudioCallback(QSpan<const std::byte> inputSpan) noexcept
-        QT_MM_NONBLOCKING
+        Q_DECL_NONBLOCKING_FUNCTION
 {
     using namespace QtMultimediaPrivate;
     runAudioCallback(*m_audioCallback, inputSpan, m_format, volume());
