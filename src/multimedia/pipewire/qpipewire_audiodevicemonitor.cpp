@@ -515,6 +515,12 @@ void QAudioDeviceMonitor::unregisterObserver(const SharedObjectRemoveObserver &o
     q20::erase(m_objectRemoveObserver, observer);
 }
 
+void QAudioDeviceMonitor::clearAllObservers()
+{
+    QWriteLocker lock{ &m_objectDictMutex };
+    m_objectRemoveObserver = {};
+}
+
 QAudioDeviceMonitor::DeviceLists QAudioDeviceMonitor::getDeviceLists(bool verifyThreading)
 {
     // force initial device enumeration

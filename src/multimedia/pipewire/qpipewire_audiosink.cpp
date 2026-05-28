@@ -150,13 +150,13 @@ void QPipewireAudioSinkStream::stop(ShutdownPolicy shutdownPolicy)
     m_parent = nullptr;
 
     disconnectQIODeviceConnections();
+    if (m_deviceRemovalObserver)
+        unregisterDeviceObserver();
 
     if (shutdownPolicy == ShutdownPolicy::DiscardRingbuffer || m_audioCallback) {
         // disconnect immediately
         disconnectStream();
     }
-
-    unregisterDeviceObserver();
 
     if (m_audioCallback)
         // ensure that no callback is sent after we stop the stream
