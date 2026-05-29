@@ -25,14 +25,28 @@ bool isSupportedMFT(const GUID &category, const MFT_REGISTER_TYPE_INFO &type, QM
 {
     UINT32 count = 0;
     QComTaskResource<IMFActivate *> activate;
-    HRESULT hr = MFTEnumEx(
-            category,
-            MFT_ENUM_FLAG_ALL,
-            (mode == QMediaFormat::Encode) ? nullptr : &type,  // Input type
-            (mode == QMediaFormat::Encode) ? &type : nullptr,  // Output type
-            activate.address(),
-            &count
-            );
+    HRESULT hr = E_FAIL;
+
+    // MFTEnumEx may crash inside third-party drivers (e.g. D3D12Core.dll,
+    // RTWorkQ.dll) when enumerating hardware codecs. Wrap the call with SEH
+    // to prevent the crash from taking down the whole application.
+#ifdef Q_CC_MSVC
+    __try {
+#endif
+        hr = MFTEnumEx(
+                category,
+                MFT_ENUM_FLAG_ALL,
+                (mode == QMediaFormat::Encode) ? nullptr : &type,  // Input type
+                (mode == QMediaFormat::Encode) ? &type : nullptr,  // Output type
+                activate.address(),
+                &count
+                );
+#ifdef Q_CC_MSVC
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        qWarning("MFTEnumEx crashed while enumerating codecs (SEH exception caught)");
+        return false;
+    }
+#endif
 
     return SUCCEEDED(hr) && count > 0;
 }
