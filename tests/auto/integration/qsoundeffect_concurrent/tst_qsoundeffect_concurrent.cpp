@@ -11,7 +11,6 @@
 
 using namespace std::chrono_literals;
 
-QT_USE_NAMESPACE
 
 using namespace Qt::StringLiterals;
 

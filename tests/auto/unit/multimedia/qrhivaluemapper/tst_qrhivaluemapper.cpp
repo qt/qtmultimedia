@@ -7,7 +7,6 @@
 
 #include <memory>
 
-QT_USE_NAMESPACE
 
 namespace {
 

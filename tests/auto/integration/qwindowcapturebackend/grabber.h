@@ -7,7 +7,6 @@
 #include <qvideosink.h>
 #include <vector>
 
-QT_USE_NAMESPACE
 
 /*!
     The FrameGrabber stores frames that arrive from the window capture,

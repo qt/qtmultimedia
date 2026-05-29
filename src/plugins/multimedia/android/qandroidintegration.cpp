@@ -145,7 +145,6 @@ extern "C" Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/
         return JNI_VERSION_1_6;
     initialized = true;
 
-    QT_USE_NAMESPACE
     typedef union {
         JNIEnv *nativeEnvironment;
         void *venv;

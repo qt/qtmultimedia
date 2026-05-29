@@ -15,7 +15,6 @@
 #  define QT_SET_HAS_CONTAINS
 #endif
 
-QT_USE_NAMESPACE
 using namespace Qt::Literals;
 using namespace std::chrono_literals;
 

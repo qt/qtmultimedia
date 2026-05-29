@@ -10,7 +10,6 @@ QT_BEGIN_NAMESPACE
 class QScreen;
 QT_END_NAMESPACE
 
-QT_USE_NAMESPACE
 
 class ScreenListModel : public QAbstractListModel
 {

@@ -18,7 +18,6 @@
 #include <qmediametadata.h>
 #include "mfidl.h"
 
-QT_USE_NAMESPACE
 
 struct IMFMetadata;
 

@@ -7,7 +7,6 @@
 #include <QSignalSpy>
 #include <private/qerrorinfo_p.h>
 
-QT_USE_NAMESPACE
 
 enum class TestError { ErrorA, ErrorB, NoError };
 

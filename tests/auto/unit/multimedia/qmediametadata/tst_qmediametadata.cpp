@@ -9,7 +9,6 @@
 
 #include <QtMultimedia/qmediametadata.h>
 
-QT_USE_NAMESPACE
 
 using namespace Qt::Literals;
 

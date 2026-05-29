@@ -17,7 +17,6 @@
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 
-QT_USE_NAMESPACE
 
 using namespace Qt::Literals;
 

@@ -104,7 +104,6 @@ QT_END_NAMESPACE
                  "Configuartion error: misleading " Name " versions!")
 
 #define BEGIN_INIT_FUNCS(...) \
-    QT_USE_NAMESPACE \
     namespace { \
         class SymbolsResolverImpl : public SymbolsResolver { \
         public: \

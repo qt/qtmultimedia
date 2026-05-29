@@ -26,7 +26,6 @@ constexpr std::chrono::microseconds testFileDuration = [] {
 
 constexpr qint64 testFileDurationUs = qint64(testFileDuration.count());
 
-QT_USE_NAMESPACE
 
 /*
  This is the backend conformance test.

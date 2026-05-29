@@ -10,7 +10,6 @@
 
 using namespace Qt::StringLiterals;
 
-QT_USE_NAMESPACE
 
 namespace {
 

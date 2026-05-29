@@ -26,7 +26,6 @@ Q_DECLARE_JNI_CLASS(WindowInsetsType, "android/view/WindowInsets$Type")
 Q_DECLARE_JNI_CLASS(Insets, "android/graphics/Insets")
 #endif
 
-QT_USE_NAMESPACE
 
 /*
  This is the backend conformance test.

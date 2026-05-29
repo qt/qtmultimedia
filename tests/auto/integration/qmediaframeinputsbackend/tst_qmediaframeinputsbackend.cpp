@@ -457,7 +457,6 @@ void tst_QMediaFrameInputsBackend::
 
 QT_END_NAMESPACE
 
-QT_USE_NAMESPACE
 
 QTEST_MAIN(tst_QMediaFrameInputsBackend)
 

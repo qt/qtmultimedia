@@ -4,7 +4,6 @@
 #include <QtTest/qtest.h>
 #include <QtMultimedia/qvideoframe.h>
 
-QT_USE_NAMESPACE
 
 class tst_qvideoframe_nogui : public QObject
 {

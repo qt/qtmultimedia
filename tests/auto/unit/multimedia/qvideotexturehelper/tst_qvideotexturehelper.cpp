@@ -9,7 +9,6 @@
 
 #include "qvideoframeformat.h"
 
-QT_USE_NAMESPACE
 
 struct ColorSpaceCoeff
 {

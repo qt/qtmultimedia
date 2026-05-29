@@ -17,7 +17,6 @@
 
 #include <list>
 
-QT_USE_NAMESPACE
 
 class tst_QVideoFrameBackend : public QObject
 {

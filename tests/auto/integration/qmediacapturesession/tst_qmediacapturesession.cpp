@@ -36,7 +36,6 @@
 
 using namespace Qt::StringLiterals;
 
-QT_USE_NAMESPACE
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 
