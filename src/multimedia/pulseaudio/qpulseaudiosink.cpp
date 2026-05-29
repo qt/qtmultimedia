@@ -3,11 +3,12 @@
 
 #include "qpulseaudiosink_p.h"
 
-#include <QtCore/qdebug.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudiosystem_platform_stream_support_p.h>
 #include <QtMultimedia/private/qpulseaudio_contextmanager_p.h>
 #include <QtMultimedia/private/qpulsehelpers_p.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qsemaphore.h>
 
 #include <mutex> // for std::lock_guard
 #include <unistd.h>
@@ -230,23 +231,55 @@ bool QPulseAudioSinkStream::startStream(StreamType streamType)
         .fragsize = uint32_t(-1),
     };
 
-    installCallbacks(streamType);
-
     constexpr pa_stream_flags flags =
             pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_ADJUST_LATENCY);
 
     QPulseAudioContextManager *pulseEngine = QPulseAudioContextManager::instance();
-    std::lock_guard engineLock{ *pulseEngine };
+    std::unique_lock engineLock{ *pulseEngine };
+    installCallbacks(streamType);
+
+    struct state_t
+    {
+        pa_stream_state state{};
+        QSemaphore sem;
+    };
+
+    state_t state;
+
+    pa_stream_set_state_callback(m_stream.get(), [](pa_stream *stream, void *data) {
+        auto *state = reinterpret_cast<state_t *>(data);
+        switch (pa_stream_get_state(stream)) {
+        case PA_STREAM_READY:
+        case PA_STREAM_FAILED:
+        case PA_STREAM_TERMINATED:
+            state->state = pa_stream_get_state(stream);
+            state->sem.release();
+            break;
+        default:
+            break;
+        }
+    }, &state);
 
     const auto id = m_audioDevice.id();
-    int status = pa_stream_connect_playback(m_stream.get(), id.data(), &attr, flags,
-                                            nullptr, nullptr);
+    int status =
+            pa_stream_connect_playback(m_stream.get(), id.data(), &attr, flags, nullptr, nullptr);
 
     if (status != 0) {
         qCWarning(qLcPulseAudioOut) << "pa_stream_connect_playback() failed!";
         m_stream = {};
         return false;
     }
+    engineLock.unlock();
+    state.sem.acquire();
+    if (state.state != PA_STREAM_READY) {
+        qCWarning(qLcPulseAudioOut) << "Stream failed to connect:" << state.state;
+        m_stream = {};
+        return false;
+    }
+
+    engineLock.lock();
+    pa_stream_set_state_callback(m_stream.get(), nullptr, nullptr);
+
     return true;
 }
 
@@ -334,8 +367,7 @@ QPulseAudioSink::QPulseAudioSink(QAudioDevice device, const QAudioFormat &format
 {
 }
 
-QPulseAudioSink::~QPulseAudioSink()
-    = default;
+QPulseAudioSink::~QPulseAudioSink() = default;
 
 bool QPulseAudioSink::validatePulseaudio()
 {
