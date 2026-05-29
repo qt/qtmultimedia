@@ -6,7 +6,6 @@
 
 #include <private/testvideosink_p.h>
 
-QT_USE_NAMESPACE
 
 class TestVideoOutput : public QObject
 {

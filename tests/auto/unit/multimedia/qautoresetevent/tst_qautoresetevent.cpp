@@ -10,7 +10,6 @@
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 
 using namespace std::chrono_literals;
-QT_USE_NAMESPACE
 
 class tst_QAutoResetEvent : public QObject
 {

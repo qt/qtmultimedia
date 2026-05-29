@@ -11,7 +11,6 @@
 #include <QtMultimediaQuick/private/qquickscreencapture_p.h>
 #include <QtQuick/private/qquickscreen_p.h>
 
-QT_USE_NAMESPACE
 
 class tst_QQuickScreenCaptureBackend : public QObject
 {

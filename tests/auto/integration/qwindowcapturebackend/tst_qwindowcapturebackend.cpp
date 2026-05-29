@@ -22,7 +22,6 @@ using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::microseconds;
 
-QT_USE_NAMESPACE
 
 class tst_QWindowCaptureBackend : public QObject
 {

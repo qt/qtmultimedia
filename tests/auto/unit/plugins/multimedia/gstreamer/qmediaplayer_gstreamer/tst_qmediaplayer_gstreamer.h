@@ -14,7 +14,6 @@
 #include <memory>
 #include <optional>
 
-QT_USE_NAMESPACE
 
 class tst_QMediaPlayerGStreamer : public QObject
 {

@@ -6,7 +6,6 @@
 #include <QtCore/qsysinfo.h>
 #include <private/qplatformmediaintegration_p.h>
 
-QT_USE_NAMESPACE
 
 class tst_backends : public QObject
 {

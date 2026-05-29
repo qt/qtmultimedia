@@ -12,7 +12,6 @@
 #include "fake.h"
 #include <private/testvideosink_p.h>
 
-QT_USE_NAMESPACE
 
 struct Fixture : QObject
 {

@@ -9,7 +9,6 @@
 #include <QtGstreamerMediaPluginImpl/private/qgstreamerintegration_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgst_handle_types_p.h>
 
-QT_USE_NAMESPACE
 
 class tst_GStreamer : public QObject
 {

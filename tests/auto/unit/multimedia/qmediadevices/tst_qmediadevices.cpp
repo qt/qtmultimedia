@@ -11,7 +11,6 @@
 #include "qmockvideodevices.h"
 #include "qmockintegration.h"
 
-QT_USE_NAMESPACE
 
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 

@@ -36,7 +36,6 @@
 
 #include <memory>
 
-QT_USE_NAMESPACE
 
 /*
  This is the backend conformance test.

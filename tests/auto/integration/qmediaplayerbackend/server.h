@@ -13,7 +13,6 @@
 #include <qtest.h>
 #include <qurl.h>
 
-QT_USE_NAMESPACE
 
 class UnResponsiveRtspServer : public QObject
 {

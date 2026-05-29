@@ -24,7 +24,6 @@
 #include <private/testvideosink_p.h>
 #include <chrono>
 
-QT_USE_NAMESPACE
 
 using namespace std::chrono;
 

@@ -16,7 +16,6 @@
 
 #include <optional>
 
-QT_USE_NAMESPACE
 
 /*!
  * Helper class that simplifies testing the state of

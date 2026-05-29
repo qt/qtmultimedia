@@ -7,7 +7,6 @@
 
 using namespace std::chrono_literals;
 
-QT_USE_NAMESPACE
 
 class tst_qplaybackoptions : public QObject
 {

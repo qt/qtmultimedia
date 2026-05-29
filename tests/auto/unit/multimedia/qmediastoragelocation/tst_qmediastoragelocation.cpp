@@ -4,7 +4,6 @@
 #include <QtTest/qtest.h>
 #include <private/qmediastoragelocation_p.h>
 
-QT_USE_NAMESPACE
 
 class tst_qmediastoragelocation : public QObject
 {
