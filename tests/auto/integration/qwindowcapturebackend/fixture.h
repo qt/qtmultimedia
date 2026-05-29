@@ -17,7 +17,6 @@
 #include <qwindowcapture.h>
 #include <qprocess.h>
 
-QT_USE_NAMESPACE
 
 constexpr inline std::chrono::milliseconds s_testTimeout = std::chrono::seconds(60);
 

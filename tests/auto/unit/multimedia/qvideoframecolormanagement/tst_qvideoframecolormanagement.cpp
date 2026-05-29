@@ -55,7 +55,6 @@ QT_MM_MAKE_STRING_RESOLVER(RenderingMode, EnumName,
 
 QT_END_NAMESPACE
 
-QT_USE_NAMESPACE
 using namespace QVideoTextureHelper;
 
 namespace {

@@ -8,7 +8,6 @@
 
 #include <private/qscopedenvironmentvariable_p.h>
 
-QT_USE_NAMESPACE
 
 using namespace Qt::Literals;
 

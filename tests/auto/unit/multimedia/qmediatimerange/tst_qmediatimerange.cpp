@@ -7,7 +7,6 @@
 #include <qmediatimerange.h>
 #include <qmediatimerange.h>
 
-QT_USE_NAMESPACE
 
 class tst_QMediaTimeRange: public QObject
 {

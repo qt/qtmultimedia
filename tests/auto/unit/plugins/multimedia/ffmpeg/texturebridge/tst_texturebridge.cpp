@@ -11,7 +11,6 @@
 
 using namespace std::chrono_literals;
 
-QT_USE_NAMESPACE
 
 // Helper macro to verify q23::expected<T, HRESULT>
 #define QVERIFYCOMRESULT(comresult) \

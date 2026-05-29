@@ -9,7 +9,6 @@ extern "C" {
 #include "libavutil/mathematics.h"
 }
 
-QT_USE_NAMESPACE
 
 class tst_qffmpegmath : public QObject
 {

@@ -7,7 +7,6 @@
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideoencoderutils_p.h>
 
-QT_USE_NAMESPACE
 
 using namespace QFFmpeg;
 

@@ -7,7 +7,6 @@
 #include <private/qvideotransformation_p.h>
 #include <map>
 
-QT_USE_NAMESPACE
 
 using namespace QtVideo;
 

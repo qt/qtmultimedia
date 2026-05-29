@@ -25,7 +25,6 @@
 
 using namespace std::chrono_literals;
 
-QT_USE_NAMESPACE
 
 namespace {
 

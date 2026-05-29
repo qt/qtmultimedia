@@ -12,7 +12,6 @@
 
 using namespace Qt::StringLiterals;
 
-QT_USE_NAMESPACE
 
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 

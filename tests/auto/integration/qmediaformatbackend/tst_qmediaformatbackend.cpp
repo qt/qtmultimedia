@@ -10,7 +10,6 @@
 #include <set>
 #include <map>
 
-QT_USE_NAMESPACE
 
 using namespace Qt::StringLiterals;
 

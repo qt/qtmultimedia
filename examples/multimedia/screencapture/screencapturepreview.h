@@ -23,7 +23,6 @@ class QPushButton;
 class QLabel;
 QT_END_NAMESPACE
 
-QT_USE_NAMESPACE
 
 class ScreenCapturePreview : public QWidget
 {

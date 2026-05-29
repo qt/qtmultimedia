@@ -7,7 +7,6 @@
 #include <QAbstractListModel>
 #include <QCapturableWindow>
 
-QT_USE_NAMESPACE
 
 class WindowListModel : public QAbstractListModel
 {
