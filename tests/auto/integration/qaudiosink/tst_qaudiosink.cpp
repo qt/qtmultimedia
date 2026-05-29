@@ -22,6 +22,7 @@
 #include <private/osdetection_p.h>
 #include <private/qmockiodevice_p.h>
 
+#include <atomic>
 #include <memory>
 
 QT_WARNING_DISABLE_DEPRECATED; // Tests use QWaveDecoder
@@ -157,6 +158,8 @@ private slots:
     void callbackAPI_availabilityCheck();
     void callbackAPI_startFailsWithWrongType();
     void callbackAPI_startWithMoveOnlyFunctor();
+    void callbackAPI_suspendPreventsCallbackInvocation_data();
+    void callbackAPI_suspendPreventsCallbackInvocation();
 
     void multipleSinks_data() { generate_multiple_sinks_testrows(); }
     void multipleSinks();
@@ -1500,6 +1503,61 @@ void tst_QAudioSink::callbackAPI_startWithMoveOnlyFunctor()
     QVERIFY(callbackExecuted);
 #else
     QSKIP("Threading not configured or move-only functions not available");
+#endif
+}
+
+void tst_QAudioSink::callbackAPI_suspendPreventsCallbackInvocation_data()
+{
+    QTest::addColumn<bool>("suspendImmediately");
+    QTest::newRow("suspend immediately after start") << true;
+    QTest::newRow("suspend after ActiveState") << false;
+}
+
+
+void tst_QAudioSink::callbackAPI_suspendPreventsCallbackInvocation()
+{
+#if QT_CONFIG(thread)
+    using namespace std::chrono_literals;
+    QFETCH(bool, suspendImmediately);
+
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleFormat(QAudioFormat::SampleFormat::Float);
+
+    QAudioSink audioSink(audioDevice, format);
+    QPlatformAudioSink *platformSink = QPlatformAudioSink::get(audioSink);
+    if (!platformSink->hasCallbackAPI())
+        QSKIP("Callback API not supported by this backend");
+
+    // Atomic counter to track callback invocations
+    std::atomic<int> callbackCount = 0;
+
+    audioSink.start([&](QSpan<float> outputBuffer) {
+        QCOMPARE_GT(outputBuffer.size(), 0);
+        callbackCount++;
+    });
+    QCOMPARE(audioSink.error(), QAudio::Error::NoError);
+
+    if (suspendImmediately) {
+        // Suspend immediately without waiting for ActiveState
+        audioSink.suspend();
+    } else {
+        // Wait for the sink to become active
+        QTRY_COMPARE(audioSink.state(), QAudio::State::ActiveState);
+        audioSink.suspend();
+    }
+
+    QTRY_COMPARE(audioSink.state(), QAudio::State::SuspendedState);
+
+    // Reset counter and wait to verify no callbacks occur while suspended
+    callbackCount = 0;
+    QTest::qWait(500ms);
+
+    // Verify that the callback was called at most a single time
+    QCOMPARE_LE(callbackCount.load(), 1);
+
+    audioSink.stop();
+#else
+    QSKIP("Threading not configured");
 #endif
 }
 
