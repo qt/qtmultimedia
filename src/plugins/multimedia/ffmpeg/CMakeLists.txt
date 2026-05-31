@@ -323,9 +323,23 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
 )
 
 if (ANDROID)
-    set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
-        ${INSTALL_PLUGINSDIR}/multimedia/libplugins_multimedia_ffmpegmediaplugin.so
-    )
+    set(lib_deps "${INSTALL_PLUGINSDIR}/multimedia/libplugins_multimedia_ffmpegmediaplugin.so")
+
+    if (QT_DEPLOY_FFMPEG AND FFMPEG_SHARED_LIBRARIES)
+        foreach(ffmpeg_lib IN LISTS FFMPEG_SHARED_LIBRARIES)
+            get_filename_component(ffmpeg_lib_name "${ffmpeg_lib}" NAME)
+            list(APPEND lib_deps "${INSTALL_LIBDIR}/${ffmpeg_lib_name}")
+        endforeach()
+
+        foreach(stub IN LISTS FFMPEG_STUBS)
+            set(stub_target "Qt${PROJECT_VERSION_MAJOR}FFmpegStub-${stub}")
+            if(TARGET ${stub_target})
+                list(APPEND lib_deps "${INSTALL_LIBDIR}/lib${stub_target}.so")
+            endif()
+        endforeach()
+    endif()
+
+    set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES ${lib_deps})
 
     qt_internal_add_android_permission(QFFmpegMediaPlugin
         NAME android.permission.CAMERA
