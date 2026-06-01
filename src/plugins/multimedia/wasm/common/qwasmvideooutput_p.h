@@ -186,7 +186,6 @@ private:
     std::string m_cameraId;
     QMetaObject::Connection m_connection;
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_glContextHandle = 0;
-    emscripten::val m_glCanvas = emscripten::val::undefined();
     static bool orientationchangeCallback(int eventType, const EmscriptenOrientationChangeEvent *orientationChangeEvent, void *userData);
 };
 
