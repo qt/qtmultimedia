@@ -162,6 +162,11 @@ void QWasmVideoOutput::start()
             videoFrameTimerCallback();
     } break;
     case QWasmVideoOutput::Camera: {
+        {
+            emscripten::val document = emscripten::val::global("document");
+            if (m_video["parentNode"].isNull() || m_video["parentNode"].isUndefined())
+                document["body"].call<void>("appendChild", m_video);
+        }
         if (!m_cameraIsReady) {
             m_shouldBeStarted = true;
         }
@@ -247,6 +252,7 @@ void QWasmVideoOutput::stop()
 
         m_video.set("srcObject", emscripten::val::null());
         disconnect(m_connection);
+        m_connection = {};
         m_video.call<void>("remove");
     } else {
         m_video.call<void>("pause");
