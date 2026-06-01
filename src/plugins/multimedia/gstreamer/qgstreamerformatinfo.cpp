@@ -303,6 +303,12 @@ QGstreamerFormatInfo::getCodecMaps(QMediaFormat::ConversionMode conversionMode,
         }
         if (!audioCodecs.isEmpty() || !videoCodecs.isEmpty()) {
             for (auto f : std::as_const(fileFormats)) {
+                // QTBUG-131726: encodebin rejects muxers for x-ms-asf, so we should ignore WMV/WMA
+                // for encoding
+                if ((f == QMediaFormat::WMV || f == QMediaFormat::WMA)
+                    && conversionMode == QMediaFormat::Encode)
+                    continue;
+
                 maps.append({f, audioCodecs, videoCodecs});
                 if (f == QMediaFormat::MPEG4 && !fileFormats.contains(QMediaFormat::Mpeg4Audio)) {
                     maps.append({QMediaFormat::Mpeg4Audio, audioCodecs, {}});
