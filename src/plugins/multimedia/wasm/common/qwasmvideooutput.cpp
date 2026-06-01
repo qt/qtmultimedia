@@ -34,14 +34,13 @@
 // Upload the current video frame to the already-bound TEXTURE_2D.
 // The canvas is passed as an EM_VAL handle; Emval.toValue() here refers to
 // Emscripten's internal Emval object, not Module.Emval — no EXPORTED_RUNTIME_METHODS entry needed.
-using emscripten::EM_VAL;
-EM_JS(void, em_texImage2DFromVideo,
-      (EM_VAL canvasHandle, const char *videoId, int *pW, int *pH), {
-    var canvas = Emval.toValue(canvasHandle);
-    var gl     = canvas.getContext('webgl2') || canvas.getContext('webgl');
-    var video  = document.getElementById(UTF8ToString(videoId));
-    var frame  = new VideoFrame(video);
-    HEAP32[pW >> 2] = frame.displayWidth; // write into the C pointer pW
+EM_JS(void, em_texImage2DFromVideo, (const char *videoId, int *pW, int *pH), {
+    var gl = GL.currentContext.GLctx;
+    var video = document.getElementById(UTF8ToString(videoId));
+    if (!video) { return; }
+    var frame;
+    try { frame = new VideoFrame(video); } catch(e) { return; }
+    HEAP32[pW >> 2] = frame.displayWidth;
     HEAP32[pH >> 2] = frame.displayHeight;
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, frame);
     frame.close();
@@ -146,6 +145,7 @@ void QWasmVideoOutput::start()
         emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return;
     }
+
     switch (m_currentVideoMode) {
     case QWasmVideoOutput::VideoDisplay: {
         emscripten::val sourceObj = m_video["src"];
@@ -225,7 +225,7 @@ void QWasmVideoOutput::stop()
 {
     if (m_isStopped)
         return;
-    qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO;
+    qCWarning(qWasmMediaVideoOutput) << Q_FUNC_INFO << "mode=" << m_currentVideoMode;
     if (m_video.isUndefined() || m_video.isNull()) {
         emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
         return;
@@ -243,6 +243,8 @@ void QWasmVideoOutput::stop()
         } else if (m_mediaInputStream && m_mediaInputStream->isActive()) {
             m_mediaInputStream->stopMediaStream(m_mediaInputStream->getMediaStream());
         }
+
+
         m_video.set("srcObject", emscripten::val::null());
         disconnect(m_connection);
         m_video.call<void>("remove");
@@ -942,7 +944,7 @@ void QWasmVideoOutput::videoComputeFrame(void *context)
 void QWasmVideoOutput::videoFrameCallback(void *context)
 {
     QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-    if (!videoOutput || !videoOutput->isReady())
+    if (!videoOutput)
         return;
     emscripten::val videoElement = videoOutput->currentVideoElement();
 
@@ -1022,15 +1024,12 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
         wasmVideoOutput->m_wasmSink->setVideoFrame(vFrame);
         oneVideoFrame.call<emscripten::val>("close");
     };
-    copyToCallback.catchFunc = [&, wasmVideoOutput, oneVideoFrame](emscripten::val error)
+    copyToCallback.catchFunc = [wasmVideoOutput, oneVideoFrame](emscripten::val error)
     {
-        qCDebug(qWasmMediaVideoOutput) << "Error"
+        qCDebug(qWasmMediaVideoOutput) << "copyTo error"
                                << QString::fromStdString(error["name"].as<std::string>())
-                               << QString::fromStdString(error["message"].as<std::string>()) ;
-
+                               << QString::fromStdString(error["message"].as<std::string>());
         oneVideoFrame.call<emscripten::val>("close");
-        wasmVideoOutput->stop();
-        return;
     };
 
     qstdweb::Promise::make(oneVideoFrame, u"copyTo"_s, std::move(copyToCallback), frameBuffer, options);
@@ -1038,6 +1037,9 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
 
 void QWasmVideoOutput::getWebGLContext()
 {
+    m_glContextHandle = 0;
+    m_hasWebGLContext = false;
+
     QRhi *rhi = m_wasmSink ? m_wasmSink->rhi() : nullptr;
     if (!rhi || rhi->backend() != QRhi::OpenGLES2)
         return;
@@ -1048,30 +1050,21 @@ void QWasmVideoOutput::getWebGLContext()
 
     QOpenGLContext *ctx = nh->context;
 
-    // QWasmOpenGLContext::makeCurrent() returns false for any surface other than
-    // the one its WebGL context was created for, so this loop reliably identifies
-    // the correct window without accessing GL or Emval runtime objects.
+    // Only call makeCurrent on windows whose canvas already has a WebGL context.
+    // Calling makeCurrent on a 2D-context canvas corrupts Emscripten's GL state
+    // and causes QRhiGles2 to report a context loss.
     for (QWindow *window : QGuiApplication::allWindows()) {
         if (!window->handle())
             continue;
         auto *wasmIface = window->nativeInterface<QNativeInterface::Private::QWasmWindow>();
         if (!wasmIface)
-            break;
-
-        // Store the canvas element directly as an emscripten::val so it can be
-        // passed to em_texImage2DFromVideo as an EM_VAL handle — avoids any
-        // document.getElementById lookup and works inside shadow DOMs.
-        m_glCanvas = wasmIface->canvas();
-
-        std::string contextType = m_glCanvas["constructor"]["name"].as<std::string>();
-        if (contextType == "CanvasRenderingContext2D")
-            continue;  // skip windows with 2D contexts
-
-        if (!ctx->makeCurrent(window))
             continue;
-
-        // Capture the handle now that this context is current, for use in
-        // emscripten_webgl_make_context_current() before the C GL calls.
+        emscripten::val canvas = wasmIface->canvas();
+        emscripten::val glCtx = canvas.call<emscripten::val>("getContext", std::string("webgl2"));
+        if (glCtx.isNull() || glCtx.isUndefined())
+            glCtx = canvas.call<emscripten::val>("getContext", std::string("webgl"));
+        if (glCtx.isNull() || glCtx.isUndefined())
+            continue;
         m_glContextHandle = emscripten_webgl_get_current_context();
         m_hasWebGLContext = (m_glContextHandle > 0);
         break;
@@ -1085,7 +1078,7 @@ void QWasmVideoOutput::getWebGLContext()
 void QWasmVideoOutput::webglVideoFrameCallback(void *context)
 {
     QWasmVideoOutput *wasmVideoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-    if (!wasmVideoOutput || !wasmVideoOutput->isReady())
+    if (!wasmVideoOutput)
         return;
 
     emscripten_webgl_make_context_current(wasmVideoOutput->m_glContextHandle);
@@ -1097,9 +1090,7 @@ void QWasmVideoOutput::webglVideoFrameCallback(void *context)
     glBindTexture(GL_TEXTURE_2D, texHandle.get());
 
     int w = 0, h = 0;
-    em_texImage2DFromVideo(wasmVideoOutput->m_glCanvas.as_handle(),
-                           wasmVideoOutput->m_videoSurfaceId.c_str(),
-                           &w, &h);
+    em_texImage2DFromVideo(wasmVideoOutput->m_videoSurfaceId.c_str(), &w, &h);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -1155,23 +1146,36 @@ void QWasmVideoOutput::videoFrameTimerCallback()
         Q_UNUSED(frameTime);
 
         QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-        if (!videoOutput || videoOutput->m_isStopped)
+        if (!videoOutput || videoOutput->m_isStopped) {
+            qCWarning(qWasmMediaVideoOutput) << "frame loop exit: isStopped=" << (videoOutput ? videoOutput->m_isStopped : true)
+                                             << "mode=" << (videoOutput ? videoOutput->m_currentVideoMode : -1);
             return false;
+        }
 
-        if (videoOutput->m_currentMediaStatus != MediaStatus::LoadedMedia) {
+        if (videoOutput->m_currentVideoMode == QWasmVideoOutput::VideoDisplay
+            && videoOutput->m_currentMediaStatus != MediaStatus::LoadedMedia) {
             emscripten_request_animation_frame(frame, context);
             return true;
         }
 
         emscripten::val videoElement = videoOutput->currentVideoElement();
-        if (videoElement.isNull() || videoElement.isUndefined())
+        if (videoElement.isNull() || videoElement.isUndefined()) {
+            qCWarning(qWasmMediaVideoOutput) << "frame loop exit: video element null, mode=" << videoOutput->m_currentVideoMode;
             return false;
+        }
 
         if (videoElement["paused"].as<bool>() || videoElement["ended"].as<bool>()
             || videoElement["readyState"].as<int>() < 2) {
+            qCDebug(qWasmMediaVideoOutput) << "frame loop waiting: mode=" << videoOutput->m_currentVideoMode
+                                           << "paused=" << videoElement["paused"].as<bool>()
+                                           << "ended=" << videoElement["ended"].as<bool>()
+                                           << "readyState=" << videoElement["readyState"].as<int>();
             emscripten_request_animation_frame(frame, context);
             return true;
         }
+
+        qCDebug(qWasmMediaVideoOutput) << "frame loop render: mode=" << videoOutput->m_currentVideoMode
+                                       << "glHandle=" << videoOutput->m_glContextHandle;
 
         if (videoOutput->m_hasVideoFrame) {
             if (videoOutput->m_glContextHandle)
