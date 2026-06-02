@@ -343,6 +343,12 @@ if (ANDROID)
 
     set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES ${lib_deps})
 
+    if(FFMPEG_USES_OPENSSL)
+        set_property(TARGET QFFmpegMediaPlugin PROPERTY QT_ANDROID_OPENSSL_NEEDED TRUE)
+        set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY
+            EXPORT_PROPERTIES QT_ANDROID_OPENSSL_NEEDED)
+    endif()
+
     qt_internal_add_android_permission(QFFmpegMediaPlugin
         NAME android.permission.CAMERA
     )
