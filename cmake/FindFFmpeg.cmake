@@ -172,6 +172,7 @@ endmacro()
 unset(FFMPEG_INCLUDE_DIRS CACHE)
 unset(FFMPEG_SHARED_LIBRARIES CACHE)
 unset(FFMPEG_STUBS CACHE)
+unset(FFMPEG_USES_OPENSSL CACHE)
 
 # Check for components.
 foreach (_component ${FFmpeg_FIND_COMPONENTS})
@@ -210,6 +211,14 @@ function(qt_internal_multimedia_try_add_dynamic_resolve_dependency _component de
 
     set(supported_stubs "ssl|crypto|va|va-drm|va-x11")
     set(stub_prefix "Qt${PROJECT_VERSION_MAJOR}FFmpegStub-")
+
+    # If FFmpeg pulls in OpenSSL directly (-lssl) the libraries are needed at runtime.
+    # If they're pulled through the stubs they're not strictly needed but can end up
+    # being used anyway.
+    if (${dep} MATCHES "^(${stub_prefix})?(ssl|crypto)$")
+        set(FFMPEG_USES_OPENSSL TRUE CACHE INTERNAL "")
+    endif()
+
     if (${dep} MATCHES "^${stub_prefix}(${supported_stubs})$")
         string(REPLACE "${stub_prefix}" "" dep "${dep}")
         set(FFMPEG_STUBS ${FFMPEG_STUBS} ${dep} CACHE INTERNAL "")
@@ -300,6 +309,7 @@ list(REMOVE_DUPLICATES FFMPEG_STUBS)
 
 message(STATUS "FFmpeg shared libs: ${FFMPEG_SHARED_LIBRARIES}")
 message(STATUS "FFmpeg stubs: ${FFMPEG_STUBS}")
+message(STATUS "FFmpeg built with OpenSSL: ${FFMPEG_USES_OPENSSL}")
 
 # cache the vars.
 set(FFMPEG_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} CACHE STRING "The FFmpeg include directories." FORCE)
