@@ -148,7 +148,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
             file.reset();
             control->setInvalidMediaWithError(
                     QMediaPlayer::ResourceError,
-                    QObject::tr("Attempting to play invalid Qt resource"));
+                    QMediaPlayer::tr("Attempting to play invalid Qt resource"));
 
         } else if (control->streamPlaybackSupported()) {
             control->setMedia(media, file.get());
@@ -161,7 +161,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
             if (tempFile.get() == nullptr) {
                 control->setInvalidMediaWithError(
                         QMediaPlayer::ResourceError,
-                        QObject::tr("Failed to establish temporary file during playback"));
+                        QMediaPlayer::tr("Failed to establish temporary file during playback"));
                 return;
             }
             if (!tempFile->rename(tempFileName)) {
