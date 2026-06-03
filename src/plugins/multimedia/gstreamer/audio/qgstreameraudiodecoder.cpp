@@ -414,7 +414,7 @@ qint64 QGstreamerAudioDecoder::duration() const
 void QGstreamerAudioDecoder::processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString)
 {
     stop();
-    error(int(errorCode), errorString);
+    error(errorCode, errorString);
 }
 
 GstFlowReturn QGstreamerAudioDecoder::newSample(GstAppSink *)
