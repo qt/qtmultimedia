@@ -407,8 +407,17 @@ bool QQnxMediaPlayer::attachAudioOutput()
 
     const QByteArray defaultAudioDevice = qgetenv("QQNX_RENDERER_DEFAULT_AUDIO_SINK");
 
+    // QNX 8.0+ serves audio through io-snd (ALSA/SALSA), reached as
+    // "alsa:default"; older releases use the QSA "snd:" device.
+    const char *fallbackDevice =
+#if __QNX__ >= 800
+            "alsa:default";
+#else
+            "snd:";
+#endif
+
     m_audioId = mmr_output_attach(m_context,
-            defaultAudioDevice.isEmpty() ? "snd:" : defaultAudioDevice.constData(), "audio");
+            defaultAudioDevice.isEmpty() ? fallbackDevice : defaultAudioDevice.constData(), "audio");
 
     if (m_audioId == -1) {
         emitMmError("mmr_output_attach() for audio failed");
