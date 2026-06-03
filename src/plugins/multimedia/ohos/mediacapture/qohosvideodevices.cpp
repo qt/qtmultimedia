@@ -17,6 +17,8 @@
 #include <ohcamera/camera.h>
 #include <ohcamera/camera_manager.h>
 
+#include <info/application_target_sdk_version.h>
+
 QT_BEGIN_NAMESPACE
 
 namespace {
@@ -79,6 +81,9 @@ QVideoFrameFormat::PixelFormat pixelFormatFor(Camera_Format format)
         return QVideoFrameFormat::Format_Jpeg;
     case CAMERA_FORMAT_YCBCR_P010:
     case CAMERA_FORMAT_YCRCB_P010:
+#if OH_CURRENT_API_VERSION >= 23
+    case CAMERA_FORMAT_HEIC:
+#endif
         break;
     }
     return QVideoFrameFormat::Format_Invalid;
