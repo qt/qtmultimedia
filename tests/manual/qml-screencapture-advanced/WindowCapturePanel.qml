@@ -16,6 +16,7 @@ GridLayout {
     required property var topWindow
     required property bool useLandscapeLayout
     required property int recorderCaptureTracker
+    required property int preferredLeftWidth
 
     // There is no signal for tracking when the list of CapturableWindows changed. We store them
     // here as a property so we can track them.
@@ -32,15 +33,37 @@ GridLayout {
         onActiveChanged: () => {
             console.log("QWindowCapture active changed: " + active)
 
+            /*
             // CheckBox has a weird behavior where it will remove our bindings when activated.
             // Update the value manually here
             if (active === true)
                 windowCaptureActiveCheckBox.checkState = Qt.Checked
             else
                 windowCaptureActiveCheckBox.checkState = Qt.Unchecked
+            */
         }
-        onErrorChanged: () => {
-            console.log("QWindowCapture error changed: " + error)
+
+        function errorToString(err) {
+            switch (err) {
+            case WindowCapture.NoError: return "NoError"
+            case WindowCapture.InternalError: return "InternalError"
+            case WindowCapture.CapturingNotSupported: return "CapturingNotSupported"
+            case WindowCapture.CaptureFailed: return "CaptureFailed"
+            case WindowCapture.NotFound: return "NotFund"
+            default: return "Unknown error code"
+            }
+        }
+
+        function errorToLabel(err, msg) {
+            if (err === WindowCapture.NoError)
+                return ""
+            return "(" + errorToString(err) + ") " + msg
+        }
+
+        readonly property string errorLabel: errorToLabel(error, errorString)
+
+        onErrorOccurred: (err, msg) => {
+            console.log("QWindowCapture error occurred (" + errorToString(err) + ") " + msg)
         }
     }
 
@@ -79,7 +102,6 @@ GridLayout {
         onTriggered: root.refreshCapturableWindowsList()
     }
 
-    Layout.fillWidth: true
     columns: useLandscapeLayout === true ? 2 : 1
 
     ColumnLayout {
@@ -140,10 +162,16 @@ GridLayout {
         }
 
         Label {
+            Layout.preferredWidth: root.preferredLeftWidth
+            wrapMode: Text.WordWrap
+            text: "Error: " + windowCapture.errorLabel
+        }
+
+        Label {
             text: "Capturable windows:"
         }
         Frame {
-            Layout.preferredWidth: 200
+            Layout.preferredWidth: root.preferredLeftWidth
             Layout.preferredHeight: windowsListView.model.length > 0 ? 200 : 50
             ListView {
                 id: windowsListView
