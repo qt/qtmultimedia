@@ -21,7 +21,7 @@ QT_BEGIN_NAMESPACE
 
 class QPulseAudioContextManager;
 
-class Q_MULTIMEDIA_EXPORT QPulseAudioDevicePrivate : public QAudioDevicePrivate
+class QPulseAudioDevicePrivate : public QAudioDevicePrivate
 {
 public:
     using QAudioDevicePrivate::QAudioDevicePrivate;

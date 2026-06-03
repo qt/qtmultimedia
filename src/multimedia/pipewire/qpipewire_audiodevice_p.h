@@ -25,7 +25,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
-class Q_MULTIMEDIA_EXPORT QPipewireAudioDevicePrivate : public QAudioDevicePrivate
+class QPipewireAudioDevicePrivate : public QAudioDevicePrivate
 {
 public:
     QPipewireAudioDevicePrivate(const PwPropertyDict &nodeProperties, const SpaObjectAudioFormat &,
