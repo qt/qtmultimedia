@@ -1,11 +1,13 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qwindowcapture.h"
-#include "qplatformmediaintegration_p.h"
-#include "qmediacapturesession.h"
-#include "private/qobject_p.h"
-#include "private/qplatformsurfacecapture_p.h"
+#include <QtMultimedia/qwindowcapture.h>
+
+#include <QtCore/private/qobject_p.h>
+
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qplatformsurfacecapture_p.h>
 
 QT_BEGIN_NAMESPACE
 
