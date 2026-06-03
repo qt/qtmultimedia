@@ -1125,8 +1125,10 @@ void QWasmVideoOutput::webglVideoFrameCallback(void *context)
 // default fallback for non VideoFrame
 void QWasmVideoOutput::videoFrameTimerCallback()
 {
-    if (m_hasVideoFrame && !m_hasWebGLContext)
+    if (m_hasVideoFrame && !m_hasWebGLContext && !m_webGLContextChecked) {
+        m_webGLContextChecked = true;
         getWebGLContext();
+    }
 
     if (isPlatformiOs()) {
         emscripten::val stream = m_video["srcObject"];

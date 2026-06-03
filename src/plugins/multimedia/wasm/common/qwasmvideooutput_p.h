@@ -102,6 +102,7 @@ public:
     void webglVideoFrameCallback(void *context);
     void getWebGLContext();
     bool m_hasWebGLContext = false;
+    bool m_webGLContextChecked = false;
 
     // mediacapturesession has the videosink
     QVideoSink *m_wasmSink = nullptr;
