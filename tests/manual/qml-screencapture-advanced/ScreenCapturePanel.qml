@@ -13,8 +13,8 @@ GridLayout {
 
     required property bool useLandscapeLayout
     required property int recorderCaptureTracker
+    required property int preferredLeftWidth
 
-    Layout.fillWidth: true
     columns: useLandscapeLayout === true ? 2 : 1
 
     ScreenCapture {
@@ -23,20 +23,37 @@ GridLayout {
         onActiveChanged: () => {
             console.log("QScreenCapture active changed: " + active)
 
+            /*
             // CheckBox has a weird behavior where it will remove our bindings when activated.
             // Update the value manually here
             if (active === true)
                 screenCaptureActiveCheckBox.checkState = Qt.Checked
             else
                 screenCaptureActiveCheckBox.checkState = Qt.Unchecked
+            */
         }
 
-        onErrorChanged: () => {
-            console.log("QScreenCapture error changed: " + error)
+        function errorToString(err) {
+            switch (err) {
+            case ScreenCapture.NoError: return "NoError"
+            case ScreenCapture.InternalError: return "InternalError"
+            case ScreenCapture.CapturingNotSupported: return "CapturingNotSupported"
+            case ScreenCapture.CaptureFailed: return "CaptureFailed"
+            case ScreenCapture.NotFound: return "NotFund"
+            default: return "Unknown error code"
+            }
         }
 
-        onErrorStringChanged: (msg) => {
-            console.log("QScreenCapture error string changed: " + errorString)
+        function errorToLabel(err, msg) {
+            if (err === ScreenCapture.NoError)
+                return ""
+            return "(" + errorToString(err) + ") " + msg
+        }
+
+        readonly property string errorLabel: errorToLabel(error, errorString)
+
+        onErrorOccurred: (err, msg) => {
+            console.log("ScreenCapture error occurred: (" + errorToString(err) + ") " + msg)
         }
     }
 
@@ -96,10 +113,16 @@ GridLayout {
         }
 
         Label {
+            Layout.preferredWidth: root.preferredLeftWidth
+            wrapMode: Text.WordWrap
+            text: "Error: " + screenCapture.errorLabel
+        }
+
+        Label {
             text: "Screens:"
         }
         Frame {
-            Layout.preferredWidth: 200
+            Layout.preferredWidth: root.preferredLeftWidth
             Layout.preferredHeight: screensListView.model.length > 0 ? 200 : 50
             ListView {
                 id: screensListView

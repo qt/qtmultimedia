@@ -16,6 +16,9 @@ ApplicationWindow {
     height: 600
     visible: true
 
+    readonly property int preferredLeftWidth: 200
+    readonly property bool useLandscapeLayout: outerScrollView.width / outerScrollView.height > 0.75 ? true : false
+
     property int recordingTracker: 0
 
     Pane {
@@ -61,13 +64,21 @@ ApplicationWindow {
 
                         WindowCapturePanel {
                             topWindow: root
-                            useLandscapeLayout: outerScrollView.width / outerScrollView.height > 0.75 ? true : false
+                            useLandscapeLayout: root.useLandscapeLayout
                             recorderCaptureTracker: root.recordingTracker
+                            preferredLeftWidth: root.preferredLeftWidth
+
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
                         }
 
                         ScreenCapturePanel {
-                            useLandscapeLayout: outerScrollView.width / outerScrollView.height > 0.75 ? true : false
+                            useLandscapeLayout: root.useLandscapeLayout
                             recorderCaptureTracker: root.recordingTracker
+                            preferredLeftWidth: root.preferredLeftWidth
+
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
                         }
                     }
                 }
