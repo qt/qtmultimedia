@@ -256,6 +256,23 @@ void QWindowCapture::resetFrameRate()
     This is equivalent to setting the \l active property to false.
 */
 
+/*!
+    \qmlsignal QtMultimedia::WindowCapture::errorChanged()
+
+    This signal is emitted when the \l{error} or \l{errorString} properties are changed.
+
+    This signal is not emitted whenever multiple identical errors are raised. To track such
+    errors, use the signal \l errorOccurred.
+*/
+
+/*!
+    \fn void QWindowCapture::errorChanged()
+
+    This signal is emitted when the \l{error} or \l{errorString} properties are changed.
+
+    This signal is not emitted whenever multiple identical errors are raised. To track such
+    errors, use the signal \l errorOccurred.
+*/
 
 /*!
     \qmlproperty enumeration QtMultimedia::WindowCapture::error
