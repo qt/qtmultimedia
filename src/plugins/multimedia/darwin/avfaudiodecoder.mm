@@ -398,7 +398,7 @@ void AVFAudioDecoder::processInvalidMedia(QAudioDecoder::Error errorCode,
 
     Q_ASSERT(QThread::currentThread() == thread());
 
-    error(int(errorCode), errorString);
+    error(errorCode, errorString);
 
     // TODO: may be check if decodingCondext was changed by
     // user's action (restart) from the emitted error.
