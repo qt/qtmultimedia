@@ -17,7 +17,8 @@ QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qWasmMediaDevices, "qt.multimedia.wasm.mediadevices")
 
-Q_GLOBAL_STATIC(QWasmMediaDevices, s_wasmMediaDevicesInstance);
+static QWasmMediaDevices *s_mediaDevicesInstance = nullptr;
+static bool s_constructingInstance = false;
 
 bool isFirefox() {
     return !emscripten::val::global("InstallTrigger").isUndefined();
@@ -115,12 +116,19 @@ void QWasmAudioDevices::connectNotify(const QMetaMethod &signal)
 
 QWasmMediaDevices::QWasmMediaDevices()
 {
-    initDevices();
 }
 
 QWasmMediaDevices *QWasmMediaDevices::instance()
 {
-    return s_wasmMediaDevicesInstance();
+    if (s_mediaDevicesInstance)
+        return s_mediaDevicesInstance;
+    if (s_constructingInstance)
+        return nullptr;
+    s_constructingInstance = true;
+    s_mediaDevicesInstance = new QWasmMediaDevices();
+    s_constructingInstance = false;
+    s_mediaDevicesInstance->initDevices();
+    return s_mediaDevicesInstance;
 }
 
 void QWasmMediaDevices::initDevices()
