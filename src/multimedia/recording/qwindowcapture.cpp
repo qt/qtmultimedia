@@ -224,6 +224,8 @@ void QWindowCapture::setActive(bool active)
 /*!
     \qmlproperty enumeration QtMultimedia::WindowCapture::error
     Returns a code of the last error.
+
+    \qmlenumeratorsfrom QWindowCapture::Error
 */
 
 /*!
