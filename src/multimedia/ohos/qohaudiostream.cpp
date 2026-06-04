@@ -45,7 +45,7 @@ QAudioFormat::SampleFormat fromOHSampleFormat(OH_AudioStream_SampleFormat fmt)
     case AUDIOSTREAM_SAMPLE_S16LE:
         return QAudioFormat::Int16;
     case AUDIOSTREAM_SAMPLE_S24LE:
-        return QAudioFormat::Int32;
+        return QAudioFormat::Unknown;
     case AUDIOSTREAM_SAMPLE_S32LE:
         return QAudioFormat::Int32;
     case AUDIOSTREAM_SAMPLE_F32LE:
