@@ -553,6 +553,37 @@ void QPipeWireCaptureHelper::onRegistryEventGlobal(uint32_t id, uint32_t permiss
     recreateStream();
 }
 
+namespace {
+
+struct Rate {
+    qreal fps; // Used as stream frame rate
+    spa_fraction frac; // Used as pipewire frame rate
+};
+
+Rate rateFromFps(qreal fps)
+{
+    // NTSC rates get special handling if it seems like the user wants them
+    constexpr Rate ntscRates[] = {
+        { 23.976, SPA_FRACTION(24'000, 1'001) },
+        { 29.97,  SPA_FRACTION(30'000, 1'001) },
+        { 59.94,  SPA_FRACTION(60'000, 1'001) },
+    };
+    // NOTE: One could assume that a requested 60.f mapped to 60000/1001.
+    // TODO: There's also other rates (59.97, 49.99, etc..)
+
+    for (const Rate &k : ntscRates) {
+        if (qAbs(fps - k.fps) < 0.01)
+            return k;
+    }
+
+    // By default, round to a whole number fps. Rounding down is safest,
+    // but avoid 0/1, which isn't accepted as a maximum rate
+    quint32 roundedFps = qMax(qFloor(fps), 1);
+    return { qreal(roundedFps), SPA_FRACTION(roundedFps, 1) };
+}
+
+}
+
 void QPipeWireCaptureHelper::recreateStream()
 {
     static const pw_stream_events streamEvents = {
@@ -642,26 +673,30 @@ void QPipeWireCaptureHelper::recreateStream()
     struct spa_rectangle defsize = SPA_RECTANGLE(quint32(streamInfo.rect.width()), quint32(streamInfo.rect.height()));
     struct spa_rectangle maxsize = SPA_RECTANGLE(4096, 4096);
     struct spa_rectangle minsize = SPA_RECTANGLE(1,1);
-    struct spa_fraction defrate  = SPA_FRACTION(25, 1);
-    struct spa_fraction maxrate  = SPA_FRACTION(1000, 1);
-    struct spa_fraction minrate  = SPA_FRACTION(0, 1);
+
+    // Considering the framerate as always variable rate, but with our target set as maximum.
+    struct spa_fraction maxrate = SPA_FRACTION(1000, 1);
+    struct spa_fraction minrate = SPA_FRACTION(0, 1);
+    auto rate = rateFromFps(m_capture.frameRate().value_or(DefaultCaptureFrameRate));
+    m_streamFrameRate = rate.fps;
 
     params[0] = static_cast<const spa_pod*>(spa_pod_builder_add_object(
             &b,
             SPA_TYPE_OBJECT_Format,     SPA_PARAM_EnumFormat,
-            SPA_FORMAT_mediaType,       SPA_POD_Id(SPA_MEDIA_TYPE_video),
-            SPA_FORMAT_mediaSubtype,    SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
-            SPA_FORMAT_VIDEO_format,    SPA_POD_CHOICE_ENUM_Id(6,
-                                            SPA_VIDEO_FORMAT_RGB,
-                                            SPA_VIDEO_FORMAT_BGR,
-                                            SPA_VIDEO_FORMAT_RGBA,
-                                            SPA_VIDEO_FORMAT_BGRA,
-                                            SPA_VIDEO_FORMAT_RGBx,
-                                            SPA_VIDEO_FORMAT_BGRx),
-            SPA_FORMAT_VIDEO_size,      SPA_POD_CHOICE_RANGE_Rectangle(
+            SPA_FORMAT_mediaType,          SPA_POD_Id(SPA_MEDIA_TYPE_video),
+            SPA_FORMAT_mediaSubtype,       SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+            SPA_FORMAT_VIDEO_format,       SPA_POD_CHOICE_ENUM_Id(6,
+                                               SPA_VIDEO_FORMAT_RGB,
+                                               SPA_VIDEO_FORMAT_BGR,
+                                               SPA_VIDEO_FORMAT_RGBA,
+                                               SPA_VIDEO_FORMAT_BGRA,
+                                               SPA_VIDEO_FORMAT_RGBx,
+                                               SPA_VIDEO_FORMAT_BGRx),
+            SPA_FORMAT_VIDEO_size,         SPA_POD_CHOICE_RANGE_Rectangle(
                                             &defsize, &minsize, &maxsize),
-            SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(
-                                            &defrate, &minrate, &maxrate))
+            SPA_FORMAT_VIDEO_framerate,    SPA_POD_CHOICE_RANGE_Fraction(
+                                            &rate.frac, &minrate, &maxrate),
+            SPA_FORMAT_VIDEO_maxFramerate, SPA_POD_Fraction(&rate.frac))
     );
     QT_WARNING_POP
 
@@ -759,6 +794,9 @@ void QPipeWireCaptureHelper::onProcess()
 
     if (m_videoFrameFormat.frameSize() != m_size || m_videoFrameFormat.pixelFormat() != m_pixelFormat)
         m_videoFrameFormat = QVideoFrameFormat(m_size, m_pixelFormat);
+    if (m_videoFrameFormat.streamFrameRate() != m_streamFrameRate)
+        m_videoFrameFormat.setStreamFrameRate(m_streamFrameRate);
+        // FIXME: Seems that at higher rates, the capture is slower than requested, causing fast playback
 
     m_currentFrame = QVideoFramePrivate::createFrame(
             std::make_unique<QMemoryVideoBuffer>(QByteArray(static_cast<const char *>(sdata), size), sstride),
