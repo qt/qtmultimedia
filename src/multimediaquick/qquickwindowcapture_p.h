@@ -18,6 +18,8 @@
 #include <QtMultimedia/qwindowcapture.h>
 #include <QtMultimediaQuick/qtmultimediaquickexports.h>
 
+#include <QtQml/qqmlregistration.h>
+
 QT_BEGIN_NAMESPACE
 
 class Q_MULTIMEDIAQUICK_EXPORT QQuickWindowCapture : public QWindowCapture
