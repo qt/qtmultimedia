@@ -8,14 +8,14 @@
 #include "qohosaudiosource_p.h"
 
 #include <private/qaudiodevice_p.h>
+#include <private/qaudioformat_p.h>
 
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qspan.h>
 
 #include <ohaudio/native_audio_device_base.h>
 #include <ohaudio/native_audio_manager.h>
 #include <ohaudio/native_audio_routing_manager.h>
-
-#include <algorithm>
 
 QT_BEGIN_NAMESPACE
 
@@ -25,42 +25,35 @@ Q_STATIC_LOGGING_CATEGORY(qLcOhosAudioDevices, "qt.multimedia.ohos.audiodevices"
 
 QAudioFormat preferredDeviceFormat(OH_AudioDeviceDescriptor *descriptor)
 {
+    namespace ranges = QtMultimediaPrivate::ranges;
+
     QAudioFormat format;
 
+    // OHAudio reports INVALID_PARAM for the channel counts (and sometimes the
+    // sample rates) of otherwise valid devices such as USB headsets, so fall
+    // back per field to sensible defaults.
+    constexpr int defaultSampleRate = 48000;
     uint32_t *sampleRates = nullptr;
     uint32_t sampleRateCount = 0;
     if (OH_AudioDeviceDescriptor_GetDeviceSampleRates(descriptor, &sampleRates, &sampleRateCount)
                 == AUDIOCOMMON_RESULT_SUCCESS
         && sampleRateCount > 0) {
-        uint32_t chosen = sampleRates[0];
-        for (uint32_t i = 0; i < sampleRateCount; ++i) {
-            if (sampleRates[i] == 48000) {
-                chosen = 48000;
-                break;
-            }
-            chosen = std::max(chosen, sampleRates[i]);
-        }
-        format.setSampleRate(static_cast<int>(chosen));
+        format.setSampleRate(QtMultimediaPrivate::findClosestSamplingRate(
+                defaultSampleRate, QSpan<const uint32_t>{ sampleRates, sampleRateCount }));
     } else {
-        format.setSampleRate(48000);
+        format.setSampleRate(defaultSampleRate);
     }
 
     uint32_t *channelCounts = nullptr;
     uint32_t channelCountSize = 0;
-    if (OH_AudioDeviceDescriptor_GetDeviceChannelCounts(descriptor, &channelCounts,
-                                                        &channelCountSize)
+    if (OH_AudioDeviceDescriptor_GetDeviceChannelCounts(descriptor, &channelCounts, &channelCountSize)
                 == AUDIOCOMMON_RESULT_SUCCESS
         && channelCountSize > 0) {
-        uint32_t chosen = channelCounts[0];
-        for (uint32_t i = 0; i < channelCountSize; ++i) {
-            if (channelCounts[i] == 2) {
-                chosen = 2;
-                break;
-            }
-            chosen = std::max(chosen, channelCounts[i]);
-        }
+        const QSpan<const uint32_t> channels{ channelCounts, channelCountSize };
+        const uint32_t chosenChannels =
+                ranges::contains(channels, 2u) ? 2u : *ranges::max_element(channels);
         format.setChannelConfig(
-                QAudioFormat::defaultChannelConfigForChannelCount(static_cast<int>(chosen)));
+                QAudioFormat::defaultChannelConfigForChannelCount(static_cast<int>(chosenChannels)));
     } else {
         format.setChannelConfig(QAudioFormat::ChannelConfigStereo);
     }
