@@ -32,15 +32,6 @@ GridLayout {
 
         onActiveChanged: () => {
             console.log("QWindowCapture active changed: " + active)
-
-            /*
-            // CheckBox has a weird behavior where it will remove our bindings when activated.
-            // Update the value manually here
-            if (active === true)
-                windowCaptureActiveCheckBox.checkState = Qt.Checked
-            else
-                windowCaptureActiveCheckBox.checkState = Qt.Unchecked
-            */
         }
 
         function errorToString(err) {
@@ -65,6 +56,8 @@ GridLayout {
         onErrorOccurred: (err, msg) => {
             console.log("QWindowCapture error occurred (" + errorToString(err) + ") " + msg)
         }
+
+        onFrameRateChanged: console.log("QWindowCapture frameRate changed " + frameRate)
     }
 
     MediaRecorder {
@@ -130,6 +123,33 @@ GridLayout {
                 } else {
                     mediaRecorder.stop()
                 }
+            }
+        }
+
+        RowLayout {
+            Label {
+                text: "Framerate:"
+            }
+            TextField {
+                id: floatField
+                text: windowCapture.frameRate
+                inputMethodHints: Qt.ImhFormattedNumbersOnly
+
+                validator: DoubleValidator {
+                    bottom: 1.0
+                    top: 1000.0
+                    decimals: 2
+                    notation: DoubleValidator.StandardNotation
+                    locale: "C"
+                }
+
+                onEditingFinished: {
+                    windowCapture.frameRate = parseFloat(text)
+                }
+            }
+            Button {
+                text: "Reset"
+                onClicked: windowCapture.frameRate = undefined
             }
         }
 
