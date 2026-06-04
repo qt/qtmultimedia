@@ -120,11 +120,19 @@ QWindowCapture::~QWindowCapture()
     \qmlmethod list<CapturableWindow> QtMultimedia::WindowCapture::capturableWindows()
 
     Returns a list of CapturableWindow objects that is available for capturing.
+
+    \note On macOS, invoking this method will trigger the "Screen Recording" permission
+    dialog. If permissions have not yet been granted, this method will return an empty list.
+    Invoking it multiple times will bring this dialog to the foreground.
 */
 /*!
     \fn QList<QCapturableWindow> QWindowCapture::capturableWindows()
 
     Returns a list of QCapturableWindow objects that is available for capturing.
+
+    \note On macOS, invoking this method will trigger the "Screen Recording" permission
+    dialog. If permissions have not yet been granted, this method will return an empty list.
+    Invoking it multiple times will bring this dialog to the foreground.
  */
 QList<QCapturableWindow> QWindowCapture::capturableWindows()
 {
