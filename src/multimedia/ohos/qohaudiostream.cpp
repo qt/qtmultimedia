@@ -87,7 +87,7 @@ const char *resultToString(OH_AudioStream_Result result)
 }
 
 StreamBuilder::StreamBuilder(QAudioFormat fmt, OH_AudioStream_Type direction)
-    : format{ std::move(fmt) }
+    : format{ fmt }
 {
     params.direction = direction;
     QMutexLocker lock{ g_streamBuilderMutex() };
