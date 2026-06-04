@@ -75,21 +75,8 @@ QAudioFormat preferredDeviceFormat(OH_AudioDeviceDescriptor *descriptor)
     return format;
 }
 
-QString deviceDisplayDescription(OH_AudioDeviceDescriptor *descriptor)
+QString deviceTypeLabel(OH_AudioDevice_Type type)
 {
-    char *displayName = nullptr;
-    if (OH_AudioDeviceDescriptor_GetDeviceDisplayName(descriptor, &displayName)
-                == AUDIOCOMMON_RESULT_SUCCESS
-        && displayName && *displayName) {
-        return QString::fromUtf8(displayName);
-    }
-    char *name = nullptr;
-    if (OH_AudioDeviceDescriptor_GetDeviceName(descriptor, &name) == AUDIOCOMMON_RESULT_SUCCESS
-        && name) {
-        return QString::fromUtf8(name);
-    }
-    OH_AudioDevice_Type type{ AUDIO_DEVICE_TYPE_INVALID };
-    OH_AudioDeviceDescriptor_GetDeviceType(descriptor, &type);
     switch (type) {
     case AUDIO_DEVICE_TYPE_EARPIECE:
         return QStringLiteral("Earpiece");
@@ -111,6 +98,35 @@ QString deviceDisplayDescription(OH_AudioDeviceDescriptor *descriptor)
     default:
         break;
     }
+    return {};
+}
+
+QString deviceDisplayDescription(OH_AudioDeviceDescriptor *descriptor)
+{
+    char *name = nullptr;
+    if (OH_AudioDeviceDescriptor_GetDeviceName(descriptor, &name) == AUDIOCOMMON_RESULT_SUCCESS
+        && name && *name) {
+        return QString::fromUtf8(name);
+    }
+
+    OH_AudioDevice_Type type{ AUDIO_DEVICE_TYPE_INVALID };
+    OH_AudioDeviceDescriptor_GetDeviceType(descriptor, &type);
+    const QString typeLabel = deviceTypeLabel(type);
+
+    QString displayName;
+    char *rawDisplayName = nullptr;
+    if (OH_AudioDeviceDescriptor_GetDeviceDisplayName(descriptor, &rawDisplayName)
+                == AUDIOCOMMON_RESULT_SUCCESS
+        && rawDisplayName && *rawDisplayName) {
+        displayName = QString::fromUtf8(rawDisplayName);
+    }
+
+    if (!displayName.isEmpty() && !typeLabel.isEmpty())
+        return displayName + u' ' + typeLabel;
+    if (!displayName.isEmpty())
+        return displayName;
+    if (!typeLabel.isEmpty())
+        return typeLabel;
     return QStringLiteral("Audio Device");
 }
 
