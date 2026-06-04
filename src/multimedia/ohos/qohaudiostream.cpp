@@ -30,7 +30,7 @@ namespace {
 // OH_AudioStreamBuilder is not thread-safe: concurrent Create/Destroy and
 // GenerateRenderer/GenerateCapturer calls from multiple threads crash inside
 // the audio service. Serialize all builder lifecycle operations.
-Q_GLOBAL_STATIC(QMutex, g_streamBuilderMutex)
+Q_CONSTINIT QBasicMutex g_streamBuilderMutex;
 }
 
 OH_AudioStream_SampleFormat toOHSampleFormat(QAudioFormat::SampleFormat fmt)
@@ -87,7 +87,7 @@ StreamBuilder::StreamBuilder(QAudioFormat fmt, OH_AudioStream_Type direction)
     : format{ fmt }
 {
     params.direction = direction;
-    QMutexLocker lock{ g_streamBuilderMutex() };
+    QMutexLocker lock{ &g_streamBuilderMutex };
     OH_AudioStream_Result result = OH_AudioStreamBuilder_Create(&m_builder, direction);
     if (result != AUDIOSTREAM_SUCCESS)
         qCWarning(qLcOHAudioStream)
@@ -96,7 +96,7 @@ StreamBuilder::StreamBuilder(QAudioFormat fmt, OH_AudioStream_Type direction)
 
 StreamBuilder::~StreamBuilder()
 {
-    QMutexLocker lock{ g_streamBuilderMutex() };
+    QMutexLocker lock{ &g_streamBuilderMutex };
     if (m_builder)
         OH_AudioStreamBuilder_Destroy(m_builder);
 }
@@ -142,7 +142,7 @@ Stream::Stream(StreamBuilder &builder)
 
     OH_AudioStream_Result result = AUDIOSTREAM_SUCCESS;
     {
-        QMutexLocker lock{ g_streamBuilderMutex() };
+        QMutexLocker lock{ &g_streamBuilderMutex };
         if (m_streamType == AUDIOSTREAM_TYPE_RENDERER) {
             result = OH_AudioStreamBuilder_GenerateRenderer(builder.m_builder, &m_renderer);
         } else {
