@@ -206,13 +206,6 @@ struct QCapturableWindowForeign
     QML_CONSTRUCTIBLE_VALUE
 };
 
-struct QWindowCaptureForeign
-{
-    Q_GADGET
-    QML_FOREIGN(QWindowCapture)
-    QML_NAMED_ELEMENT(WindowCapture)
-};
-
 class QPlaybackOptionsDerived : public QPlaybackOptions
 {
     Q_PROPERTY(qint64 networkTimeoutMs READ networkTimeoutMs WRITE setNetworkTimeoutMs RESET resetNetworkTimeoutMs FINAL)

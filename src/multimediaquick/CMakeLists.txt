@@ -28,6 +28,7 @@ qt_internal_add_qml_module(MultimediaQuick
         qqmlcontext_source_resolver.cpp qqmlcontext_source_resolver_p.h
         qquicksoundeffect.cpp qquicksoundeffect_p.h
         qquickvideooutput.cpp qquickvideooutput_p.h
+        qquickwindowcapture.cpp qquickwindowcapture_p.h
         qsgvideonode_p.cpp qsgvideonode_p.h
         qsgvideotexture.cpp qsgvideotexture_p.h
         qtmultimediaquickglobal.h qtmultimediaquickglobal_p.h
