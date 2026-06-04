@@ -17,6 +17,8 @@
 
 #include <private/qplatformaudiodevices_p.h>
 
+#include <ohaudio/native_audio_device_base.h>
+
 QT_BEGIN_NAMESPACE
 
 class QOhosAudioDevices : public QPlatformAudioDevices
@@ -36,6 +38,17 @@ public:
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;
+
+private:
+    void registerDeviceChangeCallbacks();
+    void unregisterDeviceChangeCallbacks();
+
+    static int32_t onInputDevicesChanged(OH_AudioDevice_ChangeType type,
+                                         OH_AudioDeviceDescriptorArray *devices);
+    static int32_t onOutputDevicesChanged(OH_AudioDevice_ChangeType type,
+                                          OH_AudioDeviceDescriptorArray *devices);
+
+    bool m_deviceChangeCallbacksRegistered = false;
 };
 
 QT_END_NAMESPACE

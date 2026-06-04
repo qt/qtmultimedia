@@ -11,6 +11,7 @@
 #include <private/qaudioformat_p.h>
 
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qmutex.h>
 #include <QtCore/qspan.h>
 
 #include <ohaudio/native_audio_device_base.h>
@@ -25,6 +26,15 @@ QT_BEGIN_NAMESPACE
 namespace {
 
 Q_STATIC_LOGGING_CATEGORY(qLcOhosAudioDevices, "qt.multimedia.ohos.audiodevices")
+
+// OH_AudioRoutingManager_OnDeviceChangedCallback carries no user data, so the
+// device-change callbacks reach the (single) QOhosAudioDevices instance through
+// this pointer, set for the lifetime of the object.
+Q_CONSTINIT QOhosAudioDevices *g_audioDevicesInstance = nullptr;
+
+// Serializes access to g_audioDevicesInstance so a device-change callback
+// arriving on an OHAudio thread cannot run against a half-destroyed instance.
+Q_CONSTINIT QBasicMutex g_callbackMutex;
 
 QAudioFormat preferredDeviceFormat(OH_AudioDeviceDescriptor *descriptor)
 {
@@ -176,9 +186,76 @@ QList<QAudioDevice> enumerateDevices(QAudioDevice::Mode mode)
 
 } // namespace
 
-QOhosAudioDevices::QOhosAudioDevices() : QPlatformAudioDevices() { }
+QOhosAudioDevices::QOhosAudioDevices() : QPlatformAudioDevices()
+{
+    Q_ASSERT(!g_audioDevicesInstance);
+    g_audioDevicesInstance = this;
+    registerDeviceChangeCallbacks();
+}
 
-QOhosAudioDevices::~QOhosAudioDevices() = default;
+QOhosAudioDevices::~QOhosAudioDevices()
+{
+    unregisterDeviceChangeCallbacks();
+    QMutexLocker guard{ &g_callbackMutex };
+    g_audioDevicesInstance = nullptr;
+}
+
+void QOhosAudioDevices::registerDeviceChangeCallbacks()
+{
+    OH_AudioRoutingManager *routing = nullptr;
+    if (OH_AudioManager_GetAudioRoutingManager(&routing) != AUDIOCOMMON_RESULT_SUCCESS || !routing) {
+        qCWarning(qLcOhosAudioDevices)
+                << "Cannot register device change callbacks: routing manager unavailable";
+        return;
+    }
+
+    const OH_AudioCommon_Result inputResult = OH_AudioRoutingManager_RegisterDeviceChangeCallback(
+            routing, AUDIO_DEVICE_FLAG_INPUT, &QOhosAudioDevices::onInputDevicesChanged);
+    const OH_AudioCommon_Result outputResult = OH_AudioRoutingManager_RegisterDeviceChangeCallback(
+            routing, AUDIO_DEVICE_FLAG_OUTPUT, &QOhosAudioDevices::onOutputDevicesChanged);
+
+    if (inputResult != AUDIOCOMMON_RESULT_SUCCESS || outputResult != AUDIOCOMMON_RESULT_SUCCESS)
+        qCWarning(qLcOhosAudioDevices) << "Failed to register audio device change callbacks";
+
+    m_deviceChangeCallbacksRegistered =
+            inputResult == AUDIOCOMMON_RESULT_SUCCESS || outputResult == AUDIOCOMMON_RESULT_SUCCESS;
+}
+
+void QOhosAudioDevices::unregisterDeviceChangeCallbacks()
+{
+    if (!m_deviceChangeCallbacksRegistered)
+        return;
+
+    OH_AudioRoutingManager *routing = nullptr;
+    if (OH_AudioManager_GetAudioRoutingManager(&routing) != AUDIOCOMMON_RESULT_SUCCESS || !routing)
+        return;
+
+    OH_AudioRoutingManager_UnregisterDeviceChangeCallback(
+            routing, &QOhosAudioDevices::onInputDevicesChanged);
+    OH_AudioRoutingManager_UnregisterDeviceChangeCallback(
+            routing, &QOhosAudioDevices::onOutputDevicesChanged);
+}
+
+// Invoked on an OHAudio service thread. We ignore the supplied descriptor array
+// (owned by the framework) and just invalidate the cache so the next query
+// re-enumerates.
+int32_t QOhosAudioDevices::onInputDevicesChanged(OH_AudioDevice_ChangeType /*type*/,
+                                                 OH_AudioDeviceDescriptorArray * /*devices*/)
+{
+    QMutexLocker guard{ &g_callbackMutex };
+    if (g_audioDevicesInstance)
+        g_audioDevicesInstance->onAudioInputsChanged();
+    return 0;
+}
+
+int32_t QOhosAudioDevices::onOutputDevicesChanged(OH_AudioDevice_ChangeType /*type*/,
+                                                  OH_AudioDeviceDescriptorArray * /*devices*/)
+{
+    QMutexLocker guard{ &g_callbackMutex };
+    if (g_audioDevicesInstance)
+        g_audioDevicesInstance->onAudioOutputsChanged();
+    return 0;
+}
 
 QList<QAudioDevice> QOhosAudioDevices::findAudioInputs() const
 {
