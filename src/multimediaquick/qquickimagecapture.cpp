@@ -3,9 +3,9 @@
 
 #include "qquickimagecapture_p.h"
 
-#include <QtMultimediaQuick/private/qquickimagepreviewprovider_p.h>
-
 #include <QtCore/qurl.h>
+
+#include <QtMultimediaQuick/private/qquickimagepreviewprovider_p.h>
 
 QT_BEGIN_NAMESPACE
 

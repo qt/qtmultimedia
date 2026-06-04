@@ -4,17 +4,20 @@
 
 #include "qquickvideooutput_p.h"
 
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qrunnable.h>
+#include <QtCore/private/qfactoryloader_p.h>
+
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtMultimedia/private/qvideoframetexturepool_p.h>
 #include <QtMultimedia/private/qvideooutputorientationhandler_p.h>
+
+#include <QtMultimediaQuick/private/qsgvideonode_p.h>
+
 #include <QtQuick/qquickwindow.h>
 #include <QtQuick/private/qquickwindow_p.h>
-#include <QtCore/qloggingcategory.h>
-#include <QtCore/qrunnable.h>
-#include <QtCore/private/qfactoryloader_p.h>
-#include <QtMultimediaQuick/private/qsgvideonode_p.h>
 
 QT_BEGIN_NAMESPACE
 

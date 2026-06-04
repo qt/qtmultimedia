@@ -6,7 +6,10 @@
 #include <QtMultimedia/private/qhwvideobuffer_p.h>
 #include <QtMultimedia/private/qvideoframetexturepool_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
+
+#include <QtMultimediaQuick/private/qsgvideotexture_p.h>
 #include <QtMultimediaQuick/private/qquickvideooutput_p.h>
+
 #include <QtQuick/qsgmaterial.h>
 #include <QtQuick/private/qquickitem_p.h>
 #include <QtQuick/private/qsginternaltextnode_p.h>
@@ -14,8 +17,6 @@
 #if QT_CONFIG(opengles2)
 #include <QtGui/private/qshaderdescription_p.h>
 #endif
-
-#include "qsgvideotexture_p.h"
 
 QT_BEGIN_NAMESPACE
 
