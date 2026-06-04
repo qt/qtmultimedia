@@ -16,6 +16,9 @@
 #include <ohaudio/native_audio_device_base.h>
 #include <ohaudio/native_audio_manager.h>
 #include <ohaudio/native_audio_routing_manager.h>
+#include <ohaudio/native_audiostream_base.h>
+
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -101,6 +104,26 @@ QString deviceDisplayDescription(OH_AudioDeviceDescriptor *descriptor)
     return QStringLiteral("Audio Device");
 }
 
+std::optional<uint32_t> preferredDeviceId(OH_AudioRoutingManager *routing, QAudioDevice::Mode mode)
+{
+    OH_AudioDeviceDescriptorArray *preferred = nullptr;
+    const OH_AudioCommon_Result result = (mode == QAudioDevice::Input)
+            ? OH_AudioRoutingManager_GetPreferredInputDevice(routing, AUDIOSTREAM_SOURCE_TYPE_MIC,
+                                                             &preferred)
+            : OH_AudioRoutingManager_GetPreferredOutputDevice(routing, AUDIOSTREAM_USAGE_MUSIC,
+                                                              &preferred);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS || !preferred || preferred->size == 0) {
+        if (preferred)
+            OH_AudioRoutingManager_ReleaseDevices(routing, preferred);
+        return std::nullopt;
+    }
+
+    uint32_t deviceId = 0;
+    OH_AudioDeviceDescriptor_GetDeviceId(preferred->descriptors[0], &deviceId);
+    OH_AudioRoutingManager_ReleaseDevices(routing, preferred);
+    return deviceId;
+}
+
 QList<QAudioDevice> enumerateDevices(QAudioDevice::Mode mode)
 {
     OH_AudioManager *manager = nullptr;
@@ -126,6 +149,8 @@ QList<QAudioDevice> enumerateDevices(QAudioDevice::Mode mode)
         return {};
     }
 
+    const std::optional<uint32_t> defaultDeviceId = preferredDeviceId(routing, mode);
+
     QList<QAudioDevice> devices;
     devices.reserve(descriptors->size);
     for (uint32_t i = 0; i < descriptors->size; ++i) {
@@ -138,10 +163,11 @@ QList<QAudioDevice> enumerateDevices(QAudioDevice::Mode mode)
 
         const QAudioFormat preferredFormat = preferredDeviceFormat(descriptor);
         const QString description = deviceDisplayDescription(descriptor);
+        const bool isDefault = defaultDeviceId ? deviceId == *defaultDeviceId : i == 0;
 
         devices << QAudioDevicePrivate::createQAudioDevice(std::make_unique<QOhosAudioDevice>(
                 QByteArray::number(deviceId), description, mode, preferredFormat,
-                i == 0));
+                isDefault));
     }
 
     OH_AudioRoutingManager_ReleaseDevices(routing, descriptors);
