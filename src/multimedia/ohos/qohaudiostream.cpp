@@ -3,10 +3,24 @@
 
 #include "qohaudiostream_p.h"
 
+#include <QtMultimedia/private/qmultimedia_enum_to_string_converter_p.h>
+
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qmutex.h>
 
 QT_BEGIN_NAMESPACE
+
+// clang-format off
+QT_MM_MAKE_STRING_RESOLVER(OH_AudioStream_Result, QtMultimediaPrivate::EnumName,
+                           (AUDIOSTREAM_SUCCESS, "AUDIOSTREAM_SUCCESS")
+                           (AUDIOSTREAM_ERROR_INVALID_PARAM, "AUDIOSTREAM_ERROR_INVALID_PARAM")
+                           (AUDIOSTREAM_ERROR_ILLEGAL_STATE, "AUDIOSTREAM_ERROR_ILLEGAL_STATE")
+                           (AUDIOSTREAM_ERROR_SYSTEM, "AUDIOSTREAM_ERROR_SYSTEM")
+                           (AUDIOSTREAM_ERROR_UNSUPPORTED_FORMAT, "AUDIOSTREAM_ERROR_UNSUPPORTED_FORMAT")
+                          );
+// clang-format on
+
+QT_MM_DEFINE_QDEBUG_ENUM(OH_AudioStream_Result);
 
 namespace QtOHAudio {
 
@@ -69,23 +83,6 @@ QAudioFormat::SampleFormat preferredCompatibleSampleFormat(QAudioFormat::SampleF
     return QAudioFormat::Int16;
 }
 
-const char *resultToString(OH_AudioStream_Result result)
-{
-    switch (result) {
-    case AUDIOSTREAM_SUCCESS:
-        return "AUDIOSTREAM_SUCCESS";
-    case AUDIOSTREAM_ERROR_INVALID_PARAM:
-        return "AUDIOSTREAM_ERROR_INVALID_PARAM";
-    case AUDIOSTREAM_ERROR_ILLEGAL_STATE:
-        return "AUDIOSTREAM_ERROR_ILLEGAL_STATE";
-    case AUDIOSTREAM_ERROR_SYSTEM:
-        return "AUDIOSTREAM_ERROR_SYSTEM";
-    case AUDIOSTREAM_ERROR_UNSUPPORTED_FORMAT:
-        return "AUDIOSTREAM_ERROR_UNSUPPORTED_FORMAT";
-    }
-    return "AUDIOSTREAM_UNKNOWN_RESULT";
-}
-
 StreamBuilder::StreamBuilder(QAudioFormat fmt, OH_AudioStream_Type direction)
     : format{ fmt }
 {
@@ -94,7 +91,7 @@ StreamBuilder::StreamBuilder(QAudioFormat fmt, OH_AudioStream_Type direction)
     OH_AudioStream_Result result = OH_AudioStreamBuilder_Create(&m_builder, direction);
     if (result != AUDIOSTREAM_SUCCESS)
         qCWarning(qLcOHAudioStream)
-                << "Failed to create stream builder:" << resultToString(result);
+                << "Failed to create stream builder:" << result;
 }
 
 StreamBuilder::~StreamBuilder()
@@ -155,7 +152,7 @@ Stream::Stream(StreamBuilder &builder)
 
     if (result != AUDIOSTREAM_SUCCESS) {
         qCWarning(qLcOHAudioStream)
-                << "Failed to generate stream:" << resultToString(result);
+                << "Failed to generate stream:" << result;
         return;
     }
 
@@ -177,7 +174,7 @@ bool Stream::start()
         result = OH_AudioCapturer_Start(m_capturer);
 
     if (result != AUDIOSTREAM_SUCCESS)
-        qCWarning(qLcOHAudioStream) << "Failed to start stream:" << resultToString(result);
+        qCWarning(qLcOHAudioStream) << "Failed to start stream:" << result;
 
     return result == AUDIOSTREAM_SUCCESS;
 }
@@ -199,7 +196,7 @@ void Stream::pause()
         result = OH_AudioCapturer_Pause(m_capturer);
     if (result != AUDIOSTREAM_SUCCESS)
         qCWarning(qLcOHAudioStream)
-                << "Failed to pause stream:" << resultToString(result);
+                << "Failed to pause stream:" << result;
 }
 
 void Stream::flush()

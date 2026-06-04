@@ -93,7 +93,6 @@ private:
 OH_AudioStream_SampleFormat toOHSampleFormat(QAudioFormat::SampleFormat fmt);
 QAudioFormat::SampleFormat fromOHSampleFormat(OH_AudioStream_SampleFormat fmt);
 QAudioFormat::SampleFormat preferredCompatibleSampleFormat(QAudioFormat::SampleFormat requested);
-const char *resultToString(OH_AudioStream_Result result);
 
 } // namespace QtOHAudio
 
