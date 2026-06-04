@@ -266,10 +266,6 @@ void tst_QScreenCaptureBackend::setFrameRate_setsFrameRate()
 #ifdef Q_OS_ANDROID
     QSKIP("Framerate setting not implemented on Android");
 #endif
-#ifdef Q_OS_LINUX
-    if (QGuiApplication::platformName() == u"wayland"_s)
-        QSKIP("Framerate setting not implemented on Wayland");
-#endif
 
     TestVideoSink sink;
     QScreenCapture capture;

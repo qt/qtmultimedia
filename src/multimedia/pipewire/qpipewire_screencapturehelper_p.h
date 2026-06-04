@@ -34,6 +34,8 @@ class QDBusInterface;
 
 namespace QtPipeWire {
 
+inline static constexpr qreal DefaultCaptureFrameRate = 25.f;
+
 class QPipeWireInstance;
 
 class QPipeWireCaptureHelper : public QObject
@@ -93,6 +95,7 @@ private:
     QVideoFrameFormat m_videoFrameFormat;
     QVideoFrameFormat::PixelFormat m_pixelFormat{};
     QSize m_size;
+    qreal m_streamFrameRate = 0.f;
 
     PwThreadLoopHandle m_threadLoop;
     PwContextHandle m_context;
