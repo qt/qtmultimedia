@@ -50,6 +50,20 @@ private slots:
 
     void runAudioCallback_source_fmtConvert_NativeFmt();
     void runAudioCallback_source_fmtConvert_NativeFmt_data();
+
+    void qMultiplySamples();
+    void qMultiplySamples_data();
+
+    void bestSampleFormat();
+
+    void sanitizeVolume();
+    void sanitizeVolume_data();
+
+    void fillSilence_nativeFmt();
+    void fillSilence_nativeFmt_data();
+
+    void fillSilence_audioFormat();
+    void fillSilence_audioFormat_data();
 };
 
 namespace WordConverter {
@@ -685,6 +699,173 @@ void tst_QAudioHelpers::runAudioCallback_source_fmtConvert_NativeFmt_data()
     QTest::addColumn<bool>("mutableHostBuffer");
     QTest::newRow("mutable (QSpan<std::byte>)")        << true;
     QTest::newRow("immutable (QSpan<const std::byte>)") << false;
+}
+
+// ─── qMultiplySamples ─────────────────────────────────────────────────────
+
+void tst_QAudioHelpers::qMultiplySamples()
+{
+    QFETCH(QAudioFormat::SampleFormat, sampleFormat);
+    QFETCH(float, srcVal);
+    QFETCH(float, factor);
+    QFETCH(float, expectedVal);
+
+    QByteArray src = WordConverter::toBytes(srcVal, sampleFormat);
+    QByteArray dst(src.size(), Qt::Initialization::Uninitialized);
+
+    QAudioFormat fmt;
+    fmt.setSampleFormat(sampleFormat);
+
+    QAudioHelperInternal::qMultiplySamples(factor, fmt, src.constData(), dst.data(),
+                                           src.size());
+
+    float eps = (sampleFormat != QAudioFormat::SampleFormat::UInt8) ? 0.001f : 0.05f;
+    QCOMPARE_FLOAT_NEAR(WordConverter::fromBytes(dst, sampleFormat), expectedVal, eps);
+}
+
+void tst_QAudioHelpers::qMultiplySamples_data()
+{
+    using SF = QAudioFormat::SampleFormat;
+
+    QTest::addColumn<SF>("sampleFormat");
+    QTest::addColumn<float>("srcVal");
+    QTest::addColumn<float>("factor");
+    QTest::addColumn<float>("expectedVal");
+
+    auto rows = [](const char *label, SF fmt) {
+        auto mkName = [&](const char *desc) {
+            return QString(QLatin1String(label) + "_" + desc).toUtf8();
+        };
+        QTest::newRow(mkName("0.5 * 0.5").constData())      << fmt << 0.5f  << 0.5f << 0.25f;
+        QTest::newRow(mkName("0.5 * 1.0").constData())      << fmt << 0.5f  << 1.0f << 0.5f;
+        QTest::newRow(mkName("0.5 * 0.0").constData())      << fmt << 0.5f  << 0.0f << 0.0f;
+        QTest::newRow(mkName("-0.5 * 0.5").constData())     << fmt << -0.5f << 0.5f << -0.25f;
+    };
+
+    rows("float", SF::Float);
+    rows("int16", SF::Int16);
+    rows("int32", SF::Int32);
+    rows("uint8", SF::UInt8);
+}
+
+// ─── bestSampleFormat ─────────────────────────────────────────────────────
+
+void tst_QAudioHelpers::bestSampleFormat()
+{
+    // Verify round-trip: toNativeSampleFormat → bestSampleFormat → toNativeSampleFormat
+    const auto formats = {
+        QAudioFormat::SampleFormat::UInt8,
+        QAudioFormat::SampleFormat::Int16,
+        QAudioFormat::SampleFormat::Int32,
+        QAudioFormat::SampleFormat::Float,
+    };
+
+    for (auto sfmt : formats) {
+        auto nfmt = QAudioHelperInternal::toNativeSampleFormat(sfmt);
+        auto roundtrip = QAudioHelperInternal::bestSampleFormat(nfmt);
+        QCOMPARE_EQ(roundtrip, sfmt);
+    }
+}
+
+// ─── sanitizeVolume ──────────────────────────────────────────────────────
+
+void tst_QAudioHelpers::sanitizeVolume()
+{
+    QFETCH(float, input);
+    QFETCH(float, last);
+    QFETCH(std::optional<float>, expectedResult);
+
+    auto result = QAudioHelperInternal::sanitizeVolume(input, last);
+    QCOMPARE_EQ(result, expectedResult);
+}
+
+void tst_QAudioHelpers::sanitizeVolume_data()
+{
+    QTest::addColumn<float>("input");
+    QTest::addColumn<float>("last");
+    QTest::addColumn<std::optional<float>>("expectedResult");
+
+    QTest::newRow("no change 0.5") << 0.5f  << 0.5f << std::optional<float>{std::nullopt};
+    QTest::newRow("no change 1.0") << 1.0f  << 1.0f << std::optional<float>{std::nullopt};
+    QTest::newRow("no change 0.0") << 0.0f  << 0.0f << std::optional<float>{std::nullopt};
+
+    QTest::newRow("change 0.3")    << 0.3f  << 0.5f << std::optional<float>{ 0.3f };
+    QTest::newRow("clamp 1.5")     << 1.5f  << 0.0f << std::optional<float>{ 1.0f };
+    QTest::newRow("clamp -0.5")    << -0.5f << 1.0f << std::optional<float>{ 0.0f };
+}
+
+// ─── fillSilence (NativeSampleFormat variant) ──────────────────────────────
+
+void tst_QAudioHelpers::fillSilence_nativeFmt()
+{
+    QFETCH(NativeSampleFormat, fmt);
+    QFETCH(int, frameCount);
+
+    const int bytes = frameCount * int(QAudioHelperInternal::bytesPerSample(fmt));
+    QByteArray buf(bytes, Qt::Initialization::Uninitialized);
+
+    // Fill with garbage first
+    for (int i = 0; i < buf.size(); ++i)
+        buf[i] = char(0xAA);
+
+    QAudioHelperInternal::fillSilence(as_writable_bytes(QSpan{ buf }), fmt);
+
+    // Verify silence: uint8=0x80, others=0x00
+    const quint8 expected = (fmt == NativeSampleFormat::uint8_t) ? 0x80u : 0x00u;
+    for (int i = 0; i < buf.size(); ++i)
+        QCOMPARE_EQ(quint8(buf[i]), expected);
+}
+
+void tst_QAudioHelpers::fillSilence_nativeFmt_data()
+{
+    QTest::addColumn<NativeSampleFormat>("fmt");
+    QTest::addColumn<int>("frameCount");
+
+    QTest::newRow("uint8, 1")                << NativeSampleFormat::uint8_t      << 1;
+    QTest::newRow("int16, 2")                << NativeSampleFormat::int16_t      << 2;
+    QTest::newRow("int32, 3")                << NativeSampleFormat::int32_t      << 3;
+    QTest::newRow("float, 4")                << NativeSampleFormat::float32_t    << 4;
+    QTest::newRow("int24_3b, 10")            << NativeSampleFormat::int24_t_3b   << 10;
+    QTest::newRow("int24_4b_low, 5")         << NativeSampleFormat::int24_t_4b_low << 5;
+}
+
+// ─── fillSilence (QAudioFormat variant) ────────────────────────────────────
+
+void tst_QAudioHelpers::fillSilence_audioFormat()
+{
+    QFETCH(QAudioFormat::SampleFormat, sfmt);
+    QFETCH(int, channels);
+    QFETCH(int, frames);
+
+    auto fmt = testFmt(sfmt, channels);
+    int bytes = fmt.bytesForFrames(frames);
+    QByteArray buf(bytes, Qt::Initialization::Uninitialized);
+
+    for (int i = 0; i < buf.size(); ++i)
+        buf[i] = char(0xBB);
+
+    QAudioHelperInternal::fillSilence(as_writable_bytes(QSpan{ buf }), fmt);
+
+    // Verify silence: uint8=0x80, others=0x00
+    const quint8 expected = (sfmt == QAudioFormat::UInt8) ? 0x80u : 0x00u;
+    for (int i = 0; i < buf.size(); ++i)
+        QCOMPARE_EQ(quint8(buf[i]), expected);
+}
+
+void tst_QAudioHelpers::fillSilence_audioFormat_data()
+{
+    using SF = QAudioFormat::SampleFormat;
+
+    QTest::addColumn<SF>("sfmt");
+    QTest::addColumn<int>("channels");
+    QTest::addColumn<int>("frames");
+
+    QTest::newRow("float, 1ch, 1fr")    << SF::Float  << 1 << 1;
+    QTest::newRow("float, 2ch, 2fr")    << SF::Float  << 2 << 2;
+    QTest::newRow("int16, 1ch, 4fr")    << SF::Int16  << 1 << 4;
+    QTest::newRow("int16, 2ch, 3fr")    << SF::Int16  << 2 << 3;
+    QTest::newRow("int32, 2ch, 5fr")    << SF::Int32  << 2 << 5;
+    QTest::newRow("uint8, 1ch, 8fr")    << SF::UInt8  << 1 << 8;
 }
 
 QTEST_APPLESS_MAIN(tst_QAudioHelpers);
