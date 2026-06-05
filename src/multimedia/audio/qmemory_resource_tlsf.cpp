@@ -5,10 +5,6 @@
 
 #include <QtCore/qassert.h>
 
-#if !defined(Q_OS_OHOS)
-#include <memory_resource>
-#endif
-
 #include <tlsf.h>
 
 QT_BEGIN_NAMESPACE
