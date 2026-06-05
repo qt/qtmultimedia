@@ -150,6 +150,21 @@ std::optional<uint32_t> preferredDeviceId(OH_AudioRoutingManager *routing, QAudi
     return deviceId;
 }
 
+QByteArray deviceIdentifier(OH_AudioDeviceDescriptor *descriptor)
+{
+    // The numeric device id is reused after a device is unplugged, so prefer the
+    // stable device address as the identifier. Built-in devices report no
+    // address; fall back to their (stable) numeric id there.
+    char *address = nullptr;
+    if (OH_AudioDeviceDescriptor_GetDeviceAddress(descriptor, &address) == AUDIOCOMMON_RESULT_SUCCESS
+        && address && *address) {
+        return QByteArray{ address };
+    }
+    uint32_t deviceId = 0;
+    OH_AudioDeviceDescriptor_GetDeviceId(descriptor, &deviceId);
+    return QByteArray::number(deviceId);
+}
+
 QList<QAudioDevice> enumerateDevices(QAudioDevice::Mode mode)
 {
     OH_AudioManager *manager = nullptr;
@@ -187,12 +202,13 @@ QList<QAudioDevice> enumerateDevices(QAudioDevice::Mode mode)
         uint32_t deviceId = 0;
         OH_AudioDeviceDescriptor_GetDeviceId(descriptor, &deviceId);
 
+        const QByteArray identifier = deviceIdentifier(descriptor);
         const QAudioFormat preferredFormat = preferredDeviceFormat(descriptor);
         const QString description = deviceDisplayDescription(descriptor);
         const bool isDefault = defaultDeviceId ? deviceId == *defaultDeviceId : i == 0;
 
         devices << QAudioDevicePrivate::createQAudioDevice(std::make_unique<QOhosAudioDevice>(
-                QByteArray::number(deviceId), description, mode, preferredFormat,
+                identifier, description, mode, preferredFormat,
                 isDefault));
     }
 
