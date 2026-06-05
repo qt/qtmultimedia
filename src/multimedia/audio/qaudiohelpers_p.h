@@ -53,6 +53,7 @@ NativeSampleFormat bestNativeSampleFormat(const QAudioFormat &fmt,
                                           QSpan<const NativeSampleFormat> supportedNativeFormats);
 QAudioFormat::SampleFormat bestSampleFormat(NativeSampleFormat);
 
+Q_MULTIMEDIA_EXPORT
 NativeSampleFormat toNativeSampleFormat(QAudioFormat::SampleFormat);
 
 constexpr size_t bytesPerSample(NativeSampleFormat fmt) noexcept Q_DECL_NONBLOCKING_FUNCTION
