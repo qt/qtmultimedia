@@ -51,6 +51,7 @@ void convertSampleFormat(QSpan<const std::byte> source, NativeSampleFormat sourc
 Q_MULTIMEDIA_EXPORT
 NativeSampleFormat bestNativeSampleFormat(const QAudioFormat &fmt,
                                           QSpan<const NativeSampleFormat> supportedNativeFormats);
+Q_MULTIMEDIA_EXPORT
 QAudioFormat::SampleFormat bestSampleFormat(NativeSampleFormat);
 
 Q_MULTIMEDIA_EXPORT
@@ -74,9 +75,12 @@ constexpr size_t bytesPerSample(NativeSampleFormat fmt) noexcept Q_DECL_NONBLOCK
     }
 }
 
+Q_MULTIMEDIA_EXPORT
 std::optional<float> sanitizeVolume(float volume, float lastVolume);
 
+Q_MULTIMEDIA_EXPORT
 void fillSilence(QSpan<std::byte>, NativeSampleFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION;
+Q_MULTIMEDIA_EXPORT
 void fillSilence(QSpan<std::byte>, QAudioFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
 } // namespace QAudioHelperInternal
