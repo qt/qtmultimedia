@@ -32,6 +32,24 @@ private slots:
     void findBestNativeSampleFormat();
 
     void validateAudioCallbacks();
+
+    void runAudioCallback_sink_withVolume();
+    void runAudioCallback_sink_withVolume_data();
+
+    void runAudioCallback_sink_fmtConvert_QAudioFormat();
+
+    void runAudioCallback_sink_fmtConvert_NativeFmt();
+
+    void runAudioCallback_source_const_withVolume();
+    void runAudioCallback_source_const_withVolume_data();
+
+    void runAudioCallback_source_mutable_withVolume();
+
+    void runAudioCallback_source_fmtConvert_QAudioFormat();
+    void runAudioCallback_source_fmtConvert_QAudioFormat_data();
+
+    void runAudioCallback_source_fmtConvert_NativeFmt();
+    void runAudioCallback_source_fmtConvert_NativeFmt_data();
 };
 
 namespace WordConverter {
@@ -97,6 +115,46 @@ float fromBytes(QByteArrayView value, QAudioFormat::SampleFormat sampleFormat)
     }
 }
 }; // namespace WordConverter
+
+
+inline QAudioFormat testFmt(QAudioFormat::SampleFormat sf, int channels = 1)
+{
+    QAudioFormat fmt;
+    fmt.setSampleFormat(sf);
+    fmt.setSampleRate(44100);
+    fmt.setChannelCount(channels);
+    return fmt;
+}
+
+// Returns a QByteArray of n IEEE-754 float samples, each equal to val.
+inline QByteArray floatBuf(int n, float val)
+{
+    QByteArray buf(n * int(sizeof(float)), Qt::Initialization::Uninitialized);
+    auto *p = reinterpret_cast<float *>(buf.data());
+    for (int i = 0; i < n; ++i)
+        p[i] = val;
+    return buf;
+}
+
+// Returns a QByteArray of n int16 samples encoding normalised val in [-1, 1].
+inline QByteArray int16Buf(int n, float val)
+{
+    QByteArray buf(n * int(sizeof(int16_t)), Qt::Initialization::Uninitialized);
+    auto *p = reinterpret_cast<int16_t *>(buf.data());
+    const auto encoded = static_cast<int16_t>(val * float((1 << 15) - 1));
+    for (int i = 0; i < n; ++i)
+        p[i] = encoded;
+    return buf;
+}
+
+// Reads the i-th float sample from a raw byte buffer.
+inline float readFloat(const QByteArray &buf, int i = 0)
+{
+    float f;
+    std::copy_n(buf.constData() + i * int(sizeof(float)), sizeof(float),
+                reinterpret_cast<char *>(&f));
+    return f;
+}
 
 // FIXME: it seems that qtestlib is missing floating point comparison helpers???
 // Compare QTBUG-104000
@@ -423,6 +481,210 @@ void tst_QAudioHelpers::validateAudioCallbacks()
 
     static_assert(getSampleFormat<float>() == QAudioFormat::SampleFormat::Float);
     static_assert(getSampleFormat<int16_t>() == QAudioFormat::SampleFormat::Int16);
+}
+
+void tst_QAudioHelpers::runAudioCallback_sink_withVolume()
+{
+    using namespace QtMultimediaPrivate;
+    QFETCH(float, fillValue);
+    QFETCH(float, volume);
+    QFETCH(float, expected);
+
+    const auto fmt = testFmt(QAudioFormat::Float);
+    QByteArray hostBuf = floatBuf(1, 0.0f);
+
+    AudioSinkCallback cb = std::function<void(QSpan<float>)>([fillValue](QSpan<float> buf) {
+        for (float &s : buf)
+            s = fillValue;
+    });
+
+    runAudioCallback(cb, as_writable_bytes(QSpan{ hostBuf }), fmt, volume);
+
+    QCOMPARE_FLOAT_NEAR(readFloat(hostBuf), expected, 1e-4f);
+}
+
+void tst_QAudioHelpers::runAudioCallback_sink_withVolume_data()
+{
+    QTest::addColumn<float>("fillValue");
+    QTest::addColumn<float>("volume");
+    QTest::addColumn<float>("expected");
+
+    QTest::newRow("0.5 * 0.5 = 0.25")   << 0.5f  << 0.5f << 0.25f;
+    QTest::newRow("0.5 * 1.0 = 0.5")    << 0.5f  << 1.0f << 0.5f;
+    QTest::newRow("0.5 * 0.0 = 0.0")    << 0.5f  << 0.0f << 0.0f;
+    QTest::newRow("-0.5 * 0.5 = -0.25") << -0.5f << 0.5f << -0.25f;
+}
+
+void tst_QAudioHelpers::runAudioCallback_sink_fmtConvert_QAudioFormat()
+{
+    using namespace QtMultimediaPrivate;
+
+    // Application: float; host: int16 — 1 frame, 1 channel.
+    const auto appFmt = testFmt(QAudioFormat::Float);
+    const auto hostFmt = testFmt(QAudioFormat::Int16);
+
+    QByteArray hostBuf(int(sizeof(int16_t)), Qt::Initialization::Uninitialized);
+    AudioSinkCallback cb = std::function<void(QSpan<float>)>([](QSpan<float> buf) {
+        for (float &s : buf)
+            s = 0.5f;
+    });
+
+    runAudioCallback(cb, as_writable_bytes(QSpan{ hostBuf }), appFmt, 1.0f, hostFmt);
+
+    int16_t raw{};
+    std::copy_n(hostBuf.constData(), sizeof(raw), reinterpret_cast<char *>(&raw));
+    QCOMPARE_FLOAT_NEAR(float(raw) / float((1 << 15) - 1), 0.5f, 1e-3f);
+}
+
+void tst_QAudioHelpers::runAudioCallback_sink_fmtConvert_NativeFmt()
+{
+    using namespace QtMultimediaPrivate;
+
+    // Same conversion as overload 3 but driven by NativeSampleFormat directly.
+    const auto appFmt = testFmt(QAudioFormat::Float);
+
+    QByteArray hostBuf(int(sizeof(int16_t)), Qt::Initialization::Uninitialized);
+    AudioSinkCallback cb = std::function<void(QSpan<float>)>([](QSpan<float> buf) {
+        for (float &s : buf)
+            s = 0.5f;
+    });
+
+    runAudioCallback(cb, as_writable_bytes(QSpan{ hostBuf }), appFmt, 1.0f,
+                     NativeSampleFormat::int16_t);
+
+    int16_t raw{};
+    std::copy_n(hostBuf.constData(), sizeof(raw), reinterpret_cast<char *>(&raw));
+    QCOMPARE_FLOAT_NEAR(float(raw) / float((1 << 15) - 1), 0.5f, 1e-3f);
+}
+
+void tst_QAudioHelpers::runAudioCallback_source_const_withVolume()
+{
+    using namespace QtMultimediaPrivate;
+    QFETCH(float, volume);
+    QFETCH(float, expectedCaptured);
+
+    const auto fmt = testFmt(QAudioFormat::Float);
+    QByteArray hostBuf = floatBuf(1, 0.5f);
+
+    float captured = 0.0f;
+    bool invoked = false;
+    AudioSourceCallback cb =
+            std::function<void(QSpan<const float>)>([&](QSpan<const float> buf) {
+                invoked = true;
+                if (!buf.empty())
+                    captured = buf[0];
+            });
+
+    runAudioCallback(cb, as_bytes(QSpan{ hostBuf }), fmt, volume);
+
+    QVERIFY(invoked);
+    QCOMPARE_FLOAT_NEAR(captured, expectedCaptured, 1e-4f);
+    // Host buffer must be unmodified — it was passed as const bytes.
+    QCOMPARE_FLOAT_NEAR(readFloat(hostBuf), 0.5f, 1e-6f);
+}
+
+void tst_QAudioHelpers::runAudioCallback_source_const_withVolume_data()
+{
+    QTest::addColumn<float>("volume");
+    QTest::addColumn<float>("expectedCaptured");
+
+    QTest::newRow("vol=1.0 (direct path)")    << 1.0f << 0.5f;
+    QTest::newRow("vol=0.5 (temp buffer)")    << 0.5f << 0.25f;
+    QTest::newRow("vol=0.0 (silence)")        << 0.0f << 0.0f;
+}
+
+void tst_QAudioHelpers::runAudioCallback_source_mutable_withVolume()
+{
+    using namespace QtMultimediaPrivate;
+
+    const auto fmt = testFmt(QAudioFormat::Float);
+    QByteArray hostBuf = floatBuf(1, 0.5f);
+
+    float captured = 0.0f;
+    bool invoked = false;
+    AudioSourceCallback cb =
+            std::function<void(QSpan<const float>)>([&](QSpan<const float> buf) {
+                invoked = true;
+                if (!buf.empty())
+                    captured = buf[0];
+            });
+
+    runAudioCallback(cb, as_writable_bytes(QSpan{ hostBuf }), fmt, 0.5f);
+
+    QVERIFY(invoked);
+    QCOMPARE_FLOAT_NEAR(captured, 0.25f, 1e-4f);
+    // Host buffer is modified in-place by applyVolume before the callback.
+    QCOMPARE_FLOAT_NEAR(readFloat(hostBuf), 0.25f, 1e-4f);
+}
+
+void tst_QAudioHelpers::runAudioCallback_source_fmtConvert_QAudioFormat()
+{
+    using namespace QtMultimediaPrivate;
+    QFETCH(bool, mutableHostBuffer);
+
+    // Host: int16 encoding of 0.5f;  application: float.
+    const auto appFmt = testFmt(QAudioFormat::Float);
+    const auto hostFmt = testFmt(QAudioFormat::Int16);
+    QByteArray hostBuf = int16Buf(1, 0.5f);
+
+    float captured = 0.0f;
+    bool invoked = false;
+    AudioSourceCallback cb =
+            std::function<void(QSpan<const float>)>([&](QSpan<const float> buf) {
+                invoked = true;
+                if (!buf.empty())
+                    captured = buf[0];
+            });
+
+    if (mutableHostBuffer)
+        runAudioCallback(cb, as_writable_bytes(QSpan{ hostBuf }), appFmt, 1.0f, hostFmt);
+    else
+        runAudioCallback(cb, as_bytes(QSpan{ hostBuf }), appFmt, 1.0f, hostFmt);
+
+    QVERIFY(invoked);
+    QCOMPARE_FLOAT_NEAR(captured, 0.5f, 1e-3f);
+}
+
+void tst_QAudioHelpers::runAudioCallback_source_fmtConvert_QAudioFormat_data()
+{
+    QTest::addColumn<bool>("mutableHostBuffer");
+    QTest::newRow("mutable (QSpan<std::byte>)")        << true;
+    QTest::newRow("immutable (QSpan<const std::byte>)") << false;
+}
+
+void tst_QAudioHelpers::runAudioCallback_source_fmtConvert_NativeFmt()
+{
+    using namespace QtMultimediaPrivate;
+    QFETCH(bool, mutableHostBuffer);
+
+    const auto appFmt = testFmt(QAudioFormat::Float);
+    QByteArray hostBuf = int16Buf(1, 0.5f);
+
+    float captured = 0.0f;
+    bool invoked = false;
+    AudioSourceCallback cb =
+            std::function<void(QSpan<const float>)>([&](QSpan<const float> buf) {
+                invoked = true;
+                if (!buf.empty())
+                    captured = buf[0];
+            });
+
+    if (mutableHostBuffer)
+        runAudioCallback(cb, as_writable_bytes(QSpan{ hostBuf }), appFmt, 1.0f,
+                         NativeSampleFormat::int16_t);
+    else
+        runAudioCallback(cb, as_bytes(QSpan{ hostBuf }), appFmt, 1.0f,
+                         NativeSampleFormat::int16_t);
+
+    QVERIFY(invoked);
+    QCOMPARE_FLOAT_NEAR(captured, 0.5f, 1e-3f);
+}
+
+void tst_QAudioHelpers::runAudioCallback_source_fmtConvert_NativeFmt_data()
+{
+    QTest::addColumn<bool>("mutableHostBuffer");
+    QTest::newRow("mutable (QSpan<std::byte>)")        << true;
+    QTest::newRow("immutable (QSpan<const std::byte>)") << false;
 }
 
 QTEST_APPLESS_MAIN(tst_QAudioHelpers);
