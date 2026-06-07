@@ -309,8 +309,9 @@ void QSGVideoNode::updateSubtitle(const QVideoFrame &frame)
     m_subtitleTextNode->setColor(Qt::white);
     QColor bgColor = Qt::black;
     bgColor.setAlpha(128);
-    m_subtitleTextNode->addRectangleNode(m_subtitleLayout.bounds, bgColor);
-    m_subtitleTextNode->addTextLayout(m_subtitleLayout.layout.position(), &m_subtitleLayout.layout);
+    m_subtitleTextNode->addRectangleNode(m_subtitleLayout.bounds, bgColor, nullptr);
+    m_subtitleTextNode->addTextLayout(m_subtitleLayout.layout.position(),
+                                      &m_subtitleLayout.layout, nullptr);
     appendChildNode(m_subtitleTextNode);
     setSubtitleGeometry();
 }
