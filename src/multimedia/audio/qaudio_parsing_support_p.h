@@ -1,0 +1,65 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+#ifndef QAUDIO_PARSING_SUPPORT_P_H
+#define QAUDIO_PARSING_SUPPORT_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/qspan.h>
+
+#include <optional>
+
+QT_BEGIN_NAMESPACE
+
+namespace QtMultimediaPrivate::ParsingSupport {
+
+// Audio codecs that can be identified from the first bytes of a stream.
+enum class AudioCodec {
+    Unknown,
+    Mp3,
+    Aac,
+    Flac,
+    Opus,
+    Wav,
+};
+
+// Identifies the codec from the leading bytes of a stream. At least 4 bytes are
+// needed. Anything shorter or unrecognized returns AudioCodec::Unknown.
+Q_MULTIMEDIA_EXPORT AudioCodec sniffCodec(QSpan<const std::byte> header);
+
+// Returns true for codecs whose individual frame sizes can be computed from the
+// frame header, i.e. the codecs mpegFrameSize()/adtsFrameSize() understand.
+Q_MULTIMEDIA_EXPORT bool hasFrameParser(AudioCodec codec);
+
+// Returns the byte length of the MPEG Layer III frame whose 4-byte header starts
+// at data[offset], or 0 if the header is invalid or out of bounds.
+Q_MULTIMEDIA_EXPORT qsizetype mpegFrameSize(QSpan<const std::byte> data, qsizetype offset = 0);
+
+// Scans data[from..] for the first valid MPEG Layer III sync word + header.
+Q_MULTIMEDIA_EXPORT std::optional<qsizetype> findMpegSync(QSpan<const std::byte> data,
+                                                          qsizetype from = 0);
+
+// Returns the byte length of the ADTS AAC frame (including header) starting at
+// data[offset], or 0 if the header is invalid or out of bounds.
+Q_MULTIMEDIA_EXPORT qsizetype adtsFrameSize(QSpan<const std::byte> data, qsizetype offset = 0);
+
+// Scans data[from..] for the first valid ADTS AAC sync word + header.
+Q_MULTIMEDIA_EXPORT std::optional<qsizetype> findAdtsSync(QSpan<const std::byte> data,
+                                                          qsizetype from = 0);
+
+} // namespace QtMultimediaPrivate::ParsingSupport
+
+QT_END_NAMESPACE
+
+#endif // QAUDIO_PARSING_SUPPORT_P_H

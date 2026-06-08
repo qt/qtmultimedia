@@ -39,6 +39,7 @@ qt_internal_add_module(Multimedia
         audio/qaudio_platform_implementation_support_p.h
         audio/qaudio_qiodevice_support_p.h
         audio/qaudio_qspan_support_p.h
+        audio/qaudio_parsing_support.cpp audio/qaudio_parsing_support_p.h
         audio/qsamplecache_p.cpp audio/qsamplecache_p.h
         audio/qsoundeffect.cpp audio/qsoundeffect.h
         audio/qsoundeffectwithplayer.cpp audio/qsoundeffectwithplayer_p.h
