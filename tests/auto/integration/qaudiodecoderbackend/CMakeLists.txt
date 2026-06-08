@@ -29,9 +29,34 @@ qt_internal_multimedia_add_test(tst_qaudiodecoderbackend
         testdata/test.wav
 )
 
-qt_internal_add_resource(tst_qaudiodecoderbackend "qrc_testdata"
-    PREFIX
-        "/"
-    FILES
-        "testdata/test.wav"
+qt_internal_multimedia_add_test(tst_qaudiodecoderbackend_drwav
+    SOURCES
+        tst_qaudiodecoderbackend.cpp
+    LIBRARIES
+        Qt::Core
+        Qt::Multimedia
+        Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
+    TESTDATA
+        testdata/nokia-tune.mp3
+        testdata/test-24bit.wav
+        testdata/test-corrupted.wav
+        testdata/test-float32.wav
+        testdata/test-no-audio-track.mp4
+        testdata/test-unsupported.avi
+        testdata/test.aac
+        testdata/test.flac
+        testdata/test.ogg
+        testdata/test.wav
 )
+
+target_compile_definitions(tst_qaudiodecoderbackend_drwav PRIVATE QT_TEST_DRWAV_AUDIO_DECODER=1)
+
+foreach(target tst_qaudiodecoderbackend tst_qaudiodecoderbackend_drwav)
+    qt_internal_add_resource(${target} "qrc_testdata"
+        PREFIX
+            "/"
+        FILES
+            "testdata/test.wav"
+    )
+endforeach()
