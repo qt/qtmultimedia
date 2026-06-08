@@ -23,6 +23,8 @@
 #include <QtMultimedia/private/qplatformvideodevices_p.h>
 #include <QtCore/qloggingcategory.h>
 
+#include <private/qwasmaudiodecoder_p.h>
+
 QT_BEGIN_NAMESPACE
 
 
@@ -65,6 +67,12 @@ q23::expected<QPlatformAudioInput *, QString> QWasmMediaIntegration::createAudio
 q23::expected<QPlatformAudioOutput *, QString> QWasmMediaIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QWasmAudioOutput(q);
+}
+
+q23::expected<QPlatformAudioDecoder *, QString>
+QWasmMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
+{
+    return new QWasmAudioDecoder(decoder);
 }
 
 QPlatformMediaFormatInfo *QWasmMediaIntegration::createFormatInfo()

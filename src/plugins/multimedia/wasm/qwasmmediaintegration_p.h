@@ -32,6 +32,7 @@ public:
 
     q23::expected<QPlatformAudioInput *, QString> createAudioInput(QAudioInput *audioInput) override;
     q23::expected<QPlatformAudioOutput *, QString> createAudioOutput(QAudioOutput *q) override;
+    q23::expected<QPlatformAudioDecoder *, QString> createAudioDecoder(QAudioDecoder *decoder) override;
 
     q23::expected<QPlatformMediaCaptureSession *, QString> createCaptureSession() override;
     q23::expected<QPlatformCamera *, QString> createCamera(QCamera *camera) override;

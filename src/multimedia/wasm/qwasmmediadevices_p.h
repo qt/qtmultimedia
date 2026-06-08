@@ -67,6 +67,8 @@ public:
     QPlatformAudioSink *createAudioSink(const QAudioDevice &, const QAudioFormat &,
                                         QObject *parent) override;
 
+    bool hasCallbackApi() const override { return true; }
+
     QLatin1String backendName() const override { return QLatin1String{ "WebAssembly" }; }
     using QPlatformAudioDevices::onAudioInputsChanged;
     using QPlatformAudioDevices::onAudioOutputsChanged;

@@ -571,6 +571,7 @@ set_source_files_properties(${source_with_init_guid} PROPERTIES
 
 qt_internal_extend_target(Multimedia CONDITION WASM
     SOURCES
+        wasm/qwasmaudiodecoder.cpp wasm/qwasmaudiodecoder_p.h
         wasm/qwasmmediadevices.cpp wasm/qwasmmediadevices_p.h
         wasm/qwasmwebaudiosource.cpp wasm/qwasmwebaudiosource_p.h
         wasm/qwasmwebaudiosink.cpp wasm/qwasmwebaudiosink_p.h
