@@ -30,11 +30,11 @@ class QAudioDecoderPrivate : public QObjectPrivate
     Q_DECLARE_PUBLIC(QAudioDecoder)
 
 public:
-    QAudioDecoderPrivate() = default;
+    explicit QAudioDecoderPrivate(QAudioDecoder *);
     ~QAudioDecoderPrivate() = default;
 
     QUrl unresolvedUrl;
-    std::unique_ptr<QPlatformAudioDecoder> decoder;
+    const std::unique_ptr<QPlatformAudioDecoder> decoder;
     std::unique_ptr<QTemporaryFile> qrcFile;
 };
 

@@ -43,16 +43,16 @@ private slots:
     void testLoadSampleFromSpan_valid();
     void testLoadSampleFromSpan_invalid();
     void testLoadSampleViaDecoder_valid();
-    void testLoadSampleViaDecoder_notSupported();
+    void testLoadSampleViaDecoder_fallbackToDrWav();
     void testLoadSampleViaDecoderBuffer_valid();
-    void testLoadSampleViaDecoderBuffer_notSupported();
+    void testLoadSampleViaDecoderBuffer_fallbackToDrWav();
     void testFallbackToDecoder_nonWav();
     void testForcedDecoderPath();
     void testFallbackToDecoder_notSupported();
     void testMP3FallbackViaDecoder();
     void testMP3FallbackViaDecoderBuffer();
     void testLoadSampleAsyncViaDecoder_valid();
-    void testLoadSampleAsyncViaDecoder_notSupported();
+    void testLoadSampleAsyncViaDecoder_fallbackToDrWav();
     void testForcedDecoderPathAsync();
 
 private:
@@ -205,15 +205,14 @@ void tst_QSampleCache::testLoadSampleViaDecoder_valid()
     QVERIFY(result->second.channelCount() > 0);
 }
 
-void tst_QSampleCache::testLoadSampleViaDecoder_notSupported()
+void tst_QSampleCache::testLoadSampleViaDecoder_fallbackToDrWav()
 {
     QMockIntegration::instance()->setFlags(QMockIntegration::NoAudioDecoderInterface);
 
-    QTest::ignoreMessage(QtWarningMsg, "Failed to initialize QAudioDecoder \"No audio decoder\"");
-    const QUrl url = QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"));
+    const QUrl url = QUrl::fromLocalFile(QFINDTESTDATA("testdata/nokia-tune.mp3"));
     auto result = QSampleCache::loadSampleViaDecoder(url);
     QVERIFY(!result.has_value());
-    QCOMPARE(result.error(), QSampleLoadError::NotSupported);
+    QCOMPARE(result.error(), QSampleLoadError::DecoderError);
 }
 
 void tst_QSampleCache::testLoadSampleViaDecoderBuffer_valid()
@@ -231,18 +230,17 @@ void tst_QSampleCache::testLoadSampleViaDecoderBuffer_valid()
     QVERIFY(result->second.channelCount() > 0);
 }
 
-void tst_QSampleCache::testLoadSampleViaDecoderBuffer_notSupported()
+void tst_QSampleCache::testLoadSampleViaDecoderBuffer_fallbackToDrWav()
 {
     QMockIntegration::instance()->setFlags(QMockIntegration::NoAudioDecoderInterface);
 
-    QFile file(QFINDTESTDATA("testdata/test.wav"));
+    QFile file(QFINDTESTDATA("testdata/nokia-tune.mp3"));
     QVERIFY(file.open(QFile::ReadOnly));
     QByteArray data = file.readAll();
 
-    QTest::ignoreMessage(QtWarningMsg, "Failed to initialize QAudioDecoder \"No audio decoder\"");
     auto result = QSampleCache::loadSampleViaDecoder(data);
     QVERIFY(!result.has_value());
-    QCOMPARE(result.error(), QSampleLoadError::NotSupported);
+    QCOMPARE(result.error(), QSampleLoadError::DecoderError);
 }
 
 void tst_QSampleCache::testFallbackToDecoder_nonWav()
@@ -273,14 +271,14 @@ void tst_QSampleCache::testFallbackToDecoder_notSupported()
 {
     QMockIntegration::instance()->setFlags(QMockIntegration::NoAudioDecoderInterface);
 
-    // No sampleSourceType → fallback enabled, but decoder not supported
+    // No sampleSourceType → fallback enabled; drwav fallback via QAudioDecoder
+    // still fails because the file itself is corrupted, not because a
+    // platform decoder is unavailable.
     QSampleCache cache;
 
     const QUrl url = QUrl::fromLocalFile(QFINDTESTDATA("testdata/corrupted.wav"));
-    QTest::ignoreMessage(QtWarningMsg, "Failed to initialize QAudioDecoder \"No audio decoder\"");
-    QTest::ignoreMessage(QtWarningMsg, "Failed to initialize QAudioDecoder \"No audio decoder\"");
     SharedSamplePtr sample = requestSample(cache, url);
-    // drwav fails, decoder not supported → null
+    // drwav fails, decoder fallback also fails on the corrupted data → null
     QVERIFY(!sample);
 }
 
@@ -332,22 +330,20 @@ void tst_QSampleCache::testLoadSampleAsyncViaDecoder_valid()
     QVERIFY(QMockIntegration::instance()->lastAudioDecoder() != nullptr);
 }
 
-void tst_QSampleCache::testLoadSampleAsyncViaDecoder_notSupported()
+void tst_QSampleCache::testLoadSampleAsyncViaDecoder_fallbackToDrWav()
 {
     QMockIntegration::instance()->setFlags(QMockIntegration::NoAudioDecoderInterface);
 
-    QFile file(QFINDTESTDATA("testdata/test.wav"));
+    QFile file(QFINDTESTDATA("testdata/nokia-tune.mp3"));
     QVERIFY(file.open(QFile::ReadOnly));
     QByteArray data = file.readAll();
 
-    QTest::ignoreMessage(QtWarningMsg, "Failed to initialize QAudioDecoder \"No audio decoder\"");
     auto future = QSampleCache::loadSampleAsyncViaDecoder(data);
     QTRY_VERIFY(future.isFinished());
 
     auto result = future.result();
     QVERIFY(!result.has_value());
-    QCOMPARE(result.error(), QSampleLoadError::NotSupported);
-    QVERIFY(QMockIntegration::instance()->lastAudioDecoder() == nullptr);
+    QCOMPARE(result.error(), QSampleLoadError::DecoderError);
 }
 
 void tst_QSampleCache::testForcedDecoderPathAsync()

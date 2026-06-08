@@ -161,6 +161,10 @@ void tst_QAudioDecoderBackend::init()
 
 void tst_QAudioDecoderBackend::initTestCase()
 {
+#ifdef QT_TEST_DRWAV_AUDIO_DECODER
+    qputenv("QT_FORCE_DRWAV_AUDIO_DECODER", "1");
+#endif
+
     if (!initIntegrationTestCase())
         return;
 
@@ -565,6 +569,9 @@ void tst_QAudioDecoderBackend::fileTest()
 
 #ifdef Q_OS_ANDROID
     QSKIP("Setting a desired audio format is not yet supported on Android");
+#endif
+#ifdef QT_TEST_DRWAV_AUDIO_DECODER
+    QSKIP("dr_wav decoder does not support format conversion");
 #endif
     // change output audio format
     QAudioFormat format;
@@ -1069,6 +1076,9 @@ void tst_QAudioDecoderBackend::deviceTest()
 #ifdef Q_OS_ANDROID
     QSKIP("Setting a desired audio format is not yet supported on Android");
 #endif
+#ifdef QT_TEST_DRWAV_AUDIO_DECODER
+    QSKIP("dr_wav decoder does not support format conversion");
+#endif
     // Now try changing formats
     QAudioFormat format;
     format.setChannelCount(2);
@@ -1147,6 +1157,9 @@ void tst_QAudioDecoderBackend::readIntoDifferentSampleFormat()
 
 void tst_QAudioDecoderBackend::readIntoDifferentChannelCount()
 {
+#ifdef QT_TEST_DRWAV_AUDIO_DECODER
+    QSKIP("dr_wav decoder does not support channel count conversion");
+#endif
     CHECK_SELECTED_URL(m_wavFile);
 
     QAudioDecoder d;
@@ -1224,6 +1237,9 @@ void tst_QAudioDecoderBackend::readFloat32File()
 
 void tst_QAudioDecoderBackend::readMp3File()
 {
+#ifdef QT_TEST_DRWAV_AUDIO_DECODER
+    QSKIP("dr_wav only supports WAV files");
+#endif
     QAudioDecoder d;
     if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
@@ -1247,6 +1263,9 @@ void tst_QAudioDecoderBackend::readMp3File()
 
 void tst_QAudioDecoderBackend::readOggFile()
 {
+#ifdef QT_TEST_DRWAV_AUDIO_DECODER
+    QSKIP("dr_wav only supports WAV files");
+#endif
     QAudioDecoder d;
     if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
@@ -1270,6 +1289,9 @@ void tst_QAudioDecoderBackend::readOggFile()
 
 void tst_QAudioDecoderBackend::readAacFile()
 {
+#ifdef QT_TEST_DRWAV_AUDIO_DECODER
+    QSKIP("dr_wav only supports WAV files");
+#endif
     QAudioDecoder d;
     if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
@@ -1293,6 +1315,9 @@ void tst_QAudioDecoderBackend::readAacFile()
 
 void tst_QAudioDecoderBackend::readFlacFile()
 {
+#ifdef QT_TEST_DRWAV_AUDIO_DECODER
+    QSKIP("dr_wav only supports WAV files");
+#endif
     QAudioDecoder d;
     if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");

@@ -33,8 +33,6 @@ private Q_SLOTS:
 
     void testQrc_data();
     void testQrc();
-
-    void nullControl();
 };
 
 tst_QAudioDecoder::tst_QAudioDecoder()
@@ -349,44 +347,6 @@ void tst_QAudioDecoder::testQrc()
 
     // Check what actually reached the backend
     QCOMPARE(mockDecoder->mSource.scheme(), backendSourceScheme);
-}
-
-void tst_QAudioDecoder::nullControl()
-{
-    QMockIntegration::instance()->setFlags(QMockIntegration::NoAudioDecoderInterface);
-    QAudioDecoder d;
-
-    QVERIFY(d.error() == QAudioDecoder::NotSupportedError);
-    QVERIFY(!d.errorString().isEmpty());
-
-    QVERIFY(!d.isDecoding());
-
-    QVERIFY(d.source().isEmpty());
-    d.setSource(QUrl::fromLocalFile("test"));
-    QVERIFY(d.source().isEmpty());
-
-    QFile f;
-    QVERIFY(d.sourceDevice() == nullptr);
-    d.setSourceDevice(&f);
-    QVERIFY(d.sourceDevice() == nullptr);
-
-    QAudioFormat format;
-    format.setChannelCount(2);
-    QVERIFY(!d.audioFormat().isValid());
-    d.setAudioFormat(format);
-    QVERIFY(!d.audioFormat().isValid());
-
-    QVERIFY(!d.read().isValid());
-    QVERIFY(!d.bufferAvailable());
-
-    QVERIFY(d.position() == -1);
-    QVERIFY(d.duration() == -1);
-
-    d.start();
-    QVERIFY(d.error() == QAudioDecoder::NotSupportedError);
-    QVERIFY(!d.errorString().isEmpty());
-    QVERIFY(!d.isDecoding());
-    d.stop();
 }
 
 QTEST_MAIN(tst_QAudioDecoder)

@@ -4,17 +4,16 @@
 #include "qaudiodecoder.h"
 #include "qaudiodecoder_p.h"
 
+#include <QtMultimedia/private/qdrawavaudiodecoder_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtMultimedia/private/qplatformaudiodecoder_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
-#include <QtCore/qcoreevent.h>
-#include <QtCore/qdebug.h>
 #include <QtCore/qfile.h>
-#include <QtCore/qmetaobject.h>
-#include <QtCore/qpointer.h>
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/qtemporaryfile.h>
-#include <QtCore/qtimer.h>
 #include <QtCore/qurl.h>
+
+Q_LOGGING_CATEGORY(qLcAudioDecoder, "qt.multimedia.audiodecoder")
 
 QT_BEGIN_NAMESPACE
 
@@ -38,16 +37,8 @@ QT_BEGIN_NAMESPACE
 /*!
     Construct an QAudioDecoder instance with \a parent.
 */
-QAudioDecoder::QAudioDecoder(QObject *parent) : QObject{ *new QAudioDecoderPrivate, parent }
+QAudioDecoder::QAudioDecoder(QObject *parent) : QObject{ *new QAudioDecoderPrivate(this), parent }
 {
-    Q_D(QAudioDecoder);
-
-    auto maybeDecoder = QPlatformMediaIntegration::instance()->createAudioDecoder(this);
-    if (maybeDecoder) {
-        d->decoder.reset(maybeDecoder.value());
-    } else {
-        qWarning() << "Failed to initialize QAudioDecoder" << maybeDecoder.error();
-    }
 }
 
 /*!
@@ -60,9 +51,7 @@ QAudioDecoder::~QAudioDecoder() = default;
 */
 bool QAudioDecoder::isSupported() const
 {
-    Q_D(const QAudioDecoder);
-
-    return bool(d->decoder);
+    return true;
 }
 
 /*!
@@ -72,8 +61,7 @@ bool QAudioDecoder::isSupported() const
 bool QAudioDecoder::isDecoding() const
 {
     Q_D(const QAudioDecoder);
-
-    return d->decoder && d->decoder->isDecoding();
+    return d->decoder->isDecoding();
 }
 
 /*!
@@ -83,7 +71,7 @@ bool QAudioDecoder::isDecoding() const
 QAudioDecoder::Error QAudioDecoder::error() const
 {
     Q_D(const QAudioDecoder);
-    return d->decoder ? d->decoder->error() : NotSupportedError;
+    return d->decoder->error();
 }
 
 /*!
@@ -95,8 +83,6 @@ QAudioDecoder::Error QAudioDecoder::error() const
 QString QAudioDecoder::errorString() const
 {
     Q_D(const QAudioDecoder);
-    if (!d->decoder)
-        return tr("QAudioDecoder not supported.");
     return d->decoder->errorString();
 }
 
@@ -115,10 +101,6 @@ QString QAudioDecoder::errorString() const
 void QAudioDecoder::start()
 {
     Q_D(QAudioDecoder);
-
-    if (!d->decoder)
-        return;
-
     // Reset error conditions
     d->decoder->clearError();
     d->decoder->start();
@@ -130,9 +112,7 @@ void QAudioDecoder::start()
 void QAudioDecoder::stop()
 {
     Q_D(QAudioDecoder);
-
-    if (d->decoder)
-        d->decoder->stop();
+    d->decoder->stop();
 }
 
 /*!
@@ -160,10 +140,6 @@ void QAudioDecoder::setSource(const QUrl &fileName)
     using namespace QtMultimediaPrivate;
 
     Q_D(QAudioDecoder);
-
-    if (!d->decoder)
-        return;
-
     d->decoder->clearError();
     d->unresolvedUrl = fileName;
     d->decoder->setSourceDevice(nullptr);
@@ -201,7 +177,7 @@ void QAudioDecoder::setSource(const QUrl &fileName)
 QIODevice *QAudioDecoder::sourceDevice() const
 {
     Q_D(const QAudioDecoder);
-    return d->decoder ? d->decoder->sourceDevice() : nullptr;
+    return d->decoder->sourceDevice();
 }
 
 /*!
@@ -216,10 +192,8 @@ QIODevice *QAudioDecoder::sourceDevice() const
 void QAudioDecoder::setSourceDevice(QIODevice *device)
 {
     Q_D(QAudioDecoder);
-    if (d->decoder) {
-        d->unresolvedUrl = QUrl{};
-        d->decoder->setSourceDevice(device);
-    }
+    d->unresolvedUrl = QUrl{};
+    d->decoder->setSourceDevice(device);
 }
 
 /*!
@@ -233,7 +207,7 @@ void QAudioDecoder::setSourceDevice(QIODevice *device)
 QAudioFormat QAudioDecoder::audioFormat() const
 {
     Q_D(const QAudioDecoder);
-    return d->decoder ? d->decoder->audioFormat() : QAudioFormat{};
+    return d->decoder->audioFormat();
 }
 
 /*!
@@ -262,9 +236,7 @@ void QAudioDecoder::setAudioFormat(const QAudioFormat &format)
         return;
 
     Q_D(QAudioDecoder);
-
-    if (d->decoder)
-        d->decoder->setAudioFormat(format);
+    d->decoder->setAudioFormat(format);
 }
 
 /*!
@@ -275,7 +247,7 @@ void QAudioDecoder::setAudioFormat(const QAudioFormat &format)
 bool QAudioDecoder::bufferAvailable() const
 {
     Q_D(const QAudioDecoder);
-    return d->decoder && d->decoder->bufferAvailable();
+    return d->decoder->bufferAvailable();
 }
 
 /*!
@@ -286,7 +258,7 @@ bool QAudioDecoder::bufferAvailable() const
 qint64 QAudioDecoder::position() const
 {
     Q_D(const QAudioDecoder);
-    return d->decoder ? d->decoder->position() : -1;
+    return d->decoder->position();
 }
 
 /*!
@@ -297,7 +269,7 @@ qint64 QAudioDecoder::position() const
 qint64 QAudioDecoder::duration() const
 {
     Q_D(const QAudioDecoder);
-    return d->decoder ? d->decoder->duration() : -1;
+    return d->decoder->duration();
 }
 
 /*!
@@ -313,7 +285,7 @@ qint64 QAudioDecoder::duration() const
 QAudioBuffer QAudioDecoder::read() const
 {
     Q_D(const QAudioDecoder);
-    return d->decoder ? d->decoder->read() : QAudioBuffer{};
+    return d->decoder->read();
 }
 
 // Enums
@@ -407,6 +379,28 @@ QAudioBuffer QAudioDecoder::read() const
     \property QAudioDecoder::bufferAvailable
     \brief whether there is a decoded audio buffer available
 */
+
+namespace {
+std::unique_ptr<QPlatformAudioDecoder> createPlatformDecoder(QAudioDecoder *decoder)
+{
+    // Prefer platform-provided decoder. Allow forcing dr_wav via env var.
+    static const bool forceDrWav = qEnvironmentVariableIsSet("QT_FORCE_DRWAV_AUDIO_DECODER");
+
+    if (!forceDrWav) {
+        auto maybeDecoder = QPlatformMediaIntegration::instance()->createAudioDecoder(decoder);
+        if (maybeDecoder)
+            return std::unique_ptr<QPlatformAudioDecoder>(maybeDecoder.value());
+        qCDebug(qLcAudioDecoder) << "Using dr_wav decoder as fallback";
+    }
+
+    return std::make_unique<QDrWavAudioDecoder>(decoder);
+}
+} // namespace
+
+QAudioDecoderPrivate::QAudioDecoderPrivate(QAudioDecoder *decoder)
+    : decoder(createPlatformDecoder(decoder))
+{
+}
 
 QT_END_NAMESPACE
 
