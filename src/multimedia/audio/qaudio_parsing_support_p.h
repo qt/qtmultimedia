@@ -34,6 +34,15 @@ enum class AudioCodec {
     Wav,
 };
 
+// The parts of a FLAC STREAMINFO metadata block that describe the stream format.
+struct FlacStreamInfo
+{
+    int sampleRate = 0;
+    int numChannels = 0;
+    // Total samples per channel. 0 when the encoder did not record it.
+    qint64 totalSamples = 0;
+};
+
 // Identifies the codec from the leading bytes of a stream. At least 4 bytes are
 // needed. Anything shorter or unrecognized returns AudioCodec::Unknown.
 Q_MULTIMEDIA_EXPORT AudioCodec sniffCodec(QSpan<const std::byte> header);
@@ -41,6 +50,23 @@ Q_MULTIMEDIA_EXPORT AudioCodec sniffCodec(QSpan<const std::byte> header);
 // Returns true for codecs whose individual frame sizes can be computed from the
 // frame header, i.e. the codecs mpegFrameSize()/adtsFrameSize() understand.
 Q_MULTIMEDIA_EXPORT bool hasFrameParser(AudioCodec codec);
+
+// Parses the FLAC STREAMINFO metadata block at the beginning of a FLAC stream.
+Q_MULTIMEDIA_EXPORT std::optional<FlacStreamInfo> flacStreamInfo(QSpan<const std::byte> data);
+
+// Returns the byte offset of the first FLAC audio frame in data, i.e. the
+// position just past the "fLaC" marker and all metadata blocks. The result is
+// always within data, so callers can use it as a slice position directly.
+// std::nullopt covers a metadata block whose declared length runs past the
+// end of the data.
+Q_MULTIMEDIA_EXPORT std::optional<qsizetype> flacAudioOffset(QSpan<const std::byte> data);
+
+// Scans data[from..] for the first valid FLAC frame header: the 14-bit sync
+// code, header fields that are not reserved values, and a matching header
+// CRC-8. FLAC frames carry no length field, so a frame spans from one frame
+// header to the next, or to the end of the stream for the final frame.
+Q_MULTIMEDIA_EXPORT std::optional<qsizetype> findFlacSync(QSpan<const std::byte> data,
+                                                          qsizetype from = 0);
 
 // Returns the byte length of the MPEG Layer III frame whose 4-byte header starts
 // at data[offset], or 0 if the header is invalid or out of bounds.

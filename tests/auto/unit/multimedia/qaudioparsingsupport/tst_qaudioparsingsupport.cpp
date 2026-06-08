@@ -55,6 +55,73 @@ QByteArray makeAdtsHeader(int frameLength)
     return header;
 }
 
+// Builds a FLAC metadata block: 4-byte header followed by dataLength payload bytes.
+QByteArray makeFlacBlock(int blockType, bool isLast, int dataLength)
+{
+    QByteArray block(4, '\0');
+    block[0] = char((isLast ? 0x80 : 0x00) | (blockType & 0x7F));
+    block[1] = char((dataLength >> 16) & 0xFF);
+    block[2] = char((dataLength >> 8) & 0xFF);
+    block[3] = char(dataLength & 0xFF);
+    block.append(QByteArray(dataLength, '\0'));
+    return block;
+}
+
+// Builds a complete FLAC STREAMINFO block carrying the given format.
+QByteArray makeFlacStreamInfoBlock(int sampleRate, int numChannels, bool isLast = true,
+                                   qint64 totalSamples = 0)
+{
+    QByteArray block = makeFlacBlock(0, isLast, 34);
+    // STREAMINFO data starts at block[4]. The sample rate occupies the top 20
+    // bits of the three bytes at data offset 10..12, followed by 3 channel-count
+    // bits.
+    block[4 + 10] = char((sampleRate >> 12) & 0xFF);
+    block[4 + 11] = char((sampleRate >> 4) & 0xFF);
+    block[4 + 12] = char(((sampleRate & 0x0F) << 4) | (((numChannels - 1) & 0x07) << 1));
+    // The 36-bit total sample count follows, starting in the low 4 bits of
+    // data offset 13.
+    block[4 + 13] = char((totalSamples >> 32) & 0x0F);
+    block[4 + 14] = char((totalSamples >> 24) & 0xFF);
+    block[4 + 15] = char((totalSamples >> 16) & 0xFF);
+    block[4 + 16] = char((totalSamples >> 8) & 0xFF);
+    block[4 + 17] = char(totalSamples & 0xFF);
+    return block;
+}
+
+// CRC-8 with polynomial 0x07 and initial value 0, as used by the FLAC frame
+// header. Duplicated here so the test computes the expected value itself
+// rather than trusting the implementation under test.
+quint8 flacHeaderCrc(QByteArrayView data)
+{
+    quint8 crc = 0;
+    for (char character : data) {
+        crc ^= quint8(character);
+        for (int bit = 0; bit < 8; ++bit)
+            crc = (crc & 0x80) ? quint8((crc << 1) ^ 0x07) : quint8(crc << 1);
+    }
+    return crc;
+}
+
+// Builds a FLAC frame header with a one-byte coded frame number, block size
+// code 5 (4608 samples), sample rate code 9 (44100 Hz), stereo, 16 bit, and a
+// correct trailing CRC-8. That is the shape the reference encoder emits.
+QByteArray makeFlacFrameHeader(int frameNumber = 0)
+{
+    QByteArray header(5, '\0');
+    header[0] = char(0xFF);
+    header[1] = char(0xF8); // sync, reserved 0, fixed block size
+    header[2] = char(0x59); // block size code 5, sample rate code 9
+    header[3] = char(0x18); // channel assignment 1 (left/side), sample size 100
+    header[4] = char(frameNumber & 0x7F);
+    header.append(char(flacHeaderCrc(header)));
+    return header;
+}
+
+QByteArray makeFlacStream(int sampleRate = 44100, int numChannels = 2, qint64 totalSamples = 0)
+{
+    return "fLaC"_ba + makeFlacStreamInfoBlock(sampleRate, numChannels, true, totalSamples);
+}
+
 } // namespace
 
 class tst_QAudioParsingSupport : public QObject
@@ -67,6 +134,23 @@ private slots:
     void sniffCodec_returnsUnknown_whenHeaderIsTooShort();
 
     void hasFrameParser_isTrue_onlyForFrameParsedCodecs();
+
+    void flacStreamInfo_returnsFormat_fromStreamInfoBlock_data();
+    void flacStreamInfo_returnsFormat_fromStreamInfoBlock();
+    void flacStreamInfo_returnsNullopt_whenDataIsInvalid_data();
+    void flacStreamInfo_returnsNullopt_whenDataIsInvalid();
+
+    void flacAudioOffset_returnsOffsetPastMetadata_whenSingleBlock();
+    void flacAudioOffset_returnsOffsetPastMetadata_whenMultipleBlocks();
+    void flacAudioOffset_returnsNullopt_whenDataIsInvalid_data();
+    void flacAudioOffset_returnsNullopt_whenDataIsInvalid();
+
+    void findFlacSync_returnsOffsetOfFirstValidHeader();
+    void findFlacSync_skipsHeadersWithBadCrc();
+    void findFlacSync_rejectsReservedHeaderFields_data();
+    void findFlacSync_rejectsReservedHeaderFields();
+    void findFlacSync_returnsNullopt_whenNoSyncIsPresent();
+    void findFlacSync_honorsStartOffset();
 
     void mpegFrameSize_returnsFrameLength_forValidHeader_data();
     void mpegFrameSize_returnsFrameLength_forValidHeader();
@@ -123,10 +207,172 @@ void tst_QAudioParsingSupport::hasFrameParser_isTrue_onlyForFrameParsedCodecs()
 {
     QVERIFY(hasFrameParser(AudioCodec::Mp3));
     QVERIFY(hasFrameParser(AudioCodec::Aac));
-    QVERIFY(!hasFrameParser(AudioCodec::Flac));
+    QVERIFY(hasFrameParser(AudioCodec::Flac));
     QVERIFY(!hasFrameParser(AudioCodec::Opus));
     QVERIFY(!hasFrameParser(AudioCodec::Wav));
     QVERIFY(!hasFrameParser(AudioCodec::Unknown));
+}
+
+void tst_QAudioParsingSupport::flacStreamInfo_returnsFormat_fromStreamInfoBlock_data()
+{
+    QTest::addColumn<int>("sampleRate");
+    QTest::addColumn<int>("numChannels");
+    QTest::addColumn<qint64>("totalSamples");
+
+    QTest::newRow("44100 stereo") << 44100 << 2 << qint64(698194);
+    QTest::newRow("48000 stereo, unknown length") << 48000 << 2 << qint64(0);
+    QTest::newRow("8000 mono") << 8000 << 1 << qint64(8250520);
+    QTest::newRow("192000 8 channels, full 36 bits") << 192000 << 8 << qint64(0xFFFFFFFFF);
+}
+
+void tst_QAudioParsingSupport::flacStreamInfo_returnsFormat_fromStreamInfoBlock()
+{
+    QFETCH(int, sampleRate);
+    QFETCH(int, numChannels);
+    QFETCH(qint64, totalSamples);
+
+    const std::optional<FlacStreamInfo> info =
+            flacStreamInfo(asBytes(makeFlacStream(sampleRate, numChannels, totalSamples)));
+    QVERIFY(info);
+    QCOMPARE(info->sampleRate, sampleRate);
+    QCOMPARE(info->numChannels, numChannels);
+    QCOMPARE(info->totalSamples, totalSamples);
+}
+
+void tst_QAudioParsingSupport::flacStreamInfo_returnsNullopt_whenDataIsInvalid_data()
+{
+    QTest::addColumn<QByteArray>("data");
+
+    QTest::newRow("empty") << QByteArray();
+    QTest::newRow("shorter than minimum") << makeFlacStream().first(41);
+    QTest::newRow("wrong magic") << ("fLaX"_ba + makeFlacStreamInfoBlock(44100, 2));
+
+    QByteArray wrongBlockType = "fLaC"_ba + makeFlacBlock(4, true, 34);
+    QTest::newRow("first block is not STREAMINFO") << wrongBlockType;
+
+    QByteArray shortBlock = "fLaC"_ba + makeFlacBlock(0, true, 33) + QByteArray(8, '\0');
+    QTest::newRow("STREAMINFO block too short") << shortBlock;
+
+    QByteArray truncatedBlock = "fLaC"_ba + makeFlacBlock(0, true, 100);
+    QTest::newRow("block length exceeds data") << truncatedBlock.first(50);
+}
+
+void tst_QAudioParsingSupport::flacStreamInfo_returnsNullopt_whenDataIsInvalid()
+{
+    QFETCH(QByteArray, data);
+
+    QVERIFY(!flacStreamInfo(asBytes(data)));
+}
+
+void tst_QAudioParsingSupport::flacAudioOffset_returnsOffsetPastMetadata_whenSingleBlock()
+{
+    // "fLaC" + 4-byte block header + 34-byte STREAMINFO
+    QCOMPARE(flacAudioOffset(asBytes(makeFlacStream())), qsizetype(42));
+}
+
+void tst_QAudioParsingSupport::flacAudioOffset_returnsOffsetPastMetadata_whenMultipleBlocks()
+{
+    QByteArray stream = "fLaC"_ba;
+    stream += makeFlacStreamInfoBlock(44100, 2, /*isLast=*/false);
+    stream += makeFlacBlock(3, /*isLast=*/false, 18); // SEEKTABLE
+    stream += makeFlacBlock(4, /*isLast=*/true, 64); // VORBIS_COMMENT
+    stream += QByteArray(128, '\xAA'); // audio frames
+
+    // 4 + (4 + 34) + (4 + 18) + (4 + 64)
+    QCOMPARE(flacAudioOffset(asBytes(stream)), qsizetype(132));
+}
+
+void tst_QAudioParsingSupport::flacAudioOffset_returnsNullopt_whenDataIsInvalid_data()
+{
+    QTest::addColumn<QByteArray>("data");
+
+    QTest::newRow("empty") << QByteArray();
+    QTest::newRow("shorter than block header") << ("fLaC"_ba + QByteArray(2, '\0'));
+    QTest::newRow("wrong magic") << ("RIFF"_ba + makeFlacStreamInfoBlock(44100, 2));
+
+    QByteArray noLastBlock = "fLaC"_ba + makeFlacStreamInfoBlock(44100, 2, false);
+    QTest::newRow("metadata chain not terminated") << noLastBlock;
+
+    // A last block declaring a length that runs past the end of the data must not
+    // produce an offset outside the buffer, which callers slice with directly.
+    QByteArray overrunningLastBlock = "fLaC"_ba + makeFlacBlock(0, true, 0xFFFFFF);
+    QTest::newRow("last block overruns data") << overrunningLastBlock.first(8);
+
+    QByteArray overrunningMiddleBlock = "fLaC"_ba + makeFlacBlock(0, false, 0xFFFFFF);
+    QTest::newRow("middle block overruns data") << overrunningMiddleBlock.first(8);
+}
+
+void tst_QAudioParsingSupport::flacAudioOffset_returnsNullopt_whenDataIsInvalid()
+{
+    QFETCH(QByteArray, data);
+
+    QVERIFY(!flacAudioOffset(asBytes(data)));
+}
+
+void tst_QAudioParsingSupport::findFlacSync_returnsOffsetOfFirstValidHeader()
+{
+    const QByteArray stream =
+            QByteArray(7, '\0') + makeFlacFrameHeader() + QByteArray(64, '\0');
+
+    QCOMPARE(findFlacSync(asBytes(stream)), qsizetype(7));
+}
+
+void tst_QAudioParsingSupport::findFlacSync_skipsHeadersWithBadCrc()
+{
+    QByteArray corrupt = makeFlacFrameHeader();
+    corrupt[5] = char(quint8(corrupt[5]) ^ 0xFF); // break the CRC-8 only
+
+    const QByteArray stream = corrupt + makeFlacFrameHeader(1) + QByteArray(64, '\0');
+
+    // The first header looks like a sync word but fails the CRC, so the scan
+    // must run on to the second one.
+    QCOMPARE(findFlacSync(asBytes(stream)), qsizetype(corrupt.size()));
+}
+
+void tst_QAudioParsingSupport::findFlacSync_rejectsReservedHeaderFields_data()
+{
+    QTest::addColumn<int>("byteIndex");
+    QTest::addColumn<int>("byteValue");
+
+    QTest::newRow("reserved bit in sync byte") << 1 << 0xFA;
+    QTest::newRow("block size code 0") << 2 << 0x09;
+    QTest::newRow("sample rate code 15") << 2 << 0x5F;
+    QTest::newRow("channel assignment 11") << 3 << 0xB8;
+    QTest::newRow("sample size code 3") << 3 << 0x16;
+    QTest::newRow("reserved bit in byte 3") << 3 << 0x19;
+}
+
+void tst_QAudioParsingSupport::findFlacSync_rejectsReservedHeaderFields()
+{
+    QFETCH(const int, byteIndex);
+    QFETCH(const int, byteValue);
+
+    QByteArray header = makeFlacFrameHeader();
+    header[byteIndex] = char(byteValue);
+    // Recompute the CRC so the header is rejected for the reserved field
+    // itself, not for a CRC that no longer matches.
+    header[5] = char(flacHeaderCrc(QByteArrayView(header).first(5)));
+
+    QVERIFY(!findFlacSync(asBytes(header + QByteArray(64, '\0'))));
+}
+
+void tst_QAudioParsingSupport::findFlacSync_returnsNullopt_whenNoSyncIsPresent()
+{
+    QVERIFY(!findFlacSync(asBytes(QByteArray())));
+    QVERIFY(!findFlacSync(asBytes(QByteArray(64, '\0'))));
+    // A header truncated before its CRC-8 byte cannot be validated.
+    QVERIFY(!findFlacSync(asBytes(makeFlacFrameHeader().first(5))));
+}
+
+void tst_QAudioParsingSupport::findFlacSync_honorsStartOffset()
+{
+    const QByteArray header = makeFlacFrameHeader();
+    const QByteArray stream = header + makeFlacFrameHeader(1) + QByteArray(64, '\0');
+
+    QCOMPARE(findFlacSync(asBytes(stream)), qsizetype(0));
+    QCOMPARE(findFlacSync(asBytes(stream), 1), qsizetype(header.size()));
+    QVERIFY(!findFlacSync(asBytes(stream), header.size() + 1));
+    QCOMPARE(findFlacSync(asBytes(stream), -5), qsizetype(0)); // negative start clamps to 0
 }
 
 void tst_QAudioParsingSupport::mpegFrameSize_returnsFrameLength_forValidHeader_data()
