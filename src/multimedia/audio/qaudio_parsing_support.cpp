@@ -68,6 +68,16 @@ quint32 fromBigEndian(QSpan<const std::byte> data)
     return value;
 }
 
+// Reads 1-4 bytes as an unsigned little-endian integer.
+quint32 fromLittleEndian(QSpan<const std::byte> data)
+{
+    Q_ASSERT(data.size() <= 4);
+    quint32 value = 0;
+    for (qsizetype i = data.size() - 1; i >= 0; --i)
+        value = (value << 8) | std::to_integer<quint32>(data[i]);
+    return value;
+}
+
 // CRC-8 with polynomial x^8 + x^2 + x + 1 (0x07) and initial value 0, as used
 // by the FLAC frame header.
 quint8 crc8(QSpan<const std::byte> data)
@@ -192,10 +202,13 @@ AudioCodec sniffCodec(QSpan<const std::byte> header)
     if (hasMarker(header, "fLaC"))
         return AudioCodec::Flac;
 
-    // Ogg container. Assume Opus, which is the more common of the two on the
-    // web, though the stream could also be Vorbis.
-    if (hasMarker(header, "OggS"))
-        return AudioCodec::Opus;
+    // Ogg container. The identification packet on the first page says whether
+    // the stream is Vorbis or Opus. If it has not arrived yet, assume Opus,
+    // which is the more common of the two on the web.
+    if (hasMarker(header, "OggS")) {
+        const std::optional<OggStreamInfo> info = oggStreamInfo(header);
+        return info ? info->codec : AudioCodec::Opus;
+    }
 
     // WAV / RIFF - uncompressed
     if (hasMarker(header, "RIFF"))
@@ -207,6 +220,51 @@ AudioCodec sniffCodec(QSpan<const std::byte> header)
 bool hasFrameParser(AudioCodec codec)
 {
     return codec == AudioCodec::Mp3 || codec == AudioCodec::Aac || codec == AudioCodec::Flac;
+}
+
+std::optional<OggStreamInfo> oggStreamInfo(QSpan<const std::byte> data)
+{
+    // Ogg page header: "OggS", then 22 more bytes, then the segment table
+    // whose length is given by the segment count at offset 26.
+    if (data.size() < 27 || !hasMarker(data, "OggS"))
+        return std::nullopt;
+
+    const qsizetype packetOffset = 27 + byteAt(data, 26);
+    const QSpan<const std::byte> packet = drop(data, packetOffset);
+    // Both identification packets are longer than this, but 16 bytes covers
+    // the magic, the channel count and the sample rate, which is all we read.
+    if (packet.size() < 16)
+        return std::nullopt;
+
+    // Both Vorbis and Opus store the sample rate as a little-endian 32-bit
+    // value at offset 12 of the identification packet.
+    const auto rateAt12 = [&packet] {
+        return int(fromLittleEndian(packet.subspan(12, 4)));
+    };
+
+    // Vorbis identification packet: 0x01 followed by "vorbis".
+    if (hasMarker(packet, QByteArrayView("\x01vorbis", 7))) {
+        OggStreamInfo info;
+        info.codec = AudioCodec::Vorbis;
+        info.numChannels = byteAt(packet, 11);
+        info.sampleRate = rateAt12();
+        if (info.sampleRate <= 0 || info.numChannels <= 0)
+            return std::nullopt;
+        return info;
+    }
+
+    // Opus identification header.
+    if (hasMarker(packet, "OpusHead")) {
+        OggStreamInfo info;
+        info.codec = AudioCodec::Opus;
+        info.numChannels = byteAt(packet, 9);
+        info.sampleRate = rateAt12();
+        if (info.sampleRate <= 0 || info.numChannels <= 0)
+            return std::nullopt;
+        return info;
+    }
+
+    return std::nullopt;
 }
 
 std::optional<FlacStreamInfo> flacStreamInfo(QSpan<const std::byte> data)

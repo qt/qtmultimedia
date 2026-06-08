@@ -117,6 +117,50 @@ QByteArray makeFlacFrameHeader(int frameNumber = 0)
     return header;
 }
 
+// Builds the first page of an Ogg stream carrying an identification packet.
+// segmentCount controls the length of the segment table, which shifts where the
+// packet begins, so the parser cannot assume a fixed offset.
+QByteArray makeOggPage(const QByteArray &identificationPacket, int segmentCount = 1)
+{
+    QByteArray page = "OggS"_ba;
+    page.append(QByteArray(23, '\0')); // rest of the 27-byte page header
+    page[26] = char(segmentCount);
+    page.append(QByteArray(segmentCount, '\0')); // segment table
+    page.append(identificationPacket);
+    return page;
+}
+
+// Builds a Vorbis identification packet: 0x01 "vorbis", 4-byte version,
+// 1-byte channel count, then the sample rate as little-endian 32 bits.
+QByteArray makeVorbisIdentification(int sampleRate, int numChannels)
+{
+    QByteArray packet = "\x01vorbis"_ba;
+    packet.append(QByteArray(4, '\0')); // version
+    packet.append(char(numChannels));
+    packet.append(char(sampleRate & 0xFF));
+    packet.append(char((sampleRate >> 8) & 0xFF));
+    packet.append(char((sampleRate >> 16) & 0xFF));
+    packet.append(char((sampleRate >> 24) & 0xFF));
+    packet.append(QByteArray(14, '\0')); // bitrate fields and framing bit
+    return packet;
+}
+
+// Builds an Opus identification header: "OpusHead", version, channel count,
+// 2-byte pre-skip, then the encoder's input sample rate as little-endian 32 bits.
+QByteArray makeOpusIdentification(int sampleRate, int numChannels)
+{
+    QByteArray packet = "OpusHead"_ba;
+    packet.append(char(1)); // version
+    packet.append(char(numChannels));
+    packet.append(QByteArray(2, '\0')); // pre-skip
+    packet.append(char(sampleRate & 0xFF));
+    packet.append(char((sampleRate >> 8) & 0xFF));
+    packet.append(char((sampleRate >> 16) & 0xFF));
+    packet.append(char((sampleRate >> 24) & 0xFF));
+    packet.append(QByteArray(3, '\0')); // output gain and channel mapping
+    return packet;
+}
+
 QByteArray makeFlacStream(int sampleRate = 44100, int numChannels = 2, qint64 totalSamples = 0)
 {
     return "fLaC"_ba + makeFlacStreamInfoBlock(sampleRate, numChannels, true, totalSamples);
@@ -134,6 +178,12 @@ private slots:
     void sniffCodec_returnsUnknown_whenHeaderIsTooShort();
 
     void hasFrameParser_isTrue_onlyForFrameParsedCodecs();
+
+    void oggStreamInfo_returnsFormat_fromIdentificationPacket_data();
+    void oggStreamInfo_returnsFormat_fromIdentificationPacket();
+    void oggStreamInfo_findsPacket_pastVariableLengthSegmentTable();
+    void oggStreamInfo_returnsNullopt_whenDataIsInvalid_data();
+    void oggStreamInfo_returnsNullopt_whenDataIsInvalid();
 
     void flacStreamInfo_returnsFormat_fromStreamInfoBlock_data();
     void flacStreamInfo_returnsFormat_fromStreamInfoBlock();
@@ -211,6 +261,77 @@ void tst_QAudioParsingSupport::hasFrameParser_isTrue_onlyForFrameParsedCodecs()
     QVERIFY(!hasFrameParser(AudioCodec::Opus));
     QVERIFY(!hasFrameParser(AudioCodec::Wav));
     QVERIFY(!hasFrameParser(AudioCodec::Unknown));
+}
+
+void tst_QAudioParsingSupport::oggStreamInfo_returnsFormat_fromIdentificationPacket_data()
+{
+    QTest::addColumn<QByteArray>("packet");
+    QTest::addColumn<AudioCodec>("expectedCodec");
+    QTest::addColumn<int>("expectedSampleRate");
+    QTest::addColumn<int>("expectedChannels");
+
+    QTest::newRow("vorbis 44100 stereo")
+            << makeVorbisIdentification(44100, 2) << AudioCodec::Vorbis << 44100 << 2;
+    QTest::newRow("vorbis 48000 mono")
+            << makeVorbisIdentification(48000, 1) << AudioCodec::Vorbis << 48000 << 1;
+    QTest::newRow("opus 48000 stereo")
+            << makeOpusIdentification(48000, 2) << AudioCodec::Opus << 48000 << 2;
+    QTest::newRow("opus 44100 input rate")
+            << makeOpusIdentification(44100, 2) << AudioCodec::Opus << 44100 << 2;
+}
+
+void tst_QAudioParsingSupport::oggStreamInfo_returnsFormat_fromIdentificationPacket()
+{
+    QFETCH(const QByteArray, packet);
+    QFETCH(const AudioCodec, expectedCodec);
+    QFETCH(const int, expectedSampleRate);
+    QFETCH(const int, expectedChannels);
+
+    const QByteArray page = makeOggPage(packet);
+    const std::optional<OggStreamInfo> info = oggStreamInfo(asBytes(page));
+
+    QVERIFY(info.has_value());
+    QCOMPARE(info->codec, expectedCodec);
+    QCOMPARE(info->sampleRate, expectedSampleRate);
+    QCOMPARE(info->numChannels, expectedChannels);
+
+    // sniffCodec must agree, since it defers to oggStreamInfo for Ogg streams.
+    QCOMPARE(sniffCodec(asBytes(page)), expectedCodec);
+}
+
+void tst_QAudioParsingSupport::oggStreamInfo_findsPacket_pastVariableLengthSegmentTable()
+{
+    // The segment table length varies per page, so the packet offset must be
+    // read from the segment count rather than assumed.
+    for (int segmentCount : { 1, 2, 17, 255 }) {
+        const QByteArray page = makeOggPage(makeVorbisIdentification(44100, 2), segmentCount);
+        const std::optional<OggStreamInfo> info = oggStreamInfo(asBytes(page));
+        QVERIFY2(info.has_value(), qPrintable(QStringLiteral("segmentCount %1").arg(segmentCount)));
+        QCOMPARE(info->sampleRate, 44100);
+    }
+}
+
+void tst_QAudioParsingSupport::oggStreamInfo_returnsNullopt_whenDataIsInvalid_data()
+{
+    QTest::addColumn<QByteArray>("data");
+
+    QTest::newRow("empty") << QByteArray();
+    QTest::newRow("not ogg") << "fLaC"_ba + QByteArray(64, '\0');
+    QTest::newRow("page header truncated") << "OggS"_ba + QByteArray(20, '\0');
+    QTest::newRow("packet missing") << makeOggPage(QByteArray());
+    QTest::newRow("packet truncated") << makeOggPage(makeVorbisIdentification(44100, 2).first(12));
+    QTest::newRow("unknown packet magic") << makeOggPage("Speex   "_ba + QByteArray(24, '\0'));
+    QTest::newRow("zero sample rate") << makeOggPage(makeVorbisIdentification(0, 2));
+    QTest::newRow("zero channels") << makeOggPage(makeVorbisIdentification(44100, 0));
+    QTest::newRow("segment table runs past end")
+            << "OggS"_ba + QByteArray(22, '\0') + QByteArray(1, char(255));
+}
+
+void tst_QAudioParsingSupport::oggStreamInfo_returnsNullopt_whenDataIsInvalid()
+{
+    QFETCH(const QByteArray, data);
+
+    QVERIFY(!oggStreamInfo(asBytes(data)));
 }
 
 void tst_QAudioParsingSupport::flacStreamInfo_returnsFormat_fromStreamInfoBlock_data()

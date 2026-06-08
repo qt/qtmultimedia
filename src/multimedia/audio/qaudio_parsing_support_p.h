@@ -31,7 +31,17 @@ enum class AudioCodec {
     Aac,
     Flac,
     Opus,
+    Vorbis,
     Wav,
+};
+
+// The sample rate and channel count from the identification packet of the
+// first page of an Ogg stream.
+struct OggStreamInfo
+{
+    AudioCodec codec = AudioCodec::Unknown;
+    int sampleRate = 0;
+    int numChannels = 0;
 };
 
 // The parts of a FLAC STREAMINFO metadata block that describe the stream format.
@@ -53,6 +63,13 @@ Q_MULTIMEDIA_EXPORT bool hasFrameParser(AudioCodec codec);
 
 // Parses the FLAC STREAMINFO metadata block at the beginning of a FLAC stream.
 Q_MULTIMEDIA_EXPORT std::optional<FlacStreamInfo> flacStreamInfo(QSpan<const std::byte> data);
+
+// Parses the identification packet on the first page of an Ogg stream, which
+// says whether the stream is Vorbis or Opus and carries its format. Returns
+// std::nullopt if the data is too short or is not a recognized Ogg audio
+// stream. For Opus the rate is the encoder's input rate. Opus itself always
+// decodes at 48000 Hz, so callers must not treat it as the decoded rate.
+Q_MULTIMEDIA_EXPORT std::optional<OggStreamInfo> oggStreamInfo(QSpan<const std::byte> data);
 
 // Returns the byte offset of the first FLAC audio frame in data, i.e. the
 // position just past the "fLaC" marker and all metadata blocks. The result is
