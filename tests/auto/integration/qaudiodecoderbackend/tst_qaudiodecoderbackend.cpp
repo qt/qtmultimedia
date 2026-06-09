@@ -138,13 +138,14 @@ void tst_QAudioDecoderBackend::directBruteForceReading()
         QSKIP("There is no audio decoding support on this platform.");
 
     int sampleCount = 0;
+    QSignalSpy decodingSpy(&decoder, &QAudioDecoder::isDecodingChanged);
 
     decoder.setSource(*m_wavFile);
     QVERIFY(!decoder.isDecoding());
     QVERIFY(!decoder.bufferAvailable());
 
     decoder.start();
-    QTRY_VERIFY(decoder.isDecoding());
+    QTRY_VERIFY(decodingSpy.size() >= 1); // Wait until decoding starts
 
     auto waitAndCheck = [](auto &&predicate) { QVERIFY(QTest::qWaitFor(predicate)); };
 
@@ -600,7 +601,7 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
     // Check all other spies.
     QVERIFY(readySpy.isEmpty());
     QVERIFY(bufferChangedSpy.isEmpty());
-    QVERIFY(isDecodingSpy.isEmpty());
+    QVERIFY(!d.isDecoding());
     QVERIFY(finishedSpy.isEmpty());
     QVERIFY(positionSpy.isEmpty());
     // Either reject the file directly, or set the duration to 5secs on setUrl() and back to -1 on start()
@@ -618,7 +619,7 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
     QVERIFY(errorSpy.isEmpty());
     QVERIFY(readySpy.isEmpty());
     QVERIFY(bufferChangedSpy.isEmpty());
-    QVERIFY(isDecodingSpy.isEmpty());
+    QVERIFY(!d.isDecoding());
     QVERIFY(finishedSpy.isEmpty());
     QVERIFY(positionSpy.isEmpty());
     QVERIFY(durationSpy.isEmpty() || durationSpy.size() == 2);
@@ -656,7 +657,6 @@ void tst_QAudioDecoderBackend::corruptedFileTest()
     QSignalSpy readySpy(&d, &QAudioDecoder::bufferReady);
     QSignalSpy bufferChangedSpy(&d, &QAudioDecoder::bufferAvailableChanged);
     QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
-    QSignalSpy isDecodingSpy(&d, &QAudioDecoder::isDecodingChanged);
     QSignalSpy durationSpy(&d, &QAudioDecoder::durationChanged);
     QSignalSpy finishedSpy(&d, &QAudioDecoder::finished);
     QSignalSpy positionSpy(&d, &QAudioDecoder::positionChanged);
@@ -679,7 +679,7 @@ void tst_QAudioDecoderBackend::corruptedFileTest()
     // Check all other spies.
     QVERIFY(readySpy.isEmpty());
     QVERIFY(bufferChangedSpy.isEmpty());
-    QVERIFY(isDecodingSpy.isEmpty());
+    QVERIFY(!d.isDecoding());
     QVERIFY(finishedSpy.isEmpty());
     QVERIFY(positionSpy.isEmpty());
     QVERIFY(durationSpy.isEmpty());
@@ -696,7 +696,7 @@ void tst_QAudioDecoderBackend::corruptedFileTest()
     QVERIFY(errorSpy.isEmpty());
     QVERIFY(readySpy.isEmpty());
     QVERIFY(bufferChangedSpy.isEmpty());
-    QVERIFY(isDecodingSpy.isEmpty());
+    QVERIFY(!d.isDecoding());
     QVERIFY(finishedSpy.isEmpty());
     QVERIFY(positionSpy.isEmpty());
     QVERIFY(durationSpy.isEmpty());
@@ -730,7 +730,6 @@ void tst_QAudioDecoderBackend::invalidSource()
     QSignalSpy readySpy(&d, &QAudioDecoder::bufferReady);
     QSignalSpy bufferChangedSpy(&d, &QAudioDecoder::bufferAvailableChanged);
     QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
-    QSignalSpy isDecodingSpy(&d, &QAudioDecoder::isDecodingChanged);
     QSignalSpy durationSpy(&d, &QAudioDecoder::durationChanged);
     QSignalSpy finishedSpy(&d, &QAudioDecoder::finished);
     QSignalSpy positionSpy(&d, &QAudioDecoder::positionChanged);
@@ -753,7 +752,7 @@ void tst_QAudioDecoderBackend::invalidSource()
     // Check all other spies.
     QVERIFY(readySpy.isEmpty());
     QVERIFY(bufferChangedSpy.isEmpty());
-    QVERIFY(isDecodingSpy.isEmpty());
+    QVERIFY(!d.isDecoding());
     QVERIFY(finishedSpy.isEmpty());
     QVERIFY(positionSpy.isEmpty());
     QVERIFY(durationSpy.isEmpty());
@@ -782,10 +781,10 @@ void tst_QAudioDecoderBackend::invalidSource()
     errorCode = qvariant_cast<QAudioDecoder::Error>(errorSpy.takeLast().at(0));
     QCOMPARE(errorCode, QAudioDecoder::ResourceError);
     QCOMPARE(d.error(), QAudioDecoder::ResourceError);
+    QVERIFY(!d.isDecoding());
     // Check all other spies.
     QVERIFY(readySpy.isEmpty());
     QVERIFY(bufferChangedSpy.isEmpty());
-    QVERIFY(isDecodingSpy.isEmpty());
     QVERIFY(finishedSpy.isEmpty());
     QVERIFY(positionSpy.isEmpty());
     QVERIFY(durationSpy.isEmpty());
