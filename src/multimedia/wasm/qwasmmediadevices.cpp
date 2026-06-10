@@ -255,11 +255,13 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
 
     if (m_videoInputsAdded || m_videoInputsRemoved) {
         auto videoDevices = static_cast<QWasmCameraDevices*>(QPlatformMediaIntegration::instance()->videoDevices());
-        videoDevices->onVideoInputsChanged();
+        QMetaObject::invokeMethod(videoDevices, &QWasmCameraDevices::onVideoInputsChanged,
+                                   Qt::QueuedConnection);
     }
     if (m_audioInputsAdded || m_audioInputsRemoved) {
         auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
-        audioDevices->onAudioInputsChanged();
+        QMetaObject::invokeMethod(audioDevices, &QWasmAudioDevices::onAudioInputsChanged,
+                                   Qt::QueuedConnection);
     }
     if (!m_audioOutputsAdded) {
         // Firefox and Safari require mic or camera permissions
@@ -274,7 +276,8 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
     }
     if (m_audioOutputsAdded || m_audioOutputsRemoved) {
         auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
-        audioDevices->onAudioOutputsChanged();
+        QMetaObject::invokeMethod(audioDevices, &QWasmAudioDevices::onAudioOutputsChanged,
+                                   Qt::QueuedConnection);
     }
 
 }
