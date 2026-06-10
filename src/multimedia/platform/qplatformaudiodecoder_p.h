@@ -19,6 +19,7 @@
 #include <QtMultimedia/qaudiodecoder.h>
 #include <QtCore/private/qglobal_p.h>
 #include <QtCore/qurl.h>
+#include <chrono>
 
 QT_BEGIN_NAMESPACE
 
@@ -28,6 +29,9 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioDecoder : public QObject
     Q_OBJECT
 
 public:
+    static constexpr std::chrono::milliseconds kInvalidDuration{ -1 };
+    static constexpr std::chrono::milliseconds kInvalidPosition{ -1 };
+
     virtual QUrl source() const = 0;
     virtual void setSource(const QUrl &fileName) = 0;
 
@@ -43,8 +47,8 @@ public:
     virtual QAudioBuffer read() = 0;
     virtual bool bufferAvailable() const { return m_bufferAvailable; }
 
-    virtual qint64 position() const { return m_position; }
-    virtual qint64 duration() const { return m_duration; }
+    std::chrono::milliseconds position() const { return m_position; }
+    std::chrono::milliseconds duration() const { return m_duration; }
 
     void formatChanged(const QAudioFormat &format);
 
@@ -64,8 +68,8 @@ public:
     void finished();
     bool isDecoding() const { return m_isDecoding; }
 
-    void positionChanged(qint64 position);
-    void durationChanged(qint64 duration);
+    void positionChanged(std::chrono::milliseconds);
+    void durationChanged(std::chrono::milliseconds);
 
     QAudioDecoder::Error error() const { return m_error; }
     QString errorString() const { return m_errorString; }
@@ -80,8 +84,9 @@ protected:
 private:
     QAudioDecoder *q = nullptr;
 
-    qint64 m_duration = -1;
-    qint64 m_position = -1;
+    // stored in milliseconds resolution
+    std::chrono::milliseconds m_duration = kInvalidDuration;
+    std::chrono::milliseconds m_position = kInvalidPosition;
     QAudioDecoder::Error m_error = QAudioDecoder::NoError;
     QString m_errorString;
     bool m_isDecoding = false;

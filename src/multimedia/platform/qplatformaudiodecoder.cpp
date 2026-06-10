@@ -58,25 +58,25 @@ void QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
 
 void QPlatformAudioDecoder::finished()
 {
-    durationChanged(-1);
+    durationChanged(kInvalidDuration);
     setIsDecoding(false);
     emit q->finished();
 }
 
-void QPlatformAudioDecoder::positionChanged(qint64 position)
+void QPlatformAudioDecoder::positionChanged(std::chrono::milliseconds position)
 {
     if (m_position == position)
         return;
     m_position = position;
-    emit q->positionChanged(position);
+    emit q->positionChanged(position.count());
 }
 
-void QPlatformAudioDecoder::durationChanged(qint64 duration)
+void QPlatformAudioDecoder::durationChanged(std::chrono::milliseconds duration)
 {
     if (m_duration == duration)
         return;
     m_duration = duration;
-    emit q->durationChanged(duration);
+    emit q->durationChanged(duration.count());
 }
 
 QT_END_NAMESPACE

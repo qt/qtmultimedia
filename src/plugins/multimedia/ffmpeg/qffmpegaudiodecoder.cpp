@@ -129,8 +129,8 @@ void QFFmpegAudioDecoder::start()
         if (error() == QAudioDecoder::NoError)
             return true;
 
-        durationChanged(-1);
-        positionChanged(-1);
+        durationChanged(kInvalidDuration);
+        positionChanged(kInvalidPosition);
 
         m_decoder.reset();
 
@@ -170,7 +170,7 @@ void QFFmpegAudioDecoder::start()
     if (!checkNoError())
         return;
 
-    durationChanged(QFFmpeg::toUserDuration(m_decoder->duration()).get());
+    durationChanged(std::chrono::milliseconds{ QFFmpeg::toUserDuration(m_decoder->duration()).get() });
     setIsDecoding(true);
 }
 
@@ -214,8 +214,10 @@ void QFFmpegAudioDecoder::newAudioBuffer(const QAudioBuffer &b)
 
     qCDebug(qLcAudioDecoder) << "new audio buffer" << b.startTime();
     m_audioBuffer = b;
+    // QAudioBuffer::startTime is in microseconds; convert to milliseconds
     const qint64 pos = b.startTime();
-    positionChanged(pos/1000);
+    positionChanged(
+            std::chrono::round<std::chrono::milliseconds>(std::chrono::microseconds{ pos }));
     bufferAvailableChanged(b.isValid());
     bufferReady();
 }

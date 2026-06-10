@@ -13,6 +13,8 @@
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qurl.h>
 
+#include <chrono>
+
 Q_LOGGING_CATEGORY(qLcAudioDecoder, "qt.multimedia.audiodecoder")
 
 QT_BEGIN_NAMESPACE
@@ -258,7 +260,7 @@ bool QAudioDecoder::bufferAvailable() const
 qint64 QAudioDecoder::position() const
 {
     Q_D(const QAudioDecoder);
-    return d->decoder->position();
+    return d->decoder->position().count();
 }
 
 /*!
@@ -269,7 +271,7 @@ qint64 QAudioDecoder::position() const
 qint64 QAudioDecoder::duration() const
 {
     Q_D(const QAudioDecoder);
-    return d->decoder->duration();
+    return d->decoder->duration().count();
 }
 
 /*!

@@ -39,8 +39,8 @@ public slots:
     void stop();
 
 signals:
-    void positionChanged(const QAudioBuffer &buffer, qint64 position);
-    void durationChanged(const qint64 duration);
+    void positionChanged(const QAudioBuffer &buffer, std::chrono::milliseconds position);
+    void durationChanged(std::chrono::milliseconds duration);
     void error(const QAudioDecoder::Error error, const QString &errorString);
     void finished();
     void decodingChanged(bool decoding);
@@ -80,15 +80,12 @@ public:
     QAudioBuffer read() override;
     bool bufferAvailable() const override;
 
-    qint64 position() const override;
-    qint64 duration() const override;
-
 signals:
     void setSourceUrl(const QUrl &source);
 
 private slots:
-    void positionChanged(QAudioBuffer audioBuffer, qint64 position);
-    void durationChanged(qint64 duration);
+    void positionChanged(QAudioBuffer audioBuffer, std::chrono::milliseconds position);
+    void durationChanged(std::chrono::milliseconds duration);
     void error(const QAudioDecoder::Error error, const QString &errorString);
     void readDevice();
     void finished();
@@ -101,11 +98,8 @@ private:
     QIODevice *m_device = nullptr;
     Decoder *m_decoder = nullptr;
 
-    QList<std::pair<QAudioBuffer, int>> m_audioBuffer;
+    QList<std::pair<QAudioBuffer, std::chrono::milliseconds>> m_audioBuffer;
     QUrl m_source;
-
-    qint64 m_position = -1;
-    qint64 m_duration = -1;
 
     QByteArray m_deviceBuffer;
 

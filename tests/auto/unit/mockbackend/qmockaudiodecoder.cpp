@@ -6,7 +6,7 @@
 QT_BEGIN_NAMESPACE
 
 QMockAudioDecoder::QMockAudioDecoder(QAudioDecoder *parent)
-    : QPlatformAudioDecoder(parent), mDevice(0), mPosition(-1), mSerial(0)
+    : QPlatformAudioDecoder(parent), mDevice(0), mSerial(0)
 {
     mFormat.setChannelCount(1);
     mFormat.setSampleFormat(QAudioFormat::UInt8);
@@ -58,7 +58,9 @@ void QMockAudioDecoder::start()
     if (!isDecoding()) {
         if (!mSource.isEmpty() || mDevice) {
             setIsDecoding(true);
-            durationChanged(duration());
+            qint64 ms = (sizeof(mSerial) * MOCK_DECODER_MAX_BUFFERS * qint64(1000))
+                    / (mFormat.sampleRate() * mFormat.channelCount());
+            durationChanged(std::chrono::milliseconds{ ms });
 
             QTimer::singleShot(50, this, &QMockAudioDecoder::pretendDecode);
         } else {
@@ -71,20 +73,21 @@ void QMockAudioDecoder::stop()
 {
     if (isDecoding()) {
         mSerial = 0;
-        mPosition = 0;
         mBuffers.clear();
         setIsDecoding(false);
         bufferAvailableChanged(false);
+        positionChanged(kInvalidPosition);
     }
 }
 
 QAudioBuffer QMockAudioDecoder::read()
 {
+    using namespace std::chrono;
     QAudioBuffer a;
     if (mBuffers.size() > 0) {
         a = mBuffers.takeFirst();
-        mPosition = a.startTime() / 1000;
-        positionChanged(mPosition);
+        // QAudioBuffer::startTime() is microseconds; store milliseconds
+        positionChanged(duration_cast<milliseconds>(microseconds{ a.startTime() }));
 
         if (mBuffers.isEmpty())
             bufferAvailableChanged(false);
@@ -101,17 +104,6 @@ QAudioBuffer QMockAudioDecoder::read()
 bool QMockAudioDecoder::bufferAvailable() const
 {
     return mBuffers.size() > 0;
-}
-
-qint64 QMockAudioDecoder::position() const
-{
-    return mPosition;
-}
-
-qint64 QMockAudioDecoder::duration() const
-{
-    return (sizeof(mSerial) * MOCK_DECODER_MAX_BUFFERS * qint64(1000))
-            / (mFormat.sampleRate() * mFormat.channelCount());
 }
 
 void QMockAudioDecoder::pretendDecode()
