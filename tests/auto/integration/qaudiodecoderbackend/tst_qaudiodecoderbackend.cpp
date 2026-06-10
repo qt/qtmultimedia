@@ -525,10 +525,7 @@ void tst_QAudioDecoderBackend::fileTest()
     }
 
     auto durationToMs = [](uint64_t dur) {
-        if (isGStreamerPlatform())
-            return std::round(dur / 1000.0);
-        else
-            return dur / 1000.0;
+        return std::round(dur / 1000.0);
     };
 
     while (d.bufferAvailable()) {
@@ -1037,12 +1034,8 @@ void tst_QAudioDecoderBackend::deviceTest()
         buffer = d.read();
         QVERIFY(buffer.isValid());
         QTRY_VERIFY(!positionSpy.isEmpty());
-        if (isGStreamerPlatform())
-            QCOMPARE_EQ(positionSpy.takeLast().at(0).toLongLong(),
-                        round<milliseconds>(microseconds{ duration }).count());
-        else
-            QCOMPARE_EQ(positionSpy.takeLast().at(0).toLongLong(),
-                        floor<milliseconds>(microseconds{ duration }).count());
+        QCOMPARE_EQ(positionSpy.takeLast().at(0).toLongLong(),
+                    round<milliseconds>(microseconds{ duration }).count());
 
         QVERIFY(d.position() - (duration / 1000) < 20);
 

@@ -300,7 +300,7 @@ void AVFAudioDecoder::start()
         return;
     }
 
-    positionChanged(-1);
+    positionChanged(kInvalidPosition);
 
     if (m_device && (!m_device->isOpen() || !m_device->isReadable())) {
         processInvalidMedia(QAudioDecoder::ResourceError, tr("Unable to read from specified device"));
@@ -357,8 +357,8 @@ void AVFAudioDecoder::stop()
     m_cachedBuffers.clear();
 
     bufferAvailableChanged(false);
-    positionChanged(-1);
-    durationChanged(-1);
+    positionChanged(kInvalidPosition);
+    durationChanged(kInvalidDuration);
 
     onFinished();
 }
@@ -385,7 +385,9 @@ QAudioBuffer AVFAudioDecoder::read()
     QAudioBuffer buffer = m_cachedBuffers.dequeue();
     decBuffersCounter(1);
 
-    positionChanged(buffer.startTime() / 1000);
+    // buffer.startTime() is in microseconds; convert to milliseconds for platform API
+    using namespace std::chrono;
+    positionChanged(round<milliseconds>(microseconds{ buffer.startTime() }));
     bufferAvailableChanged(!m_cachedBuffers.empty());
     return buffer;
 }
@@ -430,7 +432,9 @@ void AVFAudioDecoder::initAssetReaderImpl(AVAssetTrack *track, NSError *error)
         return;
     }
 
-    durationChanged(CMTimeGetSeconds(track.timeRange.duration) * 1000);
+    const auto duration =
+            std::chrono::milliseconds(int64_t(CMTimeGetSeconds(track.timeRange.duration) * 1000));
+    durationChanged(duration);
 
     NSDictionary *audioSettings = av_audio_settings_for_format(format);
 

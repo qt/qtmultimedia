@@ -45,9 +45,6 @@ public:
     QAudioBuffer read() override;
     bool bufferAvailable() const override { return m_audioBuffer.sampleCount() > 0; }
 
-    qint64 position() const override { return m_position; }
-    qint64 duration() const override { return m_duration; }
-
     bool canReadQrc() const override { return true; }
 
 private Q_SLOTS:
@@ -66,8 +63,6 @@ private:
     QIODevice              *m_device = nullptr;
     QAudioFormat            m_outputFormat;
     QAudioBuffer            m_audioBuffer;
-    qint64                  m_duration = -1;
-    qint64                  m_position = -1;
     bool                    m_loadingSource = false;
     bool                    m_deferredStart = false;
 };

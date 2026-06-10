@@ -56,9 +56,6 @@ public:
 
     QAudioBuffer read() override;
 
-    qint64 position() const override;
-    qint64 duration() const override;
-
     // GStreamerBusMessageFilter interface
     bool processBusMessage(const QGstreamerMessage &message) override;
 
@@ -98,11 +95,6 @@ private:
     QAudioFormat mFormat;
 
     int m_buffersAvailable = 0;
-
-    static constexpr auto invalidDuration = std::chrono::milliseconds{ -1 };
-    static constexpr auto invalidPosition = std::chrono::milliseconds{ -1 };
-    std::chrono::milliseconds m_position{ invalidPosition };
-    std::chrono::milliseconds m_duration{ invalidDuration };
 
     int m_durationQueries = 0;
 

@@ -333,15 +333,8 @@ void QGstreamerAudioDecoder::stop()
         bufferAvailableChanged(false);
     }
 
-    if (m_position != invalidPosition) {
-        m_position = invalidPosition;
-        positionChanged(m_position.count());
-    }
-
-    if (m_duration != invalidDuration) {
-        m_duration = invalidDuration;
-        durationChanged(m_duration.count());
-    }
+    positionChanged(kInvalidPosition);
+    durationChanged(kInvalidDuration);
 
     setIsDecoding(false);
 }
@@ -385,30 +378,17 @@ QAudioBuffer QGstreamerAudioDecoder::read()
         // XXX At the moment we have to copy data from GstBuffer into QAudioBuffer.
         // We could improve performance by implementing QAbstractAudioBuffer for GstBuffer.
         nanoseconds position = getPositionFromBuffer(buffer);
-        audioBuffer = QAudioBuffer{
-            QByteArray(bufferData, bufferSize),
-            format,
-            round<microseconds>(position).count(),
-        };
-        milliseconds positionInMs = round<milliseconds>(position);
-        if (position != m_position) {
-            m_position = positionInMs;
-            positionChanged(m_position.count());
-        }
+        // QAudioBuffer expects startTime in microseconds, but the platform
+        // QPlatformAudioDecoder stores/uses milliseconds resolution. Convert
+        // the nanoseconds position to microseconds for the buffer, and to
+        // milliseconds for the stored platform position.
+        const auto startUs = std::chrono::round<std::chrono::microseconds>(position);
+        audioBuffer = QAudioBuffer{ QByteArray(bufferData, bufferSize), format, startUs.count() };
+        positionChanged(std::chrono::round<std::chrono::milliseconds>(position));
     }
     gst_buffer_unmap(buffer, &mapInfo);
 
     return audioBuffer;
-}
-
-qint64 QGstreamerAudioDecoder::position() const
-{
-    return m_position.count();
-}
-
-qint64 QGstreamerAudioDecoder::duration() const
-{
-    return m_duration.count();
 }
 
 void QGstreamerAudioDecoder::processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString)
@@ -500,16 +480,13 @@ void QGstreamerAudioDecoder::removeAppSink()
 
 void QGstreamerAudioDecoder::updateDuration()
 {
-    std::optional<std::chrono::milliseconds> duration = m_playbin.durationInMs();
-    if (!duration)
-        duration = invalidDuration;
+    std::optional<std::chrono::milliseconds> dur = m_playbin.durationInMs();
+    if (!dur)
+        dur = kInvalidDuration;
 
-    if (m_duration != duration) {
-        m_duration = *duration;
-        durationChanged(m_duration.count());
-    }
+    durationChanged(*dur);
 
-    if (m_duration.count() > 0)
+    if (dur->count() > 0)
         m_durationQueries = 0;
 
     if (m_durationQueries > 0) {
@@ -528,7 +505,7 @@ std::chrono::nanoseconds QGstreamerAudioDecoder::getPositionFromBuffer(GstBuffer
     if (position >= 0ns)
         return position;
     else
-        return invalidPosition;
+        return std::chrono::nanoseconds{ kInvalidPosition };
 }
 
 QT_END_NAMESPACE

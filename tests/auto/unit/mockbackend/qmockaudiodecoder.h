@@ -49,10 +49,6 @@ public:
 
     bool bufferAvailable() const override;
 
-    qint64 position() const override;
-
-    qint64 duration() const override;
-
 private slots:
     void pretendDecode();
 
@@ -60,7 +56,6 @@ public:
     QUrl mSource;
     QIODevice *mDevice;
     QAudioFormat mFormat;
-    qint64 mPosition;
 
     int mSerial;
     QList<QAudioBuffer> mBuffers;

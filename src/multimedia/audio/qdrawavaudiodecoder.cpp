@@ -347,6 +347,7 @@ auto QDrWavAudioDecoder::loadAndDecodeFile(const QUrl &source, QIODevice *source
 void QDrWavAudioDecoder::onDecodeFinished(QDrWavDecodeResult result,
                                           const std::atomic_bool &decodingStopped)
 {
+    using namespace std::chrono;
     if (!result.has_value()) {
         auto [errorCode, errorString] = result.error();
         error(errorCode, errorString);
@@ -355,8 +356,9 @@ void QDrWavAudioDecoder::onDecodeFinished(QDrWavDecodeResult result,
     }
 
     m_buffer = std::move(*result);
-    durationChanged(m_buffer.duration() / 1000); // convert from us to ms
-    positionChanged(0);
+    // QAudioBuffer::duration() is in microseconds; convert to milliseconds
+    durationChanged(duration_cast<milliseconds>(microseconds{ m_buffer.duration() }));
+    positionChanged(0ms);
 
     bufferAvailableChanged(true);
     bufferReady();
