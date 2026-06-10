@@ -56,17 +56,15 @@ private:
         bool fromStream() const;
 
     private:
-        long m_cRef;
         IMFSourceResolver *m_sourceResolver;
         bool m_fromStream;
     };
 
-    long              m_cRef;
-    IUnknown          *m_cancelCookie;
-    IMFSourceResolver *m_sourceResolver;
-    IMFMediaSource    *m_mediaSource;
-    MFStream          *m_stream;
-    QMutex            m_mutex;
+    IUnknown *m_cancelCookie{};
+    IMFSourceResolver *m_sourceResolver{};
+    IMFMediaSource *m_mediaSource{};
+    MFStream *m_stream{};
+    QMutex m_mutex;
 };
 
 QT_END_NAMESPACE
