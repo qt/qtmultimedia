@@ -18,14 +18,7 @@ QT_BEGIN_NAMESPACE
     stop the previous load operation if there is any.
 */
 
-SourceResolver::SourceResolver()
-    : m_cRef(1)
-    , m_cancelCookie(0)
-    , m_sourceResolver(0)
-    , m_mediaSource(0)
-    , m_stream(0)
-{
-}
+SourceResolver::SourceResolver() = default;
 
 SourceResolver::~SourceResolver()
 {
@@ -211,9 +204,7 @@ IMFMediaSource* SourceResolver::mediaSource() const
 
 /////////////////////////////////////////////////////////////////////////////////
 SourceResolver::State::State(IMFSourceResolver *sourceResolver, bool fromStream)
-    : m_cRef(0)
-    , m_sourceResolver(sourceResolver)
-    , m_fromStream(fromStream)
+    : m_sourceResolver(sourceResolver), m_fromStream(fromStream)
 {
     sourceResolver->AddRef();
 }
