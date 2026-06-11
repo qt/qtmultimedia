@@ -1,11 +1,12 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qaudiobuffer.h"
 #include "qvideoframeinput.h"
-#include "qmediaframeinput_p.h"
-#include "qmediainputencoderinterface_p.h"
-#include "qplatformvideoframeinput_p.h"
+
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/private/qmediaframeinput_p.h>
+#include <QtMultimedia/private/qmediainputencoderinterface_p.h>
+#include <QtMultimedia/private/qplatformvideoframeinput_p.h>
 
 QT_BEGIN_NAMESPACE
 

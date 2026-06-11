@@ -3,20 +3,21 @@
 
 #include "qmediacapturesession.h"
 #include "qmediacapturesession_p.h"
-#include "qaudiodevice.h"
-#include "qcamera.h"
-#include "qmediarecorder.h"
-#include "qimagecapture.h"
-#include "qvideosink.h"
-#include "qscreencapture.h"
-#include "qwindowcapture.h"
-#include "qvideoframeinput.h"
 
-#include "qplatformmediaintegration_p.h"
-#include "qplatformmediacapture_p.h"
-#include "qaudioinput.h"
-#include "qaudiobufferinput.h"
-#include "qaudiooutput.h"
+#include <QtMultimedia/qaudiobufferinput.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudioinput.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qimagecapture.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qscreencapture.h>
+#include <QtMultimedia/qvideoframeinput.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/qwindowcapture.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
+
 #if QT_CONFIG(gstreamer_qt_api)
 #  include <QtMultimedia/spi/qgstreamervideosource.h>
 #endif

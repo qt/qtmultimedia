@@ -116,14 +116,6 @@ qt_internal_add_module(Multimedia
         video/qvideowindow.cpp video/qvideowindow_p.h
         video/qtvideo.cpp video/qtvideo.h
         shaders/qrhitextureformats_p.h
-    INCLUDE_DIRECTORIES
-        audio
-        camera
-        controls
-        platform
-        playback
-        recording
-        video
     PRECOMPILED_HEADER
         qtmultimedia_pch_p.h
     DEFINES
