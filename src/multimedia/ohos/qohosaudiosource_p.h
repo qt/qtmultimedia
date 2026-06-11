@@ -59,10 +59,10 @@ private:
     void updateStreamIdle(bool idle) override;
 
     QSpan<const std::byte> getHostSpan(void *audioData,
-                                       int32_t numBytes) const noexcept QT_MM_NONBLOCKING;
+                                       int32_t numBytes) const noexcept Q_DECL_NONBLOCKING_FUNCTION;
     int32_t processRingbuffer(QSpan<const std::byte> audioSpan,
-                              int32_t numBytes) noexcept QT_MM_NONBLOCKING;
-    int32_t processCallback(QSpan<const std::byte> audioSpan) noexcept QT_MM_NONBLOCKING;
+                              int32_t numBytes) noexcept Q_DECL_NONBLOCKING_FUNCTION;
+    int32_t processCallback(QSpan<const std::byte> audioSpan) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     QOhosAudioSource *m_parent;
     std::optional<AudioCallback> m_audioCallback;
