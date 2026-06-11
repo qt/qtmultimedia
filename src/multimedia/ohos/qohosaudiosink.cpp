@@ -170,7 +170,7 @@ void QOhosAudioSinkStream::updateStreamIdle(bool arg)
 
 QSpan<std::byte>
 QOhosAudioSinkStream::getHostSpan(void *audioData,
-                                  int32_t numBytes) const noexcept QT_MM_NONBLOCKING
+                                  int32_t numBytes) const noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     return QSpan<std::byte>{ reinterpret_cast<std::byte *>(audioData),
                              static_cast<qsizetype>(numBytes) };
@@ -178,7 +178,7 @@ QOhosAudioSinkStream::getHostSpan(void *audioData,
 
 OH_AudioData_Callback_Result
 QOhosAudioSinkStream::processRingbuffer(QSpan<std::byte> audioSpan,
-                                        int32_t numBytes) noexcept QT_MM_NONBLOCKING
+                                        int32_t numBytes) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     const QAudioFormat &format = m_hostFormat.value_or(m_format);
     const int32_t numFrames = numBytes / format.bytesPerFrame();
@@ -196,7 +196,7 @@ QOhosAudioSinkStream::processRingbuffer(QSpan<std::byte> audioSpan,
 }
 
 OH_AudioData_Callback_Result
-QOhosAudioSinkStream::processCallback(QSpan<std::byte> audioSpan) noexcept QT_MM_NONBLOCKING
+QOhosAudioSinkStream::processCallback(QSpan<std::byte> audioSpan) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     if (isStopRequested())
         return AUDIO_DATA_CALLBACK_RESULT_INVALID;
