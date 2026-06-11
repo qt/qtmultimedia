@@ -1017,7 +1017,10 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
 
         QByteArray frameBytes = QByteArray::fromEcmaUint8Array(frameBuffer);
 
-        constexpr auto pixelFormat = QVideoFrameFormat::Format_RGBA8888;
+       QVideoFrameFormat::PixelFormat pixelFormat = fromJsPixelFormat(oneVideoFrame["format"].as<std::string>());
+        if (pixelFormat == QVideoFrameFormat::Format_Invalid) {
+            pixelFormat = QVideoFrameFormat::Format_RGBA8888;
+        }
         QVideoFrameFormat frameFormat = QVideoFrameFormat(frameSize, pixelFormat);
 
         if (m_useCameraRotation)
