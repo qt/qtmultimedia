@@ -6,11 +6,18 @@
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qlist.h>
+#include <QtCore/qsemaphore.h>
+#include <QtCore/qthread.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qaudiodevice.h>
 
 #include <private/mediabackendutils_p.h>
 #include <private/osdetection_p.h>
+#include <private/qplatformmediaintegration_p.h>
+
+#ifdef Q_OS_ANDROID
+#include <QtCore/qcoreapplication_platform.h>
+#endif
 
 class tst_QAudioDeviceBackend : public QObject
 {
@@ -31,6 +38,9 @@ private slots:
     void id();
     void defaultConstructor();
     void equalityOperator();
+#ifdef Q_OS_ANDROID
+    void noDeadlockOnDestroy();
+#endif
 
 private:
     std::unique_ptr<QAudioDevice> device;
@@ -171,6 +181,46 @@ void tst_QAudioDeviceBackend::equalityOperator()
 
     // XXX Perhaps each available device should not be equal to any other
 }
+
+#ifdef Q_OS_ANDROID
+void tst_QAudioDeviceBackend::noDeadlockOnDestroy()
+{
+    // Ensure QAndroidAudioDevices exists, to be destroyed by resetInstance()
+    QPlatformMediaIntegration::instance()->audioDevices();
+
+    // Block the Android UI thread to simulate terminateQtNativeApplication's sem_wait.
+    QSemaphore uiThreadBlocked; // Released by UI thread when it starts blocking
+    QSemaphore releaseUiThread; // Released to unblock the UI thread
+
+    // RAII: Unblock UI thread on early exit
+    QSemaphoreReleaser uiThreadReleaser(releaseUiThread);
+
+    auto uiThreadBlocker = QNativeInterface::QAndroidApplication::runOnAndroidMainThread(
+            [&uiThreadBlocked, &releaseUiThread]() -> QVariant {
+                uiThreadBlocked.release();
+                releaseUiThread.acquire();
+                return { };
+            });
+
+    QVERIFY2(uiThreadBlocked.tryAcquire(1, 2000),
+             "Timed out waiting for Android UI thread to block");
+
+    // Destroy and recreate the integration
+    std::unique_ptr<QThread> resetThread(QThread::create([]() {
+        QPlatformMediaIntegration::instance()->resetInstance();
+    }));
+    resetThread->start();
+
+    const bool finishedInTime = resetThread->wait(5000);
+
+    // Unblock UI thread
+    uiThreadReleaser.cancel();
+    releaseUiThread.release();
+
+    QVERIFY2(finishedInTime,
+             "QAndroidAudioDevices destructor deadlocked with blocked Android UI thread");
+}
+#endif
 
 QTEST_MAIN(tst_QAudioDeviceBackend)
 
