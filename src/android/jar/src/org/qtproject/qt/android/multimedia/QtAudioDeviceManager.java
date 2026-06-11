@@ -20,7 +20,7 @@ import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Handler;
-import android.os.Looper;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Range;
 
@@ -32,7 +32,8 @@ class QtAudioDeviceManager
 
     static private AudioManager m_audioManager = null;
     static private final AudioDevicesReceiver m_audioDevicesReceiver = new AudioDevicesReceiver();
-    static private Handler handler = new Handler(Looper.getMainLooper());
+    static private HandlerThread m_handlerThread = null;
+    static private Handler m_handler = null;
     static private AudioRecord m_recorder = null;
     static private AudioTrack m_streamPlayer = null;
     static private Thread m_streamingThread = null;
@@ -60,7 +61,7 @@ class QtAudioDeviceManager
     static native void onAudioOutputDevicesUpdated(long qAudioDeviceNativePtr);
 
     static private void updateDeviceList() {
-        assert(handler.getLooper().isCurrentThread());
+        assert(m_handler.getLooper().isCurrentThread());
         // Make sure we never get a callback when we are unregistered.
         assert(m_qAudioDevicesNativePtr != 0);
 
@@ -73,13 +74,13 @@ class QtAudioDeviceManager
     private static class AudioDevicesReceiver extends AudioDeviceCallback {
         @Override
         public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
-            assert(handler.getLooper().isCurrentThread());
+            assert(m_handler.getLooper().isCurrentThread());
             updateDeviceList();
         }
 
         @Override
         public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
-            assert(handler.getLooper().isCurrentThread());
+            assert(m_handler.getLooper().isCurrentThread());
             updateDeviceList();
         }
     }
@@ -88,19 +89,23 @@ class QtAudioDeviceManager
     static void qAndroidAudioDevicesConstructed(long nativePtr)
     {
         assert(nativePtr != 0);
+        assert(m_handlerThread == null);
         m_qAudioDevicesNativePtr = nativePtr;
-        m_audioManager.registerAudioDeviceCallback(m_audioDevicesReceiver, handler);
+        m_handlerThread = new HandlerThread("QtAudioDeviceCallbacks");
+        m_handlerThread.start();
+        m_handler = new Handler(m_handlerThread.getLooper());
+        m_audioManager.registerAudioDeviceCallback(m_audioDevicesReceiver, m_handler);
     }
 
     @UsedFromNativeCode
     static void qAndroidAudioDevicesDestroyed()
     {
-        assert(!handler.getLooper().isCurrentThread());
+        assert(!m_handler.getLooper().isCurrentThread());
 
         // Perform cleanup on the same thread that we receive callbacks, then wait for cleanup job
         // to finish. No need for locks.
         final CountDownLatch latch = new CountDownLatch(1);
-        final boolean postSuccess = handler.post(() -> {
+        final boolean postSuccess = m_handler.post(() -> {
             m_audioManager.unregisterAudioDeviceCallback(m_audioDevicesReceiver);
             assert(m_qAudioDevicesNativePtr != 0);
             m_qAudioDevicesNativePtr = 0;
@@ -124,7 +129,9 @@ class QtAudioDeviceManager
                 "QAndroidAudioDevices cleanup.");
         }
 
-        // After waiting, QAndroidAudioDevices can now be safely destroyed.
+        m_handlerThread.quitSafely();
+        m_handlerThread = null;
+        m_handler = null;
     }
 
     static void setContext(Context context)
