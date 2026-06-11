@@ -150,6 +150,8 @@ public:
 
     virtual QGStreamerInterface *gstreamerInterface() { return nullptr; }
 
+    void resetInstance(); // tests only
+
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();
 
@@ -163,7 +165,6 @@ protected:
 
 private:
     friend class QMockIntegration;
-    void resetInstance(); // tests only
 
 private:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
