@@ -5,6 +5,7 @@ package org.qtproject.qt.android.multimedia.qffmpeg;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -274,7 +275,8 @@ class QtCamera2 {
         mPreviewImageReader.setOnImageAvailableListener(mOnPreviewImageAvailableListener, mBackgroundHandler);
         addSurface(mPreviewImageReader.getSurface());
 
-        mStillPhotoImageReader = ImageReader.newInstance(width, height, format, MaxNumberFrames);
+        mStillPhotoImageReader =
+                ImageReader.newInstance(width, height, ImageFormat.JPEG, MaxNumberFrames);
         mStillPhotoImageReader.setOnImageAvailableListener(mOnStillPhotoAvailableListener, mBackgroundHandler);
         addSurface(mStillPhotoImageReader.getSurface());
     }
