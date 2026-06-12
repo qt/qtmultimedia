@@ -401,7 +401,8 @@ MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
 
         QSpan streams{ m_context->streams, qsizetype(m_context->nb_streams) };
         for (const AVStream *stream : streams) {
-            std::optional<TrackPosition> currentStreamStartPosition = streamStart(*stream, context);
+            std::optional<TrackPosition> currentStreamStartPosition =
+                    streamStart(*stream, m_context);
             std::optional<TrackDuration> currentStreamDuration = streamDuration(*stream);
             std::optional<TrackPosition> currentStreamEndPosition =
                     [&]() -> std::optional<TrackPosition> {
