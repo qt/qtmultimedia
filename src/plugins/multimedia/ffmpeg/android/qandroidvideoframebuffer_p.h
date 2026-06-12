@@ -70,7 +70,6 @@ private:
     std::shared_ptr<FrameReleaseDelegate> m_frameReleaseDelegate;
     MemoryPolicy m_policy;
     bool m_parsed = false;
-    QImage m_image;
 
     enum AndroidImageFormat {
     // Values taken from Android API ImageFormat, PixelFormat, or HardwareBuffer
