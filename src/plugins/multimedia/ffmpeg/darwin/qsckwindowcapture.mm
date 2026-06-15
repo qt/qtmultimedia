@@ -93,14 +93,20 @@ QSckWindowCapture::QSckWindowCapture() : QPlatformSurfaceCapture(WindowSource{})
 
 bool QSckWindowCapture::setActiveInternal(bool active)
 {
-    if (active) {
-        Q_ASSERT(!m_activeData);
+    struct ErrorPair {
+        QPlatformSurfaceCapture::Error err;
+        QString msg;
+    };
 
+    using TryStartResult = q23::expected<std::unique_ptr<ActiveData>, ErrorPair>;
+
+    auto tryStartStream = [&]() -> TryStartResult {
         QCapturableWindow capturableWindow = source<WindowSource>();
         const QCapturableWindowPrivate *handle = QCapturableWindowPrivate::handle(capturableWindow);
         if (!handle) {
-            qCWarning(qLcMacScreenCapture) << "Selected window is null";
-            return false;
+            return q23::unexpected{ ErrorPair{
+                QPlatformSurfaceCapture::Error::NotFound,
+                u"Selected window is null"_s } };
         }
         CGWindowID cgWindowId = static_cast<CGWindowID>(handle->id);
 
@@ -111,12 +117,14 @@ bool QSckWindowCapture::setActiveInternal(bool active)
             qCWarning(qLcMacScreenCapture)
                 << "Could not find associated SCWindow: "
                 << scWindowResult.error();
-            return false;
+            return q23::unexpected{ ErrorPair {
+                QPlatformSurfaceCapture::Error::NotFound,
+                u"Backend was unable to find selected QCapturableWindow"_s } };
         }
 
-        AVFScopedPointer<SCWindow> &scWindow = *scWindowResult;
-
         int64_t newStreamId = m_streamIdTracker++;
+
+        AVFScopedPointer<SCWindow> &scWindow = *scWindowResult;
 
         // Start and wait for the stream. Blocking operation.
         using ResultType = q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>;
@@ -129,7 +137,9 @@ bool QSckWindowCapture::setActiveInternal(bool active)
             qCWarning(qLcMacScreenCapture)
                 << "Failed to start screen capture stream: "
                 << streamResult.error();
-            return false;
+            return q23::unexpected{ ErrorPair{
+               QPlatformSurfaceCapture::Error::CaptureFailed,
+               u"Failed to start stream due to unknown issue"_s } };
         }
 
         std::unique_ptr<QMacScreenCaptureKit> &macScreenCaptureKit = *streamResult;
@@ -141,10 +151,20 @@ bool QSckWindowCapture::setActiveInternal(bool active)
         newActiveData->macScreenCaptureKit = std::move(macScreenCaptureKit);
         newActiveData->scWindow = std::move(scWindow);
         newActiveData->streamId = newStreamId;
-        m_activeData = std::move(newActiveData);
+        return newActiveData;
+    };
 
-        return true;
+    if (active) {
+        Q_ASSERT(!m_activeData);
 
+        TryStartResult result = tryStartStream();
+        if (!result) {
+            const ErrorPair &error = result.error();
+            QPlatformSurfaceCapture::updateError(error.err, error.msg);
+            return false;
+        }
+
+        m_activeData = std::move(*result);
     } else {
         m_activeData.reset();
     }
