@@ -100,7 +100,9 @@ public:
     QCapturableWindow m_captureWindow;
 
 protected:
-    [[nodiscard]] static std::optional<QCapturableWindow> findCaptureWindow(const QString &windowTitle);
+    [[nodiscard]] static std::optional<QCapturableWindow> findCaptureWindow(
+        const QString &windowTitle,
+        QWindow *sourceWindow = nullptr);
 };
 
 class WindowCaptureWithWidgetInOtherProcessFixture : public WindowCaptureWithWidgetFixture
