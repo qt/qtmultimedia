@@ -185,13 +185,13 @@ static std::optional<QCameraDevice> createCameraDevice(const QWindowsMediaFounda
     info->description = getString(device, MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME);
     info->id = getString(device, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK).toUtf8();
 
-    IMFMediaSource *source = NULL;
-    HRESULT hr = device->ActivateObject(IID_PPV_ARGS(&source));
+    ComPtr<IMFMediaSource> source;
+    HRESULT hr = device->ActivateObject(IID_PPV_ARGS(source.GetAddressOf()));
     if (FAILED(hr))
         return {};
 
     ComPtr<IMFSourceReader> reader;
-    hr = wmf.mfCreateSourceReaderFromMediaSource(source, NULL, reader.GetAddressOf());
+    hr = wmf.mfCreateSourceReaderFromMediaSource(source.Get(), NULL, reader.GetAddressOf());
     if (FAILED(hr))
         return {};
 
