@@ -4,10 +4,11 @@
 #include "widget.h"
 #include "fixture.h"
 
-#include <qapplication.h>
-#include <qsystemsemaphore.h>
-#include <qtest.h>
+#include <QtCore/qsystemsemaphore.h>
 
+#include <QtTest/qtest.h>
+
+#include <QtWidgets/qapplication.h>
 
 TestWidget::TestWidget(const QString &uuid, QScreen *screen)
 {

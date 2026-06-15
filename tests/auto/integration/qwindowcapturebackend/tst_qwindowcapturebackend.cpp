@@ -6,22 +6,23 @@
 #include "fixture.h"
 #include "widget.h"
 
-#include <qmediarecorder.h>
-#include <qpainter.h>
-#include <qsignalspy.h>
-#include <qtest.h>
-#include <qwindowcapture.h>
-#include <qcommandlineparser.h>
+#include <QtCore/qcommandlineparser.h>
+
+#include <QtGui/qpainter.h>
+
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qwindowcapture.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
 
 #include <chrono>
 #include <vector>
 
-#include <private/mediabackendutils_p.h>
-
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::microseconds;
-
 
 class tst_QWindowCaptureBackend : public QObject
 {

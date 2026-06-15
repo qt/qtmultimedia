@@ -4,10 +4,12 @@
 #include "grabber.h"
 #include "fixture.h"
 
-#include <qtest.h>
-#include <qvideoframe.h>
-#include <q20vector.h>
-#include <qelapsedtimer.h>
+#include <QtCore/q20vector.h>
+#include <QtCore/qelapsedtimer.h>
+
+#include <QtMultimedia/qvideoframe.h>
+
+#include <QtTest/qtest.h>
 
 FrameGrabber::FrameGrabber()
 {
