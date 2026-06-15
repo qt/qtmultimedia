@@ -87,7 +87,9 @@ bool WindowCaptureWithWidgetFixture::start(QSize size)
         return false;
     }
 
-    std::optional<QCapturableWindow> foundCapturableWindow = findCaptureWindow(m_widget.windowTitle());
+    std::optional<QCapturableWindow> foundCapturableWindow = findCaptureWindow(
+        m_widget.windowTitle(),
+        m_widget.windowHandle());
     if (!foundCapturableWindow || !foundCapturableWindow->isValid())
         return false;
 
@@ -108,8 +110,22 @@ QVideoFrame WindowCaptureWithWidgetFixture::waitForFrame(qint64 noOlderThanTime)
     return frames.back();
 }
 
-std::optional<QCapturableWindow> WindowCaptureWithWidgetFixture::findCaptureWindow(const QString &windowTitle)
+// On macOS, capturable windows are filtered out if they contain no bundle identifier.
+// For this integration test, all our spawned windows have no bundle identifier and so
+// our title-based search will always fail on macOS. As an optional approach, we try
+// construct a QCapturableWindow from the given QWindow.
+std::optional<QCapturableWindow> WindowCaptureWithWidgetFixture::findCaptureWindow(
+    const QString &windowTitle,
+    QWindow *sourceWindow)
 {
+    // The QWindow handle is optional. If supplied, try to construct a valid QCapturableWindow
+    // handle from it. Otherwise fallback to title based search.
+    if (sourceWindow) {
+        auto constructedHandle = QCapturableWindow{ sourceWindow };
+        if (constructedHandle.isValid())
+            return constructedHandle;
+    }
+
     QList<QCapturableWindow> allWindows = QWindowCapture::capturableWindows();
 
     const auto window = std::find_if(allWindows.begin(), allWindows.end(),
