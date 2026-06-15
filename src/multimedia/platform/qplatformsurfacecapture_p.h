@@ -32,7 +32,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformSurfaceCapture : public QPlatformVideoSource
     Q_OBJECT
 
 public:
-    enum Error {
+    enum class Error {
         NoError = 0,
         InternalError = 1,
         CapturingNotSupported = 2,

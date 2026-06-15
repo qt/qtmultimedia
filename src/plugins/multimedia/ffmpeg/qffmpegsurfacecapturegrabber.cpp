@@ -135,8 +135,8 @@ void QFFmpegSurfaceCaptureGrabber::updateError(QPlatformSurfaceCapture::Error er
 {
     const auto prevError = std::exchange(m_prevError, error);
 
-    if (error != QPlatformSurfaceCapture::NoError
-        || prevError != QPlatformSurfaceCapture::NoError) {
+    if (error != QPlatformSurfaceCapture::Error::NoError
+        || prevError != QPlatformSurfaceCapture::Error::NoError) {
         emit errorUpdated(error, description);
     }
 
@@ -147,7 +147,7 @@ void QFFmpegSurfaceCaptureGrabber::updateTimerInterval()
 {
     using namespace std::chrono;
 
-    const qreal rate = m_prevError && *m_prevError != QPlatformSurfaceCapture::NoError
+    const qreal rate = m_prevError && *m_prevError != QPlatformSurfaceCapture::Error::NoError
             ? MinScreenCaptureFrameRate
             : m_rate;
     const auto interval = round<nanoseconds>(nanoseconds(1s) / rate);
@@ -177,7 +177,7 @@ void QFFmpegSurfaceCaptureGrabber::initializeGrabbingContext()
             frame.setEndTime(m_context->elapsedTimer.nsecsElapsed() / 1000);
             m_context->lastFrameTime = frame.endTime();
 
-            updateError(QPlatformSurfaceCapture::NoError);
+            updateError(QPlatformSurfaceCapture::Error::NoError);
 
             emit frameGrabbed(frame);
         }

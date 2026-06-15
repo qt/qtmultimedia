@@ -87,7 +87,7 @@ bool QPipeWireCaptureHelper::setActiveInternal(bool active)
         return true;
     }
 
-    updateError(QPlatformSurfaceCapture::InternalError,
+    updateError(QPlatformSurfaceCapture::Error::InternalError,
                 u"There is no ScreenCast service available in org.freedesktop.portal!"_s);
 
     return false;
@@ -195,7 +195,7 @@ void QPipeWireCaptureHelper::createInterface()
 
         if (!ok) {
             updateError(
-                    QPlatformSurfaceCapture::InternalError,
+                    QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to connect to org.freedesktop.portal.ScreenCast dbus interface."_s);
             return;
         }
@@ -214,7 +214,7 @@ void QPipeWireCaptureHelper::createSession()
     };
     QDBusMessage reply = m_screenCastInterface->call(u"CreateSession"_s, options);
     if (!reply.errorMessage().isEmpty()) {
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to create session for org.freedesktop.portal.ScreenCast. Error: "_s
                             + reply.errorName() + u": "_s + reply.errorMessage());
         return;
@@ -239,7 +239,7 @@ void QPipeWireCaptureHelper::selectSources(const QString &sessionHandle)
     QDBusMessage reply = m_screenCastInterface->call(u"SelectSources"_s,
                                                      QDBusObjectPath(sessionHandle), options);
     if (!reply.errorMessage().isEmpty()) {
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to select sources for org.freedesktop.portal.ScreenCast. Error: "_s
                             + reply.errorName() + u": "_s + reply.errorMessage());
         return;
@@ -264,7 +264,7 @@ void QPipeWireCaptureHelper::startStream()
     QDBusMessage reply = m_screenCastInterface->call("Start"_L1, QDBusObjectPath(m_sessionHandle),
                                                      parentWindow, options);
     if (!reply.errorMessage().isEmpty()) {
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to start stream for org.freedesktop.portal.ScreenCast. Error: "_s
                             + reply.errorName() + u": "_s + reply.errorMessage());
         return;
@@ -332,7 +332,7 @@ void QPipeWireCaptureHelper::openPipeWireRemote()
             u"OpenPipeWireRemote"_s, QDBusObjectPath(m_sessionHandle), options);
     if (!reply.isValid()) {
         updateError(
-                QPlatformSurfaceCapture::InternalError,
+                QPlatformSurfaceCapture::Error::InternalError,
                 u"Failed to open pipewire remote for org.freedesktop.portal.ScreenCast. Error: name="_s
                         + reply.error().name() + u", message="_s + reply.error().message());
         return;
@@ -342,7 +342,7 @@ void QPipeWireCaptureHelper::openPipeWireRemote()
     bool ok = open(m_pipewireFd);
     qCDebug(qLcPipeWireCapture) << "open(" << m_pipewireFd << ") result=" << ok;
     if (!ok) {
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to open pipewire remote file descriptor"_s);
         return;
     }
@@ -457,7 +457,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     };
     if (!m_threadLoop) {
         m_err = true;
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_thread_loop_new()."_s);
         return false;
     }
@@ -467,7 +467,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     };
     if (!m_context) {
         m_err = true;
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_context_new()."_s);
         return false;
     }
@@ -477,7 +477,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     };
     if (!m_core) {
         m_err = true;
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_context_connect_fd()."_s);
         return false;
     }
@@ -489,7 +489,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     };
     if (!m_registry) {
         m_err = true;
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_core_get_registry()."_s);
         return false;
     }
@@ -499,7 +499,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
 
     if (pw_thread_loop_start(m_threadLoop.get()) != 0) {
         m_err = true;
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_thread_loop_start()."_s);
         return false;
     }
@@ -654,7 +654,7 @@ void QPipeWireCaptureHelper::recreateStream()
     if (!m_stream) {
         m_err = true;
         locker.unlock();
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_stream_new()."_s);
         return;
     }
@@ -707,7 +707,7 @@ void QPipeWireCaptureHelper::recreateStream()
     if (connectErr != 0) {
         m_err = true;
         locker.unlock();
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_stream_connect()."_s);
         return;
     }
@@ -778,7 +778,7 @@ void QPipeWireCaptureHelper::onProcess()
     qsizetype size = 0;
 
     if ((b = pw_stream_dequeue_buffer(m_stream.get())) == nullptr) {
-        updateError(QPlatformSurfaceCapture::InternalError,
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Out of buffers in pipewire stream dequeue."_s);
         return;
     }

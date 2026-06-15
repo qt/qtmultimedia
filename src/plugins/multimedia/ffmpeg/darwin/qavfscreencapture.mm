@@ -187,14 +187,18 @@ bool QAVFScreenCapture::initScreenCapture(QScreen *screen)
     const auto screenID = findDisplayByName(screen->name());
 
     if (screenID == kCGNullDirectDisplay) {
-        updateError(InternalError, QLatin1String("Screen exists but couldn't been found by name"));
+        updateError(
+            QPlatformSurfaceCapture::Error::InternalError,
+            QLatin1String("Screen exists but couldn't been found by name"));
         return false;
     }
 
     auto hwAccel = HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
 
     if (!hwAccel) {
-        updateError(CaptureFailed, QLatin1String("Couldn't create videotoolbox hw acceleration"));
+        updateError(
+            QPlatformSurfaceCapture::Error::CaptureFailed,
+            QLatin1String("Couldn't create videotoolbox hw acceleration"));
         return false;
     }
 
@@ -202,7 +206,9 @@ bool QAVFScreenCapture::initScreenCapture(QScreen *screen)
                                  screen->size() * screen->devicePixelRatio());
 
     if (!hwAccel->hwFramesContextAsBuffer()) {
-        updateError(CaptureFailed, QLatin1String("Couldn't create hw frames context"));
+        updateError(
+            QPlatformSurfaceCapture::Error::CaptureFailed,
+            QLatin1String("Couldn't create hw frames context"));
         return false;
     }
 

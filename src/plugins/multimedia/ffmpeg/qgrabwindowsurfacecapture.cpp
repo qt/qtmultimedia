@@ -134,7 +134,7 @@ private:
         QScreen *screen = m_window ? m_window->screen() : m_screen ? m_screen.data() : nullptr;
 
         if (!screen) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed, u"Screen not found"_s);
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed, u"Screen not found"_s);
             return {};
         }
 
@@ -148,7 +148,7 @@ private:
         updateFormat(format);
 
         if (!format.isValid()) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         u"Failed to grab the screen content"_s);
             return {};
         }
@@ -212,14 +212,14 @@ void QGrabWindowSurfaceCapture::activate(const WindowSource& window)
     auto wid = handle ? handle->id : 0;
     if (auto wnd = WindowUPtr(QWindow::fromWinId(wid))) {
         if (!wnd->screen()) {
-            updateError(InternalError,
+            updateError(QPlatformSurfaceCapture::Error::InternalError,
                         u"Window " + QString::number(wid) + u" doesn't belong to any screen");
         } else {
             m_grabber = std::make_unique<Grabber>(*this, std::move(wnd));
             m_grabber->start();
         }
     } else {
-        updateError(NotFound,
+        updateError(QPlatformSurfaceCapture::Error::NotFound,
                     u"Window " + QString::number(wid) + u"doesn't exist or permissions denied");
     }
 }
