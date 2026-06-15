@@ -8,7 +8,16 @@
 QT_BEGIN_NAMESPACE
 
 
-Q_GLOBAL_STATIC(JsMediaInputStream, s_wasmMediaInputStreamInstance);
+namespace {
+struct MediaInputStreamEntry
+{
+    JsMediaInputStream *stream = nullptr;
+    int referenceCount = 0;
+};
+using MediaInputStreamMap = QMap<std::string, MediaInputStreamEntry>;
+}
+
+Q_GLOBAL_STATIC(MediaInputStreamMap, s_wasmMediaInputStreams);
 
 JsMediaRecorder::JsMediaRecorder() = default;
 
@@ -359,9 +368,35 @@ JsMediaInputStream::JsMediaInputStream(QObject *parent)
 
 JsMediaInputStream::~JsMediaInputStream() = default;
 
-JsMediaInputStream *JsMediaInputStream::instance()
+JsMediaInputStream *JsMediaInputStream::instance(const std::string &deviceId)
 {
-    return s_wasmMediaInputStreamInstance();
+    MediaInputStreamEntry &entry = (*s_wasmMediaInputStreams())[deviceId];
+    if (!entry.stream) {
+        entry.stream = new JsMediaInputStream;
+        entry.stream->m_deviceId = deviceId;
+    }
+    ++entry.referenceCount;
+    return entry.stream;
+}
+
+void JsMediaInputStream::releaseInstance(const std::string &deviceId)
+{
+    auto it = s_wasmMediaInputStreams()->find(deviceId);
+    if (it == s_wasmMediaInputStreams()->end())
+        return;
+    if (--it->referenceCount <= 0) {
+        delete it->stream;
+        s_wasmMediaInputStreams()->erase(it);
+    }
+}
+
+void JsMediaInputStream::replaceAudioStreamDevice(const std::string &audioDeviceId)
+{
+    for (auto it = s_wasmMediaInputStreams()->begin(); it != s_wasmMediaInputStreams()->end(); ++it) {
+        JsMediaInputStream *stream = it->stream;
+        if (stream && stream->m_needsAudio)
+            stream->setAudioStreamDevice(audioDeviceId);
+    }
 }
 
 void JsMediaInputStream::setVideoConstraints(QSize resolution, float minFrameRate, float maxFrameRate)
@@ -410,6 +445,7 @@ void JsMediaInputStream::replaceMediaTrack(const std::string &id)
                     emscripten::val newTracks = newStream.call<emscripten::val>(getTracksCommand.c_str());
 
                     m_mediaStream.call<void>("addTrack", newTracks[0]);
+                    newStream.call<void>("removeTrack", newTracks[0]);
 
                   // stopMediaStream(stream); stopping this stream causes the track  to stop :(
                   if (m_needsAudio)

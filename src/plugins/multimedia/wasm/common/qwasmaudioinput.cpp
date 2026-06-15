@@ -48,7 +48,7 @@ void QWasmAudioInput::setAudioDevice(const QAudioDevice &audioDevice)
 {
     if (m_deviceId != audioDevice.id().toStdString()) {
             m_deviceId = audioDevice.id().toStdString();
-            JsMediaInputStream::instance()->setAudioStreamDevice(m_deviceId);
+            JsMediaInputStream::replaceAudioStreamDevice(m_deviceId);
     }
 }
 
