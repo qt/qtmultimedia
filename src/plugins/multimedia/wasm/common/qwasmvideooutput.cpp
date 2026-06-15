@@ -109,7 +109,11 @@ QWasmVideoOutput::QWasmVideoOutput(QObject *parent) : QObject{ parent }
     }
 }
 
-QWasmVideoOutput::~QWasmVideoOutput() = default;
+QWasmVideoOutput::~QWasmVideoOutput()
+{
+    if (m_mediaInputStream)
+        JsMediaInputStream::releaseInstance(m_cameraId);
+}
 
 void QWasmVideoOutput::setVideoSize(const QSize &newSize)
 {
@@ -347,7 +351,9 @@ void QWasmVideoOutput::updateVideoElementSource(const QString &src)
 void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
 {
     m_cameraIsReady = false;
-    m_mediaInputStream = JsMediaInputStream::instance();
+    if (m_mediaInputStream)
+        JsMediaInputStream::releaseInstance(m_cameraId);
+    m_mediaInputStream = JsMediaInputStream::instance(id);
 
     m_mediaInputStream->setUseAudio(m_hasAudio);
     m_mediaInputStream->setUseVideo(true);

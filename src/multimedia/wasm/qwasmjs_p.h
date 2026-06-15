@@ -91,7 +91,9 @@ class JsMediaInputStream : public QObject
 public:
     explicit JsMediaInputStream(QObject *parent = nullptr);
     ~JsMediaInputStream();
-    static JsMediaInputStream *instance();
+    static JsMediaInputStream *instance(const std::string &deviceId);
+    static void releaseInstance(const std::string &deviceId);
+    static void replaceAudioStreamDevice(const std::string &audioDeviceId);
 
     bool isActive() { return m_active; }
 
@@ -125,7 +127,7 @@ private:
 
     QScopedPointer<qstdweb::EventCallback> m_activeStreamEvent;
     QScopedPointer<qstdweb::EventCallback> m_inactiveStreamEvent;
-
+    std::string m_deviceId;
 };
 
 #endif // QWASMJS_P_H
