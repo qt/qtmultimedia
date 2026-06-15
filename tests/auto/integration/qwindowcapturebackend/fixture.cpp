@@ -87,13 +87,14 @@ bool WindowCaptureWithWidgetFixture::start(QSize size)
         return false;
     }
 
-    m_captureWindow = findCaptureWindow(m_widget.windowTitle());
-
-    if (!m_captureWindow.isValid())
+    std::optional<QCapturableWindow> foundCapturableWindow = findCaptureWindow(m_widget.windowTitle());
+    if (!foundCapturableWindow || !foundCapturableWindow->isValid())
         return false;
 
-    m_capture.setWindow(m_captureWindow);
+    m_capture.setWindow(*foundCapturableWindow);
     m_capture.setActive(true);
+
+    m_captureWindow = *foundCapturableWindow;
 
     return true;
 }
@@ -107,7 +108,7 @@ QVideoFrame WindowCaptureWithWidgetFixture::waitForFrame(qint64 noOlderThanTime)
     return frames.back();
 }
 
-QCapturableWindow WindowCaptureWithWidgetFixture::findCaptureWindow(const QString &windowTitle)
+std::optional<QCapturableWindow> WindowCaptureWithWidgetFixture::findCaptureWindow(const QString &windowTitle)
 {
     QList<QCapturableWindow> allWindows = QWindowCapture::capturableWindows();
 
@@ -122,7 +123,7 @@ QCapturableWindow WindowCaptureWithWidgetFixture::findCaptureWindow(const QStrin
         std::for_each(allWindows.begin(), allWindows.end(), [](const QCapturableWindow &win) {
             qDebug() << "    " << win.description();
         });
-        return QCapturableWindow{};
+        return std::nullopt;
     }
 
     return *window;
@@ -216,17 +217,18 @@ bool WindowCaptureWithWidgetInOtherProcessFixture::start()
     // We do this by waiting for the process to release the semaphore once its window is visible
     windowVisible.acquire();
 
-    m_captureWindow = findCaptureWindow(windowTitle);
-
-    if (!m_captureWindow.isValid())
+    std::optional<QCapturableWindow> foundCapturableWindow = findCaptureWindow(windowTitle);
+    if (!foundCapturableWindow || !foundCapturableWindow->isValid())
         return false;
 
     // Start capturing the out-of-process window
-    m_capture.setWindow(m_captureWindow);
+    m_capture.setWindow(*foundCapturableWindow);
     m_capture.setActive(true);
 
     // Show in-process widget used to create a reference image
     m_widget.show();
+
+    m_captureWindow = *foundCapturableWindow;
 
     return true;
 }
