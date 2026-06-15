@@ -102,11 +102,16 @@ void QWasmCamera::setCamera(const QCameraDevice &camera)
         return;
     }
 
+    const bool wasActive = m_cameraActive;
+    if (wasActive)
+        m_cameraOutput->stop();
+
     m_cameraOutput->setVideoMode(QWasmVideoOutput::Camera);
 
     constexpr QSize initialSize(0, 0);
     constexpr QRect initialRect(QPoint(0, 0), initialSize);
-    m_cameraOutput->createVideoElement(camera.id().toStdString()); // videoElementId
+    m_cameraOutput->createVideoElement(
+        QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString()); // videoElementId
     m_cameraOutput->doElementCallbacks();
     m_cameraOutput->createOffscreenElement(initialSize);
     m_cameraOutput->updateVideoElementGeometry(initialRect);
@@ -117,6 +122,8 @@ void QWasmCamera::setCamera(const QCameraDevice &camera)
         m_cameraDev = camera;
         createCamera(m_cameraDev);
         emit cameraIsReady();
+        if (wasActive)
+            m_cameraOutput->start();
         return;
     }
 
@@ -124,6 +131,8 @@ void QWasmCamera::setCamera(const QCameraDevice &camera)
         m_cameraDev = camera;
         createCamera(m_cameraDev);
         emit cameraIsReady();
+        if (wasActive)
+            m_cameraOutput->start();
     } else {
         updateError(QCamera::CameraError, QStringLiteral("Failed to find a camera"));
     }

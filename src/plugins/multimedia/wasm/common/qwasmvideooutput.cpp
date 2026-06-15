@@ -483,11 +483,9 @@ void QWasmVideoOutput::createVideoElement(const std::string &id)
     emscripten::val document = emscripten::val::global("document");
     emscripten::val body = document["body"];
 
-    emscripten::val oldVideo = document.call<emscripten::val>("getElementById", id);
-
-    // need to remove stale element
-    if (!oldVideo.isUndefined() && !oldVideo.isNull())
-        oldVideo.call<void>("remove");
+    // remove any previously created video element for this output
+    if (!m_video.isUndefined() && !m_video.isNull())
+        m_video.call<void>("remove");
 
     m_videoSurfaceId = id;
     m_video = document.call<emscripten::val>("createElement", std::string("video"));
