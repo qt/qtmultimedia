@@ -386,7 +386,7 @@ public:
             if (!status) {
                 if (status.code() == E_ACCESSDENIED) {
                     // May occur for some time after pushing Ctrl+Alt+Del.
-                    updateError(QPlatformSurfaceCapture::NoError, status.str());
+                    updateError(QPlatformSurfaceCapture::Error::NoError, status.str());
                     qCWarning(qLcScreenCaptureDxgi) << status.str();
                 }
                 return frame;
@@ -410,14 +410,14 @@ public:
 
             if (status.code() == DXGI_ERROR_WAIT_TIMEOUT) {
                 // All is good, we just didn't get a new frame yet
-                updateError(QPlatformSurfaceCapture::NoError, status.str());
+                updateError(QPlatformSurfaceCapture::Error::NoError, status.str());
             } else if (status.code() == DXGI_ERROR_ACCESS_LOST) {
                 // Can happen for example when pushing Ctrl + Alt + Del
                 m_duplication = {};
-                updateError(QPlatformSurfaceCapture::NoError, status.str());
+                updateError(QPlatformSurfaceCapture::Error::NoError, status.str());
                 qCWarning(qLcScreenCaptureDxgi) << status.str();
             } else if (!status) {
-                updateError(QPlatformSurfaceCapture::CaptureFailed, status.str());
+                updateError(QPlatformSurfaceCapture::Error::CaptureFailed, status.str());
                 qCWarning(qLcScreenCaptureDxgi) << status.str();
             }
         }
@@ -431,7 +431,7 @@ public:
         m_duplication = DxgiDuplication();
         const ComStatus status = m_duplication.initialize(m_screen);
         if (!status) {
-            updateError(CaptureFailed, status.str());
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed, status.str());
             return;
         }
 
@@ -470,7 +470,9 @@ bool QFFmpegScreenCaptureDxgi::setActiveInternal(bool active)
 
         const auto format = getFrameFormat(screen);
         if (!format) {
-            updateError(NotFound, "Unable to determine screen size or format"_L1 + format.error().str());
+            updateError(
+                QPlatformSurfaceCapture::Error::NotFound,
+                "Unable to determine screen size or format"_L1 + format.error().str());
             return false;
         }
 

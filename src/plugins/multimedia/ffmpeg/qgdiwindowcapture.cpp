@@ -23,7 +23,7 @@ public:
     {
         auto hdcWindow = GetDC(hWnd);
         if (!hdcWindow) {
-            capture.updateError(QPlatformSurfaceCapture::CaptureFailed,
+            capture.updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                                 QLatin1String("Cannot create a window drawing context"));
             return nullptr;
         }
@@ -31,7 +31,7 @@ public:
         auto hdcMem = CreateCompatibleDC(hdcWindow);
 
         if (!hdcMem) {
-            capture.updateError(QPlatformSurfaceCapture::CaptureFailed,
+            capture.updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                                 QLatin1String("Cannot create a compatible drawing context"));
             return nullptr;
         }
@@ -81,7 +81,7 @@ private:
     {
         RECT windowRect{};
         if (!GetWindowRect(m_hwnd, &windowRect)) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         QLatin1String("Cannot get window size"));
             return false;
         }
@@ -96,7 +96,7 @@ private:
 
         if (size.isEmpty()) {
             m_format = {};
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         QLatin1String("Invalid window size"));
             return false;
         }
@@ -105,7 +105,7 @@ private:
 
         if (!m_hBitmap) {
             m_format = {};
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         QLatin1String("Cannot create a compatible bitmap"));
             return false;
         }
@@ -127,7 +127,7 @@ private:
         const auto size = m_format.frameSize();
 
         if (!BitBlt(m_hdcMem, 0, 0, size.width(), size.height(), m_hdcWindow, 0, 0, SRCCOPY)) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         QLatin1String("Cannot copy image to the compatible DC"));
             return {};
         }
@@ -157,7 +157,7 @@ private:
 
         if (header.biWidth != size.width() || header.biHeight != -size.height()
             || header.biPlanes != 1 || header.biBitCount != 32 || header.biCompression != BI_RGB) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed,
                         QLatin1String("Output bitmap info is unexpected"));
             return {};
         }

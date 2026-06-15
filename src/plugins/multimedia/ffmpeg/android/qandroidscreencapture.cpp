@@ -85,7 +85,7 @@ private:
         QMetaObject::invokeMethod(&m_screenCapture,
                                   &QPlatformSurfaceCapture::updateError,
                                   Qt::QueuedConnection,
-                                  QPlatformSurfaceCapture::InternalError,
+                                  QPlatformSurfaceCapture::Error::InternalError,
                                   errorString);
     }
 
@@ -155,7 +155,7 @@ static void onErrorUpdate(JNIEnv *env, jobject obj, QString errorString, jlong i
     QMetaObject::invokeMethod(cppObj,
                               &QPlatformSurfaceCapture::updateError,
                               Qt::QueuedConnection,
-                              QPlatformSurfaceCapture::InternalError,
+                              QPlatformSurfaceCapture::Error::InternalError,
                               errorString);
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onErrorUpdate)

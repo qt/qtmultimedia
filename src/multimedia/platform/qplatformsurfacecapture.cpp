@@ -93,7 +93,7 @@ bool QPlatformSurfaceCapture::checkScreenWithError(ScreenSource &screen)
     if (screen)
         return true;
 
-    updateError(NotFound, QLatin1String("No screens found"));
+    updateError(Error::NotFound, QLatin1String("No screens found"));
     return false;
 }
 

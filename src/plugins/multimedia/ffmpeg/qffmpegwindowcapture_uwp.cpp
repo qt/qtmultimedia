@@ -337,7 +337,7 @@ protected:
             const QString message = QLatin1String("Unable to capture window: ")
                     + QString::fromWCharArray(err.message().c_str());
 
-            updateError(InternalError, message);
+            updateError(QPlatformSurfaceCapture::Error::InternalError, message);
         }
     }
 
@@ -369,9 +369,9 @@ protected:
             const QString message = QLatin1String("Window capture failed: ")
                     + QString::fromWCharArray(err.message().c_str());
 
-            updateError(InternalError, message);
+            updateError(QPlatformSurfaceCapture::Error::InternalError, message);
         } catch (const std::runtime_error& e) {
-            updateError(CaptureFailed, QString::fromLatin1(e.what()));
+            updateError(QPlatformSurfaceCapture::Error::CaptureFailed, QString::fromLatin1(e.what()));
         }
 
         return {};
@@ -496,7 +496,7 @@ bool QFFmpegWindowCaptureUwp::setActiveInternal(bool active)
 
     const auto hwnd = reinterpret_cast<HWND>(handle ? handle->id : 0);
     if (const QString error = isCapturableWindow(hwnd); !error.isEmpty()) {
-        updateError(InternalError, error);
+        updateError(QPlatformSurfaceCapture::Error::InternalError, error);
         return false;
     }
 
