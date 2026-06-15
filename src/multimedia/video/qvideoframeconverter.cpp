@@ -17,6 +17,7 @@
 #include <QtGui/qimage.h>
 #include <QtCore/qloggingcategory.h>
 
+#include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
 
@@ -182,8 +183,10 @@ static QImage convertJPEG(const QVideoFrame &frame, const VideoTransformation &t
         varFrame.mappedBytes(0),
     };
 
+    using namespace QtMultimediaPrivate;
+
     constexpr std::array<uchar, 2> soiMarker{ uchar(0xff), uchar(0xd8) };
-    if (!ranges::equal(jpegData.first(2), soiMarker, std::equal_to<void>{})) {
+    if (!ranges::equal(take(jpegData, 2), soiMarker, std::equal_to<void>{})) {
         qCDebug(qLcVideoFrameConverter)
                 << Q_FUNC_INFO << ": JPEG data does not start with SOI marker";
         return QImage{};
