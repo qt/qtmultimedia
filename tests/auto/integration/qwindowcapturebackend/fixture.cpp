@@ -3,10 +3,11 @@
 
 #include "fixture.h"
 
-#include <qmediaplayer.h>
-#include <qvideowidget.h>
-#include <qsystemsemaphore.h>
-#include <quuid.h>
+#include <QtCore/qsystemsemaphore.h>
+#include <QtCore/quuid.h>
+
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimediaWidgets/qvideowidget.h>
 
 DisableCursor::DisableCursor()
 {

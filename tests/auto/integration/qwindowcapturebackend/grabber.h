@@ -4,10 +4,10 @@
 #ifndef WINDOW_CAPTURE_GRABBER_H
 #define WINDOW_CAPTURE_GRABBER_H
 
-#include <chrono>
-#include <qvideosink.h>
-#include <vector>
+#include <QtMultimedia/qvideosink.h>
 
+#include <chrono>
+#include <vector>
 
 /*!
     The FrameGrabber stores frames that arrive from the window capture,

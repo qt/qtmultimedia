@@ -7,16 +7,18 @@
 #include "grabber.h"
 #include "widget.h"
 
-#include <chrono>
-#include <qmediacapturesession.h>
-#include <qmediarecorder.h>
-#include <qobject.h>
-#include <qsignalspy.h>
-#include <qtest.h>
-#include <qvideoframe.h>
-#include <qwindowcapture.h>
-#include <qprocess.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qprocess.h>
 
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qwindowcapture.h>
+
+#include <QtTest/qtest.h>
+#include <QtTest/qsignalspy.h>
+
+#include <chrono>
 
 constexpr inline std::chrono::milliseconds s_testTimeout = std::chrono::seconds(60);
 
