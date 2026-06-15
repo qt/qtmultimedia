@@ -19,6 +19,7 @@
 #include <QtTest/qsignalspy.h>
 
 #include <chrono>
+#include <optional>
 
 constexpr inline std::chrono::milliseconds s_testTimeout = std::chrono::seconds(60);
 
@@ -99,7 +100,7 @@ public:
     QCapturableWindow m_captureWindow;
 
 protected:
-    static QCapturableWindow findCaptureWindow(const QString &windowTitle);
+    [[nodiscard]] static std::optional<QCapturableWindow> findCaptureWindow(const QString &windowTitle);
 };
 
 class WindowCaptureWithWidgetInOtherProcessFixture : public WindowCaptureWithWidgetFixture
