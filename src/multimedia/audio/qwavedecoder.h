@@ -7,11 +7,33 @@
 
 #include <QtMultimedia/qaudioformat.h>
 #include <QtCore/qiodevice.h>
-
+#include <QtCore/qbytearray.h>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
 #if QT_DEPRECATED_SINCE(6, 11)
+
+namespace QtMultimediaPrivate {
+
+class QWaveDecoderOldLayout : public QIODevice
+{
+    enum State { InitialState, WaitingForFormatState, WaitingForDataState };
+
+public:
+    bool haveFormat = false;
+    bool haveHeader = false;
+    qint64 dataSize = 0;
+    QIODevice *device = nullptr;
+    QAudioFormat format;
+    State state = InitialState;
+    quint32 junkToSkip = 0;
+    bool bigEndian = false;
+    bool byteSwap = false;
+    int bps = 0;
+};
+
+} // namespace QtMultimediaPrivate
 
 class Q_MULTIMEDIA_EXPORT QWaveDecoder : public QIODevice
 {
@@ -25,7 +47,7 @@ public:
     ~QWaveDecoder() override;
 
     QAudioFormat audioFormat() const;
-    QIODevice* getDevice();
+    QIODevice *getDevice();
     int duration() const;
     static qint64 headerLength();
 
@@ -51,52 +73,40 @@ private:
 
     bool writeHeader();
     bool writeDataLength();
-    bool enoughDataAvailable();
-    bool findChunk(const char *chunkId);
-    void discardBytes(qint64 numBytes);
     void parsingFailed();
-
-    enum State {
-        InitialState,
-        WaitingForFormatState,
-        WaitingForDataState
-    };
 
     struct chunk
     {
-        char        id[4]; // A four-character code that identifies the representation of the chunk data
-                           // padded on the right with blank characters (ASCII 32)
-        quint32     size;  // Does not include the size of the id or size fields or the pad byte at the end of payload
+        char id[4];
+        quint32 size;
     };
-
-    bool peekChunk(chunk* pChunk, bool handleEndianness = true);
 
     struct RIFFHeader
     {
-        chunk       descriptor;
-        char        type[4];
+        chunk descriptor;
+        char type[4];
     };
     struct WAVEHeader
     {
-        chunk       descriptor;
-        quint16     audioFormat;
-        quint16     numChannels;
-        quint32     sampleRate;
-        quint32     byteRate;
-        quint16     blockAlign;
-        quint16     bitsPerSample;
+        chunk descriptor;
+        quint16 audioFormat;
+        quint16 numChannels;
+        quint32 sampleRate;
+        quint32 byteRate;
+        quint16 blockAlign;
+        quint16 bitsPerSample;
     };
 
     struct DATAHeader
     {
-        chunk       descriptor;
+        chunk descriptor;
     };
 
     struct CombinedHeader
     {
-        RIFFHeader  riff;
-        WAVEHeader  wave;
-        DATAHeader  data;
+        RIFFHeader riff;
+        WAVEHeader wave;
+        DATAHeader data;
     };
     static const int HeaderLength = sizeof(CombinedHeader);
 
@@ -105,12 +115,16 @@ private:
     qint64 dataSize = 0;
     QIODevice *device = nullptr;
     QAudioFormat format;
-    State state = InitialState;
-    quint32 junkToSkip = 0;
-    bool bigEndian = false;
-    bool byteSwap = false;
-    int bps = 0;
+    std::unique_ptr<QByteArray> m_headerBuf; // accumulates bytes for dr_wav parsing
+    bool m_byteSwap = false; // true when WAV endian != host endian
+
+#  if QT_POINTER_SIZE == 4
+    Q_DECL_UNUSED_MEMBER char m_abiPadding[8];
+#  endif
 };
+
+static_assert(sizeof(QWaveDecoder) == sizeof(QtMultimediaPrivate::QWaveDecoderOldLayout),
+              "QWaveDecoder ABI size mismatch — adjust fields or QWaveDecoderNewFields");
 
 #endif // QT_DEPRECATED_SINCE(6, 11)
 
