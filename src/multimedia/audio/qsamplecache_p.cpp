@@ -121,8 +121,8 @@ QSampleCache::SampleLoadResult QSampleCache::loadSample(QSpan<const char> data)
             QAudioFormat::defaultChannelConfigForChannelCount(wavParser.channels));
 
     QByteArray sampleData;
-    sampleData.resizeForOverwrite(sizeof(float) * wavParser.channels
-                                  * wavParser.totalPCMFrameCount);
+    sampleData.resizeForOverwrite(qsizetype(sizeof(float) * wavParser.channels
+                                   * wavParser.totalPCMFrameCount));
     uint64_t framesRead = drwav_read_pcm_frames_f32(&wavParser, wavParser.totalPCMFrameCount,
                                                     reinterpret_cast<float *>(sampleData.data()));
 

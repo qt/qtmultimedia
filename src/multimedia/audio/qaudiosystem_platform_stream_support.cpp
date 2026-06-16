@@ -439,7 +439,7 @@ std::chrono::microseconds QPlatformAudioSourceStream::processedDuration() const
 {
     return std::chrono::microseconds{
         m_format.durationForFrames(
-                m_totalNumberOfFramesPushedToRingbuffer.load(std::memory_order_relaxed)),
+                qint32(m_totalNumberOfFramesPushedToRingbuffer.load(std::memory_order_relaxed))),
     };
 }
 
