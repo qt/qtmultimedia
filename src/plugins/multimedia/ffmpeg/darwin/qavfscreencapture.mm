@@ -11,6 +11,8 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
 
+#include <QtMultimedia/private/qavfhelpers_p.h>
+
 #define AVMediaType XAVMediaType
 extern "C" {
 #include <libavutil/hwcontext_videotoolbox.h>
@@ -127,8 +129,10 @@ QAVFScreenCapture::~QAVFScreenCapture()
 bool QAVFScreenCapture::setActiveInternal(bool active)
 {
     if (active) {
-        if (!CGPreflightScreenCaptureAccess()) {
-            updateError(CaptureFailed, QLatin1String("Permissions denied"));
+        if (!QAVFHelpers::checkMacOsScreenCapturePermissions()) {
+            updateError(
+                QPlatformSurfaceCapture::Error::CaptureFailed,
+                QLatin1String("Permissions denied"));
             return false;
         }
 
