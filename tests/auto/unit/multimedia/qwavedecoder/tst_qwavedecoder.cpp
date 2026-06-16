@@ -74,49 +74,50 @@ void tst_QWaveDecoder::file_data()
     QTest::addColumn<int>("samplesize");
     QTest::addColumn<int>("samplerate");
     QTest::addColumn<bool>("validateContent");
+    QTest::addColumn<int>("expectedFrames");
 
     // clang-format off
-    QTest::newRow("File is empty")  << testFilePath("empty.wav") << tst_QWaveDecoder::NotAWav << -1 << -1 << -1 << true;
-    QTest::newRow("File is one byte")  << testFilePath("onebyte.wav") << tst_QWaveDecoder::NotAWav << -1 << -1 << -1 << true;
-    QTest::newRow("File is not a wav(text)")  << testFilePath("notawav.wav") << tst_QWaveDecoder::NotAWav << -1 << -1 << -1 << true;
-    QTest::newRow("Wav file has no sample data")  << testFilePath("nosampledata.wav") << tst_QWaveDecoder::NoSampleData << -1 << -1 << -1 << true;
-    QTest::newRow("corrupt fmt chunk descriptor")  << testFilePath("corrupt_fmtdesc_1_16_8000.le.wav") << tst_QWaveDecoder::FormatDescriptor << -1 << -1 << -1 << true;
-    QTest::newRow("corrupt fmt string")  << testFilePath("corrupt_fmtstring_1_16_8000.le.wav") << tst_QWaveDecoder::FormatString << -1 << -1 << -1 << true;
-    QTest::newRow("corrupt data chunk descriptor")  << testFilePath("corrupt_datadesc_1_16_8000.le.wav") << tst_QWaveDecoder::DataDescriptor << -1 << -1 << -1 << true;
+    QTest::newRow("File is empty")  << testFilePath("empty.wav") << tst_QWaveDecoder::NotAWav << -1 << -1 << -1 << true << 0;
+    QTest::newRow("File is one byte")  << testFilePath("onebyte.wav") << tst_QWaveDecoder::NotAWav << -1 << -1 << -1 << true << 0;
+    QTest::newRow("File is not a wav(text)")  << testFilePath("notawav.wav") << tst_QWaveDecoder::NotAWav << -1 << -1 << -1 << true << 0;
+    QTest::newRow("Wav file has no sample data")  << testFilePath("nosampledata.wav") << tst_QWaveDecoder::NoSampleData << -1 << -1 << -1 << true << 0;
+    QTest::newRow("corrupt fmt chunk descriptor")  << testFilePath("corrupt_fmtdesc_1_16_8000.le.wav") << tst_QWaveDecoder::FormatDescriptor << -1 << -1 << -1 << true << 0;
+    QTest::newRow("corrupt fmt string")  << testFilePath("corrupt_fmtstring_1_16_8000.le.wav") << tst_QWaveDecoder::FormatString << -1 << -1 << -1 << true << 0;
+    QTest::newRow("corrupt data chunk descriptor")  << testFilePath("corrupt_datadesc_1_16_8000.le.wav") << tst_QWaveDecoder::DataDescriptor << -1 << -1 << -1 << true << 0;
 
-    QTest::newRow("File isawav_1_8_8000.wav") << testFilePath("isawav_1_8_8000.wav")  << tst_QWaveDecoder::None << 1 << 8 << 8000 << true;
-    QTest::newRow("File isawav_1_8_44100.wav") << testFilePath("isawav_1_8_44100.wav")  << tst_QWaveDecoder::None << 1 << 8 << 44100 << true;
-    QTest::newRow("File isawav_2_8_8000.wav") << testFilePath("isawav_2_8_8000.wav")  << tst_QWaveDecoder::None << 2 << 8 << 8000 << true;
-    QTest::newRow("File isawav_2_8_44100.wav") << testFilePath("isawav_2_8_44100.wav")  << tst_QWaveDecoder::None << 2 << 8 << 44100 << true;
+    QTest::newRow("File isawav_1_8_8000.wav") << testFilePath("isawav_1_8_8000.wav")  << tst_QWaveDecoder::None << 1 << 8 << 8000 << true << 2000;
+    QTest::newRow("File isawav_1_8_44100.wav") << testFilePath("isawav_1_8_44100.wav")  << tst_QWaveDecoder::None << 1 << 8 << 44100 << true << 11025;
+    QTest::newRow("File isawav_2_8_8000.wav") << testFilePath("isawav_2_8_8000.wav")  << tst_QWaveDecoder::None << 2 << 8 << 8000 << true << 2000;
+    QTest::newRow("File isawav_2_8_44100.wav") << testFilePath("isawav_2_8_44100.wav")  << tst_QWaveDecoder::None << 2 << 8 << 44100 << true << 11025;
 
-    QTest::newRow("File isawav_1_16_8000_le.wav") << testFilePath("isawav_1_16_8000_le.wav")  << tst_QWaveDecoder::None << 1 << 16 << 8000 << true;
-    QTest::newRow("File isawav_1_16_44100_le.wav") << testFilePath("isawav_1_16_44100_le.wav")  << tst_QWaveDecoder::None << 1 << 16 << 44100 << true;
-    QTest::newRow("File isawav_2_16_8000_be.wav") << testFilePath("isawav_2_16_8000_be.wav")  << tst_QWaveDecoder::None << 2 << 16 << 8000 << true;
-    QTest::newRow("File isawav_2_16_44100_be.wav") << testFilePath("isawav_2_16_44100_be.wav")  << tst_QWaveDecoder::None << 2 << 16 << 44100 << true;
+    QTest::newRow("File isawav_1_16_8000_le.wav") << testFilePath("isawav_1_16_8000_le.wav")  << tst_QWaveDecoder::None << 1 << 16 << 8000 << true << 2000;
+    QTest::newRow("File isawav_1_16_44100_le.wav") << testFilePath("isawav_1_16_44100_le.wav")  << tst_QWaveDecoder::None << 1 << 16 << 44100 << true << 11025;
+    QTest::newRow("File isawav_2_16_8000_be.wav") << testFilePath("isawav_2_16_8000_be.wav")  << tst_QWaveDecoder::None << 2 << 16 << 8000 << true << 2000;
+    QTest::newRow("File isawav_2_16_44100_be.wav") << testFilePath("isawav_2_16_44100_be.wav")  << tst_QWaveDecoder::None << 2 << 16 << 44100 << true << 11025;
     // The next file has extra data in the wave header.
-    QTest::newRow("File isawav_1_16_44100_le_2.wav") << testFilePath("isawav_1_16_44100_le_2.wav")  << tst_QWaveDecoder::None << 1 << 16 << 44100 << false;
+    QTest::newRow("File isawav_1_16_44100_le_2.wav") << testFilePath("isawav_1_16_44100_le_2.wav")  << tst_QWaveDecoder::None << 1 << 16 << 44100 << false << 11025;
     // The next file has embedded bext chunk with odd payload (QTBUG-122193)
-    QTest::newRow("File isawav_1_8_8000_odd_bext.wav") << testFilePath("isawav_1_8_8000_odd_bext.wav")  << tst_QWaveDecoder::None << 1 << 8 << 8000 << false;
+    QTest::newRow("File isawav_1_8_8000_odd_bext.wav") << testFilePath("isawav_1_8_8000_odd_bext.wav")  << tst_QWaveDecoder::None << 1 << 8 << 8000 << false << 2000;
     // The next file has embedded bext chunk with even payload
-    QTest::newRow("File isawav_1_8_8000_even_bext.wav") << testFilePath("isawav_1_8_8000_even_bext.wav")  << tst_QWaveDecoder::None << 1 << 8 << 8000 << false;
+    QTest::newRow("File isawav_1_8_8000_even_bext.wav") << testFilePath("isawav_1_8_8000_even_bext.wav")  << tst_QWaveDecoder::None << 1 << 8 << 8000 << false << 2000;
 
     // 24bit wav are not supported
-    QTest::newRow("File isawav_1_24_8000_le.wav")  << testFilePath("isawav_1_24_8000_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 24 << 8000 << true;
-    QTest::newRow("File isawav_1_24_44100_le.wav") << testFilePath("isawav_1_24_44100_le.wav") << tst_QWaveDecoder::FormatDescriptor << 1 << 24 << 44100 << true;
-    QTest::newRow("File isawav_2_24_8000_be.wav")  << testFilePath("isawav_2_24_8000_be.wav")  << tst_QWaveDecoder::FormatDescriptor << 2 << 24 << 8000 << true;
-    QTest::newRow("File isawav_2_24_44100_be.wav") << testFilePath("isawav_2_24_44100_be.wav") << tst_QWaveDecoder::FormatDescriptor << 2 << 24 << 44100 << true;
+    QTest::newRow("File isawav_1_24_8000_le.wav")  << testFilePath("isawav_1_24_8000_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 24 << 8000 << true << 0;
+    QTest::newRow("File isawav_1_24_44100_le.wav") << testFilePath("isawav_1_24_44100_le.wav") << tst_QWaveDecoder::FormatDescriptor << 1 << 24 << 44100 << true << 0;
+    QTest::newRow("File isawav_2_24_8000_be.wav")  << testFilePath("isawav_2_24_8000_be.wav")  << tst_QWaveDecoder::FormatDescriptor << 2 << 24 << 8000 << true << 0;
+    QTest::newRow("File isawav_2_24_44100_be.wav") << testFilePath("isawav_2_24_44100_be.wav") << tst_QWaveDecoder::FormatDescriptor << 2 << 24 << 44100 << true << 0;
 
     // 32 bit waves are not supported
-    QTest::newRow("File isawav_1_32_8000_le.wav") << testFilePath("isawav_1_32_8000_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 32 << 8000 << true;
-    QTest::newRow("File isawav_1_32_44100_le.wav") << testFilePath("isawav_1_32_44100_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 32 << 44100 << true;
-    QTest::newRow("File isawav_2_32_8000_be.wav") << testFilePath("isawav_2_32_8000_be.wav")  << tst_QWaveDecoder::FormatDescriptor << 2 << 32 << 8000 << true;
-    QTest::newRow("File isawav_2_32_44100_be.wav") << testFilePath("isawav_2_32_44100_be.wav")  << tst_QWaveDecoder::FormatDescriptor << 2 << 32 << 44100 << true;
+    QTest::newRow("File isawav_1_32_8000_le.wav") << testFilePath("isawav_1_32_8000_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 32 << 8000 << true << 0;
+    QTest::newRow("File isawav_1_32_44100_le.wav") << testFilePath("isawav_1_32_44100_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 32 << 44100 << true << 0;
+    QTest::newRow("File isawav_2_32_8000_be.wav") << testFilePath("isawav_2_32_8000_be.wav")  << tst_QWaveDecoder::FormatDescriptor << 2 << 32 << 8000 << true << 0;
+    QTest::newRow("File isawav_2_32_44100_be.wav") << testFilePath("isawav_2_32_44100_be.wav")  << tst_QWaveDecoder::FormatDescriptor << 2 << 32 << 44100 << true << 0;
 
     // f32 waves are not supported
-    QTest::newRow("File isawav_1_f32_8000_le.wav") << testFilePath("isawav_1_f32_8000_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 32 << 8000 << true;
-    QTest::newRow("File isawav_1_f32_44100_le.wav") << testFilePath("isawav_1_f32_44100_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 32 << 44100 << true;
-    QTest::newRow("File isawav_2_f32_8000_be.wav") << testFilePath("isawav_2_f32_8000_be.wav")  << tst_QWaveDecoder::FormatDescriptor << 2 << 32 << 8000 << true;
-    QTest::newRow("File isawav_2_f32_44100_be.wav") << testFilePath("isawav_2_f32_44100_be.wav")  << tst_QWaveDecoder::FormatDescriptor << 2 << 32 << 44100 << true;
+    QTest::newRow("File isawav_1_f32_8000_le.wav") << testFilePath("isawav_1_f32_8000_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 32 << 8000 << true << 0;
+    QTest::newRow("File isawav_1_f32_44100_le.wav") << testFilePath("isawav_1_f32_44100_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 32 << 44100 << true << 0;
+    QTest::newRow("File isawav_2_f32_8000_be.wav") << testFilePath("isawav_2_f32_8000_be.wav")  << tst_QWaveDecoder::FormatDescriptor << 2 << 32 << 8000 << true << 0;
+    QTest::newRow("File isawav_2_f32_44100_be.wav") << testFilePath("isawav_2_f32_44100_be.wav")  << tst_QWaveDecoder::FormatDescriptor << 2 << 32 << 44100 << true << 0;
 
     // clang-format on
 }
@@ -129,6 +130,7 @@ void tst_QWaveDecoder::file()
     QFETCH(int, samplesize);
     QFETCH(int, samplerate);
     QFETCH(bool, validateContent);
+    QFETCH(int, expectedFrames);
 
     QFile stream;
     stream.setFileName(file);
@@ -180,14 +182,24 @@ void tst_QWaveDecoder::file()
             QSineWaveValidator(220, format.sampleRate()),
         };
 
-        auto expectedNumberOfFrames = format.sampleRate() / 4; // 250ms
-        for (int frame = 0; frame != expectedNumberOfFrames; ++frame) {
+        int framesRead = 0;
+        for (int frame = 0; frame != expectedFrames; ++frame) {
+            bool ok = true;
             for (int channel = 0; channel != format.channelCount(); ++channel) {
                 QByteArray array = waveDecoder.read(format.bytesPerSample());
-                float sample = format.normalizedSampleValue(array.constData());
-                validators[channel].feedSample(sample);
+                if (array.size() != format.bytesPerSample()) {
+                    ok = false;
+                } else if (validateContent) {
+                    float sample = format.normalizedSampleValue(array.constData());
+                    validators[channel].feedSample(sample);
+                }
             }
+            if (!ok)
+                break;
+            ++framesRead;
         }
+
+        QCOMPARE(framesRead, expectedFrames);
 
         if (validateContent) {
             QCOMPARE_GT(validators[0].peak(), 0.05);
@@ -199,6 +211,11 @@ void tst_QWaveDecoder::file()
                 QCOMPARE_LT(validators[1].notchPeak(), 0.05);
             }
         }
+
+        if (waveDecoder.size() % 2 != 0)
+            QEXPECT_FAIL("", "odd data chunk size; padding byte consumed as extra sample", Continue);
+        QByteArray eofBuf = waveDecoder.read(format.bytesPerSample());
+        QCOMPARE(eofBuf.size(), 0);
     }
 
     stream.close();
@@ -260,6 +277,26 @@ void tst_QWaveDecoder::http()
         QVERIFY(format.channelCount() == channels);
         QCOMPARE(format.bytesPerSample() * 8, samplesize);
         QVERIFY(format.sampleRate() == samplerate);
+
+        int expectedFrames = samplerate / 4; // 250ms
+        int framesRead = 0;
+        for (int frame = 0; frame != expectedFrames; ++frame) {
+            bool ok = true;
+            for (int channel = 0; channel != format.channelCount(); ++channel) {
+                QByteArray sample = waveDecoder.read(format.bytesPerSample());
+                if (sample.size() != format.bytesPerSample())
+                    ok = false;
+            }
+            if (!ok)
+                break;
+            ++framesRead;
+        }
+        QCOMPARE(framesRead, expectedFrames);
+
+        if (waveDecoder.size() % 2 != 0)
+            QEXPECT_FAIL("", "odd data chunk size; padding byte consumed as extra sample", Continue);
+        QByteArray eofBuf = waveDecoder.read(format.bytesPerSample());
+        QCOMPARE(eofBuf.size(), 0);
     }
 
     delete reply;
