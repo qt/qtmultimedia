@@ -107,6 +107,10 @@ QSampleCache::SampleLoadResult QSampleCache::loadSample(QSpan<const char> data)
     if (!success)
         return std::nullopt;
 
+    auto cleanup = qScopeGuard([&] {
+        drwav_uninit(&wavParser);
+    });
+
     // using float as internal format. one could argue to use int16 and save half the ram at the
     // cost of potential run-time conversions
     QAudioFormat audioFormat;
