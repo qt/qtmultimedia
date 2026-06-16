@@ -55,6 +55,21 @@ You may explicitly override the allowed protocols via the environment variable
          untrusted data. Only allow protocols that align with your security and business
          requirements.
 
+\section1 Configuring RTSP transport
+
+RTSP input streams can be opened with a specific FFmpeg RTSP lower transport by setting
+the \c QT_FFMPEG_RTSP_TRANSPORT environment variable. The value is passed to FFmpeg's
+\c rtsp_transport input option for \c rtsp:// URLs. For example, use TCP interleaving
+within the RTSP control channel:
+
+\code
+    export QT_FFMPEG_RTSP_TRANSPORT=tcp
+\endcode
+
+Common values include \c udp, \c tcp, \c udp_multicast, \c http, and \c https; see
+\l {https://www.ffmpeg.org/ffmpeg-protocols.html#rtsp}{FFmpeg's RTSP protocol documentation}.
+This option is not set by default and is ignored for non-RTSP media sources.
+
 \section1 Configure hardware acceleration in backends
 
 \list
