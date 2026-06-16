@@ -18,6 +18,15 @@ GridLayout {
     required property int recorderCaptureTracker
     required property int preferredLeftWidth
 
+    property int framesReceived: 0
+
+    Connections {
+        target: windowCaptureVideoOutput.videoSink
+        function onVideoFrameChanged(frame) {
+            root.framesReceived += 1
+        }
+    }
+
     // There is no signal for tracking when the list of CapturableWindows changed. We store them
     // here as a property so we can track them.
     property var capturableWindowsList: []
@@ -179,6 +188,10 @@ GridLayout {
             id: hideInvalidWindowsCheckbox
             text: "Hide invalid windows"
             checkState: Qt.Unchecked
+        }
+
+        Label {
+            text: "Frames received: " + root.framesReceived
         }
 
         Label {
