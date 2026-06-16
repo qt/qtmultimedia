@@ -265,6 +265,14 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     if (!protocolWhitelist.isNull())
         av_dict_set(dict, "protocol_whitelist", protocolWhitelist.data(), 0);
 
+    if (mediaUrl.scheme().compare(u"rtsp") == 0) {
+        const QByteArray rtspTransport = qgetenv("QT_FFMPEG_RTSP_TRANSPORT").trimmed();
+        if (!rtspTransport.isEmpty()) {
+            av_dict_set(dict, "rtsp_transport", rtspTransport.constData(), 0);
+            qCDebug(qLcMediaDataHolder) << "Using custom RTSP transport:" << rtspTransport;
+        }
+    }
+
     if (playbackOptions.playbackIntent() == QPlaybackOptions::PlaybackIntent::LowLatencyStreaming) {
         av_dict_set(dict, "fflags", "nobuffer", 0);
         av_dict_set_int(dict, "flush_packets", 1, 0);
