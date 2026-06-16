@@ -15,7 +15,16 @@ GridLayout {
     required property int recorderCaptureTracker
     required property int preferredLeftWidth
 
+    property int framesReceived: 0
+
     columns: useLandscapeLayout === true ? 2 : 1
+
+    Connections {
+        target: screenCaptureVideoOutput.videoSink
+        function onVideoFrameChanged(frame) {
+            root.framesReceived += 1
+        }
+    }
 
     ScreenCapture {
         id: screenCapture
@@ -130,6 +139,10 @@ GridLayout {
 
                 checkState = screenCapture.active === true ? Qt.Checked : Qt.Unchecked
             }
+        }
+
+        Label {
+            text: "Frames received: " + root.framesReceived
         }
 
         Label {
