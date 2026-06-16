@@ -186,7 +186,7 @@ void QAudioFormat::setChannelConfig(ChannelConfig config) noexcept
 {
     m_channelConfig = config;
     if (config != ChannelConfigUnknown)
-        m_channelCount = qPopulationCount(config);
+        m_channelCount = int(qPopulationCount(config));
 }
 
 /*!
@@ -201,7 +201,7 @@ int QAudioFormat::channelOffset(AudioChannelPosition channel) const noexcept
         return -1;
 
     uint maskedChannels = m_channelConfig & ((1u << channel) - 1);
-    return qPopulationCount(maskedChannels);
+    return int(qPopulationCount(maskedChannels));
 }
 
 /*!

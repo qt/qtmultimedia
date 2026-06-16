@@ -191,7 +191,7 @@ qsizetype pullFromQIODeviceToRingbuffer(QIODevice &device, QAudioRingBuffer<Samp
             return QSpan<SampleType>{}; // no data in iodevice
 
         qint64 samplesAvailableInDevice = bytesAvailableInDevice / sizeof(SampleType);
-        writeRegion = take(writeRegion, samplesAvailableInDevice);
+        writeRegion = take(writeRegion, qsizetype(samplesAvailableInDevice));
 
         qint64 bytesRead = readFromDevice(device, as_writable_bytes(writeRegion));
         if (bytesRead < 0) {
@@ -200,7 +200,7 @@ qsizetype pullFromQIODeviceToRingbuffer(QIODevice &device, QAudioRingBuffer<Samp
             return QSpan<SampleType>{};
         }
 
-        return take(writeRegion, bytesRead / sizeof(SampleType));
+        return take(writeRegion, qsizetype(bytesRead / sizeof(SampleType)));
     });
 
     return totalSamplesWritten * sizeof(SampleType);
@@ -219,7 +219,7 @@ qsizetype pushToQIODeviceFromRingbuffer(QIODevice &device, QAudioRingBuffer<Samp
                                             : region.size_bytes();
         }();
 
-        QSpan<const std::byte> bufferByteRegion = take(as_bytes(region), bytesToWrite);
+        QSpan<const std::byte> bufferByteRegion = take(as_bytes(region), qsizetype(bytesToWrite));
         int bytesWritten = writeToDevice(device, bufferByteRegion);
         if (bytesWritten < 0) {
             qWarning() << "pushToQIODeviceFromRingbuffer cannot push data to QIODevice:"

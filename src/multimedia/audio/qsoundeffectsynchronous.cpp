@@ -51,7 +51,7 @@ qint64 QSoundEffectPrivateSynchronous::readData(char *data, qint64 len)
     const char *sampleData = m_audioBuffer.constData<char>();
 
     while (len && m_runningCount) {
-        int toWrite = qMax(0, qMin(sampleSize - m_offset, len));
+        int toWrite = qMax(0, int(qMin(qint64(sampleSize - m_offset), len)));
         memcpy(data, sampleData + m_offset, toWrite);
         bytesWritten += toWrite;
         data += toWrite;
@@ -339,7 +339,7 @@ bool QSoundEffectPrivateSynchronous::setAudioDevice(QAudioDevice device)
         return true; // The audio sink will be recreated later by QSoundEffect::sampleReady()
 
     bool playing = m_playing;
-    std::chrono::microseconds current_time{ m_audioBuffer.format().durationForBytes(m_offset) };
+    std::chrono::microseconds current_time{ m_audioBuffer.format().durationForBytes(qint32(m_offset)) };
 
     // Recreate the QAudioSink with the new audio device and current sample
     if (updateAudioOutput() && playing) {
