@@ -992,8 +992,6 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
     rectOptions.set("width", displayWidth);
     rectOptions.set("height", displayHeight);
     options.set("rect", rectOptions);
-    // Request RGBA so the browser does YUV->RGB; avoids qEnsureThreadLocalRhi / makeCurrent.
-    options.set("format", std::string("RGBA"));
 
     emscripten::val frameBytesAllocationSize = oneVideoFrame.call<emscripten::val>("allocationSize", options);
     emscripten::val frameBuffer =
