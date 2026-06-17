@@ -269,6 +269,10 @@ private slots:
 
     void windowCapture_capturesWindowsInOtherProcesses()
     {
+#if defined(Q_OS_MACOS)
+        QSKIP("Separate process tests do not work on macOS because they are launched without bundle identifiers");
+#endif
+
         WindowCaptureWithWidgetInOtherProcessFixture fixture;
         QVERIFY(fixture.start());
 
@@ -288,6 +292,10 @@ private slots:
     */
     void windowCapture_stopsWithError_whenProcessCloses()
     {
+#if defined(Q_OS_MACOS)
+        QSKIP("Separate process tests do not work on macOS because they are launched without bundle identifiers");
+#endif
+
         WindowCaptureWithWidgetInOtherProcessFixture fixture;
         QVERIFY(fixture.start());
 
