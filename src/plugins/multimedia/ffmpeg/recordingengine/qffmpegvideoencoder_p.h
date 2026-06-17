@@ -17,6 +17,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpegencoderthread_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideoframeencoder_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegframerateadapter_p.h>
 #include <qvideoframe.h>
 #include <queue>
 
@@ -41,12 +42,6 @@ protected:
     bool checkIfCanPushFrame() const override;
 
 private:
-    struct FrameInfo
-    {
-        QVideoFrame frame;
-        bool shouldAdjustTimeBase = false;
-    };
-
     FrameInfo takeFrame();
     void retrievePackets();
 
@@ -57,7 +52,6 @@ private:
 
     std::pair<qint64, qint64> frameTimeStamps(const QVideoFrame &frame) const;
 
-private:
     QMediaEncoderSettings m_settings;
     VideoFrameEncoder::SourceParams m_sourceParams;
     std::queue<FrameInfo> m_videoFrameQueue;
@@ -67,6 +61,9 @@ private:
     qint64 m_baseTime = 0;
     bool m_shouldAdjustTimeBaseForNextFrame = true;
     qint64 m_lastFrameTime = 0;
+
+    std::optional<qreal> m_fixedSourceFrameRate; // nullopt = variable-rate source
+    FrameRateAdapter m_frameRateAdapter;
 };
 
 } // namespace QFFmpeg

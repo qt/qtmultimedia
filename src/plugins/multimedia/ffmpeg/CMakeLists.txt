@@ -70,6 +70,8 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
         recordingengine/qffmpegencodinginitializer.cpp
         recordingengine/qffmpegrecordingengineutils_p.h
         recordingengine/qffmpegrecordingengineutils.cpp
+        recordingengine/qffmpegframerateadapter_p.h
+        recordingengine/qffmpegframerateadapter.cpp
         recordingengine/qffmpegvideoencoder_p.h
         recordingengine/qffmpegvideoencoder.cpp
         recordingengine/qffmpegvideoencoderutils_p.h
