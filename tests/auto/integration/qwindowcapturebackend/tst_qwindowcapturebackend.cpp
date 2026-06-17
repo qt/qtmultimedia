@@ -44,9 +44,6 @@ private slots:
      if (isCI() && qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
          QSKIP("Skip on wayland; to be fixed");
 #elif defined(Q_OS_MACOS)
-        if (isCI())
-            QSKIP("QTBUG-116285: Skip on macOS CI because of permissions issues");
-
         // Window capturing requires screen capture permissions on macOS. Without them,
         // none of the tests can succeed, so fail here to abort the entire test run.
         QVERIFY2(
