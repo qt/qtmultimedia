@@ -16,6 +16,8 @@
 //
 
 #include "qobject.h"
+#include <QtMultimedia/qvideoframe.h>
+#include <optional>
 #include <queue>
 
 QT_BEGIN_NAMESPACE
@@ -28,6 +30,13 @@ namespace QFFmpeg {
 constexpr qint64 VideoFrameTimeBase = 1000000; // us in sec
 
 class EncoderThread;
+
+struct FrameInfo
+{
+    QVideoFrame frame;
+    bool adjustTimeBase{ false };
+    std::optional<qint64> overriddenPts;
+};
 
 template <typename T>
 T dequeueIfPossible(std::queue<T> &queue)
