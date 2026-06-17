@@ -45,12 +45,7 @@ public:
     {
         QAudioContextManager *self = instance();
 
-        pw_thread_loop_lock(self->m_eventLoop.get());
-        auto unlock = qScopeGuard([&] {
-            pw_thread_loop_unlock(self->m_eventLoop.get());
-        });
-
-        return c();
+        return self->runWithEventLoopLock(std::forward<Closure>(c));
     }
 
     static QAudioDeviceMonitor &deviceMonitor();
@@ -69,6 +64,17 @@ public:
     const PwCoreConnectionHandle &coreConnection() const;
 
 private:
+    template <typename Closure>
+    auto runWithEventLoopLock(Closure &&c)
+    {
+        pw_thread_loop_lock(m_eventLoop.get());
+        auto unlock = qScopeGuard([&] {
+            pw_thread_loop_unlock(m_eventLoop.get());
+        });
+
+        return c();
+    }
+
     std::shared_ptr<QPipeWireInstance> m_libraryInstance;
 
     // event loop

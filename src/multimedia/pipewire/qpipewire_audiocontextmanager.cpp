@@ -314,7 +314,7 @@ void QAudioContextManager::stopListenDefaultMetadataObject()
     if (!m_defaultMetadataObject)
         return;
 
-    withEventLoopLock([&] {
+    runWithEventLoopLock([&] {
         spa_hook_remove(&m_defaultMetadataObjectListener);
         m_defaultMetadataObject.reset();
     });
@@ -456,7 +456,7 @@ void QAudioContextManager::stopDeviceMonitor()
     if (!m_registry)
         return;
 
-    withEventLoopLock([&] {
+    runWithEventLoopLock([&] {
         m_deviceMonitor->clearAllObservers();
 
         spa_hook_remove(&m_registryListener);
