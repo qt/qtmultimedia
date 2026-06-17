@@ -162,8 +162,6 @@ void QWasmVideoOutput::start()
     case QWasmVideoOutput::SurfaceCapture: {
         m_video.call<void>("play");
         emit readyChanged(true);
-        if (m_hasVideoFrame)
-            videoFrameTimerCallback();
     } break;
     case QWasmVideoOutput::Camera: {
         {
@@ -212,8 +210,6 @@ void QWasmVideoOutput::start()
                     m_video.call<void>("play");
 
                     emit readyChanged(true);
-                    if (m_hasVideoFrame)
-                        videoFrameTimerCallback();
 
                 });
         m_mediaInputStream->setUseAudio(false);
@@ -225,7 +221,6 @@ void QWasmVideoOutput::start()
     };
 
     m_isStopped = false;
-    m_toBePaused = false;
 
     if (m_currentVideoMode != QWasmVideoOutput::Camera
         && m_currentVideoMode != QWasmVideoOutput::SurfaceCapture) {
@@ -576,7 +571,7 @@ void QWasmVideoOutput::doElementCallbacks()
     // event callbacks
     // timupdate
     auto timeUpdateCallback = [=](emscripten::val event) {
-        qCDebug(qWasmMediaVideoOutput) << "timeupdate";
+       qCDebug(qWasmMediaVideoOutput) << "timeupdate";
 
         // qt progress is ms
         emit progressChanged(event["target"]["currentTime"].as<double>() * 1000);
@@ -773,9 +768,9 @@ void QWasmVideoOutput::doElementCallbacks()
         if (m_isSeeking)
             return;
         emit stateChanged(QWasmMediaPlayer::Started);
-        if (m_toBePaused || !m_isStopped) { // paused
+        if (m_toBePaused) { // paused
             m_toBePaused = false;
-            QMetaObject::invokeMethod(this, &QWasmVideoOutput::videoFrameTimerCallback, Qt::QueuedConnection);
+            videoFrameTimerCallback();
         }
     };
     m_playingChangeEvent.reset(new QWasmEventHandler(m_video, "playing", playingCallback));
@@ -817,10 +812,10 @@ void QWasmVideoOutput::doElementCallbacks()
     auto pauseCallback = [=](emscripten::val event) {
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "pause";
-
+        m_toBePaused = true;
         const double currentTime = m_video["currentTime"].as<double>(); // in seconds
         const double duration = m_video["duration"].as<double>(); // in seconds
-        if ((currentTime > 0 && currentTime < duration) && (!m_isStopped && m_toBePaused)) {
+        if ((currentTime > 0 && currentTime < duration) && (!m_isStopped)) {
             emit stateChanged(QWasmMediaPlayer::Paused);
         } else {
             // stop this crazy thing!
@@ -1048,7 +1043,7 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
         wasmVideoOutput->m_wasmSink->setVideoFrame(vFrame);
         oneVideoFrame.call<emscripten::val>("close");
     };
-    copyToCallback.catchFunc = [wasmVideoOutput, oneVideoFrame](emscripten::val error)
+    copyToCallback.catchFunc = [oneVideoFrame](emscripten::val error)
     {
         qCDebug(qWasmMediaVideoOutput) << "copyTo error"
                                << QString::fromStdString(error["name"].as<std::string>())
@@ -1071,8 +1066,6 @@ void QWasmVideoOutput::getWebGLContext()
     const auto *nh = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
     if (!nh || !nh->context)
         return;
-
-    QOpenGLContext *ctx = nh->context;
 
     // Only call makeCurrent on windows whose canvas already has a WebGL context.
     // Calling makeCurrent on a 2D-context canvas corrupts Emscripten's GL state
