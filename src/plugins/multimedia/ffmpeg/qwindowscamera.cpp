@@ -274,7 +274,7 @@ STDMETHODIMP CameraReaderCallback::OnReadSample(HRESULT status, DWORD, DWORD, LO
     if (m_activeCamera)
         m_activeCamera->onReadSample(status, timestamp, sample);
 
-    return status;
+    return S_OK;
 }
 
 STDMETHODIMP CameraReaderCallback::OnFlush(DWORD)
