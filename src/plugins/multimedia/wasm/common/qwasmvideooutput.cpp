@@ -1051,6 +1051,16 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
     qstdweb::Promise::make(oneVideoFrame, u"copyTo"_s, std::move(copyToCallback), frameBuffer, options);
 }
 
+EM_JS(EMSCRIPTEN_WEBGL_CONTEXT_HANDLE, qwasm_find_webgl_context_for_canvas, (EM_VAL canvasHandle), {
+    var canvas = Emval.toValue(canvasHandle);
+    for (var id in GL.contexts) {
+        var entry = GL.contexts[id];
+        if (entry && entry.GLctx && entry.GLctx.canvas === canvas)
+            return parseInt(id);
+    }
+    return 0;
+});
+
 void QWasmVideoOutput::getWebGLContext()
 {
     m_glContextHandle = 0;
@@ -1064,27 +1074,30 @@ void QWasmVideoOutput::getWebGLContext()
     if (!nh || !nh->context)
         return;
 
-    // Only call makeCurrent on windows whose canvas already has a WebGL context.
-    // Calling makeCurrent on a 2D-context canvas corrupts Emscripten's GL state
-    // and causes QRhiGles2 to report a context loss.
-    for (QWindow *window : QGuiApplication::allWindows()) {
+    QOpenGLContext *ctx = nh->context;
+
+    auto tryGetHandleFromSurface = [&]() -> bool {
+        QSurface *surface = ctx->surface();
+        if (!surface || surface->surfaceClass() != QSurface::Window)
+            return false;
+        QWindow *window = static_cast<QWindow *>(surface);
         if (!window->handle())
-            continue;
+            return false;
         auto *wasmIface = window->nativeInterface<QNativeInterface::Private::QWasmWindow>();
         if (!wasmIface)
-            continue;
+            return false;
         emscripten::val canvas = wasmIface->canvas();
         emscripten::val glCtx = canvas.call<emscripten::val>("getContext", std::string("webgl2"));
         if (glCtx.isNull() || glCtx.isUndefined())
             glCtx = canvas.call<emscripten::val>("getContext", std::string("webgl"));
         if (glCtx.isNull() || glCtx.isUndefined())
-            continue;
-        m_glContextHandle = emscripten_webgl_get_current_context();
+            return false;
+        m_glContextHandle = qwasm_find_webgl_context_for_canvas(canvas.as_handle());
         m_hasWebGLContext = (m_glContextHandle > 0);
-        break;
-    }
+        return m_hasWebGLContext;
+    };
 
-    if (!m_hasWebGLContext)
+    if (!tryGetHandleFromSurface())
         qWarning() << Q_FUNC_INFO << "could not locate WebGL canvas for the current RHI context";
 }
 
