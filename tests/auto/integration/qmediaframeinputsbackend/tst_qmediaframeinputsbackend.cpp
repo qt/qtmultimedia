@@ -345,6 +345,7 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withSingleFrame()
     f.m_videoGenerator.setFrameCount(1);
     f.m_videoGenerator.setSize({ 640, 480 });
     f.m_videoGenerator.setPeriod(1s);
+    f.m_videoGenerator.setFrameRate(1.f);
     f.start(RunMode::Pull, AutoStop::EmitEmpty);
 
     QVERIFY(f.waitForRecorderStopped(60s));
