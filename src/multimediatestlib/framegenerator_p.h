@@ -41,6 +41,8 @@ public:
     void setPeriod(std::chrono::microseconds period);
     void setPresentationRotation(QtVideo::Rotation rotation);
     void setPresentationMirrored(bool mirror);
+    void setEndTimeReporting(bool endTimeIsReported);
+    void setColors(std::array<QColor, 5> colors);
     void emitEmptyFrameOnStop();
     QVideoFrame createFrame();
 
@@ -52,7 +54,7 @@ public slots:
     void nextFrame();
 
 private:
-    static constexpr std::array<QColor, 5> colors{
+    std::array<QColor, 5> m_colors{
         QColorConstants::Red,   QColorConstants::Green, QColorConstants::Blue,
         QColorConstants::Black, QColorConstants::White,
     };
@@ -66,6 +68,7 @@ private:
     std::optional<QtVideo::Rotation> m_presentationRotation;
     std::optional<bool> m_presentationMirrored;
     bool m_emitEmptyFrameOnStop = false;
+    bool m_endTimeIsReported = true;
 };
 
 QT_END_NAMESPACE

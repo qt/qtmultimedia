@@ -46,6 +46,15 @@ void VideoGenerator::setPresentationMirrored(bool mirror)
 {
     m_presentationMirrored = mirror;
 }
+void VideoGenerator::setEndTimeReporting(bool endTimeIsReported)
+{
+    m_endTimeIsReported = endTimeIsReported;
+}
+
+void VideoGenerator::setColors(std::array<QColor, 5> newColors)
+{
+    m_colors = newColors;
+}
 
 void VideoGenerator::emitEmptyFrameOnStop()
 {
@@ -75,7 +84,7 @@ QVideoFrame VideoGenerator::createFrame()
     QImage image(m_size, QImage::Format_ARGB32);
     switch (m_pattern) {
     case ImagePattern::SingleColor:
-        image.fill(colors[m_frameIndex % colors.size()]);
+        image.fill(m_colors[m_frameIndex % m_colors.size()]);
         break;
     case ImagePattern::ColoredSquares:
         fillColoredSquares(image);
@@ -92,7 +101,8 @@ QVideoFrame VideoGenerator::createFrame()
 
     if (m_period) {
         frame.setStartTime(m_period->count() * m_frameIndex);
-        frame.setEndTime(m_period->count() * (m_frameIndex + 1));
+        if (m_endTimeIsReported)
+            frame.setEndTime(m_period->count() * (m_frameIndex + 1));
     }
 
     if (m_presentationRotation)
