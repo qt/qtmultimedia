@@ -121,6 +121,11 @@ private slots:
 
     void record_reflectsAudioEncoderSetting();
 
+    void record_adjustsFrameRate_whenSourceFrameRateDifferentFromEncoderFrameRate_data();
+    void record_adjustsFrameRate_whenSourceFrameRateDifferentFromEncoderFrameRate();
+
+    void record_writesLastFrame_whenAdapterHadBufferedItBeforeEndOfStream();
+
 private:
     QTemporaryDir m_tempDir;
 };
@@ -438,7 +443,7 @@ void tst_QMediaRecorderBackend::record_writesVideo_withCorrectColors()
 
     QVERIFY(f.waitForRecorderStopped(60s));
     QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
-             f.m_recorder.errorString().toLatin1().constData());
+             qPrintable(f.m_recorder.errorString()));
 
     const auto info = MediaInfo::create(f.m_recorder.actualLocation(), /*keep frames */ true);
 
@@ -775,6 +780,179 @@ void tst_QMediaRecorderBackend::record_reflectsAudioEncoderSetting()
     QVERIFY(info);
     QCOMPARE_EQ(info->m_audioBuffer.format().sampleRate(), 24000);
     QCOMPARE_EQ(info->m_audioBuffer.format().channelCount(), 1);
+}
+
+void tst_QMediaRecorderBackend::record_adjustsFrameRate_whenSourceFrameRateDifferentFromEncoderFrameRate_data()
+{
+    QTest::addColumn<double>("sourceFrameRate");
+    QTest::addColumn<double>("recorderFrameRate");
+    QTest::addColumn<bool>("reportsVariableRate");
+    QTest::addColumn<bool>("reportsEndTime");
+
+    struct TestCase {
+        const char *name;
+        double sourceRate;
+        double recorderRate;
+    };
+
+    const TestCase cases[] = {
+        { "the default rate from 10.0", 10.0, 0.0 },
+        { "the default rate from 59.94", 59.94, 0.0 },
+        { "the default rate from 75.0", 75.0, 0.0 },
+        { "the same rate", 10.0, 10.0 },
+        { "a half rate", 20.0, 10.0 },
+        { "a double rate", 5.0, 10.0 },
+        { "a 2/3 rate", 15.0, 10.0 },
+        { "a 3/2 rate", 10.0, 15.0 },
+    };
+
+    // TODO: Add cases for different video codecs
+    for (const auto &c : cases) {
+        for (bool variableRate : { false, true }) {
+            for (bool reportsEndTime : { true, false }) {
+                const char *prefix = variableRate ? "Encode variable stream at " : "Encode at ";
+                const char *suffix = reportsEndTime ? "" : " (invalid endTime)";
+                QTest::addRow("%s%s%s", prefix, c.name, suffix)
+                    << c.sourceRate << c.recorderRate << variableRate << reportsEndTime;
+            }
+        }
+    }
+}
+
+void tst_QMediaRecorderBackend::record_adjustsFrameRate_whenSourceFrameRateDifferentFromEncoderFrameRate()
+{
+    QSKIP_IF_NOT_FFMPEG();
+
+    // Arrange
+    QFETCH(double, sourceFrameRate);
+    QFETCH(double, recorderFrameRate);
+    QFETCH(bool, reportsVariableRate);
+    QFETCH(bool, reportsEndTime);
+
+    if (sourceFrameRate > 60.0 && recorderFrameRate <= 0.0 && !reportsVariableRate)
+        // Tries to set up codec with fps=75., which fails on MPEG. Skip for now
+        // TODO: We should detect this and adjust videoFrameRate
+        QSKIP("Codec fails when setting too high frame rate");
+
+    // Set up for 1s of frames
+    using namespace std::chrono;
+    const int sourceFrameCount = qFloor(sourceFrameRate);
+    const auto periodDuration = microseconds(std::lround(1e6 / sourceFrameRate));
+    const bool frameRateIsSet = recorderFrameRate > 0.0;
+    const double targetFrameRate = frameRateIsSet ? recorderFrameRate : sourceFrameRate;
+
+    // Frame rate adapter active when the target rate is explicitly set or the source rate is known
+    const bool adapterActive = frameRateIsSet || !reportsVariableRate;
+    int expectedFrameCount = adapterActive ? qFloor(targetFrameRate) : sourceFrameCount;
+
+    // Adapter slot and epsilon mirror the adapter's internal values; used for expected frame count
+    // and source frame index calculation. Only used when adapterActive == true
+    const auto slotDuration = microseconds(static_cast<qint64>(1e6 / targetFrameRate));
+    const auto epsilon = reportsVariableRate
+            ? 1000us
+            : microseconds(std::lround(periodDuration.count() * 0.05)); // 5% of source period
+
+    if (adapterActive && reportsVariableRate && !reportsEndTime) {
+        // We fill gaps in encoding slots after receiving frames, so expected frame count is different
+        if (targetFrameRate < sourceFrameRate) {
+            // Flush produces an extra frame only if the last source frame doesn't land on a slot boundary
+            const auto lastFrameTime = (sourceFrameCount - 1) * periodDuration;
+            if (lastFrameTime % slotDuration > epsilon)
+                expectedFrameCount++;
+        } else {
+            int copies = qFloor(targetFrameRate / sourceFrameRate);
+            if (copies > 1)
+                expectedFrameCount -= copies - 1; // Flushing ensures only one encoding slot for the last frame
+        }
+    }
+
+    const std::array<QColor, 5> sourceColors = { Qt::red, Qt::green, Qt::blue, Qt::yellow, Qt::magenta };
+
+    CaptureSessionFixture f{ StreamType::Video };
+    if (frameRateIsSet)
+        f.m_recorder.setVideoFrameRate(recorderFrameRate);
+    if (!reportsVariableRate)
+        f.m_videoGenerator.setFrameRate(sourceFrameRate);
+    f.m_videoGenerator.setPeriod(periodDuration);
+    f.m_videoGenerator.setEndTimeReporting(reportsEndTime);
+    f.m_videoGenerator.setFrameCount(sourceFrameCount);
+    f.m_videoGenerator.setSize({ 128, 64 });
+    f.m_videoGenerator.setColors(sourceColors);
+
+    // Act
+    f.start(RunMode::Pull, AutoStop::EmitEmpty);
+    QVERIFY(f.waitForRecorderStopped(60s));
+
+    // Assert
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
+             f.m_recorder.errorString().toLatin1().constData());
+
+    const auto info = MediaInfo::create(f.m_recorder.actualLocation());
+    QVERIFY(info);
+
+    QCOMPARE_EQ(info->m_frameCount, expectedFrameCount);
+
+    QCOMPARE_GE(info->m_duration, 900ms);
+    QCOMPARE_LE(info->m_duration, 1100ms);
+
+    QCOMPARE_EQ(info->m_colors.size(), static_cast<size_t>(expectedFrameCount));
+    for (int i = 0; i < expectedFrameCount; ++i) {
+        // Source frame index: passthrough = direct; adapter active = slot-aligned, clamped
+        const int sourceIndex = adapterActive
+                ? qMin(static_cast<int>((i * slotDuration + epsilon) / periodDuration),
+                       sourceFrameCount - 1)
+                : i;
+        const QColor expectedColor =
+                sourceColors[sourceIndex % static_cast<int>(sourceColors.size())];
+        QVERIFY2(fuzzyCompare(info->m_colors[i][0], expectedColor),
+                 qPrintable(QString("Frame %1: expected %2, got %3")
+                                    .arg(i)
+                                    .arg(expectedColor.name())
+                                    .arg(info->m_colors[i][0].name())));
+    }
+}
+
+void tst_QMediaRecorderBackend::record_writesLastFrame_whenAdapterHadBufferedItBeforeEndOfStream()
+{
+    QSKIP_IF_NOT_FFMPEG();
+
+    // Arrange
+    CaptureSessionFixture f{ StreamType::Video };
+    f.m_recorder.setVideoFrameRate(10.0);
+    f.m_recorder.setAutoStop(true);
+    f.m_videoGenerator.setSize({ 64, 64 });
+
+    // Act
+    f.start(RunMode::Push, AutoStop::No);
+    f.readyToSendVideoFrame.wait();
+
+    // Frame 1 at t=0: emitted immediately for slot 0
+    {
+        QVideoFrame frame = f.m_videoGenerator.createFrame();
+        frame.setStartTime(0);
+        QVERIFY(f.m_videoInput.sendVideoFrame(frame));
+        f.readyToSendVideoFrame.wait();
+    }
+
+    // Frame 2 at t=60ms: before the 100ms slot, no endTime -> adapter buffers without emitting
+    {
+        QVideoFrame frame = f.m_videoGenerator.createFrame();
+        frame.setStartTime(60'000); // µs
+        QVERIFY(f.m_videoInput.sendVideoFrame(frame));
+        f.readyToSendVideoFrame.wait();
+    }
+
+    // EOS: flush emits the buffered frame before the encoder stops
+    f.m_videoInput.sendVideoFrame({});
+
+    // Assert
+    QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
+             f.m_recorder.errorString().toLatin1().constData());
+
+    const auto info = MediaInfo::create(f.m_recorder.actualLocation());
+    QVERIFY(info);
+    QCOMPARE_EQ(info->m_frameCount, 2);
 }
 
 QTEST_MAIN(tst_QMediaRecorderBackend)
