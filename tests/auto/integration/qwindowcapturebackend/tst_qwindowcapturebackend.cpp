@@ -366,6 +366,31 @@ private slots:
         QVERIFY(fixture.m_errors.empty());
     }
 
+    // For some platforms, the hardware-frames we receive are tied to internal frame pools.
+    // If our QVideoFrames point into these pools, we can run into a problem where storing
+    // QVideoFrames over time can stall the stream. We test if we can store a good chunk of
+    // QVideoFrames without stalling.
+    void storingFramesDoesNotStallStream()
+    {
+        // We assume 20 frames is higher than the internal pool of the backend.
+        constexpr int capturedFrameCount = 20;
+
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start());
+
+        // Use animated content to make sure backend does not
+        // consider the content idle.
+        fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Animated);
+
+        QVERIFY(fixture.consumeFirstFrame());
+
+        std::vector<QVideoFrame> capturedFrames = fixture.m_grabber.waitAndTakeFrames(
+            capturedFrameCount);
+
+        // If this fails, it's an indication we stalled the stream.
+        QCOMPARE_GE(capturedFrames.size(), capturedFrameCount);
+    }
+
     void setWindow_switchesSource_whileActive()
     {
         WindowCaptureWithWidgetFixture fixture;
