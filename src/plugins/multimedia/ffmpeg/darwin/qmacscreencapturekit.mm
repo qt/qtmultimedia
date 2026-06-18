@@ -186,11 +186,17 @@ namespace QFFmpeg {
     format.setColorTransfer(QMacScreenCaptureKit::colorTransfer);
 
     Q_ASSERT(scStreamOutput.m_hwAccel);
-    QVideoFrame frame = QFFmpeg::qVideoFrameFromCvPixelBuffer(
+    QVideoFrame frame;
+    q23::expected<QVideoFrame, QString> frameResult = QFFmpeg::qVideoFrameFromCvPixelBuffer(
         *scStreamOutput.m_hwAccel,
         scStreamOutput.m_startTime - *scStreamOutput.m_baseTime,
         pixelBuffer,
         format);
+    if (!frameResult)
+        qCWarning(qLcMacScreenCapture) << frameResult.error();
+    else
+        frame = *frameResult;
+
     if (!frame.isValid()) {
         frame = QVideoFramePrivate::createFrame(
             std::make_unique<QFFmpeg::CVImageVideoBuffer>(std::move(pixelBuffer)),
