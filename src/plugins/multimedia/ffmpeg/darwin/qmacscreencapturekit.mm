@@ -158,6 +158,15 @@ namespace QFFmpeg {
         imageBufferRef,
         QAVFHelpers::QSharedCVPixelBuffer::RefMode::NeedsRef);
 
+    // ScreenCaptureKit hands us buffers from its internal pool (see queueDepth),
+    // so copy into a free-standing CVPixelBuffer to decouple the frame's
+    // lifetime from the stream's pool.
+    q23::expected<QAVFHelpers::QSharedCVPixelBuffer, QString> copyResult = deepCopyCvPixelBuffer(
+        pixelBuffer.get());
+    if (!copyResult)
+        return q23::unexpected(u"Failed to copy incoming pixel buffer: "_s + copyResult.error());
+    pixelBuffer = std::move(*copyResult);
+
     // If the new incoming frames have a different size, update the FFmpeg frames context.
     QSize incomingFrameSize {
         static_cast<int>(CVPixelBufferGetWidth(pixelBuffer.get())),
