@@ -11,37 +11,37 @@ This page covers the availability of Qt Multimedia features on WebAssembly.
 \section1 Limitations
 
 \list
-\li Due to its asynchronous nature, some features such as getting the list of
-QMediaDevices, will not be readily available and may take some time to request permissions and
-gather the list of devices. The audioInputsChanged, audioOutputsChanged and
-videoInputChanged signals from QMediaDevices class will be emitted when they are available.
+\li Due to its asynchronous nature, some features such as getting a list of
+QMediaDevices may not be readily available and may take some time to request
+permissions and gather the list of devices. With Asyncify/JSPI enabled, device
+enumeration happens synchronously. Otherwise use the audioInputsChanged,
+audioOutputsChanged, and videoInputsChanged signals to react when devices become
+available.
 
-\li Camera and Microphone inputs require user permissions, and can only be used in a secure https context.
-
-\li Playing video currently works by using a html 2d context, so all operations are on the CPU.
-
-\li Performance is acceptable, although there is a copy on every frame, so it may be
-less performant than desktop platforms when playing hi-def video.
+\li Camera and Microphone inputs require user permissions, and can only be used
+in a secure https context. Firefox may require permission to play video and audio.
 
 \li Using and selecting different Codecs/video formats is not currently supported.
+These in the browser are more like suggestions or a request, and may not return
+the selected codec.
 
-\li Playing data from a stream (using \c {setSourceDevice(QIODevice*)}), instead
-of fetching a URL, is not currently supported.
+\li Playing data from a QIODevice (using \c {setSourceDevice(QIODevice*)}): is partially
+supported for video (entire stream (file) is read into memory at once). Not supported
+for audio. Streaming from a web URL works. Real-time data input streaming is
+not supported.
 
-\li Some advanced features such as spacial audio, codecs, screen and window recording
+\li Some advanced features such as spatial 3D audio and (Audio/Video)codecs
 are not currently supported.
 
 \li Files can be served from the/any web server, respective
 of \l{https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS}{CORS}.
 
-\li Although possible, playing local files stored in the application file system
-is discouraged because of the limited size of local file storage.
-
-\li Selecting encoding codecs is not possible.
+\li Although possible, playing large files stored in the application file system
+or in a resource package are discouraged because of the limited size of
+the browser's file storage and memory constraints.
 
 \li Issues may exist when using the Firefox browser on any platform.
 
-\li Due to platform limitations, QMediaDevices must be run on the main thread.
 \endlist
 
  */
