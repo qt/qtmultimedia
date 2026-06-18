@@ -70,19 +70,6 @@ q23::expected<QVideoFrame, QString> qVideoFrameFromCvPixelBuffer(
         return q23::unexpected{ u"Failed to allocate FFmpeg HwFrame"_s };
     AVFrameUPtr &avFrame = *avFrameResult;
 
-#ifdef USE_SW_FRAMES
-    {
-        auto swFrame = QFFmpeg::makeAVFrame();
-        /* retrieve data from GPU to CPU */
-        const int ret = av_hwframe_transfer_data(swFrame.get(), avFrame.get(), 0);
-        if (ret < 0) {
-            qWarning() << "Error transferring the data to system memory:" << ret;
-        } else {
-            avFrame = std::move(swFrame);
-        }
-    }
-#endif
-
     avFrame->pts = presentationTimeStamp.count();
 
     return QVideoFramePrivate::createFrame(
