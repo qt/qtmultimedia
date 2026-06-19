@@ -67,6 +67,14 @@ private slots:
         QVERIFY(!fixture.m_capture.isActive());
     }
 
+    void capturableWindows_returnsOnlyValidWindows()
+    {
+        const QList<QCapturableWindow> windows = QWindowCapture::capturableWindows();
+
+        for (const QCapturableWindow &window : windows)
+            QVERIFY(window.isValid());
+    }
+
     void setActive_failsAndEmitEerrorOccurred_whenNoWindowSelected()
     {
         WindowCaptureFixture fixture;
