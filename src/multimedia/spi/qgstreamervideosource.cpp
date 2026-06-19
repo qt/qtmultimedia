@@ -316,3 +316,5 @@ void QGStreamerVideoSource::setCaptureSession(QMediaCaptureSession *session)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qgstreamervideosource.cpp"
