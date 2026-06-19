@@ -97,6 +97,45 @@ private slots:
         QVERIFY(fixture.m_errors.empty());
     }
 
+    void setActive_stopsWindowCapture_whenCalledWithFalse()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start());
+
+        // Ensure capture is actually running before stopping it
+        QVERIFY(fixture.waitForFrame().isValid());
+        QCOMPARE(fixture.m_activations.size(), 1);
+        QVERIFY(fixture.m_capture.isActive());
+
+        fixture.m_capture.setActive(false);
+
+        // activeChanged has now fired twice: once for start, once for stop
+        QTRY_COMPARE(fixture.m_activations.size(), 2);
+        QVERIFY(!fixture.m_capture.isActive());
+        QVERIFY(fixture.m_errors.empty());
+    }
+
+    void setActive_restartsWindowCapture_whenStartedAgainAfterStop()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start());
+
+        // Ensure capture is actually running before stopping it
+        QVERIFY(fixture.waitForFrame().isValid());
+
+        fixture.m_capture.setActive(false);
+        QTRY_VERIFY(!fixture.m_capture.isActive());
+
+        fixture.m_capture.setActive(true);
+
+        QVERIFY(fixture.waitForFrame().isValid());
+        QVERIFY(fixture.m_capture.isActive());
+
+        // activeChanged fired three times: start, stop, start
+        QTRY_COMPARE(fixture.m_activations.size(), 3);
+        QVERIFY(fixture.m_errors.empty());
+    }
+
     void setFrameRate_updatesPropertyAndEmitsSignal()
     {
         WindowCaptureFixture fixture;
