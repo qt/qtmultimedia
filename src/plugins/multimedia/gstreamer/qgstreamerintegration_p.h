@@ -38,7 +38,7 @@ public:
 
     QT_WARNING_PUSH
     QT_WARNING_DISABLE_DEPRECATED
-    QCamera *makeCustomGStreamerCamera(const QByteArray &gstreamerPipeline,
+    QCamera *makeCustomGStreamerCamera(const QByteArray &gstBinDescription,
                                        QObject *parent) override;
     QCamera *makeCustomGStreamerCamera(GstElement *element, QObject *parent) override;
     QT_WARNING_POP

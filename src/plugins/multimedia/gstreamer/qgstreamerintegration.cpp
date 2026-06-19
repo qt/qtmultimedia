@@ -32,8 +32,53 @@ static_assert(GST_CHECK_VERSION(1, 20, 0), "Minimum required GStreamer version i
 
 #if QT_CONFIG(gstreamer_qt_api)
 
-static thread_local bool inCustomCameraConstruction = false;
-static thread_local QGstElement pendingCameraElement{};
+namespace {
+
+thread_local std::optional<GstElementOrDescription> customCameraContructionInput = { };
+
+QCamera *makeCustomGStreamerCameraImpl(QByteArray id, GstElementOrDescription elementOrDesc,
+                                       QObject *parent)
+{
+    QCameraDevicePrivate *info = new QCameraDevicePrivate;
+    info->id = std::move(id);
+    QCameraDevice device = info->create();
+
+    Q_ASSERT(!customCameraContructionInput);
+    customCameraContructionInput = std::move(elementOrDesc);
+
+    auto resetCustomCameraInput = qScopeGuard([] {
+        customCameraContructionInput.reset();
+    });
+
+    return new QCamera(device, parent);
+}
+
+q23::expected<QPlatformCamera *, QString>
+createGStreamerVideoSourceImpl(QObject *videoSource, const GstElementOrDescription &elementOrDesc)
+{
+    using namespace Qt::Literals;
+    auto createImpl = [videoSource](const auto &arg) -> q23::expected<QPlatformCamera *, QString> {
+        QGstElement element;
+        if constexpr (std::is_same_v<decltype(arg), const QString &>) {
+            if (arg.isEmpty())
+                return q23::unexpected{ u"GstBin description is empty"_s };
+            element = QGstBin::createFromPipelineDescription(arg.toUtf8(), /*name=*/nullptr,
+                                                             /* ghostUnlinkedPads=*/true);
+            if (!element)
+                return q23::unexpected{ u"Failed to create GstBin from description"_s };
+        } else {
+            if (!arg)
+                return q23::unexpected{ u"GstElement is null"_s };
+
+            element = QGstElement{ arg, QGstElement::NeedsRef };
+        }
+
+        return new QGstreamerCustomCamera(videoSource, std::move(element));
+    };
+    return std::visit(createImpl, elementOrDesc);
+}
+
+} // namespace
 
 QGStreamerInterfaceImplementation::~QGStreamerInterfaceImplementation() = default;
 
@@ -49,40 +94,18 @@ QAudioDevice QGStreamerInterfaceImplementation::makeCustomGStreamerAudioOutput(
     return qMakeCustomGStreamerAudioOutput(gstreamerPipeline);
 }
 
-QCamera *QGStreamerInterfaceImplementation::makeCustomGStreamerCamera(
-        const QByteArray &gstreamerPipeline, QObject *parent)
+QCamera *
+QGStreamerInterfaceImplementation::makeCustomGStreamerCamera(const QByteArray &gstBinDescription,
+                                                             QObject *parent)
 {
-    QCameraDevicePrivate *info = new QCameraDevicePrivate;
-    info->id = gstreamerPipeline;
-    QCameraDevice device = info->create();
-
-    inCustomCameraConstruction = true;
-    auto guard = qScopeGuard([] {
-        inCustomCameraConstruction = false;
-    });
-
-    return new QCamera(device, parent);
+    return makeCustomGStreamerCameraImpl(gstBinDescription, QString::fromUtf8(gstBinDescription),
+                                         parent);
 }
 
 QCamera *QGStreamerInterfaceImplementation::makeCustomGStreamerCamera(
         GstElement *element, QObject *parent)
 {
-    QCameraDevicePrivate *info = new QCameraDevicePrivate;
-    info->id = "Custom Camera from GstElement";
-    QCameraDevice device = info->create();
-
-    pendingCameraElement = QGstElement{
-        element,
-        QGstElement::NeedsRef,
-    };
-
-    inCustomCameraConstruction = true;
-    auto guard = qScopeGuard([] {
-        inCustomCameraConstruction = false;
-        Q_ASSERT(!pendingCameraElement);
-    });
-
-    return new QCamera(device, parent);
+    return makeCustomGStreamerCameraImpl("Custom Camera from GstElement", element, parent);
 }
 
 GstPipeline *QGStreamerInterfaceImplementation::gstPipeline(QMediaPlayer *player)
@@ -260,11 +283,8 @@ q23::expected<QPlatformMediaPlayer *, QString> QGstreamerIntegration::createPlay
 q23::expected<QPlatformCamera *, QString> QGstreamerIntegration::createCamera(QCamera *camera)
 {
 #if QT_CONFIG(gstreamer_qt_api)
-    if (inCustomCameraConstruction) {
-        QGstElement element = std::exchange(pendingCameraElement, {});
-        return element ? new QGstreamerCustomCamera{ camera, std::move(element) }
-                       : new QGstreamerCustomCamera{ camera };
-    }
+    if (customCameraContructionInput)
+        return createGStreamerVideoSourceImpl(camera, *customCameraContructionInput);
 #endif
 
     return QGstreamerCamera::create(camera);
@@ -306,26 +326,7 @@ q23::expected<QPlatformCamera *, QString>
 QGstreamerIntegration::createGStreamerVideoSource(QGStreamerVideoSource *videoSource,
                                                   const GstElementOrDescription &elementOrDesc)
 {
-    using namespace Qt::Literals;
-    auto createImpl = [videoSource](const auto &arg) -> q23::expected<QPlatformCamera *, QString> {
-        QGstElement element;
-        if constexpr (std::is_same_v<decltype(arg), const QString &>) {
-            if (arg.isEmpty())
-                return q23::unexpected{ u"GstBin description is empty"_s };
-            element = QGstBin::createFromPipelineDescription(arg.toUtf8(), /*name=*/nullptr,
-                                                             /* ghostUnlinkedPads=*/true);
-            if (!element)
-                return q23::unexpected{ u"Failed to create GstBin from description"_s };
-        } else {
-            if (!arg)
-                return q23::unexpected{ u"GstElement is null"_s };
-
-            element = QGstElement{ arg, QGstElement::NeedsRef };
-        }
-
-        return new QGstreamerCustomCamera(videoSource, std::move(element));
-    };
-    return std::visit(createImpl, elementOrDesc);
+    return createGStreamerVideoSourceImpl(videoSource, elementOrDesc);
 }
 
 QGStreamerInterface *QGstreamerIntegration::gstreamerInterface()

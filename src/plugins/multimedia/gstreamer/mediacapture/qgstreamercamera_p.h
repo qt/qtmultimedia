@@ -159,7 +159,8 @@ public:
     explicit QGstreamerCustomCamera(QObject *, QGstElement element);
 
     QGstElement gstElement() const override { return gstCamera; }
-    void setCamera(const QCameraDevice &) override;
+
+    void setCamera(const QCameraDevice &) override { }
 
     bool isActive() const override;
     void setActive(bool) override;
@@ -167,7 +168,6 @@ public:
 private:
     QGstElement gstCamera;
     bool m_active{};
-    const bool m_userProvidedGstElement;
 };
 
 QT_END_NAMESPACE
