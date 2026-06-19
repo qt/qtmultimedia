@@ -7,6 +7,7 @@
 
 #include <QtCore/qtemporaryfile.h>
 #include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgst_handle_types_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgst_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgst_debug_p.h>
@@ -478,18 +479,11 @@ void tst_GStreamer::QGstStructureView_parseCameraFormat()
 
 using MediaSource = std::variant<QUrl, std::shared_ptr<QTemporaryFile>, std::shared_ptr<QIODevice>>;
 
-template <class... Ts>
-struct qOverloadedVisitor : Ts...
-{
-    using Ts::operator()...;
-};
-template <class... Ts>
-qOverloadedVisitor(Ts...) -> qOverloadedVisitor<Ts...>;
-
 void tst_GStreamer::QGstDiscoverer_discoverMedia()
 {
     using namespace Qt::Literals;
     using namespace QGst;
+    using namespace QtMultimediaPrivate;
     using namespace std::chrono_literals;
 
     QFETCH(MediaSource, media);
