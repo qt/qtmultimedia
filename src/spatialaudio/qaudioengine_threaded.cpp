@@ -3,7 +3,6 @@
 
 #include "qaudioengine_threaded_p.h"
 
-#include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
