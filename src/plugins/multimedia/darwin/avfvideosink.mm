@@ -3,8 +3,12 @@
 
 #include "avfvideosink_p.h"
 
-#include <rhi/qrhi.h>
 #include <QtGui/qopenglcontext.h>
+#include <QtGui/rhi/qrhi.h>
+
+#include <CoreVideo/CVBase.h>
+#include <CoreVideo/CVImageBuffer.h>
+#include <CoreVideo/CVPixelBuffer.h>
 
 #import <AVFoundation/AVFoundation.h>
 #import <QuartzCore/CATransaction.h>

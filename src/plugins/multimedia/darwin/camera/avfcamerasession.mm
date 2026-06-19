@@ -1,30 +1,29 @@
 // Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtMultimedia/private/qavfcameradebug_p.h>
 #include "avfcamerasession_p.h"
-#include "avfcameraservice_p.h"
-#include "avfcamera_p.h"
-#include "avfcamerarenderer_p.h"
-#include "avfimagecapture_p.h"
-#include "avfmediaencoder_p.h"
-#include <QtMultimedia/private/qavfcamerautility_p.h>
+
 #include <avfvideosink_p.h>
+#include <camera/avfcamera_p.h>
+#include <camera/avfcameraservice_p.h>
+#include <camera/avfcamerarenderer_p.h>
+#include <camera/avfimagecapture_p.h>
+#include <camera/avfmediaencoder_p.h>
 
-#import <CoreFoundation/CoreFoundation.h>
-#import <Foundation/Foundation.h>
-
+#include <QtMultimedia/private/qavfcameradebug_p.h>
+#include <QtMultimedia/private/qavfcamerautility_p.h>
+#include <QtMultimedia/private/qplatformaudioinput_p.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdatetime.h>
-#include <QtCore/qurl.h>
+#include <QtCore/qdebug.h>
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qpermissions.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/qurl.h>
 
-#include <private/qplatformaudioinput_p.h>
-#include <private/qplatformaudiooutput_p.h>
-
-#include <QtCore/qdebug.h>
+#import <CoreFoundation/CoreFoundation.h>
+#import <Foundation/Foundation.h>
 
 QT_USE_NAMESPACE
 

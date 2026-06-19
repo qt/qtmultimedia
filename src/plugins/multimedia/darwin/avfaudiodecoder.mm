@@ -3,15 +3,14 @@
 
 #include "avfaudiodecoder_p.h"
 
+#include <QtMultimedia/private/qapple_utils_p.h>
+#include <QtMultimedia/private/qcoreaudioutils_p.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qmimedatabase.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qthread.h>
 #include <QtCore/private/qcore_mac_p.h>
-
-#include "private/qcoreaudioutils_p.h"
-#include "private/qapple_utils_p.h"
 
 #import <AVFoundation/AVFoundation.h>
 

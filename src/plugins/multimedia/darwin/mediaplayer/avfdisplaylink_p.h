@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qobject.h>
 
 #if defined(QT_PLATFORM_UIKIT)
 #include <CoreVideo/CVBase.h>

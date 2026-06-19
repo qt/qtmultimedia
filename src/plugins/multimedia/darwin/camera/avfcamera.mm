@@ -1,13 +1,15 @@
 // Copyright (C) 2022 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtMultimedia/private/qavfcameradebug_p.h>
 #include "avfcamera_p.h"
-#include "avfcamerasession_p.h"
-#include "avfcameraservice_p.h"
+
+#include <camera/avfcamerasession_p.h>
+#include <camera/avfcameraservice_p.h>
+#include <camera/avfcamerarenderer_p.h>
+
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/private/qavfcameradebug_p.h>
 #include <QtMultimedia/private/qavfcamerautility_p.h>
-#include "avfcamerarenderer_p.h"
-#include <qmediacapturesession.h>
 
 QT_USE_NAMESPACE
 

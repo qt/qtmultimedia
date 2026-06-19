@@ -15,11 +15,12 @@
 // We mean it.
 //
 
-#include <QtCore/qmutex.h>
 #include <QtMultimedia/qcamera.h>
-#include <QVideoFrame>
-#include <qcameradevice.h>
-#include "avfaudiopreviewdelegate_p.h"
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtCore/qmutex.h>
+
+#include <camera/avfaudiopreviewdelegate_p.h>
 
 #import <AVFoundation/AVFoundation.h>
 

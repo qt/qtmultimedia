@@ -3,25 +3,24 @@
 
 
 #include "avfmediaencoder_p.h"
-#include "avfcamerarenderer_p.h"
-#include "avfcamerasession_p.h"
-#include "avfcamera_p.h"
-#include "avfcameraservice_p.h"
+
+#include <camera/avfcamera_p.h>
+#include <camera/avfcamerarenderer_p.h>
+#include <camera/avfcameraservice_p.h>
+#include <camera/avfcamerasession_p.h>
+#include <qdarwinformatsinfo_p.h>
+
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qavfcameradebug_p.h>
 #include <QtMultimedia/private/qavfcamerautility_p.h>
-#include "qaudiodevice.h"
-
-#include "qmediadevices.h"
-#include "private/qmediastoragelocation_p.h"
-#include "private/qmediarecorder_p.h"
-#include "qdarwinformatsinfo_p.h"
-#include "private/qplatformaudiooutput_p.h"
-#include <private/qplatformaudioinput_p.h>
-
-#include <QtCore/qmath.h>
+#include <QtMultimedia/private/qcoreaudioutils_p.h>
+#include <QtMultimedia/private/qmediarecorder_p.h>
+#include <QtMultimedia/private/qmediastoragelocation_p.h>
+#include <QtMultimedia/private/qplatformaudioinput_p.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
 #include <QtCore/qdebug.h>
-
-#include <private/qcoreaudioutils_p.h>
+#include <QtCore/qmath.h>
 
 QT_USE_NAMESPACE
 

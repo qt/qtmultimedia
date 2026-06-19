@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "private/qplatformvideosink_p.h"
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 
 #include <QtCore/private/qcore_mac_p.h>
 

@@ -15,13 +15,14 @@
 // We mean it.
 //
 
-#import <AVFoundation/AVFoundation.h>
-
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
 #include <QtCore/qqueue.h>
 #include <QtCore/qsemaphore.h>
 #include <QtCore/qsharedpointer.h>
-#include <private/qplatformimagecapture_p.h>
-#include "avfcamerasession_p.h"
+
+#include <camera/avfcamerasession_p.h>
+
+#import <AVFoundation/AVFoundation.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -15,16 +15,15 @@
 // We mean it.
 //
 
-#include <QtCore/QObject>
-#include <QtCore/QByteArray>
-#include <QtCore/QSet>
-#include <QtCore/QResource>
-#include <QtCore/QUrl>
-#include <QtCore/QTimer>
-
-#include <private/qplatformmediaplayer_p.h>
-#include <QtMultimedia/QMediaPlayer>
-#include <QtMultimedia/QVideoFrame>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qresource.h>
+#include <QtCore/qset.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/qurl.h>
 
 #import <AVFoundation/AVFoundation.h>
 
