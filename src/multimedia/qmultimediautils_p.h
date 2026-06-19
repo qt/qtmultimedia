@@ -90,6 +90,19 @@ inline VideoTransformation qNormalizedFrameTransformation(const QVideoFrame &fra
  */
 Q_MULTIMEDIA_EXPORT VideoTransformationOpt qVideoTransformationFromMatrix(const QTransform &matrix);
 
+namespace QtMultimediaPrivate {
+
+template <class... Ts>
+struct qOverloadedVisitor : Ts...
+{
+    using Ts::operator()...;
+    constexpr qOverloadedVisitor(Ts... args) : Ts(std::move(args))... {}
+};
+template <class... Ts>
+qOverloadedVisitor(Ts...) -> qOverloadedVisitor<Ts...>;
+
+} // namespace QtMultimediaPrivate
+
 QT_END_NAMESPACE
 
 #endif // QMULTIMEDIAUTILS_P_H
