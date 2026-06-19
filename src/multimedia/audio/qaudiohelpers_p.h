@@ -19,6 +19,8 @@
 #include <QtMultimedia/qaudioformat.h>
 #include <QtCore/qspan.h>
 
+#include <vector>
+
 QT_BEGIN_NAMESPACE
 
 namespace QAudioHelperInternal {
@@ -82,6 +84,46 @@ Q_MULTIMEDIA_EXPORT
 void fillSilence(QSpan<std::byte>, NativeSampleFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 Q_MULTIMEDIA_EXPORT
 void fillSilence(QSpan<std::byte>, QAudioFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Resample interleaved float32 PCM using Catmull-Rom interpolation.
+Q_MULTIMEDIA_EXPORT
+QByteArray resampleAudioCatmullRom(QSpan<const float> input, int nChannels,
+                                   int inputRate, int outputRate);
+
+class Q_MULTIMEDIA_EXPORT CatmullRomInterpolator
+{
+public:
+    CatmullRomInterpolator(int nChannels, int inputRate, int outputRate);
+    ~CatmullRomInterpolator() = default;
+
+    CatmullRomInterpolator(const CatmullRomInterpolator &) = delete;
+    CatmullRomInterpolator &operator=(const CatmullRomInterpolator &) = delete;
+
+    void reset();
+
+    struct ResampleResult
+    {
+        QSpan<const float> remainingInput;
+        QSpan<float> output;
+    };
+
+    ResampleResult process(QSpan<const float> input,
+                           QSpan<float> output) noexcept Q_DECL_NONBLOCKING_FUNCTION;
+
+private:
+    void advancePosition();
+
+    int m_nChannels = 0;
+    float m_ratio = 1.0f;
+    qsizetype m_iPos = 0;          // integer frame index in absolute frame space
+    float m_fPos = 0.0f;           // fractional phase [0, 1) within current frame
+    qsizetype m_inputFramesConsumed = 0;
+    std::vector<float> m_history; // history of 3 frames
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace QAudioHelperInternal
 

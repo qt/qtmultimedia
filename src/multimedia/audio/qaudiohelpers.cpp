@@ -8,6 +8,7 @@
 #include <QtMultimedia/private/qmultimedia_enum_to_string_converter_p.h>
 #include <QtCore/qdebug.h>
 
+#include <algorithm>
 #include <limits>
 
 QT_BEGIN_NAMESPACE
@@ -469,6 +470,262 @@ void fillSilence(QSpan<std::byte> buffer, NativeSampleFormat sampleFormat) noexc
 void fillSilence(QSpan<std::byte> buffer, QAudioFormat fmt) noexcept
 {
     fillSilence(buffer, toNativeSampleFormat(fmt.sampleFormat()));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+
+struct CatmullRomBasis
+{
+    explicit CatmullRomBasis(float t)
+    {
+        Q_ASSERT(t >= 0.0f && t < 1.0f);
+        const float t2 = t * t;
+        const float t3 = t2 * t;
+        c0 = -0.5f * t3 + t2 - 0.5f * t;
+        c1 = 1.5f * t3 - 2.5f * t2 + 1.0f;
+        c2 = -1.5f * t3 + 2.0f * t2 + 0.5f * t;
+        c3 = 0.5f * t3 - 0.5f * t2;
+    }
+
+    float interpolate(float pm1, float p0, float p1, float p2) const
+    {
+        return (c0 * pm1 + c1 * p0) + (c2 * p1 + c3 * p2);
+    }
+
+private:
+    float c0, c1, c2, c3;
+};
+
+} // namespace
+
+QByteArray resampleAudioCatmullRom(QSpan<const float> input, int nChannels, int inputRate,
+                                   int outputRate)
+{
+    Q_ASSERT(nChannels >= 1);
+    Q_ASSERT(inputRate > 0);
+    Q_ASSERT(outputRate > 0);
+
+    if (input.isEmpty() || nChannels <= 0)
+        return {};
+
+    if (inputRate == outputRate) {
+        return QByteArray(reinterpret_cast<const char *>(input.data()),
+                          qsizetype(input.size()) * qsizetype(sizeof(float)));
+    }
+
+    const qsizetype inputFrames = input.size() / nChannels;
+    if (inputFrames == 0)
+        return {};
+
+    // Number of output frames
+    const qsizetype outputFrames =
+            qsizetype(double(inputFrames) * double(outputRate) / double(inputRate) + 0.5);
+    if (outputFrames <= 0)
+        return {};
+
+    QByteArray out;
+    out.resizeForOverwrite(outputFrames * nChannels * qsizetype(sizeof(float)));
+    QSpan<float> dst(reinterpret_cast<float *>(out.data()), outputFrames * nChannels);
+
+    using namespace QtMultimediaPrivate;
+
+    // Catmull-Rom: needs p0,p1,p2,p3 where output samples between p1 and p2
+    // p[i] = clamp(i, 0, inputFrames-1)
+    const float increment = float(inputRate) / float(outputRate);
+
+    qsizetype iPos = 0;
+    float fPos = 0.0f;
+
+    for (qsizetype outFrame = 0; outFrame < outputFrames; ++outFrame) {
+        const qsizetype i1 = iPos;
+        const float t = fPos;
+
+        // Clamp frame indices
+        const qsizetype i0 = std::max(qsizetype(0), i1 - 1);
+        const qsizetype i2 = std::min(i1 + 1, inputFrames - 1);
+        const qsizetype i3 = std::min(i1 + 2, inputFrames - 1);
+
+        const CatmullRomBasis basis(t);
+
+        auto frameOut = take(dst, nChannels);
+        for (int ch = 0; ch < nChannels; ++ch) {
+            const float pm1 = input[i0 * nChannels + ch];
+            const float p0 = input[i1 * nChannels + ch];
+            const float p1 = input[i2 * nChannels + ch];
+            const float p2 = input[i3 * nChannels + ch];
+            frameOut[ch] = basis.interpolate(pm1, p0, p1, p2);
+        }
+        dst = drop(dst, nChannels);
+
+        fPos += increment;
+        while (fPos >= 1.0f) {
+            fPos -= 1.0f;
+            iPos += 1;
+        }
+    }
+
+    return out;
+}
+
+CatmullRomInterpolator::CatmullRomInterpolator(int nChannels, int inputRate, int outputRate)
+    : m_nChannels(nChannels), m_ratio(float(inputRate) / float(outputRate))
+{
+    Q_ASSERT(nChannels >= 1);
+    Q_ASSERT(inputRate > 0);
+    Q_ASSERT(outputRate > 0);
+
+    m_history.assign(3 * nChannels, 0.0f);
+}
+
+void CatmullRomInterpolator::reset()
+{
+    m_iPos = 0;
+    m_fPos = 0.0f;
+    m_inputFramesConsumed = 0;
+    namespace ranges = QtMultimediaPrivate::ranges;
+    ranges::fill(m_history, 0.0f);
+}
+
+void CatmullRomInterpolator::advancePosition()
+{
+    m_fPos += m_ratio;
+    while (m_fPos >= 1.0f) {
+        m_fPos -= 1.0f;
+        m_iPos += 1;
+    }
+}
+
+auto CatmullRomInterpolator::process(QSpan<const float> input,
+                                     QSpan<float> output) noexcept Q_DECL_NONBLOCKING_FUNCTION
+        -> ResampleResult
+{
+    using namespace QtMultimediaPrivate;
+
+    Q_PRESUME(m_nChannels >= 1);
+    const qsizetype nChannels = m_nChannels;
+    const qsizetype inputFrames = input.size() / nChannels;
+    const qsizetype maxOutputFrames = output.size() / nChannels;
+
+    // Flush mode: empty input signals end-of-stream
+    if (inputFrames == 0) {
+        qsizetype outputFramePos = 0;
+        const qsizetype lastAvailableFrame = m_inputFramesConsumed - 1;
+
+        while (outputFramePos < maxOutputFrames) {
+            if (m_iPos > lastAvailableFrame)
+                break;
+
+            const qsizetype pm1FrameIdx = std::max(qsizetype(0), m_iPos - 1);
+            const qsizetype p1FrameIdx = std::min(m_iPos + 1, lastAvailableFrame);
+            const qsizetype p2FrameIdx = std::min(m_iPos + 2, lastAvailableFrame);
+
+            const CatmullRomBasis basis(m_fPos);
+
+            for (qsizetype ch = 0; ch < nChannels; ++ch) {
+                auto fetch = [&](qsizetype absoluteFrameIdx) -> float {
+                    if (absoluteFrameIdx < m_inputFramesConsumed) {
+                        const qsizetype historySampleIdx =
+                                absoluteFrameIdx - (m_inputFramesConsumed - 3);
+                        if (historySampleIdx >= 0)
+                            return m_history[historySampleIdx * nChannels + ch];
+                        return m_history[ch]; // clamp to oldest history
+                    }
+                    return m_history[ch]; // beyond available data, clamp
+                };
+
+                const float pm1 = fetch(pm1FrameIdx);
+                const float p0 = fetch(m_iPos);
+                const float p1 = fetch(p1FrameIdx);
+                const float p2 = fetch(p2FrameIdx);
+
+                output[outputFramePos * nChannels + ch] =
+                        basis.interpolate(pm1, p0, p1, p2);
+            }
+
+            advancePosition();
+            ++outputFramePos;
+        }
+
+        return ResampleResult{
+            input,
+            take(output, outputFramePos * nChannels),
+        };
+    }
+
+    qsizetype outputFramePos = 0;
+    qsizetype maxConsumedFrames = 0;
+
+    while (outputFramePos < maxOutputFrames) {
+        if (m_iPos + 2 >= m_inputFramesConsumed + inputFrames)
+            break;
+
+        // Clamp frame indices relative to available data
+        const qsizetype pm1FrameIdx = std::max(qsizetype(0), m_iPos - 1);
+        const qsizetype p1FrameIdx =
+                std::min(m_iPos + 1, m_inputFramesConsumed + inputFrames - 1);
+        const qsizetype p2FrameIdx =
+                std::min(m_iPos + 2, m_inputFramesConsumed + inputFrames - 1);
+
+        const CatmullRomBasis basis(m_fPos);
+
+        for (qsizetype ch = 0; ch < nChannels; ++ch) {
+            auto fetch = [&](qsizetype absoluteFrameIdx) -> float {
+                if (absoluteFrameIdx >= m_inputFramesConsumed)
+                    return input[(absoluteFrameIdx - m_inputFramesConsumed) * nChannels + ch];
+                const qsizetype historySampleIdx =
+                        absoluteFrameIdx - (m_inputFramesConsumed - 3);
+                if (historySampleIdx >= 0)
+                    return m_history[historySampleIdx * nChannels + ch];
+                return m_history[ch]; // clamp to oldest history (stream start)
+            };
+
+            const float pm1 = fetch(pm1FrameIdx);
+            const float p0 = fetch(m_iPos);
+            const float p1 = fetch(p1FrameIdx);
+            const float p2 = fetch(p2FrameIdx);
+
+            output[outputFramePos * nChannels + ch] =
+                    basis.interpolate(pm1, p0, p1, p2);
+        }
+
+        maxConsumedFrames =
+                std::max(maxConsumedFrames,
+                         m_iPos + 3 - m_inputFramesConsumed);
+        advancePosition();
+        ++outputFramePos;
+    }
+
+    // Update history with last 3 frames of consumed portion
+    qsizetype framesToCache = std::min(maxConsumedFrames, inputFrames);
+    // If the main loop produced no output but there is input (m_iPos lags
+    // behind m_inputFramesConsumed at a chunk boundary), consume all input into history so
+    // the caller makes progress. The flush path interpolates using history.
+    if (framesToCache == 0 && inputFrames > 0)
+        framesToCache = inputFrames;
+    namespace ranges = QtMultimediaPrivate::ranges;
+    if (framesToCache >= 3) {
+        const qsizetype last3FramesSampleOffset = (framesToCache - 3) * nChannels;
+        ranges::copy(take(drop(input, last3FramesSampleOffset), 3 * nChannels),
+                     m_history.data());
+    } else if (framesToCache > 0) {
+        const qsizetype newCacheSampleCount = framesToCache * nChannels;
+        const qsizetype retainedSampleCount = (3 - framesToCache) * nChannels;
+        auto history = QSpan(m_history);
+        ranges::copy(take(drop(history, newCacheSampleCount), retainedSampleCount),
+                     history.begin());
+        ranges::copy(take(input, newCacheSampleCount),
+                     drop(history, retainedSampleCount).begin());
+    }
+
+    m_inputFramesConsumed += framesToCache;
+
+    const qsizetype unconsumedInputFrames = inputFrames - framesToCache;
+    return ResampleResult{
+        take(drop(input, framesToCache * nChannels), unconsumedInputFrames * nChannels),
+        take(output, outputFramePos * nChannels),
+    };
 }
 
 } // namespace QAudioHelperInternal
