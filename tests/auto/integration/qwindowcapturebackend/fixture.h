@@ -99,7 +99,6 @@ public:
     TestWidget m_widget;
     QCapturableWindow m_captureWindow;
 
-protected:
     [[nodiscard]] static std::optional<QCapturableWindow> findCaptureWindow(
         const QString &windowTitle,
         QWindow *sourceWindow = nullptr);
