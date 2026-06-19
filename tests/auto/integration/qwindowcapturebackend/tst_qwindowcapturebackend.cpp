@@ -136,6 +136,46 @@ private slots:
         QVERIFY(fixture.m_errors.empty());
     }
 
+    void setWindow_switchesSource_whileActive()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start({ 60, 40 }));
+        QVERIFY(fixture.waitForFrame().isValid());
+
+        QSignalSpy windowChanges{ &fixture.m_capture, &QWindowCapture::windowChanged };
+
+        // Create a second, differently-sized window to switch to
+        TestWidget secondWidget;
+        secondWidget.setSize({ 120, 80 });
+        secondWidget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(
+            &secondWidget,
+            s_testTimeout));
+
+        std::optional<QCapturableWindow> secondWindow =
+            WindowCaptureWithWidgetFixture::findCaptureWindow(
+                secondWidget.windowTitle(),
+                secondWidget.windowHandle());
+        QVERIFY(secondWindow && secondWindow->isValid());
+
+        // Switch the captured window while capture is active
+        fixture.m_capture.setWindow(*secondWindow);
+
+        QTRY_COMPARE(windowChanges.size(), 1);
+        QCOMPARE(fixture.m_capture.window(), *secondWindow);
+
+        // Switching source keeps the capture active
+        QVERIFY(fixture.m_capture.isActive());
+        // activeChanged does not fire in between switching source
+        QCOMPARE(fixture.m_activations.size(), 1);
+
+        // Make sure we get frames from the new larger window
+        QTRY_VERIFY(!fixture.m_grabber.getFrames().empty()
+            && fixture.m_grabber.getFrames().back().size() == secondWidget.size());
+
+        QVERIFY(fixture.m_errors.empty());
+    }
+
     void setFrameRate_updatesPropertyAndEmitsSignal()
     {
         WindowCaptureFixture fixture;
