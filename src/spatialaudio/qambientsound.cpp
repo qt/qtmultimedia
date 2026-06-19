@@ -4,13 +4,13 @@
 #include "qambientsound.h"
 #include "qambientsound_p.h"
 
-#include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtSpatialAudio/private/qaudioengine_p.h>
 #include <QtCore/qdebug.h>
-#include <QtCore/qfile.h>
 #include <QtCore/qurl.h>
 
 #include <resonance_audio.h>
@@ -99,31 +99,6 @@ void QSpatialAudioPlaybackState::pause()
 } // namespace QSpatialAudioPrivate
 
 namespace {
-
-std::optional<QAudioBuffer> joinBuffers(QSpan<const QAudioBuffer> buffers)
-{
-    if (buffers.empty())
-        return {};
-
-    QByteArray data;
-    for (const QAudioBuffer &b : buffers) {
-        if (!b.isValid())
-            return {};
-
-        if (b.format() != buffers.front().format()) {
-            qWarning() << "QAmbientSound: all buffers must have the same format";
-            return {};
-        }
-
-        data.append(b.constData<char>(), b.byteCount());
-    }
-
-    return QAudioBuffer{
-        data,
-        buffers.front().format(),
-        buffers.front().startTime(),
-    };
-}
 
 int addStereoSource(QAudioEngine *engine)
 {
@@ -259,90 +234,63 @@ void QAmbientSoundPrivate::loadUrl(const QUrl &url)
 
     Q_Q(QAmbientSound);
 
-    m_loadFuture.cancel();
+    m_loadFuture.cancelChain();
+    m_sample = {};
 
     setState(nullptr);
 
-    QAudioFormat f;
-    f.setSampleFormat(QAudioFormat::Float);
-    f.setSampleRate(ep->sampleRate());
-    f.setChannelConfig(nchannels == 2 ? QAudioFormat::ChannelConfigStereo
-                                      : QAudioFormat::ChannelConfigMono);
-
-    QUrl resolved = m_sourceResolver->resolve(url);
-    m_loadFuture = load(resolved, f).then(q, [this](QAmbientSoundPrivate::LoadResult result) {
-        if (result) {
-            m_buffer = joinBuffers(*result);
-            if (!m_buffer) {
-                qWarning() << "QAmbientSound: failed to join audio buffers";
-                return;
-            }
-
-            bool startingPlayback = m_autoPlay || m_state != State::Stopped;
-            if (!startingPlayback)
-                return;
-            bool startPaused = (m_state == State::Paused) && !m_autoPlay;
-            setState(std::make_shared<QSpatialAudioPlaybackState>(
-                    *m_buffer, /*playing=*/!startPaused, m_loops));
-
-            m_state = startPaused ? State::Paused : State::Playing;
-
-        } else {
+    m_loadFuture = QSampleCache::instance()
+                           ->requestSampleFuture(m_sourceResolver->resolve(url), ep->sampleRate())
+                           .then(q, [this](SharedSamplePtr sample) {
+        if (!sample) {
             qWarning() << "QAmbientSound: cannot load file";
+            return;
         }
-    });
-}
 
-auto QAmbientSoundPrivate::load(QUrl resolvedUrl, QAudioFormat format) -> QFuture<LoadResult>
-{
-    m_loadFuture.cancelChain();
+        // Build QAudioBuffer with the correct channel layout for this source.
+        // QSampleCache resampled to engineRate but preserves native channels.
+        // Adapt channel count here: mono<->stereo simple mix.
+        const QAudioFormat &srcFmt = sample->format();
+        const int srcChannels = srcFmt.channelCount();
 
-    auto promise = std::make_shared<QPromise<LoadResult>>();
-    auto future = promise->future();
+        QByteArray pcmData;
+        QAudioFormat outFmt = srcFmt;
+        outFmt.setChannelCount(nchannels);
+        outFmt.setChannelConfig(nchannels == 2 ? QAudioFormat::ChannelConfigStereo
+                                               : QAudioFormat::ChannelConfigMono);
 
-    m_decoder = std::make_unique<QAudioDecoder>();
-    m_decoder->setAudioFormat(format);
+        using namespace QAudioHelperInternal;
 
-    std::shared_ptr<QIODevice> file; // kept alive until decoding is finished
-    if (resolvedUrl.scheme().compare(u"qrc", Qt::CaseInsensitive) == 0) {
-        file = std::make_unique<QFile>(u':' + resolvedUrl.path());
-        if (!file->open(QFile::ReadOnly)) {
-            promise->start();
-            promise->addResult(q23::unexpected{ QAudioDecoder::Error::ResourceError });
-            promise->finish();
+        if (srcChannels == nchannels) {
+            pcmData = sample->data();
 
-            m_decoder = {};
-
-            return future;
+            m_sample = sample; // keep the sample in the QSampleCache as long as we live
+        } else if (srcChannels == 1 && nchannels == 2) {
+            qWarning() << "QAmbientSound: upmixing mono source to stereo";
+            pcmData = upmixMonoToStereo(sample->dataAsFloatSpan(), UpmixScaling::Duplicate);
+        } else if (srcChannels == 2 && nchannels == 1) {
+            qWarning() << "QAmbientSound: downmixing stereo source to mono";
+            pcmData = downmixStereoToMono(sample->dataAsFloatSpan(), DownmixScaling::Average);
+        } else {
+            qWarning() << "QAmbientSound: unsupported channel count"
+                       << srcChannels << "- rejecting file";
+            return;
         }
-        m_decoder->setSourceDevice(file.get());
-    } else {
-        m_decoder->setSource(resolvedUrl);
-    }
 
-    auto accum = std::make_shared<QList<QAudioBuffer>>();
-    QObject::connect(m_decoder.get(), &QAudioDecoder::bufferReady, m_decoder.get(), [accum, this] {
-        accum->append(m_decoder->read());
+        m_buffer = QAudioBuffer{
+            pcmData,
+            outFmt,
+        };
+
+        const bool startingPlayback = m_autoPlay || m_state != State::Stopped;
+        if (!startingPlayback)
+            return;
+        const bool startPaused = (m_state == State::Paused) && !m_autoPlay;
+        setState(std::make_shared<QSpatialAudioPlaybackState>(*m_buffer, /*playing=*/!startPaused,
+                                                              m_loops));
+
+        m_state = startPaused ? State::Paused : State::Playing;
     });
-
-    QObject::connect(
-            m_decoder.get(),
-            static_cast<void (QAudioDecoder::*)(QAudioDecoder::Error)>(&QAudioDecoder::error),
-            m_decoder.get(), [promise, file](QAudioDecoder::Error error) {
-        promise->start();
-        promise->addResult(q23::unexpected{ error });
-        promise->finish();
-    });
-
-    QObject::connect(m_decoder.get(), &QAudioDecoder::finished, m_decoder.get(),
-                     [promise, file, accum] {
-        promise->start();
-        promise->addResult(std::move(*accum));
-        promise->finish();
-    });
-
-    m_decoder->start();
-    return future;
 }
 
 vraudio::ResonanceAudioApi *QAmbientSoundPrivate::getAPI()
