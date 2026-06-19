@@ -1,23 +1,24 @@
 // Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtMultimedia/private/qavfcameradebug_p.h>
 #include "avfimagecapture_p.h"
-#include "avfcameraservice_p.h"
-#include <QtMultimedia/private/qavfcamerautility_p.h>
-#include "avfcamera_p.h"
-#include "avfcamerasession_p.h"
-#include "avfcamerarenderer_p.h"
-#include "private/qmediastoragelocation_p.h"
-#include <private/qplatformimagecapture_p.h>
-#include <private/qmemoryvideobuffer_p.h>
-#include <private/qvideoframe_p.h>
 
-#include <QtCore/qurl.h>
-#include <QtCore/qfile.h>
-#include <QtCore/qbuffer.h>
+#include <camera/avfcamera_p.h>
+#include <camera/avfcameraservice_p.h>
+#include <camera/avfcamerarenderer_p.h>
+#include <camera/avfcamerasession_p.h>
+
+#include <QtMultimedia/private/qavfcameradebug_p.h>
+#include <QtMultimedia/private/qavfcamerautility_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qmediastoragelocation_p.h>
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <QtGui/qimagereader.h>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qurl.h>
 
 #import <AVFoundation/AVFoundation.h>
 

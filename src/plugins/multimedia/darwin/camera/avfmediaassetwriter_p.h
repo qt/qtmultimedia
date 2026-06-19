@@ -15,9 +15,8 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qmediaformat.h>
 #include <QtMultimedia/private/qavfcamerautility_p.h>
-#include "qmediaformat.h"
-
 #include <QtCore/qglobal.h>
 
 #include <AVFoundation/AVFoundation.h>

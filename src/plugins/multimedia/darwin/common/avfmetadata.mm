@@ -2,19 +2,20 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "avfmetadata_p.h"
-#include <qdarwinformatsinfo_p.h>
-#include <avfmediaplayer_p.h>
 
-#include <QtCore/private/qcore_mac_p.h>
+#include <mediaplayer/avfmediaplayer_p.h>
+#include <qdarwinformatsinfo_p.h>
+
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/private/qmediametadata_p.h>
+#include <QtGui/qimage.h>
 #include <QtCore/qbuffer.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qlocale.h>
 #include <QtCore/qsemaphore.h>
 #include <QtCore/qurl.h>
-#include <QtGui/qimage.h>
-#include <QtMultimedia/qvideoframe.h>
-#include <QtMultimedia/private/qmediametadata_p.h>
+#include <QtCore/private/qcore_mac_p.h>
 
 #if __has_include(<AppKit/AppKit.h>)
 #import <AppKit/AppKit.h>

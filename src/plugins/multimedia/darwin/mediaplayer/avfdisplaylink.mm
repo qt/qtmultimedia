@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "avfdisplaylink_p.h"
-#include <QtCore/qcoreapplication.h>
 
-#include <mutex>
+#include <QtCore/qcoreapplication.h>
 
 #ifdef QT_DEBUG_AVF
 #include <QtCore/qdebug.h>
 #endif
+
+#include <mutex>
 
 #if defined(QT_PLATFORM_UIKIT)
 #import <QuartzCore/CADisplayLink.h>

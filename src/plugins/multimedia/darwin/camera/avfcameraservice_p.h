@@ -15,9 +15,9 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qset.h>
-#include <private/qplatformmediacapture_p.h>
 
 #import <AVFoundation/AVFoundation.h>
 

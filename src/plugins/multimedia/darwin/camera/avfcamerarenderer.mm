@@ -1,25 +1,25 @@
 // Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qabstractvideobuffer.h"
-#include "private/qcameradevice_p.h"
-#include "private/qvideoframe_p.h"
 #include "avfcamerarenderer_p.h"
-#include "avfcamerasession_p.h"
-#include "avfcameraservice_p.h"
-#include <QtMultimedia/private/qavfcameradebug_p.h>
-#include "avfcamera_p.h"
-#include <avfvideosink_p.h>
-#include <avfvideobuffer_p.h>
-#include "qvideosink.h"
-#include <QtMultimedia/private/qavfhelpers_p.h>
 
-#include <rhi/qrhi.h>
+#include <avfvideobuffer_p.h>
+#include <avfvideosink_p.h>
+#include <camera/avfcamera_p.h>
+#include <camera/avfcameraservice_p.h>
+#include <camera/avfcamerasession_p.h>
+
+#include <QtMultimedia/qabstractvideobuffer.h>
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/private/qavfcameradebug_p.h>
+#include <QtMultimedia/private/qavfhelpers_p.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtGui/rhi/qrhi.h>
+#include <QtCore/qmetaobject.h>
 
 #import <AVFoundation/AVFoundation.h>
-
-#include <QtCore/qmetaobject.h>
-#include <QtMultimedia/qvideoframeformat.h>
 
 QT_USE_NAMESPACE
 

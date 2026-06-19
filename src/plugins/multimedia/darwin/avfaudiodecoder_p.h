@@ -15,15 +15,14 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtMultimedia/private/qplatformaudiodecoder_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <QObject>
+#include <QtCore/qmutex.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qqueue.h>
 #include <QtCore/qurl.h>
-#include <QWaitCondition>
-#include <QMutex>
-#include <QQueue>
-
-#include "private/qplatformaudiodecoder_p.h"
-#include "qaudiodecoder.h"
+#include <QtCore/qwaitcondition.h>
 
 #import <dispatch/dispatch.h>
 #import <AVFoundation/AVFoundation.h>

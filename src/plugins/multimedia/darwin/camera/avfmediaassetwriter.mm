@@ -1,17 +1,18 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "avfmediaencoder_p.h"
-#include "avfcamerarenderer_p.h"
 #include "avfmediaassetwriter_p.h"
-#include "avfcameraservice_p.h"
-#include "avfcamerasession_p.h"
-#include <QtMultimedia/private/qavfcameradebug_p.h>
-#include <qdarwinformatsinfo_p.h>
-#include <avfmetadata_p.h>
 
-#include <QtCore/qmetaobject.h>
+#include <camera/avfcamerarenderer_p.h>
+#include <camera/avfcameraservice_p.h>
+#include <camera/avfcamerasession_p.h>
+#include <camera/avfmediaencoder_p.h>
+#include <common/avfmetadata_p.h>
+#include <qdarwinformatsinfo_p.h>
+
+#include <QtMultimedia/private/qavfcameradebug_p.h>
 #include <QtCore/qatomic.h>
+#include <QtCore/qmetaobject.h>
 #include <QtCore/private/qcore_mac_p.h>
 
 QT_USE_NAMESPACE

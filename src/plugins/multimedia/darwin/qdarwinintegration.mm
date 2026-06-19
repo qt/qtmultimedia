@@ -2,20 +2,25 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qdarwinintegration_p.h"
-#include <avfmediaplayer_p.h>
-#if !defined(Q_OS_VISIONOS)
-#include <avfcameraservice_p.h>
-#include <avfcamera_p.h>
-#include <QtMultimedia/private/qdarwinintegrationfactory_p.h>
-#include <avfimagecapture_p.h>
-#include <avfmediaencoder_p.h>
-#endif
-#include <qdarwinformatsinfo_p.h>
-#include <avfvideosink_p.h>
+
 #include <avfaudiodecoder_p.h>
+#include <avfvideosink_p.h>
+#include <mediaplayer/avfmediaplayer_p.h>
+#include <qdarwinformatsinfo_p.h>
+#if !defined(Q_OS_VISIONOS)
+#include <camera/avfcamera_p.h>
+#include <camera/avfcameraservice_p.h>
+#include <camera/avfimagecapture_p.h>
+#include <camera/avfmediaencoder_p.h>
+#endif
+
+#if !defined(Q_OS_VISIONOS)
+#include <QtMultimedia/private/qdarwinintegrationfactory_p.h>
+#endif
+#include <QtMultimedia/private/qplatformmediaplugin_p.h>
+#include <QtCore/qdebug.h>
+
 #include <VideoToolbox/VideoToolbox.h>
-#include <qdebug.h>
-#include <private/qplatformmediaplugin_p.h>
 
 QT_BEGIN_NAMESPACE
 

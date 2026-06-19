@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qobject.h>
 #include <QtCore/qsize.h>
 #include <QtCore/private/qcore_mac_p.h>
 

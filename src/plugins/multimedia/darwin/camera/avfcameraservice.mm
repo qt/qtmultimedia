@@ -1,21 +1,21 @@
 // Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtCore/qvariant.h>
-#include <QtCore/qdebug.h>
-
 #include "avfcameraservice_p.h"
-#include "avfcamera_p.h"
-#include "avfcamerasession_p.h"
-#include "avfimagecapture_p.h"
-#include "avfcamerarenderer_p.h"
-#include "avfimagecapture_p.h"
-#include "avfmediaencoder_p.h"
-#include <qmediadevices.h>
-#include <private/qplatformaudioinput_p.h>
-#include <private/qplatformaudiooutput_p.h>
-#include <qaudioinput.h>
-#include <qaudiooutput.h>
+
+#include <camera/avfcamera_p.h>
+#include <camera/avfcamerasession_p.h>
+#include <camera/avfcamerarenderer_p.h>
+#include <camera/avfimagecapture_p.h>
+#include <camera/avfmediaencoder_p.h>
+
+#include <QtMultimedia/qaudioinput.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qplatformaudioinput_p.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qvariant.h>
 
 QT_USE_NAMESPACE
 

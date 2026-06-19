@@ -2,23 +2,22 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "avfmediaplayer_p.h"
-#include "avfvideorenderercontrol_p.h"
-#include <avfvideosink_p.h>
-#include <avfmetadata_p.h>
 
-#include "qaudiooutput.h"
-#include "private/qplatformaudiooutput_p.h"
+#include <avfvideosink_p.h>
+#include <common/avfmetadata_p.h>
+#include <mediaplayer/avfvideorenderercontrol_p.h>
+
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qmimedatabase.h>
-#include <QtCore/qpointer.h>
 #include <QtCore/qmath.h>
+#include <QtCore/qmimedatabase.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qpointer.h>
 #include <QtCore/qthread.h>
 #include <QtCore/private/qexpected_p.h>
-
-#include <mutex>
 
 #import <AVFoundation/AVFoundation.h>
 

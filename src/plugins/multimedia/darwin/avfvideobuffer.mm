@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "avfvideobuffer_p.h"
-#include <rhi/qrhi.h>
-#include <CoreVideo/CVMetalTexture.h>
-#include <CoreVideo/CVMetalTextureCache.h>
+
+#include <QtMultimedia/private/qavfhelpers_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
 #include <QtGui/qopenglcontext.h>
+#include <QtGui/rhi/qrhi.h>
 #include <QtCore/qloggingcategory.h>
 
-#include <private/qvideotexturehelper_p.h>
-#include <QtMultimedia/private/qavfhelpers_p.h>
+#include <CoreVideo/CVMetalTexture.h>
+#include <CoreVideo/CVMetalTextureCache.h>
 
 #import <AVFoundation/AVFoundation.h>
 #import <Metal/Metal.h>

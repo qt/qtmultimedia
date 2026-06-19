@@ -15,11 +15,12 @@
 // We mean it.
 //
 
-#include <QtCore/qobject.h>
 #include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/private/qvideooutputorientationhandler_p.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qobject.h>
+
 #include <avfvideosink_p.h>
-#include <private/qvideooutputorientationhandler_p.h>
 
 #include <CoreVideo/CVBase.h>
 #include <CoreVideo/CVPixelBuffer.h>

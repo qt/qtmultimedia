@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaformatinfo_p.h>
-#include <qlist.h>
+#include <QtMultimedia/private/qplatformmediaformatinfo_p.h>
+#include <QtCore/qlist.h>
 
 QT_BEGIN_NAMESPACE
 

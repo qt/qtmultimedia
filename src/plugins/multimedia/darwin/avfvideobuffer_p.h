@@ -15,16 +15,16 @@
 // We mean it.
 //
 
-#include <private/qhwvideobuffer_p.h>
-#include <private/qcore_mac_p.h>
-
-#include <QtCore/qobject.h>
+#include <QtMultimedia/private/qhwvideobuffer_p.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qobject.h>
+#include <QtCore/private/qcore_mac_p.h>
+
 #include <avfvideosink_p.h>
 
 #include <CoreVideo/CVImageBuffer.h>
 
-#import "Metal/Metal.h"
+#import <Metal/Metal.h>
 
 QT_BEGIN_NAMESPACE
 

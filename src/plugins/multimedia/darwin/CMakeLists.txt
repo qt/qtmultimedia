@@ -16,11 +16,6 @@ qt_internal_add_plugin(QDarwinMediaPlugin
         qdarwinformatsinfo.mm qdarwinformatsinfo_p.h
         qdarwinintegration.mm qdarwinintegration_p.h
         darwin_pch.h
-    INCLUDE_DIRECTORIES
-        audio
-        camera
-        common
-        mediaplayer
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
