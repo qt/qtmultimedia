@@ -31,6 +31,14 @@
 
 QT_BEGIN_NAMESPACE
 
+enum class QSampleLoadError : uint8_t
+{
+    IoError,
+    FormatError,
+    DecoderError,
+    NotSupported,
+};
+
 class QSampleCache;
 
 class Q_MULTIMEDIA_EXPORT QSample
@@ -85,6 +93,7 @@ public:
     {
         File,
         NetworkManager,
+        AudioDecoder,
     };
 
     static QSampleCache *instance();
@@ -102,6 +111,12 @@ public:
         m_sampleSourceType = sampleSourceType;
     }
 
+    using SampleLoadResult = q23::expected<std::pair<QByteArray, QAudioFormat>, QSampleLoadError>;
+
+    static SampleLoadResult loadSample(QSpan<const char>);
+    static SampleLoadResult loadSampleViaDecoder(std::variant<QUrl, QByteArray>);
+    static QFuture<SampleLoadResult> loadSampleAsyncViaDecoder(QByteArray);
+
 private:
     std::unique_ptr<QIODevice> createStreamForSample(QSample &sample);
 #if QT_CONFIG(thread)
@@ -117,10 +132,6 @@ private:
     std::map<QUrl, std::pair<SharedSamplePtr, QList<SharedSamplePromise>>> m_pendingSamples;
 
     void removeUnreferencedSample(const QUrl &url);
-
-    using SampleLoadResult = std::optional<std::pair<QByteArray, QAudioFormat>>;
-
-    static SampleLoadResult loadSample(QSpan<const char>);
 
 #if QT_CONFIG(thread)
     static SampleLoadResult

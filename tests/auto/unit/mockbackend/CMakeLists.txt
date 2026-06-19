@@ -28,3 +28,7 @@ qt_internal_add_plugin(MockMultimediaPlugin
         Qt::MultimediaPrivate
         Qt::CorePrivate
 )
+
+target_include_directories(MockMultimediaPlugin PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)

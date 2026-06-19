@@ -1,22 +1,19 @@
-# Copyright (C) 2022 The Qt Company Ltd.
+# Copyright (C) 2026 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
 #####################################################################
-## tst_qsamplecache Test:
+## tst_qsamplecachebackend Test:
 #####################################################################
 
-qt_internal_add_test(tst_qsamplecache
+qt_internal_add_test(tst_qsamplecachebackend
     SOURCES
-        tst_qsamplecache.cpp
+        tst_qsamplecachebackend.cpp
     LIBRARIES
+        Qt::Core
         Qt::Multimedia
         Qt::MultimediaPrivate
-        Qt::MockMultimediaPlugin
+        Qt::MultimediaTestLibPrivate
     TESTDATA
-        testdata/corrupted.wav
-        testdata/drwav_heap-buffer-overflow.wav
-        testdata/drwav_integer-underflow.wav
         testdata/nokia-tune.mp3
         testdata/test.wav
-        testdata/test2.wav
 )
