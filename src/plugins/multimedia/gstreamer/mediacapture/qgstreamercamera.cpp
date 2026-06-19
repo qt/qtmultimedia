@@ -737,25 +737,9 @@ int QGstreamerCamera::getV4L2Parameter(quint32 id) const
 
 #endif // QT_CONFIG(linux_v4l)
 
-QGstreamerCustomCamera::QGstreamerCustomCamera(QCamera *camera)
-    : QGstreamerCameraBase{ camera }, m_userProvidedGstElement{ false }
-{
-}
-
 QGstreamerCustomCamera::QGstreamerCustomCamera(QObject *camera, QGstElement element)
-    : QGstreamerCameraBase{ camera },
-      gstCamera{ std::move(element) },
-      m_userProvidedGstElement{ true }
+    : QGstreamerCameraBase{ camera }, gstCamera{ std::move(element) }
 {
-}
-
-void QGstreamerCustomCamera::setCamera(const QCameraDevice &device)
-{
-    if (m_userProvidedGstElement)
-        return;
-
-    gstCamera = QGstBin::createFromPipelineDescription(device.id(), /*name=*/nullptr,
-                                                       /* ghostUnlinkedPads=*/true);
 }
 
 bool QGstreamerCustomCamera::isActive() const
