@@ -469,23 +469,16 @@ void AVFAudioDecoder::initAssetReader()
     Q_ASSERT(m_asset);
     Q_ASSERT(QThread::currentThread() == thread());
 
-#if defined(Q_OS_VISIONOS)
-    [m_asset loadTracksWithMediaType:AVMediaTypeAudio completionHandler:[=](NSArray<AVAssetTrack *> *tracks, NSError *error) {
-                       if (tracks && tracks.count > 0) {
-                           if (AVAssetTrack *track = [tracks objectAtIndex:0])
-                               QMetaObject::invokeMethod(this, &AVFAudioDecoder::initAssetReaderImpl, Qt::QueuedConnection, track, error);
-                       }
+    [m_asset loadTracksWithMediaType:AVMediaTypeAudio
+                   completionHandler:[=](NSArray<AVAssetTrack *> *tracks, NSError *error) {
+        if (tracks && tracks.count > 0) {
+            if (AVAssetTrack *track = [tracks objectAtIndex:0])
+                QMetaObject::invokeMethod(this, &AVFAudioDecoder::initAssetReaderImpl,
+                                          Qt::QueuedConnection, track, error);
+        } else {
+            processInvalidMedia(QAudioDecoder::FormatError, tr("Media has no audio tracks"));
+        }
     }];
-#else
-    NSArray<AVAssetTrack *> *tracks = [m_asset tracksWithMediaType:AVMediaTypeAudio];
-    if (tracks && tracks.count > 0) {
-        if (AVAssetTrack *track = [tracks objectAtIndex:0])
-            initAssetReaderImpl(track, nullptr /*error*/);
-    } else {
-        processInvalidMedia(QAudioDecoder::FormatError, tr("Media has no audio tracks"));
-    }
-#endif
-
 }
 
 void AVFAudioDecoder::startReading(QAudioFormat format)
