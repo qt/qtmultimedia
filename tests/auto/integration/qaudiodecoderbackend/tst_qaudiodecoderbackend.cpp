@@ -746,8 +746,14 @@ void tst_QAudioDecoderBackend::invalidSource()
 
     // Have to use qvariant_cast, toInt will return 0 because unrecognized type;
     QAudioDecoder::Error errorCode = qvariant_cast<QAudioDecoder::Error>(errorSpy.takeLast().at(0));
-    QCOMPARE(errorCode, QAudioDecoder::ResourceError);
-    QCOMPARE(d.error(), QAudioDecoder::ResourceError);
+
+    if (isDarwinPlatform()) {
+        QCOMPARE(errorCode, QAudioDecoder::FormatError);
+        QCOMPARE(d.error(), QAudioDecoder::FormatError);
+    } else {
+        QCOMPARE(errorCode, QAudioDecoder::ResourceError);
+        QCOMPARE(d.error(), QAudioDecoder::ResourceError);
+    }
 
     // Check all other spies.
     QVERIFY(readySpy.isEmpty());

@@ -481,6 +481,8 @@ void AVFAudioDecoder::initAssetReader()
     if (tracks && tracks.count > 0) {
         if (AVAssetTrack *track = [tracks objectAtIndex:0])
             initAssetReaderImpl(track, nullptr /*error*/);
+    } else {
+        processInvalidMedia(QAudioDecoder::FormatError, tr("Media has no audio tracks"));
     }
 #endif
 
