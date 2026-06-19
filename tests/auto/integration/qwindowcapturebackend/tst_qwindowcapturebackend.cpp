@@ -176,6 +176,30 @@ private slots:
         QVERIFY(fixture.m_errors.empty());
     }
 
+    void setWindow_stopsCapture_whenSwitchedToInvalidWindow()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start());
+
+        // Ensure capture is actually running before switching window
+        QVERIFY(fixture.waitForFrame().isValid());
+        QCOMPARE(fixture.m_activations.size(), 1);
+        QVERIFY(fixture.m_capture.isActive());
+
+        // Switching to a default-constructed (invalid) window cannot be captured,
+        // so the capture stops and becomes inactive.
+        fixture.m_capture.setWindow(QCapturableWindow{});
+
+        QTRY_VERIFY(!fixture.m_capture.isActive());
+
+        // activeChanged fired again for the deactivation
+        QCOMPARE(fixture.m_activations.size(), 2);
+        QCOMPARE(fixture.m_capture.window(), QCapturableWindow{});
+        // We should emit an error when invalid window is assigned to
+        // active QWindowCapture.
+        QCOMPARE(fixture.m_errors.size(), 1);
+    }
+
     void setFrameRate_updatesPropertyAndEmitsSignal()
     {
         WindowCaptureFixture fixture;
