@@ -97,7 +97,34 @@ private slots:
         QVERIFY(fixture.m_errors.empty());
     }
 
-    void setFrameRate_setsFrameRate()
+    void setFrameRate_updatesPropertyAndEmitsSignal()
+    {
+        WindowCaptureFixture fixture;
+
+        auto frameRateEquals = [](std::optional<qreal> frameRate, float value) {
+            return frameRate && qFuzzyCompare(*frameRate, static_cast<qreal>(value));
+        };
+
+        // No preferred frame rate initially
+        QVERIFY(!fixture.m_capture.frameRate());
+
+        // Setting a frame rate updates the property and emits frameRateChanged
+        const float newFrameRate = 1.f;
+        fixture.m_capture.setFrameRate(newFrameRate);
+
+        QCOMPARE(fixture.m_frameRates.size(), 1);
+        QVERIFY(frameRateEquals(fixture.m_capture.frameRate(), newFrameRate));
+
+        // Resetting clears the property and emits frameRateChanged again
+        fixture.m_capture.resetFrameRate();
+
+        QCOMPARE(fixture.m_frameRates.size(), 2);
+        QVERIFY(!fixture.m_capture.frameRate());
+
+        QVERIFY(fixture.m_errors.empty());
+    }
+
+    void setFrameRate_emitsFramesAtCorrectRate()
     {
 #ifdef Q_OS_ANDROID // QTBUG-141824
         QSKIP("Framerate setting not implemented on Android");
@@ -109,19 +136,8 @@ private slots:
 
         WindowCaptureWithWidgetFixture fixture;
 
-        auto frameRateEquals = [](std::optional<qreal> frameRate, float value){
-            return frameRate && qFuzzyCompare(*frameRate, static_cast<qreal>(value));
-        };
-
-        // No preferred frame rate, not started
-        QVERIFY(!fixture.m_capture.frameRate());
-
-        // Set new frame rate
-        float newFrameRate = 1.f;
+        const float newFrameRate = 1.f;
         fixture.m_capture.setFrameRate(newFrameRate);
-
-        QTRY_COMPARE(fixture.m_frameRates.size(), 1);
-        QVERIFY(frameRateEquals(fixture.m_capture.frameRate(), newFrameRate));
 
         QVERIFY(fixture.start());
 
@@ -135,12 +151,7 @@ private slots:
         QCOMPARE_LT(actualFps, newFrameRate * 1.1);
 #endif
 
-        // Reset frame rate
         fixture.m_capture.setActive(false);
-        fixture.m_capture.resetFrameRate();
-
-        QTRY_COMPARE(fixture.m_frameRates.size(), 2);
-        QVERIFY(!fixture.m_capture.frameRate());
 
         QVERIFY(fixture.m_errors.empty());
     }
