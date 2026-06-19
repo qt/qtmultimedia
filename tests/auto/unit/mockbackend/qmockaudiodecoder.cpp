@@ -56,7 +56,7 @@ void QMockAudioDecoder::setAudioFormat(const QAudioFormat &format)
 void QMockAudioDecoder::start()
 {
     if (!isDecoding()) {
-        if (!mSource.isEmpty()) {
+        if (!mSource.isEmpty() || mDevice) {
             setIsDecoding(true);
             durationChanged(duration());
 

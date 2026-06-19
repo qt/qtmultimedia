@@ -2,14 +2,19 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qsamplecache_p.h"
+#include "qaudiohelpers_p.h"
 
 #include <QtCore/qapplicationstatic.h>
+#include <QtCore/qbuffer.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qeventloop.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfuturewatcher.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 
 #if QT_CONFIG(network)
@@ -105,7 +110,7 @@ QSampleCache::SampleLoadResult QSampleCache::loadSample(QSpan<const char> data)
     drwav wavParser;
     bool success = drwav_init_memory(&wavParser, data.data(), data.size(), nullptr);
     if (!success)
-        return std::nullopt;
+        return q23::unexpected(QSampleLoadError::FormatError);
 
     auto cleanup = qScopeGuard([&] {
         drwav_uninit(&wavParser);
@@ -127,12 +132,102 @@ QSampleCache::SampleLoadResult QSampleCache::loadSample(QSpan<const char> data)
                                                     reinterpret_cast<float *>(sampleData.data()));
 
     if (framesRead != wavParser.totalPCMFrameCount)
-        return std::nullopt;
+        return q23::unexpected(QSampleLoadError::FormatError);
 
     return std::pair{
         std::move(sampleData),
         audioFormat,
     };
+}
+
+namespace {
+
+QByteArray convertToFloat32(const QByteArray &data, const QAudioFormat &fmt)
+{
+    if (fmt.sampleFormat() == QAudioFormat::Float)
+        return data;
+
+    int totalSamples = fmt.framesForBytes(data.size()) * fmt.channelCount();
+
+    QByteArray result{
+        totalSamples * int(sizeof(float)),
+        Qt::Initialization::Uninitialized,
+    };
+
+    using namespace QAudioHelperInternal;
+    convertSampleFormat(as_bytes(QSpan{ data }), toNativeSampleFormat(fmt.sampleFormat()),
+                        as_writable_bytes(QSpan{ result }), NativeSampleFormat::float32_t);
+
+    return result;
+}
+
+QSampleCache::SampleLoadResult runDecoderLoop(QAudioDecoder &decoder, QEventLoop &loop)
+{
+    using SampleLoadResult = QSampleCache::SampleLoadResult;
+
+    QByteArray accumulated;
+    QAudioFormat fmt;
+    SampleLoadResult result = q23::unexpected(QSampleLoadError::DecoderError);
+
+    QObject::connect(&decoder, &QAudioDecoder::bufferReady, &loop, [&] {
+        QAudioBuffer buf = decoder.read();
+        if (!buf.isValid())
+            return;
+        if (!fmt.isValid())
+            fmt = buf.format();
+        accumulated.append(buf.constData<char>(), buf.byteCount());
+    });
+
+    QObject::connect(&decoder, &QAudioDecoder::finished, &loop, [&] {
+        QByteArray floatData = convertToFloat32(accumulated, fmt);
+        QAudioFormat floatFmt = fmt;
+        floatFmt.setSampleFormat(QAudioFormat::Float);
+        result = std::pair{ std::move(floatData), floatFmt };
+        loop.quit();
+    });
+
+    QObject::connect(&decoder, qOverload<QAudioDecoder::Error>(&QAudioDecoder::error),
+                     &loop, [&](QAudioDecoder::Error) {
+        result = q23::unexpected(QSampleLoadError::DecoderError);
+        loop.quit();
+    });
+
+    decoder.start();
+    if (decoder.error() != QAudioDecoder::NoError)
+        return q23::unexpected(QSampleLoadError::DecoderError);
+
+    loop.exec(QEventLoop::ExcludeUserInputEvents);
+
+    return result;
+}
+
+} // unnamed namespace
+
+QSampleCache::SampleLoadResult
+QSampleCache::loadSampleViaDecoder(std::variant<QUrl, QByteArray> arg)
+{
+    // caveat: we run our own event loop, so this function should ideally not be run from the main thread.
+    using namespace QtMultimediaPrivate;
+
+    QAudioDecoder decoder;
+    if (!decoder.isSupported())
+        return q23::unexpected(QSampleLoadError::NotSupported);
+
+    QEventLoop loop;
+    // clang-format off
+    return std::visit(qOverloadedVisitor([&](QUrl url) -> SampleLoadResult {
+        decoder.setSource(url);
+        return runDecoderLoop(decoder, loop);
+    }, [&](QByteArray data) -> SampleLoadResult {
+        QBuffer buffer;
+        buffer.setData(data);
+        if (!buffer.open(QIODevice::ReadOnly))
+            return q23::unexpected(QSampleLoadError::IoError);
+        decoder.setSourceDevice(&buffer);
+
+        return runDecoderLoop(decoder, loop);
+    }), std::move(arg));
+    // clang-format on
 }
 
 #if QT_CONFIG(network)
@@ -167,19 +262,23 @@ QSampleCache::loadSample(const QUrl &url, std::optional<SampleSourceType> forceS
 {
     using namespace Qt::Literals;
 
-    bool errorOccurred = false;
+    SampleSourceType realSourceType =
+            forceSourceType.value_or(url.scheme() == u"qrc"_s || url.scheme() == u"file"_s
+                                             ? SampleSourceType::File
+                                             : SampleSourceType::NetworkManager);
+
+    if (realSourceType == SampleSourceType::AudioDecoder)
+        return loadSampleViaDecoder(url);
 
     if (url.scheme().isEmpty())
         // exit early, to avoid QNetworkAccessManager trying to construct a default ssl
         // configuration, which tends to cause timeouts on CI on macos.
         // catch this case and exit early.
-        return std::nullopt;
+        return q23::unexpected(QSampleLoadError::IoError);
+
+    bool errorOccurred = false;
 
     std::unique_ptr<QIODevice> decoderInput;
-    SampleSourceType realSourceType =
-            forceSourceType.value_or(url.scheme() == u"qrc"_s || url.scheme() == u"file"_s
-                                             ? SampleSourceType::File
-                                             : SampleSourceType::NetworkManager);
     if (realSourceType == SampleSourceType::File) {
         QString locationString =
                 url.isLocalFile() ? url.toLocalFile() : u":" + url.toString(QUrl::RemoveScheme);
@@ -203,18 +302,27 @@ QSampleCache::loadSample(const QUrl &url, std::optional<SampleSourceType> forceS
 
         decoderInput.reset(reply);
 #else
-        return std::nullopt;
+        return q23::unexpected(QSampleLoadError::IoError);
 #endif
     }
 
     if (!decoderInput->isOpen())
-        return std::nullopt;
+        return q23::unexpected(QSampleLoadError::IoError);
 
     QByteArray data = decoderInput->readAll();
     if (data.isEmpty() || errorOccurred)
-        return std::nullopt;
+        return q23::unexpected(QSampleLoadError::IoError);
 
-    return loadSample(data);
+    SampleLoadResult result = loadSample(data);
+    if (!result && result.error() == QSampleLoadError::FormatError && !forceSourceType) {
+        qCDebug(qLcSampleCache) << "drwav failed, retrying via QAudioDecoder";
+        result = loadSampleViaDecoder(data);
+        if (!result) {
+            qCDebug(qLcSampleCache) << "device-based decode failed, retrying via URL";
+            result = loadSampleViaDecoder(url);
+        }
+    }
+    return result;
 }
 
 #endif
@@ -242,18 +350,25 @@ QFuture<QSampleCache::SampleLoadResult> QSampleCache::loadSampleAsync(const QUrl
         QFile file{ locationString };
         bool opened = file.open(QFile::ReadOnly);
         if (!opened) {
-            fulfilPromise(std::nullopt);
+            fulfilPromise(q23::unexpected(QSampleLoadError::IoError));
             return future;
         }
 
         QByteArray data = file.readAll();
         if (data.isEmpty()) {
-            fulfilPromise(std::nullopt);
+            fulfilPromise(q23::unexpected(QSampleLoadError::IoError));
             return future;
         }
 
-        fulfilPromise(loadSample(data));
-        return future;
+        if (m_sampleSourceType == SampleSourceType::AudioDecoder)
+            return loadSampleAsyncViaDecoder(data);
+
+        auto drwavResult = loadSample(data);
+        if (drwavResult || drwavResult.error() != QSampleLoadError::FormatError) {
+            fulfilPromise(drwavResult);
+            return future;
+        }
+        return loadSampleAsyncViaDecoder(data);
     }
 
 #if QT_CONFIG(network)
@@ -261,7 +376,7 @@ QFuture<QSampleCache::SampleLoadResult> QSampleCache::loadSampleAsync(const QUrl
     QNetworkReply *reply = threadLocalNetworkAccessManager().get(QNetworkRequest(url));
 
     if (reply->error() != QNetworkReply::NoError) {
-        fulfilPromise(std::nullopt);
+        fulfilPromise(q23::unexpected(QSampleLoadError::IoError));
         reply->deleteLater();
         return future;
     }
@@ -269,24 +384,148 @@ QFuture<QSampleCache::SampleLoadResult> QSampleCache::loadSampleAsync(const QUrl
     connect(reply, &QNetworkReply::errorOccurred, reply,
             [reply, promise]([[maybe_unused]] QNetworkReply::NetworkError errorCode) {
         promise->start();
-        promise->addResult(std::nullopt);
+        promise->addResult(q23::unexpected(QSampleLoadError::IoError));
         promise->finish();
         reply->deleteLater(); // we cannot delete immediately
     });
 
-    connect(reply, &QNetworkReply::finished, reply, [promise, reply] {
-        promise->start();
+    connect(reply, &QNetworkReply::finished, reply,
+            [promise, reply, fulfilPromise = std::move(fulfilPromise), this]() mutable {
         QByteArray data = reply->readAll();
-        if (data.isEmpty())
-            promise->addResult(std::nullopt);
-        else
-            promise->addResult(loadSample(data));
-        promise->finish();
+        if (data.isEmpty()) {
+            promise->start();
+            promise->addResult(q23::unexpected(QSampleLoadError::IoError));
+            promise->finish();
+        } else if (m_sampleSourceType == SampleSourceType::AudioDecoder) {
+            auto decoderFuture = loadSampleAsyncViaDecoder(data);
+            decoderFuture.then([promise](SampleLoadResult result) {
+                promise->start();
+                promise->addResult(std::move(result));
+                promise->finish();
+            });
+        } else {
+            auto drwavResult = loadSample(data);
+            if (drwavResult || drwavResult.error() != QSampleLoadError::FormatError) {
+                fulfilPromise(drwavResult);
+            } else {
+                auto decoderFuture = loadSampleAsyncViaDecoder(data);
+                decoderFuture.then([promise](SampleLoadResult result) {
+                    promise->start();
+                    promise->addResult(std::move(result));
+                    promise->finish();
+                });
+            }
+        }
         reply->deleteLater(); // we cannot delete immediately
     });
 #else
-    fulfilPromise(std::nullopt);
+    fulfilPromise(q23::unexpected(QSampleLoadError::IoError));
 #endif
+    return future;
+}
+
+namespace {
+
+// keeps the only reference to the QAudioDecoder instances alive until they finish decoding.
+// We cannot keep the QAudioDecoder instances in the the decoder connections, as they may not
+// fire if the application is shutting down before the decoder terminates
+struct QStaticDecoderSingleton
+{
+    void addDecoder(std::shared_ptr<QAudioDecoder> decoder)
+    {
+        std::lock_guard guard(mutex);
+        decoders.insert(std::move(decoder));
+    }
+
+    void removeDecoder(std::shared_ptr<QAudioDecoder> decoder)
+    {
+        std::lock_guard guard(mutex);
+        decoders.erase(decoder);
+    }
+
+    std::set<std::shared_ptr<QAudioDecoder>> decoders;
+    QBasicMutex mutex;
+};
+
+Q_APPLICATION_STATIC(QStaticDecoderSingleton, decoders);
+
+} // namespace
+
+QFuture<QSampleCache::SampleLoadResult>
+QSampleCache::loadSampleAsyncViaDecoder(QByteArray data)
+{
+    // NB: we heap-allocate the QAudioDecoder and keep it alive until decoding finishes or an error
+    // occurs. however we cannot keep the QAudioDecoder alive in the lambda captures of the decoder
+    // signals, as they might not fire if the application is shutting down before the decoder
+    // terminates, causing a potential leak. Instead, we keep the decoders in a singleton set until
+    // they finish decoding, and capture weak pointers to them in the lambda captures of the
+    // finished/error signals.
+
+    auto promise = std::make_shared<QPromise<SampleLoadResult>>();
+    auto future = promise->future();
+
+    auto decoder = QtMultimediaPrivate::makeSharedDeleteLater<QAudioDecoder>();
+    if (!decoder->isSupported()) {
+        promise->start();
+        promise->addResult(q23::unexpected(QSampleLoadError::NotSupported));
+        promise->finish();
+        return future;
+    }
+
+    auto *buffer = new QBuffer(decoder.get());
+    buffer->setData(data);
+    buffer->open(QIODevice::ReadOnly);
+
+    auto accum = std::make_shared<QByteArray>();
+    auto fmt = std::make_shared<QAudioFormat>();
+
+    decoders->addDecoder(decoder);
+
+    QObject::connect(decoder.get(), &QAudioDecoder::bufferReady, decoder.get(),
+                     [weakDecoder = std::weak_ptr<QAudioDecoder>(decoder), accum, fmt] {
+        auto decoder = weakDecoder.lock();
+        if (!decoder)
+            return;
+
+        QAudioBuffer buf = decoder->read();
+        if (!buf.isValid())
+            return;
+        if (!fmt->isValid())
+            *fmt = buf.format();
+        accum->append(buf.constData<char>(), buf.byteCount());
+    });
+
+    QObject::connect(decoder.get(), &QAudioDecoder::finished, decoder.get(),
+                     [promise, accum, fmt, weakDecoder = std::weak_ptr<QAudioDecoder>(decoder)] {
+        auto decoder = weakDecoder.lock();
+        if (!decoder)
+            return;
+
+        QByteArray floatData = convertToFloat32(*accum, *fmt);
+        QAudioFormat floatFmt = *fmt;
+        floatFmt.setSampleFormat(QAudioFormat::Float);
+        promise->start();
+        promise->addResult(std::pair{ std::move(floatData), floatFmt });
+        promise->finish();
+
+        decoders->removeDecoder(decoder);
+    });
+
+    QObject::connect(
+            decoder.get(), qOverload<QAudioDecoder::Error>(&QAudioDecoder::error), decoder.get(),
+            [promise, weakDecoder = std::weak_ptr<QAudioDecoder>(decoder)](QAudioDecoder::Error) {
+        auto decoder = weakDecoder.lock();
+        if (!decoder)
+            return;
+
+        promise->start();
+        promise->addResult(q23::unexpected(QSampleLoadError::DecoderError));
+        promise->finish();
+        decoders->removeDecoder(decoder);
+    });
+
+    decoder->setSourceDevice(buffer);
+    decoder->start();
     return future;
 }
 

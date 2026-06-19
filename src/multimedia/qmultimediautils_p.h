@@ -101,6 +101,21 @@ struct qOverloadedVisitor : Ts...
 template <class... Ts>
 qOverloadedVisitor(Ts...) -> qOverloadedVisitor<Ts...>;
 
+struct DeleteLaterDeleter
+{
+    void operator()(QObject *ptr) const
+    {
+        if (ptr)
+            ptr->deleteLater();
+    }
+};
+
+template <typename T, typename... Args>
+std::shared_ptr<T> makeSharedDeleteLater(Args &&...args)
+{
+    return std::shared_ptr<T>(new T(std::forward<Args>(args)...), DeleteLaterDeleter());
+}
+
 } // namespace QtMultimediaPrivate
 
 QT_END_NAMESPACE
