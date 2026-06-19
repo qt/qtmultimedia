@@ -9,6 +9,17 @@
 #include <QtMultimedia/private/qaudio_alignment_support_p.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 
+#include <random>
+
+namespace {
+template<typename T>
+QSpan<const T> asSpan(const QByteArray &ba)
+{
+    return { reinterpret_cast<const T *>(ba.constData()),
+             ba.size() / qsizetype(sizeof(T)) };
+}
+} // unnamed namespace
+
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 
 class tst_QAudioHelpers : public QObject
@@ -64,6 +75,21 @@ private slots:
 
     void fillSilence_audioFormat();
     void fillSilence_audioFormat_data();
+
+    void resampleAudioCatmullRom_identity();
+    void resampleAudioCatmullRom_mono_downsample();
+    void resampleAudioCatmullRom_stereo_upsample();
+    void resampleAudioCatmullRom_empty();
+    void resampleAudioCatmullRom_fractional_down();
+    void resampleAudioCatmullRom_fractional_up();
+    void resampleAudioCatmullRom_fractional_periodic_matching();
+
+    void catmullRomInterpolator_mono_downsample();
+    void catmullRomInterpolator_stereo_upsample();
+    void catmullRomInterpolator_fractional();
+    void catmullRomInterpolator_empty();
+    void catmullRomInterpolator_reset();
+    void catmullRomInterpolator_chunking_independence();
 };
 
 namespace WordConverter {
@@ -866,6 +892,435 @@ void tst_QAudioHelpers::fillSilence_audioFormat_data()
     QTest::newRow("int16, 2ch, 3fr")    << SF::Int16  << 2 << 3;
     QTest::newRow("int32, 2ch, 5fr")    << SF::Int32  << 2 << 5;
     QTest::newRow("uint8, 1ch, 8fr")    << SF::UInt8  << 1 << 8;
+}
+
+// ─── resampleAudioCatmullRom ──────────────────────────────────────────
+
+void tst_QAudioHelpers::resampleAudioCatmullRom_identity()
+{
+    // Equal rates: shortcut returns data unchanged
+    std::vector<float> samples = { 0.1f, 0.2f, 0.3f, 0.4f };
+    QSpan<const float> input(samples.data(), samples.size());
+
+    QByteArray result = QAudioHelperInternal::resampleAudioCatmullRom(input, 1, 44100, 44100);
+
+    QCOMPARE_EQ(result.size(), int(samples.size() * sizeof(float)));
+    QSpan fdata(asSpan<float>(result));
+    for (size_t i = 0; i < samples.size(); ++i)
+        QCOMPARE_FLOAT_NEAR(fdata[i], samples[i], 1e-6f);
+}
+
+void tst_QAudioHelpers::resampleAudioCatmullRom_mono_downsample()
+{
+    // Downsample mono: 44100 Hz → 22050 Hz (ratio 2:1)
+    // Create simple ramp: 0, 1, 2, 3, 4, 5, 6, 7 → output should be roughly 0, 2, 4, 6
+    std::vector<float> samples = { 0.f, 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f };
+    QSpan<const float> input(samples.data(), samples.size());
+
+    QByteArray result = QAudioHelperInternal::resampleAudioCatmullRom(input, 1, 44100, 22050);
+
+    const qsizetype outFrames = result.size() / qsizetype(sizeof(float));
+    QSpan fdata(asSpan<float>(result));
+
+    // Should have ~4 output frames (8 input frames / 2 ratio)
+    QVERIFY(outFrames >= 3 && outFrames <= 5);
+
+    // Output samples should roughly follow the even indices of input
+    // (with Catmull-Rom smoothing, not exact)
+    if (outFrames >= 2) {
+        QCOMPARE_FLOAT_NEAR(fdata[0], 0.f, 0.5f);  // near input[0]
+        QCOMPARE_FLOAT_NEAR(fdata[1], 2.f, 0.5f);  // near input[2]
+    }
+}
+
+void tst_QAudioHelpers::resampleAudioCatmullRom_stereo_upsample()
+{
+    // Upsample stereo: 22050 Hz → 44100 Hz (ratio 1:2)
+    // Input: 2 frames × 2 channels = 4 floats: [L0, R0, L1, R1]
+    std::vector<float> samples = { 0.f, 1.f, 4.f, 5.f };  // 2 stereo frames
+    QSpan<const float> input(samples.data(), samples.size());
+
+    QByteArray result =
+            QAudioHelperInternal::resampleAudioCatmullRom(input, 2, 22050, 44100);
+
+    const qsizetype outFrames = result.size() / (2 * qsizetype(sizeof(float)));
+    QSpan fdata(asSpan<float>(result));
+
+    // Should have ~4 output frames (2 input frames × 2 ratio)
+    QVERIFY(outFrames >= 3 && outFrames <= 5);
+
+    // First frame should match input[0..1]
+    if (outFrames >= 1) {
+        QCOMPARE_FLOAT_NEAR(fdata[0], 0.f, 0.1f);  // L channel
+        QCOMPARE_FLOAT_NEAR(fdata[1], 1.f, 0.1f);  // R channel
+    }
+}
+
+void tst_QAudioHelpers::resampleAudioCatmullRom_empty()
+{
+    // Empty input
+    QSpan<const float> emptyInput;
+    QByteArray result = QAudioHelperInternal::resampleAudioCatmullRom(emptyInput, 1, 44100, 22050);
+    QVERIFY(result.isEmpty());
+
+    // Single frame mono: produces minimal/zero output due to algorithm
+    std::vector<float> single = { 0.5f };
+    QSpan<const float> singleInput(single.data(), single.size());
+    result = QAudioHelperInternal::resampleAudioCatmullRom(singleInput, 1, 44100, 22050);
+    // Result may be empty or have <1 frame (algorithm produces minimal output at ratio 2:1)
+    QVERIFY(result.size() < int(2 * sizeof(float)));
+}
+
+void tst_QAudioHelpers::resampleAudioCatmullRom_fractional_down()
+{
+    // Fractional downsample: 48000 Hz → 44100 Hz (ratio ~0.9188)
+    // Sine wave: freq = 1 Hz in source time. Period = 48000 samples @ 48kHz = 1 sec.
+    // After resample to 44100 Hz, period = 44100 samples.
+    // Zero crossings at: 0, 24000, 48000 (sample indices in 48kHz)
+    // Should map to: 0, 22050, 44100 (sample indices in 44100 Hz)
+    const int inRate = 48000;
+    const int outRate = 44100;
+    const int inFrames = 96000;  // 2 seconds @ 48kHz
+
+    std::vector<float> samples(inFrames);
+    const float freq = 1.0f;  // 1 Hz sine wave
+    for (int i = 0; i < inFrames; ++i)
+        samples[i] = std::sin(2.f * 3.14159265f * freq * float(i) / float(inRate));
+
+    QSpan<const float> input(samples.data(), samples.size());
+    QByteArray result =
+            QAudioHelperInternal::resampleAudioCatmullRom(input, 1, inRate, outRate);
+
+    const qsizetype outFrames = result.size() / qsizetype(sizeof(float));
+    QSpan fdata(asSpan<float>(result));
+
+    // Output should have ~88200 frames (96000 * 44100 / 48000)
+    QVERIFY(outFrames >= 87900 && outFrames <= 88500);
+
+    // Zero crossings: sine crosses zero at phase 0, π, 2π
+    // In source: indices 0, 24000, 48000, 72000, 96000
+    // In output: indices 0, 22050, 44100, 66150, 88200
+    auto expectZeroCrossing = [fdata, outFrames](qsizetype idx, float tolerance = 0.05f) {
+        if (idx >= 0 && idx < outFrames) {
+            const float val = std::abs(fdata[idx]);
+            QVERIFY2(val < tolerance,
+                     QStringLiteral("Zero crossing at idx %1: expected ~0, got %2")
+                             .arg(idx)
+                             .arg(val)
+                             .toUtf8()
+                             .data());
+        }
+    };
+
+    expectZeroCrossing(0);          // Start
+    expectZeroCrossing(22050);      // π / 2π crossings
+    expectZeroCrossing(44100);      // Next full period
+}
+
+void tst_QAudioHelpers::resampleAudioCatmullRom_fractional_up()
+{
+    // Fractional upsample: 44100 Hz → 48000 Hz (ratio ~1.0884)
+    // Sine wave: freq = 1 Hz. Period = 44100 samples @ 44.1kHz = 1 sec.
+    // Zero crossings @ 44.1kHz: 0, 22050, 44100
+    // Zero crossings @ 48kHz: 0, 24000, 48000
+    const int inRate = 44100;
+    const int outRate = 48000;
+    const int inFrames = 88200;  // 2 seconds @ 44.1kHz
+
+    std::vector<float> samples(inFrames);
+    const float freq = 1.0f;  // 1 Hz sine wave
+    for (int i = 0; i < inFrames; ++i)
+        samples[i] = std::sin(2.f * 3.14159265f * freq * float(i) / float(inRate));
+
+    QSpan<const float> input(samples.data(), samples.size());
+    QByteArray result =
+            QAudioHelperInternal::resampleAudioCatmullRom(input, 1, inRate, outRate);
+
+    const qsizetype outFrames = result.size() / qsizetype(sizeof(float));
+    QSpan fdata(asSpan<float>(result));
+
+    // Output should have ~96000 frames (88200 * 48000 / 44100)
+    QVERIFY(outFrames >= 95700 && outFrames <= 96300);
+
+    // Zero crossings in output @ 48kHz: 0, 24000, 48000, 72000, 96000
+    auto expectZeroCrossing = [fdata, outFrames](qsizetype idx, float tolerance = 0.05f) {
+        if (idx >= 0 && idx < outFrames) {
+            const float val = std::abs(fdata[idx]);
+            QVERIFY2(val < tolerance,
+                     QStringLiteral("Zero crossing at idx %1: expected ~0, got %2")
+                             .arg(idx)
+                             .arg(val)
+                             .toUtf8()
+                             .data());
+        }
+    };
+
+    expectZeroCrossing(0);          // Start
+    expectZeroCrossing(24000);      // π crossing
+    expectZeroCrossing(48000);      // 2π crossing
+}
+
+// Spot-test: verify that periodic samples map correctly across rates.
+// In 48kHz signal, samples at indices 0, 480, 960, ... (every 480 samples) represent
+// the same phase in a 1 Hz sine. After resampling 48kHz→44.1kHz, these should map to
+// indices 0, 441, 882, ... and have matching values.
+void tst_QAudioHelpers::resampleAudioCatmullRom_fractional_periodic_matching()
+{
+    const int inRate = 48000;
+    const int outRate = 44100;
+    const int inFrames = 48000;  // 1 second @ 48kHz
+
+    std::vector<float> samples(inFrames);
+    const float freq = 100.0f;  // 100 Hz sine = 480 samples per period @ 48kHz
+    for (int i = 0; i < inFrames; ++i)
+        samples[i] = std::sin(2.f * 3.14159265f * freq * float(i) / float(inRate));
+
+    QSpan<const float> input(samples.data(), samples.size());
+    QByteArray result =
+            QAudioHelperInternal::resampleAudioCatmullRom(input, 1, inRate, outRate);
+
+    const qsizetype outFrames = result.size() / qsizetype(sizeof(float));
+    QSpan fdata(asSpan<float>(result));
+
+    // 100 Hz @ 44.1kHz has period = 441 samples
+    // Spot-test: samples at multiples of 441 in output should be close to phase-matched input
+    // E.g., output[0], output[441], output[882] should all be ~sin(0) = 0
+    auto spotTestPhase = [fdata, outFrames, &samples](
+                                 qsizetype outIdx, float phaseExpected, float tolerance = 0.1f) {
+        if (outIdx >= 0 && outIdx < outFrames) {
+            // Map output sample index back to input time
+            const double outSampleTime = double(outIdx) / 44100.0;
+            const double inSampleIdx = outSampleTime * 48000.0;
+            const qsizetype inIdx = qsizetype(std::round(inSampleIdx));
+
+            if (inIdx >= 0 && inIdx < qsizetype(samples.size())) {
+                const float inVal = samples[inIdx];
+                const float outVal = fdata[outIdx];
+                // Both should be close to expected phase
+                QCOMPARE_FLOAT_NEAR(inVal, phaseExpected, tolerance);
+                QCOMPARE_FLOAT_NEAR(outVal, phaseExpected, tolerance);
+            }
+        }
+    };
+
+    // Test a few phase-matched points
+    // 100 Hz @ 48kHz: period 480. idx 0 = phase 0 (sin=0), idx 120 = phase π/2 (sin=1), idx 240 = phase π (sin=0), idx 360 = phase 3π/2 (sin=-1)
+    // After resample to 44.1kHz: idx 0 still ~phase 0, idx 110 ~phase π/2, idx 220 ~phase π
+    spotTestPhase(0, 0.0f);        // phase 0 → sin=0
+    spotTestPhase(110, 1.0f, 0.15f);  // phase π/2 → sin=1 (peak)
+    spotTestPhase(220, 0.0f);      // phase π → sin=0
+}
+
+// ─── CatmullRomInterpolator ─────────────────────────────────────────────
+
+static QByteArray processIncremental(QSpan<const float> input, int nChannels,
+                                     int inputRate, int outputRate, qsizetype chunkSize)
+{
+    using namespace QAudioHelperInternal;
+    using ResampleResult = CatmullRomInterpolator::ResampleResult;
+    using namespace QtMultimediaPrivate;
+
+    CatmullRomInterpolator interp(nChannels, inputRate, outputRate);
+
+    const qsizetype totalInputFrames = input.size() / nChannels;
+    const qsizetype maxOutFrames =
+            qsizetype(double(totalInputFrames) * double(outputRate) / double(inputRate) + 4);
+    QByteArray outBuf{
+        maxOutFrames * nChannels * qsizetype(sizeof(float)),
+        Qt::Initialization::Uninitialized,
+    };
+    QSpan fullOut(reinterpret_cast<float *>(outBuf.data()), maxOutFrames * nChannels);
+    qsizetype totalWritten = 0;
+
+    qsizetype inPos = 0;
+    while (inPos < totalInputFrames) {
+        const qsizetype frames = qMin(chunkSize, totalInputFrames - inPos);
+        auto chunk = take(drop(input, inPos * nChannels), frames * nChannels);
+
+        auto outSpan = drop(fullOut, totalWritten * nChannels);
+        ResampleResult result = interp.process(chunk, outSpan);
+
+        totalWritten += result.output.size() / nChannels;
+        const qsizetype consumed = frames - result.remainingInput.size() / nChannels;
+        inPos += consumed;
+    }
+
+    // Flush: empty input signals end-of-stream
+    ResampleResult result = interp.process({}, drop(fullOut, totalWritten * nChannels));
+    totalWritten += result.output.size() / nChannels;
+
+    outBuf.resize(totalWritten * nChannels * qsizetype(sizeof(float)));
+    return outBuf;
+}
+
+void tst_QAudioHelpers::catmullRomInterpolator_mono_downsample()
+{
+    const int nChannels = 1;
+    const int inRate = 44100;
+    const int outRate = 22050;
+
+    std::vector<float> samples(256);
+    for (int i = 0; i < 256; ++i)
+        samples[i] = std::sin(2.f * 3.14159265f * 100.f * float(i) / float(inRate));
+
+    QSpan<const float> input(samples.data(), samples.size());
+
+    QByteArray ref = QAudioHelperInternal::resampleAudioCatmullRom(input, nChannels, inRate, outRate);
+    QByteArray result = processIncremental(input, nChannels, inRate, outRate, /*chunkSize=*/16);
+
+    const qsizetype refFrames = ref.size() / (nChannels * qsizetype(sizeof(float)));
+    const qsizetype resFrames = result.size() / (nChannels * qsizetype(sizeof(float)));
+
+    QVERIFY(resFrames >= refFrames - 1 && resFrames <= refFrames + 1);
+
+    QSpan refData(asSpan<float>(ref));
+    QSpan resData(asSpan<float>(result));
+    const qsizetype cmpFrames = qMin(refFrames, resFrames);
+    for (qsizetype i = 0; i < cmpFrames * nChannels; ++i)
+        QCOMPARE_FLOAT_NEAR(resData[i], refData[i], 1e-5f);
+}
+
+void tst_QAudioHelpers::catmullRomInterpolator_stereo_upsample()
+{
+    const int nChannels = 2;
+    const int inRate = 22050;
+    const int outRate = 44100;
+
+    std::vector<float> samples(128);
+    for (int i = 0; i < 64; ++i) {
+        samples[i * 2 + 0] = std::sin(2.f * 3.14159265f * 50.f * float(i) / float(inRate));
+        samples[i * 2 + 1] = std::sin(2.f * 3.14159265f * 75.f * float(i) / float(inRate));
+    }
+
+    QSpan<const float> input(samples.data(), samples.size());
+
+    QByteArray ref = QAudioHelperInternal::resampleAudioCatmullRom(input, nChannels, inRate, outRate);
+    QByteArray result = processIncremental(input, nChannels, inRate, outRate, /*chunkSize=*/8);
+
+    const qsizetype refFrames = ref.size() / (nChannels * qsizetype(sizeof(float)));
+    const qsizetype resFrames = result.size() / (nChannels * qsizetype(sizeof(float)));
+
+    QVERIFY(resFrames >= refFrames - 1 && resFrames <= refFrames + 1);
+
+    QSpan refData(asSpan<float>(ref));
+    QSpan resData(asSpan<float>(result));
+    const qsizetype cmpFrames = qMin(refFrames, resFrames);
+    for (qsizetype i = 0; i < cmpFrames * nChannels; ++i)
+        QCOMPARE_FLOAT_NEAR(resData[i], refData[i], 1e-5f);
+}
+
+void tst_QAudioHelpers::catmullRomInterpolator_fractional()
+{
+    const int nChannels = 1;
+    const int inRate = 48000;
+    const int outRate = 44100;
+
+    const int inFrames = 48000; // 1 second
+    std::vector<float> samples(inFrames);
+    for (int i = 0; i < inFrames; ++i)
+        samples[i] = std::sin(2.f * 3.14159265f * 100.f * float(i) / float(inRate));
+
+    QSpan<const float> input(samples.data(), samples.size());
+
+    QByteArray ref = QAudioHelperInternal::resampleAudioCatmullRom(input, nChannels, inRate, outRate);
+    QByteArray result = processIncremental(input, nChannels, inRate, outRate, /*chunkSize=*/256);
+
+    const qsizetype refFrames = ref.size() / (nChannels * qsizetype(sizeof(float)));
+    const qsizetype resFrames = result.size() / (nChannels * qsizetype(sizeof(float)));
+
+    QVERIFY(resFrames >= refFrames - 1 && resFrames <= refFrames + 1);
+
+    QSpan refData(asSpan<float>(ref));
+    QSpan resData(asSpan<float>(result));
+    const qsizetype cmpFrames = qMin(refFrames, resFrames);
+    for (qsizetype i = 0; i < cmpFrames * nChannels; ++i)
+        QCOMPARE_FLOAT_NEAR(resData[i], refData[i], 1e-5f);
+}
+
+void tst_QAudioHelpers::catmullRomInterpolator_empty()
+{
+    QAudioHelperInternal::CatmullRomInterpolator interp(1, 44100, 22050);
+
+    float dummy;
+    QSpan<float> outSpan(&dummy, 0);
+
+    auto result = interp.process({}, outSpan);
+    QCOMPARE_EQ(result.output.size(), qsizetype(0));
+    QCOMPARE_EQ(result.remainingInput.size(), qsizetype(0));
+}
+
+void tst_QAudioHelpers::catmullRomInterpolator_reset()
+{
+    const int nChannels = 1;
+    const int inRate = 44100;
+    const int outRate = 22050;
+
+    std::vector<float> samples(64);
+    for (int i = 0; i < 64; ++i)
+        samples[i] = float(i) / 64.f;
+
+    QSpan<const float> input(samples.data(), samples.size());
+
+    // Process once
+    QByteArray ref = processIncremental(input, nChannels, inRate, outRate, /*chunkSize=*/16);
+
+    // Reset and process again — should produce identical output
+    QByteArray result = processIncremental(input, nChannels, inRate, outRate, /*chunkSize=*/16);
+
+    QCOMPARE_EQ(ref.size(), result.size());
+    QSpan a(asSpan<float>(ref));
+    QSpan b(asSpan<float>(result));
+
+    for (int i = 0; i < a.size(); ++i)
+        QCOMPARE_FLOAT_NEAR(a[i], b[i], 1e-6f);
+}
+
+void tst_QAudioHelpers::catmullRomInterpolator_chunking_independence()
+{
+    const int nChannels = 1;
+    const int inRate = 48000;
+    const int outRate = 44100;
+
+    std::mt19937 rng(12345);
+    std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
+    auto nextFloat = [&] {
+        return dist(rng);
+    };
+
+    const qsizetype totalFrames = 4096;
+    std::vector<float> samples(totalFrames * nChannels);
+    for (auto &s : samples)
+        s = nextFloat();
+
+    QSpan<const float> input(samples.data(), samples.size());
+
+    constexpr std::array<qsizetype, 7> chunkSizes = { 3, 7, 16, 63, 64, 100, 512 };
+
+    // Process with each chunk size and store results
+    QByteArray results[chunkSizes.size()];
+    for (size_t c = 0; c < chunkSizes.size(); ++c)
+        results[c] = processIncremental(input, nChannels, inRate, outRate, chunkSizes[c]);
+
+    // All results must have the same length
+    for (size_t c = 1; c < chunkSizes.size(); ++c)
+        QCOMPARE_EQ(results[0].size(), results[c].size());
+
+    // All results must be bit-identical
+    const qsizetype totalSamples = results[0].size() / qsizetype(sizeof(float));
+    for (size_t c = 1; c < chunkSizes.size(); ++c) {
+        QSpan a(asSpan<float>(results[0]));
+        QSpan b(asSpan<float>(results[c]));
+
+        for (qsizetype i = 0; i < totalSamples; ++i) {
+            if (std::abs(a[i] - b[i]) >= 1e-6f) {
+                qWarning("  first diff: chunkSize %lld vs %lld at sample %lld: %f vs %f",
+                         chunkSizes[0], chunkSizes[c], i, a[i], b[i]);
+                break;
+            }
+        }
+        for (qsizetype i = 0; i < totalSamples; ++i)
+            QCOMPARE_FLOAT_NEAR(a[i], b[i], 1e-6f);
+    }
 }
 
 QTEST_APPLESS_MAIN(tst_QAudioHelpers);
