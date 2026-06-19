@@ -529,23 +529,30 @@ QSampleCache::loadSampleAsyncViaDecoder(QByteArray data)
     return future;
 }
 
-bool QSampleCache::isCached(const QUrl &url) const
+bool QSampleCache::isCached(const QUrl &url, std::optional<int> targetSampleRate) const
 {
     std::lock_guard guard(m_mutex);
+    using namespace QtMultimediaPrivate;
 
-    return m_loadedSamples.find(url) != m_loadedSamples.end()
-            || m_pendingSamples.find(url) != m_pendingSamples.end();
+    const SampleKey key{ url, asSampleRate(targetSampleRate) };
+    return m_loadedSamples.find(key) != m_loadedSamples.end()
+            || m_pendingSamples.find(key) != m_pendingSamples.end();
 }
 
-QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url)
+QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url,
+                                                           std::optional<int> targetSampleRate)
 {
     std::lock_guard guard(m_mutex);
+    using namespace QtMultimediaPrivate;
+
+    auto targetRate = asSampleRate(targetSampleRate);
+    const SampleKey key{ url, targetRate };
 
     auto promise = std::make_shared<QPromise<SharedSamplePtr>>();
     auto future = promise->future();
 
     // found and ready
-    auto found = m_loadedSamples.find(url);
+    auto found = m_loadedSamples.find(key);
     if (found != m_loadedSamples.end()) {
         SharedSamplePtr foundSample = found->second.lock();
         Q_ASSERT(foundSample);
@@ -557,15 +564,15 @@ QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url)
     }
 
     // already in the process of being loaded
-    auto pending = m_pendingSamples.find(url);
+    auto pending = m_pendingSamples.find(key);
     if (pending != m_pendingSamples.end()) {
         pending->second.second.append(promise);
         return future;
     }
 
     // we need to start a new load process
-    SharedSamplePtr sample = std::make_shared<QSample>(url, this);
-    m_pendingSamples.emplace(url, std::pair{ sample, QList<SharedSamplePromise>{ promise } });
+    SharedSamplePtr sample = std::make_shared<QSample>(url, this, targetRate);
+    m_pendingSamples.emplace(key, std::pair{ sample, QList<SharedSamplePromise>{ promise } });
 
     QFuture<SampleLoadResult> futureResult = [&] {
 #if QT_CONFIG(thread)
@@ -578,15 +585,33 @@ QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url)
     }();
 
     futureResult.then(this,
-                      [this, url, sample = std::move(sample)](SampleLoadResult loadResult) mutable {
-        if (loadResult)
-            sample->setData(loadResult->first, loadResult->second);
-        else
+                      [this, key, targetRate,
+                       sample = std::move(sample)](SampleLoadResult loadResult) mutable {
+        if (loadResult) {
+            QByteArray sampleData = loadResult->first;
+            QAudioFormat sampleFormat = loadResult->second;
+
+            if (targetRate && sampleFormat.sampleRate() != qToUnderlying(*targetRate)) {
+                const int rate = qToUnderlying(*targetRate);
+                const qsizetype totalFloats = sampleData.size() / qsizetype(sizeof(float));
+                QSpan<const float> inputSpan{
+                    reinterpret_cast<const float *>(sampleData.constData()),
+                    totalFloats
+                };
+                sampleData = QAudioHelperInternal::resampleAudioCatmullRom(
+                        inputSpan, sampleFormat.channelCount(),
+                        sampleFormat.sampleRate(), rate);
+                sampleFormat.setSampleRate(rate);
+            }
+
+            sample->setData(std::move(sampleData), sampleFormat);
+        } else {
             sample->setError();
+        }
 
         std::lock_guard guard(m_mutex);
 
-        auto pending = m_pendingSamples.find(url);
+        auto pending = m_pendingSamples.find(key);
         if (pending != m_pendingSamples.end()) {
             for (auto &promise : pending->second.second) {
                 promise->start();
@@ -596,7 +621,7 @@ QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url)
         }
 
         if (loadResult)
-            m_loadedSamples.emplace(url, sample);
+            m_loadedSamples.emplace(key, sample);
 
         if (pending != m_pendingSamples.end())
             m_pendingSamples.erase(pending);
@@ -610,15 +635,16 @@ QSample::~QSample()
 {
     // Remove ourselves from our parent
     if (m_parent)
-        m_parent->removeUnreferencedSample(m_url);
+        m_parent->removeUnreferencedSample(m_url, m_targetSampleRate);
 
     qCDebug(qLcSampleCache) << "~QSample" << this << ": deleted [" << m_url << "]" << QThread::currentThread();
 }
 
-void QSampleCache::removeUnreferencedSample(const QUrl &url)
+void QSampleCache::removeUnreferencedSample(const QUrl &url,
+                                            std::optional<SampleRate> targetSampleRate)
 {
     std::lock_guard guard(m_mutex);
-    m_loadedSamples.erase(url);
+    m_loadedSamples.erase(SampleKey{ url, targetSampleRate });
 }
 
 void QSample::setError()
@@ -639,6 +665,11 @@ QSample::State QSample::state() const
 }
 
 QSample::QSample(QUrl url, QSampleCache *parent) : m_parent(parent), m_url(std::move(url)) { }
+
+QSample::QSample(QUrl url, QSampleCache *parent, std::optional<SampleRate> targetSampleRate)
+    : m_parent(parent), m_url(std::move(url)), m_targetSampleRate(targetSampleRate)
+{
+}
 
 void QSample::clearParent()
 {

@@ -16,15 +16,14 @@
 //
 
 #include <QtMultimedia/qaudiobuffer.h>
-#include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/private/qmultimedia_source_resolver_p.h>
+#include <QtMultimedia/private/qsamplecache_p.h>
 #include <QtSpatialAudio/qambientsound.h>
 #include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qfuture.h>
 #include <QtCore/private/qobject_p.h>
-#include <QtCore/private/qexpected_p.h>
 
 #include <atomic>
 #include <memory>
@@ -136,13 +135,9 @@ private:
     float m_volume = 1.f;
     int m_loops = 1;
 
-    std::unique_ptr<QAudioDecoder> m_decoder;
-
+    SharedSamplePtr m_sample;
     std::optional<QAudioBuffer> m_buffer;
     QFuture<void> m_loadFuture;
-
-    using LoadResult = q23::expected<QList<QAudioBuffer>, QAudioDecoder::Error>;
-    QFuture<LoadResult> load(QUrl resolvedUrl, QAudioFormat format);
 
     QUrl m_url; // unresolved URL
     using AbstractSourceResolver = QMultimediaPrivate::AbstractSourceResolver;
