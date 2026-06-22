@@ -6,4 +6,5 @@ qt_internal_add_test(tst_qaudiohelpers
         tst_qaudiohelpers.cpp
     LIBRARIES
         Qt::MultimediaPrivate
+        Qt::MultimediaTestLibPrivate
 )

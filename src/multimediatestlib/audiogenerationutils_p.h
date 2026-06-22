@@ -18,10 +18,102 @@
 
 #include <QAudioFormat>
 #include <QAudioBuffer>
+#include <QtCore/qmath.h>
+
 #include <chrono>
+#include <cmath>
+#include <cstdint>
 #include <limits>
 
 QT_BEGIN_NAMESPACE
+
+class SineWaveGenerator
+{
+public:
+    static constexpr double tau = 2 * M_PI;
+
+    SineWaveGenerator(std::uint32_t phase, std::uint32_t increment)
+        : m_phase(phase), m_increment(increment)
+    {
+    }
+
+    double getSample() const
+    {
+        constexpr double scale = static_cast<double>(UINT32_MAX);
+        return std::sin(tau * (static_cast<double>(m_phase) / scale));
+    }
+
+    void advance()
+    {
+        m_phase += m_increment; // wraps naturally
+    }
+
+    double operator()()
+    {
+        double result = getSample();
+        advance();
+        return result;
+    }
+
+private:
+    std::uint32_t m_phase;
+    std::uint32_t m_increment;
+};
+
+class SineWaveSignal
+{
+    class iterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = double;
+        using difference_type = std::ptrdiff_t;
+        using pointer = void;
+        using reference = double;
+
+        iterator(std::uint32_t phase, std::uint32_t increment) : m_generator(phase, increment) { }
+
+        double operator*() const { return m_generator.getSample(); }
+
+        iterator &operator++()
+        {
+            m_generator.advance();
+            return *this;
+        }
+
+        bool operator!=(std::nullptr_t) const
+        {
+            return true; // infinite range
+        }
+
+    private:
+        SineWaveGenerator m_generator;
+    };
+
+public:
+    SineWaveSignal(double frequency, double sample_rate, double phase = 0.0)
+    {
+        constexpr auto scale = double(std::numeric_limits<std::uint32_t>::max());
+        double normalizedPhase = std::fmod(phase, SineWaveGenerator::tau);
+        if (normalizedPhase < 0.0)
+            normalizedPhase += SineWaveGenerator::tau;
+        m_phase = std::uint32_t((normalizedPhase / SineWaveGenerator::tau) * scale);
+        m_increment = std::uint32_t((frequency / sample_rate) * scale);
+    }
+
+    iterator begin() const
+    {
+        return iterator{
+            m_phase,
+            m_increment,
+        };
+    }
+    std::nullptr_t end() const { return nullptr; }
+
+private:
+    std::uint32_t m_phase;
+    std::uint32_t m_increment;
+};
 
 inline QByteArray createSineWaveData(const QAudioFormat &format, std::chrono::microseconds duration,
                                      qint32 sampleIndex = 0, qreal frequency = 500,
@@ -42,8 +134,12 @@ inline QByteArray createSineWaveData(const QAudioFormat &format, std::chrono::mi
         ptr += sizeof(value);
     };
 
-    for (; ptr < end; ++sampleIndex) {
-        const qreal x = sin(2 * M_PI * frequency * sampleIndex / format.sampleRate()) * volume;
+    const double initialPhase = 2.0 * M_PI * frequency * sampleIndex / format.sampleRate();
+    SineWaveSignal generator(frequency, format.sampleRate(), initialPhase);
+    for (double rawSample : generator) {
+        if (ptr >= end)
+            break;
+        const qreal x = rawSample * volume;
         for (int ch = 0; ch < format.channelCount(); ++ch) {
             switch (format.sampleFormat()) {
             case QAudioFormat::UInt8:
