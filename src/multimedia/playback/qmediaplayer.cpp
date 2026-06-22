@@ -21,6 +21,7 @@
 
 #if defined(Q_OS_ANDROID)
 #  include <QtCore/qjniobject.h>
+#  include <QtCore/qrandom.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -155,19 +156,39 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
         } else {
 #if QT_CONFIG(temporaryfile)
 #if defined(Q_OS_ANDROID)
-            QString tempFileName = QDir::tempPath() + media.path();
-            QDir().mkpath(QFileInfo(tempFileName).path());
             std::unique_ptr<QTemporaryFile> tempFile { QTemporaryFile::createNativeFile(*file) };
-            if (tempFile.get() == nullptr) {
+            if (!tempFile) {
                 control->setInvalidMediaWithError(
                         QMediaPlayer::ResourceError,
                         QMediaPlayer::tr("Failed to establish temporary file during playback"));
                 return;
             }
-            if (!tempFile->rename(tempFileName)) {
+
+            // Use a temp path derived from the original resource path
+            const QFileInfo mediaInfo(media.path());
+            const QString targetDirPath = QDir::tempPath() + mediaInfo.path();
+            if (!QDir().mkpath(targetDirPath)) {
                 control->setInvalidMediaWithError(
                         QMediaPlayer::ResourceError,
-                        QStringLiteral("Could not rename temporary file to: %1").arg(tempFileName));
+                        QStringLiteral("Could not create a temporary directory: %1")
+                                .arg(targetDirPath));
+                return;
+            }
+
+            // Add a random suffix to avoid collisions
+            const QString baseName = mediaInfo.completeBaseName() + QLatin1Char('_')
+                    + QString::number(QRandomGenerator::global()->generate(), 16);
+
+            // Keep extension suffix
+            const QString suffix = mediaInfo.suffix();
+
+            const QString newName = targetDirPath + QLatin1Char('/') + baseName
+                    + (suffix.isEmpty() ? QString() : QLatin1Char('.') + suffix);
+
+            if (!tempFile->rename(newName)) {
+                control->setInvalidMediaWithError(
+                        QMediaPlayer::ResourceError,
+                        QStringLiteral("Could not rename temporary file to: %1").arg(newName));
                 return;
             }
 #else
