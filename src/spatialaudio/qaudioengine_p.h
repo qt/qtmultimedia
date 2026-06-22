@@ -32,7 +32,7 @@ namespace QSpatialAudioPrivate {
 class QSpatialAudioPlaybackState;
 } // namespace QSpatialAudioPrivate
 
-class QAmbientSoundPrivate;
+class QSpatialAudioSoundPrivate;
 class QAudioRoom;
 class QAudioListener;
 
@@ -88,10 +88,10 @@ public:
     virtual void setOutputDevice(const QAudioDevice &) = 0;
     virtual QAudioDevice outputDevice() const = 0;
 
-    virtual void addSound(QAmbientSoundPrivate *) = 0;
-    virtual void removeSound(QAmbientSoundPrivate *) = 0;
+    virtual void addSound(QSpatialAudioSoundPrivate *) = 0;
+    virtual void removeSound(QSpatialAudioSoundPrivate *) = 0;
     using SharedPlaybackState = std::shared_ptr<QSpatialAudioPrivate::QSpatialAudioPlaybackState>;
-    virtual void setSoundPlaybackData(QAmbientSoundPrivate *, SharedPlaybackState) = 0;
+    virtual void setSoundPlaybackData(QSpatialAudioSoundPrivate *, SharedPlaybackState) = 0;
 
 protected:
     struct SmallestRoomForListenerResult

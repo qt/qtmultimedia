@@ -9,8 +9,9 @@ qt_internal_add_module(SpatialAudio
         qaudioengine_withplayer.cpp qaudioengine_withplayer_p.h
         qaudiolistener.cpp qaudiolistener.h
         qaudioroom.cpp qaudioroom.h qaudioroom_p.h
-        qspatialsound.cpp qspatialsound.h qspatialsound_p.h
-        qambientsound.cpp qambientsound.h qambientsound_p.h
+        qspatialsound.cpp qspatialsound.h
+        qambientsound.cpp qambientsound.h
+        qspatialaudiosound.cpp qspatialaudiosound_p.h
         qtspatialaudioglobal.h qtspatialaudioglobal_p.h
     DEFINES
         QT_NO_CAST_FROM_ASCII

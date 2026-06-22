@@ -6,7 +6,7 @@
 #include <QtMultimediaQuick/private/qqmlcontext_source_resolver_p.h>
 #include <QtQuick3DSpatialAudio/private/qquick3daudioengine_p.h>
 #include <QtSpatialAudio/qambientsound.h>
-#include <QtSpatialAudio/private/qambientsound_p.h>
+#include <QtSpatialAudio/private/qspatialaudiosound_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -32,7 +32,7 @@ QQuick3DAmbientSound::QQuick3DAmbientSound()
     connect(m_sound, &QAmbientSound::loopsChanged, this, &QQuick3DAmbientSound::loopsChanged);
     connect(m_sound, &QAmbientSound::autoPlayChanged, this, &QQuick3DAmbientSound::autoPlayChanged);
 
-    auto *soundPrivate = QAmbientSoundPrivate::get(m_sound);
+    auto *soundPrivate = static_cast<QSpatialAudioSoundPrivate *>(QObjectPrivate::get(m_sound));
     soundPrivate->m_sourceResolver =
             std::make_unique<QMultimediaPrivate::QQmlContextSourceResolver>(this);
 }

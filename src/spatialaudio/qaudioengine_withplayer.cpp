@@ -8,9 +8,8 @@
 #include <QtMultimedia/private/qmemory_resource_tlsf_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qrtaudioengine_p.h>
-#include <QtSpatialAudio/private/qambientsound_p.h>
 #include <QtSpatialAudio/private/qambisonicdecoder_p.h>
-#include <QtSpatialAudio/private/qspatialsound_p.h>
+#include <QtSpatialAudio/private/qspatialaudiosound_p.h>
 
 #include <resonance_audio.h>
 
@@ -356,7 +355,7 @@ QAudioDevice QAudioEngineWithPlayer::outputDevice() const
     return m_device;
 }
 
-void QAudioEngineWithPlayer::addSound(QAmbientSoundPrivate *sound)
+void QAudioEngineWithPlayer::addSound(QSpatialAudioSoundPrivate *sound)
 {
     playbackStates.emplace(sound, nullptr);
 
@@ -371,7 +370,7 @@ void QAudioEngineWithPlayer::addSound(QAmbientSoundPrivate *sound)
     });
 }
 
-void QAudioEngineWithPlayer::removeSound(QAmbientSoundPrivate *sound)
+void QAudioEngineWithPlayer::removeSound(QSpatialAudioSoundPrivate *sound)
 {
     SharedPlaybackState oldState = std::move(playbackStates[sound]);
     playbackStates.erase(sound);
@@ -386,7 +385,7 @@ void QAudioEngineWithPlayer::removeSound(QAmbientSoundPrivate *sound)
     });
 }
 
-void QAudioEngineWithPlayer::setSoundPlaybackData(QAmbientSoundPrivate *sound,
+void QAudioEngineWithPlayer::setSoundPlaybackData(QSpatialAudioSoundPrivate *sound,
                                                   SharedPlaybackState state)
 {
     auto it = playbackStates.find(sound);

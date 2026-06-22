@@ -44,9 +44,9 @@ public:
     void setOutputDevice(const QAudioDevice &device) override;
     QAudioDevice outputDevice() const override;
 
-    void addSound(QAmbientSoundPrivate *sound) override;
-    void removeSound(QAmbientSoundPrivate *sound) override;
-    void setSoundPlaybackData(QAmbientSoundPrivate *, SharedPlaybackState) override;
+    void addSound(QSpatialAudioSoundPrivate *sound) override;
+    void removeSound(QSpatialAudioSoundPrivate *sound) override;
+    void setSoundPlaybackData(QSpatialAudioSoundPrivate *, SharedPlaybackState) override;
 
     void setOutputMode(QAudioEngine::OutputMode) override;
     void updateRoomEffects() override;
@@ -65,7 +65,7 @@ private:
     std::shared_ptr<QRtAudioEngineVoice> m_engineVoice;
     bool m_paused = false;
 
-    std::map<QAmbientSoundPrivate *, SharedPlaybackState> playbackStates;
+    std::map<QSpatialAudioSoundPrivate *, SharedPlaybackState> playbackStates;
 };
 
 QT_END_NAMESPACE

@@ -1,8 +1,8 @@
-// Copyright (C) 2024 The Qt Company Ltd.
+// Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
 
-#ifndef QAMBIENTSOUND_P_H
-#define QAMBIENTSOUND_P_H
+#ifndef QSPATIALAUDIOSOUND_P_H
+#define QSPATIALAUDIOSOUND_P_H
 
 //
 //  W A R N I N G
@@ -19,7 +19,6 @@
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/private/qmultimedia_source_resolver_p.h>
 #include <QtMultimedia/private/qsamplecache_p.h>
-#include <QtSpatialAudio/qambientsound.h>
 #include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qfuture.h>
@@ -67,20 +66,11 @@ private:
 
 } // namespace QSpatialAudioPrivate
 
-class QAmbientSoundPrivate : public QObjectPrivate
+class QSpatialAudioSoundPrivate : public QObjectPrivate
 {
-    Q_DECLARE_PUBLIC(QAmbientSound)
-
 public:
-    explicit QAmbientSoundPrivate(QAudioEngine *engine);
-    QAmbientSoundPrivate(QAudioEngine *engine, int nchannels, int sourceId);
-    ~QAmbientSoundPrivate();
-
-    template <typename T>
-    static QAmbientSoundPrivate *get(T *soundSource)
-    {
-        return soundSource ? soundSource->d_func() : nullptr;
-    }
+    QSpatialAudioSoundPrivate(QAudioEngine *engine, int nchannels, int sourceId);
+    ~QSpatialAudioSoundPrivate();
 
     QUrl url() const { return m_url; }
     void loadUrl(const QUrl &url);
@@ -160,4 +150,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QAMBIENTSOUND_P_H
+#endif // QSPATIALAUDIOSOUND_P_H
