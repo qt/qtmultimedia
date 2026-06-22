@@ -11,7 +11,7 @@
 QT_BEGIN_NAMESPACE
 
 class QAudioEngine;
-class QAmbientSoundPrivate;
+class QSpatialAudioSoundPrivate;
 
 class QSpatialSoundPrivate;
 class Q_SPATIALAUDIO_EXPORT QSpatialSound : public QObject
@@ -117,7 +117,7 @@ public Q_SLOTS:
 
 private:
     Q_DECLARE_PRIVATE(QSpatialSound)
-    friend class QAmbientSoundPrivate;
+    friend class QSpatialAudioSoundPrivate;
 
     // ### Qt7: remove unused member
     QT6_ONLY(void *unused = nullptr;) // for ABI compatibility

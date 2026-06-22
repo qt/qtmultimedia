@@ -12,10 +12,9 @@
 #endif
 #include <QtSpatialAudio/qambientsound.h>
 #include <QtSpatialAudio/qaudiolistener.h>
-#include <QtSpatialAudio/private/qambientsound_p.h>
-#include <QtSpatialAudio/private/qspatialsound_p.h>
 #include <QtSpatialAudio/private/qaudioroom_p.h>
 #include <QtSpatialAudio/private/qambisonicdecoder_p.h>
+#include <QtSpatialAudio/private/qspatialaudiosound_p.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qelapsedtimer.h>
@@ -287,19 +286,19 @@ void QAudioEngineThreaded::setOutputDevice(const QAudioDevice &device)
     emit q->outputDeviceChanged();
 }
 
-void QAudioEngineThreaded::addSound(QAmbientSoundPrivate *sound)
+void QAudioEngineThreaded::addSound(QSpatialAudioSoundPrivate *sound)
 {
     std::lock_guard l(mutex);
     playbackStates.emplace(sound, nullptr);
 }
 
-void QAudioEngineThreaded::removeSound(QAmbientSoundPrivate *sound)
+void QAudioEngineThreaded::removeSound(QSpatialAudioSoundPrivate *sound)
 {
     std::lock_guard l(mutex);
     playbackStates.erase(sound);
 }
 
-void QAudioEngineThreaded::setSoundPlaybackData(QAmbientSoundPrivate *sound,
+void QAudioEngineThreaded::setSoundPlaybackData(QSpatialAudioSoundPrivate *sound,
                                                 SharedPlaybackState state)
 {
     std::lock_guard l(mutex);

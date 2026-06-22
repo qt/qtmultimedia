@@ -51,11 +51,11 @@ public:
     void setOutputDevice(const QAudioDevice &device) override;
     QAudioDevice outputDevice() const override { return m_device; }
 
-    void addSound(QAmbientSoundPrivate *) override;
-    void removeSound(QAmbientSoundPrivate *) override;
+    void addSound(QSpatialAudioSoundPrivate *) override;
+    void removeSound(QSpatialAudioSoundPrivate *) override;
 
     using SharedPlaybackState = std::shared_ptr<QSpatialAudioPrivate::QSpatialAudioPlaybackState>;
-    void setSoundPlaybackData(QAmbientSoundPrivate *, SharedPlaybackState) override;
+    void setSoundPlaybackData(QSpatialAudioSoundPrivate *, SharedPlaybackState) override;
 
     void updateRoomEffects() override;
 
@@ -69,7 +69,7 @@ private:
     QThread audioThread;
     std::unique_ptr<QAudioOutputStream> outputStream;
 
-    std::map<QAmbientSoundPrivate *, SharedPlaybackState> playbackStates;
+    std::map<QSpatialAudioSoundPrivate *, SharedPlaybackState> playbackStates;
 };
 
 QT_END_NAMESPACE
