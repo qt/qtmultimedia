@@ -6,6 +6,7 @@
 
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimediaTestLib/private/audiogenerationutils_p.h>
 #include <QtMultimedia/private/qaudio_alignment_support_p.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 
@@ -995,9 +996,10 @@ void tst_QAudioHelpers::resampleAudioCatmullRom_fractional_down()
     const int inFrames = 96000;  // 2 seconds @ 48kHz
 
     std::vector<float> samples(inFrames);
-    const float freq = 1.0f;  // 1 Hz sine wave
-    for (int i = 0; i < inFrames; ++i)
-        samples[i] = std::sin(2.f * 3.14159265f * freq * float(i) / float(inRate));
+    {
+        SineWaveSignal gen(100.0, inRate);
+        std::copy_n(gen.begin(), inFrames, samples.begin());
+    }
 
     QSpan<const float> input(samples.data(), samples.size());
     QByteArray result =
@@ -1040,9 +1042,10 @@ void tst_QAudioHelpers::resampleAudioCatmullRom_fractional_up()
     const int inFrames = 88200;  // 2 seconds @ 44.1kHz
 
     std::vector<float> samples(inFrames);
-    const float freq = 1.0f;  // 1 Hz sine wave
-    for (int i = 0; i < inFrames; ++i)
-        samples[i] = std::sin(2.f * 3.14159265f * freq * float(i) / float(inRate));
+    {
+        SineWaveSignal gen(1.0, inRate);
+        std::copy_n(gen.begin(), inFrames, samples.begin());
+    }
 
     QSpan<const float> input(samples.data(), samples.size());
     QByteArray result =
@@ -1083,9 +1086,10 @@ void tst_QAudioHelpers::resampleAudioCatmullRom_fractional_periodic_matching()
     const int inFrames = 48000;  // 1 second @ 48kHz
 
     std::vector<float> samples(inFrames);
-    const float freq = 100.0f;  // 100 Hz sine = 480 samples per period @ 48kHz
-    for (int i = 0; i < inFrames; ++i)
-        samples[i] = std::sin(2.f * 3.14159265f * freq * float(i) / float(inRate));
+    {
+        SineWaveSignal gen(100.0, inRate);
+        std::copy_n(gen.begin(), inFrames, samples.begin());
+    }
 
     QSpan<const float> input(samples.data(), samples.size());
     QByteArray result =
@@ -1172,8 +1176,10 @@ void tst_QAudioHelpers::catmullRomInterpolator_mono_downsample()
     const int outRate = 22050;
 
     std::vector<float> samples(256);
-    for (int i = 0; i < 256; ++i)
-        samples[i] = std::sin(2.f * 3.14159265f * 100.f * float(i) / float(inRate));
+    {
+        SineWaveSignal gen(100.0, inRate);
+        std::copy_n(gen.begin(), 256, samples.begin());
+    }
 
     QSpan<const float> input(samples.data(), samples.size());
 
@@ -1199,9 +1205,13 @@ void tst_QAudioHelpers::catmullRomInterpolator_stereo_upsample()
     const int outRate = 44100;
 
     std::vector<float> samples(128);
-    for (int i = 0; i < 64; ++i) {
-        samples[i * 2 + 0] = std::sin(2.f * 3.14159265f * 50.f * float(i) / float(inRate));
-        samples[i * 2 + 1] = std::sin(2.f * 3.14159265f * 75.f * float(i) / float(inRate));
+    {
+        SineWaveGenerator genL(50.0, inRate);
+        SineWaveGenerator genR(75.0, inRate);
+        for (int i = 0; i < 64; ++i) {
+            samples[i * 2 + 0] = genL();
+            samples[i * 2 + 1] = genR();
+        }
     }
 
     QSpan<const float> input(samples.data(), samples.size());
@@ -1229,8 +1239,10 @@ void tst_QAudioHelpers::catmullRomInterpolator_fractional()
 
     const int inFrames = 48000; // 1 second
     std::vector<float> samples(inFrames);
-    for (int i = 0; i < inFrames; ++i)
-        samples[i] = std::sin(2.f * 3.14159265f * 100.f * float(i) / float(inRate));
+    {
+        SineWaveSignal gen(100.0, inRate);
+        std::copy_n(gen.begin(), inFrames, samples.begin());
+    }
 
     QSpan<const float> input(samples.data(), samples.size());
 
