@@ -18,6 +18,7 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/qaudioformat.h>
 #include <QtCore/qspan.h>
+#include <QtCore/qmath.h>
 
 #include <vector>
 
@@ -122,6 +123,32 @@ private:
     qsizetype m_inputFramesConsumed = 0;
     std::vector<float> m_history; // history of 3 frames
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum class UpmixScaling {
+    Duplicate, // mono → L=R=src[0]
+    EqualPower, // mono → L=R=0.707*src[0]
+};
+
+Q_MULTIMEDIA_EXPORT
+QByteArray upmixMonoToStereo(QSpan<const float>, UpmixScaling scaling = UpmixScaling::Duplicate);
+Q_MULTIMEDIA_EXPORT
+void upmixMonoToStereo(QSpan<float> out, QSpan<const float> in,
+                       UpmixScaling scaling = UpmixScaling::Duplicate) noexcept
+        Q_DECL_NONBLOCKING_FUNCTION;
+
+enum class DownmixScaling {
+    Average, // L+R → 0.5*L + 0.5*R
+    KeepPower, // L+R → 0.707*L + 0.707*R
+};
+Q_MULTIMEDIA_EXPORT
+QByteArray downmixStereoToMono(QSpan<const float> input,
+                               DownmixScaling scaling = DownmixScaling::Average);
+Q_MULTIMEDIA_EXPORT
+void downmixStereoToMono(QSpan<float> out, QSpan<const float> in,
+                         DownmixScaling scaling = DownmixScaling::Average) noexcept
+        Q_DECL_NONBLOCKING_FUNCTION;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

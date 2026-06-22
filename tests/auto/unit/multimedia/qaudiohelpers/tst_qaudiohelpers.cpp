@@ -90,6 +90,18 @@ private slots:
     void catmullRomInterpolator_empty();
     void catmullRomInterpolator_reset();
     void catmullRomInterpolator_chunking_independence();
+
+    void upmixMonoToStereo_data();
+    void upmixMonoToStereo();
+
+    void upmixMonoToStereo_span_data();
+    void upmixMonoToStereo_span();
+
+    void downmixStereoToMono_data();
+    void downmixStereoToMono();
+
+    void downmixStereoToMono_span_data();
+    void downmixStereoToMono_span();
 };
 
 namespace WordConverter {
@@ -1321,6 +1333,153 @@ void tst_QAudioHelpers::catmullRomInterpolator_chunking_independence()
         for (qsizetype i = 0; i < totalSamples; ++i)
             QCOMPARE_FLOAT_NEAR(a[i], b[i], 1e-6f);
     }
+}
+
+// ─── upmixMonoToStereo ──────────────────────────────────────────────────
+
+void tst_QAudioHelpers::upmixMonoToStereo_data()
+{
+    using US = QAudioHelperInternal::UpmixScaling;
+
+    QTest::addColumn<QByteArray>("input");
+    QTest::addColumn<QAudioHelperInternal::UpmixScaling>("scaling");
+    QTest::addColumn<QByteArray>("expected");
+
+    auto makeBuf = [](std::initializer_list<float> vals) {
+        return QByteArray{ as_bytes(QSpan{ vals }) };
+    };
+
+    QTest::newRow("empty") << QByteArray{} << US::Duplicate << QByteArray{};
+
+    QTest::newRow("single,Dup")
+            << makeBuf({0.5f}) << US::Duplicate << makeBuf({0.5f, 0.5f});
+    QTest::newRow("single,EQ")
+            << makeBuf({0.5f}) << US::EqualPower
+            << makeBuf({0.35355339f, 0.35355339f});
+    QTest::newRow("multi,Dup")
+            << makeBuf({1.0f, -0.5f, 0.0f}) << US::Duplicate
+            << makeBuf({1.0f, 1.0f, -0.5f, -0.5f, 0.0f, 0.0f});
+    QTest::newRow("multi,EQ")
+            << makeBuf({1.0f, -0.5f, 0.0f}) << US::EqualPower
+            << makeBuf({0.70710678f, 0.70710678f, -0.35355339f, -0.35355339f, 0.0f, 0.0f});
+}
+
+void tst_QAudioHelpers::upmixMonoToStereo()
+{
+    QFETCH(QByteArray, input);
+    QFETCH(QAudioHelperInternal::UpmixScaling, scaling);
+    QFETCH(QByteArray, expected);
+
+    QSpan<const float> inputSpan;
+    if (!input.isEmpty())
+        inputSpan = asSpan<float>(input);
+
+    QByteArray result = QAudioHelperInternal::upmixMonoToStereo(inputSpan, scaling);
+    QCOMPARE_EQ(result, expected);
+}
+
+// ─── downmixStereoToMono ────────────────────────────────────────────────
+
+void tst_QAudioHelpers::downmixStereoToMono_data()
+{
+    using DS = QAudioHelperInternal::DownmixScaling;
+
+    QTest::addColumn<QByteArray>("input");
+    QTest::addColumn<QAudioHelperInternal::DownmixScaling>("scaling");
+    QTest::addColumn<QByteArray>("expected");
+
+    auto makeBuf = [](std::initializer_list<float> vals) {
+        return QByteArray{ as_bytes(QSpan{ vals }) };
+    };
+
+    QTest::newRow("empty") << QByteArray{} << DS::Average << QByteArray{};
+
+    QTest::newRow("L=R=0.5,Avg")
+            << makeBuf({0.5f, 0.5f}) << DS::Average << makeBuf({0.5f});
+    QTest::newRow("L=1,R=-1,Avg")
+            << makeBuf({1.0f, -1.0f}) << DS::Average << makeBuf({0.0f});
+    QTest::newRow("L=R=0.5,KP")
+            << makeBuf({0.5f, 0.5f}) << DS::KeepPower << makeBuf({0.70710678f});
+    QTest::newRow("L=1,R=-1,KP")
+            << makeBuf({1.0f, -1.0f}) << DS::KeepPower << makeBuf({0.0f});
+    QTest::newRow("multi,Avg")
+            << makeBuf({0.25f, 0.75f, -0.5f, 0.5f}) << DS::Average
+            << makeBuf({0.5f, 0.0f});
+    QTest::newRow("multi,KP")
+            << makeBuf({0.25f, 0.75f, -0.5f, 0.5f}) << DS::KeepPower
+            << makeBuf({0.70710678f, 0.0f});
+}
+
+void tst_QAudioHelpers::downmixStereoToMono()
+{
+    QFETCH(QByteArray, input);
+    QFETCH(QAudioHelperInternal::DownmixScaling, scaling);
+    QFETCH(QByteArray, expected);
+
+    QSpan<const float> inputSpan;
+    if (!input.isEmpty())
+        inputSpan = asSpan<float>(input);
+
+    QByteArray result = QAudioHelperInternal::downmixStereoToMono(inputSpan, scaling);
+    QCOMPARE_EQ(result, expected);
+}
+
+// ─── upmixMonoToStereo (QSpan overload) ─────────────────────────────────
+
+void tst_QAudioHelpers::upmixMonoToStereo_span_data()
+{
+    upmixMonoToStereo_data();
+}
+
+void tst_QAudioHelpers::upmixMonoToStereo_span()
+{
+    QFETCH(QByteArray, input);
+    QFETCH(QAudioHelperInternal::UpmixScaling, scaling);
+    QFETCH(QByteArray, expected);
+
+    QSpan<const float> in;
+    if (!input.isEmpty())
+        in = asSpan<float>(input);
+
+    if (in.empty()) {
+        // QSpan overload with empty input: nothing to assert (no-op path)
+        return;
+    }
+
+    QByteArray out(expected.size(), Qt::Initialization::Uninitialized);
+    QAudioHelperInternal::upmixMonoToStereo(
+            QSpan<float>(reinterpret_cast<float *>(out.data()),
+                         out.size() / qsizetype(sizeof(float))),
+            in, scaling);
+    QCOMPARE_EQ(out, expected);
+}
+
+// ─── downmixStereoToMono (QSpan overload) ──────────────────────────────
+
+void tst_QAudioHelpers::downmixStereoToMono_span_data()
+{
+    downmixStereoToMono_data();
+}
+
+void tst_QAudioHelpers::downmixStereoToMono_span()
+{
+    QFETCH(QByteArray, input);
+    QFETCH(QAudioHelperInternal::DownmixScaling, scaling);
+    QFETCH(QByteArray, expected);
+
+    QSpan<const float> in;
+    if (!input.isEmpty())
+        in = asSpan<float>(input);
+
+    if (in.empty())
+        return;
+
+    QByteArray out(expected.size(), Qt::Initialization::Uninitialized);
+    QAudioHelperInternal::downmixStereoToMono(
+            QSpan<float>(reinterpret_cast<float *>(out.data()),
+                         out.size() / qsizetype(sizeof(float))),
+            in, scaling);
+    QCOMPARE_EQ(out, expected);
 }
 
 QTEST_APPLESS_MAIN(tst_QAudioHelpers);

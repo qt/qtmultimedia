@@ -728,6 +728,71 @@ auto CatmullRomInterpolator::process(QSpan<const float> input,
     };
 }
 
+void upmixMonoToStereo(QSpan<float> out, QSpan<const float> in,
+                       UpmixScaling scaling) noexcept Q_DECL_NONBLOCKING_FUNCTION
+{
+    constexpr float kEqualPowerGain(M_SQRT1_2); // 1/sqrt(2)
+    Q_ASSERT(out.size() == in.size() * 2);
+
+    const qsizetype frames = in.size();
+    const float gain = (scaling == UpmixScaling::EqualPower) ? kEqualPowerGain : 1.0f;
+
+    for (qsizetype i = 0; i < frames; ++i) {
+        const float s = in[i] * gain;
+        out[i * 2 + 0] = s;
+        out[i * 2 + 1] = s;
+    }
+}
+
+QByteArray upmixMonoToStereo(QSpan<const float> input, UpmixScaling scaling)
+{
+    if (input.empty())
+        return {};
+
+    const qsizetype frames = input.size();
+    QByteArray out{
+        2 * frames * qsizetype(sizeof(float)),
+        Qt::Initialization::Uninitialized,
+    };
+
+    upmixMonoToStereo(QSpan<float>(reinterpret_cast<float *>(out.data()), 2 * frames),
+                      input, scaling);
+    return out;
+}
+
+void downmixStereoToMono(QSpan<float> out, QSpan<const float> in,
+                         DownmixScaling scaling) noexcept Q_DECL_NONBLOCKING_FUNCTION
+{
+    constexpr float kEqualPowerGain(M_SQRT1_2); // 1/sqrt(2)
+
+    Q_ASSERT(in.size() % 2 == 0);
+    Q_ASSERT(out.size() == in.size() / 2);
+
+    const qsizetype frames = in.size() / 2;
+    const float gain = (scaling == DownmixScaling::KeepPower) ? kEqualPowerGain : 0.5f;
+
+    for (qsizetype i = 0; i < frames; ++i)
+        out[i] = (in[i * 2 + 0] + in[i * 2 + 1]) * gain;
+}
+
+QByteArray downmixStereoToMono(QSpan<const float> input, DownmixScaling scaling)
+{
+    if (input.empty())
+        return {};
+
+    Q_ASSERT(input.size() % 2 == 0);
+
+    const qsizetype frames = input.size() / 2;
+    QByteArray out{
+        frames * qsizetype(sizeof(float)),
+        Qt::Initialization::Uninitialized,
+    };
+
+    downmixStereoToMono(QSpan<float>(reinterpret_cast<float *>(out.data()), frames),
+                        input, scaling);
+    return out;
+}
+
 } // namespace QAudioHelperInternal
 
 #undef QT_MM_RESTRICT
