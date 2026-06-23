@@ -130,10 +130,8 @@ void AVFVideoRendererControl::setVideoMirrored(bool mirrored)
     m_mirrored = mirrored;
 }
 
-void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
+void AVFVideoRendererControl::updateVideoFrame()
 {
-    Q_UNUSED(ts);
-
     if (!m_sink)
         return;
 

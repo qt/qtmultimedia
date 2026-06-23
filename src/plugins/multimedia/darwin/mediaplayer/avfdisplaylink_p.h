@@ -15,22 +15,16 @@
 // We mean it.
 //
 
-#include <QtCore/qmutex.h>
 #include <QtCore/qobject.h>
 
-#if defined(QT_PLATFORM_UIKIT)
-#include <CoreVideo/CVBase.h>
+#include <atomic>
 
-@interface DisplayLinkObserver : NSObject
-- (void)start;
-- (void)stop;
-- (void)displayLinkNotification:(CADisplayLink *)sender;
-@end
-#else
+#import <QuartzCore/CADisplayLink.h>
+#if !defined(QT_PLATFORM_UIKIT)
 #include <QuartzCore/CVDisplayLink.h>
 #endif
 
-#include <optional>
+@class QT_MANGLE_NAMESPACE(DisplayLinkObserver);
 
 QT_BEGIN_NAMESPACE
 
@@ -48,23 +42,21 @@ public Q_SLOTS:
     void stop();
 
 Q_SIGNALS:
-    void tick(const CVTimeStamp &ts);
+    void tick();
 
 public:
-    void displayLinkEvent(const CVTimeStamp *);
+    void displayLinkEvent();
 
 protected:
     bool event(QEvent *) override;
 
 private:
-#if defined(QT_PLATFORM_UIKIT)
-    DisplayLinkObserver *m_displayLink{};
-#else
-    CVDisplayLinkRef m_displayLink{};
+    QT_MANGLE_NAMESPACE(DisplayLinkObserver) *m_observer = {};
+#if !defined(QT_PLATFORM_UIKIT)
+    CVDisplayLinkRef m_cvDisplayLink{};
 #endif
-    QMutex m_displayLinkMutex;
     bool m_isActive{};
-    std::optional<CVTimeStamp> m_frameTimeStamp; // GUARDED_BY(m_displayLinkMutex)
+    std::atomic<bool> m_framePending{false};
 };
 
 QT_END_NAMESPACE
