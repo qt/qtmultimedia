@@ -35,6 +35,46 @@ Q_STATIC_LOGGING_CATEGORY(qLcSampleCache, "qt.multimedia.samplecache")
 
 QT_BEGIN_NAMESPACE
 
+QSample::QSample(QUrl url, QSampleCache *parent) : m_parent(parent), m_url(std::move(url)) { }
+
+QSample::QSample(QUrl url, QSampleCache *parent, std::optional<SampleRate> targetSampleRate)
+    : m_parent(parent), m_url(std::move(url)), m_targetSampleRate(targetSampleRate)
+{
+}
+
+QSample::~QSample()
+{
+    // Remove ourselves from our parent
+    if (m_parent)
+        m_parent->removeUnreferencedSample(m_url, m_targetSampleRate);
+
+    qCDebug(qLcSampleCache) << "~QSample" << this << ": deleted [" << m_url << "]" << QThread::currentThread();
+}
+
+void QSample::setError()
+{
+    m_state = State::Error;
+}
+
+void QSample::setData(QByteArray data, QAudioFormat format)
+{
+    m_state = State::Ready;
+    m_soundData = std::move(data);
+    m_audioFormat = format;
+}
+
+QSample::State QSample::state() const
+{
+    return m_state;
+}
+
+void QSample::clearParent()
+{
+    m_parent = nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 Q_APPLICATION_STATIC(QSampleCache, sampleCache)
 
 QSampleCache *QSampleCache::instance()
@@ -631,49 +671,11 @@ QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url,
     return future;
 }
 
-QSample::~QSample()
-{
-    // Remove ourselves from our parent
-    if (m_parent)
-        m_parent->removeUnreferencedSample(m_url, m_targetSampleRate);
-
-    qCDebug(qLcSampleCache) << "~QSample" << this << ": deleted [" << m_url << "]" << QThread::currentThread();
-}
-
 void QSampleCache::removeUnreferencedSample(const QUrl &url,
                                             std::optional<SampleRate> targetSampleRate)
 {
     std::lock_guard guard(m_mutex);
     m_loadedSamples.erase(SampleKey{ url, targetSampleRate });
-}
-
-void QSample::setError()
-{
-    m_state = State::Error;
-}
-
-void QSample::setData(QByteArray data, QAudioFormat format)
-{
-    m_state = State::Ready;
-    m_soundData = std::move(data);
-    m_audioFormat = format;
-}
-
-QSample::State QSample::state() const
-{
-    return m_state;
-}
-
-QSample::QSample(QUrl url, QSampleCache *parent) : m_parent(parent), m_url(std::move(url)) { }
-
-QSample::QSample(QUrl url, QSampleCache *parent, std::optional<SampleRate> targetSampleRate)
-    : m_parent(parent), m_url(std::move(url)), m_targetSampleRate(targetSampleRate)
-{
-}
-
-void QSample::clearParent()
-{
-    m_parent = nullptr;
 }
 
 QT_END_NAMESPACE
