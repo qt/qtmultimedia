@@ -99,12 +99,6 @@ QWasmVideoOutput::QWasmVideoOutput(QObject *parent) : QObject{ parent }
             });
 
             emscripten_set_orientationchange_callback(this,false, &QWasmVideoOutput::orientationchangeCallback);
-
-            //get current status
-            EmscriptenOrientationChangeEvent status;
-            EMSCRIPTEN_RESULT result = emscripten_get_orientation_status(&status);
-            if (result == EMSCRIPTEN_RESULT_SUCCESS)
-                orientationChanged(status.orientationIndex);
         }
     }
 }
@@ -113,6 +107,16 @@ QWasmVideoOutput::~QWasmVideoOutput()
 {
     if (m_mediaInputStream)
         JsMediaInputStream::releaseInstance(m_cameraId);
+}
+
+int QWasmVideoOutput::getCurrentOrientationIndex()
+{
+    //get current status
+    EmscriptenOrientationChangeEvent status;
+    EMSCRIPTEN_RESULT result = emscripten_get_orientation_status(&status);
+    if (result == EMSCRIPTEN_RESULT_SUCCESS)
+        return status.orientationIndex;
+    return 0;
 }
 
 void QWasmVideoOutput::setVideoSize(const QSize &newSize)
@@ -1152,6 +1156,7 @@ void QWasmVideoOutput::videoFrameTimerCallback()
     }
 
     if (isPlatformiOs()) {
+        m_useCameraRotation = true;
         emscripten::val stream = m_video["srcObject"];
         emscripten::val vTraks = stream.call<emscripten::val>("getVideoTracks");
 
@@ -1163,8 +1168,8 @@ void QWasmVideoOutput::videoFrameTimerCallback()
                 m_cameraMode = QWasmVideoOutput::Front;
             else
                 m_cameraMode = QWasmVideoOutput::Back;
-
-            m_useCameraRotation = true;
+            // now we know camera, set m_rotateBy
+            orientationChanged(getCurrentOrientationIndex());
         }
     }
 

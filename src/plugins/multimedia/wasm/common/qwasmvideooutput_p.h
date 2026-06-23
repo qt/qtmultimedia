@@ -143,8 +143,9 @@ private:
     QString m_source;
     float m_requestedPosition = 0.0;
     emscripten::val m_offscreen = emscripten::val::undefined();
-    WasmCameraMode m_cameraMode;
+    WasmCameraMode m_cameraMode = WasmCameraMode::Undefined;
     QtVideo::Rotation m_rotateBy = QtVideo::Rotation::None;
+    int getCurrentOrientationIndex();
 
 
     bool m_isStopped = false;
