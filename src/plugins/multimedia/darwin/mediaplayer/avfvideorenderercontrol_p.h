@@ -22,7 +22,6 @@
 
 #include <avfvideosink_p.h>
 
-#include <CoreVideo/CVBase.h>
 #include <CoreVideo/CVPixelBuffer.h>
 
 #import <AVFoundation/AVFoundation.h>
@@ -52,7 +51,7 @@ public:
         m_sink->setSubtitleText(subtitle);
     }
 private Q_SLOTS:
-    void updateVideoFrame(const CVTimeStamp &ts);
+    void updateVideoFrame();
 
 private:
     AVPlayerLayer *playerLayer() const { return static_cast<AVPlayerLayer *>(m_layer); }
