@@ -67,6 +67,9 @@ void QWasmMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCaptu
     if (m_imageCapture) {
         m_imageCapture->setCaptureSession(this);
 
+        if (m_camera && m_camera->isActive())
+            m_imageCapture->setReadyForCapture(true);
+
         emit imageCaptureChanged();
     }
 }
