@@ -65,9 +65,10 @@ private:
         QTest::newRow("File") << QSampleCache::SampleSourceType::File;
     }
 
-    SharedSamplePtr requestSample(QSampleCache &cache, const QUrl &url)
+    SharedSamplePtr requestSample(QSampleCache &cache, const QUrl &url,
+                                  std::optional<QSampleCache::SampleSourceType> sourceType = std::nullopt)
     {
-        auto future = cache.requestSampleFuture(url);
+        auto future = cache.requestSampleFuture(url, std::nullopt, sourceType);
         QFutureWatcher<SharedSamplePtr> watcher;
         watcher.setFuture(future);
 
@@ -97,14 +98,13 @@ void tst_QSampleCache::testCachedSample()
     QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
 
     QSampleCache cache;
-    cache.setSampleSourceType(sampleSourceType);
 
     SharedSamplePtr sample =
-            requestSample(cache, QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
+            requestSample(cache, QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")), sampleSourceType);
     QVERIFY(sample);
 
     SharedSamplePtr sampleCached =
-            requestSample(cache, QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
+            requestSample(cache, QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")), sampleSourceType);
     QCOMPARE(sample, sampleCached); // sample is cached
     QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
 }
@@ -114,10 +114,9 @@ void tst_QSampleCache::testNotCachedSample()
     QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
 
     QSampleCache cache;
-    cache.setSampleSourceType(sampleSourceType);
 
     SharedSamplePtr sample =
-            requestSample(cache, QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
+            requestSample(cache, QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")), sampleSourceType);
     QVERIFY(sample);
     sample = {};
 
@@ -129,9 +128,8 @@ void tst_QSampleCache::testInvalidFile()
     QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
 
     QSampleCache cache;
-    cache.setSampleSourceType(sampleSourceType);
 
-    SharedSamplePtr sample = requestSample(cache, QUrl::fromLocalFile("invalid"));
+    SharedSamplePtr sample = requestSample(cache, QUrl::fromLocalFile("invalid"), sampleSourceType);
     QVERIFY(!sample);
     sample = {};
 
@@ -143,10 +141,9 @@ void tst_QSampleCache::testIncompatibleFile()
     QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
 
     QSampleCache cache;
-    cache.setSampleSourceType(sampleSourceType);
 
     const QUrl corruptedWavUrl = QUrl::fromLocalFile(QFINDTESTDATA("testdata/corrupted.wav"));
-    SharedSamplePtr sample = requestSample(cache, corruptedWavUrl);
+    SharedSamplePtr sample = requestSample(cache, corruptedWavUrl, sampleSourceType);
     // sampleSourceType is set → fallback disabled, drwav fails → null
     QVERIFY(!sample);
 }
@@ -156,11 +153,10 @@ void tst_QSampleCache::testDRwavHeapBufferOverflow()
     QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
 
     QSampleCache cache;
-    cache.setSampleSourceType(sampleSourceType);
 
     const QUrl corruptedWavUrl =
             QUrl::fromLocalFile(QFINDTESTDATA("testdata/drwav_heap-buffer-overflow.wav"));
-    SharedSamplePtr sample = requestSample(cache, corruptedWavUrl);
+    SharedSamplePtr sample = requestSample(cache, corruptedWavUrl, sampleSourceType);
     QVERIFY(sample); // we can still read it
 }
 
@@ -169,11 +165,10 @@ void tst_QSampleCache::testDRwavIntegerUnderflow()
     QFETCH(const QSampleCache::SampleSourceType, sampleSourceType);
 
     QSampleCache cache;
-    cache.setSampleSourceType(sampleSourceType);
 
     const QUrl corruptedWavUrl =
             QUrl::fromLocalFile(QFINDTESTDATA("testdata/drwav_integer-underflow.wav"));
-    SharedSamplePtr sample = requestSample(cache, corruptedWavUrl);
+    SharedSamplePtr sample = requestSample(cache, corruptedWavUrl, sampleSourceType);
     QVERIFY(!sample); // bad file
 }
 
@@ -265,10 +260,9 @@ void tst_QSampleCache::testFallbackToDecoder_nonWav()
 void tst_QSampleCache::testForcedDecoderPath()
 {
     QSampleCache cache;
-    cache.setSampleSourceType(QSampleCache::SampleSourceType::AudioDecoder);
 
     const QUrl url = QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"));
-    SharedSamplePtr sample = requestSample(cache, url);
+    SharedSamplePtr sample = requestSample(cache, url, QSampleCache::SampleSourceType::AudioDecoder);
     // AudioDecoder skips drwav, uses mock decoder directly
     QVERIFY(sample);
     QCOMPARE(sample->state(), QSample::Ready);
@@ -359,10 +353,9 @@ void tst_QSampleCache::testLoadSampleAsyncViaDecoder_notSupported()
 void tst_QSampleCache::testForcedDecoderPathAsync()
 {
     QSampleCache cache;
-    cache.setSampleSourceType(QSampleCache::SampleSourceType::AudioDecoder);
 
     const QUrl url = QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"));
-    SharedSamplePtr sample = requestSample(cache, url);
+    SharedSamplePtr sample = requestSample(cache, url, QSampleCache::SampleSourceType::AudioDecoder);
     QVERIFY(sample);
     QCOMPARE(sample->state(), QSample::Ready);
     QCOMPARE(sample->format().sampleFormat(), QAudioFormat::Float);

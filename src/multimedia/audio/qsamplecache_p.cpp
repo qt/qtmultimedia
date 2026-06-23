@@ -367,7 +367,8 @@ QSampleCache::loadSample(const QUrl &url, std::optional<SampleSourceType> forceS
 
 #endif
 
-QFuture<QSampleCache::SampleLoadResult> QSampleCache::loadSampleAsync(const QUrl &url)
+QFuture<QSampleCache::SampleLoadResult>
+QSampleCache::loadSampleAsync(const QUrl &url, std::optional<SampleSourceType> forceSourceType)
 {
     auto promise = std::make_shared<QPromise<QSampleCache::SampleLoadResult>>();
     auto future = promise->future();
@@ -400,7 +401,7 @@ QFuture<QSampleCache::SampleLoadResult> QSampleCache::loadSampleAsync(const QUrl
             return future;
         }
 
-        if (m_sampleSourceType == SampleSourceType::AudioDecoder)
+        if (forceSourceType == SampleSourceType::AudioDecoder)
             return loadSampleAsyncViaDecoder(data);
 
         auto drwavResult = loadSample(data);
@@ -430,13 +431,13 @@ QFuture<QSampleCache::SampleLoadResult> QSampleCache::loadSampleAsync(const QUrl
     });
 
     connect(reply, &QNetworkReply::finished, reply,
-            [promise, reply, fulfilPromise = std::move(fulfilPromise), this]() mutable {
+            [promise, reply, fulfilPromise = std::move(fulfilPromise), forceSourceType]() mutable {
         QByteArray data = reply->readAll();
         if (data.isEmpty()) {
             promise->start();
             promise->addResult(q23::unexpected(QSampleLoadError::IoError));
             promise->finish();
-        } else if (m_sampleSourceType == SampleSourceType::AudioDecoder) {
+        } else if (forceSourceType == SampleSourceType::AudioDecoder) {
             auto decoderFuture = loadSampleAsyncViaDecoder(data);
             decoderFuture.then([promise](SampleLoadResult result) {
                 promise->start();
@@ -579,8 +580,9 @@ bool QSampleCache::isCached(const QUrl &url, std::optional<int> targetSampleRate
             || m_pendingSamples.find(key) != m_pendingSamples.end();
 }
 
-QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url,
-                                                           std::optional<int> targetSampleRate)
+QFuture<SharedSamplePtr>
+QSampleCache::requestSampleFuture(const QUrl &url, std::optional<int> targetSampleRate,
+                                  std::optional<SampleSourceType> forceSourceType)
 {
     std::lock_guard guard(m_mutex);
     using namespace QtMultimediaPrivate;
@@ -617,11 +619,11 @@ QFuture<SharedSamplePtr> QSampleCache::requestSampleFuture(const QUrl &url,
     QFuture<SampleLoadResult> futureResult = [&] {
 #if QT_CONFIG(thread)
         if (threadPool()->maxThreadCount() > 0)
-            return QtConcurrent::run(threadPool(), [url, type = m_sampleSourceType] {
+            return QtConcurrent::run(threadPool(), [url, type = forceSourceType] {
                 return loadSample(url, type);
             });
 #endif
-        return loadSampleAsync(url);
+        return loadSampleAsync(url, forceSourceType);
     }();
 
     futureResult.then(this,

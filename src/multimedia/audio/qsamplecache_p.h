@@ -122,8 +122,7 @@ class Q_MULTIMEDIA_EXPORT QSampleCache : public QObject
 public:
     friend class QSample;
 
-    enum class SampleSourceType
-    {
+    enum class SampleSourceType : uint8_t {
         File,
         NetworkManager,
         AudioDecoder,
@@ -135,14 +134,11 @@ public:
     ~QSampleCache() override;
 
     QFuture<SharedSamplePtr>
-    requestSampleFuture(const QUrl &, std::optional<int> targetSampleRate = std::nullopt);
-    bool isCached(const QUrl &url, std::optional<int> targetSampleRate = std::nullopt) const;
+    requestSampleFuture(const QUrl &, std::optional<int> targetSampleRate = std::nullopt,
+                        std::optional<SampleSourceType> forceSourceType = std::nullopt);
 
-    // For tests only
-    void setSampleSourceType(SampleSourceType sampleSourceType)
-    {
-        m_sampleSourceType = sampleSourceType;
-    }
+    // functions below are for testing only
+    bool isCached(const QUrl &url, std::optional<int> targetSampleRate = std::nullopt) const;
 
     using SampleLoadResult = q23::expected<std::pair<QByteArray, QAudioFormat>, QSampleLoadError>;
 
@@ -166,18 +162,17 @@ private:
     std::map<SampleKey, WeakSamplePtr> m_loadedSamples;
     std::map<SampleKey, std::pair<SharedSamplePtr, QList<SharedSamplePromise>>> m_pendingSamples;
 
-    void removeUnreferencedSample(const QUrl &url, std::optional<SampleRate> targetSampleRate);
+    void removeUnreferencedSample(const QUrl &, std::optional<SampleRate> targetSampleRate);
 
 #if QT_CONFIG(thread)
-    static SampleLoadResult
-    loadSample(const QUrl &, std::optional<SampleSourceType> forceSourceType = std::nullopt);
+    static SampleLoadResult loadSample(const QUrl &,
+                                       std::optional<SampleSourceType> = std::nullopt);
 #  ifndef Q_OS_WASM
     QThreadPool m_threadPool{ this };
 #  endif
 #endif
-    QFuture<SampleLoadResult> loadSampleAsync(const QUrl &);
-
-    std::optional<SampleSourceType> m_sampleSourceType;
+    QFuture<SampleLoadResult> loadSampleAsync(const QUrl &,
+                                              std::optional<SampleSourceType> = std::nullopt);
 };
 
 QT_END_NAMESPACE
