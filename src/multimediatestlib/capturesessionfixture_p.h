@@ -15,15 +15,16 @@
 // We mean it.
 //
 
+#include <private/audiogenerationutils_p.h>
 #include <private/framegenerator_p.h>
+#include <private/testvideosink_p.h>
+
 #include <QtMultimedia/qvideoframeinput.h>
 #include <QtMultimedia/qaudioinput.h>
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qaudiobufferinput.h>
 #include <QtCore/qtemporaryfile.h>
-
-#include <private/testvideosink_p.h>
 #include <QtTest/qsignalspy.h>
 
 QT_BEGIN_NAMESPACE

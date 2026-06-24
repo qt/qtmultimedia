@@ -16,12 +16,9 @@
 //
 
 #include <QtCore/qobject.h>
-#include <QtCore/qlist.h>
 #include <QtMultimedia/qvideoframe.h>
-#include <QtMultimedia/qaudiobuffer.h>
-#include <private/audiogenerationutils_p.h>
 
-#include <functional>
+#include <array>
 #include <chrono>
 
 QT_BEGIN_NAMESPACE
@@ -55,7 +52,10 @@ public slots:
     void nextFrame();
 
 private:
-    QList<QColor> colors = { Qt::red, Qt::green, Qt::blue, Qt::black, Qt::white };
+    static constexpr std::array<QColor, 5> colors{
+        QColorConstants::Red,   QColorConstants::Green, QColorConstants::Blue,
+        QColorConstants::Black, QColorConstants::White,
+    };
     ImagePattern m_pattern = ImagePattern::SingleColor;
     QSize m_size{ 640, 480 };
     QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_BGRA8888;
