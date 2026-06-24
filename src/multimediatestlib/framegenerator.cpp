@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include "framegenerator_p.h"
-#include <QtCore/qdebug.h>
 
 #include <private/qplatformmediaintegration_p.h>
 
