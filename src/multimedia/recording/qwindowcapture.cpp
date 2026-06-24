@@ -260,6 +260,17 @@ QWindowCapture::Error QWindowCapture::error() const
 }
 
 /*!
+    \qmlsignal QtMultimedia::WindowCapture::errorOccurred(int error, string errorString)
+
+    Signals when an \a error occurs, along with the \a errorString.
+
+    For the error parameter, see the enumeration table in
+    \l {QtMultimedia::WindowCapture::error}{error} for what values may
+    be passed.
+
+    \sa {QtMultimedia::WindowCapture::error}{error}
+*/
+/*!
     \fn void QWindowCapture::errorOccurred(QWindowCapture::Error error, const QString &errorString)
 
     Signals when an \a error occurs, along with the \a errorString.
