@@ -150,12 +150,20 @@ QMediaCaptureSession *QWindowCapture::captureSession() const
     \qmlproperty Window QtMultimedia::WindowCapture::window
     Describes the window for capturing.
 
+    Setting this property to an invalid window on an active
+    WindowCapture will cause it to go inactive and emit
+    an error.
+
     \sa QtMultimedia::WindowCapture::capturableWindows
 */
 
 /*!
     \property QWindowCapture::window
     \brief the window for capturing.
+
+    Setting this property to an invalid window on an active
+    QWindowCapture will cause it to go inactive and emit
+    an error.
 
     \sa QWindowCapture::capturableWindows
 */
