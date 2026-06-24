@@ -8,11 +8,16 @@ QT_BEGIN_NAMESPACE
 
 
 QWasmGLTextureVideoBuffer::QWasmGLTextureVideoBuffer(QGlTextureHandle textureHandle,
-                                                     const QSize &size)
+                                                     const QSize &size,
+                                                     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE glContext,
+                                                     QRhi *rhi)
     : QHwVideoBuffer(QVideoFrame::RhiTextureHandle),
-      m_videoFrameFormat(size, QVideoFrameFormat::Format_RGBA8888),
       m_glTextureHandle(std::move(textureHandle)),
-      m_size(size)
+      m_size(size),
+      m_videoFrameFormat(size, QVideoFrameFormat::Format_RGBA8888),
+      m_glContext(glContext),
+      m_rhi(rhi),
+      m_rhiThread(QThread::currentThread())
 {
 }
 
@@ -29,6 +34,9 @@ quint64 QWasmGLTextureVideoBuffer::textureHandle(QRhi &, int plane)
 {
     if (plane != 0 || !m_glTextureHandle)
         return 0;
+    // Ensure the context that owns this texture is current before
+    // the caller binds or samples it.
+    emscripten_webgl_make_context_current(m_glContext);
     return static_cast<quint64>(m_glTextureHandle.get());
 }
 
