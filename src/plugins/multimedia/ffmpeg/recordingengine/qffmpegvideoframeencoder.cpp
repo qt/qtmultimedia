@@ -8,7 +8,6 @@
 #include "qffmpegcodecstorage_p.h"
 
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/private/qexpected_p.h>
 
 extern "C" {
@@ -19,7 +18,6 @@ extern "C" {
 QT_BEGIN_NAMESPACE
 
 namespace ranges = QtMultimediaPrivate::ranges;
-using namespace Qt::Literals;
 
 Q_STATIC_LOGGING_CATEGORY(qLcVideoFrameEncoder, "qt.multimedia.ffmpeg.videoencoder");
 
@@ -81,22 +79,15 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
         if (!pixelFormat)
             return deviceTypes.end();
 
-#ifdef Q_OS_APPLE
-        if (QOperatingSystemVersion::current() < QOperatingSystemVersion::MacOSSequoia
-            && codec.name() == "hevc_videotoolbox"_L1) {
-            return ranges::find_if(deviceTypes, [&](AVHWDeviceType deviceType) {
-                return pixelFormatForHwDevice(deviceType) == pixelFormat;
-            });
-        }
-#endif
-
         const AVCodecHWConfig *cfg = codec.hwConfigForPixelFormat(*pixelFormat);
         if (!cfg)
             return deviceTypes.end();
 
         bool supportsHwDeviceContext =
                 (cfg->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) != 0;
-        if (!supportsHwDeviceContext)
+        bool supportsHwFramesContext =
+                (cfg->methods & AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX) != 0;
+        if (!supportsHwDeviceContext && !supportsHwFramesContext)
             return deviceTypes.end();
 
         return ranges::find_if(deviceTypes, [&](AVHWDeviceType deviceType) {
@@ -307,6 +298,8 @@ void VideoFrameEncoder::initStream()
 
 bool VideoFrameEncoder::initCodecContext()
 {
+    namespace views = QtMultimediaPrivate::views;
+
     Q_ASSERT(m_stream->codecpar->codec_id);
 
     m_codecContext.reset(avcodec_alloc_context3(m_codec.get()));
@@ -325,12 +318,30 @@ bool VideoFrameEncoder::initCodecContext()
                                   << m_codecContext->time_base.den;
 
     if (m_accel) {
-        auto deviceContext = m_accel->hwDeviceContextAsBuffer();
-        Q_ASSERT(deviceContext);
-        m_codecContext->hw_device_ctx = av_buffer_ref(deviceContext);
+        const AVHWDeviceType deviceType = m_accel->deviceType();
+        auto hwConfigs = m_codec.hwConfigs();
+        auto matchingConfigs = hwConfigs | views::filter([&](const AVCodecHWConfig *cfg) {
+            return cfg->device_type == deviceType;
+        });
 
-        if (auto framesContext = m_accel->hwFramesContextAsBuffer())
-            m_codecContext->hw_frames_ctx = av_buffer_ref(framesContext);
+        bool supportsDeviceCtx = false;
+        bool supportsFramesCtx = false;
+        for (const AVCodecHWConfig *cfg : matchingConfigs) {
+            if (cfg->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX)
+                supportsDeviceCtx = true;
+            if (cfg->methods & AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX)
+                supportsFramesCtx = true;
+        }
+
+        if (supportsDeviceCtx) {
+            auto deviceContext = m_accel->hwDeviceContextAsBuffer();
+            Q_ASSERT(deviceContext);
+            m_codecContext->hw_device_ctx = av_buffer_ref(deviceContext);
+        }
+
+        if (supportsFramesCtx)
+            if (auto framesContext = m_accel->hwFramesContextAsBuffer())
+                m_codecContext->hw_frames_ctx = av_buffer_ref(framesContext);
     }
 
     avcodec_parameters_from_context(m_stream->codecpar, m_codecContext.get());
