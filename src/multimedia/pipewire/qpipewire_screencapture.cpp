@@ -4,20 +4,30 @@
 #include "qpipewire_screencapture_p.h"
 
 #include <QtMultimedia/private/qpipewire_screencapturehelper_p.h>
+#include <QtMultimedia/private/qpipewire_instance_p.h>
 
 #include <utility>
 
 QT_BEGIN_NAMESPACE
+
+using namespace Qt::StringLiterals;
 
 namespace QtPipeWire {
 
 QPipeWireCapture::QPipeWireCapture(Source initialSource)
     : QPlatformSurfaceCapture(std::move(initialSource))
 {
-    m_helper = std::make_unique<QPipeWireCaptureHelper>(*this);
 }
 
 QPipeWireCapture::~QPipeWireCapture() = default;
+
+bool QPipeWireCapture::isSupported()
+{
+    if (!QPipeWireInstance::isLoaded())
+        return false;
+
+    return QPipeWireCaptureHelper::isSupported();
+}
 
 QVideoFrameFormat QPipeWireCapture::frameFormat() const
 {
@@ -29,13 +39,24 @@ QVideoFrameFormat QPipeWireCapture::frameFormat() const
 
 bool QPipeWireCapture::setActiveInternal(bool active)
 {
+    // Initialize helper, keep alive between captures
     if (!m_helper)
         m_helper = std::make_unique<QPipeWireCaptureHelper>(*this);
 
-    if (m_helper)
-        return m_helper->setActiveInternal(active);
+    if (!QPipeWireCaptureHelper::isSupported()) {
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
+                    u"There is no ScreenCast service available in org.freedesktop.portal!"_s);
+        return false;
+    }
 
-    return static_cast<bool>(m_helper) == active;
+    m_helper->setFrameRate(frameRate().value_or(DefaultCaptureFrameRate));
+
+    if (active)
+        m_helper->start();
+    else
+        m_helper->stop();
+
+    return true;
 }
 
 } // namespace QtPipeWire

@@ -76,47 +76,37 @@ struct PipeWireCaptureGlobalState
 
 Q_GLOBAL_STATIC(PipeWireCaptureGlobalState, globalState)
 
-bool QPipeWireCaptureHelper::setActiveInternal(bool active)
-{
-    if (isSupported()) {
-        if (active && m_state == NoState)
-            createInterface();
-        if (!active && m_state == Streaming)
-            destroy();
-
-        return true;
-    }
-
-    updateError(QPlatformSurfaceCapture::Error::InternalError,
-                u"There is no ScreenCast service available in org.freedesktop.portal!"_s);
-
-    return false;
-}
-
-void QPipeWireCaptureHelper::updateError(QPlatformSurfaceCapture::Error error,
-                                         const QString &description)
-{
-    m_capture.updateError(error, description);
-}
-
-bool QPipeWireCapture::isSupported()
-{
-    if (!QPipeWireInstance::isLoaded())
-        return false;
-
-    return QPipeWireCaptureHelper::isSupported();
-}
 
 QPipeWireCaptureHelper::QPipeWireCaptureHelper(QPipeWireCapture &capture)
-    : m_capture(capture),
+    : QSurfaceCaptureGrabber(CreateGrabbingThread),
       m_requestTokenPrefix(QUuid::createUuid().toString(QUuid::WithoutBraces).left(8))
 {
+    addFrameCallback(&capture, &QPipeWireCapture::newVideoFrame);
+    connect(this, &QSurfaceCaptureGrabber::errorUpdated, &capture, &QPipeWireCapture::updateError);
 }
 
 QPipeWireCaptureHelper::~QPipeWireCaptureHelper()
 {
+    stop();
+}
+
+QVideoFrame QPipeWireCaptureHelper::grabFrame()
+{
+    return std::move(m_currentFrame);
+}
+
+void QPipeWireCaptureHelper::initializeGrabbingContext()
+{
+    QSurfaceCaptureGrabber::initializeGrabbingContext();
+    if (m_state == NoState)
+        createInterface();
+}
+
+void QPipeWireCaptureHelper::finalizeGrabbingContext()
+{
     if (m_state != NoState)
         destroy();
+    QSurfaceCaptureGrabber::finalizeGrabbingContext();
 }
 
 QVideoFrameFormat QPipeWireCaptureHelper::frameFormat() const
@@ -677,8 +667,7 @@ void QPipeWireCaptureHelper::recreateStream()
     // Considering the framerate as always variable rate, but with our target set as maximum.
     struct spa_fraction maxrate = SPA_FRACTION(1000, 1);
     struct spa_fraction minrate = SPA_FRACTION(0, 1);
-    auto rate = rateFromFps(m_capture.frameRate().value_or(DefaultCaptureFrameRate));
-    m_streamFrameRate = rate.fps;
+    auto rate = rateFromFps(frameRate());
 
     std::array<const struct spa_pod *, 1> params{ static_cast<const spa_pod*>(spa_pod_builder_add_object(
             &builder,
@@ -790,14 +779,10 @@ void QPipeWireCaptureHelper::onProcess()
 
     if (m_videoFrameFormat.frameSize() != m_size || m_videoFrameFormat.pixelFormat() != m_pixelFormat)
         m_videoFrameFormat = QVideoFrameFormat(m_size, m_pixelFormat);
-    if (m_videoFrameFormat.streamFrameRate() != m_streamFrameRate)
-        m_videoFrameFormat.setStreamFrameRate(m_streamFrameRate);
-        // FIXME: Seems that at higher rates, the capture is slower than requested, causing fast playback
 
     m_currentFrame = QVideoFramePrivate::createFrame(
             std::make_unique<QMemoryVideoBuffer>(QByteArray(static_cast<const char *>(sdata), size), sstride),
             m_videoFrameFormat);
-    emit m_capture.newVideoFrame(m_currentFrame);
     qCDebug(qLcPipeWireCaptureMore) << "got a frame of size " << buf->datas[0].chunk->size;
 
     pw_stream_queue_buffer(m_stream.get(), pwBuffer);
