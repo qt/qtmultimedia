@@ -60,6 +60,7 @@ QFunctionPointer qGstEglImageTargetTexture2D()
     return holder->targetTexture2D;
 }
 #  endif
-#endif
 
 QT_END_NAMESPACE
+
+#endif // QT_CONFIG(gstreamer_gl) && QT_CONFIG(gstreamer_gl_egl)
