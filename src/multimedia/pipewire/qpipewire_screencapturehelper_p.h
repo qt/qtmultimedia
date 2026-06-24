@@ -16,6 +16,7 @@
 //
 
 #include <QtMultimedia/private/qpipewire_screencapture_p.h>
+#include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 #include <QtMultimedia/private/qpipewire_support_p.h>
 #include <QtMultimedia/qvideoframe.h>
 
@@ -34,11 +35,11 @@ class QDBusInterface;
 
 namespace QtPipeWire {
 
-inline static constexpr qreal DefaultCaptureFrameRate = 25.f;
+inline constexpr qreal DefaultCaptureFrameRate = 25.f;
 
 class QPipeWireInstance;
 
-class QPipeWireCaptureHelper : public QObject
+class QPipeWireCaptureHelper : public QSurfaceCaptureGrabber
 {
     Q_OBJECT
 public:
@@ -51,10 +52,10 @@ public:
 
     QVideoFrameFormat frameFormat() const;
 
-    bool setActiveInternal(bool active);
-
 protected:
-    void updateError(QPlatformSurfaceCapture::Error error, const QString &description = {});
+    QVideoFrame grabFrame() override;
+    void initializeGrabbingContext() override;
+    void finalizeGrabbingContext() override;
 
 private:
     void destroy();
@@ -88,13 +89,11 @@ private Q_SLOTS:
 
 private:
     std::shared_ptr<QPipeWireInstance> m_instance;
-    QPipeWireCapture &m_capture;
 
     QVideoFrame m_currentFrame;
     QVideoFrameFormat m_videoFrameFormat;
     QVideoFrameFormat::PixelFormat m_pixelFormat{};
     QSize m_size;
-    qreal m_streamFrameRate = 0.f;
 
     PwThreadLoopHandle m_threadLoop;
     PwContextHandle m_context;
