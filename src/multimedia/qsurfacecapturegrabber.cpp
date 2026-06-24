@@ -1,7 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qffmpegsurfacecapturegrabber_p.h"
+#include "qsurfacecapturegrabber_p.h"
 
 #include <qchronotimer.h>
 #include <qelapsedtimer.h>
@@ -13,7 +13,7 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcScreenCaptureGrabber, "qt.multimedia.ffmpeg.surfacecapturegrabber");
 
-class QFFmpegSurfaceCaptureGrabber::GrabbingProfiler
+class QSurfaceCaptureGrabber::GrabbingProfiler
 {
 public:
     auto measure()
@@ -47,7 +47,7 @@ private:
     qint64 m_number = 0;
 };
 
-struct QFFmpegSurfaceCaptureGrabber::GrabbingContext
+struct QSurfaceCaptureGrabber::GrabbingContext
 {
     GrabbingProfiler profiler;
     QChronoTimer timer;
@@ -55,10 +55,10 @@ struct QFFmpegSurfaceCaptureGrabber::GrabbingContext
     qint64 lastFrameTime = 0;
 };
 
-class QFFmpegSurfaceCaptureGrabber::GrabbingThread : public QThread
+class QSurfaceCaptureGrabber::GrabbingThread : public QThread
 {
 public:
-    GrabbingThread(QFFmpegSurfaceCaptureGrabber& grabber)
+    GrabbingThread(QSurfaceCaptureGrabber& grabber)
         : m_grabber(grabber)
     {}
 
@@ -75,10 +75,10 @@ protected:
     }
 
 private:
-    QFFmpegSurfaceCaptureGrabber& m_grabber;
+    QSurfaceCaptureGrabber& m_grabber;
 };
 
-QFFmpegSurfaceCaptureGrabber::QFFmpegSurfaceCaptureGrabber(ThreadPolicy threadPolicy)
+QSurfaceCaptureGrabber::QSurfaceCaptureGrabber(ThreadPolicy threadPolicy)
 {
     setFrameRate(DefaultScreenCaptureFrameRate);
 
@@ -86,7 +86,7 @@ QFFmpegSurfaceCaptureGrabber::QFFmpegSurfaceCaptureGrabber(ThreadPolicy threadPo
         m_thread = std::make_unique<GrabbingThread>(*this);
 }
 
-void QFFmpegSurfaceCaptureGrabber::start()
+void QSurfaceCaptureGrabber::start()
 {
     if (m_thread)
         m_thread->start();
@@ -94,9 +94,9 @@ void QFFmpegSurfaceCaptureGrabber::start()
         initializeGrabbingContext();
 }
 
-QFFmpegSurfaceCaptureGrabber::~QFFmpegSurfaceCaptureGrabber() = default;
+QSurfaceCaptureGrabber::~QSurfaceCaptureGrabber() = default;
 
-void QFFmpegSurfaceCaptureGrabber::setFrameRate(std::optional<qreal> rate)
+void QSurfaceCaptureGrabber::setFrameRate(std::optional<qreal> rate)
 {
     if (!rate)
         rate = DefaultScreenCaptureFrameRate;
@@ -112,12 +112,12 @@ void QFFmpegSurfaceCaptureGrabber::setFrameRate(std::optional<qreal> rate)
     qCDebug(qLcScreenCaptureGrabber) << "Screen capture rate has been changed:" << m_rate;
 }
 
-qreal QFFmpegSurfaceCaptureGrabber::frameRate() const
+qreal QSurfaceCaptureGrabber::frameRate() const
 {
     return m_rate;
 }
 
-void QFFmpegSurfaceCaptureGrabber::stop()
+void QSurfaceCaptureGrabber::stop()
 {
     if (m_thread)
     {
@@ -130,7 +130,7 @@ void QFFmpegSurfaceCaptureGrabber::stop()
     }
 }
 
-void QFFmpegSurfaceCaptureGrabber::updateError(QPlatformSurfaceCapture::Error error,
+void QSurfaceCaptureGrabber::updateError(QPlatformSurfaceCapture::Error error,
                                              const QString &description)
 {
     const auto prevError = std::exchange(m_prevError, error);
@@ -143,7 +143,7 @@ void QFFmpegSurfaceCaptureGrabber::updateError(QPlatformSurfaceCapture::Error er
     updateTimerInterval();
 }
 
-void QFFmpegSurfaceCaptureGrabber::updateTimerInterval()
+void QSurfaceCaptureGrabber::updateTimerInterval()
 {
     using namespace std::chrono;
 
@@ -156,7 +156,7 @@ void QFFmpegSurfaceCaptureGrabber::updateTimerInterval()
         m_context->timer.setInterval(interval);
 }
 
-void QFFmpegSurfaceCaptureGrabber::initializeGrabbingContext()
+void QSurfaceCaptureGrabber::initializeGrabbingContext()
 {
     Q_ASSERT(!isGrabbingContextInitialized());
     qCDebug(qLcScreenCaptureGrabber) << "screen capture started";
@@ -189,7 +189,7 @@ void QFFmpegSurfaceCaptureGrabber::initializeGrabbingContext()
     m_context->timer.start();
 }
 
-void QFFmpegSurfaceCaptureGrabber::finalizeGrabbingContext()
+void QSurfaceCaptureGrabber::finalizeGrabbingContext()
 {
     Q_ASSERT(isGrabbingContextInitialized());
     qCDebug(qLcScreenCaptureGrabber)
@@ -198,12 +198,12 @@ void QFFmpegSurfaceCaptureGrabber::finalizeGrabbingContext()
     m_context.reset();
 }
 
-bool QFFmpegSurfaceCaptureGrabber::isGrabbingContextInitialized() const
+bool QSurfaceCaptureGrabber::isGrabbingContextInitialized() const
 {
     return m_context != nullptr;
 }
 
-void QFFmpegSurfaceCaptureGrabber::injectContextToGrabbingThread(QObject *context)
+void QSurfaceCaptureGrabber::injectContextToGrabbingThread(QObject *context)
 {
     Q_ASSERT(m_thread);
     Q_ASSERT(QThread::currentThread() == context->thread());
@@ -212,4 +212,4 @@ void QFFmpegSurfaceCaptureGrabber::injectContextToGrabbingThread(QObject *contex
 
 QT_END_NAMESPACE
 
-#include "moc_qffmpegsurfacecapturegrabber_p.cpp"
+#include "moc_qsurfacecapturegrabber_p.cpp"

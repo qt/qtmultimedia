@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegscreencapture_dxgi_p.h"
-#include "qffmpegsurfacecapturegrabber_p.h"
+#include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 #include "qabstractvideobuffer.h"
 #include <private/qmultimediautils_p.h>
 #include <private/qvideoframe_p.h>
@@ -355,12 +355,12 @@ q23::expected<QVideoFrameFormat, ComStatus> getFrameFormat(const QScreen *screen
 
 } // namespace
 
-class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegSurfaceCaptureGrabber
+class QFFmpegScreenCaptureDxgi::Grabber : public QSurfaceCaptureGrabber
 {
 public:
     Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen,
             const QVideoFrameFormat &format)
-        : QFFmpegSurfaceCaptureGrabber(), m_screen(screen), m_format(format)
+        : QSurfaceCaptureGrabber(), m_screen(screen), m_format(format)
     {
         addFrameCallback(&screenCapture, &QFFmpegScreenCaptureDxgi::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &screenCapture, &QFFmpegScreenCaptureDxgi::updateError);
@@ -435,7 +435,7 @@ public:
             return;
         }
 
-        QFFmpegSurfaceCaptureGrabber::initializeGrabbingContext();
+        QSurfaceCaptureGrabber::initializeGrabbingContext();
     }
 
 private:

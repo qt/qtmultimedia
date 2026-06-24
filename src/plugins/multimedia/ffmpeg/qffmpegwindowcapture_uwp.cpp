@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegwindowcapture_uwp_p.h"
-#include "qffmpegsurfacecapturegrabber_p.h"
+#include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qscopeguard.h>
@@ -295,11 +295,11 @@ private:
 
 } // namespace
 
-class QFFmpegWindowCaptureUwp::Grabber : public QFFmpegSurfaceCaptureGrabber
+class QFFmpegWindowCaptureUwp::Grabber : public QSurfaceCaptureGrabber
 {
 public:
     Grabber(QFFmpegWindowCaptureUwp &capture, HWND hwnd)
-        : QFFmpegSurfaceCaptureGrabber(),
+        : QSurfaceCaptureGrabber(),
           m_hwnd(hwnd),
           m_format(QVideoFrameFormat(asQSize(getWindowSize(hwnd)),
                                      QVideoFrameFormat::Format_RGBX8888))
@@ -331,7 +331,7 @@ protected:
         try {
             m_windowGrabber = std::make_unique<WindowGrabber>(m_adapter.get(), m_hwnd);
 
-            QFFmpegSurfaceCaptureGrabber::initializeGrabbingContext();
+            QSurfaceCaptureGrabber::initializeGrabbingContext();
         } catch (const winrt::hresult_error &err) {
 
             const QString message = QLatin1String("Unable to capture window: ")
@@ -343,7 +343,7 @@ protected:
 
     void finalizeGrabbingContext() override
     {
-        QFFmpegSurfaceCaptureGrabber::finalizeGrabbingContext();
+        QSurfaceCaptureGrabber::finalizeGrabbingContext();
         m_windowGrabber = nullptr;
     }
 
