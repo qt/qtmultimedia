@@ -1134,7 +1134,10 @@ void QWasmVideoOutput::webglVideoFrameCallback(void *context)
     }
 
     std::unique_ptr<QHwVideoBuffer> hwBuffer =
-            std::make_unique<QWasmGLTextureVideoBuffer>(std::move(texHandle), QSize(w, h));
+            std::make_unique<QWasmGLTextureVideoBuffer>(
+                    std::move(texHandle), QSize(w, h),
+                    wasmVideoOutput->m_glContextHandle,
+                    wasmVideoOutput->m_wasmSink ? wasmVideoOutput->m_wasmSink->rhi() : nullptr);
 
     QVideoFrameFormat frameFormat(QSize(w, h), QVideoFrameFormat::Format_RGBA8888);
     if (wasmVideoOutput->m_streamFrameRate > 0)

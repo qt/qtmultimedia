@@ -6,6 +6,7 @@
 
 #include <QtGui/rhi/qrhi.h>
 #include <QSize>
+#include <QThread>
 
 #include <QtMultimedia/private/qhwvideobuffer_p.h>
 #include "qvideoframe.h"
@@ -13,6 +14,7 @@
 #include <QtCore/private/quniquehandle_p.h>
 
 #include <emscripten/val.h>
+#include <emscripten/html5.h>
 #include <GLES2/gl2.h>
 
 //
@@ -43,7 +45,8 @@ using QGlTextureHandle = QUniqueHandle<QGlTextureHandleTraits>;
 class QWasmGLTextureVideoBuffer : public QHwVideoBuffer
 {
 public:
-    explicit QWasmGLTextureVideoBuffer(QGlTextureHandle textureHandle, const QSize &size);
+    explicit QWasmGLTextureVideoBuffer(QGlTextureHandle textureHandle, const QSize &size,
+                                       EMSCRIPTEN_WEBGL_CONTEXT_HANDLE glContext, QRhi *rhi);
 
     QWasmGLTextureVideoBuffer::MapData map(QVideoFrame::MapMode) override;
     void unmap() override;
@@ -51,10 +54,23 @@ public:
     QVideoFrameFormat format() const override { return m_videoFrameFormat; }
     quint64 textureHandle(QRhi &, int plane) override;
 
+    // Must return the RHI that owns the WebGL context the texture lives in.
+    // Without this, qImageFromVideoFrame() calls qEnsureThreadLocalRhi()
+    // which creates a second WebGL context, corrupting the GL state for the
+    // QQuick render loop that resumes after toImage() returns.
+    QRhi *associatedCurrentThreadRhi() const override
+    {
+        return (QThread::currentThread() == m_rhiThread) ? m_rhi : nullptr;
+    }
+
 private:
     QGlTextureHandle m_glTextureHandle;
     QSize m_size;
     QVideoFrameFormat m_videoFrameFormat;
+    // WebGL context the texture was created in
+    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_glContext;
+    QRhi *m_rhi;
+    QThread *m_rhiThread;
 };
 
 QT_END_NAMESPACE
