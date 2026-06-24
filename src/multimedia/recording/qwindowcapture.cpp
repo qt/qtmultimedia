@@ -154,7 +154,7 @@ QMediaCaptureSession *QWindowCapture::captureSession() const
     WindowCapture will cause it to go inactive and emit
     an error.
 
-    \sa QtMultimedia::WindowCapture::capturableWindows
+    \sa capturableWindows
 */
 
 /*!
