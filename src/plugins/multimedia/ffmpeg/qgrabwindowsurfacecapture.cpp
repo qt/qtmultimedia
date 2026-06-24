@@ -4,7 +4,7 @@
 #include "qvideoframe.h"
 #include "qgrabwindowsurfacecapture_p.h"
 #include "qscreencapture.h"
-#include "qffmpegsurfacecapturegrabber_p.h"
+#include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 
 #include "private/qimagevideobuffer_p.h"
 #include "private/qcapturablewindow_p.h"
@@ -32,7 +32,7 @@ using WindowUPtr = std::unique_ptr<QWindow>;
 
 } // namespace
 
-class QGrabWindowSurfaceCapture::Grabber : public QFFmpegSurfaceCaptureGrabber
+class QGrabWindowSurfaceCapture::Grabber : public QSurfaceCaptureGrabber
 {
 public:
     Grabber(QGrabWindowSurfaceCapture &capture, QScreen *screen) : Grabber(capture, screen, nullptr)
@@ -62,10 +62,10 @@ public:
 
 private:
     Grabber(QGrabWindowSurfaceCapture &capture, QScreen *screen, WindowUPtr window)
-        : QFFmpegSurfaceCaptureGrabber(
+        : QSurfaceCaptureGrabber(
                 QGuiApplication::platformName() == QLatin1String("eglfs")
-                        ? QFFmpegSurfaceCaptureGrabber::UseCurrentThread
-                        : QFFmpegSurfaceCaptureGrabber::CreateGrabbingThread),
+                        ? QSurfaceCaptureGrabber::UseCurrentThread
+                        : QSurfaceCaptureGrabber::CreateGrabbingThread),
           m_screen(screen),
           m_window(std::move(window))
     {

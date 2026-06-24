@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QFFMPEGSURFACECAPTUREGRABBER_P_H
-#define QFFMPEGSURFACECAPTUREGRABBER_P_H
+#ifndef QSURFACECAPTUREGRABBER_P_H
+#define QSURFACECAPTUREGRABBER_P_H
 
 //
 //  W A R N I N G
@@ -15,8 +15,9 @@
 // We mean it.
 //
 
-#include "qvideoframe.h"
+#include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/private/qplatformsurfacecapture_p.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 
 #include <memory>
 #include <optional>
@@ -28,7 +29,7 @@ class QThread;
 static constexpr qreal DefaultScreenCaptureFrameRate = 60.f;
 static constexpr qreal MinScreenCaptureFrameRate = 1.f;
 
-class QFFmpegSurfaceCaptureGrabber : public QObject
+class Q_MULTIMEDIA_EXPORT QSurfaceCaptureGrabber : public QObject
 {
     Q_OBJECT
 public:
@@ -37,7 +38,7 @@ public:
         CreateGrabbingThread,
     };
 
-    ~QFFmpegSurfaceCaptureGrabber() override;
+    ~QSurfaceCaptureGrabber() override;
 
     void start();
     void stop();
@@ -45,7 +46,7 @@ public:
     template<typename Object, typename Method>
     void addFrameCallback(Object *object, Method method)
     {
-        connect(this, &QFFmpegSurfaceCaptureGrabber::frameGrabbed, object, method,
+        connect(this, &QSurfaceCaptureGrabber::frameGrabbed, object, method,
                 Qt::DirectConnection);
     }
 
@@ -57,7 +58,7 @@ signals:
     void errorUpdated(QPlatformSurfaceCapture::Error error, const QString &description);
 
 protected:
-    QFFmpegSurfaceCaptureGrabber(ThreadPolicy threadPolicy = CreateGrabbingThread);
+    QSurfaceCaptureGrabber(ThreadPolicy threadPolicy = CreateGrabbingThread);
 
     void updateError(QPlatformSurfaceCapture::Error error, const QString &description = {});
 
@@ -86,4 +87,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QFFMPEGSURFACECAPTUREGRABBER_P_H
+#endif // QSURFACECAPTUREGRABBER_P_H

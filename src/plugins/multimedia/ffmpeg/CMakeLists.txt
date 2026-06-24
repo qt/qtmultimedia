@@ -34,7 +34,6 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
         qffmpegresampler.cpp qffmpegresampler_p.h
         qffmpegencodingformatcontext.cpp qffmpegencodingformatcontext_p.h
         qgrabwindowsurfacecapture.cpp qgrabwindowsurfacecapture_p.h
-        qffmpegsurfacecapturegrabber.cpp qffmpegsurfacecapturegrabber_p.h
 
         qffmpegplaybackengine.cpp qffmpegplaybackengine_p.h
         playbackengine/qffmpegplaybackenginedefs_p.h

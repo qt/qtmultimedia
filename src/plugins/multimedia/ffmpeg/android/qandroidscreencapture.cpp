@@ -5,10 +5,10 @@
 
 #include <QtCore/private/qjnihelpers_p.h>
 #include <QtCore/qreadwritelock.h>
+#include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 
 #include <QtFFmpegMediaPluginImpl/private/qandroidvideoframefactory_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
-#include <QtFFmpegMediaPluginImpl/private/qffmpegsurfacecapturegrabber_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -28,7 +28,7 @@ constexpr int RESULT_OK = -1;
 }
 
 class QAndroidScreenCapture::Grabber : public QtAndroidPrivate::ActivityResultListener,
-                                       public QFFmpegSurfaceCaptureGrabber
+                                       public QSurfaceCaptureGrabber
 {
 public:
     Grabber(QAndroidScreenCapture & screenCapture)

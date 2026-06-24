@@ -3,7 +3,7 @@
 
 #include "qeglfsscreencapture_p.h"
 
-#include "qffmpegsurfacecapturegrabber_p.h"
+#include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 #include "qguiapplication.h"
 #include "qopenglvideobuffer_p.h"
 #include "private/qimagevideobuffer_p.h"
@@ -20,11 +20,11 @@
 QT_BEGIN_NAMESPACE
 namespace ranges = QtMultimediaPrivate::ranges;
 
-class QEglfsScreenCapture::Grabber : public QFFmpegSurfaceCaptureGrabber
+class QEglfsScreenCapture::Grabber : public QSurfaceCaptureGrabber
 {
 public:
     Grabber(QEglfsScreenCapture &screenCapture, QScreen *screen)
-        : QFFmpegSurfaceCaptureGrabber(QFFmpegSurfaceCaptureGrabber::UseCurrentThread)
+        : QSurfaceCaptureGrabber(QSurfaceCaptureGrabber::UseCurrentThread)
     {
         addFrameCallback(&screenCapture, &QEglfsScreenCapture::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &screenCapture, &QEglfsScreenCapture::updateError);
