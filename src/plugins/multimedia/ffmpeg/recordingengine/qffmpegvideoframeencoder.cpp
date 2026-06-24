@@ -620,6 +620,11 @@ AVPacketUPtr VideoFrameEncoder::retrievePacket()
         if (packet.dts == AV_NOPTS_VALUE)
             return true;
 
+        // Some encoders (e.g. libx265) produce garbage negative DTS with single-frame encodes.
+        // Clamp to PTS (or 0) to prevent corrupt output that makes playback hang.
+        if (packet.dts < 0)
+            packet.dts = packet.pts != AV_NOPTS_VALUE ? packet.pts : 0;
+
         packet.dts -= m_packetDtsOffset;
 
         if (packet.pts != AV_NOPTS_VALUE && packet.pts < packet.dts) {
