@@ -76,7 +76,6 @@ private:
     static spa_video_format toSpaVideoFormat(QVideoFrameFormat::PixelFormat pixelFormat);
 
     QString getRequestToken();
-    int generateRequestToken();
     void createInterface();
     void createSession();
     void selectSources(const QString &sessionHandle);
