@@ -11,6 +11,7 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
     SOURCES
         ffmpeg_pch.h
         qffmpeg.cpp qffmpeg_p.h
+        qffmpeg_ranges_p.h
         qffmpegdefs_p.h
         qffmpegcodecstorage.cpp qffmpegcodecstorage_p.h
         qffmpegioutils.cpp qffmpegioutils_p.h

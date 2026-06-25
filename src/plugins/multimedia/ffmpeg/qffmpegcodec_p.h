@@ -16,6 +16,9 @@
 //
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpegdefs_p.h> // Important: Must be included first
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_ranges_p.h>
+
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #include <QtCore/qlatin1stringview.h>
 #include <QtCore/qspan.h>
@@ -55,24 +58,13 @@ private:
     const AVCodec *m_codec = nullptr;
 };
 
-// Minimal iterator to support range-based for-loop
-class CodecIterator
-{
-public:
-    // named constructors
-    static CodecIterator begin();
-    static CodecIterator end();
+using CodecRange = FFmpegOpaqueIteratorRange<const AVCodec *, av_codec_iterate>;
 
-    CodecIterator &operator++() noexcept;
-    [[nodiscard]] Codec operator*() const noexcept;
-    [[nodiscard]] bool operator!=(const CodecIterator &other) const noexcept;
-
-private:
-    void *m_state = nullptr;
-    const AVCodec *m_codec = nullptr;
-};
-
-using CodecEnumerator = CodecIterator;
+inline constexpr CodecRange avCodecRange;
+inline constexpr auto allCodecs =
+        avCodecRange | QtMultimediaPrivate::views::transform([](const AVCodec *codec) {
+    return Codec(codec);
+});
 
 // Helper function to wrap pixel formats inside a span
 QSpan<const AVPixelFormat> makeSpan(const AVPixelFormat *values);

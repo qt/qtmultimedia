@@ -55,6 +55,7 @@ struct CodecsComparator
 
     bool operator()(const Codec &codec, AVCodecID id) const { return codec.id() < id; }
     bool operator()(AVCodecID id, const Codec &codec) const { return id < codec.id(); }
+    bool operator()(AVCodecID a, AVCodecID b) const { return a < b; }
 };
 
 void dumpCodecInfo(const Codec &codec)
@@ -266,7 +267,7 @@ struct CodecStoreSingleton
         const auto platformHwEncoders = availableHWCodecs(CodecRole::Encoders);
         const auto platformHwDecoders = availableHWCodecs(CodecRole::Decoders);
 
-        for (const Codec codec : CodecEnumerator()) {
+        for (const Codec codec : allCodecs) {
             // TODO: to be investigated
             // FFmpeg functions avcodec_find_decoder/avcodec_find_encoder
             // find experimental codecs in the last order,
@@ -354,16 +355,15 @@ bool findAndOpenCodec(CodecRole codecsType, AVCodecID codecId, const CodecScoreG
                       const CodecOpener &opener)
 {
     Q_ASSERT(opener);
-    const auto &storage = codecsStorage(codecsType);
-    auto it = std::lower_bound(storage.begin(), storage.end(), codecId, CodecsComparator{});
+    auto codecsWithId = ranges::equal_range(codecsStorage(codecsType), codecId, CodecsComparator{});
 
     using CodecToScore = std::pair<Codec, AVScore>;
     std::vector<CodecToScore> codecsToScores;
 
-    for (; it != storage.end() && it->id() == codecId; ++it) {
-        const AVScore score = scoreGetter ? scoreGetter(*it) : DefaultAVScore;
+    for (const Codec &codec : codecsWithId) {
+        const AVScore score = scoreGetter ? scoreGetter(codec) : DefaultAVScore;
         if (score != NotSuitableAVScore)
-            codecsToScores.emplace_back(*it, score);
+            codecsToScores.emplace_back(codec, score);
     }
 
     if (scoreGetter) {
@@ -388,8 +388,7 @@ std::optional<Codec> findAVCodec(CodecRole codecsType, AVCodecID codecId,
     const CodecsStorage& storage = codecsStorage(codecsType);
 
     // Storage is sorted, so we can quickly narrow down the search to codecs with the specific id.
-    auto begin = std::lower_bound(storage.begin(), storage.end(), codecId, CodecsComparator{});
-    auto end = std::upper_bound(begin, storage.end(), codecId, CodecsComparator{});
+    auto [begin, end] = ranges::equal_range(storage, codecId, CodecsComparator{});
 
     // Within the narrowed down range, look for a codec that supports the format.
     // If no format is specified, return the first one.

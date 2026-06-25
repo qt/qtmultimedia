@@ -12,6 +12,7 @@
 #include "qffmpegcodecstorage_p.h"
 #include "qffmpegmediaintegration_p.h"
 #include "qffmpegvideobuffer_p.h"
+#include "qffmpeg_ranges_p.h"
 #include "qscopedvaluerollback.h"
 
 #include <QtCore/QElapsedTimer>
@@ -134,6 +135,8 @@ static bool checkHwType(AVHWDeviceType type)
     return loadHWContext(type) != nullptr;
 }
 
+using HWDeviceTypesRange = FFmpegValueIteratorRange<AVHWDeviceType, av_hwdevice_iterate_types>;
+
 static const std::vector<AVHWDeviceType> &deviceTypes()
 {
     static const auto types = []() {
@@ -143,7 +146,7 @@ static const std::vector<AVHWDeviceType> &deviceTypes()
 
         // gather hw pix formats
         std::unordered_set<AVPixelFormat> hwPixFormats;
-        for (const Codec codec : CodecEnumerator()) {
+        for (const Codec codec : allCodecs) {
             forEachAVPixelFormat(codec, [&](AVPixelFormat format) {
                 if (isHwPixelFormat(format))
                     hwPixFormats.insert(format);
@@ -152,8 +155,7 @@ static const std::vector<AVHWDeviceType> &deviceTypes()
 
         // create a device types list
         std::vector<AVHWDeviceType> result;
-        AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
-        while ((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE)
+        for (const AVHWDeviceType type : HWDeviceTypesRange())
             if (hwPixFormats.count(pixelFormatForHwDevice(type)) && checkHwType(type))
                 result.push_back(type);
         result.shrink_to_fit();
