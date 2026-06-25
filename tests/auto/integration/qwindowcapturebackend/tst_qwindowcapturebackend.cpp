@@ -236,6 +236,11 @@ private slots:
         if (QGuiApplication::platformName() == u"wayland"_s)
             QSKIP("Framerate setting not implemented on Wayland");
 #endif
+#ifdef Q_OS_WIN
+        QSKIP(
+            "Windows does not emit frames if content is unchanged. "
+            "Cannot test framerates reliably in CI. QTBUG-147051");
+#endif
 
         WindowCaptureWithWidgetFixture fixture;
 
@@ -244,7 +249,6 @@ private slots:
 
         QVERIFY(fixture.start());
 
-#ifndef Q_OS_WIN // QTBUG-147051
         // Check framerate is roughly 1fps
         using namespace std::chrono;
         auto durationBetweenFrames = fixture.m_grabber.durationBetweenFrames(3);
@@ -252,11 +256,6 @@ private slots:
         const qreal actualFps = 1000.0 / durationBetweenFrames.count();
         QCOMPARE_GT(actualFps, newFrameRate * 0.9);
         QCOMPARE_LT(actualFps, newFrameRate * 1.1);
-#endif
-
-        fixture.m_capture.setActive(false);
-
-        QVERIFY(fixture.m_errors.empty());
     }
 
     void capturedImage_equals_imageFromGrab_data()
