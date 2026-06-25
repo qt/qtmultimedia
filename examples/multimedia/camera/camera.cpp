@@ -52,6 +52,8 @@ Camera::Camera() : ui(new Ui::Camera)
     init();
 }
 
+Camera::~Camera() = default;
+
 void Camera::init()
 {
 #if QT_CONFIG(permissions)
