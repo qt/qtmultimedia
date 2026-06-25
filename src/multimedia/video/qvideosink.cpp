@@ -127,6 +127,8 @@ QPlatformVideoSink *QVideoSink::platformVideoSink() const
 }
 
 /*!
+    \threadsafe
+
     Returns the current video frame.
  */
 QVideoFrame QVideoSink::videoFrame() const
@@ -140,6 +142,8 @@ QVideoFrame QVideoSink::videoFrame() const
     Signals when the video \a frame changes.
 */
 /*!
+    \threadsafe
+
     Sets the current video \a frame.
 */
 void QVideoSink::setVideoFrame(const QVideoFrame &frame)
