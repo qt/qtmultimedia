@@ -453,6 +453,11 @@ bool findAndOpenCodec(CodecStorageType codecsType, AVCodecID codecId,
         ranges::stable_sort(codecsToScores, [](const CodecToScore &a, const CodecToScore &b) {
             return a.second > b.second;
         });
+
+        if (qLcCodecStorage().isEnabled(QtDebugMsg))
+            for (const auto &[codec, score] : codecsToScores)
+                qCDebug(qLcCodecStorage)
+                        << "findAndOpenCodec(): candidate:" << codec.name() << "score:" << score;
     }
 
     return ranges::any_of(codecsToScores, [&](const CodecToScore &codecToScore) {
