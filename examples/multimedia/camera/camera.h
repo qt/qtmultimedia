@@ -30,6 +30,7 @@ class Camera : public QMainWindow
 
 public:
     Camera();
+    ~Camera();
 
 public slots:
     void saveMetaData();
@@ -82,7 +83,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
-    Ui::Camera *ui;
+    std::unique_ptr<Ui::Camera> ui;
 
     QActionGroup *videoDevicesGroup = nullptr;
 
