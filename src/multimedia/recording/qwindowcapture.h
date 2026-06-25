@@ -9,6 +9,8 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qlist.h>
 
+#include <optional>
+
 QT_BEGIN_NAMESPACE
 
 class QPlatformSurfaceCapture;

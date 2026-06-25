@@ -11,6 +11,8 @@
 #include <QtGui/qwindowdefs.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 
+#include <optional>
+
 QT_BEGIN_NAMESPACE
 
 class QMediaCaptureSession;
