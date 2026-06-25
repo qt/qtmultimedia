@@ -51,9 +51,9 @@ struct PipeWireCaptureGlobalState
 {
     PipeWireCaptureGlobalState() {
         QDBusConnection bus = QDBusConnection::sessionBus();
-        QDBusInterface *interface = new QDBusInterface(
-                u"org.freedesktop.portal.Desktop"_s, u"/org/freedesktop/portal/desktop"_s,
-                u"org.freedesktop.DBus.Properties"_s, bus, qGuiApp);
+        auto *interface = new QDBusInterface(u"org.freedesktop.portal.Desktop"_s,
+                                             u"/org/freedesktop/portal/desktop"_s,
+                                             u"org.freedesktop.DBus.Properties"_s, bus, qGuiApp);
 
         QList<QVariant> args;
         args << u"org.freedesktop.portal.ScreenCast"_s << u"version"_s;
@@ -164,16 +164,16 @@ void QPipeWireCaptureHelper::gotRequestResponse(uint result, const QVariantMap &
     }
 }
 
+static int generateRequestToken()
+{
+    return QRandomGenerator::global()->bounded(1, 25600);
+}
+
 QString QPipeWireCaptureHelper::getRequestToken()
 {
     if (m_requestToken <= 0)
         m_requestToken = generateRequestToken();
     return u"u%1%2"_s.arg(m_requestTokenPrefix).arg(m_requestToken);
-}
-
-int QPipeWireCaptureHelper::generateRequestToken()
-{
-    return QRandomGenerator::global()->bounded(1, 25600);
 }
 
 void QPipeWireCaptureHelper::createInterface()
@@ -257,7 +257,7 @@ void QPipeWireCaptureHelper::startStream()
         { u"handle_token"_s, getRequestToken() },
     };
 
-    const auto unixServices = dynamic_cast<QDesktopUnixServices *>(QGuiApplicationPrivate::platformIntegration()->services());
+    auto *unixServices = dynamic_cast<QDesktopUnixServices *>(QGuiApplicationPrivate::platformIntegration()->services());
     const QString parentWindow = QGuiApplication::focusWindow() && unixServices
             ? unixServices->portalWindowIdentifier(QGuiApplication::focusWindow())
             : QString();
@@ -289,7 +289,7 @@ void QPipeWireCaptureHelper::updateStreams(const QDBusArgument &streamsInfo)
         qint32 x = 0;
         qint32 y = 0;
         if (properties.contains(u"position"_s)) {
-            const QDBusArgument position = properties[u"position"_s].value<QDBusArgument>();
+            const auto position = properties[u"position"_s].value<QDBusArgument>();
             position.beginStructure();
             position >> x;
             position >> y;
@@ -299,7 +299,7 @@ void QPipeWireCaptureHelper::updateStreams(const QDBusArgument &streamsInfo)
         qint32 width = 0;
         qint32 height = 0;
         if (properties.contains(u"size"_s)) {
-            const QDBusArgument size = properties[u"size"_s].value<QDBusArgument>();
+            const auto size = properties[u"size"_s].value<QDBusArgument>();
             size.beginStructure();
             size >> width;
             size >> height;
@@ -538,7 +538,7 @@ void QPipeWireCaptureHelper::onRegistryEventGlobal(uint32_t id, uint32_t permiss
     if (qstrcmp(type, PW_TYPE_INTERFACE_Node) != 0)
         return;
 
-    auto media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
+    const auto* media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
     if (!media_class)
         return;
 
@@ -563,17 +563,18 @@ struct Rate {
 Rate rateFromFps(qreal fps)
 {
     // NTSC rates get special handling if it seems like the user wants them
-    constexpr Rate ntscRates[] = {
+    const std::initializer_list<Rate> ntscRates = {
         { 23.976, SPA_FRACTION(24'000, 1'001) },
-        { 29.97,  SPA_FRACTION(30'000, 1'001) },
-        { 59.94,  SPA_FRACTION(60'000, 1'001) },
+        { 29.97, SPA_FRACTION(30'000, 1'001) },
+        { 59.94, SPA_FRACTION(60'000, 1'001) },
     };
     // NOTE: One could assume that a requested 60.f mapped to 60000/1001.
     // TODO: There's also other rates (59.97, 49.99, etc..)
 
-    for (const Rate &k : ntscRates) {
-        if (qAbs(fps - k.fps) < 0.01)
-            return k;
+    for (const Rate &rate : ntscRates) {
+        constexpr float precision = 0.01f;
+        if (qAbs(fps - rate.fps) < precision)
+            return rate;
     }
 
     // By default, round to a whole number fps. Rounding down is safest,
@@ -638,13 +639,13 @@ void QPipeWireCaptureHelper::recreateStream()
     destroyStream(true);
 
     auto streamInfo = m_streams[0];
-    struct spa_dict_item items[4];
+    struct std::array<spa_dict_item, 4> items;
     struct spa_dict info;
     items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_TYPE, "Video");
     items[1] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_CATEGORY, "Capture");
     items[2] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_ROLE, "Screen");
-    info = SPA_DICT_INIT(items, 3);
-    auto props = pw_properties_new_dict(&info);
+    info = SPA_DICT_INIT(items.data(), 3);
+    auto *props = pw_properties_new_dict(&info);
 
     LoopLocker locker(m_threadLoop.get());
 
@@ -667,9 +668,8 @@ void QPipeWireCaptureHelper::recreateStream()
     QT_WARNING_DISABLE_GCC("-Wmissing-field-initializers")
     QT_WARNING_DISABLE_CLANG("-Wmissing-field-initializers")
 
-    uint8_t buffer[4096];
-    struct spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
-    const struct spa_pod *params[1];
+    std::array<uint8_t, 4096> buffer;
+    struct spa_pod_builder builder = SPA_POD_BUILDER_INIT(buffer.data(), sizeof(buffer));
     struct spa_rectangle defsize = SPA_RECTANGLE(quint32(streamInfo.rect.width()), quint32(streamInfo.rect.height()));
     struct spa_rectangle maxsize = SPA_RECTANGLE(4096, 4096);
     struct spa_rectangle minsize = SPA_RECTANGLE(1,1);
@@ -680,8 +680,8 @@ void QPipeWireCaptureHelper::recreateStream()
     auto rate = rateFromFps(m_capture.frameRate().value_or(DefaultCaptureFrameRate));
     m_streamFrameRate = rate.fps;
 
-    params[0] = static_cast<const spa_pod*>(spa_pod_builder_add_object(
-            &b,
+    std::array<const struct spa_pod *, 1> params{ static_cast<const spa_pod*>(spa_pod_builder_add_object(
+            &builder,
             SPA_TYPE_OBJECT_Format,     SPA_PARAM_EnumFormat,
             SPA_FORMAT_mediaType,          SPA_POD_Id(SPA_MEDIA_TYPE_video),
             SPA_FORMAT_mediaSubtype,       SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
@@ -697,13 +697,13 @@ void QPipeWireCaptureHelper::recreateStream()
             SPA_FORMAT_VIDEO_framerate,    SPA_POD_CHOICE_RANGE_Fraction(
                                             &rate.frac, &minrate, &maxrate),
             SPA_FORMAT_VIDEO_maxFramerate, SPA_POD_Fraction(&rate.frac))
-    );
+    )};
     QT_WARNING_POP
 
     const int connectErr = pw_stream_connect(
             m_stream.get(), PW_DIRECTION_INPUT, streamInfo.nodeId,
             static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS),
-            params, 1);
+            params.data(), 1);
     if (connectErr != 0) {
         m_err = true;
         locker.unlock();
@@ -771,26 +771,22 @@ void QPipeWireCaptureHelper::onStateChanged(pw_stream_state old, pw_stream_state
 }
 void QPipeWireCaptureHelper::onProcess()
 {
-    struct pw_buffer *b;
-    struct spa_buffer *buf;
-    int sstride = 0;
-    void *sdata;
-    qsizetype size = 0;
-
-    if ((b = pw_stream_dequeue_buffer(m_stream.get())) == nullptr) {
+    struct pw_buffer *pwBuffer = pw_stream_dequeue_buffer(m_stream.get());
+    if (!pwBuffer) {
         updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Out of buffers in pipewire stream dequeue."_s);
         return;
     }
 
-    buf = b->buffer;
-    if ((sdata = buf->datas[0].data) == nullptr)
+    struct spa_buffer *buf = pwBuffer->buffer;
+    void *sdata = buf->datas[0].data;
+    if (!sdata)
         return;
 
-    sstride = buf->datas[0].chunk->stride;
+    int sstride = buf->datas[0].chunk->stride;
     if (sstride == 0)
-        sstride = buf->datas[0].chunk->size / m_size.height();
-    size = buf->datas[0].chunk->size;
+        sstride = int(buf->datas[0].chunk->size / m_size.height());
+    qsizetype size = buf->datas[0].chunk->size;
 
     if (m_videoFrameFormat.frameSize() != m_size || m_videoFrameFormat.pixelFormat() != m_pixelFormat)
         m_videoFrameFormat = QVideoFrameFormat(m_size, m_pixelFormat);
@@ -804,7 +800,7 @@ void QPipeWireCaptureHelper::onProcess()
     emit m_capture.newVideoFrame(m_currentFrame);
     qCDebug(qLcPipeWireCaptureMore) << "got a frame of size " << buf->datas[0].chunk->size;
 
-    pw_stream_queue_buffer(m_stream.get(), b);
+    pw_stream_queue_buffer(m_stream.get(), pwBuffer);
 
     signalLoop(true, false);
 }
@@ -851,7 +847,8 @@ void QPipeWireCaptureHelper::onParamChanged(uint32_t id, const struct spa_pod *p
     qCDebug(qLcPipeWireCapture) << "  framerate: " << m_format.info.raw.framerate.num
                                 << " / " << m_format.info.raw.framerate.denom;
 
-    m_size = QSize(m_format.info.raw.size.width, m_format.info.raw.size.height);
+    m_size = QSize(static_cast<int>(m_format.info.raw.size.width),
+                   static_cast<int>(m_format.info.raw.size.height));
     m_pixelFormat = QPipeWireCaptureHelper::toQtPixelFormat(m_format.info.raw.format);
     qCDebug(qLcPipeWireCapture) << "m_pixelFormat=" << m_pixelFormat;
 }
