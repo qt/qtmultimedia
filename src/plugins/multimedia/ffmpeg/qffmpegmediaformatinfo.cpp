@@ -130,10 +130,11 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
     QList<AudioCodec> extraAudioDecoders; // All audio decoders that do not support encoding
     QList<VideoCodec> videoEncoders; // All video encoders that Qt support
     QList<VideoCodec> extraVideoDecoders; // All video decoders that do not support encoding
+    using Descriptors =
+            QFFmpeg::FFmpegValueIteratorRange<const AVCodecDescriptor *, avcodec_descriptor_next>;
 
     // Sort all FFmpeg's codecs into the buckets
-    const AVCodecDescriptor *descriptor = nullptr;
-    while ((descriptor = avcodec_descriptor_next(descriptor))) {
+    for (const AVCodecDescriptor *descriptor : Descriptors{}) {
 
         const bool canEncode{ QFFmpeg::findAVEncoder(descriptor->id).has_value() };
         const bool canDecode{ QFFmpeg::findAVDecoder(descriptor->id).has_value() };
@@ -165,9 +166,8 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
     }
 
     // Update 'encoders' list with muxer/encoder combinations that Qt supports
-    void *opaque = nullptr;
-    const AVOutputFormat *outputFormat = nullptr;
-    while ((outputFormat = av_muxer_iterate(&opaque))) {
+    using MuxerRange = QFFmpeg::FFmpegOpaqueIteratorRange<const AVOutputFormat *, av_muxer_iterate>;
+    for (const AVOutputFormat *outputFormat : MuxerRange()) {
         QMediaFormat::FileFormat mediaFormat = formatForAVFormat(outputFormat);
         if (mediaFormat == QMediaFormat::UnspecifiedFormat)
             continue;

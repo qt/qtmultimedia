@@ -277,36 +277,6 @@ const AVCodecHWConfig *Codec::hwConfigForPixelFormat(AVPixelFormat pix) const no
     return nullptr;
 }
 
-CodecIterator CodecIterator::begin()
-{
-    CodecIterator iterator;
-    iterator.m_codec = av_codec_iterate(&iterator.m_state);
-    return iterator;
-}
-
-CodecIterator CodecIterator::end()
-{
-    return { };
-}
-
-CodecIterator &CodecIterator::operator++() noexcept
-{
-    Q_ASSERT(m_codec);
-    m_codec = av_codec_iterate(&m_state);
-    return *this;
-}
-
-Codec CodecIterator::operator*() const noexcept
-{
-    Q_ASSERT(m_codec); // Avoid dereferencing end() iterator
-    return Codec{ m_codec };
-}
-
-bool CodecIterator::operator!=(const CodecIterator &other) const noexcept
-{
-    return m_codec != other.m_codec;
-}
-
 QSpan<const AVPixelFormat> makeSpan(const AVPixelFormat *values)
 {
     return makeSpan<AVPixelFormat>(values);
