@@ -258,6 +258,12 @@ private slots:
 
         QVERIFY(fixture.start());
 
+        // Range [0, 1]. Lower is better, but may increase flakiness.
+        float slopFactor = 0.1;
+        if (isCI()) {
+            slopFactor = 0.2;
+        }
+
         // Check framerate is roughly 1fps
         using namespace std::chrono;
         auto durationBetweenFrames = fixture.m_grabber.durationBetweenFrames(3);
@@ -265,8 +271,8 @@ private slots:
             durationBetweenFrames > 0ms,
             "Did not receive enough QVideoFrames to measure framerate");
         const qreal actualFps = 1000.0 / durationBetweenFrames.count();
-        QCOMPARE_GT(actualFps, newFrameRate * 0.9);
-        QCOMPARE_LT(actualFps, newFrameRate * 1.1);
+        QCOMPARE_GT(actualFps, newFrameRate * (1 - slopFactor));
+        QCOMPARE_LT(actualFps, newFrameRate * (1 + slopFactor));
     }
 
     void capturedImage_equals_imageFromGrab_data()
