@@ -63,7 +63,7 @@ static AVBufferUPtr loadHWContext(AVHWDeviceType type)
         qCDebug(qLHWAccel) << "    Using above hw context.";
         return AVBufferUPtr(hwContext);
     }
-    qCDebug(qLHWAccel) << "    Could not create hw context:" << ret << strerror(-ret);
+    qCDebug(qLHWAccel) << "    Could not create hw context:" << QFFmpeg::AVError(ret);
     return nullptr;
 }
 
