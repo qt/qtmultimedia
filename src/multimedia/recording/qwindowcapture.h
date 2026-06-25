@@ -22,7 +22,8 @@ class Q_MULTIMEDIA_EXPORT QWindowCapture : public QObject
     Q_PROPERTY(QCapturableWindow window READ window WRITE setWindow NOTIFY windowChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
-    Q_PROPERTY(std::optional<qreal> frameRate READ frameRate WRITE setFrameRate RESET resetFrameRate NOTIFY frameRateChanged)
+    Q_PROPERTY(std::optional<qreal> frameRate READ frameRate WRITE setFrameRate RESET resetFrameRate
+                       NOTIFY frameRateChanged REVISION(6, 12))
 
 public:
     enum Error {
@@ -64,7 +65,7 @@ Q_SIGNALS:
     void windowChanged(QCapturableWindow window);
     void errorChanged();
     void errorOccurred(QWindowCapture::Error error, const QString &errorString);
-    void frameRateChanged();
+    Q_REVISION(6, 12) void frameRateChanged();
 
 private:
     void setCaptureSession(QMediaCaptureSession *captureSession);
