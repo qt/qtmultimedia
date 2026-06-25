@@ -387,6 +387,26 @@ QDebug operator<<(QDebug dbg, QFFmpeg::AVError error)
     return dbg;
 }
 
+QDebug operator<<(QDebug dbg, AVPixelFormat fmt)
+{
+    const char *str = av_get_pix_fmt_name(fmt);
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown pixel format>";
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, AVHWDeviceType type)
+{
+    const char *str = av_hwdevice_get_type_name(type);
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown hw device type>";
+    return dbg;
+}
+
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 QDebug operator<<(QDebug dbg, const AVChannelLayout &layout)
 {

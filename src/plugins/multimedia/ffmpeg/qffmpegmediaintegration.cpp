@@ -166,11 +166,11 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 
     qCDebug(qLcFFmpeg) << "Available HW decoding frameworks:";
     for (auto type : QFFmpeg::HWAccel::decodingDeviceTypes())
-        qCDebug(qLcFFmpeg) << "    " << av_hwdevice_get_type_name(type);
+        qCDebug(qLcFFmpeg) << "    " << type;
 
     qCDebug(qLcFFmpeg) << "Available HW encoding frameworks:";
     for (auto type : QFFmpeg::HWAccel::encodingDeviceTypes())
-        qCDebug(qLcFFmpeg) << "    " << av_hwdevice_get_type_name(type);
+        qCDebug(qLcFFmpeg) << "    " << type;
 }
 
 q23::expected<QPlatformAudioDecoder *, QString>

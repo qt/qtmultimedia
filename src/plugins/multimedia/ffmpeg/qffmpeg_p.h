@@ -317,6 +317,8 @@ QDebug operator<<(QDebug, const AVRational &);
 QDebug operator<<(QDebug, const AVDictionary &);
 QDebug operator<<(QDebug, const QFFmpeg::AVDictionaryHolder &);
 QDebug operator<<(QDebug, QFFmpeg::AVError);
+QDebug operator<<(QDebug, AVPixelFormat);
+QDebug operator<<(QDebug, AVHWDeviceType);
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 QDebug operator<<(QDebug, const AVChannelLayout &);

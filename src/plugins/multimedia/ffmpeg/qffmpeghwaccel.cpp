@@ -56,7 +56,7 @@ static const std::initializer_list<AVHWDeviceType> preferredHardwareAccelerators
 static AVBufferUPtr loadHWContext(AVHWDeviceType type)
 {
     AVBufferRef *hwContext = nullptr;
-    qCDebug(qLHWAccel) << "    Checking HW context:" << av_hwdevice_get_type_name(type);
+    qCDebug(qLHWAccel) << "    Checking HW context:" << type;
     int ret = av_hwdevice_ctx_create(&hwContext, type, nullptr, nullptr, 0);
 
     if (ret == 0) {
@@ -109,14 +109,8 @@ static bool precheckDriver(AVHWDeviceType type)
 
 static bool checkHwType(AVHWDeviceType type)
 {
-    const auto deviceName = av_hwdevice_get_type_name(type);
-    if (!deviceName) {
-        qWarning() << "Internal FFmpeg error, unknow hw type:" << type;
-        return false;
-    }
-
     if (!precheckDriver(type)) {
-        qCDebug(qLHWAccel) << "Drivers for hw device" << deviceName << "is not installed";
+        qCDebug(qLHWAccel) << "Drivers for hw device" << type << "is not installed";
         return false;
     }
 
