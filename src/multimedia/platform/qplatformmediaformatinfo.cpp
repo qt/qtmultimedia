@@ -3,6 +3,8 @@
 
 #include "qplatformmediaformatinfo_p.h"
 
+#include <QtCore/qdebug.h>
+
 #include <set>
 
 QT_BEGIN_NAMESPACE
@@ -73,6 +75,32 @@ bool QPlatformMediaFormatInfo::isSupported(const QMediaFormat &format, QMediaFor
         return true;
     }
     return false;
+}
+
+QDebug operator<<(QDebug dbg, const QPlatformMediaFormatInfo::CodecMap &m)
+{
+    const QDebugStateSaver saver(dbg);
+    dbg.nospace() << "CodecMap(" << QMediaFormat::fileFormatName(m.format);
+    if (!m.video.isEmpty()) {
+        dbg << ", video: [";
+        for (int i = 0; i < m.video.size(); ++i) {
+            if (i)
+                dbg << ", ";
+            dbg << QMediaFormat::videoCodecName(m.video[i]);
+        }
+        dbg << ']';
+    }
+    if (!m.audio.isEmpty()) {
+        dbg << ", audio: [";
+        for (int i = 0; i < m.audio.size(); ++i) {
+            if (i)
+                dbg << ", ";
+            dbg << QMediaFormat::audioCodecName(m.audio[i]);
+        }
+        dbg << ']';
+    }
+    dbg << ')';
+    return dbg;
 }
 
 QT_END_NAMESPACE
