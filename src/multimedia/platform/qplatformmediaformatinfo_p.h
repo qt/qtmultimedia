@@ -21,6 +21,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QDebug;
+
 class Q_MULTIMEDIA_EXPORT QPlatformMediaFormatInfo
 {
 public:
@@ -37,6 +39,8 @@ public:
         QMediaFormat::FileFormat format;
         QList<QMediaFormat::AudioCodec> audio;
         QList<QMediaFormat::VideoCodec> video;
+
+        Q_MULTIMEDIA_EXPORT friend QDebug operator<<(QDebug dbg, const CodecMap &m);
     };
     QList<CodecMap> encoders;
     QList<CodecMap> decoders;
