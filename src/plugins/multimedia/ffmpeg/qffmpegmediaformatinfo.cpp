@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegmediaformatinfo_p.h"
+
 #include "qffmpegcodecstorage_p.h"
+#include "qffmpeg_ranges_p.h"
 
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
@@ -119,9 +121,47 @@ static const AVOutputFormat *avFormatForFormat(QMediaFormat::FileFormat format)
     return nullptr;
 }
 
+namespace {
+
+enum class CodecType : uint8_t {
+    Audio,
+    Video,
+};
+
+template <CodecType Type>
+bool codecSupportsFormat(const AVOutputFormat *format, AVCodecID codecId)
+{
+    const int result = avformat_query_codec(format, codecId, FF_COMPLIANCE_NORMAL);
+    switch (result) {
+    case 1:
+        return true;
+    case AVERROR_PATCHWELCOME:
+    case 0:
+        return false;
+    default:
+        break;
+    }
+
+    if (result < 0) {
+        // A negative result means that the codec may work, but information is unavailable
+        switch (Type) {
+        case CodecType::Audio:
+            return codecId == format->audio_codec;
+        case CodecType::Video:
+            return codecId == format->video_codec;
+        }
+    }
+
+    return false;
+}
+
+} // namespace
+
 QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
 {
     namespace ranges = QtMultimediaPrivate::ranges;
+    namespace views = QtMultimediaPrivate::views;
+
     using VideoCodec = QMediaFormat::VideoCodec;
     using AudioCodec = QMediaFormat::AudioCodec;
     namespace ranges = QtMultimediaPrivate::ranges;
@@ -175,27 +215,15 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
         CodecMap encoder;
         encoder.format = mediaFormat;
 
-        for (AudioCodec codec : audioEncoders) {
-            const AVCodecID id = codecId(codec);
-            // Only add the codec if it can be used with this container. A negative
-            // result means that the codec may work, but information is unavailable
-            const int result = avformat_query_codec(outputFormat, id, FF_COMPLIANCE_NORMAL);
-            if (result == 1 || (result < 0 && id == outputFormat->audio_codec)) {
-                // add codec for container
-                encoder.audio.append(codec);
-            }
-        }
+        auto supportedAudioCodecs = audioEncoders | views::filter([&](AudioCodec codec) {
+            return codecSupportsFormat<CodecType::Audio>(outputFormat, codecId(codec));
+        });
+        encoder.audio = supportedAudioCodecs | ranges::to<QList<AudioCodec>>();
 
-        for (VideoCodec codec : videoEncoders) {
-            const AVCodecID id = codecId(codec);
-            // Only add the codec if it can be used with this container. A negative
-            // result means that the codec may work, but information is unavailable
-            const int result = avformat_query_codec(outputFormat, id, FF_COMPLIANCE_NORMAL);
-            if (result == 1 || (result < 0 && id == outputFormat->video_codec)) {
-                // add codec for container
-                encoder.video.append(codec);
-            }
-        }
+        auto supportedVideoCodecs = videoEncoders | views::filter([&](VideoCodec codec) {
+            return codecSupportsFormat<CodecType::Video>(outputFormat, codecId(codec));
+        });
+        encoder.video = supportedVideoCodecs | ranges::to<QList<VideoCodec>>();
 
         // If no encoders support either audio or video, we skip this format.
         if (encoder.audio.isEmpty() && encoder.video.isEmpty())
