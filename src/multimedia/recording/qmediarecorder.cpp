@@ -1012,23 +1012,35 @@ void QMediaRecorder::setVideoResolution(const QSize &size)
 /*!
     \qmlproperty real QtMultimedia::MediaRecorder::videoFrameRate
     \since 6.6
-    \brief This property holds the video frame rate.
+    \brief This property holds the video frame rate used in encoding.
 
-    A value of 0 indicates the recorder should make an optimal choice based on what is available
-    from the video source and the limitations of the codec.
+    If this property is set to a positive frame rate, MediaRecorder attempts to
+    encode at that rate. If the video source's and recoder's frame rates are
+    different, frames from the source may be dropped or duplicated to
+    reach the target rate.
+
+    If left at the default value (-1) or set to another non-positive value,
+    MediaRecorder attempts to make the optimal choice based on the video source
+    and codec limitations.
 */
 
 /*!
     \property QMediaRecorder::videoFrameRate
     \since 6.6
-    \brief the video frame rate.
+    \brief the video frame rate used in encoding.
 
-    A value of 0 indicates the recorder should make an optimal choice based on what is available
-    from the video source and the limitations of the codec.
+    If this property is set to a positive frame rate, QMediaRecorder attempts to
+    encode at that rate. If the video source's and recoder's frame rates are
+    different, frames from the source may be dropped or duplicated to
+    reach the target rate.
+
+    If left at the default value (-1) or set to another non-positive value,
+    QMediaRecorder attempts to make the optimal choice based on the video source
+    and codec limitations.
 */
 
 /*!
-    Returns the video frame rate.
+    Returns the video encoding frame rate.
 */
 qreal QMediaRecorder::videoFrameRate() const
 {
@@ -1039,13 +1051,10 @@ qreal QMediaRecorder::videoFrameRate() const
 /*!
     \fn void QMediaRecorder::videoFrameRateChanged()
 
-    Signals when the recording video frame rate changes.
+    Signals when the video encoding frame rate changes.
 */
 /*!
-    Sets the video \a frameRate.
-
-    A value of 0 indicates the recorder should make an optimal choice based on what is available
-    from the video source and the limitations of the codec.
+    Sets the video encoding \a frameRate.
 */
 void QMediaRecorder::setVideoFrameRate(qreal frameRate)
 {
