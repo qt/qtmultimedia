@@ -406,6 +406,46 @@ QDebug operator<<(QDebug dbg, AVHWDeviceType type)
     return dbg;
 }
 
+QDebug operator<<(QDebug dbg, AVCodecID id)
+{
+    const char *str = avcodec_get_name(id);
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown codec id>";
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const AVOutputFormat *fmt)
+{
+    if (fmt == nullptr) {
+        dbg << "<null>";
+        return dbg;
+    }
+
+    const char *str = fmt->name;
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown output format>";
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const AVInputFormat *fmt)
+{
+    if (fmt == nullptr) {
+        dbg << "<null>";
+        return dbg;
+    }
+
+    const char *str = fmt->name;
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown input format>";
+    return dbg;
+}
+
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 QDebug operator<<(QDebug dbg, const AVChannelLayout &layout)
 {
