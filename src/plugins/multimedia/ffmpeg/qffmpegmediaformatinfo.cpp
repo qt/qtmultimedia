@@ -133,6 +133,10 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
 
         const bool canEncode{ QFFmpeg::findAVEncoder(descriptor->id).has_value() };
         const bool canDecode{ QFFmpeg::findAVDecoder(descriptor->id).has_value() };
+        const bool isAVCodec = canEncode || canDecode;
+
+        if (!isAVCodec)
+            continue; // subtitle codec
 
         const VideoCodec videoCodec = videoCodecForAVCodecId(descriptor->id);
         const AudioCodec audioCodec = audioCodecForAVCodecId(descriptor->id);
