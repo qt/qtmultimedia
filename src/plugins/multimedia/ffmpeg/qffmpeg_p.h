@@ -170,13 +170,6 @@ using SwsContextUPtr = std::unique_ptr<SwsContext, AVDeleter<sws_freeContext>>;
 
 bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format);
 
-// Returns true if the range contains the value, false otherwise
-template <typename Value>
-bool hasValue(QSpan<const Value> range, Value value)
-{
-    return ranges::contains(range, value);
-}
-
 // Search for the first element in the range that satisfies the predicate
 // The predicate is evaluated for each value in the range until it returns
 // true, and the corresponding value is returned. If no match is found,
