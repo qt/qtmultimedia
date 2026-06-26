@@ -141,17 +141,17 @@ bool AudioEncoder::init()
 
                 // Attempt to find no-conversion format
                 if (auto fmts = codec.sampleFormats(); !fmts.empty())
-                    result += hasValue(fmts, requestedAudioFormat.sampleFormat) ? 1 : -1;
+                    result += ranges::contains(fmts, requestedAudioFormat.sampleFormat) ? 1 : -1;
 
                 if (auto rates = codec.sampleRates(); !rates.empty())
-                    result += hasValue(rates, requestedAudioFormat.sampleRate) ? 1 : -1;
+                    result += ranges::contains(rates, requestedAudioFormat.sampleRate) ? 1 : -1;
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
                 if (auto layouts = codec.channelLayouts(); !layouts.empty())
-                    result += hasValue(layouts, requestedAudioFormat.channelLayout) ? 1 : -1;
+                    result += ranges::contains(layouts, requestedAudioFormat.channelLayout) ? 1 : -1;
 #else
                 if (auto layouts = codec.channelLayouts(); !layouts.empty())
-                    result += hasValue(layouts, requestedAudioFormat.channelLayoutMask) ? 1 : -1;
+                    result += ranges::contains(layouts, requestedAudioFormat.channelLayoutMask) ? 1 : -1;
 #endif
 
                 return result;

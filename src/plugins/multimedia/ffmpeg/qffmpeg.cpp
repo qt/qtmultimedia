@@ -18,7 +18,6 @@ extern "C" {
 }
 
 QT_BEGIN_NAMESPACE
-namespace ranges = QtMultimediaPrivate::ranges;
 
 Q_STATIC_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
 
@@ -33,7 +32,7 @@ bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format)
 
     if (codec.type() == AVMEDIA_TYPE_AUDIO) {
         const auto sampleFormats = codec.sampleFormats();
-        return hasValue(sampleFormats, AVSampleFormat(format));
+        return ranges::contains(sampleFormats, AVSampleFormat(format));
     }
 
     return false;

@@ -257,7 +257,7 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
                 // AV_CODEC_CONFIG_PIX_FORMAT since n7.1); no reason to use findAVPixelFormat as
                 // we're already in the hw_config loop
                 const auto pixelFormats = codec.pixelFormats();
-                if (shouldCheckCodecFormats && !hasValue(pixelFormats, format))
+                if (shouldCheckCodecFormats && !ranges::contains(pixelFormats, format))
                     return NotSuitableAVScore;
 
                 if (!shouldCheckCodecFormats && config->pix_fmt != format)
