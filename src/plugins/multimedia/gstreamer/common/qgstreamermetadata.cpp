@@ -157,8 +157,7 @@ QMediaMetaData::Key tagToKey(const char *tag)
         return QMediaMetaData::Key(-1);
 
     using namespace MetadataLookupImpl;
-    auto foundIterator = std::lower_bound(gstTagToMetaDataKey.begin(), gstTagToMetaDataKey.end(),
-                                          tag, compareByTag);
+    auto foundIterator = ranges::lower_bound(gstTagToMetaDataKey, tag, compareByTag);
     if (std::strcmp(foundIterator->tag, tag) == 0)
         return foundIterator->key;
 
@@ -168,8 +167,7 @@ QMediaMetaData::Key tagToKey(const char *tag)
 const char *keyToTag(QMediaMetaData::Key key)
 {
     using namespace MetadataLookupImpl;
-    auto foundIterator = std::lower_bound(metaDataKeyToGstTag.begin(), metaDataKeyToGstTag.end(),
-                                          key, compareByKey);
+    auto foundIterator = ranges::lower_bound(metaDataKeyToGstTag, key, compareByKey);
     if (foundIterator->key == key)
         return foundIterator->tag;
 
