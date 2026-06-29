@@ -542,6 +542,7 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
             QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
             QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
             QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::AVI] = {
             QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
@@ -558,7 +559,7 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
             QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
             QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
             QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
-            QMediaFormat::AudioCodec::WMA,  QMediaFormat::AudioCodec::ALAC,
+            QMediaFormat::AudioCodec::ALAC,
         };
         audioDecoders[QMediaFormat::FileFormat::Ogg] = {
             QMediaFormat::AudioCodec::FLAC,
@@ -578,12 +579,12 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
         };
         audioDecoders[QMediaFormat::FileFormat::AAC] = {
             QMediaFormat::AudioCodec::AAC,
-            QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::WMA] = {
             QMediaFormat::AudioCodec::MP3,  QMediaFormat::AudioCodec::AAC,
             QMediaFormat::AudioCodec::AC3,  QMediaFormat::AudioCodec::EAC3,
             QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::MP3] = {
             QMediaFormat::AudioCodec::MP3,
@@ -598,7 +599,7 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
         audioDecoders[QMediaFormat::FileFormat::WMV] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
             QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
-            QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::AVI] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
@@ -617,7 +618,6 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
         };
         audioDecoders[QMediaFormat::FileFormat::Ogg] = {
             QMediaFormat::AudioCodec::FLAC,
-            QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::QuickTime] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
@@ -632,12 +632,11 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
         };
         audioDecoders[QMediaFormat::FileFormat::AAC] = {
             QMediaFormat::AudioCodec::AAC,
-            QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::WMA] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
             QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
-            QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::MP3] = {};
         audioDecoders[QMediaFormat::FileFormat::FLAC] = {
@@ -650,7 +649,7 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
         audioDecoders[QMediaFormat::FileFormat::WMV] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
             QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
-            QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::AVI] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
@@ -669,7 +668,6 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
         };
         audioDecoders[QMediaFormat::FileFormat::Ogg] = {
             QMediaFormat::AudioCodec::FLAC,
-            QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::QuickTime] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
@@ -684,12 +682,11 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
         };
         audioDecoders[QMediaFormat::FileFormat::AAC] = {
             QMediaFormat::AudioCodec::AAC,
-            QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::WMA] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
             QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
-            QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::MP3] = {};
         audioDecoders[QMediaFormat::FileFormat::FLAC] = {
@@ -702,7 +699,7 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
         audioDecoders[QMediaFormat::FileFormat::WMV] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
             QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
-            QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::AVI] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
@@ -721,7 +718,6 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
         };
         audioDecoders[QMediaFormat::FileFormat::Ogg] = {
             QMediaFormat::AudioCodec::FLAC,
-            QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::QuickTime] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
@@ -736,12 +732,11 @@ std::set<QMediaFormat::AudioCodec> supportedAudioDecoders(QMediaFormat::FileForm
         };
         audioDecoders[QMediaFormat::FileFormat::AAC] = {
             QMediaFormat::AudioCodec::AAC,
-            QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::WMA] = {
             QMediaFormat::AudioCodec::AAC,  QMediaFormat::AudioCodec::AC3,
             QMediaFormat::AudioCodec::EAC3, QMediaFormat::AudioCodec::FLAC,
-            QMediaFormat::AudioCodec::Wave,
+            QMediaFormat::AudioCodec::Wave, QMediaFormat::AudioCodec::WMA,
         };
         audioDecoders[QMediaFormat::FileFormat::MP3] = {};
         audioDecoders[QMediaFormat::FileFormat::FLAC] = {
