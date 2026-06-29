@@ -103,6 +103,8 @@ QAndroidFormatInfo::QAndroidFormatInfo()
     imageFormats << QImageCapture::JPEG;
     // NOTE: Add later if needed, the Camera API doens't seem to work with it.
     // imageFormats << QImageCapture::PNG << QImageCapture::WebP;
+
+    fixupCodecMaps();
 }
 
 QAndroidFormatInfo::~QAndroidFormatInfo()

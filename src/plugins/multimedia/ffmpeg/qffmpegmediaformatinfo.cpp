@@ -121,6 +121,7 @@ static const AVOutputFormat *avFormatForFormat(QMediaFormat::FileFormat format)
 
 QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
 {
+    namespace ranges = QtMultimediaPrivate::ranges;
     using VideoCodec = QMediaFormat::VideoCodec;
     using AudioCodec = QMediaFormat::AudioCodec;
     namespace ranges = QtMultimediaPrivate::ranges;
@@ -285,6 +286,7 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
             imageFormats.append(QImageCapture::WebP);
     }
 
+    fixupCodecMaps();
 }
 
 QFFmpegMediaFormatInfo::~QFFmpegMediaFormatInfo() = default;

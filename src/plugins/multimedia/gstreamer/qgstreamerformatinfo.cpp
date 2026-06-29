@@ -415,6 +415,8 @@ QGstreamerFormatInfo::QGstreamerFormatInfo()
 //    dumpMuxers(encoders);
 
     imageFormats = getImageFormatList();
+
+    fixupCodecMaps();
 }
 
 QGstreamerFormatInfo::~QGstreamerFormatInfo() = default;

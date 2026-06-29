@@ -181,6 +181,8 @@ QWindowsFormatInfo::QWindowsFormatInfo()
     }
 
     imageFormats = getImageFormatList();
+
+    fixupCodecMaps();
 }
 
 QWindowsFormatInfo::~QWindowsFormatInfo()
