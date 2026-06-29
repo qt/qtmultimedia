@@ -262,6 +262,7 @@ QGstreamerFormatInfo::getCodecMaps(QMediaFormat::ConversionMode conversionMode,
 
         QList<QMediaFormat::AudioCodec> audioCodecs;
         QList<QMediaFormat::VideoCodec> videoCodecs;
+        bool hasAnySrcCaps = false;
 
         for (GstStaticPadTemplate *padTemplate :
              QGstUtils::GListConstRangeAdaptor<GstStaticPadTemplate *>(
@@ -270,6 +271,13 @@ QGstreamerFormatInfo::getCodecMaps(QMediaFormat::ConversionMode conversionMode,
             // check the other side for supported inputs/outputs
             if (padTemplate->direction != dataPadDirection) {
                 auto caps = QGstCaps(gst_static_caps_get(&padTemplate->static_caps), QGstCaps::HasRef);
+
+                // Demuxers like matroskademux/qtdemux/asfdemux advertise ANY on their SRC pad
+                // templates because the actual output caps depend on the stream.
+                if (gst_caps_is_any(caps.get())) {
+                    hasAnySrcCaps = true;
+                    continue;
+                }
 
                 bool acceptsRawAudio = false;
                 for (int i = 0; i < caps.size(); i++) {
@@ -300,6 +308,16 @@ QGstreamerFormatInfo::getCodecMaps(QMediaFormat::ConversionMode conversionMode,
                     }
                 }
             }
+        }
+
+        // SRC pads reported ANY: the demuxer supports whatever codecs the installed decoders
+        // handle. We claim to support all discovered audio/video codecs in that case, and rely on fixupCodecMaps() to
+        // remove unsupported combinations.
+        if (hasAnySrcCaps) {
+            if (audioCodecs.isEmpty())
+                audioCodecs = supportedAudioCodecs;
+            if (videoCodecs.isEmpty())
+                videoCodecs = supportedVideoCodecs;
         }
         if (!audioCodecs.isEmpty() || !videoCodecs.isEmpty()) {
             for (auto f : std::as_const(fileFormats)) {
