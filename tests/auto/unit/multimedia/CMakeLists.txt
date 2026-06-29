@@ -47,6 +47,7 @@ if(QT_FEATURE_qnx_io_snd)
     add_subdirectory(qqnxsndaudiobackend)
 endif()
 add_subdirectory(qrhivaluemapper)
+add_subdirectory(ranges)
 
 if(WIN32)
     add_subdirectory(qwindowsresampler)
