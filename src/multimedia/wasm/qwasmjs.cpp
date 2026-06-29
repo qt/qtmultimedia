@@ -4,6 +4,7 @@
 #include "qwasmjs_p.h"
 #include <qaudiodevice.h>
 #include <qcameradevice.h>
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
 
@@ -371,10 +372,8 @@ JsMediaInputStream::~JsMediaInputStream() = default;
 JsMediaInputStream *JsMediaInputStream::instance(const std::string &deviceId)
 {
     MediaInputStreamEntry &entry = (*s_wasmMediaInputStreams())[deviceId];
-    if (!entry.stream) {
+    if (!entry.stream)
         entry.stream = new JsMediaInputStream;
-        entry.stream->m_deviceId = deviceId;
-    }
     ++entry.referenceCount;
     return entry.stream;
 }
@@ -387,6 +386,14 @@ void JsMediaInputStream::releaseInstance(const std::string &deviceId)
     if (--it->referenceCount <= 0) {
         delete it->stream;
         s_wasmMediaInputStreams()->erase(it);
+    }
+}
+
+void JsMediaInputStream::unregisterConsumer()
+{
+    if (--m_consumerCount <= 0) {
+        m_consumerCount = 0;
+        stopMediaStream(m_mediaStream);
     }
 }
 
@@ -532,8 +539,18 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
     if (!m_mediaStream.isNull() && !m_mediaStream.isUndefined())
         m_active = m_mediaStream["active"].as<bool>();
 
-    if (m_active) { // if media stream is already active, we need to replace
-        replaceMediaTrack(id);
+    if (m_active) {
+        // The stream is already running and may be shared with another consumer
+        // (for example a second display of the same camera). A MediaStream can
+        // drive multiple video elements at once, so just notify the new consumer
+        // to attach to the existing stream. Deferred to avoid re-entering
+        // start() synchronously.
+        QTimer::singleShot(0, this, [this]() {
+            if (m_needsVideo)
+                emit mediaVideoStreamReady();
+            if (m_needsAudio)
+                emit mediaAudioStreamReady();
+        });
         return;
     }
 

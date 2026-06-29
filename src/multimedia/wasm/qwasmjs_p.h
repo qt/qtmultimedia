@@ -109,6 +109,11 @@ public:
     emscripten::val getMediaStream() { return m_mediaStream; }
     void stopMediaStream(emscripten::val stream);
 
+    // Active-consumer tracking: a single MediaStream may be shared by several
+    // displays of the same camera. Only the last consumer stops the stream.
+    void registerConsumer() { ++m_consumerCount; }
+    void unregisterConsumer();
+
 signals:
     void mediaStreamReady();
     void mediaAudioStreamReady();
@@ -121,13 +126,13 @@ private:
     bool m_needsAudio = false;
     bool m_needsVideo = false;
     bool m_active = false;
+    int m_consumerCount = 0;
     QSize m_videoResolution;
     float m_minFrameRate = 0;
     float m_maxFrameRate = 0;
 
     QScopedPointer<qstdweb::EventCallback> m_activeStreamEvent;
     QScopedPointer<qstdweb::EventCallback> m_inactiveStreamEvent;
-    std::string m_deviceId;
 };
 
 #endif // QWASMJS_P_H

@@ -154,6 +154,7 @@ private:
     bool m_hasAudio = false;
     bool m_cameraIsReady = false;
     bool m_shouldBeStarted = false;
+    bool m_streamStarted = false;
     bool m_isSeekable = false;
     bool m_useCameraRotation = false;
 
