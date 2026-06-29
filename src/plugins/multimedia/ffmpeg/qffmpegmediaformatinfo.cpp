@@ -6,72 +6,106 @@
 #include "qffmpegcodecstorage_p.h"
 #include "qffmpeg_ranges_p.h"
 
+#include <QtCore/qvarlengtharray.h>
+#include <QtCore/private/qflatmap_p.h>
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtGui/qimagewriter.h>
 
 QT_BEGIN_NAMESPACE
 
-static constexpr struct {
-    AVCodecID id;
-    QMediaFormat::VideoCodec codec;
-} s_videoCodecMap [] = {
-    { AV_CODEC_ID_MPEG1VIDEO, QMediaFormat::VideoCodec::MPEG1 },
-    { AV_CODEC_ID_MPEG2VIDEO, QMediaFormat::VideoCodec::MPEG2 },
-    { AV_CODEC_ID_MPEG4, QMediaFormat::VideoCodec::MPEG4 },
-    { AV_CODEC_ID_H264, QMediaFormat::VideoCodec::H264 },
-    { AV_CODEC_ID_HEVC, QMediaFormat::VideoCodec::H265 },
-    { AV_CODEC_ID_VP8, QMediaFormat::VideoCodec::VP8 },
-    { AV_CODEC_ID_VP9, QMediaFormat::VideoCodec::VP9 },
-    { AV_CODEC_ID_AV1, QMediaFormat::VideoCodec::AV1 },
-    { AV_CODEC_ID_THEORA, QMediaFormat::VideoCodec::Theora },
-    { AV_CODEC_ID_WMV3, QMediaFormat::VideoCodec::WMV },
-    { AV_CODEC_ID_MJPEG, QMediaFormat::VideoCodec::MotionJPEG }
-};
+using namespace Qt::Literals;
 
-static AVCodecID codecId(QMediaFormat::VideoCodec codec)
+namespace {
+
+template <size_t MapSize, typename Key, typename Value>
+auto makeReverseLookupTable(std::initializer_list<std::pair<const Key, Value>> map)
 {
-    for (const auto &c : s_videoCodecMap) {
-        if (c.codec == codec)
-            return c.id;
-    }
-    return AV_CODEC_ID_NONE;
+    using namespace QtMultimediaPrivate;
+
+    auto keyValuePairs = map | views::transform([](const auto &pair) {
+        return std::pair<const Value, Key>(pair.second, pair.first);
+    }) | ranges::to<std::vector<std::pair<const Value, Key>>>();
+
+    return keyValuePairs | ranges::to<QVarLengthFlatMap<Value, Key, MapSize>>();
 }
 
-static constexpr struct {
-    AVCodecID id;
-    QMediaFormat::AudioCodec codec;
-} s_audioCodecMap [] = {
-    { AV_CODEC_ID_MP3, QMediaFormat::AudioCodec::MP3 },
-    { AV_CODEC_ID_AAC, QMediaFormat::AudioCodec::AAC },
-    { AV_CODEC_ID_AC3, QMediaFormat::AudioCodec::AC3 },
-    { AV_CODEC_ID_EAC3, QMediaFormat::AudioCodec::EAC3 },
-    { AV_CODEC_ID_FLAC, QMediaFormat::AudioCodec::FLAC },
-    { AV_CODEC_ID_TRUEHD, QMediaFormat::AudioCodec::DolbyTrueHD },
-    { AV_CODEC_ID_OPUS, QMediaFormat::AudioCodec::Opus },
-    { AV_CODEC_ID_VORBIS, QMediaFormat::AudioCodec::Vorbis },
-    { AV_CODEC_ID_PCM_S16LE, QMediaFormat::AudioCodec::Wave },
-    { AV_CODEC_ID_WMAPRO, QMediaFormat::AudioCodec::WMA },
-    { AV_CODEC_ID_ALAC, QMediaFormat::AudioCodec::ALAC }
-};
+static constexpr auto videoCodecMap =
+        std::initializer_list<std::pair<const QMediaFormat::VideoCodec, AVCodecID>>{
+            { QMediaFormat::VideoCodec::MPEG1, AV_CODEC_ID_MPEG1VIDEO },
+            { QMediaFormat::VideoCodec::MPEG2, AV_CODEC_ID_MPEG2VIDEO },
+            { QMediaFormat::VideoCodec::MPEG4, AV_CODEC_ID_MPEG4 },
+            { QMediaFormat::VideoCodec::H264, AV_CODEC_ID_H264 },
+            { QMediaFormat::VideoCodec::H265, AV_CODEC_ID_HEVC },
+            { QMediaFormat::VideoCodec::VP8, AV_CODEC_ID_VP8 },
+            { QMediaFormat::VideoCodec::VP9, AV_CODEC_ID_VP9 },
+            { QMediaFormat::VideoCodec::AV1, AV_CODEC_ID_AV1 },
+            { QMediaFormat::VideoCodec::Theora, AV_CODEC_ID_THEORA },
+            { QMediaFormat::VideoCodec::WMV, AV_CODEC_ID_WMV3 },
+            { QMediaFormat::VideoCodec::MotionJPEG, AV_CODEC_ID_MJPEG },
+        };
 
-static AVCodecID codecId(QMediaFormat::AudioCodec codec)
+} // namespace
+
+AVCodecID codecId(QMediaFormat::VideoCodec codec)
 {
-    for (const auto &c : s_audioCodecMap) {
-        if (c.codec == codec)
-            return c.id;
-    }
-    return AV_CODEC_ID_NONE;
+    static const QVarLengthFlatMap<QMediaFormat::VideoCodec, AVCodecID, videoCodecMap.size()> map(
+            videoCodecMap.begin(), videoCodecMap.end());
+    const auto it = map.find(codec);
+    return it != map.end() ? it->second : AV_CODEC_ID_NONE;
+}
+
+QMediaFormat::VideoCodec videoCodecFromId(AVCodecID id)
+{
+    using namespace QtMultimediaPrivate;
+
+    static const auto map = makeReverseLookupTable<videoCodecMap.size()>(videoCodecMap);
+
+    const auto it = map.find(id);
+    return it != map.end() ? it->second : QMediaFormat::VideoCodec::Unspecified;
+}
+
+static constexpr auto audioCodecMap =
+        std::initializer_list<std::pair<const QMediaFormat::AudioCodec, AVCodecID>>{
+            { QMediaFormat::AudioCodec::MP3, AV_CODEC_ID_MP3 },
+            { QMediaFormat::AudioCodec::AAC, AV_CODEC_ID_AAC },
+            { QMediaFormat::AudioCodec::AC3, AV_CODEC_ID_AC3 },
+            { QMediaFormat::AudioCodec::EAC3, AV_CODEC_ID_EAC3 },
+            { QMediaFormat::AudioCodec::FLAC, AV_CODEC_ID_FLAC },
+            { QMediaFormat::AudioCodec::DolbyTrueHD, AV_CODEC_ID_TRUEHD },
+            { QMediaFormat::AudioCodec::Opus, AV_CODEC_ID_OPUS },
+            { QMediaFormat::AudioCodec::Vorbis, AV_CODEC_ID_VORBIS },
+            { QMediaFormat::AudioCodec::Wave, AV_CODEC_ID_PCM_S16LE },
+            { QMediaFormat::AudioCodec::WMA, AV_CODEC_ID_WMAPRO },
+            { QMediaFormat::AudioCodec::ALAC, AV_CODEC_ID_ALAC },
+        };
+
+AVCodecID codecId(QMediaFormat::AudioCodec codec)
+{
+    static const QVarLengthFlatMap<QMediaFormat::AudioCodec, AVCodecID, audioCodecMap.size()> map(
+            audioCodecMap.begin(), audioCodecMap.end());
+    const auto it = map.find(codec);
+    return it != map.end() ? it->second : AV_CODEC_ID_NONE;
+}
+
+QMediaFormat::AudioCodec audioCodecFromId(AVCodecID id)
+{
+    using namespace QtMultimediaPrivate;
+
+    static const auto map = makeReverseLookupTable<audioCodecMap.size()>(audioCodecMap);
+
+    const auto it = map.find(id);
+    return it != map.end() ? it->second : QMediaFormat::AudioCodec::Unspecified;
 }
 
 // mimetypes are mostly copied from qmediaformat.cpp. Unfortunately, FFmpeg uses
 // in some cases slightly different mimetypes
-static constexpr struct
+constexpr struct
 {
     QMediaFormat::FileFormat fileFormat;
     const char *mimeType;
     const char *name; // disambiguate if we have several muxers/demuxers
-} s_mimeMap[] = {
+} s_outputFormatMap[] = {
     { QMediaFormat::WMV, "video/x-ms-asf", "asf" },
     { QMediaFormat::AVI, "video/x-msvideo", nullptr },
     { QMediaFormat::Matroska, "video/x-matroska", nullptr },
@@ -86,17 +120,16 @@ static constexpr struct
     { QMediaFormat::FLAC, "audio/x-flac", nullptr },
     { QMediaFormat::MP3, "audio/mpeg", "mp3" },
     { QMediaFormat::Wave, "audio/x-wav", nullptr },
-    { QMediaFormat::Ogg, "audio/ogg", nullptr }
+    { QMediaFormat::Ogg, "audio/ogg", nullptr },
 };
 
-template <typename AVFormat>
-static QMediaFormat::FileFormat formatForAVFormat(AVFormat *format)
+QMediaFormat::FileFormat formatForAVFormat(const AVOutputFormat *format)
 {
     if (!format->mime_type || !*format->mime_type)
         return QMediaFormat::UnspecifiedFormat;
 
-    for (const auto &m : s_mimeMap) {
-        if (m.mimeType && !strcmp(m.mimeType, format->mime_type)) {
+    for (const auto &m : s_outputFormatMap) {
+        if (!strcmp(m.mimeType, format->mime_type)) {
             // check if the name matches. This is used to disambiguate where FFmpeg provides
             // multiple muxers or demuxers
             if (!m.name || !strcmp(m.name, format->name))
@@ -106,14 +139,14 @@ static QMediaFormat::FileFormat formatForAVFormat(AVFormat *format)
     return QMediaFormat::UnspecifiedFormat;
 }
 
-static const AVOutputFormat *avFormatForFormat(QMediaFormat::FileFormat format)
+const AVOutputFormat *avFormatForFormat(QMediaFormat::FileFormat format)
 {
     if (format == QMediaFormat::QuickTime || format == QMediaFormat::Mpeg4Audio)
         format = QMediaFormat::MPEG4;
     if (format == QMediaFormat::WMA)
         format = QMediaFormat::WMV;
 
-    for (const auto &m : s_mimeMap) {
+    for (const auto &m : s_outputFormatMap) {
         if (m.fileFormat == format)
             return av_guess_format(m.name, nullptr, m.mimeType);
     }
@@ -121,7 +154,43 @@ static const AVOutputFormat *avFormatForFormat(QMediaFormat::FileFormat format)
     return nullptr;
 }
 
-namespace {
+// Seems like FFmpeg uses different names for muxers and demuxers of the same format.
+// that makes it somewhat cumbersome to detect things correctly.
+// The input formats have a comma separated list of short names. We check the first one of those
+// as the docs specify that you only append to the list
+constexpr struct
+{
+    QMediaFormat::FileFormat fileFormat;
+    QLatin1String name;
+} s_inputFormatMap[] = {
+    { QMediaFormat::WMV, "asf"_L1 },
+    { QMediaFormat::AVI, "avi"_L1 },
+    { QMediaFormat::Matroska, "matroska"_L1 },
+    { QMediaFormat::MPEG4, "mov"_L1 },
+    { QMediaFormat::Ogg, "ogg"_L1 },
+    { QMediaFormat::WebM, "webm"_L1 },
+    // Audio Formats
+    // Mpeg4Audio is the same as MP4 without the video codecs
+    { QMediaFormat::AAC, "aac"_L1 },
+    // WMA is the same as WMV
+    { QMediaFormat::FLAC, "flac"_L1 },
+    { QMediaFormat::MP3, "mp3"_L1 },
+    { QMediaFormat::Wave, "wav"_L1 },
+};
+
+QMediaFormat::FileFormat formatForAVInputFormat(const AVInputFormat &format)
+{
+    if (!format.name)
+        return QMediaFormat::UnspecifiedFormat;
+
+    const QLatin1String formatName(format.name);
+    for (const auto &m : s_inputFormatMap) {
+        if (formatName.startsWith(m.name))
+            return m.fileFormat;
+    }
+
+    return QMediaFormat::UnspecifiedFormat;
+}
 
 enum class CodecType : uint8_t {
     Audio,
@@ -155,8 +224,6 @@ bool codecSupportsFormat(const AVOutputFormat *format, AVCodecID codecId)
     return false;
 }
 
-} // namespace
-
 QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
 {
     namespace ranges = QtMultimediaPrivate::ranges;
@@ -164,7 +231,6 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
 
     using VideoCodec = QMediaFormat::VideoCodec;
     using AudioCodec = QMediaFormat::AudioCodec;
-    namespace ranges = QtMultimediaPrivate::ranges;
 
     QList<AudioCodec> audioEncoders; // All audio encoders that Qt support
     QList<AudioCodec> extraAudioDecoders; // All audio decoders that do not support encoding
@@ -321,61 +387,18 @@ QFFmpegMediaFormatInfo::~QFFmpegMediaFormatInfo() = default;
 
 QMediaFormat::AudioCodec QFFmpegMediaFormatInfo::audioCodecForAVCodecId(AVCodecID id)
 {
-    for (const auto &c : s_audioCodecMap) {
-        if (c.id == id)
-            return c.codec;
-    }
-    return QMediaFormat::AudioCodec::Unspecified;
+    return audioCodecFromId(id);
 }
 
 QMediaFormat::VideoCodec QFFmpegMediaFormatInfo::videoCodecForAVCodecId(AVCodecID id)
 {
-    for (const auto &c : s_videoCodecMap) {
-        if (c.id == id)
-            return c.codec;
-    }
-    return QMediaFormat::VideoCodec::Unspecified;
+    return videoCodecFromId(id);
 }
 
 QMediaFormat::FileFormat
 QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(const AVInputFormat &format)
 {
-    // Seems like FFmpeg uses different names for muxers and demuxers of the same format.
-    // that makes it somewhat cumbersome to detect things correctly.
-    // The input formats have a comma separated list of short names. We check the first one of those
-    // as the docs specify that you only append to the list
-    static const struct
-    {
-        QMediaFormat::FileFormat fileFormat;
-        const char *name;
-    } map[QMediaFormat::LastFileFormat + 1] = {
-        { QMediaFormat::WMV, "asf" },
-        { QMediaFormat::AVI, "avi" },
-        { QMediaFormat::Matroska, "matroska" },
-        { QMediaFormat::MPEG4, "mov" },
-        { QMediaFormat::Ogg, "ogg" },
-        { QMediaFormat::WebM, "webm" },
-        // Audio Formats
-        // Mpeg4Audio is the same as MP4 without the video codecs
-        { QMediaFormat::AAC, "aac"},
-        // WMA is the same as WMV
-        { QMediaFormat::FLAC, "flac" },
-        { QMediaFormat::MP3, "mp3" },
-        { QMediaFormat::Wave, "wav" },
-        { QMediaFormat::UnspecifiedFormat, nullptr }
-    };
-
-    if (!format.name)
-        return QMediaFormat::UnspecifiedFormat;
-
-    auto *m = map;
-    while (m->fileFormat != QMediaFormat::UnspecifiedFormat) {
-        if (!strncmp(m->name, format.name, strlen(m->name)))
-            return m->fileFormat;
-        ++m;
-    }
-
-    return QMediaFormat::UnspecifiedFormat;
+    return formatForAVInputFormat(format);
 }
 
 const AVOutputFormat *
