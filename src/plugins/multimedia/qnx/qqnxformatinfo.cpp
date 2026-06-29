@@ -29,6 +29,8 @@ QQnxFormatInfo::QQnxFormatInfo()
 
     // ###
     imageFormats << QImageCapture::JPEG;
+
+    fixupCodecMaps();
 }
 
 QQnxFormatInfo::~QQnxFormatInfo() = default;

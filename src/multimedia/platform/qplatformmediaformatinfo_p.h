@@ -35,6 +35,8 @@ public:
 
     bool isSupported(const QMediaFormat &format, QMediaFormat::ConversionMode m) const;
 
+    void fixupCodecMaps();
+
     struct CodecMap {
         QMediaFormat::FileFormat format;
         QList<QMediaFormat::AudioCodec> audio;

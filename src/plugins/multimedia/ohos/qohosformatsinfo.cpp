@@ -109,6 +109,8 @@ QOhosFormatsInfo::QOhosFormatsInfo()
     }
 
     imageFormats << QImageCapture::JPEG;
+
+    fixupCodecMaps();
 }
 
 QOhosFormatsInfo::~QOhosFormatsInfo() = default;

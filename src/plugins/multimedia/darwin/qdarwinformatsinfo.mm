@@ -117,6 +117,8 @@ QDarwinFormatInfo::QDarwinFormatInfo()
 
     // ###
     imageFormats << QImageCapture::JPEG;
+
+    fixupCodecMaps();
 }
 
 QDarwinFormatInfo::~QDarwinFormatInfo() = default;
