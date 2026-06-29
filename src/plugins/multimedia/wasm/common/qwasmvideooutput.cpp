@@ -105,8 +105,13 @@ QWasmVideoOutput::QWasmVideoOutput(QObject *parent) : QObject{ parent }
 
 QWasmVideoOutput::~QWasmVideoOutput()
 {
-    if (m_mediaInputStream)
+    if (m_mediaInputStream) {
+        if (m_streamStarted) {
+            m_streamStarted = false;
+            m_mediaInputStream->unregisterConsumer();
+        }
         JsMediaInputStream::releaseInstance(m_cameraId);
+    }
 }
 
 int QWasmVideoOutput::getCurrentOrientationIndex()
@@ -219,6 +224,10 @@ void QWasmVideoOutput::start()
         m_mediaInputStream->setUseAudio(false);
         m_shouldBeStarted = true;
         m_mediaInputStream->setVideoConstraints(m_videoResolution, m_minFrameRate, m_maxFrameRate);
+        if (!m_streamStarted) {
+            m_streamStarted = true;
+            m_mediaInputStream->registerConsumer();
+        }
         m_mediaInputStream->setStreamDevice(m_cameraId);
 
     } break;
@@ -251,8 +260,11 @@ void QWasmVideoOutput::stop()
                 for (int i = 0; i < count; ++i)
                     tracks[i].call<void>("stop");
             }
-        } else if (m_mediaInputStream && m_mediaInputStream->isActive()) {
-            m_mediaInputStream->stopMediaStream(m_mediaInputStream->getMediaStream());
+        } else if (m_mediaInputStream && m_streamStarted) {
+            // Only stop the shared MediaStream once the last consumer of this
+            // camera goes away; other displays of the same camera keep running.
+            m_streamStarted = false;
+            m_mediaInputStream->unregisterConsumer();
         }
 
 
