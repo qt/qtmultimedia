@@ -3,8 +3,10 @@
 
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegcodecstorage_p.h"
-#include "qaudioformat.h"
-#include "qimagewriter.h"
+
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
+#include <QtGui/qimagewriter.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -121,6 +123,7 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
 {
     using VideoCodec = QMediaFormat::VideoCodec;
     using AudioCodec = QMediaFormat::AudioCodec;
+    namespace ranges = QtMultimediaPrivate::ranges;
 
     QList<AudioCodec> audioEncoders; // All audio encoders that Qt support
     QList<AudioCodec> extraAudioDecoders; // All audio decoders that do not support encoding
@@ -248,13 +251,23 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
     }
 
     // FFmpeg can currently only decode WMA and WMV, not encode
+    auto findDecoder = [&](QMediaFormat::FileFormat fmt) -> CodecMap * {
+        auto it = ranges::find_if(decoders, [&](const CodecMap &m) {
+            return m.format == fmt;
+        });
+        return it != decoders.end() ? &*it : nullptr;
+    };
+
     if (extraAudioDecoders.contains(AudioCodec::WMA)) {
-        decoders[QMediaFormat::WMA].audio.append(AudioCodec::WMA);
-        decoders[QMediaFormat::WMV].audio.append(AudioCodec::WMA);
+        if (auto *wma = findDecoder(QMediaFormat::WMA))
+            wma->audio.append(AudioCodec::WMA);
+        if (auto *wmv = findDecoder(QMediaFormat::WMV))
+            wmv->audio.append(AudioCodec::WMA);
     }
 
     if (extraVideoDecoders.contains(VideoCodec::WMV)) {
-        decoders[QMediaFormat::WMV].video.append(VideoCodec::WMV);
+        if (auto *wmv = findDecoder(QMediaFormat::WMV))
+            wmv->video.append(VideoCodec::WMV);
     }
 
     // Add image formats we support. We currently simply use Qt's built-in image write
