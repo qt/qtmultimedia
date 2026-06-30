@@ -18,10 +18,15 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qendian.h>
 #include <QtCore/qglobal.h>
+#include <QtCore/private/qcore_mac_p.h>
+
+#include <QtMultimedia/private/qiteratorfacade_p.h>
 
 #ifdef Q_OS_MACOS
 #  include <CoreAudioTypes/CoreAudioTypes.h>
 #endif
+
+#include <CoreFoundation/CFArray.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -54,6 +59,60 @@ struct QOSStatus
         else
             return dbg << qos.status;
     }
+};
+
+template <typename T>
+class CFArrayIterator
+    : public IteratorFacade<CFArrayIterator<T>, T, std::random_access_iterator_tag, T>
+{
+public:
+    static_assert(std::is_pointer_v<T>, "CFArrayIterator must be instantiated with a pointer type");
+
+    using difference_type = std::ptrdiff_t;
+
+    CFArrayIterator() = default;
+    CFArrayIterator(QCFType<CFArrayRef> array, CFIndex index)
+        : m_array(std::move(array)), m_index(index)
+    {
+    }
+
+    T dereference() const { return static_cast<T>(CFArrayGetValueAtIndex(m_array, m_index)); }
+
+    void advance_by(difference_type n) { m_index += n; }
+
+    difference_type distance_to(const CFArrayIterator &other) const
+    {
+        return other.m_index - m_index;
+    }
+
+private:
+    QCFType<CFArrayRef> m_array{};
+    CFIndex m_index{};
+};
+
+template <typename T = CFTypeRef>
+class CFArrayRange
+{
+public:
+    static_assert(std::is_pointer_v<T>, "CFArrayRange must be instantiated with a pointer type");
+
+    using iterator = CFArrayIterator<T>;
+
+    CFArrayRange() = default;
+    explicit CFArrayRange(QCFType<CFArrayRef> array) : m_array(std::move(array)) {}
+
+    iterator begin() const { return iterator(m_array, 0); }
+    iterator end() const { return iterator(m_array, m_array ? CFArrayGetCount(m_array) : 0); }
+
+    bool empty() const { return m_array == nullptr || CFArrayGetCount(m_array) == 0; }
+
+    std::size_t size() const
+    {
+        return m_array ? static_cast<std::size_t>(CFArrayGetCount(m_array)) : 0;
+    }
+
+private:
+    QCFType<CFArrayRef> m_array;
 };
 
 } // namespace QtMultimediaPrivate
