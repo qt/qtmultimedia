@@ -84,6 +84,9 @@ QVideoFrameFormat::PixelFormat pixelFormatFor(Camera_Format format)
 #if OH_CURRENT_API_VERSION >= 23
     case CAMERA_FORMAT_HEIC:
 #endif
+#if OH_CURRENT_API_VERSION >= 24
+    case CAMERA_FORMAT_DNG:
+#endif
         break;
     }
     return QVideoFrameFormat::Format_Invalid;
