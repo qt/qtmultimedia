@@ -110,7 +110,7 @@ private slots:
         fixture.m_capture.setActive(false);
 
         // activeChanged has now fired twice: once for start, once for stop
-        QTRY_COMPARE(fixture.m_activations.size(), 2);
+        QCOMPARE(fixture.m_activations.size(), 2);
         QVERIFY(!fixture.m_capture.isActive());
         QVERIFY(fixture.m_errors.empty());
     }
@@ -124,7 +124,7 @@ private slots:
         QVERIFY(fixture.waitForFrame().isValid());
 
         fixture.m_capture.setActive(false);
-        QTRY_VERIFY(!fixture.m_capture.isActive());
+        QVERIFY(!fixture.m_capture.isActive());
 
         fixture.m_capture.setActive(true);
 
@@ -132,7 +132,7 @@ private slots:
         QVERIFY(fixture.m_capture.isActive());
 
         // activeChanged fired three times: start, stop, start
-        QTRY_COMPARE(fixture.m_activations.size(), 3);
+        QCOMPARE(fixture.m_activations.size(), 3);
         QVERIFY(fixture.m_errors.empty());
     }
 
@@ -161,7 +161,7 @@ private slots:
         // Switch the captured window while capture is active
         fixture.m_capture.setWindow(*secondWindow);
 
-        QTRY_COMPARE(windowChanges.size(), 1);
+        QTRY_COMPARE_WITH_TIMEOUT(windowChanges.size(), 1, s_testTimeout);
         QCOMPARE(fixture.m_capture.window(), *secondWindow);
 
         // Switching source keeps the capture active
@@ -170,8 +170,10 @@ private slots:
         QCOMPARE(fixture.m_activations.size(), 1);
 
         // Make sure we get frames from the new larger window
-        QTRY_VERIFY(!fixture.m_grabber.getFrames().empty()
-            && fixture.m_grabber.getFrames().back().size() == secondWidget.size());
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !fixture.m_grabber.getFrames().empty()
+            && fixture.m_grabber.getFrames().back().size() == secondWidget.size(),
+            s_testTimeout);
 
         QVERIFY(fixture.m_errors.empty());
     }
@@ -190,7 +192,7 @@ private slots:
         // so the capture stops and becomes inactive.
         fixture.m_capture.setWindow(QCapturableWindow{});
 
-        QTRY_VERIFY(!fixture.m_capture.isActive());
+        QVERIFY(!fixture.m_capture.isActive());
 
         // activeChanged fired again for the deactivation
         QCOMPARE(fixture.m_activations.size(), 2);
