@@ -32,7 +32,7 @@ void VideoGenerator::setFrameRate(double rate)
     m_frameRate = rate;
 }
 
-void VideoGenerator::setPeriod(std::chrono::milliseconds period)
+void VideoGenerator::setPeriod(std::chrono::microseconds period)
 {
     m_period = period;
 }
@@ -91,8 +91,8 @@ QVideoFrame VideoGenerator::createFrame()
         frame.setStreamFrameRate(*m_frameRate);
 
     if (m_period) {
-        frame.setStartTime(duration_cast<microseconds>(*m_period).count() * m_frameIndex);
-        frame.setEndTime(duration_cast<microseconds>(*m_period).count() * (m_frameIndex + 1));
+        frame.setStartTime(m_period->count() * m_frameIndex);
+        frame.setEndTime(m_period->count() * (m_frameIndex + 1));
     }
 
     if (m_presentationRotation)

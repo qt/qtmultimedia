@@ -38,7 +38,7 @@ public:
     void setSize(QSize size);
     void setPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat);
     void setFrameRate(double rate);
-    void setPeriod(std::chrono::milliseconds period);
+    void setPeriod(std::chrono::microseconds period);
     void setPresentationRotation(QtVideo::Rotation rotation);
     void setPresentationMirrored(bool mirror);
     void emitEmptyFrameOnStop();
@@ -62,7 +62,7 @@ private:
     std::optional<int> m_maxFrameCount;
     int m_frameIndex = 0;
     std::optional<double> m_frameRate;
-    std::optional<std::chrono::milliseconds> m_period;
+    std::optional<std::chrono::microseconds> m_period;
     std::optional<QtVideo::Rotation> m_presentationRotation;
     std::optional<bool> m_presentationMirrored;
     bool m_emitEmptyFrameOnStop = false;
