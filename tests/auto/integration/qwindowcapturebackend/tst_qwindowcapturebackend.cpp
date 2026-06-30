@@ -261,7 +261,9 @@ private slots:
         // Check framerate is roughly 1fps
         using namespace std::chrono;
         auto durationBetweenFrames = fixture.m_grabber.durationBetweenFrames(3);
-        QVERIFY(durationBetweenFrames > 0ms);
+        QVERIFY2(
+            durationBetweenFrames > 0ms,
+            "Did not receive enough QVideoFrames to measure framerate");
         const qreal actualFps = 1000.0 / durationBetweenFrames.count();
         QCOMPARE_GT(actualFps, newFrameRate * 0.9);
         QCOMPARE_LT(actualFps, newFrameRate * 1.1);
