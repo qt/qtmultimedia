@@ -71,7 +71,7 @@ std::chrono::milliseconds FrameGrabber::durationBetweenFrames(qsizetype frameCou
     };
 
     using namespace std::chrono;
-    return QTest::qWaitFor(allFramesAreReceived)
+    return QTest::qWaitFor(allFramesAreReceived, s_testTimeout)
             ? milliseconds(timer.elapsed() / frameCount)
             : milliseconds(0);
 }
