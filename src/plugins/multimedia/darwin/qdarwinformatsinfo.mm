@@ -159,52 +159,52 @@ int QDarwinFormatInfo::audioFormatForCodec(QMediaFormat::AudioCodec codec)
 
 NSString *QDarwinFormatInfo::videoFormatForCodec(QMediaFormat::VideoCodec codec)
 {
-    const char *c = "hvc1"; // fallback is H265
     switch (codec) {
+    case QMediaFormat::VideoCodec::MPEG1:
+        return @"mp1v";
+        break;
+    case QMediaFormat::VideoCodec::MPEG2:
+        return @"mp2v";
+        break;
+    case QMediaFormat::VideoCodec::MPEG4:
+        return @"mp4v";
+        break;
+    case QMediaFormat::VideoCodec::H264:
+        return @"avc1";
+        break;
+    case QMediaFormat::VideoCodec::VP9:
+        return @"vp09";
+        break;
+    case QMediaFormat::VideoCodec::MotionJPEG:
+        return @"jpeg";
+    case QMediaFormat::VideoCodec::H265:
+        return @"hvc1";
     case QMediaFormat::VideoCodec::Unspecified:
     case QMediaFormat::VideoCodec::VP8:
-    case QMediaFormat::VideoCodec::H265:
     case QMediaFormat::VideoCodec::AV1:
     case QMediaFormat::VideoCodec::Theora:
     case QMediaFormat::VideoCodec::WMV:
-        break;
-
-    case QMediaFormat::VideoCodec::MPEG1:
-        c = "mp1v";
-        break;
-    case QMediaFormat::VideoCodec::MPEG2:
-        c = "mp2v";
-        break;
-    case QMediaFormat::VideoCodec::MPEG4:
-        c = "mp4v";
-        break;
-    case QMediaFormat::VideoCodec::H264:
-        c = "avc1";
-        break;
-    case QMediaFormat::VideoCodec::VP9:
-        c = "vp09";
-        break;
-    case QMediaFormat::VideoCodec::MotionJPEG:
-        c = "jpeg";
+    default:
+        qDebug() << "Unsupported video codec" << codec << ", using H.265 as fallback";
+        return @"hvc1";
     }
-    return [NSString stringWithUTF8String:c];
 }
 
 NSString *QDarwinFormatInfo::avFileTypeForContainerFormat(QMediaFormat::FileFormat container)
 {
     switch (container) {
-        case QMediaFormat::MPEG4:
-            return AVFileTypeMPEG4;
-        case QMediaFormat::QuickTime:
-            return AVFileTypeQuickTimeMovie;
-        case QMediaFormat::MP3:
-            return AVFileTypeMPEGLayer3;
-        case QMediaFormat::Mpeg4Audio:
-            return AVFileTypeAppleM4A;
-        case QMediaFormat::Wave:
-            return AVFileTypeWAVE;
-        default:
-            return AVFileTypeQuickTimeMovie;
+    case QMediaFormat::MPEG4:
+        return AVFileTypeMPEG4;
+    case QMediaFormat::QuickTime:
+        return AVFileTypeQuickTimeMovie;
+    case QMediaFormat::MP3:
+        return AVFileTypeMPEGLayer3;
+    case QMediaFormat::Mpeg4Audio:
+        return AVFileTypeAppleM4A;
+    case QMediaFormat::Wave:
+        return AVFileTypeWAVE;
+    default:
+        return AVFileTypeQuickTimeMovie;
     }
 }
 
