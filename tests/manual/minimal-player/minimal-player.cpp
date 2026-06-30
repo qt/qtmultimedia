@@ -114,15 +114,23 @@ int run(const CLIArgs &args)
         widget2.show();
     }
 
+    QObject::connect(&player, &QMediaPlayer::errorOccurred, &player,
+                     [](QMediaPlayer::Error error, const QString &errorString) {
+        qCritical() << "Error:" << error << "-" << errorString;
+        QCoreApplication::exit(1);
+    });
+
     player.play();
 
-    if (args.playAfterEndOfMediaOption) {
-        QObject::connect(&player, &QMediaPlayer::mediaStatusChanged, &player,
-                         [&](QMediaPlayer::MediaStatus status) {
-            if (status == QMediaPlayer::MediaStatus::EndOfMedia)
-                player.play();
-        });
-    }
+    QObject::connect(&player, &QMediaPlayer::mediaStatusChanged, &player,
+                     [&](QMediaPlayer::MediaStatus status) {
+        if (status != QMediaPlayer::MediaStatus::EndOfMedia)
+            return;
+        if (args.playAfterEndOfMediaOption)
+            player.play();
+        else
+            QCoreApplication::exit(0);
+    });
 
     return QApplication::exec();
 }
