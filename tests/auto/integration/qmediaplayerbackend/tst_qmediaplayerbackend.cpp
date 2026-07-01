@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qoperatingsystemversion.h>
+#include <QtCore/qrandom.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qtimer.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/qrandom.h>
-#include <QtCore/qoperatingsystemversion.h>
 #include "qmediaplayer.h"
 #include "mediaplayerstate.h"
 #include "fake.h"
@@ -155,6 +156,7 @@ private slots:
     void play_playsRtpStream_whenSdpFileIsLoaded();
     void play_succeedsFromSourceDevice();
     void play_succeedsFromSourceDevice_data();
+    void setPosition_doesNotStallInBufferingState_whenSourceIsSeekableDevice();
     void play_playbackLastsForTheExpectedTime();
     void play_playbackLastsForTheExpectedTime_data();
     void play_threeMediaPlayers();
@@ -1831,6 +1833,46 @@ void tst_QMediaPlayerBackend::play_succeedsFromSourceDevice_data()
         QTest::addRow("audio file, stream destroyed during playback") << m_localWavFile << false;
         QTest::addRow("video file, stream destroyed during playback") << m_localVideoFile << false;
     }
+}
+
+void tst_QMediaPlayerBackend::setPosition_doesNotStallInBufferingState_whenSourceIsSeekableDevice()
+{
+    // reproducer for QTBUG-147839
+
+    CHECK_SELECTED_URL(m_localWavFile);
+
+    // Load the audio file fully into a QBuffer — a fast, fully-seekable in-memory device.
+    QFile audioFile(u":"_s + m_localWavFile->path());
+    QVERIFY(audioFile.open(QFile::ReadOnly));
+    QByteArray audioData = audioFile.readAll();
+    QVERIFY(!audioData.isEmpty());
+
+    QBuffer buffer(&audioData);
+    QVERIFY(buffer.open(QBuffer::ReadOnly));
+
+    QMediaPlayer &player = m_fixture->player;
+    player.setSourceDevice(&buffer, *m_localWavFile);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+
+    player.play();
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    // Seek while paused. setPosition() resets the demuxer, which re-fills very quickly from
+    // the in-memory buffer. The queued packetsBuffered signal may arrive while mediaStatus()
+    // is still LoadedMedia — before the player enters BufferingMedia.
+    player.pause();
+    player.setPosition(100);
+
+    // Run the event loop so the queued packetsBuffered signal can be delivered
+    // while the player is still in LoadedMedia.
+    QTest::qWait(100ms);
+
+    player.play();
+
+    // The player must reach BufferedMedia; before the fix it got stuck in BufferingMedia forever.
+    QTRY_COMPARE_EQ(player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    player.stop();
 }
 
 void tst_QMediaPlayerBackend::play_playbackLastsForTheExpectedTime()
