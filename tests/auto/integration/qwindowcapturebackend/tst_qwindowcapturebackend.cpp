@@ -245,13 +245,12 @@ private slots:
         if (QGuiApplication::platformName() == u"wayland"_s)
             QSKIP("Framerate setting not implemented on Wayland");
 #endif
-#ifdef Q_OS_WIN
-        QSKIP(
-            "Windows does not emit frames if content is unchanged. "
-            "Cannot test framerates reliably in CI. QTBUG-147051");
-#endif
 
         WindowCaptureWithWidgetFixture fixture;
+
+        // Use animated content to make sure backend does not
+        // consider the content idle.
+        fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Animated);
 
         const float newFrameRate = 1.f;
         fixture.m_capture.setFrameRate(newFrameRate);
@@ -308,7 +307,7 @@ private slots:
 
         QVERIFY(fixture.waitForFrame().isValid());
 
-        fixture.m_widget.setDisplayPattern(TestWidget::Grid);
+        fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Grid);
 
         const QImage expectedGridImage = fixture.m_widget.grabImage();
 
@@ -333,6 +332,17 @@ private slots:
 
     void sequenceOfCapturedImages_compareEqual_whenWindowContentIsUnchanged()
     {
+#ifdef Q_OS_WIN
+        QSKIP(
+            "Windows does not emit frames if content is unchanged. "
+            "Cannot test framerates reliably in CI. QTBUG-147051");
+#endif
+#ifdef Q_OS_MACOS
+        QSKIP(
+            "The macOS ScreenCaptureKit backend will often not emit "
+            "new frames if content is unchanged");
+#endif
+
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
 

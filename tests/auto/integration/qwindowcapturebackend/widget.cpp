@@ -10,6 +10,10 @@
 
 #include <QtWidgets/qapplication.h>
 
+#include <chrono>
+
+using namespace std::chrono_literals;
+
 TestWidget::TestWidget(const QString &uuid, QScreen *screen)
 {
     // Give each window a unique title so that we can uniquely identify it
@@ -22,11 +26,29 @@ TestWidget::TestWidget(const QString &uuid, QScreen *screen)
     // This allows us to do pixel-perfect matching of captured content.
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     setFixedSize(60, 40);
+
+    m_animationTimer.setTimerType(Qt::TimerType::PreciseTimer);
+    m_animationTimer.setInterval(16ms);
+    connect(
+        &m_animationTimer,
+        &QTimer::timeout,
+        this, [this] {
+            ++m_animationTick;
+            update();
+        });
 }
 
 void TestWidget::setDisplayPattern(Pattern p)
 {
     m_pattern = p;
+
+    // The animated pattern needs continuous repaints to keep the content
+    // changing. The other patterns are static.
+    if (p == Pattern::Animated)
+        m_animationTimer.start();
+    else
+        m_animationTimer.stop();
+
     repaint();
 }
 
@@ -43,12 +65,6 @@ QImage TestWidget::grabImage()
     return grab().toImage();
 }
 
-void TestWidget::togglePattern()
-{
-    Pattern p = m_pattern == ColoredSquares ? Grid : ColoredSquares;
-    setDisplayPattern(p);
-}
-
 void TestWidget::paintEvent(QPaintEvent *)
 {
     QPainter p(this);
@@ -56,15 +72,22 @@ void TestWidget::paintEvent(QPaintEvent *)
     p.setBrush(Qt::black);
     p.drawRect(rect());
 
-    if (m_pattern == ColoredSquares)
+    switch (m_pattern) {
+    case Pattern::ColoredSquares:
         drawColoredSquares(p);
-    else
+        break;
+    case Pattern::Grid:
         drawGrid(p);
+        break;
+    case Pattern::Animated:
+        drawAnimationFrame(p);
+        break;
+    }
 
     p.end();
 }
 
-void TestWidget::drawColoredSquares(QPainter &p)
+void TestWidget::drawColoredSquares(QPainter &p) const
 {
     const std::vector<std::vector<Qt::GlobalColor>> colors = { { Qt::red, Qt::green, Qt::blue },
                                                                { Qt::white, Qt::white, Qt::white },
@@ -81,6 +104,16 @@ void TestWidget::drawColoredSquares(QPainter &p)
         }
         rect.moveTo({ 0, rect.bottom() });
     }
+}
+
+void TestWidget::drawAnimationFrame(QPainter &p) const
+{
+    // Alternate between the colored squares and the grid pattern on every tick
+    // so that the captured content changes from frame to frame.
+    if (m_animationTick % 2 == 0)
+        drawColoredSquares(p);
+    else
+        drawGrid(p);
 }
 
 void TestWidget::drawGrid(QPainter &p) const
