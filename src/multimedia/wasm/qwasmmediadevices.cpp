@@ -137,6 +137,12 @@ void QWasmMediaDevices::initDevices()
         return;
 
     m_initDone = true;
+
+    // Seed a synchronous fallback output device immediately: enumerateDevices() below
+    // is asynchronous, so without this, any consumer that needs a device synchronously
+    // right after construction (e.g. QSoundEffect) sees an empty list and fails.
+    insertFallbackAudioOutput();
+
     if (isFirefox())
         setupAudioOutputSelector();
     else
@@ -268,11 +274,7 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
         // (or selectAudioOutput for Firefox)
         // to enumerate output devices, so we just fake one.
         // The device actually does not require perms to play.
-        m_audioOutputs.insert(
-                "",
-                QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
-                        "", "System output", true, QAudioDevice::Output)));
-        m_audioOutputsAdded = true;
+        insertFallbackAudioOutput();
     }
     if (m_audioOutputsAdded || m_audioOutputsRemoved) {
         auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
@@ -280,6 +282,15 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
                                    Qt::QueuedConnection);
     }
 
+}
+
+void QWasmMediaDevices::insertFallbackAudioOutput()
+{
+    m_audioOutputs.insert(
+            "",
+            QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
+                    "", "System output", true, QAudioDevice::Output)));
+    m_audioOutputsAdded = true;
 }
 
 void QWasmMediaDevices::getMediaDevices()
