@@ -306,27 +306,29 @@ private slots:
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
 
-        const auto startTime = high_resolution_clock::now();
-
-        const QVideoFrame colorFrame = fixture.waitForFrame();
-        QVERIFY(colorFrame.isValid());
+        QVERIFY(fixture.waitForFrame().isValid());
 
         fixture.m_widget.setDisplayPattern(TestWidget::Grid);
 
-        // Ignore all frames that were grabbed since the colored frame,
-        // to ensure that we get a frame after we changed display pattern
-        const high_resolution_clock::duration delay = high_resolution_clock::now() - startTime;
-        const QVideoFrame gridFrame = fixture.waitForFrame(
-                colorFrame.endTime() + duration_cast<microseconds>(delay).count());
+        const QImage expectedGridImage = fixture.m_widget.grabImage();
 
-        QVERIFY(gridFrame.isValid());
+        // Compare every new frame we have received since we changed the
+        // target window content. If any of the new frames match,
+        // the test succeeds.
+        size_t checkedFrames = 0;
+        const auto anyNewFramesMatchesNewContent = [&] {
+            const std::vector<QVideoFrame> &frames = fixture.m_grabber.getFrames();
+            for (; checkedFrames < frames.size(); ++checkedFrames) {
+                const QImage image = frames[checkedFrames].toImage();
+                if (image.convertToFormat(expectedGridImage.format()) == expectedGridImage)
+                    return true;
+            }
+            return false;
+        };
 
-        // Make sure that the gridFrame has a different content than the colorFrame
-        QCOMPARE(gridFrame.size(), colorFrame.size());
-        QCOMPARE_NE(gridFrame.toImage(), colorFrame.toImage());
-
-        const QImage actualGridImage = fixture.m_widget.grabImage();
-        QVERIFY(fixture.compareImages(gridFrame.toImage(), actualGridImage));
+        QTRY_VERIFY_WITH_TIMEOUT(
+            anyNewFramesMatchesNewContent(),
+            s_testTimeout);
     }
 
     void sequenceOfCapturedImages_compareEqual_whenWindowContentIsUnchanged()
