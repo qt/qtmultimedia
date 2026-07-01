@@ -74,6 +74,18 @@ std::set<QMediaFormat::VideoCodec> unsupportedVideoCodecs(QMediaFormat::FileForm
     return unsupportedCodecs;
 }
 
+void verifyEncodedFrames(const MediaInfo &info, const std::vector<QColor> &expectedColors)
+{
+    QCOMPARE_EQ(info.m_frameCount, expectedColors.size());
+    QCOMPARE_EQ(info.m_colors.size(), expectedColors.size());
+    for (auto i = 0U; i < expectedColors.size(); ++i)
+        QVERIFY2(fuzzyCompare(info.m_colors[i][0], expectedColors.at(i)),
+                 qPrintable(QString("Frame %1: expected %2, got %3")
+                                    .arg(i)
+                                    .arg(expectedColors.at(i).name())
+                                    .arg(info.m_colors.at(i).at(0).name())));
+}
+
 } // namespace
 
 using namespace Qt::StringLiterals;
@@ -125,6 +137,9 @@ private slots:
     void record_adjustsFrameRate_whenSourceFrameRateDifferentFromEncoderFrameRate();
 
     void record_writesLastFrame_whenAdapterHadBufferedItBeforeEndOfStream();
+
+    void record_encodesFrames_whenSourceTimestampsAreIrregular_data();
+    void record_encodesFrames_whenSourceTimestampsAreIrregular();
 
 private:
     QTemporaryDir m_tempDir;
@@ -868,6 +883,17 @@ void tst_QMediaRecorderBackend::record_adjustsFrameRate_whenSourceFrameRateDiffe
 
     const std::array<QColor, 5> sourceColors = { Qt::red, Qt::green, Qt::blue, Qt::yellow, Qt::magenta };
 
+    std::vector<QColor> expectedColors;
+    expectedColors.reserve(expectedFrameCount);
+    for (int i = 0; i < expectedFrameCount; ++i) {
+        // Source frame index: passthrough = direct; adapter active = slot-aligned, clamped
+        const int sourceIndex = adapterActive
+                ? qMin(static_cast<int>((i * slotDuration + epsilon) / periodDuration),
+                       sourceFrameCount - 1)
+                : i;
+        expectedColors.push_back(sourceColors[sourceIndex % static_cast<int>(sourceColors.size())]);
+    }
+
     CaptureSessionFixture f{ StreamType::Video };
     if (frameRateIsSet)
         f.m_recorder.setVideoFrameRate(recorderFrameRate);
@@ -890,26 +916,10 @@ void tst_QMediaRecorderBackend::record_adjustsFrameRate_whenSourceFrameRateDiffe
     const auto info = MediaInfo::create(f.m_recorder.actualLocation());
     QVERIFY(info);
 
-    QCOMPARE_EQ(info->m_frameCount, expectedFrameCount);
-
     QCOMPARE_GE(info->m_duration, 900ms);
     QCOMPARE_LE(info->m_duration, 1100ms);
 
-    QCOMPARE_EQ(info->m_colors.size(), static_cast<size_t>(expectedFrameCount));
-    for (int i = 0; i < expectedFrameCount; ++i) {
-        // Source frame index: passthrough = direct; adapter active = slot-aligned, clamped
-        const int sourceIndex = adapterActive
-                ? qMin(static_cast<int>((i * slotDuration + epsilon) / periodDuration),
-                       sourceFrameCount - 1)
-                : i;
-        const QColor expectedColor =
-                sourceColors[sourceIndex % static_cast<int>(sourceColors.size())];
-        QVERIFY2(fuzzyCompare(info->m_colors[i][0], expectedColor),
-                 qPrintable(QString("Frame %1: expected %2, got %3")
-                                    .arg(i)
-                                    .arg(expectedColor.name())
-                                    .arg(info->m_colors[i][0].name())));
-    }
+    verifyEncodedFrames(*info, expectedColors);
 }
 
 void tst_QMediaRecorderBackend::record_writesLastFrame_whenAdapterHadBufferedItBeforeEndOfStream()
@@ -919,11 +929,10 @@ void tst_QMediaRecorderBackend::record_writesLastFrame_whenAdapterHadBufferedItB
     // Arrange
     CaptureSessionFixture f{ StreamType::Video };
     f.m_recorder.setVideoFrameRate(10.0);
-    f.m_recorder.setAutoStop(true);
     f.m_videoGenerator.setSize({ 64, 64 });
 
     // Act
-    f.start(RunMode::Push, AutoStop::No);
+    f.start(RunMode::Push, AutoStop::EmitEmpty);
     f.readyToSendVideoFrame.wait();
 
     // Frame 1 at t=0: emitted immediately for slot 0
@@ -953,6 +962,89 @@ void tst_QMediaRecorderBackend::record_writesLastFrame_whenAdapterHadBufferedItB
     const auto info = MediaInfo::create(f.m_recorder.actualLocation());
     QVERIFY(info);
     QCOMPARE_EQ(info->m_frameCount, 2);
+}
+
+void tst_QMediaRecorderBackend::record_encodesFrames_whenSourceTimestampsAreIrregular_data()
+{
+    QTest::addColumn<double>("frameRate");
+    QTest::addColumn<std::vector<QColor>>("expectedColors");
+
+    // Source frames cycle through Red, Green, Blue, Yellow, Magenta
+    // with irregular periods (see test).
+
+    QTest::addRow("Default frame rate")
+            << 0.0 << std::vector<QColor>{ Qt::red,     Qt::green, Qt::blue,  Qt::yellow,
+                                           Qt::magenta, Qt::red,   Qt::green, Qt::blue };
+
+    // 100ms period, 10 frames
+    QTest::addRow("Fixed frame rate (10 fps)")
+            << 10.0
+            << std::vector<QColor>{ Qt::red,     Qt::green, Qt::blue,  Qt::yellow, Qt::yellow,
+                                    Qt::magenta, Qt::red,   Qt::green, Qt::green,  Qt::blue };
+
+    // 200ms period, 5 frames + flushed last frame
+    QTest::addRow("Fixed frame rate (5fps)")
+            << 5.0
+            << std::vector<QColor>{ Qt::red, Qt::blue, Qt::yellow, Qt::red, Qt::green, Qt::blue };
+}
+
+void tst_QMediaRecorderBackend::record_encodesFrames_whenSourceTimestampsAreIrregular()
+{
+    QSKIP_IF_NOT_FFMPEG();
+
+    // Arrange
+    QFETCH(double, frameRate);
+    QFETCH(std::vector<QColor>, expectedColors);
+
+    // Irregular start times spanning 1s
+    // 0    red
+    // 45   green
+    // 180  blue
+    // 225  yellow
+    // 410  magenta
+    // 600  red
+    // 650  green
+    // 900  blue
+    using namespace std::chrono;
+    const std::array<microseconds, 8> startTimes = { 0ms,   45ms,  180ms, 225ms,
+                                                     410ms, 600ms, 650ms, 900ms };
+
+    CaptureSessionFixture f{ StreamType::Video };
+    f.m_videoGenerator.setSize({ 64, 64 });
+    f.m_videoGenerator.setColors({ Qt::red, Qt::green, Qt::blue, Qt::yellow, Qt::magenta });
+    if (frameRate > 0.0)
+        f.m_recorder.setVideoFrameRate(frameRate);
+
+    QSignalSpy frameCreated{ &f.m_videoGenerator, &VideoGenerator::frameCreated };
+
+    // Act
+    f.start(RunMode::Push, AutoStop::EmitEmpty);
+
+    // Disconnect frameCreated from video input so the test can override each frame's timestamp
+    // before pushing it manually.
+    QObject::disconnect(&f.m_videoGenerator, &VideoGenerator::frameCreated, &f.m_videoInput,
+                         &QVideoFrameInput::sendVideoFrame);
+
+    f.readyToSendVideoFrame.wait();
+
+    for (microseconds startTime : startTimes) {
+        f.m_videoGenerator.nextFrame(); // advances the source frame index/color, emits frameCreated
+        QVideoFrame frame = frameCreated.takeFirst().at(0).value<QVideoFrame>();
+        frame.setStartTime(startTime.count());
+        QVERIFY(f.m_videoInput.sendVideoFrame(frame));
+        f.readyToSendVideoFrame.wait();
+    }
+    f.m_videoInput.sendVideoFrame({}); // EOS
+
+    // Assert
+    QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
+             f.m_recorder.errorString().toLatin1().constData());
+
+    const auto info = MediaInfo::create(f.m_recorder.actualLocation());
+    QVERIFY(info);
+
+    verifyEncodedFrames(*info, expectedColors);
 }
 
 QTEST_MAIN(tst_QMediaRecorderBackend)
