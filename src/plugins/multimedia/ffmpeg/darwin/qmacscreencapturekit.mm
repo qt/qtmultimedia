@@ -392,6 +392,28 @@ QMacScreenCaptureKit::enumerateCapturableItems()
     return promise->get_future();
 }
 
+std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
+QMacScreenCaptureKit::createStreamFromDisplay(
+    StreamId streamId,
+    SCDisplay *scDisplay,
+    std::optional<qreal> frameRate,
+    std::function<void(QMacScreenCaptureKit&)> const &connectionSetup)
+{
+    Q_ASSERT(scDisplay);
+
+    auto scContentFilter = AVFScopedPointer<SCContentFilter>{ [[SCContentFilter alloc]
+        initWithDisplay: scDisplay
+        excludingWindows: @[] ] };
+
+    // SCDisplay.frame is in screen-points, not pixels. Multiply by
+    // pointPixelScale.
+    return createStreamFromFilter(
+        streamId,
+        scContentFilter,
+        frameRate,
+        connectionSetup);
+}
+
 // Note that we are using manual memory management here, because Obj-C block functions
 // do not support capturing move-only types.
 std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>

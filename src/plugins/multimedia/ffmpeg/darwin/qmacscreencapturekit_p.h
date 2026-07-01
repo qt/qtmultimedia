@@ -51,8 +51,6 @@ using QMacScreenCaptureStreamOutput = QT_MANGLE_NAMESPACE(QMacScreenCaptureStrea
 //
 // TODO: This class has very few FFmpeg specific components. Move this out of FFmpeg media backend
 // in the future.
-//
-// TODO: Use this backend for QScreenCapture as well.
 class QMacScreenCaptureKit : public QObject {
     Q_OBJECT
 
@@ -95,6 +93,13 @@ public:
         std::optional<qreal> frameRate);
 
     [[nodiscard]] static std::future<q23::expected<CapturableItems, QString>> enumerateCapturableItems();
+
+    [[nodiscard]] static std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
+    createStreamFromDisplay(
+        StreamId streamId,
+        SCDisplay *,
+        std::optional<qreal> frameRate,
+        std::function<void(QMacScreenCaptureKit&)> const &connectionSetup);
 
     [[nodiscard]] static std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
     createStreamFromFilter(
