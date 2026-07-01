@@ -575,6 +575,8 @@ void QWasmAudioSink::stop()
 
 void QWasmAudioSink::reset()
 {
+    if (!m_running)
+        return;
     teardownPipeline();
     m_processed.store(0, std::memory_order_relaxed);
     setError(QAudio::NoError);
