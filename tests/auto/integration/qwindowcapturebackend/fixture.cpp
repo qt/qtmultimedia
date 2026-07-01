@@ -147,11 +147,8 @@ std::optional<QCapturableWindow> WindowCaptureWithWidgetFixture::findCaptureWind
 
 void WindowCaptureWithWidgetAndRecorderFixture::start(QSize size, bool togglePattern)
 {
-    if (togglePattern) {
-        // Drive animation
-        connect(&m_grabber, &FrameGrabber::videoFrameChanged, &m_widget,
-                &TestWidget::togglePattern);
-    }
+    if (togglePattern)
+        m_widget.setDisplayPattern(TestWidget::Pattern::Animated);
 
     connect(&m_recorder, &QMediaRecorder::recorderStateChanged, this,
             &WindowCaptureWithWidgetAndRecorderFixture::recorderStateChanged);
