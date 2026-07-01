@@ -62,6 +62,7 @@ void QFFmpegMediaPlayer::setPosition(qint64 position)
         return;
 
     if (m_playbackEngine) {
+        m_demuxerBuffered = false;
         m_playbackEngine->seek(toTrackPosition(UserTrackPosition(position)));
         updatePosition();
     }
@@ -105,6 +106,7 @@ void QFFmpegMediaPlayer::onLoopChanged()
 
 void QFFmpegMediaPlayer::onBuffered()
 {
+    m_demuxerBuffered = true;
     if (mediaStatus() == QMediaPlayer::BufferingMedia)
         mediaStatusChanged(QMediaPlayer::BufferedMedia);
 }
@@ -187,6 +189,7 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     m_url = media;
     m_device = stream;
     m_playbackEngine = nullptr;
+    m_demuxerBuffered = false;
 
     if (media.isEmpty() && !stream) {
         handleIncorrectMedia(QMediaPlayer::NoMedia);
@@ -300,8 +303,10 @@ void QFFmpegMediaPlayer::runPlayback()
     m_positionUpdateTimer.start();
     stateChanged(QMediaPlayer::PlayingState);
 
-    if (mediaStatus() == QMediaPlayer::LoadedMedia || mediaStatus() == QMediaPlayer::EndOfMedia)
-        mediaStatusChanged(QMediaPlayer::BufferingMedia);
+    if (mediaStatus() == QMediaPlayer::LoadedMedia || mediaStatus() == QMediaPlayer::EndOfMedia) {
+        mediaStatusChanged(m_demuxerBuffered ? QMediaPlayer::BufferedMedia
+                                             : QMediaPlayer::BufferingMedia);
+    }
 }
 
 void QFFmpegMediaPlayer::pause()
@@ -322,8 +327,10 @@ void QFFmpegMediaPlayer::pause()
     m_positionUpdateTimer.stop();
     stateChanged(QMediaPlayer::PausedState);
 
-    if (mediaStatus() == QMediaPlayer::LoadedMedia || mediaStatus() == QMediaPlayer::EndOfMedia)
-        mediaStatusChanged(QMediaPlayer::BufferingMedia);
+    if (mediaStatus() == QMediaPlayer::LoadedMedia || mediaStatus() == QMediaPlayer::EndOfMedia) {
+        mediaStatusChanged(m_demuxerBuffered ? QMediaPlayer::BufferedMedia
+                                             : QMediaPlayer::BufferingMedia);
+    }
 }
 
 void QFFmpegMediaPlayer::stop()
@@ -336,6 +343,7 @@ void QFFmpegMediaPlayer::stop()
     if (!m_playbackEngine)
         return;
 
+    m_demuxerBuffered = false;
     m_playbackEngine->stop();
     m_positionUpdateTimer.stop();
     m_playbackEngine->seek(TrackPosition(0));

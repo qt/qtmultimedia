@@ -116,6 +116,10 @@ private:
                                                          // network connection attempt
 
     bool m_pitchCompensation = true;
+
+    // Set by onBuffered(); reset on seek/stop/new-media. Guards against the demuxer
+    // completing re-buffering before the player enters BufferingMedia (QTBUG-147839).
+    bool m_demuxerBuffered = false;
 };
 
 QT_END_NAMESPACE
