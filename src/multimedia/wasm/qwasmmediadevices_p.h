@@ -92,6 +92,7 @@ public:
 private:
     void updateCameraDevices();
     void parseDevices(emscripten::val devices);
+    void insertFallbackAudioOutput();
 
     QMap <std::string, QAudioDevice> m_audioOutputs;
     QMap <std::string, QAudioDevice> m_audioInputs;
