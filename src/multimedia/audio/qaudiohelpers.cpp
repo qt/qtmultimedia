@@ -519,9 +519,10 @@ QByteArray resampleAudioCatmullRom(QSpan<const float> input, int nChannels, int 
     if (inputFrames == 0)
         return {};
 
+    const double resampleRatio = double(outputRate) / double(inputRate);
+
     // Number of output frames
-    const qsizetype outputFrames =
-            qsizetype(double(inputFrames) * double(outputRate) / double(inputRate) + 0.5);
+    const qsizetype outputFrames = std::lround(inputFrames * resampleRatio);
     if (outputFrames <= 0)
         return {};
 
@@ -533,7 +534,7 @@ QByteArray resampleAudioCatmullRom(QSpan<const float> input, int nChannels, int 
 
     // Catmull-Rom: needs p0,p1,p2,p3 where output samples between p1 and p2
     // p[i] = clamp(i, 0, inputFrames-1)
-    const float increment = float(inputRate) / float(outputRate);
+    const float increment = 1.f / float(resampleRatio);
 
     qsizetype iPos = 0;
     float fPos = 0.0f;
