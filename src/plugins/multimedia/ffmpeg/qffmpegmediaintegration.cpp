@@ -129,7 +129,7 @@ static QPlatformSurfaceCapture *createScreenCaptureByBackend(const QString& back
         return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS)
     if (backend == u"avf")
-        return QFFmpeg::makeQAvfScreenCapture().release();
+        return QFFmpeg::makeQSckScreenCapture().release();
 #endif
     return nullptr;
 }
@@ -255,7 +255,7 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
 #if defined(Q_OS_WINDOWS)
     return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
-    return QFFmpeg::makeQAvfScreenCapture().release();
+    return QFFmpeg::makeQSckScreenCapture().release();
 #elif defined(Q_OS_ANDROID)
     return new QAndroidScreenCapture;
 #else

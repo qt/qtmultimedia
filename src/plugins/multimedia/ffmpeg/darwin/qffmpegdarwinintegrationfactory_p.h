@@ -28,7 +28,7 @@ namespace QFFmpeg {
 
 [[nodiscard]] std::unique_ptr<QPlatformCamera> makeQAvfCamera(QCamera &);
 [[nodiscard]] std::unique_ptr<QPlatformImageCapture> makeQAvfImageCapture(QImageCapture &);
-[[nodiscard]] std::unique_ptr<QPlatformSurfaceCapture> makeQAvfScreenCapture();
+[[nodiscard]] std::unique_ptr<QPlatformSurfaceCapture> makeQSckScreenCapture();
 [[nodiscard]] std::unique_ptr<QPlatformCapturableWindows> makeQSckCapturableWindows();
 [[nodiscard]] std::unique_ptr<QPlatformSurfaceCapture> makeQSckWindowCapture();
 
