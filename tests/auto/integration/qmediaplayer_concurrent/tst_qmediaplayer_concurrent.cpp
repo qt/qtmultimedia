@@ -6,9 +6,11 @@
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qaudiooutput.h>
 #include <private/testvideosink_p.h>
+#include <private/mediabackendutils_p.h>
 
 #include <QtCore/qstring.h>
 #include <QtCore/qatomic.h>
+#include <QtCore/qoperatingsystemversion.h>
 #include <chrono>
 
 using namespace std::chrono_literals;
@@ -27,6 +29,9 @@ private Q_SLOTS:
     // See also QTBUG-129597
     void play_playsVideo_whenMediaBackendInitializedOnWorkerThread()
     {
+        if (isCI() && QOperatingSystemVersion::current() <= QOperatingSystemVersion::Windows10)
+            QSKIP("Fails on Windows 10 CI due to COM (de)initialization issues");
+
         const QUrl url{ "qrc:3colors_with_sound_1s.mp4"_L1 };
 
         size_t threadCount = 3;
@@ -64,15 +69,13 @@ private:
         bool stopped = false;
         connect(&player, &QMediaPlayer::playbackStateChanged, &player,
                 [&](QMediaPlayer::PlaybackState state) {
-                    if (state == QMediaPlayer::StoppedState)
-                        stopped = true;
-                });
+            if (state == QMediaPlayer::StoppedState)
+                stopped = true;
+        });
 
-        return QTest::qWaitFor(
-                [&] { //
-                    return stopped;
-                },
-                60s) && player.error() == QMediaPlayer::NoError;
+        return QTest::qWaitFor([&] { //
+            return stopped;
+        }, 60s) && player.error() == QMediaPlayer::NoError;
     }
 };
 
