@@ -35,7 +35,7 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
     m_sourceParams.swFormat =
             isSwPixelFormat(m_sourceParams.format) ? m_sourceParams.format : swFormat;
     m_sourceParams.transform = qNormalizedSurfaceTransformation(format);
-    m_sourceParams.frameRate = m_fixedSourceFrameRate.value_or(30.f);
+    m_sourceParams.frameRate = m_fixedSourceFrameRate.value_or(0.f);
     m_sourceParams.colorTransfer = QFFmpeg::toAvColorTransfer(format.colorTransfer());
     m_sourceParams.colorSpace = QFFmpeg::toAvColorSpace(format.colorSpace());
     m_sourceParams.colorRange = QFFmpeg::toAvColorRange(format.colorRange());
@@ -43,12 +43,12 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
     if (!m_settings.videoResolution().isValid())
         m_settings.setVideoResolution(m_sourceParams.size);
 
-    const bool explicitTargetRate = m_settings.videoFrameRate() > 0.;
-    if (!explicitTargetRate)
-        m_settings.setVideoFrameRate(m_sourceParams.frameRate);
-
-    if (m_fixedSourceFrameRate || explicitTargetRate)
-        m_frameRateAdapter.setRates(m_fixedSourceFrameRate, m_settings.videoFrameRate());
+    // Use a provisional target before negotiation with codec. This is for first
+    // frame, before init() is called
+    const qreal provisionalTargetRate = m_settings.videoFrameRate() > 0.
+            ? m_settings.videoFrameRate()
+            : m_sourceParams.frameRate;
+    m_frameRateAdapter.setRates(m_fixedSourceFrameRate, provisionalTargetRate);
 }
 
 VideoEncoder::~VideoEncoder() = default;
@@ -127,7 +127,7 @@ bool VideoEncoder::init()
         return false;
     }
 
-    // TODO: Make adapter use adjusted frame rate
+    m_frameRateAdapter.setRates(m_fixedSourceFrameRate, m_frameEncoder->codecFrameRate());
 
     return EncoderThread::init();
 }
@@ -269,9 +269,11 @@ std::pair<qint64, qint64> VideoEncoder::frameTimeStamps(const QVideoFrame &frame
     }
 
     if (endTime == -1) {
+        // No endTime: advance by an assumed duration. If the frame rate
+        // adapter is enabled, these get overridden later
         qreal frameRate = frame.streamFrameRate();
         if (frameRate <= 0.)
-            frameRate = m_settings.videoFrameRate();
+            frameRate = DefaultVideoFrameRate;
 
         Q_ASSERT(frameRate > 0.f);
         endTime = startTime + static_cast<qint64>(std::round(VideoFrameTimeBase / frameRate));

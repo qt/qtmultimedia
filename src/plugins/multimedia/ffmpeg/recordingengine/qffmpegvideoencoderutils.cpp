@@ -6,6 +6,7 @@
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/private/qminimalflatset_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegrecordingengineutils_p.h>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -241,23 +242,35 @@ AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
         return MinAVScore;
 }
 
-AVRational adjustFrameRate(QSpan<const AVRational> supportedRates, qreal requestedRate)
+AVRational adjustFrameRate(QSpan<const AVRational> supportedRates, qreal settingsRate,
+                           qreal sourceRate)
 {
-    auto calcScore = [requestedRate](const AVRational &rate) {
+    qreal preferredRate = 0.;
+    if (settingsRate > 0)
+        preferredRate = settingsRate;
+    else if (sourceRate > 0)
+        preferredRate = sourceRate;
+    else if (supportedRates.empty())
+        preferredRate = 0.;
+    else
+        preferredRate = qreal(DefaultVideoFrameRate);
+
+    auto calcScore = [preferredRate](const AVRational &rate) {
         // relative comparison
-        return qMin(requestedRate * rate.den, qreal(rate.num))
-                / qMax(requestedRate * rate.den, qreal(rate.num));
+        return qMin(preferredRate * rate.den, qreal(rate.num))
+                / qMax(preferredRate * rate.den, qreal(rate.num));
     };
 
     const auto result = findBestAVValue(supportedRates, calcScore);
     if (result && result->num && result->den)
         return *result;
 
-    const auto [num, den] = qRealToFraction(requestedRate);
+    const auto [num, den] = qRealToFraction(preferredRate);
     return { num, den };
 }
 
-AVRational adjustFrameTimeBase(QSpan<const AVRational> supportedRates, AVRational frameRate)
+AVRational adjustFrameTimeBase(QSpan<const AVRational> supportedRates, AVRational frameRate,
+                               bool isFixedRate)
 {
     // TODO: user-specified frame rate might be required.
     if (!supportedRates.empty()) {
@@ -273,6 +286,9 @@ AVRational adjustFrameTimeBase(QSpan<const AVRational> supportedRates, AVRationa
 
         return { frameRate.den, frameRate.num };
     }
+
+    if (isFixedRate)
+        return { frameRate.den, frameRate.num };
 
     constexpr int TimeScaleFactor = 1000; // Allows not to follow fixed rate
     return { frameRate.den, frameRate.num * TimeScaleFactor };

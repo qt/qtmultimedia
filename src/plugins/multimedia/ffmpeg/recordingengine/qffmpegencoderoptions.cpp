@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qffmpegencoderoptions_p.h"
 
-#include "qffmpegmediaformatinfo_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediaformatinfo_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegrecordingengineutils_p.h>
 
 #include <QtMultimedia/qaudioformat.h>
 #include <QtCore/private/qflatmap_p.h>
@@ -54,14 +55,19 @@ static int bitrateForSettings(const QMediaEncoderSettings &settings, bool hdr = 
     QSize s = settings.videoResolution();
     double bitrate = bitsPerPixel[int(settings.videoCodec())][settings.quality()]*s.width()*s.height();
 
+    // Frame rate can be 0 with variable-rate sources
+    const double frameRate = settings.videoFrameRate() > 0.
+            ? settings.videoFrameRate()
+            : static_cast<double>(QFFmpeg::DefaultVideoFrameRate);
+
     if (settings.videoCodec() != QMediaFormat::VideoCodec::MotionJPEG) {
         // We assume that doubling the framerate requires 1.5 times the amount of data (not twice, as intraframe
         // differences will be smaller). 4 times the frame rate uses thus 2.25 times the data, etc.
-        float rateMultiplier = log2(settings.videoFrameRate()/30.);
+        float rateMultiplier = log2(frameRate / 30.);
         bitrate *= pow(1.5, rateMultiplier);
     } else {
         // MotionJPEG doesn't optimize between frames, so we have a linear dependency on framerate
-        bitrate *= settings.videoFrameRate()/30.;
+        bitrate *= frameRate / 30.;
     }
 
     // HDR requires 10bits per pixel instead of 8, so apply a factor of 1.25.
