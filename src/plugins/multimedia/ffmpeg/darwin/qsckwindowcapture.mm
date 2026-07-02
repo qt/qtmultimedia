@@ -126,12 +126,17 @@ bool QSckWindowCapture::setActiveInternal(bool active)
 
         AVFScopedPointer<SCWindow> &scWindow = *scWindowResult;
 
-        // Start and wait for the stream. Blocking operation.
+        auto setupConnections = [&](QMacScreenCaptureKit &newObject) {
+            setupQMacScreenCaptureKitConnections(*this, newObject);
+        };
+
+        // Start and wait for the stream to start. Blocking operation.
         using ResultType = q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>;
-        std::future<ResultType> streamResultFuture = QMacScreenCaptureKit::createStream(
+        std::future<ResultType> streamResultFuture = QMacScreenCaptureKit::createStreamFromWindow(
             newStreamId,
             scWindow.data(),
-            frameRate());
+            frameRate(),
+            setupConnections);
         ResultType streamResult = streamResultFuture.get();
         if (!streamResult) {
             qCWarning(qLcMacScreenCapture)
@@ -143,9 +148,6 @@ bool QSckWindowCapture::setActiveInternal(bool active)
         }
 
         std::unique_ptr<QMacScreenCaptureKit> &macScreenCaptureKit = *streamResult;
-        setupQMacScreenCaptureKitConnections(
-            *this,
-            *macScreenCaptureKit.get());
 
         auto newActiveData = std::make_unique<ActiveData>();
         newActiveData->macScreenCaptureKit = std::move(macScreenCaptureKit);

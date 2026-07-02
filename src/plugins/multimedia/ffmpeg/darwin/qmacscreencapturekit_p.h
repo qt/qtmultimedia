@@ -24,6 +24,7 @@
 
 #import <ScreenCaptureKit/ScreenCaptureKit.h>
 
+#include <functional>
 #include <future>
 #include <memory>
 #include <optional>
@@ -98,13 +99,15 @@ public:
         int64_t streamId,
         SCContentFilter *,
         QSize resolutionPx,
-        std::optional<qreal> frameRate);
+        std::optional<qreal> frameRate,
+        std::function<void(QMacScreenCaptureKit&)> const &connectionSetup);
 
     [[nodiscard]] static std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
-    createStream(
+    createStreamFromWindow(
         int64_t streamId,
         SCWindow *,
-        std::optional<qreal> frameRate);
+        std::optional<qreal> frameRate,
+        std::function<void(QMacScreenCaptureKit&)> const &connectionSetup);
 
     // Called from background thread when stream needs to be configured with new
     // output resolution. Don't call directly.
