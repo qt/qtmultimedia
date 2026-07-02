@@ -403,7 +403,8 @@ QMacScreenCaptureKit::createStreamFromFilter(
     int64_t streamId,
     SCContentFilter *scContentFilter,
     QSize resolutionPx,
-    std::optional<qreal> frameRate)
+    std::optional<qreal> frameRate,
+    std::function<void(QMacScreenCaptureKit&)> const &connectionSetup)
 {
     using ResultType = q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>;
 
@@ -416,6 +417,9 @@ QMacScreenCaptureKit::createStreamFromFilter(
     auto captureKit = std::make_unique<QMacScreenCaptureKit>();
     captureKit->m_streamId = streamId;
     captureKit->m_frameRate = frameRate;
+    if (connectionSetup) {
+        connectionSetup(*captureKit);
+    }
 
     q23::expected<AVFScopedPointer<QMacScreenCaptureStreamOutput>, QString> streamOutputResult =
         createStreamOutput(
@@ -478,11 +482,17 @@ QMacScreenCaptureKit::createStreamFromFilter(
     return future;
 }
 
+// Frames may arrive on the background thread immediately after the
+// creation success event has been emitted, sometimes even out of order.
+// This function takes a function that allows us to establish
+// the connections on the newly constructed object before
+// the stream ever starts, so we never miss any frames.
 std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
-QMacScreenCaptureKit::createStream(
+QMacScreenCaptureKit::createStreamFromWindow(
     int64_t streamId,
     SCWindow *scWindow,
-    std::optional<qreal> frameRate)
+    std::optional<qreal> frameRate,
+    std::function<void(QMacScreenCaptureKit&)> const &connectionSetup)
 {
     Q_ASSERT(scWindow);
 
@@ -499,7 +509,8 @@ QMacScreenCaptureKit::createStream(
         QSize {
             static_cast<int>(std::round(scWindow.frame.size.width * pointPixelScale)),
             static_cast<int>(std::round(scWindow.frame.size.height * pointPixelScale)) },
-        frameRate);
+        frameRate,
+        connectionSetup);
 }
 
 AVFScopedPointer<SCStreamConfiguration> QMacScreenCaptureKit::createStreamConfig(
