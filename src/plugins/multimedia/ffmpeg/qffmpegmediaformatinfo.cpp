@@ -435,8 +435,6 @@ int64_t QFFmpegMediaFormatInfo::avChannelLayout(QAudioFormat::ChannelConfig chan
         avChannelLayout |= AV_CH_TOP_BACK_RIGHT;
     if (channelConfig & (1 << QAudioFormat::TopBackCenter))
         avChannelLayout |= AV_CH_TOP_BACK_CENTER;
-    // The defines used below got added together for FFmpeg 4.4
-#ifdef AV_CH_TOP_SIDE_LEFT
     if (channelConfig & (1 << QAudioFormat::TopSideLeft))
         avChannelLayout |= AV_CH_TOP_SIDE_LEFT;
     if (channelConfig & (1 << QAudioFormat::TopSideRight))
@@ -447,7 +445,6 @@ int64_t QFFmpegMediaFormatInfo::avChannelLayout(QAudioFormat::ChannelConfig chan
         avChannelLayout |= AV_CH_BOTTOM_FRONT_LEFT;
     if (channelConfig & (1 << QAudioFormat::BottomFrontRight))
         avChannelLayout |= AV_CH_BOTTOM_FRONT_RIGHT;
-#endif
     return avChannelLayout;
 }
 
@@ -492,8 +489,6 @@ QAudioFormat::ChannelConfig QFFmpegMediaFormatInfo::channelConfigForAVLayout(int
         channelConfig |= QAudioFormat::channelConfig(QAudioFormat::TopBackRight);
     if (avChannelLayout & AV_CH_TOP_BACK_CENTER)
         channelConfig |= QAudioFormat::channelConfig(QAudioFormat::TopBackCenter);
-        // The defines used below got added together for FFmpeg 4.4
-#ifdef AV_CH_TOP_SIDE_LEFT
     if (avChannelLayout & AV_CH_TOP_SIDE_LEFT)
         channelConfig |= QAudioFormat::channelConfig(QAudioFormat::TopSideLeft);
     if (avChannelLayout & AV_CH_TOP_SIDE_RIGHT)
@@ -504,7 +499,6 @@ QAudioFormat::ChannelConfig QFFmpegMediaFormatInfo::channelConfigForAVLayout(int
         channelConfig |= QAudioFormat::channelConfig(QAudioFormat::BottomFrontLeft);
     if (avChannelLayout & AV_CH_BOTTOM_FRONT_RIGHT)
         channelConfig |= QAudioFormat::channelConfig(QAudioFormat::BottomFrontRight);
-#endif
     return QAudioFormat::ChannelConfig(channelConfig);
 }
 

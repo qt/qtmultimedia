@@ -28,10 +28,11 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+static_assert(LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 70, 100),
+              "FFmpeg 4.4 or newer is required (libavutil >= 56.70)");
+
 #define QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT \
     (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 24, 100)) // since FFmpeg n5.1
-#define QT_FFMPEG_HAS_VULKAN \
-    (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(58, 91, 100)) // since FFmpeg n4.3
 #define QT_FFMPEG_HAS_FRAME_TIME_BASE \
     (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 18, 100)) // since FFmpeg n5.0
 #define QT_FFMPEG_HAS_FRAME_DURATION \
