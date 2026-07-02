@@ -105,23 +105,38 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-// Reads the SCStreamFrameInfoContentRect for the given CMSampleBufferRef.
-// This usually means the window size at the time a frame was outputted.
-// The resolution outputted is in pixel coordinates.
+// Useful metadata grabbed from a CMSampleBufferRef.
+struct FrameInfo
+{
+    SCFrameStatus status;
+
+    // The size of the captured content, in pixel-coordinates.
+    // Can be used to detect e.g. window size changes.
+    QSize contentRect;
+};
+
+// Reads the frame status and content rect for the given CMSampleBufferRef.
+// The content rect usually means the window size at the time a frame was
+// outputted. The resolution is in pixel coordinates.
 // Error message is not user-facing.
-[[nodiscard]] q23::expected<QSize, QString> ReadContentRect(CMSampleBufferRef sampleBuffer)
+[[nodiscard]] static q23::expected<FrameInfo, QString> readFrameInfo(CMSampleBufferRef sampleBuffer)
 {
     CFArrayRef attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, false);
-    if (!attachments)
+    if (!attachments || CFArrayGetCount(attachments) == 0)
         return q23::unexpected{ u"CMSampleBuffer has no attachments array"_s };
 
     CFDictionaryRef attachment = (CFDictionaryRef)CFArrayGetValueAtIndex(attachments, 0);
-
     NSDictionary *dict = (__bridge NSDictionary *)attachment;
+
+    NSNumber *statusNumber = dict[(id)SCStreamFrameInfoStatus];
+    if (!statusNumber)
+        return q23::unexpected{ u"CMSampleBuffer has no frame status"_s };
+
+    FrameInfo info;
+    info.status = static_cast<SCFrameStatus>(statusNumber.intValue);
 
     CGRect contentRect = CGRectZero;
     NSDictionary *frameInfo = dict[(id)SCStreamFrameInfoContentRect];
-
     if (frameInfo) {
         contentRect = CGRectMakeWithDictionaryRepresentation(
             (__bridge CFDictionaryRef)frameInfo, &contentRect)
@@ -137,9 +152,11 @@ namespace QFFmpeg {
     if (contentScale <= 0.0)
         contentScale = 1.0;
 
-    return QSize{
+    info.contentRect = QSize{
         static_cast<int>(std::round(contentRect.size.width * scaleFactor / contentScale)),
         static_cast<int>(std::round(contentRect.size.height * scaleFactor / contentScale)), };
+
+    return info;
 }
 
 // Invoked on background dispatch-queue.
@@ -229,33 +246,36 @@ static void handleFrameOutput(
 
     Q_ASSERT(streamOutput.m_qScreenCaptureKit);
 
-    // Try to read the updated resolution (content rect) of the window we are
-    // capturing. If we can't read it, then leave stream untouched.
-    // If the window size is different from our current stream configuration,
-    // try to issue a reconfiguration. If there is already an on-going reconfiguration
-    // we skip it and try again next frame.
-    q23::expected<QSize, QString> readContentRectResult = ReadContentRect(sampleBufferRef);
-    if (readContentRectResult) {
-        QSize contentRect = *readContentRectResult;
-
-        // If the content rect is empty, it's usually an indication that the window has
-        // been minimized while capturing it. We keep the stream unchanged so that it
-        // is automatically resumed when the window is restored.
-        if (!contentRect.isEmpty()) {
-            bool newContentRectIsDifferent =
-                streamOutput.m_previousFrameContentRect
-                && *streamOutput.m_previousFrameContentRect != contentRect;
-            if (newContentRectIsDifferent)
-                streamOutput.m_qScreenCaptureKit->updateStream(contentRect);
-
-            streamOutput.m_previousFrameContentRect = contentRect;
-        }
-
-    } else {
-        streamOutput.m_previousFrameContentRect = std::nullopt;
+    q23::expected<FrameInfo, QString> frameInfoResult = readFrameInfo(sampleBufferRef);
+    if (!frameInfoResult) {
         qCDebug(qLcMacScreenCapture)
-            << "Unable to read window content rect from CMSampleBUffer: "
-            << readContentRectResult.error();
+            << "Error while reading frame info of CMSampleBufferRef: "
+            << frameInfoResult.error();
+        return;
+    }
+
+    const FrameInfo &frameInfo = *frameInfoResult;
+
+    // ScreenCaptureKit only hands us a new hardware buffer when the frame status
+    // is complete. For other statuses (e.g. idle when the captured content is
+    if (frameInfo.status != SCFrameStatusComplete)
+        return;
+
+    // The content rect is the updated resolution of the window we are capturing.
+    // If the window size is different from our current stream configuration,
+    // issue a reconfiguration.
+    //
+    // If the content rect is empty, it's usually an indication that the window has
+    // been minimized while capturing it. We keep the stream unchanged so that it
+    // is automatically resumed when the window is restored.
+    if (!frameInfo.contentRect.isEmpty()) {
+        bool newContentRectIsDifferent =
+            streamOutput.m_previousFrameContentRect
+            && *streamOutput.m_previousFrameContentRect != frameInfo.contentRect;
+        if (newContentRectIsDifferent)
+            streamOutput.m_qScreenCaptureKit->updateStream(frameInfo.contentRect);
+
+        streamOutput.m_previousFrameContentRect = frameInfo.contentRect;
     }
 
     q23::expected<QVideoFrame, QString> videoFrameResult = createQVideoFrame(
