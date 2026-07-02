@@ -124,22 +124,26 @@ private slots:
 
     void setActive_restartsWindowCapture_whenStartedAgainAfterStop()
     {
+        constexpr int restartCount = 3;
+
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
 
         // Ensure capture is actually running before stopping it
         QVERIFY(fixture.waitForFrame().isValid());
 
-        fixture.m_capture.setActive(false);
-        QVERIFY(!fixture.m_capture.isActive());
+        for (int i = 0; i < restartCount; ++i) {
+            fixture.m_capture.setActive(false);
+            QVERIFY(!fixture.m_capture.isActive());
 
-        fixture.m_capture.setActive(true);
+            fixture.m_capture.setActive(true);
 
-        QVERIFY(fixture.waitForFrame().isValid());
-        QVERIFY(fixture.m_capture.isActive());
+            QVERIFY(fixture.waitForFrame().isValid());
+            QVERIFY(fixture.m_capture.isActive());
+        }
 
-        // activeChanged fired three times: start, stop, start
-        QCOMPARE(fixture.m_activations.size(), 3);
+        // activeChanged fired for the initial start plus a stop/start pair per restart
+        QCOMPARE(fixture.m_activations.size(), 1 + 2 * restartCount);
         QVERIFY(fixture.m_errors.empty());
     }
 
