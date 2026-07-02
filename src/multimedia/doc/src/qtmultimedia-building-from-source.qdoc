@@ -29,6 +29,9 @@ recommend using the same major version of FFmpeg that is listed in
 \l{Target platform and backend notes}. For information on how to build
 the FFmpeg development libraries, see \l{Building FFmpeg from source}.
 
+\note The minimum supported FFmpeg version for the Qt Multimedia FFmpeg
+backend is FFmpeg 4.4.
+
 To build Qt Multimedia with FFmpeg support, specify the \c{-ffmpeg-dir}
 option on the configure command line when building Qt.
 
