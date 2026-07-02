@@ -11,7 +11,7 @@
  \summary {Disables FFmpeg code-signing on iOS.}
 
  When you embed FFmpeg binaries into an iOS application bundle, the
- \l{qt6_add_ios_ffmpeg_libraries}{qt6_add_ios_ffmpeg_libraries()}
+ \l qt_add_ios_ffmpeg_libraries()
  command also enables code-signing of those binaries by default.
  To avoid this, use the variable
  \c{QT_NO_FFMPEG_XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY}:
