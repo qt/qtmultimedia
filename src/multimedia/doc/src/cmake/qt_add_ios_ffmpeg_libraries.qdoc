@@ -6,7 +6,7 @@
 \ingroup cmake-commands-qtmultimedia
 
 \title qt_add_ios_ffmpeg_libraries
-\keyword qt6_add_ios_ffmpeg_libraries
+\keyword qt_add_ios_ffmpeg_libraries()
 
 \summary {Auxiliary function which embeds FFmpeg binaries in iOS app bundle.}
 
