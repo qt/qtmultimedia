@@ -29,6 +29,11 @@ namespace QFFmpeg {
 
 constexpr qint64 VideoFrameTimeBase = 1000000; // us in sec
 
+// Fallback frame rate used when no real rate is known (e.g. variable-rate sources
+// with untimed frames), chosen to keep pts advancing and satisfy players/muxers
+// that require a valid duration.
+constexpr int DefaultVideoFrameRate = 30;
+
 class EncoderThread;
 
 struct FrameInfo

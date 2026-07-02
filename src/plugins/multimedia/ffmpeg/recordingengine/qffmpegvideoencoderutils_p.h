@@ -34,12 +34,26 @@ std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, cons
 AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat);
 
 /**
- * @brief adjustFrameRate get a rational frame rate be requested qreal rate.
- *        If the codec supports fixed frame rate (non-null supportedRates),
- *        the function selects the most suitable one,
- *        otherwise just makes AVRational from qreal.
+ * @brief adjustFrameRate resolves the effective frame rate to negotiate with a codec.
+ *
+ *        settingsRate is the user-requested rate from QMediaEncoderSettings
+ *        (<= 0 means unset). sourceRate is the source stream's fixed rate
+ *        (<= 0 means variable/unknown).
+ *
+ *        Target rate priority: settingsRate, if set, always wins. Otherwise sourceRate,
+ *        if fixed, is used. Otherwise, if the codec cannot do variable rate
+ *        (non-empty supportedRates), DefaultVideoFrameRate is used as a
+ *        last-resort target. If the codec can do variable rate (empty
+ *        supportedRates) and neither settingsRate nor sourceRate is set,
+ *        the result stays variable ({0, 1}).
+ *
+ *        If the codec supports only fixed frame rates (non-null
+ *        supportedRates), the function selects the closest supported rate
+ *        to the resolved preference; otherwise it converts the preference
+ *        directly to an AVRational.
  */
-AVRational adjustFrameRate(QSpan<const AVRational> supportedRates, qreal requestedRate);
+AVRational adjustFrameRate(QSpan<const AVRational> supportedRates, qreal settingsRate,
+                           qreal sourceRate);
 
 /**
  * @brief adjustFrameTimeBase gets adjusted timebase by a list of supported frame rates
@@ -47,14 +61,15 @@ AVRational adjustFrameRate(QSpan<const AVRational> supportedRates, qreal request
  *
  *        Timebase is the fundamental unit of time (in seconds) in terms
  *        of which frame timestamps are represented.
- *        For fixed-fps content (non-null supportedRates),
+ *        For fixed-fps content (non-null supportedRates, or isFixedRate true),
  *        timebase should be 1/framerate.
  *
  *        For more information, see AVStream::time_base and AVCodecContext::time_base.
  *
  *        The adjusted time base is supposed to be set to stream and codec context.
  */
-AVRational adjustFrameTimeBase(QSpan<const AVRational> supportedRates, AVRational frameRate);
+AVRational adjustFrameTimeBase(QSpan<const AVRational> supportedRates, AVRational frameRate,
+                               bool isFixedRate);
 
 QSize adjustVideoResolution(const Codec &codec, QSize requestedResolution);
 

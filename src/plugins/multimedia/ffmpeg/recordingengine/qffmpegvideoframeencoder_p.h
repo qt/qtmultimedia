@@ -15,6 +15,7 @@
 //
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegrecordingengineutils_p.h>
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 
@@ -115,7 +116,18 @@ private:
     bool m_downloadFromHW = false;
     bool m_uploadToHW = false;
 
+    qreal m_sourceFrameRate = 0.f; // 0 = variable/unknown
     AVRational m_codecFrameRate = { 0, 1 };
+
+    // m_codecFrameRate as fed to AVCodecContext::framerate and used to derive the
+    // stream time base. Unlike m_codecFrameRate (which stays {0, 1} for a genuinely
+    // variable-rate stream), this is never zero
+    AVRational effectiveCodecFrameRate() const
+    {
+        return m_codecFrameRate.den > 0 && m_codecFrameRate.num > 0
+                ? m_codecFrameRate
+                : AVRational{ DefaultVideoFrameRate, 1 };
+    }
 
     int64_t m_prevPacketDts = AV_NOPTS_VALUE;
     int64_t m_packetDtsOffset = 0;

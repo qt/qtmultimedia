@@ -6,6 +6,7 @@
 #include "qffmpegencoderoptions_p.h"
 #include "qffmpegvideoencoderutils_p.h"
 #include "qffmpegcodecstorage_p.h"
+#include "qffmpegrecordingengineutils_p.h"
 
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qoperatingsystemversion.h>
@@ -169,7 +170,8 @@ VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const Codec &codec, HWAcc
       m_accel(std::move(hwAccel)),
       m_sourceSize(sourceParams.size),
       m_sourceFormat(sourceParams.format),
-      m_sourceSWFormat(sourceParams.swFormat)
+      m_sourceSWFormat(sourceParams.swFormat),
+      m_sourceFrameRate(sourceParams.frameRate)
 {
 }
 
@@ -258,7 +260,7 @@ void VideoFrameEncoder::initCodecFrameRate()
         for (AVRational rate : frameRates)
             qCDebug(qLcVideoFrameEncoder) << "supported frame rate:" << rate;
 
-    m_codecFrameRate = adjustFrameRate(frameRates, m_settings.videoFrameRate());
+    m_codecFrameRate = adjustFrameRate(frameRates, m_settings.videoFrameRate(), m_sourceFrameRate);
     qCDebug(qLcVideoFrameEncoder) << "Adjusted frame rate:" << m_codecFrameRate;
 }
 
@@ -317,11 +319,14 @@ void VideoFrameEncoder::initStream()
     m_stream->codecpar->height = m_targetSize.height();
     m_stream->codecpar->sample_aspect_ratio = AVRational{ 1, 1 };
 #if QT_CODEC_PARAMETERS_HAVE_FRAMERATE
-    m_stream->codecpar->framerate = m_codecFrameRate;
+    // Some codecs (e.g. Windows Media Foundation encoders) require a concrete,
+    // non-zero frame rate
+    m_stream->codecpar->framerate = effectiveCodecFrameRate();
 #endif
 
     const auto frameRates = m_codec.frameRates();
-    m_stream->time_base = adjustFrameTimeBase(frameRates, m_codecFrameRate);
+    const bool isFixedRate = m_codecFrameRate.den > 0 && m_codecFrameRate.num > 0;
+    m_stream->time_base = adjustFrameTimeBase(frameRates, effectiveCodecFrameRate(), isFixedRate);
 }
 
 bool VideoFrameEncoder::initCodecContext()
@@ -345,7 +350,7 @@ bool VideoFrameEncoder::initCodecContext()
     }
 
 #if !QT_CODEC_PARAMETERS_HAVE_FRAMERATE
-    m_codecContext->framerate = m_codecFrameRate;
+    m_codecContext->framerate = effectiveCodecFrameRate();
 #endif
     m_codecContext->time_base = m_stream->time_base;
     qCDebug(qLcVideoFrameEncoder) << "codecContext time base" << m_codecContext->time_base.num
@@ -589,8 +594,13 @@ qint64 VideoFrameEncoder::estimateDuration(const AVPacket &packet, bool isFirstP
     if (isFirstPacket) {
         // First packet - Estimate duration from frame rate. Duration must
         // be set for single-frame videos, otherwise they won't open in
-        // media player.
-        const AVRational frameDuration = av_inv_q(m_codecContext->framerate);
+        // media player. The codec frame rate is 0 for variable-rate sources,
+        // so fall back to a default rate to avoid dividing by zero.
+        AVRational frameRate = m_codecContext->framerate;
+        if (frameRate.num <= 0)
+            frameRate = AVRational{ DefaultVideoFrameRate, 1 };
+
+        const AVRational frameDuration = av_inv_q(frameRate);
         duration = av_rescale_q(1, frameDuration, m_stream->time_base);
     } else {
         // Duration is calculated from actual packet times. TODO: Handle discontinuities
