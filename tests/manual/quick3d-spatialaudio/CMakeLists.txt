@@ -17,6 +17,9 @@ if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick Multimedia)
 endif()
 
+qt_standard_project_setup(REQUIRES 6.12)
+
+
 qt_add_executable(quick3d-spatialaudio MACOSX_BUNDLE
     main.cpp
 )
