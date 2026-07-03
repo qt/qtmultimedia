@@ -125,10 +125,8 @@ quint64 AVFVideoBuffer::textureHandle(QRhi &rhi, int plane)
             size_t height = CVPixelBufferGetHeight(m_buffer);
             QSize planeSize = textureDescription->rhiPlaneSize(QSize(width, height), plane, &rhi);
 
-            if (!metalCache) {
-                qWarning("cannot create texture, Metal texture cache was released?");
-                return {};
-            }
+            if (!metalCache)
+                return 0;
 
             // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
             const auto pixelFormat = rhiTextureFormatToMetalFormat(textureDescription->rhiTextureFormat(plane, &rhi));
