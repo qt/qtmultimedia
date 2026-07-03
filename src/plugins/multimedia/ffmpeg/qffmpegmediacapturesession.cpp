@@ -3,22 +3,22 @@
 
 #include "qffmpegmediacapturesession_p.h"
 
-#include "private/qplatformaudioinput_p.h"
-#include "private/qplatformaudiooutput_p.h"
-#include "private/qplatformsurfacecapture_p.h"
-#include "private/qplatformaudiobufferinput_p.h"
-#include "private/qplatformvideoframeinput_p.h"
-#include "private/qplatformcamera_p.h"
+#include <QtCore/qloggingcategory.h>
 
-#include "qffmpegimagecapture_p.h"
-#include "qffmpegmediarecorder_p.h"
-#include "qvideosink.h"
-#include "qffmpegaudioinput_p.h"
-#include "qaudiosink.h"
-#include "qaudiobuffer.h"
-#include "qaudiooutput.h"
+#include <QtFFmpegMediaPluginImpl/private/qffmpegaudioinput_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegimagecapture_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediarecorder_p.h>
 
-#include <qloggingcategory.h>
+#include <QtMultimedia/private/qplatformaudioinput_p.h>
+#include <QtMultimedia/private/qplatformaudiobufferinput_p.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
+#include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtMultimedia/private/qplatformsurfacecapture_p.h>
+#include <QtMultimedia/private/qplatformvideoframeinput_p.h>
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/qvideosink.h>
 
 QT_BEGIN_NAMESPACE
 
