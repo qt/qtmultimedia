@@ -662,6 +662,14 @@ void tst_QMediaRecorderBackend::record_writesAudio_withAllSupportedAudioFormats_
             if (!f.isSupported(QMediaFormat::Encode))
                 continue;
 
+#ifdef Q_OS_WIN
+            // QTBUG-147882: Wave audio codec with container formats other than Wave is broken on Windows
+            if (c == QMediaFormat::AudioCodec::Wave
+                && f.fileFormat() != QMediaFormat::Wave) {
+                continue;
+            }
+#endif
+
             const auto formatName = QMediaFormat::fileFormatName(f.fileFormat()).toLatin1();
             const auto audioCodecName = QMediaFormat::audioCodecName(f.audioCodec()).toLatin1();
 
