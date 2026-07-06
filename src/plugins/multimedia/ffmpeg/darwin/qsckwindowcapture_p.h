@@ -23,6 +23,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QFFmpegMediaCaptureSession;
+
 namespace QFFmpeg {
 
 class QSckWindowCapture : public QPlatformSurfaceCapture
@@ -32,6 +34,8 @@ class QSckWindowCapture : public QPlatformSurfaceCapture
 public:
     explicit QSckWindowCapture();
     ~QSckWindowCapture() override = default;
+
+    void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
     QVideoFrameFormat frameFormat() const override;
 
@@ -45,6 +49,8 @@ protected:
     bool setActiveInternal(bool active) override;
 
 private:
+    QFFmpegMediaCaptureSession *m_session = nullptr;
+
     // Tracks the next ID for establishing stream.
     // Having stream IDs helps us track whether we should
     // ignore events from lingering stream callbacks.
