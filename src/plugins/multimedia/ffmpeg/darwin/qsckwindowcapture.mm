@@ -6,6 +6,7 @@
 #include <QtCore/qthread.h>
 #include <QtCore/private/qcore_mac_p.h>
 
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediacapturesession_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qmacscreencapturekit_p.h>
 
 #include <QtMultimedia/private/qcapturablewindow_p.h>
@@ -91,6 +92,18 @@ QSckWindowCapture::QSckWindowCapture() : QPlatformSurfaceCapture(WindowSource{})
 {
 }
 
+void QSckWindowCapture::setCaptureSession(QPlatformMediaCaptureSession *sessionIn)
+{
+    if (!sessionIn) {
+        m_session = nullptr;
+        return;
+    }
+
+    auto session = qobject_cast<QFFmpegMediaCaptureSession *>(sessionIn);
+    Q_ASSERT(session);
+    m_session = session;
+}
+
 bool QSckWindowCapture::setActiveInternal(bool active)
 {
     struct ErrorPair {
@@ -126,6 +139,11 @@ bool QSckWindowCapture::setActiveInternal(bool active)
 
         AVFScopedPointer<SCWindow> &scWindow = *scWindowResult;
 
+        // Tell capturesession to setup initial connections ahead
+        // of time as to not drop initial frames.
+        if (m_session)
+            m_session->onSourceActivating(*this);
+
         auto setupConnections = [&](QMacScreenCaptureKit &newObject) {
             setupQMacScreenCaptureKitConnections(*this, newObject);
         };
@@ -137,8 +155,13 @@ bool QSckWindowCapture::setActiveInternal(bool active)
             scWindow.data(),
             frameRate(),
             setupConnections);
+
         ResultType streamResult = streamResultFuture.get();
         if (!streamResult) {
+            // Tell capturesession to restore previous state.
+            if (m_session)
+                m_session->onSourceActivationFailure(*this);
+
             qCWarning(qLcMacScreenCapture)
                 << "Failed to start screen capture stream: "
                 << streamResult.error();
