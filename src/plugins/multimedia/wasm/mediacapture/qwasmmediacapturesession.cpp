@@ -242,7 +242,6 @@ void QWasmMediaCaptureSession::setVideoSource(std::string surfacetype)
             m_videoOutput->createVideoElement(m_displaySurface + "_capture_"
                                               + videoElementId.toString(QUuid::WithoutBraces).toStdString()); // videoElementId
             m_videoOutput->doElementCallbacks();
-            m_videoOutput->createOffscreenElement(initialSize);
             m_videoOutput->updateVideoElementGeometry(initialRect);
 
              // set video element src to this

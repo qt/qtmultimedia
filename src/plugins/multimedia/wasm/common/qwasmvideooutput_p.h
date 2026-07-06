@@ -18,7 +18,6 @@
 #include <QObject>
 
 #include <emscripten/val.h>
-#include <emscripten/html5_webgl.h>
 #include <emscripten/html5.h>
 
 #include <QMediaPlayer>
@@ -27,7 +26,7 @@
 
 #include "qwasmmediaplayer_p.h"
 #include "private/qwasmmediadevices_p.h"
-#include "qwasmgltexturevideobuffer_p.h"
+#include "qwasmvideoframegrabber_p.h"
 
 #include <private/qwasmjs_p.h>
 
@@ -79,7 +78,6 @@ public:
     qint64 getDuration();
 
     void createVideoElement(const std::string &id);
-    void createOffscreenElement(const QSize &offscreenSize);
     void doElementCallbacks();
     void updateVideoElementGeometry(const QRect &windowGeometry);
     void updateVideoElementSource(const QString &src);
@@ -92,15 +90,6 @@ public:
     emscripten::val getDeviceCapabilities();
     bool setDeviceSetting(const std::string &key, emscripten::val value);
     bool isCameraReady() { return m_cameraIsReady; }
-    bool m_hasVideoFrame = false;
-
-    void videoFrameCallback(void *context);
-    void videoFrameTimerCallback();
-
-    void webglVideoFrameCallback(void *context);
-    void getWebGLContext();
-    bool m_hasWebGLContext = false;
-    bool m_webGLContextChecked = false;
 
     // mediacapturesession has the videosink
     QVideoSink *m_wasmSink = nullptr;
@@ -110,8 +99,6 @@ public:
                                                   : m_video) ; }
 
     std::string m_videoSurfaceId;
-
-    static QVideoFrameFormat::PixelFormat fromJsPixelFormat(std::string_view videoFormat);
 
     void removeCurrentVideoElement();
 
@@ -129,14 +116,13 @@ Q_SIGNALS:
     void orientationChanged(int rotationIndex);
 
 private:
-    void videoComputeFrame(void *context);
     bool isPlatformiOs();
+    void detectIosCameraRotation();
 
     emscripten::val m_video = emscripten::val::undefined();
 
     QString m_source;
     float m_requestedPosition = 0.0;
-    emscripten::val m_offscreen = emscripten::val::undefined();
     WasmCameraMode m_cameraMode = WasmCameraMode::Undefined;
     QtVideo::Rotation m_rotateBy = QtVideo::Rotation::None;
     int getCurrentOrientationIndex();
@@ -152,7 +138,6 @@ private:
     bool m_isSeekable = false;
     bool m_useCameraRotation = false;
 
-    emscripten::val m_offscreenContext = emscripten::val::undefined();
     QSize m_pendingVideoSize;
     QWasmVideoOutput::WasmVideoMode m_currentVideoMode = QWasmVideoOutput::VideoDisplay;
     QMediaPlayer::MediaStatus m_currentMediaStatus;
@@ -186,8 +171,10 @@ private:
     float m_minFrameRate = 0;
     float m_maxFrameRate = 0;
     float m_streamFrameRate = 0;
-    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_glContextHandle = 0;
     static bool orientationchangeCallback(int eventType, const EmscriptenOrientationChangeEvent *orientationChangeEvent, void *userData);
+
+    QWasmVideoFrameGrabber m_frameGrabber;
+    friend class QWasmVideoFrameGrabber;
 };
 
 QT_END_NAMESPACE

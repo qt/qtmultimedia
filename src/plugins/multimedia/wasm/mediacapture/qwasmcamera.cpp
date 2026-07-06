@@ -113,7 +113,6 @@ void QWasmCamera::setCamera(const QCameraDevice &camera)
     m_cameraOutput->createVideoElement(
         QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString()); // videoElementId
     m_cameraOutput->doElementCallbacks();
-    m_cameraOutput->createOffscreenElement(initialSize);
     m_cameraOutput->updateVideoElementGeometry(initialRect);
 
     const auto cameras = QMediaDevices::videoInputs();

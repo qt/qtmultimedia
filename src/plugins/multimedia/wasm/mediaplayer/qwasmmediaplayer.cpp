@@ -40,7 +40,6 @@ void QWasmMediaPlayer::initVideo()
 
     m_videoOutput->createVideoElement(videoElementId.toString(QUuid::WithoutBraces).toStdString());
     m_videoOutput->doElementCallbacks();
-    m_videoOutput->createOffscreenElement(QSize(1280, 720));
     m_videoOutput->updateVideoElementGeometry(QRect(0, 0, 1280, 720)); // initial size 720p standard
 
     connect(m_videoOutput, &QWasmVideoOutput::bufferingChanged, this,

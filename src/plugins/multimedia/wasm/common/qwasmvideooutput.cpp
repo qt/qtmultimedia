@@ -10,41 +10,16 @@
 #include <QFile>
 #include <QBuffer>
 #include <QMimeDatabase>
-#include <QGuiApplication>
-#include <QOpenGLContext>
-
-#include <QtGui/rhi/qrhi_platform.h>
-#include <qpa/qplatformwindow_p.h>
-
-#include <GLES2/gl2.h>
 
 #include "qwasmvideooutput_p.h"
 
 #include <qvideosink.h>
 #include <private/qplatformvideosink_p.h>
-#include <private/qmemoryvideobuffer_p.h>
-#include <private/qvideotexturehelper_p.h>
-#include <private/qvideoframe_p.h>
 #include <private/qstdweb_p.h>
 #include <QTimer>
 
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
-
-// Upload the current video frame to the already-bound TEXTURE_2D.
-// The canvas is passed as an EM_VAL handle; Emval.toValue() here refers to
-// Emscripten's internal Emval object, not Module.Emval — no EXPORTED_RUNTIME_METHODS entry needed.
-EM_JS(void, em_texImage2DFromVideo, (const char *videoId, int *pW, int *pH), {
-    var gl = GL.currentContext.GLctx;
-    var video = document.getElementById(UTF8ToString(videoId));
-    if (!video) { return; }
-    var frame;
-    try { frame = new VideoFrame(video); } catch(e) { return; }
-    HEAP32[pW >> 2] = frame.displayWidth;
-    HEAP32[pH >> 2] = frame.displayHeight;
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, frame);
-    frame.close();
-});
 
 QT_BEGIN_NAMESPACE
 
@@ -53,12 +28,6 @@ using namespace emscripten;
 using namespace Qt::Literals;
 
 Q_LOGGING_CATEGORY(qWasmMediaVideoOutput, "qt.multimedia.wasm.videooutput")
-
-static bool checkForVideoFrame()
-{
-    emscripten::val videoFrame = emscripten::val::global("VideoFrame");
-    return (!videoFrame.isNull() && !videoFrame.isUndefined());
-}
 
 bool QWasmVideoOutput::isPlatformiOs()
 {
@@ -69,37 +38,34 @@ bool QWasmVideoOutput::isPlatformiOs()
     return false;
 }
 
-QWasmVideoOutput::QWasmVideoOutput(QObject *parent) : QObject{ parent }
+QWasmVideoOutput::QWasmVideoOutput(QObject *parent)
+    : QObject{ parent }, m_frameGrabber(this)
 {
-    m_hasVideoFrame = checkForVideoFrame();
+    if (isPlatformiOs()) {
+        // iOS has [broken] camera driver
+        connect(this, &QWasmVideoOutput::orientationChanged, this,
+                [&](int orientationIndex) {
 
-    if (m_hasVideoFrame) {
-        if (isPlatformiOs()) {
-            // iOS has [broken] camera driver
-            connect(this, &QWasmVideoOutput::orientationChanged, this,
-                    [&](int orientationIndex) {
-
-                if (orientationIndex & EMSCRIPTEN_ORIENTATION_PORTRAIT_PRIMARY) {// 1
-                    m_rotateBy = QtVideo::Rotation::Clockwise90;
-                } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_LANDSCAPE_PRIMARY) {// 4
-                    if (m_cameraMode == QWasmVideoOutput::Front) {
-                        m_rotateBy = QtVideo::Rotation::Clockwise180;
-                    } else {
-                        m_rotateBy = QtVideo::Rotation::None;
-                    }
-                } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_PORTRAIT_SECONDARY) {// 2
-                    m_rotateBy = QtVideo::Rotation::Clockwise270;
-                } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_LANDSCAPE_SECONDARY) {// 8
-                    if (m_cameraMode == QWasmVideoOutput::Front) {
-                        m_rotateBy = QtVideo::Rotation::None;
-                    } else {
-                        m_rotateBy = QtVideo::Rotation::Clockwise180;
-                    }
+            if (orientationIndex & EMSCRIPTEN_ORIENTATION_PORTRAIT_PRIMARY) {// 1
+                m_rotateBy = QtVideo::Rotation::Clockwise90;
+            } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_LANDSCAPE_PRIMARY) {// 4
+                if (m_cameraMode == QWasmVideoOutput::Front) {
+                    m_rotateBy = QtVideo::Rotation::Clockwise180;
+                } else {
+                    m_rotateBy = QtVideo::Rotation::None;
                 }
-            });
+            } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_PORTRAIT_SECONDARY) {// 2
+                m_rotateBy = QtVideo::Rotation::Clockwise270;
+            } else if (orientationIndex & EMSCRIPTEN_ORIENTATION_LANDSCAPE_SECONDARY) {// 8
+                if (m_cameraMode == QWasmVideoOutput::Front) {
+                    m_rotateBy = QtVideo::Rotation::None;
+                } else {
+                    m_rotateBy = QtVideo::Rotation::Clockwise180;
+                }
+            }
+        });
 
-            emscripten_set_orientationchange_callback(this,false, &QWasmVideoOutput::orientationchangeCallback);
-        }
+        emscripten_set_orientationchange_callback(this, false, &QWasmVideoOutput::orientationchangeCallback);
     }
 }
 
@@ -505,9 +471,6 @@ void QWasmVideoOutput::createVideoElement(const std::string &id)
     m_video.call<void>("setAttribute", std::string("class"),
                        (m_currentVideoMode == QWasmVideoOutput::Camera ? std::string("Camera")
                                                                        : std::string("Video")));
-    m_video.set("data-qvideocontext",
-                emscripten::val(quintptr(reinterpret_cast<void *>(this))));
-
     m_video.set("preload", "metadata");
 
     // Uncaught DOMException: Failed to execute 'getImageData' on
@@ -534,44 +497,6 @@ void QWasmVideoOutput::createVideoElement(const std::string &id)
 
     if (!m_source.isEmpty())
         updateVideoElementSource(m_source);
-}
-
-void QWasmVideoOutput::createOffscreenElement(const QSize &offscreenSize)
-{
-    qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO;
-
-    if (m_hasVideoFrame) // VideoFrame does not require offscreen canvas/context
-        return;
-
-    // create offscreen element for grabbing frames
-    // OffscreenCanvas - no safari :(
-    // https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas
-
-    emscripten::val document = emscripten::val::global("document");
-
-    // TODO use correct frameBytesAllocationSize?
-    // offscreen render buffer
-    m_offscreen = emscripten::val::global("OffscreenCanvas");
-
-    if (m_offscreen.isUndefined()) {
-        // Safari OffscreenCanvas not supported, try old skool way
-        m_offscreen = document.call<emscripten::val>("createElement", std::string("canvas"));
-
-        m_offscreen.set("style",
-                      "position:absolute;left:-1000px;top:-1000px"); // offscreen
-        m_offscreen.set("width", offscreenSize.width());
-        m_offscreen.set("height", offscreenSize.height());
-        m_offscreenContext = m_offscreen.call<emscripten::val>("getContext", std::string("2d"));
-    } else {
-        m_offscreen = emscripten::val::global("OffscreenCanvas")
-                            .new_(offscreenSize.width(), offscreenSize.height());
-        emscripten::val offscreenAttributes = emscripten::val::array();
-        offscreenAttributes.set("willReadFrequently", true);
-        m_offscreenContext = m_offscreen.call<emscripten::val>("getContext", std::string("2d"),
-                                                             offscreenAttributes);
-    }
-    std::string offscreenId = m_videoSurfaceId + "_offscreenOutputSurface";
-    m_offscreen.set("id", offscreenId.c_str());
 }
 
 void QWasmVideoOutput::removeCurrentVideoElement()
@@ -718,7 +643,7 @@ void QWasmVideoOutput::doElementCallbacks()
             if (m_video["readyState"].as<int>() == hasEnoughData) {
                 m_currentMediaStatus = MediaStatus::LoadedMedia;
                 emit statusChanged(m_currentMediaStatus);
-                videoFrameTimerCallback();
+                m_frameGrabber.startFrameLoop();
             }
         } else {
             m_isStopped = false;
@@ -784,7 +709,7 @@ void QWasmVideoOutput::doElementCallbacks()
         emit stateChanged(QWasmMediaPlayer::Started);
         if (m_toBePaused) { // paused
             m_toBePaused = false;
-            videoFrameTimerCallback();
+            m_frameGrabber.startFrameLoop();
         }
     };
     m_playingChangeEvent.reset(new QWasmEventHandler(m_video, "playing", playingCallback));
@@ -865,12 +790,6 @@ void QWasmVideoOutput::updateVideoElementGeometry(const QRect &windowGeometry)
     m_video.set("width", videoElementRect.width());
     m_video.set("height", videoElementRect.height());
     style.set("z-index", "999");
-
-    if (!m_hasVideoFrame) {
-        // offscreen
-        m_offscreen.set("width", videoElementRect.width());
-        m_offscreen.set("height", videoElementRect.height());
-    }
 }
 
 qint64 QWasmVideoOutput::getDuration()
@@ -893,350 +812,26 @@ qreal QWasmVideoOutput::playbackRate()
     return (m_video.isUndefined() || m_video.isNull()) ? 0 : m_video["playbackRate"].as<float>();
 }
 
-void QWasmVideoOutput::videoComputeFrame(void *context)
+void QWasmVideoOutput::detectIosCameraRotation()
 {
-    if (m_offscreenContext.isUndefined() || m_offscreenContext.isNull()) {
-        qCDebug(qWasmMediaVideoOutput) << "offscreen canvas context could not be found";
+    if (!isPlatformiOs())
         return;
+
+    m_useCameraRotation = true;
+    emscripten::val stream = m_video["srcObject"];
+    emscripten::val videoTracks = stream.call<emscripten::val>("getVideoTracks");
+
+    if (!videoTracks.isUndefined() && videoTracks["length"].as<int>() > 0) {
+        emscripten::val track = videoTracks[0];
+        emscripten::val settings = track.call<emscripten::val>("getSettings");
+
+        if (settings["facingMode"].as<std::string>() == "user")
+            m_cameraMode = QWasmVideoOutput::Front;
+        else
+            m_cameraMode = QWasmVideoOutput::Back;
+        // now we know camera, set m_rotateBy
+        orientationChanged(getCurrentOrientationIndex());
     }
-
-    if (m_video.isUndefined() || m_video.isNull()) {
-        qCDebug(qWasmMediaVideoOutput) << "video element could not be found";
-        return;
-    }
-
-    const int videoWidth = m_video["videoWidth"].as<int>();
-    const int videoHeight = m_video["videoHeight"].as<int>();
-
-    if (videoWidth == 0 || videoHeight == 0)
-        return;
-
-    m_offscreenContext.call<void>("drawImage", m_video, 0, 0, videoWidth, videoHeight);
-
-    emscripten::val frame = // one frame, Uint8ClampedArray
-            m_offscreenContext.call<emscripten::val>("getImageData", 0, 0, videoWidth, videoHeight);
-
-    const QSize frameBytesAllocationSize(videoWidth, videoHeight);
-
-    // this seems to work ok, even though getImageData returns a Uint8ClampedArray
-    QByteArray frameBytes = qstdweb::Uint8Array(frame["data"]).copyToQByteArray();
-
-    QVideoFrameFormat frameFormat =
-            QVideoFrameFormat(frameBytesAllocationSize, QVideoFrameFormat::Format_RGBA8888);
-
-    QWasmVideoOutput *wasmVideoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-
-    if (m_useCameraRotation)
-        frameFormat.setRotation(wasmVideoOutput->m_rotateBy);
-    if (m_streamFrameRate > 0)
-        frameFormat.setStreamFrameRate(m_streamFrameRate);
-
-    auto *textureDescription = QVideoTextureHelper::textureDescription(frameFormat.pixelFormat());
-
-    QVideoFrame vFrame = QVideoFramePrivate::createFrame(
-            std::make_unique<QMemoryVideoBuffer>(
-                    std::move(frameBytes),
-                    textureDescription->strideForWidth(frameFormat.frameWidth())), // width of line with padding
-            frameFormat);
-
-    if (!wasmVideoOutput->m_wasmSink) {
-        qWarning() << "ERROR ALERT!! video sink not set";
-    }
-    wasmVideoOutput->m_wasmSink->setVideoFrame(vFrame);
-}
-
-// non webgl context with VideoFrame
-void QWasmVideoOutput::videoFrameCallback(void *context)
-{
-    QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-    if (!videoOutput)
-        return;
-    emscripten::val videoElement = videoOutput->currentVideoElement();
-
-    // The VideoFrame constructor throws InvalidStateError when the browser compositor
-    // has not yet committed the first decoded frame, even if readyState == 4 and
-    // videoWidth > 0. Use a JS try-catch so the exception does not propagate into
-    // the wasm runtime and abort the application.
-    emscripten::val oneVideoFrame = emscripten::val::take_ownership(
-            (EM_VAL)EM_ASM_INT({
-                try {
-                    return Emval.toHandle(new VideoFrame(Emval.toValue($0)));
-                } catch(e) {
-                    return Emval.toHandle(null);
-                }
-            }, videoElement.as_handle()));
-
-    if (oneVideoFrame.isNull() || oneVideoFrame.isUndefined()) {
-        qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << "VideoFrame not ready yet, skipping";
-        return;
-    }
-
-    emscripten::val options = emscripten::val::object();
-    emscripten::val rectOptions = emscripten::val::object();
-
-    int displayWidth = oneVideoFrame["displayWidth"].as<int>();
-    int displayHeight = oneVideoFrame["displayHeight"].as<int>();
-
-    rectOptions.set("width", displayWidth);
-    rectOptions.set("height", displayHeight);
-    options.set("rect", rectOptions);
-
-    emscripten::val frameBytesAllocationSize = oneVideoFrame.call<emscripten::val>("allocationSize", options);
-    emscripten::val frameBuffer =
-            emscripten::val::global("Uint8Array").new_(frameBytesAllocationSize);
-    QWasmVideoOutput *wasmVideoOutput =
-            reinterpret_cast<QWasmVideoOutput*>(videoElement["data-qvideocontext"].as<quintptr>());
-
-    qstdweb::PromiseCallbacks copyToCallback;
-    copyToCallback.thenFunc = [this, wasmVideoOutput, oneVideoFrame, frameBuffer,
-                                displayWidth, displayHeight]
-            (emscripten::val frameLayout)
-    {
-        if (frameLayout.isNull() || frameLayout.isUndefined()) {
-            qCDebug(qWasmMediaVideoOutput) << "theres no frameLayout";
-            return;
-        }
-
-        // frameBuffer now has a new frame, send to Qt
-        const QSize frameSize(displayWidth,
-                              displayHeight);
-
-        QByteArray frameBytes = QByteArray::fromEcmaUint8Array(frameBuffer);
-
-       QVideoFrameFormat::PixelFormat pixelFormat = fromJsPixelFormat(oneVideoFrame["format"].as<std::string>());
-        if (pixelFormat == QVideoFrameFormat::Format_Invalid) {
-            pixelFormat = QVideoFrameFormat::Format_RGBA8888;
-        }
-        QVideoFrameFormat frameFormat = QVideoFrameFormat(frameSize, pixelFormat);
-
-        if (m_useCameraRotation)
-            frameFormat.setRotation(wasmVideoOutput->m_rotateBy);
-        if (m_streamFrameRate > 0)
-            frameFormat.setStreamFrameRate(m_streamFrameRate);
-        auto buffer = std::make_unique<QMemoryVideoBuffer>(
-                std::move(frameBytes),
-                frameLayout[0]["stride"].as<int>());
-
-        QVideoFrame vFrame =
-                QVideoFramePrivate::createFrame(std::move(buffer), std::move(frameFormat));
-
-        if (!wasmVideoOutput) {
-            qCDebug(qWasmMediaVideoOutput) << "ERROR:"
-                                           << "data-qvideocontext not found";
-            return;
-        }
-        if (!wasmVideoOutput->m_wasmSink) {
-            qWarning() << "ERROR ALERT!! video sink not set";
-            return;
-        }
-        wasmVideoOutput->m_wasmSink->setVideoFrame(vFrame);
-        oneVideoFrame.call<emscripten::val>("close");
-    };
-    copyToCallback.catchFunc = [oneVideoFrame](emscripten::val error)
-    {
-        qCDebug(qWasmMediaVideoOutput) << "copyTo error"
-                               << QString::fromStdString(error["name"].as<std::string>())
-                               << QString::fromStdString(error["message"].as<std::string>());
-        oneVideoFrame.call<emscripten::val>("close");
-    };
-
-    qstdweb::Promise::make(oneVideoFrame, u"copyTo"_s, std::move(copyToCallback), frameBuffer, options);
-}
-
-EM_JS(EMSCRIPTEN_WEBGL_CONTEXT_HANDLE, qwasm_find_webgl_context_for_canvas, (EM_VAL canvasHandle), {
-    var canvas = Emval.toValue(canvasHandle);
-    for (var id in GL.contexts) {
-        var entry = GL.contexts[id];
-        if (entry && entry.GLctx && entry.GLctx.canvas === canvas)
-            return parseInt(id);
-    }
-    return 0;
-});
-
-void QWasmVideoOutput::getWebGLContext()
-{
-    m_glContextHandle = 0;
-    m_hasWebGLContext = false;
-
-    QRhi *rhi = m_wasmSink ? m_wasmSink->rhi() : nullptr;
-    if (!rhi || rhi->backend() != QRhi::OpenGLES2)
-        return;
-
-    const auto *nh = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
-    if (!nh || !nh->context)
-        return;
-    QOpenGLContext *ctx = nh->context;
-
-    auto tryGetHandleFromSurface = [&]() -> bool {
-        QSurface *surface = ctx->surface();
-        if (!surface || surface->surfaceClass() != QSurface::Window)
-            return false;
-        QWindow *window = static_cast<QWindow *>(surface);
-        if (!window->handle())
-            return false;
-        auto *wasmIface = window->nativeInterface<QNativeInterface::Private::QWasmWindow>();
-        if (!wasmIface)
-            return false;
-        emscripten::val canvas = wasmIface->canvas();
-        emscripten::val glCtx = canvas.call<emscripten::val>("getContext", std::string("webgl2"));
-        if (glCtx.isNull() || glCtx.isUndefined())
-            glCtx = canvas.call<emscripten::val>("getContext", std::string("webgl"));
-        if (glCtx.isNull() || glCtx.isUndefined())
-            return false;
-        m_glContextHandle = qwasm_find_webgl_context_for_canvas(canvas.as_handle());
-        m_hasWebGLContext = (m_glContextHandle > 0);
-        return m_hasWebGLContext;
-    };
-
-    if (!tryGetHandleFromSurface())
-        qWarning() << Q_FUNC_INFO << "could not locate WebGL canvas for the current RHI context";
-}
-
-// framemaker for webgl context
-void QWasmVideoOutput::webglVideoFrameCallback(void *context)
-{
-    QWasmVideoOutput *wasmVideoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-    if (!wasmVideoOutput)
-        return;
-
-    emscripten_webgl_make_context_current(wasmVideoOutput->m_glContextHandle);
-
-    GLuint rawTexId = 0;
-    glGenTextures(1, &rawTexId);
-    QGlTextureHandle texHandle{ rawTexId };
-
-    glBindTexture(GL_TEXTURE_2D, texHandle.get());
-
-    int w = 0, h = 0;
-    em_texImage2DFromVideo(wasmVideoOutput->m_videoSurfaceId.c_str(), &w, &h);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    if (!texHandle || w == 0 || h == 0) {
-        qCWarning(qWasmMediaVideoOutput) << "VideoFrame upload failed";
-        return;
-    }
-
-    std::unique_ptr<QHwVideoBuffer> hwBuffer =
-            std::make_unique<QWasmGLTextureVideoBuffer>(
-                    std::move(texHandle), QSize(w, h),
-                    wasmVideoOutput->m_glContextHandle,
-                    wasmVideoOutput->m_wasmSink ? wasmVideoOutput->m_wasmSink->rhi() : nullptr);
-
-    QVideoFrameFormat frameFormat(QSize(w, h), QVideoFrameFormat::Format_RGBA8888);
-    if (wasmVideoOutput->m_streamFrameRate > 0)
-        frameFormat.setStreamFrameRate(wasmVideoOutput->m_streamFrameRate);
-    QVideoFrame vFrame =
-            QVideoFramePrivate::createFrame(std::move(hwBuffer), std::move(frameFormat));
-
-    wasmVideoOutput->m_wasmSink->setVideoFrame(vFrame);
-}
-
-// default fallback for non VideoFrame
-void QWasmVideoOutput::videoFrameTimerCallback()
-{
-    if (m_hasVideoFrame && !m_hasWebGLContext && !m_webGLContextChecked) {
-        m_webGLContextChecked = true;
-        getWebGLContext();
-    }
-
-    if (isPlatformiOs()) {
-        m_useCameraRotation = true;
-        emscripten::val stream = m_video["srcObject"];
-        emscripten::val vTraks = stream.call<emscripten::val>("getVideoTracks");
-
-        if (!vTraks.isUndefined() && vTraks["length"].as<int>() > 0) {
-            emscripten::val trak = vTraks[0];
-            emscripten::val settings = trak.call<emscripten::val>("getSettings");
-
-            if (settings["facingMode"].as<std::string>() == "user")
-                m_cameraMode = QWasmVideoOutput::Front;
-            else
-                m_cameraMode = QWasmVideoOutput::Back;
-            // now we know camera, set m_rotateBy
-            orientationChanged(getCurrentOrientationIndex());
-        }
-    }
-
-    // Single-shot callback: re-registers each frame so multiple QWasmVideoOutput
-    // instances can coexist. emscripten_request_animation_frame_loop allows only one
-    // active loop globally and would cancel another instance.
-    static EM_BOOL (*frame)(double, void *) = [](double frameTime, void *context) -> EM_BOOL {
-
-        Q_UNUSED(frameTime);
-
-        QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-        if (!videoOutput || videoOutput->m_isStopped) {
-            qCWarning(qWasmMediaVideoOutput) << "frame loop exit: isStopped=" << (videoOutput ? videoOutput->m_isStopped : true)
-                                             << "mode=" << (videoOutput ? videoOutput->m_currentVideoMode : -1);
-            return false;
-        }
-
-        if (videoOutput->m_currentVideoMode == QWasmVideoOutput::VideoDisplay
-            && videoOutput->m_currentMediaStatus != MediaStatus::LoadedMedia) {
-            emscripten_request_animation_frame(frame, context);
-            return true;
-        }
-
-        emscripten::val videoElement = videoOutput->currentVideoElement();
-        if (videoElement.isNull() || videoElement.isUndefined()) {
-            qCWarning(qWasmMediaVideoOutput) << "frame loop exit: video element null, mode=" << videoOutput->m_currentVideoMode;
-            return false;
-        }
-
-        if (videoElement["paused"].as<bool>() || videoElement["ended"].as<bool>()
-            || videoElement["readyState"].as<int>() < 2) {
-            qCDebug(qWasmMediaVideoOutput) << "frame loop waiting: mode=" << videoOutput->m_currentVideoMode
-                                           << "paused=" << videoElement["paused"].as<bool>()
-                                           << "ended=" << videoElement["ended"].as<bool>()
-                                           << "readyState=" << videoElement["readyState"].as<int>();
-            emscripten_request_animation_frame(frame, context);
-            return true;
-        }
-
-        if (videoOutput->m_hasVideoFrame) {
-            if (videoOutput->m_glContextHandle)
-                videoOutput->webglVideoFrameCallback(context);
-            else
-                videoOutput->videoFrameCallback(context);
-        } else {
-            videoOutput->videoComputeFrame(context);
-        }
-
-        emscripten_request_animation_frame(frame, context);
-        return true;
-    };
-    if ((!m_isStopped  && m_video["className"].as<std::string>() == "Camera" && m_cameraIsReady)
-        || (!m_isStopped  && m_currentVideoMode == QWasmVideoOutput::SurfaceCapture)
-        || isReady())
-        emscripten_request_animation_frame(frame, this);
-}
-
-QVideoFrameFormat::PixelFormat QWasmVideoOutput::fromJsPixelFormat(std::string_view videoFormat)
-{
-    if (videoFormat == "I420")
-        return QVideoFrameFormat::Format_YUV420P;
-    // no equivalent pixel format
-    //   else if (videoFormat == "I420A") // AYUV ?
-    else if (videoFormat == "I422")
-        return QVideoFrameFormat::Format_YUV422P;
-    // no equivalent pixel format
-    //     else if (videoFormat == "I444")
-    else if (videoFormat == "NV12")
-        return QVideoFrameFormat::Format_NV12;
-    else if (videoFormat == "RGBA")
-        return QVideoFrameFormat::Format_RGBA8888;
-    else if (videoFormat == "RGBX")
-        return QVideoFrameFormat::Format_RGBX8888;
-    else if (videoFormat == "BGRA")
-        return QVideoFrameFormat::Format_BGRA8888;
-    else if (videoFormat == "BGRX")
-        return QVideoFrameFormat::Format_BGRX8888;
-
-    return QVideoFrameFormat::Format_Invalid;
 }
 
 emscripten::val QWasmVideoOutput::getDeviceCapabilities()
