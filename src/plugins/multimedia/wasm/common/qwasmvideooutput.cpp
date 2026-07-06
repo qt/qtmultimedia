@@ -857,19 +857,19 @@ void QWasmVideoOutput::doElementCallbacks()
 
 void QWasmVideoOutput::updateVideoElementGeometry(const QRect &windowGeometry)
 {
-    QRect m_videoElementSource(windowGeometry.topLeft(), windowGeometry.size());
+    QRect videoElementRect(windowGeometry.topLeft(), windowGeometry.size());
 
     emscripten::val style = m_video["style"];
-    style.set("left", QStringLiteral("%1px").arg(m_videoElementSource.left()).toStdString());
-    style.set("top", QStringLiteral("%1px").arg(m_videoElementSource.top()).toStdString());
-    m_video.set("width", m_videoElementSource.width());
-    m_video.set("height", m_videoElementSource.height());
+    style.set("left", QStringLiteral("%1px").arg(videoElementRect.left()).toStdString());
+    style.set("top", QStringLiteral("%1px").arg(videoElementRect.top()).toStdString());
+    m_video.set("width", videoElementRect.width());
+    m_video.set("height", videoElementRect.height());
     style.set("z-index", "999");
 
     if (!m_hasVideoFrame) {
         // offscreen
-        m_offscreen.set("width", m_videoElementSource.width());
-        m_offscreen.set("height", m_videoElementSource.height());
+        m_offscreen.set("width", videoElementRect.width());
+        m_offscreen.set("height", videoElementRect.height());
     }
 }
 
@@ -883,11 +883,6 @@ qint64 QWasmVideoOutput::getDuration()
     return m_video["duration"].as<double>() * 1000;
 }
 
-void QWasmVideoOutput::newFrame(const QVideoFrame &frame)
-{
-    m_wasmSink->setVideoFrame(frame);
-}
-
 void QWasmVideoOutput::setPlaybackRate(qreal rate)
 {
     m_video.set("playbackRate", emscripten::val(rate));
@@ -898,32 +893,12 @@ qreal QWasmVideoOutput::playbackRate()
     return (m_video.isUndefined() || m_video.isNull()) ? 0 : m_video["playbackRate"].as<float>();
 }
 
-void QWasmVideoOutput::checkNetworkState()
-{
-    int netState = m_video["networkState"].as<int>();
-
-    qCDebug(qWasmMediaVideoOutput) << netState;
-
-    switch (netState) {
-    case QWasmMediaPlayer::QWasmMediaNetworkState::NetworkEmpty: // no data
-        break;
-    case QWasmMediaPlayer::QWasmMediaNetworkState::NetworkIdle:
-        break;
-    case QWasmMediaPlayer::QWasmMediaNetworkState::NetworkLoading:
-        break;
-    case QWasmMediaPlayer::QWasmMediaNetworkState::NetworkNoSource: // no source
-        emit errorOccured(netState, QStringLiteral("No media source found"));
-        break;
-    };
-}
-
 void QWasmVideoOutput::videoComputeFrame(void *context)
 {
     if (m_offscreenContext.isUndefined() || m_offscreenContext.isNull()) {
         qCDebug(qWasmMediaVideoOutput) << "offscreen canvas context could not be found";
         return;
     }
-    emscripten::val document = emscripten::val::global("document");
 
     if (m_video.isUndefined() || m_video.isNull()) {
         qCDebug(qWasmMediaVideoOutput) << "video element could not be found";

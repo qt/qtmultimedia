@@ -77,7 +77,6 @@ public:
     qreal playbackRate();
 
     qint64 getDuration();
-    void newFrame(const QVideoFrame &newFrame);
 
     void createVideoElement(const std::string &id);
     void createOffscreenElement(const QSize &offscreenSize);
@@ -85,13 +84,11 @@ public:
     void updateVideoElementGeometry(const QRect &windowGeometry);
     void updateVideoElementSource(const QString &src);
     void addCameraSourceElement(const std::string &id);
-    void removeSourceElement();
     void setVideoMode(QWasmVideoOutput::WasmVideoMode mode);
     void setVideoConstraints(QSize resolution, float minFrameRate, float maxFrameRate);
 
     void setHasAudio(bool needsAudio) { m_hasAudio = needsAudio; }
 
-    bool hasCapability(const QString &cap);
     emscripten::val getDeviceCapabilities();
     bool setDeviceSetting(const std::string &key, emscripten::val value);
     bool isCameraReady() { return m_cameraIsReady; }
@@ -132,13 +129,10 @@ Q_SIGNALS:
     void orientationChanged(int rotationIndex);
 
 private:
-    void checkNetworkState();
     void videoComputeFrame(void *context);
-    void getDeviceSettings();
     bool isPlatformiOs();
 
     emscripten::val m_video = emscripten::val::undefined();
-    emscripten::val m_videoElementSource = emscripten::val::undefined();
 
     QString m_source;
     float m_requestedPosition = 0.0;
