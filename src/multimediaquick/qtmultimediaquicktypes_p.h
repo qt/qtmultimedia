@@ -79,6 +79,13 @@ struct QScreenCaptureForeign
     QML_FOREIGN(QScreenCapture)
 };
 
+struct QWindowCaptureForeign
+{
+    Q_GADGET
+    QML_ANONYMOUS
+    QML_FOREIGN(QWindowCapture)
+};
+
 struct QMediaRecorderForeign
 {
     Q_GADGET
