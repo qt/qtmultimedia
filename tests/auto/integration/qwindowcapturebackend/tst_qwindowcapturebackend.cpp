@@ -92,6 +92,40 @@ private slots:
         QVERIFY(!fixture.m_errors.empty());
     }
 
+    void setActive_isNoOp_whenStoppingCaptureThatNeverStarted()
+    {
+        WindowCaptureFixture fixture;
+
+        QWindowCapture &windowCapture = fixture.m_capture;
+        QVERIFY(!windowCapture.isActive());
+
+        // Stopping a capture that was never started should not change state,
+        // emit activeChanged, or raise an error.
+        windowCapture.setActive(false);
+
+        QVERIFY(!windowCapture.isActive());
+        QVERIFY(fixture.m_activations.empty());
+        QVERIFY(fixture.m_errors.empty());
+    }
+
+    void setActive_isNoOp_whenAlreadyActive()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start());
+        QVERIFY(fixture.waitForFrame().isValid());
+
+        QWindowCapture &windowCapture = fixture.m_capture;
+        QVERIFY(windowCapture.isActive());
+        QCOMPARE(fixture.m_activations.size(), 1);
+
+        // Activating an already-active capture should not emit activeChanged again.
+        windowCapture.setActive(true);
+
+        QVERIFY(windowCapture.isActive());
+        QCOMPARE(fixture.m_activations.size(), 1);
+        QVERIFY(fixture.m_errors.empty());
+    }
+
     void setActive_startsWindowCapture_whenCalledWithTrue()
     {
         WindowCaptureWithWidgetFixture fixture;
