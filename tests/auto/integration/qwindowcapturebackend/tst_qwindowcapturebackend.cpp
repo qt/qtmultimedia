@@ -74,6 +74,26 @@ private slots:
         QVERIFY(!fixture.m_capture.isActive());
     }
 
+    void window_isInvalid_whenNotSet()
+    {
+        WindowCaptureFixture fixture;
+        QVERIFY(!fixture.m_capture.window().isValid());
+        QCOMPARE(fixture.m_capture.window(), QCapturableWindow{});
+    }
+
+    void error_isNoError_whenNotStarted()
+    {
+        WindowCaptureFixture fixture;
+        QCOMPARE(fixture.m_capture.error(), QWindowCapture::Error::NoError);
+    }
+
+    void windowCapture_returnsSession_whenAddedToSession()
+    {
+        WindowCaptureFixture fixture;
+        // The fixture adds the capture to its session on construction.
+        QCOMPARE(fixture.m_capture.captureSession(), &fixture.m_session);
+    }
+
     void capturableWindows_returnsOnlyValidWindows()
     {
         const QList<QCapturableWindow> windows = QWindowCapture::capturableWindows();
