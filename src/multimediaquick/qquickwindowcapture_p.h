@@ -1,8 +1,8 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QQUICKWINDOWCAPTURE_H
-#define QQUICKWINDOWCAPTURE_H
+#ifndef QQUICKWINDOWCAPTURE_P_H
+#define QQUICKWINDOWCAPTURE_P_H
 
 //
 //  W A R N I N G
@@ -16,16 +16,17 @@
 //
 
 #include <QtMultimedia/qwindowcapture.h>
+
 #include <QtMultimediaQuick/qtmultimediaquickexports.h>
 
-#include <QtQml/qqmlregistration.h>
+#include <QtQml/qqml.h>
 
 QT_BEGIN_NAMESPACE
 
 class Q_MULTIMEDIAQUICK_EXPORT QQuickWindowCapture : public QWindowCapture
 {
     Q_OBJECT
-    Q_PROPERTY(qreal frameRate READ qmlFrameRate WRITE qmlSetFrameRate RESET resetFrameRate NOTIFY frameRateChanged)
+    Q_PROPERTY(qreal frameRate READ qmlFrameRate WRITE qmlSetFrameRate RESET resetFrameRate NOTIFY frameRateChanged REVISION(6, 12))
     QML_NAMED_ELEMENT(WindowCapture)
 
 public:
@@ -37,4 +38,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QQUICKWINDOWCAPTURE_P_H

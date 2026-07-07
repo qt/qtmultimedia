@@ -7,7 +7,9 @@ qt_internal_add_test(tst_multimedia_qml
         tst_qml.cpp
         mediaplayer/tst_mediaplayer.qml
         playbackoptions/tst_playbackoptions.qml
+        screencapture/tst_screencapture.qml
         soundeffect/tst_soundeffect.qml
+        windowcapture/tst_windowcapture.qml
     LIBRARIES
         Qt6::Quick
         Qt6::QuickTest
