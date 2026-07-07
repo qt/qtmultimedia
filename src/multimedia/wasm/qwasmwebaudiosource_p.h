@@ -58,7 +58,7 @@ public:
     static void audioDataCallback(int callbackId);
 
 private:
-    void start(bool pullMode);
+    void startPipeline(bool pullMode);
     void connectMediaStreamIfReady();
     void deliverBufferedData();
     void teardownPipeline();

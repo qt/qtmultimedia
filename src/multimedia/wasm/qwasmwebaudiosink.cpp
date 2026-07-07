@@ -303,7 +303,7 @@ QWasmAudioSink::QWasmAudioSink(QAudioDevice device, const QAudioFormat &format, 
     // so map it to "" to request the default audio output device.
     if (m_deviceId.compare(0, 7, "System ") == 0)
         m_deviceId.clear();
-    qWarning() << "QWasmAudioSink: sinkId =" << (m_deviceId.empty() ? "(none/default)" : m_deviceId.c_str());
+
     emscripten::val options = emscripten::val::object();
     options.set("latencyHint", emscripten::val("interactive"));
     options.set("sampleRate", m_format.sampleRate());

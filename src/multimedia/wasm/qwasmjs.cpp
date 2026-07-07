@@ -471,7 +471,8 @@ void JsMediaInputStream::replaceMediaTrack(const std::string &id)
             << "replaceTrack getUserMedia failed."
             << error["name"].as<std::string>()
             << error["message"].as<std::string>();
-        }
+        },
+    .finallyFunc = nullptr
     };
 
     emscripten::val mediaDevices = emscripten::val::global("navigator")["mediaDevices"];
@@ -566,7 +567,8 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
                 << "setStreamDevice getUserMedia  fail"
                 << error["name"].as<std::string>()
                 << error["message"].as<std::string>();
-            }
+            },
+        .finallyFunc = nullptr
     };
 
     // this prompts user for permissions

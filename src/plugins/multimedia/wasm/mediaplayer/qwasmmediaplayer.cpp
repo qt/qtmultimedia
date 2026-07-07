@@ -335,7 +335,6 @@ void QWasmMediaPlayer::stop()
 
     if (m_State == QWasmMediaPlayer::Idle || m_State == QWasmMediaPlayer::PlaybackCompleted
         || m_State == QWasmMediaPlayer::Stopped) {
-          qWarning() << Q_FUNC_INFO << __LINE__;
         return;
     }
 

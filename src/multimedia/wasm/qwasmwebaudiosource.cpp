@@ -135,10 +135,6 @@ EM_JS(void, qt_mt_setupWorkletPort, (EM_VAL nodeHandle, int callbackId), {
 
 // Single-threaded: load a JS worklet that sends frames via MessagePort.
 
-    // qWarning() << "single threaded";
-
-// qWarning() << "Single-threaded";
-
 EM_JS(void, qt_st_loadWorkletModule, (EM_VAL ctxHandle, int instanceId), {
     var ctx = Emval.toValue(ctxHandle);
     if (!Module._qtAudioData) Module._qtAudioData = {};
@@ -193,24 +189,12 @@ EM_JS(int, qt_st_readFrame, (int instanceId, float *heapPtr, int *outCh, int *ou
     return data.length;
 });
 
-#endif // QT_CONFIG(thread)
-
-class QWasmAudioSourceDevice : public QIODevice
-{
-    QWasmAudioSource *m_source;
-public:
-    explicit QWasmAudioSourceDevice(QWasmAudioSource *src) : QIODevice(src), m_source(src) {}
-    bool isSequential() const override { return true; }
-protected:
-    qint64 readData(char *data, qint64 maxlen) override { return m_source->readFromBuffer(data, maxlen); }
-    qint64 writeData(const char *, qint64) override { Q_UNREACHABLE(); return 0; }
-};
 
 // Interleave planar float and convert to PCM — used by the single-threaded path.
 // multithread does this in worklet processor, so no need to share this.
 static void convertFloatToPcm(const float *planarData, int numChannels, int samplesPerChannel,
-                               float volume, QAudioFormat::SampleFormat fmt, int bytesPerSample,
-                               char *out)
+                              float volume, QAudioFormat::SampleFormat fmt, int bytesPerSample,
+                              char *out)
 {
     switch (fmt) {
     case QAudioFormat::UInt8:
@@ -246,6 +230,19 @@ static void convertFloatToPcm(const float *planarData, int numChannels, int samp
     }
 }
 
+#endif // QT_CONFIG(thread)
+
+class QWasmAudioSourceDevice : public QIODevice
+{
+    QWasmAudioSource *m_source;
+public:
+    explicit QWasmAudioSourceDevice(QWasmAudioSource *src) : QIODevice(src), m_source(src) {}
+    bool isSequential() const override { return true; }
+protected:
+    qint64 readData(char *data, qint64 maxlen) override { return m_source->readFromBuffer(data, maxlen); }
+    qint64 writeData(const char *, qint64) override { Q_UNREACHABLE(); return 0; }
+};
+
 // ===========================================================================
 // QWasmAudioSource implementation
 // ===========================================================================
@@ -266,7 +263,7 @@ QWasmAudioSource::~QWasmAudioSource()
 void QWasmAudioSource::start(QIODevice *device)
 {
     m_device = device;
-    start(true);
+    startPipeline(true);
 }
 
 QIODevice *QWasmAudioSource::start()
@@ -274,11 +271,11 @@ QIODevice *QWasmAudioSource::start()
     auto *dev = new QWasmAudioSourceDevice(this);
     dev->open(QIODevice::ReadOnly);
     m_device = dev;
-    start(false);
+    startPipeline(false);
     return dev;
 }
 
-void QWasmAudioSource::start(bool pullMode)
+void QWasmAudioSource::startPipeline(bool pullMode)
 {
     if (m_running || m_inputStream)
         return;
