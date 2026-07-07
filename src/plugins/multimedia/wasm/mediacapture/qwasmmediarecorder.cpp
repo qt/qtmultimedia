@@ -75,7 +75,6 @@ QWasmMediaRecorder::~QWasmMediaRecorder()
         m_outputTarget->close();
 
     if (m_jsMediaRecorderDevice->isOpen()) {
-        qWarning() << " bytes still available" << m_jsMediaRecorderDevice->bytesAvailable();
         m_jsMediaRecorderDevice->close();
     }
 

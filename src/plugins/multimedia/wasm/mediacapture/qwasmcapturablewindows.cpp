@@ -54,7 +54,8 @@ void QWasmCapturableWindows::getDisplayMedia()
         },
         .catchFunc =
         [](emscripten::val) {
-        }
+        },
+        .finallyFunc = nullptr
     };
     qstdweb::Promise::make(mediaDevices, QStringLiteral("getDisplayMedia"),
                            std::move(getDisplayMediaCallback), constraints);

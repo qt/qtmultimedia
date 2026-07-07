@@ -279,7 +279,8 @@ void QWasmMediaCaptureSession::setVideoSource(std::string surfacetype)
 
             // permission denied or error
             // "NotAllowedError "Permission Denied"
-        }
+        },
+        .finallyFunc = {}
     };
 
     qstdweb::Promise::make(mediaDevices, QStringLiteral("getDisplayMedia"),

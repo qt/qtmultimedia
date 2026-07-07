@@ -587,8 +587,6 @@ void QWasmVideoOutput::doElementCallbacks()
     // event callbacks
     // timupdate
     auto timeUpdateCallback = [=](emscripten::val event) {
-       qCDebug(qWasmMediaVideoOutput) << "timeupdate";
-
         // qt progress is ms
         emit progressChanged(event["target"]["currentTime"].as<double>() * 1000);
     };
@@ -1223,9 +1221,6 @@ void QWasmVideoOutput::videoFrameTimerCallback()
             emscripten_request_animation_frame(frame, context);
             return true;
         }
-
-        qCDebug(qWasmMediaVideoOutput) << "frame loop render: mode=" << videoOutput->m_currentVideoMode
-                                       << "glHandle=" << videoOutput->m_glContextHandle;
 
         if (videoOutput->m_hasVideoFrame) {
             if (videoOutput->m_glContextHandle)

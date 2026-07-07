@@ -76,7 +76,7 @@ QList<QCameraDevice> QWasmCameraDevices::findVideoInputs() const
     return QWasmMediaDevices::instance() ? QWasmMediaDevices::instance()->videoInputs() : QList<QCameraDevice>();
 }
 
-void QWasmCameraDevices::connectNotify(const QMetaMethod &signal)
+void QWasmCameraDevices::connectNotify(const QMetaMethod &)
 {
     Q_ASSERT(QThread::isMainThread());
     QWasmMediaDevices::instance();
@@ -108,7 +108,7 @@ QList<QAudioDevice> QWasmAudioDevices::findAudioOutputs() const
     return QWasmMediaDevices::instance() ? QWasmMediaDevices::instance()->audioOutputs() : QList<QAudioDevice>();
 }
 
-void QWasmAudioDevices::connectNotify(const QMetaMethod &signal)
+void QWasmAudioDevices::connectNotify(const QMetaMethod &)
 {
     Q_ASSERT(QThread::isMainThread());
     QWasmMediaDevices::instance();
@@ -338,7 +338,8 @@ void QWasmMediaDevices::getMediaDevices()
                            << QString::fromStdString(error["name"].as<std::string>())
                            << QString::fromStdString(error["message"].as<std::string>());
                 m_initDone = false;
-            }
+            },
+            .finallyFunc = {}
         };
 
         qstdweb::Promise::make(m_jsMediaDevicesInterface,

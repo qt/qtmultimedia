@@ -243,7 +243,8 @@ void QWasmAudioOutput::createAudioElement(const std::string &id)
         .catchFunc =
                 [](emscripten::val) {
                     qCWarning(qWasmMediaAudioOutput) << "Error while trying to setSinkId";
-                }
+                },
+        .finallyFunc = nullptr
     };
     qstdweb::Promise::make(m_audio, u"setSinkId"_s, std::move(sinkIdCallbacks), std::move(usableId));
 
