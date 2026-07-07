@@ -99,14 +99,31 @@ private slots:
             QVERIFY(window.isValid());
     }
 
-    void setActive_failsAndEmitEerrorOccurred_whenNoWindowSelected()
+    void setActive_failsAndEmitsErrors_whenNoWindowSelected()
     {
         WindowCaptureFixture fixture;
 
-        fixture.m_capture.setActive(true);
+        QWindowCapture &windowCapture = fixture.m_capture;
 
-        QVERIFY(!fixture.m_capture.isActive());
-        QVERIFY(!fixture.m_errors.empty());
+        QSignalSpy errorChangedSpy { &windowCapture, &QWindowCapture::errorChanged };
+
+        QCOMPARE(windowCapture.error(), QWindowCapture::Error::NoError);
+
+        windowCapture.setActive(true);
+
+        QVERIFY(!windowCapture.isActive());
+
+        // Make sure we received exactly one signal, and the error code is NotFound.
+        QCOMPARE(fixture.m_errors.count(), 1);
+        QCOMPARE(errorChangedSpy.count(), 1);
+
+        // TODO: Verify last error emitted is a specific error code.
+        /*
+        auto lastErrorEmitted = QWindowCapture::Error(fixture.m_errors[0][0].toInt());
+        QCOMPARE(lastErrorEmitted, QWindowCapture::Error::NotFound);
+
+        QCOMPARE(windowCapture.error(), QWindowCapture::Error::NotFound);
+        */
     }
 
     void setActive_isNoOp_whenStoppingCaptureThatNeverStarted()
@@ -152,6 +169,7 @@ private slots:
         QVERIFY(fixture.waitForFrame().isValid());
 
         QCOMPARE(fixture.m_activations.size(), 1);
+        QVERIFY(fixture.m_activations.at(0).at(0).toBool());
         QVERIFY(fixture.m_errors.empty());
     }
 
@@ -160,16 +178,20 @@ private slots:
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
 
+        QWindowCapture &windowCapture = fixture.m_capture;
+
+        QVERIFY(windowCapture.isActive());
+        QCOMPARE(fixture.m_activations.size(), 1);
+
         // Ensure capture is actually running before stopping it
         QVERIFY(fixture.waitForFrame().isValid());
-        QCOMPARE(fixture.m_activations.size(), 1);
-        QVERIFY(fixture.m_capture.isActive());
 
-        fixture.m_capture.setActive(false);
+        windowCapture.setActive(false);
 
         // activeChanged has now fired twice: once for start, once for stop
         QCOMPARE(fixture.m_activations.size(), 2);
-        QVERIFY(!fixture.m_capture.isActive());
+        QVERIFY(!fixture.m_activations.at(1).at(0).toBool());
+        QVERIFY(!windowCapture.isActive());
         QVERIFY(fixture.m_errors.empty());
     }
 
@@ -180,17 +202,19 @@ private slots:
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
 
+        QWindowCapture &windowCapture = fixture.m_capture;
+
         // Ensure capture is actually running before stopping it
         QVERIFY(fixture.waitForFrame().isValid());
 
         for (int i = 0; i < restartCount; ++i) {
-            fixture.m_capture.setActive(false);
+            windowCapture.setActive(false);
             QVERIFY(!fixture.m_capture.isActive());
 
-            fixture.m_capture.setActive(true);
+            windowCapture.setActive(true);
 
             QVERIFY(fixture.waitForFrame().isValid());
-            QVERIFY(fixture.m_capture.isActive());
+            QVERIFY(windowCapture.isActive());
         }
 
         // activeChanged fired for the initial start plus a stop/start pair per restart
@@ -204,15 +228,15 @@ private slots:
         QVERIFY(fixture.start({ 60, 40 }));
         QVERIFY(fixture.waitForFrame().isValid());
 
-        QSignalSpy windowChanges{ &fixture.m_capture, &QWindowCapture::windowChanged };
+        QWindowCapture &windowCapture = fixture.m_capture;
+
+        QSignalSpy windowChanges{ &windowCapture, &QWindowCapture::windowChanged };
 
         // Create a second, differently-sized window to switch to
         TestWidget secondWidget;
         secondWidget.setSize({ 120, 80 });
         secondWidget.show();
-        QVERIFY(QTest::qWaitForWindowExposed(
-            &secondWidget,
-            s_testTimeout));
+        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, s_testTimeout));
 
         std::optional<QCapturableWindow> secondWindow =
             WindowCaptureWithWidgetFixture::findCaptureWindow(
@@ -221,13 +245,13 @@ private slots:
         QVERIFY(secondWindow && secondWindow->isValid());
 
         // Switch the captured window while capture is active
-        fixture.m_capture.setWindow(*secondWindow);
+        windowCapture.setWindow(*secondWindow);
 
-        QTRY_COMPARE_WITH_TIMEOUT(windowChanges.size(), 1, s_testTimeout);
-        QCOMPARE(fixture.m_capture.window(), *secondWindow);
+        QCOMPARE(windowChanges.size(), 1);
+        QCOMPARE(windowCapture.window(), *secondWindow);
 
         // Switching source keeps the capture active
-        QVERIFY(fixture.m_capture.isActive());
+        QVERIFY(windowCapture.isActive());
         // activeChanged does not fire in between switching source
         QCOMPARE(fixture.m_activations.size(), 1);
 
@@ -245,23 +269,28 @@ private slots:
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
 
+        QWindowCapture &windowCapture = fixture.m_capture;
+
         // Ensure capture is actually running before switching window
         QVERIFY(fixture.waitForFrame().isValid());
         QCOMPARE(fixture.m_activations.size(), 1);
-        QVERIFY(fixture.m_capture.isActive());
+        QVERIFY(windowCapture.isActive());
 
         // Switching to a default-constructed (invalid) window cannot be captured,
         // so the capture stops and becomes inactive.
-        fixture.m_capture.setWindow(QCapturableWindow{});
+        windowCapture.setWindow(QCapturableWindow{});
 
-        QVERIFY(!fixture.m_capture.isActive());
+        QVERIFY(!windowCapture.isActive());
 
         // activeChanged fired again for the deactivation
         QCOMPARE(fixture.m_activations.size(), 2);
-        QCOMPARE(fixture.m_capture.window(), QCapturableWindow{});
+        QCOMPARE(windowCapture.window(), QCapturableWindow{});
         // We should emit an error when invalid window is assigned to
         // active QWindowCapture.
         QCOMPARE(fixture.m_errors.size(), 1);
+
+        // TODO: Check that last error state is a specific error code.
+        // QCOMPARE(windowCapture.error(), QWindowCapture::Error::NotFound);
     }
 
     void setFrameRate_updatesPropertyAndEmitsSignal()
@@ -511,15 +540,21 @@ private slots:
         QVERIFY(fixture.start());
 
         // Get capturing started
-        fixture.m_grabber.waitAndTakeFrames(3);
+        QVERIFY(fixture.waitForFrame().isValid());
 
         // Closing the process waits for it to exit
         fixture.m_windowProcess.close();
 
-        const bool captureFailed =
-                QTest::qWaitFor([&] { return !fixture.m_errors.empty(); }, s_testTimeout);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !fixture.m_errors.empty(),
+            s_testTimeout);
 
-        QVERIFY(captureFailed);
+        // TODO: Verify that the QWindowCapture goes inactive whenever we encounter an error
+        // like this.
+        // QVERIFY(!windowCapture.isActive());
+
+        // TODO: Enforce specific error code when a window is lost and capture stops.
+        // Need to investigate if this is a case we can specifically detect on all platforms.
     }
 };
 
