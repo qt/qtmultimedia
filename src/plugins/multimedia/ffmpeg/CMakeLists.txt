@@ -268,7 +268,7 @@ if (ANDROID)
 endif()
 
 # signalsmith-stretch is header-only and rather slow in debug builds. so let's optimize it:
-if(GCC OR CLANG)
+if(GCC OR (CLANG AND NOT MSVC))
     set_source_files_properties(playbackengine/qffmpegaudioframeconverter.cpp PROPERTIES
         COMPILE_OPTIONS $<$<CONFIG:Debug>:-O3>)
 elseif(MSVC)

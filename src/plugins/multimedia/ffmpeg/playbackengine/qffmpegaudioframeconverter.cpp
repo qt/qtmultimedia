@@ -9,7 +9,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpegmediaformatinfo_p.h>
 
 #if defined(Q_CC_MSVC) && defined(QT_MM_OPTIMIZE_DEBUG)
-#  pragma optimize("s", on)
+#  pragma optimize("", on)
 #endif
 
 // TODO: namespace 3p library to prevent odr violations
