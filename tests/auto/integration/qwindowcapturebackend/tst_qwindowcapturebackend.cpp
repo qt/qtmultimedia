@@ -293,6 +293,40 @@ private slots:
         // QCOMPARE(windowCapture.error(), QWindowCapture::Error::NotFound);
     }
 
+    void setWindow_updatesPropertyAndEmitsSignal_whenNotActive()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+
+        fixture.m_widget.setSize({ 60, 40 });
+        fixture.m_widget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(
+            &fixture.m_widget,
+            s_testTimeout));
+
+        const std::optional<QCapturableWindow> window =
+            WindowCaptureWithWidgetFixture::findCaptureWindow(
+                fixture.m_widget.windowTitle(),
+                fixture.m_widget.windowHandle());
+        QVERIFY(window && window->isValid());
+
+        QWindowCapture &windowCapture = fixture.m_capture;
+        QSignalSpy windowChanges{ &windowCapture, &QWindowCapture::windowChanged };
+
+        windowCapture.setWindow(*window);
+
+        QCOMPARE(windowChanges.size(), 1);
+        QCOMPARE(windowCapture.window(), *window);
+
+        // Selecting a window without activating must not start capturing or raise errors.
+        QVERIFY(!windowCapture.isActive());
+        QVERIFY(fixture.m_activations.empty());
+        QVERIFY(fixture.m_errors.empty());
+
+        // Setting the same window again is a no-op and must not emit windowChanged.
+        windowCapture.setWindow(*window);
+        QCOMPARE(windowChanges.size(), 1);
+    }
+
     void setFrameRate_updatesPropertyAndEmitsSignal()
     {
         WindowCaptureFixture fixture;
