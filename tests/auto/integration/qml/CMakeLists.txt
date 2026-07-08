@@ -12,3 +12,7 @@ qt_internal_add_test(tst_multimedia_qml
         Qt6::Quick
         Qt6::QuickTest
 )
+
+if(TARGET quickmultimediaplugin)
+    add_dependencies(tst_multimedia_qml quickmultimediaplugin)
+endif()
