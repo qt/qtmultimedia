@@ -24,6 +24,8 @@
 
 QT_USE_NAMESPACE
 
+using namespace Qt::Literals;
+
 AVFImageCapture::AVFImageCapture(QImageCapture *parent)
    : QPlatformImageCapture(parent)
 {
@@ -58,17 +60,15 @@ void AVFImageCapture::updateReadyStatus()
 int AVFImageCapture::doCapture(const QString &fileName)
 {
     if (!m_session) {
-        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                Q_ARG(int, m_lastCaptureId),
-                                Q_ARG(int, QImageCapture::ResourceError),
-                                Q_ARG(QString, QPlatformImageCapture::msgImageCaptureNotSet()));
+        QMetaObject::invokeMethod(this, [this, id = m_lastCaptureId] {
+            error(id, QImageCapture::ResourceError, QPlatformImageCapture::msgImageCaptureNotSet());
+        }, Qt::QueuedConnection);
         return -1;
     }
     if (!isReadyForCapture()) {
-        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                  Q_ARG(int, m_lastCaptureId),
-                                  Q_ARG(int, QImageCapture::NotReadyError),
-                                  Q_ARG(QString, QPlatformImageCapture::msgCameraNotReady()));
+        QMetaObject::invokeMethod(this, [this, id = m_lastCaptureId] {
+            error(id, QImageCapture::NotReadyError, QPlatformImageCapture::msgCameraNotReady());
+        }, Qt::QueuedConnection);
         return -1;
     }
     m_lastCaptureId++;
@@ -82,22 +82,21 @@ int AVFImageCapture::doCapture(const QString &fileName)
 
     [m_stillImageOutput
             captureStillImageAsynchronouslyFromConnection:m_videoConnection
-                                        completionHandler:[=, this](CMSampleBufferRef
-                                                                            imageSampleBuffer,
-                                                                    NSError *error) {
-        if (error) {
-            QStringList messageParts;
-            messageParts << QString::fromUtf8([[error localizedDescription] UTF8String]);
-            messageParts << QString::fromUtf8([[error localizedFailureReason] UTF8String]);
-            messageParts << QString::fromUtf8([[error localizedRecoverySuggestion] UTF8String]);
+                                        completionHandler:[=, this](CMSampleBufferRef imageSampleBuffer,
+                                                                    NSError *nsError) {
+        if (nsError) {
+            QStringList messageParts{
+                QString::fromNSString(nsError.localizedDescription),
+                QString::fromNSString(nsError.localizedFailureReason),
+                QString::fromNSString(nsError.localizedRecoverySuggestion),
+            };
 
             QString errorMessage = messageParts.join(QChar(u' '));
             qCDebug(qLcCamera) << "Image capture failed:" << errorMessage;
 
-            QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                      Q_ARG(int, request.captureId),
-                                      Q_ARG(int, QImageCapture::ResourceError),
-                                      Q_ARG(QString, errorMessage));
+            QMetaObject::invokeMethod(this, [this, captureId = request.captureId, errorMessage] {
+                error(captureId, QImageCapture::ResourceError, errorMessage);
+            }, Qt::QueuedConnection);
             return;
         }
 
@@ -124,38 +123,39 @@ int AVFImageCapture::doCapture(const QString &fileName)
                         QByteArray(jpgData.constData(), jpgData.size()), -1);
                 QVideoFrame frame = QVideoFramePrivate::createFrame(
                         std::move(buffer), QVideoFrameFormat(size, QVideoFrameFormat::Format_Jpeg));
-                QMetaObject::invokeMethod(this, "imageAvailable", Qt::QueuedConnection,
-                                          Q_ARG(int, request.captureId),
-                                          Q_ARG(QVideoFrame, frame));
+                QMetaObject::invokeMethod(this, [this, captureId = request.captureId, frame] {
+                    imageAvailable(captureId, frame);
+                }, Qt::QueuedConnection);
             } else {
                 QFile f(fileName);
                 if (f.open(QFile::WriteOnly)) {
                     if (f.write(jpgData) != -1) {
-                        QMetaObject::invokeMethod(this, "imageSaved", Qt::QueuedConnection,
-                                                  Q_ARG(int, request.captureId),
-                                                  Q_ARG(QString, fileName));
+                        QMetaObject::invokeMethod(this,
+                                                  [this, captureId = request.captureId, fileName] {
+                            imageSaved(captureId, fileName);
+                        }, Qt::QueuedConnection);
                     } else {
-                        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                                  Q_ARG(int, request.captureId),
-                                                  Q_ARG(int, QImageCapture::OutOfSpaceError),
-                                                  Q_ARG(QString, f.errorString()));
+                        QString errorString = f.errorString();
+                        QMetaObject::invokeMethod(
+                                this, [this, captureId = request.captureId, errorString] {
+                            error(captureId, QImageCapture::OutOfSpaceError, errorString);
+                        }, Qt::QueuedConnection);
                     }
                 } else {
                     QString errorMessage = tr("Could not open destination file:\n%1").arg(fileName);
-                    QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                              Q_ARG(int, request.captureId),
-                                              Q_ARG(int, QImageCapture::ResourceError),
-                                              Q_ARG(QString, errorMessage));
+                    QMetaObject::invokeMethod(this,
+                                              [this, captureId = request.captureId, errorMessage] {
+                        error(captureId, QImageCapture::ResourceError, errorMessage);
+                    }, Qt::QueuedConnection);
                 }
             }
         } else {
-            const QLatin1String errorMessage("Image capture failed: timed out waiting"
-                                             " for a preview frame.");
+            const QString errorMessage = u"Image capture failed: timed out waiting"
+                                         " for a preview frame."_s;
             qCDebug(qLcCamera) << errorMessage;
-            QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                      Q_ARG(int, request.captureId),
-                                      Q_ARG(int, QImageCapture::ResourceError),
-                                      Q_ARG(QString, errorMessage));
+            QMetaObject::invokeMethod(this, [this, captureId = request.captureId, errorMessage] {
+                error(captureId, QImageCapture::ResourceError, errorMessage);
+            }, Qt::QueuedConnection);
         }
     }];
 
@@ -201,7 +201,7 @@ void AVFImageCapture::onCameraChanged()
     m_cameraControl = camera;
 
     if (m_cameraControl)
-        connect(m_cameraControl, SIGNAL(activeChanged(bool)), this, SLOT(updateReadyStatus()));
+        connect(m_cameraControl, &AVFCamera::activeChanged, this, &AVFImageCapture::updateReadyStatus);
     updateReadyStatus();
 }
 
@@ -361,7 +361,7 @@ void AVFImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
         Q_ASSERT(m_session);
 
         connect(m_service, &AVFCameraService::cameraChanged, this, &AVFImageCapture::onCameraChanged);
-        connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
+        connect(m_session, &AVFCameraSession::readyToConfigureConnections, this, &AVFImageCapture::updateCaptureConnection);
         connect(m_session, &AVFCameraSession::newViewfinderFrame,
                      this, &AVFImageCapture::onNewViewfinderFrame);
     }
