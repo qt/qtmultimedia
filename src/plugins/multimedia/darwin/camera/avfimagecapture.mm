@@ -75,9 +75,12 @@ int AVFImageCapture::doCapture(const QString &fileName)
 
     bool captureToBuffer = fileName.isEmpty();
 
-    CaptureRequest request = { m_lastCaptureId, QSharedPointer<QSemaphore>::create()};
+    auto request = CaptureRequest{
+        m_lastCaptureId,
+        std::make_unique<QSemaphore>(),
+    };
     m_requestsMutex.lock();
-    m_captureRequests.enqueue(request);
+    m_captureRequests.push(request);
     m_requestsMutex.unlock();
 
     [m_stillImageOutput
@@ -177,12 +180,15 @@ int AVFImageCapture::captureToBuffer()
 
 void AVFImageCapture::onNewViewfinderFrame(const QVideoFrame &frame)
 {
-    QMutexLocker locker(&m_requestsMutex);
+    std::unique_lock guard(m_requestsMutex);
 
-    if (m_captureRequests.isEmpty())
+    if (m_captureRequests.empty())
         return;
 
-    CaptureRequest request = m_captureRequests.dequeue();
+    CaptureRequest request = std::move(m_captureRequests.front());
+    m_captureRequests.pop();
+    guard.unlock();
+
     Q_EMIT imageExposed(request.captureId);
 
     (void) QtConcurrent::run(&AVFImageCapture::makeCapturePreview, this,
@@ -201,13 +207,13 @@ void AVFImageCapture::onCameraChanged()
     m_cameraControl = camera;
 
     if (m_cameraControl)
-        connect(m_cameraControl, &AVFCamera::activeChanged, this, &AVFImageCapture::updateReadyStatus);
+        connect(m_cameraControl, &AVFCamera::activeChanged, this,
+                &AVFImageCapture::updateReadyStatus);
     updateReadyStatus();
 }
 
-void AVFImageCapture::makeCapturePreview(CaptureRequest request,
-                                                const QVideoFrame &frame,
-                                                int rotation)
+void AVFImageCapture::makeCapturePreview(CaptureRequest request, const QVideoFrame &frame,
+                                         int rotation)
 {
     QTransform transform;
     transform.rotate(rotation);

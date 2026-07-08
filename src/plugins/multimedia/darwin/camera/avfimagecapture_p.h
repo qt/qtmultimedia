@@ -16,11 +16,12 @@
 //
 
 #include <QtMultimedia/private/qplatformimagecapture_p.h>
-#include <QtCore/qqueue.h>
 #include <QtCore/qsemaphore.h>
-#include <QtCore/qsharedpointer.h>
 
 #include <camera/avfcamerasession_p.h>
+
+#include <memory>
+#include <queue>
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -28,11 +29,12 @@ QT_BEGIN_NAMESPACE
 
 class AVFImageCapture final : public QPlatformImageCapture
 {
-Q_OBJECT
+    Q_OBJECT
+
 public:
     struct CaptureRequest {
-        int captureId;
-        QSharedPointer<QSemaphore> previewReady;
+        int captureId{};
+        std::shared_ptr<QSemaphore> previewReady;
     };
 
     AVFImageCapture(QImageCapture *parent = nullptr);
@@ -71,11 +73,9 @@ private:
     AVCaptureConnection *m_videoConnection = nullptr;
 
     QMutex m_requestsMutex;
-    QQueue<CaptureRequest> m_captureRequests;
+    std::queue<CaptureRequest> m_captureRequests;
     QImageEncoderSettings m_settings;
 };
-
-Q_DECLARE_TYPEINFO(AVFImageCapture::CaptureRequest, Q_PRIMITIVE_TYPE);
 
 QT_END_NAMESPACE
 
