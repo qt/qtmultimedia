@@ -36,4 +36,10 @@ class CameraDeviceStateCallback extends CameraDevice.StateCallback {
             mMainCameraObject.mCameraDevice = null;
         mMainCameraObject.onCameraError(mMainCameraObject.mCameraId, error);
     }
+    @Override
+    public void onClosed(CameraDevice cameraDevice) {
+        java.util.concurrent.CountDownLatch latch = mMainCameraObject.mDeviceClosedLatch;
+        if (latch != null)
+            latch.countDown();
+    }
 }
