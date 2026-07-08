@@ -26,7 +26,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class AVFImageCapture : public QPlatformImageCapture
+class AVFImageCapture final : public QPlatformImageCapture
 {
 Q_OBJECT
 public:
