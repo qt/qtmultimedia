@@ -183,12 +183,14 @@ QAndroidCamera::QAndroidCamera(QCamera *camera)
 
 QAndroidCamera::~QAndroidCamera()
 {
+    // stopAndClose() waits for onClosed(), possibly queued behind other calls
+    // which need rwLock
+    m_jniCamera.callMethod<void>("stopAndClose");
+    setState(State::Closed);
+
     {
         QWriteLocker locker(rwLock);
         g_qcameras->remove(QString::fromUtf8(m_cameraDevice.id()));
-
-        m_jniCamera.callMethod<void>("stopAndClose");
-        setState(State::Closed);
     }
 
     m_jniCamera.callMethod<void>("stopBackgroundThread");
