@@ -61,7 +61,6 @@ private Q_SLOTS:
     void onCameraChanged();
 
 private:
-    void makeCapturePreview(CaptureRequest request, const QVideoFrame &frame, int rotation);
     bool videoCaptureDeviceIsValid() const;
 
     AVFCameraService *m_service = nullptr;

@@ -191,10 +191,14 @@ void AVFImageCapture::onNewViewfinderFrame(const QVideoFrame &frame)
 
     Q_EMIT imageExposed(request.captureId);
 
-    (void) QtConcurrent::run(&AVFImageCapture::makeCapturePreview, this,
-                      request,
-                      frame,
-                      0 /* rotation */);
+    QFuture<QImage> future = QtConcurrent::run([frame]() -> QImage {
+        return frame.toImage();
+    });
+
+    future.then(this, [this, request](QImage image) {
+        Q_EMIT imageCaptured(request.captureId, image);
+        request.previewReady->release();
+    });
 }
 
 void AVFImageCapture::onCameraChanged()
@@ -210,17 +214,6 @@ void AVFImageCapture::onCameraChanged()
         connect(m_cameraControl, &AVFCamera::activeChanged, this,
                 &AVFImageCapture::updateReadyStatus);
     updateReadyStatus();
-}
-
-void AVFImageCapture::makeCapturePreview(CaptureRequest request, const QVideoFrame &frame,
-                                         int rotation)
-{
-    QTransform transform;
-    transform.rotate(rotation);
-
-    Q_EMIT imageCaptured(request.captureId, frame.toImage().transformed(transform));
-
-    request.previewReady->release();
 }
 
 void AVFImageCapture::updateCaptureConnection()
