@@ -26,6 +26,8 @@ import android.view.Surface;
 import java.lang.Thread;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.qtproject.qt.android.UsedFromNativeCode;
 
@@ -39,6 +41,8 @@ class QtCamera2 {
     native void onStillPhotoCaptureFailed(String cameraId);
 
     CameraDevice mCameraDevice = null;
+    // Counted down by CameraDeviceStateCallback.onClosed(), awaited in stopAndClose()
+    volatile CountDownLatch mDeviceClosedLatch = null;
     QtVideoDeviceManager mVideoDeviceManager = null;
     // Thread and handler to that allows us to receive callbacks and frames on a background thread.
     HandlerThread mBackgroundThread;
@@ -122,6 +126,12 @@ class QtCamera2 {
             if (mMainCameraObject.mCameraDevice == cameraDevice)
                 mMainCameraObject.mCameraDevice = null;
             mMainCameraObject.onCameraError(mMainCameraObject.mCameraId, error);
+        }
+        @Override
+        public void onClosed(CameraDevice cameraDevice) {
+            java.util.concurrent.CountDownLatch latch = mMainCameraObject.mDeviceClosedLatch;
+            if (latch != null)
+                latch.countDown();
         }
     }
 
@@ -344,6 +354,9 @@ class QtCamera2 {
 
     @UsedFromNativeCode
     void stopAndClose() {
+        // Local closedLatch awaited outside the lock below, since mDeviceClosedLatch
+        // can be reassigned by a later open/close
+        CountDownLatch closedLatch = null;
         synchronized (mSyncedMembers) {
             try {
                 if (null != mCaptureSession) {
@@ -351,7 +364,9 @@ class QtCamera2 {
                     mCaptureSession = null;
                 }
                 if (null != mCameraDevice) {
-                    mCameraDevice.close();
+                    closedLatch = new CountDownLatch(1);
+                    mDeviceClosedLatch = closedLatch;
+                    mCameraDevice.close(); // async
                     mCameraDevice = null;
                 }
                 mCameraId = "";
@@ -361,6 +376,17 @@ class QtCamera2 {
             }
             mSyncedMembers.mIsStarted = false;
             mSyncedMembers.mIsTakingStillPhoto = false;
+        }
+
+        // Wait for onClosed() so background thread can be stopped
+        if (closedLatch != null) {
+            try {
+                if (!closedLatch.await(2, TimeUnit.SECONDS))
+                    // NOTE: Fallthrough can race if onClosed never fires
+                    Log.w("QtCamera2", "Timed out waiting for camera device to close");
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
