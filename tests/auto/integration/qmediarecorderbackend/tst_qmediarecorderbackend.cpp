@@ -76,7 +76,7 @@ std::set<QMediaFormat::VideoCodec> unsupportedVideoCodecs(QMediaFormat::FileForm
 
 void verifyEncodedFrames(const MediaInfo &info, const std::vector<QColor> &expectedColors)
 {
-    QCOMPARE_EQ(info.m_frameCount, expectedColors.size());
+    QCOMPARE_EQ(size_t(info.m_frameCount), expectedColors.size());
     QCOMPARE_EQ(info.m_colors.size(), expectedColors.size());
     for (auto i = 0U; i < expectedColors.size(); ++i)
         QVERIFY2(fuzzyCompare(info.m_colors[i][0], expectedColors.at(i)),
