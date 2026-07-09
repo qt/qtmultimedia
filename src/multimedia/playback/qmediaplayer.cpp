@@ -3,26 +3,14 @@
 
 #include "qmediaplayer_p.h"
 
-#include <private/qmultimediautils_p.h>
-#include <private/qplatformmediaintegration_p.h>
-#include <private/qaudiobufferoutput_p.h>
-#include <qvideosink.h>
-#include <qaudiooutput.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/private/qaudiobufferoutput_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
-#include <QtCore/qcoreevent.h>
-#include <QtCore/qmetaobject.h>
-#include <QtCore/qtimer.h>
 #include <QtCore/qdebug.h>
-#include <QtCore/qdir.h>
-#include <QtCore/qpointer.h>
-#include <QtCore/qfileinfo.h>
 #include <QtCore/qtemporaryfile.h>
-#include <QtCore/qcoreapplication.h>
-
-#if defined(Q_OS_ANDROID)
-#  include <QtCore/qjniobject.h>
-#  include <QtCore/qrandom.h>
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -128,6 +116,8 @@ void QMediaPlayerPrivate::setError(QMediaPlayer::Error error, const QString &err
 
 void QMediaPlayerPrivate::setMedia(QUrl media, QIODevice *stream)
 {
+    using namespace QtMultimediaPrivate;
+
     setError(QMediaPlayer::NoError, {});
 
     if (!control)
@@ -137,11 +127,10 @@ void QMediaPlayerPrivate::setMedia(QUrl media, QIODevice *stream)
 
     std::unique_ptr<QFile> file;
 
-    // Back ends can't play qrc files directly.
+    // Some backends can't play qrc files directly.
     // If the back end supports StreamPlayback, we pass a QFile for that resource.
     // If it doesn't, we copy the data to a temporary file and pass its path.
-    if (!media.isEmpty() && !stream && media.scheme() == QLatin1String("qrc")
-        && !control->canPlayQrc()) {
+    if (!media.isEmpty() && !stream && media.scheme() == u"qrc" && !control->canPlayQrc()) {
         qrcMedia = media;
 
         control->mediaStatusChanged(QMediaPlayer::LoadingMedia);
@@ -156,78 +145,19 @@ void QMediaPlayerPrivate::setMedia(QUrl media, QIODevice *stream)
         } else if (control->streamPlaybackSupported()) {
             control->setMedia(media, file.get());
         } else {
-#if QT_CONFIG(temporaryfile)
-#if defined(Q_OS_ANDROID)
-            std::unique_ptr<QTemporaryFile> tempFile { QTemporaryFile::createNativeFile(*file) };
-            if (!tempFile) {
-                control->setInvalidMediaWithError(
-                        QMediaPlayer::ResourceError,
-                        QMediaPlayer::tr("Failed to establish temporary file during playback"));
-                return;
-            }
-
-            // Use a temp path derived from the original resource path
-            const QFileInfo mediaInfo(media.path());
-            const QString targetDirPath = QDir::tempPath() + mediaInfo.path();
-            if (!QDir().mkpath(targetDirPath)) {
-                control->setInvalidMediaWithError(
-                        QMediaPlayer::ResourceError,
-                        QStringLiteral("Could not create a temporary directory: %1")
-                                .arg(targetDirPath));
-                return;
-            }
-
-            // Add a random suffix to avoid collisions
-            const QString baseName = mediaInfo.completeBaseName() + QLatin1Char('_')
-                    + QString::number(QRandomGenerator::global()->generate(), 16);
-
-            // Keep extension suffix
-            const QString suffix = mediaInfo.suffix();
-
-            const QString newName = targetDirPath + QLatin1Char('/') + baseName
-                    + (suffix.isEmpty() ? QString() : QLatin1Char('.') + suffix);
-
-            if (!tempFile->rename(newName)) {
-                control->setInvalidMediaWithError(
-                        QMediaPlayer::ResourceError,
-                        QStringLiteral("Could not rename temporary file to: %1").arg(newName));
-                return;
-            }
-#else
-            std::unique_ptr<QTemporaryFile> tempFile = std::make_unique<QTemporaryFile>();
-
-            // Preserve original file extension, some back ends might not load the file if it doesn't
-            // have an extension.
-            const QString suffix = QFileInfo(*file).suffix();
-            if (!suffix.isEmpty())
-                tempFile->setFileTemplate(tempFile->fileTemplate() + QLatin1Char('.') + suffix);
-
-            // Copy the qrc data into the temporary file
-            if (!tempFile->open()) {
+            auto extractedQrcMedia = qCopyQrcToTemporaryFile(*file, media);
+            if (!extractedQrcMedia) {
                 control->setInvalidMediaWithError(QMediaPlayer::ResourceError,
-                                                  tempFile->errorString());
-                qrcFile.reset();
+                                                  extractedQrcMedia.error());
                 return;
             }
-            char buffer[4096];
-            while (true) {
-                qint64 len = file->read(buffer, sizeof(buffer));
-                if (len < 1)
-                    break;
-                tempFile->write(buffer, len);
-            }
-            tempFile->close();
-#endif
-            file = std::move(tempFile);
-            control->setMedia(QUrl(QUrl::fromLocalFile(file->fileName())), nullptr);
-#else
-            qWarning("Qt was built with -no-feature-temporaryfile: playback from resource file is not supported!");
-#endif
+            file = std::move(extractedQrcMedia->file);
+            control->setMedia(extractedQrcMedia->url, nullptr);
         }
     } else {
         qrcMedia = QUrl();
         QUrl url = qMediaFromUserInput(media);
-        if (url.scheme() == QLatin1String("content") && !stream) {
+        if (url.scheme() == u"content" && !stream) {
             file.reset(new QFile(media.url()));
             stream = file.get();
         }

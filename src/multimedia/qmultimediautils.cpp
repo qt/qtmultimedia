@@ -2,15 +2,22 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qmultimediautils_p.h"
-#include "qvideoframe.h"
-#include "qvideoframeformat.h"
+
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideoframeformat.h>
 
 #include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qoperatingsystemversion.h>
+#include <QtCore/qtemporaryfile.h>
+#include <QtCore/quuid.h>
 
 #include <cmath>
 
 QT_BEGIN_NAMESPACE
+
+using namespace Qt::Literals;
 
 Q_STATIC_LOGGING_CATEGORY(qLcMultimediaUtils, "qt.multimedia.utils");
 
@@ -181,5 +188,72 @@ VideoTransformationOpt qVideoTransformationFromMatrix(const QTransform &matrix)
     result.rotation = qVideoRotationFromDegrees(qRound(angle / M_PI_2) * 90);
     return result;
 }
+
+namespace QtMultimediaPrivate {
+q23::expected<QrcMedia, QString> qCopyQrcToTemporaryFile([[maybe_unused]] QFile &qrcFile,
+                                                          [[maybe_unused]] const QUrl &qrcUrl)
+{
+#if QT_CONFIG(temporaryfile)
+    std::unique_ptr<QTemporaryFile> tempFile;
+
+    if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android) {
+        tempFile = std::unique_ptr<QTemporaryFile>(QTemporaryFile::createNativeFile(qrcFile));
+        if (!tempFile)
+            return q23::unexpected(u"Failed to establish temporary file during playback"_s);
+
+        // Use a temp path derived from the original resource path
+        const QFileInfo mediaInfo(qrcUrl.path());
+        const QString targetDirPath = QDir::tempPath() + mediaInfo.path();
+        if (!QDir().mkpath(targetDirPath))
+            return q23::unexpected(
+                    u"Could not create a temporary directory: %1"_s.arg(targetDirPath));
+
+        // Add a random suffix to avoid collisions
+        const QString baseName = mediaInfo.completeBaseName() + QLatin1Char('_')
+                + QUuid::createUuid().toString(QUuid::WithoutBraces);
+
+        // Keep extension suffix
+        const QString suffix = mediaInfo.suffix();
+
+        const QString newName = targetDirPath + QLatin1Char('/') + baseName
+                + (suffix.isEmpty() ? QString() : QLatin1Char('.') + suffix);
+
+        if (!tempFile->rename(newName))
+            return q23::unexpected(u"Could not rename temporary file to: %1"_s.arg(newName));
+    } else {
+        tempFile = std::make_unique<QTemporaryFile>();
+
+        // Preserve original file extension, some back ends might not load the file if it doesn't
+        // have an extension.
+        const QString suffix = QFileInfo(qrcFile).suffix();
+        if (!suffix.isEmpty())
+            tempFile->setFileTemplate(tempFile->fileTemplate() + QLatin1Char('.') + suffix);
+
+        if (!tempFile->open())
+            return q23::unexpected(tempFile->errorString());
+
+        // Copy the qrc data into the temporary file
+        char buffer[4096];
+        while (true) {
+            qint64 len = qrcFile.read(buffer, sizeof(buffer));
+            if (len < 1)
+                break;
+            tempFile->write(buffer, len);
+        }
+        tempFile->close();
+    }
+
+    QUrl url = QUrl::fromLocalFile(tempFile->fileName());
+    return QrcMedia{
+        std::move(url),
+        std::move(tempFile),
+    };
+#else
+    return q23::unexpected(u"Qt was built with -no-feature-temporaryfile: playback from "
+                           "resource file is not supported!"_s);
+#endif
+}
+
+} // namespace QtMultimediaPrivate
 
 QT_END_NAMESPACE

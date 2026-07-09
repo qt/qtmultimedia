@@ -17,13 +17,18 @@
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/private/qvideotransformation_p.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qurl.h>
 #include <QtGui/rhi/qrhi.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 class QRhiSwapChain;
+class QFile;
+class QTemporaryFile;
 class QVideoFrame;
 class QVideoFrameFormat;
 
@@ -115,6 +120,14 @@ std::shared_ptr<T> makeSharedDeleteLater(Args &&...args)
 {
     return std::shared_ptr<T>(new T(std::forward<Args>(args)...), DeleteLaterDeleter());
 }
+
+struct QrcMedia
+{
+    QUrl url;
+    std::unique_ptr<QTemporaryFile> file;
+};
+
+q23::expected<QrcMedia, QString> qCopyQrcToTemporaryFile(QFile &, const QUrl &);
 
 } // namespace QtMultimediaPrivate
 
