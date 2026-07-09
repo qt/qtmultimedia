@@ -188,14 +188,6 @@ void Camera::processCapturedImage(int requestId, const QImage &img)
     QTimer::singleShot(4000, this, &Camera::displayViewfinder);
 }
 
-void Camera::configureCaptureSettings()
-{
-    if (m_doImageCapture)
-        configureImageSettings();
-    else
-        configureVideoSettings();
-}
-
 void Camera::configureVideoSettings()
 {
     VideoSettings settingsDialog(m_mediaRecorder.get());
@@ -270,12 +262,14 @@ void Camera::updateCameraActive(bool active)
         ui->actionStartCamera->setEnabled(false);
         ui->actionStopCamera->setEnabled(true);
         ui->captureWidget->setEnabled(true);
-        ui->actionSettings->setEnabled(true);
+        ui->actionImageSettings->setEnabled(true);
+        ui->actionVideoSettings->setEnabled(true);
     } else {
         ui->actionStartCamera->setEnabled(true);
         ui->actionStopCamera->setEnabled(false);
         ui->captureWidget->setEnabled(false);
-        ui->actionSettings->setEnabled(false);
+        ui->actionImageSettings->setEnabled(false);
+        ui->actionVideoSettings->setEnabled(false);
     }
 }
 

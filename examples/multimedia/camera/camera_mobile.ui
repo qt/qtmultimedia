@@ -283,7 +283,8 @@
     <addaction name="actionStartCamera"/>
     <addaction name="actionStopCamera"/>
     <addaction name="separator"/>
-    <addaction name="actionSettings"/>
+    <addaction name="actionImageSettings"/>
+    <addaction name="actionVideoSettings"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -311,9 +312,14 @@
     <string>Stop Camera</string>
    </property>
   </action>
-  <action name="actionSettings">
+  <action name="actionImageSettings">
    <property name="text">
-    <string>Change Settings</string>
+    <string>Image capture settings</string>
+   </property>
+  </action>
+  <action name="actionVideoSettings">
+   <property name="text">
+    <string>Video settings</string>
    </property>
   </action>
  </widget>
@@ -440,10 +446,26 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionSettings</sender>
+   <sender>actionImageSettings</sender>
    <signal>triggered()</signal>
    <receiver>Camera</receiver>
-   <slot>configureCaptureSettings()</slot>
+   <slot>configureImageSettings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>333</x>
+     <y>210</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionVideoSettings</sender>
+   <signal>triggered()</signal>
+   <receiver>Camera</receiver>
+   <slot>configureVideoSettings()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -493,7 +515,8 @@
   <slot>pause()</slot>
   <slot>stop()</slot>
   <slot>enablePreview(bool)</slot>
-  <slot>configureCaptureSettings()</slot>
+  <slot>configureImageSettings()</slot>
+  <slot>configureVideoSettings()</slot>
   <slot>takeImage()</slot>
   <slot>startCamera()</slot>
   <slot>toggleLock()</slot>
