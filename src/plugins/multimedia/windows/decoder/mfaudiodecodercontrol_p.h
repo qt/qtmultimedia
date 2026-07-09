@@ -47,6 +47,8 @@ public:
     qint64 position() const override { return m_position; }
     qint64 duration() const override { return m_duration; }
 
+    bool canReadQrc() const override { return true; }
+
 private Q_SLOTS:
     void handleMediaSourceReady();
     void handleMediaSourceError(long hr);

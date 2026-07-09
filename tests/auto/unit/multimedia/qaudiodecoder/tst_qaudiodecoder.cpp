@@ -30,6 +30,10 @@ private Q_SLOTS:
     void format();
     void source();
     void readAll();
+
+    void testQrc_data();
+    void testQrc();
+
     void nullControl();
 };
 
@@ -294,6 +298,57 @@ void tst_QAudioDecoder::readAll()
         } else
             QTest::qWait(30);
     }
+}
+
+void tst_QAudioDecoder::testQrc_data()
+{
+    QTest::addColumn<QUrl>("source");
+    QTest::addColumn<bool>("backendCanReadQrc");
+    QTest::addColumn<QAudioDecoder::Error>("error");
+    QTest::addColumn<QString>("backendSourceScheme");
+
+    QTest::newRow("invalid") << QUrl(QStringLiteral("qrc:/invalid.mp3")) << false
+                              << QAudioDecoder::ResourceError
+                              << QString(); // backend should not have got any source
+
+    QTest::newRow("valid+cannotReadQrc")
+            << QUrl(QStringLiteral("qrc:/testdata/dummy.mp3")) << false << QAudioDecoder::NoError
+            << QStringLiteral("file"); // backend should have got a temporary file
+
+    QTest::newRow("valid+canReadQrc")
+            << QUrl(QStringLiteral("qrc:/testdata/dummy.mp3")) << true << QAudioDecoder::NoError
+            << QStringLiteral("qrc"); // backend reads the qrc resource itself
+}
+
+void tst_QAudioDecoder::testQrc()
+{
+    QFETCH(QUrl, source);
+    QFETCH(bool, backendCanReadQrc);
+    QFETCH(QAudioDecoder::Error, error);
+    QFETCH(QString, backendSourceScheme);
+
+    QAudioDecoder d;
+    QMockAudioDecoder *mockDecoder = QMockIntegration::instance()->lastAudioDecoder();
+    QVERIFY(mockDecoder);
+    mockDecoder->setCanReadQrc(backendCanReadQrc);
+
+    QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
+
+    d.setSource(source);
+
+    // The unresolved source is always reported back, even when it could not be used.
+    QCOMPARE(d.source(), source);
+
+    if (error != QAudioDecoder::NoError) {
+        QCOMPARE(errorSpy.size(), 1);
+        QCOMPARE(qvariant_cast<QAudioDecoder::Error>(errorSpy.last().value(0)), error);
+    } else {
+        QCOMPARE(errorSpy.size(), 0);
+    }
+    QCOMPARE(d.error(), error);
+
+    // Check what actually reached the backend
+    QCOMPARE(mockDecoder->mSource.scheme(), backendSourceScheme);
 }
 
 void tst_QAudioDecoder::nullControl()
