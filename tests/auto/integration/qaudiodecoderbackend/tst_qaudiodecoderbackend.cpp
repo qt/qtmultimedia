@@ -51,9 +51,11 @@ private slots:
     void restartOnBufferReady();
     void restartOnFinish();
     void fileTest();
+    void qrcFileTest();
     void unsupportedFileTest();
     void corruptedFileTest();
     void invalidSource();
+    void invalidQrcSourceTest();
     void deviceTest();
     void play_emitsFormatError_whenMediaHasNoAudioTrack();
 
@@ -553,6 +555,49 @@ void tst_QAudioDecoderBackend::fileTest()
     QVERIFY(!d.bufferAvailable());
 }
 
+void tst_QAudioDecoderBackend::qrcFileTest()
+{
+    CHECK_SELECTED_URL(m_wavFile);
+
+    QAudioDecoder decoder;
+    if (decoder.error() == QAudioDecoder::NotSupportedError)
+        QSKIP("There is no audio decoding support on this platform.");
+
+    const QUrl qrcUrl(QStringLiteral("qrc:/testdata/test.wav"));
+
+    int sampleCount = 0;
+    QSignalSpy decodingSpy(&decoder, &QAudioDecoder::isDecodingChanged);
+    QSignalSpy errorSpy(&decoder, SIGNAL(error(QAudioDecoder::Error)));
+
+    decoder.setSource(qrcUrl);
+    QCOMPARE(decoder.source(), qrcUrl);
+    QVERIFY(!decoder.isDecoding());
+    QVERIFY(!decoder.bufferAvailable());
+
+    decoder.start();
+    QTRY_VERIFY(decodingSpy.size() >= 1); // Wait until decoding starts
+
+    auto waitAndCheck = [](auto &&predicate) { QVERIFY(QTest::qWaitFor(predicate)); };
+
+    auto waitForBufferAvailable = [&]() {
+        waitAndCheck([&]() { return !decoder.isDecoding() || decoder.bufferAvailable(); });
+
+        return decoder.bufferAvailable();
+    };
+
+    while (waitForBufferAvailable()) {
+        auto buffer = decoder.read();
+        QVERIFY(buffer.isValid());
+
+        sampleCount += buffer.sampleCount();
+    }
+
+    checkNoMoreChanges(decoder);
+
+    QVERIFY(errorSpy.isEmpty());
+    QCOMPARE(sampleCount, testFileSampleCount);
+}
+
 /*
  The avi file has an audio stream not supported by any codec.
 */
@@ -801,6 +846,32 @@ void tst_QAudioDecoderBackend::invalidSource()
     QTRY_VERIFY(!d.isDecoding());
     QCOMPARE(d.duration(), qint64(-1));
     QVERIFY(!d.bufferAvailable());
+}
+
+void tst_QAudioDecoderBackend::invalidQrcSourceTest()
+{
+    QAudioDecoder d;
+    if (d.error() == QAudioDecoder::NotSupportedError)
+        QSKIP("There is no audio decoding support on this platform.");
+
+    const QUrl url(QStringLiteral("qrc:/testdata/does-not-exist.wav"));
+
+    QSignalSpy readySpy(&d, &QAudioDecoder::bufferReady);
+    QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
+    QSignalSpy finishedSpy(&d, &QAudioDecoder::finished);
+
+    d.setSource(url);
+    QCOMPARE(d.source(), url);
+    QVERIFY(!d.isDecoding());
+    QVERIFY(!d.bufferAvailable());
+
+    d.start();
+    QTRY_VERIFY(!errorSpy.isEmpty());
+    QTRY_VERIFY(!d.isDecoding());
+    QVERIFY(!d.bufferAvailable());
+
+    QVERIFY(readySpy.isEmpty());
+    QVERIFY(finishedSpy.isEmpty());
 }
 
 void tst_QAudioDecoderBackend::deviceTest()

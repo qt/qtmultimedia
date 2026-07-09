@@ -21,3 +21,10 @@ qt_internal_add_test(tst_qaudiodecoderbackend
         testdata/test-no-audio-track.mp4
         testdata/test-unsupported.avi
 )
+
+qt_internal_add_resource(tst_qaudiodecoderbackend "qrc_testdata"
+    PREFIX
+        "/"
+    FILES
+        "testdata/test.wav"
+)

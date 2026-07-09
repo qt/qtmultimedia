@@ -9,8 +9,10 @@
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qfile.h>
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/qtemporaryfile.h>
 #include <QtCore/qtimer.h>
 #include <QtCore/qurl.h>
 
@@ -155,6 +157,8 @@ QUrl QAudioDecoder::source() const
 */
 void QAudioDecoder::setSource(const QUrl &fileName)
 {
+    using namespace QtMultimediaPrivate;
+
     Q_D(QAudioDecoder);
 
     if (!d->decoder)
@@ -163,6 +167,29 @@ void QAudioDecoder::setSource(const QUrl &fileName)
     d->decoder->clearError();
     d->unresolvedUrl = fileName;
     d->decoder->setSourceDevice(nullptr);
+    d->qrcFile.reset();
+
+    // Platform decoders generally can't read qrc resources directly; unless the platform
+    // decoder says otherwise, copy the resource to a real file first.
+    if (!fileName.isEmpty() && fileName.scheme() == u"qrc" && !d->decoder->canReadQrc()) {
+        QFile file(u':' + fileName.path());
+        if (!file.open(QFile::ReadOnly)) {
+            d->decoder->error(QAudioDecoder::ResourceError,
+                              tr("Attempting to play invalid Qt resource"));
+            return;
+        }
+
+        auto qrcMedia = qCopyQrcToTemporaryFile(file, fileName);
+        if (!qrcMedia) {
+            d->decoder->error(QAudioDecoder::ResourceError, qrcMedia.error());
+            return;
+        }
+
+        d->qrcFile = std::move(qrcMedia->file);
+        d->decoder->setSource(qrcMedia->url);
+        return;
+    }
+
     QUrl url = qMediaFromUserInput(fileName);
     d->decoder->setSource(url);
 }

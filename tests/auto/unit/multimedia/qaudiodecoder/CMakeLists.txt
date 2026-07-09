@@ -15,3 +15,10 @@ qt_internal_add_test(tst_qaudiodecoder
         Qt::MultimediaPrivate
         Qt::MockMultimediaPlugin
 )
+
+qt_internal_add_resource(tst_qaudiodecoder "testdata"
+    PREFIX
+        "/"
+    FILES
+        "testdata/dummy.mp3"
+)
