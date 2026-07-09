@@ -72,8 +72,6 @@ public Q_SLOTS:
 
 private:
     Q_DECLARE_PRIVATE(QAudioEngine)
-    friend class QAudioEngineThreaded;
-    friend class QAudioEngineWithPlayer;
 
     QT6_ONLY(Q_DECL_UNUSED_MEMBER void *unused = nullptr;) // for ABI compatibility
 };
