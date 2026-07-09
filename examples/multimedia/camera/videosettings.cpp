@@ -22,6 +22,16 @@
 #include <QDebug>
 #include <QTextStream>
 
+#include <array>
+
+namespace {
+constexpr int defaultSampleRate = 48'000;
+constexpr std::array allSupportedSampleRates{
+    8'000,  11'025, 12'000, 16'000, 22'050,  24'000,  32'000,  44'100,
+    48'000, 64'000, 88'200, 96'000, 128'000, 176'400, 192'000,
+};
+}
+
 static QString toFormattedString(const QCameraFormat &cameraFormat)
 {
     QString string;
@@ -41,8 +51,11 @@ VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
 
     // sample rate:
     auto audioDevice = mediaRecorder->captureSession()->audioInput()->device();
-    ui->audioSampleRateBox->setRange(audioDevice.minimumSampleRate(),
-                                     audioDevice.maximumSampleRate());
+    for (int rate : allSupportedSampleRates) {
+        if (rate < audioDevice.minimumSampleRate() || rate > audioDevice.maximumSampleRate())
+            continue;
+        ui->audioSampleRateBox->addItem(QString::number(rate), rate);
+    }
 
     // camera format
     ui->videoFormatBox->addItem(tr("Default camera format"));
@@ -78,7 +91,10 @@ VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
     selectComboBoxItem(ui->videoCodecBox, QVariant::fromValue(format.videoCodec()));
 
     ui->qualitySlider->setValue(mediaRecorder->quality());
-    ui->audioSampleRateBox->setValue(mediaRecorder->audioSampleRate());
+    const int sampleRate =
+            mediaRecorder->audioSampleRate() > 0 ? mediaRecorder->audioSampleRate()
+                                                  : defaultSampleRate;
+    selectComboBoxItem(ui->audioSampleRateBox, QVariant(sampleRate));
     selectComboBoxItem(ui->videoFormatBox,
                        QVariant::fromValue(camera->cameraFormat()));
 
@@ -118,7 +134,7 @@ void VideoSettings::applySettings()
 
     mediaRecorder->setMediaFormat(format);
     mediaRecorder->setQuality(QMediaRecorder::Quality(ui->qualitySlider->value()));
-    mediaRecorder->setAudioSampleRate(ui->audioSampleRateBox->value());
+    mediaRecorder->setAudioSampleRate(boxValue(ui->audioSampleRateBox).toInt());
 
     const auto &cameraFormat = boxValue(ui->videoFormatBox).value<QCameraFormat>();
     mediaRecorder->setVideoResolution(cameraFormat.resolution());
