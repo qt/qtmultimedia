@@ -31,7 +31,7 @@ public:
     {
         quint32 buffersCount = 2;
         if (!fileDescriptor->requestBuffers(V4L2_MEMORY_USERPTR, buffersCount)) {
-            qCWarning(qLcV4L2MemoryTransfer) << "Cannot request V4L2_MEMORY_USERPTR buffers";
+            qCDebug(qLcV4L2MemoryTransfer) << "Cannot request V4L2_MEMORY_USERPTR buffers";
             return {};
         }
 
