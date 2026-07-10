@@ -413,7 +413,7 @@ class QtCamera2 {
             // Try to reset our camera to regular preview
             try {
                 setRepeatingRequestToPreview();
-            } catch (CameraAccessException e) {
+            } catch (Exception e) {
                 // TODO: If we fail to go back into preview, we can clean up the camera session and
                 // set the QCamera to inactive.
             }
@@ -494,7 +494,7 @@ class QtCamera2 {
                         // Do nothing; wait for next result
                         break;
                 }
-            } catch (CameraAccessException e) {
+            } catch (Exception e) {
                 onCaptureFailureEvent();
             }
 
@@ -628,8 +628,8 @@ class QtCamera2 {
         final CameraSettings cameraSettings = atomicCameraSettingsCopy();
         try {
             submitNewStillPhotoCapture(cameraSettings);
-        } catch (CameraAccessException e) {
-            Log.w("QtCamera2", "Cannot get access to the camera: " + e);
+        } catch (Exception e) {
+            Log.w("QtCamera2", "Failed to begin still photo capture: " + e);
             e.printStackTrace();
             onStillPhotoCaptureFailed(mCameraId);
             // TODO: Try to go back to previewing if applicable. If that fails too, shut down
