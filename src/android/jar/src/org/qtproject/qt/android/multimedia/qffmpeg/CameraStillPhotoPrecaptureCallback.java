@@ -67,7 +67,7 @@ class CameraStillPhotoPrecaptureCallback extends CameraCaptureSession.CaptureCal
         // Try to reset our camera to regular preview
         try {
             mMainCameraObject.setRepeatingRequestToPreview();
-        } catch (CameraAccessException e) {
+        } catch (Exception e) {
             // TODO: If we fail to go back into preview, we can clean up the camera session and
             // set the QCamera to inactive.
         }
@@ -148,7 +148,7 @@ class CameraStillPhotoPrecaptureCallback extends CameraCaptureSession.CaptureCal
                     // Do nothing; wait for next result
                     break;
             }
-        } catch (CameraAccessException e) {
+        } catch (Exception e) {
             onCaptureFailureEvent();
         }
 
