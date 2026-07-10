@@ -384,8 +384,8 @@ class QtCamera2 {
         final CameraSettings cameraSettings = atomicCameraSettingsCopy();
         try {
             submitNewStillPhotoCapture(cameraSettings);
-        } catch (CameraAccessException e) {
-            Log.w(LOG_TAG, "Cannot get access to the camera: " + e);
+        } catch (Exception e) {
+            Log.w(LOG_TAG, "Failed to begin still photo capture: " + e);
             e.printStackTrace();
             onStillPhotoCaptureFailed(mCameraId);
             // TODO: Try to go back to previewing if applicable. If that fails too, shut down
