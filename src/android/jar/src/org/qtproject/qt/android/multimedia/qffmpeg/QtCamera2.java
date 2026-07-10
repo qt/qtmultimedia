@@ -357,8 +357,14 @@ class QtCamera2 {
         // Local closedLatch awaited outside the lock below, since mDeviceClosedLatch
         // can be reassigned by a later open/close
         CountDownLatch closedLatch = null;
+
+        // Report in-flight still capture as failed
+        String abortedStillPhotoCameraId = null;
+
         synchronized (mSyncedMembers) {
             try {
+                if (mSyncedMembers.mIsTakingStillPhoto)
+                    abortedStillPhotoCameraId = mCameraId;
                 if (null != mCaptureSession) {
                     mCaptureSession.close();
                     mCaptureSession = null;
@@ -377,6 +383,9 @@ class QtCamera2 {
             mSyncedMembers.mIsStarted = false;
             mSyncedMembers.mIsTakingStillPhoto = false;
         }
+
+        if (abortedStillPhotoCameraId != null)
+            onStillPhotoCaptureFailed(abortedStillPhotoCameraId);
 
         // Wait for onClosed() so background thread can be stopped
         if (closedLatch != null) {
