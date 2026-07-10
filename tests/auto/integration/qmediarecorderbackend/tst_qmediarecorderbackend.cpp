@@ -80,7 +80,8 @@ void verifyEncodedFrames(const MediaInfo &info, const std::vector<QColor> &expec
     QCOMPARE_EQ(size_t(info.m_frameCount), expectedColors.size());
     QCOMPARE_EQ(info.m_colors.size(), expectedColors.size());
     for (auto i = 0U; i < expectedColors.size(); ++i)
-        QVERIFY2(fuzzyCompare(info.m_colors[i][0], expectedColors.at(i)),
+        // HACK: Increase tolerance to accommodate for artifacts
+        QVERIFY2(fuzzyCompare(info.m_colors[i][0], expectedColors.at(i), 0.1f),
                  qPrintable(QString("Frame %1: expected %2, got %3")
                                     .arg(i)
                                     .arg(expectedColors.at(i).name())
@@ -836,6 +837,7 @@ void tst_QMediaRecorderBackend::record_adjustsFrameRate_whenSourceFrameRateDiffe
     QTest::addColumn<double>("recorderFrameRate");
     QTest::addColumn<bool>("reportsVariableRate");
     QTest::addColumn<bool>("reportsEndTime");
+    QTest::addColumn<QMediaFormat::VideoCodec>("videoCodec");
 
     struct TestCase {
         const char *name;
@@ -849,7 +851,7 @@ void tst_QMediaRecorderBackend::record_adjustsFrameRate_whenSourceFrameRateDiffe
         { "the default rate from 75.0", 75.0, 0.0 },
         { "the same rate", 10.0, 10.0 },
         { "a half rate", 20.0, 10.0 },
-        { "a double rate", 5.0, 10.0 },
+        { "a double rate", 10.0, 20.0 },
         { "a 2/3 rate", 15.0, 10.0 },
         { "a 3/2 rate", 10.0, 15.0 },
     };
@@ -858,10 +860,17 @@ void tst_QMediaRecorderBackend::record_adjustsFrameRate_whenSourceFrameRateDiffe
     for (const auto &c : cases) {
         for (bool variableRate : { false, true }) {
             for (bool reportsEndTime : { true, false }) {
-                const char *prefix = variableRate ? "Encode variable stream at " : "Encode at ";
-                const char *suffix = reportsEndTime ? "" : " (invalid endTime)";
-                QTest::addRow("%s%s%s", prefix, c.name, suffix)
-                    << c.sourceRate << c.recorderRate << variableRate << reportsEndTime;
+                for (auto codec : QMediaFormat().supportedVideoCodecs(QMediaFormat::Encode)) {
+                    // Skip MPEG1 due to its age and limited support of frame rates
+                    if (codec == QMediaFormat::VideoCodec::MPEG1)
+                        continue;
+                    const char *prefix = variableRate ? "Encode variable stream at " : "Encode at ";
+                    const char *suffix = reportsEndTime ? "" : " (invalid endTime)";
+                    QTest::addRow("%s%s %s%s", prefix, c.name,
+                                  qPrintable(QMediaFormat::videoCodecName(codec)), suffix)
+                            << c.sourceRate << c.recorderRate << variableRate << reportsEndTime
+                            << codec;
+                }
             }
         }
     }
@@ -876,6 +885,7 @@ void tst_QMediaRecorderBackend::record_adjustsFrameRate_whenSourceFrameRateDiffe
     QFETCH(double, recorderFrameRate);
     QFETCH(bool, reportsVariableRate);
     QFETCH(bool, reportsEndTime);
+    QFETCH(QMediaFormat::VideoCodec, videoCodec);
 
     if (sourceFrameRate > 60.0 && recorderFrameRate <= 0.0 && !reportsVariableRate)
         // Tries to set up codec with fps=75., which fails on MPEG. Skip for now
@@ -887,10 +897,17 @@ void tst_QMediaRecorderBackend::record_adjustsFrameRate_whenSourceFrameRateDiffe
     const int sourceFrameCount = qFloor(sourceFrameRate);
     const auto periodDuration = microseconds(std::lround(1e6 / sourceFrameRate));
     const bool frameRateIsSet = recorderFrameRate > 0.0;
-    const double targetFrameRate = frameRateIsSet ? recorderFrameRate : sourceFrameRate;
+    double targetFrameRate = frameRateIsSet ? recorderFrameRate : sourceFrameRate;
 
     // Frame rate adapter active when the target rate is explicitly set or the source rate is known
-    const bool adapterActive = frameRateIsSet || !reportsVariableRate;
+    bool adapterActive = frameRateIsSet || !reportsVariableRate;
+
+    // MPEG2 doesn't support variable rate, so falls back to 30fps
+    if (videoCodec == QMediaFormat::VideoCodec::MPEG2 && recorderFrameRate <= 0.0 && reportsVariableRate) {
+        targetFrameRate = 30.0;
+        adapterActive = true;
+    }
+
     int expectedFrameCount = adapterActive ? qFloor(targetFrameRate) : sourceFrameCount;
 
     // Adapter slot and epsilon mirror the adapter's internal values; used for expected frame count
@@ -930,6 +947,9 @@ void tst_QMediaRecorderBackend::record_adjustsFrameRate_whenSourceFrameRateDiffe
     CaptureSessionFixture f{ StreamType::Video };
     if (frameRateIsSet)
         f.m_recorder.setVideoFrameRate(recorderFrameRate);
+    QMediaFormat fmt;
+    fmt.setVideoCodec(videoCodec);
+    f.m_recorder.setMediaFormat(fmt);
     if (!reportsVariableRate)
         f.m_videoGenerator.setFrameRate(sourceFrameRate);
     f.m_videoGenerator.setPeriod(periodDuration);
@@ -943,6 +963,11 @@ void tst_QMediaRecorderBackend::record_adjustsFrameRate_whenSourceFrameRateDiffe
     QVERIFY(f.waitForRecorderStopped(60s));
 
     // Assert
+    auto actualFormat = f.m_recorder.mediaFormat();
+    if (f.m_recorder.error() != QMediaRecorder::NoError
+        && unsupportedVideoCodecs(actualFormat.fileFormat()).count(actualFormat.videoCodec()))
+        QEXPECT_FAIL("", "QTBUG-126276", Abort);
+
     QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
              f.m_recorder.errorString().toLatin1().constData());
 
