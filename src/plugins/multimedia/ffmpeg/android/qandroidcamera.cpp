@@ -482,7 +482,7 @@ void QAndroidCamera::updateCameraCharacteristics()
     // Apply properties
     if (minZoomFactor() < maxZoomFactor()) {
         // New device supports zooming. Clamp it and apply it to new camera device.
-        const float newZoomFactor = qBound(zoomFactor(), minZoomFactor(), maxZoomFactor());
+        const float newZoomFactor = qBound(minZoomFactor(), zoomFactor(), maxZoomFactor());
         zoomTo(newZoomFactor, -1);
     }
 
