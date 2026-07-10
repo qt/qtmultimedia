@@ -112,6 +112,10 @@ q23::expected<CodecContext, QString> CodecContext::create(AVStream *stream,
             QStringLiteral("Failed to set FFmpeg codec parameters: %1").arg(err2str(ret))
         };
 
+    // Required so that decoders can rescale packet-side timestamps (e.g. when
+    // trimming AAC/Opus priming/padding samples signalled via skip_samples).
+    context->pkt_timebase = stream->time_base;
+
     // ### This still gives errors about wrong HW formats (as we accept all of them)
     // But it would be good to get so we can filter out pixel format we don't support natively
     context->get_format = QFFmpeg::getFormat;
