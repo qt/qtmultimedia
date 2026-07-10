@@ -1,41 +1,40 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
-#include <QtTest/qsignalspy.h>
-#include <QtGui/QImageReader>
-#include <QtCore/qurl.h>
 #include <QtCore/qlocale.h>
-#include <QDebug>
-#include <QVideoSink>
-#include <QMediaPlayer>
-#include <QScopeGuard>
-
+#include <QtCore/qobject.h>
 #if QT_CONFIG(process)
-#include <QProcess>
+#include <QtCore/qprocess.h>
 #endif
-
-#include <private/qplatformcamera_p.h>
-#include <private/qplatformimagecapture_p.h>
-#include <private/qplatformmediaintegration_p.h>
-#include <qcamera.h>
-#include <qcameradevice.h>
-#include <qimagecapture.h>
-#include <qmediacapturesession.h>
-#include <qobject.h>
-#include <qmediadevices.h>
-#include <qmediarecorder.h>
-#include <qmediaplayer.h>
-#include <qaudiooutput.h>
+#include <QtCore/qscopeguard.h>
+#include <QtCore/qurl.h>
 
 #ifdef Q_OS_DARWIN
 #include <QtCore/private/qcore_mac_p.h>
 #endif
 
-#include <private/mediabackendutils_p.h>
+#include <QtGui/qimagereader.h>
+
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qimagecapture.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qvideosink.h>
+
+#include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+
+#include <QtTest/qtest.h>
+#include <QtTest/qsignalspy.h>
 
 #include <memory>
-
 
 /*
  This is the backend conformance test.
