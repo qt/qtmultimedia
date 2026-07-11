@@ -192,6 +192,8 @@ void QWindowCapture::setWindow(QCapturableWindow window)
 /*!
     \qmlproperty bool QtMultimedia::WindowCapture::active
     Describes whether the capturing is currently active.
+
+    \sa start(), stop()
 */
 
 /*!
