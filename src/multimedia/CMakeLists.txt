@@ -585,6 +585,10 @@ if(DEFINED QT_DEFAULT_MEDIA_BACKEND)
         PRIVATE QT_DEFAULT_MEDIA_BACKEND="${QT_DEFAULT_MEDIA_BACKEND}")
 endif()
 
+if(QT_FEATURE_doc_snippets)
+    add_subdirectory(doc/snippets)
+endif()
+
 # Install public QMake support files.
 qt_path_join(ios_prf_install_dir "${QT_INSTALL_DIR}" "${INSTALL_MKSPECSDIR}" features ios)
 qt_copy_or_install(FILES

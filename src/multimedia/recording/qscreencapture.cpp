@@ -36,7 +36,10 @@ public:
     the QMediaCaptureSession class where the captured screen can be displayed
     in a video preview object or recorded to a file.
 
-    \snippet multimedia-snippets/media.cpp Media recorder
+    The following snippet shows how to capture the primary screen and display
+    the result in a QVideoWidget:
+
+    \snippet multimedia-snippets/screencapturesnippets.cpp Basic setup
 
     \include qscreencapture-limitations.qdocinc {content} {Q}
 
