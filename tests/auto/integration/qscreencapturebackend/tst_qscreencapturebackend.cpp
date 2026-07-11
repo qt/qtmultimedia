@@ -33,6 +33,8 @@ Q_DECLARE_JNI_CLASS(WindowInsetsType, "android/view/WindowInsets$Type")
 Q_DECLARE_JNI_CLASS(Insets, "android/graphics/Insets")
 #endif
 
+using namespace std::chrono_literals;
+
 /*
  This is the backend conformance test.
 
@@ -219,7 +221,8 @@ class tst_QScreenCaptureBackend : public QObject
 private slots:
     void initTestCase();
     void setActive_startsAndStopsCapture();
-    void setFrameRate_setsFrameRate();
+    void setFrameRate_updatesPropertyAndEmitsSignal();
+    void setFrameRate_emitsFramesAtCorrectRate();
 
     void setScreen_selectsScreen_whenCalledWithWidgetsScreen();
     void constructor_selectsPrimaryScreenAsDefault();
@@ -289,7 +292,37 @@ void tst_QScreenCaptureBackend::setActive_startsAndStopsCapture()
     }
 }
 
-void tst_QScreenCaptureBackend::setFrameRate_setsFrameRate()
+void tst_QScreenCaptureBackend::setFrameRate_updatesPropertyAndEmitsSignal()
+{
+    QScreenCapture capture;
+
+    QSignalSpy errorsSpy(&capture, &QScreenCapture::errorOccurred);
+    QSignalSpy frameRateSpy(&capture, &QScreenCapture::maximumFrameRateChanged);
+
+    auto frameRateEquals = [](std::optional<qreal> frameRate, float value) {
+        return frameRate && qFuzzyCompare(*frameRate, static_cast<qreal>(value));
+    };
+
+    // No preferred frame rate initially
+    QVERIFY(!capture.maximumFrameRate());
+
+    // Setting a frame rate updates the property and emits frameRateChanged
+    const float newFrameRate = 1.f;
+    capture.setMaximumFrameRate(newFrameRate);
+
+    QCOMPARE(frameRateSpy.size(), 1);
+    QVERIFY(frameRateEquals(capture.maximumFrameRate(), newFrameRate));
+
+    // Resetting clears the property and emits frameRateChanged again
+    capture.resetMaximumFrameRate();
+
+    QCOMPARE(frameRateSpy.size(), 2);
+    QVERIFY(!capture.maximumFrameRate());
+
+    QVERIFY(errorsSpy.empty());
+}
+
+void tst_QScreenCaptureBackend::setFrameRate_emitsFramesAtCorrectRate()
 {
 #ifdef Q_OS_ANDROID
     QSKIP("Framerate setting not implemented on Android");
@@ -306,49 +339,29 @@ void tst_QScreenCaptureBackend::setFrameRate_setsFrameRate()
 
     TestVideoSink sink;
     QScreenCapture capture;
-
-    QSignalSpy errorsSpy(&capture, &QScreenCapture::errorOccurred);
-    QSignalSpy frameRateSpy(&capture, &QScreenCapture::maximumFrameRateChanged);
-
+    capture.setScreen(widget->screen());
     QMediaCaptureSession session;
-
     session.setScreenCapture(&capture);
     session.setVideoSink(&sink);
 
-    auto frameRateEquals = [](std::optional<qreal> frameRate, float value) {
-        return frameRate && qFuzzyCompare(*frameRate, static_cast<qreal>(value));
-    };
-
-    // No preferred frame rate, not started
-    QVERIFY(!capture.maximumFrameRate());
-
-    // Set new frame rate
     float newFrameRate = 1.f;
+
     capture.setMaximumFrameRate(newFrameRate);
-
-    QTRY_COMPARE(frameRateSpy.size(), 1);
-    QVERIFY(frameRateEquals(capture.maximumFrameRate(), newFrameRate));
-
     capture.setActive(true);
     QVERIFY(capture.isActive());
 
-#ifndef Q_OS_WIN // QTBUG-147051
+    // Range [0, 1]. Lower is better, but may increase flakiness.
+    float slopFactor = 0.1;
+    if (isCI())
+        slopFactor = 0.2;
+
     // Check framerate is roughly 1fps
-    using namespace std::chrono;
     auto durationBetweenFrames = sink.durationBetweenFrames(3);
-    QTEST_ASSERT(durationBetweenFrames > 0ms);
+    QVERIFY2(
+        durationBetweenFrames > 0ms,
+        "Did not receive enough QVideoFrames to measure framerate");
     const qreal actualFps = 1000.0 / durationBetweenFrames.count();
-    QCOMPARE_LT(actualFps, newFrameRate * 1.1);
-#endif
-
-    // Reset frame rate
-    capture.setActive(false);
-    capture.resetMaximumFrameRate();
-
-    QTRY_COMPARE(frameRateSpy.size(), 2);
-    QVERIFY(!capture.maximumFrameRate());
-
-    QVERIFY(errorsSpy.empty());
+    QCOMPARE_LT(actualFps, newFrameRate * (1 + slopFactor));
 }
 
 void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawingOffset,
