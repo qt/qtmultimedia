@@ -41,6 +41,8 @@ QQuickScreenInfo *QQuickScreenCapture::ensureQmlScreen()
     used as the polling rate (maximum frame rate) or completely ignored.
 
     If -1, a platform-dependent default is used.
+
+    Any changes to this property are applied the next time the ScreenCapture goes active.
 */
 
 void QQuickScreenCapture::qmlSetFrameRate(qreal frameRate)
