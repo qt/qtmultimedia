@@ -36,6 +36,11 @@ public:
     the QMediaCaptureSession class where the captured window can be displayed
     in a video preview object or recorded to a file.
 
+    The following snippet shows how to select one of the capturable windows and
+    display the result in a QVideoWidget:
+
+    \snippet multimedia-snippets/windowcapturesnippets.cpp Basic setup
+
     \include qwindowcapture-limitations.qdocinc {content} {Q}
 
     \sa QMediaCaptureSession, QCapturableWindow
@@ -53,6 +58,29 @@ public:
     WindowCapture captures a window. It is managed by
     MediaCaptureSession where the captured window can be displayed
     in a video preview object or recorded to a file.
+
+    The code below shows a simple capture session that captures one of the
+    available windows with WindowCapture and plays it back in a VideoOutput.
+
+\qml
+    CaptureSession {
+        id: captureSession
+        windowCapture: WindowCapture {
+            id: windowCapture
+        }
+        videoOutput: VideoOutput {
+            id: videoOutput
+        }
+
+        Component.onCompleted: {
+            let windows = windowCapture.capturableWindows()
+            if (windows.length > 0) {
+                windowCapture.window = windows[0]
+                windowCapture.active = true
+            }
+        }
+    }
+\endqml
 
     \include qwindowcapture-limitations.qdocinc {content} {}
 

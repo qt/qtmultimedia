@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.16)
 
 qt_add_library(multimedia_snippets OBJECT
     multimedia-snippets/screencapturesnippets.cpp
+    multimedia-snippets/windowcapturesnippets.cpp
 )
 
 target_link_libraries(multimedia_snippets PRIVATE
