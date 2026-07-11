@@ -148,6 +148,8 @@ QMediaCaptureSession *QScreenCapture::captureSession() const
 /*!
     \property QScreenCapture::active
     \brief whether the capturing is currently active.
+
+    \sa start(), stop()
 */
 void QScreenCapture::setActive(bool active)
 {
@@ -198,8 +200,28 @@ QScreen *QScreenCapture::screen() const
 }
 
 /*!
+    \qmlsignal QtMultimedia::ScreenCapture::errorChanged()
+
+    This signal is emitted when the \l{error} or \l{errorString} properties are changed.
+
+    This signal is not emitted whenever multiple identical errors are raised. To track such
+    errors, use the signal \l errorOccurred.
+*/
+
+/*!
+    \fn void QScreenCapture::errorChanged()
+
+    This signal is emitted when the \l{error} or \l{errorString} properties are changed.
+
+    This signal is not emitted whenever multiple identical errors are raised. To track such
+    errors, use the signal \l errorOccurred.
+*/
+
+/*!
     \qmlproperty enumeration QtMultimedia::ScreenCapture::error
     Returns a code of the last error.
+
+    \qmlenumeratorsfrom QScreenCapture::Error
 */
 
 /*!
@@ -214,6 +236,17 @@ QScreenCapture::Error QScreenCapture::error() const
                                     : CapturingNotSupported;
 }
 
+/*!
+    \qmlsignal QtMultimedia::ScreenCapture::errorOccurred(int error, string errorString)
+
+    Signals when an \a error occurs, along with the \a errorString.
+
+    For the error parameter, see the enumeration table in
+    \l {QtMultimedia::ScreenCapture::error}{error} for what values may
+    be passed.
+
+    \sa {QtMultimedia::ScreenCapture::error}{error}
+*/
 /*!
     \fn void QScreenCapture::errorOccurred(QScreenCapture::Error error, const QString &errorString)
 
@@ -270,14 +303,35 @@ void QScreenCapture::resetFrameRate()
 }
 
 /*!
+    \qmlmethod void QtMultimedia::ScreenCapture::start()
+
+    Starts capturing the \l screen.
+
+    This is equivalent to setting the \l active property to \c true.
+*/
+
+/*!
     \fn void QScreenCapture::start()
 
-    Starts screen capture.
+    Starts capturing the \l screen.
+
+    This is equivalent to setting the \l active property to true.
 */
+
+/*!
+    \qmlmethod void QtMultimedia::ScreenCapture::stop()
+
+    Stops capturing.
+
+    This is equivalent to setting the \l active property to \c false.
+*/
+
 /*!
     \fn void QScreenCapture::stop()
 
-    Stops screen capture.
+    Stops capturing.
+
+    This is equivalent to setting the \l active property to false.
 */
 /*!
     \internal
