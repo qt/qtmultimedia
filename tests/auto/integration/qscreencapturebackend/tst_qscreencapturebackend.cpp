@@ -1,18 +1,19 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtGui/qpainter.h>
+
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qscreencapture.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideosink.h>
+
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+
+#include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
-
-#include <qvideosink.h>
-#include <qvideoframe.h>
-#include <qmediacapturesession.h>
-#include <qpainter.h>
-#include <qscreencapture.h>
-#include <qsignalspy.h>
-#include <qmediarecorder.h>
-#include <qmediaplayer.h>
-
-#include <private/mediabackendutils_p.h>
 
 #include <vector>
 
@@ -25,7 +26,6 @@ Q_DECLARE_JNI_CLASS(WindowInsets, "android/view/WindowInsets")
 Q_DECLARE_JNI_CLASS(WindowInsetsType, "android/view/WindowInsets$Type")
 Q_DECLARE_JNI_CLASS(Insets, "android/graphics/Insets")
 #endif
-
 
 /*
  This is the backend conformance test.
