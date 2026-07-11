@@ -6,13 +6,11 @@
 
 #include <QtCore/qsystemsemaphore.h>
 
+#include <QtGui/qwindow.h>
+
 #include <QtTest/qtest.h>
 
 #include <QtWidgets/qapplication.h>
-
-#include <chrono>
-
-using namespace std::chrono_literals;
 
 TestWidget::TestWidget(const QString &uuid, QScreen *screen)
 {
@@ -26,16 +24,6 @@ TestWidget::TestWidget(const QString &uuid, QScreen *screen)
     // This allows us to do pixel-perfect matching of captured content.
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     setFixedSize(60, 40);
-
-    m_animationTimer.setTimerType(Qt::TimerType::PreciseTimer);
-    m_animationTimer.setInterval(16ms);
-    connect(
-        &m_animationTimer,
-        &QTimer::timeout,
-        this, [this] {
-            ++m_animationTick;
-            update();
-        });
 }
 
 void TestWidget::setDisplayPattern(Pattern p)
@@ -44,10 +32,7 @@ void TestWidget::setDisplayPattern(Pattern p)
 
     // The animated pattern needs continuous repaints to keep the content
     // changing. The other patterns are static.
-    if (p == Pattern::Animated)
-        m_animationTimer.start();
-    else
-        m_animationTimer.stop();
+    m_animated = (p == Pattern::Animated);
 
     repaint();
 }
@@ -85,6 +70,12 @@ void TestWidget::paintEvent(QPaintEvent *)
     }
 
     p.end();
+
+    if (m_animated) {
+        ++m_animationTick;
+        if (QWindow *window = windowHandle())
+            window->requestUpdate();
+    }
 }
 
 void TestWidget::drawColoredSquares(QPainter &p) const
