@@ -7,6 +7,10 @@
     The following limitations apply to using \1WindowCapture:
     \list
         \li \1WindowCapture is only supported with the FFmpeg backend.
+        \li On some platforms, no new video frames are emitted while the
+            captured window content remains unchanged. Applications should
+            therefore not rely on receiving a continuous stream of frames at
+            the requested frame rate.
     \endlist
     The following limitations apply when using \c QWindowCapture on X11 systems:
     \list
