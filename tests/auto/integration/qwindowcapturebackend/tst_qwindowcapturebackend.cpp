@@ -44,11 +44,16 @@ private slots:
      if (isCI() && qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
          QSKIP("Skip on wayland; to be fixed");
 #elif defined(Q_OS_MACOS)
-        // Window capturing requires screen capture permissions on macOS. Without them,
-        // none of the tests can succeed, so fail here to abort the entire test run.
-        QVERIFY2(
-            QAVFHelpers::checkMacOsScreenCapturePermissions(),
-            "Missing screen capture permissions. Tests are not expected to succeed.");
+        if (isCI()) {
+            // Window capturing requires screen capture permissions on macOS. Without them,
+            // none of the tests can succeed, so fail here to abort the entire test run.
+            QVERIFY2(
+                QAVFHelpers::checkMacOsScreenCapturePermissions(),
+                "Missing screen capture permissions. Tests are not expected to succeed.");
+        } else if (!QAVFHelpers::checkMacOsScreenCapturePermissions()) {
+            QAVFHelpers::requestMacOsScreenCapturePermissions();
+            QFAIL("Missing screen capture permissions. Grant permissions and restart test.");
+        }
 
     // macOS CI machines have some issues with giving hardware frames of
     // incorrect size on odd-sized windows, so skip those sizes there.

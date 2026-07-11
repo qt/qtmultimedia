@@ -61,6 +61,7 @@ Q_MULTIMEDIA_EXPORT QVideoFrameFormat videoFormatForImageBuffer(CVImageBufferRef
 
 #if defined(Q_OS_MACOS)
 [[nodiscard]] Q_MULTIMEDIA_EXPORT bool checkMacOsScreenCapturePermissions();
+Q_MULTIMEDIA_EXPORT void requestMacOsScreenCapturePermissions();
 #endif
 
 };

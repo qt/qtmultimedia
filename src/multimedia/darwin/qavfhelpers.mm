@@ -149,12 +149,19 @@ std::chrono::microseconds QAVFHelpers::CMTimeToMicroseconds(const CMTime &time)
 }
 
 #if defined(Q_OS_MACOS)
+
 // Checks whether the current process has screen capturing permissions, without triggering
 // the system dialog.
 bool QAVFHelpers::checkMacOsScreenCapturePermissions()
 {
     return CGPreflightScreenCaptureAccess();
 }
+
+void QAVFHelpers::requestMacOsScreenCapturePermissions()
+{
+    CGRequestScreenCaptureAccess();
+}
+
 #endif // Q_OS_MACOS
 
 QT_END_NAMESPACE

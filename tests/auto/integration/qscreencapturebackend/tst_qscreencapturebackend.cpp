@@ -9,6 +9,9 @@
 #include <QtMultimedia/qscreencapture.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideosink.h>
+#if defined(Q_OS_MACOS)
+#include <QtMultimedia/private/qavfhelpers_p.h>
+#endif
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 
@@ -480,6 +483,19 @@ void tst_QScreenCaptureBackend::initTestCase()
 
     if (!QApplication::primaryScreen())
         QSKIP("No screens found");
+
+#ifdef Q_OS_MACOS
+    if (isCI()) {
+        // Window capturing requires screen capture permissions on macOS. Without them,
+        // none of the tests can succeed, so fail here to abort the entire test run.
+        QVERIFY2(
+            QAVFHelpers::checkMacOsScreenCapturePermissions(),
+            "Missing screen capture permissions. Tests are not expected to succeed.");
+    } else if (!QAVFHelpers::checkMacOsScreenCapturePermissions()) {
+        QAVFHelpers::requestMacOsScreenCapturePermissions();
+        QFAIL("Missing screen capture permissions. Grant permissions and restart test.");
+    }
+#endif
 
     QScreenCapture sc;
     if (sc.error() == QScreenCapture::CapturingNotSupported)
