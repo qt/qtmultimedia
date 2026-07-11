@@ -19,6 +19,8 @@ QQuickWindowCapture::QQuickWindowCapture(QObject *parent) : QWindowCapture(paren
     used as the polling rate (maximum frame rate) or completely ignored.
 
     If -1, a platform-dependent default is used.
+
+    Any changes to this property are applied the next time the WindowCapture goes active.
 */
 
 void QQuickWindowCapture::qmlSetFrameRate(qreal frameRate)
