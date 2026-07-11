@@ -128,6 +128,12 @@ QList<QCapturableWindow> QWindowCapture::capturableWindows()
     return QPlatformMediaIntegration::instance()->capturableWindowsList();
 }
 
+/*!
+    Returns the capture session this QWindowCapture is connected to.
+
+    Use \l QMediaCaptureSession::setWindowCapture() to connect the window capture
+    to a session.
+*/
 QMediaCaptureSession *QWindowCapture::captureSession() const
 {
     Q_D(const QWindowCapture);
