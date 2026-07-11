@@ -3,13 +3,21 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-project(multimedia_cppsnippets)
-
-add_executable(mytarget
-    multimedia-snippets/media.cpp
+qt_add_library(multimedia_snippets OBJECT
+    multimedia-snippets/screencapturesnippets.cpp
 )
 
-# ![0]
-find_package(Qt6 REQUIRED COMPONENTS Multimedia)
-target_link_libraries(mytarget PRIVATE Qt6::Multimedia)
-# ![0]
+target_link_libraries(multimedia_snippets PRIVATE
+    Qt::Core
+    Qt::Gui
+    Qt::Multimedia
+    Qt::MultimediaWidgets
+)
+
+set_target_properties(multimedia_snippets PROPERTIES COMPILE_OPTIONS "-w")
+
+if ("${CMAKE_CXX_COMPILE_FEATURES}" MATCHES "cxx_std_23")
+    set_property(TARGET multimedia_snippets PROPERTY CXX_STANDARD 23)
+endif()
+
+set_target_properties(multimedia_snippets PROPERTIES UNITY_BUILD OFF)
