@@ -4,7 +4,6 @@
 #ifndef WINDOW_CAPTURE_WIDGET_H
 #define WINDOW_CAPTURE_WIDGET_H
 
-#include <QtCore/qtimer.h>
 #include <QtCore/quuid.h>
 
 #include <QtGui/qpainter.h>
@@ -25,8 +24,7 @@ public:
         Grid,
         /*
             Continuous animation that switches between ColoredSquares
-            and Grid at 60 FPS. Note: New paint events is driven by
-            QTimer on main thread. The animation stops if the main
+            and Grid on every frame. The animation stops if the main
             thread is blocked.
          */
         Animated,
@@ -48,7 +46,7 @@ private:
 
     Pattern m_pattern = Pattern::ColoredSquares;
 
-    QTimer m_animationTimer;
+    bool m_animated = false;
     unsigned m_animationTick = 0;
 };
 

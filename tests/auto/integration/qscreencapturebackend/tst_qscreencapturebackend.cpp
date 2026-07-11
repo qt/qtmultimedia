@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtGui/qpainter.h>
+#include <QtGui/qwindow.h>
 
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/qmediaplayer.h>
@@ -18,6 +19,8 @@
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
 
+#include <chrono>
+#include <utility>
 #include <vector>
 
 #ifdef Q_OS_ANDROID
@@ -82,6 +85,13 @@ public:
         this->repaint();
     }
 
+    void setAnimated(bool animated)
+    {
+        m_animated = animated;
+
+        this->repaint();
+    }
+
 protected:
     void paintEvent(QPaintEvent * /*event*/) override
     {
@@ -98,19 +108,35 @@ protected:
         rect = m_paintPosition;
 #endif
 
-        p.setBrush(m_firstColor);
+        QColor firstColor = m_firstColor;
+        QColor secondColor = m_secondColor;
+
+        // While animating, swap the colors on odd ticks so that consecutive
+        // frames differ from each other.
+        if (m_animated && (m_animationTick % 2))
+            std::swap(firstColor, secondColor);
+
+        p.setBrush(firstColor);
         p.drawRect(rect);
 
-        if (m_firstColor != m_secondColor) {
+        if (firstColor != secondColor) {
             rect.adjust(40, 50, -60, -70);
-            p.setBrush(m_secondColor);
+            p.setBrush(secondColor);
             p.drawRect(rect);
+        }
+
+        if (m_animated) {
+            ++m_animationTick;
+            if (QWindow *window = windowHandle())
+                window->requestUpdate();
         }
     }
 
 private:
     QColor m_firstColor;
     QColor m_secondColor;
+    bool m_animated = false;
+    unsigned m_animationTick = 0;
 };
 
 class TestVideoSink : public QVideoSink
@@ -268,6 +294,15 @@ void tst_QScreenCaptureBackend::setFrameRate_setsFrameRate()
 #ifdef Q_OS_ANDROID
     QSKIP("Framerate setting not implemented on Android");
 #endif
+
+    // Some backends will stop transmitting frames
+    // if the content is unchanged. We spawn an animated
+    // window to make sure we keep getting more frames.
+    auto widget = QTestWidget::createAndShow(
+        Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
+        QRect{ 200, 100, 430, 351 });
+    widget->setAnimated(true);
+    QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
 
     TestVideoSink sink;
     QScreenCapture capture;
