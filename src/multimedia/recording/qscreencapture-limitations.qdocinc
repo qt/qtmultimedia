@@ -15,7 +15,7 @@
             The screen capture feature requires the installation of
             the \l {https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.ScreenCast.html}{ScreenCast}
             service supported via \l {https://flatpak.github.io/xdg-desktop-portal/docs/}{XDG Desktop Portal}
-            and {https://pipewire.org/}{PipeWire} (0.3).
+            and \l {https://pipewire.org/}{PipeWire} (0.3).
             These limitations might change in the future.
         \li It is not supported on mobile operating systems, except on Android.
             Screen Capture on Android needs additional \l{Android foreground service
