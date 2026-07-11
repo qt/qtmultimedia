@@ -132,8 +132,8 @@ QScreenCapture::~QScreenCapture()
 /*!
     Returns the capture session this QScreenCapture is connected to.
 
-    Use QMediaCaptureSession::setScreenCapture() to connect the camera to
-    a session.
+    Use QMediaCaptureSession::setScreenCapture() to connect the screen capture
+    to a session.
 */
 QMediaCaptureSession *QScreenCapture::captureSession() const
 {
