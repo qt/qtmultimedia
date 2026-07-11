@@ -233,7 +233,7 @@ QString QScreenCapture::errorString() const
     Q_D(const QScreenCapture);
 
     return d->platformScreenCapture ? d->platformScreenCapture->errorString()
-                                    : QLatin1StringView("Capturing is not support on this platform");
+                                    : QLatin1StringView("Capturing is not supported on this platform");
 }
 
 /*!
