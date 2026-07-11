@@ -145,6 +145,8 @@ QMediaCaptureSession *QScreenCapture::captureSession() const
 /*!
     \qmlproperty bool QtMultimedia::ScreenCapture::active
     Describes whether the capturing is currently active.
+
+    \sa start(), stop()
 */
 
 /*!
