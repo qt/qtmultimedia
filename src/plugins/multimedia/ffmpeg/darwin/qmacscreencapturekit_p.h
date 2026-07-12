@@ -57,6 +57,8 @@ class QMacScreenCaptureKit : public QObject {
     Q_OBJECT
 
 public:
+    enum class StreamId : int64_t{};
+
     // TODO: May become a runtime parameter in the future.
     // For now we only support BGRA32.
     static constexpr FourCharCode cvPixelFormat = kCVPixelFormatType_32BGRA;
@@ -86,7 +88,7 @@ public:
     QMacScreenCaptureKit(QMacScreenCaptureKit &&other) noexcept = delete;
     QMacScreenCaptureKit &operator=(QMacScreenCaptureKit &&other) = delete;
 
-    [[nodiscard]] int64_t streamId() const noexcept { return m_streamId; }
+    [[nodiscard]] StreamId streamId() const noexcept { return m_streamId; }
 
     [[nodiscard]] static AVFScopedPointer<SCStreamConfiguration> createStreamConfig(
         QSize resolutionPx,
@@ -96,7 +98,7 @@ public:
 
     [[nodiscard]] static std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
     createStreamFromFilter(
-        int64_t streamId,
+        StreamId streamId,
         SCContentFilter *,
         QSize resolutionPx,
         std::optional<qreal> frameRate,
@@ -104,7 +106,7 @@ public:
 
     [[nodiscard]] static std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
     createStreamFromWindow(
-        int64_t streamId,
+        StreamId streamId,
         SCWindow *,
         std::optional<qreal> frameRate,
         std::function<void(QMacScreenCaptureKit&)> const &connectionSetup);
@@ -114,15 +116,15 @@ public:
     void updateStream(QSize resolutionPx);
 
 signals:
-    void newVideoFrameGenerated(int64_t streamId, QVideoFrame);
+    void newVideoFrameGenerated(StreamId streamId, QVideoFrame);
     // This is commonly signaled if the user stops the stream by
     // interacting with the system UI, or the stream has stopped
     // for unknown reasons.
     // Message is not suitable for forwarding to UI.
-    void streamStoppedWithError(int64_t streamId, QString);
+    void streamStoppedWithError(StreamId streamId, QString);
 
 private:
-    int64_t m_streamId = -1;
+    StreamId m_streamId = {};
 
     // A copy of the frameRate when this class was created. Does not
     // change after stream has started.

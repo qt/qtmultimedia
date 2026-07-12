@@ -41,9 +41,9 @@ public:
 
     std::optional<int> ffmpegHWPixelFormat() const override;
 
-    void onNewFrameFormatReceived(int64_t streamId, const QVideoFrameFormat &);
+    void onNewFrameFormatReceived(QMacScreenCaptureKit::StreamId streamId, const QVideoFrameFormat &);
 
-    void onStreamStoppedWithErrorEvent(int64_t streamId, const QString &);
+    void onStreamStoppedWithErrorEvent(QMacScreenCaptureKit::StreamId streamId, const QString &);
 
 protected:
     bool setActiveInternal(bool active) override;
@@ -54,10 +54,13 @@ private:
     // Tracks the next ID for establishing stream.
     // Having stream IDs helps us track whether we should
     // ignore events from lingering stream callbacks.
-    int64_t m_streamIdTracker = 0;
+    int64_t m_streamIdAllocator = 0;
+    [[nodiscard]] QMacScreenCaptureKit::StreamId allocateStreamId() {
+        return QMacScreenCaptureKit::StreamId { m_streamIdAllocator++ };
+    }
 
     struct ActiveData {
-        int64_t streamId = -1;
+        QMacScreenCaptureKit::StreamId streamId = {};
         AVFScopedPointer<SCWindow> scWindow;
         std::unique_ptr<QMacScreenCaptureKit> macScreenCaptureKit;
     };
@@ -66,7 +69,7 @@ private:
 
     std::optional<QVideoFrameFormat> m_videoFrameFormat;
 
-    [[nodiscard]] std::optional<int64_t> activeStreamId() const noexcept {
+    [[nodiscard]] std::optional<QMacScreenCaptureKit::StreamId> activeStreamId() const noexcept {
         if (m_activeData)
             return m_activeData->streamId;
         return std::nullopt;

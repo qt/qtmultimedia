@@ -9,6 +9,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpegmediacapturesession_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qmacscreencapturekit_p.h>
 
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qcapturablewindow_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 
@@ -18,6 +19,7 @@ extern "C" {
 }
 #undef AVMediaType
 
+namespace ranges = QtMultimediaPrivate::ranges;
 using namespace Qt::Literals::StringLiterals;
 
 QT_BEGIN_NAMESPACE
@@ -37,9 +39,8 @@ namespace {
         return q23::unexpected(enumerateResult.error());
 
     const std::vector<AVFScopedPointer<SCWindow>> &windows = enumerateResult->windows;
-    auto it = std::find_if(
-        windows.begin(),
-        windows.end(),
+    auto it = ranges::find_if(
+        windows,
         [&](const AVFScopedPointer<SCWindow> &item) {
             return item.data().windowID == input;
         });
@@ -64,7 +65,7 @@ void setupQMacScreenCaptureKitConnections(
         &macScreenCaptureKit,
         &QMacScreenCaptureKit::newVideoFrameGenerated,
         &windowCapture,
-        [&windowCapture](int64_t, QVideoFrame videoFrame) {
+        [&windowCapture](QMacScreenCaptureKit::StreamId, QVideoFrame videoFrame) {
             emit windowCapture.newVideoFrame(videoFrame);
         },
         Qt::DirectConnection);
@@ -73,7 +74,7 @@ void setupQMacScreenCaptureKitConnections(
         &macScreenCaptureKit,
         &QMacScreenCaptureKit::newVideoFrameGenerated,
         &windowCapture,
-        [&windowCapture](int64_t streamId, QVideoFrame newFrame) {
+        [&windowCapture](QMacScreenCaptureKit::StreamId streamId, QVideoFrame newFrame) {
             windowCapture.onNewFrameFormatReceived(streamId, newFrame.surfaceFormat());
         },
         Qt::QueuedConnection);
@@ -128,14 +129,14 @@ bool QSckWindowCapture::setActiveInternal(bool active)
         q23::expected<AVFScopedPointer<SCWindow>, QString> scWindowResult = findScWindow(cgWindowId);
         if (!scWindowResult) {
             qCWarning(qLcMacScreenCapture)
-                << "Could not find associated SCWindow: "
+                << "Could not find associated SCWindow:"
                 << scWindowResult.error();
             return q23::unexpected{ ErrorPair {
                 QPlatformSurfaceCapture::Error::NotFound,
                 u"Backend was unable to find selected QCapturableWindow"_s } };
         }
 
-        int64_t newStreamId = m_streamIdTracker++;
+        QMacScreenCaptureKit::StreamId newStreamId = allocateStreamId();
 
         AVFScopedPointer<SCWindow> &scWindow = *scWindowResult;
 
@@ -163,7 +164,7 @@ bool QSckWindowCapture::setActiveInternal(bool active)
                 m_session->onSourceActivationFailure(*this);
 
             qCWarning(qLcMacScreenCapture)
-                << "Failed to start screen capture stream: "
+                << "Failed to start screen capture stream:"
                 << streamResult.error();
             return q23::unexpected{ ErrorPair{
                QPlatformSurfaceCapture::Error::CaptureFailed,
@@ -198,30 +199,27 @@ bool QSckWindowCapture::setActiveInternal(bool active)
 }
 
 void QSckWindowCapture::onNewFrameFormatReceived(
-    int64_t incomingStreamId,
+    QMacScreenCaptureKit::StreamId incomingStreamId,
     QVideoFrameFormat const &format)
 {
     Q_ASSERT(thread()->isCurrentThread());
-
-    std::optional<int64_t> activeStreamIdOpt = activeStreamId();
-    if (activeStreamIdOpt.has_value() && *activeStreamIdOpt == incomingStreamId)
+    if (activeStreamId() == incomingStreamId)
         m_videoFrameFormat = format;
 }
 
 void QSckWindowCapture::onStreamStoppedWithErrorEvent(
-    int64_t incomingStreamId,
+    QMacScreenCaptureKit::StreamId incomingStreamId,
     const QString &err)
 {
     Q_ASSERT(thread()->isCurrentThread());
 
     qCDebug(qLcMacScreenCapture)
-        << "Stream with ID "
-        << incomingStreamId
-        << " stopped with error: "
+        << "Stream with ID"
+        << static_cast<int64_t>(incomingStreamId)
+        << "stopped with error:"
         << err;
 
-    std::optional<int64_t> activeStreamIdOpt = activeStreamId();
-    if (!activeStreamIdOpt || *activeStreamIdOpt != incomingStreamId)
+    if (activeStreamId() != incomingStreamId)
         return;
 
     // Possible improvement may be to propagate signal up to QVideoSource

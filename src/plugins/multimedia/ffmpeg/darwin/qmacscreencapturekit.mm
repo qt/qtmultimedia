@@ -25,6 +25,7 @@ extern "C" {
 #include <chrono>
 
 using namespace Qt::Literals::StringLiterals;
+using QMacScreenCaptureKit = QT_PREPEND_NAMESPACE(QFFmpeg::QMacScreenCaptureKit);
 
 Q_LOGGING_CATEGORY_IMPL(
     QT_PREPEND_NAMESPACE(QFFmpeg::qLcMacScreenCapture),
@@ -35,7 +36,7 @@ namespace {
 struct QMacScreenCaptureStreamDelegateHelper : public QObject {
     Q_OBJECT
 signals:
-    void didStopWithError(int64_t streamId, QString);
+    void didStopWithError(QMacScreenCaptureKit::StreamId streamId, QString);
 };
 
 } // Anonymous namespace
@@ -43,15 +44,12 @@ signals:
 // Events are invoked on system background thread that we don't control.
 @implementation QT_MANGLE_NAMESPACE(QMacScreenCaptureStreamDelegate) {
 @public
-    int64_t m_streamId;
+    QMacScreenCaptureKit::StreamId m_streamId;
     QMacScreenCaptureStreamDelegateHelper m_helper;
 }
 
 - (void)stream:(SCStream *)stream didStopWithError:(NSError *)error
 {
-    QT_USE_NAMESPACE
-    using namespace QFFmpeg;
-
     emit m_helper.didStopWithError(
         m_streamId,
         QString::fromNSString(error.localizedDescription));
@@ -153,8 +151,8 @@ struct FrameInfo
         contentScale = 1.0;
 
     info.contentRect = QSize{
-        static_cast<int>(std::round(contentRect.size.width * scaleFactor / contentScale)),
-        static_cast<int>(std::round(contentRect.size.height * scaleFactor / contentScale)), };
+        static_cast<int>(std::lround(contentRect.size.width * scaleFactor / contentScale)),
+        static_cast<int>(std::lround(contentRect.size.height * scaleFactor / contentScale)), };
 
     return info;
 }
@@ -242,14 +240,12 @@ static void handleFrameOutput(
     QFFmpeg::QMacScreenCaptureStreamOutput &streamOutput,
     CMSampleBufferRef sampleBufferRef)
 {
-    using namespace QFFmpeg;
-
     Q_ASSERT(streamOutput.m_qScreenCaptureKit);
 
     q23::expected<FrameInfo, QString> frameInfoResult = readFrameInfo(sampleBufferRef);
     if (!frameInfoResult) {
         qCDebug(qLcMacScreenCapture)
-            << "Error while reading frame info of CMSampleBufferRef: "
+            << "Error while reading frame info of CMSampleBufferRef:"
             << frameInfoResult.error();
         return;
     }
@@ -283,7 +279,7 @@ static void handleFrameOutput(
         sampleBufferRef);
     if (!videoFrameResult) {
         qCWarning(qLcMacScreenCapture)
-            << "Failed to create qVideoFrame from CMSampleBufferRef: "
+            << "Failed to create qVideoFrame from CMSampleBufferRef:"
             << videoFrameResult.error();
         return;
     }
@@ -295,7 +291,7 @@ static void handleFrameOutput(
 
 static void configureStreamDelegate(
     QMacScreenCaptureStreamDelegate &streamDelegate,
-    int64_t streamId,
+    QMacScreenCaptureKit::StreamId streamId,
     const QMacScreenCaptureKit &macScreenCaptureKit)
 {
     streamDelegate.m_streamId = streamId;
@@ -343,7 +339,7 @@ QMacScreenCaptureKit::~QMacScreenCaptureKit()
     [m_stream.data() stopCaptureWithCompletionHandler:[semaphore](NSError *error) {
         if (error) {
             qCWarning(qLcMacScreenCapture)
-                << "Error while stopping ScreenCaptureKit stream during teardown: "
+                << "Error while stopping ScreenCaptureKit stream during teardown:"
                 << QString::fromNSString(error.localizedDescription);
         }
         dispatch_semaphore_signal(semaphore);
@@ -400,7 +396,7 @@ QMacScreenCaptureKit::enumerateCapturableItems()
 // do not support capturing move-only types.
 std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
 QMacScreenCaptureKit::createStreamFromFilter(
-    int64_t streamId,
+    StreamId streamId,
     SCContentFilter *scContentFilter,
     QSize resolutionPx,
     std::optional<qreal> frameRate,
@@ -489,7 +485,7 @@ QMacScreenCaptureKit::createStreamFromFilter(
 // the stream ever starts, so we never miss any frames.
 std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
 QMacScreenCaptureKit::createStreamFromWindow(
-    int64_t streamId,
+    StreamId streamId,
     SCWindow *scWindow,
     std::optional<qreal> frameRate,
     std::function<void(QMacScreenCaptureKit&)> const &connectionSetup)
@@ -565,7 +561,7 @@ void QMacScreenCaptureKit::startStreamReconfigure(
                 // TODO: Send potential error back to QMacScreenCaptureKit, but only
                 // if the error stops the stream.
                 qCWarning(qLcMacScreenCapture)
-                    << "Error when reconfiguring ScreenCaptureKit stream: "
+                    << "Error when reconfiguring ScreenCaptureKit stream:"
                     << QString::fromNSString(err.description);
                 return;
             }
