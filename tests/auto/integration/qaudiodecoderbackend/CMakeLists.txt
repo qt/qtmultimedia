@@ -28,3 +28,7 @@ qt_internal_add_resource(tst_qaudiodecoderbackend "qrc_testdata"
     FILES
         "testdata/test.wav"
 )
+
+if(IOS)
+    qt_add_ios_ffmpeg_libraries(tst_qaudiodecoderbackend)
+endif()

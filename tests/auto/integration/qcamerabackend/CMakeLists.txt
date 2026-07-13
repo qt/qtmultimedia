@@ -21,3 +21,7 @@ if(APPLE)
     set_property(TARGET tst_qcamerabackend PROPERTY PROPERTY MACOSX_BUNDLE TRUE)
 endif()
 # special case end
+
+if(IOS)
+    qt_add_ios_ffmpeg_libraries(tst_qcamerabackend)
+endif()
