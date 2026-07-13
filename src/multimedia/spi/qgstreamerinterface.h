@@ -11,7 +11,7 @@
 // Usage of this API may make your code source and binary incompatible with future versions of Qt.
 //
 
-#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/qvideoframe.h>
 
 // NOLINTBEGIN (bugprone-reserved-identifier)
 typedef struct _GstPipeline GstPipeline;
@@ -25,6 +25,9 @@ QT_BEGIN_NAMESPACE
 
 class QAudioDevice;
 class QCamera;
+class QMediaPlayer;
+class QMediaCaptureSession;
+class QObject;
 
 class Q_MULTIMEDIA_EXPORT QGStreamerInterface
 {
