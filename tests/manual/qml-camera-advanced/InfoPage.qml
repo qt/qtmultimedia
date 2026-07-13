@@ -14,8 +14,57 @@ ColumnLayout {
     required property MediaDevicesHelper mediaDevices
 
     Label {
-        text: "Media backend: " + QtMultimediaPrivate.mediaBackendName
+        text: "Media backend"
         font.bold: true
+    }
+
+    RowLayout {
+        Label {
+            text: "Current: " + QtMultimediaPrivate.mediaBackendName
+        }
+    }
+
+    RowLayout {
+        Label {
+            text: "Preferred:"
+        }
+        ComboBox {
+            id: backendComboBox
+
+            // Index 0 ("Default") clears the preference and lets Qt pick the backend.
+            readonly property string defaultEntry: "Default"
+            model: [defaultEntry].concat(QtMultimediaPrivate.availableBackends)
+            enabled: !QtMultimediaPrivate.backendOverriddenByEnvironment
+
+            function syncFromSettings() {
+                const pref = QtMultimediaPrivate.preferredBackend
+                currentIndex = pref === "" ? 0 : Math.max(0, model.indexOf(pref))
+            }
+            Component.onCompleted: syncFromSettings()
+
+            onActivated: (index) => {
+                QtMultimediaPrivate.setPreferredBackend(index === 0 ? "" : model[index])
+            }
+        }
+    }
+
+    Label {
+        color: "orange"
+        wrapMode: Text.WordWrap
+        Layout.preferredWidth: 400
+        text: "Restart the application for the backend change to take effect."
+        // Show once the chosen backend differs from the one currently loaded.
+        visible: !QtMultimediaPrivate.backendOverriddenByEnvironment
+                 && QtMultimediaPrivate.preferredBackend !== ""
+                 && QtMultimediaPrivate.preferredBackend !== QtMultimediaPrivate.mediaBackendName
+    }
+
+    Label {
+        color: "red"
+        wrapMode: Text.WordWrap
+        Layout.preferredWidth: 400
+        text: "QT_MEDIA_BACKEND is set in the environment; the selection above is ignored."
+        visible: QtMultimediaPrivate.backendOverriddenByEnvironment
     }
 
     Label {
