@@ -19,6 +19,8 @@
 
 #include <limits>
 #include <unordered_set>
+#include <QtCore/qglobal.h>
+#include <QtCore/qdebug.h>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -66,18 +68,71 @@ using ChannelLayoutT = uint64_t;
 using SwsFlags = int;
 #endif
 
+enum class AVScore : int {
+    BestAVScore = std::numeric_limits<int>::max(),
+    DefaultAVScore = 0,
+    NotSuitableAVScore = std::numeric_limits<int>::min(),
+    MinAVScore = std::numeric_limits<int>::min() + 1,
+};
+
+inline constexpr AVScore BestAVScore = AVScore::BestAVScore;
+inline constexpr AVScore DefaultAVScore = AVScore::DefaultAVScore;
+inline constexpr AVScore NotSuitableAVScore = AVScore::NotSuitableAVScore;
+inline constexpr AVScore MinAVScore = AVScore::MinAVScore;
+
+constexpr inline AVScore operator+(AVScore a, int b)
+{
+    return AVScore(qToUnderlying(a) + b);
+}
+constexpr inline AVScore operator-(AVScore a, int b)
+{
+    return AVScore(qToUnderlying(a) - b);
+}
+constexpr inline AVScore operator+(int a, AVScore b)
+{
+    return AVScore(a + qToUnderlying(b));
+}
+constexpr inline AVScore operator-(int a, AVScore b)
+{
+    return AVScore(a - qToUnderlying(b));
+}
+constexpr inline AVScore operator-(AVScore a, AVScore b)
+{
+    return AVScore(qToUnderlying(a) - qToUnderlying(b));
+}
+constexpr inline AVScore &operator+=(AVScore &a, int b)
+{
+    return a = a + b;
+}
+constexpr inline AVScore &operator-=(AVScore &a, int b)
+{
+    return a = a - b;
+}
+inline QDebug operator<<(QDebug dbg, AVScore score)
+{
+    dbg << qToUnderlying(score);
+    return dbg;
+}
+
 } // namespace QFFmpeg
 
 using PixelOrSampleFormat = int;
-using AVScore = int;
-inline constexpr AVScore BestAVScore = std::numeric_limits<AVScore>::max();
-inline constexpr AVScore DefaultAVScore = 0;
-inline constexpr AVScore NotSuitableAVScore = std::numeric_limits<AVScore>::min();
-inline constexpr AVScore MinAVScore = NotSuitableAVScore + 1;
 
 using AVPixelFormatSet = std::unordered_set<AVPixelFormat>;
 
 QT_END_NAMESPACE
+
+namespace std {
+
+template <>
+struct numeric_limits<QT_PREPEND_NAMESPACE(QFFmpeg)::AVScore>
+{
+    using Type = QT_PREPEND_NAMESPACE(QFFmpeg)::AVScore;
+    constexpr static Type min() noexcept { return Type::NotSuitableAVScore; }
+    constexpr static Type max() noexcept { return Type::BestAVScore; }
+};
+
+} // namespace std
 
 #ifndef AV_PROFILE_H264_HIGH
 #  define AV_PROFILE_H264_HIGH FF_PROFILE_H264_HIGH

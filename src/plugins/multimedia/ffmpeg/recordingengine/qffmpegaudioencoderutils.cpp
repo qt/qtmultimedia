@@ -53,10 +53,10 @@ static AVScore calculateScoreByChannelsCount(int supportedChannelsNumber,
 {
     // choose the closest one with higher channels number
     if (supportedChannelsNumber >= requestedChannelsNumber)
-        return requestedChannelsNumber - supportedChannelsNumber;
+        return AVScore{ requestedChannelsNumber - supportedChannelsNumber };
 
     // choose the closest one with lower channels number, considering a priority penalty
-    return supportedChannelsNumber - requestedChannelsNumber - 10000;
+    return AVScore{ supportedChannelsNumber - requestedChannelsNumber - 10000 };
 }
 
 static AVScore calculateScoreByChannelsMask(int supportedChannelsNumber, uint64_t supportedMask,
