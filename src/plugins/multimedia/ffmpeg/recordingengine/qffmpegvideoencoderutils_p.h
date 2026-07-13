@@ -27,8 +27,7 @@ std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, co
                                                 const HWAccel &accel,
                                                 const AVPixelFormatSet &prohibitedFormats = {});
 
-std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceFormat,
-                                              AVPixelFormat sourceSWFormat, const Codec &codec,
+std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
                                               const HWAccel *accel,
                                               const AVPixelFormatSet &prohibitedFormats = {});
 

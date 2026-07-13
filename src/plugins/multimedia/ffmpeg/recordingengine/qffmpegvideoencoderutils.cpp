@@ -116,13 +116,10 @@ std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, co
     return findBestAVValue(pixelFormats, scoreCalculator);
 }
 
-std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceFormat,
-                                              AVPixelFormat sourceSWFormat, const Codec &codec,
+std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
                                               const HWAccel *accel,
                                               const AVPixelFormatSet &prohibitedFormats)
 {
-    Q_UNUSED(sourceFormat);
-
     if (accel) {
         const auto hwFormat = accel->hwFormat();
 
