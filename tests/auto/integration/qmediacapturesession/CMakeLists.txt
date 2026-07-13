@@ -30,3 +30,7 @@ if(OHOS)
     set_property(TEST tst_qmediacapturesession APPEND PROPERTY
         ENVIRONMENT "HARMONYOS_NO_PROGRESS_TIMEOUT=0")
 endif()
+
+if(IOS)
+    qt_add_ios_ffmpeg_libraries(tst_qmediacapturesession)
+endif()
