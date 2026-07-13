@@ -20,6 +20,7 @@ qt_standard_project_setup(REQUIRES 6.9)
 qt_add_executable(qml-camera-advanced WIN32 MACOSX_BUNDLE
     main.cpp
     qtmultimediaprivateqmlhelper.h
+    qtmultimediaprivateqmlhelper.cpp
 )
 
 set_target_properties(qml-camera-advanced PROPERTIES
