@@ -67,16 +67,11 @@ struct CodecsComparator
 
 void dumpCodecInfo(const Codec &codec)
 {
-    const auto mediaType = codec.type() == AVMEDIA_TYPE_VIDEO ? "video"
-            : codec.type() == AVMEDIA_TYPE_AUDIO              ? "audio"
-            : codec.type() == AVMEDIA_TYPE_SUBTITLE           ? "subtitle"
-                                                             : "other_type";
-
     const auto type = codec.isEncoder()
             ? codec.isDecoder() ? "encoder/decoder:" : "encoder:"
             : "decoder:";
 
-    qCDebug(qLcCodecStorage) << mediaType << type << codec.name() << "id:" << codec.id()
+    qCDebug(qLcCodecStorage) << codec.type() << type << codec.name() << "id:" << codec.id()
                              << "capabilities:" << AVCodecCapabilities(codec.capabilities());
 
     if (codec.type() == AVMEDIA_TYPE_VIDEO) {

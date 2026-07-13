@@ -404,6 +404,16 @@ QDebug operator<<(QDebug dbg, AVHWDeviceType type)
     return dbg;
 }
 
+QDebug operator<<(QDebug dbg, AVMediaType type)
+{
+    const char *str = av_get_media_type_string(type);
+    if (str)
+        dbg << str;
+    else
+        dbg << "<unknown hw media type>";
+    return dbg;
+}
+
 QDebug operator<<(QDebug dbg, AVCodecID id)
 {
     const char *str = avcodec_get_name(id);
