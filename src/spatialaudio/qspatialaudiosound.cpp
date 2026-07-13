@@ -241,7 +241,7 @@ void QSpatialAudioSoundPrivate::loadUrl(const QUrl &url)
         if (srcChannels == nchannels) {
             pcmData = sample->data();
 
-            m_sample = sample; // keep the sample in the QSampleCache as long as we live
+            m_sample = std::move(sample); // keep the sample in the QSampleCache as long as we live
         } else if (srcChannels == 1 && nchannels == 2) {
             qWarning() << "QAmbientSound: upmixing mono source to stereo";
             pcmData = upmixMonoToStereo(sample->dataAsFloatSpan(), UpmixScaling::Duplicate);
