@@ -236,8 +236,8 @@ void VideoFrameEncoder::initCodecFrameRate()
 
 bool VideoFrameEncoder::initTargetFormats(const AVPixelFormatSet &prohibitedTargetFormats)
 {
-    const auto format = findTargetFormat(m_sourceFormat, m_sourceSWFormat, m_codec, m_accel.get(),
-                                         prohibitedTargetFormats);
+    const std::optional format =
+            findTargetFormat(m_sourceSWFormat, m_codec, m_accel.get(), prohibitedTargetFormats);
 
     if (!format) {
         qWarning() << "Could not find target format for codecId" << m_codec.id();
