@@ -100,7 +100,6 @@ public:
     createStreamFromFilter(
         StreamId streamId,
         SCContentFilter *,
-        QSize resolutionPx,
         std::optional<qreal> frameRate,
         std::function<void(QMacScreenCaptureKit&)> const &connectionSetup);
 
