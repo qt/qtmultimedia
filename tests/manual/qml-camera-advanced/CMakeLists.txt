@@ -13,12 +13,13 @@ endif()
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/qml-camera-advanced")
 
 if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
-    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick)
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia MultimediaPrivate Qml Quick)
 endif()
 qt_standard_project_setup(REQUIRES 6.9)
 
 qt_add_executable(qml-camera-advanced WIN32 MACOSX_BUNDLE
     main.cpp
+    qtmultimediaprivateqmlhelper.h
 )
 
 set_target_properties(qml-camera-advanced PROPERTIES
@@ -45,6 +46,7 @@ target_link_libraries(qml-camera-advanced PUBLIC
     Qt::Core
     Qt::Gui
     Qt::Multimedia
+    Qt::MultimediaPrivate
     Qt::Qml
     Qt::Quick
 )

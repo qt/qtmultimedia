@@ -14,6 +14,11 @@ ColumnLayout {
     required property MediaDevicesHelper mediaDevices
 
     Label {
+        text: "Media backend: " + QtMultimediaPrivate.mediaBackendName
+        font.bold: true
+    }
+
+    Label {
         text: "Media devices (" + mediaDevices.videoInputs.length + ")"
         font.bold: true
     }
