@@ -496,4 +496,101 @@ QDebug operator<<(QDebug dbg, const AVCodecConfig value)
 }
 #endif
 
+namespace {
+
+struct FlagName {
+    int value;
+    const char *name;
+};
+
+QString flagsToString(int flags, const QSpan<const FlagName> &flagNames)
+{
+    QString result;
+    int leftover = flags;
+    for (const auto &flagAndName : flagNames)
+        if ((flags & flagAndName.value) != 0) {
+            leftover &= ~flagAndName.value;
+            if (!result.isEmpty())
+                result += u", ";
+            result += QLatin1StringView(flagAndName.name);
+        }
+
+    if (leftover) {
+        if (!result.isEmpty())
+            result += u", ";
+        result += QString::number(leftover, 16);
+    }
+    return result;
+}
+
+} // namespace
+
+QString QFFmpeg::toString(AVCodecCapabilities capabilities)
+{
+    static constexpr std::array<FlagName, 21> flagNames = {{
+        { AV_CODEC_CAP_DRAW_HORIZ_BAND, "DRAW_HORIZ_BAND" },
+        { AV_CODEC_CAP_DR1, "DR1" },
+        { AV_CODEC_CAP_DELAY, "DELAY" },
+        { AV_CODEC_CAP_SMALL_LAST_FRAME, "SMALL_LAST_FRAME" },
+#ifdef AV_CODEC_CAP_SUBFRAMES
+        { AV_CODEC_CAP_SUBFRAMES, "SUBFRAMES" },
+#endif
+        { AV_CODEC_CAP_EXPERIMENTAL, "EXPERIMENTAL" },
+        { AV_CODEC_CAP_CHANNEL_CONF, "CHANNEL_CONF" },
+        { AV_CODEC_CAP_FRAME_THREADS, "FRAME_THREADS" },
+        { AV_CODEC_CAP_SLICE_THREADS, "SLICE_THREADS" },
+        { AV_CODEC_CAP_PARAM_CHANGE, "PARAM_CHANGE" },
+        { AV_CODEC_CAP_OTHER_THREADS, "OTHER_THREADS" },
+        { AV_CODEC_CAP_VARIABLE_FRAME_SIZE, "VARIABLE_FRAME_SIZE" },
+        { AV_CODEC_CAP_AVOID_PROBING, "AVOID_PROBING" },
+        { AV_CODEC_CAP_HARDWARE, "HARDWARE" },
+        { AV_CODEC_CAP_HYBRID, "HYBRID" },
+        { AV_CODEC_CAP_ENCODER_REORDERED_OPAQUE, "ENCODER_REORDERED_OPAQUE" },
+        { AV_CODEC_CAP_ENCODER_FLUSH, "ENCODER_FLUSH" },
+    }};
+    return flagsToString(qToUnderlying(capabilities), QSpan(flagNames));
+}
+
+QString QFFmpeg::toString(AVPixelFormatFlags flags)
+{
+    static constexpr std::array<FlagName, 9> flagNames = {{
+        { AV_PIX_FMT_FLAG_BE, "BE" },
+        { AV_PIX_FMT_FLAG_PAL, "PAL" },
+        { AV_PIX_FMT_FLAG_BITSTREAM, "BITSTREAM" },
+        { AV_PIX_FMT_FLAG_HWACCEL, "HWACCEL" },
+        { AV_PIX_FMT_FLAG_PLANAR, "PLANAR" },
+        { AV_PIX_FMT_FLAG_RGB, "RGB" },
+        { AV_PIX_FMT_FLAG_ALPHA, "ALPHA" },
+        { AV_PIX_FMT_FLAG_BAYER, "BAYER" },
+        { AV_PIX_FMT_FLAG_FLOAT, "FLOAT" },
+    }};
+    return flagsToString(qToUnderlying(flags), QSpan(flagNames));
+}
+
+QString QFFmpeg::toString(AVHwConfigMethods methods)
+{
+    static constexpr std::array<FlagName, 4> flagNames = {{
+        { AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX, "HW_DEVICE_CTX" },
+        { AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX, "HW_FRAMES_CTX" },
+        { AV_CODEC_HW_CONFIG_METHOD_INTERNAL, "INTERNAL" },
+        { AV_CODEC_HW_CONFIG_METHOD_AD_HOC, "AD_HOC" }
+    }};
+    return flagsToString(qToUnderlying(methods), QSpan(flagNames));
+}
+
+QDebug operator<<(QDebug dbg, QFFmpeg::AVCodecCapabilities caps)
+{
+    return dbg << QFFmpeg::toString(caps);
+}
+
+QDebug operator<<(QDebug dbg, QFFmpeg::AVPixelFormatFlags flags)
+{
+    return dbg << QFFmpeg::toString(flags);
+}
+
+QDebug operator<<(QDebug dbg, QFFmpeg::AVHwConfigMethods methods)
+{
+    return dbg << QFFmpeg::toString(methods);
+}
+
 QT_END_NAMESPACE

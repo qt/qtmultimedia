@@ -65,30 +65,8 @@ struct CodecsComparator
     bool operator()(AVCodecID id, const Codec &codec) const { return id < codec.id(); }
 };
 
-template <typename FlagNames>
-QString flagsToString(int flags, const FlagNames &flagNames)
-{
-    QString result;
-    int leftover = flags;
-    for (const auto &flagAndName : flagNames)
-        if ((flags & flagAndName.first) != 0) {
-            leftover &= ~flagAndName.first;
-            if (!result.isEmpty())
-                result += u", ";
-            result += QLatin1StringView(flagAndName.second);
-        }
-
-    if (leftover) {
-        if (!result.isEmpty())
-            result += u", ";
-        result += QString::number(leftover, 16);
-    }
-    return result;
-}
-
 void dumpCodecInfo(const Codec &codec)
 {
-    using FlagNames = std::initializer_list<std::pair<int, const char *>>;
     const auto mediaType = codec.type() == AVMEDIA_TYPE_VIDEO ? "video"
             : codec.type() == AVMEDIA_TYPE_AUDIO              ? "audio"
             : codec.type() == AVMEDIA_TYPE_SUBTITLE           ? "subtitle"
@@ -98,53 +76,18 @@ void dumpCodecInfo(const Codec &codec)
             ? codec.isDecoder() ? "encoder/decoder:" : "encoder:"
             : "decoder:";
 
-    static const FlagNames capabilitiesNames = {
-        { AV_CODEC_CAP_DRAW_HORIZ_BAND, "DRAW_HORIZ_BAND" },
-        { AV_CODEC_CAP_DR1, "DRAW_HORIZ_DR1" },
-        { AV_CODEC_CAP_DELAY, "DELAY" },
-        { AV_CODEC_CAP_SMALL_LAST_FRAME, "SMALL_LAST_FRAME" },
-#ifdef AV_CODEC_CAP_SUBFRAMES
-        { AV_CODEC_CAP_SUBFRAMES, "SUBFRAMES" },
-#endif
-        { AV_CODEC_CAP_EXPERIMENTAL, "EXPERIMENTAL" },
-        { AV_CODEC_CAP_CHANNEL_CONF, "CHANNEL_CONF" },
-        { AV_CODEC_CAP_FRAME_THREADS, "FRAME_THREADS" },
-        { AV_CODEC_CAP_SLICE_THREADS, "SLICE_THREADS" },
-        { AV_CODEC_CAP_PARAM_CHANGE, "PARAM_CHANGE" },
-        { AV_CODEC_CAP_OTHER_THREADS, "OTHER_THREADS" },
-        { AV_CODEC_CAP_VARIABLE_FRAME_SIZE, "VARIABLE_FRAME_SIZE" },
-        { AV_CODEC_CAP_AVOID_PROBING, "AVOID_PROBING" },
-        { AV_CODEC_CAP_HARDWARE, "HARDWARE" },
-        { AV_CODEC_CAP_HYBRID, "HYBRID" },
-        { AV_CODEC_CAP_ENCODER_REORDERED_OPAQUE, "ENCODER_REORDERED_OPAQUE" },
-        { AV_CODEC_CAP_ENCODER_FLUSH, "ENCODER_FLUSH" },
-    };
-
     qCDebug(qLcCodecStorage) << mediaType << type << codec.name() << "id:" << codec.id()
-                             << "capabilities:"
-                             << flagsToString(codec.capabilities(), capabilitiesNames);
+                             << "capabilities:" << AVCodecCapabilities(codec.capabilities());
 
     if (codec.type() == AVMEDIA_TYPE_VIDEO) {
         const auto pixelFormats = codec.pixelFormats();
         if (!pixelFormats.empty()) {
-            static const FlagNames flagNames = {
-                { AV_PIX_FMT_FLAG_BE, "BE" },
-                { AV_PIX_FMT_FLAG_PAL, "PAL" },
-                { AV_PIX_FMT_FLAG_BITSTREAM, "BITSTREAM" },
-                { AV_PIX_FMT_FLAG_HWACCEL, "HWACCEL" },
-                { AV_PIX_FMT_FLAG_PLANAR, "PLANAR" },
-                { AV_PIX_FMT_FLAG_RGB, "RGB" },
-                { AV_PIX_FMT_FLAG_ALPHA, "ALPHA" },
-                { AV_PIX_FMT_FLAG_BAYER, "BAYER" },
-                { AV_PIX_FMT_FLAG_FLOAT, "FLOAT" },
-            };
-
             qCDebug(qLcCodecStorage) << "  pixelFormats:";
             for (AVPixelFormat f : pixelFormats) {
                 auto desc = av_pix_fmt_desc_get(f);
                 qCDebug(qLcCodecStorage)
                         << "    id:" << f << desc->name << "depth:" << desc->comp[0].depth
-                        << "flags:" << flagsToString(desc->flags, flagNames);
+                        << "flags:" << AVPixelFormatFlags(desc->flags);
             }
         } else {
             qCDebug(qLcCodecStorage) << "  pixelFormats: null";
@@ -166,13 +109,6 @@ void dumpCodecInfo(const Codec &codec)
 
     const std::vector<const AVCodecHWConfig*> hwConfigs = codec.hwConfigs();
     if (!hwConfigs.empty()) {
-        static const FlagNames hwConfigMethodNames = {
-            { AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX, "HW_DEVICE_CTX" },
-            { AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX, "HW_FRAMES_CTX" },
-            { AV_CODEC_HW_CONFIG_METHOD_INTERNAL, "INTERNAL" },
-            { AV_CODEC_HW_CONFIG_METHOD_AD_HOC, "AD_HOC" }
-        };
-
         qCDebug(qLcCodecStorage) << "  hw config:";
         for (const AVCodecHWConfig* config : hwConfigs) {
             const auto pixFmtForDevice = pixelFormatForHwDevice(config->device_type);
@@ -183,7 +119,7 @@ void dumpCodecInfo(const Codec &codec)
                     << (pixFmtDesc ? pixFmtDesc->name : "unknown")
                     << "pixelFormatForHwDevice:" << pixelFormatForHwDevice(config->device_type)
                     << (pixFmtForDeviceDesc ? pixFmtForDeviceDesc->name : "unknown")
-                    << "hw_config_methods:" << flagsToString(config->methods, hwConfigMethodNames);
+                    << "hw_config_methods:" << AVHwConfigMethods(config->methods);
         }
     }
 }

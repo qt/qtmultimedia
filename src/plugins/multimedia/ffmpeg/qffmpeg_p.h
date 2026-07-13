@@ -304,6 +304,14 @@ enum class AVError : int {
     Success = 0,
 };
 
+enum class AVCodecCapabilities : uint64_t { };
+enum class AVPixelFormatFlags : uint64_t { };
+enum class AVHwConfigMethods : uint64_t { };
+
+QString toString(AVCodecCapabilities capabilities);
+QString toString(AVPixelFormatFlags flags);
+QString toString(AVHwConfigMethods methods);
+
 } // namespace QFFmpeg
 
 QDebug operator<<(QDebug, const AVRational &);
@@ -315,6 +323,9 @@ QDebug operator<<(QDebug, AVHWDeviceType);
 QDebug operator<<(QDebug, AVCodecID);
 QDebug operator<<(QDebug, const AVOutputFormat *);
 QDebug operator<<(QDebug, const AVInputFormat *);
+QDebug operator<<(QDebug, QFFmpeg::AVCodecCapabilities);
+QDebug operator<<(QDebug, QFFmpeg::AVPixelFormatFlags);
+QDebug operator<<(QDebug, QFFmpeg::AVHwConfigMethods);
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 QDebug operator<<(QDebug, const AVChannelLayout &);
