@@ -398,7 +398,6 @@ std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
 QMacScreenCaptureKit::createStreamFromFilter(
     StreamId streamId,
     SCContentFilter *scContentFilter,
-    QSize resolutionPx,
     std::optional<qreal> frameRate,
     std::function<void(QMacScreenCaptureKit&)> const &connectionSetup)
 {
@@ -406,6 +405,18 @@ QMacScreenCaptureKit::createStreamFromFilter(
 
     auto promise = std::make_shared<std::promise<ResultType>>();
     auto future = promise->get_future();
+
+    CGRect contentRect = scContentFilter.contentRect;
+    float pointPixelScale = scContentFilter.pointPixelScale;
+
+    // SCContentFilter.contentRect is in screen-points, not pixels. Multiply by
+    // pointPixelScale.
+    QSize resolutionPx = (QSizeF::fromCGSize(contentRect.size) * pointPixelScale).toSize();
+    // Rare edge cases have shown contentRect to sometimes be empty.
+    if (resolutionPx.isEmpty()) {
+        promise->set_value(q23::unexpected{ u"SCContentFilter contentRect reported as zero size"_s });
+        return future;
+    }
 
     AVFScopedPointer<SCStreamConfiguration> scStreamConfig =
         QMacScreenCaptureKit::createStreamConfig(resolutionPx, frameRate);
@@ -495,16 +506,9 @@ QMacScreenCaptureKit::createStreamFromWindow(
     auto scContentFilter = AVFScopedPointer<SCContentFilter>{ [[SCContentFilter alloc]
         initWithDesktopIndependentWindow: scWindow] };
 
-    float pointPixelScale = scContentFilter.data().pointPixelScale;
-
-    // SCWindow.frame is in screen-points, not pixels. Multiply by
-    // pointPixelScale.
     return createStreamFromFilter(
         streamId,
         scContentFilter,
-        QSize {
-            static_cast<int>(std::round(scWindow.frame.size.width * pointPixelScale)),
-            static_cast<int>(std::round(scWindow.frame.size.height * pointPixelScale)) },
         frameRate,
         connectionSetup);
 }
