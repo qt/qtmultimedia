@@ -59,10 +59,14 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
         bool hasFlushed = false;
         {
             auto guard = lockLoopData();
-            std::optional<FrameInfo> flushed = m_frameRateAdapter.flush();
-            if (flushed && m_videoFrameQueue.size() < m_maxQueueSize) {
-                m_videoFrameQueue.push(*flushed);
-                hasFlushed = true;
+            if (isInitialized()) {
+                // Don't flush if not initialized, since frame rate used in adapter is only provisional
+                // Will be flushed in init()
+                std::optional<FrameInfo> flushed = m_frameRateAdapter.flush();
+                if (flushed && m_videoFrameQueue.size() < m_maxQueueSize) {
+                    m_videoFrameQueue.push(*flushed);
+                    hasFlushed = true;
+                }
             }
         }
         if (hasFlushed)
@@ -78,6 +82,21 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
         if (m_paused) {
             m_shouldAdjustTimeBaseForNextFrame = true;
             m_frameRateAdapter.reset();
+            m_framesBeforeInit = {};
+            return;
+        }
+
+        if (!isInitialized()) {
+            // m_frameRateAdapter isn't configured with the real codec frame rate yet, so
+            // buffer the frame and adapt it once init() has set the real rates. Bounded by
+            // m_maxFramesBeforeInit. Sources should use checkIfCanPushFrame.
+            if (m_framesBeforeInit.size() >= m_maxFramesBeforeInit) {
+                qCWarning(qLcFFmpegVideoEncoder) << "Too many frames received before encoder "
+                                                    "initialization. Buffer full, dropping "
+                                                    "frame.";
+                return;
+            }
+            m_framesBeforeInit.push(frame);
             return;
         }
 
@@ -128,7 +147,28 @@ bool VideoEncoder::init()
         return false;
     }
 
-    m_frameRateAdapter.setRates(m_fixedSourceFrameRate, m_frameEncoder->codecFrameRate());
+    {
+        auto guard = lockLoopData();
+        m_frameRateAdapter.setRates(m_fixedSourceFrameRate, m_frameEncoder->codecFrameRate());
+
+        while (!m_framesBeforeInit.empty()) {
+            const QVideoFrame bufferedFrame = std::move(m_framesBeforeInit.front());
+            m_framesBeforeInit.pop();
+
+            std::vector<FrameInfo> adapted = m_frameRateAdapter.adapt(
+                    bufferedFrame, std::exchange(m_shouldAdjustTimeBaseForNextFrame, false));
+            for (FrameInfo &adaptedFrame : adapted)
+                m_videoFrameQueue.push(std::move(adaptedFrame));
+        }
+
+        // EOS may have arrived before initialization. Flush now that the buffered
+        // frames above have been adapted.
+        if (isEndOfSourceStream()) {
+            std::optional<FrameInfo> flushed = m_frameRateAdapter.flush();
+            if (flushed && m_videoFrameQueue.size() < m_maxQueueSize)
+                m_videoFrameQueue.push(std::move(*flushed));
+        }
+    }
 
     return EncoderThread::init();
 }
@@ -251,6 +291,8 @@ void VideoEncoder::processOne()
 
 bool VideoEncoder::checkIfCanPushFrame() const
 {
+    if (!isInitialized())
+        return m_framesBeforeInit.size() < m_maxFramesBeforeInit;
     if (m_encodingStarted)
         return m_videoFrameQueue.size() < m_maxQueueSize;
     if (!isFinished())

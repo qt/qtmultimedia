@@ -64,6 +64,11 @@ private:
 
     std::optional<qreal> m_fixedSourceFrameRate; // nullopt = variable-rate source
     FrameRateAdapter m_frameRateAdapter;
+
+    // Frames that arrive via addFrame() before init() has configured m_frameRateAdapter
+    // with the negotiated codec frame rate. Adapted once init() runs.
+    std::queue<QVideoFrame> m_framesBeforeInit;
+    const size_t m_maxFramesBeforeInit = 10; // Arbitrarily chosen, same rationale as m_maxQueueSize
 };
 
 } // namespace QFFmpeg
