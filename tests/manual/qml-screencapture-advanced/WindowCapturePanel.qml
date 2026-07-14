@@ -32,12 +32,12 @@ GridLayout {
     property var capturableWindowsList: []
     property bool periodicallyRefreshWindows: false
     function refreshCapturableWindowsList() {
-        capturableWindowsList = windowCapture.capturableWindows()
+        capturableWindowsList = capture.capturableWindows()
             .sort((a, b) => a.description.localeCompare(b.description))
     }
 
     WindowCapture {
-        id: windowCapture
+        id: capture
 
         onActiveChanged: () => {
             console.log("QWindowCapture active changed: " + active)
@@ -89,7 +89,7 @@ GridLayout {
     }
 
     CaptureSession {
-        windowCapture: windowCapture
+        windowCapture: capture
         videoOutput: windowCaptureVideoOutput
         recorder: mediaRecorder
     }
@@ -112,7 +112,7 @@ GridLayout {
         Button {
             text: "Select app window"
             onClicked: () => {
-                windowCapture.window = root.topWindow
+                capture.window = root.topWindow
             }
         }
 
@@ -141,7 +141,7 @@ GridLayout {
             }
             TextField {
                 id: floatField
-                text: windowCapture.frameRate
+                text: capture.frameRate
                 inputMethodHints: Qt.ImhFormattedNumbersOnly
 
                 validator: DoubleValidator {
@@ -153,12 +153,12 @@ GridLayout {
                 }
 
                 onEditingFinished: {
-                    windowCapture.frameRate = parseFloat(text)
+                    capture.frameRate = parseFloat(text)
                 }
             }
             Button {
                 text: "Reset"
-                onClicked: windowCapture.frameRate = undefined
+                onClicked: capture.frameRate = undefined
             }
         }
 
@@ -167,11 +167,11 @@ GridLayout {
             text: "Active"
             onClicked: () => {
                 if (checkState === Qt.Checked)
-                    windowCapture.start()
+                    capture.start()
                 else
-                    windowCapture.stop()
+                    capture.stop()
 
-                checkState = windowCapture.active === true ? Qt.Checked : Qt.Unchecked
+                checkState = capture.active === true ? Qt.Checked : Qt.Unchecked
             }
         }
 
@@ -197,7 +197,7 @@ GridLayout {
         Label {
             Layout.preferredWidth: root.preferredLeftWidth
             wrapMode: Text.WordWrap
-            text: "Error: " + windowCapture.errorLabel
+            text: "Error: " + capture.errorLabel
         }
 
         Label {
@@ -219,7 +219,7 @@ GridLayout {
                         return true
                     })
                 currentIndex: model
-                    .findIndex((item) => item === windowCapture.window)
+                    .findIndex((item) => item === capture.window)
                 delegate: ItemDelegate {
                     required property var modelData
                     required property int index
@@ -233,7 +233,7 @@ GridLayout {
                     }
                     text: buildText(modelData)
                     onClicked: () => {
-                        windowCapture.window = modelData
+                        capture.window = modelData
                     }
                 }
             }
