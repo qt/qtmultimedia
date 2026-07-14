@@ -103,7 +103,7 @@ std::optional<QUuid> PropertyStoreHelper::getGUID(const PROPERTYKEY &property)
     if (SUCCEEDED(hr))
         return QUuid{ ret };
 
-    qWarning() << "PropertyStoreHelper::getUInt32: PropVariantToUInt32 failed"
+    qWarning() << "PropertyStoreHelper::getGUID: PropVariantToGUID failed"
                << QSystemError::windowsComString(hr);
     return std::nullopt;
 }
