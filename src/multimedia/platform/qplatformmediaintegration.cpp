@@ -42,6 +42,12 @@ Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, loader,
 
 static const auto FFmpegBackend = QStringLiteral("ffmpeg");
 
+[[nodiscard]] static QString &preferredBackend()
+{
+    static QString backend;
+    return backend;
+}
+
 static QString defaultBackend(const QStringList &backends)
 {
 #ifdef QT_DEFAULT_MEDIA_BACKEND
@@ -78,6 +84,8 @@ struct InstanceHolder
 
         QStringList backends = QPlatformMediaIntegration::availableBackends();
         QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND")).toLower();
+        if (backend.isEmpty() && backends.contains(preferredBackend()))
+            backend = preferredBackend();
         if (backend.isEmpty() && !backends.isEmpty())
             backend = defaultBackend(backends);
 
@@ -228,6 +236,16 @@ QStringList QPlatformMediaIntegration::availableBackends()
 
     qCDebug(qLcMediaPlugin) << "Available backends" << list;
     return list;
+}
+
+// Must be called before any backend is established.
+// Sets the backend to be used when the QT_MEDIA_BACKEND environment variable is not set,
+// overriding the built-in default. Must be called before any media backend
+// is initialized.
+void QPlatformMediaIntegration::setPreferredBackend(const QString &backend)
+{
+    Q_ASSERT(!s_instanceHolder.exists());
+    preferredBackend() = backend.toLower();
 }
 
 QLatin1String QPlatformMediaIntegration::name()

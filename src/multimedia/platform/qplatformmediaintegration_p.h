@@ -133,6 +133,9 @@ public:
     QPlatformAudioDevices *audioDevices();
 
     static QStringList availableBackends();
+
+    static void setPreferredBackend(const QString &backend);
+
     QLatin1String name(); // for unit tests
 
     // Convert a QVideoFrame to the destination format
