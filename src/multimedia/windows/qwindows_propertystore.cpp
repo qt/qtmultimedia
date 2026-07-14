@@ -71,22 +71,12 @@ namespace {
 // mingw workaround: PropVariantToGUID does not provide correct signature
 // https://github.com/mingw-w64/mingw-w64/issues/153
 
-template <typename T>
-struct first_arg_is_ptr;
-
-// Function type
-template <typename Result, typename Arg, typename... Args>
-struct first_arg_is_ptr<Result (*)(Arg, Args...)> : std::bool_constant<std::is_pointer_v<Arg>>
-{
-};
-
 auto wrapPropVariantArg(const PROPVARIANT &arg)
 {
-    if constexpr (first_arg_is_ptr<decltype(&PropVariantToGUID)>::value) {
+    if constexpr (std::is_invocable_v<decltype(PropVariantToGUID), const PROPVARIANT *, GUID *>)
         return &arg;
-    } else {
+    else
         return arg;
-    }
 }
 
 } // namespace
