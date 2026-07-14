@@ -1,6 +1,8 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+pragma ComponentBehavior: Bound
+
 import QtCore
 import QtQuick
 import QtQuick.Layouts
@@ -27,7 +29,7 @@ GridLayout {
     }
 
     ScreenCapture {
-        id: screenCapture
+        id: capture
 
         onActiveChanged: () => {
             console.log("QScreenCapture active changed: " + active)
@@ -79,7 +81,7 @@ GridLayout {
     }
 
     CaptureSession {
-        screenCapture: screenCapture
+        screenCapture: capture
         videoOutput: screenCaptureVideoOutput
         recorder: mediaRecorder
     }
@@ -107,7 +109,7 @@ GridLayout {
             }
             TextField {
                 id: floatField
-                text: screenCapture.frameRate
+                text: capture.frameRate
                 inputMethodHints: Qt.ImhFormattedNumbersOnly
 
                 validator: DoubleValidator {
@@ -119,12 +121,12 @@ GridLayout {
                 }
 
                 onEditingFinished: {
-                    screenCapture.frameRate = parseFloat(text)
+                    capture.frameRate = parseFloat(text)
                 }
             }
             Button {
                 text: "Reset"
-                onClicked: screenCapture.frameRate = undefined
+                onClicked: capture.frameRate = undefined
             }
         }
 
@@ -133,11 +135,11 @@ GridLayout {
             text: "Active"
             onClicked: () => {
                 if (checkState === Qt.Checked)
-                    screenCapture.start()
+                    capture.start()
                 else
-                    screenCapture.stop()
+                    capture.stop()
 
-                checkState = screenCapture.active === true ? Qt.Checked : Qt.Unchecked
+                checkState = capture.active === true ? Qt.Checked : Qt.Unchecked
             }
         }
 
@@ -148,7 +150,7 @@ GridLayout {
         Label {
             Layout.preferredWidth: root.preferredLeftWidth
             wrapMode: Text.WordWrap
-            text: "Error: " + screenCapture.errorLabel
+            text: "Error: " + capture.errorLabel
         }
 
         Label {
@@ -161,16 +163,16 @@ GridLayout {
                 id: screensListView
                 anchors.fill: parent
                 clip: true
-                model: Qt.application.screens
+                model: Application.screens
                 currentIndex: model
-                    .findIndex((item) => item === screenCapture.screen)
+                    .findIndex((item) => item === capture.screen)
                 delegate: ItemDelegate {
                     required property var modelData
                     required property int index
                     highlighted: ListView.isCurrentItem
                     text: modelData.name
                     onClicked: () => {
-                        screenCapture.screen = modelData
+                        capture.screen = modelData
                     }
                 }
             }
