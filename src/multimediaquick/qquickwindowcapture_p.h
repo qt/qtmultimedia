@@ -26,14 +26,15 @@ QT_BEGIN_NAMESPACE
 class Q_MULTIMEDIAQUICK_EXPORT QQuickWindowCapture : public QWindowCapture
 {
     Q_OBJECT
-    Q_PROPERTY(qreal frameRate READ qmlFrameRate WRITE qmlSetFrameRate RESET resetFrameRate NOTIFY frameRateChanged REVISION(6, 12))
+    Q_PROPERTY(qreal maximumFrameRate READ qmlMaximumFrameRate WRITE qmlSetMaximumFrameRate RESET
+                       resetMaximumFrameRate NOTIFY maximumFrameRateChanged REVISION(6, 12))
     QML_NAMED_ELEMENT(WindowCapture)
 
 public:
     QQuickWindowCapture(QObject *parent = nullptr);
 
-    void qmlSetFrameRate(qreal);
-    qreal qmlFrameRate() const;
+    void qmlSetMaximumFrameRate(qreal);
+    qreal qmlMaximumFrameRate() const;
 };
 
 QT_END_NAMESPACE

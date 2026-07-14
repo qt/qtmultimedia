@@ -99,7 +99,7 @@ QScreenCapture::QScreenCapture(QObject *parent)
                 this, &QScreenCapture::screenChanged);
 
         connect(platformCapture, &QPlatformSurfaceCapture::frameRateChanged, this,
-                &QScreenCapture::frameRateChanged);
+                &QScreenCapture::maximumFrameRateChanged);
 
         d->platformScreenCapture.reset(platformCapture);
     }
@@ -275,18 +275,18 @@ QString QScreenCapture::errorString() const
 
 /*!
     \since 6.12
-    \property QScreenCapture::frameRate
-    \brief The target screen capture framerate.
+    \property QScreenCapture::maximumFrameRate
+    \brief The screen capture frame rate upper limit.
 
-    Actual frame rate depends on the platform. For platforms with fixed rate capture, this
-    frame rate is followed. For platforms with variable rate capture, this frame rate is either
-    used as the polling rate (maximum frame rate) or completely ignored.
+    This can be set to override the capture frame rate used by default based on
+    e.g. display refresh rate, but only as an upper limit since screen capture
+    produces frames at a variable rate. Setting this higher than the display
+    refresh rate is not recommended and can cause errors.
 
-    If left unset, a platform-dependent default is used.
-
-    Any changes to this property are applied the next time the QScreenCapture goes active.
+    Any changes to this property are applied the next time the QScreenCapture
+    goes active.
 */
-void QScreenCapture::setFrameRate(std::optional<qreal> frameRate)
+void QScreenCapture::setMaximumFrameRate(std::optional<qreal> frameRate)
 {
     Q_D(QScreenCapture);
 
@@ -294,16 +294,16 @@ void QScreenCapture::setFrameRate(std::optional<qreal> frameRate)
         d->platformScreenCapture->setFrameRate(frameRate);
 }
 
-std::optional<qreal> QScreenCapture::frameRate() const
+std::optional<qreal> QScreenCapture::maximumFrameRate() const
 {
     Q_D(const QScreenCapture);
 
     return d->platformScreenCapture ? d->platformScreenCapture->frameRate() : std::nullopt;
 }
 
-void QScreenCapture::resetFrameRate()
+void QScreenCapture::resetMaximumFrameRate()
 {
-    setFrameRate(std::nullopt);
+    setMaximumFrameRate(std::nullopt);
 }
 
 /*!

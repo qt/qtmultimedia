@@ -66,7 +66,7 @@ GridLayout {
             console.log("QWindowCapture error occurred (" + errorToString(err) + ") " + msg)
         }
 
-        onFrameRateChanged: console.log("QWindowCapture frameRate changed " + frameRate)
+        onMaximumFrameRateChanged: console.log("QWindowCapture maximumFrameRate changed " + maximumFrameRate)
     }
 
     MediaRecorder {
@@ -141,7 +141,7 @@ GridLayout {
             }
             TextField {
                 id: floatField
-                text: capture.frameRate
+                text: capture.maximumFrameRate
                 inputMethodHints: Qt.ImhFormattedNumbersOnly
 
                 validator: DoubleValidator {
@@ -153,12 +153,12 @@ GridLayout {
                 }
 
                 onEditingFinished: {
-                    capture.frameRate = parseFloat(text)
+                    capture.maximumFrameRate = parseFloat(text)
                 }
             }
             Button {
                 text: "Reset"
-                onClicked: capture.frameRate = undefined
+                onClicked: capture.maximumFrameRate = undefined
             }
         }
 

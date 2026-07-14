@@ -341,20 +341,20 @@ private slots:
         };
 
         // No preferred frame rate initially
-        QVERIFY(!fixture.m_capture.frameRate());
+        QVERIFY(!fixture.m_capture.maximumFrameRate());
 
-        // Setting a frame rate updates the property and emits frameRateChanged
+        // Setting a frame rate updates the property and emits maximumFrameRateChanged
         const float newFrameRate = 1.f;
-        fixture.m_capture.setFrameRate(newFrameRate);
+        fixture.m_capture.setMaximumFrameRate(newFrameRate);
 
         QCOMPARE(fixture.m_frameRates.size(), 1);
-        QVERIFY(frameRateEquals(fixture.m_capture.frameRate(), newFrameRate));
+        QVERIFY(frameRateEquals(fixture.m_capture.maximumFrameRate(), newFrameRate));
 
-        // Resetting clears the property and emits frameRateChanged again
-        fixture.m_capture.resetFrameRate();
+        // Resetting clears the property and emits maximumFrameRateChanged again
+        fixture.m_capture.resetMaximumFrameRate();
 
         QCOMPARE(fixture.m_frameRates.size(), 2);
-        QVERIFY(!fixture.m_capture.frameRate());
+        QVERIFY(!fixture.m_capture.maximumFrameRate());
 
         QVERIFY(fixture.m_errors.empty());
     }
@@ -376,7 +376,7 @@ private slots:
         fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Animated);
 
         const float newFrameRate = 1.f;
-        fixture.m_capture.setFrameRate(newFrameRate);
+        fixture.m_capture.setMaximumFrameRate(newFrameRate);
 
         QVERIFY(fixture.start());
 
@@ -393,7 +393,6 @@ private slots:
             durationBetweenFrames > 0ms,
             "Did not receive enough QVideoFrames to measure framerate");
         const qreal actualFps = 1000.0 / durationBetweenFrames.count();
-        QCOMPARE_GT(actualFps, newFrameRate * (1 - slopFactor));
         QCOMPARE_LT(actualFps, newFrameRate * (1 + slopFactor));
     }
 
