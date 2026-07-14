@@ -8,8 +8,6 @@
 qt_internal_add_test(tst_qmediarecorder
     SOURCES
         tst_qmediarecorder.cpp
-    INCLUDE_DIRECTORIES
-        ../../mockbackend
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
