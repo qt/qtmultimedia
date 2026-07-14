@@ -62,18 +62,7 @@ public:
     The code below shows a simple capture session with ScreenCapture playing
     back the captured primary screen view in VideoOutput.
 
-\qml
-    CaptureSession {
-        id: captureSession
-        screenCapture: ScreenCapture {
-            id: screenCapture
-            active: true
-        }
-        videoOutput: VideoOutput {
-            id: videoOutput
-        }
-    }
-\endqml
+    \snippet multimedia-snippets/screencapturesnippets.qml Basic setup
 
     \include qscreencapture-limitations.qdocinc {content} {}
 
@@ -179,6 +168,8 @@ bool QScreenCapture::isActive() const
 
     If null \c Screen is set, the primary screen will be selected
     when the \c ScreenCapture instance gets activated.
+
+    \sa {QtQuick::Application::screens}{Application.screens}
 */
 
 /*!
@@ -187,6 +178,8 @@ bool QScreenCapture::isActive() const
 
     If null \l QScreen is set, \l QGuiApplication::primaryScreen will be selected
     when the \c QScreenCapture instance gets activated.
+
+    \sa QGuiApplication::screens(), QGuiApplication::primaryScreen()
 */
 
 void QScreenCapture::setScreen(QScreen *screen)
