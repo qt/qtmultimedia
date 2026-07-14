@@ -34,7 +34,10 @@
 #include <QtTest/qtest.h>
 #include <QtTest/qsignalspy.h>
 
+#include <chrono>
 #include <memory>
+
+using namespace std::chrono_literals;
 
 /*
  This is the backend conformance test.
@@ -50,6 +53,14 @@ struct VCamParameters
     QSize resolution = QSize(1920, 1080);
     float fps = 60.0f;
 };
+
+// In CI, the VCamManager.exe can hang for a long time even if it's
+// available. It hangs so long that it triggers the test watchdog
+// of 300s that a test is timed out and considered a crash.
+// We add some strict timeouts to work around.
+// TODO: Need to solve hangs and flakiness in VCamManager.exe.
+static constexpr std::chrono::milliseconds VCamProcessTimeout = 15s;
+static constexpr std::chrono::milliseconds VCamDetectTimeout = 5s;
 
 class tst_QCameraBackend: public QObject
 {
@@ -87,12 +98,14 @@ private slots:
     void multipleCameraSet();
 
 private:
-    void callVcam(const QString &command, const VCamParameters &parameters) const;
+    bool callVcam(const QString &command, const VCamParameters &parameters) const;
+    bool addVcam(const VCamParameters &parameters) const;
     void removeVcam(const VCamParameters &parameters) const;
     static QCameraDevice findCamera(const QString &name);
     QColor dominantRgbColor(const QColor &color, int tolerance) const;
 
     bool noCamera = false;
+    bool m_vcamAvailable = false;
     VCamParameters m_defaultCamera {"VCam"};
     QByteArray m_vcamPath;
 };
@@ -156,9 +169,11 @@ void tst_QCameraBackend::initTestCase()
     m_vcamPath = qgetenv("VCAM_PATH");
 #endif
 
-    if (!m_vcamPath.isEmpty()) {
-        callVcam("--add", m_defaultCamera);
-    }
+    // VCAM_PATH being set only means the helper is deployed, not that it can
+    // actually register a camera on this machine. Test it once and skip
+    // other tests based on this.
+    if (!m_vcamPath.isEmpty())
+        m_vcamAvailable = addVcam(m_defaultCamera);
 
     QCamera camera;
     noCamera = !camera.isAvailable();
@@ -166,11 +181,11 @@ void tst_QCameraBackend::initTestCase()
 
 void tst_QCameraBackend::cleanupTestCase()
 {
-    if (!m_vcamPath.isEmpty())
+    if (m_vcamAvailable)
         removeVcam(m_defaultCamera);
 }
 
-void tst_QCameraBackend::callVcam(const QString &command, const VCamParameters &parameters) const
+bool tst_QCameraBackend::callVcam(const QString &command, const VCamParameters &parameters) const
 {
 #if QT_CONFIG(process)
     QProcess vcamManagerProcess;
@@ -190,11 +205,47 @@ void tst_QCameraBackend::callVcam(const QString &command, const VCamParameters &
 
     vcamManagerProcess.start(program, arguments);
 
-    vcamManagerProcess.waitForFinished();
+    if (!vcamManagerProcess.waitForStarted(static_cast<int>(VCamProcessTimeout.count()))) {
+        qWarning() << "Failed to start" << program << arguments << ":"
+                   << vcamManagerProcess.errorString();
+        return false;
+    }
+
+    if (!vcamManagerProcess.waitForFinished(static_cast<int>(VCamProcessTimeout.count()))) {
+        qWarning() << program << arguments << "did not finish within"
+                   << VCamProcessTimeout.count() << "ms; terminating it";
+        vcamManagerProcess.kill();
+        vcamManagerProcess.waitForFinished(static_cast<int>(VCamProcessTimeout.count()));
+        return false;
+    }
+
+    if (vcamManagerProcess.exitStatus() != QProcess::NormalExit
+        || vcamManagerProcess.exitCode() != 0) {
+        qWarning() << program << arguments << "failed with exit code"
+                   << vcamManagerProcess.exitCode();
+        return false;
+    }
+
+    return true;
 #else
     Q_UNUSED(command);
     Q_UNUSED(parameters);
+    return false;
 #endif
+}
+
+bool tst_QCameraBackend::addVcam(const VCamParameters &parameters) const
+{
+    if (!callVcam("--add", parameters))
+        return false;
+
+    // The device-added notification is delivered asynchronously, so wait a
+    // bounded time for the camera to actually show up.
+    return QTest::qWaitFor(
+        [&] {
+            return !findCamera(parameters.name).isNull();
+        },
+        VCamDetectTimeout);
 }
 
 void tst_QCameraBackend::removeVcam(const VCamParameters &parameters) const
@@ -314,8 +365,8 @@ void tst_QCameraBackend::testCtorWithPosition()
 
 void tst_QCameraBackend::testVirtualCameraAddition()
 {
-    if (m_vcamPath.isEmpty())
-        QSKIP("VCAM_PATH environment variable is not set. Skipping camera addition test.");
+    if (!m_vcamAvailable)
+        QSKIP("Virtual camera is not available. Skipping camera addition test.");
 
     int lengthBeforeAdd = QMediaDevices::videoInputs().length();
     VCamParameters cameraParams {"TestVCam", QStringLiteral("nv12"), QSize(1280, 720), 33.0f};
@@ -323,7 +374,7 @@ void tst_QCameraBackend::testVirtualCameraAddition()
     QMediaDevices mediaDevices = QMediaDevices();
     QSignalSpy changeSignal(&mediaDevices, &QMediaDevices::videoInputsChanged);
 
-    callVcam("--add", cameraParams);
+    QVERIFY(callVcam("--add", cameraParams));
 
     QTRY_COMPARE(changeSignal.size(), 1);
 
@@ -344,15 +395,15 @@ void tst_QCameraBackend::testVirtualCameraAddition()
 
 void tst_QCameraBackend::testVirtualCameraRemoval()
 {
-    if (m_vcamPath.isEmpty())
-        QSKIP("VCAM_PATH environment variable is not set. Skipping camera removal test.");
+    if (!m_vcamAvailable)
+        QSKIP("Virtual camera is not available. Skipping camera removal test.");
 
     QMediaDevices mediaDevices = QMediaDevices();
     QSignalSpy changeSignal(&mediaDevices, &QMediaDevices::videoInputsChanged);
     int lengthBeforeAdd = QMediaDevices::videoInputs().length();
     VCamParameters cameraParams {"TestVCamToRemove"};
 
-    callVcam("--add", cameraParams);
+    QVERIFY(callVcam("--add", cameraParams));
 
     QTRY_COMPARE(changeSignal.size(), 1);
 
@@ -365,8 +416,8 @@ void tst_QCameraBackend::testVirtualCameraRemoval()
 
 void tst_QCameraBackend::testVirtualCameraFrameChanging()
 {
-    if (m_vcamPath.isEmpty())
-        QSKIP("VCAM_PATH environment variable is not set. Skipping camera frame test.");
+    if (!m_vcamAvailable)
+        QSKIP("Virtual camera is not available. Skipping camera frame test.");
 
     QMediaCaptureSession session;
     QCamera camera;
