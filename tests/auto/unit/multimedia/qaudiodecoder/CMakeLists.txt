@@ -8,8 +8,6 @@
 qt_internal_add_test(tst_qaudiodecoder
     SOURCES
         tst_qaudiodecoder.cpp
-    INCLUDE_DIRECTORIES
-        ../../mockbackend
     LIBRARIES
         Qt::Multimedia
         Qt::MultimediaPrivate

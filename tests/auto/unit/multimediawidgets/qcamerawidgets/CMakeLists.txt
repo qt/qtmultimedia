@@ -8,8 +8,6 @@
 qt_internal_add_test(tst_qcamerawidgets
     SOURCES
         tst_qcamerawidgets.cpp
-    INCLUDE_DIRECTORIES
-        ../../mockbackend
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate

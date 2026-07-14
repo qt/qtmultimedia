@@ -8,8 +8,6 @@
 qt_internal_add_test(tst_qmediaplayer
     SOURCES
         tst_qmediaplayer.cpp
-    INCLUDE_DIRECTORIES
-        ../../mockbackend
     LIBRARIES
         Qt::Core
         Qt::MultimediaPrivate

@@ -8,8 +8,6 @@
 qt_internal_add_test(tst_qquickvideooutput_window
     SOURCES
         tst_qquickvideooutput_window.cpp
-    INCLUDE_DIRECTORIES
-        ../../../../src/imports/multimedia
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
