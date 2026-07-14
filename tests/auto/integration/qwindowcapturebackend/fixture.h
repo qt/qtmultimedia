@@ -68,7 +68,7 @@ public:
 
     QSignalSpy m_errors{ &m_capture, &QWindowCapture::errorOccurred };
     QSignalSpy m_activations{ &m_capture, &QWindowCapture::activeChanged };
-    QSignalSpy m_frameRates{ &m_capture, &QWindowCapture::frameRateChanged };
+    QSignalSpy m_frameRates{ &m_capture, &QWindowCapture::maximumFrameRateChanged };
 
 private:
     /*!

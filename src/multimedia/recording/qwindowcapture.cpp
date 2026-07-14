@@ -97,7 +97,7 @@ QWindowCapture::QWindowCapture(QObject *parent) : QObject(*new QWindowCapturePri
                 &QWindowCapture::windowChanged);
 
         connect(platformCapture, &QPlatformSurfaceCapture::frameRateChanged, this,
-                &QWindowCapture::frameRateChanged);
+                &QWindowCapture::maximumFrameRateChanged);
 
         d->platformWindowCapture.reset(platformCapture);
     }
@@ -219,18 +219,18 @@ void QWindowCapture::setActive(bool active)
 
 /*!
     \since 6.12
-    \property QWindowCapture::frameRate
-    \brief The target window capture framerate.
+    \property QWindowCapture::maximumFrameRate
+    \brief The window capture frame rate upper limit.
 
-    Actual frame rate depends on the platform. For platforms with fixed rate capture, this
-    frame rate is followed. For platforms with variable rate capture, this frame rate is either
-    used as the polling rate (maximum frame rate) or completely ignored.
+    This can be set to override the capture frame rate used by default based on
+    e.g. display refresh rate, but only as an upper limit since window capture
+    produces frames at a variable rate. Setting this higher than the display
+    refresh rate is not recommended and can cause errors.
 
-    If left unset, a platform-dependent default is used.
-
-    Any changes to this property are applied the next time the QWindowCapture goes active.
+    Any changes to this property are applied the next time the QWindowCapture
+    goes active.
 */
-void QWindowCapture::setFrameRate(std::optional<qreal> frameRate)
+void QWindowCapture::setMaximumFrameRate(std::optional<qreal> frameRate)
 {
     Q_D(QWindowCapture);
 
@@ -238,16 +238,16 @@ void QWindowCapture::setFrameRate(std::optional<qreal> frameRate)
         d->platformWindowCapture->setFrameRate(frameRate);
 }
 
-std::optional<qreal> QWindowCapture::frameRate() const
+std::optional<qreal> QWindowCapture::maximumFrameRate() const
 {
     Q_D(const QWindowCapture);
 
     return d->platformWindowCapture ? d->platformWindowCapture->frameRate() : std::nullopt;
 }
 
-void QWindowCapture::resetFrameRate()
+void QWindowCapture::resetMaximumFrameRate()
 {
-    setFrameRate(std::nullopt);
+    setMaximumFrameRate(std::nullopt);
 }
 
 /*!

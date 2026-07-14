@@ -26,8 +26,8 @@ class Q_MULTIMEDIA_EXPORT QScreenCapture : public QObject
     Q_PROPERTY(QScreen *screen READ screen WRITE setScreen NOTIFY screenChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
-    Q_PROPERTY(std::optional<qreal> frameRate READ frameRate WRITE setFrameRate RESET resetFrameRate
-                       NOTIFY frameRateChanged REVISION(6, 12))
+    Q_PROPERTY(std::optional<qreal> maximumFrameRate READ maximumFrameRate WRITE setMaximumFrameRate
+                       RESET resetMaximumFrameRate NOTIFY maximumFrameRateChanged REVISION(6, 12))
 
 public:
     enum Error {
@@ -52,9 +52,9 @@ public:
     Error error() const;
     QString errorString() const;
 
-    void setFrameRate(std::optional<qreal> preferredFrameRate);
-    std::optional<qreal> frameRate() const;
-    void resetFrameRate();
+    void setMaximumFrameRate(std::optional<qreal> frameRate);
+    std::optional<qreal> maximumFrameRate() const;
+    void resetMaximumFrameRate();
 
 public Q_SLOTS:
     void setActive(bool active);
@@ -66,7 +66,7 @@ Q_SIGNALS:
     void errorChanged();
     void screenChanged(QScreen *);
     void errorOccurred(QScreenCapture::Error error, const QString &errorString);
-    Q_REVISION(6, 12) void frameRateChanged();
+    Q_REVISION(6, 12) void maximumFrameRateChanged();
 
 private:
     void setCaptureSession(QMediaCaptureSession *captureSession);

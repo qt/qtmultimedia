@@ -308,7 +308,7 @@ void tst_QScreenCaptureBackend::setFrameRate_setsFrameRate()
     QScreenCapture capture;
 
     QSignalSpy errorsSpy(&capture, &QScreenCapture::errorOccurred);
-    QSignalSpy frameRateSpy(&capture, &QScreenCapture::frameRateChanged);
+    QSignalSpy frameRateSpy(&capture, &QScreenCapture::maximumFrameRateChanged);
 
     QMediaCaptureSession session;
 
@@ -320,14 +320,14 @@ void tst_QScreenCaptureBackend::setFrameRate_setsFrameRate()
     };
 
     // No preferred frame rate, not started
-    QVERIFY(!capture.frameRate());
+    QVERIFY(!capture.maximumFrameRate());
 
     // Set new frame rate
     float newFrameRate = 1.f;
-    capture.setFrameRate(newFrameRate);
+    capture.setMaximumFrameRate(newFrameRate);
 
     QTRY_COMPARE(frameRateSpy.size(), 1);
-    QVERIFY(frameRateEquals(capture.frameRate(), newFrameRate));
+    QVERIFY(frameRateEquals(capture.maximumFrameRate(), newFrameRate));
 
     capture.setActive(true);
     QVERIFY(capture.isActive());
@@ -338,16 +338,15 @@ void tst_QScreenCaptureBackend::setFrameRate_setsFrameRate()
     auto durationBetweenFrames = sink.durationBetweenFrames(3);
     QTEST_ASSERT(durationBetweenFrames > 0ms);
     const qreal actualFps = 1000.0 / durationBetweenFrames.count();
-    QCOMPARE_GT(actualFps, newFrameRate * 0.9);
     QCOMPARE_LT(actualFps, newFrameRate * 1.1);
 #endif
 
     // Reset frame rate
     capture.setActive(false);
-    capture.resetFrameRate();
+    capture.resetMaximumFrameRate();
 
     QTRY_COMPARE(frameRateSpy.size(), 2);
-    QVERIFY(!capture.frameRate());
+    QVERIFY(!capture.maximumFrameRate());
 
     QVERIFY(errorsSpy.empty());
 }
