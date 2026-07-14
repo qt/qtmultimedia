@@ -15,13 +15,20 @@
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qwindowcapture.h>
 
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+
 #include <QtTest/qtest.h>
 #include <QtTest/qsignalspy.h>
 
 #include <chrono>
 #include <optional>
 
-constexpr inline std::chrono::milliseconds s_testTimeout = std::chrono::seconds(60);
+inline std::chrono::milliseconds globalTestTimeout() {
+    if (isCI())
+        return std::chrono::seconds(60);
+    else
+        return std::chrono::seconds(5);
+}
 
 /*!
     Utility used to hide application cursor for image comparison tests.

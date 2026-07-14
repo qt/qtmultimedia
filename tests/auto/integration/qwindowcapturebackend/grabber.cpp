@@ -44,7 +44,7 @@ std::vector<QVideoFrame> FrameGrabber::waitAndTakeFrames(size_t minCount, qint64
         return m_frames.size() >= minCount;
     };
 
-    if (!QTest::qWaitFor(enoughFramesOrStopped, s_testTimeout))
+    if (!QTest::qWaitFor(enoughFramesOrStopped, globalTestTimeout()))
         return {};
 
     if (m_stopped)
@@ -71,9 +71,16 @@ std::chrono::milliseconds FrameGrabber::durationBetweenFrames(qsizetype frameCou
     };
 
     using namespace std::chrono;
-    return QTest::qWaitFor(allFramesAreReceived, s_testTimeout)
+
+    // Assuming the stream runs at 1 FPS minimum. Could shorten
+    // the timeout if we checked expected framerate.
+    auto timeout = 2s * frameCount;
+    if (isCI())
+        timeout *= 5;
+
+    return QTest::qWaitFor(allFramesAreReceived, timeout)
             ? milliseconds(timer.elapsed() / frameCount)
-            : milliseconds(0);
+            : 0ms;
 }
 
 bool FrameGrabber::isStopped() const

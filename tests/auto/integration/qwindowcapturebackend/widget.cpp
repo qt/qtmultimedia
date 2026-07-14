@@ -134,7 +134,7 @@ bool showCaptureWindow(const QString &windowTitle)
     widget.show();
 
     // Wait for window to be visible and suitable for window capturing
-    const bool result = QTest::qWaitForWindowExposed(&widget, s_testTimeout.count());
+    const bool result = QTest::qWaitForWindowExposed(&widget, globalTestTimeout());
     if (!result)
         qDebug() << "Failed to show window";
 

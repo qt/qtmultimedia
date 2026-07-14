@@ -241,7 +241,7 @@ private slots:
         TestWidget secondWidget;
         secondWidget.setSize({ 120, 80 });
         secondWidget.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, s_testTimeout));
+        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, globalTestTimeout()));
 
         std::optional<QCapturableWindow> secondWindow =
             WindowCaptureWithWidgetFixture::findCaptureWindow(
@@ -264,7 +264,7 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(
             !fixture.m_grabber.getFrames().empty()
             && fixture.m_grabber.getFrames().back().size() == secondWidget.size(),
-            s_testTimeout);
+            globalTestTimeout());
 
         QVERIFY(fixture.m_errors.empty());
     }
@@ -306,7 +306,7 @@ private slots:
         fixture.m_widget.show();
         QVERIFY(QTest::qWaitForWindowExposed(
             &fixture.m_widget,
-            s_testTimeout));
+            globalTestTimeout()));
 
         const std::optional<QCapturableWindow> window =
             WindowCaptureWithWidgetFixture::findCaptureWindow(
@@ -450,7 +450,7 @@ private slots:
 
         QTRY_VERIFY_WITH_TIMEOUT(
             anyNewFramesMatchesNewContent(),
-            s_testTimeout);
+            globalTestTimeout());
     }
 
     void sequenceOfCapturedImages_compareEqual_whenWindowContentIsUnchanged()
@@ -586,7 +586,7 @@ private slots:
 
         QTRY_VERIFY_WITH_TIMEOUT(
             !fixture.m_errors.empty(),
-            s_testTimeout);
+            globalTestTimeout());
 
         // TODO: Verify that the QWindowCapture goes inactive whenever we encounter an error
         // like this.
