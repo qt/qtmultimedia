@@ -5,7 +5,7 @@
 ## tst_qsamplecache Test:
 #####################################################################
 
-qt_internal_add_test(tst_qsamplecache
+qt_internal_multimedia_add_test(tst_qsamplecache
     SOURCES
         tst_qsamplecache.cpp
     LIBRARIES

@@ -5,7 +5,7 @@
 ## tst_qaudioringbuffer Test:
 #####################################################################
 
-qt_internal_add_test(tst_qaudioringbuffer
+qt_internal_multimedia_add_test(tst_qaudioringbuffer
     SOURCES
         tst_qaudioringbuffer.cpp
     LIBRARIES

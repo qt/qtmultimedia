@@ -5,7 +5,7 @@
 ## tst_qmediatimerange Test:
 #####################################################################
 
-qt_internal_add_test(tst_qmediatimerange
+qt_internal_multimedia_add_test(tst_qmediatimerange
     SOURCES
         tst_qmediatimerange.cpp
     LIBRARIES

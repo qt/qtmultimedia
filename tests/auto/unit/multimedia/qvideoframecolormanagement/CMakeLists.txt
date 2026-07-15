@@ -8,7 +8,7 @@ file(GLOB_RECURSE test_data
         ${CMAKE_CURRENT_SOURCE_DIR}
     testdata/*)
 
-qt_internal_add_test(tst_qvideoframecolormanagement
+qt_internal_multimedia_add_test(tst_qvideoframecolormanagement
     SOURCES
         tst_qvideoframecolormanagement.cpp
     LIBRARIES

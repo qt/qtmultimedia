@@ -5,7 +5,7 @@
 ## tst_qmediaplayer Test:
 #####################################################################
 
-qt_internal_add_test(tst_qmediaplayer
+qt_internal_multimedia_add_test(tst_qmediaplayer
     SOURCES
         tst_qmediaplayer.cpp
     LIBRARIES

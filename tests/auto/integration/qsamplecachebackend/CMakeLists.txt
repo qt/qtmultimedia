@@ -5,7 +5,8 @@
 ## tst_qsamplecachebackend Test:
 #####################################################################
 
-qt_internal_add_test(tst_qsamplecachebackend
+qt_internal_multimedia_add_test(tst_qsamplecachebackend
+    NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         tst_qsamplecachebackend.cpp
     LIBRARIES

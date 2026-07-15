@@ -1,7 +1,8 @@
 # Copyright (C) 2026 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
-qt_internal_add_test(tst_spatialsound_qml
+qt_internal_multimedia_add_test(tst_spatialsound_qml
+    NEEDS_MEDIA_BACKEND_PLUGINS
     QMLTEST
     SOURCES
         tst_qml.cpp

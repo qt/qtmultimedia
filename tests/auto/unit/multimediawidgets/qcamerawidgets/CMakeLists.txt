@@ -5,7 +5,7 @@
 ## tst_qcamerawidgets Test:
 #####################################################################
 
-qt_internal_add_test(tst_qcamerawidgets
+qt_internal_multimedia_add_test(tst_qcamerawidgets
     SOURCES
         tst_qcamerawidgets.cpp
     LIBRARIES

@@ -5,7 +5,7 @@
 ## tst_qaudioformat Test:
 #####################################################################
 
-qt_internal_add_test(tst_qaudioformat
+qt_internal_multimedia_add_test(tst_qaudioformat
     SOURCES
         tst_qaudioformat.cpp
     LIBRARIES

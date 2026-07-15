@@ -5,7 +5,7 @@
 ## tst_qscreencapture Test:
 #####################################################################
 
-qt_internal_add_test(tst_qscreencapture
+qt_internal_multimedia_add_test(tst_qscreencapture
     SOURCES
         tst_qscreencapture.cpp
     LIBRARIES

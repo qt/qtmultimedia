@@ -5,7 +5,8 @@
 ## tst_qdeclarativevideooutput Test:
 #####################################################################
 
-qt_internal_add_test(tst_qquickvideooutput
+qt_internal_multimedia_add_test(tst_qquickvideooutput
+    NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         tst_qquickvideooutput.cpp
     LIBRARIES

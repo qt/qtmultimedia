@@ -5,7 +5,8 @@
 ## tst_qvideoframebackend Test:
 #####################################################################
 
-qt_internal_add_test(tst_qvideoframebackend
+qt_internal_multimedia_add_test(tst_qvideoframebackend
+    NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         tst_qvideoframebackend.cpp
     LIBRARIES

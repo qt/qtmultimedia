@@ -5,7 +5,8 @@
 ## tst_qaudiosink Test:
 #####################################################################
 
-qt_internal_add_test(tst_qaudiosink
+qt_internal_multimedia_add_test(tst_qaudiosink
+    NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         tst_qaudiosink.cpp
     LIBRARIES

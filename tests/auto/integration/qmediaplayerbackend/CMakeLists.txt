@@ -5,7 +5,8 @@
 ## tst_qmediaplayerbackend Test:
 #####################################################################
 
-qt_internal_add_test(tst_qmediaplayerbackend
+qt_internal_multimedia_add_test(tst_qmediaplayerbackend
+    NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         mediaplayerstate.h
         fake.h
@@ -65,7 +66,3 @@ qt_internal_add_test(tst_qmediaplayerbackend
         testdata/with_date_and_creation_time.mp4
         testdata/with_qtdate_and_creation_time.mov
 )
-
-if(IOS)
-    qt_add_ios_ffmpeg_libraries(tst_qmediaplayerbackend)
-endif()

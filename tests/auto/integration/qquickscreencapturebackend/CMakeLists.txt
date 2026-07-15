@@ -5,7 +5,8 @@
 ## tst_qquickscreencapturebackend Test:
 #####################################################################
 
-qt_internal_add_test(tst_qquickscreencapturebackend
+qt_internal_multimedia_add_test(tst_qquickscreencapturebackend
+    NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         tst_qquickscreencapturebackend.cpp
     LIBRARIES

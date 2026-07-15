@@ -5,7 +5,8 @@
 ## tst_qsoundeffect Test:
 #####################################################################
 
-qt_internal_add_test(tst_qsoundeffect
+qt_internal_multimedia_add_test(tst_qsoundeffect
+    NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         tst_qsoundeffect.cpp
     LIBRARIES

@@ -5,7 +5,7 @@
 ## tst_qimagecapture Test:
 #####################################################################
 
-qt_internal_add_test(tst_qimagecapture
+qt_internal_multimedia_add_test(tst_qimagecapture
     SOURCES
         tst_qimagecapture.cpp
     LIBRARIES

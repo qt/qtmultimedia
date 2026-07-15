@@ -5,7 +5,7 @@
 ## tst_qwavedecoder Test:
 #####################################################################
 
-qt_internal_add_test(tst_qwavedecoder
+qt_internal_multimedia_add_test(tst_qwavedecoder
     SOURCES
         tst_qwavedecoder.cpp
         data/gendata.sh
