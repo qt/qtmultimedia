@@ -7,6 +7,7 @@
 #include "qffmpeghwaccel_p.h"
 
 #include <QtCore/qapplicationstatic.h>
+#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
 
@@ -127,40 +128,40 @@ enum class MFCodecCheckResult {
 
 MFCodecCheckResult isValidMFEncoder([[maybe_unused]] const Codec &codec)
 {
-#ifdef Q_OS_WIN
-    if (!codec.name().endsWith("_mf"_L1))
+    if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Windows) {
+        if (!codec.name().endsWith("_mf"_L1))
+            return MFCodecCheckResult::not_an_mf_codec;
+
+        AVCodecContextUPtr ctx{ avcodec_alloc_context3(codec.get()) };
+        if (!ctx)
+            return MFCodecCheckResult::unsupported_mf_codec;
+
+        ctx->width = 1280;
+        ctx->height = 720;
+        ctx->time_base = { 1, 30 };
+        ctx->framerate = { 30, 1 };
+        ctx->pix_fmt = AV_PIX_FMT_NV12;
+
+        const int ret = avcodec_open2(ctx.get(), codec.get(), nullptr);
+        if (ret == AVERROR(ENOSYS)) {
+            qCDebug(qLcCodecStorage) << "MF codec" << codec.name() << "is not available.";
+            return MFCodecCheckResult::unsupported_mf_codec;
+        }
+
+        if (ret < 0) {
+            qCDebug(qLcCodecStorage) << "MF codec" << codec.name()
+                                     << "is not supported due to avcodec_open2 failure:" << ret
+                                     << QFFmpeg::AVError(ret);
+            return MFCodecCheckResult::unsupported_mf_codec;
+        }
+
+        return MFCodecCheckResult::supported_mf_codec;
+    } else {
         return MFCodecCheckResult::not_an_mf_codec;
-
-    AVCodecContextUPtr ctx{ avcodec_alloc_context3(codec.get()) };
-    if (!ctx)
-        return MFCodecCheckResult::unsupported_mf_codec;
-
-    ctx->width = 1280;
-    ctx->height = 720;
-    ctx->time_base = { 1, 30 };
-    ctx->framerate = { 30, 1 };
-    ctx->pix_fmt = AV_PIX_FMT_NV12;
-
-    const int ret = avcodec_open2(ctx.get(), codec.get(), nullptr);
-    if (ret == AVERROR(ENOSYS)) {
-        qCDebug(qLcCodecStorage) << "MF codec" << codec.name() << "is not available.";
-        return MFCodecCheckResult::unsupported_mf_codec;
     }
-
-    if (ret < 0) {
-        qCDebug(qLcCodecStorage) << "MF codec" << codec.name()
-                                 << "is not supported due to avcodec_open2 failure:" << ret
-                                 << QFFmpeg::AVError(ret);
-        return MFCodecCheckResult::unsupported_mf_codec;
-    }
-
-    return MFCodecCheckResult::supported_mf_codec;
-#else
-    return MFCodecCheckResult::not_an_mf_codec;
-#endif
 }
 
-bool isCodecValid(const Codec &codec, const std::vector<AVHWDeviceType> &availableHwDeviceTypes,
+bool isCodecValid(const Codec &codec, QSpan<const AVHWDeviceType> availableHwDeviceTypes,
                   const std::optional<std::unordered_set<AVCodecID>> &codecAvailableOnDevice)
 {
     if (codec.type() != AVMEDIA_TYPE_VIDEO)
@@ -337,14 +338,13 @@ struct CodecStoreSingleton
 
     CodecStoreSingleton()
     {
-#ifdef Q_OS_WINDOWS
         // enumerate codecs asynchronously, so that enumeration is done on a separate thread
         // without COM initialization, as otherwise avcodec_open2 will fail and ffmpeg will
         // warn that "COM must not be in STA mode"
-        auto launchPolicy = std::launch::async;
-#else
-        auto launchPolicy = std::launch::deferred;
-#endif
+        constexpr auto launchPolicy =
+                QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Windows
+                ? std::launch::async
+                : std::launch::deferred;
 
         codecStoreFuture = std::async(launchPolicy, [] {
             return enumerateCodecs();
