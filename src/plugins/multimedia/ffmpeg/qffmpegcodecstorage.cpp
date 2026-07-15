@@ -350,38 +350,6 @@ const CodecsStorage &codecsStorage(CodecRole codecsType)
     return codecStoreSingleton->codecStoreFuture.get()[qToUnderlying(codecsType)];
 }
 
-template <typename CodecScoreGetter, typename CodecOpener>
-bool findAndOpenCodec(CodecRole codecsType, AVCodecID codecId, const CodecScoreGetter &scoreGetter,
-                      const CodecOpener &opener)
-{
-    Q_ASSERT(opener);
-    auto codecsWithId = ranges::equal_range(codecsStorage(codecsType), codecId, CodecsComparator{});
-
-    using CodecToScore = std::pair<Codec, AVScore>;
-    std::vector<CodecToScore> codecsToScores;
-
-    for (const Codec &codec : codecsWithId) {
-        const AVScore score = scoreGetter ? scoreGetter(codec) : DefaultAVScore;
-        if (score != NotSuitableAVScore)
-            codecsToScores.emplace_back(codec, score);
-    }
-
-    if (scoreGetter) {
-        ranges::stable_sort(codecsToScores, [](const CodecToScore &a, const CodecToScore &b) {
-            return a.second > b.second;
-        });
-
-        if (qLcCodecStorage().isEnabled(QtDebugMsg))
-            for (const auto &[codec, score] : codecsToScores)
-                qCDebug(qLcCodecStorage)
-                        << "findAndOpenCodec(): candidate:" << codec.name() << "score:" << score;
-    }
-
-    return ranges::any_of(codecsToScores, [&](const CodecToScore &codecToScore) {
-        return opener(codecToScore.first);
-    });
-}
-
 std::optional<Codec> findAVCodec(CodecRole codecsType, AVCodecID codecId,
                                  const std::optional<PixelOrSampleFormat> &format)
 {
@@ -404,6 +372,37 @@ std::optional<Codec> findAVCodec(CodecRole codecsType, AVCodecID codecId,
 
 } // namespace
 
+std::vector<CodecScoreRecord>
+findAndScoreCodecs(CodecRole type, AVCodecID codecId,
+                   const qxp::function_ref<AVScore(const Codec &)> &scoreFunction)
+{
+    namespace ranges = QtMultimediaPrivate::ranges;
+    namespace views = QtMultimediaPrivate::views;
+
+    const auto storage = codecsStorage(type);
+    auto codecsForId = ranges::equal_range(storage, codecId, CodecsComparator{});
+    auto scoredCodecs = views::transform(codecsForId, [&](const Codec &codec) {
+        return CodecScoreRecord{
+            codec,
+            scoreFunction(codec),
+        };
+    });
+    auto validCodecs = views::filter(scoredCodecs, [](const CodecScoreRecord &record) {
+        return record.score != NotSuitableAVScore;
+    });
+
+    auto result = ranges::to<std::vector<CodecScoreRecord>>(validCodecs);
+    ranges::stable_sort(result, [](const CodecScoreRecord &a, const CodecScoreRecord &b) {
+        return a.score > b.score;
+    });
+
+    if (qLcCodecStorage().isEnabled(QtDebugMsg))
+        for (const auto &[codec, score] : result)
+            qCDebug(qLcCodecStorage)
+                    << "findAndOpenCodec(): candidate:" << codec.name() << "score:" << score;
+    return result;
+}
+
 std::optional<Codec> findAVDecoder(AVCodecID codecId,
                                    const std::optional<PixelOrSampleFormat> &format)
 {
@@ -413,20 +412,6 @@ std::optional<Codec> findAVDecoder(AVCodecID codecId,
 std::optional<Codec> findAVEncoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format)
 {
     return findAVCodec(CodecRole::Encoders, codecId, format);
-}
-
-bool findAndOpenAVDecoder(AVCodecID codecId,
-                          const std::function<AVScore(const Codec &)> &scoresGetter,
-                          const std::function<bool(const Codec &)> &codecOpener)
-{
-    return findAndOpenCodec(CodecRole::Decoders, codecId, scoresGetter, codecOpener);
-}
-
-bool findAndOpenAVEncoder(AVCodecID codecId,
-                          const std::function<AVScore(const Codec &)> &scoresGetter,
-                          const std::function<bool(const Codec &)> &codecOpener)
-{
-    return findAndOpenCodec(CodecRole::Encoders, codecId, scoresGetter, codecOpener);
 }
 
 } // namespace QFFmpeg
