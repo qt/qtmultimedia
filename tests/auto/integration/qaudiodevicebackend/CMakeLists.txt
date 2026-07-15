@@ -5,7 +5,8 @@
 ## tst_qaudiodevicebackend Test:
 #####################################################################
 
-qt_internal_add_test(tst_qaudiodevicebackend
+qt_internal_multimedia_add_test(tst_qaudiodevicebackend
+    NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         tst_qaudiodevicebackend.cpp
     LIBRARIES

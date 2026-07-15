@@ -5,7 +5,8 @@
 ## tst_qaudiodecoderbackend Test:
 #####################################################################
 
-qt_internal_add_test(tst_qaudiodecoderbackend
+qt_internal_multimedia_add_test(tst_qaudiodecoderbackend
+    NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         tst_qaudiodecoderbackend.cpp
     LIBRARIES
@@ -26,7 +27,3 @@ qt_internal_add_resource(tst_qaudiodecoderbackend "qrc_testdata"
     FILES
         "testdata/test.wav"
 )
-
-if(IOS)
-    qt_add_ios_ffmpeg_libraries(tst_qaudiodecoderbackend)
-endif()

@@ -5,7 +5,7 @@
 ## tst_QMediaRecorder Test:
 #####################################################################
 
-qt_internal_add_test(tst_qmediarecorder
+qt_internal_multimedia_add_test(tst_qmediarecorder
     SOURCES
         tst_qmediarecorder.cpp
     LIBRARIES

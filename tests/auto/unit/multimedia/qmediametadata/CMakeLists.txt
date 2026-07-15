@@ -5,7 +5,7 @@
 ## tst_qmediametadata Test:
 #####################################################################
 
-qt_internal_add_test(tst_qmediametadata
+qt_internal_multimedia_add_test(tst_qmediametadata
     SOURCES
         tst_qmediametadata.cpp
     LIBRARIES

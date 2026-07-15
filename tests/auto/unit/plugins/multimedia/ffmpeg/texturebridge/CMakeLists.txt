@@ -9,7 +9,7 @@ if(NOT WIN32)
     return()
 endif()
 
-qt_internal_add_test(tst_texturebridge
+qt_internal_multimedia_add_test(tst_texturebridge
     SOURCES
         devicecontext.cpp devicecontext.h
         tst_texturebridge.cpp

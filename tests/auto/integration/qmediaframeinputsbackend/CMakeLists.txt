@@ -5,7 +5,8 @@
 ## tst_qmediaframeinputsbackend Test:
 #####################################################################
 
-qt_internal_add_test(tst_qmediaframeinputsbackend
+qt_internal_multimedia_add_test(tst_qmediaframeinputsbackend
+    NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         tst_qmediaframeinputsbackend.cpp tst_qmediaframeinputsbackend.h
     LIBRARIES

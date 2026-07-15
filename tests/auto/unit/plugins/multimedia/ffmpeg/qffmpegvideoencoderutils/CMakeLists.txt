@@ -10,7 +10,7 @@ if(QT_FEATURE_ffmpeg_stubs)
     return()
 endif()
 
-qt_internal_add_test(tst_qffmpegvideoencoderutils
+qt_internal_multimedia_add_test(tst_qffmpegvideoencoderutils
     SOURCES
         tst_qffmpegvideoencoderutils.cpp
     LIBRARIES

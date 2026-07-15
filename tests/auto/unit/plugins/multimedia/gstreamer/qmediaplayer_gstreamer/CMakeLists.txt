@@ -5,7 +5,7 @@
 ## tst_qmediaplayer_gstreamer Test:
 #####################################################################
 
-qt_internal_add_test(tst_qmediaplayer_gstreamer
+qt_internal_multimedia_add_test(tst_qmediaplayer_gstreamer
     SOURCES
         tst_qmediaplayer_gstreamer.cpp
         tst_qmediaplayer_gstreamer.h

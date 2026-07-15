@@ -5,7 +5,7 @@
 ## tst_gstreamer_backend Test:
 #####################################################################
 
-qt_internal_add_test(tst_gstreamer_backend
+qt_internal_multimedia_add_test(tst_gstreamer_backend
     SOURCES
         tst_gstreamer_backend.cpp
         tst_gstreamer_backend.h

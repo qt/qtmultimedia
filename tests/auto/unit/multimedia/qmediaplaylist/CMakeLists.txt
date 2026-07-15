@@ -7,7 +7,7 @@
 ## tst_qmediaplaylist Test:
 #####################################################################
 
-qt_internal_add_test(tst_qmediaplaylist
+qt_internal_multimedia_add_test(tst_qmediaplaylist
     SOURCES
         tst_qmediaplaylist.cpp
     LIBRARIES

@@ -5,7 +5,7 @@
 ## tst_qaudionamespace Test:
 #####################################################################
 
-qt_internal_add_test(tst_qaudionamespace
+qt_internal_multimedia_add_test(tst_qaudionamespace
     SOURCES
         tst_qaudionamespace.cpp
     LIBRARIES

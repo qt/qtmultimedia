@@ -5,7 +5,7 @@
 ## tst_qvideoframe Test:
 #####################################################################
 
-qt_internal_add_test(tst_qvideoframe
+qt_internal_multimedia_add_test(tst_qvideoframe
     SOURCES
         tst_qvideoframe.cpp
     TESTDATA

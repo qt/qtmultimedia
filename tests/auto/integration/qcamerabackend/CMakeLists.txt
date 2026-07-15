@@ -5,7 +5,9 @@
 ## tst_qcamerabackend Test:
 #####################################################################
 
-qt_internal_add_test(tst_qcamerabackend
+qt_internal_multimedia_add_test(tst_qcamerabackend
+    NEEDS_MEDIA_BACKEND_PLUGINS
+    MACOS_BUNDLE
     SOURCES
         tst_qcamerabackend.cpp
     LIBRARIES
@@ -14,14 +16,3 @@ qt_internal_add_test(tst_qcamerabackend
         Qt::Widgets
         Qt::MultimediaTestLibPrivate
 )
-
-# special case begin
-if(APPLE)
-    set_property(TARGET tst_qcamerabackend PROPERTY MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist")
-    set_property(TARGET tst_qcamerabackend PROPERTY PROPERTY MACOSX_BUNDLE TRUE)
-endif()
-# special case end
-
-if(IOS)
-    qt_add_ios_ffmpeg_libraries(tst_qcamerabackend)
-endif()

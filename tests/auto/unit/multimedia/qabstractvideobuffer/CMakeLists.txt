@@ -5,7 +5,7 @@
 ## tst_qabstractvideobuffer Test:
 #####################################################################
 
-qt_internal_add_test(tst_qabstractvideobuffer
+qt_internal_multimedia_add_test(tst_qabstractvideobuffer
     SOURCES
         tst_qabstractvideobuffer.cpp
     LIBRARIES

@@ -5,7 +5,7 @@
 ## tst_qvideowidget Test:
 #####################################################################
 
-qt_internal_add_test(tst_qvideowidget
+qt_internal_multimedia_add_test(tst_qvideowidget
     SOURCES
         tst_qvideowidget.cpp
     LIBRARIES

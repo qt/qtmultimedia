@@ -5,7 +5,7 @@
 ## tst_qgraphicsvideoitem Test:
 #####################################################################
 
-qt_internal_add_test(tst_qgraphicsvideoitem
+qt_internal_multimedia_add_test(tst_qgraphicsvideoitem
     SOURCES
         tst_qgraphicsvideoitem.cpp
     LIBRARIES

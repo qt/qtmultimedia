@@ -5,7 +5,7 @@
 ## tst_qcameradevice Test:
 #####################################################################
 
-qt_internal_add_test(tst_qcameradevice
+qt_internal_multimedia_add_test(tst_qcameradevice
     SOURCES
         tst_qcameradevice.cpp
     LIBRARIES
