@@ -322,13 +322,13 @@ AVPixelFormat HWAccel::format(AVFrame *frame)
     return AVPixelFormat(hwFramesContext->sw_format);
 }
 
-const std::vector<AVHWDeviceType> &HWAccel::encodingDeviceTypes()
+QSpan<const AVHWDeviceType> HWAccel::encodingDeviceTypes()
 {
     static const auto &result = deviceTypes("QT_FFMPEG_ENCODING_HW_DEVICE_TYPES");
     return result;
 }
 
-const std::vector<AVHWDeviceType> &HWAccel::decodingDeviceTypes()
+QSpan<const AVHWDeviceType> HWAccel::decodingDeviceTypes()
 {
     static const auto &result = deviceTypes("QT_FFMPEG_DECODING_HW_DEVICE_TYPES");
     return result;
