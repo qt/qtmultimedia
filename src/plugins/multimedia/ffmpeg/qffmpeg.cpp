@@ -23,19 +23,33 @@ Q_STATIC_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
 
 namespace QFFmpeg {
 
-bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format)
+namespace {
+bool isAVFormatSupported(const Codec &codec, AVPixelFormat format)
 {
     if (codec.type() == AVMEDIA_TYPE_VIDEO) {
-        auto checkFormat = [format](AVPixelFormat f) { return f == format; };
+        auto checkFormat = [format](AVPixelFormat f) {
+            return f == format;
+        };
         return findAVPixelFormat(codec, checkFormat).has_value();
     }
+    return false;
+}
 
+bool isAVFormatSupported(const Codec &codec, AVSampleFormat format)
+{
     if (codec.type() == AVMEDIA_TYPE_AUDIO) {
         const auto sampleFormats = codec.sampleFormats();
-        return ranges::contains(sampleFormats, AVSampleFormat(format));
+        return ranges::contains(sampleFormats, format);
     }
-
     return false;
+}
+} // namespace
+
+bool isAVFormatSupported(const Codec &codec, const PixelOrSampleFormat &format)
+{
+    return std::visit([&](auto fmt) {
+        return isAVFormatSupported(codec, fmt);
+    }, format);
 }
 
 bool isHwPixelFormat(AVPixelFormat format)
