@@ -158,7 +158,12 @@ AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
 
     AVPixelFormatSet emptySet;
     auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, emptySet);
-    return findBestAVValueWithScore(pixelFormats, formatScoreCalculator).score;
+    std::optional bestFormatWithScore =
+            findBestAVValueWithScore(pixelFormats, formatScoreCalculator);
+    if (bestFormatWithScore)
+        return bestFormatWithScore->score;
+    else
+        return MinAVScore;
 }
 
 AVRational adjustFrameRate(QSpan<const AVRational> supportedRates, qreal requestedRate)

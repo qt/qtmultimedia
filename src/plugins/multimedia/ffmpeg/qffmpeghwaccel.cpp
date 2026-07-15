@@ -238,7 +238,7 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
     // First check HW accelerated codecs, the HW device context must be set
     if (codecContext->hw_device_ctx) {
         auto *device_ctx = (AVHWDeviceContext *)codecContext->hw_device_ctx->data;
-        ValueAndScore<AVPixelFormat> formatAndScore;
+        std::optional<ValueAndScore<AVPixelFormat>> formatAndScore;
 
         // to be rewritten via findBestAVFormat
         const Codec codec{ codecContext->codec };
@@ -274,16 +274,17 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
             };
 
             const auto found = findBestAVValueWithScore(suggestedFormats, scoresGettor);
-
-            if (found.score > formatAndScore.score)
-                formatAndScore = found;
+            if (found) {
+                if (!formatAndScore || found->score > formatAndScore->score)
+                    formatAndScore = found;
+            }
         }
 
-        const auto format = formatAndScore.value;
-        if (format) {
-            TextureConverter::applyDecoderPreset(*format, *codecContext);
-            qCDebug(qLHWAccel) << "Selected format" << *format << "for hw" << device_ctx->type;
-            return *format;
+        if (formatAndScore) {
+            AVPixelFormat format = formatAndScore->value;
+            TextureConverter::applyDecoderPreset(format, *codecContext);
+            qCDebug(qLHWAccel) << "Selected format" << format << "for hw" << device_ctx->type;
+            return format;
         }
     }
 

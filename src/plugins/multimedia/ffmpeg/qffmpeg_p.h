@@ -227,35 +227,43 @@ void forEachAVPixelFormat(const Codec &codec, const Function &function)
 template <typename ValueT, typename ScoreT = AVScore>
 struct ValueAndScore
 {
-    std::optional<ValueT> value;
+    ValueT value;
     ScoreT score = std::numeric_limits<ScoreT>::min();
 };
 
-template <typename Value, typename CalculateScore,
+template <typename ValueRange, typename CalculateScore,
+          typename Value = QtMultimediaPrivate::ranges::range_value_t<ValueRange>,
           typename ScoreType = std::invoke_result_t<CalculateScore, Value>>
-ValueAndScore<Value, ScoreType> findBestAVValueWithScore(QSpan<const Value> values,
-                                                         const CalculateScore &calculateScore)
+std::optional<ValueAndScore<Value, ScoreType>>
+findBestAVValueWithScore(ValueRange &&values, const CalculateScore &calculateScore)
 {
     static_assert(std::is_invocable_v<CalculateScore, Value>);
 
-    ValueAndScore<Value, ScoreType> result;
+    std::optional<ValueAndScore<Value, ScoreType>> result;
     for (const Value &val : values) {
         const ScoreType score = calculateScore(val);
-        if (score > result.score)
-            result = { val, score }; // Note: Optional is only set if score > Limits::min()
+        if (score == std::numeric_limits<ScoreType>::min())
+            continue;
 
-        if (result.score == std::numeric_limits<ScoreType>::max())
-            break;
+        if (!result || score > result->score)
+            result = { val, score };
+
+        if (result->score == std::numeric_limits<ScoreType>::max())
+            return result;
     }
 
     return result;
 }
 
-template <typename Value, typename CalculateScore>
-std::optional<Value> findBestAVValue(QSpan<const Value> values,
-                                     const CalculateScore &calculateScore)
+template <typename ValueRange, typename CalculateScore,
+          typename Value = QtMultimediaPrivate::ranges::range_value_t<ValueRange>>
+std::optional<Value> findBestAVValue(ValueRange &&values, const CalculateScore &calculateScore)
 {
-    return findBestAVValueWithScore(values, calculateScore).value;
+    auto optionalValueAndScore = findBestAVValueWithScore(values, calculateScore);
+    if (optionalValueAndScore)
+        return optionalValueAndScore->value;
+    else
+        return std::nullopt;
 }
 
 bool isHwPixelFormat(AVPixelFormat format);
