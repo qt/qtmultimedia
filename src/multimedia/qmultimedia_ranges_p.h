@@ -30,6 +30,9 @@ QT_BEGIN_NAMESPACE
 namespace QtMultimediaPrivate::ranges {
 
 #ifdef __cpp_lib_ranges
+
+using std::ranges::range_value_t;
+
 using std::ranges::all_of;
 using std::ranges::any_of;
 using std::ranges::copy;
@@ -51,6 +54,15 @@ using std::ranges::transform;
 using std::ranges::upper_bound;
 
 #else
+
+template <typename R>
+using range_iterator_t = decltype(std::begin(std::declval<R &>()));
+
+template <typename It>
+using iter_value_t = typename std::iterator_traits<It>::value_type;
+
+template <typename R>
+using range_value_t = iter_value_t<range_iterator_t<R>>;
 
 // Caveat: best effort, not a 1-to-1 mapping to c++20 style ranges
 
@@ -277,6 +289,17 @@ Container operator|(Range &&range, to_adaptor<Container>)
     return Container(std::begin(range), std::end(range));
 }
 
+template <template <class...> class Container>
+struct to_adaptor_template_template
+{
+};
+
+template <template <class...> class Container, class Range>
+auto operator|(Range &&range, to_adaptor_template_template<Container>)
+{
+    return Container<ranges::range_value_t<Range>>(std::begin(range), std::end(range));
+}
+
 } // namespace impl
 
 template <typename Container, typename Range>
@@ -291,6 +314,11 @@ impl::to_adaptor<Container> to()
     return {};
 }
 
+template <template <class...> class Container>
+auto to()
+{
+    return impl::to_adaptor_template_template<Container>{};
+}
 #endif
 
 } // namespace QtMultimediaPrivate::ranges

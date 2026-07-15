@@ -505,6 +505,9 @@ void tst_QMultimediaRanges::to_pipeIntoStdVector()
     std::vector<int> src = { 1, 2, 3 };
     auto result = src | ranges::to<std::vector<int>>();
     QCOMPARE(result, src);
+
+    auto result_2 = src | ranges::to<std::vector>();
+    QCOMPARE(result_2, src);
 }
 
 void tst_QMultimediaRanges::to_pipeIntoQList()
