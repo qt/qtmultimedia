@@ -26,6 +26,11 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg {
 class Codec;
 
+enum class CodecRole : uint8_t {
+    Encoders,
+    Decoders,
+};
+
 bool findAndOpenAVDecoder(AVCodecID codecId,
                           const std::function<AVScore(const Codec &)> &scoresGetter,
                           const std::function<bool(const Codec &)> &codecOpener);
