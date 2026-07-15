@@ -168,7 +168,7 @@ using AVHWFramesConstraintsUPtr =
 using SwrContextUPtr = std::unique_ptr<SwrContext, AVDeleter<swr_free>>;
 using SwsContextUPtr = std::unique_ptr<SwsContext, AVDeleter<sws_freeContext>>;
 
-bool isAVFormatSupported(const Codec &codec, PixelOrSampleFormat format);
+bool isAVFormatSupported(const Codec &, const PixelOrSampleFormat &);
 
 // Search for the first element in the range that satisfies the predicate
 // The predicate is evaluated for each value in the range until it returns
