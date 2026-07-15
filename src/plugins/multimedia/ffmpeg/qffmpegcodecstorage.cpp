@@ -44,15 +44,6 @@ using namespace Qt::Literals;
 
 namespace {
 
-enum CodecStorageType {
-    Encoders,
-    Decoders,
-
-    // TODO: maybe split sw/hw codecs
-
-    CodecStorageTypeCount
-};
-
 using CodecsStorage = std::vector<Codec>;
 
 struct CodecsComparator
@@ -68,11 +59,10 @@ struct CodecsComparator
 
 void dumpCodecInfo(const Codec &codec)
 {
-    const auto type = codec.isEncoder()
-            ? codec.isDecoder() ? "encoder/decoder:" : "encoder:"
-            : "decoder:";
+    const auto roles =
+            codec.isEncoder() ? codec.isDecoder() ? "encoder/decoder:" : "encoder:" : "decoder:";
 
-    qCDebug(qLcCodecStorage) << codec.type() << type << codec.name() << "id:" << codec.id()
+    qCDebug(qLcCodecStorage) << codec.type() << roles << codec.name() << "id:" << codec.id()
                              << "capabilities:" << AVCodecCapabilities(codec.capabilities());
 
     if (codec.type() == AVMEDIA_TYPE_VIDEO) {
@@ -205,7 +195,7 @@ bool isCodecValid(const Codec &codec, QSpan<const AVHWDeviceType> availableHwDev
     return ranges::any_of(availableHwDeviceTypes, checkDeviceType);
 }
 
-std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecStorageType type)
+std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecRole type)
 {
 #ifdef Q_OS_ANDROID
     using namespace Qt::StringLiterals;
@@ -229,7 +219,7 @@ std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecStorag
     };
 
     const QJniArray jniCodecs = QtVideoDeviceManager::callStaticMethod<String[]>(
-            type == Encoders ? "getHWVideoEncoders" : "getHWVideoDecoders");
+            type == CodecRole::Encoders ? "getHWVideoEncoders" : "getHWVideoDecoders");
 
     for (const auto &codec : jniCodecs)
         availabeCodecs.insert(getCodecId(codec.toString()));
@@ -273,8 +263,8 @@ struct CodecStoreSingleton
     static std::array<CodecsStorage, 2> enumerateCodecs()
     {
         std::array<CodecsStorage, 2> result;
-        const auto platformHwEncoders = availableHWCodecs(Encoders);
-        const auto platformHwDecoders = availableHWCodecs(Decoders);
+        const auto platformHwEncoders = availableHWCodecs(CodecRole::Encoders);
+        const auto platformHwDecoders = availableHWCodecs(CodecRole::Decoders);
 
         for (const Codec codec : CodecEnumerator()) {
             // TODO: to be investigated
@@ -294,7 +284,7 @@ struct CodecStoreSingleton
 
             if (codec.isDecoder()) {
                 if (isCodecValid(codec, HWAccel::decodingDeviceTypes(), platformHwDecoders))
-                    result[Decoders].emplace_back(codec);
+                    result[qToUnderlying(CodecRole::Decoders)].emplace_back(codec);
                 else
                     qCDebug(qLcCodecStorage) << "Skip decoder" << codec.name()
                                              << "due to disabled matching hw acceleration, or "
@@ -306,7 +296,7 @@ struct CodecStoreSingleton
                     continue;
 
                 if (isCodecValid(codec, HWAccel::encodingDeviceTypes(), platformHwEncoders))
-                    result[Encoders].emplace_back(codec);
+                    result[qToUnderlying(CodecRole::Encoders)].emplace_back(codec);
                 else
                     qCDebug(qLcCodecStorage) << "Skip encoder" << codec.name()
                                              << "due to disabled matching hw acceleration, or "
@@ -354,14 +344,14 @@ struct CodecStoreSingleton
 
 Q_APPLICATION_STATIC(CodecStoreSingleton, codecStoreSingleton)
 
-const CodecsStorage &codecsStorage(CodecStorageType codecsType)
+const CodecsStorage &codecsStorage(CodecRole codecsType)
 {
-    return codecStoreSingleton->codecStoreFuture.get()[codecsType];
+    return codecStoreSingleton->codecStoreFuture.get()[qToUnderlying(codecsType)];
 }
 
 template <typename CodecScoreGetter, typename CodecOpener>
-bool findAndOpenCodec(CodecStorageType codecsType, AVCodecID codecId,
-                      const CodecScoreGetter &scoreGetter, const CodecOpener &opener)
+bool findAndOpenCodec(CodecRole codecsType, AVCodecID codecId, const CodecScoreGetter &scoreGetter,
+                      const CodecOpener &opener)
 {
     Q_ASSERT(opener);
     const auto &storage = codecsStorage(codecsType);
@@ -392,7 +382,7 @@ bool findAndOpenCodec(CodecStorageType codecsType, AVCodecID codecId,
     });
 }
 
-std::optional<Codec> findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
+std::optional<Codec> findAVCodec(CodecRole codecsType, AVCodecID codecId,
                                  const std::optional<PixelOrSampleFormat> &format)
 {
     const CodecsStorage& storage = codecsStorage(codecsType);
@@ -418,26 +408,26 @@ std::optional<Codec> findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
 std::optional<Codec> findAVDecoder(AVCodecID codecId,
                                    const std::optional<PixelOrSampleFormat> &format)
 {
-    return findAVCodec(Decoders, codecId, format);
+    return findAVCodec(CodecRole::Decoders, codecId, format);
 }
 
 std::optional<Codec> findAVEncoder(AVCodecID codecId, const std::optional<PixelOrSampleFormat> &format)
 {
-    return findAVCodec(Encoders, codecId, format);
+    return findAVCodec(CodecRole::Encoders, codecId, format);
 }
 
 bool findAndOpenAVDecoder(AVCodecID codecId,
                           const std::function<AVScore(const Codec &)> &scoresGetter,
                           const std::function<bool(const Codec &)> &codecOpener)
 {
-    return findAndOpenCodec(Decoders, codecId, scoresGetter, codecOpener);
+    return findAndOpenCodec(CodecRole::Decoders, codecId, scoresGetter, codecOpener);
 }
 
 bool findAndOpenAVEncoder(AVCodecID codecId,
                           const std::function<AVScore(const Codec &)> &scoresGetter,
                           const std::function<bool(const Codec &)> &codecOpener)
 {
-    return findAndOpenCodec(Encoders, codecId, scoresGetter, codecOpener);
+    return findAndOpenCodec(CodecRole::Encoders, codecId, scoresGetter, codecOpener);
 }
 
 } // namespace QFFmpeg
