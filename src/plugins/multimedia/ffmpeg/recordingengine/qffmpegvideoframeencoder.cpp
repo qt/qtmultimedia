@@ -8,6 +8,7 @@
 #include "qffmpegcodecstorage_p.h"
 
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/private/qexpected_p.h>
 
 extern "C" {
@@ -31,6 +32,18 @@ AVCodecID avCodecID(const QMediaEncoderSettings &settings)
     return QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
 }
 
+[[maybe_unused]] bool is420(AVPixelFormat fmt)
+{
+    const auto desc = av_pix_fmt_desc_get(fmt);
+    if (!desc)
+        return false;
+
+    return desc->log2_chroma_w == 1 && desc->log2_chroma_h == 1;
+}
+
+constexpr bool isAndroid =
+        QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android;
+
 } // namespace
 
 VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
@@ -51,18 +64,15 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
 
         auto createWithTargetFormatFallback = [&](const Codec &codec) {
             auto result = creator(codec, AVPixelFormatSet{});
-#ifdef Q_OS_ANDROID
-            // On Android some encoders fail to open encoders with 4:2:0 formats unless it's NV12.
-            // Let's fallback to another format.
-            if (!result.encoder) {
-                const auto targetFormatDesc = av_pix_fmt_desc_get(result.targetFormat);
-                const bool is420TargetFormat = targetFormatDesc
-                        && targetFormatDesc->log2_chroma_h == 1
-                        && targetFormatDesc->log2_chroma_w == 1;
-                if (is420TargetFormat && result.targetFormat != AV_PIX_FMT_NV12)
-                    result = creator(codec, AVPixelFormatSet{ result.targetFormat });
+            if constexpr (isAndroid) {
+                // On Android some encoders fail to open encoders with 4:2:0 formats unless it's NV12.
+                // Let's fallback to another format.
+                if (!result.encoder) {
+                    if (is420(result.targetFormat) && result.targetFormat != AV_PIX_FMT_NV12)
+                        result = creator(codec, AVPixelFormatSet{ result.targetFormat });
+                }
             }
-#endif
+
             encoder = std::move(result.encoder);
             return bool(encoder);
         };
