@@ -5,6 +5,7 @@
 
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtCore/qoperatingsystemversion.h>
+#include <QtCore/private/qminimalflatset_p.h>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -105,12 +106,32 @@ std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, co
                                                 const HWAccel &accel,
                                                 const AVPixelFormatSet &prohibitedFormats)
 {
+    using namespace QtMultimediaPrivate;
+
     auto scoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, prohibitedFormats);
 
     const auto constraints = accel.constraints();
     if (constraints && constraints->valid_sw_formats) {
-        QSpan<const AVPixelFormat> formats = makeSpan(constraints->valid_sw_formats);
-        return findBestAVValue(formats, scoreCalculator);
+
+        const auto validSWFormatsForHWAccel =
+                makeSpan(constraints->valid_sw_formats) | ranges::to<QMinimalFlatSet>();
+
+        const auto codecPixelFormats = codec.pixelFormats();
+        auto validCodecPixelFormats = views::filter(codecPixelFormats, [&](AVPixelFormat fmt) {
+            return validSWFormatsForHWAccel.contains(fmt) > 0;
+        });
+
+        if constexpr (false) {
+            qDebug() << "validSWFormats" << (validSWFormatsForHWAccel | ranges::to<std::vector>())
+                     << "scoredPixelFormats"
+                     << (validCodecPixelFormats | views::transform([&](auto arg) {
+                return std::pair(arg, scoreCalculator(arg));
+            }) | ranges::to<std::vector>());
+        }
+
+        std::optional bestPixelFormat = findBestAVValue(validCodecPixelFormats, scoreCalculator);
+        if (bestPixelFormat)
+            return bestPixelFormat;
     }
 
     // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
