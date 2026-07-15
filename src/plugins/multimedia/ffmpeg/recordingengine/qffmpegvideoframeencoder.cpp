@@ -44,6 +44,32 @@ AVCodecID avCodecID(const QMediaEncoderSettings &settings)
 constexpr bool isAndroid =
         QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android;
 
+// LATER: move to HWAccel or Codec?
+std::optional<AVHWDeviceType> getHwDeviceType(const Codec &codec)
+{
+    std::optional<AVPixelFormat> pixelFormat = findAVPixelFormat(codec, isHwPixelFormat);
+    if (!pixelFormat)
+        return std::nullopt;
+
+    const AVCodecHWConfig *cfg = codec.hwConfigForPixelFormat(*pixelFormat);
+    if (!cfg)
+        return std::nullopt;
+
+    bool supportsHwDeviceContext = (cfg->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) != 0;
+    bool supportsHwFramesContext = (cfg->methods & AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX) != 0;
+    if (!supportsHwDeviceContext && !supportsHwFramesContext)
+        return std::nullopt;
+
+    const QSpan deviceTypes = HWAccel::encodingDeviceTypes();
+    auto found = ranges::find_if(deviceTypes, [&](AVHWDeviceType deviceType) {
+        return pixelFormatForHwDevice(deviceType) == pixelFormat;
+    });
+    if (found != deviceTypes.end())
+        return *found;
+    else
+        return std::nullopt;
+}
+
 } // namespace
 
 VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
@@ -58,30 +84,9 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
         return nullptr;
 
     const AVCodecID codecId = avCodecID(encoderSettings);
-    const QSpan deviceTypes = HWAccel::encodingDeviceTypes();
-
-    auto findHwDeviceType = [&](const Codec &codec) {
-        std::optional<AVPixelFormat> pixelFormat = findAVPixelFormat(codec, &isHwPixelFormat);
-        if (!pixelFormat)
-            return deviceTypes.end();
-
-        const AVCodecHWConfig *cfg = codec.hwConfigForPixelFormat(*pixelFormat);
-        if (!cfg)
-            return deviceTypes.end();
-
-        bool supportsHwDeviceContext =
-                (cfg->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) != 0;
-        bool supportsHwFramesContext =
-                (cfg->methods & AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX) != 0;
-        if (!supportsHwDeviceContext && !supportsHwFramesContext)
-            return deviceTypes.end();
-
-        return ranges::find_if(deviceTypes, [&](AVHWDeviceType deviceType) {
-            return pixelFormatForHwDevice(deviceType) == pixelFormat;
-        });
-    };
 
     auto createWithFallback = [&](const Codec &codec, HWAccelUPtr hwAccel) {
+        const AVHWDeviceType deviceType = hwAccel ? hwAccel->deviceType() : AV_HWDEVICE_TYPE_NONE;
         auto result = create(stream, codec, std::move(hwAccel), sourceParams, encoderSettings);
 
         if constexpr (isAndroid) {
@@ -91,7 +96,7 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
                 if (is420(result.targetFormat) && result.targetFormat != AV_PIX_FMT_NV12) {
                     AVPixelFormatSet prohibitedTargetFormats;
                     prohibitedTargetFormats.insert(result.targetFormat);
-                    hwAccel = HWAccel::create(*findHwDeviceType(codec));
+                    hwAccel = HWAccel::create(deviceType);
                     result = create(stream, codec, std::move(hwAccel), sourceParams,
                                     encoderSettings, prohibitedTargetFormats);
                 }
@@ -102,16 +107,20 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
 
     // first we try to open a hardware encoder
     CreationResult creationResult = [&] {
-        const std::vector encoders = findAndScoreEncoders(codecId, [&](const Codec &codec) {
-            auto found = findHwDeviceType(codec);
-            if (found == deviceTypes.end())
+        const std::vector encoders = findAndScoreEncoders(codecId, [](const Codec &codec) {
+            std::optional<AVHWDeviceType> deviceType = getHwDeviceType(codec);
+            if (!deviceType)
                 return NotSuitableAVScore;
+
+            const QSpan deviceTypes = HWAccel::encodingDeviceTypes();
+            auto found = ranges::find(deviceTypes, *deviceType);
+            Q_ASSERT(found != deviceTypes.end());
 
             return DefaultAVScore - static_cast<AVScore>(found - deviceTypes.begin());
         });
 
         for (const auto &[codec, score] : encoders) {
-            HWAccelUPtr hwAccel = HWAccel::create(*findHwDeviceType(codec));
+            HWAccelUPtr hwAccel = HWAccel::create(*getHwDeviceType(codec));
             if (!hwAccel)
                 continue;
             if (!hwAccel->matchesSizeContraints(encoderSettings.videoResolution()))
