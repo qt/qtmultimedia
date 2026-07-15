@@ -6,6 +6,7 @@
 #include "qffmpegcodecstorage_p.h"
 #include "qffmpeg_ranges_p.h"
 
+#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qvarlengtharray.h>
 #include <QtCore/private/qflatmap_p.h>
 #include <QtMultimedia/qaudioformat.h>
@@ -324,14 +325,14 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
     // can encode. That's a safe subset.
     decoders = encoders;
 
-#ifdef Q_OS_WINDOWS
-    // MediaFoundation HVEC encoder fails when processing frames
-    for (auto &encoder : encoders) {
-        auto h265index = encoder.video.indexOf(VideoCodec::H265);
-        if (h265index >= 0)
-            encoder.video.removeAt(h265index);
+    if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Windows) {
+        // MediaFoundation HVEC encoder fails when processing frames
+        for (auto &encoder : encoders) {
+            auto h265index = encoder.video.indexOf(VideoCodec::H265);
+            if (h265index >= 0)
+                encoder.video.removeAt(h265index);
+        }
     }
-#endif
 
     // FFmpeg's Matroska muxer does not work with H264 video codec
     for (auto &encoder : encoders) {
@@ -339,9 +340,10 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
             encoder.video.removeAll(VideoCodec::H264);
 
             // And on macOS, also not with H265
-#ifdef Q_OS_MACOS
-            encoder.video.removeAll(VideoCodec::H265);
-#endif
+            if constexpr (QOperatingSystemVersion::currentType()
+                          == QOperatingSystemVersion::MacOS) {
+                encoder.video.removeAll(VideoCodec::H265);
+            }
         }
     }
 
