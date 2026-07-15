@@ -33,7 +33,7 @@ public:
     \brief This class is used for capturing a screen.
 
     The class captures a screen. It is managed by
-    the QMediaCaptureSession class where the captured screen can be displayed
+    the \l QMediaCaptureSession class where the captured screen can be displayed
     in a video preview object or recorded to a file.
 
     The following snippet shows how to capture the primary screen and display
@@ -53,14 +53,15 @@ public:
     \inqmlmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
+    \since 6.5
 
     ScreenCapture captures a screen. It is managed by
-    MediaCaptureSession where the captured screen can be displayed
-    in a video preview object or recorded to a file.
+    \l{QtMultimedia::CaptureSession}{CaptureSession} where the captured
+    screen can be displayed in a video preview object or recorded to a
+    file.
 
-    \since 6.5
     The code below shows a simple capture session with ScreenCapture playing
-    back the captured primary screen view in VideoOutput.
+    back the captured primary screen view in \l {QtMultimedia::VideoOutput}{VideoOutput}.
 
     \snippet multimedia-snippets/screencapturesnippets.qml Basic setup
 
