@@ -30,6 +30,7 @@ struct CommandLineArgs
 {
     std::optional<std::chrono::seconds> recordingDuration;
     std::optional<std::filesystem::path> outputPath;
+    std::optional<QMediaFormat::VideoCodec> videoCodec;
 };
 
 QString generateOutputPath()
@@ -64,6 +65,13 @@ std::optional<CommandLineArgs> parseCommandLine(QCoreApplication &app)
     };
     parser.addOption(outputOption);
 
+    const QCommandLineOption videoCodecOption{
+        QList{ u"c"_s, u"video-codec"_s },
+        u"Video codec (h264, h265, vp8, vp9, av1)"_s,
+        u"codec"_s,
+    };
+    parser.addOption(videoCodecOption);
+
     parser.process(app);
 
     CommandLineArgs args;
@@ -83,6 +91,24 @@ std::optional<CommandLineArgs> parseCommandLine(QCoreApplication &app)
         args.outputPath = std::filesystem::path(parser.value(outputOption).toStdString());
     else
         args.outputPath = std::filesystem::path(generateOutputPath().toStdString());
+
+    // Parse video codec
+    if (parser.isSet(videoCodecOption)) {
+        QString codecStr = parser.value(videoCodecOption).toLower();
+        if (codecStr == u"h264"_s) {
+            args.videoCodec = QMediaFormat::VideoCodec::H264;
+        } else if (codecStr == u"h265"_s) {
+            args.videoCodec = QMediaFormat::VideoCodec::H265;
+        } else if (codecStr == u"vp8"_s) {
+            args.videoCodec = QMediaFormat::VideoCodec::VP8;
+        } else if (codecStr == u"vp9"_s) {
+            args.videoCodec = QMediaFormat::VideoCodec::VP9;
+        } else if (codecStr == u"av1"_s) {
+            args.videoCodec = QMediaFormat::VideoCodec::AV1;
+        } else {
+            qWarning() << "Unknown video codec:" << codecStr << ", using H264";
+        }
+    }
 
     return args;
 }
@@ -118,6 +144,12 @@ int main(int argc, char **argv)
     QMediaRecorder recorder;
     session.setRecorder(&recorder);
     recorder.setOutputLocation(mediaUrl);
+
+    if (args->videoCodec) {
+        auto format = recorder.mediaFormat();
+        format.setVideoCodec(*args->videoCodec);
+        recorder.setMediaFormat(format);
+    }
 
     static QMediaRecorder &recorderRef = recorder; // for signal handler
 
