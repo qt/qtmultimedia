@@ -82,7 +82,7 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
         return encoder;
     };
 
-    const auto &deviceTypes = HWAccel::encodingDeviceTypes();
+    const QSpan deviceTypes = HWAccel::encodingDeviceTypes();
 
     auto findHwDeviceType = [&](const Codec &codec) {
         std::optional<AVPixelFormat> pixelFormat = findAVPixelFormat(codec, &isHwPixelFormat);

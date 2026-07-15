@@ -16,13 +16,12 @@
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegtextureconverter_p.h>
-#include "qvideoframeformat.h"
+#include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/private/qhwvideobuffer_p.h>
 #include <QtMultimedia/private/qrhivaluemapper_p.h>
+#include <QtCore/qspan.h>
 
-#include <qshareddata.h>
 #include <memory>
-#include <functional>
 #include <mutex>
 
 QT_BEGIN_NAMESPACE
@@ -92,9 +91,8 @@ public:
     AVHWFramesContext *hwFramesContext() const;
 
     static AVPixelFormat format(AVFrame *frame);
-    static const std::vector<AVHWDeviceType> &encodingDeviceTypes();
-
-    static const std::vector<AVHWDeviceType> &decodingDeviceTypes();
+    static QSpan<const AVHWDeviceType> encodingDeviceTypes();
+    static QSpan<const AVHWDeviceType> decodingDeviceTypes();
 
 private:
     HWAccel(AVBufferUPtr hwDeviceContext) : m_hwDeviceContext(std::move(hwDeviceContext)) { }
