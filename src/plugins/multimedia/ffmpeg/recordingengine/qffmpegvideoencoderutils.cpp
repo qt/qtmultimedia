@@ -19,6 +19,26 @@ using namespace Qt::Literals;
 
 namespace {
 
+bool is16BitFormat(const AVPixFmtDescriptor *desc)
+{
+    return desc->comp[0].depth == 16;
+}
+
+bool is10BitFormat(const AVPixFmtDescriptor *desc)
+{
+    return desc->comp[0].depth == 10;
+}
+
+bool is8BitFormat(const AVPixFmtDescriptor *desc)
+{
+    return desc->comp[0].depth == 8;
+}
+
+bool is444Format(const AVPixFmtDescriptor *desc)
+{
+    return desc->log2_chroma_h == 0 && desc->log2_chroma_w == 0;
+}
+
 bool is422Format(const AVPixFmtDescriptor *desc)
 {
     return desc->log2_chroma_h == 1 && desc->log2_chroma_w == 0;
@@ -58,11 +78,21 @@ AVScore scoreTargetSwFormat(const AVPixFmtDescriptor *sourceSwFormatDesc, AVPixe
     else if (bpp < sourceBpp)
         score -= 100 + (sourceBpp - bpp);
 
+    // pessimize 10 and 16 bit formats if the source format is 8 bit
+    if (is8BitFormat(sourceSwFormatDesc)) {
+        if (is10BitFormat(desc))
+            score -= 100;
+        else if (is16BitFormat(desc))
+            score -= 200;
+    }
+
     // Add a slight preference for 4:2:0 formats.
     if (is420Format(desc))
         score += 2;
     else if (is422Format(desc))
         score += 1;
+    else if (is444Format(desc))
+        score -= 1;
 
     if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android) {
         // Add a slight preference for NV12 on Android
@@ -71,13 +101,11 @@ AVScore scoreTargetSwFormat(const AVPixFmtDescriptor *sourceSwFormatDesc, AVPixe
             score += 1;
     }
 
-    if (desc->flags & AV_PIX_FMT_FLAG_BE)
+    if (desc->flags & AV_PIX_FMT_FLAG_BE) // we don't want big endian formats
         score -= 10;
-    if (desc->flags & AV_PIX_FMT_FLAG_PAL)
-        // we don't want paletted formats
+    if (desc->flags & AV_PIX_FMT_FLAG_PAL) // we don't want paletted formats
         score -= 10000;
-    if (desc->flags & AV_PIX_FMT_FLAG_RGB)
-        // we don't want RGB formats
+    if (desc->flags & AV_PIX_FMT_FLAG_RGB) // we don't want RGB formats
         score -= 1000;
 
     return score;
