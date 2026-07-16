@@ -49,6 +49,11 @@ bool is420Format(const AVPixFmtDescriptor *desc)
     return desc->log2_chroma_h == 1 && desc->log2_chroma_w == 1;
 }
 
+bool isGreyFormat(const AVPixFmtDescriptor *desc)
+{
+    return desc->nb_components == 1;
+}
+
 AVScore scoreTargetSwFormat(const AVPixFmtDescriptor *sourceSwFormatDesc, AVPixelFormat fmt)
 {
     // determine the format used by the encoder.
@@ -100,6 +105,9 @@ AVScore scoreTargetSwFormat(const AVPixFmtDescriptor *sourceSwFormatDesc, AVPixe
         if (fmt == AV_PIX_FMT_NV12)
             score += 1;
     }
+
+    if (isGreyFormat(desc) && !isGreyFormat(sourceSwFormatDesc)) // we don't want greyscale formats
+        return AVScore::NotSuitableAVScore;
 
     if (desc->flags & AV_PIX_FMT_FLAG_BE) // we don't want big endian formats
         score -= 10;
