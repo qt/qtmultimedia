@@ -28,6 +28,7 @@ namespace QFFmpeg {
 
 class VideoFrameEncoder;
 using VideoFrameEncoderUPtr = std::unique_ptr<VideoFrameEncoder>;
+struct ScoredPixelFormat;
 
 class VideoFrameEncoder
 {
@@ -72,25 +73,17 @@ private:
 
     void updateConversions();
 
-    struct CreationResult
-    {
-        VideoFrameEncoderUPtr encoder;
-        AVPixelFormat targetFormat = AV_PIX_FMT_NONE;
-    };
-
-    static CreationResult create(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
-                                 const SourceParams &sourceParams,
-                                 const QMediaEncoderSettings &encoderSettings,
-                                 bool needsGlobalHeader,
-                                 const AVPixelFormatSet &prohibitedTargetFormats = {});
+    static VideoFrameEncoderUPtr create(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
+                                        const SourceParams &sourceParams,
+                                        const QMediaEncoderSettings &encoderSettings,
+                                        bool needsGlobalHeader);
 
     void initTargetSize();
-
     void initCodecFrameRate();
-
-    bool initTargetFormats(const AVPixelFormatSet &prohibitedTargetFormats);
-
     void initStream();
+
+    std::vector<ScoredPixelFormat> enumerateTargetSwFormats() const; // sorted by score
+    bool tryInitTargetSwFormat(AVPixelFormat targetSwFormat);
 
     bool initCodecContext();
 
@@ -113,7 +106,7 @@ private:
     SwsContextUPtr m_scaleContext;
     AVPixelFormat m_sourceFormat = AV_PIX_FMT_NONE;
     AVPixelFormat m_sourceSWFormat = AV_PIX_FMT_NONE;
-    AVPixelFormat m_targetFormat = AV_PIX_FMT_NONE;
+    const AVPixelFormat m_targetFormat;
     AVPixelFormat m_targetSWFormat = AV_PIX_FMT_NONE;
     bool m_downloadFromHW = false;
     bool m_uploadToHW = false;

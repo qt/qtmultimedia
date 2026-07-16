@@ -397,6 +397,11 @@ void HWAccel::createFramesContext(AVPixelFormat swFormat, const QSize &size)
         qCDebug(qLHWAccel) << "Initialized frames context" << size << c->format << c->sw_format;
 }
 
+void HWAccel::destroyFramesContext()
+{
+    m_hwFramesContext = nullptr;
+}
+
 void HWAccel::updateFramesContext(AVPixelFormat swFormat, const QSize &size)
 {
     if (m_hwFramesContext) {
