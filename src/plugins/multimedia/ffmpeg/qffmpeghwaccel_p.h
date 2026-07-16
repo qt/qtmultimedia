@@ -63,7 +63,7 @@ struct HwFrameContextData
 
 class HWAccel
 {
-    AVBufferUPtr m_hwDeviceContext;
+    const AVBufferUPtr m_hwDeviceContext;
     AVBufferUPtr m_hwFramesContext;
 
     mutable std::once_flag m_constraintsOnceFlag;
