@@ -97,10 +97,10 @@ private:
     qint64 estimateDuration(const AVPacket &packet, bool isFirstPacket);
 
 private:
-    QMediaEncoderSettings m_settings;
-    AVStream *m_stream = nullptr;
-    Codec m_codec;
-    HWAccelUPtr m_accel;
+    const QMediaEncoderSettings m_settings;
+    AVStream *const m_stream = nullptr;
+    const Codec m_codec;
+    const HWAccelUPtr m_accel;
 
     QSize m_sourceSize;
     QSize m_targetSize;
