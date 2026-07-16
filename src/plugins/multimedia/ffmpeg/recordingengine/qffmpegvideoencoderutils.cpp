@@ -17,18 +17,25 @@ namespace QFFmpeg {
 
 using namespace Qt::Literals;
 
-static AVScore calculateTargetSwFormatScore(const AVPixFmtDescriptor *sourceSwFormatDesc,
-                                            AVPixelFormat fmt,
-                                            const AVPixelFormatSet &prohibitedFormats)
+namespace {
+
+bool is422Format(const AVPixFmtDescriptor *desc)
+{
+    return desc->log2_chroma_h == 1 && desc->log2_chroma_w == 0;
+}
+
+bool is420Format(const AVPixFmtDescriptor *desc)
+{
+    return desc->log2_chroma_h == 1 && desc->log2_chroma_w == 1;
+}
+
+AVScore scoreTargetSwFormat(const AVPixFmtDescriptor *sourceSwFormatDesc, AVPixelFormat fmt)
 {
     // determine the format used by the encoder.
     // We prefer YUV420 based formats such as NV12 or P010. Selection trues to find the best
     // matching format for the encoder depending on the bit depth of the source format
 
-    if (prohibitedFormats.count(fmt))
-        return NotSuitableAVScore;
-
-    const auto *desc = av_pix_fmt_desc_get(fmt);
+    const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(fmt);
     if (!desc)
         return NotSuitableAVScore;
 
@@ -52,11 +59,9 @@ static AVScore calculateTargetSwFormatScore(const AVPixFmtDescriptor *sourceSwFo
         score -= 100 + (sourceBpp - bpp);
 
     // Add a slight preference for 4:2:0 formats.
-    // TODO: shouldn't we compare withc sourceSwFormatDesc->log2_chroma_h
-    // and sourceSwFormatDesc->log2_chroma_w ?
-    if (desc->log2_chroma_h == 1)
-        score += 1;
-    if (desc->log2_chroma_w == 1)
+    if (is420Format(desc))
+        score += 2;
+    else if (is422Format(desc))
         score += 1;
 
     if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android) {
@@ -74,24 +79,19 @@ static AVScore calculateTargetSwFormatScore(const AVPixFmtDescriptor *sourceSwFo
     if (desc->flags & AV_PIX_FMT_FLAG_RGB)
         // we don't want RGB formats
         score -= 1000;
-    // qCDebug(qLcVideoFrameEncoder)
-    //        << "checking format" << fmt << Qt::hex << desc->flags << desc->comp[0].depth
-    //        << desc->log2_chroma_h << desc->log2_chroma_w << "score:" << score;
 
     return score;
 }
 
-static auto
-targetSwFormatScoreCalculator(AVPixelFormat sourceFormat,
-                              std::reference_wrapper<const AVPixelFormatSet> prohibitedFormats)
+auto targetSwFormatScoreCalculator(AVPixelFormat sourceFormat)
 {
     const auto sourceSwFormatDesc = av_pix_fmt_desc_get(sourceFormat);
     return [=](AVPixelFormat fmt) {
-        return calculateTargetSwFormatScore(sourceSwFormatDesc, fmt, prohibitedFormats);
+        return scoreTargetSwFormat(sourceSwFormatDesc, fmt);
     };
 }
 
-static bool isHwFormatAcceptedByCodec(AVPixelFormat pixFormat)
+bool isHwFormatAcceptedByCodec(AVPixelFormat pixFormat)
 {
     switch (pixFormat) {
     case AV_PIX_FMT_MEDIACODEC:
@@ -102,13 +102,15 @@ static bool isHwFormatAcceptedByCodec(AVPixelFormat pixFormat)
     }
 }
 
+} // namespace
+
 std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
                                                 const HWAccel &accel,
                                                 const AVPixelFormatSet &prohibitedFormats)
 {
     using namespace QtMultimediaPrivate;
 
-    auto scoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, prohibitedFormats);
+    auto scoreTargetSwFormat = targetSwFormatScoreCalculator(sourceSWFormat);
 
     const auto constraints = accel.constraints();
     if (constraints && constraints->valid_sw_formats) {
@@ -118,32 +120,42 @@ std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, co
 
         const auto codecPixelFormats = codec.pixelFormats();
         auto validCodecPixelFormats = views::filter(codecPixelFormats, [&](AVPixelFormat fmt) {
-            return validSWFormatsForHWAccel.contains(fmt) > 0;
+            if (!validSWFormatsForHWAccel.contains(fmt))
+                return false;
+
+            return !prohibitedFormats.count(fmt);
         });
 
         if constexpr (false) {
             qDebug() << "validSWFormats" << (validSWFormatsForHWAccel | ranges::to<std::vector>())
                      << "scoredPixelFormats"
                      << (validCodecPixelFormats | views::transform([&](auto arg) {
-                return std::pair(arg, scoreCalculator(arg));
+                return std::pair(arg, scoreTargetSwFormat(arg));
             }) | ranges::to<std::vector>());
         }
 
-        std::optional bestPixelFormat = findBestAVValue(validCodecPixelFormats, scoreCalculator);
+        std::optional bestPixelFormat =
+                findBestAVValue(validCodecPixelFormats, scoreTargetSwFormat);
         if (bestPixelFormat)
             return bestPixelFormat;
     }
 
     // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
     // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since n7.1)
-    const auto pixelFormats = codec.pixelFormats();
-    return findBestAVValue(pixelFormats, scoreCalculator);
+    const auto codecPixelFormats = codec.pixelFormats();
+    auto pixelFormats = views::filter(codecPixelFormats, [&](AVPixelFormat fmt) {
+        return !prohibitedFormats.count(fmt);
+    });
+
+    return findBestAVValue(pixelFormats, scoreTargetSwFormat);
 }
 
 std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
                                               const HWAccel *accel,
                                               const AVPixelFormatSet &prohibitedFormats)
 {
+    using namespace QtMultimediaPrivate;
+
     if (accel) {
         const auto hwFormat = accel->hwFormat();
 
@@ -169,8 +181,12 @@ std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, cons
         return sourceSWFormat;
     }
 
-    auto swScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, prohibitedFormats);
-    return findBestAVValue(pixelFormats, swScoreCalculator);
+    auto candidatePixelFormats = views::filter(pixelFormats, [&](AVPixelFormat fmt) {
+        return !prohibitedFormats.count(fmt);
+    });
+
+    auto swScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
+    return findBestAVValue(candidatePixelFormats, swScoreCalculator);
 }
 
 AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
@@ -180,8 +196,7 @@ AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
         // codecs without pixel formats are suspicious
         return MinAVScore;
 
-    AVPixelFormatSet emptySet;
-    auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat, emptySet);
+    auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
     std::optional bestFormatWithScore =
             findBestAVValueWithScore(pixelFormats, formatScoreCalculator);
     if (bestFormatWithScore)
