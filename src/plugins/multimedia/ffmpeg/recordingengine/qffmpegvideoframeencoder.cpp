@@ -9,7 +9,6 @@
 #include "qffmpegrecordingengineutils_p.h"
 
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/private/qexpected_p.h>
 
 extern "C" {
@@ -32,18 +31,6 @@ AVCodecID avCodecID(const QMediaEncoderSettings &settings)
     const QMediaFormat::VideoCodec qVideoCodec = settings.videoCodec();
     return QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
 }
-
-[[maybe_unused]] bool is420(AVPixelFormat fmt)
-{
-    const auto desc = av_pix_fmt_desc_get(fmt);
-    if (!desc)
-        return false;
-
-    return desc->log2_chroma_w == 1 && desc->log2_chroma_h == 1;
-}
-
-constexpr bool isAndroid =
-        QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android;
 
 // LATER: move to HWAccel or Codec?
 std::optional<AVHWDeviceType> getHwDeviceType(const Codec &codec)
@@ -92,29 +79,8 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
     const AVCodecID codecId = avCodecID(encoderSettings);
     const bool needsGlobalHeader = muxerNeedsGlobalHeader(formatContext);
 
-    auto createWithFallback = [&](const Codec &codec, HWAccelUPtr hwAccel) {
-        const AVHWDeviceType deviceType = hwAccel ? hwAccel->deviceType() : AV_HWDEVICE_TYPE_NONE;
-        auto result = create(stream, codec, std::move(hwAccel), sourceParams, encoderSettings,
-                             needsGlobalHeader);
-
-        if constexpr (isAndroid) {
-            // On Android some encoders fail to open encoders with 4:2:0 formats unless it's NV12.
-            // Let's fallback to another format.
-            if (!result.encoder) {
-                if (is420(result.targetFormat) && result.targetFormat != AV_PIX_FMT_NV12) {
-                    AVPixelFormatSet prohibitedTargetFormats;
-                    prohibitedTargetFormats.insert(result.targetFormat);
-                    hwAccel = HWAccel::create(deviceType);
-                    result = create(stream, codec, std::move(hwAccel), sourceParams,
-                                    encoderSettings, needsGlobalHeader, prohibitedTargetFormats);
-                }
-            }
-        }
-        return result;
-    };
-
     // first we try to open a hardware encoder
-    CreationResult creationResult = [&] {
+    VideoFrameEncoderUPtr encoder = [&]() -> VideoFrameEncoderUPtr {
         const std::vector encoders = findAndScoreEncoders(codecId, [](const Codec &codec) {
             std::optional<AVHWDeviceType> deviceType = getHwDeviceType(codec);
             if (!deviceType)
@@ -133,30 +99,30 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
                 continue;
             if (!hwAccel->matchesSizeContraints(encoderSettings.videoResolution()))
                 continue;
-            CreationResult result = createWithFallback(codec, std::move(hwAccel));
-            if (result.encoder)
-                return result;
+            auto encoder = create(stream, codec, std::move(hwAccel), sourceParams, encoderSettings,
+                                  needsGlobalHeader);
+            if (encoder)
+                return encoder;
         }
-        return CreationResult{};
+        return nullptr;
     }();
 
-    if (!creationResult.encoder) {
+    if (!encoder) {
         // otherwise fall back to software
-        creationResult = [&] {
+        encoder = [&]() -> VideoFrameEncoderUPtr {
             const std::vector encoders = findAndScoreEncoders(codecId, [&](const Codec &codec) {
                 return findSWFormatScores(codec, sourceParams.swFormat);
             });
 
             for (const auto &[codec, score] : encoders) {
-                CreationResult result = createWithFallback(codec, nullptr);
-                if (result.encoder)
-                    return result;
+                auto encoder = create(stream, codec, nullptr, sourceParams, encoderSettings,
+                                      needsGlobalHeader);
+                if (encoder)
+                    return encoder;
             }
-            return CreationResult{};
+            return nullptr;
         }();
     }
-
-    VideoFrameEncoderUPtr encoder = std::move(creationResult.encoder);
 
     if (encoder)
         qCDebug(qLcVideoFrameEncoder)
@@ -166,6 +132,16 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
         qCWarning(qLcVideoFrameEncoder) << "No valid video codecs found";
 
     return encoder;
+}
+
+static AVPixelFormat inferHardwareFormat(AVPixelFormat sourceSwFormat, const Codec &codec,
+                                         HWAccel *accel)
+{
+    const std::optional format = findTargetFormat(sourceSwFormat, codec, accel);
+    if (!format)
+        qWarning() << "Could not find target format for codecId" << codec.id();
+
+    return format.value_or(AV_PIX_FMT_NONE);
 }
 
 VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
@@ -180,8 +156,12 @@ VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const Codec &codec, HWAcc
       m_sourceSize(sourceParams.size),
       m_sourceFormat(sourceParams.format),
       m_sourceSWFormat(sourceParams.swFormat),
+      m_targetFormat(inferHardwareFormat(sourceParams.swFormat, codec, m_accel.get())),
       m_sourceFrameRate(sourceParams.frameRate)
 {
+    initTargetSize();
+    initCodecFrameRate();
+    initStream();
 }
 
 AVStream *VideoFrameEncoder::createStream(const SourceParams &sourceParams,
@@ -214,35 +194,32 @@ AVStream *VideoFrameEncoder::createStream(const SourceParams &sourceParams,
     return stream;
 }
 
-VideoFrameEncoder::CreationResult
-VideoFrameEncoder::create(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
-                          const SourceParams &sourceParams,
-                          const QMediaEncoderSettings &encoderSettings, bool needsGlobalHeader,
-                          const AVPixelFormatSet &prohibitedTargetFormats)
+VideoFrameEncoderUPtr VideoFrameEncoder::create(AVStream *stream, const Codec &codec,
+                                                HWAccelUPtr hwAccel,
+                                                const SourceParams &sourceParams,
+                                                const QMediaEncoderSettings &encoderSettings,
+                                                bool needsGlobalHeader)
 {
     VideoFrameEncoderUPtr frameEncoder(new VideoFrameEncoder(stream, codec, std::move(hwAccel),
                                                              sourceParams, encoderSettings,
                                                              needsGlobalHeader));
-    frameEncoder->initTargetSize();
 
-    frameEncoder->initCodecFrameRate();
-
-    if (!frameEncoder->initTargetFormats(prohibitedTargetFormats))
+    if (frameEncoder->targetFormat() == AV_PIX_FMT_NONE)
         return {};
 
-    frameEncoder->initStream();
+    auto targetSwFormats = frameEncoder->enumerateTargetSwFormats();
 
-    const AVPixelFormat targetFormat = frameEncoder->m_targetFormat;
+    for (ScoredPixelFormat candidate : targetSwFormats) {
+        if (frameEncoder->tryInitTargetSwFormat(candidate.format)) {
+            qCDebug(qLcVideoFrameEncoder) << "Selected target sw format" << candidate.format
+                                          << "for codec" << frameEncoder->m_codec.name();
+            return frameEncoder;
+        }
+        qCDebug(qLcVideoFrameEncoder) << "Failed to init target sw format" << candidate.format
+                                      << "for codec" << frameEncoder->m_codec.name();
+    }
 
-    if (!frameEncoder->initCodecContext())
-        return { nullptr, targetFormat };
-
-    if (!frameEncoder->open())
-        return { nullptr, targetFormat };
-
-    frameEncoder->updateConversions();
-
-    return { std::move(frameEncoder), targetFormat };
+    return nullptr;
 }
 
 void VideoFrameEncoder::initTargetSize()
@@ -274,39 +251,50 @@ void VideoFrameEncoder::initCodecFrameRate()
     qCDebug(qLcVideoFrameEncoder) << "Adjusted frame rate:" << m_codecFrameRate;
 }
 
-bool VideoFrameEncoder::initTargetFormats(const AVPixelFormatSet &prohibitedTargetFormats)
+std::vector<ScoredPixelFormat> VideoFrameEncoder::enumerateTargetSwFormats() const
 {
-    const std::optional format =
-            findTargetFormat(m_sourceSWFormat, m_codec, m_accel.get(), prohibitedTargetFormats);
+    if (isHwPixelFormat(m_targetFormat)) {
+        Q_ASSERT(m_accel);
+        return QFFmpeg::findAndScoreTargetSWFormats(m_sourceSWFormat, m_codec, *m_accel);
+    } else {
+        return std::vector{
+            ScoredPixelFormat{
+                    m_targetFormat,
+                    AVScore::BestAVScore,
+            },
+        };
+    }
+}
 
-    if (!format) {
-        qWarning() << "Could not find target format for codecId" << m_codec.id();
+bool VideoFrameEncoder::tryInitTargetSwFormat(AVPixelFormat targetSwFormat)
+{
+    qCDebug(qLcVideoFrameEncoder) << "Trying to init target sw format" << m_targetFormat
+                                  << targetSwFormat;
+
+    m_targetSWFormat = targetSwFormat;
+    if (m_accel) {
+        m_accel->destroyFramesContext();
+        m_accel->createFramesContext(m_targetSWFormat, m_targetSize);
+    }
+    auto cleanup = QScopeGuard([this] {
+        if (m_accel)
+            m_accel->destroyFramesContext();
+    });
+
+    if (m_accel && !m_accel->hwFramesContextAsBuffer()) {
+        qCDebug(qLcVideoFrameEncoder)
+                << "Failed to create frames context for targetSwFormat" << targetSwFormat;
         return false;
     }
 
-    m_targetFormat = *format;
+    if (!initCodecContext())
+        return false;
 
-    if (isHwPixelFormat(m_targetFormat)) {
-        Q_ASSERT(m_accel);
+    if (!open())
+        return false;
 
-        // don't pass prohibitedTargetFormats here as m_targetSWFormat is the format,
-        // from which we load a hardware texture, and the format doesn't impact on encoding.
-        const auto swFormat = findTargetSWFormat(m_sourceSWFormat, m_codec, *m_accel);
-        if (!swFormat) {
-            qWarning() << "Cannot find software target format. sourceSWFormat:" << m_sourceSWFormat
-                       << "targetFormat:" << m_targetFormat;
-            return false;
-        }
-
-        m_targetSWFormat = *swFormat;
-
-        m_accel->createFramesContext(m_targetSWFormat, m_targetSize);
-        if (!m_accel->hwFramesContextAsBuffer())
-            return false;
-    } else {
-        m_targetSWFormat = m_targetFormat;
-    }
-
+    cleanup.dismiss();
+    updateConversions();
     return true;
 }
 

@@ -139,11 +139,26 @@ bool isHwFormatAcceptedByCodec(AVPixelFormat pixFormat)
     }
 }
 
+// Some hw encoders (e.g. nvenc, qsv) advertise the sw formats they can consume directly in
+// codec.pixelFormats(), on top of their own hw pixel format. Others (e.g. vaapi) only ever
+// declare their own hw pixel format there and rely entirely on the hw accel's frame
+// constraints (valid_sw_formats) to describe the sw formats they accept.
+bool codecDeclaresSwFormats(const Codec &codec)
+{
+    return QtMultimediaPrivate::ranges::any_of(codec.pixelFormats(), [](AVPixelFormat fmt) {
+        return !isHwPixelFormat(fmt);
+    });
+}
+
+inline constexpr auto filterSuitablePixelFormats =
+        QtMultimediaPrivate::views::filter([](const ScoredPixelFormat &scoredFmt) {
+    return scoredFmt.score > AVScore::NotSuitableAVScore;
+});
+
 } // namespace
 
 std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
-                                                const HWAccel &accel,
-                                                const AVPixelFormatSet &prohibitedFormats)
+                                                const HWAccel &accel)
 {
     using namespace QtMultimediaPrivate;
 
@@ -155,41 +170,85 @@ std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, co
         const auto validSWFormatsForHWAccel =
                 makeSpan(constraints->valid_sw_formats) | ranges::to<QMinimalFlatSet>();
 
-        const auto codecPixelFormats = codec.pixelFormats();
-        auto validCodecPixelFormats = views::filter(codecPixelFormats, [&](AVPixelFormat fmt) {
-            if (!validSWFormatsForHWAccel.contains(fmt))
-                return false;
+        auto bestPixelFormat = [&]() -> std::optional<AVPixelFormat> {
+            if (codecDeclaresSwFormats(codec)) {
+                // If the codec declares sw formats, we can find the best one among the intersection
+                // of the codec's sw formats and the valid sw formats for the hw accel.
+                const auto codecPixelFormats = codec.pixelFormats();
+                auto formats = views::filter(codecPixelFormats, [&](AVPixelFormat fmt) {
+                    return validSWFormatsForHWAccel.contains(fmt);
+                });
 
-            return !prohibitedFormats.count(fmt);
-        });
+                return findBestAVValue(formats, scoreTargetSwFormat);
+            } else {
+                return findBestAVValue(validSWFormatsForHWAccel, scoreTargetSwFormat);
+            }
+        }();
 
-        if constexpr (false) {
-            qDebug() << "validSWFormats" << (validSWFormatsForHWAccel | ranges::to<std::vector>())
-                     << "scoredPixelFormats"
-                     << (validCodecPixelFormats | views::transform([&](auto arg) {
-                return std::pair(arg, scoreTargetSwFormat(arg));
-            }) | ranges::to<std::vector>());
-        }
-
-        std::optional bestPixelFormat =
-                findBestAVValue(validCodecPixelFormats, scoreTargetSwFormat);
         if (bestPixelFormat)
             return bestPixelFormat;
     }
 
     // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
     // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since n7.1)
-    const auto codecPixelFormats = codec.pixelFormats();
-    auto pixelFormats = views::filter(codecPixelFormats, [&](AVPixelFormat fmt) {
-        return !prohibitedFormats.count(fmt);
+    return findBestAVValue(codec.pixelFormats(), scoreTargetSwFormat);
+}
+
+std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceSWFormat,
+                                                           const Codec &codec, const HWAccel &accel)
+{
+    if constexpr (false) {
+        qDebug() << "findAndScoreTargetSWFormats" << codec.name() << codec.id();
+    }
+
+    using namespace QtMultimediaPrivate;
+
+    auto scoreTargetSwFormat = targetSwFormatScoreCalculator(sourceSWFormat);
+
+    auto score = views::transform([&](AVPixelFormat arg) {
+        return ScoredPixelFormat{ arg, scoreTargetSwFormat(arg) };
     });
 
-    return findBestAVValue(pixelFormats, scoreTargetSwFormat);
+    std::vector<ScoredPixelFormat> scoredPixelFormats = [&] {
+        const auto constraints = accel.constraints();
+        if (constraints && constraints->valid_sw_formats) {
+            const auto validSWFormatsForHWAccel =
+                    makeSpan(constraints->valid_sw_formats) | ranges::to<QMinimalFlatSet>();
+
+            if (codecDeclaresSwFormats(codec)) {
+                // If the codec declares sw formats, we can find the best one among the intersection
+                // of the codec's sw formats and the valid sw formats for the hw accel.
+                const auto codecPixelFormats = codec.pixelFormats();
+                auto validCodecPixelFormats =
+                        views::filter(codecPixelFormats, [&](AVPixelFormat fmt) {
+                    return validSWFormatsForHWAccel.contains(fmt);
+                });
+                return validCodecPixelFormats | score | filterSuitablePixelFormats
+                        | ranges::to<std::vector>();
+            } else {
+                // The codec only declares its own hw pixel format (e.g. vaapi); the sw formats it
+                // actually accepts come solely from the hw accel's frame constraints.
+                return validSWFormatsForHWAccel | score | filterSuitablePixelFormats
+                        | ranges::to<std::vector>();
+            }
+        } else {
+            // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
+            // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since n7.1)
+
+            return codec.pixelFormats() | score | filterSuitablePixelFormats
+                    | ranges::to<std::vector>();
+        }
+    }();
+
+    ranges::sort(scoredPixelFormats, [](const ScoredPixelFormat &a, const ScoredPixelFormat &b) {
+        return a.score > b.score;
+    });
+
+    return scoredPixelFormats;
 }
 
 std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
-                                              const HWAccel *accel,
-                                              const AVPixelFormatSet &prohibitedFormats)
+                                              const HWAccel *accel)
 {
     using namespace QtMultimediaPrivate;
 
@@ -197,8 +256,8 @@ std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, cons
         const auto hwFormat = accel->hwFormat();
 
         // TODO: handle codec->capabilities & AV_CODEC_CAP_HARDWARE here
-        if (!isHwFormatAcceptedByCodec(hwFormat) || prohibitedFormats.count(hwFormat))
-            return findTargetSWFormat(sourceSWFormat, codec, *accel, prohibitedFormats);
+        if (!isHwFormatAcceptedByCodec(hwFormat))
+            return findTargetSWFormat(sourceSWFormat, codec, *accel);
 
         const auto constraints = accel->constraints();
         if (constraints && ranges::contains(makeSpan(constraints->valid_hw_formats), hwFormat))
@@ -218,12 +277,8 @@ std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, cons
         return sourceSWFormat;
     }
 
-    auto candidatePixelFormats = views::filter(pixelFormats, [&](AVPixelFormat fmt) {
-        return !prohibitedFormats.count(fmt);
-    });
-
     auto swScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
-    return findBestAVValue(candidatePixelFormats, swScoreCalculator);
+    return findBestAVValue(pixelFormats, swScoreCalculator);
 }
 
 AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)

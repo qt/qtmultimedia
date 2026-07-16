@@ -17,6 +17,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtCore/qspan.h>
 
 QT_BEGIN_NAMESPACE
@@ -24,12 +25,20 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg {
 
 std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
-                                                const HWAccel &accel,
-                                                const AVPixelFormatSet &prohibitedFormats = {});
+                                                const HWAccel &accel);
+
+struct ScoredPixelFormat
+{
+    AVPixelFormat format = AV_PIX_FMT_NONE;
+    AVScore score = NotSuitableAVScore;
+};
+
+// sorted by score
+std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceSWFormat,
+                                                           const Codec &, const HWAccel &);
 
 std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
-                                              const HWAccel *accel,
-                                              const AVPixelFormatSet &prohibitedFormats = {});
+                                              const HWAccel *accel);
 
 AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat);
 

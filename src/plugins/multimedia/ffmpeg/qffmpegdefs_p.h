@@ -18,7 +18,6 @@
 #include "qtconfigmacros.h"
 
 #include <limits>
-#include <unordered_set>
 #include <variant>
 #include <QtCore/qglobal.h>
 #include <QtCore/qdebug.h>
@@ -116,7 +115,6 @@ inline QDebug operator<<(QDebug dbg, AVScore score)
 }
 
 using PixelOrSampleFormat = std::variant<AVPixelFormat, AVSampleFormat>;
-using AVPixelFormatSet = std::unordered_set<AVPixelFormat>;
 
 } // namespace QFFmpeg
 
