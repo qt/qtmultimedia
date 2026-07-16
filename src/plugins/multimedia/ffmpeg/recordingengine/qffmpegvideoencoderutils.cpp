@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegvideoencoderutils_p.h"
-#include "qffmpegcodecstorage_p.h"
-#include "private/qmultimediautils_p.h"
+
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtCore/qoperatingsystemversion.h>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -12,6 +13,8 @@ extern "C" {
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
+
+using namespace Qt::Literals;
 
 static AVScore calculateTargetSwFormatScore(const AVPixFmtDescriptor *sourceSwFormatDesc,
                                             AVPixelFormat fmt,
@@ -55,12 +58,12 @@ static AVScore calculateTargetSwFormatScore(const AVPixFmtDescriptor *sourceSwFo
     if (desc->log2_chroma_w == 1)
         score += 1;
 
-#ifdef Q_OS_ANDROID
-    // Add a slight preference for NV12 on Android
-    // as it's supported better than other 4:2:0 formats
-    if (fmt == AV_PIX_FMT_NV12)
-        score += 1;
-#endif
+    if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android) {
+        // Add a slight preference for NV12 on Android
+        // as it's supported better than other 4:2:0 formats
+        if (fmt == AV_PIX_FMT_NV12)
+            score += 1;
+    }
 
     if (desc->flags & AV_PIX_FMT_FLAG_BE)
         score -= 10;
@@ -205,15 +208,13 @@ AVRational adjustFrameTimeBase(QSpan<const AVRational> supportedRates, AVRationa
 
 QSize adjustVideoResolution(const Codec &codec, QSize requestedResolution)
 {
-#ifdef Q_OS_WINDOWS
-    // TODO: investigate, there might be more encoders not supporting odd resolution
-    if (codec.name() == u"h264_mf") {
-        auto makeEven = [](int size) { return size & ~1; };
-        return QSize(makeEven(requestedResolution.width()), makeEven(requestedResolution.height()));
+    if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Windows) {
+        // TODO: investigate, there might be more encoders not supporting odd resolution
+        if (codec.name() == "h264_mf"_L1) {
+            auto makeEven = [](int size) { return size & ~1; };
+            return QSize(makeEven(requestedResolution.width()), makeEven(requestedResolution.height()));
+        }
     }
-#else
-    Q_UNUSED(codec);
-#endif
     return requestedResolution;
 }
 
@@ -221,15 +222,12 @@ SwsFlags getScaleConversionType(const QSize &sourceSize, const QSize &targetSize
 {
     SwsFlags conversionType = SWS_FAST_BILINEAR;
 
-#ifdef Q_OS_ANDROID
-    // On Android, use SWS_BICUBIC for upscaling if least one dimension is upscaled
-    // to avoid a crash caused by ff_hcscale_fast_c with SWS_FAST_BILINEAR.
-    if (targetSize.width() > sourceSize.width() || targetSize.height() > sourceSize.height())
-        conversionType = SWS_BICUBIC;
-#else
-    Q_UNUSED(sourceSize);
-    Q_UNUSED(targetSize);
-#endif
+    if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android) {
+        // On Android, use SWS_BICUBIC for upscaling if least one dimension is upscaled
+        // to avoid a crash caused by ff_hcscale_fast_c with SWS_FAST_BILINEAR.
+        if (targetSize.width() > sourceSize.width() || targetSize.height() > sourceSize.height())
+            conversionType = SWS_BICUBIC;
+    }
 
     return conversionType;
 }
