@@ -157,6 +157,12 @@ inline constexpr auto filterSuitablePixelFormats =
 
 } // namespace
 
+AVScore scoreTargetSwFormat(AVPixelFormat source, AVPixelFormat target)
+{
+    const auto *desc = av_pix_fmt_desc_get(source);
+    return desc ? scoreTargetSwFormat(desc, target) : AVScore::NotSuitableAVScore;
+}
+
 std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
                                                 const HWAccel &accel)
 {

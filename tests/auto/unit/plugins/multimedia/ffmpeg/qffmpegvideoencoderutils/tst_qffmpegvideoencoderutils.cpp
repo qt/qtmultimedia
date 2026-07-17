@@ -6,6 +6,7 @@
 #include <qobject.h>
 
 #include <QtCore/qlist.h>
+#include <QtCore/qoperatingsystemversion.h>
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideoencoderutils_p.h>
 
@@ -23,6 +24,12 @@ private slots:
     void adjustFrameRate_returnsExpectedRate_basedOnSettingsAndSource();
     void adjustFrameTimeBase_returnsExpectedTimeBase_data();
     void adjustFrameTimeBase_returnsExpectedTimeBase();
+
+    void scoreTargetSwFormat_matchesExpectedScore_whenSourceIsBgra();
+    void scoreTargetSwFormat_matchesExpectedScore_whenSourceIsBgra_data();
+
+    void scoreTargetSwFormat_matchesExpectedScore_whenSourceIsNV12();
+    void scoreTargetSwFormat_matchesExpectedScore_whenSourceIsNV12_data();
 };
 
 void tst_QFFmpegVideoEncoderUtils::getScaleConversionType_returnsCorrectConversionType_basedOnScaling_data()
@@ -156,6 +163,80 @@ void tst_QFFmpegVideoEncoderUtils::adjustFrameTimeBase_returnsExpectedTimeBase()
     // Assert
     QCOMPARE(actualTimeBase.num, expectedTimeBase.num);
     QCOMPARE(actualTimeBase.den, expectedTimeBase.den);
+}
+
+void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_matchesExpectedScore_whenSourceIsBgra_data()
+{
+    using namespace QFFmpeg::Literals;
+
+    QTest::addColumn<AVPixelFormat>("targetFormat");
+    QTest::addColumn<AVScore>("expectedScore");
+
+    QTest::newRow("yuv444p") << AV_PIX_FMT_YUV444P << -109_avscore;
+    if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android)
+        QTest::newRow("nv12") << AV_PIX_FMT_NV12 << -117_avscore;
+    else
+        QTest::newRow("nv12") << AV_PIX_FMT_NV12 << -118_avscore;
+    QTest::newRow("yuv420p") << AV_PIX_FMT_YUV420P << -118_avscore;
+    QTest::newRow("yuv444p16le") << AV_PIX_FMT_YUV444P16LE << -201_avscore;
+#if LIBAVUTIL_VERSION_MAJOR >= 60 // requires FFmpeg 8
+    QTest::newRow("yuv444p10msble") << AV_PIX_FMT_YUV444P10MSBLE << -203_avscore;
+#endif
+    QTest::newRow("p010le") << AV_PIX_FMT_P010LE << -215_avscore;
+    QTest::newRow("p016le") << AV_PIX_FMT_P016LE << -306_avscore;
+    QTest::newRow("bgra") << AV_PIX_FMT_BGRA << -891_avscore;
+    QTest::newRow("rgba") << AV_PIX_FMT_RGBA << -901_avscore;
+    QTest::newRow("bgr0") << AV_PIX_FMT_BGR0 << -1109_avscore;
+    QTest::newRow("rgb0") << AV_PIX_FMT_RGB0 << -1109_avscore;
+    QTest::newRow("gray0") << AV_PIX_FMT_GRAY8 << AVScore::NotSuitableAVScore;
+    QTest::newRow("monowhite") << AV_PIX_FMT_MONOWHITE << AVScore::NotSuitableAVScore;
+}
+
+void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_matchesExpectedScore_whenSourceIsBgra()
+{
+    // Arrange
+    QFETCH(AVPixelFormat, targetFormat);
+    QFETCH(AVScore, expectedScore);
+
+    // Act
+    const AVScore actualScore = QFFmpeg::scoreTargetSwFormat(AV_PIX_FMT_BGRA, targetFormat);
+
+    // Assert
+    QCOMPARE(actualScore, expectedScore);
+}
+
+void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_matchesExpectedScore_whenSourceIsNV12_data()
+{
+    using namespace QFFmpeg::Literals;
+
+    QTest::addColumn<AVPixelFormat>("targetFormat");
+    QTest::addColumn<AVScore>("expectedScore");
+
+    if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android)
+        QTest::newRow("nv12") << AV_PIX_FMT_NV12 << 113_avscore;
+    else
+        QTest::newRow("nv12") << AV_PIX_FMT_NV12 << 112_avscore;
+    QTest::newRow("yuv420p") << AV_PIX_FMT_YUV420P << 102_avscore;
+#if LIBAVUTIL_VERSION_MAJOR >= 60 // requires FFmpeg 8
+    QTest::newRow("ayuv") << AV_PIX_FMT_AYUV << -1_avscore;
+#endif
+    QTest::newRow("p010le") << AV_PIX_FMT_P010LE << -98_avscore;
+    QTest::newRow("rgba") << AV_PIX_FMT_RGBA << -1001_avscore;
+    QTest::newRow("gray0") << AV_PIX_FMT_GRAY8 << AVScore::NotSuitableAVScore;
+    QTest::newRow("monowhite") << AV_PIX_FMT_MONOWHITE << AVScore::NotSuitableAVScore;
+}
+
+void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_matchesExpectedScore_whenSourceIsNV12()
+{
+    // Arrange
+    QFETCH(AVPixelFormat, targetFormat);
+    QFETCH(AVScore, expectedScore);
+
+    // Act
+    const AVScore actualScore = QFFmpeg::scoreTargetSwFormat(AV_PIX_FMT_NV12, targetFormat);
+
+    // Assert
+    QCOMPARE(actualScore, expectedScore);
 }
 
 QTEST_MAIN(tst_QFFmpegVideoEncoderUtils)

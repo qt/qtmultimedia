@@ -108,6 +108,11 @@ constexpr inline AVScore &operator-=(AVScore &a, int b)
 {
     return a = a - b;
 }
+constexpr AVScore operator-(const AVScore &d)
+{
+    return AVScore(-qToUnderlying(d));
+}
+
 inline QDebug operator<<(QDebug dbg, AVScore score)
 {
     dbg << qToUnderlying(score);
@@ -115,6 +120,15 @@ inline QDebug operator<<(QDebug dbg, AVScore score)
 }
 
 using PixelOrSampleFormat = std::variant<AVPixelFormat, AVSampleFormat>;
+
+namespace Literals {
+
+constexpr AVScore operator""_avscore(unsigned long long arg)
+{
+    return AVScore(arg);
+}
+
+} // namespace Literals
 
 } // namespace QFFmpeg
 
