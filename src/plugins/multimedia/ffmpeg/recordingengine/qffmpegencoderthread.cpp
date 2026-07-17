@@ -43,8 +43,13 @@ void EncoderThread::startEncoding(bool noError)
 
 bool EncoderThread::init()
 {
-    m_initialized = true;
-    emit initialized();
+    {
+        // Guard to allow checkIfCanPushFrame to check init status
+        auto guard = lockLoopData();
+        m_initialized = true;
+    }
+
+    emit resolved(true);
     m_encodingStartSemaphore.acquire();
     return true;
 }

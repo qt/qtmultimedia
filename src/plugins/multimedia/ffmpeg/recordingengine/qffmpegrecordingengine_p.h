@@ -19,6 +19,7 @@
 
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <qmediarecorder.h>
+#include <qsemaphore.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -84,11 +85,18 @@ private:
     // header, content, and trailer are written:
     // None -> FormatsInitializing -> EncodersInitializing -> Encoding -> Finalizing
     //
-    // Stop is called upon FormatsInitializing, nothing is written to the output:
+    // Stop is called upon FormatsInitializing (before any encoder was even created),
+    // nothing is written to the output:
     // None -> FormatsInitializing -> Finalizing
     //
-    // Stop is called upon EncodersInitializing, nothing is written to the output:
-    // None -> FormatsInitializing -> EncodersInitializing -> Finalizing
+    // Stop is called upon EncodersInitializing, encoders are still resolving (each
+    // one either succeeds or fails to initialize its codec). finalize() spawns the
+    // EncodingFinalizer thread right away, but it blocks on its own
+    // m_encodersResolvedSemaphore. handleEncoderResolved() writes the header (if
+    // every encoder succeeded), calls startEncoding() for all of them, and only
+    // then releases that semaphore (via m_finalizer):
+    // None -> FormatsInitializing -> EncodersInitializing -> Encoding -> Finalizing
+    //                                                     -> Finalizing (if any encoder failed)
     enum class State {
         None,
         FormatsInitializing,
@@ -100,13 +108,16 @@ private:
     class EncodingFinalizer : public QThread
     {
     public:
-        EncodingFinalizer(RecordingEngine &recordingEngine, bool writeTrailer);
+        explicit EncodingFinalizer(RecordingEngine &recordingEngine);
 
         void run() override;
 
+        void releaseEncodersResolved() { m_encodersResolvedSemaphore.release(); }
+
     private:
         RecordingEngine &m_recordingEngine;
-        bool m_writeTrailer;
+
+        QSemaphore m_encodersResolvedSemaphore;
     };
 
     friend class EncodingInitializer;
@@ -116,7 +127,8 @@ private:
 
     void addVideoSource(QPlatformVideoSource *source, const QVideoFrame &firstFrame);
     void handleSourceEndOfStream();
-    void handleEncoderInitialization();
+
+    void handleEncoderResolved(bool succeeded);
 
     bool startEncoders();
 
@@ -144,8 +156,12 @@ private:
     qint64 m_timeRecorded = 0;
 
     bool m_autoStop = false;
-    size_t m_initializedEncodersCount = 0;
+    size_t m_resolvedEncodersCount = 0;
+    bool m_anyEncoderFailed = false;
+    bool m_headerWritten = false;
     State m_state = State::None;
+
+    EncodingFinalizer *m_finalizer = nullptr;
 };
 
 } // namespace QFFmpeg
