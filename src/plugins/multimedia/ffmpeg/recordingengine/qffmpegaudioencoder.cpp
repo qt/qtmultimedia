@@ -189,6 +189,7 @@ bool AudioEncoder::init()
 
     if (!m_codecContext) {
         qCWarning(qLcFFmpegAudioEncoder) << "Unable to open any audio codec";
+        emit resolved(false);
         emit m_recordingEngine.sessionError(QMediaRecorder::FormatError,
                                             QStringLiteral("Cannot open any audio codec"));
         return false;

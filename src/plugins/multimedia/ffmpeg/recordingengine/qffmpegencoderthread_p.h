@@ -73,7 +73,9 @@ protected:
 Q_SIGNALS:
     void canPushFrameChanged();
     void endOfSourceStream();
-    void initialized();
+
+    // Emitted when init() either succeeds or fails to initialize the codec
+    void resolved(bool succeeded);
 
 protected:
     bool m_paused = false;
