@@ -27,6 +27,8 @@ namespace QFFmpeg {
 std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
                                                 const HWAccel &accel);
 
+AVScore scoreTargetSwFormat(AVPixelFormat source, AVPixelFormat target);
+
 struct ScoredPixelFormat
 {
     AVPixelFormat format = AV_PIX_FMT_NONE;
