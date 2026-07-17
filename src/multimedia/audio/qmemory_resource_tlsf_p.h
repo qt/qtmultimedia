@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/q_pmr_emulation_p.h>
+#include <QtMultimedia/private/qtmm_pmr_p.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qtclasshelpermacros.h>
 

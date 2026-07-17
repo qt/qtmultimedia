@@ -8,7 +8,7 @@
 #include "qvideoframe_p.h"
 #include "qvideoframetexturefromsource_p.h"
 #include "private/qmultimediautils_p.h"
-#include "private/qaudio_alignment_support_p.h"
+#include "private/qtmm_alignment_support_p.h"
 
 #include <QtCore/qfile.h>
 #include <qpainter.h>

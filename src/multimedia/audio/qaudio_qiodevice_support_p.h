@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qaudio_alignment_support_p.h>
+#include <QtMultimedia/private/qtmm_alignment_support_p.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>

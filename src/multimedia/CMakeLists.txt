@@ -17,8 +17,6 @@ endif()
 qt_internal_add_module(Multimedia
     PLUGIN_TYPES multimedia
     SOURCES
-        audio/qautoresetevent_p.h
-        audio/q_pmr_emulation_p.h
         audio/qmemory_resource_tlsf_p.h
         audio/qmemory_resource_tlsf.cpp
         audio/qtaudio.cpp audio/qtaudio.h audio/qaudio.h
@@ -37,11 +35,9 @@ qt_internal_add_module(Multimedia
         audio/qaudiosink.cpp audio/qaudiosink.h
         audio/qaudiosystem.cpp audio/qaudiosystem_p.h
         audio/qaudiosystem_platform_stream_support.cpp audio/qaudiosystem_platform_stream_support_p.h
-        audio/qaudio_alignment_support_p.h
         audio/qaudio_platform_implementation_support_p.h
         audio/qaudio_qiodevice_support_p.h
         audio/qaudio_qspan_support_p.h
-        audio/qaudio_rtsan_support_p.h
         audio/qsamplecache_p.cpp audio/qsamplecache_p.h
         audio/qsoundeffect.cpp audio/qsoundeffect.h
         audio/qsoundeffectwithplayer.cpp audio/qsoundeffectwithplayer_p.h
@@ -92,6 +88,9 @@ qt_internal_add_module(Multimedia
         qmediainputencoderinterface_p.h
         qrhivaluemapper.cpp  qrhivaluemapper_p.h
         qthreadlocalrhi.cpp  qthreadlocalrhi_p.h
+        qsurfacecapturegrabber.cpp qsurfacecapturegrabber_p.h
+        qsharedhandle_p.h
+        qtaggedtime_p.h
         recording/qmediacapturesession.cpp recording/qmediacapturesession.h recording/qmediacapturesession_p.h
         recording/qmediarecorder.cpp recording/qmediarecorder.h recording/qmediarecorder_p.h
         recording/qscreencapture.cpp recording/qscreencapture.h
@@ -99,9 +98,10 @@ qt_internal_add_module(Multimedia
         recording/qcapturablewindow.cpp recording/qcapturablewindow.h recording/qcapturablewindow_p.h
         recording/qvideoframeinput.cpp recording/qvideoframeinput.h
         support/qiteratorfacade_p.h
-        qsurfacecapturegrabber.cpp qsurfacecapturegrabber_p.h
-        qsharedhandle_p.h
-        qtaggedtime_p.h
+        support/qautoresetevent_p.h
+        support/qtmm_alignment_support_p.h
+        support/qtmm_pmr_p.h
+        support/qtmm_rtsan_support_p.h
         video/qabstractvideobuffer.cpp video/qabstractvideobuffer.h
         video/qhwvideobuffer.cpp video/qhwvideobuffer_p.h
         video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
@@ -328,23 +328,23 @@ endif()
 
 qt_internal_extend_target(Multimedia CONDITION LINUX OR ANDROID OR OHOS
     SOURCES
-        audio/qautoresetevent_linux_p.h audio/qautoresetevent_linux.cpp
+        support/qautoresetevent_linux_p.h support/qautoresetevent_linux.cpp
 )
 
 qt_internal_extend_target(Multimedia CONDITION APPLE
     SOURCES
-        audio/qautoresetevent_kqueue_p.h audio/qautoresetevent_kqueue.cpp
+        support/qautoresetevent_kqueue_p.h support/qautoresetevent_kqueue.cpp
 )
 
 
 qt_internal_extend_target(Multimedia CONDITION UNIX
     SOURCES
-        audio/qautoresetevent_pipe_p.h audio/qautoresetevent_pipe.cpp
+        support/qautoresetevent_pipe_p.h support/qautoresetevent_pipe.cpp
 )
 
 qt_internal_extend_target(Multimedia CONDITION WIN32
     SOURCES
-        audio/qautoresetevent_win32_p.h audio/qautoresetevent_win32.cpp
+        support/qautoresetevent_win32_p.h support/qautoresetevent_win32.cpp
 )
 
 

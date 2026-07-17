@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qtmm_rtsan_support_p.h>
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
