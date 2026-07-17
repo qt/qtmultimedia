@@ -4,10 +4,10 @@
 #include "qaudioengine_withplayer_p.h"
 
 #include <QtMultimedia/qmediadevices.h>
-#include <QtMultimedia/private/q_pmr_emulation_p.h>
 #include <QtMultimedia/private/qmemory_resource_tlsf_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qrtaudioengine_p.h>
+#include <QtMultimedia/private/qtmm_pmr_p.h>
 #include <QtSpatialAudio/private/qambisonicdecoder_p.h>
 #include <QtSpatialAudio/private/qspatialaudiosound_p.h>
 

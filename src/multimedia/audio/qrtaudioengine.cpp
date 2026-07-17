@@ -3,9 +3,9 @@
 
 #include "qrtaudioengine_p.h"
 
-#include <QtMultimedia/private/qaudio_rtsan_support_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qmemory_resource_tlsf_p.h>
+#include <QtMultimedia/private/qtmm_rtsan_support_p.h>
 #include <QtCore/q20map.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>

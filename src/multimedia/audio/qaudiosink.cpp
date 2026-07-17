@@ -3,7 +3,7 @@
 
 #include "qaudiosink.h"
 
-#include <QtMultimedia/private/qaudio_alignment_support_p.h>
+#include <QtMultimedia/private/qtmm_alignment_support_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>

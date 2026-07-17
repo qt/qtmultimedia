@@ -15,10 +15,10 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/q_pmr_emulation_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
+#include <QtMultimedia/private/qtmm_pmr_p.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qmutex.h>

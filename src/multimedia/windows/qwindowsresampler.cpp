@@ -6,7 +6,7 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/private/qfunctions_win_p.h>
 #include <QtCore/private/qsystemerror_p.h>
-#include <QtMultimedia/private/qaudio_alignment_support_p.h>
+#include <QtMultimedia/private/qtmm_alignment_support_p.h>
 #include <QtMultimedia/private/qwindowsaudioutils_p.h>
 #include <QtMultimedia/private/qwmf_support_p.h>
 
