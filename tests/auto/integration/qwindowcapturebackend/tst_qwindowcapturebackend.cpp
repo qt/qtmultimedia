@@ -15,6 +15,7 @@
 #if defined(Q_OS_MACOS)
 #include <QtMultimedia/private/qavfhelpers_p.h>
 #endif
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 
 #include <QtTest/qsignalspy.h>
@@ -22,6 +23,8 @@
 
 #include <chrono>
 #include <vector>
+
+namespace ranges = QtMultimediaPrivate::ranges;
 
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
@@ -102,6 +105,30 @@ private slots:
 
         for (const QCapturableWindow &window : windows)
             QVERIFY(window.isValid());
+    }
+
+    void capturableWindows_containsVisibleWindow()
+    {
+#if defined(Q_OS_MACOS)
+        // Note: Remove this skip if this test is promoted to bundle.
+        QSKIP("On macOS, windows without a bundle identifier are filtered out of "
+              "capturableWindows(), so our test window never appears in the list");
+#endif
+
+        TestWidget widget;
+        widget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&widget, globalTestTimeout()));
+
+        // Our visible window should be discoverable in the list of capturable windows.
+        QList<QCapturableWindow> windows = QWindowCapture::capturableWindows();
+        auto found = ranges::find_if(
+            windows,
+            [&widget](const QCapturableWindow &window) {
+                return window.description() == widget.windowTitle();
+            });
+
+        QVERIFY2(found != windows.end(), "Visible window not found among capturable windows");
+        QVERIFY(found->isValid());
     }
 
     void setActive_failsAndEmitsErrors_whenNoWindowSelected()
