@@ -62,6 +62,11 @@ public:
     static bool compareImages(QImage actual, const QImage &expected,
                               const QString &fileSuffix = "");
 
+    /*!
+        Waits until the a captured frame is received and returns it
+    */
+    QVideoFrame waitForFrame(qint64 noOlderThanTime = 0);
+
     QMediaCaptureSession m_session;
     QWindowCapture m_capture;
     FrameGrabber m_grabber;
@@ -96,11 +101,6 @@ public:
         failure to find widget window as a capturable window.
     */
     bool start(QSize size = { 60, 40 });
-
-    /*!
-        Waits until the a captured frame is received and returns it
-    */
-    QVideoFrame waitForFrame(qint64 noOlderThanTime = 0);
 
     DisableCursor m_cursorDisabled; // Avoid mouse cursor causing image differences
     TestWidget m_widget;

@@ -8,7 +8,7 @@
 
 #include <QtCore/qcommandlineparser.h>
 
-#include <QtGui/qpainter.h>
+#include <QtGui/qwindow.h>
 
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qwindowcapture.h>
@@ -129,6 +129,34 @@ private slots:
 
         QVERIFY2(found != windows.end(), "Visible window not found among capturable windows");
         QVERIFY(found->isValid());
+    }
+
+    void capturableWindow_constructedFromWindow_canBeCaptured()
+    {
+        QVERIFY(!QCapturableWindow{}.isValid());
+        QVERIFY(!QCapturableWindow{ static_cast<QWindow *>(nullptr) }.isValid());
+
+        TestWidget widget;
+        widget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&widget, globalTestTimeout()));
+
+        QWindow *const window = widget.windowHandle();
+        QVERIFY(window);
+
+        // Constructing a QCapturableWindow directly from a live QWindow yields a
+        // valid handle describing that window.
+        QCapturableWindow capturable{ window };
+        QVERIFY(capturable.isValid());
+        QCOMPARE(capturable.description(), widget.windowTitle());
+
+        // The handle constructed from the QWindow can actually be captured.
+        WindowCaptureFixture fixture;
+        fixture.m_capture.setWindow(capturable);
+        fixture.m_capture.setActive(true);
+
+        QVERIFY(fixture.waitForFrame().isValid());
+        QVERIFY(fixture.m_capture.isActive());
+        QVERIFY(fixture.m_errors.empty());
     }
 
     void setActive_failsAndEmitsErrors_whenNoWindowSelected()

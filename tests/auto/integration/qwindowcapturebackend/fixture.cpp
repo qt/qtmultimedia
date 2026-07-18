@@ -70,6 +70,15 @@ bool WindowCaptureFixture::compareImages(QImage actual, const QImage &expected,
     return false;
 }
 
+QVideoFrame WindowCaptureFixture::waitForFrame(qint64 noOlderThanTime)
+{
+    const std::vector<QVideoFrame> frames = m_grabber.waitAndTakeFrames(1u, noOlderThanTime);
+    if (frames.empty())
+        return QVideoFrame{};
+
+    return frames.back();
+}
+
 bool WindowCaptureWithWidgetFixture::start(QSize size)
 {
     // In case of window capture failure, signal the grabber so we can stop
@@ -99,15 +108,6 @@ bool WindowCaptureWithWidgetFixture::start(QSize size)
     m_captureWindow = *foundCapturableWindow;
 
     return true;
-}
-
-QVideoFrame WindowCaptureWithWidgetFixture::waitForFrame(qint64 noOlderThanTime)
-{
-    const std::vector<QVideoFrame> frames = m_grabber.waitAndTakeFrames(1u, noOlderThanTime);
-    if (frames.empty())
-        return QVideoFrame{};
-
-    return frames.back();
 }
 
 // On macOS, capturable windows are filtered out if they contain no bundle identifier.
