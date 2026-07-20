@@ -11,6 +11,7 @@ qt_internal_add_plugin(QWasmMediaPlugin
         common/qwasmgltexturevideobuffer.cpp common/qwasmgltexturevideobuffer_p.h
         common/qwasmvideoframegrabber.cpp common/qwasmvideoframegrabber_p.h
         common/qwasmvideooutput.cpp common/qwasmvideooutput_p.h
+        common/qwasmvideooutputevents.cpp
         common/qwasmaudiooutput.cpp common/qwasmaudiooutput_p.h
         common/qwasmaudioinput.cpp common/qwasmaudioinput_p.h
         mediacapture/qwasmmediacapturesession.cpp mediacapture/qwasmmediacapturesession_p.h

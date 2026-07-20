@@ -122,6 +122,7 @@ private:
     void getDeviceSettings();
     bool isPlatformiOs();
     void detectIosCameraRotation();
+    void applyIosRotation(int orientationIndex);
 
     emscripten::val m_video = emscripten::val::undefined();
 
