@@ -59,7 +59,7 @@ private:
     void setCaptureSession(QMediaCaptureSession *session);
 
 private:
-    Q_DISABLE_COPY(QGStreamerVideoSource)
+    Q_DISABLE_COPY_MOVE(QGStreamerVideoSource)
     Q_DECLARE_PRIVATE(QGStreamerVideoSource)
     friend class QMediaCaptureSession;
 };
