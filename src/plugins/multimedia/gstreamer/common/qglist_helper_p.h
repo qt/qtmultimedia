@@ -17,8 +17,11 @@
 
 #include <QtCore/qtconfigmacros.h>
 
+#include <QtMultimedia/private/qiteratorfacade_p.h>
+
 #include <glib.h>
 #include <iterator>
+#include <type_traits>
 
 QT_BEGIN_NAMESPACE
 
@@ -26,40 +29,25 @@ namespace QGstUtils {
 
 template <typename ListType, bool IsConst>
 struct GListIterator
+    : QtMultimediaPrivate::IteratorFacade<GListIterator<ListType, IsConst>, ListType,
+                                          std::input_iterator_tag, const ListType &>
 {
     using GListType = std::conditional_t<IsConst, const GList *, GList *>;
 
     explicit GListIterator(GListType element = nullptr) : element(element) { }
 
-    const ListType &operator*() const noexcept { return *operator->(); }
-    const ListType *operator->() const noexcept
+    const ListType &dereference() const noexcept
     {
-        return reinterpret_cast<const ListType *>(&element->data);
+        return *reinterpret_cast<const ListType *>(&element->data);
     }
 
-    GListIterator &operator++() noexcept
+    void increment() noexcept
     {
         if (element)
             element = element->next;
-
-        return *this;
-    }
-    GListIterator operator++(int n) noexcept
-    {
-        for (int i = 0; i != n; ++i)
-            operator++();
-
-        return *this;
     }
 
-    bool operator==(const GListIterator &r) const noexcept { return element == r.element; }
-    bool operator!=(const GListIterator &r) const noexcept { return element != r.element; }
-
-    using difference_type = std::ptrdiff_t;
-    using value_type = ListType;
-    using pointer = value_type *;
-    using reference = value_type &;
-    using iterator_category = std::input_iterator_tag;
+    bool equals(const GListIterator &other) const noexcept { return element == other.element; }
 
     GListType element = nullptr;
 };
