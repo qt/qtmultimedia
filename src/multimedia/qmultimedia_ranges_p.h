@@ -17,12 +17,15 @@
 
 #include <QtCore/qtconfigmacros.h>
 
+#include <QtMultimedia/private/qiteratorfacade_p.h>
+
 #ifdef __cpp_lib_ranges
 #  include <ranges> // IWYU pragma: export
 #endif
 
 #include <algorithm>
 #include <functional>
+#include <type_traits>
 #include <utility>
 
 QT_BEGIN_NAMESPACE
@@ -338,24 +341,21 @@ template <typename Range>
 class KeysView
 {
     using BaseIt = decltype(std::begin(std::declval<Range &>()));
+    using KeyReference = decltype((*std::declval<BaseIt>()).first);
+    using KeyValue = std::remove_cv_t<std::remove_reference_t<KeyReference>>;
 
     class iterator
+        : public IteratorFacade<iterator, KeyValue, std::input_iterator_tag, KeyReference>
     {
         BaseIt m_it;
 
     public:
-        using iterator_category = std::input_iterator_tag;
-        using value_type =
-                std::remove_cv_t<std::remove_reference_t<decltype((*std::declval<BaseIt>()).first)>>;
-        using difference_type = std::ptrdiff_t;
-        using pointer = const value_type *;
-        using reference = decltype((*std::declval<BaseIt>()).first);
-
         constexpr explicit iterator(BaseIt it) : m_it(std::move(it)) { }
-        constexpr reference operator*() const { return (*m_it).first; }
-        constexpr iterator &operator++() { ++m_it; return *this; }
-        constexpr bool operator==(const iterator &o) const { return m_it == o.m_it; }
-        constexpr bool operator!=(const iterator &o) const { return m_it != o.m_it; }
+
+        using reference = KeyReference;
+        constexpr reference dereference() const { return (*m_it).first; }
+        constexpr void increment() { ++m_it; }
+        constexpr bool equals(const iterator &o) const { return m_it == o.m_it; }
     };
 
     Range &m_range;
@@ -370,24 +370,21 @@ template <typename Range>
 class ValuesView
 {
     using BaseIt = decltype(std::begin(std::declval<Range &>()));
+    using ValueReference = decltype((*std::declval<BaseIt>()).second);
+    using MappedValue = std::remove_cv_t<std::remove_reference_t<ValueReference>>;
 
     class iterator
+        : public IteratorFacade<iterator, MappedValue, std::input_iterator_tag, ValueReference>
     {
         BaseIt m_it;
 
     public:
-        using iterator_category = std::input_iterator_tag;
-        using value_type =
-                std::remove_cv_t<std::remove_reference_t<decltype((*std::declval<BaseIt>()).second)>>;
-        using difference_type = std::ptrdiff_t;
-        using pointer = const value_type *;
-        using reference = decltype((*std::declval<BaseIt>()).second);
-
         constexpr explicit iterator(BaseIt it) : m_it(std::move(it)) { }
-        constexpr reference operator*() const { return (*m_it).second; }
-        constexpr iterator &operator++() { ++m_it; return *this; }
-        constexpr bool operator==(const iterator &o) const { return m_it == o.m_it; }
-        constexpr bool operator!=(const iterator &o) const { return m_it != o.m_it; }
+
+        using reference = ValueReference;
+        constexpr reference dereference() const { return (*m_it).second; }
+        constexpr void increment() { ++m_it; }
+        constexpr bool equals(const iterator &o) const { return m_it == o.m_it; }
     };
 
     Range &m_range;
@@ -411,8 +408,11 @@ template <typename Container, typename Predicate>
 class FilterView
 {
     using BaseIt = decltype(std::begin(std::declval<Container &>()));
+    using ElementReference = decltype(*std::declval<BaseIt>());
+    using ElementValue = std::remove_cv_t<std::remove_reference_t<ElementReference>>;
 
     class iterator
+        : public IteratorFacade<iterator, ElementValue, std::input_iterator_tag, ElementReference>
     {
         BaseIt m_it;
         BaseIt m_end;
@@ -425,11 +425,7 @@ class FilterView
         }
 
     public:
-        using iterator_category = std::input_iterator_tag;
-        using value_type = std::remove_cv_t<std::remove_reference_t<decltype(*std::declval<BaseIt>())>>;
-        using difference_type = std::ptrdiff_t;
-        using pointer = const value_type *;
-        using reference = decltype(*std::declval<BaseIt>());
+        using reference = ElementReference;
 
         constexpr iterator(BaseIt it, BaseIt end, Predicate pred)
             : m_it(std::move(it)), m_end(std::move(end)), m_pred(std::move(pred))
@@ -437,17 +433,13 @@ class FilterView
             advance();
         }
 
-        constexpr auto operator*() const -> decltype(*m_it) { return *m_it; }
-
-        constexpr iterator &operator++()
+        constexpr reference dereference() const { return *m_it; }
+        constexpr void increment()
         {
             ++m_it;
             advance();
-            return *this;
         }
-
-        constexpr bool operator==(const iterator &other) const { return m_it == other.m_it; }
-        constexpr bool operator!=(const iterator &other) const { return m_it != other.m_it; }
+        constexpr bool equals(const iterator &o) const { return m_it == o.m_it; };
     };
 
     Container &m_container;
@@ -497,29 +489,27 @@ template <typename Range, typename Transform>
 class TransformView
 {
     using BaseIt = decltype(std::begin(std::declval<Range &>()));
+    using TransformedValue = std::remove_cv_t<std::remove_reference_t<
+            decltype(std::invoke(std::declval<Transform>(), *std::declval<BaseIt>()))>>;
 
-    class iterator
+    class iterator : public IteratorFacade<iterator, TransformedValue, std::input_iterator_tag,
+                                           TransformedValue>
     {
         BaseIt m_it;
         Transform m_transform;
 
     public:
-        using value_type = std::remove_cv_t<std::remove_reference_t<
-                decltype(std::invoke(std::declval<Transform>(), *std::declval<BaseIt>()))>>;
-        using reference = value_type;
-        using pointer = void;
-        using difference_type = std::ptrdiff_t;
-        using iterator_category = std::input_iterator_tag;
+        using reference = TransformedValue;
 
         constexpr iterator(BaseIt it, Transform transform)
             : m_it(std::move(it)), m_transform(std::move(transform))
         {
         }
 
-        constexpr value_type operator*() const { return std::invoke(m_transform, *m_it); }
-        constexpr iterator &operator++() { ++m_it; return *this; }
-        constexpr bool operator==(const iterator &other) const { return m_it == other.m_it; }
-        constexpr bool operator!=(const iterator &other) const { return m_it != other.m_it; }
+        constexpr reference dereference() const { return std::invoke(m_transform, *m_it); }
+        constexpr void increment() { ++m_it; }
+        constexpr void decrement() { --m_it; }
+        constexpr bool equals(const iterator &o) const { return m_it == o.m_it; }
     };
 
     Range &m_range;

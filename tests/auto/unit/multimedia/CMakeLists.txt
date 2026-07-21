@@ -48,6 +48,7 @@ if(QT_FEATURE_qnx_io_snd)
 endif()
 add_subdirectory(qrhivaluemapper)
 add_subdirectory(ranges)
+add_subdirectory(iteratorfacade)
 
 if(WIN32)
     add_subdirectory(qwindowsresampler)
