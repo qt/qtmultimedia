@@ -17,9 +17,10 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegencodingformatcontext_p.h>
 
+#include <QtCore/qfuture.h>
+#include <QtCore/qpromise.h>
+#include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
-#include <qmediarecorder.h>
-#include <qsemaphore.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -70,6 +71,8 @@ public:
 
     bool isEndOfSourceStreams() const;
 
+    bool waitForEncodingStart() const { return m_startEncodingPromise.future().result(); }
+
 public Q_SLOTS:
     void newTimeStamp(qint64 time);
 
@@ -112,12 +115,8 @@ private:
 
         void run() override;
 
-        void releaseEncodersResolved() { m_encodersResolvedSemaphore.release(); }
-
     private:
         RecordingEngine &m_recordingEngine;
-
-        QSemaphore m_encodersResolvedSemaphore;
     };
 
     friend class EncodingInitializer;
@@ -128,7 +127,7 @@ private:
     void addVideoSource(QPlatformVideoSource *source, const QVideoFrame &firstFrame);
     void handleSourceEndOfStream();
 
-    void handleEncoderResolved(bool succeeded);
+    void handleEncodersResolved(const QList<QFuture<bool>> &resolutions);
 
     bool startEncoders();
 
@@ -141,6 +140,8 @@ private:
 
     template <typename F>
     bool allOfEncoders(F &&f) const;
+
+    void markEncodingStart(bool startOk);
 
 private:
     QMediaEncoderSettings m_settings;
@@ -156,11 +157,9 @@ private:
     qint64 m_timeRecorded = 0;
 
     bool m_autoStop = false;
-    size_t m_resolvedEncodersCount = 0;
-    bool m_anyEncoderFailed = false;
-    bool m_headerWritten = false;
     State m_state = State::None;
 
+    QPromise<bool> m_startEncodingPromise;
     EncodingFinalizer *m_finalizer = nullptr;
 };
 
