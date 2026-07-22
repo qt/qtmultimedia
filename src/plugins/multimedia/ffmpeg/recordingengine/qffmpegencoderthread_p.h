@@ -15,9 +15,10 @@
 //
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpegthread_p.h>
-#include "qpointer.h"
-#include "qsemaphore.h"
 
+#include <QtCore/qfuture.h>
+#include <QtCore/qpointer.h>
+#include <QtCore/qpromise.h>
 #include <QtMultimedia/private/qmediainputencoderinterface_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -46,9 +47,9 @@ public:
 
     bool isEndOfSourceStream() const { return m_endOfSourceStream; }
 
-    void startEncoding(bool noError);
-
     bool isInitialized() const { return m_initialized; }
+
+    QFuture<bool> resolvedFuture() const { return m_resolvedPromise.future(); }
 
 protected:
     bool init() override;
@@ -70,12 +71,11 @@ protected:
         });
     }
 
+    void markResolved(bool succeeded);
+
 Q_SIGNALS:
     void canPushFrameChanged();
     void endOfSourceStream();
-
-    // Emitted when init() either succeeds or fails to initialize the codec
-    void resolved(bool succeeded);
 
 protected:
     bool m_paused = false;
@@ -86,7 +86,7 @@ protected:
     std::atomic_bool m_canPushFrame = false;
     RecordingEngine &m_recordingEngine;
     QPointer<QObject> m_source;
-    QSemaphore m_encodingStartSemaphore;
+    QPromise<bool> m_resolvedPromise;
 };
 
 } // namespace QFFmpeg

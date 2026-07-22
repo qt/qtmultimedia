@@ -141,7 +141,7 @@ bool VideoEncoder::init()
 
     qCDebug(qLcFFmpegVideoEncoder) << "VideoEncoder::init started video device thread.";
     if (!m_frameEncoder) {
-        emit resolved(false);
+        markResolved(false);
         emit m_recordingEngine.sessionError(QMediaRecorder::ResourceError,
                                             u"Could not initialize encoder"_s);
         return false;
