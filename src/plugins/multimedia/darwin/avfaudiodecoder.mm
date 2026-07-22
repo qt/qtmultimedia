@@ -470,7 +470,7 @@ void AVFAudioDecoder::initAssetReader()
     Q_ASSERT(QThread::currentThread() == thread());
 
     [m_asset loadTracksWithMediaType:AVMediaTypeAudio
-                   completionHandler:[=](NSArray<AVAssetTrack *> *tracks, NSError *error) {
+                   completionHandler:[this](NSArray<AVAssetTrack *> *tracks, NSError *error) {
         if (tracks && tracks.count > 0) {
             if (AVAssetTrack *track = [tracks objectAtIndex:0])
                 QMetaObject::invokeMethod(this, &AVFAudioDecoder::initAssetReaderImpl,
