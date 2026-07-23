@@ -202,9 +202,7 @@ struct GuardedPlatformPlayer
 
         // use __block to avoid maintaining strong references on variables captured by the
         // following block callback
-#if defined(Q_OS_IOS)
-        BOOL isAccessing = [m_URL startAccessingSecurityScopedResource];
-#endif
+        __block BOOL isAccessing = [m_URL startAccessingSecurityScopedResource];
         __block AVURLAsset *asset = [[AVURLAsset URLAssetWithURL:m_URL options:nil] retain];
         [asset.resourceLoader setDelegate:self queue:dispatch_get_main_queue()];
 
@@ -213,20 +211,17 @@ struct GuardedPlatformPlayer
         __block AVFMediaPlayerObserver *blockSelf = [self retain];
 
         // Tells the asset to load the values of any of the specified keys that are not already loaded.
-        [asset loadValuesAsynchronouslyForKeys:requestedKeys completionHandler:
-         ^{
-             dispatch_async( dispatch_get_main_queue(),
-                           ^{
-#if defined(Q_OS_IOS)
-                                 if (isAccessing)
-                                    [m_URL stopAccessingSecurityScopedResource];
-#endif
-                                 [blockSelf prepareToPlayAsset:asset withKeys:requestedKeys];
-                                 [asset release];
-                                 [requestedKeys release];
-                                 [blockSelf release];
-                            });
-         }];
+        [asset loadValuesAsynchronouslyForKeys:requestedKeys
+                             completionHandler:^{
+                                 dispatch_async(dispatch_get_main_queue(), ^{
+                                     if (isAccessing)
+                                         [m_URL stopAccessingSecurityScopedResource];
+                                     [blockSelf prepareToPlayAsset:asset withKeys:requestedKeys];
+                                     [asset release];
+                                     [requestedKeys release];
+                                     [blockSelf release];
+                                 });
+                             }];
     }
 }
 
