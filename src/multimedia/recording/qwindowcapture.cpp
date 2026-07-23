@@ -259,11 +259,6 @@ std::optional<qreal> QWindowCapture::maximumFrameRate() const
     return d->platformWindowCapture ? d->platformWindowCapture->frameRate() : std::nullopt;
 }
 
-void QWindowCapture::resetMaximumFrameRate()
-{
-    setMaximumFrameRate(std::nullopt);
-}
-
 /*!
     \qmlmethod void QtMultimedia::WindowCapture::start()
 

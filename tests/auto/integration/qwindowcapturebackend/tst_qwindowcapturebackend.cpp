@@ -405,8 +405,7 @@ private slots:
         QCOMPARE(fixture.m_frameRates.size(), 1);
         QVERIFY(frameRateEquals(fixture.m_capture.maximumFrameRate(), newFrameRate));
 
-        // Resetting clears the property and emits maximumFrameRateChanged again
-        fixture.m_capture.resetMaximumFrameRate();
+        fixture.m_capture.setMaximumFrameRate(std::nullopt);
 
         QCOMPARE(fixture.m_frameRates.size(), 2);
         QVERIFY(!fixture.m_capture.maximumFrameRate());

@@ -48,6 +48,11 @@ qreal QQuickWindowCapture::qmlMaximumFrameRate() const
     return windowFrameRateToReal(maximumFrameRate());
 }
 
+void QQuickWindowCapture::qmlResetMaximumFrameRate()
+{
+    setMaximumFrameRate(std::nullopt);
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qquickwindowcapture_p.cpp"

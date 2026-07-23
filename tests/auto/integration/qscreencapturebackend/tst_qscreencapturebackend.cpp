@@ -627,8 +627,7 @@ void tst_QScreenCaptureBackend::setFrameRate_updatesPropertyAndEmitsSignal()
     QCOMPARE(frameRateSpy.size(), 1);
     QVERIFY(frameRateEquals(capture.maximumFrameRate(), newFrameRate));
 
-    // Resetting clears the property and emits frameRateChanged again
-    capture.resetMaximumFrameRate();
+    capture.setMaximumFrameRate(std::nullopt);
 
     QCOMPARE(frameRateSpy.size(), 2);
     QVERIFY(!capture.maximumFrameRate());
