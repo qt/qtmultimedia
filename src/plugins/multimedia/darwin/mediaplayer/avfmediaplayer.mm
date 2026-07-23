@@ -565,7 +565,7 @@ struct GuardedPlatformPlayer
 
         if (loadingRequest.dataRequest) {
             NSInteger requestedLength = loadingRequest.dataRequest.requestedLength;
-            int maxBytes = qMin(32 * 1064, int(requestedLength));
+            int maxBytes = qMin(32 * 1024, int(requestedLength));
             QByteArray buffer;
             buffer.resize(maxBytes);
 
@@ -575,8 +575,7 @@ struct GuardedPlatformPlayer
                 if (len < 1)
                     break;
 
-                [loadingRequest.dataRequest respondWithData:[NSData dataWithBytes:buffer.constData()
-                                                                           length:len]];
+                [loadingRequest.dataRequest respondWithData:buffer.toNSData()];
                 submitted += len;
             }
 
