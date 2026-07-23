@@ -27,7 +27,7 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickWindowCapture : public QWindowCapture
 {
     Q_OBJECT
     Q_PROPERTY(qreal maximumFrameRate READ qmlMaximumFrameRate WRITE qmlSetMaximumFrameRate RESET
-                       resetMaximumFrameRate NOTIFY maximumFrameRateChanged REVISION(6, 12))
+                       resetMaximumFrameRate NOTIFY qmlMaximumFrameRateChanged REVISION(6, 12))
     QML_NAMED_ELEMENT(WindowCapture)
 
 public:
@@ -35,6 +35,9 @@ public:
 
     void qmlSetMaximumFrameRate(qreal);
     qreal qmlMaximumFrameRate() const;
+
+Q_SIGNALS:
+    void qmlMaximumFrameRateChanged(qreal);
 };
 
 QT_END_NAMESPACE

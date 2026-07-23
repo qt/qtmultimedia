@@ -72,7 +72,7 @@ void QPlatformSurfaceCapture::setFrameRate(std::optional<qreal> frameRate)
         return;
 
     m_frameRate = frameRate;
-    emit frameRateChanged();
+    emit frameRateChanged(m_frameRate);
 }
 
 std::optional<qreal> QPlatformSurfaceCapture::frameRate() const
