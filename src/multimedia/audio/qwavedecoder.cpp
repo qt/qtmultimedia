@@ -18,6 +18,30 @@ QT_BEGIN_NAMESPACE
 
 #if QT_DEPRECATED_SINCE(6, 11)
 
+namespace QtMultimediaPrivate {
+
+class QWaveDecoderOldLayout : public QIODevice
+{
+    enum State { InitialState, WaitingForFormatState, WaitingForDataState };
+
+public:
+    bool haveFormat = false;
+    bool haveHeader = false;
+    qint64 dataSize = 0;
+    QIODevice *device = nullptr;
+    QAudioFormat format;
+    State state = InitialState;
+    quint32 junkToSkip = 0;
+    bool bigEndian = false;
+    bool byteSwap = false;
+    int bps = 0;
+};
+
+static_assert(sizeof(QWaveDecoder) == sizeof(QtMultimediaPrivate::QWaveDecoderOldLayout),
+              "QWaveDecoder ABI size mismatch — adjust fields or QWaveDecoderNewFields");
+
+} // namespace QtMultimediaPrivate
+
 QWaveDecoder::QWaveDecoder(QIODevice *device, QObject *parent)
     : QIODevice(parent),
       device(device)
