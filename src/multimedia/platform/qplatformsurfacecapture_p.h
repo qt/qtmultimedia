@@ -78,7 +78,7 @@ Q_SIGNALS:
     void sourceChanged(WindowSource);
     void sourceChanged(ScreenSource);
     void errorOccurred(Error error, QString errorString);
-    void frameRateChanged();
+    void frameRateChanged(std::optional<qreal>);
 
 private:
     std::optional<qreal> m_frameRate;
