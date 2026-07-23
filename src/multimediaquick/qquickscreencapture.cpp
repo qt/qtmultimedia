@@ -70,6 +70,11 @@ qreal QQuickScreenCapture::qmlMaximumFrameRate() const
     return screenFrameRateToReal(maximumFrameRate());
 }
 
+void QQuickScreenCapture::qmlResetMaximumFrameRate()
+{
+    setMaximumFrameRate(std::nullopt);
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qquickscreencapture_p.cpp"

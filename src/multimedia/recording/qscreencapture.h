@@ -27,7 +27,7 @@ class Q_MULTIMEDIA_EXPORT QScreenCapture : public QObject
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(std::optional<qreal> maximumFrameRate READ maximumFrameRate WRITE setMaximumFrameRate
-                       RESET resetMaximumFrameRate NOTIFY maximumFrameRateChanged REVISION(6, 12))
+                       NOTIFY maximumFrameRateChanged REVISION(6, 12))
 
 public:
     enum Error {
@@ -54,7 +54,6 @@ public:
 
     void setMaximumFrameRate(std::optional<qreal> frameRate);
     std::optional<qreal> maximumFrameRate() const;
-    void resetMaximumFrameRate();
 
 public Q_SLOTS:
     void setActive(bool active);
