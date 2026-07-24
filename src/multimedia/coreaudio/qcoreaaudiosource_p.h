@@ -85,6 +85,7 @@ private:
     QCoreAudioSource *m_parent;
 
     AudioBufferList m_bufferList{};
+    UInt32 m_bufferCapacity{};
 
     // for run-time conversions
     AudioConverterRef m_audioConverter{ nullptr };
