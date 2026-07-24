@@ -469,7 +469,7 @@ qsizetype QAudioSink::bufferFrameCount() const
     \since 6.12
     \sa nativePeriodFrameCount
 */
-void QAudioSink::setNativePeriodFrameCount(int frameCount)
+void QAudioSink::setNativePeriodFrameCount(qsizetype frameCount)
 {
     if (!d)
         return;
@@ -483,9 +483,9 @@ void QAudioSink::setNativePeriodFrameCount(int frameCount)
 
         if (frameCount < 32 || frameCount > 4096
             || !QtMultimediaPrivate::isPowerOfTwo(frameCount)) {
-            qWarning("QAudioSink::setNativePeriodFrameCount: invalid frame count %d "
+            qWarning("QAudioSink::setNativePeriodFrameCount: invalid frame count %lld "
                      "(must be -1 or a power of 2 between 32 and 4096)",
-                     frameCount);
+                     qint64(frameCount));
             return;
         }
     }
@@ -505,10 +505,10 @@ void QAudioSink::setNativePeriodFrameCount(int frameCount)
     \since 6.12
     \sa setNativePeriodFrameCount
 */
-int QAudioSink::nativePeriodFrameCount() const
+qsizetype QAudioSink::nativePeriodFrameCount() const
 {
     std::optional hwbf = d ? d->nativePeriodFrames() : std::nullopt;
-    return hwbf ? qToUnderlying(*hwbf) : -1;
+    return hwbf ? qsizetype(qToUnderlying(*hwbf)) : qsizetype(-1);
 }
 
 /*!
