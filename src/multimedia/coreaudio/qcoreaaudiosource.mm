@@ -142,10 +142,10 @@ bool QCoreAudioSourceStream::open()
 
     std::optional<int> framesPerBuffer = audioUnitGetFramesPerSlice(m_audioUnit);
 
+    m_bufferCapacity = m_format.bytesForFrames(framesPerBuffer.value_or(2048));
     m_bufferList.mNumberBuffers = 1;
     m_bufferList.mBuffers[0].mNumberChannels = m_format.channelCount();
-    m_bufferList.mBuffers[0].mDataByteSize =
-            m_format.bytesForFrames(framesPerBuffer.value_or(2048));
+    m_bufferList.mBuffers[0].mDataByteSize = m_bufferCapacity;
     m_bufferList.mBuffers[0].mData = malloc(m_bufferList.mBuffers[0].mDataByteSize);
 
     if (m_audioConverter) {
@@ -266,6 +266,8 @@ QCoreAudioSourceStream::processInput(AudioUnitRenderActionFlags *ioActionFlags,
                                      UInt32 inNumberFrames,
                                      AudioBufferList * /*ioData*/) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
+    m_bufferList.mBuffers[0].mDataByteSize = m_bufferCapacity;
+
     OSStatus status = AudioUnitRender(m_audioUnit.get(), ioActionFlags, timeStamp, inBusNumber,
                                       inNumberFrames, &m_bufferList);
 
@@ -309,6 +311,8 @@ QCoreAudioSourceStream::processInput(AudioUnitRenderActionFlags *ioActionFlags,
             return noErr;
         };
 
+        m_outputBufferList.mBuffers[0].mDataByteSize = m_outputBuffer.size();
+
         UInt32 outputFrames = m_format.framesForBytes(m_outputBuffer.size());
         OSStatus convStatus = AudioConverterFillComplexBuffer(
                 m_audioConverter, inputProc, &state, &outputFrames, &m_outputBufferList, nullptr);
@@ -317,10 +321,9 @@ QCoreAudioSourceStream::processInput(AudioUnitRenderActionFlags *ioActionFlags,
             return convStatus;
         }
 
-        uint32_t outputBytes = m_format.bytesForFrames(outputFrames);
         inputSpan = QSpan<const std::byte>{
             reinterpret_cast<const std::byte *>(m_outputBuffer.data()),
-            outputBytes,
+            m_outputBufferList.mBuffers[0].mDataByteSize,
         };
         inNumberFrames = outputFrames;
     } else {
