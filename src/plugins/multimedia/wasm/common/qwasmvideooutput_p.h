@@ -116,6 +116,10 @@ Q_SIGNALS:
     void orientationChanged(int rotationIndex);
 
 private:
+    void checkNetworkState();
+    void playVideoElement();
+    void videoComputeFrame(void *context);
+    void getDeviceSettings();
     bool isPlatformiOs();
     void detectIosCameraRotation();
 
