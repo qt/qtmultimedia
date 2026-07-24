@@ -133,6 +133,7 @@ Q_SIGNALS:
 
 private:
     void checkNetworkState();
+    void playVideoElement();
     void videoComputeFrame(void *context);
     void getDeviceSettings();
     bool isPlatformiOs();

@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QBuffer>
 #include <QMimeDatabase>
+#include <QPointer>
 #include <QGuiApplication>
 #include <QOpenGLContext>
 
@@ -150,6 +151,73 @@ void QWasmVideoOutput::setVideoMode(QWasmVideoOutput::WasmVideoMode mode)
     m_currentVideoMode = mode;
 }
 
+// Calls play() on the video element and handles the returned promise.
+//
+// A play() that is interrupted by a new load request (e.g. a fresh srcObject or
+// a load() call) rejects with AbortError. That rejection is benign, but if the
+// promise is left unhandled the browser reports it as an uncaught rejection.
+//
+// A play() that is refused outright is not benign, the element stays unplayable
+// and fires no further media events, so nothing else would take the player out
+// of the state it is in. Report those instead of swallowing them.
+void QWasmVideoOutput::playVideoElement()
+{
+    emscripten::val promise = m_video.call<emscripten::val>("play");
+    // Older browsers return undefined from play() instead of a Promise. Only
+    // attach handlers when we actually got a Promise back.
+    if (promise.isUndefined() || promise.isNull() || promise["then"].isUndefined())
+        return;
+
+    QPointer<QWasmVideoOutput> videoOutput(this);
+    qstdweb::Promise::adoptPromise(promise, {
+        .catchFunc = [videoOutput](emscripten::val error) {
+            if (!videoOutput || videoOutput->m_isStopped)
+                return;
+
+            // The rejection value is not guaranteed to be a DOMException, so do
+            // not assume either property is there.
+            const auto stringProperty = [&error](const char *key) {
+                return error[key].isUndefined() || error[key].isNull()
+                        ? QString()
+                        : QString::fromStdString(error[key].as<std::string>());
+            };
+            const QString errorName = stringProperty("name");
+            const QString errorMessage = stringProperty("message");
+            // The browsers word this differently and some do not mention play()
+            // at all, so keep the origin in the string the application sees.
+            const QString errorString =
+                    "video.play(): "_L1 + (errorMessage.isEmpty() ? errorName : errorMessage);
+
+            // Not being allowed to play is a policy refusal, not an interruption.
+            // The element is not sitting at a resume point, it is unplayable
+            // until the user acts, so report it regardless of what the paused
+            // attribute happens to say.
+            if (errorName == "NotAllowedError"_L1) {
+                qCWarning(qWasmMediaVideoOutput) << "video.play() not allowed:" << errorMessage;
+                emit videoOutput->readyChanged(false);
+                emit videoOutput->stateChanged(QWasmMediaPlayer::Stopped);
+                emit videoOutput->errorOccured(QMediaPlayer::AccessDeniedError, errorString);
+                return;
+            }
+
+            // Anything else is delivered a microtask late, and an AbortError from
+            // a new load request is routinely followed by a fresh play() that has
+            // already succeeded by now. Trust the element over the rejection.
+            if (!videoOutput->m_video["paused"].as<bool>()) {
+                qCDebug(qWasmMediaVideoOutput) << "video.play() rejected with" << errorName
+                                               << "but playback resumed, ignoring";
+                return;
+            }
+
+            qCWarning(qWasmMediaVideoOutput) << "video.play() rejected:" << errorName
+                                             << errorMessage;
+            emit videoOutput->readyChanged(false);
+            emit videoOutput->stateChanged(QWasmMediaPlayer::Stopped);
+            emit videoOutput->errorOccured(QMediaPlayer::ResourceError, errorString);
+        }
+    });
+}
+
 void QWasmVideoOutput::start()
 {
     if (m_video.isUndefined() || m_video.isNull()
@@ -169,7 +237,7 @@ void QWasmVideoOutput::start()
             m_video.call<void>("load");
     } break;
     case QWasmVideoOutput::SurfaceCapture: {
-        m_video.call<void>("play");
+        playVideoElement();
         emit readyChanged(true);
     } break;
     case QWasmVideoOutput::Camera: {
@@ -185,7 +253,16 @@ void QWasmVideoOutput::start()
        if (!m_connection)
             m_connection = connect(m_mediaInputStream, &JsMediaInputStream::mediaVideoStreamReady, this,
                 [=]( ) {
-                    m_video.set("srcObject", m_mediaInputStream->getMediaStream());
+                    emscripten::val newStream = m_mediaInputStream->getMediaStream();
+                    // mediaVideoStreamReady may fire again for an already-attached
+                    // stream (e.g. a restart on a still-active camera). Re-setting
+                    // srcObject would interrupt the in-flight play() and reject its
+                    // promise with AbortError, so skip it when nothing changed.
+                    if (m_video["srcObject"].equals(newStream)) {
+                        emit readyChanged(true);
+                        return;
+                    }
+                    m_video.set("srcObject", newStream);
 
                     emscripten::val stream = m_video["srcObject"];
                     if (stream.isNull() || stream.isUndefined()) { // camera  device
@@ -216,7 +293,7 @@ void QWasmVideoOutput::start()
                         }
                     }
 
-                    m_video.call<void>("play");
+                    playVideoElement();
 
                     emit readyChanged(true);
 
@@ -237,7 +314,7 @@ void QWasmVideoOutput::start()
 
     if (m_currentVideoMode != QWasmVideoOutput::Camera
         && m_currentVideoMode != QWasmVideoOutput::SurfaceCapture) {
-        m_video.call<void>("play");
+        playVideoElement();
     }
 }
 
