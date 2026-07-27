@@ -30,14 +30,14 @@ QT_BEGIN_NAMESPACE
 
     You can use QCameraDevice to list available cameras and choose which one to use.
 
-    \snippet multimedia-snippets/camera.cpp Camera selection
+    \snippet multimedia-snippets/camerasnippets.cpp Camera selection
 
     On hardware that supports it, \l QCamera lets you adjust the focus
     and zoom. The \l minimumZoomFactor and \l maximumZoomFactor
     properties provide the range of supported zoom factors. The
     \l zoomFactor property allows changing the zoom factor.
 
-    \snippet multimedia-snippets/camera.cpp Camera zoom
+    \snippet multimedia-snippets/camerasnippets.cpp Camera zoom
 
     After capturing the raw data for a camera frame, the camera hardware and
     software performs various image processing tasks to produce the final
@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
     For example, you can set the white balance (or color temperature) used
     for processing images:
 
-    \snippet multimedia-snippets/camera.cpp Camera image whitebalance
+    \snippet multimedia-snippets/camerasnippets.cpp Camera image whitebalance
 
     For more information on image processing of camera frames, see
     \l {camera_image_processing}{Camera Image Processing}.
@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
     permissions from the end-user when the application starts, and then
     activates the camera if permissions are granted.
 
-    \snippet multimedia-snippets/camera.cpp Camera permission
+    \snippet multimedia-snippets/camerasnippets.cpp Camera permission
 
     See the \l{Camera Overview}{camera overview} for more information.
 
@@ -82,27 +82,14 @@ QT_BEGIN_NAMESPACE
 
     You can use \l MediaDevices to list available cameras and choose which one to use.
 
-    \qml
-    MediaDevices {
-        id: mediaDevices
-    }
-    CaptureSession {
-        camera: Camera {
-            cameraDevice: mediaDevices.defaultVideoInput
-        }
-    }
-    \endqml
+    \snippet multimedia-snippets/camerasnippets.qml Camera selection
 
     On hardware that supports it, \l Camera lets you adjust the focus
     and zoom. The \l minimumZoomFactor and \l maximumZoomFactor
     properties provide the range of supported zoom factors. The
     \l zoomFactor property allows changing the zoom factor.
 
-    \qml
-    Camera {
-        zoomFactor: maximumZoomFactor // zoom in as much as possible
-    }
-    \endqml
+    \snippet multimedia-snippets/camerasnippets.qml Camera zoom
 
     After capturing the raw data for a camera frame, the camera hardware and
     software performs various image processing tasks to produce the final
@@ -113,12 +100,7 @@ QT_BEGIN_NAMESPACE
     For example, you can set the white balance (or color temperature) used
     for processing images:
 
-    \qml
-    Camera {
-        whiteBalanceMode: Camera.WhiteBalanceManual
-        colorTemperature: 5600
-    }
-    \endqml
+    \snippet multimedia-snippets/camerasnippets.qml Camera image whitebalance
 
     For more information on image processing of camera frames, see
     \l {camera_image_processing}{Camera Image Processing}.
@@ -131,17 +113,7 @@ QT_BEGIN_NAMESPACE
     application starts, and then activates the camera if permissions are
     granted.
 
-    \qml
-    CameraPermission {
-        id: cameraPermission
-    }
-
-    Camera {
-        active: cameraPermission.status === Qt.PermissionStatus.Granted
-    }
-
-    Component.onCompleted: cameraPermission.request()
-    \endqml
+    \snippet multimedia-snippets/camerasnippets.qml Camera permission
 
     See the \l{Camera Overview}{camera overview} for more information.
 */

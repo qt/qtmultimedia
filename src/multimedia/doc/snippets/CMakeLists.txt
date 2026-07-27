@@ -4,6 +4,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 qt_add_library(multimedia_snippets OBJECT
+    multimedia-snippets/camerasnippets.cpp
     multimedia-snippets/screencapturesnippets.cpp
     multimedia-snippets/windowcapturesnippets.cpp
 )
@@ -32,9 +33,11 @@ if(QT_FEATURE_multimedia_quick)
         VERSION 1.0
         OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/MultimediaSnippets
         QML_FILES
+            multimedia-snippets/camerasnippets.qml
             multimedia-snippets/screencapturesnippets.qml
             multimedia-snippets/windowcapturesnippets.qml
         DEPENDENCIES
+            QtCore
             QtQuick
             QtMultimedia
         NO_PLUGIN
