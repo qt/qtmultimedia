@@ -14,7 +14,7 @@ QQuickWindowCapture::QQuickWindowCapture(QObject *parent) : QWindowCapture(paren
 {
     connect(this, &QWindowCapture::maximumFrameRateChanged, this,
             [this](std::optional<qreal> frameRate) {
-        emit qmlMaximumFrameRateChanged(windowFrameRateToReal(frameRate));
+        emit QQuickWindowCapture::maximumFrameRateChanged(windowFrameRateToReal(frameRate));
     });
 }
 
