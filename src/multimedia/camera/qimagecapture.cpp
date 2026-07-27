@@ -31,9 +31,9 @@ QT_BEGIN_NAMESPACE
     It's not intended to be used alone but for accessing the media
     recording functions of other media objects, like QCamera.
 
-    \snippet multimedia-snippets/camera.cpp Camera
+    \snippet multimedia-snippets/camerasnippets.cpp Camera
 
-    \snippet multimedia-snippets/camera.cpp Camera keys
+    \snippet multimedia-snippets/camerasnippets.cpp Camera keys
 
     \sa QCamera
 */

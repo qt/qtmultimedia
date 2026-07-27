@@ -207,17 +207,17 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
 
     This example prints the name of all available cameras:
 
-    \snippet multimedia-snippets/camera.cpp Camera listing
+    \snippet multimedia-snippets/camerasnippets.cpp Camera listing
 
     A QCameraDevice can be used to construct a QCamera. The following example
     instantiates a QCamera whose camera device is named \c {mycamera}:
 
-    \snippet multimedia-snippets/camera.cpp Camera selection
+    \snippet multimedia-snippets/camerasnippets.cpp Camera selection
 
     You can also use QCameraDevice to get general information about a camera
     device such as description and physical position on the system.
 
-    \snippet multimedia-snippets/camera.cpp Camera info
+    \snippet multimedia-snippets/camerasnippets.cpp Camera info
 
     \sa QCamera
 */
