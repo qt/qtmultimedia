@@ -229,6 +229,8 @@ private slots:
     void setActive_startsAndStopsCapture();
     void setActive_isNoOp_whenStoppingCaptureThatNeverStarted();
     void setActive_isNoOp_whenAlreadyActive();
+    void setActive_restartsScreenCapture_whenStartedAgainAfterStop_data();
+    void setActive_restartsScreenCapture_whenStartedAgainAfterStop();
     void setFrameRate_updatesPropertyAndEmitsSignal();
     void setFrameRate_emitsFramesAtCorrectRate();
 
@@ -550,6 +552,58 @@ void tst_QScreenCaptureBackend::setActive_isNoOp_whenAlreadyActive()
     QVERIFY(capture.isActive());
     QCOMPARE(activeStateSpy.size(), 1);
     QVERIFY(errorsSpy.empty());
+}
+
+void tst_QScreenCaptureBackend::setActive_restartsScreenCapture_whenStartedAgainAfterStop_data()
+{
+    QTest::addColumn<QScreen *>("screen");
+
+    auto screens = QApplication::screens();
+    for (qsizetype i = 0; i < screens.size(); ++i) {
+        QByteArray rowName = u"QScreen #%1 - %2"_s
+            .arg(i)
+            .arg(screens[i]->name())
+            .toUtf8();
+        QTest::newRow(rowName.constData()) << screens[i];
+    }
+}
+
+void tst_QScreenCaptureBackend::setActive_restartsScreenCapture_whenStartedAgainAfterStop()
+{
+    QFETCH(QScreen *, screen);
+
+    constexpr int restartCount = 3;
+
+    TestVideoSink sink;
+    QScreenCapture sc;
+
+    QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
+    QSignalSpy activeStateSpy(&sc, &QScreenCapture::activeChanged);
+
+    QMediaCaptureSession session;
+    session.setScreenCapture(&sc);
+    session.setVideoSink(&sink);
+
+    sc.setScreen(screen);
+    sc.setActive(true);
+
+    // Ensure capture is actually running before stopping it
+    QVERIFY(sink.waitForFrame().isValid());
+    QVERIFY(sc.isActive());
+
+    for (int i = 0; i < restartCount; ++i) {
+        sc.setActive(false);
+        QVERIFY(!sc.isActive());
+
+        sc.setActive(true);
+
+        QVERIFY(sink.waitForFrame().isValid());
+        QVERIFY(sc.isActive());
+    }
+
+    // activeChanged fired for the initial start plus a stop/start pair per restart
+    QCOMPARE(activeStateSpy.size(), 1 + 2 * restartCount);
+    QCOMPARE(errorsSpy.size(), 0);
 }
 
 void tst_QScreenCaptureBackend::setFrameRate_updatesPropertyAndEmitsSignal()
