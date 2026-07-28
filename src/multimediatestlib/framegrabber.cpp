@@ -33,6 +33,16 @@ std::chrono::milliseconds surfaceCaptureTestTimeout()
     return std::chrono::seconds(5);
 }
 
+[[nodiscard]] static std::optional<std::chrono::milliseconds> maxFrameInterval(std::optional<qreal> frameRate)
+{
+    if (!frameRate || *frameRate <= 0)
+        return std::nullopt;
+
+    // Slightly longer than the nominal interval. More forgiving on loaded CI machines.
+    const qreal margin = isCI() ? 3.0 : 1.5;
+    return std::chrono::milliseconds(qRound64(1000.0 / *frameRate * margin));
+}
+
 static qint64 startTimeOf(const QVideoFrame &frame)
 {
     return frame.startTime();
@@ -84,13 +94,15 @@ const std::vector<VideoFrameInfo> &FrameGrabber::getFrameInfos() const
 
 std::vector<VideoFrameInfo> FrameGrabber::waitAndTakeFrameInfos(
     size_t minCount,
+    std::optional<qreal> expectedFrameRate,
     qint64 noOlderThanTime)
 {
-    return waitAndTake(m_frameInfos, minCount, noOlderThanTime);
+    return waitAndTake(m_frameInfos, minCount, expectedFrameRate, noOlderThanTime);
 }
 
 std::vector<QVideoFrame> FrameGrabber::waitAndTakeVideoFrames(
     size_t minCount,
+    std::optional<qreal> expectedFrameRate,
     qint64 noOlderThanTime)
 {
     // Holding on to QVideoFrames can stall backends that use a fixed-size
@@ -101,13 +113,14 @@ std::vector<QVideoFrame> FrameGrabber::waitAndTakeVideoFrames(
         m_videoFrames.clear();
     });
 
-    return waitAndTake(m_videoFrames, minCount, noOlderThanTime);
+    return waitAndTake(m_videoFrames, minCount, expectedFrameRate, noOlderThanTime);
 }
 
 template <typename Frame>
 std::vector<Frame> FrameGrabber::waitAndTake(
     std::vector<Frame> &frames,
     size_t minCount,
+    std::optional<qreal> expectedFrameRate,
     qint64 noOlderThanTime)
 {
     m_frameInfos.clear();
@@ -130,7 +143,14 @@ std::vector<Frame> FrameGrabber::waitAndTake(
         return frames.size() >= minCount;
     };
 
-    if (!QTest::qWaitFor(enoughFramesOrStopped, surfaceCaptureTestTimeout()))
+    // The first frame may be delayed by initialization. Beyond that, each
+    // frame is due within the frame interval.
+    std::chrono::milliseconds timeout = surfaceCaptureTestTimeout();
+    std::optional<std::chrono::milliseconds> interval = maxFrameInterval(expectedFrameRate);
+    if (interval)
+        timeout += *interval * qint64(minCount);
+
+    if (!QTest::qWaitFor(enoughFramesOrStopped, timeout))
         return {};
 
     if (m_stopped)
@@ -185,34 +205,47 @@ void FrameGrabber::resetFirstFrame()
     m_firstVideoFrame.reset();
 }
 
-std::chrono::milliseconds FrameGrabber::durationBetweenFrames(qsizetype frameCount)
+std::optional<std::chrono::milliseconds> FrameGrabber::durationBetweenFrames(
+    qsizetype frameCount,
+    std::optional<qreal> expectedFrameRate)
 {
     Q_ASSERT(frameCount > 0);
 
+    using namespace std::chrono;
+
     QElapsedTimer timer;
+    QElapsedTimer sinceLastFrame;
     qsizetype framesReceived = 0;
 
     QObject context;
     connect(this, &QVideoSink::videoFrameChanged, &context, [&]() {
         if (framesReceived++ == 0)
             timer.start();
+        sinceLastFrame.start();
     });
 
-    auto allFramesAreReceived = [&]() {
-        return framesReceived > frameCount;
+    std::optional<milliseconds> maxInterval = maxFrameInterval(expectedFrameRate);
+
+    // Fails early if the frames stop coming at the expected rate.
+    auto allFramesReceivedOrStalled = [&]() {
+        if (framesReceived > frameCount)
+            return true;
+        return maxInterval && framesReceived > 0 && sinceLastFrame.hasExpired(maxInterval->count());
     };
 
-    using namespace std::chrono;
+    // Without an expected frame rate, assume the stream runs at 1 FPS minimum.
+    // With one, the first frame gets the global timeout, and each of the rest are
+    // checked against the frame interval above.
+    milliseconds timeout = surfaceCaptureTestTimeout();
+    if (maxInterval)
+        timeout += *maxInterval * frameCount;
+    else
+        timeout = isCI() ? 10s * frameCount : 2s * frameCount;
 
-    // Assuming the stream runs at 1 FPS minimum. Could shorten
-    // the timeout if we checked expected framerate.
-    auto timeout = 2s * frameCount;
-    if (isCI())
-        timeout *= 5;
+    if (!QTest::qWaitFor(allFramesReceivedOrStalled, timeout) || framesReceived <= frameCount)
+        return std::nullopt;
 
-    return QTest::qWaitFor(allFramesAreReceived, timeout)
-            ? milliseconds(timer.elapsed() / frameCount)
-            : 0ms;
+    return milliseconds(timer.elapsed() / frameCount);
 }
 
 bool FrameGrabber::isStopped() const

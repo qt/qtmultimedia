@@ -56,11 +56,15 @@ public:
     /*!
         Wait for at least \a minCount frames that are no older than noOlderThanTime.
 
+        If \a expectedFrameRate is given, the timeout is extended by one frame interval per
+        frame, rather than being a flat global timeout.
+
         Returns empty if not enough frames arrived, or if grabber was stopped before global timeout
         elapsed.
     */
     [[nodiscard]] std::vector<VideoFrameInfo> waitAndTakeFrameInfos(
         size_t minCount,
+        std::optional<qreal> expectedFrameRate = std::nullopt,
         qint64 noOlderThanTime = 0);
 
     /*!
@@ -69,6 +73,7 @@ public:
     */
     [[nodiscard]] std::vector<QVideoFrame> waitAndTakeVideoFrames(
         size_t minCount,
+        std::optional<qreal> expectedFrameRate = std::nullopt,
         qint64 noOlderThanTime = 0);
 
     /*!
@@ -92,7 +97,18 @@ public:
 
     void setRetainFirstVideoFrame(bool retain);
 
-    [[nodiscard]] std::chrono::milliseconds durationBetweenFrames(qsizetype frameCount = 1);
+    /*!
+        Measures the average duration between \a frameCount consecutive frames.
+
+        If \a expectedFrameRate is given, a frame that takes significantly longer than
+        the frame interval to arrive ends the wait early. The first frame is still
+        allowed the global timeout, since backend initialization can delay it.
+
+        Returns std::nullopt if a frame stalled, or if not enough frames arrived.
+    */
+    [[nodiscard]] std::optional<std::chrono::milliseconds> durationBetweenFrames(
+        qsizetype frameCount = 1,
+        std::optional<qreal> expectedFrameRate = std::nullopt);
 
     [[nodiscard]] bool isStopped() const;
 
@@ -114,6 +130,7 @@ private:
     [[nodiscard]] std::vector<Frame> waitAndTake(
         std::vector<Frame> &frames,
         size_t minCount,
+        std::optional<qreal> expectedFrameRate,
         qint64 noOlderThanTime);
 
     std::vector<VideoFrameInfo> m_frameInfos;

@@ -858,11 +858,12 @@ void tst_QScreenCaptureBackend::setFrameRate_emitsFramesAtCorrectRate()
         slopFactor = 0.2;
 
     // Check framerate is roughly 1fps
-    auto durationBetweenFrames = grabber.durationBetweenFrames(3);
+    std::optional<std::chrono::milliseconds> durationBetweenFrames =
+        grabber.durationBetweenFrames(3, newFrameRate);
     QVERIFY2(
-        durationBetweenFrames > 0ms,
+        durationBetweenFrames.has_value(),
         "Did not receive enough QVideoFrames to measure framerate");
-    const qreal actualFps = 1000.0 / durationBetweenFrames.count();
+    const qreal actualFps = 1000.0 / durationBetweenFrames->count();
     QCOMPARE_LT(actualFps, newFrameRate * (1 + slopFactor));
 }
 

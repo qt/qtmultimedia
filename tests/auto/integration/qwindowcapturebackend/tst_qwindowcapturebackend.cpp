@@ -665,11 +665,12 @@ private slots:
 
         // Check framerate is roughly 1fps
         using namespace std::chrono;
-        auto durationBetweenFrames = fixture.m_grabber.durationBetweenFrames(3);
+        std::optional<std::chrono::milliseconds> durationBetweenFrames =
+            fixture.m_grabber.durationBetweenFrames(3, newFrameRate);
         QVERIFY2(
-            durationBetweenFrames > 0ms,
+            durationBetweenFrames.has_value(),
             "Did not receive enough QVideoFrames to measure framerate");
-        const qreal actualFps = 1000.0 / durationBetweenFrames.count();
+        const qreal actualFps = 1000.0 / durationBetweenFrames->count();
         QCOMPARE_LT(actualFps, newFrameRate * (1 + slopFactor));
     }
 
@@ -760,7 +761,8 @@ private slots:
 
         QVERIFY(fixture.start());
 
-        const std::vector<VideoFrameInfo> frames = fixture.m_grabber.waitAndTakeFrameInfos(6);
+        const std::vector<VideoFrameInfo> frames =
+            fixture.m_grabber.waitAndTakeFrameInfos(6, frameRate);
         QVERIFY2(
             frames.size() >= 2,
             "Did not receive enough QVideoFrames to measure presentation time spacing");
