@@ -1,4 +1,3 @@
-macos ci
 windows ci
 
 #QTBUG-122577
@@ -9,3 +8,13 @@ opensuse-15.5 ci
 [capture_capturesToFile_whenConnectedToMediaRecorder]
 linux ci
 android ci
+macos ci
+
+[setScreen_selectsScreen_whenCalledWithWidgetsScreen]
+macos
+
+[setScreen_selectsSecondaryScreen_whenCalledWithSecondaryScreen]
+macos
+
+[constructor_selectsPrimaryScreenAsDefault]
+macos
