@@ -17,6 +17,7 @@
 #endif
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
@@ -30,16 +31,19 @@ using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::microseconds;
 
-class tst_QWindowCaptureBackend : public QObject
+class tst_QWindowCaptureBackend : public QIntegrationTestBase
 {
     Q_OBJECT
 
+private:
     bool m_skipOddSizedWindows = false;
     [[nodiscard]] bool skipOddSizedWindows() const { return m_skipOddSizedWindows; }
 
 private slots:
     void initTestCase()
     {
+        initIntegrationTestCase();
+
 #ifdef Q_OS_ANDROID
      QSKIP("Feature does not work on Android");
 #endif

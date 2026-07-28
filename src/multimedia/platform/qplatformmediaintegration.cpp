@@ -23,6 +23,8 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qmutex.h>
 
+#include <optional>
+
 namespace {
 
 class QFallbackIntegration : public QPlatformMediaIntegration
@@ -42,14 +44,17 @@ Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, loader,
 
 static const auto FFmpegBackend = QStringLiteral("ffmpeg");
 
-[[nodiscard]] static QString &preferredBackend()
+[[nodiscard]] static std::optional<QString> &requestedBackend()
 {
-    static QString backend;
+    static std::optional<QString> backend;
     return backend;
 }
 
-static QString defaultBackend(const QStringList &backends)
+[[nodiscard]] static QString defaultBackend(const QStringList &backends)
 {
+    if (backends.isEmpty())
+        return {};
+
 #ifdef QT_DEFAULT_MEDIA_BACKEND
     auto backend = QString::fromUtf8(QT_DEFAULT_MEDIA_BACKEND);
     if (backends.contains(backend))
@@ -83,9 +88,13 @@ struct InstanceHolder
             qCCritical(qLcMediaPlugin()) << "Qt Multimedia requires a QCoreApplication instance";
 
         QStringList backends = QPlatformMediaIntegration::availableBackends();
-        QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND")).toLower();
-        if (backend.isEmpty() && backends.contains(preferredBackend()))
-            backend = preferredBackend();
+
+        // A backend explicitly requested via setBackend() takes precedence over
+        // the QT_MEDIA_BACKEND environment variable and the built-in default.
+        const std::optional<QString> &requested = requestedBackend();
+        QString backend = requested ? *requested : QString();
+        if (backend.isEmpty())
+            backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND")).toLower();
         if (backend.isEmpty() && !backends.isEmpty())
             backend = defaultBackend(backends);
 
@@ -98,12 +107,21 @@ struct InstanceHolder
 
         backends.removeAll(backend);
 
-        for (const QString &backend : std::as_const(backends)) {
-            qCDebug(qLcMediaPlugin) << "Loading alternative backend" << backend;
-            instance.reset(qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(),
-                                                                                        backend));
-            if (instance)
-                return;
+        // A backend requested via setBackend() disables the fallback to other
+        // backends.
+        if (!requested) {
+            for (const QString &backend : std::as_const(backends)) {
+                qCDebug(qLcMediaPlugin) << "Loading alternative backend" << backend;
+                instance.reset(qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(
+                    loader(),
+                    backend));
+                if (instance)
+                    return;
+            }
+        } else if (!backend.isEmpty()) {
+            qCWarning(qLcMediaPlugin)
+                << "Media backend" << backend
+                << "failed to load and was explicitly requested; no media backend loaded";
         }
 
         // No backends found. Use fallback to support basic functionality
@@ -238,14 +256,22 @@ QStringList QPlatformMediaIntegration::availableBackends()
     return list;
 }
 
-// Must be called before any backend is established.
-// Sets the backend to be used when the QT_MEDIA_BACKEND environment variable is not set,
-// overriding the built-in default. Must be called before any media backend
-// is initialized.
-void QPlatformMediaIntegration::setPreferredBackend(const QString &backend)
+// Returns the name of the backend that would be loaded by default on this
+// platform when neither the QT_MEDIA_BACKEND environment variable nor
+// setBackend() selects one. Returns an empty string if no backend is available.
+QString QPlatformMediaIntegration::defaultBackend()
+{
+    return ::defaultBackend(availableBackends());
+}
+
+// Selects the media backend to load, taking precedence over both the
+// QT_MEDIA_BACKEND environment variable and the built-in default. No fallback to
+// other available backends is performed if the requested backend fails to load.
+// Must be called before any media backend is initialized.
+void QPlatformMediaIntegration::setBackend(const QString &backend)
 {
     Q_ASSERT(!s_instanceHolder.exists());
-    preferredBackend() = backend.toLower();
+    requestedBackend() = backend.toLower();
 }
 
 QLatin1String QPlatformMediaIntegration::name()

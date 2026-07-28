@@ -4,10 +4,17 @@
 import QtQuick
 import QtMultimedia
 import QtTest
+import QtMultimediaTest
 
 TestCase {
     id: testCase
     name: "WindowCapture"
+
+    function initTestCase() {
+        verify(
+            MediaBackendUtils.isMediaBackendPluginLoaded,
+            "No media backend plugin was loaded; the fallback integration was used.")
+    }
 
     Component {
         id: signalSpyComponent

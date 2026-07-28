@@ -6,6 +6,7 @@
 #include <QtMultimedia/qaudiodecoder.h>
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtMultimediaTestLib/private/mediafileselector_p.h>
 
 #include <QtTest/qtest.h>
@@ -36,7 +37,7 @@ constexpr qint64 testFileDurationUs = qint64(testFileDuration.count());
  it may be less stable.
 */
 
-class tst_QAudioDecoderBackend : public QObject
+class tst_QAudioDecoderBackend : public QIntegrationTestBase
 {
     Q_OBJECT
 public slots:
@@ -78,6 +79,8 @@ void tst_QAudioDecoderBackend::init()
 
 void tst_QAudioDecoderBackend::initTestCase()
 {
+    initIntegrationTestCase();
+
     QAudioDecoder d;
     if (!d.isSupported())
         QSKIP("Audio decoder service is not available");

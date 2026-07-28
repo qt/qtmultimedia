@@ -61,5 +61,5 @@ void QtMultimediaPrivateQmlHelper::applyPreferredBackendToEnvironment()
 
     const QString saved = savedPreferredBackend();
     if (!saved.isEmpty())
-        QPlatformMediaIntegration::setPreferredBackend(saved);
+        QPlatformMediaIntegration::setBackend(saved);
 }

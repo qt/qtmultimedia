@@ -4,9 +4,16 @@
 import QtQuick
 import QtMultimedia
 import QtTest
+import QtMultimediaTest
 
 TestCase {
     name: "SoundEffect"
+
+    function initTestCase() {
+        verify(
+            MediaBackendUtils.isMediaBackendPluginLoaded,
+            "No media backend plugin was loaded; the fallback integration was used.")
+    }
 
     SoundEffect {
         id: effect

@@ -13,5 +13,6 @@ qt_internal_multimedia_add_test(tst_qquickscreencapturebackend
         Qt::Gui
         Qt::MultimediaPrivate
         Qt::MultimediaQuickPrivate
+        Qt::MultimediaTestLibPrivate
         Qt::QuickPrivate
 )

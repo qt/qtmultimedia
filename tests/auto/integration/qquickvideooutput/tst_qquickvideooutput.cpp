@@ -12,6 +12,8 @@
 #include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/qvideosink.h>
 #include <QtMultimediaQuick/private/qquickvideooutput_p.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtQml/qqmlcomponent.h>
 #include <QtQml/qqmlengine.h>
 #include <QtQuick/qquickview.h>
@@ -31,7 +33,7 @@ void presentDummyFrame(QVideoSink *sink, const QSize &size)
     }
 }
 
-class tst_QQuickVideoOutput : public QObject
+class tst_QQuickVideoOutput : public QIntegrationTestBase
 {
     Q_OBJECT
 public:
@@ -73,6 +75,8 @@ tst_QQuickVideoOutput::tst_QQuickVideoOutput() = default;
 
 void tst_QQuickVideoOutput::initTestCase()
 {
+    initIntegrationTestCase();
+
     // We initialize the mapping vars here
     m_mappingComponent = new QQmlComponent(&m_engine);
     m_mappingComponent->loadUrl(QUrl("qrc:/main.qml"));

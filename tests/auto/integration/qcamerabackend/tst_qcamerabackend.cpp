@@ -30,6 +30,7 @@
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 
 #include <QtTest/qtest.h>
 #include <QtTest/qsignalspy.h>
@@ -62,7 +63,7 @@ struct VCamParameters
 static constexpr std::chrono::milliseconds VCamProcessTimeout = 15s;
 static constexpr std::chrono::milliseconds VCamDetectTimeout = 5s;
 
-class tst_QCameraBackend: public QObject
+class tst_QCameraBackend : public QIntegrationTestBase
 {
     Q_OBJECT
 
@@ -165,6 +166,8 @@ public Q_SLOTS:
 
 void tst_QCameraBackend::initTestCase()
 {
+    initIntegrationTestCase();
+
 #if QT_CONFIG(process)
     m_vcamPath = qgetenv("VCAM_PATH");
 #endif

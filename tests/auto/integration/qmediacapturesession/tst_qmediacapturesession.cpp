@@ -28,6 +28,7 @@
 #include <QtMultimedia/qwindowcapture.h>
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 
 #include <QtMultimediaWidgets/qvideowidget.h>
 
@@ -35,7 +36,6 @@
 #include <QtTest/qtest.h>
 
 using namespace Qt::StringLiterals;
-
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 
@@ -46,11 +46,15 @@ using namespace Qt::StringLiterals;
  it may be less stable.
 */
 
-class tst_QMediaCaptureSession: public QObject
+class tst_QMediaCaptureSession : public QIntegrationTestBase
 {
     Q_OBJECT
 
 private slots:
+    void initTestCase()
+    {
+        initIntegrationTestCase();
+    }
 
     void testAudioMute();
     void stress_test_setup_and_teardown();
