@@ -241,6 +241,191 @@ private slots:
                                      // application screens.
 };
 
+void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawingOffset,
+                                        const QSize &expectedSize,
+                                        std::function<void(QScreenCapture &)> scModifier)
+{
+    TestVideoSink sink;
+    QScreenCapture sc;
+
+    QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
+
+    if (scModifier)
+        scModifier(sc);
+
+    QMediaCaptureSession session;
+
+    session.setScreenCapture(&sc);
+    session.setVideoSink(&sink);
+
+    const auto pixelRatio = widget.devicePixelRatio();
+
+    sc.setActive(true);
+
+    QVERIFY(sc.isActive());
+
+#ifdef Q_OS_LINUX
+    // In some cases, on Linux the window seems to be of a wrong color after appearance,
+    // the delay helps.
+    // TODO: remove the delay
+    QTest::qWait(2000);
+#endif
+    // Let's wait for the first frame to address a potential initialization delay.
+    // In practice, the delay varies between the platform and may randomly get increased.
+    {
+        const auto firstFrame = sink.waitForFrame();
+        QVERIFY(firstFrame.isValid());
+    }
+
+    sink.setStoreImagesEnabled();
+
+    const int delay = 200;
+
+    QTest::qWait(delay);
+    const auto expectedFramesCount =
+            delay / static_cast<int>(1000 / std::min(widget.screen()->refreshRate(), 60.));
+    const int framesCount = static_cast<int>(sink.images().size());
+    QCOMPARE_LE(framesCount, expectedFramesCount + 2);
+    QCOMPARE_GE(framesCount, 1);
+
+    for (const auto &image : sink.images()) {
+        auto pixelColor = [&drawingOffset, pixelRatio, &image](int x, int y) {
+            return image.pixelColor((QPoint(x, y) + drawingOffset) * pixelRatio).toRgb();
+        };
+        const int capturedWidth = qRound(image.size().width() / pixelRatio);
+        const int capturedHeight = qRound(image.size().height() / pixelRatio);
+        QCOMPARE(QSize(capturedWidth, capturedHeight), expectedSize);
+        QCOMPARE(pixelColor(0, 0), QColor(0xFF, 0, 0));
+
+        QCOMPARE(pixelColor(39, 50), QColor(0xFF, 0, 0));
+        QCOMPARE(pixelColor(40, 49), QColor(0xFF, 0, 0));
+
+        QCOMPARE(pixelColor(40, 50), QColor(0, 0, 0xFF));
+    }
+
+    QCOMPARE(errorsSpy.size(), 0);
+}
+
+void tst_QScreenCaptureBackend::removeWhileCapture(
+    std::function<void(QScreenCapture &)> scModifier, std::function<void()> deleter)
+{
+    QVideoSink sink;
+    QScreenCapture sc;
+
+    QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
+
+    QMediaCaptureSession session;
+
+    if (scModifier)
+        scModifier(sc);
+
+    session.setScreenCapture(&sc);
+    session.setVideoSink(&sink);
+
+    sc.setActive(true);
+
+    QTest::qWait(300);
+
+    QCOMPARE(errorsSpy.size(), 0);
+
+    if (deleter)
+        deleter();
+
+    QTest::qWait(100);
+
+    QSignalSpy framesSpy(&sink, &QVideoSink::videoFrameChanged);
+
+    QTest::qWait(100);
+
+    QCOMPARE(errorsSpy.size(), 1);
+    QCOMPARE(errorsSpy.front().front().value<QScreenCapture::Error>(),
+             QScreenCapture::CaptureFailed);
+    QVERIFY2(!errorsSpy.front().back().value<QString>().isEmpty(),
+             "Expected not empty error description");
+
+    QVERIFY2(framesSpy.empty(), "No frames expected after screen removal");
+}
+
+int getStatusBarHeight([[maybe_unused]] const qreal pixelRatio = 1)
+{
+#ifdef Q_OS_ANDROID
+
+    using namespace QtJniTypes;
+
+    static int statusBarHeight = -1;
+
+    if (statusBarHeight > -1)
+        return statusBarHeight;
+
+    auto activity = QNativeInterface::QAndroidApplication::context();
+    auto window = activity.callMethod<Window>("getWindow");
+    if (window.isValid()) {
+        auto decorView = window.callMethod<View>("getDecorView");
+        if (decorView.isValid()) {
+            auto rootInsets = decorView.callMethod<WindowInsets>("getRootWindowInsets");
+            if (rootInsets.isValid()) {
+                if (QNativeInterface::QAndroidApplication::sdkVersion() >= 30) {
+                    int windowInsetsType = WindowInsetsType::callStaticMethod<jint>("statusBars");
+                    auto insets = rootInsets.callMethod<Insets>(
+                            "getInsetsIgnoringVisibility", windowInsetsType);
+                    if (rootInsets.isValid())
+                        statusBarHeight = insets.getField<jint>("top");
+                } else {
+                    statusBarHeight = rootInsets.callMethod<jint>("getStableInsetTop");
+                }
+            }
+        }
+    }
+
+    if (statusBarHeight == -1) {
+        qWarning() << "Failed to get status bar height, falling back to zero.";
+        return 0;
+    }
+
+    if (pixelRatio != 0)
+        statusBarHeight /= pixelRatio;
+
+    return statusBarHeight;
+#else
+    return 0;
+#endif
+}
+
+void tst_QScreenCaptureBackend::initTestCase()
+{
+#ifdef Q_OS_ANDROID
+    // QTBUG-132249:
+    // Security Popup can be automatically accepted with adb command:
+    // "adb shell appops set org.qtproject.example.tst_qscreencapturebackend PROJECT_MEDIA allow"
+    // Need to find a way to call it by androidtestrunner after installation and before running the test
+    QSKIP("Skip on Android; There is a security popup that need to be accepted");
+#endif
+#if defined(Q_OS_LINUX)
+    if (isCI() && qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
+        QSKIP("Skip on wayland; to be fixed");
+#endif
+
+    if (!QApplication::primaryScreen())
+        QSKIP("No screens found");
+
+#ifdef Q_OS_MACOS
+    if (isCI()) {
+        // Window capturing requires screen capture permissions on macOS. Without them,
+        // none of the tests can succeed, so fail here to abort the entire test run.
+        QVERIFY2(
+            QAVFHelpers::checkMacOsScreenCapturePermissions(),
+            "Missing screen capture permissions. Tests are not expected to succeed.");
+    } else if (!QAVFHelpers::checkMacOsScreenCapturePermissions()) {
+        QAVFHelpers::requestMacOsScreenCapturePermissions();
+        QFAIL("Missing screen capture permissions. Grant permissions and restart test.");
+    }
+#endif
+
+    QScreenCapture sc;
+    if (sc.error() == QScreenCapture::CapturingNotSupported)
+        QSKIP("Screen capturing not supported");
+}
+
 void tst_QScreenCaptureBackend::isActive_returnsFalse_whenNotStarted()
 {
     QScreenCapture capture;
@@ -437,191 +622,6 @@ void tst_QScreenCaptureBackend::setFrameRate_emitsFramesAtCorrectRate()
         "Did not receive enough QVideoFrames to measure framerate");
     const qreal actualFps = 1000.0 / durationBetweenFrames.count();
     QCOMPARE_LT(actualFps, newFrameRate * (1 + slopFactor));
-}
-
-void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawingOffset,
-                                            const QSize &expectedSize,
-                                            std::function<void(QScreenCapture &)> scModifier)
-{
-    TestVideoSink sink;
-    QScreenCapture sc;
-
-    QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
-
-    if (scModifier)
-        scModifier(sc);
-
-    QMediaCaptureSession session;
-
-    session.setScreenCapture(&sc);
-    session.setVideoSink(&sink);
-
-    const auto pixelRatio = widget.devicePixelRatio();
-
-    sc.setActive(true);
-
-    QVERIFY(sc.isActive());
-
-#ifdef Q_OS_LINUX
-    // In some cases, on Linux the window seems to be of a wrong color after appearance,
-    // the delay helps.
-    // TODO: remove the delay
-    QTest::qWait(2000);
-#endif
-    // Let's wait for the first frame to address a potential initialization delay.
-    // In practice, the delay varies between the platform and may randomly get increased.
-    {
-        const auto firstFrame = sink.waitForFrame();
-        QVERIFY(firstFrame.isValid());
-    }
-
-    sink.setStoreImagesEnabled();
-
-    const int delay = 200;
-
-    QTest::qWait(delay);
-    const auto expectedFramesCount =
-            delay / static_cast<int>(1000 / std::min(widget.screen()->refreshRate(), 60.));
-    const int framesCount = static_cast<int>(sink.images().size());
-    QCOMPARE_LE(framesCount, expectedFramesCount + 2);
-    QCOMPARE_GE(framesCount, 1);
-
-    for (const auto &image : sink.images()) {
-        auto pixelColor = [&drawingOffset, pixelRatio, &image](int x, int y) {
-            return image.pixelColor((QPoint(x, y) + drawingOffset) * pixelRatio).toRgb();
-        };
-        const int capturedWidth = qRound(image.size().width() / pixelRatio);
-        const int capturedHeight = qRound(image.size().height() / pixelRatio);
-        QCOMPARE(QSize(capturedWidth, capturedHeight), expectedSize);
-        QCOMPARE(pixelColor(0, 0), QColor(0xFF, 0, 0));
-
-        QCOMPARE(pixelColor(39, 50), QColor(0xFF, 0, 0));
-        QCOMPARE(pixelColor(40, 49), QColor(0xFF, 0, 0));
-
-        QCOMPARE(pixelColor(40, 50), QColor(0, 0, 0xFF));
-    }
-
-    QCOMPARE(errorsSpy.size(), 0);
-}
-
-void tst_QScreenCaptureBackend::removeWhileCapture(
-        std::function<void(QScreenCapture &)> scModifier, std::function<void()> deleter)
-{
-    QVideoSink sink;
-    QScreenCapture sc;
-
-    QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
-
-    QMediaCaptureSession session;
-
-    if (scModifier)
-        scModifier(sc);
-
-    session.setScreenCapture(&sc);
-    session.setVideoSink(&sink);
-
-    sc.setActive(true);
-
-    QTest::qWait(300);
-
-    QCOMPARE(errorsSpy.size(), 0);
-
-    if (deleter)
-        deleter();
-
-    QTest::qWait(100);
-
-    QSignalSpy framesSpy(&sink, &QVideoSink::videoFrameChanged);
-
-    QTest::qWait(100);
-
-    QCOMPARE(errorsSpy.size(), 1);
-    QCOMPARE(errorsSpy.front().front().value<QScreenCapture::Error>(),
-             QScreenCapture::CaptureFailed);
-    QVERIFY2(!errorsSpy.front().back().value<QString>().isEmpty(),
-             "Expected not empty error description");
-
-    QVERIFY2(framesSpy.empty(), "No frames expected after screen removal");
-}
-
-int getStatusBarHeight([[maybe_unused]] const qreal pixelRatio = 1)
-{
-#ifdef Q_OS_ANDROID
-
-    using namespace QtJniTypes;
-
-    static int statusBarHeight = -1;
-
-    if (statusBarHeight > -1)
-        return statusBarHeight;
-
-    auto activity = QNativeInterface::QAndroidApplication::context();
-    auto window = activity.callMethod<Window>("getWindow");
-    if (window.isValid()) {
-        auto decorView = window.callMethod<View>("getDecorView");
-        if (decorView.isValid()) {
-            auto rootInsets = decorView.callMethod<WindowInsets>("getRootWindowInsets");
-            if (rootInsets.isValid()) {
-                if (QNativeInterface::QAndroidApplication::sdkVersion() >= 30) {
-                    int windowInsetsType = WindowInsetsType::callStaticMethod<jint>("statusBars");
-                    auto insets = rootInsets.callMethod<Insets>(
-                        "getInsetsIgnoringVisibility", windowInsetsType);
-                    if (rootInsets.isValid())
-                        statusBarHeight = insets.getField<jint>("top");
-                } else {
-                    statusBarHeight = rootInsets.callMethod<jint>("getStableInsetTop");
-                }
-            }
-        }
-    }
-
-    if (statusBarHeight == -1) {
-        qWarning() << "Failed to get status bar height, falling back to zero.";
-        return 0;
-    }
-
-    if (pixelRatio != 0)
-        statusBarHeight /= pixelRatio;
-
-    return statusBarHeight;
-#else
-    return 0;
-#endif
-}
-
-void tst_QScreenCaptureBackend::initTestCase()
-{
-#ifdef Q_OS_ANDROID
-    // QTBUG-132249:
-    // Security Popup can be automatically accepted with adb command:
-    // "adb shell appops set org.qtproject.example.tst_qscreencapturebackend PROJECT_MEDIA allow"
-    // Need to find a way to call it by androidtestrunner after installation and before running the test
-    QSKIP("Skip on Android; There is a security popup that need to be accepted");
-#endif
-#if defined(Q_OS_LINUX)
-    if (isCI() && qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
-        QSKIP("Skip on wayland; to be fixed");
-#endif
-
-    if (!QApplication::primaryScreen())
-        QSKIP("No screens found");
-
-#ifdef Q_OS_MACOS
-    if (isCI()) {
-        // Window capturing requires screen capture permissions on macOS. Without them,
-        // none of the tests can succeed, so fail here to abort the entire test run.
-        QVERIFY2(
-            QAVFHelpers::checkMacOsScreenCapturePermissions(),
-            "Missing screen capture permissions. Tests are not expected to succeed.");
-    } else if (!QAVFHelpers::checkMacOsScreenCapturePermissions()) {
-        QAVFHelpers::requestMacOsScreenCapturePermissions();
-        QFAIL("Missing screen capture permissions. Grant permissions and restart test.");
-    }
-#endif
-
-    QScreenCapture sc;
-    if (sc.error() == QScreenCapture::CapturingNotSupported)
-        QSKIP("Screen capturing not supported");
 }
 
 void tst_QScreenCaptureBackend::setScreen_selectsScreen_whenCalledWithWidgetsScreen()
