@@ -220,7 +220,15 @@ class tst_QScreenCaptureBackend : public QObject
 
 private slots:
     void initTestCase();
+
+    void isActive_returnsFalse_whenNotStarted();
+    void screen_isNull_whenNotSet();
+    void error_isNoError_whenNotStarted();
+    void screenCapture_returnsSession_whenAddedToSession();
+
     void setActive_startsAndStopsCapture();
+    void setActive_isNoOp_whenStoppingCaptureThatNeverStarted();
+    void setActive_isNoOp_whenAlreadyActive();
     void setFrameRate_updatesPropertyAndEmitsSignal();
     void setFrameRate_emitsFramesAtCorrectRate();
 
@@ -232,6 +240,36 @@ private slots:
     void removeScreenWhileCapture(); // Keep the test last defined. TODO: find a way to restore
                                      // application screens.
 };
+
+void tst_QScreenCaptureBackend::isActive_returnsFalse_whenNotStarted()
+{
+    QScreenCapture capture;
+    QVERIFY(!capture.isActive());
+}
+
+void tst_QScreenCaptureBackend::screen_isNull_whenNotSet()
+{
+    QScreenCapture capture;
+    QCOMPARE(capture.screen(), nullptr);
+}
+
+void tst_QScreenCaptureBackend::error_isNoError_whenNotStarted()
+{
+    QScreenCapture capture;
+    QCOMPARE(capture.error(), QScreenCapture::Error::NoError);
+    QCOMPARE(capture.errorString(), "");
+}
+
+void tst_QScreenCaptureBackend::screenCapture_returnsSession_whenAddedToSession()
+{
+    QScreenCapture capture;
+    QCOMPARE(capture.captureSession(), nullptr);
+
+    QMediaCaptureSession session;
+    session.setScreenCapture(&capture);
+
+    QCOMPARE(capture.captureSession(), &session);
+}
 
 void tst_QScreenCaptureBackend::setActive_startsAndStopsCapture()
 {
@@ -290,6 +328,43 @@ void tst_QScreenCaptureBackend::setActive_startsAndStopsCapture()
         QCOMPARE(activeStateSpy.size(), 0);
         QCOMPARE(errorsSpy.size(), 0);
     }
+}
+
+void tst_QScreenCaptureBackend::setActive_isNoOp_whenStoppingCaptureThatNeverStarted()
+{
+    QScreenCapture capture;
+
+    QSignalSpy activeStateSpy(&capture, &QScreenCapture::activeChanged);
+
+    QVERIFY(!capture.isActive());
+
+    capture.setActive(false);
+
+    QVERIFY(!capture.isActive());
+    QCOMPARE(activeStateSpy.count(), 0);
+}
+
+void tst_QScreenCaptureBackend::setActive_isNoOp_whenAlreadyActive()
+{
+    QScreenCapture capture;
+
+    QSignalSpy errorsSpy(&capture, &QScreenCapture::errorOccurred);
+    QSignalSpy activeStateSpy(&capture, &QScreenCapture::activeChanged);
+
+    QMediaCaptureSession session;
+    session.setScreenCapture(&capture);
+
+    capture.setActive(true);
+    QVERIFY(capture.isActive());
+    QCOMPARE(activeStateSpy.size(), 1);
+    QVERIFY(errorsSpy.empty());
+
+    // Activating an already-active capture should not emit activeChanged again.
+    capture.setActive(true);
+
+    QVERIFY(capture.isActive());
+    QCOMPARE(activeStateSpy.size(), 1);
+    QVERIFY(errorsSpy.empty());
 }
 
 void tst_QScreenCaptureBackend::setFrameRate_updatesPropertyAndEmitsSignal()
