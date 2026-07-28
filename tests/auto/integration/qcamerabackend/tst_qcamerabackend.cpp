@@ -147,7 +147,7 @@ public Q_SLOTS:
             && surfaceFormat.frameSize() == cameraFormat.resolution()) {
             formatMismatch = 0;
 #endif
-#ifdef Q_OS_OHOS
+#ifdef Q_OS_HARMONY
         } else if (surfaceFormat.pixelFormat() == QVideoFrameFormat::Format_RGBA8888
             && (cameraFormat.pixelFormat() == QVideoFrameFormat::Format_NV12
                 || cameraFormat.pixelFormat() == QVideoFrameFormat::Format_NV21)
