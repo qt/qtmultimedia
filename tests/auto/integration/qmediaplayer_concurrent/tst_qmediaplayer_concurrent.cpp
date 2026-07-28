@@ -10,6 +10,7 @@
 #include <QtMultimedia/qmediaplayer.h>
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtMultimediaTestLib/private/testvideosink_p.h>
 
 #include <QtTest/QtTest>
@@ -20,11 +21,15 @@ using namespace std::chrono_literals;
 
 using namespace Qt::StringLiterals;
 
-class tst_qmediaplayer_concurrent : public QObject
+class tst_qmediaplayer_concurrent : public QIntegrationTestBase
 {
     Q_OBJECT
 
 private Q_SLOTS:
+    void initTestCase()
+    {
+        initIntegrationTestCase();
+    }
 
     // Verify that QMediaPlayer plays sound and does not cause asserts when
     // QMediaPlayer is constructed on worker thread before media backend is initialized.

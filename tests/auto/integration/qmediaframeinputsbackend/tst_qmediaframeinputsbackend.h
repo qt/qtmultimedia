@@ -6,9 +6,11 @@
 
 #include <QObject>
 
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+
 QT_BEGIN_NAMESPACE
 
-class tst_QMediaFrameInputsBackend : public QObject
+class tst_QMediaFrameInputsBackend : public QIntegrationTestBase
 {
     Q_OBJECT
 

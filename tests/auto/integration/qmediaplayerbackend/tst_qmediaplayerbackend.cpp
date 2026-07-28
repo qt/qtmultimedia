@@ -30,6 +30,7 @@
 #include <QtMultimediaQuick/private/qquickvideooutput_p.h>
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtMultimediaTestLib/private/mediafileselector_p.h>
 #include <QtMultimediaTestLib/private/qsequentialfileadaptor_p.h>
 
@@ -93,7 +94,7 @@ auto findSimilarColorIndex(const Colors &colors, QRgb color)
  it may be less stable.
 */
 
-class tst_QMediaPlayerBackend : public QObject
+class tst_QMediaPlayerBackend : public QIntegrationTestBase
 {
     Q_OBJECT
 public slots:
@@ -398,6 +399,8 @@ bool tst_QMediaPlayerBackend::canCreateRtpStream() const
 
 void tst_QMediaPlayerBackend::initTestCase()
 {
+    initIntegrationTestCase();
+
     if (qEnvironmentVariable("COIN_PLATFORM_ID") == "macos-15-x86_64-tests")
         QSKIP("Skipping test on macOS 15 x86_64, as it's flaky on CI");
 

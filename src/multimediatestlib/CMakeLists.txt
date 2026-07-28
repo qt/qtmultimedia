@@ -9,6 +9,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
         capturesessionfixture_p.h capturesessionfixture.cpp
         framegenerator_p.h framegenerator.cpp
         mediabackendutils_p.h
+        qintegrationtestbase_p.h qintegrationtestbase.cpp
         mediafileselector_p.h
         formatutils_p.h formatutils.cpp
         mediainfo_p.h

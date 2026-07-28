@@ -7,6 +7,7 @@
 
 #include <QtMultimediaTestLib/private/formatutils_p.h>
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtMultimediaTestLib/private/osdetection_p.h>
 
 #include <QtTest/qtest.h>
@@ -692,11 +693,15 @@ QString enumToString(T enumValue)
             .arg(metaEnum.scope(), metaEnum.name(), metaEnum.valueToKey(qToUnderlying(enumValue)));
 }
 
-class tst_qmediaformatbackend : public QObject
+class tst_qmediaformatbackend : public QIntegrationTestBase
 {
     Q_OBJECT
 
 private slots:
+    void initTestCase()
+    {
+        initIntegrationTestCase();
+    }
 
     void isSupported_returnsTrue_whenFormatAndVideoCodecIsSupported_data()
     {

@@ -13,6 +13,7 @@ qt_internal_multimedia_add_test(tst_qquickvideooutput
         Qt::Gui
         Qt::MultimediaPrivate
         Qt::MultimediaQuickPrivate
+        Qt::MultimediaTestLibPrivate
         Qt::Qml
         Qt::Quick
 )

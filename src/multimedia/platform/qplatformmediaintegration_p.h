@@ -134,7 +134,9 @@ public:
 
     static QStringList availableBackends();
 
-    static void setPreferredBackend(const QString &backend);
+    [[nodiscard]] static QString defaultBackend();
+
+    static void setBackend(const QString &backend);
 
     QLatin1String name(); // for unit tests
 

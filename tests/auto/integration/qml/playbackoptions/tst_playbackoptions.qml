@@ -3,9 +3,16 @@
 
 import QtMultimedia
 import QtTest
+import QtMultimediaTest
 
 TestCase {
     name: "playbackOptions"
+
+    function initTestCase() {
+        verify(
+            MediaBackendUtils.isMediaBackendPluginLoaded,
+            "No media backend plugin was loaded; the fallback integration was used.")
+    }
 
     property playbackOptions options
 

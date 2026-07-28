@@ -9,9 +9,11 @@
 #include <QtCore/qpointer.h>
 #include <QtGui/qguiapplication.h>
 #include <QtMultimediaQuick/private/qquickscreencapture_p.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtQuick/private/qquickscreen_p.h>
 
-class tst_QQuickScreenCaptureBackend : public QObject
+class tst_QQuickScreenCaptureBackend : public QIntegrationTestBase
 {
     Q_OBJECT
 
@@ -43,6 +45,8 @@ void tst_QQuickScreenCaptureBackend::generateTestData()
 
 void tst_QQuickScreenCaptureBackend::initTestCase()
 {
+    initIntegrationTestCase();
+
     m_primaryScreen = QGuiApplication::primaryScreen();
     if (!m_primaryScreen)
         QSKIP("Requires a primary screen");

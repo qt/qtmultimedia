@@ -15,6 +15,7 @@
 #endif
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
@@ -210,10 +211,11 @@ private:
     std::vector<QImage> m_images;
 };
 
-class tst_QScreenCaptureBackend : public QObject
+class tst_QScreenCaptureBackend : public QIntegrationTestBase
 {
     Q_OBJECT
 
+private:
     void removeWhileCapture(std::function<void(QScreenCapture &)> scModifier,
                             std::function<void()> deleter);
 
@@ -399,6 +401,8 @@ int getStatusBarHeight([[maybe_unused]] const qreal pixelRatio = 1)
 
 void tst_QScreenCaptureBackend::initTestCase()
 {
+    initIntegrationTestCase();
+
 #ifdef Q_OS_ANDROID
     // QTBUG-132249:
     // Security Popup can be automatically accepted with adb command:

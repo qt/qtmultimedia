@@ -59,6 +59,26 @@ inline bool isWindowsPlatform()
     return QPlatformMediaIntegration::instance()->name() == "windows"_L1;
 }
 
+[[nodiscard]] inline bool isMediaBackendPluginLoaded()
+{
+    return QPlatformMediaIntegration::instance()->name() != "fallback"_L1;
+}
+
+inline void initIntegrationTestMain()
+{
+    QString backend = qEnvironmentVariable("QT_MEDIA_BACKEND");
+    if (backend.isEmpty())
+        backend = QPlatformMediaIntegration::defaultBackend();
+    QPlatformMediaIntegration::setBackend(backend);
+}
+
+inline void initIntegrationTestCase()
+{
+    QVERIFY2(isMediaBackendPluginLoaded(),
+        "No media backend plugin was loaded; the fallback integration was used. "
+        "Integration tests require a real backend plugin.");
+}
+
 inline bool isRhiRenderingSupported()
 {
     return QGuiApplicationPrivate::platformIntegration()->hasCapability(

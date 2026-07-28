@@ -8,6 +8,7 @@
 #include <QtMultimedia/qvideosink.h>
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
@@ -39,13 +40,15 @@ void addTestData(QLatin1StringView dir)
     }
 }
 
-class tst_qmediaplayerformatsupport : public QObject
+class tst_qmediaplayerformatsupport : public QIntegrationTestBase
 {
     Q_OBJECT
 
 public slots:
     void initTestCase()
     {
+        initIntegrationTestCase();
+
         QSKIP_IF_NOT_FFMPEG("Test is only intended for FFmpeg backend");
     }
 

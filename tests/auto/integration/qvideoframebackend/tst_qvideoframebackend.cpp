@@ -14,6 +14,7 @@
 #include <QtMultimedia/private/qvideowindow_p.h>
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtMultimediaTestLib/private/mediafileselector_p.h>
 #include <QtMultimediaTestLib/private/testvideosink_p.h>
 
@@ -21,7 +22,7 @@
 
 #include <list>
 
-class tst_QVideoFrameBackend : public QObject
+class tst_QVideoFrameBackend : public QIntegrationTestBase
 {
     Q_OBJECT
 
@@ -106,6 +107,8 @@ void tst_QVideoFrameBackend::addMediaPlayerFrameTestData(F &&f)
 
 void tst_QVideoFrameBackend::initTestCase()
 {
+    initIntegrationTestCase();
+
 #ifdef Q_OS_ANDROID
     qWarning() << "Skip media selection, QTBUG-118571";
     return;

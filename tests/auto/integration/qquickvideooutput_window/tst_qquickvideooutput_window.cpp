@@ -13,6 +13,7 @@
 #include <QtMultimediaQuick/private/qquickvideooutput_p.h>
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 
 #include <QtQml/qqmlcomponent.h>
 #include <QtQml/qqmlengine.h>
@@ -34,12 +35,12 @@ public:
     }
 };
 
-class tst_QQuickVideoOutputWindow : public QObject
+class tst_QQuickVideoOutputWindow : public QIntegrationTestBase
 {
     Q_OBJECT
 public:
     tst_QQuickVideoOutputWindow()
-        : QObject(nullptr)
+        : QIntegrationTestBase()
         , m_sourceObject(&m_videoObject)
     {
     }
@@ -66,6 +67,8 @@ private:
 
 void tst_QQuickVideoOutputWindow::initTestCase()
 {
+    initIntegrationTestCase();
+
     QQmlComponent component(&m_engine);
     component.loadUrl(QUrl("qrc:/main.qml"));
 

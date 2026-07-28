@@ -16,6 +16,7 @@
 #include <QtMultimediaTestLib/private/capturesessionfixture_p.h>
 #include <QtMultimediaTestLib/private/formatutils_p.h>
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtMultimediaTestLib/private/mediainfo_p.h>
 #include <QtMultimediaTestLib/private/osdetection_p.h>
 #include <QtMultimediaTestLib/private/qcolorutil_p.h>
@@ -91,7 +92,7 @@ void verifyEncodedFrames(const MediaInfo &info, const std::vector<QColor> &expec
 
 using namespace Qt::StringLiterals;
 
-class tst_QMediaRecorderBackend : public QObject
+class tst_QMediaRecorderBackend : public QIntegrationTestBase
 {
     Q_OBJECT
 
@@ -100,6 +101,8 @@ public slots:
     void cleanupTestCase();
 
 private slots:
+    void initTestCase() { initIntegrationTestCase(); }
+
     void record_createsFileWithExpectedExtension_whenRecordingAudio_data();
     void record_createsFileWithExpectedExtension_whenRecordingAudio();
 
