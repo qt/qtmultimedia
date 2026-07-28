@@ -37,8 +37,8 @@ private slots:
         backends << "wasm";
 #elif defined(Q_OS_QNX)
         backends << "qnx";
-#elif defined(Q_OS_OHOS)
-        backends << "ohos";
+#elif defined(Q_OS_HARMONY)
+        backends << "harmonyos";
 #else
         backends << "ffmpeg";
         if constexpr (QT_CONFIG(gstreamer))

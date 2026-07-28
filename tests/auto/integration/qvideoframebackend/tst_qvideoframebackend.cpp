@@ -117,7 +117,7 @@ void tst_QVideoFrameBackend::testMediaFilesAreSupported()
 #ifdef Q_OS_ANDROID
     QSKIP("Skip test cases with mediaPlayerFrame on Android CI, because of QTBUG-118571");
 #endif
-#ifdef Q_OS_OHOS
+#ifdef Q_OS_HARMONY
     QSKIP("OHOS demuxer rejects some H.264/HEVC/AV1 profiles used by the test media");
 #endif
 
@@ -251,7 +251,7 @@ void tst_QVideoFrameBackend::toImage_returnsImage_whenCalledFromSeparateThreadAn
 {
     QFETCH(QRhi::Implementation, backend);
 
-#ifdef Q_OS_OHOS
+#ifdef Q_OS_HARMONY
     QSKIP("OHOS demuxer rejects the H.264 profile used by colors.mp4");
 #endif
 
