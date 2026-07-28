@@ -33,6 +33,8 @@ Q_DECLARE_JNI_CLASS(WindowInsetsType, "android/view/WindowInsets$Type")
 Q_DECLARE_JNI_CLASS(Insets, "android/graphics/Insets")
 #endif
 
+using namespace Qt::StringLiterals;
+
 using namespace std::chrono_literals;
 
 /*
@@ -226,6 +228,8 @@ private slots:
     void error_isNoError_whenNotStarted();
     void screenCapture_returnsSession_whenAddedToSession();
 
+    void setActive_startsStreamWithValidFrame_data();
+    void setActive_startsStreamWithValidFrame();
     void setActive_startsAndStopsCapture();
     void setActive_isNoOp_whenStoppingCaptureThatNeverStarted();
     void setActive_isNoOp_whenAlreadyActive();
@@ -456,6 +460,45 @@ void tst_QScreenCaptureBackend::screenCapture_returnsSession_whenAddedToSession(
     session.setScreenCapture(&capture);
 
     QCOMPARE(capture.captureSession(), &session);
+}
+
+void tst_QScreenCaptureBackend::setActive_startsStreamWithValidFrame_data()
+{
+    QTest::addColumn<QScreen *>("screen");
+
+    auto screens = QApplication::screens();
+    for (qsizetype i = 0; i < screens.size(); ++i) {
+        QByteArray rowName = u"QScreen #%1 - %2"_s
+            .arg(i)
+            .arg(screens[i]->name())
+            .toUtf8();
+        QTest::newRow(rowName.constData()) << screens[i];
+    }
+}
+
+void tst_QScreenCaptureBackend::setActive_startsStreamWithValidFrame()
+{
+    QFETCH(QScreen *, screen);
+
+    TestVideoSink sink;
+    QScreenCapture sc;
+
+    QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
+
+    QMediaCaptureSession session;
+    session.setScreenCapture(&sc);
+    session.setVideoSink(&sink);
+
+    sc.setScreen(screen);
+    sc.setActive(true);
+
+    QVERIFY(sc.isActive());
+
+    // The first frame may be delayed due to backend initialization, so wait for it.
+    const QVideoFrame firstFrame = sink.waitForFrame();
+    QVERIFY(firstFrame.isValid());
+
+    QCOMPARE(errorsSpy.size(), 0);
 }
 
 void tst_QScreenCaptureBackend::setActive_startsAndStopsCapture()
