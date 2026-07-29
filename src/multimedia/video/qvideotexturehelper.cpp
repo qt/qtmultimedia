@@ -296,6 +296,11 @@ QRhiTexture::Format resolvedRhiTextureFormat(QRhiTexture::Format format, QRhi *r
         case QRhiTexture::R16:
             fallbackFormat = resolvedRhiTextureFormat(QRhiTexture::RG8, rhi);
             break;
+        case QRhiTexture::BGRA8:
+            // WebGL 2 and GLES without EXT_texture_format_BGRA8888 cannot take a BGRA
+            // texture. Upload the data as RGBA and let the shader swizzle instead.
+            fallbackFormat = resolvedRhiTextureFormat(QRhiTexture::RGBA8, rhi);
+            break;
         default:
             // End fallback chain here, and return UnknownFormat
             return QRhiTexture::UnknownFormat;
@@ -339,7 +344,7 @@ QString vertexShaderFileName(const QVideoFrameFormat &format)
     return QStringLiteral(":/qt-project.org/multimedia/shaders/vertex.vert.qsb");
 }
 
-QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *,
+QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *rhi,
                                QRhiSwapChain::Format surfaceFormat)
 {
     QString shaderFile;
@@ -368,10 +373,17 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhi *,
         break;
     case QVideoFrameFormat::Format_RGBA8888:
     case QVideoFrameFormat::Format_RGBX8888:
+        shaderFile = QStringLiteral("rgba");
+        break;
     case QVideoFrameFormat::Format_BGRA8888:
     case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
     case QVideoFrameFormat::Format_BGRX8888:
-        shaderFile = QStringLiteral("rgba");
+        // A BGRA texture has the channels reordered by the driver already. Where the
+        // format is unsupported and the data went into an RGBA texture instead, the
+        // shader has to do the reordering.
+        shaderFile = !isRhiTextureFormatSupported(rhi, QRhiTexture::BGRA8)
+                ? QStringLiteral("bgra")
+                : QStringLiteral("rgba");
         break;
     case QVideoFrameFormat::Format_YUV420P:
     case QVideoFrameFormat::Format_YUV422P:

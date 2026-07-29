@@ -34,7 +34,8 @@ enum ExcludableTextures {
     Exclude_RG8 = 0x02,
     Exclude_R16 = 0x04,
     Exclude_RG16 = 0x08,
-    Exclude_All = Exclude_R8 | Exclude_RG8 | Exclude_R16 | Exclude_RG16
+    Exclude_BGRA8 = 0x10,
+    Exclude_All = Exclude_R8 | Exclude_RG8 | Exclude_R16 | Exclude_RG16 | Exclude_BGRA8
 };
 
 enum class FileType {
@@ -130,6 +131,8 @@ QList<QRhiTexture::Format> excludedRhiFormats(ExcludableTextures flags) {
         excludedFormats.append(QRhiTexture::R16);
     if (flags & Exclude_RG16)
         excludedFormats.append(QRhiTexture::RG16);
+    if (flags & Exclude_BGRA8)
+        excludedFormats.append(QRhiTexture::BGRA8);
     return excludedFormats;
 }
 
@@ -191,6 +194,9 @@ QString toString(ExcludableTextures excludedTextureCombination)
     }
     if (excludedTextureCombination & Exclude_RG16) {
         stringList.append(QStringLiteral("RG16"));
+    }
+    if (excludedTextureCombination & Exclude_BGRA8) {
+        stringList.append(QStringLiteral("BGRA8"));
     }
 
     return stringList.join(QStringLiteral("_"));
