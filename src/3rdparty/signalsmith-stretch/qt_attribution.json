@@ -7,8 +7,8 @@
     "SecurityCritical": false,
 
     "Homepage": "https://signalsmith-audio.co.uk/code/stretch.git",
-    "Version": "1.0.0",
-    "DownloadLocation": "https://signalsmith-audio.co.uk/code/stretch.git",
+    "Version": "1.1.0",
+    "DownloadLocation": "https://github.com/Signalsmith-Audio/signalsmith-stretch/archive/refs/tags/1.1.0.zip",
     "Copyright": "Copyright (c) 2022 Geraint Luff / Signalsmith Audio Ltd.",
     "License": "MIT License",
     "LicenseId": "MIT",

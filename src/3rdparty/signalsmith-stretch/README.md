@@ -102,11 +102,11 @@ You can use `.seek()` which lets you move around the input audio, by providing a
 stretch.seek(inputBuffers, inputSamples, playbackRateHint);
 ```
 
-At the very start of playback (or after a `.reset()`), the current processing time is `.inputLatency()` samples *before* the first input samples you give it.  You therefore might want to call `.seek()` to provide the first `inputSamples = stretch.inputLatency()` samples of input, so that the processing time starts (so your pre-roll output is only `.outputLatency()` samples long).
+At the very start of playback (or after a `.reset()`), the current processing time is `.inputLatency()` samples *before* the first input samples you give it.  You therefore might want to call `.seek()` to provide the first `inputSamples = stretch.inputLatency()` samples of input, so that the processing time matches the start of the input (meaning your pre-roll output is only `.outputLatency()` samples long).
 
 ### Ending
 
-If you're processing a fixed-length sound (instead of an infinite stream), you'll reach the end of your input, but still have some pending output.  You should first make sure the processing time gets to the end, by passing an additional `.inputLatency()` samples of silence to `.process()` - this corresponds to the samples you jumped over using `.seek()` at the beginning.
+If you're processing a fixed-length sound (instead of an infinite stream), you'll reach the end of your input, but still have some pending output.  You should first make sure the processing time gets to the end, by passing an additional `.inputLatency()` samples of silence to `.process()` (similar to using `.seek()` at the beginning).
 
 You can then read the final part of the output using `.flush()`.  It's recommended to read at least `.outputLatency()` samples of output:
 
@@ -134,9 +134,15 @@ For convenience, a copy of the library is included (with its own `LICENSE.txt`) 
 
 Released under the [MIT License](LICENSE.txt) - get in touch if you need anything else.
 
+## Other environments / languages
+
+There's a Web Audio wrapper in `web/` (using WASM/AudioWorklet).  This will remain in-sync with the C++ library.
+
+There's a [Python binding](https://pypi.org/project/python-stretch/) written/published by [Gregorio Andrea Giudici](https://github.com/gregogiudici/python-stretch), and a [Rust wrapper](https://crates.io/crates/signalsmith-stretch) by [Colin Marc](https://github.com/colinmarc/signalsmith-stretch-rs).
+
 ## Thanks
 
 We'd like to particularly thank the following people who sponsored specific features or improvements:
 
 * **Metronaut**: web audio (JS/WASM) release
-* **Daniel L Bowling** and the Stanford School of Medicine: web audio improvemetns
+* **Daniel L Bowling** and the Stanford School of Medicine: web audio improvements
