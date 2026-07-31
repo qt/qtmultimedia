@@ -508,7 +508,22 @@ bool QFFmpegWindowCaptureUwp::setActiveInternal(bool active)
 
 bool QFFmpegWindowCaptureUwp::isSupported()
 {
-    return GraphicsCaptureSession::IsSupported();
+    // It has been observed that GraphicsCaptureSession::IsSupported()
+    // may throw under certain environments, such as when running
+    // Qt in a headless Windows environment.
+    try {
+        return GraphicsCaptureSession::IsSupported();
+    } catch (const winrt::hresult_error &err) {
+        qCWarning(qLcWindowCaptureUwp)
+            << "GraphicsCaptureSession::IsSupported() threw exception:"
+            << QString::fromWCharArray(err.message().c_str());
+        return false;
+    } catch (const std::exception &err) {
+        qCWarning(qLcWindowCaptureUwp)
+            << "GraphicsCaptureSession::IsSupported() failed, threw exception:"
+            << err.what();
+        return false;
+    }
 }
 
 QVideoFrameFormat QFFmpegWindowCaptureUwp::frameFormat() const
