@@ -20,6 +20,7 @@
     \li \l {Qt Multimedia on Linux}{Platform Notes - Linux}
     \li \l {Qt Multimedia GStreamer backend}{GStreamer backend for embedded Linux}
     \li \l {Advanced FFmpeg Configuration}
+    \li \l {Multimedia Security Considerations}
     \li \l {Building Qt Multimedia from sources}{Building from sources}
         \list
             \li \l {Building FFmpeg from source}{Building FFmpeg}
