@@ -7,7 +7,7 @@
     "SecurityCritical": false,
 
     "Homepage": "https://eigen.tuxfamily.org/",
-    "Version": "5.1.0",
+    "Version": "5.0.1",
     "DownloadLocation": "https://gitlab.com/libeigen/eigen/-/archive/5.0.1/eigen-5.0.1.tar.bz2",
     "PURL": [
         "pkg:github/eigen-mirror/eigen@$<VERSION>"
