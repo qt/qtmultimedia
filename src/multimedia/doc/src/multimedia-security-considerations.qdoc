@@ -1,0 +1,160 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-security-considerations.html
+\title Multimedia Security Considerations
+\brief Multimedia security considerations, including security-related data flow and risks.
+\ingroup explanations-graphicsandmultimedia
+
+\section1 Data Flow Diagram
+
+The diagram shows high-level data-processing elements in Qt Multimedia that contribute to
+secure handling of untrusted media sources.
+
+\image security_related_data_flow.webp {Security-Related Data Flow}
+
+\section1 Assumptions
+
+Like the rest of Qt, Qt Multimedia assumes that the environment it runs in is correctly
+configured and has not been compromised. In particular, the process environment, the search
+paths from which libraries and plugins are loaded, and the installed hardware-decoding drivers
+are assumed to be controlled by whoever deploys the application, and not by an attacker.
+Attacks that require an already insecure process environment fall outside the scope of Qt's
+security responsibility, as described in \l{Qt Shared Security Model}.
+
+The media content itself is not covered by that assumption. Media data, and the URLs that refer
+to it, are treated as untrusted input, and are the subject of the rest of this page. See also
+\l{Handling Untrusted Data}.
+
+Some of the points below are therefore listed not because Qt Multimedia defends against them,
+but because they are the responsibility of the application developer and need to be accounted
+for when an application is deployed.
+
+\section1 Risks
+
+In theory, if an application allows users to play untrusted media sources and an attacker is
+aware of a vulnerability in any element shown in the figure above, they may craft a media source
+that triggers the vulnerability and provide it to the application in the intended manner.
+
+The risks below are grouped by who is responsible for addressing them, following the roles
+defined in \l{Qt Shared Security Model}.
+
+\section2 Risks addressed by Qt
+
+\list
+\li Vulnerabilities in third-party libraries shipped with Qt Multimedia. Qt Multimedia does not
+    attempt to contain a compromised third-party library, so keeping those libraries up to date
+    is what protects the application. We track vulnerabilities reported against the libraries
+    we ship, update them as patch releases become available, and report the defects we find
+    ourselves to the upstream projects.
+\li Flaws in Qt Multimedia's own data flow elements that may result in undefined behavior. The
+    most sensitive area is data layout processing of native and backend media frames. We follow
+    established secure coding practices, cover this code with manual and automated tests, and
+    fuzz test Qt Multimedia internally to find defects that those tests do not reach.
+\endlist
+
+\section2 Risks addressed by the application developer
+
+\list
+\li Several Qt Multimedia APIs take a URL as their source or destination, and perform file
+    system or network access on the application's behalf. This includes
+    \l{QMediaPlayer::setSource}, \l{QAudioDecoder::setSource}, \l{QSoundEffect::setSource}, and
+    \l{QMediaRecorder::setOutputLocation}. Passing an unvalidated URL to these APIs therefore
+    lets whoever controls that URL decide which files are read or written, and which hosts
+    are contacted.
+\li With the GStreamer media backend, passing a malicious custom GStreamer pipeline description
+    to \l{QGStreamerVideoSource} or \l{QMediaPlayer}. We highly recommend never running an
+    untrusted GStreamer media pipeline with Qt Multimedia unless you can
+    meaningfully preprocess and validate GStreamer pipeline descriptions.
+\li A media backend is only used if its plugin can actually be loaded. The FFmpeg media
+    backend links dynamically against the FFmpeg libraries, so if those binaries are not
+    deployed with the application, or cannot be resolved by the dynamic linker when the plugin
+    is loaded, Qt Multimedia falls back to another available backend without warning. The
+    remaining backends are tried in the order in which their plugins are enumerated, rather
+    than in a documented order of preference, so a deployment mistake can leave the
+    application running on a backend that was never tested for it. If no backend can be
+    loaded at all, only \l{QMediaDevices}, \l{QAudioDevice}, \l{QSoundEffect},
+    \l{QAudioSink}, and \l{QAudioSource} remain functional.
+\endlist
+
+\section2 Risks that depend on the operating environment
+
+These risks arise from the environment that the application runs in, rather than from Qt
+Multimedia itself, and Qt Multimedia can neither detect nor prevent them. The application
+developer needs to account for them when the application is deployed.
+
+\list
+\li Incorrect environment configuration or hardware-decoding driver setup. Ensure that
+    the environment is configured correctly and that the hardware-decoding drivers are properly
+    installed and up to date.
+\li Qt Multimedia selects its media backend at runtime, and the selection can be overridden
+    with the \c{QT_MEDIA_BACKEND} environment variable, as described in
+    \l{Changing backends}. Anyone who can influence the environment of the application
+    process can therefore make the application run on a different media backend than the one
+    it was developed and tested against, with a different set of supported formats and
+    protocols, and a different attack surface.
+\endlist
+
+\section1 Impact
+
+Exploitation of the issues listed above may lead to the following security consequences:
+
+\list
+\li Undefined behavior, practically leading to memory leaks, application crashing, or freezing.
+\li Remote code execution might be possible whenever an attacker can meaningfully control
+    heap corruption.
+\li For media formats such as \c{m3u}, which allow different protocols to be used in playlist
+    entries, a wrong setup may allow an attacker to read the file system or contact arbitrary
+    network hosts. By default, potentially dangerous protocols are denylisted, but this
+    behaviour can be changed through any of the following:
+    \list
+    \li Environment configuration. See \l{Configuring allowed network protocols} for the
+        FFmpeg media backend.
+    \li GStreamer custom pipeline. See the \l{Qt Multimedia GStreamer backend} notes,
+        \l{QGStreamerVideoSource}, and the
+        \l{https://gstreamer.freedesktop.org/documentation/tools/gst-launch.html?gi-language=c#pipeline-description}
+        {GStreamer pipeline description documentation} for details.
+    \li A media backend other than the ones shipped with Qt Multimedia. The media backend is
+        loaded as a plugin at runtime, so a backend plugin found in the application's plugin
+        search paths, or a replaced FFmpeg binary found in its library search paths, applies
+        whichever protocol restrictions it was built with rather than the defaults above.
+    \endlist
+\endlist
+
+Note that, depending on the media format, even a valid media source does not necessarily
+conform strictly to the relevant media standard. There are also many ways in which a source
+can be corrupted or made invalid.
+Despite the manual and automated testing performed on Qt Multimedia and third-party libraries
+by their respective communities, we cannot guarantee correct handling of every single
+malformed media source. Take this limitation into account when developing applications
+with advanced security requirements.
+
+\section1 Mitigations
+
+\list
+\li Treat any URL that does not originate from the application itself as untrusted input, and
+    validate it before passing it to Qt Multimedia. Prefer an allowlist of accepted URL schemes
+    and hosts over a denylist of rejected ones. If the application already has the media data,
+    or can obtain it itself, \l{QMediaPlayer::setSourceDevice} keeps the application in control
+    of how the data is read.
+\li Restrict the protocols that the media backend is allowed to use. For the FFmpeg media
+    backend, see \l{Configuring allowed network protocols} in
+    \l{Advanced FFmpeg Configuration}.
+\li Control which media backend the deployed application is able to use. Deploying only the
+    media backend plugin that the application needs is the effective control here, because it
+    leaves \c{QT_MEDIA_BACKEND} no other plugin to select. Note that choosing a different
+    default backend does not help on its own: \c{QT_MEDIA_BACKEND} takes precedence over the
+    default, including over a default set with the \c{-default-media-backend} configure option
+    when Qt Multimedia itself is built from source.
+\li Confirm as part of deployment testing that the application actually runs on the intended
+    media backend. The \c{qt.multimedia.plugin} logging category reports which backend was
+    loaded, and which plugins failed to load before it.
+\li The Qt Multimedia binaries shipped with the Qt Online Installer are dynamically linked
+    against the FFmpeg libraries \c{avcodec}, \c{avutil}, \c{avformat}, \c{swscale},
+    and \c{swresample}. An application developer or an end user can therefore deploy their own
+    binary-compatible builds of these libraries - that is, builds of the same FFmpeg major
+    version - in order to address FFmpeg vulnerabilities without waiting for a Qt patch release.
+\endlist
+
+*/
