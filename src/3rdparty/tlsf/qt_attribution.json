@@ -1,5 +1,5 @@
 {
-    "Id": "tlfs",
+    "Id": "tlsf",
     "Name": "Two-Level Segregated Fit",
     "QDocModule": "qtmultimedia",
     "Description": "O(1) arena allocator, suitable for use on real-time threads",
