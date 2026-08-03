@@ -928,6 +928,7 @@ void tst_QMediaPlayerBackend::setSource_loadsCorrectTracks_whenLoadingMediaInSeq
     QSKIP_OHOS("OH_AVPlayer retains preroll frame across Reset()+SetSource for a new audio-only file");
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
     CHECK_SELECTED_URL(m_localWavFile2);
+    CHECK_SELECTED_URL(m_localVideoFile2);
 
     // Load audio/video file, play it, and verify that both tracks are loaded
     m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
@@ -1934,7 +1935,7 @@ void tst_QMediaPlayerBackend::play_playbackLastsForTheExpectedTime_data()
     QTest::addColumn<float>("rate");
     QTest::addColumn<bool>("pauseBeforePlay");
 
-    for (MaybeUrl maybeUrl : { *m_localWavFile, *m_localVideoFile1Sec }) {
+    for (const MaybeUrl &maybeUrl : { m_localWavFile, m_localVideoFile1Sec }) {
         if (!maybeUrl)
             continue;
 
@@ -2039,6 +2040,7 @@ void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused_data()
 void tst_QMediaPlayerBackend::stop_setsPositionToZero_afterPlayingToEndOfMedia()
 {
     QSKIP_OHOS("OH_AVPlayer does not always reset position to zero on Stop() after AV_COMPLETED");
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
     // Arrange
     m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
     m_fixture->player.play();
@@ -3291,6 +3293,8 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithHasHdrContent_whenMedi
     if (!isFFMPEGPlatform() && !isDarwinPlatform())
         QSKIP("This test is only for FFmpeg and Darwin backends");
 
+    CHECK_SELECTED_URL(mediaUrl);
+
     m_fixture->player.setSource(*mediaUrl);
     QTRY_VERIFY(!m_fixture->metadataChanged.empty());
 
@@ -3320,6 +3324,8 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithCorrectDate()
 
     if (mediaUrl == m_withQtDateAndCreationTime)
         QSKIP_DARWIN("Non-standard QuickTime metadata keys are not mapped");
+
+    CHECK_SELECTED_URL(mediaUrl);
 
     m_fixture->player.setSource(*mediaUrl);
     QTRY_VERIFY(!m_fixture->metadataChanged.empty());
@@ -5055,6 +5061,9 @@ void tst_QMediaPlayerBackend::destruction_doesNotDeadlock_afterMediaPlayerCall()
 
     QFETCH(DestructionOrder, destructionOrder);
     QFETCH(MediaPlayerCall, mediaPlayerCall);
+
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+    CHECK_SELECTED_URL(m_localVideoFile);
 
     // setup
     auto mediaPlayer = std::make_unique<QMediaPlayer>();
