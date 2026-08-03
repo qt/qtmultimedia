@@ -19,7 +19,8 @@ QT_BEGIN_NAMESPACE
     A AudioEngine can have exactly one listener, that defines the position and orientation
     of the person listening to the sounds defined by the objects placed within the audio engine.
 
-    In most cases, the AudioListener should simply be a child of the Camera element in QtQuick3D.
+    In most cases, the AudioListener should simply be a child of the Camera element in
+    \l[QML]{QtQuick3D}.
     This will ensure that the sound experience is aligned with the visual rendering of the scene.
  */
 

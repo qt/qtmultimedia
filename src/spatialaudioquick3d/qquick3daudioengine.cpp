@@ -26,8 +26,8 @@ static std::unique_ptr<QAudioEngine> globalEngine;
     to the sound field relative to the sound sources. Sound sources will be less audible
     if the listener is further away from source. They will also get mapped to the corresponding
     loudspeakers depending on the direction between listener and source. In many cases, the
-    AudioListener object can simply be instantiated as a child object of the QtQuick3D.Camera
-    object.
+    AudioListener object can simply be instantiated as a child object of the
+    \l{QtQuick3D::Camera}{QtQuick3D.Camera} object.
 
     Create AudioRoom objcects to simulate the sound (reflections and reverb) of a room with
     certain dimensions and different types of walls.
