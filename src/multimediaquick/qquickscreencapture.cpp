@@ -5,7 +5,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static qreal frameRateToReal(std::optional<qreal> frameRate)
+static qreal screenFrameRateToReal(std::optional<qreal> frameRate)
 {
     return frameRate.value_or(-1.f);
 }
@@ -18,7 +18,7 @@ QQuickScreenCapture::QQuickScreenCapture(QObject *parent) : QScreenCapture(paren
 
     connect(this, &QScreenCapture::maximumFrameRateChanged, this,
             [this](std::optional<qreal> frameRate) {
-        emit qmlMaximumFrameRateChanged(frameRateToReal(frameRate));
+        emit qmlMaximumFrameRateChanged(screenFrameRateToReal(frameRate));
     });
 }
 
@@ -67,7 +67,7 @@ void QQuickScreenCapture::qmlSetMaximumFrameRate(qreal frameRate)
 
 qreal QQuickScreenCapture::qmlMaximumFrameRate() const
 {
-    return frameRateToReal(maximumFrameRate());
+    return screenFrameRateToReal(maximumFrameRate());
 }
 
 QT_END_NAMESPACE
