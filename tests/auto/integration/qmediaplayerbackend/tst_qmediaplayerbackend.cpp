@@ -1,53 +1,62 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
 #include <QtCore/qbuffer.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qoperatingsystemversion.h>
+#if QT_CONFIG(process)
+#include <QtCore/qprocess.h>
+#endif
 #include <QtCore/qrandom.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qtimer.h>
-#include "qmediaplayer.h"
-#include "mediaplayerstate.h"
-#include "fake.h"
-#include "fixture.h"
-#include "server.h"
-#include <qmediametadata.h>
-#include <qaudiobuffer.h>
-#include <qaudiodevice.h>
-#include <qvideosink.h>
-#include <qvideoframe.h>
-#include <qaudiooutput.h>
-#include <qmediadevices.h>
-#if QT_CONFIG(process)
-#include <qprocess.h>
-#endif
-#include <private/qglobal_p.h>
-#ifdef QT_FEATURE_network
-#include <qtcpserver.h>
-#endif
-#include <qmediatimerange.h>
-#include <private/qplatformvideosink_p.h>
 
-#include <QtQml/qqmlengine.h>
+#include <QtCore/private/qglobal_p.h>
+
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qmediametadata.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qmediatimerange.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideosink.h>
+
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
+#include <QtMultimedia/private/qtmultimedia-config_p.h>
+
+#include <QtMultimediaQuick/private/qquickvideooutput_p.h>
+
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/mediafileselector_p.h>
+#include <QtMultimediaTestLib/private/qsequentialfileadaptor_p.h>
+
+#ifdef QT_FEATURE_network
+#include <QtNetwork/qtcpserver.h>
+#endif
+
 #include <QtQml/qqmlcomponent.h>
+#include <QtQml/qqmlengine.h>
 #include <QtQml/qqmlproperty.h>
+
 #include <QtQuick/qquickitem.h>
 #include <QtQuick/qquickview.h>
+
 #include <QtQuick/private/qquickloader_p.h>
 
-#include <private/mediafileselector_p.h>
-#include <private/mediabackendutils_p.h>
-#include <private/qsequentialfileadaptor_p.h>
-#include <QtMultimedia/private/qtmultimedia-config_p.h>
-#include "private/qquickvideooutput_p.h"
+#include <QtTest/qtest.h>
+
+#include "fake.h"
+#include "fixture.h"
+#include "mediaplayerstate.h"
+#include "server.h"
 
 #include <array>
 #include <memory>
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
-
 
 using namespace Qt::Literals;
 using namespace std::chrono_literals;

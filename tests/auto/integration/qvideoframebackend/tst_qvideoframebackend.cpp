@@ -3,20 +3,23 @@
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qthreadpool.h>
+
 #include <QtGui/rhi/qrhi.h>
+
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qvideoframe.h>
+
+#include <QtMultimedia/private/qthreadlocalrhi_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
+#include <QtMultimedia/private/qvideowindow_p.h>
+
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/mediafileselector_p.h>
+#include <QtMultimediaTestLib/private/testvideosink_p.h>
+
 #include <QtTest/qtest.h>
 
-#include <private/mediabackendutils_p.h>
-#include <private/mediafileselector_p.h>
-#include <private/qthreadlocalrhi_p.h>
-#include <private/qvideotexturehelper_p.h>
-#include <private/qvideowindow_p.h>
-#include <private/testvideosink_p.h>
-
 #include <list>
-
 
 class tst_QVideoFrameBackend : public QObject
 {

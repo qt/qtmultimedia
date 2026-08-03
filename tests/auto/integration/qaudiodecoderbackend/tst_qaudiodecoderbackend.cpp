@@ -1,12 +1,14 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
 #include <QtCore/qdebug.h>
+
 #include <QtMultimedia/qaudiodecoder.h>
 
-#include <private/mediafileselector_p.h>
-#include <private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/mediafileselector_p.h>
+
+#include <QtTest/qtest.h>
 
 constexpr char TEST_FILE_NAME[] = "testdata/test.wav";
 constexpr char TEST_UNSUPPORTED_FILE_NAME[] = "testdata/test-unsupported.avi";
