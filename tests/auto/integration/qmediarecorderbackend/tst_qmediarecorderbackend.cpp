@@ -1,30 +1,31 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
-#include <QtMultimedia/qaudiodevice.h>
+#include <QtCore/qmimetype.h>
+#include <QtCore/qtemporarydir.h>
+
 #include <QtMultimedia/qaudiobufferinput.h>
+#include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qmediaformat.h>
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qwavedecoder.h>
-#include <private/audiogenerationutils_p.h>
-#include <private/mediabackendutils_p.h>
-#include <private/capturesessionfixture_p.h>
-#include <private/mediainfo_p.h>
-#include <private/qcolorutil_p.h>
-#include <private/qfileutil_p.h>
-#include <private/mediabackendutils_p.h>
-#include <private/formatutils_p.h>
-#include <private/osdetection_p.h>
 
-#include <QtCore/qtemporarydir.h>
-#include <QtCore/qmimetype.h>
+#include <QtMultimediaTestLib/private/audiogenerationutils_p.h>
+#include <QtMultimediaTestLib/private/capturesessionfixture_p.h>
+#include <QtMultimediaTestLib/private/formatutils_p.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/mediainfo_p.h>
+#include <QtMultimediaTestLib/private/osdetection_p.h>
+#include <QtMultimediaTestLib/private/qcolorutil_p.h>
+#include <QtMultimediaTestLib/private/qfileutil_p.h>
+
+#include <QtTest/qtest.h>
+
 #include <chrono>
 
 using namespace std::chrono_literals;
-
 
 namespace {
 

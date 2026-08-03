@@ -1,38 +1,38 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
-#include <QtTest/qsignalspy.h>
-#include <QtGui/QImageReader>
+#include <QtCore/qdebug.h>
 #include <QtCore/qrandom.h>
+#include <QtCore/qsysinfo.h>
 #include <QtCore/qurl.h>
-#include <QDebug>
-#include <QVideoSink>
-#include <QVideoWidget>
-#include <QSysInfo>
 
-#include <qcamera.h>
-#include <qcameradevice.h>
-#include <qimagecapture.h>
-#include <qmediacapturesession.h>
-#include <qmediaplayer.h>
-#include <qmediadevices.h>
-#include <qmediarecorder.h>
-#include <qaudiooutput.h>
-#include <qaudioinput.h>
-#include <qaudiodevice.h>
-#include <qaudiodecoder.h>
-#include <qaudiobuffer.h>
-#include <qscreencapture.h>
-#include <qwindowcapture.h>
-#include <qaudiobufferinput.h>
-#include <qvideoframeinput.h>
+#include <QtGui/qimagereader.h>
 
-#include <qcamera.h>
-#include <QMediaFormat>
-#include <QtMultimediaWidgets/QVideoWidget>
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiobufferinput.h>
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudioinput.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qimagecapture.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qscreencapture.h>
+#include <QtMultimedia/qvideoframeinput.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/qwindowcapture.h>
 
-#include <private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+
+#include <QtMultimediaWidgets/qvideowidget.h>
+
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
 
 using namespace Qt::StringLiterals;
 
