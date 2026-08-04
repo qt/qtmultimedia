@@ -539,8 +539,7 @@ void QWasmCamera::updateVideoFormats(const emscripten::val &cababilities)
     if (formats.isEmpty())
         return;
 
-    auto *devicePrivate =
-            const_cast<QCameraDevicePrivate *>(QCameraDevicePrivate::handle(m_cameraDev));
+    QCameraDevicePrivate *devicePrivate = QCameraDevicePrivate::handle(m_cameraDev);
     devicePrivate->videoFormats = formats;
 }
 
