@@ -66,6 +66,8 @@ public:
         return device.d.data();
     }
 
+    static QCameraDevicePrivate *handle(QCameraDevice &device) { return device.d.data(); }
+
     bool operator==(const QCameraDevicePrivate &other) const
     {
         return id == other.id && description == other.description && isDefault == other.isDefault
