@@ -159,19 +159,22 @@ bool isCodecValid(const Codec &codec, QSpan<const AVHWDeviceType> availableHwDev
     if (codec.type() != AVMEDIA_TYPE_VIDEO)
         return true;
 
+    const bool isHardwareCodec = codec.capabilities() & AV_CODEC_CAP_HARDWARE;
+
+    if (codecAvailableOnDevice && isHardwareCodec) {
+        Q_ASSERT(QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android);
+        // MediaCodec in Android is used for hardware-accelerated media processing. That is why
+        // before marking it as valid, we need to make sure if it is available on current device.
+        if (codecAvailableOnDevice->count(codec.id()) == 0)
+            return false; // Codec is not in platform's allow-list
+    }
+
     const auto pixelFormats = codec.pixelFormats();
     if (pixelFormats.empty()) {
 #if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
         //  Disable V4L2 M2M codecs for encoding for now,
         //  TODO: Investigate on how to get them working
         if (codec.name().contains(QLatin1StringView{ "_v4l2m2m" }) && codec.isEncoder())
-            return false;
-
-        // MediaCodec in Android is used for hardware-accelerated media processing. That is why
-        // before marking it as valid, we need to make sure if it is available on current device.
-        if (codec.name().contains(QLatin1StringView{ "_mediacodec" })
-            && (codec.capabilities() & AV_CODEC_CAP_HARDWARE)
-            && codecAvailableOnDevice && codecAvailableOnDevice->count(codec.id()) == 0)
             return false;
 #endif
 
@@ -184,11 +187,8 @@ bool isCodecValid(const Codec &codec, QSpan<const AVHWDeviceType> availableHwDev
     if (!findAVPixelFormat(codec, &isHwPixelFormat))
         return true; // Codec does not support any hw pixel formats, so no further checks are needed
 
-    if ((codec.capabilities() & AV_CODEC_CAP_HARDWARE) == 0)
+    if (!isHardwareCodec)
         return true; // Codec does not support hardware processing, so no further checks are needed
-
-    if (codecAvailableOnDevice && codecAvailableOnDevice->count(codec.id()) == 0)
-        return false; // Codec is not in platform's allow-list
 
     auto checkDeviceType = [codec](AVHWDeviceType type) {
         return isAVFormatSupported(codec, pixelFormatForHwDevice(type));
