@@ -188,13 +188,13 @@ VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
     QPlatformNativeInterface *pni = QGuiApplication::platformNativeInterface();
     eglDisplay = pni->nativeResourceForIntegration(QByteArrayLiteral("egldisplay"));
     qCDebug(qLHWAccelVAAPI) << "     platform is" << platform << eglDisplay;
-
     if (!eglDisplay) {
         qCDebug(qLHWAccelVAAPI) << "    no egl display, disabling";
         return;
     }
+
     eglImageTargetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
-    if (!eglDisplay) {
+    if (!eglImageTargetTexture2D) {
         qCDebug(qLHWAccelVAAPI) << "    no eglImageTargetTexture2D, disabling";
         return;
     }
