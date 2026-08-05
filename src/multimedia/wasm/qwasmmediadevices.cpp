@@ -286,8 +286,7 @@ void QWasmMediaDevices::applyDefaultDevice(QList<QCameraDevice> &cameraDevices,
                                            const QByteArray &defaultDeviceId)
 {
     for (QCameraDevice &cameraDevice : cameraDevices) {
-        auto *devicePrivate =
-                const_cast<QCameraDevicePrivate *>(QCameraDevicePrivate::handle(cameraDevice));
+        QCameraDevicePrivate *devicePrivate = QCameraDevicePrivate::handle(cameraDevice);
         if (!devicePrivate)
             continue;
         const bool isDefault = cameraDevice.id() == defaultDeviceId;
