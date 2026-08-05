@@ -75,7 +75,8 @@ tst_QQuickVideoOutput::tst_QQuickVideoOutput() = default;
 
 void tst_QQuickVideoOutput::initTestCase()
 {
-    initIntegrationTestCase();
+    if (!initIntegrationTestCase())
+        return;
 
     // We initialize the mapping vars here
     m_mappingComponent = new QQmlComponent(&m_engine);

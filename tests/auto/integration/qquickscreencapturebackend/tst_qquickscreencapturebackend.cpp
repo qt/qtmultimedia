@@ -45,7 +45,8 @@ void tst_QQuickScreenCaptureBackend::generateTestData()
 
 void tst_QQuickScreenCaptureBackend::initTestCase()
 {
-    initIntegrationTestCase();
+    if (!initIntegrationTestCase())
+        return;
 
     m_primaryScreen = QGuiApplication::primaryScreen();
     if (!m_primaryScreen)

@@ -166,7 +166,8 @@ public Q_SLOTS:
 
 void tst_QCameraBackend::initTestCase()
 {
-    initIntegrationTestCase();
+    if (!initIntegrationTestCase())
+        return;
 
 #if QT_CONFIG(process)
     m_vcamPath = qgetenv("VCAM_PATH");

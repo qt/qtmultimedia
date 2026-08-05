@@ -42,7 +42,8 @@ private:
 private slots:
     void initTestCase()
     {
-        initIntegrationTestCase();
+        if (!initIntegrationTestCase())
+            return;
 
 #ifdef Q_OS_ANDROID
      QSKIP("Feature does not work on Android");

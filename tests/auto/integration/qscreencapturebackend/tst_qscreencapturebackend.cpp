@@ -401,7 +401,8 @@ int getStatusBarHeight([[maybe_unused]] const qreal pixelRatio = 1)
 
 void tst_QScreenCaptureBackend::initTestCase()
 {
-    initIntegrationTestCase();
+    if (!initIntegrationTestCase())
+        return;
 
 #ifdef Q_OS_ANDROID
     // QTBUG-132249:

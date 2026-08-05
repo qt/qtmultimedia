@@ -72,11 +72,17 @@ inline void initIntegrationTestMain()
     QPlatformMediaIntegration::setBackend(backend);
 }
 
-inline void initIntegrationTestCase()
+// Returns true if initialization is successful
+[[nodiscard]] inline bool initIntegrationTestCase()
 {
-    QVERIFY2(isMediaBackendPluginLoaded(),
-        "No media backend plugin was loaded; the fallback integration was used. "
-        "Integration tests require a real backend plugin.");
+    // VERIFY must be inside a void-returning function.
+    []() {
+        QVERIFY2(
+            isMediaBackendPluginLoaded(),
+            "No media backend plugin was loaded; the fallback integration was used. "
+            "Integration tests require a real backend plugin.");
+    }();
+    return !QTest::currentTestFailed();
 }
 
 inline bool isRhiRenderingSupported()
