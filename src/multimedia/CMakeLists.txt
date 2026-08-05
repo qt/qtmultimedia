@@ -479,6 +479,11 @@ if(WASM AND QT_FEATURE_thread)
     target_compile_options(Multimedia PUBLIC -sWASM_WORKERS=1)
 endif()
 
+qt_internal_extend_target(Multimedia CONDITION LINUX
+    SOURCES
+        video/qmultimedia_drm_support_p.h
+)
+
 
 set(VIDEO_VERTEX_SHADERS
     "shaders/vertex.vert"
@@ -596,5 +601,3 @@ qt_copy_or_install(FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/../../mkspecs/features/ios/add_ios_ffmpeg_libraries.prf"
     DESTINATION ${ios_prf_install_dir}
 )
-
-
