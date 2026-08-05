@@ -427,7 +427,7 @@ void QWasmAudioSink::connectWorklet()
     m_workletNode.call<void>("connect", m_audioContext["destination"]);
     deliverData();
 #endif
-    emit stateChanged(QAudio::ActiveState);
+    emit stateChanged(m_suspended ? QAudio::SuspendedState : QAudio::ActiveState);
 }
 
 // ---------------------------------------------------------------------------
@@ -585,7 +585,7 @@ void QWasmAudioSink::reset()
 
 void QWasmAudioSink::suspend()
 {
-    if (!m_running || m_suspended)
+    if (m_suspended)
         return;
     m_suspended = true;
     m_audioContext.call<emscripten::val>("suspend");
@@ -594,7 +594,7 @@ void QWasmAudioSink::suspend()
 
 void QWasmAudioSink::resume()
 {
-    if (!m_running || !m_suspended)
+    if (!m_suspended)
         return;
     m_suspended = false;
     m_audioContext.call<emscripten::val>("resume");
