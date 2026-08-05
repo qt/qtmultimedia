@@ -3,6 +3,7 @@
 
 #include "qgstvideobuffer_p.h"
 #include <private/qvideotexturehelper_p.h>
+#include <QtMultimedia/private/qmultimedia_drm_support_p.h>
 #include <QtCore/qloggingcategory.h>
 
 #include <gst/video/video.h>
@@ -11,6 +12,8 @@
 #include <gst/pbutils/gstpluginsbaseversion.h>
 
 #include <common/qgstutils_p.h>
+
+#include <optional>
 
 #if QT_CONFIG(gstreamer_gl)
 #  include <QtGui/rhi/qrhi.h>
@@ -36,35 +39,6 @@
 QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcGstVideoBuffer, "qt.multimedia.gstreamer.videobuffer");
-
-// keep things building without drm_fourcc.h
-#define fourcc_code(a, b, c, d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | \
-                                 ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
-#define DRM_FORMAT_RGBA8888     fourcc_code('R', 'A', '2', '4') /* [31:0] R:G:B:A 8:8:8:8 little endian */
-#define DRM_FORMAT_BGRA8888     fourcc_code('B', 'A', '2', '4') /* [31:0] B:G:R:A 8:8:8:8 little endian */
-#define DRM_FORMAT_RGB888       fourcc_code('R', 'G', '2', '4') /* [23:0] R:G:B little endian */
-#define DRM_FORMAT_RG88         fourcc_code('R', 'G', '8', '8') /* [15:0] R:G 8:8 little endian */
-#define DRM_FORMAT_ARGB8888     fourcc_code('A', 'R', '2', '4') /* [31:0] A:R:G:B 8:8:8:8 little endian */
-#define DRM_FORMAT_ABGR8888     fourcc_code('A', 'B', '2', '4') /* [31:0] A:B:G:R 8:8:8:8 little endian */
-#define DRM_FORMAT_BGR888       fourcc_code('B', 'G', '2', '4') /* [23:0] B:G:R little endian */
-#define DRM_FORMAT_GR88         fourcc_code('G', 'R', '8', '8') /* [15:0] G:R 8:8 little endian */
-#define DRM_FORMAT_R8           fourcc_code('R', '8', ' ', ' ') /* [7:0] R */
-#define DRM_FORMAT_R16          fourcc_code('R', '1', '6', ' ') /* [15:0] R little endian */
-#define DRM_FORMAT_RGB565       fourcc_code('R', 'G', '1', '6') /* [15:0] R:G:B 5:6:5 little endian */
-#define DRM_FORMAT_RG1616       fourcc_code('R', 'G', '3', '2') /* [31:0] R:G 16:16 little endian */
-#define DRM_FORMAT_GR1616       fourcc_code('G', 'R', '3', '2') /* [31:0] G:R 16:16 little endian */
-#define DRM_FORMAT_BGRA1010102  fourcc_code('B', 'A', '3', '0') /* [31:0] B:G:R:A 10:10:10:2 little endian */
-#define DRM_FORMAT_YUYV         fourcc_code('Y', 'U', 'Y', 'V') /* [31:0] Cr0:Y1:Cb0:Y0 8:8:8:8 little endian */
-#define DRM_FORMAT_UYVY         fourcc_code('U', 'Y', 'V', 'Y') /* [31:0] Y1:Cr0:Y0:Cb0 8:8:8:8 little endian */
-#define DRM_FORMAT_AYUV         fourcc_code('A', 'Y', 'U', 'V') /* [31:0] A:Y:Cb:Cr 8:8:8:8 little endian */
-#define DRM_FORMAT_NV12         fourcc_code('N', 'V', '1', '2') /* 2x2 subsampled Cr:Cb plane */
-#define DRM_FORMAT_NV21         fourcc_code('N', 'V', '2', '1') /* 2x2 subsampled Cb:Cr plane */
-#define DRM_FORMAT_P010         fourcc_code('P', '0', '1', '0') /* 2x2 subsampled Cr:Cb plane 10 bits per channel */
-#define DRM_FORMAT_YUV411       fourcc_code('Y', 'U', '1', '1') /* 4x1 subsampled Cb (1) and Cr (2) planes */
-#define DRM_FORMAT_YUV420       fourcc_code('Y', 'U', '1', '2') /* 2x2 subsampled Cb (1) and Cr (2) planes */
-#define DRM_FORMAT_YVU420       fourcc_code('Y', 'V', '1', '2') /* 2x2 subsampled Cr (1) and Cb (2) planes */
-#define DRM_FORMAT_YUV422       fourcc_code('Y', 'U', '1', '6') /* 2x1 subsampled Cb (1) and Cr (2) planes */
-#define DRM_FORMAT_YUV444       fourcc_code('Y', 'U', '2', '4') /* non-subsampled Cb (1) and Cr (2) planes */
 
 QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo,
                                  const QVideoFrameFormat &frameFormat)
@@ -135,25 +109,27 @@ bool QGstVideoBuffer::isDmaBuf() const
 
 #if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
 
-static int
+using QtMultimediaPrivate::DRMFormat;
+
+static std::optional<DRMFormat>
 fourccFromGstVideoFormat(const GstVideoFormat format, int plane, bool singleEGLImage)
 {
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
-    const gint argb_fourcc = DRM_FORMAT_ARGB8888;
-    const gint rgba_fourcc = DRM_FORMAT_ABGR8888;
-    const gint rgb_fourcc = DRM_FORMAT_BGR888;
-    const gint rg_fourcc = DRM_FORMAT_GR88;
+    constexpr DRMFormat argb_fourcc = DRMFormat::ARGB8888;
+    constexpr DRMFormat rgba_fourcc = DRMFormat::ABGR8888;
+    constexpr DRMFormat rgb_fourcc = DRMFormat::BGR888;
+    constexpr DRMFormat rg_fourcc = DRMFormat::GR88;
 #else
-    const gint argb_fourcc = DRM_FORMAT_BGRA8888;
-    const gint rgba_fourcc = DRM_FORMAT_RGBA8888;
-    const gint rgb_fourcc = DRM_FORMAT_RGB888;
-    const gint rg_fourcc = DRM_FORMAT_RG88;
+    constexpr DRMFormat argb_fourcc = DRMFormat::BGRA8888;
+    constexpr DRMFormat rgba_fourcc = DRMFormat::RGBA8888;
+    constexpr DRMFormat rgb_fourcc = DRMFormat::RGB888;
+    constexpr DRMFormat rg_fourcc = DRMFormat::RG88;
 #endif
 
     switch (format) {
     case GST_VIDEO_FORMAT_RGB16:
     case GST_VIDEO_FORMAT_BGR16:
-        return DRM_FORMAT_RGB565;
+        return DRMFormat::RGB565;
 
     case GST_VIDEO_FORMAT_RGB:
     case GST_VIDEO_FORMAT_BGR:
@@ -164,7 +140,7 @@ fourccFromGstVideoFormat(const GstVideoFormat format, int plane, bool singleEGLI
         return argb_fourcc;
 
     case GST_VIDEO_FORMAT_AYUV:
-        if (singleEGLImage) return DRM_FORMAT_AYUV;
+        if (singleEGLImage) return DRMFormat::AYUV;
         [[fallthrough]];
     case GST_VIDEO_FORMAT_RGBx:
     case GST_VIDEO_FORMAT_RGBA:
@@ -175,52 +151,52 @@ fourccFromGstVideoFormat(const GstVideoFormat format, int plane, bool singleEGLI
         return rgba_fourcc;
 
     case GST_VIDEO_FORMAT_GRAY8:
-        return DRM_FORMAT_R8;
+        return DRMFormat::R8;
 
     case GST_VIDEO_FORMAT_YUY2:
-        return DRM_FORMAT_YUYV;
+        return DRMFormat::YUYV;
 
     case GST_VIDEO_FORMAT_UYVY:
-        return DRM_FORMAT_UYVY;
+        return DRMFormat::UYVY;
 
     case GST_VIDEO_FORMAT_GRAY16_LE:
     case GST_VIDEO_FORMAT_GRAY16_BE:
-        if (singleEGLImage) return DRM_FORMAT_R16;
+        if (singleEGLImage) return DRMFormat::R16;
         return rg_fourcc;
 
     case GST_VIDEO_FORMAT_NV12:
-        if (singleEGLImage) return DRM_FORMAT_NV12;
+        if (singleEGLImage) return DRMFormat::NV12;
         [[fallthrough]];
     case GST_VIDEO_FORMAT_NV21:
-        if (singleEGLImage) return DRM_FORMAT_NV21;
-        return plane == 0 ? DRM_FORMAT_R8 : rg_fourcc;
+        if (singleEGLImage) return DRMFormat::NV21;
+        return plane == 0 ? DRMFormat::R8 : rg_fourcc;
 
     case GST_VIDEO_FORMAT_I420:
-        if (singleEGLImage) return DRM_FORMAT_YUV420;
+        if (singleEGLImage) return DRMFormat::YUV420;
         [[fallthrough]];
     case GST_VIDEO_FORMAT_YV12:
-        if (singleEGLImage) return DRM_FORMAT_YVU420;
+        if (singleEGLImage) return DRMFormat::YVU420;
         [[fallthrough]];
     case GST_VIDEO_FORMAT_Y41B:
-        if (singleEGLImage) return DRM_FORMAT_YUV411;
+        if (singleEGLImage) return DRMFormat::YUV411;
         [[fallthrough]];
     case GST_VIDEO_FORMAT_Y42B:
-        if (singleEGLImage) return DRM_FORMAT_YUV422;
+        if (singleEGLImage) return DRMFormat::YUV422;
         [[fallthrough]];
     case GST_VIDEO_FORMAT_Y444:
-        if (singleEGLImage) return DRM_FORMAT_YUV444;
-        return DRM_FORMAT_R8;
+        if (singleEGLImage) return DRMFormat::YUV444;
+        return DRMFormat::R8;
 
     case GST_VIDEO_FORMAT_BGR10A2_LE:
-        return DRM_FORMAT_BGRA1010102;
+        return DRMFormat::BGRA1010102;
 
     case GST_VIDEO_FORMAT_P010_10LE:
     case GST_VIDEO_FORMAT_P010_10BE:
-        if (singleEGLImage) return DRM_FORMAT_P010;
-        return plane == 0 ? DRM_FORMAT_R16 : DRM_FORMAT_RG1616;
+        if (singleEGLImage) return DRMFormat::P010;
+        return plane == 0 ? DRMFormat::R16 : DRMFormat::RG1616;
 
     default:
-        return -1;
+        return std::nullopt;
     }
 }
 
@@ -396,14 +372,14 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
     const int nEGLImages = singleEGLImage ? 1 : nPlanes;
     std::array<EGLAttrib, maxPlanes> planeFourcc{};
     for (int plane = 0; plane < nEGLImages; ++plane) {
-        const int fourcc = fourccFromGstVideoFormat(format, plane, singleEGLImage);
-        if (fourcc < 0) {
+        const std::optional<DRMFormat> fourcc = fourccFromGstVideoFormat(format, plane, singleEGLImage);
+        if (!fourcc) {
             qCWarning(qLcGstVideoBuffer) << "Unsupported format for DMABuf:"
                                          << gst_video_format_to_string(format) << "plane:" << plane
                                          << "singleEGLImage" << singleEGLImage;
             return {};
         }
-        planeFourcc[plane] = EGLAttrib(fourcc);
+        planeFourcc[plane] = EGLAttrib(quint32(*fourcc));
     }
 
     GlTextures textures = {};
