@@ -282,9 +282,18 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
 
     rhi->makeThreadLocalNativeContextCurrent();
 
-    EGLImage images[4];
+    EGLImage images[4] = {};
     GLuint glTextures[4] = {};
     functions.glGenTextures(nPlanes, glTextures);
+
+    auto releaseTextures = qScopeGuard([&] {
+        for (EGLImage img : images) {
+            if (img)
+                eglDestroyImage(eglDisplay, img);
+        }
+        functions.glDeleteTextures(nPlanes, glTextures);
+    });
+
     for (int i = 0;  i < nPlanes;  ++i) {
 #ifdef VA_EXPORT_USE_LAYERS
 #define LAYER i
@@ -343,6 +352,8 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
         if (error)
             qWarning() << "eglImageTargetTexture2D failed with error code" << error;
     }
+
+    releaseTextures.dismiss();
 
     for (int i = 0;  i < nPlanes;  ++i) {
         functions.glActiveTexture(GL_TEXTURE0 + i);
