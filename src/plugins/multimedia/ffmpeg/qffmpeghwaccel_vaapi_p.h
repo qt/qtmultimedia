@@ -18,8 +18,6 @@
 
 #if QT_CONFIG(vaapi)
 
-#include <qshareddata.h>
-
 QT_BEGIN_NAMESPACE
 
 class QRhi;
