@@ -107,7 +107,8 @@ void tst_QVideoFrameBackend::addMediaPlayerFrameTestData(F &&f)
 
 void tst_QVideoFrameBackend::initTestCase()
 {
-    initIntegrationTestCase();
+    if (!initIntegrationTestCase())
+        return;
 
 #ifdef Q_OS_ANDROID
     qWarning() << "Skip media selection, QTBUG-118571";

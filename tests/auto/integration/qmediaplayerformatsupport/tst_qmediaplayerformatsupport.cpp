@@ -47,7 +47,8 @@ class tst_qmediaplayerformatsupport : public QIntegrationTestBase
 public slots:
     void initTestCase()
     {
-        initIntegrationTestCase();
+        if (!initIntegrationTestCase())
+            return;
 
         QSKIP_IF_NOT_FFMPEG("Test is only intended for FFmpeg backend");
     }

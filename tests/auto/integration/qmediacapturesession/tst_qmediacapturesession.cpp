@@ -53,7 +53,8 @@ class tst_QMediaCaptureSession : public QIntegrationTestBase
 private slots:
     void initTestCase()
     {
-        initIntegrationTestCase();
+        if (!initIntegrationTestCase())
+            return;
     }
 
     void testAudioMute();

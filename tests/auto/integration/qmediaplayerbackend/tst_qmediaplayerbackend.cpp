@@ -399,7 +399,8 @@ bool tst_QMediaPlayerBackend::canCreateRtpStream() const
 
 void tst_QMediaPlayerBackend::initTestCase()
 {
-    initIntegrationTestCase();
+    if (!initIntegrationTestCase())
+        return;
 
     if (qEnvironmentVariable("COIN_PLATFORM_ID") == "macos-15-x86_64-tests")
         QSKIP("Skipping test on macOS 15 x86_64, as it's flaky on CI");

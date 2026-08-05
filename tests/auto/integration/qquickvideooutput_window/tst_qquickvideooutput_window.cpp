@@ -67,7 +67,8 @@ private:
 
 void tst_QQuickVideoOutputWindow::initTestCase()
 {
-    initIntegrationTestCase();
+    if (!initIntegrationTestCase())
+        return;
 
     QQmlComponent component(&m_engine);
     component.loadUrl(QUrl("qrc:/main.qml"));

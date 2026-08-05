@@ -101,7 +101,11 @@ public slots:
     void cleanupTestCase();
 
 private slots:
-    void initTestCase() { initIntegrationTestCase(); }
+    void initTestCase()
+    {
+        if (!initIntegrationTestCase())
+            return;
+    }
 
     void record_createsFileWithExpectedExtension_whenRecordingAudio_data();
     void record_createsFileWithExpectedExtension_whenRecordingAudio();

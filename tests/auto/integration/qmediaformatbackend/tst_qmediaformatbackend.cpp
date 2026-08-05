@@ -700,7 +700,8 @@ class tst_qmediaformatbackend : public QIntegrationTestBase
 private slots:
     void initTestCase()
     {
-        initIntegrationTestCase();
+        if (!initIntegrationTestCase())
+            return;
     }
 
     void isSupported_returnsTrue_whenFormatAndVideoCodecIsSupported_data()

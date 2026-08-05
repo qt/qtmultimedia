@@ -28,7 +28,8 @@ class tst_qmediaplayer_concurrent : public QIntegrationTestBase
 private Q_SLOTS:
     void initTestCase()
     {
-        initIntegrationTestCase();
+        if (!initIntegrationTestCase())
+            return;
     }
 
     // Verify that QMediaPlayer plays sound and does not cause asserts when
