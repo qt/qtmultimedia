@@ -164,7 +164,7 @@ EM_JS(EM_VAL, qt_sink_createWorkletNode,
     var node = new AudioWorkletNode(ctx, 'qt-audio-sink', {
         numberOfInputs: 0,
         numberOfOutputs: 1,
-        outputChannelCounts: [channels],
+        outputChannelCount: [channels],
         processorOptions: params
     });
     return Emval.toHandle(node);
@@ -246,7 +246,7 @@ EM_JS(EM_VAL, qt_st_sink_createWorkletNode,
     var node = new AudioWorkletNode(Emval.toValue(ctxHandle), 'qt-audio-sink', {
         numberOfInputs: 0,
         numberOfOutputs: 1,
-        outputChannelCounts: [channels],
+        outputChannelCount: [channels],
         processorOptions: { channels: channels }
     });
     node.port.onmessage = function() { Module._qt_sinkDeliverData(callbackId); };
