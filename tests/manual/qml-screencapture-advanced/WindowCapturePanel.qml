@@ -195,6 +195,11 @@ GridLayout {
         }
 
         Label {
+            readonly property size frameSize: windowCaptureVideoOutput.videoSink.videoSize
+            text: "Last frame size: " + frameSize.width + "x" + frameSize.height
+        }
+
+        Label {
             Layout.preferredWidth: root.preferredLeftWidth
             wrapMode: Text.WordWrap
             text: "Error: " + capture.errorLabel
