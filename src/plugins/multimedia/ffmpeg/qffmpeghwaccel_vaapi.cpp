@@ -3,32 +3,22 @@
 
 #include "qffmpeghwaccel_vaapi_p.h"
 
-#if !QT_CONFIG(vaapi)
-#error "Configuration error"
-#endif
-
-#include <va/va.h>
-
-#include <qvideoframeformat.h>
 #include "qffmpegvideobuffer_p.h"
-#include "private/qvideotexturehelper_p.h"
-
-#include <rhi/qrhi.h>
-
-#include <qguiapplication.h>
-#include <qpa/qplatformnativeinterface.h>
-
-#include <qopenglfunctions.h>
 
 #include <QtMultimedia/private/qmultimedia_drm_support_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
 
-//#define VA_EXPORT_USE_LAYERS
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qopenglfunctions.h>
+#include <QtGui/qpa/qplatformnativeinterface.h>
+
+#include <QtCore/qloggingcategory.h>
 
 extern "C" {
 #include <libavutil/hwcontext_vaapi.h>
 }
 
-#include <va/va_drm.h>
+#include <va/va.h>
 #include <va/va_drmcommon.h>
 
 #include <EGL/egl.h>
@@ -36,7 +26,7 @@ extern "C" {
 
 #include <unistd.h>
 
-#include <qloggingcategory.h>
+static_assert(QT_CONFIG(vaapi));
 
 QT_BEGIN_NAMESPACE
 
@@ -45,6 +35,8 @@ Q_STATIC_LOGGING_CATEGORY(qLHWAccelVAAPI, "qt.multimedia.ffmpeg.hwaccelvaapi");
 namespace QFFmpeg {
 
 using QtMultimediaPrivate::DRMFormat;
+
+constexpr bool VAExportUseLayers = false;
 
 namespace {
 class VAAPITextureHandles : public QVideoFrameTexturesHandles
@@ -59,7 +51,7 @@ public:
     QRhi *rhi = nullptr;
     QOpenGLContext *glContext = nullptr;
     int nPlanes = 0;
-    GLuint textures[4] = {};
+    std::array<GLuint, 4> textures = {};
 };
 } // namespace
 
@@ -80,10 +72,10 @@ VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
         qCDebug(qLHWAccelVAAPI) << "    no GL context, disabling";
         return;
     }
-    const QString platform = QGuiApplication::platformName();
+
     QPlatformNativeInterface *pni = QGuiApplication::platformNativeInterface();
     eglDisplay = pni->nativeResourceForIntegration(QByteArrayLiteral("egldisplay"));
-    qCDebug(qLHWAccelVAAPI) << "     platform is" << platform << eglDisplay;
+    qCDebug(qLHWAccelVAAPI) << "     platform is" << QGuiApplication::platformName() << eglDisplay;
     if (!eglDisplay) {
         qCDebug(qLHWAccelVAAPI) << "    no egl display, disabling";
         return;
@@ -101,7 +93,6 @@ VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
 
 VAAPITextureConverter::~VAAPITextureConverter() = default;
 
-//#define VA_EXPORT_USE_LAYERS
 QVideoFrameTexturesHandlesUPtr
 VAAPITextureConverter::createTextureHandles(AVFrame *frame,
                                             QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
@@ -129,16 +120,12 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
     VASurfaceID vaSurface = (uintptr_t)frame->data[3];
 
     VADRMPRIMESurfaceDescriptor prime = {};
-    if (vaExportSurfaceHandle(vaDisplay, vaSurface,
-                              VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
-                              VA_EXPORT_SURFACE_READ_ONLY |
-#ifdef VA_EXPORT_USE_LAYERS
-                                  VA_EXPORT_SURFACE_SEPARATE_LAYERS,
-#else
-                                  VA_EXPORT_SURFACE_COMPOSED_LAYERS,
-#endif
-                              &prime) != VA_STATUS_SUCCESS)
-    {
+    if (vaExportSurfaceHandle(vaDisplay, vaSurface, VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
+                              VA_EXPORT_SURFACE_READ_ONLY
+                                      | (VAExportUseLayers ? VA_EXPORT_SURFACE_SEPARATE_LAYERS
+                                                           : VA_EXPORT_SURFACE_COMPOSED_LAYERS),
+                              &prime)
+        != VA_STATUS_SUCCESS) {
         qWarning() << "vaExportSurfaceHandle failed";
         return nullptr;
     }
@@ -174,43 +161,41 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
 
     rhi->makeThreadLocalNativeContextCurrent();
 
-    EGLImage images[4] = {};
-    GLuint glTextures[4] = {};
-    functions.glGenTextures(nPlanes, glTextures);
+    std::array<EGLImage, 4> images = {};
+    std::array<GLuint, 4> glTextures = {};
+    functions.glGenTextures(nPlanes, glTextures.data());
 
     auto releaseTextures = qScopeGuard([&] {
         for (EGLImage img : images) {
             if (img)
                 eglDestroyImage(eglDisplay, img);
         }
-        functions.glDeleteTextures(nPlanes, glTextures);
+        functions.glDeleteTextures(nPlanes, glTextures.data());
     });
 
     for (int i = 0;  i < nPlanes;  ++i) {
-#ifdef VA_EXPORT_USE_LAYERS
-#define LAYER i
-#define PLANE 0
-        if (prime.layers[i].drm_format != quint32(drm_formats[i])) {
-            qWarning() << "expected DRM format check failed expected" << Qt::hex
-                       << quint32(drm_formats[i]) << "got" << prime.layers[i].drm_format;
+        const int layer = VAExportUseLayers ? i : 0;
+        const int plane = VAExportUseLayers ? 0 : i;
+
+        if constexpr (VAExportUseLayers) {
+            if (prime.layers[i].drm_format != quint32(drm_formats[i])) {
+                qWarning() << "expected DRM format check failed expected" << Qt::hex
+                           << quint32(drm_formats[i]) << "got" << prime.layers[i].drm_format;
+            }
         }
-#else
-#define LAYER 0
-#define PLANE i
-#endif
 
         QSize planeSize = desc->rhiPlaneSize(QSize(frame->width, frame->height), i, rhi);
         constexpr uint32_t maxAttrCount = 18;
         EGLAttrib img_attr[maxAttrCount] = {
-            EGL_LINUX_DRM_FOURCC_EXT,      (EGLint)quint32(drm_formats[i]),
+            EGL_LINUX_DRM_FOURCC_EXT,      EGLint(drm_formats[i]),
             EGL_WIDTH,                     planeSize.width(),
             EGL_HEIGHT,                    planeSize.height(),
-            EGL_DMA_BUF_PLANE0_FD_EXT,     prime.objects[prime.layers[LAYER].object_index[PLANE]].fd,
-            EGL_DMA_BUF_PLANE0_OFFSET_EXT, (EGLint)prime.layers[LAYER].offset[PLANE],
-            EGL_DMA_BUF_PLANE0_PITCH_EXT,  (EGLint)prime.layers[LAYER].pitch[PLANE],
+            EGL_DMA_BUF_PLANE0_FD_EXT,     prime.objects[prime.layers[layer].object_index[plane]].fd,
+            EGL_DMA_BUF_PLANE0_OFFSET_EXT, (EGLint)prime.layers[layer].offset[plane],
+            EGL_DMA_BUF_PLANE0_PITCH_EXT,  (EGLint)prime.layers[layer].pitch[plane],
         };
         uint32_t img_attr_idx = 12;
-        uint64_t modifier = prime.objects[prime.layers[LAYER].object_index[PLANE]].drm_format_modifier;
+        uint64_t modifier = prime.objects[prime.layers[layer].object_index[plane]].drm_format_modifier;
         if (modifier != QtMultimediaPrivate::DmaBufFormatModifierInvalid) {
             img_attr[img_attr_idx++] = EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT;
             img_attr[img_attr_idx++] = modifier & 0xFFFFFFFF;
@@ -258,10 +243,8 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
     textureHandles->nPlanes = nPlanes;
     textureHandles->rhi = rhi;
     textureHandles->glContext = glContext;
-
-    for (int i = 0; i < 4; ++i)
-        textureHandles->textures[i] = glTextures[i];
-//        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel: got textures" << textures[0] << textures[1] << textures[2] << textures[3];
+    textureHandles->textures = glTextures;
+    //        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel: got textures" << textures[0] << textures[1] << textures[2] << textures[3];
 
     return textureHandles;
 }
@@ -271,7 +254,7 @@ VAAPITextureHandles::~VAAPITextureHandles()
     if (rhi) {
         rhi->makeThreadLocalNativeContextCurrent();
         QOpenGLFunctions functions(glContext);
-        functions.glDeleteTextures(nPlanes, textures);
+        functions.glDeleteTextures(nPlanes, textures.data());
     }
 }
 

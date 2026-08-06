@@ -16,7 +16,7 @@
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 
-#if QT_CONFIG(vaapi)
+static_assert(QT_CONFIG(vaapi));
 
 QT_BEGIN_NAMESPACE
 
@@ -41,7 +41,5 @@ public:
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE
-
-#endif
 
 #endif
