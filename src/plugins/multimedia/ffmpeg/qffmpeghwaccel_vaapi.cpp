@@ -21,9 +21,6 @@ extern "C" {
 #include <va/va.h>
 #include <va/va_drmcommon.h>
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-
 #include <unistd.h>
 
 static_assert(QT_CONFIG(vaapi));
@@ -38,52 +35,13 @@ using QtMultimediaPrivate::DRMFormat;
 
 constexpr bool VAExportUseLayers = false;
 
-namespace {
-class VAAPITextureHandles : public QVideoFrameTexturesHandles
-{
-public:
-    ~VAAPITextureHandles() override;
-    quint64 textureHandle(QRhi &, int plane) override {
-        return textures[plane];
-    }
-
-    TextureConverterBackendPtr parentConverterBackend; // ensures the backend is deleted after the texture
-    QRhi *rhi = nullptr;
-    QOpenGLContext *glContext = nullptr;
-    int nPlanes = 0;
-    std::array<GLuint, 4> textures = {};
-};
-} // namespace
-
 VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
-    : TextureConverterBackend(nullptr)
+    : TextureConverterBackend(nullptr), eglContext(rhi)
 {
     qCDebug(qLHWAccelVAAPI) << ">>>> Creating VAAPI HW accelerator";
 
-    if (!rhi || rhi->backend() != QRhi::OpenGLES2) {
-        qWarning() << "VAAPITextureConverter: No rhi or non openGL based RHI";
+    if (!eglContext.isValid()) {
         this->rhi = nullptr;
-        return;
-    }
-
-    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
-    glContext = nativeHandles->context;
-    if (!glContext) {
-        qCDebug(qLHWAccelVAAPI) << "    no GL context, disabling";
-        return;
-    }
-
-    QPlatformNativeInterface *pni = QGuiApplication::platformNativeInterface();
-    eglDisplay = pni->nativeResourceForIntegration(QByteArrayLiteral("egldisplay"));
-    qCDebug(qLHWAccelVAAPI) << "     platform is" << QGuiApplication::platformName() << eglDisplay;
-    if (!eglDisplay) {
-        qCDebug(qLHWAccelVAAPI) << "    no egl display, disabling";
-        return;
-    }
-
-    eglImageTargetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
-    if (!eglImageTargetTexture2D) {
-        qCDebug(qLHWAccelVAAPI) << "    no eglImageTargetTexture2D, disabling";
         return;
     }
 
@@ -98,8 +56,8 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
                                             QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
 {
     //        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel::createTextureHandles";
-    if (frame->format != AV_PIX_FMT_VAAPI || !eglDisplay) {
-        qCDebug(qLHWAccelVAAPI) << "format/egl error" << frame->format << eglDisplay;
+    if (frame->format != AV_PIX_FMT_VAAPI || !eglContext.eglDisplay()) {
+        qCDebug(qLHWAccelVAAPI) << "format/egl error" << frame->format << eglContext.eglDisplay();
         return nullptr;
     }
 
@@ -142,8 +100,6 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
 //        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel: vaSufraceDesc: width/height" << prime.width << prime.height << "num objects"
 //                 << prime.num_objects << "num layers" << prime.num_layers;
 
-    QOpenGLFunctions functions(glContext);
-
     AVPixelFormat fmt = HWAccel::format(frame);
     bool needsConversion;
     auto qtFormat = QFFmpegVideoBuffer::toQtPixelFormat(fmt, &needsConversion);
@@ -159,20 +115,7 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
     nPlanes = desc->nplanes;
 //        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel: nPlanes" << nPlanes;
 
-    rhi->makeThreadLocalNativeContextCurrent();
-
-    std::array<EGLImage, 4> images = {};
-    std::array<GLuint, 4> glTextures = {};
-    functions.glGenTextures(nPlanes, glTextures.data());
-
-    auto releaseTextures = qScopeGuard([&] {
-        for (EGLImage img : images) {
-            if (img)
-                eglDestroyImage(eglDisplay, img);
-        }
-        functions.glDeleteTextures(nPlanes, glTextures.data());
-    });
-
+    DmaBufPlane planes[4];
     for (int i = 0;  i < nPlanes;  ++i) {
         const int layer = VAExportUseLayers ? i : 0;
         const int plane = VAExportUseLayers ? 0 : i;
@@ -184,78 +127,26 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
             }
         }
 
-        QSize planeSize = desc->rhiPlaneSize(QSize(frame->width, frame->height), i, rhi);
-        constexpr uint32_t maxAttrCount = 18;
-        EGLAttrib img_attr[maxAttrCount] = {
-            EGL_LINUX_DRM_FOURCC_EXT,      EGLint(drm_formats[i]),
-            EGL_WIDTH,                     planeSize.width(),
-            EGL_HEIGHT,                    planeSize.height(),
-            EGL_DMA_BUF_PLANE0_FD_EXT,     prime.objects[prime.layers[layer].object_index[plane]].fd,
-            EGL_DMA_BUF_PLANE0_OFFSET_EXT, (EGLint)prime.layers[layer].offset[plane],
-            EGL_DMA_BUF_PLANE0_PITCH_EXT,  (EGLint)prime.layers[layer].pitch[plane],
-        };
-        uint32_t img_attr_idx = 12;
-        uint64_t modifier = prime.objects[prime.layers[layer].object_index[plane]].drm_format_modifier;
-        if (modifier != QtMultimediaPrivate::DmaBufFormatModifierInvalid) {
-            img_attr[img_attr_idx++] = EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT;
-            img_attr[img_attr_idx++] = modifier & 0xFFFFFFFF;
-            img_attr[img_attr_idx++] = EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT;
-            img_attr[img_attr_idx++] = modifier >> 32;
+        planes[i].fd = prime.objects[prime.layers[layer].object_index[plane]].fd;
+        planes[i].offset = prime.layers[layer].offset[plane];
+        planes[i].pitch = prime.layers[layer].pitch[plane];
+        planes[i].drmFormat = drm_formats[i];
+        planes[i].modifier =
+                prime.objects[prime.layers[layer].object_index[plane]].drm_format_modifier;
+    }
+
+    auto textureHandles =
+            importDmaBufTextures(*rhi, eglContext, QSpan(planes, nPlanes), qtFormat,
+                                 QSize(frame->width, frame->height), shared_from_this());
+    if (!textureHandles) {
+        if (textureHandles.error() == FailureSeverity::unrecoverable) {
+            qWarning() << "VAAPI driver:" << vaQueryVendorString(vaDisplay);
+            this->rhi = nullptr; // Disabling texture conversion here to fix QTBUG-112312
         }
-        img_attr[img_attr_idx++] = EGL_NONE;
-        Q_ASSERT(img_attr_idx <= maxAttrCount);
-        images[i] = eglCreateImage(eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, img_attr);
-        if (!images[i]) {
-            const GLenum error = eglGetError();
-            if (error == EGL_BAD_MATCH) {
-                qWarning() << "eglCreateImage failed for plane" << i << "with error code EGL_BAD_MATCH, "
-                              "disabling hardware acceleration. This could indicate an EGL implementation issue."
-                              "\nVAAPI driver: " << vaQueryVendorString(vaDisplay)
-                           << "\nEGL vendor:" << eglQueryString(eglDisplay, EGL_VENDOR);
-                this->rhi = nullptr; // Disabling texture conversion here to fix QTBUG-112312
-                return nullptr;
-            }
-            if (error) {
-                qWarning() << "eglCreateImage failed for plane" << i << "with error code" << error;
-                return nullptr;
-            }
-        }
-        functions.glActiveTexture(GL_TEXTURE0 + i);
-        functions.glBindTexture(GL_TEXTURE_2D, glTextures[i]);
-
-        PFNGLEGLIMAGETARGETTEXTURE2DOESPROC eglImageTargetTexture2D = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)this->eglImageTargetTexture2D;
-        eglImageTargetTexture2D(GL_TEXTURE_2D, images[i]);
-        GLenum error = glGetError();
-        if (error)
-            qWarning() << "eglImageTargetTexture2D failed with error code" << error;
+        return nullptr;
     }
 
-    releaseTextures.dismiss();
-
-    for (int i = 0;  i < nPlanes;  ++i) {
-        functions.glActiveTexture(GL_TEXTURE0 + i);
-        functions.glBindTexture(GL_TEXTURE_2D, 0);
-        eglDestroyImage(eglDisplay, images[i]);
-    }
-
-    auto textureHandles = std::make_unique<VAAPITextureHandles>();
-    textureHandles->parentConverterBackend = shared_from_this();
-    textureHandles->nPlanes = nPlanes;
-    textureHandles->rhi = rhi;
-    textureHandles->glContext = glContext;
-    textureHandles->textures = glTextures;
-    //        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel: got textures" << textures[0] << textures[1] << textures[2] << textures[3];
-
-    return textureHandles;
-}
-
-VAAPITextureHandles::~VAAPITextureHandles()
-{
-    if (rhi) {
-        rhi->makeThreadLocalNativeContextCurrent();
-        QOpenGLFunctions functions(glContext);
-        functions.glDeleteTextures(nPlanes, textures.data());
-    }
+    return std::move(*textureHandles);
 }
 
 } // namespace QFFmpeg

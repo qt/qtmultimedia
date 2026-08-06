@@ -568,6 +568,10 @@ inline constexpr impl::values_tag values{};
 
 #endif
 
+inline constexpr auto filter_nonnull = views::filter([](const auto &arg) {
+    return bool(arg);
+});
+
 } // namespace QtMultimediaPrivate::views
 
 QT_END_NAMESPACE

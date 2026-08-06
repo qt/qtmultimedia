@@ -35,3 +35,8 @@ qt_internal_add_module(MultimediaTestLibPrivate
     NO_GENERATE_CPP_EXPORTS
     QT_LICENSE_ID QT_COMMERCIAL_OR_GPL3
 )
+
+qt_internal_extend_target(MultimediaTestLibPrivate CONDITION LINUX
+    SOURCES
+        udmabuftestutils_p.h udmabuftestutils.cpp
+)

@@ -166,6 +166,13 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_network
         Qt::Network
 )
 
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_linux_dmabuf
+    SOURCES
+        video/qdmabuftextureimporter.cpp video/qdmabuftextureimporter_p.h
+    LIBRARIES
+        EGL::EGL
+)
+
 qt_internal_extend_target(Multimedia
     CONDITION (LINUX OR ANDROID) AND QT_FEATURE_library
     SOURCES qsymbolsresolveutils.cpp qsymbolsresolveutils_p.h)
