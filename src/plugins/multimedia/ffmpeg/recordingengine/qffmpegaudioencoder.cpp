@@ -35,7 +35,12 @@ void setupStreamParameters(AVStream *stream, const Codec &codec,
     const auto sampleRate = adjustSampleRate(sampleRates, requestedAudioFormat.sampleRate);
 
     stream->codecpar->sample_rate = sampleRate;
-    stream->codecpar->frame_size = 1024;
+    // Codecs with a variable frame size (e.g. PCM) must keep frame_size at 0;
+    // FFmpeg 9 rejects any frame whose nb_samples exceeds a non-zero frame_size,
+    // even for such codecs. Codecs with a fixed frame size determine and set
+    // their own frame_size during avcodec_open2, overriding this default.
+    if (!(codec.capabilities() & AV_CODEC_CAP_VARIABLE_FRAME_SIZE))
+        stream->codecpar->frame_size = 1024;
     const auto sampleFormats = codec.sampleFormats();
     stream->codecpar->format = adjustSampleFormat(sampleFormats, requestedAudioFormat.sampleFormat);
 
