@@ -87,6 +87,9 @@ QVideoFrameFormat::PixelFormat pixelFormatFor(Camera_Format format)
 #if OH_CURRENT_API_VERSION >= 24
     case CAMERA_FORMAT_DNG:
 #endif
+#if OH_CURRENT_API_VERSION >= 26
+    case CAMERA_FORMAT_DNG_XDRAW:
+#endif
         break;
     }
     return QVideoFrameFormat::Format_Invalid;
