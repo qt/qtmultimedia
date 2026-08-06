@@ -24,6 +24,22 @@ TestWidget::TestWidget(const QString &uuid, QScreen *screen)
     // This allows us to do pixel-perfect matching of captured content.
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     setFixedSize(60, 40);
+
+    // Detect when the test application loses the foreground while a capture
+    // window is visible (e.g. the user clicks another app during a local run).
+    // This can silently affect capture results, so make it visible in the test
+    // output.
+    connect(
+        qApp,
+        &QGuiApplication::applicationStateChanged,
+        this,
+        [this](Qt::ApplicationState state) {
+            if (state != Qt::ApplicationActive && isVisible() && !isMinimized()) {
+                qCritical() << "Test application lost the foreground while test window"
+                            << windowTitle()
+                            << "was visible. This can affect test results.";
+            }
+        });
 }
 
 void TestWidget::setDisplayPattern(Pattern p)
@@ -76,6 +92,22 @@ void TestWidget::paintEvent(QPaintEvent *)
         if (QWindow *window = windowHandle())
             window->requestUpdate();
     }
+}
+
+void TestWidget::changeEvent(QEvent *event)
+{
+    switch (event->type()) {
+    case QEvent::WindowStateChange:
+        if (windowState() & Qt::WindowMinimized) {
+            qCritical() << "Test window" << windowTitle()
+                        << "was minimized during the test. This can affect window capture results";
+        }
+        break;
+    default:
+        break;
+    }
+
+    QWidget::changeEvent(event);
 }
 
 void TestWidget::drawColoredSquares(QPainter &p) const
