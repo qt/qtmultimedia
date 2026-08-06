@@ -76,7 +76,7 @@ QT_END_NAMESPACE
     QT_PREPEND_NAMESPACE(QFFmpeg::QMacScreenCaptureKit) *m_qScreenCaptureKit;
 
     // Used to track when the underlying window size changed, in pixel-coordinates.
-    std::optional<QSize> m_previousFrameContentRect;
+    QSize m_previousFrameContentRect;
     std::chrono::microseconds m_startTime;
     std::optional<std::chrono::microseconds> m_baseTime;
     std::unique_ptr<QT_PREPEND_NAMESPACE(QFFmpeg::HWAccel)> m_hwAccel;
@@ -265,10 +265,7 @@ static void handleFrameOutput(
     // been minimized while capturing it. We keep the stream unchanged so that it
     // is automatically resumed when the window is restored.
     if (!frameInfo.contentRect.isEmpty()) {
-        bool newContentRectIsDifferent =
-            streamOutput.m_previousFrameContentRect
-            && *streamOutput.m_previousFrameContentRect != frameInfo.contentRect;
-        if (newContentRectIsDifferent)
+        if (streamOutput.m_previousFrameContentRect != frameInfo.contentRect)
             streamOutput.m_qScreenCaptureKit->updateStream(frameInfo.contentRect);
 
         streamOutput.m_previousFrameContentRect = frameInfo.contentRect;
@@ -311,6 +308,8 @@ createStreamOutput(
     auto streamOutput = AVFScopedPointer{ [[QMacScreenCaptureStreamOutput alloc] init] };
 
     streamOutput.data()->m_qScreenCaptureKit = &macScreenCaptureKit;
+
+    streamOutput.data()->m_previousFrameContentRect = resolution;
 
     streamOutput.data()->m_hwAccel = HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
     if (!streamOutput.data()->m_hwAccel)
