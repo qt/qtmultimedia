@@ -116,8 +116,6 @@ if (QT_FEATURE_vaapi)
         NO_UNITY_BUILD_SOURCES
             # Conflicts with macros defined in X11.h, and Xlib.h
             qffmpeghwaccel_vaapi.cpp
-        LIBRARIES
-            EGL::EGL
     )
 
     list(FIND FFMPEG_STUBS "va" va_stub_index)
