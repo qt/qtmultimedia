@@ -17,7 +17,7 @@ qt_internal_multimedia_add_test(tst_qmediaplayerformatsupport
         testdata/containers/supported/container.mp4
         testdata/containers/supported/container.mpeg
         testdata/containers/supported/container.wmv
-        testdata/containers/unsupported/container.webp
+        testdata/containers/supported/container.webp
         testdata/flipable.gif
         testdata/pixel_formats/supported/h264_bgr0.mp4
         testdata/pixel_formats/supported/h264_bgr24.mp4
