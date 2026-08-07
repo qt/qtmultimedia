@@ -47,7 +47,6 @@ bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
     case QVideoFrameFormat::Format_P010: // TODO: Fails on Android
     case QVideoFrameFormat::Format_P016: // TODO: Fails on Android
     case QVideoFrameFormat::Format_SamplerExternalOES:
-    case QVideoFrameFormat::Format_Jpeg:
     case QVideoFrameFormat::Format_SamplerRect:
         return false;
     default:
@@ -388,27 +387,43 @@ void tst_QMediaRecorderBackend::record_stopsRecording_whenInputsReportedEndOfStr
 
 void tst_QMediaRecorderBackend::record_writesVideo_withoutTransforms_whenPresentationTransformsPresent_data()
 {
+    QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
     QTest::addColumn<QtVideo::Rotation>("presentationRotation");
     QTest::addColumn<bool>("presentationMirrored");
 
-    QTest::addRow("No rotation, not mirrored") << QtVideo::Rotation::None << false;
-    QTest::addRow("90 degrees, not mirrored") << QtVideo::Rotation::Clockwise90 << false;
-    QTest::addRow("180 degrees, not mirrored") << QtVideo::Rotation::Clockwise180 << false;
-    QTest::addRow("270 degrees, not mirrored") << QtVideo::Rotation::Clockwise270 << false;
-    QTest::addRow("No rotation, mirrored") << QtVideo::Rotation::None << true;
-    QTest::addRow("90 degrees, mirrored") << QtVideo::Rotation::Clockwise90 << true;
-    QTest::addRow("180 degrees, mirrored") << QtVideo::Rotation::Clockwise180 << true;
-    QTest::addRow("270 degrees, mirrored") << QtVideo::Rotation::Clockwise270 << true;
+    const std::array pixelFormats = { QVideoFrameFormat::Format_BGRA8888,
+                                      QVideoFrameFormat::Format_Jpeg };
+
+    for (const QVideoFrameFormat::PixelFormat pixelFormat : pixelFormats) {
+        const QByteArray formatName =
+                QVideoFrameFormat::pixelFormatToString(pixelFormat).toLatin1();
+
+        auto addRow = [&](const char *description, QtVideo::Rotation rotation, bool mirrored) {
+            QTest::addRow("%s, %s", formatName.data(), description)
+                    << pixelFormat << rotation << mirrored;
+        };
+
+        addRow("No rotation, not mirrored", QtVideo::Rotation::None, false);
+        addRow("90 degrees, not mirrored", QtVideo::Rotation::Clockwise90, false);
+        addRow("180 degrees, not mirrored", QtVideo::Rotation::Clockwise180, false);
+        addRow("270 degrees, not mirrored", QtVideo::Rotation::Clockwise270, false);
+        addRow("No rotation, mirrored", QtVideo::Rotation::None, true);
+        addRow("90 degrees, mirrored", QtVideo::Rotation::Clockwise90, true);
+        addRow("180 degrees, mirrored", QtVideo::Rotation::Clockwise180, true);
+        addRow("270 degrees, mirrored", QtVideo::Rotation::Clockwise270, true);
+    }
 }
 
 void tst_QMediaRecorderBackend::record_writesVideo_withoutTransforms_whenPresentationTransformsPresent()
 {
     QSKIP_IF_NOT_FFMPEG();
 
+    QFETCH(const QVideoFrameFormat::PixelFormat, pixelFormat);
     QFETCH(const QtVideo::Rotation, presentationRotation);
     QFETCH(const bool, presentationMirrored);
 
     CaptureSessionFixture f{ StreamType::Video };
+    f.m_videoGenerator.setPixelFormat(pixelFormat);
     f.m_videoGenerator.setPattern(ImagePattern::ColoredSquares);
     f.m_videoGenerator.setFrameCount(3);
 
