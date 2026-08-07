@@ -166,21 +166,14 @@ static bool updateTextures(QRhi *rhi,
     return true;
 }
 
-static QImage convertJPEG(const QVideoFrame &frame, const VideoTransformation &transform)
+QSpan<const uchar> jpegDataFromMappedVideoFrame(const QVideoFrame &mappedFrame)
 {
-    QVideoFrame varFrame = frame;
-    if (!varFrame.map(QVideoFrame::ReadOnly)) {
-        qCDebug(qLcVideoFrameConverter) << Q_FUNC_INFO << ": frame mapping failed";
-        return {};
-    }
+    Q_ASSERT(mappedFrame.isReadable());
+    Q_ASSERT(mappedFrame.pixelFormat() == QVideoFrameFormat::PixelFormat::Format_Jpeg);
 
-    auto unmap = std::optional(QScopeGuard([&] {
-        varFrame.unmap();
-    }));
-
-    QSpan<uchar> jpegData{
-        varFrame.bits(0),
-        varFrame.mappedBytes(0),
+    QSpan<const uchar> jpegData{
+        mappedFrame.bits(0),
+        mappedFrame.mappedBytes(0),
     };
 
     using namespace QtMultimediaPrivate;
@@ -189,7 +182,7 @@ static QImage convertJPEG(const QVideoFrame &frame, const VideoTransformation &t
     if (!ranges::equal(take(jpegData, 2), soiMarker, std::equal_to<void>{})) {
         qCDebug(qLcVideoFrameConverter)
                 << Q_FUNC_INFO << ": JPEG data does not start with SOI marker";
-        return QImage{};
+        return {};
     }
 
     constexpr std::array<uchar, 2> eoiMarker{ uchar(0xff), uchar(0xd9) };
@@ -205,12 +198,31 @@ static QImage convertJPEG(const QVideoFrame &frame, const VideoTransformation &t
         if (eoi_it == jpegData.end()) {
             qCWarning(qLcVideoFrameConverter)
                     << Q_FUNC_INFO << ": JPEG data does not contain EOI marker";
-            return QImage{};
+            return {};
         };
 
         const size_t newSize = std::distance(jpegData.begin(), eoi_it) + std::size(eoiMarker);
         jpegData = jpegData.first(newSize);
     }
+
+    return jpegData;
+}
+
+static QImage convertJPEG(const QVideoFrame &frame, const VideoTransformation &transform)
+{
+    QVideoFrame varFrame = frame;
+    if (!varFrame.map(QVideoFrame::ReadOnly)) {
+        qCDebug(qLcVideoFrameConverter) << Q_FUNC_INFO << ": frame mapping failed";
+        return {};
+    }
+
+    auto unmap = std::optional(QScopeGuard([&] {
+        varFrame.unmap();
+    }));
+
+    const QSpan<const uchar> jpegData = jpegDataFromMappedVideoFrame(varFrame);
+    if (jpegData.isEmpty())
+        return QImage{};
 
     QImage image = QImage::fromData(jpegData, "JPG");
     unmap = std::nullopt; // Release unmap guard
