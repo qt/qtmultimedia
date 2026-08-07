@@ -3,7 +3,11 @@
 
 #include "framegenerator_p.h"
 
-#include <private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+
+#include <QtCore/qbuffer.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -77,6 +81,23 @@ static void fillColoredSquares(QImage& image)
     }
 }
 
+static QVideoFrame createJpegFrame(const QImage &image, QSize size)
+{
+    QByteArray jpegData;
+    QBuffer buffer(&jpegData);
+    if (!buffer.open(QIODevice::WriteOnly))
+        return {};
+
+    // Maximum quality, so that the comparison against the source image stays meaningful
+    if (!image.save(&buffer, "JPG", 100))
+        return {};
+
+    // JPEG frames hold the compressed data in a single plane without a line stride
+    auto videoBuffer = std::make_unique<QMemoryVideoBuffer>(std::move(jpegData), -1);
+    return QVideoFramePrivate::createFrame(std::move(videoBuffer),
+                                           QVideoFrameFormat(size, QVideoFrameFormat::Format_Jpeg));
+}
+
 QVideoFrame VideoGenerator::createFrame()
 {
     using namespace std::chrono;
@@ -91,10 +112,14 @@ QVideoFrame VideoGenerator::createFrame()
         break;
     }
 
-    QVideoFrame rgbFrame(image);
-    QVideoFrameFormat outputFormat { m_size, m_pixelFormat };
-    QVideoFrame frame =
-            QPlatformMediaIntegration::instance()->convertVideoFrame(rgbFrame, outputFormat);
+    QVideoFrame frame;
+    if (m_pixelFormat == QVideoFrameFormat::Format_Jpeg) {
+        frame = createJpegFrame(image, m_size);
+    } else {
+        QVideoFrame rgbFrame(image);
+        QVideoFrameFormat outputFormat{ m_size, m_pixelFormat };
+        frame = QPlatformMediaIntegration::instance()->convertVideoFrame(rgbFrame, outputFormat);
+    }
 
     if (m_frameRate)
         frame.setStreamFrameRate(*m_frameRate);
